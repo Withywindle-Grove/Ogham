@@ -328,23 +328,48 @@ describe("the players' place card on the page (P4)", () => {
     return { ...t, registry };
   }
 
-  // Purpose: once the jetty is shown and the GM has shared one section of the Area, the right column holds the Area's
-  // card with that section's row ("Shared, turn N." or "Shared."), with no heading (the Area was never shown) and nothing
-  // of the section not shared.
-  it('shows the shared section on the Area card, and nothing of what was not shared', async () => {
+  // Purpose (ppf-6, ppf-1, ppf-6 a): once the jetty is shown and the GM has shared one section of the Area, the left
+  // column holds the Location's card ("1. The Jetty" under the trail, in place of today's place line) and the right the
+  // Area's card, headed by the Area's name (shown with its Location), with the section's row and its turn ("Shared,
+  // turn N."), and nothing of the section not shared.
+  it("shows the Location's card, and the shared section on the Area card, and nothing of what was not shared", async () => {
     const t = await packTable();
     const visit = (await loadGroupPlaces(world.db, t.campaign, (world.tables.expeditions[0] as { id: string }).id))!.get(1)!;
     expect((await runCommand(t.registry, world.db, t.users.gm, showPiece, { campaignId: t.campaign, row: visit, piece: visit.pieces[0]! })).ok).toBe(true);
     const { setKnowledgeShare } = await import('../modules/expedition/placeKnowledge.ts');
     expect((await runCommand(t.registry, world.db, t.users.gm, setKnowledgeShare, { campaignId: t.campaign, group: 1, packId: 'pack-reed', entryId: 'drowned-harbour', sectionAt: 0, share: true })).ok).toBe(true);
     const { container } = open(t, 'sam');
-    // Once loaded (the loading bars give way to the page), the right column holds the Area's card.
-    await screen.findByRole('heading', { name: 'The Jetty' });
+    // Once loaded (the loading bars give way to the page), the left column holds the Location's card.
+    const location = await screen.findByRole('region', { name: 'Where you are: 1. The Jetty' });
+    expect(column(container, 'left').contains(location)).toBe(true);
+    expect(within(location).getByRole('navigation', { name: 'Where this is' }).textContent).toBe('The Drowned Harbour');
+    expect(within(location).getByText('Black piles and a slick deck.')).toBeTruthy();
+    expect(container.querySelector('.place-line')).toBeNull();
     const right = within(column(container, 'right'));
-    expect(await right.findByRole('button', { name: /^What everyone knows: Shared/ })).toBeTruthy();
+    expect(await right.findByRole('button', { name: /^What everyone knows: Shared, turn \d+\.$/ })).toBeTruthy();
     const card = container.querySelector<HTMLElement>('.players-area')!;
-    expect(within(card).queryByRole('heading')).toBeNull();
+    expect(within(card).getByRole('heading', { name: 'The Drowned Harbour' })).toBeTruthy();
     expect(container.textContent).not.toContain('eel-mother');
-    expect(container.textContent).not.toContain('Drowned Harbour');
+  });
+
+  // Purpose (ppf-4; p4s-1): a Location of the Area the group was shown before stands on the Area card by number, its
+  // first shown piece on the line under it; a piece of it never shown is nowhere on the page.
+  it("lists a known Location with its first shown piece, and nothing of it not shown", async () => {
+    const t = await packTable();
+    const WRECK = { id: 'the-wreck', name: 'The Wreck', key: '2', type: 'area', parentId: 'drowned-harbour', playerView: { text: 'A cog on her side on the bar.', aspects: [{ lead: 'Ribs', text: 'A tarred box under her ribs.' }] } };
+    world.tables.library_entries.push({ id: 'entry-the-wreck', pack_id: 'pack-reed', kind: 'location', pack_entry_id: WRECK.id, name: WRECK.name, data: WRECK });
+    const trip = (world.tables.expeditions[0] as { id: string }).id;
+    const JETTY = world.tables.library_entries.find((e) => e.pack_entry_id === 'the-jetty')!.data as { id: string; name: string };
+    for (const data of [WRECK, JETTY]) {
+      world.signInAs(t.gm);
+      expect((await runCommand(t.registry, world.db, t.users.gm, setPlace, { campaignId: t.campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: data.id, name: data.name, data } })).ok).toBe(true);
+      const row = (await loadGroupPlaces(world.db, t.campaign, trip))!.get(1)!;
+      if (!row.pieces[0]!.shown) expect((await runCommand(t.registry, world.db, t.users.gm, showPiece, { campaignId: t.campaign, row, piece: row.pieces[0]! })).ok).toBe(true);
+    }
+    const { container } = open(t, 'sam');
+    await screen.findByRole('region', { name: 'Where you are: 1. The Jetty' });
+    const row = await within(column(container, 'right')).findByRole('button', { name: /^2\. The Wreck/ });
+    expect(row.querySelector('.list-row__sub')?.textContent).toBe('A cog on her side on the bar.');
+    expect(container.textContent).not.toContain('tarred box');
   });
 });

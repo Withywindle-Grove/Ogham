@@ -5,8 +5,8 @@
 //   * The GM's eye on a section of a place's Knowledge (placeKnowledge.eye): shared with one group, at once, logged, with
 //     Undo. The section's words are copied from the pack by the database, never sent by the app.
 //   * A player's card (public.place_card_for_players): for each of their groups whose place is shown to them, the
-//     place's number and name, the places it sits in that the group was shown (the trail, top first), and the other
-//     places of its Area the group was shown, each with its number.
+//     place's number and name, the places it sits in whose names count as shown (the trail, top first; ppf-1), and the
+//     other places of its Area the group was shown, each with its number and its first shown piece (ppf-4).
 //   * A player's "What everyone knows" (public.knowledge_for_players): the sections shared with their group of the place
 //     they're at, the places it sits in and the other places of its Area.
 import { defineCommand, fromError, isGm, ok, type CommandResult, type CurrentUser } from '../../core/commands.ts';
@@ -104,17 +104,19 @@ export interface KnownPlace {
   placeId: string;
   key: string;
   name: string;
+  /** A known Location's second line (ppf-4, PL1b): the first piece the group was shown there; '' for none. */
+  line?: string;
 }
 
 /** What a player's device reads for one of their groups' place (public.place_card_for_players). */
 export interface PlayersPlaceCard {
   group: number;
   here: KnownPlace;
-  /** The places it sits in that the group was shown, top first (the Region, then the Area); never one they weren't. */
+  /** The places it sits in whose names count as shown (ppf-1: one shown, or a place inside it shown), top first. */
   trail: string[];
-  /** The Area it sits in directly, when the group was shown it: the right card's heading; null otherwise (no stand-in). */
+  /** The Area it sits in directly, when its name counts as shown: the right card's heading; null otherwise (no stand-in). */
   area: string | null;
-  /** The other places of its Area the group was shown, by number. */
+  /** The other places of its Area the group was shown, by number, each with its first shown piece (ppf-4). */
   known: KnownPlace[];
 }
 
@@ -135,7 +137,7 @@ export function readPlaceCards(rows: readonly Record<string, unknown>[]): Map<nu
     if (!card) continue;
     if (r.kind === 'trail' && text(r.name)) card.trail.push(text(r.name));
     if (r.kind === 'area' && text(r.name)) card.area = text(r.name);
-    if (r.kind === 'known' && text(r.place_id)) card.known.push({ placeId: text(r.place_id), key: text(r.key), name: text(r.name) });
+    if (r.kind === 'known' && text(r.place_id)) card.known.push({ placeId: text(r.place_id), key: text(r.key), name: text(r.name), line: text(r.line) });
   }
   return out;
 }

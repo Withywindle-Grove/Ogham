@@ -4,10 +4,12 @@
 // words only. What it checks, in plain words:
 //   * before anything of the place is shown, a player in the group reads no card and no knowledge, even a section the GM
 //     already shared;
-//   * once shown: the place's number and name; no name of a place it sits in that the group was never shown (the Area,
-//     the Region), not as the trail, not as the card's heading, not as a shared section's place; no Location the group
-//     was never shown (not its name, not its number);
-//   * a Location the group was shown, and the Area once the group was shown it, do come, with their numbers;
+//   * once shown: the place's number and name, and the names of the Area and the Region it sits in (ppf-1: shown with a
+//     Location inside them), as the trail, the card's heading and a shared section's place; never the name of an Area
+//     with no shown place inside it, nor its shared section; no Location the group was never shown (not its name, not
+//     its number);
+//   * a Location the group was shown comes with its number and its first shown piece (ppf-4), never a piece of it not
+//     shown;
 //   * knowledge: only a section the GM shared with this group, its link marks as their labels (never an id); an unshared
 //     section's words never; taken back, gone at once; Undo brings it back; Undo of a first share takes it away;
 //   * a player in another group, and someone outside the campaign, read nothing of it; a section shared with the other
@@ -51,8 +53,11 @@ const undoLatest = async () => {
 
 const SECRET = 'The eel-mother sleeps under the third pile';
 const AREA_PAST = 'Before the silt, forty boats moored here';
+const WRECK_SAYS = 'A cog on her side on the bar.';
+const WRECK_HIDDEN = 'A tarred box under her ribs';
+const FLATS_SECRET = 'The salt-wives walk at noon';
 
-/** An invented adventure: an island Region, a harbour Area, and three numbered Locations in it. */
+/** An invented adventure: an island Region, a harbour Area with three numbered Locations, and a second Area never visited. */
 const harbourPack = () => {
   const read = readPackJson(
     JSON.stringify({
@@ -83,8 +88,17 @@ const harbourPack = () => {
             ],
           },
         },
-        { id: 'the-wreck', name: 'The Wreck', type: 'area', key: '2', parentId: 'drowned-harbour', playerView: { text: 'A cog on her side on the bar.' } },
+        { id: 'the-wreck', name: 'The Wreck', type: 'area', key: '2', parentId: 'drowned-harbour', playerView: { text: WRECK_SAYS, aspects: [{ lead: 'Ribs', text: WRECK_HIDDEN }] } },
         { id: 'the-breakwater', name: 'The Breakwater', type: 'area', key: '3', parentId: 'drowned-harbour', playerView: { text: 'A drowned wall with a gap.' } },
+        {
+          id: 'salt-flats',
+          name: 'The Salt Flats',
+          type: 'site',
+          parentId: 'saltwick-island',
+          playerView: { text: 'White crust to the horizon.' },
+          gm: { sections: [{ heading: 'The salt-wives', text: FLATS_SECRET }] },
+        },
+        { id: 'the-saltpan', name: 'The Saltpan', type: 'area', key: '1', parentId: 'salt-flats', playerView: { text: 'A shallow pan, dry at noon.' } },
       ],
     }),
   );
@@ -138,20 +152,21 @@ describe("the players' place card, as the database sends it (p4s-1, p4s-2)", () 
     expect(must(await world.playerA.db.rpc('knowledge_for_players', { campaign: campaignId }))).toEqual([]);
   });
 
-  // Purpose: once the jetty is shown, the player reads its number and name and the section shared with the group, its
-  // link mark as its label; never the Area's or the Region's name (never shown), never another Location, never the
-  // unshared section's words.
-  it('sends the number, the name and the shared section; nothing of what was never shown', async () => {
+  // Purpose (ppf-1): once the jetty is shown, the player reads its number and name, the names of the Area and the Region
+  // it sits in (shown with their Location: the trail and the card's heading), and the section shared with the group, its
+  // link mark as its label; never an id, never the other Area (no place inside it shown), never another Location, never
+  // the unshared section's words.
+  it('sends the number, the name, the Area and Region shown with it and the shared section; nothing never shown', async () => {
     await showHere();
     const card = (await loadPlayersPlaceCards(asDb(world.playerA), campaignId))!.get(1)!;
     expect(numbered(card.here)).toBe('1. The Jetty');
-    expect(card.trail).toEqual([]);
-    expect(card.area).toBeNull();
+    expect(card.trail).toEqual(['Saltwick Island', 'The Drowned Harbour']);
+    expect(card.area).toBe('The Drowned Harbour');
     expect(card.known).toEqual([]);
     const knowledge = (await loadPlayersKnowledge(asDb(world.playerA), campaignId))!;
     expect(knowledge.map((k) => [k.group, k.placeName, k.section.heading, k.section.text])).toEqual([[1, 'The Jetty', 'What everyone knows', 'The harbour silted in a single winter; ask the Heron Wardens.']]);
     const everything = await readAll(world.playerA);
-    for (const never of ['Drowned Harbour', 'drowned-harbour', 'Saltwick', 'saltwick', 'Wreck', 'Breakwater', 'eel-mother', SECRET, 'heron-wardens', 'npc:']) expect(everything, never).not.toContain(never);
+    for (const never of ['drowned-harbour', 'saltwick-island', 'Salt Flats', 'salt-flats', 'Saltpan', 'Wreck', 'Breakwater', 'eel-mother', SECRET, 'heron-wardens', 'npc:']) expect(everything, never).not.toContain(never);
     // Another group's player and someone outside the campaign: nothing at all.
     expect(must(await world.playerB.db.rpc('place_card_for_players', { campaign: campaignId }))).toEqual([]);
     expect(must(await world.playerB.db.rpc('knowledge_for_players', { campaign: campaignId }))).toEqual([]);
@@ -161,16 +176,19 @@ describe("the players' place card, as the database sends it (p4s-1, p4s-2)", () 
     expect(outsideKnowledge.data ?? []).toEqual([]);
   });
 
-  // Purpose: a section of the Area the GM shares reaches the group under the place it is at (the Area was never shown, so
-  // its name isn't sent); Undo of that first share takes it away again.
-  it("sends an Area's shared section under the place's own name, and Undo takes it back", async () => {
+  // Purpose (ppf-1): a section of the Area the GM shares reaches the group under the Area's name (shown with the jetty);
+  // a section of the other Area, shared with the group but with no place inside it shown, never comes, nor its name;
+  // Undo of the Area's first share takes it away again.
+  it("sends an Area's shared section under the Area's name; never the other Area's; Undo takes it back", async () => {
+    await share('salt-flats', 0, true);
     await share('drowned-harbour', 0, true);
     const knowledge = (await loadPlayersKnowledge(asDb(world.playerA), campaignId))!;
     expect(knowledge.map((k) => [k.placeName, k.section.heading, k.section.text])).toEqual([
       ['The Jetty', 'What everyone knows', 'The harbour silted in a single winter; ask the Heron Wardens.'],
-      ['The Jetty', "The harbour's past", AREA_PAST],
+      ['The Drowned Harbour', "The harbour's past", AREA_PAST],
     ]);
-    expect(await readAll(world.playerA)).not.toContain('Drowned Harbour');
+    const everything = await readAll(world.playerA);
+    for (const never of ['Salt Flats', 'salt-wives', FLATS_SECRET]) expect(everything, never).not.toContain(never);
     await undoLatest();
     expect((await loadPlayersKnowledge(asDb(world.playerA), campaignId))!.map((k) => k.section.heading)).toEqual(['What everyone knows']);
   });
@@ -187,27 +205,31 @@ describe("the players' place card, as the database sends it (p4s-1, p4s-2)", () 
     expect(await readAll(world.playerB)).not.toContain(SECRET);
   });
 
-  // Purpose: a Location of the same Area the group has been shown comes with its number; one never shown (the
-  // Breakwater) sends nothing, not its name nor its number.
-  it('sends the other Locations the group was shown, never one it was not', async () => {
+  // Purpose (p4s-1, ppf-4): a Location of the same Area the group has been shown comes with its number and its first
+  // shown piece as its line; a piece of it never shown never comes; one never shown (the Breakwater) sends nothing, not
+  // its name nor its number; the other group, shown nothing, reads none of it.
+  it('sends the other Locations the group was shown, each with its first shown piece; never one it was not', async () => {
     await goAndShow('the-wreck');
     await goAndShow('the-jetty');
     const card = (await loadPlayersPlaceCards(asDb(world.playerA), campaignId))!.get(1)!;
-    expect(card.known.map(numbered)).toEqual(['2. The Wreck']);
+    expect(card.known.map((k) => [numbered(k), k.line])).toEqual([['2. The Wreck', WRECK_SAYS]]);
     const everything = await readAll(world.playerA);
+    expect(everything).not.toContain(WRECK_HIDDEN);
     expect(everything).not.toContain('Breakwater');
     expect(everything).not.toContain('"3"');
+    expect(await readAll(world.playerB)).toBe('[[],[]]');
   });
 
-  // Purpose: once the group has been shown the Area itself, the trail and the card's heading name it; the Region, never
-  // shown, still isn't sent.
-  it('names the Area once it was shown, never the Region', async () => {
+  // Purpose (ppf-1): with the Area itself shown too, the trail and the heading name it once, as before; the other Area,
+  // with no place inside it shown, is still nowhere.
+  it('names the Area once, shown itself or with its Locations, and never the Area with nothing shown inside', async () => {
     await goAndShow('drowned-harbour');
     await goAndShow('the-jetty');
     const card = (await loadPlayersPlaceCards(asDb(world.playerA), campaignId))!.get(1)!;
-    expect(card.trail).toEqual(['The Drowned Harbour']);
+    expect(card.trail).toEqual(['Saltwick Island', 'The Drowned Harbour']);
     expect(card.area).toBe('The Drowned Harbour');
-    expect(await readAll(world.playerA)).not.toContain('Saltwick');
+    const everything = await readAll(world.playerA);
+    for (const never of ['Salt Flats', 'Saltpan', FLATS_SECRET]) expect(everything, never).not.toContain(never);
   });
 
   // Purpose: only the GM shares; players read none of the share rows; each share is one log line, the GM's alone.
@@ -223,9 +245,9 @@ describe("the players' place card, as the database sends it (p4s-1, p4s-2)", () 
     const missing = await as(world.gm, setKnowledgeShare, { campaignId, group: 1, packId, entryId: 'the-jetty', sectionAt: 7, share: true });
     expect(missing.ok).toBe(false);
     const lines = must(await world.admin.from('events').select('type, audience').eq('campaign_id', campaignId).eq('type', 'placeKnowledge.eye'));
-    // Five shares were set (the jetty's first, the harbour's, the taking back, the other group's; and the first share
-    // again by Undo is logged under the undo's own type): four lines of this type.
-    expect(lines.length).toBe(4);
+    // Six shares were set (the jetty's first, the salt flats', the harbour's, the taking back, the other group's; and the
+    // first share again by Undo is logged under the undo's own type): five lines of this type.
+    expect(lines.length).toBe(5);
     expect(new Set(lines.map((l) => l.audience))).toEqual(new Set(['gm']));
     expect(must(await world.playerA.db.from('events').select('id').eq('campaign_id', campaignId).eq('type', 'placeKnowledge.eye'))).toEqual([]);
   });

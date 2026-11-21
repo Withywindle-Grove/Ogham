@@ -66,6 +66,17 @@ describe("a player's card, read", () => {
     expect(card.known.map(numbered)).toEqual(['2. The Wreck', '3. The Breakwater']);
   });
 
+  // Purpose (ppf-4): each known Location keeps the first piece the read sends for it, its second line; a row with none
+  // keeps an empty line, never a stand-in.
+  it("keeps each known Location's first shown piece", () => {
+    const card = readPlaceCards([
+      { group_number: 1, kind: 'here', at: 0, place_id: 'q1', key: '1', name: 'The Jetty' },
+      { group_number: 1, kind: 'known', at: 1, place_id: 'q2', key: '2', name: 'The Wreck', line: 'A cog on her side on the bar.' },
+      { group_number: 1, kind: 'known', at: 2, place_id: 'q3', key: '3', name: 'The Breakwater', line: null },
+    ]).get(1)!;
+    expect(card.known.map((k) => k.line)).toEqual(['A cog on her side on the bar.', '']);
+  });
+
   // Purpose: with no Area shown the card has no heading (no stand-in), and a place with no number reads its name alone.
   it('keeps no heading for an Area never shown, and a name with no number as it is', () => {
     const card = readPlaceCards([{ group_number: 1, kind: 'here', at: 0, place_id: 'q1', key: '', name: 'Along the piles' }]).get(1)!;

@@ -6122,6 +6122,7 @@ export type Database = {
           group_number: number
           key: string
           kind: string
+          line: string
           name: string
           place_id: string
         }[]

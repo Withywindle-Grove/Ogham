@@ -95,7 +95,8 @@ for (const width of [375, 1024] as const) {
       test('stands at the card’s top right, level with the name', async ({ page }) => {
         await openScene(page, 'spots', name === 'long' ? '&name=long' : '');
         const card = page.locator('.players-page__column[data-column="left"] .players-page__card').first();
-        const heading = card.locator('.place-line__name');
+        // The Location's card since ppf-6 (2026-11-20), in place of today's place line.
+        const heading = card.locator('.players-place__name');
         const button = card.getByRole('button', { name: /Falling into the harbour/ });
         await expect(button).toBeVisible();
         const [cardBox, nameBox, buttonBox] = await Promise.all([card.boundingBox(), heading.boundingBox(), button.boundingBox()]);
@@ -107,7 +108,7 @@ for (const width of [375, 1024] as const) {
         // The name keeps to its side of the button, however long.
         expect(nameBox!.x + nameBox!.width).toBeLessThanOrEqual(buttonBox!.x);
         // The place's words start under the row, not beside the button.
-        const text = await card.locator('.place-line__text').first().boundingBox();
+        const text = await card.locator('.players-place__piece').first().boundingBox();
         expect(text!.y).toBeGreaterThanOrEqual(Math.max(nameBox!.y + nameBox!.height, buttonBox!.y + buttonBox!.height));
         expect(buttonBox!.height).toBeGreaterThanOrEqual(44);
         await page.screenshot({ path: `test-results/layout-screens/players-page-rule-button-${width}-${name}.png`, fullPage: true });

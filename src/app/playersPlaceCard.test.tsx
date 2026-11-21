@@ -17,7 +17,7 @@ const harbourCard = card([
   { group_number: 1, kind: 'trail', at: 1, name: 'Saltwick Island' },
   { group_number: 1, kind: 'trail', at: 2, name: 'The Drowned Harbour' },
   { group_number: 1, kind: 'area', at: 0, name: 'The Drowned Harbour' },
-  { group_number: 1, kind: 'known', at: 1, place_id: 'q2', key: '2', name: 'The Wreck' },
+  { group_number: 1, kind: 'known', at: 1, place_id: 'q2', key: '2', name: 'The Wreck', line: 'A cog on her side on the bar; her ribs green with weed.' },
 ]);
 const knowledge = readSharedKnowledge([{ group_number: 1, share_id: 's1', place_name: 'The Jetty', heading: 'What everyone knows', body: 'The harbour silted in a single winter.\nNobody crosses at slack water.', shared_clock: 0 }]);
 const rule = (name: string, placeName = 'The Jetty'): PlayersRule => ({ group: 1, placeName, name, blocks: [{ kind: 'p', lead: '', text: `${name}: the book's words.` }], button: null });
@@ -56,6 +56,29 @@ describe("the Area's card (the right column)", () => {
     area({ card: card([{ group_number: 1, kind: 'known', at: 1, place_id: 'q2', key: '2', name: 'The Wreck' }]) });
     expect(screen.queryByRole('heading')).toBeNull();
     expect(document.body.textContent).not.toContain('This place');
+  });
+
+  // Purpose (ppf-4, PL1b): a known Location's row carries its first shown piece as its second line, cut to one line by
+  // the card's own style; a row the read gives no piece for has no second line.
+  it("gives a known Location's row its first shown piece as a second line", () => {
+    const { container } = render(
+      <PlayersAreaCard
+        db={db}
+        campaignId="c1"
+        card={card([
+          { group_number: 1, kind: 'known', at: 1, place_id: 'q2', key: '2', name: 'The Wreck', line: 'A cog on her side on the bar.' },
+          { group_number: 1, kind: 'known', at: 2, place_id: 'q3', key: '3', name: 'The Breakwater', line: '' },
+        ])}
+        knowledge={[]}
+        rules={[]}
+        turns={null}
+      />,
+    );
+    const rows = [...container.querySelectorAll('.players-area .list-row')];
+    expect(rows.map((r) => [r.querySelector('.list-row__title')?.textContent, r.querySelector('.list-row__sub')?.textContent ?? null])).toEqual([
+      ['2. The Wreck', 'A cog on her side on the bar.'],
+      ['3. The Breakwater', null],
+    ]);
   });
 
   // Purpose: nothing shared, no rule and no other known Location, and no Area shown: no card at all.
@@ -123,7 +146,7 @@ describe('the Rules row (rp-7)', () => {
   });
 });
 
-describe("the Location's card (the left column; built, not on the page yet)", () => {
+describe("the Location's card (the left column; on the players' Scene since ppf-6)", () => {
   const pieces = [
     { id: 'p1', kind: 'description', text: 'Past the mooring ring, a skiff rocks under the ladder.', lead: '' },
     { id: 'p2', kind: 'clue', text: 'Fresh rope: someone tied up here this week.', lead: 'Mooring ring' },
@@ -143,5 +166,29 @@ describe("the Location's card (the left column; built, not on the page yet)", ()
   it('marks nothing when only the description is shown', () => {
     render(<PlayersLocationCard card={harbourCard} pieces={pieces.slice(0, 1)} rules={[]} />);
     expect(document.querySelectorAll('.players-place__named')).toHaveLength(0);
+  });
+
+  // Purpose (ppf-6 c, PL1b): once the place's picture is shown, it is a small button at the head's right, beside the
+  // name, and a tap opens it whole; with no picture shown there is no such button.
+  it("puts the shown picture as a small button at the head's right, which opens it whole", async () => {
+    const user = userEvent.setup();
+    const files = {
+      storage: { from: () => ({ createSignedUrls: async (paths: string[]) => ({ data: paths.map((path) => ({ path, signedUrl: `https://files.example/${path}`, error: null })), error: null }) }) },
+    } as unknown as Db;
+    const { rerender } = render(<PlayersLocationCard card={harbourCard} pieces={pieces} rules={[]} />);
+    expect(screen.queryByRole('button', { name: /picture/ })).toBeNull();
+    rerender(<PlayersLocationCard card={harbourCard} pieces={pieces} rules={[]} picture={{ db: files, campaignId: 'c1', assetId: 'asset-jetty' }} />);
+    const button = await screen.findByRole('button', { name: 'Open the picture of 1. The Jetty' });
+    expect(button.classList.contains('place-picture--small')).toBe(true);
+    expect(button.closest('.players-place__head')).toBeTruthy();
+    await user.click(button);
+    expect(within(screen.getByRole('dialog', { name: 'The picture of 1. The Jetty' })).getByRole('img').getAttribute('src')).toBe('https://files.example/c1/asset-jetty');
+  });
+
+  // Purpose: a player with a card for each of their groups sees whose this one is, over it and in its name.
+  it('names its group where a player has more than one', () => {
+    render(<PlayersLocationCard card={harbourCard} pieces={pieces} rules={[]} group="Group 2" />);
+    const cardEl = screen.getByRole('region', { name: 'Group 2: where you are: 1. The Jetty' });
+    expect(within(cardEl).getByText('Group 2')).toBeTruthy();
   });
 });

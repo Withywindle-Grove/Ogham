@@ -1113,7 +1113,8 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //   ?placePage=hand   the party at a place typed by hand (frame 2b, left);
 //   ?placePage=none   an expedition with no place yet (frame 2b, right).
 //   &map=wanted|added with spots or spot: the pack's map for the harbour, not added yet or added (S13; see below).
-//   &picture=1 with spots or spot: the place has a picture (TW13: the picture row, a tap opening it).
+//   &picture=1 with spots or spot: the place has a picture (TW13: the picture row, a tap opening it); with &ways=… too,
+//               shown to the players (the Location's card's small picture button, ppf-6 c).
 //   &mapTitle=long  with &map: the map's title long (the card's title on its own line above the tools).
 //   &session=running|paused  the band's session states (S9; see below).
 //   &strip=long  the harbour's own procedure of seven long-named steps (S7; see the harbour).
@@ -1401,6 +1402,10 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
       world.tables.assets.push({ id: 'asset-jetty-picture', campaign_id: campaign, kind: 'place', name: 'The jetty', visibility: 'gm' });
       await world.db.storage.from('campaign-files').upload(`${campaign}/asset-jetty-picture`, new Blob(['a picture'], { type: 'image/svg+xml' }));
       await runCommand(registry, world.db, asGm, setPlacePicture, { campaignId: campaign, place: row.place, assetId: 'asset-jetty-picture' });
+      // With &ways=… (a player's Scene) the GM shows the picture too, so the Location's card has its small picture
+      // button (ppf-6 c).
+      const pictured = waysFlag && started.data ? (await loadGroupPlaces(world.db, campaign, started.data.id))?.get(1) : undefined;
+      if (pictured?.picture) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row: pictured, piece: { id: pictured.picture.id } });
     }
     const mapFlag = new URLSearchParams(window.location.search).get('map');
     if (mapFlag === 'wanted' || mapFlag === 'added') {
@@ -1466,7 +1471,7 @@ const moveOn = new URLSearchParams(window.location.search).get('moveOn');
 const knowledge = new URLSearchParams(window.location.search).get('knowledge');
 const placeCard = new URLSearchParams(window.location.search).get('placeCard');
 if (placeCard) {
-  // The players' place card (P4): the Location's card waits for Francis's look before it goes on the players' page.
+  // The players' place card (P4) alone, as the gallery draws it; on the players' page with ?placePage=spot&ways=1.
   const { PlayersPlaceCardLayoutPage } = await import('../gallery/PlayersPlaceCardSpecimens.tsx');
   await import('../gallery/Gallery.css');
   createRoot(root).render(

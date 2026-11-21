@@ -51,11 +51,11 @@ import { registry } from './services.ts';
 import { usePhone } from './useWide.ts';
 import { loadPlayersRules, type PlayersRule } from '../modules/expedition/placeRules.ts';
 import { useLastGoodRules } from './PlaceRules.tsx';
-import { NothingSharedYet, PlayersActivities, PlayersSceneCard, PlayersSceneLoading, PlayersScenePage, showsPlayersPage, SomewhereNew } from './PlayersScenePage.tsx';
+import { NothingSharedYet, PlayersActivities, PlayersSceneLoading, PlayersScenePage, showsPlayersPage, SomewhereNew } from './PlayersScenePage.tsx';
 import { activitiesWithRules } from '../modules/expedition/playerActions.ts';
 import { PlayersWhereTo, usePlayersWaysOn, WhereToNoneYet } from './PlayersWhereTo.tsx';
 import { stepNowOf } from '../modules/expedition/playersWays.ts';
-import { PlayersAreaCard, usePlayersPlaceCards } from './PlayersPlaceCard.tsx';
+import { PlayersAreaCard, PlayersLocationCard, usePlayersPlaceCards } from './PlayersPlaceCard.tsx';
 import type { TurnClock } from '../modules/expedition/placeKnowledge.ts';
 import './PartyGroups.css';
 
@@ -518,20 +518,33 @@ export function PartyGroups({
     <PlayersScenePage
       left={
         <>
-          {shown.map((n) => (
-            <Fragment key={n}>
-              {placeLineShows(scene.get(n)) ? (
-                <PlayersSceneCard group={cardGroup(n)}>
-                  <PlaceLine place={scene.get(n) ?? null} db={db} campaignId={campaign.id} rules={placeRules.filter((r) => r.group === n)} />
-                  <PlayersWhereTo read={ways} group={n} step={stepNowOf(expedition ? modeById(exploration.modes, expedition.mode) : null, expedition, now, units)} />
-                </PlayersSceneCard>
-              ) : (
-                <SomewhereNew group={cardGroup(n)}>
-                  <WhereToNoneYet />
-                </SomewhereNew>
-              )}
-            </Fragment>
-          ))}
+          {shown.map((n) => {
+            const here = scene.get(n);
+            // The Location's card (P4, ppf-6) in place of today's place line: the card's read gives the number and the
+            // trail; until it comes, while it fails, or while it still names the place before a move, the place's name as
+            // the scene's read gives it, with no trail.
+            const read = areaCards.cards.get(n);
+            const card = read && read.here.name === here?.name ? read : { here: { placeId: '', key: '', name: here?.name ?? '' }, trail: [] };
+            return (
+              <Fragment key={n}>
+                {here && placeLineShows(here) ? (
+                  <PlayersLocationCard
+                    card={card}
+                    pieces={here.pieces.map((p) => ({ id: p.id, kind: p.kind, text: p.text, lead: p.lead ?? '' }))}
+                    rules={placeRules.filter((r) => r.group === n)}
+                    picture={here.pictureAssetId ? { db, campaignId: campaign.id, assetId: here.pictureAssetId } : null}
+                    group={cardGroup(n)}
+                  >
+                    <PlayersWhereTo read={ways} group={n} step={stepNowOf(expedition ? modeById(exploration.modes, expedition.mode) : null, expedition, now, units)} />
+                  </PlayersLocationCard>
+                ) : (
+                  <SomewhereNew group={cardGroup(n)}>
+                    <WhereToNoneYet />
+                  </SomewhereNew>
+                )}
+              </Fragment>
+            );
+          })}
           {/* Activities (P6; mc-45a; 01-08) under the place's card, once only: they are the setting's, not a group's.
               Before anything of the place is shown too (d5-18, 2026-11-20), so the card never blinks away at a new
               Location. */}

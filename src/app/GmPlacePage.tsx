@@ -13,7 +13,7 @@
 // approved. A row opens that place to read ahead: its own card, with the line "Reading ahead. The party is at …" and
 // "Back to the party" (on a phone, in the fixed bar); the top and the right column stay the party's. The eyes are drawn,
 // and a tap on one (or on any change to the place) explains in a pop-up that the party isn't there: nothing is written
-// while reading ahead, and no migration was made for it (the eyes' real behaviour is for a design sitting).
+// while reading ahead, but for the eye on the Knowledge of the Area the party is in (ppf-2, 2026-11-20).
 // The page is otherwise the place the party is in. Every part of today's place card has its place:
 //   the card at the left: the trail (each place up it a tap that opens its Locations panel), the name numbered as the key
 //   writes it with no line under it, the rule's icon buttons and Move on (the footprints, ⚑ 2; the accent, or plain
@@ -301,9 +301,11 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
   const { editing, setEditing, who } = actions;
 
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
-  // The eye on each section of the Knowledge sheet (P4, p4s-2): shared with this group; reading ahead, the page's
-  // pop-up and nothing written, as every other eye there (B2).
-  const sharing = useKnowledgeSharing({ db, user, campaignId: campaign.id, group, groupLabel, place: chainOf, turns, open: knowledgeOpen, blocked: reading ? notHere : undefined });
+  // The eye on each section of the Knowledge sheet (P4, p4s-2): shared with this group. Reading ahead, it works on the
+  // Knowledge of a place the party's Location sits in (its Area: ppf-2, the one thing written while reading ahead);
+  // anywhere else read ahead, the page's pop-up and nothing written, as every other eye there (B2).
+  const readingHolder = !!reading && !!current && !!packPlaces && ancestorsOf(packPlaces, current).some((p) => samePlace(p, reading));
+  const sharing = useKnowledgeSharing({ db, user, campaignId: campaign.id, group, groupLabel, place: chainOf, turns, open: knowledgeOpen, blocked: reading && !readingHolder ? notHere : undefined });
   const [rulesOpen, setRulesOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
   const [elsewhere, setElsewhere] = useState(false);

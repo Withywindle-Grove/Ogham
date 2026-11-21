@@ -1,6 +1,9 @@
 -- The players' place card (plan dec-9-the-players-scene, row P4; rulings p4s-1 and p4s-2 in
 -- docs/design/rulings/p4-sitting-2026-11-20.md; p2p-24 in scene-point-to-point-2026-11-18.md; mc-35). Francis's yes,
--- 2026-11-20: "Yes, send them" (p4s-1) and "Yes, build it for the 5th" (p4s-2). Add-only.
+-- 2026-11-20: "Yes, send them" (p4s-1) and "Yes, build it for the 5th" (p4s-2). Add-only. Changed in place before it was
+-- applied anywhere, as ruled on #1097's ⚑ (docs/design/rulings/p4-p2-flags-2026-11-20.md): an Area's or Region's name
+-- counts as shown once the group was shown a place inside it (ppf-1, "Shown with a Location"); each known Location
+-- carries its first shown piece (ppf-4, "As drawn: first shown piece").
 --   1. public.knowledge_shares: the GM's eye on a section of a place's Knowledge (frame 7b of page 01, approved
 --      2026-11-12). One row per group, place of a pack and section (its place in the pack's `gm.sections`): shared or
 --      not, and the campaign clock when it was last shared ("Shared, turn 9."). The section's heading and words are
@@ -12,22 +15,24 @@
 --      current place is shown to them (a piece of it shown on the visit, the rule of scene_pieces and
 --      place_rules_for_players), and only then:
 --        'here'  the place's number from the pack (its `key`; '' for none) and its name as players know it;
---        'trail' each place it sits in (an Area, a Region) that this group has been shown, by the rule of
---                private.shown_place_name (the lead's ruling on ⚑ b, 2026-11-13): a place made from that entry, visited
---                by this group, with a piece shown. One the group was never shown is left out, not replaced, and sends
---                nothing (no name, no id, not that it exists); `at` counts only the ones sent, from the top, so no gap
---                hints at a level left out;
---        'area'  the place it sits in directly (its Area), once more, by the same rule: the right card's heading. Not
---                sent when the group was never shown it (the card then has no heading: no stand-in);
+--        'trail' each place it sits in (an Area, a Region) whose name counts as shown to this group, by
+--                private.known_entry_name: a place made from that entry that the group was shown (the rule of
+--                private.shown_place_name, the lead's ruling on ⚑ b, 2026-11-13), or, since ppf-1 (2026-11-20), any
+--                place inside it that the group was shown. One whose name doesn't count as shown is left out, not
+--                replaced, and sends nothing (no name, no id, not that it exists); `at` counts only the ones sent, from
+--                the top, so no gap hints at a level left out;
+--        'area'  the place it sits in directly (its Area), once more, by the same rule: the right card's heading;
 --        'known' the other places of the same Area (the same pack and parent) this group has been shown, each with its
---                number, its name and its campaign place id (the id known_places_campaign already sends with its
---                pieces). A Location never shown to the group sends nothing. Numbers can show gaps: the accepted hint
---                of p4s-1.
+--                number, its name, its campaign place id (the id known_places_campaign already sends with its
+--                pieces) and `line`: the first piece the group was shown there, its words as known_places_campaign
+--                sends them (ppf-4, PL1b's second line; nothing new is sent). A Location never shown to the group sends
+--                nothing. Numbers can show gaps: the accepted hint of p4s-1.
 --   3. public.knowledge_for_players(campaign): for each of the reader's groups whose current place is shown, the
 --      sections the GM has shared with that group of the place it is at, of the places it sits in, and of the other
 --      places of its Area (p2p-24: "What everyone knows" keeps what the party has learned of the Area): the heading and
 --      words as copied when shared, with link marks as their labels (no id sent), the clock when shared, and the
---      place's name as players know it (a place they were never shown comes under the current place's name, rp-4). An
+--      place's name as players know it (private.known_entry_name; a place whose name doesn't count as shown comes under
+--      the current place's name, rp-4). An
 --      unshared section, a section shared with another group, and a share taken back or undone send nothing.
 -- Adds one table, its two indexes, three policies, six functions, four triggers, one logged_commands row, one
 -- undoable_tables row and one undoable_makings row. Replaces no function. Drops, renames and deletes nothing, and
@@ -187,16 +192,31 @@ grant execute on function public.set_knowledge_share(uuid, integer, uuid, text, 
 
 -- 2. What players read: the place card ---------------------------------------------------------------------------------
 
--- The name of a place made from a pack's entry that this group has been shown, as players know it; null when the group
--- was never shown it (private.shown_place_name's rule, with no stand-in name).
+-- The name of a pack's place as players know it, when it counts as shown to this group; null otherwise (no stand-in).
+-- It counts as shown when the group was shown a place made from it (private.shown_place_name's rule: its players'
+-- name, else its name), or (ppf-1, 2026-11-20: "Shown with a Location") a place inside it, at any depth, made from the
+-- same pack: the pack's name for players (`playerView.name`, as a place made from it would take, else its name). An
+-- Area or Region with no shown place inside it sends nothing.
 create function private.known_entry_name(campaign uuid, group_no integer, pack uuid, entry_id text) returns text
 language sql stable security definer set search_path = '' as $$
-  select nullif(private.shown_place_name(campaign, group_no, pack, entry_id, null), '');
+  select coalesce(
+    nullif(private.shown_place_name(campaign, group_no, pack, entry_id, null), ''),
+    (select coalesce(nullif(btrim(left(e.data #>> '{playerView,name}', 200)), ''), e.name)
+     from public.library_entries e
+     where e.pack_id = pack and e.kind = 'location' and e.pack_entry_id = known_entry_name.entry_id
+       and exists (
+         select 1 from public.places q
+         join public.group_places v on v.place_id = q.id and v.campaign_id = campaign and v.group_number = group_no and not v.undone
+         where q.campaign_id = campaign and q.pack_id = pack and not q.undone and q.pack_entry_id is distinct from known_entry_name.entry_id
+           and private.visit_shown(v.id)
+           and exists (select 1 from private.place_chain(pack, q.pack_entry_id) c where c.depth > 0 and (c.entry).pack_entry_id = known_entry_name.entry_id)
+       )
+     limit 1));
 $$;
 revoke execute on function private.known_entry_name(uuid, integer, uuid, text) from public, anon, authenticated;
 
 create function public.place_card_for_players(campaign uuid)
-returns table (group_number integer, kind text, at integer, place_id uuid, key text, name text)
+returns table (group_number integer, kind text, at integer, place_id uuid, key text, name text, line text)
 language sql stable security definer set search_path = '' as $$
   with here as (
     select g.number as group_number, gp.id as visit, p.id as place_id, p.pack_id, p.pack_entry_id, coalesce(p.pack_parent_id, '') as parent,
@@ -214,7 +234,15 @@ language sql stable security definer set search_path = '' as $$
     where h.pack_id is not null and c.depth > 0
   ),
   known as (
-    select h.group_number, q.id as place_id, coalesce(q.pack_key, '') as key, coalesce(nullif(q.players_name, ''), q.name) as name
+    select h.group_number, q.id as place_id, coalesce(q.pack_key, '') as key, coalesce(nullif(q.players_name, ''), q.name) as name,
+      -- The first piece the group was shown there, on any visit (ppf-4); never a picture, never one not shown.
+      (select private.plain_link_text(pc.body)
+       from public.group_places v
+       join public.piece_shows s on s.group_place_id = v.id and s.shown and not s.undone
+       join public.place_pieces pc on pc.id = s.piece_id and not pc.undone and pc.kind <> 'picture' and btrim(coalesce(pc.body, '')) <> ''
+       where v.place_id = q.id and v.campaign_id = campaign and v.group_number = h.group_number and not v.undone
+       order by s.shown_at, s.id
+       limit 1) as line
     from here h
     join public.places q on q.campaign_id = campaign and not q.undone and q.pack_id = h.pack_id
       and coalesce(q.pack_parent_id, '') = h.parent and q.id <> h.place_id and q.pack_entry_id is distinct from h.pack_entry_id
@@ -225,15 +253,15 @@ language sql stable security definer set search_path = '' as $$
           and private.visit_shown(v.id)
       )
   )
-  select h.group_number, 'here', 0, h.place_id, h.key, h.name from here h
+  select h.group_number, 'here', 0, h.place_id, h.key, h.name, null::text from here h
   union all
-  select t.group_number, 'trail', (row_number() over (partition by t.group_number order by t.depth desc))::integer, null::uuid, null::text, t.name
+  select t.group_number, 'trail', (row_number() over (partition by t.group_number order by t.depth desc))::integer, null::uuid, null::text, t.name, null::text
   from trail t where t.name is not null
   union all
-  select t.group_number, 'area', 0, null::uuid, null::text, t.name
+  select t.group_number, 'area', 0, null::uuid, null::text, t.name, null::text
   from trail t where t.depth = 1 and t.name is not null
   union all
-  select k.group_number, 'known', (row_number() over (partition by k.group_number order by length(k.key), k.key, k.name, k.place_id))::integer, k.place_id, k.key, k.name
+  select k.group_number, 'known', (row_number() over (partition by k.group_number order by length(k.key), k.key, k.name, k.place_id))::integer, k.place_id, k.key, k.name, coalesce(k.line, '')
   from known k
   order by 1, 2, 3;
 $$;
@@ -258,7 +286,7 @@ language sql stable security definer set search_path = '' as $$
   )
   select h.group_number, s.id,
     case when s.entry_id = h.pack_entry_id then h.name
-      else private.shown_place_name(campaign, h.group_number, s.pack_id, s.entry_id, h.name) end,
+      else coalesce(private.known_entry_name(campaign, h.group_number, s.pack_id, s.entry_id), h.name) end,
     private.plain_link_text(s.heading), private.plain_link_marks(s.body), s.shared_clock
   from here h
   join public.knowledge_shares s on s.campaign_id = campaign and s.group_number = h.group_number and s.pack_id = h.pack_id

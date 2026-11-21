@@ -5,13 +5,13 @@
 //   PlayersAreaCard, the right column's card: the Area's name as its heading only once the group was shown the Area (no
 //     stand-in heading), then one row per section of knowledge the GM has shared ("What everyone knows", "Shared, turn
 //     9."; a tap opens its full words), the Rules row (rp-7), and the other Locations of the Area the group knows, each
-//     with its number ("2. The Wreck"; a tap opens its shown pieces in the standard sheet, p4s-4). Nothing to show: no
-//     card.
+//     with its number ("2. The Wreck") and, under it on one line, the first piece the group was shown there (ppf-4, as
+//     PL1b draws it); a tap opens its shown pieces in the standard sheet, p4s-4. Nothing to show: no card.
 //   PlayersLocationCard, the left column's card (PL1b, PL1c, PL1d): the trail of shown names, "1. The Jetty", the rule's
-//     icon button at the right of the head, then the shown pieces in the book's format (the description first, its words
-//     naming a shown piece bold and underlined; each further piece led by its own word in bold). **Not on the players'
-//     page yet** ("Not to build yet": the shown pieces on the card wait for Francis's look at the real card): drawn in
-//     the gallery and on the layout page `?placeCard=1`; today's place line stays on the page until then.
+//     icon button and the small picture button at the right of the head, then the shown pieces in the book's format (the
+//     description first, its words naming a shown piece bold and underlined; each further piece led by its own word in
+//     bold). Approved from the real screen with three fixes (ppf-6, 2026-11-20) and on the players' Scene, in place of
+//     today's place line.
 // Hidden means hidden: every word here comes from the players' reads (place_card_for_players, knowledge_for_players,
 // place_rules_for_players, known_places_campaign), which send only what this group was shown.
 import { Fragment, useEffect, useState, type ReactNode } from 'react';
@@ -83,15 +83,17 @@ export function PlayersTrail({ trail }: { trail: readonly string[] }) {
 }
 
 /**
- * The left column's card (PL1b, PL1c, PL1d): the trail, the numbered name, the rule's icon buttons at the right of the
- * head, the place's picture once shown, the shown pieces in the book's format, then what follows it (`children`: P2's
- * "Where to?"). Not on the players' page until Francis has looked at it (see the file's head).
+ * The left column's card (PL1b, PL1c, PL1d; ppf-6): the trail, the numbered name, at the head's right the rule's icon
+ * buttons and the place's picture as a small button once shown (ppf-6 c; a tap opens it whole), the shown pieces in the
+ * book's format, then what follows it (`children`: P2's "Where to?"). `group` ("Group 2") stands over it where a player
+ * has a card for each of their groups.
  */
 export function PlayersLocationCard({
   card,
   pieces,
   rules,
   picture = null,
+  group = null,
   children = null,
 }: {
   card: Pick<PlayersPlaceCard, 'here' | 'trail'>;
@@ -99,17 +101,21 @@ export function PlayersLocationCard({
   rules: readonly PlayersRule[];
   /** The place's picture, once the GM shows it (with what PlacePicture needs). */
   picture?: { db: Db; campaignId: string; assetId: string } | null;
+  group?: string | null;
   children?: ReactNode;
 }) {
   const name = numbered(card.here);
   return (
-    <section className="players-page__card players-place" aria-label={`Where you are: ${name}`}>
+    <section className="players-page__card players-place" aria-label={group ? `${group}: where you are: ${name}` : `Where you are: ${name}`}>
+      {group && <p className="players-page__over">{group}</p>}
       <PlayersTrail trail={card.trail} />
       <div className="players-place__head">
         <h3 className="players-place__name">{name}</h3>
-        <PlaceRuleButtons rules={rules} />
+        <div className="players-place__tools">
+          <PlaceRuleButtons rules={rules} />
+          {picture && <PlacePicture db={picture.db} campaignId={picture.campaignId} assetId={picture.assetId} name={name} small />}
+        </div>
       </div>
-      {picture && <PlacePicture db={picture.db} campaignId={picture.campaignId} assetId={picture.assetId} name={name} />}
       <ShownPiecesText pieces={pieces} />
       {children}
     </section>
@@ -207,7 +213,7 @@ export function PlayersAreaCard({
         {card.known.length > 0 && (
           <RowList label={card.area ? `Other places of ${card.area}` : 'Other places you know here'} dotted>
             {card.known.map((place) => (
-              <ListRow key={place.placeId} title={numbered(place)} onOpen={() => setLocation(place)} />
+              <ListRow key={place.placeId} title={numbered(place)} sub={place.line || undefined} onOpen={() => setLocation(place)} />
             ))}
           </RowList>
         )}

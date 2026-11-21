@@ -1283,6 +1283,23 @@ export function createFakeDb(): FakeWorld {
     );
     return shown ? String(shown.players_name || shown.name) : shownName;
   };
+  // The name of a pack's place when it counts as shown to the group (P4's private.known_entry_name): a place made from it
+  // the group was shown, or (ppf-1) a place inside it the group was shown, then under the pack's name for players.
+  const fakeKnownEntryName = (campaign: unknown, group: number, pack: unknown, entry: Row): string | null => {
+    const shown = fakeShownPlaceName(campaign, group, pack, entry, '');
+    if (shown) return shown;
+    const inside = tables.places.some(
+      (q) =>
+        q.campaign_id === campaign &&
+        q.pack_id === pack &&
+        !q.undone &&
+        q.pack_entry_id !== entry.pack_entry_id &&
+        tables.group_places.some((g) => g.place_id === q.id && Number(g.group_number) === group && !g.undone && visitShown(g.id)) &&
+        fakeChain(pack, q.pack_entry_id).slice(1).includes(entry),
+    );
+    const view = ((entry.data ?? {}) as Row).playerView as Row | undefined;
+    return inside ? (typeof view?.name === 'string' && view.name.trim() ? view.name.trim().slice(0, 200) : String(entry.name ?? '')) : null;
+  };
   // With one group left, everyone is the party (group 1) again.
   const tidyGroups = (campaign: unknown, tag: Tag) => {
     if (new Set(activeIn(campaign).map((a) => groupNumberOf(a.id))).size > 1) return;
@@ -1837,10 +1854,6 @@ export function createFakeDb(): FakeWorld {
     place_card_for_players: ({ campaign }) => {
       withGroupRows();
       const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
-      const knownName = (group: number, pack: unknown, entry: Row) => {
-        const name = fakeShownPlaceName(campaign, group, pack, entry, '');
-        return name || null;
-      };
       const rows = groups.flatMap((group) => {
         const visit = tables.group_places
           .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
@@ -1850,7 +1863,7 @@ export function createFakeDb(): FakeWorld {
         const out: Row[] = [{ group_number: group, kind: 'here', at: 0, place_id: place.id, key: String(place.pack_key ?? ''), name: String(place.players_name || place.name) }];
         if (!place.pack_id) return out;
         const above = fakeChain(place.pack_id, place.pack_entry_id).slice(1);
-        const names = above.map((entry) => knownName(group, place.pack_id, entry));
+        const names = above.map((entry) => fakeKnownEntryName(campaign, group, place.pack_id, entry));
         const trail = names.filter((n): n is string => !!n).reverse();
         trail.forEach((name, i) => out.push({ group_number: group, kind: 'trail', at: i + 1, place_id: null, key: null, name }));
         if (names[0]) out.push({ group_number: group, kind: 'area', at: 0, place_id: null, key: null, name: names[0] });
@@ -1862,7 +1875,17 @@ export function createFakeDb(): FakeWorld {
               tables.group_places.some((g) => g.place_id === q.id && Number(g.group_number) === group && !g.undone && visitShown(g.id)),
           );
           known.sort((a, b) => String(a.pack_key ?? '').length - String(b.pack_key ?? '').length || String(a.pack_key ?? '').localeCompare(String(b.pack_key ?? '')));
-          known.forEach((q, i) => out.push({ group_number: group, kind: 'known', at: i + 1, place_id: q.id, key: String(q.pack_key ?? ''), name: String(q.players_name || q.name) }));
+          // Each with the first piece the group was shown there (ppf-4), never a picture.
+          const lineOf = (q: Row) => {
+            const visits = new Set(tables.group_places.filter((g) => g.place_id === q.id && Number(g.group_number) === group && !g.undone).map((g) => g.id));
+            const first = tables.piece_shows
+              .filter((sh) => visits.has(sh.group_place_id) && sh.shown === true && !sh.undone)
+              .sort((a, b) => String(a.shown_at).localeCompare(String(b.shown_at)))
+              .map((sh) => tables.place_pieces.find((pc) => pc.id === sh.piece_id && !pc.undone && pc.kind !== 'picture' && String(pc.body ?? '').trim()))
+              .find(Boolean);
+            return first ? plainText(String(first.body)) : '';
+          };
+          known.forEach((q, i) => out.push({ group_number: group, kind: 'known', at: i + 1, place_id: q.id, key: String(q.pack_key ?? ''), name: String(q.players_name || q.name), line: lineOf(q) }));
         }
         return out;
       });
@@ -1890,7 +1913,7 @@ export function createFakeDb(): FakeWorld {
           .sort((a, b) => Number(a.shared_clock) - Number(b.shared_clock))
           .map((k) => {
             const entry = tables.library_entries.find((e) => e.pack_id === k.pack_id && e.kind === 'location' && e.pack_entry_id === k.entry_id);
-            const placeName = k.entry_id === place.pack_entry_id || !entry ? own : fakeShownPlaceName(campaign, group, place.pack_id, entry, own);
+            const placeName = k.entry_id === place.pack_entry_id || !entry ? own : (fakeKnownEntryName(campaign, group, place.pack_id, entry) ?? own);
             return { group_number: group, share_id: k.id, place_name: placeName, heading: plainText(String(k.heading ?? '')), body: k.body === null || k.body === undefined ? null : plainDeep(k.body), shared_clock: Number(k.shared_clock) };
           });
       });
