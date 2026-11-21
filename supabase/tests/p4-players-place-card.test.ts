@@ -1,4 +1,4 @@
-// The players' place card (plan dec-9-the-players-scene, P4; supabase/migrations/20261120200000_p4_players_place_card.sql;
+// The players' place card (plan dec-9-the-players-scene, P4; supabase/migrations/20261121230000_p4_players_place_card.sql;
 // rulings p4s-1, p4s-2, p4s-4 in docs/design/rulings/p4-sitting-2026-11-20.md; hard rule 5). Tested on what the
 // DATABASE sends a player, never on what a screen draws. TEST project or CI's local database; invented packs, places and
 // words only. What it checks, in plain words:
@@ -99,6 +99,9 @@ const harbourPack = () => {
           gm: { sections: [{ heading: 'The salt-wives', text: FLATS_SECRET }] },
         },
         { id: 'the-saltpan', name: 'The Saltpan', type: 'area', key: '1', parentId: 'salt-flats', playerView: { text: 'A shallow pan, dry at noon.' } },
+        // A place inside the jetty, shown to group 1 only: through it the jetty's name counts as shown to group 1 (ppf-1),
+        // never to group 2.
+        { id: 'the-ladder', name: 'The Ladder', type: 'area', parentId: 'the-jetty', playerView: { text: 'Iron rungs down to the water.' } },
       ],
     }),
   );
@@ -116,6 +119,12 @@ const goAndShow = async (id: string) => {
   await ok(as(world.gm, setPlace, { campaignId, group: 1, name: '', packEntry: await entryOf(id) }));
   const visit = (await loadGroupPlaces(asDb(world.gm), campaignId, tripId))!.get(1)!;
   if (!visit.pieces[0]!.shown) await ok(as(world.gm, showPiece, { campaignId, row: visit, piece: visit.pieces[0]! }));
+};
+/** Group 2 moves to a place and the GM shows it the piece at `at` only. */
+const goAndShowGroup2 = async (id: string, at = 0) => {
+  await ok(as(world.gm, setPlace, { campaignId, group: 2, name: '', packEntry: await entryOf(id) }));
+  const visit = (await loadGroupPlaces(asDb(world.gm), campaignId, tripId))!.get(2)!;
+  if (!visit.pieces[at]!.shown) await ok(as(world.gm, showPiece, { campaignId, row: visit, piece: visit.pieces[at]! }));
 };
 /** The GM shows the first piece of where the group stands now. */
 const showHere = async () => {
@@ -220,6 +229,32 @@ describe("the players' place card, as the database sends it (p4s-1, p4s-2)", () 
     expect(await readAll(world.playerB)).toBe('[[],[]]');
   });
 
+  // Purpose (local review of the P4 fixes, 2; ppf-1, ppf-4): each group's names and lines are its own. Group 2, shown
+  // only the Saltpan, reads its own Area and never group 1's ("The Drowned Harbour") nor the Wreck's line. Shown then
+  // only the Wreck's second piece and the Breakwater, its row for the Wreck carries that piece, never the description
+  // group 1 was shown first (the `line`'s own group); and the jetty's section shared with group 2 comes under the
+  // Breakwater's name, though group 1 was shown a place inside the jetty (the ppf-1 lookup's own group).
+  it("keeps each group's names and lines its own", async () => {
+    await goAndShow('the-ladder');
+    await goAndShow('the-jetty');
+    await goAndShowGroup2('the-saltpan');
+    const elsewhere = await readAll(world.playerB);
+    expect(elsewhere).toContain('The Salt Flats');
+    for (const never of ['Drowned Harbour', 'Jetty', 'Wreck', WRECK_SAYS, 'Ladder']) expect(elsewhere, never).not.toContain(never);
+    expect(await readAll(world.playerA)).not.toContain('Salt Flats');
+    await goAndShowGroup2('the-wreck', 1);
+    await goAndShowGroup2('the-breakwater');
+    const card = (await loadPlayersPlaceCards(asDb(world.playerB), campaignId))!.get(2)!;
+    expect(card.known.map((k) => [numbered(k), k.line])).toEqual([['2. The Wreck', WRECK_HIDDEN]]);
+    expect(await readAll(world.playerB)).not.toContain(WRECK_SAYS);
+    // The eel-mother was shared with group 2 earlier (the third test): it comes under the place group 2 is at.
+    const knowledge = (await loadPlayersKnowledge(asDb(world.playerB), campaignId))!;
+    expect(knowledge.map((k) => [k.group, k.placeName, k.section.heading])).toEqual([[2, 'The Breakwater', 'The eel-mother']]);
+    for (const never of ['Jetty', 'Ladder']) expect(await readAll(world.playerB), never).not.toContain(never);
+    // Group 1 never reads group 2's piece of the Wreck.
+    expect(await readAll(world.playerA)).not.toContain(WRECK_HIDDEN);
+  });
+
   // Purpose (ppf-1): with the Area itself shown too, the trail and the heading name it once, as before; the other Area,
   // with no place inside it shown, is still nowhere.
   it('names the Area once, shown itself or with its Locations, and never the Area with nothing shown inside', async () => {
@@ -252,11 +287,16 @@ describe("the players' place card, as the database sends it (p4s-1, p4s-2)", () 
     expect(must(await world.playerA.db.from('events').select('id').eq('campaign_id', campaignId).eq('type', 'placeKnowledge.eye'))).toEqual([]);
   });
 
-  // Purpose: a pack taken off the campaign sends its shared Knowledge to no player, as the place's rules don't (review of
-  // P4). Last, as it detaches the pack.
-  it("sends a detached pack's shared Knowledge to no player", async () => {
+  // Purpose: a pack taken off the campaign sends its shared Knowledge and its card (the number, the trail's names, the
+  // known places and their lines) to no player, as the place's rules don't (review of P4; local review of the P4
+  // fixes, 1). Last, as it detaches the pack.
+  it("sends a detached pack's shared Knowledge and card to no player", async () => {
     expect((await loadPlayersKnowledge(asDb(world.playerA), campaignId))!.map((k) => k.section.heading)).toEqual(['What everyone knows']);
+    expect((await loadPlayersPlaceCards(asDb(world.playerA), campaignId))!.get(1)!.trail).toEqual(['Saltwick Island', 'The Drowned Harbour']);
     must(await world.admin.from('campaign_packs').delete().eq('campaign_id', campaignId).eq('pack_id', packId).select('id'));
-    expect(must(await world.playerA.db.rpc('knowledge_for_players', { campaign: campaignId }))).toEqual([]);
+    for (const player of [world.playerA, world.playerB]) {
+      expect(must(await player.db.rpc('knowledge_for_players', { campaign: campaignId }))).toEqual([]);
+      expect(must(await player.db.rpc('place_card_for_players', { campaign: campaignId }))).toEqual([]);
+    }
   });
 });

@@ -521,10 +521,10 @@ export function PartyGroups({
           {shown.map((n) => {
             const here = scene.get(n);
             // The Location's card (P4, ppf-6) in place of today's place line: the card's read gives the number and the
-            // trail; until it comes, while it fails, or while it still names the place before a move, the place's name as
-            // the scene's read gives it, with no trail.
+            // trail; until it comes, while it fails, or while it is still of the place before a move (matched by the
+            // place's id), the place's name as the scene's read gives it, with no trail.
             const read = areaCards.cards.get(n);
-            const card = read && read.here.name === here?.name ? read : { here: { placeId: '', key: '', name: here?.name ?? '' }, trail: [] };
+            const card = read && here?.placeId && read.here.placeId === here.placeId ? read : { here: { placeId: '', key: '', name: here?.name ?? '' }, trail: [] };
             return (
               <Fragment key={n}>
                 {here && placeLineShows(here) ? (

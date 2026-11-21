@@ -13,7 +13,7 @@
 --      marked undone: undoable_makings). A change ticks that group's signal, so its players read again at once.
 --   2. public.place_card_for_players(campaign): the narrow read p4s-1 rules. For each of the reader's groups whose
 --      current place is shown to them (a piece of it shown on the visit, the rule of scene_pieces and
---      place_rules_for_players), and only then:
+--      place_rules_for_players), of a pack still attached to the campaign (or made by hand), and only then:
 --        'here'  the place's number from the pack (its `key`; '' for none) and its name as players know it;
 --        'trail' each place it sits in (an Area, a Region) whose name counts as shown to this group, by
 --                private.known_entry_name: a place made from that entry that the group was shown (the rule of
@@ -22,7 +22,8 @@
 --                replaced, and sends nothing (no name, no id, not that it exists); `at` counts only the ones sent, from
 --                the top, so no gap hints at a level left out;
 --        'area'  the place it sits in directly (its Area), once more, by the same rule: the right card's heading;
---        'known' the other places of the same Area (the same pack and parent) this group has been shown, each with its
+--        'known' the other places of the same Area (the same pack and parent) this group has been shown on an
+--                expedition not undone (as known_places_campaign), each with its
 --                number, its name, its campaign place id (the id known_places_campaign already sends with its
 --                pieces) and `line`: the first piece the group was shown there, its words as known_places_campaign
 --                sends them (ppf-4, PL1b's second line; nothing new is sent). A Location never shown to the group sends
@@ -226,6 +227,9 @@ language sql stable security definer set search_path = '' as $$
     join public.places p on p.id = gp.place_id and not p.undone
     where g.campaign_id = campaign and private.in_my_group(campaign, g.number)
       and private.visit_shown(gp.id)
+      -- A place of a pack no longer attached to the campaign sends nothing, as knowledge_for_players (local review of the
+      -- P4 fixes, 1): since ppf-1 its Area's and Region's names come from the pack's entries.
+      and (p.pack_id is null or exists (select 1 from public.campaign_packs cp where cp.campaign_id = g.campaign_id and cp.pack_id = p.pack_id))
   ),
   trail as (
     select h.group_number, c.depth, private.known_entry_name(campaign, h.group_number, h.pack_id, (c.entry).pack_entry_id) as name
@@ -235,9 +239,11 @@ language sql stable security definer set search_path = '' as $$
   ),
   known as (
     select h.group_number, q.id as place_id, coalesce(q.pack_key, '') as key, coalesce(nullif(q.players_name, ''), q.name) as name,
-      -- The first piece the group was shown there, on any visit (ppf-4); never a picture, never one not shown.
+      -- The first piece the group was shown there, on any visit of an expedition not undone, as known_places_campaign
+      -- sends its pieces (ppf-4); never a picture, never one not shown.
       (select private.plain_link_text(pc.body)
        from public.group_places v
+       join public.expeditions x on x.id = v.expedition_id and not x.undone
        join public.piece_shows s on s.group_place_id = v.id and s.shown and not s.undone
        join public.place_pieces pc on pc.id = s.piece_id and not pc.undone and pc.kind <> 'picture' and btrim(coalesce(pc.body, '')) <> ''
        where v.place_id = q.id and v.campaign_id = campaign and v.group_number = h.group_number and not v.undone
@@ -249,6 +255,7 @@ language sql stable security definer set search_path = '' as $$
     where h.pack_id is not null and h.parent <> ''
       and exists (
         select 1 from public.group_places v
+        join public.expeditions x on x.id = v.expedition_id and not x.undone
         where v.place_id = q.id and v.campaign_id = campaign and v.group_number = h.group_number and not v.undone
           and private.visit_shown(v.id)
       )

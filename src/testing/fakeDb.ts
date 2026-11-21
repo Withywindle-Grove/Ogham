@@ -1859,7 +1859,8 @@ export function createFakeDb(): FakeWorld {
           .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
           .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
         const place = visit && tables.places.find((p) => p.id === visit.place_id && !p.undone);
-        if (!visit || !place || !visitShown(visit.id)) return [];
+        // A detached pack's place sends nothing (local review of the P4 fixes, 1).
+        if (!visit || !place || !visitShown(visit.id) || (place.pack_id && !tables.campaign_packs.some((cp) => cp.campaign_id === campaign && cp.pack_id === place.pack_id))) return [];
         const out: Row[] = [{ group_number: group, kind: 'here', at: 0, place_id: place.id, key: String(place.pack_key ?? ''), name: String(place.players_name || place.name) }];
         if (!place.pack_id) return out;
         const above = fakeChain(place.pack_id, place.pack_entry_id).slice(1);
@@ -1872,12 +1873,12 @@ export function createFakeDb(): FakeWorld {
           const known = tables.places.filter(
             (q) =>
               q.campaign_id === campaign && !q.undone && q.pack_id === place.pack_id && String(q.pack_parent_id ?? '') === parent && q.id !== place.id && q.pack_entry_id !== place.pack_entry_id &&
-              tables.group_places.some((g) => g.place_id === q.id && Number(g.group_number) === group && !g.undone && visitShown(g.id)),
+              tables.group_places.some((g) => g.place_id === q.id && Number(g.group_number) === group && !g.undone && !tables.expeditions.some((x) => x.id === g.expedition_id && x.undone) && visitShown(g.id)),
           );
           known.sort((a, b) => String(a.pack_key ?? '').length - String(b.pack_key ?? '').length || String(a.pack_key ?? '').localeCompare(String(b.pack_key ?? '')));
           // Each with the first piece the group was shown there (ppf-4), never a picture.
           const lineOf = (q: Row) => {
-            const visits = new Set(tables.group_places.filter((g) => g.place_id === q.id && Number(g.group_number) === group && !g.undone).map((g) => g.id));
+            const visits = new Set(tables.group_places.filter((g) => g.place_id === q.id && Number(g.group_number) === group && !g.undone && !tables.expeditions.some((x) => x.id === g.expedition_id && x.undone)).map((g) => g.id));
             const first = tables.piece_shows
               .filter((sh) => visits.has(sh.group_place_id) && sh.shown === true && !sh.undone)
               .sort((a, b) => String(a.shown_at).localeCompare(String(b.shown_at)))

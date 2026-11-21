@@ -1,7 +1,7 @@
 // The players' place card and the Knowledge the GM shares (plan dec-9-the-players-scene, row P4; rulings p4s-1, p4s-2,
 // p4s-4 in docs/design/rulings/p4-sitting-2026-11-20.md; p2p-24; mc-35; rp-7). Data and words only; the screens are in
 // src/app/PlayersPlaceCard.tsx and src/app/KnowledgeSheet.tsx. The database decides what a player may read
-// (supabase/migrations/20261120200000_p4_players_place_card.sql): this file only shapes what it sends.
+// (supabase/migrations/20261121230000_p4_players_place_card.sql): this file only shapes what it sends.
 //   * The GM's eye on a section of a place's Knowledge (placeKnowledge.eye): shared with one group, at once, logged, with
 //     Undo. The section's words are copied from the pack by the database, never sent by the app.
 //   * A player's card (public.place_card_for_players): for each of their groups whose place is shown to them, the
