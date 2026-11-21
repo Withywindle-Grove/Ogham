@@ -71,7 +71,7 @@ Where this section differs from the rules above or in `CLAUDE.md`, those rules w
 
 ## Short conversations (rvw-5)
 
-- A fresh driver each morning, and whenever its conversation passes about 250,000 tokens (was 150,000; Francis, 18 Nov). At the limit the driver writes its handover and hands over on its own, without asking (Francis, 2026-11-19).
+- A fresh driver each morning, and whenever its conversation passes about 400,000 tokens (was 250,000; Francis, 21 Nov: "we're blowing through drivers"). At the limit the driver writes its handover and hands over on its own, without asking (Francis, 2026-11-19).
 - A worker started from a brief (builder, reviewer, tester, docs-sync, pack worker, cloud seats included) finishes its task past the limit and never stops, hands over or starts a fresh session for it; it just keeps its replies lean.
 - It starts from one handover file it writes itself and overwrites each time: `handover-driver.md` in the project's memory folder.
 - The hook `scripts/context-warn.mjs` warns any session past that size; only the driver (or another session Francis talks to directly) hands over. Never resume yesterday's conversation.

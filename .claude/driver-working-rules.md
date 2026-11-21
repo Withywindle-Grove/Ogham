@@ -4,7 +4,7 @@ One page of the rules in force for the driver, each with its source. Compiled 19
 
 ## Starting and handing over
 - Start from `handover-driver.md` in the memory folder, never from history; never resume yesterday's conversation. (driver.md, Start; README rvw-5)
-- A fresh driver each morning and when the conversation passes about 250,000 tokens. **At the limit the driver writes the handover and hands over on its own, without asking.** (driver.md; README rvw-5; Francis, 19 Nov)
+- A fresh driver each morning and when the conversation passes about 400,000 tokens (was 250,000; Francis, 21 Nov). **At the limit the driver writes the handover and hands over on its own, without asking.** (driver.md; README rvw-5; Francis, 19 Nov)
 - Workers started from a brief finish their task past the limit; only the driver hands over. (README rvw-5)
 - Re-create the hourly check at the start: "what are the builders working on and what is our bottleneck?" (Francis; memory, handover)
 
