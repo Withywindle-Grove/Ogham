@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: the GM gives a character to a player (2026-11-13)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<style>
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .grow { display:grid; grid-template-columns:44px minmax(0,1fr) auto; gap:var(--space-2) var(--space-3); align-items:center; min-height:60px; border-bottom:1px dotted var(--rule); padding:var(--space-2) 0; }
+  .grow small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+  .grow .ga { display:flex; gap:var(--space-2); flex-wrap:wrap; justify-content:flex-end; }
+  .phone .grow { grid-template-columns:44px minmax(0,1fr); }
+  .phone .grow .ga { grid-column:1 / -1; justify-content:flex-start; }
+  .av { width:44px; height:44px; border-radius:50%; border:1.5px solid var(--control); display:flex; align-items:center; justify-content:center; font-weight:700; background:var(--surface); }
+  .mseq { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); overflow-wrap:break-word; }
+  .mttl { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-2) 0 var(--space-3); }
+  .has { display:flex; gap:var(--space-2); align-items:center; min-height:44px; margin:0 0 var(--space-2); }
+  .four { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-4); align-items:start; }
+  .msg { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-2) var(--space-3); background:var(--sheet); }
+  .msg small { display:block; font-size:14px; color:var(--muted); }
+  .logl { min-height:44px; display:flex; flex-direction:column; justify-content:center; border-bottom:1px dotted var(--rule); padding:var(--space-1) 0; }
+  .logl:last-child { border-bottom:0; }
+  .logl small { font-size:14px; color:var(--muted); }
+  .toast .btn { flex:none; }
+  .phone .toast { flex-wrap:wrap; }
+  .phone .toast > span:first-child { flex:0 0 100%; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script>
+const LONGC = 'Ashwin Thistlewood of the Long Stair, called the Lantern-Bearer';
+const LONGP = 'Bartholomew Featherstone-Quillfeather the Younger';
+// today's Players page, in the mockups' dress: the rail's Players is the section in view
+const onPlayers = (h) => h.replace('class="ri on" role="button" aria-label="Scene"', 'class="ri" role="button" aria-label="Scene"').replace('class="ri" role="button" aria-label="Players"', 'class="ri on" role="button" aria-label="Players"');
+const onPlayer = (h) => h.replace('class="ri on" role="button" aria-label="Scene"', 'class="ri" role="button" aria-label="Scene"').replace('class="ri" role="button" aria-label="Player"', 'class="ri on" role="button" aria-label="Player"');
+const give = small('Give to a player…');
+const chRow = (name, sum, meta, o = {}) => `<div class="grow"><span class="av" aria-hidden="true">${name.charAt(0)}</span><span><b>${name}</b>${sum ? `<span class="meta">, ${sum}</span>` : ''}<small>${meta}</small></span><span class="ga">${o.bare ? '' : `${small('View sheet')}${small('Pack')}${give}${small('Remove…')}`}</span></div>`;
+const noChar = (meta) => `<div class="grow"><span class="av" aria-hidden="true"></span><span><b>No character yet</b><small>${meta}</small></span><span></span></div>`;
+const head = `<div class="hrow"><h2>Players and characters</h2>${b('Invite a player', { accent: true })}</div><div class="sect">Players</div>`;
+const listBefore = `${chRow('Wren', 'level 2', 'Sam, joined 12 Oct')}${chRow('Tam', 'level 1', 'Robin, joined 14 Oct')}${noChar('Kit, joined 2 Nov')}${chRow('Ash', 'level 1', 'Yours')}`;
+const listAfter = `${chRow('Wren', 'level 2', 'Sam, joined 12 Oct')}${chRow('Ash', 'level 1', 'Sam, joined 12 Oct')}${chRow('Tam', 'level 1', 'Robin, joined 14 Oct')}${noChar('Kit, joined 2 Nov')}`;
+const toast = (words) => `<div class="toast" style="margin-top:var(--space-3)"><span>${words}</span>${small('Undo')}</div>`;
+
+const g1 = onPlayers(ipad('gm', `${head}${listBefore}`,
+  'G1. <b>Where it lives: on the character’s own row of the GM’s Players page</b>, the place the GM already reads who plays whom (each row’s small line names the player). Today a row has “View sheet”, “Pack” and “Remove…”; it gains <b>“Give to a player…”</b>, a small plain button between “Pack” and “Remove…” (the dots say a sheet opens). Not an accent: the page’s one accent stays “Invite a player”. Every character has it, since the same act hands a leaving player’s character to another. Here Ash is a character the GM made, waiting to be given. <b>For the builder:</b> the small line of a GM-made character reads “Yours” here as a stand-in; use what the built page says for one.'));
+
+const players3 = `${opt('Sam', 'plays Wren')}${opt('Robin', 'plays Tam')}${opt('Kit', 'no character yet')}`;
+const g2 = onPlayers(withPanel('ipad', 'gm', panel({ seq: 'Ash', title: 'Give to a player', body: players3 }),
+  'G2. <b>The sheet:</b> “Give to a player”, the character’s name in the small line, and the campaign’s players as option rows: each player’s name and, under it, the character they have in play now (“plays Wren”) or “no character yet”. <b>A tap on a player gives the character at once</b> (gp-2): no confirm, no second button; the sheet shuts and the toast of frame G3 offers Undo. The X closes without giving. No chevron on a row: a tap acts, it does not lead on. (Drawn in the right-hand panel of the redesign. <b>For the builder:</b> until that panel exists it is the app’s own sheet, with the same content.)', `${head}${listBefore}`));
+
+const gmRow = opt('You, the GM', '');
+const hasLine = (who, ch) => `<p class="has">${sym('check', 20)}<span>${who} has ${ch} now.</span></p>`;
+const g2b = onPlayers(withPanel('ipad', 'gm', panel({ seq: 'Wren', title: 'Give to a player', body: `${hasLine('Sam', 'Wren')}${gmRow}${opt('Robin', 'plays Tam')}${opt('Kit', 'no character yet')}` }),
+  'G2b. <b>The same sheet for a character a player has</b> (Wren is Sam’s). The player who has it now is named in a line with the tick and is not offered. <b>First in the list is “You, the GM”</b> (gp-5): a tap gives the character back to the GM at once, with the same Undo, so it is the GM’s own again and can be given on later. <b>This covers a player who leaves</b>: their character goes back to the GM, or straight to another player from the rows under it. The toast: <b>“Wren is yours again.”</b> with Undo. The row is absent when the character is already the GM’s (frame G2).', `${head}${listBefore}`));
+
+const logCard = `<div class="pcard"><h2 style="margin-top:0">The log’s line, by reader</h2><div class="logl"><span>You gave Ash to Sam.</span><small>The GM</small></div><div class="logl"><span>Your GM gave you Ash.</span><small>Sam, who now has Ash</small></div><div class="logl"><span>Your GM gave Wren to Robin.</span><small>Sam, when a character of theirs is given on (gp-4)</small></div></div><div class="pcard"><h2 style="margin-top:0">When the GM takes one back</h2><div class="logl"><span>You took Wren back from Sam.</span><small>The GM</small></div><div class="logl"><span>Your GM took Wren back.</span><small>Sam, who had Wren</small></div></div>`;
+const g3 = onPlayers(ipad('gm', `<div class="cols2"><div>${head}${chRow('Wren', 'level 2', 'Sam, joined 12 Oct', { bare: true })}${chRow('Ash', 'level 1', 'Sam, joined 12 Oct', { bare: true })}${chRow('Tam', 'level 1', 'Robin, joined 14 Oct', { bare: true })}${noChar('Kit, joined 2 Nov')}${toast('Ash given to Sam.')}</div><div class="stack">${logCard}</div></div>`,
+  'G3. <b>After:</b> the sheet has shut; <b>Ash’s row now names Sam</b> and sits with Sam’s other character; the toast says <b>“Ash given to Sam.”</b> with Undo, which gives Ash back to whoever had it. Sam already plays Wren, so nothing about Wren changes and Ash joins Sam’s list (gp-3); had Sam had no character, Ash would be theirs in play at once, and the toast is the same. (The rows’ buttons are left off this frame to give the log room; they are frame G1’s.) <b>The log</b> (right) says it in one line, worded for its reader: the GM, the player who received it, and, when the character was a player’s before, that player. Nobody else reads the line (gp-4). When the GM takes a character back (frame G2b) the line is the second card’s.'));
+
+const g4 = onPlayer(ipad('player', `<div class="cols2"><div><div class="hrow"><h2>Your characters</h2></div>${chRow('Wren', 'level 2', 'In play', { bare: true })}${chRow('Ash', 'level 1', 'From your GM, today', { bare: true })}</div><div class="stack"><div><p class="lbl"><b>In Messages</b> (the envelope in the top row): one notice, no pop-up.</p><div class="pcard"><h2 style="margin-top:0">Messages</h2><div class="msg"><b>Your GM gave you Ash.</b><small>Today</small></div></div></div></div></div>`,
+  'G4. <b>The player’s side</b> (the lean: a notice, no pop-up). Nothing opens over what Sam is doing. <b>The character is in “Your characters”</b>, under the one Sam plays, with a small line saying where it came from; and <b>Messages holds one notice, “Your GM gave you Ash.”</b> Wren stays in play; Sam switches to Ash from this list as for any other character. A player who had no character finds Ash already in play. <b>For the builder:</b> the list’s own words for the character in play (“In play” here) are a stand-in for today’s; the small line “From your GM, today” is new; the list is otherwise today’s and its buttons are not drawn.'));
+
+// ---- states ----
+const miniS = (seq, title, body) => `<div class="pcard"><div class="mseq">${seq}</div><div class="mttl">${title}</div>${body}</div>`;
+const stt = (label, html) => `<div><p class="lbl">${label}</p>${html}</div>`;
+const twelveNames = ['Sam', 'Robin', 'Kit', LONGP, 'Jo', 'Alder Marsh-Wainwright of the Upper Reed Wardens’ Hall', 'Pip', 'Morgan', 'Rowan Underhill-Bracegirdle-Featherbottom', 'Ox', 'Tansy', 'Quill'];
+const twelve = twelveNames.map((n, i) => opt(n, i % 3 === 2 ? 'no character yet' : i === 3 ? `plays ${LONGC}` : 'plays ' + ['Wren', 'Tam', '', '', 'Bram', '', 'Sedge', 'Moss', '', 'Fen', 'Reed', ''][i])).join('');
+const g5 = onPlayers(ipad('gm', `<div class="four">
+  ${stt('<b>No players in the campaign yet.</b> The page’s own line, and the way to invite one.', miniS('Ash', 'Give to a player', `<p style="margin:0 0 var(--space-3)">No players yet. Invite someone to get started.</p>${b('Invite a player')}`))}
+  ${stt('<b>One player.</b>', miniS('Ash', 'Give to a player', opt('Sam', 'plays Wren')))}
+  ${stt('<b>The character is a player’s already</b> (Wren is Sam’s): that player is named in a line with the tick and is not offered; “You, the GM” leads the list.', miniS('Wren', 'Give to a player', `${hasLine('Sam', 'Wren')}${gmRow}${opt('Robin', 'plays Tam')}${opt('Kit', 'no character yet')}`))}
+  ${stt('<b>A very long character name</b>: it wraps in the small line and in the toast.', miniS(LONGC, 'Give to a player', `${opt(LONGP, 'no character yet')}${toast(`${LONGC} given to ${LONGP}.`)}`))}
+  ${stt('<b>Twelve players, long names:</b> the rows wrap; the sheet scrolls.', miniS('Ash', 'Give to a player', twelve))}
+  ${stt('<b>Refused</b> (the player left the campaign as the GM tapped): a toast, and nothing changed.', `<div class="toast" style="margin-top:0"><span>${warn('Ash wasn’t given: Sam is no longer in this campaign. Nothing changed.')}</span></div>`)}
+</div>`,
+  'G5. <b>The sheet’s states</b>, each drawn as the sheet’s content alone. <b>No players:</b> the Players page’s own words (“No players yet. Invite someone to get started.”) and a plain “Invite a player”, which opens today’s invite. <b>One player:</b> one row. <b>Given from a player:</b> the player who has the character now is named in a line with a tick and is not a row, so nothing is offered that would do nothing and nothing is greyed; “You, the GM” is the first row (frame G2b). <b>Long names:</b> a character’s and a player’s wrap, in the head, the rows and the toast. <b>Twelve:</b> the list scrolls in the sheet; no search for a table’s worth of players. <b>Refused:</b> said plainly in a toast.'));
+
+const ph1 = phone(`${phoneBar('The Reed Marches')}<div class="inner"><div class="hrow"><h2>Players and characters</h2></div>${b('Invite a player', { accent: true })}<div class="sect">Players</div>${chRow('Wren', 'level 2', 'Sam, joined 12 Oct')}${chRow('Ash', 'level 1', 'Yours')}</div>${tabBar('gm').replace('<span class="on">Scene</span>', '<span>Scene</span>').replace('<span>Players</span>', '<span class="on">Players</span>')}`,
+  'P1. The phone, 375 px: a row’s buttons wrap under its name, “Give to a player…” among them.');
+const ph2 = phone(`${phoneBar('Give to a player')}<div class="inner"><p class="lbl" style="margin-bottom:var(--space-2)">${LONGC}</p>${opt('Sam', 'plays Wren')}${opt(LONGP, `plays ${LONGC}`)}${opt('Kit', 'no character yet')}</div>`,
+  'P2. The phone’s sheet: the whole screen, the character’s name under the title (its bar is drawn roughly: the phone’s sheet has its X there). Long names wrap in their rows.');
+const ph3 = phone(`${phoneBar('The Reed Marches')}<div class="inner"><div class="sect" style="margin-top:0">Players</div>${chRow(LONGC, 'level 1', `${LONGP}, joined 12 Oct`, { bare: true })}${toast(`${LONGC} given to ${LONGP}.`)}</div>${tabBar('gm').replace('<span class="on">Scene</span>', '<span>Scene</span>').replace('<span>Players</span>', '<span class="on">Players</span>')}`,
+  'P3. The phone, after: the row names the player; in the toast Undo wraps under the words when both will not fit on one line (tw-1).');
+
+mount(`
+  <h1>The GM gives a character to a player</h1>
+  <p class="note">For the lead (brief of 2026-11-13, night; <code>docs/plans/dec-give-a-character-to-a-player.md</code>, gp-1 to gp-4). One new action on the GM’s Players page, drawn on today’s page in the mockups’ dress. Only the GM gives; only to a player of this campaign; at once, with Undo; the character stays approved. Names and words are invented. <b>Approved by Francis 2026-11-13, with the lead’s fix (gp-5)</b>: “You, the GM” as a row when the character is a player’s (frame G2b).</p>
+  <h1>1. Where it lives</h1>
+  <div class="wall">${g1}</div>
+  <h1>2. The sheet</h1>
+  <div class="wall">${g2}</div>
+  <div class="wall">${g2b}</div>
+  <h1>3. After</h1>
+  <div class="wall">${g3}</div>
+  <h1>4. The player’s side</h1>
+  <div class="wall">${g4}</div>
+  <h1>5. States, and the phone</h1>
+  <div class="wall">${g5}</div>
+  <div class="wall">${ph1}${ph2}${ph3}</div>
+  <h1>What was approved</h1>
+  <p class="note"><b>1. The place:</b> a small button on the character’s row of the Players page. The alternative, not drawn: an entry in the character sheet’s own menu, one tap deeper and away from the line that says who plays whom.</p>
+  <p class="note"><b>2. The words.</b> The button: “Give to a player…”. The sheet: “Give to a player”. A row’s small line: “plays Wren”; “no character yet”. The owner’s line: “Sam has Wren now.” The GM’s row: “You, the GM”. The toast: “Ash given to Sam.”; taken back: “Wren is yours again.” The log: “You gave Ash to Sam.” (the GM); “Your GM gave you Ash.” (the receiver, and the notice in Messages); “Your GM gave Wren to Robin.” (the player it was taken from). Taken back: “You took Wren back from Sam.” (the GM); “Your GM took Wren back.” (the player who had it). Refused: “Ash wasn’t given: Sam is no longer in this campaign. Nothing changed.” No players: the page’s own “No players yet. Invite someone to get started.”</p>
+  <p class="note"><b>3. The player who has the character now is a line, not a row</b> (never a greyed row).</p>
+  <p class="note"><b>4. Giving a character back to the GM</b> is the row “You, the GM”, first in the list when the character is a player’s (gp-5, the lead’s fix; frame G2b). It covers a player leaving.</p>
+  <p class="note"><b>5. The toast is the same whether or not the player already has a character in play.</b> Saying “and it is in play” would be an explainer; the row and the player’s list show it.</p>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked, in the HTML.</b> No confirm and no second step: one tap gives, Undo takes back. One accent on the page (today’s “Invite a player”); the new button is plain. No disabled or greyed row. Nothing implies a player can give a character away: the button is on the GM’s page only, and the player’s frame has none. States: no players, one, twelve, the current owner with the GM’s row, long names for character and player, refused, the phone’s row, sheet and toast. Rows are 56 px or more; small buttons are the shared 44 px part.</p>
+  <p class="note"><b>Not checked, or gaps.</b> Today’s Players page on main: read from an older copy of the source, so its rows’ words may have changed, above all for a character the GM made. Today’s “Your characters” list and Messages: their layout is drawn roughly. Loading and offline. Undo after the receiver has already changed the character (the plan’s to say). Contrast by measurement; Larger text. The frames are in set 1’s type.</p>
+`);
+</script>
+</body>
+</html>
