@@ -1,13 +1,16 @@
 ---
-status: pending
+status: absorbed
 milestone: December first play (Francis's tablet feedback, fb-5; B15's sixth flag; page M4)
 absorbed-into: docs/09-decisions-log.md (2026-11-20); docs/05-features.md (lights, fb5-1 to fb5-3); docs/plans/test-feedback-2026-11-19.md (section Q; section P's page M4 was drawn and approved the same evening, page 28, `page-28-m4-pins-2026-11-20.md`, so P reads as approved); docs/plans/scene-point-to-point.md (row B15). Still to absorb, with #1101's fix push: b15f-6 in #1101's lines of docs/05, docs/04 and docs/07
+superseded-in-part-by: stacks-and-reveal-2026-11-21.md (b15f-6 is reversed by sw-8; ⚑ 33 to 39 are answered there)
 supersedes: nothing as a file. b15f-6 narrows p2p-29's "wherever it is held" (scene-point-to-point-2026-11-18.md) to the groups the piece was shown to
 ---
 
 # Joining light stacks, a magic item's name in a split party, page M4 (2026-11-20)
 
 Three answers Francis gave the driver in chat on the evening of 2026-11-20. Each was a pick from options the driver put to him; he took the recommended one each time. The intent behind fb-5 is [`../../intents/francis-tablet-feedback-2026-11-20.md`](../../intents/francis-tablet-feedback-2026-11-20.md).
+
+> ⚑ 33 to 39 below are answered, and b15f-6 is reversed, in [`stacks-and-reveal-2026-11-21.md`](stacks-and-reveal-2026-11-21.md).
 
 ## Rulings
 
