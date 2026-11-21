@@ -574,7 +574,7 @@ jobs:
           echo "Failed jobs:" && cut -f2 triage/jobs.tsv
       - name: Triage
         id: triage
-        uses: anthropics/claude-code-action@v1.0.266
+        uses: anthropics/claude-code-action@v1.0.280
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ github.token }}
