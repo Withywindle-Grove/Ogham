@@ -31,6 +31,10 @@ const ENTRIES: Row[] = [
   { id: 'e-rushlight', name: 'Rushlight', data: { category: 'light', weightCoin: 1, slots: 1, stack: 5, lightTypeId: 'reed-torch' } },
   { id: 'e-sack', name: 'Reed sack', data: { category: 'gear', weightCoin: 5, slots: 1, container: { capacitySlots: 4 } } },
   { id: 'e-wand', name: 'Fen wands', data: { category: 'wand', weightCoin: 1, stack: 5, charges: { formula: '2' } } },
+  // One to a slot and no bundle: a single thing, which never joins (sw-10).
+  { id: 'e-sword', name: 'Fen sword', data: { category: 'weapon', weightCoin: 6, slots: 1, stack: 1 } },
+  // One to a slot but sold as a bundle (07's bundle): carried in numbers, so it joins.
+  { id: 'e-rations', name: 'Trail rations (7)', data: { category: 'food', weightCoin: 7, slots: 1, stack: 1, bundle: 7, unitName: 'Trail ration' } },
 ];
 const item = (id: string): ItemCopy => {
   const entry = ENTRIES.find((e) => e.id === id)!;
@@ -260,6 +264,29 @@ describe('an added thing joins a same-name stack (sw-1, fb5-1)', () => {
     expect(counts(tam)).toEqual([
       ['Reed torch', 2],
       ['Reed torch', 2],
+    ]);
+  });
+
+  // Purpose: only things carried in numbers join (sw-10, Francis's "No"): two swords stay a row each, even one added as
+  // two; rations sold as a bundle join though one fills a slot.
+  it('a single thing never joins; a bundled thing does', async () => {
+    await add(sam, wren, 'e-sword', 1);
+    await add(sam, wren, 'e-sword', 2);
+    await add(sam, wren, 'e-sword', 1);
+    expect(counts(wren)).toEqual([
+      ['Fen sword', 1],
+      ['Fen sword', 2],
+      ['Fen sword', 1],
+    ]);
+    await add(sam, wren, 'e-rations', 7);
+    await add(sam, wren, 'e-rations', 7);
+    expect(counts(wren).filter(([name]) => name === 'Trail ration')).toEqual([['Trail ration', 14]]);
+    // Given or moved, a single thing keeps its own row too.
+    await add(lena, ash, 'e-sword', 1);
+    await as(sam, moveItem, { line: ref(lineNamed(wren, 'Fen sword'), wren), to: ash, qty: 1, of: 1 });
+    expect(counts(ash)).toEqual([
+      ['Fen sword', 1],
+      ['Fen sword', 1],
     ]);
   });
 

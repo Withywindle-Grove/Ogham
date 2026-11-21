@@ -189,11 +189,9 @@ describe('5. splitting a stack', () => {
   it('a split takes from 1 to one less than the stack, and only from a line the caller can see', async () => {
     const added = await fromEntry(world.playerA, 'pebble', 2);
     if (!added.ok) throw new Error(added.message);
-    // The 2 may have joined a pebble stack an earlier case left loose (Q2, sw-1): the whole stack is its count now.
-    const whole = added.value.qty;
-    expect((await world.playerA.db.rpc('split_inventory_line', { line: added.value.id, how_many: whole })).error).not.toBeNull();
+    expect((await world.playerA.db.rpc('split_inventory_line', { line: added.value.id, how_many: 2 })).error).not.toBeNull();
     expect((await world.outsider.db.rpc('split_inventory_line', { line: added.value.id, how_many: 1 })).error).not.toBeNull();
-    expect((await line(added.value.id)).qty).toBe(whole);
+    expect((await line(added.value.id)).qty).toBe(2);
   });
 });
 

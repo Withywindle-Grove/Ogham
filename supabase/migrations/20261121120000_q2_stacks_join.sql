@@ -1,6 +1,9 @@
--- Q2 (fb-5; rulings fb5-1 to fb5-3, sw-1 to sw-7 and sw-9: docs/design/rulings/tablet-feedback-2026-11-20.md,
+-- Q2 (fb-5; rulings fb5-1 to fb5-3, sw-1 to sw-7, sw-9 and sw-10: docs/design/rulings/tablet-feedback-2026-11-20.md,
 -- stacks-and-reveal-2026-11-21.md, stacks-whole-line-join-2026-11-21.md): a stackable thing added, given or moved to a
--- same-name stack in the same place joins it instead of making a second line.
+-- same-name stack in the same place joins it instead of making a second line. Only things carried in numbers join
+-- (sw-10, Francis's "No" to swords joining): an item several of which share a slot (07's `stack` above 1: arrows, coins)
+-- or sold as a bundle (07's `bundle` above 1, kept on the line as `per_units`: torches, rations); a thing with a stack of
+-- 1 never joins, on either side.
 --
 -- What it changes, plainly.
 --   Adds two functions the app calls: public.join_added_line (inventory.add, before it makes a new line) and
@@ -145,11 +148,15 @@ begin
     item_name := coalesce(nullif(trim(item.data ->> 'unitName'), ''), item.name);
   end if;
   item_stack := case when item.data ->> 'stack' ~ '^[0-9]+$' then (item.data ->> 'stack')::integer else 1 end;
+  -- Only a thing carried in numbers joins (sw-10): several to a slot (07's stack) or sold in a bundle (07's bundle).
+  if item_stack <= 1 and not (item.data ->> 'bundle' ~ '^[0-9]+$' and (item.data ->> 'bundle')::integer > 1) then
+    return null;
+  end if;
   select l.* into target from public.inventory_lines l
   where l.campaign_id = campaign and l.actor_id is not distinct from actor and l.location_id is not distinct from location
     and l.container_line_id is not distinct from container
     and private.same_stack_name(l.name, item_name)
-    and (l.stack > 1 or l.qty > 1 or item_stack > 1 or how_many > 1)
+    and (l.stack > 1 or l.per_units > 1)
     and private.stack_joinable(l)
     -- A character still waiting for approval keeps its lines apart: creation's records count what each pick added.
     and (actor is null or exists (select 1 from public.actors a where a.id = actor and a.approval = 'approved'))
@@ -211,7 +218,7 @@ begin
     and l.location_id is not distinct from to_location and l.container_line_id is not distinct from to_container
     and l.id <> source.id
     and private.same_stack_name(l.name, source.name)
-    and (l.stack > 1 or l.qty > 1 or source.stack > 1 or how_many > 1)
+    and (l.stack > 1 or l.per_units > 1) and (source.stack > 1 or source.per_units > 1)
     and private.stack_joinable(l)
     and (to_actor is null or exists (select 1 from public.actors a where a.id = to_actor and a.approval = 'approved'))
   order by l.created_at, l.id

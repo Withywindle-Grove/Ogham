@@ -4175,7 +4175,7 @@ export function createFakeDb(): FakeWorld {
     const joined = earlier.find((e) => e.target_table === 'inventory_lines' && isJoin(String(e.type), { before: e.before, after: e.after }));
     return { done: earlier.length > 0, line: joined?.target_id ?? null };
   };
-  const stackAt = (campaign: unknown, actor: unknown, location: unknown, container: unknown, name: unknown, stack: number, howMany: number, not: unknown = null) =>
+  const stackAt = (campaign: unknown, actor: unknown, location: unknown, container: unknown, name: unknown, inNumbers: boolean, not: unknown = null) =>
     tables.inventory_lines.find(
       (l) =>
         l.campaign_id === campaign &&
@@ -4184,7 +4184,9 @@ export function createFakeDb(): FakeWorld {
         (l.container_line_id ?? null) === (container ?? null) &&
         l.id !== not &&
         sameStackName(l.name, name) &&
-        (Number(l.stack) > 1 || Number(l.qty) > 1 || stack > 1 || howMany > 1) &&
+        // Only things carried in numbers (sw-10): several to a slot, or a bundle's units.
+        (Number(l.stack) > 1 || Number(l.per_units ?? 1) > 1) &&
+        inNumbers &&
         stackJoinable(l) &&
         (actor === null || actor === undefined || tables.actors.some((a) => a.id === actor && (a.approval ?? 'approved') === 'approved')),
     );
@@ -4211,7 +4213,7 @@ export function createFakeDb(): FakeWorld {
       const bundled = typeof data.bundle === 'number' && data.bundle > 1;
       const name = bundled && typeof data.unitName === 'string' && data.unitName.trim() ? data.unitName : entry.name;
       const stack = typeof data.stack === 'number' && Number.isInteger(data.stack) ? data.stack : 1;
-      const target = stackAt(args.campaign, args.actor ?? null, args.location ?? null, args.container ?? null, name, stack, howMany);
+      const target = stackAt(args.campaign, args.actor ?? null, args.location ?? null, args.container ?? null, name, stack > 1 || bundled);
       if (!target) return { data: null, error: null };
       // How it was got stays on the add's own line (its reason), never on the stack.
       const words = (v: unknown, most: number) => (typeof v === 'string' ? v.trim().slice(0, most) : '');
@@ -4230,7 +4232,8 @@ export function createFakeDb(): FakeWorld {
       if ((!source.library_entry_id && !source.source_pack_id) || !stackJoinable(source, true) || tables.inventory_lines.some((l) => l.container_line_id === source.id)) {
         return { data: null, error: null };
       }
-      const target = stackAt(source.campaign_id, args.to_actor ?? null, args.to_location ?? null, args.to_container ?? null, source.name, Number(source.stack), howMany, source.id);
+      const inNumbers = Number(source.stack) > 1 || Number(source.per_units ?? 1) > 1;
+      const target = stackAt(source.campaign_id, args.to_actor ?? null, args.to_location ?? null, args.to_container ?? null, source.name, inNumbers, source.id);
       if (!target) return { data: null, error: null };
       if (howMany < Number(source.qty)) countOn(source, Number(source.qty) - howMany, tag);
       countOn(target, Number(target.qty) + howMany, tag);

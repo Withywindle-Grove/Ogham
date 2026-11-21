@@ -188,6 +188,36 @@ describe('an add joins a same-name stack (sw-1)', () => {
     expect(must(await world.admin.from('inventory_lines').select('qty').eq('id', first.id))).toEqual([{ qty: 5 }]);
   });
 
+  // Purpose: only things carried in numbers join (sw-10): two of a single thing (one to a slot, no bundle) stay a row
+  // each, whatever the count; a thing sold as a bundle joins though one fills a slot.
+  it('a single thing never joins; a bundled thing does', async () => {
+    made += 1;
+    const read = readPackJson(
+      JSON.stringify({
+        format: 'tabletop-pack',
+        formatVersion: 2,
+        meta: { name: `Singles ${made}` },
+        items: [
+          { id: 'sword', name: `Fen${made} sword`, category: 'weapon', weightCoin: 6, slots: 1, stack: 1 },
+          { id: 'rations', name: `Trail${made} rations (7)`, category: 'food', weightCoin: 7, slots: 1, stack: 1, bundle: 7, unitName: `Trail${made} ration` },
+        ],
+      }),
+    );
+    if (!read.ok) throw new Error(read.message);
+    const pack = await as(world.gm, importPack, { pack: read.pack });
+    if (!pack.ok) throw new Error(pack.message);
+    await as(world.gm, attachPack, { campaignId: world.campaignId, packId: pack.value });
+    const rows = must(await world.gm.db.from('library_entries').select('id, pack_entry_id').eq('pack_id', pack.value));
+    const copy = (entry: string): ItemCopy => ({ libraryEntryId: rows.find((r) => r.pack_entry_id === entry)!.id as string, name: 'what the device says', category: 'x', weightCoin: 1, slots: 1, stack: 1 });
+    await add(world.playerA, wren(), copy('sword'), 1);
+    await add(world.playerA, wren(), copy('sword'), 2);
+    await add(world.playerA, wren(), copy('sword'), 1);
+    expect((await stackOn(wren(), `Fen${made} sword`)).map((l) => l.qty)).toEqual([1, 2, 1]);
+    await add(world.playerA, wren(), copy('rations'), 7);
+    await add(world.playerA, wren(), copy('rations'), 7);
+    expect((await stackOn(wren(), `Trail${made} ration`)).map((l) => l.qty)).toEqual([14]);
+  });
+
   // Purpose: the same add tried again with its request id (an offline retry after a lost answer) adds once.
   it('a retried add adds once', async () => {
     const t = await torches();
