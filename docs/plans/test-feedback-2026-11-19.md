@@ -286,7 +286,7 @@ Added on 2026-11-20 (row: `docs-fb-rulings-2026-11-20`). Six notes from his tabl
 | # | From | What it builds | Ruling, or his words | Mockup, approved | Size |
 |---|---|---|---|---|---|
 | Q1 | fb-3 | **The Burden pop-up lists its levels once.** The lines under the levels' table that repeat it go ("the bottom listings"); the table, the lead and what sets the limit stay. Built with the p4 sitting's of-6 (the pop-up in slots shows only the band that sets the speed, as M2h: `design/rulings/p4-sitting-2026-11-20.md`): one builder, one pull request | "Duplicate information no need for the bottom listings" (2026-11-20, to the driver); of-6 | M2h (page 26, approved 2026-11-19), which draws the levels once. Its built picture goes in the pull request | S |
-| Q2 | fb-5 | **Lights join into one stack.** A light added to a character whose name matches a light they already have, ignoring capitals and plural, joins that stack instead of making a second line, even from another pack entry. "Which light?" then lists one row ("Torch ×5"). Undo of the add takes the added count back off and leaves the stack as it was; one log line for the add, one for its Undo. No max stack size exists, so a join always fits. Lights only (⚑ 33). The readings of ⚑ 34 to 38 are built as written there unless he rules otherwise first | fb5-1 to fb5-3 ("Same name"; "Splits them back"; "as long as they fit under max stack size (if there is one) agreed") | None new: data and logic, and the picker's words as built (its one row is the picker's existing row with a bigger count). Its built picture goes in the pull request | M |
+| Q2 | fb-5 | **Lights join into one stack.** A light added to a character whose name matches a light they already have, ignoring capitals and plural, joins that stack instead of making a second line, even from another pack entry. "Which light?" then lists one row ("Torch ×5"). Undo of the add takes the added count back off and leaves the stack as it was; one log line for the add, one for its Undo. No max stack size exists, so a join always fits. **Every stackable thing, not only lights; same character and place, the stash included; gives and moves join; the older line's figures win; a lit or partly burnt light is never joined; Undo as the give's Undo** (⚑ 33 to 38, answered 2026-11-21: `../design/rulings/stacks-and-reveal-2026-11-21.md`, sw-1 to sw-7). **Weight tests are part of this row:** the carried total (weight, slots) after a join, a give, a move and an Undo, in both modes, and a join of two weights counted at the stack's | fb5-1 to fb5-3, sw-1 to sw-7 ("Same name"; "Splits them back"; "as long as they fit under max stack size (if there is one) agreed") | None new: data and logic, and the picker's words as built (its one row is the picker's existing row with a bigger count). Its built picture goes in the pull request | M |
 
 ### Files and tests
 
@@ -303,15 +303,17 @@ Read on 2026-11-20 on `main`. Each test is written first as a plain sentence.
 
 ### ⚑ for these rows
 
-Collected, not decided. Numbered from 33 (H's ⚑ 32 is the last).
+Numbered from 33 (H's ⚑ 32 is the last). All answered 2026-11-21: [`../design/rulings/stacks-and-reveal-2026-11-21.md`](../design/rulings/stacks-and-reveal-2026-11-21.md).
 
-- ⚑ 33. **Every stackable thing?** fb5-1 is ruled for lights. Arrows, rations and the rest by the same rule?
-- ⚑ 34. **Where the join happens.** Read as: the same character and the same place (the same container, or both loose).
-- ⚑ 35. **Two lights that differ** (burn time, radius, weight or cost from two entries). Read as: the stack joined keeps its own figures. A lit or partly burnt light is never joined.
-- ⚑ 36. **Undo after the stack changed.** Read as the give's Undo (5b): it takes back the added count, or what's left of it with the toast saying so; any other change refuses with the reason.
-- ⚑ 37. **If a max stack size is ever added:** what doesn't fit stays a second stack (read from his words; not asked).
-- ⚑ 38. **Gives and moves.** Does a light given or moved to a character join a same-name stack too? Read as no until ruled.
-- ⚑ 39. **b15f-6 at the edges** (row B15, `scene-point-to-point.md`): a player with characters in both groups (read: named); groups that join up (read: named if either was shown it); the item given from group A to group B (read: B's carrier sees the plain name).
+| ⚑ | Answer | Ruling |
+|---|---|---|
+| 33 | Every stackable thing joins ("Yes") | sw-1 |
+| 34 | Same character and same place, the party stash included ("Yes including party stash") | sw-2 |
+| 35 | The older line's figures win; a lit or partly burnt light is never joined ("Yes"); a different weight joins too, counted at the stack's ("A") | sw-3, sw-7 |
+| 36 | Undo as the give's Undo ("Yes") | sw-4 |
+| 37 | A max stack, if added: the rest stays a second stack ("Yes") | sw-5 |
+| 38 | Gives and moves join; weight tracked properly, with tests ("Yes it joins. For all of this make sure weight is tracked properly") | sw-6, sw-7 |
+| 39 | Reversed: once revealed, every player sees the real name ("Once it's revealed it's revealed to everyone...") | sw-8; row B15 follows it, on #10's branch |
 
 **Estimate:** Q1 a third of a builder turn with of-6. Q2 one builder turn, more with a database step.
 
