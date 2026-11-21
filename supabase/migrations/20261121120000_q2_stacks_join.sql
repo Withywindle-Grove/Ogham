@@ -16,6 +16,7 @@
 --     has at least that many above what it had; with fewer, what's left of the added part, and the undo says so
 --     (sw-4, as the give's 5b); renamed, given on, identified or charges spent refuse with the reason. It lowers the
 --     stack's count and deletes no line. A whole line a move merged in comes back as its own line, with what's left.
+--   A joined add's price and the GM's note are kept on its own log line (its reason, as JSON), never on the stack.
 -- Deletes data: a whole line given or moved onto a same-name stack is merged into it and removed; the log keeps its
 --   full copy, and Undo makes it again (sw-9, Francis, 2026-11-21: "A"; the eighth exception to hard rule 4).
 -- Drops, renames and removes nothing else; no read rule changes; no new logged command (the joins are logged as the
@@ -105,9 +106,13 @@ grant execute on function private.request_join_done() to authenticated, service_
 -- Called by inventory.add before it makes a new line (made_id is the id that line would have). Returns the stack it
 -- joined, or null (nothing changed: the app makes the line as before). Only an item from the setting rules joins, read
 -- by its entry as the new line would be (a bundle as its units); a one-off keeps its own line (it may wait for the GM).
+-- How the added thing was got, its price and the GM's note stay with the add, never on the stack: they are written on
+-- the add's own log line (its reason, as JSON: {"join":{"howGot","cost","note"}}), which the log reads to say "bought
+-- … (6 cp)" or "gave … : note" as for any add. Given is the GM's alone, as for a new line.
 
 create function public.join_added_line(
-  campaign uuid, actor uuid, location uuid, container uuid, entry uuid, how_many integer, made_id uuid
+  campaign uuid, actor uuid, location uuid, container uuid, entry uuid, how_many integer, made_id uuid,
+  how_got text default 'found', cost text default '', note text default ''
 ) returns uuid
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -123,6 +128,8 @@ begin
     return joined;
   end if;
   if how_many is null or how_many < 1 or entry is null
+    or coalesce(how_got, '') not in ('bought', 'found', 'given')
+    or (how_got = 'given' and not private.is_gm(campaign))
     or exists (select 1 from public.inventory_lines l where l.id = made_id)
     or not private.may_change_carrier(campaign, actor, location) then
     return null;
@@ -152,12 +159,17 @@ begin
   if target.id is null then
     return null;
   end if;
+  perform set_config('grimoire.event_reason', jsonb_build_object('join', jsonb_build_object(
+    'howGot', how_got,
+    'cost', case when how_got = 'bought' then left(btrim(coalesce(cost, '')), 100) else '' end,
+    'note', left(btrim(coalesce(note, '')), 300)))::text, true);
   update public.inventory_lines l set qty = target.qty + how_many where l.id = target.id;
+  perform set_config('grimoire.event_reason', '', true);
   return target.id;
 end;
 $$;
-revoke execute on function public.join_added_line(uuid, uuid, uuid, uuid, uuid, integer, uuid) from public, anon;
-grant execute on function public.join_added_line(uuid, uuid, uuid, uuid, uuid, integer, uuid) to authenticated, service_role;
+revoke execute on function public.join_added_line(uuid, uuid, uuid, uuid, uuid, integer, uuid, text, text, text) from public, anon;
+grant execute on function public.join_added_line(uuid, uuid, uuid, uuid, uuid, integer, uuid, text, text, text) to authenticated, service_role;
 
 -- 5. Joining on a give or a move (sw-6, sw-9) --------------------------------------------------------------------------
 -- Called by inventory.move before it moves or splits. Returns the stack it joined, or null (nothing changed: the app
@@ -299,9 +311,15 @@ begin
             and private.is_join_event(e) and e.target_id <> line
           order by e.seq desc limit 1;
         end if;
-        raise exception '% gave some to %.', holder,
-          coalesce(next_to ->> 'given_to',
-                   private.holder_name((next_to ->> 'actor_id')::uuid, (next_to ->> 'location_id')::uuid));
+        -- Moved within the same pack (into a bag, or onto another stack there): not given on, only fewer left here
+        -- (sw-4), counted below like any used.
+        if not (next_to is not null and next_to ->> 'given_to' is null
+                and (next_to ->> 'actor_id')::uuid is not distinct from now_line.actor_id
+                and (next_to ->> 'location_id')::uuid is not distinct from now_line.location_id) then
+          raise exception '% gave some to %.', holder,
+            coalesce(next_to ->> 'given_to',
+                     private.holder_name((next_to ->> 'actor_id')::uuid, (next_to ->> 'location_id')::uuid));
+        end if;
       end if;
       continue when key = 'qty';
       if key = 'name' then
@@ -375,14 +393,42 @@ $$;
 revoke execute on function private.undo_check_join(public.events) from public, anon;
 grant execute on function private.undo_check_join(public.events) to authenticated, service_role;
 
--- The writes: the added part comes off each joined stack, and a whole line a move merged in is made again, where it
--- was, with what's left of it (logged against the removal it reverses; sw-9).
+-- The writes: a whole line a move merged in is made again, where it was, with what's left of it (logged against the
+-- removal it reverses; sw-9), then the added part comes off each joined stack. A merged line goes back with the one
+-- stack it joined (a move joins one): what's left is read from that stack before anything is written.
 create function private.undo_unjoin(picked public.events, joins uuid[], merged uuid[]) returns void
 language plpgsql security invoker set search_path = '' as $$
 declare
   change public.events;
+  joined public.events;
+  join_count integer;
   left_part integer;
 begin
+  for change in
+    select * from public.events e
+    where e.campaign_id = picked.campaign_id and e.target_table = 'inventory_lines' and e.after is null
+      and e.target_id = any (merged)
+      and (e.id = picked.id
+        or (picked.request_id is not null and e.request_id = picked.request_id
+            and e.actor_user_id is not distinct from picked.actor_user_id))
+    order by e.seq
+  loop
+    select count(*) into join_count from public.events e
+    where e.campaign_id = change.campaign_id and private.is_join_event(e)
+      and (e.id = change.id or (change.request_id is not null and e.request_id = change.request_id
+                                and e.actor_user_id is not distinct from change.actor_user_id));
+    if join_count <> 1 then
+      raise exception 'A line merged into a stack goes back only with the one stack it joined.';
+    end if;
+    select * into joined from public.events e
+    where e.campaign_id = change.campaign_id and private.is_join_event(e)
+      and (e.id = change.id or (change.request_id is not null and e.request_id = change.request_id
+                                and e.actor_user_id is not distinct from change.actor_user_id));
+    left_part := (private.joined_left(joined.target_id, joined.id) ->> 'left')::integer;
+    perform set_config('grimoire.reverting', change.id::text, true);
+    insert into public.inventory_lines
+      select * from jsonb_populate_record(null::public.inventory_lines, jsonb_set(change.before, '{qty}', to_jsonb(left_part)));
+  end loop;
   for change in
     select * from public.events e
     where e.campaign_id = picked.campaign_id and e.target_table = 'inventory_lines' and e.target_id = any (joins)
@@ -395,19 +441,6 @@ begin
     left_part := (private.joined_left(change.target_id, change.id) ->> 'left')::integer;
     perform set_config('grimoire.reverting', change.id::text, true);
     perform private.unjoin_line(change.target_id, change.id, left_part);
-  end loop;
-  for change in
-    select * from public.events e
-    where e.campaign_id = picked.campaign_id and e.target_table = 'inventory_lines' and e.after is null
-      and e.target_id = any (merged)
-      and (e.id = picked.id
-        or (picked.request_id is not null and e.request_id = picked.request_id
-            and e.actor_user_id is not distinct from picked.actor_user_id))
-    order by e.seq
-  loop
-    perform set_config('grimoire.reverting', change.id::text, true);
-    insert into public.inventory_lines
-      select * from jsonb_populate_record(null::public.inventory_lines, jsonb_set(change.before, '{qty}', to_jsonb(left_part)));
   end loop;
 end;
 $$;

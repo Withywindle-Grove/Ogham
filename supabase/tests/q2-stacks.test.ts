@@ -11,7 +11,7 @@ import { loadCurrentUser } from '../../src/core/currentUser.ts';
 import type { Db } from '../../src/core/supabase.ts';
 import { undoChange } from '../../src/core/undo.ts';
 import { carriedLoad, combineEncumbrance, toLoadLine } from '../../src/modules/inventory/encumbrance.ts';
-import { addItem, loadInventory, moveItem, removeItem, type CarrierRef, type ItemCopy } from '../../src/modules/inventory/inventory.ts';
+import { addItem, approveItem, loadInventory, moveItem, removeItem, type CarrierRef, type ItemCopy } from '../../src/modules/inventory/inventory.ts';
 import { attachPack } from '../../src/modules/library/campaignPacks.ts';
 import { importPack } from '../../src/modules/library/library.ts';
 import { readPackJson } from '../../src/modules/library/packFile.ts';
@@ -138,6 +138,54 @@ describe('an add joins a same-name stack (sw-1)', () => {
     expect(await as(world.playerA, removeItem, { line: { id: first.id, carrier: wren() }, qty: 3, of: 5 })).toMatchObject({ ok: true });
     expect(await undo(world.playerA, again)).toMatchObject({ ok: false, message: 'None of it is left, so nothing can come back.' });
     expect((await stackOn(wren(), t.name)).map((l) => l.qty)).toEqual([2]);
+  });
+
+  // Purpose: an add that joins keeps its price and the GM's note on its own log line (its reason), never on the stack;
+  // a player can't call their add a gift (review finding 1).
+  it('a joined add keeps its price and note on its log line', async () => {
+    const t = await torches();
+    const first = await add(world.playerA, wren(), t.one, 2);
+    expect(await as(world.playerA, addItem, { carrier: wren(), item: t.other, qty: 3, howGot: 'bought', cost: '6 cp' })).toMatchObject({ ok: true, value: { id: first.id, qty: 5 } });
+    const bought = await newest(world.playerA, 'inventory.add');
+    const [line] = must(await world.admin.from('events').select('reason, after').eq('id', bought));
+    expect(JSON.parse(String(line!.reason))).toEqual({ join: { howGot: 'bought', cost: '6 cp', note: '' } });
+    expect(line!.after).toEqual({ qty: 5 });
+    expect(await as(world.gm, addItem, { carrier: wren(), item: t.one, qty: 1, howGot: 'given', note: 'From the drowned shrine' })).toMatchObject({ ok: true, value: { qty: 6 } });
+    const [given] = must(await world.admin.from('events').select('reason').eq('id', await newest(world.gm, 'inventory.add')));
+    expect(JSON.parse(String(given!.reason))).toEqual({ join: { howGot: 'given', cost: '', note: 'From the drowned shrine' } });
+    expect(must(await world.admin.from('inventory_lines').select('how_got, cost, notes').eq('id', first.id))).toEqual([{ how_got: 'found', cost: '', notes: '' }]);
+    expect(await as(world.playerA, addItem, { carrier: wren(), item: t.one, qty: 1, howGot: 'given' })).toMatchObject({ ok: false });
+    expect((await stackOn(wren(), t.name)).map((l) => l.qty)).toEqual([6]);
+  });
+
+  // Purpose: part of the joined stack put in a bag in the same pack is not given on: Undo takes back what's left and
+  // says so; part given to another character refuses with the reason (sw-4; review finding 2).
+  it('part moved into a bag leaves fewer to take back; part given away refuses', async () => {
+    const t = await torches();
+    const bag = await add(world.gm, wren(), { libraryEntryId: null, name: `${t.name} sack`, category: 'gear', weightCoin: 5, slots: 1, stack: 1, details: { container: { capacitySlots: 4 } } }, 1);
+    const first = await add(world.playerA, wren(), t.one, 2);
+    await add(world.playerA, wren(), t.other, 3);
+    const joined = await newest(world.playerA, 'inventory.add');
+    expect(await as(world.playerA, moveItem, { line: { id: first.id, carrier: wren() }, to: wren(), containerLineId: bag.id, qty: 2, of: 5 })).toMatchObject({ ok: true });
+    expect(await undo(world.playerA, joined)).toMatchObject({ ok: true, value: { left: 1, of: 3 } });
+    expect(must(await world.admin.from('inventory_lines').select('qty').eq('id', first.id))).toEqual([{ qty: 2 }]);
+
+    await add(world.playerA, wren(), t.other, 3);
+    const again = await newest(world.playerA, 'inventory.add');
+    expect(await as(world.playerA, moveItem, { line: { id: first.id, carrier: wren() }, to: ash(), qty: 2, of: 5 })).toMatchObject({ ok: true });
+    expect(await undo(world.playerA, again)).toMatchObject({ ok: false, message: 'Wren of the Lantern Wardens gave some to Ash the Reed Cutter.' });
+    expect(must(await world.admin.from('inventory_lines').select('qty').eq('id', first.id))).toEqual([{ qty: 3 }]);
+  });
+
+  // Purpose: a stack renamed since refuses the Undo, saying so, and nothing changes (sw-4; review finding 5).
+  it('a renamed stack refuses the Undo', async () => {
+    const t = await torches();
+    const first = await add(world.playerA, wren(), t.one, 2);
+    await add(world.playerA, wren(), t.other, 3);
+    const joined = await newest(world.playerA, 'inventory.add');
+    expect(await as(world.gm, approveItem, { line: { id: first.id, carrier: wren() }, edits: { name: `${t.name} (bright)`, weightCoin: 1, slots: 1 } })).toMatchObject({ ok: true });
+    expect(await undo(world.playerA, joined)).toMatchObject({ ok: false, message: "Wren of the Lantern Wardens renamed it since, so it can't go back." });
+    expect(must(await world.admin.from('inventory_lines').select('qty').eq('id', first.id))).toEqual([{ qty: 5 }]);
   });
 
   // Purpose: the same add tried again with its request id (an offline retry after a lost answer) adds once.

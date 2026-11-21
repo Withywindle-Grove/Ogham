@@ -645,6 +645,18 @@ export function createFakeDb(): FakeWorld {
           ['actor_id', 'location_id', 'name', 'item_data'].some((key) => key in (e.after as Row)),
       );
       if (handedOn) return refused("It's changed since, so it can't go back.");
+      // Like private.joined_left: some of it handed on (a give, or out of the party) refuses; moved within the same
+      // pack (into a bag, onto another stack there) only leaves fewer here (sw-4).
+      const gaveSome = tables.events.some((e) => {
+        const was = (e.before ?? {}) as Row;
+        const now = (e.after ?? {}) as Row;
+        if (e.target_table !== 'inventory_lines' || e.target_id !== change.target_id || Number(e.seq) <= Number(change.seq) || e.reverts_event_id) return false;
+        if (!['inventory.move', 'inventory.giveAway'].includes(String(e.type)) || !('qty' in now) || Number(now.qty) >= Number(was.qty)) return false;
+        const others = tables.events.filter((o) => o.request_id === e.request_id && o.target_table === 'inventory_lines' && o.target_id !== change.target_id && o.after);
+        const handed = others.map((o) => ({ ...(o.after as Row), ...(o.before === null ? {} : (tables.inventory_lines.find((l) => l.id === o.target_id) ?? {})) }));
+        return handed.some((h) => !!h.given_to || (h.actor_id ?? null) !== (row.actor_id ?? null) || (h.location_id ?? null) !== (row.location_id ?? null));
+      });
+      if (gaveSome) return refused("Some of it was given on since, so it can't go back.");
       const had = Number((change.before as Row).qty);
       const added = Number((change.after as Row).qty) - had;
       const left = Math.min(added, Number(row.qty) - had);
@@ -4176,7 +4188,7 @@ export function createFakeDb(): FakeWorld {
         stackJoinable(l) &&
         (actor === null || actor === undefined || tables.actors.some((a) => a.id === actor && (a.approval ?? 'approved') === 'approved')),
     );
-  const countOn = (line: Row, qty: number, tag: Tag) => {
+  const countOn = (line: Row, qty: number, tag: Parameters<EventLog>[3]) => {
     const was = structuredClone(line);
     line.qty = qty;
     line.version = Number(line.version ?? 1) + 1;
@@ -4188,6 +4200,8 @@ export function createFakeDb(): FakeWorld {
       const done = joinDone(tag);
       if (done.done) return { data: done.line, error: null };
       const howMany = Number(args.how_many);
+      const howGot = typeof args.how_got === 'string' ? args.how_got : 'found';
+      if (!['bought', 'found', 'given'].includes(howGot) || (howGot === 'given' && !isGmOf(args.campaign))) return { data: null, error: null };
       if (!Number.isInteger(howMany) || howMany < 1 || !args.entry || tables.inventory_lines.some((l) => l.id === args.made_id)) return { data: null, error: null };
       if (!mayChangeCarrierOf(args.campaign, args.actor, args.location)) return { data: null, error: null };
       const entry = tables.library_entries.find((e) => e.id === args.entry);
@@ -4199,7 +4213,10 @@ export function createFakeDb(): FakeWorld {
       const stack = typeof data.stack === 'number' && Number.isInteger(data.stack) ? data.stack : 1;
       const target = stackAt(args.campaign, args.actor ?? null, args.location ?? null, args.container ?? null, name, stack, howMany);
       if (!target) return { data: null, error: null };
-      countOn(target, Number(target.qty) + howMany, tag);
+      // How it was got stays on the add's own line (its reason), never on the stack.
+      const words = (v: unknown, most: number) => (typeof v === 'string' ? v.trim().slice(0, most) : '');
+      const reason = JSON.stringify({ join: { howGot, cost: howGot === 'bought' ? words(args.cost, 100) : '', note: words(args.note, 300) } });
+      countOn(target, Number(target.qty) + howMany, tag ? { ...tag, whatFor: reason } : tag);
       return { data: target.id, error: null };
     },
     move_into_stack: (args, tag) => {

@@ -11,7 +11,7 @@ import { createFakeDb, type FakeWorld } from '../../testing/fakeDb.ts';
 import { timeUnits } from '../expedition/clock.ts';
 import { lightOptions } from '../expedition/lightPlay.ts';
 import { carriedLoad, combineEncumbrance, toLoadLine } from './encumbrance.ts';
-import { addItem, equipItem, loadInventory, moveItem, removeItem, type CarrierRef, type InventoryLine, type ItemCopy } from './inventory.ts';
+import { addItem, approveItem, equipItem, loadInventory, moveItem, removeItem, type CarrierRef, type InventoryLine, type ItemCopy } from './inventory.ts';
 
 type Row = Record<string, unknown>;
 const registry = createAppRegistry();
@@ -125,7 +125,7 @@ describe('an added thing joins a same-name stack (sw-1, fb5-1)', () => {
     expect(counts(wren)).toEqual([['Reed torch', 5]]);
     expect(await loads(wren)).toEqual({ coin: 5, slot: 1 });
     // One log line for the add, saying what was added.
-    expect(await newestLine(sam)).toBe('You added Reed torch ×3 to Wren.');
+    expect(await newestLine(sam)).toBe('You added Reed torch ×3 to Wren (no cost).');
   });
 
   // Purpose: the picker ("Which light?") lists one row for the joined stack, "Reed torch ×5" (fb5-1).
@@ -170,6 +170,53 @@ describe('an added thing joins a same-name stack (sw-1, fb5-1)', () => {
     expect(await as(sam, removeItem, { line: ref(lineNamed(wren, 'Reed torch'), wren), qty: 3, of: 5 })).toMatchObject({ ok: true });
     expect(await as(sam, undoChange, { campaignId: campaign, eventId: String(second.id), authorUserId: sam.id })).toMatchObject({ ok: false, message: 'None of it is left, so nothing can come back.' });
     expect(counts(wren)).toEqual([['Reed torch', 2]]);
+  });
+
+  // Purpose: an add that joins keeps what was paid and the GM's note on its own log line, never on the stack (review
+  // finding 1): "bought Reed torch ×3 for Wren (6 cp)", "gave Wren Reed torch ×3: From the drowned shrine".
+  it('a joined add’s log line keeps its price and the GM’s note', async () => {
+    await add(sam, wren, 'e-torch', 2);
+    expect(await as(sam, addItem, { carrier: wren, item: item('e-torches'), qty: 3, howGot: 'bought', cost: ' 6 cp ' })).toMatchObject({ ok: true, value: { qty: 5, cost: '' } });
+    expect(await newestLine(sam)).toBe('You bought Reed torch ×3 for Wren (6 cp). Cost noted; purses arrive later.');
+    expect(await as(gm, addItem, { carrier: wren, item: item('e-torch'), qty: 1, howGot: 'given', note: 'From the drowned shrine' })).toMatchObject({ ok: true, value: { qty: 6, notes: '' } });
+    expect(await newestLine(sam)).toBe('Priya gave Wren Reed torch: From the drowned shrine.');
+    // A player can't call their add a gift: it goes the usual way, and is refused as before.
+    expect(await as(sam, addItem, { carrier: wren, item: item('e-torch'), qty: 1, howGot: 'given' })).toMatchObject({ ok: false });
+    expect(counts(wren)).toEqual([['Reed torch', 6]]);
+  });
+
+  // Purpose: part of the joined stack put in a bag in the same pack is not "given on": Undo takes back what's left of
+  // the added part and says so (sw-4; review finding 2); part of it given to another character refuses.
+  it('part moved into a bag in the same pack leaves fewer to take back; part given away refuses', async () => {
+    const sack = await add(sam, wren, 'e-sack', 1);
+    if (!sack.ok) throw new Error(sack.message);
+    await add(sam, wren, 'e-torch', 2);
+    await add(sam, wren, 'e-torches', 3);
+    const joined = newestBy(sam);
+    expect(await as(sam, moveItem, { line: ref(lineNamed(wren, 'Reed torch'), wren), to: wren, containerLineId: sack.value.id, qty: 2, of: 5 })).toMatchObject({ ok: true });
+    const undone = await as(sam, undoChange, { campaignId: campaign, eventId: String(joined.id), authorUserId: sam.id });
+    expect(undone).toMatchObject({ ok: true, value: { left: 1, of: 3 } });
+    expect(linesOf(wren).filter((l) => l.name === 'Reed torch').map((l) => [l.qty, l.container_line_id ?? null]).sort()).toEqual([
+      [2, null],
+      [2, sack.value.id],
+    ]);
+
+    await add(sam, wren, 'e-torches', 3);
+    const again = newestBy(sam);
+    expect(await as(sam, moveItem, { line: ref(lineNamed(wren, 'Reed torch'), wren), to: ash, qty: 2, of: 5 })).toMatchObject({ ok: true });
+    expect(await as(sam, undoChange, { campaignId: campaign, eventId: String(again.id), authorUserId: sam.id })).toMatchObject({ ok: false });
+    expect(linesOf(wren).find((l) => l.name === 'Reed torch' && !l.container_line_id)).toMatchObject({ qty: 3 });
+  });
+
+  // Purpose: a stack renamed since refuses the Undo with the reason, and nothing changes (sw-4; review finding 5).
+  it('a renamed stack refuses the Undo', async () => {
+    await add(sam, wren, 'e-torch', 2);
+    await add(sam, wren, 'e-torches', 3);
+    const joined = newestBy(sam);
+    const stack = lineNamed(wren, 'Reed torch');
+    expect(await as(gm, approveItem, { line: ref(stack, wren), edits: { name: 'Bright reed torch', weightCoin: 1, slots: 1 } })).toMatchObject({ ok: true });
+    expect(await as(sam, undoChange, { campaignId: campaign, eventId: String(joined.id), authorUserId: sam.id })).toMatchObject({ ok: false });
+    expect(counts(wren)).toEqual([['Bright reed torch', 5]]);
   });
 
   // Purpose: the same add tried again with its request id (an offline retry) adds once.

@@ -305,6 +305,10 @@ export const addItem = defineCommand({
           entry: input.item.libraryEntryId,
           how_many: input.qty,
           made_id: lineId,
+          // Kept on the add's own log line, never on the stack (the log says what was paid, and the GM's note).
+          how_got: input.howGot,
+          cost: input.howGot === 'bought' ? (input.cost ?? '').trim() : '',
+          note: (input.note ?? '').trim(),
         }),
         db,
       );

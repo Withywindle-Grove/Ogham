@@ -5743,10 +5743,13 @@ export type Database = {
           actor: string
           campaign: string
           container: string
+          cost?: string
           entry: string
+          how_got?: string
           how_many: number
           location: string
           made_id: string
+          note?: string
         }
         Returns: string
       }

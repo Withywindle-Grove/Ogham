@@ -357,6 +357,22 @@ function findIn(e: LogEvent): { to: string | null; placeId: string | null; hoard
   }
 }
 
+/**
+ * How a thing that joined a stack was got (Q2): public.join_added_line writes it on the add's own line as its reason,
+ * `{"join":{"howGot":"bought","cost":"6 cp","note":"…"}}`; null when the line carries none.
+ */
+function joinOf(e: LogEvent): { howGot: string; cost: string; note: string } | null {
+  if (!e.reason?.startsWith('{')) return null;
+  try {
+    const join = (JSON.parse(e.reason) as { join?: Record<string, unknown> }).join;
+    if (!join || typeof join !== 'object') return null;
+    const text = (v: unknown) => (typeof v === 'string' ? v : '');
+    return { howGot: text(join.howGot) || 'found', cost: text(join.cost), note: text(join.note) };
+  } catch {
+    return null; // Not a join's reason.
+  }
+}
+
 /** Groups events into lines (one per action), newest first. */
 export function groupEntries(events: LogEvent[]): LogEntry[] {
   const groups = new Map<string, LogEvent[]>();
@@ -774,24 +790,26 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       return by(`undid a change to ${possessive(character())} ${listWords(changedWords(after))}${back}`);
     }
     case 'inventory.add': {
-      // Joined a same-name stack (Q2, sw-1): the count added, to the stack's carrier; how it was got stays the stack's.
-      if (isJoin(main.type, main)) {
-        const place = (typeof main.targetId === 'string' ? names.itemPlaces?.get(main.targetId) : undefined) ?? {};
-        return by(`added ${counted(item(), Number(after.qty) - Number(before.qty))} to ${carrier(place)}`);
-      }
-      const what = counted(item(), after.qty);
-      if (after.how_got === 'bought') {
-        const cost = String(after.cost ?? '').trim();
-        return `${by(`bought ${what} for ${carrier(after)}${cost ? ` (${cost})` : ''}`)} Cost noted; purses arrive later.`;
+      // Joined a same-name stack (Q2, sw-1): the count added, to the stack's carrier, said as any add; how it was got,
+      // its price and the GM's note are kept on this line's reason (public.join_added_line), never on the stack.
+      const joined = isJoin(main.type, main);
+      const kept = joined ? joinOf(main) : null;
+      const added: Record<string, unknown> = joined
+        ? { ...((typeof main.targetId === 'string' ? names.itemPlaces?.get(main.targetId) : undefined) ?? {}), how_got: kept?.howGot ?? 'found', cost: kept?.cost ?? '', notes: kept?.note ?? '', approval: 'approved' }
+        : after;
+      const what = counted(item(), joined ? Number(after.qty) - Number(before.qty) : after.qty);
+      if (added.how_got === 'bought') {
+        const cost = String(added.cost ?? '').trim();
+        return `${by(`bought ${what} for ${carrier(added)}${cost ? ` (${cost})` : ''}`)} Cost noted; purses arrive later.`;
       }
       // Given by the GM (2026-10-23), with the GM's note; a player's other choice is No cost.
-      if (after.how_got === 'given') {
-        const note = String(after.notes ?? '').trim();
-        return by(`gave ${carrier(after)} ${what}${note ? `: ${note}` : ''}`);
+      if (added.how_got === 'given') {
+        const note = String(added.notes ?? '').trim();
+        return by(`gave ${carrier(added)} ${what}${note ? `: ${note}` : ''}`);
       }
-      return after.approval === 'pending'
-        ? by(`made ${what} for ${carrier(after)}, waiting for the GM`)
-        : by(`added ${what} to ${carrier(after)} (no cost)`);
+      return added.approval === 'pending'
+        ? by(`made ${what} for ${carrier(added)}, waiting for the GM`)
+        : by(`added ${what} to ${carrier(added)} (no cost)`);
     }
     case 'inventory.remove':
       return main.after === null
