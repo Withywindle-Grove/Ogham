@@ -12,7 +12,8 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const LONG_C = 'Ashwin Thistlewood of the Long Stair, called the Lantern-Bearer';
-const LONG_P = 'Bartholomew Featherstone-Quillfeather the Younger';
+// Long enough that the band's name line overflows on a tablet held sideways in every browser (about 1050 px there).
+const LONG_P = 'Bartholomew Featherstone-Quillfeather the Younger, Keeper of the Lamps of the Seventh Sluice-Gate';
 
 async function openView(page: Page, width: number, height: number, scheme: 'light' | 'dark', door: string) {
   await page.emulateMedia({ colorScheme: scheme });

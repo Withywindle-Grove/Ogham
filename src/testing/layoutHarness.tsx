@@ -1404,9 +1404,10 @@ if (giveFlag === '1' || giveFlag === 'long') {
   if (giveFlag === 'long') world.addMember(campaign, world.addPerson('bart@lantern.example', 'Bartholomew Featherstone-Quillfeather the Younger'), 'player');
 }
 // The GM's view as the player with long names (page 32, M3b, M3d, M3k), only with ?view=long: a player with a long name
-// and their approved character with a long name, so the Players row wraps and the View band cuts its name line.
+// and their approved character with a long name, so the Players row wraps and the View band cuts its name line, on a
+// tablet held sideways too, in every browser's text widths (the band's line holds about 1050 px there).
 if (new URLSearchParams(window.location.search).get('view') === 'long') {
-  const bart = world.addPerson('bart@lantern.example', 'Bartholomew Featherstone-Quillfeather the Younger');
+  const bart = world.addPerson('bart@lantern.example', 'Bartholomew Featherstone-Quillfeather the Younger, Keeper of the Lamps of the Seventh Sluice-Gate');
   const ashwin = world.addCharacter(campaign, 'Ashwin Thistlewood of the Long Stair, called the Lantern-Bearer', { ownerId: bart });
   world.addMember(campaign, bart, 'player', ashwin);
 }
