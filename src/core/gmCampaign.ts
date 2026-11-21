@@ -170,6 +170,26 @@ export async function loadGmCharacters(db: Db, campaignId: string): Promise<GmCh
     }));
 }
 
+/**
+ * The characters with a spell prepared, by id (character_play.prepared): with the class's casting, what gives a
+ * character a Magic tab (`hasSpells`), so the Players row offers Magic only to them (tfg-2, pg32-1). Empty if unread.
+ */
+export async function loadPreparedIds(db: Db, campaignId: string): Promise<ReadonlySet<string>> {
+  const { data, error } = await db.from('character_play').select('actor_id, prepared').eq('campaign_id', campaignId);
+  if (error || !data) return new Set();
+  return new Set(data.filter((row) => Array.isArray(row.prepared) && row.prepared.length > 0).map((row) => row.actor_id));
+}
+
+/**
+ * Whose a character on the Players page is now, for the GM's view of it (pg32-7): a player's (their name), the GM's
+ * own (`player: null`), or gone from the campaign (removed to the archive, or deleted).
+ */
+export function whoseIs(characterId: string, players: readonly Player[], gmCharacters: readonly GmCharacter[]): { player: string | null } | 'gone' {
+  const owner = players.find((p) => p.characters.some((c) => c.id === characterId && !c.archived));
+  if (owner) return { player: owner.name };
+  return gmCharacters.some((c) => c.id === characterId) ? { player: null } : 'gone';
+}
+
 /** "Wren (active) · Old Tobin (waiting for approval)", or "No character yet". Archived characters aren't listed. */
 export function charactersLine(characters: PlayerCharacter[]): string {
   const shown = characters.filter((character) => !character.archived);

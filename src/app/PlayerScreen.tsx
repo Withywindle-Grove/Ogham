@@ -49,6 +49,7 @@ import { EntryPinStar, movePinTo, PinMoves, PlayerTraits, traitsWithUses } from 
 import { PlayerSheetParts } from './player/PlayerSheetParts.tsx';
 import { playerFigures } from './player/playerFigures.ts';
 import { PlayerStateLine } from './player/PlayerStates.tsx';
+import { usePlayerView } from './playerView.ts';
 
 type Tab = Exclude<PlayerTab, 'log'>;
 
@@ -89,6 +90,7 @@ export function PlayerScreen({
   wide = false,
   sheetRefresh = 0,
   onSheetSaved,
+  startTab,
 }: {
   db: Db;
   user: CurrentUser;
@@ -109,11 +111,20 @@ export function PlayerScreen({
   sheetRefresh?: number;
   /** The sheet beside saved something (its Edit). */
   onSheetSaved?: () => void;
+  /** The GM's view as the player (page 32): the tab its door opens (View sheet, Pack, Magic, Scene; tfg-1). */
+  startTab?: Tab;
 }) {
-  // After a reload into a new version, the tab the player was on (placeOnReload.ts).
-  const [tab, setTab] = useState<Tab>(() => tabToRestore<Tab>(campaign.id, ['player', 'scene', 'pack', 'magic']) ?? 'player');
-  useEffect(() => tabRestored(campaign.id), [campaign.id]);
-  useEffect(() => noteTab(campaign.id, tab), [campaign.id, tab]);
+  // The GM's view as the player (page 32): whose view this is, or null on the player's own screen.
+  const view = usePlayerView();
+  // After a reload into a new version, the tab the player was on (placeOnReload.ts). The GM's view neither restores
+  // nor notes one, so it never changes the tab the GM's own sections or a player's device come back to (C15b).
+  const [tab, setTab] = useState<Tab>(() => (view ? (startTab ?? 'player') : (tabToRestore<Tab>(campaign.id, ['player', 'scene', 'pack', 'magic']) ?? 'player')));
+  useEffect(() => {
+    if (!view) tabRestored(campaign.id);
+  }, [view, campaign.id]);
+  useEffect(() => {
+    if (!view) noteTab(campaign.id, tab);
+  }, [view, campaign.id, tab]);
   const phone = usePhone();
   const messaging = useMessaging();
   const waiting = messaging && messaging.user.roles[campaign.id] !== 'gm' ? messaging.unread : 0;
@@ -241,11 +252,15 @@ export function PlayerScreen({
   // On a phone the campaign's name sits beside ≡, which opens the drawer, and Log is a tab (slice E).
   // Beside ≡ the character's name on Player, "<name>’s pack" on Pack, the campaign's on Scene (Design on #549, mockup 17).
   // On Player, in two columns, the bar reads the name, "the" kindred and the title (dec-13 C2, frame P1).
-  const topRow = (playerTitle: string) => (
+  const topRow = (playerTitle: string) => {
+    const title = tab === 'scene' ? (phone ? undefined : '') : tab === 'pack' ? `${character.name}’s pack` : playerTitle;
+    // The GM's view (page 32, M3c, M3j): "‹ Players" at the left (in ≡'s place on a phone), the same title, and the
+    // GM's own Log, ✉ and Reference; the band sits under the row (its host's BelowTopRowProvider).
+    if (view) return <TopRow back="Players" named onBack={onBack} menuLabel="Character options" title={title ?? ''} logTab standard />;
     // Creation's standard (plan m5b-players-screens-standard A1): the title centred, ⋯ a sheet; the same bar on every tab
     // so it never jumps between them.
-    <TopRow campaign={{ db, campaign }} onBack={onBack} menuLabel="Character options" drawer={campaign.name} title={tab === 'scene' ? (phone ? undefined : '') : tab === 'pack' ? `${character.name}’s pack` : playerTitle} logTab standard />
-  );
+    return <TopRow campaign={{ db, campaign }} onBack={onBack} menuLabel="Character options" drawer={campaign.name} title={title} logTab standard />;
+  };
 
   if (companyOpen) {
     return (
