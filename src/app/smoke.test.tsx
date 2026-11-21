@@ -5567,8 +5567,9 @@ describe('the Pack tab (M4 step 4)', () => {
     expect(within(burden).getByText('Laden: 8 of 14 slots.')).toBeTruthy();
     const rows = within(within(burden).getByRole('region', { name: 'Burden by slots' })).getAllByRole('row').slice(1);
     expect(rows.map((r) => r.textContent)).toEqual(['Light6 slots', 'Laden, yours10 slots', 'Straining14 slots']);
-    // Each level's effect follows the table as a labelled line.
-    expect([...burden.querySelectorAll('.book-line')].map((p) => p.textContent)).toEqual(['Light Normal pace.', 'Laden Slowed.', 'Straining Crawling.', 'Limit 14 slots.']);
+    // Each level's effect follows the table as a labelled line; the limit, already in the first line and the table, is
+    // not said again (fb-3, 2026-11-20: each level once).
+    expect([...burden.querySelectorAll('.book-line')].map((p) => p.textContent)).toEqual(['Light Normal pace.', 'Laden Slowed.', 'Straining Crawling.']);
     expect(within(burden).getByText('From your setting: Fen Rules')).toBeTruthy();
     expect(document.querySelector('.pack__explain')).toBeNull();
     await user.keyboard('{Escape}');

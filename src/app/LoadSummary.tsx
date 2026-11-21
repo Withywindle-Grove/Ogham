@@ -289,11 +289,15 @@ const bonusWords = (bonuses: CarryBonus[] | undefined, unit: 'coin' | 'slot', to
 /** A sentence's end: a full stop unless it has one. */
 const stop = (words: string) => (/[.!?]$/.test(words) ? words : `${words}.`);
 
+/** Words compared as said: no spaces at the ends or doubled, no closing full stop, any case ("120 ft." is "120 ft"). */
+const said = (words: string) => words.trim().replace(/\s+/g, ' ').replace(/[.!?]$/, '').toLowerCase();
+
 /**
  * A list of levels as a table, as frame M2h draws it: the level's name when the pack gives names, its limit ("400
  * coins", or "11 to 13" for slots filled), and its speed when any level has one. Over the most, a last row says so,
  * with the pack's words for it as its speed. The character's own row is the one in bold. Each level's effect follows
- * the table as a labelled line ("Laden Slowed."): a fourth column cut its words at 375 px.
+ * the table as a labelled line ("Laden Slowed."): a fourth column cut its words at 375 px. An effect that only says
+ * the level's speed, already in its row, is not said again (fb-3, Francis, 2026-11-20: each level once).
  */
 function levelsTable(
   title: string,
@@ -306,7 +310,8 @@ function levelsTable(
   const speeds = tiers.some((t) => t.movement);
   const head = [...(named ? ['Level'] : []), limit.head, ...(speeds ? ['Speed'] : [])];
   const rows = tiers.map((t, i) => [...(named ? [t.label] : []), limit.of(t, i), ...(speeds ? [t.movement ?? ''] : [])]);
-  const effects = tiers.flatMap((t, i) => (t.effect ? [{ label: t.label || limit.of(t, i), words: stop(t.effect) }] : []));
+  const repeatsSpeed = (t: Tier) => speeds && t.movement !== undefined && said(t.effect) === said(t.movement);
+  const effects = tiers.flatMap((t, i) => (t.effect.trim() && !repeatsSpeed(t) ? [{ label: t.label || limit.of(t, i), words: stop(t.effect.trim()) }] : []));
   if (over.is) rows.push([...(named ? ['Over the limit'] : []), 'More', ...(speeds ? [over.words] : [])]);
   // Over the most with no speed column: the pack's words for it go with the effects.
   if (over.is && !speeds && over.words) effects.push({ label: 'Over the limit', words: stop(over.words) });
@@ -324,6 +329,22 @@ const slotsFilled = (tiers: Tier[]) => (t: Tier, i: number) => {
 
 /** An armour row's name as its table says it: "None", "Light". */
 const armourName = (row: string) => (row === 'none' ? 'None' : `${row.charAt(0).toUpperCase()}${row.slice(1)}`);
+
+/**
+ * The band whose table the pop-up draws (of-6): over the most, the band (or bands) over it; else the one named as
+ * setting the speed; with the two at the same speed, the slower-or-first with a speed, else the stowed band, as the
+ * load's own tier is chosen (`bandedLoad`, encumbrance.ts).
+ */
+function speedBands(bands: BandLoad[], setsSpeed: BandId | null): BandLoad[] {
+  const over = bands.filter((b) => b.over);
+  if (over.length > 0) return over;
+  const named = bands.find((b) => b.id === setsSpeed);
+  if (named) return [named];
+  const slower = (a: BandLoad | null, b: BandLoad) => (b.speed === null ? a : a === null || a.speed === null || b.speed < a.speed ? b : a);
+  const slowest = bands.reduce<BandLoad | null>(slower, null);
+  const setter = slowest ?? bands.find((b) => b.id === 'stowed') ?? bands[0];
+  return setter ? [setter] : [];
+}
 
 /** "383 of 1,200", or "383" when there is no most. */
 const outOf = (n: number, most: number | null) => `${num(n)}${most !== null ? ` of ${num(most)}` : ''}`;
@@ -358,7 +379,9 @@ export function burdenParts(load: Exclude<CarriedLoad, { mode: 'none' }>, rules:
   } else if (load.bands) {
     if (load.over) lead.push(`${tierWords(load)}.`);
     lead.push(load.bands.map((b) => `${b.name}: ${outOf(b.load, b.capacity)} slots.`).join(' '));
-    for (const b of load.bands) {
+    // Only the band that sets the speed has its table (of-6, 2026-11-20, as frame M2h draws it); the other's count
+    // stays in the first line and on the bar.
+    for (const b of speedBands(load.bands, load.setsSpeed ?? null)) {
       // The band's levels as they stand for this carrier, raised by what adds room (the same as its own tier).
       const tiers = raisedTiers(b.tiers, b.added);
       tables.push(levelsTable(`Burden by slots ${b.name.toLowerCase()}`, tiers, { head: 'Slots filled', of: slotsFilled(tiers) }, b.step, { is: b.over, words: load.overMax }));
@@ -382,7 +405,9 @@ export function burdenParts(load: Exclude<CarriedLoad, { mode: 'none' }>, rules:
           words: load.overMax,
         }),
       );
-    if (load.capacity !== null) lines.push({ label: 'Limit', words: `${num(load.capacity)} ${coin ? 'coins' : 'slots'}.${bonusWords(load.bonuses, coin ? 'coin' : 'slot')}` });
+    // The limit is the first line's "of 1,600" and the table's last row: said again only to name what raises it (fb-3).
+    if (load.capacity !== null && load.bonuses && load.bonuses.length > 0)
+      lines.push({ label: 'Limit', words: `${num(load.capacity)} ${coin ? 'coins' : 'slots'}.${bonusWords(load.bonuses, coin ? 'coin' : 'slot')}` });
   }
   return { lead, tables, lines };
 }
@@ -391,7 +416,8 @@ export function burdenParts(load: Exclude<CarriedLoad, { mode: 'none' }>, rules:
  * The burden's levels, as a pop-up (tfb-4, 2026-11-19; frame M2h of december/26, approved 2026-11-19): titled "Burden",
  * a figure explained (band 2, the shared `BreakdownSheet`). Where the character stands; the levels as a book table
  * with the character's own row in bold (the first line says it too, so bold is never the only sign); what sets the
- * limit; the source. Three kinds of load: by coins' weight, by slots (each band, the slower setting the speed), and
+ * limit when something raises it; the source; each level said once (fb-3). Three kinds of load: by coins' weight, by
+ * slots (with bands, only the band that sets the speed, of-6), and
  * armour's movement table with the line on treasure. The GM's "Switch on / Switch off" stays on the bar.
  */
 export function BurdenSheet({

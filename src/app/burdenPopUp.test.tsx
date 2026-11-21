@@ -4,7 +4,12 @@
 //   1. A tap on the burden opens a pop-up, "Burden", listing every level, the character's own row in bold; nothing
 //      opens in place under the bar, so the page under it doesn't move.
 //   2. Over the limit, 999,999: the first line says it, and a last row "Over the limit" is the bold one.
-//   3. Slot bands: one table per band, each with its slots filled and speeds, and the band that sets the speed named.
+//   3. Slot bands: only the band that sets the speed has a table (of-6, 2026-11-20, as frame M2h draws it), with its
+//      slots filled and speeds, and it is named; the other band's count stays in the first line. Over the most, the
+//      table is the band that is over; two bands at the same speed, the one whose levels give it (as the load's tier).
+//   3a. Each level is said once (fb-3, Francis, 2026-11-20: "Duplicate information no need for the bottom listings"):
+//       a level's effect that only repeats its speed in the table is not said again under it, and the limit is not
+//       said again unless something worn or held raises it; an effect in other words still follows the table.
 //   4. Armour: the movement table with the armour worn in bold, and the line on treasure; the GM's switch stays on the
 //      bar, not in the pop-up.
 //   5. What raises the limit is named in the pop-up ("to each limit"), and the source line is at its foot.
@@ -174,21 +179,76 @@ describe('the burden’s levels as a pop-up (tfb-4)', () => {
   });
 
   // Purpose 3.
-  it('draws one table per band, its slots filled and speeds, and names the band that sets the speed', async () => {
+  it('draws only the band that sets the speed, its slots filled and speeds, and names it', async () => {
     const user = userEvent.setup();
     render(<LoadSummary load={carriedLoad(slots(4, 11), bandRules, 'slot')} rules={bandRules} from={['Old Marsh Rules, p. 48']} levelsPopUp />);
     await user.click(screen.getByRole('button', { name: 'Speed 25' }));
     const dialog = screen.getByRole('dialog', { name: 'Burden' });
     expect(within(dialog).getByText('Worn: 4 of 6 slots. Carried: 11 of 16 slots.')).toBeTruthy();
-    const carried = tableOf(dialog, 'Burden by slots carried');
-    expect(carried.cells).toEqual([
-      ['Up to 10', '50'],
-      ['11 to 13', '35'],
-      ['14 to 16', '15'],
+    const worn = tableOf(dialog, 'Burden by slots worn');
+    expect(worn.cells).toEqual([
+      ['Up to 2', '50'],
+      ['3 to 6', '25'],
     ]);
-    expect(carried.bold).toBe(1);
-    expect(tableOf(dialog, 'Burden by slots worn').bold).toBe(1);
+    expect(worn.bold).toBe(1);
+    expect(within(dialog).queryByRole('region', { name: 'Burden by slots carried' })).toBeNull();
+    expect(dialog.querySelectorAll('.book-table')).toHaveLength(1);
     expect(dialog.textContent).toContain('Sets your speed Worn: the slower of the two counts.');
+  });
+
+  // Purpose 3, over the most: the one table is the band that is over, its last row the bold one.
+  it('draws only the band that is over the most, its last row in bold', () => {
+    const { tables } = burdenParts(carriedLoad(slots(1, 17), bandRules, 'slot') as Extract<CarriedLoad, { mode: 'coin' | 'slot' }>, bandRules);
+    expect(tables.map((t) => t.title)).toEqual(['Burden by slots carried']);
+    expect(tables[0]!.rows.at(-1)![0]).toBe('More');
+    expect(tables[0]!.marked).toBe(tables[0]!.rows.length - 1);
+  });
+
+  // Purpose 3, two bands at the same speed: neither alone sets it, so one table still, the band whose levels give it.
+  it('draws one table when both bands give the same speed', () => {
+    const load = carriedLoad(slots(1, 4), bandRules, 'slot') as Extract<CarriedLoad, { mode: 'coin' | 'slot' }>;
+    expect(load.setsSpeed).toBeNull();
+    const { tables, lines } = burdenParts(load, bandRules);
+    expect(tables).toHaveLength(1);
+    expect(tables[0]!.marked).toBe(0);
+    expect(lines).toContainEqual({ label: 'Your speed', words: 'The slower of the two counts.' });
+  });
+
+  // Purpose 3a: a level whose effect is its speed is said once, in the table; the limit, in the first line and the
+  // table's last row, is not said again. The opening line and the table stay.
+  it('says each level once: no effect line repeating a speed, no limit line repeating the table', async () => {
+    const user = userEvent.setup();
+    const twice = combineEncumbrance([
+      {
+        mode: 'coin',
+        coin: {
+          maxLoadCoin: 1600,
+          tiers: [
+            { label: 'Unhurried', max: 400, effect: '120 paces', movement: '120 paces' },
+            { label: 'Weighed', max: 800, effect: '90 paces.', movement: '90 paces' },
+            { label: 'Bowed down', max: 1600, effect: ' 30  paces ', movement: '30 paces' },
+          ],
+          overMax: '',
+        },
+      },
+    ]);
+    const pot: LoadLine = { ...slotLine(false), name: 'Iron pot', slots: null, weightCoin: 675 };
+    render(<LoadSummary load={carriedLoad([pot], twice, 'coin')} rules={twice} from={['River Rules, p. 41']} levelsPopUp />);
+    await user.click(screen.getByRole('button', { name: 'Weighed, speed 90' }));
+    const dialog = screen.getByRole('dialog', { name: 'Burden' });
+    expect(within(dialog).getByText('Weighed: 675 of 1,600 coins’ weight.')).toBeTruthy();
+    expect(tableOf(dialog, 'Burden by weight').cells.map((row) => row[0])).toEqual(['Unhurried', 'Weighed', 'Bowed down']);
+    expect(dialog.querySelectorAll('.book-line')).toHaveLength(0);
+    expect(dialog.textContent).not.toContain('Limit');
+    expect(within(dialog).getByText('From your setting: River Rules, p. 41')).toBeTruthy();
+  });
+
+  // Purpose 3a, the same in slots: a band's limit is not said again either (only a bag or a worn thing names it).
+  it('says no limit line for slots when nothing raises it', () => {
+    const slotRules = combineEncumbrance([{ mode: 'slot', slot: { baseSlots: 10, tiers: [{ label: 'Nimble', maxSlots: 10, effect: 'Normal pace' }], overMax: '' } }]);
+    const { lines, tables } = burdenParts(carriedLoad(slots(0, 3), slotRules, 'slot') as Extract<CarriedLoad, { mode: 'coin' | 'slot' }>, slotRules);
+    expect(lines).toEqual([]);
+    expect(tables[0]!.effects).toEqual([{ label: 'Nimble', words: 'Normal pace.' }]);
   });
 
   // Purpose 4.
