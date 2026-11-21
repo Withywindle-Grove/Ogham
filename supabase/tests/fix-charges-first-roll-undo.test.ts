@@ -65,7 +65,7 @@ afterAll(async () => {
 }, 60_000);
 
 describe('the Undo of a first roll of charges', () => {
-  it.fails("1. the player's own Undo is refused, saying why, and the count stays as rolled", async () => {
+  it("1. the player's own Undo is refused, saying why, and the count stays as rolled", async () => {
     const { line, roll } = await rolled('Reedwhistle wand');
     expect(await undo(world.playerA, roll, world.playerA)).toMatchObject({ ok: false, reason: 'not-allowed' });
     const { error } = await world.playerA.db.rpc('undo_request_said', { event_id: roll });
