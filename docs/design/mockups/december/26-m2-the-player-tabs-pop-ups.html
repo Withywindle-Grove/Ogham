@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: the Player tab’s pop-ups in the book’s format, page M2 (2026-11-19)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../pack/pk.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* This page's own rules: layout and its own parts only. Type, the book format, the stacked button, the sheet's head,
+     the pop-up, the toast and the corners come from shared/book.css and are not restated here. Sizes are the app's
+     scale (14, 16, 20, 24, 30, 36, 48); corners 4, 8 and 20. The tab behind the pop-ups is page 25's (M1), with its parts. */
+  .tablet.wide { width:1024px; }
+  .lab { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .trio { display:flex; gap:var(--space-4); align-items:flex-start; flex-wrap:wrap; }
+  .from { font-size:14px; color:var(--muted); font-style:italic; margin:var(--space-1) 0 0; }
+  .dg { display:inline-flex; }
+  .go { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; flex:none; }
+  .go.r { transform:rotate(-90deg); }
+  .go.u { transform:rotate(180deg); }
+  .xb { border:0; background:transparent; }
+  /* the shell: the menu folded to its rail (mn-1), the two columns */
+  .pt-grid { display:grid; grid-template-columns:44px minmax(0,4fr) minmax(0,5fr); gap:var(--space-4); padding:var(--space-3); align-items:start; }
+  .pt-grid > .pt-r { border-left:1px solid var(--rule); padding-left:var(--space-4); }
+  .pt-rail { display:flex; flex-direction:column; gap:var(--space-2); }
+  .pt-rail > span { display:flex; width:44px; height:44px; align-items:center; justify-content:center; border-radius:4px; color:var(--muted); }
+  .pt-rail > span.on { color:var(--ink); background:var(--wash); box-shadow:inset 0 0 0 2px var(--accent); }
+  /* the head */
+  .pt-head { display:flex; gap:var(--space-3); align-items:center; box-sizing:border-box; }
+  .pt-head.h96 { height:96px; }
+  .pt-av { flex:none; border-radius:50%; border:1.5px solid var(--control); background:var(--surface); display:flex; align-items:center; justify-content:center; overflow:hidden; font-weight:700; box-sizing:border-box; }
+  .pt-av.s96 { width:96px; height:96px; font-size:36px; }
+  .pt-av.s128 { width:128px; height:128px; font-size:48px; }
+  .pt-sts { display:flex; gap:var(--space-2); align-items:center; }
+  .pt-sts.wrap { flex-wrap:wrap; }
+  .pt-side { display:flex; flex-direction:column; gap:var(--space-2); min-width:0; align-items:flex-start; }
+  .pt-phead { display:flex; gap:var(--space-3); align-items:flex-start; }
+  .pt-prow { margin-top:var(--space-2); }
+  .ps-kind { font-size:20px; font-weight:700; line-height:1.2; overflow-wrap:anywhere; }
+  .ps-st { position:relative; display:inline-flex; width:52px; height:52px; align-items:center; justify-content:center; flex:none; }
+  .ps-st .arc { position:absolute; inset:0; transform:rotate(-90deg); }
+  .ps-st .mid { position:relative; display:inline-flex; }
+  .ps-st.more { width:44px; height:44px; border:1.5px solid var(--control); border-radius:50%; font-weight:700; font-size:14px; box-sizing:border-box; }
+  .ps-stn { display:inline-flex; align-items:center; gap:var(--space-2); min-height:44px; }
+  .ps-stn small { display:block; font-size:14px; color:var(--muted); line-height:1.2; }
+  /* the right column's top: as tall as the head, the heading's words at its foot, so the first score boxes start level with hit points */
+  .pt-rtop { display:flex; flex-direction:column; justify-content:space-between; align-items:flex-start; margin-bottom:var(--space-3); box-sizing:border-box; }
+  .pt-rtop.h96 { height:96px; }
+  .pt-rtop.end { justify-content:flex-end; }
+  .pt-rtop .ps-l { margin:0; width:100%; box-sizing:border-box; }
+  /* the notices box (new on this page) */
+  .nb { display:inline-flex; align-items:center; gap:var(--space-2); box-sizing:border-box; height:64px; min-width:44px; padding:0 var(--space-3) 0 var(--space-2); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--muted); font-size:16px; line-height:1.2; white-space:nowrap; flex:none; }
+  .nb .pch { display:inline-flex; width:44px; height:44px; border-radius:50%; align-items:center; justify-content:center; flex:none; }
+  .nb.lit { border:2px solid var(--ink); color:var(--ink); font-weight:700; }
+  .nb.lit .pch { background:color-mix(in srgb, var(--glow) 40%, var(--sheet)); box-shadow:0 0 var(--space-2) var(--space-1) color-mix(in srgb, var(--glow) 60%, transparent); }
+  .nb.low { height:48px; }
+  .nb.low .pch { width:36px; height:36px; }
+  /* hit points, the tiles, the weapon, the rows: page 14's parts */
+  .ps-l { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:var(--space-3) 0 var(--space-1); display:flex; align-items:baseline; gap:var(--space-2); }
+  .ps-lr { flex-wrap:wrap; align-items:center; justify-content:space-between; row-gap:var(--space-1); }
+  .ps-rl { text-transform:none; letter-spacing:0; color:var(--ink); font-size:14px; font-weight:400; display:inline-flex; align-items:center; gap:var(--space-1); }
+  .ps-meta { font-size:14px; color:var(--muted); margin:var(--space-1) 0 0; }
+  .ps-sl { font-size:14px; color:var(--muted); margin:var(--space-3) 0 var(--space-1); }
+  .ps-hp { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:var(--space-2); align-items:center; border:1.5px solid var(--control); border-radius:4px; padding:var(--space-2) var(--space-3); margin-top:var(--space-3); background:var(--sheet); }
+  .ps-hp .l { grid-column:1 / -1; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .ps-hp .v { font-size:48px; font-weight:700; line-height:1; }
+  .ps-hp .v small { font-size:16px; font-weight:400; color:var(--muted); margin-left:var(--space-1); }
+  .ps-hpbar { grid-column:1 / -1; display:flex; gap:var(--space-1); }
+  .ps-hpbar > span { flex:1; height:8px; background:var(--rule); border-radius:4px; overflow:hidden; }
+  .ps-hpbar > span > i { display:block; height:100%; background:var(--ink); }
+  .ps-sq { width:56px; height:56px; padding:0; justify-content:center; }
+  .ps-tiles { display:grid; gap:var(--space-2); margin-top:var(--space-2); }
+  .ps-tiles.flat { margin-top:0; }
+  .ps-tiles.c2 { grid-template-columns:1fr 1fr; }
+  .ps-tiles.c3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .ps-tiles.c5 { grid-template-columns:repeat(5,minmax(0,1fr)); }
+  .ps-tile { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-1); text-align:center; min-height:64px; box-sizing:border-box; min-width:0; }
+  .ps-tile .k { font-size:14px; color:var(--muted); display:block; overflow-wrap:normal; word-break:normal; hyphens:none; line-height:1.2; }
+  .ps-tile .v { font-size:20px; font-weight:700; line-height:1.2; display:block; }
+  .ps-tile .c { font-size:14px; color:var(--muted); display:block; line-height:1.2; }
+  .ps-tile.big .v { font-size:30px; }
+  .ps-wpn { border:2px solid var(--ink); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-3); margin-top:var(--space-2); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-1) var(--space-3); align-items:center; }
+  .ps-wpn .nm { font-size:20px; font-weight:700; line-height:1.2; overflow-wrap:break-word; }
+  .ps-wpn .in { font-size:14px; color:var(--muted); }
+  .ps-acts { display:flex; gap:var(--space-2); align-items:center; }
+  .ps-wpn .ps-acts:has(.btn.stk + .btn.stk) { grid-column:1 / -1; justify-content:flex-end; }
+  .ps-roll { display:flex; gap:var(--space-4); flex-wrap:wrap; grid-column:1 / -1; font-size:20px; }
+  .ps-roll span { display:inline-flex; align-items:center; gap:var(--space-1); }
+  .ps-roll small { font-size:14px; color:var(--muted); margin-left:var(--space-1); }
+  .ps-row { display:flex; align-items:center; gap:var(--space-2); min-height:56px; padding:var(--space-1) 0; border-bottom:1px dotted var(--rule); flex-wrap:wrap; justify-content:flex-end; }
+  .ps-row .t { flex:1 1 120px; min-width:120px; min-height:44px; box-sizing:border-box; }
+  .ps-row .t b { font-size:20px; line-height:1.2; overflow-wrap:break-word; }
+  .ps-row .t small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+  .ps-row .t small > span { display:inline-flex; align-items:center; gap:var(--space-1); margin-right:var(--space-3); }
+  .ps-row .t small > .ql { display:block; margin:0; }
+  .ps-row .fig { font-size:20px; font-weight:700; white-space:nowrap; display:inline-flex; align-items:center; gap:var(--space-1); }
+  .ps-pin { display:inline-flex; vertical-align:-1px; margin-right:var(--space-1); }
+  .ps-dots { display:inline-flex; gap:var(--space-1); vertical-align:middle; margin-right:var(--space-2); }
+  .ps-dots i { width:10px; height:10px; border-radius:50%; border:1.5px solid var(--ink); display:inline-block; box-sizing:border-box; }
+  .ps-dots i.on { background:var(--ink); }
+  .ps-litw { border-bottom:1px dotted var(--rule); padding:var(--space-1) 0 var(--space-2); }
+  .ps-lit { display:flex; align-items:center; gap:var(--space-2); min-height:56px; padding:var(--space-1) 0; }
+  .ps-lit .t { flex:1; min-width:0; min-height:44px; box-sizing:border-box; }
+  .ps-lit .t b { font-size:20px; line-height:1.2; }
+  .ps-lit .t small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+  .ps-kl { display:flex; align-items:center; gap:var(--space-2); min-height:56px; }
+  .ps-kl .sp { flex:1; }
+  .ps-info { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; color:var(--info); flex:none; }
+  .tg { position:relative; display:inline-flex; align-items:center; justify-content:center; width:60px; height:44px; flex:none; }
+  .tg .tr { position:relative; width:52px; height:28px; border-radius:999px; border:1.5px solid var(--control); background:var(--sheet); box-sizing:border-box; display:block; }
+  .tg .kn { position:absolute; top:1.5px; left:1.5px; width:22px; height:22px; border-radius:50%; background:var(--surface); border:1.5px solid var(--control); box-sizing:border-box; display:flex; align-items:center; justify-content:center; color:var(--ink); }
+  .tg.on .tr { background:var(--wash); border:2px solid var(--accent); box-shadow:0 0 var(--space-2) 1px color-mix(in srgb, var(--glow) 60%, transparent); }
+  .tg.on .kn { top:1px; left:25px; background:var(--sheet); border:1.5px solid var(--accent); }
+  .ps-pair { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-2); }
+  .ps-card { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-3); }
+  .ps-card b { font-size:24px; display:block; line-height:1.2; }
+  .ps-card span { font-size:14px; color:var(--muted); }
+  .ps-card .pk-state { margin:0 0 var(--space-2); text-align:left; font-size:20px; }
+  .ps-card .pk-of { text-align:left; margin:var(--space-2) 0 0; }
+  .ps-boxes { display:flex; gap:var(--space-2); flex-wrap:wrap; }
+  .ps-boxes span { border:1.5px solid var(--control); border-radius:4px; min-height:44px; padding:0 var(--space-3); display:inline-flex; align-items:center; background:var(--sheet); }
+  /* the level block: one tap, no chevron (tfr-2) */
+  .pt-lvl { display:block; min-height:48px; margin-top:var(--space-3); box-sizing:border-box; }
+  .pt-lvl small { font-size:14px; color:var(--muted); margin-left:var(--space-2); }
+  .pt-lvl.stack small { display:block; margin-left:0; }
+  .pt-lvl .co { display:block; font-size:14px; color:var(--muted); margin-top:var(--space-1); }
+  .ps-xp { display:block; height:8px; background:var(--rule); border-radius:4px; overflow:hidden; margin-top:var(--space-1); }
+  .ps-xp i { display:block; height:100%; background:var(--ink); }
+  /* Details: folded to its heading (tfr-1), opened in place */
+  .pt-fold { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); min-height:44px; margin-top:var(--space-3); }
+  .pt-fold .ps-l { margin:0; }
+  .pt-det { border-left:3px solid var(--accent); padding:var(--space-1) 0 var(--space-1) var(--space-3); }
+  .pt-det p:last-child { margin-bottom:0; }
+  /* the rows at the right column's foot, with no heading (tfr-4, tfr-5) */
+  .pt-rest { border-top:3px double var(--rule); margin-top:var(--space-3); }
+  /* a notice in the sheet */
+  .pt-pop { position:absolute; top:calc(var(--space-6) * 6); left:50%; transform:translateX(-50%); width:440px; }
+  .sheetup.flow { position:relative; max-height:none; }
+  .behind { position:relative; height:52px; overflow:hidden; box-sizing:border-box; }
+  .nt-n { font-size:14px; color:var(--muted); margin:0 0 var(--space-3); }
+  .nt-t { display:flex; align-items:flex-start; gap:var(--space-2); font-weight:700; font-size:20px; line-height:1.2; margin:0 0 var(--space-2); }
+  .nt-t svg { margin-top:2px; }
+  .nt-t .dg { margin:0 var(--space-1); vertical-align:-3px; }
+  .nt p { margin:0 0 var(--space-2); overflow-wrap:break-word; }
+  .nt-act { display:flex; justify-content:flex-end; gap:var(--space-2); flex-wrap:wrap; margin-top:var(--space-3); }
+  .nt-row { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); min-height:44px; border-bottom:1px dotted var(--rule); }
+  /* ---- page M2's own parts: the pop-ups' layout. The entry's heading, the labelled line, the book's sub-heading and table,
+     the small-capitals label, the sheet and the pop-up are the shared stylesheet's and are not restated ---- */
+  .pt-pop.hi { top:calc(var(--space-6) * 3); }
+  .pu-hd { display:flex; align-items:flex-start; gap:var(--space-2); margin-bottom:var(--space-2); }
+  .pu-hd .ehead { flex:1; min-width:0; overflow-wrap:break-word; align-self:center; }
+  .pu-hd .fig { font-size:36px; font-weight:700; line-height:44px; flex:none; }
+  .pu-b { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; flex:none; }
+  .pu-roll { display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap; }
+  .pu-bare { display:flex; justify-content:flex-end; gap:var(--space-2); flex-wrap:wrap; margin-top:var(--space-3); }
+  .pu-kv { display:flex; justify-content:space-between; align-items:baseline; gap:var(--space-3); margin:0 0 var(--space-1); }
+  .pu-kv b { white-space:nowrap; }
+  .pu-pair { display:flex; gap:var(--space-3); align-items:flex-start; flex-wrap:wrap; }
+  /* the two roll boxes of a weapon (the Attack view's, as built) */
+  .pu-rb { border:1.5px solid var(--control); border-radius:4px; background:var(--surface); padding:var(--space-2) var(--space-3); margin-bottom:var(--space-2); }
+  .pu-rb .h { display:flex; align-items:center; gap:var(--space-2); font-size:20px; font-weight:700; line-height:1.2; margin-bottom:var(--space-1); }
+  /* what can be done, as frame PK8 of pack/08 draws it: a row each, a leading icon */
+  .pu-acts { border-top:1px solid var(--rule); margin-top:var(--space-3); }
+  .act { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); min-height:48px; border-top:1px solid var(--rule); }
+  .pu-acts .act:first-child { border-top:0; }
+  .act > span:first-child { display:inline-flex; align-items:center; flex:1; }
+  .act .li { display:inline-flex; width:24px; color:var(--muted); margin-right:var(--space-2); flex:none; }
+  .act .go { transform:rotate(-90deg); }
+  /* a form you type in: the box and its buttons one width, centred (as built and approved on 2026-11-19) */
+  .pu-fit { width:216px; margin:0 auto; }
+  .pu-in { font-size:24px; font-weight:700; min-height:56px; display:flex; align-items:center; }
+  .pu-two { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-2); margin-top:var(--space-2); }
+  /* the Portrait pop-up: the circle centred, its buttons under it, ending at one right edge */
+  .pu-pp { display:flex; flex-direction:column; align-items:center; gap:var(--space-3); }
+  .pu-ppw { display:inline-flex; flex-direction:column; align-items:flex-end; gap:var(--space-2); }
+  .pu-ppa { display:flex; gap:var(--space-2); }
+  .pu-add { display:flex; align-items:center; justify-content:center; min-height:96px; width:100%; border:1.5px dashed var(--control); border-radius:4px; color:var(--muted); box-sizing:border-box; }
+  /* a status: its ring beside its lines */
+  .pu-st { display:flex; gap:var(--space-3); align-items:center; margin-bottom:var(--space-3); }
+  .pu-st .ps-st { width:84px; height:84px; }
+  .pu-st p { margin:0; }
+  .pu-st small { font-size:14px; color:var(--muted); }
+  /* a note in the Notes pop-up */
+  .pu-note { border-bottom:1px dotted var(--rule); padding:var(--space-2) 0; }
+  .pu-note p { margin:0; overflow-wrap:break-word; }
+  .pu-note small { font-size:14px; color:var(--muted); }
+  /* the Quiver's rows: the kind in use by its words, its tick, its wash and its edge */
+  .ps-row .btn.q { min-width:104px; flex:none; }
+  .ps-row .btn.q.on { background:var(--wash); border-color:var(--accent); font-weight:700; }
+  .pu-list .ps-row { flex-wrap:nowrap; }
+  .pu-list .ps-row .t { min-width:0; }
+  /* a column is never wider than its phone: a long label wraps */
+  .trio > div { max-width:343px; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../creation/final/sweep.js"></script>
+<script src="../pack/pk.js"></script>
+<script src="icons/icons.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+// ---- the tab behind the pop-ups: page 25’s parts (M1, approved 2026-11-19), unchanged ----
+const d = (n, w = 18) => `<span class="dg" role="img" aria-label="d${n}">${die(n, w)}</span>`;
+const chevD = `<span class="go" aria-hidden="true">${I.chev}</span>`;
+const chevU = `<span class="go u" aria-hidden="true">${I.chev}</span>`;
+const chevR = `<span class="go r" aria-hidden="true">${I.chev}</span>`;
+const xBtn = `<span class="btn sq xb" role="button" aria-label="Close">${I.close}</span>`;
+const lab = (words) => `<div class="ps-l"><span>${words}</span></div>`;
+const LONGN = 'Brannoch Ironhorn of the Seven Cairns, called the Unbowed';
+
+// ---- the portrait: a stand-in picture, or the initial when there is none ----
+const FACE = `<svg viewBox="0 0 96 96" width="100%" height="100%" aria-hidden="true"><rect width="96" height="96" fill="var(--surface)"/><path d="M12 96c2-22 16-31 36-31s34 9 36 31z" fill="var(--control)"/><circle cx="48" cy="43" r="19" fill="var(--muted)"/><path d="M32 34c-9-3-14-10-13-20 5 6 11 9 18 10zM64 34c9-3 14-10 13-20-5 6-11 9-18 10z" fill="var(--muted)"/></svg>`;
+const av = (size, pic = true, letter = 'B') => `<span class="pt-av s${size}" role="button" aria-label="Portrait: change it">${pic ? FACE : letter}</span>`;
+
+// ---- the status rings (R3-6, ps-5): page 14's ----
+const ST_SYM = {
+  flame: `<path d="M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.5-2.5 1.2-3.3C9.5 9 10.5 10 11 10.5 11 8 11 5.5 12 3z" ${W}/>`,
+  star: `<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z" ${W}/>`,
+  stone: `<path d="M7 19l-3-5 2-6 6-3 6 3 2 6-3 5z" ${W}/><path d="M9 13l3-4 3 4" ${W}/>`,
+  spiral: `<path d="M12 12a1.5 1.5 0 0 1 3 0 3 3 0 0 1-6 0 4.5 4.5 0 0 1 9 0 6 6 0 0 1-12 0 7.5 7.5 0 0 1 15 0" ${W}/>`,
+  drop: `<path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.500 3-7 6-11z" ${W}/>`,
+};
+const ST_TONE = { light: 'glow', harm: 'danger', boon: 'info', neutral: 'ink' };
+const stRing = (k, tone, frac, name, dashed = false, btn = true) => { const size = 52, stroke = 5, col = ST_TONE[tone], r = (size - stroke) / 2, c = 2 * Math.PI * r; return `<span class="ps-st"${btn ? ` role="button" aria-label="${name}: its details"` : ''}><svg class="arc" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true"><circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--rule)" stroke-width="${stroke}"${dashed ? ' stroke-dasharray="4 5"' : ''}/>${dashed ? '' : `<circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--${col})" stroke-width="${stroke}" stroke-dasharray="${(c * frac).toFixed(1)} ${c.toFixed(1)}"/>`}</svg><span class="mid" style="color:var(--${col})" aria-hidden="true">${svg(ST_SYM[k], 26)}</span></span>`; };
+const stMore = (n) => `<span class="ps-st more" role="button" aria-label="${n} more: see every status">+${n}</span>`;
+const R1 = stRing('stone', 'harm', 1, 'Exhausted, until rested', true), R2 = stRing('star', 'boon', 0.6, 'Blessed, 6 of 10 turns left'), R3 = stRing('drop', 'harm', 0.25, 'Poisoned, 1 of 4 turns left'), R4 = stRing('spiral', 'harm', 0.8, 'Charmed, 4 of 5 rounds left');
+const rings = (n, more) => `<div class="pt-sts">${[R1, R2, R3, R4].slice(0, n).join('')}${more ? stMore(more) : ''}</div>`;
+const ONE = `<span class="ps-stn" role="button" aria-label="Poisoned, 1 of 4 turns left: its details">${stRing('drop', 'harm', 0.25, 'Poisoned', false, false)}<span>Poisoned<small>1 of 4 turns left</small></span></span>`;
+
+// ---- the notices box (tfn-1): its icon the herald’s trumpet (his fix of 2026-11-19; the bell is Reminders, st-8), its words, lit when there is something ----
+const nb = (n, o = {}) => { const words = o.plain ? 'Notices' : n === 0 ? 'No notices' : n === 1 ? '1 notice' : n > 99 ? '99+ notices' : `${n} notices`; const say = n === 0 ? 'Notices: nothing new' : `Notices: ${n > 99 ? 'more than 99' : n}, open them`; return `<span class="nb${n ? ' lit' : ''}${o.cls ? ' ' + o.cls : ''}" role="button" aria-label="${say}"><span class="pch" aria-hidden="true">${gi(o.icon || 'trumpet', o.cls === 'low' ? 24 : 28)}</span><span>${words}</span></span>`; };
+
+// ---- hit points, tiles, the weapon, At hand: page 14's parts ----
+const hpBar = (cur, max) => { const per = max <= 12 ? 1 : 5; const n = Math.ceil(max / per); if (n > 40) return `<span class="ps-hpbar" aria-hidden="true"><span><i style="width:${Math.round(100 * cur / max)}%"></i></span></span>`; return `<span class="ps-hpbar" aria-hidden="true">${Array.from({ length: n }, (_, i) => { const size = Math.min(per, max - i * per); const f = Math.max(0, Math.min(1, (cur - i * per) / size)); return `<span><i style="width:${Math.round(f * 100)}%"></i></span>`; }).join('')}</span>`; };
+const hp = (cur, max) => `<div class="ps-hp"><span class="l">Hit points</span><span class="v" role="button" aria-label="Hit points ${cur} of ${max}: type a value">${cur}<small>of ${max}</small></span><span class="btn ps-sq" role="button" aria-label="One less">${I.minus}</span><span class="btn ps-sq" role="button" aria-label="One more">${I.plus}</span>${hpBar(cur, max)}</div>`;
+const tile = (k, v, c = '', big = '') => `<div class="ps-tile${big ? ' big' : ''}" role="button"><span class="k">${k}</span><span class="v">${v}</span>${c ? `<span class="c">${c}</span>` : ''}</div>`;
+const acAtk = (ac = '15', acC = 'Mail, shield', atk = '+1', atkC = 'Melee +2, Missile +1') => `<div class="ps-tiles c2">${tile('Armour class', ac, acC, 1)}${tile('Attack', atk, atkC, 1)}</div>`;
+const IC3 = { Wield: 'sword-hilt', Grip: 'fist', Quiver: 'quiver', Use: 'pointing', Refill: 'jug', Attack: 'sword-brandish', Edit: 'quill-ink' };
+const stk = (words) => `<span class="btn stk" role="button">${gi(IC3[words], 24)}<span>${words}</span></span>`;
+const weapon = (name, hit, dmg, dn = 8, more = '', mode = '') => `<div class="ps-wpn"><div><div class="nm">${name}</div><div class="in">In hand${more}</div></div><span class="ps-acts" data-stkgroup>${mode ? stk(mode) : ''}${stk('Attack')}</span><div class="ps-roll"><span>${d(20)}<b>d20 ${hit}</b><small>to hit</small></span><span>${d(dn)}<b>d${dn}${dmg ? ' ' + dmg : ''}</b><small>damage</small></span></div></div>`;
+const labRule = (words, rule, n = 20) => `<div class="ps-l ps-lr"><span>${words}</span>${rule ? `<span class="ps-rl">${d(n, 16)}<span>${rule}</span></span>` : ''}</div>`;
+const SAVE_RULE = 'Roll d20: your save’s number or higher succeeds.';
+const SCORE_RULE = 'Roll d20: your score or lower succeeds.';
+const SKILL_RULE = 'Roll d6: target or higher succeeds.';
+const SAVES = [['Body', 12], ['Nerve', 13], ['Wits', 14], ['Luck', 15], ['Ward', 16]];
+const saves = (list = SAVES, across = 5) => `${labRule('Saves', SAVE_RULE)}<div class="ps-tiles flat c${across}">${list.map(([k, v]) => tile(k, v)).join('')}</div>`;
+const dots = (left, of) => `<span class="ps-dots" role="img" aria-label="${left} of ${of} left">${Array.from({ length: of }, (_, i) => `<i class="${i < left ? 'on' : ''}"></i>`).join('')}</span>`;
+const pinMark = `<span class="ps-pin" role="img" aria-label="Pinned">${G.star}</span>`;
+const ability = (name, left, of, pinned = false) => `<div class="ps-row" data-stkgroup><span class="t" role="button"><b>${pinned ? pinMark : ''}${name}</b><small>${dots(left, of)}${left} of ${of} left, back each day</small></span>${stk('Use')}</div>`;
+const atHand = (name, sub, act, pinned = false, mode = '') => `<div class="ps-row" data-stkgroup><span class="t" role="button"><b>${pinned ? pinMark : ''}${name}</b><small>${sub}</small></span>${mode ? stk(mode) : ''}${stk(act)}</div>`;
+const rolls = (hit, dn, dmg) => `<span>${d(20, 16)}d20 ${hit}</span><span>${d(dn, 16)}d${dn}${dmg ? ' ' + dmg : ''}</span>`;
+const tg = (on, label) => `<span class="tg${on ? ' on' : ''}" role="switch" aria-checked="${!!on}" aria-label="${label}"><span class="tr"><span class="kn">${svg(on ? `<path d="M5 12l5 5 9-10" ${W}/>` : `<path d="M7 7l10 10M17 7L7 17" ${W}/>`, 14)}</span></span></span>`;
+const flame = `<span class="ps-st" role="img" aria-label="Lit, 4 of 6 turns left"><svg class="arc" viewBox="0 0 52 52" width="52" height="52" aria-hidden="true"><circle cx="26" cy="26" r="23.500" fill="none" stroke="var(--rule)" stroke-width="5"/><circle cx="26" cy="26" r="23.500" fill="none" stroke="var(--glow)" stroke-width="5" stroke-dasharray="98.400 147.700"/></svg><span class="mid" style="color:var(--glow)" aria-hidden="true">${svg(ST_SYM.flame, 26)}</span></span>`;
+const atHandNow = `${lab('At hand')}${atHand('Shortbow', `${rolls('+1', 6, '')}<span class="ql">Quiver: Arrows ×18</span>`, 'Wield', true, 'Quiver')}<div class="ps-litw"><div class="ps-lit">${flame}<span class="t" role="button"><b>Storm lantern</b><small>Lit, 4 turns left. 3 refills left</small></span>${tg(true, 'Storm lantern: lit')}</div><div class="ps-kl" data-stkgroup><span>Keep lit</span><span class="ps-info" role="button" aria-label="About Keep lit">${I.info}</span>${tg(true, 'Keep lit')}<span class="sp"></span>${stk('Refill')}</div></div>${atHand('Glow wand', '3 of 5 charges', 'Use')}`;
+
+// ---- page M1’s changed parts, as approved 2026-11-19 ----
+// the level block: the tap stays, the chevron goes (tfr-2)
+const levelBlock = (o = {}) => `<div class="pt-lvl${o.stack ? ' stack' : ''}" role="button" aria-label="${o.cls || 'Fighter, level 2'}: how it’s worked out"><b>${o.cls || 'Fighter, level 2'}</b><small>${o.xp || '2,400 of 4,000 experience'}</small><span class="ps-xp" aria-hidden="true"><i style="width:${o.pct === undefined ? 60 : o.pct}%"></i></span><span class="co">${o.co || 'The Lantern Company'}</span></div>`;
+// Details: folded, the heading and its chevron alone (tfr-1); a tap opens all of it in place
+const dl = (label, text) => `<p class="ln"><span class="lb">${label}</span>${text}</p>`;
+const D_ALL = [dl('Motto', '“Head down, and forward.”'), dl('Looks', 'A notched left horn; a drover’s coat two sizes too small.'), dl('Manner', 'Speaks slowly, and means it.'), dl('Background', 'Drover.'), dl('Alignment', 'Lawful.'), dl('Trinket', 'A cow-bell with no clapper.'), '<p>Brannoch drove the Seven Cairns herd for nine summers, until the winter the herd did not come down. He has not said what he found on the high pasture, and he has not been back.</p>'];
+const detailsFolded = `<div class="pt-fold" role="button" aria-expanded="false" aria-label="Details">${lab('Details')}${chevD}</div>`;
+const detailsOpen = (lines = D_ALL) => `<div class="pt-fold" role="button" aria-expanded="true" aria-label="Details">${lab('Details')}${chevU}</div><div class="pt-det bk">${lines.join('')}</div>`;
+// the scores: the modifier always under the figure, “+0” for none (tfr-3)
+const SCORES = [['Might', 14, '+1'], ['Grace', 10, '+0'], ['Grit', 13, '+1'], ['Wit', 9, '+0'], ['Sense', 11, '+0'], ['Voice', 12, '+0']];
+const scoreTiles = (list = SCORES) => `<div class="ps-tiles flat c3">${list.map(([k, v, m]) => tile(k, v, m)).join('')}</div>`;
+const scores = `${labRule('Scores', SCORE_RULE)}${scoreTiles()}`;
+// the skills: the heading’s roll line (tfs-2); the figure “5+ on [die] d6” (tfs-3)
+const figT = (t, n = 6) => `<span class="fig">${t}+ on ${d(n, 16)}d${n}</span>`;
+const figOld = (words, n = 6) => `<span class="fig">${d(n, 16)}${words}</span>`;
+const skillRow = (name, fig, sub = '') => `<div class="ps-row" role="button"><span class="t"><b>${name}</b>${sub ? `<small>${sub}</small>` : ''}</span>${fig}${chevR}</div>`;
+const skills = `${labRule('Skills', SKILL_RULE, 6)}${skillRow('Listen', figT(5))}${skillRow('Search', figT(6))}`;
+const movement = `${lab('Movement')}<div class="ps-pair"><div class="ps-card" role="button"><b>120 paces</b><span>Speed, 40 paces in a fight</span></div><div class="ps-card" role="button">${load(true, 'Light', [96, 0, 0], '383 of 1,200 coins')}</div></div>`;
+const traits = `${lab('Traits')}${ability('Second wind', 1, 1)}`;
+const langs = `${lab('Languages')}<div class="ps-boxes"><span role="button">Common</span><span role="button">Hill-speech</span></div><p class="ps-meta">Reads and writes.</p>`;
+// the rows that sat under “Full character sheet”: no heading, no Edit (tfr-4, tfr-5)
+const prow = (name, sub) => `<div class="ps-row" role="button"><span class="t"><b>${name}</b><small>${sub}</small></span>${chevR}</div>`;
+const REST4 = `${prow('Weapon skills', 'Longsword, shortbow')}${prow('Abilities', 'Shield wall, Hold the line')}${prow('Traits', 'Horns, Sure-footed, Experience bonus')}${prow('Notes', 'No notes yet')}`;
+const rest = (rows = REST4) => `<div class="pt-rest">${rows}</div>`;
+
+// ---- the shells ----
+const rail = `<div class="pt-rail" role="tablist" aria-label="Player, Scene, Pack"><span class="on" role="tab" aria-label="Player">${gi('crown', 24)}</span><span role="tab" aria-label="Scene">${G.fire}</span><span role="tab" aria-label="Pack">${G.pouch}</span><span role="button" aria-label="Open the menu">${svg('<path d="M9 6l6 6-6 6" ' + W + '/>', 20)}</span></div>`;
+const tbar = (name) => `<div class="bar pk-bar pk-wide"><span class="pk-link go" role="button" style="width:auto;white-space:nowrap">‹ The Reed Marches</span><span class="title">${name}</span><span class="ico" role="button" aria-label="Log">${G.book}</span><span class="ico" role="button" aria-label="Messages">${G.mail}</span><span class="ico" role="button" aria-label="More">${I.more}</span></div>`;
+const tabletIn = (left, right, name = 'Brannoch the Hornkin, Shieldbearer', extra = '', style = '') => `<div class="tablet wide bit"${style ? ` style="${style}"` : ''}>${tbar(name)}<div class="pt-grid">${rail}<div>${left}</div><div class="pt-r">${right}</div></div>${extra}</div>`;
+const tabletOf = (cap, left, right, name, extra, style) => `<div><p class="cap" style="max-width:1024px">${cap}</p>${tabletIn(left, right, name, extra, style)}<p class="from">Drawn from frames P1 and P2 of page 14 and from the built screen’s source; not checked against a built screen.</p></div>`;
+const phoneBar = (name) => `<div class="bar pk-bar"><span class="ico" role="button" aria-label="Menu">${G.menu}</span><span class="title">${name}</span><span class="ico" role="button" aria-label="Messages">${G.mail}</span></div>`;
+const phTabs = `<div class="pk-tabs" role="tablist"><span class="on">${gi('crown', 24)}Player</span><span>${G.fire}Scene</span><span>${G.pouch}Pack</span><span>${G.book}Log</span></div>`;
+const phoneOf = (name, inner) => `${phoneBar(name)}<div class="inner">${inner}</div>${phTabs}`;
+
+// the head as approved on page M1 (2026-11-19): the portrait at 96 px, the notices box across the divider, over “Scores”
+const headA = (size, n, ringsHtml) => ({ left: `<div class="pt-head h${size}">${av(size)}${ringsHtml}</div>`, rtop: `<div class="pt-rtop h${size}">${nb(n)}${labRule('Scores', SCORE_RULE)}</div>` });
+const FIVE = rings(4, 1);
+
+// ==== page M2: the Player tab's pop-ups in the book's format ====
+const NEW = '<b>Approved by Francis on 2026-11-19, with his fixes drawn in; shared stylesheet.</b>';
+const FROMP = 'Not checked against a built screen.';
+
+// ---- a pop-up's parts ----
+const starO = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3l2.800 6 6.500.6-4.900 4.300 1.500 6.400L12 17l-5.900 3.300 1.500-6.400L2.700 9.600 9.200 9z" ${W}/></svg>`;
+const starF = G.star.replace('width="14" height="14"', 'width="22" height="22"');
+const pin = (on) => `<span class="pu-b" role="button" aria-pressed="${!!on}" aria-label="${on ? 'Unpin' : 'Pin to top'}">${on ? starF : starO}</span>`;
+const X = `<span class="pu-b" role="button" aria-label="Close">${I.close}</span>`;
+// the head: the book's red heading; a figure beside it where the figure is a roll's; the star where the thing can be pinned; one ✕
+const hd = (name, o = {}) => `<div class="pu-hd"><span class="ehead">${name}</span>${o.fig ? `<span class="fig">${o.fig}</span>` : ''}${o.star !== undefined ? pin(o.star) : ''}${X}</div>`;
+const got = (accent = false) => `<div class="foot"><span class="btn${accent ? ' accent' : ''}" role="button">Got it</span></div>`;
+const bl = (label, text) => `<p class="ln"><span class="lb">${label}</span>${text}</p>`;
+const lead = (term, text) => `<p><b>${term}.</b> ${text}</p>`;
+const src = (t, rules = false) => `<p class="source">From your setting${rules ? '’s rules' : ''}: ${t}.</p>`;
+const kv = (k, v) => `<p class="pu-kv"><span>${k}</span><b>${v}</b></p>`;
+const psheet = (label, inner, name = 'Brannoch') => col(label, `<div class="behind">${phoneBar(name)}<div class="dim"></div></div><div class="sheetup flow" role="dialog">${inner}</div>`, 'bit');
+const frame3 = (cap, cols) => `<div><p class="cap" style="width:1100px;max-width:1100px">${cap}</p><div class="trio" style="max-width:1100px">${cols.join('')}</div><p class="from">${FROMP}</p></div>`;
+// the tab behind a tablet's pop-up: page M1's, approved 2026-11-19 (the box quiet: no notices)
+const hB = headA(96, 0, FIVE);
+const tabL = `${hB.left}${hp(11, 16)}${acAtk()}${weapon('Longsword', '+2', '+1', 8, ', Grip: one hand', 'Grip')}${atHandNow}${levelBlock()}${detailsFolded}`;
+const tabR = `${hB.rtop}${scoreTiles()}${saves()}${movement}${traits}${skills}${langs}${rest()}`;
+const tabPop = (cap, inner, label, o = {}) => `<div><p class="cap" style="max-width:1024px">${cap}</p>${tabletIn(tabL, tabR, undefined, `<div class="dim"></div><div class="popb pt-pop${o.hi ? ' hi' : ''}" role="dialog" aria-label="${label}">${inner}</div>`, `height:${o.h || 640}px`)}<p class="from">The tab behind is page M1’s, approved 2026-11-19, with no trait At hand (euf-3). The pop-up is not checked against a built screen.</p></div>`;
+
+// ==== band 1: an entry from the book ====
+const T_P1 = 'A Fighter of the first two levels marches under another’s banner. At level 3 the company grants them a banner of their own, and the right to paint its mark on their shield.';
+const T_H = 'Once they carry a banner, a Fighter is owed a bed and a meal at any hall that flies one. The right covers any companion the Fighter vouches for, and the same is owed in return.';
+const T_L = 'A Fighter whose banner is taken in a fight marches under another’s until it is won back.';
+const T_SRC = src('River Rules, p. 22, Fighter', true);
+const traitBlocks = (when) => `${hd('Banner right', { star: false })}<div class="bk"><p>${T_P1}</p>${lead('Hearth-right', T_H)}${lead('A banner lost', T_L)}${bl('From', 'Your class, Fighter')}${bl('When', when)}${T_SRC}</div>${got()}`;
+const traitPlain = `${hd('Banner right', { star: false })}<div class="bk"><p>${T_P1} Hearth-right: ${T_H} A banner lost: ${T_L}</p>${bl('From', 'Your class, Fighter')}${bl('When', 'From level 3')}${T_SRC}</div>${got()}`;
+const traitLong = `${hd('Oath to the Company of the Seven Cairns and its Lantern Wardens', { star: true })}<div class="bk"><p>A Hornkin sworn to the Company answers its muster, wherever they are.</p>${lead('The muster', 'When the horn is blown three times, the sworn make for the nearest cairn by the shortest road.')}<ul><li>They leave no sworn companion behind.</li><li>They carry no banner but the Company’s.</li><li>They take no pay from its enemies.</li></ul>${lead('Oath-broken', 'One who breaks the oath loses hearth-right until the Company takes them back.')}${bl('From', 'Your kindred, Hornkin')}${bl('When', 'Always')}${src('River Rules, p. 18, Hornkin', true)}</div>${got()}`;
+const m2a = tabPop(`M2a. ${NEW} <b>Band 1, an entry from the book: a trait whose text is written in blocks.</b> Ruled: an entry stays as it is (tfb-1): the name as the book’s red heading, its text, the labelled lines “From” and “When”, the source, one ✕ and “Got it” at the right. <b>The pin star sits beside the ✕ on every ability’s and trait’s entry</b> (euf-2; his fix of 2026-11-19), empty here: pinned, the trait sits first in the right column’s list (page M4). <b>New here (tfb-5): the text is set block by block.</b> A paragraph, then each bold lead-in on a line of its own (“Hearth-right.”, “A banner lost.”), where today it all runs on as one paragraph (his picture 24, frame M2b’s middle). The breaks are the pack’s, never guessed. <b>The “When” line, approved 2026-11-19: “At level 3” in the entry too</b>, as the lists say it (tfw-5), so one fact has one wording. Today’s “From level 3”, not picked, is drawn in frame M2b’s middle column. “Got it” is the plain button, as an entry has it today.`, traitBlocks('At level 3'), 'Banner right', { hi: true, h: 760 });
+const m2b = frame3(`M2b. ${NEW} <b>The same entry on a phone, the trait not yet rewritten, and messy data.</b> <b>Left:</b> the trait in blocks at 375 px, as a sheet from the foot; “When At level 3” (approved 2026-11-19); the star empty beside the ✕. <b>Middle: a trait the pack has not yet rewritten reads as today</b> (tfb-5): one paragraph, the lead-ins running on inside it; its “When” in today’s words, “From level 3”, <b>not picked</b>. <b>Right:</b> a very long name wraps beside the star and the ✕ and pushes nothing off; <b>the star filled: this one is pinned</b>; a list block; a trait that is always on (“When Always”). Nothing here changes what an entry holds (cs-41): only how a text in blocks is set, and the “When” words if he picks them.`,
+  [psheet('In blocks; “When At level 3” (approved 2026-11-19)', traitBlocks('At level 3')), psheet('As today; “When From level 3” (not picked)', traitPlain), psheet('A long name, a list, always on, pinned', traitLong)]);
+
+// ==== band 2: a figure explained, and the two lists ====
+const rollTop = (t, n, roll, plus = '') => `<p class="pu-roll"><b>Succeeds on a ${t}+,</b>${d(n, 20)}<span>roll ${roll}${plus ? ' ' + plus : ''}</span></p>`;
+const topOld = (words) => `<p><b>${words}</b></p>`;
+const skillPop = (name, topLine, body, source, accent = false) => `${hd(name)}<div class="bk">${topLine}${body}${src(source)}</div>${got(accent)}`;
+const LISTEN = `<p>Stand still at a door or a bend and listen for what is beyond it.</p>${bl('Takes', 'One turn, in quiet.')}${bl('Once', 'One try at each door.')}`;
+const m2c = tabPop(`M2c. ${NEW} <b>Band 2, a figure explained: a skill.</b> Ruled: the pop-up takes the book’s format and ends with “Got it” at the right (tfb-1, tfb-2); it replaces the plain pop-up of frames P7 and P7b. <b>Its first line is the roll</b> (tfs-1): “Succeeds on a 5+,”, the die, “roll 1d6”, and “+N” only when the rules add to the roll. The lines “Base chance for everyone”, the class’s line, “Higher is better” and the kindred’s line are gone (his picture 32); the pack’s own text and the source stay. <b>A skill has no figure beside its title</b>: its figure is the first line. The first line’s lead, “Succeeds on a 5+,”, is bold and the rest plain, as the option sketch he chose drew it.`, skillPop('Listen', rollTop(5, 6, '1d6'), LISTEN, 'River Rules, p. 52'), 'Listen');
+const m2d = frame3(`M2d. ${NEW} <b>A skill’s pop-up at 375 px, in each case the rulings name.</b> <b>1: the rules add a number to the roll</b>: “+1” follows “roll 1d6” (tfs-1); a better target from a class or a kindred is already inside the “4+” and is not a “+N”. <b>2 and 3: a skill rolled low, and one by percentage</b>: the four lines go from these too, and <b>the first line keeps today’s words</b> until the Pack Creator answers and he rules them (the plan’s question 13): a stand-in, not a pick. <b>4: a class skill that stands in for another</b> (the better of two counts): drawn <b>without</b> its two lines (“A Mire Stalker’s Keen ear at level 3: …”, “The better counts: …”), the designer’s reading of his note (as drawn, and not named on its own in his approval). <b>5: a long name and a long text</b> wrap; the roll line wraps after the die and nothing is cut.`,
+  [psheet('1. The rules add to the roll', skillPop('Forage', rollTop(4, 6, '1d6', '+1'), `<p>Look for food as you travel. One find feeds as many as the roll shows.</p>${bl('Takes', 'A day’s march, at no cost in speed.')}`, 'River Rules, p. 53')),
+    psheet('2. Rolled low: today’s words', skillPop('Climb', topOld('Succeeds on 2 or less on d6, 2 in 6'), `<p>Scale a wall or a cliff with handholds.</p>${bl('Fail', 'A fall from halfway.')}`, 'Old Marsh Rules, p. 30')),
+    psheet('3. By percentage: today’s words', skillPop('Pick a lock', topOld('Succeeds on 35 or less on d100, 35 in 100'), `<p>Open a lock with picks, in quiet.</p>${bl('Once', 'One try at each lock, each level.')}`, 'Old Marsh Rules, p. 31')),
+    psheet('4. A class skill standing in for another', skillPop('Keen ear', rollTop(4, 6, '1d6'), `<p>A Mire Stalker hears what others miss: a breath held, a boot shifted on stone.</p>${bl('Counts as', 'Listen, wherever Listen is asked for.')}`, 'River Rules, p. 27, Mire Stalker')),
+    psheet('5. A long name, a long text', skillPop('Finding the way through fen and reed-bed', rollTop(6, 6, '1d6', '+2'), `<p>Keep a heading where there are no landmarks: across open fen, through reed taller than a rider, in mist, and by night when the lantern shows only the next ten paces of water.</p>${bl('Takes', 'One roll for each day’s march; a failed roll loses half the day.')}${bl('With a guide', 'No roll while the guide is with the party and is not lost themselves.')}`, 'River Rules, p. 54, and The Reed Marches, p. 9'), LONGN)]);
+const levelPop = (accent) => `${hd('Level')}<div class="bk"><p>Level 2 Fighter.</p><p>Level 3 at 4,000 XP.</p><p>The highest level is 12.</p>${src('River Rules, p. 22, Fighter')}</div>${got(accent)}`;
+const xpRow = (a, b, on) => `<tr><td>${on ? `<b>${a}</b>` : a}</td><td>${on ? `<b>${b}</b>` : b}</td></tr>`;
+const xpPop = `${hd('Experience bonus')}<div class="bk"><p>Your prime score, Might 14, gives +5% to the experience you earn.</p><table><caption>Experience by prime score</caption><thead><tr><th>Prime score</th><th>Experience</th></tr></thead><tbody>${xpRow('3 to 7', '−15%')}${xpRow('8 to 13', '+0%')}${xpRow('14 to 16', '+5%', true)}${xpRow('17 to 18', '+15%')}</tbody></table>${src('River Rules, p. 14')}</div>${got()}`;
+const speedPop = `${hd('Speed')}<div class="bk"><p>120 paces a turn when exploring, 40 paces a round in a fight.</p>${bl('Exploring', 'Mapping and watching as you go.')}${bl('In a fight', 'A third of the exploring speed, each round.')}${bl('Burden', 'Light: no change.')}${src('River Rules, p. 40')}</div>${got()}`;
+const m2e = frame3(`M2e. ${NEW} <b>A figure that is not a roll, and “Got it”: plain, approved 2026-11-19.</b> Ruled (tfb-3): Level, Experience bonus and a movement speed do not repeat their figure in bold under the title; the pop-up starts with its sentence (“Level 2 Fighter.”). His pictures 13 and 25 show the bold “2” and “+0%” that go. The Experience bonus keeps its sentence and its table, the matching row in bold. <b>“Got it” is the plain button</b> (the plan’s question 17). <b>1, approved 2026-11-19: plain.</b> A reading pop-up asks for nothing: the accent is kept for the one thing to do on a surface, and an entry’s “Got it” is plain today (his picture 24). <b>2, not picked: the accent.</b> It is the only button, so it would be the surface’s one accent (sa-1 allows it); it then looks like “Pick” in creation, which does something. Every other frame of band 2 draws the plain button.`,
+  [psheet('1. Level, “Got it” plain (approved 2026-11-19)', levelPop(false)), psheet('2. “Got it” as the accent (not picked)', levelPop(true)), psheet('Experience bonus: no bold “+5%”', xpPop), psheet('A movement speed: no “120” in bold', speedPop)]);
+const wardPop = `${hd('Ward', { fig: '16' })}<div class="bk"><p class="pu-roll">${d(20, 20)}<span>Roll d20: 16 or higher succeeds.</span></p>${bl('Equal or higher', 'The effect is thrown off, or halved where the effect says so.')}${bl('Lower', 'The effect takes hold in full.')}${bl('Effects that wound', 'A save halves the wound unless the effect says otherwise.')}${src('River Rules, p. 31')}</div>${got()}`;
+const mightPop = `${hd('Might', { fig: '14' })}<div class="bk"><h4 class="bsub">Modifiers</h4><p>Melee, to hit: +1.</p><p>Melee, damage: +1.</p><p>Forcing a door: no change.</p><div style="margin-top:var(--space-3)">${bl('Melee', 'Added to the roll to hit, and to the damage, of a weapon swung or thrust.')}${bl('Forcing a door', 'Great Might forces a stuck door more often; a score from 9 to 15 changes nothing.')}</div>${src('River Rules, p. 12')}</div>${got()}`;
+const deepPop = `${hd('Breath of the Deep', { fig: '15' })}<div class="bk"><p class="pu-roll">${d(20, 20)}<span>Roll d20: 15 or higher succeeds.</span></p><h4 class="bsub">Modifiers</h4><p>Grit 13: +1 from your score.</p><p>Hornkin: +2 against cold.</p><div style="margin-top:var(--space-3)">${bl('Equal or higher', 'You hold your breath, or the cold does not take you.')}${bl('Lower', 'You go under, or take the cold in full.')}</div>${src('River Rules, p. 32')}</div>${got()}`;
+const acPop = `${hd('Armour class', { fig: '15' })}<div class="bk">${kv('Mail', '14')}${kv('Shield', '+1')}<p>Hornkin: +1 only when unarmoured or in light armour, not now.</p>${src('River Rules, p. 44')}</div>${got()}`;
+const atkPop = `${hd('Attack', { fig: '+1' })}<div class="bk">${kv('Fighter at level 2', '+1')}${kv('Melee, Might +1', '+2')}${kv('Missile, Grace +0', '+1')}<p>+1 to the d20 against AC.</p>${src('River Rules, p. 22, Fighter')}</div>${got()}`;
+const atkHand = `${hd('Attack', { fig: '+3' })}<div class="bk">${kv('Set by hand', '+3')}${kv('Melee, Might +1', '+4')}${kv('Missile, Grace +0', '+3')}<p>+3 to the d20 against AC.</p>${src('River Rules, p. 22, Fighter')}</div>${got()}`;
+const m2f = frame3(`M2f. ${NEW} <b>The figures that are rolls keep their figure beside the title</b> (tfb-3: saves, scores, armour class, attack), now in the book’s format with “Got it” (tfb-1, tfb-2). What each holds is as ruled on 2026-11-14 (sv-2, sv-2a, sv-2b): <b>a save:</b> its number, the one line with the d20, the rule’s lines with their lead-ins as labelled lines, the source; <b>a score:</b> “Modifiers” over each thing it changes, once, then the rule’s lines; no line with a die. “Modifiers” is the book’s sub-heading here (it was a quiet small-capitals heading on the plain pop-up). <b>A long save’s name</b> wraps beside its figure. <b>Armour class</b> ends with how the figure is worked out: no “Your GM checks it at the table.” (tfw-1; his picture 5). <b>Attack’s rows</b> (his picture 6): no “Written on the sheet” row for the class’s own figure (tfw-6); the kinds in the pack’s words with a capital (tfw-7); the source names the class’s pack (his “Class’s pack”). <b>Set by hand:</b> the row reads “Set by hand” and the kinds follow it (his “Follow hand-set”); the class’s own row is then left out (the Studio’s reading: as drawn, and not named on its own in his approval).`,
+  [psheet('A save', wardPop), psheet('A score', mightPop), psheet('A save with a long name and modifiers', deepPop), psheet('Armour class', acPop), psheet('Attack', atkPop), psheet('Attack, set by hand', atkHand)]);
+const lrow = (name, sub = '', fig = '') => `<div class="ps-row" role="button"><span class="t"><b>${name}</b>${sub ? `<small>${sub}</small>` : ''}</span>${fig ? `<span class="fig">${fig}</span>` : ''}${chevR}</div>`;
+const abilPop = `${hd('Abilities')}<div class="pu-list">${lrow('Shield wall')}${lrow('Hold the line', 'At level 3')}${lrow('Banner right', 'At level 3')}${lrow('Oath to the Company', 'Drawback')}${lrow('Nerve against charms', '', '+0')}</div>${got()}`;
+const traitsPop = `${hd('Traits')}<div class="pu-list">${lrow('Horns')}${lrow('Sure-footed')}${lrow('Experience bonus', '', '+5%')}</div>${got()}`;
+const abilLong = `${hd('Abilities')}<div class="pu-list">${lrow('Shield wall')}${lrow('Stand fast against the charge of horse and horned beast', 'At level 12')}${lrow('Oath to the Company of the Seven Cairns and its Lantern Wardens', 'Drawback')}${lrow('Cairn-oath', 'Drawback')}${lrow('Nerve against charms', '', '−3')}${lrow('Hold the line', 'At level 3')}${lrow('Banner right', 'At level 3')}${lrow('Second banner', 'At level 9')}${lrow('Experience bonus', '', '+999%')}</div>${got()}`;
+const wskPop = `${hd('Weapon skills')}<div class="bk"><p>Longsword.</p><p>Shortbow.</p><p>Bog sling: not your class’s weapon, usable at −2 to hit.</p>${bl('Still to pick', 'None.')}${src('River Rules, p. 23, Fighter')}</div>${got()}`;
+const m2g = frame3(`M2g. ${NEW} <b>The Abilities and Traits lists</b> (tfb-1: band 2, the book’s heading and “Got it”; his pictures 22 and 28). Each row opens that ability’s own entry (band 1) and keeps its chevron; <b>the entry carries the pin star beside the ✕</b> (euf-2; his fix of 2026-11-19), drawn in the fifth column. <b>An ability gained later reads “At level 3”</b> under its name (tfw-5), and <b>“Drawback” is a quiet line under the name</b>, 14 px and muted, where today both shout in the figure’s place at the right. A real figure keeps the right (“+0”, “+5%”). The word is “Drawback” alone (the sketch said “A drawback”), on a small line under the name. <b>Third: nine rows and long names</b>: a name wraps beside its figure, the list scrolls inside the sheet on a short screen (not drawn), “Got it” stays last. <b>Fourth: Weapon skills</b>, sorted into this band by the designer’s reading of tfb-1: a pop-up he only reads, so the book’s format and “Got it”; its words stand in for the built ones.`,
+  [psheet('Abilities', abilPop), psheet('Traits', traitsPop), psheet('Nine rows, long names, −3 and +999%', abilLong), psheet('Weapon skills', wskPop), psheet('The entry a row opens: the star by the ✕', `${hd('Shield wall', { star: false })}<div class="bk"><p>Stand shoulder to shoulder with one ally: each of you counts the other’s shield as their own while neither moves.</p>${bl('From', 'Your class, Fighter')}${bl('When', 'Always')}${src('River Rules, p. 23, Fighter', true)}</div>${got()}`)]);
+const brow = (cells, on) => `<tr>${cells.map((c) => `<td>${on ? `<b>${c}</b>` : c}</td>`).join('')}</tr>`;
+const btable = (title, heads, rows) => `<table><caption>${title}</caption><thead><tr>${heads.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(([cells, on]) => brow(cells, on)).join('')}</tbody></table>`;
+const burdenCoins = `${hd('Burden')}<div class="bk"><p>Light: 383 of 1,200 coins’ weight.</p>${btable('Burden by weight', ['Level', 'Up to', 'Speed'], [[['Light', '400 coins', '120 paces'], true], [['Laden', '800 coins', '90 paces']], [['Heavy', '1,200 coins', '60 paces']]])}${bl('Limit', '1,200 coins. Might 14 adds nothing.')}${src('River Rules, p. 41')}</div>${got()}`;
+const burdenSlots = `${hd('Burden')}<div class="bk"><p>Worn: 4 of 6 slots. Carried: 11 of 16 slots.</p>${btable('Burden by slots carried', ['Slots filled', 'Speed'], [[['Up to 10', '120 paces']], [['11 to 13', '90 paces'], true], [['14 to 16', '60 paces']]])}${bl('Sets your speed', 'Carried: the slower of the two counts.')}${src('Old Marsh Rules, p. 48')}</div>${got()}`;
+const burdenArmour = `${hd('Burden')}<div class="bk"><p>Mail, not carrying treasure: 60 paces a turn.</p>${btable('Movement by armour', ['Armour', 'Speed', 'With treasure'], [[['None', '120 paces', '90 paces']], [['Leather', '90 paces', '60 paces']], [['Mail', '60 paces', '30 paces'], true]])}${bl('Treasure', 'Not carrying treasure: nothing in the pack counts as treasure.')}${src('Old Marsh Rules, p. 47')}</div>${got()}`;
+const burdenOver = `${hd('Burden')}<div class="bk"><p>Over the limit: 999,999 of 1,200 coins’ weight.</p>${btable('Burden by weight', ['Level', 'Up to', 'Speed'], [[['Light', '400 coins', '120 paces']], [['Laden', '800 coins', '90 paces']], [['Heavy', '1,200 coins', '60 paces']], [['Over the limit', 'More', '0 paces'], true]])}${bl('Limit', '1,200 coins. Might 3 takes 200 coins off.')}${src('River Rules, p. 41')}</div>${got()}`;
+const m2h = frame3(`M2h. ${NEW} <b>The burden’s levels, as a pop-up</b> (tfb-4: a tap on the burden opens them in a pop-up, not in place, on the Player tab, the Pack and the full sheet; his picture 19 shows them opened in place). The pop-up holds what opens in place today: where the character stands, the levels with their limits and speeds as a book table with the character’s own row in bold, what sets the limit, the source; then “Got it” (band 2). <b>The three kinds of load:</b> levels by coins’ weight; by slots (worn and carried, the slower setting the speed); armour’s movement table, with the line on treasure (the GM’s “Switch on / Switch off” stays on the bar, not here). <b>Fourth: over the limit, 999,999</b>: the last row in bold, the long figure wrapping. The title is “Burden” (none was ruled before this page; the bar’s own words are the level’s name); the tables’ titles and column words stand in for the pack’s. The bold row is also said by the first line, so the bold is never the only sign.`,
+  [psheet('Levels by coins’ weight', burdenCoins), psheet('By slots', burdenSlots), psheet('Armour’s movement table', burdenArmour), psheet('Over the limit, 999,999', burdenOver)]);
+
+// ==== band 3: a pop-up you act in ====
+const hpForm = (title, label, v) => `${hd(title)}<div class="pu-fit"><div class="sclab" style="margin-top:0">${label}</div><span class="field pu-in" role="textbox" aria-label="${label}">${v}</span><div class="pu-two"><span class="btn accent" role="button">Set</span><span class="btn" role="button">Cancel</span></div></div>`;
+const m2i = tabPop(`M2i. ${NEW} <b>Band 3, a pop-up you act in: Hit points.</b> Ruled: the book’s red heading, its own buttons, no “Got it” (tfb-1). <b>The form is as built and approved on 2026-11-19</b> (his evening answers 7 and 8: “center both popups with the current layout”): the label, the number box, and “Set” and “Cancel” directly under the box, each half its width, one height (p2p-16), the whole block centred; the box is as wide as its two buttons, which answers “why is the box so wide?” (item 3). “Set” comes first, as built. <b>The red heading over the accent “Set”, measured:</b> the heading on the pop-up’s ground reads 5.35 to 1 in light and 5.26 to 1 in dark; “Set”’s words on its ground 10.43 and 6.42 to 1. In light the two reds are different colours (the heading’s is the lighter, 1.95 to 1 against the button’s); <b>in dark they are the same colour</b>, the heading as words and “Set” as a filled block. <b>The two reds as drawn, in both modes: approved 2026-11-19.</b>`, hpForm('Hit points', 'Current HP (max 16)', '11'), 'Hit points', { h: 560 });
+const ppCircle = (pic) => `<span class="pt-av s128" role="img" aria-label="${pic ? 'The portrait' : 'No portrait: the initial B'}">${pic ? FACE : 'B'}</span>`;
+const portrait = (o) => `${hd('Portrait')}<div class="pu-pp">${o.none ? `<span class="pu-add" role="button">Add a portrait (optional)</span>` : `${ppCircle(true)}<div class="pu-ppw"><div class="pu-ppa"><span class="btn small" role="button">Change portrait</span><span class="btn small" role="button">Remove portrait</span></div>${o.save ? `<span class="btn accent" role="button">${o.save}</span>` : ''}</div>`}</div>`;
+const m2j = frame3(`M2j. ${NEW} <b>Hit points, Max hit points and Portrait at 375 px.</b> All three take the book’s red heading and keep their own buttons (tfb-1); the forms under the heading are <b>as built and approved on 2026-11-19</b> (pull request 1040; his answers 7 and 8), redrawn here only to show them under the new heading. <b>Hit points and Max hit points:</b> the label, the box, “Set” and “Cancel” under it, centred; 0 of 999 fits the same box. <b>Portrait:</b> the circle centred at 128 px; “Change portrait” and “Remove portrait” one height, side by side under it; once a picture is chosen, “Save portrait”, the one accent, ends where “Remove portrait” ends. With no portrait yet the picker’s own dashed box asks for one, as built in the source. <b>Not drawn:</b> the line under the box when what is typed is not a number, and “Saving…”: both as built.`,
+  [psheet('Hit points', hpForm('Hit points', 'Current HP (max 16)', '11')), psheet('Max hit points', hpForm('Max hit points', 'Max HP', '16')), psheet('Hit points, 0 of 999', hpForm('Hit points', 'Current HP (max 999)', '0')), psheet('Portrait, with a picture', portrait({})), psheet('Portrait, a new picture chosen', portrait({ save: 'Save portrait' })), psheet('Portrait, none yet', portrait({ none: true }))]);
+const bigRing = (k, tone, frac, dashed = false) => { const size = 84, stroke = 7, colr = ST_TONE[tone], r = (size - stroke) / 2, c = 2 * Math.PI * r; return `<span class="ps-st" aria-hidden="true"><svg class="arc" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><circle cx="42" cy="42" r="${r}" fill="none" stroke="var(--rule)" stroke-width="${stroke}"${dashed ? ' stroke-dasharray="4 5"' : ''}/>${dashed ? '' : `<circle cx="42" cy="42" r="${r}" fill="none" stroke="var(--${colr})" stroke-width="${stroke}" stroke-dasharray="${(c * frac).toFixed(1)} ${c.toFixed(1)}"/>`}</svg><span class="mid" style="color:var(--${colr})">${svg(ST_SYM[k], 40)}</span></span>`; };
+const logRow = (line) => `<div class="act" role="button" aria-label="Log: ${line}. Open the log"><span>${line}</span><span class="go" aria-hidden="true">${I.chev}</span></div>`;
+const blessed = `${hd('Blessed')}<div class="pu-st">${bigRing('star', 'boon', 0.6)}<div><p>Brannoch</p><p><b>6 of 10 turns left</b></p><small>Ends when its time runs out.</small></div></div><div class="bk"><p>+1 to hit and to saves while the blessing lasts.</p>${bl('Source', 'Sedge’s blessing')}${bl('Set by', 'Your GM')}</div><div class="pu-acts">${logRow('Turn 14: Sedge blessed Brannoch')}</div><div class="pu-bare"><span class="btn" role="button">Remove</span></div>`;
+const exhausted = `${hd('Exhausted')}<div class="pu-st">${bigRing('stone', 'harm', 1, true)}<div><p>Brannoch</p><p><b>Exhausted, level 1 of 3</b></p><small>Ends after a night’s rest.</small></div></div><div class="bk"><ul><li><b>Weary (now)</b></li><li>Spent</li><li>Collapsed</li></ul><p>Weary: −1 to hit. Each level is worse than the last.</p>${bl('Source', 'A forced march')}${bl('Set by', 'Your GM')}</div><div class="pu-bare"><span class="btn" role="button">Step up</span><span class="btn" role="button">Step down (ends it)</span><span class="btn" role="button">Remove</span></div>`;
+const note = (text, by) => `<div class="pu-note"><p>${text}</p><small>${by}</small></div>`;
+const addNote = `<span class="field empty" role="textbox" aria-label="A new note" style="margin-top:var(--space-3)">A new note</span><div class="pu-bare"><span class="btn accent" role="button">Add</span></div>`;
+const notesPop = `${hd('Notes')}${note('The ferryman at Sallow Reach wants nine silver on the way back.', 'Today, by you')}${note('The Lady’s lantern goes out if it is carried over running water: ask Sedge before the ford, and again before the weir, and do not let Odo carry it.', 'Yesterday, from your GM')}${note('Owes Tam a drink.', 'On the sheet')}${addNote}`;
+const notesNone = `${hd('Notes')}<p>No notes yet.</p>${addNote}`;
+const cantUse = `${hd('Fighter can’t use Bog sling')}`;
+const cantNote = `${hd('Fighter can’t use Glow wand')}<div class="bk"><p>A wand answers only to one who has sworn to a patron.</p></div>`;
+const spent = `${hd('Nothing in the quiver')}<p>The Shortbow has nothing to fire.</p><div class="pu-bare"><span class="btn accent" role="button">Open the quiver</span></div>`;
+const hornPop = `${hd('Horn charge', { star: true })}<div class="bk"><p>Lower the horns and run at a foe ten paces off or more: the blow lands as a spear set against a charge.</p>${bl('Uses', `${dots(2, 3)}2 of 3 left, back each day`)}${bl('From', 'Your kindred, Hornkin')}${src('River Rules, p. 18, Hornkin', true)}</div><div class="pu-bare"><span class="btn" role="button">Use</span></div>`;
+const m2k = frame3(`M2k. ${NEW} <b>A status, Notes and a blocked action at 375 px</b>: the book’s red heading, each pop-up’s own buttons at the right, no “Got it” (tfb-1; ft-1). What each holds is as built; only the heading, and the lines set as the book’s labelled lines, are new. <b>A status:</b> the 84 px ring, whose it is, the time left, how it ends; what it does; “Source” and “Set by” as labelled lines; its log line as a row that leads to the log; “Remove”. One with levels lists them, the present one in bold and marked “(now)”, with “Step up”, “Step down (ends it)” and “Remove”, which wrap at this width. <b>A status’s pop-up has no “Only the GM changes the time left.”</b> (his fix of 2026-11-19: a line of the kind voice rule 16 drops, tfw-2); today’s pop-up has it. <b>Notes:</b> newest first, each with when and who, the sheet’s own words last; a field and “Add”, the pop-up’s one accent; with none, “No notes yet.”. <b>A blocked action:</b> the title is the rule itself, once (tfw-4), and the pop-up closes with the ✕ alone, as a notice with no button does; a note of the pack’s sits under the title; one with a way forward keeps its button (“Open the quiver”; its words stand in for the built ones). A long rule as a heading in capitals runs to two or three lines at this width. <b>Last: a trait with uses</b> (band 3 by the ruling’s reading): its entry, its uses, the pin star and its own button, “Use”. <b>It is no longer a thing At hand</b> (euf-3; his fix of 2026-11-19): the trait sits in the right column’s list, first when pinned, as here (page M4 draws the list).`,
+  [psheet('A status with a time', blessed), psheet('A status with levels, no end', exhausted), psheet('Notes', notesPop), psheet('Notes, none yet', notesNone), psheet('Blocked: the title is the rule', cantUse), psheet('Blocked: the pack’s own note', cantNote), psheet('Blocked, with a way forward', spent), psheet('A trait with uses, pinned (the right column’s)', hornPop)]);
+
+// ---- the At hand pop-up (tfh-1 to tfh-4) ----
+const rollBox = (n, title, rows) => `<div class="pu-rb"><div class="h">${d(n, 24)}<span>${title}</span></div>${rows.map(([k, v]) => kv(k, v)).join('')}</div>`;
+const ACT_IC = { 'Give to…': 'open-palm', 'Put in…': 'swap-bag', 'Hide from At hand': 'cancel', 'Drop': 'drop-weapon' };
+const act = (words, go = true) => `<div class="act" role="button"><span><span class="li" aria-hidden="true">${ACT_IC[words] ? gi(ACT_IC[words], 24) : ''}</span>${words}</span>${go ? `<span class="go" aria-hidden="true">${I.chev}</span>` : ''}</div>`;
+const acts = (hide = true) => `<div class="pu-acts">${act('Give to…')}${act('Put in…')}${hide ? act('Hide from At hand', false) : ''}${act('Drop')}</div>`;
+const SWORD = `${rollBox(20, 'Roll 1d20 + 2 to hit', [['Fighter, level 2', '+1'], ['Might 14', '+1']])}${rollBox(8, 'Roll 1d8 + 1 for damage', [['Longsword', '1d8'], ['Might 14', '+1']])}<div class="bk">${bl('Qualities', 'Slashing, Melee')}</div>`;
+const swordPop = (star) => `${hd('Longsword', { star })}${SWORD}${acts()}`;
+const range = `<h4 class="bsub">Range, in paces</h4>${bl('Near', 'to 30: +1 to hit')}${bl('Far', 'to 90: −2 to hit')}`;
+const axePop = `${hd('Throwing axe of the Seven Cairns, notched and re-hafted', { star: true })}${rollBox(20, 'Roll 1d20 − 1 to hit, as a missile', [['Fighter, level 2', '+1'], ['Grace 10', '+0'], ['Not a weapon skill of yours', '−2']])}${rollBox(6, 'Roll 1d6 for damage, as a missile', [['Throwing axe', '1d6']])}<div class="bk">${range}${bl('Qualities', 'Slashing, Melee, Thrown')}</div>${acts(false)}`;
+const bowPop = `${hd('Shortbow', { star: true })}${rollBox(20, 'Roll 1d20 + 1 to hit', [['Fighter, level 2', '+1'], ['Grace 10', '+0']])}${rollBox(6, 'Roll 1d6 for damage', [['Arrows', '1d6']])}<div class="bk">${range}${bl('Qualities', 'Missile, Two-handed')}</div><span class="btn wide" role="button" style="margin-top:var(--space-2)">Fire one</span>${acts(false)}`;
+const m2l = tabPop(`M2l. ${NEW} <b>The At hand pop-up for a weapon in hand</b> (tfh-1, tfh-2, tfh-4). Ruled: the weapon’s name and its “Attack” open this same pop-up; it holds the two roll boxes and the qualities, then “Give to…”, “Put in…”, “Hide from At hand” and “Drop”, drawn as frame PK8 of the Pack tab draws a thing’s pop-up; <b>no slot, hands, value or weight</b> (his picture 7 shows the rows that go). <b>The pin star always shows on a weapon in hand, beside the ✕</b>, empty here (not pinned), with “Hide from At hand” on the same pop-up. <b>As drawn, and not named on its own in his approval:</b> all of the Attack view stays (the plan’s question 17): the rows under each roll, each part with its figure (his picture 8, “the desired screen”), and where a weapon has them its range, a magic weapon’s notes, what it inflicts and “Fire one” (frame M2m). The line “Rolling the attack here comes with the fight rules, later.” is gone (tfw-3). “Qualities” is a labelled line of the book; the rows that lead on carry their chevron and PK8’s icons. <b>“Hide from At hand” has its icon</b> (his fix of 2026-11-19: one from the set, like the rows beside it): none was picked for it before, so it is drawn with <b>the set’s “Dismiss” mark</b> (st-8), the one already picked for putting a thing out of view: <b>the Studio’s choice of mark, his to change.</b> It has no chevron (it happens on the tap); “Drop” is drawn as PK8 draws it.`, swordPop(false), 'Longsword', { hi: true, h: 800 });
+const m2m = frame3(`M2m. ${NEW} <b>The weapon’s pop-up at 375 px, and its other cases.</b> <b>Left:</b> the weapon in hand, not pinned: the empty star and “Hide from At hand” together (tfh-4). <b>Middle: pinned, a long name, a grip, a range.</b> The star is filled: put away, the weapon stays At hand. <b>As drawn, and not named on its own in his approval:</b> a pinned thing has no “Hide from At hand” row, since the star is how it leaves. The weapon is held with the grip “Thrown”, and <b>shows that grip’s roll lines alone</b>: this is the proposal of the plan’s question 9 (row C16), <b>not ruled, and not ruled by this page’s approval</b>; today all four lines show whatever the grip. A weapon that is not a skill of the class shows the row that costs it. The range follows the rolls as the book’s sub-heading and labelled lines. <b>Right: a weapon At hand and not in hand</b> (pinned): the same pop-up, with “Fire one” as built, which uses one of the quiver’s kind. <b>Not drawn:</b> a magic weapon’s notes and what an attack inflicts (lines after the qualities, as built); a setting that counts down to a target, where the roll box shows no “to hit” figure to add.`,
+  [psheet('In hand, not pinned', swordPop(false)), psheet('In hand, pinned; grip “Thrown”; a long name', axePop, 'Brannoch'), psheet('At hand, pinned: a bow', bowPop)]);
+const WAND_D = `<p>The wand’s tip gives a cold light for one turn, bright enough to read by at ten paces. It does not burn and cannot be put out.</p>${src('River Rules, p. 96')}`;
+const LAMP_D = `<p>A shuttered lantern that keeps its flame in wind and rain. One flask of oil burns for six turns.</p>${src('River Rules, p. 93')}`;
+const thing = (name, facts, desc, star) => `${hd(name, star === undefined ? {} : { star })}<div class="bk">${facts}${desc}</div>${acts(!star)}`;
+const WAND_F = bl('Charges', '3 of 5 left'), LAMP_F = `${bl('Light', 'Lit, 4 turns left')}${bl('Refills', '3 left')}`;
+const m2n = frame3(`M2n. ${NEW} <b>The other things At hand: a wand and a lit lantern</b> (tfh-3: the same short shape: what it does now, its uses or its light left, then the quick buttons; no pack facts). <b>Two picks, both approved 2026-11-19 (the plan’s question 17).</b> <b>The thing’s own description is shown:</b> (1) and (3) show the book’s words on what the thing does, with their source, under the facts; (2) and (4), not picked, leave them out. “No pack facts” took out slot, value and weight; what a wand does is what he needs at the table, as a weapon’s qualities are. <b>What it costs:</b> a longer pop-up; a long text scrolls inside it with the buttons kept at the foot (frame PK8b of the Pack tab). <b>The star, approved 2026-11-19:</b> (1) and (3) show it on these things too, filled when pinned; (2) and (4), not picked, show none, as today, with “Hide from At hand” alone. <b>The star is on everything At hand</b>, one rule for one place; pinned, the “Hide” row is not shown (as frame M2m says). <b>The trait with uses that stood here is in frame M2k:</b> a trait is no longer a thing At hand (euf-3). <b>Said, not decided:</b> “Use” for a charge and “Refill” stay on the row At hand and are not repeated here.`,
+  [psheet('1. A wand: description and star (approved)', thing('Glow wand', WAND_F, WAND_D, true)), psheet('2. No description, no star (not picked)', thing('Glow wand', WAND_F, '')), psheet('3. A lantern: description and star (approved)', thing('Storm lantern', LAMP_F, LAMP_D, false)), psheet('4. No description, no star (not picked)', thing('Storm lantern', LAMP_F, ''))]);
+
+// ---- the Quiver (tfh-6) ----
+const qrow = (name, sub, on, word = 'In use ✓') => `<div class="ps-row"><span class="t"><b>${name}</b><small>${sub}</small></span><span class="btn q${on ? ' on' : ''}" role="button" aria-pressed="${!!on}">${on ? word : 'Pick'}</span></div>`;
+const quiver = (rows, title = 'Quiver') => `${hd(title)}<div class="pu-list">${rows}</div>`;
+const Q2 = (word) => `${qrow('Arrows', '18 in the pack, 1d6', true, word)}${qrow('Silvered arrows', '6 in the pack, 1d6, loses its silver once fired', false)}`;
+const m2o = frame3(`M2o. ${NEW} <b>The Quiver</b> (tfh-6; band 3: the red heading, its own buttons, no “Got it”). Ruled: it lists <b>only the kinds the character carries</b>; the lines “What the Shortbow fires. Each shot uses one.” and “Out of a kind: it leaves the quiver and the pack.” are gone (his picture 10); with none carried, one line says so. A pick closes the pop-up, as built. <b>The word on the kind in use: “Picked ✓”, approved 2026-11-19.</b> <b>(A), not picked: “In use ✓”</b>, the word the option sketch invented. <b>(B), approved 2026-11-19: “Picked ✓”</b>, the word the built Quiver has today and the one a picked row has everywhere else in the app. Either way the kind in use is told by its words and tick as well as its wash and edge, never by colour alone, and it stays a button: a tap on it leaves it as it is. <b>The empty line’s words:</b> “Nothing to fire in your pack.”, after the built “Nothing to light in your pack.”; the pop-up then closes with the ✕ alone. <b>Fifth:</b> a long kind’s name wraps beside its button, with 999 and 1 in the pack. <b>Sixth:</b> the same pop-up for another mode that draws from a stack, a sling’s “Pouch”. A grip and a stance list no stack and do not change.`,
+  [psheet('One kind carried, in use', quiver(qrow('Arrows', '18 in the pack, 1d6', true, 'Picked ✓'))), psheet('(A) Several kinds: “In use ✓” (not picked)', quiver(Q2('In use ✓'))), psheet('(B) Several kinds: “Picked ✓” (approved)', quiver(Q2('Picked ✓'))), psheet('None carried', quiver('<p>Nothing to fire in your pack.</p>')), psheet('Long names, 999 and 1', quiver(`${qrow('Fire-hardened fen-reed arrows of the Long Causeway', '999 in the pack, 1d6', false)}${qrow('Whistling arrow', '1 in the pack, 1d4, heard a mile off', true, 'Picked ✓')}`)), psheet('A sling’s “Pouch”', quiver(`${qrow('Sling stones', '40 in the pack, 1d4', true, 'Picked ✓')}${qrow('Lead bullets', '12 in the pack, 1d6', false)}`, 'Pouch'))]);
+
+mount(`
+  <h1>The Player tab’s pop-ups in the book’s format (page M2 of the test feedback of 19 November)</h1>
+  <p class="note">For the driver (the Studio’s briefs of 2026-11-19; plan <code>docs/plans/test-feedback-2026-11-19.md</code>, section D, row M2; rows C2, C3, C4, C7, C8, C9, C12). Every pop-up reachable from the Player tab, in three bands (tfb-1): <b>1, an entry from the book</b> (frames M2a, M2b); <b>2, a figure explained, and the two lists</b> (M2c to M2h); <b>3, a pop-up you act in</b> (M2i to M2o). Rulings drawn: tfb-1 to tfb-5, tfh-1 to tfh-4 and tfh-6, tfs-1, tfw-1 and tfw-3 to tfw-7, and his evening answers 7, 8, 18 and 20. Everything ruled for the tab is gathered in <code>docs/design/notes/player-tab-ruled-so-far-2026-11-19.md</code>. Names, words and numbers are invented. <b>Francis approved this page on 2026-11-19, “Yes, with fixes”</b> (the driver’s brief of that day; the ruling’s own file is the designer’s). <b>The Studio’s six picks, as drawn:</b> a trait’s “When” line reads “At level 3” (M2a, M2b); “Got it” is the plain button (M2e); the two reds on Hit points as drawn (M2i); a thing’s own description is shown, and the star is on everything At hand (M2n); the Quiver’s kind in use reads “Picked ✓” (M2o). <b>His fixes, drawn in:</b> every ability’s and trait’s entry carries the pin star beside the ✕ (M2a, M2b, M2g; euf-2); a trait with uses is no longer a thing At hand, and its pop-up moved from M2n to M2k (euf-3); “Hide from At hand” has an icon from the set (M2l to M2n); a status’s pop-up has no “Only the GM changes the time left.” (M2k). The options he did not pick stay, each marked “not picked”. <b>Drawn, and not named one by one in his approval:</b> a class skill standing in for another without its two lines (M2d); “Set by hand” without the class’s row (M2f); all of the Attack view staying (M2l); a pinned thing with no “Hide from At hand” (M2m). <b>Not ruled by this approval:</b> a grip showing only its own roll lines (M2m; the plan’s question 9). On a tablet a pop-up is the app’s centred card; on a phone it is the sheet from the foot, as page M1’s notices are.</p>
+  <h1>Band 1. An entry from the book</h1>
+  <div class="wall">${m2a}</div>
+  <div class="wall">${m2b}</div>
+  <h1>Band 2. A figure explained, and the two lists</h1>
+  <div class="wall">${m2c}</div>
+  <div class="wall">${m2d}</div>
+  <div class="wall">${m2e}</div>
+  <div class="wall">${m2f}</div>
+  <div class="wall">${m2g}</div>
+  <div class="wall">${m2h}</div>
+  <h1>Band 3. A pop-up you act in</h1>
+  <div class="wall">${m2i}</div>
+  <div class="wall">${m2j}</div>
+  <div class="wall">${m2k}</div>
+  <h1>Band 3, continued: the At hand pop-up and the Quiver</h1>
+  <div class="wall">${m2l}</div>
+  <div class="wall">${m2m}</div>
+  <div class="wall">${m2n}</div>
+  <div class="wall">${m2o}</div>
+  <h1>Self-review</h1>
+  <p class="note"><b>The stylesheet.</b> This page links the one shared mockup stylesheet (<code>../shared/book.css</code>) last and its type pass, and restates none of their rules: the red heading, the labelled lines, the sub-heading, the book table, the small-capitals label, the sheet and the pop-up are the shared file’s. Its own rules are layout (page M1’s parts for the tab behind, and the pop-ups’ heads, rows and forms). <b>Checked.</b> One accent button at most on a surface: none on a reading pop-up; “Set”, “Save portrait”, “Add” or “Open the quiver” on the pop-ups you act in. No disabled button: a spent “Use”, the kind already in use and an empty Quiver all stay tappable or say why. Undo over confirm: “Drop”, “Remove” and “Hide from At hand” happen on the tap (their toast is not drawn). Nothing is colour alone: the kind in use has its words and tick, the present level its “(now)”, the character’s row of a table its first line. States drawn: a tablet and 375 px; long names; 0, 999 and 999,999; none carried, none written; pinned and not; in hand and not. Measured with <code>shared/measure.cjs</code>: the result is in the report.</p>
+  <p class="note"><b>Not drawn, not checked, or gaps.</b> A comparison with the built screens; Larger text; a tablet held upright; loading, a failed read and offline inside a pop-up; a long list or text scrolling inside its sheet; the toasts. Of band 1: a language, the class, the kindred, alignment, a patron and a Details value, which stay as they are today. Which mark “Hide from At hand” takes was not ruled by name: the set’s “Dismiss” is drawn. Of band 3: setting the armour class (the Hit points form with its own label, and “Clear”), and “Keep lit”’s explanation: both sorted into band 3 by the ruling’s own reading, neither named by the plan’s row, neither drawn. The pop-up that “+N” statuses opens (“Statuses”). The source line reads “From your setting’s rules:” on an entry and “From your setting:” on a figure, as built: two wordings, said here and not settled. The words of the Weapon skills pop-up, of a spent quiver and of the burden’s tables stand in for the built ones or the pack’s. The private packs were not opened.</p>
+`);
+applyBook();
+</script>
+</body>
+</html>
