@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: page 32, M3, the GM's view as the player (2026-11-21)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* this page's own rules: layout and this page's own parts only (the view's band, the row, the Player tab's boxes as
+     drawn here). Type, the book format, the stacked button, the pop-up, the toast and the corners come from
+     ../shared/book.css and are not restated. */
+  .lbl { font-size:14px; color:var(--muted); margin:var(--space-3) 0 var(--space-2); }
+  .lbl:first-child { margin-top:0; }
+  /* the view's top row: the back link, the title centred, the icons */
+  .vtop { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:var(--space-2); min-height:52px; padding:0 var(--space-2) 0 var(--space-4); border-bottom:1px solid var(--rule); }
+  .vtop .back { color:var(--accent); text-decoration:underline; min-height:44px; display:flex; align-items:center; }
+  .vtop .vtt { font-weight:700; font-size:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:520px; text-align:center; }
+  .vtop .vtt small { display:block; font-size:14px; font-weight:400; color:var(--muted); }
+  .vtop .rt { display:flex; justify-content:flex-end; }
+  /* the view's band (V-A, ruled pg32-2): whose view, on every tab */
+  .vband { display:grid; grid-template-columns:28px minmax(0,1fr); gap:var(--space-1) var(--space-3); align-items:center; border:1.5px solid var(--control); border-left:4px solid var(--info); border-radius:4px; background:var(--surface); padding:var(--space-2) var(--space-3); margin:0 0 var(--space-4); }
+  .vband > span:first-child { display:flex; color:var(--info); }
+  .vband > span:last-child { min-width:0; }
+  .vband small { display:block; font-size:14px; color:var(--muted); }
+  .phone .vband { margin:var(--space-2) var(--space-3) var(--space-3); grid-template-columns:24px minmax(0,1fr); gap:var(--space-1) var(--space-2); }
+  /* the cap on every width (pg32-2, pg32-8): two lines at most; the name line is cut with "…", the logged line stays whole */
+  .vband b { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ink); }
+  .vband small { white-space:nowrap; }
+  /* the Players page's row (page 13's, with this page's variants) */
+  .grow { display:grid; grid-template-columns:44px minmax(0,1fr) auto; gap:var(--space-2) var(--space-3); align-items:center; min-height:60px; border-bottom:1px dotted var(--rule); padding:var(--space-2) 0; }
+  .grow small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+  .grow .ga { display:flex; gap:var(--space-2); flex-wrap:wrap; justify-content:flex-end; align-items:center; }
+  .grow .nm { overflow-wrap:break-word; min-width:0; }
+  .phone .grow { grid-template-columns:44px minmax(0,1fr) auto; }
+  .phone .grow .ga { grid-column:1 / -1; justify-content:flex-start; }
+  /* pg32-1: ⋯ never sits alone on a line; it stays beside the last door */
+  .grow .ga .tail { display:inline-flex; gap:var(--space-2); }
+  .av { width:44px; height:44px; border-radius:50%; border:1.5px solid var(--control); display:flex; align-items:center; justify-content:center; font-weight:700; background:var(--surface); }
+  .menu { border:1px solid var(--rule); border-radius:8px; background:var(--popup); box-shadow:0 4px 16px rgb(0 0 0 / 25%); min-width:260px; padding:var(--space-1) 0; }
+  .menu .mi { display:flex; align-items:center; gap:var(--space-3); min-height:48px; padding:0 var(--space-4); }
+  .menu .mi svg { color:var(--muted); flex:none; }
+  .menu .mh { font-size:14px; color:var(--muted); padding:var(--space-2) var(--space-4) 0; }
+  /* the Player tab, drawn to page 28's approved layout */
+  .pt { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-4); align-items:start; }
+  .pt > div { min-width:0; }
+  .phone .phead { gap:var(--space-2); }
+  .phead { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+  .port { width:96px; height:96px; border-radius:50%; border:1.5px solid var(--control); overflow:hidden; flex:none; }
+  .port svg { width:100%; height:100%; display:block; }
+  .rg { box-sizing:border-box; width:44px; height:44px; border-radius:50%; border:2px dotted var(--control); display:inline-flex; align-items:center; justify-content:center; color:var(--muted); }
+  .box2 { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-3); margin-top:var(--space-2); box-sizing:border-box; }
+  .box2.heavy { border:2px solid var(--ink); }
+  .hpn { display:flex; align-items:center; gap:var(--space-2); }
+  .hpn .big { font-size:48px; font-weight:700; line-height:1; }
+  .hpn .gap { flex:1; }
+  .tiles { display:grid; gap:var(--space-2); margin-top:var(--space-2); }
+  .tiles.t2 { grid-template-columns:repeat(2, minmax(0,1fr)); }
+  .tiles.t3 { grid-template-columns:repeat(3, minmax(0,1fr)); }
+  .tiles.t5 { grid-template-columns:repeat(5, minmax(0,1fr)); }
+  .tile { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); text-align:center; padding:var(--space-1); min-height:56px; display:flex; flex-direction:column; justify-content:center; }
+  .tile .k { font-size:14px; color:var(--muted); }
+  .tile .v { font-size:20px; font-weight:700; line-height:1.2; }
+  .tile .s { font-size:14px; color:var(--muted); }
+  .wrow { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--space-2); flex-wrap:wrap; }
+  .wrow .nmw { font-size:20px; font-weight:700; }
+  .rolls { display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap; margin-top:var(--space-1); }
+  .rolls b { font-size:20px; }
+  .rolls small { font-size:14px; color:var(--muted); }
+  /* the GM's line: body size (the approval's fix 3: never under 14) */
+  .gmmark { display:flex; gap:var(--space-2); align-items:center; font-size:16px; color:var(--info); margin-top:var(--space-1); }
+  .notbox { display:inline-flex; align-items:center; gap:var(--space-3); min-height:56px; padding:0 var(--space-4); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); }
+  .notbox.lit { border:2px solid var(--ink); font-weight:700; }
+  .notbox.lit .ni { background:color-mix(in srgb, var(--glow) 35%, transparent); border-radius:50%; }
+  .notbox .ni { display:flex; padding:var(--space-1); }
+  .footrow { display:grid; grid-template-columns:minmax(0,1fr) 20px; align-items:center; min-height:56px; border-bottom:1px dotted var(--rule); }
+  .footrow b { font-size:20px; }
+  .footrow small { display:block; font-size:14px; color:var(--muted); }
+  /* the Pack, drawn to the approved Pack (players/01) in the December dress */
+  .grp { display:flex; justify-content:space-between; align-items:baseline; margin:var(--space-4) 0 var(--space-1); }
+  .grp:first-child { margin-top:0; }
+  .grp span:last-child { font-size:14px; color:var(--muted); }
+  .irow { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2); align-items:center; min-height:56px; border-bottom:1px dotted var(--rule); padding:var(--space-1) 0; }
+  .irow small { display:block; font-size:14px; color:var(--muted); }
+  .irow.open { background:var(--wash); box-shadow:inset 3px 0 0 var(--accent); padding-left:var(--space-2); }
+  .newtag { display:inline-flex; align-items:center; border:1.5px solid var(--ink); border-radius:4px; padding:0 var(--space-1); font-size:14px; font-weight:700; margin-left:var(--space-2); }
+  .pfoot2 { display:flex; justify-content:space-between; align-items:center; gap:var(--space-2); margin-top:var(--space-3); border-top:1px solid var(--rule); padding-top:var(--space-2); }
+  .lrow { display:grid; grid-template-columns:24px minmax(0,1fr) 20px; gap:var(--space-3); align-items:center; min-height:48px; border-bottom:1px dotted var(--rule); }
+  .lrow svg { color:var(--muted); }
+  .kv2 { display:flex; justify-content:space-between; gap:var(--space-2); min-height:32px; align-items:center; border-bottom:1px dotted var(--rule); }
+  .three32 { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:var(--space-4); align-items:start; }
+  .two32 { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-4); align-items:start; }
+  .sw2v { display:inline-flex; border:1.5px solid var(--control); border-radius:27px; padding:2px; gap:2px; }
+  .sw2v > span { min-height:44px; display:flex; align-items:center; padding:0 var(--space-4); border-radius:23px; }
+  .sw2v > span.on { background:var(--wash); box-shadow:inset 0 0 0 2px var(--accent); font-weight:700; }
+  /* the dimmed page and the centred pop-up over it */
+  .over32 { position:relative; }
+  .over32 .veil { position:absolute; inset:0; background:rgba(0,0,0,.35); }
+  .over32 .popb { position:absolute; left:50%; top:120px; transform:translateX(-50%); width:440px; }
+  .popb .ft { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:var(--space-2); }
+  .grid9 { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:var(--space-4); align-items:start; }
+  .grid9 .popb { max-width:none; }
+  .sk32 { display:block; height:16px; border-radius:4px; background:var(--rule); margin:var(--space-2) 0; }
+  .pill32 { display:inline-flex; align-items:center; gap:var(--space-1); border:1.5px solid var(--warn); color:var(--warn); border-radius:4px; padding:0 var(--space-2); min-height:28px; font-size:14px; font-weight:700; }
+  .phone .tabbar.five { grid-template-columns:repeat(5,1fr); }
+  .tabbar span { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+  .ptb { padding:var(--space-3); }
+  .pr18 { display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:var(--space-3); align-items:center; min-height:56px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-1) var(--space-3); box-sizing:border-box; }
+  .pr18 > span:first-child { display:flex; color:var(--muted); }
+  .slot18 { display:grid; gap:var(--space-2); margin:var(--space-3) 0; }
+  .rem { justify-content:center; } .rem .gap { display:none; }
+  .dcap { display:inline-flex; align-items:center; gap:var(--space-1); font-size:16px; margin-right:var(--space-2); vertical-align:bottom; }
+  .dcap svg { color:var(--muted); flex:none; }
+  .pdest .modes .btn.stk { width:auto; }
+  .opt + .spot { margin-top:var(--space-2); }
+  .callout .popb { font-size:16px; margin-top:var(--space-2); }
+  .callout { border:1.5px dashed var(--info); border-radius:4px; padding:var(--space-2) var(--space-3); font-size:14px; color:var(--ink); background:var(--sheet); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="strip.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+// Invented names and numbers only. Sam plays Wren (a caster); Robin plays Tam (no magic); Ash is the GM's own.
+const LONGC = 'Ashwin Thistlewood of the Long Stair, called the Lantern-Bearer';
+const LONGP = 'Bartholomew Featherstone-Quillfeather the Younger';
+const go = svg(SY.right, 20);
+const sep16 = svg(SY.right, 16);
+const stk = (words, k, o = {}) => `<span class="btn stk${o.accent ? ' accent' : ''}" role="button"${o.label ? ` aria-label="${o.label}"` : ''}>${gi(k, 24)}<span>${words}</span></span>`;
+const more = (label) => `<span class="btn sq" role="button" aria-label="${label}">${I.more}</span>`;
+/* pg32-5, pg32-6: a pop-up that points to Waiting for you gets a plain button that goes there, opened at the request; "Got it" stays last, plain (tfb-2) */
+const GO = 'Go to Waiting for you';
+const pop = (title, body, o = {}) => `<div class="popb" role="dialog" aria-label="${title}"><div class="hd"><span class="sheet-title">${title}</span><span class="btn sq" role="button" aria-label="Close" style="border:0;background:transparent">${I.close}</span></div>${body}${o.bare ? '' : `<div class="ft">${o.go ? b(GO) : ''}${b('Got it')}</div>`}</div>`;
+
+// ---- the GM's Players page ----
+const plHead = `<div class="hrow"><h2>Players and characters</h2>${b('Invite a player', { accent: true })}</div><div class="sect">Players</div>`;
+/* pg32-1: the row is View sheet, Pack, Magic (a caster only), Scene and ⋯; the last door and ⋯ are held together so ⋯ never wraps alone */
+const doors = (name, magic) => `${small('View sheet')}${small('Pack')}${magic ? small('Magic') : ''}<span class="tail">${small('Scene')}${more(`More for ${name}`)}</span>`;
+const chRow = (name, sum, meta, o = {}) => `<div class="grow"><span class="av" aria-hidden="true">${name.charAt(0)}</span><span class="nm"><b>${name}</b>${sum ? `<span class="meta">, ${sum}</span>` : ''}<small>${meta}</small></span><span class="ga">${o.bare || doors(name, o.magic)}</span></div>`;
+const noChar = (meta) => `<div class="grow"><span class="av" aria-hidden="true"></span><span><b>No character yet</b><small>${meta}</small></span><span></span></div>`;
+const menuB = (name) => `<div class="menu" role="menu" aria-label="More for ${name}"><div class="mi" role="menuitem">${gi('quill-ink', 24)}Edit</div><div class="mi" role="menuitem">${gi('open-palm', 24)}Give to a player…</div><div class="mi" role="menuitem">${gi('cancel', 24)}Remove…</div></div>`;
+const onPlayers = (h) => h.replace('class="ri on" role="button" aria-label="Scene"', 'class="ri" role="button" aria-label="Scene"').replace('class="ri" role="button" aria-label="Players"', 'class="ri on" role="button" aria-label="Players"');
+const fenRow = chRow('Fen', 'level 1', 'Archived', { bare: `${small('View sheet')}${small('Remove…')}` });
+const listB = `${chRow('Wren', 'level 3', 'Sam, joined 12 Oct', { magic: true })}${chRow('Tam', 'level 1', 'Robin, joined 14 Oct')}${noChar('Kit, joined 2 Nov')}${chRow('Ash', 'level 1', 'Yours', { magic: true })}${fenRow}`;
+
+const m3a = onPlayers(ipad('gm', `<div class="cols2" style="grid-template-columns:minmax(0,1fr) 280px"><div>${plHead}${listB}</div><div><p class="lbl"><b>Wren’s ⋯</b>, open.</p>${menuB('Wren')}</div></div>`,
+  'M3a. <b>The Players page’s row, to his answer</b> (pg32-1, tfg-4): <b>View sheet, Pack, Magic, Scene and ⋯</b>, small plain buttons on one line beside the name; <b>⋯ holds Edit, “Give to a player…” and “Remove…”</b>. No stacked Edit on this page (a departure from tfr-4’s Edit for the GM’s row only; “Your characters” is untouched). <b>Magic only where the character has a Magic tab</b> (tfg-2): Tam has none. <b>The GM’s own character</b> (Ash, “Yours”) has the same row and doors. <b>An archived character</b> (Fen) keeps today’s row: View sheet opens the full sheet, as today. A character waiting for approval is not a row here: it sits in “Waiting for you”, as today (d5-22). The page’s one accent stays “Invite a player”.'));
+
+// the phone, 375 px (drawn 343 inside, as every phone in this folder)
+const phList = (inner, cap) => phone(`${phoneBar('The Reed Marches')}<div class="inner"><div class="sect" style="margin-top:0">Players</div>${inner}</div>${tabBar('gm').replace('<span class="on">Scene</span>', '<span>Scene</span>').replace('<span>Players</span>', '<span class="on">Players</span>')}`, cap);
+const m3b = `<div><p class="cap" style="width:1080px">M3b. <b>The row at 375 px</b> (pg32-1). The name and the player’s name wrap; the buttons wrap under them. <b>⋯ never sits alone on a line</b>: it is held beside the last door, so a caster’s row wraps as View sheet, Pack, Magic, then Scene and ⋯; a row without Magic fits one line. Every button 44 px high, 8 px apart. Right: the GM’s own, an archived one, a player with no character yet, and a long name’s ⋯ open.</p><div class="wall">${phList(`${chRow('Wren', 'level 3', 'Sam, joined 12 Oct', { magic: true })}${chRow(LONGC, 'level 12', `${LONGP}, joined 12 Oct`, { magic: true })}${chRow('Tam', 'level 1', 'Robin, joined 14 Oct')}`, 'A caster, a long name, no magic.')}${phList(`${chRow('Ash', 'level 1', 'Yours', { magic: true })}${fenRow}${noChar('Kit, joined 2 Nov')}<p class="lbl"><b>The long name’s ⋯</b>, open:</p>${menuB(LONGC)}`, 'Yours, archived, none yet; ⋯ open.')}</div></div>`;
+
+// ---- the view: its frame on a tablet ----
+const railV = (on, magic = true) => `<div class="rail">${[['crown', 'Player'], ['fire', 'Scene'], ['sack', 'Pack'], ...(magic ? [['moon', 'Magic']] : [])].map(([k, l]) => `<span class="ri${l === on ? ' on' : ''}" role="button" aria-label="${l}">${k === 'moon' ? gi('moon', 24) : sym(k, 24)}</span>`).join('')}</div>`;
+const topV = (title = '') => `<div class="vtop"><span class="back" role="link">‹ Players</span><span class="vtt">${title}</span><span class="rt">${ico('note', 'Log')}${ico('mail', 'Messages')}${ico('book', 'Reference')}<span class="ico" role="button" aria-label="More">${I.more}</span></span></div>`;
+/* pg32-2, pg32-7c, pg32-8: the band, two lines at most on every width; p = null is the GM's own character ("Your view of Ash", no logged line) */
+const vband = (p = 'Sam', c = 'Wren') => `<div class="vband" role="note" aria-label="${p ? `${p}’s view of ${c}. What you do here is logged as yours.` : `Your view of ${c}`}"><span>${sym('eye', 24)}</span><span><b>${p ? `${p}’s view of ${c}` : `Your view of ${c}`}</b>${p ? '<small>What you do here is logged as yours.</small>' : ''}</span></div>`;
+/* o.notes: drawing notes, set above the frame as captions (the approval's fix 1), never inside the app */
+const vdev = (tab, inner, cap, o = {}) => `<div><p class="cap" style="width:1024px">${cap}</p>${o.notes ? `<div style="width:1024px;margin:0 0 var(--space-3)">${o.notes}</div>` : ''}<div class="dev ipad${o.cls ? ' ' + o.cls : ''}">${railV(tab, o.magic !== false)}<div class="main">${o.top || topV(o.title === undefined ? 'Wren' : o.title)}<div class="page">${o.noBand ? '' : vband(o.p, o.c)}${inner}</div></div>${o.extra || ''}</div></div>`;
+
+// ---- the Player tab, as page 28 draws it (approved 2026-11-20), shortened to the parts M3 needs ----
+const ring = (k, label) => `<span class="rg" role="img" aria-label="${label}">${sym(k, 20)}</span>`;
+const headP = `<div class="phead"><span class="port">${pic(1)}</span>${ring('stone', 'No status')}${ring('drop', 'Not bleeding')}${ring('flame', 'Light: none carried')}${ring('star', 'No blessing')}</div>`;
+const hpBox = (now = 11, most = 16) => `<div class="box2"><div class="sclab" style="margin-top:0">Hit points</div><div class="hpn"><span class="big">${now}</span><span class="meta">of ${most}</span><span class="gap"></span><span class="btn sq" role="button" aria-label="Lose 1">${I.minus}</span><span class="btn sq" role="button" aria-label="Gain 1">${I.plus}</span></div></div>`;
+const acAtk = `<div class="tiles t2"><div class="tile"><span class="k">Armour class</span><span class="v">15</span><span class="s">Mail, shield</span></div><div class="tile"><span class="k">Attack</span><span class="v">+1</span><span class="s">Melee +2, Missile +1</span></div></div>`;
+const weapon = (o = {}) => `<div class="box2 heavy"><div class="wrow"><span><span class="nmw">${o.name || 'Longsword'}</span><small class="meta" style="display:block">In hand, Grip: one hand</small></span><span class="stkgroup" data-stkgroup>${stk('Grip', 'fist')}${stk('Attack', 'sword-brandish')}</span></div><div class="rolls">${dieMark(20, 20)}<b>d20 ${o.hit || '+2'}</b><small>to hit</small>${dieMark(8, 20)}<b>d8 ${o.dmg || '+1'}</b><small>damage</small></div>${o.mark || ''}</div>`;
+const atHand = `<div class="sclab">At hand</div><div class="irow"><span><b>★ Shortbow</b><small>Quiver: Arrows ×18</small></span><span class="stkgroup" data-stkgroup>${stk('Quiver', 'quiver')}${stk('Wield', 'sword-hilt')}</span></div>`;
+const level = `<p style="margin:var(--space-3) 0 0"><b>Reed witch, level 3</b> <span class="meta">2,400 of 4,000 experience</span></p>`;
+const notBox = (n) => `<span class="notbox${n ? ' lit' : ''}" role="button" aria-label="${n ? n : 'No notices'}"><span class="ni">${gi('trumpet', 24)}</span>${n || 'No notices'}</span>`;
+const scores = `<div class="sclab">Scores</div><div class="tiles t3">${[['Might', 14, '+1'], ['Grace', 10, '+0'], ['Grit', 13, '+1'], ['Wit', 9, '+0'], ['Sense', 11, '+0'], ['Voice', 12, '+0']].map(([k, v, m]) => `<div class="tile" role="button"><span class="k">${k}</span><span class="v">${v}</span><span class="s">${m}</span></div>`).join('')}</div>`;
+const saves = `<div class="sclab">Saves</div><div class="tiles t5">${[['Body', 12], ['Nerve', 13], ['Wits', 14], ['Luck', 15], ['Ward', 16]].map(([k, v]) => `<div class="tile" role="button"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}</div>`;
+const abil = `<div class="sclab">Abilities and traits</div><div class="box2 heavy"><div class="wrow"><span><span class="nmw">★ Horn charge</span><small class="meta" style="display:block">A running blow with the horns.</small></span>${stk('Use', 'pointing')}</div><div class="rolls">${dieMark(20, 20)}<b>d20 +2</b><small>to hit</small><small>2 of 3 left, back each day</small></div></div>`;
+const footRows = `<div class="footrow" role="button"><span><b>Abilities</b><small>Hold the line, Banner right</small></span>${go}</div><div class="footrow" role="button"><span><b>Notes</b><small>No notes yet</small></span>${go}</div>`;
+const playerTab = (o = {}) => `<div class="pt"><div>${headP}${hpBox(o.hp ? o.hp[0] : 11, o.hp ? o.hp[1] : 16)}${acAtk}${weapon(o.weapon || {})}${atHand}${level}</div><div>${notBox(o.notice)}${scores}${saves}${o.short ? "" : abil + footRows}</div></div>`;
+
+const m3c = vdev('Player', playerTab({ notice: '1 notice' }),
+  'M3c. <b>The Player tab as the GM lands on it</b> from Wren’s “View sheet” (tfg-1). <b>It is Sam’s Player tab, with Sam’s numbers exactly</b> (pg32-3): page 28’s tab (approved 2026-11-20), drawn short here; the notices box is lit because Sam has a change waiting. <b>Whose view, and the way back</b> (pg32-2): the top row’s back link reads <b>“‹ Players”</b> (06: a sub-screen’s back link names where it goes) and the title is the character’s name, as on the player’s own; under the top row <b>the band, on every tab of the view: the eye, “Sam’s view of Wren”, and one line, “What you do here is logged as yours.”</b> (tfg-3). <b>The rail holds the player’s tabs</b> (Player, Scene, Pack, Magic), so the GM moves between them as Sam does; the GM’s own sections come back with “‹ Players”. The top row keeps the GM’s own Log, ✉ and Reference. <b>Acting here</b> (hit points, Use, Attack) happens at once with the usual Undo, logged as the GM’s act on Wren. <b>Pins</b> (pg32-9): the GM may pin, unpin and reorder here as on Sam’s screen, logged as his, with Undo.');
+
+// whose view: the band (pg32-2), on the Pack's top and at 375 px
+const vbarPh = (title) => `<div class="bar" style="grid-template-columns:auto 1fr 44px"><span class="ico" role="link" aria-label="Back to Players" style="width:auto;padding:0 var(--space-2);color:var(--accent);text-decoration:underline">‹ Players</span><span class="title">${title}</span><span class="ico" role="button" aria-label="More">${I.more}</span></div>`;
+const m3d = `<div><p class="cap" style="width:1024px">M3d. <b>Whose view it is: the band</b> (pg32-2, V-A), under the top row, the same on every tab of the view; “‹ Players” is the way back. <b>The band is two lines at most on every width, a tablet as at 375 px</b> (pg32-8): the name line is cut with “…” (read whole by a screen reader, as the bar’s title is), and “What you do here is logged as yours.” stays whole. <b>The GM’s own character</b> (pg32-7c): one line, “Your view of Ash”, without the logged line. The band is a new part: it joins 06’s inventory as “View band” when the docs take this page.</p>
+  <p class="cap" style="width:1024px">The Pack’s top, on a tablet.</p>
+  <div class="dev ipad" style="min-height:0;grid-template-columns:56px 1fr">${railV('Pack')}<div class="main">${topV('Wren’s pack')}<div class="page">${vband()}<div class="grp"><span class="sclab" style="margin:0">At hand</span><span>2 items</span></div></div></div></div>
+  <p class="cap" style="width:1024px;margin-top:var(--space-4)">Long names on a tablet: two lines, the name cut with “…”.</p>
+  <div class="dev ipad" style="min-height:0;grid-template-columns:56px 1fr">${railV('Pack')}<div class="main">${topV(`${LONGC}’s pack`)}<div class="page">${vband(LONGP, LONGC)}<div class="grp"><span class="sclab" style="margin:0">At hand</span><span>2 items</span></div></div></div></div>
+  <div class="wall">${phone(`${vbarPh('Wren')}${vband()}<div class="inner" style="padding-top:0">${headP}</div>`, 'At 375 px.')}${phone(`${vbarPh(`${LONGC}’s pack`)}${vband(LONGP, LONGC)}<div class="inner" style="padding-top:0"><div class="grp"><span class="sclab" style="margin:0">At hand</span><span>2 items</span></div></div>`, 'Long names: two lines, the name cut.')}${phone(`${vbarPh('Ash')}${vband(null, 'Ash')}<div class="inner" style="padding-top:0">${headP}</div>`, 'The GM’s own character.')}</div></div>`;
+
+// ---- the player's numbers (pg32-3, X) ----
+const m3e = vdev('Player', `<div class="two32"><div>${weapon({ name: 'Old bronze sword', hit: '+3', dmg: '+1' })}${acAtk}</div><div></div></div>`,
+  'M3e. <b>The player’s numbers, exactly</b> (pg32-3, X). An invented cursed sword: Sam reads d20 +3; its true figure is d20 −1. On the Player tab, the scores and the Magic tab the GM sees what Sam sees, with no mark. <b>The Pack is the one exception</b> (pg32-4, P-A): an item’s sheet there carries one line only the GM sees and “Reveal…” (frames M3g, M3g2). No hidden-data line moves (the GM may see all of it).', { notes: '<p class="cap" style="width:1024px;margin:0"><b>No GM marks here.</b> The blade reads d20 +3, as on Sam’s screen. Its true figure shows on its item sheet in the Pack, the one place the view is not exactly Sam’s (frame M3g2).</p>' });
+
+// ---- the blocked pop-up ----
+const notSheet = pop('Notices', `<p class="meta" style="margin:0 0 var(--space-2)">1 of 1</p><div class="pr18" role="status"><span>${I.warn}</span><span>Waiting for your GM: Might 14 → 15. Sent today.</span>${stk('Take back', 'anticlockwise-rotation')}</div>`, { bare: true });
+const blocked = (title, line, go) => pop(title, `<p>${line}</p>`, { go });
+const B1 = blocked('Only Sam can take back this change', 'Sam asked you for it. You can answer it instead: Approve or Refuse it in Waiting for you.', true);
+const m3f1 = vdev('Player', `<div class="two32"><div>${notSheet}</div><div>${B1}</div></div>`,
+  'M3f. <b>A player-only action, tapped by the GM</b> (tfg-5, d5-21, pg32-6). <b>The button stays as Sam sees it</b>: never disabled, never hidden (hard rule 7). <b>A tap opens a pop-up and changes nothing:</b> the title names the player and the act, “Only Sam can …”; one line says why and the way forward for the GM. <b>Where the way forward is Waiting for you, a plain button goes straight there</b>, opened at Sam’s change; “Got it” stays last, plain (tfb-2). No accent: the pop-up is read, and the button only moves the GM. Nothing is logged: nothing happened. The pop-up is the app’s centred one on a tablet (fb7-1) and the sheet from the foot on a phone (frame M3j).', { notes: '<div class="two32" style="width:1024px"><p class="cap" style="margin:0"><b>Left, the tap:</b> “Take back”, in the notices box’s sheet (page M1).</p><p class="cap" style="margin:0"><b>Right, what opens</b>, centred over the dimmed page (fb7-1; drawn here beside it).</p></div>' });
+const nine = [
+  ['Asking for a sheet change', 'No button in the view: Sam asks through Edit on “Your characters”. If one is reached from here, this opens.', blocked('Only Sam can ask for a change', 'A change Sam asks for comes to you to approve. To change Wren’s sheet yourself, use Edit in ⋯ on Players.')],
+  ['Sending a request', 'Scene: a secret activity’s “Ask the GM”; in town, “Ask for…”, “Sell…”, “Somewhere else…”.', blocked('Only Sam can send this request', 'A request goes from Sam to you. When Sam sends it, it waits for you in Waiting for you.', true)],
+  ['Taking back Sam’s own request', 'Scene: “Cancel” on “Waiting for your GM: …”.', blocked('Only Sam can take back this request', 'You can answer it instead: it waits for you in Waiting for you.', true)],
+  ['Choosing the active character', 'No button in the view: it lives on “Your characters”. If one is reached from here, this opens.', blocked('Only Sam can choose who they play', 'Sam picks from Your characters on their own screen.')],
+  ['Taking back a sheet change', 'Player: “Take back” in the notices box.', B1],
+  ['Answering the GM’s offer', 'Scene, in town: “Accept” and “Decline” on your offer or price.', blocked('Only Sam can answer your offer', 'Sam accepts or declines it on their own screen.')],
+  ['Stay here', 'Scene, in town: a lodging you show.', blocked('Only Sam can choose where Wren stays', 'Sam picks a lodging on their own screen.')],
+  ['Undoing a purchase', 'The buyer’s own Undo of “Buy it”.', blocked('Only Sam can undo this purchase', 'The purchase was Sam’s, so its Undo is too.')],
+  ['Putting away the “New” mark', 'Pack: the mark on finds. No button: it is put away when Sam looks. The GM looking leaves it.', `<div class="irow"><span><b>Bronze ring<span class="newtag">New</span></b><small>Carried. Found today.</small></span>${go}</div><p class="meta" style="margin:var(--space-2) 0 0">Stays “New” after the GM’s look; no pop-up.</p>`],
+];
+const m3f2 = vdev('Player', `<div class="grid9">${nine.map(([what, where, html]) => `<div><p class="lbl"><b>${what}.</b> ${where}</p>${html}</div>`).join('')}</div>`,
+  'M3f2. <b>The words for each of the nine</b> (the four of tfg-5, the five of d5-21; pg32-6). Each title names the player and the act, “Only Sam can …”; the line gives the GM his own way where he has one (Waiting for you, Edit in ⋯ on Players). <b>The three that point to Waiting for you</b> (taking back a sheet change, sending a request, taking back a request) <b>carry “Go to Waiting for you”</b>, plain, before “Got it”; it opens Waiting for you at the request where there is one. “Only Sam can ask you” now reads <b>“Only Sam can send this request”</b>. <b>Two of the nine have no button in the view</b> (asking for a sheet change goes through the player’s Edit; choosing the active character is on “Your characters”): their pop-up is drawn in case a later screen brings one in. <b>The “New” mark has no button</b>: it stays when the GM looks, as built (the command refuses the GM). With a long player name the title wraps (frame M3k).', { title: 'Wren' });
+
+// ---- the Pack, as Sam sees it; where the GM's own tools go (ruling ⚑ 3) ----
+const packList = `<div class="grp"><span class="sclab" style="margin:0">At hand</span><span>2 items</span></div><div class="irow"><span><b>★ Shortbow</b><small>Quiver: Arrows ×18</small></span>${stk('Quiver', 'quiver')}</div><div class="irow"><span><b>Storm lantern</b><small>Unlit. 3 refills left</small></span>${stk('Light', 'torch')}</div>
+  <div class="grp"><span class="sclab" style="margin:0">Worn and in hand</span><span>2 items</span></div><div class="irow"><span><b>Longsword</b><small>In hand</small></span>${go}</div><div class="irow"><span><b>Mail</b><small>Worn</small></span>${go}</div>
+  <div class="grp"><span class="sclab" style="margin:0">Carried</span><span>3 items</span></div><div class="irow open" role="button" aria-current="true"><span><b>Bronze ring<span class="newtag">New</span></b><small>Found today</small></span>${go}</div><div class="irow"><span><b>Rations</b><small>×3</small></span>${go}</div><div class="irow"><span><b>Rope, 50 feet</b><small>Coiled</small></span>${go}</div>
+  <div class="footrow" role="button"><span><b>Gear</b><small>Backpack: 6 things</small></span>${go}</div><div class="footrow" role="button"><span><b>Party stash</b><small>11 things</small></span>${go}</div>`;
+const pfoot = `<div class="pfoot2"><span class="meta">14 items</span>${b('Add item', { accent: true })}</div>`;
+/* pg32-4 (P-A): an item's sheet in the view is Sam's, plus one line only the GM sees and a "Reveal…" row, on an item with something hidden */
+const gmLine = (words) => `<div class="gmmark">${sym('eyeoff', 16)}<span>Only you see this: ${words}</span></div>`;
+const revealRow = `<div class="lrow" role="button">${sym('eye', 24)}<span>Reveal…</span>${go}</div>`;
+const itemRows = `<div class="lrow" role="button">${gi('open-palm', 24)}<span>Give to…</span>${go}</div><div class="lrow" role="button">${gi('swap-bag', 24)}<span>Put in…</span>${go}</div><div class="lrow" role="button">${gi('drop-weapon', 24)}<span>Drop</span><span></span></div>`;
+const ringA = `<div class="pcard"><div class="hrow"><h2>Bronze ring</h2>${ico('star', 'Pin to top')}<span class="ico" role="button" aria-label="Close">${I.close}</span></div><p>A plain band of old bronze.</p><div class="bk"><p class="ln"><span class="lb">What you notice.</span>Cold to the touch, even by the fire.</p></div>${gmLine('Ring of the Drowned Bell, +1 to saves, cursed.')}<div class="kv2"><span class="meta">Slot</span><span>Ring</span></div>${revealRow}${itemRows}</div>`;
+const m3g = vdev('Pack', `<div class="cols2" style="margin-top:0"><div>${packList}${pfoot}</div><div>${ringA}</div></div>`,
+  'M3g. <b>The Pack as Sam sees it, with the GM’s tools in the item’s sheet</b> (tfg-1, pg32-4, P-A). The list is Sam’s: no mark on any row. <b>The open ring is Sam’s</b> (what it appears to be, “What you notice”), <b>plus one line only the GM sees</b>, the closed eye and “Only you see this: …” with its true name and hidden facts, <b>and a “Reveal…” row</b> above Sam’s own rows (Give to…, Put in…, Drop). Reveal… opens the Reveal pop-up of 05 (each hidden fact and “Tell them everything”; not built yet, not drawn here). An item with nothing hidden shows neither. This is the one place the view is not exactly Sam’s (pg32-3). The “New” mark stays when the GM looks (frame M3f2). Add item stays the one accent, as on Sam’s Pack; what the GM adds here is logged as his. The closed eye and the words carry the GM’s line, not the colour.', { title: 'Wren’s pack' });
+const swordA = `<div class="pcard"><div class="hrow"><h2>Old bronze sword</h2>${ico('star', 'Pin to top')}<span class="ico" role="button" aria-label="Close">${I.close}</span></div><p>A short, leaf-shaped blade, green with age.</p><div class="kv2"><span class="meta">To hit</span><span>d20 +3</span></div><div class="kv2"><span class="meta">Damage</span><span>d8 +1</span></div>${gmLine('the true figure is d20 −1, cursed.')}${revealRow}${itemRows}</div>`;
+const m3g2 = vdev('Pack', `<div class="two32"><div><p class="lbl" style="margin-top:0"><b>The sword’s sheet in the Pack:</b> Sam’s figures, then the GM’s line and the “Reveal…” row.</p>${swordA}</div><div><p class="lbl" style="margin-top:0"><b>The same sword on the Player tab:</b> Sam’s figures only (frame M3e).</p>${weapon({ name: 'Old bronze sword', hit: '+3', dmg: '+1' })}</div></div>`,
+  'M3g2. <b>The GM’s line on an item whose figures are hidden</b> (pg32-4, P-A; pg32-3, X). On its sheet in the Pack the cursed sword shows Sam’s figures, d20 +3, then the one line only the GM sees, “Only you see this: the true figure is d20 −1, cursed.”, and the “Reveal…” row. The Player tab’s block for the same sword stays exactly Sam’s. The GM’s line never takes the place of Sam’s figure. Its line is at body size, the fix made to the same line in M3g.', { title: 'Wren’s pack' });
+
+// ---- Magic, as Sam sees it ----
+const spell = (name, line, dots, o = {}) => `<div class="irow"><span><b>${o.cast ? `<s>${name}</s>` : name}</b>${dots ? ` <span class="meta">${dots}</span>` : ''}<small>${line}</small></span>${o.cast ? '' : stk('Cast', 'magic-palm')}</div>`;
+const magicTab = `<div class="footrow" role="button"><span><b>Prepare</b><small>For your next rest</small></span>${go}</div><div class="sclab">Spells</div><p class="meta" style="margin:0">Level 1, 2 a day</p>${spell('Mire lamp', '6 turns, 30 paces. A light', '●○')}${spell('Thorn dart', 'Instant, 60 paces', '●')}<p class="meta" style="margin:var(--space-2) 0 0">Level 2, 1 a day</p>${spell('Reed whisper', 'Cast, turn 9', '', { cast: true })}<div class="sclab">Glamours</div><div class="irow"><span><b>Moth veil</b><small>Once a day, 1 left. Unseen while still</small></span>${stk('Use', 'pointing')}</div>`;
+const toastM = `<div class="toastb" style="margin-top:var(--space-4)"><span class="tmsg">Mire lamp cast. The light is lit.</span><span class="tu" role="button">${gi('anticlockwise-rotation', 20)}Undo</span><span class="tb"></span></div>`;
+const logM = `<div class="pcard"><h2 style="margin-top:0">The log’s line, by reader</h2><div class="logl"><span>You cast Mire lamp for Wren.</span> <span>The GM</span></div><div class="logl"><span>Your GM cast Mire lamp for Wren.</span> <span>Sam, and the party</span></div></div>`;
+const m3h = vdev('Magic', `<div class="cols2" style="margin-top:0"><div>${magicTab.replace(stk('Cast', 'magic-palm'), stk('Cast', 'magic-palm'))}${toastM}</div><div></div></div>`,
+  'M3h. <b>Magic as Sam sees it</b> (tfg-1, tfg-2; pg32-3: Sam’s numbers, no GM marks): the Magic tab approved on 2026-11-10 (magic/04), unchanged. <b>The GM acts here</b>: Cast and Use are open to him (03: spells are not the player’s alone); the toast is the player’s own, with Undo; <b>the log names the GM</b> (tfg-3). The log’s words are today’s for a GM’s act on a character, as best read; the builder keeps whatever the app already writes. “No light” is not on this tab (d5-20).', { notes: `<div class="two32" style="width:1024px"><div><p class="cap" style="margin:0 0 var(--space-2)"><b>After the GM taps Cast on Mire lamp</b> (the toast in the frame below): it acts at once, as for Sam, with Undo. The log’s line, by reader:</p>${logM}</div><div><p class="cap" style="margin:0 0 var(--space-2)"><b>A character with no Magic tab</b> (Tam): no Magic on Tam’s row (frame M3a) and none in the view’s rail:</p><div class="dev" style="min-height:0;grid-template-columns:56px;width:56px">${railV('Player', false)}</div></div></div>` });
+
+// ---- the Scene, as Sam sees it, on page 18's structure ----
+const STEPS5 = [['trumpet', 'Describe'], ['ball', 'Question'], ['sword-brandish', 'Act'], ['wizard', 'Test'], ['chest', 'Resolve']].map(([k, n]) => remStep(gi(k, 32), n, false));
+const stripRow = remRow('Sequence of play', STEPS5);
+const DATE = `<span class="dcap">${gi('sprout', 18)}14 Reedmonth, spring</span>Two hours of light left.`;
+const pBand = (title) => `${band({ over: 'Session 1. Saltwick Island.', title, ident: DATE, acts: [] })}<hr class="dbl">`;
+const encF = fact('encounter', 'Encounter check', 'On every move', `<span class="die" role="img" aria-label="Die">${die(6, 16)}</span>1 in 6`).replace('class="v"', 'class="v" style="font-size:20px;white-space:nowrap"');
+const facts2 = `<div class="facts">${fact('weather', 'Weather', 'Drizzle', 'Wet.')}${fact('flame', 'Light', 'Wren’s lantern', '6 turns left.').replace('class="v"', 'class="v" style="font-size:20px;white-space:nowrap"')}${fact('rest', 'Rest', 'In 3 turns', 'One turn in six.')}${encF}</div>`;
+const MI7 = { Row: 'paddles', Swim: 'double-fish', Walk: 'leather-boot' };
+const wayBtn = ([w, t]) => `<span class="btn stk" role="button">${gi(MI7[w], 24)}<span>${w}</span><small>${t}</small></span>`;
+const pd = (to, sub, modes) => `<div class="pdest"><span>${sym('travel', 24)}</span><span class="ot"><b>${to}</b>${sub ? `<small>${sub}</small>` : ''}</span><span class="modes" data-stkgroup>${modes.map(wayBtn).join('')}</span></div>`;
+const ways = `<div class="pcard"><div class="crumb"><span>Saltwick Island</span>${sep16}<b>The Drowned Harbour</b></div><h3 class="display"><span class="keyno">2</span>The wreck</h3><p class="ident">A cog on her side on the bar.</p><div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div>${pd('1 The jetty', '', [['Row', '1 turn']])}${pd('3 The breakwater', '', [['Row', '1 turn']])}</div>`;
+const acts = `<div class="pcard"><div class="hrow"><h2>Activities</h2></div><div class="ideas">${b('Search', { icon: 'book' })}${b('Listen', { icon: 'book' })}</div></div>`;
+const order2 = orderCard([rank(1, [pc({ ...wren, you: true, light: { k: 'flame', frac: 1, words: 'Lantern, 6 turns' } }, { lg: true }), pc(bram, { lg: true })])], { say: 'Your group. Ash and Tam are elsewhere.' });
+const waitP = `<div class="slot18" aria-label="What needs you"><div class="pr18" role="status"><span>${I.info}</span><span>Waiting for your GM: search the hold.</span>${stk('Cancel', 'cancel')}</div></div>`;
+const B3 = blocked('Only Sam can take back this request', 'You can answer it instead: it waits for you in Waiting for you.', true);
+const m3i = vdev('Scene', `${pBand('The Drowned Harbour, turn 14')}${facts2}${stripRow}${waitP}<div class="cols2"><div class="stack">${ways}${acts}<div class="callout"><b>A tap on Cancel above</b> opens:${B3}</div></div><div class="stack">${order2}</div></div>`,
+  'M3i. <b>The players’ Scene as Sam sees it</b> (tfg-1, “Add scene as well”), <b>on page 18’s structure</b> (PL1, PL6; approved 2026-11-14, ap-10; P1 built): the top, the prompt slot, two columns. <b>That player’s group only</b> (pg32-5): the party is split; Wren and Bram are at the wreck, so the facts, the place, the ways and the marching order are their group’s (PL6’s words, “Your group. Ash and Tam are elsewhere.”). Every group is the GM’s own Scene, one tap back. <b>Open to the GM here:</b> Activities that are not secret, Rest, entering a roll (03). <b>Closed:</b> Sam’s request waiting on the GM (“Cancel”), and a secret activity’s “Ask the GM” (frame M3f2). <b>Cancel’s pop-up carries “Go to Waiting for you”</b>, which opens Waiting for you at that request (pg32-5). A way’s button opens PL4c’s pop-up, as for Sam (pw-1). No title in the top row: the player’s Scene has none on a tablet; the band says whose it is.', { title: '' });
+
+// ---- the phone ----
+const tabV = (on, magic = true) => `<div class="tabbar${magic ? ' five' : ''}">${['Player', 'Scene', 'Pack', ...(magic ? ['Magic'] : []), 'Log'].map((t) => `<span${t === on ? ' class="on"' : ''}>${t}</span>`).join('')}</div>`;
+const phHp = `<div class="ptb">${headP}${hpBox()}${acAtk}</div>`;
+const sheetPh = `<div class="dim"></div><div class="sheetup" style="max-height:none"><div class="head"><span class="title">Only Sam can take back this change</span><span class="btn sq" role="button" aria-label="Close" style="border:0;background:transparent">${I.close}</span></div><p style="margin:0 0 var(--space-3)">Sam asked you for it. You can answer it instead: Approve or Refuse it in Waiting for you.</p><div style="display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2)">${b(GO)}${b('Got it')}</div></div>`;
+const m3j = `<div><p class="cap" style="width:1080px">M3j. <b>The view on a phone, 375 px</b> (drawn 343 inside, as every phone in this folder). <b>The bar:</b> “‹ Players” at the left in place of ≡, the title centred (the character’s name; “Wren’s pack” on the Pack), ⋯ at the right. <b>The band</b> under it (pg32-2), <b>two lines at most</b>. <b>The tab bar is the player’s</b>: Player, Scene, Pack, Magic and Log for a caster (five, mm-2), four without Magic; the Log tab opens the GM’s own log (the same full log he reads elsewhere). <b>Long names</b> (middle): the band’s name line and the bar’s title are cut with “…” and read whole by a screen reader; the logged line stays whole. <b>A blocked action</b> (right): the sheet from the foot, as every phone pop-up, with “Go to Waiting for you” beside “Got it” (pg32-6).</p><div class="wall">
+  ${phone(`${vbarPh('Wren')}${vband()}${phHp}${tabV('Player')}`, 'The Player tab.')}
+  ${phone(`${vbarPh(`${LONGC}’s pack`)}${vband(LONGP, LONGC)}<div class="inner" style="padding-top:0"><div class="grp"><span class="sclab" style="margin:0">At hand</span><span>0 items</span></div><p class="meta" style="margin:0">Nothing at hand.</p><div class="grp"><span class="sclab" style="margin:0">Carried</span><span>999 items</span></div><div class="irow"><span><b>Arrows</b><small>×999</small></span>${go}</div></div>${tabV('Pack', false)}`, 'The Pack, long names, no magic, 0 and 999.')}
+  ${phone(`<div style="position:relative;min-height:560px">${vbarPh('Wren')}${vband()}${phHp}${sheetPh}</div>`, 'A blocked action, as a sheet.')}
+</div></div>`;
+
+// ---- states ----
+const miniC = (label, html) => `<div><p class="lbl"><b>${label}</b></p><div class="pcard">${html}</div></div>`;
+const sk3 = `<span class="sk32" style="width:55%"></span><span class="sk32"></span><span class="sk32" style="width:80%"></span>`;
+const toastI = (words) => `<div class="toastb"><span class="tmsg">${words}</span><span class="tb"></span></div>`;
+const m3k = vdev('Player', `<div class="two32">
+  ${miniC('Loading.', `${vband('Sam', 'Wren')}<p class="meta" style="margin:0 0 var(--space-2)">The band and the top row at once, from the Players list; still bars where the tab will be.</p><div aria-busy="true">${sk3}${sk3}</div>`)}
+  ${miniC('Couldn’t load.', `${vband('Sam', 'Wren')}<p style="margin:0 0 var(--space-2)">${warn('Couldn’t load Wren’s sheet.')}</p>${b('Try again')}<p class="meta" style="margin:var(--space-2) 0 0">“‹ Players” still goes back.</p>`)}
+  ${miniC('Offline.', `<p style="margin:0 0 var(--space-2)"><span class="pill32">${I.warn}Offline</span></p>${vband('Sam', 'Wren')}<p class="meta" style="margin:0">The tab reads as last loaded; what the GM does waits and syncs as on Sam’s own tab (today’s offline rules).</p>`)}
+  ${miniC('Wren given to Robin while the GM looks.', `${vband('Robin', 'Wren')}${toastI('Wren is now Robin’s.')}<p class="meta" style="margin:var(--space-2) 0 0">The view stays; the band follows the new player.</p>`)}
+  ${miniC('Wren removed while the GM looks.', `<div class="sect" style="margin-top:0">Players</div><p class="meta" style="margin:0 0 var(--space-2)">The view closes back to Players; Wren’s row is gone.</p>${toastI('Wren left the campaign.')}`)}
+  ${miniC('The GM’s own character.', `${vband(null, 'Ash')}<p class="meta" style="margin:0">Same row and doors. No player-only pop-ups: the GM is Ash’s player, so the nine act for him as for any player.</p>`)}
+  ${miniC('Messy: long names, 0, 99+.', `<div style="max-width:343px">${vband(LONGP, LONGC)}</div><p class="meta" style="margin:0 0 var(--space-2)">The band at a phone’s width, 375 px.</p>${notBox('99+ notices')}${hpBox(0, 999)}`)}
+</div>`,
+  'M3k. <b>The view’s states and odd cases</b> (pg32-7), each drawn as a card of the tab. <b>Loading:</b> the band and the top row come at once from the Players list, so whose view it is shows before the tab does. <b>Couldn’t load:</b> the warning sign, plain words, “Try again”; the way back still works. <b>Offline:</b> the app’s Offline mark; the view behaves as Sam’s own tab does. <b>Given to another player while open:</b> the view stays, the band follows the new player, and a toast says “Wren is now Robin’s.” <b>Removed while open:</b> a toast, “Wren left the campaign.”, and the view closes back to Players. <b>The GM’s own character:</b> the same row and doors; the band reads “Your view of Ash”, one line; no player-only pop-ups. <b>Messy:</b> the band at a phone’s width is two lines, the name cut with “…” and the logged line whole; the notices box reads “99+ notices”; hit points 0 of 999. <b>Not a state of the view:</b> a character with no Player tab yet opens the full sheet, as today (d5-22); an empty Players list is today’s page.');
+
+mount(`
+  <h1>Page 32 (M3): the GM’s view as the player</h1>
+  <p class="note">For the driver (row C15 of <code>docs/plans/test-feedback-2026-11-19.md</code>; rulings tfg-1 to tfg-5, d5-21, d5-22, and Francis’s seven answers of 2026-11-21, pg32-1 to pg32-7 in <code>docs/design/rulings/page-32-m3-gm-view-2026-11-21.md</code>; ruled so far: <code>docs/design/notes/m3-gm-view-ruled-so-far-2026-11-21.md</code>). <b>Approved by Francis from pictures, 2026-11-21</b>, frame by frame, with his fixes drawn here (notes moved out of the frames, “Edit in ⋯ on Players”, the GM’s line at body size, the messy band’s name in ink, the band capped on every width) and two more answers, pg32-8 and pg32-9. Names, words and numbers are invented. The Player tab, the Pack, Magic and the Scene are drawn from their approved pages (28, players/01 and pack, magic/04, 18), shortened; only the view’s own parts are new.</p>
+  <h1>M3a. The Players page’s row</h1>
+  <div class="wall">${m3a}</div>
+  <h1>M3b. The row at 375 px</h1>
+  <div class="wall">${m3b}</div>
+  <h1>M3c. The Player tab as the GM lands on it</h1>
+  <div class="wall">${m3c}</div>
+  <h1>M3d. Whose view: the band</h1>
+  <div class="wall">${m3d}</div>
+  <h1>M3e. The player’s numbers</h1>
+  <div class="wall">${m3e}</div>
+  <h1>M3f. A player-only action</h1>
+  <div class="wall">${m3f1}</div>
+  <div class="wall">${m3f2}</div>
+  <h1>M3g. The Pack, and the GM’s line on an item</h1>
+  <div class="wall">${m3g}</div>
+  <div class="wall">${m3g2}</div>
+  <h1>M3h. Magic</h1>
+  <div class="wall">${m3h}</div>
+  <h1>M3i. The Scene, as Sam sees it</h1>
+  <div class="wall">${m3i}</div>
+  <h1>M3j. The phone</h1>
+  <div class="wall">${m3j}</div>
+  <h1>M3k. States and odd cases</h1>
+  <div class="wall">${m3k}</div>
+  <h1>What his answers set (2026-11-21)</h1>
+  <p class="note"><b>1. The row</b> (M3a, M3b; pg32-1): View sheet, Pack, Magic, Scene, ⋯; ⋯ holds Edit, Give to a player…, Remove…; ⋯ never alone on a line at 375 px.</p>
+  <p class="note"><b>2. Whose view</b> (M3c, M3d, M3j; pg32-2, pg32-8): the band on every tab, two lines at most on every width, a tablet as at 375 px.</p>
+  <p class="note"><b>3. The numbers</b> (M3e; pg32-3): exactly Sam’s, no GM marks; the Pack’s item sheet is the one exception (4).</p>
+  <p class="note"><b>4. The GM’s Pack tools</b> (M3g, M3g2; pg32-4): in the item’s sheet, one line only the GM sees and “Reveal…”.</p>
+  <p class="note"><b>5. The Scene</b> (M3i; pg32-5): that player’s group only; Cancel’s pop-up goes straight to the request.</p>
+  <p class="note"><b>6. The pop-up’s words</b> (M3f, M3f2; pg32-6): “Only Sam can …”; “Go to Waiting for you” on the three that point there; “Only Sam can send this request”.</p>
+  <p class="note"><b>7. Odd cases</b> (M3k, M3d; pg32-7): given away, removed, the GM’s own.</p>
+  <p class="note"><b>8. The band on a tablet</b> (M3d; pg32-8): two lines at most on every width, the name cut with “…”, as at 375 px.</p>
+  <p class="note"><b>9. Pins</b> (M3c; pg32-9, the plan’s ⚑ 30): the GM may pin, unpin and reorder in the player’s view, as on the player’s screen, logged as his, with Undo.</p>
+  <p class="note"><b>Settled by his approval of the frames that show them:</b> the go-there button’s words, “Go to Waiting for you”, plain, before “Got it”; the GM’s line and “Reveal…” only on an item with something hidden.</p>
+  <h1>Self-review</h1>
+  <p class="note"><b>The stylesheet.</b> This page links the shared mockup stylesheet (<code>../shared/book.css</code>) and its type pass, and restates none of their rules; its own rules are layout and the view’s own parts (the band and its two-line cap, the row and its last-door group). Page 28’s own source is not in this repository, so the Player tab is redrawn from its pictures, shortened.</p>
+  <p class="note"><b>Checked, in the HTML.</b> Never a disabled button: every closed action stays a button and opens a pop-up (M3f, M3f2). One accent per screen: “Invite a player” on Players; on the Pack, “Add item”, as on Sam’s; none on the other tabs of the view, and none in the pop-ups (“Go to Waiting for you” and “Got it” both plain). Undo over confirm: the GM’s acts happen at once with the usual Undo; nothing asks first. Drawing notes sit outside the app’s frames, as captions (the approval’s fix 1; M3i’s dashed box and the per-card labels of M3f2 and M3k stay as drawing aids). Colour alone carries nothing: the band carries the eye and words; the GM-only line on an item carries the closed eye and “Only you see this”; the lit notices box has its count in words and a heavy edge. Targets: every button 44 px high, stacked buttons 88 by 56, 8 px between (the row’s ⋯ included). 375 px: the row (M3b), the band (M3d), the view (M3j); the band’s cap on a tablet too (M3d). Messy data: long character and player names (M3b, M3d on a tablet and a phone, M3j, M3k), 0 and 999 (M3j, M3k), 99+ notices. States: loading, error, offline, partial (a character with no Magic tab; one with no Player tab yet, as today), overflow (long names, 999), and the odd cases (given away, removed, the GM’s own). Nielsen: visibility (the band, the back link, the toasts when the character moves), match (the player’s own words), control (“‹ Players” on every tab; a go-there button where the GM has his own way), consistency (the player’s own screens, unchanged but for the Pack’s GM line), error prevention (the closed actions explain rather than fail), recognition (the doors named as the tabs), minimalism (one band, two lines at most).</p>
+  <p class="note"><b>Measured</b> (WCAG ratio from the tokens): the info colour on the page, light 6.7, dark 8.7; on the band’s ground, light 6.2, dark 8.0; the band’s muted line on its ground, light 6.3, dark 7.6; the band’s name line in ink on its ground, light 15.8, dark 14.6 (the messy card’s name had taken the caption’s grey from a shared class name, fixed); the GM’s line, now 16 px, in the info colour on the item sheet, light 7.1, dark 7.9. <b>Not checked.</b> Larger text; the band’s cap on a phone with Larger text (the logged line may no longer fit one line). The rows’ exact layout against today’s built Players page (read from the code, not from a picture). Where the active-character choice and the sheet-change request could appear inside the view (none found). The log’s exact words for a GM’s act (the app keeps its own). Today’s offline behaviour of a GM acting on a player’s tab. The Reveal pop-up itself (05; not built, not drawn). A weapon’s item sheet with its figures as rows is drawn from the item sheet’s pattern, not from an approved picture of a weapon’s sheet.</p>
+`);
+// the approval (Francis, 2026-11-21, from pictures): each frame's caption is marked
+const ASDRAWN = ['M3a', 'M3b', 'M3g2'];
+for (const c of document.querySelectorAll('.wall p.cap')) { const m = c.innerHTML.match(/^(M3[a-k]2?)\. /); if (m) c.innerHTML = c.innerHTML.replace(m[0], m[1] + (ASDRAWN.includes(m[1]) ? '. <b>Approved 2026-11-21.</b> ' : '. <b>Approved 2026-11-21, with his fixes, drawn here.</b> ')); }
+for (const el of document.querySelectorAll('.phone')) el.classList.add('bit');
+for (const el of document.querySelectorAll('.dev h2, .phone h2')) el.classList.add('bsub');
+for (const el of document.querySelectorAll('.fact .k, .tabbar span, .dcap')) el.dataset.sc = '';
+applyBook();
+</script>
+</body>
+</html>
