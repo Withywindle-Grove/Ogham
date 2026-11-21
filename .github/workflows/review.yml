@@ -100,7 +100,7 @@ jobs:
           fi
       - name: Review against REVIEW.md
         id: review
-        uses: anthropics/claude-code-action@v1.0.266
+        uses: anthropics/claude-code-action@v1.0.280
         env:
           GH_TOKEN: ${{ github.token }}
         with:
