@@ -233,6 +233,7 @@ async function rpcRequest(call: PromiseLike<{ data: unknown; error: { code?: str
  * The requester's reply (request.reply): Buy it or Leave it on a priced buy answer, Accept or Decline an offer.
  * Buying brings the item into the character's pack as bought, the price as text (inventory.add's line); a sale
  * accepted takes it out (inventory.remove's). Both in the same request: a sale's Undo puts the reply and the item back; a purchase's Undo is the buyer's own, request.undoBuy (bu-1), not the general one.
+ * So a purchase stays a line of its own (`join: false`): undoBuy removes the line it made, never a joined stack.
  */
 export const replyRequest = defineCommand({
   name: 'request.reply',
@@ -248,7 +249,7 @@ export const replyRequest = defineCommand({
     const replied = await rpcRequest(db.rpc('reply_request', { request: input.request.id, accept: input.accept, seen_version: input.request.version }));
     if (!replied.ok || !input.accept) return replied;
     if (input.buy) {
-      const added = await addItem.run(db, user, { carrier: input.buy.carrier, item: input.buy.item, qty: 1, howGot: 'bought', cost: input.buy.cost }, meta);
+      const added = await addItem.run(db, user, { carrier: input.buy.carrier, item: input.buy.item, qty: 1, howGot: 'bought', cost: input.buy.cost, join: false }, meta);
       if (!added.ok) return added;
     }
     if (input.sell) {
