@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { runCommand, type CommandResult, type CurrentUser } from '../../core/commands.ts';
 import type { MyCharacter } from '../../core/myCharacters.ts';
 import type { Db } from '../../core/supabase.ts';
-import { pinToAtHand } from '../../modules/characters/pins.ts';
+import { movePin, pinToAtHand } from '../../modules/characters/pins.ts';
 import { PIN_LIMIT, PIN_LIMIT_WORDS, pinnedNames, pinnedTraits, traitsWithUsesOf, useAbility, type CharacterPlay, type LimitedAbility, type Pin } from '../../modules/characters/playState.ts';
 import { useBlockedSheet } from '../../ui/BlockedSheet.tsx';
 import { Dialog } from '../../ui/Dialog.tsx';
@@ -23,14 +23,14 @@ export function traitsWithUses(figures: ReturnType<typeof characterFigures>, lev
 }
 
 /**
- * Move a pinned ability or trait from one place to another in the player's order (euf-4, pg28-7): `live` is the order
- * shown (`pinnedNames`), `from` and `to` places in it. The command's `at` is the place in the stored list of the one it
- * lands beside, so a pin whose thing is gone, or a spell's, keeps its own place.
+ * Move a pinned ability or trait from one place to another in the player's order (euf-4, pg28-7; `character.movePin`,
+ * the detailed log): `live` is the order shown (`pinnedNames`), `from` and `to` places in it. The command's `at` is the
+ * place in the stored list of the one it lands beside, so a pin whose thing is gone, or a spell's, keeps its own place.
  */
-export async function movePin(db: Db, user: CurrentUser, character: MyCharacter, pins: readonly Pin[], live: readonly string[], from: number, to: number): Promise<CommandResult<Pin[]>> {
+export async function movePinTo(db: Db, user: CurrentUser, character: MyCharacter, pins: readonly Pin[], live: readonly string[], from: number, to: number): Promise<CommandResult<Pin[]>> {
   const key = live[from]!;
   const at = pins.findIndex((p) => p.kind === 'trait' && p.key === live[to]);
-  return runCommand(registry, db, user, pinToAtHand, { character, kind: 'trait', key, pinned: true, at });
+  return runCommand(registry, db, user, movePin, { character, key, at });
 }
 
 /**
@@ -45,6 +45,31 @@ export function PinMoves({ name, live, onMove }: { name: string; live: readonly 
       {at > 0 && <ListRow title="Move up" chevron={false} onOpen={() => onMove(at, at - 1)} />}
       {at < live.length - 1 && <ListRow title="Move down" chevron={false} onOpen={() => onMove(at, at + 1)} />}
     </RowList>
+  );
+}
+
+/**
+ * The **Pin star** on an ability's or a trait's entry, beside its ✕ (row P4 of plans/test-feedback-2026-11-19; euf-2;
+ * page 26's fix 1, drawn on page 28's frame M4e): pin or unpin at once, Undo in the toast (06: undo over confirm), the
+ * entry staying open. At 24 pins it stays a button and says why (pg28-5).
+ */
+export function EntryPinStar({ db, user, character, name, pins, onChanged }: { db: Db; user: CurrentUser; character: MyCharacter; name: string; pins: readonly Pin[]; onChanged: () => void }) {
+  const toast = useToast();
+  const blocked = useBlockedSheet();
+  const pinned = pins.some((p) => p.kind === 'trait' && p.key === name);
+  async function pin(next: boolean, undo = false, at?: number) {
+    if (next && !undo && pins.length >= PIN_LIMIT) return blocked.explain(`Can't pin ${name}`, PIN_LIMIT_WORDS);
+    const was = pins.findIndex((p) => p.kind === 'trait' && p.key === name);
+    const result = await runCommand(registry, db, user, pinToAtHand, { character, kind: 'trait', key: name, pinned: next, ...(at === undefined ? {} : { at }) });
+    if (!result.ok) return toast({ text: result.message, error: true });
+    onChanged();
+    if (!undo) toast({ text: next ? `${name} pinned to the top` : `${name} unpinned`, onUndo: () => void pin(!next, true, !next && was >= 0 ? was : undefined) });
+  }
+  return (
+    <>
+      <PinStar pinned={pinned} onToggle={() => void pin(!pinned)} />
+      {blocked.sheet}
+    </>
   );
 }
 
@@ -141,7 +166,7 @@ export function PlayerTraits({
   async function move(from: number, to: number) {
     if (from === to) return;
     setMoving({ order: moved(shownOrder, from, to), from: pinsKey });
-    const result = await movePin(db, user, character, play.pins, shownOrder, from, to);
+    const result = await movePinTo(db, user, character, play.pins, shownOrder, from, to);
     if (!result.ok) {
       setMoving(null);
       return toast({ text: result.message, error: true });
@@ -180,6 +205,7 @@ export function PlayerTraits({
       <SortableList
         items={shownOrder.map((name) => ({ key: name, label: name }))}
         label="Pinned abilities and traits"
+        landingBox
         onMove={(from, to) => void move(from, to)}
         render={({ key: name }) => {
           const blocks = keyed.filter((k) => k.a.name === name);
@@ -226,7 +252,7 @@ export function PlayerTraits({
       {about && (
         <Dialog label="Hold to move" onClose={() => setAbout(false)}>
           <p className="reading">Hold a pinned one for half a second, then drag it up or down. The others make room.</p>
-          <p className="reading">A tap opens it. Move up and Move down are in its pop-up too.</p>
+          <p className="reading">A tap opens it, as before.</p>
           <div className="dialog__actions">
             <button type="button" className="button-secondary" onClick={() => setAbout(false)}>
               Got it

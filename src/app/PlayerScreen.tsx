@@ -45,7 +45,7 @@ import { BookType } from '../ui/creation.tsx';
 import { kindredAndTitle, nameKindredTitle, PlayerHead } from './player/PlayerHead.tsx';
 import { PlayerVitals } from './player/PlayerVitals.tsx';
 import { PlayerAtHand } from './player/PlayerAtHand.tsx';
-import { movePin, PinMoves, PlayerTraits, traitsWithUses } from './player/PlayerTraits.tsx';
+import { EntryPinStar, movePinTo, PinMoves, PlayerTraits, traitsWithUses } from './player/PlayerTraits.tsx';
 import { PlayerSheetParts } from './player/PlayerSheetParts.tsx';
 import { playerFigures } from './player/playerFigures.ts';
 import { PlayerStateLine } from './player/PlayerStates.tsx';
@@ -323,6 +323,7 @@ export function PlayerScreen({
   const sheetPins: SheetPins | undefined = play
     ? {
         names: play.pins.filter((p) => p.kind === 'trait').map((p) => p.key),
+        star: (name) => <EntryPinStar db={db} user={user} character={character} name={name} pins={play.pins} onChanged={() => setPlayVersion((v) => v + 1)} />,
         moves: (name, names) => {
           const live = pinnedNames(play.pins, [...names, ...traitsWithUses(figures, character.level, traitPowers).map((a) => a.name)]);
           return (
@@ -330,7 +331,7 @@ export function PlayerScreen({
               name={name}
               live={live}
               onMove={(from, to) =>
-                void movePin(db, user, character, play.pins, live, from, to).then((result) => (result.ok ? setPlayVersion((v) => v + 1) : toastMove({ text: result.message, error: true })))
+                void movePinTo(db, user, character, play.pins, live, from, to).then((result) => (result.ok ? setPlayVersion((v) => v + 1) : toastMove({ text: result.message, error: true })))
               }
             />
           );

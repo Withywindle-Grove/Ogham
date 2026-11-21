@@ -255,6 +255,8 @@ export type PinnableRow = { key: string; name: string; onOpen?: () => void };
 export type SheetPins = {
   names: readonly string[];
   moves: (name: string, all: readonly string[]) => ReactNode;
+  /** The Pin star for an ability's or a trait's entry, beside its ✕ (row P4; euf-2, page 26's fix 1). */
+  star: (name: string) => ReactNode;
 };
 
 /**
@@ -2089,6 +2091,8 @@ function SheetView({
   // On the Player tab a pinned ability or trait is in the right column's list (row P3; pg28-3, ⚑ 26): it leaves its
   // foot row's line, so each thing shows once; the row still opens every one, a pinned one with the Pinned mark.
   const pinnedHere = new Set(hosted && pins ? pins.names : []);
+  // Every ability and trait the foot's rows hold: an entry of one of them is pinnable (euf-2).
+  const pinnableNames = new Set([...abilityRows, ...traitsRows].map((r) => r.name));
   const footLine = (rows: readonly { name: string }[]) => {
     const left = rows.filter((r) => !pinnedHere.has(r.name));
     return left.length > 0 ? summaryLine(left.map((r) => r.name)) : "All pinned: they are in the list above";
@@ -2467,9 +2471,11 @@ function SheetView({
           onClose={() => setEntry(null)}
           backLabel="Got it"
           asSheet
-          // A pinned one's own pop-up ends with Move up and Move down (pg28-7, frame M4e).
+          // On the Player tab an ability's or a trait's entry carries the Pin star beside ✕ (row P4; page 26's fix 1),
+          // and a pinned one's ends with Move up and Move down (pg28-7, frame M4e).
+          {...(pins && pinnableNames.has(entry.name) ? { headAction: pins.star(entry.name) } : {})}
           {...(pins && pinnedHere.has(entry.name)
-            ? { extra: pins.moves(entry.name, [...abilityRows, ...traitsRows].map((r) => r.name)) }
+            ? { extra: pins.moves(entry.name, [...pinnableNames]) }
             : {})}
         />
       )}

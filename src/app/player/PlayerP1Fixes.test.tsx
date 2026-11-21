@@ -20,6 +20,10 @@
 //   P3a. A pinned ability without uses leaves its foot row's line; the row still opens every one, the pinned one marked
 //        with the star; it stands in the right column's list as a row, whose pop-up (its entry) moves it.
 //   P3b. With every one of a foot row's names pinned, the row stays and its line says where they went.
+// Row P4 (euf-2; page 26's fix 1, drawn on page 28's frame M4e):
+//   P4a. An ability's entry opened from the Player tab carries the Pin star beside ✕; a tap pins it (an ability with no
+//        uses, from the screen), and pinned it reads "Unpin" and stands in the right column's list.
+//   P4b. The full sheet's own page carries no star on an entry (pins are the Player tab's).
 // The review's nits of 19 Nov 2026 (P1 again):
 //   2a. The Attack tile signs its figure when the rules read the attack as a bonus ("+1"), and a screen reader hears it.
 //   5.  The sample says its speed as P1 does: "120 paces", "Speed, 40 paces in a fight".
@@ -346,5 +350,32 @@ describe('the Player screen brought to frame P1', () => {
     await userEvent.setup().click(await screen.findByRole('button', { name: new RegExp(P1_CAMPAIGN) }));
     const after = await screen.findByRole('button', { name: /^Traits/ });
     await vi.waitFor(() => expect(after.textContent).toContain('All pinned: they are in the list above'));
+  });
+
+  // Purpose P4a: an ability's entry on the Player tab carries the star; a tap pins it, and pinned it reads "Unpin".
+  it('pins an ability without uses from its entry’s star', async () => {
+    landscape();
+    const { user } = await brannoch();
+    await user.click(await screen.findByRole('button', { name: /^Abilities/ }));
+    const list = await screen.findByRole('dialog', { name: 'Abilities' });
+    await user.click(within(list).getByRole('button', { name: /^Oath of light/ }));
+    const entry = await screen.findByRole('dialog', { name: 'Oath of light' });
+    const star = within(entry).getByRole('button', { name: 'Pin to top' });
+    expect(star.getAttribute('aria-pressed')).toBe('false');
+    await user.click(star);
+    expect(await screen.findByText('Oath of light pinned to the top')).toBeTruthy();
+    await vi.waitFor(() => expect(world.tables.character_play[0]!.pins).toEqual([{ kind: 'trait', key: 'Oath of light' }]));
+    await vi.waitFor(() => expect(within(screen.getByRole('dialog', { name: 'Oath of light' })).getByRole('button', { name: 'Unpin' }).getAttribute('aria-pressed')).toBe('true'));
+    expect(await within(screen.getByRole('region', { name: 'Abilities and traits' })).findByRole('button', { name: 'Oath of light, pinned' })).toBeTruthy();
+  });
+
+  // Purpose P4b: the full sheet's own page carries no star on an entry.
+  it('puts no star on an entry of the full sheet’s own page', async () => {
+    const { user } = await brannoch();
+    await openFullSheetFromMenu(user);
+    const abilities = await screen.findByRole('region', { name: 'Abilities' });
+    await user.click(within(abilities).getByRole('button', { name: /^Oath of light/ }));
+    const entry = await screen.findByRole('dialog', { name: 'Oath of light' });
+    expect(within(entry).queryByRole('button', { name: 'Pin to top' })).toBeNull();
   });
 });

@@ -98,10 +98,10 @@ describe('log lines in plain words', () => {
     // An ability or a trait is pinned to the Player tab's list, not At hand (euf-2, euf-3), and its key is its name.
     expect(say(event('character.pin', { ...play, before: { pins: [] }, after: { pins: [{ kind: 'trait', key: 'Night eyes' }] } }))).toBe('Priya pinned Night eyes for Wren.');
     expect(say(event('character.pin', { ...play, before: { pins: [{ kind: 'trait', key: 'Night eyes' }] }, after: { pins: [] } }))).toBe('Priya unpinned Night eyes for Wren.');
-    // A move in the player's order (euf-4) names the one that moved, and which way.
+    // A move in the player's order (euf-4; its own command, the detailed log) names the one that moved, and which way.
     const three = [{ kind: 'trait', key: 'Night eyes' }, { kind: 'trait', key: 'Fen sight' }, { kind: 'trait', key: 'Horn charge' }];
-    expect(say(event('character.pin', { ...play, before: { pins: three }, after: { pins: [three[2], three[0], three[1]] } }))).toBe("Priya moved Horn charge up in Wren's pins.");
-    expect(say(event('character.pin', { ...play, before: { pins: three }, after: { pins: [three[1], three[2], three[0]] } }))).toBe("Priya moved Night eyes down in Wren's pins.");
+    expect(say(event('character.movePin', { ...play, before: { pins: three }, after: { pins: [three[2], three[0], three[1]] } }))).toBe("Priya moved Horn charge up in Wren's pins.");
+    expect(say(event('character.movePin', { ...play, before: { pins: three }, after: { pins: [three[1], three[2], three[0]] } }))).toBe("Priya moved Night eyes down in Wren's pins.");
     expect(say(event('character.setSpells', { ...play, before: { prepared: [] }, after: { prepared: [{ spell: 'a', level: 1 }] } }))).toBe("Priya changed Wren's spells.");
   });
 

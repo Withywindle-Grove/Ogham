@@ -17,10 +17,8 @@ const mayChange = (user: { id: string } & Parameters<typeof isGm>[0], character:
  * Pin a spell, an ability or a trait, or unpin it (`pinned` false; the simple log). An ability and a trait are kind
  * `trait`, keyed by name, with uses or without (euf-2). Pinning the same thing twice, or unpinning what isn't pinned,
  * changes nothing and gives the list back as it was. An empty key and a kind other than spell or trait are refused, and
- * so is a 25th pin, with the ruled words (pg28-5). Gives back the pins after the change. `at` puts a pin at that place in
- * the list (a toast's Undo of an unpin); without it a pin goes last. Given for one already pinned, `at` moves it there
- * and changes nothing else (euf-4, the player's own order: Move up, Move down, hold to move); the list's own order is
- * the order shown. A move is the same command, so it is in the simple log too (no new command, no migration).
+ * so is a 25th pin, with the ruled words (pg28-5). Gives back the pins after the change. `at` puts a pin back where it
+ * was in the list (a toast's Undo of an unpin); without it a pin goes last. Moving one already pinned is `movePin`.
  */
 export const pinToAtHand = defineCommand({
   name: 'character.pin',
@@ -37,19 +35,42 @@ export const pinToAtHand = defineCommand({
     if (found.error) return fromError(found.error);
     const was = readPins(found.data?.pins);
     const pinned = input.pinned === true;
-    const index = was.findIndex((p) => p.kind === kind && p.key === key);
-    const here = index >= 0;
-    const placed = Number.isInteger(input.at) && (input.at as number) >= 0;
-    // A move: one already pinned, given a place it isn't at (the list without it, then it put back there).
-    const moving = pinned && here && placed && Math.min(input.at as number, was.length - 1) !== index;
-    if (pinned === here && !moving) return ok(was);
-    if (pinned && !here && was.length >= PIN_LIMIT) return failed(PIN_LIMIT_WORDS);
-    const others = was.filter((_, i) => i !== index);
-    const at = placed ? Math.min(input.at as number, others.length) : others.length;
-    const next: Pin[] = pinned ? [...others.slice(0, at), { kind, key }, ...others.slice(at)] : others;
+    const here = was.some((p) => p.kind === kind && p.key === key);
+    if (pinned === here) return ok(was);
+    if (pinned && was.length >= PIN_LIMIT) return failed(PIN_LIMIT_WORDS);
+    const at = Number.isInteger(input.at) && (input.at as number) >= 0 ? Math.min(input.at as number, was.length) : was.length;
+    const next: Pin[] = pinned ? [...was.slice(0, at), { kind, key }, ...was.slice(at)] : was.filter((p) => !(p.kind === kind && p.key === key));
     const saved = fromWrite(
       await db.from('character_play').upsert({ actor_id: input.character.id, campaign_id: input.character.campaignId, pins: next as unknown as Json }).select('actor_id'),
     );
+    return saved.ok ? ok(next) : saved;
+  },
+});
+
+/**
+ * Move a pinned ability or trait to another place in the player's own order (euf-4; pg28-7: hold to move, Move up,
+ * Move down). The list's own order is the order shown. It writes only the order: the same pins, one of them at `at`
+ * (a place in the stored list; past the end, last). A rearrangement, so the detailed log only (09, 2026-10-23; the
+ * driver's ruling on #23). One not pinned is refused; a move to where it already is changes nothing and writes nothing.
+ */
+export const movePin = defineCommand({
+  name: 'character.movePin',
+  log: 'verbose',
+  target: (input: { character: Target; key: string; at: number }) => input.character,
+  allowed: (user, character) => mayChange(user, character),
+  run: async (db, _user, input): Promise<CommandResult<Pin[]>> => {
+    const key = typeof input.key === 'string' ? input.key.trim() : '';
+    if (!Number.isInteger(input.at) || input.at < 0) return failed('Say where to move it.');
+    const found = await db.from('character_play').select('pins').eq('actor_id', input.character.id).maybeSingle();
+    if (found.error) return fromError(found.error);
+    const was = readPins(found.data?.pins);
+    const index = was.findIndex((p) => p.kind === 'trait' && p.key === key);
+    if (index < 0) return failed(`${key || 'That'} isn't pinned.`);
+    const others = was.filter((_, i) => i !== index);
+    const at = Math.min(input.at, others.length);
+    if (at === index) return ok(was);
+    const next: Pin[] = [...others.slice(0, at), was[index]!, ...others.slice(at)];
+    const saved = fromWrite(await db.from('character_play').update({ pins: next as unknown as Json }).eq('actor_id', input.character.id).select('actor_id'));
     return saved.ok ? ok(next) : saved;
   },
 });

@@ -198,7 +198,10 @@ describe('PlayerTraits, the right column’s list (row P3, page 28)', () => {
     unmount();
     traits(figuresOf([ability('Fen sight', 'Sees.')]), playOf([{ kind: 'trait', key: 'Fen sight' }]));
     await userEvent.setup().click(screen.getByRole('button', { name: 'About moving pinned ones' }));
-    expect((await screen.findByRole('dialog', { name: 'Hold to move' })).textContent).toContain('drag it up or down');
+    // Page 28's words as drawn (frame M4e; the driver's settling, rvw-13).
+    const about = await screen.findByRole('dialog', { name: 'Hold to move' });
+    expect(about.textContent).toContain('Hold a pinned one for half a second, then drag it up or down. The others make room.');
+    expect(about.textContent).toContain('A tap opens it, as before.');
   });
 
   // Purpose P3-7: past ten uses a block draws no pips, the words alone counting; ten draws ten.

@@ -559,6 +559,18 @@ beforeAll(async () => {
       }
       return toCharacterStatus(must(await world.admin.from('character_statuses').insert(row).select().single()));
     },
+    async freshPins(on) {
+      // Two fresh trait pins, the list replaced by them so the 24-pin limit is never met (row P2's moves).
+      const keys = [`Fen sight ${crypto.randomUUID().slice(0, 8)}`, `Horn charge ${crypto.randomUUID().slice(0, 8)}`];
+      const actorId = on === 'wren' ? world.wrenId : world.ashId;
+      must(
+        await world.admin
+          .from('character_play')
+          .upsert({ actor_id: actorId, campaign_id: world.campaignId, pins: keys.map((key) => ({ kind: 'trait', key })) })
+          .select('actor_id'),
+      );
+      return keys;
+    },
     async freshReadySpell(on, cast = false) {
       const spell = `mire-lamp-${crypto.randomUUID()}`;
       const actorId = on === 'wren' ? world.wrenId : world.ashId;

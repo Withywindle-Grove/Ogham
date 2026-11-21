@@ -8,6 +8,8 @@
 //   3. The foot's Abilities row no longer names the pinned ability (pg28-3).
 //   4. A pinned one's pop-up has Move down (it is first), and a tap moves it at once, the pop-up staying open.
 //   5. Nothing spills sideways, and the page's own layout checks find nothing.
+//   6. Held, a pinned one lifts and a dashed box shows where it will land (the landing box, frame M4e).
+//   7. Row P4: an ability's entry, opened from the foot's Abilities row, carries the Pin star beside ✕, a 44 px target.
 import { expect, test, type Page } from '@playwright/test';
 import { layoutProblems } from './checks.ts';
 
@@ -75,6 +77,53 @@ for (const scheme of ['light', 'dark'] as const) {
         await up.click();
         await expect(sheet.getByRole('button', { name: 'Move down' })).toBeVisible();
         await expect(list(page).locator('.pinned-box').first()).toHaveClass(/pinned-box--block/);
+        expect(await layoutProblems(page)).toEqual([]);
+      });
+
+      test(`6. a held pinned one shows the dashed landing box (${size.name}, ${scheme})`, async ({ page }) => {
+        await page.setViewportSize({ width: size.width, height: size.height });
+        await openPlayer(page);
+        const first = list(page).locator('.pinned-box').first();
+        await first.scrollIntoViewIfNeeded();
+        const box = (await first.boundingBox())!;
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await page.mouse.down();
+        await page.waitForTimeout(650);
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2 + 30, { steps: 4 });
+        // Past the block's middle (the block is the taller one below it).
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height * 2 + 60, { steps: 6 });
+        const landing = list(page).locator('.sortable__landing');
+        await expect(landing).toBeVisible();
+        const style = await landing.evaluate((el) => getComputedStyle(el).borderTopStyle);
+        expect(style).toBe('dashed');
+        await page.mouse.up();
+        await expect(landing).toHaveCount(0);
+        await expect(list(page).locator('.pinned-box').first()).toHaveClass(/pinned-box--block/);
+      });
+
+      test(`7. an ability's entry carries the Pin star beside ✕ (${size.name}, ${scheme})`, async ({ page }) => {
+        await page.setViewportSize({ width: size.width, height: size.height });
+        await openPlayer(page);
+        // Oath of light's row opens its entry (a pinned one: the star filled, "Unpin").
+        await list(page).locator('.pinned-box').first().getByRole('button').first().click();
+        const entry = page.getByRole('dialog', { name: 'Oath of light' });
+        await expect(entry.locator('.dialog__head').getByRole('button', { name: 'Unpin' })).toBeVisible();
+        const close = entry.locator('.dialog__head').getByRole('button', { name: 'Close' });
+        await expect(close).toBeVisible();
+        // Both measured at once (a sheet slides in on a phone): beside the ✕, centred on one line, the star before it.
+        const measure = () =>
+          entry.locator('.dialog__head').evaluate((head) => {
+            const star = head.querySelector('.pin-star')!.getBoundingClientRect();
+            const close = head.querySelector('button[aria-label="Close"]')!.getBoundingClientRect();
+            return { offset: Math.abs(star.top + star.height / 2 - (close.top + close.height / 2)), before: star.right <= close.left, height: star.height, width: star.width };
+          });
+        // Polled until the sheet has settled (it slides and grows in on a phone).
+        await expect
+          .poll(async () => {
+            const m = await measure();
+            return m.offset <= 2 && m.before && m.height >= 44 && m.width >= 44;
+          })
+          .toBe(true);
         expect(await layoutProblems(page)).toEqual([]);
       });
     });

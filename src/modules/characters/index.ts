@@ -15,7 +15,7 @@ import {
 import { createField, deleteField, reorderFields, updateField, applySheetLayout } from './fields.ts';
 import { setHp } from './hp.ts';
 import { arrangeScreen } from './screenLayout.ts';
-import { pinToAtHand } from './pins.ts';
+import { movePin, pinToAtHand } from './pins.ts';
 import { prepareSpells, setAc, setForm, useAbility } from './playState.ts';
 import { MAGIC_STATE_COMMANDS } from './magicState.ts';
 import { clearPortrait, setPortrait } from './portraits.ts';
@@ -53,6 +53,7 @@ export function registerCharacters(registry: CommandRegistry): void {
     useAbility,
     ...MAGIC_STATE_COMMANDS,
     pinToAtHand,
+    movePin,
     ...SHEET_CHANGE_COMMANDS,
     ...FINDS_SEEN_COMMANDS,
   ]) {
