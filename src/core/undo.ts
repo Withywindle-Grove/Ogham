@@ -84,6 +84,9 @@ export const UNDOABLE_MAKINGS: readonly string[] = [
   // December dec-7 piece 3: the GM's first switch on a place's rule (its eye, or the stand-in check's toggle) makes
   // its row (Undo marks it undone; a later switch is an update and goes back the usual way).
   'placeRule.eye', 'placeRule.inForce',
+  // The players' place card (P4, p4s-2): the GM's first share of a Knowledge section makes its row (Undo marks it
+  // undone; sharing again or taking it back is an update and goes back the usual way).
+  'placeKnowledge.eye',
   // Calls to adventure (dec-12 piece B): a hook sent to a character or the party (Undo marks the send undone).
   'hook.send',
   // A rumour (dec-12 piece E): a row's words given to a character or the party (Undo marks the give undone).

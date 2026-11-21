@@ -112,7 +112,7 @@ const world: CaseWorld = {
     place: { id: 'place-fresh', campaignId, name: 'The Moth Gallery', description: '', notes: null, version: 1, notesVersion: 1 },
     pieces: [{ id: 'piece-fresh', kind: 'exit', text: 'An archway to the east', shown: false, shownAt: null, gm: { value: '', trigger: '', statLine: '' }, version: 1 }],
   }),
-  freshPackPlace: async () => ({ packId: 'pack-fresh', packEntryId: 'the-reed-inn', name: 'The Reed Inn', data: { type: 'building', playerView: { text: 'Smoke and eel stew.' }, rules: [{ id: 'slick-piles', name: 'Slick piles', text: 'Footing is poor.' }], encounterCheck: { when: 'eachMove', replacesScheduled: true } } }),
+  freshPackPlace: async () => ({ packId: 'pack-fresh', packEntryId: 'the-reed-inn', name: 'The Reed Inn', data: { type: 'building', playerView: { text: 'Smoke and eel stew.' }, gm: { sections: [{ heading: 'The keeper', text: 'Fences stolen lanterns.' }] }, rules: [{ id: 'slick-piles', name: 'Slick piles', text: 'Footing is poor.' }], encounterCheck: { when: 'eachMove', replacesScheduled: true } } }),
   freshIdlePlace: async () => ({ campaignId: 'campaign-fresh', placeId: 'place-fresh' }),
   freshMovePlace: async () => ({ campaignId: 'campaign-fresh', placeId: 'place-fresh' }),
   freshAdventureHook: async () => ({ packId: 'pack-adventure', hookId: 'ew-bog-bounty' }),

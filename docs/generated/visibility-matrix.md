@@ -40,6 +40,7 @@ Each cell lists the rules that let a signed-in person do that to a row (the rule
 | `inventory_line_secrets` | the GM | the GM | the GM | the GM |
 | `inventory_lines` | read like the carrier | add to a carrier you may change | change, or hand on, what you may change | remove from a carrier you may change |
 | `invites` | GM reads | GM creates | GM updates | — |
+| `knowledge_shares` | the GM reads | the GM keeps them | the GM keeps them, again | — |
 | `known_items` | campaign members read | — | — | — |
 | `library_entries` | owner or campaigns using the pack read | owner adds | owner changes | owner deletes |
 | `library_entry_secrets` | owner or the campaign's GM read | — | the homebrew's GM changes | — |

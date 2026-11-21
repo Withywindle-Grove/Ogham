@@ -63,7 +63,8 @@ import type { OpenCampaign } from './Campaigns.tsx';
 import { CallsLine, type CallsAt } from './CallsToAdventure.tsx';
 import { PlaceMapPart } from './PlaceMap.tsx';
 import { TableListItem } from './EncounterTables.tsx';
-import { KnowledgeSheet } from './KnowledgeSheet.tsx';
+import { KnowledgeSheet, useKnowledgeSharing } from './KnowledgeSheet.tsx';
+import type { TurnClock } from '../modules/expedition/placeKnowledge.ts';
 import { MoveOnWiring } from './MoveOn.tsx';
 import { AddPiece, NotesFold, PictureSection, PieceRow } from './PlaceCard.tsx';
 import { BookTextFold, PlaceTable } from './PlaceFacts.tsx';
@@ -99,6 +100,8 @@ export interface GmPlacePageProps {
   oneColumn?: boolean;
   /** The marching order, the last thing in the right column. */
   marching?: ReactNode;
+  /** The expedition's step on the clock, for the Knowledge sheet's "Shared with the players, turn 9." (P4). */
+  turns?: TurnClock | null;
   onChanged: () => void;
 }
 
@@ -142,7 +145,7 @@ const bookOrder = (pieces: readonly Piece[]): Piece[] => [...pieces.filter((p) =
 /** The other pieces' own words, which the description marks. */
 const namedIn = (pieces: readonly Piece[]): string[] => pieces.flatMap((p) => (p.kind !== 'description' && p.lead ? [p.lead] : []));
 
-export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabel, row, checks, recent, regionalTables, terrain = null, phone = false, oneColumn = false, marching = null, onChanged }: GmPlacePageProps) {
+export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabel, row, checks, recent, regionalTables, terrain = null, phone = false, oneColumn = false, marching = null, turns = null, onChanged }: GmPlacePageProps) {
   const show = useToast();
   const place = row?.place ?? null;
   const pieces = row?.pieces ?? [];
@@ -298,6 +301,9 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
   const { editing, setEditing, who } = actions;
 
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
+  // The eye on each section of the Knowledge sheet (P4, p4s-2): shared with this group; reading ahead, the page's
+  // pop-up and nothing written, as every other eye there (B2).
+  const sharing = useKnowledgeSharing({ db, user, campaignId: campaign.id, group, groupLabel, place: chainOf, turns, open: knowledgeOpen, blocked: reading ? notHere : undefined });
   const [rulesOpen, setRulesOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
   const [elsewhere, setElsewhere] = useState(false);
@@ -680,7 +686,7 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
         <LocationsPanel of={panelOf} places={packPlaces} partyAt={current} lines={panelLines?.key === panelKey ? panelLines.lines : null} onRead={readAhead} onClose={() => setPanelOf(null)} />
       )}
       {blocked.sheet}
-      {knowledgeOpen && <KnowledgeSheet placeName={reading ? reading.name : (place?.name ?? '')} facts={cardFacts ?? NO_FACTS} source={cardSource} onClose={() => setKnowledgeOpen(false)} />}
+      {knowledgeOpen && <KnowledgeSheet placeName={reading ? reading.name : (place?.name ?? '')} facts={cardFacts ?? NO_FACTS} source={cardSource} sharing={sharing} onClose={() => setKnowledgeOpen(false)} />}
       {rulesOpen && <PlaceRulesSheet db={db} user={user} campaignId={campaign.id} chain={placeChain} settingCheck={settingCheck} onChanged={changed} onClose={() => setRulesOpen(false)} onBlocked={reading ? notHere : undefined} />}
       {openTable && <PlaceTable table={openTable} onClose={() => setOpenTable(null)} />}
       {moveOpen &&

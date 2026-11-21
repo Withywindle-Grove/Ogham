@@ -1,0 +1,87 @@
+/* The players' place card (plan dec-9-the-players-scene, P4; page 24 PL1b to PL1d, approved 2026-11-18; page 18 PL1;
+   set 9's PR1 to PR7c). Tokens only. Inside `.book-faces` on the players' page: headings take the book's face. */
+
+/* The trail of shown names (PL1b): quiet, small, the nearest in the book's bold; a chevron between. Words only. */
+.players-place__trail ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+}
+
+.players-place__trail li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.players-place__trail-here {
+  color: var(--ink);
+  font-weight: var(--weight-book-name);
+}
+
+/* The head: "1. The Jetty" at the left, the rule's icon button at its right, level with it (PL1b); a row of buttons too
+   wide to stand beside the name takes its own line under it, at the right, as the place line's does (P1, ap-16). */
+.players-place__head {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.players-place__name {
+  flex: 1 1 0;
+  min-width: min(var(--place-name-floor), 100%);
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-30);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+  overflow-wrap: break-word;
+}
+
+.players-place__head > .place-rule-buttons {
+  flex: 0 1 auto;
+  max-width: 100%;
+  margin: 0 0 0 auto;
+  justify-content: flex-end;
+}
+
+/* The shown pieces in the book's format (p2p-24): one paragraph each, the description first. */
+.players-place__pieces {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.players-place__piece {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: break-word;
+}
+
+/* A word of the description that names a shown piece (PL1b): bold and underlined, as the GM's card (p2p-10). */
+.players-place__named {
+  font-weight: var(--weight-book-name);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+}
+
+/* The Area's card (PL1b): its rows boxed, one under another; the known Locations as a dotted list under them. */
+.players-area__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}

@@ -60,6 +60,8 @@ const HARBOUR = {
   identity: 'A silted harbour of five spots, crossed by boat or by swimming.',
   playerView: { text: 'Black water, a dry bar, a mast that shows at every tide.' },
   facts: [{ lead: 'Tides', text: 'Two a day; the bar dries at low water.' }],
+  // A section of knowledge for the eye (P4, p4s-2).
+  gm: { sections: [{ heading: 'What everyone knows', text: 'Nobody crosses at slack water.' }] },
   // The pack's own sentence for its check (p2p-14), word for word.
   encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' },
   tableIds: ['tide-left'],
@@ -386,6 +388,24 @@ describe('the GM’s place page', () => {
     await user.click(within(sheet).getByRole('button', { name: /Close/ }));
     await user.click(screen.getByRole('button', { name: 'Rules' }));
     expect(await screen.findByRole('dialog', { name: /Rules/ })).toBeTruthy();
+  });
+
+  // Purpose (P4, p4s-2; frame 7b): the eye on a section shares it with the party at once, with an Undo toast; the
+  // section then says so and the foot counts it; Undo takes the share away again.
+  it("Knowledge's eye shares a section at once, and Undo takes it back", async () => {
+    const user = userEvent.setup();
+    const { trip, row } = await at('harbour');
+    page(trip, row);
+    await within(await screen.findByRole('region', { name: 'Tables' })).findByText('What the tide left');
+    await user.click(screen.getByRole('button', { name: 'Knowledge' }));
+    const sheet = await screen.findByRole('dialog', { name: /Knowledge/ });
+    expect(await within(sheet).findByText('0 of 1 section shared.')).toBeTruthy();
+    await user.click(within(sheet).getByRole('switch', { name: 'Share with the players: What everyone knows' }));
+    expect(await within(sheet).findByText('1 of 1 section shared.')).toBeTruthy();
+    expect(within(sheet).getByText(/^Shared with the players/)).toBeTruthy();
+    expect(world.tables.knowledge_shares.filter((k) => k.shared === true && !k.undone)).toHaveLength(1);
+    await user.click(await screen.findByRole('button', { name: 'Undo' }));
+    await vi.waitFor(() => expect(world.tables.knowledge_shares.filter((k) => k.shared === true && !k.undone)).toHaveLength(0));
   });
 
   it('a place made by hand: no Knowledge, Rules or foot; Move on offers Somewhere else… alone, which opens the picker', async () => {

@@ -17,6 +17,8 @@
 //               `proposal` a proposed way (1 of 3), `proposal-plain` one with no obstacle (2 of 3), `players` Where to?
 //               with your proposal, `players-other` with another's, `queue` the proposals' queue worked by hand
 //   ?placePage=spots|spot|hand|none  the GM's place page (dec-7 piece 5b): see the block that builds it, below
+//   ?placeCard=1 the players' place card (P4): the Location's card and the Area's in the page's two columns; `bare` the
+//               Area never shown, `messy` long names and 999; `gm` the GM's Knowledge sheet with its eyes
 //   ?knowledge=1 a place's Knowledge sheet open (dec-7 piece 6a), wired to no screen: `one` a lone section (open at
 //               the start, set out in blocks), `empty` a place with nothing written
 import { StrictMode } from 'react';
@@ -1452,7 +1454,17 @@ applyTextSize(getTextSize());
 const mapParts = new URLSearchParams(window.location.search).get('mapParts');
 const moveOn = new URLSearchParams(window.location.search).get('moveOn');
 const knowledge = new URLSearchParams(window.location.search).get('knowledge');
-if (mapParts) {
+const placeCard = new URLSearchParams(window.location.search).get('placeCard');
+if (placeCard) {
+  // The players' place card (P4): the Location's card waits for Francis's look before it goes on the players' page.
+  const { PlayersPlaceCardLayoutPage } = await import('../gallery/PlayersPlaceCardSpecimens.tsx');
+  await import('../gallery/Gallery.css');
+  createRoot(root).render(
+    <StrictMode>
+      <PlayersPlaceCardLayoutPage state={placeCard} />
+    </StrictMode>,
+  );
+} else if (mapParts) {
   const { MapPartsLayoutPage } = await import('../gallery/MapPartsSpecimens.tsx');
   await import('../gallery/Gallery.css');
   createRoot(root).render(

@@ -2368,6 +2368,82 @@ export type Database = {
           },
         ]
       }
+      knowledge_shares: {
+        Row: {
+          body: Json | null
+          campaign_id: string
+          created_at: string
+          created_by: string | null
+          entry_id: string
+          group_number: number
+          heading: string
+          id: string
+          pack_id: string
+          place_name: string
+          section_at: number
+          shared: boolean
+          shared_clock: number
+          undone: boolean
+          updated_at: string
+        }
+        Insert: {
+          body?: Json | null
+          campaign_id: string
+          created_at?: string
+          created_by?: string | null
+          entry_id: string
+          group_number: number
+          heading?: string
+          id?: string
+          pack_id: string
+          place_name?: string
+          section_at: number
+          shared: boolean
+          shared_clock?: number
+          undone?: boolean
+          updated_at?: string
+        }
+        Update: {
+          body?: Json | null
+          campaign_id?: string
+          created_at?: string
+          created_by?: string | null
+          entry_id?: string
+          group_number?: number
+          heading?: string
+          id?: string
+          pack_id?: string
+          place_name?: string
+          section_at?: number
+          shared?: boolean
+          shared_clock?: number
+          undone?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_shares_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_shares_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_shares_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "packs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       known_items: {
         Row: {
           campaign_id: string
@@ -5782,6 +5858,17 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      knowledge_for_players: {
+        Args: { campaign: string }
+        Returns: {
+          body: Json
+          group_number: number
+          heading: string
+          place_name: string
+          share_id: string
+          shared_clock: number
+        }[]
+      }
       known_places: {
         Args: { campaign: string }
         Returns: {
@@ -6001,6 +6088,17 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      place_card_for_players: {
+        Args: { campaign: string }
+        Returns: {
+          at: number
+          group_number: number
+          key: string
+          kind: string
+          name: string
+          place_id: string
+        }[]
       }
       place_rules_for_players: {
         Args: { campaign: string }
@@ -6826,6 +6924,39 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "place_pieces"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_knowledge_share: {
+        Args: {
+          campaign: string
+          entry_id: string
+          group_no: number
+          pack: string
+          section_at: number
+          share: boolean
+        }
+        Returns: {
+          body: Json | null
+          campaign_id: string
+          created_at: string
+          created_by: string | null
+          entry_id: string
+          group_number: number
+          heading: string
+          id: string
+          pack_id: string
+          place_name: string
+          section_at: number
+          shared: boolean
+          shared_clock: number
+          undone: boolean
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "knowledge_shares"
           isOneToOne: true
           isSetofReturn: false
         }
