@@ -33,7 +33,7 @@ import { TopRow } from './TopRow.tsx';
 import './PlayerScreen.css';
 import { useCastingStatus, useWornGear } from './EquipWarning.tsx';
 import { useCharacterLight } from './LightSection.tsx';
-import { Darkness, NoLight, useNoLight } from './Darkness.tsx';
+import { Darkness, useNoLight } from './Darkness.tsx';
 import { noLightNotice } from './player/PlayerNotices.tsx';
 import { useStatusBook } from './Statuses.tsx';
 import { MessageCard, useMessaging } from './Messages.tsx';
@@ -224,8 +224,8 @@ export function PlayerScreen({
     refresh: logVersion,
   });
 
-  // No light (DG7): read here for the Player, Pack and Magic tabs (the Scene has its own, in the prompt slot). On the
-  // Player tab it is a notice in the box (row C1, tfn-2); on Pack and Magic it stays above the tab, as built.
+  // No light (DG7): read here for the Player tab, where it is a notice in the box (row C1, tfn-2); the Scene has its
+  // own, in the prompt slot. Not shown on the Pack and Magic tabs (d5-20, ruled 2026-11-20).
   const noLight = useNoLight({ db, campaignId: character.campaignId, characterId: character.id, setting: tab === 'scene' ? null : setting, light: lightView, refresh: logVersion });
 
   // The character's statuses (M5 step 9): symbols beside the name, each with its details; + Status for its player.
@@ -352,10 +352,6 @@ export function PlayerScreen({
       <SheetScope.Provider value={tab !== 'scene'}>
       <div className={current === 'player' ? 'player__pane player__pane--play' : 'player__pane'}>
         <RetiredBanner db={db} user={user} campaign={campaign} />
-        {/* No light (DG7): above the Pack and Magic tabs while the character's group has no light (on Scene, in the
-            prompt slot, B18; on the Player tab, in the notices box, row C1). */}
-        {tab !== 'scene' && current !== 'player' && noLight && <NoLight view={noLight} />}
-
         {current === 'player' ? (
           // The left column (dec-13 C1, ps-2): the head, hit points, armour class and attack, At hand (the weapon in
           // hand first), the level block, Details. In one column (a phone, a portrait tablet) the saves sit directly
