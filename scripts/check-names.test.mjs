@@ -145,10 +145,25 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
       names,
     );
     expect(found.map((hit) => hit.where)).toEqual([
-      'docs/gwc/notes.md (its name)',
+      "a new file's name (new file 1 of 2)",
       "the pull request's title",
       "the pull request's text, line 3",
       'the commit messages, line 3',
+    ]);
+  });
+
+  it('never spells out a path that itself holds a name, and reads a name in a UTF-16 file', () => {
+    const inNamedFile = ['diff --git a/docs/gwc/notes.md b/docs/gwc/notes.md', '--- /dev/null', '+++ b/docs/gwc/notes.md', '@@ -0,0 +1 @@', '+the Gloomwater Codex'].join('\n');
+    const where = findInPullRequest({ diffText: inNamedFile }, names).map((hit) => hit.where);
+    expect(where).toEqual(['a file whose own name holds a private name, line 1']);
+    const utf16 = ['diff --git a/a.txt b/a.txt', '--- /dev/null', '+++ b/a.txt', '@@ -0,0 +1 @@', `+${[...'the GWC pack'].join('\0')}\0`].join('\n');
+    expect(findInPullRequest({ diffText: utf16 }, names)).toEqual([{ where: 'a.txt, line 1', name: 'GWC' }]);
+  });
+
+  it("finds a name in one commit's own diff, and says which commit", () => {
+    const commitDiff = ['diff --git a/a.md b/a.md', '--- a/a.md', '+++ b/a.md', '@@ -1,0 +2 @@', '+the GWC pack'].join('\n');
+    expect(findInPullRequest({ commits: [{ sha: 'abc1234def', diffText: commitDiff }] }, names)).toEqual([
+      { where: 'commit abc1234: a.md, line 2', name: 'GWC' },
     ]);
   });
 
@@ -166,6 +181,16 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
     run('add', '.');
     run('commit', '-q', '-m', message);
     return dir;
+  }
+  /** One more commit on that pull request: the given files written (or, for null, deleted). */
+  function commitMore(dir, files, message = 'B6: more') {
+    const run = (...args) => execFileSync('git', ['-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd: dir, encoding: 'utf8' });
+    for (const [name, text] of Object.entries(files)) {
+      if (text === null) rmSync(join(dir, name));
+      else writeFileSync(join(dir, name), text);
+    }
+    run('add', '-A');
+    run('commit', '-q', '-m', message);
   }
   const scan = (dir, env = {}, args = []) =>
     spawnSync(process.execPath, [script, '--pr', 'main', 'HEAD', ...args], {
@@ -192,7 +217,7 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
     try {
       const result = scan(dir, { GRIMOIRE_NAMES: list });
       expect(result.status).toBe(0);
-      expect(result.stdout).toContain('No private name in what this pull request adds (1 added lines, 1 new files');
+      expect(result.stdout).toContain('No private name in what this pull request adds (1 added lines, 1 new files, 1 commits');
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -208,6 +233,49 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
       expect(titled.status).toBe(1);
       expect(titled.stderr).toContain("A private name was found in the pull request's title.");
       expect(titled.stderr).not.toContain('the commit messages');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('fails on a name that one commit adds and a later commit takes out again: it is still public', () => {
+    const dir = repoWith({ 'docs/new.md': 'one\nthe Gloomwater Codex\n' });
+    try {
+      commitMore(dir, { 'docs/new.md': 'one\nthe Bog lurker\n' });
+      const result = scan(dir, { GRIMOIRE_NAMES: list });
+      expect(result.status).toBe(1);
+      expect(result.stderr).toMatch(/A private name was found in commit [0-9a-f]{7}: docs\/new\.md, line 2\./);
+      expect(result.stderr).not.toContain('found in docs/new.md');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('fails on a name in a file the pull request itself marks as not for diffing, and in a file with a NUL byte', () => {
+    const dir = repoWith({ '.gitattributes': '*.md -diff\n', 'docs/new.md': 'the Gloomwater Codex\n', 'docs/odd.txt': 'a\0b\nthe GWC pack\n' });
+    try {
+      const result = scan(dir, { GRIMOIRE_NAMES: list });
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain('A private name was found in docs/new.md, line 1.');
+      expect(result.stderr).toContain('A private name was found in docs/odd.txt, line 2.');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('fails without showing anything it read when a git command fails or the commit list is unreadable', () => {
+    const dir = repoWith({ 'docs/new.md': 'the Gloomwater Codex\n' });
+    try {
+      const commits = join(dir, 'commits.txt');
+      writeFileSync(commits, '0000000000000000000000000000000000000000\n');
+      const missing = scan(dir, { GRIMOIRE_NAMES: list }, ['--commits', commits]);
+      expect(missing.status).toBe(1);
+      expect(missing.stderr).toContain('The private-names scan could not finish');
+      writeFileSync(commits, '--output=/tmp/x\n');
+      const odd = scan(dir, { GRIMOIRE_NAMES: list }, ['--commits', commits]);
+      expect(odd.status).toBe(1);
+      expect(odd.stderr).toContain('a commit list it cannot read');
+      for (const result of [missing, odd]) expect((result.stdout + result.stderr).toLowerCase()).not.toContain('gloomwater');
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -253,7 +321,12 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
     expect(step).toContain('PR_BODY: ${{ github.event.pull_request.body }}');
     expect(step).toContain('PR_BRANCH: ${{ github.event.pull_request.head.ref }}');
     expect(step.slice(step.indexOf('run: |'))).not.toContain('${{');
-    expect(step).toContain('node scripts/check-names.mjs --pr HEAD^1 HEAD --messages "$RUNNER_TEMP/pr-commit-messages.txt"');
+    // Each of the pull request's commits is fetched and scanned too; past the 250 GitHub lists, the step fails.
+    expect(step).toContain('if [ "$PR_COMMITS" -gt 250 ]; then');
+    expect(step).toContain('git fetch --no-tags --quiet --depth="$((PR_COMMITS + 1))" origin "+refs/pull/$PR_NUMBER/head"');
+    expect(step).toContain(
+      'node scripts/check-names.mjs --pr HEAD^1 HEAD --messages "$RUNNER_TEMP/pr-commit-messages.txt" --commits "$RUNNER_TEMP/pr-commits.txt"',
+    );
     expect(changes).toMatch(/\n {6}pull-requests: read\n/);
   });
 });

@@ -9,13 +9,15 @@
 //   node scripts/check-names.mjs --hook          Claude Code PreToolUse hook (.claude/settings.json): reads the tool
 //                                                call's JSON on stdin and blocks (exit 2) a Write or Edit under docs/
 //                                                or src/ whose new text holds a listed name, without repeating the name
-//   node scripts/check-names.mjs --pr BASE [HEAD] [--messages FILE] [--show]
+//   node scripts/check-names.mjs --pr BASE [HEAD] [--messages FILE] [--commits FILE] [--show]
 //                                                the GitHub check's scan of a pull request (.github/workflows/check.yml,
 //                                                the changes job): only what the pull request adds since BASE (added
-//                                                lines, new files' names, its commit messages, and its title, text and
-//                                                branch name from PR_TITLE, PR_BODY and PR_BRANCH). It says the file and
-//                                                line but never the name, because that log is public; --show adds the
-//                                                name, for a run on your own machine.
+//                                                lines, in the end result and in each of its commits, new files' names,
+//                                                its commit messages, and its title, text and branch name from PR_TITLE,
+//                                                PR_BODY and PR_BRANCH). It says the file and line but never the name,
+//                                                because that log is public; --show adds the name, for a run on your
+//                                                own machine. --commits FILE lists the commits to scan, one per line
+//                                                (without it: the commits between BASE and HEAD that aren't merges).
 // The list's location can be overridden with GRIMOIRE_DENYLIST=<path>. For --pr the list itself can come in
 // GRIMOIRE_NAMES (the repository secret PRIVATE_NAMES: the private lists, one name per line); with
 // GRIMOIRE_NAMES_REQUIRED=true a missing list fails the scan instead of passing it unscanned.
@@ -88,26 +90,34 @@ export function addedLines(diffText) {
 }
 
 /**
- * Where the listed names sit in what a pull request adds. `diffText` is the diff (see addedLines), `newFiles` the
- * paths it creates, and `texts` its other words: { label, text } for each of the title, the text, the branch's name
- * and the commit messages. Returns one entry per place: { where, name }. The caller decides whether to show the name.
+ * Where the listed names sit in what a pull request adds. `diffText` is the end result's diff (see addedLines),
+ * `commits` each of its commits' own diff ({ sha, diffText }: a name added in one commit and taken out in a later one
+ * is still public), `newFiles` the paths it creates, and `texts` its other words: { label, text } for each of the
+ * title, the text, the branch's name and the commit messages. Returns one entry per place: { where, name }. The
+ * caller decides whether to show the name; `where` itself never holds one (a path that does is not spelled out).
  */
-export function findInPullRequest({ diffText = '', newFiles = [], texts = [] }, names) {
+export function findInPullRequest({ diffText = '', commits = [], newFiles = [], texts = [] }, names) {
   const found = [];
-  for (const file of newFiles) {
-    for (const hit of findNames(file, names)) found.push({ where: `${file} (its name)`, name: hit.name });
-  }
+  const shown = (file) => (findNames(file, names).length > 0 ? 'a file whose own name holds a private name' : file);
+  newFiles.forEach((file, i) => {
+    for (const hit of findNames(file, names)) found.push({ where: `a new file's name (new file ${i + 1} of ${newFiles.length})`, name: hit.name });
+  });
   // One search per file, over its added lines only: the hit's line is then looked up in that file's own numbering.
-  const byFile = new Map();
-  for (const { file, line, text } of addedLines(diffText)) {
-    if (!byFile.has(file)) byFile.set(file, []);
-    byFile.get(file).push({ line, text });
-  }
-  for (const [file, lines] of byFile) {
-    for (const hit of findNames(lines.map((entry) => entry.text).join('\n'), names)) {
-      found.push({ where: `${file}, line ${lines[hit.line - 1].line}`, name: hit.name });
+  // NUL bytes are dropped first, so a name in a UTF-16 file (a NUL after every letter) is still read.
+  const scanDiff = (text, prefix) => {
+    const byFile = new Map();
+    for (const { file, line, text: added } of addedLines(text)) {
+      if (!byFile.has(file)) byFile.set(file, []);
+      byFile.get(file).push({ line, text: added.replaceAll('\0', '') });
     }
-  }
+    for (const [file, lines] of byFile) {
+      for (const hit of findNames(lines.map((entry) => entry.text).join('\n'), names)) {
+        found.push({ where: `${prefix}${shown(file)}, line ${lines[hit.line - 1].line}`, name: hit.name });
+      }
+    }
+  };
+  scanDiff(diffText, '');
+  for (const commit of commits) scanDiff(commit.diffText, `commit ${commit.sha.slice(0, 7)}: `);
   for (const { label, text } of texts) {
     const oneLine = !text.includes('\n');
     for (const hit of findNames(text, names)) found.push({ where: oneLine ? label : `${label}, line ${hit.line}`, name: hit.name });
@@ -200,12 +210,13 @@ function findDenylist() {
  */
 function runPullRequest(argv) {
   const show = argv.includes('--show');
-  const messagesAt = argv.indexOf('--messages');
-  const messagesFile = messagesAt >= 0 ? argv[messagesAt + 1] : null;
-  const refs = argv.filter((arg, i) => !arg.startsWith('--') && (messagesAt < 0 || i !== messagesAt + 1));
-  const [base, head = 'HEAD'] = refs;
+  const valueOf = (option) => (argv.includes(option) ? argv[argv.indexOf(option) + 1] : null);
+  const messagesFile = valueOf('--messages');
+  const commitsFile = valueOf('--commits');
+  const values = new Set([messagesFile, commitsFile].filter(Boolean));
+  const [base, head = 'HEAD'] = argv.filter((arg) => !arg.startsWith('--') && !values.has(arg));
   if (!base) {
-    console.error('Usage: node scripts/check-names.mjs --pr BASE [HEAD] [--messages FILE] [--show]');
+    console.error('Usage: node scripts/check-names.mjs --pr BASE [HEAD] [--messages FILE] [--commits FILE] [--show]');
     return 1;
   }
 
@@ -235,7 +246,21 @@ function runPullRequest(argv) {
   } catch {
     from = base;
   }
-  const diffText = git(['-c', 'core.quotepath=off', 'diff', '--unified=0', '--no-renames', '--no-color', '--no-ext-diff', from, head]);
+  // --text and --no-textconv: every file is read as text, so a file git would call binary (a NUL byte, UTF-16, or a
+  // .gitattributes line the pull request adds) can't hide what it adds.
+  const asText = ['--text', '--no-textconv', '--unified=0', '--no-renames', '--no-color', '--no-ext-diff'];
+  const diffText = git(['-c', 'core.quotepath=off', 'diff', ...asText, from, head]);
+  // Each commit's own diff too: a name added in one commit and removed in a later one is still public. A merge
+  // commit shows no plain diff here; what it brings in is in the end result's diff above.
+  const shas = (commitsFile ? readFileSync(commitsFile, 'utf8') : git(['rev-list', '--no-merges', `${from}..${head}`]))
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (shas.some((sha) => !/^[0-9a-f]{7,64}$/.test(sha))) {
+    console.error('The private-names scan was given a commit list it cannot read. Nothing was scanned, so this fails.');
+    return 1;
+  }
+  const commits = shas.map((sha) => ({ sha, diffText: git(['-c', 'core.quotepath=off', 'show', '--format=', ...asText, sha]) }));
   const newFiles = git(['-c', 'core.quotepath=off', 'diff', '--name-only', '--no-renames', '--diff-filter=A', '-z', from, head])
     .split('\0')
     .filter(Boolean);
@@ -247,11 +272,11 @@ function runPullRequest(argv) {
   // A trailing line break keeps a one-message list from reading as a one-line text.
   texts.push({ label: 'the commit messages', text: `${messages.trimEnd()}\n` });
 
-  const found = findInPullRequest({ diffText, newFiles, texts }, names);
+  const found = findInPullRequest({ diffText, commits, newFiles, texts }, names);
   if (found.length === 0) {
     console.log(
       `No private name in what this pull request adds (${addedLines(diffText).length} added lines, ${newFiles.length} new files, ` +
-        'its commit messages, title, text and branch name).',
+        `${commits.length} commits, its commit messages, title, text and branch name).`,
     );
     return 0;
   }
@@ -261,9 +286,24 @@ function runPullRequest(argv) {
     '\nReal game, book, adventure and publisher names, and private names, must not reach the public repository (hard rule 2).\n' +
       (show ? '' : 'The name is not shown because this log is public. ') +
       'What was pushed is already public: stop, and tell the driver, before pushing a fix.\n' +
-      'To see the name, run this where the private list is: node scripts/check-names.mjs --pr origin/main --show',
+      'To see the name, run this on a machine that has the private lists, with GRIMOIRE_DENYLIST pointing at one file\n' +
+      'that holds them all: node scripts/check-names.mjs --pr origin/main --show (the title and text are not read there).',
   );
   return 1;
+}
+
+/**
+ * Runs the pull request scan so that nothing it read can reach the log: a failed git command throws with what it had
+ * read so far attached, and Node would print that. Only a fixed line is printed, and the scan fails.
+ */
+function runPullRequestSafely(argv) {
+  try {
+    return runPullRequest(argv);
+  } catch (error) {
+    const what = typeof error?.code === 'string' ? error.code : typeof error?.status === 'number' ? `exit ${error.status}` : 'an error';
+    console.error(`The private-names scan could not finish (${what}). Nothing was scanned, so this fails. The details are not shown: this log is public.`);
+    return 1;
+  }
 }
 
 function main(argv) {
@@ -310,5 +350,5 @@ function main(argv) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const argv = process.argv.slice(2);
-  process.exit(argv[0] === '--hook' ? await runHook() : argv[0] === '--pr' ? runPullRequest(argv.slice(1)) : main(argv));
+  process.exit(argv[0] === '--hook' ? await runHook() : argv[0] === '--pr' ? runPullRequestSafely(argv.slice(1)) : main(argv));
 }
