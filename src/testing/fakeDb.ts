@@ -1590,6 +1590,45 @@ export function createFakeDb(): FakeWorld {
       if (row.shown !== (show_it === true)) changeRow('piece_shows', row, show_it === true ? { shown: true, shown_at: new Date(Date.now() + nextId++).toISOString() } : { shown: false }, tag);
       return copy(row);
     },
+    // B15 (…_p2p_b15_item_truth.sql), a stand-in for the layout pictures only: the GM's eye on a magic item's piece
+    // shows it and writes a pointer to it (`item_data.truthPiece`) on the given lines; item_truths gives a reader the
+    // real name and words of a line they read whose pointer names a piece shown and not undone. It skips the split
+    // party's rules and the check that a GM wrote the pointer: the real database's, tested in
+    // supabase/tests/p2p-b15-item-truth.test.ts.
+    show_item_truth: ({ visit, piece, lines }, tag) => {
+      const here = tables.group_places.find((g) => g.id === visit);
+      if (!here || !isGmOf(here.campaign_id)) return refused("You don't have permission to do that.");
+      const truth = tables.place_pieces.find((pc) => pc.id === piece && !pc.undone);
+      if (!truth || truth.kind !== 'other' || !String(truth.lead ?? '').trim()) return plain("That piece isn't a magic item's truth.");
+      const shown = groupRpcs.show_place_piece!({ visit, piece, show_it: true }, tag);
+      if (shown.error) return shown;
+      let named = 0;
+      for (const id of Array.isArray(lines) ? (lines as unknown[]) : []) {
+        const line = tables.inventory_lines.find((l) => l.id === id && l.campaign_id === here.campaign_id);
+        const data = (line?.item_data ?? {}) as Row;
+        if (!line || data.truthPiece === piece) continue;
+        changeRow('inventory_lines', line, { item_data: { ...data, truthPiece: piece } }, tag);
+        named += 1;
+      }
+      return { data: named, error: null };
+    },
+    item_truths: ({ campaign }) => {
+      const gmHere = isGmOf(campaign);
+      if (!gmHere && !tables.members.some((m) => m.campaign_id === campaign && m.user_id === me())) return { data: [], error: null };
+      const reads = (l: Row) => {
+        if (gmHere || l.location_id) return true;
+        const carrier = tables.actors.find((a) => a.id === l.actor_id);
+        return !!carrier && (carrier.approval === 'approved' || carrier.owner_user_id === me());
+      };
+      const out = tables.inventory_lines.flatMap((l) => {
+        const pointer = ((l.item_data ?? {}) as Row).truthPiece;
+        if (l.campaign_id !== campaign || typeof pointer !== 'string' || !reads(l)) return [];
+        const truth = tables.place_pieces.find((pc) => pc.id === pointer && !pc.undone && pc.kind === 'other' && String(pc.lead ?? '').trim());
+        if (!truth || !tables.piece_shows.some((s) => s.piece_id === pointer && !s.undone)) return [];
+        return [{ line_id: l.id, name: String(truth.lead), body: String(truth.body) }];
+      });
+      return { data: out, error: null };
+    },
     hide_all_pieces: ({ visit }, tag) => {
       const here = tables.group_places.find((g) => g.id === visit);
       if (!here || !isGmOf(here.campaign_id)) return refused("You don't have permission to do that.");

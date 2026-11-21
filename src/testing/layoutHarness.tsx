@@ -1118,6 +1118,13 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //                (scene-test-small-fixes: a label wraps between words only; see the harbour).
 //   &name=long|word  the harbour's name at length, or with one over-long word (the place card's head, 5b's round).
 //   &kinds=p2p  the places typed as p2p-1 names them (an Area holding Locations), for the trail's panel (B2; see below).
+//   ?placePage=wreck  the party at the wreck (B15, page 30, HM1 to HM5; approved 2026-11-20): a hoard with its own words
+//                (the Strongbox: swords ×4, daggers ×5 and a hooded lantern) and the lantern's truth as a piece of its own
+//                (Lantern of the Drowned), nothing shown, nothing sent (HM1; a tap on the Strongbox opens HM2's sheet).
+//   &b15=sent    with wreck: the GM has sent the whole hoard to Wren (the card's "✓ Sent to …", HM5's sheet; the
+//                lantern's eye still closed, for HM3's tap).
+//   &b15=shown   with wreck: sent, and the GM's eye on the lantern's piece has named Wren's lantern (HM3's card; with
+//                ?as=player, HM4: Wren's Pack and the item's sheet read "Lantern of the Drowned").
 const placePageFlag = new URLSearchParams(window.location.search).get('placePage');
 // The jetty's own book text for the GM (gt-1, page 15 BT1; the whole Scene's S14): paragraphs, a list, a boxed aside.
 const JETTY_BOOK_TEXT = {
@@ -1135,7 +1142,7 @@ const JETTY_BOOK_TEXT = {
     { p: 'At low water the mud under the piles will bear a person for about as long as it takes to say a prayer.' },
   ],
 };
-if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === 'hand' || placePageFlag === 'none') {
+if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === 'hand' || placePageFlag === 'none' || placePageFlag === 'wreck') {
   world.tables.packs.push({ id: 'pack-reed', owner_user_id: gm, campaign_id: null, name: 'The Reed Marches', version: '0.1', kind: 'adventure', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-14T12:00:00Z', extra_meta: {} });
   world.tables.campaign_packs.push({ id: 'campaign-pack-reed', campaign_id: campaign, pack_id: 'pack-reed', pack_name: 'The Reed Marches', option_choices: {}, overrides: {}, priority: 5 });
   // &name=long: the harbour named at length (frame 6's messy data); &name=word: one word longer than the name's column.
@@ -1225,6 +1232,22 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
         ]
       : []),
   ].map((s) => ({ ...s, type: p2pKinds ? 'area' : 'site', parentId: 'drowned-harbour' }));
+  // ?placePage=wreck (B15, page 30): the wreck's hoard in the book's words, its things with their counts (b15f-1), and a
+  // magic item's truth (b15f-2 to b15f-4: a name, what it does, what the senses tell; no source). Invented.
+  if (placePageFlag === 'wreck')
+    Object.assign(spots[1]!, {
+      playerView: { text: 'A cog on her side on the bar, her mast showing at every tide, a strongbox jammed under the beams.' },
+      hoards: [{ name: 'Strongbox', text: 'Four swords and five daggers in oilcloth, and a hooded lantern, under a rotted sailcloth.' }],
+      treasure: [
+        { text: 'Swords', qty: 4, hoard: 'Strongbox' },
+        { text: 'Daggers', qty: 5, hoard: 'Strongbox' },
+        {
+          text: 'Hooded lantern',
+          hoard: 'Strongbox',
+          magicItem: { name: 'Lantern of the Drowned', text: 'Lit, it burns no oil, and within ten paces it shows whatever lies under water.', noticed: 'Cold to the touch; the glass smells of the sea.' },
+        },
+      ],
+    });
   for (const data of [island, harbour, ...spots]) world.tables.library_entries.push({ id: `entry-reed-${data.id}`, pack_id: 'pack-reed', kind: 'location', pack_entry_id: data.id, name: data.name, data });
   for (const t of [
     { id: 'tide-left', name: 'What the tide left', die: 'd6', rows: [{ min: 1, max: 6, result: 'A drowned lantern' }] },
@@ -1343,6 +1366,26 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
   const modeId = outdoors ? 'fen-walk' : 'dungeon';
   const started = (await world.db.rpc('start_expedition' as never, { campaign, mode_id: modeId } as never)) as unknown as { data: { id: string } | null };
   if (placePageFlag === 'hand') await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: 'Fenwick Hole', placeId: null, packEntry: null });
+  if (placePageFlag === 'wreck' && started.data) {
+    // B15's pictures (page 30): the party at the wreck; &b15=sent or shown, the hoard sent to Wren, then the lantern named.
+    const wreck = spots[1]!;
+    await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: wreck.id, name: wreck.name, data: wreck } });
+    const b15 = new URLSearchParams(window.location.search).get('b15');
+    const row = (await loadGroupPlaces(world.db, campaign, started.data.id))?.get(1);
+    if ((b15 === 'sent' || b15 === 'shown') && row?.place) {
+      const { hoardRows } = await import('../modules/expedition/hoard.ts');
+      const { giveFind, sendOf } = await import('../modules/expedition/findSend.ts');
+      const hoard = hoardRows(row.pieces.find((p) => p.lead === 'Strongbox')!, wreck, [], new Set());
+      const send = sendOf(hoard.rows, new Map());
+      await runCommand(registry, world.db, asGm, giveFind, { campaignId: campaign, to: wren, placeId: row.place.id, things: send.things, coins: send.coins, rows: send.rows });
+      if (b15 === 'shown') {
+        const { showItemTruth } = await import('../modules/expedition/itemTruth.ts');
+        const lantern = world.tables.inventory_lines.find((l) => l.actor_id === wren && l.name === 'Hooded lantern')!;
+        const truth = row.pieces.find((p) => p.kind === 'other' && p.lead === 'Lantern of the Drowned')!;
+        await runCommand(registry, world.db, asGm, showItemTruth, { campaignId: campaign, row, piece: truth, lines: [String(lantern.id)] });
+      }
+    }
+  }
   if (placePageFlag === 'spots' || placePageFlag === 'spot') {
     const data = placePageFlag === 'spots' ? harbour : spots[0]!;
     await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: data.id, name: data.name, data } });
