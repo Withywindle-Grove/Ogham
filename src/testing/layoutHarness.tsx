@@ -1255,13 +1255,22 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
   // &activities=1 (P6 of plan dec-9-the-players-scene; mc-45a; 01-08, 01-08j): the setting's common player actions,
   // three with rule text (the last in two paragraphs, with a source) and one without, which is not listed.
   // &activities=long: a fourth with a name longer than a phone's card, to wrap inside its button.
+  // &activities=blocks (d5-16; 01-08j): as =1, with Force a door's rule set out in pf-18's blocks as 01-08j draws it.
   const activitiesFlag = new URLSearchParams(window.location.search).get('activities');
-  if (activitiesFlag === '1' || activitiesFlag === 'long') {
+  if (activitiesFlag === '1' || activitiesFlag === 'long' || activitiesFlag === 'blocks') {
+    const forceInBlocks = {
+      blocks: [
+        { p: 'A stuck or barred door may be forced by one character at a time.' },
+        { p: 'Roll a d6: the door opens on a 1 or a 2.' },
+        { table: { title: 'Modifiers', columns: ['When', 'The door opens on'], rows: [['With a crowbar', '1 to 3'], ['A second character helps', '1 to 3'], ['An iron-bound door', '1 only']] } },
+        { lead: 'Time and noise', text: 'Each try takes a turn and is loud.' },
+      ],
+    };
     const playerActions = [
       { id: 'search', name: 'Search', group: 'Searching', text: 'One character searches a part of the room for a turn.' },
       { id: 'listen', name: 'Listen', group: 'Doors', text: 'Hold still at a door and listen for what is behind it.' },
       { id: 'shout', name: 'Shout', group: 'Noise' },
-      { id: 'force', name: 'Force a door', group: 'Doors', text: 'A stuck or barred door may be forced by one character at a time.\n\nEach try takes a turn and is loud.', source: 'Fen Rules, p. 88' },
+      { id: 'force', name: 'Force a door', group: 'Doors', text: activitiesFlag === 'blocks' ? forceInBlocks : 'A stuck or barred door may be forced by one character at a time.\n\nEach try takes a turn and is loud.', source: 'Fen Rules, p. 88' },
       ...(activitiesFlag === 'long' ? [{ id: 'long', name: 'Listen at the iron-bound door of the Drowned Customs House', group: 'Doors', text: 'As Listen, but the iron muffles it.' }] : []),
     ];
     world.tables.library_entries.push({ id: 'entry-fen-actions', pack_id: 'pack-fen', kind: 'rulesSet', pack_entry_id: 'fen-actions', name: 'Fen actions', data: { id: 'fen-actions', name: 'Fen actions', exploration: { playerActions } } });

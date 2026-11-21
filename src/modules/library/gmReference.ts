@@ -20,7 +20,7 @@
 import { groupActions, readPlayerActions } from '../expedition/playerActions.ts';
 import { describeEntry, labelOf, type Line } from './describe.ts';
 import type { PackEntry, PackKind } from './packFile.ts';
-import { isRuleTextBlocks, readRuleText, ruleTextWords } from './ruleText.ts';
+import { isRuleTextBlocks, readRuleText, ruleTextParagraphs, ruleTextWords } from './ruleText.ts';
 
 export interface RefEntry {
   /** Unique in its panel. */
@@ -201,7 +201,9 @@ function dungeonsPanel(rulesSets: Record<string, unknown>[], nameOf: (id: string
   for (const group of groupActions(readPlayerActions(rulesSets))) {
     for (const action of group.actions) {
       if (!action.text) continue;
-      entries.push({ key: `action:${action.id}`, heading: action.name, group: group.name, paragraphs: [action.text], lines: [], tableId: null, source: action.source });
+      // A rule in blocks (d5-16) reads as its plain words, a paragraph each (pf-18a), as the other entries here.
+      const paragraphs = action.blocks ? ruleTextParagraphs(action.blocks) : [action.text];
+      entries.push({ key: `action:${action.id}`, heading: action.name, group: group.name, paragraphs, lines: [], tableId: null, source: action.source });
     }
   }
   return entries;

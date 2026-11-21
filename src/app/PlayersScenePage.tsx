@@ -18,7 +18,7 @@
 // it carries, in its order and words, each a button with the book mark; a tap opens the rule in the rule's sheet, and
 // nothing is proposed, rolled or sent. No such rules, no block (01-08e).
 import { useState, type ReactNode } from 'react';
-import { ruleBlocks, type RuleBlock } from '../modules/expedition/placeRules.ts';
+import { blocksOfRead, type RuleBlock } from '../modules/expedition/placeRules.ts';
 import type { PlayerAction } from '../modules/expedition/playerActions.ts';
 import { BookFaces } from '../ui/BookFaces.tsx';
 import { Icon } from '../ui/icons.tsx';
@@ -115,10 +115,13 @@ export function NothingSharedYet({ group = null }: { group?: string | null }) {
   );
 }
 
-/** An activity's rule as the sheet draws it: the pack's words, then its source as the setting's (01-08j). */
+/**
+ * An activity's rule as the sheet draws it (01-08j): the pack's words, or its blocks one by one when the pack sets the
+ * rule out in pf-18's blocks (d5-16), then its source as the setting's.
+ */
 export function activityBlocks(action: PlayerAction): RuleBlock[] {
   const source: RuleBlock[] = action.source ? [{ kind: 'source', text: `From your setting: ${action.source}` }] : [];
-  return [...ruleBlocks(action.text), ...source];
+  return [...blocksOfRead(action.blocks ?? action.text), ...source];
 }
 
 /**
