@@ -245,7 +245,23 @@ async function removeLine(db: Db, line: { id: string; version?: number }, reques
   return gone.data.length > 0 ? ok(null) : noLineWhy(db, line.id, requestId, line.version);
 }
 
-/** Add an item to a carrier: from the setting rules (a copy of it) or a one-off. How it was got is kept. */
+/**
+ * A join's answer (Q2): the stack it joined, read back as the person sees it; null when nothing joined (the command
+ * then goes on as before).
+ */
+async function joinedLine(call: PromiseLike<{ data: unknown; error: { code?: string; message: string } | null }>, db: Db): Promise<CommandResult<InventoryLine> | null> {
+  const { data, error } = await call;
+  if (error) return fromError(error);
+  if (typeof data !== 'string') return null;
+  const stack = fromWrite(await db.from('inventory_lines').select(COLUMNS).eq('id', data));
+  return stack.ok ? ok(toLine(stack.value as unknown as LineRow)) : stack;
+}
+
+/**
+ * Add an item to a carrier: from the setting rules (a copy of it) or a one-off. How it was got is kept. A stackable
+ * thing from the setting rules joins a same-name stack in the same place instead (Q2): the stack keeps its own figures
+ * (sw-3, sw-7), and the add is one log line whose Undo takes the added count back off (sw-4).
+ */
 export const addItem = defineCommand({
   name: 'inventory.add',
   target: (input: {
@@ -262,6 +278,11 @@ export const addItem = defineCommand({
     note?: string;
     /** Magic armour's base, picked as it's added (one of its armour.baseArmour.choose); left out to choose later. */
     baseArmourId?: string | null;
+    /**
+     * False keeps it a line of its own even where a same-name stack is: a town purchase, whose buyer's Undo (bu-1)
+     * removes the line the purchase made.
+     */
+    join?: boolean;
   }) =>
     input.carrier,
   allowed: mayChangeCarrier,
@@ -271,6 +292,24 @@ export const addItem = defineCommand({
     if (!name) return failed('The item needs a name.');
     // The new line's id is the request's, so a retry of the same add finds the line it made instead of a second one.
     const lineId = requestIdOf(meta);
+    // A stackable thing from the setting rules joins a same-name stack in the same place (Q2, sw-1 to sw-7): the
+    // database finds it and raises its count in one step, or changes nothing (public.join_added_line).
+    if (input.join !== false && input.item.libraryEntryId && !input.equipped && !input.chargesHidden && !input.baseArmourId) {
+      const joined = await joinedLine(
+        // A null goes through as SQL null (the stash has no character, a loose thing no container).
+        db.rpc('join_added_line', {
+          campaign: input.carrier.campaignId,
+          actor: input.carrier.actorId as string,
+          location: input.carrier.locationId as string,
+          container: (input.containerLineId ?? null) as string,
+          entry: input.item.libraryEntryId,
+          how_many: input.qty,
+          made_id: lineId,
+        }),
+        db,
+      );
+      if (joined !== null) return joined;
+    }
     const inserted = await db
         .from('inventory_lines')
         .insert({
@@ -445,6 +484,20 @@ export const moveItem = defineCommand({
   allowed: (user, target: { from: CarrierRef; to: CarrierRef }) => mayChangeCarrier(user, target.from) && mayReceive(user, target.from, target.to),
   run: async (db, _user, input, meta): Promise<CommandResult<InventoryLine>> => {
     if (!isWholeCount(input.qty) || input.qty > input.of) return failed(`How many must be a whole number from 1 to ${input.of}.`);
+    // A same-name stack where it lands takes it (Q2, sw-6): part of a stack is counted over, a whole line merged in
+    // and removed, the log keeping its copy (sw-9). Nothing joined: moved as before.
+    const joined = await joinedLine(
+      db.rpc('move_into_stack', {
+        line: input.line.id,
+        how_many: input.qty,
+        to_actor: input.to.actorId as string,
+        to_location: input.to.locationId as string,
+        to_container: (input.containerLineId ?? null) as string,
+        ...(input.line.version !== undefined ? { seen_version: input.line.version } : {}),
+      }),
+      db,
+    );
+    if (joined !== null) return joined;
     const placed = { ...carrierColumns(input.to), container_line_id: input.containerLineId ?? null, equipped: false };
     if (input.qty === input.of) {
       const moved = await changeLine<LineRow>(db, input.line, placed, COLUMNS, requestIdOf(meta));

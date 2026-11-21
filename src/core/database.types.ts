@@ -5738,6 +5738,18 @@ export type Database = {
           timing: string
         }[]
       }
+      join_added_line: {
+        Args: {
+          actor: string
+          campaign: string
+          container: string
+          entry: string
+          how_many: number
+          location: string
+          made_id: string
+        }
+        Returns: string
+      }
       join_party_groups: {
         Args: { campaign: string; from_group: number; into_group: number }
         Returns: {
@@ -5924,6 +5936,17 @@ export type Database = {
           way_name?: string
         }
         Returns: Json
+      }
+      move_into_stack: {
+        Args: {
+          how_many: number
+          line: string
+          seen_version?: number
+          to_actor: string
+          to_container: string
+          to_location: string
+        }
+        Returns: string
       }
       note_rule_skipped: {
         Args: { campaign: string; hook: string }
