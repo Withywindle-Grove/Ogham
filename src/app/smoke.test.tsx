@@ -264,7 +264,10 @@ describe("the GM's Campaign screen", () => {
     await vi.waitFor(() => expect(screen.queryByText('For Wren')).toBeNull());
   });
 
-  it("lists each player with their characters, marking the active one and any waiting for approval", async () => {
+  // Purpose (page 32, M3a and M3b; pg32-match, 2026-11-21): a character's row reads "Wren, level 1" over its player's
+  // name and when they joined, with no "(active)"; a character waiting for approval is not a row, only in Waiting for
+  // approval.
+  it("lists each player's characters by name and level over the player's line; a waiting one only in Waiting for approval", async () => {
     const gm = world.addPerson('priya@lantern.example', 'Priya');
     const wrenPlayer = world.addPerson('wren@lantern.example', 'Sam');
     const campaign = world.addCampaign('The Ash Barrows', gm);
@@ -277,8 +280,11 @@ describe("the GM's Campaign screen", () => {
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(user);
     // One line per character, each naming its player (ruled 2026-10-26).
-    expect((await screen.findByText('Wren (active)')).closest('li')!.textContent).toContain('Sam, joined');
-    expect(screen.getByText('Hollis (waiting for approval)').closest('li')!.textContent).toContain('Sam, joined');
+    const row = (await screen.findByText('Wren', { selector: '.gm__row-name' })).closest('li')!;
+    expect(row.querySelector('.gm__row-main')!.textContent).toMatch(/^Wren, level 1Sam, joined /);
+    expect(screen.queryByText(/\(active\)/)).toBeNull();
+    expect(screen.queryByText(/Hollis \(waiting for approval\)/)).toBeNull();
+    expect(await screen.findByText('New character waiting: Hollis')).toBeTruthy();
   });
 
   function waitingCharacter(hpMax: number | null = 5) {
@@ -311,7 +317,7 @@ describe("the GM's Campaign screen", () => {
     await user.click(screen.getByRole('button', { name: 'Approve' }));
 
     expect(await screen.findByText('Hollis approved at level 2.')).toBeTruthy();
-    await vi.waitFor(() => expect(screen.getByText('Hollis (active)').closest('li')!.textContent).toContain('Sam, joined'));
+    await vi.waitFor(() => expect(screen.getByText('Hollis', { selector: '.gm__row-name' }).closest('li')!.textContent).toContain('Sam, joined'));
     const member = world.tables.members.find((m) => m.user_id === player)!;
     expect(world.tables.actors.find((a) => a.id === member.active_actor_id)).toMatchObject({ level: 2, hp_max: null });
   });
@@ -2662,7 +2668,7 @@ describe('portraits', () => {
     const gmUser = openApp();
     await gmUser.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(gmUser);
-    const line = (await screen.findByText('Wren (active)')).closest('.gm__character-row') as HTMLElement;
+    const line = (await screen.findByText('Wren', { selector: '.gm__row-name' })).closest('.gm__character-row') as HTMLElement;
     await vi.waitFor(() => expect(pictureIn(line)).toBe(`https://files.example/${campaign}/asset-wren?signed`));
     // The character's own line names its player (ruled 2026-10-26: no player column).
     expect(line.textContent).toMatch(/, joined /);

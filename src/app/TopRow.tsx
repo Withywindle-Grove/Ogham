@@ -1,11 +1,11 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { loadCampaignHeading } from '../core/myCampaigns.ts';
 import type { Db } from '../core/supabase.ts';
-import { MenuItems, MoreMenu, MoreSheet } from '../ui/MoreMenu.tsx';
+import { MenuItem, MenuItems, MoreMenu, MoreSheet } from '../ui/MoreMenu.tsx';
 import { LogButton, useLogVersion } from './campaignLog.tsx';
-import { ReferenceButton } from './GmReference.tsx';
+import { ReferenceButton, useReferenceMenuItem } from './GmReference.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
-import { MessagesButton } from './Messages.tsx';
+import { MessagesButton, useMessaging } from './Messages.tsx';
 import { Portrait } from './Portrait.tsx';
 import { ShellDrawer, ShellMenuItems } from './shellMenu.tsx';
 import { Icon } from '../ui/icons.tsx';
@@ -80,6 +80,16 @@ export function TopRow({
   const phone = usePhone();
   const withDrawer = phone && drawer !== undefined;
   const below = useContext(BelowTopRow);
+  // The GM's view as the player on a phone (page 32, M3j; pg32-match): the bar carries only ⋯ at the right, and ✉ and
+  // Reference are its first rows ("Messages", "Reference": the driver's words, ⋯ open not being drawn).
+  const inMore = standard && named && phone && !campaign && drawer === undefined;
+  const messaging = useMessaging();
+  const reference = useReferenceMenuItem();
+  const messagesRow = inMore && messaging && (
+    <MenuItem icon="messages" onClick={() => messaging.open()} {...(messaging.unread > 0 ? { sub: `${messaging.unread > 99 ? '99+' : messaging.unread} unread` } : {})}>
+      Messages
+    </MenuItem>
+  );
   // Its height, for what sticks below it (the landscape tabs, Add item's search). It grows with the text size.
   useEffect(() => {
     const el = row.current;
@@ -97,6 +107,12 @@ export function TopRow({
 
   if (standard) {
     const own = children ? <MenuItems>{children}</MenuItems> : null;
+    const moved = inMore && (messagesRow || reference.item) ? (
+      <MenuItems>
+        {messagesRow}
+        {reference.item}
+      </MenuItems>
+    ) : null;
     return (
       <div ref={row} className="top-row top-row--standard">
         <div className={`top-row__lead${named && !withDrawer && !campaign ? ' top-row__lead--named' : ''}`}>
@@ -121,16 +137,18 @@ export function TopRow({
           {actions}
           {/* The Log (the open book) before Messages, as frame P1 of december/14 draws the bar (Francis's fix 4, 19 Nov 2026). */}
           {!(phone && logTab) && <LogButton />}
-          <MessagesButton />
-          <ReferenceButton />
+          {!inMore && <MessagesButton />}
+          {!inMore && <ReferenceButton />}
           {withDrawer ? (
             own && <MoreSheet label={menuLabel}>{own}</MoreSheet>
           ) : (
             <MoreSheet label={menuLabel}>
+              {moved}
               {own}
               <ShellMenuItems />
             </MoreSheet>
           )}
+          {inMore && reference.panel}
         </div>
         {below && <div className="top-row__below">{below}</div>}
       </div>

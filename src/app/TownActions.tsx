@@ -30,6 +30,7 @@ import { forSale, priceText } from './AddItem.tsx';
 import type { CampaignSetting } from './campaignSetting.ts';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { useLogVersion } from './campaignLog.tsx';
+import { usePlayerOnly } from './playerOnly.tsx';
 import { registry } from './services.ts';
 import './TownScreen.css';
 
@@ -69,6 +70,8 @@ export function TownActions(props: TownActionsProps) {
   const [open, setOpen] = useState<Open>(null);
   const [requests, setRequests] = useState<Request[]>([]);
   const [version, setVersion] = useState(0);
+  // In the GM's view as the player, sending a request and choosing a lodging are the player's: a pop-up says so (pg32-6).
+  const playerOnly = usePlayerOnly();
 
   useEffect(() => {
     let current = true;
@@ -86,6 +89,7 @@ export function TownActions(props: TownActionsProps) {
   const asking = { id: character.id, campaignId: campaign.id, ownerUserId: user.id };
 
   async function send(kind: 'buy' | 'sell' | 'lodging' | 'askGm', text: string, prompt: Record<string, unknown>, costText = '') {
+    if (playerOnly.blocked('sendRequest')) return false;
     const done = await runCommand(registry, db, user, sendRequest, { character: asking, kind, text, costText, prompt });
     setVersion((v) => v + 1);
     if (!done.ok) {
@@ -107,6 +111,7 @@ export function TownActions(props: TownActionsProps) {
   }
 
   async function stayAt(key: string, name: string, rate: string) {
+    if (playerOnly.blocked('stayHere')) return;
     const done = await runCommand(registry, db, user, chooseStay, { character: asking, stay: { listed: true, key, name, rate, at: props.now, town: town.name } });
     setVersion((v) => v + 1);
     if (!done.ok) return show({ text: done.message, error: true });
@@ -129,11 +134,11 @@ export function TownActions(props: TownActionsProps) {
       <p className="place-card__hint">{stay ? `${character.name} stays at ${stay.name}${stay.rate ? `, ${stay.rate}` : ''}` : `${character.name} has nowhere to stay yet`}</p>
       <div className="town-actions__buttons">
         {shops.length > 0 && (
-          <button type="button" className="button-secondary" onClick={() => setOpen('ask')}>
+          <button type="button" className="button-secondary" onClick={() => playerOnly.blocked('sendRequest') || setOpen('ask')}>
             Ask for…
           </button>
         )}
-        <button type="button" className="button-secondary" onClick={() => setOpen('sell')}>
+        <button type="button" className="button-secondary" onClick={() => playerOnly.blocked('sendRequest') || setOpen('sell')}>
           Sell…
         </button>
         <button type="button" className="button-secondary" onClick={() => setOpen('stay')}>
@@ -155,6 +160,7 @@ export function TownActions(props: TownActionsProps) {
           onClose={() => setOpen(null)}
         />
       )}
+      {playerOnly.sheet}
       {open === 'todo' && <ThingsToDo todo={todo} onSend={(t, text) => send('askGm', text, { townActivity: t?.id ?? null, name: t?.name ?? '', rule: t?.rule ?? '' }, t?.cost ?? '')} onClose={() => setOpen(null)} />}
     </section>
   );

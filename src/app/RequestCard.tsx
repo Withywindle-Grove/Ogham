@@ -47,6 +47,7 @@ import { pickBaseArmour } from './pickBase.ts';
 import { useLogVersion } from './campaignLog.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { TableRoll } from './EncounterTables.tsx';
+import { usePlayerOnly } from './playerOnly.tsx';
 import { registry } from './services.ts';
 import { useSticky } from './stickyState.ts';
 import { GmBuyCard, GmSellCard, GmStayCard, GmTownActivityCard, PricedAnswerCard, waitsForReply, type TradeView } from './TownRequestCards.tsx';
@@ -65,6 +66,8 @@ export function PlayerRequests({ db, user, campaign, setting = null }: { db: Db;
   const [version, setVersion] = useState(0);
   // Answers this device has read ("Got it"); kept while the app is open.
   const [seen, setSeen] = useSticky<string[]>(`${user.id}:${campaign.id}:requests:seen`, []);
+  // In the GM's view as the player, the player's own answers and Cancel open a pop-up instead (pg32-5, pg32-6).
+  const playerOnly = usePlayerOnly();
 
   useEffect(() => {
     let current = true;
@@ -89,6 +92,7 @@ export function PlayerRequests({ db, user, campaign, setting = null }: { db: Db;
    * made line is never undone by the general Undo); Leave it, Accept and Decline have the general Undo.
    */
   async function reply(request: Request, accept: boolean) {
+    if (playerOnly.blocked('answerOffer')) return;
     const carrier = request.actorId ? { campaignId: campaign.id, actorId: request.actorId, locationId: null, ownerUserId: user.id, archived: false } : null;
     if (!carrier) return;
     let input: Parameters<typeof replyRequest.run>[2] = { request, accept };
@@ -113,6 +117,7 @@ export function PlayerRequests({ db, user, campaign, setting = null }: { db: Db;
       return show({
         text: words,
         onUndo: async () => {
+          if (playerOnly.blocked('undoPurchase')) return;
           const undone = await run(undoBuy, { request });
           if (!undone) return;
           setSeen((s) => s.filter((id) => id !== request.id));
@@ -139,6 +144,7 @@ export function PlayerRequests({ db, user, campaign, setting = null }: { db: Db;
   if (shown.length === 0) return null;
   return (
     <section className="requests" aria-label="Your requests" data-prompt-id={shown.map((r) => `${r.id}:${r.status}`).join(' ')}>
+      {playerOnly.sheet}
       {shown.map((request) =>
         waitsForReply(request) ? (
           <PricedAnswerCard key={request.id} request={request} words={answerWords(request)} onReply={(accept) => void reply(request, accept)} />
@@ -162,6 +168,7 @@ export function PlayerRequests({ db, user, campaign, setting = null }: { db: Db;
               type="button"
               className="button-secondary button-secondary--small"
               onClick={async () => {
+                if (playerOnly.blocked('takeBackRequest', { request: request.id })) return;
                 const gone = await run(withdrawRequest, { request });
                 if (gone) show({ text: 'Cancelled your request' });
               }}

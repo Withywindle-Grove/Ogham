@@ -26,6 +26,7 @@ import type { CharacterLightView } from './LightSection.tsx';
 import { attackRange, attackRules, inflictedBy, modeState, weaponModesOf, withMode, type ModeState } from '../modules/inventory/weaponModes.ts';
 import { conditionsOf } from '../modules/expedition/statusPlay.ts';
 import { magicNoteLines, weaponMagic, type AttackPart, type AttackRoll, type WeaponMagic } from '../modules/characters/play.ts';
+import { usePlayerView } from './playerView.ts';
 import './PackScreen.css';
 
 /**
@@ -203,6 +204,8 @@ export function CarrierItems({
   // The Tiny things section starts collapsed, then stays as it was left on this device (like the other folds).
   const [tinySaved, setTinyOpen] = useFoldOpen('tiny');
   const tinyOpen = tinySaved ?? false;
+  // A weapon's hidden magic: the GM's, but not in his view as the player, which shows the player's figure (pg32-3, M3e).
+  const inView = usePlayerView() !== null;
   // What's worn or held against the rules already (ruled 2026-10-25): marked on its row.
   const [equipContext, setEquipContext] = useState<EquipContext | null>(null);
   useEffect(() => {
@@ -317,7 +320,7 @@ export function CarrierItems({
                     ? weaponMagic(
                         { name: line.name, data: item, category: line.category },
                         setting?.rulesSets ?? [],
-                        isGm(user, campaign.id),
+                        isGm(user, campaign.id) && !inView,
                         stack ? drawnAmmunition(setting, stack, stackEntry) : null,
                       )
                     : undefined;
