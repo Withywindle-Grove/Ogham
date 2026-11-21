@@ -26,8 +26,9 @@ for (const size of WIDTHS) {
 
       test(`gallery (${size.name}, ${theme}): fits, 44px targets, 14px text, accessible`, async ({ page }) => {
         // The whole gallery is checked in one page, and it has outgrown the default 30 s (tablet dark ran out on #555 and
-        // on main): a longer budget, not a fault.
-        test.setTimeout(120_000);
+        // on main): a longer budget, not a fault. 300 s since 2026-11-21: on GitHub's machines the tablet-dark run ran out
+        // at 120 s on #11, #12 and #13, while every other check of theirs passed (the PC took a fraction of that).
+        test.setTimeout(300_000);
         await page.goto(`/gallery.html?theme=${theme}`);
         await expect(page.getByRole('heading', { name: 'Component gallery' })).toBeVisible();
         // The whole page while it fits a browser's picture limit (32,767 device pixels: on a high-density screen the
