@@ -45,12 +45,12 @@ export interface GiveFindInput {
   coins: Coins;
   rows: string[];
   /**
-   * B15 (page 30, HM3's pick): each thing whose magic item's piece the players already see arrives named. `thing` is its
-   * place among `things`; the piece is shown again on `visit` (a no-op while shown) and the new line named, in the same
-   * request, so the send's own Undo still takes everything back. Every such thing in the send, not only the first
-   * (the local review of #1101).
+   * B15 (page 30, HM3's pick): each thing whose magic item's piece is revealed (shown to some group, not undone) arrives
+   * named, whichever group's card it is sent from (the local review of #10). `thing` is its place among `things`; the
+   * new line is named (public.name_item_truth, which shows nothing) in the same request, so the send's own Undo still
+   * takes everything back. Every such thing in the send, not only the first (the local review of #1101).
    */
-  named?: readonly { visit: string; piece: string; thing: number }[] | null;
+  named?: readonly { piece: string; thing: number }[] | null;
 }
 
 /**
@@ -99,7 +99,7 @@ export const giveFind = defineCommand({
       // the toast says so, and the GM's eye on its piece names it.
       for (const one of toName) {
         const line = lines[one.thing]?.target_id;
-        const named = line ? await db.rpc('show_item_truth', { visit: one.visit, piece: one.piece, lines: [line] }) : null;
+        const named = line ? await db.rpc('name_item_truth', { piece: one.piece, lines: [line] }) : null;
         if (!named || named.error) notNamed = true;
       }
     }

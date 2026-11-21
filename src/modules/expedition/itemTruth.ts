@@ -69,6 +69,18 @@ function findRows(event: LogEvent): { placeId: string; rows: string[] } | null {
 }
 
 /**
+ * Which of these pieces are revealed (a thing sent after the reveal arrives named, the local review of #10): shown to
+ * some group by a show not undone, hidden since or not. The GM's read (players read no piece_shows of other groups).
+ * Null if it couldn't be read.
+ */
+export async function loadRevealed(db: Db, pieces: readonly string[]): Promise<Set<string> | null> {
+  if (pieces.length === 0) return new Set();
+  const found = await db.from('piece_shows').select('piece_id').in('piece_id', [...pieces]).eq('undone', false);
+  if (found.error) return null;
+  return new Set((found.data as { piece_id: string }[]).map((s) => s.piece_id));
+}
+
+/**
  * Who holds each of these lines now (the eye's toast, HM3): the character's or hireling's id, or null for the party
  * stash; a line no longer there is left out. Null if it couldn't be read.
  */

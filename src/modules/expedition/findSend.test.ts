@@ -178,13 +178,36 @@ describe('the GM sends a find, through the stand-in database (pk-12)', () => {
     t.world.signInAs(t.gm.id);
     const sent = await runCommand(registry, t.world.db, t.gm, giveFind, {
       campaignId: t.campaign, to: t.wren, placeId: 'place-stair', things: [{ name: 'A silver hook', qty: 1 }], coins: {}, rows: ['2:thing'],
-      named: [{ visit: 'visit-gone', piece: 'piece-gone', thing: 0 }],
+      named: [{ piece: 'piece-gone', thing: 0 }],
     });
     if (!sent.ok) throw new Error(sent.message);
     expect(sent.value.notNamed).toBe(true);
     expect(typeof sent.value.eventId).toBe('string');
     expect(linesOf(t, t.wren)).toContainEqual(['A silver hook', 1]);
     expect(NOT_NAMED_WORDS).toBe('The magic item arrived under its plain name. Tap its eye again.');
+  });
+
+  // Purpose (the local review of #10): a thing sent after its magic item's piece was revealed arrives named, even when
+  // the piece was shown only to another group and hidden since, and the send shows the piece to nobody new; a thing
+  // whose piece was never shown arrives plain, and the send says so.
+  it('names a thing sent after the reveal, from any card, and shows nothing', async () => {
+    const t = table();
+    const piece = (id: string, lead: string) => ({ id, campaign_id: t.campaign, place_id: 'place-stair', kind: 'other', lead, body: 'It hums under water.', position: 9, gm_value: '', gm_trigger: '', gm_stat_line: '', undone: false });
+    t.world.tables.place_pieces.push(piece('piece-hook', 'Hook of the Deep'), piece('piece-net', 'Net of the Shallows'));
+    // Shown to group 2 once, then hidden: revealed.
+    t.world.tables.piece_shows.push({ id: 'show-hook', campaign_id: t.campaign, group_place_id: 'visit-group-2', piece_id: 'piece-hook', group_number: 2, shown: false, shown_at: '2026-11-21T10:00:00Z', undone: false });
+    t.world.signInAs(t.gm.id);
+    const sendNamed = (name: string, pieceId: string) =>
+      runCommand(registry, t.world.db, t.gm, giveFind, { campaignId: t.campaign, to: t.wren, placeId: 'place-stair', things: [{ name, qty: 1 }], coins: {}, rows: ['2:thing'], named: [{ piece: pieceId, thing: 0 }] });
+    const hook = await sendNamed('A silver hook', 'piece-hook');
+    expect(hook.ok && hook.value.notNamed).toBe(false);
+    const line = t.world.tables.inventory_lines.find((l) => l.actor_id === t.wren && l.name === 'A silver hook')!;
+    expect((line.item_data as Record<string, unknown>).truthPiece).toBe('piece-hook');
+    expect(t.world.tables.piece_shows.map((s) => [s.id, s.shown])).toEqual([['show-hook', false]]);
+    const net = await sendNamed('A torn net', 'piece-net');
+    expect(net.ok && net.value.notNamed).toBe(true);
+    const plain = t.world.tables.inventory_lines.find((l) => l.actor_id === t.wren && l.name === 'A torn net')!;
+    expect(((plain.item_data ?? {}) as Record<string, unknown>).truthPiece).toBeUndefined();
   });
 
   // Purpose: the GM's Undo takes the things and the coin back in one step, its lines reversals of the send's.

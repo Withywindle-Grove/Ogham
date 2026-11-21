@@ -5933,6 +5933,10 @@ export type Database = {
         }
         Returns: Json
       }
+      name_item_truth: {
+        Args: { lines: string[]; piece: string }
+        Returns: number
+      }
       note_rule_skipped: {
         Args: { campaign: string; hook: string }
         Returns: undefined

@@ -19,9 +19,10 @@
 //      pack's source, not even for the real magic item.
 //   8. A revealed name is for everyone (Francis, 2026-11-21, replacing b15f-6), on the compass, shown to group 2 only:
 //      the eye names a compass held in group 1 and one in the party stash, and both players read them by their real
-//      name; a send to group 1 through group 2's visit arrives named; the piece stays on group 2's card only.
-//   9. Not shown, nobody but the GM reads it, split or not (the spyglass); the eye on group 1 names it for both players;
-//      its Undo takes it back from both, the log included.
+//      name; a compass sent after that from group 1's card arrives named without the eye (the local review of #10);
+//      the piece stays on group 2's card only.
+//   9. Not shown, nobody but the GM reads it, split or not (the spyglass), and a send can't name it yet; the eye on
+//      group 1 names it for both players; its Undo takes it back from both, the log included.
 //  11. A name revealed once stays revealed through a split (pg30-4; the local review of the carried #1101): a player
 //      who gives part of a named stack to another character keeps the name on both the part and the rest, for every
 //      player; a part split off a one-off whose pointer no GM wrote reads nothing, not even for the GM.
@@ -263,7 +264,7 @@ describe('B15: a thing sent while its truth is shown', () => {
     visit = (await loadGroupPlaces(asDb(world.gm), world.campaignId, visit.expeditionId))!.get(1)!;
     await ok(as(world.gm, showPiece, { campaignId: world.campaignId, row: visit, piece: { id: magicPieceId } }));
     const sent = await ok(
-      as(world.gm, giveFind, { campaignId: world.campaignId, to: world.ashId, placeId, things: [{ name: 'Hooded lantern', qty: 1 }], coins: {}, rows: ['2:thing'], named: [{ visit: visit.id, piece: magicPieceId, thing: 0 }] }),
+      as(world.gm, giveFind, { campaignId: world.campaignId, to: world.ashId, placeId, things: [{ name: 'Hooded lantern', qty: 1 }], coins: {}, rows: ['2:thing'], named: [{ piece: magicPieceId, thing: 0 }] }),
     );
     expect(sent.notNamed).toBe(false);
     const ash = must(await world.admin.from('inventory_lines').select('id').eq('actor_id', world.ashId).eq('name', 'Hooded lantern'));
@@ -359,15 +360,17 @@ describe('B15: a revealed name is for everyone (Francis, 2026-11-21: "Once it\'s
     (must(await (actor ? world.admin.from('inventory_lines').select('id').eq('actor_id', actor) : world.admin.from('inventory_lines').select('id').eq('campaign_id', world.campaignId).not('location_id', 'is', null)).eq('name', name)) as { id: string }[]).map((l) => l.id);
   const pointerOf = async (line: string) =>
     (must(await world.admin.from('inventory_lines').select('item_data').eq('id', line).single()) as { item_data: Record<string, unknown> | null }).item_data?.truthPiece;
-  /** A send of one thing row from the Wreck, plain or named through a group's visit. */
-  const sendOne = (to: string | null, name: string, row: string, named: { visit: string; piece: string; thing: number }[] | null = null) =>
+  /** A send of one thing row from the Wreck, plain or named (its magic item's piece). */
+  const sendOne = (to: string | null, name: string, row: string, named: { piece: string; thing: number }[] | null = null) =>
     ok(as(world.gm, giveFind, { campaignId: world.campaignId, to, placeId, things: [{ name, qty: 1 }], coins: {}, rows: [row], named }));
 
   // Purpose: while the party is split, a magic item's piece shown to one group names the item for every player: the
   // compass's piece is shown to group 2 (Ash's) only (7b); a compass sent to Wren, in group 1, and one put in the party
-  // stash, named by the eye on group 2, read by their real name for both players; a compass sent to Wren through group
-  // 2's visit arrives named; and the piece itself stays on group 2's card only (which group sees a piece is unchanged).
+  // stash, named by the eye on group 2, read by their real name for both players; a compass sent to Wren after that,
+  // from group 1's card, where the piece isn't shown, arrives named without the GM's eye on group 1 (the local review
+  // of #10); and the piece itself stays on group 2's card only (which group sees a piece is unchanged).
   it('8. shown to one group while split, a carrier in the other group and the stash read the real name', async () => {
+    // Relies on 7b: the split (Ash into group 2, Wren left in group 1) and the GM's eye on the compass for group 2 only.
     const groups = (await loadGroupPlaces(asDb(world.gm), world.campaignId, visit.expeditionId))!;
     const first = groups.get(1)!;
     const second = groups.get(2)!;
@@ -393,30 +396,41 @@ describe('B15: a revealed name is for everyone (Francis, 2026-11-21: "Once it\'s
     }
     expect((await loadInventory(asDb(world.playerA), world.campaignId))!.lines.find((l) => l.id === wrenCompass)!.name).toBe(COMPASS);
 
-    // Sent to Wren through group 2's visit while the piece is shown there: it arrives named.
-    const sent = await sendOne(world.wrenId, 'A brass compass', '4:thing', [{ visit: second.id, piece: compass.id, thing: 0 }]);
+    // Sent to Wren after the reveal, from group 1's card, where the piece isn't shown: it arrives named, with no eye.
+    const sent = await sendOne(world.wrenId, 'A brass compass', '4:thing', [{ piece: compass.id, thing: 0 }]);
     expect(sent.notNamed).toBe(false);
     const fresh = (await linesNamed(world.wrenId, 'A brass compass')).find((id) => id !== wrenCompass)!;
     expect(await pointerOf(fresh)).toBe(compass.id);
-    expect(await linesReadBy(world.playerA)).toContain(fresh);
+    for (const player of [world.playerA, world.playerB]) expect(await linesReadBy(player)).toContain(fresh);
 
-    // The piece itself: still on group 2's card only.
+    // The piece itself: still on group 2's card only; the send showed it to nobody new.
     const sceneA = must(await world.playerA.db.rpc('scene_pieces', { campaign: world.campaignId })) as { piece_id: string }[];
     expect(sceneA.map((p) => p.piece_id)).not.toContain(compass.id);
+    const shows = must(await world.admin.from('piece_shows').select('group_number').eq('piece_id', compass.id).eq('undone', false)) as { group_number: number }[];
+    expect(shows.map((s) => s.group_number)).toEqual([2]);
   });
 
   // Purpose: before the GM's eye nobody but the GM reads a magic item's truth, the party split or not: the spyglass,
-  // sent plain to Wren (group 1) and to the party stash, reads plain for both players everywhere, while the GM reads its
-  // piece; the eye on group 1 then names both lines for both players, Ash's in group 2 included; and the eye's Undo
+  // sent to Wren (group 1) and to the party stash, arrives plain, even when the send asks to name it (it can't be named
+  // before a show, by the GM or a player), and reads plain for both players everywhere, while the GM reads its piece; the eye on group 1 then names both lines for both players, Ash's in group 2 included; and the eye's Undo
   // takes the name back from everyone, the log included.
   it('9. not shown, nobody but the GM reads it; the eye names it for all, and its Undo takes it back from all', async () => {
     const first = (await loadGroupPlaces(asDb(world.gm), world.campaignId, visit.expeditionId))!.get(1)!;
     const spyglass = spyglassPiece(first);
     expect(spyglass.shown).toBe(false);
-    await sendOne(world.wrenId, 'A cracked spyglass', '5:thing');
+    // A send asked to name it before any show: the send stands, plain, and says so.
+    const tried = await sendOne(world.wrenId, 'A cracked spyglass', '5:thing', [{ piece: spyglass.id, thing: 0 }]);
+    expect(tried.notNamed).toBe(true);
     await sendOne(null, 'A cracked spyglass', '5:thing');
     const [wrenSpyglass] = await linesNamed(world.wrenId, 'A cracked spyglass');
     const [stashSpyglass] = await linesNamed(null, 'A cracked spyglass');
+    expect(await pointerOf(wrenSpyglass!)).toBeUndefined();
+    // The naming alone, called directly: refused for the GM before any show, and for a player.
+    const early = await world.gm.db.rpc('name_item_truth', { piece: spyglass.id, lines: [wrenSpyglass!] });
+    expect(early.error?.message).toBe("That magic item hasn't been shown yet.");
+    const byPlayer = await world.playerA.db.rpc('name_item_truth', { piece: spyglass.id, lines: [wrenSpyglass!] });
+    expect(byPlayer.error).not.toBeNull();
+    expect(await pointerOf(wrenSpyglass!)).toBeUndefined();
     const nothingOfIt = async () => {
       for (const player of [world.playerA, world.playerB]) {
         const read = await everythingRead(player);
@@ -456,11 +470,10 @@ describe('B15: a named stack split or partly given (the local review of the carr
   it('11. a part split off a named stack keeps its name; a part split off a forged pointer reads nothing', async () => {
     // One group again, so the give isn't across groups.
     await ok(as(world.gm, joinUp, { campaignId: world.campaignId, together: true, from: 2, into: 1 }));
-    const first = (await loadGroupPlaces(asDb(world.gm), world.campaignId, visit.expeditionId))!.get(1)!;
 
-    // The GM sends Wren two hooded lanterns, named as they arrive (the eye on the lantern's piece).
+    // The GM sends Wren two hooded lanterns, named as they arrive (the lantern's piece was revealed in 4, hidden since).
     const sent = await ok(
-      as(world.gm, giveFind, { campaignId: world.campaignId, to: world.wrenId, placeId, things: [{ name: 'Hooded lantern', qty: 2 }], coins: {}, rows: ['2:thing'], named: [{ visit: first.id, piece: magicPieceId, thing: 0 }] }),
+      as(world.gm, giveFind, { campaignId: world.campaignId, to: world.wrenId, placeId, things: [{ name: 'Hooded lantern', qty: 2 }], coins: {}, rows: ['2:thing'], named: [{ piece: magicPieceId, thing: 0 }] }),
     );
     expect(sent.notNamed).toBe(false);
     const stacks = must(await world.admin.from('inventory_lines').select('id').eq('actor_id', world.wrenId).eq('name', 'Hooded lantern').eq('qty', 2)) as { id: string }[];

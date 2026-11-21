@@ -21,6 +21,11 @@
 --   1. public.show_item_truth (place.showItemTruth, the GM's): in ONE request, the piece shown to the group's visit (by
 --      public.show_place_piece, unchanged) and the pointer written onto the given lines of this campaign. Undo is the
 --      generic Undo of that request (public.undo_request), which takes back both.
+--   1b. public.name_item_truth (inside a send, find.give, the GM's): the pointer written onto the given lines of this
+--      campaign, and nothing shown, once the piece is revealed: shown to some group by a show not undone (hidden since
+--      or not). So a thing sent after the reveal arrives named from whichever group's card it is sent (the local review
+--      of #10, settled by the driver under sw-8), while which group sees the piece itself stays as it is. Refused for a
+--      piece not revealed, so a send never names an item before the eye. The send's own Undo takes the line back whole.
 --   2. public.item_truths: for the lines the caller may read (the same rule as the lines' own policy), the truth their
 --      pointer names: the piece's lead (the item's real name) and its body (what it does, as written). Nothing else:
 --      no source, and never anything from the piece's gm_value (b15f-4, docs/design/rulings/b15-build-flags-2026-11-20.md;
@@ -72,6 +77,38 @@ end;
 $$;
 revoke execute on function public.show_item_truth(uuid, uuid, uuid[]) from public, anon;
 grant execute on function public.show_item_truth(uuid, uuid, uuid[]) to authenticated, service_role;
+
+-- 1b. A thing sent after the reveal -------------------------------------------------------------------------------------
+
+create function public.name_item_truth(piece uuid, lines uuid[]) returns integer
+language plpgsql security invoker set search_path = '' as $$
+declare
+  truth public.place_pieces;
+  named integer := 0;
+begin
+  select * into truth from public.place_pieces pc where pc.id = piece and not pc.undone;
+  if truth.id is null or not private.is_gm(truth.campaign_id) then
+    raise exception 'You don''t have permission to do that.' using errcode = '42501';
+  end if;
+  -- Only a magic item's piece (kind 'other', led by the real name), revealed: shown to some group, not undone.
+  if truth.kind <> 'other' or coalesce(trim(truth.lead), '') = '' then
+    raise exception 'Only a magic item''s piece can name an item.';
+  end if;
+  if not exists (select 1 from public.piece_shows s where s.piece_id = piece and not s.undone) then
+    raise exception 'That magic item hasn''t been shown yet.';
+  end if;
+  update public.inventory_lines l
+  set item_data = (case when jsonb_typeof(l.item_data) = 'object' then l.item_data else '{}'::jsonb end)
+    || jsonb_build_object('truthPiece', piece::text)
+  where l.id = any (coalesce(lines, '{}'))
+    and l.campaign_id = truth.campaign_id
+    and (l.item_data ->> 'truthPiece') is distinct from piece::text;
+  get diagnostics named = row_count;
+  return named;
+end;
+$$;
+revoke execute on function public.name_item_truth(uuid, uuid[]) from public, anon;
+grant execute on function public.name_item_truth(uuid, uuid[]) to authenticated, service_role;
 
 -- 2. What a reader learns of an item ------------------------------------------------------------------------------------
 

@@ -120,26 +120,29 @@ describe("a magic item's piece and its thing (p2p-29)", () => {
   });
 });
 
-describe('a send names every shown magic item in it (HM3; the local review of #1101)', () => {
-  // Purpose: with two magic items in one hoard and both pieces shown, a send of the whole hoard names both, each by its
-  // own piece and its place among the send's things; one not shown arrives plain, and a hoard without magic names none.
-  it('names each thing whose piece is shown, not only the first', () => {
+describe('a send names every revealed magic item in it (HM3; the local reviews of #1101 and #10)', () => {
+  // Purpose: with two magic items in one hoard and both pieces revealed (shown to some group, whichever card the send is
+  // made from), a send of the whole hoard names both, each by its own piece and its place among the send's things; one
+  // never revealed arrives plain, and a hoard without magic names none.
+  it('names each thing whose piece is revealed, not only the first', () => {
     const two = {
       ...WRECK,
       treasure: [...WRECK.treasure, { text: 'Bone whistle', hoard: 'Strongbox', magicItem: { name: 'Whistle of the Tide', text: 'Blown, it calls the gulls.' } }],
     };
     const rows = hoardRows({ kind: 'treasure', text: WORDS, lead: 'Strongbox' }, two, COINS, ITEMS).rows;
     const pieces = [
-      { id: 'p-lantern', kind: 'other', lead: 'Lantern of the Drowned', shown: true },
-      { id: 'p-whistle', kind: 'other', lead: 'Whistle of the Tide', shown: true },
+      { id: 'p-lantern', kind: 'other', lead: 'Lantern of the Drowned' },
+      { id: 'p-whistle', kind: 'other', lead: 'Whistle of the Tide' },
     ];
+    const both = new Set(['p-lantern', 'p-whistle']);
     // Things in the send: opals, swords, daggers, lantern (3), whistle (4).
-    expect(namedThings(rows, pieces, two, 'visit-1')).toEqual([
-      { visit: 'visit-1', piece: 'p-lantern', thing: 3 },
-      { visit: 'visit-1', piece: 'p-whistle', thing: 4 },
+    expect(namedThings(rows, pieces, two, both)).toEqual([
+      { piece: 'p-lantern', thing: 3 },
+      { piece: 'p-whistle', thing: 4 },
     ]);
-    expect(namedThings(rows, [pieces[0]!, { ...pieces[1]!, shown: false }], two, 'visit-1')).toEqual([{ visit: 'visit-1', piece: 'p-lantern', thing: 3 }]);
+    expect(namedThings(rows, pieces, two, new Set(['p-lantern']))).toEqual([{ piece: 'p-lantern', thing: 3 }]);
+    expect(namedThings(rows, pieces, two, new Set())).toEqual([]);
     const plain = hoardRows({ kind: 'treasure', text: WORDS, lead: 'Strongbox' }, { ...WRECK, treasure: WRECK.treasure.slice(0, 4) }, COINS, ITEMS).rows;
-    expect(namedThings(plain, pieces, WRECK, 'visit-1')).toEqual([]);
+    expect(namedThings(plain, pieces, WRECK, both)).toEqual([]);
   });
 });

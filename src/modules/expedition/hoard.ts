@@ -176,19 +176,20 @@ export function magicPieceOf(piece: { kind: string; lead?: string | null }, plac
 
 /**
  * The things in a send that arrive named (B15, page 30, HM3's pick): each thing row with a magic item whose piece is
- * shown to the group now, as `find.give`'s `named` (its piece, and its place among the send's things). Every such thing,
- * not only the first (the local review of #1101). Pure; never throws.
+ * revealed (`revealed`: shown to some group by a show not undone, hidden since or not), as `find.give`'s `named` (its
+ * piece, and its place among the send's things). Whichever group's card it is sent from (the local review of #10, under
+ * sw-8: a name revealed is everyone's). Every such thing, not only the first (the local review of #1101). Pure.
  */
 export function namedThings(
   rows: readonly HoardRow[],
-  pieces: readonly { id: string; kind: string; lead?: string | null; shown: boolean }[],
+  pieces: readonly { id: string; kind: string; lead?: string | null }[],
   place: Record<string, unknown>,
-  visit: string,
-): { visit: string; piece: string; thing: number }[] {
+  revealed: ReadonlySet<string>,
+): { piece: string; thing: number }[] {
   const things = rows.filter((r): r is ThingRow => r.kind === 'thing');
   return things.flatMap((thing, at) => {
-    const piece = thing.magic ? pieces.find((p) => p.shown && magicPieceOf(p, place)?.entry === thing.entry) : undefined;
-    return piece ? [{ visit, piece: piece.id, thing: at }] : [];
+    const piece = thing.magic ? pieces.find((p) => revealed.has(p.id) && magicPieceOf(p, place)?.entry === thing.entry) : undefined;
+    return piece ? [{ piece: piece.id, thing: at }] : [];
   });
 }
 

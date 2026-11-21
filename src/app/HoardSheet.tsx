@@ -12,7 +12,7 @@ import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import { giveFind, NOT_NAMED_WORDS, rowKey, sendOf, sentRows, undoFind } from '../modules/expedition/findSend.ts';
 import { hoardRows, magicPieceOf, namedThings, thingWords, type Hoard, type HoardRow } from '../modules/expedition/hoard.ts';
-import { heldLinesOf, loadHolders, showItemTruth } from '../modules/expedition/itemTruth.ts';
+import { heldLinesOf, loadHolders, loadRevealed, showItemTruth } from '../modules/expedition/itemTruth.ts';
 import type { GroupPlace, Piece } from '../modules/expedition/placePlay.ts';
 import { denominationsOf, type Denomination } from '../modules/inventory/coinWords.ts';
 import { loadCarriers, type NamedCarrier } from '../modules/inventory/inventory.ts';
@@ -163,9 +163,12 @@ export function useHoards({
   async function send(to: string | null, rows: readonly HoardRow[]) {
     if (!placeId || !row || !setting || busy || !open) return;
     const what = sendOf(rows, setting.libraryIds);
-    // Each thing whose magic item's piece the players already see arrives named (HM3's pick), every one in the send.
-    const named = place ? namedThings(rows, row.pieces, place, row.id) : [];
     setBusy(true);
+    // Each thing whose magic item's piece is revealed, to any group, arrives named (HM3's pick; the local review of #10),
+    // every one in the send. If the shows can't be read, those shown on this card still count.
+    const magic = place ? row.pieces.filter((p) => magicPieceOf(p, place) !== null) : [];
+    const revealed = (await loadRevealed(db, magic.map((p) => p.id))) ?? new Set(magic.filter((p) => p.shown).map((p) => p.id));
+    const named = place ? namedThings(rows, row.pieces, place, revealed) : [];
     const result = await runCommand(registry, db, user, giveFind, {
       campaignId: campaign.id,
       to,

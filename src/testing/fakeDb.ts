@@ -1611,6 +1611,23 @@ export function createFakeDb(): FakeWorld {
       }
       return { data: named, error: null };
     },
+    // A thing sent after the reveal (the local review of #10): the pointer on the given lines, nothing shown; refused for
+    // a piece not shown to some group (a show not undone).
+    name_item_truth: ({ piece, lines }, tag) => {
+      const truth = tables.place_pieces.find((pc) => pc.id === piece && !pc.undone);
+      if (!truth || !isGmOf(truth.campaign_id)) return refused("You don't have permission to do that.");
+      if (truth.kind !== 'other' || !String(truth.lead ?? '').trim()) return plain("Only a magic item's piece can name an item.");
+      if (!tables.piece_shows.some((s) => s.piece_id === piece && !s.undone)) return plain("That magic item hasn't been shown yet.");
+      let named = 0;
+      for (const id of Array.isArray(lines) ? (lines as unknown[]) : []) {
+        const line = tables.inventory_lines.find((l) => l.id === id && l.campaign_id === truth.campaign_id);
+        const data = (line?.item_data ?? {}) as Row;
+        if (!line || data.truthPiece === piece) continue;
+        changeRow('inventory_lines', line, { item_data: { ...data, truthPiece: piece } }, tag);
+        named += 1;
+      }
+      return { data: named, error: null };
+    },
     item_truths: ({ campaign }) => {
       const gmHere = isGmOf(campaign);
       if (!gmHere && !tables.members.some((m) => m.campaign_id === campaign && m.user_id === me())) return { data: [], error: null };
