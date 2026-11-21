@@ -12,12 +12,12 @@ import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import { giveFind, NOT_NAMED_WORDS, rowKey, sendOf, sentRows, undoFind } from '../modules/expedition/findSend.ts';
 import { hoardRows, magicPieceOf, namedThings, thingWords, type Hoard, type HoardRow } from '../modules/expedition/hoard.ts';
-import { heldLinesOf, loadHolders, loadSplitRule, showItemTruth } from '../modules/expedition/itemTruth.ts';
+import { heldLinesOf, loadHolders, showItemTruth } from '../modules/expedition/itemTruth.ts';
 import type { GroupPlace, Piece } from '../modules/expedition/placePlay.ts';
 import { denominationsOf, type Denomination } from '../modules/inventory/coinWords.ts';
 import { loadCarriers, type NamedCarrier } from '../modules/inventory/inventory.ts';
 import { loadCampaignEntries } from '../modules/library/campaignPacks.ts';
-import { Dialog } from '../ui/Dialog.tsx';
+import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { Icon } from '../ui/icons.tsx';
 import { ListRow, RowList, StackedButton } from '../ui/parts.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
@@ -54,9 +54,10 @@ export function sendListWords(rows: readonly HoardRow[]): string {
 /**
  * The toast of a magic item's eye (HM3, pg30-5's pick): "Shown to the players: <name>." and, for the item where it is
  * held, "<holder>'s <thing> now carries its name." (the stash: "The <thing> in the party stash now carries its name.").
+ * Never a group's name: once revealed, the name is every player's (Francis, 2026-11-21).
  */
-export function truthToastWords(who: string, name: string, thing: string, holders: readonly (string | null)[]): string {
-  const first = `Shown to ${who}: ${name}.`;
+export function truthToastWords(name: string, thing: string, holders: readonly (string | null)[]): string {
+  const first = `Shown to the players: ${name}.`;
   const plain = lowerFirst(thing);
   if (holders.length === 0) return first;
   if (holders.length > 1) return `${first} Each ${plain} sent now carries its name.`;
@@ -74,7 +75,7 @@ type Open = { piece: Piece; step: 'hoard' | 'send' | 'who'; rows: HoardRow[] } |
 
 /**
  * The hoard's piece and the magic item's eye on the GM's card (B15). `place` is the place's pack entry (its treasure
- * and hoards); `row` the group's visit; `who` the group's words for a toast ("the players", "Group 2").
+ * and hoards); `row` the group's visit.
  */
 export function useHoards({
   db,
@@ -82,7 +83,6 @@ export function useHoards({
   campaign,
   row,
   place,
-  who,
   placeName,
   phone = false,
   onEdit,
@@ -93,8 +93,7 @@ export function useHoards({
   campaign: OpenCampaign;
   row: GroupPlace | null;
   place: Record<string, unknown> | null;
-  who: string;
-  /** The Location's name as the card shows it ("2. The Wreck"), over the hoard's name (HM2). */
+  /** The Location's name as the card shows it ("2. The Wreck"), over the hoard's name on a tablet (HM2; HM5 draws none). */
   placeName: string;
   /** A phone: the sheets rise from the foot (HM5); on a tablet they stand at the right (HM2, pg30-5). */
   phone?: boolean;
@@ -203,14 +202,13 @@ export function useHoards({
     const magic = magicPieceOf(piece, place);
     if (!magic) return;
     setBusy(true);
-    // While the party is split, only the lines held in a group the piece has been shown to (b15f-6).
-    const held = await loadHolders(db, heldLinesOf(events, placeId, magic.entry));
-    const split = held ? await loadSplitRule(db, campaign.id, piece.id, row.group, held) : undefined;
-    if (!held || split === undefined) {
+    // Every line the thing went to, whoever holds it now (Francis, 2026-11-21: a revealed name is everyone's).
+    const lines = heldLinesOf(events, placeId, magic.entry);
+    const held = await loadHolders(db, lines);
+    if (!held) {
       setBusy(false);
       return show({ text: "Couldn't show it. Try again.", error: true });
     }
-    const lines = heldLinesOf(events, placeId, magic.entry, split);
     const result = await runCommand(registry, db, user, showItemTruth, { campaignId: campaign.id, row, piece, lines });
     setBusy(false);
     refresh();
@@ -218,7 +216,7 @@ export function useHoards({
     const thing = String(((place.treasure as unknown[])[magic.entry] as Record<string, unknown>).text ?? '').trim();
     const holders = lines.flatMap((line) => (held.has(line) ? [held.get(line) ?? null] : [])).map((id) => (id === null ? null : nameOf(id)));
     show({
-      text: truthToastWords(who, magic.name, thing, holders),
+      text: truthToastWords(magic.name, thing, holders),
       onUndo: () =>
         void (async () => {
           const eventId = await latestChange(db, campaign.id, showItemTruth.name, user.id);
@@ -237,7 +235,7 @@ export function useHoards({
       open.step === 'hoard' ? (
         <HoardSheetView
           hoard={hoard}
-          over={placeName}
+          over={phone ? undefined : placeName}
           side={!phone}
           sent={sent}
           nameOf={nameOf}
@@ -274,7 +272,8 @@ export function useHoards({
     noteOf,
     isMagic,
     showTruth,
-    sheets,
+    // On a phone the Sheet variant, rising from the foot (HM5, pg30-5); on a tablet each passes `side`, the standing panel.
+    sheets: sheets && <SheetScope.Provider value>{sheets}</SheetScope.Provider>,
   };
 }
 
@@ -289,7 +288,7 @@ export function SentLine({ text, tick }: { text: string; tick: boolean }) {
 }
 
 /**
- * The hoard's sheet (HM2; HM5 B and C): over its name the Location's, the book's line once, then one row a thing with
+ * The hoard's sheet (HM2; HM5 B and C): over its name the Location's on a tablet, the book's line once, then one row a thing with
  * its count (coin a row like any other), a sent row saying where it went; "Send all" (the sheet's one accent) while
  * anything is left; "Edit the piece's words" last.
  */
@@ -306,7 +305,7 @@ export function HoardSheetView({
   preview = false,
 }: {
   hoard: Hoard;
-  over: string;
+  over?: string;
   /** The standing panel at the right (a tablet, HM2); else the sheet from the foot (a phone, HM5). */
   side?: boolean;
   sent: ReadonlyMap<string, { to: string | null }>;

@@ -34,11 +34,12 @@ describe("the line under a hoard's piece (HM1, HM3, HM5)", () => {
   });
 
   // Purpose: the eye's toast names what was shown and the item where it is held (HM3), the stash its own way, and
-  // says the first sentence alone while the thing is still in the hoard.
+  // says the first sentence alone while the thing is still in the hoard; it never names a group, since a revealed name
+  // is every player's (Francis, 2026-11-21).
   it("words the eye's toast", () => {
-    expect(truthToastWords('the players', 'Lantern of the Drowned', 'Hooded lantern', ['Wren'])).toBe('Shown to the players: Lantern of the Drowned. Wren\'s hooded lantern now carries its name.');
-    expect(truthToastWords('the players', 'Lantern of the Drowned', 'Hooded lantern', [null])).toBe('Shown to the players: Lantern of the Drowned. The hooded lantern in the party stash now carries its name.');
-    expect(truthToastWords('Group 2', 'Lantern of the Drowned', 'Hooded lantern', [])).toBe('Shown to Group 2: Lantern of the Drowned.');
+    expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', ['Wren'])).toBe('Shown to the players: Lantern of the Drowned. Wren\'s hooded lantern now carries its name.');
+    expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', [null])).toBe('Shown to the players: Lantern of the Drowned. The hooded lantern in the party stash now carries its name.');
+    expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', [])).toBe('Shown to the players: Lantern of the Drowned.');
   });
 });
 

@@ -1119,10 +1119,12 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //   &name=long|word  the harbour's name at length, or with one over-long word (the place card's head, 5b's round).
 //   &kinds=p2p  the places typed as p2p-1 names them (an Area holding Locations), for the trail's panel (B2; see below).
 //   ?placePage=wreck  the party at the wreck (B15, page 30, HM1 to HM5; approved 2026-11-20): a hoard with its own words
-//                (the Strongbox: swords ×4, daggers ×5 and a hooded lantern) and the lantern's truth as a piece of its own
-//                (Lantern of the Drowned), nothing shown, nothing sent (HM1; a tap on the Strongbox opens HM2's sheet).
-//   &b15=sent    with wreck: the GM has sent the whole hoard to Wren (the card's "✓ Sent to …", HM5's sheet; the
-//                lantern's eye still closed, for HM3's tap).
+//                (the Strongbox, as page 30 draws it: 240 herons, moon opals ×2, swords ×4, daggers ×5 and a hooded
+//                lantern) and the lantern's truth as a piece of its own (Lantern of the Drowned); the description shown,
+//                nothing else, nothing sent (HM1; a tap on the Strongbox opens HM2's sheet).
+//   &b15=sent    with wreck: the GM has sent the hoard, the herons, the opals and the lantern to Wren, the swords to Ash,
+//                the daggers to the party stash (the card's "✓ All sent: …", HM5's sheet; the lantern's eye still
+//                closed, for HM3's tap).
 //   &b15=shown   with wreck: sent, and the GM's eye on the lantern's piece has named Wren's lantern (HM3's card; with
 //                ?as=player, HM4: Wren's Pack and the item's sheet read "Lantern of the Drowned").
 const placePageFlag = new URLSearchParams(window.location.search).get('placePage');
@@ -1234,20 +1236,33 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
   ].map((s) => ({ ...s, type: p2pKinds ? 'area' : 'site', parentId: 'drowned-harbour' }));
   // ?placePage=wreck (B15, page 30): the wreck's hoard in the book's words, its things with their counts (b15f-1), and a
   // magic item's truth (b15f-2 to b15f-4: a name, what it does, what the senses tell; no source). Invented.
-  if (placePageFlag === 'wreck')
+  if (placePageFlag === 'wreck') {
     Object.assign(spots[1]!, {
-      playerView: { text: 'A cog on her side on the bar, her mast showing at every tide, a strongbox jammed under the beams.' },
-      hoards: [{ name: 'Strongbox', text: 'Four swords and five daggers in oilcloth, and a hooded lantern, under a rotted sailcloth.' }],
+      playerView: {
+        text: 'A cog on her side on the bar, decks awash, her mast showing at every tide. In the stern cabin a strongbox is jammed under the fallen beams.',
+        aspects: [{ lead: 'Mast', text: 'Gulls quarrel on it; they lift off whenever something moves below.' }],
+      },
+      hoards: [{ name: 'Strongbox', text: '240 herons, two moon opals, nine swords and daggers and a hooded lantern, under a rotted sailcloth.' }],
       treasure: [
+        { text: '240 herons', coins: { heron: 240 }, hoard: 'Strongbox' },
+        { text: 'Moon opals', qty: 2, hoard: 'Strongbox' },
         { text: 'Swords', qty: 4, hoard: 'Strongbox' },
         { text: 'Daggers', qty: 5, hoard: 'Strongbox' },
         {
           text: 'Hooded lantern',
           hoard: 'Strongbox',
-          magicItem: { name: 'Lantern of the Drowned', text: 'Lit, it burns no oil, and within ten paces it shows whatever lies under water.', noticed: 'Cold to the touch; the glass smells of the sea.' },
+          magicItem: {
+            name: 'Lantern of the Drowned',
+            text: 'Lit, it burns no oil and shows whatever lies under water within ten paces, as plainly as if the water were air. The drowned can see its bearer from as far.',
+            noticed: 'Cold to the touch; the glass smells of the sea.',
+          },
         },
       ],
     });
+    // The setting's herons, so the hoard's coin is a row like any other (pf-6) that can be sent.
+    const rules = world.tables.library_entries.find((e) => e.id === 'entry-river-rules')!.data as Record<string, unknown>;
+    if (!Array.isArray(rules.currency)) rules.currency = [{ key: 'heron', label: 'herons', valueInBase: 1 }];
+  }
   for (const data of [island, harbour, ...spots]) world.tables.library_entries.push({ id: `entry-reed-${data.id}`, pack_id: 'pack-reed', kind: 'location', pack_entry_id: data.id, name: data.name, data });
   for (const t of [
     { id: 'tide-left', name: 'What the tide left', die: 'd6', rows: [{ min: 1, max: 6, result: 'A drowned lantern' }] },
@@ -1372,12 +1387,21 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: wreck.id, name: wreck.name, data: wreck } });
     const b15 = new URLSearchParams(window.location.search).get('b15');
     const row = (await loadGroupPlaces(world.db, campaign, started.data.id))?.get(1);
+    // HM1: the description shown, every other piece hidden.
+    const description = row?.pieces.find((p) => p.kind === 'description');
+    if (row && description) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row, piece: description });
     if ((b15 === 'sent' || b15 === 'shown') && row?.place) {
       const { hoardRows } = await import('../modules/expedition/hoard.ts');
       const { giveFind, sendOf } = await import('../modules/expedition/findSend.ts');
-      const hoard = hoardRows(row.pieces.find((p) => p.lead === 'Strongbox')!, wreck, [], new Set());
-      const send = sendOf(hoard.rows, new Map());
-      await runCommand(registry, world.db, asGm, giveFind, { campaignId: campaign, to: wren, placeId: row.place.id, things: send.things, coins: send.coins, rows: send.rows });
+      const { denominationsOf } = await import('../modules/inventory/coinWords.ts');
+      const coins = denominationsOf([world.tables.library_entries.find((e) => e.id === 'entry-river-rules')!.data as Record<string, unknown>]);
+      const hoard = hoardRows(row.pieces.find((p) => p.lead === 'Strongbox')!, wreck, coins, new Set());
+      // As HM5 C draws it: the herons, the opals and the lantern to Wren, the swords to Ash, the daggers to the stash.
+      const rowsOf = (...texts: string[]) => hoard.rows.filter((r) => texts.includes(r.text));
+      for (const [to, rows] of [[wren, rowsOf('240 herons', 'Moon opals', 'Hooded lantern')], [ash, rowsOf('Swords')], [null, rowsOf('Daggers')]] as const) {
+        const send = sendOf(rows, new Map());
+        await runCommand(registry, world.db, asGm, giveFind, { campaignId: campaign, to, placeId: row.place.id, things: send.things, coins: send.coins, rows: send.rows });
+      }
       if (b15 === 'shown') {
         const { showItemTruth } = await import('../modules/expedition/itemTruth.ts');
         const lantern = world.tables.inventory_lines.find((l) => l.actor_id === wren && l.name === 'Hooded lantern')!;

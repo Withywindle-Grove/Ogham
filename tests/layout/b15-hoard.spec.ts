@@ -4,10 +4,12 @@
 // under test-results/layout-screens/b15-*.png, to be set beside the approved frame. Purposes, in plain words:
 //   HM1. The GM's place card at the wreck shows the Strongbox in the book's words with an arrow that opens it, and the
 //        Lantern of the Drowned as its own piece, both hidden.
-//   HM2. A tap on the Strongbox opens its hoard: the book's line, a row a thing with its count, Send all.
+//   HM2. A tap on the Strongbox opens its hoard: the book's line, a row a thing with its count (coin a row like any
+//        other), Send all.
 //   HM3. Once the hoard is sent to Wren, the GM's eye on the lantern's piece shows it and says so in a toast.
 //   HM4. Wren's player, once the piece is shown, reads the lantern by its real name on the Pack and in its sheet.
-//   HM5. The hoard after everything is sent: each row says where it went, and Send all is gone.
+//   HM5. The hoard after everything is sent (to Wren, Ash and the party stash): each row says where it went, and Send
+//        all is gone.
 // Each: nothing scrolls sideways, no tap target under 44 px, no text under 14 px (layoutProblems).
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { layoutProblems } from './checks.ts';
@@ -59,6 +61,8 @@ for (const size of SIZES) {
         await openCard(page, scheme, '');
         await page.getByRole('button', { name: 'Open Strongbox' }).click();
         await expect(page.getByRole('button', { name: 'Send all' })).toBeVisible();
+        await expect(page.getByText('240 herons', { exact: true })).toBeVisible();
+        await expect(page.getByText('Moon opals ×2')).toBeVisible();
         await expect(page.getByText('Swords ×4')).toBeVisible();
         await expect(page.getByText('Daggers ×5')).toBeVisible();
         expect(await layoutProblems(page)).toEqual([]);
@@ -96,6 +100,8 @@ for (const size of SIZES) {
         await openCard(page, scheme, 'sent');
         await page.getByRole('button', { name: 'Open Strongbox' }).click();
         await expect(page.getByText(/Sent to Wren of the Lantern Wardens/).first()).toBeVisible();
+        await expect(page.getByText('Sent to Ash').first()).toBeVisible();
+        await expect(page.getByText('In the party stash').first()).toBeVisible();
         await expect(page.getByRole('button', { name: 'Send all' })).toHaveCount(0);
         expect(await layoutProblems(page)).toEqual([]);
         await shot(page, 'hm5', size.width, scheme);

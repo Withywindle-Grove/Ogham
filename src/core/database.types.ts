@@ -3021,7 +3021,6 @@ export type Database = {
           piece_id: string
           shown: boolean
           shown_at: string
-          shown_to: string[] | null
           undone: boolean
           updated_at: string
         }
@@ -3035,7 +3034,6 @@ export type Database = {
           piece_id: string
           shown?: boolean
           shown_at?: string
-          shown_to?: string[] | null
           undone?: boolean
           updated_at?: string
         }
@@ -3049,7 +3047,6 @@ export type Database = {
           piece_id?: string
           shown?: boolean
           shown_at?: string
-          shown_to?: string[] | null
           undone?: boolean
           updated_at?: string
         }

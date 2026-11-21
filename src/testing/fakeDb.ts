@@ -1592,9 +1592,8 @@ export function createFakeDb(): FakeWorld {
     },
     // B15 (…_p2p_b15_item_truth.sql), a stand-in for the layout pictures only: the GM's eye on a magic item's piece
     // shows it and writes a pointer to it (`item_data.truthPiece`) on the given lines; item_truths gives a reader the
-    // real name and words of a line they read whose pointer names a piece shown and not undone. It skips the split
-    // party's rules and the check that a GM wrote the pointer: the real database's, tested in
-    // supabase/tests/p2p-b15-item-truth.test.ts.
+    // real name and words of a line they read whose pointer names a piece shown to any group and not undone. It skips
+    // the check that a GM wrote the pointer: the real database's, tested in supabase/tests/p2p-b15-item-truth.test.ts.
     show_item_truth: ({ visit, piece, lines }, tag) => {
       const here = tables.group_places.find((g) => g.id === visit);
       if (!here || !isGmOf(here.campaign_id)) return refused("You don't have permission to do that.");
