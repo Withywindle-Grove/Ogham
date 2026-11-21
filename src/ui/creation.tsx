@@ -1590,62 +1590,98 @@ export function BookTapTable({ title, die, column, label, rows, multiple = false
     <div className="book-tap-table">
       <BookTapHead title={title} die={die} column={column} />
       <div className="table-sheet__rows" role="group" aria-label={label}>
-        {rows.map((row) => {
-          const range = row.range.replace('–', ' to ');
-          const times = row.times ?? 0;
-          // Taken more than once: one ✓ a time, the count read aloud only ("1 to 2 Eel knife, picked twice").
-          const spoken = times > 1 ? [`${range} ${row.name}, picked ${timesInWords(times)}`, row.line].filter(Boolean).join(', ') : undefined;
-          const option = <OptionRow key={row.key} compact range={range} rangeWidth={rangeWidth} name={row.name} summary={row.line ?? ''} notAllowed={row.warn} notAllowedLabel="" selected={row.picked} checks={Math.max(times, 1)} label={spoken} multiple={multiple} onPick={row.onPick} />;
-          const less = times >= 1 && row.onPutBack;
-          return row.onOpen || less ? (
-            <div key={row.key} className="book-tap-table__cell">
-              {option}
-              {less && (
-                <button type="button" className="button-secondary pick-row__less" aria-label={`Put back one ${row.range ? `${range}: ` : ''}${row.name}`} onClick={row.onPutBack}>
-                  <Icon name="minus" size={20} />
-                </button>
-              )}
-              {row.onOpen && (
-                <button type="button" className="book-tap-table__open" aria-label={`${row.name}: read it`} onClick={row.onOpen}>
-                  <Icon name="info" size={20} />
-                </button>
-              )}
-            </div>
-          ) : (
-            option
-          );
-        })}
+        {rows.map((row) => (
+          <BookTapCell key={row.key} row={row} rangeWidth={rangeWidth} multiple={multiple} />
+        ))}
       </div>
     </div>
   );
 }
 
 /**
- * A pack's pick-up-to-N table on Gear (dec-10 F-a; cs-15, cs-22, cs-42, the lead's ruling (a) on batch F): one folded
- * row, its heading with its count over what is taken; inside, the Roll row and the rows as the **Tapped table**, marked by
- * a tap, then **Take these** at the fold's end. Folding it again calls `onFold` (the caller drops its marks: folding
- * takes nothing). `takeAccent`: Take these is the screen's one accent while marks wait.
+ * One row of a tapped table (`BookTapTable`, and the Table sheet's Pick table variant, `PickTableSheet`): the book's
+ * compact row, ✓ a time it is taken or marked (the count said aloud only), with its − square and ⓘ beside it when it
+ * has them. Built once, drawn by both.
  */
-export function PickTableFold({ label, note, open, onFold, die, title, rows, multiple, takeAccent, onTake }: { label: string; note: string; open?: boolean; onFold?: () => void; die: string; title: string; rows: readonly BookTapRow[]; multiple: boolean; takeAccent: boolean; onTake: () => void }) {
+export function BookTapCell({ row, rangeWidth, multiple }: { row: BookTapRow; rangeWidth: number | undefined; multiple: boolean }) {
+  const range = row.range.replace('–', ' to ');
+  const times = row.times ?? 0;
+  // Taken more than once: one ✓ a time, the count read aloud only ("1 to 2 Eel knife, picked twice").
+  const spoken = times > 1 ? [`${range} ${row.name}, picked ${timesInWords(times)}`, row.line].filter(Boolean).join(', ') : undefined;
+  const option = <OptionRow compact range={range} rangeWidth={rangeWidth} name={row.name} summary={row.line ?? ''} notAllowed={row.warn} notAllowedLabel="" selected={row.picked} checks={Math.max(times, 1)} label={spoken} multiple={multiple} onPick={row.onPick} />;
+  const less = times >= 1 && row.onPutBack;
+  if (!row.onOpen && !less) return option;
   return (
-    <FoldedGroup
-      label={label}
-      note={note}
-      open={open}
-      onToggle={(shown) => {
-        if (!shown) onFold?.();
-      }}
-    >
-      {/* The die in its Roll row, inside the table it rolls on (cs-22: none over the row that opens it). */}
-      {die && <RollRow die={dieOf(die)}>{`Roll ${die}, or choose.`}</RollRow>}
-      <BookTapTable title={title} die={die} column="Result" label={title} rows={rows} multiple={multiple} />
-      <div className="gear-pick__take">
-        {/* Always a tap: with nothing marked it says so. */}
-        <button type="button" className={takeAccent ? 'button-primary' : 'button-secondary'} onClick={onTake}>
-          Take these
+    <div className="book-tap-table__cell">
+      {option}
+      {less && (
+        <button type="button" className="button-secondary pick-row__less" aria-label={`Put back one ${row.range ? `${range}: ` : ''}${row.name}`} onClick={row.onPutBack}>
+          <Icon name="minus" size={20} />
         </button>
-      </div>
-    </FoldedGroup>
+      )}
+      {row.onOpen && (
+        <button type="button" className="book-tap-table__open" aria-label={`${row.name}: read it`} onClick={row.onOpen}>
+          <Icon name="info" size={20} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Gear's pick-up-to-N table in its sheet, the Table sheet's **Pick table** variant (cts-1, cts-5 a, cts-7; mockup
+ * creation/final 24, frames TS2, TS3 and TS4, approved 2026-11-19), whatever its length: titled with the table's name
+ * and its count ("Travelling odds: pick up to 4"), the Roll row "Roll d20, then mark your row.", the typed-roll strip,
+ * the rows as the **Tapped table** under its head (a tap marks, a tap again marks twice, the − square puts one back;
+ * the caller's rows say what a tap past N answers), and a foot that stays in view while the rows scroll: what is
+ * marked (`foot`, two lines at most, then "…") and **Take these** at the right (**Take it** on a pick-up-to-1 table,
+ * `multiple` false; ⚑ 5), the accent once a row is marked (`marked`), always a tap. The ✕ calls `onClose`: nothing is
+ * taken. `long` is the rows' blocks (the typed roll, the range bar from 50 rows, two columns on a tablet from 24), each
+ * row's key its index in `rows`.
+ */
+export function PickTableSheet({
+  label,
+  die,
+  title,
+  rows,
+  long,
+  multiple,
+  foot,
+  marked,
+  onTake,
+  onClose,
+  preview = false,
+}: {
+  label: string;
+  die: string;
+  /** The table's name, on its bar. */
+  title: string;
+  rows: readonly BookTapRow[];
+  long: LongTable;
+  multiple: boolean;
+  foot: string;
+  marked: boolean;
+  onTake: () => void;
+  onClose: () => void;
+  preview?: boolean;
+}) {
+  const rangeWidth = rangeWidthOf(rows.map((row) => row.range));
+  const byKey = new Map(rows.map((row) => [row.key, row]));
+  return (
+    <TableSheet
+      label={label}
+      groups={[]}
+      long={long}
+      roll={die ? { die, words: `Roll ${die}, then mark your row.` } : undefined}
+      head={<BookTapHead title={title} die={die} column="Result" />}
+      rowOf={(cell) => {
+        const row = byKey.get(cell.key);
+        return row ? <BookTapCell row={row} rangeWidth={rangeWidth} multiple={multiple} /> : null;
+      }}
+      pick={{ foot, marked, onTake, one: !multiple }}
+      onDone={onClose}
+      preview={preview}
+    />
   );
 }
 
@@ -2151,6 +2187,7 @@ export function TableSheet({
   onClear,
   onDone,
   take,
+  pick,
   head,
   rowOf,
   preview = false,
@@ -2178,6 +2215,12 @@ export function TableSheet({
    * it, the accent once a row is marked; the X closes with nothing taken. Left out, Done and Clear as before.
    */
   take?: { marked: boolean; onTake: () => void };
+  /**
+   * The Pick table variant's foot (cts-1; frames TS2 to TS4), in place of Take it, Done and Clear: what is marked
+   * (`foot`, two lines at most) and **Take these** at the right (**Take it** with `one`), staying in view while the rows scroll; the accent once
+   * a row is marked, always a tap (`PickTableSheet`).
+   */
+  pick?: { foot: string; marked: boolean; onTake: () => void; /** A pick-up-to-1 table: the button reads Take it. */ one?: boolean };
   /** Over the rows, after the typed-roll strip (the book's table head, `BookTapHead`). */
   head?: ReactNode;
   /** Draws a row (the book's compact rows); a `PickRow` when left out. */
@@ -2237,6 +2280,18 @@ export function TableSheet({
           </span>
         </div>
       )}
+      {pick ? (
+        <div className="table-sheet__pick-foot">
+          <p className="table-sheet__pick-line" role="status">
+            {pick.foot}
+          </p>
+          {/* Plain until a row is marked, and always a tap: with none marked it says so (cts-5 b). Take it on a
+              pick-up-to-1 table (⚑ 5, Francis 20 Nov: "Take it"). */}
+          <button type="button" className={pick.marked ? 'button-primary' : 'button-secondary'} onClick={pick.onTake}>
+            {pick.one ? 'Take it' : 'Take these'}
+          </button>
+        </div>
+      ) : (
       <div className="dialog__actions">
         {take ? (
           // Plain until a row is marked, and always a tap: with none marked it says so (cs-15).
@@ -2254,6 +2309,7 @@ export function TableSheet({
           </button>
         )}
       </div>
+      )}
     </Dialog>
   );
 }
@@ -2473,6 +2529,7 @@ export function DetailRow({
   action,
   onOpen,
   picked = false,
+  twoLines = false,
 }: {
   label: string;
   note?: string;
@@ -2485,6 +2542,12 @@ export function DetailRow({
    * entry (its words as the row's name, the table's name and note under it) with Change; before, the table's row.
    */
   picked?: boolean;
+  /**
+   * The **pick table** variant (cts-3; frame TS1): with `action` ("Open", then "Change"), the note is what was taken by
+   * name, kept to two lines on screen, then "…" (said whole aloud); plain words, no dice glyphs (a thing's name is not a
+   * roll). No chevron: the row opens a sheet.
+   */
+  twoLines?: boolean;
 }) {
   const named = note ? `${label} (${note})` : label;
   if (action) {
@@ -2492,11 +2555,14 @@ export function DetailRow({
       <button type="button" className="detail-row detail-row--open" onClick={onOpen} aria-label={`${action} ${named}`}>
         <span className="detail-row__label">
           {label}
-          {note && (
-            <span className="detail-row__note">
-              <DiceWords>{note}</DiceWords>
-            </span>
-          )}
+          {note &&
+            (twoLines ? (
+              <span className="detail-row__note detail-row__note--two-lines">{note}</span>
+            ) : (
+              <span className="detail-row__note">
+                <DiceWords>{note}</DiceWords>
+              </span>
+            ))}
         </span>
         <span className="detail-row__action">{action}</span>
       </button>

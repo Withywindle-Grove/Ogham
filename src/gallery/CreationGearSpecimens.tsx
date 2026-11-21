@@ -3,7 +3,7 @@
 // Change the rolls and Take it off, and a thing the class can't use), the Roll sequence (a roll made twice with a row
 // Already rolled; a choice ending in Done) and Yours already folded. Invented names only.
 import { useState, type ReactElement, type ReactNode } from 'react';
-import { AverageStepper, DetailRow, EntryPanel, FoldedGroup, PickGroup, PickRow, PickTableFold, RolledPicks, RollSequence, useAverageField, type BookTapRow } from '../ui/creation.tsx';
+import { AverageStepper, DetailRow, EntryPanel, FoldedGroup, PickGroup, PickRow, PickTableSheet, RolledPicks, RollSequence, useAverageField, type BookTapRow, type LongTable } from '../ui/creation.tsx';
 import { RollRow } from '../ui/dice.tsx';
 
 type SpecimenPart = (props: { name: string; children: ReactNode }) => ReactElement;
@@ -155,31 +155,95 @@ export function CreationGearSpecimens({ Specimen }: { Specimen: SpecimenPart }) 
           asSheet={false}
         />
       </Specimen>
-      <Specimen name="The pack's pick-up-to-N table on Gear (dec-10 F-a; cs-15, the lead's ruling (a)): one folded row with what is taken; inside, the rows as the book's table, two marked (one twice, with −), and Take these at the fold's end">
-        <PickFold />
+      <Specimen name="The pack's pick-up-to-N table on Gear, closed (cts-3, frame TS1): one row like the trinket's, Open before anything is taken, Change after with what was taken by name, a long list kept to two lines">
+        <PickRows />
       </Specimen>
+      <Specimen name="The pick table's sheet (Table sheet, Pick table variant; cts-1, frames TS2 and TS3): the roll line, What you rolled, the book's table with rows marked (one twice, with −), and the foot with what is marked and Take these">
+        <PickSheet preview />
+      </Specimen>
+      <Specimen name="The pick table's sheet, nothing marked (frame TS3): Take these plain, still a tap">
+        <PickSheet preview start={[]} />
+      </Specimen>
+      <PickSheetOpener />
     </>
   );
 }
 
-/** As the Gear step draws a pick table (StartingGear): the fold open, rows marked and nothing taken yet. */
-function PickFold() {
-  const [marks, setMarks] = useState<number[]>([0, 2, 2]);
-  const ROWS = ['Reed rope', 'Storm lantern', 'Eel hooks', 'Dry rations ×2'];
-  const rows: BookTapRow[] = ROWS.map((name, r) => {
+/** The pick table's rows as Gear shows them once the sheet is closed (StartingGear; frame TS1): three states. */
+function PickRows() {
+  return (
+    <PickGroup title="To choose (pick 1)">
+      <DetailRow label="Travelling odds: pick up to 4" note="0 of 4 picked. 20 to choose from" action="Open" twoLines onOpen={none} />
+      <DetailRow label="Travelling odds: pick up to 4" note="2 of 4 picked: Reed rope, Storm matches" action="Change" twoLines onOpen={none} />
+      <DetailRow label="Travelling odds: pick up to 4" note={`4 of 4 picked: ${ODDS[16]}, Eel hooks ×2, Tallow candles ×3, Bone needles ×6`} action="Change" twoLines onOpen={none} />
+    </PickGroup>
+  );
+}
+
+/** The invented 20-row table of the mockup's frames (TS2): a row with its price and weight, one very long. */
+const ODDS = ['Reed rope', 'Storm matches', 'Eel hooks', 'Waxed twine', 'Bog chalk', 'Heron whistle', 'Marsh salt, a pouch', 'Fish-glue pot', 'Net floats ×4', 'Peat bricks ×2', 'Rush mat', 'Tallow candles ×3', 'Tin cup', 'Oilskin sack', 'Bone needles ×6', 'Sedge hat', "A ferryman's best tarred rope, the long coil that reaches both banks of the Weir", 'Frog bell', 'Dry rations ×2', 'Punt pole'];
+const ODDS_LINES = ['1 silver, 100 coins’ weight', '2 copper, 0 coins’ weight', '1 copper, 1 coin’s weight', '3 copper, 5 coins’ weight', '1 copper, 2 coins’ weight', '5 copper, 1 coin’s weight', '2 copper, 10 coins’ weight', '4 copper, 10 coins’ weight', '2 copper, 8 coins’ weight', '1 copper, 40 coins’ weight', '3 copper, 50 coins’ weight', '3 copper, 6 coins’ weight', '2 copper, 5 coins’ weight', '1 silver, 20 coins’ weight', '2 copper, 0 coins’ weight', '4 copper, 10 coins’ weight', '999 silver, 300 coins’ weight', '6 copper, 3 coins’ weight', '2 silver, 40 coins’ weight', '2 silver, 80 coins’ weight'];
+
+/**
+ * As the Gear step draws a pick table's sheet (StartingGear): rows marked, nothing taken yet. `preview` draws it in
+ * place (the gallery's picture, the first six rows); otherwise the real sheet with all twenty, for the layout check.
+ */
+function PickSheet({ preview = false, start = [0, 2, 2, 11], onClose = none }: { preview?: boolean; start?: number[]; onClose?: () => void }) {
+  const [marks, setMarks] = useState<number[]>(start);
+  const [said, setSaid] = useState('');
+  const shown = preview ? ODDS.slice(0, 6) : ODDS;
+  const rows: BookTapRow[] = shown.map((name, r) => {
     const times = marks.filter((m) => m === r).length;
     return {
       key: String(r),
       range: String(r + 1),
       name,
-      line: ['1 silver, 50 coins', '2 silver, 30 coins', '1 copper, 0 coins', '1 silver, 20 coins'][r]!,
+      line: ODDS_LINES[r]!,
       picked: times > 0,
       times,
-      onPick: () => (marks.length >= 3 ? undefined : setMarks([...marks, r])),
+      onPick: () => (marks.length >= 4 ? setSaid('4 of 4 marked: take one off to mark another.') : setMarks([...marks, r])),
       onPutBack: () => setMarks(marks.filter((_, n) => n !== marks.lastIndexOf(r))),
     };
   });
+  const names = [...new Set(marks)].map((r) => {
+    const times = marks.filter((m) => m === r).length;
+    return times > 1 ? `${ODDS[r]} ×${times}` : ODDS[r];
+  });
+  const long: LongTable = {
+    ranges: [{ heading: 'rows', rows: rows.map((row) => ({ key: row.key, text: row.name, picked: row.picked, onPick: row.onPick })) }],
+    bar: false,
+    columns: false,
+    typed: () => ({ key: null, line: '' }),
+  };
   return (
-    <PickTableFold label="Odds and ends: pick up to 3" note="0 of 3 picked. 4 to choose from" open die="d4" title="Odds and ends" rows={rows} multiple takeAccent onTake={() => undefined} />
+    <>
+      <PickTableSheet
+        label="Travelling odds: pick up to 4"
+        die="d20"
+        title="Travelling odds"
+        rows={rows}
+        long={long}
+        multiple
+        foot={names.length > 0 ? `${marks.length} of 4 marked: ${names.join(', ')}` : '0 of 4 marked'}
+        marked={marks.length > 0}
+        onTake={() => (marks.length === 0 ? setSaid('Mark a row first.') : onClose())}
+        onClose={onClose}
+        preview={preview}
+      />
+      {said && !preview && <p role="status">{said}</p>}
+    </>
+  );
+}
+
+/** The pick table's real sheet, opened from the gallery's button (the layout check: the foot in view, the tablet's width). */
+function PickSheetOpener() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" className="button-secondary" onClick={() => setOpen(true)}>
+        Open the pick table
+      </button>
+      {open && <PickSheet onClose={() => setOpen(false)} />}
+    </>
   );
 }

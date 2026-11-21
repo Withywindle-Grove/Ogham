@@ -1,7 +1,7 @@
 // Starting gear's money (docs/05 "Starting money"; ruled 2026-10-25). Invented coins and kits.
 import { describe, expect, it } from 'vitest';
 import {
-  nextTakeWords, pickFootWords, pickNames, pickRowWords, takenLines, coinsOf, gearHint, gearSignature, gearProblem, kitContents, kitPrice, kitRolls, kitsFor, kitTaken, moneyCoin, moneyUsualOf, noRollPicks, priceOf, purchasesOf, rangeWords, kitsToPick, givenGearOf, readMoney, shopOpen, shortOf, showMoney, startingEquipment, rollMeta, rollTitle, rowTimes, tapRollGroupRow, tapRollRow, untappedRoll, weightWords } from './startingGear.ts';
+  pickFootWords, pickNames, pickRowWords, takenLines, coinsOf, gearHint, gearSignature, gearProblem, kitContents, kitPrice, kitRolls, kitsFor, kitTaken, moneyCoin, moneyUsualOf, noRollPicks, priceOf, purchasesOf, rangeWords, kitsToPick, givenGearOf, readMoney, shopOpen, shortOf, showMoney, startingEquipment, rollMeta, rollTitle, rowTimes, tapRollGroupRow, tapRollRow, untappedRoll, weightWords } from './startingGear.ts';
 import { resolveRules } from '../library/options.ts';
 
 const coins = coinsOf([{ currency: [{ key: 'sp', label: 'Silver', valueInBase: 10 }, { key: 'gp', label: 'Gold', valueInBase: 100 }, { key: 'cp', label: 'Copper', valueInBase: 1 }] }]);
@@ -256,15 +256,6 @@ describe('gearSignature (creation follow-up: Back to review while nothing change
     expect(gearSignature({ ...record, bought: [{ ...kit, picks: [[3]] }] }, coin)).not.toBe(was);
     expect(gearSignature({ ...record, givenPicks: {} }, coin)).not.toBe(was);
     expect(gearSignature({ ...record, trinket: undefined }, coin)).not.toBe(was);
-  });
-});
-
-describe("Next's words for a pick table's marks (cs-42, the lead's words)", () => {
-  // Purpose: the toast says what this Next did, in figures and the table's own name: taken only, put back only, or both.
-  it('says taken, put back, or both', () => {
-    expect(nextTakeWords('Odds and ends', 2, 0)).toBe('2 taken from Odds and ends.');
-    expect(nextTakeWords('Odds and ends', 0, 1)).toBe('1 put back in Odds and ends.');
-    expect(nextTakeWords('Odds and ends', 2, 1)).toBe('2 taken, 1 put back in Odds and ends.');
   });
 });
 
