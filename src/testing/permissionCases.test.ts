@@ -201,6 +201,7 @@ const world: CaseWorld = {
   }),
   freshLight: async (on) => `light-line-${on}`,
   freshReadySpell: async (on) => ({ spell: `mire-lamp-${on}`, level: 1 }),
+  freshPins: async (on) => [`Fen sight ${on}`, `Horn charge ${on}`],
   marching: async (state = {}) => ({
     target: { campaignId, group: 1, playersReorder: state.playersReorder ?? true },
     order: { id: 'marching-order', campaignId, group: 1, rows: [], presets: [{ name: 'Tunnel', rows: [['actor-ash']] }], lastPreset: null, locked: state.locked ?? false, version: 1 },

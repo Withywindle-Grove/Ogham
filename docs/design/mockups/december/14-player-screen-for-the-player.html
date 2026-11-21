@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: the Player screen for the person playing (2026-11-14)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../pack/pk.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  .ps-head { display:grid; grid-template-columns:56px minmax(0,1fr) auto; gap:var(--space-3); align-items:center; }
+  .ps-av { width:56px; height:56px; border-radius:50%; border:1.5px solid var(--control); display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:700; background:var(--surface); }
+  .ps-kind { font-size:20px; font-weight:700; line-height:1.2; overflow-wrap:anywhere; }
+  .ps-meta { font-size:14px; color:var(--muted); }
+  .ps-ring { display:inline-flex; width:44px; height:44px; border-radius:50%; border:2px solid var(--warn); align-items:center; justify-content:center; color:var(--warn); }
+  .ps-status { display:inline-flex; align-items:center; gap:var(--space-2); min-height:44px; margin-top:var(--space-2); }
+  .ps-status .ring { width:32px; height:32px; border-radius:50%; border:2px solid var(--ink); display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; box-sizing:border-box; }
+  .ps-hpbar { grid-column:1 / -1; display:flex; gap:3px; }
+  .ps-hpbar > span { flex:1; height:10px; background:var(--rule); border-radius:2px; overflow:hidden; }
+  .ps-hpbar > span > i { display:block; height:100%; background:var(--ink); }
+  .ps-card .pk-state { margin:0 0 var(--space-2); text-align:left; font-size:20px; }
+  .ps-card .pk-of { text-align:left; margin:var(--space-2) 0 0; }
+  .ps-lvl { display:grid; grid-template-columns:minmax(0,1fr) 44px; align-items:center; min-height:48px; margin-top:var(--space-2); box-sizing:border-box; }
+  .ps-lvl small { font-size:14px; color:var(--muted); margin-left:var(--space-2); }
+  .ps-lvl .ps-xp { grid-column:1; }
+  .ps-pin { display:inline-flex; vertical-align:-1px; margin-right:var(--space-1); }
+  .ps-head2 { display:grid; grid-template-columns:64px minmax(0,1fr); gap:var(--space-3); align-items:center; }
+  .ps-av.big { width:64px; height:64px; font-size:26px; }
+  .ps-sts { display:flex; gap:var(--space-2); flex-wrap:wrap; align-items:center; }
+  .ps-st { position:relative; display:inline-flex; width:52px; height:52px; align-items:center; justify-content:center; flex:none; }
+  .ps-st .arc { position:absolute; inset:0; transform:rotate(-90deg); }
+  .ps-st .mid { position:relative; display:inline-flex; }
+  .ps-stn small { display:block; font-size:14px; color:var(--muted); line-height:1.2; }
+  .ps-st.more { width:44px; height:44px; border:1.5px solid var(--control); border-radius:50%; font-weight:700; font-size:14px; box-sizing:border-box; }
+  .ps-stn { display:inline-flex; align-items:center; gap:var(--space-2); min-height:44px; }
+  .ps-lr { flex-wrap:wrap; align-items:center; justify-content:space-between; row-gap:var(--space-1); }
+  .ps-rl { text-transform:none; letter-spacing:0; color:var(--ink); font-size:14px; font-weight:400; display:inline-flex; align-items:center; gap:var(--space-1); }
+  .ps-l .ic { display:inline-flex; vertical-align:-3px; margin-right:var(--space-1); }
+  .ps-who .bk .ln { margin:0 0 var(--space-1); }
+  .btn svg { flex:none; }
+  .ps-lvl.stack small { display:block; margin-left:0; }
+  .ps-lit { display:flex; align-items:center; gap:var(--space-2); min-height:56px; padding:var(--space-1) 0; border-bottom:1px dotted var(--rule); }
+  .ps-lit .t { flex:1; min-width:0; }
+  .ps-lit .t b { font-size:20px; line-height:1.2; }
+  .ps-lit .t small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+  /* layout this page needs, formerly read from the sweep pages’ stylesheet (no type, book-format, button, sheet or toast rule) */
+  .lab { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .trio { display:flex; gap:var(--space-4); align-items:flex-start; flex-wrap:wrap; }
+  .from { font-size:14px; color:var(--muted); font-style:italic; margin:var(--space-1) 0 0; }
+  .under { font-size:14px; color:var(--muted); margin-top:var(--space-1); }
+  .giv { font-size:14px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); padding:0 var(--space-2); }
+  .prow { display:grid; grid-template-columns:44px minmax(0,1fr) auto; gap:var(--space-2); align-items:center; }
+  .tablet.wide { width:1024px; }
+  .ps-acts { display:flex; gap:var(--space-2); align-items:center; flex-wrap:wrap; }
+  .ps-litw { border-bottom:1px dotted var(--rule); padding:var(--space-1) 0 var(--space-2); }
+  .ps-litw .ps-lit { border-bottom:0; }
+  .ps-info { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; color:var(--info); flex:none; }
+  .ps-handle { position:absolute; right:calc(-1 * var(--space-2)); top:var(--space-5); display:inline-flex; align-items:center; gap:2px; width:44px; height:44px; justify-content:flex-end; color:var(--control); font-size:10px; }
+  .ps-handle i { display:block; width:6px; height:44px; border-radius:3px; background:var(--control); }
+  .tg { position:relative; display:inline-flex; align-items:center; justify-content:center; width:60px; height:44px; flex:none; }
+  .tg .tr { position:relative; width:52px; height:28px; border-radius:999px; border:1.5px solid var(--control); background:var(--sheet); box-sizing:border-box; display:block; }
+  .tg .kn { position:absolute; top:1.5px; left:1.5px; width:22px; height:22px; border-radius:50%; background:var(--surface); border:1.5px solid var(--control); box-sizing:border-box; display:flex; align-items:center; justify-content:center; color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.18); }
+  .tg.on .tr { background:var(--wash); border:2px solid var(--accent); box-shadow:0 0 var(--space-2) 1px color-mix(in srgb, var(--glow) 60%, transparent); }
+  .tg.on .kn { top:1px; left:25px; background:var(--sheet); border:1.5px solid var(--accent); }
+  .ps-kl { display:flex; align-items:center; gap:var(--space-2); min-height:56px; }
+  .ps-kl .nm { font-size:16px; }
+  .ps-band { grid-column:2 / -1; display:flex; align-items:center; justify-content:space-between; gap:var(--space-4); min-height:64px; }
+  .ps-grid > .ps-band:last-child, .ps-grid > .ps-band { border-left:0; padding-left:0; }
+  .ps-cl { display:grid; grid-template-columns:minmax(0,1fr) 44px; align-items:center; min-height:64px; text-align:right; }
+  .ps-cl small { font-size:14px; color:var(--muted); margin-left:var(--space-2); }
+  .ps-cl .ps-xp { width:280px; margin:var(--space-1) 0 var(--space-1) auto; }
+  .ps-cl .co { font-size:14px; color:var(--muted); display:block; }
+  .ps-lvl .co { display:block; font-size:14px; color:var(--muted); margin-top:var(--space-1); }
+  .ps-l.top { height:64px; min-height:0; align-items:flex-end; align-content:flex-end; margin:0 0 var(--space-3); box-sizing:border-box; overflow:hidden; }
+  .ps-head2.fix { height:64px; box-sizing:border-box; overflow:visible; }
+  .ps-pr { display:flex; align-items:center; gap:var(--space-2); border:1.5px solid var(--control); border-radius:4px; background:var(--surface); padding:var(--space-2) var(--space-3); margin-bottom:var(--space-2); min-height:44px; box-sizing:border-box; }
+  .ps-pr .t { flex:1; min-width:0; }
+  .ps-pr svg { flex:none; }
+  .ps-sl { font-size:14px; color:var(--muted); margin:var(--space-3) 0 var(--space-1); }
+  .ps-badge { position:absolute; top:0; right:-4px; min-width:20px; height:20px; border-radius:10px; background:var(--accent); color:var(--on-accent); font-size:14px; font-weight:700; line-height:20px; text-align:center; padding:0 4px; box-sizing:border-box; }
+  .ps-l { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:var(--space-3) 0 var(--space-1); display:flex; align-items:baseline; gap:var(--space-2); }
+  .ps-l .n { letter-spacing:0; text-transform:none; margin-left:auto; }
+  .ps-who { display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:var(--space-2); align-items:start; border-left:3px solid var(--accent); padding:var(--space-1) 0 var(--space-1) var(--space-3); margin-top:var(--space-3); }
+  .ps-who p { margin:0 0 var(--space-1); line-height:1.35; }
+  .ps-who .q { font-size:20px; font-style:italic; }
+  .ps-who .m { font-size:14px; color:var(--muted); }
+  .ps-who .go { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; }
+  .ps-who.open { grid-template-columns:minmax(0,1fr) 44px; }
+  .ps-ll { margin:0 0 var(--space-2); line-height:1.35; }
+  .ps-ll b { color:var(--accent); }
+  .ps-ll a { color:inherit; text-decoration:underline; text-underline-offset:3px; }
+  .ps-hp { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:var(--space-2); align-items:center; border:1.5px solid var(--control); border-radius:4px; padding:var(--space-2) var(--space-3); margin-top:var(--space-3); background:var(--sheet); }
+  .ps-hp .l { grid-column:1 / -1; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .ps-hp .v { font-size:48px; font-weight:700; line-height:1; }
+  .ps-hp .v small { font-size:16px; font-weight:400; color:var(--muted); margin-left:var(--space-1); }
+  .ps-hp .bar2 { grid-column:1 / -1; height:8px; background:var(--rule); border-radius:4px; overflow:hidden; }
+  .ps-hp .bar2 i { display:block; height:100%; background:var(--ink); }
+  .ps-sq { width:56px; height:56px; padding:0; justify-content:center; }
+  .ps-tiles { display:grid; gap:var(--space-2); margin-top:var(--space-2); }
+  .ps-tile { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-1); text-align:center; min-height:64px; box-sizing:border-box; min-width:0; }
+  .ps-tile .k { font-size:14px; color:var(--muted); display:block; overflow-wrap:normal; word-break:normal; hyphens:none; line-height:1.2; }
+  .ps-tile .v { font-size:20px; font-weight:700; line-height:1.2; display:block; }
+  .ps-tile .c { font-size:14px; color:var(--muted); display:block; line-height:1.2; }
+  .ps-tile.big .v { font-size:32px; }
+  .ps-wpn { border:2px solid var(--ink); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-3); margin-top:var(--space-2); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-1) var(--space-3); align-items:center; }
+  .ps-wpn .nm { font-size:20px; font-weight:700; line-height:1.2; overflow-wrap:break-word; }
+  .ps-wpn .in { font-size:14px; color:var(--muted); }
+  .ps-wpn .in svg { vertical-align:-2px; margin-right:var(--space-1); }
+  .ps-roll { display:flex; gap:var(--space-4); flex-wrap:wrap; grid-column:1 / -1; font-size:20px; }
+  .ps-roll span { display:inline-flex; align-items:center; gap:var(--space-1); }
+  .ps-roll small { font-size:14px; color:var(--muted); margin-left:var(--space-1); }
+  .ps-line { display:flex; align-items:center; gap:var(--space-2); margin:var(--space-2) 0 0; }
+  .ps-row { display:flex; align-items:center; gap:var(--space-2); min-height:56px; padding:var(--space-1) 0; border-bottom:1px dotted var(--rule); }
+  .ps-row { flex-wrap:wrap; justify-content:flex-end; }
+  .ps-row .t { flex:1 1 120px; min-width:120px; }
+  .ps-wpn .ps-acts:has(.btn.stk + .btn.stk) { grid-column:1 / -1; justify-content:flex-end; }
+  .pk-tabs.five { grid-template-columns:repeat(5,1fr); }
+  .ps-row .t b { font-size:20px; line-height:1.2; overflow-wrap:break-word; }
+  .ps-row .t small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+  .ps-row .t small span { display:inline-flex; align-items:center; gap:var(--space-1); margin-right:var(--space-3); }
+  .ps-row .fig { font-size:20px; font-weight:700; white-space:nowrap; }
+  .ps-row .go { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; flex:none; }
+  .ps-dots { display:inline-flex; gap:4px; vertical-align:middle; margin-right:var(--space-2); }
+  .ps-dots i { width:10px; height:10px; border-radius:50%; border:1.5px solid var(--ink); display:inline-block; box-sizing:border-box; }
+  .ps-dots i.on { background:var(--ink); }
+  .ps-pair { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-2); }
+  .ps-card { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-3); }
+  .ps-card b { font-size:24px; display:block; line-height:1.2; }
+  .ps-card span { font-size:14px; color:var(--muted); }
+  .ps-xp { height:6px; background:var(--rule); border-radius:3px; overflow:hidden; margin-top:var(--space-1); }
+  .ps-xp i { display:block; height:100%; background:var(--ink); }
+  .ps-boxes { display:flex; gap:var(--space-2); flex-wrap:wrap; }
+  .ps-boxes span { border:1.5px solid var(--control); border-radius:4px; min-height:44px; padding:0 var(--space-3); display:inline-flex; align-items:center; background:var(--sheet); }
+  .ps-rule { border-top:3px double var(--rule); margin-top:var(--space-4); padding-top:var(--space-2); display:flex; align-items:center; gap:var(--space-2); }
+  .ps-rule h3 { flex:1; margin:0; font-size:20px; }
+  /* measured (t44-1): 8 px between a button and the row under it; a level row and the toggle under it */
+  .ps-rule:has(.btn.stk) { margin-bottom:var(--space-2); }
+  .ps-lvl + .ps-kl { margin-top:var(--space-1); }
+  .ps-grid { display:grid; grid-template-columns:150px minmax(0,1fr) minmax(0,1.25fr); gap:var(--space-4); padding:var(--space-3); align-items:start; }
+  .ps-grid > div:last-child { border-left:1px solid var(--rule); padding-left:var(--space-4); }
+  .ps-way { font-size:14px; color:var(--muted); }
+  .ps-rank { display:grid; grid-template-columns:24px repeat(2, minmax(0,1fr)); gap:var(--space-2); align-items:stretch; margin:var(--space-1) 0; }
+  .ps-rank .rn { font-weight:700; align-self:center; }
+  .ps-mem { display:grid; grid-template-columns:32px minmax(0,1fr); gap:var(--space-2); align-items:center; min-height:48px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-1) var(--space-2); box-sizing:border-box; }
+  .ps-mem .a { width:32px; height:32px; border-radius:50%; border:1.5px solid var(--control); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; }
+  .ps-mem b { display:block; line-height:1.2; overflow-wrap:anywhere; }
+  .ps-mem small { display:block; font-size:14px; color:var(--muted); line-height:1.2; }
+  .ps-mem.you { border:2px solid var(--ink); }
+  .ps-toast { margin-top:var(--space-2); padding:var(--space-2) var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); }
+  .ps-dim { position:absolute; inset:0; background:rgba(0,0,0,.35); }
+  .ps-sheet { position:absolute; top:48px; left:50%; transform:translateX(-50%); width:560px; background:var(--popup); border:1px solid var(--rule); border-radius:20px; box-shadow:0 8px 32px rgba(0,0,0,.25); padding:var(--space-3) var(--space-4) var(--space-4); box-sizing:border-box; }
+  .ps-sh { display:grid; grid-template-columns:minmax(0,1fr) auto 44px; gap:var(--space-2); align-items:center; }
+  .ps-sh .ttl { font-size:24px; font-weight:700; line-height:1.2; }
+  .ps-sh .fig { font-size:40px; font-weight:700; line-height:1; }
+  .ps-sh .x { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; }
+  .ps-src { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; }
+  .ps-gap { height:var(--space-3); }
+  .ps-sub { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:var(--space-3) 0 var(--space-1); }
+  .phone .ps-sheetp { padding:var(--space-3); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../creation/final/sweep.js"></script>
+<script src="../pack/pk.js"></script>
+<script src="icons/icons.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+const d = (n, w = 18) => `<span role="img" aria-label="d${n}" style="display:inline-flex">${die(n, w)}</span>`;
+const down = `<span class="go" aria-hidden="true">${I.chev}</span>`;
+const up = `<span class="go" aria-hidden="true" style="transform:rotate(180deg)">${I.chev}</span>`;
+const goR = `<span class="go" aria-hidden="true" style="transform:rotate(-90deg)">${I.chev}</span>`;
+const lab = (words, n = '') => `<div class="ps-l"><span>${words}</span>${n ? `<span class="n">${n}</span>` : ''}</div>`;
+const LONGN = 'Brannoch Ironhorn of the Seven Cairns, called the Unbowed';
+
+// ---- the parts ----
+const statusLine = `<div class="ps-status" role="button" aria-label="Exhausted: what it does and how it ends"><span class="ring" aria-hidden="true">E</span><span>Exhausted</span></div>`;
+const levelLine = `<div class="ps-lvl" role="button" aria-label="Level 2: how it’s worked out"><span><b>Level 2</b><small>2,400 of 4,000 experience</small><span class="ps-xp" aria-hidden="true" style="display:block"><i style="width:60%"></i></span></span><span class="go" aria-hidden="true" style="display:inline-flex;width:44px;height:44px;align-items:center;justify-content:center;transform:rotate(-90deg)">${I.chev}</span></div>`;
+const headOf = (o) => `<div class="ps-head"><span class="ps-av" role="button" aria-label="Portrait: change it">${o.name.charAt(0)}</span><div><div class="ps-kind">${o.kind}</div><div class="ps-meta">${o.meta || 'The Reed Marches, the Lantern Company'}</div></div><span></span></div>${o.ring ? statusLine : ''}${o.lvl ? levelLine : ''}`;
+// who you are, at rest: two or three lines, the player's words first, then the Details tables' results, then the pack's tags
+const who = (lines, open = false) => lines.length === 0 ? '' : `<div class="ps-who${open ? ' open' : ''}" role="button" aria-expanded="${open}" aria-label="Who you are">${`<div>${lines.join('')}</div>`}${open ? up : down}</div>`;
+const WHO_REST = ['<p class="q">“Head down, and forward.”</p>', '<p>A notched left horn. Speaks slowly, and means it.</p>', '<p class="m">Lawful. Drover. Hornkin: hill-folk who settle a quarrel head first.</p>'];
+const ll = (label, text) => `<p class="ps-ll"><b>${label}.</b> ${text}</p>`;
+const WHO_OPEN = `<p class="q">“Head down, and forward.”</p>
+  ${ll('Kindred', '<a>Hornkin</a>. Hill-folk who settle a quarrel head first and hold no grudge after.')}
+  ${ll('Class', '<a>Fighter</a>. Stands where the blows fall so that others need not.')}
+  ${ll('Alignment', '<a>Lawful</a>. A word given is a word kept.')}
+  ${ll('Background', '<a>Drover</a>. Knows beasts, weather and the price of both.')}
+  ${ll('Looks', 'A notched left horn; a drover’s coat two sizes too small.')}
+  ${ll('Manner', 'Speaks slowly, and means it.')}
+  ${ll('Trinket', 'A cow-bell with no clapper.')}
+  ${ll('Backstory', 'Brannoch drove the Seven Cairns herd for nine summers, until the winter the herd did not come down. He has not said what he found on the high pasture, and he has not been back. He took the Lantern Company’s coin because it was going the other way.')}`;
+const hpBar = (cur, max) => { const per = max <= 12 ? 1 : 5; const n = Math.ceil(max / per); if (n > 40) return `<span class="ps-hpbar" aria-hidden="true"><span><i style="width:${Math.round(100 * cur / max)}%"></i></span></span>`; return `<span class="ps-hpbar" aria-hidden="true">${Array.from({ length: n }, (_, i) => { const size = Math.min(per, max - i * per); const f = Math.max(0, Math.min(1, (cur - i * per) / size)); return `<span><i style="width:${Math.round(f * 100)}%"></i></span>`; }).join('')}</span>`; };
+const hp = (cur, max) => `<div class="ps-hp"><span class="l">Hit points</span><span class="v" role="button" aria-label="Hit points ${cur} of ${max}: type a value">${cur}<small>of ${max}</small></span><span class="btn ps-sq" role="button" aria-label="One less">${I.minus}</span><span class="btn ps-sq" role="button" aria-label="One more">${I.plus}</span>${hpBar(cur, max)}</div>`;
+const tile = (k, v, c = '', big = '') => `<div class="ps-tile${big ? ' big' : ''}" role="button"><span class="k">${k}</span><span class="v">${v}</span>${c ? `<span class="c">${c}</span>` : ''}</div>`;
+const acAtk = (ac = '15', acC = 'Mail, shield', atk = '+2', atkC = 'Melee +2, missile +0') => `<div class="ps-tiles" style="grid-template-columns:1fr 1fr">${tile('Armour class', ac, acC, 1)}${tile('Attack', atk, atkC, 1)}</div>`;
+const GENERIC = svg(`<path d="M12 4v16M6 20h12M5 7h14M5 7l-2.5 6a2.5 2.5 0 0 0 5 0zM19 7l-2.5 6a2.5 2.5 0 0 0 5 0z" ${W}/>`, 24);
+// ic-3 (Francis, 2026-11-14): the icon each button carries, from the set; a word with no ruled icon keeps the stand-in mark
+const IC3 = { Wield: 'sword-hilt', Grip: 'fist', Quiver: 'quiver', Use: 'pointing', Pouch: 'swap-bag', Refill: 'jug', Light: 'torch', 'Put out': 'smoking-finger', Answer: 'scroll-quill', 'Set max': 'heart-plus', Clear: 'broom' };
+const stk = (words, icon = IC3[words] ? gi(IC3[words], 24) : GENERIC) => `<span class="btn stk" role="button">${icon}<span>${words}</span></span>`;
+const weapon = (name, hit, dmg, dn = 8, more = '', mode = '') => `<div class="ps-wpn"><div><div class="nm">${name}</div><div class="in">In hand${more}</div></div><span class="ps-acts" style="flex-wrap:nowrap">${mode ? stk(mode) : ''}${stk('Attack', gi('sword-brandish', 24))}</span><div class="ps-roll"><span>${d(20)}<b>d20 ${hit}</b><small>to hit</small></span><span>${d(dn)}<b>d${dn}${dmg ? ' ' + dmg : ''}</b><small>damage</small></span></div></div>`;
+const labRule = (words, rule, cls = '') => `<div class="ps-l ps-lr${cls ? ' ' + cls : ''}"><span>${words}</span>${rule ? `<span class="ps-rl">${d(20, 16)}<span>${rule}</span></span>` : ''}</div>`;
+const SAVE_RULE = 'Roll d20: your save’s number or higher succeeds.';
+const SCORE_RULE = 'Roll d20: your score or lower succeeds.';
+const SAVES = [['Body', 12], ['Nerve', 13], ['Wits', 14], ['Luck', 15], ['Ward', 16]];
+const saves = (list = SAVES, across = list.length) => `${labRule('Saves', SAVE_RULE)}<div class="ps-tiles" style="grid-template-columns:repeat(${across},minmax(0,1fr));margin-top:0">${list.map(([k, v]) => tile(k, v)).join('')}</div>`;
+const dots = (left, of) => `<span class="ps-dots" role="img" aria-label="${left} of ${of} left">${Array.from({ length: of }, (_, i) => `<i class="${i < left ? 'on' : ''}"></i>`).join('')}</span>`;
+const pinMark = `<span class="ps-pin" role="img" aria-label="Pinned">${G.star}</span>`;
+const ability = (name, left, of, back = 'day', pinned = false) => `<div class="ps-row"><span class="t" role="button"><b>${pinned ? pinMark : ''}${name}</b><small>${dots(left, of)}${left === 0 ? 'None' : left} of ${of} left, back each ${back}</small></span>${stk('Use')}</div>`;
+const atHand = (name, sub, act, pinned = false, mode = '') => `<div class="ps-row"><span class="t" role="button"><b>${pinned ? pinMark : ''}${name}</b><small>${sub}</small></span>${mode ? stk(mode) : ''}${act === 'Cast' ? stk(act, gi('magic-palm', 24)) : stk(act)}</div>`;
+const rolls = (hit, dn, dmg) => `<span>${d(20, 16)}d20 ${hit}</span><span>${d(dn, 16)}d${dn}${dmg ? ' ' + dmg : ''}</span>`;
+const prow = (name, sub = '', fig = '') => `<div class="ps-row" role="button"><span class="t"><b>${name}</b>${sub ? `<small>${sub}</small>` : ''}</span>${fig ? `<span class="fig">${fig}</span>` : ''}${goR}</div>`;
+const figRow = (name, fig, sub = '') => `<div class="ps-row" role="button"><span class="t"><b>${name}</b>${sub ? `<small>${sub}</small>` : ''}</span><span class="fig">${fig}</span></div>`;
+const SCORES = [['Might', 14, '+1'], ['Grace', 10, ''], ['Grit', 13, '+1'], ['Wit', 9, ''], ['Sense', 11, ''], ['Voice', 12, '']];
+const scores = `${labRule('Scores', SCORE_RULE)}<div class="ps-tiles" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:0">${SCORES.map(([k, v, m]) => tile(k, v, m || '&nbsp;')).join('')}</div>`;
+const scoresPh = scores;
+const scoresTop = scores.replace('class="ps-l ps-lr"', 'class="ps-l ps-lr top"');
+const movement = `${lab('Movement')}<div class="ps-pair"><div class="ps-card" role="button"><b>120 paces</b><span>Speed, 40 paces in a fight</span></div><div class="ps-card">${load(true, 'Light', [96, 0, 0], '383 of 1,200 coins')}</div></div>`;
+const skills = `${lab('Skills')}${['Listen|2 in 6', 'Search|1 in 6'].map((s) => { const [n, o] = s.split('|'); return `<div class="ps-row" role="button"><span class="t"><b>${n}</b></span><span class="fig">${d(6, 16)} ${o}</span>${goR}</div>`; }).join('')}`;
+const langs = `${lab('Languages')}<div class="ps-boxes"><span role="button">Common</span><span role="button">Hill-speech</span></div><p class="ps-meta" style="margin:var(--space-1) 0 0">Reads and writes.</p>`;
+const level = `<div class="ps-row" role="button"><span class="t"><b>Level 2</b><small>2,400 of 4,000 experience</small><span class="ps-xp" aria-hidden="true" style="display:block"><i style="width:60%"></i></span></span>${goR}</div>`;
+const mem = (name, who, you) => `<div class="ps-mem${you ? ' you' : ''}" role="button"><span class="a" aria-hidden="true">${name.charAt(0)}</span><span><b>${name}</b><small>${who}</small></span></div>`;
+const marching = `${lab('Marching order')}<div class="ps-way">Front</div><div class="ps-rank"><span class="rn">1</span>${mem('Brannoch', 'You, level 2', true)}${mem('Wren', 'Sam, level 2')}</div><div class="ps-rank"><span class="rn">2</span>${mem('Ash', 'Robin, level 1')}${mem('Tam of the Long Stair', 'Kit, level 1')}</div><div class="ps-way">Rear</div>`;
+const rest = (extra = '') => `<div class="ps-rule"><h3>Full character sheet</h3>${stk('Edit', gi('quill-ink', 24))}</div>${prow('Weapon skills', 'Longsword, shortbow')}${prow('Traits', 'Horns, Sure-footed, Experience bonus 5 %')}${extra}${prow('Notes', 'No notes yet')}`;
+
+// ---- frame 1: the tablet, at rest ----
+const fighter = { name: 'Brannoch', kind: 'Shieldbearer, Fighter 2, Hornkin', ring: true, lvl: true };
+const abilitiesNow = `${lab('Traits')}${ability('Second wind', 1, 1)}`;
+const details = `${lab('Details')}<div class="ps-who" style="margin-top:0" role="button" aria-expanded="false" aria-label="Details"><div class="bk"><p class="ln"><span class="lb">Motto</span>“Head down, and forward.”</p><p class="ln"><span class="lb">Looks</span>A notched left horn. Speaks slowly, and means it.</p><p class="ln"><span class="lb">Background</span>Drover. Lawful.</p></div>${down}</div>`;
+const ST_SYM = {
+  flame: `<path d="M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.5-2.5 1.2-3.3C9.5 9 10.5 10 11 10.5 11 8 11 5.5 12 3z" ${W}/>`,
+  star: `<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z" ${W}/>`,
+  stone: `<path d="M7 19l-3-5 2-6 6-3 6 3 2 6-3 5z" ${W}/><path d="M9 13l3-4 3 4" ${W}/>`,
+  spiral: `<path d="M12 12a1.5 1.5 0 0 1 3 0 3 3 0 0 1-6 0 4.5 4.5 0 0 1 9 0 6 6 0 0 1-12 0 7.5 7.5 0 0 1 15 0" ${W}/>`,
+  drop: `<path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z" ${W}/>`,
+};
+const ST_TONE = { light: 'glow', harm: 'danger', boon: 'info', neutral: 'ink' };
+const stRing = (k, tone, frac, name, dashed = false, size = 52, stroke = 5) => { const col = ST_TONE[tone], r = (size - stroke) / 2, c = 2 * Math.PI * r; return `<span class="ps-st" role="button" aria-label="${name}: its details" style="width:${size}px;height:${size}px"><svg class="arc" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--rule)" stroke-width="${stroke}"${dashed ? ' stroke-dasharray="4 5"' : ''}/>${dashed ? '' : `<circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--${col})" stroke-width="${stroke}" stroke-dasharray="${(c * frac).toFixed(1)} ${c.toFixed(1)}"/>`}</svg><span class="mid" style="color:var(--${col})" aria-hidden="true">${svg(ST_SYM[k], Math.round(size / 2))}</span></span>`; };
+const stMore = (n) => `<span class="ps-st more" role="button" aria-label="${n} more: see every status">+${n}</span>`;
+const tg = (on, label) => `<span class="tg${on ? ' on' : ''}" role="switch" aria-checked="${!!on}" aria-label="${label}"><span class="tr"><span class="kn">${svg(on ? `<path d="M5 12l5 5 9-10" ${W}/>` : `<path d="M7 7l10 10M17 7L7 17" ${W}/>`, 14)}</span></span></span>`;
+const atHandNow = `${lab('At hand')}${atHand('Shortbow', `${rolls('+0', 6, '')}<span style="display:block;margin:0">Quiver: Arrows ×18</span>`, 'Wield', true, 'Quiver')}<div class="ps-litw"><div class="ps-lit">${stRing('flame', 'light', 4 / 6, 'Storm lantern, lit, 4 of 6 turns left')}<span class="t" role="button"><b>Storm lantern</b><small>Lit, 4 turns left. 3 refills left</small></span>${tg(true, 'Storm lantern: lit')}</div><div class="ps-kl"><span class="nm">Keep lit</span><span class="ps-info" role="button" aria-label="About Keep lit">${I.info}</span>${tg(true, 'Keep lit')}<span style="flex:1"></span>${stk('Refill')}</div></div>${atHand('Glow wand', '3 of 5 charges', 'Use')}${ability('Horn charge', 2, 3, 'day', true)}`;
+const classLevel = `<div class="ps-lvl" role="button" aria-label="Fighter, level 2: how it’s worked out"><span><b>Fighter, level 2</b><small>2,400 of 4,000 experience</small><span class="ps-xp" aria-hidden="true" style="display:block"><i style="width:60%"></i></span></span><span class="go" aria-hidden="true" style="display:inline-flex;width:44px;height:44px;align-items:center;justify-content:center;transform:rotate(-90deg)">${I.chev}</span></div>`;
+const classLevelStack = classLevel.replace('class="ps-lvl"', 'class="ps-lvl stack"');
+const levelBlock = (company, stack) => (stack ? classLevelStack : classLevel).replace('<span class="ps-xp" aria-hidden="true" style="display:block"><i style="width:60%"></i></span></span>', `<span class="ps-xp" aria-hidden="true" style="display:block"><i style="width:60%"></i></span><span class="co">${company}</span></span>`).replace('class="ps-lvl', 'style="margin-top:var(--space-3)" class="ps-lvl');
+const head2 = (o) => `<div class="ps-head2"><span class="ps-av big" role="button" aria-label="Portrait: change it">${o.name.charAt(0)}</span><div>${o.first ? `<div class="ps-kind" style="margin-bottom:var(--space-1)">${o.first}</div>` : ''}<div class="ps-sts">${o.sts}</div></div></div>${o.bare ? '' : `${o.stack ? classLevelStack : classLevel}<div class="ps-meta">${o.meta}</div>`}`;
+const FIVE = `${stRing('stone', 'harm', 1, 'Exhausted, until rested', true)}${stRing('star', 'boon', 0.6, 'Blessed, 6 of 10 turns left')}${stRing('drop', 'harm', 0.25, 'Poisoned, 1 of 4 turns left')}${stRing('spiral', 'harm', 0.8, 'Charmed, 4 of 5 rounds left')}${stMore(1)}`;
+const headBand = `<div class="ps-band"><div class="ps-head2" style="flex:none"><span class="ps-av big" role="button" aria-label="Portrait: change it">B</span><div class="ps-sts">${FIVE}</div></div><div class="ps-cl" role="button" aria-label="Fighter, level 2: how it’s worked out"><span><b>Fighter, level 2</b><small>2,400 of 4,000 experience</small><span class="ps-xp" aria-hidden="true" style="display:block"><i style="width:60%"></i></span><span class="co">The Lantern Company</span></span><span class="go" aria-hidden="true" style="display:inline-flex;width:44px;height:44px;align-items:center;justify-content:center;transform:rotate(-90deg)">${I.chev}</span></div></div>`;
+const ONE = `<span class="ps-stn" role="button" aria-label="Poisoned, 1 of 4 turns left: its details">${stRing('drop', 'harm', 0.25, 'Poisoned').replace(' role="button"', '')}<span>Poisoned<small>1 of 4 turns left</small></span></span>`;
+const playCol = (o = {}) => `<div class="ps-head2 fix"><span class="ps-av big" role="button" aria-label="Portrait: change it">B</span><div class="ps-sts">${FIVE}</div></div>${hp(11, 16)}${acAtk()}${weapon('Longsword', '+2', '+1', 8, ', Grip: one hand', 'Grip')}${atHandNow}${levelBlock('The Lantern Company')}${details}`;
+const rightCol = (o = {}) => `${scoresTop}${saves()}${movement}${abilitiesNow}${skills}${langs}${rest()}`;
+const tabletOf = (cap, left, right, name = 'Brannoch', extra = '', style = '', band = '') => `<div><p class="cap" style="max-width:1024px">${cap}</p><div class="tablet wide bit"${style ? ` style="${style}"` : ''}><div class="bar pk-bar pk-wide"><span class="pk-link" role="button" style="min-height:44px;display:inline-flex;align-items:center">‹ The Reed Marches</span><span class="title">${name}</span><span class="ico" role="button" aria-label="Log">${G.book}</span><span class="ico" role="button" aria-label="Messages">${G.mail}</span><span class="ico" role="button" aria-label="More">${I.more}</span></div><div class="ps-grid"><div class="pk-nav" role="tablist" style="position:relative;grid-row:1 / span 2"><span class="on">${gi('crown', 24)}Player</span><span>${G.fire}Scene</span><span>${G.pouch}Pack</span><span class="ps-handle" role="button" aria-label="Fold the menu" style="min-height:0;padding:0"><span aria-hidden="true" style="display:inline-flex">${svg('<path d="M15 6l-6 6 6 6" ' + W + '/>', 16)}</span><i></i></span></div>${band}<div>${left}</div><div>${right}</div></div>${extra}</div><p class="from">A proposal: drawn from the built screen’s source and picture, re-ordered; not checked against a built screen.</p></div>`;
+const t1 = tabletOf('P1. <b>The Player screen at rest, on a tablet held sideways. Approved 2026-11-14 (ps-9) at 4303bd32.</b> (The icons stay proposed, not ruled.) A level-2 fighter of a horned kindred, a sword in hand, in the book’s type. <b>The top bar</b> reads the name, “the” kindred, the title: “Brannoch the Hornkin, Shieldbearer”. <b>The head</b>, at the top of the left column, is the portrait and the status rings alone: a larger portrait (64 px, so that four rings and “+1” sit beside it 8 px apart), and to its right <b>the statuses as rings</b>, as ruled 2026-11-08: the status’s own symbol in the middle (from the approved set of status symbols), the ring in its family’s tone and emptied by the time left, <b>dashed for a status with no end</b> (the first here); each ring 52 px, a tap for that status’s details; four in view and “+1” for the rest, one tap away. <b>A departure at four, to confirm:</b> the ruling puts the name and the time in words under each ring; with four rings and “+1” beside the portrait there is no room for words under each, so here the symbol stands alone and the name and time are on the tap. With one status they are in words beside the ring (frame P2). <b>The first row of score boxes starts exactly level with the top edge of the hit points box</b>: the heading “Scores” with its rule is as tall as the portrait-and-rings row beside it, its words at its foot. <b>Left, under the head:</b> hit points (the figure at 48 px, − and + as 56 px squares) with the segmented bar; armour class and attack; the weapon in hand, with <b>its mode button “Grip” beside “Attack”</b> and the grip in use named in its line (“In hand” has no star: the star means pinned); “At hand”: the pinned shortbow with <b>“Quiver” beside “Wield”</b> (it is not in hand), its line naming what the quiver holds; the lit lantern leading with its ring (a flame, the arc the burn left), with <b>a toggle at the right of its row for lit or out</b> (on: it is lit) and, under it, <b>“Keep lit” as a second toggle</b> with its name and its ⓘ (on), and “Refill” as a stacked button (its count is in the lantern’s line); the toggle is the ruled part: the wash with the accent edge and a soft glow, the knob at the right with a tick when on, no state words; the wand; and the pinned trait; each pinned line with its small star; <b>the class beside the level, the experience with its bar, and the company</b>, one tap that opens what the level’s row opened, directly above “Details”; and “Details” last, its lines in the book’s entry format (a coloured label, then the words). <b>Every row’s button is the stacked button</b>, the Scene’s standard (mc-36a): the icon above, the word under, the 2 px edge, one size everywhere (88 by 56 at least, one line: the shared button), at the right of its row: “Attack”, “Grip”, “Quiver”, “Wield”, “Refill”, “Use”, “Edit”. <b>Icons, proposed and not ruled</b>, from the icon set where it has one: the raised sword on “Attack”, the quill on “Edit”, the crown for “Player”. “Wield”, “Use”, “Quiver”, “Grip” and “Refill” carry the generic mark until an icon is chosen for each from the set’s source (the note lists them). Nowhere else: the set has nothing fitting for the other headings (the note lists them), and an icon on every heading would not be calm. The pin keeps its approved star. <b>Right:</b> “Scores”, always two rows of three, every tile one size whether or not it has a modifier, with the rule for a check against a score in the heading’s own row (the d20 and one line, built from the rules as the saves’ is; a setting with no such check shows the heading alone); “Saves”, with sv-1’s line in the heading’s row; movement and load; “Traits”, the list of traits with uses; skills as rows with a chevron; languages; “Full character sheet” with its rows, where “Traits” holds only what has no uses and is not at the left. <b>The top row</b> is the campaign link, the Log (the open book), Messages and the menu; the divider beside the rail has its fold handle. Speeds carry their unit. Tile labels are whole words. No marching order (ps-4).',
+  playCol(), rightCol(), 'Brannoch the Hornkin, Shieldbearer');
+
+// ---- frame 2: the phone ----
+const phoneBar = (name) => `<div class="bar pk-bar"><span class="ico" role="button" aria-label="Menu">${G.menu}</span><span class="title">${name}</span><span class="ico" role="button" aria-label="Messages">${G.mail}</span></div>`;
+const phTabs = `<div class="pk-tabs" role="tablist"><span class="on">${gi('crown', 24)}Player</span><span>${G.fire}Scene</span><span>${G.pouch}Pack</span><span>${G.book}Log</span></div>`;
+const sheetRow = `<div style="border-top:3px double var(--rule);margin-top:var(--space-3)">${prow('Full character sheet', 'Scores, skills, languages, level, notes')}</div>`;
+const MOON = svg(`<path d="M15.5 4a8 8 0 1 0 4.5 12A6.5 6.5 0 0 1 15.5 4z" ${W}/>`);
+const phTabsCaster = phTabs.replace('class="pk-tabs"', 'class="pk-tabs five"').replace(`<span>${G.pouch}Pack</span>`, `<span>${MOON}Magic</span><span>${G.pouch}Pack</span>`);
+const phoneOf = (name, inner) => `${phoneBar(name)}<div class="inner">${inner}</div>${name === 'Sedge' ? phTabsCaster : phTabs}`;
+const SAVES_LONG = [['Body', 12], ['Nerve', 13], ['Wits', 14], ['Breath of the Deep', 15], ['Ward', 16]];
+const p2 = frame('P2. <b>The phone, the same character. Approved 2026-11-14 (ps-9) at 4303bd32.</b> (The icons stay proposed, not ruled.) One column, read down the three pictures. The bar keeps the name (there is no room for more); the head’s first line gives the rest, “the Hornkin, Shieldbearer”, beside the larger portrait, with <b>one status: its ring with its symbol, and its name and time left in words beside it</b>. Hit points; armour class and attack; the saves directly under them, three tiles a row, their rule under the heading where it cannot share the heading’s row; the weapon in hand; “At hand”; the class beside the level with the experience bar, the campaign and the company; “Details”, in the book’s entry format. The stacked button on every row, with the same icons and the generic mark as frame P1; the mode buttons “Grip” and “Quiver”; the lantern’s two toggles (lit, and “Keep lit”) and its “Refill”. The phone’s head is the portrait, its line and the ring; the class, level, experience and company sit above “Details”, as on the tablet. Then the scores with their rule; movement and load; “Traits”; skills; languages; the row “Full character sheet”.',
+  [col('The top of the screen', phoneOf('Brannoch', `${head2({ name: 'Brannoch', first: 'the Hornkin, Shieldbearer', sts: ONE, bare: true })}${hp(11, 16)}${acAtk()}${saves(SAVES_LONG, 3)}`), 'bit'), col('Scrolled on', phoneOf('Brannoch', `${weapon('Longsword', '+2', '+1', 8, ', Grip: one hand', 'Grip')}${atHandNow}${levelBlock('The Reed Marches, the Lantern Company', true)}${details}${scoresPh}`), 'bit'), col('Further', phoneOf('Brannoch', `${movement}${abilitiesNow}${skills}${langs}<div style="border-top:3px double var(--rule);margin-top:var(--space-3)">${prow('Full character sheet', 'Weapon skills, traits, notes')}</div>`), 'bit')], 1100, 'A proposal; not checked against a built screen.');
+
+// ---- the second pass: frames P3, P4 and P5 brought to the approved design (ps-9) ----
+const SECOND = 'Drawn to the approved design (ps-9, 2026-11-14); this frame itself is not yet approved.';
+const phHead = (name, first, sts = '') => head2({ name, first, sts, bare: true });
+const lvlOf = (cls, xp, company, pct) => levelBlock(company, true).split('Fighter, level 2').join(cls).split('2,400 of 4,000 experience').join(xp).replace('width:60%', `width:${pct}%`);
+const dl = (label, text) => `<p class="ln"><span class="lb">${label}</span>${text}</p>`;
+const lk = (words) => `<a style="text-decoration:underline;text-underline-offset:3px">${words}</a>`;
+const detailsOf = (lines, open = false) => `${lab('Details')}<div class="ps-who" style="margin-top:0" role="button" aria-expanded="${open}" aria-label="Details"><div class="bk">${lines.join('')}</div>${open ? up : down}</div>`;
+const D_REST = [dl('Motto', '“Head down, and forward.”'), dl('Looks', 'A notched left horn. Speaks slowly, and means it.'), dl('Background', 'Drover. Lawful.')];
+const D_OPEN = [dl('Motto', '“Head down, and forward.”'), dl('Kindred', `${lk('Hornkin')}. Hill-folk who settle a quarrel head first and hold no grudge after.`), dl('Class', `${lk('Fighter')}. Stands where the blows fall so that others need not.`), dl('Alignment', `${lk('Lawful')}. A word given is a word kept.`), dl('Background', `${lk('Drover')}. Knows beasts, weather and the price of both.`), dl('Looks', 'A notched left horn; a drover’s coat two sizes too small.'), dl('Manner', 'Speaks slowly, and means it.'), dl('Trinket', 'A cow-bell with no clapper.'), dl('Backstory', 'Brannoch drove the Seven Cairns herd for nine summers, until the winter the herd did not come down. He has not said what he found on the high pasture, and he has not been back. He took the Lantern Company’s coin because it was going the other way.')];
+const CO = 'The Reed Marches, the Lantern Company';
+const p3 = frame(`P3. <b>“Details”, opened.</b> ${SECOND} “Details” is the last thing in the left column (on a phone, after “At hand” and the level block). <b>At rest</b> (left) it shows up to three lines in the book’s entry format. <b>A tap opens it in place</b> (middle) and pushes what follows down; a tap folds it again. Every word is the pack’s or the player’s: the motto and the backstory are the player’s; the kindred’s, the class’s, the alignment’s and the background’s lines are their entries’ own short lines, each name a tap to its entry; looks, manner and the trinket are the results of the pack’s Details tables. <b>A character with almost nothing chosen</b> (right) shows only what there is, here the kindred’s line; nothing asks for more. With nothing at all there is no “Details” part.`,
+  [col('At rest', phoneOf('Brannoch', `${ability('Horn charge', 2, 3, 'day', true)}${lvlOf('Fighter, level 2', '2,400 of 4,000 experience', CO, 60)}${detailsOf(D_REST)}${scoresPh}`), 'bit'), col('Opened', phoneOf('Brannoch', `${ability('Horn charge', 2, 3, 'day', true)}${lvlOf('Fighter, level 2', '2,400 of 4,000 experience', CO, 60)}${detailsOf(D_OPEN, true)}${labRule('Scores', SCORE_RULE)}`), 'bit'), col('Almost nothing chosen', phoneOf('Odo', `${atHand('Club', rolls('+0', 4, ''), 'Wield', true)}${lvlOf('Fighter, level 1', '0 of 2,000 experience', 'The Reed Marches', 0)}${detailsOf([dl('Kindred', `${lk('Hornkin')}. Hill-folk who settle a quarrel head first.`)])}${scoresPh}`), 'bit')], 1100, 'Not checked against a built screen.');
+
+// ---- P4: a caster; none left ----
+const p4 = frame(`P4. <b>A caster, and a trait with none left.</b> ${SECOND} <b>Left, a caster:</b> the same order as the fighter’s. <b>A caster’s tab bar has the Magic tab</b>, between Scene and Pack, with the moon (fixed 2026-11-14). <b>This screen has no “Spells” part</b>: a caster’s spells are on the Magic tab (mp-20, mp-21). A spell the player has pinned sits in “At hand” like any pinned thing: the small star, its name, its line, and a stacked button, “Cast”. <b>Right, none left:</b> a pinned trait and a trait in the list, each with none left: the dots are empty, the line says “None of 3 left, back each day”, and “Use” stays a button; tapped, it says why in a toast and does nothing. Never a greyed button.`,
+  [col('A caster', phoneOf('Sedge', `${phHead('Sedge', 'the Fenfolk, Reed-reader')}${hp(6, 9)}${acAtk('11', 'No armour', '+0', 'Melee +0, missile +1')}${saves(SAVES, 5)}${weapon('Ash staff', '+0', '', 6)}${lab('At hand')}${atHand('Glowlight', 'Spell, level 1, prepared', 'Cast', true)}${atHand('Glow wand', '3 of 5 charges', 'Use')}${lvlOf('Hedge-mage, level 3', '5,100 of 8,000 experience', CO, 64)}${detailsOf([dl('Motto', '“Ask the water first.”'), dl('Background', 'Reed-cutter. Neutral.')])}`), 'bit'), col('None left', phoneOf('Brannoch', `${lab('At hand')}${atHand('Shortbow', `${rolls('+0', 6, '')}<span style="display:block;margin:0">Quiver: Arrows ×18</span>`, 'Wield', true, 'Quiver')}${ability('Horn charge', 0, 3, 'day', true)}<div class="ps-toast">No Horn charge left. It comes back each day.</div>${lab('Traits')}${ability('Second wind', 0, 1)}`), 'bit')], 720, 'Not checked against a built screen.');
+
+// ---- P5: the states ----
+const promptRow = (words, btn = '', sign = I.info) => `<div class="ps-pr">${sign}<span class="t">${words}</span>${btn}</div>`;
+const hpBox = (o) => `<div class="ps-hp"><span class="l">Hit points</span><span class="v" role="button">${o.fig}${o.of ? `<small>${o.of}</small>` : ''}${o.say ? `<small>${o.say}</small>` : ''}</span><span class="btn ps-sq" role="button" aria-label="One less">${I.minus}</span><span class="btn ps-sq" role="button" aria-label="One more">${I.plus}</span>${o.bar || ''}${o.under || ''}</div>`;
+const st5 = (label, html) => `<p class="ps-sl">${label}</p>${html}`;
+const letterRing = (letter, name) => `<span class="ps-st" role="button" aria-label="${name}: its details"><svg class="arc" viewBox="0 0 52 52" width="52" height="52" aria-hidden="true"><circle cx="26" cy="26" r="23.5" fill="none" stroke="var(--rule)" stroke-width="5" stroke-dasharray="4 5"/></svg><span class="mid" aria-hidden="true" style="font-weight:700">${letter}</span></span>`;
+const barBadge = (name, n) => `<div class="bar pk-bar"><span class="ico" role="button" aria-label="Menu">${G.menu}</span><span class="title">${name}</span><span class="ico" role="button" aria-label="Messages, ${n} waiting" style="position:relative">${G.mail}<span class="ps-badge" aria-hidden="true">${n}</span></span></div>`;
+const litLow = `<div class="ps-litw"><div class="ps-lit">${stRing('flame', 'light', 1 / 6, 'Storm lantern, lit, 1 of 6 turns left')}<span class="t" role="button"><b>Storm lantern</b><small>${I.warn} Lit, 1 turn left. 3 refills left</small></span>${tg(true, 'Storm lantern: lit')}</div></div>`;
+const litOut = `<div class="ps-row"><span class="t" role="button"><b>Storm lantern</b><small>Burnt out. 3 refills left</small></span>${stk('Refill')}${stk('Light')}</div>`;
+const blocked = `<div class="ps-card" style="margin-top:var(--space-2)"><div style="display:flex;align-items:center;gap:var(--space-2)"><b style="font-size:20px;flex:1">No arrows chosen</b><span class="ps-info" role="button" aria-label="Close" style="color:var(--ink)">${I.close}</span></div><p style="margin:var(--space-1) 0 var(--space-3);font-size:16px;color:var(--ink)">The silver arrows are used up. Choose what the bow fires next.</p><span class="btn stk accent" role="button">${gi('quiver', 24)}<span style="color:inherit;font-size:inherit">Quiver</span></span></div>`;
+const THREE = `${stRing('star', 'boon', 0.6, 'Blessed, 6 of 10 turns left')}${stRing('drop', 'harm', 0.25, 'Poisoned, 1 of 4 turns left')}${stRing('spiral', 'harm', 0.8, 'Charmed, 4 of 5 rounds left')}${stMore(2)}`;
+const LONGNAME = 'Brannoch Ironhorn of the Seven Cairns, called the Unbowed';
+const more5 = [['Shortbow', '+0', 6, '', 'Quiver'], ['Hand axe of the Seven Cairns, twice reforged', '+2', 6, '+1', 'Grip'], ['Dagger', '+2', 4, '+1', ''], ['Sling', '+0', 4, '', 'Pouch'], ['Horns', '+2', 6, '+1', '']];
+const p5 = frame(`P5. <b>States, first part.</b> <b>Fixed 2026-11-14:</b> the warning sign stands on “No light.” alone; the other prompts take the information sign; “Refill” and “Light another” are one line each at one shared width. ${SECOND} Each column shows only the parts in question, in their place. <b>Left: above hit points, the prompts</b>: what needs the player now sits between the head and hit points (the weather’s line; “No light” with “Light a torch (3 left)”; something waiting); with nothing to say the space closes and hit points follow the head. Then <b>bonus hit points as their own band</b> under the segmented bar, and <b>Down at 0</b>, in words with the warning sign. <b>Middle: hit points and armour class not set</b>: no maximum (the number alone and “Set max”); no value (“—, tap to set”); armour class with no value anywhere (“—” and a quiet “Set AC”); armour class set by hand (its caption says so, with “Clear”). <b>Right: lights and a spent mode</b>: a light running low (the warning sign before its words, the ring nearly empty); a light burnt out (plain words, with “Refill” and “Light another”); a weapon whose mode is spent: its line reads “Quiver: nothing chosen”, “Attack” stays a button, and its tap opens the sheet that explains and leads to the quiver.`,
+  [col('Prompts, bonus hit points, Down', phoneOf('Brannoch', `${phHead('Brannoch', 'the Hornkin, Shieldbearer', ONE)}<div style="margin-top:var(--space-3)">${promptRow('Sleet: missiles at −2 until it passes.')}${promptRow('No light. 3 torches left.', stk('Light'), I.warn)}${promptRow('Your GM asks: who keeps watch?', stk('Answer'))}</div>${st5('Bonus hit points, their own band:', hpBox({ fig: '11', of: 'of 16', bar: hpBar(11, 16), under: `<span class="l" style="letter-spacing:0;text-transform:none">4 bonus hit points</span><span class="ps-hpbar" aria-hidden="true">${'<span><i style="width:100%"></i></span>'.repeat(4)}</span>` }))}${st5('Down at 0:', hpBox({ fig: '0', of: 'of 16', bar: hpBar(0, 16), under: `<span class="l" style="letter-spacing:0;text-transform:none;display:flex;align-items:center;gap:var(--space-1);color:var(--ink)">${I.warn}Down</span>` }))}`), 'bit'), col('Hit points and armour class not set', phoneOf('Ox', `${st5('No maximum recorded:', hpBox({ fig: '11', under: '<span style="grid-column:1 / -1">' + stk('Set max') + '</span>' }))}${st5('No hit points yet:', hpBox({ fig: '—', say: 'tap to set' }))}${st5('Armour class with no value anywhere:', `<div class="ps-tiles" style="grid-template-columns:1fr 1fr">${tile('Armour class', '—', '<span style="text-decoration:underline;text-underline-offset:3px">Set AC</span>', 1)}${tile('Attack', '+0', '', 1)}</div>`)}${st5('Armour class set by hand:', `<div class="ps-tiles" style="grid-template-columns:1fr 1fr">${tile('Armour class', '17', 'Set by hand', 1)}${tile('Attack', '+2', 'Melee +2, missile +0', 1)}</div><div style="margin-top:var(--space-2)">${stk('Clear')}</div>`)}`), 'bit'), col('Lights, and a spent mode', phoneOf('Brannoch', `${st5('A light running low:', litLow)}${st5('A light burnt out:', litOut)}${st5('A mode spent; “Attack” tapped:', `${weapon('Shortbow', '+0', '', 6, ', Quiver: nothing chosen', 'Quiver')}${blocked}`)}`), 'bit')], 1100, 'Not checked against a built screen.');
+const p5b = frame(`P5b. <b>States, second part.</b> ${SECOND} <b>Left: statuses, the form switch, changes waiting, the envelope.</b> On a phone, three rings and “+2” beside the portrait; the status the app works out itself, “Can’t cast”, as a ring with its words; a class with forms has its switch by the level block, a toggle named for the form; a sheet change waiting for the GM is said in a line above hit points and in the score’s own tile (“15 waiting”); the envelope in the bar carries its count. <b>Middle: messy data</b>: a very long name (cut in the bar, whole in the head’s line); 999 hit points (past forty segments the bar is one bar); six weapons at hand, the one in hand and five more, a long name wrapping beside its buttons. <b>Right: five saves across on a phone</b>, as ruled, where every name is a short word; and <b>rules with no saves and no scores</b>: those parts are absent, nothing in their place.`,
+  [col('Statuses, the form switch, waiting', `${barBadge('Brannoch', 2)}<div class="inner">${phHead('Brannoch', 'the Hornkin, Shieldbearer', THREE)}${st5('“Can’t cast”, worked out by the app:', `<span class="ps-stn" role="button">${letterRing('C', 'Can’t cast').replace(' role="button"', '')}<span>Can’t cast<small>Mail worn</small></span></span>`)}${st5('A change waiting for the GM:', `${promptRow('Waiting for your GM: Might 14 to 15.').replace(I.warn, I.info)}<div class="ps-tiles" style="grid-template-columns:repeat(3,minmax(0,1fr))">${tile('Might', 14, '15 waiting')}${tile('Grace', 10, '&nbsp;')}${tile('Grit', 13, '+1')}</div>`)}${st5('A class with forms, by the level block:', `${lvlOf('Skin-changer, level 2', '2,400 of 4,000 experience', CO, 60)}<div class="ps-kl"><span class="nm">Wolf-shape</span><span style="flex:1"></span>${tg(false, 'Wolf-shape')}</div>`)}</div>${phTabs}`, 'bit'), col('A long name, 999, six weapons', phoneOf(LONGNAME, `${phHead('Brannoch', 'the Hornkin, Shieldbearer of the Seven Cairns')}${hp(999, 999)}${weapon('Longsword of the Seven Cairns', '+2', '+1', 8, ', Grip: one hand', 'Grip')}${lab('At hand', '5 more')}${more5.map(([n, h, dn, dm, mode]) => atHand(n, rolls(h, dn, dm), 'Wield', true, mode)).join('')}`), 'bit'), col('Five saves across; no saves, no scores', phoneOf('Brannoch', `${st5('Five saves, short names: five across.', saves(SAVES, 5))}${st5('Rules with no saves and no scores: hit points, then the weapon; then movement.', `${hp(7, 7)}${acAtk('12', 'Leather', '+0', 'Melee +0, missile +0')}${weapon('Club', '+0', '', 4)}${movement}`)}`), 'bit')], 1100, 'Not checked against a built screen.');
+
+// ---- frame 6: the alternative ----
+const t6 = tabletOf('P6. <b>Withdrawn 2026-11-14 (the order is ruled, ps-2); kept for the record, not redrawn.</b> As first drawn: <b>the alternative, not my pick: “who you are” at the top of the right column</b>, not under the name. The left column then starts with hit points a little higher, and the person’s lines sit beside the name across the fold. <b>What it costs:</b> the lines are no longer with the name they belong to; on a phone there is no right column, so the two devices differ; and the right column’s first thing in a fight (the abilities with uses) starts lower. I think the choice is close only on a tablet; my pick is frame P1.',
+  `${headOf(fighter)}${hp(11, 16)}${acAtk()}${weapon('Longsword', '+2', '+1')}${saves()}${marching}`, `${who(WHO_REST)}${lab('Abilities', 'with uses')}${ability('Second wind', 1, 1)}${ability('Horn charge', 2, 3)}${lab('At hand')}${atHand('Shortbow', rolls('+0', 6, ''), 'Attack')}${atHand('Storm lantern', 'Lit, 4 turns left', 'Put out')}${movement}`);
+
+// ---- frame 7: a figure tapped, one sheet ----
+const xBtn = `<span class="x" role="button" aria-label="Close">${I.close}</span>`;
+const saveSheet = `<div class="ps-sh"><span class="ttl">Ward</span><span class="fig">16</span>${xBtn}</div>
+  <p class="ps-line" style="margin-top:var(--space-2)">${d(20, 20)}<span>Roll d20: 16 or higher succeeds.</span></p>
+  <div class="ps-gap"></div>
+  ${ll('Equal or higher', 'The effect is thrown off, or halved where the effect says so.')}
+  ${ll('Lower', 'The effect takes hold in full.')}
+  ${ll('Effects that wound', 'A save halves the wound unless the effect says otherwise.')}
+  <p class="ps-src">From your setting: River Rules, p. 31.</p>`;
+const scoreSheet = `<div class="ps-sh"><span class="ttl">Might</span><span class="fig">14</span>${xBtn}</div>
+  <div class="ps-sub">Modifiers</div>
+  <p class="ps-ll">Melee, to hit: +1.</p>
+  <p class="ps-ll">Melee, damage: +1.</p>
+  <p class="ps-ll">Forcing a door: no change.</p>
+  <div class="ps-gap"></div>
+  ${ll('Melee', 'Added to the roll to hit, and to the damage, of a weapon swung or thrust.')}
+  ${ll('Forcing a door', 'Great Might forces a stuck door more often; a score from 9 to 15 changes nothing.')}
+  <p class="ps-src">From your setting: River Rules, p. 12.</p>`;
+const t7 = tabletOf('P7. <b>A save tapped: one sheet, no second pop-up. Ruled 2026-11-14 (sv-2a), redrawn.</b> The sheet is: the save’s name and its number; the one line with the d20 (sv-1); the rule’s lines, each with its lead-in; the source. An X, no Close. There is no “The rule” heading and no section about the character. Frame P7b shows the same sheet on a phone, and a score.',
+  playCol(), rightCol(), 'Brannoch', `<div class="ps-dim"></div><div class="ps-sheet" role="dialog" aria-label="Ward">${saveSheet}</div>`, 'height:720px');
+const p7 = frame('P7b. <b>The save’s sheet on a phone, and a score. Ruled 2026-11-14 (sv-2a), redrawn.</b> Left: the save’s sheet on a phone, the whole screen. Right: a score tapped: its name and its value; under the heading <b>“Modifiers”</b>, each thing it changes, once, with what it gives this character; then, after a space and with no heading, the rule’s lines for those effects, each with its lead-in; the source. No line appears twice. A score has no roll of its own, so it has no line with a die. An effect that gives nothing is listed plainly (“Forcing a door: no change.”).',
+  [col('A save, on a phone', `<div class="ps-sheetp">${saveSheet}</div>`, 'bit'), col('A score', `<div class="ps-sheetp">${scoreSheet}</div>`, 'bit')], 720, 'A proposal; not checked against a built screen.');
+
+mount(`
+  <h1>The Player screen for the person playing</h1>
+  <p class="note">For the lead (brief of 2026-11-14; Francis: “a novice to moderate experienced roleplayer who needs important information close at hand based on the frequency used but also needs cues about how to play his character narratively”). The Player screen in the book’s type, ordered and sized by how often each thing is used at the table, with a small always-visible part that keeps the character in front of the player as a person, in the pack’s and the player’s own words. Nothing a player can read or do today is removed: things move, fold or shrink (the table is in <code>docs/design/notes/player-screen-for-the-player-2026-11-14.md</code>). Names, words and numbers are invented. <b>A proposal from the Design Studio.</b> Ruled so far, 2026-11-14: a figure’s one sheet (frame P7, sv-2a) and the screen’s order (frames P1 and P2: ps-2 to ps-5, sv-3). <b>Frames P1 and P2 are approved (ps-9, at 4303bd32)</b>; frames P3, P4, P5 and P5b are drawn to that design and not yet approved themselves; frame P6 is withdrawn; frame P7’s backdrop is older than the approved screen and is not redrawn (its caption says what the sheet is).</p>
+  <h1>7. A figure tapped: one sheet (drawn first: Francis asked to see it)</h1>
+  <div class="wall">${t7}</div>
+  <div class="wall">${p7}</div>
+  <h1>1. The tablet, at rest</h1>
+  <div class="wall">${t1}</div>
+  <h1>2. The phone</h1>
+  <div class="wall">${p2}</div>
+  <h1>3. Details, opened</h1>
+  <div class="wall">${p3}</div>
+  <h1>4. A caster, and an ability with none left</h1>
+  <div class="wall">${p4}</div>
+  <h1>5. States and messy data</h1>
+  <div class="wall">${p5}</div>
+  <div class="wall">${p5b}</div>
+  <h1>6. Withdrawn: the alternative</h1>
+  <div class="wall">${t6}</div>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked, in the HTML.</b> No accent button on the screen (none is the one thing to do here); no disabled button (“Use” with none left answers in a toast). Nothing is colour alone: the status ring carries its mark and a spoken name; uses are dots with a spoken count; the die is a shape. No line explains what the screen shows: today’s “Tap a figure for where it comes from”, “Tap a score for everything it changes” and “Tap a row for the full rule” are not drawn (mc-46). States: at rest, opened, almost nothing chosen, nothing written, a caster, none left, a long name, 0 and 999, six weapons, no saves and no scores, the phone. Buttons and tiles are 44 px or more.</p>
+  <p class="note"><b>Not checked, or gaps.</b> Today’s screen was listed from main’s source and one older built picture, not from a current picture of a full character. Loading, offline, a retired character, the “no light” banner, the weather strip, a class with forms, a patron, sheet changes waiting for the GM: all as today and not redrawn (the note says where each sits). Contrast by measurement; Larger text; a tablet held upright. The labels’ colour on labelled lines is the accent token here; the book format’s own label colour is the builder’s.</p>
+`);
+for (const el of document.querySelectorAll('.ps-acts, .ps-row, .ps-lit')) el.dataset.stkgroup = '';
+for (const c of document.querySelectorAll('.wall .cap')) { const m = c.textContent.match(/^(P\d+b?)\. /); if (!m) continue; if (['P1', 'P5b', 'P7'].includes(m[1])) c.insertAdjacentHTML('beforeend', ' Tidied to the measured sizes, 2026-11-14.'); if (['P1', 'P2', 'P5', 'P7'].includes(m[1])) c.insertAdjacentHTML('beforeend', ' The amber mark reads 2.81 to 1 in light, known, with the sweep.'); c.insertAdjacentHTML('beforeend', ' <b>Icons ruled, ic-3, 2026-11-14.</b> Each button carries its ruled icon from the set; “Light” and “Quiver” are the ruled words. Where the text above calls an icon proposed or names the generic mark, it describes the frame before the ruling.'); }
+applyBook();
+</script>
+</body>
+</html>

@@ -1092,9 +1092,10 @@ if (callsFlag === '1' || callsFlag === 'many' || callsFlag === 'long') {
 // missile, with a Grip (C14); ?p1=bare: nothing at hand, 0 hit points, a long title; ?p1=packless: no pack, 999 of 999
 // (the screen's states, C11); ?p1=skills: a roll for skills and three more skills (rows C13, C14 of plan
 // test-feedback-2026-11-19); ?p1=finish: the languages left for "To finish" and a change waiting for the GM, two notices
-// in the notices box (row C1).
+// in the notices box (row C1); ?p1=pins: an ability and a trait pinned, a row and a block in the right column's list
+// (row P3 of plan test-feedback-2026-11-19; page 28).
 const p1Flag = new URLSearchParams(window.location.search).get('p1');
-if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noline' || p1Flag === 'classless' || p1Flag === 'heavy' || p1Flag === 'modes' || p1Flag === 'weapon' || p1Flag === 'bare' || p1Flag === 'packless' || p1Flag === 'skills' || p1Flag === 'finish') {
+if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noline' || p1Flag === 'classless' || p1Flag === 'heavy' || p1Flag === 'modes' || p1Flag === 'weapon' || p1Flag === 'bare' || p1Flag === 'packless' || p1Flag === 'skills' || p1Flag === 'finish' || p1Flag === 'pins') {
   const { addP1Character } = await import('./layoutP1Character.ts');
   const p1Id = await addP1Character(world, { gm, sam, fenPack, head: p1Flag === '1' ? 'four' : p1Flag });
   // ?maxhp=none: no most hit points recorded, so the vitals offer "Set max" (N24) and its Max hit points pop-up (fb-7).

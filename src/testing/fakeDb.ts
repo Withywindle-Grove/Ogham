@@ -2,7 +2,7 @@
 // It answers only the calls the sign-in and campaign screens make, and mimics the database's
 // behaviour for them. The real access rules are checked separately in supabase/tests.
 import { RETIRED, STALE, STALE_CODE } from '../core/commands.ts';
-import { UNDOABLE_DELETIONS, UNDOABLE_MAKINGS, UNDOABLE_SPLIT } from '../core/undo.ts';
+import { isJoin, UNDOABLE_DELETIONS, UNDOABLE_MAKINGS, UNDOABLE_SPLIT } from '../core/undo.ts';
 import { isRumoursTable as rumoursTable } from '../modules/library/rumours.ts';
 import { joinsAtOnce, partyLowest, startLevelFixedOf, startLevelLimit, startLevelOf } from '../core/campaignSettings.ts';
 import type { Db } from '../core/supabase.ts';
@@ -625,6 +625,49 @@ export function createFakeDb(): FakeWorld {
       cameBack = left.back!;
       used = cameBack.of - cameBack.left;
     }
+    // Like private.undo_check_join and private.undo_unjoin (Q2, sw-4, sw-9): a joined stack gives back what's left of the
+    // added part, never going below what it had; a whole line a move merged in is made again with it.
+    const joinChanges = changes.filter((e) => e.target_table === 'inventory_lines' && isJoin(String(picked.type), { before: e.before, after: e.after }));
+    const mergedChanges = joinChanges.length > 0 && picked.type === UNDOABLE_SPLIT ? changes.filter((e) => e.target_table === 'inventory_lines' && !e.after) : [];
+    const unjoins: { row: Row; change: Row; left: number }[] = [];
+    for (const change of joinChanges) {
+      if (tables.events.some((e) => e.reverts_event_id === change.id)) return refused('That was already undone.');
+      const row = rowOf(change);
+      if (!row || Number(row.qty) < 1) return refused('None of it is left, so nothing can come back.');
+      const handedOn = tables.events.some(
+        (e) =>
+          e.target_table === 'inventory_lines' &&
+          e.target_id === change.target_id &&
+          Number(e.seq) > Number(change.seq) &&
+          !e.reverts_event_id &&
+          e.request_id !== picked.request_id &&
+          !!e.after &&
+          ['actor_id', 'location_id', 'name', 'item_data'].some((key) => key in (e.after as Row)),
+      );
+      if (handedOn) return refused("It's changed since, so it can't go back.");
+      // Like private.joined_left: some of it handed on (a give, or out of the party) refuses; moved within the same
+      // pack (into a bag, onto another stack there) only leaves fewer here (sw-4).
+      const gaveSome = tables.events.some((e) => {
+        const was = (e.before ?? {}) as Row;
+        const now = (e.after ?? {}) as Row;
+        if (e.target_table !== 'inventory_lines' || e.target_id !== change.target_id || Number(e.seq) <= Number(change.seq) || e.reverts_event_id) return false;
+        if (!['inventory.move', 'inventory.giveAway'].includes(String(e.type)) || !('qty' in now) || Number(now.qty) >= Number(was.qty)) return false;
+        const others = tables.events.filter((o) => o.request_id === e.request_id && o.target_table === 'inventory_lines' && o.target_id !== change.target_id && o.after);
+        const handed = others.map((o) => ({ ...(o.after as Row), ...(o.before === null ? {} : (tables.inventory_lines.find((l) => l.id === o.target_id) ?? {})) }));
+        return handed.some((h) => !!h.given_to || (h.actor_id ?? null) !== (row.actor_id ?? null) || (h.location_id ?? null) !== (row.location_id ?? null));
+      });
+      if (gaveSome) return refused("Some of it was given on since, so it can't go back.");
+      const had = Number((change.before as Row).qty);
+      const added = Number((change.after as Row).qty) - had;
+      const left = Math.min(added, Number(row.qty) - had);
+      if (left < 1) return refused('None of it is left, so nothing can come back.');
+      const by = String(tables.actors.find((a) => a.id === row.actor_id)?.name ?? tables.locations.find((l) => l.id === row.location_id)?.name ?? '');
+      cameBack = { left, of: added, name: String(row.name), by };
+      used = added - left;
+      unjoins.push({ row, change, left });
+    }
+    if (mergedChanges.some((change) => rowOf(change))) return refused("That's changed since. Undo the later change first.");
+    changes = changes.filter((e) => !joinChanges.includes(e) && !mergedChanges.includes(e));
     const splitParts = changes.filter((e) => e.target_table === 'inventory_lines' && splits.has(e.target_id) && !e.before);
     // Like the database (M5 step 5): a session or an expedition the action started is marked undone, never removed,
     // while it's as the action left it.
@@ -725,7 +768,7 @@ export function createFakeDb(): FakeWorld {
     }
     // The dropped lines come back first (containers before what was in them), then their GM-only rows.
     const comeBack = [
-      ...dropped.sort((a, b) => Number(!!(a.before as Row).container_line_id) - Number(!!(b.before as Row).container_line_id) || Number(a.seq) - Number(b.seq)),
+      ...dropped.filter((e) => !mergedChanges.includes(e)).sort((a, b) => Number(!!(a.before as Row).container_line_id) - Number(!!(b.before as Row).container_line_id) || Number(a.seq) - Number(b.seq)),
       ...changes.filter((e) => !e.after && e.target_table === 'inventory_line_secrets'),
     ];
     for (const change of comeBack) {
@@ -737,6 +780,17 @@ export function createFakeDb(): FakeWorld {
       const row = rowOf(change)!;
       tables.inventory_lines.splice(tables.inventory_lines.indexOf(row), 1);
       log('inventory_lines', structuredClone(row), null, tag, change);
+    }
+    for (const { row, change, left } of unjoins) {
+      const was = structuredClone(row);
+      row.qty = Number(row.qty) - left;
+      row.version = Number(row.version ?? 1) + 1;
+      log('inventory_lines', was, structuredClone(row), tag, change);
+    }
+    for (const change of mergedChanges) {
+      const row: Row = { ...structuredClone(change.before as Row), qty: unjoins.at(-1)?.left ?? (change.before as Row).qty, version: 1 };
+      tables.inventory_lines.push(row);
+      log('inventory_lines', null, structuredClone(row), tag, change);
     }
     for (const change of madeRows) {
       const row = rowOf(change)!;
@@ -4087,6 +4141,111 @@ export function createFakeDb(): FakeWorld {
     },
   };
 
+  // Like public.join_added_line and public.move_into_stack (Q2, sw-1 to sw-9): a stackable thing joins a same-name stack
+  // in the same place, counted in one step; null when nothing joined (the command then goes on as before).
+  const stackName = (name: unknown) => String(name ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const sameStackName = (a: unknown, b: unknown) => {
+    const [x, y] = [stackName(a), stackName(b)];
+    const ies = (one: string, other: string) => /[^aeiou]y$/.test(one) && `${one.slice(0, -1)}ies` === other;
+    return x !== '' && (x === y || `${x}s` === y || `${y}s` === x || `${x}es` === y || `${y}es` === x || ies(x, y) || ies(y, x));
+  };
+  const stackJoinable = (l: Row, moving = false) =>
+    l.approval === 'approved' &&
+    (moving || !l.equipped) &&
+    !l.given_to &&
+    !l.charges_hidden &&
+    (l.charges_left ?? null) === null &&
+    Number(l.charges_used ?? 0) === 0 &&
+    !(l.item_data && typeof l.item_data === 'object' && 'charges' in (l.item_data as Row)) &&
+    !l.needs_fuel &&
+    (l.fuel_left_seconds ?? null) === null &&
+    !tables.character_lights.some((c) => c.line_id === l.id && ((c.lit_at ?? null) !== null || (c.left_seconds ?? null) !== null));
+  const mayChangeCarrierOf = (campaign: unknown, actor: unknown, location: unknown) =>
+    isGmOf(campaign) ||
+    (isMemberOf(campaign) &&
+      (tables.locations.some((l) => l.id === location && l.campaign_id === campaign) ||
+        tables.actors.some((a) => a.id === actor && a.campaign_id === campaign && a.owner_user_id === me() && a.status !== 'archived')));
+  const mayReceiveAt = (campaign: unknown, actor: unknown, location: unknown) =>
+    isMemberOf(campaign) &&
+    (tables.locations.some((l) => l.id === location && l.campaign_id === campaign) ||
+      tables.actors.some((a) => a.id === actor && a.campaign_id === campaign && (isGmOf(campaign) || ((a.approval ?? 'approved') === 'approved' && a.status !== 'archived'))));
+  const joinDone = (tag: Tag): { done: boolean; line: unknown } => {
+    if (!tag?.requestId) return { done: false, line: null };
+    const earlier = tables.events.filter((e) => e.request_id === tag.requestId && e.actor_user_id === me());
+    const joined = earlier.find((e) => e.target_table === 'inventory_lines' && isJoin(String(e.type), { before: e.before, after: e.after }));
+    return { done: earlier.length > 0, line: joined?.target_id ?? null };
+  };
+  const stackAt = (campaign: unknown, actor: unknown, location: unknown, container: unknown, name: unknown, inNumbers: boolean, not: unknown = null) =>
+    tables.inventory_lines.find(
+      (l) =>
+        l.campaign_id === campaign &&
+        (l.actor_id ?? null) === (actor ?? null) &&
+        (l.location_id ?? null) === (location ?? null) &&
+        (l.container_line_id ?? null) === (container ?? null) &&
+        l.id !== not &&
+        sameStackName(l.name, name) &&
+        // Only things carried in numbers (sw-10): several to a slot, or a bundle's units.
+        (Number(l.stack) > 1 || Number(l.per_units ?? 1) > 1) &&
+        inNumbers &&
+        stackJoinable(l) &&
+        (actor === null || actor === undefined || tables.actors.some((a) => a.id === actor && (a.approval ?? 'approved') === 'approved')),
+    );
+  const countOn = (line: Row, qty: number, tag: Parameters<EventLog>[3]) => {
+    const was = structuredClone(line);
+    line.qty = qty;
+    line.version = Number(line.version ?? 1) + 1;
+    line.updated_at = new Date(Date.now() + nextId).toISOString();
+    log('inventory_lines', was, structuredClone(line), tag);
+  };
+  const joinRpcs: Record<string, (args: Row, tag: Tag) => Result> = {
+    join_added_line: (args, tag) => {
+      const done = joinDone(tag);
+      if (done.done) return { data: done.line, error: null };
+      const howMany = Number(args.how_many);
+      const howGot = typeof args.how_got === 'string' ? args.how_got : 'found';
+      if (!['bought', 'found', 'given'].includes(howGot) || (howGot === 'given' && !isGmOf(args.campaign))) return { data: null, error: null };
+      if (!Number.isInteger(howMany) || howMany < 1 || !args.entry || tables.inventory_lines.some((l) => l.id === args.made_id)) return { data: null, error: null };
+      if (!mayChangeCarrierOf(args.campaign, args.actor, args.location)) return { data: null, error: null };
+      const entry = tables.library_entries.find((e) => e.id === args.entry);
+      const data = (entry?.data ?? {}) as Row;
+      const used = !!entry && tables.campaign_packs.some((cp) => cp.campaign_id === args.campaign && cp.pack_id === entry.pack_id);
+      if (!entry || entry.kind !== 'item' || !used || 'charges' in data) return { data: null, error: null };
+      const bundled = typeof data.bundle === 'number' && data.bundle > 1;
+      const name = bundled && typeof data.unitName === 'string' && data.unitName.trim() ? data.unitName : entry.name;
+      const stack = typeof data.stack === 'number' && Number.isInteger(data.stack) ? data.stack : 1;
+      const target = stackAt(args.campaign, args.actor ?? null, args.location ?? null, args.container ?? null, name, stack > 1 || bundled);
+      if (!target) return { data: null, error: null };
+      // How it was got stays on the add's own line (its reason), never on the stack.
+      const words = (v: unknown, most: number) => (typeof v === 'string' ? v.trim().slice(0, most) : '');
+      const reason = JSON.stringify({ join: { howGot, cost: howGot === 'bought' ? words(args.cost, 100) : '', note: words(args.note, 300) } });
+      countOn(target, Number(target.qty) + howMany, tag ? { ...tag, whatFor: reason } : tag);
+      return { data: target.id, error: null };
+    },
+    move_into_stack: (args, tag) => {
+      const done = joinDone(tag);
+      if (done.done) return { data: done.line, error: null };
+      const source = tables.inventory_lines.find((l) => l.id === args.line);
+      const howMany = Number(args.how_many);
+      if (!source || !Number.isInteger(howMany) || howMany < 1 || howMany > Number(source.qty)) return { data: null, error: null };
+      if (args.seen_version !== undefined && args.seen_version !== null && args.seen_version !== source.version) return { data: null, error: null };
+      if (!mayChangeCarrierOf(source.campaign_id, source.actor_id, source.location_id) || !mayReceiveAt(source.campaign_id, args.to_actor, args.to_location)) return { data: null, error: null };
+      if ((!source.library_entry_id && !source.source_pack_id) || !stackJoinable(source, true) || tables.inventory_lines.some((l) => l.container_line_id === source.id)) {
+        return { data: null, error: null };
+      }
+      const inNumbers = Number(source.stack) > 1 || Number(source.per_units ?? 1) > 1;
+      const target = stackAt(source.campaign_id, args.to_actor ?? null, args.to_location ?? null, args.to_container ?? null, source.name, inNumbers, source.id);
+      if (!target) return { data: null, error: null };
+      if (howMany < Number(source.qty)) countOn(source, Number(source.qty) - howMany, tag);
+      countOn(target, Number(target.qty) + howMany, tag);
+      if (howMany === Number(source.qty)) {
+        const was = structuredClone(source);
+        tables.inventory_lines.splice(tables.inventory_lines.indexOf(source), 1);
+        log('inventory_lines', was, null, tag);
+      }
+      return { data: target.id, error: null };
+    },
+  };
+
   // Like split_inventory_line: the rest stays, and the copy keeps everything the line says, in one step.
   async function splitLine(lineId: string, howMany: number, tag: string | null, seenVersion?: number): Promise<Result> {
     const tagged = (table: keyof FakeWorld['tables']) => {
@@ -4281,6 +4440,7 @@ export function createFakeDb(): FakeWorld {
             if (name === 'set_spells') return setSpellsRpc(args, tag);
             if (name in clockRpcs) return clockRpcs[name]!(args, readTag(headers));
             if (name in lightRpcs) return lightRpcs[name]!(args, readTag(headers));
+            if (name in joinRpcs) return joinRpcs[name]!(args, readTag(headers));
             if (name in weatherRpcs) return weatherRpcs[name]!(args, readTag(headers));
             if (name in marchingRpcs) return marchingRpcs[name]!(args, readTag(headers));
             if (name in groupRpcs) return groupRpcs[name]!(args, readTag(headers));

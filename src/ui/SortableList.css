@@ -46,3 +46,17 @@
   -webkit-user-select: none;
   -webkit-touch-callout: none;
 }
+
+/* The landing box variant (page 28, frame M4e): a dashed box where the lifted row will land, behind the rows. */
+.sortable--landing {
+  position: relative;
+}
+
+.sortable__landing {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 0;
+  border: var(--line-control) dashed var(--control);
+  border-radius: var(--radius);
+  pointer-events: none;
+}

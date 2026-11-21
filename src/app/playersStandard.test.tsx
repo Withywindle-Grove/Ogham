@@ -11,9 +11,9 @@
 //   sheet keeps the dots that give a use back.
 //   The Statuses row (plan m5b-creation-retest-3 F): each status a ring in its tone with its arc and words, no end
 //   dashed, none no row; the ring's sheet gives the count, what it does, source, who set it and the log line.
-//   Pins reach traits (dec-13 C8, pin-2; frame P1): a trait's sheet has the pin star in its head; pinned, the trait
-//   shows in At hand with the small filled star and leaves the Traits list (each thing once), its Use still works, and
-//   the toast's Undo puts it back; a stored pin whose trait is gone shows nothing.
+//   Pins reach traits (dec-13 C8, pin-2; since row P3, euf-3 and page 28): a trait's sheet has the pin star in its head;
+//   pinned, the trait is a block first in "Abilities and traits" with the small filled star, never At hand (each thing
+//   once), its Use still works, and the toast's Undo puts it back as a row; a stored pin whose trait is gone shows nothing.
 //   The drawer's nit (Design on #549): a player with no character yet is offered no Full character sheet or Company.
 import {
   cleanup,
@@ -250,7 +250,7 @@ describe("the Player screen on the standard (A, B)", () => {
     const saves = within(screen.getByRole("region", { name: "Saves" }));
     await user.click(saves.getAllByRole("button")[0]!);
     await closeTop(user);
-    const traits = within(screen.getAllByRole("region", { name: "Traits" })[0]!);
+    const traits = within(screen.getAllByRole("region", { name: "Abilities and traits" })[0]!);
     await user.click(traits.getByRole("button", { name: "Use Steady flame" }));
     await screen.findByText(/^Used Steady flame/);
     await user.click(traits.getByRole("button", { name: /^Steady flame/ }));
@@ -413,7 +413,7 @@ describe("the Player screen on the standard (A, B)", () => {
     const user = userEvent.setup();
     render(<Root db={world.db} />);
     await openPlayer(user);
-    const traits = within(screen.getAllByRole("region", { name: "Traits" })[0]!);
+    const traits = within(screen.getAllByRole("region", { name: "Abilities and traits" })[0]!);
     expect(traits.getByText("1 of 1 left, back each day")).toBeTruthy();
     await user.click(traits.getByRole("button", { name: "Use Steady flame" }));
     expect(
@@ -861,7 +861,7 @@ describe("the two columns (dec-13 C1: ps-2, ps-2a, ps-4)", () => {
     for (const name of [
       "Scores",
       "Saves",
-      "Traits",
+      "Abilities and traits",
       "Skills",
     ])
       expect(right.contains(region(name))).toBe(true);
@@ -871,8 +871,8 @@ describe("the two columns (dec-13 C1: ps-2, ps-2a, ps-4)", () => {
     expect(before(region("Vitals"), region("Level"))).toBe(true);
     expect(before(region("Level"), region("Details"))).toBe(true);
     expect(before(region("Scores"), region("Saves"))).toBe(true);
-    expect(before(region("Saves"), region("Traits"))).toBe(true);
-    expect(before(region("Traits"), region("Skills"))).toBe(true);
+    expect(before(region("Saves"), region("Abilities and traits"))).toBe(true);
+    expect(before(region("Abilities and traits"), region("Skills"))).toBe(true);
     expect(before(region("Skills"), notes)).toBe(true);
     // Each part once: no second Saves or Skills on the screen.
     expect(screen.getAllByRole("region", { name: "Saves" })).toHaveLength(1);
@@ -897,7 +897,7 @@ describe("the two columns (dec-13 C1: ps-2, ps-2a, ps-4)", () => {
       region("Level"),
       region("Details"),
       region("Scores"),
-      region("Traits"),
+      region("Abilities and traits"),
       region("Skills"),
       sheetRow,
     ];
@@ -951,73 +951,68 @@ describe("the two columns (dec-13 C1: ps-2, ps-2a, ps-4)", () => {
   });
 });
 
-describe('pins reach traits (dec-13 C8, pin-2, frame P1)', () => {
+describe('pins reach traits (dec-13 C8, pin-2; row P3, euf-3, page 28)', () => {
   const region = (name: string) => screen.queryByRole('region', { name });
-  // The Player's own Traits (those with uses), not the Traits row among the sheet's rows that follow Skills (tfr-5).
-  const usesTraits = async () => {
-    await screen.findAllByRole('region', { name: 'Traits' });
-    return screen.queryAllByRole('region', { name: 'Traits' }).find((r) => r.querySelector('.list-row__title')?.textContent !== 'Traits') ?? null;
-  };
-  const usesTraitsNow = () => screen.queryAllByRole('region', { name: 'Traits' }).find((r) => r.querySelector('.list-row__title')?.textContent !== 'Traits') ?? null;
+  const list = async () => within(await screen.findByRole('region', { name: 'Abilities and traits' }));
+  const block = () => document.querySelector('.pinned-box--block');
 
-  it('the star on a trait’s sheet moves it to At hand with the small star and out of Traits; Undo puts it back', async () => {
+  it('the star on a trait’s sheet makes it a block first in Abilities and traits, never At hand; Undo puts it back', async () => {
     const { wren } = fenWorld();
     const user = userEvent.setup();
     render(<Root db={world.db} />);
     await openPlayer(user);
     expect(region('At hand')).toBeNull();
-    const traits = within(screen.getAllByRole('region', { name: 'Traits' })[0]!);
-    await user.click(traits.getByRole('button', { name: /^Steady flame/ }));
+    await user.click((await list()).getByRole('button', { name: /^Steady flame/ }));
     const sheet = within(await screen.findByRole('dialog', { name: 'Steady flame' }));
     const star = sheet.getByRole('button', { name: 'Pin to top' });
     expect(star.getAttribute('aria-pressed')).toBe('false');
     await user.click(star);
     expect(await screen.findByText('Steady flame pinned to the top')).toBeTruthy();
     await waitFor(() => expect(world.tables.character_play.find((p) => p.actor_id === wren)?.pins).toEqual([{ kind: 'trait', key: 'Steady flame' }]));
-    // Each thing once: in At hand with the small star, and no longer in Traits (its only trait, so no Traits at all).
-    const atHand = within(await screen.findByRole('region', { name: 'At hand' }));
-    // The small filled star leads the name, as frame P1 draws "★ Horn charge"; a screen reader hears the name, then
-    // "pinned".
-    const row = atHand.getByRole('button', { name: /^Steady flame, pinned/ });
+    // Each thing once: a block in the right column's list with the small star before the name, never At hand.
+    await waitFor(() => expect(block()).not.toBeNull());
+    const row = within(block() as HTMLElement).getByRole('button', { name: /^Steady flame, pinned/ });
     expect(row.querySelector('.list-row__title .pinned-mark')).not.toBeNull();
-    // Then the pips before the words (frame P1; Francis's fix 8 of 19 Nov 2026), hidden from a screen reader.
     expect(row.querySelector('.list-row__sub')?.textContent?.replace(/\s+/g, ' ').trim()).toBe('● 1 of 1 left, back each day');
-    await waitFor(() => expect(usesTraitsNow()).toBeNull());
+    expect(region('At hand')).toBeNull();
     expect(screen.getAllByRole('button', { name: 'Use Steady flame' })).toHaveLength(1);
-    // Undo in the toast unpins it: back in Traits, and At hand (nothing else in it) goes.
+    // Undo in the toast unpins it: a row again, no block.
     await user.click(screen.getByRole('button', { name: 'Undo' }));
     await waitFor(() => expect(world.tables.character_play.find((p) => p.actor_id === wren)?.pins).toEqual([]));
-    expect(await usesTraits()).toBeTruthy();
-    await waitFor(() => expect(region('At hand')).toBeNull());
+    await waitFor(() => expect(block()).toBeNull());
+    expect((await list()).getByRole('button', { name: 'Use Steady flame' })).toBeTruthy();
   });
 
-  it('a pinned trait’s Use in At hand marks a use; its sheet’s filled star unpins it', async () => {
+  it('a pinned trait’s Use in its block marks a use; its sheet’s filled star unpins it', async () => {
     const { wren, campaign } = fenWorld();
     world.tables.character_play.push({ actor_id: wren!, campaign_id: campaign, prepared: [], uses_spent: {}, pins: [{ kind: 'trait', key: 'Steady flame' }] });
     const user = userEvent.setup();
     render(<Root db={world.db} />);
     await openPlayer(user);
-    const atHand = within(await screen.findByRole('region', { name: 'At hand' }));
-    await user.click(atHand.getByRole('button', { name: 'Use Steady flame' }));
+    await list();
+    await waitFor(() => expect(block()).not.toBeNull());
+    const inBlock = within(block() as HTMLElement);
+    await user.click(inBlock.getByRole('button', { name: 'Use Steady flame' }));
     expect(await screen.findByText('Used Steady flame, 0 of 1 left')).toBeTruthy();
     await waitFor(() => expect(world.tables.character_play.find((p) => p.actor_id === wren)?.uses_spent).toMatchObject({ 'Steady flame': 1 }));
-    await user.click(atHand.getByRole('button', { name: /^Steady flame/ }));
+    await user.click(within(block() as HTMLElement).getByRole('button', { name: /^Steady flame/ }));
     const sheet = within(await screen.findByRole('dialog', { name: 'Steady flame' }));
     const star = sheet.getByRole('button', { name: 'Unpin' });
     expect(star.getAttribute('aria-pressed')).toBe('true');
     await user.click(star);
     expect(await screen.findByText('Steady flame unpinned')).toBeTruthy();
-    expect(await usesTraits()).toBeTruthy();
-    await waitFor(() => expect(region('At hand')).toBeNull());
+    await waitFor(() => expect(block()).toBeNull());
+    expect(region('At hand')).toBeNull();
   });
 
-  it('a stored pin whose trait is gone shows nothing and leaves Traits as it is', async () => {
+  it('a stored pin whose trait is gone shows nothing and leaves the list as it is', async () => {
     const { wren, campaign } = fenWorld();
     world.tables.character_play.push({ actor_id: wren!, campaign_id: campaign, prepared: [], uses_spent: {}, pins: [{ kind: 'trait', key: 'Gone power' }] });
     const user = userEvent.setup();
     render(<Root db={world.db} />);
     await openPlayer(user);
-    expect(await usesTraits()).toBeTruthy();
+    expect((await list()).getByRole('button', { name: 'Use Steady flame' })).toBeTruthy();
+    expect(block()).toBeNull();
     expect(region('At hand')).toBeNull();
     expect(screen.queryByText('Gone power')).toBeNull();
   });

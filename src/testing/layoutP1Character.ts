@@ -29,9 +29,11 @@ const TURN = 600;
  * burning), 0 hit points, a long level title and a score change waiting for the GM; `packless`, no pack at all and no light, 999 of 999 hit points (the
  * screen's states, dec-13 C11); `skills`, rules with a roll for skills (`rolls.skill`, so the Skills heading carries its
  * line, tfs-2) and three more skills beside Hark: a long-named one rolled the target or higher ("6+ on d6", tfs-3), one
- * "2-in-6" and one "35%" (the pack's other styles; plan test-feedback-2026-11-19 rows C13, C14). `1`, the four of P1. */
+ * "2-in-6" and one "35%" (the pack's other styles; plan test-feedback-2026-11-19 rows C13, C14); `pins`, the four of P1
+ * with an ability without uses and the trait with uses pinned, in that order (row P3; page 28: a row and a block in the
+ * right column's list). `1`, the four of P1. */
 export const P1_LONG_NAME = 'Brannoch Fenward of the Seven Drowned Cairns, called the Unbowed';
-export type P1Head = 'four' | 'messy' | 'two' | 'noline' | 'classless' | 'heavy' | 'modes' | 'weapon' | 'bare' | 'packless' | 'skills' | 'finish';
+export type P1Head = 'four' | 'messy' | 'two' | 'noline' | 'classless' | 'heavy' | 'modes' | 'weapon' | 'bare' | 'packless' | 'skills' | 'finish' | 'pins';
 
 export async function addP1Character(
   world: FakeWorld,
@@ -142,7 +144,16 @@ export async function addP1Character(
       status: 'waiting', reason: null, answered_at: null, created_at: '2026-11-15T09:30:00Z', version: 1, undone: false,
     } as never);
   }
-  world.tables.character_play.push({ actor_id: brannoch, campaign_id: campaign, prepared: [], uses_spent: {}, ac_override: null, form_id: null, version: 1 });
+  world.tables.character_play.push({
+    actor_id: brannoch,
+    campaign_id: campaign,
+    prepared: [],
+    uses_spent: {},
+    ac_override: null,
+    form_id: null,
+    version: 1,
+    ...(head === 'pins' ? { pins: [{ kind: 'trait', key: 'Oath of light' }, { kind: 'trait', key: 'Steady flame' }] } : {}),
+  });
 
   // The pack: the coat worn, the spear in hand, the knife pinned, the lantern and its oil.
   const item = (id: string) => (fenPack.items ?? []).find((i) => i.id === id) ?? {};

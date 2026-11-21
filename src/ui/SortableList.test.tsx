@@ -113,3 +113,44 @@ it('the lifted row has touch-action none, and only once lifted', () => {
   act(() => vi.advanceTimersByTime(500));
   expect(screen.getAllByRole('listitem')[0]!.style.touchAction).toBe('none');
 });
+
+// The landing box variant (the Player tab's pinned abilities and traits; page 28, frame M4e, approved 2026-11-20).
+describe('the landing box variant', () => {
+  // Rows 50 px tall, 8 px apart, as the pinned boxes sit.
+  const spaced = () =>
+    screen.getAllByRole('listitem').forEach((item, index) => {
+      item.getBoundingClientRect = () => ({ top: index * 58, bottom: index * 58 + 50, height: 50, left: 0, right: 300, width: 300, x: 0, y: index * 58, toJSON: () => ({}) });
+    });
+
+  // Purpose: while a row is lifted a dashed box shows where it will land, the others making room by the row and the gap;
+  // it goes when the row is dropped, and a list without the variant draws none.
+  it('shows a dashed box where the lifted row will land, and moves the others by the row and the gap', () => {
+    const onMove = vi.fn();
+    const { container } = render(<SortableList items={rows} label="Pinned abilities and traits" onMove={onMove} render={(row) => <span>{row.label}</span>} landingBox />);
+    spaced();
+    const items = screen.getAllByRole('listitem');
+    expect(container.querySelector('.sortable__landing')).toBeNull();
+    fireEvent.pointerDown(items[0]!, { clientX: 10, clientY: 10, pointerId: 1 });
+    act(() => vi.advanceTimersByTime(500));
+    fireEvent.pointerMove(items[0]!, { clientX: 10, clientY: 75, pointerId: 1 });
+    const box = container.querySelector('.sortable__landing') as HTMLElement;
+    expect(box).not.toBeNull();
+    expect(box.getAttribute('aria-hidden')).toBe('true');
+    expect([box.style.top, box.style.height]).toEqual(['58px', '50px']);
+    expect(screen.getAllByRole('listitem')[1]!.style.transform).toBe('translateY(-58px)');
+    fireEvent.pointerUp(items[0]!, { clientX: 10, clientY: 75, pointerId: 1 });
+    expect(onMove).toHaveBeenLastCalledWith(0, 1);
+    expect(container.querySelector('.sortable__landing')).toBeNull();
+  });
+
+  it('draws no landing box without the variant', () => {
+    const { container } = render(<SortableList items={rows} label="Player screen sections" onMove={vi.fn()} render={(row) => <span>{row.label}</span>} />);
+    spaced();
+    const items = screen.getAllByRole('listitem');
+    fireEvent.pointerDown(items[0]!, { clientX: 10, clientY: 10, pointerId: 1 });
+    act(() => vi.advanceTimersByTime(500));
+    fireEvent.pointerMove(items[0]!, { clientX: 10, clientY: 75, pointerId: 1 });
+    expect(container.querySelector('.sortable__landing')).toBeNull();
+    expect(screen.getAllByRole('listitem')[1]!.style.transform).toBe('translateY(-50px)');
+  });
+});
