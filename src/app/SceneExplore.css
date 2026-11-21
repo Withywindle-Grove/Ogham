@@ -1,0 +1,514 @@
+/* Scene's explore parts (M5 step 6): the reminder card and a hit's table, the hour track, the procedure strip and
+   list, the encounter table and the reminders. Tokens only. */
+
+.scene-card,
+.encounter-table,
+.scene-reminders {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: var(--line-hair) solid var(--rule);
+  min-width: 0;
+}
+
+.scene-card__title,
+.encounter-table .label,
+.scene-reminders .label {
+  margin: 0;
+}
+
+.scene-card__empty {
+  margin: 0;
+  padding-top: var(--space-3);
+  border-top: var(--line-hair) solid var(--rule);
+  color: var(--muted);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+.scene-card__lines,
+.scene-card__modifiers,
+.scene-reminders__list,
+.encounter-table__rows,
+.procedure-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.scene-card__lines {
+  gap: var(--space-3);
+}
+
+.scene-card__line {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--row-rule);
+  min-width: 0;
+}
+
+/* A stat block's small View (December 5c) keeps its own width in the column. */
+.scene-card__view {
+  align-self: flex-start;
+}
+
+.scene-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.scene-card__name {
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  font-weight: var(--weight-heading);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.scene-card__chance {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  font-variant-numeric: tabular-nums;
+  /* A waiting encounter's row text (M5b step 2) may be one long word. */
+  overflow-wrap: anywhere;
+}
+
+.scene-card__modifiers li,
+.scene-card__note {
+  margin: 0;
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.scene-card__buttons,
+.scene-card__foot,
+.table-roll__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* A check's answers (Hit, Miss) on a row of their own, and −1, +1, + Modifier on the row below (the approval's fix 2,
+   2026-11-18): the buttons of a row share one height, and the rows stand 8 px apart (the line's gap and this margin). */
+.scene-card__answers,
+.scene-card__faces {
+  align-items: stretch;
+}
+
+.scene-card__faces {
+  margin-block-start: var(--space-1);
+}
+
+.scene-card__buttons > button,
+.scene-card__foot > button,
+.table-roll__row > button,
+.encounter-table > button,
+.scene-reminders > button {
+  min-height: var(--tap);
+}
+
+/* Which watch? chips (fl-2): a watch with long names wraps inside its chip rather than pushing the card sideways. */
+.scene-card__foot > .chip {
+  max-inline-size: 100%;
+  border-radius: var(--radius);
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+
+.table-roll {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.table-roll__result {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  font-weight: var(--weight-heading);
+  overflow-wrap: anywhere;
+}
+
+/* The hour track: one pip per turn of the hour; the current one filled and ringed, the past ones hollow and dotted. */
+.hour-track {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.hour-track__pip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  flex: 0 0 auto;
+  min-inline-size: var(--space-6);
+}
+
+.hour-track__dot {
+  inline-size: var(--space-4);
+  block-size: var(--space-4);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius-pill);
+}
+
+.hour-track__pip--current .hour-track__dot {
+  background: var(--ink);
+  border: var(--line-strong) solid var(--ink);
+}
+
+.hour-track__pip--done .hour-track__dot {
+  border-style: dotted;
+}
+
+/* The next hour's first turn (B8 follow-up): past a dashed rule at the track's edge, its dot dashed, so it reads as
+   beyond this hour by shape, not colour. */
+.hour-track__pip--next {
+  padding-inline-start: var(--space-2);
+  border-inline-start: var(--line-control) dashed var(--control);
+}
+
+.hour-track__pip--next .hour-track__dot {
+  border-style: dashed;
+}
+
+.hour-track__events {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* The next wandering check's marker, for the GM: a button (Check now, DG3), a full tap target, outlined so it reads
+   as one (not by colour alone). */
+.hour-track__check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: var(--tap);
+  min-block-size: var(--tap);
+  padding: var(--space-1);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* The strip (dec-9 S7; page 16, T1, T2, T8; frame R1 at the spacing ds-11 ruled, S4 (c)): circles with icons centred
+   on their row, the words under each on a tablet, dotted links stretched to 72 px at most; no state. A step with its
+   pack's text is a tap (an ink edge, the sheet's ground, the buttons' shadow); any other is a quiet ring, no button. On a
+   phone the circles share the row and the words go to the screen reader alone (mc-56). A label wraps between words
+   only: a step gives way as far as its longest word and no further, so a word too long for 88 px widens its own step
+   instead of being cut in two (scene-test-small-fixes, 2026-11-18). */
+.procedure-strip {
+  --strip-circle: 56px;
+  --strip-icon: 32px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: var(--space-3);
+  min-width: 0;
+}
+
+.procedure-strip__step {
+  flex: 0 1 88px;
+  /* Its circle or its longest word, whichever is wider. */
+  min-width: min-content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+}
+
+.procedure-strip__step--tap {
+  cursor: pointer;
+}
+
+.procedure-strip__circle {
+  box-sizing: border-box;
+  width: var(--strip-circle);
+  height: var(--strip-circle);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: var(--line-hair) solid var(--rule);
+  background: transparent;
+  color: var(--ink);
+}
+
+.procedure-strip__circle svg {
+  width: var(--strip-icon);
+  height: var(--strip-icon);
+}
+
+.procedure-strip__step--tap .procedure-strip__circle {
+  border: var(--line-selected) solid var(--ink);
+  background: var(--sheet);
+  box-shadow: var(--shadow-button);
+}
+
+.procedure-strip__step--tap:active .procedure-strip__circle {
+  background: var(--tint);
+}
+
+.procedure-strip__step--tap:focus-visible {
+  outline: none;
+}
+
+.procedure-strip__step--tap:focus-visible .procedure-strip__circle {
+  outline: var(--line-selected) solid var(--outline);
+  outline-offset: var(--line-selected);
+}
+
+.procedure-strip__number {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-24);
+  line-height: 1;
+}
+
+.procedure-strip__name {
+  font-size: var(--text-14);
+  line-height: var(--line-heading);
+  max-width: 100%;
+  overflow-wrap: normal;
+}
+
+.procedure-strip__link {
+  flex: 1 1 12px;
+  min-width: var(--space-1);
+  max-width: 72px;
+  margin-top: calc(var(--strip-circle) / 2 - var(--line-selected) / 2);
+  border-top: var(--line-selected) dotted var(--control);
+}
+
+/* On a tablet the row is centred by its first and last steps' auto margins, not by centring the row: when it fits it
+   looks the same, and when a long word makes it wider than its box it starts at the strip's left edge and scrolls inside
+   the strip, so its first step can always be reached and the page never scrolls sideways (the review of #993). The
+   small padding, given back by the margins, keeps a focus ring from being clipped by the scroll; nothing moves. */
+@media (min-width: 600px) {
+  .procedure-strip {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding: var(--space-1);
+    margin-inline: calc(-1 * var(--space-1));
+    margin-top: calc(var(--space-3) - var(--space-1));
+  }
+
+  .procedure-strip > :first-child {
+    margin-inline-start: auto;
+  }
+
+  .procedure-strip > :last-child {
+    margin-inline-end: auto;
+  }
+}
+
+@media (max-width: 599px) {
+  .procedure-strip {
+    --strip-circle: 52px;
+    --strip-icon: 30px;
+    justify-content: space-between;
+    gap: var(--space-1);
+  }
+
+  .procedure-strip__step {
+    flex: 0 1 var(--strip-circle);
+    min-width: 0;
+  }
+
+  /* A tap keeps 44 px however long the procedure; the quiet rings give way first. */
+  .procedure-strip__step--tap {
+    min-width: var(--tap);
+  }
+
+  .procedure-strip__circle {
+    width: 100%;
+    max-width: var(--strip-circle);
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  .procedure-strip__link {
+    display: none;
+  }
+
+  /* The step's aria-label carries its name for a screen reader. */
+  .procedure-strip__name {
+    display: none;
+  }
+}
+
+.procedure-list {
+  gap: var(--space-3);
+}
+
+.procedure-list__step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.procedure-list__words {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.procedure-list__name {
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  font-weight: var(--weight-heading);
+  overflow-wrap: anywhere;
+}
+
+.procedure-list__recorded {
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+/* The encounter table: the lit row is marked ▶ and bold, never by colour alone. */
+.encounter-table__rows {
+  gap: var(--space-1);
+}
+
+.encounter-table__row {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+  border-bottom: var(--row-rule);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+.encounter-table__row--lit {
+  font-weight: var(--weight-heading);
+  background: var(--tint);
+}
+
+.encounter-table__roll {
+  flex: 0 0 auto;
+  min-inline-size: var(--space-7);
+  font-variant-numeric: tabular-nums;
+}
+
+.encounter-table__result {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.scene-reminders__list {
+  gap: var(--space-1);
+}
+
+.scene-reminders__row,
+.scene-reminders__static {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  inline-size: 100%;
+  min-height: var(--tap);
+  padding: var(--space-2) 0;
+  border-bottom: var(--row-rule);
+  text-align: start;
+}
+
+.scene-reminders__row {
+  background: none;
+  border-inline: 0;
+  border-block-start: 0;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.scene-reminders__label {
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+/* The scene's current table as one row, its name · Roll (ruled 2026-10-29); Table library › opens the table library. */
+.current-table {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--space-2) 0;
+  border: 0;
+  border-top: var(--line-hair) solid var(--rule);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.current-table__name {
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  font-weight: var(--weight-heading);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.current-table__roll {
+  flex: none;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  font-weight: var(--weight-heading);
+  color: var(--accent);
+}
+
+.tables-link {
+  align-self: flex-start;
+  min-height: var(--tap);
+}
+
+.table-library,
+.table-library__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* The Reminders sheet (S10; page 16, T6): the rows to come, then the stacked + Reminder at the foot's start. Inside
+   the sheet it carries no rule or space above it. */
+.scene-reminders--sheet {
+  padding-top: 0;
+  border-top: none;
+}
+
+.scene-reminders__foot {
+  display: flex;
+  justify-content: flex-start;
+}

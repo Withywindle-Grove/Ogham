@@ -1,0 +1,987 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-fen-creation",
+    "name": "Invented creation sample",
+    "shortName": "Fen sample",
+    "version": "0.1",
+    "kind": "setting",
+    "author": "Invented for the app's tests",
+    "description": "An invented setting for testing guided creation (M5b step 0c): every creation rule as data, with made-up names and numbers."
+  },
+  "rulesSets": [
+    {
+      "id": "fen-rules",
+      "name": "Fen rules",
+      "abilities": [
+        { "key": "MUS", "name": "Muscle", "short": "MUS", "blurb": "Lifting, hitting and holding a line." },
+        { "key": "NIM", "name": "Nimbleness", "short": "NIM", "blurb": "Dodging, throwing and steady hands." },
+        { "key": "GRT", "name": "Grit", "short": "GRT", "blurb": "Shrugging off cold, wounds and bad water." },
+        { "key": "WIT", "name": "Wit", "short": "WIT", "blurb": "Reading, reckoning and extra tongues." },
+        { "key": "LORE", "name": "Lore", "short": "LORE", "blurb": "Old knowledge and a feel for the uncanny." },
+        { "key": "CHARM", "name": "Charm", "short": "CHARM", "blurb": "Talking the fen folk round." }
+      ],
+      "abilityModifiers": {
+        "MUS": [
+          { "range": "2-4", "melee": -2 },
+          { "range": "5-7", "melee": -1 },
+          { "range": "8-11", "melee": 0 },
+          { "range": "12-14", "melee": 1 },
+          { "range": "15-16", "melee": 2 }
+        ],
+        "NIM": [
+          { "range": "2-4", "missile": -2, "ac": -1 },
+          { "range": "5-7", "missile": -1, "ac": 0 },
+          { "range": "8-11", "missile": 0, "ac": 0 },
+          { "range": "12-14", "missile": 1, "ac": 1 },
+          { "range": "15-16", "missile": 2, "ac": 1 }
+        ],
+        "GRT": [
+          { "range": "2-4", "hp": -2 },
+          { "range": "5-7", "hp": -1 },
+          { "range": "8-11", "hp": 0 },
+          { "range": "12-14", "hp": 1 },
+          { "range": "15-16", "hp": 2 }
+        ],
+        "WIT": [
+          { "range": "2-4", "extraLanguages": 0, "literacy": "Cannot read" },
+          { "range": "5-7", "extraLanguages": 0, "literacy": "Reads slowly" },
+          { "range": "8-11", "extraLanguages": 1, "literacy": "Reads" },
+          { "range": "12-14", "extraLanguages": 2, "literacy": "Reads" },
+          { "range": "15-16", "extraLanguages": 3, "literacy": "Reads and writes well" }
+        ],
+        "LORE": [
+          { "range": "2-7", "saveBonus": -1 },
+          { "range": "8-11", "saveBonus": 0 },
+          { "range": "12-16", "saveBonus": 1 }
+        ],
+        "CHARM": [
+          { "range": "2-4", "reaction": -2, "hirelings": 1 },
+          { "range": "5-7", "reaction": -1, "hirelings": 2 },
+          { "range": "8-11", "reaction": 0, "hirelings": 3 },
+          { "range": "12-14", "reaction": 1, "hirelings": 4 },
+          { "range": "15-16", "reaction": 2, "hirelings": 5 }
+        ]
+      },
+      "primeRequisiteXp": [
+        { "range": "2-4", "xp": -15 },
+        { "range": "5-7", "xp": -10 },
+        { "range": "8-11", "xp": 0 },
+        { "range": "12-14", "xp": 5 },
+        { "range": "15-16", "xp": 10 }
+      ],
+      "primeRequisiteRule": "lowest",
+      "scores": {
+        "dice": "2d8",
+        "min": 2,
+        "max": 16,
+        "startOver": {
+          "everyAtMost": 7,
+          "countAtMost": { "count": 3, "value": 5 },
+          "option": "fen-cruel-dice",
+          "note": "If the dice were cruel, you may start over."
+        }
+      },
+      "abilityAdjustment": {
+        "lowerBy": 2,
+        "raiseBy": 1,
+        "lowerable": "nonPrime",
+        "raise": "prime",
+        "floor": 7,
+        "cap": 15,
+        "classExceptions": [{ "classId": "lantern-warden", "cannotLower": ["GRT"] }],
+        "note": "Lower a score that isn't your prime by 2 to raise your prime by 1. Nothing goes under 7.",
+        "source": "Fen rules p. 4"
+      },
+      "languages": {
+        "common": ["fen-common"],
+        "alignment": true,
+        "list": [
+          { "id": "fen-common", "name": "Fen common", "blurb": "What everyone in the fens speaks." },
+          { "id": "reedspeak", "name": "Reedspeak", "blurb": "The whispering tongue of the reed cutters.", "source": "Fen rules p. 9" },
+          { "id": "deep-croak", "name": "Deep croak", "blurb": "Bog folk's low talk; carries under water." },
+          { "id": "old-lantern", "name": "Old lantern", "blurb": "The wardens' chant, half sung.", "note": "Only wardens learn it." }
+        ],
+        "extraFrom": "WIT"
+      },
+      "alignmentVisibility": "owner",
+      "alignmentNotes": {
+        "general": "Which way your character leans when the lights go out.",
+        "Lantern": "Keeps the lights lit for everyone.",
+        "Reed": "Bends with the wind.",
+        "Mire": "Lets the dark in."
+      },
+      "alignmentBlurbs": {
+        "Lantern": "Keeps the lights lit for everyone.",
+        "Reed": "Bends with the wind.",
+        "Mire": "Lets the dark in."
+      },
+      "hitPoints": { "startMinimum": 1, "minimumPerDie": 1, "reroll": { "atMost": 2, "option": "fen-second-wind", "note": "A 1 or 2 on the die: you may roll your hit points again." } },
+      "attack": { "unarmouredAC": 10 },
+      "weaponProficiency": {
+        "option": "fen-weapon-drill",
+        "note": "Pick the weapons your calling drilled with; any other is clumsier in your hands.",
+        "byCategory": { "martial": { "start": 2, "gainEvery": 3, "penalty": -2 }, "gentle": { "start": 1, "gainEvery": 5, "penalty": -4 } },
+        "specialisation": { "option": "fen-weapon-drill=on-drill-master", "categories": ["martial"], "cost": 2, "bonus": { "attack": 1, "damage": 1 }, "note": "Pick one weapon twice to master it: two picks for +1 to hit and +1 damage." },
+        "restrictedWeapons": { "option": "fen-odd-weapons", "note": "A calling's forbidden weapons can be used with the same penalty." },
+        "source": "Fen rules p. 22"
+      },
+      "byOption": {
+        "fen-market=off": { "startingGear": { "shop": false }, "startingEquipment": ["rope-reed", "storm-lantern"] },
+        "fen-two-bands=on": {
+          "encumbrance": {
+            "slot": {
+              "bands": {
+                "equipped": [{ "maxSlots": 2, "speed": "125 ft" }, { "maxSlots": 4, "speed": "50 ft" }],
+                "stowed": [{ "maxSlots": 4, "speed": "125 ft" }, { "maxSlots": 6, "speed": "80 ft" }, { "maxSlots": 8, "speed": "20 ft" }]
+              },
+              "combine": "slowest"
+            }
+          }
+        }
+      },
+      "startingMoney": "3d6 × 10 gp",
+      "currency": [
+        { "key": "gp", "label": "Gold", "valueInBase": 10 },
+        { "key": "sp", "label": "Silver", "valueInBase": 1 }
+      ],
+      "itemCategories": [
+        { "id": "weapon", "name": "Weapons", "order": 1 },
+        { "id": "armour", "name": "Armour", "order": 2 },
+        { "id": "gear", "name": "Adventuring gear", "order": 3 },
+        { "id": "trinket", "name": "Trinkets", "order": 4, "unencumbering": true }
+      ],
+      "encumbrance": {
+        "mode": "coin",
+        "coin": {
+          "coinsPerUnit": 1,
+          "maxLoadCoin": 1200,
+          "tiers": [
+            { "label": "Light", "max": 450, "effect": "Normal pace", "movement": "125 ft" },
+            { "label": "Laden", "max": 900, "effect": "Slowed", "movement": "80 ft" },
+            { "label": "Weighed down", "max": 1200, "effect": "Crawling", "movement": "50 ft" }
+          ],
+          "overMax": "Can't move"
+        },
+        "slot": {
+          "baseSlots": 10,
+          "tiers": [
+            { "label": "Nimble", "maxSlots": 5, "effect": "Normal pace", "movement": "125 ft" },
+            { "label": "Burdened", "maxSlots": 10, "effect": "Slowed", "movement": "50 ft" }
+          ],
+          "overMax": "Can't move"
+        }
+      },
+      "movement": { "default": 30, "exploration": "speed * 3", "partySpeed": "slowest member", "combat": { "formula": "speed / 3", "unit": "ft per round" } },
+      "skills": [{ "id": "hark", "name": "Hark", "die": "d6", "default": 6, "rollMode": "equal-or-over", "fill": { "best": ["base", { "classSkill": "EAR" }] }, "notes": "Hearing what waits behind a door." }],
+      "saveModifiers": [{ "id": "spell-ward", "name": "Spell ward", "value": { "from": "LORE", "plusRaceField": "spellWard" }, "notes": "The LORE modifier plus any kindred bonus." }],
+      "creationGuide": {
+        "scores": { "why": "Your scores shape what you're good at.", "help": "This decides which classes you can reach. Weigh Grit for hit points. If unsure, keep them as rolled." },
+        "race": { "title": "Kindred", "why": "Your kindred sets what you can become.", "help": "This decides your level cap and your tongues. Weigh the score changes. If unsure, bog folk fit anyone." },
+        "class": { "why": "Your calling is what you do when the lights fail.", "help": "This decides your hit die and your prime. Weigh what the table lacks. If unsure, a warden is forgiving." },
+        "who": "A name the table will remember.",
+        "spells": "The spells you carry out of your training.",
+        "gear": "Buy what you carry into your first dive.",
+        "languages": "Words you can speak and read in the fens."
+      },
+      "creation": { "require": ["languages"] },
+      "levelUp": { "when": "downtime" },
+      "xp": { "treasure": { "perGp": 1 }, "rounding": "nearest" },
+      "weather": {
+        "tables": { "any": "fen-sky" },
+        "rollEvery": { "value": 1, "unit": "day" },
+        "tags": {
+          "wet": { "name": "Wet", "note": "Fires are hard to light" },
+          "mired": { "name": "Mired", "budget": -2, "warn": "The ground sucks at every step" }
+        }
+      },
+      "hunger": { "note": "A day without food: the hungry tire, and tire more each day." },
+      "exploration": {
+        "modes": [
+          {
+            "id": "fen-trek",
+            "name": "Fen trek",
+            "step": { "value": 1, "unit": "day" },
+            "procedure": [
+              { "id": "sky", "name": "Weather", "icon": "weather", "kind": "roll" },
+              { "id": "astray", "name": "Going astray", "icon": "lost", "kind": "check", "checkId": "fen-astray" },
+              { "id": "prowl", "name": "Prowlers", "icon": "monster", "kind": "check", "checkId": "fen-prowl" }
+            ],
+            "checks": [
+              {
+                "id": "fen-astray",
+                "name": "Going astray",
+                "every": { "value": 1, "unit": "day" },
+                "chance": { "die": "d6", "on": [1] },
+                "byTerrain": true,
+                "terrainChance": "lostChance",
+                "modifiers": [
+                  { "routeType": "causeway", "never": true },
+                  { "ifPartyHas": { "class": "reed-witch" }, "chance": { "on": [1] }, "onlyOnTerrain": ["reedbed"], "note": "Reed-reading: a party with a Reed Witch goes astray in reedbeds only on a 1." }
+                ],
+                "alsoWhen": { "leaveRoute": "causeway" },
+                "onHit": { "tableId": "fen-astray-result" }
+              },
+              {
+                "id": "fen-prowl",
+                "name": "Prowlers",
+                "every": { "value": 1, "unit": "day" },
+                "chance": { "die": "d6", "on": [1] },
+                "byTerrain": true,
+                "terrainChance": "wanderChance",
+                "onHit": { "tableId": "fen-prowlers" }
+              }
+            ],
+            "movement": {
+              "kind": "budget",
+              "name": "Leagues",
+              "unit": "points",
+              "perDay": "floor(speed / 10)",
+              "forced": { "factor": 1.5, "stack": "once", "note": "The group pushes on into the dusk: half again as far today, and everyone needs rest tonight." },
+              "routes": [
+                { "id": "wild", "name": "Wild" },
+                { "id": "causeway", "name": "Causeway", "cost": 1, "column": "causeway" },
+                { "id": "channel", "name": "By channel", "cost": 2 }
+              ],
+              "note": "A league is an hour of steady walking on good ground."
+            },
+            "terrain": [
+              { "id": "sedge", "name": "Sedge meadow", "cost": 2, "lostChance": [1], "wanderChance": [1], "mounts": "ride", "vehicles": true },
+              { "id": "bog", "name": "Bog", "cost": 3, "lostChance": [1, 2], "wanderChance": [1, 2], "mounts": "none", "vehicles": false },
+              { "id": "reedbed", "name": "Reedbed", "cost": 4, "lostChance": [1, 2, 3], "wanderChance": [1], "mounts": "lead", "vehicles": false }
+            ],
+            "rest": { "every": { "value": 6, "unit": "day" }, "length": { "value": 1, "unit": "day" }, "condition": "weary", "note": "Six days of walking, then a day of rest, or everyone is weary." },
+            "camp": {
+              "procedure": [
+                { "id": "setup", "name": "Pitch camp", "icon": "camp", "kind": "note", "note": "Find a hummock above the water." },
+                { "id": "watches", "name": "Set watches", "icon": "watch", "kind": "watches", "watchLength": { "value": 2, "unit": "hour" } },
+                { "id": "night", "name": "Night prowlers", "icon": "monster", "kind": "check", "checkId": "fen-prowl" },
+                { "id": "sleep", "name": "Sleep", "icon": "rest", "kind": "note", "note": "Sleep comes with the next part of camp." }
+              ],
+              "fire": { "lightTypeId": "reed-fire", "note": "Wet reeds smoke more than they burn." },
+              "cooking": { "ingredients": ["bog-eel"], "portions": 2, "bonus": [{ "heal": 1 }], "note": "One eel feeds two." },
+              "sleep": {
+                "difficulties": [{ "id": "easy", "name": "Easy", "result": "good" }, { "id": "hard", "name": "Hard", "result": "check", "add": -1 }],
+                "rows": [{ "fire": true, "difficulty": "easy" }, { "difficulty": "hard" }],
+                "beddingItems": [],
+                "modifiers": [{ "when": "campfire-talk", "add": 1, "note": "Campfire talk" }],
+                "checkAbility": "WIS"
+              }
+            },
+            "activities": [
+              { "id": "cut-reeds", "name": "Cut reeds", "icon": "search", "cost": { "budget": 2 }, "chance": { "abilityCheck": "WIT" }, "who": "several", "maxActors": 2, "bestOf": true, "modifiers": [{ "when": "fullDay", "add": 1 }, { "who": "self", "ifClass": "reed-witch", "add": 1, "note": "A Reed Witch knows the good stands." }], "yields": { "item": "reed-bundle", "dice": "1d3" }, "onlyOnTerrain": ["reedbed", "sedge"] },
+              { "id": "scout-ahead", "name": "Scout ahead", "icon": "search", "cost": { "budget": 3 }, "chance": { "abilityCheck": "WIT" }, "who": "one", "secret": true, "result": "They learn what lies in the next stretch of fen.", "note": "The GM rolls in secret and narrates." },
+              { "id": "hark-for-prowlers", "name": "Hark for prowlers", "icon": "listen", "cost": { "budget": 0 }, "chance": { "skill": ["hark", "EAR"] }, "who": "several", "note": "Stand still in the reeds and listen." },
+              { "id": "dig-bog-roots", "name": "Dig bog roots", "icon": "forage", "cost": { "budget": 1 }, "who": "one", "yields": { "item": "fen-rations-week", "units": "1d3" }, "onlyOnTerrain": ["bog"], "note": "Single days of food, packed like the week's rations." }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "fieldTemplates": [
+    {
+      "id": "fen-sheet",
+      "name": "Fen sheet",
+      "appliesTo": "pc",
+      "fields": [
+        { "key": "MUS", "label": "MUS", "type": "number", "group": "Abilities", "showOnCard": true },
+        { "key": "NIM", "label": "NIM", "type": "number", "group": "Abilities", "showOnCard": true },
+        { "key": "GRT", "label": "GRT", "type": "number", "group": "Abilities", "showOnCard": true },
+        { "key": "WIT", "label": "WIT", "type": "number", "group": "Abilities", "showOnCard": true },
+        { "key": "LORE", "label": "LORE", "type": "number", "group": "Abilities", "showOnCard": true },
+        { "key": "CHARM", "label": "CHARM", "type": "number", "group": "Abilities", "showOnCard": true },
+        { "key": "alignment", "label": "Leaning", "type": "list", "choices": ["Lantern", "Reed", "Mire"], "group": "Who they are", "required": true },
+        { "key": "ac", "label": "Armour", "type": "number", "group": "Fight", "fill": "ac" },
+        { "key": "hp", "label": "Hit points", "type": "number", "group": "Fight", "required": true },
+        { "key": "movement", "label": "Movement", "type": "text", "group": "Fight", "fill": "movement" },
+        { "key": "attack", "label": "Attack", "type": "number", "group": "Fight", "fill": "attack" },
+        { "key": "saveMire", "label": "Save vs mire", "type": "number", "group": "Saves", "fill": "saves.mire" },
+        { "key": "title", "label": "Title", "type": "text", "group": "Who they are", "fill": "title" },
+        { "key": "literacy", "label": "Literacy", "type": "text", "group": "Who they are", "fill": "abilityModifiers.WIT.literacy" },
+        { "key": "languages", "label": "Languages", "type": "text", "group": "Who they are" },
+        { "key": "background", "label": "Background", "type": "list", "group": "Who they are", "from": "fen-backgrounds-{race}" },
+        { "key": "omen", "label": "Omen", "type": "list", "group": "Who they are", "from": "fen-omens", "option": "fen-omens" },
+        { "key": "motto", "label": "Motto", "type": "text", "group": "Who they are" },
+        { "key": "affiliation", "label": "Affiliation", "type": "text", "group": "Who they are", "help": "The band your character answers to, if any. It comes from play, not from creation.", "atCreation": false },
+        { "key": "hark", "label": "Hark", "type": "number", "group": "Skills", "fill": "skills.hark" },
+        { "key": "spellWard", "label": "Spell ward", "type": "number", "group": "Saves", "fill": "saveModifiers.spell-ward" }
+      ]
+    }
+  ],
+  "options": [
+    {
+      "id": "creation-path",
+      "name": "How characters are made",
+      "ruleKey": "creation-method",
+      "default": "players-choose",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "players-choose", "name": "Each player chooses", "short": "Players pick", "methods": ["kindred-first", "calling-only"] },
+        { "id": "kindred-first", "name": "Kindred, then calling", "short": "Kindred first", "races": "required" },
+        { "id": "calling-only", "name": "Calling as kindred", "short": "Calling only", "races": "none" }
+      ],
+      "notes": "Whether players pick a kindred and a calling, or a calling that is also their kindred."
+    },
+    {
+      "id": "fen-omens",
+      "name": "Birth omens",
+      "default": "off",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "off", "name": "Off", "notes": "No omens." },
+        { "id": "on", "name": "On", "notes": "Each character rolls or picks the omen they were born under." }
+      ],
+      "notes": "Adds a birth omen to each character, rolled or picked at creation."
+    },
+    {
+      "id": "fen-second-wind",
+      "name": "Second wind",
+      "default": "on",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "off", "name": "Off", "notes": "The hit points rolled stand." },
+        { "id": "on", "name": "On", "notes": "A 1 or 2 on the hit-points die may be rolled again." }
+      ],
+      "notes": "Whether a very low hit-points roll at creation may be rolled again."
+    },
+    {
+      "id": "fen-market",
+      "name": "Fen market",
+      "default": "on",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "off", "name": "Off", "notes": "No shop at creation: everyone starts with a reed rope and a storm lantern, plus their kit." },
+        { "id": "on", "name": "On", "notes": "Buy starting gear at the market." }
+      ],
+      "notes": "Whether new characters buy their gear or start with the market's bundle."
+    },
+    {
+      "id": "fen-kin-callings",
+      "name": "Kin callings",
+      "default": "off",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "off", "name": "Off", "notes": "Only the usual callings." },
+        { "id": "on", "name": "On", "notes": "A kindred may also be taken as a calling of its own." }
+      ],
+      "notes": "Whether the kin callings (a kindred played as its own calling) are offered."
+    },
+    {
+      "id": "fen-kin-limits",
+      "name": "Kindred limits",
+      "default": "kept",
+      "changeLater": "warn",
+      "category": "Character creation",
+      "choices": [
+        { "id": "kept", "name": "Kept", "notes": "Each kindred takes only its own callings, to the levels it lists." },
+        { "id": "chaplains-npc", "name": "Chaplains are the GM's", "notes": "As kept, and the marsh chaplains of every kindred are the GM's characters only.", "short": "Chaplains NPC" },
+        { "id": "lifted", "name": "Lifted", "notes": "Any kindred may take any calling, to any level." }
+      ],
+      "notes": "Whether a kindred's calling and level limits apply (invented, for the class-limit tests; cs-5)."
+    },
+    {
+      "id": "fen-quick-kit",
+      "name": "Quick bundle",
+      "default": "off",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "off", "name": "Off", "notes": "Only the callings' own kits." },
+        { "id": "on", "name": "On", "notes": "Anyone may take the quick bundle instead of shopping." }
+      ],
+      "notes": "Whether the quick bundle is offered at creation."
+    },
+    {
+      "id": "fen-weapon-drill",
+      "name": "Weapon drill",
+      "default": "off",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "off", "name": "Off", "short": "Off", "notes": "Any weapon, no drill." },
+        { "id": "on", "name": "On", "short": "On", "notes": "Callings drill with a few weapons." },
+        { "id": "on-drill-master", "name": "On, with a master weapon", "short": "With master", "notes": "Drill, and one weapon may be mastered." }
+      ],
+      "notes": "Whether characters pick the weapons they drilled with, and whether one may be mastered."
+    },
+    {
+      "id": "fen-odd-weapons",
+      "name": "Odd weapons",
+      "default": "off",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "off", "name": "Off", "notes": "A calling's forbidden weapons stay forbidden." },
+        { "id": "on", "name": "On", "notes": "Forbidden weapons may be used, clumsily." }
+      ],
+      "notes": "Whether a calling may use the weapons it isn't drilled for."
+    },
+    {
+      "id": "fen-small-charms",
+      "name": "Small charms",
+      "default": "off",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "off", "name": "Off", "notes": "No small charms." },
+        { "id": "on", "name": "On", "notes": "Cantors know small charms from the start." }
+      ],
+      "notes": "Whether cantors start knowing small charms."
+    },
+    {
+      "id": "fen-cruel-dice",
+      "name": "Cruel dice",
+      "default": "on",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "off", "name": "Off", "notes": "The scores rolled stand." },
+        { "id": "on", "name": "On", "notes": "Very low scores may be rolled again." }
+      ],
+      "notes": "Whether a player may start over after very low scores."
+    },
+    {
+      "id": "fen-two-bands",
+      "name": "Two-band slots",
+      "default": "off",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "off", "name": "Off", "notes": "Slots count as one list." },
+        { "id": "on", "name": "On", "notes": "What's worn or in hand and what's in the bags count apart; the slower sets the speed." }
+      ],
+      "notes": "With slot encumbrance: count what's on the body and what's in the bags apart (an invented test rule)."
+    }
+  ],
+  "races": [
+    {
+      "id": "bog-folk",
+      "name": "Bog folk",
+      "blurb": "Short, damp and hard to drown.",
+      "requirements": { "NIM": 8 },
+      "abilityModifiers": { "NIM": 1, "GRT": -1 },
+      "skillTargets": { "hark": { "value": 4, "when": "wading" } },
+      "classMaxLevels": { "lantern-warden": 8, "reed-witch": 6, "mire-stalker": 10, "marsh-chaplain": 8, "fen-cantor": { "maxLevel": 6, "soft": true }, "bog-kin-calling": 8 },
+      "byOption": {
+        "fen-kin-limits=chaplains-npc": { "npcOnlyClasses": ["marsh-chaplain"] },
+        "fen-kin-limits=lifted": { "classMaxLevels": {} }
+      },
+      "languages": ["fen-common", "deep-croak"],
+      "abilities": [
+        { "name": "Second wind", "note": "Breathes under water for a turn.", "blurb": "A turn under water, no harm done.", "kind": "advantage" },
+        { "name": "Small", "note": "Can't use large weapons.", "blurb": "Too small for the big spears.", "kind": "disadvantage" }
+      ],
+      "source": "Fen rules p. 12"
+    },
+    {
+      "id": "stone-kin",
+      "name": "Stone kin",
+      "blurb": "Slow, steady and stubborn as the causeway.",
+      "tables": { "names": "stone-kin-names", "trinket": "stone-kin-trinkets", "details": ["stone-kin-looks", "stone-kin-manner"], "growth": "stone-kin-moss" },
+      "age": "3d6 × 10 years",
+      "height": "4 ft + 1d6 in",
+      "weight": "150 + 3d10 lbs",
+      "usual": { "age": { "base": 0, "dice": "3d6", "times": 10, "unit": "years" }, "height": { "base": 48, "dice": "1d6", "unit": "in" }, "weight": { "base": 150, "dice": "3d10", "unit": "lb" } },
+      "requirements": { "GRT": 9 },
+      "skillTargets": { "hark": 5 },
+      "spellWard": 2,
+      "optionalAbilities": {
+        "whenOption": "fen-kin-callings=on",
+        "abilityModifiers": { "LORE": 1 },
+        "abilities": [{ "name": "Causeway memory", "note": "Never lost on a road they have walked.", "blurb": "Remembers every road walked." }]
+      },
+      "classMaxLevels": { "lantern-warden": 12, "mire-stalker": 8, "marsh-chaplain": 8, "fen-cantor": 6 },
+      "byOption": {
+        "fen-kin-limits=chaplains-npc": { "npcOnlyClasses": ["marsh-chaplain"] },
+        "fen-kin-limits=lifted": { "classMaxLevels": {} }
+      },
+      "languages": ["fen-common", "old-lantern"],
+      "abilities": [
+        { "name": "Stone sense", "note": "Finds worked stone in the dark.", "blurb": "Knows a causeway from a bog by touch." },
+        { "name": "Heavy", "note": "Can't swim.", "blurb": "Sinks like what they're named for.", "kind": "disadvantage" }
+      ],
+      "source": "Fen rules p. 13"
+    }
+  ],
+  "classes": [
+    {
+      "id": "lantern-warden",
+      "name": "Lantern Warden",
+      "blurb": "Keeps the light alive and the dark at bay.",
+      "xpTableId": "warden-xp",
+      "hitDie": "d8",
+      "weaponProficiencyCategory": "martial",
+      "progression": [
+        { "level": 1, "hitDice": "1d8", "attack": 19, "saves": { "mire": 12 } },
+        { "level": 3, "hitDice": "3d8", "attack": 18, "saves": { "mire": 11 } }
+      ],
+      "levelTitles": ["Lamplighter", "Wick-bearer", "Warden"],
+      "requirements": { "GRT": 7 },
+      "primeRequisites": ["MUS"],
+      "primeXp": { "type": "standard" },
+      "maxLevel": 12,
+      "creationMethods": ["kindred-first", "calling-only"],
+      "languages": ["old-lantern"],
+      "abilities": [
+        { "name": "Steady flame", "note": "Relights a dying light once a day.", "blurb": "Relights a dying light once a day.", "uses": { "count": 1, "per": "day" } },
+        { "name": "Oath of light", "note": "May never douse a light on purpose.", "blurb": "Can't put a light out on purpose.", "kind": "disadvantage" }
+      ],
+      "startingKits": ["warden-kit"],
+      "source": "Fen rules p. 20"
+    },
+    {
+      "id": "reed-witch",
+      "name": "Reed Witch",
+      "blurb": "Whispers to the reeds and they whisper back.",
+      "xpTableId": "witch-xp",
+      "hitDie": "d4",
+      "weaponProficiencyCategory": "gentle",
+      "progression": [
+        { "level": 1, "hitDice": "1d4", "attack": 20, "saves": { "mire": 11 } },
+        { "level": 3, "hitDice": "3d4", "attack": 19, "saves": { "mire": 10 } }
+      ],
+      "levelTitles": ["Reed-reader", "Hedge-singer", "Witch"],
+      "requirements": { "LORE": 9 },
+      "primeRequisites": ["LORE"],
+      "primeXp": { "type": "rules", "rules": [{ "any": { "LORE": 12 }, "bonus": 5 }, { "all": { "LORE": 15 }, "bonus": 10 }] },
+      "maxLevel": 10,
+      "creationMethods": ["kindred-first"],
+      "spellcasting": {
+        "listId": "witch-list",
+        "type": "book",
+        "castingType": "arcane",
+        "maxSpellLevel": 3,
+        "fromLevel": 1,
+        "recover": "restAndStudy",
+        "firstSpells": { "choose": 2, "given": ["glimmer"], "rollTable": "first-whispers" },
+        "known": { "byLevel": [{ "level": 1, "count": 2 }], "listLevel": 0 }
+      },
+      "abilities": [{ "name": "Reed sense", "note": "Hears what the reeds heard.", "blurb": "Hears what the reeds heard." }],
+      "source": "Fen rules p. 24"
+    },
+    {
+      "id": "mire-stalker",
+      "name": "Mire Stalker",
+      "blurb": "Moves through the bog like it isn't there.",
+      "xpTableId": "stalker-xp",
+      "hitDie": "d6",
+      "weaponProficiencyCategory": "martial",
+      "weaponsAllowed": { "mode": "list", "ids": ["reed-spear", "eel-knife"] },
+      "progression": [
+        { "level": 1, "hitDice": "1d6", "attack": 19, "saves": { "mire": 13 } },
+        { "level": 3, "hitDice": "3d6", "attack": 18, "saves": { "mire": 12 } }
+      ],
+      "skills": { "names": { "EAR": "Keen ear" }, "die": "d6", "gmRolls": ["EAR"], "byLevel": [{ "level": 1, "EAR": "1-2" }, { "level": 3, "EAR": "1-3" }] },
+      "levelTitles": ["Wader", "Tracker", "Stalker"],
+      "requirements": { "NIM": 9 },
+      "primeRequisites": ["NIM"],
+      "primeXp": { "type": "standard" },
+      "maxLevel": 14,
+      "creationMethods": ["kindred-first", "calling-only"],
+      "alignments": { "ids": ["Reed", "Mire"], "soft": true },
+      "race": "bog-folk",
+      "abilities": [{ "name": "Silent step", "note": "Surprises on 1-3.", "blurb": "Harder to hear coming." }],
+      "source": "Fen rules p. 28"
+    },
+    {
+      "id": "marsh-chaplain",
+      "name": "Marsh Chaplain",
+      "blurb": "Keeps the lanterns lit on the causeways.",
+      "xpTableId": "witch-xp",
+      "hitDie": "d6",
+      "progression": [
+        { "level": 1, "hitDice": "1d6", "attack": 19, "saves": { "mire": 12 } },
+        { "level": 3, "hitDice": "3d6", "attack": 18, "saves": { "mire": 11 } }
+      ],
+      "levelTitles": ["Lamplighter", "Causeway keeper", "Chaplain"],
+      "primeRequisites": ["LORE"],
+      "maxLevel": 10,
+      "creationMethods": ["kindred-first"],
+      "alignments": ["Lantern", "Reed"],
+      "spellcasting": {
+        "listId": "chaplain-list",
+        "type": "divine",
+        "castingType": "divine",
+        "maxSpellLevel": 3,
+        "fromLevel": 2,
+        "recover": "prayer",
+        "firstSpells": { "given": [], "note": "No prayers at level 1; they come at level 2." }
+      },
+      "source": "Fen rules p. 29"
+    },
+    {
+      "id": "fen-cantor",
+      "name": "Fen Cantor",
+      "blurb": "Hums the old charms until the fen hums back.",
+      "xpTableId": "witch-xp",
+      "hitDie": "d4",
+      "progression": [
+        { "level": 1, "hitDice": "1d4", "attack": 20, "saves": { "mire": 11 } },
+        { "level": 3, "hitDice": "3d4", "attack": 19, "saves": { "mire": 10 } }
+      ],
+      "levelTitles": ["Hummer", "Chanter", "Cantor"],
+      "primeRequisites": ["LORE"],
+      "maxLevel": 10,
+      "creationMethods": ["kindred-first"],
+      "spellcasting": {
+        "listId": "witch-list",
+        "type": "book",
+        "castingType": "arcane",
+        "maxSpellLevel": 3,
+        "fromLevel": 1,
+        "recover": "restAndStudy",
+        "firstSpells": { "rollTable": ["first-whispers", "first-charms"], "note": "Roll on both tables; a charm and a whisper." },
+        "known": { "byLevel": [{ "level": 1, "count": 1 }], "listLevel": 0, "option": "fen-small-charms" }
+      },
+      "source": "Fen rules p. 30"
+    },
+    {
+      "id": "bog-kin-calling",
+      "name": "Bog-kin",
+      "blurb": "A bog folk who is nothing but bog folk, and proud of it.",
+      "kindredClass": true,
+      "option": "fen-kin-callings=on",
+      "xpTableId": "warden-xp",
+      "hitDie": "d6",
+      "progression": [
+        { "level": 1, "hitDice": "1d6", "attack": 19, "saves": { "mire": 12 } },
+        { "level": 3, "hitDice": "3d6", "attack": 18, "saves": { "mire": 11 } }
+      ],
+      "levelTitles": ["Mudlark", "Bog-runner", "Bog-kin"],
+      "primeRequisites": ["GRT"],
+      "maxLevel": 8,
+      "creationMethods": ["kindred-first", "calling-only"],
+      "source": "Fen rules p. 31"
+    }
+  ],
+  "spellLists": [
+    {
+      "id": "witch-list",
+      "name": "Reed witch spells",
+      "classId": "reed-witch",
+      "levels": [
+        { "level": 0, "spells": ["frog-chorus", "dry-boots", "knot-charm"] },
+        { "level": 1, "spells": ["glimmer", "reed-whisper", "mire-grip", "damp-wick"] }
+      ]
+    },
+    { "id": "chaplain-list", "name": "Chaplain prayers", "classId": "marsh-chaplain", "levels": [{ "level": 1, "spells": ["lantern-blessing"] }] }
+  ],
+  "spells": [
+    { "id": "glimmer", "name": "Glimmer", "lists": { "witch-list": 1 }, "range": "30 ft", "duration": "1 turn", "blurb": "A small steady light that follows the caster.", "source": "Fen rules p. 40" },
+    { "id": "reed-whisper", "name": "Reed whisper", "lists": { "witch-list": 1 }, "range": "60 ft", "duration": "1 turn", "blurb": "A message carried by the reeds.", "source": "Fen rules p. 40" },
+    {
+      "id": "mire-grip",
+      "name": "Mire grip",
+      "lists": { "witch-list": 1 },
+      "range": "30 ft",
+      "duration": "3 rounds",
+      "saves": ["mire"],
+      "blurb": "The bog holds one foe fast.",
+      "notes": "One foe in range is held fast by the mud until it breaks free.",
+      "source": "Fen rules p. 41"
+    },
+    { "id": "damp-wick", "name": "Damp wick", "lists": { "witch-list": 1 }, "range": "30 ft", "duration": "instant", "blurb": "One light sputters out.", "source": "Fen rules p. 41" },
+    { "id": "frog-chorus", "name": "Frog chorus", "lists": { "witch-list": 0 }, "range": "self", "duration": "1 turn", "blurb": "Covers your footsteps with croaking.", "source": "Fen rules p. 42" },
+    { "id": "dry-boots", "name": "Dry boots", "lists": { "witch-list": 0 }, "range": "touch", "duration": "1 day", "blurb": "Feet stay dry whatever you wade through.", "source": "Fen rules p. 42" },
+    { "id": "knot-charm", "name": "Knot charm", "lists": { "witch-list": 0 }, "range": "touch", "duration": "instant", "blurb": "Ties or loosens a rope at a glance.", "source": "Fen rules p. 42" },
+    { "id": "lantern-blessing", "name": "Lantern blessing", "lists": { "chaplain-list": 1 }, "range": "touch", "duration": "1 turn", "blurb": "A lantern burns without oil for a while." }
+  ],
+  "tables": [
+    {
+      "id": "first-whispers",
+      "name": "First whispers",
+      "die": "d4",
+      "gmOnly": false,
+      "description": "The spell a new witch wakes up knowing.",
+      "rows": [
+        { "min": 1, "max": 1, "result": "Reed whisper", "spells": ["reed-whisper"] },
+        { "min": 2, "max": 2, "result": "Mire grip", "spells": ["mire-grip"] },
+        { "min": 3, "max": 3, "result": "Damp wick", "spells": ["damp-wick"] },
+        { "min": 4, "max": 4, "result": "Glimmer", "spells": ["glimmer"] }
+      ]
+    },
+    {
+      "id": "first-charms",
+      "name": "First charms",
+      "die": "d2",
+      "gmOnly": false,
+      "description": "The charm a new cantor hums before anything else.",
+      "rows": [
+        { "min": 1, "max": 1, "result": "Light and dark", "spells": ["glimmer", "damp-wick"] },
+        { "min": 2, "max": 2, "result": "Mire grip", "spells": ["mire-grip"] }
+      ]
+    },
+    {
+      "id": "fen-sky",
+      "name": "Fen sky",
+      "die": "d6",
+      "rows": [
+        { "min": 1, "max": 2, "result": "Drizzle", "tags": ["wet"] },
+        { "min": 3, "max": 3, "result": "Sucking mud", "tags": ["wet", "mired"] },
+        { "min": 4, "max": 6, "result": "Clear" }
+      ]
+    },
+    {
+      "id": "fen-astray-result",
+      "name": "Gone astray",
+      "die": "d6",
+      "rows": [
+        { "min": 1, "max": 3, "result": "The group circles back to where it began the day." },
+        { "min": 4, "max": 6, "result": "The group ends the day one terrain over, unsure which." }
+      ]
+    },
+    {
+      "id": "fen-prowlers",
+      "name": "Fen prowlers",
+      "die": "d6",
+      "rows": [
+        { "min": 1, "max": 3, "result": "Bog lurkers (1d4)" },
+        { "min": 4, "max": 5, "result": "A Lantern Warden, alone" },
+        { "min": 6, "max": 6, "result": "Fen folk", "next": { "byTerrain": { "reedbed": "reed-folk" }, "default": "meadow-folk" } }
+      ]
+    },
+    {
+      "id": "reed-folk",
+      "name": "Reed folk",
+      "die": "d4",
+      "description": "Who you meet in a reedbed.",
+      "rows": [
+        { "min": 1, "max": 2, "result": "Reed cutters, wary", "count": "1d6" },
+        { "min": 3, "max": 4, "result": "A punt-keeper with a cracked lantern" }
+      ]
+    },
+    {
+      "id": "meadow-folk",
+      "name": "Meadow folk",
+      "die": "d4",
+      "description": "Who you meet on open ground.",
+      "rows": [
+        { "min": 1, "max": 2, "result": "Hedge pedlars", "count": "1d4" },
+        { "min": 3, "max": 4, "result": "A goose-herd and her geese" }
+      ]
+    },
+    {
+      "id": "stone-kin-names",
+      "name": "Stone kin names",
+      "die": "d6",
+      "gmOnly": false,
+      "columns": ["First name", "Surname"],
+      "description": "Tap a name in each column, or type your own.",
+      "source": "Fen rules p. 8",
+      "rows": [
+        { "min": 1, "max": 1, "result": "Bramble · Reedwhistle", "cells": ["Bramble", "Reedwhistle"] },
+        { "min": 2, "max": 2, "result": "Tansy · Mudfoot", "cells": ["Tansy", "Mudfoot"] },
+        { "min": 3, "max": 3, "result": "Wort · Fennick", "cells": ["Wort", "Fennick"] },
+        { "min": 4, "max": 4, "result": "Peat · Underleaf", "cells": ["Peat", "Underleaf"] },
+        { "min": 5, "max": 5, "result": "Sedge · Puddlewick", "cells": ["Sedge", "Puddlewick"] },
+        { "min": 6, "max": 6, "result": "Coot · Marshmallow", "cells": ["Coot", "Marshmallow"] }
+      ]
+    },
+    {
+      "id": "stone-kin-trinkets",
+      "name": "Stone kin trinkets",
+      "die": "d30",
+      "gmOnly": false,
+      "description": "A trinket the character starts with.",
+      "source": "Fen rules p. 9",
+      "rows": [
+        { "min": 1, "max": 2, "result": "A reed whistle that only frogs can hear" },
+        { "min": 3, "max": 4, "result": "A jar of glowing pond-water" },
+        { "min": 5, "max": 6, "result": "A spoon bent into a hook" },
+        { "min": 7, "max": 8, "result": "A map of a marsh that has since drained" },
+        { "min": 9, "max": 10, "result": "A wooden duck with one wing" },
+        { "min": 11, "max": 12, "result": "A pebble that is always warm" },
+        { "min": 13, "max": 14, "result": "A knotted string with seven beads" },
+        { "min": 15, "max": 16, "result": "A boot full of dried moss" },
+        { "min": 17, "max": 18, "result": "A lantern wick that never burns down" },
+        { "min": 19, "max": 20, "result": "A letter in a hand nobody reads" },
+        { "min": 21, "max": 22, "result": "A tin cup with a hole drilled in it" },
+        { "min": 23, "max": 24, "result": "A feather from a heron that talked" },
+        { "min": 25, "max": 26, "result": "A pressed water-lily" },
+        { "min": 27, "max": 28, "result": "A rusted key to a sunken door" },
+        { "min": 29, "max": 30, "result": "An eel-skin purse, empty" }
+      ]
+    },
+    {
+      "id": "stone-kin-looks",
+      "name": "Stone kin looks",
+      "die": "d4",
+      "gmOnly": false,
+      "description": "An extra detail for a stone kin character: roll or choose.",
+      "source": "Fen rules p. 9",
+      "rows": [
+        { "min": 1, "max": 1, "result": "Webbed fingers" },
+        { "min": 2, "max": 2, "result": "Hair like wet straw" },
+        { "min": 3, "max": 3, "result": "Eyes the colour of peat" },
+        { "min": 4, "max": 4, "result": "Ears notched from old fights" }
+      ]
+    },
+    {
+      "id": "stone-kin-manner",
+      "name": "Stone kin manner",
+      "die": "d4",
+      "gmOnly": false,
+      "description": "How a stone kin character carries themselves.",
+      "source": "Fen rules p. 9",
+      "rows": [
+        { "min": 1, "max": 1, "result": "Hums when nervous" },
+        { "min": 2, "max": 2, "result": "Never sits with their back to water" },
+        { "min": 3, "max": 3, "result": "Counts everything twice" },
+        { "min": 4, "max": 4, "result": "Laughs at the wrong moments" }
+      ]
+    },
+    {
+      "id": "stone-kin-moss",
+      "name": "Stone kin moss",
+      "die": "d4",
+      "gmOnly": false,
+      "description": "A moss a stone kin character grows at Level 1 and at each Level after.",
+      "source": "Fen rules p. 10",
+      "rows": [
+        { "min": 1, "max": 1, "result": "A tuft of green behind one ear" },
+        { "min": 2, "max": 2, "result": "Lichen along the knuckles" },
+        { "min": 3, "max": 3, "result": "Soft moss on the shoulders" },
+        { "min": 4, "max": 4, "result": "A ring of tiny mushrooms at the collar" }
+      ]
+    }
+  ],
+  "items": [
+    { "id": "reed-bundle", "name": "Reed bundle", "category": "goods", "value": { "sp": 1 }, "weightCoin": 10, "slots": 1, "blurb": "Cut reeds, bound for thatch or fire.", "source": "p. 34" },
+    { "id": "reed-spear", "name": "Reed spear", "category": "weapon", "slot": "hand", "value": { "gp": 3 }, "weightCoin": 30, "slots": 1, "blurb": "Light, long and good for eels.", "tags": ["melee"], "damage": "1d6", "weapon": { "damage": "1d6", "qualities": ["Melee"] }, "weaponTags": ["Melee"], "source": "p. 33" },
+    { "id": "eel-knife", "name": "Eel knife", "category": "weapon", "slot": "hand", "value": { "gp": 2 }, "weightCoin": 10, "slots": 1, "blurb": "Short and quick.", "tags": ["melee"], "damage": "1d4", "weapon": { "damage": "1d4", "qualities": ["Melee"] }, "weaponTags": ["Melee"], "source": "p. 33" },
+    { "id": "bog-sling", "name": "Bog sling", "category": "weapon", "slot": "hand", "value": { "gp": 1, "sp": 5 }, "weightCoin": 5, "slots": 1, "blurb": "Mud balls at a distance.", "tags": ["missile"], "damage": "1d4", "weapon": { "damage": "1d4", "qualities": ["Missile"] }, "weaponTags": ["Missile"], "source": "p. 33" },
+    { "id": "waxed-coat", "name": "Waxed coat", "category": "armour", "slot": "armour", "armourType": "light", "value": { "gp": 10 }, "weightCoin": 150, "slots": 2, "blurb": "Keeps the wet out and some blows.", "armour": { "base": 12, "type": "light" }, "source": "p. 34" },
+    { "id": "bog-iron-coat", "name": "Bog-iron coat", "category": "armour", "slot": "armour", "armourType": "heavy", "value": { "gp": 40 }, "weightCoin": 400, "slots": 3, "blurb": "Heavy, rusty and very hard to cut.", "armour": { "base": 15, "type": "heavy" }, "source": "p. 34" },
+    { "id": "storm-lantern", "name": "Storm lantern", "category": "gear", "value": { "gp": 8 }, "weightCoin": 40, "slots": 1, "blurb": "Stays lit in the wind.", "source": "p. 35" },
+    { "id": "rope-reed", "name": "Reed rope", "category": "gear", "value": { "gp": 1 }, "weightCoin": 50, "slots": 1, "blurb": "Ten yards of twisted reed.", "source": "p. 35" },
+    { "id": "dry-rations", "name": "Dry rations", "category": "gear", "value": { "gp": 1 }, "weightCoin": 20, "slots": 1, "stack": 7, "food": "preserved", "blurb": "A day's food that won't go soggy.", "source": "p. 35" },
+    { "id": "reed-basket", "name": "Reed basket", "category": "gear", "value": { "gp": 2 }, "weightCoin": 20, "slots": 1, "container": { "capacityCoin": 400, "capacitySlots": 4 }, "blurb": "Worn on the back; holds a day's finds.", "source": "p. 35" },
+    { "id": "witch-book", "name": "Whisper book", "category": "gear", "value": { "gp": 15 }, "weightCoin": 30, "slots": 1, "blurb": "Where a witch keeps her whispers.", "source": "p. 35" },
+    { "id": "bog-eel", "name": "Bog eel", "category": "gear", "value": { "cp": 5 }, "weightCoin": 5, "slots": 1, "stack": 10, "food": "fresh", "blurb": "Slippery, and better cooked.", "source": "p. 35" },
+    { "id": "fen-rations-week", "name": "Fen rations (1 week)", "category": "gear", "value": { "gp": 5 }, "weightCoin": 70, "slots": 1, "bundle": 7, "unitName": "Ration day", "food": "preserved", "blurb": "A week's food, a day to a wrap.", "source": "p. 35" },
+    { "id": "reed-whistle", "name": "Reed whistle", "category": "trinket", "value": {"sp": 1}, "slots": 0, "blurb": "Two notes, both shrill.", "source": "p. 35" },
+    { "id": "eel-hooks", "name": "Eel hooks", "category": "gear", "unencumbering": true, "stack": 20, "slots": 0, "value": {"sp": 1}, "blurb": "Bent bone, barbed.", "source": "p. 35" }
+  ],
+  "lightTypes": [
+    { "id": "reed-fire", "name": "Reed fire", "duration": 2, "unit": "hour", "fuelItemId": "reed-bundle" }
+  ],
+  "startingKits": [
+    {
+      "id": "warden-kit",
+      "name": "Warden's kit",
+      "classIds": ["lantern-warden"],
+      "blurb": "Spear, coat, lantern and food for a dive.",
+      "costGp": 22,
+      "items": [
+        { "itemId": "reed-basket", "qty": 1 },
+        { "itemId": "reed-spear", "qty": 1 },
+        { "itemId": "waxed-coat", "qty": 1 },
+        { "itemId": "storm-lantern", "qty": 1 },
+        { "itemId": "dry-rations", "qty": 3 }
+      ],
+      "source": "p. 31"
+    },
+    {
+      "id": "witch-kit",
+      "name": "Witch's kit",
+      "classIds": ["reed-witch"],
+      "blurb": "Knife, book and a rope for the bog.",
+      "costGp": 18,
+      "items": [
+        { "itemId": "eel-knife", "qty": 1 },
+        { "itemId": "witch-book", "qty": 1 },
+        { "itemId": "rope-reed", "qty": 1 }
+      ],
+      "source": "p. 31"
+    },
+    {
+      "id": "stalker-bundle",
+      "name": "Stalker's bundle",
+      "classIds": ["mire-stalker"],
+      "blurb": "Whatever the mire gave up: roll for it.",
+      "items": [
+        { "itemId": "reed-basket", "qty": 1 },
+        { "itemId": "dry-rations", "qty": 2 }
+      ],
+      "rolls": [
+        { "name": "Armour", "die": "d6", "rows": [
+          { "min": 1, "max": 3, "items": [] },
+          { "min": 4, "max": 6, "items": [{ "itemId": "waxed-coat", "qty": 1 }] }
+        ] },
+        { "name": "Weapons", "die": "d4", "times": 2, "rows": [
+          { "min": 1, "max": 2, "items": [{ "itemId": "eel-knife", "qty": 1 }] },
+          { "min": 3, "max": 3, "items": [{ "itemId": "bog-sling", "qty": 1 }] },
+          { "min": 4, "max": 4, "items": [{ "itemId": "reed-spear", "qty": 1 }] }
+        ] }
+      ],
+      "source": "p. 32"
+    },
+    {
+      "id": "fen-quick-bundle",
+      "name": "Quick bundle",
+      "option": "fen-quick-kit",
+      "blurb": "A spear, a rope and two days' food, for anyone in a hurry.",
+      "costGp": 5,
+      "items": [
+        { "itemId": "reed-spear", "qty": 1 },
+        { "itemId": "rope-reed", "qty": 1 },
+        { "itemId": "dry-rations", "qty": 2 }
+      ],
+      "rolls": [
+        { "name": "Warden's light", "die": "1d4", "forClasses": ["lantern-warden"], "rows": [{ "min": 1, "max": 4, "items": [{ "itemId": "storm-lantern", "qty": 1 }] }] },
+        { "name": "Witch's book", "die": "1d4", "forClasses": ["reed-witch"], "rows": [{ "min": 1, "max": 4, "items": [{ "itemId": "witch-book", "qty": 1 }] }] }
+      ],
+      "source": "p. 32"
+    },
+    {
+      "id": "fen-market-bundle",
+      "name": "Market bundle",
+      "option": "fen-market=off",
+      "blurb": "The market's hand-out: a rope and food.",
+      "items": [
+        { "itemId": "rope-reed", "qty": 1 },
+        { "itemId": "dry-rations", "qty": 2 }
+      ],
+      "source": "p. 32"
+    }
+  ],
+  "traitLists": [
+    {
+      "id": "fen-backgrounds-bog-folk",
+      "name": "Bog folk backgrounds",
+      "die": "d6",
+      "notes": "Roll at the table, or pick one with the GM's nod.",
+      "source": "Fen rules p. 14",
+      "entries": [
+        { "id": "eel-catcher", "name": "Eel catcher", "min": 1, "max": 3, "blurb": "Knows the channels and their moods.", "notes": "Starts with an eel knife; knows which channels flood at dusk.", "items": [{ "itemId": "eel-knife", "qty": 1 }] },
+        { "id": "reed-cutter", "name": "Reed cutter", "min": 4, "max": 5, "blurb": "Strong arms and a feel for the wind." },
+        { "id": "lantern-child", "name": "Lantern child", "min": 6, "max": 6, "blurb": "Raised in the warden house." }
+      ]
+    },
+    {
+      "id": "fen-backgrounds-stone-kin",
+      "name": "Stone kin backgrounds",
+      "die": "d4",
+      "notes": "Roll at the table, or pick one with the GM's nod.",
+      "help": "Stone kin trades come from the causeways. Pick the one your clan would boast of at a wedding.",
+      "source": "Fen rules p. 15",
+      "entries": [
+        { "id": "causeway-mason", "name": "Causeway mason", "min": 1, "max": 2, "blurb": "Lays stone where the bog allows." },
+        { "id": "rope-walker", "name": "Rope walker", "min": 3, "max": 4, "blurb": "Crosses the mire on lines.", "items": [{ "itemId": "rope-reed", "qty": 1 }] }
+      ]
+    },
+    {
+      "id": "fen-omens",
+      "name": "Birth omens",
+      "die": "d4",
+      "option": "fen-omens",
+      "excludeRaces": ["stone-kin"],
+      "notes": "Only with the birth omens option on.",
+      "entries": [
+        { "id": "heron-at-dawn", "name": "Heron at dawn", "min": 1, "max": 2, "blurb": "Patient; waits out any ambush." },
+        { "id": "frog-in-frost", "name": "Frog in frost", "min": 3, "max": 4, "blurb": "Hardy in the cold months.", "items": [{ "itemId": "dry-rations", "qty": 1 }] }
+      ]
+    }
+  ],
+  "hooks": [
+    { "id": "fen-fill-mods", "kind": "fill", "when": "abilityScoreChanged", "from": "abilityModifiers", "target": "abilityModifiers" },
+    { "id": "fen-fill-level", "kind": "fill", "when": "levelUp", "from": "classProgression", "target": ["hitDice", "attack", "saves", "title", "skills"] },
+    { "id": "fen-fill-movement", "kind": "fill", "when": "levelUp", "value": "125", "target": "movement" }
+  ]
+}

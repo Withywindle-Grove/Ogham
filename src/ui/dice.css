@@ -1,0 +1,116 @@
+/* The die glyphs and the Roll row (dice.tsx; plan m5b-creation-final-drafts A2, A3). Tokens only. Each die its colour
+   from the palette, never its only cue: the Roll row's words name the dice. */
+.die-glyph {
+  flex: none;
+}
+
+.die-glyph--d4 {
+  color: var(--info);
+}
+
+.die-glyph--d6 {
+  color: var(--ink);
+}
+
+.die-glyph--d8 {
+  color: var(--accent);
+}
+
+.die-glyph--d10,
+.die-glyph--d100 {
+  color: var(--light-glow);
+}
+
+.die-glyph--d12 {
+  color: var(--danger);
+}
+
+.die-glyph--d20 {
+  color: var(--warning);
+}
+
+/* The Roll row: the glyph, then the instruction in bold at body size (never a caption). */
+.roll-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--line-body);
+}
+
+.roll-row .die-glyph {
+  /* Sits on the first line's middle: a 24 px glyph against a 24 px line. */
+  margin-block-start: 0;
+}
+
+.roll-row__words {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The heading variant (sv-3; frames P1, P2 of december/14): the rule line in a section heading's row, in ink at 14 px,
+   not bold, with a 16 px glyph; its case and spacing its own, whatever the heading's small capitals. */
+.roll-row--heading {
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  color: var(--ink);
+  font-size: var(--text-14);
+  font-weight: var(--weight-book-text);
+  line-height: var(--line-body);
+  text-transform: none;
+  letter-spacing: 0;
+  font-variant: normal;
+}
+
+.roll-row--heading .die-glyph {
+  flex: none;
+}
+
+/* The Roll card (as-1): one roll on a quiet card, the line standing out at heading size, the parts under it. Not a
+   control, so its edge is the passive rule. */
+.roll-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.roll-card .roll-row {
+  font-family: var(--font-heading);
+  font-size: var(--text-24);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+}
+
+.roll-card__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* Dice in words (ds-3): the glyph before each named die, at the text's size, kept on one line with its words. On an
+   accent fill it takes the text's colour. */
+.dice-words__roll {
+  white-space: nowrap;
+}
+
+.dice-words .die-glyph {
+  inline-size: 1em;
+  block-size: 1em;
+  margin-inline-end: var(--space-1);
+  vertical-align: -0.125em;
+}
+
+.dice-words .die-glyph--d100 {
+  inline-size: 2em;
+}
+
+.button-primary .dice-words .die-glyph {
+  color: inherit;
+}

@@ -1,0 +1,147 @@
+/* The card after an expedition ends (S19; page 16, frames 16-T11 to 16-T11d, ap-11). Tokens only. */
+.end-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--space-3);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+}
+
+/* Inside the panel's open item the panel draws the box and the mark (WaitingForYou.css, `.waiting-open`). */
+.waiting-open .end-card {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.waiting-open .end-card__mark {
+  display: none;
+}
+
+/* The head: the flag, the title, and Undo at its right (ap-11: beside the words it undoes, away from the Heal rows). */
+.end-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-width: 0;
+}
+
+.end-card__mark {
+  display: flex;
+  color: var(--muted);
+}
+
+.end-card__title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+}
+
+/* The app's Undo (ic-2): the turned-back arrow and the underlined word, as the toast's. */
+.end-card__undo {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: 0 var(--space-1);
+  border: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: var(--weight-book-name);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+  cursor: pointer;
+}
+
+.end-card__took {
+  margin: var(--space-1) 0 var(--space-2);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+/* A line of the card: a dotted rule above it, as the book's rows (T11). */
+.end-card__row,
+.end-card__rule {
+  min-width: 0;
+  margin: 0;
+  padding-block: var(--space-2);
+  border-block-start: var(--line-hair) dotted var(--rule);
+}
+
+.end-card__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+}
+
+.end-card__row--end {
+  justify-content: flex-end;
+}
+
+.end-card__words {
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+.end-card__rest {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.end-card__rule {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.end-card__line {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+.end-card__went {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A character's row (T11c): the name, which wraps; the hit points and the bar at the right; Heal. */
+.end-card__who {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--space-3);
+  align-items: center;
+  padding-block: var(--space-2);
+  border-block-start: var(--line-hair) dotted var(--rule);
+}
+
+.end-card__name {
+  font-weight: var(--weight-book-name);
+  overflow-wrap: anywhere;
+}
+
+.end-card__hp {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.end-card__hp-now {
+  font-weight: var(--weight-book-name);
+}

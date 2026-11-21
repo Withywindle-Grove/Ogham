@@ -1,0 +1,91 @@
+/* A rule's text in the book's words (RuleText.tsx; moved here from PlaceRules.css with dec-8 B to be shared). Tokens only. */
+.rule-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-inline-size: var(--reading-width);
+  min-width: 0;
+}
+
+.rule-text__p,
+.rule-text__list {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.rule-text__p strong {
+  font-weight: var(--weight-heading);
+}
+
+.rule-text__heading {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+  color: var(--accent);
+}
+
+/* A boxed aside (pf-18 `box`; frame 7b): a bordered box inside the text, its words in the text face. */
+.rule-text__box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  min-width: 0;
+}
+
+.rule-text__box-title {
+  margin: 0;
+  font-size: var(--text-16);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.rule-text__source {
+  margin: 0;
+  font-size: var(--text-14);
+  color: var(--muted);
+}
+
+.rule-text__table-wrap {
+  overflow-x: auto;
+}
+
+.rule-text__table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+.rule-text__table caption {
+  padding: var(--space-1) var(--space-2);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: var(--weight-heading);
+  text-align: center;
+}
+
+.rule-text__table th,
+.rule-text__table td {
+  padding: var(--space-1) var(--space-2);
+  text-align: start;
+  vertical-align: top;
+  border-block-end: var(--line-hair) solid var(--rule);
+  overflow-wrap: anywhere;
+}
+
+.rule-text__table thead th {
+  border-block-end: var(--line-selected) solid var(--ink);
+}
+
+/* A trait's note in blocks inside an entry in the book format (tfb-5; `EntryPanel`'s `BookBody`): the gap a book
+   paragraph keeps before the labelled lines. */
+.rule-text--book {
+  margin: 0 0 var(--space-2);
+}

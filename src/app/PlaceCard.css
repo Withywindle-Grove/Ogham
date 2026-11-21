@@ -1,0 +1,309 @@
+/* Where a group is (M5 step 11): the GM's room GM layer (place card) and a player's "where you are". Tokens only. */
+.place-card,
+.place-line {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: var(--line-hair) solid var(--rule);
+  min-width: 0;
+}
+
+.place-card__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.place-card__name,
+.place-line__name {
+  margin: 0;
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
+
+.place-card__state,
+.place-card__hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+.place-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  min-width: 0;
+}
+
+.place-card__checks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.place-card__checks .label {
+  margin: 0;
+}
+
+.place-card__list {
+  margin: 0;
+  padding-inline-start: var(--space-4);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.place-card__notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.place-card__summary {
+  min-block-size: var(--tap);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-16);
+  font-weight: var(--weight-heading);
+  cursor: pointer;
+  list-style: none;
+}
+
+.place-card__summary::-webkit-details-marker {
+  display: none;
+}
+
+/* B16: the chevron turns when Notes is open; the first line shows only while folded. */
+.place-card__chevron {
+  display: inline-block;
+}
+
+.place-card__notes[open] .place-card__chevron {
+  transform: rotate(90deg);
+}
+
+.place-card__summary-words {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.place-card__first {
+  font-weight: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.place-card__notes[open] .place-card__first {
+  display: none;
+}
+
+.place-line__text {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Pieces (M5b g2, B1): each row's text takes the width; the 44 × 44 eye button sits at its right. */
+/* A place's picture (M5b step 1 follow-up, build order 7): across the card, never taller than a third of the screen;
+   a tap opens it full screen. */
+.place-card__picture {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.place-card__picture .label {
+  margin: 0;
+}
+
+/* The GM's picture with its own eye at its right, as a piece's (ruled B, 2026-11-03). */
+.place-card__picture-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.place-card__picture-row > .place-picture,
+.place-card__picture-row > .place-card__hint {
+  flex: 1;
+  min-width: 0;
+}
+
+.place-card__picture-row > .place-card__eye {
+  flex: none;
+}
+
+.place-picture {
+  display: block;
+  inline-size: 100%;
+  min-block-size: var(--tap);
+  padding: 0;
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  overflow: hidden;
+  cursor: zoom-in;
+}
+
+.place-picture--loading {
+  block-size: 160px;
+  border-color: var(--rule);
+  cursor: default;
+}
+
+.place-picture__img {
+  display: block;
+  inline-size: 100%;
+  max-block-size: 33vh;
+  object-fit: cover;
+}
+
+.place-picture__full {
+  display: block;
+  max-inline-size: 100%;
+  max-block-size: 80vh;
+  margin-inline: auto;
+  object-fit: contain;
+}
+
+.place-card__pieces {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.place-card__pieces .label {
+  margin: 0;
+}
+
+.place-card__piece-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.place-card__piece {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: var(--line-hair) dotted var(--rule);
+  min-height: var(--tap);
+  min-width: 0;
+}
+
+.place-card__piece-words {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.place-card__piece-text {
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.place-card__piece-kind {
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+/* The eye: a square 44 × 44 secondary button, icon only. Shown: the pressed look (the surface fill and an accent
+   ring) with the open eye; hidden: plain, with the eye struck through. Shape and fill together, never colour alone. */
+.place-card__eye {
+  flex: none;
+  inline-size: var(--tap);
+  block-size: var(--tap);
+  min-height: var(--tap);
+  padding: 0;
+}
+
+/* The eye with its word (December piece 2c): a piece's eye says Shown or Hidden beside the icon, so it is never the
+   icon or the fill alone; the town's rows and the picture keep the square eye. */
+.place-card__eye--word {
+  inline-size: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  font-size: var(--text-14);
+}
+
+.place-card__lead {
+  font-weight: var(--weight-heading);
+}
+
+.place-card__eye--shown {
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 var(--line-hair) var(--accent);
+}
+
+.place-card__add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.place-card__add-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.place-card__kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* g2b: the row's text is the Edit piece button (the whole row but the eye): a plain block, no border or fill, the
+   words left-aligned in the body face; the focus ring is the page's. Its tap height is the row's 44 px. */
+.place-card__piece-words {
+  appearance: none;
+  min-height: var(--tap);
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.place-card__form-title {
+  margin: 0;
+  font-size: var(--text-16);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-body);
+}
+
+/* Remove this piece sits at the far right of the form's foot on a wide screen and wraps under Save and Cancel on a
+   phone. */
+.place-card__remove {
+  margin-inline-start: auto;
+}

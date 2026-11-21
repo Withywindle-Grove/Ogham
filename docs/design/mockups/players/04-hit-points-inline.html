@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Player: hit points changed in place (2026-11-08)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<style>
+  .hp { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); background:var(--sheet); }
+  .hp .lbl { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .hp .row { display:flex; align-items:center; gap:var(--space-3); margin:var(--space-2) 0; }
+  .hp .big { font-family:"EB Garamond", Georgia, serif; font-size:48px; font-weight:600; line-height:1; }
+  .hp .of { font-size:16px; color:var(--muted); }
+  .hp .hpnum { flex:1; display:flex; align-items:baseline; gap:6px; min-width:0; }
+  .pips { display:flex; gap:4px; margin-top:var(--space-2); }
+  .pips span { flex:1; height:8px; background:var(--ink); border-radius:2px; }
+  .pips span.off { background:var(--rule); }
+  .quick { display:flex; gap:var(--space-2); margin-top:var(--space-3); }
+  .quick .btn { flex:1; }
+  .toast { position:absolute; left:var(--space-3); right:var(--space-3); bottom:var(--space-3); background:var(--ink); color:var(--page); padding:var(--space-3); border-radius:4px; display:flex; justify-content:space-between; align-items:center; }
+  .toast b { color:var(--page); text-decoration:underline; }
+  .sq44 { min-width:44px; min-height:44px; }
+  .sq56 { min-width:56px; min-height:56px; font-size:24px; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script>
+const pips = (cur, max) => `<div class="pips">${Array.from({length:max},(_,i)=>`<span class="${i<cur?'':'off'}"></span>`).join('')}</div>`;
+
+// A: a stepper around the number: − and + squares, each tap applies at once
+const boxA = (cur, max, extra = '') => `
+  <div class="hp">
+    <div class="lbl">Hit points</div>
+    <div class="row">
+      <span class="btn sq sq56" role="button" aria-label="Take 1 damage">−</span>
+      <div class="hpnum"><span class="big" role="button" aria-label="Type the hit points">${cur}</span><span class="of">of ${max}</span></div>
+      <span class="btn sq sq56" role="button" aria-label="Heal 1">+</span>
+    </div>
+    ${pips(cur, max)}${extra}
+  </div>`;
+
+// B: the number and bar as today, a row of four quick amounts under the bar
+const boxB = (cur, max, extra = '') => `
+  <div class="hp">
+    <div class="lbl">Hit points</div>
+    <div class="row"><div class="hpnum"><span class="big" role="button" aria-label="Type the hit points">${cur}</span><span class="of">of ${max}</span></div></div>
+    ${pips(cur, max)}
+    <div class="quick"><span class="btn sq44">−5</span><span class="btn sq44">−1</span><span class="btn sq44">+1</span><span class="btn sq44">+5</span></div>${extra}
+  </div>`;
+
+
+// C: the figure at the left, − and + together at the right
+const boxC = (cur, max, extra = '') => `
+  <div class="hp">
+    <div class="lbl">Hit points</div>
+    <div class="row">
+      <div class="hpnum"><span class="big" role="button" aria-label="Type the hit points">${cur}</span><span class="of">of ${max}</span></div>
+      <span class="btn sq sq56" role="button" aria-label="Take 1 damage">−</span>
+      <span class="btn sq sq56" role="button" aria-label="Heal 1">+</span>
+    </div>
+    ${pips(cur, max)}${extra}
+  </div>`;
+
+const head = `
+  ${bar('Dorgunth Ironford')}
+  <div class="inner">
+    <div class="meta">Fighter 1, Half-Orc</div>`;
+
+const a1 = phone(`${head}${boxA(8, 8)}
+    <div class="meta" style="margin-top:var(--space-3)">Tap − or + and it happens; the toast carries Undo. Tap the number to type a value. Hold − or + to repeat.</div>
+  </div>`, 'A: a stepper on the box. − (take 1 damage) and + (heal 1) flank the number, 56 px squares; each tap applies at once; the pips follow. The number is the tap for typing a value.');
+
+const a2 = phone(`${head}${boxA(5, 8)}
+    <div style="height:140px"></div>
+  </div>
+  <div class="toast"><span>Took 3 damage, 5 of 8</span><b>Undo</b></div>`, 'A after three taps on −: one toast, not three. Taps within two seconds fold into one logged change ("Took 3 damage") and one Undo puts all three back.');
+
+const b1 = phone(`${head}${boxB(8, 8)}
+    <div class="meta" style="margin-top:var(--space-3)">Each square applies at once; the toast carries Undo. Tap the number to type.</div>
+  </div>`, 'B: the number and bar as today, with four quick amounts under the bar (−5, −1, +1, +5), 44 px, 8 px apart. Fewer taps for big hits; the box is taller.');
+
+const b2 = phone(`${head}${boxB(0, 8)}
+    <div style="height:140px"></div>
+  </div>
+  <div class="toast"><span>Took 5 damage, 0 of 8: Down</span><b>Undo</b></div>`, 'B at zero: −5 from 5 lands at 0; the toast says so and names the state the rules give ("Down"). Heal past the most stops at the most ("Healed 3, 8 of 8, at the most").');
+
+const c1 = phone(`${head}${boxC(8, 8)}
+    <div class="meta" style="margin-top:var(--space-3)">Tap − or + and it happens; the toast carries Undo. Tap the figure to type a value.</div>
+  </div>`, 'C (Francis): the figure "8 of 8" at the left, − and + side by side at the right, nothing between. The eye reads the number first, the thumb finds both squares in one place.');
+
+const c2 = phone(`${head}${boxC(5, 8)}
+    <div style="height:140px"></div>
+  </div>
+  <div class="toast"><span>Took 3 damage, 5 of 8</span><b>Undo</b></div>`, 'C after three taps on −: one toast, one Undo for the burst, as in A.');
+
+const states = phone(`
+  <div class="inner">
+    <div class="sect meta">States (A)</div>
+    ${boxA(1, 8)}
+    <div class="meta" style="margin:var(--space-2) 0 var(--space-4)">One left: nothing changes in the box; the words carry it.</div>
+    ${boxA(999, 999)}
+    <div class="meta" style="margin:var(--space-2) 0 var(--space-4)">999 of 999: the pips cap at 20 and become a bar.</div>
+    ${boxA(8, 8, '<div class="meta" style="margin-top:var(--space-2)">Offline: the change is saved on this device and sent when back.</div>')}
+    <div class="meta" style="margin:var(--space-2) 0 var(--space-4)">Offline: the taps still work; one line says so.</div>
+    ${boxA(3, 8, '<div class="meta" style="margin-top:var(--space-2)">Only Wren and the GM can change this.</div>')}
+    <div class="meta" style="margin-top:var(--space-2)">Another player’s character: − and + still draw; a tap says who may change it (never a greyed button).</div>
+  </div>`, 'States: one left, 999, offline, not yours.');
+
+mount(`
+  <h1>Player: hit points changed in place</h1>
+  <p class="note">Francis, 2026-11-08: "We don’t need this pop-up. Instead, +1 −1 buttons in the hit point box itself that apply directly to the total. Mock that up with two alternatives." Then: "y of x on the left and + − on the right (with no number)." That is C. The Damage or heal pop-up goes from the Player screen; typing a value moves to a tap on the number. Both alternatives apply at once with Undo (rule 7); taps within two seconds fold into one logged change so the Log reads "Took 3 damage", not three lines. The GM’s views (Scene, the party list) keep their own controls.</p>
+  <div class="wall">${a1}${a2}${b1}${b2}${c1}${c2}</div>
+  <h1>States</h1>
+  <div class="wall">${states}</div>
+  <p class="note">Self-review: A keeps the box one row taller than today by nothing (the squares sit in the number’s row); B adds one 44 px row. Targets 56 px (A) and 44 px (B), 8 px apart; the number stays the screen’s focal figure at 48; words on every change (never colour alone); no accent button in either (Attack on At hand stays the screen’s one accent if it has one); Undo over confirm; a change past 0 or the most is clamped and said. Not checked: a 2-second fold against the Log’s expectations (one event per burst; a scope check if the Log wants one per tap); hold-to-repeat on iPad Safari; whether the GM’s Damage or heal pop-up elsewhere should follow (not in this ruling).</p>
+`);
+</script>
+</body>
+</html>

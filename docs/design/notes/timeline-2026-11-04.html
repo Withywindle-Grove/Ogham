@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grimoire — project timeline, 2026-11-04</title>
+<style>
+  :root { --ink:#1e1a17; --paper:#faf7f2; --line:#d9d2c7; --done:#4f6b3a; --plan:#8a6d3b; --design:#7a3b3b; --today:#b23a2e; --muted:#6f675f; }
+  @media (prefers-color-scheme: dark) { :root { --ink:#efe9df; --paper:#17150f; --line:#3a352d; --done:#8fbf6a; --plan:#d6a85c; --design:#e08a8a; --today:#ff7a5c; --muted:#a39a8e; } }
+  body { margin:0; padding:16px; font:16px/1.4 Georgia, "Times New Roman", serif; color:var(--ink); background:var(--paper); }
+  h1 { font-size:22px; margin:0 0 4px; } p { margin:0 0 12px; color:var(--muted); font-size:14px; }
+  .legend span { display:inline-block; margin-right:14px; font-size:13px; }
+  .sw { display:inline-block; width:14px; height:10px; vertical-align:middle; margin-right:4px; border-radius:2px; }
+  .chart { position:relative; overflow-x:auto; border-top:1px solid var(--line); margin-top:10px; }
+  .grid { position:relative; min-width:720px; }
+  .months { display:grid; grid-template-columns: 150px repeat(104, 1fr); font-size:12px; color:var(--muted); border-bottom:1px solid var(--line); }
+  .months div { grid-row:1; padding:4px 0; border-left:1px solid var(--line); }
+  .row { display:grid; grid-template-columns: 150px repeat(104, 1fr); align-items:center; min-height:34px; border-bottom:1px dashed var(--line); }
+  .row .label { font-size:14px; padding:4px 8px 4px 0; }
+  .row .label small { display:block; color:var(--muted); font-size:12px; }
+  .bar { height:16px; border-radius:3px; grid-row:1; }
+  .done { background:var(--done); } .plan { background:var(--plan); opacity:.85; } .now { background:var(--today); }
+  .dia { grid-row:1; justify-self:center; width:12px; height:12px; transform:rotate(45deg); background:var(--design); }
+  .gate { grid-row:1; justify-self:start; width:3px; height:26px; background:var(--done); }
+  .todayline { position:absolute; top:0; bottom:0; width:2px; background:var(--today); opacity:.8; }
+  .todaytag { position:absolute; top:-2px; font-size:11px; color:var(--today); background:var(--paper); padding:0 4px; }
+  .note { font-size:13px; color:var(--muted); margin-top:10px; }
+</style>
+</head>
+<body>
+<h1>Grimoire — project timeline</h1>
+<p>As of Wed 4 Nov 2026. Weeks from Mon 19 Oct 2026 to Sun 31 Jan 2027 (15 weeks, one column per day). Dates are 08's forecast, not a contract.</p>
+<div class="legend">
+  <span><i class="sw" style="background:var(--done)"></i>done (gate passed)</span>
+  <span><i class="sw" style="background:var(--plan)"></i>planned build window (08 dates)</span>
+  <span><i class="sw" style="background:var(--design);transform:rotate(45deg)"></i>design session / paper test</span>
+  <span><i class="sw" style="background:var(--today)"></i>today</span>
+</div>
+
+<div class="chart"><div class="grid" id="grid"></div></div>
+
+<p class="note">Reading it: every milestone so far landed 1–3 months ahead of its 08 date (M1 forecast 29 Nov, done 20 Oct; M5 forecast 8 Nov, done 1 Nov). The planned bars from M6 on keep 08's dates; at the current pace they will move left at the Sunday check-in. The diamonds are the design work ruled tonight: it sits <em>between</em> gates and costs no build time.</p>
+
+<script>
+const start = new Date(2026,9,19); // Mon 19 Oct 2026
+const day = d => Math.round((d - start)/86400000) + 2; // grid column (1 = label)
+const D = (y,m,d) => new Date(y,m-1,d);
+const rows = [
+  // [label, sub, kind, from, to]  kind: done | plan | design | gate
+  ["M1–M3", "foundations · log · library", "done", D(2026,10,19), D(2026,10,23)],
+  ["M4 · M4b", "inventory · creation", "done", D(2026,10,24), D(2026,10,27)],
+  ["M5", "clock, dungeon play", "done", D(2026,10,28), D(2026,11,1)],
+  ["M5b", "trek, camp, creation rebuild, sheet, settlements · gate Thu 6 Nov (08: 15 Nov)", "now", D(2026,11,2), D(2026,11,6)],
+  ["Design: hirelings", "survey + paper test (M9 complete, ruled tonight)", "design", D(2026,11,9)],
+  ["Design: prep-space paper test", "tables & encounters, before M6-10 (ha-1)", "design", D(2026,11,11)],
+  ["M6", "fights · 08: 22 Nov", "plan", D(2026,11,9), D(2026,11,22)],
+  ["Design: charter + votes", "before M7b (ha-5)", "design", D(2026,11,25)],
+  ["Style: token pass", "before table test 1 (ruled tonight)", "design", D(2026,12,2)],
+  ["M7", "XP, spells, downtime · 08: 6 Dec", "plan", D(2026,11,23), D(2026,12,6)],
+  ["M7b", "money, charter, vote core · 08: 13 Dec", "plan", D(2026,12,7), D(2026,12,13)],
+  ["M8", "titles, votes, alerts · 08: 20 Dec", "plan", D(2026,12,14), D(2026,12,20)],
+  ["Design: M8b session", "hex maps, regions, areas, navigation model, prep space", "design", D(2026,12,16)],
+  ["M8b", "adventures, prep space · 08: 3 Jan", "plan", D(2026,12,21), D(2027,1,3)],
+  ["M9", "hirelings & holdings complete, in slices · 08: 10 Jan", "plan", D(2027,1,4), D(2027,1,10)],
+  ["M10", "hardening · 08: 17 Jan", "plan", D(2027,1,11), D(2027,1,17)],
+  ["Table test 1", "Sat 23 Jan 2027", "gate", D(2027,1,23)],
+  ["Style: full release", "symbol family, display face, name — after the test", "design", D(2027,1,27)],
+  ["R1 complete", "31 Jan 2027", "gate", D(2027,1,31)],
+];
+const g = document.getElementById('grid');
+// month header
+const months = document.createElement('div'); months.className='months';
+const m0 = document.createElement('div'); m0.style.gridColumn='1'; m0.style.borderLeft='none'; months.appendChild(m0);
+[["Oct",D(2026,10,19),D(2026,10,31)],["Nov",D(2026,11,1),D(2026,11,30)],["Dec",D(2026,12,1),D(2026,12,31)],["Jan",D(2027,1,1),D(2027,1,31)]].forEach(([n,a,b])=>{
+  const e=document.createElement('div'); e.textContent=n; e.style.gridColumn=day(a)+' / '+(day(b)+1); months.appendChild(e);
+});
+g.appendChild(months);
+rows.forEach(([l,s,k,a,b])=>{
+  const r=document.createElement('div'); r.className='row';
+  const lab=document.createElement('div'); lab.className='label'; lab.innerHTML=l+'<small>'+s+'</small>'; lab.style.gridColumn='1'; r.appendChild(lab);
+  if(k==='design'){ const d=document.createElement('div'); d.className='dia'; d.style.gridColumn=day(a); r.appendChild(d); }
+  else if(k==='gate'){ const d=document.createElement('div'); d.className='gate'; d.style.gridColumn=day(a); r.appendChild(d); }
+  else { const bar=document.createElement('div'); bar.className='bar '+k; bar.style.gridColumn=day(a)+' / '+(day(b)+1); bar.title=l; r.appendChild(bar); }
+  g.appendChild(r);
+});
+// today line
+const t=document.createElement('div'); t.className='todayline';
+const col=day(D(2026,11,4)); const pct=(150 + (col-2)*((g.scrollWidth-150)/104)); t.style.left=pct+'px'; g.appendChild(t);
+const tt=document.createElement('div'); tt.className='todaytag'; tt.style.left=(pct+4)+'px'; tt.textContent='today · 4 Nov'; g.appendChild(tt);
+</script>
+</body>
+</html>

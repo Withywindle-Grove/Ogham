@@ -1,0 +1,17 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": { "id": "sn1b-mire-conversion", "name": "Invented mire conversion (sn-1b)", "shortName": "Mire", "version": "0.1", "kind": "setting", "requires": [{ "packId": "sn1b-fen-rules" }] },
+  "classes": [
+    { "id": "lantern-warden", "name": "Lantern Warden", "hitDie": "d8", "pinnedFrom": "sn1b-fen-rules" },
+    { "id": "mire-warden", "name": "Lantern Warden", "hitDie": "d6", "blurb": "A warden of the deep mire, with other rules." }
+  ],
+  "races": [
+    { "id": "bog-folk", "name": "Bog folk", "pinnedFrom": "sn1b-fen-rules" },
+    { "id": "mire-bog-folk", "name": "Bog folk", "blurb": "Folk of the deep mire, with other rules." }
+  ],
+  "items": [
+    { "id": "reed-lamp", "name": "Reed lamp", "category": "gear", "weightCoin": 10, "pinnedFrom": "sn1b-fen-rules" },
+    { "id": "mire-lamp", "name": "Reed lamp", "category": "gear", "weightCoin": 8 }
+  ]
+}

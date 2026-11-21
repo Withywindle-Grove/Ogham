@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pack, coin or slot mode</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;position:relative;overflow:hidden">
+<div style="padding:16px 18px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:34px;font-weight:600;line-height:1">Wren’s pack</div>
+<button onClick="{{openLoad}}" style="{{loadStyle}}">{{tier}}</button>
+<sc-if value="{{isCoin}}" hint-placeholder-val="{{ true }}">
+<div aria-hidden="true" style="width:100%;height:8px;background:{{c.track}};position:relative;margin-top:6px"><div style="height:100%;width:{{pct}}%;background:{{barColor}}"></div><sc-for list="{{marks}}" as="m" hint-placeholder-count="3"><span style="position:absolute;top:-3px;left:{{m.left}}%;width:2px;height:14px;background:{{c.rule}}"></span></sc-for></div>
+<div style="font-size:15px;color:{{c.mut}}">{{loadText}}</div>
+</sc-if>
+<sc-if value="{{isSlot}}" hint-placeholder-val="{{ false }}">
+<div aria-hidden="true" style="width:100%;display:grid;grid-template-columns:repeat({{cap}},minmax(0,1fr));gap:3px;margin-top:6px"><sc-for list="{{cells}}" as="cl" hint-placeholder-count="14"><span style="height:12px;border-radius:2px;background:{{cl.bg}}"></span></sc-for></div>
+<div style="font-size:15px;color:{{c.mut}}">{{loadText}}</div>
+</sc-if>
+</div>
+
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+<div style="border-top:3px double {{c.rule}};padding:12px 0 0;display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">{{g.name}}</span><span style="font-size:13px;color:{{c.mut}}">{{g.note}}</span></div>
+<sc-for list="{{g.rows}}" as="r" hint-placeholder-count="3">
+<div style="{{r.row}}">
+<button onClick="{{r.open}}" style="flex:1;min-width:0;min-height:56px;background:none;border:none;padding:0;color:inherit;font-family:inherit;text-align:left;display:flex;flex-direction:column;justify-content:center;cursor:pointer">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600;font-style:{{r.fstyle}}">{{r.name}}</span>
+<span style="font-size:14px;color:{{c.mut}}">{{r.sub}}</span>
+</button>
+<sc-if value="{{r.stack}}" hint-placeholder-val="{{ false }}">
+<button aria-label="{{r.lessLabel}}" onClick="{{r.less}}" style="{{S.qty}}">−</button>
+<span style="width:40px;text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:21px;font-weight:600">{{r.qty}}</span>
+<button aria-label="{{r.moreLabel}}" onClick="{{r.more}}" style="{{S.qty}}">+</button>
+</sc-if>
+<sc-if value="{{r.charge}}" hint-placeholder-val="{{ false }}"><button onClick="{{r.use}}" aria-label="Use one charge" style="{{S.use}}">Use 1</button></sc-if>
+<sc-if value="{{r.single}}" hint-placeholder-val="{{ true }}"><span style="font-size:14px;color:{{c.mut}};flex:none">{{r.cost}}</span></sc-if>
+</div>
+</sc-for>
+</sc-for>
+<button style="width:100%;min-height:50px;margin:12px 0;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600">Add item</button>
+</div>
+
+<nav aria-label="Main" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:3px double {{c.rule}}">
+<button style="{{S.navOff}}">Player</button>
+<button style="{{S.navOff}}">Events</button>
+<button aria-current="page" style="{{S.navOn}}">Pack</button>
+</nav>
+
+<sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;flex-direction:column;justify-content:flex-end">
+<div role="dialog" aria-label="{{sheet.title}}" style="background:{{c.sheet}};color:{{c.ink}};border-top:1.5px solid {{c.line}};border-radius:20px 20px 0 0;padding:18px 18px 26px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600">{{sheet.title}}</span><button onClick="{{closeSheet}}" style="min-height:44px;padding:0 6px;background:none;border:none;color:{{c.mut}};font-family:inherit;font-size:16px;cursor:pointer">Close</button></div>
+<sc-for list="{{sheet.lines}}" as="ln" hint-placeholder-count="2"><div style="font-size:17px;line-height:1.45">{{ln.t}}</div></sc-for>
+<sc-if value="{{sheet.actions}}" hint-placeholder-val="{{ false }}"><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px"><button style="{{S.act}}">Give to…</button><button style="{{S.act}}">Pin</button><button style="{{S.act}}">Drop</button></div></sc-if>
+<div style="font-size:14px;color:{{c.mut}};border-top:1px solid {{c.rule}};padding-top:8px">{{sheet.ref}}</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"mode":{"editor":"enum","options":["coin","slot"],"default":"coin"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { qty: { torch: 4, ration: 5, oil: 2, arrow: 18, coin: 180, gem: 3 }, charges: 7, sheet: null, pressed: null };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const mode = this.props.mode ?? 'coin';
+    const isCoin = mode === 'coin';
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', warn: '#E6BA66', bad: '#F0957F', tint: '#4A3A22', track: '#2A251E', sheet: '#1E1A16', fill: '#B5AA96' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', warn: '#7A4A00', bad: '#6E2A1F', tint: '#F3E6CB', track: '#E9E2D4', sheet: '#FFFDF8', fill: '#5E574C' };
+    const G = "'EB Garamond',Georgia,serif";
+    const flash = (k) => s.pressed === k ? ';background:' + c.tint : '';
+    const show = (sheet, k) => () => { this.setState({ pressed: k }); setTimeout(() => this.setState({ pressed: null, sheet: sheet }), 180); };
+    const src = 'From your setting: River Rules (private)';
+    // item: weight in coins, slots, stack size
+    const I = [
+      { id: 'leather', g: 'worn', name: 'Leather armour', w: 200, slots: 2, sub: 'Worn · AC 12' },
+      { id: 'shield', g: 'worn', name: 'Shield', w: 100, slots: 1, sub: 'Worn · +1 AC' },
+      { id: 'sword', g: 'worn', name: 'Short sword', w: 30, slots: 1, sub: 'In hand · 1d6' },
+      { id: 'rope', g: 'bag', name: 'Rope, 50 ft', w: 50, slots: 1, sub: '' },
+      { id: 'torch', g: 'bag', name: 'Torches', w: 20, slots: 1, stack: 3, sub: '1 lit · 4 turns left' },
+      { id: 'oil', g: 'bag', name: 'Oil flasks', w: 10, slots: 1, stack: 3, sub: 'Lantern fuel' },
+      { id: 'ration', g: 'bag', name: 'Rations', w: 20, slots: 1, stack: 3, sub: '' },
+      { id: 'arrow', g: 'bag', name: 'Arrows', w: 1, slots: 1, stack: 20, sub: '' },
+      { id: 'coin', g: 'treasure', name: 'Coins', w: 1, slots: 1, stack: 100, sub: 'Gold · private purse' },
+      { id: 'gem', g: 'treasure', name: 'Gems', w: 1, slots: 1, stack: 20, sub: 'Value set by the GM' },
+      { id: 'wand', g: 'magic', name: 'Wand of sparks', w: 10, slots: 1, sub: '', charge: true },
+      { id: 'satchel', g: 'magic', name: 'Mossy satchel', w: 60, slots: 1, sub: 'Always counts as 60 · contents don’t' },
+      { id: 'potion', g: 'magic', name: 'Unknown potion', w: 10, slots: 1, sub: 'The GM knows more', italic: true }
+    ];
+    const n = (i) => i.stack ? (s.qty[i.id] ?? 0) : 1;
+    const weight = (i) => i.w * n(i);
+    const slotsOf = (i) => i.stack ? Math.ceil(n(i) / i.stack) * i.slots : i.slots;
+    const totalW = I.reduce((a, i) => a + weight(i), 0) + 80;
+    const totalS = I.reduce((a, i) => a + slotsOf(i), 0);
+    let tier, tierColor = c.mut, barColor = c.fill, why;
+    const cap = 18;
+    if (isCoin) {
+      if (totalW <= 400) { tier = 'Unencumbered · 120′'; why = 'Up to 400 coins: full speed.'; }
+      else if (totalW <= 600) { tier = 'Lightly burdened · 90′'; why = '401–600 coins.'; }
+      else if (totalW <= 800) { tier = 'Burdened · 60′'; tierColor = c.warn; barColor = c.warn; why = '601–800 coins.'; }
+      else if (totalW <= 1600) { tier = 'Heavily burdened · 30′'; tierColor = c.warn; barColor = c.warn; why = '801–1,600 coins.'; }
+      else { tier = 'Can’t move'; tierColor = c.bad; barColor = c.bad; why = 'Over 1,600 coins.'; }
+    } else {
+      if (totalS <= 10) { tier = 'Light · normal pace'; why = 'Up to 10 slots.'; }
+      else if (totalS <= cap) { tier = 'Heavy · slowed'; tierColor = c.warn; barColor = c.warn; why = '11 to ' + cap + ' slots: half speed.'; }
+      else { tier = 'Over capacity'; tierColor = c.bad; barColor = c.bad; why = 'More than ' + cap + ' slots.'; }
+    }
+    const cells = []; for (let k = 0; k < Math.max(cap, totalS); k++) cells.push({ bg: k < totalS ? barColor : c.track });
+    const setQ = (id, d, step) => () => this.setState({ qty: Object.assign({}, s.qty, { [id]: Math.max(0, (s.qty[id] ?? 0) + d * step) }) });
+    const row = (i) => {
+      const stack = !!i.stack;
+      const charge = !!i.charge;
+      const cost = isCoin ? weight(i) + ' coins' : slotsOf(i) + (slotsOf(i) === 1 ? ' slot' : ' slots');
+      let sub = i.sub;
+      if (charge) sub = s.charges + ' charges left';
+      if (stack) sub = (sub ? sub + ' · ' : '') + cost;
+      const step = i.id === 'coin' ? 10 : 1;
+      return {
+        name: i.name, sub: sub, qty: n(i), stack: stack, charge: charge, single: !stack && !charge, cost: cost, fstyle: i.italic ? 'italic' : 'normal',
+        row: 'display:flex;align-items:center;gap:8px;border-bottom:1px dotted ' + c.rule + ';min-height:58px;margin:0 -8px;padding:0 8px;border-radius:4px' + flash('r' + i.id),
+        less: setQ(i.id, -1, step), more: setQ(i.id, 1, step), lessLabel: 'Remove ' + step + ' ' + i.name, moreLabel: 'Add ' + step + ' ' + i.name,
+        use: () => this.setState({ charges: Math.max(0, s.charges - 1) }),
+        open: show({ title: i.name, lines: [{ t: (isCoin ? 'Weight: ' : 'Takes: ') + cost + (stack ? ' for ' + n(i) : '') + '.' }, { t: i.id === 'potion' ? 'Some details stay hidden until the GM reveals them.' : (i.id === 'satchel' ? 'A magic container: always counts as 60, however full.' : 'Give moves it to another carrier in two taps.') }], ref: src + ' · items', actions: true }, 'r' + i.id)
+      };
+    };
+    const G2 = [['worn', 'Worn and in hand', ''], ['bag', 'In the backpack', 'Holds things; doesn’t add capacity'], ['treasure', 'Treasure', ''], ['magic', 'Magic', '']];
+    const pct = Math.min(100, Math.round(totalW / 16));
+    return {
+      c: c, isCoin: isCoin, isSlot: !isCoin, tier: tier, cap: Math.max(cap, totalS), cells: cells, pct: pct, barColor: barColor,
+      marks: [{ left: 25 }, { left: 37.5 }, { left: 50 }],
+      loadText: isCoin ? totalW.toLocaleString() + ' of 1,600 coins · small gear counts as 80' : totalS + ' of ' + cap + ' slots',
+      groups: G2.map((g) => ({ name: g[1], note: g[2], rows: I.filter((i) => i.g === g[0]).map(row) })),
+      loadStyle: 'min-height:44px;padding:0 10px;border:none;border-radius:4px;background:transparent;color:' + tierColor + ';font-family:' + G + ';font-size:21px;font-weight:600;font-style:italic;cursor:pointer' + flash('load'),
+      openLoad: show({ title: tier, lines: [{ t: why }, { t: isCoin ? 'Bands: 400 · 600 · 800 · 1,600 coins. The slowest member sets the party’s pace.' : 'Base 10 slots; heavy up to ' + cap + '.' }], ref: src + ' · option: encumbrance = ' + mode, actions: false }, 'load'),
+      sheetOpen: !!s.sheet, sheet: s.sheet || { title: '', lines: [], ref: '', actions: false }, closeSheet: () => this.setState({ sheet: null }),
+      S: {
+        qty: 'width:44px;height:44px;flex:none;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:inherit;font-size:22px;font-weight:700;cursor:pointer',
+        use: 'min-width:72px;min-height:44px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:17px;font-weight:600;cursor:pointer',
+        act: 'min-height:48px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:17px;font-weight:600',
+        navOn: 'height:62px;background:none;border:none;color:' + c.ink + ';font-family:' + G + ';font-size:20px;font-weight:600;font-variant:small-caps;letter-spacing:.06em;text-decoration:underline;text-underline-offset:6px',
+        navOff: 'height:62px;background:none;border:none;color:' + c.mut + ';font-family:' + G + ';font-size:20px;font-variant:small-caps;letter-spacing:.06em'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

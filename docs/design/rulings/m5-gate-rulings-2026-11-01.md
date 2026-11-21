@@ -1,0 +1,63 @@
+---
+status: absorbed
+milestone: m5
+absorbed-into: docs/01-product-brief.md, docs/03-roles-permissions.md, docs/05-features.md, docs/06-screens-and-design.md, docs/07-content-packs.md, docs/08-roadmap.md, docs/09-decisions-log.md (section A, 2026-11-01); sections B and C are written into the specs too (checked 2026-11-18: B1 to B18 in 05, 06 and 07, C1 to C7 in 03, 05 and 06)
+supersedes: 05 Something else… (S4-2, 2026-10-30) and the 2026-10-31 "Describe… in the dungeon as a Request"; 05 long-press +N (D19, 2026-10-29); 06 "Main layouts: iPad landscape (the GM) and phone portrait"
+---
+
+# M5 gate: rulings and the redesign list (2026-11-01)
+
+Source: the builder's hand-off from the live gate (campaign "Gate Delve", a GM and two players on iPads; every testable step passed; the private file `packs/_design/m5-gate-handoff-2026-11-01.md`). Francis confirmed the order on 2026-11-01: section A written up first, then the R3 audit of every M5 feature as the frame, then the B items (the large ones with mockups), then the ⚑.
+
+## A. Ruled at the gate (written into the specs with this file)
+
+| # | Ruling | Where |
+|---|---|---|
+| R1 | M7-4 "Revisit character creation" moves into **M5b, first**, before the wilderness steps (creation is the players' first meeting with the app): why-lines, blurbs and full rules on every choice, Help me choose, Shop as Add item, languages, weapon skills, traits, Decide later. **First spells stay in M7** with M7-3. M5b and M6 slip about a week. | 05, 06, 08 |
+| R2 | Players mostly use **iPads** too; phones stay supported. The iPad layout comes first for players as well as the GM; builds test player screens on iPad first; every place where "phone" stood for "player" is reworded. | 01, 06 |
+| R3 | **Guiding principle:** the app speeds up bookkeeping, record-keeping and rules lookup so players get off screens and into narration. Pop-ups and reminders earn their place when someone might miss something or must act quickly. The app doesn't aid narration, except by revealing room descriptions and visual aids (maps, pictures, handouts). The players' screen during play is a **live table view** (clock, light, place, marching order), and players are **prompted** when they must act rather than left to look for things to do. Narration-only features are decided case by case: the designer proposes, Francis rules. **Before M5b is built, an audit of every M5 feature** (keep · simplify · remove) under R3, ruled by Francis. | 01, 06, 08 |
+| A4 | **Never open the keyboard automatically**, app-wide, unless a spec says otherwise. | 06 |
+| A5 | **Something else… and Describe what you want to do are removed** (and the cost-in-turns answer). Actions and their costs are narrated; only advancing time happens in the app; remote play assumes voice chat. The pack's common player actions (DG10) move to the GM reference screen (B4). Requests keep escape rolls and M5b's GM-answered mechanics. | 03, 05 |
+| A6 | Tapping **Next turn** again is how several turns pass; no +N control (long-press +N dropped). | 05 |
+
+## B. Needs design (in R3-audit order; the big ones get mockups)
+
+| # | Item | Notes from the gate |
+|---|---|---|
+| B1 | **Show players, piece by piece** — **ruled 2026-11-01** (mockup `../mockups/m5-gate/b1-show-pieces.html`, approved with changes) | Each piece of a place gets its own Show: the treasure after describing it, a door, some details of a monster but never its stat line, a trap's look but not its trigger. Not only the one "What players notice" text. **Francis's changes:** no note under the button; the button is a **44 × 44 eye icon** at the row's right, no word (open eye + pressed look = shown, struck-through eye = hidden; chosen over tap-the-row and a checkbox, 2026-11-01), so the pieces' text gets the width (B15's collapsing menu helps too); a magic item's hidden details stay hidden too. Written into 05 (room GM layer, Places for players), 06 (Dungeon play, Room GM layer row, Dungeon on Scene), 07 §2 (`appearance` on `contents[]` and `hazards[]`, G-43). ⚑ C4 is answered by this (no label). |
+| B2 | **Encounter tables** — **ruled 2026-11-01** (mockup `../mockups/m5-gate/b2-encounter-tables.html`, approved after three passes) | Picking a table opens it full screen; the GM taps the row instead of typing a roll; pinned tables first, then the most relevant (this level, mode or terrain). **Francis's changes:** one flat list, no headings; the row is the target (no Open button); the pin button shows only in prep (the Tables › library); pins are **per session, set during prep**, not per campaign; each row carries a one-line description (new `tables[].description`, G-44), and so does **every row of every table at every level** (its `note`, or a monster's stat block `description`); column chips only when the setting rules print tables with columns; mockups light only, full size. **Prep needs a paper test** (08, M8b). Written into 05, 06 (Explore, Components), 07 tables, 08, 11. |
+| B3 | **Messaging** — **ruled 2026-11-01** (mockup `../mockups/m5-gate/b3-messaging.html`, approved; Francis: **GM ↔ player only, no player-to-player messages**) | One private messaging feature (GM ↔ player; player ↔ player was dropped at the ruling) for secrets and attachments (images, handouts, explanations preloaded in the adventure or picked from a file); it replaces Send on the place card and any send-to-GM, and is only for people-to-people (Francis, 2026-11-01): Requests stay for GM-answered mechanics. Not for what the GM narrates. The Archivist writes detailed notes into the log. "Burn after reading" → a plain note ("This message disappears once they've read it"). Written into 05 (Messaging), 06 (Scene, Components), 03. Keep as handout is the recipient's later action (M8b); the GM's ⚑ on reading player-to-player messages fell away with them. |
+| B4 | **GM reference screen** — **ruled 2026-11-01** (mockup `../mockups/m5-gate/b4-gm-reference.html`, approved; Francis: a **pack switcher** when several packs are attached; **yes** to the `gmReference` pack field, G-45; the icon is an **open book**, distinct from the log and message icons) | An icon at the top beside the log icon, full screen; a fallback and a physical-aid stand-in, not tied to the GM's current screen (Francis, 2026-11-01). Panels after the official referee's screen (private reference): Combat, Dungeons (darkness, doors, resting, searching, traps, wandering monsters), Class abilities, Equipment, plus tables. Content from the pack; the common player actions (DG10) live here now. Written into 05 (The GM reference screen), 06 (Top row, Components), 07 (`gmReference`), 11. |
+| B5 | **Rest due as a shared flow** — **ruled 2026-11-01** (mockup `../mockups/m5-gate/b5-rest-flow.html`, approved after two passes; Francis: the GM's panel shows what each player did, no buttons per row; a character who pushed on keeps "Rest due" until they rest; the **Procedure button goes** — the procedure opens by tapping the mode and turn on the strip, GM and players alike) | Everyone sees rest coming on the strip; on the turn it's due each player gets Rest / Push on; the GM's pop-up shows the answers as they come in, is minimised or acknowledged, and goes to the log as the record of who rested and who carries the penalty. Players can call a rest out of turn: same flow, timer reset. Written into 05 (Rest, Rest due), 06 (Dungeon on Scene, Explore, Components). Amends B18: only the Rest button sits below the marching order. |
+| B6 | **Statuses** — **ruled 2026-11-01** (mockup `../mockups/m5-gate/b6-statuses.html`, approved; Francis: families and kinds **only from the pack's rules**, nothing invented by the app; a description field, not an effect builder; new `conditions[].family`, G-46) | Each row shows a brief effect; duration buttons on one row (widen the pop-up); a custom status gets a description field or a small effect builder; families (tap Poison, get the kinds of poison). |
+| B7 | *ruled 2026-11-01, as noted; written into 05 (M5 gate small items) and 06* · **Session paused or ended** | Collapse the details behind a big **Resume session**; GM and players can expand them. Make End session vs End expedition self-evident. |
+| B8 | *ruled 2026-11-01, as noted; written into 05 (M5 gate small items) and 06* · **Due now vs due next turn** | The strip's marks, the "Due · next turn" heading and "· now" must express one idea (today M and R show on the current turn but come due after Next turn). |
+| B9 | *ruled 2026-11-01, as noted; written into 05 (M5 gate small items) and 06* · **GM reminders** | To the right of the turn area: a "+ Reminder" button plus a small icon per reminder. |
+| B10 | *ruled 2026-11-01, as noted; written into 05 (M5 gate small items) and 06* · **Keep lit** | A toggle button that stays pressed and glows when on, with an ⓘ, beside Put out. |
+| B11 | *ruled 2026-11-01, as noted; written into 05 (M5 gate small items) and 06; glyphs come with the icon family, one inline set* · **Icons over letters** | N, M and R become icons; letters only where no good icon exists; every item on the strip's ⋯ gets its own icon. |
+| B12 | *ruled 2026-11-01, as noted; written into 05 (M5 gate small items) and 06* · **Strip ⋯ menu** | "Check now" → "Encounter check"; Set time… folds into Advance by…. |
+| B13 | *ruled 2026-11-01, as noted; written into 05 (M5 gate small items) and 06; default start 06:00; ⚑ month names in 10* · **Time and calendar** | The GM sets the start time (00:00 is odd); the calendar shows day and month even without a pack calendar. |
+| B14 | *ruled 2026-11-01, as noted; written into 05 (M5 gate small items) and 06* · **Procedure pop-up** | Say what each step does, not "A check", "A reminder", "Done by the app". |
+| B15 | *ruled 2026-11-01, as noted; written into 05 (M5 gate small items) and 06* · **iPad landscape** | An option to collapse the left-hand menu. |
+| B16 | *ruled 2026-11-01, as noted; written into 05 (M5 gate small items) and 06* · **Place card** | Drop "Only you see this"; "Your notes" → "Notes", visibly expandable. |
+| B17 | *ruled 2026-11-01, as noted; written into 05 (M5 gate small items) and 06* · **After End expedition** | Drop "Revealed this downtime" from the players' Scene; the log has it. |
+| B18 | **Players' screen (from Francis, 2026-11-01)** — **ruled 2026-11-01** (mockup `../mockups/m5-gate/b18-players-screen.html`, approved; Francis: bands in the order **time · marching order · place**; everything tappable for its explanation) | The Rest button moves below the marching order (the Procedure button went with B5: the procedure opens from the strip); the steady-state view unifies the place/meaning, the marching order and the time strip as the players' main interface; nothing else removed; some elements restyled to look unified. Written into 06 (Dungeon on Scene: the players' table view; Components). |
+
+## C. ⚑ for Francis — all ruled 2026-11-01
+
+C1 **yes** (GM, or a spell or ability; 03, 05 Statuses) · C2 **Until removed** (with B6) · C3 **now** (05 At hand) · C4 answered by B1 · C5 **the line** "N waiting · Players ›" (05 Requests) · C6 **with the employer** (03, 05 Leave the dungeon) · C7 **yes**, the GM may enter a roll for a player without a device (03, 05 Requests) · B13 months **numbered** (05). The questions as asked:
+
+
+1. Players can't add statuses to their own characters: statuses come from the GM, or automatically from a spell or ability (changes 03).
+2. ~~Rename the "None" duration to "Until removed"?~~ **Ruled 2026-11-01: yes, "Until removed"** (with B6).
+3. Weapons at hand (Short sword, Sling) show no attack bonus or damage: show them now, or with fights in M6?
+4. ~~Place card: once shown, keep a "Players see this" label?~~ Answered by B1 (2026-11-01): no note; the pressed toggle and its glyph are the state.
+5. (step 12) A way to the waiting Requests from the GM's Scene: a "N waiting · Players ›" line, or the cards on Scene during an expedition.
+6. (step 12) Hirelings and escape rolls: `who: each` asks player characters only (a hireling leaves with its employer), or one request per hireling entered by the employer?
+7. (step 12) A player without a device: may the GM enter a roll for them? As built the GM can't (03).
+
+## D. Technical (the builder, no design)
+Unexpected sign-outs during play (serious; first); tapping the M marker runs a check at once with no Undo and repeats stack; iPad landscape pop-ups cut off by the left column; optional rules screen opens scrolled to the bottom; sweep every autofocus once A4 is in 06.
+
+## E. Pack work (Francis)
+classic-advanced has no poison statuses (B6); no pack carries a dungeon exit rule, so escape rolls can't be tested live until the sample rule is in a private test pack (M5b).

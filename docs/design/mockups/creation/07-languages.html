@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creation 07 — Languages (paper test, 2026-11-01)</title>
+<style>
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); width:720px; box-sizing:border-box; }
+  .screen.phone { width:375px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .why { margin:var(--space-3) 0 var(--space-1); }
+  .group { display:flex; align-items:center; min-height:44px; gap:var(--space-3); margin-top:var(--space-3); font-weight:700; }
+  .group .meta { font-weight:400; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; min-width:0; }
+  .row .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .row .desc { display:block; }
+  .row .src { display:block; font-size:14px; color:var(--muted); }
+  .tick { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:22px; flex:none; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; text-align:center; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:16px; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  .field { min-height:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; color:var(--muted); box-sizing:border-box; margin-top:var(--space-3); }
+  .derived { margin-top:var(--space-3); padding:var(--space-2) var(--space-3); border:1.5px solid var(--rule); border-radius:4px; font-size:14px; color:var(--muted); min-height:44px; display:flex; align-items:center; gap:var(--space-3); }
+  .foot { display:flex; align-items:center; gap:var(--space-3); margin-top:var(--space-4); padding-top:var(--space-3); border-top:1px solid var(--rule); }
+  .foot .spacer { flex:1; }
+  .hint { font-size:14px; color:var(--muted); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:720px; }
+  code { font-size:14px; }
+</style>
+</head>
+<body>
+
+<h1>1 · Languages — the given ones, then the count the setting allows</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Languages</span><span class="meta">Step 9 of 10</span></div>
+  <p class="why">What you can speak. Your kind and your outlook give some; your wits (INT 13) give you 1 more to choose. <span class="meta">Fen rules · p. 24</span> <span class="btn quiet">Help me choose</span></p>
+  <div class="group">Yours already <span class="meta">· from your kindred and alignment</span></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Common</span><span class="desc">The trade tongue everyone gets by in.</span><span class="src">everyone · p. 24</span></div></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Bog-tongue</span><span class="desc">The speech of the fens; few outsiders learn it.</span><span class="src">bog folk · p. 24</span></div></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Neutral tongue</span><span class="desc">The cant of your alignment; changes if your outlook does.</span><span class="src">alignment · p. 24</span></div></div>
+  <div class="group">Pick 1 more <span class="meta">· INT 13 · 0 of 1 picked</span></div>
+  <div class="field">Search languages…</div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Deep speech</span><span class="desc">Spoken under the hills; useful with the stone kin.</span><span class="src">p. 24</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Reed elvish</span><span class="desc">Soft and old; the elves' songs are in it.</span><span class="src">p. 24</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Gull-sign</span><span class="desc">Hand-talk of the coast fishers; silent.</span><span class="src">p. 24</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Ogrish</span><span class="desc">Loud and simple; good for threats.</span><span class="src">p. 24</span></div></div>
+  <div class="derived">Literacy: <b>Literate</b> · from INT 13 · Derived fields</div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="hint">Pick 1, or Decide later</span><span class="btn accent">Next</span></div>
+</div>
+<div class="screen phone">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Languages</span><span class="meta">9 / 10</span></div>
+  <p class="why">Some are yours; INT 13 gives 1 more. <span class="btn quiet">Help me choose</span></p>
+  <div class="group">Yours already <span class="meta">· 3</span></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Common</span><span class="src">everyone</span></div></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Bog-tongue</span><span class="src">bog folk</span></div></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Neutral tongue</span><span class="src">alignment</span></div></div>
+  <div class="group">Pick 1 more <span class="meta">· 0 of 1</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Deep speech</span><span class="desc">Spoken under the hills.</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Reed elvish</span><span class="desc">Soft and old.</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Gull-sign</span><span class="desc">Silent hand-talk.</span></div></div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="btn accent">Next</span></div>
+</div>
+</div>
+<p class="note"><b>Yours already</b>: the common tongue(s), the alignment tongue that follows the alignment picked (hidden when the setting's option turns alignment tongues off), the race's and the class's languages — ticked, not untickable (a tap on the row opens the entry; "given by your kindred"). <b>Pick N more</b>: N from the pack's INT table (B's numeric column; A's "Native + 1" must become a number — pack task), the rows from the setting's language list with their blurbs; the count stops extra picks and says so. Literacy shows as a derived line. <b>Next checks</b> the count; Decide later lands "Languages" on To finish; <code>creation.require</code> may make it required. <b>The step is skipped</b> when there is nothing to pick (0 extra): the given languages then show only under Derived fields and on the sheet.</p>
+
+<h1>2 · What the packs must say (⚑ 07 shape)</h1>
+<div class="screen">
+  <p>Neither test pack has a home for languages today: A keeps the 20 in a table and the common/alignment ones on races; B has an ad-hoc object. Proposed rules-set section:</p>
+  <p class="meta"><code>languages: { common: ["common"], alignment: true | false, list: [{ id, name, blurb?, note?, source? }], extraFrom: "INT" }</code> — with the INT table's column <code>extraLanguages</code> as a number (B has it; A's reads "Native + 1"). Races and classes keep their <code>languages</code> as ids into the list. The option that turns alignment tongues off keeps working through <code>alignment</code>.</p>
+</div>
+<p class="note">Checked: given and picked clearly separated and worded; the count explains (N9); search above 12 rows (A's list is 20); 44 px rows; 375 px one column; one accent (Next); never colour alone. Not drawn: dark mode; a setting with no language list at all (the step doesn't exist; the race's languages go straight to the sheet).</p>
+</body>
+</html>

@@ -1,0 +1,128 @@
+/* Today's weather (M5b, docs/06 Weather card): the card on Scene, the icon beside the date, and the prompt in the
+   urgent strip. Tokens only. */
+
+.weather {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--rule);
+  min-width: 0;
+}
+
+.weather--due {
+  padding: var(--space-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--tint);
+}
+
+.weather__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  font-weight: var(--weight-heading);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.weather__quiet {
+  margin: 0;
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.weather__quiet:empty {
+  display: none;
+}
+
+/* The result: the whole card is the tap that folds it into the icon by the date. */
+.weather__fold {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-height: var(--tap);
+  padding: var(--space-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.weather__words,
+.weather__lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.weather__words .weather__title {
+  display: block;
+}
+
+.weather__line {
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.weather__actions,
+.weather__entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.weather__actions > button,
+.weather__entry > button,
+.weather > .button-secondary {
+  min-height: var(--tap);
+}
+
+.weather > .button-secondary {
+  align-self: flex-start;
+}
+
+.weather__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.weather__form .label {
+  margin: 0;
+}
+
+.weather__fold:focus-visible {
+  outline: 2px solid var(--outline);
+  outline-offset: 2px;
+}
+
+/* Folding is instant (no motion), so it reads the same with reduced motion. */
+
+/* The Weather sheet (S10; page 16, T6): today's weather in plain words, then the roll (the GM's table, a player's
+   number). */
+.weather-sheet__now,
+.weather-sheet__entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* The lines are spaced by the column's gap alone, not a paragraph's own margins. */
+.weather-sheet__now > p {
+  margin: 0;
+}

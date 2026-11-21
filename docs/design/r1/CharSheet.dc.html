@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Character sheet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;position:relative;overflow:hidden">
+<div style="padding:10px 18px 4px;display:flex;align-items:center;justify-content:space-between">
+<a href="PlayerRules.dc.html" style="min-height:44px;display:inline-flex;align-items:center;color:{{c.mut}};text-decoration:none">‹ Player</a>
+<button style="min-height:44px;padding:0 10px;border:none;background:none;color:{{c.acc}};font-family:inherit;font-size:15px;font-weight:700">Edit</button>
+</div>
+<div style="padding:0 18px 8px;text-align:center">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:34px;font-weight:600;line-height:1">Wren</div>
+<button onClick="{{openClass}}" style="{{classStyle}}">Marsh folk · Lantern Warden 3 · <i>Lamplighter</i></button>
+</div>
+
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 14px">
+
+<div style="{{S.sec}}">Ability scores</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding-bottom:6px">
+<sc-for list="{{abilities}}" as="a" hint-placeholder-count="6">
+<button onClick="{{a.open}}" aria-label="{{a.aria}}" style="{{a.style}}"><span style="font-size:13px;color:{{c.mut}}">{{a.k}}</span><span style="font-family:'EB Garamond',Georgia,serif;font-size:30px;font-weight:600;line-height:1">{{a.v}}</span><span style="font-size:12px;color:{{c.mut}}">{{a.mod}}</span></button>
+</sc-for>
+</div>
+
+<div style="{{S.sec}}">Experience</div>
+<button onClick="{{openXp}}" style="{{xpStyle}}"><span>4,120 XP · 4th at 4,000</span><span style="font-size:14px;color:{{c.acc}};font-weight:700">+5% from WIS</span></button>
+
+<div style="{{S.sec}}">Class abilities</div>
+<sc-for list="{{classAb}}" as="ab" hint-placeholder-count="3">
+<div style="{{ab.row}}">
+<button onClick="{{ab.open}}" style="flex:1;min-width:0;min-height:52px;background:none;border:none;padding:0;color:inherit;font-family:inherit;text-align:left;display:flex;flex-direction:column;justify-content:center;cursor:pointer">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600">{{ab.name}}</span><span style="font-size:13px;color:{{c.mut}}">{{ab.sub}}</span>
+</button>
+<sc-if value="{{ab.hasUses}}" hint-placeholder-val="{{ false }}">
+<span aria-label="{{ab.usesAria}}" style="display:flex;gap:5px"><sc-for list="{{ab.dots}}" as="d" hint-placeholder-count="1"><span style="width:18px;height:18px;border-radius:50%;border:1.5px solid {{c.acc}};background:{{d.bg}}"></span></sc-for></span>
+<button onClick="{{ab.use}}" aria-label="{{ab.useLabel}}" style="{{S.use}}">{{ab.useText}}</button>
+</sc-if>
+</div>
+</sc-for>
+<button onClick="{{toggleSoon}}" aria-expanded="{{soonOpen}}" style="width:100%;min-height:44px;display:flex;justify-content:space-between;align-items:center;border:none;background:transparent;color:{{c.mut}};font-family:inherit;font-size:14px;padding:0;cursor:pointer"><span>Coming at later levels (2)</span><span aria-hidden="true">{{soonArrow}}</span></button>
+<sc-if value="{{soonOpen}}" hint-placeholder-val="{{ false }}">
+<div style="font-size:15px;color:{{c.mut}};line-height:1.6;padding-bottom:4px">4th · Steady flame<br>6th · Second sight</div>
+</sc-if>
+
+<div style="{{S.sec}}">Race traits · Marsh folk</div>
+<sc-for list="{{traits}}" as="t" hint-placeholder-count="3"><button onClick="{{t.open}}" style="{{t.style}}"><span>{{t.name}}</span><span style="font-size:14px;color:{{c.mut}}">{{t.v}}</span></button></sc-for>
+
+<div style="{{S.sec}}">Saving throws</div>
+<div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px">
+<sc-for list="{{saves}}" as="sv" hint-placeholder-count="5"><div style="border:1px solid {{c.rule}};border-radius:4px;padding:6px 0;text-align:center"><div style="font-size:12px;color:{{c.mut}}">{{sv.k}}</div><div style="font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">{{sv.v}}</div><div style="min-height:16px;font-size:11px;font-weight:700;color:{{c.acc}}">{{sv.note}}</div></div></sc-for>
+</div>
+
+<div style="{{S.sec}}">Languages</div>
+<button onClick="{{openLang}}" style="{{langStyle}}"><span>Common, Reedspeak, Old Fen</span><span style="font-size:14px;color:{{c.mut}}">1 open</span></button>
+
+<div style="{{S.sec}}">Backstory</div>
+<button onClick="{{openBio}}" style="{{bioStyle}}"><span style="text-align:left">Born on the sluice barges; raised by the lamplighters…</span><span aria-hidden="true" style="color:{{c.mut}}">›</span></button>
+
+<div style="{{S.sec}}">Notes</div>
+<div style="font-size:15px;line-height:1.5">Owes the lamplighters’ guild a favour. Afraid of deep water (ironic).</div>
+</div>
+
+<sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;flex-direction:column;justify-content:flex-end">
+<div role="dialog" aria-label="{{sheet.title}}" style="background:{{c.sheet}};color:{{c.ink}};border-top:1.5px solid {{c.line}};border-radius:20px 20px 0 0;padding:18px 18px 26px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600">{{sheet.title}}</span><button onClick="{{closeSheet}}" style="min-height:44px;padding:0 6px;background:none;border:none;color:{{c.mut}};font-family:inherit;font-size:16px;cursor:pointer">Close</button></div>
+<sc-for list="{{sheet.lines}}" as="ln" hint-placeholder-count="3"><div style="font-size:17px;line-height:1.45">{{ln.t}}</div></sc-for>
+<sc-if value="{{sheet.hook}}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:{{c.acc}};font-weight:700">Filled automatically by your setting</div></sc-if>
+<div style="font-size:14px;color:{{c.mut}};border-top:1px solid {{c.rule}};padding-top:8px">{{sheet.ref}}</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{bioOpen}}" hint-placeholder-val="{{ false }}">
+<div role="dialog" aria-label="Backstory" style="position:absolute;inset:0;background:{{c.bg}};display:flex;flex-direction:column">
+<div style="padding:14px 18px 8px;display:flex;justify-content:space-between;align-items:center"><span style="font-family:'EB Garamond',Georgia,serif;font-size:30px;font-weight:600">Backstory</span><button onClick="{{closeBio}}" style="min-height:44px;padding:0 6px;background:none;border:none;color:{{c.acc}};font-family:inherit;font-size:16px;font-weight:700;cursor:pointer">Done</button></div>
+<label for="bio" style="position:absolute;width:1px;height:1px;overflow:hidden">Backstory, bio and relationships</label>
+<textarea id="bio" style="flex:1;margin:0 18px 18px;resize:none;padding:12px;border:1px solid {{c.rule}};border-radius:6px;background:transparent;color:inherit;font-family:inherit;font-size:17px;line-height:1.5">Born on the sluice barges; raised by the lamplighters after the flood year.
+
+Mother: Ysolde, ferrywoman at Low Weir. Hasn’t written in two years.
+Ash: met in the guild cellars. Trusts him with her life, not her purse.
+Bram: owes him for the fever winter.
+
+Wants: to relight the drowned beacon at Saltmere.</textarea>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sheet: null, pressed: null, used: 0, soon: false, bio: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', tint: '#4A3A22', sheet: '#1E1A16' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', tint: '#F3E6CB', sheet: '#FFFDF8' };
+    const G = "'EB Garamond',Georgia,serif";
+    const flash = (k) => s.pressed === k ? ';background:' + c.tint : '';
+    const show = (sheet, k) => () => { this.setState({ pressed: k }); setTimeout(() => this.setState({ pressed: null, sheet: sheet }), 180); };
+    const src = 'From your setting: River Rules (private)';
+    const A = [
+      ['STR', 13, '+1 melee', ['Melee attack and damage +1.', 'Open stuck doors on 1–3 on a d6.']],
+      ['INT', 9, 'literate', ['Can read and write.', 'Native languages only, no extras.']],
+      ['WIS', 15, '+1 vs magic', ['+1 to saves against magic.', 'Prime requisite for your class: +5% XP.']],
+      ['DEX', 12, 'no mod', ['No change to AC, missile attacks or initiative.']],
+      ['CON', 15, '+1 hp/lvl', ['+1 hit point per hit die (already in your max HP).', 'Also sets your race’s save bonus.']],
+      ['CHA', 8, '−1 react', ['−1 to reactions.', 'Up to 3 retainers; their loyalty starts at 6.']]
+    ];
+    const abilities = A.map((a) => ({ k: a[0], v: a[1], mod: a[2], aria: a[0] + ' ' + a[1] + ', ' + a[2],
+      style: 'min-height:84px;border:1px solid ' + c.rule + ';border-radius:4px;background:transparent;color:inherit;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer' + flash('ab' + a[0]),
+      open: show({ title: a[0] + ' ' + a[1], lines: a[3].map((t) => ({ t: t })), hook: true, ref: src + ' · ability modifiers' }, 'ab' + a[0]) }));
+    const used = s.used;
+    const dots = [{ bg: used >= 1 ? 'transparent' : c.acc }];
+    const classAb = [
+      { name: 'Steady hand', sub: '1st level · always on', hasUses: false, lines: ['Your lights never gutter in wind or rain.'] },
+      { name: 'Read old runes', sub: '2nd level · 2-in-6', hasUses: false, lines: ['Roll a d6 to read a dead script; 1–2 succeeds.'] },
+      { name: 'Lantern ward', sub: '3rd level · once a day', hasUses: true, lines: ['Undead and spirits can’t come within 10′ of your light for 1 turn.', 'Rest resets it.'] }
+    ].map((ab, i) => Object.assign({}, ab, {
+      row: 'display:flex;align-items:center;gap:10px;border-bottom:1px dotted ' + c.rule + ';margin:0 -8px;padding:0 8px;border-radius:4px' + flash('ca' + i),
+      dots: dots, usesAria: (1 - used) + ' of 1 use left',
+      useText: used >= 1 ? 'Undo' : 'Use', useLabel: (used >= 1 ? 'Undo using ' : 'Use ') + ab.name,
+      use: () => this.setState({ used: used >= 1 ? 0 : 1 }),
+      open: show({ title: ab.name, lines: ab.lines.map((t) => ({ t: t })), hook: false, ref: src + ' · Lantern Warden abilities' }, 'ca' + i)
+    }));
+    const T = [
+      ['Sees in the dark', '30′', ['Shows as the dashed eye ring on Events.']],
+      ['Hold breath', '2 turns', ['Can stay underwater for up to 2 turns.']],
+      ['Bonus vs poison', '+1 (CON 15)', ['Already counted in your Poison save.', 'Higher CON gives a bigger bonus in this setting.']]
+    ];
+    const traits = T.map((t, i) => ({ name: t[0], v: t[1],
+      style: 'width:100%;min-height:48px;display:flex;justify-content:space-between;align-items:center;border:none;border-bottom:1px dotted ' + c.rule + ';background:transparent;color:inherit;font-family:inherit;font-size:16px;padding:0 4px;cursor:pointer' + flash('tr' + i),
+      open: show({ title: t[0], lines: t[2].map((x) => ({ t: x })), hook: i === 2, ref: src + ' · races, Marsh folk' }, 'tr' + i) }));
+    const rowBtn = (k) => 'width:100%;min-height:52px;display:flex;justify-content:space-between;align-items:center;border:none;border-bottom:1px dotted ' + c.rule + ';background:transparent;color:inherit;font-family:inherit;font-size:16px;padding:0 4px;cursor:pointer' + flash(k);
+    return {
+      c: c, abilities: abilities, classAb: classAb, traits: traits,
+      saves: [['Poison', 12], ['Wands', 13], ['Stone', 14], ['Breath', 13, 'setting 15'], ['Spells', 16]].map((x) => ({ k: x[0], v: x[1], note: x[2] || '' })),
+      soonOpen: s.soon, soonArrow: s.soon ? '▾' : '▸', toggleSoon: () => this.setState({ soon: !s.soon }),
+      classStyle: 'min-height:44px;padding:0 8px;border:none;border-radius:4px;background:transparent;color:' + c.mut + ';font-family:inherit;font-size:15px;cursor:pointer' + flash('class'),
+      openClass: show({ title: 'Lantern Warden', lines: [{ t: 'Hit die d6 · prime requisite WIS · max level 12.' }, { t: 'Armour: light only. Weapons: any one-handed.' }], hook: false, ref: src + ' · classes' }, 'class'),
+      xpStyle: rowBtn('xp'), openXp: show({ title: 'Experience', lines: [{ t: '4,120 XP. 4th level at 4,000: ready to level.' }, { t: 'WIS 15 gives +5% to all XP you earn.' }], hook: true, ref: src + ' · prime requisite bonus' }, 'xp'),
+      langStyle: rowBtn('lang'), openLang: show({ title: 'Languages', lines: [{ t: 'Common and Reedspeak from your race; Old Fen learned in play.' }, { t: 'INT 9 allows no extra languages; the open slot is a GM gift.' }], hook: true, ref: src + ' · INT, races' }, 'lang'),
+      bioStyle: rowBtn('bio'), bioOpen: s.bio, openBio: () => this.setState({ bio: true }), closeBio: () => this.setState({ bio: false }),
+      sheetOpen: !!s.sheet, sheet: s.sheet || { title: '', lines: [], hook: false, ref: '' }, closeSheet: () => this.setState({ sheet: null }),
+      S: {
+        sec: 'border-top:3px double ' + c.rule + ';margin-top:8px;padding:10px 0 6px;font-family:' + G + ';font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:' + c.mut,
+        use: 'min-width:64px;min-height:44px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:17px;font-weight:600;cursor:pointer'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

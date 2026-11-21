@@ -1,0 +1,65 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-gleam-fen",
+    "name": "Gleam fen (pack:check after the gate)",
+    "version": "0.1",
+    "kind": "setting",
+    "author": "Invented for the app's tests",
+    "description": "An invented setting for the checker's notes ruled 2026-11-05 (al-1, cb-1, mw-1, mw-2, us-1, a5-1), with one entry per note on purpose and one that passes beside each."
+  },
+  "rulesSets": [
+    {
+      "id": "gleam-rules",
+      "name": "Gleam rules",
+      "scores": { "dice": "2d6", "min": 2, "max": 12 },
+      "encumbrance": {
+        "mode": "armour",
+        "armour": {
+          "maxLoadCoin": 800,
+          "movement": [
+            { "armour": "none", "withoutTreasure": "40 ft", "withTreasure": "30 ft" },
+            { "armour": "light", "withoutTreasure": "30 ft", "withTreasure": "20 ft" },
+            { "armour": "heavy", "withoutTreasure": "20 ft", "withTreasure": "10 ft" }
+          ],
+          "armourTypes": { "reed-weave": "light", "iron-scale": "heavy" }
+        },
+        "slot": {
+          "bands": {
+            "equipped": [{ "maxSlots": 3, "speed": "40 ft" }, { "maxSlots": 6, "speed": "20 ft" }],
+            "stowed": [{ "maxSlots": 10, "speed": "40 ft" }, { "maxSlots": 16, "speed": "20 ft" }]
+          },
+          "combine": "slowest"
+        }
+      }
+    }
+  ],
+  "classes": [
+    { "id": "lantern-warden", "name": "Lantern Warden", "hitDie": "d6", "armourAllowed": { "types": ["light", "medium", "reed-weave"] } }
+  ],
+  "spellLists": [
+    { "id": "list-lantern-warden", "name": "Warden spells", "levels": [{ "level": 1, "spells": ["glimmer"] }] }
+  ],
+  "spells": [
+    { "id": "glimmer", "name": "Glimmer", "lists": { "list-lantern-warden": 1 } },
+    { "id": "fen-breath", "name": "Fen breath", "lists": { "list-lantern-warden": 3, "lantern-warden": 3 }, "reversible": { "list-lantern-warden": true, "lantern-warden": false } },
+    { "id": "mud-ward", "name": "Mud ward", "lists": { "list-lantern-warden": 2 }, "reversible": { "list-lantern-warden": "yes", "list-bog-singer": true } },
+    { "id": "lanterns-hush", "name": "Lantern's Hush", "uncommon": { "lists": { "list-lantern-warden": 3 }, "foundAt": [{ "placeId": "drowned-chapel" }] } },
+    { "id": "reed-whisper", "name": "Reed whisper", "lists": { "list-lantern-warden": 2 }, "uncommon": { "lists": { "list-lantern-warden": 2 }, "foundAt": [{ "note": "In the heron's nest" }] } },
+    { "id": "mire-song", "name": "Mire song", "uncommon": { "lists": { "list-bog-singer": 2 }, "foundAt": [{ "placeId": "sunken-bell" }] } }
+  ],
+  "items": [
+    { "id": "gleamwoven-mail", "name": "Gleamwoven mail", "category": "armour", "slot": "armour", "armourType": "medium", "armour": { "base": 4, "type": "light", "magicBonus": 1 }, "weightCoin": 300 },
+    { "id": "plain-mail", "name": "Plain mail", "category": "armour", "slot": "armour", "armourType": "medium", "armour": { "base": 4, "type": "medium" }, "weightCoin": 400 },
+    { "id": "reed-coat", "name": "Reed coat", "category": "armour", "slot": "armour", "armourType": "reed-weave", "armour": { "base": 2, "type": "light" }, "weightCoin": 100 },
+    { "id": "gleam-scale", "name": "Gleam scale", "category": "armour", "slot": "armour", "armourType": "iron-scale", "armour": { "base": 5, "type": "light", "magicBonus": 1 }, "weightCoin": 300 },
+    { "id": "found-gleam-coat", "name": "Found gleam coat", "category": "armour", "slot": "armour", "armourType": "chosen", "armour": { "type": "light", "magicBonus": 2, "baseArmour": { "choose": ["plain-mail", "reed-coat"] } }, "weightCoin": 200 },
+    { "id": "heron-grips", "name": "Heron grips", "category": "gear", "slot": "worn", "carryBonus": 2, "weightCoin": 10 },
+    { "id": "fenblade", "name": "Fenblade", "category": "weapon", "slot": "hand", "weapon": { "damage": "d8", "magicBonus": 1, "bonusVs": [{ "against": "bog lurkers", "bonus": 3 }] }, "fields": { "Bonus": "+1 to hit and damage; +3 vs bog lurkers" }, "weightCoin": 60 },
+    { "id": "mirebrand", "name": "Mirebrand", "category": "weapon", "slot": "hand", "weapon": { "damage": "d8", "magicBonus": 1 }, "fields": { "Bonus": "+2 to hit and damage" }, "weightCoin": 60 },
+    { "id": "sulk-knife", "name": "Sulk knife", "category": "weapon", "slot": "hand", "weapon": { "damage": "d4" }, "fields": { "Bonus": "−1 to hit and damage (cursed)" }, "weightCoin": 10 },
+    { "id": "heron-spear", "name": "Heron spear", "category": "weapon", "slot": "hand", "weapon": { "damage": "d6", "magicBonus": 2 }, "bonus": 2, "weightCoin": 50 },
+    { "id": "lurker-bane", "name": "Lurker bane", "category": "weapon", "slot": "hand", "weapon": { "damage": "d6", "magicBonus": 2, "bonusVs": [{ "against": "bog lurkers", "damage": 4 }, { "against": "reed hags", "bonus": 3, "damage": 5 }, { "against": "marsh wisps" }] }, "weightCoin": 50 }
+  ]
+}

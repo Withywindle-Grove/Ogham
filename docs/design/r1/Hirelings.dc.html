@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hirelings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;position:relative;overflow:hidden">
+<div style="padding:14px 18px 6px">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600;line-height:1.05">Hirelings</div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 12px">
+<sc-for list="{{list}}" as="h" hint-placeholder-count="3">
+<button onClick="{{h.open}}" style="{{h.style}}">
+<span style="display:flex;flex-direction:column;align-items:flex-start;min-width:0"><span style="font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">{{h.name}}</span><span style="font-size:14px;color:{{c.mut}}">{{h.sub}}</span></span>
+<span style="display:flex;flex-direction:column;align-items:flex-end"><span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">{{h.hp}}</span><span style="font-size:13px;color:{{h.loyColor}}">{{h.loy}}</span></span>
+</button>
+</sc-for>
+<button style="width:100%;min-height:50px;margin-top:10px;border-radius:4px;border:1px dashed {{c.rule}};background:transparent;color:{{c.mut}};font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600">+ Hire someone</button>
+</div>
+
+<sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
+<div role="dialog" aria-label="{{cur.name}}" style="position:absolute;inset:0;background:{{c.bg}};display:flex;flex-direction:column">
+<div style="padding:12px 18px 6px;display:flex;justify-content:space-between;align-items:center"><button onClick="{{close}}" style="min-height:44px;background:none;border:none;color:{{c.mut}};font-family:inherit;font-size:16px;padding:0;cursor:pointer">‹ Hirelings</button><span style="font-size:14px;color:{{c.mut}}">Employed by {{cur.employer}}</span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 16px;display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:34px;font-weight:600;line-height:1">{{cur.name}}</div>
+<div style="font-size:15px;color:{{c.mut}}">{{cur.role}}</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+<sc-for list="{{cur.stats}}" as="st" hint-placeholder-count="3"><div style="border:1px solid {{c.rule}};border-radius:4px;padding:8px;text-align:center"><div style="font-size:13px;color:{{c.mut}}">{{st.k}}</div><div style="font-family:'EB Garamond',Georgia,serif;font-size:26px;font-weight:600">{{st.v}}</div></div></sc-for>
+</div>
+<div style="{{S.label}}">Contract</div>
+<sc-for list="{{cur.contract}}" as="k" hint-placeholder-count="4"><div style="display:flex;justify-content:space-between;gap:12px;min-height:44px;align-items:center;border-bottom:1px dotted {{c.rule}}"><span style="color:{{c.mut}}">{{k.k}}</span><span style="text-align:right">{{k.v}}</span></div></sc-for>
+<div style="{{S.label}};margin-top:6px">Loyalty</div>
+<div style="display:flex;align-items:center;gap:10px">
+<button aria-label="Lower loyalty" onClick="{{loyDown}}" style="{{S.qty}}">−</button>
+<span style="flex:1;text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:30px;font-weight:600">{{cur.loyalty}}</span>
+<button aria-label="Raise loyalty" onClick="{{loyUp}}" style="{{S.qty}}">+</button>
+</div>
+<div style="font-size:14px;color:{{c.mut}}">The GM rolls loyalty checks at the table when it matters.</div>
+<div style="{{S.label}};margin-top:6px">Notes</div>
+<div style="font-size:15px;line-height:1.45">{{cur.notes}}</div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px">
+<button style="{{S.btn}}">Pack ›</button>
+<button style="{{S.btn}}">Pay wages</button>
+</div>
+<button style="min-height:44px;background:none;border:none;color:{{c.mut}};font-family:inherit;font-size:14px;text-align:left;padding:0">End contract…</button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: null, loy: { tam: 8, mira: 7, oxen: 6, foot: 8 } };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', warn: '#E6BA66', tint: '#4A3A22' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', warn: '#7A4A00', tint: '#F3E6CB' };
+    const G = "'EB Garamond',Georgia,serif";
+    const H = {
+      tam: { name: 'Tam', role: 'Torchbearer · level 1 · human', employer: 'the company', hp: '4/4', stats: [{ k: 'HP', v: '4' }, { k: 'AC', v: '11' }, { k: 'Morale', v: '8' }],
+        contract: [{ k: 'Wage', v: '15 gp a week' }, { k: 'Share of loot', v: '½ share' }, { k: 'Since', v: 'Session 6' }, { k: 'Terms', v: 'Carries light and gear; won’t enter water deeper than his knees.' }],
+        notes: 'Afraid of eels. Owes Bram a favour.' },
+      mira: { name: 'Mira', role: 'Guide · level 2 · marsh folk', employer: 'Bram', hp: '9/9', stats: [{ k: 'HP', v: '9' }, { k: 'AC', v: '13' }, { k: 'Morale', v: '9' }],
+        contract: [{ k: 'Wage', v: '25 gp a week' }, { k: 'Share of loot', v: 'None' }, { k: 'Since', v: 'Session 8' }, { k: 'Terms', v: 'Guides through the fens; leaves at the chapel door.' }],
+        notes: 'Knows the old causeways.' },
+      oxen: { name: 'Hob', role: 'Mule handler · level 0 · human', employer: 'Ash', hp: '3/3', stats: [{ k: 'HP', v: '3' }, { k: 'AC', v: '10' }, { k: 'Morale', v: '6' }],
+        contract: [{ k: 'Wage', v: '5 gp a week' }, { k: 'Share of loot', v: 'None' }, { k: 'Since', v: 'Session 5' }, { k: 'Terms', v: 'Minds Turnip and the cart. Stays at camp.' }],
+        notes: 'Turnip likes him. Nobody knows why.' },
+      foot: { name: 'Light footmen ×20', role: 'Mercenaries · level 0 · human', employer: 'the company', hp: '20 × 4', stats: [{ k: 'Count', v: '20' }, { k: 'AC', v: '13' }, { k: 'Morale', v: '8' }],
+        contract: [{ k: 'Wage', v: '2 gp a month each (40 gp)' }, { k: 'Wartime', v: 'Off · doubles wages when on' }, { k: 'Since', v: 'Session 8' }, { k: 'Terms', v: 'Guard the reed mill. Don’t go on adventures.' }],
+        notes: 'Count goes down as they fall or desert.' }
+    };
+    const list = Object.keys(H).map((id) => ({
+      name: H[id].name, sub: H[id].role.split(' · ')[0] + ' · ' + H[id].contract[0].v.replace(' each (40 gp)', ' each') + ' · ' + (H[id].employer === 'the company' ? 'company' : H[id].employer), hp: H[id].hp,
+      loy: 'Loyalty ' + s.loy[id], loyColor: s.loy[id] <= 6 ? c.warn : c.mut,
+      style: 'width:100%;min-height:72px;display:flex;justify-content:space-between;align-items:center;gap:10px;border:none;border-top:3px double ' + c.rule + ';background:transparent;color:inherit;font-family:inherit;text-align:left;padding:8px 0;cursor:pointer',
+      open: () => this.setState({ open: id })
+    }));
+    const id = s.open || 'tam';
+    const cur = Object.assign({}, H[id], { loyalty: s.loy[id] });
+    const bump = (d) => () => this.setState({ loy: Object.assign({}, s.loy, { [id]: Math.max(2, Math.min(12, s.loy[id] + d)) }) });
+    return {
+      c: c, list: list, cur: cur, sheetOpen: !!s.open, close: () => this.setState({ open: null }), loyUp: bump(1), loyDown: bump(-1),
+      S: {
+        label: 'font-family:' + G + ';font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:' + c.mut,
+        qty: 'width:52px;height:52px;flex:none;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:inherit;font-size:24px;font-weight:700;cursor:pointer',
+        btn: 'min-height:48px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:18px;font-weight:600;cursor:pointer'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# Git hooks run under sh, which needs Unix line endings even on Windows.
+.githooks/* text eol=lf
+# Vitest writes snapshots with LF; keep them LF on Windows so npm run check leaves a clean tree.
+*.snap text eol=lf

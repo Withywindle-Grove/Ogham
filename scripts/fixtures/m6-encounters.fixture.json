@@ -1,0 +1,68 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "name": "Invented encounters format sample",
+    "id": "fen-sample",
+    "replaces": ["fen-sample-old"],
+    "version": "0.1",
+    "kind": "setting"
+  },
+  "rulesSets": [
+    {
+      "id": "fen-rules",
+      "name": "Fen rules",
+      "pursuit": {
+        "note": "The slower side is caught unless it finds cover.",
+        "evade": "Wary foes may let a quiet party slip by.",
+        "drop": "Dropped food may slow hungry pursuers."
+      },
+      "death": {
+        "at": 0,
+        "belowZero": false,
+        "note": "At 0 you fall.",
+        "byOption": {
+          "last-breath=on": {
+            "dying": {
+              "startAt": 0,
+              "perRound": { "hp": 1 },
+              "deadAt": -5,
+              "helped": { "hp": 1, "abilityLoss": { "roll": "1d3", "enter": true }, "note": "Back up, but scarred." },
+              "stabilised": { "wake": { "roll": "1d4", "unit": "turns" } }
+            }
+          }
+        }
+      },
+      "morale": {
+        "roll": "2d6",
+        "breaksWhen": "above",
+        "triggers": [
+          { "id": "first-fall", "event": "firstDeath", "scope": "group", "name": "First of them falls" },
+          { "id": "chief-falls", "event": "leaderDown", "scope": "group", "name": "Their chief drops" },
+          { "id": "boss-falls", "event": "employerDown", "scope": "alone", "name": "The employer drops" },
+          { "id": "bloodied", "event": "hpAtOrBelow", "fraction": 0.5, "scope": "alone", "name": "Badly hurt" }
+        ]
+      }
+    }
+  ],
+  "tables": [
+    {
+      "id": "fen-reaction",
+      "name": "Fen reaction",
+      "die": "2d6",
+      "uses": ["encounters.reaction"],
+      "rows": [
+        { "min": 2, "max": 6, "result": "Wary", "meaning": "Keeps its distance, may talk." },
+        { "min": 7, "max": 12, "result": "Curious", "meaning": "Comes closer to look." }
+      ]
+    }
+  ],
+  "spells": [
+    {
+      "id": "reed-ward",
+      "name": "Reed ward",
+      "level": 1,
+      "grantsTempHp": { "dice": "1d6", "duration": "1 turn" }
+    }
+  ]
+}

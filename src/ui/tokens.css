@@ -1,0 +1,291 @@
+/*
+ * Folio design tokens (docs/06-screens-and-design.md, "Design tokens"; conventions ruled 2026-10-25).
+ * Every spacing, type and colour value in the app's CSS comes from here (the gallery test checks).
+ * Theme: follows the device by default. data-theme="light" or "dark" on <html> overrides it (see theme.ts).
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Colours, light */
+  --page: #fafaf7; /* Bone in light */
+  --surface: #f2f1ec;
+  --sheet: #ffffff;
+  --ink: #191714;
+  --muted: #5e574c;
+  --rule: #d6d3cc; /* passive dividers only */
+  --control: #8a8378; /* the edge of anything tappable (≥3:1) */
+  --outline: #191714; /* focus ring */
+  --accent: #6e2a1f;
+  --on-accent: #ffffff;
+  --warning: #7a4a00; /* always with ▲ */
+  --danger: #9b1c1c; /* always with ✕ */
+  --info: #2f5d7c; /* always with ⓘ */
+  --tint: #edeae3; /* press flash and hint */
+  --bar-track: #e6e4de;
+  --dark-sight: #d3e0e6;
+  --light-glow: #b97f1c; /* lit-light glow (its own token); 3:1 on page, surface and sheet as a graphic (S12, st-10, 2026-11-14; was #c98a1e) */
+  --archivist: #1f4e79;
+  --popup: #ffffff; /* pop-ups: the lightest surface in dark mode */
+  --selected: #f3e7e3; /* Selected wash: every selected state (tf-4), with its 2 px edge and ink text */
+  --selected-edge: #6e2a1f; /* the Accent */
+  --book-label: #b5482c; /* a stat block's labels (cr-c2, 2026-11-12): brick in light, the copper in dark */
+  --book-subhead: #6f3221; /* the book format's sub-headings (dec-10 S3): the label brick 55% over ink, as drawn */
+  --book-band: #efefef; /* a book table's alternate rows (ds-8, dec-10 S3): ink 7% over the pop-up */
+  --scrim: rgb(0 0 0 / 35%);
+  /* accent ramp: 1–2 quiet fills, 3 the token, 4–5 stronger */
+  --accent-1: #e9e1dd;
+  --accent-2: #d0bcb6;
+  --accent-3: #6e2a1f;
+  --accent-4: #5d261d;
+  --accent-5: #4c221b;
+  /* warning ramp: 1–2 quiet fills, 3 the token, 4–5 stronger */
+  --warning-1: #ebe5d9;
+  --warning-2: #d4c5ad;
+  --warning-3: #7a4a00;
+  --warning-4: #674004;
+  --warning-5: #533608;
+  /* danger ramp: 1–2 quiet fills, 3 the token, 4–5 stronger */
+  --danger-1: #efdfdd;
+  --danger-2: #deb7b5;
+  --danger-3: #9b1c1c;
+  --danger-4: #811b1a;
+  --danger-5: #671a19;
+  /* info ramp: 1–2 quiet fills, 3 the token, 4–5 stronger */
+  --info-1: #e2e7e8;
+  --info-2: #bdcbd2;
+  --info-3: #2f5d7c;
+  --info-4: #2b4f67;
+  --info-5: #264152;
+  /* neutral ramp, page to ink */
+  --neutral-1: #fafaf7;
+  --neutral-2: #ecece9;
+  --neutral-3: #d8d8d5;
+  --neutral-4: #b6b6b3;
+  --neutral-5: #8a8886;
+  --neutral-6: #5c5b58;
+  --neutral-7: #191714;
+
+  /* Spacing scale: space-1…space-8 = 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64. No other values. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Lines and corners */
+  --line-hair: 1px;
+  --line-control: 1.5px;
+  --line-strong: 3px;
+  --line-selected: 2px; /* the Selected wash's edge (tf-4) */
+  --radius: 4px;
+  --radius-card: 8px;
+  --radius-sheet: 20px;
+  --radius-pill: 999px;
+  --divider: var(--line-strong) double var(--rule);
+  --row-rule: var(--line-hair) dotted var(--rule);
+
+  /* Fonts */
+  --font-heading: 'EB Garamond', Georgia, serif;
+  --font-body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-archivist: 'Caveat', cursive;
+  --weight-heading: 600;
+  --weight-archivist: 500;
+  --weight-bold: 700; /* a line's emphasis outside the book's type (tk-1); inside it, the book's bold (creation.css) */
+  /* Book text: the book's own words in a stat block (December 5c; type (B), 2026-11-12), never the app's own text. */
+  --font-book-text: 'Bitter', Georgia, serif;
+  --font-book-label: 'Bitter', Georgia, serif;
+  --font-book-descriptor: 'Alegreya Sans SC', 'Atkinson Hyperlegible', sans-serif;
+  --weight-book-text: 400;
+  --weight-book-name: 700;
+  --weight-book-label: 400; /* regular, coloured (cr-c2): weight and colour change here, in one line each */
+  --weight-book-descriptor: 700;
+  --weight-book-heading: 900; /* an entry's name in the book format (dec-10 S3) */
+  --weight-book-subhead: 800; /* its sub-headings */
+
+  /* Type scale (text-14…text-48), scaled by the device's text size. Nothing below 14. */
+  --text-14: calc(14px * var(--text-scale, 1));
+  --text-16: calc(16px * var(--text-scale, 1));
+  --text-20: calc(20px * var(--text-scale, 1));
+  --text-24: calc(24px * var(--text-scale, 1));
+  --text-30: calc(30px * var(--text-scale, 1));
+  --text-36: calc(36px * var(--text-scale, 1));
+  --text-48: calc(48px * var(--text-scale, 1));
+  --line-body: 1.5;
+  --line-heading: 1.2;
+  --reading-width: 65ch;
+
+  /* Older names, kept pointing at the scale until every screen uses the scale's names. */
+  --text-meta: var(--text-14);
+  --text-body: var(--text-16);
+  --text-sheet: var(--text-16);
+  --text-label: var(--text-20);
+  --text-item: var(--text-20);
+  --text-save: var(--text-24);
+  --text-sheet-title: var(--text-30);
+  --text-name: var(--text-30);
+  --text-ac: var(--text-36);
+  --text-hp: var(--text-48);
+  --text-archivist: var(--text-24); /* handwritten script runs small, so it is set larger */
+  --gutter: var(--space-4);
+  --pad: var(--space-3);
+  --gap: var(--space-2);
+  /* A pop-up's card on a tablet (fb7-3, fb7-4, 2026-11-20): the least, a pop-up's own card; the most, the Wide pop-up.
+     On the Player tab a pop-up fits its content between the two. */
+  --popup-width-min: 440px;
+  --popup-width-max: 720px;
+
+  /* Tap targets */
+  --tap: 44px;
+  --tap-hp: 56px;
+  --tap-step: 48px;
+  --tab-bar: 62px;
+  /* A Scene fact tile's narrowest (S4): its icon, padding and a 20 px value such as "On every move", whole on one line;
+     scaled with the device's text size. */
+  --fact-tile: calc(216px * var(--text-scale, 1));
+  /* The place page's name column at its narrowest beside the rule's button and Move on (13 rem at 16 px; the lead,
+     2026-11-14), scaled with the device's text size. */
+  --place-name-floor: calc(208px * var(--text-scale, 1));
+  --press-flash: 150ms;
+  --toast-time: 6s;
+
+  /* Shadows: buttons a soft one; pop-ups the only deeper one */
+  --shadow-button: 0 1px 2px rgb(0 0 0 / 18%);
+  --shadow-popup: 0 8px 32px rgb(0 0 0 / 25%);
+
+  /* Something to act on (plan m5b-sheet-revised PR 2, mockup gm/01-rail-attention A2): a tab's icon in the lit-light
+     glow, its halo breathing from rest to peak and back; under reduced motion a still halo. */
+  --glow-rest: 2px;
+  --glow-peak: 8px;
+  --glow-still: 6px;
+  --glow-breathe: 2.4s;
+}
+
+/* Colours, dark: when the device is dark and no manual light choice is set ... */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --page: #12100d; /* Bone in light */
+    --surface: #1c1915;
+    --sheet: #1e1a16;
+    --ink: #f1eadc;
+    --muted: #b5aa96;
+    --rule: #3a342b; /* passive dividers only */
+    --control: #756b5a; /* the edge of anything tappable (≥3:1) */
+    --outline: #e4dccb; /* focus ring */
+    --accent: #c9875a;
+    --on-accent: #12100d;
+    --warning: #f2d46b; /* always with ▲ */
+    --danger: #f08a7e; /* always with ✕ */
+    --info: #8db4d0; /* always with ⓘ */
+    --tint: #4a3a22; /* press flash and hint */
+    --bar-track: #2a251e;
+    --dark-sight: #2c4452;
+    --light-glow: #e6ba66; /* lit-light glow (its own token) */
+    --archivist: #9ec3e6;
+    --popup: #28231d; /* pop-ups: the lightest surface in dark mode */
+    --selected: #3a2a20; /* Selected wash: every selected state (tf-4), with its 2 px edge and ink text */
+    --selected-edge: #c9875a; /* Copper */
+    --book-label: #c9875a; /* Copper */
+    --book-subhead: #dbb494;
+    --book-band: #36312a;
+    --scrim: rgb(0 0 0 / 55%);
+    /* accent ramp: 1–2 quiet fills, 3 the token, 4–5 stronger */
+    --accent-1: #281e16;
+    --accent-2: #493424;
+    --accent-3: #c9875a;
+    --accent-4: #d19b74;
+    --accent-5: #d9af8e;
+    /* warning ramp: 1–2 quiet fills, 3 the token, 4–5 stronger */
+    --warning-1: #2d2818;
+    --warning-2: #554b29;
+    --warning-3: #f2d46b;
+    --warning-4: #f2d882;
+    --warning-5: #f2dd98;
+    /* danger ramp: 1–2 quiet fills, 3 the token, 4–5 stronger */
+    --danger-1: #2d1f1b;
+    --danger-2: #55352f;
+    --danger-3: #f08a7e;
+    --danger-4: #f09d91;
+    --danger-5: #f0b0a4;
+    /* info ramp: 1–2 quiet fills, 3 the token, 4–5 stronger */
+    --info-1: #212424;
+    --info-2: #374148;
+    --info-3: #8db4d0;
+    --info-4: #a1bfd2;
+    --info-5: #b5cad5;
+    /* neutral ramp, page to ink */
+    --neutral-1: #12100d;
+    --neutral-2: #1f1d19;
+    --neutral-3: #33312c;
+    --neutral-4: #55514b;
+    --neutral-5: #827d74;
+    --neutral-6: #aea99e;
+    --neutral-7: #f1eadc;
+  }
+}
+
+/* ... or when dark is chosen manually. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --page: #12100d; /* Bone in light */
+  --surface: #1c1915;
+  --sheet: #1e1a16;
+  --ink: #f1eadc;
+  --muted: #b5aa96;
+  --rule: #3a342b; /* passive dividers only */
+  --control: #756b5a; /* the edge of anything tappable (≥3:1) */
+  --outline: #e4dccb; /* focus ring */
+  --accent: #c9875a;
+  --on-accent: #12100d;
+  --warning: #f2d46b; /* always with ▲ */
+  --danger: #f08a7e; /* always with ✕ */
+  --info: #8db4d0; /* always with ⓘ */
+  --tint: #4a3a22; /* press flash and hint */
+  --bar-track: #2a251e;
+  --dark-sight: #2c4452;
+  --light-glow: #e6ba66; /* lit-light glow (its own token) */
+  --archivist: #9ec3e6;
+  --popup: #28231d; /* pop-ups: the lightest surface in dark mode */
+  --selected: #3a2a20; /* Selected wash: every selected state (tf-4), with its 2 px edge and ink text */
+  --selected-edge: #c9875a; /* Copper */
+  --book-label: #c9875a; /* Copper */
+  --book-subhead: #dbb494;
+  --book-band: #36312a;
+  --scrim: rgb(0 0 0 / 55%);
+  /* accent ramp: 1–2 quiet fills, 3 the token, 4–5 stronger */
+  --accent-1: #281e16;
+  --accent-2: #493424;
+  --accent-3: #c9875a;
+  --accent-4: #d19b74;
+  --accent-5: #d9af8e;
+  /* warning ramp: 1–2 quiet fills, 3 the token, 4–5 stronger */
+  --warning-1: #2d2818;
+  --warning-2: #554b29;
+  --warning-3: #f2d46b;
+  --warning-4: #f2d882;
+  --warning-5: #f2dd98;
+  /* danger ramp: 1–2 quiet fills, 3 the token, 4–5 stronger */
+  --danger-1: #2d1f1b;
+  --danger-2: #55352f;
+  --danger-3: #f08a7e;
+  --danger-4: #f09d91;
+  --danger-5: #f0b0a4;
+  /* info ramp: 1–2 quiet fills, 3 the token, 4–5 stronger */
+  --info-1: #212424;
+  --info-2: #374148;
+  --info-3: #8db4d0;
+  --info-4: #a1bfd2;
+  --info-5: #b5cad5;
+  /* neutral ramp, page to ink */
+  --neutral-1: #12100d;
+  --neutral-2: #1f1d19;
+  --neutral-3: #33312c;
+  --neutral-4: #55514b;
+  --neutral-5: #827d74;
+  --neutral-6: #aea99e;
+  --neutral-7: #f1eadc;
+}

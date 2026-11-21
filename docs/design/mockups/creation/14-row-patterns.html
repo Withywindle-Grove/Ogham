@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Row patterns from consumer apps, as they would look here (proposal, 2026-11-06)</title>
+<style>
+  /* Tokens from docs/06 only. Light and dark side by side (the dark column is the same markup, cloned). Buttons are plain blocks. Invented names and numbers only. Each sheet is a phone at 375 px (343 px inside the page margins). */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; }
+  body { margin:0; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:#888; }
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-5); padding:var(--space-5); align-items:start; }
+  .theme { padding:var(--space-4); border-radius:4px; background:var(--page); color:var(--ink); }
+  .light { --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; --info:#2F5D7C; --warn:#7A4A00; }
+  .dark  { --page:#12100D; --surface:#1C1915; --sheet:#1E1A16; --ink:#F1EADC; --muted:#B5AA96; --rule:#3A342B; --control:#756B5A; --accent:#C9875A; --on-accent:#12100D; --info:#8DB4D0; --warn:#F2D46B; }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-5) 0 var(--space-2); }
+  h1:first-child { margin-top:0; }
+  .wall { display:flex; flex-wrap:wrap; gap:var(--space-4); align-items:flex-start; }
+  .phone { width:343px; background:var(--page); border:1.5px solid var(--control); border-radius:4px; padding:0; box-sizing:border-box; overflow:hidden; position:relative; }
+  .inner { padding:var(--space-3); }
+  .cap { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); width:343px; }
+  .bar { display:grid; grid-template-columns:44px 1fr 44px; align-items:center; min-height:52px; padding:0 var(--space-1); border-bottom:1px solid var(--rule); background:var(--page); }
+  .bar .title { text-align:center; font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ico { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; border-radius:4px; color:var(--ink); }
+  h2 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; margin:var(--space-4) 0 var(--space-2); font-variant:small-caps; }
+  .meta { font-size:14px; color:var(--muted); }
+  .lead { color:var(--muted); margin:var(--space-2) 0; }
+  /* pattern 7: label-left value-right rows, hairlines, no boxes */
+  .list { border-top:1px solid var(--rule); }
+  .kv { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); min-height:52px; padding:var(--space-2) 0; border-bottom:1px solid var(--rule); }
+  .kv .k { color:var(--muted); flex:none; }
+  .kv .v { text-align:right; min-width:0; overflow-wrap:anywhere; display:inline-flex; align-items:center; gap:var(--space-2); justify-content:flex-end; flex:1; }
+  .kv .v.empty { color:var(--muted); }
+  .kv .v.empty::before { content:""; }
+  /* pattern 9: chevron only on rows that open a picker */
+  .chev { width:20px; height:20px; flex:none; color:var(--muted); }
+  /* buttons and fields */
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--space-2); min-height:44px; min-width:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:16px; line-height:1.2; box-sizing:border-box; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.sq { width:44px; padding:10px; }
+  .btn.small { font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .btn.wide { display:flex; width:100%; }
+  .num { width:112px; min-height:44px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); display:inline-flex; align-items:center; justify-content:center; font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; box-sizing:border-box; padding:0 var(--space-2); }
+  .num.ph { color:var(--muted); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:14px; }
+  .stepper { display:inline-flex; gap:var(--space-2); align-items:center; }
+  .roll { display:flex; align-items:center; gap:var(--space-2); font-weight:700; margin:var(--space-3) 0 var(--space-1); }
+  .card { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); margin-bottom:var(--space-2); }
+  .foot { display:flex; justify-content:flex-end; align-items:center; gap:var(--space-2); border-top:1px solid var(--rule); margin-top:var(--space-3); padding-top:var(--space-3); flex-wrap:wrap; }
+  .foot .say { flex:1; font-size:14px; color:var(--muted); min-width:120px; }
+  /* pattern 13: the menu as a sheet */
+  .dim { position:absolute; inset:0; background:rgba(0,0,0,0.35); }
+  .menu { position:absolute; top:56px; right:var(--space-2); width:260px; background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-1) 0; box-shadow:0 8px 24px rgba(0,0,0,0.25); }
+  .mrow { display:flex; align-items:center; gap:var(--space-3); min-height:48px; padding:0 var(--space-3); }
+  .mrow .ico { width:24px; height:24px; }
+  .mrow small { display:block; font-size:14px; color:var(--muted); }
+  .msep { border-top:1px solid var(--rule); margin:var(--space-1) 0; }
+  .warnline { color:var(--warn); font-weight:700; font-size:14px; }
+  /* tab bar (N1, ruled C) */
+  .tabs { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--rule); background:var(--page); }
+  .tab { min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:14px; color:var(--muted); }
+  .tab.on { color:var(--ink); font-weight:700; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-2) 0 var(--space-4); }
+  svg { flex:none; }
+</style>
+</head>
+<body>
+<template id="screens">
+  <h1>Four row patterns, each as it would look here</h1>
+  <p class="note">Francis asked (2026-11-06, late) for one example of each pattern he saw in consumer apps, drawn in our tokens. Every screen also shows N1 (ruled C: ← top left, the title centred, ⋯ top right, a tab bar for the places of play). Nothing from those apps' content is here; names and numbers are invented.</p>
+
+  <h1>7 · Label left, value right, hairlines, no boxes</h1>
+  <div class="wall">
+    <div>
+      <p class="cap">The sheet's "Who they are" as rows instead of boxed tiles. A value that opens a picker carries a chevron (9); a plain value has none. The row is the tap.</p>
+      <div class="phone">
+        <div class="bar"><span class="ico" role="button" aria-label="Back"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span class="title">Oswin Adderbald</span><span class="ico" role="button" aria-label="More"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg></span></div>
+        <div class="inner">
+          <h2>Who they are</h2>
+          <div class="list">
+            <div class="kv"><span class="k">Kindred</span><span class="v">Stone kin</span></div>
+            <div class="kv"><span class="k">Class</span><span class="v">Reed Witch</span></div>
+            <div class="kv"><span class="k">Level</span><span class="v">1 · 0 of 2,000 xp</span></div>
+            <div class="kv"><span class="k">Outlook</span><span class="v">Mire<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></div>
+            <div class="kv"><span class="k">Liege</span><span class="v">House of the Long Reed<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></div>
+            <div class="kv"><span class="k">Affiliation</span><span class="v empty">Add an affiliation…</span></div>
+            <div class="kv"><span class="k">Purse</span><span class="v">40 gp · 12 sp</span></div>
+          </div>
+          <h2>Scores</h2>
+          <div class="list">
+            <div class="kv"><span class="k">Might</span><span class="v">13 · +1 to hit up close</span></div>
+            <div class="kv"><span class="k">Nimbleness</span><span class="v">9</span></div>
+            <div class="kv"><span class="k">Wits</span><span class="v">7 · reads slowly</span></div>
+          </div>
+        </div>
+        <div class="tabs"><span class="tab on"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>Player</span><span class="tab"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 20l8-14 8 14z" fill="none" stroke="currentColor" stroke-width="2"/></svg>Scene</span><span class="tab"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="5" y="8" width="14" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 8V5h6v3" fill="none" stroke="currentColor" stroke-width="2"/></svg>Pack</span><span class="tab"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 4h12v16H6zM9 9h6M9 13h6" fill="none" stroke="currentColor" stroke-width="2"/></svg>Log</span></div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">The same rows, 999 and a long name: the value wraps under itself, the label stays put, the row grows.</p>
+      <div class="phone">
+        <div class="bar"><span class="ico" role="button" aria-label="Back"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span class="title">Bartholomew Underthistle-Quagmire the Younger</span><span class="ico" role="button" aria-label="More"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg></span></div>
+        <div class="inner">
+          <h2>Who they are</h2>
+          <div class="list">
+            <div class="kv"><span class="k">Liege</span><span class="v">House of the Nine Hundred and Ninety-Nine Lanterns of the Lower Fen<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></div>
+            <div class="kv"><span class="k">Level</span><span class="v">9 · 999,999 of 1,000,000 xp</span></div>
+            <div class="kv"><span class="k">Purse</span><span class="v">0 gp</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h1>8 · An empty field says what to do</h1>
+  <div class="wall">
+    <div>
+      <p class="cap">Scores, before any roll: the stepper's middle shows the verb in lighter text, not a number. The die symbol beside the instruction is the cue (P6 ruled). Might is typed; the rest wait.</p>
+      <div class="phone">
+        <div class="bar"><span class="ico" role="button" aria-label="Back"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span class="title">Scores</span><span class="ico" role="button" aria-label="More"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg></span></div>
+        <div class="inner">
+          <p class="meta">Step 1 of 9</p>
+          <div class="roll"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="16" cy="8" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="8" cy="16" r="1.6" fill="currentColor"/><circle cx="16" cy="16" r="1.6" fill="currentColor"/></svg>Roll 3d6 at the table for each score, then enter it.</div>
+          <div class="card"><div class="kv" style="border:0;padding:0"><span>Might</span><span class="stepper"><span class="btn sq">−</span><span class="num">13</span><span class="btn sq">+</span></span></div><div class="meta">+1 to hit and damage up close</div></div>
+          <div class="card"><div class="kv" style="border:0;padding:0"><span>Nimbleness</span><span class="stepper"><span class="btn sq">−</span><span class="num ph">Enter your roll</span><span class="btn sq">+</span></span></div></div>
+          <div class="card"><div class="kv" style="border:0;padding:0"><span>Grit</span><span class="stepper"><span class="btn sq">−</span><span class="num ph">Enter your roll</span><span class="btn sq">+</span></span></div></div>
+          <p class="meta">Wits, Lore and Charm follow, the same.</p>
+          <div class="foot"><span class="say">1 of 6 entered</span><span class="btn accent">Next</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">Where the setting gives a usual value (coin, age, height): the placeholder names it, and it is still not a value until typed or stepped. Tapping + from empty starts at the usual.</p>
+      <div class="phone">
+        <div class="bar"><span class="ico" role="button" aria-label="Back"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span class="title">Gear</span><span class="ico" role="button" aria-label="More"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg></span></div>
+        <div class="inner">
+          <p class="meta">Step 6 of 9</p>
+          <div class="roll"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="16" cy="8" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="8" cy="16" r="1.6" fill="currentColor"/><circle cx="16" cy="16" r="1.6" fill="currentColor"/></svg>Roll 3d6 × 10 for your starting coin.</div>
+          <div class="card"><div class="kv" style="border:0;padding:0"><span>Starting coin</span><span class="stepper"><span class="btn sq">−</span><span class="num ph">Usually 105</span><span class="btn sq">+</span></span></div><div class="meta">Enter what you rolled. Not rolled yet.</div></div>
+          <h2>Details</h2>
+          <div class="list">
+            <div class="kv"><span class="k">Age</span><span class="v empty">Usually about 30 · enter yours</span></div>
+            <div class="kv"><span class="k">Height</span><span class="v empty">Usually 5′ 6″ · enter yours</span></div>
+            <div class="kv"><span class="k">Keepsake</span><span class="v empty">Roll d100 and tap the row…<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></div>
+          </div>
+          <div class="foot"><span class="say">Coin not yet entered</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h1>9 · A chevron only where a picker opens</h1>
+  <div class="wall">
+    <div>
+      <p class="cap">Who they are, in creation: Name is typed (no chevron); Outlook and Liege open pickers (chevron); Hit points is a stepper. One cue, one meaning. The chevron is a shape on the row, not a "›" link.</p>
+      <div class="phone">
+        <div class="bar"><span class="ico" role="button" aria-label="Back"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span class="title">Who they are</span><span class="ico" role="button" aria-label="More"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg></span></div>
+        <div class="inner">
+          <p class="meta">Step 5 of 9</p>
+          <div class="list">
+            <div class="kv"><span class="k">Name</span><span class="v empty">Type a name, or pick from a table…</span></div>
+            <div class="kv"><span class="k">Name tables</span><span class="v">Stone kin · d20 · Table Generator<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></div>
+            <div class="kv"><span class="k">Outlook</span><span class="v empty">Choose…<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></div>
+            <div class="kv"><span class="k">Liege</span><span class="v">House of the Long Reed<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></div>
+          </div>
+          <div class="roll"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="16" cy="8" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="8" cy="16" r="1.6" fill="currentColor"/><circle cx="16" cy="16" r="1.6" fill="currentColor"/></svg>Roll d6 for hit points; add +1 for Grit 12.</div>
+          <div class="card"><div class="kv" style="border:0;padding:0"><span>Hit points</span><span class="stepper"><span class="btn sq">−</span><span class="num ph">Enter your roll</span><span class="btn sq">+</span></span></div></div>
+          <div class="list" style="margin-top:var(--space-3)">
+            <div class="kv"><span class="k">Derived values</span><span class="v">6 figures<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></div>
+          </div>
+          <div class="foot"><span class="say">Name and outlook still to do</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">The picker that Outlook opens: a sheet from the bottom, pick rows, a closed one with ▲ and why (cw-8). Pick moves on (one ask).</p>
+      <div class="phone">
+        <div class="bar"><span class="ico" role="button" aria-label="Back"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span class="title">Outlook</span><span class="ico" role="button" aria-label="Close"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2"/></svg></span></div>
+        <div class="inner">
+          <p class="lead">Where your character stands on the world's big questions. Only you and your GM see it.</p>
+          <div class="list">
+            <div class="kv"><span class="v" style="justify-content:flex-start;text-align:left">Fen<br><span class="meta">Keeps to old bargains</span></span><span class="btn">Pick</span></div>
+            <div class="kv"><span class="v" style="justify-content:flex-start;text-align:left">Mire<br><span class="meta">Takes what the marsh gives</span></span><span class="btn">Pick</span></div>
+            <div class="kv"><span class="v" style="justify-content:flex-start;text-align:left">Hearth<br><span class="warnline">▲ Not open to Reed Witch</span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h1>13 · The ⋯ menu as a sheet</h1>
+  <div class="wall">
+    <div>
+      <p class="cap">The sheet's ⋯: a floating sheet under its button over a dimmed page; icon + label rows, a lighter second line where it helps (14); the destructive action last, after a hairline. Tapping outside closes it.</p>
+      <div class="phone">
+        <div class="bar"><span class="ico" role="button" aria-label="Back"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span class="title">Oswin Adderbald</span><span class="ico" role="button" aria-label="More"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg></span></div>
+        <div class="inner" style="min-height:420px">
+          <h2>Who they are</h2>
+          <div class="list">
+            <div class="kv"><span class="k">Kindred</span><span class="v">Stone kin</span></div>
+            <div class="kv"><span class="k">Class</span><span class="v">Reed Witch</span></div>
+            <div class="kv"><span class="k">Level</span><span class="v">1 · 0 of 2,000 xp</span></div>
+          </div>
+        </div>
+        <div class="dim"></div>
+        <div class="menu">
+          <div class="mrow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span>Rename</span></div>
+          <div class="mrow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 14v6h14v-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span>Share the sheet<small>A read-only link for the table</small></span></div>
+          <div class="mrow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" stroke-width="2"/></svg></span><span>Character fields</span></div>
+          <div class="mrow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2"/></svg></span><span>Full log<small>Everything that touched this character</small></span></div>
+          <div class="msep"></div>
+          <div class="mrow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="4" y="7" width="16" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 7h18M9 11h6" stroke="currentColor" stroke-width="2"/></svg></span><span>Archive<small>Leaves the party; kept in the log</small></span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">The same sheet, a long menu with the screen reader's order: top to bottom, destructive last. On a tablet it anchors to the same button; nothing moves.</p>
+      <div class="phone">
+        <div class="bar"><span class="ico" role="button" aria-label="Back"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span class="title">Scene</span><span class="ico" role="button" aria-label="More"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg></span></div>
+        <div class="inner" style="min-height:420px">
+          <h2>Downtime</h2>
+          <p class="meta">Day 1 · Month 1 · 00:00</p>
+        </div>
+        <div class="dim"></div>
+        <div class="menu">
+          <div class="mrow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 2" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span>Set the time</span></div>
+          <div class="mrow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 18l5-9 4 6 3-4 4 7z" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span>Move…<small>Near here, or anywhere</small></span></div>
+          <div class="mrow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/></svg></span><span>Split the party</span></div>
+          <div class="msep"></div>
+          <div class="mrow"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span>End the expedition<small>Asks whether you're somewhere safe</small></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Self-review: every target 44 px or more with 8 px between; nothing under 14 px; the chevron never stands alone (the value or the verb is beside it); the empty value is lighter text with a verb, never colour alone; a closed row shows ▲ and why, never grey; 375 px with a 60-character name and 999,999 xp checked; one accent button per screen. Not checked: real contrast of the dimmed page under the menu, and how the stepper's placeholder reads with a screen reader (it should be the field's label, "Nimbleness, enter your roll").</p>
+</template>
+
+<div class="pair">
+  <div class="theme light" id="light"></div>
+  <div class="theme dark" id="dark"></div>
+</div>
+<script>
+  const t = document.getElementById('screens');
+  document.getElementById('light').appendChild(t.content.cloneNode(true));
+  document.getElementById('dark').appendChild(t.content.cloneNode(true));
+</script>
+</body>
+</html>

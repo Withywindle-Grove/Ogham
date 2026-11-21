@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Downtime 05 — rolls and trouble: Advance with a roll, a complication with a deadline, progress bars, the player's summary (paper test, 2026-11-02)</title>
+<style>
+  /* Tokens from docs/06 only. Light only. Buttons are plain blocks. Invented examples. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; box-sizing:border-box; padding:var(--space-4); }
+  .phone { width:375px; }
+  .tablet { width:780px; }
+  .h { font-family:"EB Garamond", Georgia, serif; font-size:22px; font-weight:600; line-height:1.2; }
+  .sec { font-family:"EB Garamond", Georgia, serif; font-size:18px; font-weight:600; margin:var(--space-4) 0 var(--space-2); }
+  .muted { color:var(--muted); }
+  .small { font-size:14px; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:48px; border-top:1px solid var(--rule); padding:var(--space-1) 0; }
+  .row .grow { flex:1; min-width:0; }
+  .tag { display:inline-block; font-size:14px; border:1px solid var(--control); border-radius:4px; padding:0 6px; white-space:nowrap; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; white-space:nowrap; }
+  .btn.accent { background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+  .btns { display:flex; gap:var(--space-2); flex-wrap:wrap; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+  .bar .grow { flex:1; }
+  .panel { background:var(--surface); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); }
+  .field { border:1.5px solid var(--control); border-radius:4px; padding:10px 12px; min-height:44px; box-sizing:border-box; font-size:22px; font-weight:700; width:96px; text-align:center; }
+  /* progress bar, built like the HP bar: a track, filled segments, the count in words beside it */
+  .prog { display:flex; gap:3px; height:14px; margin:var(--space-1) 0; }
+  .prog i { flex:1; border:1.5px solid var(--ink); border-radius:2px; background:var(--sheet); }
+  .prog i.f { background:var(--ink); }
+  .prog i.new { background:var(--ink); outline:2px solid var(--accent); outline-offset:1px; }
+  .card { border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); }
+  .card .t { font-weight:700; }
+  .tier { display:flex; gap:var(--space-1); margin-top:var(--space-2); }
+  .tier span { flex:1; border:1.5px solid var(--control); border-radius:4px; padding:var(--space-1) var(--space-2); font-size:14px; text-align:center; }
+  .tier span.on { border:3px solid var(--ink); font-weight:700; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:800px; }
+</style>
+</head>
+<body>
+
+<h1>1 · Advance with a roll (Garrick, phone)</h1>
+<div class="wrap">
+<div class="screen phone">
+  <span class="h">Red Lanterns</span><br><span class="muted">Found or grow an institution</span>
+  <div class="prog"><i class="f"></i><i></i><i></i><i></i><i></i></div>
+  <div class="small"><b>Now · Hall (step 2 of 5):</b> win the old tannery from its owners and make it fit to drill in.</div><div class="small muted"><b>Next · 10 recruits:</b> post at the market cross; each recruit is a hireling on 2 gp a week.</div>
+  <div class="panel">
+    <b>Roll 2d6 + Charisma + 1</b><br><span class="small muted">+1: Wren helps (the GM's terms)</span>
+    <div class="small muted" style="margin-top:var(--space-2)">Roll the dice, then tap the band your total lands in.</div>
+    <div class="tier"><span>Setback<br>6 or less</span><span class="on">Progress, with trouble<br>7–9</span><span>Progress<br>10+</span></div>
+  </div>
+  <div class="btns" style="margin-top:var(--space-3)"><span class="btn accent">Advance</span><span class="btn">Pause</span></div>
+</div>
+<div style="width:360px"><p class="note">The result bands come from the pack's activity (or the GM's terms for Other); the player rolls and taps the band the total lands in (dt-32); no number to type. The tapped band is outlined in heavy ink and set in bold. Pause makes no progress this downtime (dt-27). The result applies by itself within the rules and goes to the GM to approve and add the story (dt-34).</p></div>
+</div>
+
+<h1>2 · The trouble that came with it</h1>
+<div class="wrap">
+<div class="screen phone">
+  <span class="h">Progress, with trouble</span>
+  <div class="prog"><i class="f"></i><i class="new"></i><i></i><i></i><i></i></div>
+  <div class="small muted">Hall · 2 of 5 · the old tannery is yours</div>
+  <div class="card">
+    <div class="small muted">Trouble · rolled 4 on the activity's table</div>
+    <div class="t">Back rent</div>
+    The Tollgates say the tannery owes a year's rent. Settle it, or the hall is lost.
+    <div class="bar" style="margin-top:var(--space-2)"><span class="tag">⏳ 2 downtimes</span><span class="small muted grow">then: −1 step</span></div>
+  </div>
+  <div class="btns" style="margin-top:var(--space-3)"><span class="btn accent">Done</span><span class="btn">Tell the GM…</span></div>
+</div>
+<div style="width:360px"><p class="note">The trouble table belongs to the activity in the pack; each row carries its text, its clock (dt-31: in downtimes or game time) and what happens when it runs out. The trouble joins the activity and the GM's "Trouble with a deadline" list. Settling it can be an action of its own, or a small upkeep thing if it's only money (⚑ Q2).</p></div>
+</div>
+
+<h1>3 · Progress bars across the party (GM)</h1>
+<div class="wrap">
+<div class="screen tablet">
+  <span class="h">Activities · 28 Harvestmoon</span>
+  <div class="row"><span class="grow"><b>Garrick</b> · Red Lanterns<div class="prog"><i class="f"></i><i class="f"></i><i></i><i></i><i></i></div><span class="small"><b>Done · Hall</b> (2 of 5): the tannery is theirs; back rent owed to the Tollgates.</span><br><span class="small muted"><b>Next · 10 recruits</b> (step 3): post at the market cross.</span></span><span class="tag">⏳ 2 downtimes</span></div>
+  <div class="row"><span class="grow"><b>Wren</b> · training<div class="prog"><i class="f"></i><i class="f"></i><i></i><i></i></div><span class="small muted">2 of 4 weeks · by itself</span></span></div>
+  <div class="row"><span class="grow"><b>Dunstan</b> · watchtower<div class="prog"><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="small muted">Foundations 2 of 3 weeks · Walls · Roof · 9 weeks in all</span></span></div>
+  <div class="row"><span class="grow"><b>Ysolde</b> · Fogwalker's formula<div class="prog"><i class="f"></i><i class="f"></i><i class="f"></i></div><span class="small muted">finished · brewing can start next downtime</span></span><span class="tag">done</span></div>
+  <div class="row"><span class="grow"><b>Pell</b> · grapnel from Thornwick<div class="prog"><i class="f"></i><i class="f"></i><i></i></div><span class="small muted">ready in 1 week · the tinker's</span></span></div>
+  <div class="row"><span class="grow"><b>Tamsin</b> · the prioress<div class="prog"><i class="f"></i><i></i><i></i><i></i><i></i></div><span class="small muted">Wary · 1 of 5 · she wants a favour</span></span></div>
+</div>
+</div>
+<p class="note">dt-26: every activity with progress shows a segmented bar built like the HP bar, always with the count in words beside it (never the bar alone). Segments are steps or weeks; a long project shows its stages under the bar.</p>
+
+<h1>4 · The player's summary on the Scene (Hob, phone)</h1>
+<div class="wrap">
+<div class="screen phone">
+  <div class="bar"><span class="grow"><span class="h">Two weeks passed</span><br><span class="muted">14 → 28 Harvestmoon</span></span><span class="btn">Close</span></div>
+  <div class="card"><div class="t">Carousing at the Drowned Goat</div>Spent 21 gp · <b>+21 XP</b> waiting for the GM's award<br><span class="small muted">Mishap: you owe the dice-man 30 gp</span> <span class="tag">⏳ 5 days</span></div>
+  <div class="card"><div class="t">Paid by itself</div>Rooms and meals · 2 weeks · 2 gp 8 sp<br><span class="small muted">purse now 18 gp 2 sp</span></div>
+  <div class="card"><div class="t">Party</div>Osric's copy held · Ysolde's formula is done · the tower's foundations are nearly in</div>
+</div>
+<div style="width:360px"><p class="note">dt-25: shown once on the Scene after a jump; Close dismisses it, the log keeps it. Cards, not a wall of lines. <b>Checked:</b> one accent per screen (none on the summary: nothing to do); bars always carry words; 44 px; 375 px; the new segment is marked by an outline, not colour alone. <b>Not drawn:</b> 12 activities (the GM list scrolls), a 20-step bar (segments thin to a plain bar with "14 of 20"), offline, dark mode.</p></div>
+</div>
+
+</body>
+</html>

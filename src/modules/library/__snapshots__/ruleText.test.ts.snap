@@ -1,0 +1,962 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the screens read rule text in blocks as words > reads an existing plain-string fixture exactly as before 1`] = `
+{
+  "described": [
+    {
+      "lines": [
+        {
+          "label": "Default",
+          "value": "on",
+        },
+        {
+          "label": "Choices",
+          "lines": [
+            {
+              "label": "Yes",
+              "value": "Id on",
+            },
+            {
+              "label": "No",
+              "value": "Id off",
+            },
+          ],
+        },
+      ],
+      "notes": [],
+    },
+    {
+      "lines": [
+        {
+          "label": "Default",
+          "value": "off",
+        },
+        {
+          "label": "Choices",
+          "lines": [
+            {
+              "label": "Yes",
+              "value": "Id on",
+            },
+            {
+              "label": "No",
+              "value": "Id off",
+            },
+          ],
+        },
+      ],
+      "notes": [],
+    },
+    {
+      "lines": [
+        {
+          "label": "Scores",
+          "value": "Dice 3d6, Min 3, Max 18",
+        },
+        {
+          "label": "Time",
+          "value": "Round seconds 6, Turn minutes 10, Day hours 24, Turns per hour 6",
+        },
+        {
+          "label": "Abilities",
+          "lines": [
+            {
+              "label": "Muscle",
+              "value": "Key MUS, Short MUS, Blurb Lifting, shoving and hitting hard.",
+            },
+            {
+              "label": "Wits",
+              "value": "Key WIT, Short WIT",
+            },
+          ],
+        },
+        {
+          "label": "XP",
+          "lines": [
+            {
+              "label": "Treasure",
+              "value": "Per gp 1",
+            },
+            {
+              "label": "Retainer share",
+              "value": "0.5",
+            },
+          ],
+        },
+        {
+          "label": "Combat",
+          "lines": [
+            {
+              "label": "Spell disruption",
+              "value": "Lost when hit Yes, Before acting Yes, Note A caster struck before acting loses the spell.",
+            },
+          ],
+        },
+        {
+          "label": "Seasons",
+          "lines": [
+            {
+              "label": "Thaw",
+              "value": "Id thaw",
+            },
+            {
+              "label": "Frost",
+              "value": "Id frost",
+            },
+          ],
+        },
+        {
+          "label": "Weather",
+          "lines": [
+            {
+              "label": "Tables",
+              "value": "Any fen-weather-table",
+            },
+            {
+              "label": "Roll every",
+              "value": "1 day",
+            },
+            {
+              "label": "Only with option",
+              "value": "fen-weather:on",
+            },
+          ],
+        },
+        {
+          "label": "Special seasons",
+          "lines": [
+            {
+              "label": "Mist moon",
+              "lines": [
+                {
+                  "label": "Id",
+                  "value": "mist-moon",
+                },
+                {
+                  "label": "Weather from",
+                  "value": "thaw",
+                },
+                {
+                  "label": "Effects",
+                  "value": "Everything is damp.",
+                },
+                {
+                  "label": "Encounter swap",
+                  "lines": [
+                    {
+                      "label": "Chance",
+                      "value": "Die d6, On 1, 2",
+                    },
+                    {
+                      "label": "Table",
+                      "value": "mist-things",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          "label": "Daylight",
+          "lines": [
+            {
+              "label": "By month",
+              "lines": [
+                {
+                  "label": "1",
+                  "value": "Month Reedmonth, Sunrise 06:30, Sunset 19:45",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          "label": "Wild encounters",
+          "lines": [
+            {
+              "label": "Type table",
+              "value": "wild-type",
+            },
+            {
+              "label": "Common tables",
+              "value": "Beast wild-beasts",
+            },
+            {
+              "label": "Regional tables",
+              "value": "Low Fen low-fen-things",
+            },
+            {
+              "label": "Lair chance",
+              "value": "20",
+            },
+            {
+              "label": "Lair multiplier",
+              "value": "3",
+            },
+          ],
+        },
+        {
+          "label": "Dungeon exit",
+          "value": "[object Object] (rolled by the GM)",
+        },
+        {
+          "label": "Hunger",
+          "value": "Note Reference only.",
+        },
+        {
+          "label": "Exploration",
+          "lines": [
+            {
+              "label": "Player readable",
+              "value": "Yes",
+            },
+            {
+              "label": "Note",
+              "value": "Two ways of moving about the fens.",
+            },
+            {
+              "label": "Modes",
+              "lines": [
+                {
+                  "label": "Creeping",
+                  "lines": [
+                    {
+                      "label": "Id",
+                      "value": "creep",
+                    },
+                    {
+                      "label": "Step",
+                      "value": "1 turn",
+                    },
+                    {
+                      "label": "Other",
+                      "value": "Yes",
+                    },
+                    {
+                      "label": "Procedure",
+                      "lines": [
+                        {
+                          "label": "Wandering things",
+                          "value": "Id wander, Icon encounter, Kind check, Check creep-wander",
+                        },
+                        {
+                          "label": "Lights burn",
+                          "value": "Id lights, Icon light, Kind auto",
+                        },
+                        {
+                          "label": "Describe the turn",
+                          "value": "Id describe, Icon note, Kind note. Say what the party sees.",
+                        },
+                      ],
+                    },
+                    {
+                      "label": "Checks",
+                      "lines": [
+                        {
+                          "label": "Wandering things",
+                          "lines": [
+                            {
+                              "label": "Id",
+                              "value": "creep-wander",
+                            },
+                            {
+                              "label": "Every",
+                              "value": "2 turns",
+                            },
+                            {
+                              "label": "Chance",
+                              "value": "{"die":"d8","on":[1]}",
+                            },
+                            {
+                              "label": "On hit",
+                              "value": "{"tableChoices":["creep-shallow","creep-deep"],"note":"Pick by depth."}",
+                            },
+                            {
+                              "label": "Notes",
+                              "value": "The old field name still reads.",
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      "label": "Movement",
+                      "value": "speed fts",
+                    },
+                    {
+                      "label": "Rest",
+                      "value": "Every 5 turns, Length 1 turn, Condition weary, Note Sit a while.",
+                    },
+                    {
+                      "label": "Camp",
+                      "value": "Same as roam",
+                    },
+                    {
+                      "label": "Activities",
+                      "lines": [
+                        {
+                          "label": "Listen at a door",
+                          "lines": [
+                            {
+                              "label": "Id",
+                              "value": "listen",
+                            },
+                            {
+                              "label": "Icon",
+                              "value": "listen",
+                            },
+                            {
+                              "label": "Cost",
+                              "value": "{"steps":0}",
+                            },
+                            {
+                              "label": "Who",
+                              "value": "several",
+                            },
+                            {
+                              "label": "Max actors",
+                              "value": "2",
+                            },
+                            {
+                              "label": "Secret",
+                              "value": "Yes",
+                            },
+                            {
+                              "label": "Chance",
+                              "value": "{"skill":"hear"}",
+                            },
+                            {
+                              "label": "Only in",
+                              "value": "creep",
+                            },
+                          ],
+                        },
+                        {
+                          "label": "Pick a lock",
+                          "lines": [
+                            {
+                              "label": "Id",
+                              "value": "pick",
+                            },
+                            {
+                              "label": "Icon",
+                              "value": "door",
+                            },
+                            {
+                              "label": "Cost",
+                              "value": "{"steps":1}",
+                            },
+                            {
+                              "label": "Who",
+                              "value": "one",
+                            },
+                            {
+                              "label": "Requires",
+                              "value": "{"skill":"locks","item":"lock-picks"}",
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  "label": "Roaming",
+                  "lines": [
+                    {
+                      "label": "Id",
+                      "value": "roam",
+                    },
+                    {
+                      "label": "Step",
+                      "value": "1 day",
+                    },
+                    {
+                      "label": "Procedure",
+                      "lines": [
+                        {
+                          "label": "Weather",
+                          "lines": [
+                            {
+                              "label": "Id",
+                              "value": "sky",
+                            },
+                            {
+                              "label": "Icon",
+                              "value": "weather",
+                            },
+                            {
+                              "label": "Kind",
+                              "value": "roll",
+                            },
+                            {
+                              "label": "Table by season",
+                              "value": "{"thaw":"thaw-sky","frost":"frost-sky"}",
+                            },
+                          ],
+                        },
+                        {
+                          "label": "Going astray?",
+                          "value": "Id astray, Icon travel, Kind check, Check roam-astray",
+                        },
+                        {
+                          "label": "How far?",
+                          "value": "Id guess, Icon star, Kind roll. The GM types what the guide says.",
+                        },
+                        {
+                          "label": "Make camp",
+                          "value": "Id camp, Icon camp, Kind camp",
+                        },
+                      ],
+                    },
+                    {
+                      "label": "Checks",
+                      "lines": [
+                        {
+                          "label": "Going astray",
+                          "lines": [
+                            {
+                              "label": "Id",
+                              "value": "roam-astray",
+                            },
+                            {
+                              "label": "Every",
+                              "value": "1 day",
+                            },
+                            {
+                              "label": "When",
+                              "value": "start",
+                            },
+                            {
+                              "label": "Chance",
+                              "value": "{"die":"d6","on":[1]}",
+                            },
+                            {
+                              "label": "By terrain",
+                              "value": "Yes",
+                            },
+                            {
+                              "label": "Terrain chance",
+                              "value": "lostChance",
+                            },
+                            {
+                              "label": "On hit",
+                              "value": "{"tableId":"roam-astray-result"}",
+                            },
+                          ],
+                        },
+                        {
+                          "label": "Wandering things",
+                          "lines": [
+                            {
+                              "label": "Id",
+                              "value": "roam-wander",
+                            },
+                            {
+                              "label": "Every",
+                              "value": "1 day",
+                            },
+                            {
+                              "label": "By terrain",
+                              "value": "Yes",
+                            },
+                            {
+                              "label": "Terrain chance",
+                              "value": "wanderChance",
+                            },
+                            {
+                              "label": "On hit",
+                              "value": "{"tableId":"wild-type","columns":["road","wild"],"regionTables":true}",
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      "label": "Movement",
+                      "lines": [
+                        {
+                          "label": "Kind",
+                          "value": "budget",
+                        },
+                        {
+                          "label": "Name",
+                          "value": "Leagues",
+                        },
+                        {
+                          "label": "Unit",
+                          "value": "points",
+                        },
+                        {
+                          "label": "Per day",
+                          "value": "speed / 10",
+                        },
+                        {
+                          "label": "Mounted",
+                          "value": "24",
+                        },
+                        {
+                          "label": "Vehicle",
+                          "value": "12",
+                        },
+                        {
+                          "label": "Cost per",
+                          "value": "4 miles",
+                        },
+                      ],
+                    },
+                    {
+                      "label": "Terrain classes",
+                      "lines": [
+                        {
+                          "label": "Easy going",
+                          "value": "Id easy, Cost 1, Search cost 1, Lost chance 1, Wander chance 1, Mounts ride",
+                        },
+                        {
+                          "label": "Bog",
+                          "value": "Id bog, Cost 3, Search cost 2, Lost chance 2, Wander chance 2, Mounts none",
+                        },
+                      ],
+                    },
+                    {
+                      "label": "Terrain",
+                      "lines": [
+                        {
+                          "label": "Wet meadow",
+                          "value": "Id meadow, Class easy, Encounter column wild",
+                        },
+                        {
+                          "label": "Marsh",
+                          "value": "Id marsh, Class bog. Boots fill with water.",
+                        },
+                        {
+                          "label": "Old causeway",
+                          "value": "Id causeway, Cost 1, Search cost 1, Lost chance 0, Wander chance 1, Encounter column road",
+                        },
+                      ],
+                    },
+                    {
+                      "label": "Camp",
+                      "lines": [
+                        {
+                          "label": "Procedure",
+                          "value": "[{"id":"watch","name":"Set watches","icon":"time","kind":"watches","watchLength":{"value":2,"unit":"hour"}},{"id":"sleep","name":"Sleep","icon":"rest","kind":"roll","tableId":"sleep-table","checkAbility":"WIT","onGoodRest":[{"heal":1}],"onBadRest":[{"condition":"weary"}]}]",
+                        },
+                        {
+                          "label": "Quick",
+                          "value": "{"option":"fen-weather"}",
+                        },
+                        {
+                          "label": "Note",
+                          "value": "A camp in the fens is never dry.",
+                        },
+                      ],
+                    },
+                    {
+                      "label": "Activities",
+                      "lines": [
+                        {
+                          "label": "Gather reeds",
+                          "lines": [
+                            {
+                              "label": "Id",
+                              "value": "gather",
+                            },
+                            {
+                              "label": "Icon",
+                              "value": "search",
+                            },
+                            {
+                              "label": "Cost",
+                              "value": "{"fromTerrain":"searchCost"}",
+                            },
+                            {
+                              "label": "Chance",
+                              "value": "{"abilityCheck":"WIT"}",
+                            },
+                            {
+                              "label": "Who",
+                              "value": "several",
+                            },
+                            {
+                              "label": "Max actors",
+                              "value": "3",
+                            },
+                            {
+                              "label": "Best of",
+                              "value": "Yes",
+                            },
+                            {
+                              "label": "Modifiers",
+                              "value": "[{"when":"fullDay","add":1,"note":"A whole day at it"}]",
+                            },
+                            {
+                              "label": "Result",
+                              "value": "1d4 bundles",
+                            },
+                            {
+                              "label": "By season",
+                              "value": "{"thaw":"1d6 bundles"}",
+                            },
+                            {
+                              "label": "By special season",
+                              "value": "{"mist-moon":"Nothing grows."}",
+                            },
+                            {
+                              "label": "Only in",
+                              "value": "roam",
+                            },
+                            {
+                              "label": "Only on terrain",
+                              "value": "marsh",
+                            },
+                          ],
+                        },
+                        {
+                          "label": "Set eel traps",
+                          "lines": [
+                            {
+                              "label": "Id",
+                              "value": "eel",
+                            },
+                            {
+                              "label": "Icon",
+                              "value": "search",
+                            },
+                            {
+                              "label": "Cost",
+                              "value": "{"budget":"all"}",
+                            },
+                            {
+                              "label": "Who",
+                              "value": "party",
+                            },
+                            {
+                              "label": "Table",
+                              "value": "eel-catch",
+                            },
+                            {
+                              "label": "Table by terrain",
+                              "value": "{"marsh":"marsh-catch"}",
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      "notes": [],
+    },
+    {
+      "lines": [
+        {
+          "label": "Blurb",
+          "value": "Small, quick and at home in deep water.",
+        },
+      ],
+      "notes": [],
+    },
+    {
+      "lines": [
+        {
+          "label": "XP table",
+          "value": "witch-xp",
+        },
+        {
+          "label": "Hit die",
+          "value": "d4",
+        },
+        {
+          "label": "Race",
+          "value": "marsh-folk",
+        },
+        {
+          "label": "Summary",
+          "value": "Weaves reed charms and reads the water.",
+        },
+        {
+          "label": "Spellcasting",
+          "lines": [
+            {
+              "label": "List",
+              "value": "list-reed-witch",
+            },
+            {
+              "label": "Type",
+              "value": "book",
+            },
+            {
+              "label": "Casting type",
+              "value": "arcane",
+            },
+            {
+              "label": "First spells",
+              "value": "Choose 2, Given glimmer",
+            },
+            {
+              "label": "Learn by level",
+              "lines": [
+                {
+                  "label": "Level 2",
+                  "value": "Count 1",
+                },
+                {
+                  "label": "Level 3",
+                  "value": "Count 1",
+                },
+              ],
+            },
+            {
+              "label": "Scroll copy",
+              "value": "Note Copying takes a day and a roll at the table., Consumes scroll Yes",
+            },
+          ],
+        },
+        {
+          "label": "Progression",
+          "lines": [
+            {
+              "label": "Level 1",
+              "value": "XP 0, Hit dice 1d4",
+            },
+            {
+              "label": "Level 10",
+              "lines": [
+                {
+                  "label": "XP",
+                  "value": "85000",
+                },
+                {
+                  "label": "Hit dice",
+                  "value": "8d4+3",
+                },
+                {
+                  "label": "Hp gain",
+                  "value": "Fixed 3, Add con No",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      "notes": [],
+    },
+  ],
+  "reference": [
+    {
+      "name": "Invented exploration and 2026-10-29 fields sample",
+      "packId": "g07",
+      "panels": [
+        {
+          "entries": [
+            {
+              "group": null,
+              "heading": "Fighting",
+              "key": "0:combat",
+              "lines": [
+                {
+                  "label": "Spell disruption",
+                  "value": "Lost when hit Yes, Before acting Yes, Note A caster struck before acting loses the spell.",
+                },
+              ],
+              "paragraphs": [],
+              "source": null,
+              "tableId": null,
+            },
+          ],
+          "from": "rules",
+          "id": "combat",
+          "title": "Combat",
+        },
+        {
+          "entries": [
+            {
+              "group": null,
+              "heading": "Creeping",
+              "key": "0:mode:creep",
+              "lines": [
+                {
+                  "label": "Procedure",
+                  "lines": [
+                    {
+                      "label": "Wandering things",
+                      "value": "Id wander, Icon encounter, Kind check, Check creep-wander",
+                    },
+                    {
+                      "label": "Lights burn",
+                      "value": "Id lights, Icon light, Kind auto",
+                    },
+                    {
+                      "label": "Describe the turn",
+                      "value": "Id describe, Icon note, Kind note. Say what the party sees.",
+                    },
+                  ],
+                },
+                {
+                  "label": "Checks",
+                  "lines": [
+                    {
+                      "label": "Wandering things",
+                      "lines": [
+                        {
+                          "label": "Id",
+                          "value": "creep-wander",
+                        },
+                        {
+                          "label": "Every",
+                          "value": "2 turns",
+                        },
+                        {
+                          "label": "Chance",
+                          "value": "Die d8, On 1",
+                        },
+                        {
+                          "label": "On hit",
+                          "value": "Table choices creep-shallow, creep-deep, Note Pick by depth.",
+                        },
+                        {
+                          "label": "Notes",
+                          "value": "The old field name still reads.",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  "label": "Movement",
+                  "value": "speed fts",
+                },
+                {
+                  "label": "Rest",
+                  "value": "Every 5 turns, Length 1 turn, Condition weary, Note Sit a while.",
+                },
+              ],
+              "paragraphs": [],
+              "source": null,
+              "tableId": null,
+            },
+            {
+              "group": null,
+              "heading": "Exploring",
+              "key": "0:exploration.note",
+              "lines": [],
+              "paragraphs": [
+                "Two ways of moving about the fens.",
+              ],
+              "source": null,
+              "tableId": null,
+            },
+          ],
+          "from": "rules",
+          "id": "dungeons",
+          "title": "Dungeons",
+        },
+        {
+          "entries": [
+            {
+              "group": null,
+              "heading": "Reed witch",
+              "key": "reed-witch",
+              "lines": [
+                {
+                  "label": "XP table",
+                  "value": "witch-xp",
+                },
+                {
+                  "label": "Hit die",
+                  "value": "d4",
+                },
+                {
+                  "label": "Race",
+                  "value": "Marsh folk",
+                },
+                {
+                  "label": "Summary",
+                  "value": "Weaves reed charms and reads the water.",
+                },
+                {
+                  "label": "Spellcasting",
+                  "lines": [
+                    {
+                      "label": "List",
+                      "value": "list-reed-witch",
+                    },
+                    {
+                      "label": "Type",
+                      "value": "book",
+                    },
+                    {
+                      "label": "Casting type",
+                      "value": "arcane",
+                    },
+                    {
+                      "label": "First spells",
+                      "value": "Choose 2, Given glimmer",
+                    },
+                    {
+                      "label": "Learn by level",
+                      "lines": [
+                        {
+                          "label": "Level 2",
+                          "value": "Count 1",
+                        },
+                        {
+                          "label": "Level 3",
+                          "value": "Count 1",
+                        },
+                      ],
+                    },
+                    {
+                      "label": "Scroll copy",
+                      "value": "Note Copying takes a day and a roll at the table., Consumes scroll Yes",
+                    },
+                  ],
+                },
+                {
+                  "label": "Progression",
+                  "lines": [
+                    {
+                      "label": "Level 1",
+                      "value": "XP 0, Hit dice 1d4",
+                    },
+                    {
+                      "label": "Level 10",
+                      "lines": [
+                        {
+                          "label": "XP",
+                          "value": "85000",
+                        },
+                        {
+                          "label": "Hit dice",
+                          "value": "8d4+3",
+                        },
+                        {
+                          "label": "Hp gain",
+                          "value": "Fixed 3, Add con No",
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+              "paragraphs": [],
+              "source": null,
+              "tableId": null,
+            },
+          ],
+          "from": "rules",
+          "id": "classes",
+          "title": "Class abilities",
+        },
+      ],
+      "shortName": "G07",
+    },
+  ],
+}
+`;

@@ -1,0 +1,64 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": { "id": "fen-small-options", "name": "Fen small options", "shortName": "Fen small", "version": "0.1", "kind": "setting", "notes": "Invented sample for options-gates PR 4 (of-4, of-5, of-6 with bq3-15, of-11). Not a real game." },
+  "options": [
+    { "id": "fen-ways-out", "name": "Ways out of the dark", "default": "escape", "choices": [{ "id": "escape", "name": "Escape roll", "short": "Roll" }, { "id": "safe", "name": "Safe paths only", "short": "Safe paths" }] },
+    { "id": "fen-odds-and-ends", "name": "Odds and ends at the start", "default": "off", "choices": [{ "id": "off", "name": "No" }, { "id": "on", "name": "Yes" }] },
+    { "id": "fen-odd-table", "name": "The odd table", "default": "on", "choices": [{ "id": "off", "name": "No" }, { "id": "on", "name": "Yes" }] }
+  ],
+  "rulesSets": [
+    {
+      "id": "fen-small-rules",
+      "name": "Fen small rules",
+      "abilities": [{ "key": "MUS", "name": "Muscle" }, { "key": "WIT", "name": "Wit" }],
+      "scores": { "dice": "3d6", "min": 3, "max": 18 },
+      "exploration": {
+        "modes": [{ "id": "creep", "name": "Creeping", "step": { "value": 1, "unit": "turn" }, "procedure": [], "checks": [] }]
+      },
+      "dungeonExit": {
+        "roll": { "save": "nerve" },
+        "modifiers": [{ "id": "map", "name": "Has a map", "value": 2 }],
+        "depth": { "per": 1, "value": -1 },
+        "onFail": { "table": "fen-lost-below" },
+        "safePaths": "Follow the chalk marks back; it takes an extra turn."
+      },
+      "startingEquipment": [{ "itemId": "reed-rope", "qty": 1 }],
+      "byOption": {
+        "fen-ways-out=safe": { "dungeonExit": { "roll": null, "onFail": null, "modifiers": null, "depth": null } },
+        "fen-odds-and-ends=on": { "startingEquipment": [{ "itemId": "reed-rope", "qty": 1 }, { "pick": { "tableId": "fen-odds", "upTo": 2 } }] }
+      }
+    }
+  ],
+  "tables": [
+    { "id": "fen-lost-below", "name": "Lost below", "die": "d6", "rows": [{ "min": 1, "max": 6, "result": "Bog lurkers find you" }] },
+    {
+      "id": "fen-odds",
+      "name": "Odds and ends",
+      "die": "d4",
+      "gmOnly": false,
+      "option": "fen-odd-table",
+      "rows": [
+        { "min": 1, "max": 2, "result": "Eel net", "items": [{ "itemId": "eel-net" }] },
+        { "min": 3, "max": 4, "result": "Reed rope", "items": [{ "itemId": "reed-rope" }] }
+      ]
+    }
+  ],
+  "items": [
+    { "id": "reed-rope", "name": "Reed rope", "category": "gear", "value": { "gp": 1 }, "weightCoin": 10 },
+    { "id": "eel-net", "name": "Eel net", "category": "gear", "value": { "gp": 2 }, "weightCoin": 20 }
+  ],
+  "classes": [
+    {
+      "id": "bog-singer",
+      "name": "Bog singer",
+      "hitDie": "1d4",
+      "spellcasting": { "listId": "bog-songs", "fromLevel": 1, "firstSpells": { "given": ["reed-spark"] }, "known": { "byLevel": [{ "level": 1, "count": 2 }], "listLevel": 2 } }
+    }
+  ],
+  "spellLists": [{ "id": "bog-songs", "name": "Bog songs", "classId": "bog-singer", "levels": [{ "level": 1, "spells": ["reed-spark"] }, { "level": 2, "spells": ["frog-hum"] }] }],
+  "spells": [
+    { "id": "reed-spark", "name": "Reed spark", "blurb": "A spark leaps from reed to reed.", "lists": { "bog-songs": 1 } },
+    { "id": "frog-hum", "name": "Frog hum", "blurb": "Every frog nearby hums at once.", "lists": { "bog-songs": 2 } }
+  ]
+}

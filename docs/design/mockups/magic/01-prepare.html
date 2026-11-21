@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Magic 01 — Prepare: a book caster, a prayer caster, the tablet layout (provisional, before the paper test, 2026-11-05)</title>
+<style>
+  /* Tokens from docs/06 only. Light and dark side by side (the dark column is the same markup, re-themed). Buttons are plain blocks. Invented names and figures. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; }
+  .light { --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; --wash:#F3E7E3; --warn:#7A4A00; --info:#2F5D7C; --popup:#FFFFFF; }
+  .dark  { --page:#12100D; --surface:#1C1915; --sheet:#1E1A16; --ink:#F1EADC; --muted:#B5AA96; --rule:#3A342B; --control:#756B5A; --accent:#C9875A; --on-accent:#12100D; --wash:#3A2A20; --warn:#F2D46B; --info:#8DB4D0; --popup:#28231D; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:#FAFAF7; color:#191714; }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .note { font-size:14px; color:#5E574C; margin:0 0 var(--space-4); max-width:860px; }
+  .pair { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; margin-bottom:var(--space-5); }
+  .theme { background:var(--page); color:var(--ink); padding:var(--space-4); border-radius:4px; }
+  .theme > .label { font-size:14px; color:var(--muted); margin-bottom:var(--space-2); }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--page); border:1px solid var(--rule); border-radius:4px; box-sizing:border-box; padding:var(--space-4); }
+  .phone { width:375px; } .tablet { width:760px; }
+  .back { color:var(--accent); text-decoration:underline; display:inline-block; min-height:44px; line-height:44px; }
+  .h { font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; margin:0 0 var(--space-1); }
+  .sec { font-family:"EB Garamond", Georgia, serif; font-size:18px; font-weight:600; font-variant:small-caps; letter-spacing:.04em; color:var(--muted); margin:var(--space-5) 0 var(--space-1); }
+  .muted { color:var(--muted); } .small { font-size:14px; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:56px; border-top:1px dotted var(--control); padding:var(--space-2) 0; }
+  .row .grow { flex:1; min-width:0; }
+  .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .tag { display:inline-block; font-size:14px; border:1px solid var(--control); border-radius:4px; padding:0 6px; margin-left:var(--space-2); white-space:nowrap; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; min-height:44px; min-width:44px; padding:0 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; box-sizing:border-box; white-space:nowrap; }
+  .btn.accent { background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+  .btn.small { font-size:16px; padding:0 10px; }
+  .step { display:flex; align-items:center; gap:var(--space-2); }
+  .step .n { min-width:28px; text-align:center; font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; }
+  .seg { display:flex; width:100%; box-sizing:border-box; border:1.5px solid var(--control); border-radius:4px; overflow:hidden; margin-top:var(--space-2); }
+  .seg span { min-height:44px; display:flex; align-items:center; justify-content:center; padding:0 12px; font-size:15px; flex:1; }
+  .seg .on { background:var(--wash); box-shadow:inset 0 0 0 1.5px var(--accent); font-weight:700; }
+  .pips { letter-spacing:3px; color:var(--accent); }
+  .lvl { display:flex; align-items:baseline; gap:var(--space-3); flex-wrap:wrap; margin-top:var(--space-5); }
+  .lvl b { font-family:"EB Garamond", Georgia, serif; font-size:20px; }
+  .panel { background:var(--surface); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); }
+  .pop { background:var(--popup); border:1px solid var(--control); border-radius:8px; padding:var(--space-4); margin-top:var(--space-3); }
+  .cols { display:flex; gap:var(--space-5); } .cols > div { flex:1; min-width:0; }
+  .entry { border-left:1px solid var(--rule); padding-left:var(--space-4); }
+  .link { color:var(--accent); text-decoration:underline; }
+</style>
+</head>
+<body>
+
+<h1>1 · Prepare: a book caster on a phone</h1>
+<p class="note">Provisional, drawn before the paper test of magic in play. From 05 Spells (M7-3): "Same as yesterday" is one tap and the default; the book for book casters; the same spell twice; a reversed form chosen when memorising where the class's rule says so; rules one tap from every spell's name. Changes save as made, so there is no Done: ‹ Back leaves. <b>Question for the run:</b> 05 says "tap a number to add one, hold to clear"; drawn here as − N + instead, because a hold is hidden and the stepper is the How many component.</p>
+<div class="pair">
+<div class="theme light" id="s1"><div class="label">Light</div><div class="wrap">
+  <div class="screen phone">
+    <span class="back">‹ Wren</span>
+    <div class="h">Prepare spells</div>
+    <div class="muted small">After a night's rest and an hour with your book. <span class="link">Rules ›</span></div>
+    <div style="margin-top:var(--space-4)"><span class="btn accent">Same as yesterday</span></div>
+    <div class="muted small" style="margin-top:var(--space-2)">Mire lamp ×2 · Reed whisper</div>
+
+    <div class="lvl"><b>Level 1</b><span class="muted">2 a day · 2 chosen</span><span class="pips" aria-hidden="true">●●</span></div>
+    <div class="row"><div class="grow"><span class="name">Mire lamp</span><div class="muted small">A cold light that follows you</div><div class="muted small">6 turns · 30 ft</div></div><div class="step"><span class="btn small">−</span><span class="n">2</span><span class="btn small">+</span></div></div>
+    <div class="row"><div class="grow"><span class="name">Reed whisper</span><div class="muted small">A message carried on the wind</div><div class="muted small">instant · 1 mile</div></div><div class="step"><span class="btn small">−</span><span class="n">0</span><span class="btn small">+</span></div></div>
+    <div class="row"><div class="grow"><span class="name">Mend lantern</span><div class="muted small">Makes a broken thing whole</div><div class="muted small">instant · touch</div></div><div class="step"><span class="btn small">−</span><span class="n">0</span><span class="btn small">+</span></div></div>
+    <div class="seg" role="group" aria-label="Which form"><span class="on">Mend lantern</span><span>Reversed: Break lantern</span></div>
+
+    <div class="lvl"><b>Level 2</b><span class="muted">1 a day · none chosen</span><span class="pips" aria-hidden="true">○</span></div>
+    <div class="row"><div class="grow"><span class="name">The long lantern of the drowned abbey that burns beneath the black water</span><div class="muted small">Light no wind can put out</div><div class="muted small">1 night · 50 ft</div></div><div class="step"><span class="btn small">−</span><span class="n">0</span><span class="btn small">+</span></div></div>
+  </div>
+
+  <div class="screen phone">
+    <div class="muted small">A level that is full: + still answers (never a disabled button)</div>
+    <div class="pop"><b>Level 1 is full</b><div class="muted">You have 2 a day at level 1 and both are chosen. Take one out first.</div><div style="margin-top:var(--space-3)"><span class="btn">Got it</span></div></div>
+    <div class="muted small" style="margin-top:var(--space-5)">An empty book</div>
+    <div class="panel">No spells in your book yet. Your GM adds one when you learn it.</div>
+    <div class="muted small" style="margin-top:var(--space-5)">Nothing chosen yesterday: the button explains itself</div>
+    <div class="panel"><span class="btn accent">Same as yesterday</span><div class="muted small" style="margin-top:var(--space-2)">Nothing was prepared yesterday. Choose below.</div></div>
+    <div class="muted small" style="margin-top:var(--space-5)">Offline</div>
+    <div class="panel">ⓘ Offline · your choices are kept and sent when you're back.</div>
+  </div>
+</div></div>
+<div class="theme dark" data-from="s1"><div class="label">Dark</div></div>
+</div>
+
+<h1>2 · Prepare: a prayer caster, the whole list</h1>
+<p class="note">A prayer caster chooses from every spell of the levels they can cast, so the list is long. It shows what is chosen first, then the rest folded ("8 more ›", opening in place, as the Skills block). <b>Question for the run:</b> a shrine's extra blessing (one setting): drawn as one more slot named for its source, lasting until it is cast.</p>
+<div class="pair">
+<div class="theme light" id="s2"><div class="label">Light</div><div class="wrap">
+  <div class="screen phone">
+    <span class="back">‹ Brother Alder</span>
+    <div class="h">Prepare spells</div>
+    <div class="muted small">After a night's rest and an hour of prayer. <span class="link">Rules ›</span></div>
+    <div style="margin-top:var(--space-4)"><span class="btn accent">Same as yesterday</span></div>
+    <div class="muted small" style="margin-top:var(--space-2)">Mending hands ×2 · Candle ward</div>
+
+    <div class="lvl"><b>Level 1</b><span class="muted">3 a day · 3 chosen</span><span class="pips" aria-hidden="true">●●●</span></div>
+    <div class="row"><div class="grow"><span class="name">Mending hands</span><div class="muted small">Closes a wound</div><div class="muted small">instant · touch</div></div><div class="step"><span class="btn small">−</span><span class="n">2</span><span class="btn small">+</span></div></div>
+    <div class="row"><div class="grow"><span class="name">Candle ward</span><div class="muted small">Keeps the dead back from a flame</div><div class="muted small">1 turn · 10 ft</div></div><div class="step"><span class="btn small">−</span><span class="n">1</span><span class="btn small">+</span></div></div>
+    <div class="row"><div class="grow"><span class="link">8 more ›</span></div></div>
+
+    <div class="lvl"><b>From the shrine at Heron Jetty</b><span class="muted">1 extra · until cast</span><span class="pips" aria-hidden="true">●</span></div>
+    <div class="row"><div class="grow"><span class="name">Warding word</span><div class="muted small">Turns one blow aside</div><div class="muted small">1 round · self</div></div><span class="btn small">Change</span></div>
+  </div>
+</div></div>
+<div class="theme dark" data-from="s2"><div class="label">Dark</div></div>
+</div>
+
+<h1>3 · Prepare on a tablet</h1>
+<p class="note">The list on the left, the tapped spell's entry beside it (tap a row, not its − or +) (the same pattern as creation's pick lists). The entry's own button is secondary: "Same as yesterday" stays the screen's one accent.</p>
+<div class="pair">
+<div class="theme light" id="s3"><div class="label">Light</div><div class="wrap">
+  <div class="screen tablet"><div class="cols">
+    <div>
+      <span class="back">‹ Wren</span>
+      <div class="h">Prepare spells</div>
+      <div style="margin-top:var(--space-3)"><span class="btn accent">Same as yesterday</span></div>
+      <div class="lvl"><b>Level 1</b><span class="muted">2 a day · 2 chosen</span><span class="pips" aria-hidden="true">●●</span></div>
+      <div class="row"><div class="grow"><span class="name">Mire lamp</span><div class="muted small">A cold light that follows you</div></div><div class="step"><span class="btn small">−</span><span class="n">2</span><span class="btn small">+</span></div></div>
+      <div class="row"><div class="grow"><span class="name">Reed whisper</span><div class="muted small">A message carried on the wind</div></div><div class="step"><span class="btn small">−</span><span class="n">0</span><span class="btn small">+</span></div></div>
+    </div>
+    <div class="entry">
+      <div class="h">Mire lamp</div>
+      <div class="muted small">Level 1 · Fen rules p. 40</div>
+      <p>A cold light that follows you. It can't be put out by wind or water.</p>
+      <div class="row"><span class="grow">Lasts</span><b>6 turns</b></div>
+      <div class="row"><span class="grow">Reaches</span><b>30 ft</b></div>
+      <div class="muted small">Worked out for Wren, level 3: 3 + level turns.</div>
+      <div style="margin-top:var(--space-3)"><span class="btn">Prepare one more</span></div>
+    </div>
+  </div></div>
+</div></div>
+<div class="theme dark" data-from="s3"><div class="label">Dark</div></div>
+</div>
+
+<script>
+  // The dark column re-uses the light column's markup under the dark tokens.
+  document.querySelectorAll('.theme.dark[data-from]').forEach(function (d) {
+    var src = document.getElementById(d.getAttribute('data-from'));
+    var clone = src.querySelector('.wrap').cloneNode(true);
+    d.appendChild(clone);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Downtime 04 — time passes: two weeks, what's due, what moved, what went wrong (paper test, 2026-11-02)</title>
+<style>
+  /* Tokens from docs/06 only. Light only. Buttons are plain blocks. Invented examples. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; box-sizing:border-box; padding:var(--space-4); }
+  .tablet { width:780px; }
+  .phone { width:375px; }
+  .h { font-family:"EB Garamond", Georgia, serif; font-size:22px; font-weight:600; line-height:1.2; }
+  .sec { font-family:"EB Garamond", Georgia, serif; font-size:18px; font-weight:600; margin:var(--space-4) 0 var(--space-2); }
+  .muted { color:var(--muted); }
+  .small { font-size:14px; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:48px; border-top:1px solid var(--rule); padding:var(--space-1) 0; }
+  .row .grow { flex:1; min-width:0; }
+  .tag { display:inline-block; font-size:14px; border:1px solid var(--control); border-radius:4px; padding:0 6px; margin-left:var(--space-2); white-space:nowrap; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; white-space:nowrap; }
+  .btn.accent { background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+  .btns { display:flex; gap:var(--space-2); flex-wrap:wrap; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+  .bar .grow { flex:1; }
+  .panel { background:var(--surface); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); }
+  .field { border:1.5px solid var(--control); border-radius:4px; padding:10px 12px; min-height:44px; box-sizing:border-box; }
+  .cols { display:flex; gap:var(--space-5); }
+  .cols > div { flex:1; min-width:0; }
+  .prog { display:flex; gap:3px; height:14px; margin:var(--space-1) 0; }
+  .prog i { flex:1; border:1.5px solid var(--ink); border-radius:2px; background:var(--sheet); }
+  .prog i.f { background:var(--ink); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:800px; }
+</style>
+</head>
+<body>
+
+<h1>1 · Move time (GM)</h1>
+<div class="wrap">
+<div class="screen phone">
+  <span class="h">Move downtime on</span><br><span class="muted">now 14 Harvestmoon</span>
+  <div class="btns" style="margin-top:var(--space-3)"><span class="btn">+1 day</span><span class="btn">+1 week</span><span class="btn">+1 month</span></div>
+  <div class="bar" style="margin-top:var(--space-3)"><span class="field" style="width:80px">2</span><span class="field" style="flex:1">weeks</span></div>
+  <div class="row" style="margin-top:var(--space-3)"><span class="grow">or a date…<br><span class="small muted">28 Harvestmoon</span></span></div>
+  <div class="panel small">2 weeks: lodging ×2 for 8, Mabb's wages ×2, 4 activities move on, 2 deadlines come closer.</div>
+  <div class="btns" style="margin-top:var(--space-3)"><span class="btn accent">Move 2 weeks</span></div>
+</div>
+<div style="width:360px"><p class="note">dt-24: any fixed amount. The preview line counts what the jump will bring before the GM commits; the move itself has Undo (05: Downtime's moves are Simple-logged).</p></div>
+</div>
+
+<h1>2 · Two weeks pass (GM, the summary)</h1>
+<div class="wrap">
+<div class="screen tablet">
+  <div class="bar"><span class="grow"><span class="h">Two weeks pass</span><br><span class="muted">14 → 28 Harvestmoon · week 3 of downtime</span></span><span class="btn">Undo</span></div>
+  <div class="cols">
+    <div>
+      <div class="sec">Due · sent to each purse</div>
+      <div class="row"><span class="grow">Rooms and meals · 2 weeks<br><span class="small muted">8 characters · 3 paid by themselves · 5 waiting</span></span></div>
+      <div class="row"><span class="grow">Mabb · wages ×2<br><span class="small muted">Wren</span></span></div>
+      <div class="row"><span class="grow">Builders on the ridge ×2<br><span class="small muted">party fund · the Treasurer</span></span></div>
+      <div class="sec">Moved on by time</div>
+      <div class="row"><span class="grow">Wren · training<div class="prog"><i class="f"></i><i class="f"></i><i></i><i></i></div><span class="small muted">2 of 4 weeks</span></span></div>
+      <div class="row"><span class="grow">Pell · grapnel in Thornwick<div class="prog"><i class="f"></i><i class="f"></i><i></i></div><span class="small muted">ready in 1 week</span></span></div>
+      <div class="row"><span class="grow">Dunstan · watchtower<div class="prog"><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="small muted">Foundations 2 of 3 weeks</span></span></div>
+      <div class="row"><span class="grow">Osric · scroll copied · <b>finished</b><br><span class="small muted">roll asked: did the copy hold?</span></span></div>
+    </div>
+    <div>
+      <div class="sec">Waiting on a roll</div>
+      <div class="row"><span class="grow">Ysolde · the formula · Advance<br><span class="small muted">asked on her screen</span></span></div>
+      <div class="row"><span class="grow">Garrick · Red Lanterns · Advance</span></div>
+      <div class="sec">Trouble with a deadline</div>
+      <div class="row"><span class="grow">The Tollgates want back rent on the tannery<br><span class="small muted">Garrick · settle within 2 downtimes · 1 left</span></span><span class="tag">⏳ 1</span></div>
+      <div class="row"><span class="grow">Hob owes the dice-man 30 gp<br><span class="small muted">by the new moon · 5 days</span></span><span class="tag">⏳ 5 days</span></div>
+      <div class="sec">Came back</div>
+      <div class="row"><span class="grow">Week abilities refreshed · Tamsin, Ysolde</span></div>
+    </div>
+  </div>
+</div>
+</div>
+<p class="note">One summary for the whole jump (05's merged reminders, with counts). "Moved on by time" is for activities whose Duration is a span of time; they count themselves. Activities that advance by a roll ask the player (dt-17). Deadlines (⏳) are counted in downtimes or in game time, as the trouble says (⚑ Q3).</p>
+
+<h1>3 · What a player sees (Hob, phone)</h1>
+<div class="wrap">
+<div class="screen phone">
+  <span class="h">Two weeks pass</span><br><span class="muted">28 Harvestmoon</span>
+  <div class="sec">Due</div>
+  <div class="row"><span class="grow">Rooms and meals · 2 weeks<br><span class="small muted">common room · 2 sp a night</span></span><span>2 gp 8 sp</span></div>
+  <div class="row"><span class="grow">The dice-man · 30 gp<br><span class="small muted">by the new moon · 5 days</span></span><span class="tag">⏳ 5 days</span></div>
+  <div class="panel bar"><span class="grow">Your purse · 21 gp</span></div>
+  <div class="btns" style="margin-top:var(--space-3)"><span class="btn accent">Pay rooms</span><span class="btn">Pay all</span><span class="btn">Later</span></div>
+  <div class="sec">Your action</div>
+  <div class="row"><span class="grow">Carousing · done<br><span class="small muted">+21 XP waiting · mishap: a debt</span></span></div>
+</div>
+<div style="width:360px"><p class="note">Hob can't cover everything (21 gp against 32 gp 8 sp). ⚑ Q2: what happens to an unpaid Due — it stays owed and shows on the GM's list, or the GM decides each time? <b>Checked:</b> one accent per screen; 44 px; 375 px; deadlines carry ⏳ and words, not colour. <b>Not drawn:</b> a 6-month jump with 40 lines (sections collapse to counts), 0 gp, offline, dark mode.</p></div>
+</div>
+
+</body>
+</html>

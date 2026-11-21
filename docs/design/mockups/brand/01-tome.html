@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tome: the name in the app (2026-11-07)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<style>
+  .wordmark { font-family:"EB Garamond", Georgia, serif; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; }
+  .wm-even { font-size:30px; }
+  .wm-illum { display:inline-flex; align-items:center; gap:6px; }
+  .wm-illum .init { width:1.35em; height:1.35em; display:inline-flex; align-items:center; justify-content:center; background:var(--accent); color:var(--on-accent); border-radius:3px; position:relative; font-size:1em; line-height:1; }
+  .wm-illum .init::after { content:""; position:absolute; inset:3px; border:1px solid var(--on-accent); opacity:.55; border-radius:2px; }
+  .wm-illum .rest { letter-spacing:0.12em; }
+  .wm-frame { display:inline-block; padding:6px 14px; border:1.5px solid var(--accent); position:relative; }
+  .wm-frame::before, .wm-frame::after { content:""; position:absolute; width:8px; height:8px; border:1.5px solid var(--accent); }
+  .wm-frame::before { top:-5px; left:-5px; border-right:0; border-bottom:0; }
+  .wm-frame::after { bottom:-5px; right:-5px; border-left:0; border-top:0; }
+  .wmrow { display:flex; gap:var(--space-5); flex-wrap:wrap; align-items:center; }
+  .wmrow > div { text-align:center; font-size:14px; color:var(--muted); }
+  .wmrow .big { font-size:44px; color:var(--ink); margin-bottom:var(--space-2); }
+  .signin { display:flex; flex-direction:column; align-items:center; padding-top:120px; }
+  .signin .wordmark { font-size:44px; line-height:1; }
+  .signin .tag { font-size:16px; color:var(--muted); margin:var(--space-2) 0 0; }
+  .signin .rule { width:120px; border-top:1px solid var(--rule); margin:var(--space-4) 0; }
+  .icons { display:flex; gap:var(--space-5); align-items:flex-end; flex-wrap:wrap; }
+  .icon { width:88px; text-align:center; font-size:14px; }
+  .tile { width:88px; height:88px; border-radius:20px; display:flex; align-items:center; justify-content:center; margin:0 auto var(--space-2); box-shadow:0 1px 3px rgba(0,0,0,.25); }
+  .tile.bone { background:#FAFAF7; color:#6E2A1F; }
+  .tile.ink { background:#191714; color:#C9875A; }
+  .tile.accent { background:#6E2A1F; color:#FAFAF7; }
+  .tile.copper { background:#C9875A; color:#12100D; }
+  .loading { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:560px; text-align:center; padding:0 var(--space-5); }
+  .loading .wordmark { font-size:36px; }
+  .loading .dict { font-size:14px; color:var(--muted); margin-top:var(--space-4); max-width:300px; }
+  .tags { display:grid; gap:var(--space-2); }
+  .tags .card { margin:0; }
+  .head { display:flex; align-items:center; justify-content:space-between; min-height:52px; border-bottom:1px solid var(--rule); padding:0 var(--space-1); }
+  .head .wordmark { font-size:22px; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script>
+const bookO = (w) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
+const bookClosed = (w) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v15a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M5 17h13M8 3v18" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M12 7h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+const bookT = (w) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v15a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 8h7M12.5 8v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+
+const signIn = phone(`
+  <div class="inner signin">
+    <div class="wordmark" style="font-size:44px">TOME</div>
+    <div class="rule"></div>
+    <span class="field empty" style="width:100%">Your email</span>
+    <span class="btn accent wide" style="margin-top:var(--space-3)">Send me a code</span>
+  </div>`, 'Sign-in (N1\'s layout): the wordmark in small capitals a third of the way down, the tagline under it, the rule, the email field. "Under the old oaks" is the current tagline; see the options below.');
+
+const loading = phone(`
+  <div class="inner loading">
+    <div class="wordmark" style="font-size:36px">TOME</div>
+    <div class="dict">tome, noun, from the Greek <i>tomos</i>, one volume of a work: a large and weighty book. What the table remembers.</div>
+  </div>`, 'The loading screen (style release): the wordmark and the dictionary entry, the same shape as today\'s. The entry is invented wording; the last sentence is ours.');
+
+const campaigns = phone(`
+  <div class="head"><span class="wordmark" style="padding-left:var(--space-2);font-size:20px">TOME</span><span class="ico" role="button" aria-label="More">${I.more}</span></div>
+  <div class="inner">
+    <h2>Your campaigns</h2>
+    <div class="list">
+      ${kvRow('The Lantern Marsh', 'GM', { chev: true })}
+      ${kvRow('Reedmouth', 'Wren', { chev: true })}
+    </div>
+    <span class="btn accent wide" style="margin-top:var(--space-4)">New campaign</span>
+  </div>`, 'Your campaigns: the one other place the wordmark shows (06, Navigation). Inside a campaign the name never appears.');
+
+const icons = `
+  <div class="icons">
+    <div class="icon"><div class="tile bone">${bookClosed(52)}</div>Bone, closed book</div>
+    <div class="icon"><div class="tile accent">${bookClosed(52)}</div>Accent, closed book</div>
+    <div class="icon"><div class="tile ink">${bookO(52)}</div>Ink, open book</div>
+    <div class="icon"><div class="tile copper">${bookT(52)}</div>Copper, a T on the cover</div>
+  </div>`;
+
+const taglines = `
+  <div class="tags">
+    <div class="card"><b>What the table remembers.</b><div class="meta">Says what the app is; echoes a saying already in the app.</div></div>
+    <div class="card"><b>Every torch counts.</b><div class="meta">A table saying, already in the app; playful, OSR.</div></div>
+    <div class="card"><b>The record of the road.</b><div class="meta">Plain; the ledger idea.</div></div>
+  </div>`;
+
+mount(`
+  <h1>Tome: the name in the app</h1>
+  <p class="note">Ruled 2026-11-07: the app is named Tome; the in-app name changes now (brand.ts: appName, shortName, the page title, the installed app's name, the email sender), the domain, repository and Vercel address at R1. Here: the three places the name shows, four home-screen icons, four taglines. Ogham, the persona, stays (a script fits a book).</p>
+  <h1>The wordmark: three ways (Francis, 2026-11-07: no taller T; if anything, illuminated)</h1>
+  <div class="wmrow">
+    <div><div class="big wordmark">TOME</div>A: even capitals, letter-spaced</div>
+    <div><div class="big wordmark wm-illum"><span class="init">T</span><span class="rest">OME</span></div>B: an illuminated initial: the T reversed out of an accent tile with an inner frame, the rest even</div>
+    <div><div class="big wordmark wm-frame">TOME</div>C: even capitals in a thin rule with corner marks, a manuscript border</div>
+  </div>
+  <h1>Where the name shows (drawn with A)</h1>
+  <div class="wall">${signIn}${loading}${campaigns}</div>
+  <h1>The home-screen icon (iPad and phone; 88 px here, drawn at 180 and 512)</h1>
+  ${icons}
+  <h1>The tagline, if any (link previews and the email footer; "Under the old oaks" is dropped)</h1>
+  ${taglines}
+  <p class="note">Self-review: the wordmark is the one small-capitals exception (words rule 1); targets 44 px; nothing under 14 px; one accent per screen; the icon has no text (the name sits under it on the home screen). Not checked: the icon at 29 px (the settings list) where the book's inner lines may close up: the closed book without the T reads best small; a name check against the App Store (there is no store listing; the PWA installs from the site).</p>
+`);
+</script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+/* The Light section (LightSection.tsx): its own stylesheet, so the Player screen, the character overview and the
+   gallery draw it alike (it was in PlayerScreen.css, which the gallery doesn't load; Design on #561). */
+/* Light (M5 step 7; tg-1, frame P1): the ring, the light's name and its line, and the lit-or-out toggle at the right
+   of its row; under it Keep lit (its name, ⓘ, its toggle) and Refill, a stacked button, at the right. */
+.light-block__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: calc(var(--space-7) + var(--space-2));
+}
+
+/* Beside the ring: the name, then "Lit, 4 turns left. 3 refills left". */
+.light-block__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.light-block__name {
+  margin: 0;
+  font-weight: var(--weight-heading);
+  overflow-wrap: anywhere;
+}
+
+.light-block__body .light-block__words {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.light-block__body .light-block__words--low {
+  color: var(--warning);
+}
+
+.light-block__keep {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.light-block__refill {
+  margin-inline-start: auto;
+}
+
+/* The row's glyph: the Status ring (52 px), the flame in the light tone (option B on #560). */
+.light-block__ring {
+  display: inline-flex;
+  flex: none;
+}
+
+.light-block__words {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Running low: the warning colour, with the warning sign before the words (never colour alone). */
+.light-block__words--low {
+  color: var(--warning);
+}
+
+.light-block__words .warning-sign {
+  margin-inline-end: var(--space-1);
+  vertical-align: text-bottom;
+}
+
+.light-block__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.light-block__meta {
+  color: var(--muted);
+  font-size: var(--text-14);
+  overflow-wrap: anywhere;
+}
+
+.light-block__pick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.light-block__option {
+  inline-size: 100%;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+/* At hand's light (dec-13 C9, frames P1, P2): the lit rows among At hand's rows, with no heading; the row and Keep lit
+   under it keep the Light section's gap. */
+.light-block--at-hand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* In At hand the light's name is set as At hand's own names are (`.pack__name`), as frame P1 sets the lantern like the
+   bow above it. */
+.light-block--at-hand .light-block__name {
+  font-family: var(--font-heading);
+  font-size: var(--text-item);
+  font-weight: var(--weight-book-text);
+}
+
+/* The light's name as a tap target in At hand (dec-13 C9, frame P1): it opens the lantern's item sheet, at least 44 px
+   tall, set as the name it replaces, with the rows' press flash. */
+.light-block__name--open {
+  display: block;
+  font: inherit;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--press-flash);
+}
+
+.light-block__name--open:active {
+  background: var(--tint);
+}

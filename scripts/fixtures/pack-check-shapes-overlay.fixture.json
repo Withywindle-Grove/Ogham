@@ -1,0 +1,28 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": { "name": "Fen overlay", "id": "fen-overlay-pack", "version": "0.1", "kind": "homebrew", "requires": [{ "packId": "fen-rules" }], "contentNote": "Invented creatures only." },
+  "overlays": [
+    {
+      "id": "fen-overlay",
+      "name": "Fen overlay",
+      "keepNumbers": true,
+      "links": [
+        { "statBlockId": "bog-lurker", "behaviourId": "lurker-ways" },
+        { "statBlockId": "reed-hound", "behaviourId": "lurker-ways" }
+      ],
+      "behaviours": [
+        { "id": "lurker-ways", "name": "Lurker ways", "profile": { "wants": "Warm things" }, "nudges": [{ "text": "Waits for the last in line", "when": "start" }] }
+      ]
+    }
+  ],
+  "modifications": [
+    { "id": "elite", "name": "Elite", "statChanges": { "hd": 1 }, "adds": { "abilities": [{ "id": "tough", "name": "Tough", "text": "Shrugs off the first wound." }] }, "notes": "Bigger." }
+  ],
+  "spells": [
+    { "id": "call-fen-kin", "name": "Call fen kin", "conjures": [{ "statBlockId": ["bog-lurker", "ghost-crab"], "count": "1d4", "note": "Obeys, then flees" }] }
+  ],
+  "locations": [
+    { "id": "mere", "name": "The mere", "settlement": { "size": "town", "population": 120 }, "encounterCheck": { "tableRef": "fen-rules:gone" } }
+  ]
+}

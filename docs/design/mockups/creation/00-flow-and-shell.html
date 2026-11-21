@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creation 00 — the flow and the step shell (paper test, 2026-11-01)</title>
+<style>
+  /* Tokens from docs/06 only. Light only, full size (Francis, 2026-11-01). Buttons are plain blocks. Invented examples. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); width:720px; box-sizing:border-box; }
+  .screen.phone { width:375px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .why { margin:var(--space-3) 0 var(--space-1); }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; min-width:0; }
+  .row .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .row .desc { display:block; }
+  .row .src { display:block; font-size:14px; color:var(--muted); }
+  .tick { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:22px; flex:none; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; text-align:center; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:16px; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  .foot { display:flex; align-items:center; gap:var(--space-3); margin-top:var(--space-4); padding-top:var(--space-3); border-top:1px solid var(--rule); }
+  .foot .spacer { flex:1; }
+  .hint { font-size:14px; color:var(--muted); }
+  .rail { display:flex; flex-wrap:wrap; gap:var(--space-2); margin:var(--space-3) 0; }
+  .step { min-height:44px; padding:10px 12px; border:1.5px solid var(--rule); border-radius:4px; background:var(--surface); box-sizing:border-box; }
+  .step.only { border-style:dashed; }
+  .step.done { border-color:var(--control); }
+  .step.now { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); background:var(--sheet); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:720px; }
+  .legend span { display:inline-block; margin-right:var(--space-4); }
+</style>
+</head>
+<body>
+
+<h1>1 · The step shell (every step is built from this)</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Kindred</span><span class="meta">Step 3 of 10</span></div>
+  <p class="why">Your kindred sets what your body can do and who will trust you. <span class="btn quiet">Help me choose</span></p>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Bog folk</span><span class="desc">Small, quiet, hard to poison; slow in heavy armour.</span><span class="src">Fen rules · p. 12 · ⓘ abilities, limits</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Reed elf</span><span class="desc">Sees in the dark, speaks with birds; rarer and frailer.</span><span class="src">Fen rules · p. 14 · ⓘ</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Human</span><span class="desc">No gifts, no limits: any class, any level.</span><span class="src">Fen rules · p. 16 · ⓘ</span></div></div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="hint">Bog folk picked</span><span class="btn accent">Next</span></div>
+</div>
+<div class="screen phone">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Kindred</span><span class="meta">3 / 10</span></div>
+  <p class="why">Your kindred sets what your body can do and who will trust you. <span class="btn quiet">Help me choose</span></p>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Bog folk</span><span class="desc">Small, quiet, hard to poison; slow in heavy armour.</span><span class="src">Fen rules · p. 12 · ⓘ</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Reed elf</span><span class="desc">Sees in the dark, speaks with birds; rarer and frailer.</span><span class="src">Fen rules · p. 14 · ⓘ</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Human</span><span class="desc">No gifts, no limits: any class, any level.</span><span class="src">Fen rules · p. 16 · ⓘ</span></div></div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="btn accent">Next</span></div>
+</div>
+</div>
+<p class="note">One shell for all steps: <b>‹ Back · title · counter</b> on one row; the <b>why-line</b> (the pack's <code>creationGuide</code>, else the app's) with <b>Help me choose</b> as a quiet link; the content as <b>Option rows</b> — name, one-line blurb, then <b>source · page · ⓘ</b> (ⓘ opens the full entry: abilities, advantages, limits, in the pack's words); the <b>foot</b>: Decide later (quiet; absent on a required step) · what's picked · <b>Next</b> (the step's one accent; always tappable — with nothing picked it says "Pick one, or Decide later"). 44 px rows, 8 px between, 375 px as one column. Steps 7 and 8 of today's build were built off this shell; the rebuild gives every step the same one.</p>
+
+<h1>2 · Which steps exist — classic-advanced (test setting A)</h1>
+<div class="screen">
+  <div class="rail">
+    <span class="step only">Method</span><span class="step">Scores</span><span class="step">Race</span><span class="step">Class</span><span class="step only">Adjust scores</span><span class="step">Who they are</span><span class="step only">First spells</span><span class="step">Gear</span><span class="step">Languages</span><span class="step only">Weapon skills</span><span class="step">Secondary skill</span><span class="step">Review</span>
+  </div>
+  <p class="meta legend"><span>Solid: always</span><span>Dashed: only when the setting or the character calls for it</span></p>
+  <p class="why">A fighter with the weapon-skills option on sees <b>10</b> steps; a magic-user sees <b>10</b> (First spells instead of Weapon skills). The counter counts only this character's steps.</p>
+</div>
+
+<h1>3 · Which steps exist — fae-woodland (test setting B)</h1>
+<div class="screen">
+  <div class="rail">
+    <span class="step">Scores</span><span class="step">Kindred</span><span class="step">Class</span><span class="step only">Adjust scores</span><span class="step">Who they are</span><span class="step">Background</span><span class="step">Sign</span><span class="step only">First spells</span><span class="step">Gear</span><span class="step">Languages</span><span class="step">Review</span>
+  </div>
+  <p class="why">No method step (one creation method), no weapon skills (no such rule); two trait lists (the kindred's background list, then the sign list) in the pack's order; the pack's own word "Kindred" as the step title. A non-caster sees <b>10</b> steps, a caster <b>11</b>.</p>
+</div>
+
+<h1>4 · The order after "Who they are"</h1>
+<div class="screen">
+  <div class="rail"><span class="step done">Who they are</span><span class="step now">First spells</span><span class="step">Gear</span><span class="step">Languages</span><span class="step">Weapon skills</span><span class="step">Trait lists</span><span class="step">Review</span></div>
+  <p class="why">The pack's <code>creationGuide</code> names the order; neither test pack has one yet, so the app's default applies: <b>spells · gear · languages · weapon skills · trait lists</b> — the book's own sequence in both settings (spells right after the class, gear before the things the gear informs: weapon skills list carried weapons first).</p>
+</div>
+
+<h1>5 · States of the foot</h1>
+<div class="screen">
+  <div class="foot" style="margin-top:0; border-top:0; padding-top:0;"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="hint">Pick one, or Decide later</span><span class="btn accent">Next</span></div>
+  <p class="meta">Nothing picked yet: Next stays tappable and says what's missing (N10). No disabled buttons.</p>
+  <div class="foot"><span class="spacer"></span><span class="hint">Required by the setting</span><span class="btn accent">Next</span></div>
+  <p class="meta">A step the pack requires (<code>creation.require</code>): no Decide later; Next says why.</p>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="hint">2 of 3 picked</span><span class="btn accent">Next</span></div>
+  <p class="meta">A counted step (languages, weapon skills, spells): the count where "what's picked" sits.</p>
+  <div class="foot"><span class="spacer"></span><span class="btn accent">Finish</span></div>
+  <p class="meta">The review step: Finish is the only button; Decide later items are on the To finish card afterwards.</p>
+</div>
+<p class="note">Checked: Nielsen (visibility of status: counter and the foot's hint; consistency: one shell; error prevention: Next explains instead of blocking); 44 px targets with 8 px between; 375 px as one column (the phone frame); long names wrap in the row; one accent per screen (Next); never colour alone (✓ plus the hint's words). Not checked here: dark mode (light only by request), loading and offline states (the shell shows the saved step and "Saving…" in the hint; drawn at step 13, the review).</p>
+</body>
+</html>

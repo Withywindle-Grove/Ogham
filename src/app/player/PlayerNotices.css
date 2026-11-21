@@ -1,0 +1,132 @@
+/* The Player tab's notices box and its sheet (row C1, tfn-1, tfn-2; page M1, frames M1a to M1e, approved 2026-11-19).
+   Tokens only. */
+
+/* The box: the herald's trumpet and the count in words. Quiet with nothing: a thin edge, muted words, no glow. */
+.notices-box {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  block-size: var(--space-8);
+  min-inline-size: var(--tap);
+  padding: 0 var(--space-3) 0 var(--space-2);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--text-16);
+  line-height: var(--line-heading);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.notices-box__patch {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--tap);
+  block-size: var(--tap);
+  border-radius: var(--radius-pill);
+}
+
+/* With something: the trumpet on a glowing patch in the lit-light colour, the edge heavy and the words bold, so the
+   glow is never the only sign (M1c, drawn with its hue taken away). The glow is still. */
+.notices-box--lit {
+  border: var(--line-selected) solid var(--ink);
+  color: var(--ink);
+  font-weight: var(--weight-bold);
+}
+
+.notices-box--lit .notices-box__patch {
+  background: color-mix(in srgb, var(--light-glow) 40%, var(--sheet));
+  box-shadow: 0 0 var(--space-2) var(--space-1) color-mix(in srgb, var(--light-glow) 60%, transparent);
+}
+
+/* On a phone, under the head's line (M1c): a shorter box, the patch smaller. Still a 44 px target. */
+.notices-box--low {
+  block-size: var(--space-7);
+}
+
+.notices-box--low .notices-box__patch {
+  inline-size: calc(var(--space-6) + var(--space-1));
+  block-size: calc(var(--space-6) + var(--space-1));
+}
+
+/* The sheet (M1d, M1e): "1 of 3", the notice, its own button under its words, then Back and Next at the foot's right. */
+.notices__at,
+.notices__none {
+  margin: 0;
+}
+
+.notices__at {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.notice__title {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-20);
+  font-weight: var(--weight-bold);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
+
+.notice__title .die-glyph {
+  vertical-align: middle;
+}
+
+.notice__sign {
+  display: inline-flex;
+  flex: none;
+  padding-block-start: var(--space-1);
+}
+
+.notice__body {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.notice__action {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--gap);
+}
+
+/* The weather roll's box and Enter roll on one row at the right, under the notice's line (Francis, 2026-11-20). */
+.notice__action .weather__form {
+  inline-size: 100%;
+}
+
+.notice__action .weather__entry {
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+.notice__action .weather__entry > input {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+}
+
+.notice__action .weather__entry > button {
+  flex: none;
+  inline-size: auto;
+}
+
+.notices__foot {
+  padding-block-start: var(--space-3);
+  border-block-start: var(--line-hair) solid var(--rule);
+}

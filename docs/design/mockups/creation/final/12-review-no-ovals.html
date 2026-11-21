@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Creation: the review without ovals (2026-11-08)</title>
+<link rel="stylesheet" href="final.css">
+<style>
+  .rev .card h3 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; margin:0; }
+  .rev .head { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); }
+  .rev .line { padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); display:flex; justify-content:space-between; align-items:center; gap:var(--space-3); }
+  .rev .line:last-child { border-bottom:0; }
+  .pill-old { display:inline-block; padding:4px 12px; border:1.5px solid var(--control); border-radius:999px; margin:0 4px; }
+  .dv { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-2); margin-top:var(--space-3); }
+  .dv.four { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .dv .t { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2); text-align:center; min-height:72px; display:flex; flex-direction:column; justify-content:center; gap:2px; }
+  .dv .t .n { font-size:14px; color:var(--muted); line-height:1.15; }
+  .dv .t .f { font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.1; }
+  .dv .t .f.word { font-size:16px; }
+  .dv .t .p { font-size:14px; color:var(--muted); line-height:1.15; }
+  .chit { display:inline-flex; align-items:center; gap:6px; border:1.5px solid var(--control); border-radius:4px; padding:4px 8px; font-size:14px; margin:0 6px 6px 0; }
+  .chit .x { font-weight:600; }
+</style>
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+const tile = (n, f, p) => `<div class="t" role="button"><span class="n">${n}</span><span class="f${/^[+\-−—\d]/.test(f) ? '' : ' word'}">${f}</span>${p ? `<span class="p">${p}</span>` : ''}</div>`;
+
+const before = `<div class="card rev">
+  <div class="meta">Before (live today): ovals with commas between</div>
+  <div class="line"><span>Race: <span class="pill-old">Phase Elf</span></span><span class="btn small">Change</span></div>
+  <div class="line"><span>Class: <span class="pill-old">Magic-User</span>, level 1</span><span class="btn small">Change</span></div>
+  <div class="line"><span>Alignment: <span class="pill-old">Neutral</span></span></div>
+  <div style="margin-top:var(--space-2)"><span class="pill-old">AC 10 (unarmoured, Dexterity +0)</span>,<span class="pill-old">Death / poison 13</span>,<span class="pill-old">Wands 14</span>, …</div>
+</div>`;
+
+const review = phone(`
+  ${bar('Oswin Adderbald')}
+  <div class="inner rev">
+    <div class="meta">Step 9 of 9, Review</div>
+    <p>Look it over. Anything you change goes back to its step and comes back here.</p>
+    <div class="card">
+      <h3>Kindred and class</h3>
+      <div class="line"><span>Kindred: Stone kin</span><span class="btn small">Change</span></div>
+      <div class="line"><span>Class: Reed Witch, level 1</span><span class="btn small">Change</span></div>
+    </div>
+    <div class="card">
+      <div class="head"><h3>Scores</h3><span class="btn small">Change</span></div>
+      <div class="meta" style="margin-top:var(--space-2)">Might 13, Nimbleness 9, Grit 12, Wits 7, Lore 15, Charm 10</div>
+    </div>
+    <div class="card">
+      <div class="head"><h3>Name and alignment</h3><span class="btn small">Change</span></div>
+      <div class="line"><span>Oswin Adderbald</span></div>
+      <div class="line"><span>4 hit points</span></div>
+      <div class="line"><span>Alignment: Reed</span></div>
+    </div>
+    <div class="card">
+      <div class="head"><div><h3>Derived values</h3><div class="meta">10 figures: tap one to see why</div></div><span class="btn sq">−</span></div>
+      <div class="dv">
+        ${tile('Armour', '10', 'unarmoured, Nimbleness +0')}
+        ${tile('Attack', '+0')}
+        ${tile('Speed', '40', '120 a turn')}
+        ${tile('Title', 'Medium')}
+        ${tile('Literacy', 'Literate')}
+      </div>
+      <div class="meta" style="margin-top:var(--space-3)">Saves</div>
+      <div class="dv" style="margin-top:var(--space-2)">
+        ${tile('Death', '13')}
+        ${tile('Wands', '14')}
+        ${tile('Stone', '13')}
+        ${tile('Breath', '16')}
+        ${tile('Spells', '15')}
+      </div>
+    </div>
+  </div>
+  ${foot('Ready to send', true, 'accent', 'Send to the GM')}`,
+  'The review on a phone: kindred, class and alignment as plain text on their lines (Change stays); Derived values as tiles three across, the name over the figure, the parts under; the five saves as their own group under a "Saves" label (Francis, 2026-11-08: "Separate them out"), five across on a tablet; no commas, no ovals. A tile opens its breakdown sheet as today.');
+
+const adjust = phone(`
+  ${bar('Adjust scores')}
+  <div class="inner">
+    <div class="meta">Step 4 of 10</div>
+    <p><b>Your primes are Charm and Muscle.</b> Lower another score by 2 to raise a prime by 1. Nothing may go under 9.</p>
+    <div class="meta">Trades so far</div>
+    <div style="margin-top:var(--space-2)">
+      <span class="chit">Nimbleness −2 → Muscle +1 <span class="x" role="button" aria-label="Undo this trade">✕</span></span>
+      <span class="chit">Wits −2 → Charm +1 <span class="x" role="button" aria-label="Undo this trade">✕</span></span>
+    </div>
+    <div class="meta">2 points banked, 0 to spend</div>
+  </div>`,
+  'Adjust scores: the trade chips take the square chit (4 px corner, the control border), each with ✕ to undo it. Same words, no oval.');
+
+const tab = tablet(`
+  ${bar('Oswin Adderbald')}
+  <div class="inner rev" style="max-width:65ch">
+    <div class="card">
+      <h3>Kindred and class</h3>
+      <div class="line"><span>Kindred: Stone kin</span><span class="btn small">Change</span></div>
+      <div class="line"><span>Class: Reed Witch, level 1</span><span class="btn small">Change</span></div>
+    </div>
+    <div class="card">
+      <div class="head"><div><h3>Derived values</h3><div class="meta">10 figures: tap one to see why</div></div><span class="btn sq">−</span></div>
+      <div class="dv four">
+        ${tile('Armour', '10', 'unarmoured, Nimbleness +0')}
+        ${tile('Attack', '+0')}
+        ${tile('Speed', '40', '120 a turn')}
+        ${tile('Title', 'Medium')}
+        ${tile('Literacy', 'Literate')}
+      </div>
+      <div class="meta" style="margin-top:var(--space-3)">Saves</div>
+      <div class="dv four" style="margin-top:var(--space-2); grid-template-columns:repeat(5,minmax(0,1fr))">
+        ${tile('Death', '13')}
+        ${tile('Wands', '14')}
+        ${tile('Stone', '13')}
+        ${tile('Breath', '16')}
+        ${tile('Spells', '15')}
+      </div>
+    </div>
+  </div>`,
+  'Tablet: the review keeps the one-column measure; tiles four across past 1000 px (three here at 740, drawn four to show the rule).');
+
+const messy = phone(`
+  <div class="inner rev">
+    <div class="meta">Messy data</div>
+    <div class="dv">
+      ${tile('Save vs the long cold of the drowned abbey', '13')}
+      ${tile('Armour', '0', 'no armour, Nimbleness −3')}
+      ${tile('Speed', '999', '2,997 a turn')}
+      ${tile('Attack', '—', 'not worked out yet')}
+      ${tile('Title', 'Veteran of the Nine Drowned Bells')}
+      ${tile('Literacy', 'Illiterate')}
+    </div>
+    <div class="meta" style="margin-top:var(--space-3)">Folded: the card shows only its head and "10 figures: tap one to see why" with +. Empty: "Nothing worked out yet; pick a class."</div>
+  </div>`,
+  'Messy: a long name wraps inside the tile, 0 and 999, a figure not yet worked out ("—" with words), a long word value; folded and empty states in words.');
+
+mount(`
+  <h1>Creation: the review without ovals (R3-6, plan E)</h1>
+  <p class="note">Francis, 2026-11-08 (retest 3): "All the ovals look bad, I prefer the square chits." On the review: race, class and alignment as plain text on their lines; Derived values as tiles (the Score tile part from the full sheet, D), three across on a phone and four past 1000 px, no separators. On Adjust scores: trade chips as square chits. Nothing else on the review moves.</p>
+  ${before}
+  <div class="wall">${review}${adjust}${messy}</div>
+  <h1>Tablet</h1>
+  ${tab}
+  <p class="note">Self-review: tiles are the full-sheet part (same font sizes: name 14, figure 24, a word figure 16, parts 14); every tile is a 72 px+ target with 8 px between; one accent per screen (Send to the GM); nothing under 14; no colour; long names wrap, values wrap, "—" always has words. Not checked: a pack with 14+ derived figures (the fold handles length); a pack with more or fewer than five saves (the group takes what the pack has, three across on a phone).</p>
+`);
+</script>
+</body>
+</html>

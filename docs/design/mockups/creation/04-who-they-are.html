@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creation 04 — Who they are (paper test, 2026-11-01)</title>
+<style>
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); width:720px; box-sizing:border-box; }
+  .screen.phone { width:375px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .why { margin:var(--space-3) 0 var(--space-1); }
+  .label { font-size:14px; color:var(--muted); display:block; margin-top:var(--space-4); }
+  .field { min-height:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; display:flex; align-items:center; }
+  .field.empty { color:var(--muted); }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; min-width:0; }
+  .row .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .row .desc { display:block; }
+  .tick { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:22px; flex:none; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; text-align:center; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:16px; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  .hp { display:flex; align-items:center; gap:var(--space-3); border:1.5px solid var(--rule); border-radius:4px; padding:var(--space-2) var(--space-3); background:var(--surface); margin-top:var(--space-2); }
+  .hp .big { font-family:"EB Garamond", Georgia, serif; font-size:32px; font-weight:600; min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; border-bottom:1.5px solid var(--control); }
+  .hp .text { flex:1; }
+  .callout { border:1.5px solid var(--rule); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); display:flex; gap:var(--space-3); align-items:center; }
+  .callout .text { flex:1; }
+  .derived { margin-top:var(--space-4); border-top:1px solid var(--rule); padding-top:var(--space-2); }
+  .derived .head { display:flex; align-items:center; min-height:44px; gap:var(--space-3); color:var(--muted); }
+  .derived dl { margin:0; display:grid; grid-template-columns:1fr 1fr; gap:var(--space-1) var(--space-4); font-size:14px; }
+  .phone .derived dl { grid-template-columns:1fr; }
+  .derived dt { color:var(--muted); display:inline; }
+  .derived dd { margin:0; display:inline; }
+  .foot { display:flex; align-items:center; gap:var(--space-3); margin-top:var(--space-4); padding-top:var(--space-3); border-top:1px solid var(--rule); }
+  .foot .spacer { flex:1; }
+  .hint { font-size:14px; color:var(--muted); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:720px; }
+</style>
+</head>
+<body>
+
+<h1>1 · Who they are — only what the setting actually asks</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Who they are</span><span class="meta">Step 6 of 10</span></div>
+  <p class="why">A name, an outlook and the hit points you rolled. Everything the rules work out for you is below, already done. <span class="btn quiet">Help me choose</span></p>
+  <span class="label">Name</span>
+  <div class="field">Tam of the Reeds</div>
+  <span class="label">Hit points · roll d8, add your CON modifier (0); never below 1 <span>· Fen rules p. 18</span></span>
+  <div class="hp"><span class="big">5</span><div class="text">d8 → 5, CON 0 → <b>5 hp</b><br><span class="meta">tap the number to type your roll</span></div></div>
+  <span class="label">Alignment · your outlook; it sets your alignment tongue <span>· p. 19</span></span>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Lawful</span><span class="desc">Order, oaths and the common good.</span></div></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Neutral</span><span class="desc">Looks after their own and lets the world turn.</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Chaotic</span><span class="desc">Whim, appetite and the self above all.</span></div></div>
+  <span class="label">Portrait · optional</span>
+  <div class="row"><span class="btn">Add a picture</span><span class="meta">from your device; players see it on the marching order</span></div>
+  <div class="derived">
+    <div class="head"><span class="btn quiet">Worked out for you · 7 ›</span><span class="meta">read-only; changes as your picks change</span></div>
+    <dl><div><dt>Armour class </dt><dd>9 (none worn)</dd></div><div><dt>Movement </dt><dd>120 ft · 40 ft</dd></div><div><dt>Attack </dt><dd>19</dd></div><div><dt>Saves </dt><dd>D12 W13 P14 B15 S16</dd></div><div><dt>Literacy </dt><dd>Literate</dd></div><div><dt>Title </dt><dd>Veteran</dd></div><div><dt>Languages so far </dt><dd>Common, Bog-tongue, Neutral</dd></div></dl>
+  </div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="hint">Name, hp, alignment set</span><span class="btn accent">Next</span></div>
+</div>
+<div class="screen phone">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Who they are</span><span class="meta">6 / 10</span></div>
+  <p class="why">A name, an outlook, the hit points you rolled. <span class="btn quiet">Help me choose</span></p>
+  <span class="label">Name</span>
+  <div class="field empty">Tap to type</div>
+  <span class="label">Hit points · d8 + CON (0), min 1</span>
+  <div class="hp"><span class="big">—</span><div class="text"><span class="meta">tap to type your roll</span></div></div>
+  <span class="label">Alignment</span>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Lawful</span><span class="desc">Order, oaths, the common good.</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Neutral</span><span class="desc">Their own first.</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Chaotic</span><span class="desc">Whim and appetite.</span></div></div>
+  <div class="derived"><div class="head"><span class="btn quiet">Worked out for you · 7 ›</span></div></div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="hint">Name and hp missing</span><span class="btn accent">Next</span></div>
+</div>
+</div>
+<p class="note">The step asks only for what nothing else fills: the <b>name</b>, the <b>hit points</b> rolled at the table (the class's die and the CON modifier shown, the pack's minimum applied, the number typed), the <b>alignment</b> as Option rows with the pack's one-line notes, an optional <b>portrait</b>, and any free sheet field the layout leaves (setting B's affiliation). <b>Derived fields are never asked</b>: armour class, movement, attack value, saves, literacy, title, skills — they sit under <b>Worked out for you</b>, read-only, updating as picks change, so the player sees them without being asked for them. Fields other steps own (race, languages, weapon skills, trait lists) don't appear here. <b>Next checks</b>: a missing name or hit points; hp outside the die's range ("d8 gives 1–8").</p>
+
+<h1>2 · The setting's re-roll rule (both test packs have the option)</h1>
+<div class="screen">
+  <div class="hp"><span class="big">1</span><div class="text">d8 → 1, CON 0 → <b>1 hp</b></div></div>
+  <div class="callout"><div class="text"><b>Low roll.</b> By this setting's option you may roll again: a 1 or 2 before CON. <span class="meta">Fen rules · p. 18</span></div><span class="btn">Roll again</span><span class="btn quiet">Keep it</span></div>
+</div>
+<p class="note">Offered only when the option is on and the roll triggers it; Roll again clears the number for a new one (the dice stay at the table). With the option off, nothing shows.</p>
+
+<h1>3 · What the packs must say for this step</h1>
+<div class="screen">
+  <p>Every sheet field a layout lists is either <b>asked</b> here, <b>owned by another step</b>, or <b>derived</b>. Today both test packs list AC, movement, attack and hit points as plain number fields with no mark, so the old step asked for them. Pack task: mark derived fields (<code>fill</code>, already in 07) on both layouts — AC, movement, attack value, title, literacy, skills. Hit points stay the app's own (04): the class's <code>hitDie</code> and the rules set's <code>hitPoints</code> block drive the roll; both packs have them.</p>
+</div>
+<p class="note">Checked: nothing asked twice (recognition of the rule, N6); derived values visible but not editable (N9: a tap on one says where it comes from); 44 px fields, rows and the hp number; no automatic keyboard (A4); 375 px one column; long names wrap; one accent (Next); never colour alone. Not drawn: dark mode; a setting with no alignments (the group doesn't appear); setting B's affiliation as a free field under the name.</p>
+</body>
+</html>

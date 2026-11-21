@@ -1,0 +1,58 @@
+/* The full sheet's Magic section (sr-4): spells a day as pips per level, then a tab per kind of magic. */
+/* Always the container's full width, whatever lays it out (a flex parent would shrink it to its text): every row,
+   with its rule, spans the section and is tapped anywhere along it. */
+.magic {
+  display: grid;
+  gap: var(--space-3);
+  inline-size: 100%;
+  min-width: 0;
+}
+
+/* "Spells a day" left, "Level 1 ●● · Level 2 ●" right; the levels wrap under the words on a narrow screen. */
+.magic__per-day {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding-block: var(--space-2);
+  border-block-end: var(--row-rule);
+}
+
+.magic__per-day-label {
+  font-weight: 700;
+}
+
+.magic__levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.magic__level {
+  color: var(--muted);
+  font-size: var(--text-14);
+  white-space: nowrap;
+}
+
+.magic__level .use-pips {
+  font-size: var(--text-16);
+}
+
+.magic__tab-title {
+  margin: 0;
+  font-size: var(--text-16);
+  font-weight: 700;
+}
+
+.magic__empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.magic__fold {
+  justify-self: start;
+}

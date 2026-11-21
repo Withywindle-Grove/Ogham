@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Final draft 9: one bar in creation (2026-11-07)</title>
+<link rel="stylesheet" href="final.css">
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+const menu = svg(`<path d="M4 7h16M4 12h16M4 17h16" ${W}/>`);
+const appRow = `<div class="bar" style="border-bottom:1px solid var(--rule)"><span class="ico" role="button" aria-label="Menu">${menu}</span><span class="title">The Lantern Marsh</span><span class="ico" role="button" aria-label="More">${I.more}</span></div>`;
+
+const body = `
+  <div class="inner">
+    <p class="meta">Step 3 of 9</p>
+    <p class="do">Your trade as an adventurer. Tap a name to read about it, then Pick.</p>
+    ${pick('Lantern Warden', 'Fighter of the marsh roads. Any weapon, any armour', 'accent')}
+    ${pick('Reed Witch', 'Spells from the reeds. Staff and knife only', 'pick')}
+    ${closedPick('Toad Speaker', 'Needs the GM\'s special approval')}
+    ${foot('No class yet', true, 'plain')}
+  </div>`;
+
+const twoBars = phone(`${appRow}${bar('Class')}${body}`, 'A: as slice A is built now. The app\'s row (≡, the campaign, ⋯) stays above creation\'s bar: two bars, two ⋯ menus, 96 px before the step begins.');
+
+const oneBar = phone(`${bar('Class')}${body}`, 'B: one bar, the final drafts as approved. The app\'s row hides while creation is open; Leave (in ⋯) brings it back. The tablet keeps its rail either way.');
+
+const menuSheet = phone(`
+  ${bar('Class')}
+  <div class="inner" style="min-height:560px">
+    <p class="meta">Step 3 of 9</p>
+  </div>
+  ${sheet('More', `
+    <div class="list">
+      ${kvRow('Setting rules', '', { chev: true })}
+      ${kvRow('Your characters', '', { chev: true })}
+      ${kvRow('Text size', 'Larger', { chev: true })}
+      ${kvRow('Theme', 'Follows the device', { chev: true })}
+      ${kvRow('Rules library', '', { chev: true })}
+    </div>
+    <div class="card" style="margin-top:var(--space-3)"><div class="kv"><div class="text">Save and leave<small>Your picks are kept on this device</small></div></div></div>
+  `)}`, 'Creation\'s ⋯ with one bar: the app\'s shared menu first (the same component, nothing copied), a divider, Save and leave last (Leave before anything is kept). Opening Setting rules or Rules library saves the picks first.');
+
+mount(`
+  <h1>Final draft 9: one bar in creation</h1>
+  <p class="note">The Builder's scope check on slice A: on a phone the app's top row shows above creation's new bar. A shows that; B is what every final draft drew. The third phone is creation's ⋯ as a sheet (pattern 13) carrying the app's menu, so nothing is lost when the row hides.</p>
+  <h1>Phone</h1>
+  <div class="wall">${twoBars}${oneBar}${menuSheet}</div>
+  <p class="note">Self-review: targets 44 px with 8 px between; nothing under 14 px; one accent per screen; the closed row has the sign and words. Not checked: the campaign's name as a long one in the app's row (it truncates with an ellipsis in A); the sheet on a tablet (anchored to ⋯, its own mockup).</p>
+`);
+</script>
+</body>
+</html>

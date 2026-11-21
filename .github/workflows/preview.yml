@@ -1,0 +1,94 @@
+# A Vercel preview for a pull request, only when it carries the "preview" label (ruled 2026-11-01: building one
+# on every push used up Vercel's free 100 deployments a day, and few previews were opened). Add the label to get a
+# link; while it stays on, each new push rebuilds the preview. Uses the TEST Supabase project (repository secrets
+# TEST_SUPABASE_*), so trying a change never touches real data. Dependabot's pull requests can't use the secrets.
+# Not a required check: merging never waits for it. See docs/testing.md, Deploying.
+name: Preview
+
+on:
+  pull_request:
+    types: [labeled, synchronize, reopened]
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # Picks the machines for this whole run from the CI_RUNNER switch: unset, the PC; github, GitHub; auto, the PC
+  # while it has room and GitHub when it's busy (scripts/ci-pick-runner.mjs, ci-auto-1). Every other job reads its
+  # answer. It runs on GitHub for github and auto, so it never waits for a busy PC, and on the PC when unset.
+  pick:
+    if: >-
+      github.actor != 'dependabot[bot]' &&
+      contains(github.event.pull_request.labels.*.name, 'preview') &&
+      (github.event.action != 'labeled' || github.event.label.name == 'preview')
+    runs-on: ${{ (vars.CI_RUNNER == 'github' || vars.CI_RUNNER == 'auto') && 'ubuntu-latest' || fromJSON('["self-hosted","grimoire"]') }}
+    timeout-minutes: 5
+    # Counting the PC's queued and running jobs needs actions: read.
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      runs_on: ${{ steps.pick.outputs.runs_on }}
+      target: ${{ steps.pick.outputs.target }}
+      overflow: ${{ steps.pick.outputs.overflow }}
+    steps:
+      # Its own folder (19 Nov 2026): on the PC a reused folder kept this one-file checkout's sparse setting, and the
+      # next job's full checkout came out almost empty (.nvmrc and scripts/ci-jobs.mjs missing, every job failed).
+      - uses: actions/checkout@v7
+        with:
+          path: .pick
+          sparse-checkout: scripts/ci-pick-runner.mjs
+          sparse-checkout-cone-mode: false
+      - id: pick
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CI_RUNNER: ${{ vars.CI_RUNNER }}
+          CI_LOCAL_SLOTS: ${{ vars.CI_LOCAL_SLOTS }}
+        run: |
+          set -o pipefail
+          node .pick/scripts/ci-pick-runner.mjs | tee -a "$GITHUB_OUTPUT"
+      # An overflow run uses GitHub's billed minutes: say so on the run's page (docs/testing.md, the cost per overflow run).
+      - if: steps.pick.outputs.overflow == 'true'
+        run: |
+          echo "::notice title=Overflow to GitHub::Every PC lane was taken, so this run uses GitHub's machines (billed minutes). The pick log says how many runs were on the PC."
+          echo "**Overflow to GitHub:** every PC lane was taken, so this run uses GitHub's machines (billed minutes)." >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-preview:
+    needs: pick
+    if: >-
+      github.actor != 'dependabot[bot]' &&
+      contains(github.event.pull_request.labels.*.name, 'preview') &&
+      (github.event.action != 'labeled' || github.event.label.name == 'preview')
+    runs-on: ${{ fromJSON(needs.pick.outputs.runs_on) }}
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VITE_SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.TEST_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: node scripts/vercel-output.mjs "$VITE_SUPABASE_URL"
+      - name: Deploy a preview
+        id: deploy
+        run: |
+          url=$(npx --yes vercel@62.5.0 deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      # The link as a comment when the label is added. Each later push gets a new address, in its run's summary.
+      - name: Post the link
+        if: github.event.action == 'labeled'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "Preview (test database): ${{ steps.deploy.outputs.url }}"

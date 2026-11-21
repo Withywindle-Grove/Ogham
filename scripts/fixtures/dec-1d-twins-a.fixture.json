@@ -1,0 +1,9 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": { "id": "example-a", "name": "Invented fen twins (A)", "version": "0.1", "kind": "setting" },
+  "items": [
+    { "id": "reed-lamp", "name": "Reed lamp", "category": "gear", "weightCoin": 10, "value": { "sp": 8 } },
+    { "id": "eel-knife", "name": "Eel knife", "category": "gear", "weightCoin": 5, "value": { "sp": 3 } }
+  ]
+}

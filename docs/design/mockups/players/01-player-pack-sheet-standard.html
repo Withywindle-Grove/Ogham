@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The players' screens on creation's standard: Player, Pack, the full sheet (2026-11-07)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<style>
+  /* the tab bar (mockup 17) */
+  .tabs { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--rule); background:var(--page); flex:none; margin:0 calc(-1 * var(--space-3)) calc(-1 * var(--space-3)); }
+  .tab { min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:14px; color:var(--muted); position:relative; }
+  .tab.on { color:var(--ink); font-weight:700; }
+  .tab.on::after { content:""; position:absolute; top:0; left:25%; right:25%; height:3px; background:var(--accent); border-radius:0 0 2px 2px; }
+  .vit { display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:var(--space-2); margin:var(--space-2) 0; }
+  .vit .card { margin:0; padding:var(--space-2) var(--space-3); }
+  .vit .lab { font-size:14px; color:var(--muted); }
+  .vit .big { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:32px; line-height:1.1; }
+  .vit .big small { font-size:16px; font-weight:400; color:var(--muted); }
+  .seg { display:flex; gap:2px; margin-top:var(--space-1); }
+  .seg span { flex:1; height:8px; background:var(--rule); border-radius:1px; }
+  .seg span.f { background:var(--accent); }
+  .glow { color:var(--glow); }
+  .ring { display:inline-block; width:18px; height:18px; border:2.5px solid var(--glow); border-radius:50%; vertical-align:-3px; margin-right:6px; }
+  .saves { display:grid; grid-template-columns:repeat(5,1fr); gap:var(--space-2); }
+  .saves .card { margin:0; text-align:center; padding:var(--space-2) 0; }
+  .saves .lab { font-size:14px; color:var(--muted); }
+  .fold { display:flex; align-items:center; justify-content:space-between; min-height:52px; }
+  .qty { color:var(--muted); font-size:14px; }
+  .sect { display:flex; align-items:baseline; justify-content:space-between; }
+  .sect h2 { margin-bottom:var(--space-1); }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); align-items:start; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script>
+const menu = svg(`<path d="M4 7h16M4 12h16M4 17h16" ${W}/>`);
+const icons = {
+  player: `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 18l1-10 4 4 3-6 3 6 4-4 1 10z" ${W}/><path d="M4 18h16v2H4z" ${T}/></svg>`,
+  scene: `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 3c2 3 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3 1-5 1-8z" ${W}/><path d="M4 21l16-3M20 21L4 18" ${T}/></svg>`,
+  pack: `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M9 7h6l3 4c2 3 1 9-6 9s-8-6-6-9z" ${W}/><path d="M9 7l-1-3h8l-1 3" ${T}/></svg>`,
+  log: `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M3 5c3 0 6 1 9 3 3-2 6-3 9-3v13c-3 0-6 1-9 3-3-2-6-3-9-3z" ${W}/><path d="M12 8v13" ${T}/></svg>`,
+};
+const tabs = (on) => `<div class="tabs">${['player','scene','pack','log'].map(k => `<span class="tab${k === on ? ' on' : ''}">${icons[k]}${k[0].toUpperCase() + k.slice(1)}</span>`).join('')}</div>`;
+const topbar = (title) => `<div class="bar"><span class="ico" role="button" aria-label="Menu">${menu}</span><span class="title">${title}</span><span class="ico" role="button" aria-label="More">${I.more}</span></div>`;
+const foldRow = (name, sub, open = false) => `<div class="card"><div class="kv"><div class="text">${name}${sub ? `<small>${sub}</small>` : ''}</div><span class="btn sq" role="button" aria-label="${open ? 'Hide' : 'Show'}">${open ? I.minus : I.plus}</span></div></div>`;
+const item = (name, sub, action) => `<div class="row"><div class="text">${name}${sub ? `<small>${sub}</small>` : ''}</div>${action ? `<span class="btn small">${action}</span>` : I.chev}</div>`;
+const vitals = `
+  <div class="vit">
+    <div class="card"><div class="lab">Hit points</div><div class="big">6 <small>of 9</small></div><div class="seg"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span><span></span></div></div>
+    <div class="card"><div class="lab">Armour</div><div class="big">5</div><div class="meta">chain</div></div>
+    <div class="card"><div class="lab">Attack</div><div class="big">+1</div><div class="meta">missile +0</div></div>
+  </div>`;
+
+const status = (sym, word) => `<span style="display:inline-flex;align-items:center;gap:4px;border:1px solid var(--rule);border-radius:12px;padding:2px 8px;font-size:14px">${sym} ${word}</span>`;
+const sun = svg(`<circle cx="12" cy="12" r="4" ${W}/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4" ${T}/>`, 16);
+const eye = svg(`<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" ${W}/><circle cx="12" cy="12" r="3" ${W}/>`, 16);
+const savesRow = `<div class="saves">${[['Death',12],['Wands',13],['Stone',14],['Breath',15],['Spells',16]].map(([l,v]) => `<div class="card"><div class="lab">${l}</div><b>${v}</b></div>`).join('')}</div>`;
+const scoreTiles = (cols) => `<div class="saves" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${[['Might',13,'+1'],['Nimble',9,'+0'],['Grit',12,'+0'],['Wits',13,'+1'],['Lore',8,'−1'],['Charm',11,'+0']].map(([l,v,m]) => `<div class="card" style="min-width:0"><div class="lab" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l}</div><b>${v}</b><div class="meta">${m}</div></div>`).join('')}</div>`;
+const playerBody = `
+    <p class="meta" style="margin:0 0 var(--space-1)">Reed Witch 2, Human</p>
+    <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">${status(sun, 'Blessed, 3 turns')}${status(eye, 'Keeping watch')}</div>
+    ${vitals}
+    <p class="meta" style="margin:0 0 var(--space-2)">Tap a figure for where it comes from</p>
+    <h2>Light</h2>
+    <div class="card" style="border-color:var(--glow)"><div class="kv"><div class="text"><span class="ring"></span>Torch<small>4 turns left</small></div><span class="btn small">Douse</span></div></div>
+    <h2>Spells</h2>
+    <p class="meta" style="margin:0">Level 1: 2 of 2 left</p>
+    <div class="list">
+      ${item('Marsh light', 'Level 1. 6 turns, 30 ft', 'Cast')}
+      ${item('Whispering reeds', 'Level 1. 1 turn, hearing', 'Cast')}
+    </div>
+    <h2>Abilities</h2>
+    <div class="list">
+      ${item('Bird friend', 'Once a day. 1 left', 'Use')}
+      ${item('Marsh sense', 'Always on. Finds safe footing')}
+    </div>
+    <h2>At hand</h2>
+    <div class="list">
+      ${item('Short bow', '18 arrows', 'Fire')}
+      ${item('Healing draught', '1 left', 'Drink')}
+    </div>
+    <h2>Skills</h2>
+    <div class="list">
+      ${kvRow('Listen', '2 in 6', { chev: true })}
+      ${kvRow('Herb lore', '5+ on d6', { chev: true })}
+    </div>
+    <h2>Saves</h2>
+    ${savesRow}
+    <div class="list" style="margin-top:var(--space-3)">
+      ${kvRow('Purse', '12 gp, 4 sp', { chev: true })}
+      ${kvRow('Full character sheet', '', { chev: true })}
+    </div>`;
+
+const player = phone(`
+  ${topbar('Wren')}
+  <div class="inner">${playerBody}${tabs('player')}</div>`, 'Player, on the standard, with everything the ruling of 2026-10-26 lists (each section only when present): "Reed Witch 2, Human"; statuses as chips, symbol and word, tappable; the three vitals tiles, tappable for their breakdown (one line under them says so); Light; Spells with the slots line and Cast on each; Abilities with Use; At hand with Fire and Drink; Skills as rows with the odds; Saves as five named tiles, tappable; the purse and the full sheet as rows. A row with a chevron opens its sheet (the rule, or where the number comes from); a row with a button acts. No accent in the steady state. The phone scrolls; the tab bar stays.');
+
+const saveSheet = phone(`
+  ${topbar('Wren')}
+  <div class="inner" style="min-height:560px">
+    <h2>Saves</h2>
+    ${savesRow}
+  </div>
+  ${sheet('Save against spells', `
+    <p style="margin:0 0 var(--space-2)">Roll d20 at the table: <b>16 or more</b> saves.</p>
+    <div class="list">
+      ${kvRow('Reed Witch, level 2', '15')}
+      ${kvRow('Wits 13', '+0')}
+      ${kvRow('Blessed', '+1, 3 turns')}
+      ${kvRow('The rule', '', { chev: true })}
+    </div>
+    <p class="meta" style="margin:var(--space-2) 0 0">Fen sample, p. 44</p>
+  `)}`, 'A tapped figure: the breakdown as a sheet (the one shared "where this number comes from" piece, M4b): the number to beat, then each part with its source, the rule one tap further. The same sheet for a score, AC, attack, a skill.');
+
+const pack = phone(`
+  ${topbar('Wren\'s pack')}
+  <div class="inner">
+    <div class="card"><div class="kv"><div class="text">Load<small>290 of 500 coins' weight. Unburdened, speed 40</small></div></div><div class="bartrack"><span style="width:58%"></span></div></div>
+    <div class="sect"><h2>At hand</h2><span class="meta">2 items</span></div>
+    <div class="list">
+      ${item('Short bow', '18 arrows. 30 coins\' weight', 'Fire')}
+      ${item('Healing draught', '1 left', 'Drink')}
+    </div>
+    <div class="sect"><h2>Worn and in hand</h2><span class="meta">4 items</span></div>
+    <div class="list">
+      ${item('Chain shirt', 'Armour 5. 400 coins\' weight')}
+      ${item('Spear', 'd6. Two hands when thrown')}
+      ${item('Lantern', '3 flasks of oil left')}
+      ${item('Backpack', '9 items inside')}
+    </div>
+    ${foldRow('Gear', '9 items: rope, 3 days\' food, torches ×6…')}
+    ${foldRow('Party stash', '14 items, carried by the mule')}
+    <div class="card"><div class="kv"><div class="text">${warn('2 items waiting for the GM')}<small>Silver knife, a strange key</small></div>${I.chev}</div></div>
+    <div class="foot"><span class="say">20 items</span><span class="btn accent">Add item</span></div>
+    ${tabs('pack')}
+  </div>`, 'Pack, on the standard: the load line with its bar first (the same piece as creation\'s Gear); At hand and Worn always open, as rows that open the item\'s sheet (a chevron, since a row is a picker); Gear and the Party stash as fold rows, folded by N19\'s rule; the waiting items with the sign; Add item is the screen\'s one accent button, in the foot. Counts read "N items", never a dot.');
+
+const itemSheet = phone(`
+  ${topbar('Wren\'s pack')}
+  <div class="inner" style="min-height:560px">
+    <div class="sect"><h2>At hand</h2><span class="meta">2 items</span></div>
+    <div class="list">${item('Short bow', '18 arrows. 30 coins\' weight')}</div>
+  </div>
+  ${sheet('Lantern', `
+    <p style="margin:0 0 var(--space-2)">Bullseye lantern, 30 ft beam. 3 flasks of oil left, 4 hours each. 50 coins' weight.</p>
+    <p class="meta" style="margin:0 0 var(--space-3)">Fen sample, p. 31</p>
+    <div class="list">
+      ${kvRow('Light it', '', { chev: false })}
+      ${kvRow('Give to…', '', { chev: true })}
+      ${kvRow('Pin to top', '')}
+      ${kvRow('Put in…', '', { chev: true })}
+    </div>
+    <div class="card" style="margin-top:var(--space-3)"><div class="kv"><div class="text">Drop<small>Leaves it where you stand. Undo from the toast</small></div></div></div>
+  `)}`, 'An item\'s sheet (pattern 13): the description and its source line, then the actions as rows, the ones that ask more with a chevron; Drop last and set apart, no confirm (Undo in the toast). ✕ or a tap outside closes it.');
+
+const sheetPhone = phone(`
+  ${bar('Full sheet')}
+  <div class="inner">
+    <p class="meta" style="margin:0">Wren, Lantern Warden 1, Human, Lawful</p>
+    <div class="two vit" style="grid-template-columns:1fr 1fr;margin-top:var(--space-2)">
+      <div class="card"><div class="lab">Hit points</div><div class="big">6 <small>of 9</small></div><div class="meta">1d8 a level</div></div>
+      <div class="card"><div class="lab">Armour</div><div class="big">5</div><div class="meta">chain, shield</div></div>
+      <div class="card"><div class="lab">Attack</div><div class="big">+1</div><div class="meta">melee +1, missile +0</div></div>
+      <div class="card"><div class="lab">Level</div><div class="big">1</div><div class="meta">120 of 2,000 experience</div></div>
+    </div>
+    <h2>Scores</h2>
+    ${scoreTiles(3)}
+    <h2>Saves</h2>
+    ${savesRow}
+    ${foldRow('Movement', '40 ft, 120 ft a turn', false)}
+    ${foldRow('Skills', '2 of everyone\'s, 3 of the class\'s')}
+    ${foldRow('Traits', 'From Human: 2. From Lantern Warden: 3')}
+    ${foldRow('Languages', 'Marsh-common, Heron-tongue. Literate')}
+    ${foot('Up to date', 'Back', 'plain', 'Edit')}
+  </div>`, 'The full sheet on a phone (sr-1 … sr-10 kept): four captioned tiles two across; Scores as six tiles three by two (name, value, modifier; tappable), Saves as five; the rest as fold rows with a one-line summary, one open at a time. The ← bar since it is a sub-screen; the tab bar hides under it. Edit is plain: nothing is asked.');
+
+const tabletLayout = tablet(`
+  ${topbar('Wren')}
+  <div class="cols wide-left">
+    <div>
+      <p class="meta" style="margin:0 0 var(--space-1)">Reed Witch 2, Human</p>
+      <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">${status(sun, 'Blessed, 3 turns')}${status(eye, 'Keeping watch')}</div>
+      ${vitals}
+      <h2>Light</h2>
+      <div class="card" style="border-color:var(--glow)"><div class="kv"><div class="text"><span class="ring"></span>Torch<small>4 turns left</small></div><span class="btn small">Douse</span></div></div>
+      <h2>Spells</h2>
+      <p class="meta" style="margin:0">Level 1: 2 of 2 left</p>
+      <div class="list">${item('Marsh light', 'Level 1. 6 turns, 30 ft', 'Cast')}${item('Whispering reeds', 'Level 1. 1 turn, hearing', 'Cast')}</div>
+      <h2>Abilities</h2>
+      <div class="list">${item('Bird friend', 'Once a day. 1 left', 'Use')}</div>
+      <h2>At hand</h2>
+      <div class="list">${item('Short bow', '18 arrows', 'Fire')}${item('Healing draught', '1 left', 'Drink')}</div>
+      <div class="list" style="margin-top:var(--space-3)">${kvRow('Purse', '12 gp, 4 sp', { chev: true })}</div>
+    </div>
+    <div class="panel">
+      <h2>Full sheet</h2>
+      <div class="card"><div class="kv"><div class="text">Level 2<small>2,800 of 5,000 experience</small></div></div><div class="bartrack"><span style="width:56%"></span></div></div>
+      <h2>Scores</h2>
+      ${scoreTiles(3)}
+      <h2>Saves</h2>
+      ${savesRow}
+      <div class="list" style="margin-top:var(--space-3)">
+        ${kvRow('Movement', '40 ft, 120 ft a turn', { chev: true })}
+        ${kvRow('Languages', 'Marsh-common, Heron-tongue', { chev: true })}
+      </div>
+      ${foldRow('Skills', 'Listen 2 in 6. Herb lore, Reed craft, Swim')}
+      ${foldRow('Traits', 'From Human: 2. From Reed Witch: 3')}
+      ${foldRow('Magic', 'Level 1: 2 of 2. Level 2: none yet')}
+    </div>
+  </div>`, 'Landscape tablet: the play column on the left (statuses, vitals, Light, Spells, Abilities, At hand, the purse), the full sheet on the right (sr-1 … sr-10: Level with its experience bar, Scores as six tiles in two rows (the pack’s short names) and Saves as five, every tile tappable, Movement, Languages, then Skills, Traits and Magic folded), nothing repeated between them (06’s rule). The rail stays (not drawn); the top bar is the rail’s row.');
+
+const pinO = (w = 22) => svg(`<path d="M12 3l2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.5l-5.7 3 1.1-6.3L2.8 9.7l6.4-.9z" ${W}/>`, w);
+const pinF = (w = 22) => svg(`<path d="M12 3l2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.5l-5.7 3 1.1-6.3L2.8 9.7l6.4-.9z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>`, w);
+const pinHead = (title, pinned) => `<div class="dim"></div><div class="sheetup"><div class="head"><span class="title">${title}</span><span style="display:flex;gap:var(--space-1)"><span class="btn sq" role="button" aria-label="${pinned ? 'Unpin' : 'Pin to top'}" aria-pressed="${pinned}" style="border:0;background:${pinned ? 'var(--wash)' : 'transparent'}">${pinned ? pinF() : pinO()}</span><span class="btn sq" role="button" aria-label="Close" style="border:0;background:transparent">${I.close}</span></span></div>
+    <p style="margin:0 0 var(--space-2)">Bullseye lantern, 30 ft beam. 3 flasks of oil left.</p>
+    <div class="list">${kvRow('Light it', '')}${kvRow('Give to…', '', { chev: true })}${kvRow('Put in…', '', { chev: true })}</div>
+    <div class="card" style="margin-top:var(--space-3)"><div class="kv"><div class="text">Drop<small>Undo from the toast</small></div></div></div></div>`;
+const pinA = phone(`${topbar('Wren\'s pack')}<div class="inner" style="min-height:560px"></div>${pinHead('Lantern', false)}`, 'A: a pin button in the sheet\'s head beside ✕, a toggle (filled and washed when pinned; "Pin to top" / "Unpin" for a screen reader). The row below goes.');
+const pinB = phone(`${topbar('Wren\'s pack')}<div class="inner" style="min-height:560px"></div>${sheet('Lantern', `
+    <p style="margin:0 0 var(--space-2)">Bullseye lantern, 30 ft beam. 3 flasks of oil left.</p>
+    <div class="list">
+      <div class="row"><span class="k" style="display:flex;align-items:center;gap:var(--space-2)">${pinO()}Pin to top</span><span class="v"></span></div>
+      ${kvRow('Light it', '')}${kvRow('Give to…', '', { chev: true })}${kvRow('Put in…', '', { chev: true })}
+    </div>
+    <div class="card" style="margin-top:var(--space-3)"><div class="kv"><div class="text">Drop<small>Undo from the toast</small></div></div></div>`)}`, 'B: the row keeps its words and gains the pin symbol (06: a symbol beside the words on menu rows, never instead); first in the list, since it is the quickest act.');
+const pinC = phone(`${topbar('Wren\'s pack')}<div class="inner">
+    <div class="sect"><h2>At hand</h2><span class="meta">2 items</span></div>
+    <div class="list">
+      <div class="row"><div class="text"><span style="display:inline-flex;align-items:center;gap:6px">${pinF(18)}Short bow</span><small>18 arrows. 30 coins' weight</small></div>${I.chev}</div>
+      ${item('Healing draught', '1 left')}
+    </div>
+    <div class="sect"><h2>Worn and in hand</h2><span class="meta">4 items</span></div>
+    <div class="list">
+      <div class="row"><div class="text">Lantern<small>3 flasks of oil left</small></div><span class="btn sq" role="button" aria-label="Pin to top" style="border:0;background:transparent;margin-right:var(--space-1)">${pinO()}</span>${I.chev}</div>
+      ${item('Spear', 'd6. Two hands when thrown')}
+    </div>
+    ${tabs('pack')}</div>`, 'C: pin from the list itself: a pin button on each row (44 px, before the chevron), filled on a pinned item in At hand; one tap, no sheet. Costs a second target on every row.');
+const pinD = phone(`${topbar('Wren\'s pack')}<div class="inner">
+    <div class="sect"><h2>At hand</h2><span class="meta">2 items</span></div>
+    <div class="list">
+      <div class="row"><div class="text">Short bow<small>${pinF(14)} 18 arrows</small></div><span class="btn small">Fire</span></div>
+      ${item('Healing draught', '1 left', 'Drink')}
+    </div>
+    <div class="toast"><span>${pinF(16)} Lantern pinned to the top</span><span class="btn small">Undo</span></div>
+    ${tabs('pack')}</div>`, 'D: the mark after the act: the pinned item carries the small filled star in its line (no word; a screen reader hears "pinned"), and the toast carries it with Undo. Goes with A or B.');
+
+mount(`
+  <h1>The players' screens on creation's standard</h1>
+  <p class="note">Ruled 2026-11-07: after creation's slice D, the Pack screen, the Player screen and the full sheet take the same chrome as creation: the top bar (≡ or ←, the title, ⋯ as a sheet), the row patterns (label-left rows, a chevron only where a row opens something), sheets for item actions (destructive last, Undo over confirm), the warning sign, no middle dot, no "… ›" links, and mockup 17's tab bar on a phone. What the screens hold does not change: the Player screen as ruled 2026-10-26, the Pack as N18/N19, the sheet as sr-1 … sr-10.</p>
+  <h1>Phone</h1>
+  <div class="wall">${player}${saveSheet}${pack}${itemSheet}${sheetPhone}</div>
+  <h1>Tablet, landscape</h1>
+  ${tabletLayout}
+  <h1>Pin: four ways (Francis asked, 2026-11-07; ruled A + D, the mark a star: empty unpinned, filled pinned)</h1>
+  <div class="wall">${pinA}${pinB}${pinC}${pinD}</div>
+  <p class="note">Self-review: targets 44 px with 8 px between; nothing under 14 px; one accent per screen (Add item on Pack; none on Player, whose actions are each a row's own; Edit plain on the sheet); the waiting items carry the sign and words; light and dark from the same markup; 375 px with the longest item line. Not checked: a pack with 60 items (the fold rows carry the count; A–Z inside); an empty pack ("Nothing yet. Add item"); the GM's "Whose pack" (the same screen with the character's name in the bar); the Magic tab (M5c); the phone's landscape rule (tabs stay at the bottom).</p>
+`);
+</script>
+</body>
+</html>

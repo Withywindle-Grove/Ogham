@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Prayers</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;position:relative;overflow:hidden">
+<div style="padding:10px 18px 0"><a href="PlayerRules.dc.html" style="min-height:44px;display:inline-flex;align-items:center;color:{{c.mut}};text-decoration:none">‹ Player</a></div>
+<div style="padding:0 18px 8px;text-align:center"><div style="font-family:'EB Garamond',Georgia,serif;font-size:34px;font-weight:600;line-height:1.05">Bram’s Prayers</div></div>
+
+<div style="padding:4px 18px 10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+<sc-for list="{{slotBoxes}}" as="sb" hint-placeholder-count="2">
+<div style="border:1px solid {{c.rule}};border-radius:4px;padding:8px 10px;display:flex;flex-direction:column;gap:4px">
+<span style="font-size:14px;color:{{c.mut}}">{{sb.label}}</span>
+<span aria-label="{{sb.aria}}" style="display:flex;gap:6px"><sc-for list="{{sb.dots}}" as="dt" hint-placeholder-count="2"><span style="width:22px;height:22px;border-radius:50%;border:1.5px solid {{c.acc}};background:{{dt.bg}}"></span></sc-for></span>
+</div>
+</sc-for>
+</div>
+
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+<div style="border-top:3px double {{c.rule}};padding:12px 0 2px;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">{{g.name}}</div>
+<sc-for list="{{g.rows}}" as="r" hint-placeholder-count="3">
+<div style="{{r.row}}">
+<button onClick="{{r.open}}" style="flex:1;min-width:0;min-height:58px;background:none;border:none;padding:0;color:inherit;font-family:inherit;text-align:left;display:flex;flex-direction:column;justify-content:center;cursor:pointer">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">{{r.name}}</span>
+<span style="font-size:14px;color:{{c.mut}}">{{r.sub}}</span>
+</button>
+<sc-if value="{{r.multi}}" hint-placeholder-val="{{ false }}"><span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600;color:{{c.acc}}">×{{r.n}}</span></sc-if>
+<button onClick="{{r.add}}" aria-label="{{r.aria}}" style="{{r.btn}}">{{r.btnText}}</button>
+</div>
+</sc-for>
+</sc-for>
+
+<div style="border-top:3px double {{c.rule}};padding:12px 0 2px;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">Scrolls carried</div>
+<div style="display:flex;align-items:center;gap:10px;min-height:58px;border-bottom:1px dotted {{c.rule}}"><span style="flex:1;display:flex;flex-direction:column"><span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">Scroll of Mend</span><span style="font-size:14px;color:{{c.mut}}">Divine · {{scrollState}}</span></span><button onClick="{{useScroll}}" style="{{scrollBtn}}">{{scrollText}}</button></div>
+<div style="display:flex;align-items:center;gap:10px;min-height:58px;border-bottom:1px dotted {{c.rule}};opacity:.55"><span style="flex:1;display:flex;flex-direction:column"><span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">Scroll of Mist Step</span><span style="font-size:14px;color:{{c.mut}}">Arcane · not for your class</span></span></div>
+<div style="height:16px"></div>
+</div>
+
+<sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;flex-direction:column;justify-content:flex-end">
+<div role="dialog" aria-label="{{sheet.title}}" style="background:{{c.sheet}};color:{{c.ink}};border-top:1.5px solid {{c.line}};border-radius:20px 20px 0 0;padding:18px 18px 26px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600">{{sheet.title}}</span><button onClick="{{closeSheet}}" style="min-height:44px;padding:0 6px;background:none;border:none;color:{{c.mut}};font-family:inherit;font-size:16px;cursor:pointer">Close</button></div>
+<sc-for list="{{sheet.lines}}" as="ln" hint-placeholder-count="3"><div style="font-size:17px;line-height:1.45">{{ln.t}}</div></sc-for>
+<sc-if value="{{sheet.rev}}" hint-placeholder-val="{{ false }}"><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px"><button style="{{S.revOn}}">{{sheet.normal}}</button><button style="{{S.revOff}}">{{sheet.reversed}}</button></div><div style="font-size:14px;color:{{c.mut}}">Choose the form when you cast.</div></sc-if>
+<div style="font-size:14px;color:{{c.mut}};border-top:1px solid {{c.rule}};padding-top:8px">From your setting: River Rules (private) · Fen Priest spells</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { pray: { mend: 2, bless: 1 }, scroll: false, sheet: null, pressed: null };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', tint: '#4A3A22', sheet: '#1E1A16', onAcc: '#12100D' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', tint: '#F3E6CB', sheet: '#FFFDF8', onAcc: '#FBF8F1' };
+    const G = "'EB Garamond',Georgia,serif";
+    const flash = (k) => s.pressed === k ? ';background:' + c.tint : '';
+    const show = (sheet, k) => () => { this.setState({ pressed: k }); setTimeout(() => this.setState({ pressed: null, sheet: sheet }), 180); };
+    const L = [
+      { id: 'mend', lvl: 1, name: 'Mend', rev: 'Rend', sub: 'Touch · heals 1d6+1', lines: ['Heals 1d6+1 hit points or ends paralysis.'] },
+      { id: 'glow', lvl: 1, name: 'Glow', rev: 'Gloom', sub: '120′ · 12 turns', lines: ['Light in a 15′ circle for 12 turns.'] },
+      { id: 'calm', lvl: 1, name: 'Calm Beasts', sub: '30′ · 1 turn', lines: ['Ordinary animals stop attacking unless hurt.'] },
+      { id: 'rot', lvl: 1, name: 'Sense Rot', sub: 'Self · 1 turn', lines: ['You smell poison and spoiled food within 30′.'] },
+      { id: 'bless', lvl: 2, name: 'Bless the Path', rev: 'Curse the Path', sub: '60′ · 6 turns', lines: ['Allies get +1 to attacks and morale.'] },
+      { id: 'reeds', lvl: 2, name: 'Speak with Reeds', sub: 'Self · 3 turns', lines: ['Ask the marsh plants what passed this way.'] }
+    ];
+    const slots = { 1: 2, 2: 1 };
+    const used = (l) => L.filter((x) => x.lvl === l).reduce((a, x) => a + (s.pray[x.id] || 0), 0);
+    const slotBoxes = [1, 2].map((l) => { const n = used(l), cap = slots[l]; const dots = []; for (let i = 0; i < cap; i++) dots.push({ bg: i < n ? c.acc : 'transparent' }); return { label: 'Level ' + l + ' · ' + n + ' of ' + cap + ' prayed for', dots: dots, aria: n + ' of ' + cap }; });
+    const row = (x) => {
+      const n = s.pray[x.id] || 0, full = used(x.lvl) >= slots[x.lvl];
+      return {
+        name: x.name, sub: x.sub + (x.rev ? ' · reversible' : ''), n: n, multi: n > 0,
+        row: 'display:flex;align-items:center;gap:10px;border-bottom:1px dotted ' + c.rule + ';margin:0 -8px;padding:0 8px;border-radius:4px' + flash('p' + x.id),
+        btn: 'min-width:92px;min-height:44px;border-radius:4px;border:1px solid ' + (full && n === 0 ? c.rule : c.line) + ';background:transparent;color:' + (full && n === 0 ? c.mut : c.ink) + ';font-family:' + G + ';font-size:17px;font-weight:600;cursor:pointer',
+        btnText: full ? (n > 0 ? 'Remove one' : 'Slots full') : (n > 0 ? '+1 more' : 'Pray for'),
+        aria: (full ? 'Remove one ' : 'Pray for ') + x.name,
+        add: () => { const p = Object.assign({}, s.pray); if (full) { if (n > 0) p[x.id] = n - 1; } else p[x.id] = n + 1; this.setState({ pray: p }); },
+        open: show({ title: x.name, lines: x.lines.map((t) => ({ t: t })), rev: !!x.rev, normal: x.name, reversed: x.rev || '' }, 'p' + x.id)
+      };
+    };
+    return {
+      c: c, slotBoxes: slotBoxes,
+      groups: [1, 2].map((l) => ({ name: 'Level ' + l + ' · whole class list', rows: L.filter((x) => x.lvl === l).map(row) })),
+      scrollState: s.scroll ? 'used up' : 'one use', scrollText: s.scroll ? 'Undo' : 'Cast from scroll',
+      scrollBtn: 'min-width:92px;min-height:44px;padding:0 10px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:16px;font-weight:600;cursor:pointer',
+      useScroll: () => this.setState({ scroll: !s.scroll }),
+      sheetOpen: !!s.sheet, sheet: s.sheet || { title: '', lines: [], rev: false, normal: '', reversed: '' }, closeSheet: () => this.setState({ sheet: null }),
+      S: {
+        revOn: 'min-height:44px;border-radius:4px;border:1px solid ' + c.acc + ';background:' + c.acc + ';color:' + c.onAcc + ';font-family:' + G + ';font-size:17px;font-weight:600',
+        revOff: 'min-height:44px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:17px;font-weight:600'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

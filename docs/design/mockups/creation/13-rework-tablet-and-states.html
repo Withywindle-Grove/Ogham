@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Creation rework — the tablet, the remaining steps, the states (proposal, 2026-11-06)</title>
+<style>
+  /* Tokens from docs/06 only. Light and dark side by side (the dark column is the same markup, cloned). Buttons are plain blocks. Invented names and numbers only. Follows 12-rework-phone.html (approved). */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; }
+  body { margin:0; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:#888; }
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-5); padding:var(--space-5); align-items:start; }
+  .theme { padding:var(--space-4); border-radius:4px; background:var(--page); color:var(--ink); min-width:0; }
+  .light { --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; --info:#2F5D7C; --warn:#7A4A00; }
+  .dark  { --page:#12100D; --surface:#1C1915; --sheet:#1E1A16; --ink:#F1EADC; --muted:#B5AA96; --rule:#3A342B; --control:#756B5A; --accent:#C9875A; --on-accent:#12100D; --info:#8DB4D0; --warn:#F2D46B; }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-5) 0 var(--space-2); }
+  h1:first-child { margin-top:0; }
+  h2 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; margin:var(--space-4) 0 var(--space-2); font-variant:small-caps; }
+  .wall { display:flex; flex-wrap:wrap; gap:var(--space-4); align-items:flex-start; }
+  .phone { width:343px; background:var(--page); border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); box-sizing:border-box; }
+  .tablet { width:100%; max-width:720px; background:var(--page); border:1.5px solid var(--control); border-radius:4px; padding:var(--space-4); box-sizing:border-box; }
+  .cap { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); max-width:343px; }
+  .top { display:flex; justify-content:space-between; align-items:center; gap:var(--space-2); margin-bottom:var(--space-2); }
+  .title { font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .step { font-size:14px; color:var(--muted); }
+  .lead { color:var(--muted); margin:var(--space-2) 0; }
+  .meta { font-size:14px; color:var(--muted); }
+  .card { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); margin-bottom:var(--space-2); }
+  .row { display:flex; align-items:center; gap:var(--space-2); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; min-width:0; overflow-wrap:anywhere; }
+  .row .text small { display:block; font-size:14px; color:var(--muted); }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--space-2); min-height:44px; min-width:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:16px; line-height:1.2; box-sizing:border-box; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.sq { width:44px; padding:10px; }
+  .btn.small { font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .btn.name { flex:1; display:block; text-align:left; border:0; background:transparent; padding:var(--space-2) 0; min-width:0; }
+  .btn.name::before { content:"i"; display:inline-block; width:16px; height:16px; line-height:16px; margin-right:6px; border:1.500px solid var(--info); border-radius:50%; color:var(--info); text-align:center; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:700; font-size:12px; vertical-align:2px; }
+  .btn.name .meta, .btn.name .warnline { font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .btn.name .warnline { font-weight:700; }
+  .picked { background:var(--surface); border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+  .num { width:64px; min-height:44px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); display:inline-flex; align-items:center; justify-content:center; font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; box-sizing:border-box; }
+  .stepper { display:inline-flex; gap:var(--space-2); align-items:center; }
+  .tiles { display:grid; grid-template-columns:repeat(3, 1fr); gap:var(--space-2); }
+  .tile { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); text-align:center; }
+  .tile .stepper { margin:var(--space-2) 0; }
+  .foot { display:flex; justify-content:flex-end; align-items:center; gap:var(--space-2); border-top:1px solid var(--rule); margin-top:var(--space-3); padding-top:var(--space-3); flex-wrap:wrap; }
+  .foot .say { flex:1; font-size:14px; color:var(--muted); min-width:120px; }
+  .say.stop { color:var(--warn); font-weight:700; }
+  .gap { display:flex; gap:var(--space-2); flex-wrap:wrap; }
+  .warnline { color:var(--warn); font-weight:700; font-size:14px; }
+  .info { background:var(--surface); border-left:4px solid var(--info); padding:var(--space-3); border-radius:4px; margin:var(--space-2) 0; }
+  .toast { margin-top:var(--space-2); padding:var(--space-2) var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); display:flex; justify-content:space-between; gap:var(--space-2); align-items:center; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-2) 0 var(--space-4); }
+  .dots { letter-spacing:4px; font-size:20px; }
+  svg { flex:none; }
+</style>
+</head>
+<body>
+<template id="screens">
+  <h1>1 · On a tablet: the same parts, one centred column</h1>
+  <p class="note">The step sits in a centred column (the reading width), never two columns of unrelated things. Scores are three tiles across with the stepper centred. A table, an ability and a kit's rolls open as a pop-up over the step, not full screen. On the Race and Class steps a wide screen keeps the entry in a panel beside the list (cr-10, unchanged).</p>
+  <div class="tablet">
+    <div class="top"><span class="btn small">Leave</span><span class="step">Step 1</span></div>
+    <div class="title">Scores</div>
+    <p class="lead">Roll three dice for each, at the table, and enter what you rolled.</p>
+    <span class="btn small">Help me choose</span>
+    <div class="tiles" style="margin-top:var(--space-3)">
+      <div class="tile"><span class="btn name" style="text-align:center">Might</span><div class="stepper"><span class="btn sq">−</span><span class="num">13</span><span class="btn sq">+</span></div><div class="meta">+1 to hit and damage up close</div></div>
+      <div class="tile"><span class="btn name" style="text-align:center">Nimbleness</span><div class="stepper"><span class="btn sq">−</span><span class="num">9</span><span class="btn sq">+</span></div><div class="meta">No change</div></div>
+      <div class="tile"><span class="btn name" style="text-align:center">Grit</span><div class="stepper"><span class="btn sq">−</span><span class="num">12</span><span class="btn sq">+</span></div><div class="meta">No change</div></div>
+      <div class="tile"><span class="btn name" style="text-align:center">Wits</span><div class="stepper"><span class="btn sq">−</span><span class="num">7</span><span class="btn sq">+</span></div><div class="meta">Reads slowly · no extra languages</div></div>
+      <div class="tile"><span class="btn name" style="text-align:center">Lore</span><div class="stepper"><span class="btn sq">−</span><span class="num">15</span><span class="btn sq">+</span></div><div class="meta">+1 spell known</div></div>
+      <div class="tile"><span class="btn name" style="text-align:center">Charm</span><div class="stepper"><span class="btn sq">−</span><span class="num">10</span><span class="btn sq">+</span></div><div class="meta">No change</div></div>
+    </div>
+    <div class="foot"><span class="say">All 6 entered</span><span class="btn accent">Next</span></div>
+  </div>
+
+  <h1>2 · Coming back after Leave (cw-13)</h1>
+  <div class="wall">
+    <div>
+      <p class="cap">Leave before Who they are keeps the picks on this device and says so.</p>
+      <div class="phone"><div class="toast"><span>Kept on this device. Pick it up again from Create.</span></div></div>
+    </div>
+    <div>
+      <p class="cap">The next Create, same player, same campaign.</p>
+      <div class="phone">
+        <div class="title">A new character</div>
+        <div class="card"><div class="row"><div class="text">Continue where you left off<small>Scores · Stone kin · Reed Witch</small></div><span class="btn">Continue</span></div></div>
+        <div class="card"><div class="row"><div class="text">Start again<small>Forgets what was kept on this device</small></div><span class="btn">Start again</span></div></div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">A kept pick that is gone (a pack was updated): dropped, and said.</p>
+      <div class="phone">
+        <div class="top"><span class="btn small">Leave</span><span class="step">Step 3</span></div>
+        <div class="title">Class</div>
+        <div class="info">Reed Witch isn't in this campaign's rules any more. Pick again.</div>
+        <div class="card"><div class="row"><span class="btn name">Lantern Warden<br><span class="meta">Fights in the front; no spells</span></span><span class="btn">Pick</span></div></div>
+        <div class="foot"><span class="say">Class missing</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h1>3 · A kit's rolls: a roll made twice, and a choice</h1>
+  <div class="wall">
+    <div>
+      <p class="cap">A roll the kit asks for twice is two steps. With no repeats allowed, the row already taken says so.</p>
+      <div class="phone">
+        <div class="top"><div class="title">Warden's kit</div><span class="btn sq" role="button" aria-label="Close"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2"/></svg></span></div>
+        <p class="meta">Step 3 of 4 · Weapon · 2 of 2 · roll d6 at the table, tap what you rolled</p>
+        <div class="card"><div class="row"><div class="text">1–2 · Reed spear<br><span class="warnline">▲ Already rolled</span></div></div>
+          <div class="row"><div class="text">3–4 · Marsh knife</div></div>
+          <div class="row"><div class="text">5–6 · Sling and 10 stones</div></div></div>
+        <div class="foot"><span class="say">Tap what you rolled</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">A choice inside the kit: pick rows, the last step says Done.</p>
+      <div class="phone">
+        <div class="top"><div class="title">Warden's kit</div><span class="btn sq" role="button" aria-label="Close"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2"/></svg></span></div>
+        <p class="meta">Step 4 of 4 · Choose one</p>
+        <div class="card picked"><div class="row"><div class="text">A lantern and 3 flasks of oil</div><span class="btn picked">Picked ✓</span></div></div>
+        <div class="card"><div class="row"><div class="text">6 torches</div><span class="btn">Pick</span></div></div>
+        <div class="foot"><span class="say">A lantern and 3 flasks of oil</span><span class="btn">Back</span><span class="btn accent">Done</span></div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">✕ halfway keeps nothing, and says so. An item the character can't use is still carried, and labelled.</p>
+      <div class="phone">
+        <div class="toast"><span>Warden's kit not taken.</span></div>
+        <div class="card picked" style="margin-top:var(--space-3)"><div class="row"><span class="btn name">Warden's kit<br><span class="meta">Ring coat · Reed spear · Marsh knife · a lantern and 3 flasks of oil</span><br><span class="warnline">▲ Ring coat: a Reed Witch can't wear it; carried</span></span><span class="btn picked">Picked ✓</span></div>
+          <div class="gap"><span class="btn small">Change the rolls</span><span class="btn small">Take it off</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <h1>4 · The remaining steps</h1>
+  <div class="wall">
+    <div>
+      <p class="cap">First spells: a count to reach; a name opens the spell; rolled spells are tapped in their table.</p>
+      <div class="phone">
+        <div class="top"><span class="btn small">Leave</span><span class="step">Step 6 of 9</span></div>
+        <div class="title">First spells</div>
+        <p class="lead">Choose 2. These are the spells you start knowing.</p>
+        <div class="card picked"><div class="row"><span class="btn name">Reed whisper<br><span class="meta">Hear what the marsh heard</span></span><span class="btn picked">Picked ✓</span></div></div>
+        <div class="card"><div class="row"><span class="btn name">Marsh light<br><span class="meta">A cold light that follows you</span></span><span class="btn">Pick</span></div></div>
+        <div class="card"><div class="row"><div class="text">12 more spells<small>Level 1</small></div><span class="btn sq" role="button" aria-label="Show 12 more spells"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/></svg></span></div></div>
+        <div class="foot"><span class="say">1 of 2 picked</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">Languages and weapon skills: what you have first as one line, then the picks, then Other… for one the list lacks.</p>
+      <div class="phone">
+        <div class="top"><span class="btn small">Leave</span><span class="step">Step 6 of 9</span></div>
+        <div class="title">Languages</div>
+        <p class="meta">You speak Fen-speech and Stone tongue already. Choose 1 more.</p>
+        <div class="card picked"><div class="row"><div class="text">Old Marish</div><span class="btn picked">Picked ✓</span></div></div>
+        <div class="card"><div class="row"><div class="text">Heron-cant</div><span class="btn">Pick</span></div></div>
+        <div class="card"><div class="row"><div class="text">Other…<small>Type one the list lacks; your GM sees it</small></div><span class="btn">Type it</span></div></div>
+        <div class="foot"><span class="say">1 of 1 picked</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">A background or a career. Before a pick: the table with Open. After a pick: only what was picked, with Change, which reopens the table. Optional ones say so and never stop Next.</p>
+      <div class="phone">
+        <div class="top"><span class="btn small">Leave</span><span class="step">Step 6 of 9</span></div>
+        <div class="title">Career</div>
+        <p class="meta">Optional · from Table Generator. The trade you followed before adventuring.</p>
+        <div class="card picked"><div class="row"><div class="text">Eel-catcher<small>Things you might carry or know your way around: a gaff, a wicker trap, waders</small></div><span class="btn">Change</span></div></div>
+        <div class="foot"><span class="say">Eel-catcher</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h1>5 · When something is wrong, or slow</h1>
+  <div class="wall">
+    <div>
+      <p class="cap">Next is never dead: it says what's missing, in words, and stays.</p>
+      <div class="phone">
+        <div class="foot" style="margin-top:0; border-top:0; padding-top:0"><span class="say stop">▲ Name missing</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+        <div class="foot"><span class="say stop">▲ 30 silver over: take something off, or raise your coin</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+        <div class="foot"><span class="say stop">▲ Stone kin needs Grit 9 · you have 8</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">Loading, offline, and a send that failed.</p>
+      <div class="phone">
+        <div class="info">Loading your setting's rules<span class="dots"> …</span></div>
+        <div class="info">You're offline. Nothing is saved until you're back: keep this screen open, then try again.</div>
+        <div class="info">Couldn't send it to your GM. Nothing is lost.<div class="gap" style="margin-top:var(--space-2)"><span class="btn">Try again</span></div></div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">A step with nothing to ask is skipped, never shown empty. A setting with no kits, no shop and nothing given says so once.</p>
+      <div class="phone">
+        <div class="top"><span class="btn small">Leave</span><span class="step">Step 7 of 9</span></div>
+        <div class="title">Gear</div>
+        <p class="lead">This setting gives no starting gear. Your GM will tell you what you carry.</p>
+        <div class="foot"><span class="say">Nothing to choose</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<div class="pair">
+  <div class="theme light" id="light"></div>
+  <div class="theme dark" id="dark"></div>
+</div>
+<script>
+  const t = document.getElementById('screens');
+  document.getElementById('light').appendChild(t.content.cloneNode(true));
+  document.getElementById('dark').appendChild(t.content.cloneNode(true));
+</script>
+</body>
+</html>

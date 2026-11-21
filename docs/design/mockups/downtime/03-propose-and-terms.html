@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Downtime 03 — a significant action: propose, set terms, agree (paper test, 2026-11-02)</title>
+<style>
+  /* Tokens from docs/06 only. Light only. Buttons are plain blocks. Invented examples. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; box-sizing:border-box; padding:var(--space-4); }
+  .tablet { width:780px; }
+  .phone { width:375px; }
+  .h { font-family:"EB Garamond", Georgia, serif; font-size:22px; font-weight:600; line-height:1.2; }
+  .sec { font-family:"EB Garamond", Georgia, serif; font-size:18px; font-weight:600; margin:var(--space-4) 0 var(--space-2); }
+  .muted { color:var(--muted); }
+  .small { font-size:14px; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:48px; border-top:1px solid var(--rule); padding:var(--space-1) 0; }
+  .row .grow { flex:1; min-width:0; }
+  .tag { display:inline-block; font-size:14px; border:1px solid var(--control); border-radius:4px; padding:0 6px; margin-left:var(--space-2); white-space:nowrap; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; white-space:nowrap; }
+  .btn.accent { background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+  .btns { display:flex; gap:var(--space-2); flex-wrap:wrap; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+  .bar .grow { flex:1; }
+  .panel { background:var(--surface); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); }
+  .field { border:1.5px solid var(--control); border-radius:4px; padding:10px 12px; min-height:44px; box-sizing:border-box; margin-top:var(--space-1); }
+  .label { font-size:14px; color:var(--muted); margin-top:var(--space-3); }
+  .msg { border-left:3px solid var(--rule); padding:var(--space-2) var(--space-3); margin-top:var(--space-3); }
+  .msg.gm { border-left-color:var(--ink); }
+  .steps { display:flex; gap:var(--space-1); margin-top:var(--space-2); }
+  .step { flex:1; border:1.5px solid var(--control); border-radius:4px; font-size:14px; padding:var(--space-1); text-align:center; min-height:44px; box-sizing:border-box; display:flex; align-items:center; justify-content:center; }
+  .cols { display:flex; gap:var(--space-5); }
+  .cols > div { flex:1; min-width:0; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:800px; }
+</style>
+</head>
+<body>
+
+<h1>1 · Propose… (Garrick, phone)</h1>
+<div class="wrap">
+<div class="screen phone">
+  <span class="h">Your action this downtime</span><br><span class="muted">Garrick Thane · one per downtime</span>
+  <div class="sec">Carry on</div>
+  <div class="row"><span class="grow">Red Lanterns · next step: Hall<br><span class="small muted">ongoing · step 1 of 5</span></span><span class="tag">ongoing</span></div>
+  <div class="sec">Something new · from the rules</div>
+  <div class="row"><span class="grow">Found or grow an institution<br><span class="small muted">a company, a guild, a temple · steps and setbacks</span></span></div>
+  <div class="row"><span class="grow">Train with a mentor<br><span class="small muted">weeks and gold · needed to level</span></span></div>
+  <div class="row"><span class="grow">Make or commission something<br><span class="small muted">weeks × gold · a maker</span></span></div>
+  <div class="row"><span class="grow">More… <span class="small muted">· 9 others</span></span></div>
+  <div class="row"><span class="grow"><b>Something else…</b><br><span class="small muted">say what you want to do</span></span></div>
+  <div class="label">What</div><div class="field">Found the Red Lanterns, a mercenary company</div>
+  <div class="label">How (your words)</div><div class="field" style="min-height:96px">Draw up a charter with Wren as lieutenant, rent the old tannery as a hall, post for recruits at the market cross. I'll put in 100 gp.</div>
+  <div class="label">Ask for a bonus (optional)</div><div class="field muted">Wren helps · I spend 50 gp more · I call in a favour…</div>
+  <div class="btns" style="margin-top:var(--space-3)"><span class="btn accent">Send to the GM</span></div>
+</div>
+<div style="width:360px"><p class="note">The list comes from the campaign's downtime pack (the activity catalogue) plus the setting's options (training, carousing). Picking one fills What and shows its rule one tap away; Something else… is plain text. The player always writes How: the narrative comes first (survey). Ongoing activities come first (Carry on); a bonus is asked for with a reason and the GM grants it in the terms (dt-21).</p></div>
+</div>
+
+<h1>2 · The GM sets the terms (tablet)</h1>
+<div class="wrap">
+<div class="screen tablet">
+  <div class="bar"><span class="grow"><span class="h">Found the Red Lanterns</span><br><span class="muted">Garrick Thane · Found or grow an institution</span></span></div>
+  <div class="msg"><span class="small muted">Garrick · just now</span><br>Draw up a charter with Wren as lieutenant, rent the old tannery as a hall, post for recruits at the market cross. I'll put in 100 gp.</div>
+  <div class="cols">
+    <div>
+      <div class="label">Duration</div><div class="field">This downtime</div>
+      <div class="label">Costs</div><div class="field">100 gp now · then 2 gp a week per recruit (wages)</div>
+      <div class="label">Roll</div><div class="field">2d6 + Garrick's Charisma · the pack's results</div>
+    </div>
+    <div>
+      <div class="label">Progress (optional)</div>
+      <div class="steps"><span class="step">Charter</span><span class="step">Hall</span><span class="step">10 recruits</span><span class="step">First contract</span><span class="step">Known</span></div>
+      <div class="label">At the end</div><div class="field">A company of 1 step; recruits join as hirelings</div>
+      <div class="label">Your note · <b>Hidden</b> / Shown to Garrick</div><div class="field muted">The tannery belongs to the Tollgate family…</div>
+    </div>
+  </div>
+  <div class="btns" style="margin-top:var(--space-4)"><span class="btn accent">Send terms</span><span class="btn">Ask a question</span><span class="btn">Decline…</span></div>
+</div>
+</div>
+<p class="note">The pack's activity fills the fields (time, cost, roll, steps, results); the GM changes any of them in words. Fields are text except Costs (amounts become Due lines and a charge on acceptance) and Progress (a tracker; 05 says R2, ⚑ Q1). The GM's note never reaches the player.</p>
+
+<h1>3 · The thread, back to the player (phone)</h1>
+<div class="wrap">
+<div class="screen phone">
+  <span class="h">Found the Red Lanterns</span><br><span class="muted">Waiting on you</span>
+  <div class="msg"><span class="small muted">You · 14 Harvestmoon</span><br>Draw up a charter… I'll put in 100 gp.</div>
+  <div class="msg gm"><span class="small muted">GM · terms</span><br><b>This downtime</b> · 100 gp now, then 2 gp a week per recruit · roll 2d6 + Charisma<br>Progress: Charter → Hall → 10 recruits → First contract → Known<br>At the end: the company stands at its first step.</div>
+  <div class="msg gm"><span class="small muted">GM</span><br>The tannery's owner wants a word first.</div>
+  <div class="field muted" style="margin-top:var(--space-3)">Reply…</div>
+  <div class="btns" style="margin-top:var(--space-3)"><span class="btn accent">Approve</span><span class="btn">Send back with a note</span><span class="btn">Withdraw</span></div>
+</div>
+<div style="width:360px"><p class="note">05 today: accept · ask for a change · decline, threads live across sessions, GM view by Needs your reply · Waiting on players · Active. Accept charges the 100 gp and adds the wages to Due. <b>Checked:</b> one accent per screen; 44 px targets; 375 px; the GM's messages carry a label and a darker bar, not colour alone. <b>Not drawn:</b> a 2,000-word How (it scrolls inside the message), offline sending, dark mode.</p></div>
+</div>
+
+</body>
+</html>

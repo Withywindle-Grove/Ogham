@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creation 02 — Race (Kindred) and Class (paper test, 2026-11-01)</title>
+<style>
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  h2 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; margin:var(--space-4) 0 var(--space-2); }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); width:720px; box-sizing:border-box; }
+  .screen.wide { width:1024px; display:flex; gap:var(--space-5); }
+  .screen.wide > div { flex:1; min-width:0; }
+  .screen.phone { width:375px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .why { margin:var(--space-3) 0 var(--space-1); }
+  .strip { display:flex; flex-wrap:wrap; gap:var(--space-2) var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid var(--rule); font-size:14px; color:var(--muted); }
+  .strip b { color:var(--ink); font-size:16px; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; min-width:0; }
+  .row .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .row .desc { display:block; }
+  .row .src { display:block; font-size:14px; color:var(--muted); }
+  .tick { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:22px; flex:none; }
+  .info { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; border:1.5px solid var(--control); border-radius:22px; flex:none; font-weight:700; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; text-align:center; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:16px; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  .foot { display:flex; align-items:center; gap:var(--space-3); margin-top:var(--space-4); padding-top:var(--space-3); border-top:1px solid var(--rule); }
+  .foot .spacer { flex:1; }
+  .hint { font-size:14px; color:var(--muted); }
+  .group { display:flex; align-items:center; min-height:44px; gap:var(--space-3); color:var(--muted); margin-top:var(--space-2); }
+  .panel { background:var(--surface); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); }
+  .panel dl { margin:0; }
+  .panel dt { font-weight:700; margin-top:var(--space-3); }
+  .panel dd { margin:0; }
+  .ok { font-weight:700; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:1024px; }
+</style>
+</head>
+<body>
+
+<h1>1 · Race (the pack's word: "Kindred" in setting B) — tablet landscape, ⓘ open beside the list</h1>
+<div class="screen wide">
+  <div>
+    <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Kindred</span><span class="meta">Step 3 of 10</span></div>
+    <div class="strip"><span>STR <b>13</b></span><span>INT <b>9</b></span><span>WIS <b>16</b></span><span>DEX <b>8</b></span><span>CON <b>11 → 10</b> <span>bog folk −1</span></span><span>CHA <b>12</b></span></div>
+    <p class="why">Your kindred is what you are: what your body can do, who trusts you, and which classes are open to you. <span class="btn quiet">Help me choose</span></p>
+    <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Bog folk</span><span class="desc">Small and hardy; sees in the dark; slow in heavy armour.</span><span class="src">Needs CON 9 · you have 11 ✓ · Fen rules p. 12</span></div><span class="info">ⓘ</span></div>
+    <div class="row"><span class="tick"></span><div class="text"><span class="name">Reed elf</span><span class="desc">Graceful and long-lived; magic comes easily; frail.</span><span class="src">Needs INT 9 · you have 9 ✓ · p. 14</span></div><span class="info">ⓘ</span></div>
+    <div class="row"><span class="tick"></span><div class="text"><span class="name">Stone kin</span><span class="desc">Tough, stubborn, at home underground.</span><span class="src">Needs DEX 9 · <b>you have 8</b> · <b>Needs the GM's special approval</b> · p. 15</span></div><span class="info">ⓘ</span></div>
+    <div class="row"><span class="tick"></span><div class="text"><span class="name">Human</span><span class="desc">No gifts, no limits: any class, any level.</span><span class="src">No requirement · p. 16</span></div><span class="info">ⓘ</span></div>
+    <div class="foot"><span class="spacer"></span><span class="hint">Bog folk picked</span><span class="btn accent">Next</span></div>
+  </div>
+  <div class="panel">
+    <div class="bar" style="border:0; padding:0;"><span class="title" style="font-size:20px;">Bog folk</span><span class="meta">Fen rules · p. 12</span><span class="btn icon" aria-label="Close">✕</span></div>
+    <dl>
+      <dt>Requirement</dt><dd>CON 9 or more · you have 11 <span class="ok">✓</span></dd>
+      <dt>Score changes</dt><dd>CON −1, DEX +1 (applied when you pick)</dd>
+      <dt>Advantages</dt><dd>Sees 60 ft in the dark · hard to poison (+2 on those saves) · finds hidden doors on a 2-in-6</dd>
+      <dt>Disadvantages</dt><dd>Slow in heavy armour · may not be a knight or a priest · stops at level 8 as a fighter, 10 as a thief</dd>
+      <dt>Languages</dt><dd>Common, Bog-tongue, alignment tongue</dd>
+      <dt>Open classes</dt><dd>Fighter (to 8), Thief (to 10), Hedge-mage (to 9)</dd>
+    </dl>
+  </div>
+</div>
+<p class="note">Each row: name · blurb · a <b>fit line</b> worked out from the player's scores ("Needs CON 9 · you have 11 ✓"; an unmet one shows the number in bold, the row stays tappable) · source and page · <b>ⓘ</b> opens the full entry in the pack's words, grouped as requirement, score changes, advantages, disadvantages, languages, open classes — a side panel on a landscape tablet, a sheet on a phone. Picking a kindred <b>applies its score changes to the strip at the top</b> ("CON 11 → 10 · bog folk −1"), which stays through every later step. An unmet requirement (amended 2026-11-02, ca-3): the row adds <b>"Needs the GM's special approval"</b>; the player may pick it and go on, Next says "Stone kin needs DEX 9 · you have 8 · the GM will be asked at approval", and the GM's approval screen flags the choice. No Request mid-creation. Race and Class have <b>no Decide later</b> (ca-2).</p>
+
+<h1>2 · Race on a phone (375 px)</h1>
+<div class="screen phone">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Kindred</span><span class="meta">3 / 10</span></div>
+  <div class="strip"><span>STR <b>13</b></span><span>INT <b>9</b></span><span>WIS <b>16</b></span><span>DEX <b>8</b></span><span>CON <b>11→10</b></span><span>CHA <b>12</b></span></div>
+  <p class="why">What you are: body, trust, open classes. <span class="btn quiet">Help me choose</span></p>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Bog folk</span><span class="desc">Small and hardy; sees in the dark.</span><span class="src">CON 9 · you have 11 ✓ · p. 12</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Reed elf</span><span class="desc">Graceful, long-lived; frail.</span><span class="src">INT 9 · 9 ✓ · p. 14</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Stone kin</span><span class="desc">Tough, at home underground.</span><span class="src">DEX 9 · <b>8</b> · p. 15</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Human</span><span class="desc">No gifts, no limits.</span><span class="src">p. 16</span></div><span class="info">ⓘ</span></div>
+  <div class="foot"><span class="spacer"></span><span class="btn accent">Next</span></div>
+</div>
+
+<h1>3 · Class — open classes first, the rest in a folded group</h1>
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Class</span><span class="meta">Step 4 of 10</span></div>
+  <div class="strip"><span>Bog folk</span><span>STR <b>13</b></span><span>INT <b>9</b></span><span>WIS <b>16</b></span><span>DEX <b>9</b></span><span>CON <b>10</b></span><span>CHA <b>12</b></span></div>
+  <p class="why">Your class is what you do: how you fight, what you can learn, how fast you grow. <span class="btn quiet">Help me choose</span></p>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Fighter</span><span class="desc">Any weapon, any armour; the party's shield.</span><span class="src">Prime STR 13 · +5% XP · d8 hp · to level 8 as bog folk · p. 20</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Thief</span><span class="desc">Locks, traps, shadows; a knife in the back.</span><span class="src">Prime DEX 9 · 0% XP · d4 hp · to level 10 · p. 24</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Hedge-mage</span><span class="desc">A few spells a day, no armour; learns from books.</span><span class="src">Prime INT 9 · 0% XP · d4 hp · to level 9 · casts · p. 28</span></div><span class="info">ⓘ</span></div>
+  <div class="group"><span class="btn quiet">Not open to bog folk · 5 ›</span><span class="meta">knight, priest, bard, ranger, duellist — shown for reference</span></div>
+  <div class="foot"><span class="spacer"></span><span class="hint">Fighter picked</span><span class="btn accent">Next</span></div>
+</div>
+<p class="note">The class row's fit line is worked out live: the <b>prime requisite and the XP bonus it earns</b> from the player's score (the pack's prime-requisite XP table), the hit die, the <b>level cap for the chosen race</b>, "casts" for a caster, the page. Classes the race may not take sit in a folded group at the foot, named for why, never hidden (the player may be curious; the GM may lift the limit with the setting's option). The ⓘ panel: requirements, prime requisites, hit die, armour and weapons allowed, abilities by level (names and the pack's notes), restrictions, spellcasting, level titles. With "Simple" (one pick for kind and class) this step's rows are the kind-classes and the Race step doesn't exist.</p>
+
+<h1>4 · Help me choose — about the choice, not the options</h1>
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Close">✕</span><span class="title">Choosing a class</span></div>
+  <p>The pack's guidance when it has one (<code>creationGuide.class.help</code>). Otherwise the app's own, generic and rules-free:</p>
+  <p><b>What this decides.</b> How you fight, what you can learn, how fast you level, what you may wear and carry.</p>
+  <p><b>What to weigh.</b> Your best score: a class whose prime requisite matches it earns bonus XP. Your race's level cap. Whether you want spells (a caster starts fragile and grows). What the party lacks.</p>
+  <p><b>If you're unsure.</b> A fighter is the simplest to play well. Pick one now: every later step builds on it.</p>
+</div>
+<p class="note">Checked: the fit lines put the consequence beside the choice (recognition over recall); unmet requirements are visible, not hidden, and Next explains; 44 px rows and ⓘ targets; 375 px as one column with the strip wrapping; long names and blurbs wrap; one accent per screen; never colour alone (✓ and words, bold numbers with words). Not drawn: dark mode; 20+ classes (setting A has 22: the list scrolls, open classes first, the folded group at the foot; a search field appears above 12 rows).</p>
+</body>
+</html>

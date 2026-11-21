@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Magic 04: the Magic tab, on the standard (redrawn with mp-1 … mp-21, 2026-11-09)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="magic.css">
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="magic.js"></script>
+<script>
+const prepareRow = (sub) => `<div class="list">${`<div class="row"><div class="text">Prepare<small>${sub}</small></div>${I.chev}</div>`}</div>`;
+const glamours = `
+    <h2>Glamours</h2>
+    <div class="list">
+      ${item('Moth veil', 'Once a day, 1 left. Unseen while still', 'Use')}
+      ${item('Glow-worm\'s wink', 'Any time. A small light for 1 turn', 'Use')}
+      ${item('Bird speech', 'Any time. Small birds answer plainly')}
+    </div>`;
+
+const ready = phone(`
+  ${topbar('Wren')}
+  <div class="inner">
+    ${prepareRow('For your next rest')}
+    <h2>Spells</h2>
+    ${level('Level 1, 2 a day')}
+    <div class="list">
+      ${item(`Mire lamp${dots(2, 2)}`, '6 turns, 30 ft. A light', 'Cast')}
+    </div>
+    ${level('Level 2, 1 a day')}
+    <div class="list">${item('Reed whisper', 'Instant, 1 mile', 'Cast')}</div>
+    ${glamours}
+    ${tabs('magic')}
+  </div>`, 'Ready this morning (a book caster, level 3). Prepare is a row, first, since it opens a screen. Then what is ready, by level: the level line says how many a day. A spell prepared more than once is one row with a dot for each casting; a spell prepared once has no dots (mm-1). Each other kind of magic is its own list under the pack\'s own word (here Glamours): Use where there are uses or the app tracks what it starts; a chevron where it is only a rule to read (mp-15).');
+
+const afterCast = phone(`
+  ${topbar('Wren')}
+  <div class="inner">
+    ${prepareRow('For your next rest')}
+    <h2>Spells</h2>
+    ${level('Level 1, 2 a day')}
+    <div class="list">
+      ${item(`Mire lamp${dots(1, 2)}`, '6 turns, 30 ft. A light', 'Cast')}
+    </div>
+    ${level('Level 2, 1 a day')}
+    <div class="list">${spent('Reed whisper', 'Cast, turn 9')}</div>
+    ${toast('Mire lamp cast. The light is lit')}
+    ${tabs('magic')}
+  </div>`, 'After a tap on Cast: one dot goes hollow and the spell stays castable while a dot is left (Mire lamp, one of two cast). When no casting remains the spell is crossed out and says "Cast" in words with when (Reed whisper, prepared once, so it never had dots). The toast names what started by itself, with Undo (later from the log). Nothing asked who or where (mp-6).');
+
+const rules = phone(`
+  ${topbar('Wren')}
+  <div class="inner" style="min-height:600px">
+    <h2>Spells</h2>
+    ${level('Level 1, 2 a day')}
+    <div class="list">${item('Mire lamp', '6 turns, 30 ft. A light', 'Cast')}</div>
+  </div>
+  ${sheet('Mire lamp', `
+    <p style="margin:0 0 var(--space-2)">A cold light that follows you. Wind and water can't put it out.</p>
+    <div class="list">
+      ${kvRow('Lasts', '6 turns')}
+      ${kvRow('Reaches', '30 ft')}
+      ${kvRow('Level', '1')}
+    </div>
+    <p class="meta" style="margin:var(--space-2) 0 0">Worked out for Wren, level 3: 3 turns and 1 a level.</p>
+    <p class="meta" style="margin:var(--space-1) 0 0">Fen sample, p. 40</p>
+    <div class="foot"><span class="say"></span><span class="btn">Cast</span></div>
+  `)}`, 'The name (anywhere on the row but the button) opens the rules: what it does, the duration and range worked out for this caster, the source. Cast is here too, plain. The same sheet in Prepare, without Cast.');
+
+const states = phone(`
+  ${topbar('Brother Alder')}
+  <div class="inner">
+    ${prepareRow('For your next rest')}
+    <h2>Spells</h2>
+    <div class="card"><div class="kv"><div class="text">Nothing ready<small>You haven't chosen since your last rest. Choose in Prepare; they're ready after you rest.</small></div></div></div>
+    <h2>From the shrine at Heron Jetty</h2>
+    <div class="list">${item('Warding word', 'Until cast. 1 round, yourself', 'Cast')}</div>
+    <h2>Turning</h2>
+    <div class="list">${item('Turn the restless dead', 'The table, with your row picked out')}</div>
+    ${tabs('magic')}
+  </div>`, 'Other states (a prayer caster). Nothing ready: words, and where to go. A shrine\'s blessing given by the GM: one extra ready spell under its source, kept until cast (mp-19). Turning is a reference row (mp-11): it opens the rule and the table; Turn is at that sheet\'s foot.');
+
+const blocked = phone(`
+  ${topbar('Wren')}
+  <div class="inner" style="min-height:420px">
+    <h2>Spells</h2>
+    ${level('Level 1, 2 a day')}
+    <div class="list">${item('Mire lamp', '6 turns, 30 ft. A light', 'Cast')}</div>
+  </div>
+  ${sheet('Wren can\'t cast now', `
+    <p style="margin:0 0 var(--space-3)">Wren is wearing an iron coat. A Reed Witch can't cast in it.</p>
+    <div class="foot"><span class="say"></span><span class="btn">OK</span></div>
+  `)}`, 'Cast is never disabled: when something stops the caster, the tap explains why.');
+
+const fourTabs = phone(`
+  ${topbar('Wren')}
+  <div class="inner">
+    <h2>Spells</h2>
+    ${level('Level 1, 2 a day')}
+    <div class="list">${item('Mire lamp', '6 turns, 30 ft. A light', 'Cast')}</div>
+    ${tabs('magic', ['player', 'scene', 'pack', 'magic'])}
+  </div>`, 'B, the other way: four tabs for a caster, Magic in Log\'s place; the log opens from the top row\'s ⋯. A caster\'s bar then differs from everyone else\'s.');
+
+const tabletLayout = tablet(`
+  ${topbar('Wren')}
+  <div class="cols wide-left">
+    <div>
+      ${prepareRow('For your next rest')}
+      <h2>Spells</h2>
+      ${level('Level 1, 2 a day')}
+      <div class="list">${item(`Mire lamp${dots(1, 2)}`, '6 turns, 30 ft. A light', 'Cast')}</div>
+      ${level('Level 2, 1 a day')}
+      <div class="list">${spent('Reed whisper', 'Cast, turn 9')}</div>
+      ${glamours}
+    </div>
+    <div class="panel">
+      <h2>Full sheet: Magic</h2>
+      <div class="sub"><span class="on">Spell book</span><span>Glamours</span></div>
+      ${level('Level 1')}
+      <div class="list">${item('Mire lamp', 'Learned at creation')}${item('Mend lantern', 'Learned at creation')}${item('Thorn dart', 'From the scroll at Heron Jetty')}</div>
+      ${level('Level 2')}
+      <div class="list">${item('Reed whisper', 'Learned at level 3')}</div>
+    </div>
+  </div>`, 'Landscape tablet, the Magic tab chosen on the rail (not drawn): the play column on the left, the full sheet\'s Magic section beside it. Beside the play column the section has no Prepared tab, since the same spells are one column away (mp-21); it opens on the spell book, with where each spell came from.');
+
+mount(`
+  <h1>The Magic tab</h1>
+  <p class="note"><b>Approved by Francis, 2026-11-10</b>, with one change drawn here: a dot for each casting instead of a row for each (mm-1, <code>rulings/m5c-magic-mockups-2026-11-10.md</code>). Redrawn on the players' standard with the paper test's rulings (mp-1 … mp-21, <code>rulings/m5c-magic-in-play-2026-11-05.md</code>). Replaces the rough draft <code>03-player-magic-two-ways</code>. A character with any magic gets this tab; the Player screen carries no Spells section (mp-20). Invented names and figures.</p>
+  <h1>Phone</h1>
+  <div class="wall">${ready}${afterCast}${rules}</div>
+  <div class="wall" style="margin-top:var(--space-4)">${states}${blocked}</div>
+  <h1>Tablet, landscape</h1>
+  ${tabletLayout}
+  <h1>The phone's bar with five tabs (ruled A, 2026-11-10)</h1>
+  <p class="note">mp-20 was ruled on 2026-11-05 as "a fourth tab beside Player, Scene and Pack". Two days later the phone's bar gained Log as its fourth (slice E). So a caster on a phone has five. <b>A, ruled (mm-2):</b> five tabs, each 68 px wide at 343 px, labels at 14 px; the bar is the same for everyone, with Magic added for casters. Five is the limit: a sixth tab needs a new answer first. <b>B, turned down:</b> below.</p>
+  <div class="wall">${fourTabs}</div>
+  <p class="note">The Magic tab's symbol (approved with the screen, mm-2): a crescent moon with a spark; the star is taken by Pin, the flame by Scene.</p>
+  <p class="note">Self-review: every target 44 px with 8 px between; nothing under 14 px; no accent in the steady state (each row's own button acts); a cast spell is crossed out and says "Cast" in words, never colour alone; no disabled button (Cast explains); light and dark from the same markup; 343 px inside a 375 px phone, with five tabs. Not drawn: a long spell name on this tab (it is in Prepare, mockup 06); a caster with four kinds of magic (the tab scrolls; each kind keeps its heading); offline (the app's usual line); the GM looking at a player's Magic tab (the same screen, the character's name in the bar); "All Reed Witch spells" in ⋯.</p>
+`);
+</script>
+</body>
+</html>

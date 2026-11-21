@@ -1,0 +1,550 @@
+/* The GM's place page (dec-7 piece 5b; page 11 of the December mockups, approved pg-1). Tokens only. Drawn inside
+   `.book-faces` (po-3): headings take the book's face through --font-heading. */
+.place-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* Two columns from 680 px (frames 1a, 1b; page 16, T12 A, ap-16): the card at the left, the right column beside it.
+   Under the top tabs (600 to 1023 px) too; at 680 px the right column (about 250 px) still holds the marching order's
+   ranks and its lock line on one line each; at 600 px they wrap, so below 680 px the page stays one column. */
+@media (min-width: 680px) {
+  .place-page--two {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: start;
+    gap: var(--space-4);
+  }
+}
+
+.place-page__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.place-page__card,
+.place-page__box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+}
+
+.place-page__box {
+  gap: var(--space-2);
+}
+
+/* The book's sub-heading: "Locations", "Checks here", "Tables" (page 11; no "Pieces" since p2p-10). */
+.place-page__heading {
+  margin: 0;
+  color: var(--book-subhead);
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-book-subhead);
+  line-height: var(--line-heading);
+}
+
+.place-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.place-page__count {
+  margin-inline-start: auto;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.place-page__hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+}
+
+/* The trail (rg-1): each place up it a tap, the place itself last and not a tap. */
+.place-page__trail ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-14);
+}
+
+.place-page__trail li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+/* The trail's places are the quiet button (navigation, fl-1), at the trail's size. */
+.place-page__trail-link {
+  min-block-size: var(--tap);
+  font-size: inherit;
+  text-align: start;
+  overflow-wrap: break-word;
+}
+
+.place-page__trail-here {
+  font-weight: var(--weight-book-name);
+  overflow-wrap: break-word;
+}
+
+/* A Region in the trail (B2): plain words, not a tap, until its own panel is approved (LA2b); set where the quiet
+   button's words would sit, so the trail keeps its line. */
+.place-page__trail-words {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap);
+  padding: 0 var(--space-2);
+  overflow-wrap: break-word;
+}
+
+/* Reading ahead (B2; p2p-9; LA3, LA4): one line at the very top of the card, on the selected wash, the words at the
+   left and "Back to the party" at the right; on a phone the words alone (the button is in the fixed bar). */
+.place-page__ahead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-3);
+  align-items: center;
+  min-block-size: var(--tap);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  background: var(--selected);
+  color: var(--ink);
+}
+
+.place-page--phone .place-page__ahead {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.place-page__ahead-words {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: break-word;
+}
+
+.place-page__back {
+  white-space: nowrap;
+}
+
+/* The Locations panel (B2; LA2): rows of the dotted list, each name bold, its one line cut with "…"; the party's row
+   on the selected wash with the accent's edge at its left, its mark before its name. */
+.place-page__panel .list-row__title {
+  font-weight: var(--weight-book-name);
+}
+
+.place-page__panel .list-row__sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place-page__panel-here > .list-row {
+  min-block-size: var(--tap);
+  padding-inline: var(--space-3) var(--space-2);
+  border-block-end: var(--line-hair) dotted var(--rule);
+  background: var(--selected);
+  box-shadow: inset var(--line-selected) 0 0 0 var(--selected-edge);
+}
+
+.place-page__panel-mark {
+  display: inline-flex;
+  flex: none;
+}
+
+.place-page__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.place-page__title-words {
+  display: flex;
+  /* The name's column asks for its floor (13 rem) beside the actions; where the card can't give it that, the actions go
+     under the name (ap-16, page 16 T12 A; placeHeadFit.ts). It is never wider than its line, so a single word wider
+     than the line breaks rather than pushing the page sideways (the lead, 2026-11-14). */
+  flex: 1 1 var(--place-name-floor);
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: min(100%, var(--place-name-floor));
+}
+
+.place-page__name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-30);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+  /* Names break only between words; a single word wider than its line breaks (the lead, 2026-11-14). */
+  overflow-wrap: break-word;
+}
+
+.place-page__around {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.place-page__head-actions {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.place-page__head-actions .place-rule-buttons {
+  flex-wrap: nowrap;
+}
+
+/* ap-16 (page 16, T12 A): a card too narrow for the actions beside the name's floor puts them on a line of their own
+   under the name and its line, at the right (ft-1); the name and its line take the card's whole width. */
+.place-page__title-row--under {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.place-page__title-row--under .place-page__title-words {
+  flex: none;
+}
+
+.place-page__title-row--under .place-page__head-actions {
+  align-self: flex-end;
+}
+
+.place-page__move {
+  white-space: nowrap;
+}
+
+/* Knowledge and Rules, a pair across the card (01-01). */
+.place-page__pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-2);
+}
+
+/* The map's button on a phone (S13, frames 4a and 4b): the card's width, under Knowledge and Rules. */
+.place-map__open {
+  width: 100%;
+}
+
+.place-page__rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.place-page__rows > li + li {
+  border-top: var(--row-rule);
+}
+
+/* "Spots here" (frame 8): plain rows, no eye and no count, nothing to tap. */
+.place-page__spot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-block: var(--space-2);
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.place-page__spot-name {
+  font-weight: var(--weight-book-name);
+}
+
+.place-page__spot-line {
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+}
+
+/* The place's own check with its toggle (rg-5a), boxed as drawn. */
+.place-page__check {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--control);
+  border-radius: var(--radius-card);
+}
+
+.place-page__check .switch {
+  inline-size: 100%;
+}
+
+/* The check's line in bold, the pack's sentence under it in running text (LA1). */
+.place-page__check .switch__name {
+  font-weight: var(--weight-book-name);
+}
+
+/* The pack's own sentence under the check's line (p2p-14; LA1): running text at body size, its die drawn before it. */
+.place-page__check-sentence {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: break-word;
+}
+
+/* A word of the description that names another piece (p2p-10; LA1): bold and underlined. */
+.place-page__named {
+  font-weight: var(--weight-book-name);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+}
+
+/* The pieces' foot (p2p-10; LA1): "+ Piece" and "+ Picture" at the left, the count and Hide all at the right; the
+   form, while open, takes the whole line above them. */
+.place-page__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.place-page__foot > .place-page__form {
+  flex: 1 1 100%;
+}
+
+.place-page__foot-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+/* Notes, fully folded (p2p-12; LA1): the word and the fold mark on one row, a dotted rule above it; opened, the notes
+   and then the pack's source line. */
+.place-page__notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-top: var(--row-rule);
+}
+
+.place-page__notes-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-block-size: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.place-page__notes-word {
+  font-weight: var(--weight-book-name);
+}
+
+.place-page__notes-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.place-page__notes-body > .field {
+  align-self: stretch;
+}
+
+.place-page__check-line {
+  padding-block: var(--space-2);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+/* A piece: its words (the tap that edits it) and the bare eye at the right (ds-2). */
+.place-page__piece {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.place-page__piece-words {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  min-block-size: var(--tap);
+  padding: var(--space-2) 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.place-page__piece-text {
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: break-word;
+}
+
+.place-page__fact {
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+}
+
+.place-page__eye {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--tap);
+  block-size: var(--tap);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.place-page__eye:active {
+  background: var(--tint);
+}
+
+/* The picture, the first row of Pieces: the thumbnail and "Picture." as one tap that opens it (TW13), then the eye. */
+.place-page__picture-open {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  min-block-size: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.place-page__piece--picture {
+  align-items: flex-start;
+  padding-block: var(--space-2);
+}
+
+/* The thumbnail in its frame (the picture row is the tap, TW13; the picture itself has none). */
+.place-page__thumb .place-picture__img {
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius-card);
+}
+
+.place-page__thumb {
+  flex: none;
+  inline-size: calc(var(--tap) * 2.75);
+}
+
+.place-page__picture-words {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.place-page__picture-actions,
+.place-page__adds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* "+ Picture" (a word button; not in LA1, which has a picture) takes the height of "+ Piece", the stacked button beside
+   it: one height in a row (ruled 2026-11-18). */
+.place-page__adds > .button-secondary {
+  align-self: stretch;
+}
+
+/* The piece's form, in place at the foot of Pieces (frame 7). */
+.place-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--control);
+  border-radius: var(--radius-card);
+}
+
+.place-page__form-title {
+  margin: 0;
+  font-size: var(--text-20);
+  font-weight: var(--weight-book-name);
+}
+
+.place-page__form-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: var(--row-rule);
+}
+
+.place-page__form-end {
+  display: flex;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+/* The phone (frames 4a to 4c, W2): Move on fixed above the tab bar, the rule's button beside it; the screen's column
+   keeps room for it at its foot, so nothing under the page (the log's recent lines) hides behind it. */
+.gm__main:has(.place-page--phone) {
+  padding-bottom: calc(var(--tap-step) + var(--space-4));
+}
+
+.place-page__bar {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: calc(var(--tab-bar) + env(safe-area-inset-bottom, 0px));
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--gutter);
+  border-top: var(--line-hair) solid var(--rule);
+  background: var(--page);
+}
+
+/* The toast rises above Move on's bar, never over it (the #785 review): the bar's height (its button and padding)
+   added to the toast's own offset above the tab bar. */
+body:has(.place-page__bar) .toast-host {
+  inset-block-end: calc(var(--tab-bar) + var(--tap-step) + var(--space-4) + var(--line-hair) + var(--space-3) + env(safe-area-inset-bottom, 0px));
+}
+
+.place-page__bar .place-page__move {
+  flex: 1;
+  min-block-size: var(--tap-step);
+}

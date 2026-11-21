@@ -1,0 +1,18 @@
+/* Ogham's saying: quiet, one line, set apart from the screen's own words. */
+.saying {
+  margin: var(--pad) 0 0;
+  padding: var(--pad) 0 0;
+  border-top: var(--row-rule);
+}
+
+.saying__text {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-sheet);
+  font-style: italic;
+  color: var(--muted);
+}
+
+.saying__source {
+  margin: var(--space-1) 0 0;
+}

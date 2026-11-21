@@ -1,0 +1,16 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-gleam-fen-region",
+    "name": "Gleam fen region (pack:check after the gate)",
+    "version": "0.1",
+    "kind": "adventure",
+    "author": "Invented for the app's tests",
+    "description": "An invented region for the Gleam fen fixture: it holds the place one uncommon spell is found at (us-1), and not the other.",
+    "requires": [{ "packId": "fixture-gleam-fen" }]
+  },
+  "locations": [
+    { "id": "drowned-chapel", "name": "The drowned chapel", "description": "A chapel the fen took back." }
+  ]
+}

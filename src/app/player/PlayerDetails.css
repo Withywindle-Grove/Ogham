@@ -1,0 +1,68 @@
+/* Details on the Player screen (dec-13 C4; page M1, approved 2026-11-19): folded to its heading and chevron (tfr-1),
+   the whole heading row the tap; opened, the book's labelled lines (`.book-line`, `.book-label`, the "Entry, book
+   format" part's) in place under it. The rule at the lines' start is decoration only. */
+/* Frame M1f's spacing (the local review of #1068): the heading row 12 px under the level block, as the frame's
+   `.pt-fold` sits. The column's parts are `--space-5` apart (`.player__pane` in PlayerScreen.css), so the section takes
+   back the difference and drops the sheet section's own top padding. */
+.sheet__section.player-details-section {
+  padding-block-start: 0;
+  margin-block-start: calc(var(--space-3) - var(--space-5));
+}
+
+.player-details__heading {
+  margin: 0;
+}
+
+/* The heading row: the section's small-caps label at the left, the chevron at the right edge, a 44 px target across
+   the column. The words keep the heading's own type (`.sheet__label`), as `.sheet__label-tap` does. */
+.player-details__fold {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-block-size: var(--tap);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-variant: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.player-details__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--tap);
+  block-size: var(--tap);
+  flex: none;
+  color: var(--ink);
+}
+
+/* Down while folded, up while open: the shared fold's turn (`.creation-fold__mark`). */
+.player-details__mark .icon {
+  transform: rotate(90deg);
+}
+
+.player-details__fold--open .player-details__mark .icon {
+  transform: rotate(-90deg);
+}
+
+.player-details {
+  border-inline-start: var(--line-strong) solid var(--accent);
+  padding-block: var(--space-1);
+  padding-inline-start: var(--space-3);
+  color: var(--ink);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.player-details > :last-child {
+  margin-block-end: 0;
+}

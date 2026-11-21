@@ -1,0 +1,76 @@
+/* The coin's sheets (K10; mockup pack/07 PC3 to PC5, approved 2026-11-13). Tokens only. */
+
+/* The amounts by coin as the book's labelled lines, then the rows that lead on. */
+.purse-sheet__amounts {
+  margin-block-end: var(--space-2);
+}
+
+/* The way back to the coin's sheet, at the top (psw-6). */
+.purse-sheet__back {
+  align-self: flex-start;
+}
+
+/* A row a coin: its name with what the character has under it, and a box for how much. */
+.purse-sheet__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc(var(--space-8) + var(--space-7));
+  gap: var(--space-3);
+  align-items: center;
+  min-block-size: calc(var(--tap) + var(--space-2));
+  padding-block: var(--space-1);
+  border-block-end: var(--row-rule);
+}
+
+.purse-sheet__coin {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.purse-sheet__name {
+  font-weight: var(--weight-book-name);
+}
+
+.purse-sheet__has {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* A typed figure is ink and bold; an untyped box shows a quiet 0, muted and regular (PC4). */
+.purse-sheet__box {
+  inline-size: 100%;
+  min-block-size: var(--tap);
+  text-align: end;
+  font-weight: 700;
+  font-variant-numeric: normal;
+}
+
+.purse-sheet__box::placeholder {
+  color: var(--muted);
+  font-weight: 400;
+  opacity: 1;
+}
+
+/* A refusal under the coin's row, with the warning sign; the button stays a button (pu-5). */
+.purse-sheet__refusal {
+  margin: var(--space-1) 0 var(--space-2);
+}
+
+.purse-sheet__for {
+  margin-block-start: var(--space-3);
+}
+
+/* The one accent, at the right, naming the amount: the shared sheet foot (`.dialog__actions`, ft-1). */
+.purse-sheet__foot {
+  margin-block-start: var(--space-3);
+}
+
+/* Its words keep the amount on one line (the lead, 2026-11-14): the stacked button's cap is lifted to the sheet's
+   width, so the line wraps only where it can't fit at all; at least two taps wide (88 px, ms-1). */
+.purse-sheet__go.stacked-button {
+  min-inline-size: calc(var(--tap) * 2);
+  max-inline-size: 100%;
+  padding-inline: var(--space-3);
+  overflow-wrap: normal;
+}

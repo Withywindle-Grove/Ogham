@@ -1,0 +1,59 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-fen-layout-keys",
+    "name": "Invented layout keys sample",
+    "shortName": "Fen keys",
+    "version": "0.1",
+    "kind": "setting",
+    "author": "Invented for the app's tests",
+    "description": "An invented setting whose sheet layout keys are written in mixed case (swordDrills, WARDNUM, strikeBonus), as real packs write them, so a test can follow a campaign's fields from \"Use this sheet layout\" to the option gates (gate check 59)."
+  },
+  "options": [
+    {
+      "id": "fen-sword-drill",
+      "name": "Sword drills",
+      "default": "off",
+      "changeLater": "allow",
+      "category": "Characters",
+      "choices": [
+        { "id": "off", "name": "No drills", "notes": "Nobody keeps drills." },
+        { "id": "on", "name": "Drills", "notes": "Each character keeps a list of drills." },
+        { "id": "on-master", "name": "Drills and masters", "notes": "Drills, and one may be mastered." }
+      ],
+      "notes": "Whether characters keep sword drills."
+    },
+    {
+      "id": "fen-guard-style",
+      "name": "Guard numbers",
+      "default": "low-chart",
+      "changeLater": "allow",
+      "category": "Combat",
+      "choices": [
+        { "id": "low-chart", "name": "Low guard, chart", "notes": "A lower guard is better; strikes read a chart." },
+        { "id": "low-number", "name": "Low guard, one number", "notes": "A lower guard is better; strikes read one number." },
+        { "id": "high", "name": "High guard", "notes": "A higher guard is better; strikes add a bonus." }
+      ],
+      "notes": "How guard and strikes are counted."
+    }
+  ],
+  "classes": [
+    { "id": "lantern-warden", "name": "Lantern Warden", "hitDie": "d6" },
+    { "id": "reed-witch", "name": "Reed Witch", "hitDie": "d4" }
+  ],
+  "fieldTemplates": [
+    {
+      "id": "fen-keys-sheet",
+      "name": "Fen keys sheet",
+      "appliesTo": "pc",
+      "fields": [
+        { "key": "MUS", "label": "MUS", "type": "number", "group": "Abilities", "showOnCard": true },
+        { "key": "WARDNUM", "label": "Ward number [strike bonus]", "type": "text", "group": "Combat", "showOnCard": true, "fill": "attack", "option": ["fen-guard-style=low-chart", "fen-guard-style=low-number"] },
+        { "key": "strikeBonus", "label": "Strike bonus", "type": "text", "group": "Combat", "showOnCard": true, "fill": "attack", "option": ["fen-guard-style=high"] },
+        { "key": "swordDrills", "label": "Sword drills", "type": "text", "group": "Combat", "showOnCard": false, "option": ["fen-sword-drill=on", "fen-sword-drill=on-master"] },
+        { "key": "wardenOath", "label": "Warden's oath", "type": "text", "group": "Who they are", "forClasses": ["lantern-warden"] }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Creation: the prime-requisite experience table (2026-11-08)</title>
+<link rel="stylesheet" href="final.css">
+<style>
+  .xp { width:100%; border-collapse:collapse; font-size:16px; margin:var(--space-3) 0; }
+  .xp th { text-align:left; font-weight:600; font-size:14px; color:var(--muted); padding:var(--space-1) var(--space-2); border-bottom:1px solid var(--rule); }
+  .xp td { padding:var(--space-2); border-bottom:1px dotted var(--rule); font-variant-numeric:tabular-nums; }
+  .xp td:last-child, .xp th:last-child { text-align:right; }
+  .xp tr.you td { background:var(--wash); font-weight:600; }
+  .xp tr.you td:first-child::after { content:" — you"; font-weight:400; color:var(--muted); }
+  .xp caption { text-align:left; font-weight:600; padding:0 0 var(--space-1); caption-side:top; }
+  .side { display:grid; grid-template-columns:1fr 280px; gap:var(--space-5); align-items:start; }
+  .tile .name { font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .tile .big { font-family:"EB Garamond", Georgia, serif; font-size:28px; font-weight:600; line-height:1.1; margin:var(--space-2) 0; }
+  .tag { display:inline-block; border:1.5px solid var(--control); border-radius:4px; padding:0 6px; font-size:14px; }
+  .fit { color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+const xpTable = (band, { caption = 'Prime score and experience' } = {}) => `
+  <table class="xp" aria-label="${caption}">
+    <caption>${caption}</caption>
+    <tr><th>Prime score</th><th>Experience</th></tr>
+    ${[['3–5','−20 %'],['6–8','−10 %'],['9–12','+0 %'],['13–15','+5 %'],['16–18','+10 %']].map(([r,x],i) => `<tr${i===band?' class="you"':''}><td>${r}</td><td>${x}</td></tr>`).join('')}
+  </table>`;
+
+const lead = `<p><b>Your primes are Charm and Muscle</b>, the Lantern Warden's main scores. With two primes the lower one sets your experience. Lower another score by 2 to raise a prime by 1. Nothing may go under 9.</p>`;
+
+const phoneAdjust = phone(`
+  ${bar('Adjust scores')}
+  <div class="inner">
+    <div class="meta">Step 4 of 10</div>
+    ${lead}
+    <div class="meta">Charm 11 is the lower prime: +0 % experience now; +5 % from 13.</div>
+    ${helpOpen(`<p style="margin-top:0">Raising a prime pays off at the band edges. Your experience follows the lower prime, Charm 11 today.</p>${xpTable(2)}<p class="meta" style="margin:0">Lower a score you lean on least; nothing goes under 9, and a prime stops at 13 by adjustment. If unsure, ask your GM.</p>`)}
+    <div class="tiles" style="grid-template-columns:1fr 1fr">
+      <div class="card tile"><div class="name">${I.info}Muscle <span class="tag">Prime</span></div><div class="big">13</div><div class="kv"><span class="btn sq">+1</span></div><div class="meta">was 12</div></div>
+      <div class="card tile"><div class="name">${I.info}Charm <span class="tag">Prime</span></div><div class="big">11</div><div class="kv"><span class="btn sq">+1</span></div><div class="meta">+5 % from 13</div></div>
+      <div class="card tile"><div class="name">${I.info}Wit</div><div class="big">8</div>${warn('Under 9: can’t be lowered')}</div>
+      <div class="card tile"><div class="name">${I.info}Nimbleness</div><div class="big">10</div><div class="kv"><span class="btn sq">−2</span></div><div class="meta">was 12</div></div>
+    </div>
+  </div>
+  ${foot('2 points banked', true, 'accent')}`,
+  'Adjust scores on a phone (Francis: "it can be hidden in Help me choose"): the lead and one line (which prime counts, the modifier now, the next threshold) stay on the step; Help me choose, open here, holds the table from the pack’s prime-requisite data with the character’s band washed and marked "you". Closed, the step is as today.');
+
+const phoneClass = phone(`
+  ${bar('Class')}
+  <div class="inner">
+    <div class="meta">Step 3</div>
+    ${helpOpen(`<p style="margin-top:0">A class decides what you do well and how fast you grow. Experience follows your prime score (the lower one with two):</p>${xpTable(2, { caption: '' })}<p class="meta" style="margin:0">Each row below says your experience now with your scores. If unsure, a Lantern Warden is a plain start, or ask your GM.</p>`)}
+    ${pick('Lantern Warden', 'Primes Charm and Muscle, hit die d8, +0 % experience now', 'picked')}
+    ${pick('Reed Witch', 'Prime Wit, hit die d4, −10 % experience now', 'pick')}
+  </div>
+  ${foot('Lantern Warden picked', true, 'accent')}`,
+  'The Class step: the fit line on each row says the experience now; the table lives in Help me choose (open here) with the band of the class being weighed. Nothing added to the rows.');
+
+const tab = tablet(`
+  ${bar('Adjust scores')}
+  <div class="inner">
+    <div class="meta">Step 4 of 10</div>
+    <div class="side">
+      <div>${lead}<div class="meta">Charm 11 is the lower prime: +0 % experience now; +5 % from 13.</div></div>
+      <div>${helpOpen(`<p style="margin-top:0">Your experience follows the lower prime, Charm 11 today.</p>${xpTable(2)}`)}</div>
+    </div>
+    <div class="tiles" style="grid-template-columns:repeat(4,1fr); margin-top:var(--space-4)">
+      <div class="card tile"><div class="name">${I.info}Muscle <span class="tag">Prime</span></div><div class="big">13</div><div class="kv"><span class="btn sq">+1</span></div><div class="meta">was 12</div></div>
+      <div class="card tile"><div class="name">${I.info}Charm <span class="tag">Prime</span></div><div class="big">11</div><div class="kv"><span class="btn sq">+1</span></div><div class="meta">+5 % from 13</div></div>
+      <div class="card tile"><div class="name">${I.info}Wit</div><div class="big">8</div>${warn('Under 9: can’t be lowered')}</div>
+      <div class="card tile"><div class="name">${I.info}Nimbleness</div><div class="big">10</div><div class="kv"><span class="btn sq">−2</span></div><div class="meta">was 12</div></div>
+    </div>
+  </div>`,
+  'Tablet: Help me choose opens beside the explanation (the help panel takes the second column at this width), the table inside it; the tiles four across below.');
+
+const states = phone(`
+  <div class="inner">
+    <h3>One prime</h3>
+    ${xpTable(3)}
+    <div class="meta">Muscle 14: +5 % now; +10 % from 16.</div>
+    <h3>At the top band</h3>
+    ${xpTable(4)}
+    <div class="meta">Wit 17: +10 %, the most.</div>
+    <h3>No data in the pack</h3>
+    <p class="meta">The table is not drawn; the lead and the fit line stay. (A pack without the experience table has nothing to show.)</p>
+    <h3>A pack with other bands</h3>
+    ${`<table class="xp"><caption>Prime score and experience</caption><tr><th>Prime score</th><th>Experience</th></tr><tr><td>3–8</td><td>−10 %</td></tr><tr class="you"><td>9–12</td><td>+0 %</td></tr><tr><td>13–18</td><td>+10 %</td></tr></table>`}
+  </div>`,
+  'States: one prime, the top band, no data (nothing drawn), and a pack whose bands differ (the table is the pack’s rows, not a fixed five).');
+
+mount(`
+  <h1>Creation: the prime-requisite experience table (R3-7)</h1>
+  <p class="note">Francis, 2026-11-08 (retest 3): "For the XP bonus pictured, a simple table next to the explanation would be helpful." The table is the rules set’s <code>primeRequisiteXp</code> rows (range, experience); it lives inside Help me choose on Adjust scores and on the Class step (Francis: "it can be hidden in Help me choose"); the app marks the band the character’s prime falls in (the lower prime with two); the step itself keeps one line: the modifier now and the next band’s threshold. Invented bands here.</p>
+  <div class="wall">${phoneAdjust}${phoneClass}${states}</div>
+  <h1>Tablet</h1>
+  ${tab}
+  <p class="note">Self-review: body 16 in the table, 14 for its headers; the "you" band is washed and worded (never colour alone); the table has a caption and an accessible name; no new tap targets; one accent per screen (Next); 5 rows at 375 px take 230 px, acceptable before the tiles; a pack with 8 bands still fits. Not checked: the exact prose of the pack’s lead (shown shortened here); whether a pack states bands by a different key than the lower prime (none does today).</p>
+`);
+</script>
+</body>
+</html>

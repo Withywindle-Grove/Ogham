@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Campaign management</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:1180px;height:820px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:grid;grid-template-columns:260px minmax(0,1fr);overflow:hidden">
+
+<nav aria-label="Campaign sections" style="border-right:1px solid {{c.rule}};padding:18px 14px;display:flex;flex-direction:column;gap:4px;background:{{c.panel}}">
+<div style="display:flex;align-items:center;gap:10px;padding:0 6px 14px">
+<label for="campsigil" aria-label="Change the campaign sigil" style="width:52px;height:52px;flex:none;border-radius:50%;border:1px solid {{c.line}};display:flex;align-items:center;justify-content:center;cursor:pointer"><svg aria-hidden="true" width="30" height="30" viewBox="0 0 48 48" fill="none" stroke="{{c.acc}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 34c5-4 10-4 16 0s11 4 16 0"></path><path d="M8 26c5-4 10-4 16 0s11 4 16 0"></path><circle cx="24" cy="12" r="5"></circle></svg></label>
+<input id="campsigil" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0">
+<button aria-label="Rename the campaign" style="background:none;border:none;padding:0;min-height:44px;color:inherit;text-align:left;font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600;line-height:1.1;cursor:pointer">The Drowned Marches</button>
+</div>
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="5"><button onClick="{{t.go}}" aria-current="{{t.cur}}" style="{{t.style}}"><span>{{t.name}}</span><span style="font-size:13px;color:{{t.badgeColor}}">{{t.badge}}</span></button></sc-for>
+</nav>
+
+<main style="min-width:0;overflow-y:auto;padding:20px 28px;display:flex;flex-direction:column;gap:12px">
+
+<sc-if value="{{tRules}}" hint-placeholder-val="{{ true }}">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600">Setting rules</div>
+<div style="border:1px solid {{c.rule}};border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:14px">
+<span style="flex:1;display:flex;flex-direction:column"><span style="font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">River Rules (private)</span><span style="font-size:14px;color:{{c.mut}}">Version 0.2 · 22 classes, 10 races, 109 items, 15 stat blocks · imported Oct 18</span></span>
+<a href="Setup.dc.html" style="min-height:44px;display:inline-flex;align-items:center;padding:0 14px;border-radius:4px;border:1px solid {{c.line}};color:inherit;text-decoration:none;font-family:'EB Garamond',Georgia,serif;font-size:17px;font-weight:600">Optional rules · 2 changed</a>
+<button style="{{S.btn}}">Update from a new file</button>
+</div>
+<div style="border:1px dashed {{c.rule}};border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:14px">
+<span style="flex:1;display:flex;flex-direction:column"><span style="font-weight:700">Add more setting rules</span><span style="font-size:14px;color:{{c.mut}}">From your library, or import a JSON or Markdown file. House additions sit on top of the main setting.</span></span>
+<button style="{{S.btn}}">From library</button>
+<button style="{{S.btn}}">Import file</button>
+</div>
+<div style="font-size:14px;color:{{c.mut}}">Updating shows what will change before anything is replaced. Characters keep working across versions.</div>
+</sc-if>
+
+<sc-if value="{{tPlayers}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600">Players and characters</span><button onClick="{{openInvite}}" style="{{S.primary}}">Invite a player</button></div>
+<sc-if value="{{inviteOpen}}" hint-placeholder-val="{{ false }}">
+<div style="border:1px solid {{c.acc}};border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+<label for="email" style="font-size:14px;color:{{c.mut}}">Their email (or share the link)</label>
+<div style="display:flex;gap:8px"><input id="email" value="tam.player@example.com" style="flex:1;min-height:44px;padding:0 10px;border:1px solid {{c.rule}};border-radius:4px;background:transparent;color:inherit;font-family:inherit;font-size:16px"><button onClick="{{sendInvite}}" style="{{S.primary}}">Send invite</button><button style="{{S.btn}}">Copy link</button></div>
+<div style="font-size:14px;color:{{c.mut}}">When they join, they go straight to making a character. You approve it before it joins the party.</div>
+</div>
+</sc-if>
+<sc-if value="{{approval}}" hint-placeholder-val="{{ true }}">
+<div style="border:1px solid {{c.warn}};background:{{c.tint}};border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px">
+<span style="flex:1;display:flex;flex-direction:column"><span style="font-weight:700">New character waiting: Hollis, Marsh folk Lantern Warden 1</span><span style="font-size:14px;color:{{c.mut}}">From Priya · guided creation · scores 13 9 15 11 12 8 · 4 HP · 70 gp of gear</span></span>
+<button style="{{S.btn}}">View sheet</button>
+<label for="startlvl" style="font-size:14px;color:{{c.mut}}">Start at</label>
+<select id="startlvl" style="min-height:44px;padding:0 8px;border:1px solid {{c.rule}};border-radius:4px;background:transparent;color:inherit;font-family:inherit;font-size:15px"><option>Level 1</option><option>Level 2</option><option>Level 3</option></select>
+<button onClick="{{approve}}" style="{{S.primary}}">Approve</button>
+<button onClick="{{sendBack}}" style="{{S.btn}}">Send back</button>
+</div>
+</sc-if>
+<sc-if value="{{approvedMsg}}" hint-placeholder-val="{{ false }}"><div style="font-size:15px;color:{{c.acc}};font-weight:700">{{approvedText}}</div></sc-if>
+<sc-for list="{{players}}" as="pl" hint-placeholder-count="4">
+<div style="display:grid;grid-template-columns:180px 1fr 140px;gap:12px;align-items:center;min-height:64px;border-bottom:1px dotted {{c.rule}}">
+<span style="display:flex;flex-direction:column"><span style="font-weight:700">{{pl.name}}</span><span style="font-size:13px;color:{{c.mut}}">{{pl.role}}</span></span>
+<span style="font-size:15px;line-height:1.4">{{pl.chars}}</span>
+<span style="font-size:14px;color:{{pl.statusColor}};text-align:right">{{pl.status}}</span>
+</div>
+</sc-for>
+<div style="font-size:14px;color:{{c.mut}}">One active character per player. Players switch freely in downtime; during an adventure a switch needs your OK. Benched characters earn no party XP, but you can give them bonus XP.</div>
+</sc-if>
+
+<sc-if value="{{tCompanies}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600">Companies</span><button style="{{S.btn}}">+ New company</button></div>
+<sc-for list="{{companies}}" as="co" hint-placeholder-count="2">
+<div style="border:1px solid {{c.rule}};border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:14px">
+<span aria-hidden="true" style="width:48px;height:48px;flex:none;border-radius:50%;border:1px solid {{c.line}};display:flex;align-items:center;justify-content:center;font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600;color:{{c.acc}}">{{co.initial}}</span>
+<span style="flex:1;display:flex;flex-direction:column"><span style="font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">{{co.name}}</span><span style="font-size:14px;color:{{c.mut}}">{{co.sub}}</span></span>
+<button style="{{S.btn}}">Charter</button><button style="{{S.btn}}">Treasury</button>
+</div>
+</sc-for>
+<div style="border:1px dashed {{c.rule}};border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:14px">
+<span style="flex:1;display:flex;flex-direction:column"><span style="font-weight:700">No company</span><span style="font-size:14px;color:{{c.mut}}">Hollis (Priya) · asked to join the Sluice Gate Company, vote open</span></span>
+</div>
+</sc-if>
+
+<sc-if value="{{tHandouts}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600">Handouts and maps</span><span style="display:flex;gap:8px"><button style="{{S.btn}}">Upload image or PDF</button></span></div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px">
+<sc-for list="{{handouts}}" as="h" hint-placeholder-count="5">
+<div style="border:1px solid {{c.rule}};border-radius:8px;overflow:hidden;display:flex;flex-direction:column">
+<div aria-hidden="true" style="height:120px;background:{{h.thumb}};display:flex;align-items:center;justify-content:center;font-family:'EB Garamond',Georgia,serif;font-size:18px;color:{{c.mut}}">{{h.kind}}</div>
+<div style="padding:10px 12px;display:flex;flex-direction:column;gap:6px">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600">{{h.name}}</span>
+<span style="font-size:14px;color:{{h.visColor}}">{{h.vis}}</span>
+<div style="display:flex;gap:6px">
+<sc-if value="{{h.hidden}}" hint-placeholder-val="{{ false }}"><button onClick="{{h.reveal}}" style="{{S.smallPrimary}}">Reveal to all</button></sc-if>
+<button style="{{S.small}}">Who can see</button>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="font-size:14px;color:{{c.mut}}">Revealed handouts appear in a Handouts list on Events. Maps are pictures only: no fog, tokens or drawing in R1.</div>
+</sc-if>
+
+<sc-if value="{{tPlay}}" hint-placeholder-val="{{ false }}">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600">During play</div>
+<div style="font-size:15px;color:{{c.mut}}">Encounter tables, monster disposition, lantern auto-refill, quiet mode, round and turn length, initiative style, default level-up mode.</div>
+<a href="Settings.dc.html" style="color:{{c.acc}};font-weight:700">Same switches as the settings mockup ›</a>
+</sc-if>
+
+<sc-if value="{{tData}}" hint-placeholder-val="{{ false }}">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600">Data</div>
+<div style="font-size:15px;color:{{c.mut}}">Export everything (JSON) · weekly backup · archive the campaign.</div>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1180,"height":820}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'players', invite: false, appr: null, rev: {} };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', panel: '#1A1713', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', warn: '#E6BA66', tint: '#4A3A22', onAcc: '#12100D', thumbA: '#2A251E', thumbB: '#33291A' }
+      : { bg: '#FBF8F1', panel: '#F5F0E5', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', warn: '#7A4A00', tint: '#F3E6CB', onAcc: '#FBF8F1', thumbA: '#E9E2D4', thumbB: '#F3E6CB' };
+    const G = "'EB Garamond',Georgia,serif";
+    const T = [['rules', 'Setting rules', 'River Rules'], ['players', 'Players and characters', s.appr ? '' : '1 waiting'], ['companies', 'Companies', '2'], ['handouts', 'Handouts and maps', '5'], ['play', 'During play', ''], ['data', 'Data', '']];
+    const tabs = T.map((t) => ({ name: t[1], badge: t[2], badgeColor: t[2] === '1 waiting' ? c.warn : c.mut, cur: s.tab === t[0] ? 'page' : 'false', go: () => this.setState({ tab: t[0] }),
+      style: 'min-height:52px;display:flex;justify-content:space-between;align-items:center;padding:0 12px;border-radius:6px;border:none;background:' + (s.tab === t[0] ? c.tint : 'transparent') + ';color:' + c.ink + ';font-family:' + G + ';font-size:18px;font-weight:' + (s.tab === t[0] ? 600 : 400) + ';text-align:left;cursor:pointer' }));
+    const H = [
+      { id: 'map1', name: 'Sluice gate, level 1', kind: 'Map', vis: 'GM only', thumb: c.thumbA },
+      { id: 'map2', name: 'Reedmouth and the fens', kind: 'Map', vis: 'Everyone', thumb: c.thumbB },
+      { id: 'letter', name: 'The drowned priest’s letter', kind: 'Handout', vis: 'Wren only', thumb: c.thumbB },
+      { id: 'rubbing', name: 'Chapel door rubbing', kind: 'Handout', vis: 'GM only', thumb: c.thumbA },
+      { id: 'notice', name: 'Guild bounty notice', kind: 'PDF', vis: 'Everyone', thumb: c.thumbB }
+    ];
+    const handouts = H.map((h) => {
+      const revealed = !!s.rev[h.id];
+      const vis = revealed ? 'Everyone (revealed just now)' : h.vis;
+      return Object.assign({}, h, { vis: vis, hidden: vis !== 'Everyone' && !revealed, visColor: vis === 'GM only' ? c.warn : c.mut, reveal: () => this.setState({ rev: Object.assign({}, s.rev, { [h.id]: true }) }) });
+    });
+    const players = [
+      { name: 'Sam', role: 'Player', chars: 'Wren (active) · Old Tobin (benched)', status: 'Playing', statusColor: c.mut },
+      { name: 'Jordan', role: 'Player', chars: 'Ash (active)', status: 'Playing', statusColor: c.mut },
+      { name: 'Lee', role: 'Player', chars: 'Bram (active) · Dace (dead, session 5)', status: 'Playing', statusColor: c.mut },
+      { name: 'Priya', role: 'Player · joined today', chars: s.appr === 'ok' ? 'Hollis (active)' : 'Hollis (waiting for approval)', status: s.appr === 'ok' ? 'Playing' : 'New', statusColor: s.appr === 'ok' ? c.mut : c.warn }
+    ];
+    const btn = 'min-height:44px;padding:0 14px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:17px;font-weight:600;cursor:pointer;flex:none';
+    return {
+      c: c, tabs: tabs, handouts: handouts, players: players,
+      tRules: s.tab === 'rules', tPlayers: s.tab === 'players', tCompanies: s.tab === 'companies',
+      companies: [{ name: 'The Sluice Gate Company', initial: 'S', sub: 'Wren, Ash, Bram + 2 hirelings · Treasurer Ash · Archivist Wren' }, { name: 'The Reed Cutters', initial: 'R', sub: 'Old Tobin · founded session 6' }], tHandouts: s.tab === 'handouts', tPlay: s.tab === 'play', tData: s.tab === 'data',
+      inviteOpen: s.invite, openInvite: () => this.setState({ invite: !s.invite }), sendInvite: () => this.setState({ invite: false }),
+      approval: s.appr === null, approvedMsg: s.appr !== null,
+      approvedText: s.appr === 'ok' ? 'Hollis approved at level 1 and added to the party.' : 'Sent back to Priya with a note. She can edit and resubmit.',
+      approve: () => this.setState({ appr: 'ok' }), sendBack: () => this.setState({ appr: 'back' }),
+      S: {
+        btn: btn,
+        primary: 'min-height:44px;padding:0 16px;border-radius:4px;border:none;background:' + c.acc + ';color:' + c.onAcc + ';font-family:' + G + ';font-size:17px;font-weight:600;cursor:pointer;flex:none',
+        small: 'min-height:44px;padding:0 10px;border-radius:4px;border:1px solid ' + c.rule + ';background:transparent;color:inherit;font-family:inherit;font-size:14px;cursor:pointer',
+        smallPrimary: 'min-height:44px;padding:0 10px;border-radius:4px;border:none;background:' + c.acc + ';color:' + c.onAcc + ';font-family:inherit;font-size:14px;font-weight:700;cursor:pointer'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

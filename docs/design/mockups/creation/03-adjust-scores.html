@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creation 03 — Adjust scores (paper test, 2026-11-01)</title>
+<style>
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); width:720px; box-sizing:border-box; }
+  .screen.phone { width:375px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .why { margin:var(--space-3) 0 var(--space-1); }
+  .tiles { display:grid; grid-template-columns:repeat(3, 1fr); gap:var(--space-3); margin-top:var(--space-3); }
+  .phone .tiles { grid-template-columns:repeat(2, 1fr); }
+  .tile { border:1.5px solid var(--rule); border-radius:4px; padding:var(--space-2) var(--space-3); background:var(--surface); }
+  .tile.prime { border-color:var(--control); }
+  .tile .k { font-weight:700; }
+  .tile .k .tag { font-weight:400; font-size:14px; color:var(--muted); }
+  .tile .v { font-family:"EB Garamond", Georgia, serif; font-size:32px; font-weight:600; line-height:1.1; display:flex; align-items:center; gap:var(--space-2); }
+  .tile .v .btn { font-size:16px; padding:0; width:44px; height:44px; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:700; }
+  .tile .v .num { flex:1; text-align:center; min-height:44px; display:flex; align-items:center; justify-content:center; }
+  .tile .v .num small { font-size:14px; color:var(--muted); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; margin-left:var(--space-1); }
+  .tile .m { font-size:14px; color:var(--muted); display:block; min-height:21px; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; text-align:center; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:16px; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  .btn.ghost { border-color:var(--rule); color:var(--muted); }
+  .bank { display:flex; align-items:center; gap:var(--space-3); min-height:44px; margin-top:var(--space-3); padding:var(--space-2) var(--space-3); border:1.5px solid var(--rule); border-radius:4px; }
+  .bank b { font-family:"EB Garamond", Georgia, serif; font-size:20px; }
+  .bank .spacer { flex:1; }
+  .foot { display:flex; align-items:center; gap:var(--space-3); margin-top:var(--space-4); padding-top:var(--space-3); border-top:1px solid var(--rule); }
+  .foot .spacer { flex:1; }
+  .hint { font-size:14px; color:var(--muted); }
+  .pop { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); display:flex; gap:var(--space-3); align-items:center; background:var(--sheet); }
+  .pop .text { flex:1; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:720px; }
+  code { font-size:14px; }
+</style>
+</head>
+<body>
+
+<h1>1 · Adjust scores — the setting's trade, enforced from the pack's rule</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Adjust scores</span><span class="meta">Step 5 of 10</span></div>
+  <p class="why">Lower one score by 2 to raise a prime requisite by 1. Nothing below 9. <span class="meta">Fen rules · p. 11</span> <span class="btn quiet">Help me choose</span></p>
+  <div class="tiles">
+    <div class="tile prime"><span class="k">STR <span class="tag">· prime</span></span><div class="v"><span class="btn ghost" aria-label="Undo raise">↶</span><span class="num">14<small>13 +1</small></span><span class="btn" aria-label="Raise STR by 1">+1</span></div><span class="m">+1 melee → +1 melee · +5% XP</span></div>
+    <div class="tile"><span class="k">INT</span><div class="v"><span class="btn" aria-label="Lower INT by 2">−2</span><span class="num">9</span><span class="btn ghost">↶</span></div><span class="m">at the floor of 9</span></div>
+    <div class="tile"><span class="k">WIS</span><div class="v"><span class="btn" aria-label="Lower WIS by 2">−2</span><span class="num">14<small>16 −2</small></span><span class="btn ghost" aria-label="Undo lowering">↶</span></div><span class="m">+2 → +1 saves vs magic</span></div>
+    <div class="tile"><span class="k">DEX</span><div class="v"><span class="btn ghost">−2</span><span class="num">9</span><span class="btn ghost">↶</span></div><span class="m">not tradeable in this setting</span></div>
+    <div class="tile"><span class="k">CON</span><div class="v"><span class="btn ghost">−2</span><span class="num">10</span><span class="btn ghost">↶</span></div><span class="m">not tradeable in this setting</span></div>
+    <div class="tile"><span class="k">CHA</span><div class="v"><span class="btn ghost">−2</span><span class="num">12</span><span class="btn ghost">↶</span></div><span class="m">not tradeable in this setting</span></div>
+  </div>
+  <div class="bank"><span>Lowered WIS by 2 → raised STR by 1</span><span class="spacer"></span><b>0 to spend</b></div>
+  <div class="foot"><span class="spacer"></span><span class="hint">1 trade made</span><span class="btn accent">Next</span></div>
+</div>
+<div class="screen phone">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Adjust scores</span><span class="meta">5 / 10</span></div>
+  <p class="why">Lower one by 2 to raise a prime by 1. Nothing below 9. <span class="btn quiet">Help me choose</span></p>
+  <div class="tiles">
+    <div class="tile prime"><span class="k">STR <span class="tag">prime</span></span><div class="v"><span class="btn ghost">↶</span><span class="num">14</span><span class="btn">+1</span></div><span class="m">13 +1 · +5% XP</span></div>
+    <div class="tile"><span class="k">INT</span><div class="v"><span class="btn">−2</span><span class="num">9</span><span class="btn ghost">↶</span></div><span class="m">at the floor</span></div>
+    <div class="tile"><span class="k">WIS</span><div class="v"><span class="btn">−2</span><span class="num">14</span><span class="btn ghost">↶</span></div><span class="m">16 −2</span></div>
+    <div class="tile"><span class="k">DEX</span><div class="v"><span class="btn ghost">−2</span><span class="num">9</span><span class="btn ghost">↶</span></div><span class="m">not tradeable</span></div>
+    <div class="tile"><span class="k">CON</span><div class="v"><span class="btn ghost">−2</span><span class="num">10</span><span class="btn ghost">↶</span></div><span class="m">not tradeable</span></div>
+    <div class="tile"><span class="k">CHA</span><div class="v"><span class="btn ghost">−2</span><span class="num">12</span><span class="btn ghost">↶</span></div><span class="m">not tradeable</span></div>
+  </div>
+  <div class="bank"><span>WIS −2 → STR +1</span><span class="spacer"></span><b>0 to spend</b></div>
+  <div class="foot"><span class="spacer"></span><span class="btn accent">Next</span></div>
+</div>
+</div>
+<p class="note">The same six tiles as the Scores step, now with the rule's buttons instead of free − / +: <b>−2</b> on the scores the setting lets you lower (A: three named scores; B: any non-prime), <b>+1</b> on the class's prime requisites, <b>↶</b> undoing a trade. Each tile shows its before → after and the modifier's change ("+2 → +1 saves vs magic"), the prime its XP bonus. A tap the rule forbids is <b>never greyed</b> — it stays tappable and answers in a line ("INT can't go below 9"; "STR can't be lowered as a knight"; "a prime can't go above 13 by trading", B); the pale buttons here mark "this setting never trades this score", with the reason under the number. The <b>bank</b> line says what was lowered, what it bought, and what's still to spend. <b>Next checks</b>: unspent points ("2 to spend: raise a prime, or undo the lowering").</p>
+
+<h1>2 · A forbidden tap answers, never blocks</h1>
+<div class="screen">
+  <div class="pop"><div class="text"><b>INT can't go below 9.</b> This setting's floor for any score.</div><span class="btn">OK</span></div>
+  <div class="pop"><div class="text"><b>Nothing banked.</b> Lower INT or WIS by 2 first, then raise STR.</div><span class="btn">OK</span></div>
+</div>
+
+<h1>3 · When the step doesn't exist</h1>
+<div class="screen">
+  <p>The step appears only when the rules set carries the trade as data (07, below) <b>and</b> this character can use it: a class with a raisable prime and at least one lowerable score above the floor. Otherwise it is skipped and the counter never shows it. A setting whose rule is prose only (both test packs today) has no step until the pack says it in data — the checker warns.</p>
+  <p class="meta">Proposed 07 shape (⚑): <code>abilityAdjustment: { lowerBy: 2, raiseBy: 1, lowerable: ["STR","INT","WIS"] | "nonPrime", raise: "prime", floor: 9, cap?: 13, classExceptions?: [{ classId, cannotLower: ["STR"] }], note, source }</code></p>
+</div>
+<p class="note">Checked: every rule the step enforces is visible before the tap (which buttons are live, the floor in the why-line, the bank); forbidden taps explain (N9, no disabled buttons); 44 px −2 / +1 / ↶ targets with 8 px between; 375 px as two columns; one accent (Next); never colour alone (ghost buttons carry the reason in words under the number). Not drawn: dark mode; the Back-and-forth case (Back to Class with trades made: the trades are kept while the new class shares the prime, otherwise reset with a toast and Undo — ⚑).</p>
+</body>
+</html>

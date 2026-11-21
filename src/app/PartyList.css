@@ -1,0 +1,33 @@
+/* "The party": a quiet read-only list. */
+
+.party {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.party__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.party__row {
+  display: flex;
+  align-items: center;
+  gap: var(--pad);
+  min-height: var(--tap);
+  padding: var(--space-2) 0;
+  border-bottom: 1px dotted var(--row-rule);
+}
+
+.party__text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.party__name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}

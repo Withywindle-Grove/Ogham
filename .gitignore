@@ -1,0 +1,44 @@
+# Dependencies and builds
+node_modules/
+dist/
+.vite/
+
+# Vercel's local settings (vercel pull)
+.vercel/
+
+# Playwright layout check results and screenshots
+test-results/
+playwright-report/
+
+# Main-database backups (npm run db:backup) — never commit
+backups/
+
+# Secrets — never commit these
+.env
+.env.*
+!.env.example
+!.env.test.example
+!.env.seed.example
+
+# Private content packs (IP) — never commit
+packs/
+*.pack.json
+
+# Source books and PDFs — never commit
+*.pdf
+
+# OS and editor clutter
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+
+# Claude Code personal settings
+.claude/settings.local.json
+*.tsbuildinfo
+
+# Helper agents keep their own copies of the repo here (git worktrees).
+.claude/worktrees/
+
+# Python caches (converter scripts)
+__pycache__/

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B18 — The players' screen as one live table view (M5 gate, approved 2026-11-01)</title>
+<style>
+  /* Tokens from docs/06 only. Light only, full size (Francis, 2026-11-01). Buttons are plain blocks. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .meta { font-size:14px; color:var(--muted); }
+  .top { display:flex; align-items:center; gap:var(--space-3); max-width:1024px; margin-bottom:var(--space-3); }
+  .top .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:16px; line-height:1.2; text-align:center; box-sizing:border-box; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  /* the one sheet */
+  .table { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; max-width:1024px; }
+  .band { padding:var(--space-4); }
+  .band + .band { border-top:1px solid var(--rule); }
+  .band .h { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; font-variant:small-caps; color:var(--muted); margin-bottom:var(--space-2); }
+  /* time band */
+  .time { display:flex; align-items:center; gap:var(--space-5); flex-wrap:wrap; }
+  .time .mode { font-family:"EB Garamond", Georgia, serif; font-size:30px; font-weight:600; line-height:1.2; min-height:44px; display:inline-flex; align-items:center; }
+  .mark { display:inline-flex; align-items:center; gap:var(--space-1); min-height:44px; }
+  .mark.due { font-weight:700; outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; padding:0 var(--space-1); }
+  /* place band */
+  .place .name { font-family:"EB Garamond", Georgia, serif; font-size:30px; font-weight:600; line-height:1.2; margin-bottom:var(--space-2); }
+  .place p { margin:0 0 var(--space-2); font-size:20px; line-height:1.4; }
+  /* order band */
+  .order { display:flex; gap:var(--space-2); }
+  .pc { flex:1; min-height:88px; border:1px solid var(--rule); border-radius:4px; padding:var(--space-2) var(--space-3); background:var(--surface); display:flex; flex-direction:column; justify-content:space-between; }
+  .pc.you { border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
+  .pc .n { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .sym { display:inline-flex; width:28px; height:28px; border:1.5px solid var(--ink); border-radius:14px; align-items:center; justify-content:center; font-weight:700; font-size:14px; margin-right:var(--space-1); }
+  .card { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); background:var(--sheet); display:flex; justify-content:space-between; align-items:center; gap:var(--space-2); margin:0 var(--space-4) var(--space-3); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:1024px; }
+  .phone { width:375px; }
+  .phone .order { flex-wrap:wrap; } .phone .pc { flex:1 1 45%; }
+</style>
+</head>
+<body>
+
+<h1>1 · iPad landscape · steady state (nothing to do but play)</h1>
+<div class="top"><span class="btn icon" aria-label="Back">‹</span><span class="title">Gate Delve · Wren</span><span class="btn icon" aria-label="Messages">✉</span><span class="btn icon" aria-label="Log">≡</span><span class="btn icon" aria-label="More">⋯</span></div>
+<div class="table">
+  <div class="band">
+    <div class="time"><span class="mode">Dungeon · turn 12</span><span class="mark">☾ Rest in 2</span><span class="mark">🔥 Your torch · 3 turns</span><span class="mark">◐ Day</span><span class="mark meta">14 Reedmonth · spring · 🌧 wet</span></div>
+  </div>
+  <div class="band">
+    <div class="h">Marching order</div>
+    <div class="order">
+      <div class="pc you"><span class="n">Wren <span class="meta">· you</span></span><span>🔥 torch</span></div>
+      <div class="pc"><span class="n">Brother Haeth</span><span class="meta">—</span></div>
+      <div class="pc"><span class="n">Oswy</span><span><span class="sym">W</span>Weary ×1</span></div>
+      <div class="pc"><span class="n">Tam's mule</span><span>🔥 lantern</span></div>
+    </div>
+    <div style="margin-top:var(--space-3);"><span class="btn">Rest</span></div>
+  </div>
+  <div class="band place">
+    <div class="name">Flooded hall</div>
+    <p>A low vaulted hall, knee-deep in black water. Benches float against the far wall.</p>
+    <p>Stairs up, to the north.</p>
+    <p>A hunched figure in a reed cloak, very still.</p>
+  </div>
+</div>
+<p class="note">One sheet, three bands in this order — <b>time</b>, <b>marching order</b>, <b>place</b> (Francis, 2026-11-01) — one type family: the time (mode and turn in the display size; tap it for the procedure, B5), the marching order as tiles (you outlined in ink, the lights and statuses in words beside their symbols; tap a tile for its statuses and effects) with the <b>Rest</b> button under it (B18). Nothing else on the screen in the steady state: no buttons to look for, no accent. <b>Everything is tappable for its explanation</b> (Francis, 2026-11-01): a mark on the time band, a tile, a status, a piece of the place — each opens a short card in the pack's words (what it is, the rule, time left), nothing more. Weather sits on the time band as a word and a symbol (tap for the card; B15's fold rule). A split party shows the player's own group only.</p>
+
+<h1>2 · The same screen when something needs the player</h1>
+<div class="table">
+  <div class="band">
+    <div class="time"><span class="mode">Dungeon · turn 14</span><span class="mark due">☾ Rest due</span><span class="mark">🔥 Your torch · 1 turn</span><span class="mark">◐ Day</span></div>
+  </div>
+  <div class="card"><span><b>Rest due · this turn</b><br><span class="meta">One turn in six; pushing on marks Weary.</span></span><span><span class="btn accent">Rest</span> <span class="btn">Push on</span></span></div>
+  <div class="card"><span>✉ Message from the GM</span><span class="btn">Open</span></div>
+  <div class="band">
+    <div class="h">Marching order</div>
+    <div class="order">
+      <div class="pc you"><span class="n">Wren <span class="meta">· you</span></span><span>🔥 torch · 1 turn</span></div>
+      <div class="pc"><span class="n">Brother Haeth</span><span class="meta">—</span></div>
+      <div class="pc"><span class="n">Oswy</span><span><span class="sym">W</span>Weary ×1</span></div>
+      <div class="pc"><span class="n">Tam's mule</span><span>🔥 lantern</span></div>
+    </div>
+    <div style="margin-top:var(--space-3);"><span class="btn">Rest</span></div>
+  </div>
+  <div class="band place">
+    <div class="name">Flooded hall</div>
+    <p>A low vaulted hall, knee-deep in black water. Benches float against the far wall.</p>
+  </div>
+</div>
+<p class="note">Prompts are <b>cards between the time band and the marching order</b>, in one slot that grows downward (space reserved; nothing jumps): rest due (B5), a message (B3), the weather roll, a request's answer, an escape roll, "No light · Light a torch (3 left)". The newest sits on top; each goes when answered. Only a prompt may carry the screen's one accent button. The strip's mark for the same thing is lit at the same time, so the eye lands on it twice.</p>
+
+<h1>3 · Phone (375 px)</h1>
+<div class="table phone">
+  <div class="band">
+    <div class="time"><span class="mode" style="font-size:24px">Dungeon · turn 12</span><span class="mark">☾ Rest in 2</span><span class="mark">🔥 3 turns</span><span class="mark">◐ Day</span></div>
+  </div>
+  <div class="band">
+    <div class="h">Marching order</div>
+    <div class="order">
+      <div class="pc you"><span class="n">Wren <span class="meta">· you</span></span><span>🔥 torch</span></div>
+      <div class="pc"><span class="n">Brother Haeth</span><span class="meta">—</span></div>
+      <div class="pc"><span class="n">Oswy</span><span><span class="sym">W</span>Weary</span></div>
+      <div class="pc"><span class="n">Tam's mule</span><span>🔥 lantern</span></div>
+    </div>
+    <div style="margin-top:var(--space-3);"><span class="btn">Rest</span></div>
+  </div>
+  <div class="band place">
+    <div class="name" style="font-size:24px">Flooded hall</div>
+    <p style="font-size:16px">A low vaulted hall, knee-deep in black water. Benches float against the far wall.</p>
+    <p style="font-size:16px">Stairs up, to the north.</p>
+  </div>
+</div>
+<p class="note">Same three bands, stacked; the tiles wrap two per row; the time band's words shorten ("3 turns"). The order's tap-to-drag opens the full order as today.</p>
+
+</body>
+</html>

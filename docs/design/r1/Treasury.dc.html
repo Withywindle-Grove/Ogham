@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Treasury</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:14px 18px 6px;display:flex;justify-content:space-between;align-items:flex-start">
+<span style="display:flex;flex-direction:column"><span style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600;line-height:1.05">Treasury</span></span>
+<button onClick="{{flipMode}}" style="min-height:44px;padding:0 10px;border-radius:14px;border:1px dashed {{c.rule}};background:transparent;color:{{c.mut}};font-family:inherit;font-size:13px;cursor:pointer">Demo: {{modeText}}</button>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 12px;display:flex;flex-direction:column;gap:8px">
+
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:40px;font-weight:600;text-align:center;padding:4px 0">{{total}} gp</div>
+<sc-for list="{{places}}" as="p" hint-placeholder-count="2"><div style="display:flex;justify-content:space-between;min-height:44px;align-items:center;border-bottom:1px dotted {{c.rule}}"><span>{{p.name}}</span><b>{{p.gp}} gp</b></div></sc-for>
+
+<div role="group" aria-label="Action" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px">
+<sc-for list="{{actions}}" as="a" hint-placeholder-count="3"><button onClick="{{a.go}}" aria-pressed="{{a.on}}" style="{{a.style}}">{{a.name}}</button></sc-for>
+</div>
+
+<div style="border:1px solid {{c.rule}};border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px">
+<sc-if value="{{aGive}}" hint-placeholder-val="{{ true }}">
+<label for="who" style="font-size:14px;color:{{c.mut}}">To</label>
+<select id="who" style="{{S.field}}"><option>Wren</option><option>Bram</option><option>Hollis</option><option>Ash</option></select>
+</sc-if>
+<label for="from" style="font-size:14px;color:{{c.mut}}">From</label>
+<select id="from" style="{{S.field}}"><option>Temple vault, Reedmouth</option><option>Carried by Ash</option></select>
+<sc-if value="{{aMove}}" hint-placeholder-val="{{ false }}">
+<label for="to" style="font-size:14px;color:{{c.mut}}">To</label>
+<select id="to" style="{{S.field}}"><option>Carried by Ash</option><option>Temple vault, Reedmouth</option><option>+ New place (GM approves)</option></select>
+</sc-if>
+<label for="amt" style="font-size:14px;color:{{c.mut}}">Amount</label>
+<input id="amt" value="50" inputmode="numeric" style="{{S.field}};font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">
+<label for="why" style="font-size:14px;color:{{c.mut}}">Reason (shown in the log)</label>
+<input id="why" value="{{reason}}" style="{{S.field}}">
+<sc-if value="{{aSpend}}" hint-placeholder-val="{{ false }}">
+<label for="rep" style="font-size:14px;color:{{c.mut}}">Repeats</label>
+<select id="rep" value="{{repeat}}" onChange="{{setRepeat}}" style="{{S.field}}"><option value="once">Just once</option><option value="day">Every day</option><option value="adventure">Every adventure</option><option value="week">Every week of downtime</option><option value="month">Every month</option><option value="session">Every session</option></select>
+<sc-if value="{{isRecurring}}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:{{c.mut}}">It will show under Due each time, ready to pay in one tap.</div></sc-if>
+</sc-if>
+<sc-if value="{{needsGm}}" hint-placeholder-val="{{ false }}"><div style="padding:8px 10px;border-radius:6px;background:{{c.tint}};font-size:14px">You’re on an adventure, so taking coin out of the Temple vault needs the GM’s OK. It goes into Ash’s pack once approved.</div></sc-if>
+<sc-if value="{{aGive}}" hint-placeholder-val="{{ true }}"><div style="font-size:14px;color:{{c.mut}}">Goes straight into their purse. They’re told; no need to accept.</div></sc-if>
+<button onClick="{{record}}" style="min-height:52px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;cursor:pointer">{{recordText}}</button>
+</div>
+
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}};border-top:3px double {{c.rule}};padding-top:10px">Due</div>
+<sc-for list="{{dues}}" as="d" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:10px;min-height:56px;border-bottom:1px dotted {{c.rule}}"><span style="flex:1;display:flex;flex-direction:column"><span>{{d.name}}</span><span style="font-size:13px;color:{{c.mut}}">{{d.when}}</span></span><button onClick="{{d.pay}}" style="min-height:44px;padding:0 12px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:16px;font-weight:600;cursor:pointer">{{d.btn}}</button></div></sc-for>
+
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}};border-top:3px double {{c.rule}};padding-top:10px">Recent</div>
+<sc-for list="{{recent}}" as="r" hint-placeholder-count="3"><div style="display:flex;justify-content:space-between;align-items:center;min-height:48px;border-bottom:1px dotted {{c.rule}}"><span style="display:flex;flex-direction:column"><span>{{r.t}}</span><span style="font-size:13px;color:{{c.mut}}">{{r.who}}</span></span><b>{{r.v}}</b></div></sc-for>
+<div style="font-size:13px;color:{{c.mut}};line-height:1.4">Anyone can still add or undo party ledger entries; everything is logged.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { action: 'give', repeat: 'once', paid: {}, dues: [{ id: 'vault', name: 'Temple vault fee', when: '5 gp a month · due this week' }, { id: 'tam', name: 'Tam’s wages', when: '15 gp a week · due now' }], adv: false, vault: 1250, carried: 154, recent: [{ t: 'Split Loot: sluice gate haul', who: 'Ash · session 8', v: '+592' }, { t: 'Ferry to the fens', who: 'Bram · session 8', v: '−8' }] };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', tint: '#4A3A22', onAcc: '#12100D' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', tint: '#F3E6CB', onAcc: '#FBF8F1' };
+    const seg = (on) => 'min-height:48px;border-radius:4px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : c.ink) + ';font-family:inherit;font-size:15px;font-weight:700;cursor:pointer';
+    const A = [['give', 'Give'], ['spend', 'Spend'], ['move', 'Move']];
+    const reasons = { give: 'Wren’s share of the scribe’s fee', spend: s.repeat === 'once' ? 'Hire a boat to the chapel' : 'Lodging at the Drowned Lamp', move: 'Carry some coin for the trip' };
+    const needsGm = s.adv && s.action !== 'move' ? true : (s.adv && s.action === 'move');
+    const record = () => {
+      if (needsGm) { this.setState({ recent: [{ t: 'Asked the GM: 50 gp from the vault', who: 'Ash · waiting', v: '…' }].concat(s.recent) }); return; }
+      if (s.action === 'spend' && s.repeat !== 'once') { const per = { day: 'a day', adventure: 'an adventure', week: 'a week', month: 'a month', session: 'a session' }[s.repeat]; this.setState({ dues: s.dues.concat([{ id: 'new' + s.dues.length, name: reasons.spend, when: '50 gp ' + per + ' · first payment now' }]), recent: [{ t: 'Set up: ' + reasons.spend + ' (50 gp ' + per + ')', who: 'Ash · just now', v: 'recurring' }].concat(s.recent), repeat: 'once' }); return; }
+      const line = s.action === 'give' ? { t: 'Gave Wren: ' + reasons.give, who: 'Ash · just now', v: '−50' } : s.action === 'spend' ? { t: reasons.spend, who: 'Ash · just now', v: '−50' } : { t: 'Moved 50 from the vault to Ash', who: 'Ash · just now', v: '0' };
+      this.setState({ vault: s.vault - 50, carried: s.action === 'move' ? s.carried + 50 : s.carried, recent: [line].concat(s.recent) });
+    };
+    return {
+      c: c, total: (s.vault + s.carried).toLocaleString(),
+      places: [{ name: 'Temple vault, Reedmouth', gp: s.vault.toLocaleString() }, { name: 'Carried by Ash', gp: String(s.carried) }],
+      actions: A.map((a) => ({ name: a[1], on: s.action === a[0], style: seg(s.action === a[0]), go: () => this.setState({ action: a[0] }) })),
+      aGive: s.action === 'give', aMove: s.action === 'move', aSpend: s.action === 'spend', repeat: s.repeat, isRecurring: s.repeat !== 'once', setRepeat: (e) => this.setState({ repeat: e.target.value }),
+      dues: s.dues.map((d) => ({ name: d.name, when: s.paid[d.id] ? 'Paid just now · next one scheduled' : d.when, btn: s.paid[d.id] ? 'Paid' : 'Pay', pay: () => this.setState({ paid: Object.assign({}, s.paid, { [d.id]: true }) }) })), reason: reasons[s.action],
+      needsGm: needsGm, record: record, recordText: needsGm ? 'Ask the GM' : (s.action === 'spend' && s.repeat !== 'once' ? 'Set up recurring expense' : 'Record'),
+      recent: s.recent,
+      modeText: s.adv ? 'on an adventure' : 'in downtime', flipMode: () => this.setState({ adv: !s.adv }),
+      S: { field: 'min-height:48px;padding:0 10px;border:1px solid ' + c.rule + ';border-radius:4px;background:transparent;color:inherit;font-family:inherit;font-size:16px' }
+    };
+  }
+}
+</script>
+</body>
+</html>

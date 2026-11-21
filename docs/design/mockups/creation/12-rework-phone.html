@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Creation rework — the phone screens (approved 2026-11-06)</title>
+<style>
+  /* Tokens from docs/06 only. Light and dark side by side (the dark column is the same markup, cloned). Buttons are plain blocks. Invented names and numbers only. Each sheet is a phone at 375 px (343 px inside the page margins). */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; }
+  body { margin:0; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:#888; }
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-5); padding:var(--space-5); align-items:start; }
+  .theme { padding:var(--space-4); border-radius:4px; background:var(--page); color:var(--ink); }
+  .light { --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; --info:#2F5D7C; --warn:#7A4A00; }
+  .dark  { --page:#12100D; --surface:#1C1915; --sheet:#1E1A16; --ink:#F1EADC; --muted:#B5AA96; --rule:#3A342B; --control:#756B5A; --accent:#C9875A; --on-accent:#12100D; --info:#8DB4D0; --warn:#F2D46B; }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-5) 0 var(--space-2); }
+  h1:first-child { margin-top:0; }
+  .wall { display:flex; flex-wrap:wrap; gap:var(--space-4); align-items:flex-start; }
+  .phone { width:343px; background:var(--page); border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); box-sizing:border-box; }
+  .cap { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); width:343px; }
+  .top { display:flex; justify-content:space-between; align-items:center; gap:var(--space-2); margin-bottom:var(--space-2); }
+  .title { font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .step { font-size:14px; color:var(--muted); }
+  .lead { color:var(--muted); margin:var(--space-2) 0; }
+  h2 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; margin:var(--space-4) 0 var(--space-2); font-variant:small-caps; }
+  .meta { font-size:14px; color:var(--muted); }
+  .card { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); margin-bottom:var(--space-2); }
+  .row { display:flex; align-items:center; gap:var(--space-2); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; min-width:0; overflow-wrap:anywhere; }
+  .row .text small { display:block; font-size:14px; color:var(--muted); }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--space-2); min-height:44px; min-width:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:16px; line-height:1.2; box-sizing:border-box; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.sq { width:44px; padding:10px; }
+  .btn.small { font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .btn.name { flex:1; display:block; text-align:left; border:0; background:transparent; padding:var(--space-2) 0; min-width:0; }
+  .btn.name::before { content:"i"; display:inline-block; width:16px; height:16px; line-height:16px; margin-right:6px; border:1.500px solid var(--info); border-radius:50%; color:var(--info); text-align:center; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:700; font-size:12px; vertical-align:2px; }
+  .btn.name .meta, .btn.name .warnline { font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .btn.name .warnline { font-weight:700; }
+  .picked { background:var(--surface); border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+  .num { width:64px; min-height:44px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); display:inline-flex; align-items:center; justify-content:center; font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; box-sizing:border-box; }
+  .stepper { display:inline-flex; gap:var(--space-2); align-items:center; }
+  .field { display:block; width:100%; min-height:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); box-sizing:border-box; }
+  .foot { display:flex; justify-content:flex-end; align-items:center; gap:var(--space-2); border-top:1px solid var(--rule); margin-top:var(--space-3); padding-top:var(--space-3); flex-wrap:wrap; }
+  .foot .say { flex:1; font-size:14px; color:var(--muted); min-width:120px; }
+  .gap { display:flex; gap:var(--space-2); flex-wrap:wrap; }
+  .help { background:var(--surface); border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); margin:var(--space-2) 0; }
+  .warnline { color:var(--warn); font-weight:700; font-size:14px; }
+  .toast { margin-top:var(--space-2); padding:var(--space-2) var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); display:flex; justify-content:space-between; gap:var(--space-2); align-items:center; }
+  .undo { color:var(--accent); text-decoration:underline; min-height:44px; display:inline-flex; align-items:center; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-2) 0 var(--space-4); }
+  svg { flex:none; }
+</style>
+</head>
+<body>
+<template id="screens">
+  <h1>What changes, in one line each</h1>
+  <p class="note">No "‹" or "›" anywhere: going back is a worded button, opening is a button, unfolding is a plus or a minus. One column of full-width rows on a phone, so nothing sits off-centre. The things to choose come first; what is given comes after, folded. Every list starts folded so the whole step fits on one screen. The footer is part of the page's flow and always whole. Full ability names. Numbers the setting gives an average for start at it and step up or down.</p>
+
+  <h1>1 · Scores and a pick step</h1>
+  <div class="wall">
+    <div>
+      <p class="cap">Scores: full names; a tap on a name (marked ⓘ) says what the score does; the stepper is centred in its row.</p>
+      <div class="phone">
+        <div class="top"><span class="btn small">Leave</span><span class="step">Step 1</span></div>
+        <div class="title">Scores</div>
+        <p class="lead">Roll three dice for each, at the table, and enter what you rolled.</p>
+        <span class="btn small"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v6" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7.500" r="1.200" fill="currentColor"/></svg>Help me choose</span>
+        <div class="card" style="margin-top:var(--space-3)">
+          <div class="row"><span class="btn name">Might</span><span class="stepper"><span class="btn sq">−</span><span class="num">13</span><span class="btn sq">+</span></span></div>
+          <div class="meta">+1 to hit and damage up close</div>
+        </div>
+        <div class="card">
+          <div class="row"><span class="btn name">Nimbleness</span><span class="stepper"><span class="btn sq">−</span><span class="num">9</span><span class="btn sq">+</span></span></div>
+          <div class="meta">No change</div>
+        </div>
+        <div class="card">
+          <div class="row"><span class="btn name">Grit</span><span class="stepper"><span class="btn sq">−</span><span class="num">12</span><span class="btn sq">+</span></span></div>
+          <div class="meta">No change</div>
+        </div>
+        <div class="card">
+          <div class="row"><span class="btn name">Wits</span><span class="stepper"><span class="btn sq">−</span><span class="num">7</span><span class="btn sq">+</span></span></div>
+          <div class="meta">Reads slowly · no extra languages</div>
+        </div>
+        <p class="meta">Lore and Charm follow, the same.</p>
+        <div class="foot"><span class="say">All 6 entered</span><span class="btn accent">Next</span></div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">A tap on "Might": what it is, in plain words, then what your number does.</p>
+      <div class="phone">
+        <div class="top"><div class="title">Might</div><span class="btn sq" role="button" aria-label="Close"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2"/></svg></span></div>
+        <p>Might is raw strength: how hard you hit, what you can lift, whether the stuck door gives.</p>
+        <p>At 13 you hit a little truer and harder up close, and you can force a door about one time in three.</p>
+        <p class="meta">River Rules · p. 14</p>
+      </div>
+      <p class="cap" style="margin-top:var(--space-4)">A pick step: the name opens the entry; Pick picks. A choice that is closed says why and can't be picked.</p>
+      <div class="phone">
+        <div class="top"><span class="btn small">Leave</span><span class="step">Step 3</span></div>
+        <div class="title">Class</div>
+        <span class="btn small"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v6" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7.500" r="1.200" fill="currentColor"/></svg>Help me choose</span>
+        <div class="card" style="margin-top:var(--space-3)"><div class="row"><span class="btn name">Lantern Warden<br><span class="meta">Fights in the front; no spells</span></span><span class="btn">Pick</span></div></div>
+        <div class="card picked"><div class="row"><span class="btn name">Reed Witch<br><span class="meta">Spells from the marsh; frail</span></span><span class="btn picked">Picked ✓</span></div></div>
+        <div class="card"><div class="row"><span class="btn name">Marsh Chaplain<br><span class="warnline">▲ Not open to Stone kin</span></span></div></div>
+        <div class="foot"><span class="say">Reed Witch picked</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h1>2 · Who they are</h1>
+  <div class="wall">
+    <div>
+      <p class="cap">The name tables start folded, so all of them show. A tapped name fills the field; you can type over it.</p>
+      <div class="phone">
+        <div class="top"><span class="btn small">Leave</span><span class="step">Step 5 of 9</span></div>
+        <div class="title">Who they are</div>
+        <h2>Name</h2>
+        <span class="field">Oswin Adderbald</span>
+        <p class="meta" style="margin:var(--space-2) 0">Roll at the table and tap what you rolled, or type your own.</p>
+        <div class="card"><div class="row"><div class="text">First names<small>Stone kin · d20</small></div><span class="btn sq" role="button" aria-label="Show first names"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/></svg></span></div>
+          <div class="row"><div class="text">Family names<small>Stone kin · d20</small></div><span class="btn sq" role="button" aria-label="Show family names"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/></svg></span></div>
+          <div class="row"><div class="text">Surnames<small>Optional · from Table Generator · d100</small></div><span class="btn sq" role="button" aria-label="Show surnames"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/></svg></span></div></div>
+        <h2>Hit points</h2>
+        <div class="row"><div class="text">Roll one six-sided die and add 1 for your Grit.</div><span class="stepper"><span class="btn sq">−</span><span class="num">4</span><span class="btn sq">+</span></span></div>
+        <h2>Outlook</h2>
+        <p class="meta">Only you and your GM see it.</p>
+        <div class="card"><div class="row"><span class="btn name">Reed<br><span class="meta">Bends with the current, keeps the old ways</span></span><span class="btn">Pick</span></div></div>
+        <div class="card"><div class="row"><span class="btn name">Open water<br><span class="warnline">▲ Not open to a Marsh Chaplain</span></span></div></div>
+        <div class="card"><div class="row"><div class="text">What the rules work out<small>9 figures · armour, saves, speed…</small></div><span class="btn sq" role="button" aria-label="Show what the rules work out"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/></svg></span></div></div>
+        <div class="foot"><span class="say">Outlook missing</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">A knight's liege: a pick row like any other. The name opens the house's entry; Pick sets the liege and says what it changes.</p>
+      <div class="phone">
+        <h2 style="margin-top:0">Liege</h2>
+        <p class="meta">The house your knight serves. A knight shares their liege's outlook.</p>
+        <div class="card"><div class="row"><span class="btn name">House Marrow<br><span class="meta">Reed · old river barons, slow to anger</span></span><span class="btn">Pick</span></div></div>
+        <div class="card picked"><div class="row"><span class="btn name">House Saltreach<br><span class="meta">Mire · tollkeepers of the eel weirs</span></span><span class="btn picked">Picked ✓</span></div></div>
+        <div class="toast"><span>Liege: House Saltreach. Your outlook is now Mire, as theirs is.</span><span class="undo" role="button">Undo</span></div>
+      </div>
+      <p class="cap" style="margin-top:var(--space-4)">The house's entry, from a tap on its name.</p>
+      <div class="phone">
+        <div class="top"><div class="title">House Saltreach</div><span class="btn sq" role="button" aria-label="Close"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2"/></svg></span></div>
+        <p class="meta">Mire</p>
+        <p>Tollkeepers of the eel weirs for nine generations. Proud, exact about debts, and wary of anyone from upriver.</p>
+        <div class="gap"><span class="btn accent">Pick House Saltreach</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h1>3 · Gear</h1>
+  <div class="wall">
+    <div>
+      <p class="cap">Money first, starting at the setting's average. Then what you choose. What is given comes last, folded.</p>
+      <div class="phone">
+        <div class="top"><span class="btn small">Leave</span><span class="step">Step 7 of 9</span></div>
+        <div class="title">Gear</div>
+        <h2>Starting coin</h2>
+        <div class="row"><div class="text">Roll three dice × 10 at the table.<small>Starts at the usual 100; step it or type yours.</small></div></div>
+        <div class="gap" style="justify-content:center"><span class="btn sq">−</span><span class="num" style="width:96px">100</span><span class="btn sq">+</span><span class="meta" style="align-self:center">silver</span></div>
+        <h2>To choose</h2>
+        <div class="card"><div class="row"><span class="btn name">Warden's kit<br><span class="meta">Instead of buying: armour, a weapon and travelling gear · 3 rolls</span></span><span class="btn">Pick</span></div></div>
+        <div class="card"><div class="row"><span class="btn name">A keepsake<br><span class="meta">Stone kin · roll d20, tap what you rolled</span></span><span class="btn">Roll</span></div></div>
+        <div class="card"><div class="row"><span class="btn name">The shop<br><span class="meta">Buy item by item with your coin</span></span><span class="btn">Open</span></div></div>
+        <h2>Yours already</h2>
+        <div class="card"><div class="row"><div class="text">Given to every character<small>6 items · clothes, a pack, 2 days' food…</small></div><span class="btn sq" role="button" aria-label="Show what is given"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/></svg></span></div></div>
+        <p class="meta">8 items · Unencumbered</p>
+        <div class="foot"><span class="say">Kit not picked: that's fine</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">Pick on a kit with rolls: its tables come up one at a time.</p>
+      <div class="phone">
+        <div class="top"><div class="title">Warden's kit</div><span class="btn sq" role="button" aria-label="Close"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2"/></svg></span></div>
+        <p class="meta">Roll 1 of 3 · Armour · roll d6 at the table, tap what you rolled</p>
+        <div class="card"><div class="row"><div class="text">1–2 · Boiled leather</div></div>
+          <div class="row picked" style="padding-left:var(--space-2)"><div class="text">3–5 · Ring coat ✓</div></div>
+          <div class="row"><div class="text">6 · Ring coat and a shield</div></div></div>
+        <div class="foot"><span class="say">Ring coat</span><span class="btn">Back</span><span class="btn accent">Next roll</span></div>
+      </div>
+      <p class="cap" style="margin-top:var(--space-4)">After the last roll: back on Gear, the kit shows what it gave. A tap on Change runs the rolls again.</p>
+      <div class="phone">
+        <h2 style="margin-top:0">To choose</h2>
+        <div class="card picked"><div class="row"><span class="btn name">Warden's kit<br><span class="meta">Ring coat · Reed spear · rope, lantern, 3 flasks of oil</span></span><span class="btn picked">Picked ✓</span></div>
+          <div class="gap"><span class="btn small">Change the rolls</span><span class="btn small">Take it off</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <h1>4 · Details, and the review</h1>
+  <div class="wall">
+    <div>
+      <p class="cap">Details: age, height and weight start at the kindred's usual and step; the describing tables are one row each.</p>
+      <div class="phone">
+        <div class="top"><span class="btn small">Leave</span><span class="step">Step 8 of 9</span></div>
+        <div class="title">Details</div>
+        <p class="lead">None of this changes the rules. Skip it if you like.</p>
+        <div class="row"><div class="text">Age<small>Stone kin are usually about 40</small></div><span class="stepper"><span class="btn sq">−</span><span class="num">40</span><span class="btn sq">+</span></span></div>
+        <div class="row"><div class="text">Height<small>in hands</small></div><span class="stepper"><span class="btn sq">−</span><span class="num">13</span><span class="btn sq">+</span></span></div>
+        <div class="row"><div class="text">Weight<small>in stone</small></div><span class="stepper"><span class="btn sq">−</span><span class="num">11</span><span class="btn sq">+</span></span></div>
+        <h2>Describe them</h2>
+        <div class="card"><div class="row"><div class="text">Face<small>Stone kin · d12</small></div><span class="btn">Roll</span></div>
+          <div class="row"><div class="text">Manner: <strong>Hums while thinking</strong><small>Optional · from Table Generator</small></div><span class="btn">Change</span></div>
+          <div class="row"><div class="text">6 more tables<small>Optional · from Table Generator</small></div><span class="btn sq" role="button" aria-label="Show 6 more tables"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/></svg></span></div></div>
+        <div class="foot"><span class="say">Nothing here is required</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+      </div>
+    </div>
+    <div>
+      <p class="cap">The review: one card per step, Change at the card's top right, equipment as lines not a paragraph.</p>
+      <div class="phone">
+        <div class="top"><span class="btn small">Leave</span><span class="step">Step 9 of 9</span></div>
+        <div class="title">Oswin Adderbald</div>
+        <p class="meta">Stone kin Reed Witch · level 1 · read it through, then send it to your GM</p>
+        <div class="card"><div class="top"><h2 style="margin:0">Scores</h2><span class="btn small">Change</span></div>
+          <div class="meta">Might 13 · Nimbleness 9 · Grit 12 · Wits 7 · Lore 15 · Charm 10</div></div>
+        <div class="card"><div class="top"><h2 style="margin:0">Gear</h2><span class="btn small">Change</span></div>
+          <div class="row"><div class="text">Warden's kit<small>Ring coat · Reed spear · rope, lantern, 3 flasks of oil</small></div></div>
+          <div class="row"><div class="text">Keepsake<small>A bag of sticky sweets that never get smaller</small></div></div>
+          <div class="row"><div class="text">Given<small>6 items</small></div><span class="btn sq" role="button" aria-label="Show what is given"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/></svg></span></div>
+          <div class="meta">12 items · Unencumbered · 40 silver left of 100</div></div>
+        <div class="card"><div class="top"><h2 style="margin:0">Magic</h2><span class="btn small">Change</span></div>
+          <div class="row"><div class="text">Marsh light<small>From your kindred</small></div></div>
+          <div class="row"><div class="text">Reed whisper<small>From your class</small></div></div></div>
+        <div class="card"><div class="row"><div class="text">What the rules work out<small>9 figures · tap one to see why</small></div><span class="btn sq" role="button" aria-label="Show what the rules work out"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/></svg></span></div></div>
+        <div class="foot"><span class="say">Ready to send</span><span class="btn">Save and leave</span><span class="btn accent">Send to your GM</span></div>
+      </div>
+      <p class="note" style="width:343px">Change opens that step. Back from it, with nothing changed, returns here. If the change touches later steps, creation walks you through only those and returns here.</p>
+    </div>
+  </div>
+
+  <h1>5 · The GM's approval card</h1>
+  <div class="wall">
+    <div class="phone">
+      <div class="title">Oswin Adderbald</div>
+      <p class="meta">Stone kin Reed Witch · level 1 · made by Player 2</p>
+      <div class="row"><div class="text">Starting coin<small>100 rolled · 60 spent · 40 left</small></div></div>
+      <div class="row"><div class="text">Outlook<small>Mire · only you and the player see it</small></div></div>
+      <div class="row"><div class="text"><span class="warnline">▲ Needs your special approval</span><small>Stone kin rarely take Reed Witch</small></div></div>
+      <div class="foot"><span class="btn">Send back</span><span class="btn accent">Approve</span></div>
+    </div>
+  </div>
+  <p class="note">On a tablet the same parts sit in a centred column of the same order; Scores becomes three tiles across with the stepper centred in each, and the kit's rolls and an entry open as a pop-up over the step. A second mockup page shows the tablet once this one is settled.</p>
+</template>
+
+<div class="pair">
+  <div class="theme light" id="light"></div>
+  <div class="theme dark" id="dark"></div>
+</div>
+<script>
+  const t = document.getElementById('screens');
+  document.getElementById('light').appendChild(t.content.cloneNode(true));
+  document.getElementById('dark').appendChild(t.content.cloneNode(true));
+</script>
+</body>
+</html>

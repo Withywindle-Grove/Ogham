@@ -1,0 +1,2138 @@
+/* The creation step shell and its parts (docs/06 Components; M5b step 0c). Tokens only. */
+
+/* The book's type inside character creation (dec-10 S2; cs-1, ts-1 to ts-3): creation's screens and the pop-ups opened
+   from them (`BookTypeScope`, Dialog.tsx) repoint the body and heading tokens to the book's faces, headings at the
+   face's bold; figures take its plain zero. The rest of the app keeps today's faces until the sweep (ts-2). */
+.book-type {
+  --font-body: var(--font-book-text);
+  --font-heading: var(--font-book-text);
+  --weight-heading: var(--weight-book-name);
+  /* A line's emphasis takes the book's own bold here (tk-1, the lead's, 2026-11-15). */
+  --weight-bold: var(--weight-book-name);
+  font-family: var(--font-body);
+}
+
+/* Creation's small-capitals labels in the book's small-capitals face (ts-1), not the browser's made-up capitals. */
+.book-type :is(.rolled-picks__head, .entry-panel__row dt, .trade-chips__head, .creation-review__tiles-label, .stat-tile__label, .label, .score-tile__prime, .pick-row__given) {
+  font-family: var(--font-book-descriptor);
+  font-weight: var(--weight-book-descriptor);
+  font-variant: normal;
+}
+
+/* A lone number box takes the face's normal figures, as the words beside it do (cs-40b, Francis 2026-11-13); its width
+   is fixed, so nothing jumps. Figures in columns (tiles, tables) keep theirs aligned. */
+.book-type :is(.typed-stepper__input, .stepper__value) {
+  font-variant-numeric: normal;
+}
+
+/* A sheet's title in creation balanced over its lines (B1). */
+.book-type .dialog__title {
+  text-wrap: balance;
+}
+
+/* A step's group headings in the book's sub-heading style (dec-10 D; 19-D1, 19-D4): a pick group's title ("Hit points",
+   "Pick 2") and a field group's legend ("Who they are", "Body"). */
+.book-type :is(.pick-group__title, .campaign-fields__legend) {
+  font-family: var(--font-book-text);
+  font-weight: var(--weight-book-subhead);
+  font-size: var(--text-20);
+  font-variant: normal;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--book-subhead);
+}
+
+/* A List row's title at 20 px in the book's type (the lead's ruling, pq-1 sizes, 2026-11-14); a long one wraps. A figure
+   row's name keeps 16 beside its 24 px figure, and a label row's field label ("Source", "Set by", "Log") keeps 16. */
+.book-type .list-row:not(.list-row--figure, .list-row--label) .list-row__title {
+  font-size: var(--text-20);
+}
+
+/* The host's wrapper adds no box of its own: the steps lay out as they did. */
+.book-type--host {
+  display: contents;
+}
+
+/* One centred reading column for every step, whatever is in it (mockup creation/13): room for three 212 px score tiles
+   across, so Scores is no wider than Class. */
+.creation-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  inline-size: 100%;
+  /* One column that grows with the screen (Design on #555, P20: no empty sides): tiles three across, four past 1000 px,
+     lists full width; only running text keeps the reading measure (below). */
+  margin: var(--space-4) auto 0;
+}
+
+/* Running text keeps the 65ch reading measure inside the full-width column (Design on #555): the step's line, the
+   group lines, Help me choose's words and an entry's text. */
+.creation-step .guided-instruction,
+.creation-step .creation-group__line,
+.creation-step .help-choose__text,
+.creation-step .entry-panel__lead {
+  max-inline-size: var(--reading-width);
+}
+
+/* Race and class on a wide screen use the full width: the list beside the entry's panel (cr-10). Only they split
+   (Francis, retest 2, 2026-11-07): every other step is the one widened column. */
+.creation-step--split {
+  max-width: none;
+}
+
+/* The Scores step: the same column as every step since creation/13; the class stays for its tests. */
+
+.creation-step__bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block-end: var(--space-2);
+  border-block-end: var(--line-hair) solid var(--rule);
+}
+
+/* Creation's app bar (final drafts A1): ← | the title, centred | ⋯, the two ends one tap wide each. */
+.creation-step__bar--app {
+  grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap);
+  gap: var(--space-1);
+  padding-block-end: var(--space-1);
+}
+
+.creation-step__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--tap);
+  block-size: var(--tap);
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.creation-step__title--centred {
+  text-align: center;
+  /* One line in the bar (mockup creation/final): a long title ends in "…"; ← and ⋯ keep their 44 px. */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* The ⋯ in the bar: the ink colour and size of ←. */
+.creation-step__more {
+  font-size: var(--text-24);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Creation's ⋯ sheet (final draft 9): the app's menu sections, then a divider and the last row. */
+.creation-menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.creation-menu > .more-menu__section + .more-menu__section,
+.creation-menu__leave {
+  padding-block-start: var(--gap);
+  border-block-start: var(--line-hair) solid var(--rule);
+}
+
+/* One bar in creation (final draft 9, N1): the app's top row hides while a creation step is on screen, at every
+   width where it shows (an iPad upright too: creation follow-up, 2026-11-07); ⋯ in creation's bar carries its menu.
+   The tablet's rail (slice E, not built yet) is another matter: it stays. */
+body:has(.creation-step__bar--app) .top-row {
+  display: none;
+}
+
+.creation-step__back {
+  min-inline-size: var(--tap);
+  min-block-size: var(--tap);
+  padding: 0;
+  font-size: var(--text-20);
+  line-height: 1;
+}
+
+.creation-step__title {
+  margin: 0;
+  min-inline-size: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  /* The page title's size (the serif at 24, semibold), one size on every step. */
+  font-size: var(--text-24);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
+
+.creation-step__why {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.creation-step__main {
+  display: grid;
+  gap: var(--space-4);
+}
+
+/* Two columns only where the second has a job (final drafts A10): from 700 px, the list and the open entry. */
+@media (min-width: 700px) {
+  .creation-step--split .creation-step__main {
+    grid-template-columns: 2fr 3fr;
+    align-items: start;
+  }
+
+  .creation-step__side {
+    position: sticky;
+    top: calc(var(--top-row-h, 0px) + var(--pad));
+    max-height: calc(100dvh - var(--top-row-h, 0px) - 2 * var(--pad));
+    overflow-y: auto;
+  }
+}
+
+.creation-step__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+/* The foot: the hint, then Decide later · Back · Next (ex-9, below). */
+.creation-step__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: var(--line-hair) solid var(--rule);
+}
+
+.creation-step__hint {
+  flex: 1 1 160px;
+  margin: 0;
+  min-inline-size: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+  /* At the row's left, beside Back and Next when it fits; wrapped, left-aligned above them, never floating right. */
+  text-align: start;
+}
+
+/* Every creation step's foot (ex-4, ex-9; G-208, Francis 2026-11-20: "these buttons have room to be on the same
+   line, the way they are staggered is ugly"): what is left on its own line, then Decide later at the left and Back and
+   Next at the right on one line. Nothing left: no line, and no gap for it. The review's stacked foot keeps its own.
+   A foot with an extra button (--extra, the New campaign steps) keeps the older row: ex-9 rules on creation steps only. */
+.creation-step__foot:not(.creation-step__foot--stacked):not(.creation-step__foot--extra) .creation-step__hint {
+  flex-basis: 100%;
+}
+
+.creation-step__foot:not(.creation-step__foot--stacked):not(.creation-step__foot--extra) .creation-step__hint:empty {
+  margin-block-end: calc(-1 * var(--space-2));
+}
+
+/* Decide later takes the pair's height, so the three read as one line (X1). */
+.creation-step__later {
+  align-self: stretch;
+}
+
+/* Next can't go on (mockup creation/13): ▲ and the words, in the warning colour; the shape carries it too. */
+.creation-step__hint--stop {
+  color: var(--warning);
+  font-weight: 700;
+}
+
+/* Back beside Next (ct3-5): the pair at the end of the foot, Next last, both one height. */
+.creation-step__actions {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-3);
+  margin-inline-start: auto;
+}
+
+/* Back keeps the secondary button's own padding: on a phone the pair must not squeeze it down to its word. It takes
+   Next's height (the pair is one height, ct3-5; X1 draws the three foot buttons one height). */
+.creation-step__foot-back {
+  flex: none;
+}
+
+.creation-step__foot:not(.creation-step__foot--extra) .creation-step__actions .creation-step__foot-back {
+  align-self: stretch;
+}
+/* Option row, pick variant: the row text and its Pick button are two targets, 44 px each, 8 px apart. The ✓ slot (PickTick) is set-up's Pack row lead. */
+/* Option row, pick variant: the ✓ slot and the row body are two targets, 44 px each, 8 px apart. */
+.pick-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+
+.pick-row + .pick-row {
+  margin-block-start: var(--space-2);
+}
+
+.pick-row__tick {
+  flex: none;
+  inline-size: var(--tap);
+  min-block-size: var(--tap);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  font-size: var(--text-20);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pick-row--picked .pick-row__tick,
+.pick-row__tick--on {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 var(--line-control) var(--ink);
+}
+
+/*
+ * Creation's pick rows (ct-1): the text opens the entry, the Pick button at the end picks. Picked: the Selected wash, an
+ * accent edge on the start side, and the button pressed (Picked ✓): three cues, never colour alone. The button sits
+ * beside the name, on its line (after-test A6); outside creation only a long name (pick-row--long) lets it wrap under the
+ * text; inside creation (`pick-row--lines`) a long name wraps beside Pick and only the takes mark drops Pick under it.
+ */
+.pick-row {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  padding: var(--space-2);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--sheet);
+}
+
+.pick-row--long,
+.pick-row--takes {
+  flex-wrap: wrap;
+}
+
+/* Creation's rows (dec-10 A; cs-5): the name and Pick on a line of their own (`pick-row__top`), the short lines under
+   them at the row's full width; a tap on the lines opens the entry, as the name does (cs-3). A long name wraps beside
+   Pick (A6); a row with the takes mark lets Pick drop under the name, at the right, only once its ticks no longer
+   leave the name room (pf-16, as #671 has it). */
+.pick-row.pick-row--lines {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0;
+}
+
+.pick-row__top {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.pick-row--takes .pick-row__top {
+  flex-wrap: wrap;
+}
+
+/* Its name asks only for the room its words take, so a short name keeps the ticks beside it and a long one drops them. */
+.pick-row--takes .pick-row__top .pick-row__body {
+  flex-basis: auto;
+}
+
+.pick-row__lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: 0 var(--space-2) var(--space-1);
+  cursor: pointer;
+}
+
+.pick-row--picked {
+  border-color: var(--selected-edge);
+  border-inline-start: var(--line-strong) solid var(--selected-edge);
+  background: var(--selected);
+}
+
+/* The pick's buttons at the row's end: Pick, and in the count variant (R3-8) the − square before it, 8 px apart. */
+.pick-row__picks {
+  display: flex;
+  flex: none;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+.pick-row__pick {
+  flex: none;
+  min-inline-size: calc(var(--tap) * 2);
+}
+
+.pick-row__less {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--tap);
+  min-block-size: var(--tap);
+  padding: 0;
+}
+
+.pick-row__pick[aria-checked='true'] {
+  border-color: var(--selected-edge);
+  box-shadow: inset 0 0 0 calc(var(--line-selected) - var(--line-control)) var(--selected-edge);
+  background: var(--selected);
+  color: var(--ink);
+}
+
+/* The plain variant (C3; page M2, frame M2o, approved 2026-11-19): a Quiver's or a Pouch's rows. No box, a dotted rule
+   under each row (the last too), the name level with the pop-up's heading, the button at the right and beside even a
+   long name. Picked, only the button is washed (above); the row keeps no wash and no edge. */
+.pick-row.pick-row--plain,
+.pick-row.pick-row--plain.pick-row--picked {
+  flex-wrap: nowrap;
+  align-items: center;
+  padding: var(--space-1) 0;
+  border: 0;
+  border-block-end: var(--row-rule);
+  border-radius: 0;
+  background: none;
+}
+
+/* Inside the book's type (the Player tab) a plain row is the lines variant, a column: its name at the left and its
+   button at the right across the row, as M2o draws it, not both centred in the middle (found with row C8). */
+.pick-row.pick-row--plain.pick-row--lines {
+  align-items: stretch;
+}
+
+.pick-row--plain.pick-row--lines .pick-row__top {
+  align-items: center;
+}
+
+.pick-row--plain.pick-row--lines .pick-row__lines {
+  padding-inline: 0;
+}
+
+.pick-row--plain + .pick-row--plain {
+  margin-block-start: 0;
+}
+
+.pick-row--plain .pick-row__body {
+  padding-inline: 0;
+}
+
+/* In the book's pop-ups (tfb-1, row C8; the Quiver on the Player tab, frame M2o): a kind's name in the book's bold, as
+   drawn under the red heading. The Pack tab's Quiver keeps the Sheet's own. */
+.dialog--book .pick-row--plain .pick-row__name {
+  font-weight: var(--weight-book-name);
+}
+
+.pick-row__body {
+  display: flex;
+  flex: 1 1 calc(var(--tap) * 4);
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  min-block-size: var(--tap);
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--ink);
+  text-align: start;
+  cursor: pointer;
+}
+
+.pick-row__name {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+  overflow-wrap: anywhere;
+}
+
+/* ⓘ before a name that opens its entry (cw-11): in the info colour, with the words, never alone. */
+.score-tile__name .icon {
+  flex: none;
+  color: var(--info);
+}
+
+.pick-row__name .icon {
+  display: inline-block;
+  margin-inline-end: var(--space-2);
+  color: var(--info);
+  vertical-align: -3px;
+}
+
+.pick-row__blurb {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.pick-row__fit,
+.pick-row__source,
+.pick-row__from {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* The review's foot (cs-36, pictures creation/final 22-G1, 22-G8): the quiet pair, then the accent outermost at the
+   right; on one row when they fit, else the accent drops to a row of its own, still at the right. */
+.creation-step__quiet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
+.creation-step__foot--stacked .creation-step__actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  /* The quiet pair (48 px) and the accent (56 px) share one line through their middles on a row (22-G8). */
+  align-items: center;
+}
+
+@media (max-width: 699px) {
+  .creation-step__foot--stacked {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* In the column the hint takes only its own lines: its row basis would leave a blank band above the buttons. */
+  .creation-step__foot--stacked .creation-step__hint {
+    flex: none;
+  }
+
+  /* The lone accent keeps its own width at the right (ft-1, 22-G1), not the phone's full-width accent. */
+  .creation-step__foot--stacked .creation-step__next {
+    inline-size: auto;
+  }
+}
+
+/* Offline on a step that saves (final drafts F): the first thing on the screen, the sign, then what it means. */
+.creation-offline {
+  display: grid;
+  gap: var(--space-1);
+  margin-block-end: var(--space-3);
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.creation-offline__line {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* Loading a step (final drafts F): the line, then skeleton rows. */
+.creation-loading__line {
+  color: var(--muted);
+}
+
+/* Given (final drafts D): the word where the Pick would be, quiet, on the name's line. */
+.pick-row__given {
+  flex: none;
+  align-self: center;
+  margin-inline-start: auto;
+  padding-inline: var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-14);
+  font-weight: 700;
+}
+
+/* The average stepper (A5): the stepper, then its line (the average's, or the field's caption) under it. */
+.average-stepper {
+  display: inline-grid;
+  gap: var(--space-1);
+  justify-items: start;
+}
+
+.average-stepper__line {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* A warning on a pick row (A4): the sign and its words on a line of their own. */
+.pick-row__warn {
+  display: block;
+}
+
+/* The entry's full rules: a panel beside the list on a wide screen (a Dialog carries it on a phone). */
+.entry-panel {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.entry-panel__head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: var(--space-2);
+}
+
+.entry-panel__name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+}
+
+.entry-panel__meta {
+  grid-column: 1;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.entry-panel__close {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  min-inline-size: var(--tap);
+  min-block-size: var(--tap);
+}
+
+.entry-panel__list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.entry-panel__row {
+  display: grid;
+  gap: var(--space-1);
+}
+
+/* A kit's rolled picks in its entry (retest 2): the heading as the entry's small caps, then one row per roll, its
+   Roll row and what it gave at the left, its own Change at the right. */
+.rolled-picks {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.rolled-picks__head {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-16);
+  font-weight: 400;
+  font-variant: small-caps;
+  text-transform: lowercase;
+}
+
+.rolled-picks__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.rolled-picks__text {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.rolled-picks__title,
+.rolled-picks__result {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.rolled-picks__title {
+  font-weight: 700;
+}
+
+/* Small-caps headings (ct-2). */
+.entry-panel__row dt {
+  color: var(--muted);
+  font-size: var(--text-16);
+  font-variant: small-caps;
+  text-transform: lowercase;
+}
+
+.entry-panel__row dd {
+  margin: 0;
+}
+
+.entry-panel__empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.entry-panel__foot {
+  display: flex;
+  justify-content: flex-end;
+  padding-block-start: var(--space-3);
+  border-block-start: var(--line-hair) solid var(--rule);
+}
+
+/* The entry, formatted (ct-2): the blurb, small-caps headings, bullet lines "name — effect", chips for open classes. */
+.entry-panel__lead {
+  margin: 0;
+}
+
+/* A closed entry (final drafts C): the sign and why, then the rule in words, above the blurb. */
+.entry-panel__closed {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.entry-panel__bullets {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-4);
+}
+
+.entry-panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* A spell book's spells (ct-7): one row each, the name in the heading face, the line, the facts small; a rule between. */
+.entry-panel__book {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry-panel__book > li + li {
+  border-block-start: var(--line-hair) dotted var(--rule);
+}
+
+.entry-panel__book-row {
+  display: grid;
+  gap: var(--space-1);
+  inline-size: 100%;
+  min-block-size: var(--tap);
+  padding: var(--space-2) 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  text-align: start;
+  cursor: pointer;
+}
+
+.entry-panel__book-name {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+}
+
+.entry-panel__book-facts {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* A quiet tag beside the name, in words (sr-4's "given"): the Skill grid's tag look, on the name's line. */
+.entry-panel__book-tag {
+  display: inline-block;
+  margin-inline-start: var(--space-2);
+  padding: 0 var(--space-1);
+  border: 1px solid var(--control);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-weight: normal;
+  font-size: var(--text-14);
+  vertical-align: middle;
+}
+
+/*
+ * Score tiles (the second test, 2026-11-02): 212 px tiles, four on an iPad's landscape row; − / number / + always on
+ * one line. Every tile the same height: the rows share one height and the affects line reserves two lines. On a
+ * phone, two per row (ruled B, 2026-11-02): 4 px between the controls, the score tiles' one exception to the 8 px rule.
+ */
+/* Three per row at most: 3 + 3 in iPad landscape too (the third test, ct3-2; supersedes PR D's 4 + 2);
+   never under 212 px, so a narrower screen takes two. */
+.score-tiles {
+  display: grid;
+  inline-size: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, max(212px, calc((100% - 2 * var(--space-2)) / 3))), 1fr));
+  grid-auto-rows: 1fr;
+  gap: var(--space-2);
+}
+
+/* Four tiles across past 1000 px (Design on #555), the column now filling the screen. */
+@media (min-width: 1000px) {
+  .score-tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* A traded score's number before the trade (Design on #555): the quiet line under the value, the modifier after it. */
+.score-tile__was {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* The Adjust variant (ct-3, final draft 1) is laid out as Scores is: one row each on a phone, three across wider. */
+
+/* The trades as chips under the Adjust tiles (ct-3): "WIS −2 → STR +1 ✕", each ✕ undoes that trade. */
+/* The prime experience table (R3-7, mockup creation/final/11): body 16, headers 14, the character's band washed and
+   worded. */
+.prime-xp {
+  inline-size: 100%;
+  margin-block: var(--space-3);
+  border-collapse: collapse;
+  font-size: var(--text-16);
+}
+
+.prime-xp__caption {
+  padding-block-end: var(--space-1);
+  font-weight: 600;
+  text-align: start;
+}
+
+.prime-xp th {
+  padding: var(--space-1) var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-14);
+  font-weight: 600;
+  text-align: start;
+}
+
+.prime-xp td {
+  padding: var(--space-2);
+  border-block-end: var(--line-hair) dotted var(--rule);
+  font-variant-numeric: tabular-nums;
+}
+
+.prime-xp th:last-child,
+.prime-xp td:last-child {
+  text-align: end;
+}
+
+.prime-xp__you td {
+  background: var(--selected);
+  font-weight: 600;
+}
+
+.prime-xp__mark {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.trade-chips {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+}
+
+.trade-chips__head {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+  font-weight: 400;
+  font-variant: small-caps;
+}
+
+.trade-chips__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.score-tile {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+}
+
+.score-tile--prime {
+  border-color: var(--ink);
+}
+
+.score-tile__key {
+  margin: 0;
+  font-weight: 700;
+}
+
+/* The full name, a 44 px button that opens what the score does (cw-11). */
+.score-tile__name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--tap);
+  padding: var(--space-2) 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  text-align: start;
+  /* Never inside a word (Design on #544): a long name wraps between words; only a word wider than the tile breaks. */
+  overflow-wrap: break-word;
+  cursor: pointer;
+}
+
+/* The ability pop-up's rules note: the book's words, after the plain ones (cw-11). */
+.ability-explained__note {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* The prime's tag (final drafts A9, mockup creation/final/01): "Prime" in a small outlined box beside the name. */
+.score-tile__prime {
+  display: inline-block;
+  margin-inline-start: var(--space-1);
+  padding: 0 var(--space-1);
+  border: var(--line-control) solid var(--ink);
+  border-radius: var(--radius);
+  font-weight: 700;
+  font-size: var(--text-14);
+}
+
+.score-tile__value {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.score-tile__step {
+  flex: none;
+  min-inline-size: var(--tap);
+  min-block-size: var(--tap);
+  padding: 0 var(--space-1);
+}
+
+/* The number field: 64 px and never shrinking, so two digits never clip. */
+.score-tile__input {
+  flex: none;
+  inline-size: 64px;
+  min-block-size: var(--tap);
+  padding: 0;
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-size: var(--text-24);
+  text-align: center;
+}
+
+.score-tile__input::placeholder {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.score-tile__number {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  min-inline-size: 0;
+}
+
+.score-tile__now {
+  font-size: var(--text-20);
+  font-weight: 700;
+}
+
+.score-tile__words {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.score-tile__words {
+  margin: 0;
+  min-block-size: calc(2em * var(--line-body));
+  overflow-wrap: anywhere;
+}
+
+/* The scores strip: wraps on a phone. */
+.scores-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: var(--space-2) 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.scores-strip b {
+  color: var(--ink);
+}
+
+.scores-strip__lead {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.scores-strip__why {
+  color: var(--muted);
+}
+
+/* The start-over callout. */
+.creation-callout {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.creation-callout__text {
+  margin: 0;
+}
+
+.creation-callout__meta {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.creation-callout__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* The folded group: its words, then the + / − square at the row's end (cw-11). */
+.creation-fold__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-block-size: var(--tap);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.creation-fold__summary::-webkit-details-marker {
+  display: none;
+}
+
+.creation-fold {
+  inline-size: 100%;
+}
+
+.creation-fold__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.creation-fold__label {
+  font-weight: 700;
+}
+
+/* The square that shows + folded and − open (cw-11): a 44 px secondary button's look; the row is the control. */
+/* Creation's one fold mark (cs-9): the chevron, pointing down while folded and up while open; the shape carries the
+   state, and the summary's words say what is folded. */
+.creation-fold__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--tap);
+  block-size: var(--tap);
+  color: var(--ink);
+}
+
+.creation-fold__mark .icon {
+  transform: rotate(90deg);
+}
+
+.creation-fold__mark--open .icon {
+  transform: rotate(-90deg);
+}
+
+.creation-fold__square {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--tap);
+  block-size: var(--tap);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+}
+
+/* The summary wraps to at most two lines, then "…"; a long one never widens the row (Design, ⚑ 6 on #558). One rule
+   for every fold row: the Pack, creation and the full sheet. */
+.creation-fold__note {
+  color: var(--muted);
+  font-size: var(--text-14);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.creation-fold__rows {
+  padding-block-start: var(--space-2);
+}
+
+/* The bank line under the adjust tiles. */
+.adjust-bank {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: var(--text-14);
+}
+
+/* Derived fields (cr-12): label and value in two columns, read-only; the label tells where the value comes from. */
+.derived-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.derived-fields__row {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.derived-fields__row dt {
+  margin: 0;
+}
+
+.derived-fields__label {
+  min-block-size: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--text-14);
+  text-align: start;
+  text-decoration: underline dotted;
+  cursor: pointer;
+}
+
+.derived-fields__row dd {
+  margin: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* A value's parts beside it (ct-5): AC "unarmoured, DEX +0". */
+.derived-fields__note {
+  color: var(--muted);
+  font-size: var(--text-14);
+  font-weight: 400;
+}
+
+/* The hit points: the roll typed beside what it gives. */
+.hp-roll {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.hp-roll__worked {
+  margin: 0;
+  font-weight: 700;
+}
+
+.creation-group__line {
+  margin: 0 0 var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+
+/* A group of pick rows (First spells, Languages, Weapon skills): a heading with its count, then the rows. */
+.pick-group {
+  margin-block-start: var(--space-4);
+}
+
+.pick-group__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+  min-block-size: var(--tap);
+  margin: 0;
+  font: inherit;
+  font-weight: 700;
+}
+
+.pick-group__meta {
+  color: var(--muted);
+  font-size: var(--text-14);
+  font-weight: 400;
+}
+
+.pick-group__search {
+  margin-block-end: var(--space-2);
+}
+
+/* Gear (cr-14; mockup creation/06): the tally of spent, left and the load, on the step and at the top of the shop. */
+.gear-tally {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  min-block-size: var(--tap);
+  margin-block: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-control) solid var(--rule);
+  border-radius: var(--radius);
+}
+
+.gear-tally__money {
+  margin: 0;
+}
+
+.gear-tally__load {
+  flex: 1 1 100%;
+  min-inline-size: 0;
+}
+
+/* Other… after a list of pick rows; the weapon skills' count line (ct-8) over its groups. */
+/* The count's heading sits right over its first group (picture creation/final 20-E4): only the step's own gap between
+   them, not the group's margin as well (the empty band the build had, dec-10 E). */
+.weapon-skills__count {
+  margin-block-end: 0;
+}
+
+.weapon-skills__count + .pick-group {
+  margin-block-start: 0;
+}
+
+.other-row,
+.pick-row + .other-row {
+  margin-block-start: var(--space-2);
+}
+
+/* Other… (cr-15, cr-17): a row that opens the typed entry. */
+.other-row__open {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-block-size: var(--tap);
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-control) dashed var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.other-row {
+  inline-size: 100%;
+}
+
+.other-row__open > span:first-child {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.other-row__name {
+  font-weight: 700;
+}
+
+.other-row__blurb {
+  display: block;
+  color: var(--muted);
+  font-size: var(--text-14);
+  font-weight: 400;
+}
+
+.other-row__form {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+.other-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* A derived line under a step's rows ("Literacy: Reads · from WIT 12 · Derived fields"). */
+.derived-line {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-control) solid var(--rule);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: var(--text-14);
+  overflow-wrap: anywhere;
+}
+
+/* The review (cr-18, cw-11; mockup creation/12): one card per step, read-only; its title with a small Change button
+   at the top right, then its lines; rows with a muted line under them; folded rows and cards with the + square. */
+.creation-review {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* The review is one widened column at every width, its cards one under another (Francis, retest 2, 2026-11-07:
+   only Race and Class keep two columns; this reverses A10's cards two across). */
+
+.creation-review__part {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  overflow-wrap: anywhere;
+}
+
+.creation-review__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.creation-review__title {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+}
+
+.creation-review__note,
+.creation-review__why {
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: var(--text-14);
+  font-weight: 400;
+}
+
+.creation-review__line {
+  margin: 0;
+}
+
+/* A row (cw-11): its name, and under it what it is, muted; a dotted rule between rows, as the mockup's. */
+.creation-review__row {
+  padding-block: var(--space-2);
+  border-block-end: var(--row-rule);
+}
+
+.creation-review__row--change {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.creation-review__row-text {
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+
+.creation-review__warn {
+  margin: 0;
+  color: var(--warning);
+  font-size: var(--text-14);
+  font-weight: 700;
+}
+
+.creation-review__row:last-child {
+  border-block-end: 0;
+}
+
+.creation-review__sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* A pack-list value in a line (ct3-11): a pill with room around it, so wrapped pills keep 8 px between them. */
+/* Derived values as tiles (R3-6, mockup creation/final/12): even columns, three across, four past 1000 px; the saves
+   their own group under a label, three across on a phone, five from a tablet's width. 8 px between. */
+.creation-review__tiles-block + .creation-review__tiles-block {
+  margin-block-start: var(--space-3);
+}
+
+.creation-review__tiles-label {
+  margin: 0 0 var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-14);
+  font-variant: small-caps;
+}
+
+.creation-review__tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+/* Under 600 px the figures go two across, so no word of a tile breaks in the book's wider face (cs-40a, Francis
+   2026-11-13); the saves' short tiles stay three across. */
+@media (max-width: 599px) {
+  .creation-review__tiles:not(.creation-review__tiles--saves) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1000px) {
+  .creation-review__tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 600px) {
+  .creation-review__tiles--saves {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.creation-review__line .tap-value {
+  margin-block: var(--space-1);
+  margin-inline-end: var(--space-1);
+}
+
+.creation-review__change {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  white-space: nowrap;
+}
+
+/* Wider (mockup creation/13): three tiles across, the name with ⓘ centred above the centred stepper. */
+@media (min-width: 601px) {
+  .score-tiles .score-tile__name {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .score-tiles .score-tile__words {
+    text-align: center;
+  }
+
+  .score-tiles .score-tile__was {
+    text-align: center;
+  }
+}
+
+/* A phone (cw-11, mockup creation/12): one row per ability, the full name and the stepper in line, the caption under
+   them. Wider, three tiles across with the stepper centred (above). */
+@media (max-width: 600px) {
+  .score-tiles {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: auto;
+  }
+
+  /* The name and the stepper share a line while the whole name fits beside it; a longer name takes its own line (wrapping
+     between words, never inside one) and the stepper drops under it at the right; the caption under both (Design on
+     #544). Scores and Adjust alike. */
+  .score-tiles .score-tile {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .score-tiles .score-tile__key {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+  }
+
+  .score-tiles .score-tile__value {
+    flex: none;
+    margin-inline-start: auto;
+  }
+
+  .score-tiles .score-tile__words {
+    flex: 1 0 100%;
+    min-block-size: 0;
+  }
+
+  .score-tiles .score-tile__was {
+    flex: 1 0 100%;
+  }
+}
+
+/* A table opened at creation (cs-1, TableSheet): its rows under the table's line, like a kit roll's. */
+.table-sheet__rows {
+  margin-block-start: var(--space-3);
+}
+
+/* The player's own words as the marked answer (cts-4, frame TS6): the box as a marked row, the selected wash, the
+   accent edge, bold and its tick at the right, the words kept clear of the tick. */
+.table-sheet__own-box {
+  position: relative;
+  display: block;
+}
+
+/* The box's own measure, as the app's fields have it (SignIn.css), so the tick sits inside it wherever it is drawn
+   (the component gallery loads no sign-in styles). */
+.table-sheet__own-box .field__input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--tap-step);
+  padding-inline: var(--pad);
+  border: var(--line-hair) solid var(--muted);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  font-size: var(--text-item);
+}
+
+.table-sheet__own--marked .field__input {
+  border-color: var(--selected-edge);
+  box-shadow: inset 0 0 0 calc(var(--line-selected) - var(--line-hair)) var(--selected-edge);
+  background: var(--selected);
+  color: var(--ink);
+  font-weight: 700;
+  padding-inline-end: calc(var(--space-5) + var(--space-3));
+}
+
+.table-sheet__own-box .row-check {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* The long variant's strip (m5b-long-tables; mockup creation/final/13, B with C's field; #571 rounds 2 and 3): the
+   typed roll over the range bar, one line each, staying at the top of the scroll on the sheet's own colour so the rows
+   pass under it. In a sheet its padding is taken back (the sticky edge is inside it), so the strip sits at the sheet's
+   top edge and its own padding keeps the gap. */
+.table-sheet__bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding-block: var(--space-2);
+  background: var(--popup);
+}
+
+.dialog .table-sheet__bar {
+  top: calc(0px - var(--pad));
+}
+
+/* Beside the step (a name table drawn as a panel, the gallery's): no scroll of its own, so the strip stays in its
+   place rather than sticking to the page; the panel's own colour. The app opens name tables as sheets. */
+.entry-panel .table-sheet__bar {
+  position: static;
+  background: var(--surface);
+}
+
+.table-sheet__bar > * {
+  margin: 0;
+}
+
+/* The range bar (round 3): one line at every width, scrolling sideways when its bands don't fit (a phone). */
+.table-sheet__bar .button-row {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.table-sheet__bar .button-row > button {
+  flex: none;
+}
+
+/* The typed roll (round 3): "What you rolled", a box two taps wide (88 px, from the tap token) and Show, one line. */
+.table-typed {
+  display: flex;
+  flex-wrap: wrap; /* only at the larger text sizes, the label above: at Standard it is one line on a 375 px phone */
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.table-typed .label {
+  flex: none;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.table-typed .table-typed__box {
+  flex: none;
+  width: calc(var(--tap) * 2);
+  min-height: var(--tap);
+  padding-inline: var(--space-2);
+  border: 1px solid var(--muted);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  font-size: var(--text-item);
+  text-align: center;
+}
+
+/* The box and Show: one group that never wraps. */
+.table-typed__entry {
+  display: flex;
+  flex: none;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.table-typed__entry > button {
+  flex: none;
+}
+
+.table-typed__line {
+  margin: 0;
+}
+
+/* Show every row, under the one row a shown number lands on. */
+.table-typed__all {
+  margin-block-start: var(--space-3);
+}
+
+/* One band's rows: one column on a phone; on a tablet two from 24 rows, filled down the left first (1–13, then 14–25). */
+.table-sheet__long + .table-sheet__long {
+  margin-block-start: var(--space-3);
+}
+
+.table-sheet__cell {
+  break-inside: avoid;
+}
+
+@media (min-width: 700px) {
+  .table-sheet__long--columns {
+    columns: 2;
+    column-gap: var(--space-5);
+  }
+}
+
+/* The Details step's rows (cs-1, DetailRow; mockup creation/11): label · what was tapped · Change, one roomy row each. */
+.detail-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  inline-size: 100%;
+  min-block-size: calc(var(--tap) + var(--space-2));
+  padding: var(--space-1) 0;
+  border: 0;
+  border-block-start: var(--line-hair) solid var(--rule);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.detail-row__label {
+  flex: none;
+  min-inline-size: 6em;
+  font-weight: 700;
+}
+
+/* Another pack's table (ct-6): "Optional, from Table Kit" under the label. */
+.detail-row__note {
+  display: block;
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-weight: 400;
+}
+
+/* Wraps to its own line under a long label rather than shrinking to a letter a line (slice B's gallery). */
+.detail-row__value {
+  flex: 1 1 8rem;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The label with its value under it, as one column beside the button (after-test A8: the first row like the rest). */
+.detail-row__text {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.detail-row__text .detail-row__value {
+  flex: none;
+}
+
+.detail-row__value--blank {
+  color: var(--muted);
+}
+
+.detail-row__action {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--tap);
+  padding: 0 var(--space-3);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+/* Age, height and weight on the Details step: each label, its dice under it, a short box. */
+.details-physical {
+  display: grid;
+  gap: 0 var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  margin-block-start: var(--space-4);
+}
+
+/* With the kindred's usual (Design, 2026-11-06): one row each, the label and the pack's words on the left, the typed
+   stepper and its unit on the right; on a narrow phone the stepper wraps under the words. */
+.details-physical--rows {
+  grid-template-columns: 1fr;
+}
+
+.physical-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  padding-block: var(--space-2);
+  border-block-end: var(--line-hair) solid var(--rule);
+}
+
+.physical-row__text {
+  display: flex;
+  flex: 1 1 10rem;
+  flex-direction: column;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.physical-row__caption {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.physical-row__control {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.physical-row__unit {
+  min-inline-size: 3em;
+  color: var(--muted);
+}
+
+/* A height reads "5 ft 11 in" in its box: wider, a size down so it never clips. */
+.physical-row--height .typed-stepper__input--wide {
+  inline-size: 8.5rem;
+  font-size: var(--text-20);
+}
+
+/* Roll for a name (R3-1, mockup creation/final/10): the Name field and the button on one row where the row has room
+   (a tablet's 65ch column), the button under the field on a phone; 8 px between. */
+.name-roll {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-self: stretch;
+  gap: var(--space-2);
+  inline-size: 100%;
+}
+
+.name-roll > .field__input {
+  flex: 1 1 20rem;
+  min-inline-size: 0;
+}
+
+.name-roll__button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Where the name came from (R3-1): one quiet line under the field while it holds that name. */
+.name-roll__from {
+  margin-block-start: var(--space-1);
+}
+
+/* The Roll sequence (Dialog variant, cw-11): the step line under the head, the rows, then a foot of the status line
+   and Back · Next, one row when it fits. */
+.roll-sequence__line {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* A roll row rolled more than once (R3-8, retest 4 T3): the row, then the 44 px − square that puts one back. */
+.roll-sequence__counted {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+.roll-sequence__counted > .option-row {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.roll-sequence__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+  padding-block-start: var(--space-3);
+  border-block-start: var(--line-hair) solid var(--rule);
+}
+
+/* A sheet's foot (ft-1; the lead, 2026-11-14: the roll sequence is a sheet): Next or Done at the right at its own width,
+   Back before it, on a phone as on a tablet; the phone's full-width accent (App.css) does not reach it. */
+.roll-sequence__foot .button-primary {
+  width: auto;
+}
+
+.roll-sequence__status {
+  flex: 1 1 160px;
+  margin: 0;
+  min-inline-size: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+  overflow-wrap: anywhere;
+}
+
+/* Gear (cw-11): the coin stepper and its coin's name on one line, then a kit's Change the rolls · Take it off. */
+.gear-coin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.gear-coin__unit {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* Starting coin (final drafts D): the Roll row, the card with its stepper, then a warning when the dice can't give it. */
+.gear-coin-block {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-end: var(--space-4);
+}
+
+.gear-coin-block .gear-coin {
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+}
+
+/* Outside the dice: the edge in the warning colour, with the sign and the words under it (never colour alone). */
+.gear-coin-block .gear-coin--warn {
+  border-color: var(--warning);
+}
+
+.gear-coin__warn {
+  margin: 0;
+}
+
+.gear-kit__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block: var(--space-2);
+}
+
+/* A kit row's fit line (cw-11, mockup creation/13): the cost and weight apart, and each ▲ thing the class can't use on
+   its own line under them. */
+.gear-kit .pick-row__fit {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-3);
+}
+
+.gear-kit .pick-row__fit strong {
+  flex-basis: 100%;
+}
+
+/* DetailRow's one-row variant (picked): the picked entry's words take the row; Change stays at its end. */
+.detail-row__label--picked,
+.detail-row--open .detail-row__label {
+  flex: 1;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+/* An entry in the book format (dec-10 S3; cs-4, ds-8; pictures creation/final 16-A2, 16-A2b, 18-C3, 20-E2, 21-F6):
+   inside creation's book type only (`BookBody`, `BookTable` in creation.tsx). */
+.book-heading {
+  font-family: var(--font-book-text);
+  font-weight: var(--weight-book-heading);
+  font-size: var(--text-24);
+  line-height: var(--line-heading);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--book-label);
+}
+
+.book-tagline {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-book-descriptor);
+  font-weight: var(--weight-book-descriptor);
+  font-size: var(--text-16);
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.book-paragraph {
+  margin: 0 0 var(--space-2);
+}
+
+.book-line {
+  margin: 0 0 var(--space-1);
+}
+
+.book-line--sub {
+  margin-inline-start: var(--space-4);
+}
+
+.book-subhead {
+  margin: var(--space-3) 0 var(--space-1);
+  font-family: var(--font-book-text);
+  font-weight: var(--weight-book-subhead);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+  color: var(--book-subhead);
+}
+
+.book-list {
+  margin: 0 0 var(--space-2);
+  padding-inline-start: var(--space-4);
+}
+
+.book-list li + li {
+  margin-block-start: var(--space-1);
+}
+
+.book-source {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-14);
+  color: var(--muted);
+}
+
+.book-foot {
+  justify-content: flex-end;
+}
+
+/* A read-only entry's way back, at its top (C3): fl-1's back link (`button-quiet`), placed at the entry's start. */
+.book-back {
+  align-self: flex-start;
+  margin: 0 0 var(--space-2);
+}
+
+/* A table in the book's style (ds-8): the filled title bar, the head row over its rule, the rows banded. */
+.book-table__box {
+  max-inline-size: 100%;
+  margin: var(--space-2) 0;
+  overflow-x: auto;
+}
+
+.book-table {
+  inline-size: 100%;
+  margin: 0;
+  border-collapse: collapse;
+}
+
+/* The title bar, shared by a book table's caption and a tapped table's head (19-D2). */
+.book-table caption,
+.book-tap-head__bar {
+  padding: var(--space-1) var(--space-3);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-book-descriptor);
+  font-weight: var(--weight-book-descriptor);
+  font-size: var(--text-16);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.book-table th,
+.book-table td {
+  padding: var(--space-1) var(--space-2);
+  border-bottom: var(--line-hair) solid var(--rule);
+  text-align: start;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Variant "title at the start" (`titleStart`; frame M2h, the Burden pop-up, Francis's fix of 2026-11-20): the title
+   bar's words left-aligned. Creation's tables keep theirs centred. */
+.book-table--title-start caption {
+  text-align: start;
+}
+
+/* The head row, shared likewise: bold, over a strong rule. */
+.book-table th,
+.book-tap-head__row {
+  border-bottom: var(--line-control) solid var(--ink);
+  font-size: var(--text-14);
+  font-weight: 700;
+}
+
+/* In a table of figures with one column of words, the figures stay on one line; only the words wrap (16-A2b). */
+.book-table th.book-table__figure,
+.book-table td.book-table__figure {
+  padding-inline: var(--space-1);
+  white-space: nowrap;
+}
+
+/* The character's own row (B4): bold, never colour alone; "you" is said, not shown. */
+.book-table__marked td {
+  font-weight: var(--weight-book-name);
+}
+
+.book-table tbody tr:nth-child(even) td {
+  background: var(--book-band);
+}
+
+/* A table a player rolls on and taps, in the book's style (cs-7, dec-10 D; picture creation/final 19-D2): the rows one
+   block, ruled between and banded, whatever draws them (an option row, a pick row, a long table's cell, a counted row's
+   wrapper); each row still a 44 px tap; the picked row the selected wash, the accent edge, bold and its tick. */
+.book-type :is(.table-sheet__rows, .table-sheet__long) > * {
+  border-bottom: var(--line-hair) solid var(--rule);
+  background: var(--sheet);
+}
+
+.book-type :is(.table-sheet__rows, .table-sheet__long) > :nth-child(even) {
+  background: var(--book-band);
+}
+
+.book-type :is(.table-sheet__rows, .table-sheet__long) :is(.option-row, .pick-row) {
+  border: 0;
+  border-radius: 0;
+}
+
+/* A row inside a cell or a counted row's wrapper takes the band of its wrapper; a row that is itself the table's child
+   keeps its own band (dec-10 E: the band was cleared on the name table's and the knacks' rows). */
+.book-type :is(.table-sheet__rows, .table-sheet__long) > * :is(.option-row, .pick-row) {
+  background: transparent;
+}
+
+.book-type :is(.table-sheet__rows, .table-sheet__long) :is(.option-row + .option-row, .pick-row + .pick-row) {
+  margin-block-start: 0;
+}
+
+.book-type :is(.table-sheet__rows, .table-sheet__long) :is(.option-row[aria-checked='true'], .pick-row--picked) {
+  background: var(--selected);
+  box-shadow: inset 0 0 0 var(--line-selected) var(--selected-edge);
+}
+
+.book-type :is(.table-sheet__rows, .table-sheet__long) :is(.option-row[aria-checked='true'] .option-row__name, .pick-row--picked .pick-row__name) {
+  font-weight: 700;
+}
+
+/* The name table's head (19-D2): the part's filled title bar, then the die and the column over a strong rule. */
+.book-tap-head {
+  margin-block-start: var(--space-3);
+}
+
+.book-tap-head + .table-sheet__rows,
+.book-tap-head + div > .table-sheet__rows:first-child {
+  margin-block-start: 0;
+}
+
+/* A part's name keeps its own case (a caption's title is set in capitals). */
+.book-tap-head__bar {
+  margin: 0;
+  text-align: center;
+  text-transform: none;
+}
+
+.book-tap-head__row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+}
+
+.book-tap-head__die {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  min-inline-size: 6ch;
+}
+
+/* The head's last column at the row's end (dec-12 E: the crossed eye and "Truth" over the GM's own column). */
+.book-tap-head__aside {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  margin-inline-start: auto;
+}
+
+/* A tapped table's row with an entry (dec-10 E): the row, then its 44 px ⓘ, as a counted row keeps its − square. */
+.book-tap-table__cell {
+  display: flex;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+
+.book-tap-table__cell > .option-row {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.book-tap-table__open {
+  flex: none;
+  min-inline-size: var(--tap);
+  min-block-size: var(--tap);
+  border: 0;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+/* A pick table's Take these (cs-15, dec-10 F-a): at the fold's end, at the right, under the rows. */
+.gear-pick__take {
+  display: flex;
+  justify-content: flex-end;
+  margin-block-start: var(--space-2);
+}
+
+/* A kit's price at the right of its blurb's first line (cs-22, picture creation/final 21-F1), in the ink and bold; the
+   blurb's words wrap round it. */
+.pick-row__price {
+  float: inline-end;
+  margin-inline-start: var(--space-2);
+  color: var(--ink);
+  font-size: var(--text-16);
+  font-weight: 700;
+  font-variant-numeric: lining-nums;
+}
+
+/* Over the coin (cs-44): the sum takes the warning's colour, as the foot's line does; its words say it, and the sign
+   stays in the foot. */
+.gear-coin--over .average-stepper__line {
+  color: var(--warning);
+}

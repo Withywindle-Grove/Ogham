@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Final draft 7: the review and the GM's approval card (2026-11-07)</title>
+<link rel="stylesheet" href="final.css">
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+const rcard = (title, body, change = true) => `<div class="card"><div class="kv" style="min-height:auto;align-items:flex-start"><h2 style="margin:0">${title}</h2>${change ? '<span class="btn small">Change</span>' : ''}</div><div style="margin-top:var(--space-2)">${body}</div></div>`;
+
+const review = phone(`
+  ${bar('Review')}
+  <div class="inner">
+    <p class="meta">Step 10 of 10</p>
+    <p class="do">Everything you chose, in one place. Change any step; then send it to your GM.</p>
+    ${rcard('Oswin Adderbald', `<div class="list">${kvRow('Kindred', 'Stone kin')}${kvRow('Class', 'Reed Witch, level 1')}${kvRow('Outlook', 'Fen')}${kvRow('Liege', 'House of the Long Reed')}</div>`)}
+    ${rcard('Scores', `<p style="margin:0">Might 13, Nimbleness 7, Grit 10, Wits 12, Lore 11, Charm 9</p><p class="meta" style="margin:var(--space-1) 0 0">1 trade made: Charm 11 → 9, Might 12 → 13</p>`)}
+    ${rcard('Hit points', `<p style="margin:0">4: 3 rolled, +1 for Grit 13</p>`)}
+    ${rcard('Magic', `<div class="list">${kvRow('From your class', 'Marsh Light, Whispering Reeds')}${kvRow('From your kindred', 'Bird Friend (rolled 1)')}</div>`)}
+    ${rcard('Languages', `<p style="margin:0">Marsh-common, Stone-speech, Heron-tongue</p>`)}
+    ${rcard('Weapon skills', `<p style="margin:0">Spear, Sling</p>`)}
+    ${rcard('Gear', `<div class="list">${kvRow('Coin', '120 rolled, 2 sp spent, 119 gp 8 sp left')}${kvRow('Warden\'s kit', '9 items, spear rolled')}${kvRow('Keepsake', 'A river stone that is always warm')}${kvRow('Bought', '2 flasks of oil')}</div><div class="card" style="margin:var(--space-2) 0 0"><div class="kv"><div class="text">Given<small>9 items: clothes, pack, staff, spell pouch…</small></div><span class="btn sq" role="button" aria-label="Show">${I.plus}</span></div></div><p class="meta" style="margin:var(--space-2) 0 0">20 items, 310 of 500 coins' weight, unburdened</p>`)}
+    ${rcard('Details', `<p style="margin:0">23 years, 5′ 9″, 140 lb. A scar through one eyebrow. Speaks only when sure</p>`)}
+    <div class="card"><div class="kv"><div class="text">Derived values<small>6 figures the rules work out</small></div><span class="btn sq" role="button" aria-label="Show">${I.plus}</span></div></div>
+    <div class="card"><div class="kv"><div class="text">${warn('1 thing needs the GM\'s special approval')}<small>Croak, a language usually learnt only by the toad folk</small></div></div></div>
+    <div class="foot" style="flex-direction:column;align-items:stretch"><span class="say" style="text-align:center">Ready to send</span><span class="btn accent wide">Send to your GM</span><div class="kv" style="gap:var(--space-2)"><span class="btn" style="flex:1">Save and leave</span><span class="btn small" style="flex:1">Start over</span></div></div>
+  </div>`, 'The review: one card per step with Change at its top right; scores on one line with the trade noted; hit points with their sum; magic by source; gear as lines with Given folded and the load line; Derived values folded; every exception called out with the sign before sending (ruled with page 2). the footer stacked on a phone: Send to your GM full width with the accent, then Save and leave and Start over side by side (Francis, 2026-11-07).');
+
+const fromReview = phone(`
+  ${bar('Scores')}
+  <div class="inner">
+    <p class="meta">From the review</p>
+    <p class="do">Six numbers say what your character is naturally good at.</p>
+    ${roll(6, 'Roll 3d6 at the table for each score, then enter what you rolled.')}
+    ${valCard('Might', 13, '+1 to hit and damage up close')}
+    ${valCard('Nimbleness', 7, '−1 to armour and to hit at range')}
+    ${valCard('Grit', 10, 'No bonus or penalty')}
+    <p class="meta">Wits, Lore and Charm follow, the same.</p>
+    ${foot('Nothing changed', 'Back to review', 'plain', 'Back to review')}
+  </div>`, 'A step opened from the review: "From the review" replaces the step count; the footer reads Back to review on both buttons while nothing has changed (P22). A change that touches later steps walks only those, then returns (plan item 7).');
+
+const startOver = phone(`
+  ${bar('Review')}
+  <div class="inner" style="min-height:560px">
+    <p class="meta">Step 10 of 10</p>
+  </div>
+  ${sheet('Start over?', `
+    <p style="margin:0 0 var(--space-3)">Everything you chose for Oswin Adderbald goes, and creation begins again at step 1. Nothing has been sent to your GM yet.</p>
+    <div class="kv" style="gap:var(--space-2)"><span class="btn" style="flex:1">Keep going</span><span class="btn accent" style="flex:1">Start over</span></div>
+  `)}`, 'Start over asks once: it is the one irreversible act in creation (Undo over confirm applies to everything else). The sheet names the character and says nothing was sent.');
+
+const gmCard = phone(`
+  ${bar('Oswin Adderbald')}
+  <div class="inner">
+    <p class="meta">Sent by Francis, 4 minutes ago</p>
+    <div class="card"><div class="kv"><div class="text">${warn('Needs your special approval')}<small>Croak: a language usually learnt only by the toad folk. The pack's rule, River Rules p. 58</small></div></div><div class="kv" style="gap:var(--space-2);margin-top:var(--space-2)"><span class="btn small" style="flex:1">Allow it</span><span class="btn small" style="flex:1">Take it off</span></div></div>
+    <div class="list">
+      ${kvRow('Kindred, class', 'Stone kin Reed Witch, level 1')}
+      ${kvRow('Scores', '13, 7, 10, 12, 11, 9. 1 trade')}
+      ${kvRow('Hit points', '4: 3 rolled, +1')}
+      ${kvRow('Outlook, liege', 'Fen, House of the Long Reed')}
+      ${kvRow('Starting coin', '120 rolled, 2 sp spent, 119 gp 8 sp left')}
+      ${kvRow('Gear', 'Warden\'s kit, keepsake, 2 bought')}
+      ${kvRow('Magic', '2 spells, 1 knack')}
+    </div>
+    <div class="card" style="margin-top:var(--space-3)"><div class="kv"><div class="text">Full sheet<small>Every field, as the player will see it</small></div><span class="btn">Open</span></div></div>
+    <div class="foot"><span class="say">1 thing to settle</span><span class="btn">Send back</span><span class="btn accent">Approve</span></div>
+  </div>`, 'The GM\'s approval card: exceptions first, each with the pack\'s reason and Allow it / Take it off; then the character in label-left rows (pattern 7); coin as "rolled, spent, left" (plan item 8); the full sheet one tap away; Send back (with a note) or Approve.');
+
+const reviewTablet = tablet(`
+  ${bar('Review')}
+  <div class="inner">
+    <p class="meta">Step 10 of 10</p>
+    <p class="do">Everything you chose, in one place. Change any step; then send it to your GM.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)">
+      ${rcard('Oswin Adderbald', `<div class="list">${kvRow('Kindred', 'Stone kin')}${kvRow('Class', 'Reed Witch, level 1')}${kvRow('Outlook', 'Fen')}${kvRow('Liege', 'House of the Long Reed')}</div>`)}
+      ${rcard('Scores', `<p style="margin:0">Might 13, Nimbleness 7, Grit 10, Wits 12, Lore 11, Charm 9</p><p class="meta" style="margin:var(--space-1) 0 0">1 trade made</p>`)}
+      ${rcard('Hit points', `<p style="margin:0">4: 3 rolled, +1 for Grit 13</p>`)}
+      ${rcard('Magic', `<div class="list">${kvRow('From your class', 'Marsh Light, Whispering Reeds')}${kvRow('From your kindred', 'Bird Friend')}</div>`)}
+      ${rcard('Languages', `<p style="margin:0">Marsh-common, Stone-speech, Heron-tongue</p>`)}
+      ${rcard('Weapon skills', `<p style="margin:0">Spear, Sling</p>`)}
+      ${rcard('Gear', `<div class="list">${kvRow('Coin', '120 rolled, 2 sp spent, 119 gp 8 sp left')}${kvRow('Warden\'s kit', '9 items, spear rolled')}${kvRow('Keepsake', 'A river stone that is always warm')}</div>`)}
+      ${rcard('Details', `<p style="margin:0">23 years, 5′ 9″, 140 lb. A scar through one eyebrow</p>`)}
+    </div>
+    <div class="card" style="margin-top:var(--space-3)"><div class="kv"><div class="text">${warn('1 thing needs the GM\'s special approval')}<small>Croak, a language usually learnt only by the toad folk</small></div></div></div>
+    <div class="foot"><span class="say">Ready to send</span><span class="btn small">Start over</span><span class="btn">Save and leave</span><span class="btn accent">Send to your GM</span></div>
+  </div>`, 'The review on a tablet: one column, widened; the cards two across (mockup 16\'s rule); Start over joins the footer where there is room.');
+
+mount(`
+  <h1>Final draft 7: the review and the GM's approval card</h1>
+  <p class="note">The review as one card per step with Change (plan item 7); a step opened from the review says so and returns with "Back to review" (P22); Start over on the review, the one confirm in creation (Francis, 2026-11-06); every exception called out before sending and again on the GM's card with Allow it / Take it off (ruled with final draft 2); coin as "rolled, spent, left" (plan item 8); no middle dot.</p>
+  <h1>Phone</h1>
+  <div class="wall">${review}${fromReview}${startOver}${gmCard}</div>
+  <h1>Tablet</h1>
+  ${reviewTablet}
+  <p class="note">Self-review: targets 44 px with 8 px between; nothing under 14 px; the exception is marked by the sign and words; one accent per screen (Send to your GM; Approve on the GM's card; Start over's sheet has the accent on the act asked for); the review at 375 px is long but each card is one glance; Save and leave and Send are side by side at the foot. Not checked: a character with nothing to flag (the exception card simply isn't there); a review before the Table Generator's optional tables (nothing shows for them); the GM's card for a hireling.</p>
+`);
+</script>
+</body>
+</html>

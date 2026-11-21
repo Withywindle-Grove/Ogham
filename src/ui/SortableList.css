@@ -1,0 +1,48 @@
+/* Rows lifted by a hold, with no handle (ruled 2026-10-25); a dragged row follows the finger. */
+.sortable {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sortable__row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  border-bottom: var(--row-rule);
+}
+
+.sortable__row {
+  position: relative;
+  background: var(--page);
+}
+
+/* The row in the finger: above the others, lifted, no lag. */
+.sortable__row--lifted {
+  z-index: 2;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 18%);
+}
+
+/* The rows making room slide smoothly. */
+.sortable__row--moving {
+  transition: transform 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sortable__row--moving {
+    transition: none;
+  }
+}
+
+
+.sortable__content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* A held row can't select text or open the long-press menu while it's being lifted. */
+.sortable__row {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}

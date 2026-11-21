@@ -1,0 +1,20 @@
+---
+status: pending
+milestone: m5b (brought in during the gate rewalk's pause)
+absorbed-into: pending, with the pull request that builds it (05 Pack and Player: At hand, the Attack sheet; 06 components; 07 a weapon's range; 11 G-219); docs/09-decisions-log.md (2026-11-10); docs/plans/m5b-attack-sheet-clarity.md
+supersedes: ah-1's order of the Attack sheet (`m5b-at-hand-actions-2026-11-08.md`): its content stands, the order and the wording of the two figures change
+---
+
+# The Attack sheet, made clear (2026-11-10)
+
+From the M5b gate rewalk (finding F24, `design/notes/gate-m5b-rewalk-2026-11-10.md`). Francis on the live sheet: it "shows the modifier but not clearly: it could have been a modifier to damage"; the range "doesn't say it's range, or in feet"; he asked for a line at the top that stands out. He paused the gate to bring this in, looked at mockup `design/mockups/players/09-attack-sheet-clarity.html` and ruled **B**. Ids `as-1` … `as-3`.
+
+- **as-1 The two rolls come first.** The sheet opens with two cards, to hit then damage. Each has the die's icon and one plain line: "Roll 1d20 + 1 to hit", "Roll 1d6 + 1 for damage". Under the line, **the parts as rows (B)**: the name on the left, that part's own figure on the right, as the breakdown sheets for a save or a score do. The line carries the sum; a row never carries a running total. A sum of zero is dropped from the line ("Roll 1d20 to hit") and the rows still show their zeros; a negative reads "− 1"; a floor or a rule that changes the dice sits in words under the line it changes. **The app never assumes "roll high and add":** where the setting reads a hit from a table or a target figure, the line names the die and what to add, and the pack's own words say how the hit is read.
+- **as-2 The range is named and has a unit.** A weapon with a range shows it under its own heading, "Range, in <unit>", as bands: each with its name, its distance ("up to 70") and what it does to the roll ("+1 to hit"). This needs the range as its own field in the pack (today it lives inside a quality's text): **G-219**, proposed shape `weapon.range: { unit, bands: [{ name, upTo, toHit }] }`, the Pack Creator to register and fill. Until a pack carries it, the quality's text shows as now under Rules that bear. **Agreed the same day with the Pack Creator and the Builder (the shape, not a new ruling):** two optional fields, `wildernessUnit` (one setting's ranges are the same numbers in feet underground and in yards outdoors) and `from` (the nearest a missile can be used, where the book prints one); a thrown weapon's range sits on its Thrown mode (`mode.range`), and the sheet reads the mode's range, else the weapon's. On the sheet: the heading names the unit of where the party is ("Range, in yards" on a wilderness expedition; with no expedition, "Range, in feet (yards outdoors)"), and with a `from` the first band reads "5 to 70" instead of "up to 70".
+- **as-3 No word twice.** The app's own "two-handed" (from the weapon's hands) is not added when one of the weapon's qualities already says it.
+
+The rest of ah-1 stands, below the two cards and the range: Rules that bear, Inflicts, the line "Rolling the attack here comes with the fight rules, later.", and the spend button where the mode spends something.
+
+**Not ruled here:** the same wish on the Body rows of creation (F7: the dice with their icon on each row); whether a magic weapon's bonus is read now or in M6 (mw-1, mw-3: asked of Francis the same day).
+
+09: 2026-11-10 — [items] The Attack sheet opens with the two rolls, each with its die's icon and a plain line ("Roll 1d20 + 1 to hit", "Roll 1d6 + 1 for damage"), the parts under each as rows with their own figures, never running totals; the line never assumes roll-high-and-add; the range has its own heading with a unit and what each band does, from a new pack field (G-219); the app's "two-handed" isn't repeated beside a quality that says it (as-1 … as-3; reorders ah-1) — Francis at the gate rewalk: a +1 could have been read as damage, and 70/140/210 said neither range nor feet — `design/rulings/m5b-attack-sheet-clarity-2026-11-10.md`

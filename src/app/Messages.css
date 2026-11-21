@@ -1,0 +1,285 @@
+/* Messaging (M5b g4; docs/06 Components "Messages"). Tokens only. The screen opens in the log's full-screen panel. */
+
+.messages-button {
+  position: relative;
+}
+
+/* The unread count on the ✉: a number in a ring, never a colour alone. */
+.messages-button__count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 20px;
+  padding: 0 var(--space-1);
+  border: var(--line-hair) solid var(--ink);
+  border-radius: var(--radius-pill);
+  background: var(--page);
+  font-size: var(--text-14);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+  text-align: center;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.messages__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-3);
+  border-bottom: var(--line-hair) solid var(--rule);
+}
+
+.messages__title {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-24);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.messages__back {
+  flex: none;
+}
+
+.messages__meta,
+.messages__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+}
+
+.messages__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.messages__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  min-block-size: var(--tap);
+  padding: var(--space-3) 0;
+  border: 0;
+  border-bottom: var(--row-rule);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.messages__row-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.messages__name {
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
+
+.messages__line {
+  font-size: var(--text-16);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.messages__line--none {
+  color: var(--muted);
+}
+
+.messages__count {
+  flex: none;
+  padding: 0 var(--space-2);
+  border: var(--line-hair) solid var(--ink);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-14);
+  font-weight: var(--weight-heading);
+}
+
+.messages__chevron {
+  flex: none;
+  color: var(--muted);
+  font-size: var(--text-24);
+}
+
+/* The thread: newest at the bottom; mine to the right. */
+.messages__thread {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.messages__bubble {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-inline-size: min(70%, 560px);
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  min-width: 0;
+}
+
+.messages__bubble--mine {
+  align-self: flex-end;
+  background: var(--sheet);
+}
+
+.messages__who {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.messages__body {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.messages__attachment {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--tap);
+  padding: var(--space-2);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.messages__thumb {
+  flex: none;
+  inline-size: 44px;
+  block-size: 44px;
+  object-fit: cover;
+  border: var(--line-hair) solid var(--rule);
+  background: var(--page);
+}
+
+.messages__attachment-name {
+  overflow-wrap: anywhere;
+}
+
+.messages__attachment-line {
+  margin: 0;
+  font-size: var(--text-16);
+}
+
+.messages__full {
+  max-inline-size: 100%;
+  max-block-size: 70vh;
+  object-fit: contain;
+}
+
+.messages__close {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.messages__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.messages__composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: var(--line-hair) solid var(--rule);
+}
+
+.messages__write {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.messages__field {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+/* Attach and Send (tf-9): one group, bottoms level with the field's, at the end of the row; on a phone it wraps under
+   the field and stays inside the screen. */
+.messages__send {
+  display: flex;
+  flex: none;
+  align-items: flex-end;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+  max-inline-size: 100%;
+}
+
+.messages__send > .button-secondary,
+.messages__send > .button-primary {
+  flex: none;
+  align-self: flex-end;
+}
+
+/* A phone (the phone's accent button runs full width, App.css): the group takes its own line under the field, Attach
+   at its start and Send filling the rest, never pushed off the screen. */
+@media (max-width: 599px) {
+  .messages__send {
+    flex: 1 1 100%;
+  }
+
+  .messages__send > .button-primary {
+    flex: 1 1 auto;
+    width: auto;
+  }
+}
+
+.messages__options {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* The arrival card over Scene: one line and Open. */
+.message-card {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border-color: var(--control);
+  background: var(--sheet);
+}

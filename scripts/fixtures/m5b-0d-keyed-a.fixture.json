@@ -1,0 +1,24 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "name": "Invented fen rules (keyed A)",
+    "id": "fen-keyed-a",
+    "version": "0.1",
+    "kind": "setting"
+  },
+  "options": [
+    {
+      "id": "lantern-reckoning",
+      "name": "Lantern reckoning",
+      "ruleKey": "lamp-oil",
+      "default": "strict",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "strict", "name": "Count every flask" },
+        { "id": "loose", "name": "Hand-wave the oil" }
+      ],
+      "notes": "How closely lamp oil is tracked."
+    }
+  ]
+}

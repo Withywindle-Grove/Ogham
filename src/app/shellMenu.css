@@ -1,0 +1,66 @@
+/* The phone's drawer (final drafts A11, slice E; mockup creation/17): groups under small headings, 48 px rows with
+   their symbols (the ⋯'s own items), the person at the foot. The drawer itself is the Dialog's Drawer variant. */
+
+.nav-drawer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.nav-drawer p {
+  margin: 0;
+}
+
+.nav-drawer__group {
+  padding-block-end: var(--space-2);
+}
+
+.nav-drawer__heading {
+  padding: var(--space-3) var(--space-2) var(--space-1);
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* The person, at the foot: below the groups, a rule above. */
+.nav-drawer__foot {
+  margin-block-start: auto;
+  padding-block: var(--space-2);
+  border-block-start: var(--line-hair) solid var(--rule);
+}
+
+.nav-drawer__person {
+  min-height: var(--tap-hp);
+}
+
+.nav-drawer__settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+}
+
+.nav-drawer__settings > .more-menu__section + .more-menu__section {
+  padding-top: var(--gap);
+  border-top: var(--line-hair) solid var(--rule);
+}
+
+/* The GM's gear beside the campaign's name (Design on #549): a 44 px icon button. */
+.nav-drawer__gear {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.nav-drawer__gear:hover,
+.nav-drawer__gear:active {
+  background: var(--tint);
+}

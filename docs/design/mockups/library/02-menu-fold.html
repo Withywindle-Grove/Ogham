@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library 02 — folding the landscape menu: three options (design session, 2026-11-02)</title>
+<style>
+  /* Tokens from docs/06 only. Light only. Buttons are plain blocks. Invented examples. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  h2 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; margin:var(--space-4) 0 var(--space-2); }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; width:520px; height:300px; box-sizing:border-box; display:flex; overflow:hidden; position:relative; }
+  .col { width:168px; flex:none; background:var(--surface); display:flex; flex-direction:column; padding:var(--space-3) 0; box-sizing:border-box; }
+  .col.folded { width:64px; }
+  .tab { display:flex; align-items:center; gap:var(--space-3); min-height:48px; padding:0 var(--space-3); }
+  .tab .ico { width:24px; height:24px; border:1.5px solid var(--ink); border-radius:4px; flex:none; box-sizing:border-box; }
+  .tab.now { background:var(--sheet); border-left:3px solid var(--accent); padding-left:9px; }
+  .tab.now .ico { background:var(--ink); }
+  .col .name { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; }
+  .col.folded .name { display:none; }
+  .col .spacer { flex:1; }
+  .main { flex:1; padding:var(--space-4); }
+  .main .h { font-family:"EB Garamond", Georgia, serif; font-size:22px; font-weight:600; }
+  .divider { width:44px; margin-left:-22px; margin-right:-22px; position:relative; z-index:1; flex:none; display:flex; align-items:center; justify-content:center; }
+  .divider::before { content:""; position:absolute; left:50%; top:0; bottom:0; width:1px; background:var(--rule); }
+  .handle { position:relative; width:6px; height:44px; border-radius:3px; background:var(--control); }
+  .handle.chev { width:24px; height:24px; border-radius:12px; background:var(--sheet); border:1.5px solid var(--control); display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--ink); }
+  .topchev { position:absolute; left:134px; top:10px; width:28px; height:28px; border-radius:14px; border:1.5px solid var(--control); background:var(--sheet); display:flex; align-items:center; justify-content:center; font-size:13px; z-index:2; }
+  .col.folded + .main .topchev, .topchev.folded { left:46px; }
+  .foot { display:flex; align-items:center; gap:var(--space-3); min-height:48px; padding:0 var(--space-3); color:var(--muted); }
+  .foot .ico { width:24px; height:24px; border:1.5px solid var(--muted); border-radius:4px; flex:none; box-sizing:border-box; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:760px; }
+  .pick { display:flex; gap:var(--space-2); margin-top:var(--space-2); }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; }
+</style>
+</head>
+<body>
+
+<h1>Today (M5 gate B15): a chevron and the words "Fold the menu" at the foot</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="col">
+    <div class="tab now"><span class="ico"></span><span class="name">Scene</span></div>
+    <div class="tab"><span class="ico"></span><span class="name">Players</span></div>
+    <div class="tab"><span class="ico"></span><span class="name">Rules</span></div>
+    <div class="spacer"></div>
+    <div class="foot"><span class="ico"></span><span>Fold the menu</span></div>
+  </div>
+  <div class="main"><span class="h">Scene</span><p class="note">Francis: the words and the extra row look wrong in the column.</p></div>
+</div>
+</div>
+
+<h1>A · The divider is the handle</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="col">
+    <div class="tab now"><span class="ico"></span><span class="name">Scene</span></div>
+    <div class="tab"><span class="ico"></span><span class="name">Players</span></div>
+    <div class="tab"><span class="ico"></span><span class="name">Rules</span></div>
+  </div>
+  <div class="divider"><span class="handle"></span></div>
+  <div class="main"><span class="h">Scene</span></div>
+</div>
+<div class="screen">
+  <div class="col folded">
+    <div class="tab now"><span class="ico"></span></div>
+    <div class="tab"><span class="ico"></span></div>
+    <div class="tab"><span class="ico"></span></div>
+  </div>
+  <div class="divider"><span class="handle"></span></div>
+  <div class="main"><span class="h">Scene</span></div>
+</div>
+</div>
+<p class="note">A short pill (6 × 44) sits on the divider at mid-height, in the Control token; the whole divider is a 44 px-wide tap zone, top to bottom. Tap: fold or unfold. Drag works too (a drag past half folds or unfolds; nothing in between is kept). Nothing in the column itself; no words. Accessible name "Fold the menu" / "Show the menu" on the handle (screen readers only). <b>Cost:</b> a new part (Divider handle), 2–3 turns. <b>Risk:</b> the pill is quiet; a first-time GM finds it by seeing it, as with a sidebar handle on a desktop app — the 06 help line "Tap the line between the menu and the page to fold it" can show once.</p>
+
+<h1>B · A small chevron on the divider, at the top</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="col">
+    <div class="tab now"><span class="ico"></span><span class="name">Scene</span></div>
+    <div class="tab"><span class="ico"></span><span class="name">Players</span></div>
+    <div class="tab"><span class="ico"></span><span class="name">Rules</span></div>
+  </div>
+  <span class="topchev">‹</span>
+  <div class="main"><span class="h">Scene</span></div>
+</div>
+<div class="screen">
+  <div class="col folded">
+    <div class="tab now"><span class="ico"></span></div>
+    <div class="tab"><span class="ico"></span></div>
+    <div class="tab"><span class="ico"></span></div>
+  </div>
+  <span class="topchev folded">›</span>
+  <div class="main"><span class="h">Scene</span></div>
+</div>
+</div>
+<p class="note">A 28 px round chevron straddling the divider at the top (its tap zone 44 px), the way desktop side panels do it. Clear and findable; one more element on the top edge of a busy console. <b>Cost:</b> moves today's button, 1–2 turns. The words go.</p>
+
+<h1>C · Tap the current tab to fold; tap any icon to unfold</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="col">
+    <div class="tab now"><span class="ico"></span><span class="name">Scene</span><span style="margin-left:auto;color:var(--muted)">‹</span></div>
+    <div class="tab"><span class="ico"></span><span class="name">Players</span></div>
+    <div class="tab"><span class="ico"></span><span class="name">Rules</span></div>
+  </div>
+  <div class="main"><span class="h">Scene</span></div>
+</div>
+<div class="screen">
+  <div class="col folded">
+    <div class="tab now"><span class="ico"></span></div>
+    <div class="tab"><span class="ico"></span></div>
+    <div class="tab"><span class="ico"></span></div>
+  </div>
+  <div class="main"><span class="h">Scene</span></div>
+</div>
+</div>
+<p class="note">No new element: the selected tab carries a quiet ‹ at its end; tapping the tab you're already on folds the column, tapping any icon in the folded column opens that section and unfolds. <b>Cost:</b> 1–2 turns. <b>Risk:</b> a tap on the current tab usually means "go to the top of this section" in apps; and unfolding by tapping a tab changes section as a side effect. Least discoverable of the three.</p>
+
+<h1>Also considered</h1>
+<p class="note"><b>Edge swipe</b> (swipe the column left to fold, swipe from the left edge to unfold): no visible affordance, fights iPad's own edge gestures and the Scene's horizontal panels. Can be added to A as a second way, never alone. <b>Long-press on the column:</b> hidden; no.</p>
+
+<p class="note"><b>Recommendation:</b> A (the divider as handle) — nothing in the column, nothing on the top edge, and it matches what a hand does with a sidebar. B if you want it findable without a help line. <b>Checked:</b> 44 px tap zones in every option; the folded column keeps 48 px icon rows with accessible names; the fold is remembered per device as today; never colour alone (the handle is a shape). Not drawn: dark mode; the phone (no fold there: bottom tabs).</p>
+</body>
+</html>

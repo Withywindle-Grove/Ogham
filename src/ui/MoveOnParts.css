@@ -1,0 +1,339 @@
+/*
+ * Moving on, as parts (plan dec-7-linked-spots-screens.md piece 4a; mc-36, mc-36a, mc-41, mc-41a, mc-42, mc-42a;
+ * mockup december/01 frames 11, 12, 13, F1, F2, F2b, H4). Tokens only.
+ */
+
+/* ---- The way button: the action word over its time (mc-36a, H4: 96 by 52, the 2 px edge, every one one size) ---- */
+.way-button {
+  display: inline-flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: calc(var(--space-8) + var(--space-6));
+  max-width: calc(var(--space-8) * 2);
+  min-height: calc(var(--tap-step) + var(--space-1));
+  padding: var(--space-1) var(--space-2);
+  border: var(--line-selected) solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  box-shadow: var(--shadow-button);
+  cursor: pointer;
+  text-align: center;
+  transition:
+    background-color var(--press-flash),
+    transform var(--press-flash);
+}
+
+.way-button:active {
+  box-shadow: none;
+  transform: translateY(1px);
+  background: var(--tint);
+}
+
+/* A proposal standing on it (01-07b, 01-08b): the Selected wash, its edge, and the tick before the word. */
+.way-button--proposed {
+  border-color: var(--selected-edge);
+  background: var(--selected);
+}
+
+/* The way's picture, above the word (ap-10; page 18, frame PL7), in the button's ink: its own line comes from the
+   button's column (`.way-button`, above); its size is the button's to give (`WayButton`, MoveOnParts.tsx). */
+.way-button__icon {
+  display: inline-flex;
+  flex: none;
+}
+
+.way-button__word {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+  overflow-wrap: break-word;
+}
+
+.way-button__tick {
+  display: inline-flex;
+  flex: none;
+}
+
+.way-button__time {
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-heading);
+}
+
+/* ---- The destination row (mc-36, mc-36a) ---- */
+.move-sheet__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.destination-row {
+  container-type: inline-size;
+  border: var(--line-hair) solid var(--control);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+}
+
+/* A proposal standing (01-07b, 01-08b): the row washed, its edge the Selected edge. */
+.destination-row--proposed {
+  border: var(--line-selected) solid var(--selected-edge);
+  background: var(--selected);
+}
+
+.destination-row__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+}
+
+.destination-row__pin {
+  display: inline-flex;
+  flex: none;
+  color: var(--muted);
+}
+
+.destination-row__text {
+  display: flex;
+  flex: 1 1 10em;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.destination-row__name {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
+
+/* "3. The Breakwater" (p2p-3): the number and its full stop, then a word's space before the name. */
+.destination-row__number {
+  margin-inline-end: var(--space-1);
+}
+
+.destination-row__sub {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.destination-row__sub--hidden {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* The buttons at the right of the row, side by side, 8 apart, every one the size of the row's widest (equal grid
+   columns, 96 to 128 px wide); where the name can't keep 10em beside them, they take the line under it, at the right. */
+.destination-row__ways {
+  display: grid;
+  flex: none;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+/* A narrow row (a phone; frame H4 at 375 px): the buttons take a line under the name, sharing its width. */
+@container (max-width: 360px) {
+  .destination-row__ways {
+    flex: 1 1 100%;
+  }
+
+  .destination-row__ways > .way-button {
+    max-width: none;
+    min-inline-size: 0;
+  }
+}
+
+.destination-row__proposed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-block-start: var(--line-hair) solid var(--rule);
+}
+
+.destination-row__proposed > p {
+  margin: 0;
+  flex: 1 1 12em;
+}
+
+/* ---- The obstacle block (mc-41a: a slightly different tone) ---- */
+.obstacle-block {
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.obstacle-block__head {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
+
+.obstacle-block__words {
+  margin: var(--space-1) 0 0;
+}
+
+/* ---- The sheet's short lines, its answer and its foot ---- */
+.move-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.move-summary__line {
+  display: grid;
+  grid-template-columns: minmax(7.5em, max-content) 1fr;
+  gap: var(--space-3);
+  align-items: baseline;
+}
+
+.move-summary dt {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+}
+
+.move-summary dt > svg {
+  flex: none;
+  align-self: center;
+}
+
+.move-summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.move-sheet__move {
+  align-self: stretch;
+}
+
+.move-sheet__question {
+  margin: var(--space-2) 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+}
+
+/* Yes and No, equal, side by side, 8 apart. */
+.move-sheet__two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.move-sheet__two > button {
+  align-self: stretch;
+}
+
+.move-sheet__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+  padding-block-start: var(--space-3);
+  border-block-start: var(--line-hair) solid var(--rule);
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.move-sheet__foot > button {
+  margin-inline-start: auto;
+}
+
+.move-sheet__count {
+  align-self: center;
+  padding-block-start: var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-14);
+  white-space: nowrap;
+}
+
+.move-sheet__none {
+  margin: 0;
+}
+
+/* ---- The players' Where to? (mc-36a) ---- */
+.where-to {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.where-to__heading {
+  margin: 0;
+}
+
+/* Proposals that wait (page 12, W1 to W3): a card inside "Waiting for you", the way-on mark at the left. */
+.proposals-waiting {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--line-hair) solid var(--control);
+  border-radius: var(--radius-card);
+}
+
+.proposals-waiting > svg {
+  flex: none;
+  margin-top: var(--space-1);
+}
+
+.proposals-waiting__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.proposals-waiting__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+  overflow-wrap: break-word;
+}
+
+.proposals-waiting__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: var(--space-4);
+}
+
+.proposals-waiting__line {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: break-word;
+}
+
+.proposals-waiting__foot {
+  display: flex;
+}

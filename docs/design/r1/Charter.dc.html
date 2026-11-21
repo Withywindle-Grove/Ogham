@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Charter</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;position:relative;overflow:hidden">
+<div style="padding:12px 18px 6px;display:flex;align-items:center;justify-content:space-between">
+<a href="PlayerDowntime.dc.html" style="min-height:44px;display:inline-flex;align-items:center;color:{{c.mut}};text-decoration:none">‹ Back</a>
+<span style="font-size:14px;color:{{c.mut}}">{{verBy}}</span>
+</div>
+<div style="padding:0 18px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
+<label for="sigil" title="Change the sigil (goes to a vote)" style="position:relative;width:92px;height:92px;border-radius:50%;border:1.5px solid {{c.line}};display:flex;align-items:center;justify-content:center;background:{{c.surf}};cursor:pointer">
+<svg role="img" aria-label="Party sigil: a lantern over water" width="54" height="54" viewBox="0 0 48 48" fill="none" stroke="{{c.acc}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h12M20 10v-3h8v3"></path><path d="M16 14h16l-2 16H18z"></path><path d="M24 18v8"></path><path d="M6 38c4-3 8-3 12 0s8 3 12 0 8-3 12 0"></path><path d="M10 43c3-2 6-2 9 0s6 2 9 0 6-2 9 0"></path></svg>
+</label>
+<input id="sigil" type="file" accept="image/*" aria-label="Change the party sigil" style="position:absolute;width:1px;height:1px;opacity:0">
+<button aria-label="Rename the company (goes to a vote)" style="min-height:44px;border:none;background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:30px;font-weight:600;line-height:1;padding:0 6px;cursor:pointer">The Sluice Gate Company</button>
+<div style="display:flex;gap:6px">
+<button onClick="{{openMembers}}" style="min-height:44px;padding:0 12px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">Members and titles</button>
+</div>
+</div>
+
+<sc-if value="{{voting}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="margin:0 18px 10px;padding:10px 12px;border-radius:8px;background:{{c.tint}};display:flex;flex-direction:column;gap:6px">
+<span style="font-size:15px"><b>Vote open:</b> party fund {{oldFund}}% → {{fund}}%</span>
+<span style="font-size:14px;color:{{c.mut}}">{{yes}} of 4 players agree · needs everyone</span>
+<div style="display:flex;gap:6px"><button onClick="{{demoYes}}" style="min-height:44px;padding:0 12px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">Demo: next yes</button><button onClick="{{demoNo}}" style="min-height:44px;padding:0 12px;border-radius:4px;border:1px solid {{c.rule}};background:transparent;color:inherit;font-family:inherit;font-size:14px;cursor:pointer">Demo: someone says no</button></div>
+</div>
+</sc-if>
+<sc-if value="{{failed}}" hint-placeholder-val="{{ false }}"><div role="status" style="margin:0 18px 10px;padding:10px 12px;border-radius:8px;background:{{c.tint}};font-size:15px">Not unanimous, so the charter stays as it was. The proposal is in the log.</div></sc-if>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px">
+<div style="border-top:3px double {{c.rule}};padding:10px 0;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="{{S.label}}">Share distribution</span></div>
+<sc-for list="{{rules}}" as="r" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:8px;min-height:56px;border-bottom:1px dotted {{c.rule}}">
+<span style="flex:1">{{r.k}}</span>
+<button aria-label="{{r.lessLabel}}" onClick="{{r.less}}" style="{{S.qty}}">−</button>
+<span style="width:56px;text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:21px;font-weight:600">{{r.v}}</span>
+<button aria-label="{{r.moreLabel}}" onClick="{{r.more}}" style="{{S.qty}}">+</button>
+</div>
+</sc-for>
+<div style="font-size:15px;line-height:1.4;padding-top:4px"><b>Exception:</b> Bram takes an extra half share of the sluice gate haul (session 8 only). Hirelings are paid per their contracts, not the charter.</div>
+<button style="min-height:44px;background:none;border:none;color:{{c.acc}};font-family:inherit;font-size:15px;font-weight:700;text-align:left;padding:0">+ Add an exception</button>
+</div>
+
+<div style="border-top:3px double {{c.rule}};padding:10px 0;display:flex;flex-direction:column;gap:6px">
+<label for="funeral" style="{{S.label}}">Funerals and heirs</label>
+<textarea id="funeral" rows="4" style="resize:none;padding:10px;border:1px solid {{c.rule}};border-radius:6px;background:transparent;color:inherit;font-family:inherit;font-size:16px;line-height:1.45">The party pays for a proper burial out of the coffers. A fallen member’s share goes to their named heir, less a tenth for the coffers.</textarea>
+</div>
+
+<div style="border-top:3px double {{c.rule}};padding:10px 0;display:flex;flex-direction:column;gap:6px">
+<label for="rules" style="{{S.label}}">House Rules and Customs</label>
+<textarea id="rules" rows="3" style="resize:none;padding:10px;border:1px solid {{c.rule}};border-radius:6px;background:transparent;color:inherit;font-family:inherit;font-size:16px;line-height:1.45">Whoever scouts ahead carries the lantern. Magic items are claimed by vote, then by need.</textarea>
+</div>
+
+<button style="min-height:48px;margin:4px 0 8px;border-radius:4px;border:1px dashed {{c.rule}};background:transparent;color:{{c.mut}};font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;width:100%">+ Add a section</button>
+
+<button onClick="{{toggleHist}}" aria-expanded="{{histOpen}}" style="width:100%;min-height:52px;display:flex;justify-content:space-between;align-items:center;border:none;border-top:3px double {{c.rule}};background:transparent;color:{{c.mut}};font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;padding:8px 0 0;cursor:pointer"><span>Earlier versions ({{verCount}})</span><span aria-hidden="true">{{histArrow}}</span></button>
+<sc-if value="{{histOpen}}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{history}}" as="h" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;gap:8px;min-height:56px;border-bottom:1px dotted {{c.rule}}">
+<span style="flex:1;display:flex;flex-direction:column"><span style="font-weight:700">Version {{h.n}}</span><span style="font-size:14px;color:{{c.mut}}">{{h.what}}</span></span>
+<button onClick="{{h.restore}}" aria-label="Propose restoring this version" style="min-height:44px;padding:0 12px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:16px;font-weight:600;cursor:pointer">Propose</button>
+</div>
+</sc-for>
+<div style="font-size:13px;color:{{c.mut}};padding:8px 0 12px">Restoring an old version is a proposal too, and needs everyone’s yes.</div>
+</sc-if>
+<div style="height:10px"></div>
+</div>
+
+<div style="padding:10px 18px 18px;border-top:3px double {{c.rule}}">
+<button onClick="{{save}}" style="width:100%;min-height:52px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;cursor:pointer">{{saveText}}</button>
+</div>
+<sc-if value="{{membersOpen}}" hint-placeholder-val="{{ false }}">
+<div role="dialog" aria-label="Members and titles" style="position:absolute;inset:0;background:{{c.bg}};display:flex;flex-direction:column">
+<div style="padding:14px 18px 6px;display:flex;justify-content:space-between;align-items:center"><span style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600">Members and titles</span><button onClick="{{closeMembers}}" style="min-height:44px;padding:0 14px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:17px;font-weight:600;cursor:pointer">Done</button></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 16px">
+<div style="border-top:3px double {{c.rule}};padding-top:10px;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">Charter members</div>
+<sc-for list="{{members}}" as="m" hint-placeholder-count="4"><div style="display:flex;justify-content:space-between;align-items:center;min-height:56px;border-bottom:1px dotted {{c.rule}}"><span style="display:flex;flex-direction:column"><b>{{m.name}}</b><span style="font-size:14px;color:{{c.mut}}">{{m.sub}}</span></span><span style="font-size:14px;color:{{m.color}}">{{m.right}}</span></div></sc-for>
+<sc-if value="{{joinOpen}}" hint-placeholder-val="{{ true }}"><div style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-top:8px;border-radius:8px;background:{{c.tint}}"><span style="flex:1;font-size:15px"><b>Hollis</b> asks to join the company · 1 of 3 agree · majority needed</span><button onClick="{{demoJoin}}" style="min-height:44px;padding:0 10px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:inherit;font-size:13px;cursor:pointer">Demo: one more yes</button></div></sc-if>
+<button style="width:100%;min-height:48px;margin-top:8px;border-radius:4px;border:1px dashed {{c.rule}};background:transparent;color:{{c.mut}};font-family:inherit;font-size:15px">Ask to join the company</button>
+<div style="border-top:3px double {{c.rule}};margin-top:14px;padding-top:10px;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">Titles</div>
+<sc-for list="{{titles}}" as="t" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:10px;min-height:64px;border-bottom:1px dotted {{c.rule}}"><span style="flex:1;display:flex;flex-direction:column"><span style="font-family:'EB Garamond',Georgia,serif;font-size:21px;font-weight:600">{{t.name}}</span><span style="font-size:14px;color:{{c.mut}}">{{t.holder}} · {{t.does}}</span></span><button style="min-height:44px;padding:0 12px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:inherit;font-size:14px;cursor:pointer">Propose holder</button></div></sc-for>
+<button style="width:100%;min-height:48px;margin-top:8px;border-radius:4px;border:1px dashed {{c.rule}};background:transparent;color:{{c.mut}};font-family:inherit;font-size:15px">+ Propose a new title</button>
+<div style="font-size:13px;color:{{c.mut}};padding-top:8px;line-height:1.4">New titles are names only for now. Treasurer and Archivist come with every company.</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { fund: 10, pc: 1, animal: 0, ver: 7, histOpen: false, dirty: false, voting: false, yes: 1, failed: false, baseFund: 10, members: false, joined: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', surf: '#1C1915', tint: '#4A3A22', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', onAcc: '#12100D' }
+      : { bg: '#FBF8F1', surf: '#F3EEE3', tint: '#F3E6CB', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', onAcc: '#FBF8F1' };
+    const G = "'EB Garamond',Georgia,serif";
+    const fmt = (v) => v === 0.5 ? '½' : (v % 1 ? Math.floor(v) + '½' : String(v));
+    const mk = (key, label, step, unit, max) => ({
+      k: label, v: unit === '%' ? s[key] + '%' : fmt(s[key]),
+      less: () => { if (s.voting) return; this.setState({ [key]: Math.max(0, s[key] - step), dirty: true, failed: false }); },
+      more: () => { if (s.voting) return; this.setState({ [key]: Math.min(max, s[key] + step), dirty: true, failed: false }); },
+      lessLabel: 'Less for ' + label, moreLabel: 'More for ' + label
+    });
+    const history = [
+      { n: s.ver - 1, what: 'Vote passed · session 8 · added the Bram exception' },
+      { n: s.ver - 2, what: 'Vote passed · session 6 · party fund 15% → 10%' },
+      { n: s.ver - 3, what: 'Founding version · session 1' }
+    ].map((h) => Object.assign(h, { restore: () => this.setState({ voting: true, yes: 1, histOpen: false }) }));
+    return {
+      c: c, ver: s.ver, verBy: s.ver === 7 ? 'Last changed session 8' : 'Changed just now, by vote', verCount: s.ver - 1, voting: s.voting, yes: s.yes, failed: s.failed, fund: s.fund, oldFund: s.baseFund,
+      demoYes: () => { if (s.yes + 1 >= 4) this.setState({ voting: false, dirty: false, ver: s.ver + 1, baseFund: s.fund, yes: 1 }); else this.setState({ yes: s.yes + 1 }); },
+      demoNo: () => this.setState({ voting: false, dirty: false, failed: true, fund: s.baseFund, yes: 1 }),
+      rules: [mk('fund', 'Party fund', 5, '%', 50)],
+      membersOpen: s.members, openMembers: () => this.setState({ members: true }), closeMembers: () => this.setState({ members: false }),
+      joinOpen: !s.joined, demoJoin: () => this.setState({ joined: true }),
+      members: [{ name: 'Wren', sub: 'Sam · founding member', right: 'Archivist', color: c.acc }, { name: 'Ash', sub: 'Jordan · founding member', right: 'Treasurer', color: c.acc }, { name: 'Bram', sub: 'Lee · founding member', right: '', color: c.mut }].concat(s.joined ? [{ name: 'Hollis', sub: 'Priya · joined by vote, just now', right: '', color: c.mut }] : []),
+      titles: [{ name: 'Treasurer', holder: 'Ash', does: 'manages the party treasure' }, { name: 'Archivist', holder: 'Wren', does: 'keeps the record' }],
+      history: history, histOpen: s.histOpen, histArrow: s.histOpen ? '▾' : '▸', toggleHist: () => this.setState({ histOpen: !s.histOpen }),
+      save: () => { if (s.dirty && !s.voting) this.setState({ voting: true, yes: 1 }); },
+      saveText: s.voting ? 'Waiting for the vote' : (s.dirty ? 'Propose this change (everyone must agree)' : 'Change something to propose it'),
+      S: {
+        label: 'font-family:' + G + ';font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:' + c.mut,
+        qty: 'width:44px;height:44px;flex:none;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:inherit;font-size:22px;font-weight:700;cursor:pointer'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

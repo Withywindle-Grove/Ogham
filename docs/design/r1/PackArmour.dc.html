@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pack, armour mode</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;position:relative;overflow:hidden">
+<div style="padding:16px 18px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:34px;font-weight:600;line-height:1">Wren’s pack</div>
+<button onClick="{{openMove}}" style="{{moveStyle}}">Move {{move}}</button>
+<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+<span style="padding:4px 10px;border:1px solid {{c.rule}};border-radius:14px;font-size:14px">Light armour</span>
+<span style="padding:4px 10px;border:1px solid {{c.rule}};border-radius:14px;font-size:14px">{{treasureChip}}</span>
+</div>
+<div aria-hidden="true" style="width:100%;height:6px;background:{{c.track}};margin-top:8px"><div style="height:100%;width:{{pct}}%;background:{{c.acc}}"></div></div>
+<div style="font-size:15px;color:{{c.mut}}">Treasure {{tw}} of 1,600 coins’ weight</div>
+</div>
+
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+<sc-if value="{{g.plain}}" hint-placeholder-val="{{ true }}">
+<div style="border-top:3px double {{c.rule}};padding:12px 0 0;display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">{{g.name}}</span><span style="font-size:13px;color:{{c.mut}}">{{g.note}}</span></div>
+</sc-if>
+<sc-if value="{{g.fold}}" hint-placeholder-val="{{ false }}">
+<button onClick="{{g.toggle}}" aria-expanded="{{g.open}}" style="width:100%;min-height:56px;border:none;border-top:3px double {{c.rule}};background:transparent;color:inherit;font-family:inherit;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0 0;cursor:pointer"><span style="display:flex;flex-direction:column;align-items:flex-start"><span style="font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">{{g.name}}</span><span style="font-size:13px;color:{{c.mut}}">{{g.note}}</span></span><span aria-hidden="true" style="font-size:20px;color:{{c.mut}}">{{g.arrow}}</span></button>
+</sc-if>
+<sc-for list="{{g.rows}}" as="r" hint-placeholder-count="3">
+<div style="{{r.row}}">
+<button onClick="{{r.open}}" style="flex:1;min-width:0;min-height:56px;background:none;border:none;padding:0;color:inherit;font-family:inherit;text-align:left;display:flex;flex-direction:column;justify-content:center;cursor:pointer">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600;font-style:{{r.style}}">{{r.name}}</span>
+<span style="font-size:14px;color:{{c.mut}}">{{r.sub}}</span>
+</button>
+<sc-if value="{{r.stack}}" hint-placeholder-val="{{ false }}">
+<button aria-label="{{r.lessLabel}}" onClick="{{r.less}}" style="{{S.qtyBtn}}">−</button>
+<span style="width:40px;text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">{{r.qty}}</span>
+<button aria-label="{{r.moreLabel}}" onClick="{{r.more}}" style="{{S.qtyBtn}}">+</button>
+</sc-if>
+<sc-if value="{{r.charge}}" hint-placeholder-val="{{ false }}">
+<button onClick="{{r.use}}" aria-label="{{r.useLabel}}" style="{{S.useBtn}}">Use 1</button>
+</sc-if>
+</div>
+</sc-for>
+</sc-for>
+<div style="height:12px"></div>
+</div>
+
+<nav aria-label="Main" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:3px double {{c.rule}}">
+<button style="{{S.navOff}}">Player</button>
+<button style="{{S.navOff}}">Events</button>
+<button aria-current="page" style="{{S.navOn}}">Pack</button>
+</nav>
+
+<sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;flex-direction:column;justify-content:flex-end">
+<div role="dialog" aria-label="{{sheet.title}}" style="background:{{c.sheet}};color:{{c.ink}};border-top:1.5px solid {{c.line}};border-radius:20px 20px 0 0;padding:18px 18px 26px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600">{{sheet.title}}</span><button onClick="{{closeSheet}}" style="min-height:44px;padding:0 6px;background:none;border:none;color:{{c.mut}};font-family:inherit;font-size:16px;cursor:pointer">Close</button></div>
+<div style="font-size:15px;color:{{c.mut}}">{{sheet.sub}}</div>
+<sc-for list="{{sheet.lines}}" as="ln" hint-placeholder-count="3"><div style="font-size:17px;line-height:1.45">{{ln.t}}</div></sc-for>
+<div style="font-size:14px;color:{{c.mut}};border-top:1px solid {{c.rule}};padding-top:8px">{{sheet.ref}}</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { coins: 180, gems: 3, charges: 7, sheet: null, pressed: null, gearOpen: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', warn: '#E6BA66', tint: '#4A3A22', track: '#2A251E', sheet: '#1E1A16' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', warn: '#7A4A00', tint: '#F3E6CB', track: '#E9E2D4', sheet: '#FFFDF8' };
+    const G = "'EB Garamond',Georgia,serif";
+    const flash = (k) => s.pressed === k ? ';background:' + c.tint : '';
+    const show = (sheet, k) => () => { this.setState({ pressed: k }); setTimeout(() => this.setState({ pressed: null, sheet: sheet }), 180); };
+    const pack = 'From your setting: River Rules (private)';
+    const tw = s.coins + s.gems + 50 + 10;
+    const carrying = tw > 0;
+    const move = carrying ? '90′ (30′)' : '120′ (40′)';
+    const set = (k, d, step) => () => this.setState({ [k]: Math.max(0, s[k] + d * step) });
+    const R = (id, o) => Object.assign({
+      row: 'display:flex;align-items:center;gap:8px;border-bottom:1px dotted ' + c.rule + ';margin:0 -8px;padding:0 8px;border-radius:4px;opacity:' + (o.dim ? 0.55 : 1) + flash(id),
+      style: 'normal', stack: false, charge: false,
+      open: show(o.sheet, id)
+    }, o);
+    const groups = [
+      { name: 'Worn and in hand', note: 'Armour sets your speed', rows: [
+        R('leather', { name: 'Leather armour', sub: 'Light armour · AC 12', sheet: { title: 'Leather armour', sub: 'Light armour', lines: [{ t: 'In armour mode, the type of armour you wear sets your speed. Weight isn’t counted.' }], ref: pack + ' · items, armour' } }),
+        R('sword', { name: 'Short sword', sub: '1d6 · pinned to At hand', sheet: { title: 'Short sword', sub: '1d6', lines: [{ t: 'Damage by weapon, because the campaign chose that option.' }], ref: pack + ' · items, weapons' } })
+      ] },
+      { name: 'Treasure', note: 'Counted', rows: [
+        R('coins', { name: 'Coins', sub: 'Gold · private purse', stack: true, qty: s.coins, less: set('coins', -1, 10), more: set('coins', 1, 10), lessLabel: 'Remove 10 coins', moreLabel: 'Add 10 coins', sheet: { title: 'Coins', sub: s.coins + ' gold', lines: [{ t: 'Each coin counts as 1 toward treasure weight.' }, { t: 'Only you and the GM see this amount.' }], ref: pack + ' · treasure weights' } }),
+        R('gems', { name: 'Gems', sub: '1 coin’s weight each · value unknown', stack: true, qty: s.gems, less: set('gems', -1, 1), more: set('gems', 1, 1), lessLabel: 'Remove 1 gem', moreLabel: 'Add 1 gem', sheet: { title: 'Gems', sub: s.gems + ' carried', lines: [{ t: 'The GM sets each gem’s value when you have it appraised.' }], ref: pack + ' · treasure weights' } }),
+        R('chalice', { name: 'Silver chalice', sub: '50 coins’ weight', sheet: { title: 'Silver chalice', sub: 'Treasure', lines: [{ t: 'Weight from the setting’s treasure list; the GM sets the value.' }], ref: pack + ' · treasure weights' } }),
+        R('potion', { name: 'Unknown potion', sub: '10 coins’ weight · the GM knows more', style: 'italic', sheet: { title: 'Unknown potion', sub: 'Not identified', lines: [{ t: 'Some details are hidden until the GM reveals them, for example after you sip it.' }, { t: 'When you drink it, the GM keeps its timer. You’ll see it as “active”.' }], ref: 'GM-only fields stay on the GM’s screen' } })
+      ] },
+      { name: 'Magic', note: '', rows: [
+        R('wand', { name: 'Wand of sparks', sub: s.charges + ' charges left · can’t be recharged', charge: true, use: () => this.setState({ charges: Math.max(0, s.charges - 1) }), useLabel: 'Use one charge of the wand', sheet: { title: 'Wand of sparks', sub: s.charges + ' charges left', lines: [{ t: 'Each use spends one charge and is logged.' }, { t: 'The GM rolled its starting charges when you found it.' }], ref: pack + ' · items, charges' } }),
+        R('satchel', { name: 'Mossy satchel', sub: 'Always weighs 60 · contents never count', sheet: { title: 'Mossy satchel', sub: 'Magic container', lines: [{ t: 'Holds up to 1,000 coins’ worth of things but always counts as 60.' }, { t: 'Ordinary containers only hold things in this campaign; they don’t add capacity.' }], ref: pack + ' · items, container (fixed weight)' } })
+      ] },
+      { name: 'Gear', fold: true, note: s.gearOpen ? 'Not counted for speed' : '2 items · not counted for speed', rows: [
+        R('rope', { name: 'Rope, 50 ft', sub: 'Gear', sheet: { title: 'Rope, 50 ft', sub: 'Gear', lines: [{ t: 'Armour mode ignores ordinary gear. It’s listed so you know you have it.' }], ref: pack + ' · option: encumbrance = armour' } }),
+        R('torch', { name: 'Torches ×4', sub: '1 lit · 4 turns left', sheet: { title: 'Torches', sub: '4 carried', lines: [{ t: 'Burn 6 turns each. The lit one is on your Player screen.' }], ref: pack + ' · light types' } })
+      ] }
+    ].map((g) => g.fold ? Object.assign({}, g, { plain: false, open: s.gearOpen, arrow: s.gearOpen ? '▾' : '▸', rows: s.gearOpen ? g.rows : [], toggle: () => this.setState({ gearOpen: !s.gearOpen }) }) : Object.assign({}, g, { plain: true, fold: false }));
+    return {
+      c: c, move: move, tw: tw.toLocaleString(), pct: Math.min(100, Math.round(tw / 16)), groups: groups,
+      treasureChip: carrying ? 'Carrying treasure' : 'No treasure',
+      S: {
+        qtyBtn: 'width:44px;height:44px;flex:none;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:inherit;font-size:22px;font-weight:700;cursor:pointer',
+        useBtn: 'min-width:72px;min-height:44px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:18px;font-weight:600;cursor:pointer',
+        navOn: 'height:62px;background:none;border:none;color:' + c.ink + ';font-family:' + G + ';font-size:20px;font-weight:600;font-variant:small-caps;letter-spacing:.06em;text-decoration:underline;text-underline-offset:6px',
+        navOff: 'height:62px;background:none;border:none;color:' + c.mut + ';font-family:' + G + ';font-size:20px;font-variant:small-caps;letter-spacing:.06em'
+      },
+      moveStyle: 'min-height:44px;padding:0 10px;border:none;border-radius:4px;background:transparent;color:' + c.ink + ';font-family:' + G + ';font-size:26px;font-weight:600;cursor:pointer' + flash('move'),
+      openMove: show({ title: 'Move ' + move, sub: 'Armour mode', lines: [{ t: 'Light armour: 120′ without treasure, 90′ with it.' }, { t: 'Heavy armour: 90′ without, 60′ with.' }, { t: 'Treasure over 1,600 coins’ weight: you can’t move.' }], ref: pack + ' · option: encumbrance = armour' }, 'move'),
+      sheetOpen: !!s.sheet, sheet: s.sheet || { title: '', sub: '', lines: [], ref: '' },
+      closeSheet: () => this.setState({ sheet: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

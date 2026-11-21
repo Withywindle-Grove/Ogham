@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library 03 — campaign set-up and Rules for this campaign, on the new standard (design session, 2026-11-02)</title>
+<style>
+  /* Tokens from docs/06 only. Light only, full size. Buttons are plain blocks. Invented examples. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); width:720px; box-sizing:border-box; }
+  .screen.phone { width:375px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .why { margin:var(--space-3) 0 var(--space-1); }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; text-align:center; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:16px; }
+  .tools { display:flex; gap:var(--space-2); align-items:center; flex-wrap:wrap; margin:var(--space-3) 0; }
+  .chip { min-height:44px; padding:10px 12px; border:1.5px solid var(--rule); border-radius:22px; background:var(--surface); box-sizing:border-box; }
+  .chip.on { border-color:var(--ink); background:var(--sheet); }
+  .group { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; margin:var(--space-4) 0 var(--space-1); display:flex; align-items:center; gap:var(--space-2); min-height:44px; }
+  .group .meta { font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; flex:1; }
+  .group .chev { width:44px; text-align:center; color:var(--muted); }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; min-width:0; }
+  .row .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .row .desc { display:block; }
+  .row .src { display:block; font-size:14px; color:var(--muted); }
+  .tick { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:22px; flex:none; border:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; }
+  .tick.on { background:var(--ink); color:var(--sheet); border-color:var(--ink); }
+  .val { flex:none; font-family:"EB Garamond", Georgia, serif; font-size:18px; font-weight:600; min-height:44px; display:inline-flex; align-items:center; gap:var(--space-1); padding:0 var(--space-2); }
+  .val .chev { color:var(--muted); }
+  .seg { display:inline-flex; border:1.5px solid var(--control); border-radius:4px; overflow:hidden; flex:none; }
+  .seg span { min-height:44px; min-width:44px; padding:10px 12px; display:inline-flex; align-items:center; box-sizing:border-box; border-right:1.5px solid var(--control); }
+  .seg span:last-child { border-right:0; }
+  .seg .on { background:var(--ink); color:var(--sheet); }
+  .foot { display:flex; align-items:center; gap:var(--space-3); margin-top:var(--space-4); padding-top:var(--space-3); border-top:1px solid var(--rule); }
+  .foot .spacer { flex:1; }
+  .hint { font-size:14px; color:var(--muted); }
+  .rail { display:flex; flex-wrap:wrap; gap:var(--space-2); margin:var(--space-3) 0; }
+  .step { min-height:44px; padding:10px 12px; border:1.5px solid var(--rule); border-radius:4px; background:var(--surface); box-sizing:border-box; }
+  .step.done { border-color:var(--control); }
+  .step.now { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); background:var(--sheet); }
+  .callout { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); margin:var(--space-3) 0; background:var(--surface); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:760px; }
+  .danger { color:var(--ink); }
+</style>
+</head>
+<body>
+
+<h1>1 · New campaign · step 2 of 3 · Setting rules (tablet, 720)</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="bar"><span class="btn quiet">‹ Back</span><span class="title">Setting rules</span><span class="meta">Step two of three</span></div>
+  <p class="why">Pick what this campaign plays with. You can add more later. <span class="btn quiet">Help me choose</span></p>
+  <div class="tools"><span class="chip on">All · 5</span><span class="chip">Setting rules · 2</span><span class="chip">Adventures · 2</span><span class="chip">Homebrew · 1</span></div>
+
+  <div class="group">Setting rules <span class="meta">· pick one; a second one adds to it</span></div>
+  <div class="row"><span class="tick on">✓</span><div class="text"><span class="name">Fen Rules, Advanced</span><span class="desc">The complete rules for a fen-and-marsh campaign.</span><span class="src">20 classes · 11 races · 62 spells · 125 items · 23 optional rules · v0.6.5</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Woodland Kindreds</span><span class="desc">A fairy-wood setting with its own kindreds, glamours and moon signs.</span><span class="src">9 classes · 8 kindreds · 71 spells · 90 items · 5 optional rules · v0.3.4</span></div></div>
+
+  <div class="group">Adventures <span class="meta">· any number</span></div>
+  <div class="row"><span class="tick on">✓</span><div class="text"><span class="name">The Drowned Abbey</span><span class="desc">A flooded monastery for levels 1–3.</span><span class="src">24 places · 3 encounter tables · 9 foes · needs Fen Rules, Advanced ✓</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Valley Town</span><span class="desc">A market town and its surroundings: inns, shops, hooks.</span><span class="src">12 places · 6 rumours · 5 foes</span></div></div>
+
+  <div class="group">Homebrew <span class="meta">· sits above everything</span></div>
+  <div class="row"><span class="tick on">✓</span><div class="text"><span class="name">Zine Compendium</span><span class="desc">Extra classes, backgrounds and poisons from six zine issues.</span><span class="src">20 classes · 11 trait lists · 23 optional rules · needs Fen Rules, Advanced ✓</span></div></div>
+
+  <div class="foot"><span class="btn quiet">Import a file…</span><span class="spacer"></span><span class="hint">3 picked · where two have the same entry, the one on top wins</span><span class="btn accent">Next</span></div>
+</div>
+</div>
+<p class="note">The creation step shell (cr-1), reused: title, "Step two of three", why-line, Help me choose, rows that open the pack's Browse with Pick at the foot, the ✓ slot picks, Next the one accent. The packs are the library's rows, grouped the same way (kind), with the same chips. A row tapped opens the pack's Browse (read only) with <b>Pick</b> at its foot. "Needs: …" turns into "needs Fen Rules ✓" when the base is picked, and Next explains when it isn't ("The Drowned Abbey needs Fen Rules, Advanced · pick it, or leave the Abbey out"). The order (who wins) stays the Rules tab's press-and-hold list, not this step.</p>
+
+<h1>2 · New campaign · step 3 of 3 · Optional rules (by source, folded)</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="bar"><span class="btn quiet">‹ Back</span><span class="title">Optional rules</span><span class="meta">Step three of three</span></div>
+  <p class="why">Each setting's switches, with its own default on. Change what you like; the rest stays as the book says. <span class="btn quiet">Help me choose</span></p>
+
+  <div class="callout"><b>Two settings offer an encumbrance rule.</b> One choice counts for the campaign: <span class="btn quiet">Fen Rules · weight</span> or <span class="btn quiet">Zine Compendium · item counts</span>. <span class="meta">Now: Fen Rules · weight (on top).</span></div>
+
+  <div class="group"><span class="chev">▾</span>Fen Rules, Advanced <span class="meta">· 23 rules · 2 changed</span></div>
+  <div class="row"><div class="text"><span class="name">Creation method</span><span class="desc">Basic or advanced character creation, or let each player choose.</span><span class="src">Fen Rules p. 12 · can't change once the campaign starts</span></div><span class="val">Each player chooses <span class="chev">›</span></span></div>
+  <div class="row"><div class="text"><span class="name">Weapon skills</span><span class="desc">Fighters pick the weapons they're trained with; others fight worse with the rest.</span><span class="src">Fen Rules p. 31 · can change, asks first</span></div><span class="seg"><span class="on">On</span><span>Off</span></span></div>
+  <div class="row"><div class="text"><span class="name">Re-roll low hit points</span><span class="desc">A very low first roll may be rolled again.</span><span class="src">Fen Rules p. 14 · can change at any time</span></div><span class="seg"><span>On</span><span class="on">Off</span></span></div>
+  <div class="row"><div class="text"><span class="meta">… 20 more, all at the book's default</span></div><span class="btn quiet">Show all</span></div>
+
+  <div class="group"><span class="chev">▸</span>Zine Compendium <span class="meta">· 23 rules · none changed</span></div>
+  <div class="group"><span class="chev">▸</span>The Drowned Abbey <span class="meta">· 2 rules · none changed</span></div>
+
+  <div class="foot"><span class="btn quiet">Reset to the books' defaults</span><span class="spacer"></span><span class="btn accent">Create campaign</span></div>
+</div>
+</div>
+<p class="note">One group per source, folded; the header says how many rules and how many you changed. Inside, a changed rule shows first; the rest fold behind "Show all". Every row: name · what it does, in the pack's words · <b>source and page</b> · when it can change (the three lock levels in words, not a padlock). Two-way rules are a segmented On / Off; multi-choice rules open a sheet (›). The "All defaults" explainer goes; "Reset to the books' defaults" stays as a quiet action with an Undo toast. A <b>ruleKey clash</b> (two packs with the same rule) is one callout at the top with the two choices, not two rows — this is what the overlay's missing <code>ruleKey</code> was hiding.</p>
+
+<h1>3 · Rules tab · Rules for this campaign (GM, tablet)</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="bar"><span class="title">Rules</span><span class="meta">Fenmoor</span></div>
+  <div class="tools"><span class="chip on">Rules for this campaign</span><span class="chip">Setting rules · 3</span></div>
+
+  <div class="group"><span class="chev">▸</span>Characters <span class="meta">· 6 settings · 1 changed</span></div>
+  <div class="group"><span class="chev">▾</span>Time and calendar <span class="meta">· 3 settings · none changed</span></div>
+  <div class="row"><div class="text"><span class="name">Start time</span><span class="desc">When the first day begins.</span><span class="src">The app · can change at any time</span></div><span class="val">Dawn <span class="chev">›</span></span></div>
+  <div class="row"><div class="text"><span class="name">Calendar start</span><span class="desc">The date of the first session.</span><span class="src">The app · can change at any time</span></div><span class="val">Not set <span class="chev">›</span></span></div>
+  <div class="row"><div class="text"><span class="name">Weather rolled by</span><span class="desc">Who enters the day's weather roll.</span><span class="src">The app · can change at any time</span></div><span class="seg"><span class="on">Players</span><span>GM</span></span></div>
+  <div class="group"><span class="chev">▸</span>Adventuring <span class="meta">· 4 settings · none changed</span></div>
+  <div class="group"><span class="chev">▸</span>Combat <span class="meta">· 2 settings · none changed</span></div>
+  <div class="group"><span class="chev">▸</span>Items and treasure <span class="meta">· 3 settings · none changed</span></div>
+  <div class="group"><span class="chev">▸</span>Table and players <span class="meta">· 3 settings · none changed</span></div>
+  <div class="group"><span class="chev">▸</span>Optional rules · Fen Rules, Advanced <span class="meta">· 23 · 2 changed</span></div>
+  <div class="group"><span class="chev">▸</span>Optional rules · Zine Compendium <span class="meta">· 23 · none changed</span></div>
+  <div class="group"><span class="chev">▸</span>Optional rules · The Drowned Abbey <span class="meta">· 2 · none changed</span></div>
+  <div class="group"><span class="chev">▸</span>Character fields <span class="meta">· 4 fields</span></div>
+
+  <div class="foot"><span class="btn quiet">Retire campaign…</span><span class="spacer"></span><span class="hint">Changes save as you make them · Undo in the toast</span></div>
+</div>
+</div>
+<p class="note">The same rows as step 3, now editable in place (Undo over confirm; a rule that "asks first" opens its preview as today). Every group folded with its count line; one open at a time on a phone, any number on a tablet. The optional rules sit as one group <b>per source</b> at the end of the topic groups (not one big Optional rules group). <b>Amended 2026-11-02 evening:</b> no chips — the Rules tab stays one stacked page, Rules for this campaign first, then today's Setting rules list (order by press-and-hold, Browse, Add more, homebrew on top); the app's own settings keep their rows inside the folded groups. <b>Retire campaign…</b> moves here, at the foot of Rules for this campaign, where the campaign's own settings live; it keeps its plain confirm (not undoable by a toast: everyone's write access goes).</p>
+
+<p class="note"><b>Checked:</b> one accent per screen (Next · Create campaign · none on the Rules tab, where every change is in place); 44 px rows, ✓ slots and segments; never colour alone (changed = "2 changed" in words, lock = words); every state — empty library (today's line and Import a file), a pack with 0 optional rules ("none"), 999 rules ("Show all"), long names wrap; 375 px: groups stack, the segment drops under the text, the callout stays one block. <b>Not drawn:</b> dark mode (by request); the multi-choice sheet (today's); the Setting rules list under it (unchanged); the phone.</p>
+</body>
+</html>

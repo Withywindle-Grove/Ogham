@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>New character</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;overflow:hidden">
+
+<sc-if value="{{showSteps}}" hint-placeholder-val="{{ false }}">
+<div style="padding:12px 18px 6px;display:flex;flex-direction:column;gap:6px">
+<span style="font-size:14px;color:{{c.mut}}">New character · step {{stepNo}} of 6</span>
+<div aria-hidden="true" style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px"><sc-for list="{{bar}}" as="b" hint-placeholder-count="6"><span style="height:5px;border-radius:2px;background:{{b.bg}}"></span></sc-for></div>
+</div>
+</sc-if>
+
+<div style="flex:1;min-height:0;overflow-y:auto;padding:8px 18px 12px;display:flex;flex-direction:column;gap:10px">
+
+<sc-if value="{{s0}}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{fromInvite}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding-top:60px">
+<span aria-hidden="true" style="width:96px;height:96px;border-radius:50%;border:1.5px solid {{c.line}};display:flex;align-items:center;justify-content:center"><svg width="56" height="56" viewBox="0 0 48 48" fill="none" stroke="{{c.acc}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h12M20 10v-3h8v3"></path><path d="M16 14h16l-2 16H18z"></path><path d="M24 18v8"></path><path d="M6 38c4-3 8-3 12 0s8 3 12 0 8-3 12 0"></path></svg></span>
+<span style="font-size:15px;color:{{c.mut}}">You’re invited to join</span>
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:34px;font-weight:600;line-height:1.05">The Drowned Marches</span>
+<span style="font-size:16px;color:{{c.mut}};line-height:1.45">GM: Francis · Setting rules: River Rules<br>First, make your character.</span>
+</div>
+</sc-if>
+<sc-if value="{{fromDeath}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding-top:80px">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:34px;font-weight:600;line-height:1.05">Dace has fallen</span>
+<span style="font-size:16px;color:{{c.mut}};line-height:1.45">Session 5, at the drowned stair. Dace’s sheet stays in the archive.<br>Ready to make someone new? There’s no rush.</span>
+<button onClick="{{later}}" style="min-height:48px;padding:0 18px;border-radius:4px;border:1px solid {{c.rule}};background:transparent;color:{{c.mut}};font-family:inherit;font-size:16px;cursor:pointer">Later</button>
+<sc-if value="{{laterMsg}}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;color:{{c.mut}}">OK. “Make a new character” waits in your ⋯ menu.</span></sc-if>
+</div>
+</sc-if>
+<button onClick="{{flipOrigin}}" style="margin-top:auto;min-height:44px;background:none;border:1px dashed {{c.rule}};border-radius:4px;color:{{c.mut}};font-family:inherit;font-size:13px;cursor:pointer">Demo: show the {{otherOrigin}} start</button>
+</sc-if>
+
+<sc-if value="{{s1}}" hint-placeholder-val="{{ false }}">
+<div style="{{S.h}}">How do you want to build it?</div>
+<button onClick="{{pickGuided}}" aria-pressed="{{guided}}" style="{{guidedStyle}}"><span style="font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">Guided</span><span style="font-size:15px;color:{{c.mut}};line-height:1.4">Step by step from River Rules. Checks requirements and fills in your class numbers.</span></button>
+<button onClick="{{pickFree}}" aria-pressed="{{free}}" style="{{freeStyle}}"><span style="font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">Freeform</span><span style="font-size:15px;color:{{c.mut}};line-height:1.4">Name, portrait and the campaign’s fields. You fill in the rest yourself.</span></button>
+</sc-if>
+
+<sc-if value="{{s2}}" hint-placeholder-val="{{ false }}">
+<div style="{{S.h}}">Ability scores</div>
+<div style="font-size:15px;color:{{c.mut}}">Roll 3d6 for each, in order, at the table. Type what you rolled.</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+<sc-for list="{{scores}}" as="sc" hint-placeholder-count="6">
+<div style="display:flex;flex-direction:column;gap:4px"><label for="{{sc.id}}" style="font-size:14px;color:{{c.mut}}">{{sc.k}}</label><input id="{{sc.id}}" value="{{sc.v}}" inputmode="numeric" style="min-height:52px;text-align:center;border:1px solid {{c.rule}};border-radius:4px;background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:26px;font-weight:600"></div>
+</sc-for>
+</div>
+<div style="font-size:14px;color:{{c.mut}}">Your setting lets you lower one score by 2 to raise another by 1 on the next step.</div>
+</sc-if>
+
+<sc-if value="{{s3}}" hint-placeholder-val="{{ false }}">
+<div style="{{S.h}}">Race and class</div>
+<div style="{{S.label}}">Race</div>
+<sc-for list="{{races}}" as="r" hint-placeholder-count="3"><button onClick="{{r.pick}}" disabled="{{r.blocked}}" aria-pressed="{{r.on}}" style="{{r.style}}"><span style="font-weight:700">{{r.name}}</span><span style="font-size:14px;color:{{c.mut}}">{{r.note}}</span></button></sc-for>
+<div style="{{S.label}};margin-top:6px">Class</div>
+<sc-for list="{{classes}}" as="r" hint-placeholder-count="3"><button onClick="{{r.pick}}" disabled="{{r.blocked}}" aria-pressed="{{r.on}}" style="{{r.style}}"><span style="font-weight:700">{{r.name}}</span><span style="font-size:14px;color:{{r.noteColor}}">{{r.note}}</span></button></sc-for>
+</sc-if>
+
+<sc-if value="{{s4}}" hint-placeholder-val="{{ false }}">
+<div style="{{S.h}}">Hit points and gold</div>
+<div style="font-size:15px;color:{{c.mut}}">Roll your hit die (1d6) and tap it. CON 15 adds +1.</div>
+<div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px"><sc-for list="{{hpPad}}" as="d" hint-placeholder-count="6"><button onClick="{{d.pick}}" aria-pressed="{{d.on}}" style="{{d.style}}">{{d.n}}</button></sc-for></div>
+<div style="font-size:17px">Hit points: <b>{{hpText}}</b></div>
+<label for="gold" style="font-size:15px;color:{{c.mut}};margin-top:6px">Roll 3d6 × 10 for starting gold and type it</label>
+<input id="gold" value="110" inputmode="numeric" style="min-height:52px;padding:0 12px;border:1px solid {{c.rule}};border-radius:4px;background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:24px;font-weight:600">
+</sc-if>
+
+<sc-if value="{{s5}}" hint-placeholder-val="{{ false }}">
+<div style="{{S.h}}">Starting gear</div>
+<div role="group" aria-label="Gear method" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px"><button onClick="{{gearKit}}" aria-pressed="{{isKit}}" style="{{kitTab}}">Starting kit</button><button onClick="{{gearBuy}}" aria-pressed="{{isBuy}}" style="{{buyTab}}">Buy item by item</button></div>
+<sc-if value="{{isKit}}" hint-placeholder-val="{{ true }}">
+<sc-for list="{{kits}}" as="k" hint-placeholder-count="2"><button onClick="{{k.pick}}" aria-pressed="{{k.on}}" style="{{k.style}}"><span style="display:flex;justify-content:space-between"><b>{{k.name}}</b><span>{{k.cost}}</span></span><span style="font-size:14px;color:{{c.mut}};line-height:1.4">{{k.items}}</span></button></sc-for>
+</sc-if>
+<sc-if value="{{isBuy}}" hint-placeholder-val="{{ false }}">
+<div style="font-size:15px;color:{{c.mut}}">Search the setting’s item list and add what you can afford.</div>
+<div style="min-height:48px;display:flex;align-items:center;padding:0 12px;border:1px solid {{c.rule}};border-radius:4px;color:{{c.mut}}">Search items…</div>
+</sc-if>
+<div style="font-size:17px">Gold left: <b>{{goldLeft}}</b> of 110</div>
+</sc-if>
+
+<sc-if value="{{s6}}" hint-placeholder-val="{{ false }}">
+<div style="{{S.h}}">Who are they?</div>
+<label for="cname" style="font-size:14px;color:{{c.mut}}">Name</label>
+<input id="cname" value="Hollis" style="min-height:48px;padding:0 12px;border:1px solid {{c.rule}};border-radius:4px;background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">
+<label for="align" style="font-size:14px;color:{{c.mut}}">Alignment</label>
+<select id="align" style="min-height:48px;padding:0 10px;border:1px solid {{c.rule}};border-radius:4px;background:transparent;color:inherit;font-family:inherit;font-size:16px"><option>Lawful</option><option selected>Neutral</option><option>Chaotic</option></select>
+<div style="font-size:15px">Languages: Common, Reedspeak <span style="color:{{c.mut}}">(from race)</span></div>
+<div style="font-size:14px;color:{{c.mut}};margin-top:4px">Company</div>
+<div role="group" aria-label="Company" style="display:flex;flex-direction:column;gap:6px"><sc-for list="{{cos}}" as="o" hint-placeholder-count="3"><button onClick="{{o.go}}" aria-pressed="{{o.on}}" style="{{o.style}}"><span style="font-weight:700">{{o.t}}</span><span style="font-size:14px;color:{{c.mut}}">{{o.sub}}</span></button></sc-for></div>
+<label for="portrait" style="min-height:48px;display:flex;align-items:center;justify-content:center;border:1px dashed {{c.rule}};border-radius:4px;color:{{c.mut}};cursor:pointer">Add a portrait (optional)</label>
+<input id="portrait" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0">
+</sc-if>
+
+<sc-if value="{{s7}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding-top:90px">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:34px;font-weight:600">Hollis is ready</span>
+<span style="font-size:16px;color:{{c.mut}};line-height:1.45">{{doneMsg}}</span>
+<button onClick="{{restart}}" style="min-height:44px;padding:0 16px;border-radius:4px;border:1px solid {{c.rule}};background:transparent;color:{{c.mut}};font-family:inherit;font-size:14px;cursor:pointer">Start over (demo)</button>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{hasFooter}}" hint-placeholder-val="{{ true }}">
+<div style="padding:10px 18px 18px;border-top:3px double {{c.rule}};display:grid;grid-template-columns:1fr 2fr;gap:8px">
+<button onClick="{{back}}" style="min-height:52px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;cursor:pointer">{{backText}}</button>
+<button onClick="{{next}}" style="min-height:52px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;cursor:pointer">{{nextText}}</button>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 0, origin: 'invite', later: false, path: 'guided', race: 'marsh', cls: 'warden', hp: null, gear: 'kit', kit: 'warden', co: 'sluice' };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', warn: '#E6BA66', tint: '#4A3A22', track: '#2A251E', onAcc: '#12100D' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', warn: '#7A4A00', tint: '#F3E6CB', track: '#E9E2D4', onAcc: '#FBF8F1' };
+    const G = "'EB Garamond',Georgia,serif";
+    const card = (on, blocked) => 'min-height:60px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;padding:8px 12px;border-radius:6px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.tint : 'transparent') + ';color:inherit;font-family:inherit;text-align:left;cursor:' + (blocked ? 'default' : 'pointer') + ';opacity:' + (blocked ? 0.5 : 1) + ';width:100%';
+    const pad = (on) => 'min-height:52px;border-radius:4px;border:1px solid ' + (on ? c.acc : c.line) + ';background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : c.ink) + ';font-family:' + G + ';font-size:24px;font-weight:600;cursor:pointer';
+    const seg = (on) => 'min-height:48px;border-radius:4px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : c.ink) + ';font-family:inherit;font-size:15px;font-weight:700;cursor:pointer';
+    const freeform = s.path === 'free';
+    const lastStep = freeform ? 6 : 6;
+    const stepNo = s.step;
+    const bar = []; for (let i = 1; i <= 6; i++) bar.push({ bg: i <= stepNo ? c.acc : c.track });
+    const R = [{ id: 'human', name: 'Human', note: 'No limits' }, { id: 'marsh', name: 'Marsh folk', note: '+1 DEX, sees in the dark 30′' }, { id: 'stone', name: 'Stoneborn', note: 'Needs CON 9 and a GM’s OK in this campaign', blocked: false }];
+    const C = [{ id: 'warden', name: 'Lantern Warden', note: 'Needs WIS 9 · you qualify' }, { id: 'blade', name: 'Reedblade', note: 'Needs STR 9 · you qualify' }, { id: 'witch', name: 'Mire Witch', note: 'Needs INT 13 · your INT is 9', blocked: true }];
+    const kitsData = [{ id: 'warden', name: 'Warden’s kit', cost: '60 gp', items: 'Lantern, 3 oil flasks, staff, leather armour, backpack, rations ×7' }, { id: 'delver', name: 'Delver’s kit', cost: '45 gp', items: 'Torches ×6, rope 50 ft, spade, sack, rations ×7' }];
+    const goldLeft = s.gear === 'kit' ? (s.kit === 'warden' ? 50 : 65) : 110;
+    const next = () => {
+      if (s.step === 0) return this.setState({ step: 1 });
+      if (s.step === 1 && freeform) return this.setState({ step: 6 });
+      if (s.step >= 6) return this.setState({ step: 7 });
+      this.setState({ step: s.step + 1 });
+    };
+    const back = () => {
+      if (s.step === 6 && freeform) return this.setState({ step: 1 });
+      this.setState({ step: Math.max(0, s.step - 1) });
+    };
+    return {
+      cos: [['sluice', 'The Sluice Gate Company', 'Wren, Ash, Bram · members vote on joining'], ['reed', 'The Reed Cutters', 'Old Tobin · members vote on joining'], ['none', 'No company for now', 'You can ask to join later']].map((o) => ({ t: o[1], sub: o[2], on: s.co === o[0], style: card(s.co === o[0], false), go: () => this.setState({ co: o[0] }) })),
+      doneMsg: 'Sent to the GM for approval.' + (s.co === 'none' ? '' : ' Your request to join ' + (s.co === 'sluice' ? 'the Sluice Gate Company' : 'the Reed Cutters') + ' goes to its members.'),
+      c: c, bar: bar, stepNo: stepNo, showSteps: s.step >= 1 && s.step <= 6,
+      s0: s.step === 0, s1: s.step === 1, s2: s.step === 2, s3: s.step === 3, s4: s.step === 4, s5: s.step === 5, s6: s.step === 6, s7: s.step === 7,
+      fromInvite: s.origin === 'invite', fromDeath: s.origin === 'death', otherOrigin: s.origin === 'invite' ? 'after-a-death' : 'invite',
+      flipOrigin: () => this.setState({ origin: s.origin === 'invite' ? 'death' : 'invite', later: false }),
+      later: () => this.setState({ later: true }), laterMsg: s.later,
+      guided: !freeform, free: freeform, guidedStyle: card(!freeform) + ';min-height:96px', freeStyle: card(freeform) + ';min-height:96px',
+      pickGuided: () => this.setState({ path: 'guided' }), pickFree: () => this.setState({ path: 'free' }),
+      scores: [['STR', 13], ['INT', 9], ['WIS', 15], ['DEX', 11], ['CON', 15], ['CHA', 8]].map((x) => ({ k: x[0], v: String(x[1]), id: 'sc' + x[0] })),
+      races: R.map((r) => ({ name: r.name, note: r.note, blocked: !!r.blocked, on: s.race === r.id, style: card(s.race === r.id, r.blocked), pick: () => { if (!r.blocked) this.setState({ race: r.id }); } })),
+      classes: C.map((r) => ({ name: r.name, note: r.note, noteColor: r.blocked ? c.warn : c.mut, blocked: !!r.blocked, on: s.cls === r.id, style: card(s.cls === r.id, r.blocked), pick: () => { if (!r.blocked) this.setState({ cls: r.id }); } })),
+      hpPad: [1, 2, 3, 4, 5, 6].map((n) => ({ n: n, on: s.hp === n, style: pad(s.hp === n), pick: () => this.setState({ hp: n }) })),
+      hpText: s.hp === null ? 'tap your roll' : (s.hp + 1) + ' (' + s.hp + ' + 1)',
+      isKit: s.gear === 'kit', isBuy: s.gear === 'buy', kitTab: seg(s.gear === 'kit'), buyTab: seg(s.gear === 'buy'),
+      gearKit: () => this.setState({ gear: 'kit' }), gearBuy: () => this.setState({ gear: 'buy' }),
+      kits: kitsData.map((k) => ({ name: k.name, cost: k.cost, items: k.items, on: s.kit === k.id, style: card(s.kit === k.id), pick: () => this.setState({ kit: k.id }) })),
+      goldLeft: goldLeft + ' gp',
+      restart: () => this.setState({ step: 0, hp: null }),
+      hasFooter: s.step <= 6 && !(s.step === 0 && s.origin === 'death' && s.later),
+      back: back, next: next,
+      backText: s.step === 0 ? 'Not now' : 'Back',
+      nextText: s.step === 0 ? (s.origin === 'invite' ? 'Join and make a character' : 'Make a new character') : (s.step === 6 ? 'Send to the GM' : 'Next'),
+      S: {
+        h: 'font-family:' + G + ';font-size:30px;font-weight:600;line-height:1.1',
+        label: 'font-family:' + G + ';font-size:18px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:' + c.mut
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

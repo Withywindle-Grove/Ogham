@@ -1,0 +1,150 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-fen-options",
+    "name": "Invented options sample",
+    "shortName": "Fen options",
+    "version": "0.1",
+    "kind": "setting",
+    "author": "Invented for the app's tests",
+    "description": "An invented setting for testing the shared option reader (options-gates PR 1): entries, fields and sections behind optional rules, with made-up names and numbers."
+  },
+  "rulesSets": [
+    {
+      "id": "fen-options-rules",
+      "name": "Fen options rules",
+      "abilities": [{ "key": "MUS", "name": "Muscle" }, { "key": "WIT", "name": "Wit" }],
+      "morale": { "note": "Frightened folk may run." },
+      "byOption": { "fen-calm-crew=on": { "morale": null }, "fen-carrying=coin": { "encumbrance": { "mode": "coin" } } }
+    }
+  ],
+  "options": [
+    {
+      "id": "fen-powder",
+      "name": "Powder age",
+      "default": "none",
+      "changeLater": "allow",
+      "category": "Items and treasure",
+      "choices": [
+        { "id": "none", "name": "No guns", "notes": "No powder weapons exist." },
+        { "id": "wheel", "name": "Wheel guns", "notes": "Wheel-lock guns can be bought." },
+        { "id": "flint", "name": "Flint guns", "notes": "Flint guns can be bought; wheel guns are cheaper." }
+      ],
+      "notes": "Which powder weapons exist in the fen."
+    },
+    {
+      "id": "fen-moon-marks",
+      "name": "Moon marks",
+      "default": "off",
+      "changeLater": "allow",
+      "category": "Characters",
+      "choices": [{ "id": "off", "name": "Off" }, { "id": "on", "name": "On" }],
+      "notes": "Each character is born under a moon mark."
+    },
+    {
+      "id": "fen-warden-staves",
+      "name": "Warden staves",
+      "default": "off",
+      "changeLater": "allow",
+      "category": "Combat",
+      "choices": [{ "id": "off", "name": "Off" }, { "id": "on", "name": "On" }],
+      "notes": "Lantern Wardens may also fight with a staff."
+    },
+    {
+      "id": "fen-heavy-coats",
+      "name": "Heavy coats for wardens",
+      "default": "off",
+      "changeLater": "allow",
+      "category": "Characters",
+      "choices": [{ "id": "off", "name": "Off" }, { "id": "on", "name": "On" }],
+      "notes": "Lantern Wardens may wear bog-iron coats."
+    },
+    {
+      "id": "fen-calm-crew",
+      "name": "Calm crews",
+      "default": "off",
+      "changeLater": "allow",
+      "category": "Combat",
+      "choices": [{ "id": "off", "name": "Off" }, { "id": "on", "name": "On" }],
+      "notes": "Nobody ever runs: no morale."
+    },
+    {
+      "id": "fen-reed-kits",
+      "name": "Reed kits",
+      "default": "off",
+      "changeLater": "allow",
+      "category": "Items and treasure",
+      "choices": [{ "id": "off", "name": "Off" }, { "id": "on", "name": "On" }],
+      "notes": "A ready-made reed kit for every class."
+    },
+    {
+      "id": "fen-carrying",
+      "name": "Carrying",
+      "default": "none",
+      "changeLater": "allow",
+      "ruleKey": "encumbrance",
+      "category": "Items and treasure",
+      "choices": [
+        { "id": "none", "name": "Not tracked", "notes": "Nobody counts what they carry." },
+        { "id": "coin", "name": "By coin weight", "short": "Coin weight", "notes": "Everything is weighed in coins." }
+      ],
+      "notes": "How the fen counts what a character carries."
+    }
+  ],
+  "fieldTemplates": [
+    {
+      "id": "fen-options-sheet",
+      "name": "Fen options sheet",
+      "appliesTo": "pc",
+      "fields": [
+        { "key": "MUS", "label": "MUS", "type": "number", "group": "Abilities", "showOnCard": true },
+        { "key": "WIT", "label": "WIT", "type": "number", "group": "Abilities", "showOnCard": true },
+        { "key": "moonMark", "label": "Moon mark", "type": "list", "from": "fen-moon-marks", "group": "Who they are", "option": "fen-moon-marks=on", "showOnCard": true }
+      ]
+    }
+  ],
+  "traitLists": [
+    {
+      "id": "fen-moon-marks",
+      "name": "Moon marks",
+      "die": "d4",
+      "option": "fen-moon-marks",
+      "entries": [
+        { "id": "thin-moon", "name": "Thin moon", "min": 1, "max": 2, "blurb": "Quiet and quick." },
+        { "id": "full-moon", "name": "Full moon", "min": 3, "max": 4, "blurb": "Loud and lucky." }
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "lantern-warden",
+      "name": "Lantern Warden",
+      "blurb": "Keeps the light alive.",
+      "hitDie": "d8",
+      "armourAllowed": { "types": ["light"] },
+      "weaponsAllowed": { "mode": "list", "ids": ["eel-knife"], "optional": { "ids": ["reed-staff"], "option": "fen-warden-staves" } },
+      "byOption": { "fen-heavy-coats=on": { "armourAllowed": { "types": ["light", "heavy"] } } }
+    },
+    {
+      "id": "powder-bailiff",
+      "name": "Powder Bailiff",
+      "blurb": "Keeps the peace with a smoking gun.",
+      "hitDie": "d6",
+      "option": "fen-powder=flint"
+    }
+  ],
+  "items": [
+    { "id": "eel-knife", "name": "Eel knife", "category": "weapon", "slot": "hand", "value": { "gp": 2 }, "weightCoin": 10, "weapon": { "damage": "1d4" }, "weaponTags": ["Melee"] },
+    { "id": "reed-staff", "name": "Reed staff", "category": "weapon", "slot": "hand", "value": { "gp": 1 }, "weightCoin": 40, "weapon": { "damage": "1d6" }, "weaponTags": ["Melee"], "byOption": { "fen-warden-staves=on": { "value": { "gp": 3 } } } },
+    { "id": "waxed-coat", "name": "Waxed coat", "category": "armour", "slot": "armour", "armourType": "light", "value": { "gp": 10 }, "weightCoin": 100 },
+    { "id": "bog-iron-coat", "name": "Bog-iron coat", "category": "armour", "slot": "armour", "armourType": "heavy", "value": { "gp": 40 }, "weightCoin": 400 },
+    { "id": "wheel-gun", "name": "Wheel gun", "category": "weapon", "slot": "hand", "value": { "gp": 60 }, "weightCoin": 60, "weapon": { "damage": "1d8" }, "weaponTags": ["Missile"], "option": "fen-powder=wheel" },
+    { "id": "flint-gun", "name": "Flint gun", "category": "weapon", "slot": "hand", "value": { "gp": 80 }, "weightCoin": 50, "weapon": { "damage": "1d8" }, "weaponTags": ["Missile"], "option": "fen-powder=flint" },
+    { "id": "powder-horn", "name": "Powder horn", "category": "gear", "value": { "gp": 5 }, "weightCoin": 10, "option": ["fen-powder=wheel", "fen-powder=flint"], "byOption": { "fen-powder=flint": { "value": { "gp": 3 } } } },
+    { "id": "bog-lamp", "name": "Bog lamp", "category": "gear", "value": { "gp": 2 }, "weightCoin": 20, "byOption": { "fen-powder=wheel,fen-powder=flint": { "value": null, "notes": "Found, never sold." } } }
+  ],
+  "startingKits": [
+    { "id": "warden-reed-kit", "name": "Warden's reed kit", "classIds": ["lantern-warden"], "blurb": "Knife and coat.", "option": "fen-reed-kits", "items": [{ "itemId": "eel-knife", "qty": 1 }, { "itemId": "waxed-coat", "qty": 1 }] }
+  ]
+}

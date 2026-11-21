@@ -1,0 +1,485 @@
+/* The Player screen: name line, hit points, and the Player · Scene · Pack sections (ui/SectionNav). */
+
+.player {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-bottom: calc(var(--tap) + var(--space-5) + env(safe-area-inset-bottom));
+}
+
+.player__pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+/* From a tablet up the sections sit at the top (portrait) or on the left (landscape), so no room is kept at
+   the bottom for phone tabs. */
+@media (min-width: 600px) {
+  .player {
+    padding-bottom: var(--gutter);
+  }
+}
+
+/* Landscape tablet: the sections on the left, then the screen's two columns (on Player, the left and the right
+   column, dec-13 C1; on Magic, the full sheet beside it; on Pack, Add item's side). Scene takes both columns. */
+.player--wide {
+  display: grid;
+  grid-template-columns: auto minmax(320px, 2fr) minmax(0, 3fr);
+  align-items: start;
+  gap: var(--space-6);
+}
+
+.player--wide > .player__side {
+  grid-column: 1;
+  position: sticky;
+  top: calc(var(--top-row-h, 0px) + var(--pad));
+  /* Room for the divider handle's tap zone (lr-4), which straddles this edge, so it never covers a tab. */
+  padding-right: calc(var(--tap) / 2);
+}
+
+.player--solo > .player__pane {
+  grid-column: 2 / -1;
+}
+
+.player__aside {
+  min-width: 0;
+  padding-left: var(--space-6);
+  border-left: 1px solid var(--rule);
+}
+
+/* The Player screen's two columns (dec-13 C1, ps-2; frame P1): the left for now, the right for reference, a little
+   wider (1 to 1.25). */
+.player--play {
+  grid-template-columns: auto minmax(320px, 4fr) minmax(0, 5fr);
+}
+
+/* The right column: its parts one above the other, as the left's. */
+.player__right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Each column is the room the sheet's hosted parts measure themselves against (Details' ledger, one column when
+   narrow), as they did inside the sheet. */
+.player__pane--play,
+.player__right {
+  container: sheet / inline-size;
+}
+
+/* A place the full sheet's parts are drawn into (player/PlayerSheetParts.tsx): it adds no box of its own, so its
+   parts keep the column's spacing. */
+.player__slot {
+  display: contents;
+}
+
+/* The columns' parts until the screen first opens (dec-13 C11): hidden, though mounted so each part's read runs; then
+   no box of its own, so the parts keep the column's spacing. */
+.player__opened {
+  display: contents;
+}
+
+.player__opened[hidden] {
+  display: none;
+}
+
+/* Every score box one size on this screen, with or without a modifier under its number (dec-13 C3, ps-10): the two
+   rows of three take the taller row's height, as each row already takes its tallest tile's. */
+.player__pane--play .score-row,
+.player__right .score-row {
+  grid-auto-rows: 1fr;
+}
+
+/* The level block (dec-13 C3, ps-8; player/PlayerLevel.tsx). On a phone (frame P2): under "Fighter, level 2", the
+   experience, its bar and the company, one under the other, in the row's muted line. */
+.player-level__line {
+  display: block;
+}
+
+.player-level__bar {
+  margin-block: var(--space-1);
+}
+
+.player-level__company {
+  margin-block-start: var(--space-1);
+}
+
+/* From a tablet's width up (frame P1; the lead's ruling, 2026-11-15): the experience on the title's line, after it
+   ("Fighter, level 2   2,400 of 4,000 experience"), the bar under them and the company under the bar. The muted line
+   lends its parts to the row's words, so they keep its colour and size. A long title pushes the experience under it. */
+@media (min-width: 600px) {
+  .player-level .list-row__text {
+    flex-flow: row wrap;
+    align-items: baseline;
+    column-gap: var(--space-2);
+  }
+
+  .player-level .list-row__sub {
+    display: contents;
+  }
+
+  .player-level .player-level__bar,
+  .player-level .player-level__company {
+    flex-basis: 100%;
+  }
+}
+
+/* The head (dec-13 C2, ps-5; frames P1 and P2; the portrait at 96 px, page M1, approved 2026-11-19): the portrait,
+   and at its right the head's line (in one column) and the status rings, 8 px apart. */
+.player-head {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+}
+
+/* In two columns the head is one row 96 px tall (frame M1a), unless it carries a line (a character with no class: the
+   GM's card line), when it grows to hold it; so the right column's top (the notices box over the Scores heading) can
+   match it and the first row of score boxes start level with the hit points box (the aligned top). */
+.player-head--fixed {
+  block-size: 96px;
+}
+
+/* In one column (frames M1c, M1f): the line and the notices box beside the portrait; the rings their own row under. */
+.player-head__notices {
+  display: flex;
+}
+
+.player-head__rings {
+  grid-column: 1 / -1;
+  min-inline-size: 0;
+}
+
+/* Beside (frame M1a): the notices box at the top of the right column, over Scores, in the room the 96 px head opens
+   there. It and the Scores heading under it are as tall as the head together (64 and 32): the column's gap between
+   them goes, so the first row of score boxes still starts level with the hit points box. */
+.player--wide .player__right .player__notices {
+  display: flex;
+  margin-block-end: calc(-1 * var(--space-5));
+}
+
+.player-head__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+/* "the Hornkin, Shieldbearer" (frame P2): the name stays in the bar. */
+.player-head__line {
+  margin: 0;
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* The aligned top (dec-13 C2, moved from C3; ls-1; P1's note; M1a): in two columns the notices box (64 px) and the
+   right column's Scores heading under it, with its rule line, are as tall as the head beside them (96 px), the
+   heading's words at its foot, and the scores follow it by the left column's own gap (the pane's 24 px), so the first
+   row of score boxes starts level with the hit points box. The section's top padding goes, so the 32 is the
+   heading's alone. */
+.player--wide .player__right .sheet__section[aria-label='Scores'] {
+  padding-block-start: 0;
+}
+
+/* The first child is the rule line's row (`.rule-heading`) or, in a setting with no roll for scores, the bare heading:
+   either way a flex box here, so the words sit at the foot of the 32 px under the box (96 less the box's 64). */
+.player--wide .player__right .sheet__section[aria-label='Scores'] > :first-child {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-2);
+  min-block-size: var(--space-6);
+  align-items: flex-end;
+  margin-block-end: calc(var(--space-5) - var(--space-1));
+}
+
+.char-statuses--head {
+  display: block;
+}
+
+.char-statuses--head .status-ring-row {
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.player__later {
+  margin: 0;
+  color: var(--muted);
+}
+
+.hp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.hp__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.hp__step {
+  width: var(--tap-hp);
+  height: var(--tap-hp);
+  flex: none;
+  border: 1px solid var(--outline);
+  border-radius: 50%;
+  background: var(--sheet);
+  color: var(--ink);
+  font-size: var(--text-hp);
+  line-height: 1;
+  cursor: pointer;
+}
+
+
+.hp__value {
+  min-height: var(--tap-hp);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  column-gap: var(--space-2);
+  min-width: 0;
+  padding: 0 var(--space-2);
+  border: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.hp__unset {
+  color: var(--muted);
+}
+
+.hp__keypad {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.hp__input {
+  max-width: 10rem;
+}
+
+.hp__keypad-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+}
+
+/* The Hit points and Max hit points pop-ups' foot (`HpFoot`): the standard foot at the right (ft-1, `.dialog__actions`),
+   and Set and Cancel one height in their row (p2p-16, 2026-11-18): Cancel stands as tall as Set. Stacked (a button
+   wrapped at a larger text size), each keeps its own height on its own line, at the right. */
+.hp__foot:not(.dialog__actions--stacked) {
+  align-items: stretch;
+}
+
+/* The Hit points and Max hit points pop-ups fit their content (tf-A2; Francis on the built picture, 19 Nov: "why is
+   the box so wide? the buttons should be under the fillable box"): the form is one column as wide as its widest
+   line (the label, the box or the foot), the box fills that column, and Set and Cancel sit directly under it, the
+   pair ending at the box's right edge. On a tablet the card is no wider than that column (on a phone the sheet stays
+   the screen's width, as every sheet, and the column is centred in it as one group: Francis on the next pictures,
+   19 Nov, "keep relative positions and center"). The Set AC pop-up keeps `.hp__keypad` as it is. */
+.hp__keypad--fit {
+  align-self: center;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+}
+
+.hp__keypad--fit > .hp__input {
+  max-width: none;
+}
+
+@media (min-width: 700px) {
+  /* Centred on the tab (fb7-5), it keeps this width: no 440 px least (`.dialog--centred`, Dialog.css). */
+  .dialog:has(> .hp__keypad--fit) {
+    inline-size: fit-content;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+  }
+}
+
+/* Notes, centred on the tab (the scope check of 2026-11-20, Francis: "B"; frame FB7h): always the most, 720 px, so a
+   note added while it is open never widens it under the finger; every other pop-up on the tab fits its content. */
+@media (min-width: 700px) {
+  .dialog--centred:has(> .sheet__note-new) {
+    inline-size: min(var(--popup-width-max), 100%);
+  }
+}
+
+/* "Tap a figure for where it comes from": one quiet line under the vitals. */
+.vitals__hint {
+  margin: 0;
+}
+
+.vitals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* "Set max" under the number when no most is recorded (N24): quiet, at the start of the line. */
+.vitals__set-max,
+.vitals__set-ac {
+  align-self: flex-start;
+}
+
+/* The tiles wrap when the column is narrow (the menu open on a landscape iPad, ct3-7): the stat row is a grid, so
+   it flows into rows of tiles at least two taps wide rather than one row that runs past the column. */
+.vitals .stat-row {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--tap) * 2.5)), 1fr));
+}
+
+.vitals .stat-tile {
+  min-inline-size: 0;
+}
+
+/* Tile label, plain (dec-13 C15, frame P1; 06's Vitals tile): on the Player screen the tiles' labels (armour class and
+   attack, scores, saves) are whole words in plain case, muted, in the book's text face; creation's small-capitals
+   label stays creation's own. The hit points box keeps its small-capitals label (P1). */
+.player .book-type :is(.stat-row, .score-row, .save-tiles) .stat-tile__label {
+  font-family: var(--font-book-text);
+  font-weight: var(--weight-book-text);
+  font-variant: normal;
+  letter-spacing: 0;
+}
+
+.vitals .stat-tile__caption {
+  overflow-wrap: anywhere;
+}
+
+/* Row name, bold (dec-13; Francis's fix of 19 Nov 2026 to frame P1; 06's List row): on the Player tab every row's name
+   is in the book's bold, as P1 draws "Shortbow", "Second wind", "Listen", "Fighter, level 2", "Weapon skills": At
+   hand's items and its lit light, the traits, the skills, the level block and the sheet's rows that
+   follow Skills (tfr-5). The lines under the names keep their weight. Scoped to the tab's two columns, so the Pack tab,
+   the full sheet's own page and the pop-ups (drawn outside the screen) keep their rows' regular weight. */
+.player :is(.player__pane--play, .player__right) :is(.list-row__title, .pack__name, .light-block__name) {
+  font-weight: var(--weight-book-name);
+}
+
+/* Section headings, "At hand"'s look (page M1, frames M1a and M1f; Francis's fix of 2026-11-20): on the Player tab the
+   right column's headings (Scores, Saves, Movement, Traits, Skills, Languages) and Details take the small capitals "At
+   hand" has (`.pack__group-title`): every letter a small capital, at the label's size. The full sheet's own page keeps
+   its headings. A name beside a heading (`.sheet__label-tap`) keeps its capitals. */
+.player :is(.player__pane--play, .player__right) .sheet__label {
+  letter-spacing: normal;
+  text-transform: lowercase;
+}
+
+.player :is(.player__pane--play, .player__right) .sheet__label-tap {
+  text-transform: none;
+}
+
+/* The languages' boxes (frames M1a and M1f; Francis's fix of 2026-11-20): on the Player tab the words are regular, as
+   the book's text; the full sheet's own page keeps them bold. */
+.player :is(.player__pane--play, .player__right) .sheet__box {
+  font-weight: var(--weight-book-text);
+}
+
+/* Movement's two cards (frame M1f; Francis's fix of 2026-11-20): the speed and the load side by side on a phone too,
+   each half the column, their words wrapping inside. */
+.player :is(.player__pane--play, .player__right) .sheet__pair {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* The foot's rows (Weapon skills, Abilities, Traits, Patron, Magic, Notes; frames M1a and M1f; Francis's fix of
+   2026-11-20): one list, each row straight under the last with one rule between, as the frames draw; each is its own
+   section (`SheetSection`'s row, the Notes and Weapon skills rows), so the page's gap and the section's top padding go
+   between them, and only the first keeps the rule above it. */
+.player :is(.player__pane--play, .player__right) .sheet > .sheet__section:has(> .row-list) {
+  padding-block-start: 0;
+}
+
+.player :is(.player__pane--play, .player__right) .sheet > .sheet__section:has(> .row-list) + .sheet__section:has(> .row-list) {
+  margin-block-start: calc(-1 * var(--space-5));
+}
+
+.player :is(.player__pane--play, .player__right) .sheet > .sheet__section:has(> .row-list) + .sheet__section:has(> .row-list) > .row-list {
+  border-block-start: none;
+}
+
+.play-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.play-block__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-label);
+  font-weight: var(--weight-heading);
+}
+
+/* Landscape tablet: the play column stays in view and scrolls on its own beside the full sheet. */
+.player--wide > .player__pane--play {
+  position: sticky;
+  top: calc(var(--top-row-h, 0px) + var(--pad));
+  max-height: calc(100dvh - var(--top-row-h, 0px) - 2 * var(--pad));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Scrolling clips what reaches the column's edge, and its boxes fill it edge to edge, so a box's 1 px side borders
+     sat on the very edge and rounding or a scroll bar cut them (H3, fb-6). The clipping edge moves out into the gap
+     beside the column by a small step on each side, and the boxes keep their width and place. */
+  padding-inline: var(--space-2);
+  margin-inline: calc(-1 * var(--space-2));
+  /* Its own scroll bar, between the two columns, is fully transparent (Francis, 20 Nov, on H3's ⚑ 1); the column still
+     scrolls by touch, wheel and keyboard. */
+  scrollbar-color: transparent transparent;
+}
+
+/* A browser without `scrollbar-color` (Safari before it, older Chromium) draws the bar from these: a transparent thumb
+   and track, at the bar's own width, so nothing moves. */
+@supports not (scrollbar-color: transparent transparent) {
+  .player--wide > .player__pane--play::-webkit-scrollbar,
+  .player--wide > .player__pane--play::-webkit-scrollbar-thumb,
+  .player--wide > .player__pane--play::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+}
+
+/* A phone in landscape keeps the bottom tabs, so the room for them stays. */
+@media (min-width: 600px) and (max-width: 1023px) and (max-height: 500px) {
+  .player {
+    padding-bottom: calc(var(--tap) + var(--space-5) + env(safe-area-inset-bottom));
+  }
+}
+
+/* Abilities (ruled 2026-10-26): the name (tap for what it does) and its use dots on one line, wrapping on a phone. */
+.ability-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border-bottom: var(--row-rule);
+}
+
+.ability-row__name {
+  min-height: var(--tap);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+/* AC while worn magic armour waits for its base (ruled 2026-10-29): words, not a number. */
+.vitals__choose-base {
+  display: block;
+  font-family: var(--font-body);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  font-weight: var(--weight-heading);
+  text-align: center;
+}
+

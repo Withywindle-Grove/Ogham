@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creation 05 — First spells (paper test, 2026-11-01)</title>
+<style>
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); width:720px; box-sizing:border-box; }
+  .screen.phone { width:375px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .why { margin:var(--space-3) 0 var(--space-1); }
+  .group { display:flex; align-items:center; min-height:44px; gap:var(--space-3); margin-top:var(--space-3); font-weight:700; }
+  .group .meta { font-weight:400; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; min-width:0; }
+  .row .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .row .desc { display:block; }
+  .row .src { display:block; font-size:14px; color:var(--muted); }
+  .tick { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:22px; flex:none; }
+  .info { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; border:1.5px solid var(--control); border-radius:22px; flex:none; font-weight:700; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; text-align:center; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:16px; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  .field { min-height:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; color:var(--muted); box-sizing:border-box; margin-top:var(--space-3); }
+  .foot { display:flex; align-items:center; gap:var(--space-3); margin-top:var(--space-4); padding:var(--space-3) 0 0; border-top:1px solid var(--rule); }
+  .foot .spacer { flex:1; }
+  .hint { font-size:14px; color:var(--muted); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:720px; }
+</style>
+</head>
+<body>
+
+<h1>1 · First spells — a book caster choosing (the class's <code>firstSpells.choose</code>)</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">First spells</span><span class="meta">Step 7 of 10</span></div>
+  <p class="why">Your book starts with what your teacher gave you. Pick 1 from the first circle; the rest you'll find or learn. <span class="meta">Fen rules · p. 40</span> <span class="btn quiet">Help me choose</span></p>
+  <div class="field">Search spells…</div>
+  <div class="group">Given by your class <span class="meta">· always in your book</span></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Read the runes</span><span class="desc">Read any script for a turn.</span><span class="src">1st circle · 1 turn · self · p. 44</span></div><span class="info">ⓘ</span></div>
+  <div class="group">Pick 1 <span class="meta">· 1 of 1 picked</span></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Glimmer</span><span class="desc">A floating light that follows you.</span><span class="src">1st circle · 6 turns · 40 ft · p. 45</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Lull</span><span class="desc">Puts a few small creatures to sleep.</span><span class="src">1st circle · 1 hour · 120 ft · p. 45</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Mend</span><span class="desc">Repairs one broken thing you can hold.</span><span class="src">1st circle · lasting · touch · p. 46</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Shield of reeds</span><span class="desc">Woven air turns blows for a while.</span><span class="src">1st circle · 2 turns · self · p. 47</span></div><span class="info">ⓘ</span></div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="hint">1 of 1 picked</span><span class="btn accent">Next</span></div>
+</div>
+<div class="screen phone">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">First spells</span><span class="meta">7 / 10</span></div>
+  <p class="why">Pick 1 from the first circle. <span class="btn quiet">Help me choose</span></p>
+  <div class="group">Given <span class="meta">· 1</span></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Read the runes</span><span class="desc">Read any script for a turn.</span><span class="src">1 turn · self · p. 44</span></div><span class="info">ⓘ</span></div>
+  <div class="group">Pick 1 <span class="meta">· 0 of 1</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Glimmer</span><span class="desc">A floating light that follows you.</span><span class="src">6 turns · 40 ft · p. 45</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Lull</span><span class="desc">Puts small creatures to sleep.</span><span class="src">1 hour · 120 ft · p. 45</span></div><span class="info">ⓘ</span></div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="hint">Pick 1</span><span class="btn accent">Next</span></div>
+</div>
+</div>
+<p class="note">Only for a class whose <code>spellcasting.firstSpells</code> says so (07, E43); a divine caster with no spells at level 1 has no step. Rows are the class list's first-circle spells: name · blurb (without one, the duration and range) · circle · duration · range · page · <b>ⓘ</b> with the full rules one tap away (M7-3's rule, brought forward). <b>Given</b> spells are ticked and can't be unticked (a tap says "given by your class"). The count "1 of 1 picked" stops extra picks (a tap on a second says "1 of 1 picked · unpick one first"). A search field appears above 12 rows. The picks go into the character's <b>spell book</b> (a list of known spells; M7 adds prepare and cast).</p>
+
+<h1>2 · Rolled at the table (<code>firstSpells.rollTable</code>) and cantrips (<code>spellcasting.known</code>, level 0)</h1>
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">First spells</span><span class="meta">Step 7 of 11</span></div>
+  <p class="why">Roll d12 at the table for each of your 2 spells, then tap the result. Your 3 cantrips you choose. <span class="meta">Fen rules · p. 40</span> <span class="btn quiet">Help me choose</span></p>
+  <div class="group">Roll d12 · Starting glimmer <span class="meta">· tapped</span></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">1–2 · Glimmer</span><span class="desc">A floating light that follows you.</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">3–4 · Lull</span><span class="desc">Puts a few small creatures to sleep.</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">5–6 · Mend</span><span class="desc">Repairs one broken thing you can hold.</span></div><span class="info">ⓘ</span></div>
+  <div class="group">Cantrips · pick 3 <span class="meta">· 2 of 3 picked</span></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Spark</span><span class="desc">Lights a candle or a fuse.</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Hush</span><span class="desc">Quiets your footsteps for a turn.</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Knot</span><span class="desc">Ties or unties a rope at a glance.</span></div><span class="info">ⓘ</span></div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="hint">1 spell and 1 cantrip to go</span><span class="btn accent">Next</span></div>
+</div>
+<p class="note">A rolled list shows each row's range first and is tapped, never auto-rolled (the dice stay at the table); a second roll of the same range is the pack's rule (re-roll, or the GM's call — the row says "already yours · roll again"). <b>Cantrips</b> (the zine survey's <code>known</code> block, ruled 2026-11-01) are a second group on the same step with their own count. <b>Next checks</b> both counts; Decide later lands "First spells" on the To finish card.</p>
+
+<h1>3 · Not a caster at level 1</h1>
+<div class="screen">
+  <p>The step doesn't exist: a fighter's counter never shows it; a divine caster whose class starts casting at level 2 sees nothing here either — the class's <code>fromLevel</code> says so, and M7's level-up brings the spells then.</p>
+</div>
+<p class="note">Checked: given vs picked clearly grouped and worded (never colour alone: ✓ plus the group label); the count line explains blocked picks (N9); 44 px rows and ⓘ; 375 px one column; long spell names wrap; one accent (Next). Not drawn: dark mode; a 20-spell first circle (scrolls; search above 12). Pack task: neither test pack has <code>firstSpells</code> on its casters yet (11 and 5 classes) — the step can't appear until they do.</p>
+</body>
+</html>

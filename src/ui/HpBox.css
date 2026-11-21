@@ -1,0 +1,72 @@
+/* The hit points box (06 Components; mockup players/04, alternative C): the figure at the left, − and + at the right. */
+.hp-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.hp-box__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The figure is the tap for typing a value: the rest of the row, at least the HP tap's height. */
+.hp-box__figure {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--space-2);
+  min-inline-size: 0;
+  min-block-size: var(--tap-hp);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* HP 48 as the screen's single focal number (06). */
+.hp__number {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-hp);
+  line-height: 1;
+}
+
+.hp__of {
+  color: var(--muted);
+}
+
+.hp__over {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.hp-box__steps {
+  display: flex;
+  flex: none;
+  gap: var(--space-2);
+}
+
+.hp-box__step {
+  min-inline-size: var(--tap-hp);
+  min-block-size: var(--tap-hp);
+  padding: 0;
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-24);
+  line-height: 1;
+  cursor: pointer;
+}

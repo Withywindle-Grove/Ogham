@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>New campaign, rules options</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:16px 18px 8px;display:flex;flex-direction:column;gap:4px">
+<span style="font-size:14px;color:{{c.mut}}">New campaign · step 3 of 5</span>
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600;line-height:1.05">Optional rules</span>
+</div>
+<div style="padding:0 18px 10px;display:flex;align-items:center;gap:10px">
+<button onClick="{{defaults}}" style="{{defStyle}}">Use all defaults</button>
+<span style="font-size:14px;color:{{c.mut}}">{{changedText}}</span>
+</div>
+
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px">
+<sc-for list="{{opts}}" as="o" hint-placeholder-count="6">
+<div role="group" aria-label="{{o.name}}" style="border-top:3px double {{c.rule}};padding:10px 0 12px;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">{{o.name}}</span><span style="font-size:13px;color:{{o.laterColor}};flex:none">{{o.later}}</span></div>
+<div style="display:grid;grid-template-columns:repeat({{o.cols}},minmax(0,1fr));gap:6px">
+<sc-for list="{{o.choices}}" as="ch" hint-placeholder-count="3">
+<button onClick="{{ch.pick}}" aria-pressed="{{ch.on}}" style="{{ch.style}}"><span>{{ch.name}}</span><span style="font-size:12px;opacity:.85">{{ch.tag}}</span></button>
+</sc-for>
+</div>
+</div>
+</sc-for>
+<div style="font-size:14px;color:{{c.mut}};line-height:1.45;padding:4px 0 16px">This setting has 26 optional rules; the rest keep their defaults and are under “More optional rules”. You can change most of them later in campaign settings.</div>
+</div>
+
+<div style="padding:10px 18px 18px;border-top:3px double {{c.rule}};display:grid;grid-template-columns:1fr 2fr;gap:8px">
+<button style="min-height:52px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600">Back</button>
+<button style="min-height:52px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600">Next: time lengths</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { pick: { ac: 'asc', ties: 'party' } };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', warn: '#E6BA66', tint: '#4A3A22', onAcc: '#12100D' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', warn: '#7A4A00', tint: '#F3E6CB', onAcc: '#FBF8F1' };
+    const G = "'EB Garamond',Georgia,serif";
+    const O = [
+      { id: 'enc', name: 'Encumbrance', def: 'armour', later: 'warn', choices: [['none', 'None'], ['armour', 'Armour'], ['coin', 'Coin weight'], ['slot', 'Slots']] },
+      { id: 'cont', name: 'Do containers add capacity?', def: 'no', later: 'allow', choices: [['no', 'No'], ['yes', 'Yes']] },
+      { id: 'ac', name: 'Armour class', def: 'desc', later: 'warn', choices: [['desc', 'Descending'], ['asc', 'Ascending']] },
+      { id: 'ties', name: 'Initiative ties', def: 'reroll', later: 'allow', choices: [['reroll', 'Re-roll'], ['same', 'Same time'], ['party', 'Party wins']] },
+      { id: 'books', name: 'Spell books', def: 'std', later: 'warn', choices: [['std', 'Standard'], ['adv', 'Advanced']] },
+      { id: 'dmg', name: 'Weapon damage', def: 'same', later: 'allow', choices: [['same', 'Same die'], ['weapon', 'By weapon']] }
+    ];
+    let changed = 0;
+    const opts = O.map((o) => {
+      const cur = s.pick[o.id] || o.def;
+      if (cur !== o.def) changed++;
+      return {
+        name: o.name, cols: o.choices.length,
+        later: o.later === 'warn' ? 'Changing later warns' : 'Can change later',
+        laterColor: o.later === 'warn' ? c.warn : c.mut,
+        choices: o.choices.map((ch) => {
+          const on = cur === ch[0];
+          return {
+            name: ch[1], on: on, tag: ch[0] === o.def ? 'default' : '',
+            style: 'min-height:52px;padding:4px 2px;border-radius:4px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : c.ink) + ';font-family:inherit;font-size:15px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer',
+            pick: () => this.setState({ pick: Object.assign({}, s.pick, { [o.id]: ch[0] }) })
+          };
+        })
+      };
+    });
+    return {
+      c: c, opts: opts,
+      changedText: changed === 0 ? 'All defaults' : changed + (changed === 1 ? ' choice' : ' choices') + ' changed from the defaults',
+      defStyle: 'min-height:44px;padding:0 14px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:18px;font-weight:600;cursor:pointer',
+      defaults: () => this.setState({ pick: {} })
+    };
+  }
+}
+</script>
+</body>
+</html>

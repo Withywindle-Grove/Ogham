@@ -1,0 +1,321 @@
+/* The optional rules' parts (06 Components: Optional rules list; lr-6, lr-7). */
+
+.rule-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.rule-group__heading {
+  margin: 0;
+  font: inherit;
+}
+
+.rule-group__head {
+  display: flex;
+  align-items: center;
+  gap: 0 var(--space-2);
+  inline-size: 100%;
+  min-block-size: var(--tap);
+  margin: var(--space-3) 0 0;
+  padding: var(--space-1) 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.rule-group__head--empty {
+  cursor: default;
+  padding-inline-start: calc(var(--tap) + var(--space-2));
+}
+
+.rule-group__chev {
+  flex: none;
+  inline-size: var(--tap);
+  text-align: center;
+  color: var(--muted);
+}
+
+.rule-group__label {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.rule-group__title {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
+
+.rule-group__count {
+  color: var(--muted);
+  font-size: var(--text-16);
+  /* The "·" never sits alone at a line's end: it wraps with its words. */
+  white-space: nowrap;
+}
+
+.rule-group__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+/* A rule: the text, and its control at the right on a tablet, under the text on a phone. */
+.rule-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-block-size: var(--tap);
+  padding: var(--space-2) 0;
+  border-block-end: var(--line-hair) dotted var(--row-rule);
+}
+
+.rule-row:last-child {
+  border-block-end: none;
+}
+
+.rule-row__text {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.rule-row__name {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
+
+.rule-row__about {
+  overflow-wrap: anywhere;
+}
+
+.rule-row__source {
+  color: var(--muted);
+  font-size: var(--text-14);
+  overflow-wrap: anywhere;
+}
+
+/* "Run by hand ›" (ex-7; fl-1, 2026-11-05): a quiet link in the text column, lined up with the words above, opening
+   the rules; "· the app doesn't apply this yet" beside it as plain muted text, wrapping under it when narrow. */
+.rule-row__manual-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-self: flex-start;
+}
+
+.rule-row__manual {
+  padding-inline: 0;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.rule-row__manual-note {
+  color: var(--muted);
+  font-size: var(--text-14);
+  overflow-wrap: anywhere;
+}
+
+.rule-row__control {
+  flex: 0 1 auto;
+  max-inline-size: 100%;
+}
+
+@media (max-width: 599px) {
+  .rule-row__control {
+    flex: 1 1 100%;
+  }
+}
+
+/* The current choice as a button (tf-3): its name, "1 of N" and ▾; long names wrap inside it. On a phone the
+   control goes under the text, full width. */
+.rule-row__value {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  inline-size: calc(var(--tap) * 7);
+  max-inline-size: 100%;
+  min-block-size: var(--tap);
+  text-align: start;
+}
+
+@media (max-width: 599px) {
+  .rule-row__value {
+    inline-size: 100%;
+  }
+}
+
+.rule-row__value-name {
+  flex: 1;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.rule-row__value-count {
+  flex: none;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-14);
+}
+
+.rule-row__value-open {
+  flex: none;
+  font-size: var(--text-14);
+}
+
+.rule-row__changed {
+  color: var(--ink);
+}
+
+.rule-row__name .info-button {
+  vertical-align: middle;
+}
+
+.rule-sheet__notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: var(--space-4);
+}
+
+.rule-row__decided {
+  display: inline-block;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.rule-sheet__about {
+  margin: 0 0 var(--space-3);
+}
+
+.rule-sheet__choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* A rule no pack extends: its choices sit straight in the list (the part is only a wrapper). */
+.rule-sheet__part {
+  display: contents;
+}
+
+/* Every strip in a choice pop-up is full width (tf-4). */
+.rule-sheet__choice {
+  display: flex;
+  align-self: stretch;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  text-align: start;
+}
+
+.rule-sheet__default,
+.rule-sheet__choice-notes {
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-14);
+}
+
+/* A topic group's fold line (Rules for this campaign's groups, lr-7), shared by the ruleKey card and the "New choice"
+   card (rc-fold, 2026-11-20): "▸ Time and calendar, 4 settings, none changed". Moved here from organisms.css with
+   the part, so a screen that shows only a card still has its look. */
+.campaign-rules__toggle {
+  display: grid;
+  grid-template-columns: var(--space-4) 1fr;
+  align-items: baseline;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-height: var(--tap);
+  padding: var(--space-2) 0;
+  border: none;
+  background: none;
+  text-align: start;
+  cursor: pointer;
+}
+
+/* A long topic or choice wraps under the name, never past the card (a word longer than the line breaks too). */
+.campaign-rules__label {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.campaign-rules__name {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+}
+
+.campaign-rules__count {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* A rule card (rc-fold, approved with fixes 2026-11-20): folded, a plain row like the topic groups' (their dotted
+   rule under it, no box); open, its box under the row. */
+.rule-card {
+  border-bottom: var(--row-rule);
+}
+
+.rule-clash {
+  margin-block: var(--space-3);
+}
+
+.rule-clash .button-secondary {
+  text-align: start;
+}
+
+/* A ruleKey card (tf-1): each pack's name, then its choices as full-width strips. */
+/* Pinned (perf fix 1, 2026-11-07): the card also carries .creation-callout; this rule came after it in the app's
+   styles and won. The two now share a piece whose order the bundler picks, so the pairing keeps it winning. */
+.rule-key,
+.creation-callout.rule-key {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block: var(--space-3);
+}
+
+.rule-key__pack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rule-key__pack-name {
+  margin: var(--space-2) 0 0;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: var(--text-14);
+  overflow-wrap: anywhere;
+}
+
+/* A pack's presets (A8), first in its open source group: the label, then one quiet button per preset, wrapping. */
+.rule-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+
+.rule-presets__label {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.rule-presets__preset {
+  text-align: start;
+  overflow-wrap: anywhere;
+}

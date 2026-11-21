@@ -1,0 +1,23 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "name": "Invented mire overlay (clash B)",
+    "id": "mire-clash-b",
+    "version": "0.1",
+    "kind": "setting"
+  },
+  "options": [
+    {
+      "id": "mire-lantern-reckoning",
+      "name": "Lantern reckoning",
+      "default": "loose",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "strict", "name": "Count every flask" },
+        { "id": "loose", "name": "Hand-wave the oil" }
+      ],
+      "notes": "The mire's own take on lamp oil."
+    }
+  ]
+}

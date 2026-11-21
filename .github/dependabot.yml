@@ -1,0 +1,23 @@
+# Dependabot: proposes library and GitHub Actions updates once a month, grouped into a few pull requests.
+# Each one runs the full GitHub check before anything is merged (see docs/testing.md).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      app-libraries:
+        dependency-type: production
+        patterns: ['*']
+      dev-tools:
+        dependency-type: development
+        patterns: ['*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ['*']

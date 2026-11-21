@@ -1,0 +1,41 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": { "id": "review-area-2", "name": "Invented fen tables (review area 2)", "version": "0.1", "kind": "setting" },
+  "rulesSets": [
+    {
+      "id": "fen-rules",
+      "name": "Fen rules",
+      "encumbrance": {
+        "mode": "slot",
+        "slot": { "baseSlots": 10, "tiers": [{ "label": "Light", "maxSlots": 10, "effect": "Normal pace", "movement": 30 }], "overMax": "Can't move" }
+      },
+      "exploration": {
+        "modes": [
+          {
+            "id": "fen-roam",
+            "name": "Fen roam",
+            "checks": [{ "id": "fen-wander", "name": "Wandering", "onHit": { "tableId": "wild-kinds", "columns": ["Marsh"] } }],
+            "terrain": [{ "id": "reeds", "name": "Reeds", "cost": 2, "encounterTableId": "wild-kinds", "encounterColumn": "Reeds" }]
+          }
+        ]
+      }
+    }
+  ],
+  "tables": [
+    {
+      "id": "wild-kinds",
+      "name": "Wild kinds",
+      "die": "d6",
+      "kind": "matrix",
+      "columns": ["Road", "Wild"],
+      "nextTablePattern": "wild-{result}",
+      "rows": [
+        { "level": "1-3", "results": ["B-Animal", "C-Flyer*"] },
+        { "level": "4-6", "results": ["D-Swimmer", "B-Animal"] }
+      ]
+    },
+    { "id": "wild-b-animal", "name": "Wild animals", "die": "d4", "rows": [{ "min": 1, "max": 4, "result": "Mist hounds", "count": "1d4" }] },
+    { "id": "wild-c-flyer", "name": "Wild flyers", "die": "d4", "rows": [{ "min": 1, "max": 4, "result": "Lantern moths", "count": "2d6" }] }
+  ]
+}

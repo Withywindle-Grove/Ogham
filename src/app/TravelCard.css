@@ -1,0 +1,281 @@
+/* The travel card (M5b step 1): the budget card, Move…, the shortfall, Force march and Lost. Tokens only. */
+.travel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: var(--line-hair) solid var(--rule);
+  min-width: 0;
+}
+
+.travel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* The number is a tap target (the breakdown), set like a heading. */
+.travel__number {
+  min-height: var(--tap);
+  padding: 0 var(--space-2) 0 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+  text-align: left;
+  cursor: pointer;
+}
+
+.travel__number:focus-visible {
+  outline: var(--outline);
+}
+
+.travel__delta,
+.travel__ground,
+.travel__hint,
+.travel__note,
+.travel__lost-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+.travel__lost {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius);
+  background: var(--warning-1);
+  color: var(--ink);
+  font-size: var(--text-16);
+  line-height: var(--line-control);
+}
+
+.travel__pips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.travel__pip {
+  width: var(--space-3);
+  height: var(--space-3);
+  border: var(--line-hair) solid var(--ink);
+  border-radius: 50%;
+  background: transparent;
+}
+
+.travel__pip--full {
+  background: var(--ink);
+}
+
+.travel__bar {
+  position: relative;
+  height: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--bar-track);
+  overflow: hidden;
+}
+
+.travel__bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+
+.travel__shortfall {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+.travel__actions,
+.travel__buttons,
+.travel__chips,
+.travel__roll {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.travel__button-with-info {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The players' one button group (M5b step 3; docs/06 "Wilderness on Scene"): the activities by name and Force march,
+   laid out evenly by count: 2 columns on a phone, 3 on a tablet, an odd last button centred. Long names wrap. */
+.travel__buttons--group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.travel__buttons--group > * {
+  min-width: 0;
+}
+
+.travel__buttons--group > button,
+.travel__buttons--group > .travel__button-with-info > button {
+  width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.travel__buttons--group > .travel__button-with-info > button {
+  flex: 1 1 auto;
+}
+
+.travel__buttons--group > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: calc(50% - var(--space-1));
+}
+
+@media (min-width: 720px) {
+  .travel__buttons--group {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .travel__buttons--group > :last-child:nth-child(odd) {
+    grid-column: auto;
+    justify-self: stretch;
+    width: auto;
+  }
+
+  .travel__buttons--group > :last-child:nth-child(3n + 1) {
+    grid-column: 2;
+  }
+}
+
+/* The activity's sheet: who's acting, the cost, the roll with its modifiers, what it gives, the outcome. */
+.activity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.activity__who,
+.activity__roll,
+.activity__yield {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.activity__chips,
+.activity__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.activity__line,
+.activity__label {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.activity__label {
+  font-weight: var(--weight-heading);
+}
+
+.activity__modifiers {
+  margin: 0;
+  padding-left: var(--space-4);
+  color: var(--muted);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+.travel__lost-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+}
+
+.travel__lost-line,
+.travel__rolled {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+.travel__roll-label {
+  font-size: var(--text-16);
+}
+
+.travel__roll-input {
+  min-height: var(--tap);
+  width: 6ch;
+  padding: 0 var(--space-2);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-16);
+}
+
+.travel__roll-input--wide {
+  width: 100%;
+  max-width: 24rem;
+}
+
+.travel__pick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.travel__pick .label {
+  margin: 0;
+}
+
+.travel__preview,
+.travel__lines {
+  margin: 0;
+  padding-inline-start: var(--space-4);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.travel__lines {
+  padding: 0;
+  list-style: none;
+}
+
+.travel__lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.travel__lines-total {
+  font-weight: var(--weight-heading);
+}
+
+.travel__amount {
+  font-variant-numeric: tabular-nums;
+}

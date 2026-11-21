@@ -1,0 +1,4 @@
+#!/bin/sh
+# Runs on every commit message (installed with: npm run hooks:install). See docs/testing.md, "Git hooks".
+# The real-names scan, on the message itself: real names never reach the repo's history either.
+node scripts/check-names.mjs --message "$1" || exit 1

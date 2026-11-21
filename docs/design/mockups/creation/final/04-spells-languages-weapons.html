@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Final draft 4: Spells, Languages, Weapon skills (2026-11-07)</title>
+<link rel="stylesheet" href="final.css">
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+const given = (name, sub) => `<div class="card picked"><div class="kv"><div class="text">${name}<small>${sub}</small></div><span class="meta">Given</span></div></div>`;
+
+const spells = phone(`
+  ${bar('Magic')}
+  <div class="inner">
+    <p class="meta">Step 6 of 9</p>
+    <p class="do">The spells your character starts with. Tap a name to read it.</p>
+    ${helpBtn()}
+    <h2>From your class</h2>
+    <p class="meta" style="margin:0 0 var(--space-2)">Reed Witches start with two, always theirs.</p>
+    ${given('Marsh Light', 'A floating glow that follows you. Rank 1')}
+    ${given('Whispering Reeds', 'Hear what was said here an hour ago. Rank 1')}
+    <h2>From your kindred</h2>
+    ${roll(6, 'Roll d6 for your knack, then tap the row.')}
+    ${pick('Bird Friend', 'Talks with birds', 'pick')}
+    ${pick('Lock Singer', 'Sings locks open', 'pick')}
+    ${pick('Root Friend', 'Questions roots', 'pick')}
+    <p class="meta">3 more rows follow.</p>
+    ${foot('Knack still to roll')}
+  </div>`, 'Magic: what the class gives is marked Given (no button); the kindred\'s knack is a Roll row with pick rows. Several groups on one step, so Pick does not move on; Next confirms (P29).');
+
+const languages = phone(`
+  ${bar('Languages')}
+  <div class="inner">
+    <p class="meta">Step 7 of 9</p>
+    <p class="do">The tongues your character speaks. Wits 13 gives you one more.</p>
+    ${helpBtn()}
+    <h2>You speak</h2>
+    ${given('Marsh-common', 'The common tongue')}
+    ${given('Stone-speech', 'From your kindred')}
+    <h2>Pick 1 more</h2>
+    ${roll(6, 'Roll d6, or choose.')}
+    ${pick('Heron-tongue', '1. The courtly tongue of the heron lords', 'pick')}
+    ${pick('Causeway cant', '2 to 3. The common speech of the folk', 'pick')}
+    ${closedPick('Old Marsh', '4. Not open to Stone kin')}
+    ${pick('Deepwood', '5. The shared tongue of the deep woods', 'pick')}
+    ${pick('Purr', '6. The purring speech of the cat-folk', 'pick')}
+    <h2>Or choose one of these</h2>
+    ${pick('Eel-talk', 'Coded talk of the marsh\'s thieves', 'pick')}
+    ${pick('Croak', 'The croak-speech of the toad folk', 'pick', '<small>' + warn('Needs the GM\'s special approval') + '</small>')}
+    ${foot('0 of 1 picked')}
+  </div>`, 'Languages (P30, P31): two groups under one ask: the die\'s rows numbered, with the left-out number as a closed row that says why (never silently missing); then "Or choose one of these". A row needing the GM\'s approval carries the sign on its own line.');
+
+const weapons = phone(`
+  ${bar('Weapon skills')}
+  <div class="inner">
+    <p class="meta">Step 8 of 9</p>
+    <p class="do">The weapons your character has trained with. Others are clumsier in your hands.</p>
+    ${helpBtn()}
+    <h2>Pick 2</h2>
+    ${pick('Spear', 'Close or thrown. Also the long spear', 'picked')}
+    ${pick('Sling', 'Range. Stones are free', 'pick')}
+    ${pick('Staff', 'Close. Two hands', 'pick')}
+    ${pick('Knife', 'Close or thrown. Also the silver knife', 'pick')}
+    ${closedPick('Long sword', 'Not open to Reed Witch')}
+    ${foot('1 of 2 picked')}
+  </div>`, 'Weapon skills: a counted pick ("Pick 2", "1 of 2 picked"); a third tap explains in a sheet rather than greying the rows. A skill covers its variants in words ("Also the silver knife": one skill by baseId).');
+
+const langTablet = tablet(`
+  ${bar('Languages')}
+  <div class="cols">
+    <div>
+      <p class="meta">Step 7 of 9</p>
+      <p class="do">The tongues your character speaks. Wits 13 gives you one more.</p>
+      ${helpBtn()}
+      <h2>Pick 1 more</h2>
+      ${roll(6, 'Roll d6, or choose.')}
+      ${pick('Heron-tongue', '1. The courtly tongue of the heron lords', 'pick')}
+      ${pick('Causeway cant', '2 to 3. The common speech of the folk. Open on the right', 'pick').replace('class="card"', 'class="card open"')}
+      ${closedPick('Old Marsh', '4. Not open to Stone kin')}
+      ${pick('Deepwood', '5. The shared tongue of the deep woods', 'pick')}
+      ${pick('Purr', '6. The purring speech of the cat-folk', 'pick')}
+      <h2>Or choose one of these</h2>
+      ${pick('Eel-talk', 'Coded talk of the marsh\'s thieves', 'pick')}
+    </div>
+    <div class="panel">
+      <h2>Causeway cant</h2>
+      <p class="meta">River Rules, p. 58</p>
+      <p>The common speech of the folk, spoken on every causeway and in most taverns. Written rarely; the few who write it use the common letters.</p>
+      <div class="list">
+        ${kvRow('Spoken by', 'Most folk of the marsh')}
+        ${kvRow('Written', 'Rarely')}
+      </div>
+      <span class="btn accent wide" style="margin-top:var(--space-3)">Pick Causeway cant</span>
+    </div>
+  </div>
+  ${foot('0 of 1 picked', true, 'plain').replace('class="foot"', 'class="foot" style="margin:0;padding:var(--space-3)"')}`, 'Languages on a tablet: the open entry on the right; "You speak" sits under it when nothing is open (mockup 16\'s rule). Nothing picked, so the entry\'s Pick carries the accent.');
+
+mount(`
+  <h1>Final draft 4: Magic, Languages, Weapon skills</h1>
+  <p class="note">Steps with several asks or several picks: Pick stays on the step and Next confirms (P29, ct-1). What the kindred or class gives is marked Given with no button. Languages' two groups (P30): the die's rows numbered, the left-out number shown closed with its reason, then "Or choose one of these"; a row needing approval carries the warning sign on its own line (P31). One count per step, in the footer (P26a). No middle dot.</p>
+  <h1>Phone</h1>
+  <div class="wall">${spells}${languages}${weapons}</div>
+  <h1>Tablet</h1>
+  ${langTablet}
+  <p class="note">Self-review: targets 44 px with 8 px between; nothing under 14 px; closed rows show the sign and why, never grey; Given rows are marked by the wash and the word; one accent per screen; one count per step; 375 px checked with the longest row. Not checked: a class with no spells (the Magic step is skipped, follow-up E); a kindred whose knack is chosen, not rolled (no Roll row, the same pick rows); more than nine extra languages (the "Or choose" group folds after six with "N more").</p>
+`);
+</script>
+</body>
+</html>

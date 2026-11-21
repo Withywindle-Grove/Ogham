@@ -1,0 +1,30 @@
+/* Give to a player… (page 13 of the December mockups, frames G2, G2b and G5). Tokens only. */
+
+/* The player who has the character now: a line with the tick, never a row (frame G2b). */
+.give__has {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap);
+  margin: 0 0 var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+.give__has > span {
+  min-inline-size: 0;
+}
+
+/* The players as option rows; the sheet scrolls when there are many (frame G5, twelve). */
+.give__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+/* No players: the Players page's own words, and a plain "Invite a player". */
+.give__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}

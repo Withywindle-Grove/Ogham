@@ -1,0 +1,623 @@
+/* The full character sheet: small-caps section labels, dotted row rules, few boxes. */
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 760px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Beside the Player screen on a landscape tablet: fills its pane. */
+.sheet--beside {
+  max-width: none;
+}
+
+.sheet__pane-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-sheet-title);
+}
+
+.sheet__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+}
+
+.sheet__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.sheet__heading-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sheet__name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-name);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.sheet__line {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* Who they are (plan m5b-players-screens-standard D): "Wren, Lantern Warden 1, Human, Lawful", the pack's words; the
+   kindred, the calling and the alignment are Tap values. */
+.sheet__identity {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  overflow-wrap: anywhere;
+}
+
+/* The foot (D): the status line at the left, Back and Edit (plain) at the right; as creation's step foot. */
+.sheet__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: var(--line-hair) solid var(--rule);
+}
+
+.sheet__foot-status {
+  flex: 1 1 160px;
+  margin: 0;
+  min-inline-size: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.sheet__foot-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-inline-start: auto;
+}
+
+.sheet__notice {
+  margin: 0;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.sheet__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--pad);
+  border-top: 3px double var(--divider);
+}
+
+.sheet__label {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-label);
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+/* A name beside a section's heading, in the heading's own style, that opens its entry (the Patron section, Francis
+   2026-11-12): no underline; a small ⓘ after the name says it opens, by shape, never colour alone (Francis chose this,
+   2026-11-12); a 44 px tap area. */
+.sheet__label-tap {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-variant: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  text-align: start;
+  gap: var(--space-1);
+  text-decoration-line: none;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+
+/* The Patron section (Francis, 2026-11-12): the book's layout as the pack carries it. Each field a paragraph opening
+   with a bold lead-in; the alternative spells and the marks under small bold sub-headings, the marks a bulleted list
+   whose items open with their tier in bold. */
+.sheet__patron {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sheet__patron p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.sheet__patron-head {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-16);
+  font-weight: 700;
+}
+
+.sheet__patron-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-4);
+}
+
+/* The class form switch (eq-8): a label, the forms as chips (the current one pressed), the form's note under them. */
+.sheet__forms {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sheet__forms-label {
+  font-size: var(--text-label);
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.sheet__forms-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* A long form name wraps inside its chip rather than pushing the block sideways (375 px). */
+.sheet__forms-chips .chip {
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+}
+
+.sheet__forms-note {
+  margin: 0;
+  font-size: var(--text-meta);
+  color: var(--muted);
+}
+
+.sheet__rows {
+  margin: 0;
+}
+
+.sheet__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pad);
+  min-height: var(--tap);
+  align-items: center;
+  border-bottom: 1px dotted var(--row-rule);
+}
+
+.sheet__row dt {
+  color: var(--muted);
+}
+
+.sheet__row dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.sheet__text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.sheet__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+}
+
+.sheet__fixed {
+  margin: 0;
+  color: var(--muted);
+}
+
+.sheet__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+}
+
+/* The GM editing a player's character: a quiet note and an optional reason. */
+.sheet__ruling {
+  padding: var(--pad) var(--space-4);
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+}
+
+.sheet__ruling-note {
+  margin: 0;
+}
+
+/* The order (sr-7, sheet plan order 4): two columns once the sheet has 600 px of room, the play figures left (Combat,
+   Saves, Movement, Pack load, Skills) and who they are right (Abilities, Traits, Magic, Identity, Advancement); one
+   column below that, left before right. Values sit with their labels (label above value), never pushed to the far
+   edge. The room is the sheet's own, so beside the Player screen it follows the pane, not the window. */
+.sheet__layout {
+  container: sheet / inline-size;
+}
+
+.sheet__columns,
+.sheet__column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+/* The full sheet revised (plan m5b-sheet-revised A): the left column (who and how hurt) narrow, the right the rest. */
+@container sheet (min-width: 37.5rem) {
+  .sheet__columns--split {
+    display: grid;
+    grid-template-columns: minmax(15rem, 18.75rem) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-5);
+  }
+}
+
+/* One column (a phone): the sections sit closer, so the folded lines read as one list. */
+@container sheet (max-width: 37.49rem) {
+  .sheet__columns,
+  .sheet__column {
+    gap: var(--space-3);
+  }
+}
+
+.sheet__section--folded {
+  padding-top: var(--space-1);
+}
+
+.sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.sheet__cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.sheet__cell dt {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* A label with its ⓘ (ct3-3): the button sits on the label's line, its full 44 px target kept. */
+.sheet__cell dt:has(.info-button) {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.sheet__cell dd {
+  margin: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.sheet__abilities {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+/* An ability tile is tappable (what it does, its numbers): the control border marks it. */
+.sheet__ability {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--tap);
+  padding: var(--space-2);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+/* The race and class chosen at creation, at the top of the sheet. */
+.sheet__kind {
+  /* The kindred and the calling, each a Tap value (ct3-11), 8 px apart, wrapping on a phone. */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+}
+
+/* An ability's modifiers in its popup, one plain line each (ruled 2026-10-26). */
+.sheet__lines {
+  margin: 0;
+  padding-left: var(--space-4);
+  line-height: 1.5;
+}
+
+/* Advancement (sr-5): the XP line, a bar to the next level with its words under it, then the bonus and title. */
+.advancement__xp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-block-end: var(--space-3);
+}
+
+.advancement__line {
+  margin: 0;
+  font-weight: 700;
+}
+
+.advancement__bar {
+  display: block;
+  inline-size: 100%;
+  block-size: var(--space-2);
+  border-radius: var(--radius);
+  background: var(--bar-track);
+  overflow: hidden;
+}
+
+.advancement__fill {
+  display: block;
+  block-size: 100%;
+  border-radius: var(--radius);
+  background: var(--ink);
+}
+
+.advancement__next,
+.advancement__reason {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* The bonus's reason (Design, 2026-11-05): a quiet caption on its own line under the bonus, no separator dot. */
+.advancement__reason {
+  display: block;
+  margin-block-start: var(--space-1);
+  font-weight: 400;
+}
+
+/* Skills in two groups (sr-2): everyone's, then the class's own, each with a quiet title. */
+.sheet__skill-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sheet__skill-group + .sheet__skill-group {
+  margin-block-start: var(--space-3);
+}
+
+.sheet__group-title {
+  margin: 0;
+  font-size: var(--text-14);
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* "2 more ›" under a folded group, and the movement figures folded under Speed (sr-1, sr-2). */
+.sheet__fold {
+  align-self: flex-start;
+}
+
+
+/* The left column (A1): the head, the HP box, AC and Attack, the hint; it stays in view on a tablet. */
+.sheet__vitals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.sheet__name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-24);
+  overflow-wrap: anywhere;
+}
+
+/* Movement's two cards side by side (the speeds, the load), one above the other when there's no room. */
+.sheet__pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-3);
+}
+
+.sheet__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+}
+
+.sheet__card--tap {
+  min-block-size: var(--tap);
+  border: var(--line-control) solid var(--control);
+  cursor: pointer;
+}
+
+.sheet__card-figure {
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+}
+
+/* Languages as boxes (A2): 44 px, 8 px apart, each the tap to the pack's text. */
+.sheet__boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sheet__box {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap);
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.sheet__box--still {
+  border-color: var(--rule);
+  cursor: default;
+}
+
+/* Details and backstory, look A: muted labels in a column, Garamond values beside; the story with a drop capital. */
+.sheet__ledger {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+}
+
+.sheet__ledger-row {
+  display: contents;
+}
+
+.sheet__ledger dt {
+  padding-block-start: var(--space-1);
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.sheet__ledger dd {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  overflow-wrap: anywhere;
+}
+
+@container sheet (max-width: 24rem) {
+  .sheet__ledger {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sheet__ledger dd {
+    margin-block-end: var(--space-2);
+  }
+}
+
+.sheet__story {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.sheet__story::first-letter {
+  float: inline-start;
+  padding-inline-end: var(--space-2);
+  font-size: var(--text-48);
+  line-height: 0.8;
+}
+
+/* The sheet changes waiting for the GM (B6), at the top: the sign, the words, Take back. */
+.sheet__changes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sheet__change {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-control) solid var(--warning);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.sheet__change-text {
+  flex: 1 1 12rem;
+  margin: 0;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Notes (C): the button and its line; the sheet's notes newest first. */
+.sheet__notes-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.sheet__notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sheet__note {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+/* Edit (B5): one screen of the sheet's parts, the foot last. */
+.sheet__edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sheet__kv {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+}

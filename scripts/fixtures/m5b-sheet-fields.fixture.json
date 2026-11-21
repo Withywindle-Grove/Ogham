@@ -1,0 +1,48 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-bramble-moor",
+    "name": "Bramble moor",
+    "shortName": "Bramble moor",
+    "version": "0.1",
+    "kind": "setting",
+    "author": "Invented for the app's tests",
+    "description": "An invented setting whose printed sheet lists its fields (sheetFields, sr-10; the sheet plan, build order 6), with two printed fields that have no home on purpose."
+  },
+  "options": [
+    {
+      "id": "moor-lanterns",
+      "name": "Lanterns need wicks",
+      "default": "off",
+      "changeLater": "allow",
+      "choices": [{ "id": "off", "name": "No" }, { "id": "on", "name": "Yes" }],
+      "notes": "A lantern burns out after a night unless a wick is trimmed."
+    }
+  ],
+  "fieldTemplates": [
+    {
+      "id": "bramble-sheet",
+      "name": "Bramble sheet",
+      "appliesTo": "pc",
+      "fields": [
+        { "key": "GRIT", "label": "GRIT", "type": "number", "group": "Abilities", "showOnCard": true },
+        { "key": "WIT", "label": "WIT", "type": "number", "group": "Abilities", "showOnCard": true },
+        { "key": "hedgeOath", "label": "Hedge oath", "type": "text", "group": "Identity" }
+      ]
+    }
+  ],
+  "sheetFields": [
+    { "name": "Name", "home": "name" },
+    { "name": "Calling", "home": "class" },
+    { "name": "Grit", "home": "GRIT" },
+    { "name": "Wit", "home": "WIT" },
+    { "name": "Hedge oath", "home": "hedgeOath" },
+    { "name": "Thorn guard", "home": "ac" },
+    { "name": "Satchel", "home": "pack" },
+    { "name": "Wick hours", "home": "pack", "option": "moor-lanterns=on" },
+    { "name": "Thistle marks" },
+    { "name": "Bramble debt", "home": "brambleDebt" },
+    { "name": "Wick tally", "home": "notes", "option": ["moor-lanterns=always"] }
+  ]
+}

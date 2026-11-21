@@ -1,0 +1,294 @@
+/* The map card and the map pop-up (dec-7 piece 5a; mc-43, mc-43a, mc-44, mc-44a; mockup december/01, frames 2 to 6,
+   M1 to M6, 14 and 14c). The picture is the pack's own: nothing here draws on it, tints it or crops it. */
+
+/* The card: a quiet card holding the picture alone, then one row of tools. */
+.map-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  min-inline-size: 0;
+  container-type: inline-size;
+}
+
+.map-card__frame-wrap {
+  position: relative;
+}
+
+/* The frame the picture sits in: the picture moved and scaled as a whole inside it, never past its edges. */
+.map-picture {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  padding: 0;
+  border: var(--line-control) solid var(--control);
+  border-radius: 0;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* The card's frame: the picture's own shape across the card, held to 420 px tall (a tall, narrow map is centred in it,
+   M2). Fitted, a finger's drag up or down scrolls the page (there's nothing to move); zoomed, it moves the map. */
+.map-picture--card {
+  inline-size: 100%;
+  max-block-size: 420px;
+  cursor: pointer;
+}
+
+.map-picture--card.map-picture--fitted {
+  touch-action: pan-y;
+}
+
+/* 14c: under the pointer the edge turns to ink; pressed, it takes the accent and thickens. A change of weight as well
+   as of colour. */
+@media (hover: hover) {
+  .map-picture--card:hover {
+    border-color: var(--ink);
+  }
+}
+
+.map-picture--card:active,
+.map-picture--card[data-pressed] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 var(--line-hair) var(--accent);
+}
+
+.map-picture--card:focus-visible {
+  outline: var(--line-selected) solid var(--outline);
+  outline-offset: var(--line-selected);
+}
+
+.map-picture__img {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  max-inline-size: none;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+/* Until the picture has come, the still block shows in its place. */
+.map-picture__img:not([data-ready]) {
+  visibility: hidden;
+}
+
+/* The row under the card's picture: the title at the left (scaled to fit, cut short with an ellipsis, never shorter
+   than its first two words), the tools at the right (mc-44a). */
+.map-tools {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+/* Where the title doesn't fit beside the tools (MapTools says): a line of its own above them, whole, wrapping between
+   words; the tools stay at the right of their own row (the lead, 2026-11-15). */
+.map-tools--title-above {
+  flex-wrap: wrap;
+}
+
+.map-tools--title-above > .map-tools__title {
+  flex: 1 0 100%;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: break-word;
+}
+
+/* The two copies MapTools measures (the whole title, its first two words): each at its own width on one line, unseen,
+   clipped to nothing so they never widen the card or the page. */
+.map-tools__measure {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 0;
+  display: flex;
+  inline-size: 0;
+  block-size: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.map-tools__measure > .map-tools__title {
+  flex: none;
+  overflow: visible;
+}
+
+.map-tools__title {
+  flex: 1;
+  min-inline-size: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-tools__title--long {
+  font-size: var(--text-16);
+}
+
+/* A narrow card (a phone, a narrow column) has the title a step smaller, as the mockup's narrow card does. */
+@container (max-width: 420px) {
+  .map-tools__title {
+    font-size: var(--text-16);
+  }
+}
+
+.map-tools__buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+  flex: none;
+}
+
+/* One height in a row (p2p-16, ruled 2026-11-18; page 23, frame LA1): every tool in the row stands 44 px high, the
+   magnifiers and whatever the caller hands in (the eye). */
+.map-tools__buttons > * {
+  min-block-size: var(--tap);
+  block-size: var(--tap);
+}
+
+/* A square tool button: 44 px, its icon only. */
+.map-tool {
+  inline-size: var(--tap);
+  min-inline-size: var(--tap);
+  min-height: var(--tap);
+  block-size: var(--tap);
+  padding: 0;
+}
+
+/* The loading and failed frames (5 and 6): centred in the frame, plain words. Loading is a still block, never a
+   pulse: the picture's wait is short and the page is calm. */
+.map-wait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  text-align: center;
+}
+
+.map-card__frame-wrap > .map-wait,
+.map-popup__body > .map-wait {
+  position: absolute;
+  inset: 0;
+}
+
+.map-popup__body > .map-wait:only-child {
+  position: static;
+  flex: 1;
+  border: var(--line-control) solid var(--control);
+  background: var(--surface);
+}
+
+.map-wait > .button-secondary {
+  align-self: center;
+}
+
+.map-wait__block {
+  display: block;
+  inline-size: 60%;
+  block-size: 50%;
+  min-block-size: var(--space-6);
+  border-radius: var(--radius);
+  background: var(--neutral-3);
+}
+
+.map-wait__words {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.map-wait__line {
+  margin: 0;
+}
+
+.map-card__failed {
+  border: var(--line-control) solid var(--control);
+  background: var(--surface);
+}
+
+/* The pop-up: the picture fills what the head and the foot leave. */
+.map-popup__body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-block-size: 0;
+}
+
+.map-popup__body > .map-picture {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* The foot: a quiet line at the left, then the figure, the two magnifiers and Fit (mc-43a: the figure left of them). */
+.map-popup__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.map-popup__say {
+  flex: 1;
+  min-inline-size: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.map-popup__zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+}
+
+.map-popup__percent {
+  min-inline-size: var(--tap-step);
+  text-align: center;
+  font-size: var(--text-14);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The map wanted (dec-7 5m-2; mockup december/11, frames 2c and 4d): one row, as small as "+ Picture", where the map
+   will stand: the map's title as the pack gives it, the file's name under it, and "+ Map" (or, while the file is sent,
+   one line in its place). */
+.map-wanted {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-3);
+  align-items: center;
+  min-block-size: var(--tap);
+  margin-block-start: var(--space-2);
+}
+
+.map-wanted__title {
+  overflow-wrap: anywhere;
+}
+
+.map-wanted__file {
+  display: block;
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
+
+.map-wanted__sending {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}

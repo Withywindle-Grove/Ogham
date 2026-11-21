@@ -1,0 +1,156 @@
+/* Round character pictures, with the name's first letter when there's no picture. */
+
+.portrait {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--outline);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent);
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+}
+
+.portrait--small {
+  width: 40px;
+  height: 40px;
+  font-size: var(--text-sheet);
+}
+
+.portrait--medium {
+  width: 56px;
+  height: 56px;
+  font-size: var(--text-save);
+}
+
+/* The Player screen's head (dec-13 C2, frame P1; page M1, approved 2026-11-19): the larger portrait, 96 px. */
+.portrait--head {
+  width: 96px;
+  height: 96px;
+  font-size: var(--text-name);
+}
+
+.portrait--large {
+  width: 96px;
+  height: 96px;
+  font-size: var(--text-name);
+}
+
+.portrait__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portrait-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+/* The design's dashed box; the whole box opens the photo chooser. */
+.portrait-picker__add {
+  min-height: var(--tap-step);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.portrait-picker__chosen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pad);
+}
+
+/* One height in a row (p2p-16, 2026-11-18): Change and Remove side by side stand as tall as each other, even when one
+   label wraps at a larger text size (a secondary button's own `align-self: flex-start` would keep it short). */
+.portrait-picker__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--gap);
+}
+
+.portrait-picker__change {
+  display: inline-flex;
+  align-items: center;
+}
+
+.portrait-picker__actions > .button-secondary {
+  align-self: stretch;
+}
+
+/* The picker in the Portrait sheet (tf-A1; Francis on the built picture, 19 Nov: "top buttons and bottom button
+   should be aligned right. Portrait circle should be centered and larger."). There, and only there, the picker is the
+   first thing under the pop-up's title (the edit sheet's Who pop-up opens on a line and the name; creation and the
+   sigil hold it in a page). The circle is centred and takes the next size up from `large` that the tokens give,
+   twice the largest space step (`--space-8`: 128 px); Change and Remove sit at the right, ending where Save portrait
+   ends. With a picture there, the circle and the buttons are one group centred across the pop-up (Francis on the next
+   pictures, 19 Nov: "center both popups with the current layout ... keep relative positions and center"): the card
+   is three columns, the title and ✕ across all three, and the picker and its foot in the middle one, which is as wide
+   as its widest row; so the circle sits in the middle, and the Change / Remove row and Save portrait end at the same
+   right edge, the block's middle the circle's. With no picture (the dashed box), the card is as before. */
+.dialog:has(> .dialog__head + .portrait-picker > .portrait-picker__chosen) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  column-gap: 0;
+  row-gap: var(--gap);
+}
+
+.dialog:has(> .dialog__head + .portrait-picker > .portrait-picker__chosen) > * {
+  grid-column: 2;
+  min-inline-size: 0;
+}
+
+.dialog:has(> .dialog__head + .portrait-picker > .portrait-picker__chosen) > .dialog__head {
+  grid-column: 1 / -1;
+}
+
+.dialog__head + .portrait-picker .portrait-picker__chosen {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.dialog__head + .portrait-picker .portrait-picker__chosen > .portrait {
+  align-self: center;
+  width: calc(2 * var(--space-8));
+  height: calc(2 * var(--space-8));
+}
+
+.dialog__head + .portrait-picker .portrait-picker__actions {
+  justify-content: flex-end;
+}
+
+/* The real file input stays reachable for screen readers and keyboards, but out of sight. */
+.portrait-picker__file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+/* Keyboard focus on the hidden input shows on the visible box or button. */
+.portrait-picker:has(.portrait-picker__file:focus-visible) .portrait-picker__add,
+.portrait-picker:has(.portrait-picker__file:focus-visible) .portrait-picker__change {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The Player screen's avatar is the tap for the portrait sheet (ruled 2026-11-08): the 56 px circle itself. */
+.portrait-tap {
+  flex: none;
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}

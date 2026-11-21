@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Creation: long tables, four ways (2026-11-09)</title>
+<link rel="stylesheet" href="final.css">
+<style>
+  .sheetup { max-height:none; }
+  .wide { width:700px; }
+  .nrow { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) var(--space-3); border-bottom:1px dotted var(--rule); }
+  .nrow .n { width:2.4em; color:var(--muted); font-variant-numeric:tabular-nums; text-align:right; }
+  .nrow .t { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:18px; }
+  .nrow.on { background:var(--wash); border-left:3px solid var(--accent); }
+  .nrow .btn { flex:none; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; column-gap:var(--space-5); }
+  .jump { display:flex; gap:var(--space-2); flex-wrap:wrap; margin:var(--space-3) 0; }
+  .jump .btn { min-width:64px; }
+  .fold { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); min-height:52px; padding:var(--space-2) 0; border-bottom:1px solid var(--rule); }
+  .fold b { font-size:16px; }
+  .fold .pre { color:var(--muted); font-size:14px; }
+  .numpad { display:flex; gap:var(--space-2); align-items:center; margin:var(--space-3) 0; }
+  .numpad .field { width:120px; text-align:center; font-size:24px; font-family:"EB Garamond", Georgia, serif; }
+  .hit { border:1.5px solid var(--accent); background:var(--wash); border-radius:4px; padding:var(--space-3); margin-top:var(--space-2); }
+  .hit .n { color:var(--muted); font-size:14px; }
+  .hit .t { font-family:"EB Garamond", Georgia, serif; font-size:20px; }
+  .dim2 { color:var(--muted); font-size:14px; margin-top:var(--space-2); }
+</style>
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+const TX = ['A thin gold chain with nothing on it','A woven prayer rug no bigger than a hand','A mouthful of sulphur sweets in a paper twist','A steel tongue-scraper engraved with a motto','A scrap of a banner bearing half a lion','A hollow silver egg that is warm to hold','A lead soldier with its face worn off','A key to a door in a town that burned','A jar of river mud from a holy ford','A comb of black horn missing three teeth','A moth pinned to a card, wings still bright','A pebble that is always slightly damp'];
+const row = (n, t, on=false) => `<div class="nrow${on?' on':''}"><span class="n">${n}</span><span class="t">${t}</span>${on?'<span class="btn small">Picked ✓</span>':''}</div>`;
+const rows = (from, count, pick) => Array.from({length:count},(_,i)=>row(from+i, TX[(from+i)%TX.length], from+i===pick)).join('');
+
+const head = (title, prompt) => `<div class="head"><span class="title">${title}</span><span class="btn sq" style="border:0;background:transparent">${I.close}</span></div>${roll(100, prompt)}`;
+
+// A: two columns, no groups, wide sheet, the whole table scrolls
+const A = `<div class="tablet wide"><div class="inner">${head('Trinkets', 'Roll d100, then tap the row.')}
+  <div class="grid2"><div>${rows(1,12,7)}</div><div>${rows(13,12,-1)}</div></div>
+  <div class="dim2">… 25–100 below. The row is the tap; a tapped row says Picked. One long scroll, no folds.</div>
+</div></div>`;
+
+// B: jump bar by 25s + flat rows
+const B = `<div class="tablet wide"><div class="inner">${head('Trinkets', 'Roll d100, tap a range, then the row.')}
+  <div class="jump"><span class="btn" style="background:var(--wash);border-color:var(--accent)">1–25</span><span class="btn">26–50</span><span class="btn">51–75</span><span class="btn">76–100</span></div>
+  <div class="grid2"><div>${rows(1,7,7)}</div><div>${rows(8,7,-1)}</div></div>
+  <div class="dim2">The bar scrolls the list to that range (it does not hide the rest); the bar stays at the top while you scroll.</div>
+</div></div>`;
+
+// C: type the roll
+const C = `<div class="tablet wide"><div class="inner">${head('Trinkets', 'Roll d100 and type it, or browse.')}
+  <div class="numpad"><span class="field">47</span><span class="btn accent">Show 47</span><span class="btn">Browse all</span></div>
+  <div class="hit"><div class="n">47</div><div class="t">${TX[10]}</div><div class="kv" style="margin-top:var(--space-2)"><span class="meta">Tap to take it, or type another.</span><span class="btn">Pick</span></div></div>
+  <div class="dim2">Browse all opens B. Fastest for a rolled result; the table stays one tap away for those who want to read it.</div>
+</div></div>`;
+
+// D: folds of 25 with previews (the current approach, improved)
+const D = `<div class="tablet wide"><div class="inner">${head('Trinkets', 'Roll d100, open its range, then tap the row.')}
+  <div class="fold"><div><b>1–25</b><div class="pre">${TX[0]}, ${TX[1]}, ${TX[2]}…</div></div><span class="btn sq">+</span></div>
+  <div class="fold"><div><b>26–50</b><div class="pre">${TX[3]}, ${TX[4]}…</div></div><span class="btn sq">−</span></div>
+  <div class="grid2" style="margin:var(--space-2) 0">${'<div>'+rows(26,6,-1)+'</div><div>'+rows(32,6,-1)+'</div>'}</div>
+  <div class="fold"><div><b>51–75</b><div class="pre">${TX[6]}, ${TX[7]}, ${TX[8]}…</div></div><span class="btn sq">+</span></div>
+  <div class="fold"><div><b>76–100</b><div class="pre">${T[9]}, ${TX[10]}…</div></div><span class="btn sq">+</span></div>
+  <div class="dim2">Each fold row shows the first three entries as a preview, so a closed table is not blank; the open range lists in two columns.</div>
+</div></div>`;
+
+mount(`
+  <h1>Creation: long tables, four ways</h1>
+  <p class="note">Francis, 2026-11-09 (retest 4): the groups of 25 "look sparse"; the sheet "can be wider". Four ways to show a d100 describing table on a tablet, all at the full width (700 px here for 1024), all with the Roll row first (T4 and S1 apply regardless). Invented table text.</p>
+  <h1>A: two columns, one scroll</h1>${A}
+  <h1>B: a range bar that jumps</h1>${B}
+  <h1>C: type the roll</h1>${C}
+  <h1>D: folds of 25 with previews</h1>${D}
+  <p class="note">Phone: A and D stack to one column; B's bar wraps to two lines; C is the same. My lean: <b>B</b> for the sheet (the whole table is readable, the roll is two taps, nothing hides), with <b>C's typed roll</b> as an extra field at the top of B for anyone who rolled already. D keeps the fold pattern but a closed d100 stays mostly hidden. A is honest but 100 rows is a long scroll on a phone. Self-review: 44 px rows, 8 px between; the picked row has the wash and the band and the word; the prompt is the pack's; the bar is a segmented control, not tabs (no content hides). Not checked: a d1000 or a table of 200+ rows (B's bar would need a scroller); the typed roll on tables with ranges per row (1–3, 4–6): the hit shows the row the number falls in.</p>
+`);
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spell book</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;position:relative;overflow:hidden">
+<div style="padding:12px 18px 0;display:flex;align-items:center;justify-content:space-between">
+<a href="PlayerRules.dc.html" style="min-height:44px;display:inline-flex;align-items:center;color:{{c.mut}};text-decoration:none;font-size:16px">‹ Player</a>
+<span style="font-size:14px;color:{{c.mut}}">6 spells known</span>
+</div>
+<div style="padding:0 18px 8px;text-align:center">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:34px;font-weight:600;line-height:1.05">Wren’s Spell Book</div>
+</div>
+
+<div style="padding:4px 18px 10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+<sc-for list="{{slotBoxes}}" as="sb" hint-placeholder-count="2">
+<div style="border:1px solid {{c.rule}};border-radius:4px;padding:8px 10px;display:flex;flex-direction:column;gap:4px">
+<span style="font-size:14px;color:{{c.mut}}">{{sb.label}}</span>
+<span aria-label="{{sb.aria}}" style="display:flex;gap:6px"><sc-for list="{{sb.dots}}" as="dt" hint-placeholder-count="2"><span style="width:22px;height:22px;border-radius:50%;border:1.5px solid {{c.acc}};background:{{dt.bg}}"></span></sc-for></span>
+<span style="font-size:14px;color:{{sb.color}}">{{sb.state}}</span>
+</div>
+</sc-for>
+</div>
+
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+<div style="border-top:3px double {{c.rule}};padding:12px 0 2px;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">{{g.name}}</div>
+<sc-for list="{{g.rows}}" as="r" hint-placeholder-count="3">
+<div style="{{r.row}}">
+<button onClick="{{r.open}}" style="flex:1;min-width:0;min-height:58px;background:none;border:none;padding:0;color:inherit;font-family:inherit;text-align:left;display:flex;flex-direction:column;justify-content:center;cursor:pointer">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">{{r.name}}</span>
+<span style="font-size:14px;color:{{c.mut}}">{{r.sub}}</span>
+</button>
+<button onClick="{{r.toggle}}" aria-pressed="{{r.on}}" aria-label="{{r.aria}}" style="{{r.btn}}">{{r.btnText}}</button>
+</div>
+</sc-for>
+</sc-for>
+<div style="border-top:3px double {{c.rule}};padding:12px 0 2px;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">Scrolls carried</div>
+<div style="display:flex;align-items:center;gap:10px;min-height:58px;border-bottom:1px dotted {{c.rule}}"><span style="flex:1;display:flex;flex-direction:column"><span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">Scroll of Mist Step</span><span style="font-size:14px;color:{{c.mut}}">Arcane · {{scrollState}}</span></span><button onClick="{{useScroll}}" style="min-width:92px;min-height:44px;padding:0 10px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:16px;font-weight:600;cursor:pointer">{{scrollText}}</button></div>
+<div style="display:flex;align-items:center;gap:10px;min-height:58px;border-bottom:1px dotted {{c.rule}};opacity:.55"><span style="flex:1;display:flex;flex-direction:column"><span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">Scroll of Mend</span><span style="font-size:14px;color:{{c.mut}}">Divine · not for your class</span></span></div>
+<div style="font-size:14px;color:{{c.mut}};line-height:1.45;padding:12px 0 16px">Spell book rule: <b>standard</b> (campaign option). Your book holds the spells you can memorize. With the advanced rule you could copy more, with an INT-based chance.</div>
+</div>
+
+<div style="padding:10px 18px 18px;border-top:3px double {{c.rule}}">
+<button onClick="{{openAdd}}" style="{{addStyle}}">Add a spell from the Warden list</button>
+</div>
+
+<sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;flex-direction:column;justify-content:flex-end">
+<div role="dialog" aria-label="{{sheet.title}}" style="background:{{c.sheet}};color:{{c.ink}};border-top:1.5px solid {{c.line}};border-radius:20px 20px 0 0;padding:18px 18px 26px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600">{{sheet.title}}</span><button onClick="{{closeSheet}}" style="min-height:44px;padding:0 6px;background:none;border:none;color:{{c.mut}};font-family:inherit;font-size:16px;cursor:pointer">Close</button></div>
+<div style="font-size:15px;color:{{c.mut}}">{{sheet.sub}}</div>
+<sc-for list="{{sheet.lines}}" as="ln" hint-placeholder-count="3"><div style="font-size:17px;line-height:1.45">{{ln.t}}</div></sc-for>
+<div style="font-size:14px;color:{{c.mut}};border-top:1px solid {{c.rule}};padding-top:8px">From your setting: River Rules (private) · spells</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mem: { glimmer: true, dart: true, ward: true }, sheet: null, pressed: null, scroll: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', warn: '#E6BA66', tint: '#4A3A22', sheet: '#1E1A16', onAcc: '#12100D' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', warn: '#7A4A00', tint: '#F3E6CB', sheet: '#FFFDF8', onAcc: '#FBF8F1' };
+    const G = "'EB Garamond',Georgia,serif";
+    const flash = (k) => s.pressed === k ? ';background:' + c.tint : '';
+    const show = (sheet, k) => () => { this.setState({ pressed: k }); setTimeout(() => this.setState({ pressed: null, sheet: sheet }), 180); };
+    const known = [
+      { id: 'glimmer', lvl: 1, name: 'Glimmer', sub: '30′ · 6 + level turns (9 for you)', lines: ['Sheds light in a 15′ circle.', 'Starts your light timer when cast.'] },
+      { id: 'dart', lvl: 1, name: 'Ember Dart', sub: '120′ · instant · 1 dart, 1d6+1', lines: ['Darts never miss.', 'Darts: 1 + 2 per 5 levels.'] },
+      { id: 'still', lvl: 1, name: 'Stillwater', sub: '60′ · 2 turns', lines: ['Calms a pool or stream so it can be crossed.'] },
+      { id: 'reed', lvl: 1, name: 'Reed Whisper', sub: 'Self · 1 turn', lines: ['Hear speech through reeds within 60′.'] },
+      { id: 'ward', lvl: 2, name: 'Ward of Ash', sub: 'Touch · level turns (3 for you)', lines: ['Target ignores the first hit each round.', 'Adds the Warded status when cast.'] },
+      { id: 'mist', lvl: 2, name: 'Mist Step', sub: 'Self · instant', lines: ['Step through fog to a visible spot within 30′.'] }
+    ];
+    const slots = { 1: 2, 2: 1 };
+    const count = (l) => known.filter((k) => k.lvl === l && s.mem[k.id]).length;
+    const slotBoxes = [1, 2].map((l) => {
+      const n = count(l), cap = slots[l];
+      const dots = [];
+      for (let i = 0; i < cap; i++) dots.push({ bg: i < n ? c.acc : 'transparent' });
+      return { label: 'Level ' + l + ' · ' + cap + (cap === 1 ? ' slot' : ' slots'), dots: dots, aria: n + ' of ' + cap + ' filled', state: n === cap ? 'Full' : (cap - n) + ' open', color: n === cap ? c.mut : c.warn };
+    });
+    const row = (k) => {
+      const on = !!s.mem[k.id];
+      const full = count(k.lvl) >= slots[k.lvl];
+      const blocked = !on && full;
+      return {
+        name: k.name, sub: k.sub, on: on,
+        row: 'display:flex;align-items:center;gap:10px;border-bottom:1px dotted ' + c.rule + ';margin:0 -8px;padding:0 8px;border-radius:4px' + flash('r' + k.id),
+        btn: 'min-width:104px;min-height:44px;border-radius:4px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : (blocked ? c.mut : c.ink)) + ';font-family:' + G + ';font-size:17px;font-weight:600;cursor:pointer',
+        btnText: on ? 'Memorized' : (blocked ? 'Slots full' : 'Memorize'),
+        aria: (on ? 'Forget ' : 'Memorize ') + k.name,
+        toggle: () => { if (blocked) return; this.setState({ mem: Object.assign({}, s.mem, { [k.id]: !on }) }); },
+        open: show({ title: k.name, sub: 'Level ' + k.lvl + ' · ' + k.sub, lines: k.lines.map((t) => ({ t: t })) }, 'r' + k.id)
+      };
+    };
+    return {
+      c: c, slotBoxes: slotBoxes,
+      scrollState: s.scroll ? 'used up' : 'one use', scrollText: s.scroll ? 'Undo' : 'Cast from scroll', useScroll: () => this.setState({ scroll: !s.scroll }),
+      groups: [1, 2].map((l) => ({ name: 'Level ' + l, rows: known.filter((k) => k.lvl === l).map(row) })),
+      addStyle: 'width:100%;min-height:50px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:19px;font-weight:600;cursor:pointer' + flash('add'),
+      openAdd: show({ title: 'Add a spell', sub: 'Lantern Warden list · levels 1–2 for you', lines: [{ t: 'Pick from the class list in your setting, or type a spell your GM gave you.' }, { t: 'The GM may need to approve it, depending on your table.' }] }, 'add'),
+      sheetOpen: !!s.sheet, sheet: s.sheet || { title: '', sub: '', lines: [] },
+      closeSheet: () => this.setState({ sheet: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

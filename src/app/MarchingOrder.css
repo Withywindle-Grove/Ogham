@@ -1,0 +1,151 @@
+/* Marching order on Scene (M5 step 8; as circles, S12: page 16 T10, R1): a card of ranks of 1–3 party circles, front
+   to back; hold a rank to move it. Tokens only. */
+.marching {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+}
+
+/* The head wraps only when the heading's longest word, ⓘ and Saved orders can't share one row (the GM's narrow right
+   column at 834 px): then Saved orders goes under the heading, at the right (fix-marching-order-wrap). */
+.marching__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  min-block-size: var(--tap);
+}
+
+/* The card's heading: the book's sub-heading, as "Waiting for you" and "Spots here" (page 16's final pictures). It
+   wraps between words only, never inside one ("Marchi / ng" at 834 px), and takes the row's room up to its one-line
+   width: a zero basis, so only its longest word decides when the head wraps. */
+.marching__title {
+  flex: 1 1 0;
+  max-width: max-content;
+  margin: 0;
+  color: var(--book-subhead);
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-book-subhead);
+  line-height: var(--line-heading);
+  overflow-wrap: break-word;
+}
+
+/* Saved orders (a stacked button with the unrolled scroll since S17, ic-4) sits level with ⓘ, at the row's right; on
+   a row of its own too. */
+.marching__head .button-secondary {
+  align-self: center;
+  margin-inline-start: auto;
+}
+
+/* Keeps the gap before Saved orders; the room left over goes to Saved orders' margin. */
+.marching__spacer {
+  flex: none;
+}
+
+.marching__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+/* The lights lit, over the ranks ("One light lit: Ash's torch, 4 turns."). */
+.marching__say {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+}
+
+/* "↑ Front" and "Rear". */
+.marching__way {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+}
+
+/* A rank is its own box; the list's row adds no rule or page colour of its own here. */
+.marching .sortable {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.marching .sortable__row {
+  border-bottom: 0;
+  background: none;
+}
+
+.marching__rank {
+  display: grid;
+  grid-template-columns: var(--space-5) minmax(0, 1fr);
+  align-items: center;
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.marching__place {
+  color: var(--muted);
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+  text-align: center;
+}
+
+.marching__abreast {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.marching__presets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.marching__preset {
+  inline-size: 100%;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.marching__save {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+}
+
+.marching__save-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* A saved order: its name (tap to march in it), then Delete. */
+.marching__preset-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.marching__preset-row .marching__preset {
+  flex: 1;
+  min-width: 0;
+}

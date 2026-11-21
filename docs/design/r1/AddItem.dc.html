@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add and equip</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:10px 18px 6px;display:flex;align-items:center;justify-content:space-between">
+<a href="PackCoin.dc.html" style="min-height:44px;display:inline-flex;align-items:center;color:{{c.mut}};text-decoration:none">‹ Pack</a>
+<div role="group" aria-label="View" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px">
+<button onClick="{{toAdd}}" aria-pressed="{{isAdd}}" style="{{addTab}}">Add</button>
+<button onClick="{{toEquip}}" aria-pressed="{{isEquip}}" style="{{equipTab}}">Equip</button>
+</div>
+</div>
+
+<sc-if value="{{isAdd}}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 12px;display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600">Add an item</div>
+<label for="q" style="position:absolute;width:1px;height:1px;overflow:hidden">Search items</label>
+<input id="q" value="chain" style="min-height:48px;padding:0 12px;border:1px solid {{c.rule}};border-radius:4px;background:transparent;color:inherit;font-family:inherit;font-size:17px">
+<sc-for list="{{results}}" as="r" hint-placeholder-count="3">
+<button onClick="{{r.pick}}" aria-pressed="{{r.on}}" style="{{r.style}}"><span style="display:flex;flex-direction:column;align-items:flex-start"><span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">{{r.name}}</span><span style="font-size:14px;color:{{c.mut}}">{{r.sub}}</span></span><span style="font-size:15px">{{r.cost}}</span></button>
+</sc-for>
+<button style="min-height:44px;background:none;border:none;color:{{c.acc}};font-family:inherit;font-size:15px;font-weight:700;text-align:left;padding:0">Not listed? Make a one-off item (saved to this campaign)</button>
+
+<div style="border:1px solid {{c.line}};border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:center;gap:10px"><span style="flex:1;font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">{{pick.name}}</span>
+<button aria-label="One fewer" onClick="{{less}}" style="{{S.qty}}">−</button><span style="width:30px;text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">{{qty}}</span><button aria-label="One more" onClick="{{more}}" style="{{S.qty}}">+</button></div>
+<span style="font-size:14px;color:{{c.mut}}">How did Wren get it?</span>
+<div role="group" aria-label="Source" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px"><sc-for list="{{sources}}" as="o" hint-placeholder-count="3"><button onClick="{{o.go}}" aria-pressed="{{o.on}}" style="{{o.style}}">{{o.t}}</button></sc-for></div>
+<span style="font-size:14px;color:{{c.mut}}">Put it</span>
+<div role="group" aria-label="Where" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px"><sc-for list="{{places}}" as="o" hint-placeholder-count="4"><button onClick="{{o.go}}" aria-pressed="{{o.on}}" style="{{o.style}}">{{o.t}}</button></sc-for></div>
+<div style="font-size:14px;color:{{c.mut}}">{{effect}}</div>
+<button onClick="{{addIt}}" style="min-height:52px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;cursor:pointer">{{addText}}</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isEquip}}" hint-placeholder-val="{{ false }}">
+<div style="padding:0 18px 8px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+<sc-for list="{{stats}}" as="st" hint-placeholder-count="3"><div style="border:1px solid {{c.rule}};border-radius:4px;padding:6px;text-align:center"><div style="font-size:13px;color:{{c.mut}}">{{st.k}}</div><div style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600;color:{{st.color}}">{{st.v}}</div></div></sc-for>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 12px">
+<sc-for list="{{slots}}" as="sl" hint-placeholder-count="4">
+<div style="border-top:3px double {{c.rule}};padding:8px 0 4px;font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">{{sl.name}}</div>
+<sc-for list="{{sl.items}}" as="it" hint-placeholder-count="2">
+<div style="display:flex;align-items:center;gap:10px;min-height:56px;border-bottom:1px dotted {{c.rule}}">
+<span style="flex:1;display:flex;flex-direction:column"><span style="font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600">{{it.name}}</span><span style="font-size:13px;color:{{c.mut}}">{{it.sub}}</span></span>
+<button onClick="{{it.toggle}}" role="switch" aria-checked="{{it.on}}" aria-label="{{it.aria}}" style="{{it.sw}}"><span style="{{it.knob}}"></span></button>
+</div>
+</sc-for>
+</sc-for>
+<sc-if value="{{hasWarn}}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="margin-top:10px;padding:10px 12px;border-radius:8px;background:{{c.tint}};display:flex;flex-direction:column;gap:8px">
+<span style="font-size:15px;line-height:1.4">{{warnText}}</span>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px"><button onClick="{{warnOk}}" style="{{S.small}}">{{warnOkText}}</button><button onClick="{{warnCancel}}" style="{{S.small}}">Keep as is</button></div>
+<span style="font-size:13px;color:{{c.mut}}">From your setting: River Rules (private) · equipment</span>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { view: 'add', pick: 'chain', qty: 1, src: 'bought', place: 'pack', added: false, eq: { leather: true, chain: false, shield: true, sword: true, axe: false }, warn: null };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', warn: '#E6BA66', tint: '#4A3A22', surf: '#1C1915', onAcc: '#12100D' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', warn: '#7A4A00', tint: '#F3E6CB', surf: '#F3EEE3', onAcc: '#FBF8F1' };
+    const G = "'EB Garamond',Georgia,serif";
+    const seg = (on) => 'min-height:44px;padding:0 12px;border-radius:4px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : c.ink) + ';font-family:inherit;font-size:14px;font-weight:700;cursor:pointer';
+    const R = [
+      { id: 'chain', name: 'Chainmail', sub: 'Heavy armour · AC 14 · 400 coins', cost: '40 gp', gp: 40 },
+      { id: 'chainlink', name: 'Chain, 10 ft', sub: 'Gear · 100 coins', cost: '30 gp', gp: 30 },
+      { id: 'chaincoif', name: 'Chain coif', sub: 'Gear · 20 coins · made in this campaign', cost: '8 gp', gp: 8 }
+    ];
+    const pick = R.find((r) => r.id === s.pick);
+    const results = R.map((r) => ({ name: r.name, sub: r.sub, cost: r.cost, on: s.pick === r.id,
+      style: 'min-height:62px;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 12px;border-radius:6px;border:1px solid ' + (s.pick === r.id ? c.acc : c.rule) + ';background:' + (s.pick === r.id ? c.tint : 'transparent') + ';color:inherit;font-family:inherit;text-align:left;cursor:pointer',
+      pick: () => this.setState({ pick: r.id, added: false }) }));
+    const sources = [['bought', 'Bought'], ['found', 'Found'], ['given', 'Given']].map((o) => ({ t: o[1], on: s.src === o[0], style: seg(s.src === o[0]), go: () => this.setState({ src: o[0], added: false }) }));
+    const places = [['worn', 'Wear it'], ['hand', 'In hand'], ['pack', 'Backpack'], ['satchel', 'Mossy satchel']].map((o) => ({ t: o[1], on: s.place === o[0], style: seg(s.place === o[0]), go: () => this.setState({ place: o[0], added: false }) }));
+    const cost = pick.gp * s.qty;
+    const effect = (s.src === 'bought' ? cost + ' gp comes out of Wren’s purse (1,540 → ' + (1540 - cost).toLocaleString() + ').' : (s.src === 'found' ? 'No cost. Logged as found.' : 'No cost. Logged as a gift.')) + (s.place === 'worn' && s.pick === 'chain' ? ' You’re already wearing leather; you’ll be asked to swap.' : '');
+    // equip
+    const E = {
+      leather: { slot: 'armour', name: 'Leather armour', sub: 'Light · AC 12' },
+      chain: { slot: 'armour', name: 'Chainmail', sub: 'Heavy · AC 14 · not allowed for your class' },
+      shield: { slot: 'shield', name: 'Shield', sub: '+1 AC' },
+      sword: { slot: 'hand', name: 'Short sword', sub: '1d6 · one-handed' },
+      axe: { slot: 'hand', name: 'Battle axe', sub: '1d8 · two-handed' }
+    };
+    const toggle = (id) => () => {
+      const on = !!s.eq[id];
+      if (on) return this.setState({ eq: Object.assign({}, s.eq, { [id]: false }), warn: null });
+      if (id === 'chain') return this.setState({ warn: { id: id, text: 'Swap leather for chainmail? Your setting says Lantern Wardens wear light armour only. The GM can allow it.', ok: 'Wear it anyway' } });
+      if (id === 'axe' && s.eq.shield) return this.setState({ warn: { id: id, text: 'The battle axe needs both hands. The shield goes to your backpack and your short sword goes to your belt.', ok: 'Do it' } });
+      const eq = Object.assign({}, s.eq, { [id]: true });
+      if (id === 'leather') eq.chain = false;
+      if (id === 'sword') eq.axe = false;
+      if (id === 'shield') eq.axe = false;
+      this.setState({ eq: eq, warn: null });
+    };
+    const warnOk = () => {
+      const w = s.warn; const eq = Object.assign({}, s.eq, { [w.id]: true });
+      if (w.id === 'chain') eq.leather = false;
+      if (w.id === 'axe') { eq.shield = false; eq.sword = false; }
+      this.setState({ eq: eq, warn: null });
+    };
+    const ac = (s.eq.chain ? 14 : (s.eq.leather ? 12 : 10)) + (s.eq.shield ? 1 : 0) + 0;
+    const dmg = s.eq.axe ? '1d8' : (s.eq.sword ? '1d6' : '1d2');
+    const move = s.eq.chain ? '60′' : '90′';
+    const slots = [['armour', 'Armour'], ['shield', 'Shield'], ['hand', 'Weapon in hand']].map((sl) => ({ name: sl[1],
+      items: Object.keys(E).filter((k) => E[k].slot === sl[0]).map((k) => { const on = !!s.eq[k]; return { name: E[k].name, sub: E[k].sub, on: on, aria: (on ? 'Unequip ' : 'Equip ') + E[k].name,
+        sw: 'width:56px;height:32px;flex:none;border-radius:16px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : c.surf) + ';position:relative;cursor:pointer;padding:0',
+        knob: 'position:absolute;top:3px;left:' + (on ? 27 : 3) + 'px;width:24px;height:24px;border-radius:12px;background:' + (on ? c.onAcc : c.mut), toggle: toggle(k) }; }) }));
+    return {
+      c: c, isAdd: s.view === 'add', isEquip: s.view === 'equip', addTab: seg(s.view === 'add'), equipTab: seg(s.view === 'equip'),
+      toAdd: () => this.setState({ view: 'add' }), toEquip: () => this.setState({ view: 'equip' }),
+      results: results, pick: pick, qty: s.qty, less: () => this.setState({ qty: Math.max(1, s.qty - 1), added: false }), more: () => this.setState({ qty: s.qty + 1, added: false }),
+      sources: sources, places: places, effect: effect,
+      addText: s.added ? 'Added · logged' : 'Add to Wren’s pack', addIt: () => this.setState({ added: true }),
+      stats: [{ k: 'AC', v: String(ac), color: c.ink }, { k: 'Damage', v: dmg, color: c.ink }, { k: 'Move', v: move, color: s.eq.chain ? c.warn : c.ink }],
+      slots: slots, hasWarn: !!s.warn, warnText: s.warn ? s.warn.text : '', warnOkText: s.warn ? s.warn.ok : '', warnOk: warnOk, warnCancel: () => this.setState({ warn: null }),
+      S: {
+        qty: 'width:44px;height:44px;flex:none;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:inherit;font-size:22px;font-weight:700;cursor:pointer',
+        small: 'min-height:44px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:16px;font-weight:600;cursor:pointer'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

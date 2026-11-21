@@ -1,0 +1,63 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-fen-by-hand",
+    "name": "Invented by-hand options",
+    "shortName": "Fen by hand",
+    "version": "0.1",
+    "kind": "setting",
+    "author": "Invented for the app's tests",
+    "description": "An invented setting for testing options the app doesn't apply yet (area-2 PR 5, ex-7): two marked manual, one not, with made-up names."
+  },
+  "rulesSets": [
+    {
+      "id": "fen-by-hand-rules",
+      "name": "Fen by-hand rules",
+      "abilities": [{ "key": "MUS", "name": "Muscle" }, { "key": "WIT", "name": "Wit" }]
+    }
+  ],
+  "options": [
+    {
+      "id": "fen-reed-winds",
+      "name": "Reed winds",
+      "manual": true,
+      "default": "off",
+      "changeLater": "allow",
+      "category": "Adventuring",
+      "source": "Fen Rules p. 40",
+      "choices": [
+        { "id": "off", "name": "Off", "notes": "Boats go as the oars take them." },
+        { "id": "on", "name": "On", "notes": "Each morning the GM rolls the wind; against it, a boat goes half as far." }
+      ],
+      "notes": "Whether the wind over the reeds speeds or slows boats."
+    },
+    {
+      "id": "fen-mire-sickness",
+      "name": "Mire sickness",
+      "manual": true,
+      "default": "none",
+      "changeLater": "warn",
+      "category": "Adventuring",
+      "choices": [
+        { "id": "none", "name": "No sickness", "notes": "Wading is only wet." },
+        { "id": "chills", "name": "Chills after wading", "notes": "A day's wading gives a chill that lasts until a dry night's sleep." },
+        { "id": "fever", "name": "Fever after wading", "notes": "A day's wading may bring a fever; the GM says when it breaks." },
+        { "id": "both", "name": "Chills, then fever", "notes": "A chill after a day's wading, a fever after a second." }
+      ],
+      "notes": "What wading through the mire does to the party."
+    },
+    {
+      "id": "fen-lantern-oil",
+      "name": "Lantern oil",
+      "default": "on",
+      "changeLater": "allow",
+      "category": "Items and treasure",
+      "choices": [
+        { "id": "off", "name": "Off", "notes": "Lanterns never run dry." },
+        { "id": "on", "name": "On", "notes": "Lanterns burn oil." }
+      ],
+      "notes": "Whether lanterns use up oil."
+    }
+  ]
+}

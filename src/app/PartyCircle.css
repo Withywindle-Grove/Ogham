@@ -1,0 +1,201 @@
+/* The party circle (S12; page 16 T10, R1): one character in the marching order. Tokens only. */
+.party-circle {
+  --circle: 96px;
+  container-type: inline-size;
+  flex: 0 1 11rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  min-block-size: var(--tap);
+  padding: var(--space-2) var(--space-1);
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.party-circle:focus-visible {
+  outline: var(--line-selected) solid var(--selected-edge);
+  outline-offset: 2px;
+}
+
+/* The portrait or initials, with the light's ring, its still halo (mc-6) and its badge. */
+.party-circle__mark {
+  position: relative;
+  flex: none;
+  inline-size: var(--circle);
+  block-size: var(--circle);
+}
+
+.party-circle__disc {
+  position: absolute;
+  inset: var(--space-1);
+  display: flex;
+}
+
+.party-circle__disc .portrait {
+  inline-size: 100%;
+  block-size: 100%;
+  border: var(--line-control) solid var(--control);
+  color: var(--ink);
+  font-size: var(--text-36);
+}
+
+.party-circle--lit .party-circle__disc .portrait {
+  border-color: var(--light-glow);
+}
+
+.party-circle--low .party-circle__disc .portrait {
+  border-color: var(--warning);
+}
+
+.party-circle__halo {
+  position: absolute;
+  inset: var(--space-1);
+  border-radius: 50%;
+  box-shadow: 0 0 var(--space-3) var(--glow-still) color-mix(in srgb, var(--light-glow) 45%, transparent);
+}
+
+.party-circle__ring {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  transform: rotate(-90deg);
+}
+
+.party-circle__track,
+.party-circle__arc {
+  fill: none;
+}
+
+.party-circle__track {
+  stroke: var(--rule);
+}
+
+.party-circle__arc {
+  stroke: var(--light-glow);
+}
+
+.party-circle--low .party-circle__arc {
+  stroke: var(--warning);
+}
+
+.party-circle__badge {
+  position: absolute;
+  inset-inline-end: calc(var(--space-1) * -0.5);
+  inset-block-end: calc(var(--space-1) * -0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: calc(var(--space-6) - 2px);
+  block-size: calc(var(--space-6) - 2px);
+  border: var(--line-control) solid currentColor;
+  border-radius: 50%;
+  background: var(--page);
+  color: var(--light-glow);
+}
+
+.party-circle--low .party-circle__badge {
+  color: var(--warning);
+}
+
+.party-circle__name {
+  display: -webkit-box;
+  max-inline-size: 100%;
+  overflow: hidden;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* A long name, as T10's circle draws it (scene.css `.pc .nm`, `.pc .nm span`): two lines at most, never split inside
+   a word; a word too long for the circle ends in "…". The whole name is in the circle's label and its overview. */
+.party-circle__word {
+  display: inline-block;
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.party-circle__hp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--space-1) / 2);
+  font-size: var(--text-14);
+  line-height: var(--line-heading);
+}
+
+.party-circle__hp-now {
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+}
+
+.party-circle__line {
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
+
+.party-circle__statuses {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1) var(--space-2);
+  font-size: var(--text-14);
+  line-height: var(--line-heading);
+}
+
+/* A status is one line of text (the approval's fix 4, 2026-11-18): its mark, its words and its count flow together,
+   and a long status wraps under them as whole lines, centred, never a narrow column with the mark and the count
+   floating either side. A word breaks only where it alone is wider than its line; the count never breaks. */
+.party-circle__status {
+  display: block;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  text-align: center;
+  overflow-wrap: break-word;
+}
+
+.party-circle__status > .status-ring__mark {
+  vertical-align: middle;
+}
+
+/* One space-1 between neighbours, set on the later one only: a mark alone stays centred, and with the word dropped
+   (a narrow circle) the mark and the count keep the one gap, not two. */
+.party-circle__status > * + * {
+  margin-inline-start: var(--space-1);
+}
+
+.party-circle__count {
+  white-space: nowrap;
+}
+
+/* A narrow circle (a phone, a rank of three): smaller, and a status keeps its symbol and count, its word dropped (mc-3). */
+@container (max-width: 111px) {
+  .party-circle__mark {
+    inline-size: calc(var(--circle) - var(--space-5));
+    block-size: calc(var(--circle) - var(--space-5));
+  }
+
+  .party-circle__disc .portrait {
+    font-size: var(--text-30);
+  }
+
+  .party-circle__status-word {
+    display: none;
+  }
+}

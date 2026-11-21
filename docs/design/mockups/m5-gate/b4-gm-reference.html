@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B4 — GM reference screen (M5 gate, approved 2026-11-01)</title>
+<style>
+  /* Tokens from docs/06 only. Light only, full size (Francis, 2026-11-01). Buttons are plain blocks. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  h2 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; margin:var(--space-4) 0 var(--space-2); font-variant:small-caps; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); max-width:1024px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:16px; line-height:1.2; text-align:center; box-sizing:border-box; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .field { min-height:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; color:var(--muted); box-sizing:border-box; flex:1; }
+  .cols { display:grid; grid-template-columns:240px 1fr; gap:var(--space-4); margin-top:var(--space-3); }
+  .nav .item { display:flex; align-items:center; min-height:44px; padding:var(--space-2) var(--space-3); border-radius:4px; margin-bottom:var(--space-1); }
+  .nav .item.on { background:var(--surface); box-shadow:inset 3px 0 0 var(--accent); font-weight:700; }
+  .nav .item .meta { margin-left:auto; }
+  .entry { padding:var(--space-3) 0; border-bottom:1px dotted var(--rule); }
+  .entry:last-child { border-bottom:0; }
+  .entry .h { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .entry p { margin:var(--space-1) 0 0; }
+  table { border-collapse:collapse; margin-top:var(--space-2); font-size:16px; }
+  td, th { border-bottom:1px dotted var(--rule); padding:var(--space-2) var(--space-3); text-align:left; vertical-align:top; }
+  th { font-weight:700; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row .text { flex:1; } .row .chev { color:var(--muted); font-size:24px; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:1024px; }
+  .phone { width:375px; }
+</style>
+</head>
+<body>
+
+<h1>1 · GM reference (full screen, from the open-book icon at the top beside the log and ✉ icons)</h1>
+<p class="note">The icon, 44 × 44, distinct from the log and message icons: <span class="btn icon" aria-label="Reference" style="vertical-align:middle"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 6c-2-1.5-5-2-9-2v14c4 0 7 .5 9 2 2-1.5 5-2 9-2V4c-4 0-7 .5-9 2z"/><path d="M12 6v14"/></svg></span> an open book (Francis, 2026-11-01: "a wizard or a book").</p>
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Reference</span><span class="field">Search the rules…</span></div>
+  <div style="margin-top:var(--space-3);"><span class="btn" style="border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); background:var(--surface);">Classic rules</span> <span class="btn">Monster overlay</span> <span class="btn">Flooded abbey</span></div>
+  <div class="cols">
+    <div class="nav">
+      <div class="item">Combat</div>
+      <div class="item on">Dungeons</div>
+      <div class="item">Class abilities</div>
+      <div class="item">Equipment</div>
+      <div class="item">Tables <span class="meta">14</span></div>
+      <div class="item">Saints' days <span class="meta">pack</span></div>
+      <div class="item">Flood tide <span class="meta">adventure</span></div>
+    </div>
+    <div class="content">
+      <h2>Dungeons</h2>
+      <div class="entry"><div class="h">Darkness</div><p>Without light a group moves at a crawl and every check for noise is worse; what the pack says, in its words, with the page.</p><span class="meta">Setting rules · p. 34</span></div>
+      <div class="entry"><div class="h">Doors</div><p>Stuck doors take a strength check; locked ones need a key, a pick or force; listening at a door takes a turn.</p><span class="meta">Setting rules · p. 35 · also a common player action</span></div>
+      <div class="entry"><div class="h">Resting</div><p>One turn in six, or the whole group suffers the pack's penalty until they do.</p><span class="meta">Setting rules · p. 36</span></div>
+      <div class="entry"><div class="h">Searching</div><p>One turn per ten-foot stretch; the chance is the pack's, by class.</p><span class="meta">Setting rules · p. 36</span></div>
+      <div class="entry"><div class="h">Traps</div><p>Triggered on the pack's chance when passing; finding one takes a search.</p><span class="meta">Setting rules · p. 37</span></div>
+      <div class="entry"><div class="h">Wandering monsters</div><p>The check and its chance by level, and the table it rolls.</p>
+        <table><tr><th>Level</th><th>Chance</th><th>Table</th></tr><tr><td>1</td><td>1 on d6</td><td><span class="btn quiet">Dungeon level 1 ›</span></td></tr><tr><td>2</td><td>1 on d6</td><td><span class="btn quiet">Dungeon level 2 ›</span></td></tr></table>
+        <span class="meta">Setting rules · p. 38</span></div>
+    </div>
+  </div>
+</div>
+<p class="note">A fallback and a stand-in for the referee's paper screen: it is not tied to what the GM is doing on another screen. Fixed panel order; the screen reopens on the panel last used. The search field never takes focus by itself (A4) and searches every panel. Each entry is the pack's text in its own words with its page. A table named in an entry opens full screen (B2's table screen) with a tap; the <b>Tables</b> panel is the Tables › library. Panels after the standard five come from the pack (<b>Saints' days</b>) or the adventure (<b>Flood tide</b>); their source tag says which. With more than one rules set or adventure attached, a <b>pack switcher</b> (pressed button = the pack shown) sits above the panels (Francis, 2026-11-01); the switcher is absent with one pack.</p>
+
+<h1>2 · Where the content comes from</h1>
+<div class="screen">
+  <div class="row"><div class="text"><b>Combat</b> <span class="meta">· the rules set's fight rules: initiative, surprise, morale, death and dying, pursuit — the sections the engine already reads, shown as text</span></div></div>
+  <div class="row"><div class="text"><b>Dungeons</b> <span class="meta">· the exploration procedures and the dungeon reference sections (darkness, doors, resting, searching, traps, wandering monsters), plus the common player actions (DG10), grouped as the pack groups them</span></div></div>
+  <div class="row"><div class="text"><b>Class abilities</b> <span class="meta">· every class's abilities by level, as on a character sheet's ⓘ</span></div></div>
+  <div class="row"><div class="text"><b>Equipment</b> <span class="meta">· the items by category with cost, weight and notes</span></div></div>
+  <div class="row"><div class="text"><b>Tables</b> <span class="meta">· the Tables › library (B2), with session pins</span></div></div>
+  <div class="row"><div class="text"><b>Pack and adventure panels</b> <span class="meta">· an optional `gmReference` list on a rules set or an adventure: panels of entries (heading, text, an optional table, page). A pack without one gets the five standard panels only</span></div></div>
+</div>
+<p class="note">Nothing is typed into the app: every line is the pack's. Where the pack has no section for a standard panel, the panel is left out rather than shown empty ("Equipment" disappears for a setting without items). Players never see this screen; the common player actions moved here from theirs (A5).</p>
+
+<h1>3 · On a phone (375 px)</h1>
+<div class="screen phone">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Reference</span><span class="btn icon" aria-label="Search">⌕</span></div>
+  <div class="row"><div class="text">Combat</div><span class="chev">›</span></div>
+  <div class="row"><div class="text">Dungeons</div><span class="chev">›</span></div>
+  <div class="row"><div class="text">Class abilities</div><span class="chev">›</span></div>
+  <div class="row"><div class="text">Equipment</div><span class="chev">›</span></div>
+  <div class="row"><div class="text">Tables <span class="meta">· 14</span></div><span class="chev">›</span></div>
+  <div class="row"><div class="text">Saints' days <span class="meta">· pack</span></div><span class="chev">›</span></div>
+</div>
+<p class="note">The panel list becomes the first screen; a panel opens full screen with "‹ Reference". Tables inside an entry scroll sideways rather than wrap.</p>
+
+</body>
+</html>

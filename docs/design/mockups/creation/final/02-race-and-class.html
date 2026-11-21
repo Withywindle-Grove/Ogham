@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Final draft 2: Kindred and Class (2026-11-07)</title>
+<link rel="stylesheet" href="final.css">
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+const entryRows = `
+  <div class="row"><span class="k">Prime</span><span class="v">Wits</span></div>
+  <div class="row"><span class="k">Hit die</span><span class="v">${die(4, 20)} d4</span></div>
+  <div class="row"><span class="k">Armour</span><span class="v">Quilted cloth at most</span></div>
+  <div class="row"><span class="k">Open to</span><span class="v">Every kindred</span></div>`;
+
+const kindred = phone(`
+  ${bar('Kindred')}
+  <div class="inner">
+    <p class="meta">Step 2 of 9</p>
+    <p class="do">The people your character was born to. Tap a name to read about it, then Pick.</p>
+    ${helpBtn()}
+    <div style="margin-top:var(--space-3)"></div>
+    ${pick('Stone kin', 'Hardy, slow, sees in the dark', 'accent')}
+    ${pick('Reed folk', 'Quick, slight, at home in water', 'pick')}
+    ${pick('Human', 'No gift and no limit', 'pick')}
+    ${pick('Hollow-born', 'Fey blood, fears cold iron', 'pick')}
+    ${foot('Nothing picked yet', true, 'plain')}
+  </div>`, 'Kindred: one pick, so the first Pick carries the accent and Next is plain. A name is the tap that opens the entry; Pick picks and moves on (ct-1).');
+
+const classList = phone(`
+  ${bar('Class')}
+  <div class="inner">
+    <p class="meta">Step 3 of 9</p>
+    <p class="do">Your trade as an adventurer. Tap a name to read about it, then Pick.</p>
+    ${helpBtn()}
+    <div style="margin-top:var(--space-3)"></div>
+    ${pick('Lantern Warden', 'Fights in the front, no spells', 'accent')}
+    ${pick('Reed Witch', 'Spells from the marsh, frail', 'pick')}
+    ${pick('Fen Ranger', 'Tracks and shoots, light armour', 'pick')}
+    ${closedPick('Marsh Chaplain', 'Not open to Stone kin')}
+    ${pick('Bog Cutpurse', 'Locks, traps and quiet feet', 'pick')}
+    ${foot('Nothing picked yet', true, 'plain')}
+  </div>`, 'Class: a closed class shows the warning sign and why, with no Pick; tapping it explains in a sheet (cw-8).');
+
+const classEntry = phone(`
+  ${bar('Class')}
+  <div class="inner" style="min-height:560px">
+    <p class="meta">Step 3 of 9</p>
+    <p class="do">Your trade as an adventurer. Tap a name to read about it, then Pick.</p>
+    ${pick('Lantern Warden', 'Fights in the front, no spells', 'pick')}
+    ${pick('Reed Witch', 'Spells from the marsh, frail', 'pick')}
+  </div>
+  ${sheet('Reed Witch', `
+    <p class="meta" style="margin:0 0 var(--space-2)">River Rules, p. 31</p>
+    <p style="margin:0 0 var(--space-2)">Reed Witches learn their spells from the marsh itself, trading sleep and comfort for small, strange powers. They wear no armour heavier than quilted cloth and carry a staff or a knife.</p>
+    <div class="list">${entryRows}</div>
+    <span class="btn accent wide" style="margin-top:var(--space-3)">Pick Reed Witch</span>
+  `)}`, 'The entry as a sheet over the dimmed page ("pop-up" = sheet): source page, blurb, the figures that matter to the pick, and Pick at the foot with the accent (the ask).');
+
+const classPicked = phone(`
+  ${bar('Class')}
+  <div class="inner">
+    <p class="meta">Step 3 of 9</p>
+    <p class="do">Your trade as an adventurer. Tap a name to read about it, then Pick.</p>
+    ${pick('Lantern Warden', 'Fights in the front, no spells', 'pick')}
+    ${pick('Reed Witch', 'Spells from the marsh, frail', 'picked')}
+    ${pick('Fen Ranger', 'Tracks and shoots, light armour', 'pick')}
+    ${closedPick('Marsh Chaplain', 'Not open to Stone kin')}
+    <div class="toast"><span>Reed Witch picked</span><span class="btn small">Undo</span></div>
+    ${foot('Reed Witch picked')}
+  </div>`, 'After a pick, before the step moves on: the row reads Picked ✓, the toast offers Undo, and Next takes the accent. (Pick moves on by itself; this is the moment between.)');
+
+const closedSheet = phone(`
+  ${bar('Class')}
+  <div class="inner" style="min-height:560px">
+    <p class="meta">Step 3 of 9</p>
+    ${closedPick('Marsh Chaplain', 'Not open to Stone kin')}
+  </div>
+  ${sheet('Marsh Chaplain', `
+    <p style="margin:0 0 var(--space-2)">${warn('Not open to Stone kin')}</p>
+    <p style="margin:0 0 var(--space-2)">The Chaplain's orders take no Stone kin: the pack's rule, from River Rules p. 40. Your GM can allow it as a special approval; ask at the table.</p>
+    <p class="meta" style="margin:0 0 var(--space-2)">River Rules, p. 40</p>
+    <div class="list">
+      <div class="row"><span class="k">Prime</span><span class="v">Grit</span></div>
+      <div class="row"><span class="k">Hit die</span><span class="v">${die(6, 20)} d6</span></div>
+    </div>
+    <span class="btn wide" style="margin-top:var(--space-3)">Ask the GM to allow it</span>
+  `)}`, 'A closed class, tapped: the sheet explains, never greys, and offers to ask the GM (a request that shows on the GM\'s approval card as "needs your special approval").');
+
+const classTablet = tablet(`
+  ${bar('Class')}
+  <div class="cols">
+    <div>
+      <p class="meta">Step 3 of 9</p>
+      <p class="do">Your trade as an adventurer. Tap a name to read about it, then Pick.</p>
+      ${helpBtn()}
+      <div style="margin-top:var(--space-3)"></div>
+      ${pick('Lantern Warden', 'Fights in the front, no spells', 'pick')}
+      ${pick('Reed Witch', 'Spells from the marsh, frail. Open on the right', 'pick', '').replace('class="card"', 'class="card open"')}
+      ${pick('Fen Ranger', 'Tracks and shoots, light armour', 'pick')}
+      ${closedPick('Marsh Chaplain', 'Not open to Stone kin')}
+      ${pick('Bog Cutpurse', 'Locks, traps and quiet feet', 'pick')}
+    </div>
+    <div class="panel">
+      <h2>Reed Witch</h2>
+      <p class="meta">River Rules, p. 31</p>
+      <p>Reed Witches learn their spells from the marsh itself, trading sleep and comfort for small, strange powers. They wear no armour heavier than quilted cloth and carry a staff or a knife.</p>
+      <div class="list">${entryRows}</div>
+      <span class="btn accent wide" style="margin-top:var(--space-3)">Pick Reed Witch</span>
+    </div>
+  </div>
+  ${foot('Nothing picked yet', true, 'plain').replace('class="foot"', 'class="foot" style="margin:0;padding:var(--space-3)"')}`, 'Class on a tablet: the list left, the open entry right (N2, cr-10); the open row is marked by a border and the words. The entry\'s Pick carries the accent while nothing is picked; Next is plain.');
+
+mount(`
+  <h1>Final draft 2: Kindred and Class</h1>
+  <p class="note">Pick steps. The name opens the entry (a sheet on a phone, the right column on a tablet); Pick picks and moves on (ct-1); a closed choice shows the warning sign and why, never greyed, and explains on tap (cw-8); the accent follows the ask (Pick until picked, then Next); no middle dot.</p>
+  <h1>Phone</h1>
+  <div class="wall">${kindred}${classList}${classEntry}${classPicked}${closedSheet}</div>
+  <h1>Tablet</h1>
+  ${classTablet}
+  <p class="note">Self-review: targets 44 px with 8 px between; nothing under 14 px; the closed row shows the sign and the reason, never grey; the open row on the tablet is marked by a border and words; one accent per screen, on the ask; the sheet leaves the page visible and dimmed; the long blurb wraps; 375 px checked. Not checked: the sheet's height with the Larger text size (it should scroll inside); whether "Ask the GM to allow it" exists today as a command (it is the special-approval flag the GM's card already shows; if not a command, the button becomes a note for the GM on the review).</p>
+`);
+</script>
+</body>
+</html>

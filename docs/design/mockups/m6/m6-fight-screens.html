@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M6 — fight screens after the M5 gate (approved with changes, 2026-11-01)</title>
+<style>
+  /* Tokens from docs/06 only. Light only, full size (Francis, 2026-11-01). Buttons are plain blocks. Invented names only. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; --warn:#7A4A00; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .meta { font-size:14px; color:var(--muted); }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:16px; line-height:1.2; text-align:center; box-sizing:border-box; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.on { background:var(--surface); border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); max-width:1180px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); flex-wrap:wrap; }
+  .bar .title { font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .cols { display:grid; grid-template-columns:1fr 1.2fr 0.9fr; gap:var(--space-4); margin-top:var(--space-4); }
+  .col h2 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; margin:0 0 var(--space-2); font-variant:small-caps; color:var(--muted); }
+  .card { border:1px solid var(--rule); border-radius:4px; padding:var(--space-2) var(--space-3); margin-bottom:var(--space-2); background:var(--surface); }
+  .card.hidden { border-style:dashed; background:var(--sheet); }
+  .card .n { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; display:flex; justify-content:space-between; gap:var(--space-2); }
+  .hp { display:flex; gap:2px; margin:var(--space-1) 0; }
+  .hp i { display:inline-block; width:12px; height:14px; border:1.5px solid var(--ink); border-radius:2px; }
+  .hp i.f { background:var(--ink); } .hp i.b { border-style:dashed; }
+  .sym { display:inline-flex; width:24px; height:24px; border:1.5px solid var(--ink); border-radius:12px; align-items:center; justify-content:center; font-weight:700; font-size:14px; }
+  .nudge { font-size:14px; color:var(--muted); font-style:italic; }
+  .seq { display:flex; gap:var(--space-4); align-items:baseline; margin:var(--space-3) 0; flex-wrap:wrap; }
+  .seq span { color:var(--muted); min-height:44px; display:inline-flex; align-items:center; }
+  .seq .now { color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; text-shadow:0 0 12px rgba(110,42,31,.55), 0 0 2px rgba(110,42,31,.9); }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; } .row .text { flex:1; } .row .chev { color:var(--muted); font-size:24px; }
+  .stack { display:flex; flex-direction:column; gap:var(--space-2); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:1180px; }
+  .table { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; max-width:1180px; }
+  .band { padding:var(--space-4); } .band + .band { border-top:1px solid var(--rule); }
+  .time { display:flex; align-items:center; gap:var(--space-5); flex-wrap:wrap; }
+  .time .mode { font-family:"EB Garamond", Georgia, serif; font-size:30px; font-weight:600; line-height:1.2; }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
+  .pc { border:1px solid var(--rule); border-radius:4px; padding:var(--space-2) var(--space-3); background:var(--surface); margin-bottom:var(--space-2); }
+  .pc.you { border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
+  .field { min-height:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; color:var(--muted); box-sizing:border-box; flex:1; }
+  .prompt { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); background:var(--sheet); display:flex; justify-content:space-between; align-items:center; gap:var(--space-2); margin:0 var(--space-4) var(--space-3); }
+  .overlay { position:relative; margin-top:var(--space-3); padding:var(--space-5); background:rgba(25,23,20,.35); border-radius:4px; }
+  .popup { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-4); background:var(--sheet); max-width:520px; margin:0 auto; box-shadow:0 8px 24px rgba(0,0,0,.25); }
+  .popup .h { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; }
+  .hat { display:inline-block; width:24px; height:24px; vertical-align:middle; }
+</style>
+</head>
+<body>
+
+<h1>1 · GM fight screen, iPad landscape (M6-8, with the 2026-11-01 review)</h1>
+<div class="screen">
+  <div class="bar"><span class="btn">Explore</span><span class="btn on">Fight</span><span class="title">Round 3 <span class="meta">· 30 s</span></span><span class="meta">Flooded hall · Dungeon · turn 14</span><span style="flex:1"></span><span class="btn icon accent" aria-label="Fiat"><svg class="hat" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 3l4 12H7l6-12z"/><path d="M3 17c3-1.5 15-1.5 18 0-3 1.5-15 1.5-18 0z"/></svg></span><span class="btn icon" aria-label="Reference">📖</span><span class="btn icon" aria-label="Messages">✉</span><span class="btn icon" aria-label="Log">≡</span><span class="btn icon" aria-label="More">⋯</span></div>
+  <div class="seq"><span>Declare</span><span class="now">Initiative</span><span>Actions</span><span>Morale</span></div>
+  <div class="cols">
+    <div class="col"><h2>Party</h2>
+      <div class="card"><div class="n"><span>Wren</span><span class="meta">AC 5</span></div><div class="hp"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i class="b"></i><i class="b"></i></div><div class="meta">5 of 7 · +2 bonus · <span class="sym">W</span> Weary ×1 · 🔥 torch</div></div>
+      <div class="card"><div class="n"><span>Brother Haeth</span><span class="meta">AC 4</span></div><div class="hp"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div><div class="meta">8 of 8</div></div>
+      <div class="card"><div class="n"><span>Oswy</span><span class="meta">AC 7</span></div><div class="hp"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="meta"><b>Down</b> · tap for the death panel</div></div>
+      <div class="card"><div class="n"><span>Tam's mule <span class="meta">· hireling</span></span><span class="meta">AC 7</span></div><div class="hp"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div><div class="meta">9 of 9</div></div>
+      <div class="meta" style="margin-top:var(--space-3)">Log · Wren took 2 · Oswy down (round 2)</div>
+    </div>
+    <div class="col"><h2>Foes</h2>
+      <div class="card"><div class="n"><span>Bog lurker 1</span><span class="meta">AC 6 · morale 8</span></div><div class="hp"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="meta">3 of 11 · Bram → Bog lurker 1</div><div class="nudge">Keeps to the water; drags the lightest target under.</div><div style="display:flex; gap:var(--space-2)"><span class="btn">+ Status</span><span class="btn">Note</span><span class="btn">More</span></div></div>
+      <div class="card"><div class="n"><span>Bog lurker 2</span><span class="meta">AC 6</span></div><div class="hp"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div><div class="meta">11 of 11 · ●●○ hold breath</div></div>
+      <div class="card hidden"><div class="n"><span>Drowned acolyte <span class="meta">· hidden · arrives round 4</span></span><span class="btn">Reveal</span></div></div>
+    </div>
+    <div class="col"><h2>Controls</h2>
+      <div class="stack">
+        <span class="btn accent">End foes' turn</span>
+        <span class="btn">Next round</span>
+        <span class="btn">+ Add foes</span>
+        <div class="row"><div class="text">Encounter tables <span class="meta">· Abbey likely · 1 pinned</span></div><span class="chev">›</span></div>
+        <div style="display:flex; gap:var(--space-2)"><span class="btn">Crit</span><span class="btn">Fumble</span><span class="btn">Roll tactics</span></div>
+        <div style="margin-top:var(--space-4); display:flex; gap:var(--space-2)"><span class="btn">End fight</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="overlay"><div class="popup"><div class="h">Morale check · Bog lurkers</div><div class="meta">Below half: the pack's trigger · check 1 of 2 this fight</div><p style="margin:var(--space-2) 0">Roll 2d6 · they break on 9 or more <span class="meta">(score 8, +1 leader down)</span></p><div style="display:flex; gap:var(--space-2)"><span class="btn accent">They break</span><span class="btn">They hold</span><span class="btn quiet">Skip</span></div></div></div>
+</div>
+<p class="note">Review changes (Francis, 2026-11-01): the Fiat button is the <b>wizard hat</b> (06; the top hat was a drawing error); the sequence strip's current step is in the <b>display size with a glow</b>, no underline, and the steps are <b>the pack's own</b> (a pack without a sequence shows one step, "Actions"); a <b>morale trigger is a pop-up over the screen</b> (drawn above as the dimmed overlay; it is not a resident panel), with They hold / They break / Skip; <b>More</b> on a foe card is a button opening the rest of its reference (behaviour notes, abilities, the action menu, the tactics table, the source page); <b>Damage or heal has no button</b> — tap the target (a foe, a character or a hireling) and its panel holds the pad; the turn control reads <b>End foes' turn / End players' turn</b> by whose turn it is; Crit · Fumble · Roll tactics only when the rules set has them; <b>We run</b> is the players' only — foes that run are marked Fled, and if the party gives chase the GM ends the fight and <b>Undo</b> on End fight reopens it (nothing more modelled). <b>Party damage is the GM's for now</b> (⚑ B): tap the character or hireling, the pad opens with them named.</p>
+
+<h1>2 · Players' Scene in a fight (a reference, or a common tablet): Foes · Party</h1>
+<div class="table">
+  <div class="band"><div class="time"><span class="mode">Fight · Round 3</span><span><b>Foes' turn</b></span><span class="meta">Flooded hall</span></div></div>
+  <div class="prompt"><span><b>Oswy is Down</b> · <span class="meta">anyone may tap Helped</span></span><span class="btn">Helped</span></div>
+  <div class="band"><div class="two">
+    <div><h2 class="meta" style="font-variant:small-caps; font-size:20px; font-family:'EB Garamond',Georgia,serif; font-weight:600; margin:0 0 8px">Foes</h2>
+      <div class="pc"><b>Bog lurker 1</b> <span class="meta">· AC 6 · took 8 damage · hurt</span></div>
+      <div class="pc"><b>Bog lurker 2</b> <span class="meta">· AC ? · unhurt</span></div>
+    </div>
+    <div><h2 class="meta" style="font-variant:small-caps; font-size:20px; font-family:'EB Garamond',Georgia,serif; font-weight:600; margin:0 0 8px">Party</h2>
+      <div class="pc you"><b>Wren</b> <span class="meta">· you</span><div class="hp"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></div><span class="meta">5 of 7 · Weary</span></div>
+      <div class="pc"><b>Brother Haeth</b> <span class="meta">· 8 of 8</span></div>
+      <div class="pc"><b>Oswy</b> <span class="meta">· <b>Down</b></span></div>
+    </div>
+  </div></div>
+  <div class="band" style="display:flex; gap:var(--space-2); align-items:center;"><span class="btn">End our turn</span><span class="btn">We run</span><span class="meta">End our turn is the accent button on the party's turn.</span></div>
+</div>
+<p class="note">Review changes: the Scene is a <b>reference for players and a display for a common tablet</b>; players spend the fight on their <b>Player tab</b>, which holds everything personal (the attack line against a tapped foe, weapons with bonus and damage, spells and ability dots, <b>Use</b> for consumables and triggerable items, <b>End turn</b> in individual initiative, and <b>Delay</b> there only, in individual initiative). So the <b>You column is gone</b>; tapping your own character opens the Player screen (no label says so). A foe shows its <b>AC once revealed</b> (CS-8: after a confirmed hit, or the GM reveals it), "AC ?" before. Players don't enter damage (⚑ B: the GM does). <b>We run</b> stays. Phone: one column in the same order, End our turn / We run in the sticky bar.</p>
+
+<h1>3 · Encounter panel (M6-7)</h1>
+<div class="screen">
+  <div class="bar"><span class="btn">Explore</span><span class="btn on">Encounter</span><span class="title">Encounter <span class="meta">· 2–3 · Reed cutters · 2d4</span></span><span style="flex:1"></span><span class="btn accent">Fight</span></div>
+  <div class="nudge" style="margin-top:var(--space-3)">Villagers with billhooks and a mule; wary, not hostile.</div>
+  <div class="row"><div class="text"><b>Surprise</b> <span class="meta">· each side 1–2 on d6 · party: no (lantern lit)</span></div><span class="btn">Foes surprised</span><span class="btn">Not surprised</span></div>
+  <div class="row"><div class="text"><b>Distance</b> <span class="meta">· 2d6 × 10 ft · indoors</span></div><span class="field" style="max-width:120px">70 ft</span></div>
+  <div class="row"><div class="text"><b>Reaction</b> <span class="meta">· 2d6 +1 (Wren's charisma) · from the pack</span></div><span class="btn">Roll reaction ›</span></div>
+  <div class="row"><div class="text">Encounter tables <span class="meta">· Abbey · rolled 2–3 just now</span></div><span class="chev">›</span></div>
+  <div style="display:flex; gap:var(--space-2); margin-top:var(--space-3)"><span class="btn">+ Add foes</span><span class="btn">No fight · back to Explore</span></div>
+  <div class="overlay"><div class="popup"><div class="h">Back to Explore</div><div class="meta">What happened? (optional)</div><div style="display:flex; margin:var(--space-2) 0"><span class="field">They let us pass for a song.</span></div><div style="display:flex; gap:var(--space-2); align-items:center; flex-wrap:wrap"><span class="btn on">Only you</span><span class="btn">In the log</span><span style="flex:1"></span><span class="btn accent">Done</span></div></div></div>
+</div>
+<p class="note">Review changes: <b>no Skip</b> on Surprise (Not surprised is the answer) or Distance (the field <b>defaults to the average</b> of the pack's dice, here 70 ft, and the GM changes it by tapping; no keyboard until then); <b>Reaction is a button</b> that opens the pack's reaction table full screen (B2's screen, with the modifiers already counted) — the GM taps the rolled row and it fills the Reaction line ("Uncertain · they wait and watch"). Fight is always available. <b>No fight · back to Explore</b> opens a small prompt for a note on how it ended: optional text (no keyboard until tapped), <b>Only you</b> (a GM note) or <b>In the log</b> (players see it), Done; Undo on the toast.</p>
+
+<h1>4 · Add foes (M6-4)</h1>
+<div class="screen" style="max-width:720px">
+  <div class="bar"><span class="btn icon" aria-label="Close">✕</span><span class="title">Add foes</span></div>
+  <div style="display:flex; margin-top:var(--space-3)"><span class="field">Search monsters…</span></div>
+  <div class="row"><div class="text"><b>Encounters ▴</b> <span class="meta">· the tables, Abbey first</span></div></div>
+  <div class="row" style="padding-left:var(--space-4)"><div class="text">Abbey <span class="meta">· likely · d6</span><span class="meta" style="display:block">The abbey above ground: acolytes, reed cutters and the things in the marsh around it.</span></div><span class="chev">›</span></div>
+  <div class="row" style="padding-left:var(--space-4)"><div class="text">Lower abbey <span class="meta">· pinned · d8</span></div><span class="chev">›</span></div>
+  <div class="row" style="padding-left:var(--space-4)"><div class="text"><span class="btn quiet">All 14 tables ›</span></div></div>
+  <div class="row"><div class="text"><b>Bestiary ▾</b> <span class="meta">· 70 monsters by type</span></div></div>
+  <div class="meta" style="margin-top:var(--space-3)">Tapping a table opens it full screen (B2); tapping its row comes back here with the monster and its how-many dice filled: <b>Bog lurker · 1d4 → [3] · HP Average · Add 3 Bog lurkers</b>.</div>
+</div>
+<p class="note">Review changes: the search field never opens the keyboard by itself (A4; a tap focuses it); <b>Encounters sits above Bestiary</b> — the GM picks from a table or searches far more often than they browse. The rest of the sheet (how many, Hit points, Modifications, More options, the result-naming button) is as ruled.</p>
+
+<h1>5 · The Player tab in a fight (iPad; everything personal lives here)</h1>
+<div class="table" style="max-width:1024px">
+  <div class="band"><div class="time"><span class="mode">Fight · Round 3</span><span><b>Foes' turn</b></span><span>🔥 Your torch · 2 turns</span><span class="meta">Flooded hall · Scene ›</span></div></div>
+  <div class="band" style="display:flex; align-items:baseline; gap:var(--space-4); flex-wrap:wrap;"><span class="mode" style="font-family:'EB Garamond',Georgia,serif; font-size:30px; font-weight:600">Wren</span><span class="meta">Fighter 2 · Human</span><span style="margin-left:auto"><span class="sym">W</span> Weary ×1 <span class="meta">· until rest</span></span></div>
+  <div class="band two">
+    <div>
+      <div class="pc"><b>Hit points</b><div class="hp"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i class="b"></i><i class="b"></i></div><span class="meta">5 of 7 · +2 bonus (Blessing, 3 rounds)</span></div>
+      <div class="pc"><b>AC 5</b> <span class="meta">· chain, shield</span></div>
+      <div class="pc"><b>Weapons at hand</b> <span class="meta">· tap one to attack</span><div class="row"><div class="text">Short sword <span class="meta">· +1 · d6 · melee</span></div><span class="chev">›</span></div><div class="row"><div class="text">Sling <span class="meta">· +0 · d4 · missile · 20 stones</span></div><span class="chev">›</span></div></div>
+      <div class="overlay" style="margin:0 0 var(--space-2)"><div class="popup" style="max-width:none"><div style="display:flex; align-items:center; gap:var(--space-2)"><b style="flex:1">Attack · Short sword</b><span class="btn icon" aria-label="Close">✕</span></div><div style="margin:var(--space-2) 0"><span class="btn on">Bog lurker 1 · AC 6</span> <span class="btn">Bog lurker 2 · AC ?</span> <span class="btn">Acolyte · AC ?</span></div><span style="font-family:'EB Garamond',Georgia,serif; font-size:24px; font-weight:600">Roll d20 · hits on 13+</span><br><span class="meta">+1 to hit · melee · AC 6 · −1 Weary · + Modifier</span><br><span class="meta">With no foe picked: "Roll d20 +1 · tell the GM your total". Sling: the missile modifiers and range instead.</span></div></div>
+    </div>
+    <div>
+      <div class="pc"><b>Spells</b> <span class="meta">· Level 1 · 1 of 2 left</span><div class="row"><div class="text">Light <span class="meta">· 1 turn + · touch</span></div><span class="btn">Cast</span></div><div class="row"><div class="text" style="text-decoration:line-through; color:var(--muted)">Cure light wounds</div><span class="meta">cast</span></div></div>
+      <div class="pc"><b>Abilities</b><div class="row"><div class="text">Second wind <span class="meta">· once a fight</span></div><span class="btn">●○ Use</span></div></div>
+      <div class="pc"><b>At hand</b><div class="row"><div class="text">Potion of healing <span class="meta">· 1</span></div><span class="btn">Use</span></div><div class="row"><div class="text">Oil flask <span class="meta">· 2 · throw</span></div><span class="btn">Use</span></div><div class="row"><div class="text">Sling stones <span class="meta">· 20</span></div><span class="btn">Use 1</span></div><div class="row"><div class="text"><span class="btn quiet">Pack ›</span> <span class="meta">use something else</span></div></div></div>
+    </div>
+  </div>
+  <div class="band" style="display:flex; gap:var(--space-2); align-items:center; flex-wrap:wrap;"><span class="btn">End turn</span><span class="btn">Delay</span><span class="meta">Individual initiative only; in side initiative this band is absent.</span></div>
+</div>
+<p class="note">Drawn after the review (Francis, 2026-11-01). The fight's time band sits on top with a way back to Scene. Everything the player acts on is here and nowhere else. <b>An attack starts from the weapon</b> (Francis, 2026-11-01): tap a weapon at hand and its attack prompt opens <b>as a pop-up</b> (✕, a tap outside or Escape closes it at once, nothing logged, so an accidental tap costs nothing) with that attack type's modifiers (melee or missile, the weapon's bonus, statuses, range) and a row of <b>foe chips</b> with AC where revealed; tap a chip and the line reads "Roll d20 · hits on 13+" in the campaign's AC style (M6-9); no chip, "tell the GM your total"; a foe tapped on Scene pre-selects its chip. <b>Weapons at hand</b> show bonus and damage (C3); ammunition is in At hand and counted down with Use 1; <b>spells</b> with Cast (cast ones crossed out and sinking, 06), <b>abilities</b> as dots with Use, <b>At hand</b> (M4: what is in hand or pinned) with Use, and a quiet <b>Pack ›</b> to use something else. <b>No Take damage</b>: the GM records damage (⚑ B), so hit points here are read-only with the bar and the bonus band; tapping them shows the history, not a pad. <b>End turn</b> and <b>Delay</b> only in individual initiative; in side initiative the band is empty and End our turn is on Scene. Statuses in the header with their effect (B6). One accent at most: End turn on your turn. Phone: the same, one column.</p>
+
+</body>
+</html>

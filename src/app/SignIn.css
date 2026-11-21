@@ -1,0 +1,75 @@
+/* Sign-in and first-run screens: one calm column. */
+
+/* Pinned (perf fix 1, 2026-11-07): these shared rules used to come after every screen's styles, so where an element
+   also carries a screen's class setting the same property, this one won. The screens' styles now load later, in
+   their own pieces, so the pairing below keeps this rule winning whatever order they arrive in. */
+.auth,
+.auth.new-campaign {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+  max-width: 440px;
+  margin: var(--space-5) auto 0;
+}
+
+.auth p {
+  margin: 0;
+}
+
+.auth__title {
+  font-size: var(--text-sheet-title);
+}
+
+.auth__email {
+  overflow-wrap: anywhere;
+}
+
+.auth__meta {
+  font-size: var(--text-meta);
+  color: var(--muted);
+}
+
+.auth__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--gap);
+}
+
+.auth .button-primary {
+  width: 100%;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Pinned for the screens' field classes: see .auth above. */
+.field__input,
+.field__input:is(.field__textarea, .field__input--name, .field__input--short-select, .companies__select, .pack__select) {
+  width: 100%;
+  min-height: var(--tap-step);
+  padding: 0 var(--pad);
+  border: 1px solid var(--muted);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  font-size: var(--text-item);
+}
+
+.field__input--code {
+  font-size: var(--text-save);
+  letter-spacing: 0.35em;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.form-error {
+  padding: var(--gap) var(--pad);
+  border-left: 4px solid var(--warning);
+  background: var(--surface);
+  color: var(--warning);
+}
+
+

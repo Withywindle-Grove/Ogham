@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The full sheet, final draft (2026-11-09)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<style>
+  .sheetup { max-height:none; }
+  .sect { font-family:"EB Garamond", Georgia, serif; font-variant:small-caps; font-size:20px; font-weight:600; margin:var(--space-5) 0 var(--space-2); letter-spacing:.02em; }
+  .sect:first-child { margin-top:0; }
+  .tiles3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-2); }
+  .tiles5 { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:var(--space-2); }
+  .t { border:1.5px solid var(--control); border-radius:4px; background:var(--surface); padding:var(--space-2); text-align:center; display:flex; flex-direction:column; justify-content:center; gap:2px; min-height:72px; }
+  .t .n { font-size:14px; color:var(--muted); letter-spacing:.04em; text-transform:uppercase; }
+  .t .f { font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.1; }
+  .t .p { font-size:14px; color:var(--muted); line-height:1.15; }
+  .rule-line { font-size:14px; color:var(--muted); margin-top:var(--space-2); }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
+  .boxes { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+  .box { border:1.5px solid var(--control); border-radius:4px; padding:8px 12px; min-height:44px; display:flex; align-items:center; font-weight:600; }
+  .lvl { display:flex; justify-content:space-between; align-items:center; }
+  .xp { height:6px; background:var(--rule); border-radius:3px; margin-top:var(--space-2); }
+  .xp i { display:block; height:100%; width:30%; background:var(--ink); border-radius:3px; }
+  .head { display:flex; gap:var(--space-3); align-items:center; }
+  .head .av { width:56px; height:56px; border-radius:50%; border:1.5px solid var(--control); display:flex; align-items:center; justify-content:center; font-family:"EB Garamond", Georgia, serif; font-size:24px; color:var(--accent); }
+  .head .who { line-height:1.3; }
+  .head .who b { font-size:18px; }
+  /* details looks */
+  .dA dl { display:grid; grid-template-columns:max-content 1fr; gap:var(--space-1) var(--space-4); margin:0; }
+  .dA dt { color:var(--muted); font-size:14px; padding-top:3px; }
+  .dA dd { margin:0; font-family:"EB Garamond", Georgia, serif; font-size:18px; }
+  .dB p { margin:0 0 var(--space-2); font-family:"EB Garamond", Georgia, serif; font-size:18px; line-height:1.45; }
+  .dB p span { font-variant:small-caps; color:var(--muted); font-family:"EB Garamond", Georgia, serif; font-size:16px; margin-right:6px; }
+  .dC { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--space-2); }
+  .dC .c { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-2) var(--space-3); background:var(--surface); }
+  .dC .c small { display:block; color:var(--muted); font-size:14px; }
+  .dC .c span { font-family:"EB Garamond", Georgia, serif; font-size:18px; }
+  .story { font-family:"EB Garamond", Georgia, serif; font-size:18px; line-height:1.5; margin:0; }
+  .story::first-letter { font-size:2.2em; float:left; line-height:.8; padding-right:6px; }
+  .two .row .v { white-space:nowrap; }
+  .two .row .k { flex:1; min-width:0; }
+  .loadbar { position:relative; height:10px; border:1.5px solid var(--control); border-radius:3px; margin:var(--space-2) 0 var(--space-1); background:var(--page); }
+  .loadbar i { display:block; height:100%; background:var(--ink); border-radius:2px 0 0 2px; }
+  .loadbar b { position:absolute; top:-3px; bottom:-3px; width:1.5px; background:var(--control); }
+  .ltile { display:flex; justify-content:space-between; align-items:center; border:1.5px solid var(--control); border-radius:4px; background:var(--surface); padding:var(--space-2) var(--space-3); min-height:44px; margin-bottom:var(--space-2); }
+  .ltile b { font-family:'EB Garamond', Georgia, serif; font-size:18px; font-weight:600; }
+  .rows { display:grid; grid-template-columns:1fr; }
+  .srow { display:flex; justify-content:space-between; align-items:baseline; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .srow .nm { font-size:16px; }
+  .srow .fg { font-family:'EB Garamond', Georgia, serif; font-size:22px; font-weight:600; white-space:nowrap; }
+  .srow .fg.word { font-size:18px; }
+  .pips { display:flex; gap:4px; margin-top:var(--space-2); }
+  .pips span { flex:1; height:8px; background:var(--ink); border-radius:2px; }
+  .led { display:grid; grid-template-columns:max-content 1fr; column-gap:var(--space-4); }
+  .led > div { padding:var(--space-2) 0; }
+  .led .k { color:var(--muted); font-size:14px; padding-top:calc(var(--space-2) + 3px); border-bottom:1px dotted var(--rule); }
+  .led .v { font-family:"EB Garamond", Georgia, serif; font-size:18px; border-bottom:1px dotted var(--rule); }
+  .led .g { grid-column:1 / -1; font-size:14px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; padding:var(--space-3) 0 var(--space-1); border-bottom:1px solid var(--rule); }
+  .mv { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
+  .mv .card { margin:0; display:flex; flex-direction:column; }
+  .mv .big { font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.1; }
+  .pending { border:1.5px solid var(--warn); border-radius:4px; padding:var(--space-2) var(--space-3); background:var(--surface); display:flex; gap:var(--space-2); align-items:center; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script>
+const srow = (n, f, word=false) => `<div class="srow" role="button"><span class="nm">${n}</span><span class="fg${word?' word':''}">${f}</span></div>`;
+const tile = (n, f, p, word=false) => `<div class="t" role="button"><span class="n">${n}</span><span class="f"${word?' style="font-size:16px"':''}>${f}</span>${p?`<span class="p">${p}</span>`:''}</div>`;
+
+const leftCol = `
+  <div class="head"><span class="av" role="button" aria-label="Change the portrait">D</span><div class="who"><b>Dorgunth Ironford</b><br><span class="meta">Veteran, Fighter 1, Half-Orc</span></div></div>
+  <div class="card" style="margin-top:var(--space-4)">
+    <div class="meta" style="letter-spacing:.06em;text-transform:uppercase;font-size:14px">Hit points</div>
+    <div class="kv" style="margin-top:var(--space-2)"><div><span style="font-family:'EB Garamond',Georgia,serif;font-size:48px;font-weight:600;line-height:1">8</span> <span class="meta">of 8</span></div><div style="display:flex;gap:var(--space-2)"><span class="btn sq" style="min-width:56px;min-height:56px">−</span><span class="btn sq" style="min-width:56px;min-height:56px">+</span></div></div>
+    <div class="pips">${Array.from({length:8},()=>'<span></span>').join('')}</div>
+  </div>
+  <div class="tiles3" style="grid-template-columns:1fr 1fr;margin-top:var(--space-3)">${tile('AC','15','−1 from Nimbleness')}${tile('Attack','+0','melee +2, missile −1')}</div>
+  <div class="meta" style="margin-top:var(--space-2)">Tap a figure for where it comes from</div>`;
+
+const rightCol = `
+  <div class="kv"><h2 style="margin:0">Full character sheet</h2><span class="btn">Edit</span></div>
+  <div class="lvl" style="margin-top:var(--space-4)"><div><b>Level 1</b><div class="meta">600 of 2,000 experience</div></div>${I.chev}</div>
+  <div class="xp"><i></i></div>
+
+  <div class="sect">Saves</div>
+  <div class="tiles5">${tile('Death','12')}${tile('Wands','13')}${tile('Paralysis','14')}${tile('Breath','15')}${tile('Spells','16')}</div>
+  <div class="rule-line">Roll d20, equal or over the number.</div>
+
+  <div class="sect">Scores</div>
+  <div class="tiles3">${tile('Strength','16','+2')}${tile('Intelligence','8','−1')}${tile('Wisdom','9','+0')}${tile('Dexterity','8','−1')}${tile('Constitution','16','+2')}${tile('Charisma','7','−1')}</div>
+  <div class="meta" style="margin-top:var(--space-2)">Tap a score to see everything it modifies</div>
+
+  <div class="sect">Movement</div>
+  <div class="mv">
+    <div class="card"><div class="big">120 ft a turn</div><div class="list" style="margin-top:var(--space-2)">${kvRow('In a fight','40 ft')}${kvRow('Running','120 ft')}</div></div>
+    <div class="card"><div class="big">Unencumbered</div><div class="loadbar"><i style="width:40%"></i><b style="left:50%"></b><b style="left:75%"></b></div><div class="meta">640 of 1,600 coins</div><div class="meta" style="margin-top:auto">Tap for the tiers</div></div>
+  </div>
+
+  <div class="sect">Languages</div>
+  <div class="boxes"><span class="box" role="button">Common</span><span class="box" role="button">Orcish</span><span class="box" role="button">Alignment tongue</span></div>
+  <div class="meta" style="margin-top:var(--space-2)">Literacy: reads and writes the languages above.</div>
+
+  <div class="sect">Skills</div>
+  <div class="rows">${srow('Listen at doors','1-in-6')}${srow('Open stuck doors','2-in-6')}${srow('Find secret doors','1-in-6')}${srow('Find room traps','1-in-6')}${srow('Forage','1-in-6')}${srow('Hunt','1-in-6')}</div>
+
+  <div class="sect">Abilities</div>
+  <div class="rows">${srow('Slayer','Orcs',true)}${srow('Experience bonus','+10 %')}${srow('Secondary skill','Fisher',true)}</div>
+
+  <div class="sect">Traits</div>
+  <div class="rows">${srow('Infravision','60 ft')}${srow('Alignment','Neutral',true)}</div>
+  <div class="meta" style="margin-top:var(--space-2)">Tap a row for the full rule</div>
+
+  <div class="sect">Details and backstory</div>
+  <div class="led">
+    <div class="g" style="padding-top:0">Looks</div>
+    <div class="k">Tusks and scars</div><div class="v">Long tusks that show when silent</div>
+    <div class="k">Head</div><div class="v">A scar across the scalp</div>
+    <div class="k">Face</div><div class="v">War-paint stripes</div>
+    <div class="k">Dress</div><div class="v">A belt hung with trophies</div>
+    <div class="g">Manner</div>
+    <div class="k">Speech</div><div class="v">Stammers when angry</div>
+    <div class="k">Demeanour</div><div class="v">Brooding</div>
+    <div class="k">Desires</div><div class="v">A home with a door that locks</div>
+    <div class="k">Beliefs</div><div class="v">Kindness is the hardest strength</div>
+  </div>
+  <p class="story" style="margin-top:var(--space-3)">Dorgunth came down from the hill forts after the long winter, when the clan's fires went out one by one. He carries his father's axe and a debt he does not speak of.</p>
+  <div class="kv" style="margin-top:var(--space-3)"><span class="btn">Notes</span><span class="meta">3 notes, last one today</span></div>`;
+
+const sheetView = tablet(`
+  ${bar('Dorgunth Ironford')}
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:var(--space-5);padding:var(--space-4)">
+    <div>${leftCol}</div>
+    <div>${rightCol}</div>
+  </div>`, 'The full sheet with every ruling to 2026-11-09: full save and score names, the one-sentence rule, Movement with the fight and running figures beside the load card (same height, tap for the tiers), language boxes, Skills / Abilities / Traits as rows, the Details ledger with the pack\u2019s groups and dotted rules, Notes.');
+
+mount(`
+  <h1>The full sheet, final draft (2026-11-09)</h1>
+  <p class="note">Francis asked for the whole page with today\u2019s changes in one place: full names on save and score tiles; "Tap a score to see everything it modifies"; the saves\u2019 rule as one sentence; Movement with real figures and the load card beside it (tap opens the tiers, nothing stretches); the Details ledger B (dotted rules, group headings); the earlier sheet rulings unchanged. Supersedes the sheet frame in players/05 (its Edit, waiting and sheet frames stand).</p>
+  ${sheetView}
+  <p class="note">Self-review: full names fit the tablet tiles on one line ("Constitution" at 14 px caps is about 110 px in a 200 px tile); the two Movement cards share a height; one accent (none: Edit is plain); rows 44 px; the ledger\u2019s rules are the row-rule token. Not checked: a phone, where the score tiles are three across at about 105 px and "Intelligence" wraps to two lines (acceptable); a pack with more than five saves.</p>
+`);
+</script>
+</body>
+</html>

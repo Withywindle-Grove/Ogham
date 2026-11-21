@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>At hand: actions and weapon modes (2026-11-08)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<style>
+  .sheetup { max-height:none; }
+  .sect { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:var(--space-4) 0 var(--space-2); border-bottom:2px double var(--rule); padding-bottom:4px; }
+  .ah { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-3); padding:var(--space-3) 0; border-bottom:1px dotted var(--rule); }
+  .ah .txt { min-width:0; flex:1; }
+  .ah .nm { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; }
+  .ah .sub { font-size:14px; color:var(--muted); margin-top:2px; }
+  .ah .acts { display:flex; gap:var(--space-2); flex:none; }
+  .star { color:var(--ink); font-size:14px; margin-right:4px; }
+  .modes .card { margin-bottom:var(--space-2); }
+  .mline { display:flex; justify-content:space-between; gap:var(--space-3); padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .mline:last-child { border-bottom:0; }
+  .block { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); background:var(--surface); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script>
+const row = (nm, sub, acts) => `<div class="ah"><div class="txt"><div class="nm"><span class="star">★</span>${nm}</div><div class="sub">${sub}</div></div><div class="acts">${acts}</div></div>`;
+const b = (t, cls='') => `<span class="btn${cls?' '+cls:''}">${t}</span>`;
+
+const pack = phone(`
+  ${bar('Dorgunth Ironford’s pack')}
+  <div class="inner">
+    <div class="sect">At hand, 5 items</div>
+    ${row('Short bow', 'In hand, 1d6, Quiver: Arrows ×18', b('Quiver') + b('Attack'))}
+    ${row('Spear', 'In hand, 1d6, Grip: Melee', b('Grip') + b('Attack'))}
+    ${row('Hand axe', 'Carried, 1d6', b('Wield'))}
+    ${row('Lantern', 'In hand, 30 coins', b('Light'))}
+    ${row('Moss draught', '5 coins, 2 left', b('Drink'))}
+    <div class="sect">Worn and in hand, 2 items</div>
+    ${kvRow('Plate mail', 'Worn, 500 coins', { chev: true })}
+  </div>`, 'At hand on the Pack: one action per row, the state deciding which (Wield on a weapon not in hand, Attack once it is); a weapon with modes carries a mode button beside its action, named by the pack ("Quiver" for the bow, "Grip" for the spear; "Stance" on the short list); the sub-line says the mode in use and what it draws from.');
+
+const quiver = phone(`
+  ${bar('Dorgunth Ironford’s pack')}
+  <div class="inner" style="min-height:760px"></div>
+  ${sheet('Quiver', `
+    <div class="inner modes">
+      <p class="meta" style="margin-top:0">What the short bow fires. Each shot uses one.</p>
+      ${pick('Arrows', 'Arrows ×18, 1d6, the usual', 'picked')}
+      ${pick('Silver arrows', 'Silver arrows ×4, 1d6, counts as silver', 'pick')}
+      ${pick('Fire arrows', 'Fire arrows ×2, 1d6 and burning, lights a target', 'pick')}
+      <p class="meta" style="margin-bottom:0">Out of a kind: it leaves the quiver and the pack.</p>
+    </div>`)}`, 'The Quiver sheet: the arrow stacks in the pack as pick rows with count, damage and what each changes; the one in use is Picked. The bow’s Attack then uses that mode’s figures and rules.');
+
+const attack = phone(`
+  ${bar('Dorgunth Ironford’s pack')}
+  <div class="inner" style="min-height:760px"></div>
+  ${sheet('Short bow', `
+    <div class="inner">
+      <div class="block">
+        <div class="mline"><span>To hit</span><b>+1</b></div>
+        <div class="meta">Fighter 1: +1. Nimbleness 8: −1. Silver arrows: +0. Missile, short range: +1.</div>
+        <div class="mline" style="margin-top:var(--space-2)"><span>Damage</span><b>1d6</b></div>
+        <div class="meta">Short bow: 1d6. Muscle does not add to missiles. Silver: counts as a silver weapon.</div>
+      </div>
+      <p><b>Rules that bear:</b> two-handed; ranges 50 / 100 / 150 ft (+1 / +0 / −1); no shot into melee without the GM’s say.</p>
+      <p><b>Inflicts:</b> nothing (fire arrows: Burning, 1d4 a round until put out).</p>
+      <p class="meta">Rolling the attack here comes with the fight rules, later. Roll at the table; one shot uses one silver arrow (4 left).</p>
+      <span class="btn wide">Fire one, 3 left after</span>
+    </div>`)}`, 'Attack on the bow (ah-1): a sheet, not a roll: to-hit and damage with every part and its source (the mode’s parts included), the rules that bear, what it inflicts, the line about the fight rules, and the spend of the mode’s use ("Fire one"). The caption text here is invented.');
+
+const spear = phone(`
+  ${bar('Dorgunth Ironford’s pack')}
+  <div class="inner" style="min-height:760px"></div>
+  ${sheet('Grip', `
+    <div class="inner modes">
+      <p class="meta" style="margin-top:0">How the spear is held.</p>
+      ${pick('Melee', '1d6, one-handed; with a shield', 'picked')}
+      ${pick('Thrown', '1d6, missile, 20 / 40 / 60 ft; the spear leaves your hand', 'pick')}
+    </div>`)}`, 'A weapon with modes and no stack: the spear’s Grip sheet, melee or thrown; thrown is a use that moves the spear out of hand (the Pack says where it lies: "Thrown; on the ground").');
+
+const empty = phone(`
+  ${bar('Dorgunth Ironford’s pack')}
+  <div class="inner">
+    <div class="sect">At hand, 5 items</div>
+    ${row('Short bow', 'In hand, 1d6, Quiver: nothing chosen', b('Quiver') + b('Attack'))}
+    <div class="meta" style="margin-top:var(--space-3)">After the last silver arrow: the mode disengages; Attack is still a button, and its tap says why nothing happens.</div>
+  </div>
+  <div class="dim"></div>
+  <div class="sheetup"><div class="head"><span class="title">No arrows chosen</span><span class="btn sq" style="border:0;background:transparent">${I.close}</span></div><div class="inner"><p style="margin-top:0">The silver arrows are used up. Choose what the bow fires next.</p><span class="btn accent wide">Open the quiver</span></div></div>`, 'All uses gone (ah-3): the sub-line says "Quiver: nothing chosen", Attack stays tappable and explains (never greyed), and offers the quiver. The empty stack has left the pack (the log keeps it).');
+
+const player = phone(`
+  ${bar('Dorgunth Ironford')}
+  <div class="inner">
+    <div class="sect">At hand</div>
+    ${row('Short bow', 'In hand, +1, 1d6, Arrows ×18', b('Quiver') + b('Attack'))}
+    ${row('Spear', 'In hand, +2, 1d6, Grip: Melee', b('Grip') + b('Attack'))}
+    ${row('Lantern', 'In hand, 4 turns left', b('Put out'))}
+  </div>`, 'The Player screen’s At hand: the same rows, in-hand and charged items with their action even unstarred (ruled 2026-11-08); a mode button where the weapon has modes.');
+
+mount(`
+  <h1>At hand: actions and weapon modes</h1>
+  <p class="note">Francis, 2026-11-08, the At hand session (ruling <code>m5b-at-hand-actions-2026-11-08.md</code>): three kinds of action (state: Wield / Stow, Light / Put out; spend: Fire, Drink, Eat, Use a charge, Use; roll: Attack, a sheet until M6). A weapon with modes gets a mode button beside its action, named by the pack from a short list ("Quiver", "Grip", "Stance"; Grip the default without a stack); the chosen mode feeds the action; a mode with limited uses counts down by itself and disengages when spent; the action is then blocked until a new mode is chosen. Recovering ammunition after an encounter is parked for M6 (GM side).</p>
+  <div class="wall">${pack}${quiver}${attack}${spear}${empty}${player}</div>
+  <p class="note">Self-review: two buttons per row at most (Mode + action), 44 px, 8 px between; the row’s text is the tap to the item’s sheet (pin, drop, give); no accent on the Pack’s rows (Add item keeps it); a blocked Attack explains in a sheet, never greys; counts and words on every state; long names wrap under the buttons. Not checked: a weapon with both a stack and a stance (a sling with stones and… none in the packs);  how the Scene’s fight view (M6) reads the mode; the Log line for a mode change ("Short bow: silver arrows").</p>
+`);
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+#!/bin/sh
+# Runs before every commit (installed with: npm run hooks:install). See docs/testing.md, "Git hooks".
+# 1. The real-names scan: stops the commit if a staged file contains a name from the private denylist. Always runs.
+# 2. A docs-only commit (scripts/docs-only.mjs says which paths count) runs only the docs check; any other commit
+#    runs the full check (types, lint, tests, docs check, build). Either failing stops the commit.
+node scripts/check-names.mjs || exit 1
+if [ "$(node scripts/docs-only.mjs --staged)" = "docs" ]; then
+  echo "Docs-only commit: running the docs check only (scripts/docs-only.mjs)."
+  npm run docs:check || { echo "Nothing was committed: npm run docs:check failed. Fix what it names above, then commit again."; exit 1; }
+else
+  npm run check || { echo "Nothing was committed: npm run check failed. Fix what it names above, then commit again."; exit 1; }
+fi

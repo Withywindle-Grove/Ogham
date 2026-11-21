@@ -1,0 +1,16 @@
+# Manual checks: m5b-skill-text
+
+R3-13 from Francis's Player-screen test: a skill's sheet shows the pack's words on the skill. Use the pull request's Vercel preview (test project), signed in as a player with an approved character in a campaign whose setting pack is loaded.
+
+1. [ ] Phone (375 px), Player screen: tap a skill everyone has whose rules set skill has `notes` (for example Listen or Search in either setting). The sheet shows the odds, the breakdown lines, then the setting's words on the skill as a normal paragraph. "Your setting doesn't describe what this skill does…" is **not** there.
+2. [ ] Same sheet: the breakdown's first line reads "Base chance for everyone: 1-in-6." (the number in the skill's own style, "5+" for a skill rolled at or over), not "The rules: 1.". For a class with its own number, the next line reads like "A Hunter at level 1: 5-in-6." (the class name and level as the pack names them).
+3. [ ] A character whose class has its own skills (a class `skills.names` entry): tap one. If the rebuilt pack gives the class a `skills.notes` map, its words show; if the pack is not yet rebuilt (its `skills.notes` is one line), that line does **not** show, and the sheet ends with "Your setting doesn't describe what this skill does. Ask your GM how it works at your table."
+4. [ ] For a class whose pack gives `skills.note` (or, before the rebuild, a one-string `skills.notes`): the Player screen's Skills shows that line once, muted, right under the Skills heading; open the full sheet's Skills fold: the same line at its top. A class with neither shows no such line.
+5. [ ] Open the full character sheet (or the sheet beside the Player screen on a landscape tablet) and tap the same skills: the same words as on the Player screen.
+6. [ ] Full sheet → Movement: for a character whose kindred has no speed of its own, the line reads "Speed 120: the base speed for everyone in your setting." (the number as the setting gives it).
+7. [ ] Pack test (classic-advanced): a character whose kit gave torches from a bundle shows the backpack row as "Torch ×3" (capital T), as every other row. On the Gear step the kit's row also reads "Torch ×3". An item saved earlier as "torch" shows "Torch" too; nothing about it changes in the database.
+8. [ ] Optional, on the PC: `npm run pack:check -- packs/<a setting>.json` lists no new `skills.notes` lines for a class whose `skills.notes` is one string (the older form).
+
+Gallery pictures expected to change: none. The committed baselines (`tests/layout/gallery-baselines/`) were checked: the gallery's Skills specimens (`Gallery.tsx` "Skills (two columns…)", `PlayersStandardSpecimens.tsx` "List rows…") draw fixed rows, none with a class line, so none is altered or removed. The gallery's skill-sheet specimen (`PlayersStandardSpecimens.tsx`, "Slip through reeds") draws its own fixed lines with the fallback ending, which is still a valid state; no gallery specimen draws a skill breakdown or a speed line from the code that changed.
+
+Known stale text, for the designer: `docs/testing.md` (around lines 547 and 587) still quotes "The rules: …" and "The rules: 6." in the gate list; the screen now reads "Base chance for everyone: …" ("Base chance for everyone: 6+." for Hark). Only the designer edits those numbered lines.

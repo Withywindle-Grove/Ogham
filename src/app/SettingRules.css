@@ -1,0 +1,190 @@
+/* GM: Campaign → Setting rules (the packs this campaign uses). */
+
+.setting-rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+  padding-bottom: var(--pad);
+}
+
+.setting-rules__pack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--pad) 0;
+  border-bottom: 1px dotted var(--row-rule);
+}
+
+.setting-rules__name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.setting-rules__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.setting-rules__options,
+.setting-rules__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+  padding: var(--space-4) var(--space-4);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--sheet);
+}
+
+.setting-rules__confirm p {
+  margin: 0;
+}
+
+.setting-rules__add {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.setting-rules__add p {
+  margin: 0;
+}
+
+.setting-rules__library {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.setting-rules__library-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap) var(--pad);
+  padding: var(--space-2) 0;
+  border-bottom: 1px dotted var(--row-rule);
+}
+
+.setting-rules__library-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-rules__update {
+  display: inline-flex;
+}
+
+/* The real file input stays reachable for screen readers and keyboards, but out of sight. */
+.setting-rules__file {
+  /* The label opens it; the 1px input itself must never catch a tap meant for a button beside it. */
+  pointer-events: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.setting-rules__file-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.setting-rules__actions:has(.setting-rules__file:focus-visible) .setting-rules__file-button,
+.setting-rules__update:has(.setting-rules__file:focus-visible) .setting-rules__file-button {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.setting-rules__back {
+  align-self: flex-start;
+}
+
+/* A pack's name, with ↑ ↓ to move it in the stack. */
+.setting-rules__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pad);
+}
+
+.setting-rules__move {
+  display: flex;
+  gap: var(--gap);
+}
+
+.setting-rules__arrow {
+  min-width: var(--tap);
+  padding: 0;
+}
+
+.setting-rules__layout {
+  margin: 0;
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* The homebrew opened: its entries, the campaign's character fields (read only) and sheet layouts to use. */
+.setting-rules__homebrew {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: var(--space-4) var(--space-4);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet);
+}
+
+.setting-rules__homebrew p,
+.setting-rules__homebrew h3 {
+  margin: 0;
+}
+
+.setting-rules__entries {
+  margin: 0;
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* A homebrew entry in "What's in it": tap to edit it. */
+.setting-rules__entry {
+  min-height: var(--tap);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Optional rules, read-only here (chosen in Rules for this campaign, ruled 2026-10-26). */
+.setting-rules__option-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Close (tf-8) at the top right of the optional-rules panel. */
+.setting-rules__options {
+  position: relative;
+  padding-inline-end: calc(var(--tap) + var(--space-2));
+}
+
+.setting-rules__options-close {
+  position: absolute;
+  inset-block-start: var(--space-1);
+  inset-inline-end: var(--space-1);
+}

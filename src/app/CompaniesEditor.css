@@ -1,0 +1,23 @@
+/* GM: Campaign → Companies. */
+
+.companies {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+}
+
+.companies__row {
+  align-items: center;
+}
+
+.companies__select {
+  width: auto;
+  min-width: 12rem;
+  max-width: 100%;
+}
+
+.companies__form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+}

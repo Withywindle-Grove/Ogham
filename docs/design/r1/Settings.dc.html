@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Campaign settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:14px 18px 8px">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600;line-height:1.05">Settings</div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 12px">
+
+<div style="{{S.group}}">This device</div>
+<div style="{{S.row}}"><span style="flex:1">Theme</span>
+<div role="group" aria-label="Theme" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px"><button onClick="{{setLight}}" aria-pressed="{{isLight}}" style="{{lightBtn}}">Light</button><button onClick="{{setDark}}" aria-pressed="{{isDark}}" style="{{darkBtn}}">Dark</button></div></div>
+<div style="{{S.row}}"><span style="flex:1">Text size</span><span style="color:{{c.mut}}">Large ›</span></div>
+
+<div style="{{S.group}}">Rules</div>
+<a href="Setup.dc.html" style="{{S.link}}"><span style="flex:1">Optional rules</span><span style="color:{{c.mut}}">River Rules · 2 changed ›</span></a>
+<div style="{{S.row}}"><span style="flex:1;display:flex;flex-direction:column"><span>Encumbrance</span><span style="font-size:13px;color:{{c.warn}}">Changing it later asks players to re-check loads</span></span><span style="color:{{c.mut}}">Armour ›</span></div>
+<div style="{{S.row}}"><span style="flex:1">Round and turn</span><span style="color:{{c.mut}}">10 s · 10 min ›</span></div>
+<div style="{{S.row}}"><span style="flex:1">Initiative</span>
+<div role="group" aria-label="Initiative" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px"><button onClick="{{setSide}}" aria-pressed="{{isSide}}" style="{{sideBtn}}">By side</button><button onClick="{{setInd}}" aria-pressed="{{isInd}}" style="{{indBtn}}">Each</button></div></div>
+<sc-if value="{{isInd}}" hint-placeholder-val="{{ false }}"><div style="{{S.row}}"><span style="flex:1;font-size:15px;color:{{c.mut}}">Each rolls: high first, GM breaks ties</span><span style="color:{{c.mut}}">›</span></div></sc-if>
+<div style="{{S.row}}"><span style="flex:1">Level-up for new characters</span><span style="color:{{c.mut}}">Automatic ›</span></div>
+
+<div style="{{S.group}}">During play</div>
+<sc-for list="{{toggles}}" as="t" hint-placeholder-count="4">
+<div style="{{S.row}}"><span style="flex:1;display:flex;flex-direction:column"><span>{{t.name}}</span><span style="font-size:13px;color:{{c.mut}}">{{t.note}}</span></span><button onClick="{{t.toggle}}" role="switch" aria-checked="{{t.on}}" aria-label="{{t.name}}" style="{{t.sw}}"><span style="{{t.knob}}"></span></button></div>
+</sc-for>
+
+<div style="{{S.group}}">People</div>
+<div style="{{S.row}}"><span style="flex:1">Members</span><span style="color:{{c.mut}}">4 players ›</span></div>
+<div style="{{S.row}}"><span style="flex:1">Titles and powers</span><span style="color:{{c.mut}}">Treasurer, Scout ›</span></div>
+<div style="{{S.row}}"><span style="flex:1">Invite a player</span><span style="color:{{c.mut}}">›</span></div>
+
+<div style="{{S.group}}">Data</div>
+<div style="{{S.row}}"><span style="flex:1">Setting rules in this campaign</span><span style="color:{{c.mut}}">1 ›</span></div>
+<div style="{{S.row}}"><span style="flex:1">Export everything (JSON)</span><span style="color:{{c.mut}}">›</span></div>
+<div style="{{S.row}}"><span style="flex:1">Weekly backup</span><span style="color:{{c.mut}}">Last: Sunday ›</span></div>
+<div style="font-size:13px;color:{{c.mut}};line-height:1.4;padding-top:10px">Players see only “This device” and their own options. Every change here is logged.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { dark: null, init: 'side', on: { tables: true, disposition: false, refill: false, quiet: true } };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = s.dark ?? (this.props.dark ?? false);
+    const c = dark
+      ? { bg: '#12100D', surf: '#1C1915', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', warn: '#E6BA66', onAcc: '#12100D' }
+      : { bg: '#FBF8F1', surf: '#F3EEE3', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', warn: '#7A4A00', onAcc: '#FBF8F1' };
+    const G = "'EB Garamond',Georgia,serif";
+    const seg = (on) => 'min-height:44px;min-width:76px;padding:0 10px;border-radius:4px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : c.ink) + ';font-family:inherit;font-size:15px;font-weight:700;cursor:pointer';
+    const T = [['tables', 'Encounter tables', 'GM tool, from your setting'], ['disposition', 'Monster disposition', 'GM tool, from your setting'], ['refill', 'Refill lanterns automatically', 'Off: the carrier gets a one-tap refill'], ['quiet', 'Quiet mode during sessions', 'Holds alerts, keeps screens awake']];
+    const toggles = T.map((t) => {
+      const on = !!s.on[t[0]];
+      return { name: t[1], note: t[2], on: on,
+        sw: 'width:56px;height:32px;flex:none;border-radius:16px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : c.surf) + ';position:relative;cursor:pointer;padding:0',
+        knob: 'position:absolute;top:3px;left:' + (on ? 27 : 3) + 'px;width:24px;height:24px;border-radius:12px;background:' + (on ? c.onAcc : c.mut),
+        toggle: () => this.setState({ on: Object.assign({}, s.on, { [t[0]]: !on }) }) };
+    });
+    const rowBase = 'display:flex;align-items:center;gap:10px;min-height:56px;border-bottom:1px dotted ' + c.rule;
+    return {
+      c: c, toggles: toggles,
+      isDark: dark, isLight: !dark, lightBtn: seg(!dark), darkBtn: seg(dark),
+      setLight: () => this.setState({ dark: false }), setDark: () => this.setState({ dark: true }),
+      isSide: s.init === 'side', isInd: s.init === 'ind', sideBtn: seg(s.init === 'side'), indBtn: seg(s.init === 'ind'),
+      setSide: () => this.setState({ init: 'side' }), setInd: () => this.setState({ init: 'ind' }),
+      S: {
+        group: 'border-top:3px double ' + c.rule + ';margin-top:10px;padding-top:10px;font-family:' + G + ';font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:' + c.mut,
+        row: rowBase,
+        link: rowBase + ';color:inherit;text-decoration:none'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

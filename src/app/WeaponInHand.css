@@ -1,0 +1,106 @@
+/* The weapon in hand (dec-13 C14; frames P1 and P2 of december/14, ps-9): its own block above At hand, the name and
+   its line at the left, the row's buttons at the right (C6 makes them the stacked button), the two roll lines under. */
+
+/* No double rule over the block (P1 draws none): its own edge sets it apart. */
+.pack--in-hand .pack__group {
+  border-top: none;
+  padding-top: 0;
+}
+
+.pack__item.weapon-in-hand {
+  border: var(--line-control) solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  padding: var(--space-2) var(--space-3);
+}
+
+.weapon-in-hand__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+/* The name and its line: one tap that opens the item's sheet, as an At hand row's body does. */
+.weapon-in-hand .pack__row-main {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: var(--space-1) 0;
+  min-width: 0;
+}
+
+.weapon-in-hand .pack__name {
+  font-size: var(--text-20);
+  font-weight: var(--weight-book-name);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* The row's buttons, at the right of the name; two of them take their own line under it, at the right (P1: Grip and
+   Attack). The place C6's stacked buttons go. */
+.weapon-in-hand__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.weapon-in-hand__actions:has(> :nth-child(2)) {
+  grid-column: 1 / -1;
+}
+
+.weapon-in-hand__rolls {
+  padding-top: var(--space-1);
+}
+
+.weapon-in-hand__roll-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-20);
+}
+
+.weapon-in-hand__roll {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.weapon-in-hand__figure {
+  font-weight: var(--weight-book-name);
+}
+
+.weapon-in-hand__label {
+  font-size: var(--text-14);
+  color: var(--muted);
+}
+
+.weapon-in-hand__note {
+  margin: var(--space-1) 0 0;
+}
+
+/* The roll lines' short variant (`RollFigures`; frame P1's At hand row for a weapon not in hand): the glyph and the
+   figure, side by side, muted as the row's line is. The die takes its colour from the words beside it. */
+.roll-figures {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-4);
+}
+
+.roll-figures__roll {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* The star and the rolls on one centred line (P1: "★ d20 +0  d6"). */
+.pack__sub--rolls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}

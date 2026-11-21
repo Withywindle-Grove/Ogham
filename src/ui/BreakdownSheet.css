@@ -1,0 +1,36 @@
+/* The breakdown sheet (plan m5b-players-screens-standard B; plan dec-player-figure-sheet, mockup 14 frames P7, P7b):
+   the figure in bold, the roll's line, "Modifiers", the parts, the rule's lines and the source line, 12 px apart. */
+.breakdown-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.breakdown-sheet p {
+  margin: 0;
+}
+
+.breakdown-sheet__figure {
+  font-weight: 700;
+}
+
+/* "Modifiers" (sv-2a): a quiet heading over what a score changes, the lines 4 px under it and 4 px apart. */
+.breakdown-sheet__modifiers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.breakdown-sheet__heading {
+  margin: 0;
+  font-size: var(--text-14);
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* The rule's lines on the sheet itself (sv-2): no heading, set apart from what is above by the sheet's own gap. */
+.breakdown-sheet__rule {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

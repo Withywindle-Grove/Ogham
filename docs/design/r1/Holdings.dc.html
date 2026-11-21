@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Holdings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:14px 18px 8px">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600;line-height:1.05">Holdings</div>
+</div>
+<div role="group" aria-label="Show" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:0 18px 8px">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="4"><button onClick="{{f.go}}" aria-pressed="{{f.on}}" style="{{f.style}}">{{f.name}}</button></sc-for>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 12px">
+<sc-for list="{{items}}" as="h" hint-placeholder-count="3">
+<div style="border-top:3px double {{c.rule}};padding:8px 0">
+<button onClick="{{h.toggle}}" aria-expanded="{{h.open}}" style="width:100%;min-height:60px;display:flex;justify-content:space-between;align-items:center;gap:10px;border:none;background:transparent;color:inherit;font-family:inherit;text-align:left;padding:0;cursor:pointer">
+<span style="display:flex;flex-direction:column"><span style="font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">{{h.name}}</span><span style="font-size:14px;color:{{c.mut}}">{{h.kind}} · {{h.owner}}</span></span>
+<span style="font-size:14px;color:{{h.statusColor}}">{{h.status}}</span>
+</button>
+<sc-if value="{{h.open}}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{h.fields}}" as="f" hint-placeholder-count="4"><div style="display:flex;justify-content:space-between;gap:12px;min-height:40px;align-items:center;border-bottom:1px dotted {{c.rule}}"><span style="color:{{c.mut}}">{{f.k}}</span><span style="text-align:right">{{f.v}}</span></div></sc-for>
+<div style="font-size:15px;line-height:1.45;padding-top:6px">{{h.notes}}</div>
+<div style="display:flex;gap:8px;padding-top:8px"><button style="{{S.small}}">Edit</button><button style="{{S.small}}">Add a note</button></div>
+</sc-if>
+</div>
+</sc-for>
+<button style="width:100%;min-height:50px;margin-top:10px;border-radius:4px;border:1px dashed {{c.rule}};background:transparent;color:{{c.mut}};font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600">+ Add a holding, group or project</button>
+<div style="font-size:13px;color:{{c.mut}};line-height:1.4;padding-top:10px">Upkeep shows under Due in the Treasury. Staff, income and progress clocks come later.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { filter: 'all', open: 'mill' };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', warn: '#E6BA66', onAcc: '#12100D' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', warn: '#7A4A00', onAcc: '#FBF8F1' };
+    const seg = (on) => 'min-height:44px;border-radius:4px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : c.ink) + ';font-family:inherit;font-size:13px;font-weight:700;cursor:pointer';
+    const D = [
+      { id: 'mill', kind: 'Holding', name: 'The old reed mill', owner: 'the company', status: 'Being repaired', statusColor: c.warn,
+        fields: [{ k: 'Where', v: 'Reedmouth, east bank' }, { k: 'Upkeep', v: '10 gp a month' }, { k: 'People', v: 'Hob (caretaker)' }], notes: 'Bought for 400 gp in session 7. The wheel needs a new axle.' },
+      { id: 'guild', kind: 'Group', name: 'Lamplighters’ guild', owner: 'Wren (member)', status: 'Friendly', statusColor: c.mut,
+        fields: [{ k: 'Where', v: 'Reedmouth' }, { k: 'Dues', v: '2 gp a month' }, { k: 'People', v: 'Wren, Master Oril' }], notes: 'Will share old maps of the fens for a favour.' },
+      { id: 'bell', kind: 'Project', name: 'Raise the drowned bell', owner: 'the company', status: 'Planning', statusColor: c.mut,
+        fields: [{ k: 'Where', v: 'Drowned chapel' }, { k: 'Cost so far', v: '0 gp' }, { k: 'People', v: 'Whole party' }], notes: 'Needs a boat, rope and a diver. See Wren’s research thread.' }
+    ];
+    const F = [['all', 'All'], ['Holding', 'Places'], ['Group', 'Groups'], ['Project', 'Projects']];
+    return {
+      c: c,
+      filters: F.map((f) => ({ name: f[1], on: s.filter === f[0], style: seg(s.filter === f[0]), go: () => this.setState({ filter: f[0] }) })),
+      items: D.filter((d) => s.filter === 'all' || d.kind === s.filter).map((d) => Object.assign({}, d, { open: s.open === d.id, toggle: () => this.setState({ open: s.open === d.id ? null : d.id }) })),
+      S: { small: 'min-height:44px;padding:0 12px;border-radius:4px;border:1px solid ' + c.rule + ';background:transparent;color:inherit;font-family:inherit;font-size:14px;cursor:pointer' }
+    };
+  }
+}
+</script>
+</body>
+</html>

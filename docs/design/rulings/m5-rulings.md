@@ -1,0 +1,26 @@
+---
+status: absorbed
+milestone: m5
+absorbed-into: docs/05-features.md (Expeditions, time and light; Log), docs/06-screens-and-design.md (Marching order; The reminder card), docs/04-data-model.md, docs/07-content-packs.md (lightTypes)
+supersedes: —
+---
+
+# M5 design rulings (2026-10-25)
+
+All approved by Francis. Ruling 1 was settled by S17-9 (`time.extra`). Exploration engine details are in the ruled S17 spec.
+
+| # | Ruling |
+|---|---|
+| M5-2 | One clock per campaign; expeditions store their start and show elapsed turns ("Delve · turn 37"). Starting a session asks "Time since last session?" (None / + days / + weeks / a date); reminders due in a gap merge into one prompt with counts. Campaign setting "Time between sessions": Ask (default) / Real time. ◈ Parallel expeditions (West Marches style, each group with its own clock) in a later release; until then groups run one after the other and end in town. |
+| M5-3 | Minimal location kind in campaign homebrew: name, playerName, optional terrain, imageId, notes (GM) behind "More". Set from the Scene header ("Where?"): last 8 places as chips, or type a new one. Fields are a strict subset of S16 locations (no migration in M8b). In M5 a location drives the header, player view and map panel only. |
+| M5-4 | Hit logs the result (GM only) and runs `onHit`: die result in, row text shown, one more level of table allowed. No table: a skippable note. Wording follows the check's name. "Start encounter" reserved for M6 (not shown in M5). Hidden until Send. |
+| M5-5 | One reminder card: procedure steps, then lights, then rest, then GM reminders. Shows 4 lines, then "N more". Decision lines keep their buttons; information lines have none and go to the log on the next Next or on close. "All done" clears what needs no decision. Repeats merge with counts. |
+| M5-6 | Marching order is a column of rows, each holding 1–3 characters side by side. Each character shows a light symbol first, then up to 2 status symbols, then "+N", with filling or draining rings. Tap a character for the overview popup (HP, load and speed, light and time left, every status with source and how it ends, items at hand), built once and reused everywhere. The overview shows only what that viewer may see. Campaign setting "Players see each other's HP", default Yes. Presets are named saved orders ("Save as…"). Editing: the GM, plus players given the power through permission bundles; logged. Hit prompts show the front and back rows. Camp watches stay separate. |
+| Principle 12 (changed) | No drag handles anywhere. Hold a row (about half a second) to drag it; tap it to open it. Reorderable lists explain "hold to move" behind an ⓘ. |
+| Accessibility | Built in from the start, invisible: screen-reader labels, shapes as well as colours, contrast. Accessibility mode (per person, Off by default) in **R3**: Move up/down in action sheets, gesture alternatives, larger targets. |
+| M5-7 | "End expedition" (time strip ⋯, confirm, undoable) puts the campaign into Downtime. A summary goes to the log (time taken, lights used, statuses still active). Coming home offers a full rest with one confirm. Downtime in M5: date, season, +1 day / +1 week / a date, merged reminders. M7 adds downtime activities. "Start expedition" is one tap plus a mode; turn count restarts. |
+| Export (M7) | "Export adventure" (Markdown) from the End expedition summary and the log ⋯. GM version (everything) and player version (only what players may see), grouped by day or turn, with routine lines collapsed into counts. A quiet note that the file holds private pack names. |
+| Archivist recap (M7) | Ending an expedition makes a draft recap from the player version, visible to the Archivist (and GM). The Archivist edits it or pastes in a story version, then Publishes it to the log as an Archivist note. No Archivist (companies off or title empty): the GM gets the draft and can skip it. A "Nemeton recap" skill (outside the app, written by Claude after the export format exists) offers Ogham's voice or the Archivist's character's voice. R4: the assistant writes the draft in the app. |
+| M5-8 | Light warnings at `warnAt` (pack per light type; default one step before running out): ring turns the warning colour and the symbol changes shape, plus one information line in the reminder card. At burnout: "Light another?" with what the carrier has, one tap, logged, undoable. "Keep lit" per-light switch in the overview (off by default) relights from that character's own pack and logs it. Running out is stated ("No torches left"). |
+| M5-9 | Widen the third CLAUDE.md exception, list stays closed at three: "Items leaving play (dropped, used up or burnt out) are deleted, and the log keeps a copy for undo." Stacks lose one; the row goes with the last. Holders (a lantern) and charged items at 0 stay. Packs mark light items `consumed` or as holders with `fuel: "<item id>"`; otherwise the GM is asked once per light type. |
+| M5-10 | Send: text, a check result (editable before sending) or a picture (including the map panel's). Recipients: Everyone (default) or chosen characters; only recipients' screens and log entries get it. Keep or burn per S16; quiet mode per S16. Location changes aren't sent: the player name shows automatically, the picture only if sent or revealed. |

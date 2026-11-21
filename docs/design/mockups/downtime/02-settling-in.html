@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Downtime 02 — settling in: the arrival card, room and board, banks and vaults (paper test, 2026-11-02)</title>
+<style>
+  /* Tokens from docs/06 only. Light only. Buttons are plain blocks. Invented examples. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; box-sizing:border-box; padding:var(--space-4); }
+  .tablet { width:780px; }
+  .phone { width:375px; }
+  .h { font-family:"EB Garamond", Georgia, serif; font-size:22px; font-weight:600; line-height:1.2; }
+  .sec { font-family:"EB Garamond", Georgia, serif; font-size:18px; font-weight:600; margin:var(--space-4) 0 var(--space-2); }
+  .muted { color:var(--muted); }
+  .small { font-size:14px; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:48px; border-top:1px solid var(--rule); padding:var(--space-1) 0; }
+  .row .grow { flex:1; min-width:0; }
+  .tag { display:inline-block; font-size:14px; border:1px solid var(--control); border-radius:4px; padding:0 6px; margin-left:var(--space-2); white-space:nowrap; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; white-space:nowrap; }
+  .btn.accent { background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+  .btns { display:flex; gap:var(--space-2); flex-wrap:wrap; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+  .bar .grow { flex:1; }
+  .panel { background:var(--surface); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); }
+  .radio { width:20px; height:20px; border-radius:10px; border:2px solid var(--control); box-sizing:border-box; flex:none; }
+  .radio.on { border:6px solid var(--ink); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:800px; }
+</style>
+</head>
+<body>
+
+<h1>1 · The arrival card (GM console, Scene)</h1>
+<div class="wrap">
+<div class="screen tablet">
+  <div class="bar"><span class="grow"><span class="h">Brackenford</span><br><span class="muted">Safe · day 3 of the expedition · afternoon</span></span><span class="btn">Where?</span></div>
+  <div class="panel">
+    <div class="bar"><span class="grow"><b>The party is back in a safe place.</b><br><span class="small muted">Ending the expedition splits the loot, awards XP and offers a full rest.</span></span></div>
+    <div class="btns" style="margin-top:var(--space-3)"><span class="btn accent">End expedition</span><span class="btn">Not now</span></div>
+  </div>
+  <div class="panel">
+    <div class="bar"><span class="grow"><b>Expedition ended</b> · 2 days · 380 gp split 8 ways · 445 XP awarded · full rest for 8<br><span class="small muted">Staying a while?</span></span><span class="btn">Undo</span></div>
+    <div class="btns" style="margin-top:var(--space-3)"><span class="btn">Start downtime</span><span class="btn">Not yet</span></div>
+  </div>
+  <p class="small muted">Arriving by Where? or by Move… raises the first card on its own (dt-9). Not now dismisses it; the town screen works either way. A Hostile town shows no card.</p>
+</div>
+</div>
+<p class="note">Two cards drawn for the two moments; only one shows at a time. The second has no accent (the first one's accent already led here; Start downtime stays a calm choice so the party can leave again, dt-2).</p>
+
+<h1>2 · Room and board (player, phone)</h1>
+<div class="wrap">
+<div class="screen phone">
+  <span class="h">Where you stay</span><br><span class="muted">Brackenford · Garrick Thane · 112 gp</span>
+  <div class="row"><span class="radio"></span><span class="grow">Sleep rough<br><span class="small muted">free · no healing bonus</span></span></div>
+  <div class="row"><span class="radio"></span><span class="grow">The Drowned Goat · common room<br><span class="small muted">2 sp a night, meals included</span></span></div>
+  <div class="row"><span class="radio on"></span><span class="grow">The Drowned Goat · private room<br><span class="small muted">1 gp a night, meals included</span></span></div>
+  <div class="row"><span class="radio"></span><span class="grow">Lantern House · suite and stabling<br><span class="small muted">5 gp a night</span></span></div>
+  <div class="row"><span class="radio"></span><span class="grow">Somewhere else…<br><span class="small muted">a friend, a temple cot, your own hall</span></span></div>
+  <div class="panel small">Paid each week from your purse while downtime lasts; shows under Due. Change any time.</div>
+  <div class="btns" style="margin-top:var(--space-3)"><span class="btn accent">Stay here</span></div>
+</div>
+<div style="width:360px">
+  <p class="note">The town's lodgings and their rates come from the pack (or the GM's homebrew place). Choosing one makes a repeating spend: every week of downtime (05 Purses, Spend repeats). ⚑ Q2: does a stay need the GM's yes (as in town today, ST7), or only when it's "Somewhere else…"? Numbers here are invented.</p>
+</div>
+</div>
+
+<h1>3 · Money in town: bank, vault, strongbox (player, phone)</h1>
+<div class="wrap">
+<div class="screen phone">
+  <span class="h">Garrick Thane's purse</span>
+  <div class="row"><span class="grow"><b>Carried</b></span><span>112 gp</span></div>
+  <div class="row"><span class="grow">Brackenford counting-house<span class="tag">bank</span><br><span class="small muted">fee 1 in 100 on deposit</span></span><span>300 gp</span></div>
+  <div class="row"><span class="grow">Temple undercroft<span class="tag">vault</span><br><span class="small muted">holds items too · 2 gp a month</span></span><span>0 gp</span></div>
+  <div class="row"><span class="grow">Chest at the Drowned Goat<span class="tag">strongbox</span></span><span>40 gp</span></div>
+  <div class="btns" style="margin-top:var(--space-3)"><span class="btn accent">Move…</span><span class="btn">+ Place</span></div>
+  <div class="sec">Due</div>
+  <div class="row"><span class="grow">Private room · each week<br><span class="small muted">next at the end of week 1</span></span><span class="btn">Pay</span></div>
+  <div class="row"><span class="grow">Vault · each month</span><span class="btn">Pay</span></div>
+</div>
+<div style="width:360px">
+  <p class="note">dt-8: bank, vault and strongbox are the same thing, a stored place with a kind. A vault may also hold items (⚑ Q3). The town's own bank and vault come from the pack or the GM; + Place adds a private one (a cache, a chest). Moving money is free in downtime (05). Fees are the GM's or the pack's, shown as text; ⚑ Q4: does the app charge them by itself on the Due list?</p>
+  <p class="note"><b>Checked:</b> one accent per screen; 44 px targets with 8 px between; 375 px; choice shown by a filled ring, not colour; long place names wrap. <b>Not drawn:</b> a town with no lodging (Sleep rough and Somewhere else… only), 0 gp, offline, dark mode.</p>
+</div>
+</div>
+
+</body>
+</html>

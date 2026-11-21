@@ -1,0 +1,7 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": { "id": "sn1b-fen-rules", "name": "Invented fen rules (sn-1b)", "shortName": "Fen rules", "version": "0.1", "kind": "setting" },
+  "classes": [{ "id": "lantern-warden", "name": "Lantern Warden", "hitDie": "d8" }],
+  "races": [{ "id": "bog-folk", "name": "Bog folk" }]
+}

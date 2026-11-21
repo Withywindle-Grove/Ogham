@@ -1,0 +1,83 @@
+/* Starting a campaign: the name step in one calm column; steps 2 and 3 on the creation step shell (lr-5, lr-6). */
+
+.new-campaign {
+  max-width: 560px;
+}
+
+.new-campaign--shell {
+  max-width: none;
+}
+
+.new-campaign--shell .creation-step__title:focus {
+  outline: none;
+}
+
+.new-campaign__now {
+  margin: var(--space-3) 0 0;
+}
+
+.new-campaign__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.new-campaign__head .auth__title:focus {
+  outline: none;
+}
+
+.new-campaign__head .auth__title:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.new-campaign__import {
+  position: relative;
+  display: inline-flex;
+}
+
+/* The real file input stays reachable for screen readers and keyboards, but out of sight. */
+.new-campaign__file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.new-campaign__file-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.new-campaign__import:has(.new-campaign__file:focus-visible) .new-campaign__file-button {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.new-campaign__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.new-campaign__times {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pad);
+}
+
+.new-campaign__layout {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-body);
+}
+
+.new-campaign__layout input {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}

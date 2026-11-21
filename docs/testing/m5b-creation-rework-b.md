@@ -1,0 +1,16 @@
+# Creation rework, slice B: Who they are and Details (cw-11, cw-12; plan m5b-creation-rework)
+
+Feeds the gate's creation checks (Who they are, the knight's liege, Details). Use a campaign on **fae-woodland 0.3.67 or later** (its kindreds carry `usual`, its liege rows a plain `name`, the liege field `alsoFills: "affiliation"`). For check 7 a classic-advanced campaign (human: no usual). A new player: Create your character, then Guided.
+
+1. **iPad, landscape.** Walk to **Who they are** with a kindred that has a name table. Under the Name box: the line "Roll at the table and tap what you rolled, or type your own." and one row, e.g. "<Kindred> names" over "d20 · first names, family names", with **Open** at its end. No "Roll a name ›" anywhere. Tap **Open**: the table opens; tap a first name and a family name: the Name box fills. Tap Done, then type over the name: your typing stays.
+2. **Hit points:** a − [box] + stepper with the rule's line under it. Tap **+** on the blank box: it shows 1, and the worked line beside it ("d8 → 1, … → … hp"). Tap **−** at 1: the box stays at 1 and a toast says "d8 gives 1–8." Type 8, tap **+**: the same toast with the die's range.
+3. **The knight's liege** (pick a Knight): the Liege group shows one pick row per house: the house's name alone ("House …"), its alignment and roll under it ("Lawful · 2 on the d8"). Tap a house's **name**: its entry opens with the house's note and **Pick House …** at the foot. Tap that Pick.
+4. The toast reads: "Liege: House …. Your alignment is now …, as theirs is, and your affiliation is House …." The Alignment group shows only that alignment with its line; the **Affiliation** box holds the house's name. Tap **Undo**: liege, alignment and affiliation all go back.
+5. Pick another house: the affiliation follows it. Now type your own affiliation ("The Eel Guild") and pick a third house: the toast leaves the affiliation out, and your typed words stay.
+6. Open **What the rules work out** (it replaces "Derived fields"): folded, "N figures · AC, Doom, Ray…" under it, a + square; tap a figure: its breakdown.
+7. Go on to **Details** (fae-woodland kindred): Age, Height and Weight are steppers already filled with the kindred's usual, the book's words under each. Age: + adds 1 (an elf or duskcat: +10). Weight: ± 5. Height reads "5 ft 7 in"; type "5 7" and tap elsewhere: it reads "5 ft 7 in". The describing tables sit under **Describe them**; past four, "N more tables" folded with a + square. Next: the review shows "Age: 26 years", "Height: 5 ft 7 in", "Weight: 155 lb".
+8. classic-advanced human (no usual): Details shows the typed boxes as before (or no Details step if the kindred has nothing). A dwarf: height and weight steppers start at the book's figure (4 ft; 150), no age.
+9. **Phone, upright (375 wide).** Repeat 1, 3 and 7: nothing runs off the right edge; a long house name wraps; the Height stepper may sit under its words.
+10. From the **full sheet**, Change details on a character made before this change with a typed age ("140 years"): the stepper shows 140; one with words that aren't a number ("old as the reeds") keeps a typed box with those words.
+
+Gallery: the new section **creation-who** (all four pictures) waits for Design.

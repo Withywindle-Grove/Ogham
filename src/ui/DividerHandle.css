@@ -1,0 +1,70 @@
+/* The divider is the handle (lr-4): only on a landscape tablet, where the menu is a column. */
+.divider-handle {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  /* The whole line is a 44 px-wide tap zone, straddling the column's right edge, top to bottom. */
+  .divider-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: calc(var(--tap) / -2);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--tap);
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: col-resize;
+    touch-action: none;
+  }
+
+  /* The line itself (the column's divider). */
+  .divider-handle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: var(--rule);
+  }
+
+  /* The quiet pill at mid-height: a shape, in the Control token. */
+  .divider-handle__pill {
+    position: relative;
+    width: 6px;
+    height: var(--tap);
+    border-radius: 3px;
+    background: var(--control);
+  }
+
+  /* The triangle beside the pill (P32): which way the menu folds, on the side it goes to. */
+  .divider-handle__arrow {
+    position: relative;
+    color: var(--control);
+    font-size: var(--text-14);
+    line-height: 1;
+  }
+
+  .divider-handle__arrow--fold {
+    margin-inline-end: var(--space-1);
+  }
+
+  .divider-handle__arrow--show {
+    margin-inline-start: var(--space-1);
+  }
+
+  .divider-handle:focus-visible {
+    outline: none;
+  }
+
+  /* The keyboard's focus ring goes round the pill (base.css's ring), not the whole tall tap zone. */
+  .divider-handle:focus-visible .divider-handle__pill {
+    outline: 3px solid var(--outline);
+    outline-offset: 2px;
+  }
+}

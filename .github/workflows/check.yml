@@ -1,0 +1,768 @@
+# Runs the full check (type-check, lint, tests, build) on every pull request, and deploys main.
+# (Branch pushes run through their pull request, so nothing runs twice.)
+# Node version comes from .nvmrc, the same one we use locally. See docs/testing.md, The GitHub check.
+#
+# Saving GitHub minutes (ruled 2026-10-30, changed 2026-11-01):
+# - A branch no longer has to be up to date with main before it merges (updating every open pull request after
+#   each merge re-ran their whole check many times a day). Instead a push to main runs the same jobs on what the
+#   merge brought in, and deploy-production waits for check and database: a broken main never goes live (main's
+#   pictures wait for the night run, below).
+# - Docs-only changes (scripts/docs-only.mjs) run only the docs check; changes that don't touch the screens skip
+#   layout; changes that can't reach the database tests (screens, styles, the gallery, layout tests, pack scripts,
+#   CI extras) skip database.
+# - A newer push to the same pull request cancels the older run; on main, a newer merge drops the older main runs
+#   (2026-11-19), and only the newest commit goes live.
+# - The picture check (layout, three shards, one heavy job at a time) runs on a pull request only once it has the
+#   "ready" label (ruled 2026-11-05). Without it, layout fails in seconds with a message, so the merge waits for the label. Adding the
+#   label starts a run that redoes only what hasn't passed for this commit (scripts/ci-jobs.mjs decides). A run
+#   started by a label waits for the running one instead of cancelling it, so it can reuse that run's passes.
+# - On main the pictures are checked once a night (2026-11-19, Francis: "a nightly picture check sounds best can you
+#   implement that?"): a push to main (a merge) runs check and database but not the layout shards; layout reports
+#   success with a note (plan "night"), and deploy-production waits for check and database only. The night run
+#   (schedule, 07:00 UTC) runs the full layout check on main's head; a red night run is fixed first thing.
+# - A full regression run (ruled 2026-11-09): started by hand, every job does its work whatever the last change
+#   touched, with no label needed, and nothing deploys or is triaged. See docs/testing.md, The GitHub check.
+# - By day the full checks run again (rvw-6, 2026-11-17; the cq-3 deferral, ruled 2026-11-13, is off). With
+#   DEFER_BY_DAY true, a code change on a pull request or main's push would defer check and layout (green with a note)
+#   and run database only. The night run (schedule) runs everything on main, like a run by hand; nothing
+#   deploys from it and it isn't triaged. scripts/ci-jobs.mjs decides (DEFER_BY_DAY).
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+  # Started by hand (Actions -> Check -> Run workflow, or gh workflow run check.yml --ref <branch>): the full
+  # regression run. Everything runs on the branch as it is (not merged with main); nothing deploys.
+  workflow_dispatch:
+  # The night run (cq-3): 07:00 UTC, on main as it is. Everything runs, as on a run by hand.
+  schedule:
+    - cron: '0 7 * * *'
+
+# The night run has a group of its own (its commit and -night): it shares main's commit with a run by hand, and in
+# one group a later run would push it out of the line while it waits.
+# On main only the newest commit's run goes on (2026-11-19, Francis: "Yes, add it"): every push to main shares the
+# group check-main, and a newer merge drops the older main runs still queued or running. The newest run checks
+# everything changed since the last main commit whose run went green (the changes job), so nothing a dropped run
+# would have checked is skipped. Pull requests, the night run and runs by hand keep their groups.
+concurrency:
+  group: check-${{ github.event.pull_request.number || (github.event_name == 'push' && 'main') || github.sha }}${{ github.event_name == 'schedule' && '-night' || '' }}
+  cancel-in-progress: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'labeled') }}
+
+jobs:
+  # Picks the machines for this whole run from the CI_RUNNER switch: unset, the PC; github, GitHub; auto, the PC
+  # while it has room and GitHub when it's busy (scripts/ci-pick-runner.mjs, ci-auto-1). Every other job reads its
+  # answer. It runs on GitHub for github and auto, so it never waits for a busy PC, and on the PC when unset.
+  # The heavy jobs (check, the three layout shards) read heavy_runs_on and heavy_target instead: under auto they stay
+  # on the PC even when the run overflows, and wait their turn (ci-pc-pictures, Francis 2026-11-20: "Yes, PC only").
+  pick:
+    runs-on: ${{ (vars.CI_RUNNER == 'github' || vars.CI_RUNNER == 'auto') && 'ubuntu-latest' || fromJSON('["self-hosted","grimoire"]') }}
+    timeout-minutes: 5
+    # Counting the PC's queued and running jobs needs actions: read.
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      runs_on: ${{ steps.pick.outputs.runs_on }}
+      target: ${{ steps.pick.outputs.target }}
+      overflow: ${{ steps.pick.outputs.overflow }}
+      heavy_runs_on: ${{ steps.pick.outputs.heavy_runs_on }}
+      heavy_target: ${{ steps.pick.outputs.heavy_target }}
+    steps:
+      # Its own folder (19 Nov 2026): on the PC a reused folder kept this one-file checkout's sparse setting, and the
+      # next job's full checkout came out almost empty (.nvmrc and scripts/ci-jobs.mjs missing, every job failed).
+      - uses: actions/checkout@v7
+        with:
+          path: .pick
+          sparse-checkout: scripts/ci-pick-runner.mjs
+          sparse-checkout-cone-mode: false
+      - id: pick
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CI_RUNNER: ${{ vars.CI_RUNNER }}
+          CI_LOCAL_SLOTS: ${{ vars.CI_LOCAL_SLOTS }}
+        run: |
+          set -o pipefail
+          node .pick/scripts/ci-pick-runner.mjs | tee -a "$GITHUB_OUTPUT"
+      # An overflow run uses GitHub's billed minutes: say so on the run's page (docs/testing.md, the cost per overflow run).
+      - if: steps.pick.outputs.overflow == 'true'
+        run: |
+          echo "::notice title=Overflow to GitHub::Every PC lane was taken, so this run's small jobs use GitHub's machines (billed minutes); check and the picture shards wait for the PC. The pick log says how many runs were on the PC."
+          echo "**Overflow to GitHub:** every PC lane was taken, so this run's small jobs use GitHub's machines (billed minutes); check and the picture shards wait for the PC." >> "$GITHUB_STEP_SUMMARY"
+
+  # Works out what the pull request (or, on main, the merge) changes. Every other job reads its answers.
+  # kind: docs when every changed path is a docs or process file (scripts/docs-only.mjs: docs/ except
+  # docs/generated/ and the docs code reads, top-level Markdown, Markdown under .claude/ and skills/); else code.
+  # screens: something that can change what a screen looks like changed (app code, styles, the layout tests,
+  # the page, public files, dependencies or the build and browser settings).
+  # database: something the database tests can reach changed (anything except screen-only files: src/ui/,
+  # src/gallery/, src/app/ screens (.tsx) and styles, CSS, tests/layout/, public/, the pages, the pack scripts,
+  # and the CI files other than this one). The tests import src/core/, src/modules/, src/testing/ and three
+  # src/app/ .ts files, none of which import screen code.
+  # Then (step plan) scripts/ci-jobs.mjs turns that into check_plan, database_plan and layout_plan (run, skip,
+  # reuse, deferred for check and layout when DEFER_BY_DAY is on (cq-3, off since rvw-6), or for layout wait: no
+  # "ready" label yet, and night: a push to main, whose pictures the night run checks).
+  changes:
+    needs: pick
+    runs-on: ${{ fromJSON(needs.pick.outputs.runs_on) }}
+    # Reading the commit's earlier check results needs checks: read; finding main's last green run needs actions: read.
+    permissions:
+      contents: read
+      checks: read
+      actions: read
+    outputs:
+      kind: ${{ steps.what.outputs.kind }}
+      screens: ${{ steps.what.outputs.screens }}
+      database: ${{ steps.what.outputs.database }}
+      check_plan: ${{ steps.plan.outputs.check_plan }}
+      database_plan: ${{ steps.plan.outputs.database_plan }}
+      layout_plan: ${{ steps.plan.outputs.layout_plan }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The merge commit and its first parent (main before it), to list what a pull request's merge changes. A push
+          # to main fetches its base (main's last green run) itself, below.
+          fetch-depth: 2
+      - id: what
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Started by hand (the full regression run): an empty list, which runs everything (below).
+          # --no-renames lists a rename as its deletion and its addition, so moving code into docs/ counts as code.
+          # since: what the list is compared with (also for the package.json test below).
+          since=HEAD^1
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            files=""
+            echo "Started by hand: everything runs." | tee -a "$GITHUB_STEP_SUMMARY"
+          elif [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+            files=""
+            echo "The night run (cq-3): everything runs on main." | tee -a "$GITHUB_STEP_SUMMARY"
+          elif [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            # On main only the newest commit's run goes on (2026-11-19), so a dropped run's changes are checked here:
+            # the list runs from the newest main commit whose push run went green. When none is found, or the fetch
+            # or the list fails, the list stays empty, which runs everything.
+            base=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/check.yml/runs?branch=main&event=push&status=success&per_page=1" \
+              --jq '.workflow_runs[0].head_sha // empty' || true)
+            if [ -n "$base" ] && git fetch --no-tags --depth=1 origin "$base" \
+              && files=$(git diff --name-only --no-renames "$base" HEAD); then
+              since="$base"
+              echo "Main's last green run was on $base: everything changed since then is checked." | tee -a "$GITHUB_STEP_SUMMARY"
+            else
+              files=""
+              echo "No green main run found: everything runs." | tee -a "$GITHUB_STEP_SUMMARY"
+            fi
+          else
+            files=$(git diff --name-only --no-renames HEAD^1 HEAD)
+          fi
+          echo "Changed files:"
+          echo "$files"
+          # Docs-only is decided by scripts/docs-only.mjs, the same rule as the pre-commit hook. An empty list, or
+          # the script failing, runs everything, to be safe.
+          if [ "$(echo "$files" | node scripts/docs-only.mjs)" = "docs" ]; then
+            echo "Docs-only change: only the docs check runs." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "kind=docs" >> "$GITHUB_OUTPUT"
+          else
+            echo "kind=code" >> "$GITHUB_OUTPUT"
+          fi
+          # A package.json change inside its "scripts" block alone (package-lock.json untouched) is not a screen
+          # change: drop it from the list used for the screens test only (ci-pkg-scripts-1).
+          screen_files="$files"
+          if echo "$files" | grep -qx 'package.json' && ! echo "$files" | grep -qx 'package-lock.json' \
+            && [ "$(node scripts/package-scripts-only.mjs "$since")" = "scripts-only" ]; then
+            echo "package.json changed only its scripts: not a screen change." | tee -a "$GITHUB_STEP_SUMMARY"
+            screen_files=$(echo "$files" | grep -vx 'package.json' || true)
+          fi
+          if [ -z "$files" ] || echo "$screen_files" | grep -qE '^(src/|tests/layout/|public/|index\.html|gallery\.html|package(-lock)?\.json|vite\.config\.|playwright\.config\.|tsconfig|\.nvmrc|\.github/)'; then
+            echo "screens=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No screen files changed: layout is skipped." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "screens=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -z "$files" ] || echo "$files" | grep -qvE '^(docs/|design/|packs/|[^/]+\.md$|src/ui/|src/gallery/|src/app/[^/]+\.(tsx|css)$|.+\.css$|tests/layout/|public/|index\.html$|gallery\.html$|playwright\.config\.|scripts/pack-|\.github/workflows/(preview|review|changelog-draft)\.yml$)'; then
+            echo "database=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Nothing the database tests reach changed: database is skipped." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "database=false" >> "$GITHUB_OUTPUT"
+          fi
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          ACTION: ${{ github.event.action }}
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          KIND: ${{ steps.what.outputs.kind }}
+          SCREENS: ${{ steps.what.outputs.screens }}
+          DATABASE: ${{ steps.what.outputs.database }}
+        run: |
+          # Only when a label was just added: which checks already succeeded for this same commit (GitHub Actions'
+          # own results). If the lookup fails, nothing counts as passed and the work runs again, to be safe.
+          set -o pipefail
+          PASSED=""
+          if [ "$EVENT" = "pull_request" ] && [ "$ACTION" = "labeled" ] && [ -n "$HEAD" ]; then
+            PASSED=$(gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$HEAD/check-runs?filter=all&status=completed&per_page=100"               --jq '.check_runs[] | select(.conclusion == "success" and .app.slug == "github-actions") | .name' || true)
+            echo "Checks already passed for $HEAD:"; echo "$PASSED"
+          fi
+          export PASSED
+          node scripts/ci-jobs.mjs | tee -a "$GITHUB_OUTPUT"
+          if grep -qx 'layout_plan=wait' "$GITHUB_OUTPUT"; then
+            echo "Pictures could change: layout waits for the **ready** label." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  # A required check. It runs even when the changes job failed, and then goes red: a skipped job would count as a pass.
+  check:
+    needs: [pick, changes]
+    if: ${{ !cancelled() }}
+    # A heavy job: on the PC unless CI_RUNNER is github, even when an auto run overflows (ci-pc-pictures, 2026-11-20:
+    # on GitHub's machines check took 12 to 18 minutes, against 3 to 6 on the PC).
+    runs-on: ${{ fromJSON(needs.pick.outputs.heavy_runs_on) }}
+    # One heavy job at a time on the PC: see docs/testing.md, The GitHub check (cq-1, cq-1a). Only a check that runs
+    # the code's tests on the PC joins the queue; a docs-only or reused check, or any check on GitHub's machines
+    # (CI_RUNNER github; Francis, 2026-11-18), runs at once in a group of its own.
+    concurrency:
+      group: ${{ needs.pick.outputs.heavy_target != 'github' && needs.changes.outputs.kind == 'code' && needs.changes.outputs.check_plan == 'run' && 'heavy-one-at-a-time' || format('light-{0}-{1}', github.run_id, github.run_attempt) }}
+      cancel-in-progress: false
+      queue: max
+    env:
+      PLAN: ${{ needs.changes.outputs.check_plan }}
+      KIND: ${{ needs.changes.outputs.kind }}
+    steps:
+      - name: Follow the plan
+        env:
+          CHANGES: ${{ needs.changes.result }}
+        run: |
+          if [ "$CHANGES" != "success" ]; then
+            echo "::error::The changes job didn't succeed ($CHANGES), so this run can't say what to check."
+            exit 1
+          fi
+          case "$PLAN" in
+            run) ;;
+            reuse) echo "A label was added; the check already passed for this commit, so it isn't run again." | tee -a "$GITHUB_STEP_SUMMARY" ;;
+            deferred) echo "Deferred to the night run (cq-3): the local check covers this by day." | tee -a "$GITHUB_STEP_SUMMARY" ;;
+            *)
+              echo "::error::Unknown check plan '$PLAN' from the changes job."
+              exit 1 ;;
+          esac
+      # Only "run" does the work: reuse and deferred report success from the step above.
+      - if: env.PLAN == 'run'
+        uses: actions/checkout@v7
+      # The docs check needs only Node itself, so a docs-only change skips the package cache and installing them.
+      - if: env.PLAN == 'run' && env.KIND == 'code'
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - if: env.PLAN == 'run' && env.KIND == 'docs'
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - if: env.PLAN == 'run' && env.KIND == 'code'
+        run: npm ci
+      - if: env.PLAN == 'run' && env.KIND == 'code'
+        run: npm run check
+      - if: env.PLAN == 'run' && env.KIND == 'docs'
+        run: npm run docs:check
+
+  # Access-rule tests against a fresh, throwaway Supabase started inside each runner (Docker), with every
+  # migration in supabase/migrations applied. Nothing is shared between runs, so no queueing and no leftovers.
+  # The shared test project (grimoire-test) stays for previews and manual checks. See docs/testing.md, CI.
+  # Three shards in parallel (ruled 2026-11-05): Vitest splits the test files three ways and each shard starts its
+  # own local Supabase, so they share nothing (every test file builds its own invented world). The shards are
+  # skipped outright when the changes job says the database tests can't be reached, or when a label was just added
+  # and database already passed for this commit (database_plan is run, skip or reuse).
+  database-shard:
+    needs: [pick, changes]
+    if: needs.changes.outputs.database_plan == 'run'
+    name: database shard ${{ matrix.shard }}/3
+    # On GitHub's own machines (cq-4, Francis 2026-11-13: "built, with a [amount removed] limit to start"): the PC's one database
+    # lane queued every run behind the others for hours. Each shard gets a fresh machine, so the three run side by
+    # side. The repository variable DB_RUNNER = "self" brings them back to the PC's "db" runner (unless pick sent the
+    # run to GitHub: CI_RUNNER "github", or "auto" with the PC busy).
+    runs-on: ${{ vars.DB_RUNNER == 'self' && needs.pick.outputs.target == 'self' && fromJSON('["self-hosted","grimoire","db"]') || 'ubuntu-latest' }}
+    timeout-minutes: 30
+    strategy:
+      # All three finish even when one fails, so one run shows every failing file.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # The Supabase CLI is a dev dependency (same version as locally). Studio, image resizing, edge functions,
+      # logs, the mail catcher and the pooler aren't needed by the tests; auth, the API, storage (portraits,
+      # sigils), realtime and the database stay. It applies every migration in supabase/migrations.
+      # Its closing table of addresses and keys (stdout) is dropped to keep the log clean; progress and
+      # errors (stderr) still show.
+      # On the self-hosted runner (docs/plans/ci-self-hosted-runner.md) the machine is reused, so a run that crashed
+      # can leave a Supabase behind on the fixed ports: stop it first. Harmless on GitHub's fresh machines.
+      # Docker can hold a port for a moment after the containers go (seen on the PC: "54322 address already in use"),
+      # so remove any leftover Supabase container and wait up to a minute for the database port to come free.
+      - name: Stop a Supabase a crashed run left behind
+        run: |
+          npx supabase stop --no-backup || true
+          docker ps -aq --filter name=supabase_ | xargs -r docker rm -f > /dev/null || true
+          for i in $(seq 1 30); do
+            if ! (ss -ltn 2>/dev/null || true) | grep -q ':54322 '; then exit 0; fi
+            sleep 2
+          done
+          echo "::error::Port 54322 is still in use after a minute; something outside Supabase holds it."
+          exit 1
+      - name: Start a local Supabase
+        run: npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta > /dev/null
+      - name: Point the tests at it
+        run: |
+          status=$(npx supabase status -o env)
+          value() { echo "$status" | grep -E "^$1=" | head -n1 | cut -d= -f2- | tr -d '"'; }
+          echo "Settings the CLI printed (names only):"
+          echo "$status" | grep -oE '^[A-Z_]+=' | tr -d '='
+          url=$(value API_URL)
+          publishable=$(value PUBLISHABLE_KEY); [ -n "$publishable" ] || publishable=$(value ANON_KEY)
+          secret=$(value SECRET_KEY); [ -n "$secret" ] || secret=$(value SERVICE_ROLE_KEY)
+          for v in "$publishable" "$secret"; do [ -n "$v" ] && echo "::add-mask::$v"; done
+          if [ -z "$url" ] || [ -z "$publishable" ] || [ -z "$secret" ]; then
+            echo "::error::Couldn't read the local Supabase address and keys from 'supabase status'."
+            exit 1
+          fi
+          {
+            echo "VITE_SUPABASE_URL=$url"
+            echo "VITE_SUPABASE_PUBLISHABLE_KEY=$publishable"
+            echo "SUPABASE_SECRET_KEY=$secret"
+          } >> "$GITHUB_ENV"
+      - name: Run this shard's database tests
+        run: npm run test:db -- --shard=${{ matrix.shard }}/3
+      - name: Stop the local Supabase
+        if: always()
+        run: npx supabase stop --no-backup
+
+  # The required "database" check (the main branch's rules name it): green when the shards were skipped because
+  # nothing they test changed, when database already passed for this commit (a label was just added), or when all
+  # three passed; red if the changes job failed or any shard failed, timed out or was cancelled. It skips only when
+  # the whole run is cancelled (a newer push replaces it).
+  database:
+    needs: [pick, changes, database-shard]
+    if: ${{ !cancelled() }}
+    runs-on: ${{ fromJSON(needs.pick.outputs.runs_on) }}
+    timeout-minutes: 5
+    steps:
+      - name: Sum up the shards
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          PLAN: ${{ needs.changes.outputs.database_plan }}
+          SHARDS: ${{ needs.database-shard.result }}
+        run: |
+          if [ "$CHANGES" != "success" ]; then
+            echo "::error::The changes job didn't succeed ($CHANGES), so the database tests can't be trusted."
+            exit 1
+          fi
+          if [ "$PLAN" = "skip" ]; then
+            echo "Nothing the database tests reach changed: the shards were skipped." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ "$PLAN" = "reuse" ]; then
+            echo "A label was added; database already passed for this commit, so the shards weren't run again." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ "$SHARDS" != "success" ]; then
+            echo "::error::A database shard didn't pass ($SHARDS). Open the red 'database shard N/3' job for the failing test."
+            exit 1
+          fi
+          echo "All three database shards passed." | tee -a "$GITHUB_STEP_SUMMARY"
+
+  # Layout checks in a real browser (WebKit) at phone and tablet widths, against the stand-in database.
+  # Three shards (Francis, 2026-11-05: "let's try it"): Playwright splits the tests three
+  # ways (--shard=N/3), each shard on its own runner with its own dev server. They run only when layout_plan is run;
+  # each keeps its gallery pictures and its screenshots under its own name (gallery-baselines-N, layout-screens-N),
+  # since an artifact name can be used once per run.
+  # The shards run inside Playwright's own ready-made image (2026-11-06): WebKit and its system libraries and fonts
+  # come built in, so nothing is installed through apt (a slow mirror used to time the job out). The image's version
+  # must be exactly @playwright/test's in package-lock.json (scripts/ci-jobs.test.mjs checks it; bump both together),
+  # and "noble" is Ubuntu 24.04, the same as ubuntu-latest, so the gallery pictures are drawn the same way.
+  # Node still comes from .nvmrc (setup-node), not the image's own Node.
+  layout-shard:
+    needs: [pick, changes]
+    if: needs.changes.outputs.layout_plan == 'run'
+    name: layout shard ${{ matrix.shard }}/3
+    # Never overflows to GitHub (ci-pc-pictures, Francis 2026-11-20: "Yes, PC only"): under auto the shards wait their
+    # turn on the PC even when the run overflows. On GitHub a shard took 19 to 40 minutes (runs 44730545041,
+    # 44731335414, 44732655677), on the PC 3 to 5 (44735125048, 44709515597). CI_RUNNER github still sends them there.
+    runs-on: ${{ fromJSON(needs.pick.outputs.heavy_runs_on) }}
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+    timeout-minutes: 40
+    # One heavy job at a time on the PC, shared with check: see docs/testing.md, The GitHub check (cq-1, cq-1a).
+    # On GitHub's machines (CI_RUNNER github) each shard has a group of its own and runs at once (Francis, 2026-11-18).
+    concurrency:
+      group: ${{ needs.pick.outputs.heavy_target != 'github' && 'heavy-one-at-a-time' || format('light-{0}-{1}-shard-{2}', github.run_id, github.run_attempt, matrix.shard) }}
+      cancel-in-progress: false
+      queue: max
+    strategy:
+      # All three finish even when one fails, so one run shows every failing check.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Missing gallery pictures are made, not failed: they're kept below for Claude Code to commit once approved.
+      # PR_BASE: a pull request into a held stack (any base but main) skips the gallery's picture comparison (ci-held-gallery).
+      - run: npm run test:layout -- --update-snapshots=missing --shard=${{ matrix.shard }}/3
+        env:
+          PR_BASE: ${{ github.base_ref }}
+      - name: Keep the gallery pictures
+        if: always()
+        id: keep_gallery
+        # A full artifact store must not turn a run red: the tests decide (2026-11-09). The note below says so.
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: gallery-baselines-${{ matrix.shard }}
+          path: tests/layout/gallery-baselines/
+          retention-days: 2 # the pictures to approve; downloaded within a day (artifact quota filled at 7 days, 2026-11-09)
+          if-no-files-found: ignore
+      # Kept on every run, green or red (2026-11-05), so Design can review a green run's scenes from the pull request's labelled run or the night run.
+      - name: Keep the screenshots
+        if: always()
+        id: keep_screens
+        # A full artifact store must not turn a run red: the tests decide (2026-11-09). The note below says so.
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: layout-screens-${{ matrix.shard }}
+          path: test-results/
+          retention-days: 1 # failure screenshots; read the same day
+          if-no-files-found: ignore
+      - name: Say when pictures weren't kept
+        if: always() && (steps.keep_gallery.outcome == 'failure' || steps.keep_screens.outcome == 'failure')
+        run: |
+          echo "::warning::Pictures not uploaded: storage quota (or another upload error). Don't approve or commit pictures from this run."
+          echo "**Pictures not uploaded: storage quota.** Don't approve or commit pictures from this run; re-run once storage frees up." >> "$GITHUB_STEP_SUMMARY"
+      # On the self-hosted runners the container runs as root, so everything it wrote in the shared work folder
+      # belongs to root, and the runner's next job there can't clean it up. Hand it back to the folder's owner.
+      # Harmless on GitHub's fresh machines.
+      - name: Give the work folder back to the runner
+        if: always()
+        run: chown -R "$(stat -c '%u:%g' "$GITHUB_WORKSPACE/..")" "$GITHUB_WORKSPACE"
+
+  # The required "layout" check (the main branch's rules name it; ruled 2026-11-05: on a pull request it runs only
+  # once it has the "ready" label). layout_plan:
+  # run: a screen could have changed and, on a pull request, the ready label is on (a run by hand and the night run:
+  # always): green only when all three shards passed;
+  # night: a push to main (a merge) that could change a screen: no shards, green with a note; the night run (07:00 UTC)
+  # checks main's pictures (2026-11-19, Francis: "a nightly picture check sounds best can you implement that?");
+  # skip: no screen file changed, so the job reports success without the work, label or not;
+  # reuse: a label was just added and layout already passed for this commit;
+  # deferred: by day (cq-3), the pictures of a code change wait for the night run: green with a note, no label needed;
+  # wait: a screen could have changed but there's no ready label yet: red in seconds, so the merge waits for it.
+  # It runs even when the changes job failed, and then goes red: a skipped job would count as a pass.
+  layout:
+    needs: [pick, changes, layout-shard]
+    if: ${{ !cancelled() }}
+    runs-on: ${{ fromJSON(needs.pick.outputs.runs_on) }}
+    timeout-minutes: 5
+    steps:
+      - name: Follow the plan
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          PLAN: ${{ needs.changes.outputs.layout_plan }}
+          SHARDS: ${{ needs.layout-shard.result }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [ "$CHANGES" != "success" ]; then
+            echo "::error::The changes job didn't succeed ($CHANGES), so this run can't say whether pictures changed."
+            exit 1
+          fi
+          case "$PLAN" in
+            run)
+              if [ "$SHARDS" != "success" ]; then
+                echo "::error::A layout shard didn't pass ($SHARDS). Open the red 'layout shard N/3' job for the failing check."
+                exit 1
+              fi
+              echo "All three layout shards passed." | tee -a "$GITHUB_STEP_SUMMARY" ;;
+            skip) echo "No screen files changed: layout is skipped." | tee -a "$GITHUB_STEP_SUMMARY" ;;
+            reuse) echo "A label was added; layout already passed for this commit, so it isn't run again." | tee -a "$GITHUB_STEP_SUMMARY" ;;
+            deferred) echo "Deferred to the night run (cq-3): the pictures and browser checks run at 07:00 UTC." | tee -a "$GITHUB_STEP_SUMMARY" ;;
+            night) echo "Main's pictures are checked by the night run (07:00 UTC), not after each merge." | tee -a "$GITHUB_STEP_SUMMARY" ;;
+            wait)
+              echo "::error::Pictures not checked yet: add the ready label when this pull request is finished."
+              echo "Pictures not checked yet: add the **ready** label when this pull request is finished (\`gh pr edit $PR --add-label ready\`). Adding it runs the picture check on this commit; check and database aren't run again if they passed." >> "$GITHUB_STEP_SUMMARY"
+              exit 1 ;;
+            *)
+              echo "::error::Unknown layout plan '$PLAN' from the changes job."
+              exit 1 ;;
+          esac
+
+  # CI triage (plan process-sdlc-1, P8): when check, database or layout fails on a pull request, Claude (Sonnet) reads
+  # the failed jobs' logs and posts three lines as one comment: likely cause · flaky or real · what to try.
+  # Runs only on a failure, never on Dependabot's pull requests (they can't use the key). It isn't a required check
+  # and may fail without failing anything: the red job is still the signal. Claude reads only (Read, Grep, Glob).
+  triage:
+    needs: [pick, changes, check, database, layout, redraw]
+    # Not when the only red is layout waiting for the ready label: that's expected, not something to diagnose. Nor
+    # when the redraw job committed the announced pictures: that commit replaces this one, with its checks green.
+    if: >-
+      failure() && github.event_name == 'pull_request' && needs.redraw.outputs.pushed != 'true'
+      && (needs.changes.result == 'failure' || needs.check.result == 'failure' || needs.database.result == 'failure'
+          || (needs.layout.result == 'failure' && needs.changes.outputs.layout_plan != 'wait'))
+      && github.event.pull_request.user.login != 'dependabot[bot]' && github.actor != 'dependabot[bot]'
+    runs-on: ${{ fromJSON(needs.pick.outputs.runs_on) }}
+    timeout-minutes: 15
+    continue-on-error: true
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      # The run is still going (this job is part of it), so each failed job's log is fetched on its own.
+      - name: Collect the failed logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p triage
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT/jobs" --paginate \
+            --jq '.jobs[] | select(.conclusion == "failure") | "\(.id)\t\(.name)"' > triage/jobs.tsv
+          : > triage/failed.log
+          while IFS=$'\t' read -r id name; do
+            echo "===== Job: $name =====" >> triage/failed.log
+            # The last 400 lines hold the error; colour codes and timestamps are stripped.
+            gh api "repos/$GITHUB_REPOSITORY/actions/jobs/$id/logs" \
+              | sed -E 's/\x1b\[[0-9;]*m//g; s/^[0-9T:.-]+Z //' | tail -n 400 >> triage/failed.log || true
+          done < triage/jobs.tsv
+          echo "Failed jobs:" && cut -f2 triage/jobs.tsv
+      - name: Triage
+        id: triage
+        uses: anthropics/claude-code-action@v1.0.266
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
+          prompt: |
+            A CI run failed on pull request #${{ github.event.pull_request.number }} in ${{ github.repository }}.
+            The failed jobs' logs (last 400 lines of each) are in triage/failed.log; the code is checked out here.
+            Read the log, look at the files it names if that helps, and write exactly three short lines in plain
+            words for a novice coder:
+            Likely cause: ...
+            Flaky or real: ... (flaky means a timeout, network or a test that passes on a re-run; say why)
+            What to try: ... (the exact command or file to look at)
+            Return them as the `body` field. You cannot edit anything and must not try.
+          claude_args: |
+            --model claude-sonnet-5-5
+            --max-turns 15
+            --allowedTools "Read,Grep,Glob"
+            --disallowedTools "Bash,Edit,Write,MultiEdit,NotebookEdit,WebFetch,WebSearch"
+            --json-schema '{"type":"object","properties":{"body":{"type":"string","description":"The three lines"}},"required":["body"]}'
+      - name: Post the triage
+        if: steps.triage.outputs.structured_output != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ steps.triage.outputs.structured_output }}
+        run: |
+          { echo "**CI triage (Claude).** A guess from the logs, not a verdict: the red job is the signal."; echo
+            echo "$RESULT" | jq -r '.body'; echo; echo "[The run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+          } > triage/comment.md
+          bash .github/scripts/pr-comment.sh "${{ github.event.pull_request.number }}" grimoire-triage triage/comment.md
+
+  # Announced redraws (ci-announced-redraws, Francis 2026-11-20: "do the second saving too - write them both so they
+  # persist past this session"). A pull request that changes gallery pictures on purpose names them in its text, on
+  # one line: "Gallery pictures expected to change: phone-light-atoms.png, tablet-dark-atoms.png". When the picture
+  # check fails, check and database passed, and scripts/ci-redraws.mjs finds that every failure in all three shards is
+  # a difference in an announced picture, this job commits those pictures' 1x -actual.png (the very bytes the shards
+  # compared) over their approved pictures on the pull request's branch, as a commit on top of the one this run
+  # checked that changes nothing else. A push with the run's own token starts no workflow, so this job then reports
+  # check, database and layout green on the new commit (GitHub Actions' own check runs, which the main branch's rules
+  # require), each saying which run and which pictures it carries: its code is the code this run checked, and its
+  # announced pictures are the ones this run drew. Anything else (an unannounced picture, any other failing test, a
+  # picture that never held still, a branch that moved on) leaves the run red, as before. See docs/testing.md,
+  # Announced redraws.
+  redraw:
+    needs: [pick, changes, check, database, layout-shard]
+    if: >-
+      !cancelled() && github.event_name == 'pull_request' && github.base_ref == 'main'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && github.event.pull_request.user.login != 'dependabot[bot]'
+      && needs.changes.outputs.layout_plan == 'run' && needs.layout-shard.result == 'failure'
+      && needs.check.result == 'success' && needs.database.result == 'success'
+    runs-on: ${{ fromJSON(needs.pick.outputs.runs_on) }}
+    timeout-minutes: 10
+    permissions:
+      actions: read # the shards' layout-screens-N artifacts
+      checks: write # the carried check, database and layout on the new commit
+      contents: write # the redraw commit on the pull request's branch
+    outputs:
+      pushed: ${{ steps.commit.outputs.pushed }}
+    steps:
+      # The pull request's own head (not the merge with main), so the new commit sits right on top of it. No token is
+      # left in .git/config: only the push below is handed one (#1082 review).
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      # The judge is scripts/ci-redraws.mjs as on the pull request's base (main), so a pull request can't rewrite its
+      # own judge. Only when the base has none yet (the pull request that adds it) does the head's copy judge.
+      - name: Take the judge from the base
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/judge"
+          if gh api -H 'Accept: application/vnd.github.raw' "repos/$GITHUB_REPOSITORY/contents/scripts/ci-redraws.mjs?ref=$BASE_SHA" \
+            > "$RUNNER_TEMP/judge/ci-redraws.mjs" 2> "$RUNNER_TEMP/judge/fetch-error.txt"; then
+            echo "The judge is scripts/ci-redraws.mjs as on the base, $BASE_SHA."
+          elif grep -q 'HTTP 404' "$RUNNER_TEMP/judge/fetch-error.txt"; then
+            cp scripts/ci-redraws.mjs "$RUNNER_TEMP/judge/ci-redraws.mjs"
+            echo "::notice::The base has no scripts/ci-redraws.mjs yet, so the pull request's own copy judges (only until it is merged)."
+          else
+            cat "$RUNNER_TEMP/judge/fetch-error.txt"
+            echo "::error::Couldn't fetch the judge from the base; nothing is redrawn."
+            exit 1
+          fi
+      - name: Fetch the shards' reports and redrawn pictures
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for n in 1 2 3; do
+            gh run download "$GITHUB_RUN_ID" --name "layout-screens-$n" --dir "$RUNNER_TEMP/shards/$n" \
+              || echo "::warning::Couldn't fetch layout-screens-$n; nothing is redrawn."
+          done
+      # The text is the pull request's as it was when the run started: a re-run doesn't see a newer announcing line.
+      # Each report must name this attempt and commit (playwright.config.ts's metadata), so an older attempt's is refused.
+      - name: Judge the differences
+        id: judge
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -o pipefail
+          printf '%s\n' "$BODY" > "$RUNNER_TEMP/pull-request-text.md"
+          node "$RUNNER_TEMP/judge/ci-redraws.mjs" --body "$RUNNER_TEMP/pull-request-text.md" --shards "$RUNNER_TEMP/shards" \
+            --count 3 --baselines tests/layout/gallery-baselines --attempt "$GITHUB_RUN_ATTEMPT" --sha "$GITHUB_SHA" \
+            --write | tee -a "$GITHUB_STEP_SUMMARY"
+      # The copy may change only the announced pictures' files, each already an approved picture: nothing else
+      # modified, nothing untracked (ci-redraws.mjs --verify-status, tested in scripts/ci-redraws.test.mjs).
+      - name: Only the announced pictures changed?
+        if: steps.judge.outputs.verdict == 'accept'
+        env:
+          PICTURES: ${{ steps.judge.outputs.pictures }}
+        run: node "$RUNNER_TEMP/judge/ci-redraws.mjs" --verify-status --pictures "$PICTURES" --baselines tests/layout/gallery-baselines
+      - name: Commit the redraws and carry the checks
+        id: commit
+        if: steps.judge.outputs.verdict == 'accept'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PICTURES: ${{ steps.judge.outputs.pictures }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -eo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for p in $PICTURES; do git add -- "tests/layout/gallery-baselines/$p"; done
+          git commit -q -m "Redraw the announced gallery pictures" \
+            -m "From run $RUN_URL (ci-announced-redraws): $PICTURES"
+          # The token goes to this one push only, as a header on its command line (never saved in .git/config).
+          auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          echo "::add-mask::$auth"
+          # A fast-forward only: if the branch moved on since this run started, the push is refused and its newer
+          # run checks it.
+          if ! git -c "http.$GITHUB_SERVER_URL/.extraheader=AUTHORIZATION: basic $auth" push origin "HEAD:refs/heads/$HEAD_REF"; then
+            echo "The branch moved on since this run started, so the redraws weren't pushed." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          sha=$(git rev-parse HEAD)
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+          # On a re-run of failed jobs, check and database may be the earlier attempt's results, reused on the same code.
+          summary="Carried from $RUN_URL (attempt $GITHUB_RUN_ATTEMPT): commit $sha changes only the announced gallery pictures ($PICTURES), and their bytes are the ones this attempt's layout shards compared. Check and database passed on the same code in that run (in this attempt, or in an earlier attempt whose results a re-run reused), and every layout check passed except those pictures."
+          for name in check database layout; do
+            gh api "repos/$GITHUB_REPOSITORY/check-runs" -X POST -f name="$name" -f head_sha="$sha" \
+              -f status=completed -f conclusion=success \
+              -f "output[title]=Carried: announced redraws only" -f "output[summary]=$summary" > /dev/null
+          done
+          echo "Redrawn and committed as $sha; check, database and layout reported green on it." | tee -a "$GITHUB_STEP_SUMMARY"
+
+  # Deploying to Vercel. Vercel's free plan can't connect to a private repo owned by a GitHub organization,
+  # so GitHub builds the app itself, with the Supabase address and publishable key passed in directly (both are
+  # public: they ship inside the app), checks the build points at the right project (scripts/vercel-output.mjs
+  # refuses otherwise), and uploads it ready-made with Vercel's own tool. See docs/testing.md, Deploying.
+  # Production: every push to main; the MAIN project. Its pull request already passed check, database and layout.
+  # It waits for main's check and database only: main's pictures are checked by the night run (2026-11-19), so a
+  # picture fault a merge brings in goes live and is found the next morning and fixed forward.
+  # While the cq-3 deferral is on (off since rvw-6) check also reports success, so main would deploy on database
+  # alone and a fault it would have caught is found by the night run and fixed forward. The night run (schedule) never deploys.
+  deploy-production:
+    # always(): a merge that changes no database code skips the database shards, and without it that skip
+    # skipped the deploy too (2026-11-09, #574 never went live). The two results below still gate it.
+    if: >-
+      always() && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      needs.check.result == 'success' && needs.database.result == 'success'
+    needs: [pick, check, database]
+    runs-on: ${{ fromJSON(needs.pick.outputs.runs_on) }}
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VITE_SUPABASE_URL: ${{ vars.MAIN_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.MAIN_SUPABASE_PUBLISHABLE_KEY }}
+    # Only the newest commit on main goes live (2026-11-19, Francis: "Yes, fix it"): runs finish out of order, and an
+    # older merge's run could put its older version live after a newer one's. So the deploy checks that this run's
+    # commit is still main's head, before anything is fetched or built and again just before deploying; when main has
+    # moved on, the rest is skipped (the job stays green) and the summary says so. That newer commit's own run deploys it.
+    steps:
+      - name: Still main's newest commit?
+        id: head_before_build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # One retry after a few seconds; if both fail, head is empty and the line below says so in plain words.
+          head=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$GITHUB_REF_NAME" --jq .object.sha) \
+            || { sleep 5; head=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$GITHUB_REF_NAME" --jq .object.sha) || head=""; }
+          [ -n "$head" ] || { echo "::error::Couldn't read main's newest commit."; exit 1; }
+          if [ "$head" = "$GITHUB_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            echo "Not deployed: main has moved on to $head; that commit's own run deploys it." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - if: steps.head_before_build.outputs.current == 'true'
+        uses: actions/checkout@v7
+      - if: steps.head_before_build.outputs.current == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - if: steps.head_before_build.outputs.current == 'true'
+        run: npm ci
+      - if: steps.head_before_build.outputs.current == 'true'
+        run: npm run build
+      - if: steps.head_before_build.outputs.current == 'true'
+        run: node scripts/vercel-output.mjs "$VITE_SUPABASE_URL"
+      - name: Still main's newest commit, just before deploying?
+        if: steps.head_before_build.outputs.current == 'true'
+        id: head_before_deploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # One retry after a few seconds; if both fail, head is empty and the line below says so in plain words.
+          head=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$GITHUB_REF_NAME" --jq .object.sha) \
+            || { sleep 5; head=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$GITHUB_REF_NAME" --jq .object.sha) || head=""; }
+          [ -n "$head" ] || { echo "::error::Couldn't read main's newest commit."; exit 1; }
+          if [ "$head" = "$GITHUB_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            echo "Not deployed: main has moved on to $head; that commit's own run deploys it." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Deploy to production
+        if: steps.head_before_deploy.outputs.current == 'true'
+        run: |
+          url=$(npx --yes vercel@62.5.0 deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "Live: $url" >> "$GITHUB_STEP_SUMMARY"

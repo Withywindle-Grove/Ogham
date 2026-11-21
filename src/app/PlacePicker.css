@@ -1,0 +1,115 @@
+/* The place picker (M8b slice 0, pull request 2): sections, rows that are the action, fold buttons. Tokens only. */
+.place-pick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.place-pick section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* The text boxes: 44 px wherever the picker renders (the gallery has no sign-in styles). */
+.place-pick__field {
+  min-height: var(--tap-step);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.place-pick__count {
+  margin: 0;
+}
+
+.place-pick__line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* A row is a secondary button the width of its line, its words at the left; long names wrap. */
+.place-pick__row {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-start;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-16);
+  font-family: var(--font-body);
+  font-weight: var(--weight-body);
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.place-pick__words {
+  overflow-wrap: anywhere;
+}
+
+.place-pick__source {
+  margin-left: auto;
+}
+
+/* The square unfold / fold button: 44 × 44, its icon only (plus, minus). */
+.place-pick__fold {
+  flex: none;
+  width: var(--tap-step);
+  min-width: var(--tap-step);
+  padding: 0;
+}
+
+.place-pick__more {
+  align-self: flex-start;
+}
+
+.place-pick__group {
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+
+.place-pick__group-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  min-height: var(--tap-step);
+}
+
+.place-pick__group-words {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.place-pick__group-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-top: var(--line-hair) solid var(--rule);
+  padding: var(--space-2) var(--space-3);
+}
+
+.place-pick__group-body > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.place-pick__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* The place card's lines from a pack (pull request 2): Part of, Here · N places ("Players see" left with p2p-11, B3). */
+.place-card__related {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

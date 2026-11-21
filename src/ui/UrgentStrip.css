@@ -1,0 +1,30 @@
+/* The Urgent strip: tinted one-line rows at the top of the Player screen. */
+.urgent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--gap) 0;
+}
+
+.urgent__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  margin: 0;
+  padding: 0 var(--pad);
+  min-height: var(--tap);
+  border-radius: var(--radius);
+  background: var(--tint);
+  color: var(--ink);
+}
+
+/* An item with its own small form (the weather roll): the words, the box and the button wrap on a phone. */
+.urgent__item--form {
+  padding-block: var(--space-2);
+}
+
+/* A screen's own item with nothing to say leaves the strip empty: then it takes no room. */
+.urgent:empty {
+  display: none;
+}

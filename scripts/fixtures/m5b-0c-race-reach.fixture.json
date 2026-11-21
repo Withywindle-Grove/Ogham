@@ -1,0 +1,27 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-ash-tender",
+    "name": "Invented add-on class (race reach)",
+    "shortName": "Ash Tender",
+    "version": "0.1",
+    "kind": "setting",
+    "author": "Invented for the app's tests",
+    "description": "An invented add-on for the m5b-creation fixture (M5b step 0c follow-up, pg-2): one class that reaches the base pack's races through raceMaxLevels."
+  },
+  "classes": [
+    {
+      "id": "ash-tender",
+      "name": "Ash Tender",
+      "blurb": "Keeps the hearth-fires of the causeway towns.",
+      "hitDie": "d6",
+      "xpTableId": "ash-tender-xp",
+      "maxLevel": 14,
+      "raceMaxLevels": { "stone-kin": 9, "race-dune-walker": null }
+    }
+  ],
+  "xpTables": [
+    { "id": "ash-tender-xp", "levels": [{ "level": 2, "xp": 1400 }, { "level": 3, "xp": 2800 }] }
+  ]
+}

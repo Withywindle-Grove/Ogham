@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The tablet's two columns where the second has a job (draft, 2026-11-07; Francis: assumed yes, final drafts decide)</title>
+<style>
+  /* Tokens from docs/06 only. Light and dark side by side (the dark column is the same markup, cloned). Buttons are plain blocks. Invented names and numbers only. The tablet frame is drawn at 740 px, standing in for 820. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; }
+  body { margin:0; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:#888; }
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-5); padding:var(--space-5); align-items:start; }
+  .theme { padding:var(--space-4); border-radius:4px; background:var(--page); color:var(--ink); }
+  .light { --d6:#191714; --d10:#C98A1E; --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; --info:#2F5D7C; --warn:#7A4A00; --wash:#F3E7E3; }
+  .dark  { --d6:#F1EADC; --d10:#E6BA66; --page:#12100D; --surface:#1C1915; --sheet:#1E1A16; --ink:#F1EADC; --muted:#B5AA96; --rule:#3A342B; --control:#756B5A; --accent:#C9875A; --on-accent:#12100D; --info:#8DB4D0; --warn:#F2D46B; --wash:#3A2A20; }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-5) 0 var(--space-2); }
+  h1:first-child { margin-top:0; }
+  .tablet { width:740px; background:var(--page); border:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; overflow:hidden; margin-bottom:var(--space-4); }
+  .cap { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); max-width:740px; }
+  .bar { display:grid; grid-template-columns:44px 1fr 44px; align-items:center; min-height:52px; padding:0 var(--space-1); border-bottom:1px solid var(--rule); }
+  .bar .title { text-align:center; font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .ico { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; color:var(--ink); }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); padding:var(--space-3); align-items:start; }
+  .cols.wide-left { grid-template-columns:3fr 2fr; }
+  .panel { background:var(--surface); border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); position:sticky; top:0; }
+  .meta { font-size:14px; color:var(--muted); }
+  .do { margin:var(--space-2) 0 var(--space-3); }
+  .roll { display:flex; align-items:flex-start; gap:var(--space-2); font-weight:700; margin:var(--space-3) 0 var(--space-2); }
+  .roll svg { margin-top:2px; }
+  h2 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; margin:var(--space-3) 0 var(--space-2); font-variant:small-caps; }
+  h2:first-child { margin-top:0; }
+  .card { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); margin-bottom:var(--space-2); }
+  .card.picked { background:var(--wash); border-color:var(--accent); }
+  .card.open { box-shadow:inset 0 0 0 2px var(--control); }
+  .kv { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); min-height:44px; }
+  .kv .text { flex:1; min-width:0; }
+  .kv .text small { display:block; font-size:14px; color:var(--muted); }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--space-2); min-height:44px; min-width:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:16px; line-height:1.2; box-sizing:border-box; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.sq { width:44px; padding:10px; }
+  .btn.small { font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .btn.wide { display:flex; width:100%; }
+  .num { width:72px; min-height:44px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); display:inline-flex; align-items:center; justify-content:center; font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; box-sizing:border-box; }
+  .num.usual { color:var(--muted); font-weight:400; }
+  .stepper { display:inline-flex; gap:var(--space-2); align-items:center; }
+  .usualline { font-size:14px; color:var(--muted); margin-top:var(--space-1); }
+  .warnline { color:var(--warn); font-weight:700; font-size:14px; display:inline-flex; align-items:center; gap:6px; }
+  .foot { display:flex; justify-content:flex-end; align-items:center; gap:var(--space-2); border-top:1px solid var(--rule); padding:var(--space-3); flex-wrap:wrap; }
+  .foot .say { flex:1; font-size:14px; color:var(--muted); min-width:120px; }
+  .row { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); min-height:44px; padding:var(--space-1) 0; border-bottom:1px solid var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text small, .kv .text small { display:block; font-size:14px; color:var(--muted); }
+  .ex { display:grid; grid-template-columns:1fr 1fr 1fr; gap:var(--space-3); }
+  .ex h3 { font-size:14px; color:var(--muted); font-weight:400; margin:0 0 var(--space-2); }
+  .bartrack { height:8px; border-radius:4px; background:var(--rule); margin:var(--space-2) 0 var(--space-1); position:relative; }
+  .bartrack span { position:absolute; left:0; top:0; bottom:0; width:58%; background:var(--control); border-radius:4px; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-2) 0 var(--space-4); }
+  svg { flex:none; }
+</style>
+</head>
+<body>
+<template id="screens">
+  <h1>On a tablet, a second column only where it has a job (N2)</h1>
+  <p class="note">Ruled 2026-11-06: two columns where a second column has a job; otherwise the one column widens (mockup 15, section 3). Here the two cases where it does: a pick step with its entry beside the list (cr-10 already draws this on Race and Class), and Gear with what you already have, the coin and the load beside the choices. The right column stays put while the left scrolls. Starting coin shows the average rounded to a value the dice can make (100, step 10; Francis 2026-11-07). Below 700 px the right column drops under the left and folds (the phone layouts of mockups 12 and 15).</p>
+
+  <h1>1 · Class: the list on the left, the entry on the right</h1>
+  <p class="cap">Tapping a name opens its entry on the right instead of a sheet; the open row is marked. Pick is on the row and repeated at the entry's foot; while nothing is picked the entry's Pick carries the accent and Next is plain. A closed class shows the warning sign and why, with no Pick.</p>
+  <div class="tablet">
+    <div class="bar"><span class="ico" role="button" aria-label="Back"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span class="title">Class</span><span class="ico" role="button" aria-label="More"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg></span></div>
+    <div class="cols">
+      <div>
+        <p class="meta">Step 3 of 9</p>
+        <p class="do">Your class is your trade as an adventurer. Tap a name to read about it, then Pick.</p>
+        <span class="btn small wide" style="margin-bottom:var(--space-3)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v6" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7.5" r="1.2" fill="currentColor"/></svg>Help me choose</span>
+        <div class="card"><div class="kv"><div class="text">Lantern Warden<small>Fights in the front, no spells</small></div><span class="btn">Pick</span></div></div>
+        <div class="card open"><div class="kv"><div class="text">Reed Witch<small>Spells from the marsh, frail. Open on the right</small></div><span class="btn">Pick</span></div></div>
+        <div class="card"><div class="kv"><div class="text">Fen Ranger<small>Tracks and shoots, light armour</small></div><span class="btn">Pick</span></div></div>
+        <div class="card"><div class="kv"><div class="text">Marsh Chaplain<small class="warnline"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3l10 18H2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v5" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="18" r="1.2" fill="currentColor"/></svg>Not open to Stone kin</small></div></div></div>
+        <div class="card"><div class="kv"><div class="text">Bog Cutpurse<small>Locks, traps and quiet feet</small></div><span class="btn">Pick</span></div></div>
+      </div>
+      <div class="panel">
+        <h2>Reed Witch</h2>
+        <p class="meta">River Rules, p. 31</p>
+        <p>Reed Witches learn their spells from the marsh itself, trading sleep and comfort for small, strange powers. They wear no armour heavier than quilted cloth and carry a staff or a knife.</p>
+        <div class="row"><span class="meta">Prime</span><span>Wits</span></div>
+        <div class="row"><span class="meta">Hit die</span><span style="display:inline-flex;align-items:center;gap:6px"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 2.5L21.5 20.5H2.5z" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/><path d="M12 2.5L11 13.5M11 13.5L2.5 20.5M11 13.5L21.5 20.5" fill="none" stroke="var(--ink)" stroke-width="1"/></svg>d4</span></div>
+        <div class="row"><span class="meta">Armour</span><span>Quilted cloth at most</span></div>
+        <div class="row"><span class="meta">Open to</span><span>Every kindred</span></div>
+        <span class="btn accent wide" style="margin-top:var(--space-3)">Pick Reed Witch</span>
+      </div>
+    </div>
+    <div class="foot"><span class="say">Nothing picked yet</span><span class="btn">Back</span><span class="btn">Next</span></div>
+  </div>
+
+  <h1>2 · Gear: the choices on the left; coin, load and what you already have on the right</h1>
+  <p class="cap">The left column is the step's work in order: the coin's Roll row, the kits, the keepsake, the shop. The right column is the running state: coin left, the load line, Given (folded by group). It stays while the left scrolls. The kit's Pick stays on this step (several asks).</p>
+  <div class="tablet">
+    <div class="bar"><span class="ico" role="button" aria-label="Back"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><span class="title">Gear</span><span class="ico" role="button" aria-label="More"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg></span></div>
+    <div class="cols wide-left">
+      <div>
+        <p class="meta">Step 6 of 9</p>
+        <p class="do">What you carry into your first adventure. Take a kit, buy from the shop, or both.</p>
+        <div class="roll"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 2L21 7V17L12 22L3 17V7z" fill="none" stroke="var(--d6)" stroke-width="2" stroke-linejoin="round"/><path d="M12 12L3 7M12 12L21 7M12 12V22" fill="none" stroke="var(--d6)" stroke-width="1"/></svg><span>Roll 3d6 × 10 for your starting coin, then enter it. The stepper moves by 10.</span></div>
+        <div class="card"><div class="kv"><span>Starting coin</span><span class="stepper"><span class="btn sq">−</span><span class="num usual">100</span><span class="btn sq">+</span></span></div><div class="usualline">Average value · replace with your roll</div></div>
+        <h2>To choose</h2>
+        <div class="card picked"><div class="kv"><div class="text">Warden's kit<small>Picked ✓<br>9 items: leather, spear, lantern, 3 days' food</small></div><span class="btn small">Change</span></div></div>
+        <div class="card"><div class="kv"><div class="text">Witch's bundle<small>7 items: staff, quilted cloth, candles and a pouch of herbs</small></div><span class="btn">Pick</span></div></div>
+        <div class="roll"><svg viewBox="0 0 48 24" width="48" height="24" aria-hidden="true"><path d="M12 2L21 9L17 20H7L3 9z" fill="none" stroke="var(--d10)" stroke-width="2" stroke-linejoin="round"/><path d="M12 2L8 10M12 2L16 10M8 10L3 9M16 10L21 9M8 10L12 13L16 10M12 13L7 20M12 13L17 20" fill="none" stroke="var(--d10)" stroke-width="1"/><g transform="translate(24 0)"><path d="M12 2L21 9L17 20H7L3 9z" fill="none" stroke="var(--d10)" stroke-width="2" stroke-linejoin="round"/><path d="M12 2L8 10M12 2L16 10M8 10L3 9M16 10L21 9M8 10L12 13L16 10M12 13L7 20M12 13L17 20" fill="none" stroke="var(--d10)" stroke-width="1"/></g></svg><span>Roll d100 for your keepsake, then tap the row.</span></div>
+        <div class="card"><div class="kv"><div class="text">Keepsake<small>Stone kin, d100. Not rolled yet</small></div><span class="btn">Open</span></div></div>
+        <div class="card"><div class="kv"><div class="text">The shop<small>Buy item by item with your coin</small></div><span class="btn">Open</span></div></div>
+      </div>
+      <div class="panel">
+        <h2>Yours so far</h2>
+        <div class="row"><span class="meta">Coin</span><span style="text-align:right">100 left of 100<small style="display:block;font-size:14px;color:var(--muted)">the average, not rolled yet</small></span></div>
+        <div class="row"><span class="meta">Load</span><span>Unburdened, speed 40</span></div>
+        <div class="bartrack"><span></span></div>
+        <p class="meta" style="margin:0 0 var(--space-2)">290 of 500 coins' weight</p>
+        <div class="row"><div class="text">Warden's kit<small>9 items: leather, spear, lantern…</small></div><span class="btn sq" role="button" aria-label="Show the kit"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/></svg></span></div>
+        <div class="row"><div class="text">Given to every character<small>7 items: clothes, pack, 2 days' food…</small></div><span class="btn sq" role="button" aria-label="Show what is given"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/></svg></span></div>
+        <div class="row"><div class="text">Given to Reed Witches<small>2 items: staff, spell pouch</small></div><span class="btn sq" role="button" aria-label="Show the class's gear"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2"/></svg></span></div>
+      </div>
+    </div>
+    <div class="foot"><span class="say">1 kit, nothing bought<br>Coin not yet rolled</span><span class="btn">Back</span><span class="btn accent">Next</span></div>
+  </div>
+
+  <h1>3 · The rule, for the builder</h1>
+  <p class="cap">Which steps get a second column, and what it holds. Everything else is one column, widened.</p>
+  <div class="tablet"><div style="padding:var(--space-3)">
+    <div class="row"><span class="meta" style="width:200px">Race, Class</span><span class="text">The open entry (name, source page, blurb, the figures that matter to the pick, Pick)</span></div>
+    <div class="row"><span class="meta" style="width:200px">Who they are</span><span class="text">The open name table, or the liege's entry; else Derived values, unfolded</span></div>
+    <div class="row"><span class="meta" style="width:200px">Spells, Languages, Weapon skills</span><span class="text">The open entry; else "Yours so far" (what the kindred and class already give)</span></div>
+    <div class="row"><span class="meta" style="width:200px">Gear, the shop</span><span class="text">Coin, load, Yours so far by group</span></div>
+    <div class="row"><span class="meta" style="width:200px">The review</span><span class="text">One column, widened: the cards two across</span></div>
+    <div class="row"><span class="meta" style="width:200px">Scores, Adjust, Details, Method</span><span class="text">One column, widened (tiles three across where they are tiles)</span></div>
+    <div class="row"><span class="meta" style="width:200px">The sheet</span><span class="text">Fields on the left (pattern 7 rows); the pack, the figures and magic on the right. Its own mockup.</span></div>
+  </div></div>
+
+  <h1>4 · Separators: four ways to write the same facts (Francis asked, 2026-11-07)</h1>
+  <p class="cap">The middle dot goes. Same rows, same facts: A commas on one line; B a second line, no dot; C an en dash; D a pipe. Each column shows a status line, a caption, a coin line and a panel row.</p>
+  <div class="tablet"><div style="padding:var(--space-3)">
+    <div class="ex">
+      <div><h3>A, commas</h3>
+        <div class="card"><div class="kv"><div class="text">Warden's kit<small>9 items, leather, spear, lantern, 3 days' food</small></div><span class="btn small">Change</span></div></div>
+        <div class="row"><span class="meta">Coin</span><span>105 rolled, 0 spent, 105 left</span></div>
+        <div class="row"><div class="text">Given to every character<small>7 items, clothes, pack, 2 days' food</small></div><span class="btn sq">+</span></div>
+        <p class="meta">1 kit, 0 bought, coin not yet rolled</p>
+      </div>
+      <div><h3>B, a second line, "of" and "with"</h3>
+        <div class="card"><div class="kv"><div class="text">Warden's kit<small>9 items: leather, spear, lantern, 3 days' food</small></div><span class="btn small">Change</span></div></div>
+        <div class="row"><span class="meta">Coin</span><span style="text-align:right">105 left of 105 rolled<small style="display:block;font-size:14px;color:var(--muted)">nothing spent</small></span></div>
+        <div class="row"><div class="text">Given to every character<small>7 items: clothes, pack, 2 days' food</small></div><span class="btn sq">+</span></div>
+        <p class="meta">1 kit, nothing bought<br>Coin not yet rolled</p>
+      </div>
+      <div><h3>C, en dash</h3>
+        <div class="card"><div class="kv"><div class="text">Warden's kit<small>9 items – leather, spear, lantern, 3 days' food</small></div><span class="btn small">Change</span></div></div>
+        <div class="row"><span class="meta">Coin</span><span>105 rolled – 0 spent – 105 left</span></div>
+        <div class="row"><div class="text">Given to every character<small>7 items – clothes, pack, 2 days' food</small></div><span class="btn sq">+</span></div>
+        <p class="meta">1 kit – 0 bought – coin not yet rolled</p>
+      </div>
+    </div>
+    <div class="ex" style="margin-top:var(--space-3)">
+      <div><h3>D, pipe</h3>
+        <div class="card"><div class="kv"><div class="text">Warden's kit<small>9 items | leather, spear, lantern, 3 days' food</small></div><span class="btn small">Change</span></div></div>
+        <div class="row"><span class="meta">Coin</span><span>105 rolled | 0 spent | 105 left</span></div>
+        <div class="row"><div class="text">Given to every character<small>7 items | clothes, pack, 2 days' food</small></div><span class="btn sq">+</span></div>
+        <p class="meta">1 kit | 0 bought | coin not yet rolled</p>
+      </div>
+      <div><h3>E, spaced, no mark (two spaces of gap)</h3>
+        <div class="card"><div class="kv"><div class="text">Warden's kit<small style="word-spacing:0">9 items&emsp;leather, spear, lantern, 3 days' food</small></div><span class="btn small">Change</span></div></div>
+        <div class="row"><span class="meta">Coin</span><span>105 rolled&emsp;0 spent&emsp;105 left</span></div>
+        <div class="row"><div class="text">Given to every character<small>7 items&emsp;clothes, pack, 2 days' food</small></div><span class="btn sq">+</span></div>
+        <p class="meta">1 kit&emsp;0 bought&emsp;coin not yet rolled</p>
+      </div>
+      <div><h3>Today, the middle dot (ruled out)</h3>
+        <div class="card"><div class="kv"><div class="text">Warden's kit<small>9 items · leather, spear, lantern, 3 days' food</small></div><span class="btn small">Change</span></div></div>
+        <div class="row"><span class="meta">Coin</span><span>105 rolled · 0 spent · 105 left</span></div>
+        <div class="row"><div class="text">Given to every character<small>7 items · clothes, pack, 2 days' food</small></div><span class="btn sq">+</span></div>
+        <p class="meta">1 kit · 0 bought · coin not yet rolled</p>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">Self-review: targets 44 px with 8 px between; nothing under 14 px; the open row is marked by an inset border and the words "open on the right", not colour alone; the closed class shows the sign and why, never grey; one accent per screen, and it follows the ask (Francis, 2026-11-07): on Class nothing is picked, so the entry's Pick carries it and Next is plain; on Gear a kit is picked, so Next carries it; the right column's sticky position was not tested with a real scroll; long names in the panel wrap under the label. Not drawn: the 700 px break where the panel drops under the list.</p>
+</template>
+
+<div class="pair">
+  <div class="theme light" id="light"></div>
+  <div class="theme dark" id="dark"></div>
+</div>
+<script>
+  const t = document.getElementById('screens');
+  document.getElementById('light').appendChild(t.content.cloneNode(true));
+  document.getElementById('dark').appendChild(t.content.cloneNode(true));
+</script>
+</body>
+</html>

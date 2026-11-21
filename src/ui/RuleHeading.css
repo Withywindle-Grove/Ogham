@@ -1,0 +1,12 @@
+/* The rule line in a heading's row (sv-3; frames P1, P2 of december/14): the heading at the left, the die's glyph and
+   the line at the right of the same row, in ink at 14 px; too narrow, the line wraps under the heading. */
+.rule-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: var(--space-2);
+  row-gap: var(--space-1);
+}
+
+/* The Roll row's heading variant (`.roll-row--heading`, dice.css) carries the line's own look. */

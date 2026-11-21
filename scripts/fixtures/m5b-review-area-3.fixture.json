@@ -1,0 +1,389 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "review-area-3",
+    "name": "Invented fen gear (review area 3)",
+    "version": "0.1",
+    "kind": "setting"
+  },
+  "rulesSets": [
+    {
+      "id": "fen-gear-rules",
+      "name": "Fen gear rules",
+      "scores": {
+        "dice": "2d6",
+        "min": 2,
+        "max": 12
+      },
+      "encumbrance": {
+        "mode": "armour",
+        "armour": {
+          "maxLoadCoin": 800,
+          "movement": [
+            {
+              "armour": "none",
+              "withoutTreasure": "45 ft",
+              "withTreasure": "35 ft"
+            },
+            {
+              "armour": "light",
+              "withoutTreasure": "35 ft",
+              "withTreasure": "25 ft"
+            },
+            {
+              "armour": "heavy",
+              "withoutTreasure": "25 ft",
+              "withTreasure": "15 ft"
+            }
+          ],
+          "armourTypes": {
+            "quilted": "light",
+            "iron-scale": "heavy"
+          }
+        },
+        "coin": {
+          "maxLoadCoin": 1500,
+          "tiers": [
+            {
+              "label": "Unhurried",
+              "max": 450,
+              "effect": "Full pace",
+              "movement": "45 ft"
+            },
+            {
+              "label": "Laden",
+              "max": 900,
+              "effect": "Slower",
+              "movement": "35 ft"
+            },
+            {
+              "label": "Bowed",
+              "max": 1500,
+              "effect": "Crawling",
+              "movement": "15 ft"
+            }
+          ],
+          "overMax": "Stuck fast"
+        },
+        "treasureWeights": {
+          "gem": 1
+        }
+      },
+      "weaponRules": [
+        {
+          "category": "Thunder-tube",
+          "classCategories": [
+            "martial"
+          ],
+          "exceptClasses": [
+            "bog-knight"
+          ],
+          "note": "The marsh referee decides for chaplains."
+        },
+        {
+          "category": "Hand-cannon",
+          "classCategories": [
+            "iron-born"
+          ]
+        }
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "bog-mage",
+      "name": "Bog mage",
+      "hitDie": "d4",
+      "armourAllowed": {
+        "types": [],
+        "shields": false,
+        "note": "No armour at all."
+      },
+      "weaponProficiencyCategory": "gentle"
+    },
+    {
+      "id": "reed-warden",
+      "name": "Reed warden",
+      "hitDie": "d8",
+      "armourAllowed": {
+        "types": [
+          "quilted"
+        ],
+        "shields": false,
+        "note": "Quilted armour only."
+      },
+      "weaponProficiencyCategory": "martial"
+    },
+    {
+      "id": "bog-knight",
+      "name": "Bog knight",
+      "hitDie": "d8",
+      "weaponProficiencyCategory": "martial",
+      "weaponsAllowed": {
+        "mode": "list",
+        "ids": [
+          "reed-darts"
+        ],
+        "note": "No thunder-tubes: the order forbids them."
+      },
+      "armourAllowed": {
+        "types": "any",
+        "shields": true
+      }
+    },
+    {
+      "id": "phase-kin",
+      "name": "Phase kin",
+      "hitDie": "d6",
+      "weaponProficiencyCategory": "martial",
+      "weaponsAllowed": {
+        "mode": "any"
+      },
+      "armourAllowed": {
+        "types": "any",
+        "shields": true
+      },
+      "forms": [
+        {
+          "id": "dawn-phase",
+          "name": "Dawn phase",
+          "weaponsAllowed": {
+            "mode": "any"
+          },
+          "armourAllowed": {
+            "types": "any",
+            "shields": true
+          },
+          "note": "Any weapon or armour."
+        },
+        {
+          "id": "dusk-phase",
+          "name": "Dusk phase",
+          "weaponsAllowed": {
+            "mode": "list",
+            "ids": [
+              "reed-darts"
+            ]
+          },
+          "armourAllowed": {
+            "types": [],
+            "shields": false
+          },
+          "note": "Darts only; no armour or shield."
+        }
+      ]
+    }
+  ],
+  "items": [
+    {
+      "id": "quilted-coat",
+      "name": "Quilted coat",
+      "category": "armour",
+      "slot": "armour",
+      "armourType": "quilted",
+      "armour": {
+        "base": 2
+      },
+      "weightCoin": 100,
+      "value": {
+        "gp": 5
+      }
+    },
+    {
+      "id": "iron-scale",
+      "name": "Iron scale",
+      "category": "armour",
+      "slot": "armour",
+      "armourType": "iron-scale",
+      "armour": {
+        "base": 5
+      },
+      "weightCoin": 400,
+      "value": {
+        "gp": 40
+      }
+    },
+    {
+      "id": "fen-coat",
+      "name": "Fen coat",
+      "category": "armour",
+      "slot": "armour",
+      "armourType": "fen-coat",
+      "armour": {
+        "base": 3,
+        "tier": "quilted"
+      },
+      "weightCoin": 150,
+      "value": {
+        "gp": 15
+      }
+    },
+    {
+      "id": "mist-mail",
+      "name": "Mist mail",
+      "category": "magic-armour",
+      "slot": "armour",
+      "armourType": "chosen",
+      "weightFactor": 0.5,
+      "armour": {
+        "magicBonus": 1,
+        "baseArmour": {
+          "choose": [
+            "quilted-coat",
+            "iron-scale"
+          ]
+        }
+      }
+    },
+    {
+      "id": "reed-darts",
+      "name": "Reed darts (12)",
+      "category": "weapon",
+      "weightCoin": 12,
+      "value": {
+        "sp": 6
+      }
+    },
+    {
+      "id": "marsh-pearl",
+      "name": "Marsh pearl",
+      "category": "gem",
+      "value": {
+        "gp": 50
+      }
+    },
+    {
+      "id": "heron-idol",
+      "name": "Heron idol",
+      "category": "art",
+      "weightCoin": 20,
+      "value": {
+        "gp": 30
+      }
+    },
+    {
+      "id": "otter-totem",
+      "name": "Otter totem",
+      "category": "art",
+      "treasure": true,
+      "weightCoin": 10,
+      "value": {
+        "gp": 20
+      }
+    },
+    {
+      "id": "reed-thunder-tube",
+      "name": "Reed thunder-tube",
+      "category": "weapon",
+      "slot": "hand",
+      "hands": 2,
+      "weaponTags": [
+        "Thunder-tube",
+        "Missile"
+      ],
+      "weapon": {
+        "damage": "1d8"
+      },
+      "weightCoin": 100,
+      "cost": "30 gp"
+    },
+    {
+      "id": "heron-satchel",
+      "name": "Heron satchel",
+      "category": "gear",
+      "weightCoin": 600,
+      "container": {
+        "capacityCoin": 1000,
+        "weightEmpty": 0,
+        "weightFull": 600
+      },
+      "notes": "Weighs by how full it is; what it holds never counts."
+    },
+    {
+      "id": "river-stone",
+      "name": "River stone",
+      "category": "gear",
+      "weightCoin": 10
+    },
+    {
+      "id": "ogre-grips",
+      "name": "Ogre grips",
+      "category": "magic-misc",
+      "weightCoin": 10,
+      "slot": "worn",
+      "carryBonus": 200,
+      "notes": "Worn, they raise the carry limit."
+    }
+  ],
+  "startingKits": [
+    {
+      "id": "fen-kit",
+      "name": "Fen kit",
+      "items": [
+        {
+          "itemId": "quilted-coat",
+          "qty": 1
+        }
+      ],
+      "rolls": [
+        {
+          "name": "Darts",
+          "rows": [
+            {
+              "min": 1,
+              "max": 6,
+              "items": [
+                {
+                  "itemId": "reed-darts",
+                  "qty": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Coat",
+          "die": "1d6",
+          "forClasses": [
+            "reed-warden",
+            "mist-caller"
+          ],
+          "rows": [
+            {
+              "min": 1,
+              "max": 6,
+              "items": [
+                {
+                  "itemId": "quilted-coat",
+                  "qty": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "locations": [
+    {
+      "id": "sunken-hut",
+      "name": "Sunken hut",
+      "type": "room",
+      "treasure": [
+        {
+          "text": "A pearl in the mud",
+          "itemId": "marsh-pearl"
+        },
+        {
+          "text": "A heron idol",
+          "itemId": "heron-idol"
+        },
+        {
+          "text": "An otter totem",
+          "itemId": "otter-totem"
+        }
+      ]
+    }
+  ]
+}

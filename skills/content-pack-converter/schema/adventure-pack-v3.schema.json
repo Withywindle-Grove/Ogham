@@ -1,0 +1,1397 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "tabletop-pack, format version 3 (adventure kinds)",
+ "description": "Written from docs/07-content-packs.md, Adventure packs (format version 3), ruled 2026-10-24. Used by the converter until M8b's importer exists. Where this file and 07 differ, 07 wins. The v3 kinds list their fields so unknown ones show as off-spec; v1/v2 kinds are only checked for an id here (npm run pack:check checks them).",
+ "type": "object",
+ "required": [
+  "format",
+  "formatVersion",
+  "meta"
+ ],
+ "additionalProperties": false,
+ "properties": {
+  "format": {
+   "const": "tabletop-pack"
+  },
+  "formatVersion": {
+   "enum": [
+    1,
+    2,
+    3
+   ]
+  },
+  "meta": {
+   "$ref": "#/$defs/meta"
+  },
+  "locations": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/location"
+   }
+  },
+  "routes": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/route"
+   }
+  },
+  "npcs": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/npc"
+   }
+  },
+  "factions": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/faction"
+   }
+  },
+  "shops": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/shop"
+   }
+  },
+  "tracks": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/track"
+   }
+  },
+  "images": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/image"
+   }
+  },
+  "timeline": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/beat"
+   }
+  },
+  "premades": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/premade"
+   }
+  },
+  "tables": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/table"
+   }
+  },
+  "options": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/option"
+   }
+  },
+  "items": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "lightTypes": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "classes": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "xpTables": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "rulesSets": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "conditions": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "statBlocks": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "fieldTemplates": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "calendars": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "races": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "spells": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "spellLists": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "treasureTypes": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "startingKits": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "hooks": {
+   "$ref": "#/$defs/olderKind"
+  },
+  "gmReference": {
+   "type": "array",
+   "description": "GM reference panels at the pack's top level (07, Format additions from the zine-compendium survey, G-55; ruled 2026-11-01): [{ id, title, entries: [{ heading, text, tableId?, source? }] }]",
+   "items": {
+    "type": "object",
+    "required": [
+     "id",
+     "title",
+     "entries"
+    ],
+    "additionalProperties": true,
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "entries": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "required": [
+        "heading",
+        "text"
+       ],
+       "additionalProperties": true,
+       "properties": {
+        "heading": {
+         "type": "string"
+        },
+        "text": {
+         "type": "string"
+        },
+        "tableId": {
+         "type": "string"
+        },
+        "source": {
+         "type": "string"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "$defs": {
+  "id": {
+   "type": "string",
+   "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+  },
+  "ref": {
+   "type": "string",
+   "pattern": "^[a-z0-9]+(-[a-z0-9]+)*:[a-z0-9]+(-[a-z0-9]+)*$"
+  },
+  "text": {
+   "type": [
+    "string",
+    "null"
+   ]
+  },
+  "source": {
+   "type": [
+    "string",
+    "object",
+    "null"
+   ]
+  },
+  "idOrNull": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/id"
+    },
+    {
+     "type": "null"
+    }
+   ]
+  },
+  "texts": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "time": {
+   "type": "object",
+   "required": [
+    "value",
+    "unit"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "value": {
+     "type": "integer"
+    },
+    "unit": {
+     "type": "string"
+    }
+   }
+  },
+  "chance": {
+   "type": [
+    "object",
+    "null"
+   ],
+   "required": [
+    "die",
+    "on"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "die": {
+     "type": "string"
+    },
+    "on": {
+     "type": "array",
+     "items": {
+      "type": "integer"
+     }
+    }
+   }
+  },
+  "optionLink": {
+   "type": "string",
+   "pattern": "^[a-z0-9]+(-[a-z0-9]+)*(=[a-z0-9]+(-[a-z0-9]+)*)?$"
+  },
+  "coins": {
+   "type": "object",
+   "additionalProperties": {
+    "type": "integer"
+   }
+  },
+  "price": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "object",
+     "additionalProperties": {
+      "type": "integer"
+     }
+    }
+   ]
+  },
+  "olderKind": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "id"
+    ],
+    "properties": {
+     "id": {
+      "$ref": "#/$defs/id"
+     }
+    }
+   }
+  },
+  "meta": {
+   "type": "object",
+   "required": [
+    "name",
+    "id",
+    "kind"
+   ],
+   "properties": {
+    "name": {
+     "type": "string",
+     "minLength": 1
+    },
+    "id": {
+     "$ref": "#/$defs/id"
+    },
+    "kind": {
+     "enum": [
+      "setting",
+      "adventure",
+      "homebrew"
+     ]
+    },
+    "code": {
+     "type": "string",
+     "pattern": "^[a-z]{2,6}$"
+    },
+    "requires": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "packId"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "packId": {
+        "$ref": "#/$defs/id"
+       },
+       "minVersion": {
+        "type": "string"
+       }
+      }
+     }
+    },
+    "pageOffset": {
+     "type": "integer"
+    },
+    "version": {
+     "type": "string"
+    },
+    "shortName": {
+     "type": "string"
+    },
+    "source": {
+     "type": "string"
+    },
+    "notes": {
+     "type": [
+      "string",
+      "array"
+     ]
+    },
+    "proposedExtensions": {
+     "type": [
+      "array",
+      "object"
+     ]
+    }
+   }
+  },
+  "location": {
+   "type": "object",
+   "required": [
+    "id",
+    "name",
+    "source"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "$ref": "#/$defs/id"
+    },
+    "name": {
+     "type": "string"
+    },
+    "key": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "type": {
+     "enum": [
+      "region",
+      "site",
+      "area",
+      "floor",
+      "room",
+      "building",
+      null
+     ]
+    },
+    "parentId": {
+     "$ref": "#/$defs/idOrNull"
+    },
+    "playerView": {
+     "type": [
+      "object",
+      "null"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "name": {
+       "$ref": "#/$defs/text"
+      },
+      "text": {
+       "$ref": "#/$defs/text"
+      },
+      "people": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "description"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "description": {
+          "type": "string"
+         },
+         "npcId": {
+          "$ref": "#/$defs/idOrNull"
+         }
+        }
+       }
+      },
+      "exits": {
+       "$ref": "#/$defs/texts"
+      },
+      "shopId": {
+       "$ref": "#/$defs/idOrNull"
+      }
+     }
+    },
+    "gm": {
+     "type": [
+      "object",
+      "null"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "notes": {
+       "$ref": "#/$defs/text"
+      },
+      "secrets": {
+       "$ref": "#/$defs/texts"
+      }
+     }
+    },
+    "clues": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "text",
+       "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "text": {
+        "type": "string"
+       },
+       "source": {
+        "$ref": "#/$defs/source"
+       },
+       "pointsTo": {
+        "$ref": "#/$defs/idOrNull"
+       }
+      }
+     }
+    },
+    "quotes": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "text",
+       "kind",
+       "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "text": {
+        "type": "string"
+       },
+       "source": {
+        "$ref": "#/$defs/source"
+       },
+       "kind": {
+        "enum": [
+         "riddle",
+         "inscription",
+         "password",
+         "verse",
+         "spoken"
+        ]
+       }
+      }
+     }
+    },
+    "readAloud": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "imageId"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "imageId": {
+        "$ref": "#/$defs/id"
+       },
+       "source": {
+        "$ref": "#/$defs/source"
+       }
+      }
+     }
+    },
+    "contents": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+       "statBlockId": {
+        "$ref": "#/$defs/id"
+       },
+       "statBlockRef": {
+        "$ref": "#/$defs/ref"
+       },
+       "count": {
+        "type": [
+         "string",
+         "integer"
+        ]
+       },
+       "note": {
+        "type": "string"
+       },
+       "appearance": {
+        "type": "string",
+        "description": "A player-safe one-line look the GM may show (ruled 2026-11-01, M5 gate B1; G-43)."
+       }
+      }
+     }
+    },
+    "treasure": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "text"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "text": {
+        "type": "string"
+       },
+       "itemId": {
+        "$ref": "#/$defs/idOrNull"
+       },
+       "itemRef": {
+        "$ref": "#/$defs/ref"
+       },
+       "value": {
+        "$ref": "#/$defs/coins"
+       },
+       "valueGp": {
+        "type": [
+         "integer",
+         "null"
+        ]
+       }
+      }
+     }
+    },
+    "hazards": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "name"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "name": {
+        "type": "string"
+       },
+       "trigger": {
+        "type": "string"
+       },
+       "effect": {
+        "type": "string"
+       },
+       "source": {
+        "$ref": "#/$defs/source"
+       },
+       "appearance": {
+        "type": "string",
+        "description": "What players can see of the danger before it goes off (B1; G-43). Without it the hazard isn't showable."
+       }
+      }
+     }
+    },
+    "encounterCheck": {
+     "type": [
+      "object",
+      "null"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "every": {
+       "$ref": "#/$defs/time"
+      },
+      "chance": {
+       "$ref": "#/$defs/chance"
+      },
+      "tableId": {
+       "$ref": "#/$defs/idOrNull"
+      },
+      "onlyAt": {
+       "enum": [
+        "day",
+        "night",
+        null
+       ]
+      },
+      "byTrack": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "trackId",
+         "min",
+         "max",
+         "chance"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "trackId": {
+          "$ref": "#/$defs/id"
+         },
+         "min": {
+          "type": "integer"
+         },
+         "max": {
+          "type": "integer"
+         },
+         "chance": {
+          "$ref": "#/$defs/chance"
+         }
+        }
+       }
+      },
+      "note": {
+       "$ref": "#/$defs/text"
+      },
+      "option": {
+       "$ref": "#/$defs/optionLink"
+      },
+      "atNight": {
+       "type": [
+        "object",
+        "null"
+       ],
+       "additionalProperties": false,
+       "properties": {
+        "chance": {
+         "$ref": "#/$defs/chance"
+        },
+        "tableId": {
+         "$ref": "#/$defs/idOrNull"
+        }
+       },
+       "description": "A different chance and table after dark (ruled 2026-11-01, G-39)."
+      },
+      "tableRef": {
+       "$ref": "#/$defs/ref",
+       "description": "A table in another pack, \"<pack id>:<table id>\" (ruled 2026-11-05, G-154); tableId or tableRef, never both."
+      }
+     }
+    },
+    "mapId": {
+     "$ref": "#/$defs/idOrNull"
+    },
+    "hex": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "imageId": {
+     "$ref": "#/$defs/idOrNull"
+    },
+    "notes": {
+     "$ref": "#/$defs/text"
+    },
+    "shareable": {
+     "type": "boolean"
+    },
+    "source": {
+     "$ref": "#/$defs/source"
+    },
+    "terrain": {
+     "type": "string",
+     "description": "The place's terrain type (a rules set's terrain id; adventure packs may add terrain types prefixed with their code). 07, Exploration."
+    },
+    "hiddenUntilSearched": {
+     "type": "boolean",
+     "description": "A sub-location found only by searching (07, Hexes, roads and hidden features)."
+    },
+    "seenFromRoad": {
+     "type": "boolean",
+     "description": "A feature a party on the road notices (07, Hexes, roads and hidden features)."
+    },
+    "settlement": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "size"
+     ],
+     "properties": {
+      "size": {
+       "type": "string"
+      },
+      "population": {
+       "type": "integer"
+      }
+     },
+     "description": "A settlement's size (one of the setting's settlement.availability.bySize sizes) and population, GM card only (ruled 2026-11-05, G-157)."
+    }
+   }
+  },
+  "route": {
+   "type": "object",
+   "required": [
+    "id",
+    "from",
+    "to"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "$ref": "#/$defs/id"
+    },
+    "from": {
+     "$ref": "#/$defs/id"
+    },
+    "to": {
+     "$ref": "#/$defs/id"
+    },
+    "travel": {
+     "$ref": "#/$defs/time"
+    },
+    "type": {
+     "enum": [
+      "path",
+      "road",
+      "track",
+      "river",
+      "door",
+      "stairs",
+      "secret",
+      "other"
+     ]
+    },
+    "hidden": {
+     "type": "boolean"
+    },
+    "oneWay": {
+     "type": "boolean"
+    },
+    "notes": {
+     "$ref": "#/$defs/text"
+    },
+    "source": {
+     "$ref": "#/$defs/source"
+    },
+    "distance": {
+     "description": "A road's or track's length (07, Hexes, roads and hidden features)."
+    }
+   }
+  },
+  "npc": {
+   "type": "object",
+   "required": [
+    "id",
+    "name",
+    "source"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "$ref": "#/$defs/id"
+    },
+    "name": {
+     "type": "string"
+    },
+    "role": {
+     "$ref": "#/$defs/text"
+    },
+    "locationId": {
+     "$ref": "#/$defs/idOrNull"
+    },
+    "factionId": {
+     "$ref": "#/$defs/idOrNull"
+    },
+    "imageId": {
+     "$ref": "#/$defs/idOrNull"
+    },
+    "playerView": {
+     "type": [
+      "object",
+      "null"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "description": {
+       "$ref": "#/$defs/text"
+      }
+     }
+    },
+    "gm": {
+     "type": [
+      "object",
+      "null"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "wants": {
+       "$ref": "#/$defs/text"
+      },
+      "secrets": {
+       "$ref": "#/$defs/texts"
+      },
+      "notes": {
+       "$ref": "#/$defs/text"
+      }
+     }
+    },
+    "statBlockId": {
+     "$ref": "#/$defs/idOrNull"
+    },
+    "statBlockRef": {
+     "$ref": "#/$defs/ref"
+    },
+    "notes": {
+     "$ref": "#/$defs/text"
+    },
+    "source": {
+     "$ref": "#/$defs/source"
+    }
+   }
+  },
+  "faction": {
+   "type": "object",
+   "required": [
+    "id",
+    "name",
+    "source"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "$ref": "#/$defs/id"
+    },
+    "name": {
+     "type": "string"
+    },
+    "memberIds": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/id"
+     }
+    },
+    "gm": {
+     "type": [
+      "object",
+      "null"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "goals": {
+       "$ref": "#/$defs/text"
+      },
+      "notes": {
+       "$ref": "#/$defs/text"
+      }
+     }
+    },
+    "notes": {
+     "$ref": "#/$defs/text"
+    },
+    "source": {
+     "$ref": "#/$defs/source"
+    },
+    "relations": {
+     "type": "object",
+     "additionalProperties": {
+      "type": "string"
+     },
+     "description": "This faction's stance towards another, keyed by faction id (ruled 2026-11-01, G-33)."
+    }
+   }
+  },
+  "shop": {
+   "type": "object",
+   "required": [
+    "id",
+    "name",
+    "source"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "$ref": "#/$defs/id"
+    },
+    "name": {
+     "type": "string"
+    },
+    "locationId": {
+     "$ref": "#/$defs/idOrNull"
+    },
+    "stock": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "price"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "itemId": {
+        "$ref": "#/$defs/id"
+       },
+       "itemRef": {
+        "$ref": "#/$defs/ref"
+       },
+       "price": {
+        "$ref": "#/$defs/price"
+       },
+       "qty": {
+        "type": [
+         "string",
+         "integer"
+        ]
+       },
+       "note": {
+        "type": "string"
+       }
+      }
+     }
+    },
+    "services": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "name",
+       "price"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "name": {
+        "type": "string"
+       },
+       "price": {
+        "$ref": "#/$defs/price"
+       },
+       "note": {
+        "type": "string"
+       }
+      }
+     }
+    },
+    "buys": {
+     "$ref": "#/$defs/text"
+    },
+    "gm": {
+     "type": [
+      "object",
+      "null"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "notes": {
+       "$ref": "#/$defs/text"
+      }
+     }
+    },
+    "notes": {
+     "$ref": "#/$defs/text"
+    },
+    "source": {
+     "$ref": "#/$defs/source"
+    }
+   }
+  },
+  "track": {
+   "type": "object",
+   "required": [
+    "id",
+    "name",
+    "start",
+    "source"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "$ref": "#/$defs/id"
+    },
+    "name": {
+     "type": "string"
+    },
+    "start": {
+     "type": "integer"
+    },
+    "end": {
+     "type": [
+      "integer",
+      "null"
+     ]
+    },
+    "visibility": {
+     "enum": [
+      "players",
+      "gm"
+     ]
+    },
+    "thresholds": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "min",
+       "max",
+       "message"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "min": {
+        "type": "integer"
+       },
+       "max": {
+        "type": "integer"
+       },
+       "once": {
+        "type": "boolean"
+       },
+       "message": {
+        "type": "string"
+       }
+      }
+     }
+    },
+    "remind": {
+     "type": [
+      "object",
+      "null"
+     ],
+     "required": [
+      "every",
+      "message"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "every": {
+       "$ref": "#/$defs/time"
+      },
+      "message": {
+       "type": "string"
+      }
+     }
+    },
+    "roster": {
+     "type": [
+      "object",
+      "null"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "die": {
+       "type": "string"
+      },
+      "visibility": {
+       "enum": [
+        "players",
+        "gm"
+       ]
+      },
+      "states": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "id",
+         "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "id": {
+          "$ref": "#/$defs/id"
+         },
+         "name": {
+          "type": "string"
+         },
+         "movesTrack": {
+          "type": "boolean"
+         }
+        }
+       }
+      },
+      "entries": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "key"
+        ],
+        "additionalProperties": false,
+        "properties": {
+         "key": {
+          "type": "string"
+         },
+         "npcId": {
+          "$ref": "#/$defs/id"
+         },
+         "name": {
+          "type": "string",
+          "minLength": 1
+         },
+         "note": {
+          "type": "string"
+         },
+         "startsIn": {
+          "$ref": "#/$defs/idOrNull"
+         }
+        }
+       }
+      },
+      "takenRule": {
+       "type": "string"
+      },
+      "onTick": {
+       "$ref": "#/$defs/text"
+      }
+     }
+    },
+    "option": {
+     "$ref": "#/$defs/optionLink"
+    },
+    "notes": {
+     "$ref": "#/$defs/text"
+    },
+    "source": {
+     "$ref": "#/$defs/source"
+    }
+   }
+  },
+  "image": {
+   "type": "object",
+   "required": [
+    "id",
+    "file",
+    "type",
+    "alt",
+    "visibility"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "$ref": "#/$defs/id"
+    },
+    "file": {
+     "type": "string",
+     "pattern": "\\.webp$"
+    },
+    "type": {
+     "enum": [
+      "map",
+      "handout",
+      "art",
+      "crop"
+     ]
+    },
+    "title": {
+     "$ref": "#/$defs/text"
+    },
+    "alt": {
+     "type": "string",
+     "minLength": 1
+    },
+    "visibility": {
+     "enum": [
+      "gm",
+      "revealable"
+     ]
+    },
+    "playerVersionId": {
+     "$ref": "#/$defs/idOrNull"
+    },
+    "locationIds": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/id"
+     }
+    },
+    "pins": {
+     "type": "array"
+    },
+    "notes": {
+     "$ref": "#/$defs/text"
+    },
+    "source": {
+     "$ref": "#/$defs/source"
+    }
+   }
+  },
+  "beat": {
+   "type": "object",
+   "required": [
+    "id",
+    "day",
+    "gm",
+    "source"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "$ref": "#/$defs/id"
+    },
+    "day": {
+     "type": "integer"
+    },
+    "gm": {
+     "type": "string"
+    },
+    "option": {
+     "$ref": "#/$defs/optionLink"
+    },
+    "notes": {
+     "$ref": "#/$defs/text"
+    },
+    "source": {
+     "$ref": "#/$defs/source"
+    }
+   }
+  },
+  "premade": {
+   "type": "object",
+   "required": [
+    "id",
+    "name",
+    "source"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "$ref": "#/$defs/id"
+    },
+    "name": {
+     "type": "string"
+    },
+    "classRef": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/ref"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "level": {
+     "type": "integer"
+    },
+    "abilities": {
+     "type": "object",
+     "additionalProperties": {
+      "type": "integer"
+     }
+    },
+    "hp": {
+     "type": "integer"
+    },
+    "itemRefs": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ref"
+     }
+    },
+    "notes": {
+     "$ref": "#/$defs/text"
+    },
+    "use": {
+     "type": "string"
+    },
+    "source": {
+     "$ref": "#/$defs/source"
+    }
+   }
+  },
+  "table": {
+   "type": "object",
+   "required": [
+    "id"
+   ],
+   "properties": {
+    "id": {
+     "$ref": "#/$defs/id"
+    },
+    "kind": {
+     "type": "string"
+    },
+    "option": {
+     "$ref": "#/$defs/optionLink"
+    },
+    "rows": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "truth": {
+        "enum": [
+         "true",
+         "false",
+         "partial",
+         true,
+         false
+        ]
+       },
+       "note": {
+        "type": "string"
+       }
+      }
+     }
+    },
+    "description": {
+     "type": "string",
+     "description": "One line on what the table covers (ruled 2026-11-01, M5 gate B2; G-44)."
+    }
+   }
+  },
+  "option": {
+   "type": "object",
+   "required": [
+    "id",
+    "name",
+    "default",
+    "choices"
+   ],
+   "properties": {
+    "id": {
+     "$ref": "#/$defs/id"
+    },
+    "name": {
+     "type": "string"
+    },
+    "ruleKey": {
+     "type": "string"
+    },
+    "category": {
+     "type": "string"
+    },
+    "choices": {
+     "type": "array",
+     "minItems": 2,
+     "items": {
+      "type": "object",
+      "required": [
+       "id",
+       "name"
+      ],
+      "properties": {
+       "id": {
+        "$ref": "#/$defs/id"
+       }
+      }
+     }
+    },
+    "changeLater": {
+     "enum": [
+      "allow",
+      "warn",
+      "never"
+     ]
+    }
+   }
+  }
+ }
+}

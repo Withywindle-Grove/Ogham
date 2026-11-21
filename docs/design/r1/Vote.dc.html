@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Voting</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;position:relative;overflow:hidden">
+
+<div role="group" aria-label="Demo views" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:10px 12px;border-bottom:1px dashed {{c.rule}}">
+<sc-for list="{{views}}" as="v" hint-placeholder-count="3"><button onClick="{{v.go}}" aria-pressed="{{v.on}}" style="{{v.style}}">{{v.name}}</button></sc-for>
+</div>
+
+<sc-if value="{{vCall}}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:10px">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:30px;font-weight:600">Call a vote</div>
+<label for="q" style="font-size:14px;color:{{c.mut}}">Question</label>
+<input id="q" value="Who carries the wand of sparks?" style="min-height:48px;padding:0 12px;border:1px solid {{c.rule}};border-radius:4px;background:transparent;color:inherit;font-family:inherit;font-size:17px">
+<div style="font-size:14px;color:{{c.mut}}">Choices</div>
+<sc-for list="{{choices}}" as="ch" hint-placeholder-count="3"><div style="min-height:44px;display:flex;align-items:center;padding:0 12px;border:1px solid {{c.rule}};border-radius:4px">{{ch.t}}</div></sc-for>
+<button style="min-height:44px;background:none;border:none;color:{{c.acc}};font-family:inherit;font-size:15px;font-weight:700;text-align:left;padding:0">+ Add a choice · or use Yes / No</button>
+<div style="font-size:14px;color:{{c.mut}}">Ballot</div>
+<div role="group" aria-label="Ballot" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px"><button onClick="{{setOpen}}" aria-pressed="{{isOpen}}" style="{{openBtn}}">Open</button><button onClick="{{setSecret}}" aria-pressed="{{isSecret}}" style="{{secretBtn}}">Secret</button></div>
+<label for="closes" style="font-size:14px;color:{{c.mut}}">Closes</label>
+<select id="closes" style="min-height:48px;padding:0 10px;border:1px solid {{c.rule}};border-radius:4px;background:transparent;color:inherit;font-family:inherit;font-size:16px"><option>When everyone has voted</option><option>In 10 minutes</option><option>At the end of the session</option></select>
+</div>
+<div style="padding:10px 18px 18px;border-top:3px double {{c.rule}}"><button onClick="{{toBallot}}" style="width:100%;min-height:52px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;cursor:pointer">Call the vote · shows on every screen</button></div>
+</sc-if>
+
+<sc-if value="{{vBallot}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="margin:10px 12px 0;padding:10px 12px;border-radius:10px;background:{{c.tint}};display:flex;align-items:center;gap:8px">
+<span style="flex:1;font-size:15px"><b>Vote:</b> Who carries the wand of sparks?</span>
+<span style="font-size:13px;color:{{c.mut}}">called by Ash</span>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:10px">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600;line-height:1.1">Who carries the wand of sparks?</div>
+<div style="font-size:14px;color:{{c.mut}}">{{ballotKind}} · closes when everyone has voted</div>
+<sc-for list="{{ballot}}" as="b" hint-placeholder-count="3"><button onClick="{{b.pick}}" aria-pressed="{{b.on}}" style="{{b.style}}">{{b.t}}</button></sc-for>
+<div style="font-size:15px;color:{{c.mut}}">{{votedLine}}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{vResult}}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:10px">
+<div style="font-size:14px;color:{{c.mut}}">Vote closed · {{ballotKind}}</div>
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600;line-height:1.1">Who carries the wand of sparks?</div>
+<sc-for list="{{tally}}" as="t" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">
+<div style="display:flex;justify-content:space-between"><span style="font-weight:700">{{t.t}}</span><span>{{t.n}}</span></div>
+<div aria-hidden="true" style="height:8px;background:{{c.track}}"><div style="height:100%;width:{{t.pct}}%;background:{{c.acc}}"></div></div>
+</div>
+</sc-for>
+<div style="font-size:15px;color:{{c.mut}}">Voted: Wren, Ash, Bram, Hollis{{voterNote}}</div>
+<div style="border:1px solid {{c.rule}};border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px">
+<span style="font-size:14px;color:{{c.mut}}">GM only</span>
+<sc-if value="{{undecided}}" hint-placeholder-val="{{ true }}">
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">
+<button onClick="{{sanction}}" style="min-height:48px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;cursor:pointer">Sanction</button>
+<button onClick="{{overrule}}" style="min-height:48px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;cursor:pointer">Overrule…</button>
+</div>
+</sc-if>
+<sc-if value="{{decided}}" hint-placeholder-val="{{ false }}"><span style="font-weight:700;color:{{c.acc}}">{{decidedText}}</span></sc-if>
+</div>
+<div style="font-size:14px;color:{{c.mut}};line-height:1.4">The GM doesn’t vote. Results go in the log. Charter changes are the only votes that must be unanimous.</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { view: 'call', secret: true, mine: null, gm: null };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', tint: '#4A3A22', track: '#2A251E', onAcc: '#12100D' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', tint: '#F3E6CB', track: '#E9E2D4', onAcc: '#FBF8F1' };
+    const G = "'EB Garamond',Georgia,serif";
+    const seg = (on) => 'min-height:44px;border-radius:4px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : c.ink) + ';font-family:inherit;font-size:14px;font-weight:700;cursor:pointer';
+    const opts = ['Wren', 'Ash', 'Bram'];
+    const views = [['call', 'Call'], ['ballot', 'Ballot'], ['result', 'Result']].map((v) => ({ name: v[1], on: s.view === v[0], style: seg(s.view === v[0]), go: () => this.setState({ view: v[0] }) }));
+    return {
+      c: c, views: views, vCall: s.view === 'call', vBallot: s.view === 'ballot', vResult: s.view === 'result',
+      choices: opts.map((t) => ({ t: t })),
+      isOpen: !s.secret, isSecret: s.secret, openBtn: seg(!s.secret), secretBtn: seg(s.secret),
+      setOpen: () => this.setState({ secret: false }), setSecret: () => this.setState({ secret: true }),
+      ballotNote: s.secret ? 'Secret: nobody ever sees who chose what, not even the GM. Votes can’t be changed once cast.' : 'Open: everyone sees each choice. You can change your vote until it closes.',
+      toBallot: () => this.setState({ view: 'ballot' }),
+      ballotKind: s.secret ? 'Secret ballot' : 'Open ballot',
+      ballot: opts.map((t) => ({ t: t, on: s.mine === t,
+        style: 'min-height:60px;border-radius:6px;border:1px solid ' + (s.mine === t ? c.acc : c.line) + ';background:' + (s.mine === t ? c.acc : 'transparent') + ';color:' + (s.mine === t ? c.onAcc : c.ink) + ';font-family:' + G + ';font-size:22px;font-weight:600;cursor:pointer',
+        pick: () => { if (s.secret && s.mine) return; this.setState({ mine: t }); } })),
+      votedLine: s.mine ? 'You voted. 3 of 4 have voted.' : '2 of 4 have voted.',
+      changeNote: s.secret ? (s.mine ? 'Your vote is in and can’t be changed.' : 'Tap once to vote. Secret votes can’t be changed.') : 'Tap another choice to change your vote until it closes.',
+      tally: [{ t: 'Wren', n: 2, pct: 50 }, { t: 'Ash', n: 1, pct: 25 }, { t: 'Bram', n: 1, pct: 25 }],
+      voterNote: s.secret ? ' (choices are secret)' : '',
+      undecided: s.gm === null, decided: s.gm !== null,
+      decidedText: s.gm === 'ok' ? 'Sanctioned: Wren carries the wand.' : 'Overruled by the GM (reason in the log).',
+      sanction: () => this.setState({ gm: 'ok' }), overrule: () => this.setState({ gm: 'no' })
+    };
+  }
+}
+</script>
+</body>
+</html>

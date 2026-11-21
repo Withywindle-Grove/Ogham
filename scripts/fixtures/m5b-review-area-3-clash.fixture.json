@@ -1,0 +1,9 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": { "id": "fen-gear-extras", "name": "Fen gear extras", "version": "0.1", "kind": "homebrew" },
+  "items": [
+    { "id": "marsh-pearl", "name": "Marsh pearl (polished)", "category": "gem", "value": { "gp": 60 } },
+    { "id": "reed-lantern", "name": "Reed lantern", "category": "gear", "weightCoin": 10, "value": { "sp": 8 } }
+  ]
+}

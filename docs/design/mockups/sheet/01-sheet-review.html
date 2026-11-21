@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sheet 01 — the full character sheet review: proposals (2026-11-03, overnight)</title>
+<style>
+  /* Tokens from docs/06 only (Selected wash from tf-4). Light only. Buttons are plain blocks. Invented examples (no book content). */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; --selected-wash:#F3E7E3; --info:#2F5D7C; --track:#E6E4DE; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--page); border:1px solid var(--rule); border-radius:4px; box-sizing:border-box; padding:var(--space-4); }
+  .tab { width:780px; } .phone { width:375px; }
+  .sec { font-family:"EB Garamond", Georgia, serif; font-variant:small-caps; font-size:20px; font-weight:600; letter-spacing:.03em; margin:var(--space-4) 0 var(--space-2); color:var(--muted); }
+  .h { font-family:"EB Garamond", Georgia, serif; font-size:26px; font-weight:600; line-height:1.15; }
+  .muted { color:var(--muted); } .small { font-size:14px; }
+  .grid { display:grid; gap:var(--space-2); }
+  .g4 { grid-template-columns:repeat(4,1fr); } .g3 { grid-template-columns:repeat(3,1fr); } .g2 { grid-template-columns:repeat(2,1fr); }
+  .tile { background:var(--surface); border:1.5px solid var(--control); border-radius:4px; padding:var(--space-2); text-align:center; min-height:44px; }
+  .tile .k { font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .tile .v { font-family:"EB Garamond", Georgia, serif; font-size:26px; font-weight:600; line-height:1.1; }
+  .tile .c { font-size:13px; color:var(--muted); }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:48px; border-top:1px solid var(--rule); padding:var(--space-1) 0; }
+  .row .grow { flex:1; min-width:0; }
+  .tag { display:inline-block; font-size:13px; border:1px solid var(--control); border-radius:4px; padding:0 6px; white-space:nowrap; color:var(--muted); }
+  .val { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; min-width:44px; text-align:right; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:8px 12px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:16px; box-sizing:border-box; }
+  .chip { display:inline-flex; align-items:center; min-height:40px; padding:4px 12px; border:1.5px solid var(--control); border-radius:20px; background:var(--sheet); font-size:15px; margin:var(--space-1) var(--space-1) 0 0; }
+  .pips { display:inline-flex; gap:4px; } .pips i { width:14px; height:14px; border-radius:7px; border:1.5px solid var(--ink); display:inline-block; } .pips i.f { background:var(--ink); }
+  .bar { height:10px; background:var(--track); border-radius:5px; overflow:hidden; } .bar i { display:block; height:100%; background:var(--ink); }
+  .tabs { display:flex; border-bottom:1px solid var(--rule); gap:var(--space-4); margin-top:var(--space-3); }
+  .tabs span { padding:var(--space-2) 0; min-height:44px; box-sizing:border-box; } .tabs .on { border-bottom:3px solid var(--accent); font-weight:700; }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-5); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:820px; }
+  .fold { font-size:14px; color:var(--muted); }
+</style>
+</head>
+<body>
+
+<h1>1 · The Combat block and movement, cleaned up</h1>
+<div class="wrap">
+<div class="screen tab">
+  <div class="sec">Combat</div>
+  <div class="grid g4">
+    <div class="tile"><div class="k">Hit points</div><div class="v">4 of 4</div><div class="c">1d8 · CON +0</div></div>
+    <div class="tile"><div class="k">AC</div><div class="v">12</div><div class="c">leather · DEX +0</div></div>
+    <div class="tile"><div class="k">Attack</div><div class="v">+1</div><div class="c">melee +1 · missile +1</div></div>
+    <div class="tile"><div class="k">Level</div><div class="v">1</div><div class="c">0 / 2,000 XP</div></div>
+  </div>
+  <div class="sec">Movement</div>
+  <div class="grid g4">
+    <div class="tile"><div class="k">Speed</div><div class="v">40</div><div class="c">unburdened</div></div>
+    <div class="tile"><div class="k">Exploring</div><div class="v">120</div><div class="c">feet per turn</div></div>
+    <div class="tile"><div class="k">In a fight</div><div class="v">40</div><div class="c">feet per round</div></div>
+    <div class="tile"><div class="k">Overland</div><div class="v">8</div><div class="c">travel points a day</div></div>
+  </div>
+  <p class="small muted">Running, swimming and the rest open from Speed (one tap: "Running 120 · Swimming 20 · …").</p>
+</div>
+</div>
+<p class="note"><b>Proposed:</b> four tiles, each with its value and a caption that says what it is ("+1 · melee +1 · missile +1" instead of a bare "1"); Level carries XP as a line. <b>Movement</b> is one section in the pack's words (speed, exploring, in a fight, overland), from the same speed as travel (bq-5); the other movement figures fold under Speed instead of six raw "Movement: familiar" boxes. Hit dice moves into the HP caption. Every tile opens its breakdown (ct3-9, bq-2).</p>
+
+<h1>2 · Skills in one place</h1>
+<div class="wrap">
+<div class="screen tab">
+  <div class="sec">Skills</div>
+  <div class="cols">
+    <div>
+      <div class="small muted">Everyone</div>
+      <div class="row"><span class="grow">Listen</span><span class="tag">kindred</span><span class="val">5</span></div>
+      <div class="row"><span class="grow">Search</span><span class="val">6</span></div>
+      <div class="row"><span class="grow">Survival</span><span class="val">6</span></div>
+    </div>
+    <div>
+      <div class="small muted">Thief</div>
+      <div class="row"><span class="grow">Climb wall</span><span class="val">4</span></div>
+      <div class="row"><span class="grow">Pick lock</span><span class="val">5</span></div>
+      <div class="row"><span class="grow">Stealth</span><span class="val">5</span></div>
+      <div class="row"><span class="grow">Disarm mechanism</span><span class="val">6</span></div>
+      <div class="fold">2 more ›</div>
+    </div>
+  </div>
+  <p class="small muted">Each figure in the pack's own way of reading it ("5" target or "1-in-6"), a tap for how it's worked out (ct3-9).</p>
+</div>
+</div>
+<p class="note"><b>Proposed:</b> class skills leave the Combat grid and join Skills, in two groups: the skills everyone has, and the class's own (named by the class). A kindred's change shows as a tag. classic-advanced's adventuring skills (listen at doors, secret doors, traps, forage, hunt) are "Everyone"; a thief's or ranger's join their class group. The Player screen uses the same names in the pack's capitals (not "listen").</p>
+
+<h1>3 · The traits section · A — rows by source</h1>
+<div class="wrap">
+<div class="screen tab">
+  <div class="sec">Traits</div>
+  <div class="small muted">Kindred · Woodsfolk</div>
+  <div class="row"><span class="grow"><b>Moon sight</b><br><span class="small muted">sees by moonlight as by day</span></span><span>›</span></div>
+  <div class="row"><span class="grow"><b>Wild revelry</b><br><span class="small muted">once a day</span></span><span class="pips"><i class="f"></i></span><span>›</span></div>
+  <div class="row"><span class="grow"><b>Iron-shy</b> <span class="tag">drawback</span><br><span class="small muted">cold iron wounds more</span></span><span>›</span></div>
+  <div class="small muted" style="margin-top:var(--space-3)">Class · Lantern Warden</div>
+  <div class="row"><span class="grow"><b>Ward the light</b><br><span class="small muted">from level 1</span></span><span>›</span></div>
+  <div class="row"><span class="grow muted">Steady hand <span class="tag">from level 3</span></span><span>›</span></div>
+</div>
+</div>
+<p class="note">Every trait the character has, grouped by where it comes from, each one tap from its full entry (ct3-11); uses as pips where it has them (M7); drawbacks tagged in words; traits from later levels shown quietly with their level. A long list folds after 6.</p>
+
+<h1>3 · The traits section · B — cards</h1>
+<div class="wrap">
+<div class="screen tab">
+  <div class="sec">Traits</div>
+  <div class="grid g3">
+    <div class="tile" style="text-align:left;background:var(--sheet)"><b>Moon sight</b><div class="c">kindred · sees by moonlight</div></div>
+    <div class="tile" style="text-align:left;background:var(--sheet)"><b>Wild revelry</b><div class="c">kindred · once a day</div><span class="pips"><i class="f"></i></span></div>
+    <div class="tile" style="text-align:left;background:var(--sheet)"><b>Iron-shy</b><div class="c">kindred · drawback</div></div>
+    <div class="tile" style="text-align:left;background:var(--sheet)"><b>Ward the light</b><div class="c">class · level 1</div></div>
+    <div class="tile" style="text-align:left;background:var(--sheet)"><b>Steady hand</b><div class="c">class · from level 3</div></div>
+  </div>
+</div>
+</div>
+<p class="note">More visual (the visual-not-text rule, dt-26), less room for each line; harder to scan as the list grows. <b>A is recommended</b> for long kindred lists; B suits a sheet with few traits.</p>
+
+<h1>4 · Magic · A — a Magic section on the full sheet</h1>
+<div class="wrap">
+<div class="screen tab">
+  <div class="sec">Magic</div>
+  <div class="row"><span class="grow"><b>Spells a day</b></span><span class="small muted">Level 1</span><span class="pips"><i class="f"></i></span></div>
+  <div class="tabs"><span class="on">Spell book · 4</span><span>Prepared · 1</span><span>Glamours · 2</span></div>
+  <div class="row"><span class="grow"><b>Glimmer</b> <span class="tag">given</span><br><span class="small muted">Level 1 · 1 turn · 30 ft</span></span><span>›</span></div>
+  <div class="row"><span class="grow"><b>Reed whisper</b><br><span class="small muted">Level 1 · instant · touch</span></span><span>›</span></div>
+  <div class="row"><span class="grow"><b>Mire grip</b><br><span class="small muted">Level 1 · 1 round · 60 ft</span></span><span>›</span></div>
+  <div class="row"><span class="grow"><b>Damp wick</b><br><span class="small muted">Level 1 · 1 hour · 30 ft</span></span><span>›</span></div>
+</div>
+</div>
+<p class="note"><b>Proposed:</b> slots as pips per level ("1, 0, 0, 0, 0, 0" goes); one section with a tab per kind of magic the character has (spell book, prepared, glamours, runes, knacks), each row opening the spell's entry. Shown only for characters with any magic.</p>
+
+<h1>4 · Magic · B — its own tab beside Player · Scene · Pack</h1>
+<div class="wrap">
+<div class="screen phone">
+  <div class="tabs" style="margin-top:0"><span>Player</span><span>Scene</span><span class="on">Magic</span><span>Pack</span></div>
+  <div class="h" style="margin-top:var(--space-3)">Magic</div>
+  <div class="small muted">Lantern Warden · level 1</div>
+  <div class="row"><span class="grow"><b>Spells a day</b></span><span class="pips"><i class="f"></i></span></div>
+  <div class="sec">Prepared today</div>
+  <div class="row"><span class="grow"><b>Mire grip</b><br><span class="small muted">1 round · 60 ft</span></span><span class="btn">Cast</span></div>
+  <div class="sec">The book · 4</div>
+  <div class="row"><span class="grow">Glimmer · Reed whisper · Damp wick</span><span>›</span></div>
+  <div class="sec">Glamours · 2</div>
+  <div class="row"><span class="grow">Moon-step · Hush</span><span>›</span></div>
+</div>
+</div>
+<p class="note">A fourth tab for casters only (the Player screen's Spells section moves here); Cast lives here in M7. Clear for heavy casters; a fighter never sees it. Costs a tab and a change to 06's navigation (players: Player · Scene · Pack). <b>Recommendation: A for the full sheet now, B decided with M7's Cast.</b></p>
+
+<h1>5 · Advancement</h1>
+<div class="wrap">
+<div class="screen tab">
+  <div class="sec">Advancement</div>
+  <div class="row"><span class="grow"><b>Level 1</b> · 0 XP<div class="bar" style="margin-top:4px"><i style="width:0%"></i></div><span class="small muted">2,000 to level 2</span></span></div>
+  <div class="row"><span class="grow">XP bonus</span><span class="val">+5%</span><span class="small muted">prime STR 13</span></div>
+  <div class="row"><span class="grow">Title</span><span class="val" style="font-size:16px">Lamplighter</span></div>
+</div>
+</div>
+<p class="note">XP, the next level as a bar with words beside it (dt-26), the prime-requisite bonus with its reason (rc-1), the level title. Replaces the lone "XP modifier —".</p>
+
+<h1>6 · Identity, with option- and class-gated fields</h1>
+<div class="wrap">
+<div class="screen tab">
+  <div class="sec">Identity</div>
+  <div class="grid g3">
+    <div><div class="small muted">Background</div><span class="chip">Chronicler ›</span></div>
+    <div><div class="small muted">Alignment</div><span class="chip">Neutral ›</span></div>
+    <div><div class="small muted">Languages</div><span class="chip">Woldish ›</span><span class="chip">Sylvan ›</span></div>
+  </div>
+  <p class="small muted">Not shown here: Moon sign (this kindred never has one), Liege (knights only), Weapon proficiencies (the option is off). Affiliation shows "—" with its ⓘ: earned in play.</p>
+</div>
+</div>
+<p class="note">A field shows only when it applies (of-9: option off; cs-3: `forClasses`; ct3-4b: excluded kindreds); a field that applies but is empty shows "—" (Affiliation, earned later). Each value opens its entry (ct3-11).</p>
+
+<h1>7 · The whole sheet, tablet (fae-woodland caster, invented)</h1>
+<div class="wrap">
+<div class="screen tab">
+  <div class="h">Tamsin Reedwater</div>
+  <div class="muted">Lantern Warden 1 · Woodsfolk</div>
+  <div class="cols" style="margin-top:var(--space-3)">
+    <div>
+      <div class="sec" style="margin-top:0">Combat</div>
+      <div class="grid g2">
+        <div class="tile"><div class="k">HP</div><div class="v">3 of 3</div></div>
+        <div class="tile"><div class="k">AC</div><div class="v">12</div></div>
+        <div class="tile"><div class="k">Attack</div><div class="v">+0</div></div>
+        <div class="tile"><div class="k">Level</div><div class="v">1</div></div>
+      </div>
+      <div class="sec">Saves</div>
+      <div class="grid g3"><div class="tile"><div class="k">Doom</div><div class="v">11</div></div><div class="tile"><div class="k">Ray</div><div class="v">12</div></div><div class="tile"><div class="k">Hold</div><div class="v">13</div></div><div class="tile"><div class="k">Blast</div><div class="v">16</div></div><div class="tile"><div class="k">Spell</div><div class="v">14</div></div><div class="tile"><div class="k">Magic res.</div><div class="v">2</div></div></div>
+      <div class="sec">Movement</div>
+      <div class="small">Speed 40 · exploring 120 · in a fight 40 · overland 8</div>
+      <div class="sec">Skills</div>
+      <div class="small">Listen 5 · Search 5 · Survival 6 · Detect magic 5</div>
+    </div>
+    <div>
+      <div class="sec" style="margin-top:0">Abilities</div>
+      <div class="grid g3"><div class="tile"><div class="k">STR</div><div class="v">9</div></div><div class="tile"><div class="k">INT</div><div class="v">14</div></div><div class="tile"><div class="k">WIS</div><div class="v">11</div></div><div class="tile"><div class="k">DEX</div><div class="v">12</div></div><div class="tile"><div class="k">CON</div><div class="v">10</div></div><div class="tile"><div class="k">CHA</div><div class="v">13</div></div></div>
+      <div class="sec">Traits</div>
+      <div class="small">Moon sight · Wild revelry ● · Iron-shy (drawback) · Ward the light ›</div>
+      <div class="sec">Magic</div>
+      <div class="small">Spells a day ● · Book 4 · Prepared 1 · Glamours 2 ›</div>
+      <div class="sec">Identity</div>
+      <div class="small">Chronicler · Neutral · Woldish, Sylvan</div>
+      <div class="sec">Advancement</div>
+      <div class="small">0 / 2,000 XP · +5% · Lamplighter</div>
+    </div>
+  </div>
+</div>
+</div>
+<p class="note">The order: the play figures first (Combat, Saves, Movement, Skills) on the left; who the character is (Abilities, Traits, Magic, Identity, Advancement) on the right; Backstory and Notes below. On a phone the same sections stack in that order, each folding to its summary line.</p>
+
+<h1>8 · The whole sheet, phone (classic-advanced thief, invented)</h1>
+<div class="wrap">
+<div class="screen phone">
+  <div class="h">Pip Underhill</div>
+  <div class="muted">Thief 1 · Halfling</div>
+  <div class="grid g4" style="margin-top:var(--space-3)"><div class="tile"><div class="k">HP</div><div class="v">2</div></div><div class="tile"><div class="k">AC</div><div class="v">7</div></div><div class="tile"><div class="k">THAC0</div><div class="v">19</div></div><div class="tile"><div class="k">Lvl</div><div class="v">1</div></div></div>
+  <div class="row"><span class="grow"><b>Saves</b> · D 13 · W 14 · P 13 · B 16 · S 15</span><span>›</span></div>
+  <div class="row"><span class="grow"><b>Movement</b> · 120' (40')</span><span>›</span></div>
+  <div class="row"><span class="grow"><b>Skills</b> · 13 · climb 87% · hear 1-2</span><span>›</span></div>
+  <div class="row"><span class="grow"><b>Traits</b> · 4 · small, hard to hit…</span><span>›</span></div>
+  <div class="row"><span class="grow"><b>Identity</b> · Neutral · Common, Halfling</span><span>›</span></div>
+  <div class="row"><span class="grow"><b>Advancement</b> · 0 / 1,200 XP</span><span>›</span></div>
+</div>
+</div>
+<p class="note">On a phone each section folds to one summary line and opens in place. <b>Checked:</b> 44 px rows and tiles; 375 px; bars and pips always with words; one accent at most (none here). <b>Not drawn:</b> dark mode, a level-10 caster's spell list (tabs scroll; long lists fold after 8), the iPad portrait (one column, like the phone with tiles).</p>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creation 06 — Gear (paper test, 2026-11-01)</title>
+<style>
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); width:720px; box-sizing:border-box; }
+  .screen.wide { width:1024px; display:flex; gap:var(--space-5); }
+  .screen.wide > div { flex:1; min-width:0; }
+  .screen.wide > div.narrow { flex:0 0 260px; }
+  .screen.phone { width:375px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .why { margin:var(--space-3) 0 var(--space-1); }
+  .money { display:flex; align-items:center; gap:var(--space-3); border:1.5px solid var(--rule); border-radius:4px; padding:var(--space-2) var(--space-3); background:var(--surface); margin-top:var(--space-3); }
+  .money .big { font-family:"EB Garamond", Georgia, serif; font-size:28px; font-weight:600; min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; border-bottom:1.5px solid var(--control); }
+  .money .text { flex:1; }
+  .group { display:flex; align-items:center; min-height:44px; gap:var(--space-3); margin-top:var(--space-3); font-weight:700; }
+  .group .meta { font-weight:400; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; min-width:0; }
+  .row .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .row .desc { display:block; }
+  .row .src { display:block; font-size:14px; color:var(--muted); }
+  .row .price { font-weight:700; white-space:nowrap; }
+  .tick { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:22px; flex:none; }
+  .info { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; border:1.5px solid var(--control); border-radius:22px; flex:none; font-weight:700; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; text-align:center; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:16px; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  .cat { display:flex; align-items:center; min-height:44px; padding:0 var(--space-3); border-bottom:1px dotted var(--rule); }
+  .cat.on { font-weight:700; background:var(--surface); border-radius:4px; }
+  .field { min-height:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; color:var(--muted); box-sizing:border-box; margin-top:var(--space-3); }
+  .tally { display:flex; align-items:center; gap:var(--space-4); min-height:44px; margin-top:var(--space-3); padding:var(--space-2) var(--space-3); border:1.5px solid var(--rule); border-radius:4px; flex-wrap:wrap; }
+  .tally b { font-family:"EB Garamond", Georgia, serif; font-size:20px; }
+  .foot { display:flex; align-items:center; gap:var(--space-3); margin-top:var(--space-4); padding-top:var(--space-3); border-top:1px solid var(--rule); }
+  .foot .spacer { flex:1; }
+  .hint { font-size:14px; color:var(--muted); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:1024px; }
+</style>
+</head>
+<body>
+
+<h1>1 · Gear — money first, then a kit, a shop, or both</h1>
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Gear</span><span class="meta">Step 8 of 10</span></div>
+  <p class="why">What you set out with. Take a kit in one tap, shop for the rest, or do both. <span class="meta">Fen rules · p. 30</span> <span class="btn quiet">Help me choose</span></p>
+  <div class="money"><span class="big">120</span><div class="text">Starting money · roll 3d6 × 10 gp and type it <span class="meta">· p. 30</span></div></div>
+  <div class="group">Kits for a fighter <span class="meta">· one tap, the pack's bundle</span></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Shield-wall kit</span><span class="desc">Chain, shield, spear, sword, pack, 6 torches, rations for a week.</span><span class="src">68 gp · 520 cn · p. 31</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Skirmisher's kit</span><span class="desc">Leather, bow and 20 arrows, long knife, pack, lantern and oil.</span><span class="src">55 gp · 310 cn · p. 31</span></div><span class="info">ⓘ</span></div>
+  <div class="group">Shop <span class="meta">· the setting's items at their prices</span></div>
+  <div class="row"><div class="text"><span class="name">Browse the shop ›</span><span class="desc">By category, as on your Pack screen; each buy comes off your gold at once.</span></div><span class="price">52 gp left</span></div>
+  <div class="tally"><span>Carrying <b>520 cn</b> · Lightly loaded</span><span>Spent <b>68 gp</b></span><span>Left <b>52 gp</b></span></div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="hint">1 kit · 0 bought</span><span class="btn accent">Next</span></div>
+</div>
+<p class="note">Order on the step: the <b>starting money</b> roll (the pack's dice; typed), the class's <b>kits</b> as Option rows (contents in one line, cost, weight, page; ⓘ lists every item), then <b>Browse the shop ›</b>. A kit's cost comes off the gold; the shop spends what's left. The <b>tally</b> shows weight and load tier live from the setting's encumbrance rule, spent and left. Both at once is fine (kit, then top up). <b>Next checks</b>: spending more than the gold ("12 gp short: put something back"), nothing else — a character may set out with nothing.</p>
+
+<h1>2 · Browse the shop — the Pack screen's Add item, in creation mode (tablet landscape)</h1>
+<div class="screen wide">
+  <div class="narrow">
+    <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title" style="font-size:20px;">Shop</span></div>
+    <div class="field">Search items…</div>
+    <div class="cat">Weapons · 34</div>
+    <div class="cat on">Armour · 9</div>
+    <div class="cat">Adventuring gear · 41</div>
+    <div class="cat">Light · 5</div>
+    <div class="cat">Food and drink · 8</div>
+    <div class="cat">Animals · 6</div>
+    <div class="cat">Transport · 4</div>
+  </div>
+  <div>
+    <div class="tally" style="margin-top:0;"><span>Gold to spend <b>52 gp</b></span><span>Carrying <b>520 cn</b> · Lightly loaded</span><span class="btn quiet">Undo last</span></div>
+    <div class="row"><div class="text"><span class="name">Leather coat</span><span class="desc">AC 7 · light</span><span class="src">200 cn · p. 33</span></div><span class="price">20 gp</span><span class="btn">Add</span></div>
+    <div class="row"><div class="text"><span class="name">Chain shirt</span><span class="desc">AC 5 · heavy · <b>you have one (kit)</b></span><span class="src">400 cn · p. 33</span></div><span class="price">40 gp</span><span class="btn">Add</span></div>
+    <div class="row"><div class="text"><span class="name">Plate</span><span class="desc">AC 3 · heavy · a fighter may wear it</span><span class="src">500 cn · p. 33</span></div><span class="price">60 gp</span><span class="btn">Add</span></div>
+    <div class="row"><div class="text"><span class="name">Wooden shield</span><span class="desc">+1 AC · one hand · <b>you have one (kit)</b></span><span class="src">100 cn · p. 33</span></div><span class="price">10 gp</span><span class="btn">Add</span></div>
+    <div class="row"><div class="text"><span class="name">Helm</span><span class="desc">No rule effect; flavour</span><span class="src">30 cn · p. 33</span></div><span class="price">10 gp</span><span class="btn">Add</span></div>
+    <div class="foot"><span class="spacer"></span><span class="btn accent">Done shopping</span></div>
+  </div>
+</div>
+<p class="note">The same component as the Pack screen's Add item (06: Add item sheet) with two creation-mode differences: a <b>Gold to spend</b> tally that each Add reduces at once (toast with Undo; "Undo last" in the tally), and <b>Done shopping</b> back to the step. Categories are the pack's <code>itemCategories</code> with counts; items show the one line the Pack screen shows (AC or damage, weight class), weight, page and price. An item the class may not use is still listed and says so ("a fighter may wear it" / "not for a mage: −4 to hit"); Add still works — the sheet's warning hook handles play. An item already owned says so. Add asks how many only for stackables (the existing prompt). Gold at 0: Add still answers ("12 gp short"), never greys.</p>
+
+<h1>3 · Setting B's roll-your-gear mode (the buy option off) and a phone</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Gear</span><span class="meta">Step 8 of 10</span></div>
+  <p class="why">In this setting you roll your gear: d8 at the table, then tap your kit. Shopping comes later, in town. <span class="meta">p. 30</span></p>
+  <div class="money"><span class="big">12</span><div class="text">Pocket money · roll 3d6 gp and type it</div></div>
+  <div class="group">Roll d8 · fighter's kits <span class="meta">· tap your result</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">1 · Wanderer</span><span class="desc">Leather, staff, sling, pack, blanket, 3 days' food.</span><span class="src">290 cn</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">2 · Old soldier</span><span class="desc">Chain, sword, shield, pack, lantern, 6 days' food.</span><span class="src">560 cn</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">3 · Poacher</span><span class="desc">Leather, bow, 20 arrows, knife, snares.</span><span class="src">280 cn</span></div><span class="info">ⓘ</span></div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="hint">Old soldier picked</span><span class="btn accent">Next</span></div>
+</div>
+<div class="screen phone">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Gear</span><span class="meta">8 / 10</span></div>
+  <p class="why">A kit in one tap, shop for the rest, or both. <span class="btn quiet">Help me choose</span></p>
+  <div class="money"><span class="big">120</span><div class="text">3d6 × 10 gp · type it</div></div>
+  <div class="group">Kits <span class="meta">· fighter</span></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Shield-wall kit</span><span class="desc">Chain, shield, spear, sword, pack, torches, food.</span><span class="src">68 gp · 520 cn</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Skirmisher's kit</span><span class="desc">Leather, bow, knife, pack, lantern.</span><span class="src">55 gp · 310 cn</span></div><span class="info">ⓘ</span></div>
+  <div class="row"><div class="text"><span class="name">Browse the shop ›</span></div><span class="price">52 gp</span></div>
+  <div class="tally"><span><b>520 cn</b> · Light</span><span>Left <b>52 gp</b></span></div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="btn accent">Next</span></div>
+</div>
+</div>
+<p class="note">When the setting rolls gear (B with its buy option off), the kits are a <b>rolled list</b> (ranges first, tapped) and the shop link doesn't appear; the money line reads the pack's smaller roll. With the option on, the step reads as setting A's. Checked: money and load visible at every moment (visibility of status); nothing greys (an unaffordable Add explains); 44 px rows, Add and ⓘ; 375 px one column (the shop's categories become a chips row over the list); long kit contents wrap to two lines; one accent per screen (Next; Done shopping in the shop); never colour alone. Not drawn: dark mode; the how-many prompt for stackables (existing component).</p>
+</body>
+</html>

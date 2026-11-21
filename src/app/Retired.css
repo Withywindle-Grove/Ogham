@@ -1,0 +1,69 @@
+/* A retired campaign's banner, and the GM's "Retire campaign…" with its confirm. */
+
+.retired {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap) var(--pad);
+  padding: var(--pad);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius);
+  background: var(--tint);
+}
+
+.retired__text {
+  flex: 1 1 16em;
+  margin: 0;
+}
+
+.retire {
+  padding-top: var(--pad);
+  border-top: 1px dotted var(--row-rule);
+}
+
+.retire__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: var(--pad);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius);
+  background: var(--sheet);
+}
+
+.retire__confirm p {
+  margin: 0;
+}
+
+.retire__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap);
+}
+
+/* The folded rail's mark (mn-2, ap-17; mockup december/16, frame T13): a bordered tile with the lock above the word
+   "Retired", in the warning colour; the lock and the word carry it, never the colour alone. A 44 px tap or more. */
+.retired-mark {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: var(--space-1);
+  border: var(--line-selected) solid var(--warning);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--warning);
+  font: inherit;
+  font-size: var(--text-14);
+  font-weight: 700;
+  line-height: var(--line-heading);
+  cursor: pointer;
+}
+
+.retired-mark__word {
+  font-variant: small-caps;
+}

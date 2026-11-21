@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Final draft 3: Who they are (2026-11-07)</title>
+<link rel="stylesheet" href="final.css">
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+const openBtn = '<span class="btn">Open</span>';
+const tableRow = (name, sub) => `<div class="card"><div class="kv"><div class="text">${name}<small>${sub}</small></div>${openBtn}</div></div>`;
+
+const who = phone(`
+  ${bar('Who they are')}
+  <div class="inner">
+    <p class="meta">Step 5 of 9</p>
+    <p class="do">A name, an outlook and starting hit points.</p>
+    ${helpBtn()}
+    <h2>Name</h2>
+    <span class="field empty">Type a name, or pick one from a table</span>
+    ${roll(20, 'Roll d20 for a first name and a family name, then tap the rows.')}
+    ${tableRow('Stone kin names', 'd20: first names, family names')}
+    ${tableRow('Surnames', 'Optional, from Table Generator. d100')}
+    <h2>Outlook</h2>
+    ${pick('Fen', 'Keeps to old bargains', 'pick')}
+    ${pick('Mire', 'Takes what the marsh gives', 'pick')}
+    ${closedPick('Hearth', 'Not open to Reed Witch')}
+    <h2>Hit points</h2>
+    ${roll(4, 'Roll d4 for hit points and enter it. Grit 13 adds 1.')}
+    <div class="card"><div class="kv"><span>Hit points</span>${stepper(2, true)}</div><div class="avgline">Average roll, replace with yours. With +1 for Grit 13: 3 hit points</div></div>
+    <div class="card"><div class="kv"><div class="text">Derived values<small>6 figures the rules work out</small></div><span class="btn sq" role="button" aria-label="Show derived values">${I.plus}</span></div></div>
+    ${foot('Name and outlook still to do')}
+  </div>`, 'Who they are, untouched: the name field with its placeholder; one row per name table with Open (the pack\'s own, then "Optional, from Table Generator"); outlook as pick rows with a closed one; the hit points Roll row with the class\'s die and the average prefilled; Derived values folded.');
+
+const nameSheet = phone(`
+  ${bar('Who they are')}
+  <div class="inner" style="min-height:560px">
+    <p class="meta">Step 5 of 9</p>
+    <h2>Name</h2>
+    <span class="field empty">Type a name, or pick one from a table</span>
+  </div>
+  ${sheet('Stone kin names', `
+    ${roll(20, 'Roll d20 for each part, then tap the row.')}
+    <div class="kv" style="margin-bottom:var(--space-2)"><span class="btn small" style="flex:1">First names</span><span class="btn small" style="flex:1;border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)">Family names</span></div>
+    <div class="list">
+      <div class="row"><span class="k">1</span><span class="v">Adderbald</span></div>
+      <div class="row"><span class="k">2</span><span class="v">Brackenshaw</span></div>
+      <div class="row"><span class="k">3</span><span class="v">Coldharrow</span></div>
+      <div class="row"><span class="k">4</span><span class="v">Dunmere</span></div>
+      <div class="row"><span class="k">5</span><span class="v">Ebbwater</span></div>
+    </div>
+  `)}`, 'A name table, opened: a sheet with the Roll row, one tab per part of the name, the rows; tapping a row fills that part. No typed-number field: the player finds the row (Francis, 2026-11-07). The seam between parts follows the pack\'s join rule (ct-7).');
+
+const liege = phone(`
+  ${bar('Who they are')}
+  <div class="inner">
+    <p class="meta">Step 5 of 9</p>
+    <h2>Name</h2>
+    <span class="field">Oswin Adderbald</span>
+    <h2>Liege</h2>
+    <p class="meta" style="margin:0 0 var(--space-2)">A knight serves a house. The house sets your outlook.</p>
+    ${pick('House of the Long Reed', 'Fen. Keeps the causeways', 'picked')}
+    ${pick('House Coldharrow', 'Mire. Salt, eels and old debts', 'pick')}
+    ${pick('The Ebbwater Compact', 'Fen. Boatwrights and ferrymen', 'pick')}
+    <div class="toast"><span>Liege set: House of the Long Reed. Outlook set to Fen</span><span class="btn small">Undo</span></div>
+    <h2>Affiliation</h2>
+    <span class="field">House of the Long Reed</span>
+    <p class="meta" style="margin:var(--space-1) 0 0">Starts as your liege's house; change it if you like.</p>
+    ${foot('Hit points still to do')}
+  </div>`, 'A knight\'s liege (cw-5, cw-12): pick rows; the house\'s name opens its entry as a sheet; Pick sets the liege and the outlook and says so with Undo; Affiliation starts as the house, editable. Francis asked for the liege "as a pop-up" (P14): since pop-up means a sheet, the rows stay in place and the entry is the sheet.');
+
+const derived = phone(`
+  ${bar('Who they are')}
+  <div class="inner">
+    <p class="meta">Step 5 of 9</p>
+    <h2>Hit points</h2>
+    ${valCard('Hit points', 3, '3 rolled, +1 for Grit 13: <b>4 hit points</b>')}
+    <div class="card"><div class="kv"><div class="text">Derived values<small>6 figures the rules work out</small></div><span class="btn sq" role="button" aria-label="Hide derived values">${I.minus}</span></div>
+      <div class="list" style="margin-top:var(--space-2)">
+        ${kvRow('Armour', '12, quilted cloth and Nimbleness 7')}
+        ${kvRow('Attack', '+0')}
+        ${kvRow('Speed', '40')}
+        ${kvRow('Save, doom', '14')}
+        ${kvRow('Save, ray', '15')}
+        ${kvRow('Save, hold', '13')}
+      </div>
+    </div>
+    ${foot('All done on this step')}
+  </div>`, 'Derived values, unfolded: the device remembers (cw-7). Each figure says where it comes from in words; a tap on a row opens the rule.');
+
+const whoTablet = tablet(`
+  ${bar('Who they are')}
+  <div class="cols">
+    <div>
+      <p class="meta">Step 5 of 9</p>
+      <p class="do">A name, an outlook and starting hit points.</p>
+      ${helpBtn()}
+      <h2>Name</h2>
+      <span class="field">Oswin</span>
+      ${roll(20, 'Roll d20 for a first name and a family name, then tap the rows.')}
+      ${tableRow('Stone kin names', 'd20: first names, family names. Open on the right')}
+      ${tableRow('Surnames', 'Optional, from Table Generator. d100')}
+      <h2>Outlook</h2>
+      ${pick('Fen', 'Keeps to old bargains', 'pick')}
+      ${pick('Mire', 'Takes what the marsh gives', 'pick')}
+      ${closedPick('Hearth', 'Not open to Reed Witch')}
+      <h2>Hit points</h2>
+      ${roll(4, 'Roll d4 for hit points and enter it. Grit 13 adds 1.')}
+      <div class="card"><div class="kv"><span>Hit points</span>${stepper(2, true)}</div><div class="avgline">Average roll, replace with yours. With +1 for Grit 13: 3 hit points</div></div>
+    </div>
+    <div class="panel">
+      <h2>Stone kin names</h2>
+      ${roll(20, 'Roll d20 for each part, then tap the row.')}
+      <div class="kv" style="margin-bottom:var(--space-2)"><span class="btn small" style="flex:1;border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)">First names</span><span class="btn small" style="flex:1">Family names</span></div>
+      <div class="list">
+        <div class="row"><span class="k">1</span><span class="v">Alder</span></div>
+        <div class="row"><span class="k">2</span><span class="v">Bram</span></div>
+        <div class="row"><span class="k">3</span><span class="v">Cerys</span></div>
+        <div class="row"><span class="k">4</span><span class="v">Dag</span></div>
+        <div class="row"><span class="k">5</span><span class="v">Elowen</span></div>
+        <div class="row"><span class="k">6</span><span class="v">Fenwick</span></div>
+      </div>
+    </div>
+  </div>
+  ${foot('Name part filled, outlook still to do').replace('class="foot"', 'class="foot" style="margin:0;padding:var(--space-3)"')}`, 'Who they are on a tablet: the step left; the open name table (or the liege\'s entry, or Derived values) right (mockup 16, the rule per step).');
+
+mount(`
+  <h1>Final draft 3: Who they are</h1>
+  <p class="note">The name: a typed field, and one row per name table with Open (plan answer 4; "Optional, from &lt;pack&gt;" for the Table Generator's, ct-6); a tapped row fills that part of the name, typing filters (P26). Outlook as pick rows with a closed one (cw-8). The liege as pick rows whose Pick sets the outlook too (cw-5), Affiliation starting as the house (cw-12). Hit points as a Roll row with the class's die; the player enters the die roll, the app adds the score bonus and shows the total, never below 1 (Francis, 2026-11-07, B). "Derived values" folded (cw-7, P16). Every table and entry opens as a sheet (ruled 2026-11-06).</p>
+  <h1>Phone</h1>
+  <div class="wall">${who}${nameSheet}${liege}${derived}</div>
+  <h1>Tablet</h1>
+  ${whoTablet}
+  <p class="note">Self-review: targets 44 px with 8 px between; nothing under 14 px; the closed outlook shows the sign and why; the name table's tabs mark the current one by border, with the words; one accent per screen (Next, or the first Pick where nothing is picked); the sheet scrolls its rows; 375 px checked with a 20-row table (five drawn). Not checked: a kindred with no name tables (the rows simply don't show; the field stays); a pack whose name table has three parts (a third tab); Derived values with a figure that has no source line.</p>
+`);
+</script>
+</body>
+</html>

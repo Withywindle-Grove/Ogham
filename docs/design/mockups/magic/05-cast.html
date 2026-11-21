@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Magic 05: casting, on the standard (redrawn with mp-6 … mp-9 and mp-14, 2026-11-09)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="magic.css">
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="magic.js"></script>
+<script>
+const spells = (rows) => `
+    <h2>Spells</h2>
+    ${level('Level 1, 2 a day')}
+    <div class="list">${rows}</div>`;
+
+const reminder = phone(`
+  ${topbar('Wren')}
+  <div class="inner">
+    ${spells(`${item('Mire lamp', '6 turns, 30 ft. A light', 'Cast')}${spent('Thorn dart', 'Cast, turn 14')}`)}
+    ${toast('Thorn dart cast. Roll it at the table and name your target')}
+    ${tabs('magic')}
+  </div>`, 'A cast that calls for a roll or a target: one tap, as any other, and the toast carries the reminder in words (mp-7). The player enters nothing; the GM confirms nothing.');
+
+const form = phone(`
+  ${topbar('Wren')}
+  <div class="inner" style="min-height:600px">
+    ${spells(item('Mend lantern', 'Instant, touch', 'Cast'))}
+  </div>
+  ${sheet('Mend lantern', `
+    <p class="meta" style="margin:0 0 var(--space-2)">Which form?</p>
+    ${pick('Mend lantern', 'Makes a broken thing whole. Touch', 'picked')}
+    ${pick('Break lantern', 'Shatters a made thing. 30 ft', 'pick')}
+    <div class="foot"><span class="say">The usual form is picked</span><span class="btn accent">Cast</span></div>
+  `)}`, 'The cast sheet opens only for a choice the app records. First of two: the form, for a class that chooses it at casting (mp-6). The usual form starts picked, so it is still two taps. Cast is the sheet\'s one accent; ✕ closes with nothing cast.');
+
+const count = phone(`
+  ${topbar('Wren')}
+  <div class="inner" style="min-height:600px">
+    ${spells(item('Call marsh hounds', '6 turns. Brings 1d4 hounds', 'Cast'))}
+  </div>
+  ${sheet('Call marsh hounds', `
+    <div class="card"><div class="kv"><span>How many came?</span>${stepper(3)}</div><div class="meta">Roll 1d4 at the table</div></div>
+    <p class="meta" style="margin:var(--space-2) 0 0">They obey Wren while she can see them. If she is hurt, they turn on the nearest creature.</p>
+    <div class="foot"><span class="say"></span><span class="btn accent">Cast</span></div>
+  `)}`, 'Second of two: the number a conjuring spell brings, rolled at the table (mp-6, mp-14). The control note is the pack\'s words; the app shows it and never decides.');
+
+const hounds = phone(`
+  ${topbar('Wren')}
+  <div class="inner">
+    ${spells(`${item('Mire lamp', '6 turns, 30 ft. A light', 'Cast')}${spent('Call marsh hounds', 'Cast, turn 14')}`)}
+    <h2>With Wren</h2>
+    <div class="list">
+      <div class="row"><div class="text">Marsh hounds, 3<small>6 turns left. None hurt</small></div>${I.chev}</div>
+    </div>
+    ${toast('Call marsh hounds cast. 3 hounds are with Wren')}
+    ${tabs('magic')}
+  </div>`, 'After it: the group is one row with a count, under its caster (mp-14). The row opens the creature: its figures, hit points once one is hurt (Wren\'s player changes them), Dismiss. It takes no place in the marching order.');
+
+const lost = phone(`
+  ${topbar('Wren')}
+  <div class="inner">
+    ${spells(`${item('Mire lamp', '6 turns, 30 ft. A light', 'Cast')}${item('Thorn dart', 'Instant, 60 ft', 'Cast')}`)}
+    ${toast('Wren was hurt. Any spell she was casting is lost', '')}
+    ${tabs('magic')}
+  </div>`, '"Spell lost" is a reminder, not a state (mp-9), and it shows only when three things hold (mm-3): a fight is under way, she has not yet acted in this round\'s initiative order (usually the foes went first), and the setting\'s rules say a spell can be lost. Then it shows on her screen and the GM\'s. If she was casting, her player taps Cast on that spell. There is no list to tap and nothing to confirm; ✕ closes it. It needs the fight\'s turn order, so it is built with fights (M6), not with slice 3.');
+
+const console_ = tablet(`
+  <div class="bar"><span class="ico"></span><span class="title">The GM's screen: timers</span><span class="ico"></span></div>
+  <div class="inner">
+    <div class="list">
+      <div class="row"><div class="text">Mire lamp, Wren<small>A spell's light, 30 ft</small></div><span class="meta">6 turns left</span></div>
+      <div class="row"><div class="text">Marsh hounds, 3, with Wren<small>A spell's creatures</small></div><span class="meta">6 turns left</span></div>
+      <div class="row"><div class="text">Fog of the fen, Wren<small>A spell's effect. Lasts 1d6 turns</small></div><span class="meta">? turns</span><span class="btn small">Set</span></div>
+    </div>
+    <div class="list" style="margin-top:var(--space-3)">
+      <div class="row"><div class="text">Wren cast Mire lamp<small>A light for 6 turns. Turn 14</small></div><span class="btn small">Undo</span></div>
+    </div>
+  </div>`, 'The GM\'s side (the timers on the track and the log, drawn as rows; the console itself isn\'t redrawn here). Every spell with a duration puts a quiet timer on the track, even when the app tracks nothing else about it (mp-8). A duration rolled at the table reads "? turns" with Set, and never blocks the player. A cast is undone from the log by the player or the GM.');
+
+mount(`
+  <h1>Casting</h1>
+  <p class="note"><b>Approved by Francis, 2026-11-10</b>, with one change written here: "spell lost" shows only in a fight, before the caster has acted, where the rules allow it (mm-3, <code>rulings/m5c-magic-mockups-2026-11-10.md</code>). Redrawn on the players' standard with the paper test's rulings (mp-6 … mp-9, mp-14). Replaces the rough draft <code>02-cast</code>. What changed from the draft: <b>no target sheet</b> (a spell's target stays narrative; the "Who?" chips are gone), "lost" is no longer a crossed-out state but a reminder toast, and the cast sheet is kept for two choices only. The plain one-tap cast is on mockup 04. Invented names and figures.</p>
+  <h1>Phone</h1>
+  <div class="wall">${reminder}${lost}</div>
+  <h1>The cast sheet, for two choices only</h1>
+  <div class="wall">${form}${count}${hounds}</div>
+  <h1>The GM's side</h1>
+  ${console_}
+  <p class="note">Self-review: every target 44 px with 8 px between; nothing under 14 px; the only accent is the sheet's Cast (a sheet is its own surface); Undo over confirm (a cast happens at once); no disabled button; the reminder toast has words and a ✕, no colour meaning; light and dark from the same markup. Not drawn: a spell lost that had wrongly started a light or a timer (ended by hand, for now); the GM moving a conjured group to the foes' side (ns-1, M6); a class that picks the form when memorising (that choice is in Prepare, mockup 06); the "No effect" tap on the toast (mp-22, parked for the table test).</p>
+`);
+</script>
+</body>
+</html>

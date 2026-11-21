@@ -1,0 +1,12 @@
+/* The full sheet's Pack load (sr-9): the Pack tab's load bar, then one fold row per group (FoldedGroup), opening in place. */
+.pack-load__groups > .creation-fold {
+  border-bottom: var(--row-rule);
+}
+
+/* A long name wraps rather than pushing the sheet sideways (375 px). */
+.pack-load__things {
+  margin: 0 0 var(--gap);
+  padding-left: var(--space-6);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}

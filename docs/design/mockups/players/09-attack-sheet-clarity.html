@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Attack sheet, made clear: what to roll, first (2026-11-10)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<style>
+  .sheetup { max-height:none; }
+  .rollline { display:flex; align-items:center; gap:var(--space-3); }
+  .rollline .words { font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .rollline .words small { display:block; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:14px; font-weight:400; color:var(--muted); margin-top:2px; }
+  .rolls .card { border-color:var(--control); border-width:1.5px; }
+  .parts { margin-top:var(--space-2); border-top:1px solid var(--rule); }
+  .parts .row { min-height:36px; padding:var(--space-1) 0; }
+  .parts .row:last-child { border-bottom:0; }
+  .range { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-2); margin:var(--space-2) 0; }
+  .range .card { margin:0; text-align:center; padding:var(--space-2); }
+  .range .lab { font-size:14px; color:var(--muted); }
+  .range b { display:block; }
+  h3 { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:var(--space-4) 0 var(--space-1); font-weight:400; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script>
+const under = (name) => bar(name) + '<div class="inner" style="min-height:880px"></div>';
+const rollCard = (n, words, parts) => `<div class="card"><div class="rollline">${die(n, 36)}<div class="words">${words}</div></div>${parts}</div>`;
+const sentence = (text) => `<div class="meta" style="margin-top:var(--space-2)">${text}</div>`;
+const rows = (list) => `<div class="parts">${list.map(([k, v]) => kvRow(k, v)).join('')}</div>`;
+const range = (bands, unit) => `<h3>Range, in ${unit}</h3><div class="range">${bands.map(([l, d, m]) => `<div class="card"><div class="lab">${l}</div><b>up to ${d}</b><div class="meta">${m} to hit</div></div>`).join('')}</div>`;
+const tail = (rules, inflicts, spend) => `
+      <h3>Rules that bear</h3>
+      <p style="margin:0">${rules}</p>
+      <h3>Inflicts</h3>
+      <p style="margin:0">${inflicts}</p>
+      <p class="meta" style="margin:var(--space-3) 0">Rolling the attack here comes with the fight rules, later. Roll at the table.</p>
+      ${spend ? `<span class="btn wide">${spend}</span>` : ''}`;
+const bowRange = range([['Short', '70', '+1'], ['Medium', '140', '+0'], ['Long', '210', '−1']], 'feet');
+
+const a = phone(`${under('Hart')}
+  ${sheet('Longbow', `
+    <div class="rolls">
+      ${rollCard(20, 'Roll 1d20 + 1 to hit', sentence('Marsh warden, level 2: +1. Nimbleness 10: +0.'))}
+      ${rollCard(6, 'Roll 1d6 for damage', sentence('Longbow: 1d6. Might doesn\'t add to a missile.'))}
+    </div>
+    ${bowRange}
+    ${tail('Two-handed. No shot into a melee without the GM\'s say.', 'Nothing.', 'Fire one, 19 left after')}
+  `)}`, 'A: the two rolls first, each with its die and one plain line: what to roll, what to add, what it is for. Under each, where the number comes from as one sentence. The range has its own heading with the unit, and each band says what it does to the roll.');
+
+const b = phone(`${under('Hart')}
+  ${sheet('Longbow', `
+    <div class="rolls">
+      ${rollCard(20, 'Roll 1d20 + 1 to hit', rows([['Marsh warden, level 2', '+1'], ['Nimbleness 10', '+0']]))}
+      ${rollCard(6, 'Roll 1d6 for damage', rows([['Longbow', '1d6'], ['Might', 'not added to a missile']]))}
+    </div>
+    ${bowRange}
+    ${tail('Two-handed. No shot into a melee without the GM\'s say.', 'Nothing.', 'Fire one, 19 left after')}
+  `)}`, 'B: the same two lines, with the parts as rows (the name left, the figure right), as the breakdown sheets for a save or a score already do. Taller; each part is easier to find.');
+
+const melee = phone(`${under('Hart')}
+  ${sheet('Spear', `
+    <div class="rolls">
+      ${rollCard(20, 'Roll 1d20 + 3 to hit', sentence('Marsh warden, level 2: +1. Might 16: +1. Braced against a charge: +1.'))}
+      ${rollCard(6, 'Roll 1d6 + 1 for damage<small>Twice the dice against a charge</small>', sentence('Spear: 1d6. Might 16: +1.'))}
+    </div>
+    ${tail('Grip: Braced. One-handed; with a shield.', 'Nothing.', '')}
+  `)}`, 'A melee weapon, a bonus on both rolls: each line carries its own "+", so a +1 can never be read as the other roll\'s. A rule that changes the dice sits under the line it changes. No range heading when the weapon has none; no button when nothing is spent.');
+
+const zero = phone(`${under('Hart')}
+  ${sheet('The long knife of the drowned abbey\'s last warden', `
+    <div class="rolls">
+      ${rollCard(20, 'Roll 1d20 to hit', sentence('Marsh warden, level 1: +0. Might 9: +0.'))}
+      ${rollCard(4, 'Roll 1d4 − 1 for damage<small>Never less than 1</small>', sentence('Knife: 1d4. Might 5: −1.'))}
+    </div>
+    ${tail('None.', 'Bleeding, 1 a round until bound (the pack\'s words).', '')}
+  `)}`, 'Messy data: a long name; nothing to add (the line drops "+ 0" and the sentence still shows the zeros); a minus; a floor in words.');
+
+const table = phone(`${under('Hart')}
+  ${sheet('Longbow', `
+    <div class="rolls">
+      ${rollCard(20, 'Roll 1d20 + 1<small>The GM reads the hit from the roll and the foe\'s armour</small>', sentence('Marsh warden, level 2: hits armour 0 on 19. Nimbleness 13: +1.'))}
+      ${rollCard(6, 'Roll 1d6 for damage', sentence('Longbow: 1d6.'))}
+    </div>
+    ${bowRange}
+    ${tail('Two-handed.', 'Nothing.', 'Fire one, 19 left after')}
+  `)}`, 'A setting that reads hits from a table instead of adding to the roll: the line still says which die and what to add; the pack\'s own words say how the hit is read. The app never assumes "roll high and add".');
+
+mount(`
+  <h1>The Attack sheet, made clear</h1>
+  <p class="note">Francis, at the gate rewalk (2026-11-10, finding F24): the sheet "shows the modifier but not clearly: it could have been a modifier to damage"; the range "doesn't say it's range, or in feet"; he asks for a line at the top that stands out, "Roll 1d20 [icon] + X to hit. Roll 1d6 [icon] + Y for damage." This redraws ah-1's sheet (<code>rulings/m5b-at-hand-actions-2026-11-08.md</code>, mockup 06): the same content, reordered so the two rolls come first. Two ways to show the parts, A and B. <b>Francis ruled B, 2026-11-10</b> (as-1 … as-3, <code>rulings/m5b-attack-sheet-clarity-2026-11-10.md</code>); the other cases below are drawn as A and are built as B. Invented names and figures.</p>
+  <div class="wall">${a}${b}</div>
+  <h1>Other cases (drawn as A)</h1>
+  <div class="wall">${melee}${zero}${table}</div>
+  <p class="note"><b>What it needs.</b> From the app: the reorder, the die icons, and the doubled "two-handed" removed. From the packs: the range as its own field with a unit (today it lives inside a quality's text, "Missile (70/140/210)"), proposed as gap G-219: three bands, each with its distance and what it does to the roll, and the unit. Until a pack carries it, the sheet shows the quality's text as now, under Rules that bear.</p>
+  <p class="note">Self-review: one spend button at most, 44 px; nothing under 14 px; no accent (nothing is asked); the die is a symbol beside its words, never alone; a zero is dropped from the line and kept in the parts; light and dark from the same markup; a 50-character weapon name wraps in the sheet's head. Not drawn: a weapon with a mode in use (the mode's name joins the parts: "Silver arrows: +0"); a coated weapon (ah-5: the Inflicts line names it); two attacks a round; the tablet (the same sheet, wider).</p>
+`);
+</script>
+</body>
+</html>

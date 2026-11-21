@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Final draft 1: Method, Scores, Adjust scores (2026-11-07)</title>
+<link rel="stylesheet" href="final.css">
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+const SCORES_HELP = "Ability scores are the numbers that say what your character is naturally good or bad at: strength, quickness, wits and so on. You roll them at the table, as your setting says, and type in what you rolled. They decide which choices are open to you later, and they give small bonuses or penalties that follow you everywhere; each tile shows what its number changes. If you're unsure, keep them as rolled, or ask your GM.";
+
+const method = phone(`
+  ${bar('How to build')}
+  <div class="inner">
+    <p class="meta">Step 1 of 9</p>
+    <p class="do">Your setting builds a character in more than one way. Pick the one your table uses.</p>
+    ${helpBtn()}
+    <div style="margin-top:var(--space-3)"></div>
+    ${pick('Kindred, then class', 'Two picks: your people, then your trade', 'accent')}
+    ${pick('One pick covers both', 'The setting pairs them for you', 'pick')}
+    ${foot('Nothing picked yet', 'Leave', 'plain')}
+  </div>`, 'Method. One ask, so the default’s Pick carries the accent and Next is plain until a pick is made; Pick moves on (ct-1). On step 1, Back reads Leave and keeps the picks on the device (cw-13).');
+
+const scoresEmpty = phone(`
+  ${bar('Scores')}
+  <div class="inner">
+    <p class="meta">Step 2 of 9</p>
+    <p class="do">Six numbers say what your character is naturally good at.</p>
+    ${roll(6, 'Roll 3d6 at the table for each score, then enter what you rolled.')}
+    ${helpBtn()}
+    <div style="margin-top:var(--space-3)"></div>
+    ${avgCard('Might', 10)}
+    ${avgCard('Nimbleness', 10)}
+    ${avgCard('Grit', 10)}
+    ${avgCard('Wits', 10)}
+    ${avgCard('Lore', 10)}
+    ${avgCard('Charm', 10)}
+    ${foot('0 of 6 rolled')}
+  </div>`, 'Scores, nothing touched: every score at the average 10 in lighter weight, with the line under it. Next carries the accent (the step can be left as it is).');
+
+const scoresPart = phone(`
+  ${bar('Scores')}
+  <div class="inner">
+    <p class="meta">Step 2 of 9</p>
+    <p class="do">Six numbers say what your character is naturally good at.</p>
+    ${roll(6, 'Roll 3d6 at the table for each score, then enter what you rolled.')}
+    ${helpOpen(SCORES_HELP)}
+    ${valCard('Might', 13, '+1 to hit and damage up close')}
+    ${valCard('Nimbleness', 7, '−1 to armour and to hit at range')}
+    ${valCard('Grit', 10, 'No bonus or penalty')}
+    ${avgCard('Wits', 10)}
+    ${foot('3 of 6 rolled')}
+  </div>`, 'Three rolled, help open (full width, closes with ✕). Grit was stepped back to 10: "touched" is a state, so the average line is gone and its caption reads "No bonus or penalty".');
+
+const onlyPlus = (v) => `<span class="stepper"><span class="num">${v}</span><span class="btn sq">+</span></span>`;
+const onlyMinus = (v) => `<span class="stepper"><span class="btn sq">−</span><span class="num">${v}</span></span>`;
+const adjCard = (name, v, caption, which) => `<div class="card"><div class="kv"><span>${name}</span>${which === '+' ? onlyPlus(v) : which === '-' ? onlyMinus(v) : `<span class="stepper"><span class="num">${v}</span></span>`}</div>${caption ? `<div class="meta">${caption}</div>` : ''}</div>`;
+const adjust = phone(`
+  ${bar('Adjust scores')}
+  <div class="inner">
+    <p class="meta">Step 4 of 9, optional</p>
+    <p class="do"><b>Your prime is Might</b>, the Lantern Warden's main score. A higher prime earns experience faster. Lower another score by 2 to raise your prime by 1. Nothing may go under 9.</p>
+    ${helpBtn()}
+    <div style="margin-top:var(--space-3)"></div>
+    ${valCard('Might<span class="prime">Prime</span>', 13, '+1 now, +2 at 16, +5% experience')}
+    ${valCard('Wits', 12, '+0 now, −1 at 8, +1 at 13')}
+    <div class="card"><div class="kv"><span>Nimbleness</span><span class="stepper"><span class="num">7</span></span></div><div style="margin-top:var(--space-1)">${warn('Already under 9: can\'t be lowered')}</div></div>
+    ${valCard('Grit', 10, '+0 now, −1 at 8, +1 at 13')}
+    ${foot('No trade made')}
+  </div>`, 'Adjust scores: the prime named and tagged; the live modifier and the nearest threshold on each tile. Each tile shows only what the rule allows: + on the prime, − on the others; a score at or under the floor shows no − and says why (Francis, 2026-11-07). Undo reverses a trade.');
+
+const adjustTwo = phone(`
+  ${bar('Adjust scores')}
+  <div class="inner">
+    <p class="meta">Step 4 of 9, optional</p>
+    <p class="do"><b>Your primes are Might and Wits</b>, the Marsh Chaplain's main scores. Experience follows the lower of the two, so raise that one first. Lower another score by 2 to raise a prime by 1. Nothing may go under 9.</p>
+    ${adjCard('Might<span class="prime">Prime</span>', 14, '+1 now, +2 at 16', '+')}
+    ${adjCard('Wits<span class="prime">Prime</span>', 11, '+0 now, +1 at 13. Sets your experience', '+')}
+    <div class="card"><div class="kv"><span>Charm</span><span class="stepper"><span class="num">9</span></span></div><div class="meta">+0 now, −1 at 8. At the floor: can't go lower</div></div>
+    <div class="toast"><span>Charm 11 → 9, Might 13 → 14</span><span class="btn small">Undo</span></div>
+    ${foot('1 trade made')}
+  </div>`, 'Two primes: the line says experience follows the lower one (a pack line). After a trade, the toast with Undo.');
+
+const scoresTablet = tablet(`
+  ${bar('Scores')}
+  <div class="inner">
+    <p class="meta">Step 2 of 9</p>
+    <p class="do">Six numbers say what your character is naturally good at.</p>
+    ${roll(6, 'Roll 3d6 at the table for each score, then enter what you rolled.')}
+    ${helpBtn(false)}
+    <div class="tiles" style="margin-top:var(--space-3)">
+      <div class="card"><div>Might</div>${stepper(13)}<div class="meta">+1 to hit and damage up close</div></div>
+      <div class="card"><div>Nimbleness</div>${stepper(7)}<div class="meta">−1 to armour and to hit at range</div></div>
+      <div class="card"><div>Grit</div>${stepper(10, true)}<div class="avgline">Average value, replace with your roll</div></div>
+      <div class="card"><div>Wits</div>${stepper(10, true)}<div class="avgline">Average value, replace with your roll</div></div>
+      <div class="card"><div>Lore</div>${stepper(10, true)}<div class="avgline">Average value, replace with your roll</div></div>
+      <div class="card"><div>Charm</div>${stepper(10, true)}<div class="avgline">Average value, replace with your roll</div></div>
+    </div>
+    ${foot('2 of 6 rolled')}
+  </div>`, 'Scores on a tablet: one column, widened; tiles three across, the stepper centred (N2).');
+
+const adjustTablet = tablet(`
+  ${bar('Adjust scores')}
+  <div class="inner">
+    <p class="meta">Step 4 of 9, optional</p>
+    <p class="do"><b>Your prime is Might</b>, the Lantern Warden's main score. A higher prime earns experience faster. Lower another score by 2 to raise your prime by 1. Nothing may go under 9.</p>
+    ${helpBtn(false)}
+    <div class="tiles" style="margin-top:var(--space-3)">
+      <div class="card"><div>Might<span class="prime">Prime</span></div><div class="stepper">${onlyPlus(13)}</div><div class="meta">+1 now, +2 at 16, +5% experience</div></div>
+      <div class="card"><div>Nimbleness</div><div class="stepper"><span class="num">7</span></div><div>${warn('Under 9: can\'t be lowered')}</div></div>
+      <div class="card"><div>Grit</div><div class="stepper">${onlyMinus(10)}</div><div class="meta">+0 now, −1 at 8, +1 at 13</div></div>
+      <div class="card"><div>Wits</div><div class="stepper">${onlyMinus(12)}</div><div class="meta">+0 now, −1 at 8, +1 at 13</div></div>
+      <div class="card"><div>Lore</div><div class="stepper">${onlyMinus(11)}</div><div class="meta">+0 now, +1 at 13</div></div>
+      <div class="card"><div>Charm</div><div class="stepper"><span class="num">9</span></div><div class="meta">+0 now, −1 at 8. At the floor: can't go lower</div></div>
+    </div>
+    ${foot('No trade made')}
+  </div>`, 'Adjust on a tablet: the same tiles three across.');
+
+mount(`
+  <h1>Final draft 1: Method, Scores, Adjust scores</h1>
+  <p class="note">Every ruling applied: ← bar with the title centred and ⋯ (P2); one line of what the step is; the Roll row with the die's solid (P18, P15); Help me choose full width, closing with ✕ (P5); average values prefilled in lighter weight with "Average value, replace with your roll" until touched (P3); the accent on the step's real next action (mockup 16); the warning sign for a closed score (P11); no middle dot (mockup 16); the prime explained and tagged, live modifiers (P8, P9); tablets as one widened column (N2).</p>
+  <h1>Phone</h1>
+  <div class="wall">${method}${scoresEmpty}${scoresPart}${adjust}${adjustTwo}</div>
+  <h1>Tablet</h1>
+  ${scoresTablet}${adjustTablet}
+  <p class="note">Self-review: targets 44 px with 8 px between; nothing under 14 px; the average is marked by words and weight, never colour alone; a closed score shows the sign and the reason, never grey; one accent per screen, on the ask; 375 px with the full help text; 0 and 6 rolled both drawn; the long two-primes lead wraps to five lines and still leaves the first tile above the fold. Not checked: how the dice read at 24 px on a real phone; Adjust's thresholds need the pack's modifier table (fae-woodland to confirm).</p>
+`);
+</script>
+</body>
+</html>

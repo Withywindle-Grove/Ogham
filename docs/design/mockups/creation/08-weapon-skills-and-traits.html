@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creation 08 — Weapon skills and trait lists (paper test, 2026-11-01)</title>
+<style>
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); width:720px; box-sizing:border-box; }
+  .screen.phone { width:375px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .why { margin:var(--space-3) 0 var(--space-1); }
+  .group { display:flex; align-items:center; min-height:44px; gap:var(--space-3); margin-top:var(--space-3); font-weight:700; }
+  .group .meta { font-weight:400; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; min-width:0; }
+  .row .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .row .desc { display:block; }
+  .row .src { display:block; font-size:14px; color:var(--muted); }
+  .tick { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:22px; flex:none; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; text-align:center; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:16px; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  .btn.toggle.on { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); background:var(--surface); }
+  .fold { display:flex; align-items:center; min-height:44px; gap:var(--space-3); color:var(--muted); margin-top:var(--space-2); }
+  .foot { display:flex; align-items:center; gap:var(--space-3); margin-top:var(--space-4); padding-top:var(--space-3); border-top:1px solid var(--rule); }
+  .foot .spacer { flex:1; }
+  .hint { font-size:14px; color:var(--muted); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:720px; }
+</style>
+</head>
+<body>
+
+<h1>1 · Weapon skills (ruled 2026-11-01; redrawn on the shell)</h1>
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Weapon skills</span><span class="meta">Step 9 of 10</span></div>
+  <p class="why">Your class fights best with a few weapons; the rest carry a penalty. Pick 4. <span class="meta">Fen rules · p. 36</span> <span class="btn quiet">Help me choose</span></p>
+  <div class="group">Blades <span class="meta">· you carry a sword</span></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Sword</span><span class="desc">d8 · melee, one hand · in your pack</span><span class="src">p. 32</span></div><span class="btn toggle on">Specialised</span></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Dagger</span><span class="desc">d4 · melee or thrown, one hand</span><span class="src">p. 32</span></div><span class="btn toggle">Specialise</span></div>
+  <div class="group">Hafted</div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Spear</span><span class="desc">d6 · melee or thrown, one hand · in your pack</span><span class="src">p. 32</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Battle axe</span><span class="desc">d8 · melee, two hands</span><span class="src">p. 32</span></div></div>
+  <div class="group">Missile</div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Short bow</span><span class="desc">d6 · missile, two hands</span><span class="src">p. 33</span></div></div>
+  <div class="fold"><span class="btn quiet">Not your class's weapons · 6 ›</span><span class="meta">usable with the penalty</span></div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="hint">4 of 4 picked · sword spends 2</span><span class="btn accent">Next</span></div>
+</div>
+<p class="note">As ruled (m5b-0b): only with the setting's option on and a class category the rule knows; the setting's weapons the class may use, grouped by the pack's categories, the ones the character carries marked first; the count from the class category; <b>Specialise</b> as a pressed toggle spending its picks; restricted weapons folded, never picked. Redrawn here only to sit on the one shell: the row opens the weapon's full entry with Pick / Unpick (5.5), the ✓ slot picks, source and page on every row. Nothing else changes.</p>
+
+<h1>2 · A trait list — setting A's secondary skill; setting B's background and sign work the same</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Secondary skill</span><span class="meta">Step 10 of 11</span></div>
+  <p class="why">What you did before adventuring: a trade for flavour and the odd check. Roll d20 at the table and tap your result, or just pick. <span class="meta">Fen rules · p. 50</span> <span class="btn quiet">Help me choose</span></p>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">1–2 · Reed cutter</span><span class="desc">Knows the fens' channels; can judge a boat.</span></div></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">3–4 · Smith</span><span class="desc">Can mend metal and judge a blade's worth.</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">5 · Herbalist</span><span class="desc">Names plants; brews a simple poultice.</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">6–7 · Fisher</span><span class="desc">Nets, lines, weather at sea.</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">8 · Scribe</span><span class="desc">Fair hand; reads old scripts slowly.</span></div></div>
+  <div class="row"><div class="text"><span class="name">Other…</span><span class="desc">A trade the list doesn't have; kept with the campaign.</span></div><span class="meta">›</span></div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="hint">Smith picked</span><span class="btn accent">Next</span></div>
+</div>
+<div class="screen phone">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Background</span><span class="meta">6 / 11</span></div>
+  <p class="why">Roll d20 for a bog folk background, then tap it — or pick. <span class="btn quiet">Help me choose</span></p>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">1 · Eel-catcher</span><span class="desc">Starts with a trap and a knife.</span></div></div>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">2 · Peat-cutter</span><span class="desc">Starts with a spade; strong back.</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">3 · Ferry hand</span><span class="desc">Starts with a pole and a coin.</span></div></div>
+  <div class="row"><div class="text"><span class="name">Other…</span></div><span class="meta">›</span></div>
+  <div class="foot"><span class="btn quiet">Decide later</span><span class="spacer"></span><span class="btn accent">Next</span></div>
+</div>
+</div>
+<p class="note">One step per list the sheet points at, in the pack's order; title = the list's name; why-line = the list's notes (else the app's). With a <b>die</b>, ranges first and "roll, then tap — or pick" (the pack's notes may insist on the roll). Each row's one line is the entry's <b>blurb</b>; the row opens the full notes with Pick. <b>Other…</b> (ruled on languages, applied to every list) takes a typed entry, kept in the campaign's homebrew and offered next time. A background that grants gear (the zine survey's <code>entries[].items</code>) adds it to the pack when picked, with Undo, and the Gear step's tally knows. The list a field points at may depend on the race (B: a background list per kindred, the field's <code>from</code> as a pattern) — the right list is picked automatically. <b>Next checks</b> nothing here (one pick or Decide later); <code>creation.require</code> may require it.</p>
+<p class="note">Pack task: setting A's 32 secondary skills have no blurbs (a source limitation, confirmed) — the row then shows the name alone and the full entry has the pack's note if any. Checked: ranges and names never colour alone; 44 px rows; 375 px one column; 20–60 rows scroll with a search above 12 (B's human list has 60); one accent; Other… last and consistent with the app's other lists.</p>
+</body>
+</html>

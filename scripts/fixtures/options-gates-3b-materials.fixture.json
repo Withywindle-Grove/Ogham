@@ -1,0 +1,43 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-mire-materials",
+    "name": "Mire materials",
+    "shortName": "Mire materials",
+    "version": "0.1",
+    "kind": "homebrew",
+    "author": "Invented for the app's tests",
+    "requires": [{ "packId": "fixture-fen-options", "minVersion": "0.1" }],
+    "description": "An invented overlay for the app's patch reader (of-13, of-14; options-gates PR 3b): the ordinary metal weakens armour and weapons under some choices and removes shields under one. Made-up names and numbers; one patch names a field its entry lacks, on purpose."
+  },
+  "options": [
+    {
+      "id": "mire-metals",
+      "name": "Ordinary metal",
+      "default": "steel",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "steel", "name": "Steel" },
+        { "id": "bronze", "name": "Bronze" },
+        { "id": "bone", "name": "Bone" },
+        { "id": "stone", "name": "Stone" }
+      ],
+      "notes": "What ordinary armour and weapons are made of. Bronze and bone armour protect less; bone weapons hit softer; stone folk have no shields."
+    }
+  ],
+  "items": [
+    { "id": "waxed-coat", "name": "Waxed coat", "category": "armour", "slot": "armour", "armourType": "light", "armour": { "base": 7, "ac": 7, "aac": 12 }, "value": { "gp": 10 }, "weightCoin": 100 },
+    { "id": "reed-shield", "name": "Reed shield", "category": "shield", "slot": "shield", "armour": { "acBonus": 1 }, "value": { "gp": 5 }, "weightCoin": 50 }
+  ],
+  "patches": [
+    { "byOption": "mire-metals=bronze,mire-metals=bone", "match": { "kind": "item", "category": "armour" }, "change": { "armour.ac": { "delta": 1 }, "armour.aac": { "delta": -1 } } },
+    { "byOption": "mire-metals=bone", "match": { "kind": "item", "category": "armour" }, "change": { "armour.ac": { "delta": 1 }, "armour.aac": { "delta": -1 } } },
+    { "byOption": "mire-metals=bone", "match": { "kind": "item", "category": "weapon" }, "change": { "weapon.damage": { "delta": -1 } } },
+    { "byOption": "mire-metals=stone", "match": { "kind": "item", "category": "shield" }, "option": null },
+    { "byOption": "mire-metals=bronze", "match": { "kind": "item", "ids": ["eel-knife"] }, "change": { "value.gp": { "times": 10 } } },
+    { "byOption": "mire-metals=bone", "match": { "kind": "item", "ids": ["waxed-coat"] }, "change": { "armourType": "hide" } },
+    { "byOption": "mire-metals=bone", "match": { "kind": "item", "ids": ["reed-staff"] }, "change": { "value.gp": { "times": 2 } } },
+    { "byOption": "mire-metals=bone", "match": { "kind": "item", "ids": ["eel-knife"] }, "change": { "armour.ac": { "delta": 1 } } }
+  ]
+}

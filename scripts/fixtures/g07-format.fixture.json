@@ -1,0 +1,132 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "name": "Invented exploration and 2026-10-29 fields sample",
+    "version": "0.1",
+    "kind": "setting"
+  },
+  "options": [
+    { "id": "fen-weather", "name": "Fen weather matters", "default": "on", "choices": [ { "id": "on", "name": "Yes" }, { "id": "off", "name": "No" } ] },
+    { "id": "dark-ways", "name": "Getting out of the dark", "default": "off", "choices": [ { "id": "on", "name": "Yes" }, { "id": "off", "name": "No" } ] }
+  ],
+  "rulesSets": [
+    {
+      "id": "fen-rules",
+      "name": "Fen rules",
+      "scores": { "dice": "3d6", "min": 3, "max": 18 },
+      "time": { "roundSeconds": 6, "turnMinutes": 10, "dayHours": 24, "turnsPerHour": 6 },
+      "abilities": [
+        { "key": "MUS", "name": "Muscle", "short": "MUS", "blurb": "Lifting, shoving and hitting hard." },
+        { "key": "WIT", "name": "Wits", "short": "WIT" }
+      ],
+      "xp": { "treasure": { "perGp": 1 }, "retainerShare": 0.5 },
+      "combat": { "spellDisruption": { "lostWhenHit": true, "beforeActing": true, "note": "A caster struck before acting loses the spell." } },
+      "seasons": [ { "id": "thaw", "name": "Thaw" }, { "id": "frost", "name": "Frost" } ],
+      "weather": { "tables": { "any": "fen-weather-table" }, "rollEvery": { "value": 1, "unit": "day" }, "onlyWithOption": "fen-weather:on" },
+      "specialSeasons": [
+        { "id": "mist-moon", "name": "Mist moon", "weatherFrom": "thaw", "effects": "Everything is damp.",
+          "encounterSwap": { "chance": { "die": "d6", "on": [1, 2] }, "tableId": "mist-things" } }
+      ],
+      "daylight": { "byMonth": [ { "month": "Reedmonth", "sunrise": "06:30", "sunset": "19:45" } ] },
+      "wildEncounters": { "typeTableId": "wild-type", "commonTables": { "beast": "wild-beasts" }, "regionalTables": { "Low Fen": "low-fen-things" }, "lairChance": 20, "lairMultiplier": 3 },
+      "dungeonExit": {
+        "roll": { "save": "breath" },
+        "modifiers": [ { "id": "map", "name": "Has a map", "value": 2 } ],
+        "depth": { "per": 1, "value": -1 },
+        "onFail": { "table": "lost-below" },
+        "safePaths": "Following a known safe way out takes longer.",
+        "onlyWithOption": "dark-ways"
+      },
+      "hunger": { "note": "Reference only." },
+      "exploration": {
+        "playerReadable": true,
+        "note": "Two ways of moving about the fens.",
+        "modes": [
+          {
+            "id": "creep", "name": "Creeping", "step": { "value": 1, "unit": "turn" }, "other": true,
+            "procedure": [
+              { "id": "wander", "name": "Wandering things", "icon": "encounter", "kind": "check", "checkId": "creep-wander" },
+              { "id": "lights", "name": "Lights burn", "icon": "light", "kind": "auto" },
+              { "id": "describe", "name": "Describe the turn", "icon": "note", "kind": "note", "note": "Say what the party sees." }
+            ],
+            "checks": [
+              { "id": "creep-wander", "name": "Wandering things", "every": { "value": 2, "unit": "turn" }, "chance": { "die": "d8", "on": [1] },
+                "onHit": { "tableChoices": ["creep-shallow", "creep-deep"], "note": "Pick by depth." }, "notes": "The old field name still reads." }
+            ],
+            "movement": { "kind": "perStep", "formula": "speed", "familiarFormula": "speed * 3", "unit": "ft" },
+            "rest": { "every": { "value": 5, "unit": "turn" }, "length": { "value": 1, "unit": "turn" }, "condition": "weary", "note": "Sit a while." },
+            "camp": { "sameAs": "roam" },
+            "activities": [
+              { "id": "listen", "name": "Listen at a door", "icon": "listen", "cost": { "steps": 0 }, "who": "several", "maxActors": 2, "secret": true,
+                "chance": { "skill": "hear" }, "onlyIn": ["creep"] },
+              { "id": "pick", "name": "Pick a lock", "icon": "door", "cost": { "steps": 1 }, "who": "one", "requires": { "skill": "locks", "item": "lock-picks" } }
+            ]
+          },
+          {
+            "id": "roam", "name": "Roaming", "step": { "value": 1, "unit": "day" },
+            "procedure": [
+              { "id": "sky", "name": "Weather", "icon": "weather", "kind": "roll", "tableBySeason": { "thaw": "thaw-sky", "frost": "frost-sky" } },
+              { "id": "astray", "name": "Going astray?", "icon": "travel", "kind": "check", "checkId": "roam-astray" },
+              { "id": "guess", "name": "How far?", "icon": "star", "kind": "roll", "note": "The GM types what the guide says." },
+              { "id": "camp", "name": "Make camp", "icon": "camp", "kind": "camp" }
+            ],
+            "checks": [
+              { "id": "roam-astray", "name": "Going astray", "every": { "value": 1, "unit": "day" }, "when": "start", "chance": { "die": "d6", "on": [1] },
+                "byTerrain": true, "terrainChance": "lostChance", "onHit": { "tableId": "roam-astray-result" } },
+              { "id": "roam-wander", "name": "Wandering things", "every": { "value": 1, "unit": "day" }, "byTerrain": true, "terrainChance": "wanderChance",
+                "onHit": { "tableId": "wild-type", "columns": ["road", "wild"], "regionTables": true } }
+            ],
+            "movement": { "kind": "budget", "name": "Leagues", "unit": "points", "perDay": "speed / 10", "mounted": 24, "vehicle": 12,
+              "costPer": { "value": 4, "unit": "mile" } },
+            "terrainClasses": [
+              { "id": "easy", "name": "Easy going", "cost": 1, "searchCost": 1, "lostChance": 1, "wanderChance": 1, "mounts": "ride" },
+              { "id": "bog", "name": "Bog", "cost": 3, "searchCost": 2, "lostChance": 2, "wanderChance": 2, "mounts": "none" }
+            ],
+            "terrain": [
+              { "id": "meadow", "name": "Wet meadow", "class": "easy", "encounterColumn": "wild" },
+              { "id": "marsh", "name": "Marsh", "class": "bog", "note": "Boots fill with water." },
+              { "id": "causeway", "name": "Old causeway", "cost": 1, "searchCost": 1, "lostChance": 0, "wanderChance": 1, "encounterColumn": "road" }
+            ],
+            "rest": null,
+            "camp": {
+              "procedure": [
+                { "id": "watch", "name": "Set watches", "icon": "time", "kind": "watches", "watchLength": { "value": 2, "unit": "hour" } },
+                { "id": "sleep", "name": "Sleep", "icon": "rest", "kind": "roll", "tableId": "sleep-table", "checkAbility": "WIT",
+                  "onGoodRest": [ { "heal": 1 } ], "onBadRest": [ { "condition": "weary" } ] }
+              ],
+              "quick": { "option": "fen-weather" },
+              "note": "A camp in the fens is never dry."
+            },
+            "activities": [
+              { "id": "gather", "name": "Gather reeds", "icon": "search", "cost": { "fromTerrain": "searchCost" },
+                "chance": { "abilityCheck": "WIT" }, "who": "several", "maxActors": 3, "bestOf": true,
+                "modifiers": [ { "when": "fullDay", "add": 1, "note": "A whole day at it" } ],
+                "result": "1d4 bundles", "bySeason": { "thaw": "1d6 bundles" }, "bySpecialSeason": { "mist-moon": "Nothing grows." },
+                "onlyIn": ["roam"], "onlyOnTerrain": ["marsh"] },
+              { "id": "eel", "name": "Set eel traps", "icon": "search", "cost": { "budget": "all" }, "who": "party",
+                "tableId": "eel-catch", "tableByTerrain": { "marsh": "marsh-catch" } }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "races": [
+    { "id": "marsh-folk", "name": "Marsh folk", "blurb": "Small, quick and at home in deep water." }
+  ],
+  "classes": [
+    {
+      "id": "reed-witch", "name": "Reed witch", "xpTableId": "witch-xp", "hitDie": "d4", "race": "marsh-folk",
+      "summary": "Weaves reed charms and reads the water.",
+      "spellcasting": { "listId": "list-reed-witch", "type": "book", "castingType": "arcane",
+        "firstSpells": { "choose": 2, "given": ["glimmer"] },
+        "learnByLevel": [ { "level": 2, "count": 1 }, { "level": 3, "count": 1 } ],
+        "scrollCopy": { "note": "Copying takes a day and a roll at the table.", "consumesScroll": true } },
+      "progression": [
+        { "level": 1, "xp": 0, "hitDice": "1d4" },
+        { "level": 10, "xp": 85000, "hitDice": "8d4+3", "hpGain": { "fixed": 3, "addCon": false } }
+      ]
+    }
+  ]
+}

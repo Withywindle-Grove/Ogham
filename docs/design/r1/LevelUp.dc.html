@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Level-up preview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:12px 18px 6px;display:flex;align-items:center;justify-content:space-between">
+<a href="PlayerRules.dc.html" style="min-height:44px;display:inline-flex;align-items:center;color:{{c.mut}};text-decoration:none;font-size:16px">‹ Back</a>
+<span style="font-size:14px;color:{{c.mut}}">Downtime · level up</span>
+</div>
+
+<sc-if value="{{showPreview}}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 8px">
+<div style="text-align:center;padding:4px 0 10px">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:34px;font-weight:600;line-height:1.05">Wren reaches 4th level</div>
+</div>
+
+<div style="border-top:3px double {{c.rule}};padding:10px 0;display:flex;flex-direction:column;gap:8px">
+<div style="{{S.label}}">Hit points · roll your die</div>
+<div style="font-size:15px;color:{{c.mut}}">Roll 1d6 at the table and tap what you got. CON adds +1.</div>
+<div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px">
+<sc-for list="{{dice}}" as="d" hint-placeholder-count="6">
+<button onClick="{{d.pick}}" aria-pressed="{{d.on}}" style="{{d.style}}">{{d.n}}</button>
+</sc-for>
+</div>
+<div style="font-size:17px">Max HP <b>14 → {{newMax}}</b></div>
+</div>
+
+<div style="border-top:3px double {{c.rule}};padding:10px 0 4px">
+<div style="{{S.label}}">What changes</div>
+<sc-for list="{{changes}}" as="ch" hint-placeholder-count="6">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:46px;border-bottom:1px dotted {{c.rule}}">
+<span style="font-size:17px">{{ch.k}}</span>
+<span style="font-size:17px;font-variant-numeric:tabular-nums;text-align:right"><span style="color:{{c.mut}}">{{ch.from}}</span> → <b style="color:{{ch.color}}">{{ch.to}}</b></span>
+</div>
+</sc-for>
+</div>
+
+<div style="padding:8px 0 4px">
+<div style="{{S.label}}">Stays the same</div>
+<div style="font-size:15px;color:{{c.mut}};line-height:1.5">Attack +2 · Wands 13 · Stone 14 · Spells 16 · Read old runes 2-in-6</div>
+</div>
+
+<div style="margin:10px 0;padding:10px 12px;border-radius:8px;background:{{c.tint}};display:flex;flex-direction:column;gap:8px">
+<div style="font-size:16px;line-height:1.4"><b>Save · Breath</b> · you set 13 · your setting says 14</div>
+<div role="group" aria-label="Breath save" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px"><button onClick="{{useSet}}" aria-pressed="{{isUse}}" style="{{useStyle}}">Use 14</button><button onClick="{{keepMine}}" aria-pressed="{{isKeep}}" style="{{keepStyle}}">Keep 13</button></div>
+</div>
+</div>
+
+<div style="padding:10px 18px 18px;border-top:3px double {{c.rule}};display:flex;flex-direction:column;gap:8px">
+<button onClick="{{confirm}}" disabled="{{noRoll}}" style="{{confirmStyle}}">{{confirmText}}</button>
+<button onClick="{{manual}}" style="min-height:48px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;cursor:pointer">I’ll enter it myself</button>
+</div>
+</sc-if>
+
+<sc-if value="{{showDone}}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:34px;font-weight:600">{{doneTitle}}</div>
+<div style="font-size:17px;line-height:1.45;color:{{c.mut}}">{{doneText}}</div>
+<button onClick="{{reset}}" style="min-height:48px;padding:0 18px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;cursor:pointer">Back to preview (demo)</button>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { roll: null, done: null, breath: 'keep' };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? false;
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', tint: '#4A3A22', onAcc: '#12100D' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', tint: '#F3E6CB', onAcc: '#FBF8F1' };
+    const G = "'EB Garamond',Georgia,serif";
+    const dice = [1, 2, 3, 4, 5, 6].map((n) => ({
+      n: n, on: s.roll === n,
+      style: 'min-height:52px;border-radius:4px;border:1px solid ' + (s.roll === n ? c.acc : c.line) + ';background:' + (s.roll === n ? c.acc : 'transparent') + ';color:' + (s.roll === n ? c.onAcc : c.ink) + ';font-family:' + G + ';font-size:24px;font-weight:600;cursor:pointer',
+      pick: () => this.setState({ roll: n })
+    }));
+    const changes = [
+      { k: 'Title', from: 'Lamplighter', to: 'Wickwarden', color: c.acc },
+      { k: 'Hit dice', from: '3d6', to: '4d6', color: c.acc },
+      { k: 'Save · Poison', from: '12', to: '11', color: c.acc },
+      { k: 'Spell slots · level 2', from: '1', to: '2', color: c.acc },
+      { k: 'Find tracks', from: '30%', to: '35%', color: c.acc },
+      { k: 'New ability', from: '—', to: 'Steady flame', color: c.acc }
+    ];
+    const noRoll = s.roll === null;
+    const newMax = noRoll ? '?' : String(14 + s.roll + 1);
+    return {
+      isUse: s.breath === 'use', isKeep: s.breath === 'keep', useSet: () => this.setState({ breath: 'use' }), keepMine: () => this.setState({ breath: 'keep' }),
+      useStyle: 'min-height:46px;border-radius:4px;border:1px solid ' + (s.breath === 'use' ? c.acc : c.line) + ';background:' + (s.breath === 'use' ? c.acc : 'transparent') + ';color:' + (s.breath === 'use' ? c.onAcc : c.ink) + ';font-family:' + G + ';font-size:18px;font-weight:600;cursor:pointer',
+      keepStyle: 'min-height:46px;border-radius:4px;border:1px solid ' + (s.breath === 'keep' ? c.acc : c.line) + ';background:' + (s.breath === 'keep' ? c.acc : 'transparent') + ';color:' + (s.breath === 'keep' ? c.onAcc : c.ink) + ';font-family:' + G + ';font-size:18px;font-weight:600;cursor:pointer',
+      c: c, dice: dice, changes: changes, newMax: newMax, noRoll: noRoll,
+      S: { label: 'font-family:' + G + ';font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:' + c.mut },
+      confirmStyle: 'min-height:54px;border-radius:4px;border:none;background:' + (noRoll ? c.rule : c.acc) + ';color:' + (noRoll ? c.mut : c.onAcc) + ';font-family:' + G + ';font-size:21px;font-weight:600;cursor:' + (noRoll ? 'default' : 'pointer'),
+      confirmText: noRoll ? 'Tap your hit point roll first' : 'Confirm 4th level',
+      confirm: () => { if (!noRoll) this.setState({ done: 'auto' }); },
+      manual: () => this.setState({ done: 'manual' }),
+      reset: () => this.setState({ done: null, roll: null }),
+      showPreview: !s.done, showDone: !!s.done,
+      doneTitle: s.done === 'manual' ? 'Manual level-up' : 'Level 4 logged',
+      doneText: s.done === 'manual' ? 'Nothing was filled in. Edit your sheet yourself; the level-up is still logged. You can switch back to auto in this character’s settings.' : 'Your sheet is updated and the change is in the log. Your GM can roll it back if needed.'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+/* A skill's top line (tfs-1; mockup december/26 frames M2c, M2d): "Succeeds on a 5+," in bold, then the die's glyph
+   and "roll 1d6" plain. The bold lead and the glyph never part: when the line wraps, it wraps after the die (M2d,
+   case 5). The glyph keeps the size SkillRollLine draws it at (20 px tall; a d100 twice as wide), set in the middle of
+   the line. Spacing from the tokens. */
+.skill-roll {
+  font-weight: var(--weight-book-text);
+}
+
+.skill-roll__lead {
+  white-space: nowrap;
+}
+
+.skill-roll__lead strong {
+  font-weight: var(--weight-bold);
+  margin-inline-end: var(--space-2);
+}
+
+.skill-roll__lead .die-glyph {
+  margin-inline-end: var(--space-1);
+  vertical-align: middle;
+}

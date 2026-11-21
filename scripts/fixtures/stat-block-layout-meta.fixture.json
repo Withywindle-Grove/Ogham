@@ -1,0 +1,21 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "name": "Invented fen creatures",
+    "id": "fen-creatures",
+    "version": "0.1",
+    "kind": "setting",
+    "statBlockLayout": {
+      "descriptor": ["Size", "Kind"],
+      "groups": [[["hp", "Guard"], ["Move"]], [["Bite"]]],
+      "hide": ["Lair"]
+    }
+  },
+  "statBlocks": [
+    { "id": "bog-lurker", "name": "Bog lurker", "hp": "3d8",
+      "fields": { "Size": "Large", "Kind": "Beast", "Guard": "6", "Move": "Slow", "Bite": "1d6", "Lair": "Still water" } },
+    { "id": "reed-wisp", "name": "Reed wisp", "hp": "1d8",
+      "fields": { "Size": "Small", "Kind": "Spirit", "Guard": "3", "Move": "Quick" } }
+  ]
+}

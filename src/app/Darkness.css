@@ -1,0 +1,33 @@
+/* The "No light" reminder on the Player screen (DG7; the screen dim was removed at the M5 gate, R3 audit 8). Tokens
+   only. */
+
+.no-light {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-card);
+  min-width: 0;
+}
+
+.no-light__words {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  color: var(--ink);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.no-light__mark {
+  margin-inline-end: var(--space-2);
+}
+
+.no-light > button {
+  min-height: var(--tap);
+}

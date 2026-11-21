@@ -1,0 +1,78 @@
+/* The Expertise step (G-208; mockup december/29 X1–X5, approved 2026-11-20). The count's heading over the list, the
+   muted line with the die's glyph, then one card per class skill: its name on a line of its own (two lines, so a long
+   name never squeezes the buttons at 375 px), under it the points at the left and the figure stepper at the right. */
+.expertise__count {
+  margin-block-end: 0;
+}
+
+.expertise__range {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.expertise__range .die-glyph,
+.expertise__range svg {
+  flex: none;
+}
+
+.expertise__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.expertise-row {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--sheet);
+}
+
+/* Points on it: the Selected wash with its edge (ex-3; the words "1 point" say it too, never colour alone). */
+.expertise-row--points {
+  border-color: var(--selected-edge);
+  background: var(--selected);
+}
+
+/* The open row on a tablet, its words in the pane (X4): marked by its edge. */
+.expertise-row--open {
+  box-shadow: inset 0 0 0 calc(var(--line-selected) - var(--line-hair)) var(--selected-edge);
+  border-color: var(--selected-edge);
+}
+
+/* The name opens the skill's words: a 44 px target, the row's heading face, wrapping under its own words. */
+.expertise-row__name {
+  min-block-size: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-16);
+  text-align: start;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.expertise-row__line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.expertise-row__points {
+  min-inline-size: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}

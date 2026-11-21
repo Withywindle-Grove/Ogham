@@ -1,0 +1,14 @@
+# Rulings on Claude Code's 2026-10-29 status (approved by Francis)
+
+A summary of the design agent's answer to the 2026-10-29 status report (47 items: A known items, B re-test fixes, C knowledge base, D M5 plan, E M7 docs). The full text went to Claude Code as one message and was absorbed into the specs and `../../09-decisions-log.md` (2026-10-29 lines); those win. Aliases only.
+
+- A: known items = held by party, in stash, in a kit, sent/shown by GM; overrides GM-only; shops and Show in M8b; loot-sent known in M6.
+- B: abilities[] long names from packs, GM label wins; AC includes ability modifier, "—" + Set AC when no value; race-as-class via classes[].race or Race row hidden.
+- C: migration-built visibility matrix enough; book numbers in moved rulings made generic; stricter old checks merged into the skill; old commit names accepted; spec gaps drafted into 06/05/04.
+- D: G-07 list requested; seconds counter; one Next turn always runs the procedure, Set time… as correction; Session record in M5; Start expedition one tap + mode; End expedition no confirm, Full rest one-tap line; full rest refills rest/day ability uses; dungeonExit shape; activities in turn modes; M5 Send = text + checks, Keep/Burn; status time in seconds; Light another as toast action; encounter table panel = reference + Enter roll; 03 permission rows added; real time between sessions not counted.
+- E: shapes confirmed; xp.treasure.perGp; xp.retainerShare (fraction); retainers join shares in M9; expedition snapshot of who went; Award now at End expedition / End session / console; prime bonus read directly, other bonuses = factor hooks on xpAward; one field name `blurb` (summary alias); byLevel uses; combat.spellDisruption {lostWhenHit, beforeActing, note}; spellcasting.scrollCopy; firstSpells and learnByLevel; hpGain per progression row; Split Loot pulls claimed coins with per-line opt-out; tabletop-character v1; M7 journey budgets.
+
+Pack tasks (design agent): abilities[] long names; classes[].race; xp.treasure.perGp; xp.retainerShare; summary→blurb; byLevel uses; hpGain rows; combat.spellDisruption structured; scrollCopy; firstSpells / learnByLevel.
+
+## G-07 exploration fields (approved 2026-10-29)
+One shape per idea: note everywhere (notes alias), source on any object, onlyWithOption, closed icon list, turnsPerHour, camp.sameAs, tableBySeason, movement.costPer/unit/mounted/vehicle, onHit tableChoices/columns/regionTables, terrain encounterColumn, terrainClasses inside modes, activity cost.steps/fromTerrain, requires.skill/item, chance.abilityCheck, bestOf, maxActors, modifiers.when, result, tableId/tableByTerrain/bySeason/bySpecialSeason, onlyIn = modes + onlyOnTerrain; rules-set weather default with rollEvery, encounterSwap, daylight.byMonth, wildEncounters; reference-only sections listed; hexGrid and regions wait for G-05. Both pack candidates migrated (a private build script).

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library 01 — the Rules library by kind (design session, 2026-11-02)</title>
+<style>
+  /* Tokens from docs/06 only. Light only, full size. Buttons are plain blocks. Invented examples. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); width:720px; box-sizing:border-box; }
+  .screen.phone { width:375px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; text-align:center; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:16px; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  .tools { display:flex; gap:var(--space-2); align-items:center; flex-wrap:wrap; margin:var(--space-3) 0; }
+  .find { flex:1; min-width:180px; min-height:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--muted); box-sizing:border-box; }
+  .chip { min-height:44px; padding:10px 12px; border:1.5px solid var(--rule); border-radius:22px; background:var(--surface); box-sizing:border-box; }
+  .chip.on { border-color:var(--ink); background:var(--sheet); }
+  .group { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; margin:var(--space-5) 0 var(--space-1); display:flex; align-items:center; gap:var(--space-2); }
+  .group .meta { font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .pack { display:flex; align-items:flex-start; gap:var(--space-3); padding:var(--space-3) 0; border-bottom:1px dotted var(--rule); }
+  .pack:last-child { border-bottom:0; }
+  .pack .text { flex:1; min-width:0; }
+  .pack .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .pack .holds { display:block; }
+  .pack .desc { display:block; }
+  .pack .use { display:block; }
+  .pack .src { display:block; font-size:14px; color:var(--muted); }
+  .acts { display:flex; gap:var(--space-2); flex:none; align-items:center; }
+  .foot { display:flex; align-items:center; gap:var(--space-3); margin-top:var(--space-4); padding-top:var(--space-3); border-top:1px solid var(--rule); }
+  .foot .spacer { flex:1; }
+  .sheet { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); background:var(--surface); }
+  .sheet .row { display:flex; align-items:center; min-height:48px; gap:var(--space-3); border-bottom:1px dotted var(--rule); }
+  .sheet .row:last-child { border-bottom:0; }
+  .sheet .sym { width:28px; text-align:center; flex:none; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:720px; }
+  .empty { padding:var(--space-5) 0; text-align:center; color:var(--muted); }
+</style>
+</head>
+<body>
+
+<h1>1 · The Rules library, by kind (tablet, 720)</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="bar"><span class="btn quiet">‹ Your campaigns</span><span class="title">Rules library</span><span class="btn accent">Import a file</span></div>
+  <p class="meta" style="margin:var(--space-2) 0 0">Your own: 5 packs. <span class="btn quiet">Convert a book with an AI…</span></p>
+
+  <div class="tools">
+    <span class="find">Find a pack</span>
+    <span class="chip on">All · 5</span><span class="chip">Setting rules · 2</span><span class="chip">Adventures · 2</span><span class="chip">Homebrew · 1</span>
+    <span class="btn quiet">Sort: name ▾</span>
+  </div>
+
+  <div class="group">Setting rules <span class="meta">· 2</span></div>
+  <div class="pack">
+    <div class="text">
+      <span class="name">Fen Rules, Advanced</span>
+      <span class="desc">The complete rules for a fen-and-marsh campaign. Attach it first; the overlays below add to it.</span>
+      <span class="holds">20 classes · 11 races · 62 spells · 125 items · 59 tables · 46 foes · 23 optional rules</span>
+      <span class="use">Used by <b>Fenmoor</b> and 1 more · Version 0.6.5 · updated 2 Nov</span>
+    </div>
+    <div class="acts"><span class="btn">Browse</span><span class="btn">Update</span><span class="btn icon" aria-label="More">⋯</span></div>
+  </div>
+  <div class="pack">
+    <div class="text">
+      <span class="name">Woodland Kindreds</span>
+      <span class="desc">A fairy-wood setting with its own kindreds, glamours and moon signs.</span>
+      <span class="holds">9 classes · 8 kindreds · 71 spells · 90 items · 31 tables · 38 foes · 5 optional rules</span>
+      <span class="use">Not used by a campaign · Version 0.3.4 · updated 2 Nov</span>
+    </div>
+    <div class="acts"><span class="btn">Browse</span><span class="btn">Update</span><span class="btn icon" aria-label="More">⋯</span></div>
+  </div>
+
+  <div class="group">Adventures <span class="meta">· 2</span></div>
+  <div class="pack">
+    <div class="text">
+      <span class="name">The Drowned Abbey</span>
+      <span class="desc">A flooded monastery for levels 1–3. Needs: Fen Rules, Advanced.</span>
+      <span class="holds">1 dungeon · 24 places · 3 encounter tables · 9 foes · 4 handouts</span>
+      <span class="use">Used by <b>Fenmoor</b> · Version 0.2.1 · updated 29 Oct</span>
+    </div>
+    <div class="acts"><span class="btn">Browse</span><span class="btn">Update</span><span class="btn icon" aria-label="More">⋯</span></div>
+  </div>
+  <div class="pack">
+    <div class="text">
+      <span class="name">Valley Town</span>
+      <span class="desc">A market town and its surroundings: inns, shops, hooks.</span>
+      <span class="holds">1 town · 12 places · 6 rumours · 2 tables · 5 foes</span>
+      <span class="use">Not used by a campaign · Version 0.3.1 · updated 29 Oct</span>
+    </div>
+    <div class="acts"><span class="btn">Browse</span><span class="btn">Update</span><span class="btn icon" aria-label="More">⋯</span></div>
+  </div>
+
+  <div class="group">Homebrew <span class="meta">· 1</span></div>
+  <div class="pack">
+    <div class="text">
+      <span class="name">Zine Compendium</span>
+      <span class="desc">Extra classes, backgrounds and poisons from six zine issues. Needs: Fen Rules, Advanced.</span>
+      <span class="holds">20 classes · 11 races · 62 spells · 125 items · 59 tables · 23 optional rules · 11 trait lists</span>
+      <span class="use">Used by <b>Fenmoor</b> · Version 0.5.1 · updated 2 Nov</span>
+    </div>
+    <div class="acts"><span class="btn">Browse</span><span class="btn">Update</span><span class="btn icon" aria-label="More">⋯</span></div>
+  </div>
+
+  <div class="sheet">
+    <div class="row"><span class="sym">✎</span><span>Edit pack <span class="meta">· homebrew only</span></span></div>
+    <div class="row"><span class="sym">⇪</span><span>Export as a pack file</span></div>
+    <div class="row"><span class="sym">✕</span><span>Delete from your library… <span class="meta">· Fenmoor uses it · deleting removes it there too</span></span></div>
+  </div>
+  <p class="note" style="margin-top:var(--space-2)">↑ the ⋯ sheet for one pack (opens from its ⋯; drawn here under the list).</p>
+</div>
+</div>
+<p class="note">Four lines per pack: name · the pack's own one-line description and what it needs (right under the name, Francis 2026-11-02) · <b>what it holds</b> (the counts, in the pack's own words: "kindreds" where the pack says so) · <b>who uses it</b> + version + date. "About this file" goes: a GM wants to know what's inside and where it's used, not the conversion's metadata (kept behind Browse › About, for the converter). Browse and Update stay as buttons (the two everyday actions); Delete, Export and the homebrew-only Edit pack move into ⋯, so Delete is never a tap away on the row. Groups are the pack's <code>meta.kind</code>: Setting rules · Adventures · Homebrew (an overlay is a homebrew pack that needs another; its "Needs:" line says which). The chips filter to one kind; the find field appears from 8 packs; sort is Name (default) or Last updated. One accent: Import a file.</p>
+
+<h1>2 · Phone (375) and the empty state</h1>
+<div class="wrap">
+<div class="screen phone">
+  <div class="bar"><span class="btn quiet">‹</span><span class="title">Rules library</span></div>
+  <div class="tools"><span class="chip on">All · 5</span><span class="chip">Setting · 2</span><span class="chip">Adventures · 2</span><span class="chip">Homebrew · 1</span></div>
+  <div class="group">Setting rules <span class="meta">· 2</span></div>
+  <div class="pack" style="flex-direction:column; gap:var(--space-2)">
+    <div class="text">
+      <span class="name">Fen Rules, Advanced</span>
+      <span class="holds">20 classes · 11 races · 62 spells · 125 items · 59 tables · 46 foes</span>
+      <span class="use">Used by <b>Fenmoor</b> +1 · v0.6.5 · 2 Nov</span>
+    </div>
+    <div class="acts"><span class="btn">Browse</span><span class="btn">Update</span><span class="btn icon" aria-label="More">⋯</span></div>
+  </div>
+  <div class="pack" style="flex-direction:column; gap:var(--space-2)">
+    <div class="text">
+      <span class="name">A Very Long Setting Name That Someone Typed Into The File</span>
+      <span class="holds">0 classes · 0 races · 999 items · 3 tables</span>
+      <span class="use">Not used by a campaign · v0.0.1 · 2 Nov</span>
+    </div>
+    <div class="acts"><span class="btn">Browse</span><span class="btn">Update</span><span class="btn icon" aria-label="More">⋯</span></div>
+  </div>
+  <div class="foot"><span class="spacer"></span><span class="btn accent">Import a file</span></div>
+</div>
+<div class="screen phone">
+  <div class="bar"><span class="btn quiet">‹</span><span class="title">Rules library</span></div>
+  <div class="empty">Nothing in your library yet.<br><span class="meta">Import a pack file, or convert a book with an AI.</span></div>
+  <div class="foot"><span class="spacer"></span><span class="btn accent">Import a file</span></div>
+</div>
+</div>
+<p class="note">Phone: the description line is dropped (it shows on Browse); the buttons wrap under the text; the accent sits in the bottom action bar (06). Messy data drawn: a long name wrapping, 0 and 999 counts.</p>
+
+<p class="note"><b>Checked:</b> one accent per screen; 44 px targets with 8 px gaps; Delete behind ⋯ with the uses-it note (deleting removes the pack from those campaigns, as 07 says) (no confirm needed to open the sheet; the delete itself keeps today's confirm, it isn't undoable); never colour alone (kind is a heading and a chip, not a colour); empty, loading ("Opening…" as today), error (today's line), long names, 0/999; 375 px one column. <b>Not drawn:</b> the Update preview and the Browse screen (unchanged); dark mode (by request); the find field's results state.</p>
+</body>
+</html>

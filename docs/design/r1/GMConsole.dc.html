@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GM console, explore and encounter</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:1180px;height:820px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;position:relative;overflow:hidden">
+
+<div style="display:flex;align-items:center;gap:14px;padding:10px 20px;border-bottom:3px double {{c.rule}}">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:26px;font-weight:600">GM console</span>
+<div role="group" aria-label="Mode" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:4px;border:1px solid {{c.rule}};border-radius:8px">
+<button onClick="{{toExplore}}" aria-pressed="{{isExplore}}" style="{{exploreBtn}}">Explore</button>
+<button onClick="{{toEncounter}}" aria-pressed="{{isEncounter}}" style="{{encBtn}}">Encounter</button>
+</div>
+<span style="flex:1"></span>
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">{{clockText}}</span>
+<button onClick="{{openRef}}" style="{{S.top}}">Reference tables</button>
+<button onClick="{{openSend}}" style="{{S.top}}">Send</button>
+<button aria-label="Fiat: GM ruling" title="Fiat" style="width:52px;min-height:44px;padding:0;border:none;border-radius:4px;background:{{c.acc}};display:flex;align-items:center;justify-content:center;cursor:pointer"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{c.onAcc}}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19.5c4 1.4 14 1.4 18 0"></path><path d="M6.5 19 11 4c1.6-.6 3.4 0 4.6 1.6L13.4 9 17.5 19"></path><path d="M10.6 12.2l.6 1.3 1.3.6-1.3.6-.6 1.3-.6-1.3-1.3-.6 1.3-.6z"></path></svg></button>
+</div>
+
+<sc-if value="{{isExplore}}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-height:0;display:grid;grid-template-columns:330px 330px minmax(0,1fr)">
+
+<section aria-label="Time and reminders" style="padding:14px 18px;border-right:1px solid {{c.rule}};display:flex;flex-direction:column;gap:10px">
+<button onClick="{{plusTurn}}" style="{{S.huge}}">+1 turn</button>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+<button onClick="{{plusRound}}" style="{{S.mid}}">+1 round</button>
+<button onClick="{{plusDay}}" style="{{S.mid}}">+1 day</button>
+<button onClick="{{undo}}" style="{{undoStyle}}">Undo</button>
+</div>
+<div style="{{S.label}};margin-top:6px">Reminders</div>
+<sc-for list="{{triggers}}" as="t" hint-placeholder-count="3">
+<div style="{{t.box}}">
+<span style="flex:1;display:flex;flex-direction:column"><span style="font-weight:700">{{t.name}}</span><span style="font-size:14px;color:{{c.mut}}">{{t.when}}</span></span>
+<sc-if value="{{t.check}}" hint-placeholder-val="{{ false }}"><button onClick="{{t.hit}}" aria-label="Encounter check hit" style="{{S.small}}">Hit</button><button onClick="{{t.miss}}" aria-label="Encounter check missed" style="{{S.small}}">Miss</button></sc-if>
+</div>
+</sc-for>
+<button style="min-height:44px;background:none;border:none;color:{{c.acc}};font-family:inherit;font-size:15px;font-weight:700;text-align:left;padding:0">+ New reminder</button>
+</section>
+
+<section aria-label="Party" style="padding:14px 18px;border-right:1px solid {{c.rule}};display:flex;flex-direction:column;gap:4px">
+<div style="{{S.label}}">Party · marching order</div>
+<sc-for list="{{party}}" as="p" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:10px;min-height:62px;border-bottom:1px dotted {{c.rule}}">
+<span style="width:18px;text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:18px;color:{{c.mut}}">{{p.pos}}</span>
+<span style="flex:1;display:flex;flex-direction:column;min-width:0"><span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">{{p.name}}</span><span style="font-size:14px;color:{{p.lightColor}}">{{p.light}}</span></span>
+<span style="font-size:15px;color:{{c.mut}}">{{p.hp}}</span>
+</div>
+</sc-for>
+</section>
+
+<section aria-label="Current location" style="padding:14px 20px;display:flex;flex-direction:column;gap:10px;background:{{c.panel}};overflow-y:auto">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span style="{{S.label}}">Where they are</span><button style="{{S.small}}">Change</button></div>
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:30px;font-weight:600;line-height:1.05">Room 7 · The flooded vestry</div>
+<div style="font-size:15px;color:{{c.mut}}">Sluice gate, level 1 · from the adventure “The Sluice Gate” (private)</div>
+<div style="font-size:16px;line-height:1.5">Knee-deep black water. Vestments float like drowned men. A lantern hangs from a hook, still lit.</div>
+<div style="font-size:15px;line-height:1.45;padding:8px 10px;border-radius:6px;border:1px dashed {{c.rule}}"><b>GM only:</b> the lantern is a lure; the bog lurker waits under the vestments.</div>
+<div style="{{S.label}}">Maps and pictures</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+<sc-for list="{{pics}}" as="pc" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:4px">
+<div aria-hidden="true" style="height:84px;border-radius:6px;background:{{pc.bg}};border:1px solid {{c.rule}}"></div>
+<span style="font-size:14px">{{pc.name}}</span>
+<button onClick="{{pc.show}}" style="{{pc.btn}}">{{pc.btnText}}</button>
+</div>
+</sc-for>
+</div>
+<button onClick="{{startEnc}}" style="margin-top:auto;min-height:52px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;cursor:pointer">Start encounter</button>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{showNoEnc}}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:30px;font-weight:600">No encounter right now</span>
+<div style="display:flex;gap:8px"><button onClick="{{openTable}}" style="{{S.small}}">Roll on the encounter table</button><button onClick="{{startEnc}}" style="{{S.small}}">Start one from scratch</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{showEnc}}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:grid;grid-template-columns:380px 400px minmax(0,1fr)">
+
+<section aria-label="Encounter" style="padding:14px 18px;border-right:1px solid {{c.rule}};display:flex;flex-direction:column;gap:10px;overflow-y:auto">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600;line-height:1.05">{{enc.name}}</div>
+<div style="font-size:15px;color:{{c.mut}}">{{enc.src}}</div>
+<div style="font-size:16px;line-height:1.5">{{enc.desc}}</div>
+<button onClick="{{sendDesc}}" style="{{sendDescStyle}}">{{sendDescText}}</button>
+<div style="{{S.label}}">Rules that apply</div>
+<sc-for list="{{enc.rules}}" as="ru" hint-placeholder-count="2"><div style="font-size:15px;line-height:1.45;padding-left:10px;border-left:2px solid {{c.rule}}">{{ru.t}}</div></sc-for>
+<button onClick="{{flipTables}}" style="margin-top:auto;min-height:40px;background:none;border:1px dashed {{c.rule}};border-radius:4px;color:{{c.mut}};font-family:inherit;font-size:13px;cursor:pointer">Demo: {{flipText}}</button>
+</section>
+
+<section aria-label="Surprise and reaction" style="padding:14px 18px;border-right:1px solid {{c.rule}};display:flex;flex-direction:column;gap:8px;overflow-y:auto">
+<div style="{{S.label}}">Surprise</div>
+<sc-if value="{{hasTables}}" hint-placeholder-val="{{ true }}"><div style="font-size:15px;color:{{c.mut}}">River Rules: each side rolls d6; surprised on a 1.</div></sc-if>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px"><sc-for list="{{surp}}" as="o" hint-placeholder-count="3"><button onClick="{{o.go}}" aria-pressed="{{o.on}}" style="{{o.style}}">{{o.t}}</button></sc-for></div>
+<div style="{{S.label}};margin-top:8px">Reaction</div>
+<sc-if value="{{hasTables}}" hint-placeholder-val="{{ true }}"><div style="font-size:15px;color:{{c.mut}}">River Rules: roll 2d6, tap the row.</div></sc-if>
+<sc-for list="{{react}}" as="o" hint-placeholder-count="4"><button onClick="{{o.go}}" aria-pressed="{{o.on}}" style="{{o.style}}"><span style="width:58px;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600">{{o.roll}}</span><span style="flex:1;text-align:left">{{o.t}}</span></button></sc-for>
+<div style="font-size:14px;color:{{c.mut}}">Surprise and reaction stay with you unless you send them.</div>
+</section>
+
+<section aria-label="Who is here" style="padding:14px 20px;display:flex;flex-direction:column;gap:8px;background:{{c.panel}}">
+<div style="{{S.label}}">Who’s here</div>
+<sc-for list="{{encFoes}}" as="f" hint-placeholder-count="3"><div style="display:flex;justify-content:space-between;align-items:center;min-height:50px;border-bottom:1px dotted {{c.rule}}"><span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">{{f.name}}</span><span style="font-size:15px;color:{{c.mut}}">{{f.sub}}</span></div></sc-for>
+<div style="font-size:15px;line-height:1.45">AC 13 · HD 1−1 · Attack +0 · weapon 1d6 · Morale 7 · sees in the dark 90′</div>
+<div style="font-size:15px;color:{{c.acc}};font-weight:700">Full stat block ›</div>
+<div style="margin-top:auto;display:grid;grid-template-columns:1fr 2fr;gap:8px">
+<button onClick="{{endEnc}}" style="min-height:56px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;cursor:pointer">End encounter</button>
+<button onClick="{{toFight}}" style="min-height:56px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600;cursor:pointer">Fight</button>
+</div>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{showFight}}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:grid;grid-template-columns:300px 420px minmax(0,1fr)">
+
+<section aria-label="Initiative" style="padding:14px 18px;border-right:1px solid {{c.rule}};display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600">Round {{round}}</div>
+<div style="{{S.label}}">Acting now</div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+<button onClick="{{actParty}}" aria-pressed="{{partyOn}}" style="{{partyBtn}}">Party</button>
+<button onClick="{{actFoes}}" aria-pressed="{{foesOn}}" style="{{foesBtn}}">Foes</button>
+</div>
+<button onClick="{{nextRound}}" style="{{S.hugeSmall}}">Next round</button>
+<div style="font-size:14px;color:{{c.mut}};line-height:1.4">{{encSummary}}</div>
+<button onClick="{{endFight}}" style="margin-top:auto;min-height:52px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;cursor:pointer">End fight</button>
+</section>
+
+<section aria-label="Combatants" style="padding:14px 18px;border-right:1px solid {{c.rule}};display:flex;flex-direction:column;gap:6px;overflow-y:auto">
+<sc-if value="{{listView}}" hint-placeholder-val="{{ true }}">
+<div style="{{S.label}}">Party</div>
+<sc-for list="{{pcs}}" as="r" hint-placeholder-count="3">
+<button onClick="{{r.pick}}" style="{{r.style}}"><span style="display:flex;flex-direction:column;align-items:flex-start;min-width:0"><span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">{{r.name}}</span><span style="font-size:14px;color:{{c.warn}}">{{r.status}}</span></span><span style="font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">{{r.hp}}</span></button>
+</sc-for>
+<div style="{{S.label}};margin-top:6px">Foes</div>
+<sc-for list="{{foes}}" as="r" hint-placeholder-count="3">
+<button onClick="{{r.pick}}" style="{{r.style}}"><span style="display:flex;flex-direction:column;align-items:flex-start;min-width:0"><span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">{{r.name}}</span><span style="font-size:14px;color:{{c.mut}}">{{r.sub}}</span></span><span style="font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">{{r.hp}}</span></button>
+</sc-for>
+<button onClick="{{openAdd}}" style="min-height:52px;border-radius:4px;border:1px dashed {{c.rule}};background:transparent;color:{{c.mut}};font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;cursor:pointer">+ Add a foe or ally</button>
+</sc-if>
+<sc-if value="{{addView}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="{{S.label}}">Add a foe or ally</span><button onClick="{{closeAdd}}" style="{{S.small}}">Done</button></div>
+<label for="sbq" style="position:absolute;width:1px;height:1px;overflow:hidden">Search stat blocks</label>
+<input id="sbq" value="" placeholder="Search stat blocks" style="min-height:46px;padding:0 10px;border:1px solid {{c.rule}};border-radius:4px;background:transparent;color:inherit;font-family:inherit;font-size:16px">
+<sc-for list="{{library}}" as="l" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:10px;min-height:54px;border-bottom:1px dotted {{c.rule}}"><span style="flex:1;display:flex;flex-direction:column"><span style="font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600">{{l.name}}</span><span style="font-size:14px;color:{{c.mut}}">{{l.sub}}</span></span><button onClick="{{l.foe}}" style="{{S.small}}">As foe</button><button onClick="{{l.ally}}" style="{{S.small}}">As ally</button></div></sc-for>
+<button onClick="{{addCustom}}" style="min-height:48px;border-radius:4px;border:1px dashed {{c.rule}};background:transparent;color:{{c.mut}};font-family:inherit;font-size:15px;cursor:pointer">Make one up (name, HP, AC)</button>
+</sc-if>
+</section>
+
+<section aria-label="Selected" style="padding:14px 20px;display:flex;flex-direction:column;gap:10px;background:{{c.panel}};overflow-y:auto">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600;line-height:1">{{sel.name}}</div>
+<div style="font-size:15px;color:{{c.mut}}">{{sel.sub}}</div>
+<div style="display:flex;align-items:baseline;gap:10px"><span style="font-family:'EB Garamond',Georgia,serif;font-size:52px;font-weight:600;line-height:1">{{sel.hpNow}}</span><span style="font-size:22px;color:{{c.mut}}">of {{sel.hpMax}}</span><span style="font-size:14px;color:{{c.mut}}">{{sel.vis}}</span></div>
+<div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px">
+<sc-for list="{{dmg}}" as="d" hint-placeholder-count="5"><button onClick="{{d.go}}" aria-label="{{d.aria}}" style="{{d.style}}">{{d.t}}</button></sc-for>
+</div>
+<div style="{{S.label}}">Statuses</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{statusPick}}" as="st" hint-placeholder-count="4"><button onClick="{{st.go}}" aria-pressed="{{st.on}}" style="{{st.style}}">{{st.t}}</button></sc-for>
+</div>
+<div style="border-top:1px solid {{c.rule}};padding-top:8px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+<sc-for list="{{sel.stats}}" as="x" hint-placeholder-count="3"><div><div style="font-size:13px;color:{{c.mut}}">{{x.k}}</div><div style="font-weight:700">{{x.v}}</div></div></sc-for>
+</div>
+<div style="font-size:15px;line-height:1.4">{{sel.note}}</div>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{tableOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center">
+<div role="dialog" aria-label="Encounter table" style="width:620px;background:{{c.sheet}};border:1px solid {{c.line}};border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600">Sluice gate · level 1 · d8</span><button onClick="{{closeDialog}}" style="{{S.small}}">Close</button></div>
+<div style="font-size:15px;color:{{c.mut}}">Current table · roll at the table, tap the row</div>
+<sc-for list="{{tableRows}}" as="tr" hint-placeholder-count="8"><button onClick="{{tr.pick}}" style="{{tr.style}}"><span style="width:44px;font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">{{tr.roll}}</span><span style="flex:1;text-align:left">{{tr.t}}</span><span style="font-size:14px;color:{{c.mut}}">{{tr.n}}</span></button></sc-for>
+<button style="min-height:44px;background:none;border:none;color:{{c.acc}};font-family:inherit;font-size:15px;font-weight:700;text-align:left;padding:0">Use a different table</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{sendOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center">
+<div role="dialog" aria-label="Send to players" style="width:560px;background:{{c.sheet}};border:1px solid {{c.line}};border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600">Send</span><button onClick="{{closeDialog}}" style="{{S.small}}">Close</button></div>
+<div role="group" aria-label="Send to" style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{targets}}" as="o" hint-placeholder-count="5"><button onClick="{{o.go}}" aria-pressed="{{o.on}}" style="{{o.style}}">{{o.t}}</button></sc-for></div>
+<label for="msg" style="position:absolute;width:1px;height:1px;overflow:hidden">Message</label>
+<textarea id="msg" rows="4" style="resize:none;padding:10px;border:1px solid {{c.rule}};border-radius:6px;background:transparent;color:inherit;font-family:inherit;font-size:16px;line-height:1.45">You hear something shift under the floating vestments.</textarea>
+<div style="display:flex;align-items:center;gap:10px"><label for="pic" style="min-height:44px;display:inline-flex;align-items:center;padding:0 12px;border:1px dashed {{c.rule}};border-radius:4px;color:{{c.mut}};cursor:pointer">Add a picture</label><input id="pic" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0"><span style="flex:1"></span><span style="font-size:15px">Burn after reading</span><button onClick="{{toggleBurn}}" role="switch" aria-checked="{{burn}}" aria-label="Burn after reading" style="{{burnSw}}"><span style="{{burnKnob}}"></span></button></div>
+<button onClick="{{doSend}}" style="min-height:52px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600;cursor:pointer">{{sendText}}</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{refOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center">
+<div role="dialog" aria-label="Reference tables" style="width:760px;height:560px;background:{{c.sheet}};border:1px solid {{c.line}};border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600">Reference tables</span><button onClick="{{closeDialog}}" style="{{S.small}}">Close</button></div>
+<div style="flex:1;min-height:0;display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px">
+<div style="display:flex;flex-direction:column;gap:4px;overflow-y:auto"><sc-for list="{{refList}}" as="rf" hint-placeholder-count="6"><button onClick="{{rf.go}}" aria-pressed="{{rf.on}}" style="{{rf.style}}"><span>{{rf.t}}</span><span style="font-size:13px;color:{{c.mut}}">{{rf.src}}</span></button></sc-for></div>
+<div style="display:flex;flex-direction:column;gap:4px;overflow-y:auto"><div style="font-family:'EB Garamond',Georgia,serif;font-size:22px;font-weight:600">{{refTitle}}</div><sc-for list="{{refRows}}" as="rr" hint-placeholder-count="5"><div style="display:flex;gap:12px;min-height:40px;align-items:center;border-bottom:1px dotted {{c.rule}}"><span style="width:70px;font-weight:700">{{rr.k}}</span><span>{{rr.v}}</span></div></sc-for></div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{endOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center">
+<div role="dialog" aria-label="End fight" style="width:460px;background:{{c.sheet}};border:1px solid {{c.line}};border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600">End the fight?</span>
+<label for="logline" style="font-size:14px;color:{{c.mut}}">Log line (optional)</label>
+<input id="logline" value="Mire goblins in the flooded vestry" style="min-height:44px;padding:0 10px;border:1px solid {{c.rule}};border-radius:4px;background:transparent;color:inherit;font-family:inherit;font-size:16px">
+<div style="font-size:15px;color:{{c.mut}}">Setting value: 5 XP each.</div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+<button onClick="{{confirmEnd}}" style="min-height:50px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;cursor:pointer">End, no XP yet</button>
+<button onClick="{{confirmEnd}}" style="min-height:50px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;cursor:pointer">End and award XP</button>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":true},"$preview":{"width":1180,"height":820}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      mode: 'explore', phase: 'none', dialog: null, turn: 14, day: 2, roundEx: 0, hist: [], check: null,
+      enc: null, hasTables: true, surp: null, react: null, descSent: false, shown: null,
+      round: 1, act: 'party', sel: 'wren', add: false, extra: [], endOpen: false,
+      hp: { wren: 9, ash: 6, tam: 4, g1: 3, g2: 4, g3: 3 },
+      st: { wren: ['Blessed 4'], ash: [], tam: [], g1: [], g2: [], g3: [] },
+      to: 'shared', burn: false, sent: false, ref: 'reaction'
+    };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = this.props.dark ?? true;
+    const c = dark
+      ? { bg: '#12100D', panel: '#1A1713', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', warn: '#E6BA66', tint: '#4A3A22', sheet: '#1E1A16', onAcc: '#12100D', picA: '#2A3A3A', picB: '#3A3226' }
+      : { bg: '#FBF8F1', panel: '#F5F0E5', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', warn: '#7A4A00', tint: '#F3E6CB', sheet: '#FFFDF8', onAcc: '#FBF8F1', picA: '#C9D6D2', picB: '#E2D3B8' };
+    const G = "'EB Garamond',Georgia,serif";
+    const isExplore = s.mode === 'explore';
+    const seg = (on) => 'min-height:44px;min-width:120px;padding:0 14px;border-radius:6px;border:none;background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : c.ink) + ';font-family:' + G + ';font-size:19px;font-weight:600;cursor:pointer';
+    const pill = (on) => 'min-height:44px;padding:0 12px;border-radius:4px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : c.ink) + ';font-family:inherit;font-size:15px;font-weight:700;cursor:pointer';
+    const rowBtn = (on) => 'min-height:46px;display:flex;align-items:center;gap:10px;padding:0 10px;border-radius:4px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.tint : 'transparent') + ';color:inherit;font-family:inherit;font-size:16px;cursor:pointer;width:100%';
+    const snap = () => s.hist.concat([{ turn: s.turn, day: s.day, roundEx: s.roundEx }]);
+    const isDue = (s.turn % 2) === 0 && !s.check;
+    const triggers = [
+      { name: 'Encounter check', when: s.check ? (s.check === 'hit' ? 'Hit · logged' : 'Miss · logged') + ' · next at turn ' + (s.turn + 2) : (isDue ? 'Due now · every 2 turns' : 'Next in 1 turn'), due: isDue, check: isDue,
+        hit: () => this.setState({ check: 'hit', dialog: 'table' }), miss: () => this.setState({ check: 'miss' }) },
+      { name: 'Rest or tire', when: 'Every 6 turns · next at turn ' + ((Math.floor(s.turn / 6) + 1) * 6), due: false, check: false },
+      { name: 'Eat a ration', when: 'Every day · next at day ' + (s.day + 1), due: false, check: false }
+    ].map((t) => Object.assign(t, { box: 'display:flex;align-items:center;gap:10px;min-height:56px;padding:6px 10px;border-radius:6px;border:1px solid ' + (t.due ? c.warn : c.rule) + ';background:' + (t.due ? c.tint : 'transparent') }));
+    const party = [
+      { pos: 1, name: 'Ash', light: 'Torch · 3 turns left', lightColor: c.mut, hp: '6/8' },
+      { pos: 2, name: 'Wren', light: 'Glimmer · 1 turn left', lightColor: c.warn, hp: '9/14' },
+      { pos: 3, name: 'Tam (hireling)', light: 'Lantern · 24 turns left', lightColor: c.mut, hp: '4/4' },
+      { pos: 4, name: 'Bram', light: 'Sees in the dark 60′', lightColor: c.mut, hp: '11/11' }
+    ];
+    const pics = [['map', 'Level 1 map', c.picA, 'GM only'], ['vestry', 'Vestry sketch', c.picB, ''], ['lantern', 'The lantern', c.picA, '']].map((p) => {
+      const on = s.shown === p[0];
+      return { name: p[1], bg: p[2], btnText: on ? 'On shared screen' : (p[3] ? 'Show anyway' : 'Show on shared screen'),
+        btn: 'min-height:40px;border-radius:4px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : c.ink) + ';font-family:inherit;font-size:13px;font-weight:700;cursor:pointer',
+        show: () => this.setState({ shown: on ? null : p[0] }) };
+    });
+    const TABLE = [
+      ['1', 'Mire goblins', '2d4'], ['2', 'Reed vipers', '1d3'], ['3', 'Lost lamplighter (friendly)', '1'], ['4', 'Bog lurker', '1'],
+      ['5', 'Fen hounds', '1d4'], ['6', 'Drowned priest’s acolytes', '1d6'], ['7', 'Giant leeches', '1d4'], ['8', 'Roll twice, they’re fighting each other', '']
+    ];
+    const encFor = (name) => ({
+      name: name === 'Mire goblins' ? 'Mire goblins × 5' : name, src: 'From the encounter table · Sluice gate, level 1',
+      desc: 'Five goblins wade through the vestry, arguing over the lit lantern. They haven’t seen your light yet.',
+      rules: [{ t: 'Goblins: −1 to hit in bright light (Glimmer counts).' }, { t: 'Morale 7; 9 while their chief is with them.' }, { t: 'Water is knee-deep: move halved for everyone.' }]
+    });
+    const tableRows = TABLE.map((r) => ({ roll: r[0], t: r[1], n: r[2], style: rowBtn(false),
+      pick: () => this.setState({ enc: encFor(r[1]), dialog: null, mode: 'encounter', phase: 'encounter', surp: null, react: null, descSent: false }) }));
+    const enc = s.enc || encFor('Mire goblins');
+    const surp = [['party', 'Party surprised'], ['foes', 'Foes surprised'], ['none', 'Neither']].map((o) => ({ t: o[1], on: s.surp === o[0], style: pill(s.surp === o[0]) + ';min-height:52px', go: () => this.setState({ surp: o[0] }) }));
+    const REACT = s.hasTables
+      ? [['2–4', 'Hostile · attacks'], ['5–7', 'Wary · keeps distance'], ['8–10', 'Curious · will talk'], ['11–12', 'Friendly · may help']]
+      : [['', 'Hostile'], ['', 'Wary'], ['', 'Neutral'], ['', 'Friendly']];
+    const react = REACT.map((o, i) => ({ roll: o[0], t: o[1], on: s.react === i, style: rowBtn(s.react === i) + ';min-height:52px', go: () => this.setState({ react: i }) }));
+    const encFoes = [1, 2, 3, 4, 5].map((n) => ({ name: 'Mire goblin ' + n, sub: 'HP rolled when the fight starts' })).slice(0, 3).concat([{ name: '+ 2 more', sub: '' }]);
+    // fight
+    const sideBtn = (on) => 'min-height:96px;border-radius:8px;border:2px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : c.ink) + ';font-family:' + G + ';font-size:30px;font-weight:600;cursor:pointer';
+    const max = { wren: 14, ash: 8, tam: 4, g1: 3, g2: 4, g3: 3 };
+    const names = { wren: 'Wren', ash: 'Ash', tam: 'Tam (hireling)', g1: 'Mire goblin 1', g2: 'Mire goblin 2', g3: 'Mire goblin 3' };
+    s.extra.forEach((x) => { max[x.id] = x.max; names[x.id] = x.name; });
+    const rowStyle = (id, down) => 'min-height:58px;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 10px;border-radius:4px;border:1px solid ' + (s.sel === id ? c.acc : c.rule) + ';background:' + (s.sel === id ? c.tint : 'transparent') + ';color:inherit;font-family:inherit;text-align:left;cursor:pointer;opacity:' + (down ? 0.45 : 1);
+    const allyIds = ['wren', 'ash', 'tam'].concat(s.extra.filter((x) => x.ally).map((x) => x.id));
+    const foeIds = ['g1', 'g2', 'g3'].concat(s.extra.filter((x) => !x.ally).map((x) => x.id));
+    const pcs = allyIds.map((id) => ({ name: names[id], status: s.st[id].join(' · '), hp: s.hp[id] + '/' + max[id], style: rowStyle(id, false), pick: () => this.setState({ sel: id }) }));
+    const foes = foeIds.map((id) => { const down = s.hp[id] <= 0; return { name: names[id], sub: down ? 'Defeated' : 'Damage taken ' + (max[id] - s.hp[id]) + (s.st[id].length ? ' · ' + s.st[id].join(' · ') : ''), hp: down ? '—' : s.hp[id] + '/' + max[id], style: rowStyle(id, down), pick: () => this.setState({ sel: id }) }; });
+    const isFoe = foeIds.indexOf(s.sel) >= 0;
+    const hit = (d) => () => this.setState({ hp: Object.assign({}, s.hp, { [s.sel]: Math.max(isFoe ? -9 : 0, Math.min(max[s.sel], s.hp[s.sel] + d)) }) });
+    const dmg = [['−1', -1], ['−2', -2], ['−5', -5], ['+1', 1], ['…', 0]].map((x) => ({ t: x[0], aria: x[1] === 0 ? 'Type an amount' : (x[1] < 0 ? 'Damage ' + (-x[1]) : 'Heal ' + x[1]), go: x[1] === 0 ? () => {} : hit(x[1]),
+      style: 'min-height:56px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:22px;font-weight:600;cursor:pointer' }));
+    const statusPick = ['Held', 'Asleep', 'Blessed 4', 'Fleeing'].map((t) => { const on = s.st[s.sel].indexOf(t) >= 0;
+      return { t: t, on: on, style: 'min-height:44px;padding:0 12px;border-radius:22px;border:1px solid ' + (on ? c.warn : c.rule) + ';background:' + (on ? c.tint : 'transparent') + ';color:inherit;font-family:inherit;font-size:15px;cursor:pointer',
+        go: () => { const cur = s.st[s.sel]; this.setState({ st: Object.assign({}, s.st, { [s.sel]: on ? cur.filter((x) => x !== t) : cur.concat([t]) }) }); } }; });
+    const nextRound = () => { const st = {}; Object.keys(s.st).forEach((k) => { st[k] = s.st[k].map((x) => { const m = x.match(/^(.*) (\d+)$/); return m ? (Number(m[2]) > 1 ? m[1] + ' ' + (Number(m[2]) - 1) : null) : x; }).filter((x) => x); }); this.setState({ round: s.round + 1, st: st, act: 'party' }); };
+    const STAT = {
+      wren: { sub: 'Player character · Marsh folk Lantern Warden 3 · the player sees the same HP', stats: [{ k: 'AC', v: '13' }, { k: 'Attack', v: '+4 sword (Blessed)' }, { k: 'Move', v: '45′ in water' }], note: 'Glimmer: 1 turn left. Ember Dart memorized.' },
+      ash: { sub: 'Player character · Reedblade 2', stats: [{ k: 'AC', v: '14' }, { k: 'Attack', v: '+1 · 1d10' }, { k: 'Move', v: '45′ in water' }], note: 'Two-handed axe; no shield.' },
+      tam: { sub: 'Hireling · torchbearer', stats: [{ k: 'AC', v: '11' }, { k: 'Morale', v: '8' }, { k: 'Attack', v: '+0 · 1d4' }], note: 'Checks morale if a party member falls.' }
+    };
+    const foeStat = { sub: 'Mire goblin · from River Rules · hidden from players', stats: [{ k: 'AC', v: '13' }, { k: 'Attack', v: '+0 · 1d6' }, { k: 'Morale', v: '7' }], note: 'Sees in the dark 90′ · −1 to hit in bright light. Full stat block ›' };
+    const x = s.extra.find((e) => e.id === s.sel);
+    const info = STAT[s.sel] || (x ? { sub: (x.ally ? 'Ally' : 'Foe') + ' · added during the fight', stats: [{ k: 'AC', v: x.ac }, { k: 'Attack', v: x.atk }, { k: 'Morale', v: x.mor }], note: x.custom ? 'Made up on the spot · saved to this campaign’s homebrew' : 'From your setting’s stat blocks' } : foeStat);
+    const LIB = [['Mire goblin', 'HD 1−1 · AC 13', 3, '13', '+0 · 1d6', '7'], ['Fen hound', 'HD 2 · AC 13', 9, '13', '+1 · 1d6', '8'], ['Lost lamplighter', 'Level 1 · AC 12', 5, '12', '+0 · 1d6', '7'], ['Giant leech', 'HD 2 · AC 13', 9, '13', '+1 · 1d4', '10']];
+    const addX = (l, ally, custom) => () => { const id = 'x' + s.extra.length; this.setState({ extra: s.extra.concat([{ id: id, name: l[0] + (custom ? '' : ' ' + (s.extra.length + 1)), max: l[2], ac: l[3], atk: l[4], mor: l[5], ally: ally, custom: custom }]), hp: Object.assign({}, s.hp, { [id]: l[2] }), st: Object.assign({}, s.st, { [id]: [] }), sel: id, add: false }); };
+    const library = LIB.map((l) => ({ name: l[0], sub: l[1], foe: addX(l, false, false), ally: addX(l, true, false) }));
+    const T = [['shared', 'Shared screen'], ['all', 'All players'], ['wren', 'Wren'], ['ash', 'Ash'], ['bram', 'Bram']];
+    const targets = T.map((o) => ({ t: o[1], on: s.to === o[0], style: pill(s.to === o[0]), go: () => this.setState({ to: o[0], sent: false }) }));
+    const toName = T.find((o) => o[0] === s.to)[1];
+    const REF = {
+      reaction: ['Reaction · 2d6', 'River Rules', [['2–4', 'Hostile · attacks'], ['5–7', 'Wary · keeps distance'], ['8–10', 'Curious · will talk'], ['11–12', 'Friendly · may help']]],
+      surprise: ['Surprise · d6', 'River Rules', [['1', 'Surprised: loses the first round'], ['2–6', 'Ready']]],
+      morale: ['Morale · 2d6', 'River Rules', [['Over', 'Flees or surrenders'], ['At or under', 'Keeps fighting'], ['When', 'First death on their side · half of them down']]],
+      encounter: ['Encounters · Sluice gate, level 1 · d8', 'The Sluice Gate (adventure)', TABLE.map((r) => [r[0], r[1] + (r[2] ? ' (' + r[2] + ')' : '')])],
+      fen: ['Wilderness · Fen · d6', 'Your homebrew', [['1–2', 'Fen hounds'], ['3', 'Reed cutters'], ['4', 'Will-o’-lamp'], ['5', 'Bog lurker'], ['6', 'Peat witch']]],
+      light: ['Light sources', 'River Rules', [['Torch', '6 turns · 30′'], ['Lantern', '24 turns per flask · 30′'], ['Glimmer', '6 + level turns · 15′']]]
+    };
+    const refList = Object.keys(REF).map((k) => ({ t: REF[k][0], src: REF[k][1], on: s.ref === k, style: rowBtn(s.ref === k) + ';flex-direction:column;align-items:flex-start;justify-content:center;gap:0;min-height:56px', go: () => this.setState({ ref: k }) }));
+    const inFight = s.phase === 'fight';
+    const clockText = 'Day ' + s.day + ' · Turn ' + s.turn + (inFight ? ' · Round ' + s.round : '');
+    return {
+      c: c, isExplore: isExplore, isEncounter: !isExplore, clockText: clockText,
+      exploreBtn: seg(isExplore), encBtn: seg(!isExplore),
+      toExplore: () => this.setState({ mode: 'explore' }), toEncounter: () => this.setState({ mode: 'encounter' }),
+      showNoEnc: !isExplore && s.phase === 'none', showEnc: !isExplore && s.phase === 'encounter', showFight: !isExplore && inFight,
+      plusTurn: () => this.setState({ hist: snap(), turn: s.turn + 1, roundEx: 0, check: null }), plusRound: () => this.setState({ hist: snap(), roundEx: s.roundEx + 1 }), plusDay: () => this.setState({ hist: snap(), day: s.day + 1 }),
+      undo: () => { const h = s.hist; if (!h.length) return; this.setState(Object.assign({ hist: h.slice(0, -1) }, h[h.length - 1])); },
+      undoStyle: 'min-height:52px;border-radius:4px;border:1px solid ' + c.rule + ';background:transparent;color:' + (s.hist.length ? c.ink : c.mut) + ';font-family:' + G + ';font-size:18px;font-weight:600;cursor:pointer',
+      triggers: triggers, party: party, pics: pics,
+      startEnc: () => this.setState({ enc: { name: 'New encounter', src: 'Started by the GM', desc: 'Describe what the party meets, or add foes when the fight starts.', rules: [{ t: 'Add rules or notes as you go.' }] }, mode: 'encounter', phase: 'encounter', surp: null, react: null, descSent: false }),
+      openTable: () => this.setState({ dialog: 'table' }), tableOpen: s.dialog === 'table', tableRows: tableRows,
+      enc: enc, sendDesc: () => this.setState({ descSent: !s.descSent }), sendDescText: s.descSent ? 'Description on the shared screen · tap to take down' : 'Show description on the shared screen',
+      sendDescStyle: 'min-height:44px;border-radius:4px;border:1px solid ' + (s.descSent ? c.acc : c.line) + ';background:' + (s.descSent ? c.acc : 'transparent') + ';color:' + (s.descSent ? c.onAcc : c.ink) + ';font-family:inherit;font-size:15px;font-weight:700;cursor:pointer',
+      hasTables: s.hasTables, flipTables: () => this.setState({ hasTables: !s.hasTables, react: null }), flipText: s.hasTables ? 'setting without surprise or reaction tables' : 'setting with tables',
+      surp: surp, react: react, encFoes: encFoes,
+      endEnc: () => this.setState({ phase: 'none', mode: 'explore', enc: null }),
+      toFight: () => this.setState({ phase: 'fight', round: 1, act: s.surp === 'foes' ? 'party' : (s.surp === 'party' ? 'foes' : 'party'), sel: 'g1' }),
+      encSummary: enc.name + (s.surp ? ' · ' + (s.surp === 'party' ? 'party surprised' : (s.surp === 'foes' ? 'foes surprised' : 'no surprise')) : '') + (s.react !== null ? ' · reaction: ' + REACT[s.react][1] : ''),
+      round: s.round, nextRound: nextRound, partyOn: s.act === 'party', foesOn: s.act === 'foes', partyBtn: sideBtn(s.act === 'party'), foesBtn: sideBtn(s.act === 'foes'), actParty: () => this.setState({ act: 'party' }), actFoes: () => this.setState({ act: 'foes' }),
+      listView: !s.add, addView: s.add, openAdd: () => this.setState({ add: true }), closeAdd: () => this.setState({ add: false }),
+      library: library, addCustom: addX(['Eel swarm', '', 9, '12', '+1 · 1d4', '9'], false, true),
+      pcs: pcs, foes: foes, dmg: dmg, statusPick: statusPick,
+      sel: { name: names[s.sel], sub: info.sub, stats: info.stats, note: info.note, hpNow: Math.max(0, s.hp[s.sel]), hpMax: max[s.sel], vis: isFoe ? 'Hidden from players' : 'Shared' },
+      endFight: () => this.setState({ endOpen: true }), endOpen: s.endOpen,
+      confirmEnd: () => this.setState({ endOpen: false, phase: 'none', mode: 'explore', enc: null }),
+      openSend: () => this.setState({ dialog: 'send', sent: false }), sendOpen: s.dialog === 'send', targets: targets,
+      burn: s.burn, toggleBurn: () => this.setState({ burn: !s.burn, sent: false }),
+      burnSw: 'width:56px;height:32px;flex:none;border-radius:16px;border:1px solid ' + (s.burn ? c.acc : c.rule) + ';background:' + (s.burn ? c.acc : c.panel) + ';position:relative;cursor:pointer;padding:0',
+      burnKnob: 'position:absolute;top:3px;left:' + (s.burn ? 27 : 3) + 'px;width:24px;height:24px;border-radius:12px;background:' + (s.burn ? c.onAcc : c.mut),
+      doSend: () => this.setState({ sent: true }), sendText: s.sent ? 'Sent to ' + toName + (s.burn ? ' · burns after reading' : '') : 'Send to ' + toName,
+      openRef: () => this.setState({ dialog: 'ref' }), refOpen: s.dialog === 'ref', refList: refList, refTitle: REF[s.ref][0], refRows: REF[s.ref][2].map((r) => ({ k: r[0], v: r[1] })),
+      closeDialog: () => this.setState({ dialog: null }),
+      S: {
+        label: 'font-family:' + G + ';font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:' + c.mut,
+        top: 'min-height:44px;padding:0 12px;border-radius:4px;border:1px solid ' + c.rule + ';background:transparent;color:inherit;font-family:' + G + ';font-size:17px;font-weight:600;cursor:pointer',
+        huge: 'min-height:96px;border-radius:6px;border:none;background:' + c.acc + ';color:' + c.onAcc + ';font-family:' + G + ';font-size:32px;font-weight:600;cursor:pointer',
+        hugeSmall: 'min-height:64px;border-radius:6px;border:none;background:' + c.acc + ';color:' + c.onAcc + ';font-family:' + G + ';font-size:24px;font-weight:600;cursor:pointer',
+        mid: 'min-height:52px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:18px;font-weight:600;cursor:pointer',
+        small: 'min-height:44px;padding:0 12px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:16px;font-weight:600;cursor:pointer;flex:none'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

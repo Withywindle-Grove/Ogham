@@ -1,0 +1,117 @@
+/*
+ * Buttons, in one place (docs/06 "Buttons", ruled 2026-10-25; component inventory: Button, primary / secondary /
+ * quiet). A soft shadow and the 1.5 px control border; pressed drops 1 px and loses the shadow; busy shows a wait
+ * cursor (a button is never greyed out as "disabled": a blocked action explains why in a pop-up).
+ * Settled, see 09 2026-10-25 (conventions: never disabled, never greyed): don't add a disabled state.
+ */
+
+.button-primary,
+.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-step);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-button);
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+  cursor: pointer;
+  transition:
+    background-color var(--press-flash),
+    transform var(--press-flash);
+}
+
+/* The one accent button on a screen. */
+.button-primary {
+  min-height: var(--tap-hp);
+  border: var(--line-control) solid var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* An ordinary button: a filled surface and the control border, so it reads as something to press and never as a
+   field (a Garamond label at the labels step, 20). Narrower sides than the primary, so three short choices fit one
+   row on a 375 px phone. */
+.button-secondary {
+  align-self: flex-start;
+  min-width: var(--tap);
+  padding: 0 var(--space-3);
+  font-size: var(--text-20);
+  border: var(--line-control) solid var(--control);
+  background: var(--sheet);
+  color: var(--ink);
+}
+
+/* The small size (fl-1, 2026-11-03): any action that isn't the screen's main one, in a card's foot, a row or a
+   pop-up's foot (View, Dismiss, + Add, Cancel, Not now, Delete). Body-size words, still a 44 px tap. */
+.button-secondary--small {
+  min-height: var(--tap);
+  font-size: var(--text-16);
+}
+
+.button-primary:active,
+.button-secondary:active {
+  box-shadow: none;
+  transform: translateY(1px);
+}
+
+.button-primary:active {
+  background: var(--accent-4);
+}
+
+.button-secondary:active {
+  background: var(--tint);
+}
+
+/* A choice that's on (aria-pressed): the Selected wash with its 2 px edge and ink text (tf-4); the heavier edge is
+   the shape, so "on" never relies on colour alone. */
+.button-secondary[aria-pressed='true'] {
+  border-color: var(--selected-edge);
+  box-shadow: inset 0 0 0 calc(var(--line-selected) - var(--line-control)) var(--selected-edge);
+  background: var(--selected);
+  color: var(--ink);
+}
+
+/* Underlined accent text in a full 44 px tap area: for going somewhere (the back link, "Set start time ›") and help
+   lines (Help me choose) only, never an action (fl-1, 2026-11-03: actions are buttons). */
+.button-quiet {
+  min-height: var(--tap);
+  padding: 0 var(--space-2);
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: var(--text-16);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+/* A destructive action is a secondary button with its danger word ("Delete", "Remove"; fl-1), never filled red; the
+   warning variant (danger edge and words) is for the rare stronger case. */
+.button-secondary--warning {
+  color: var(--danger);
+}
+
+.button-secondary--warning {
+  border-color: var(--danger);
+}
+
+/* Busy: the action is running (aria-busy, never disabled: a second tap does nothing, src/ui/busyGuard.ts). */
+.button-primary[aria-busy='true'],
+.button-secondary[aria-busy='true'],
+.button-quiet[aria-busy='true'] {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button-primary,
+  .button-secondary {
+    transition: none;
+  }
+}

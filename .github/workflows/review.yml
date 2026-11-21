@@ -1,0 +1,186 @@
+# Automatic review of code pull requests against REVIEW.md (plan process-sdlc-1, P3; ruled 2026-11-01).
+# - Runs only when a pull request touches src/ or supabase/ (docs-only pull requests have docs:check), never on
+#   Dependabot's or on drafts. It also runs when this file changes, so a change to it is tried at once.
+#   Once per pull request (ruled 2026-11-02, to save money; with a monthly cap): when it opens, leaves draft or is
+#   reopened, not on every push. To review again after fixes, add the "review" label (remove it first if it's on).
+#   Any other label leaves a running review alone (fixed 2026-11-10, see concurrency below).
+# - Claude reads only: Read, Grep, Glob, git diff/log and gh pr view/diff. It returns the review as text, and a
+#   separate job (which Claude never runs in) posts it as one comment, updated on each run. When there is no review
+#   (the credit is used up, Claude didn't start), that comment says so and why (2026-11-10).
+# - Model: Sonnet by default, Opus when the pull request touches supabase/ (the access-rule pass matters most there).
+# - It is not a required check and every job may fail without failing anything else: findings never block a merge on
+#   their own. Branch protection and Francis do. Paid from ANTHROPIC_API_KEY (monthly cap set in the Anthropic console).
+# See docs/testing.md, The GitHub check.
+name: Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, reopened, labeled]
+    paths:
+      - 'src/**'
+      - 'supabase/**'
+      - '.github/workflows/review.yml'
+
+# A label other than "review" (ready, preview) also starts this workflow, and its run skips. It gets a group of its
+# own (-skip): in the review's group it cancelled the review in progress. Adding ready seconds after a pull request
+# opened did that on most pull requests (found 2026-11-10: 16 of the last 40 runs cancelled, 4 finished).
+concurrency:
+  group: review-${{ github.event.pull_request.number }}-${{ (github.event.action != 'labeled' || github.event.label.name == 'review') && 'run' || 'skip' }}
+  cancel-in-progress: true
+
+jobs:
+  # Picks the machines for this whole run from the CI_RUNNER switch: unset, the PC; github, GitHub; auto, the PC
+  # while it has room and GitHub when it's busy (scripts/ci-pick-runner.mjs, ci-auto-1). Every other job reads its
+  # answer. It runs on GitHub for github and auto, so it never waits for a busy PC, and on the PC when unset.
+  pick:
+    if: >-
+      github.event.pull_request.draft == false && github.event.pull_request.user.login != 'dependabot[bot]' &&
+      github.actor != 'dependabot[bot]' && (github.event.action != 'labeled' || github.event.label.name == 'review')
+    runs-on: ${{ (vars.CI_RUNNER == 'github' || vars.CI_RUNNER == 'auto') && 'ubuntu-latest' || fromJSON('["self-hosted","grimoire"]') }}
+    timeout-minutes: 5
+    # Counting the PC's queued and running jobs needs actions: read.
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      runs_on: ${{ steps.pick.outputs.runs_on }}
+      target: ${{ steps.pick.outputs.target }}
+      overflow: ${{ steps.pick.outputs.overflow }}
+    steps:
+      # Its own folder (19 Nov 2026): on the PC a reused folder kept this one-file checkout's sparse setting, and the
+      # next job's full checkout came out almost empty (.nvmrc and scripts/ci-jobs.mjs missing, every job failed).
+      - uses: actions/checkout@v7
+        with:
+          path: .pick
+          sparse-checkout: scripts/ci-pick-runner.mjs
+          sparse-checkout-cone-mode: false
+      - id: pick
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CI_RUNNER: ${{ vars.CI_RUNNER }}
+          CI_LOCAL_SLOTS: ${{ vars.CI_LOCAL_SLOTS }}
+        run: |
+          set -o pipefail
+          node .pick/scripts/ci-pick-runner.mjs | tee -a "$GITHUB_OUTPUT"
+      # An overflow run uses GitHub's billed minutes: say so on the run's page (docs/testing.md, the cost per overflow run).
+      - if: steps.pick.outputs.overflow == 'true'
+        run: |
+          echo "::notice title=Overflow to GitHub::Every PC lane was taken, so this run uses GitHub's machines (billed minutes). The pick log says how many runs were on the PC."
+          echo "**Overflow to GitHub:** every PC lane was taken, so this run uses GitHub's machines (billed minutes)." >> "$GITHUB_STEP_SUMMARY"
+
+  review:
+    needs: pick
+    if: >-
+      github.event.pull_request.draft == false && github.event.pull_request.user.login != 'dependabot[bot]' &&
+      github.actor != 'dependabot[bot]' && (github.event.action != 'labeled' || github.event.label.name == 'review')
+    runs-on: ${{ fromJSON(needs.pick.outputs.runs_on) }}
+    timeout-minutes: 20
+    continue-on-error: true
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      result: ${{ steps.text.outputs.body }}
+      # Why there is no review, when there is none: the comment job says so on the pull request.
+      problem: ${{ steps.text.outputs.problem }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Pick the model
+        id: model
+        # The checkout is the merge commit; its first parent is main, so this lists what the pull request changes.
+        run: |
+          if git diff --name-only HEAD^1 HEAD | grep -q '^supabase/'; then
+            echo "Touches supabase/: Opus." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "model=claude-opus-5-5" >> "$GITHUB_OUTPUT"
+          else
+            echo "No supabase/ changes: Sonnet." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "model=claude-sonnet-5-5" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Review against REVIEW.md
+        id: review
+        uses: anthropics/claude-code-action@v1.0.266
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PULL REQUEST: #${{ github.event.pull_request.number }}, base ${{ github.event.pull_request.base.ref }}
+            The pull request's code is checked out in the current directory.
+
+            Review this pull request against REVIEW.md; post one comment.
+            Read REVIEW.md first and follow it exactly: its three passes, what Important means, the cap on nits,
+            what not to report, and its output format ending with the tally line `Important: N · nits: N`.
+            See the change with `gh pr diff ${{ github.event.pull_request.number }}` and
+            `gh pr view ${{ github.event.pull_request.number }}`; read the plan it names in docs/plans/ and only
+            the spec sections the diff touches. You cannot edit anything and must not try.
+            "Post one comment" means: your final message is the whole review in Markdown and nothing else.
+            A later step posts it.
+          claude_args: |
+            --model ${{ steps.model.outputs.model }}
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(gh pr view:*),Bash(gh pr diff:*)"
+            --disallowedTools "Edit,Write,MultiEdit,NotebookEdit,WebFetch,WebSearch"
+      # Reads Claude's final message from the action's execution file. No JSON schema (2026-11-02): every run failed
+      # with "did not return structured_output", which hid the real error. If the run ended in an error, this prints it
+      # and hands the reason to the comment job (2026-11-10: the credit ran out and four days of reviews failed
+      # unseen, because this job may fail without turning the run red).
+      - name: Read the review
+        id: text
+        if: always()
+        env:
+          FILE: ${{ steps.review.outputs.execution_file }}
+        run: |
+          # No review: say why, in the log and for the comment job, then fail this step.
+          stop() {
+            echo "::error::$1"
+            { echo 'problem<<GRIMOIRE_PROBLEM_EOF'; echo "$1"; echo 'GRIMOIRE_PROBLEM_EOF'; } >> "$GITHUB_OUTPUT"
+            exit 1
+          }
+          file="${FILE:-$RUNNER_TEMP/claude-execution-output.json}"
+          if [ ! -s "$file" ]; then stop "No execution file: Claude did not start."; fi
+          last=$(jq -c '[.[] | select(.type == "result")] | last // {}' "$file")
+          if [ "$(echo "$last" | jq -r '.is_error // false')" = "true" ]; then
+            why=$(jq -r '([.[] | select(.type == "result") | .result // empty] + [.[] | select(.type == "assistant") | .message.content[]? | select(.type == "text") | .text]) | last // "no message"' "$file" | head -c 500 | tr '\n' ' ')
+            stop "Claude stopped with an error before reviewing: $why"
+          fi
+          body=$(echo "$last" | jq -r '.result // empty')
+          if [ -z "$body" ]; then stop "Claude returned no review text."; fi
+          { echo 'body<<GRIMOIRE_REVIEW_EOF'; echo "$body"; echo 'GRIMOIRE_REVIEW_EOF'; } >> "$GITHUB_OUTPUT"
+
+  # Posts the review or, when there is none, one line saying it didn't run and why (2026-11-10), so a failed review
+  # shows on the pull request instead of hiding behind a green run. Runs apart from Claude so the token that can
+  # write comments never reaches it. !cancelled(): the review job fails when there is no review, and this still runs.
+  comment:
+    needs: [pick, review]
+    if: ${{ !cancelled() && (needs.review.outputs.result != '' || needs.review.outputs.problem != '') }}
+    runs-on: ${{ fromJSON(needs.pick.outputs.runs_on) }}
+    continue-on-error: true
+    permissions:
+      contents: read # the checkout below; without it a private repo answers "not found"
+      pull-requests: write
+    steps:
+      # Its own folder (19 Nov 2026), like pick's: a sparse checkout in a reused PC folder left the next job's full
+      # checkout almost empty. review.md stays in the working folder; only the script lives in .review-tools.
+      - uses: actions/checkout@v7
+        with:
+          path: .review-tools
+          sparse-checkout: .github/scripts
+      - name: Post the review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ needs.review.outputs.result }}
+          PROBLEM: ${{ needs.review.outputs.problem }}
+          HEADER: Automatic review (Claude, against REVIEW.md). Comments only; it never blocks a merge.
+        run: |
+          if [ -n "$RESULT" ]; then
+            { echo "**$HEADER**"; echo; echo "$RESULT"; } > review.md
+          else
+            { echo "**Automatic review didn't run.** $PROBLEM"; echo
+              echo "This pull request has had no automatic review. Once the cause is fixed, ask for one with the **review** label (remove it first if it's on), or run the local reviewer. [The run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+            } > review.md
+          fi
+          bash .review-tools/.github/scripts/pr-comment.sh "${{ github.event.pull_request.number }}" grimoire-review review.md

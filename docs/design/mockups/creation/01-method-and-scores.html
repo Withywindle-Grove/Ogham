@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creation 01 — Method and Scores (paper test, 2026-11-01)</title>
+<style>
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); width:720px; box-sizing:border-box; }
+  .screen.phone { width:375px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .why { margin:var(--space-3) 0 var(--space-1); }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; min-width:0; }
+  .row .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .row .desc { display:block; }
+  .row .src { display:block; font-size:14px; color:var(--muted); }
+  .tick { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:22px; flex:none; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; text-align:center; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:16px; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  .foot { display:flex; align-items:center; gap:var(--space-3); margin-top:var(--space-4); padding-top:var(--space-3); border-top:1px solid var(--rule); }
+  .foot .spacer { flex:1; }
+  .hint { font-size:14px; color:var(--muted); }
+  .tiles { display:grid; grid-template-columns:repeat(3, 1fr); gap:var(--space-3); margin-top:var(--space-3); }
+  .phone .tiles { grid-template-columns:repeat(2, 1fr); }
+  .tile { border:1.5px solid var(--rule); border-radius:4px; padding:var(--space-2) var(--space-3); background:var(--surface); }
+  .tile .k { font-weight:700; }
+  .tile .v { font-family:"EB Garamond", Georgia, serif; font-size:32px; font-weight:600; line-height:1.1; display:flex; align-items:center; gap:var(--space-2); }
+  .tile .v .btn { font-size:20px; padding:0; width:44px; height:44px; }
+  .tile .v .num { flex:1; text-align:center; min-height:44px; display:flex; align-items:center; justify-content:center; border-bottom:1.5px solid var(--control); }
+  .tile .v .num.empty { color:var(--muted); font-size:18px; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .tile .m { font-size:14px; color:var(--muted); display:block; min-height:21px; }
+  .callout { border:1.5px solid var(--rule); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); display:flex; gap:var(--space-3); align-items:center; }
+  .callout .text { flex:1; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:720px; }
+</style>
+</head>
+<body>
+
+<h1>1 · Method — only when the setting lets each player choose a path</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">How do you want to build?</span><span class="meta">Step 1 of 10</span></div>
+  <p class="why">This setting offers two ways to make a character. The GM lets each player pick. <span class="btn quiet">Help me choose</span></p>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Simple</span><span class="desc">Your kind is your class: one pick decides both. Fewer steps.</span><span class="src">Fen rules · p. 8 · ⓘ</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Full</span><span class="desc">Pick a kindred, then a class. More to choose; some kinds limit some classes.</span><span class="src">Fen rules · p. 9 · ⓘ</span></div></div>
+  <div class="foot"><span class="spacer"></span><span class="hint">Simple picked · 8 steps</span><span class="btn accent">Next</span></div>
+</div>
+<div class="screen phone">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">How do you want to build?</span><span class="meta">1 / 10</span></div>
+  <p class="why">Two ways to make a character; your pick. <span class="btn quiet">Help me choose</span></p>
+  <div class="row"><span class="tick">✓</span><div class="text"><span class="name">Simple</span><span class="desc">Your kind is your class. Fewer steps.</span><span class="src">p. 8 · ⓘ</span></div></div>
+  <div class="row"><span class="tick"></span><div class="text"><span class="name">Full</span><span class="desc">Kindred, then class.</span><span class="src">p. 9 · ⓘ</span></div></div>
+  <div class="foot"><span class="spacer"></span><span class="hint">8 steps</span><span class="btn accent">Next</span></div>
+</div>
+</div>
+<p class="note">Shown only when a setting leaves the player a choice: test setting A's creation-method option set to "each player chooses"; test setting B's "kindred as class" option (a non-human may play the kindred itself as the class). With one path the step doesn't exist. The hint tells the player how many steps the pick gives them. No Decide later: the path decides the steps.</p>
+
+<h1>2 · Scores — dice at the table, numbers in the app</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Scores</span><span class="meta">Step 2 of 10</span></div>
+  <p class="why">Roll 3d6 for each, in this order, and type what you got. Your scores shape what you're good at. <span class="btn quiet">Help me choose</span></p>
+  <div class="tiles">
+    <div class="tile"><span class="k">STR</span><div class="v"><span class="btn" aria-label="Lower STR">−</span><span class="num">13</span><span class="btn" aria-label="Raise STR">+</span></div><span class="m">+1 melee, open doors</span></div>
+    <div class="tile"><span class="k">INT</span><div class="v"><span class="btn">−</span><span class="num">9</span><span class="btn">+</span></div><span class="m">0 · native tongue, literate</span></div>
+    <div class="tile"><span class="k">WIS</span><div class="v"><span class="btn">−</span><span class="num">16</span><span class="btn">+</span></div><span class="m">+2 saves vs magic</span></div>
+    <div class="tile"><span class="k">DEX</span><div class="v"><span class="btn">−</span><span class="num">8</span><span class="btn">+</span></div><span class="m">−1 AC, missiles, initiative</span></div>
+    <div class="tile"><span class="k">CON</span><div class="v"><span class="btn">−</span><span class="num">11</span><span class="btn">+</span></div><span class="m">0 · hit points</span></div>
+    <div class="tile"><span class="k">CHA</span><div class="v"><span class="btn">−</span><span class="num empty">tap to type</span><span class="btn">+</span></div><span class="m">reactions, retainers</span></div>
+  </div>
+  <div class="foot"><span class="spacer"></span><span class="hint">CHA is missing</span><span class="btn accent">Next</span></div>
+</div>
+<div class="screen phone">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Scores</span><span class="meta">2 / 10</span></div>
+  <p class="why">Roll 3d6 for each, in order; type what you got. <span class="btn quiet">Help me choose</span></p>
+  <div class="tiles">
+    <div class="tile"><span class="k">STR</span><div class="v"><span class="btn">−</span><span class="num">13</span><span class="btn">+</span></div><span class="m">+1 melee</span></div>
+    <div class="tile"><span class="k">INT</span><div class="v"><span class="btn">−</span><span class="num">9</span><span class="btn">+</span></div><span class="m">0</span></div>
+    <div class="tile"><span class="k">WIS</span><div class="v"><span class="btn">−</span><span class="num">16</span><span class="btn">+</span></div><span class="m">+2 magic saves</span></div>
+    <div class="tile"><span class="k">DEX</span><div class="v"><span class="btn">−</span><span class="num">8</span><span class="btn">+</span></div><span class="m">−1 AC, missiles</span></div>
+    <div class="tile"><span class="k">CON</span><div class="v"><span class="btn">−</span><span class="num">11</span><span class="btn">+</span></div><span class="m">0 hp</span></div>
+    <div class="tile"><span class="k">CHA</span><div class="v"><span class="btn">−</span><span class="num empty">tap</span><span class="btn">+</span></div><span class="m"> </span></div>
+  </div>
+  <div class="foot"><span class="spacer"></span><span class="hint">CHA missing</span><span class="btn accent">Next</span></div>
+</div>
+</div>
+<p class="note">Six tiles in the pack's ability order; each shows the <b>modifier and what it affects</b> from the pack's modifier table as soon as a number is typed ("+1 melee, open doors"), so the player sees the consequence without a lookup. − / + nudge; tapping the number types it (no automatic keyboard, A4). <b>Next checks</b>: an empty score ("CHA is missing") or one outside the setting's range ("STR must be 3–18"); it never blocks silently — it says what's wrong and stays tappable. Racial changes aren't here: they appear on the Race step when a race is picked (next mockup). Back keeps every number.</p>
+
+<h1>3 · A setting's start-over rule (test setting B's option), shown only when it triggers</h1>
+<div class="screen">
+  <div class="callout"><div class="text"><b>Weak roll.</b> By this setting's rule you may start over: every score is 8 or less. <span class="meta">Fen rules · p. 10</span></div><span class="btn">Start over</span><span class="btn quiet">Keep them</span></div>
+  <div class="foot"><span class="spacer"></span><span class="hint">All six entered</span><span class="btn accent">Next</span></div>
+</div>
+<p class="note">Offered, never forced: Start over clears the six tiles (Undo on the toast). With the option off, or scores that don't trigger the rule, nothing shows. The rule's numbers come from the pack, not the app (⚑: today they're the option's text; the shape goes to 07).</p>
+
+<p class="note">Checked: visibility (each tile explains itself; the foot says what's missing); error prevention (range check, start-over offer); 44 px − / + and number targets, 8 px between; 375 px as two columns; long "affects" text wraps under the number; one accent (Next); never colour alone. Not drawn: dark mode (light only by request); a saved-and-resumed state (the tiles simply show the kept numbers).</p>
+</body>
+</html>

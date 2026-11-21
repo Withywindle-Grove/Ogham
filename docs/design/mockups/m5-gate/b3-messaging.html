@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B3 — Messaging (M5 gate, approved 2026-11-01)</title>
+<style>
+  /* Tokens from docs/06 only. Light only, full size (Francis, 2026-11-01). Buttons are plain blocks. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); max-width:1024px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-3) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; }
+  .row .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .row .desc { display:block; }
+  .row .chev { color:var(--muted); font-size:24px; }
+  .count { display:inline-block; min-width:28px; padding:2px 8px; border:1.5px solid var(--ink); border-radius:14px; font-size:14px; text-align:center; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:16px; line-height:1.2; text-align:center; box-sizing:border-box; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .btn.icon { width:44px; height:44px; padding:10px; position:relative; }
+  .btn.icon .count { position:absolute; top:-8px; right:-8px; background:var(--sheet); }
+  .msg { max-width:70%; padding:var(--space-3); border:1px solid var(--rule); border-radius:4px; margin:var(--space-2) 0; background:var(--surface); }
+  .msg.mine { margin-left:auto; background:var(--sheet); }
+  .msg .who { font-size:14px; color:var(--muted); display:block; }
+  .attach { display:flex; align-items:center; gap:var(--space-2); margin-top:var(--space-2); padding:var(--space-2); border:1.5px solid var(--control); border-radius:4px; min-height:44px; box-sizing:border-box; }
+  .thumb { width:44px; height:44px; border:1px solid var(--rule); background:var(--page); display:inline-block; }
+  .field { min-height:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; color:var(--muted); box-sizing:border-box; flex:1; }
+  .switch { display:inline-flex; align-items:center; gap:var(--space-2); min-height:44px; }
+  .switch .knob { width:44px; height:24px; border:1.5px solid var(--control); border-radius:12px; position:relative; }
+  .switch .knob::after { content:""; position:absolute; left:2px; top:2px; width:18px; height:18px; border-radius:9px; background:var(--control); }
+  .card { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); display:flex; justify-content:space-between; align-items:center; gap:var(--space-2); background:var(--sheet); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:1024px; }
+</style>
+</head>
+<body>
+
+<h1>1 · Messages (full screen, from the ✉ icon at the top beside the log icon)</h1>
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Messages</span><span class="meta">Gate Delve</span><span class="btn">New message</span></div>
+  <div class="row"><div class="text"><span class="name">Wren</span> <span class="tag meta">· Tam's character · just now</span><span class="desc">You alone notice the lectern has been moved…</span></div><span class="count">1</span><span class="chev">›</span></div>
+  <div class="row"><div class="text"><span class="name">The GM</span> <span class="meta">· turn 9</span><span class="desc">📎 Torn page of the abbey ledger</span></div><span class="chev">›</span></div>
+</div>
+<p class="note">Messages run <b>between the GM and a player only</b> (Francis, 2026-11-01: no player-to-player messages). The GM sees one thread per character; a player sees one thread, with the GM. Newest first. Unread shows as a count in words, never a colour alone. Who can message: the GM, and every player with an approved character in play, writing to the GM as their character. Spectators can't. Empty: "No messages yet · New message".</p>
+
+<h1>2 · A thread (GM's view, writing to Wren)</h1>
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Wren</span><span class="meta">Tam · in Group 1</span></div>
+  <div class="msg"><span class="who">Wren · turn 8</span>Is the figure moving at all when no one looks?</div>
+  <div class="msg mine"><span class="who">You · turn 8</span>You alone notice the lectern has been moved: fresh scrape marks in the silt. <span class="meta">· Disappears once read · read</span></div>
+  <div class="msg mine"><span class="who">You · turn 9</span>From the ledger:<div class="attach"><span class="thumb" aria-hidden="true"></span><span>Torn page of the abbey ledger <span class="meta">· handout · from the adventure</span></span></div></div>
+  <div style="display:flex; gap:var(--space-2); margin-top:var(--space-4); align-items:center;"><span class="field">Write a message…</span><span class="btn">Attach</span><span class="btn accent">Send</span></div>
+  <div style="display:flex; gap:var(--space-4); margin-top:var(--space-3); align-items:center; flex-wrap:wrap;"><span class="switch"><span class="knob" aria-hidden="true"></span>Disappears once read</span><span class="meta">This message disappears once they've read it.</span></div>
+</div>
+<p class="note">The field never takes focus by itself (A4). <b>Attach</b> opens a sheet: <b>Handouts</b> (anything already revealed or kept), <b>From the adventure</b> (GM only, M8b: a room's read-aloud crop, a clue, an image), <b>A file</b> (a picture from the device). A check result can be attached from the Hit panel's "Message…" (replaces Send there). <b>Disappears once read</b> is the only option, off by default; the recipient sees the message until they close it, then it's gone from their device; the GM's log keeps the text (03). One accent button: Send. Undo on Send for 8 s, as with every message today.</p>
+
+<h1>3 · Receiving one (a player's Scene; works in quiet mode)</h1>
+<div class="screen">
+  <div class="card"><span>✉ Message from the GM</span><span class="btn">Open</span></div>
+  <div class="meta" style="margin-top:var(--space-3)">… the live table view carries on underneath (time strip, place, marching order) …</div>
+</div>
+<p class="note">A silent card slides in over the top of Scene (a working panel, nothing jumps; the quiet-mode reveal rule already allows one silent card). Open goes to the thread; the card stays until opened. No sound, no preview of the text: the content is a secret and the screen may be seen by a neighbour. Offline: a sent message says "Sends when back online"; a received one waits.</p>
+
+<h1>4 · New message · who? (the GM's screen; a player has only the GM, so New message opens the thread)</h1>
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">New message</span></div>
+  <div class="row"><div class="text"><span class="name">Wren</span> <span class="meta">· Tam · Group 1</span></div><span class="btn">Pick</span></div>
+  <div class="row"><div class="text"><span class="name">Brother Haeth</span> <span class="meta">· Sol · Group 1</span></div><span class="btn">Pick</span></div>
+  <div class="row"><div class="text"><span class="name">Oswy</span> <span class="meta">· Lea · Group 2</span></div><span class="btn">Pick</span></div>
+  <div class="row"><div class="text"><span class="meta">Pick one or more characters (a message to several lands in each one's thread). There is no "Everyone": what everyone hears, say aloud.</span></div></div>
+</div>
+
+</body>
+</html>

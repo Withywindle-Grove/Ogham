@@ -1,0 +1,175 @@
+/* The caller's banner (mc-76; page 04 C3, C5, C8): the head of the marching order's card. Tokens only. */
+.caller {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-block-end: var(--space-3);
+  border-block-end: var(--line-hair) solid var(--rule);
+}
+
+/* One target, well over 44 px; the tone is the cue (C5): at rest no edge, under the pointer the ground a step darker
+   with an edge, pressed a step darker again. */
+.caller__banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  inline-size: 100%;
+  min-block-size: var(--tap);
+  padding: var(--space-3) var(--space-2);
+  border: var(--line-hair) solid transparent;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .caller__banner:hover {
+    border-color: var(--control);
+    background: var(--surface);
+  }
+}
+
+.caller__banner:active,
+.caller__banner[aria-expanded='true'] {
+  border-color: var(--ink);
+  background: var(--surface);
+}
+
+.caller__banner:focus-visible {
+  outline: var(--line-selected) solid var(--outline);
+  outline-offset: var(--line-selected);
+}
+
+.caller__mark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The flourish: a hairline ending in a small diamond, either side of the mark. */
+.caller__flourish {
+  position: relative;
+  inline-size: var(--space-8);
+  border-block-start: var(--line-hair) solid var(--muted);
+}
+
+.caller__flourish::after {
+  content: '';
+  position: absolute;
+  inset-inline-end: calc(var(--space-1) * -1);
+  inset-block-start: calc(var(--space-1) * -1);
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border: var(--line-hair) solid var(--muted);
+  background: var(--sheet);
+  transform: rotate(45deg) scale(0.7);
+}
+
+.caller__flourish--right::after {
+  inset-inline-end: auto;
+  inset-inline-start: calc(var(--space-1) * -1);
+}
+
+.caller__who {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: var(--space-2);
+  max-inline-size: 100%;
+}
+
+.caller__word {
+  color: var(--muted);
+  font-family: var(--font-book-descriptor);
+  font-size: var(--text-20);
+  font-weight: var(--weight-book-descriptor);
+}
+
+.caller__name {
+  font-family: var(--font-heading);
+  font-size: var(--text-24);
+  font-weight: var(--weight-heading);
+  overflow-wrap: anywhere;
+}
+
+/* The circles under the banner (C8): in place, centred in rows, 8 px or more apart; ✕ at the corner. */
+.caller__choose {
+  position: relative;
+  padding: var(--space-6) var(--space-3) var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.caller__close {
+  position: absolute;
+  inset-block-start: var(--space-1);
+  inset-inline-end: var(--space-1);
+}
+
+.caller__circles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.caller__pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  inline-size: calc(var(--space-8) + var(--space-3));
+  min-block-size: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.caller__disc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--space-8);
+  block-size: var(--space-8);
+  border: var(--line-strong) solid transparent;
+  border-radius: 50%;
+}
+
+.caller__disc .portrait {
+  color: var(--ink);
+}
+
+/* The caller now: a second ring in ink round the circle and the name in bold (a shape, not colour alone). */
+.caller__pick--now .caller__disc {
+  border-color: var(--ink);
+}
+
+.caller__pick--now .caller__pick-name {
+  font-weight: var(--weight-heading);
+}
+
+.caller__empty {
+  inline-size: calc(var(--space-7) + var(--space-2));
+  block-size: calc(var(--space-7) + var(--space-2));
+  border: var(--line-control) dashed var(--control);
+  border-radius: 50%;
+}
+
+.caller__pick-name {
+  display: -webkit-box;
+  max-inline-size: 100%;
+  overflow: hidden;
+  font-size: var(--text-14);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}

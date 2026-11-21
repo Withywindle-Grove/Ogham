@@ -1,0 +1,34 @@
+/* A place's Knowledge (dec-7 piece 6a; mockup december/01 frames 7 and 7b). Tokens only. The facts at the top, then
+   the folded sections, each under a rule, then the source line. */
+.knowledge {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.knowledge__sections {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.knowledge__sections > .place-facts__fold,
+.knowledge__sections > div {
+  padding-block: var(--space-2);
+  border-block-start: var(--line-hair) solid var(--rule);
+}
+
+/* The chevron beside the heading's line, not the middle of the heading and its first line. */
+.knowledge__sections .place-card__summary {
+  align-items: flex-start;
+}
+
+.knowledge__sections .place-card__chevron {
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+}
+
+.knowledge__sections > :last-child {
+  border-block-end: var(--line-hair) solid var(--rule);
+}

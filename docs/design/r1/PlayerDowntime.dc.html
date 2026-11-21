@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Player in downtime</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;overflow:hidden">
+<div style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px 8px;display:flex;flex-direction:column;gap:8px">
+
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:32px;font-weight:600">Wren</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="padding:5px 12px;border-radius:14px;border:1px solid {{c.rule}};font-size:14px;color:{{c.mut}}">Downtime · week 1</span></span>
+</div>
+
+<div style="display:flex;align-items:center;gap:8px;padding:4px 4px 4px 12px;border-radius:10px;background:{{c.tint}}">
+<span style="flex:1;font-size:15px;font-weight:700">Ready for 4th level</span>
+<a href="LevelUp.dc.html" style="min-height:44px;display:inline-flex;align-items:center;padding:0 10px;color:{{c.acc}};font-weight:700;font-size:15px;text-decoration:none">Review</a>
+</div>
+<div style="font-size:14px;color:{{c.mut}}">3 check results from session 8 are now in the log.</div>
+
+<div style="border-top:3px double {{c.rule}};padding-top:10px;{{S.label}}">Your activities</div>
+
+<div style="border:1px solid {{offerBorder}};border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:21px;font-weight:600;line-height:1.15">Copy Mist Step into my spell book</div>
+<div style="font-size:14px;color:{{c.mut}}">You asked: “Could I do it in 1 week if I pay double for a scribe?”</div>
+<div style="padding:10px;border-radius:8px;background:{{c.bubble}};font-size:15px;line-height:1.45"><b>GM:</b> Yes. A scribe from the archive helps. 1 week, 400 gp, and you still roll vs INT at the end.</div>
+<sc-if value="{{offerOpen}}" hint-placeholder-val="{{ true }}">
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+<button onClick="{{accept}}" style="{{S.primary}}">Accept</button>
+<button onClick="{{ask}}" style="{{S.btn}}">Ask to change</button>
+<button onClick="{{decline}}" style="{{S.btn}}">Decline</button>
+</div>
+</sc-if>
+<sc-if value="{{asking}}" hint-placeholder-val="{{ false }}">
+<label for="change" style="font-size:14px;color:{{c.mut}}">What would you change?</label>
+<textarea id="change" rows="2" style="resize:none;padding:10px;border:1px solid {{c.rule}};border-radius:6px;background:transparent;color:inherit;font-family:inherit;font-size:16px">Could the scribe take part payment in spell ink instead?</textarea>
+<button onClick="{{reset}}" style="{{S.primary}}">Send to the GM</button>
+</sc-if>
+<sc-if value="{{settled}}" hint-placeholder-val="{{ false }}"><div style="font-size:15px;font-weight:700;color:{{c.acc}}">{{settledText}}</div><button onClick="{{reset}}" style="min-height:44px;background:none;border:none;color:{{c.mut}};font-family:inherit;font-size:14px;text-align:left;padding:0">Undo (demo)</button></sc-if>
+</div>
+
+<div style="border:1px solid {{c.rule}};border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-family:'EB Garamond',Georgia,serif;font-size:21px;font-weight:600">Research the drowned chapel</span><span style="font-size:13px;color:{{c.mut}}">since session 7</span></div>
+<div style="font-size:15px">1 of 4 leads found · 10 gp a week</div>
+<div aria-hidden="true" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px"><span style="height:12px;border-radius:2px;background:{{c.acc}}"></span><span style="height:12px;border-radius:2px;background:{{c.track}}"></span><span style="height:12px;border-radius:2px;background:{{c.track}}"></span><span style="height:12px;border-radius:2px;background:{{c.track}}"></span></div>
+<button style="min-height:44px;background:none;border:none;color:{{c.acc}};font-family:inherit;font-size:15px;font-weight:700;text-align:left;padding:0">Post an update to the GM</button>
+</div>
+
+<button onClick="{{toggleDone}}" aria-expanded="{{doneOpen}}" style="min-height:48px;display:flex;justify-content:space-between;align-items:center;border:none;border-top:1px solid {{c.rule}};background:transparent;color:{{c.mut}};font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;padding:6px 0 0;cursor:pointer"><span>Completed (2)</span><span aria-hidden="true">{{doneArrow}}</span></button>
+<sc-if value="{{doneOpen}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;justify-content:space-between;min-height:44px;align-items:center;border-bottom:1px dotted {{c.rule}};font-size:15px"><span>Copy Glimmer into my book</span><span style="color:{{c.mut}};font-size:13px">session 3</span></div>
+<div style="display:flex;justify-content:space-between;min-height:44px;align-items:center;border-bottom:1px dotted {{c.rule}};font-size:15px"><span>Join the lamplighters’ guild</span><span style="color:{{c.mut}};font-size:13px">session 5</span></div>
+</sc-if>
+<div style="display:flex;flex-direction:column;gap:6px;padding-top:4px">
+<label for="propose" style="{{S.label}}">Propose something new</label>
+<textarea id="propose" rows="2" placeholder="What does Wren do with her time?" style="resize:none;padding:10px;border:1px solid {{c.rule}};border-radius:6px;background:transparent;color:inherit;font-family:inherit;font-size:16px"></textarea>
+<button style="{{S.btn}}">Send to the GM</button>
+</div>
+
+<div style="border-top:3px double {{c.rule}};padding-top:10px;{{S.label}}">Your purse · private</div>
+<div style="display:flex;justify-content:space-between;min-height:40px;align-items:center;border-bottom:1px dotted {{c.rule}}"><span>On you</span><b>220 gp</b></div>
+<div style="display:flex;justify-content:space-between;min-height:40px;align-items:center;border-bottom:1px dotted {{c.rule}}"><span>Reedmouth bank</span><b>1,320 gp</b></div>
+<sc-if value="{{placePending}}" hint-placeholder-val="{{ true }}"><div style="display:flex;justify-content:space-between;min-height:40px;align-items:center;border-bottom:1px dotted {{c.rule}};color:{{c.mut}}"><span><i>Hollow oak cache</i></span><span style="font-size:14px">waiting for the GM</span></div></sc-if>
+<sc-if value="{{placeDenied}}" hint-placeholder-val="{{ false }}"><div style="padding:8px 10px;border-radius:8px;background:{{c.tint}};font-size:15px">The GM declined “Hollow oak cache”. Talk it through, then try again.</div></sc-if>
+<div style="display:flex;gap:12px"><button style="min-height:44px;background:none;border:none;color:{{c.acc}};font-family:inherit;font-size:15px;font-weight:700;text-align:left;padding:0">Move coin</button><button style="min-height:44px;background:none;border:none;color:{{c.acc}};font-family:inherit;font-size:15px;font-weight:700;text-align:left;padding:0">Add a place</button><button onClick="{{demoDeny}}" style="min-height:44px;background:none;border:none;color:{{c.mut}};font-family:inherit;font-size:13px;padding:0;margin-left:auto">Demo: GM declines</button></div>
+<div style="{{S.label}};padding-top:4px">Party coffers</div>
+<div style="display:flex;justify-content:space-between;min-height:40px;align-items:center;border-bottom:1px dotted {{c.rule}}"><span>Temple vault, Reedmouth</span><b>1,250 gp</b></div>
+<div style="display:flex;justify-content:space-between;min-height:40px;align-items:center;border-bottom:1px dotted {{c.rule}}"><span>Carried by Ash</span><b>154 gp</b></div>
+<div style="font-size:14px;color:{{c.mut}}">Last: +1,520 gp from the split (session 8): 200 carried, 1,320 to the bank</div>
+<a href="#" style="min-height:44px;display:inline-flex;align-items:center;color:{{c.acc}};font-weight:700;font-size:15px;text-decoration:none">Ledger and charter ›</a>
+</div>
+
+<nav aria-label="Main" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:3px double {{c.rule}}">
+<button aria-current="page" style="{{S.navOn}}">Player</button>
+<button style="{{S.navOff}}">Events</button>
+<button style="{{S.navOff}}">Pack</button>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { offer: null, doneOpen: false, dark: null, place: 'pending' };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = s.dark ?? (this.props.dark ?? false);
+    const c = dark
+      ? { bg: '#12100D', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', tint: '#4A3A22', track: '#2A251E', bubble: '#1F1B16', onAcc: '#12100D' }
+      : { bg: '#FBF8F1', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', tint: '#F3E6CB', track: '#E9E2D4', bubble: '#F3EEE3', onAcc: '#FBF8F1' };
+    const G = "'EB Garamond',Georgia,serif";
+    return {
+      c: c, isDark: dark, isLight: !dark, themeLabel: dark ? 'Switch to light' : 'Switch to dark', toggleTheme: () => this.setState({ dark: !dark }),
+      placePending: s.place === 'pending', placeDenied: s.place === 'denied', demoDeny: () => this.setState({ place: s.place === 'denied' ? 'pending' : 'denied' }),
+      doneOpen: s.doneOpen, doneArrow: s.doneOpen ? '▾' : '▸', toggleDone: () => this.setState({ doneOpen: !s.doneOpen }),
+      offerOpen: s.offer === null, asking: s.offer === 'ask', settled: s.offer === 'accept' || s.offer === 'decline',
+      settledText: s.offer === 'accept' ? 'Accepted. Now active: 0 of 1 week. 400 gp leaves your purse when the week starts.' : 'Declined. Propose something else below.',
+      offerBorder: s.offer === null ? c.acc : c.rule,
+      accept: () => this.setState({ offer: 'accept' }), ask: () => this.setState({ offer: 'ask' }), decline: () => this.setState({ offer: 'decline' }), reset: () => this.setState({ offer: null }),
+      S: {
+        label: 'font-family:' + G + ';font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:' + c.mut,
+        btn: 'min-height:48px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:17px;font-weight:600;cursor:pointer',
+        primary: 'min-height:48px;border-radius:4px;border:none;background:' + c.acc + ';color:' + c.onAcc + ';font-family:' + G + ';font-size:17px;font-weight:600;cursor:pointer',
+        navOn: 'height:62px;background:none;border:none;color:' + c.ink + ';font-family:' + G + ';font-size:20px;font-weight:600;font-variant:small-caps;letter-spacing:.06em;text-decoration:underline;text-underline-offset:6px',
+        navOff: 'height:62px;background:none;border:none;color:' + c.mut + ';font-family:' + G + ';font-size:20px;font-variant:small-caps;letter-spacing:.06em'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-reed-overlay",
+    "name": "Invented reed overlay",
+    "shortName": "Reed zine",
+    "version": "0.1",
+    "kind": "homebrew",
+    "author": "Invented for the app's tests",
+    "requires": [
+      {
+        "packId": "fixture-fen-options",
+        "minVersion": "0.1"
+      }
+    ],
+    "description": "An invented overlay for testing an option that extends its base's option (options-gates PR 2, of-1): a fourth way of carrying, made-up names and numbers."
+  },
+  "options": [
+    {
+      "id": "reed-slots",
+      "name": "Reed slots",
+      "extends": "fen-carrying",
+      "notes": "Count reed bundles in slots instead of weighing coins.",
+      "choices": [
+        {
+          "id": "slot",
+          "name": "Reed slots",
+          "short": "Reed slots"
+        }
+      ]
+    },
+    {
+      "id": "reed-wet-boots",
+      "name": "Wet boots",
+      "default": "off",
+      "changeLater": "allow",
+      "choices": [
+        {
+          "id": "on",
+          "name": "On"
+        },
+        {
+          "id": "off",
+          "name": "Off"
+        }
+      ],
+      "notes": "Wading leaves boots wet until the next camp."
+    }
+  ],
+  "rulesSets": [
+    {
+      "id": "reed-overlay-rules",
+      "name": "Reed overlay rules",
+      "byOption": {
+        "fen-carrying=slot": {
+          "encumbrance": {
+            "mode": "slot",
+            "slot": {
+              "baseSlots": 12
+            }
+          }
+        }
+      }
+    }
+  ]
+}

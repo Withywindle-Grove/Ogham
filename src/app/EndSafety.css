@@ -1,0 +1,15 @@
+/* The end of an expedition and safety (m8b-0 delivery 5; the end card's dress since S19, page 16 T11 to T11d): each a
+   line of the end card (`.end-card__row`, EndCard.css), its words at the left and its controls at the right, wrapping
+   under the words where they don't fit beside them. The words in the body size and ink. Tokens only. */
+.safe-place__question,
+.staying-a-while__note {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  color: var(--ink);
+}
+
+/* The switch stays at the row's right even when it wraps under the question (T11d). */
+.safe-place > .button-row--switch {
+  margin-inline-start: auto;
+}

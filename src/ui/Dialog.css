@@ -1,0 +1,420 @@
+/* A centred card over the screen, with the page dimmed behind it. */
+.dialog__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gutter);
+  background: var(--scrim);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  width: min(var(--popup-width-min), 100%);
+  max-height: calc(100dvh - 2 * var(--gutter));
+  overflow-y: auto;
+  padding: var(--pad);
+  border-radius: var(--radius-sheet);
+  background: var(--popup);
+  color: var(--ink);
+  box-shadow: var(--shadow-popup);
+  outline: none;
+}
+
+/* The title and Close (✕) on one line, Close at the top right (tf-8). */
+.dialog__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-block-start: calc(0px - var(--space-2));
+  margin-inline-end: calc(0px - var(--space-2));
+  /* Air between the title and the sheet's first line, usually its small line (mc-42a: "crowded at the top"), on every
+     sheet: the card's gap plus one step. On the head itself, so no later rule on the first line takes it away. */
+  margin-block-end: var(--space-1);
+}
+
+.dialog__head .dialog__title {
+  flex: 1;
+  min-inline-size: 0;
+  padding-block-start: var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+/* Variant "Figure head" (plan dec-player-figure-sheet; mockup december/14, P7 and P7b): a figure's sheet (a save, a
+   score, armour class, attack) has its title at the save tile's size and its number large at the right, level with the
+   title's middle, before ✕. A long title wraps beside it; the number never breaks. */
+.dialog__head--figure {
+  align-items: center;
+}
+
+.dialog__head--figure .dialog__title {
+  padding-block-start: 0;
+  font-size: var(--text-save);
+}
+
+.dialog__figure {
+  flex: none;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-ac);
+  line-height: var(--line-heading);
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
+}
+
+.dialog__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-item);
+}
+
+/* The foot of every sheet and pop-up (ft-1, 2026-11-14, "buttons are right justified"; the approved Pack frames PK3,
+   PK5, PK10b and the shop's TW4a): a lone accent at the right at its own width, never stretched and never at the left;
+   two or more side by side, the group at the right, in code order, which is reading order and Tab order (the order
+   within the group is the screen's approved drawing; where none settles it, the accent first). It replaces tf-4's
+   full-width foot buttons. */
+.dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--gap);
+}
+
+/* When they don't fit one row (Dialog.tsx measures it, `stackFeet`), they stack, each at the right, in the same order
+   (B19: a long label never breaks the row). */
+.dialog__actions--stacked {
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* A group of stacked buttons in a foot (stk-2, `StackedGroup`) stacks the same way: one column at the right, in the
+   same order, every button the widest one's width (the group's one column is its widest). */
+.dialog__actions--stacked > .stacked-group {
+  grid-auto-flow: row;
+}
+
+/* A plain button's own `align-self: flex-start` (buttons.css) would put it at the top or the left; a long label wraps
+   inside the foot's width. */
+.dialog__actions > .button-primary,
+.dialog__actions > .button-secondary {
+  align-self: auto;
+  max-inline-size: 100%;
+}
+
+/* The accent at its own width, on a phone too, where every other accent button is the screen's full width (App.css).
+   A stacked accent (StackedButton) is one of these. */
+.dialog__actions > .button-primary {
+  width: auto;
+}
+
+/* A reading pop-up's foot (tfb-2, 2026-11-19; page M2, approved 2026-11-19): "Got it", the plain button, at the right
+   over the foot's rule, as an entry from the book ends (`.entry-panel__foot` in creation.css). */
+.dialog__got-it {
+  padding-block-start: var(--space-3);
+  border-block-start: var(--line-hair) solid var(--rule);
+}
+
+.dialog--preview {
+  max-height: none;
+}
+
+/* Wide (M5b step g6, B6): a wider centred card on a tablet; the whole screen on a phone. */
+.dialog--wide {
+  width: min(var(--popup-width-max), 100%);
+}
+
+/* Centred (fb7-1 to fb7-6, 2026-11-20; page 31, frames FB7b to FB7h): on the Player tab, on a tablet either way up,
+   every pop-up opens in the middle of the screen (the backdrop centres it; Dialog.tsx never places it beside its
+   button) and fits its content: as wide as its longest line, 440 px at least, 720 px at most, never wider than the
+   screen less its margins (the backdrop's padding), a long one's lines wrapping at 720. A pop-up fitted to a form of
+   its own (Hit points, PlayerScreen.css) keeps its own width. Under 700 px the sheet comes up from the bottom, as
+   before. */
+@media (min-width: 700px) {
+  .dialog--centred {
+    inline-size: fit-content;
+    min-inline-size: min(var(--popup-width-min), 100%);
+    max-inline-size: min(var(--popup-width-max), 100%);
+  }
+}
+
+/* Picture (dec-7 piece 5a, mc-43; mockup december/01, M3 to M6): a picture shown whole, the widest card (1,120 px on a
+   PC) and the screen's height, so its body takes what the head leaves; the whole screen on a phone (below). */
+.dialog--picture {
+  width: min(1120px, 100%);
+  height: calc(100dvh - 2 * var(--gutter));
+  overflow: hidden;
+}
+
+.dialog--picture.dialog--preview {
+  height: 520px;
+}
+
+/* The picture pop-up's title at the step the mockup draws it (M3: "The map", 24). */
+.dialog--picture .dialog__title {
+  font-size: var(--text-24);
+}
+
+/* The small line over a title (the picture pop-up's place name, "Reedmouth" over "The map"). */
+.dialog__titles {
+  flex: 1;
+  min-inline-size: 0;
+  padding-block-start: var(--space-2);
+}
+
+.dialog__titles .dialog__title {
+  padding-block-start: 0;
+  overflow-wrap: anywhere;
+}
+
+.dialog__over {
+  margin: 0 0 var(--space-1);
+  color: var(--muted);
+  font-size: var(--text-14);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 599px) {
+  .dialog--picture {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    padding-top: calc(var(--pad) + env(safe-area-inset-top));
+    padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom));
+  }
+
+  .dialog--picture.dialog--preview {
+    height: 640px;
+  }
+}
+
+@media (max-width: 599px) {
+  .dialog__backdrop--wide {
+    padding: 0;
+  }
+
+  .dialog--wide {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    padding-top: calc(var(--pad) + env(safe-area-inset-top));
+    padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom));
+  }
+}
+
+/* The Sheet (final drafts A7; creation for now): on a phone it comes up from the bottom over the dimmed page, the
+   full width, its top corners rounded; on a tablet it opens beside its button (`dialog--anchored`, placed by
+   Dialog.tsx), else centred. */
+@media (max-width: 699px) {
+  .dialog__backdrop--sheet {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .dialog--sheet,
+  .dialog--sheet.dialog--wide {
+    width: 100%;
+    height: auto;
+    max-height: 90dvh;
+    border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+    padding-top: var(--pad);
+    padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom));
+    animation: sheet-up 200ms ease-out;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog--sheet,
+  .dialog--sheet.dialog--wide {
+    animation: none;
+  }
+}
+
+/* A sheet on a tablet (T2, retest 4: the last row and the foot were cut off on an iPad): its foot clears the home
+   indicator, and it is never taller than the screen above it. Placed beside its button, Dialog.tsx caps its height
+   from where it opens (`--sheet-top`) to the bottom; that top is set once, as it opens, and never follows a later
+   move, so the cap can't change with the place (fix-sheet-replacing-on-ipad). The same family as the Players
+   column's fix. */
+@media (min-width: 700px) {
+  .dialog--sheet {
+    max-height: calc(100dvh - 2 * var(--gutter) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom));
+  }
+}
+
+/* Table (T4, retest 4): every table sheet (a describing table, names, the kit's rolls) on a tablet takes the screen's
+   width up to the page's 1024 px, so its rows never wrap as on a phone; beside its button it still fits the margins.
+   On a phone it is the sheet from the bottom, as every sheet. */
+@media (min-width: 700px) {
+  .dialog--table {
+    width: min(1024px, 100%);
+  }
+
+  .dialog--table.dialog--anchored {
+    width: min(1024px, calc(100vw - 2 * var(--gutter)));
+  }
+}
+
+.dialog--anchored {
+  position: fixed;
+  max-height: calc(100dvh - var(--sheet-top, var(--gutter)) - var(--gutter) - env(safe-area-inset-bottom));
+}
+
+/* Full screen (M5b step g3): the whole page, a bar at the top (Back, the title, a quiet meta line), the body scrolling. */
+.dialog__backdrop--full {
+  padding: 0;
+  background: var(--page);
+}
+
+.dialog--full {
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  padding: 0;
+  gap: 0;
+  border-radius: 0;
+  background: var(--page);
+  box-shadow: none;
+  overflow: hidden;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.dialog__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--gutter);
+  border-bottom: var(--line-hair) solid var(--rule);
+}
+
+.dialog__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  font-size: var(--text-24);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dialog__title--bar {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-24);
+  overflow-wrap: anywhere;
+}
+
+.dialog__meta {
+  flex: none;
+  max-width: 40%;
+  color: var(--muted);
+  font-size: var(--text-14);
+  text-align: right;
+}
+
+.dialog__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2) var(--gutter) var(--space-6);
+}
+
+.dialog__body > * {
+  max-width: 1024px;
+}
+
+/* Drawer (the phone's navigation, final drafts A11, slice E; mockup creation/17): the whole height at the left, over
+   the dimmed page, clear of the notch and the home indicator. Its rows scroll inside it when they don't fit. */
+.dialog__backdrop--drawer {
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 0;
+}
+
+.dialog--drawer {
+  width: min(300px, 85vw);
+  max-height: none;
+  height: 100dvh;
+  gap: 0;
+  border-radius: 0;
+  background: var(--sheet);
+  border-inline-end: var(--line-hair) solid var(--rule);
+  padding-top: calc(var(--pad) + env(safe-area-inset-top));
+  padding-bottom: env(safe-area-inset-bottom);
+  overscroll-behavior: contain;
+}
+
+.dialog--drawer.dialog--preview {
+  height: auto;
+  box-shadow: none;
+}
+
+/* Side (plan dec-9 piece B, ds-6a; pictures december/08-01 to 08-03): the drawer's twin at the right, the whole height
+   over the dimmed page on a tablet and the whole screen on a phone. It doesn't scroll as a whole: its head and ✕ stay
+   in view and its body (`.dialog__side-body`) scrolls under them. Content that fills the body (`flex: 1`, `min-height:
+   0`) can scroll a part of itself instead, as "About this app" scrolls its rows under its Credits line. Notes reuse it. */
+.dialog__backdrop--side {
+  align-items: stretch;
+  justify-content: flex-end;
+  padding: 0;
+}
+
+.dialog--side {
+  width: min(480px, 100%);
+  height: 100dvh;
+  max-height: none;
+  overflow: hidden;
+  border-radius: 0;
+  background: var(--sheet);
+  border-inline-start: var(--line-hair) solid var(--rule);
+  padding-top: calc(var(--pad) + env(safe-area-inset-top));
+  padding-bottom: env(safe-area-inset-bottom);
+  overscroll-behavior: contain;
+}
+
+.dialog__side-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dialog--side.dialog--preview {
+  height: 560px;
+  box-shadow: none;
+}
+
+@media (max-width: 699px) {
+  .dialog--side {
+    width: 100%;
+    border-inline-start: none;
+  }
+}

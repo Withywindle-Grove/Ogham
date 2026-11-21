@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library 05 — test feedback options: shared rules (#1), the selected colour (#4), Close (#8), the GM reference (#10, #11), 2026-11-03</title>
+<style>
+  /* Tokens from docs/06 only, except the two proposed "Selected" tokens in #4 A (marked). Light only. Buttons are plain blocks. Invented examples. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF;
+          --selected-wash:#F3E7E3; /* proposed, #4 A */ }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--page); border:1px solid var(--rule); border-radius:4px; box-sizing:border-box; padding:var(--space-4); }
+  .wide { width:760px; } .phone { width:375px; } .mid { width:420px; }
+  .card { background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:var(--space-4); }
+  .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .muted { color:var(--muted); } .small { font-size:14px; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--space-2); min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; }
+  .btn.sm { min-height:44px; padding:6px 10px; font-size:16px; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:48px; border-top:1px solid var(--rule); padding:var(--space-1) 0; }
+  .row .grow { flex:1; min-width:0; }
+  .opt { display:flex; gap:var(--space-3); align-items:flex-start; border:1.5px solid var(--control); border-radius:6px; padding:var(--space-2) var(--space-3); margin-top:var(--space-2); background:var(--sheet); width:100%; box-sizing:border-box; }
+  .opt .t { font-family:"EB Garamond", Georgia, serif; font-size:19px; font-weight:600; }
+  .opt.selA { background:var(--selected-wash); border:2px solid var(--accent); }
+  .opt.selB { background:var(--surface); border:3px solid var(--ink); }
+  .opt.selC { background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+  .opt.selC .muted { color:var(--on-accent); }
+  .opt.selNow { background:var(--ink); color:var(--sheet); border-color:var(--ink); }
+  .opt.selNow .muted { color:#D6D3CC; }
+  .tick { width:22px; flex:none; font-weight:700; }
+  .group { font-size:14px; color:var(--muted); margin-top:var(--space-3); font-weight:700; }
+  .handle { display:inline-flex; flex-direction:column; gap:2px; }
+  .x { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border:1.5px solid var(--control); border-radius:22px; background:var(--sheet); font-size:20px; box-sizing:border-box; }
+  .x.plain { border:none; background:transparent; font-size:24px; }
+  .top { display:flex; align-items:center; gap:var(--space-3); }
+  .top .grow { flex:1; }
+  .refwrap { display:flex; gap:var(--space-4); }
+  .reflist { flex:none; }
+  .refitem { min-height:44px; display:flex; align-items:center; padding:0 var(--space-3); border-radius:4px; }
+  .refitem.on { background:var(--surface); border-left:3px solid var(--ink); font-weight:700; }
+  .refhead { font-size:14px; color:var(--muted); font-weight:700; padding:var(--space-3) var(--space-3) var(--space-1); }
+  .kv { display:grid; grid-template-columns:160px 1fr; gap:var(--space-1) var(--space-3); font-size:15px; }
+  .kv .k { color:var(--muted); }
+  .chips { display:flex; gap:var(--space-2); flex-wrap:wrap; }
+  .chip { min-height:44px; padding:8px 12px; border:1.5px solid var(--control); border-radius:22px; background:var(--sheet); font-size:15px; box-sizing:border-box; display:inline-flex; align-items:center; }
+  .chip.on { border:2px solid var(--accent); background:var(--selected-wash); font-weight:700; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:820px; }
+</style>
+</head>
+<body>
+
+<h1>#1 A · One list of every pack's choices</h1>
+<div class="wrap"><div class="screen mid"><div class="card">
+  <div><b>Encumbrance</b> · two packs offer it; one choice counts.</div>
+  <div class="group">zine-compendium</div>
+  <div class="opt selA"><span class="tick">✓</span><span><span class="t">Off</span><br><span class="small muted">No encumbrance tracking.</span></span></div>
+  <div class="group">classic-advanced</div>
+  <div class="opt"><span class="tick"></span><span><span class="t">Basic</span><br><span class="small muted">Armour type and treasure decide movement.</span></span></div>
+  <div class="opt"><span class="tick"></span><span><span class="t">Detailed</span><br><span class="small muted">Coin weight decides movement.</span></span></div>
+</div></div>
+<p class="note" style="width:320px">Every choice from every pack, grouped under its pack, one tap to pick. The pick is the campaign's answer, so the order of the packs doesn't matter here: no reordering needed. <b>Recommended.</b></p></div>
+
+<h1>#1 B · Packs in order, each opening to its choices; the top one counts</h1>
+<div class="wrap"><div class="screen mid"><div class="card">
+  <div><b>Encumbrance</b> · the pack on top decides.</div>
+  <div class="row"><span class="handle"><span class="btn sm">↑</span></span><span class="grow"><b>1 · zine-compendium</b><br><span class="small muted">Off ›</span></span></div>
+  <div class="row"><span class="handle"><span class="btn sm">↑</span></span><span class="grow"><b>2 · classic-advanced</b><br><span class="small muted">Basic · Detailed ›</span></span></div>
+</div></div>
+<p class="note" style="width:320px">Your words: see each pack's options and reorder. ↑ moves a pack up; its own choice then counts. Two steps to change (reorder, then pick inside), and the order here may fight the pack order set elsewhere (lr-6).</p></div>
+
+<h1>#1 C · A, plus one "Pack order" list for the whole campaign</h1>
+<div class="wrap"><div class="screen mid">
+  <div class="name">Pack order</div><div class="small muted">When two packs disagree and you haven't chosen, the higher one wins.</div>
+  <div class="row"><span class="btn sm">↑</span><span class="btn sm">↓</span><span class="grow">zine-compendium</span></div>
+  <div class="row"><span class="btn sm">↑</span><span class="btn sm">↓</span><span class="grow">deathcaster-class</span></div>
+  <div class="row"><span class="btn sm">↑</span><span class="btn sm">↓</span><span class="grow">classic-advanced</span></div>
+</div>
+<p class="note" style="width:320px">A's card for each shared rule, and one list at the top of the Rules tab to set which pack wins by default. Reordering is real but lives in one place, not on every shared rule.</p></div>
+
+<h1>#4 · The selected choice, four ways (black today)</h1>
+<div class="wrap">
+<div class="screen phone"><div class="card">
+  <div class="name">Initiative ties · today</div>
+  <div class="opt selNow"><span class="tick">✓</span><span><span class="t">Roll again</span><br><span class="small muted">Roll again until someone wins.</span></span></div>
+  <div class="opt"><span class="tick"></span><span><span class="t">Act at the same time</span><br><span class="small muted">Both sides act at once.</span></span></div>
+</div></div>
+<div class="screen phone"><div class="card">
+  <div class="name">A · a wash of the accent</div>
+  <div class="opt selA"><span class="tick">✓</span><span><span class="t">Roll again</span><br><span class="small muted">Roll again until someone wins.</span></span></div>
+  <div class="opt"><span class="tick"></span><span><span class="t">Act at the same time</span><br><span class="small muted">Both sides act at once.</span></span></div>
+</div></div>
+<div class="screen phone"><div class="card">
+  <div class="name">B · heavy ink outline</div>
+  <div class="opt selB"><span class="tick">✓</span><span><span class="t">Roll again</span><br><span class="small muted">Roll again until someone wins.</span></span></div>
+  <div class="opt"><span class="tick"></span><span><span class="t">Act at the same time</span><br><span class="small muted">Both sides act at once.</span></span></div>
+</div></div>
+<div class="screen phone"><div class="card">
+  <div class="name">C · full accent</div>
+  <div class="opt selC"><span class="tick">✓</span><span><span class="t">Roll again</span><br><span class="small muted">Roll again until someone wins.</span></span></div>
+  <div class="opt"><span class="tick"></span><span><span class="t">Act at the same time</span><br><span class="small muted">Both sides act at once.</span></span></div>
+</div></div>
+</div>
+<p class="note"><b>A</b> (recommended): two new tokens, Selected wash (a pale tint of the accent) and the accent as a 2 px border, ink text, ✓ kept. Warm and calm, reads as "chosen" not "pressed", and keeps the one-accent-button rule (it's a state, not a button). Needs a dark-mode pair. <b>B</b>: no new token; Surface fill and a 3 px ink outline; quieter, can look like focus. <b>C</b>: the accent fill; strong, but every segmented control would then compete with the screen's one accent button. Every option keeps the ✓ (never colour alone). The same change applies to On / Off segments, chips and tabs.</p>
+
+<h1>#8 · A standard Close</h1>
+<div class="wrap">
+<div class="screen phone"><div class="top"><span class="grow name">Messages</span><span class="x">✕</span></div><p class="small muted">A · a round ✕ button, 44 px, top right</p></div>
+<div class="screen phone"><div class="top"><span class="grow name">Messages</span><span class="x plain">✕</span></div><p class="small muted">B · a bare ✕ (44 px tap area, no outline)</p></div>
+<div class="screen phone"><div class="top"><span class="grow name">Messages</span><span class="btn sm">Close</span></div><p class="small muted">C · a small "Close" button</p></div>
+</div>
+<p class="note"><b>A</b> (recommended): one Close part for every sheet, pop-up and full-screen view, always top right, always "Close" to screen readers; the outline makes it findable and keeps 44 px honest. <b>B</b> is lighter but easy to miss on the Page colour. <b>C</b> keeps the word, costs width on a phone. Escape and a swipe down still close as today.</p>
+
+<h1>#10 and #11 · The GM reference, wide</h1>
+<div class="wrap"><div class="screen wide">
+  <div class="chips"><span class="chip">monster-overlay</span><span class="chip on">classic-advanced</span><span class="chip">wilderness add-on</span><span class="chip">deathcaster-class</span><span class="chip">zine-compendium</span></div>
+  <div class="refwrap" style="margin-top:var(--space-3)">
+    <div class="reflist" style="width:220px">
+      <div class="refhead">From the rules</div>
+      <div class="refitem on">Combat</div><div class="refitem">Dungeons</div><div class="refitem">Class abilities</div><div class="refitem">Equipment</div><div class="refitem">Tables · 36</div>
+      <div class="refhead">The book's GM pages</div>
+      <div class="refitem">Monsters</div><div class="refitem">Magic items</div><div class="refitem">Retainers and hirelings</div><div class="refitem">Strongholds</div><div class="refitem">Wilderness procedures</div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="name">Combat</div>
+      <div style="font-weight:700;margin-top:var(--space-2)">Initiative</div>
+      <div class="kv"><span class="k">Who rolls</span><span>Each side</span><span class="k">On a tie</span><span>Roll again</span><span class="k">Higher goes first</span><span>Yes</span><span class="k">Party wins ties</span><span>with the option "Initiative ties: party wins"</span><span class="k">Rolled each round</span><span>Yes</span></div>
+    </div>
+  </div>
+</div></div>
+<p class="note"><b>Proposed (one option, the fixes being mostly technical):</b> the list is a fixed 220 px column, left-aligned, so the content gets the rest of the width; the "pack" tag goes and the list gets two quiet headings instead ("From the rules" · "The book's GM pages"), which is what the tag meant; the pack switcher wraps and the selected pack is readable (the #4 choice applies); values in words (a technical fix, #11). On a phone the list stays a list, the panel opens full screen as today. <b>Alternative:</b> drop the list for tabs across the top: more room, but 11 tabs scroll sideways.</p>
+<p class="note"><b>Checked:</b> 44 px targets; 375 px for #4 and #8; ✓ and outlines carry "selected", never colour alone; the proposed wash on Sheet with Ink text is well above 4.5:1. <b>Not drawn:</b> dark mode (#4 A needs its dark pair), #1 on a phone (the card stacks the same way).</p>
+</body>
+</html>

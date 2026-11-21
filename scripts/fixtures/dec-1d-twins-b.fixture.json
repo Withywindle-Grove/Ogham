@@ -1,0 +1,9 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": { "id": "example-b", "name": "Invented mire twins (B)", "version": "0.1", "kind": "setting" },
+  "items": [
+    { "id": "mire-reed-lamp", "name": "Reed lamp", "category": "gear", "weightCoin": 20, "value": { "sp": 12 } },
+    { "id": "bog-candle", "name": "Bog candle", "category": "gear", "weightCoin": 1, "value": { "sp": 1 } }
+  ]
+}

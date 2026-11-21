@@ -1,0 +1,36 @@
+/* The book's faces alone (po-3, the lead 2026-11-14; ts-1 to ts-3). Tokens only.
+   `.book-faces` repoints the body and heading tokens to the book's faces, headings at the face's bold, and draws the
+   small-capitals labels in the book's small-capitals face (not the browser's made-up capitals). It changes faces and
+   nothing else: creation's own behaviour (row lines, its fold chevron, the book format) stays under `.book-type`
+   (creation.css), whose face rules are the same three as here. */
+.book-faces {
+  --font-body: var(--font-book-text);
+  --font-heading: var(--font-book-text);
+  --weight-heading: var(--weight-book-name);
+  font-family: var(--font-body);
+}
+
+.book-faces :is(.label, .stat-tile__label) {
+  font-family: var(--font-book-descriptor);
+  font-weight: var(--weight-book-descriptor);
+  font-variant: normal;
+}
+
+/* A lone number box takes the face's normal figures (cs-40b); figures in columns keep theirs aligned. */
+.book-faces :is(.typed-stepper__input, .stepper__value) {
+  font-variant-numeric: normal;
+}
+
+/* A labelled line's label (cs-41; kw-1, 2026-11-15): the one rule for every label that leads a line, a kind word, an
+   aspect's lead-in, a stat or entry label, the weather's ("Wet."): the book label's colour at its regular weight, from
+   one token each, so a change of either is made once. Not scoped to `.book-faces`: a label reads the same everywhere. */
+.book-label {
+  margin-inline-end: var(--space-1);
+  color: var(--book-label);
+  font-weight: var(--weight-book-label);
+}
+
+/* The host's wrapper adds no box of its own. */
+.book-faces--host {
+  display: contents;
+}

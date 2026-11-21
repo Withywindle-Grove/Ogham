@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Final draft 6: Details (2026-11-07)</title>
+<link rel="stylesheet" href="final.css">
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+const details = phone(`
+  ${bar('Details')}
+  <div class="inner">
+    <p class="meta">Step 9 of 9, optional</p>
+    <p class="do">Touches that help the table picture your character. None change the rules. Fill what you like, or skip.</p>
+    ${helpBtn()}
+    <h2>Body</h2>
+    ${roll(6, 'Roll for each at the table, or type them.')}
+    <div class="card"><div class="kv"><span>Age</span>${stepper(21, true)}</div><div class="avgline">Average value, replace with your roll. 1d6 + 18, years</div></div>
+    <div class="card"><div class="kv"><span>Height</span>${stepper('5′ 6″', true)}</div><div class="avgline">Average value, replace with your roll. 5′ + 2d6 inches</div></div>
+    <div class="card"><div class="kv"><span>Weight</span>${stepper(140, true)}</div><div class="avgline">Average value, replace with your roll. 120 + 2d6 × 5, pounds</div></div>
+    <h2>Looks and manner</h2>
+    ${roll(20, 'Roll d20 for each, then tap the row. Or type your own.')}
+    ${pick('Face', 'Stone kin, d20. Not rolled yet', 'open')}
+    ${pick('Manner', 'Stone kin, d20. Not rolled yet', 'open')}
+    <div class="card"><div class="kv"><div class="text">4 more tables<small>Voice, dress, a belief, a keepsake</small></div><span class="btn sq" role="button" aria-label="Show">${I.plus}</span></div></div>
+    ${foot('Nothing filled yet', true, 'accent', 'Next')}
+  </div>`, 'Details, untouched: Body as steppers at the kindred\'s usual (age in years, height in feet and inches, weight in pounds; step 1, 1 inch, 5; plan answer 1); then the describing tables one row each with Open, the rest folded as "N more tables". Optional: Next is always open.');
+
+const detailsFilled = phone(`
+  ${bar('Details')}
+  <div class="inner">
+    <p class="meta">Step 9 of 9, optional</p>
+    <h2>Body</h2>
+    ${valCard('Age', 23, 'Years')}
+    ${valCard('Height', '5′ 9″', 'Typed as 5 9')}
+    <div class="card"><div class="kv"><span>Weight</span>${stepper(140, true)}</div><div class="avgline">Average value, replace with your roll. 120 + 2d6 × 5, pounds</div></div>
+    <h2>Looks and manner</h2>
+    <div class="card picked"><div class="kv"><div class="text">Face<small>Rolled 7: a scar through one eyebrow</small></div><span class="btn small">Change</span></div></div>
+    <div class="card picked"><div class="kv"><div class="text">Manner<small>Typed: speaks only when sure</small></div><span class="btn small">Change</span></div></div>
+    <div class="card"><div class="kv"><div class="text">4 more tables<small>Voice, dress, a belief, a keepsake</small></div><span class="btn sq" role="button" aria-label="Show">${I.plus}</span></div></div>
+    ${foot('4 of 7 filled')}
+  </div>`, 'Details, partly filled: rolled and typed values at full weight; a rolled table shows its result with Change (cr-10); a typed one says "Typed". The untouched weight keeps its average line.');
+
+const tableSheet = phone(`
+  ${bar('Details')}
+  <div class="inner" style="min-height:560px">
+    <p class="meta">Step 9 of 9, optional</p>
+    ${pick('Face', 'Stone kin, d20. Not rolled yet', 'open')}
+  </div>
+  ${sheet('Face', `
+    ${roll(20, 'Roll d20, then tap the row. Or type your own below.')}
+    <div class="list">
+      <div class="row"><span class="k">1</span><span class="v">Broad and weathered</span></div>
+      <div class="row"><span class="k">2</span><span class="v">Pale, with ink-dark eyes</span></div>
+      <div class="row"><span class="k">3</span><span class="v">A nose broken twice</span></div>
+      <div class="row"><span class="k">4</span><span class="v">Freckled like a thrush's egg</span></div>
+      <div class="row"><span class="k">5</span><span class="v">Sharp, fox-like</span></div>
+    </div>
+    <span class="field empty" style="margin-top:var(--space-3)">Or type your own</span>
+  `)}`, 'A describing table as a sheet: the Roll row, the rows (tap fills), and a typed field at the foot for the player\'s own words. No number box (Francis, 2026-11-07).');
+
+const detailsTablet = tablet(`
+  ${bar('Details')}
+  <div class="inner">
+    <p class="meta">Step 9 of 9, optional</p>
+    <p class="do">Touches that help the table picture your character. None change the rules. Fill what you like, or skip.</p>
+    ${helpBtn(false)}
+    <h2>Body</h2>
+    ${roll(6, 'Roll for each at the table, or type them.')}
+    <div class="tiles">
+      <div class="card"><div>Age</div>${stepper(21, true)}<div class="avgline">Average value, replace with your roll. 1d6 + 18, years</div></div>
+      <div class="card"><div>Height</div>${stepper('5′ 6″', true)}<div class="avgline">Average value, replace with your roll. 5′ + 2d6 inches</div></div>
+      <div class="card"><div>Weight</div>${stepper(140, true)}<div class="avgline">Average value, replace with your roll. 120 + 2d6 × 5, pounds</div></div>
+    </div>
+    <h2>Looks and manner</h2>
+    ${roll(20, 'Roll d20 for each, then tap the row. Or type your own.')}
+    <div class="tiles">
+      ${pick('Face', 'Stone kin, d20. Not rolled yet', 'open')}
+      ${pick('Manner', 'Stone kin, d20. Not rolled yet', 'open')}
+      ${pick('Voice', 'Stone kin, d20. Not rolled yet', 'open')}
+      ${pick('Dress', 'Stone kin, d20. Not rolled yet', 'open')}
+      ${pick('A belief', 'Stone kin, d12. Not rolled yet', 'open')}
+      ${pick('A keepsake', 'Stone kin, d100. Not rolled yet', 'open')}
+    </div>
+    ${foot('Nothing filled yet')}
+  </div>`, 'Details on a tablet: one column, widened; Body as three tiles; the tables three across, none folded (there is room).');
+
+mount(`
+  <h1>Final draft 6: Details</h1>
+  <p class="note">Optional step (cw-4's text). Body as steppers reading the kindred's usual (plan answer 1), marked as the average until touched; one Roll row for Body ("Roll for each at the table, or type them") and each card's line names its own dice (Francis, 2026-11-07). The describing tables one row each with Open, the rest folded as "N more tables" (plan item 6); each table as a sheet with a typed field for the player's own words; a filled row shows its result with Change (cr-10). No middle dot.</p>
+  <h1>Phone</h1>
+  <div class="wall">${details}${detailsFilled}${tableSheet}</div>
+  <h1>Tablet</h1>
+  ${detailsTablet}
+  <p class="note">Self-review: targets 44 px with 8 px between; nothing under 14 px; the average is marked by words and weight; one accent per screen (Next: the step is optional, so it is always the way forward); 375 px checked with the long Roll row. Not checked: a kindred with no usual values (the typed field as today, no average line); a pack with no describing tables (the section doesn't show; the step may be skipped); height with the Larger text size in a 72 px box ("5′ 10″" fits; "6′ 11″" to check).</p>
+`);
+</script>
+</body>
+</html>

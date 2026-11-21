@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library 04 — a rule with several choices: four ways to show the control (test feedback #3, 2026-11-03)</title>
+<style>
+  /* Tokens from docs/06 only. Light only. Buttons are plain blocks. Invented examples. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--page); border:1px solid var(--rule); border-radius:4px; box-sizing:border-box; padding:var(--space-4); }
+  .wide { width:720px; } .phone { width:375px; }
+  .rule { display:flex; gap:var(--space-4); align-items:center; padding:var(--space-3) 0; border-top:1px solid var(--rule); }
+  .rule:first-child { border-top:none; }
+  .rule .text { flex:1; min-width:0; }
+  .phone .rule { flex-direction:column; align-items:stretch; gap:var(--space-2); }
+  .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .muted { color:var(--muted); } .small { font-size:14px; }
+  .btn { display:inline-flex; align-items:center; gap:var(--space-2); min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; }
+  .btn .sub { white-space:nowrap; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:14px; color:var(--muted); }
+  .seg { display:inline-flex; border:1.5px solid var(--control); border-radius:4px; overflow:hidden; }
+  .seg span { min-height:44px; padding:10px 12px; box-sizing:border-box; font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:16px; border-left:1.5px solid var(--control); background:var(--sheet); }
+  .seg span:first-child { border-left:none; }
+  .seg span.on { background:var(--ink); color:var(--sheet); }
+  .ctl { flex:none; max-width:300px; }
+  .phone .ctl { max-width:none; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:800px; }
+</style>
+</head>
+<body>
+
+<h1>Today: the current choice as a link</h1>
+<div class="wrap"><div class="screen wide">
+  <div class="rule"><div class="text"><div class="name">Armour class and attacks</div><div>How armour class is written and how attacks are worked out.</div><div class="small muted">classic-advanced · can change, asks first</div></div><div class="ctl"><span style="color:var(--accent);text-decoration:underline">Ascending AC, attack bonus ›</span></div></div>
+</div></div>
+<p class="note">Francis: a link reads as "go somewhere", not "choose"; and a GM may not know there are other choices.</p>
+
+<h1>A · "N options" button, the current choice above it</h1>
+<div class="wrap">
+<div class="screen wide">
+  <div class="rule"><div class="text"><div class="name">Armour class and attacks</div><div>How armour class is written and how attacks are worked out.</div><div class="small muted">classic-advanced · can change, asks first</div></div>
+  <div class="ctl" style="text-align:right"><div class="small"><b>Ascending AC, attack bonus</b></div><span class="btn">3 options ›</span></div></div>
+</div>
+<div class="screen phone">
+  <div class="rule"><div class="text"><div class="name">Armour class and attacks</div><div class="small muted">classic-advanced · can change, asks first</div></div>
+  <div class="ctl"><div class="small"><b>Now:</b> Ascending AC, attack bonus</div><span class="btn">3 options ›</span></div></div>
+</div>
+</div>
+<p class="note">Your wording. Clear that there's a choice; the current one is plain text. Costs a second line. Risk: the eye reads the button, not the choice.</p>
+
+<h1>B · The current choice is the button, with ▾ and a count</h1>
+<div class="wrap">
+<div class="screen wide">
+  <div class="rule"><div class="text"><div class="name">Armour class and attacks</div><div>How armour class is written and how attacks are worked out.</div><div class="small muted">classic-advanced · can change, asks first</div></div>
+  <div class="ctl"><span class="btn">Ascending AC, attack bonus <span class="sub">1 of 3</span> ▾</span></div></div>
+</div>
+<div class="screen phone">
+  <div class="rule"><div class="text"><div class="name">Armour class and attacks</div><div class="small muted">classic-advanced · can change, asks first</div></div>
+  <div class="ctl"><span class="btn" style="width:100%;justify-content:space-between">Ascending AC, attack bonus <span class="sub">1 of 3 ▾</span></span></div></div>
+</div>
+</div>
+<p class="note">Reads like a drop-down, which everyone knows: the current choice and a sign that it opens. "1 of 3" says there are others. Same pop-up as today. One line. <b>Recommended.</b></p>
+
+<h1>C · Up to 3 short choices in a row; a button only beyond that</h1>
+<div class="wrap">
+<div class="screen wide">
+  <div class="rule"><div class="text"><div class="name">Initiative ties</div><div>What happens when initiative rolls tie.</div><div class="small muted">classic-advanced · can change at any time</div></div>
+  <div class="ctl"><span class="seg"><span class="on">Roll again</span><span>Same time</span><span>Party wins</span></span></div></div>
+  <div class="rule"><div class="text"><div class="name">Armour class and attacks</div><div>How armour class is written and how attacks are worked out.</div><div class="small muted">classic-advanced · can change, asks first</div></div>
+  <div class="ctl"><span class="btn">Ascending AC, attack bonus <span class="sub">1 of 3</span> ▾</span></div></div>
+</div>
+</div>
+<p class="note">Like On / Off today, extended to three short labels (the pack's short label, under ~14 letters each); anything longer or more than three falls back to B. Every choice visible, one tap. Costs: short labels the packs don't all have (a pack task) and a rule about when a row switches; the descriptions move into ⓘ.</p>
+
+<h1>D · B, plus "changed" when it isn't the book's default</h1>
+<div class="wrap">
+<div class="screen wide">
+  <div class="rule"><div class="text"><div class="name">Armour class and attacks</div><div>How armour class is written and how attacks are worked out.</div><div class="small muted">classic-advanced · can change, asks first · <b style="color:var(--ink)">changed</b> (the book: descending AC)</div></div>
+  <div class="ctl"><span class="btn">Ascending AC, attack bonus <span class="sub">1 of 3</span> ▾</span></div></div>
+</div>
+</div>
+<p class="note">Not a separate option: the "changed" word (from #2 A) shown on any row, with the book's own choice named. Works with A, B or C.</p>
+<p class="note"><b>Checked:</b> 44 px targets; 375 px (the control goes under the text, full width); long choice names wrap inside the button; no colour alone (▾ and "1 of 3" carry the meaning). <b>Not drawn:</b> dark mode; a 9-choice rule (the pop-up scrolls).</p>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GM downtime</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:1180px;height:820px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;overflow:hidden">
+
+<div style="display:flex;align-items:center;gap:14px;padding:10px 20px;border-bottom:3px double {{c.rule}}">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:26px;font-weight:600">Downtime</span>
+<nav aria-label="Downtime" style="display:flex;gap:4px;margin-left:8px">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3"><button onClick="{{t.go}}" aria-current="{{t.cur}}" style="{{t.style}}">{{t.name}}</button></sc-for>
+<a href="SplitLoot.dc.html" style="min-height:44px;display:inline-flex;align-items:center;padding:0 14px;border-radius:4px;color:{{c.mut}};font-family:'EB Garamond',Georgia,serif;font-size:18px;text-decoration:none">Split Loot ›</a>
+</nav>
+<span style="flex:1"></span>
+
+<button onClick="{{plusWeek}}" style="min-height:44px;padding:0 14px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;cursor:pointer">+1 week</button>
+<button aria-label="Fiat: GM ruling" style="width:52px;min-height:44px;padding:0;border:none;border-radius:4px;background:{{c.acc}};display:flex;align-items:center;justify-content:center;cursor:pointer"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{c.onAcc}}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19.5c4 1.4 14 1.4 18 0"></path><path d="M6.5 19 11 4c1.6-.6 3.4 0 4.6 1.6L13.4 9 17.5 19"></path><path d="M10.6 12.2l.6 1.3 1.3.6-1.3.6-.6 1.3-.6-1.3-1.3-.6 1.3-.6z"></path></svg></button>
+</div>
+
+<sc-if value="{{tabAct}}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-height:0;display:grid;grid-template-columns:330px minmax(0,1fr) 300px">
+
+<section aria-label="Activities" style="padding:12px 16px;border-right:1px solid {{c.rule}};overflow-y:auto;display:flex;flex-direction:column;gap:4px">
+<sc-if value="{{placeOpen}}" hint-placeholder-val="{{ true }}">
+<div role="group" aria-label="Approval needed" style="border:1px solid {{c.warn}};background:{{c.tint}};border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px;margin-bottom:4px">
+<span style="font-size:14px;color:{{c.mut}}">Approval needed · new storage place</span>
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600">Bram: “Hollow oak cache”</span>
+<label for="fee" style="font-size:13px;color:{{c.mut}}">Fee (optional)</label>
+<select id="fee" style="min-height:44px;padding:0 8px;border:1px solid {{c.rule}};border-radius:4px;background:transparent;color:inherit;font-family:inherit;font-size:15px"><option>No fee</option><option>Flat fee…</option><option>Ongoing rate…</option></select>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">
+<button onClick="{{approvePlace}}" style="min-height:44px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:17px;font-weight:600;cursor:pointer">Approve</button>
+<button onClick="{{denyPlace}}" style="min-height:44px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:17px;font-weight:600;cursor:pointer">Deny</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{placeDone}}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:{{c.mut}};padding:4px 0">{{placeMsg}} <button onClick="{{undoPlace}}" style="min-height:44px;background:none;border:none;color:{{c.acc}};font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">Undo</button></div></sc-if>
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+<sc-if value="{{g.plain}}" hint-placeholder-val="{{ true }}"><div style="font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}};padding:8px 0 2px">{{g.name}}</div></sc-if>
+<sc-if value="{{g.fold}}" hint-placeholder-val="{{ false }}"><button onClick="{{g.toggle}}" aria-expanded="{{g.open}}" style="width:100%;min-height:48px;display:flex;justify-content:space-between;align-items:center;border:none;border-top:1px solid {{c.rule}};margin-top:8px;background:transparent;color:{{c.mut}};font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;padding:8px 0 2px;cursor:pointer"><span>{{g.name}}</span><span aria-hidden="true">{{g.arrow}}</span></button></sc-if>
+<sc-for list="{{g.items}}" as="a" hint-placeholder-count="2">
+<button onClick="{{a.pick}}" style="{{a.style}}">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;line-height:1.15">{{a.title}}</span>
+<span style="font-size:14px;color:{{c.mut}}">{{a.who}} · {{a.line}}</span>
+<sc-if value="{{a.hasBar}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="height:5px;background:{{c.track}};margin-top:4px;display:block"><span style="display:block;height:100%;width:{{a.pct}}%;background:{{c.acc}}"></span></span></sc-if>
+</button>
+</sc-for>
+</sc-for>
+</section>
+
+<section aria-label="Conversation" style="display:flex;flex-direction:column;min-height:0;border-right:1px solid {{c.rule}}">
+<div style="padding:12px 18px 8px;border-bottom:1px solid {{c.rule}}">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:26px;font-weight:600;line-height:1.1">{{cur.title}}</div>
+<div style="font-size:14px;color:{{c.mut}}">{{cur.who}} · started {{cur.started}} · <b style="color:{{cur.stateColor}}">{{cur.state}}</b></div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:12px 18px;display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{cur.msgs}}" as="m" hint-placeholder-count="3">
+<div style="{{m.wrap}}">
+<div style="font-size:13px;color:{{c.mut}};margin-bottom:3px">{{m.who}} · {{m.when}}</div>
+<div style="font-size:16px;line-height:1.45">{{m.text}}</div>
+<sc-if value="{{m.hasTerms}}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:8px;border-top:1px dotted {{c.rule}};padding-top:6px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px;font-size:14px">
+<sc-for list="{{m.terms}}" as="tm" hint-placeholder-count="4"><span><span style="color:{{c.mut}}">{{tm.k}}:</span> {{tm.v}}</span></sc-for>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<div style="padding:10px 18px 14px;border-top:1px solid {{c.rule}};display:flex;flex-direction:column;gap:8px">
+<label for="reply" style="font-size:14px;color:{{c.mut}}">Reply to {{cur.who}}</label>
+<textarea id="reply" rows="2" placeholder="Explain how it would work, or ask a question…" style="resize:none;padding:10px;border:1px solid {{c.rule}};border-radius:6px;background:transparent;color:inherit;font-family:inherit;font-size:16px"></textarea>
+<div style="display:flex;gap:8px;justify-content:flex-end">
+<button style="min-height:44px;padding:0 14px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:17px;font-weight:600">Offer terms…</button>
+<button style="min-height:44px;padding:0 18px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:17px;font-weight:600">Send</button>
+</div>
+</div>
+</section>
+
+<section aria-label="Details" style="padding:12px 16px;background:{{c.panel}};display:flex;flex-direction:column;gap:10px;overflow-y:auto">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">Agreed terms</div>
+<sc-for list="{{cur.agreed}}" as="t" hint-placeholder-count="4"><div style="display:flex;justify-content:space-between;gap:10px;min-height:34px;align-items:center;border-bottom:1px dotted {{c.rule}};font-size:15px"><span style="color:{{c.mut}}">{{t.k}}</span><span style="text-align:right">{{t.v}}</span></div></sc-for>
+<sc-if value="{{cur.noTerms}}" hint-placeholder-val="{{ false }}"><div style="font-size:15px;color:{{c.mut}}">Nothing agreed yet.</div></sc-if>
+<sc-if value="{{cur.hasProgress}}" hint-placeholder-val="{{ false }}">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}};margin-top:6px">Progress</div>
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:30px;font-weight:600">{{cur.progText}}</div>
+<div aria-hidden="true" style="display:grid;grid-template-columns:repeat({{cur.target}},minmax(0,1fr));gap:4px"><sc-for list="{{cur.cells}}" as="cl" hint-placeholder-count="6"><span style="height:14px;border-radius:2px;background:{{cl.bg}}"></span></sc-for></div>
+<div style="font-size:14px;color:{{c.mut}};line-height:1.4">{{cur.progNote}}</div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">
+<button onClick="{{stepBack}}" style="min-height:44px;border-radius:4px;border:1px solid {{c.rule}};background:transparent;color:inherit;font-family:inherit;font-size:15px;cursor:pointer">− 1</button>
+<button onClick="{{stepOn}}" style="min-height:44px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">+ 1</button>
+</div>
+<button style="min-height:48px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600">Resolve with a note</button>
+</sc-if>
+<div style="font-size:13px;color:{{c.mut}};margin-top:auto;line-height:1.4">Everything in a thread is logged. Players see their own threads; the party sees titles and progress only.</div>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{tabXp}}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:grid;grid-template-columns:420px minmax(0,1fr)">
+<section aria-label="Award" style="padding:16px 20px;border-right:1px solid {{c.rule}};display:flex;flex-direction:column;gap:10px">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">Award XP</div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px"><button style="{{S.segOn}}">The party</button><button style="{{S.segOff}}">One character</button></div>
+<sc-for list="{{xpLines}}" as="x" hint-placeholder-count="3"><div style="display:flex;justify-content:space-between;min-height:44px;align-items:center;border-bottom:1px dotted {{c.rule}}"><span>{{x.k}}</span><b>{{x.v}}</b></div></sc-for>
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}};margin-top:6px">Bonus XP</div>
+<div style="display:flex;justify-content:space-between;align-items:center;min-height:48px;border-bottom:1px dotted {{c.rule}}"><span style="display:flex;flex-direction:column"><span>Bram +100</span><span style="font-size:14px;color:{{c.mut}}">“Talked the fence into a better price”</span></span><button aria-label="Remove bonus" style="min-height:44px;padding:0 8px;background:none;border:none;color:{{c.mut}};font-family:inherit;cursor:pointer">Remove</button></div>
+<button style="min-height:44px;background:none;border:none;color:{{c.acc}};font-family:inherit;font-size:15px;font-weight:700;text-align:left;padding:0">+ Bonus XP to a character or the party (with a reason)</button>
+<div style="font-size:14px;color:{{c.mut}}">Treasure XP came from Split Loot. Monster XP comes from the setting’s stat blocks for foes defeated last session.</div>
+<label for="why" style="font-size:14px;color:{{c.mut}}">Reason (shown in the log)</label>
+<input id="why" value="Sluice gate delve: goblins and the chapel silver" style="min-height:44px;padding:0 10px;border:1px solid {{c.rule}};border-radius:4px;background:transparent;color:inherit;font-family:inherit;font-size:16px">
+</section>
+<section aria-label="Split preview" style="padding:16px 20px;display:flex;flex-direction:column;gap:8px">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">Split preview · even among 3 PCs</div>
+<sc-for list="{{split}}" as="sp" hint-placeholder-count="3">
+<div style="border:1px solid {{sp.border}};border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-family:'EB Garamond',Georgia,serif;font-size:21px;font-weight:600">{{sp.name}}</span><span style="font-size:17px"><b>+{{sp.share}}</b> → {{sp.total}}</span></div>
+<sc-if value="{{sp.warn}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;align-items:center;gap:10px;background:{{c.tint}};border-radius:6px;padding:6px 10px">
+<span style="flex:1;font-size:15px">This would take Ash from 1st to 3rd. The setting rules allow one level per session: capped, Ash stops at 3,499, 1 XP short of 3rd (over by 300).</span>
+<button onClick="{{sp.cap}}" aria-pressed="{{sp.capOn}}" style="{{sp.capStyle}}">Cap</button>
+<button onClick="{{sp.keep}}" aria-pressed="{{sp.keepOn}}" style="{{sp.keepStyle}}">Keep</button>
+</div>
+</sc-if>
+<sc-if value="{{sp.ready}}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:{{c.acc}}">Will be ready to level</div></sc-if>
+</div>
+</sc-for>
+<div style="font-size:14px;color:{{c.mut}}">Retainer shares are an R2 setting. Remainder: 1 XP (assign or drop).</div>
+<button style="margin-top:auto;min-height:54px;border-radius:4px;border:none;background:{{c.acc}};color:{{c.onAcc}};font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600">Award {{xpTotal}} XP</button>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{tabRev}}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;padding:16px 24px;display:flex;flex-direction:column;gap:8px;max-width:760px">
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:18px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:{{c.mut}}">Revealed to players this downtime</div>
+<div style="font-size:15px;color:{{c.mut}}">These were logged during session 8 and became visible when you switched to Downtime.</div>
+<sc-for list="{{revealed}}" as="r" hint-placeholder-count="4"><div style="display:flex;justify-content:space-between;min-height:52px;align-items:center;border-bottom:1px dotted {{c.rule}}"><span>{{r.t}}</span><span style="font-size:14px;color:{{c.mut}}">{{r.when}}</span></div></sc-for>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1180,"height":820}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'act', sel: 'copy', week: 1, prog: { train: 3, chapel: 1 }, cap: 'cap', doneOpen: false, dark: null, place: null };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = s.dark ?? (this.props.dark ?? false);
+    const c = dark
+      ? { bg: '#12100D', panel: '#1A1713', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', warn: '#E6BA66', tint: '#4A3A22', track: '#2A251E', onAcc: '#12100D', bubble: '#1F1B16' }
+      : { bg: '#FBF8F1', panel: '#F5F0E5', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', warn: '#7A4A00', tint: '#F3E6CB', track: '#E9E2D4', onAcc: '#FBF8F1', bubble: '#F3EEE3' };
+    const G = "'EB Garamond',Georgia,serif";
+    const A = {
+      sluice: { title: 'Ask around about the sluice gate', who: 'Bram', started: 'today', group: 'reply', state: 'Needs your reply', line: 'proposed 10 min ago',
+        msgs: [{ r: 'p', who: 'Bram', when: '10 min ago', text: 'I want to spend a few days in the taverns asking who built the sluice gate and why it was sealed.' }], agreed: [] },
+      copy: { title: 'Copy Mist Step into my spell book', who: 'Wren', started: 'today', group: 'reply', state: 'Player asked for a change', line: 'asked for a change',
+        msgs: [
+          { r: 'p', who: 'Wren', when: '40 min ago', text: 'Can I copy Mist Step from the scroll we found into my book?' },
+          { r: 'g', who: 'GM', when: '30 min ago', text: 'Yes. It takes time and costly inks, and the scroll is used up either way.', terms: [{ k: 'Time', v: '2 weeks' }, { k: 'Cost', v: '200 gp' }, { k: 'At the end', v: 'You roll vs INT' }, { k: 'Progress', v: 'Weeks (0 of 2)' }] },
+          { r: 'p', who: 'Wren', when: '5 min ago', text: 'Could I do it in 1 week if I pay double for a scribe to help?' }
+        ], agreed: [] },
+      offer: { title: 'Sell the silver chalice', who: 'Ash', started: 'today', group: 'wait', state: 'Waiting on Ash', line: 'terms offered',
+        msgs: [
+          { r: 'p', who: 'Ash', when: '1 hr ago', text: 'I take the chalice to the temple fence in town.' },
+          { r: 'g', who: 'GM', when: '50 min ago', text: 'The fence offers 120 gp, no questions asked. The temple would pay more, but they’ll ask where you found it.', terms: [{ k: 'Time', v: '1 day' }, { k: 'Payout', v: '120 gp' }] }
+        ], agreed: [] },
+      train: { title: 'Train with the marsh rangers', who: 'Ash', started: 'session 6', group: 'active', state: 'Active', line: 'started session 6', target: 6, unit: 'weeks',
+        msgs: [
+          { r: 'p', who: 'Ash', when: 'session 6', text: 'I want to learn to track like the marsh rangers.' },
+          { r: 'g', who: 'GM', when: 'session 6', text: 'They’ll teach you for 6 weeks of downtime and a favour later. After that, Find tracks improves by 10%.', terms: [{ k: 'Time', v: '6 weeks' }, { k: 'Cost', v: 'A favour (unnamed)' }, { k: 'Result', v: 'Find tracks +10%' }, { k: 'Progress', v: 'Weeks' }] },
+          { r: 'p', who: 'Ash', when: 'session 6', text: 'Deal.' }
+        ], agreed: [{ k: 'Time', v: '6 weeks' }, { k: 'Cost', v: 'A favour (unnamed)' }, { k: 'Result', v: 'Find tracks +10%' }, { k: 'Agreed', v: 'Session 6' }] },
+      mule: { title: 'Buy and name a mule', who: 'Bram', started: 'session 5', group: 'done', state: 'Resolved, session 5', line: 'resolved session 5',
+        msgs: [{ r: 'p', who: 'Bram', when: 'session 5', text: 'I buy a mule for the expedition.' }, { r: 'g', who: 'GM', when: 'session 5', text: 'Done: 30 gp. She’s called Turnip and she bites.' }], agreed: [{ k: 'Cost', v: '30 gp' }, { k: 'Resolved', v: 'Session 5' }] },
+      heal: { title: 'Recover from the fever', who: 'Ash', started: 'session 4', group: 'done', state: 'Resolved, session 6', line: 'resolved session 6',
+        msgs: [{ r: 'p', who: 'Ash', when: 'session 4', text: 'I rest at the temple until the fever breaks.' }, { r: 'g', who: 'GM', when: 'session 6', text: 'Two weeks of rest. The fever is gone.' }], agreed: [{ k: 'Time', v: '2 weeks' }, { k: 'Resolved', v: 'Session 6' }] },
+      chapel: { title: 'Research the drowned chapel', who: 'Wren', started: 'session 7', group: 'active', state: 'Active', line: 'started session 7', target: 4, unit: 'leads',
+        msgs: [
+          { r: 'p', who: 'Wren', when: 'session 7', text: 'I dig through the archive for anything about the drowned chapel.' },
+          { r: 'g', who: 'GM', when: 'session 7', text: 'There are 4 leads to find. Each week in the archive, roll and tell me; on a success you uncover one.', terms: [{ k: 'Cost', v: '10 gp a week' }, { k: 'Progress', v: 'Leads found (of 4)' }] },
+          { r: 'p', who: 'Wren', when: 'session 7', text: 'Accepted.' }
+        ], agreed: [{ k: 'Cost', v: '10 gp a week' }, { k: 'Progress', v: 'Leads found' }, { k: 'Agreed', v: 'Session 7' }] }
+    };
+    const groupsDef = [['reply', 'Needs your reply'], ['wait', 'Waiting on players'], ['active', 'Active · spans sessions'], ['done', 'Completed (2)']];
+    const progOf = (id) => s.prog[id] ?? 0;
+    const groups = groupsDef.map((g) => ({ name: g[0] === 'reply' ? g[1] + ' (2)' : g[1], fold: g[0] === 'done', plain: g[0] !== 'done', open: s.doneOpen, arrow: s.doneOpen ? '▾' : '▸', toggle: () => this.setState({ doneOpen: !s.doneOpen }), items: Object.keys(A).filter((k) => A[k].group === g[0] && (g[0] !== 'done' || s.doneOpen)).map((k) => {
+      const a = A[k];
+      const hasBar = !!a.target;
+      return { title: a.title, who: a.who, line: hasBar ? progOf(k) + ' of ' + a.target + ' ' + a.unit : a.line, hasBar: hasBar, pct: hasBar ? Math.round(progOf(k) / a.target * 100) : 0,
+        style: 'min-height:64px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;padding:8px 10px;border-radius:6px;border:1px solid ' + (s.sel === k ? c.acc : c.rule) + ';background:' + (s.sel === k ? c.tint : 'transparent') + ';color:inherit;font-family:inherit;text-align:left;cursor:pointer;width:100%',
+        pick: () => this.setState({ sel: k }) };
+    }) }));
+    const a = A[s.sel];
+    const p = progOf(s.sel);
+    const cells = []; for (let i = 0; i < (a.target || 0); i++) cells.push({ bg: i < p ? c.acc : c.track });
+    const cur = {
+      title: a.title, who: a.who, started: a.started, state: a.state,
+      stateColor: a.group === 'done' ? c.mut : a.group === 'reply' ? c.warn : (a.group === 'active' ? c.acc : c.mut),
+      msgs: a.msgs.map((m) => ({ who: m.who, when: m.when, text: m.text, hasTerms: !!m.terms, terms: m.terms || [],
+        wrap: 'max-width:78%;align-self:' + (m.r === 'g' ? 'flex-end' : 'flex-start') + ';padding:10px 12px;border-radius:10px;border:1px solid ' + (m.r === 'g' ? c.acc : c.rule) + ';background:' + (m.r === 'g' ? 'transparent' : c.bubble) })),
+      agreed: a.agreed, noTerms: a.agreed.length === 0,
+      hasProgress: !!a.target, target: a.target || 1, cells: cells,
+      progText: p + ' of ' + (a.target || 0) + ' ' + (a.unit || ''),
+      progNote: s.sel === 'train' ? '+1 week moves this on automatically. Started session 6; carries over between sessions.' : 'Leads are moved by hand when Wren succeeds. Carries over between sessions.'
+    };
+    const step = (d) => () => { if (!a.target) return; this.setState({ prog: Object.assign({}, s.prog, { [s.sel]: Math.max(0, Math.min(a.target, p + d)) }) }); };
+    const tab = (id, name) => ({ name: name, cur: s.tab === id ? 'page' : 'false', go: () => this.setState({ tab: id }),
+      style: 'min-height:44px;padding:0 14px;border:none;border-radius:4px;background:' + (s.tab === id ? c.tint : 'transparent') + ';color:' + (s.tab === id ? c.ink : c.mut) + ';font-family:' + G + ';font-size:18px;font-weight:' + (s.tab === id ? 600 : 400) + ';cursor:pointer' });
+    const small = (on) => 'min-height:44px;padding:0 12px;border-radius:4px;border:1px solid ' + (on ? c.acc : c.line) + ';background:' + (on ? c.acc : 'transparent') + ';color:' + (on ? c.onAcc : c.ink) + ';font-family:' + G + ';font-size:16px;font-weight:600;cursor:pointer';
+    const ashShare = s.cap === 'cap' ? '1,699' : '1,999';
+    return {
+      c: c, week: s.week, groups: groups, placeOpen: s.place === null, placeDone: s.place !== null, placeMsg: s.place === 'ok' ? 'Approved: Bram can now store coin in the Hollow oak cache.' : 'Denied: Bram has been told.', approvePlace: () => this.setState({ place: 'ok' }), denyPlace: () => this.setState({ place: 'no' }), undoPlace: () => this.setState({ place: null }), isDark: dark, isLight: !dark, themeLabel: dark ? 'Switch to light' : 'Switch to dark', toggleTheme: () => this.setState({ dark: !dark }), cur: cur, stepOn: step(1), stepBack: step(-1),
+      plusWeek: () => this.setState({ week: s.week + 1, prog: Object.assign({}, s.prog, { train: Math.min(6, progOf('train') + 1) }) }),
+      tabs: [tab('act', 'Activities'), tab('xp', 'Award XP'), tab('rev', 'Revealed (3)')],
+      tabAct: s.tab === 'act', tabXp: s.tab === 'xp', tabRev: s.tab === 'rev',
+      xpLines: [{ k: 'Treasure (from Split Loot)', v: '5,912 XP' }, { k: 'Monsters defeated', v: '85 XP' }, { k: 'Total', v: '5,997 XP' }],
+      xpTotal: s.cap === 'cap' ? '5,797' : '6,097',
+      split: [
+        { name: 'Wren', share: '1,999', total: '6,119', border: c.rule, warn: false, ready: false },
+        { name: 'Ash', share: ashShare, total: s.cap === 'cap' ? '3,499' : '3,799', border: c.warn, warn: true, ready: false, capOn: s.cap === 'cap', keepOn: s.cap === 'keep', capStyle: small(s.cap === 'cap'), keepStyle: small(s.cap === 'keep'), cap: () => this.setState({ cap: 'cap' }), keep: () => this.setState({ cap: 'keep' }) },
+        { name: 'Bram', share: '1,999 + 100 bonus', total: '4,510', border: c.rule, warn: false, ready: true }
+      ],
+      revealed: [{ t: 'Encounter check, turn 10: miss', when: 'session 8' }, { t: 'Encounter check, turn 12: miss', when: 'session 8' }, { t: 'Encounter check, turn 14: hit (goblins at the sluice gate)', when: 'session 8' }],
+      S: {
+        segOn: 'min-height:48px;border-radius:4px;border:1px solid ' + c.acc + ';background:' + c.acc + ';color:' + c.onAcc + ';font-family:' + G + ';font-size:18px;font-weight:600',
+        segOff: 'min-height:48px;border-radius:4px;border:1px solid ' + c.rule + ';background:transparent;color:' + c.ink + ';font-family:' + G + ';font-size:18px;font-weight:600'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

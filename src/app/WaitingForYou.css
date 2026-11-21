@@ -1,0 +1,198 @@
+/* "Waiting for you", one part on Scene and on Players (dec-7 piece 5b; page 11 frame 1b, page 12 W1 to W3). Tokens only. */
+.waiting-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+}
+
+.waiting-card[hidden] {
+  display: none;
+}
+
+/* The heading and its count, "1 of 4" (wy-1), on one line (page 16, T2). */
+.waiting-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap);
+  min-width: 0;
+}
+
+.waiting-card__count {
+  flex: none;
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+}
+
+/* The page's section heading: the book's sub-heading (page 11), brick, as "Spots here" and "Checks here". */
+.waiting-card__title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--book-subhead);
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-book-subhead);
+  line-height: var(--line-heading);
+}
+
+.waiting-card__none {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+}
+
+/* A source's cards stand with no box of their own around them: the panel's open card, the strip's own host and the
+   provider's container that moves between them (sceneWaiting.tsx). */
+.waiting-card__slot,
+.waiting-card__cards {
+  display: contents;
+}
+
+/* The open item, whole (T2's first card): its mark at the left, then the card its source draws, in a box with the
+   card's corner. The source's card keeps its own words and buttons; its own rule and padding go inside the box. */
+.waiting-open {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  align-items: start;
+  min-width: 0;
+  padding: var(--space-3);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+}
+
+.waiting-open__mark {
+  display: flex;
+  color: var(--muted);
+}
+
+.waiting-open > .waiting-card__slot > .waiting-card__cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.waiting-open .scene-card {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.waiting-open .pack__item {
+  border-bottom: 0;
+}
+
+/* A one-line row (T2, T6b): the mark, the title on one line, its one button; it grows to its button's height. */
+.waiting-row {
+  display: grid;
+  grid-template-columns: calc(var(--space-5) + var(--space-1)) minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: calc(var(--tap) + var(--space-3));
+  min-width: 0;
+  padding: var(--space-1) var(--space-3);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+}
+
+.waiting-row__mark {
+  display: flex;
+  color: var(--muted);
+}
+
+/* The title is the tap that opens the row whole: a plain button the row's width, its words on one line. */
+.waiting-row__open {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  min-height: var(--tap);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.waiting-row--more .waiting-row__open {
+  grid-column: 2 / 4;
+  justify-content: space-between;
+}
+
+.waiting-row__title {
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* An encounter, open (S8b; T2's first card): "An encounter waits", its line with what was rolled as a link, its
+   answers as stacked buttons. Where no panel shows (a town) it keeps the strip's card rule above it. */
+.waiting-encounter__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+}
+
+.waiting-encounter__line {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+/* A 44 px tap, its words underlined in the line's flow. */
+.waiting-encounter__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+}
+
+/* The rest, open (S8b; T2's item): its title, how many have answered, and Answer…, which opens the rest panel as a
+   sheet. */
+.waiting-rest {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.waiting-rest__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+}
+
+.waiting-rest__words {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}

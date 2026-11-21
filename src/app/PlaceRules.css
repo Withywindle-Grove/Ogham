@@ -1,0 +1,127 @@
+/* A place's rules (December dec-7 piece 3): the GM's Rules sheet, a rule's sheet, a player's rule buttons. Tokens only. */
+.rule-sheet__place {
+  margin: 0;
+}
+
+.place-rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.place-rules__stand-in {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.place-rules__stand-in .switch {
+  justify-content: space-between;
+  inline-size: 100%;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  text-align: start;
+}
+
+.place-rules__sentence {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.place-rules__heading {
+  margin: 0;
+}
+
+.place-rules__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.place-rules__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap);
+  border-block-end: var(--line-hair) solid var(--rule);
+}
+
+.place-rules__name {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 0;
+  min-height: var(--tap);
+  padding: var(--space-2) 0;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.place-rules__words {
+  font-weight: var(--weight-heading);
+  overflow-wrap: anywhere;
+}
+
+/* A player's rule buttons: at the LEFT under the place's description on today's card, phone and tablet, a row that
+   wraps with the 8 px gap between targets (rp-10, Francis on picture 7, 2026-11-13); the redesigned card puts them in
+   its heading (02-20). */
+.place-rule-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.place-rule-buttons__button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  /* The height of the screen's other large buttons (mc-49a), as the icon button beside it. */
+  min-height: var(--tap-step);
+  max-inline-size: 100%;
+  /* Wrapped onto two lines or more, the words keep the air a one-line button has above and below them (the lead's nit
+     on #726): half of what the button's height leaves around one line, inside its edges. */
+  padding-block: calc((var(--tap-step) - 2 * var(--line-control) - var(--text-20) * var(--line-heading)) / 2);
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+
+/* A rule's button that is an icon of the app's set (mc-49, mc-49a): the icon alone, square, the height of the screen's
+   other large buttons; its words are its label. */
+.place-rule-buttons__icon {
+  flex: none;
+  inline-size: var(--tap-step);
+  min-height: var(--tap-step);
+  padding: 0;
+}
+
+/* The mark keeps its size when long words wrap beside it. */
+.place-rule-buttons__button > :first-child {
+  flex: none;
+}
+
+/* rp-8: the line a player's open sheet shows once the GM has closed the rule, with the information mark. */
+.rule-sheet__closed {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}

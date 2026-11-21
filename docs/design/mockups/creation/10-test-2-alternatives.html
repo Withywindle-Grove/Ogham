@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creation 10 — alternatives from Francis's second test (2026-11-02)</title>
+<style>
+  /* Tokens from docs/06 only. Light only, full size. Buttons are plain blocks. Invented examples. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  h2 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; margin:var(--space-4) 0 var(--space-2); }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); width:440px; box-sizing:border-box; }
+  .screen.wide { width:720px; }
+  .meta { font-size:14px; color:var(--muted); }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; text-align:center; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:16px; }
+  .btn.picked { background:var(--ink); color:var(--sheet); border-color:var(--ink); }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; min-width:0; }
+  .row .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .row .desc { display:block; }
+  .row .src { display:block; font-size:14px; color:var(--muted); }
+  .row.on { background:var(--surface); margin:0 calc(-1 * var(--space-2)); padding-left:var(--space-2); padding-right:var(--space-2); border-left:3px solid var(--ink); }
+  .radio { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .radio span { width:24px; height:24px; border:2px solid var(--control); border-radius:12px; display:inline-block; box-sizing:border-box; }
+  .radio.on span { border-color:var(--ink); box-shadow:inset 0 0 0 5px var(--sheet), inset 0 0 0 12px var(--ink); }
+  .tile { border:1.5px solid var(--rule); border-radius:4px; padding:var(--space-3); width:200px; box-sizing:border-box; }
+  .tile .ab { font-weight:700; }
+  .tile .num { font-family:"EB Garamond", Georgia, serif; font-size:28px; font-weight:600; display:inline-flex; align-items:center; justify-content:center; width:64px; height:44px; flex:none; border:1.5px solid var(--control); border-radius:4px; }
+  .tile .ctl { display:flex; gap:var(--space-2); align-items:center; margin:var(--space-2) 0; }
+  .tile .line { font-size:14px; color:var(--muted); }
+  .tile.prime { background:var(--surface); }
+  .grid { display:flex; gap:var(--space-3); flex-wrap:wrap; }
+  .label { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-top:var(--space-3); font-family:"EB Garamond", Georgia, serif; }
+  ul { margin:var(--space-1) 0 0 var(--space-4); padding:0; }
+  li { margin:0 0 var(--space-1); }
+  .field { display:inline-flex; align-items:center; min-height:44px; min-width:96px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); box-sizing:border-box; font-size:20px; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:760px; }
+  .spell { padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .spell:last-child { border-bottom:0; }
+  .spell .name { font-family:"EB Garamond", Georgia, serif; font-size:18px; font-weight:600; }
+  .spell .src { font-size:14px; color:var(--muted); }
+  .chips { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+  .chip { min-height:44px; padding:10px 12px; border:1.5px solid var(--rule); border-radius:22px; background:var(--surface); box-sizing:border-box; }
+  .chip.on { border-color:var(--ink); background:var(--sheet); }
+  .foot { display:flex; align-items:center; gap:var(--space-3); margin-top:var(--space-4); padding-top:var(--space-3); border-top:1px solid var(--rule); }
+  .foot .spacer { flex:1; }
+  .hint { font-size:14px; color:var(--muted); }
+</style>
+</head>
+<body>
+
+<h1>1 · The pick on a row — three alternatives to the empty ✓ square</h1>
+<div class="wrap">
+<div class="screen">
+  <h2>A · Pick button at the end; the row opens the entry</h2>
+  <div class="row"><div class="text"><span class="name">Reed elf</span><span class="desc">Graceful and long-lived; magic comes easily; frail.</span><span class="src">Needs INT 9 · you have 14 ✓ · p. 36</span></div><span class="btn">Pick</span></div>
+  <div class="row on"><div class="text"><span class="name">Bog folk</span><span class="desc">Small and hardy; sees in the dark.</span><span class="src">No requirement · p. 44</span></div><span class="btn picked">Picked ✓</span></div>
+  <p class="note">The word says what the tap does. The picked row gets the pressed button, a tinted band and an ink edge (three cues, never colour alone). Tapping the text still opens the entry; its foot button reads Pick / Picked ✓ the same way.</p>
+</div>
+<div class="screen">
+  <h2>B · Radio circle, row-wide pick, "Details ›" opens</h2>
+  <div class="row"><span class="radio"><span></span></span><div class="text"><span class="name">Reed elf</span><span class="desc">Graceful and long-lived; magic comes easily; frail.</span><span class="src">Needs INT 9 · you have 14 ✓ · <u>Details ›</u></span></div></div>
+  <div class="row on"><span class="radio on"><span></span></span><div class="text"><span class="name">Bog folk</span><span class="desc">Small and hardy; sees in the dark.</span><span class="src">No requirement · <u>Details ›</u></span></div></div>
+  <p class="note">Tapping anywhere on the row picks (one-of-many reads as a radio, which people know); the entry opens from a Details link. Fastest to pick; the full rules are one small target away.</p>
+</div>
+<div class="screen">
+  <h2>C · The card is the pick; "Read more" inside</h2>
+  <div class="row on" style="display:block"><span class="name">Bog folk</span><span class="desc">Small and hardy; sees in the dark.</span><span class="src">No requirement · p. 44 · <b>Picked ✓</b> · <u>Read the full entry ›</u></span></div>
+  <div class="row" style="display:block"><span class="name">Reed elf</span><span class="desc">Graceful and long-lived; magic comes easily; frail.</span><span class="src">Needs INT 9 · you have 14 ✓ · p. 36 · <u>Read the full entry ›</u></span></div>
+  <p class="note">No control at all: the card picks, a word in the card says so. Cleanest, least explicit; the "many" case (pick 2 languages) reads worse.</p>
+</div>
+</div>
+<p class="note"><b>Recommendation: A.</b> It works the same for one-of-many (kindred, class, alignment) and N-of-many (languages, spells, skills: the button reads Pick / Picked ✓ and the foot counts). <b>Pick → Next:</b> on a one-of-many step, Pick (row or entry) moves straight to the next step with a toast "Bog folk picked · Undo"; on N-of-many the step stays until Next. Applies to every pick row: kindred, class, alignment, spell books, kits, languages, skills, trait lists.</p>
+
+<h1>2 · The entry, formatted (kindred and class)</h1>
+<div class="wrap">
+<div class="screen wide">
+  <span class="name" style="font-family:'EB Garamond',Georgia,serif;font-size:24px;font-weight:600">Bog folk</span> <span class="meta">· Fen Rules · p. 44</span>
+  <p style="margin:var(--space-2) 0 0">Small and hardy; sees in the dark; slow in heavy armour.</p>
+  <div class="label">Requirement</div><div>CON 9 · you have 11 ✓</div>
+  <div class="label">Score changes</div><div>CON −1 · DEX +1</div>
+  <div class="label">Advantages</div>
+  <ul><li><b>Dark sight</b> — sees 60 ft in the dark.</li><li><b>Hardy</b> — +2 on poison saves.</li><li><b>Small</b> — hard to hit by big foes.</li></ul>
+  <div class="label">Disadvantages</div>
+  <ul><li><b>Slow in metal</b> — speed drops one step in heavy armour.</li></ul>
+  <div class="label">Languages</div><div>Common · Bog-speech</div>
+  <div class="label">Open classes</div><div class="chips"><span class="chip">Fighter</span><span class="chip">Thief</span><span class="chip">Hunter</span></div>
+  <div class="foot"><span class="spacer"></span><span class="btn accent">Pick Bog folk</span></div>
+</div>
+</div>
+<p class="note">Six small-caps headings; advantages and disadvantages as bullet lines, <b>name — effect</b> (the pack's `abilities[].name` and `text`, `kind` sorts them); open classes as chips (tap one to see its entry). Same for a class: requirement · prime requisite · hit die · armour and weapons · advantages · disadvantages · level cap by kindred. In the panel beside the list the Pick is a plain button (Next keeps the accent); in the phone's sheet it's the accent.</p>
+
+<h1>3 · Adjust scores — Undo and the "can't lower" tiles (four options)</h1>
+<div class="wrap">
+<div class="screen">
+  <h2>A · Undo as a word under the tile; untouchable tiles say why, no buttons</h2>
+  <div class="grid">
+    <div class="tile"><span class="ab">WIS</span><div class="ctl"><span class="btn">−2</span><span class="num">10</span></div><div class="line">was 12 · +0 → +0</div><span class="btn quiet">Undo</span></div>
+    <div class="tile prime"><span class="ab">STR</span> <span class="meta">· prime</span><div class="ctl"><span class="num">14</span><span class="btn">+1</span></div><div class="line">was 13 · +1 melee</div></div>
+    <div class="tile prime"><span class="ab">CON</span> <span class="meta">· stays as rolled</span><div class="ctl"><span class="num">11</span></div><div class="line">the rules keep CON and DEX</div></div>
+  </div>
+  <p class="note">The reason sits beside the ability; nothing to tap on it, so nothing disabled. Undo is a word.</p>
+</div>
+<div class="screen">
+  <h2>B · Undo in the bank line; every tile keeps −2 and answers</h2>
+  <div class="line" style="font-size:16px;color:var(--ink)">Lowered WIS by 2 → raised STR by 1 · 0 to spend · <span class="btn quiet">Undo last trade</span></div>
+  <div class="grid" style="margin-top:var(--space-3)">
+    <div class="tile"><span class="ab">CON</span><div class="ctl"><span class="btn">−2</span><span class="num">11</span></div><div class="line">a tap answers: "CON stays as rolled in these rules"</div></div>
+  </div>
+  <p class="note">Fewest controls; the rule is learnt only by tapping.</p>
+</div>
+<div class="screen">
+  <h2>C · Only the tradeable scores on the step; trades as chips with ✕</h2>
+  <p class="meta" style="margin:0 0 var(--space-2)">CON and DEX stay as rolled in these rules · not shown here</p>
+  <div class="grid">
+    <div class="tile"><span class="ab">WIS</span><div class="ctl"><span class="btn">−2</span><span class="num">10</span></div><div class="line">was 12</div></div>
+    <div class="tile"><span class="ab">INT</span><div class="ctl"><span class="btn">−2</span><span class="num">13</span></div><div class="line">+1 language</div></div>
+    <div class="tile prime"><span class="ab">STR</span> <span class="meta">· prime</span><div class="ctl"><span class="num">14</span><span class="btn">+1</span></div><div class="line">was 13 · +1 melee</div></div>
+  </div>
+  <div class="label">Your trades</div>
+  <div class="chips"><span class="chip">WIS −2 → STR +1 &nbsp;✕</span></div>
+  <p class="note">Untouchable scores aren't on the step at all (one line says which and why; the strip at the top still shows them). Each trade is a chip; ✕ undoes that trade. Reads as a ledger.</p>
+</div>
+<div class="screen">
+  <h2>D · Two columns: Lower (left) → Raise (right); Undo per arrow</h2>
+  <div style="display:flex;gap:var(--space-3)">
+    <div style="flex:1"><div class="label">Lower by 2</div>
+      <div class="row"><div class="text"><span class="name">WIS 12 → 10</span></div><span class="btn">−2</span></div>
+      <div class="row"><div class="text"><span class="name">INT 13</span></div><span class="btn">−2</span></div>
+      <div class="row"><div class="text"><span class="name">CHA 14</span></div><span class="btn">−2</span></div>
+      <p class="meta">CON, DEX stay as rolled</p>
+    </div>
+    <div style="flex:1"><div class="label">Raise by 1 · prime</div>
+      <div class="row"><div class="text"><span class="name">STR 13 → 14</span></div><span class="btn">+1</span></div>
+      <p class="meta">1 to spend → 0</p>
+    </div>
+  </div>
+  <div class="line" style="font-size:16px;color:var(--ink);margin-top:var(--space-3)">WIS −2 → STR +1 · <span class="btn quiet">Undo</span></div>
+  <p class="note">Lists instead of tiles: what you can lower on the left, what you can raise on the right, the rule's shape made visible; the untouchable ones are a line under the left list. Undo on each trade line.</p>
+</div>
+</div>
+<p class="note"><b>Recommendation: C</b> if you want the fewest things on screen (the strip already shows every score), <b>A</b> if the tiles should stay the same shape as the Scores step. Both keep "never disabled" by not drawing the buttons.</p>
+
+<h1>4 · Hit points, scores strip and derived fields</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="label">Hit points</div>
+  <div style="display:flex;gap:var(--space-3);align-items:center;margin-top:var(--space-2)"><span class="field">4</span><b>1d4 → 4, CON −1 → 3 hp</b></div>
+  <p class="meta" style="margin:var(--space-2) 0 0">Roll 1d4 and type the die. The app adds CON (−1); never below 1.</p>
+  <p class="note">One line under the box, no "type what the dice show" prompt above: the die goes in, the arithmetic shows the result.</p>
+</div>
+<div class="screen">
+  <div class="ctl" style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+    <div class="tile" style="width:212px"><span class="ab">STR</span><div class="ctl"><span class="btn" style="min-width:44px;padding:10px">−</span><span class="num">13</span><span class="btn" style="min-width:44px;padding:10px">+</span></div><div class="line">+1 melee · open doors 2-in-6</div></div>
+    <div class="tile" style="width:212px"><span class="ab">CON</span><div class="ctl"><span class="btn" style="min-width:44px;padding:10px">−</span><span class="num">8</span><span class="btn" style="min-width:44px;padding:10px">+</span></div><div class="line">−1 hp per die</div></div>
+  </div>
+  <p class="note">Tiles: the number field 64 px wide and never shrinking (a two-digit Garamond 28 can't clip), the three controls on one line inside a 212 px tile (44 + 64 + 44 and the gaps), every tile the same height (the affects line reserves two lines); four tiles fit a 1024 px landscape, two a phone. The affects words name the thing: "open doors 2-in-6", not "2-in-6".</p>
+</div>
+<div class="screen wide">
+  <b>Derived fields · 4</b> <span class="meta">from the rules; more appear as you pick gear</span>
+  <div class="grid" style="margin-top:var(--space-2)">
+    <div class="tile" style="width:160px"><span class="line">AC</span><div class="num" style="border:0;width:auto;justify-content:flex-start">9 <span class="meta" style="font-size:14px;margin-left:6px">unarmoured, DEX +0</span></div></div>
+    <div class="tile" style="width:160px"><span class="line">Attack</span><div class="num" style="border:0;width:auto;justify-content:flex-start">0</div></div>
+    <div class="tile" style="width:160px"><span class="line">Save · Doom</span><div class="num" style="border:0;width:auto;justify-content:flex-start">14</div></div>
+    <div class="tile" style="width:160px"><span class="line">Save · Ray</span><div class="num" style="border:0;width:auto;justify-content:flex-start">14</div></div>
+  </div>
+  <p class="note">Only fields with a value appear; the header says how many more will come and when. No "—" tiles. AC shows the unarmoured value with the DEX part named.</p>
+</div>
+</div>
+
+<h1>5 · Gear: pick the kit first; rolls asked by Next · spell-book panel · weapon proficiencies</h1>
+<div class="wrap">
+<div class="screen">
+  <div class="row on"><div class="text"><span class="name">Hunter's kit</span><span class="desc">Bow, 20 arrows, cloak, rations · 12 gp · 3 slots</span><span class="src">2 rolls to tap: weapon · trinket</span></div><span class="btn picked">Picked ✓</span></div>
+  <div class="row" style="padding-left:var(--space-5)"><div class="text"><span class="desc"><b>Roll 1d6 · weapon</b> · tap what it shows</span><span class="src">1–2 spear · 3–4 hand axe · 5–6 short sword</span></div><span class="btn">Tap a result</span></div>
+  <div class="row" style="padding-left:var(--space-5)"><div class="text"><span class="desc"><b>Roll 1d4 · trinket</b></span><span class="src">1 bone whistle · 2 tin mirror · 3 flint · 4 pipe</span></div><span class="btn">Tap a result</span></div>
+  <div class="foot"><span class="spacer"></span><span class="hint">2 rolls to tap before Next</span><span class="btn accent">Next</span></div>
+  <p class="note">The kit row picks at once; its rolls unfold under it (ranges first, tapped). Next says what's missing ("Tap your weapon roll") instead of blocking the kit until the rolls are done.</p>
+</div>
+<div class="screen">
+  <b style="font-family:'EB Garamond',Georgia,serif;font-size:20px">4 · Oliphan's Folio</b>
+  <div class="spell"><span class="name">Crystal Resonance</span><div>Records a place's light, sound or warmth in a gem.</div><span class="src">Level 1 · Special · 10 ft · p. 80</span></div>
+  <div class="spell"><span class="name">Ioun Shard</span><div>A floating crystal that fires at a visible foe and always hits.</div><span class="src">Level 1 · 2 turns · 120 ft · p. 81</span></div>
+  <div class="spell"><span class="name">Shield of Force</span><div>An unseen barrier that makes the caster harder to hit.</div><span class="src">Level 1 · 2 turns · the caster · p. 81</span></div>
+  <div class="foot"><span class="spacer"></span><span class="btn">Pick 4 · Oliphan's Folio</span></div>
+  <p class="note">Each spell its own row: name in Garamond, the line under, the facts small; a rule between. Tapping a spell row opens that spell's full rules.</p>
+</div>
+<div class="screen">
+  <b>Weapon proficiencies · pick 2</b> <span class="meta">· 1 of 2 picked · specialisation on: pick one again to specialise</span>
+  <div class="row on"><div class="text"><span class="name">Long sword</span><span class="src">one-handed · p. 20</span></div><span class="btn picked">Picked ✓</span></div>
+  <div class="row"><div class="text"><span class="name">Long bow</span><span class="src">two-handed · missile · p. 20</span></div><span class="btn">Pick</span></div>
+  <div class="row"><div class="text"><span class="name">Spear</span><span class="src">one or two hands · p. 21</span></div><span class="btn">Pick</span></div>
+  <p class="note">The list from the pack's weapons, the count from `weaponProficiency` at level 1, Other… at the foot; with the specialisation option on, the header says so and a second Pick on a picked weapon marks it "Specialised ✓✓" (the pack's rule in the why-line).</p>
+</div>
+</div>
+
+<p class="note"><b>Checked:</b> every control 44 px; one accent per screen (Next); never colour alone (picked = pressed button + band + edge + the word; untouchable tiles = shade + the word); no disabled buttons (absent instead, or answering); 375 px: rows stack the button under the text, tiles two per row; long names wrap; 0 / 999 counts in the headers. <b>Not drawn:</b> dark mode; the Pick → Next toast; the phone.</p>
+</body>
+</html>

@@ -1,0 +1,84 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-lantern-fen",
+    "name": "Lantern fen",
+    "shortName": "Lantern fen",
+    "version": "0.1",
+    "kind": "setting",
+    "author": "Invented for the app's tests",
+    "description": "An invented setting for testing add-on options, a later change of the carrying rule and presets (options-gates build order 5), with made-up names and numbers."
+  },
+  "rulesSets": [
+    {
+      "id": "lantern-fen-rules",
+      "name": "Lantern fen rules",
+      "optionPresets": [{ "id": "first-night", "name": "First night in the fen", "notes": "Gentle choices for a table new to the fen." }],
+      "encumbrance": {
+        "coin": { "maxLoadCoin": 400, "tiers": [{ "max": 200, "label": "Steady", "effect": "Normal speed" }, { "max": 400, "label": "Laden", "effect": "Slower" }] },
+        "byOption": { "lantern-carrying=coin": { "mode": "coin" }, "lantern-carrying=none": { "mode": "none" } }
+      }
+    }
+  ],
+  "options": [
+    {
+      "id": "lantern-carrying",
+      "name": "Carrying",
+      "default": "none",
+      "changeLater": "warn",
+      "ruleKey": "encumbrance",
+      "category": "Items and treasure",
+      "presets": { "first-night": "coin" },
+      "choices": [
+        { "id": "none", "name": "Not tracked", "notes": "Nobody counts what they carry." },
+        { "id": "coin", "name": "By coin weight", "short": "Coin weight", "notes": "Everything is weighed in coins." }
+      ],
+      "notes": "How the fen counts what a character carries."
+    },
+    {
+      "id": "lantern-songs",
+      "name": "Lantern songs",
+      "default": "off",
+      "changeLater": "allow",
+      "category": "Adventuring",
+      "presets": { "first-night": "on" },
+      "choices": [{ "id": "off", "name": "Off" }, { "id": "on", "name": "On" }],
+      "notes": "A sung verse keeps a lantern lit a little longer."
+    },
+    {
+      "id": "lantern-chorus",
+      "name": "Reed chorus",
+      "default": "off",
+      "changeLater": "allow",
+      "category": "Adventuring",
+      "requires": { "lantern-songs": "on" },
+      "choices": [{ "id": "off", "name": "Off" }, { "id": "on", "name": "On" }],
+      "notes": "An add-on to Lantern songs: the whole party may join the verse."
+    },
+    {
+      "id": "lantern-echo",
+      "name": "Echo verse",
+      "default": "off",
+      "changeLater": "allow",
+      "category": "Adventuring",
+      "requires": { "lantern-chorus": ["on"] },
+      "choices": [{ "id": "off", "name": "Off" }, { "id": "on", "name": "On" }],
+      "notes": "An add-on to Reed chorus: the verse answers itself across the water."
+    },
+    {
+      "id": "lantern-oaths",
+      "name": "Bog oaths",
+      "default": "off",
+      "changeLater": "lock",
+      "category": "Characters",
+      "presets": { "first-night": "on" },
+      "choices": [{ "id": "off", "name": "Off" }, { "id": "on", "name": "On" }],
+      "notes": "Each character swears one oath to the bog when they start."
+    }
+  ],
+  "items": [
+    { "id": "lantern-reed-lamp", "name": "Reed lamp", "category": "gear", "value": { "gp": 2 }, "weightCoin": 20 },
+    { "id": "lantern-bog-anchor", "name": "Bog anchor", "category": "gear", "value": { "gp": 5 }, "weightCoin": 250 }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-reed-damage",
+    "name": "Invented weapon-damage sample",
+    "shortName": "Reed damage",
+    "version": "0.1",
+    "kind": "setting",
+    "author": "Invented for the app's tests",
+    "description": "An invented setting for testing a rule that sets every weapon's damage (of-8): an option whose choice sets attack.weaponDamage, and two weapons with their own dice. Made-up names and numbers."
+  },
+  "rulesSets": [
+    {
+      "id": "reed-damage-rules",
+      "name": "Reed damage rules",
+      "attack": { "damageScore": "MUS" },
+      "byOption": { "reed-damage=flat": { "attack": { "weaponDamage": "d6" } } }
+    }
+  ],
+  "options": [
+    {
+      "id": "reed-damage",
+      "name": "Weapon damage",
+      "default": "flat",
+      "changeLater": "allow",
+      "category": "Combat",
+      "choices": [
+        { "id": "flat", "name": "All weapons d6", "notes": "Every weapon rolls the same die." },
+        { "id": "varied", "name": "By weapon", "notes": "Each weapon rolls its own die." }
+      ],
+      "notes": "How much a weapon hurts."
+    },
+    {
+      "id": "reed-metal",
+      "name": "Blade stuff",
+      "default": "iron",
+      "changeLater": "allow",
+      "category": "Items and treasure",
+      "choices": [
+        { "id": "iron", "name": "Iron", "notes": "Weapons as the book has them." },
+        { "id": "bone", "name": "Bone", "notes": "Bone weapons hit softer." }
+      ],
+      "notes": "What ordinary weapons are made of."
+    }
+  ],
+  "patches": [
+    { "byOption": "reed-metal=bone", "match": { "kind": "item", "category": "weapon" }, "change": { "weapon.damage": { "delta": -1 } } }
+  ],
+  "items": [
+    { "id": "bog-axe", "name": "Bog axe", "category": "weapon", "slot": "hand", "value": { "gp": 7 }, "weightCoin": 60, "weapon": { "damage": "1d8" }, "weaponTags": ["Melee"], "hands": 1 },
+    { "id": "eel-knife", "name": "Eel knife", "category": "weapon", "slot": "hand", "value": { "gp": 2 }, "weightCoin": 10, "weapon": { "damage": "1d4" }, "weaponTags": ["Melee", "Missile"], "hands": 1 }
+  ]
+}

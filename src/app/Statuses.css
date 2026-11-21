@@ -1,0 +1,362 @@
+/* Statuses on screen (M5 step 9): the symbols, the status sheet and + Status. Tokens only. */
+.status-marks {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.status-marks__more {
+  color: var(--muted);
+  font-size: var(--text-14);
+  font-variant-numeric: tabular-nums;
+}
+
+.char-statuses {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.char-statuses--list {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* The Player screen's Statuses row (plan m5b-creation-retest-3 F): the heading, the rings, then + Status (the GM's). */
+.char-statuses--rings {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* The sheet's count ("4 of 6 turns left"), under whose it is. */
+.status-sheet__count {
+  font-weight: var(--weight-heading);
+}
+
+.char-statuses__symbol {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-pill);
+}
+
+.char-statuses__rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.char-statuses__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-height: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.char-statuses__words {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.char-statuses__add {
+  align-self: flex-start;
+}
+
+.status-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.status-sheet__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.status-sheet p,
+.status-sheet__line,
+.status-sheet__rules {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.status-sheet__levels {
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.status-sheet__level {
+  color: var(--muted);
+}
+
+/* The level it's at: heavier and in ink, and it says "(now)", so it never leans on colour alone. */
+.status-sheet__level--now {
+  color: var(--ink);
+  font-weight: var(--weight-heading);
+}
+
+.status-sheet__actions {
+  flex-wrap: wrap;
+}
+
+/* The GM's time-left stepper: its label over − N + and the unit's word. */
+.status-sheet__time {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.status-sheet__time-label {
+  font-weight: var(--weight-heading);
+}
+
+.status-sheet__time-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.add-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* The whole pop-up scrolls (a wide card on a tablet, the whole screen on a phone): the list keeps no height of its own. */
+.add-status__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* B6: the brief effect under a status's name (cards, the overview, the pop-up). */
+.char-statuses__effect,
+.add-status__effect {
+  color: var(--muted);
+  font-size: var(--text-14);
+  overflow-wrap: anywhere;
+}
+
+.add-status__how-long {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* The durations on one row: never wrapping, scrolling sideways when the screen is narrow. */
+.add-status__durations {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-block-end: var(--space-1);
+  scrollbar-width: thin;
+}
+
+.add-status__durations .chip {
+  flex: none;
+  white-space: nowrap;
+}
+
+.add-status__row,
+.add-status__family {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--tap);
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-hair) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+}
+
+.add-status__family {
+  inline-size: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.add-status__symbol {
+  display: inline-flex;
+  flex: none;
+}
+
+.add-status__symbol--plus {
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--tap);
+  font-size: var(--text-20);
+}
+
+.add-status__words {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.add-status__row-name {
+  font-weight: var(--weight-heading);
+}
+
+.add-status__add {
+  flex: none;
+}
+
+.add-status__back {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.add-status__title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  overflow-wrap: anywhere;
+}
+
+/* The rest prompt on players' Scene and its ⓘ (DG5). */
+.rest-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--control);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+}
+
+.rest-prompt__who {
+  min-inline-size: 8rem;
+  font-weight: var(--weight-heading);
+  overflow-wrap: anywhere;
+}
+
+/* The GM's working panel (B5): one row per character, a tap flips it. */
+.rest-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--control);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+}
+
+.rest-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rest-panel__title {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: var(--text-16);
+  font-weight: var(--weight-heading);
+}
+
+.rest-panel__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rest-panel__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-block-size: var(--tap);
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-hair) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.rest-panel__who {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.rest-panel__answer {
+  font-weight: var(--weight-heading);
+  white-space: nowrap;
+}
+
+.rest-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.rest-call {
+  align-self: flex-start;
+  margin-top: var(--space-2);
+}
+
+.rest-prompt__due {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-weight: var(--weight-heading);
+}
+
+.rest-prompt__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rest-prompt__note {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

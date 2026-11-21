@@ -1,0 +1,83 @@
+/* The stat block (StatBlock.tsx; December 5c, mockup december/06-stat-block). Tokens only. Book text in its own faces;
+   the labels' colour and weight come from one token each (--book-label, --weight-book-label). */
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-family: var(--font-book-text);
+  font-weight: var(--weight-book-text);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.stat-block p {
+  margin: 0;
+}
+
+.stat-block__name {
+  font-family: var(--font-book-text);
+  font-weight: var(--weight-book-name);
+}
+
+/* The source line is the app's words, not the book's. */
+.stat-block .auth__meta {
+  font-family: var(--font-body);
+}
+
+.stat-block__text {
+  white-space: pre-line;
+}
+
+.stat-block__descriptor {
+  font-family: var(--font-book-descriptor);
+  font-weight: var(--weight-book-descriptor);
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.stat-block__rule {
+  border: 0;
+  border-top: var(--line-selected) dotted var(--control);
+  margin: var(--space-2) 0;
+}
+
+.stat-block__pair {
+  margin-inline-end: var(--space-2);
+}
+
+.stat-block__pair--short {
+  white-space: nowrap;
+}
+
+.stat-block__label {
+  font-family: var(--font-book-label);
+  font-weight: var(--weight-book-label);
+  color: var(--book-label);
+}
+
+.stat-block__lead {
+  font-weight: var(--weight-book-name);
+}
+
+/* A die's glyph at text size, before the die it names (ds-3). */
+.stat-block__die {
+  white-space: nowrap;
+}
+
+.stat-block__die .die-glyph {
+  width: 1em;
+  height: 1em;
+  margin-inline-end: var(--space-1);
+  vertical-align: -0.125em;
+}
+
+.stat-block__die .die-glyph--d100 {
+  width: 2em;
+}
+
+/* The waiting card's stat line: the first group run on, at the small size. */
+.stat-line {
+  display: block;
+  font-size: var(--text-14);
+}

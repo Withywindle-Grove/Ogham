@@ -1,0 +1,55 @@
+/* GM: Setting rules → Character fields. */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+}
+
+.fields p {
+  margin: 0;
+}
+
+.fields__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.fields__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-item);
+}
+
+.fields__row {
+  list-style: none;
+}
+
+/* The field's name and description open it on a tap (ruled 2026-10-26); it reads as the row, not as a button. */
+.fields__open {
+  min-height: var(--tap);
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fields__row > .gm__panel {
+  margin: var(--gap) 0;
+}
+
+/* Arrow buttons stay square and finger-sized. */
+.fields__move {
+  min-width: var(--tap);
+  padding: 0;
+}
+
+.field__input--short-select {
+  width: auto;
+  min-width: 12em;
+}

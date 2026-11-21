@@ -1,0 +1,11 @@
+# m5b-gate-bugs-1 — gate walk bugs 1–3 and the alignment rows (step counter; plain-value score columns; alignment blurbs; pack:check)
+
+From the early gate walk (`docs/status/2026-11-05-gate-early-walk.md`, section 2) and Design's shapes of 2026-11-05 (`abilityModifierColumns`, `alignmentBlurbs`). Feeds gate checks 9 and 11 (guided creation's steps; Who they are).
+
+1. **iPad, the step counter with no Adjust step.** On classic-advanced (or the fixture pack `scripts/fixtures/m5b-creation.fixture.json`), Create your character → Guided. Type the class's prime at the trade's cap (fixture: MUS 15 for Lantern Warden), pick a kindred, then Pick the class. The class step reads "Step 3 of N"; Who they are reads **"Step 4 of …"** (it used to say 5).
+2. **iPad, with an Adjust step.** Same, with the prime well under the cap (fixture: MUS 10). Picking the class opens Adjust scores at **"Step 4 of M"**; Next opens Who they are at **"Step 5 of M"** (the same M).
+3. **Phone (375 px), fae-woodland.** Walk to Class, Pick a class. The next screen's number is the class step's plus one. (The total may still change once the class is picked: see the status report's scope check.)
+4. **iPad, the Scores tiles on classic-advanced (pack 0.6.67 or later).** On the Scores step type CHA 10: its tile reads **"max retainers 4, loyalty 7"** (no "+", no "0 reactions"). STR 10 reads "open doors 2-in-6"; STR 16 "+2 melee, open doors 4-in-6". A score whose row changes nothing (fae-woodland STR 10) has no words under the tile.
+5. **iPad, the sheet's ability pop-up.** On an approved classic-advanced character with CHA 10, open the full sheet and tap CHA: the lines read "Max retainers: 4" and "Loyalty: 7"; no "Reactions: +0" line.
+6. **Phone, the alignment rows.** On Who they are (either setting, packs with `alignmentBlurbs`), each alignment row shows **one short line**, not a paragraph. Tap the alignment's name: its entry opens with the full text.
+7. **The pack checker.** `npm run pack:check -- <the classic-advanced pack>` lists no note about `abilityModifierColumns` or `alignmentBlurbs`. On a test copy of an invented pack: a `liftGate` cell holding "lift gate 2-in-6" is named ("repeat the column's name"); `abilityModifierColumns` naming a column no row has, or `alignmentBlurbs` keyed by a name that isn't one of the alignments, is named.

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Details ledger: breaks between rows (2026-11-09)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<style>
+  .sect { font-family:"EB Garamond", Georgia, serif; font-variant:small-caps; font-size:20px; font-weight:600; margin:0 0 var(--space-2); }
+  .led { display:grid; grid-template-columns:max-content 1fr; column-gap:var(--space-4); }
+  .led > div { padding:var(--space-2) 0; }
+  .led .k { color:var(--muted); font-size:14px; padding-top:calc(var(--space-2) + 3px); }
+  .led .v { font-family:"EB Garamond", Georgia, serif; font-size:18px; }
+  .dot .k, .dot .v { border-bottom:1px dotted var(--rule); }
+  .dot .k.last, .dot .v.last { border-bottom:0; }
+  .grp .g { grid-column:1 / -1; font-size:14px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; padding:var(--space-3) 0 var(--space-1); border-bottom:1px solid var(--rule); margin-bottom:var(--space-1); }
+  .grp .g.first { padding-top:0; }
+  .zeb .k:nth-of-type(4n+1), .zeb .v:nth-of-type(4n+2) { background:var(--surface); }
+  .zeb > div { padding-left:var(--space-2); padding-right:var(--space-2); }
+  .story { font-family:"EB Garamond", Georgia, serif; font-size:18px; line-height:1.5; margin:var(--space-3) 0 0; }
+  .story::first-letter { font-size:2.2em; float:left; line-height:.8; padding-right:6px; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script>
+const D = [
+  ['Looks', [['Face','One tooth capped with tin'],['Head','A scalp lumpy from a dozen tunnel collapses'],['Ears','One ear torn in half'],['Dress','A shirt too big and tied with twine']]],
+  ['Manner', [['Speech','Mutters curses in a high voice'],['Demeanour','Cowardly until the odds change'],['Desires','Something that blinks and glitters'],['Beliefs','Finders keepers']]],
+  ['Past', [['Background','Rat-wrangler for the pit fights']]],
+];
+const flat = D.flatMap(([,rows]) => rows);
+const story = `<p class="story">Lootsy came up out of the pit fights with one tooth of tin and a debt to a rat-catcher she does not mention.</p>`;
+
+const ledger = (cls, grouped) => {
+  let h = `<div class="led ${cls}">`;
+  if (grouped) {
+    D.forEach(([g, rows], gi) => {
+      h += `<div class="g${gi===0?' first':''}">${g}</div>`;
+      rows.forEach(([k,v],i) => { const last = i===rows.length-1 ? ' last' : ''; h += `<div class="k${last}">${k}</div><div class="v${last}">${v}</div>`; });
+    });
+  } else {
+    flat.forEach(([k,v],i) => { const last = i===flat.length-1 ? ' last' : ''; h += `<div class="k${last}">${k}</div><div class="v${last}">${v}</div>`; });
+  }
+  return h + `</div>`;
+};
+
+const card = (title, cap, inner) => `<div class="card" style="width:460px"><b>${title}</b><div class="meta" style="margin-bottom:var(--space-3)">${cap}</div><div class="sect">Details and backstory</div>${inner}${story}</div>`;
+
+mount(`
+  <h1>Details ledger: breaks between rows</h1>
+  <p class="note">Francis, 2026-11-09, on the live sheet: "Faint line or other break between detail sections to distinguish them." Three ways, all keeping look A (muted labels, Garamond values, the drop-capital backstory) and the pack’s field order.</p>
+  <div class="wall">
+    ${card('A: dotted rules', 'The kv rows’ dotted rule under each pair; the pack’s order.', ledger('dot', false))}
+    ${card('B: dotted rules and group headings', 'The pack’s field groups (looks, manner, past) as small-caps headings with a solid rule, dotted rules within.', ledger('dot grp', true))}
+    ${card('C: alternate wash', 'Every other row on the surface token, no rules.', ledger('zeb', false))}
+  </div>
+  <p class="note">My lean: <b>B</b> when the pack groups its fields (both settings do), A when it does not. C is the least Folio of the three. Self-review: row height 44 px+; label 14 px, value 18; the rules are the row-rule token; nothing colour-only; long values wrap in the value column. Not checked: a pack with twelve or more fields in one group (B’s headings help there); the phone, where the label sits above the value and the dotted rule still separates pairs.</p>
+`);
+</script>
+</body>
+</html>

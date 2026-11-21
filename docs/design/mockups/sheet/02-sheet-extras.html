@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sheet 02 — extras: the attack breakdown and to-hit row, the Pack tab's load, the Player screen's skills (2026-11-03, overnight)</title>
+<style>
+  /* Tokens from docs/06 only (Selected wash from tf-4). Light only. Buttons are plain blocks. Invented examples. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --selected-wash:#F3E7E3; --track:#E6E4DE; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--page); border:1px solid var(--rule); border-radius:4px; box-sizing:border-box; padding:var(--space-4); }
+  .phone { width:375px; } .tab { width:600px; }
+  .card { background:var(--sheet); border:1px solid var(--rule); border-radius:8px; padding:var(--space-4); }
+  .h { font-family:"EB Garamond", Georgia, serif; font-size:22px; font-weight:600; }
+  .muted { color:var(--muted); } .small { font-size:14px; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; border-top:1px solid var(--rule); padding:var(--space-1) 0; }
+  .row .grow { flex:1; }
+  .val { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; }
+  table.m { border-collapse:collapse; width:100%; font-size:15px; margin-top:var(--space-2); }
+  table.m td, table.m th { border:1px solid var(--rule); text-align:center; padding:6px 2px; }
+  table.m th { color:var(--muted); font-weight:400; font-size:13px; }
+  .bar { height:12px; background:var(--track); border-radius:6px; overflow:hidden; margin:4px 0; } .bar i { display:block; height:100%; background:var(--ink); }
+  .skill { display:flex; justify-content:space-between; align-items:center; border:1.5px solid var(--control); border-radius:4px; padding:var(--space-2) var(--space-3); min-height:44px; box-sizing:border-box; background:var(--sheet); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-2); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:820px; }
+</style>
+</head>
+<body>
+
+<h1>1 · Tap Attack: the breakdown, and the to-hit row with descending AC</h1>
+<div class="wrap">
+<div class="screen phone"><div class="card">
+  <div class="h">Attack · THAC0 19</div>
+  <div class="row"><span class="grow">Class at level 1</span><span class="val">19</span></div>
+  <div class="row"><span class="grow">Melee · STR +0</span><span class="val">19</span></div>
+  <div class="row"><span class="grow">Missile · DEX +1</span><span class="val">18</span></div>
+  <div class="small muted" style="margin-top:var(--space-3)">To hit, roll at least (d20), by the target's AC</div>
+  <table class="m"><tr><th>AC</th><th>9</th><th>8</th><th>7</th><th>6</th><th>5</th><th>4</th><th>3</th><th>2</th><th>1</th><th>0</th></tr>
+  <tr><td>Roll</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td></tr></table>
+  <div class="small muted" style="margin-top:var(--space-2)">From the rules: descending AC · the option "Armour class and attacks"</div>
+</div></div>
+<p class="note" style="width:330px">The printed sheet's attack matrix, one tap from the Attack tile (05 already says so for descending AC; pass 2 didn't find it). With ascending AC the row goes and the breakdown ends "+1 to the d20 against AC".</p></div>
+
+<h1>2 · The Pack tab's load, with two bands (ga-1)</h1>
+<div class="wrap">
+<div class="screen phone">
+  <div class="h">Pip's pack</div>
+  <div class="row"><span class="grow"><b>Equipped</b> · 4 of 8 slots<div class="bar"><i style="width:50%"></i></div><span class="small muted">speed 30</span></span></div>
+  <div class="row"><span class="grow"><b>Stowed</b> · 12 of 14 slots<div class="bar"><i style="width:86%"></i></div><span class="small muted">speed 15 · sets your speed</span></span></div>
+  <div class="row"><span class="grow">Coins</span><span class="small muted">with purses (M7b)</span></div>
+  <div class="row"><span class="grow"><b>Worn and in hand</b> · leather armour, short sword</span><span>›</span></div>
+  <div class="row"><span class="grow"><b>In the backpack</b> · 9 things</span><span>›</span></div>
+  <div class="row"><span class="grow"><b>Tiny things</b> · 3 (don't count)</span><span>›</span></div>
+</div>
+<p class="note" style="width:330px">With slot encumbrance in two bands (fae-woodland), each band's bar and speed, the slower one marked "sets your speed" in words; tiny items as their own group (the printed sheet's third list); coins arrive with purses. With weight encumbrance: one bar in coins of weight.</p></div>
+
+<h1>3 · The Player screen's skills, named as the pack names them</h1>
+<div class="wrap">
+<div class="screen phone">
+  <div class="small muted">Today: "listen 6 · search 6 · survival 6"</div>
+  <div class="h" style="margin-top:var(--space-3)">Skills</div>
+  <div class="grid2" style="margin-top:var(--space-2)">
+    <div class="skill"><span>Listen</span><b>6</b></div>
+    <div class="skill"><span>Search</span><b>6</b></div>
+    <div class="skill"><span>Survival</span><b>6</b></div>
+    <div class="skill"><span>Climb wall</span><b>4</b></div>
+  </div>
+  <div class="small muted" style="margin-top:var(--space-2)">The pack's names and capitals; each opens its breakdown (bq-2).</div>
+</div></div>
+
+<p class="note"><b>Checked:</b> 44 px rows and tiles; 375 px; bars always with words; never colour alone. <b>Not drawn:</b> dark mode; weight encumbrance's bar (one band).</p>
+</body>
+</html>

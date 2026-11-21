@@ -1,0 +1,162 @@
+/* The players' Scene under its top: the page's structure (plan dec-9-the-players-scene, P1; page 18 of the December
+   mockups, PL1, PL2, PL5, PL5b, PL9, approved 2026-11-14). Tokens only. Drawn inside `.book-faces` (st-8): headings
+   take the book's face through --font-heading. */
+.players-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* Two columns of one width (PL1) from 768 px, a tablet held upright: there each column is at least as wide as a
+   phone's page, so today's parts sit in it as they do on a phone (narrower, the marching order's heading breaks inside
+   a word). Under it one column, the left column first and the right after it (PL5, PL5b). */
+@media (min-width: 768px) {
+  .players-page {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.players-page__column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* The column sets the space between its parts: today's parts bring no outer space of their own into it. */
+.players-page__column > * {
+  margin-block: 0;
+}
+
+.players-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+}
+
+/* On a phone the cards keep a narrower edge (PL5). */
+@media (max-width: 599px) {
+  .players-page__card {
+    padding: var(--space-3);
+  }
+}
+
+/* Today's place line stands in the card: the card's own edge is its rule. */
+.players-page__card > .place-line {
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* The place's rule buttons at the card's top right, level with the place's name (PL1; Francis's fix, 2026-11-20). The
+   name takes what the buttons leave and wraps beside them, never narrower than the place page's floor for a name; a
+   row of buttons too wide to stand beside it (a button of words, several buttons) takes a line of its own under the
+   name, still at the right, as the GM's card does (ap-16), so no button is squeezed into breaking a word. The picture
+   and the pieces run the card's width under them. Only here: the place line elsewhere (a wilderness day, the GM's
+   Scene) keeps its buttons under the text. */
+.players-page__card > .place-line {
+  flex-flow: row wrap;
+  align-items: flex-start;
+}
+
+.players-page__card > .place-line > * {
+  flex: 0 0 100%;
+  order: 2;
+}
+
+.players-page__card > .place-line > .place-line__name {
+  flex: 1 1 0;
+  min-width: min(var(--place-name-floor), 100%);
+  order: 0;
+}
+
+.players-page__card > .place-line > .place-rule-buttons {
+  flex: 0 1 auto;
+  max-width: 100%;
+  margin-inline-start: auto;
+  justify-content: flex-end;
+  order: 1;
+}
+
+/* "Where you are", over the name (PL2): the band's small capitals. */
+.players-page__over {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-book-descriptor);
+  font-size: var(--text-14);
+  font-weight: var(--weight-book-descriptor);
+  line-height: var(--line-heading);
+}
+
+.players-page__name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-30);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-heading);
+  overflow-wrap: break-word;
+}
+
+.players-page__line {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+/* The book's sub-heading: "This place" (PL2). */
+.players-page__heading {
+  margin: 0;
+  color: var(--book-subhead);
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-book-subhead);
+  line-height: var(--line-heading);
+}
+
+.players-page__hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+}
+
+/* Activities (P6; 01-08, PL1, PL5): the buttons in a row that wraps, the 8 px gap between them; each the book mark
+   beside its name, the height of the screen's other large buttons. A long name wraps inside its button between words,
+   never past the card's edge, the mark keeping its size. */
+.players-activities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.players-activities__button {
+  max-inline-size: 100%;
+  /* Wrapped, the words keep the air a one-line button has above and below them (as a rule's words button). */
+  padding-block: calc((var(--tap-step) - 2 * var(--line-control) - var(--text-20) * var(--line-heading)) / 2);
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+
+.players-activities__button > :first-child {
+  flex: none;
+}
+
+/* Where the map will stand (PL2): a dashed frame of the map card's proportions, its one line in the middle. */
+.players-page__no-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  aspect-ratio: 6 / 5;
+  padding: var(--space-3);
+  border: var(--line-control) dashed var(--control);
+  text-align: center;
+}

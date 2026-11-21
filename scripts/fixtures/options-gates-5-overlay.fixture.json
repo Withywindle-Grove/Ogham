@@ -1,0 +1,26 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-reed-hymnal",
+    "name": "Reed hymnal",
+    "shortName": "Reed hymnal",
+    "version": "0.1",
+    "kind": "homebrew",
+    "author": "Invented for the app's tests",
+    "requires": [{ "packId": "fixture-lantern-fen", "minVersion": "0.1" }],
+    "description": "An invented homebrew overlay whose one option is an add-on to the Lantern fen's Lantern songs (options-gates build order 5)."
+  },
+  "options": [
+    {
+      "id": "reed-hymnal-night",
+      "name": "Night hymns",
+      "default": "off",
+      "changeLater": "allow",
+      "category": "Adventuring",
+      "requires": { "lantern-songs": "on" },
+      "choices": [{ "id": "off", "name": "Off" }, { "id": "on", "name": "On" }],
+      "notes": "An add-on to Lantern songs from another pack: a hymn sung at camp calms the watch."
+    }
+  ]
+}

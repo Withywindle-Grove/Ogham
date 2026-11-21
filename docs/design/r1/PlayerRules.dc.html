@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Player with setting data</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:wght@500;600&display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:{{c.bg}};color:{{c.ink}};font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:16px;display:flex;flex-direction:column;position:relative;overflow:hidden">
+<div style="flex:1;min-height:0;overflow-y:auto;padding:10px 18px 8px;display:flex;flex-direction:column">
+
+<div style="display:flex;justify-content:flex-end">
+<button onClick="{{openMenu}}" aria-label="Character options" style="width:44px;height:44px;border:none;border-radius:22px;background:transparent;color:{{c.mut}};font-size:22px;font-weight:700;cursor:pointer">⋯</button>
+</div>
+
+<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding-bottom:6px">
+<div aria-hidden="true" style="width:56px;height:56px;border-radius:50%;border:1px solid {{c.line}};display:flex;align-items:center;justify-content:center;font-family:'EB Garamond',Georgia,serif;font-size:26px;font-weight:600">W</div>
+<div style="font-family:'EB Garamond',Georgia,serif;font-size:36px;font-weight:600;line-height:1">Wren</div>
+<button onClick="{{openClass}}" style="{{classStyle}}">Marsh folk · Lantern Warden 3 · <i>Lamplighter</i></button>
+</div>
+
+<sc-if value="{{hasUrgent}}" hint-placeholder-val="{{ true }}">
+<div role="status" style="display:flex;flex-direction:column;gap:6px;padding-bottom:8px">
+<sc-if value="{{urgLevel}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:8px;padding:4px 4px 4px 12px;border-radius:10px;background:{{c.tint}}">
+<span style="flex:1;font-size:15px;font-weight:700">Ready for 4th level</span>
+<a href="LevelUp.dc.html" style="min-height:44px;display:inline-flex;align-items:center;padding:0 10px;color:{{c.acc}};font-weight:700;font-size:15px;text-decoration:none">Review</a>
+</div>
+</sc-if>
+<sc-if value="{{urgLight}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:8px;padding:4px 4px 4px 12px;border-radius:10px;background:{{c.tint}}">
+<span style="flex:1;font-size:15px"><b>Glimmer:</b> 1 turn left</span>
+<button onClick="{{dismissLight}}" style="min-height:44px;padding:0 10px;background:none;border:none;color:{{c.acc}};font-family:inherit;font-weight:700;font-size:15px;cursor:pointer">OK</button>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{on.status}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding-bottom:6px">
+<button onClick="{{openBless}}" style="{{chipStyle}}">Blessed · 4 turns</button>
+</div>
+</sc-if>
+
+<sc-if value="{{on.hp}}" hint-placeholder-val="{{ true }}">
+<div style="border-top:3px double {{c.rule}};padding:10px 0;display:flex;flex-direction:column;gap:6px">
+<div style="{{S.label}}">Hit points</div>
+<div style="display:flex;align-items:center;gap:12px">
+<button aria-label="Lose 1 hit point" onClick="{{minus}}" style="{{S.bigBtn}}">−</button>
+<div style="flex:1;text-align:center;font-family:'EB Garamond',Georgia,serif;font-size:52px;font-weight:600;line-height:1;font-variant-numeric:lining-nums">{{hp}}<span style="font-size:24px;color:{{c.mut}};font-weight:500"> of 14</span></div>
+<button aria-label="Gain 1 hit point" onClick="{{plus}}" style="{{S.bigBtn}}">+</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{on.combat}}" hint-placeholder-val="{{ true }}">
+<div style="border-top:3px double {{c.rule}};padding:10px 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+<button onClick="{{openAc}}" style="{{acStyle}}"><span style="font-size:14px;color:{{c.mut}}">Armour class</span><span style="{{S.big}}">13</span></button>
+<button onClick="{{openAtk}}" style="{{atkStyle}}"><span style="font-size:14px;color:{{c.mut}}">Attack</span><span style="{{S.big}}">+2</span></button>
+<button onClick="{{openMove}}" style="{{moveStyle}}"><span style="font-size:14px;color:{{c.mut}}">Move</span><span style="{{S.big}}">90′</span></button>
+</div>
+</sc-if>
+
+<sc-if value="{{on.hand}}" hint-placeholder-val="{{ true }}">
+<div style="border-top:3px double {{c.rule}};padding:10px 0 4px;display:flex;flex-direction:column">
+<div style="{{S.label}}">At hand</div>
+<sc-for list="{{pins}}" as="p" hint-placeholder-count="3">
+<div style="{{p.row}}">
+<button onClick="{{p.open}}" style="flex:1;min-width:0;min-height:52px;background:none;border:none;padding:0;color:inherit;font-family:inherit;text-align:left;display:flex;flex-direction:column;justify-content:center;cursor:pointer">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600;text-decoration:{{p.strike}}">{{p.name}}</span>
+<span style="font-size:14px;color:{{c.mut}}">{{p.sub}}</span>
+</button>
+<sc-if value="{{p.hasBtn}}" hint-placeholder-val="{{ false }}">
+<button onClick="{{p.act}}" aria-label="{{p.actLabel}}" style="{{p.btn}}">{{p.btnText}}</button>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{on.saves}}" hint-placeholder-val="{{ false }}">
+<div style="border-top:3px double {{c.rule}};padding:10px 0;display:flex;flex-direction:column;gap:6px">
+<div style="{{S.label}}">Saving throws</div>
+<div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px">
+<sc-for list="{{saves}}" as="sv" hint-placeholder-count="5">
+<button onClick="{{sv.open}}" aria-label="{{sv.aria}}" style="{{sv.style}}"><span style="font-size:13px;color:{{c.mut}}">{{sv.k}}</span><span style="font-family:'EB Garamond',Georgia,serif;font-size:26px;font-weight:600;line-height:1">{{sv.v}}</span></button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{on.spells}}" hint-placeholder-val="{{ false }}">
+<div style="border-top:3px double {{c.rule}};padding:10px 0;display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span style="{{S.label}}">Spells · {{left}} of 3 ready</span>
+<span style="display:flex;gap:4px">
+<button onClick="{{rest}}" style="{{S.link}}">Rest</button>
+<a href="SpellBook.dc.html" style="{{S.linkA}}">Spell book</a>
+</span>
+</div>
+<sc-for list="{{spells}}" as="sp" hint-placeholder-count="3">
+<div style="{{sp.row}}">
+<button onClick="{{sp.open}}" style="flex:1;min-width:0;min-height:52px;background:none;border:none;padding:0;color:inherit;font-family:inherit;text-align:left;display:flex;flex-direction:column;justify-content:center;cursor:pointer">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:20px;font-weight:600;text-decoration:{{sp.strike}}">{{sp.name}}</span>
+<span style="font-size:14px;color:{{c.mut}}">{{sp.sub}}</span>
+</button>
+<button onClick="{{sp.cast}}" aria-label="{{sp.castLabel}}" style="{{sp.btn}}">{{sp.btnText}}</button>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{on.skills}}" hint-placeholder-val="{{ false }}">
+<div style="border-top:3px double {{c.rule}};padding:10px 0;display:flex;flex-direction:column;gap:4px">
+<div style="{{S.label}}">Class skills</div>
+<sc-for list="{{skills}}" as="sk" hint-placeholder-count="3">
+<button onClick="{{sk.open}}" style="{{sk.style}}"><span>{{sk.name}}</span><span style="font-weight:700;color:{{sk.color}}">{{sk.v}}</span></button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{on.light}}" hint-placeholder-val="{{ false }}">
+<div style="border-top:3px double {{c.rule}};padding:10px 0;display:flex;align-items:center;gap:10px">
+<div style="flex:1;min-width:0"><div style="{{S.label}}">Light</div><div style="font-size:17px">Glimmer (spell) · <b>1 of 9 turns left</b></div></div>
+<button onClick="{{openLight}}" style="{{lightStyle}}">Why 9?</button>
+</div>
+</sc-if>
+
+<sc-if value="{{on.coin}}" hint-placeholder-val="{{ false }}">
+<div style="border-top:3px double {{c.rule}};padding:10px 0;display:flex;align-items:center;gap:10px">
+<div style="flex:1;min-width:0"><div style="{{S.label}}">Coin <span style="font-family:'Atkinson Hyperlegible',sans-serif;font-size:14px;font-weight:400;letter-spacing:0;font-variant:normal">· private</span></div><div style="font-size:19px;font-weight:700">180 gold</div></div>
+</div>
+</sc-if>
+
+<div style="border-top:3px double {{c.rule}};padding:12px 0;text-align:center;font-size:14px;color:{{c.mut}}">{{hiddenText}}</div>
+</div>
+
+<nav aria-label="Main" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:3px double {{c.rule}}">
+<button aria-current="page" style="{{S.navOn}}">Player</button>
+<button style="{{S.navOff}}">Events</button>
+<button style="{{S.navOff}}">Pack</button>
+</nav>
+
+<sc-if value="{{menuOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;flex-direction:column;justify-content:flex-end">
+<div role="dialog" aria-label="Character options" style="background:{{c.sheet}};border-top:1.5px solid {{c.line}};border-radius:20px 20px 0 0;padding:14px 18px 24px;display:flex;flex-direction:column">
+<button onClick="{{openSwitch}}" style="{{S.menuItem}}">Switch character</button>
+<button onClick="{{openArrange}}" style="{{S.menuItem}}">Arrange this screen</button>
+<button style="{{S.menuItem}}">Full character sheet</button>
+<button style="{{S.menuItem}}">Level-up: automatic</button>
+<button onClick="{{toggleTheme}}" style="{{S.menuItem}}">{{themeItem}}</button>
+<button onClick="{{closeMenu}}" style="{{S.menuItem}};color:{{c.mut}};border-bottom:none">Close</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{switchOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;flex-direction:column;justify-content:flex-end">
+<div role="dialog" aria-label="Switch character" style="background:{{c.sheet}};border-top:1.5px solid {{c.line}};border-radius:20px 20px 0 0;padding:16px 18px 24px;display:flex;flex-direction:column;gap:8px">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:26px;font-weight:600">Your characters</span>
+<div style="display:flex;justify-content:space-between;align-items:center;min-height:56px;border-bottom:1px dotted {{c.rule}}"><span style="display:flex;flex-direction:column"><b>Wren</b><span style="font-size:14px;color:{{c.mut}}">Lantern Warden 3 · active</span></span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;min-height:56px;border-bottom:1px dotted {{c.rule}}"><span style="display:flex;flex-direction:column"><b>Old Tobin</b><span style="font-size:14px;color:{{c.mut}}">Reedblade 2 · benched</span></span><button onClick="{{askSwitch}}" style="min-height:44px;padding:0 12px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:16px;font-weight:600;cursor:pointer">{{switchBtn}}</button></div>
+<span style="font-size:14px;color:{{c.mut}}">{{switchNote}}</span>
+<button style="min-height:48px;border-radius:4px;border:1px dashed {{c.rule}};background:transparent;color:{{c.mut}};font-family:inherit;font-size:15px">+ Make a new character</button>
+<button onClick="{{closeSwitch}}" style="min-height:44px;background:none;border:none;color:{{c.mut}};font-family:inherit;font-size:16px">Close</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{arrangeOpen}}" hint-placeholder-val="{{ false }}">
+<div role="dialog" aria-label="Arrange this screen" style="position:absolute;inset:0;background:{{c.bg}};display:flex;flex-direction:column">
+<div style="padding:16px 18px 6px;display:flex;justify-content:space-between;align-items:center">
+<span style="font-family:'EB Garamond',Georgia,serif;font-size:30px;font-weight:600">Arrange</span>
+<button onClick="{{closeArrange}}" style="min-height:44px;padding:0 14px;border-radius:4px;border:1px solid {{c.line}};background:transparent;color:inherit;font-family:'EB Garamond',Georgia,serif;font-size:19px;font-weight:600;cursor:pointer">Done</button>
+</div>
+<div style="padding:0 18px 10px;font-size:15px;color:{{c.mut}};line-height:1.4">Show only what you use. Hidden sections stay in your full sheet. Saved for Wren on every device.</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px">
+<sc-for list="{{arrange}}" as="a" hint-placeholder-count="9">
+<div style="display:flex;align-items:center;gap:10px;min-height:60px;border-bottom:1px dotted {{c.rule}}">
+<span aria-hidden="true" style="color:{{c.mut}};font-size:20px;width:20px;text-align:center">⋮⋮</span>
+<span style="flex:1;display:flex;flex-direction:column"><span style="font-size:17px;font-weight:700">{{a.name}}</span><span style="font-size:13px;color:{{c.mut}}">{{a.note}}</span></span>
+<button onClick="{{a.toggle}}" role="switch" aria-checked="{{a.on}}" aria-label="{{a.aria}}" style="{{a.sw}}"><span style="{{a.knob}}"></span></button>
+</div>
+</sc-for>
+<div style="font-size:14px;color:{{c.mut}};line-height:1.45;padding:12px 0 18px">Always shown when urgent, even if hidden: a light about to go out, a status ending, ready to level. Drag ⋮⋮ to reorder. Defaults come from your setting.</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;flex-direction:column;justify-content:flex-end">
+<div role="dialog" aria-label="{{sheet.title}}" style="background:{{c.sheet}};color:{{c.ink}};border-top:1.5px solid {{c.line}};border-radius:20px 20px 0 0;padding:18px 18px 26px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span style="font-family:'EB Garamond',Georgia,serif;font-size:28px;font-weight:600">{{sheet.title}}</span><button onClick="{{closeSheet}}" style="min-height:44px;padding:0 6px;background:none;border:none;color:{{c.mut}};font-family:inherit;font-size:16px;cursor:pointer">Close</button></div>
+<div style="font-size:15px;color:{{c.mut}}">{{sheet.sub}}</div>
+<sc-for list="{{sheet.lines}}" as="ln" hint-placeholder-count="3"><div style="font-size:17px;line-height:1.45">{{ln.t}}</div></sc-for>
+<div style="font-size:14px;color:{{c.mut}};border-top:1px solid {{c.rule}};padding-top:8px">{{sheet.ref}}</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      hp: 9, used: { glimmer: true }, sheet: null, pressed: null, menu: false, arrange: false, lightOk: false, dark: null, switchOpen: false, asked: false,
+      on: { status: true, hp: true, combat: true, hand: true, saves: false, spells: false, skills: false, light: false, coin: false }
+    };
+  }
+  renderVals() {
+    const s = this.state;
+    const dark = s.dark ?? (this.props.dark ?? false);
+    const c = dark
+      ? { bg: '#12100D', surf: '#1C1915', ink: '#F1EADC', mut: '#B5AA96', rule: '#3A342B', line: '#E4DCCB', acc: '#D4836B', warn: '#E6BA66', tint: '#4A3A22', sheet: '#1E1A16', onAcc: '#12100D' }
+      : { bg: '#FBF8F1', surf: '#F3EEE3', ink: '#191714', mut: '#5E574C', rule: '#CFC4B0', line: '#191714', acc: '#6E2A1F', warn: '#7A4A00', tint: '#F3E6CB', sheet: '#FFFDF8', onAcc: '#FBF8F1' };
+    const G = "'EB Garamond',Georgia,serif";
+    const flash = (k) => s.pressed === k ? ';background:' + c.tint : '';
+    const show = (sheet, k) => () => { this.setState({ pressed: k }); setTimeout(() => this.setState({ pressed: null, sheet: sheet }), 180); };
+    const box = 'min-height:72px;border:1px solid ' + c.rule + ';border-radius:4px;background:transparent;color:inherit;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer';
+    const pack = 'From your setting: River Rules (private)';
+    const actBtn = (dim) => 'min-width:72px;min-height:44px;border-radius:4px;border:1px solid ' + (dim ? c.rule : c.line) + ';background:transparent;color:inherit;font-family:' + G + ';font-size:18px;font-weight:600;cursor:pointer';
+    const savesData = [['Poison', 12], ['Wands', 13], ['Stone', 14], ['Breath', 13], ['Spells', 16]];
+    const saves = savesData.map((x) => ({
+      k: x[0], v: x[1], aria: x[0] + ' save ' + x[1],
+      style: 'min-height:62px;border:1px solid ' + c.rule + ';border-radius:4px;background:transparent;color:inherit;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;cursor:pointer' + flash('sv' + x[0]),
+      open: show({ title: 'Save vs ' + x[0].toLowerCase(), sub: 'Roll ' + x[1] + ' or higher on a d20', lines: [{ t: 'Set by your class at level 3; the app filled it when you levelled.' }], ref: pack + ' · Lantern Warden progression' }, 'sv' + x[0])
+    }));
+    const spellData = [
+      { id: 'glimmer', name: 'Glimmer', sub: 'Level 1 · 30′ · 9 turns', lines: ['Sheds light in a 15′ circle.', 'Duration: 6 + level = 9 turns for you.'] },
+      { id: 'dart', name: 'Ember Dart', sub: 'Level 1 · 120′ · 1 dart, 1d6+1', lines: ['Darts never miss.', 'Darts: 1 + 2 per 5 levels = 1 for you.'] },
+      { id: 'ward', name: 'Ward of Ash', sub: 'Level 2 · touch · 3 turns', lines: ['Target ignores the first hit each round.'] }
+    ];
+    const left = spellData.filter((x) => !s.used[x.id]).length;
+    const castToggle = (id) => () => this.setState({ used: Object.assign({}, s.used, { [id]: !s.used[id] }) });
+    const spells = spellData.map((x) => {
+      const u = !!s.used[x.id];
+      return {
+        name: x.name, sub: u ? x.sub + ' · cast' : x.sub, strike: u ? 'line-through' : 'none',
+        row: 'display:flex;align-items:center;gap:10px;border-bottom:1px dotted ' + c.rule + ';margin:0 -8px;padding:0 8px;border-radius:4px;opacity:' + (u ? 0.55 : 1) + flash('sp' + x.id),
+        btn: actBtn(u), btnText: u ? 'Undo' : 'Cast', castLabel: (u ? 'Undo casting ' : 'Cast ') + x.name,
+        cast: castToggle(x.id),
+        open: show({ title: x.name, sub: x.sub, lines: x.lines.map((t) => ({ t: t })), ref: pack + ' · spells' }, 'sp' + x.id)
+      };
+    });
+    const dartUsed = !!s.used.dart;
+    const pins = [
+      { k: 'sword', name: 'Short sword', sub: '+4 to hit · 1d6+1 damage', hasBtn: false, sheet: { title: 'Short sword · +4 · 1d6+1', sub: 'All your current modifiers are already added', lines: [{ t: 'To hit: +2 class (level 3) · +1 STR 13 · +1 Blessed (4 turns left)' }, { t: 'Damage: 1d6 short sword · +1 STR 13' }, { t: 'When Blessed ends this drops to +3.' }], ref: pack + ' · items, STR, conditions' } },
+      { k: 'sling', name: 'Sling', sub: '+3 to hit · 1d4 damage · 40′/80′/160′', hasBtn: false, sheet: { title: 'Sling · +3 · 1d4', sub: 'All your current modifiers are already added', lines: [{ t: 'To hit: +2 class (level 3) · +0 DEX 12 · +1 Blessed' }, { t: 'Damage: 1d4 · no STR bonus for missiles' }, { t: 'Range short / medium / long: +1 / 0 / −1 to hit.' }], ref: pack + ' · items, DEX, missile fire' } },
+      { k: 'dart', name: 'Ember Dart', sub: dartUsed ? 'Spell · cast' : 'Spell · never misses · 1 dart · 1d6+1 · 120′', hasBtn: true, used: dartUsed, act: castToggle('dart'), sheet: { title: 'Ember Dart', sub: 'Never misses · 1d6+1', lines: [{ t: 'Darts: 1 at level 3 (1 more at 6th).' }, { t: 'Pinned here so you can cast without showing the Spells section.' }], ref: pack + ' · spells' } },
+      { k: 'wand', name: 'Wand of sparks', sub: '7 charges · 2d6 · target saves vs Wands', hasBtn: true, used: false, act: () => {}, btnText: 'Use 1', sheet: { title: 'Wand of sparks', sub: '7 charges', lines: [{ t: 'Each use spends a charge and is logged.' }], ref: pack + ' · items, charges' } }
+    ].map((p) => ({
+      name: p.name, sub: p.sub, hasBtn: p.hasBtn, strike: p.used ? 'line-through' : 'none',
+      row: 'display:flex;align-items:center;gap:10px;border-bottom:1px dotted ' + c.rule + ';margin:0 -8px;padding:0 8px;border-radius:4px;opacity:' + (p.used ? 0.55 : 1) + flash('pin' + p.k),
+      btn: actBtn(p.used), btnText: p.btnText || (p.used ? 'Undo' : 'Cast'), act: p.act || (() => {}), actLabel: (p.btnText || 'Cast') + ' ' + p.name,
+      open: show(p.sheet, 'pin' + p.k)
+    }));
+    const skillData = [
+      { name: 'Read old runes', v: '2-in-6', color: c.ink, lines: ['Roll a d6; 1 or 2 succeeds.'] },
+      { name: 'Find tracks', v: '30%', color: c.ink, lines: ['Roll d100 under 30.'] },
+      { name: 'Hear noise', v: '2-in-6', color: c.ink, lines: ['Roll a d6; 1 or 2 succeeds.', 'Your GM may roll this for you in secret.'] }
+    ];
+    const skills = skillData.map((x, i) => ({
+      name: x.name, v: x.v, color: x.color,
+      style: 'min-height:48px;display:flex;justify-content:space-between;align-items:center;border:none;border-bottom:1px dotted ' + c.rule + ';background:transparent;color:inherit;font-family:inherit;font-size:17px;padding:0 4px;cursor:pointer' + flash('sk' + i),
+      open: show({ title: x.name, sub: 'Lantern Warden skill · level 3', lines: x.lines.map((t) => ({ t: t })), ref: pack + ' · class skills' }, 'sk' + i)
+    }));
+    const sections = [
+      ['status', 'Statuses', 'Shown when you have any'], ['hp', 'Hit points', ''], ['combat', 'Armour class · attack · move', ''],
+      ['hand', 'At hand', 'Your pins: weapon, spells, items'], ['saves', 'Saving throws', 'From your class'], ['spells', 'Spells', 'Casters only'],
+      ['skills', 'Class skills', 'From your class'], ['light', 'Light', 'Warns you even when hidden'], ['coin', 'Coin', 'Private']
+    ];
+    const arrange = sections.map((x) => {
+      const on = !!s.on[x[0]];
+      return {
+        name: x[1], note: x[2], on: on, aria: (on ? 'Hide ' : 'Show ') + x[1],
+        sw: 'width:56px;height:32px;flex:none;border-radius:16px;border:1px solid ' + (on ? c.acc : c.rule) + ';background:' + (on ? c.acc : c.surf) + ';position:relative;cursor:pointer;padding:0',
+        knob: 'position:absolute;top:3px;left:' + (on ? 27 : 3) + 'px;width:24px;height:24px;border-radius:12px;background:' + (on ? c.onAcc : c.mut),
+        toggle: () => this.setState({ on: Object.assign({}, s.on, { [x[0]]: !on }) })
+      };
+    });
+    const hiddenCount = sections.filter((x) => !s.on[x[0]]).length;
+    const urgLight = !s.lightOk && !s.on.light;
+    const big = 'font-family:' + G + ';font-size:40px;font-weight:600;line-height:1';
+    return {
+      c: c, themeItem: dark ? 'Theme: dark · switch to light' : 'Theme: light · switch to dark', toggleTheme: () => this.setState({ dark: !dark, menu: false }), hp: s.hp, left: left, saves: saves, spells: spells, skills: skills, pins: pins, on: s.on, arrange: arrange,
+      hasUrgent: true, urgLevel: true, urgLight: urgLight,
+      dismissLight: () => this.setState({ lightOk: true }),
+      hiddenText: hiddenCount === 0 ? 'Everything is shown' : hiddenCount + ' sections hidden · ⋯ to arrange',
+      S: {
+        label: 'font-family:' + G + ';font-size:19px;font-weight:600;font-variant:small-caps;letter-spacing:.07em;color:' + c.mut,
+        bigBtn: 'width:56px;height:56px;flex:none;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:inherit;font-size:26px;font-weight:700;cursor:pointer',
+        big: big,
+        link: 'min-height:44px;padding:0 8px;background:none;border:none;color:' + c.acc + ';font-family:inherit;font-size:16px;font-weight:700;cursor:pointer',
+        linkA: 'min-height:44px;display:inline-flex;align-items:center;padding:0 8px;color:' + c.acc + ';font-size:16px;font-weight:700;text-decoration:none',
+        menuItem: 'min-height:56px;text-align:left;border:none;border-bottom:1px dotted ' + c.rule + ';background:transparent;color:' + c.ink + ';font-family:' + G + ';font-size:21px;font-weight:600;cursor:pointer',
+        navOn: 'height:62px;background:none;border:none;color:' + c.ink + ';font-family:' + G + ';font-size:20px;font-weight:600;font-variant:small-caps;letter-spacing:.06em;text-decoration:underline;text-underline-offset:6px',
+        navOff: 'height:62px;background:none;border:none;color:' + c.mut + ';font-family:' + G + ';font-size:20px;font-variant:small-caps;letter-spacing:.06em'
+      },
+      classStyle: 'min-height:44px;padding:0 8px;border:none;border-radius:4px;background:transparent;color:' + c.mut + ';font-family:inherit;font-size:15px;cursor:pointer' + flash('class'),
+      chipStyle: 'min-height:44px;padding:0 6px;background:none;border:none;color:' + c.warn + ';font-family:' + G + ';font-size:19px;font-style:italic;text-decoration:underline dotted;text-underline-offset:5px;cursor:pointer' + flash('bless'),
+      acStyle: box + flash('ac'), atkStyle: box + flash('atk'), moveStyle: box + flash('move'),
+      lightStyle: 'min-height:44px;padding:0 12px;border-radius:4px;border:1px solid ' + c.line + ';background:transparent;color:inherit;font-family:' + G + ';font-size:18px;font-weight:600;cursor:pointer' + flash('light'),
+      minus: () => this.setState({ hp: Math.max(0, s.hp - 1) }), plus: () => this.setState({ hp: Math.min(14, s.hp + 1) }),
+      rest: () => this.setState({ used: {} }),
+      openMenu: () => this.setState({ menu: true }), closeMenu: () => this.setState({ menu: false }),
+      openArrange: () => this.setState({ menu: false, arrange: true }), closeArrange: () => this.setState({ arrange: false }),
+      menuOpen: s.menu, arrangeOpen: s.arrange, switchOpen: s.switchOpen,
+      openSwitch: () => this.setState({ menu: false, switchOpen: true }), closeSwitch: () => this.setState({ switchOpen: false, asked: false }),
+      askSwitch: () => this.setState({ asked: true }), switchBtn: s.asked ? 'Asked' : 'Ask to switch',
+      switchNote: s.asked ? 'Sent to the GM. You switch when they approve.' : 'You’re on an adventure, so switching needs the GM’s OK. In downtime it’s instant. Benched characters earn no party XP.',
+      openClass: show({ title: 'Lantern Warden 3', sub: 'Marsh folk · title: Lamplighter', lines: [{ t: 'Class, race and title come from your setting.' }, { t: 'Next title at 4th: Wickwarden.' }], ref: pack + ' · classes, races' }, 'class'),
+      openBless: show({ title: 'Blessed', sub: '4 turns left · set by the GM', lines: [{ t: '+1 to attacks and morale while it lasts.' }], ref: pack + ' · conditions' }, 'bless'),
+      openAc: show({ title: 'Armour class 13', sub: 'Leather armour and shield', lines: [{ t: 'Ascending AC, because your campaign chose that option.' }], ref: pack + ' · option: armour class style' }, 'ac'),
+      openAtk: show({ title: 'Attack +2', sub: 'From your class at level 3', lines: [{ t: 'Add +2 to your d20; the target’s AC tells you if you hit.' }], ref: pack + ' · Lantern Warden progression' }, 'atk'),
+      openMove: show({ title: 'Move 90′ (30′)', sub: 'Armour mode: light armour, carrying treasure', lines: [{ t: 'Drop the treasure and you move 120′.' }], ref: pack + ' · option: encumbrance = armour' }, 'move'),
+      openLight: show({ title: 'Glimmer: 9 turns', sub: '1 turn left', lines: [{ t: 'Your setting says 6 + caster level. Wren is level 3, so 9.' }], ref: pack + ' · light types, formula' }, 'light'),
+      sheetOpen: !!s.sheet, sheet: s.sheet || { title: '', sub: '', lines: [], ref: '' },
+      closeSheet: () => this.setState({ sheet: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

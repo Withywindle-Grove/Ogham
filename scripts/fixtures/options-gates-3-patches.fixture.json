@@ -1,0 +1,46 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-mire-zine",
+    "name": "Mire zine",
+    "shortName": "Mire zine",
+    "version": "0.1",
+    "kind": "homebrew",
+    "author": "Invented for the app's tests",
+    "requires": [{ "packId": "fixture-fen-options", "minVersion": "0.1" }],
+    "description": "An invented overlay for pack:check's notes on gates with several choices (of-12) and patches (of-13), options-gates PR 3: made-up names and numbers, with one mistake of each kind on purpose."
+  },
+  "options": [
+    {
+      "id": "mire-sparks",
+      "name": "Spark lances",
+      "default": "none",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "none", "name": "None" },
+        { "id": "common", "name": "Common" },
+        { "id": "rare", "name": "Rare" }
+      ],
+      "notes": "How common spark lances are."
+    },
+    {
+      "id": "mire-metals",
+      "name": "Ordinary metal",
+      "default": "steel",
+      "changeLater": "allow",
+      "choices": [
+        { "id": "steel", "name": "Steel" },
+        { "id": "bronze", "name": "Bronze" }
+      ],
+      "notes": "Which metal is ordinary."
+    }
+  ],
+  "items": [
+    { "id": "spark-lance", "name": "Spark lance", "category": "weapon", "slot": "hand", "value": { "gp": 300 }, "weightCoin": 80, "weapon": { "damage": "1d6" }, "option": ["mire-sparks=common", "mire-sparks=relics"], "byOption": { "mire-sparks=rare": { "value": null } } }
+  ],
+  "patches": [
+    { "byOption": "mire-metals=bronze", "match": { "kind": "item", "category": "armour" }, "change": { "weightCoin": { "delta": 50 } } },
+    { "byOption": "mire-metals=bronze", "match": { "kind": "item", "category": "shield" }, "option": null }
+  ]
+}

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Player: statuses as rings (2026-11-08, revised)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<style>
+  .sheetup { max-height:none; }
+  .statuses { display:flex; gap:var(--space-3); flex-wrap:wrap; padding:var(--space-3) 0; }
+  .st { width:72px; min-height:88px; display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; font-size:14px; line-height:1.15; }
+  .st .ring { position:relative; width:52px; height:52px; }
+  .ring svg.arc { position:absolute; inset:0; transform:rotate(-90deg); }
+  .ring .mid { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .st .nm { font-weight:600; }
+  .st .left { color:var(--muted); }
+  .sect { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-top:var(--space-4); }
+  .big { display:flex; align-items:center; gap:var(--space-4); margin:var(--space-3) 0; }
+  .big .ring { width:84px; height:84px; position:relative; flex:none; }
+  .pill-old { display:inline-block; padding:6px 12px; border:1.5px solid var(--control); border-radius:999px; margin:0 6px 6px 0; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script>
+// status symbols (Icon family, stroke 2), drawn in the ring's colour
+const SY = {
+  flame: `<path d="M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.5-2.5 1.2-3.3C9.5 9 10.5 10 11 10.5 11 8 11 5.5 12 3z" ${W}/>`,
+  drop: `<path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z" ${W}/>`,
+  sun: `<circle cx="12" cy="12" r="4" ${W}/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" ${W}/>`,
+  shield: `<path d="M12 3l8 3v6c0 4.5-3.5 8-8 9-4.5-1-8-4.5-8-9V6z" ${W}/>`,
+  bed: `<path d="M3 18V8M3 14h18v4M21 18v-6a3 3 0 0 0-3-3H10v5" ${W}/><circle cx="6.5" cy="10.5" r="1.5" ${W}/>`,
+  moon: `<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" ${W}/>`,
+};
+const sym = (k, w) => svg(SY[k], w);
+// ring(fraction 0..1, symbol, colour token): a track and an arc in the colour; dashed when there is no end
+const ring = (frac, k, col, { size = 52, dashed = false, stroke = 5 } = {}) => {
+  const r = (size - stroke) / 2, c = 2 * Math.PI * r;
+  const arc = dashed ? '' : `<circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--${col})" stroke-width="${stroke}" stroke-dasharray="${(c*frac).toFixed(1)} ${c.toFixed(1)}"/>`;
+  const track = `<circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--rule)" stroke-width="${stroke}" ${dashed ? 'stroke-dasharray="4 5"' : ''}/>`;
+  return `<div class="ring"><svg class="arc" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true">${track}${arc}</svg><span class="mid" style="color:var(--${col})">${sym(k, size > 60 ? 36 : 24)}</span></div>`;
+};
+const st = (name, frac, k, col, left, opts) => `<div class="st" role="button">${ring(frac, k, col, opts)}<span class="nm">${name}</span><span class="left">${left}</span></div>`;
+
+const player = phone(`
+  ${bar('Wren Ashwold')}
+  <div class="inner">
+    <div class="sect">Statuses</div>
+    <div class="statuses">
+      ${st('Torch', 4/6, 'flame', 'glow', '4 turns')}
+      ${st('Blessed', 1/6, 'sun', 'info', '1 turn')}
+      ${st('Poisoned', 2/3, 'drop', 'danger', '2 days')}
+    </div>
+    <div class="sect">Hit points</div>
+    <div class="kv" style="margin-top:var(--space-2)"><b>7 of 9</b><span class="meta">Armour 14</span></div>
+  </div>`, 'The Player screen: each status is a ring in its family’s colour that empties as the time runs out, the status’s symbol in the middle, the name and the time left in words under it. Encumbrance is not a status: the Pack’s load bar tracks it. The tile is the tap.');
+
+const states = phone(`
+  <div class="inner">
+    <div class="sect">States</div>
+    <div class="statuses">
+      ${st('Torch', 1, 'flame', 'glow', 'just lit')}
+      ${st('Torch', 1/6, 'flame', 'glow', 'last turn')}
+      ${st('Torch', 0, 'flame', 'glow', 'burnt out')}
+      ${st('Down', 1, 'bed', 'danger', 'until healed', { dashed: true })}
+      ${st('Resting', 1/2, 'moon', 'info', '4 hours')}
+      ${st('Shield of the drowned abbey', 3/4, 'shield', 'info', '12 turns')}
+      ${st('Shield', 1, 'shield', 'info', '999 turns')}
+    </div>
+    <div class="sect">Colour by family (tokens)</div>
+    <p class="meta">Light: the glow token (torch, lantern, a light spell). Harm: danger (poison, disease, Down, bleeding). Boon: info (blessed, shield, rest). Other: ink. The symbol and the words carry the meaning too, so colour is never alone.</p>
+    <div class="sect">Empty</div>
+    <p class="meta">No statuses: the row and its heading are not drawn.</p>
+  </div>`, 'States: full, last turn, run out (an empty ring, "burnt out", stays until its own rule ends it), no end (dashed), a long name over two lines, 999. Offline: the last known time stays.');
+
+const detail = phone(`
+  ${bar('Wren Ashwold')}
+  <div class="inner" style="min-height:760px"></div>
+  ${sheet('Torch', `
+    <div class="inner">
+      <div class="big">${ring(4/6, 'flame', 'glow', { size: 84, stroke: 7 })}<div><b>4 of 6 turns left</b><div class="meta">Lit at turn 3 of the expedition, by Wren. Ends at turn 9.</div></div></div>
+      <p>Light to 30 ft; the party sees and is seen. When it runs out the lantern or another torch takes over, or the dark does.</p>
+      <div class="list">
+        ${kvRow('Source', 'Torch, from the pack')}
+        ${kvRow('Set by', 'the expedition clock')}
+        ${kvRow('Log', 'Lit, turn 3', { chev: true })}
+      </div>
+      <span class="btn wide" style="margin-top:var(--space-3)">Put out</span>
+      <p class="meta" style="margin-top:var(--space-3)">Only the GM changes the time left (Scene, Time).</p>
+    </div>`)}`, 'The tap: the count appears here. The big ring, "4 of 6 turns left", when and by whom, what the status does, source, who set it, the log line, and the player’s one action (Put out, Drink, End rest…). GM-only edits are named, not offered.');
+
+const gm = phone(`
+  ${bar('Wren Ashwold')}
+  <div class="inner" style="min-height:760px"></div>
+  ${sheet('Poisoned', `
+    <div class="inner">
+      <div class="big">${ring(2/3, 'drop', 'danger', { size: 84, stroke: 7 })}<div><b>2 of 3 days left</b><div class="meta">Bitten by a bog adder on day 2. Ends on day 5.</div></div></div>
+      <p>−2 to attacks and saves; no natural healing until it ends.</p>
+      <div class="list">${kvRow('Source', 'Bog adder, the fen sample, p. 40')}</div>
+      <div class="kv" style="margin-top:var(--space-3)"><span>Days left</span>${stepper(2)}</div>
+      <span class="btn wide" style="margin-top:var(--space-3)">End it now</span>
+    </div>`)}`, 'The GM’s view of a sheet: a stepper for the time left and End it now; both logged with Undo.');
+
+const before = `<div class="card"><div class="meta">Before (the approved 2026-11-07 Player mockup): pill chips</div><span class="pill-old">Torch, 4 turns</span><span class="pill-old">Blessed, 1 turn</span><span class="pill-old">Encumbered</span></div>`;
+
+mount(`
+  <h1>Player: statuses as rings (revised)</h1>
+  <p class="note">Francis, 2026-11-08: "Statuses should be circles which represent visually the amount of time left… clickable for full details." Then: "I don’t like the count in the middle; I’d prefer a symbol representing the status… Encumbrance has its own tracker… I like colour." This revision: a symbol in the middle, the count only in the sheet, no Encumbered status, the ring in its family’s colour token. Component: <b>Status ring</b> (06 inventory, new); the symbols join the Icon family; a pack status names its symbol and family (<code>symbol</code>, <code>family</code>: light, harm, boon, other); with none named, an ink ring and the status’s first letter.</p>
+  ${before}
+  <div class="wall">${player}${states}${detail}${gm}</div>
+  <p class="note">Self-review: tiles 72 × 88 px, 12 px between; symbol + words + colour (never colour alone); long names wrap to two lines, longer clip with … (the full name in the sheet); 0 and 999 drawn; the empty row is not drawn; one accent per screen (none here; the sheet’s one button is plain). Not checked: the arc at 52 px on a 1× screen; the glow token as a 5 px arc on the light page (about 2.6:1, fine for a shape with words beside it, not for text); the symbol set a pack may need beyond these six (the letter fallback covers it).</p>
+`);
+</script>
+</body>
+</html>

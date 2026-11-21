@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Magic 06: Prepare, the morning window and the GM's rest prompt, on the standard (redrawn with mp-1 … mp-5, 2026-11-09)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="magic.css">
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="magic.js"></script>
+<script>
+const yesterday = (sub) => `<div class="card"><div class="kv"><div class="text">Same as yesterday<small>${sub}</small></div><span class="btn">Pick</span></div></div>`;
+
+const book = phone(`
+  ${bar('Prepare')}
+  <div class="inner">
+    <p class="meta" style="margin:0 0 var(--space-2)">For Wren's next rest. Ready today stays as it is: Mire lamp ×2, Reed whisper.</p>
+    ${yesterday('Mire lamp ×2, Reed whisper')}
+    ${level('Level 1, 2 a day. 2 chosen')}
+    <div class="list">
+      ${stepRow('Mire lamp', '6 turns, 30 ft. A light', 2)}
+      ${stepRow('Thorn dart', 'Instant, 60 ft', 0)}
+      ${stepRow('Mend lantern', 'Instant, touch', 0)}
+    </div>
+    ${level('Level 2, 1 a day. None chosen')}
+    <div class="list">
+      ${stepRow('Reed whisper', 'Instant, 1 mile', 0)}
+      ${stepRow('The long lantern of the drowned abbey that burns beneath the black water', '1 night, 50 ft', 0)}
+    </div>
+    <div class="foot"><span class="say">Saved as you go. 1 slot still empty</span><span class="btn">Back</span></div>
+  </div>`, 'Prepare for a book caster: her spell book, by level, each spell with a − N + stepper (mp-1). Open at any time; what is chosen becomes ready only at the next rest, and the first line says so (mp-2). Same as yesterday is one tap. A name opens the rules. Changes save as made, so there is no Done; the foot says what is still empty. No accent: nothing is asked.');
+
+const full = phone(`
+  ${bar('Prepare')}
+  <div class="inner" style="min-height:420px">
+    ${level('Level 1, 2 a day. 2 chosen')}
+    <div class="list">${stepRow('Mire lamp', '6 turns, 30 ft. A light', 2)}${stepRow('Thorn dart', 'Instant, 60 ft', 0)}</div>
+  </div>
+  ${sheet('Level 1 is full', `
+    <p style="margin:0 0 var(--space-3)">Wren has 2 a day at level 1 and both are chosen. Take one out first.</p>
+    <div class="foot"><span class="say"></span><span class="btn">OK</span></div>
+  `)}`, 'A full level: + still answers. Nothing is swapped and no button is disabled (mp-1).');
+
+const prayer = phone(`
+  ${bar('Prepare')}
+  <div class="inner">
+    <p class="meta" style="margin:0 0 var(--space-2)">For Brother Alder's next rest. Nothing is ready today.</p>
+    ${yesterday('Mending hands ×2, Candle ward')}
+    ${level('Level 1, 3 a day. 3 chosen')}
+    <div class="list">
+      ${stepRow('Mending hands', 'Instant, touch', 2)}
+      ${kvRow('Mending hands, the form', 'Mending', { chev: true })}
+      ${stepRow('Candle ward', '1 turn, 10 ft', 1)}
+    </div>
+    ${foldRow('8 more at level 1', 'Bless the reeds, Still water, Quiet the dead…')}
+    <div class="foot"><span class="say">Saved as you go</span><span class="btn">Back</span></div>
+  </div>`, 'A prayer caster chooses from the whole list for his level, so it shows what is chosen first and folds the rest (mp-1). For a class that picks a spell\'s form when memorising, the form is a row here (it opens the two forms); a class that picks at casting gets the cast sheet instead (mockup 05).');
+
+const window_ = phone(`
+  ${topbar('Wren')}
+  <div class="inner">
+    <div class="card"><div class="kv"><div class="text">Your spells are back<small>Choose before the party moves on, or yesterday's spells will be selected by default: Mire lamp ×2, Reed whisper.</small></div></div>
+      <div style="margin-top:var(--space-2)"><span class="btn accent wide">Same as yesterday</span></div>
+      <div style="margin-top:var(--space-2)"><span class="btn wide">Choose</span></div></div>
+    <h2>Spells</h2>
+    <div class="card"><div class="kv"><div class="text">Nothing ready yet<small>Answer above, or wait for the party to move.</small></div></div></div>
+    ${tabs('magic')}
+  </div>`, 'The morning window (mp-3): when the GM applies the rest, each rested caster\'s Magic tab asks once. Same as yesterday is the one accent; Choose opens Prepare. The window closes at the group\'s first move or time step; nobody taps "break camp".');
+
+const firstMorning = phone(`
+  ${topbar('Brother Alder')}
+  <div class="inner">
+    <div class="card"><div class="kv"><div class="text">Your spells are back<small>Nothing was chosen yesterday. Choose before the party moves on, or your 3 slots stay empty until the next rest.</small></div></div>
+      <div style="margin-top:var(--space-2)"><span class="btn accent wide">Choose</span></div></div>
+    ${tabs('magic')}
+  </div>`, 'A first morning, or a new slot: there is no yesterday, and the app never picks a spell (mp-3). The words say what happens if he doesn\'t choose.');
+
+const restPrompt = phone(`
+  <div class="bar"><span class="ico"></span><span class="title">The GM's screen</span><span class="ico"></span></div>
+  <div class="inner" style="min-height:560px"></div>
+  ${sheet('A night\'s rest', `
+    <p class="meta" style="margin:0 0 var(--space-2)">Who gets their magic back? Tap a mark to switch it.</p>
+    <div class="list">
+      <div class="row"><div class="text">Wren<small>Slept the night</small></div><span class="btn small mark">✓ Magic back</span></div>
+      <div class="row"><div class="text">Brother Alder<small>Night broken: on watch when the prowlers came</small></div><span class="btn small mark">✕ Not back</span></div>
+      <div class="row"><div class="text">Pike<small>Slept the night. Bird friend, once a rest</small></div><span class="btn small mark">✓ Uses back</span></div>
+    </div>
+    <p class="meta" style="margin:var(--space-2) 0 0">Once-a-day uses come back to everyone with the new day.</p>
+    <div class="foot"><span class="btn">Cancel</span><span class="btn accent">Apply rest</span></div>
+  `)}`, 'The GM\'s rest prompt (mp-5), asked once at the rest and at End expedition\'s full rest. Every caster carries a mark with its word, ✓ or ✕, tapped to switch; a broken night starts on ✕ with the reason. A character with a once-a-rest power is listed too.');
+
+const gmLine = tablet(`
+  <div class="bar"><span class="ico"></span><span class="title">The GM's screen, after the rest</span><span class="ico"></span></div>
+  <div class="inner">
+    <div class="card"><div class="kv"><div class="text">Choosing spells<small>Brother Alder hasn't answered: 3 slots, nothing chosen yesterday. Closes when the party moves.</small></div><span class="btn small">Choose</span></div></div>
+    <div class="list" style="margin-top:var(--space-3)">
+      <div class="row"><div class="text">Yesterday's spells are ready for Wren<small>Mire lamp ×2. Reed whisper dropped: one slot fewer at level 2</small></div><span class="btn small">Undo</span></div>
+      <div class="row"><div class="text">Brother Alder has 3 empty slots<small>Nothing was chosen yesterday</small></div></div>
+    </div>
+  </div>`, 'The GM\'s side of the window: one line names who hasn\'t answered and blocks nothing. When the party moves, yesterday\'s set becomes ready for anyone who hasn\'t answered, logged with Undo; a set too big carries as far as it fits, in the order chosen, and the log says what dropped. After the window the player waits for the next rest (mp-4); the GM can fill or change anyone\'s spells at any time.');
+
+mount(`
+  <h1>Prepare, the morning window and the rest prompt</h1>
+  <p class="note"><b>Approved by Francis, 2026-11-10</b>, with two wording changes drawn here: Same as yesterday's button reads Pick, and the morning prompt's line is his (mm-4, mm-5, <code>rulings/m5c-magic-mockups-2026-11-10.md</code>). Redrawn on the players' standard with the paper test's rulings (mp-1 … mp-5). Replaces the rough draft <code>01-prepare</code>. What changed from the draft: chosen is not yet ready (the first line and the foot say so); the morning window and its two endings are drawn; the shrine's blessing left Prepare (the GM gives it; it shows on the Magic tab, mockup 04); the GM's rest prompt carries ✓ and ✕ marks. Invented names and figures.</p>
+  <h1>Prepare</h1>
+  <div class="wall">${book}${full}${prayer}</div>
+  <h1>The morning window</h1>
+  <div class="wall">${window_}${firstMorning}</div>
+  <h1>The GM's side</h1>
+  <div class="wall">${restPrompt}</div>
+  ${gmLine}
+  <p class="note">Self-review: every target 44 px with 8 px between (the steppers' − and + are 44 px squares); nothing under 14 px; one accent per screen (none in Prepare; Same as yesterday or Choose in the window; Apply rest on the sheet); the marks are a symbol and words, never colour; no disabled button (a full level explains); a 79-character spell name wraps beside its stepper at 343 px; light and dark from the same markup. Not drawn: Prepare on a tablet (the list with the tapped spell's rules beside it, as creation's pick lists); an empty spell book ("No spells in your book yet. Your GM adds one when you learn it."); a set that drops spells, on the player's side (the same words as the GM's log line); offline (the app's usual line; choices are kept and sent).</p>
+`);
+</script>
+</body>
+</html>

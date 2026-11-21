@@ -1,0 +1,120 @@
+# CHANGELOG draft (plan process-sdlc-1, P8). Started by hand at a gate: GitHub → Actions → "CHANGELOG draft" →
+# Run workflow, with the milestone's name (e.g. M5). Claude (Sonnet) reads the titles of the pull requests merged
+# since the last tag and writes the milestone's entry in plain language a player could read, in the style of
+# CHANGELOG.md. The entry goes on the top of CHANGELOG.md on a new branch, changelog-draft-<milestone>-<run>, for
+# Francis to edit and open a pull request from. Nothing merges by itself. Claude reads only (Read, Grep, Glob).
+name: CHANGELOG draft
+
+on:
+  workflow_dispatch:
+    inputs:
+      milestone:
+        description: "The milestone's name, as in the CHANGELOG headings (e.g. M5)"
+        required: true
+        type: string
+
+jobs:
+  # Picks the machines for this whole run from the CI_RUNNER switch: unset, the PC; github, GitHub; auto, the PC
+  # while it has room and GitHub when it's busy (scripts/ci-pick-runner.mjs, ci-auto-1). Every other job reads its
+  # answer. It runs on GitHub for github and auto, so it never waits for a busy PC, and on the PC when unset.
+  pick:
+    runs-on: ${{ (vars.CI_RUNNER == 'github' || vars.CI_RUNNER == 'auto') && 'ubuntu-latest' || fromJSON('["self-hosted","grimoire"]') }}
+    timeout-minutes: 5
+    # Counting the PC's queued and running jobs needs actions: read.
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      runs_on: ${{ steps.pick.outputs.runs_on }}
+      target: ${{ steps.pick.outputs.target }}
+      overflow: ${{ steps.pick.outputs.overflow }}
+    steps:
+      # Its own folder (19 Nov 2026): on the PC a reused folder kept this one-file checkout's sparse setting, and the
+      # next job's full checkout came out almost empty (.nvmrc and scripts/ci-jobs.mjs missing, every job failed).
+      - uses: actions/checkout@v7
+        with:
+          path: .pick
+          sparse-checkout: scripts/ci-pick-runner.mjs
+          sparse-checkout-cone-mode: false
+      - id: pick
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CI_RUNNER: ${{ vars.CI_RUNNER }}
+          CI_LOCAL_SLOTS: ${{ vars.CI_LOCAL_SLOTS }}
+        run: |
+          set -o pipefail
+          node .pick/scripts/ci-pick-runner.mjs | tee -a "$GITHUB_OUTPUT"
+      # An overflow run uses GitHub's billed minutes: say so on the run's page (docs/testing.md, the cost per overflow run).
+      - if: steps.pick.outputs.overflow == 'true'
+        run: |
+          echo "::notice title=Overflow to GitHub::Every PC lane was taken, so this run uses GitHub's machines (billed minutes). The pick log says how many runs were on the PC."
+          echo "**Overflow to GitHub:** every PC lane was taken, so this run uses GitHub's machines (billed minutes)." >> "$GITHUB_STEP_SUMMARY"
+
+  draft:
+    needs: pick
+    runs-on: ${{ fromJSON(needs.pick.outputs.runs_on) }}
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: List the pull requests merged since the last tag
+        id: since
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p changelog-input
+          tag=$(git describe --tags --abbrev=0)
+          since=$(git log -1 --format=%cI "$tag")
+          echo "Since $tag ($since)." | tee -a "$GITHUB_STEP_SUMMARY"
+          gh pr list --state merged --base main --limit 300 \
+            --search "merged:>$since -author:app/dependabot" \
+            --json number,title --jq '.[] | "#\(.number) \(.title)"' > changelog-input/prs.txt
+          echo "$(wc -l < changelog-input/prs.txt) pull requests." | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "date=$(date +'%B %-d, %Y')" >> "$GITHUB_OUTPUT"
+      - name: Draft the entry
+        id: draft
+        uses: anthropics/claude-code-action@v1.0.266
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
+          prompt: |
+            Draft the CHANGELOG.md entry for milestone ${{ inputs.milestone }}, dated ${{ steps.since.outputs.date }}.
+            changelog-input/prs.txt lists the titles of the pull requests merged since the tag
+            ${{ steps.since.outputs.tag }}. Read CHANGELOG.md for the style and copy it: a heading
+            `## ${{ inputs.milestone }} — <a few words> (${{ steps.since.outputs.date }})`, then short bullets
+            that start with a bold phrase, in plain language a player could read: what they can now do or see,
+            not how it was built. Group related pull requests into one bullet; leave out process, docs, tests,
+            CI and dependency updates unless a player would notice. Use no game-system names. You may read files
+            under docs/ to understand a title. You cannot edit anything and must not try.
+            Return the entry as the `entry` field, starting with the `## ` heading.
+          claude_args: |
+            --model claude-sonnet-5-5
+            --max-turns 20
+            --allowedTools "Read,Grep,Glob"
+            --disallowedTools "Bash,Edit,Write,MultiEdit,NotebookEdit,WebFetch,WebSearch"
+            --json-schema '{"type":"object","properties":{"entry":{"type":"string","description":"The CHANGELOG entry in Markdown, starting with its ## heading"}},"required":["entry"]}'
+      - name: Put it on a branch
+        env:
+          RESULT: ${{ steps.draft.outputs.structured_output }}
+          MILESTONE: ${{ inputs.milestone }}
+        run: |
+          echo "$RESULT" | jq -r '.entry' > changelog-input/entry.md
+          node scripts/changelog-insert.mjs CHANGELOG.md changelog-input/entry.md
+          safe=$(echo "$MILESTONE" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '-' | sed 's/-*$//')
+          branch="changelog-draft-$safe-$GITHUB_RUN_NUMBER"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add CHANGELOG.md
+          git commit -m "CHANGELOG draft for $MILESTONE (from merged pull request titles; edit before merging)"
+          git push origin "$branch"
+          {
+            echo "Draft pushed to **$branch**."
+            echo "Edit it, then open a pull request: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/main...$branch"
+          } | tee -a "$GITHUB_STEP_SUMMARY"

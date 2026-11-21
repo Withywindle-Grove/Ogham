@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Downtime 06 — End downtime and the next one: upkeep results, brewing, a delivery, a finished tower, a favour, a level (paper test, 2026-11-02)</title>
+<style>
+  /* Tokens from docs/06 only. Light only. Buttons are plain blocks. Invented examples. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .wrap { display:flex; gap:var(--space-5); align-items:flex-start; flex-wrap:wrap; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; box-sizing:border-box; padding:var(--space-4); }
+  .phone { width:375px; }
+  .tablet { width:780px; }
+  .h { font-family:"EB Garamond", Georgia, serif; font-size:22px; font-weight:600; line-height:1.2; }
+  .sec { font-family:"EB Garamond", Georgia, serif; font-size:18px; font-weight:600; margin:var(--space-4) 0 var(--space-2); }
+  .muted { color:var(--muted); }
+  .small { font-size:14px; }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:48px; border-top:1px solid var(--rule); padding:var(--space-1) 0; }
+  .row .grow { flex:1; min-width:0; }
+  .tag { display:inline-block; font-size:14px; border:1px solid var(--control); border-radius:4px; padding:0 6px; white-space:nowrap; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; box-sizing:border-box; white-space:nowrap; }
+  .btn.accent { background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+  .btns { display:flex; gap:var(--space-2); flex-wrap:wrap; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; }
+  .bar .grow { flex:1; }
+  .panel { background:var(--surface); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); }
+  .prog { display:flex; gap:3px; height:14px; margin:var(--space-1) 0; }
+  .prog i { flex:1; border:1.5px solid var(--ink); border-radius:2px; background:var(--sheet); }
+  .prog i.f { background:var(--ink); }
+  .card { border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); }
+  .card .t { font-weight:700; }
+  .tier { display:flex; gap:var(--space-1); margin-top:var(--space-2); }
+  .tier span { flex:1; border:1.5px solid var(--control); border-radius:4px; padding:var(--space-1) var(--space-2); font-size:14px; text-align:center; min-height:44px; box-sizing:border-box; }
+  .tier span.on { border:3px solid var(--ink); font-weight:700; }
+  .cols { display:flex; gap:var(--space-5); }
+  .cols > div { flex:1; min-width:0; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:800px; }
+</style>
+</head>
+<body>
+
+<h1>1 · End downtime (GM)</h1>
+<div class="wrap">
+<div class="screen phone">
+  <span class="h">End downtime</span><br><span class="muted">Downtime 1 · 14 Harvestmoon → 25 Leafmoon · 6 weeks</span>
+  <div class="card"><div class="t">Carries on</div>Red Lanterns · watchtower · the prioress · the grapnel</div>
+  <div class="card"><div class="t">Clocks counting downtimes</div>Back rent (Garrick) · 2 → <b>1 left</b></div>
+  <div class="card"><div class="t">Not taken</div>Pell · passed · "rode to Thornwick"</div>
+  <div class="btns" style="margin-top:var(--space-3)"><span class="btn accent">End downtime</span></div>
+  <p class="small muted">Then Start expedition as today. Undo on the toast.</p>
+</div>
+<div style="width:360px"><p class="note">Ending a downtime ticks every clock counted in downtimes (dt-31) and keeps unfinished activities for the next one. Weekly costs stop while the party is away unless a cost says otherwise (⚑ Q1: the tower's builders, the vault's rent, the recruits' wages).</p></div>
+</div>
+
+<h1>2 · The second downtime (GM home, after the next expedition)</h1>
+<div class="wrap">
+<div class="screen tablet">
+  <div class="bar"><span class="grow"><span class="h">Downtime 2 · Brackenford</span><br><span class="muted">9 Frostmoon · week 1</span></span><span class="btn">+1 week</span><span class="btn">More…</span></div>
+  <div class="cols">
+    <div>
+      <div class="sec">Arrived and finished</div>
+      <div class="card"><div class="t">The grapnel came from Thornwick</div>Left with the innkeeper for Pell · <span class="small muted">in the Party stash until he collects it</span></div>
+      <div class="card"><div class="t">The watchtower stands</div><div class="prog"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div>Now a holding of the company · upkeep 5 gp a week from the party fund <span class="small muted">· on Due</span></div>
+      <div class="card"><div class="t">Wren · training done</div>▲ Ready to level · <span class="small muted">her XP counts again</span></div>
+    </div>
+    <div>
+      <div class="sec">Asked of a character</div>
+      <div class="card"><div class="t">The prioress wants a favour (Tamsin)</div>Escort a relic to the hill shrine · <span class="small muted">her trust can't rise past Wary until it's done</span> <span class="tag">⏳ 1 downtime</span></div>
+      <div class="sec">Actions · 3 of 8</div>
+      <div class="row"><span class="grow"><b>Garrick</b> · settle the back rent<br><span class="small muted">significant (the trouble said so)</span></span><span class="tag">proposed</span></div>
+      <div class="row"><span class="grow"><b>Ysolde</b> · brew Fogwalker's draught</span><span class="tag">rolling</span></div>
+      <div class="row"><span class="grow"><b>Wren</b> · level up, then rest</span><span class="tag">passed</span></div>
+    </div>
+  </div>
+</div>
+</div>
+<p class="note">Deliveries land where the activity said (the stash, a shop, the character) and show here once (⚑ Q2). A finished building becomes a holding (R1 has "basic hirelings/holdings") with its upkeep on Due. A favour is a request tied to a relationship's step: it blocks the next step until it's done.</p>
+
+<h1>3 · Upkeep with a result, and a brew that can fail (players)</h1>
+<div class="wrap">
+<div class="screen phone">
+  <span class="h">Run the Red Lanterns</span><br><span class="muted">Garrick · upkeep, not your action</span>
+  <div class="small" style="margin-top:var(--space-2)"><b>This week:</b> 6 recruits drill; a merchant wants an escort to Thornwick.</div>
+  <div class="panel"><b>Roll 1d6 for the week's work</b> <span class="small muted">· the GM's table</span>
+    <div class="tier"><span>1 · Idle<br>−12 gp</span><span>2–4 · Guard work<br>+10 gp</span><span class="on">5–6 · A contract<br>+25 gp, a lead</span></div></div>
+  <div class="btns" style="margin-top:var(--space-3)"><span class="btn accent">Send</span><span class="btn">Skip (counts as Idle)</span><span class="btn">Disband…</span></div>
+</div>
+<div class="screen phone">
+  <span class="h">Brew Fogwalker's draught</span><br><span class="muted">Ysolde · your action · 2 weeks, 150 gp</span>
+  <div class="prog"><i class="f"></i><i class="f"></i><i class="f"></i><i></i></div>
+  <div class="small"><b>Now · Brewing</b> (step 4 of 4): the formula is done; marsh-lily bought.</div>
+  <div class="panel"><b>Roll d% · the formula's chance</b>
+    <div class="tier"><span class="on">01–85 · It takes<br>2 doses</span><span>86–95 · Weak<br>1 dose</span><span>96–00 · Ruined<br>ingredients lost</span></div></div>
+  <div class="btns" style="margin-top:var(--space-3)"><span class="btn accent">Advance</span><span class="btn">Pause</span></div>
+</div>
+</div>
+<p class="note">dt-37: running something can carry a fixed result (10 gp a week), the GM's words, or a table the player rolls on (the pack's or the GM's homebrew). The result applies by itself and goes to the GM to approve and colour (dt-34). Pause costs nothing and rolls nothing (dt-27). Numbers invented. <b>Checked:</b> one accent per screen; bands 44 px; 375 px; bars with words. <b>Not drawn:</b> a company of 40 hirelings (the wage line groups them), offline, dark mode.</p>
+
+</body>
+</html>

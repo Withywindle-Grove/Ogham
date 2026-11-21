@@ -1,0 +1,184 @@
+/* The read-only setting-rules browser: folded groups per kind, an entry's details in plain words. */
+
+.rules-browser {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+}
+
+.rules-browser--wide {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: start;
+  gap: calc(var(--gutter) * 2);
+}
+
+.rules-browser__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.rules-browser__group {
+  border-bottom: var(--row-rule);
+}
+
+.rules-browser__summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rules-browser__entries {
+  margin: 0 0 var(--gap);
+  padding: 0;
+  list-style: none;
+}
+
+.rules-browser__entry {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rules-browser__entry:active,
+.rules-browser__entry[aria-current='true'] {
+  box-shadow: inset 0 0 0 var(--line-selected) var(--selected-edge);
+  background: var(--selected);
+  color: var(--ink);
+}
+
+.rules-browser__detail {
+  position: sticky;
+  top: calc(var(--top-row-h, 0px) + var(--pad));
+}
+
+.rules-browser__article {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.rules-browser__article p {
+  margin: 0;
+}
+
+.rules-browser__back {
+  align-self: flex-start;
+}
+
+.rules-browser__name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-sheet-title);
+  overflow-wrap: anywhere;
+}
+
+.rules-browser__name:focus {
+  outline: none;
+}
+
+.rules-browser__notes {
+  white-space: pre-line;
+}
+
+.rules-browser__lines {
+  margin: 0;
+}
+
+.rules-browser__line {
+  display: grid;
+  grid-template-columns: minmax(7em, 1fr) minmax(0, 2fr);
+  gap: var(--gap);
+  padding: var(--space-2) 0;
+  border-bottom: var(--row-rule);
+}
+
+.rules-browser__line dt {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.rules-browser__line dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Nested lines (abilities, rows of a table) sit under the label, full width. */
+.rules-browser__line:has(> dd > dl) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* The kv variant (the item sheet): the label at the left, the value at the right edge; a long label wraps by 60 %
+   so a long value keeps room, and a long value wraps at the right. */
+.rules-browser__lines--kv > .rules-browser__line {
+  grid-template-columns: fit-content(60%) minmax(0, 1fr);
+}
+
+.rules-browser__lines--kv > .rules-browser__line > dd {
+  text-align: end;
+}
+
+.rules-browser__lines--kv > .rules-browser__line:has(> dd > dl) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.rules-browser__lines--kv > .rules-browser__line:has(> dd > dl) > dd {
+  text-align: start;
+}
+
+.rules-browser__line .rules-browser__line:last-child {
+  border-bottom: 0;
+}
+
+/* At level − 3 +: the level formulas are worked out at. */
+.rules-browser__level {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.rules-browser__step {
+  min-width: var(--tap);
+  padding: 0;
+}
+
+.rules-browser__level-value {
+  min-width: 2ch;
+  text-align: center;
+  font-weight: 700;
+  font-size: var(--text-label);
+}
+
+/* A player's ⋯ → Setting rules: a screen of its own. */
+.rules-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.rules-screen > p {
+  margin: 0;
+}
+
+.rules-screen__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-sheet-title);
+}

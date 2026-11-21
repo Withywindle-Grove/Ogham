@@ -1,0 +1,138 @@
+/* The single top row: back link left, Log and ⋯ right. Spans every column of a two-pane screen. It stays at the
+   top as you scroll (2026-10-23): the screen's title below it scrolls away, the row itself never changes height,
+   so the page doesn't jump. Its background reaches the page's side margins so nothing shows beside it, and it
+   clears the iPhone's notch and status bar. TopRow.tsx keeps --top-row-h at its height for whatever sticks below
+   it. Nothing here may clip: the ⋯ menu and the log open from inside the row. */
+
+.top-row {
+  grid-column: 1 / -1;
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  padding-top: env(safe-area-inset-top);
+  background: var(--page);
+  /* Back link left (it shrinks, ending in …), Log and ⋯ right; what sits below spans both. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--gap);
+  min-width: 0;
+}
+
+.top-row::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0 calc(-1 * var(--shell-right, 0px)) 0 calc(-1 * var(--shell-left, 0px));
+  background: var(--page);
+}
+
+/* One line; a long campaign name ends in "…" on a phone. */
+.top-row__back {
+  justify-self: start;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+/* While a character is being made (a creation step with Leave on screen; cw-11, Design ruled 2026-11-06): the back link
+   hides, as Leave does its job; Messages, the log and the ⋯ stay. Hidden, not removed, so the row keeps its shape;
+   a screen reader and the Tab key skip it. */
+body:has(.creation-step__bar--app) .top-row__back {
+  visibility: hidden;
+}
+
+.top-row__sigil .portrait {
+  width: 28px;
+  height: 28px;
+  font-size: var(--text-meta);
+  vertical-align: middle;
+}
+
+.top-row__end {
+  flex: none;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
+/* Above a screen that isn't a flex column of its own (New campaign, Join, Who are they?). */
+.shell__main > .top-row {
+  margin-bottom: var(--pad);
+}
+
+/* What sits under the row on every screen (the GM's Compact time strip during an adventure, DG2): the whole width,
+   sticking with the row. */
+.top-row__below {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding-bottom: var(--space-2);
+}
+
+/* ≡ at the top left of a campaign's screen on a phone, and the campaign's name beside it (slice E). */
+.top-row__start {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.top-row__menu {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.top-row__menu[aria-expanded='true'] {
+  background: var(--tint);
+}
+
+.top-row__title {
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Creation's standard on the Player screen, the Pack and the full sheet (plan m5b-players-screens-standard A1; the
+   mockup's bar): the start (≡, the back link or ←), the title centred, the end (Messages, Log, ⋯). The two outer
+   columns share what the title leaves, so a short title sits in the middle; a long one takes the room and ends in "…". */
+.top-row--standard {
+  grid-template-columns: 1fr minmax(0, max-content) 1fr;
+}
+
+.top-row__lead {
+  display: flex;
+  align-items: center;
+  /* ≡ or ← always keeps its 44 px; a long back link (a tablet) ends in "…" inside it. */
+  min-width: var(--tap);
+  overflow: hidden;
+}
+
+.top-row--standard .top-row__end {
+  justify-self: end;
+}
+
+.top-row__title--centred {
+  text-align: center;
+}
+
+/* ← on a sub-screen (the full sheet): the icon in the ink colour, one tap wide. */
+.top-row__arrow {
+  color: var(--ink);
+}

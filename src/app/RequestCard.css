@@ -1,0 +1,56 @@
+/* The Request card (M5 step 12; docs/06 Components "Request card"). Tokens only. */
+
+.requests {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-block: var(--space-3);
+}
+
+.request {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.request--answered {
+  border-color: var(--accent);
+}
+
+.request--gm {
+  margin-block-start: var(--space-2);
+}
+
+.request__title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-heading);
+}
+
+.request__answer {
+  margin: 0;
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+}
+
+.request__text,
+.request__note {
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.request__note {
+  color: var(--muted);
+}
+
+.request__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

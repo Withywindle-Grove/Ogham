@@ -1,0 +1,105 @@
+/* "About this app" (ds-6a; pictures december/08-01 to 08-03): on Dialog's Side variant. The quiet version line, the
+   Credits heading in small capitals and its line stay put; the rows scroll under them in `.about__scroll`. */
+.about {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.about__version,
+.about__line {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.about__version {
+  margin-block-end: var(--space-4);
+}
+
+.about__heading {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+}
+
+.about__line {
+  margin-block-end: var(--space-2);
+}
+
+.about__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-block-end: var(--space-4);
+}
+
+.about__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each row: the icon small at its start, the words beside it; a hairline between rows. */
+.about__row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding-block: var(--space-1);
+  border-block-end: var(--line-hair) solid var(--rule);
+  font-size: var(--text-16);
+}
+
+.about__list .about__row:last-child {
+  border-block-end: none;
+}
+
+/* The fonts sit below a dotted rule (08-03). */
+.about__list--fonts {
+  border-block-start: var(--row-rule);
+  margin-block-start: var(--space-2);
+}
+
+.about__icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  min-height: var(--tap);
+}
+
+/* ds-6b: a mirrored icon is drawn mirrored in its row too. */
+.about__icon--mirrored {
+  transform: scaleX(-1);
+}
+
+.about__words {
+  min-inline-size: 0;
+  padding-block: var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+/* A font's row has no icon: its words take the icon rows' 44 px floor themselves (review of #797). */
+.about__row--font .about__words {
+  min-height: var(--tap);
+}
+
+/* The licence's name: a real link inside the row's sentence (fl-1 allows underlined text that goes somewhere; ds-6a
+   "the licence as a link"), in the link style (accent, underlined), a 44 px tap area, kept whole on its line. */
+.about__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  /* It overhangs its line by 8 px at most, inside the words' and the row's padding, so two links in neighbouring rows
+     keep 8 px between them (hard rule 7; review of #797). */
+  margin-block: calc(-1 * var(--space-2));
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+  white-space: nowrap;
+  vertical-align: middle;
+}

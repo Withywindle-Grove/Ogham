@@ -1,0 +1,18 @@
+# Manual checks: m5b-at-hand (At hand actions, ah-1 … ah-4)
+
+Open the pull request's Vercel preview (it uses the test project, which has this branch's migration), sign in as a player, and open a character who has a weapon. Today's packs have no `weapon.modes` and no weapon `applies` yet (the Pack Creator fills them after this pull request), so checks 1–4 work now and checks 5–10 wait for a pack that has them.
+
+1. **Wield.** On the Pack tab, tap a weapon you carry (not in hand), tap the star to pin it, close the sheet. In the At hand group at the top its row has a **Wield** button and no Attack. Tap **Wield**: a toast says "<weapon> in hand" with Undo, and the row's button turns into **Attack**; its line says "In hand".
+2. **Undo Wield.** Tap **Undo** on that toast: the weapon goes back where it was (carried, or in its bag) and the row shows **Wield** again.
+3. **A weapon the class can't hold.** With a class that can't use the weapon, tap **Wield**: a sheet says why, and nothing changes.
+4. **The Attack sheet.** On the Player screen's At hand, tap **Attack** on a weapon in hand. A sheet opens, titled with the weapon. It has one row per part (the class at its level, the score's modifier, the damage), "Rules that bear:" when the weapon has qualities, and the line "Rolling the attack here comes with the fight rules, later." Close it with ✕.
+5. **The mode button** (needs a pack weapon with `weapon.modes`, e.g. a bow with two arrow kinds). The weapon's At hand row has a second button with the pack's word (**Quiver**, **Pouch**, **Grip** or **Stance**) beside Attack. Its line says the mode in use: a new bow, never set, already reads "Quiver: <the first kind you carry>", plain arrows if you have any. With no arrows of any kind in the pack it reads "Quiver: no <arrows> in the pack", and Attack opens a sheet with that title and **Open the quiver**. A weapon with no modes, or only one, has no such button.
+6. **The mode sheet.** Tap **Quiver**: a sheet lists the modes as pick rows, the one in use reading "Picked ✓". A kind you don't carry says "None in the pack", and tapping it explains instead. Pick another kind: the sheet closes, a toast says "<weapon>: <kind>" with Undo, and the row's line names it.
+7. **Shared.** Open the same character as the GM (the console's character overview): its At hand list shows the same mode. The Log shows "<player> chose <weapon>: <kind>."
+8. **Fire one.** Tap **Attack**, then **Fire one, N left after**: the sheet closes, a toast says "Fired …, N left" with Undo, and the arrows' count in the Pack goes down by one. Undo puts it back.
+9. **Spent.** Fire the last of a kind while you still carry another kind: the toast ends "Quiver: nothing chosen", the arrows leave the Pack, and the row's line says "Quiver: nothing chosen" (it doesn't switch to the other kind by itself). Tap **Attack**: a sheet "Nothing chosen" says the arrows are used up, with **Open the quiver**, which opens the mode sheet. Undo on the toast brings the arrows back and the bow fires them again.
+10. **Inflicts** (needs a weapon, or an arrow kind, with `applies.conditionId`). Its Attack sheet shows "Inflicts: <condition>" with the condition's short effect under it. A weapon without one shows no such line.
+
+Each on a phone (375 px wide) too: a long weapon name wraps under its buttons, and every button is at least 44 px.
+
+**Gallery pictures:** a new section, `at-hand-actions` (last in the gallery), drawn by CI for Design to approve: the rows (Attack with Quiver and Grip, Wield, a long name, the nothing-chosen line), the Attack sheet with an Inflicts line, the Quiver and Grip sheets, the blocked Attack's sheet. No existing picture should change.

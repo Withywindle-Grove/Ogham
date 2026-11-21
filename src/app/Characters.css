@@ -1,0 +1,269 @@
+/* Making a character and the player's campaign page. */
+
+.auth--centred {
+  text-align: center;
+  align-items: center;
+  padding-top: var(--space-7);
+}
+
+.field__input--name {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-item);
+}
+
+.field__input--short {
+  max-width: 8em;
+}
+
+.field__textarea {
+  min-height: calc(var(--tap-step) * 2);
+  padding: var(--gap) var(--pad);
+  font-size: var(--text-body);
+  line-height: 1.45;
+  resize: vertical;
+}
+
+/* Back and Next side by side, as in the design (1 : 2). */
+.footer-buttons {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--gap);
+  padding-top: var(--pad);
+  border-top: var(--divider);
+}
+
+.footer-buttons > :only-child {
+  grid-column: 1 / -1;
+}
+
+.footer-buttons .button-secondary,
+.footer-buttons .button-primary {
+  width: 100%;
+  align-self: stretch;
+  min-height: 52px;
+}
+
+.character-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--pad) var(--space-4);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet);
+}
+
+.character-card--sent-back {
+  gap: var(--pad);
+  border-color: var(--warning);
+}
+
+.character-card__name {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-item);
+}
+
+.character-card__note {
+  margin: 0;
+  padding: var(--gap) var(--pad);
+  border-left: 4px solid var(--rule);
+  background: var(--surface);
+  white-space: pre-wrap;
+}
+
+.character-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap);
+  padding-top: var(--space-1);
+}
+
+.character-notice {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Archived characters: collapsed by default so they don't take up the page. */
+.archived {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  border-top: var(--row-rule);
+  padding-top: var(--gap);
+}
+
+.archived[open] > * + * {
+  margin-top: var(--gap);
+}
+
+.archived__summary {
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.character-card__backstory {
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+
+/* The GM's fields in "Who are they?", under their group names. */
+.campaign-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+  margin: 0;
+  padding: var(--pad) 0 0;
+  border: none;
+  border-top: var(--row-rule);
+}
+
+.campaign-fields__legend {
+  padding: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-item);
+}
+
+.check {
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap);
+  cursor: pointer;
+}
+
+.check input {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--accent);
+}
+
+.character-card__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--pad);
+}
+
+.quick-portrait {
+  position: relative;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.quick-portrait__label {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+/* The card's text opens the character (A8): the whole area is one tap target. */
+.character-card__open,
+.character-card__heading-text {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-height: var(--tap);
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  text-align: start;
+}
+
+.character-card__open {
+  cursor: pointer;
+}
+
+.character-card__line {
+  display: block;
+}
+
+/* Edit, with the quill, at the card's top right (tfr-4; M1's second frame): the name keeps the line beside it and wraps. */
+.character-card__edit {
+  flex: none;
+  align-self: flex-start;
+}
+
+
+/* Your characters → Setting rules: reachable before a character is made. */
+.character-rules {
+  align-self: flex-start;
+}
+
+/* The two ways to make a character (Guided, or the form): one card each. */
+.guided__choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.guided__choice {
+  width: 100%;
+  min-height: var(--tap);
+  text-align: left;
+}
+
+/* What the shopping bought, each with its refund before approval (ruled 2026-10-26). */
+.starting-gear__bought {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.starting-gear__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* A field label with its ⓘ beside it. */
+.campaign-fields__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* A card that opens its character from a tap anywhere on it (M4b re-test). */
+.character-card[data-opens] {
+  cursor: pointer;
+}
+
+.weapon-skills__reference {
+  margin: 0;
+  padding-inline-start: var(--space-4);
+}
+
+.weapon-skills__reference li {
+  min-block-size: var(--tap);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.weapon-skills-line__text {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>B1 — Show players, piece by piece (M5 gate, approved 2026-11-01)</title>
+<style>
+  /* Tokens from docs/06 only. Light and dark side by side. Buttons are plain blocks. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; }
+  body { margin:0; font-family: "Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:#888; }
+  .pair { display:grid; grid-template-columns: 1fr 1fr; gap:var(--space-5); padding:var(--space-5); }
+  .theme { padding:var(--space-4); border-radius:4px; }
+  .light { --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; --info:#2F5D7C; --warn:#7A4A00; --flash:#EDEAE3; }
+  .dark  { --page:#12100D; --surface:#1C1915; --sheet:#1E1A16; --ink:#F1EADC; --muted:#B5AA96; --rule:#3A342B; --control:#756B5A; --accent:#C9875A; --on-accent:#12100D; --info:#8DB4D0; --warn:#F2D46B; --flash:#4A3A22; }
+  .theme { background:var(--page); color:var(--ink); }
+  h1 { font-family: "EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:0 0 var(--space-3); }
+  h2 { font-family: "EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; margin:var(--space-5) 0 var(--space-2); font-variant: small-caps; }
+  .card { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); margin-bottom:var(--space-5); }
+  .meta { font-size:14px; color:var(--muted); }
+  .row { display:flex; align-items:flex-start; gap:var(--space-2); padding:var(--space-3) 0; border-bottom:1px dotted var(--rule); min-height:44px; }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; }
+  .row .kind { font-size:14px; color:var(--muted); display:block; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 10px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:16px; line-height:1.2; text-align:center; box-sizing:border-box; }
+  .btn.on { background:var(--surface); border-color:var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.eye { width:44px; height:44px; padding:10px; min-width:44px; }
+  .state { font-size:14px; display:block; }
+  .state.shown::before { content:"◉ "; } .state.hidden::before { content:"◌ "; }
+  .players { background:var(--surface); border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); }
+  .players p { margin:0 0 var(--space-2); }
+  .toast { margin-top:var(--space-3); padding:var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); display:flex; justify-content:space-between; gap:var(--space-2); align-items:center; }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-2) 0 0; }
+  .label { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; }
+  .hidden-note { color:var(--muted); font-style:italic; }
+</style>
+</head>
+<body>
+<div class="pair">
+<!-- ============ LIGHT ============ -->
+<div class="theme light">
+  <h1>GM · Place card (iPad landscape, left column)</h1>
+  <div class="card">
+    <div class="label">Chapter house of the drowned</div>
+    <div class="meta">Room 14 · Group 1 · 3 of 7 pieces shown</div>
+
+    <h2>Pieces</h2>
+    <div class="row">
+      <div class="text">A low vaulted hall, knee-deep in black water. Benches float against the far wall.
+        <span class="kind">Description</span></div>
+      <div><span class="btn on eye" role="button" aria-label="Hide from players" title="Players see it"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></span></div>
+    </div>
+    <div class="row">
+      <div class="text">Stairs up, to the north
+        <span class="kind">Exit</span></div>
+      <div><span class="btn on eye" role="button" aria-label="Hide from players" title="Players see it"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></span></div>
+    </div>
+    <div class="row">
+      <div class="text">An archway to the east, dark beyond
+        <span class="kind">Exit</span></div>
+      <div><span class="btn eye" role="button" aria-label="Show players" title="Hidden"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 20 20 4" stroke="currentColor" stroke-width="1.8"/></svg></span></div>
+    </div>
+    <div class="row">
+      <div class="text">A hunched figure in a reed cloak, very still
+        <span class="kind">Someone here · the stat line never shows</span></div>
+      <div><span class="btn on eye" role="button" aria-label="Hide from players" title="Players see it"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></span></div>
+    </div>
+    <div class="row">
+      <div class="text">Wet footprints from the water to the lectern and back
+        <span class="kind">Clue</span></div>
+      <div><span class="btn eye" role="button" aria-label="Show players" title="Hidden"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 20 20 4" stroke="currentColor" stroke-width="1.8"/></svg></span></div>
+    </div>
+    <div class="row">
+      <div class="text">A silver seal under a loose flagstone
+        <span class="kind">Treasure · value stays yours (40 gp)</span></div>
+      <div><span class="btn eye" role="button" aria-label="Show players" title="Hidden"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 20 20 4" stroke="currentColor" stroke-width="1.8"/></svg></span></div>
+    </div>
+    <div class="row">
+      <div class="text">The benches look unsteady
+        <span class="kind">Hazard · look only; trigger "Disturbed: the acolyte rises" stays yours</span></div>
+      <div><span class="btn eye" role="button" aria-label="Show players" title="Hidden"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 20 20 4" stroke="currentColor" stroke-width="1.8"/></svg></span></div>
+    </div>
+    <div class="row">
+      <div class="text"><span class="btn quiet">+ Piece</span> <span class="meta">one line players will see; Show it when you say it</span></div>
+    </div>
+    <div style="display:flex; gap:var(--space-2); margin-top:var(--space-3);">
+      <span class="btn">Hide all</span> <span class="btn quiet">Notes ▸</span> <span class="btn quiet">Checks here ▸</span>
+    </div>
+    <div class="toast"><span>Shown to Group 1: the figure in the reed cloak</span><span class="btn quiet">Undo</span></div>
+    <p class="note">Approved 2026-11-01 with changes: the toggle is a 44 × 44 eye icon button at the row's right, no word, no note; an open eye with the pressed look means players see it, an eye with a stroke through it means hidden (chosen 2026-11-01 over tap-the-row and a checkbox), so the text gets the row's width. Each piece has its own Show. Shown pieces reach only this group's players, in the order shown. A tap on Shown hides it again (Undo). Treasure shows its text, never its value; a person shows the description, never the name or stat line; a hazard shows its look, never its trigger. "+ Piece" adds a one-line piece by hand (the only way in M5, where places are typed; adventure rooms bring their pieces in M8b).</p>
+  </div>
+
+  <h1>Players · Scene (what Group 1 sees)</h1>
+  <div class="players">
+    <div class="label">Flooded hall</div>
+    <p>A low vaulted hall, knee-deep in black water. Benches float against the far wall.</p>
+    <p>Stairs up, to the north.</p>
+    <p>A hunched figure in a reed cloak, very still.</p>
+    <p class="hidden-note">Shown pieces appear here as the GM shows them; nothing else about the room is sent to this device.</p>
+  </div>
+</div>
+
+<!-- ============ DARK ============ -->
+<div class="theme dark">
+  <h1>GM · Place card (dark)</h1>
+  <div class="card">
+    <div class="label">Chapter house of the drowned</div>
+    <div class="meta">Room 14 · Group 1 · 3 of 7 pieces shown</div>
+    <h2>Pieces</h2>
+    <div class="row"><div class="text">A low vaulted hall, knee-deep in black water. Benches float against the far wall.<span class="kind">Description</span></div><div><span class="btn on eye" role="button" aria-label="Hide from players" title="Players see it"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></span></div></div>
+    <div class="row"><div class="text">Stairs up, to the north<span class="kind">Exit</span></div><div><span class="btn on eye" role="button" aria-label="Hide from players" title="Players see it"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></span></div></div>
+    <div class="row"><div class="text">An archway to the east, dark beyond<span class="kind">Exit</span></div><div><span class="btn eye" role="button" aria-label="Show players" title="Hidden"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 20 20 4" stroke="currentColor" stroke-width="1.8"/></svg></span></div></div>
+    <div class="row"><div class="text">A hunched figure in a reed cloak, very still<span class="kind">Someone here · the stat line never shows</span></div><div><span class="btn on eye" role="button" aria-label="Hide from players" title="Players see it"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></span></div></div>
+    <div class="row"><div class="text">Wet footprints from the water to the lectern and back<span class="kind">Clue</span></div><div><span class="btn eye" role="button" aria-label="Show players" title="Hidden"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 20 20 4" stroke="currentColor" stroke-width="1.8"/></svg></span></div></div>
+    <div class="row"><div class="text">A silver seal under a loose flagstone<span class="kind">Treasure · value stays yours (40 gp)</span></div><div><span class="btn eye" role="button" aria-label="Show players" title="Hidden"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 20 20 4" stroke="currentColor" stroke-width="1.8"/></svg></span></div></div>
+    <div class="row"><div class="text">The benches look unsteady<span class="kind">Hazard · look only; trigger stays yours</span></div><div><span class="btn eye" role="button" aria-label="Show players" title="Hidden"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 20 20 4" stroke="currentColor" stroke-width="1.8"/></svg></span></div></div>
+    <div class="row"><div class="text"><span class="btn quiet">+ Piece</span> <span class="meta">one line players will see</span></div></div>
+    <div style="display:flex; gap:var(--space-2); margin-top:var(--space-3);"><span class="btn">Hide all</span> <span class="btn quiet">Notes ▸</span> <span class="btn quiet">Checks here ▸</span></div>
+    <div class="toast"><span>Shown to Group 1: the figure in the reed cloak</span><span class="btn quiet">Undo</span></div>
+  </div>
+  <h1>Players · Scene (dark)</h1>
+  <div class="players">
+    <div class="label">Flooded hall</div>
+    <p>A low vaulted hall, knee-deep in black water. Benches float against the far wall.</p>
+    <p>Stairs up, to the north.</p>
+    <p>A hunched figure in a reed cloak, very still.</p>
+  </div>
+</div>
+</div>
+</body>
+</html>

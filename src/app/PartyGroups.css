@@ -1,0 +1,86 @@
+/* The party on Scene, in its groups (M5 step 8, DG14): the GM's focus chips, each group's marching order, and Split
+   the party / Join up. Tokens only. */
+
+/* Scene's time strip with the party (M5b step 1 follow-up, build order 7; 06 "Wilderness day"): one column, the time
+   strip first; in a wilderness day on a landscape tablet the GM's day controls sit left and the location view and
+   marching order right, each column scrolling with the page. */
+.groups-layout,
+.groups-layout__main,
+.groups-layout__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .groups-layout--day {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--space-4);
+  }
+
+  /* The right column starts with the place's name, not a rule. */
+  .groups-layout--day .groups-layout__side .groups__group:first-child > .place-card:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.groups__focus,
+.groups__choices,
+.groups__actions {
+  display: flex;
+  flex-wrap: wrap;
+  /* Split party is a stacked button (S17); Join up keeps its words, level with it. */
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.groups__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+.groups__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.groups__who {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.groups__name {
+  font-size: var(--text-16);
+  font-weight: var(--weight-heading);
+  overflow-wrap: anywhere;
+}
+
+.groups__where {
+  color: var(--muted);
+  font-size: var(--text-16);
+}
+
+.groups__join {
+  inline-size: 100%;
+  text-align: start;
+}

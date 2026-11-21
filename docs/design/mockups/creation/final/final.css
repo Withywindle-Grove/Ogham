@@ -1,0 +1,75 @@
+/* Shared styles for the final drafts of creation (2026-11-07). Tokens from docs/06 only. Light and dark side by side: the dark column is the same markup, cloned by final.js. Buttons are plain blocks. Invented names and numbers only. Phones are 375 px (343 inside); the tablet frame is drawn at 740 px, standing in for 820. */
+:root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; }
+body { margin:0; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:#888; }
+.pair { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-5); padding:var(--space-5); align-items:start; }
+.theme { padding:var(--space-4); border-radius:4px; background:var(--page); color:var(--ink); }
+.light { --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; --info:#2F5D7C; --warn:#7A4A00; --danger:#9B1C1C; --wash:#F3E7E3; --glow:#C98A1E;
+  --d4:#2F5D7C; --d6:#191714; --d8:#6E2A1F; --d10:#C98A1E; --d12:#9B1C1C; --d20:#7A4A00; }
+.dark  { --page:#12100D; --surface:#1C1915; --sheet:#1E1A16; --ink:#F1EADC; --muted:#B5AA96; --rule:#3A342B; --control:#756B5A; --accent:#C9875A; --on-accent:#12100D; --info:#8DB4D0; --warn:#F2D46B; --danger:#F08A7E; --wash:#3A2A20; --glow:#E6BA66;
+  --d4:#8DB4D0; --d6:#F1EADC; --d8:#C9875A; --d10:#E6BA66; --d12:#F08A7E; --d20:#F2D46B; }
+h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-5) 0 var(--space-2); }
+h1:first-child { margin-top:0; }
+.wall { display:flex; flex-wrap:wrap; gap:var(--space-4); align-items:flex-start; }
+.cap { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); max-width:740px; }
+.note { font-size:14px; color:var(--muted); margin:var(--space-2) 0 var(--space-4); }
+.phone { width:343px; background:var(--page); border:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; overflow:hidden; position:relative; }
+.tablet { width:740px; background:var(--page); border:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; overflow:hidden; position:relative; margin-bottom:var(--space-3); }
+.inner { padding:var(--space-3); }
+.cols { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); padding:var(--space-3); align-items:start; }
+.cols.wide-left { grid-template-columns:3fr 2fr; }
+.panel { background:var(--surface); border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); }
+/* the app bar: ← left, title centred, ⋯ right (P2) */
+.bar { display:grid; grid-template-columns:44px 1fr 44px; align-items:center; min-height:52px; padding:0 var(--space-1); border-bottom:1px solid var(--rule); }
+.bar .title { text-align:center; font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ico { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; color:var(--ink); }
+/* words */
+.meta { font-size:14px; color:var(--muted); }
+.do { margin:var(--space-2) 0 var(--space-3); }
+h2 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; margin:var(--space-4) 0 var(--space-2); font-variant:small-caps; }
+h2:first-child { margin-top:0; }
+/* the Roll row (P18): the die's solid, the instruction in bold */
+.roll { display:flex; align-items:flex-start; gap:var(--space-2); font-weight:700; margin:var(--space-3) 0 var(--space-2); }
+.roll svg { margin-top:2px; }
+/* rows and cards */
+.card { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); margin-bottom:var(--space-2); }
+.card.picked { background:var(--wash); border-color:var(--accent); }
+.card.open { box-shadow:inset 0 0 0 2px var(--control); }
+.kv { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); min-height:44px; }
+.kv .text { flex:1; min-width:0; overflow-wrap:anywhere; }
+.kv .text small, .row .text small { display:block; font-size:14px; color:var(--muted); }
+.list { border-top:1px solid var(--rule); }
+.row { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); min-height:52px; padding:var(--space-2) 0; border-bottom:1px solid var(--rule); }
+.row .k { color:var(--muted); flex:none; }
+.row .v { text-align:right; min-width:0; overflow-wrap:anywhere; display:inline-flex; align-items:center; gap:var(--space-2); justify-content:flex-end; flex:1; }
+.row .v.empty { color:var(--muted); }
+.chev { width:20px; height:20px; flex:none; color:var(--muted); }
+/* buttons, steppers, fields */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--space-2); min-height:44px; min-width:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:16px; line-height:1.2; box-sizing:border-box; }
+.btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+.btn.sq { width:44px; padding:10px; }
+.btn.small { font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+.btn.wide { display:flex; width:100%; }
+.num { width:72px; min-height:44px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); display:inline-flex; align-items:center; justify-content:center; font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; box-sizing:border-box; }
+.num.avg { color:var(--muted); font-weight:400; }
+.stepper { display:inline-flex; gap:var(--space-2); align-items:center; }
+.avgline { font-size:14px; color:var(--muted); margin-top:var(--space-1); }
+.field { display:block; width:100%; min-height:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); box-sizing:border-box; }
+.field.empty { color:var(--muted); }
+.help { background:var(--surface); border:1px solid var(--rule); border-radius:4px; padding:var(--space-3); padding-right:52px; margin:var(--space-2) 0 var(--space-3); position:relative; }
+.help .x { position:absolute; top:4px; right:4px; }
+.warnline { color:var(--warn); font-weight:700; font-size:14px; display:inline-flex; align-items:center; gap:6px; }
+.prime { display:inline-block; font-size:14px; font-weight:700; border:1.5px solid var(--ink); border-radius:4px; padding:0 6px; line-height:20px; margin-left:6px; }
+.foot { display:flex; justify-content:flex-end; align-items:center; gap:var(--space-2); border-top:1px solid var(--rule); margin-top:var(--space-3); padding-top:var(--space-3); flex-wrap:wrap; }
+.foot .say { flex:1; font-size:14px; color:var(--muted); min-width:120px; }
+.toast { margin-top:var(--space-2); padding:var(--space-2) var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); display:flex; justify-content:space-between; gap:var(--space-2); align-items:center; }
+.tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-3); }
+.tiles .card { text-align:center; }
+.tiles .stepper { justify-content:center; width:100%; margin:var(--space-2) 0; }
+/* the sheet (a "pop-up", ruled 2026-11-06): over the dimmed page, from the bottom on a phone */
+.dim { position:absolute; inset:0; background:rgba(0,0,0,0.35); }
+.sheetup { position:absolute; left:0; right:0; bottom:0; background:var(--sheet); border-top:1px solid var(--rule); border-radius:4px 4px 0 0; padding:var(--space-3); max-height:85%; }
+.sheetup .head { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); margin-bottom:var(--space-2); }
+.sheetup .head .title { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; }
+.bartrack { height:8px; border-radius:4px; background:var(--rule); margin:var(--space-2) 0 var(--space-1); position:relative; }
+.bartrack span { position:absolute; left:0; top:0; bottom:0; background:var(--control); border-radius:4px; }
+svg { flex:none; }

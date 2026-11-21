@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Creation: Roll for a name (2026-11-08)</title>
+<link rel="stylesheet" href="final.css">
+<style>
+  .sheetup { max-height:none; }
+  .lbl { font-size:14px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; margin:var(--space-4) 0 var(--space-2); }
+  .tabs { display:flex; gap:var(--space-2); margin:var(--space-3) 0; flex-wrap:wrap; }
+  .tabs .btn.on { background:var(--picked); border-color:var(--accent); }
+  .nrow { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) var(--space-3); border:1.5px solid var(--control); border-radius:4px; margin-bottom:var(--space-2); }
+  .nrow .n { width:2.2em; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .nrow.on { background:var(--picked); border-color:var(--accent); }
+  .nrow .ck { margin-left:auto; }
+  .group { font-weight:600; margin:var(--space-3) 0 var(--space-2); }
+</style>
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+const nameBlock = (val, empty) => `
+  <div class="lbl">Name</div>
+  <span class="field${empty ? ' empty' : ''}">${val}</span>
+  <span class="btn wide" style="margin-top:var(--space-2)">${die(20, 20)} Roll for a name</span>`;
+
+const step = phone(`
+  ${bar('Name and alignment')}
+  <div class="inner">
+    <div class="meta">Step 5 of 12</div>
+    <p>Name, alignment and the details that make a person.</p>
+    ${helpBtn()}
+    ${nameBlock('Type a name, or roll for one', true)}
+    <div class="lbl">Starting level</div>
+    <p>You start at level 1.</p>
+    <div class="meta">Everyone starts at the beginning. Your GM approves it.</div>
+    <h3>Hit points</h3>
+    ${roll(4, 'Roll 1d4 for hit points and enter it.')}
+    ${stepper(2, true)}
+    <div class="avgline">Average value, replace with your roll</div>
+  </div>
+  ${foot('Name missing', true, 'accent')}`,
+  'The step: the Name field, and under it one plain button, Roll for a name, with the d20 of the table it opens. The name-tables fold is gone. No table in any pack: the button is not drawn.');
+
+const oneTable = phone(`
+  ${bar('Name and alignment')}
+  <div class="inner" style="min-height:860px">${nameBlock('Type a name, or roll for one', true)}</div>
+  ${sheet('Phase Elf names', `
+    <div class="inner">
+      ${roll(20, 'Roll d20 twice: a first name, then a house name. Tap each row. Or type your own above.')}
+      <div class="tabs"><span class="btn on">Male</span><span class="btn">Female</span><span class="btn">Unisex</span><span class="btn">House</span></div>
+      <div class="nrow"><span class="n">1</span>Alder</div>
+      <div class="nrow"><span class="n">2</span>Brannoc</div>
+      <div class="nrow on"><span class="n">3</span>Caradoc<span class="ck">✓</span></div>
+      <div class="nrow"><span class="n">4</span>Dunstan</div>
+      <div class="nrow"><span class="n">5</span>Eiros</div>
+      <div class="nrow"><span class="n">6</span>Fflam</div>
+      <div class="nrow"><span class="n">7</span>Gwydion-of-the-long-reed-and-the-drowned-causeway</div>
+      <div class="meta" style="margin-top:var(--space-3)">Optional, from Homebrew. Picked: Caradoc, house still to roll.</div>
+      <span class="btn accent wide" style="margin-top:var(--space-3)">Use this name</span>
+    </div>`)}`,
+  'One tap: with one table the button opens its sheet. The first line is the pack’s roll prompt (two rolls, not four); the parts are tabs; the picked row carries ✓; the foot says what is still to roll; Use this name fills the field and closes.');
+
+const twoTables = phone(`
+  ${bar('Name and alignment')}
+  <div class="inner" style="min-height:860px">${nameBlock('Type a name, or roll for one', true)}</div>
+  ${sheet('Roll for a name', `
+    <div class="inner">
+      <p class="meta">Two packs give names for a Phase Elf. Open one.</p>
+      ${pick('Phase Elf names', 'Homebrew · d20: first name, house name'.replace(' · ', ', '), 'open')}
+      ${pick('Names of the Marsh Kindreds', 'Fen sample, d100: given name, byname', 'open')}
+    </div>`)}`,
+  'Several tables: the same button opens a list of them, one row each with its pack and dice; Open goes to its sheet, ← in that sheet comes back here.');
+
+const filled = phone(`
+  ${bar('Name and alignment')}
+  <div class="inner">
+    ${nameBlock('Caradoc Ashwold', false)}
+    <div class="meta" style="margin-top:var(--space-2)">From Phase Elf names, rolled 3 and 14. Edit the field to change it.</div>
+  </div>`,
+  'After: the name in the field, editable; one line under it says where it came from. Roll for a name stays for a re-roll.');
+
+const tab = tablet(`
+  ${bar('Name and alignment')}
+  <div class="inner" style="max-width:65ch">
+    <div class="meta">Step 5 of 12</div>
+    <p>Name, alignment and the details that make a person.</p>
+    ${helpBtn()}
+    <div class="lbl">Name</div>
+    <div style="display:flex; gap:var(--space-3); align-items:center">
+      <span class="field empty" style="flex:1">Type a name, or roll for one</span>
+      <span class="btn">${die(20, 20)} Roll for a name</span>
+    </div>
+    <div class="lbl">Starting level</div>
+    <p>You start at level 1.</p>
+  </div>`,
+  'Tablet: the one-column rule holds (65ch); the button sits beside the field since the row has room, under it on a phone.');
+
+mount(`
+  <h1>Creation: Roll for a name</h1>
+  <p class="note">Francis, 2026-11-08 (creation retest 3): "Getting to the name tables is too many clicks… Name is form fillable, with a button underneath 'roll for name' which pops up the tables in a sheet." Replaces the Name tables fold (cw-11) on the step; the sheet is the one approved on 2026-11-07 (R2-8) with the pack’s roll prompt as its first line.</p>
+  <div class="wall">${step}${oneTable}${twoTables}${filled}</div>
+  <h1>Tablet</h1>
+  ${tab}
+  <p class="note">Self-review: one accent per screen (Next on the step; Use this name in the sheet, where it is the only one); 44 px rows and buttons, 8 px between; no colour alone (✓ with the washed row); the empty field says what to do; a 50-character name wraps in its row; 0 tables = no button; the pack’s prompt wording is the pack’s. Not checked: the d20 glyph at 20 px inside a button against the dark control border; a name longer than the field on a 375 px phone (it scrolls, as today).</p>
+`);
+</script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B6 — Statuses (M5 gate, approved 2026-11-01)</title>
+<style>
+  /* Tokens from docs/06 only. Light only, full size (Francis, 2026-11-01). Buttons are plain blocks. */
+  :root { --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+          --page:#FAFAF7; --surface:#F2F1EC; --sheet:#FFFFFF; --ink:#191714; --muted:#5E574C; --rule:#D6D3CC; --control:#8A8378; --accent:#6E2A1F; --on-accent:#FFFFFF; }
+  body { margin:0; padding:var(--space-4); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:16px; line-height:1.5; background:var(--page); color:var(--ink); }
+  h1 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; margin:var(--space-6) 0 var(--space-3); }
+  h1:first-child { margin-top:0; }
+  .screen { background:var(--sheet); border:1px solid var(--rule); border-radius:4px; padding:var(--space-4); max-width:720px; }
+  .bar { display:flex; align-items:center; gap:var(--space-3); padding-bottom:var(--space-3); border-bottom:1px solid var(--rule); }
+  .bar .title { flex:1; font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.2; }
+  .meta { font-size:14px; color:var(--muted); }
+  .row { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .text { flex:1; }
+  .row .name { font-family:"EB Garamond", Georgia, serif; font-size:20px; font-weight:600; line-height:1.2; }
+  .row .desc { display:block; }
+  .row .chev { color:var(--muted); font-size:24px; }
+  .sym { width:32px; height:32px; border:1.5px solid var(--ink); border-radius:16px; display:inline-flex; align-items:center; justify-content:center; font-weight:700; flex:none; }
+  .btn { display:inline-block; min-height:44px; min-width:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:16px; line-height:1.2; text-align:center; box-sizing:border-box; }
+  .btn.accent { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .btn.quiet { border:0; background:transparent; color:var(--accent); text-decoration:underline; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; }
+  .btn.icon { width:44px; height:44px; padding:10px; }
+  .chip { display:inline-block; min-height:44px; padding:10px 14px; border:1.5px solid var(--control); border-radius:22px; margin:0 var(--space-2) var(--space-2) 0; box-sizing:border-box; white-space:nowrap; }
+  .chip.on { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); background:var(--surface); }
+  .chips { display:flex; flex-wrap:nowrap; overflow-x:auto; margin:var(--space-3) 0 var(--space-1); }
+  .field { min-height:44px; padding:10px 12px; border:1.5px solid var(--control); border-radius:4px; color:var(--muted); box-sizing:border-box; flex:1; }
+  .label { font-size:14px; color:var(--muted); display:block; margin-top:var(--space-3); }
+  .note { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; max-width:720px; }
+</style>
+</head>
+<body>
+
+<h1>1 · + Status (the pop-up, widened)</h1>
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Close">✕</span><span class="title">Status for Wren</span></div>
+  <div style="display:flex; gap:var(--space-2); margin-top:var(--space-3);"><span class="field">Search statuses…</span></div>
+  <span class="label">How long</span>
+  <div class="chips"><span class="chip">This fight</span><span class="chip on">1 turn</span><span class="chip">1 hour</span><span class="chip">Until rest</span><span class="chip">Until removed</span><span class="chip">Other…</span></div>
+  <div class="row"><span class="sym">W</span><div class="text"><span class="name">Weary</span><span class="desc">−1 to hit and to saves until rested; stacks.</span></div><span class="btn">Add</span></div>
+  <div class="row"><span class="sym">P</span><div class="text"><span class="name">Poisoned</span> <span class="meta">· 4 kinds</span><span class="desc">The pack's poisons: bite, blade, bloom, spore.</span></div><span class="chev">›</span></div>
+  <div class="row"><span class="sym">D</span><div class="text"><span class="name">Dazed → Reeling → Out cold</span> <span class="meta">· 3 levels</span><span class="desc">Steps up with each hit; starts at Dazed.</span></div><span class="btn">Add</span></div>
+  <div class="row"><span class="sym">B</span><div class="text"><span class="name">Blinded</span><span class="desc">Can't see: attacks and saves as the pack says.</span></div><span class="btn">Add</span></div>
+  <div class="row"><span class="sym">+</span><div class="text"><span class="name">Custom status…</span><span class="desc">A name, what it does, how long.</span></div><span class="chev">›</span></div>
+</div>
+<p class="note">The pop-up is wider (a centred card on iPad, full screen on a phone) so the duration buttons sit on <b>one row</b> (it scrolls sideways on a phone, never wraps). Each row shows the status's <b>brief effect</b> from the pack (`notes`, 07). The search field never takes focus by itself (A4). "Until removed" replaces the old "None" (ruled 2026-11-01, C2). A <b>family</b> row (Poisoned · 4 kinds) opens its kinds; a status with ordered levels adds at its first level.</p>
+
+<h1>2 · A family: tap Poisoned, get the kinds</h1>
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Poisoned</span><span class="meta">4 kinds</span></div>
+  <div class="row"><span class="sym">P</span><div class="text"><span class="name">Bite poison</span><span class="desc">Save or lose 1d6 hp a turn for 3 turns.</span></div><span class="btn">Add</span></div>
+  <div class="row"><span class="sym">P</span><div class="text"><span class="name">Blade poison</span><span class="desc">Save or fall unconscious for 1 hour.</span></div><span class="btn">Add</span></div>
+  <div class="row"><span class="sym">P</span><div class="text"><span class="name">Bloom poison</span><span class="desc">Save or be Dazed; a second dose steps it up.</span></div><span class="btn">Add</span></div>
+  <div class="row"><span class="sym">P</span><div class="text"><span class="name">Spore poison</span><span class="desc">Coughing: no spellcasting until rested.</span></div><span class="btn">Add</span></div>
+</div>
+<p class="note">The kinds shown here are invented examples for the mockup only: families and their kinds come <b>only from the pack's own conditions</b>; the app never supplies a list of poisons or anything else (Francis, 2026-11-01). A family is a condition's optional <b>`family`</b> name in the pack (new, G-46): conditions sharing one are grouped behind a row named after it, and the status shows its own name on the card ("Blade poison"). The duration chosen on the first screen carries over; the kind's own `defaultRounds` wins when it has one.</p>
+
+<h1>3 · Custom status</h1>
+<div class="screen">
+  <div class="bar"><span class="btn icon" aria-label="Back">‹</span><span class="title">Custom status</span></div>
+  <span class="label">Name</span><div style="display:flex"><span class="field">Soaked</span></div>
+  <span class="label">What it does</span><div style="display:flex"><span class="field">Can't light a fire; −2 to climb until dried off.</span></div>
+  <span class="label">How long</span>
+  <div class="chips"><span class="chip">This fight</span><span class="chip">1 turn</span><span class="chip on">1 hour</span><span class="chip">Until rest</span><span class="chip">Until removed</span><span class="chip">Other…</span></div>
+  <div style="display:flex; gap:var(--space-2); margin-top:var(--space-3);"><span class="btn accent">Add to Wren</span><span class="btn">Stacks</span></div>
+</div>
+<p class="note">A custom status is a name, a one-line <b>What it does</b> (shown wherever the status shows, exactly like a pack condition's effect) and a duration; <b>Stacks</b> is a pressed toggle. No effect builder: numbers never change by themselves (05, Rest), so a builder would promise what the app doesn't do. A custom status is kept in the campaign's homebrew and offered next time.</p>
+
+<h1>4 · On the card and in the status sheet</h1>
+<div class="screen">
+  <div class="row"><span class="sym">P</span><div class="text"><span class="name">Blade poison</span> <span class="meta">· 40 min left · from the GM</span><span class="desc">Save or fall unconscious for 1 hour.</span></div><span class="btn">Remove</span></div>
+  <div class="row"><span class="sym">W</span><div class="text"><span class="name">Weary ×2</span> <span class="meta">· until rest</span><span class="desc">−1 to hit and to saves until rested; stacks.</span></div><span class="btn">Remove</span></div>
+</div>
+<p class="note">Every status row shows its brief effect under the name, for the GM and for the player (statuses are theirs to see). The symbol stays the first letter in a circle until the icon family (B11).</p>
+
+</body>
+</html>

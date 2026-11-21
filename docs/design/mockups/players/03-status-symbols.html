@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Status symbols: the set (2026-11-08)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<style>
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(118px, 1fr)); gap:var(--space-3); }
+  .cell { display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; font-size:14px; line-height:1.15; padding:var(--space-2) 0; }
+  .cell .ring { position:relative; width:52px; height:52px; }
+  .ring svg.arc { position:absolute; inset:0; transform:rotate(-90deg); }
+  .ring .mid { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .cell .nm { font-weight:600; }
+  .cell .who { color:var(--muted); }
+  .cell .id { font-family:ui-monospace, Consolas, monospace; font-size:12px; color:var(--muted); }
+  .sect { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:var(--space-4) 0 var(--space-2); }
+  .small { display:flex; gap:var(--space-3); flex-wrap:wrap; align-items:center; }
+  .small span { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script>
+const SY = {
+  flame: `<path d="M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.5-2.5 1.2-3.3C9.5 9 10.5 10 11 10.5 11 8 11 5.5 12 3z" ${W}/>`,
+  star: `<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z" ${W}/>`,
+  ghost: `<path d="M5 21V11a7 7 0 0 1 14 0v10l-2.3-2-2.4 2-2.3-2-2.3 2-2.4-2z" ${W}/><path d="M9.5 11h.01M14.5 11h.01" ${W} stroke-width="2.6"/>`,
+  shield: `<path d="M12 3l8 3v6c0 4.5-3.5 8-8 9-4.5-1-8-4.5-8-9V6z" ${W}/>`,
+  'arrow-forward': `<path d="M4 12h15M13 6l6 6-6 6" ${W}/>`,
+  'arrow-back': `<path d="M20 12H5M11 6l-6 6 6 6" ${W}/>`,
+  bolt: `<path d="M13 2L5 14h6l-1 8 9-13h-6z" ${W}/>`,
+  'eye-slash': `<path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M7 7.5C4.5 9 3 12 3 12s3.5 6 9 6c1.5 0 2.9-.4 4-1M10 6.2A9 9 0 0 1 12 6c5.5 0 9 6 9 6s-.8 1.4-2.2 2.8" ${W}/>`,
+  'eye-half': `<path d="M3 12s3.5-6 9-6 9 6 9 6" ${W}/><path d="M3 12s3.5 6 9 6 9-6 9-6" ${W} stroke-dasharray="2 3"/><circle cx="12" cy="12" r="2.5" ${W}/>`,
+  'sun-slash': `<circle cx="12" cy="12" r="4" ${W}/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" ${W}/><path d="M3 21L21 3" ${W}/>`,
+  lock: `<rect x="5" y="11" width="14" height="10" rx="1.5" ${W}/><path d="M8 11V8a4 4 0 0 1 8 0v3" ${W}/>`,
+  chain: `<path d="M10 14a4 4 0 0 0 5.7 0l2.8-2.8a4 4 0 0 0-5.7-5.7l-1.4 1.4" ${W}/><path d="M14 10a4 4 0 0 0-5.7 0l-2.8 2.8a4 4 0 0 0 5.7 5.7l1.4-1.4" ${W}/>`,
+  bed: `<path d="M3 18V8M3 14h18v4M21 18v-6a3 3 0 0 0-3-3H10v5" ${W}/><circle cx="6.5" cy="10.5" r="1.5" ${W}/>`,
+  moon: `<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" ${W}/>`,
+  stone: `<path d="M7 19l-3-5 2-6 6-3 6 3 2 6-3 5z" ${W}/><path d="M9 13l3-4 3 4" ${W}/>`,
+  spiral: `<path d="M12 12a1.5 1.5 0 0 1 3 0 3 3 0 0 1-6 0 4.5 4.5 0 0 1 9 0 6 6 0 0 1-12 0 7.5 7.5 0 0 1 15 0" ${W}/>`,
+  hand: `<path d="M7 11V6a1.5 1.5 0 0 1 3 0v5M10 10V4.5a1.5 1.5 0 0 1 3 0V11M13 10.5V5.5a1.5 1.5 0 0 1 3 0V12M16 11.5V8a1.5 1.5 0 0 1 3 0v6a7 7 0 0 1-7 7h-1a6 6 0 0 1-5-2.7L3.5 14a1.6 1.6 0 0 1 2.7-1.7L7 13" ${W}/>`,
+  drop: `<path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z" ${W}/>`,
+  blot: `<path d="M8 4c2-1.5 5 0 6 2 3 0 5 3 3.5 5.5 1.5 2.5-1 5-3.5 4.5-1.5 2.5-5 2.5-6.5 0C4 16 3 12.5 5 11 3.5 8.5 5.5 5 8 4z" ${W}/><path d="M10 10h.01M13.5 12.5h.01M9 14h.01" ${W} stroke-width="2.6"/>`,
+  feather: `<path d="M20 4c-6 0-11 4-13 10l-3 6M8 14l8-8M9.5 18c4 0 8-3 9.5-9-5 0-8 2-9.5 6" ${W}/>`,
+  bread: `<path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 2 7.5V19H6v-5.5A4 4 0 0 1 4 10z" ${W}/><path d="M9 11v4M12 10v5M15 11v4" ${W}/>`,
+  cup: `<path d="M5 5h11v8a5.5 5.5 0 0 1-11 0z" ${W}/><path d="M16 8h2a2.5 2.5 0 0 1 0 5h-2M4 20h13" ${W}/>`,
+  snowflake: `<path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M12 2l-2.5 2.5M12 2l2.5 2.5M12 22l-2.5-2.5M12 22l2.5-2.5M3.3 7l3.4.9M3.3 7l.9-3.4M20.7 17l-3.4-.9M20.7 17l-.9 3.4M3.3 17l.9 3.4M3.3 17l3.4-.9M20.7 7l-.9-3.4M20.7 7l-3.4.9" ${W}/>`,
+  skull: `<path d="M12 3a8 8 0 0 0-8 8c0 3 1.5 5 3.5 6v3h9v-3c2-1 3.5-3 3.5-6a8 8 0 0 0-8-8z" ${W}/><circle cx="9" cy="11" r="1.6" ${W}/><circle cx="15" cy="11" r="1.6" ${W}/><path d="M10.5 20v-2M13.5 20v-2M12 14l-1 2h2z" ${W}/>`,
+  crack: `<path d="M5 4h14v16H5z" ${W}/><path d="M12 4l-2 5 3 2-2.5 4 2 5" ${W}/>`,
+};
+const TONE = { light: 'glow', harm: 'danger', boon: 'info', neutral: 'ink' };
+const ring = (frac, k, tone, size = 52, stroke = 5) => {
+  const col = TONE[tone], r = (size - stroke) / 2, c = 2 * Math.PI * r;
+  return `<div class="ring"><svg class="arc" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--rule)" stroke-width="${stroke}"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--${col})" stroke-width="${stroke}" stroke-dasharray="${(c*frac).toFixed(1)} ${c.toFixed(1)}"/></svg><span class="mid" style="color:var(--${col})">${svg(SY[k], 24)}</span></div>`;
+};
+const cell = (k, who, tone, frac = 0.66) => `<div class="cell">${ring(frac, k, tone)}<span class="nm">${who}</span><span class="id">${k}, ${tone}</span></div>`;
+
+const SET = [
+  ['flame', 'Torch, lantern', 'light', 0.66],
+  ['star', 'Blessed', 'boon', 0.9],
+  ['ghost', 'Invisible', 'boon', 0.5],
+  ['shield', 'Parrying', 'boon', 1],
+  ['arrow-forward', 'Charging', 'neutral', 1],
+  ['arrow-back', 'Retreating, Fleeing', 'neutral', 1],
+  ['bolt', 'Surprised', 'harm', 1],
+  ['eye-slash', 'Blinded, in darkness', 'harm', 0.4],
+  ['eye-half', 'Low light', 'neutral', 0.4],
+  ['sun-slash', 'In bright light', 'harm', 0.75],
+  ['lock', 'Paralysed, Held', 'harm', 0.6],
+  ['chain', 'Entangled', 'harm', 0.3],
+  ['bed', 'Asleep, Subdued', 'harm', 0.8],
+  ['moon', 'Not rested, Poor sleep', 'harm', 1],
+  ['stone', 'Exhausted ×n', 'harm', 1],
+  ['spiral', 'Charmed, Fascinated, Befuddled', 'harm', 0.55],
+  ['hand', 'Turned', 'harm', 0.2],
+  ['drop', 'Poisoned (20 kinds)', 'harm', 0.66],
+  ['blot', 'Disease', 'harm', 1],
+  ['feather', 'Weakened', 'harm', 0.5],
+  ['bread', 'Hungry ×n', 'harm', 1],
+  ['cup', 'Thirsty ×n', 'harm', 1],
+  ['snowflake', 'Exposed to cold', 'harm', 1],
+  ['skull', 'At death’s door', 'harm', 0.15],
+  ['crack', 'Bent, Broken (items)', 'neutral', 1],
+];
+
+const grid = `<div class="grid">${SET.map(([k, w, t, f]) => cell(k, w, t, f)).join('')}</div>`;
+const small = `<div class="small">${SET.map(([k, w, t]) => `<span style="color:var(--${TONE[t]})" title="${w}">${svg(SY[k], 20)}</span>`).join('')}</div>`;
+const mono = `<div class="small">${SET.map(([k, w]) => `<span style="color:var(--ink)" title="${w}">${svg(SY[k], 20)}</span>`).join('')}</div>`;
+
+mount(`
+  <h1>Status symbols: the set</h1>
+  <p class="note">The sweep of the two settings and the zine (2026-11-08): 56 conditions, 25 symbols, one idea each. Each drawn in its ring at 52 px with the family's colour (light: glow; harm: danger; boon: info; neutral: ink). The ring's arc is a sample fraction. Under each: the statuses it stands for, the icon id, the tone. Field names: <code>icon</code> (the existing field, list extended) and a new <code>tone</code>; <code>family</code> stays the pack's grouping.</p>
+  ${grid}
+  <div class="sect">At 20 px, in colour, then in ink alone (the Log, the GM's lists)</div>
+  ${small}
+  <div style="height:var(--space-3)"></div>
+  ${mono}
+  <p class="note">Self-review: stroke 2 at 24 px, nothing thinner; each symbol has words under it on the Player (never the symbol alone); pairs that could be confused checked side by side: moon / bed (rest vs sleep), lock / chain, eye-slash / sun-slash, star / bolt. Weakest at 20 px: hand, blot and skull lose detail; proposals if you find them muddy: hand → an open palm outline only; blot → three dots in a circle; skull → keep (it reads at 20). Not drawn: the first-letter fallback for a status with no icon.</p>
+`);
+</script>
+</body>
+</html>

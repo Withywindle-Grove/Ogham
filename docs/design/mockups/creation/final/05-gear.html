@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Final draft 5: Gear (2026-11-07)</title>
+<link rel="stylesheet" href="final.css">
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+const coinCard = (v, avg, line) => `<div class="card"><div class="kv"><span>Starting coin</span>${stepper(v, avg)}</div><div class="${avg ? 'avgline' : 'meta'}">${line}</div></div>`;
+const foldRow = (name, sub, open = false) => `<div class="card"><div class="kv"><div class="text">${name}<small>${sub}</small></div><span class="btn sq" role="button" aria-label="${open ? 'Hide' : 'Show'}">${open ? I.minus : I.plus}</span></div></div>`;
+
+const gear = phone(`
+  ${bar('Gear')}
+  <div class="inner">
+    <p class="meta">Step 8 of 9</p>
+    <p class="do">What you carry into your first adventure. Take a kit, buy from the shop, or both.</p>
+    ${helpBtn()}
+    ${roll(6, 'Roll 3d6 × 10 for your starting coin, then enter it. The stepper moves by 10.')}
+    ${coinCard(100, true, 'Average value, replace with your roll')}
+    <h2>To choose (pick 1)</h2>
+    ${pick('Warden\'s kit', '9 items: leather, spear, lantern, 3 days\' food. Rolls 2 things', 'accent')}
+    ${pick('Witch\'s bundle', '7 items: staff, quilted cloth, candles, herbs', 'pick')}
+    ${roll(100, 'Roll d100 for your keepsake, then tap the row.')}
+    ${pick('Keepsake', 'Stone kin, d100. Not rolled yet', 'open')}
+    ${pick('The shop', 'Buy item by item with your coin', 'open')}
+    <h2>Yours already</h2>
+    ${foldRow('Given to every character', '7 items: clothes, pack, 2 days\' food')}
+    ${foldRow('Given to Reed Witches', '2 items: staff, spell pouch')}
+    <div class="card"><div class="kv"><div class="text">Load<small>290 of 500 coins\' weight. Unburdened, speed 40</small></div></div><div class="bartrack"><span style="width:58%"></span></div></div>
+    ${foot('No kit yet, nothing bought', true, 'plain')}
+  </div>`, 'Gear, untouched: the coin at the average the dice can make (100, step 10); To choose first (the kits, the keepsake\'s Roll row, the shop); Yours already folded by group; the load line. No kit yet, so the first kit\'s Pick carries the accent and Next is plain.');
+
+const rollSeq = phone(`
+  ${bar('Gear')}
+  <div class="inner" style="min-height:560px">
+    <p class="meta">Step 8 of 9</p>
+    ${pick('Warden\'s kit', '9 items: leather, spear, lantern, 3 days\' food. Rolls 2 things', 'pick')}
+  </div>
+  ${sheet('Warden\'s kit', `
+    <p class="meta" style="margin:0 0 var(--space-2)">Roll 1 of 2: the weapon</p>
+    ${roll(6, 'Roll d6 at the table, then tap what you rolled.')}
+    <div class="list">
+      <div class="row"><span class="k">1 to 2</span><span class="v">Spear</span></div>
+      <div class="row"><span class="k">3 to 4</span><span class="v">Hand axe</span></div>
+      <div class="row"><span class="k">5</span><span class="v">Short bow and 20 arrows</span></div>
+      <div class="row"><span class="k">6</span><span class="v">Sling and a pouch of stones</span></div>
+    </div>
+    <div class="foot"><span class="say">Then: the armour (d6)</span><span class="btn">Back</span></div>
+  `)}`, 'A kit with rolls: Pick opens the roll sequence as a sheet, one roll per step (plan answer 3); tapping the row takes it and moves to the next roll; ✕ midway keeps nothing. A roll made twice is one step with two taps ("Weapon, 1 of 2", Francis 2026-11-06).');
+
+const gearPicked = phone(`
+  ${bar('Gear')}
+  <div class="inner">
+    <p class="meta">Step 8 of 9</p>
+    ${roll(6, 'Roll 3d6 × 10 for your starting coin, then enter it. The stepper moves by 10.')}
+    ${coinCard(120, false, '120 rolled, 0 spent, 120 left')}
+    <h2>To choose (pick 1)</h2>
+    <div class="card picked"><div class="kv"><div class="text">Warden's kit<small>Picked ✓<br>9 items: leather, spear (rolled), lantern, 3 days' food</small></div><span class="btn small">Change</span></div></div>
+    ${pick('Witch\'s bundle', '7 items: staff, quilted cloth, candles, herbs', 'pick')}
+    <div class="card picked"><div class="kv"><div class="text">Keepsake<small>Rolled 39: a river stone that is always warm</small></div><span class="btn small">Change</span></div></div>
+    ${pick('The shop', 'Buy item by item with your coin', 'open')}
+    <div class="toast"><span>Warden's kit taken, 9 items</span><span class="btn small">Undo</span></div>
+    ${foot('1 kit, nothing bought')}
+  </div>`, 'After the kit and the keepsake: the kit row shows what it gave with its rolled parts marked, Change reruns the rolls (Take it off is inside Change); the keepsake shows its result with Change (cr-10); the coin line as a sentence; Next takes the accent.');
+
+const shop = phone(`
+  ${bar('The shop', 'close')}
+  <div class="inner">
+    <p class="meta">120 left of 120. Load 290 of 500, unburdened</p>
+    <span class="field empty">Search the shop</span>
+    <h2>Light and food</h2>
+    <div class="card"><div class="kv"><div class="text">Torch<small>1 cp each. Burns 1 hour. 20 coins' weight</small></div>${stepper(0)}</div></div>
+    <div class="card"><div class="kv"><div class="text">Lantern oil, flask<small>1 sp. 4 hours. 10 coins' weight</small></div>${stepper(2)}</div></div>
+    <div class="card"><div class="kv"><div class="text">Rations, 1 day<small>5 sp. 15 coins' weight</small></div>${stepper(0)}</div></div>
+    <h2>Weapons</h2>
+    <div class="card"><div class="kv"><div class="text">Long sword<small>10 gp. ${warn('Reed Witch can\'t use it')}</small></div>${stepper(0)}</div></div>
+    <div class="card"><div class="kv"><div class="text">Staff<small>2 sp. Two hands. 40 coins' weight</small></div>${stepper(0)}</div></div>
+    <div class="foot"><span class="say">2 items, 2 sp spent, 119 gp 8 sp left</span><span class="btn accent">Done</span></div>
+  </div>`, 'The shop, opened from Gear as a full screen (it has many rows): coin and load at the top, a search field, groups, a stepper per item; a weapon the class can\'t use says so with the sign and can still be bought (the GM sees it); Done returns to Gear.');
+
+const gearTablet = tablet(`
+  ${bar('Gear')}
+  <div class="cols wide-left">
+    <div>
+      <p class="meta">Step 8 of 9</p>
+      <p class="do">What you carry into your first adventure. Take a kit, buy from the shop, or both.</p>
+      ${roll(6, 'Roll 3d6 × 10 for your starting coin, then enter it. The stepper moves by 10.')}
+      ${coinCard(120, false, '120 rolled, 0 spent, 120 left')}
+      <h2>To choose (pick 1)</h2>
+      <div class="card picked"><div class="kv"><div class="text">Warden's kit<small>Picked ✓<br>9 items: leather, spear (rolled), lantern, 3 days' food</small></div><span class="btn small">Change</span></div></div>
+      ${pick('Witch\'s bundle', '7 items: staff, quilted cloth, candles, herbs', 'pick')}
+      ${roll(100, 'Roll d100 for your keepsake, then tap the row.')}
+      ${pick('Keepsake', 'Stone kin, d100. Not rolled yet', 'open')}
+      ${pick('The shop', 'Buy item by item with your coin', 'open')}
+    </div>
+    <div class="panel">
+      <h2>Yours so far</h2>
+      <div class="list">
+        ${kvRow('Coin', '120 left of 120')}
+        ${kvRow('Load', 'Unburdened, speed 40')}
+      </div>
+      <div class="bartrack"><span style="width:58%"></span></div>
+      <p class="meta" style="margin:0 0 var(--space-2)">290 of 500 coins' weight</p>
+      <div class="list">
+        <div class="row"><div class="text">Warden's kit<small>9 items: leather, spear, lantern…</small></div><span class="btn sq" role="button" aria-label="Show">${I.plus}</span></div>
+        <div class="row"><div class="text">Given to every character<small>7 items: clothes, pack, 2 days' food</small></div><span class="btn sq" role="button" aria-label="Show">${I.plus}</span></div>
+        <div class="row"><div class="text">Given to Reed Witches<small>2 items: staff, spell pouch</small></div><span class="btn sq" role="button" aria-label="Show">${I.plus}</span></div>
+      </div>
+    </div>
+  </div>
+  ${foot('1 kit, nothing bought<br>Keepsake not yet rolled').replace('class="foot"', 'class="foot" style="margin:0;padding:var(--space-3)"')}`, 'Gear on a tablet (mockup 16, with the rulings applied): the work on the left, the running state on the right.');
+
+mount(`
+  <h1>Final draft 5: Gear</h1>
+  <p class="note">Starting coin first, at the average the dice can make and stepping by the multiplier (Francis, 2026-11-07), marked until touched. "To choose (pick N)" names how many kits may be taken (Francis, 2026-11-07), before Yours already (cw-1). A kit's rolls as a sheet, one roll per step (plan answer 3). The keepsake as a Roll row and its table; once rolled, the result with Change (cr-10). The shop as its own screen. The accent on the ask: the first kit's Pick until a kit is taken, then Next. No middle dot. Load as a line with its bar.</p>
+  <h1>Phone</h1>
+  <div class="wall">${gear}${rollSeq}${gearPicked}${shop}</div>
+  <h1>Tablet</h1>
+  ${gearTablet}
+  <p class="note">Self-review: targets 44 px with 8 px between; nothing under 14 px; the kit's rolled parts are marked in words ("(rolled)"); the can't-use weapon shows the sign and the reason, never grey; one accent per screen, on the ask; the load bar has its figures beside it; 375 px checked with the longest kit line. Not checked: a setting with no kits and no shop (the step shows only the coin and Given, or is skipped); a kit with a choice (oneOf) as a step of pick rows in the same sheet; the shop's search with no match ("Nothing called that. Try another word").</p>
+`);
+</script>
+</body>
+</html>

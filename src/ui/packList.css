@@ -1,0 +1,121 @@
+/* A list of packs (06 Components: Rules library list, Pack row; lr-1 … lr-3). */
+
+.kind-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.kind-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.kind-group__title {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+}
+
+.kind-group__count {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-16);
+  color: var(--muted);
+}
+
+.kind-group__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pack-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: var(--line-hair) dotted var(--row-rule);
+}
+
+.pack-row:last-child {
+  border-bottom: none;
+}
+
+/* On a phone the buttons wrap under the text; from 600 px they sit at the right. */
+.pack-row__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.pack-row__lead {
+  flex: none;
+}
+
+.pack-row__text {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Set-up step 2: the text is a button that opens the pack's Browse (lr-5). */
+.pack-row--opens .pack-row__text {
+  min-block-size: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.pack-row__name {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
+
+.pack-row__desc,
+.pack-row__holds,
+.pack-row__use {
+  overflow-wrap: anywhere;
+}
+
+.pack-row__use {
+  font-size: var(--text-14);
+  color: var(--muted);
+}
+
+.pack-row__actions {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The phone drops the description (Browse › About shows it, lr-2); what it needs stays. */
+@media (max-width: 599px) {
+  .pack-row__blurb {
+    display: none;
+  }
+}
+
+@media (min-width: 600px) {
+  .pack-row__main {
+    flex-wrap: nowrap;
+  }
+
+  .pack-row__actions {
+    flex: none;
+  }
+}

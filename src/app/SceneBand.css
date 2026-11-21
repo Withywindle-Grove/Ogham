@@ -1,0 +1,524 @@
+/* The Scene's band and facts row (plan dec-9-the-whole-scene S1, S4; page 16, approved 2026-11-14). Tokens only.
+   Drawn inside the book's faces (BookFaces, po-3): the heading and values in the book's text face, the session line,
+   the date and the fact labels in its small-capitals face. */
+
+.scene-band {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-width: 0;
+  padding-bottom: var(--space-3);
+  border-bottom: var(--divider);
+}
+
+.scene-band__words {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.scene-band__over {
+  margin: 0;
+  font-family: var(--font-book-descriptor);
+  font-weight: var(--weight-book-descriptor);
+  font-size: var(--text-14);
+  line-height: var(--line-heading);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.scene-band__heading {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-30);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
+
+/* The heading that opens the procedure (fl-5): its words, no button look; 44 px tall. */
+.scene-band__heading-button {
+  min-height: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.scene-band__date-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+/* While the date is unset the line is the tap (st-2): underlined words, 44 px tall. */
+.scene-band__date-line--tap {
+  column-gap: 0;
+  min-height: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+  cursor: pointer;
+}
+
+.scene-band__date {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-book-descriptor);
+  font-weight: var(--weight-book-descriptor);
+}
+
+/* The date without its season, for a phone only (T8a). */
+.scene-band__date-short {
+  display: none;
+}
+
+.scene-band__date .icon {
+  flex: none;
+  color: var(--muted);
+}
+
+.scene-band__under {
+  margin: 0;
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+  color: var(--muted);
+}
+
+/* Folded, a due fact still shows (p2p-20; page 24, TF1 C, TF1b C): one small bold line each, the warning sign where the
+   fact's tile has it (never colour alone); not a tap: the fold mark opens the top to read it whole. */
+.scene-band__due {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.scene-band__due-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--text-14);
+  font-weight: var(--weight-bold);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.scene-band__due-line svg {
+  flex: none;
+}
+
+/* One height in a row (p2p-16, ruled 2026-11-18; page 23, frame LA1): the band's controls side by side share one
+   height, 52 px: the icon buttons, Next turn (or Start, Resume, Depart), the menu button and the fold mark. No tap
+   token is 52 px, so it is written from two that are: the 44 px tap and one 8 px step. Set on the band, so the fold
+   mark (beside the actions, not in them) takes it too. */
+.scene-band {
+  --band-control: calc(var(--tap) + var(--space-2));
+}
+
+.scene-band__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex: none;
+  max-width: 100%;
+}
+
+/* S2 (T6b): the icon buttons, squares 8 px apart, left of Next turn. */
+.scene-band__tools {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.scene-band__tool,
+.scene-band__fold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--band-control);
+  min-inline-size: var(--band-control);
+  block-size: var(--band-control);
+  /* The band's one height (LA1), not a secondary button's step height. */
+  min-block-size: var(--band-control);
+  padding: 0;
+}
+
+.scene-band__next {
+  min-height: var(--band-control);
+  font-size: var(--text-20);
+}
+
+/* The menu button beside them takes the same height (LA1); its look stays MoreMenu's. */
+.scene-band__actions .more-menu__button {
+  width: var(--band-control);
+  height: var(--band-control);
+}
+
+/* The fold mark (p2p-20; TF1 with Francis's fix): a framed square of the band's height at its far right, after the
+   menu button, 8 px from it (the band's own gap is 16, so the mark steps back one 8 px step). */
+.scene-band__fold {
+  flex: none;
+  margin-inline-start: calc(var(--space-2) - var(--space-4));
+}
+
+/* With the mark as the band's third part, the actions keep to the right beside it (the free space goes before them). */
+.scene-band:has(.scene-band__fold) .scene-band__actions {
+  margin-inline-start: auto;
+}
+
+/* The phone (st-6, T8a at 0fbaa95f): the heading on its own lines (20 px), under it the date (its small capitals
+   14 px, the light 16 px) with the actions at its right, then the resumed line. */
+@media (max-width: 599px) {
+  .scene-band {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--space-2);
+    row-gap: var(--space-1);
+    align-items: center;
+  }
+
+  .scene-band__words {
+    display: contents;
+  }
+
+  .scene-band__heading {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    font-size: var(--text-20);
+  }
+
+  .scene-band__date-line {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .scene-band__date {
+    font-size: var(--text-14);
+  }
+
+  /* T8a: on a phone the season's icon carries the season; its word goes. */
+  .scene-band__date-whole {
+    display: none;
+  }
+
+  .scene-band__date-short {
+    display: inline;
+  }
+
+  .scene-band__actions {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .scene-band__under {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  /* T8a: the phone's top bar names the campaign; the band starts at the heading. */
+  .scene-band__over {
+    display: none;
+  }
+
+  /* S2 (T8a): the icon buttons take a row of their own under the date, Next turn, and the resumed line. The actions'
+     box steps aside so its parts sit in the band's grid: Next turn (or Start / Resume session) and ⋯ in row 2 at the
+     right of the date, as the base placed the actions. */
+  .scene-band:has(.scene-band__tools) {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .scene-band:has(.scene-band__tools) .scene-band__actions {
+    display: contents;
+  }
+
+  .scene-band:has(.scene-band__tools) .scene-band__actions > :not(.scene-band__tools) {
+    grid-row: 2;
+  }
+
+  /* S5 (town and downtime): two worded buttons (Advance time or Next day, and Depart) and ⋯ don't fit beside the date
+     on a phone: they take a row of their own under it, the buttons sharing its width and wrapping where they must. */
+  .scene-band:has(.scene-band__depart) .scene-band__actions {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .scene-band:has(.scene-band__depart) .scene-band__under {
+    grid-row: 4;
+  }
+
+  .scene-band:has(.scene-band__depart) .scene-band__next {
+    flex: 1 1 auto;
+  }
+
+  .scene-band__tools {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  /* S16 (T8a, T8c): with Next turn or Resume session beside the date, what is left of the light takes a line of its own
+     under the date, the band's whole width, so the date never breaks beside the button. The date line's parts join the
+     band's grid; the rows under it move down one. The players' band has no button: their light stays beside the date
+     (T9d). Town and downtime (Depart's row, undrawn on a phone, TW6c) are left as they are. */
+  .scene-band:has(.scene-band__next):not(:has(.scene-band__depart)):has(p.scene-band__date-line .scene-band__light) p.scene-band__date-line {
+    display: contents;
+  }
+
+  .scene-band:has(.scene-band__next):not(:has(.scene-band__depart)):has(p.scene-band__date-line .scene-band__light) .scene-band__date {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .scene-band:has(.scene-band__next):not(:has(.scene-band__depart)):has(p.scene-band__date-line .scene-band__light) .scene-band__light {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .scene-band:has(.scene-band__next):not(:has(.scene-band__depart)):has(p.scene-band__date-line .scene-band__light) .scene-band__under {
+    grid-row: 4;
+  }
+
+  .scene-band:has(.scene-band__next):not(:has(.scene-band__depart)):has(p.scene-band__date-line .scene-band__light) .scene-band__tools {
+    grid-row: 5;
+  }
+}
+
+/* The fold on a phone (p2p-20; page 24, TF1b): the fold mark stands at the heading's right, in the band's last column
+   (over the menu button); the heading keeps the rest of its row. Folded, the due lines come under the date (and under
+   the light's own line, S16), before the resumed line and the icon buttons, which move down one row. */
+@media (max-width: 599px) {
+  .scene-band:has(.scene-band__fold) .scene-band__heading {
+    grid-column: 1 / -2;
+  }
+
+  .scene-band__fold {
+    grid-column: -2 / -1;
+    grid-row: 1;
+    justify-self: end;
+    margin-inline-start: 0;
+  }
+
+  .scene-band__due {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .scene-band:has(.scene-band__due) .scene-band__under {
+    grid-row: 4;
+  }
+
+  .scene-band:has(.scene-band__due) .scene-band__tools {
+    grid-row: 5;
+  }
+
+  .scene-band:has(.scene-band__next):not(:has(.scene-band__depart)):has(p.scene-band__date-line .scene-band__light):has(.scene-band__due) .scene-band__due {
+    grid-row: 4;
+  }
+
+  .scene-band:has(.scene-band__next):not(:has(.scene-band__depart)):has(p.scene-band__date-line .scene-band__light):has(.scene-band__due) .scene-band__under {
+    grid-row: 5;
+  }
+
+  .scene-band:has(.scene-band__next):not(:has(.scene-band__depart)):has(p.scene-band__date-line .scene-band__light):has(.scene-band__due) .scene-band__tools {
+    grid-row: 6;
+  }
+}
+
+/* The facts (S4): four across where the band is wide enough for each value whole, fewer where the GM's column is
+   narrower (an iPad with the side column open), two by two on a phone. A lone fact keeps a fact's width (T5). */
+.scene-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--fact-tile)), 1fr));
+  gap: var(--space-3);
+}
+
+/* Between expeditions (S5; T4, T5, ap-8): the few facts at a tile's width, centred in the row, never stretched. */
+.scene-facts--centred {
+  grid-template-columns: repeat(auto-fit, min(100%, var(--fact-tile)));
+  justify-content: center;
+}
+
+@media (max-width: 599px) {
+  .scene-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* (two by two at any count on a phone, T8a) */
+    gap: var(--space-2);
+  }
+
+  /* Centred on a phone too: each tile half the row, as two by two. */
+  .scene-facts--centred {
+    grid-template-columns: repeat(auto-fit, calc((100% - var(--space-2)) / 2));
+  }
+}
+
+.scene-fact {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-3);
+  align-items: center;
+  align-content: center;
+  min-width: 0;
+  min-height: var(--tap);
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.scene-fact__icon {
+  grid-row: 1 / span 3;
+  display: flex;
+  color: var(--muted);
+}
+
+.scene-fact__label {
+  margin: 0;
+  font-size: var(--text-14);
+  line-height: var(--line-heading);
+  color: var(--muted);
+}
+
+/* A fact's value keeps to ONE line (mc-39b, "a fact's value never wraps"; tv-1 as corrected by the lead, 2026-11-15,
+   superseding T12's two lines): where it would overrun its tile at the large size it drops one step in the type scale
+   (SceneBand.tsx measures it and sets data-fit), never under 16; past that it is cut with an ellipsis. The whole value
+   is in the tile's accessible name and its sheet. Each variant names its two sizes. */
+.scene-fact__value {
+  --fact-value: var(--text-24);
+  --fact-value-smaller: var(--text-20);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  max-width: 100%;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--fact-value);
+  line-height: var(--line-heading);
+}
+
+.scene-fact__value-text {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.scene-fact__value-text[data-fit='smaller'] {
+  font-size: var(--fact-value-smaller);
+}
+
+/* The Encounter check's value is a phrase ("On every move"): a step smaller, as drawn (T1, T2). */
+.scene-fact--check .scene-fact__value {
+  --fact-value: var(--text-20);
+  --fact-value-smaller: var(--text-16);
+}
+
+.scene-fact__warn {
+  display: inline-flex;
+  flex: none;
+}
+
+.scene-fact__sub {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: var(--space-1);
+  font-size: var(--text-14);
+  line-height: var(--line-heading);
+  color: var(--muted);
+}
+
+/* The small line (the effect) keeps to one line too, cut the same way (tv-1). */
+.scene-fact__sub-text {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Due (st-1): the warm edge and ground, its small line in ink and bold. */
+.scene-fact--due {
+  border: var(--line-selected) solid var(--accent);
+  background: var(--accent-1);
+}
+
+/* A Light fact in the dark (st-5): the cool edge, ground and glow, with the warning sign and words. */
+.scene-fact--dark {
+  border: var(--line-selected) solid var(--info);
+  background: var(--info-1);
+  box-shadow: 0 0 var(--space-2) var(--line-hair) var(--info-2);
+}
+
+.scene-fact--due .scene-fact__sub,
+.scene-fact--dark .scene-fact__sub {
+  color: var(--ink);
+  font-weight: var(--weight-book-name);
+}
+
+@media (max-width: 599px) {
+  .scene-fact {
+    padding: var(--space-2);
+    column-gap: var(--space-2);
+  }
+
+  /* On a phone the value is already 16, so it doesn't drop (never under 16, tv-1): it is cut. */
+  .scene-fact__value {
+    --fact-value: var(--text-16);
+    --fact-value-smaller: var(--text-16);
+  }
+
+  /* T8a: the check's phrase a step smaller again, so it stays whole on one line (the frame's own size, kept). */
+  .scene-fact--check .scene-fact__value {
+    --fact-value: var(--text-14);
+    --fact-value-smaller: var(--text-14);
+  }
+}
+
+/* The players' top, paused (S15; page 16, T9b): today's words where the GM's button stands, at the band's right in
+   the text face, at most a fact tile wide so they wrap beside the heading rather than push it. */
+.scene-band__paused {
+  max-width: var(--fact-tile);
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  text-align: right;
+}
+
+@media (max-width: 599px) {
+  /* T9e: on a phone the words take a line of their own under the date. */
+  .scene-band:has(.scene-band__paused) .scene-band__actions {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-content: flex-start;
+  }
+
+  .scene-band:has(.scene-band__paused) .scene-band__under {
+    grid-row: 4;
+  }
+
+  .scene-band__paused {
+    max-width: none;
+    text-align: left;
+  }
+}

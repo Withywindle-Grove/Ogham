@@ -1,0 +1,824 @@
+/* The Pack tab: the load at the top, items by where they're carried, the Party stash folded at the bottom. */
+.pack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.pack__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-sheet-title);
+  text-align: center;
+}
+
+.pack__load {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap);
+  margin-bottom: var(--pad);
+}
+
+.pack__load > .auth__meta {
+  margin: 0;
+}
+
+.pack__tier {
+  min-height: var(--tap);
+  padding: 0 var(--pad);
+  border: none;
+  background: none;
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-size: var(--text-item);
+  font-style: italic;
+  cursor: pointer;
+}
+
+/* "Speed said once" (LoadSummary's `speedOnce`; the Player screen's Movement card, dec-13 C10, frame P1): the tier's
+   name, the bar and "383 of 1,200 coins’ weight", all left-aligned and upright, as P1 draws them. */
+.pack__load--once {
+  align-items: stretch;
+  gap: var(--space-2);
+  margin-bottom: 0;
+}
+
+.pack__load--once .pack__tier {
+  align-self: flex-start;
+  /* No side padding (the name lines up with the bar), so a short name ("Light") keeps a 44 px wide target this way. */
+  min-inline-size: var(--tap);
+  padding: 0;
+  font-style: normal;
+  font-weight: var(--weight-heading);
+  text-align: start;
+}
+
+.pack__tier--warn {
+  color: var(--warning);
+}
+
+.pack__bar {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  border-radius: var(--radius);
+  background: var(--bar-track);
+}
+
+.pack__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: var(--radius);
+  background: var(--ink);
+}
+
+.pack__fill--over {
+  background: var(--warning);
+}
+
+.pack__mark {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--page);
+}
+
+.pack__cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.pack__cell {
+  flex: 1 0 14px;
+  max-width: 28px;
+  height: 14px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+}
+
+.pack__cell--full {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.pack__cell--over {
+  background: var(--warning);
+  border-color: var(--warning);
+}
+
+/* Slot bands (ga-1, sr-9): one short bar per band, its count and speed above it. */
+.pack__bands {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pack__band {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pack__band-line {
+  margin: 0;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.pack__band-state {
+  color: var(--muted);
+}
+
+.pack__band-state--marked {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.pack__explain {
+  width: 100%;
+  padding: var(--pad);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.pack__explain ul {
+  margin: 0;
+  padding-left: var(--space-5);
+}
+.pack__group,
+.pack__stash {
+  border-top: var(--divider);
+  padding-top: var(--gap);
+}
+
+.pack__group-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-label);
+  font-variant: small-caps;
+  color: var(--muted);
+  text-transform: lowercase;
+}
+
+.pack__group-title .auth__meta {
+  font-family: var(--font-body);
+  font-variant: normal;
+  text-transform: none;
+}
+
+.pack__group-toggle {
+  min-height: var(--tap);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-size: var(--text-label);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pack__rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pack__item {
+  border-bottom: var(--row-rule);
+}
+
+.pack__row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.pack__row-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: var(--space-1) var(--gap);
+  min-height: var(--tap);
+  padding: var(--gap) 0;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--press-flash);
+}
+
+.pack__row-main:active {
+  background: var(--tint);
+}
+
+.pack__name {
+  font-family: var(--font-heading);
+  font-size: var(--text-item);
+}
+
+.pack__qty {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--muted);
+}
+
+.pack__sub {
+  grid-column: 1;
+}
+
+.pack__amount {
+  grid-column: 2;
+  grid-row: 1;
+  color: var(--muted);
+  font-size: var(--text-meta);
+}
+
+.pack__stepper {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.pack__stepper .button-quiet,
+.pack__count .button-quiet {
+  min-width: var(--tap);
+  font-size: var(--text-item);
+}
+
+.pack__sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  margin: 0 0 var(--pad);
+  padding: var(--pad);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.pack__sheet p {
+  margin: 0;
+}
+
+.pack__sheet ul {
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.pack__count {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.pack__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.pack__actions .label {
+  width: 100%;
+}
+
+/* Add item in the foot, beside the count (plan C): its own width, not the phone's full-width primary. */
+.pack__add {
+  flex: 0 1 auto;
+  width: auto;
+}
+
+.add-item__picked {
+  outline: var(--line-selected) solid var(--selected-edge);
+  outline-offset: calc(0px - var(--line-selected));
+  background: var(--selected);
+}
+
+.pack__actions [aria-pressed='true'] {
+  border-color: var(--selected-edge);
+  box-shadow: inset 0 0 0 calc(var(--line-selected) - var(--line-control)) var(--selected-edge);
+  background: var(--selected);
+  color: var(--ink);
+}
+
+/* − and + are controls, not links. */
+.pack__stepper .button-quiet,
+.pack__count .button-quiet {
+  text-decoration: none;
+}
+
+/* The GM's view of an item's hidden fields, set apart from what players see. */
+.pack__hidden {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: var(--pad);
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius);
+}
+
+.pack__use {
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.pack__charges {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+/* A tier change: a banner at the top of the pack, hard to miss (M4 gate run), gone after a few seconds. */
+.pack__banner {
+  margin: 0;
+  padding: var(--pad) var(--gutter);
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--page);
+  font-family: var(--font-heading);
+  font-size: var(--text-item);
+  text-align: center;
+}
+
+.pack__banner--warn {
+  background: var(--warning);
+  color: var(--on-accent);
+}
+
+/* Add item: the search sticks to the top of the screen while its results scroll under it. */
+.add-item__search {
+  position: sticky;
+  top: var(--top-row-h, 0px);
+  z-index: 2;
+  padding: var(--gap) 0;
+  background: var(--page);
+}
+
+.add-item__back {
+  align-self: flex-start;
+}
+
+/* The creation variant (the Gear step's shop, m5b-0c slice 5): each row's price and Add beside its words. */
+.add-item__shop-row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  min-height: var(--tap);
+  padding-block: var(--space-2);
+}
+
+.add-item__shop-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The shop row's text as the button that opens the item's entry (R3-10): plain text, the whole text the target. */
+.add-item__shop-open {
+  align-items: flex-start;
+  min-block-size: var(--tap);
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.add-item__shop-line {
+  font-size: var(--text-meta);
+}
+
+.add-item__shop-row .pack__amount {
+  white-space: nowrap;
+}
+
+.add-item__shop-add {
+  flex: none;
+}
+
+.add-item__shop-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-block-start: var(--space-4);
+}
+
+.pack__check {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  min-height: var(--tap);
+  width: 100%;
+}
+
+/* A calm checkbox in light and dark (the whole row is the tap target): a ruled square, filled when on. */
+.pack__check input {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  margin: 0;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--page);
+  cursor: pointer;
+}
+
+.pack__check input:checked {
+  background: var(--ink);
+  box-shadow: inset 0 0 0 4px var(--page);
+}
+
+.pack__check input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.pack__select {
+  width: auto;
+  min-width: 12em;
+}
+
+/* Choices that belong together sit on one row (ruled 2026-10-24): Put it, How do you get it. The label takes
+   its own line; the buttons share the row and wrap their words rather than the row. */
+.pack__actions--row {
+  flex-wrap: wrap;
+}
+
+.pack__actions--row > .label {
+  flex-basis: 100%;
+}
+
+.pack__actions--row > button {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: normal;
+}
+
+/* An explanation one tap away. */
+.pack__info {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.pack__info-text {
+  font-family: var(--font-body);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Carrying treasure or not: the same place and size, in the ink colour and bold. */
+.pack__treasure {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* Carrying treasure (eq-3; Design, #479): two left-aligned lines, whether treasure counts and why with the GM's
+   small switch beside it (wrapping on a narrow phone), then the treasure's weight. */
+.pack__treasure-lines {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  text-align: start;
+}
+
+.pack__treasure-lines > .auth__meta {
+  margin: 0;
+}
+
+.pack__treasure-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--gap);
+  margin: 0;
+}
+
+/* A quiet line where the screen lands after Add (the purse note, until M7). */
+.pack__note {
+  margin: 0 0 var(--gap);
+  color: var(--muted);
+}
+
+/* The "Other" section (animals, vehicles, boats): set apart from what's carried. */
+.pack__other {
+  margin-top: var(--pad);
+  padding-top: var(--gap);
+  border-top: var(--divider);
+}
+
+/* Landscape tablet (ruled 2026-10-24): a list at least a third wide on the left, never an empty right side. */
+.pack__summary,
+.pack__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+.pack--wide .pack__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.pack--wide .pack__row-main {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+/* One pack: the list on the left, the load on the right. */
+.pack--two {
+  display: grid;
+  grid-template-columns: minmax(33%, 1fr) minmax(0, 1fr);
+  grid-template-areas: 'title title' 'list summary';
+  align-items: start;
+  gap: var(--gap) var(--space-6);
+}
+
+.pack--two > .pack__title {
+  grid-area: title;
+}
+
+.pack--two > .pack__summary {
+  grid-area: summary;
+  position: sticky;
+  top: calc(var(--top-row-h, 0px) + var(--pad));
+}
+
+.pack--two > .pack__list {
+  grid-area: list;
+}
+
+/* The GM's Inventory: whose pack on the left, that pack on the right. */
+.pack--inventory {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr);
+  grid-template-areas: 'whose title' 'whose summary' 'whose list';
+  align-items: start;
+  gap: var(--gap) var(--space-6);
+}
+
+.pack--inventory > .pack__whose {
+  grid-area: whose;
+  flex-direction: column;
+  align-items: stretch;
+  position: sticky;
+  top: calc(var(--top-row-h, 0px) + var(--pad));
+}
+
+.pack--inventory > .pack__whose > button {
+  align-self: stretch;
+  text-align: left;
+}
+
+.pack--inventory > .pack__title {
+  grid-area: title;
+}
+
+.pack--inventory > .pack__summary {
+  grid-area: summary;
+}
+
+.pack--inventory > .pack__list {
+  grid-area: list;
+}
+
+/* Beside the Player screen, the load sits in the right-hand column (moved there by the screen). */
+.player__aside > .pack__summary {
+  position: sticky;
+  top: calc(var(--top-row-h, 0px) + var(--pad));
+}
+
+/* Something worn or held against the rules (ruled 2026-10-25): the reason, marked in the warning colour and "!". */
+.pack__problem {
+  margin: 0;
+  color: var(--warning);
+}
+
+/* Plan m5b-players-screens-standard C: the Pack on creation's standard. */
+
+/* A row's chevron (it opens the item's sheet), at the right of its two lines. */
+.pack__chevron {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: center;
+  display: inline-flex;
+  color: var(--muted);
+}
+
+.pack__not-allowed {
+  display: block;
+}
+
+/* A group's heading and its count beside it ("Worn and in hand", "4 items"): space and type set them apart, no dot. */
+.pack__group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+}
+
+/* The items waiting for the GM: a card with the warning sign that opens their list. */
+.pack__waiting {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-block-size: var(--tap);
+  margin-block-start: var(--gap);
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.pack__waiting-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.pack__waiting .pack__chevron {
+  grid-column: auto;
+  grid-row: auto;
+}
+
+/* The coin line (K9; pu-1; mockup pack/07 PC1, PC2, PC10): under the load, between the double rules the groups use;
+   the amounts bold, wrapping as far as they need, the chevron kept at the right. No line under it. */
+.pack__coin {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-block-size: calc(var(--tap) + var(--space-2));
+  padding: var(--space-1) 0;
+  border: none;
+  /* Only the rule above: the first group under it draws its own double rule (one rule between them, as PC1 draws). */
+  border-block-start: var(--divider);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.pack__coin-words {
+  flex: 1;
+  min-inline-size: 0;
+  font-weight: var(--weight-book-name);
+  overflow-wrap: anywhere;
+}
+
+.pack__coin .pack__chevron {
+  grid-column: auto;
+  grid-row: auto;
+  flex: none;
+  justify-content: center;
+  inline-size: var(--tap);
+}
+
+/* The foot: the count, then Add item, the screen's one accent button. */
+.pack__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-block-start: var(--pad);
+  padding-block-start: var(--gap);
+  border-block-start: var(--divider);
+}
+
+/* The item's sheet: How many among its list rows; the star in the head (the ✕'s look; washed when pinned). */
+.pack__count-row {
+  border-block-end: var(--line-hair) solid var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-block-size: var(--tap);
+}
+
+/* The At hand weapon sheets (ruling m5b-at-hand-actions-2026-11-08; AtHandSheets.tsx): the Attack sheet, the mode
+   sheet and a spent mode's sheet, their parts one under another, a sheet's action the full width. */
+.at-hand-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.at-hand-sheet p {
+  margin: 0;
+}
+
+.at-hand-sheet__wide {
+  width: 100%;
+}
+
+.at-hand-sheet__inflicts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* The Attack sheet's range (as-2): its heading, then one quiet card per band (name, reach, effect), side by side,
+   wrapping when a pack gives more than fit. */
+.at-hand-sheet__heading {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--text-14);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.at-hand-sheet__range {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.at-hand-sheet__band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-2);
+  border: var(--line-hair) solid var(--rule);
+  border-radius: var(--radius-card);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.at-hand-sheet__band-name {
+  font-size: var(--text-14);
+  color: var(--muted);
+}
+
+/* The Player tab's At hand pop-up (tfh-1, tfh-3; page M2, frames M2l to M2n): its quick rows are the List row's icon
+   column (Give to…'s open hand, Put in…'s tied bag, Hide from At hand's Dismiss mark, Drop's dropped sword), their words
+   plain as frame PK8 draws them, not the Reminders' bold names. The pop-up's own sheet, with no panel behind it (M2l). */
+.at-hand-popup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.at-hand-popup p {
+  margin: 0;
+}
+
+.at-hand-popup .list-row--icon .list-row__title {
+  font-weight: 400;
+}
+
+/* The shop's category fold (cs-37, picture creation/final 21-F5): its name and count, the chevron at the right edge. */
+.add-item__group-toggle {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  inline-size: 100%;
+}
+
+.add-item__group-name {
+  flex: 1;
+  font-weight: 700;
+  text-align: start;
+}
+
+/* The count screen's cost, over its Buy (21-F5). */
+.add-item__cost {
+  margin: 0;
+  font-weight: 700;
+}

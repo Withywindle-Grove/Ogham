@@ -1,0 +1,14 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": { "name": "Invented fen rules", "id": "fen-rules", "version": "0.1", "kind": "setting" },
+  "rulesSets": [
+    { "id": "fen", "name": "Fen rules", "settlement": { "availability": { "bySize": [{ "size": "hamlet", "chance": "2-in-6" }, { "size": "city", "chance": "always" }] } } }
+  ],
+  "statBlocks": [
+    { "id": "bog-lurker", "name": "Bog lurker", "hp": "3d8" }
+  ],
+  "tables": [
+    { "id": "wander", "name": "Fen wandering", "die": "d6", "rows": [{ "min": 1, "max": 6, "result": "Reed hounds" }] }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": { "name": "Invented fen creatures, layout misplaced", "id": "fen-creatures-top", "version": "0.1", "kind": "setting" },
+  "statBlockLayout": {
+    "descriptor": ["Size"],
+    "groups": [[["hp", "Guard"]]]
+  },
+  "statBlocks": [
+    { "id": "bog-lurker", "name": "Bog lurker", "hp": "3d8", "fields": { "Size": "Large", "Guard": "6" } }
+  ]
+}

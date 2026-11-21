@@ -1,0 +1,163 @@
+/* The Status ring (06 Components; plan m5b-creation-retest-3 F; mockup players/02-status-rings): a 72 × 88 px tile,
+   the 52 px ring (5 px stroke) over the name and the time left; 84 px (7 px stroke) in the sheet. The ring's colour is
+   its tone's token, set by the part as --ring-tone; the track is the rule token. */
+.status-ring-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.status-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  inline-size: 72px;
+  min-block-size: 88px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-14);
+  line-height: 1.15;
+  text-align: center;
+  cursor: pointer;
+}
+
+.status-ring__mark {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  inline-size: 52px;
+  block-size: 52px;
+  color: var(--ring-tone, var(--ink));
+}
+
+.status-ring__mark--big {
+  inline-size: 84px;
+  block-size: 84px;
+}
+
+/* The arc starts at the top and runs clockwise. */
+.status-ring__svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.status-ring__track {
+  fill: none;
+  stroke: var(--rule);
+}
+
+/* No end: the track dashed, no arc. */
+.status-ring__track--endless {
+  stroke: var(--control);
+  stroke-dasharray: 4 4;
+}
+
+.status-ring__arc {
+  fill: none;
+  stroke: var(--ring-tone, var(--ink));
+}
+
+.status-ring__symbol {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* No symbol named: the first letter, in the ring's colour. */
+.status-ring__letter {
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+  line-height: 1;
+}
+
+.status-ring__letter--big {
+  font-size: var(--text-30);
+}
+
+/* Variant bare (S12, the party circle): the symbol alone, 20 px, in its tone; a letter in ink, as text. */
+.status-ring__mark--bare {
+  inline-size: calc(var(--space-5) - var(--space-1));
+  block-size: calc(var(--space-5) - var(--space-1));
+}
+
+.status-ring__letter--bare {
+  color: var(--ink);
+  font-size: var(--text-14);
+}
+
+/* The name: bold, two lines at most, then … (the whole name is in the sheet and the tap's label). */
+.status-ring__name {
+  display: -webkit-box;
+  max-inline-size: 100%;
+  overflow: hidden;
+  font-weight: var(--weight-heading);
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.status-ring__words {
+  max-inline-size: 100%;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* The Player screen's head (dec-13 C2; frames P1 and P2 of december/14). Bare: the 52 px ring alone, its name and
+   time in its label and on the tap. */
+.status-ring--bare {
+  inline-size: 52px;
+  min-block-size: 52px;
+  gap: 0;
+}
+
+/* Beside (one or two statuses, frame P2): the ring, then its name and the time left in words at its right. */
+.status-ring--beside {
+  flex-direction: row;
+  flex: 0 1 auto;
+  inline-size: auto;
+  min-inline-size: 0;
+  min-block-size: 52px;
+  gap: var(--space-2);
+  text-align: start;
+}
+
+.status-ring__beside {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  gap: 0;
+}
+
+.status-ring--beside .status-ring__name {
+  font-size: var(--text-16);
+}
+
+/* "+N": the statuses not in view (frame P1), a 44 px circle with its count. */
+.status-ring-more {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  border: 1.5px solid var(--control);
+  border-radius: 50%;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-14);
+  font-weight: var(--weight-heading);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}

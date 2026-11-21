@@ -1,0 +1,213 @@
+/* Phone (under 600px): bottom tabs, icon over the name, fixed to the bottom of the screen. */
+.section-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid var(--rule);
+  background: var(--page);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.section-nav__tab {
+  flex: 1;
+  max-width: 280px;
+  min-height: var(--tap);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-1);
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--text-meta);
+  cursor: pointer;
+}
+
+.section-nav__tab[aria-current='page'] {
+  color: var(--ink);
+  font-weight: 700;
+  background: var(--selected);
+  box-shadow: inset 0 var(--line-selected) 0 var(--selected-edge);
+}
+
+/* The icon, with room for a badge at its top right corner. */
+.section-nav__icon {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Something on the tab to act on (plan m5b-sheet-revised PR 2; mockup gm/01-rail-attention, A2): the glyph in the
+   lit-light glow with a slow breathe, selected or not. Never colour alone: the tab's name says what waits ("Players: 1
+   to approve") and the tab's own list shows it at the top. The badge, if any, stays as it is. */
+.section-nav__tab--lit .section-nav__icon > .icon {
+  color: var(--light-glow);
+  filter: drop-shadow(0 0 var(--glow-rest) var(--light-glow));
+  animation: section-nav-breathe var(--glow-breathe) ease-in-out infinite;
+}
+
+@keyframes section-nav-breathe {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 var(--glow-rest) var(--light-glow));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 var(--glow-peak) var(--light-glow)) drop-shadow(0 0 var(--glow-rest) var(--light-glow));
+  }
+}
+
+/* Reduced motion: a still glow (A). `.motion-still` around the bar draws the same, for the gallery's specimen. */
+@media (prefers-reduced-motion: reduce) {
+  .section-nav__tab--lit .section-nav__icon > .icon {
+    animation: none;
+    filter: drop-shadow(0 0 var(--glow-still) var(--light-glow)) drop-shadow(0 0 var(--glow-rest) var(--light-glow));
+  }
+}
+
+.motion-still .section-nav__tab--lit .section-nav__icon > .icon {
+  animation: none;
+  filter: drop-shadow(0 0 var(--glow-still) var(--light-glow)) drop-shadow(0 0 var(--glow-rest) var(--light-glow));
+}
+
+/* What waits on a tab (slice E, mockup creation/17: the player's Scene): a figure in an accent mark at the icon's
+   corner, never the only sign: the tab's name for screen readers says it, and the screen itself shows what waits. */
+.section-nav__badge {
+  position: absolute;
+  top: calc(-1 * var(--space-2));
+  left: calc(100% - var(--space-2));
+  min-width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--text-14);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* The phone's tab bar (final drafts A11, slice E; mockup creation/17): the current tab bold, in ink, with an accent
+   mark above it; no wash. Never colour alone: the weight and the mark go together. */
+@media (max-width: 599px) {
+  .section-nav__tab {
+    position: relative;
+    min-height: 56px;
+  }
+
+  .section-nav__tab[aria-current='page'] {
+    background: none;
+    box-shadow: none;
+  }
+
+  .section-nav__tab[aria-current='page']::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 25%;
+    right: 25%;
+    height: var(--line-strong);
+    border-radius: 0 0 var(--line-selected) var(--line-selected);
+    background: var(--accent);
+  }
+}
+
+/* The quiet count: words, not a coloured dot (06: no badges competing for attention). */
+.section-nav__count {
+  font-weight: 400;
+}
+
+/* Tablet portrait: tabs at the top, in the page's flow, icon beside the name. */
+@media (min-width: 600px) {
+  .section-nav {
+    position: static;
+    justify-content: flex-start;
+    gap: var(--space-1);
+    padding: var(--pad) 0 0;
+    border-top: var(--divider);
+    background: transparent;
+  }
+
+  .section-nav__tab {
+    flex: 0 0 auto;
+    max-width: none;
+    flex-direction: row;
+    gap: var(--space-2);
+    padding: 0 var(--space-4);
+    border-radius: 6px;
+    font-size: var(--text-body);
+  }
+
+  .section-nav__tab[aria-current='page'] {
+    box-shadow: inset 0 0 0 var(--line-selected) var(--selected-edge);
+  }
+}
+
+/* Tablet landscape: the left column, one section per line. */
+@media (min-width: 1024px) {
+  .section-nav {
+    flex-direction: column;
+    border-top: none;
+    padding: 0;
+  }
+
+  .section-nav__tab {
+    justify-content: flex-start;
+    text-align: left;
+    padding: var(--space-2) var(--space-4);
+  }
+}
+
+/* Folded (B15; the divider handle folds it, lr-4): the icons alone; each tab still says its name to screen readers
+   (its aria-label). Only in the landscape tablet's left column. */
+@media (min-width: 1024px) {
+  .section-nav--collapsed .section-nav__tab {
+    justify-content: center;
+    padding: var(--space-2);
+  }
+
+  .section-nav--collapsed .section-nav__name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* A phone in landscape (wide but short) keeps the bottom tabs (ruled 2026-10-24). */
+@media (min-width: 600px) and (max-width: 1023px) and (max-height: 500px) {
+  .section-nav {
+    position: fixed;
+    justify-content: center;
+    gap: 0;
+    padding: 0 0 env(safe-area-inset-bottom);
+    border-top: 1px solid var(--rule);
+    background: var(--page);
+  }
+
+  .section-nav__tab {
+    flex: 1;
+    max-width: 280px;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-1);
+    border-radius: 0;
+    font-size: var(--text-meta);
+  }
+
+  .section-nav__tab[aria-current='page'] {
+    box-shadow: inset 0 var(--line-selected) 0 var(--selected-edge);
+  }
+}

@@ -1,0 +1,64 @@
+/* The top of a campaign's screens: round sigil, then the name. */
+
+.campaign-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.campaign-heading__title {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* For the GM, the sigil and the name are buttons that open "Edit the campaign". */
+.campaign-heading__sigil {
+  flex: none;
+  min-height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+/* The folded rail's sigil (mn-2): a 44 px round tap that opens the menu. Hidden here; only the GM's folded landscape
+   rail shows it (GmCampaign.css). */
+.campaign-heading__rail-sigil {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.campaign-heading__name {
+  min-height: 44px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline dotted var(--rule);
+  text-underline-offset: 6px;
+  cursor: pointer;
+}
+
+.campaign-heading__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+}
+
+.campaign-heading__notice {
+  margin: 0;
+  font-weight: 700;
+  color: var(--accent);
+}

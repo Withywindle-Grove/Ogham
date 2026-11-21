@@ -1,0 +1,32 @@
+/* The GM's rest prompt, "A night's rest" (dec-8 piece D; mockup magic/06-prepare-and-rest): the question and the
+   once-a-day line quiet (the mockup's meta, 14 px muted); a row a character, its switch (ds-1c, the lead on #790) the
+   whole width, its once-a-rest powers quiet under it, a hairline under each row as the list's rows have. */
+.night-rest__ask,
+.night-rest__note,
+.night-rest__powers {
+  margin: 0;
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+  color: var(--muted);
+}
+
+.night-rest__ask {
+  margin-block-end: var(--space-2);
+}
+
+.night-rest__note {
+  margin-block: var(--space-2) var(--space-4);
+}
+
+.night-rest__row {
+  padding-block: var(--space-1);
+  border-block-end: var(--line-hair) solid var(--rule);
+}
+
+.night-rest__row > .switch {
+  inline-size: 100%;
+}
+
+.night-rest__powers {
+  padding-block-end: var(--space-1);
+}

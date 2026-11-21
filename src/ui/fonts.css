@@ -1,0 +1,26 @@
+/*
+ * Folio fonts, bundled with the app so they work offline (Open Font License).
+ * Latin and Latin Extended only, which covers English, French and other
+ * accented Latin text, so the offline cache stays small.
+ */
+@import '@fontsource/eb-garamond/latin-600.css';
+@import '@fontsource/eb-garamond/latin-ext-600.css';
+@import '@fontsource/atkinson-hyperlegible/latin-400.css';
+@import '@fontsource/atkinson-hyperlegible/latin-ext-400.css';
+@import '@fontsource/atkinson-hyperlegible/latin-700.css';
+@import '@fontsource/atkinson-hyperlegible/latin-ext-700.css';
+@import '@fontsource/caveat/latin-500.css';
+@import '@fontsource/caveat/latin-ext-500.css';
+/* Book text (December 5c, the stat block; Francis chose type (B), 2026-11-12): Bitter for the book's own words, its
+   names and labels, and Alegreya Sans SC Bold for the descriptor line. Only the weights used. */
+@import '@fontsource/bitter/latin-400.css';
+@import '@fontsource/bitter/latin-ext-400.css';
+@import '@fontsource/bitter/latin-700.css';
+@import '@fontsource/bitter/latin-ext-700.css';
+/* The entry's name (900) and sub-headings (800) in the book format (dec-10 S3, the lead's ruling 2026-11-13). */
+@import '@fontsource/bitter/latin-800.css';
+@import '@fontsource/bitter/latin-ext-800.css';
+@import '@fontsource/bitter/latin-900.css';
+@import '@fontsource/bitter/latin-ext-900.css';
+@import '@fontsource/alegreya-sans-sc/latin-700.css';
+@import '@fontsource/alegreya-sans-sc/latin-ext-700.css';

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hybrid Wireframe</title>
+<style>
+:root{--bg:#f4f2ec;--card:#ffffff;--soft:#efede6;--text:#1d1d1b;--muted:#5f5e5a;--line:#d3d1c7;--strong:#888780;--ok:#3b6d11;--okbg:#eaf3de;--warn:#854f0b;--warnbg:#faeeda;--bad:#a32d2d;--badbg:#fcebeb;--acc:#185fa5;--accbg:#e6f1fb;--serif:Georgia,"Iowan Old Style",serif;--sans:-apple-system,"Segoe UI",Roboto,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1c1a;--card:#262624;--soft:#2f2f2c;--text:#f1efe8;--muted:#b4b2a9;--line:#444441;--strong:#888780;--ok:#97c459;--okbg:#27500a;--warn:#fac775;--warnbg:#633806;--bad:#f09595;--badbg:#791f1f;--acc:#85b7eb;--accbg:#0c447c}}
+:root[data-theme="dark"]{--bg:#1c1c1a;--card:#262624;--soft:#2f2f2c;--text:#f1efe8;--muted:#b4b2a9;--line:#444441;--strong:#888780;--ok:#97c459;--okbg:#27500a;--warn:#fac775;--warnbg:#633806;--bad:#f09595;--badbg:#791f1f;--acc:#85b7eb;--accbg:#0c447c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 var(--sans);padding:16px}
+h1{font:500 22px var(--serif);margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+.grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));max-width:1100px}
+.label{font-size:13px;color:var(--muted);margin:0 0 6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.name{font:500 24px var(--serif);margin:0}
+.meta{font:italic 15px var(--serif);color:var(--muted);margin:0 0 12px}
+.rule{border:0;border-top:3px double var(--strong);margin:12px 0}
+.btn{min-width:48px;height:48px;border:1px solid var(--strong);background:transparent;color:var(--text);border-radius:8px;font-size:20px}
+.bar{height:12px;border-radius:6px;background:var(--soft);overflow:hidden}
+.big{font-size:28px;font-weight:500}
+.chip{font-size:13px;padding:3px 10px;border-radius:8px;white-space:nowrap}
+.tile{background:var(--soft);border-radius:8px;padding:10px}
+.tabs{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:10px;margin-top:14px;font-size:13px;color:var(--muted)}
+.line{padding:10px 0;border-bottom:1px dotted var(--strong)}
+.primary{background:var(--acc);color:var(--card);border:0;border-radius:8px;height:48px;font-size:16px;flex:1}
+.ghost{background:transparent;border:1px solid var(--strong);color:var(--text);border-radius:8px;height:48px;font-size:16px;padding:0 16px}
+</style>
+</head>
+<body>
+<h1>Hybrid look</h1>
+<p class="sub">Clean structure and numbers, with serif names and ruled dividers as the classic touch.</p>
+<div class="grid">
+
+<section>
+<p class="label">Player, adventure mode, phone</p>
+<div class="card">
+<div class="row"><span style="font-size:14px;color:var(--muted)">Adventure · turn 14</span><span class="chip" style="background:var(--warnbg);color:var(--warn)">Torch · 2 turns</span></div>
+<hr class="rule">
+<p class="name">Bram Ashford</p>
+<p class="meta">Level 3 · Lantern Warden</p>
+<p class="label">Hit points</p>
+<div class="row" style="margin-bottom:14px"><button class="btn" aria-label="Lose HP">−</button><div style="flex:1"><div class="row"><span class="big">11</span><span style="color:var(--muted)">of 18</span></div><div class="bar"><div style="width:61%;height:100%;background:var(--ok)"></div></div></div><button class="btn" aria-label="Gain HP">+</button></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+<div class="tile"><p class="label">XP to level 4</p><div style="font-size:18px;font-weight:500">2,340 / 4,000</div></div>
+<div class="tile"><p class="label">Purse</p><div style="font-size:18px;font-weight:500">47 gp</div></div></div>
+<p class="label">Load</p>
+<div class="bar"><div style="width:77%;height:100%;background:var(--warn)"></div></div>
+<p style="margin:4px 0 0">Heavy · 612 / 800</p>
+<div class="tabs"><b style="color:var(--text)">Me</b><span>Party</span><span>Pack</span><span>Log</span></div>
+</div>
+</section>
+
+<section>
+<p class="label">GM, adventure console, combat</p>
+<div class="card">
+<div class="row"><span style="font:500 20px var(--serif)">Round 3</span><span class="chip" style="background:var(--accbg);color:var(--acc)">Party acts</span></div>
+<hr class="rule">
+<p class="label">Party</p>
+<div class="row line"><span>Bram</span><span>11 / 18</span></div>
+<div class="row line"><span>Wren <span class="chip" style="background:var(--badbg);color:var(--bad)">poisoned · 2 rds</span></span><span>6 / 9</span></div>
+<p class="label" style="margin-top:12px">Foes · HP hidden from players</p>
+<div class="row line"><span>Bog lurker A <span class="chip" style="background:var(--soft);color:var(--muted)">stunned</span></span><span>−7 <span style="color:var(--muted)">· 6 left</span></span></div>
+<div class="row line" style="border:0"><span>Bog lurker B</span><span>−0 <span style="color:var(--muted)">· 13 left</span></span></div>
+<hr class="rule">
+<div class="row"><button class="primary">Next round</button><button class="ghost">Fiat</button></div>
+</div>
+</section>
+
+<section>
+<p class="label">Shared table view</p>
+<div class="card">
+<div class="row"><span style="font:500 22px var(--serif)">Turn 14</span><span style="font-size:18px">Torch · 2 turns</span></div>
+<hr class="rule">
+<p class="label">Marching order</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:18px">
+<div class="tile">Bram</div><div class="tile">Wren</div>
+<div class="tile">Mule</div><div class="tile">Tobin (hireling)</div></div>
+<hr class="rule">
+<p class="label">Open vote</p>
+<p style="font-size:18px;margin:0">Take the left passage? · 3 of 4 voted</p>
+</div>
+</section>
+
+</div>
+</body>
+</html>

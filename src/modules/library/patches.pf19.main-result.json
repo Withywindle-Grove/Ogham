@@ -1,0 +1,868 @@
+{
+ "steel": [
+  {
+   "id": "eel-knife",
+   "data": {
+    "id": "eel-knife",
+    "name": "Eel knife",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 2
+    },
+    "weightCoin": 10,
+    "weapon": {
+     "damage": "1d4"
+    },
+    "weaponTags": [
+     "Melee"
+    ]
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "reed-staff",
+   "data": {
+    "id": "reed-staff",
+    "name": "Reed staff",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 1
+    },
+    "weightCoin": 40,
+    "weapon": {
+     "damage": "1d6"
+    },
+    "weaponTags": [
+     "Melee"
+    ],
+    "byOption": {
+     "fen-warden-staves=on": {
+      "value": {
+       "gp": 3
+      }
+     }
+    }
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "waxed-coat",
+   "data": {
+    "id": "waxed-coat",
+    "name": "Waxed coat",
+    "category": "armour",
+    "slot": "armour",
+    "armourType": "light",
+    "value": {
+     "gp": 10
+    },
+    "weightCoin": 100
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "bog-iron-coat",
+   "data": {
+    "id": "bog-iron-coat",
+    "name": "Bog-iron coat",
+    "category": "armour",
+    "slot": "armour",
+    "armourType": "heavy",
+    "value": {
+     "gp": 40
+    },
+    "weightCoin": 400
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "wheel-gun",
+   "data": {
+    "id": "wheel-gun",
+    "name": "Wheel gun",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 60
+    },
+    "weightCoin": 60,
+    "weapon": {
+     "damage": "1d8"
+    },
+    "weaponTags": [
+     "Missile"
+    ],
+    "option": "fen-powder=wheel"
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "flint-gun",
+   "data": {
+    "id": "flint-gun",
+    "name": "Flint gun",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 80
+    },
+    "weightCoin": 50,
+    "weapon": {
+     "damage": "1d8"
+    },
+    "weaponTags": [
+     "Missile"
+    ],
+    "option": "fen-powder=flint"
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "powder-horn",
+   "data": {
+    "id": "powder-horn",
+    "name": "Powder horn",
+    "category": "gear",
+    "value": {
+     "gp": 5
+    },
+    "weightCoin": 10,
+    "option": [
+     "fen-powder=wheel",
+     "fen-powder=flint"
+    ],
+    "byOption": {
+     "fen-powder=flint": {
+      "value": {
+       "gp": 3
+      }
+     }
+    }
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "bog-lamp",
+   "data": {
+    "id": "bog-lamp",
+    "name": "Bog lamp",
+    "category": "gear",
+    "value": {
+     "gp": 2
+    },
+    "weightCoin": 20,
+    "byOption": {
+     "fen-powder=wheel,fen-powder=flint": {
+      "value": null,
+      "notes": "Found, never sold."
+     }
+    }
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "waxed-coat",
+   "data": {
+    "id": "waxed-coat",
+    "name": "Waxed coat",
+    "category": "armour",
+    "slot": "armour",
+    "armourType": "light",
+    "armour": {
+     "base": 7,
+     "ac": 7,
+     "aac": 12
+    },
+    "value": {
+     "gp": 10
+    },
+    "weightCoin": 100
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "reed-shield",
+   "data": {
+    "id": "reed-shield",
+    "name": "Reed shield",
+    "category": "shield",
+    "slot": "shield",
+    "armour": {
+     "acBonus": 1
+    },
+    "value": {
+     "gp": 5
+    },
+    "weightCoin": 50
+   },
+   "lines": [],
+   "removedBy": ""
+  }
+ ],
+ "bronze": [
+  {
+   "id": "eel-knife",
+   "data": {
+    "id": "eel-knife",
+    "name": "Eel knife",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 20
+    },
+    "weightCoin": 10,
+    "weapon": {
+     "damage": "1d4"
+    },
+    "weaponTags": [
+     "Melee"
+    ]
+   },
+   "lines": [
+    "Price ×10: mire-metals=bronze, Mire materials"
+   ],
+   "removedBy": ""
+  },
+  {
+   "id": "reed-staff",
+   "data": {
+    "id": "reed-staff",
+    "name": "Reed staff",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 1
+    },
+    "weightCoin": 40,
+    "weapon": {
+     "damage": "1d6"
+    },
+    "weaponTags": [
+     "Melee"
+    ],
+    "byOption": {
+     "fen-warden-staves=on": {
+      "value": {
+       "gp": 3
+      }
+     }
+    }
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "waxed-coat",
+   "data": {
+    "id": "waxed-coat",
+    "name": "Waxed coat",
+    "category": "armour",
+    "slot": "armour",
+    "armourType": "light",
+    "value": {
+     "gp": 10
+    },
+    "weightCoin": 100
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "bog-iron-coat",
+   "data": {
+    "id": "bog-iron-coat",
+    "name": "Bog-iron coat",
+    "category": "armour",
+    "slot": "armour",
+    "armourType": "heavy",
+    "value": {
+     "gp": 40
+    },
+    "weightCoin": 400
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "wheel-gun",
+   "data": {
+    "id": "wheel-gun",
+    "name": "Wheel gun",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 60
+    },
+    "weightCoin": 60,
+    "weapon": {
+     "damage": "1d8"
+    },
+    "weaponTags": [
+     "Missile"
+    ],
+    "option": "fen-powder=wheel"
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "flint-gun",
+   "data": {
+    "id": "flint-gun",
+    "name": "Flint gun",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 80
+    },
+    "weightCoin": 50,
+    "weapon": {
+     "damage": "1d8"
+    },
+    "weaponTags": [
+     "Missile"
+    ],
+    "option": "fen-powder=flint"
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "powder-horn",
+   "data": {
+    "id": "powder-horn",
+    "name": "Powder horn",
+    "category": "gear",
+    "value": {
+     "gp": 5
+    },
+    "weightCoin": 10,
+    "option": [
+     "fen-powder=wheel",
+     "fen-powder=flint"
+    ],
+    "byOption": {
+     "fen-powder=flint": {
+      "value": {
+       "gp": 3
+      }
+     }
+    }
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "bog-lamp",
+   "data": {
+    "id": "bog-lamp",
+    "name": "Bog lamp",
+    "category": "gear",
+    "value": {
+     "gp": 2
+    },
+    "weightCoin": 20,
+    "byOption": {
+     "fen-powder=wheel,fen-powder=flint": {
+      "value": null,
+      "notes": "Found, never sold."
+     }
+    }
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "waxed-coat",
+   "data": {
+    "id": "waxed-coat",
+    "name": "Waxed coat",
+    "category": "armour",
+    "slot": "armour",
+    "armourType": "light",
+    "armour": {
+     "base": 7,
+     "ac": 8,
+     "aac": 11
+    },
+    "value": {
+     "gp": 10
+    },
+    "weightCoin": 100
+   },
+   "lines": [
+    "AC +1: mire-metals=bronze, Mire materials",
+    "AC −1: mire-metals=bronze, Mire materials"
+   ],
+   "removedBy": ""
+  },
+  {
+   "id": "reed-shield",
+   "data": {
+    "id": "reed-shield",
+    "name": "Reed shield",
+    "category": "shield",
+    "slot": "shield",
+    "armour": {
+     "acBonus": 1
+    },
+    "value": {
+     "gp": 5
+    },
+    "weightCoin": 50
+   },
+   "lines": [],
+   "removedBy": ""
+  }
+ ],
+ "bone": [
+  {
+   "id": "eel-knife",
+   "data": {
+    "id": "eel-knife",
+    "name": "Eel knife",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 2
+    },
+    "weightCoin": 10,
+    "weapon": {
+     "damage": "1d4−1"
+    },
+    "weaponTags": [
+     "Melee"
+    ]
+   },
+   "lines": [
+    "Damage −1: mire-metals=bone, Mire materials"
+   ],
+   "removedBy": ""
+  },
+  {
+   "id": "reed-staff",
+   "data": {
+    "id": "reed-staff",
+    "name": "Reed staff",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 2
+    },
+    "weightCoin": 40,
+    "weapon": {
+     "damage": "1d6−1"
+    },
+    "weaponTags": [
+     "Melee"
+    ],
+    "byOption": {
+     "fen-warden-staves=on": {
+      "value": {
+       "gp": 3
+      }
+     }
+    }
+   },
+   "lines": [
+    "Damage −1: mire-metals=bone, Mire materials",
+    "Price ×2: mire-metals=bone, Mire materials"
+   ],
+   "removedBy": ""
+  },
+  {
+   "id": "waxed-coat",
+   "data": {
+    "id": "waxed-coat",
+    "name": "Waxed coat",
+    "category": "armour",
+    "slot": "armour",
+    "armourType": "hide",
+    "value": {
+     "gp": 10
+    },
+    "weightCoin": 100
+   },
+   "lines": [
+    "ArmourType hide: mire-metals=bone, Mire materials"
+   ],
+   "removedBy": ""
+  },
+  {
+   "id": "bog-iron-coat",
+   "data": {
+    "id": "bog-iron-coat",
+    "name": "Bog-iron coat",
+    "category": "armour",
+    "slot": "armour",
+    "armourType": "heavy",
+    "value": {
+     "gp": 40
+    },
+    "weightCoin": 400
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "wheel-gun",
+   "data": {
+    "id": "wheel-gun",
+    "name": "Wheel gun",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 60
+    },
+    "weightCoin": 60,
+    "weapon": {
+     "damage": "1d8−1"
+    },
+    "weaponTags": [
+     "Missile"
+    ],
+    "option": "fen-powder=wheel"
+   },
+   "lines": [
+    "Damage −1: mire-metals=bone, Mire materials"
+   ],
+   "removedBy": ""
+  },
+  {
+   "id": "flint-gun",
+   "data": {
+    "id": "flint-gun",
+    "name": "Flint gun",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 80
+    },
+    "weightCoin": 50,
+    "weapon": {
+     "damage": "1d8−1"
+    },
+    "weaponTags": [
+     "Missile"
+    ],
+    "option": "fen-powder=flint"
+   },
+   "lines": [
+    "Damage −1: mire-metals=bone, Mire materials"
+   ],
+   "removedBy": ""
+  },
+  {
+   "id": "powder-horn",
+   "data": {
+    "id": "powder-horn",
+    "name": "Powder horn",
+    "category": "gear",
+    "value": {
+     "gp": 5
+    },
+    "weightCoin": 10,
+    "option": [
+     "fen-powder=wheel",
+     "fen-powder=flint"
+    ],
+    "byOption": {
+     "fen-powder=flint": {
+      "value": {
+       "gp": 3
+      }
+     }
+    }
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "bog-lamp",
+   "data": {
+    "id": "bog-lamp",
+    "name": "Bog lamp",
+    "category": "gear",
+    "value": {
+     "gp": 2
+    },
+    "weightCoin": 20,
+    "byOption": {
+     "fen-powder=wheel,fen-powder=flint": {
+      "value": null,
+      "notes": "Found, never sold."
+     }
+    }
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "waxed-coat",
+   "data": {
+    "id": "waxed-coat",
+    "name": "Waxed coat",
+    "category": "armour",
+    "slot": "armour",
+    "armourType": "hide",
+    "armour": {
+     "base": 7,
+     "ac": 9,
+     "aac": 10
+    },
+    "value": {
+     "gp": 10
+    },
+    "weightCoin": 100
+   },
+   "lines": [
+    "AC +1: mire-metals=bone, Mire materials",
+    "AC +1: mire-metals=bone, Mire materials",
+    "AC −1: mire-metals=bone, Mire materials",
+    "AC −1: mire-metals=bone, Mire materials",
+    "ArmourType hide: mire-metals=bone, Mire materials"
+   ],
+   "removedBy": ""
+  },
+  {
+   "id": "reed-shield",
+   "data": {
+    "id": "reed-shield",
+    "name": "Reed shield",
+    "category": "shield",
+    "slot": "shield",
+    "armour": {
+     "acBonus": 1
+    },
+    "value": {
+     "gp": 5
+    },
+    "weightCoin": 50
+   },
+   "lines": [],
+   "removedBy": ""
+  }
+ ],
+ "stone": [
+  {
+   "id": "eel-knife",
+   "data": {
+    "id": "eel-knife",
+    "name": "Eel knife",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 2
+    },
+    "weightCoin": 10,
+    "weapon": {
+     "damage": "1d4"
+    },
+    "weaponTags": [
+     "Melee"
+    ]
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "reed-staff",
+   "data": {
+    "id": "reed-staff",
+    "name": "Reed staff",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 1
+    },
+    "weightCoin": 40,
+    "weapon": {
+     "damage": "1d6"
+    },
+    "weaponTags": [
+     "Melee"
+    ],
+    "byOption": {
+     "fen-warden-staves=on": {
+      "value": {
+       "gp": 3
+      }
+     }
+    }
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "waxed-coat",
+   "data": {
+    "id": "waxed-coat",
+    "name": "Waxed coat",
+    "category": "armour",
+    "slot": "armour",
+    "armourType": "light",
+    "value": {
+     "gp": 10
+    },
+    "weightCoin": 100
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "bog-iron-coat",
+   "data": {
+    "id": "bog-iron-coat",
+    "name": "Bog-iron coat",
+    "category": "armour",
+    "slot": "armour",
+    "armourType": "heavy",
+    "value": {
+     "gp": 40
+    },
+    "weightCoin": 400
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "wheel-gun",
+   "data": {
+    "id": "wheel-gun",
+    "name": "Wheel gun",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 60
+    },
+    "weightCoin": 60,
+    "weapon": {
+     "damage": "1d8"
+    },
+    "weaponTags": [
+     "Missile"
+    ],
+    "option": "fen-powder=wheel"
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "flint-gun",
+   "data": {
+    "id": "flint-gun",
+    "name": "Flint gun",
+    "category": "weapon",
+    "slot": "hand",
+    "value": {
+     "gp": 80
+    },
+    "weightCoin": 50,
+    "weapon": {
+     "damage": "1d8"
+    },
+    "weaponTags": [
+     "Missile"
+    ],
+    "option": "fen-powder=flint"
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "powder-horn",
+   "data": {
+    "id": "powder-horn",
+    "name": "Powder horn",
+    "category": "gear",
+    "value": {
+     "gp": 5
+    },
+    "weightCoin": 10,
+    "option": [
+     "fen-powder=wheel",
+     "fen-powder=flint"
+    ],
+    "byOption": {
+     "fen-powder=flint": {
+      "value": {
+       "gp": 3
+      }
+     }
+    }
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "bog-lamp",
+   "data": {
+    "id": "bog-lamp",
+    "name": "Bog lamp",
+    "category": "gear",
+    "value": {
+     "gp": 2
+    },
+    "weightCoin": 20,
+    "byOption": {
+     "fen-powder=wheel,fen-powder=flint": {
+      "value": null,
+      "notes": "Found, never sold."
+     }
+    }
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "waxed-coat",
+   "data": {
+    "id": "waxed-coat",
+    "name": "Waxed coat",
+    "category": "armour",
+    "slot": "armour",
+    "armourType": "light",
+    "armour": {
+     "base": 7,
+     "ac": 7,
+     "aac": 12
+    },
+    "value": {
+     "gp": 10
+    },
+    "weightCoin": 100
+   },
+   "lines": [],
+   "removedBy": ""
+  },
+  {
+   "id": "reed-shield",
+   "data": {
+    "id": "reed-shield",
+    "name": "Reed shield",
+    "category": "shield",
+    "slot": "shield",
+    "armour": {
+     "acBonus": 1
+    },
+    "value": {
+     "gp": 5
+    },
+    "weightCoin": 50
+   },
+   "lines": [],
+   "removedBy": "mire-metals=stone"
+  }
+ ]
+}

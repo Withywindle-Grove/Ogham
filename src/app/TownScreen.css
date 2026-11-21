@@ -1,0 +1,117 @@
+/* The town screen (M5b step 6c, ST3) and a player's town line. Tokens only; it borrows the place card's text styles. */
+.town {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.town__section,
+.town__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.town__section .label {
+  margin: 0;
+}
+
+.town__group-name {
+  margin: 0;
+  font-size: var(--text-16);
+  font-weight: var(--weight-heading);
+  line-height: var(--line-body);
+}
+
+.town__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* A place in town: the name takes the width; the eye and Open · Closed sit at its right. When the row can't hold all
+   three (a phone, or the tablet's narrow side column), the controls wrap under the name. */
+.town-place {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: var(--line-hair) dotted var(--rule);
+  min-height: var(--tap);
+  min-width: 0;
+}
+
+.town-place__words {
+  flex: 1 1 calc(var(--tap) * 5);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.town-place__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.town__todo-name {
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.town__todo-plain {
+  margin: 0;
+  min-block-size: var(--tap);
+  display: flex;
+  align-items: center;
+}
+
+.town__switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.town__switch-name {
+  flex: 1 1 calc(var(--tap) * 4);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+.town-line__place {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-1) 0;
+  min-width: 0;
+}
+
+/* A player's town actions (M5b step 6e): the overnight card, where they stay, then Ask for… · Sell… · Where you stay ·
+   Things to do, two to a row on a phone and all in one row when there's room; long words wrap inside the button. */
+.town-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+  min-width: 0;
+}
+
+.town-actions__buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--tap) * 3), 1fr));
+  gap: var(--space-2);
+}
+
+.town-actions__buttons > button {
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

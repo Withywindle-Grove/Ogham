@@ -1,0 +1,206 @@
+/* The log: one line per action, newest first, dotted row rules. */
+
+.log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+}
+
+.log__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap) var(--pad);
+}
+
+.log__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-sheet-title);
+}
+
+.log__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.log__entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px dotted var(--row-rule);
+}
+
+/* The whole line is the tap target that shows its actions. */
+.log__line-button {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--space-1) 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.log__line-button[aria-expanded='true'] .log__line {
+  font-weight: 700;
+}
+
+.log__note-text {
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--rule);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.log__changes {
+  flex-basis: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.log__changes dt {
+  font-weight: 700;
+}
+
+.log__changes dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.log__annotations {
+  margin: 0;
+  padding: 0 0 0 var(--space-4);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.log__annotation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--rule);
+  overflow-wrap: anywhere;
+}
+
+.log__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  padding-left: var(--space-4);
+}
+
+.log__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  width: 100%;
+}
+
+.log__form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+}
+
+.log__write {
+  align-self: flex-start;
+}
+
+.log__notice {
+  margin: 0;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.log__line {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.log__meta {
+  margin: var(--space-1) 0 0;
+  color: var(--muted);
+  font-size: var(--text-meta);
+}
+
+/* A GM ruling: the seal and the word "Fiat", in the accent colour, and its reason. */
+.log__fiat {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.log__seal {
+  vertical-align: -2px;
+}
+
+.log__reason {
+  color: var(--muted);
+}
+
+
+/* Scene's few recent lines: plain text, no actions. */
+.log--recent .log__line {
+  margin: 0;
+  padding: var(--space-2) 0;
+}
+
+/* "About…" under the note box: quiet until wanted; the choice shows as a chip (ruled 2026-10-24). */
+.log__about {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.log__about-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+}
+
+.log__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 0 0 var(--space-3);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius);
+  background: var(--tint);
+}
+
+.log__chip-clear {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  border: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.pack__info {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}

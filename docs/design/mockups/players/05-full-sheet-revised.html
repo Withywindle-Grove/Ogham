@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The full sheet, revised after Francis's test (2026-11-08)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<style>
+  .sheetup { max-height:none; }
+  .sect { font-family:"EB Garamond", Georgia, serif; font-variant:small-caps; font-size:20px; font-weight:600; margin:var(--space-5) 0 var(--space-2); letter-spacing:.02em; }
+  .sect:first-child { margin-top:0; }
+  .tiles3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-2); }
+  .tiles5 { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:var(--space-2); }
+  .t { border:1.5px solid var(--control); border-radius:4px; background:var(--surface); padding:var(--space-2); text-align:center; display:flex; flex-direction:column; justify-content:center; gap:2px; min-height:72px; }
+  .t .n { font-size:14px; color:var(--muted); letter-spacing:.04em; text-transform:uppercase; }
+  .t .f { font-family:"EB Garamond", Georgia, serif; font-size:24px; font-weight:600; line-height:1.1; }
+  .t .p { font-size:14px; color:var(--muted); line-height:1.15; }
+  .rule-line { font-size:14px; color:var(--muted); margin-top:var(--space-2); }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
+  .boxes { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+  .box { border:1.5px solid var(--control); border-radius:4px; padding:8px 12px; min-height:44px; display:flex; align-items:center; font-weight:600; }
+  .lvl { display:flex; justify-content:space-between; align-items:center; }
+  .xp { height:6px; background:var(--rule); border-radius:3px; margin-top:var(--space-2); }
+  .xp i { display:block; height:100%; width:30%; background:var(--ink); border-radius:3px; }
+  .head { display:flex; gap:var(--space-3); align-items:center; }
+  .head .av { width:56px; height:56px; border-radius:50%; border:1.5px solid var(--control); display:flex; align-items:center; justify-content:center; font-family:"EB Garamond", Georgia, serif; font-size:24px; color:var(--accent); }
+  .head .who { line-height:1.3; }
+  .head .who b { font-size:18px; }
+  /* details looks */
+  .dA dl { display:grid; grid-template-columns:max-content 1fr; gap:var(--space-1) var(--space-4); margin:0; }
+  .dA dt { color:var(--muted); font-size:14px; padding-top:3px; }
+  .dA dd { margin:0; font-family:"EB Garamond", Georgia, serif; font-size:18px; }
+  .dB p { margin:0 0 var(--space-2); font-family:"EB Garamond", Georgia, serif; font-size:18px; line-height:1.45; }
+  .dB p span { font-variant:small-caps; color:var(--muted); font-family:"EB Garamond", Georgia, serif; font-size:16px; margin-right:6px; }
+  .dC { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--space-2); }
+  .dC .c { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-2) var(--space-3); background:var(--surface); }
+  .dC .c small { display:block; color:var(--muted); font-size:14px; }
+  .dC .c span { font-family:"EB Garamond", Georgia, serif; font-size:18px; }
+  .story { font-family:"EB Garamond", Georgia, serif; font-size:18px; line-height:1.5; margin:0; }
+  .story::first-letter { font-size:2.2em; float:left; line-height:.8; padding-right:6px; }
+  .two .row .v { white-space:nowrap; }
+  .two .row .k { flex:1; min-width:0; }
+  .loadbar { position:relative; height:10px; border:1.5px solid var(--control); border-radius:3px; margin:var(--space-2) 0 var(--space-1); background:var(--page); }
+  .loadbar i { display:block; height:100%; background:var(--ink); border-radius:2px 0 0 2px; }
+  .loadbar b { position:absolute; top:-3px; bottom:-3px; width:1.5px; background:var(--control); }
+  .ltile { display:flex; justify-content:space-between; align-items:center; border:1.5px solid var(--control); border-radius:4px; background:var(--surface); padding:var(--space-2) var(--space-3); min-height:44px; margin-bottom:var(--space-2); }
+  .ltile b { font-family:'EB Garamond', Georgia, serif; font-size:18px; font-weight:600; }
+  .rows { display:grid; grid-template-columns:1fr; }
+  .srow { display:flex; justify-content:space-between; align-items:baseline; gap:var(--space-3); min-height:44px; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .srow .nm { font-size:16px; }
+  .srow .fg { font-family:'EB Garamond', Georgia, serif; font-size:22px; font-weight:600; white-space:nowrap; }
+  .srow .fg.word { font-size:18px; }
+  .pips { display:flex; gap:4px; margin-top:var(--space-2); }
+  .pips span { flex:1; height:8px; background:var(--ink); border-radius:2px; }
+  .pending { border:1.5px solid var(--warn); border-radius:4px; padding:var(--space-2) var(--space-3); background:var(--surface); display:flex; gap:var(--space-2); align-items:center; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script>
+const srow = (n, f, word=false) => `<div class="srow" role="button"><span class="nm">${n}</span><span class="fg${word?' word':''}">${f}</span></div>`;
+const tile = (n, f, p, word=false) => `<div class="t" role="button"><span class="n">${n}</span><span class="f"${word?' style="font-size:16px"':''}>${f}</span>${p?`<span class="p">${p}</span>`:''}</div>`;
+
+const leftCol = `
+  <div class="head"><span class="av" role="button" aria-label="Change the portrait">D</span><div class="who"><b>Dorgunth Ironford</b><br><span class="meta">Veteran, Fighter 1, Half-Orc</span></div></div>
+  <div class="card" style="margin-top:var(--space-4)">
+    <div class="meta" style="letter-spacing:.06em;text-transform:uppercase;font-size:14px">Hit points</div>
+    <div class="kv" style="margin-top:var(--space-2)"><div><span style="font-family:'EB Garamond',Georgia,serif;font-size:48px;font-weight:600;line-height:1">8</span> <span class="meta">of 8</span></div><div style="display:flex;gap:var(--space-2)"><span class="btn sq" style="min-width:56px;min-height:56px">−</span><span class="btn sq" style="min-width:56px;min-height:56px">+</span></div></div>
+    <div class="pips">${Array.from({length:8},()=>'<span></span>').join('')}</div>
+  </div>
+  <div class="tiles3" style="grid-template-columns:1fr 1fr;margin-top:var(--space-3)">${tile('AC','15','−1 from Nimbleness')}${tile('Attack','+0','melee +2, missile −1')}</div>
+  <div class="meta" style="margin-top:var(--space-2)">Tap a figure for where it comes from</div>`;
+
+const rightCol = `
+  <div class="kv"><h2 style="margin:0">Full character sheet</h2><span class="btn">Edit</span></div>
+  <div class="lvl" style="margin-top:var(--space-4)"><div><b>Level 1</b><div class="meta">600 of 2,000 experience</div></div>${I.chev}</div>
+  <div class="xp"><i></i></div>
+
+  <div class="sect">Saves</div>
+  <div class="tiles5">${tile('Death','12')}${tile('Wands','13')}${tile('Stone','14')}${tile('Breath','15')}${tile('Spells','16')}</div>
+  <div class="rule-line">Roll d20, equal or over the number.</div>
+
+  <div class="sect">Scores</div>
+  <div class="tiles3">${tile('Muscle','16','+2')}${tile('Wit','8','−1')}${tile('Will','9','+0')}${tile('Nimbleness','8','−1')}${tile('Grit','16','+2')}${tile('Charm','7','−1')}</div>
+  <div class="meta" style="margin-top:var(--space-2)">Tap a score for everything it changes</div>
+
+  <div class="sect">Movement</div>
+  <div class="two">
+    <div class="card" style="margin:0"><b>120 ft a turn</b><div class="meta">40 ft in a fight, 120 running</div></div>
+    <div class="card" style="margin:0"><b>Unburdened</b><div class="loadbar"><i style="width:40%"></i><b style="left:50%"></b><b style="left:75%"></b></div><div class="meta">640 of 1,600 coins</div></div>
+  </div>
+
+  <div class="sect">Languages</div>
+  <div class="boxes"><span class="box" role="button">Common</span><span class="box" role="button">Orcish</span><span class="box" role="button">Alignment tongue</span></div>
+  <div class="meta" style="margin-top:var(--space-2)">Literacy: reads and writes the languages above.</div>
+
+  <div class="sect">Skills</div>
+  <div class="rows">${srow('Listen at doors','1-in-6')}${srow('Open stuck doors','2-in-6')}${srow('Find secret doors','1-in-6')}${srow('Find room traps','1-in-6')}${srow('Forage','1-in-6')}${srow('Hunt','1-in-6')}</div>
+
+  <div class="sect">Abilities</div>
+  <div class="rows">${srow('Slayer','Orcs',true)}${srow('Experience bonus','+10 %')}${srow('Secondary skill','Fisher',true)}</div>
+
+  <div class="sect">Traits</div>
+  <div class="rows">${srow('Infravision','60 ft')}${srow('Alignment','Neutral',true)}</div>
+  <div class="meta" style="margin-top:var(--space-2)">Tap a row for the full rule</div>
+
+  <div class="sect">Details and backstory</div>
+  <div class="dA"><dl>
+    <dt>Tusks and scars</dt><dd>Long tusks that show when silent</dd>
+    <dt>Desires</dt><dd>A home with a door that locks</dd>
+    <dt>Demeanour</dt><dd>Brooding</dd>
+    <dt>Beliefs</dt><dd>Kindness is the hardest strength</dd>
+    <dt>Dress</dt><dd>A belt hung with trophies</dd>
+    <dt>Head</dt><dd>A scar across the scalp</dd>
+    <dt>Speech</dt><dd>Stammers when angry</dd>
+    <dt>Face</dt><dd>War-paint stripes</dd>
+  </dl></div>
+  <p class="story" style="margin-top:var(--space-3)">Dorgunth came down from the hill forts after the long winter, when the clan's fires went out one by one. He carries his father's axe and a debt he does not speak of.</p>
+  <div class="kv" style="margin-top:var(--space-3)"><span class="btn">Notes</span><span class="meta">3 notes, last one today</span></div>`;
+
+const sheetView = tablet(`
+  ${bar('Dorgunth Ironford')}
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:var(--space-5);padding:var(--space-4)">
+    <div>${leftCol}</div>
+    <div>${rightCol}</div>
+  </div>`, 'The full sheet after the test (tablet, player view): title by the name; no hit dice or "Wisdom vs magic"; Saves first with the rule2019s one line; Scores with their plain modifiers (everything a score changes on tap); Movement with the load tier and its bordered bar beside it; Languages as boxes with a literacy line; Skills, Abilities (experience bonus inside) and Traits stacked as one column of rows, the name left and the figure right, each row the tap to its full rule; Details and backstory together (look A); Notes as a button to its sheet; no pack rows, no "Change details".');
+
+const dB = `<div class="dB">
+  <p><span>Tusks and scars</span>Long tusks that show when silent.</p>
+  <p><span>Desires</span>A home with a door that locks.</p>
+  <p><span>Demeanour</span>Brooding. <span>Beliefs</span>Kindness is the hardest strength.</p>
+  <p><span>Dress</span>A belt hung with trophies. <span>Head</span>A scar across the scalp. <span>Speech</span>Stammers when angry. <span>Face</span>War-paint stripes.</p>
+  <p class="story" style="margin-top:var(--space-3)">Dorgunth came down from the hill forts after the long winter, when the clan's fires went out one by one. He carries his father's axe and a debt he does not speak of.</p>
+</div>`;
+const dC = `<div class="dC">
+  <div class="c"><small>Tusks and scars</small><span>Long tusks that show when silent</span></div>
+  <div class="c"><small>Desires</small><span>A home with a door that locks</span></div>
+  <div class="c"><small>Demeanour</small><span>Brooding</span></div>
+  <div class="c"><small>Beliefs</small><span>Kindness is the hardest strength</span></div>
+  <div class="c"><small>Dress</small><span>A belt hung with trophies</span></div>
+  <div class="c"><small>Head</small><span>A scar across the scalp</span></div>
+  <div class="c"><small>Speech</small><span>Stammers when angry</span></div>
+  <div class="c"><small>Face</small><span>War-paint stripes</span></div>
+</div><p class="story" style="margin-top:var(--space-3)">Dorgunth came down from the hill forts after the long winter, when the clan's fires went out one by one. He carries his father's axe and a debt he does not speak of.</p>`;
+
+const looks = `<div class="wall">
+  <div class="card" style="width:420px"><b>A: a ledger</b><div class="meta" style="margin-bottom:var(--space-2)">Muted labels in a column, Garamond values beside; backstory as a paragraph with a drop capital.</div><div class="dA"><dl><dt>Tusks and scars</dt><dd>Long tusks that show when silent</dd><dt>Desires</dt><dd>A home with a door that locks</dd><dt>Demeanour</dt><dd>Brooding</dd><dt>Beliefs</dt><dd>Kindness is the hardest strength</dd></dl></div><p class="story" style="margin-top:var(--space-3)">Dorgunth came down from the hill forts after the long winter…</p></div>
+  <div class="card" style="width:420px"><b>B: a portrait in prose</b><div class="meta" style="margin-bottom:var(--space-2)">Small-caps labels run into the text, like a book's character sketch; short fields share a line; the backstory follows as the next paragraph.</div>${dB}</div>
+  <div class="card" style="width:420px"><b>C: cards</b><div class="meta" style="margin-bottom:var(--space-2)">Two columns of small cards, label over value, like the sheet's tiles; the backstory below.</div>${dC}</div>
+</div>`;
+
+const edit = tablet(`
+  ${bar('Edit the sheet')}
+  <div class="inner" style="max-width:65ch">
+    <p>Change what you need; your GM approves the changes before they count.</p>
+    <div class="sect" style="margin-top:0">Scores</div>
+    <div class="tiles3">${tile('Muscle','16')}${tile('Wit','8')}${tile('Will','9')}</div>
+    <div class="meta" style="margin-top:var(--space-2)">A score, the level or max HP needs the GM's approval; details don't.</div>
+    <div class="sect">Hit points</div>
+    <div class="kv"><span>Max HP</span>${stepper(8)}</div>
+    <div class="sect">Details</div>
+    <div class="list">${kvRow('Tusks and scars','Long tusks that show when silent')}${kvRow('Desires','A home with a door that locks')}${kvRow('Demeanour','Brooding')}${kvRow('Backstory','Dorgunth came down from the hill forts…')}</div>
+    ${foot('2 changes, 1 needs approval', 'Cancel', 'accent', 'Send to the GM')}
+  </div>`, 'Edit, on the standard: one screen, rows and tiles as the sheet; Scores and Max HP first, Details last (changed least). Details save at once; rules figures (scores, level, max HP) go to the GM. The foot says how many of each; Send to the GM is the one accent.');
+
+const waiting = tablet(`
+  ${bar('Dorgunth Ironford')}
+  <div class="inner" style="max-width:65ch">
+    <div class="pending">${I.warn}<div><b>Waiting for your GM:</b> Muscle 16 → 17. <span class="meta">Sent today. The sheet shows the old figure until it is approved.</span></div><span class="btn small" style="margin-left:auto">Take back</span></div>
+    <div class="sect">Scores</div>
+    <div class="tiles3">${tile('Muscle','16','17 waiting')}${tile('Wit','8','−1 language')}${tile('Will','9','+0')}</div>
+  </div>`, 'While it waits: a line at the top of the sheet with the change, Take back, and the tile marked "17 waiting"; the GM’s Players tab lists it under Waiting for approval, with Approve / Refuse as for a new character. Approved: a toast on both sides; refused: the line says why.');
+
+const notes = phone(`
+  ${bar('Dorgunth Ironford')}
+  <div class="inner" style="min-height:720px"></div>
+  ${sheet('Notes', `
+    <div class="inner">
+      <div class="card"><div class="meta">Today, by you</div>Owe Wren 20 gp for the lantern oil.</div>
+      <div class="card"><div class="meta">Day 3, by you</div>The ferryman knew my father's name.</div>
+      <div class="card"><div class="meta">Day 1, from your GM</div>Your axe hums near running water.</div>
+      <span class="field empty" style="margin-top:var(--space-3)">Write a note…</span>
+      <span class="btn accent wide" style="margin-top:var(--space-2)">Add</span>
+    </div>`)}`, 'Notes as a sheet: newest first, each with when and who; the GM’s notes to the player appear here too; GM-only notes never do. Add is the sheet’s one accent. (The notes session decides the rest: tags, the Log, sharing.)');
+
+const lang = phone(`
+  <div class="inner" style="min-height:300px">
+    <div class="sect" style="margin-top:0">Languages</div>
+    <div class="boxes"><span class="box">Common</span><span class="box" style="border-color:var(--accent);background:var(--wash)">Orcish</span><span class="box">Alignment tongue</span></div>
+  </div>
+  ${sheet('Orcish', `<div class="inner"><p>The guttural tongue of the orc clans, spoken across the hill forts; written rarely, in a borrowed script.</p><p class="meta">From your kindred, Half-Orc. Source: the fen sample, p. 12.</p></div>`)}`, 'A language box tapped: the pack’s text, where it came from, the source. No list behind a chevron.');
+
+mount(`
+  <h1>The full sheet, revised after Francis’s test</h1>
+  <p class="note">Francis, 2026-11-08, iPad: eleven changes to the player’s full sheet (saves first with the rule, modifier words on scores, load beside movement, languages as boxes, abilities down with skills and traits with the experience bonus inside, title by the name, details and backstory together and restyled, notes as a sheet, no pack rows, no hit dice or "Wisdom vs magic", no "Change details"; edits approved by the GM). Everything here is proposed, nothing committed.</p>
+  <h1>The sheet</h1>
+  ${sheetView}
+  <h1>Details and backstory: three looks</h1>
+  ${looks}
+  <h1>Edit and approval</h1>
+  ${edit}${waiting}
+  <h1>Sheets</h1>
+  <div class="wall">${lang}${notes}</div>
+  <p class="note">Self-review: one accent per screen (Edit view: Send to the GM; Notes: Add; the sheet itself: none, Edit is plain); tiles ≥ 72 px, boxes 44 px, 8 px between; the saves’ rule is the pack’s text shortened to two lines with More for the rest; nothing under 14; words on every state (waiting, approved, refused); the phone stacks the two columns and the Skills/Abilities pair. Not checked: a pack with more than five saves or no load tiers (the Movement card then has one half); how many details a pack can have (A and B scale best, C gets long past ten); the GM’s approval card for a sheet change (same as the character card’s exceptions; to draw if you pick this flow).</p>
+`);
+</script>
+</body>
+</html>

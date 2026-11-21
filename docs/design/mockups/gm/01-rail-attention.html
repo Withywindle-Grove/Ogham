@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GM rail: something to act on (2026-11-08)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<style>
+  .rail { display:flex; flex-direction:column; gap:var(--space-3); width:72px; padding:var(--space-3) 0; border-right:1px solid var(--rule); align-items:center; }
+  .rail .ico { position:relative; width:56px; height:56px; display:flex; align-items:center; justify-content:center; border-radius:4px; color:var(--ink); border:1.5px solid transparent; }
+  .rail .ico.on { border-color:var(--accent); background:var(--wash); color:var(--accent); }
+  .rail .lbl { font-size:12px; color:var(--muted); text-align:center; margin-top:-6px; }
+  /* A: glow */
+  .glow { color:var(--glow) !important; filter:drop-shadow(0 0 6px var(--glow)) drop-shadow(0 0 2px var(--glow)); }
+  .glow.soft { filter:drop-shadow(0 0 4px var(--glow)); }
+  /* B: dot */
+  .dot::after { content:""; position:absolute; top:6px; right:6px; width:10px; height:10px; border-radius:50%; background:var(--glow); border:2px solid var(--page); }
+  /* C: count */
+  .cnt::after { content:attr(data-n); position:absolute; top:2px; right:2px; min-width:20px; height:20px; padding:0 5px; border-radius:4px; background:var(--accent); color:var(--on-accent); font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center; box-sizing:border-box; }
+  /* D: glow + count */
+  .frame { display:flex; gap:var(--space-4); align-items:flex-start; }
+  .frame .page { flex:1; padding:var(--space-3); }
+  .opts { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:var(--space-4); }
+  .opt { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); background:var(--page); }
+  .opt .cap { font-size:14px; color:var(--muted); margin-top:var(--space-2); }
+  .opt .rail { border:0; width:auto; flex-direction:row; justify-content:center; }
+  @keyframes breathe { 0%,100% { filter:drop-shadow(0 0 2px var(--glow)); } 50% { filter:drop-shadow(0 0 8px var(--glow)) drop-shadow(0 0 3px var(--glow)); } }
+  .breathe { color:var(--glow) !important; animation:breathe 2.4s ease-in-out infinite; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script>
+const fire = (w=28) => svg(`<path d="M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.5-2.5 1.2-3.3C9.5 9 10.5 10 11 10.5 11 8 11 5.5 12 3z" ${W}/><path d="M4 20h16" ${W}/>`, w);
+const people = (w=28) => svg(`<circle cx="9" cy="8" r="3.2" ${W}/><circle cx="16.5" cy="9.5" r="2.6" ${W}/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 20c0-2.6 1.6-4.6 4-4.6 1 0 2 .4 2 .4" ${W}/>`, w);
+const scales = (w=28) => svg(`<path d="M12 3v18M5 21h14M12 6l-6 2M12 6l6 2M3 14l3-6 3 6a3 3 0 0 1-6 0zM15 14l3-6 3 6a3 3 0 0 1-6 0z" ${W}/>`, w);
+
+const rail = (mid) => `<div class="rail"><span class="ico" aria-label="Scene">${fire()}</span>${mid}<span class="ico" aria-label="Rules">${scales()}</span></div>`;
+
+const opt = (title, mid, cap) => `<div class="opt"><b>${title}</b>${rail(mid)}<div class="cap">${cap}</div></div>`;
+
+const options = `<div class="opts">
+  ${opt('A: glowing symbol', `<span class="ico glow" aria-label="Players: 1 to approve">${people()}</span>`, 'The people glyph drawn in the glow token with a soft halo, a lit lantern among the others. Still, no motion. The accessible name says what waits.')}
+  ${opt('A2: breathing glow', `<span class="ico breathe" aria-label="Players: 1 to approve">${people()}</span>`, 'The same, with a slow breathe (2.4 s). Draws the eye once; stops when the tab is opened. Honours reduced-motion by falling back to A.')}
+  ${opt('B: a dot', `<span class="ico dot" aria-label="Players: 1 to approve">${people()}</span>`, 'A small glow-token dot at the corner, ink glyph. Quietest; the usual phone pattern.')}
+  ${opt('C: a count', `<span class="ico cnt" data-n="1" aria-label="Players: 1 to approve">${people()}</span>`, 'A count in the accent at the corner (a square chit, not a pill). Says how many; louder.')}
+  ${opt('D: glow and count', `<span class="ico glow soft cnt" data-n="3" aria-label="Players: 3 to approve">${people()}</span>`, 'Soft glow on the glyph, the count in the corner. For a GM with several waiting.')}
+  ${opt('Selected and waiting', `<span class="ico on glow" aria-label="Players, open: 1 to approve">${people()}</span>`, 'The tab open and still something waiting: the selected frame with the glowing glyph; it stops glowing once the item is dealt with, not on opening.')}
+</div>`;
+
+const where = `<div class="card"><b>What lights it</b><div class="meta" style="margin-top:var(--space-2)">Players: a character waiting for approval; a request to join; a special approval or exception on a GM's card; a rules question asked. Scene: a player's prompt answered (a yield to accept, a vote to call). Rules: a homebrew suggestion (Add to homebrew) from a player's Other…. Each tab lists what lit it at the top ("Waiting for approval"). The glow goes out when the list is empty, never on a mere visit.</div></div>`;
+
+const tab = tablet(`
+  <div class="frame">
+    ${rail(`<span class="ico on glow" aria-label="Players, open: 1 to approve">${people()}</span>`)}
+    <div class="page">
+      <div class="kv"><h2 style="margin:0">Players and characters</h2><span class="btn accent">Invite a player</span></div>
+      <div class="sect meta" style="margin-top:var(--space-4); letter-spacing:.06em; text-transform:uppercase; font-size:14px">Waiting for approval</div>
+      <div class="card" style="border-color:var(--glow)"><b>New character waiting: Crewwin Lockehorn</b><div class="meta">From the player, guided</div></div>
+    </div>
+  </div>`, 'In place (A, selected): the GM is on Players with one character waiting; the waiting card keeps its glow-token edge as today, the rail glyph glows the same colour, so the two read as one thing.');
+
+mount(`
+  <h1>GM rail: something to act on</h1>
+  <p class="note">Francis, 2026-11-08: "GM player tab icon should have an indicator that there are items to review or act on (a character approval here). I like a glowing version of the symbol." Options below; the glow uses the glow token (the lit-light colour), already the colour of the waiting card's edge. Never colour alone: the tab's own list says what waits, the accessible name counts it, and in C and D a number shows.</p>
+  ${options}
+  <h1>In place</h1>
+  ${tab}
+  ${where}
+  <p class="note">Self-review: targets 56 px; the glow is decoration on an ink glyph, so contrast is the glyph’s (the glow token on the dark page is 9:1, on the light page 2.6:1 as a shape, fine with the name); reduced-motion turns A2 into A; the count chit is 20 px, 13 px type (the one place under 14, as a badge, flagged); the phone’s tab bar uses the same mark on its icon. Not checked: the glow’s look on a real iPad’s light page (drop-shadow on thin strokes can look muddy; A2 and D at soft are the safer picks).</p>
+`);
+</script>
+</body>
+</html>

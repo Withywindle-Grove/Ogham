@@ -1,0 +1,160 @@
+# 03 — Roles, Titles & Permissions
+
+## Base roles
+
+| Role | Summary |
+|---|---|
+| **GM** | Owns the campaign. Edits anything, sees everything (including hidden purses and monster HP), switches modes, owns time, runs combat, sanctions or overrules votes, holds **Fiat**. Does not vote. |
+| **Player** | Edits own characters and their companions, own purse, own notes. Can propose charter changes, titles and title holders, call and cast votes, add to the party ledger. |
+
+The GM can view anything a player can view. GM-hidden player-to-player notes are a later release.
+
+Anyone signed in can create a campaign and becomes its GM. Everyone else joins with an invite, as a player. Later, if the app is sold with GM and player licences, creating a campaign may require a GM licence; campaigns are created through one database function, so that check goes there.
+
+**Multi-GM** (West Marches style) is accounted for in the data model (the Member table can hold more than one member with base role GM) but R1 supports one GM per campaign.
+
+## Titles (hats)
+
+- Every company starts with two titles: **Treasurer** and **Archivist**. Only these two carry powers in R1.
+  - **Treasurer:** manages the party treasure after Split Loot (Treasury screen: give, spend, move, recurring expenses, dues), ledger shown first.
+  - **Archivist:** expanded note powers in the log (pin notes, edit and merge others' notes, write session summaries), and from M7 the expedition's **draft recap** with **Publish** (the GM gets it when there's no Archivist; ruled 2026-10-25). Archivist notes appear in a **distinct colour and handwritten script** so they stand out.
+- Players can propose **new titles** (names only, no powers in R1) and propose **who holds** any title. Both go to a vote of charter members.
+- Players **join the company** (become charter members) by vote.
+- The Stash, Library and Marching bundles are dropped. Setting entries are edited by the GM.
+
+### Treasurer details
+
+- The initial disbursal of an adventure's haul stays a communal activity (Split Loot, as designed). Party-treasure management starts after that step.
+- Everyone keeps their existing ledger rights (any member can add, edit or roll back party ledger entries, all logged); the Treasurer adds the management screen, not a restriction.
+- Transfers from the party treasure to a player's purse go straight in; the player is notified. No acceptance step.
+- During an adventure, taking party money out of storage needs GM approval (same rule as personal storage).
+
+## Permission matrix (R1)
+
+| Action | GM | Owner player | Title holder | Other player |
+|---|---|---|---|---|
+| Edit character / companion | ✅ | ✅ own | — | view |
+| Change one of the rules set's own figures (the pack's scores, Max HP, the level) on an approved character (the full sheet's Edit; plan m5b-sheet-revised B, ruled 2026-11-08; enforced by the database): the player asks (Send to the GM) and takes it back while it waits; the GM approves or refuses with a reason; details and the GM's own fields save at once; the GM's own edits apply at once; only the GM and the character's player read the requests | ✅ approve, refuse | ✅ own: ask, take back | — | — |
+| See a character's personal purse | ✅ | ✅ own | — | ❌ hidden |
+| Adjust personal purse | ✅ | ✅ own | — | — |
+| See a character's alignment (ruled 2026-11-02; the setting's `alignmentVisibility`, 07) | ✅ | ✅ own | — | view when the setting says `all` (default); ❌ hidden when `owner` (the log line a give writes for an alignment copy is read by the new owner and the GM only, gv-1, 2026-11-14, `design/rulings/dec-night-2026-11-14.md`) |
+| Add / edit / roll back party ledger entries | ✅ | ✅ | ✅ | ✅ (all logged, rollback available) |
+| Split Loot | ✅ | — | Treasurer (from M8) | — (until M8 any player can send the GM a draft; M7b-1) |
+| Undo a Split Loot (if nothing changed since) | ✅ | — | whoever ran it | — |
+| Manage party treasure (Treasury screen) | ✅ | — | Treasurer (from M8) | — |
+| Award XP; edit XP waiting lines | ✅ | — | — | — |
+| Level up (in a Downtime-only campaign during an adventure: Ask the GM, who allows it) | ✅ | ✅ own | — | — |
+| Refresh an ability's uses by hand | ✅ | — | — | — |
+| Restore a character from a file (arrives waiting for approval) | ✅ approves | ✅ | — | — |
+| Give an approved character to a player of the campaign, or take it back as the GM's own (`character.reassign`, plan dec-give-a-character-to-a-player, gp-1 to gp-6; enforced by the database): at once, with Undo; it stays approved, is in play for a player who has none, and leaves play for whoever had it. Undo of an older give is refused once the GM has given the character to someone else ("That's changed since. Undo the later change first."), and neither give is reverted (gp-8, 2026-11-14, `design/rulings/dec-scene-whole-2026-11-14.md`) | ✅ | — (not even their own) | — | — |
+| Put items in or take them out of the Party stash (M4) | ✅ | ✅ | ✅ | ✅ (logged; ruled 2026-10-23) |
+| Add, use up, equip or move a character's items (M4) | ✅ | ✅ own | — | view |
+| Give an item to another character (M4) | ✅ | ✅ own items | — | — (a gift needs no yes; logged) |
+| Add a player's typed Other… (a language, a trait entry or a weapon skill) to the campaign homebrew, from the GM's review of the character (ruled 2026-11-02, `design/rulings/m5b-0c-creation-followups-2026-11-02.md`, cf-6) | ✅ | — (the entry stays on their character) | — | — |
+| Choose what players can buy in Add item (M4) | ✅ ("For sale in shops" per item, in the campaign homebrew) | — | — | — (players see what's for sale; ruled 2026-10-23) |
+| Pin to, hide from or show in At hand (M4) | ✅ | ✅ own | — | — (pins logged; hiding in the detailed log only) |
+| Send a find from a hoard to a character or the Party stash, and Undo it (pk-12, Francis, and uf-1, the lead's, 2026-11-14; enforced by the database) | ✅ one action adds the things and the coin; the GM's own Undo takes both back in one step while the lines are untouched (hard rule 4's exception of 2026-11-03), and with them the party's knowledge of an item the send taught when nobody in the party (a party or player character, or the stash) still holds one (uf-2, Francis; uf-3, the lead's) | — (the general Undo refuses a find) | — | — (the party's line for a find names no place and carries no row keys; where it was found is on a line the GM alone reads, rp-13) |
+| Mark a character's new finds as seen ("Got it"; pk-13) | reads the mark, never writes it | ✅ own, approved | — | — (the mark travels with the character: its current player and the GM read it, a previous player doesn't; ls-3, 2026-11-17) |
+| Set AC by hand, or clear it (ruled 2026-10-29) | ✅ | ✅ own (approved character) | — | — (logged; Undo) |
+| Change the party charter | ✅ fiat | ✅ propose | ✅ propose | ✅ propose (unanimous player vote after the founding version; until M8 the GM applies proposals, M7b-1) |
+| Propose a new title or title holder; ask to join the company | — | ✅ | ✅ | ✅ (goes to a vote) |
+| Add log notes | ✅ | ✅ | ✅ | ✅ |
+| Undo a logged change | ✅ any | ✅ own | ✅ own | ✅ own (only if nothing changed since; creations and deletions aren't undoable in M2) |
+| Annotate a log entry | ✅ | ✅ | ✅ | ✅ (edit your own notes, the old text stays in the log; GM can edit any; notes are never deleted) |
+| Edit others' notes, pin notes, session summaries | ✅ | — | Archivist | — |
+| Import packs into your own library (private to you) | ✅ | ✅ | ✅ | ✅ |
+| Read a pack table the pack marks `"gmOnly": false` (a class's starting-spell table; ruled 2026-11-02, `design/rulings/m5b-0c-first-spells-table-2026-11-02.md`) | ✅ | ✅ | ✅ | ✅ (enforced by the database; every other table stays the GM's) |
+| Read the setting's sheet layouts (field names, kinds, lists, `fill` marks; ruled 2026-11-02, cf-5, `design/rulings/m5b-0c-creation-followups-2026-11-02.md`) | ✅ | ✅ | ✅ | ✅ (enforced by the database; a per-race list and a field's option gate need it at creation) |
+| Attach a pack to a campaign | ✅ (that campaign's GM only) | — | — | — |
+| Call a vote | ✅ | ✅ | ✅ | ✅ |
+| Cast a vote | ❌ | ✅ | ✅ | ✅ |
+| Sanction / overrule a vote | ✅ | — | — | — |
+| Switch Adventure/Downtime mode (from M5b: Start downtime, which ends the expedition with an automatic full rest, and End downtime; ST10, ST11) | ✅ | — | — | — |
+| Advance time (the mode's main advance, Advance by…, Set time…), start/end expedition (with its start place, the GM's alone, DG1), start/end session, Travelling in darkness (M5) | ✅ | — | — | — |
+| Calendar start, "Which season?" and its Not now (M5) | ✅ | — | — | — (players see the date and season; the calendar's names, months and seasons are player-readable, its GM-only parts are not: an entry's `gmOnly` fields, and special seasons' start chances and encounter swaps; ruled 2026-10-30, 07 Who sees what) |
+| See a special season's start chance and its encounter swap (the swap's chance and its table) | ✅ | — | — | — (players never see them, enforced by the database: a special season reaches players without its `start` and `encounterSwap`; confirmed 2026-10-30) |
+| Reminders (M5): create and edit | ✅ | — | — | — (players see the public ones; ruled 2026-10-29) |
+| Checks (M5): roll or record the result (Check now too, DG3); reveal one result | ✅ | — | — | — (secret per the pack's `checks[].secret`, default true: players see a secret result only when the GM reveals or sends it or Downtime starts; an open one (`secret: false`), or one recorded in Downtime, at once; ruled 2026-10-29) |
+| Send a call to adventure (an adventure's hook) to a character or the party (dec-12 B; ruled ca-1 to ca-3, 2026-11-13; enforced by the database): an unsent hook is the GM's alone; a send is a copy of the words as sent (the book's or the GM's edit, with what it pays, each link mark as its words only, rp-11); a send to the party is read by every player in the campaign, even when the party is split (ca-3); a send to one character by the player who played that character when it was sent, and the GM (ca-2); Undo marks a send undone: players no longer read the send itself, but its log lines stay as they were for those who could read them (nothing is erased). **Ruled 2026-11-18, built (B19)** (p2p-15, `design/rulings/scene-point-to-point-2026-11-18.md`): the "Calls to adventure" line shows only in a settlement, never at a Location of an adventure, except where a call comes from a person there (⚑ 8); the send itself is not limited | ✅ send, edit before sending, undo; reads every send | ✅ own: reads sends to the party and to their character | — | ✅ reads sends to the party; ❌ another's character's sends |
+| Give a rumour (a rolled row of an adventure's rumours table) to a character or the party (dec-12 E; mc-65, tb-1; who reads it ruled rm-1, Francis, 2026-11-14; enforced by the database): a rumours table is the GM's whole, its truth and notes included; a give copies the row's words alone, named "A rumour", never the table's name (rm-2) (each link mark as its words), read as a sent call to adventure is (the party: every player; a character: the player who played it when it was given; the GM all); the truth and notes never leave the GM's library; Undo marks a give undone and players no longer read it | ✅ give, undo; reads the table whole and every give | ✅ own: reads gives to the party and to their character, words only | — | ✅ reads gives to the party; ❌ another's character's gives |
+| Read a rumours table (dec-12 E follow-up; rm-3, Francis, 2026-11-14, `design/rulings/dec-evening-2026-11-14.md`; enforced by the database): a rumours table (`world.rumours`, or the older `"kind": "rumours"`) is the GM's alone, its rows, truth and notes, **even where its pack marks it open** (`"gmOnly": false`, fs-1, which still opens any other table); a player reads only the words of a row the GM has given (above) | ✅ reads it whole | ❌ | ❌ | ❌ |
+| Send a message or check result (M5) | ✅ | — | — | — (GM only in R1) |
+| Read and close a message from the GM (M5) | ✅ (all of them; the log keeps a burnt one's text) | ✅ only those sent to their characters; a burnt one until they close it | — | — (only recipients' devices get a message, enforced by the database; a burnt one never enters players' logs) |
+| Messaging (M5 gate B3, 2026-11-01): write to a player; write to the GM | ✅ to any character in play, one or several | ✅ to the GM only, as their character; never to another player | — | — (a thread's two parties' devices only, enforced by the database) |
+| Attach a picture to a message (M5b g4; ruled 2026-11-01) | ✅ up to 10 MB | — (text only) | — | — (the database refuses a player's file and the bucket refuses the upload; only the message's two parties can open it) |
+| Add a status to a character (M5; M5 gate C1, ruled 2026-11-01) | ✅ | — (a status comes from the GM, or automatically from a spell or ability) | — | — (secret timers: the GM only) |
+| Remove or step a status on a character (M5) | ✅ | ✅ own | — | — |
+| Change a timed status's time left (the status sheet's stepper; follow-up to the status rings, Francis's ruling on #560, 2026-11-08) | ✅ (a secret timer too) | — ("Only the GM changes the time left.") | — | — |
+| Activities in turn modes (Act…) | — | — | — | — (moved to the parking lot, ruled 2026-10-30, DG12; the GM narrates) |
+| Activities in day modes (M5b): a non-secret activity, entering their own roll and seeing the result; its yield goes to the finder's pack (ruled 2026-10-30, D3) | ✅ (sees it live; can undo; names anyone) | ✅ own characters and hirelings as the one who acts and finds in an activity one character does; any of the travel group's in one several or the party do (ac-1, 2026-11-11) | — | — |
+| Request a secret activity (M5b; ruled 2026-10-30, S4-3, replacing D3's "secret activities stay the GM's"): a request button showing its cost | ✅ gets the secret prompt and rolls; accepting applies the cost (undoable) | ✅ own character | — | — (players see nothing of the roll or result until the GM narrates or sends it) |
+| Force march (M5b; ruled 2026-10-30, D4; its Undo ruled 2026-11-10, fm-1) | ✅ undo | ✅ (applied at once, no GM accept; **Undo by whoever marched**, from the toast or the log line, with no confirm; refused with its reason once the points are spent or the day has moved on, and to a marcher who has since left the group) | — | ✅ (a player of the group may march; logged for the group; the pack's rest reminder is set automatically; another player of the group reads the line but can't undo it) |
+| Read a group's travel lines in the log (M5b fm-1; ruled 2026-11-10): the start of the day, Move…, the day's budget, Spend the day looking, the forced march, and their undos | ✅ every group's | ✅ their own group's: the lines written while they had a character in it | — | — (another group's players, a member with no character and anyone outside the campaign read none of them, nor the row stored with the line, enforced by the database; a later joiner reads only what is written from then on, and a later split given the same group number never reads the earlier group's lines; the place a group is entering is the GM's until one of its pieces has been shown to that group: until then neither the travel row, the line nor a function's answer gives a player its name (the GM's own name for it, typed or from a pack, never reaches them), and from then on they read its players' name; an activity's cost or a secret activity's on the same budget stays the GM's line) |
+| Camp steps (M5b; ruled 2026-10-30, D5, D14, D18): fire and firewood, cooking and handing out portions, campfire talk, Eat, the watch order | ✅ (sees everything; sets a number only where the pack is vague) | ✅ (Eat for their own characters) | — | ✅ (give food to a character with none; set the watch order) |
+| Weather roll (M5b; ruled 2026-10-30, D1, A10) | ✅ (can enter it instead; corrects it any time, logged as fiat) | ✅ when "Weather rolled by" is Players (default; the first entry counts, logged with who; the entrant can Undo from the toast for 6 seconds) | — | ✅ same; everyone sees the result and its effects, never the weather table; a player's roll against a table players cannot read is refused (wl-1, Francis, 2026-11-14) |
+| Move…, Ways on and the Lost status (M5b; Ways on G-05, M8b; ruled 2026-10-30, D6, D7, S4-6) | ✅ | — | — | — (players see where they are; Ways on's options are GM-only; Lost and its recovery roll are GM-only while **Getting lost** is Secret (the default), and shown to players when it's Open, enforced by the database; players may then enter the recovery roll, but Found the way / Still lost are the GM's taps, ruled 2026-10-31) |
+| Set the current location (M5) | ✅ | — | — | — (players see the ground around them, its terrain and weather, automatically in every mode; the place's name and description only once the GM shares it; ruled 2026-10-30, answers after #170) |
+| A place's pieces: add, show / hide, Hide all (M5b g2, B1), **edit** and **remove** (retire; M5b g2b, ruled 2026-11-02, `design/rulings/m5b-g2b-pieces-follow-up-2026-11-02.md`) | ✅ | — | — | — (players see shown pieces only, of their own group's visit; an edit to a shown piece reaches them quietly; a removed one disappears) |
+| A place's picture: add from the device, change, take off (M5b step 1 follow-up; ruled 2026-11-03, m5b-1 ⚑ 2) | ✅ | — | — | — (players see it only once the GM shows the picture itself to their group, with its own eye (ruled B, 2026-11-03); another group, a player before anything is shown and anyone outside the campaign get neither the asset nor its file, enforced by the database and the bucket) |
+| Show players / Hide a place's description (M5; ruled 2026-10-30, DG9, replacing the automatic player name; the whole-place commands retired 2026-11-02, g2b: pieces only) | ✅ | — | — | — (players see the description only while it's shown, and only the players of the group it's shown to, ruled 2026-10-31; never the GM's notes; the same act as Open for the party, M8b) |
+| Rest this turn (M5; ruled 2026-10-30, DG5); Rest today in day modes (M5b; ruled 2026-10-30, answers after #170) | ✅ (Next turn or Next day applies it) | ✅ own characters | — | — |
+| Set a settlement place Safe or Hostile (M5b; ruled 2026-10-30, ST2) | ✅ | — | — | — |
+| Back in safety / Into town (M5b; ST2) | ✅ (⚑ whether players can tap it too) | — | — | — |
+| Town screen: Show players and Open / Closed on a place in town (M5b; ST3) | ✅ | — | — | — (players see only what the GM shows; hidden places never reach their devices, enforced by the database) |
+| Out and about today / Active tonight (M5b; ST4) | ✅ (⚑ whether players set them) | — | — | — |
+| Buying: Ask for…, then buy or leave it (M5b; ST5) | ✅ answers (Hit / Miss on the pack's availability chance, then In stock · Not here · Price…) | ✅ own characters | — | — (costs logged as text until purses, M7b) |
+| Read a shop's stock for the day (W12; fix-856-1, ruled 2026-11-18) | ✅ every line, straight from the table | ✅ only through the stock reader: the things for sale and in stock today, never a stored line itself; at a pack's shop, only what the GM has marked in today (sh-3, 2026-11-15) | — | — (a player reads no row of the stock table, enforced by the database) |
+| Selling: Sell…, then Accept or Decline the GM's Offer (M5b; ST6) | ✅ makes the Offer (a suggested price from the pack's rule, changeable) | ✅ own characters | — | — |
+| Lodging (M5b; ST7, with dt-11 and st-3) | ✅ answers Somewhere else…: Yes (with its cost in words) or Not available | ✅ picks a lodging the GM shows, for own characters (no GM needed; cost logged as text); asks for Somewhere else… | — | — (another player never reads it) |
+| Town activities (M5b; ST8) | ✅ narrates or offers the result | ✅ own characters (the pack's, or Something else…) | — | — |
+| Split the party: open it, choose a group; Join up (M5; ruled 2026-10-30, DG14, A17–A18) | ✅ (opens it; moves anyone; switches the group in focus; Join up any time) | ✅ picks their own character's group; moves their hirelings (who follow the employer by default) | — | ✅ opens it; Join up when the groups are in the same place (players see their own group's place, lights and fight, DG15) |
+| Escape rolls when leaving the dungeon (M5; ruled 2026-10-30, DG18; M5 gate C6, C7, 2026-11-01) | ✅ (previews and can change each outcome, then Send; may **enter a roll for a player without a device**, logged as entered by the GM) | ✅ enter their own roll (or the party's, per `dungeonExit.who`); a hireling leaves with its employer and shares their result | — | — (an outcome reaches a player only when the GM sends it) |
+| Add a status to a character (M5 gate C1, ruled 2026-11-01) | ✅ anyone's | — (never their own; a status comes from the GM, or automatically from a spell or ability) | — | — (players see their statuses and effects) |
+| Requests: a player asks, the GM answers (M5 step 12; ruled 2026-10-31; secret activities, buying, selling, lodging, escape rolls; Describe… removed 2026-11-01) | ✅ answers from Waiting for you (Undo) | ✅ sends for own characters; withdraws their own while it waits | — | — (the answer reaches the player when the GM sends it) |
+| See the GM's per-entry exceptions in setting rules | ✅ | — | — | — (players' devices get only the winning entries; ruled 2026-10-29) |
+| Set marching order (hold to move) | ✅ | ✅ when "Players can reorder marching order" is on (default) | — | ✅ when it's on (every move logged; ~~GM can lock it by fiat~~; ruled 2026-10-25, no permission bundles). **Ruled 2026-11-18, built as B11** (p2p-21, `design/rulings/scene-point-to-point-2026-11-18.md`; `supabase/migrations/20261118150000_p2p_b11_marching_no_lock.sql`): the marching order has no lock; every player and the GM may rearrange it at any time, each change logged, with Undo; the setting "Players can reorder marching order" stays and decides whether players may (flag 5, ruled 2026-11-18: the database ignores old locks) |
+| Light / douse a light source | ✅ | ✅ own carrier | — | — |
+| Combat: enter initiative | ✅ | ✅ own (individual mode) | — | — |
+| Combat: record damage to or heal a character (ruled 2026-10-29) | ✅ (overrides or takes over; logged) | ✅ own characters; a hireling's HP: the employer's player | — | — (a hireling's HP, while its employer is Down or not at the table; ruled 2026-10-29) |
+| Combat: adjust foe HP, Mark as (ruled 2026-10-29) | ✅ | — (a player may tap a foe as their target, optional: it shows on the GM's screen and pre-selects the foe on the GM's damage pad) | — | — (same) |
+| Combat: a foe's + Status and Note (ruled 2026-10-29) | ✅ (a Note is GM-only by default; the GM can share it) | — | — | — (players see the statuses and any shared Note) |
+| Combat: end a turn (side initiative: End our turn; individual: End turn for a character) (ruled 2026-10-29) | ✅ any turn, and Next round as an override | ✅ any player for the party side; End turn for their own characters | — | ✅ (side initiative: any player for the party) |
+| Combat: Delay a character's turn (where the rules or the GM allow) | ✅ | ✅ own | — | — |
+| Combat: call We run for the party / resolve it (Got away / Caught) (ruled 2026-10-29) | ✅ / ✅ | ✅ / — | ✅ / — | ✅ / — (Undo from the toast or the log by whoever called it, or the GM) |
+| Death panel: Dies, Not yet (fiat) | ✅ | — | — | — (only the GM marks a character dead, 2026-10-25) |
+| Death panel: Helped, and Healed or Stabilised where the setting defines them (ruled 2026-10-29) | ✅ | ✅ | — | ✅ any player (each tap logged; Undo) |
+| Add bonus HP… (character's ⋯; ruled 2026-10-29) | ✅ | ✅ own (a hireling: the employer) | — | — (logged; Undo) |
+| Take from a Down or dead character's pack or purse (ruled 2026-10-29) | ✅ | — | — | ✅ while the character is Down or dead (per item or amount, every take logged; closes when Down clears, see below) |
+| Open a hireling's pack (Take from <name>; ruled 2026-10-29) | ✅ | ✅ the employer, always | — | — (logged) |
+| Award XP | ✅ | — | — | — |
+| Record a level-up | ✅ | ✅ own | — | — |
+| Propose / resolve downtime activities | ✅ / ✅ | ✅ own / — | — | — |
+| **Fiat** | ✅ | — | — | — |
+
+Players see each other's HP (while the campaign setting **Show each other's HP** is Yes, the default; the setting promises no secrecy until HP moves into its own table at the start of M6, 08), level, XP, encumbrance tier, statuses, inventory and titles. Purse amounts are hidden from everyone but the owner and the GM. **Named exception** (ruled 2026-10-29; CLAUDE.md hard rule 5): a character who is **Down or dead** has their pack **and purse** open to the other players, like the Party stash (**Take from <name>**, per item or amount, every take logged). The database enforces it by the character's state (Down or dead), not the screen. **It ends when Down clears** (ruled 2026-10-29): when HP goes above the setting's threshold (07, `death.at`), or when a Helped wake-up timer ends. Being Helped alone doesn't end it while a wake-up timer is running. Items and coins already taken stay taken (each take is logged). A hireling's pack is always open to their employer. The generated visibility matrix (`docs/generated/visibility-matrix.md`) shows it once the access rule lands (M6).
+
+**Setting-rules items players can see** (ruled 2026-10-29): an item reaches players' devices only when it's for sale or **known**. An item is known when a party member holds it, it's in the Party stash, it's in a starting kit (kits are player-readable, so kit items show at creation), or the GM sends it as loot (M6) or shows it (shops and Show with Handouts, M8b). Items on monsters or at places stay unknown until looted or shown. Enforced by the database (04, KnownItem).
+
+**A reveal belongs to its campaign** (ruled hd-2, 2026-11-11): what one campaign opens to its players (an item known, for sale, in a kit, a patron's garb; a patch naming it; the GM's exception for it) is opened in that campaign only. A pack's entries carry no campaign, so a device asks the database for a campaign's setting rules by campaign (`campaign_library`), and the answer follows that campaign alone. A plain read of the entries gives a player an item only when every one of their campaigns using the pack has opened it. Enforced by the database.
+
+**The ways on** (ruled mc-28, 2026-11-11; 07 Adventure packs §3): a route is the GM's entry and never reaches a player as written. A player's device asks for the ways on from where their group is (`campaign_ways_on`) and gets, for each route that isn't hidden, its row id and where it leads: the far place and its players' name once a piece of that place has been shown to their group, else nothing ("not yet explored"). Until something of the place they are standing in has been shown to them, on this visit or an earlier one, they get no ways at all (ruled mc-28b and mc-28c, 2026-11-12). Each way also says how it is travelled and how long it takes (ruled mc-28a, 2026-11-12: "Rowing, 1 turn"). Never sent: a hidden route, a route's type or notes, a barrier's note or its need for the GM's approval, the pack's own ids. Enforced by the database.
+
+**A place's players' name** (pn-1, Francis, 2026-11-14; enforced by the database): where the GM has given a place a players' name, players never get its own name; the town's place list and "places you know" send the players' name.
+
+**A link's code** (rp-11, Francis, 2026-11-13; enforced by the database): players never get the code inside a link, only its words: in a place's rules (a rule's words, its name, its button) and in any piece shown to them, one the GM typed by hand included. It only takes away from what players are sent: the GM still reads their own text whole, and nothing is removed from the database (cleaned on the reads players use; migration `20261113200000_players_never_get_link_ids.sql`).
+
+**Patches players can see** (look-back reviews of #437 and #554, approved 2026-11-10; 07 "Who reads a patch"): a patch reaches players only when it would show them nothing they can't already read. A patch is the GM's when its match names a GM-only kind or no kind at all, when it names an item (by id) that a player can't see yet (an item no pack contains included: hd-1, 2026-11-11), or when it changes a hidden field (a rules set's monsters, magic items, procedures or GM reference panels; an entry's `gmOnly` fields or the list itself). The same rule decides the log line and a pack update's "what changed" line. **Stored copies on a device** follow it too: a change in one pack or campaign that opens or closes an item or patch elsewhere (an item made for sale or not, a kit added or removed, a reveal, an option, an exception, a pack attached or detached) marks every campaign it can reach, so each player's device downloads its copies again on the next start. Enforced by the database.
+
+## Fiat
+
+- The GM can overrule any vote, ledger result, encumbrance result, time/light state, combat state, charter outcome or permission.
+- Reason is **optional**.
+- Every fiat is logged (simple log) with a seal icon, and can be rolled back by the GM.
+- Fiat on a computed value (e.g. "ignore encumbrance for Bram") holds until the GM clears it.
+
+## Rules for code
+
+- Every check goes through `can(user, command, target)`.
+- The same rules are mirrored in Supabase row-level security policies.
+- Hidden data (other players' purses, monster HP, GM notes) must never be sent to a client that can't see it, not just hidden in the UI.
+- The one exception, a Down or dead character's pack and purse (above), is an access rule on the character's state, checked by the database; the purse part applies once purses arrive (M7b). The rule reads the **down** state (04), which the database clears only when HP goes above the threshold or a wake-up timer ends, never on Helped alone while a timer runs (ruled 2026-10-29); clearing it closes access but never moves taken items back.

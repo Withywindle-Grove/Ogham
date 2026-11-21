@@ -1,0 +1,27 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-thorn-wardens",
+    "name": "Thorn wardens",
+    "shortName": "Thorn wardens",
+    "version": "0.1",
+    "kind": "homebrew",
+    "author": "Invented for the app's tests",
+    "requires": [{ "packId": "fixture-bramble-moor", "minVersion": "0.1" }],
+    "description": "An invented overlay on Bramble moor whose rules add printed fields (sheetFields on an overlay, sr-10): one lives in the base's layout, one in its own, one nowhere."
+  },
+  "fieldTemplates": [
+    {
+      "id": "thorn-additions",
+      "name": "Thorn wardens additions",
+      "appliesTo": "pc",
+      "fields": [{ "key": "thornVows", "label": "Thorn vows", "type": "text", "group": "Identity" }]
+    }
+  ],
+  "sheetFields": [
+    { "name": "Thorn vows", "home": "thornVows" },
+    { "name": "Oath of the hedge", "home": "hedgeOath", "option": "moor-lanterns=on" },
+    { "name": "Briar scars", "home": "briarScars" }
+  ]
+}

@@ -1,0 +1,295 @@
+/* The GM's Campaign screen. */
+
+.gm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+}
+
+/* The campaign's sigil, name and section list; above the section on narrow screens, a column on the left on a
+   landscape tablet. */
+.gm__side,
+.gm__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+  min-width: 0;
+}
+
+.gm p {
+  margin: 0;
+}
+
+.gm__title {
+  margin: 0;
+  font-size: var(--text-sheet-title);
+  overflow-wrap: anywhere;
+}
+
+.gm__section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pad);
+  padding-top: var(--pad);
+  border-top: var(--divider);
+}
+
+.gm__section-title {
+  margin: 0;
+  font-size: var(--text-save);
+}
+
+.gm__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+  padding: var(--space-4) var(--space-4);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--sheet);
+}
+
+.gm__share {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.gm__link {
+  padding: var(--gap) var(--pad);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.gm__code {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  user-select: all;
+}
+
+.gm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.gm__block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.gm__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gm__row {
+  min-height: 64px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap) var(--pad);
+  padding: var(--gap) 0;
+  border-bottom: var(--row-rule);
+}
+
+.gm__row-main {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.gm__row-name {
+  font-weight: 700;
+}
+
+.gm__row-detail {
+  flex: 2 1 260px;
+  line-height: 1.4;
+}
+
+.gm__meta {
+  font-size: var(--text-meta);
+  color: var(--muted);
+}
+
+.gm__approval {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: var(--pad) var(--space-4);
+  border: 1px solid var(--warning);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.gm__approval-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.gm__backstory {
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+
+.gm__done {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.gm__row-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* One line per character (ruled 2026-10-26): portrait, the character with their player below, then the actions. */
+.gm__character-row {
+  flex-wrap: nowrap;
+}
+
+.gm__character-row .gm__row-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.gm__character-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--gap);
+}
+
+@media (max-width: 599px) {
+  .gm__character-row {
+    flex-wrap: wrap;
+  }
+}
+
+/* Section list: tabs across the top (the design's left-hand list on a wide tablet comes later). */
+
+.gm__approval-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--pad);
+}
+
+/* Landscape tablet: the design's left column (sigil, name, sections) beside the chosen section. */
+@media (min-width: 1024px) {
+  .gm {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-6);
+  }
+
+  /* The section's last card clears the bottom of the screen after scrolling to the end (an iPad's Players tab,
+     plan m5b-sheet-revised 12): room under it, and under the safe area. */
+  .gm:not(.gm--sub) .gm__main {
+    padding-block-end: calc(var(--space-7) + env(safe-area-inset-bottom));
+  }
+
+  .gm__side {
+    position: sticky;
+    top: calc(var(--top-row-h, 0px) + var(--pad));
+    /* The divider is the handle (lr-4): it draws the line on this edge; the padding keeps its tap zone off the tabs. */
+    padding-right: calc(var(--tap) / 2);
+  }
+
+  /* The side menu keeps a long campaign name to two lines, ending in "…" (ruled 2026-11-05); the campaign's own
+     heading shows it whole, and the button's accessible name is still the full name. */
+  .gm__side .campaign-heading__text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+
+  /* B15: the left column folded to its icons gives the console and the place card the width. */
+  .gm--nav-collapsed {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  /* Folded, the rail keeps the campaign's sigil at its top and, for a retired campaign, its mark under it (mn-2, ap-17;
+     mockup december/16, frame T13); the name, Rename and Change sigil, and the banner wait in the opened menu. */
+  .gm--nav-collapsed .gm__side > :not(.section-nav, .divider-handle, .campaign-heading__rail-sigil, .gm__rail-mark) {
+    display: none;
+  }
+
+  .gm--nav-collapsed .gm__side > .campaign-heading__rail-sigil {
+    display: inline-flex;
+    align-self: center;
+  }
+
+  .gm--nav-collapsed .gm__side > .gm__rail-mark {
+    align-self: center;
+  }
+}
+
+/* The folded rail's parts belong to the landscape rail alone: under 1024 px the sections are tabs and the heading
+   and banner show in full. */
+@media (max-width: 1023px) {
+  .gm__side > .gm__rail-mark {
+    display: none;
+  }
+}
+
+
+/* Players → Party stash: a row that opens the stash, like a character's pack. */
+.gm__stash-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--pad) 0;
+  border: none;
+  border-top: var(--divider);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-save);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Phone: room at the bottom for the section tabs. */
+@media (max-width: 599px) {
+  .gm:not(.gm--sub) {
+    padding-bottom: calc(var(--tap) + var(--space-5) + env(safe-area-inset-bottom));
+  }
+}
+
+/* A phone in landscape keeps the bottom tabs, so the room for them stays. */
+@media (min-width: 600px) and (max-width: 1023px) and (max-height: 500px) {
+  .gm:not(.gm--sub) {
+    padding-bottom: calc(var(--tap) + var(--space-5) + env(safe-area-inset-bottom));
+  }
+}
+
+/* A GM sub-screen (a character's pack, the Inventory) uses the whole width: its own layout decides the columns. */
+@media (min-width: 1024px) {
+  .gm.gm--sub {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* "Over by N gp" on a new character's review (M4b): a word in the warning colour, never a block. */
+.gm__warning {
+  color: var(--warning);
+  font-weight: var(--weight-heading);
+}

@@ -1,0 +1,79 @@
+/* The top row's Log button and the log it opens: full screen on every device (ruled 2026-10-24). */
+
+.log-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.log-button:active {
+  background: var(--tint);
+}
+
+.log-panel__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--scrim);
+}
+
+.log-panel {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+  color: var(--ink);
+  outline: none;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  transition: transform 0.2s ease;
+}
+
+/* While a finger drags it, the log follows without lag. */
+.log-panel--dragging {
+  transition: none;
+}
+
+/* The top strip: the handle in the middle and Close at the end; the whole strip takes a drag down. */
+.log-panel__top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: var(--tap);
+  padding: 0 var(--gutter);
+  touch-action: none;
+  cursor: grab;
+}
+
+.log-panel__handle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 5px;
+  margin: -2px 0 0 -22px;
+  border-radius: 3px;
+  background: var(--rule);
+}
+
+.log-panel__body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 var(--gutter) var(--gutter);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .log-panel {
+    transition: none;
+  }
+}

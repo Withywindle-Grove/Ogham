@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Final draft 8: the states (2026-11-07)</title>
+<link rel="stylesheet" href="final.css">
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+const skel = (w) => `<div style="height:16px;border-radius:4px;background:var(--rule);width:${w}"></div>`;
+const skelCard = () => `<div class="card"><div class="kv"><div class="text">${skel('55%')}<div style="height:6px"></div>${skel('80%')}</div><span class="btn" style="border-color:var(--rule);color:transparent">Pick</span></div></div>`;
+
+const loading = phone(`
+  ${bar('Class')}
+  <div class="inner">
+    <p class="meta">Step 3 of 9</p>
+    <p class="do">Your trade as an adventurer. Tap a name to read about it, then Pick.</p>
+    <p class="meta" style="margin:0 0 var(--space-2)">Loading the setting's classes…</p>
+    ${skelCard()}${skelCard()}${skelCard()}${skelCard()}
+    ${foot('Loading', true, 'plain')}
+  </div>`, 'Loading: skeleton rows in the list\'s shape with a line that says what is loading; the footer is plain until the rows are real. Under 300 ms nothing shows at all.');
+
+const continueSheet = phone(`
+  ${bar('New character', 'none')}
+  <div class="inner" style="min-height:560px">
+    <p class="do">A character for The Lantern Marsh.</p>
+  </div>
+  ${sheet('Continue where you left off?', `
+    <p style="margin:0 0 var(--space-2)">You left a character on this device on Thursday: a Stone kin Reed Witch, scores rolled, not yet named.</p>
+    <p class="meta" style="margin:0 0 var(--space-3)">Kept on this device only. Nothing has been sent to your GM.</p>
+    <div class="kv" style="gap:var(--space-2)"><span class="btn" style="flex:1">Start again</span><span class="btn accent" style="flex:1">Continue</span></div>
+  `)}`, 'Coming back after Leave (cw-13): the sheet says what was kept, where, and when; Continue carries the accent.');
+
+const offline = phone(`
+  ${bar('Who they are')}
+  <div class="inner">
+    <div class="card" style="background:var(--surface)"><div class="kv"><div class="text">${warn('You\'re offline')}<small>Nothing is saved until you're back: keep this screen open, then try again.</small></div></div></div>
+    <p class="meta">Step 5 of 9</p>
+    <h2>Name</h2>
+    <span class="field">Oswin Adderbald</span>
+    <h2>Outlook</h2>
+    ${pick('Fen', 'Keeps to old bargains', 'picked')}
+    ${pick('Mire', 'Takes what the marsh gives', 'pick')}
+    ${foot('Offline. Next waits for the connection', true, 'plain')}
+  </div>`, 'Offline mid-step: a line at the top with the sign and what it means (mockup 13\'s words); the screen stays usable; Next is plain and says what it waits for (never disabled: tapping it repeats the line).');
+
+const failedSend = phone(`
+  ${bar('Review')}
+  <div class="inner" style="min-height:560px">
+    <p class="meta">Step 10 of 10</p>
+  </div>
+  ${sheet('Not sent', `
+    <p style="margin:0 0 var(--space-2)">${warn('Your GM didn\'t get it')}</p>
+    <p style="margin:0 0 var(--space-3)">The connection dropped while sending. Everything you chose is still here. Try again when you're back online, or save and leave and send later from your sheet.</p>
+    <div class="kv" style="gap:var(--space-2)"><span class="btn" style="flex:1">Save and leave</span><span class="btn accent" style="flex:1">Try again</span></div>
+  `)}`, 'A failed send: a sheet that says what happened, that nothing is lost, and the two ways out. Try again carries the accent.');
+
+const nothingToAsk = phone(`
+  ${bar('Magic')}
+  <div class="inner">
+    <p class="meta">Step 6 of 9</p>
+    <p class="do">Lantern Wardens cast no spells and have no knack to roll. Nothing to choose here.</p>
+    <div class="card"><div class="kv"><div class="text">Skipped<small>This step comes back if you change class.</small></div></div></div>
+    ${foot('Nothing to do here')}
+  </div>`, 'A step with nothing to ask is skipped (follow-up E); if reached by Back, it says why in one line and Next moves on.');
+
+const errorField = phone(`
+  ${bar('Gear')}
+  <div class="inner">
+    <p class="meta">Step 8 of 9</p>
+    ${roll(6, 'Roll 3d6 × 10 for your starting coin, then enter it. The stepper moves by 10.')}
+    <div class="card" style="border-color:var(--warn)"><div class="kv"><span>Starting coin</span>${stepper(190)}</div><div style="margin-top:var(--space-1)">${warn('3d6 × 10 can\'t give 190. The most is 180')}</div></div>
+    <h2>To choose (pick 1)</h2>
+    ${pick('Warden\'s kit', '9 items: leather, spear, lantern, 3 days\' food', 'accent')}
+    ${foot('Coin is over the dice\'s most', true, 'plain')}
+  </div>`, 'A value the dice can\'t give (Francis, 2026-11-06, "I put 19 gold when the max is 18"): the row says so with the sign and the limit; nothing blocks; Next is plain and explains in words if tapped; the GM\'s card shows it as an exception.');
+
+mount(`
+  <h1>Final draft 8: the states</h1>
+  <p class="note">Every state the checklist asks for, drawn once with the rulings: loading, offline, a failed send, coming back after Leave (cw-13), a step with nothing to ask, a value outside the dice's range. Nothing is ever disabled: a blocked Next is plain and explains. The warning sign carries every "needs attention" line.</p>
+  <h1>Phone</h1>
+  <div class="wall">${loading}${continueSheet}${offline}${failedSend}${nothingToAsk}${errorField}</div>
+  <p class="note">Self-review: targets 44 px with 8 px between; nothing under 14 px; every warning has the sign and words; skeleton rows have no text that a screen reader would read as content (they are aria-hidden); the offline line is the first thing on the screen; one accent per screen, on the way out of the state. Not checked: a 999-gp coin entry (the limit line still fits); the Continue sheet with two kept characters (one row each, the newest first); a pack that fails to load at all (the load-failure screen the Builder wrote on the perf branch, approved tonight).</p>
+`);
+</script>
+</body>
+</html>
