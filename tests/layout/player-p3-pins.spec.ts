@@ -10,6 +10,7 @@
 //   5. Nothing spills sideways, and the page's own layout checks find nothing.
 //   6. Held, a pinned one lifts and a dashed box shows where it will land (the landing box, frame M4e).
 //   7. Row P4: an ability's entry, opened from the foot's Abilities row, carries the Pin star beside ✕, a 44 px target.
+//   8. A pinned one moves by keyboard: its hidden slider, focused, takes the arrow keys (the review's finding 2 on #23).
 import { expect, test, type Page } from '@playwright/test';
 import { layoutProblems } from './checks.ts';
 
@@ -125,6 +126,17 @@ for (const scheme of ['light', 'dark'] as const) {
           })
           .toBe(true);
         expect(await layoutProblems(page)).toEqual([]);
+      });
+
+      test(`8. a pinned one moves by keyboard (${size.name}, ${scheme})`, async ({ page }) => {
+        await page.setViewportSize({ width: size.width, height: size.height });
+        await openPlayer(page);
+        const slider = list(page).getByRole('slider', { name: 'Move Steady flame' });
+        await expect(slider).toHaveAttribute('aria-valuetext', 'Position 2 of 2');
+        await slider.focus();
+        await page.keyboard.press('ArrowUp');
+        await expect(list(page).locator('.pinned-box').first()).toHaveClass(/pinned-box--block/);
+        await expect(list(page).getByRole('slider', { name: 'Move Steady flame' })).toHaveAttribute('aria-valuetext', 'Position 1 of 2');
       });
     });
   }

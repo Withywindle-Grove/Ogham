@@ -114,6 +114,9 @@ export function PlayerTraits({
   // A move shows at once, the list in its new order, until the pins read back (or the save fails).
   const pinsKey = play.pins.map((p) => `${p.kind}:${p.key}`).join('|');
   const [moving, setMoving] = useState<{ order: string[]; from: string } | null>(null);
+  // Once the stored order arrives (any change to the pins), the move shown at once gives way to it, so an old order
+  // never shows again when the pins come back to how they were (an Undo from the log; the review's finding 4 on #23).
+  if (moving && moving.from !== pinsKey) setMoving(null);
 
   const all = traitsWithUses(figures, character.level, more);
   // Each trait's own key: two may share a name (a class's and a kindred's), each with its own words. Its place in the

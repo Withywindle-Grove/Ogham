@@ -18,6 +18,7 @@
 //   15. The 25th pin is refused with the ruled words (pg28-5), and moving a pin at the limit still works.
 //   16. Another player cannot move a pin on this character, and writes nothing.
 //   16b. Pinning one already pinned, even with a place, changes nothing (a move is its own command).
+//   16c. With nothing pinned yet (no play row, as an outsider also sees it), a move is refused and writes nothing.
 //   17. The list's own order is the order shown: an ability without uses and traits with uses come out in the pins' order.
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../app/commandRegistry.ts';
@@ -250,6 +251,11 @@ describe('row P2: pins reach every ability and trait, in the player’s order', 
     expect(await move(jo, 'Sure-footed', 0)).toMatchObject({ ok: false, reason: 'not-allowed' });
     expect((await pins())?.map((p) => p.key)).toEqual(['Horn charge', 'Sure-footed']);
     expect(movesOf()).toHaveLength(0);
+  });
+
+  it('16c. with nothing pinned yet (no play row), a move is refused and writes nothing', async () => {
+    expect(await move(sam, 'Horn charge', 0)).toMatchObject({ ok: false, reason: 'not-allowed' });
+    expect(world.tables.character_play).toHaveLength(0);
   });
 
   it('16b. pinning one already pinned, even with a place, changes nothing', async () => {

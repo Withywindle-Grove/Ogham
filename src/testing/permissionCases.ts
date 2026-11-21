@@ -721,6 +721,7 @@ export const permissionCases: PermissionCase[] = [
   rule('a player can move a pin of their own character', 'playerA', movePin, async (w) => ({ character: w.wren, key: (await w.freshPins('wren'))[1]!, at: 0 }), true),
   rule("the GM can move a pin on any character", 'gm', movePin, async (w) => ({ character: w.ash, key: (await w.freshPins('ash'))[1]!, at: 0 }), true),
   rule("a player can't move a pin on someone else's character", 'playerB', movePin, async (w) => ({ character: w.wren, key: (await w.freshPins('wren'))[1]!, at: 0 }), false),
+  rule("an outsider can't move a pin on a character", 'outsider', movePin, async (w) => ({ character: w.wren, key: (await w.freshPins('wren'))[1]!, at: 0 }), false),
   rule("a player can set their own character's AC by hand", 'playerA', setAc, (w) => ({ character: w.wren, ac: Math.floor(Math.random() * 900) }), true),
   rule("a player can't set someone else's character's AC", 'playerB', setAc, (w) => ({ character: w.wren, ac: 7 }), false),
   rule("the GM can set any character's AC by hand", 'gm', setAc, (w) => ({ character: w.ash, ac: -Math.floor(Math.random() * 900) }), true),

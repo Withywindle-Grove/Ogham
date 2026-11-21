@@ -5,7 +5,7 @@
 // Pins live in `character_play.pins`, beside the rest of the character's play state: the owner of an approved
 // character or the GM changes them, every member who can read the character reads them (as with prepared spells).
 // Unpinning is an update of the list, never a delete of a row, so Undo is this command again the other way.
-import { defineCommand, failed, fromError, fromWrite, isGm, isMember, ok, type CommandResult } from '../../core/commands.ts';
+import { defineCommand, failed, fromError, fromWrite, isGm, isMember, notAllowed, ok, type CommandResult } from '../../core/commands.ts';
 import type { Json } from '../../core/database.types.ts';
 import { PIN_KEY_LIMIT, PIN_LIMIT, PIN_LIMIT_WORDS, readPins, type Pin, type PinKind } from './playState.ts';
 
@@ -63,7 +63,10 @@ export const movePin = defineCommand({
     if (!Number.isInteger(input.at) || input.at < 0) return failed('Say where to move it.');
     const found = await db.from('character_play').select('pins').eq('actor_id', input.character.id).maybeSingle();
     if (found.error) return fromError(found.error);
-    const was = readPins(found.data?.pins);
+    // No row it may read: someone outside the campaign (every member reads an approved character's row), or a character
+    // with nothing pinned yet, where there is nothing to move.
+    if (!found.data) return notAllowed();
+    const was = readPins(found.data.pins);
     const index = was.findIndex((p) => p.kind === 'trait' && p.key === key);
     if (index < 0) return failed(`${key || 'That'} isn't pinned.`);
     const others = was.filter((_, i) => i !== index);

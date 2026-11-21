@@ -13,6 +13,9 @@
 //   P3-5. At 24 pins the star stays a button and says why: "Can't pin <name>" / the ruled line; nothing is written.
 //   P3-6. The heading's ⓘ explains hold to move, while something is pinned.
 //   P3-7. Past ten uses a block draws no pips, the words alone counting.
+//   P3-8. A pinned one moves by keyboard too: its hidden slider's arrow keys (the review's finding 2 on #23).
+//   P3-9. Once the stored order arrives the move shown at once gives way to it: when the pins come back to how they
+//         were (an Undo from the log), the old order never shows again (the review's finding 4 on #23).
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useEffect, useState } from 'react';
@@ -213,5 +216,40 @@ describe('PlayerTraits, the right column’s list (row P3, page 28)', () => {
     expect(first!.querySelector('.use-pips')).toBeNull();
     expect(first!.textContent).toContain('999 of 999 left');
     expect(second!.querySelector('.use-pips')!.textContent!.trim()).toBe('●'.repeat(10));
+  });
+
+  // Purpose P3-8: a pinned one moves by keyboard too, with its hidden slider's arrow keys.
+  it('moves a pinned one with the arrow keys on its slider', async () => {
+    await pinAll('Horn charge', 'Fen sight');
+    liveTraits(figuresOf([ability('Horn charge', 'A blow.'), ability('Fen sight', 'Sees.')]));
+    const slider = await screen.findByRole('slider', { name: 'Move Fen sight' });
+    expect(slider.getAttribute('aria-valuetext')).toBe('Position 2 of 2');
+    slider.focus();
+    await userEvent.setup().keyboard('{ArrowUp}');
+    await waitFor(async () => expect(await storedOrder()).toEqual(['Fen sight', 'Horn charge']));
+    await waitFor(() => expect(boxNames()).toEqual(['Fen sight', 'Horn charge']));
+    expect(world.tables.events.filter((e) => e.type === 'character.movePin')).toHaveLength(1);
+  });
+
+  // Purpose P3-9: when the pins come back to how they were, the old move never shows again.
+  it('shows the stored order once it arrives, even when the pins come back to how they were', async () => {
+    const figures = figuresOf([ability('Horn charge', 'A blow.'), ability('Fen sight', 'Sees.')]);
+    const before = playOf([{ kind: 'trait', key: 'Horn charge' }, { kind: 'trait', key: 'Fen sight' }]);
+    const after = playOf([{ kind: 'trait', key: 'Fen sight' }, { kind: 'trait', key: 'Horn charge' }]);
+    await pinAll('Horn charge', 'Fen sight');
+    const view = (play: CharacterPlay) => (
+      <ToastHost>
+        <PlayerTraits db={world.db} user={user} character={wren} figures={figures} play={play} onChanged={() => undefined} source={() => null} />
+      </ToastHost>
+    );
+    const { rerender } = render(view(before));
+    const tap = userEvent.setup();
+    await tap.click(screen.getByRole('button', { name: /^Horn charge/ }));
+    await tap.click(within(await screen.findByRole('dialog', { name: 'Horn charge' })).getByRole('button', { name: 'Move down' }));
+    await waitFor(() => expect(boxNames()).toEqual(['Fen sight', 'Horn charge']));
+    // The stored order arrives, then an Undo from the log puts the pins back as they were.
+    rerender(view(after));
+    rerender(view(before));
+    expect(boxNames()).toEqual(['Horn charge', 'Fen sight']);
   });
 });

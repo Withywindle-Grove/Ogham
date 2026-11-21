@@ -349,7 +349,8 @@ describe('the Player screen brought to frame P1', () => {
     render(<Root db={world.db} />);
     await userEvent.setup().click(await screen.findByRole('button', { name: new RegExp(P1_CAMPAIGN) }));
     const after = await screen.findByRole('button', { name: /^Traits/ });
-    await vi.waitFor(() => expect(after.textContent).toContain('All pinned: they are in the list above'));
+    // Frame M4h's words exactly (the review's finding 6 on #23).
+    await vi.waitFor(() => expect(after.querySelector('.list-row__sub')?.textContent).toBe('All pinned: they are in the list above'));
   });
 
   // Purpose P4a: an ability's entry on the Player tab carries the star; a tap pins it, and pinned it reads "Unpin".
