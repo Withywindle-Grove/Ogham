@@ -37,6 +37,9 @@
 //  10. A show made during a split belongs to the characters it was shown to, not to its group's number (finding 3):
 //      split again with the groups renumbered, an old show to "group 2" neither lets the new group 2's player read the
 //      item nor lets the eye name a line in the new group 2.
+//  11. A name revealed once stays revealed through a split (pg30-4; the local review of the carried #1101): a player
+//      who gives part of a named stack to another character keeps the name on both the part and the rest, for every
+//      player; a part split off a one-off whose pointer no GM wrote reads nothing, not even for the GM.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../src/app/commandRegistry.ts';
 import { runCommand, type CurrentUser } from '../../src/core/commands.ts';
@@ -51,7 +54,7 @@ import { placeFromPack } from '../../src/modules/expedition/placeFromPack.ts';
 import { hidePiece, loadGroupPlaces, showPiece, type GroupPlace } from '../../src/modules/expedition/placePlay.ts';
 import { chooseGroup, joinUp } from '../../src/modules/expedition/groupPlay.ts';
 import { startExpedition } from '../../src/modules/expedition/play.ts';
-import { loadInventory } from '../../src/modules/inventory/inventory.ts';
+import { loadInventory, moveItem, type CarrierRef } from '../../src/modules/inventory/inventory.ts';
 import { attachPack, loadCampaignEntries } from '../../src/modules/library/campaignPacks.ts';
 import { importPack } from '../../src/modules/library/library.ts';
 import { readPackJson } from '../../src/modules/library/packFile.ts';
@@ -123,6 +126,7 @@ async function everythingRead(person: Person): Promise<string> {
   return JSON.stringify(reads.map((r) => r.data));
 }
 const truthsOf = async (person: Person) => must(await person.db.rpc('item_truths', { campaign: world.campaignId })) as { line_id: string; name: string; body: string }[];
+const linesReadBy = async (person: Person) => (await truthsOf(person)).map((t) => t.line_id);
 
 let packId = '';
 let placeId = '';
@@ -632,6 +636,56 @@ describe('B15: a split party (b15f-6, "No, group A only")', () => {
       expect(await linesRead(player)).toContain(wrenSpyglass);
     }
     expect((await truthsOf(world.playerB)).map((t) => [t.line_id, t.name])).toContainEqual([wrenSpyglass, SPYGLASS]);
+  });
+});
+
+describe('B15: a named stack split or partly given (the local review of the carried #1101; pg30-4)', () => {
+  const wren = (): CarrierRef => ({ campaignId: world.campaignId, actorId: world.wrenId, locationId: null, ownerUserId: world.playerA.id, archived: false });
+  const ash = (): CarrierRef => ({ campaignId: world.campaignId, actorId: world.ashId, locationId: null, ownerUserId: world.playerB.id, archived: false });
+
+  // Purpose: a name revealed once stays revealed, so when a player gives part of a named stack to someone else (the
+  // database splits it into a new line, pointer and all), both the part and what is left keep the real name for every
+  // player; and a "named" stack whose pointer no GM wrote (a player's one-off) gives a part that reads nothing either.
+  it('11. a part split off a named stack keeps its name; a part split off a forged pointer reads nothing', async () => {
+    // One group again, so the lantern's show counts for everyone and the give isn't across groups.
+    await ok(as(world.gm, joinUp, { campaignId: world.campaignId, together: true, from: 2, into: 1 }));
+    const first = (await loadGroupPlaces(asDb(world.gm), world.campaignId, visit.expeditionId))!.get(1)!;
+
+    // The GM sends Wren two hooded lanterns, named as they arrive (the eye on the lantern's piece).
+    const sent = await ok(
+      as(world.gm, giveFind, { campaignId: world.campaignId, to: world.wrenId, placeId, things: [{ name: 'Hooded lantern', qty: 2 }], coins: {}, rows: ['2:thing'], named: [{ visit: first.id, piece: magicPieceId, thing: 0 }] }),
+    );
+    expect(sent.notNamed).toBe(false);
+    const stacks = must(await world.admin.from('inventory_lines').select('id').eq('actor_id', world.wrenId).eq('name', 'Hooded lantern').eq('qty', 2)) as { id: string }[];
+    expect(stacks).toHaveLength(1);
+    const stack = stacks[0]!.id;
+    expect(await linesReadBy(world.playerA)).toContain(stack);
+
+    // Wren's player gives one of the two to Ash: the database splits the stack, and the part goes to Ash.
+    const part = (await ok(as(world.playerA, moveItem, { line: { id: stack, carrier: wren() }, to: ash(), qty: 1, of: 2 }))).id;
+    expect(part).not.toBe(stack);
+    expect(must(await world.admin.from('inventory_lines').select('qty, actor_id').eq('id', part).single())).toEqual({ qty: 1, actor_id: world.ashId });
+    for (const player of [world.playerA, world.playerB]) {
+      const read = (await truthsOf(player)).map((t) => [t.line_id, t.name]);
+      expect(read).toContainEqual([stack, NAME]);
+      expect(read).toContainEqual([part, NAME]);
+    }
+    expect((await loadInventory(asDb(world.playerB), world.campaignId))!.lines.find((l) => l.id === part)!.name).toBe(NAME);
+
+    // A one-off of Wren's player's own, pointing at the lantern's piece (no GM wrote it), given in part to Ash: neither
+    // the rest nor the part reads anything, not even for the GM, who reads every counting pointer.
+    const forged = await world.playerA.db
+      .from('inventory_lines')
+      .insert({ campaign_id: world.campaignId, actor_id: world.wrenId, name: 'A lamp', qty: 2, how_got: 'found', item_data: { truthPiece: magicPieceId } })
+      .select('id');
+    expect(forged.error).toBeNull();
+    const fake = (forged.data as { id: string }[])[0]!.id;
+    const fakePart = (await ok(as(world.playerA, moveItem, { line: { id: fake, carrier: wren() }, to: ash(), qty: 1, of: 2 }))).id;
+    for (const person of [world.playerA, world.playerB, world.gm]) {
+      const read = await linesReadBy(person);
+      expect(read).not.toContain(fake);
+      expect(read).not.toContain(fakePart);
+    }
   });
 });
 

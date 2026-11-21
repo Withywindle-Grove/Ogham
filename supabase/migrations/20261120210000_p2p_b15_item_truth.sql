@@ -52,7 +52,11 @@
 --      no source, and never anything from the piece's gm_value (b15f-4, docs/design/rulings/b15-build-flags-2026-11-20.md;
 --      the pack's magicItem.source is not stored on the piece at all). Only a pointer the GM wrote counts: a log line,
 --      by a GM of the campaign and not undone, of the GM's eye (place.showItemTruth) or of a send that named the item
---      (find.give), on that line, writing that pointer. Players never write log lines (only the database's triggers
+--      (find.give), on that line, writing that pointer; or a part split off a line where it counts, however many splits
+--      down (public.split_inventory_line copies item_data onto the new line in the same request as the source's smaller
+--      count), so a named stack split or partly given keeps its name (pg30-4). A player who makes up such a "split" by
+--      hand can only copy a pointer that already counts on a line of their own, so it reads nothing they don't already
+--      read; and the per-reader show check below still applies. Players never write log lines (only the database's triggers
 --      do), and a player may type a one-off's item_data when making it (only the GM may change an existing line's
 --      item_data, 20261023180000_m4_reveal.sql), so a pointer a player writes reads nothing, whatever piece it points at
 --      (the reviews of #1101). And only a piece shaped as a magic item's truth (kind 'other', with a lead), still there,
@@ -219,6 +223,41 @@ grant execute on function public.show_item_truth(uuid, uuid, uuid[]) to authenti
 -- the caller may read (the lines' own rule, "inventory lines: read like the carrier", 20261026130000_m4b_draft.sql).
 create function public.item_truths(campaign uuid) returns table (line_id uuid, name text, body text)
 language sql stable security definer set search_path = '' as $$
+  -- The lines whose pointer counts, with the piece it points at: a line a GM wrote the pointer on, in a log line that
+  -- wasn't undone (the eye's line, or the line of a send that named the item); and a part split off such a line, however
+  -- many splits down (a stack split or partly given: public.split_inventory_line copies item_data, pointer and all, onto
+  -- the new line, in the same request as the source's smaller count), while neither the split nor its new line was
+  -- undone (pg30-4: a name revealed once stays revealed; the local review of the carried #1101). A split's two log
+  -- lines are tied by their request (its id and part) and their author, as an Undo ties them.
+  with recursive counting (line_id, piece) as (
+    select e.target_id, e.after -> 'item_data' ->> 'truthPiece'
+    from public.events e
+    join public.members m on m.campaign_id = e.campaign_id and m.user_id = e.actor_user_id and m.base_role = 'gm'
+    where e.campaign_id = campaign
+      and e.type in ('place.showItemTruth', 'find.give')
+      and e.target_table = 'inventory_lines' and e.target_id is not null
+      and e.reverts_event_id is null
+      and not exists (select 1 from public.events r where r.reverts_event_id = e.id)
+      and e.after -> 'item_data' ->> 'truthPiece' is not null
+    union
+    select made.target_id, c.piece
+    from counting c
+    join public.events cut
+      on cut.campaign_id = campaign and cut.target_table = 'inventory_lines' and cut.target_id = c.line_id
+      and cut.request_id is not null
+      and (cut.before ->> 'qty')::integer > (cut.after ->> 'qty')::integer
+      and cut.reverts_event_id is null
+      and not exists (select 1 from public.events r where r.reverts_event_id = cut.id)
+    join public.events made
+      on made.campaign_id = campaign and made.target_table = 'inventory_lines' and made.target_id is not null
+      and made.request_id = cut.request_id
+      and made.request_part is not distinct from cut.request_part
+      and made.actor_user_id is not distinct from cut.actor_user_id
+      and made.before is null and made.after is not null
+      and made.after -> 'item_data' ->> 'truthPiece' = c.piece
+      and made.reverts_event_id is null
+      and not exists (select 1 from public.events r where r.reverts_event_id = made.id)
+  )
   select l.id, private.plain_link_text(coalesce(pc.lead, '')), private.plain_link_text(pc.body)
   from public.inventory_lines l
   join public.place_pieces pc
@@ -246,17 +285,8 @@ language sql stable security definer set search_path = '' as $$
           )
         )
     )
-    -- The GM wrote this pointer on this line: the eye's line, or the line of a send that named the item.
-    and exists (
-      select 1 from public.events e
-      join public.members m on m.campaign_id = e.campaign_id and m.user_id = e.actor_user_id and m.base_role = 'gm'
-      where e.campaign_id = l.campaign_id
-        and e.type in ('place.showItemTruth', 'find.give')
-        and e.target_table = 'inventory_lines' and e.target_id = l.id
-        and e.reverts_event_id is null
-        and not exists (select 1 from public.events r where r.reverts_event_id = e.id)
-        and e.after -> 'item_data' ->> 'truthPiece' = pc.id::text
-    )
+    -- The pointer counts on this line: the GM wrote it here, or the line was split off one where it counts (above).
+    and exists (select 1 from counting c where c.line_id = l.id and c.piece = pc.id::text)
     and (
       (private.is_gm(l.campaign_id) and (l.actor_id is null or not private.is_others_draft(l.actor_id)))
       or (
