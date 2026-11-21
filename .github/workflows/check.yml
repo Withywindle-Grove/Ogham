@@ -393,7 +393,8 @@ jobs:
     runs-on: ${{ fromJSON(needs.pick.outputs.heavy_runs_on) }}
     container:
       image: mcr.microsoft.com/playwright:v1.64.0-noble
-    timeout-minutes: 40
+    timeout-minutes: 75
+    # 75, not 40, since the move to GitHub's machines (B11 trial, 21 Nov: shard 1 hit 40 and was cancelled).
     # One heavy job at a time on the PC, shared with check: see docs/testing.md, The GitHub check (cq-1, cq-1a).
     # On GitHub's machines (CI_RUNNER github) each shard has a group of its own and runs at once (Francis, 2026-11-18).
     concurrency:
