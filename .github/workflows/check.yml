@@ -12,7 +12,7 @@
 #   CI extras) skip database.
 # - A newer push to the same pull request cancels the older run; on main, a newer merge drops the older main runs
 #   (2026-11-19), and only the newest commit goes live.
-# - The picture check (layout, three shards, one heavy job at a time) runs on a pull request only once it has the
+# - The picture check (layout, six shards, one heavy job at a time) runs on a pull request only once it has the
 #   "ready" label (ruled 2026-11-05). Without it, layout fails in seconds with a message, so the merge waits for the label. Adding the
 #   label starts a run that redoes only what hasn't passed for this commit (scripts/ci-jobs.mjs decides). A run
 #   started by a label waits for the running one instead of cancelling it, so it can reuse that run's passes.
@@ -54,7 +54,7 @@ jobs:
   # Picks the machines for this whole run from the CI_RUNNER switch: unset, the PC; github, GitHub; auto, the PC
   # while it has room and GitHub when it's busy (scripts/ci-pick-runner.mjs, ci-auto-1). Every other job reads its
   # answer. It runs on GitHub for github and auto, so it never waits for a busy PC, and on the PC when unset.
-  # The heavy jobs (check, the three layout shards) read heavy_runs_on and heavy_target instead: under auto they stay
+  # The heavy jobs (check, the six layout shards) read heavy_runs_on and heavy_target instead: under auto they stay
   # on the PC even when the run overflows, and wait their turn (ci-pc-pictures, Francis 2026-11-20: "Yes, PC only").
   pick:
     runs-on: ${{ (vars.CI_RUNNER == 'github' || vars.CI_RUNNER == 'auto') && 'ubuntu-latest' || fromJSON('["self-hosted","grimoire"]') }}
@@ -406,8 +406,9 @@ jobs:
           echo "All three database shards passed." | tee -a "$GITHUB_STEP_SUMMARY"
 
   # Layout checks in a real browser (WebKit) at phone and tablet widths, against the stand-in database.
-  # Three shards (Francis, 2026-11-05: "let's try it"): Playwright splits the tests three
-  # ways (--shard=N/3), each shard on its own runner with its own dev server. They run only when layout_plan is run;
+  # Six shards (three from 2026-11-05, Francis: "let's try it"; six since ci-layout-shards-6, 2026-11-21, because on
+  # GitHub's machines a shard of three took 25 to 45 minutes and gallery tests timed out at 120 s, run 44878408726):
+  # Playwright splits the tests six ways (--shard=N/6), each shard on its own runner with its own dev server. They run only when layout_plan is run;
   # each keeps its gallery pictures and its screenshots under its own name (gallery-baselines-N, layout-screens-N),
   # since an artifact name can be used once per run.
   # The shards run inside Playwright's own ready-made image (2026-11-06): WebKit and its system libraries and fonts
@@ -418,7 +419,7 @@ jobs:
   layout-shard:
     needs: [pick, changes]
     if: needs.changes.outputs.layout_plan == 'run'
-    name: layout shard ${{ matrix.shard }}/3
+    name: layout shard ${{ matrix.shard }}/6
     # Never overflows to GitHub (ci-pc-pictures, Francis 2026-11-20: "Yes, PC only"): under auto the shards wait their
     # turn on the PC even when the run overflows. On GitHub a shard took 19 to 40 minutes (runs 44730545041,
     # 44731335414, 44732655677), on the PC 3 to 5 (44735125048, 44709515597). CI_RUNNER github still sends them there.
@@ -434,10 +435,10 @@ jobs:
       cancel-in-progress: false
       queue: max
     strategy:
-      # All three finish even when one fails, so one run shows every failing check.
+      # All six finish even when one fails, so one run shows every failing check.
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -447,7 +448,7 @@ jobs:
       - run: npm ci
       # Missing gallery pictures are made, not failed: they're kept below for Claude Code to commit once approved.
       # PR_BASE: a pull request into a held stack (any base but main) skips the gallery's picture comparison (ci-held-gallery).
-      - run: npm run test:layout -- --update-snapshots=missing --shard=${{ matrix.shard }}/3
+      - run: npm run test:layout -- --update-snapshots=missing --shard=${{ matrix.shard }}/6
         env:
           PR_BASE: ${{ github.base_ref }}
       - name: Keep the gallery pictures
@@ -488,7 +489,7 @@ jobs:
   # The required "layout" check (the main branch's rules name it; ruled 2026-11-05: on a pull request it runs only
   # once it has the "ready" label). layout_plan:
   # run: a screen could have changed and, on a pull request, the ready label is on (a run by hand and the night run:
-  # always): green only when all three shards passed;
+  # always): green only when all six shards passed;
   # night: a push to main (a merge) that could change a screen: no shards, green with a note; the night run (07:00 UTC)
   # checks main's pictures (2026-11-19, Francis: "a nightly picture check sounds best can you implement that?");
   # skip: no screen file changed, so the job reports success without the work, label or not;
@@ -516,10 +517,10 @@ jobs:
           case "$PLAN" in
             run)
               if [ "$SHARDS" != "success" ]; then
-                echo "::error::A layout shard didn't pass ($SHARDS). Open the red 'layout shard N/3' job for the failing check."
+                echo "::error::A layout shard didn't pass ($SHARDS). Open the red 'layout shard N/6' job for the failing check."
                 exit 1
               fi
-              echo "All three layout shards passed." | tee -a "$GITHUB_STEP_SUMMARY" ;;
+              echo "All six layout shards passed." | tee -a "$GITHUB_STEP_SUMMARY" ;;
             skip) echo "No screen files changed: layout is skipped." | tee -a "$GITHUB_STEP_SUMMARY" ;;
             reuse) echo "A label was added; layout already passed for this commit, so it isn't run again." | tee -a "$GITHUB_STEP_SUMMARY" ;;
             deferred) echo "Deferred to the night run (cq-3): the pictures and browser checks run at 07:00 UTC." | tee -a "$GITHUB_STEP_SUMMARY" ;;
@@ -606,7 +607,7 @@ jobs:
   # Announced redraws (ci-announced-redraws, Francis 2026-11-20: "do the second saving too - write them both so they
   # persist past this session"). A pull request that changes gallery pictures on purpose names them in its text, on
   # one line: "Gallery pictures expected to change: phone-light-atoms.png, tablet-dark-atoms.png". When the picture
-  # check fails, check and database passed, and scripts/ci-redraws.mjs finds that every failure in all three shards is
+  # check fails, check and database passed, and scripts/ci-redraws.mjs finds that every failure in all six shards is
   # a difference in an announced picture, this job commits those pictures' 1x -actual.png (the very bytes the shards
   # compared) over their approved pictures on the pull request's branch, as a commit on top of the one this run
   # checked that changes nothing else. A push with the run's own token starts no workflow, so this job then reports
@@ -661,7 +662,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          for n in 1 2 3; do
+          for n in 1 2 3 4 5 6; do
             gh run download "$GITHUB_RUN_ID" --name "layout-screens-$n" --dir "$RUNNER_TEMP/shards/$n" \
               || echo "::warning::Couldn't fetch layout-screens-$n; nothing is redrawn."
           done
@@ -675,7 +676,7 @@ jobs:
           set -o pipefail
           printf '%s\n' "$BODY" > "$RUNNER_TEMP/pull-request-text.md"
           node "$RUNNER_TEMP/judge/ci-redraws.mjs" --body "$RUNNER_TEMP/pull-request-text.md" --shards "$RUNNER_TEMP/shards" \
-            --count 3 --baselines tests/layout/gallery-baselines --attempt "$GITHUB_RUN_ATTEMPT" --sha "$GITHUB_SHA" \
+            --count 6 --baselines tests/layout/gallery-baselines --attempt "$GITHUB_RUN_ATTEMPT" --sha "$GITHUB_SHA" \
             --write | tee -a "$GITHUB_STEP_SUMMARY"
       # The copy may change only the announced pictures' files, each already an approved picture: nothing else
       # modified, nothing untracked (ci-redraws.mjs --verify-status, tested in scripts/ci-redraws.test.mjs).
