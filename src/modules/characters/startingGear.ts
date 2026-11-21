@@ -647,13 +647,3 @@ export function purchasesOf(value: unknown): Purchase[] {
     ];
   });
 }
-
-/**
- * What Next said it did with a pick table's marks (cs-42, the lead's words): "2 taken from Odds and ends.", "1 put back
- * in Odds and ends.", "2 taken, 1 put back in Odds and ends."; figures, the table's name as the pack writes it.
- */
-export function nextTakeWords(table: string, taken: number, putBack: number): string {
-  if (taken > 0 && putBack > 0) return `${taken} taken, ${putBack} put back in ${table}.`;
-  if (putBack > 0) return `${putBack} put back in ${table}.`;
-  return `${taken} taken from ${table}.`;
-}

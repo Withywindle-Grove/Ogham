@@ -2,7 +2,7 @@
 // whose rows are its own children (the name table, a kindred's knacks) and one whose rows sit in cells beside their ⓘ
 // (rolled spells) both band every second row in the book's band colour, and the rows between stay unbanded; a later
 // rule once cleared the band on the first kind.
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 test.use({ viewport: { width: 375, height: 812 } });
 
@@ -54,7 +54,7 @@ for (const size of [
       await expect(page.getByRole('heading', { name: 'Component gallery' })).toBeVisible();
       await page.evaluate(() => document.fonts.ready);
       const tables = await page.evaluate(() =>
-        [...document.querySelectorAll('#creation-long-tables .table-sheet__long, #creation-long-tables .table-sheet__rows, #tapped-tables .table-sheet__rows, #creation-gear .book-tap-table .table-sheet__rows')].map((rows) => {
+        [...document.querySelectorAll('#creation-long-tables .table-sheet__long, #creation-long-tables .table-sheet__rows, #tapped-tables .table-sheet__rows, #creation-gear .book-tap-table .table-sheet__rows, #creation-gear .table-sheet__long')].map((rows) => {
           const bodies = [...rows.querySelectorAll('.option-row--compact')].map((row) => ({
             left: Math.round(row.querySelector('.option-row__body')!.getBoundingClientRect().left - row.getBoundingClientRect().left),
             // The range's own text lines (its box stretches with a two-line row, so its height says nothing).
@@ -76,3 +76,93 @@ for (const size of [
     });
   });
 }
+
+// Gear's pick table in its sheet (cts-1, cts-3, cts-7; mockup creation/final 24, frames TS1, TS2 and TS4). Purposes:
+//   At 375 px with 20 rows, Take these stays in view at the sheet's foot while the rows scroll under it, and the foot's
+//   words keep to two lines.
+//   The pick table's row on the step keeps what was taken to two lines, then "…", and Open or Change stays a 44 px tap.
+//   On a tablet the sheet takes the screen's width (up to 1,024 px), its rows one column under 24.
+//   Every row and the − square are 44 px taps, 8 px apart at least.
+async function openPickSheet(page: Page) {
+  await page.goto('/gallery.html?theme=light');
+  await page.evaluate(() => document.fonts.ready);
+  const open = page.getByRole('button', { name: 'Open the pick table' });
+  await open.scrollIntoViewIfNeeded();
+  await open.click();
+  const sheet = page.getByRole('dialog', { name: 'Travelling odds: pick up to 4' });
+  await expect(sheet).toBeVisible();
+  return sheet;
+}
+
+const lineCount = (el: Locator) =>
+  el.evaluate((node) => {
+    const style = getComputedStyle(node);
+    return Math.round(node.getBoundingClientRect().height / parseFloat(style.lineHeight));
+  });
+
+test.describe('the pick table on a phone', () => {
+  test.use({ viewport: { width: 375, height: 812 } });
+
+  test('Take these stays in view while 20 rows scroll; the foot keeps to two lines', async ({ page }) => {
+    const sheet = await openPickSheet(page);
+    const take = sheet.getByRole('button', { name: 'Take these' });
+    await expect(take).toBeInViewport();
+    // The rows are longer than the sheet: it scrolls, and the foot stays at its bottom.
+    const scroll = await sheet.evaluate((el) => ({ scrollHeight: el.scrollHeight, clientHeight: el.clientHeight }));
+    expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight);
+    const before = (await take.boundingBox())!;
+    await sheet.evaluate((el) => el.scrollBy(0, 600));
+    const after = (await take.boundingBox())!;
+    expect(Math.abs(after.y - before.y)).toBeLessThan(2);
+    await expect(take).toBeInViewport();
+    // The last row comes into view above the foot, never under it.
+    await sheet.evaluate((el) => el.scrollBy(0, 10_000));
+    const last = (await sheet.getByRole('checkbox', { name: /^20 / }).boundingBox())!;
+    const foot = (await sheet.locator('.table-sheet__pick-foot').boundingBox())!;
+    expect(last.y + last.height).toBeLessThanOrEqual(foot.y + 1);
+    // What is marked keeps to two lines; Take these sits at the right, inside the sheet.
+    expect(await lineCount(sheet.locator('.table-sheet__pick-line'))).toBeLessThanOrEqual(2);
+    const card = (await sheet.boundingBox())!;
+    expect(after.x + after.width).toBeLessThanOrEqual(card.x + card.width + 1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
+  });
+
+  test("every row and its − square are 44 px taps, 8 px apart", async ({ page }) => {
+    const sheet = await openPickSheet(page);
+    const rows = sheet.getByRole('checkbox');
+    expect(await rows.count()).toBe(20);
+    for (const box of await rows.evaluateAll((all) => all.map((r) => r.getBoundingClientRect().height))) expect(box).toBeGreaterThanOrEqual(44);
+    const less = sheet.getByRole('button', { name: /^Put back one 1: Reed rope$/ });
+    const lessBox = (await less.boundingBox())!;
+    const rowBox = (await sheet.getByRole('checkbox', { name: /^1 Reed rope/ }).boundingBox())!;
+    expect(lessBox.width).toBeGreaterThanOrEqual(44);
+    expect(lessBox.height).toBeGreaterThanOrEqual(44);
+    expect(lessBox.x - (rowBox.x + rowBox.width)).toBeGreaterThanOrEqual(8 - 0.5);
+  });
+
+  test("the pick table's row keeps what was taken to two lines, its action a 44 px tap", async ({ page }) => {
+    await page.goto('/gallery.html?theme=light');
+    await page.evaluate(() => document.fonts.ready);
+    const row = page.locator('#creation-gear').getByRole('button', { name: /^Change Travelling odds: pick up to 4 \(4 of 4 picked/ });
+    await row.scrollIntoViewIfNeeded();
+    expect(await lineCount(row.locator('.detail-row__note'))).toBeLessThanOrEqual(2);
+    const action = (await row.locator('.detail-row__action').boundingBox())!;
+    expect(action.height).toBeGreaterThanOrEqual(44);
+    // The words are whole for a screen reader, even where the screen cuts them.
+    expect(await row.getAttribute('aria-label')).toContain('Bone needles ×6');
+  });
+});
+
+test.describe('the pick table on a tablet', () => {
+  test.use({ viewport: { width: 1024, height: 768 } });
+
+  test("the sheet takes the screen's width, one column under 24 rows, Take these in view", async ({ page }) => {
+    const sheet = await openPickSheet(page);
+    const card = (await sheet.boundingBox())!;
+    // Full width (cts-7): the screen's, less the page's gutters at most.
+    expect(card.width).toBeGreaterThanOrEqual(1024 - 2 * 24);
+    const lefts = await sheet.getByRole('checkbox').evaluateAll((all) => [...new Set(all.map((r) => Math.round(r.getBoundingClientRect().left)))]);
+    expect(lefts).toHaveLength(1);
+    await expect(sheet.getByRole('button', { name: 'Take these' })).toBeInViewport();
+  });
+});

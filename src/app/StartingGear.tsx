@@ -32,12 +32,13 @@ import {
   kitRolls,
   kitsOffered,
   kitsToPick,
-  nextTakeWords,
   kitTaken,
   moneyCoin,
   noRollPicks,
+  pickFootWords,
   pickFull,
-  pickMeta,
+  pickNames,
+  pickRowWords,
   pickRows,
   pickTitle,
   piecesName,
@@ -73,10 +74,10 @@ import type { CampaignSetting } from './campaignSetting.ts';
 import { equipCheckWith, loadEquipContext, type EquipContext } from './EquipWarning.tsx';
 import { LoadSummary } from './LoadSummary.tsx';
 import { registry } from './services.ts';
-import { ApprovalFold, AVERAGE_LINE, AverageStepper, CreationStep, DetailRow, EntryPanel, FoldedGroup, PickGroup, PickRow, PickTableFold, RolledPicks, RollSequence, type BookTapRow, type RolledPick, type RollSequenceRow } from '../ui/creation.tsx';
+import { ApprovalFold, AVERAGE_LINE, AverageStepper, CreationStep, DetailRow, EntryPanel, FoldedGroup, PickGroup, PickRow, PickTableSheet, RolledPicks, RollSequence, type BookTapRow, type LongTable, type RolledPick, type RollSequenceRow } from '../ui/creation.tsx';
 import { dieOf, RollRow } from '../ui/dice.tsx';
 import { WarningLine } from '../ui/parts.tsx';
-import { fromLabel, isLong, trinketName, trinketOf, type TrinketPick } from '../modules/characters/kindredTables.ts';
+import { fromLabel, LONG_ROWS, rowBands, trinketName, trinketOf, typedRow, type TrinketPick } from '../modules/characters/kindredTables.ts';
 import { creationTablesOf, OneTableSheet } from './KindredTables.tsx';
 import { useErrorToast, useToast } from '../ui/ToastHost.tsx';
 import { blurbOf } from '../modules/characters/creationGuide.ts';
@@ -118,7 +119,6 @@ export function StartingGear({
   help,
   onBack,
   onDone,
-  onUndone,
   onLater,
 }: {
   db: Db;
@@ -153,8 +153,9 @@ export function StartingGear({
   /** Next (after its check), with the record as saved. */
   onDone: (creation: Record<string, unknown>) => void;
   /**
-   * The Undo of Next's take (cs-42) runs after the step has gone on: the record it saved, so the caller keeps it and
-   * Back to Gear reads what is in the pack (#786's review).
+   * No longer called (T2, cts-1): Next took marks not yet taken, and its Undo ran after the step had gone on (cs-42);
+   * marks now live only in the pick table's sheet (the plan's ⚑ 3). Kept so Characters.tsx, outside this row's files,
+   * still type-checks; a follow-up drops it there and here.
    */
   onUndone?: (creation: Record<string, unknown>) => void;
   /** Decide later: the record as saved; left out when the step is required or it reopens from the review. */
@@ -271,6 +272,8 @@ export function StartingGear({
       // Single pieces by their own name (a kit's `units` line: "4 iron rations", not "Rations · 4", which reads as 4 bundles).
       .map((l) => (l.units !== undefined ? piecesWords(l.entry.name, l.entry.data, l.units) : l.qty > 1 ? `${l.entry.name} ×${l.qty}` : l.entry.name))
       .join(', ');
+  /** One summed line of a pick table, as the pack names it ("Eel hooks ×2", "3 tallow candles"); none when the setting lacks it. */
+  const nameOf = (line: KitItem) => words([line]) || undefined;
   const priced = (entry: ResolvedEntry) => priceOf(entry.data.value, coins, unit);
   // No shop when the setting says so (cf-4: `startingGear.shop` false, resolved for the campaign's options).
   const shop = moneyRoll && shopOpen(setting.rulesSets) ? entriesInPlay(setting.items).filter((e) => forSale(e) && priced(e) !== null) : [];
@@ -695,8 +698,9 @@ export function StartingGear({
   const trinketTable = creationTablesOf(setting, raceAsPlayed(raceEntry, classEntry)).trinket;
   const trinket = trinketOf(record);
   const [trinketOpen, setTrinketOpen] = useState(false);
-  // A pick table's marked rows, by its table, until Take these (cs-15); none: what is taken.
-  const [marks, setMarks] = useState<Record<string, number[] | undefined>>({});
+  // The pick table open in its sheet (cts-1) and its marked rows, until Take these (cs-15). Marks live only while the
+  // sheet is open: the ✕ drops them (the plan's ⚑ 3).
+  const [pickOpen, setPickOpen] = useState<{ tableId: string; marks: number[] } | null>(null);
   /** The old trinket's line out of the pack (a gone line is fine), then the new one in; null clears it. */
   async function takeTrinket(words: string | null, rolled?: number): Promise<boolean> {
     if (!trinketTable) return false;
@@ -810,24 +814,6 @@ export function StartingGear({
     return true;
   }
   /** Pick adds one (a picked row too, R3-8); `on` false is the − square, putting the row's last one back. */
-  /** The marked rows of a pick table in words, a row marked twice once with ×2: "Reed rope ×2, eel hooks". */
-  const pickWords = (rows: ReturnType<typeof pickRows>, marked: readonly number[]) =>
-    [...new Set(marked)]
-      .map((r) => {
-        const what = words(rows[r]?.items ?? []) || rows[r]?.result || 'nothing';
-        const times = marked.filter((p) => p === r).length;
-        return times > 1 ? `${what} ×${times}` : what;
-      })
-      .join(', ');
-
-  /** The pick tables whose marks differ from what is taken (cs-15, cs-42): what is marked, what is taken. */
-  const waitingPicks = (from: Record<string, unknown> = record) =>
-    gearPicks.flatMap(({ pick, table, rows }) => {
-      const taken = givenPicksOf(from, pick.tableId).map((p) => p.row);
-      const want = marks[pick.tableId];
-      return want && !sameRows(want, taken) ? [{ pick, rows, want, taken, name: table.name }] : [];
-    });
-
   /**
    * Takes a pick table's marked rows (cs-15): from what is taken to what is marked, a row at a time, those put back
    * first; false when a save didn't go (what went stays, and the problem line says why).
@@ -866,35 +852,10 @@ export function StartingGear({
   async function next() {
     const problem = gearProblem({ moneyRoll, money: moneyNow, left, show });
     if (problem) return void toast({ text: onLater ? `${problem.replace(/\.$/, '')}, or Decide later.` : problem });
-    // Marks not yet taken (cs-42, the lead on #786): Next takes them as Take these does, says so with Undo, then goes
-    // on. Back and folding take nothing; only Next and Take these do.
-    const waiting = waitingPicks(live.current.record);
     // Outside the dice: said in words, then on (never blocked); the GM sees it as an exception.
     if (coinOutside) toast({ text: `${coinOutside}. Your GM sees it when you send.` });
     if (kitsOver) toast({ text: `${kitsOverWords(kitsTaken)}. Your GM sees it when you send.` });
     await run(async () => {
-      for (const w of waiting) if (!(await takePicks(w.pick, w.rows, w.want))) return;
-      // One sentence a table, in one toast (the app shows one toast at a time, a new one replacing the last, so a toast
-      // a table would lose the first one's Undo): how many this Next took and put back, in the lead's words (cs-42). Its
-      // Undo puts every table back.
-      if (waiting.length > 0) {
-        setMarks({});
-        toast({
-          text: waiting.map((w) => nextTakeWords(w.name, changedRows(w.taken, w.want), changedRows(w.want, w.taken))).join(' '),
-          onUndo: () =>
-            void run(async () => {
-              // The walk has gone on and may have saved since (#786's review): start from the record as it is now, so
-              // the Undo changes only the tables' picks and the pack, never the newer work.
-              const now = await loadCreationRecord(db, character.id);
-              // The record can't be read (offline, an error): stop, in the app's own words, rather than undo from an
-              // older copy (#786's review).
-              if (!now || !isRecord(now.creation)) return toast({ text: "Couldn't save that. Check your connection and try again.", error: true });
-              live.current = { ...live.current, record: now.creation };
-              for (const w of waiting) if (!(await takePicks(w.pick, w.rows, w.taken))) return;
-              onUndone?.(live.current.record);
-            }),
-        });
-      }
       const saved = await finish();
       if (saved) onDone(saved);
     });
@@ -1155,6 +1116,79 @@ export function StartingGear({
     );
   })();
 
+  // The pick table's sheet (cts-1, cts-5 a; frames TS2 to TS4): a tap MARKS a row (cs-15), a tap again marks it twice
+  // (R3-8), − puts one back; nothing is taken until Take these, which closes the sheet with the toast and Undo. The ✕
+  // takes nothing and writes nothing. A take that fails keeps the sheet open with its marks (the problem line says why).
+  const pickSheet = (() => {
+    const open = pickOpen ? gearPicks.find((g) => g.pick.tableId === pickOpen.tableId) : undefined;
+    if (!pickOpen || !open) return null;
+    const { pick, table, rows } = open;
+    const taken = givenPicksOf(record, pick.tableId).map((p) => p.row);
+    const mk = pickOpen.marks;
+    const die = typeof table.data.die === 'string' ? table.data.die : '';
+    const setMk = (marks: number[]) => setPickOpen({ tableId: pick.tableId, marks });
+    const tableRows: BookTapRow[] = rows.map((row, r) => {
+      // Price and weight, as the shop shows them (P27, 2026-11-06); a price the coins can't read is left out.
+      const things = entriesOf(row.items);
+      const prices = things.map((l) => (priced(l.entry) === null ? null : priced(l.entry)! * l.qty));
+      const price = prices.some((p) => p !== null) ? prices.reduce<number>((sum, p) => sum + (p ?? 0), 0) : null;
+      const weight = weightWords(things.map((l) => ({ weightCoin: copyOf(l.entry).weightCoin, slots: copyOf(l.entry).slots, qty: piecesOf({ itemId: l.entry.packEntryId, qty: l.qty, ...(l.units !== undefined ? { units: l.units } : {}) }, bundleOf(l.entry)) })), mode);
+      const times = mk.filter((p) => p === r).length;
+      return {
+        key: String(r),
+        range: die ? rangeWords(row) : '',
+        name: words(row.items) || row.result || 'nothing',
+        line: [price !== null ? show(price) : '', weight].filter(Boolean).join(', '),
+        picked: times > 0,
+        times,
+        // Past N a tap marks nothing and says why (cs-50); no row is greyed.
+        onPick: () => (mk.length >= pick.upTo ? toast({ text: pickFull(pick) }) : setMk([...mk, r])),
+        onPutBack: () => setMk(mk.filter((_, n) => n !== mk.lastIndexOf(r))),
+      };
+    });
+    const take = () => {
+      // Marks the same as what is taken: nothing to take, so no event; the sheet closes (as Take it does, T1). Nothing
+      // marked and nothing taken: say what to do (cts-5 b; never a disabled button).
+      if (sameRows(mk, taken)) return mk.length === 0 ? toast({ text: 'Mark a row first.' }) : setPickOpen(null);
+      const want = mk;
+      void run(async () => {
+        if (!(await takePicks(pick, rows, want))) return;
+        setPickOpen(null);
+        // The one summed list, as the row and the foot (⚑ 4, Francis 20 Nov: "Add them up"): "In the pack: Bog eel ×4".
+        toast({ text: want.length > 0 ? `In the pack: ${pickNames(rows, want, nameOf).join(', ') || 'nothing'}` : 'Back out of the pack', onUndo: () => void run(() => takePicks(pick, rows, taken)) });
+      });
+    };
+    // The typed roll, the range bar from 50 rows and two columns on a tablet from 24, as every table sheet (m5b-long-tables).
+    const ranged = { rows: rows.map((row) => ({ min: row.min, max: row.max, text: '', cells: [] })) };
+    const bands = rowBands(ranged);
+    const all = rows.map((_, r) => r);
+    const long: LongTable = {
+      ranges: (bands ?? [{ heading: 'rows', rows: all }]).map((b) => ({ heading: b.heading, rows: b.rows.map((r) => ({ key: String(r), text: tableRows[r]!.name, picked: tableRows[r]!.picked, onPick: tableRows[r]!.onPick })) })),
+      bar: !!bands,
+      columns: rows.length >= LONG_ROWS,
+      typed: die
+        ? (text) => {
+            const found = typedRow(ranged, text);
+            return { key: found.row === null ? null : String(found.row), line: found.line };
+          }
+        : undefined,
+    };
+    return (
+      <PickTableSheet
+        label={pickTitle(pick, table.name)}
+        die={die}
+        title={table.name}
+        rows={tableRows}
+        long={long}
+        multiple={pick.upTo > 1}
+        foot={pickFootWords(pick, rows, mk, nameOf)}
+        marked={mk.length > 0}
+        onTake={take}
+        onClose={() => setPickOpen(null)}
+      />
+    );
+  })();
+
   const problem = gearProblem({ moneyRoll, money: moneyNow, left, show });
   const somethingToChoose = kits.length > 0 || gearPicks.length > 0 || !!trinketTable || shop.length > 0;
   // Yours already, folded by group (final drafts D): what everyone gets, then the kindred's.
@@ -1242,8 +1276,7 @@ export function StartingGear({
       stop={(!!problem && moneyNow !== null) || kitsOver}
       // The accent follows the ask (final drafts D): the first kit's Pick until a kit is taken, then Next.
       // Next is the one accent (R3-9: no row's Pick is), plain only while something stops it.
-      // While marks wait to be taken, Take these is the one accent (cs-42; #786's review).
-      nextAccent={!coinOutside && !kitsOver && !(problem && moneyNow !== null) && waitingPicks().length === 0}
+      nextAccent={!coinOutside && !kitsOver && !(problem && moneyNow !== null)}
       busy={busy}
       nextLabel={counter ? 'Next' : 'Done'}
       unchanged={gearSignature(record, { shown: moneyShown, usual: isUsual }) === openedWith}
@@ -1295,58 +1328,18 @@ export function StartingGear({
             kits.map(kitRow)
           )}
           {gearPicks.map(({ pick, table, rows }) => {
-            const firstWaiting = waitingPicks()[0]?.pick.tableId;
-            // of-11 (G-83): pick up to N rows, fewer allowed; rolled at the table or chosen. A tap MARKS a row (cs-15, the
-            // lead's ruling (a) on batch F): nothing is taken until Take these at the fold's end; folding it again takes
-            // nothing. A row can be marked more than once (R3-8); − puts one back. The fold's line says what is taken.
+            // of-11 (G-83): pick up to N rows, fewer allowed. One row on the step, like the trinket's under it (cts-3,
+            // frame TS1): the count, then what was taken by name (two lines at most); Open before anything is taken,
+            // Change after, both opening the table's sheet (cts-1) with what is taken marked.
             const taken = givenPicksOf(record, pick.tableId).map((p) => p.row);
-            const mk = marks[pick.tableId] ?? taken;
-            const timesOf = (r: number) => mk.filter((p) => p === r).length;
-            const die = typeof table.data.die === 'string' ? table.data.die : '';
-            const setMk = (next: number[]) => setMarks((m) => ({ ...m, [pick.tableId]: next }));
-            const tableRows: BookTapRow[] = rows.map((row, r) => {
-              // Price and weight, as the shop shows them (P27, 2026-11-06); a price the coins can't read is left out.
-              const things = entriesOf(row.items);
-              const prices = things.map((l) => (priced(l.entry) === null ? null : priced(l.entry)! * l.qty));
-              const price = prices.some((p) => p !== null) ? prices.reduce<number>((sum, p) => sum + (p ?? 0), 0) : null;
-              const weight = weightWords(things.map((l) => ({ weightCoin: copyOf(l.entry).weightCoin, slots: copyOf(l.entry).slots, qty: piecesOf({ itemId: l.entry.packEntryId, qty: l.qty, ...(l.units !== undefined ? { units: l.units } : {}) }, bundleOf(l.entry)) })), mode);
-              const times = timesOf(r);
-              return {
-                key: String(r),
-                range: die ? rangeWords(row) : '',
-                name: words(row.items) || row.result || 'nothing',
-                line: [price !== null ? show(price) : '', weight].filter(Boolean).join(', '),
-                picked: times > 0,
-                times,
-                onPick: () => (mk.length >= pick.upTo ? toast({ text: pickFull(pick) }) : setMk([...mk, r])),
-                onPutBack: () => setMk(mk.filter((_, n) => n !== mk.lastIndexOf(r))),
-              };
-            });
-            const take = () => {
-              // Nothing marked and nothing taken: say so. Marks the same as what is taken: nothing to do (cs-43: no line
-              // for it; the fold's state line says what is taken, and each taken row shows its −).
-              if (sameRows(mk, taken)) return mk.length === 0 ? toast({ text: 'Tap a row first.' }) : undefined;
-              const want = mk;
-              void run(async () => {
-                if (!(await takePicks(pick, rows, want))) return;
-                setMarks((m) => ({ ...m, [pick.tableId]: undefined }));
-                toast({ text: want.length > 0 ? `In the pack: ${pickWords(rows, want)}` : 'Back out of the pack', onUndo: () => void run(() => takePicks(pick, rows, taken)) });
-              });
-            };
             return (
-              <PickTableFold
+              <DetailRow
                 key={`pick:${pick.tableId}`}
                 label={pickTitle(pick, table.name)}
-                note={`${pickMeta(pick, taken.length)}. ${rows.length} to choose from`}
-                open={taken.length > 0}
-                onFold={() => setMarks((m) => ({ ...m, [pick.tableId]: undefined }))}
-                die={die}
-                title={table.name}
-                rows={tableRows}
-                multiple={pick.upTo > 1}
-                // The one accent while marks wait (cs-42): the first table with marks not yet taken.
-                takeAccent={pick.tableId === firstWaiting}
-                onTake={take}
+                note={pickRowWords(pick, rows, taken, nameOf)}
+                action={taken.length > 0 ? 'Change' : 'Open'}
+                twoLines
+                onOpen={() => setPickOpen({ tableId: pick.tableId, marks: taken })}
               />
             );
           })}
@@ -1397,15 +1390,14 @@ export function StartingGear({
         </PickGroup>
       )}
       {yoursAlready}
+      {pickSheet}
       {trinketOpen && trinketTable && (
         <OneTableSheet
           table={trinketTable}
           title="Trinket"
           picked={trinket?.text}
-          onPick={(words, rolled) => {
-            pickTrinket(words, rolled);
-            if (words && !isLong(trinketTable)) setTrinketOpen(false);
-          }}
+          // Take it closes the sheet itself (onClose, cts-8): no close here (#1060's note for T2).
+          onPick={(words, rolled) => pickTrinket(words, rolled)}
           onClose={() => setTrinketOpen(false)}
         />
       )}
@@ -1422,7 +1414,3 @@ function sameRows(a: readonly number[], b: readonly number[]): boolean {
   return a.length === b.length && [...a].sort((x, y) => x - y).every((r, n) => r === [...b].sort((x, y) => x - y)[n]);
 }
 
-/** How many rows `to` holds beyond `from`, row by row (a row marked twice counts twice). */
-function changedRows(from: readonly number[], to: readonly number[]): number {
-  return [...new Set(to)].reduce((n, r) => n + Math.max(0, to.filter((p) => p === r).length - from.filter((p) => p === r).length), 0);
-}
