@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: page 33, K22, what a player notices, the GM's edit and the Reveal pop-up (2026-11-21)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* this page's own rules: layout and this page's own parts only (the fact row, the form's fields, the veil).
+     Type, the book format, the stacked button, the pop-up, the toast and the corners come from ../shared/book.css
+     and are not restated. The view's frame, the Pack's rows and the item's rows are page 32's own, copied as drawn. */
+  .lbl { font-size:14px; color:var(--muted); margin:var(--space-3) 0 var(--space-2); }
+  .lbl:first-child { margin-top:0; }
+  .vtop { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:var(--space-2); min-height:52px; padding:0 var(--space-2) 0 var(--space-4); border-bottom:1px solid var(--rule); }
+  .vtop .back { color:var(--accent); text-decoration:underline; min-height:44px; display:flex; align-items:center; }
+  .vtop .vtt { font-weight:700; font-size:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:520px; text-align:center; }
+  .vtop .rt { display:flex; justify-content:flex-end; }
+  .vband { display:grid; grid-template-columns:28px minmax(0,1fr); gap:var(--space-1) var(--space-3); align-items:center; border:1.5px solid var(--control); border-left:4px solid var(--info); border-radius:4px; background:var(--surface); padding:var(--space-2) var(--space-3); margin:0 0 var(--space-4); }
+  .vband > span:first-child { display:flex; color:var(--info); }
+  .vband > span:last-child { min-width:0; }
+  .vband small { display:block; font-size:14px; color:var(--muted); white-space:nowrap; }
+  .vband b { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ink); }
+  .phone .vband { margin:var(--space-2) var(--space-3) var(--space-3); grid-template-columns:24px minmax(0,1fr); gap:var(--space-1) var(--space-2); }
+  .gmmark { display:flex; gap:var(--space-2); align-items:center; font-size:16px; color:var(--info); margin-top:var(--space-1); }
+  .gmmark span { min-width:0; overflow-wrap:break-word; }
+  .footrow { display:grid; grid-template-columns:minmax(0,1fr) 20px; align-items:center; min-height:56px; border-bottom:1px dotted var(--rule); }
+  .footrow b { font-size:20px; }
+  .footrow small { display:block; font-size:14px; color:var(--muted); }
+  .grp { display:flex; justify-content:space-between; align-items:baseline; margin:var(--space-4) 0 var(--space-1); }
+  .grp:first-child { margin-top:0; }
+  .grp span:last-child { font-size:14px; color:var(--muted); }
+  .irow { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2); align-items:center; min-height:56px; border-bottom:1px dotted var(--rule); padding:var(--space-1) 0; }
+  .irow small { display:block; font-size:14px; color:var(--muted); }
+  .irow.open { background:var(--wash); box-shadow:inset 3px 0 0 var(--accent); padding-left:var(--space-2); }
+  .newtag { display:inline-flex; align-items:center; border:1.5px solid var(--ink); border-radius:4px; padding:0 var(--space-1); font-size:14px; font-weight:700; margin-left:var(--space-2); }
+  .pfoot2 { display:flex; justify-content:space-between; align-items:center; gap:var(--space-2); margin-top:var(--space-3); border-top:1px solid var(--rule); padding-top:var(--space-2); }
+  .lrow { display:grid; grid-template-columns:24px minmax(0,1fr) 20px; gap:var(--space-3); align-items:center; min-height:48px; border-bottom:1px dotted var(--rule); }
+  .lrow svg { color:var(--muted); }
+  .kv2 { display:flex; justify-content:space-between; gap:var(--space-2); min-height:32px; align-items:center; border-bottom:1px dotted var(--rule); }
+  .two32 { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-4) var(--space-5); align-items:start; }
+  .pill32 { display:inline-flex; align-items:center; gap:var(--space-1); border:1.5px solid var(--warn); color:var(--warn); border-radius:4px; padding:0 var(--space-2); min-height:28px; font-size:14px; font-weight:700; }
+  .phone .tabbar.five { grid-template-columns:repeat(5,1fr); }
+  .tabbar span { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+  /* an item's sheet: a long name wraps beside the star and the ✕ */
+  .icard .hrow { align-items:flex-start; }
+  .icard .hrow h2 { min-width:0; overflow-wrap:break-word; align-self:center; }
+  .icard p { margin:0 0 var(--space-2); }
+  .icard .knownl { font-weight:700; }
+  /* the dimmed page, the centred pop-up over it and the toast at the screen's foot */
+  .veil { position:absolute; inset:0; background:rgba(0,0,0,.35); }
+  .popc { position:absolute; left:50%; top:calc(var(--space-6) * 5); transform:translateX(-50%); width:440px; }
+  .toastc { position:absolute; left:50%; bottom:var(--space-4); transform:translateX(-50%); width:440px; }
+  .ft { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:var(--space-2); margin-top:var(--space-3); }
+  .popb .hd > span:first-child, .sheetup .head > span:first-child { min-width:0; }
+  /* K22's new part: a hidden fact's row in the Reveal pop-up */
+  .frow { display:grid; grid-template-columns:24px minmax(0,1fr) auto; gap:var(--space-3); align-items:center; min-height:56px; padding:var(--space-1) 0; border-bottom:1px dotted var(--rule); box-sizing:border-box; }
+  .frow > svg { color:var(--muted); }
+  .frow b { display:block; }
+  .frow small { display:block; font-size:14px; color:var(--muted); overflow-wrap:break-word; }
+  .toldm { display:inline-flex; align-items:center; gap:var(--space-1); min-height:44px; padding:0 var(--space-2); font-weight:700; }
+  .scrollcue { font-size:14px; color:var(--muted); text-align:center; border-top:1px solid var(--rule); padding-top:var(--space-1); }
+  /* K22's form: a labelled field with one quiet line under it */
+  .fld { margin:0 0 var(--space-3); }
+  .fld .fl { display:block; font-weight:700; margin-bottom:var(--space-1); }
+  .fld small { display:block; font-size:14px; color:var(--muted); margin-top:var(--space-1); }
+  .fld .field { overflow-wrap:break-word; }
+  .fld .field.area { min-height:88px; }
+  /* a designer's pick, marked on the frame's caption */
+  .pk { display:inline-block; border:1.5px dashed var(--info); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; }
+  /* the phone: the page behind, dimmed, and the sheet from the foot (page 26's way of drawing it) */
+  .sheetup.flow { position:relative; max-height:none; }
+  .behind { position:relative; height:52px; overflow:hidden; box-sizing:border-box; }
+  .behind.tall { height:auto; }
+  .behind .toastb { position:relative; z-index:1; margin:var(--space-6) var(--space-2) var(--space-2); }
+  .two32 .toastb { max-width:440px; box-sizing:border-box; }
+  .gap3 { height:var(--space-3); }
+  .gap5 { height:var(--space-5); }
+  .pu-hd { display:flex; align-items:flex-start; gap:var(--space-2); margin-bottom:var(--space-2); }
+  .pu-hd .ehead { flex:1; min-width:0; overflow-wrap:break-word; align-self:center; }
+  .pu-b { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; flex:none; }
+  .grey { filter:grayscale(1); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="strip.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+// Invented names and numbers only. Sam plays Wren; the ring is page 32's (frame M3g); the lantern's long name is page 30's (HM4).
+const go = svg(SY.right, 20);
+const stk = (words, k, o = {}) => `<span class="btn stk${o.accent ? ' accent' : ''}" role="button">${gi(k, 24)}<span>${words}</span></span>`;
+const Xb = `<span class="btn sq" role="button" aria-label="Close" style="border:0;background:transparent">${I.close}</span>`;
+const dpick = (words) => `<span class="pk">Designer’s pick</span> ${words}`;
+const DRAWN = '<b>Drawn 2026-11-21, awaiting approval.</b> ';
+
+// ---- the view's frame on a tablet (page 32's, as approved) ----
+const railV = (on, magic = true) => `<div class="rail">${[['crown', 'Player'], ['fire', 'Scene'], ['sack', 'Pack'], ...(magic ? [['moon', 'Magic']] : [])].map(([k, l]) => `<span class="ri${l === on ? ' on' : ''}" role="button" aria-label="${l}">${k === 'moon' ? gi('moon', 24) : sym(k, 24)}</span>`).join('')}</div>`;
+const topV = (title = '') => `<div class="vtop"><span class="back" role="link">‹ Players</span><span class="vtt">${title}</span><span class="rt">${ico('note', 'Log')}${ico('mail', 'Messages')}${ico('book', 'Reference')}<span class="ico" role="button" aria-label="More">${I.more}</span></span></div>`;
+const vband = (p = 'Sam', c = 'Wren') => `<div class="vband" role="note" aria-label="${p}’s view of ${c}. What you do here is logged as yours."><span>${sym('eye', 24)}</span><span><b>${p}’s view of ${c}</b><small>What you do here is logged as yours.</small></span></div>`;
+const vdev = (inner, cap, o = {}) => `<div><p class="cap" style="width:1024px;max-width:1024px">${cap}</p><div class="dev ipad"${o.short ? ' style="min-height:0"' : ''}>${railV('Pack')}<div class="main">${topV('Wren’s pack')}<div class="page">${vband()}${inner}</div></div>${o.extra || ''}</div></div>`;
+// the player's own tablet: the player's rail and top row, no band
+const pdev = (inner, cap) => `<div><p class="cap" style="width:1024px;max-width:1024px">${cap}</p><div class="dev ipad" style="min-height:0">${railV('Pack')}<div class="main">${topRow('player')}<div class="page">${inner}</div></div></div></div>`;
+
+// ---- the Pack and an item's sheet (page 32, frame M3g) ----
+const packList = `<div class="grp"><span class="sclab" style="margin:0">At hand</span><span>2 items</span></div><div class="irow"><span><b>★ Shortbow</b><small>Quiver: Arrows ×18</small></span>${stk('Quiver', 'quiver')}</div><div class="irow"><span><b>Storm lantern</b><small>Unlit. 3 refills left</small></span>${stk('Light', 'torch')}</div>
+  <div class="grp"><span class="sclab" style="margin:0">Worn and in hand</span><span>2 items</span></div><div class="irow"><span><b>Longsword</b><small>In hand</small></span>${go}</div><div class="irow"><span><b>Mail</b><small>Worn</small></span>${go}</div>
+  <div class="grp"><span class="sclab" style="margin:0">Carried</span><span>3 items</span></div><div class="irow open" role="button" aria-current="true"><span><b>Bronze ring<span class="newtag">New</span></b><small>Found today</small></span>${go}</div><div class="irow"><span><b>Rations</b><small>×3</small></span>${go}</div><div class="irow"><span><b>Rope, 50 feet</b><small>Coiled</small></span>${go}</div>
+  <div class="footrow" role="button"><span><b>Gear</b><small>Backpack: 6 things</small></span>${go}</div><div class="footrow" role="button"><span><b>Party stash</b><small>11 things</small></span>${go}</div>`;
+const pfoot = `<div class="pfoot2"><span class="meta">14 items</span>${b('Add item', { accent: true })}</div>`;
+const gmLine = (words) => `<div class="gmmark">${sym('eyeoff', 16)}<span>Only you see this: ${words}</span></div>`;
+const revealRow = `<div class="lrow" role="button">${sym('eye', 24)}<span>Reveal…</span>${go}</div>`;
+const editRow = `<div class="lrow" role="button">${gi('quill-ink', 24)}<span>Edit what players see…</span>${go}</div>`;
+const itemRows = `<div class="lrow" role="button">${gi('open-palm', 24)}<span>Give to…</span>${go}</div><div class="lrow" role="button">${gi('swap-bag', 24)}<span>Put in…</span>${go}</div><div class="lrow" role="button">${gi('drop-weapon', 24)}<span>Drop</span><span></span></div>`;
+const card = (name, body) => `<div class="pcard icard"><div class="hrow"><h2>${name}</h2>${ico('star', 'Pin to top')}<span class="ico" role="button" aria-label="Close">${I.close}</span></div>${body}</div>`;
+const notice = (w) => `<div class="bk"><p class="ln"><span class="lb">What you notice.</span>${w}</p></div>`;
+const kv = (k, v) => `<div class="kv2"><span class="meta">${k}</span><span>${v}</span></div>`;
+const known = (w) => `<p class="knownl">${w}</p>`;
+const srcl = '<p class="meta">From your setting: Saltwick Island, p. 14.</p>';
+const LOOK = '<p>A plain band of old bronze.</p>';
+const NOTE = 'Cold to the touch, even by the fire.';
+const TRUE = 'Ring of the Drowned Bell';
+const LONGT = 'The Old Lantern of the Drowned and of the Nine Tides';
+const SLOT = kv('Slot', 'Ring');
+
+// ---- the toast and the log ----
+const toast = (words, undo = true) => `<div class="toastb"><span class="tmsg">${words}</span>${undo ? `<span class="tu" role="button">${gi('anticlockwise-rotation', 20)}Undo</span>` : ''}<span class="tb"></span></div>`;
+const logCard = (title, lines) => `<div class="pcard"><h2 style="margin-top:0">${title}</h2>${lines.map(([t, who]) => `<div class="logl">${t} <span>${who}</span></div>`).join('')}</div>`;
+const lab = (label, html) => `<div><p class="lbl"><b>${label}</b></p>${html}</div>`;
+
+// ---- piece A: the GM's edit ----
+const fld = (label, value, hint, o = {}) => `<div class="fld"><span class="fl">${label}</span><span class="field${o.area ? ' area' : ''}" role="textbox" aria-label="${label}">${value || '&nbsp;'}</span><small>${hint}</small></div>`;
+const editIn = (a, n, cat = 'Ring') => `${fld('Appears as', a, `Left empty, it reads as “${cat}”.`)}${fld('What you notice', n, 'Left empty, players see no such line.', { area: true })}<div class="ft">${b('Save', { accent: true })}</div>`;
+const editPop = (a, n, cat) => `<div class="popb" role="dialog" aria-label="What players see"><div class="hd"><span class="sheet-title">What players see</span>${Xb}</div>${editIn(a, n, cat)}</div>`;
+const LONGA = 'A hooded lantern of green glass, with a ring for the hand';
+const LONGN = 'Cold to the hand, and no smell of oil. The glass is sea-green and thick as a bottle’s foot; held to the ear it hums, low, like a shell. The shutter sticks, and the ring is worn bright on one side only.';
+
+// ---- piece B: the Reveal pop-up ----
+const RING = { magic: ['That it’s magic', ''], name: ['Its true name', TRUE], bonus: ['Its bonus', '+1 to saves'], cursed: ['That it’s cursed', ''] };
+const LAMP = { magic: ['That it’s magic', ''], name: ['Its true name', LONGT], bonus: ['Its bonus', '+1 to saves against fear'], p1: ['A power', 'Burns without oil'], p2: ['A power', 'Shows what lies under water within ten paces'], p3: ['A power', 'The drowned can see its bearer from as far'], cursed: ['That it’s cursed', ''], charges: ['Its charges', '999 of 999 left'], mark: ['Maker’s mark', 'Three waves under a bell'] };
+const WAND = { charges: ['Its charges', '3 of 5 left'] };
+const fRow = ([k, v], told) => `<div class="frow"${told ? '' : ' role="button"'} aria-label="${k}${v ? ': ' + v : ''}${told ? '. Told' : ''}">${sym(told ? 'eye' : 'eyeoff', 24)}<span><b>${k}</b>${v ? `<small>${v}</small>` : ''}</span>${told ? `<span class="toldm">${sym('check', 16)}Told</span>` : small('Tell')}</div>`;
+const rows = (src, keys, told = []) => keys.map((k) => fRow(src[k], told.includes(k))).join('');
+const revealIn = (rowsHtml, o = {}) => `<div class="flist">${rowsHtml}</div>${o.cue ? `<p class="scrollcue">${o.cue}</p>` : ''}${o.all ? '<p class="meta" style="margin:var(--space-3) 0 0">Nothing is left hidden.</p>' : `<div class="ft">${b('Tell them everything', { accent: true })}</div>`}`;
+const revealHd = (meta, cls = 'hd', tcls = 'sheet-title') => `<div class="${cls}"><span><span class="${tcls}">Reveal</span><small class="meta" style="display:block;overflow-wrap:break-word">${meta}</small></span>${Xb}</div>`;
+const revealPop = (meta, rowsHtml, o = {}) => `<div class="popb" role="dialog" aria-label="Reveal">${revealHd(meta)}${revealIn(rowsHtml, o)}</div>`;
+const R4 = ['magic', 'name', 'bonus', 'cursed'];
+const L9 = ['magic', 'name', 'bonus', 'p1', 'p2', 'p3', 'cursed', 'charges', 'mark'];
+const RMETA = 'Bronze ring, in Wren’s pack';
+
+// ================= K22a: the GM's item sheet with the two rows =================
+const ringGM = card('Bronze ring', `${LOOK}${notice(NOTE)}${gmLine(`${TRUE}, +1 to saves, cursed.`)}${SLOT}${revealRow}${editRow}${itemRows}`);
+const k22a = vdev(`<div class="cols2" style="margin-top:0"><div>${packList}${pfoot}</div><div>${ringGM}</div></div>`,
+  `K22a. ${DRAWN}<b>The GM’s item sheet, with the one new row</b> (k22-1, k22-8). Page 32’s frame M3g (approved 2026-11-21), unchanged but for one row: <b>“Edit what players see…”</b>, under “Reveal…” and above the player’s own rows (Give to…, Put in…, Drop). It opens the form of frame K22b. <b>“Reveal…”</b> now opens the Reveal pop-up of frame K22d (k22-8: the pop-up replaces today’s per-field buttons). ${dpick('one row and one form for both fields, not a row for each; its words, “Edit what players see…”; it shows on an unidentified item until its true name is told (after that neither field shows anywhere), and never on an item that is hidden in part but named (frame K22e, 6).')} Both rows are the GM’s alone: Sam’s own sheet has neither (frame K22h). “Add item” stays the page’s one accent.`);
+
+// ================= K22b: the edit form, as it opens =================
+const k22b = vdev(`<div class="cols2" style="margin-top:0"><div>${packList}${pfoot}</div><div>${ringGM}</div></div>`,
+  `K22b. ${DRAWN}<b>“Edit what players see…” opens this form</b> (k22-1, k22-3): centred over the dimmed page on a tablet (fb7-1), a sheet from the foot on a phone (frame K22i). <b>Two fields, each starting from the setting’s own words</b>: “Appears as” (one line) and “What you notice” (several lines). <b>Either may be left empty</b>; the quiet line under each says what an empty field does. <b>No warning on his words</b> (k22-3): nothing checks them. One accent, “Save”, alone at the right (ft-1); ✕, Escape or a tap outside closes and keeps nothing. The form does not open the keyboard: focus goes to the card (06, Sheet). ${dpick('the title, “What players see”; the labels are the players’ own (“What you notice”), one name per thing; the two quiet lines.')}`,
+  { extra: `<div class="veil"></div><div class="popc">${editPop('Bronze ring', NOTE)}</div>` });
+
+// ================= K22c: the form's cases =================
+const ringEmptyGM = card('Ring', `${LOOK}${gmLine(`${TRUE}, +1 to saves, cursed.`)}${SLOT}${revealRow}${editRow}${itemRows}`);
+const k22c = vdev(`<div class="two32">
+  ${lab('1. Both emptied.', editPop('', ''))}
+  ${lab('2. After Save with both empty: the GM’s sheet. Sam’s reads the same, without the GM’s line and rows.', ringEmptyGM)}
+  ${lab('3. Messy: long words. The fields grow; nothing is cut.', editPop(LONGA, LONGN, 'Lantern'))}
+  ${lab('4. After Save: the toast, at the screen’s foot, and the log.', `${toast('Changed what players see of the Bronze ring.')}<div class="gap3"></div>${logCard('The log’s line, by reader', [['You changed what players see of Wren’s Bronze ring.', 'The GM'], ['<i>No line.</i>', 'Sam, and the party']])}`)}
+</div>`,
+  `K22c. ${DRAWN}<b>The form’s cases</b> (k22-3). <b>1, both emptied:</b> allowed; the fields stay open and plain. <b>2, what an empty “Appears as” and an empty “What you notice” give:</b> the item reads by its category’s singular name, “Ring”, and there is no “What you notice” line at all, with no hint that one was taken away (06, rule 8). <b>3, long words:</b> the fields grow to their words. <b>4, Save:</b> it happens at once, with a toast and Undo (Undo over confirm); Save with nothing changed closes and says nothing. ${dpick('the toast’s words; the change is logged for the GM only: the players get no log line, their sheet simply reads the new words.')} <b>Not drawn, as no ruling asks for them:</b> a way back to the setting’s words other than Undo; a cap on length.`, { short: true });
+
+// ================= K22d: the Reveal pop-up =================
+const k22d = vdev(`<div class="cols2" style="margin-top:0"><div>${packList}${pfoot}</div><div>${ringGM}</div></div>`,
+  `K22d. ${DRAWN}<b>“Reveal…” opens the Reveal pop-up</b> (k22-4, k22-5; 05’s “a popup listing each hidden fact in plain words, plus Tell them everything”). <b>One row per fact hidden on this item</b>, in 05’s words: “That it’s magic” (a magic item only), “Its true name”, “Its bonus”, “That it’s cursed”; GM notes are never offered. <b>A tap on a row tells that fact at once</b> (k22-5); the pop-up stays open. <b>“Tell them everything”</b> is the pop-up’s one accent, alone at the right of the foot (ft-1). ${dpick('the title, “Reveal”, with a quiet line naming the item and where it is; each row carries the closed eye, the fact, what it is in a quiet line under it (the GM sees all of it), and a small “Tell” button; the whole row is the tap.')} Centred over the dimmed page on a tablet (fb7-1); ✕, Escape or a tap outside closes it.`,
+  { extra: `<div class="veil"></div><div class="popc">${revealPop(RMETA, rows(RING, R4))}</div>` });
+
+// ================= K22e: the pop-up's states =================
+const k22e = vdev(`<div class="two32">
+  ${lab('1. After a tap on “That it’s cursed”.', `${revealPop(RMETA, rows(RING, R4, ['magic', 'cursed']))}<div class="gap3"></div>${toast('Told Wren: the Bronze ring is cursed.')}`)}
+  ${lab('2. After Undo: hidden again.', revealPop(RMETA, rows(RING, R4)))}
+  ${lab('3. After a tap on “Its true name”.', `${revealPop(`${TRUE}, in Wren’s pack`, rows(RING, R4, ['magic', 'name']))}<div class="gap3"></div>${toast(`Shown to the players: ${TRUE}. Wren’s Bronze ring now carries its name.`)}`)}
+  ${lab('4. After “Tell them everything”.', `${revealPop(`${TRUE}, in Wren’s pack`, rows(RING, R4, R4), { all: true })}<div class="gap3"></div>${toast(`Told Wren everything about the ${TRUE}.`)}`)}
+  ${lab('5. Opened again later, the curse told earlier: only what is still hidden.', revealPop(RMETA, rows(RING, ['name', 'bonus'])))}
+  ${lab('6. A fact list of one: a plain wand whose charges the setting hides.', revealPop('Ash wand, in Wren’s pack', rows(WAND, ['charges'])))}
+</div>`,
+  `K22e. ${DRAWN}<b>The pop-up’s states</b> (k22-4 to k22-6). <b>1, a fact told:</b> its row reads “Told”, with a tick and the open eye, in place of its button; the pop-up stays open; the toast carries Undo. <b>2, Undo</b> hides it again; both acts are logged (frame K22h). <b>3, the true name:</b> the toast is page 30’s (pg30-5), and every player in the campaign now reads the name, wherever the item is (sw-8). <b>4, everything told:</b> every row reads “Told”. <b>5, opened again later:</b> only what is still hidden is listed (k22-4). <b>6, a list of one.</b> ${dpick('(1) a told row is no longer a button: the way back is Undo, on the toast or in the log. (1, 3) On a magic item, telling any other fact tells “That it’s magic” too: its row turns with it, and Undo turns both back. (4) With everything told the accent goes and one quiet line stands in its place, “Nothing is left hidden.”; closed, the item’s sheet shows no GM line, no “Reveal…” and no “Edit what players see…” (frame K22g, 3). (6) A list of one keeps “Tell them everything”, so the pop-up is one shape. The toasts’ words. The toast sits at the screen’s foot, above the dimmed page, so Undo stays in reach while the pop-up is open (drawn under each pop-up here).')}`, { short: true });
+
+// ================= K22f: messy data =================
+const k22f = vdev(`<div class="two32">
+  ${lab('1. Many hidden facts, a long true name, 999 charges, a hidden field of the setting’s own.', revealPop('Hooded lantern, in Wren’s pack', rows(LAMP, L9)))}
+  <div>${lab('2. The long name told: the pop-up’s line and the toast wrap.', `${revealPop(`${LONGT}, in Wren’s pack`, rows(LAMP, ['magic', 'name', 'bonus', 'p1'], ['magic', 'name']), { cue: 'The list scrolls: 5 more' })}<div class="gap3"></div>${toast(`Shown to the players: ${LONGT}. Wren’s Hooded lantern now carries its name.`)}`)}<div class="gap5"></div>
+  ${lab('3. In the Party stash: no holder to name.', `${revealPop('Hooded lantern, in the Party stash', rows(LAMP, ['charges', 'mark'], ['charges']))}<div class="gap3"></div>${toast('Told the party: the Hooded lantern has 999 of 999 charges left.')}`)}</div>
+</div>`,
+  `K22f. ${DRAWN}<b>Messy data.</b> <b>1:</b> nine hidden facts on one item; a long true name wraps under its label; 999 charges fit their line. <b>2:</b> the long name told: the line under the title and the toast wrap, and the toast’s Undo drops to its own line at the right (the app’s toast, 06). <b>3:</b> an item in the Party stash has no holder, so the toast and the log say “the party”. ${dpick('one row per power, each “A power” with its own words under it, so the GM can tell them one at a time; a hidden field the setting labels itself (“Maker’s mark”) is a row under its own label, since k22-8 takes away its “Reveal Maker’s mark” button. A list too long for the screen scrolls between the title and the foot, which both stay in view (drawn in 2 as a cue line; 1 shows the whole list).')}`, { short: true });
+
+// ================= K22g: the GM's sheet afterwards, and outside the view =================
+const g1 = card('Bronze ring', `${known('Magic, cursed.')}${LOOK}${notice(NOTE)}${gmLine(`${TRUE}, +1 to saves.`)}${SLOT}${revealRow}${editRow}${itemRows}`);
+const g2 = card(TRUE, `${known('Magic, cursed.')}${LOOK}${gmLine('+1 to saves.')}${SLOT}${revealRow}${itemRows}`);
+const g3 = card(TRUE, `${known('Magic, cursed.')}${LOOK}${kv('Bonus', '+1 to saves')}${SLOT}${srcl}${itemRows}`);
+const g4 = card(TRUE, `<p class="meta">Players see: Bronze ring</p>${LOOK}${SLOT}<div class="sclab">Hidden from players</div>${kv('Bonus', '+1 to saves')}${kv('Cursed', 'Yes')}${revealRow}${editRow}${itemRows}`);
+const railG = `<div class="rail">${[['fire', 'Scene'], ['people', 'Players'], ['scales', 'Rules']].map(([k, l]) => `<span class="ri${l === 'Players' ? ' on' : ''}" role="button" aria-label="${l}">${sym(k, 24)}</span>`).join('')}</div>`;
+const gmOwn = `<p class="cap" style="width:1024px;max-width:1024px;margin-top:var(--space-4)"><b>4. Outside the view</b> (Players, Inventory; Whose pack): the GM’s own pack screen, the sheet as built, with the row in place of the buttons.</p><div class="dev ipad" style="min-height:0">${railG}<div class="main">${topRow('gm')}<div class="page"><div class="two32"><div><div class="sect" style="margin-top:0">Wren’s pack</div>${g4}</div><div></div></div></div></div></div>`;
+const k22g = vdev(`<div class="two32">
+  ${lab('1. The curse told: Sam’s words now carry it; the GM’s line lists what is still hidden.', g1)}
+  ${lab('2. The true name told as well: the name is the heading; “What you notice” and the edit row are gone.', g2)}
+  ${lab('3. Everything told: Sam’s sheet exactly. No GM line, no “Reveal…”.', g3)}
+</div>`,
+  `K22g. ${DRAWN}<b>The GM’s item sheet after a reveal, and outside the view</b> (k22-7, k22-8, pg32-4). <b>1 to 3, in the GM’s view of Sam’s Pack:</b> the sheet is Sam’s words as they now stand, and the line only the GM sees shrinks to what is still hidden; with nothing hidden it and “Reveal…” go (pg32-4: an item with nothing hidden shows neither). <b>4, outside the view</b> (the second frame, the GM’s own screen) the GM’s pack stays as built (C15e): the item reads by its true name, the group “Hidden from players” keeps its plain lines, and <b>its “Reveal Cursed”, “Reveal Bonus” buttons and “Reveal the count” go</b>; the one “Reveal…” row and its pop-up take their place (k22-8), with “Edit what players see…” beside it. ${dpick('(4) the group’s lines stay and only its buttons go; a quiet line, “Players see: Bronze ring”, under the true name. Frame 4 is drawn from the code (the group, its lines, its buttons), not from a picture of the built sheet.')}`, { short: true }).replace(/<\/div>$/, `${gmOwn}</div>`);
+
+// ================= K22h: the player's sheet =================
+const p0 = card('Bronze ring', `${LOOK}${notice(NOTE)}${SLOT}${itemRows}`);
+const p1 = card('Bronze ring', `${known('Magic.')}${LOOK}${notice(NOTE)}${SLOT}${itemRows}`);
+const p2 = card('Bronze ring', `${known('Magic, cursed.')}${LOOK}${notice(NOTE)}${kv('Bonus', '+1 to saves')}${SLOT}${itemRows}`);
+const p3 = card(TRUE, `${known('Magic.')}${LOOK}${SLOT}${itemRows}`);
+const p4 = card(TRUE, `${known('Magic, cursed.')}${LOOK}${kv('Bonus', '+1 to saves')}${SLOT}${srcl}${itemRows}`);
+const logK = logCard('The log’s lines, by reader', [
+  ['You told Wren the Bronze ring is cursed.', 'The GM'],
+  ['Wren learned the Bronze ring is cursed.', 'Sam, and the party'],
+  ['You told Wren the Bronze ring gives +1 to saves.', 'The GM'],
+  ['Wren learned the Bronze ring gives +1 to saves.', 'Sam, and the party'],
+  [`You showed the players the Bronze ring’s true name: ${TRUE}.`, 'The GM'],
+  [`Wren learned the Bronze ring’s true name: ${TRUE}.`, 'Every player'],
+  [`You told Wren everything about the ${TRUE}.`, 'The GM'],
+  [`Wren learned what the Bronze ring is: the ${TRUE}, magic and cursed, +1 to saves.`, 'Sam, and the party'],
+  ['You undid a reveal: that the Bronze ring is cursed is hidden again.', 'The GM'],
+  ['<i>No new line: “Wren learned the Bronze ring is cursed.” is taken away.</i>', 'Sam, and the party'],
+]);
+const k22h = pdev(`<div class="two32">
+  ${lab('1. Before: as HM4’s first picture.', p0)}
+  ${lab('2. “That it’s magic”, told alone: magic, and nothing more.', p1)}
+  ${lab('3. A partial reveal: the curse and the bonus. “What you notice” stays.', p2)}
+  ${lab('4. The true name told alone: the name is the heading; “What you notice” is gone.', p3)}
+  ${lab('5. Everything told: as HM4’s second picture.', p4)}
+  ${lab('6. The log.', logK)}
+</div>`,
+  `K22h. ${DRAWN}<b>The player’s item sheet, on Sam’s own Pack</b> (k22-7; page 30’s HM4, approved 2026-11-20). <b>Nothing pops up for Sam</b> (05): the sheet changes and the log gains a line. <b>“What you notice” stays until the true name is told</b>, then goes, as HM4 draws it; <b>each told fact shows</b>. <b>The log’s line names the fact</b> (k22-7). A told bonus counts in Sam’s numbers from then on (05). Sam has no “Reveal…” and no “Edit what players see…”: a reveal is the GM’s alone (03). ${dpick('how a told fact reads: “Magic.” or “Magic, cursed.” as one plain line under the name; a bonus and charges as the sheet’s own detail rows; a power as its own words; the setting’s source line only once everything is told. The log’s words: past tense and the character’s name, as every log line (his example read “Sam learns the ring is cursed”). <b>Two points that touch hidden data, drawn one way for him to rule:</b> the line is read by the holder and the party (the true name by every player, sw-8); after Undo the players’ line goes and the GM’s log keeps both acts.')}`);
+
+// ================= K22i: the phone =================
+const vbarPh = (title) => `<div class="bar" style="grid-template-columns:auto 1fr 44px"><span class="ico" role="link" aria-label="Back to Players" style="width:auto;padding:0 var(--space-2);color:var(--accent);text-decoration:underline">‹ Players</span><span class="title">${title}</span><span class="ico" role="button" aria-label="More">${I.more}</span></div>`;
+const starO = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3l2.800 6 6.500.6-4.900 4.300 1.500 6.400L12 17l-5.900 3.300 1.500-6.400L2.700 9.600 9.200 9z" ${W}/></svg>`;
+const pX = `<span class="pu-b" role="button" aria-label="Close">${I.close}</span>`;
+const hdP = (name) => `<div class="pu-hd"><span class="ehead">${name}</span><span class="pu-b" role="button" aria-pressed="false" aria-label="Pin to top">${starO}</span>${pX}</div>`;
+const bl = (label, text) => `<p class="ln"><span class="lb">${label}</span>${text}</p>`;
+const rowsPh = `<div class="lrow" role="button">${gi('open-palm', 24)}<span>Give to…</span>${go}</div><div class="lrow" role="button">${gi('swap-bag', 24)}<span>Put in…</span>${go}</div><div class="lrow" role="button">${gi('drop-weapon', 24)}<span>Drop</span>${go}</div>`;
+const shGM = (behind, inner, cap, o = {}) => phone(`<div class="behind${o.toast ? ' tall' : ''}">${behind}<div class="dim"></div>${o.toast || ''}</div><div class="sheetup flow" role="dialog">${inner}</div>`, cap);
+const headPh = (title) => `<div class="head"><span class="title">${title}</span>${Xb}</div>`;
+const phA = shGM(vbarPh('Wren’s pack'), `${hdP('Bronze ring')}<p style="margin:0 0 var(--space-2)">A plain band of old bronze.</p><div class="bk">${bl('What you notice', NOTE)}</div>${gmLine(`${TRUE}, +1 to saves, cursed.`)}${SLOT}${revealRow}${editRow}${rowsPh}`, '1. The GM’s item sheet.');
+const phB = shGM(vbarPh('Wren’s pack'), `${headPh('What players see')}${editIn('Bronze ring', NOTE)}`, '2. The form.');
+const phC = shGM(vbarPh('Wren’s pack'), `${revealHd(RMETA, 'head', 'title')}${revealIn(rows(RING, R4, ['magic', 'cursed']))}`, '3. The Reveal pop-up, one fact told.', { toast: toast('Told Wren: the Bronze ring is cursed.') });
+const phD = shGM(vbarPh('Wren’s pack'), `${revealHd(`${LONGT}, in Wren’s pack`, 'head', 'title')}${revealIn(rows(LAMP, ['magic', 'name', 'bonus', 'p1', 'p2', 'p3', 'cursed'], ['magic', 'name']), { cue: 'The list scrolls: 2 more' })}`, '4. Messy: many facts and a long name; the sheet at its full height.');
+const phE = shGM(phoneBar('Wren'), `${hdP('Bronze ring')}<div class="bk"><p style="font-weight:700">Magic, cursed.</p><p>A plain band of old bronze.</p>${bl('What you notice', NOTE)}${bl('Bonus', '+1 to saves')}</div>${rowsPh}`, '5. Sam’s sheet after a partial reveal.');
+const phF = shGM(phoneBar('Wren'), `${hdP(LONGT)}<div class="bk"><p style="font-weight:700">Magic, cursed.</p>${bl('Light', 'Lit, 999 turns left')}${bl('Charges', '999 of 999 left')}${bl('Bonus', '+1 to saves against fear')}<p>Lit, it burns no oil and shows whatever lies under water within ten paces, as plainly as if the water were air. The drowned can see its bearer from as far.</p><p class="source">From your setting: Saltwick Island, p. 14.</p></div>${rowsPh}`, '6. Sam’s sheet after everything: a long name, 999.');
+const k22i = `<div><p class="cap" style="width:1080px;max-width:1080px">K22i. ${DRAWN}<b>At 375 px</b> (drawn 343 inside, as every phone in this folder). Every pop-up is the sheet from the foot (06, Sheet); the page behind is dimmed. <b>1:</b> the GM’s item sheet in the view, with “Reveal…” and “Edit what players see…” above the player’s rows; every row 48 px high. <b>2:</b> the form; “Save” alone at the right. <b>3:</b> the Reveal pop-up after one fact is told. <b>4:</b> many facts and a long name: the list scrolls inside the sheet, the title and “Tell them everything” stay in view, the sheet stops at 90% of the height. <b>5 and 6:</b> Sam’s own sheet, drawn as HM4 draws it (a thing’s pop-up, page 26’s M2n): a partial reveal, and everything told with a long name and 999. ${dpick('on a phone the toast sits just above the sheet’s top edge, over the dimmed page (3), so it never covers a row or “Tell them everything”. <b>What that costs:</b> with the sheet at its full height (4) there is no room above it, and the toast lies over the sheet’s title and ✕ for its 6 seconds; the rows and the accent stay clear.')}</p><div class="wall">${phA}${phB}${phC}${phD}${phE}${phF}</div></div>`;
+
+// ================= K22j: states =================
+const k22j = vdev(`<div class="two32">
+  ${lab('Couldn’t tell: the row stays hidden.', `<div class="popb" role="dialog" aria-label="Reveal">${revealHd(RMETA)}<div class="flist">${rows(RING, R4)}</div><p style="margin:var(--space-3) 0 0">${warn('Couldn’t tell Wren. Try again.')}</p><div class="ft">${b('Tell them everything', { accent: true })}</div></div>`)}
+  ${lab('Offline: told on this tablet at once; Sam’s sheet follows when it syncs.', `<p style="margin:0 0 var(--space-2)"><span class="pill32">${I.warn}Offline</span></p>${revealPop(RMETA, rows(RING, R4, ['magic', 'cursed']))}`)}
+  ${lab('The item leaves while the pop-up is open (Sam drops it on another device).', `${toast('Wren dropped the Bronze ring.', false)}<p class="meta" style="margin:var(--space-2) 0 0">The pop-up and the item’s sheet close, back to the Pack.</p>`)}
+  ${lab('Nothing hidden: no GM line, no “Reveal…”, no pop-up to open (pg32-4).', card('Rope, 50 feet', `<p>Hemp, coiled.</p>${kv('Slot', 'Pack')}${itemRows}`))}
+  ${lab('With the hue taken away: a hidden row and a told one.', `<div class="grey"><div class="popb">${rows(RING, ['magic', 'bonus'], ['magic'])}</div></div>`)}
+</div>`,
+  `K22j. ${DRAWN}<b>States and odd cases.</b> <b>Loading:</b> none of its own; the pop-up and the form open from what the GM’s tablet already holds. <b>Empty:</b> an item with nothing hidden has no “Reveal…” row, so the pop-up is never empty when it opens; told down to nothing, it reads “Nothing is left hidden.” (frame K22e, 4). <b>Error:</b> the warning sign and plain words in the pop-up; the row stays hidden and stays a button. <b>Offline:</b> as the GM’s other acts on a player’s tab (today’s offline rules). <b>The item leaves while open:</b> the pop-up closes with the app’s own toast for that act. <b>Overflow:</b> frames K22f and K22i. <b>Colour alone carries nothing here:</b> a hidden row has the closed eye and a “Tell” button, a told row the open eye, a tick and the word “Told”; the last card shows both in grey. <b>No disabled button anywhere:</b> a told row is not a button at all, and with everything told the accent is gone, not greyed. ${dpick('the words of the error line, and that it sits in the pop-up above the foot.')}`, { short: true });
+
+mount(`
+  <h1>Page 33 (K22): what a player notices, the GM’s edit, and the Reveal pop-up</h1>
+  <p class="note">For the driver (row K22 of <code>docs/plans/dec-6-the-whole-pack-tab.md</code>; Francis’s answers of 2026-11-21, k22-0 to k22-8 in <code>docs/design/rulings/k22-reveal-2026-11-21.md</code>). <b>A proposal: drawn 2026-11-21, awaiting Francis’s approval from pictures.</b> Names, words and numbers are invented. The view’s frame, the Pack and the ring are page 32’s (M3g, approved 2026-11-21); the player’s sheet follows page 30’s HM4 (approved 2026-11-20); only the form, the Reveal pop-up and the told facts are new. Every point no answer settles is drawn one way and marked <span class="pk">Designer’s pick</span> in its frame’s caption.</p>
+  <h1>K22a. The GM’s item sheet</h1>
+  <div class="wall">${k22a}</div>
+  <h1>K22b. “Edit what players see…”</h1>
+  <div class="wall">${k22b}</div>
+  <h1>K22c. The form’s cases</h1>
+  <div class="wall">${k22c}</div>
+  <h1>K22d. The Reveal pop-up</h1>
+  <div class="wall">${k22d}</div>
+  <h1>K22e. The pop-up’s states</h1>
+  <div class="wall">${k22e}</div>
+  <h1>K22f. Messy data</h1>
+  <div class="wall">${k22f}</div>
+  <h1>K22g. The GM’s sheet afterwards, and outside the view</h1>
+  <div class="wall">${k22g}</div>
+  <h1>K22h. The player’s sheet and the log</h1>
+  <div class="wall">${k22h}</div>
+  <h1>K22i. The phone</h1>
+  <div class="wall">${k22i}</div>
+  <h1>K22j. States and odd cases</h1>
+  <div class="wall">${k22j}</div>
+  <h1>What his answers set (2026-11-21)</h1>
+  <p class="note"><b>k22-0, scope:</b> all of K22 comes before the GM’s view (C15) goes to main.</p>
+  <p class="note"><b>k22-1, where he edits</b> (K22a, K22b): from a row on his item sheet, any time after the item is handed out; not in Add item’s form.</p>
+  <p class="note"><b>k22-2, handed out identified:</b> hand it out, then Reveal… and “Tell them everything” (K22e, 4). No new switch.</p>
+  <p class="note"><b>k22-3, the fields</b> (K22b, K22c): both start from the setting’s words; either may be empty; no warning on his words.</p>
+  <p class="note"><b>k22-4, the list</b> (K22d, K22e, K22f): only what is hidden on this item, one row per fact; “That it’s magic” on a magic item only; GM notes never.</p>
+  <p class="note"><b>k22-5, a tap</b> (K22e): tells at once; the row reads as told; the pop-up stays; “Tell them everything” is the one accent.</p>
+  <p class="note"><b>k22-6, Undo</b> (K22e): each tell has an Undo toast; Undo hides it again; both logged.</p>
+  <p class="note"><b>k22-7, the player’s side</b> (K22h, K22i): “What you notice” stays until the true name is told; each told fact shows; the log names the fact; no pop-up.</p>
+  <p class="note"><b>k22-8, one way everywhere</b> (K22a, K22g): the “Reveal…” row and its pop-up replace the per-field buttons and “Reveal the count”, in and out of the GM’s view.</p>
+  <h1>Self-review</h1>
+  <p class="note"><b>The stylesheet.</b> This page links the shared mockup stylesheet (<code>../shared/book.css</code>) and its type pass, and restates none of their rules; its own rules are layout, page 32’s own parts (the view’s band, the Pack’s rows, the item’s rows) copied as drawn, and three new parts: the fact row, the form’s field and the pick’s mark. Page 30’s source is not on main, so HM4’s form is redrawn from its pictures and page 26’s M2n.</p>
+  <p class="note"><b>Checked, in the HTML and the pictures.</b> Never a disabled button: a hidden row is a button, a told row is plain words, the accent goes when nothing is left to tell. One accent per screen: “Add item” on the Pack; over the dimmed page, the pop-up’s own (“Save”; “Tell them everything”). Undo over confirm: Save and every tell act at once with a toast and Undo; nothing asks first. Hidden stays hidden in words: an empty “What you notice” leaves no line and no hint; Sam’s sheet never says a thing is hidden; the GM’s line is his alone. Drawing notes sit outside the app’s frames, as captions and card labels. Colour alone carries nothing (frame K22j’s grey card). Targets: every button 44 px high; a fact row 56 px, its “Tell” 44 px with 12 px to the next; an item’s rows 48 px; ✕ 44 px. 375 px: frame K22i. Messy data: a long true name in the pop-up’s line, the toast and the heading; 999 charges; nine hidden facts; a list of one; both fields empty; long words in both fields. States: empty, error, offline, overflow, partial (some told), the item leaving; no loading state of its own. Nielsen: visibility (the row turns to “Told”, the toast, the GM’s line shrinking), match (05’s plain words, the players’ own label), control (Undo on every act; ✕ keeps nothing), consistency (page 32’s sheet and rows, page 30’s toast, the app’s pop-up and foot), error prevention (what an empty field does is said under it), recognition (each row shows what it would tell), minimalism (one row for the edit, one for the reveal).</p>
+  <p class="note"><b>Measured</b> (WCAG ratio from the tokens). On the pop-up’s ground: ink (a fact, “Told”), light 17.9, dark 13.0; the quiet line under a fact, light 7.1, dark 6.8; the error line in the warning colour, light 7.5, dark 10.7. “Save” and “Tell them everything”, their words on the accent, light 10.4, dark 6.4; the accent button against the pop-up, light 10.4, dark 5.3. The GM’s line in the info colour on the item’s sheet, light 7.1, dark 7.9. The label “What you notice” on the item’s sheet, light 5.3, dark 5.8. The toast, light 17.1, dark 15.9. The edge of a field and of “Tell” against the pop-up, light 3.8, dark 3.0 (the app’s own control edge; not new here).</p>
+  <p class="note"><b>Not checked.</b> Larger text. How the built toast stacks over an open pop-up, and whether it can sit above the sheet on a phone (a technical point for the builder). The built GM item sheet outside the view (frame K22g, 4, is drawn from the code). What ✕ does to a half-typed form elsewhere in the app. Today’s offline behaviour of a GM’s act on a player’s tab. Whether a setting can hide a field on an item that is not unidentified other than charges (frame K22e, 6, assumes charges). The log’s exact words against the app’s own for a GM’s act. The label’s full stop: page 32’s M3g writes “What you notice.” and page 30’s HM4 writes it without; each form here keeps its source’s way. <b>Costs build time:</b> Undo of a reveal (today’s reveal has none, and a fact told is copied into the item’s details); a fact list read from the setting’s hidden fields with duplicates merged; the players’ log line per fact.</p>
+`);
+for (const el of document.querySelectorAll('.phone')) el.classList.add('bit');
+for (const el of document.querySelectorAll('.dev h2, .phone h2')) el.classList.add('bsub');
+for (const el of document.querySelectorAll('.tabbar span')) el.dataset.sc = '';
+applyBook();
+</script>
+</body>
+</html>
