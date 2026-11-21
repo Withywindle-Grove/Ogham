@@ -5858,7 +5858,7 @@ describe('the Pack tab (M4 step 4)', () => {
     expect(world.tables.inventory_lines[0]).toMatchObject({ charges_left: 0 });
   });
 
-  it('handing out a charged item pops up the charges prompt for the GM', async () => {
+  it("handing out a charged item from the GM's own pack pops up the charges prompt for the GM", async () => {
     const { gm } = packWorld('coin');
     wandRules(false);
     world.tables.library_entries.push({ id: 'entry-reed-wand', pack_id: 'pack-fen', kind: 'item', pack_entry_id: 'reed-wand', name: 'Reed wand', data: { id: 'reed-wand', name: 'Reed wand', category: 'wand', weightCoin: 1 } });
@@ -5866,7 +5866,9 @@ describe('the Pack tab (M4 step 4)', () => {
     const user = openApp();
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(user);
-    await user.click(await screen.findByRole('button', { name: "Open Wren's pack" }));
+    // The GM's own pack (Whose pack), not the view, which has no charges prompt (pg32-4, C15e).
+    await user.click(await screen.findByRole('button', { name: 'Inventory' }));
+    await user.click(within(await screen.findByRole('group', { name: 'Whose pack' })).getByRole('button', { name: 'Wren' }));
     await user.click(await screen.findByRole('button', { name: 'Add item' }));
     await user.type(await screen.findByLabelText('Search items'), 'reed');
     await user.click(screen.getByRole('button', { name: /Reed wand/ }));
