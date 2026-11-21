@@ -2,7 +2,7 @@
 
 The ruled-so-far sheet (nt-1) for mockup page 32 (M3, row C15 of `docs/plans/test-feedback-2026-11-19.md`), compiled before drawing. History only once the page is approved; the specs (03, 05, 06) and the rulings files win over this sheet. The newest ruling wins.
 
-Short names: GV = `../rulings/dec-test-feedback-gm-view-2026-11-19.md` (tfg-1 to tfg-5); D5 = `../rulings/dec5-flags-sitting-2026-11-20.md`; P4S = `../rulings/p4-sitting-2026-11-20.md`; POP = `../rulings/dec-player-popups-centred-2026-11-20.md`; page 28's sheet = `m4-pins-ruled-so-far-2026-11-20.md`.
+Short names: GV = `../rulings/dec-test-feedback-gm-view-2026-11-19.md` (tfg-1 to tfg-5); D5 = `../rulings/dec5-flags-sitting-2026-11-20.md`; P4S = `../rulings/p4-sitting-2026-11-20.md`; POP = `../rulings/dec-player-popups-centred-2026-11-20.md`; page 28's sheet = `m4-pins-ruled-so-far-2026-11-20.md`; PG32 = `../rulings/page-32-m3-gm-view-2026-11-21.md` (pg32-1 to pg32-7, Francis's answers of 2026-11-21).
 
 ## The view itself
 
@@ -21,7 +21,7 @@ Short names: GV = `../rulings/dec-test-feedback-gm-view-2026-11-19.md` (tfg-1 to
 | **Whose view it is, and the way back to the Players list, show on every tab of the view** | GV, For the builder |
 | A character with **no Player tab yet** (waiting, sent back, a draft): View sheet opens the full sheet, as today; the GM reviews from it | d5-22 (D5) |
 | The page "Full sheet" stays until after 5 December, reached from the phone menu's "Full character sheet"; then retired; d5-22's review needs a home first | of-8 (P4S) |
-| The GM's own characters ("Yours") have rows and open the same way; nothing else ruled for them | GV, For the builder |
+| The GM's own characters ("Yours") have rows and open the same way; the band reads "Your view of Ash" without the logged line; no player-only pop-ups | GV, For the builder; pg32-7 (2026-11-21) |
 
 ## The Players list's row
 
@@ -30,7 +30,7 @@ Short names: GV = `../rulings/dec-test-feedback-gm-view-2026-11-19.md` (tfg-1 to
 | Today's row: the portrait, the name with its summary, a small line naming the player ("Sam, joined 12 Oct"; the GM's own: "Yours"); small plain buttons View sheet, Pack, "Give to a player…", "Remove…" | 06, Give to a player; page 13 G1, P1 (approved 2026-11-13) |
 | "Give to a player…" sits between Pack and Remove…, plain; the page's one accent stays "Invite a player" | gp-1 (page 13) |
 | As built: Pack and Give only for an approved character not archived; Remove… for any but one waiting | `src/app/GmCampaign.tsx` (read 2026-11-21) |
-| The row's layout with up to seven controls is the page's to draw: "a fourth button or in the row's ⋯"; at 375 px with a long name | tfg-4; GV ⚑ 7; plan ⚑ 18 |
+| The row: View sheet, Pack, Magic (a caster only), Scene, ⋯; ⋯ holds Edit, "Give to a player…", "Remove…"; no stacked Edit on this page; at 375 px ⋯ never alone on a line | pg32-1 (2026-11-21) |
 | A row's buttons wrap under its name on a phone | page 13, P1 |
 
 ## The Player tab (as the player sees it)
@@ -55,7 +55,7 @@ Page 28's sheet holds the tab's rulings in full (order, notices box, the foot's 
 | Unidentified items: the player sees what it appears as and "What you notice"; hidden facts don't change the player's numbers until revealed | 05, Unidentified items |
 | Today the GM's Pack carries **Reveal** (a pop-up of each hidden fact and "Tell them everything") and a hidden bonus marked "(hidden from the player)" | 05 |
 | GM **Whose pack** (Players, Inventory): characters on the left, the chosen character's Pack on the right | 06, Layouts |
-| "As the player sees it" has none of the GM's extras; where they go is **open** | GV ⚑ 3 |
+| In the player's view an item's sheet shows the player's words plus one line only the GM sees and "Reveal…"; the Pack is the one place the view is not exactly the player's | pg32-4 (2026-11-21) |
 
 ## Magic
 
@@ -74,7 +74,7 @@ Page 28's sheet holds the tab's rulings in full (order, notices box, the foot's 
 | A request waiting on the GM: "Waiting for your GM: search the piles." with Cancel (never the accent) | page 18, PL4b |
 | For first play a way's button opens a pop-up saying the GM moves the party (pw-1) | page 18, PL4c |
 | Activities, Rest and entering a roll are open to the GM (03); a secret activity, buying, selling and "Somewhere else…" are requests, so closed to the GM by tfg-5 | 03; tfg-5 |
-| Whether the GM sees **that player's group only** (its place, its lights, what was shown to it) is **open** | GV ⚑ 2 |
+| The GM sees **that player's group only** (its place, its lights, what was shown to it); Cancel's pop-up goes straight to the request in Waiting for you | pg32-5 (2026-11-21) |
 
 ## App-wide standards
 
@@ -91,13 +91,18 @@ Page 28's sheet holds the tab's rulings in full (order, notices box, the foot's 
 | No explaining lines where the screen already shows it | p2p-17 |
 | Invented names only; no game, book or adventure names | Hard rule 2 |
 
-## Not settled: drawn on page 32 as choices
+## Settled on 2026-11-21: Francis's answers to the page's seven ⚑
 
-| ⚑ | Frame | The designer's lean |
+All seven are answered (`../rulings/page-32-m3-gm-view-2026-11-21.md`, pg32-1 to pg32-7) and the page is redrawn to them, for his approval from pictures.
+
+| ⚑ | Frame | His answer |
 |---|---|---|
-| GV 7, the row's buttons | M3a, M3b | The four views as small buttons, Edit as the stacked quill at the row's right, "Give to a player…" and "Remove…" in the row's ⋯ |
-| Whose view, and the way back | M3c, M3d | "‹ Players" as the back link, and a band under the top row on every tab |
-| GV 4, the player's numbers or the GM's marks | M3e | The player's numbers exactly |
-| GV 3, the GM's Pack tools | M3g | The view is the player's alone; one row at its foot to Whose pack |
-| GV 2, the Scene | M3i | That player's group only |
-| The blocked pop-up's words | M3f | "Only Sam can …", naming the player |
+| GV 7, the row's buttons | M3a, M3b | View sheet, Pack, Magic, Scene, ⋯; Edit, Give and Remove in ⋯ (pg32-1) |
+| Whose view, and the way back | M3c, M3d | The band on every tab, two lines at most at 375 px; "‹ Players" (pg32-2) |
+| GV 4, the player's numbers or the GM's marks | M3e | The player's numbers exactly (pg32-3) |
+| GV 3, the GM's Pack tools | M3g, M3g2 | In the item's sheet: the GM's line and "Reveal…" (pg32-4) |
+| GV 2, the Scene | M3i | That player's group only (pg32-5) |
+| The blocked pop-up's words | M3f, M3f2 | "Only Sam can …"; "Go to Waiting for you" on three (pg32-6) |
+| Odd cases | M3k | Given away, removed, the GM's own (pg32-7) |
+
+Still open: ⚑ 30 of the plan (pins in the player's view), and two small ones in the ruling (the band's cap on a tablet; the archived row).
