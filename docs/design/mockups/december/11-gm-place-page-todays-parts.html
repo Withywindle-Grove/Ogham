@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: the GM’s place page with everything today’s card holds (2026-11-13)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .psee { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2) var(--space-3); align-items:center; min-height:44px; margin-top:var(--space-2); }
+  .psee small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+  .pce { display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:var(--space-3); align-items:center; min-height:52px; border-bottom:1px dotted var(--rule); padding:var(--space-1) 0; }
+  .pce small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+  /* measured (t44-1): "Edit piece" is as tall as a target */
+  .pce > [role="button"] { min-height:44px; align-content:center; }
+  /* measured: the trail's tap area keeps 8 px from the phone bar's menu */
+  .phone .inner > .crumb:first-child { margin-top:var(--space-1); }
+  .pce .pic { display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap; }
+  .pce .pic svg { width:120px; height:80px; display:block; border:1px solid var(--control); flex:none; }
+  .pce .pic .pa { display:flex; gap:var(--space-2); flex-wrap:wrap; }
+  .adders { display:flex; gap:var(--space-2); flex-wrap:wrap; margin-top:var(--space-2); }
+  .chk { min-height:44px; display:flex; align-items:center; border-bottom:1px dotted var(--rule); }
+  .chk:last-child { border-bottom:0; }
+  .pform { border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); margin-top:var(--space-2); }
+  .pform h4 { margin:0 0 var(--space-2); font-size:18px; }
+  .pform .foot { display:flex; gap:var(--space-2); align-items:center; flex-wrap:wrap; margin-top:var(--space-3); }
+  .pform .foot .sp { flex:1; }
+  .flab { display:block; font-size:14px; color:var(--muted); margin:var(--space-3) 0 var(--space-1); }
+  .tfour { display:grid; grid-template-columns:auto minmax(0,1fr); gap:var(--space-1) var(--space-3); margin-top:var(--space-3); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="strip.js"></script>
+<script>
+const go = svg(SY.right, 20);
+const sep = svg(SY.right, 16);
+const down = svg('<path d="M6 9l6 6 6-6" ' + W + '/>', 20);
+const ruleBtn = (k, words) => `<span class="btn big sqb" role="button" aria-label="${words}">${gi(k, 34)}</span>`;
+const moveBtn = (accent = true) => b('Move on', { big: true, accent, icon: 'travel' });
+const setPlaceBtn = b('Set place', { big: true, accent: true, icon: 'travel' });
+const splash = ruleBtn('water-splash', 'Someone fell in');
+
+// ---- today's parts, in the redesign's dress ----
+const headOf = ({ crumb = '', name, ident = '', around = '', acts, cls = '' }) => `${crumb ? `<div class="crumb">${crumb}</div>` : ''}<div class="band"><div><h3 class="display${cls ? ' ' + cls : ''}">${num(name)}</h3>${ident ? `<p class="ident">${ident}</p>` : ''}${around ? `<p class="meta" style="margin:var(--space-1) 0 0">${around}</p>` : ''}</div><div class="acts two">${acts}</div></div>`;
+const seen = (name, first) => `<div class="psee"><span>Players see: <b>${name}</b>${first ? '<small>The name goes out with the first piece you show. Change it first if it gives something away.</small>' : ''}</span>${small('Rename for players')}</div>`;
+const pair = `<div class="two">${b('Knowledge', { icon: 'book' })}${b('Rules', { icon: 'scales' })}</div>`;
+const calls = (state) => `<span class="btn" role="button" style="display:flex;justify-content:space-between;width:100%;margin-top:var(--space-2)"><span style="display:inline-flex;gap:var(--space-2);align-items:center">${gi('stabbed-note', 20)}Calls to adventure</span><span class="meta" style="font-family:'Atkinson Hyperlegible',Arial,sans-serif;font-weight:400;white-space:nowrap">${state}</span></span>`;
+const checks = (rows, own = true) => `<div class="hrow" style="margin-top:var(--space-3)"><h2>Checks here</h2></div>${own ? inForce().replace('class="inforce', 'style="margin-top:0" class="inforce') : ''}${rows.map((r) => `<div class="chk">${dz(r)}</div>`).join('')}`;
+const pieceRow =(kind, text, shown, gm = '') => `<div class="pce"><div role="button" aria-label="Edit piece: ${text}"><b>${kind}.</b> ${text}${gm ? `<small>${gm}</small>` : ''}</div>${eyeBtn(shown)}</div>`;
+const PIC = `<svg viewBox="0 0 120 80" role="img" aria-label="A stand-in picture of the place"><rect width="120" height="80" fill="#8f9a98"/><path d="M0 0h120v30C90 26 70 40 40 34 20 30 10 36 0 34z" fill="#d9d2bf"/><path d="M50 34v34M62 36v32M44 46h24M44 58h24" stroke="#222" stroke-width="3"/><text x="4" y="76" font-family="Georgia, serif" font-size="7" font-style="italic" fill="#f4f1e8">A stand-in picture</text></svg>`;
+const picture = (shown) => `<div class="pce"><div class="pic"><span role="button" aria-label="Open the picture of this place">${PIC}</span><span><b>Picture.</b><span class="pa" style="margin-top:var(--space-1)">${small('Change picture')}${small('Take it off')}</span></span></div>${eyeBtn(shown)}</div>`;
+const piecesHead = (count) => `<div class="hrow" style="margin-top:var(--space-3)"><h2>Pieces</h2>${count ? `<span class="meta">${count}</span>` : ''}${small('Hide all')}</div>`;
+const adders = (withPicture) => `<div class="adders">${small('+ Piece')}${withPicture ? small('+ Picture') : ''}</div>`;
+const notes = (first) => `<div class="spot" role="button" aria-expanded="false" style="border-top:1px dotted var(--rule);margin-top:var(--space-3)"><span><b>Notes</b>${first ? `<small>${first}</small>` : ''}</span><span class="ctl">${down}</span></div>`;
+const source = (words) => `<p class="source">${words}</p>`;
+const card = (parts) => `<div class="pcard">${parts.join('')}</div>`;
+
+// the jetty's pieces (the place in today's built picture), four of them
+const jettyPieces = (allHidden) => [picture(false), pieceRow('Description', 'Black piles, a mooring ring, weed to the waterline.', !allHidden), pieceRow('Clue', 'Fresh rope on the ring: someone tied up here this week.', false), pieceRow('Exit', 'A ladder down to a tarred skiff.', !allHidden), pieceRow('Treasure', 'A green copper chest, wedged under the planks.', false, 'Value stays yours (40 herons).')].join('');
+
+// ---- 1a: at a place that holds spots (01-01's base) ----
+const spotsList = [spot('1 The jetty', 'Where the bog road gives out.', true), spot('2 The wreck', 'A cog on her side on the bar, decks awash.', true), spot('3 The breakwater', 'A drowned wall with a gap a boat can thread.', true), spot('4 The customs shed', 'Stilted, shuttered, a light some nights.', false), spot('5 The sea cave', 'Only at low water, and only through the gap.', false)].join('');
+const spotsCard = `<div class="pcard"><div class="hrow"><h2>Spots here</h2><span class="meta">3 of 5 shown</span></div>${spotsList}<div class="hrow" style="margin-top:var(--space-3)"><h2>People of the harbour</h2></div>${who('Old Hesper, ferryman', 'Rows anyone anywhere for a coin.')}${who('The Tidewife', 'Seen on the bar at slack water.')}</div>`;
+const tablesCard = `<div class="pcard"><div class="hrow"><h2>Tables</h2></div>${dieRow('What the tide left', 'd6')}${dieRow('On the water', 'd8', 'The harbour’s encounters')}</div>`;
+const harbourPieces = [picture(false), pieceRow('Description', 'A silted harbour: black water, a dry bar, a mast that shows at every tide.', true), pieceRow('Someone here', 'A ferryman watches from the far bank.', true), pieceRow('Hazard', 'The bar’s mud takes a boot to the knee.', false, 'Look only; trigger stays yours (a save, or stuck).')].join('');
+const mapWanted = `<div class="psee"><span><b>The Drowned Harbour, the harbour chart</b><small>harbour-chart.png</small></span>${small('+ Map')}</div>`;
+const harbourCard = (map) => card([
+  headOf({ crumb: `<a class="x">Saltwick Island</a>${sep}<b>The Drowned Harbour</b>`, name: 'The Drowned Harbour', ident: 'A silted harbour of five spots, crossed by boat or by swimming.', acts: splash + moveBtn() }),
+  seen('The Drowned Harbour'),
+  map === 'want' ? mapWanted : map ? `${mapOpen(mapPic(true), '', { bare: true })}${mapTools(eyeBtn(false))}` : '',
+  pair, calls('1 of 4 sent'), checks([]),
+  piecesHead('2 of 4 shown'), harbourPieces, adders(false),
+  notes('The Tidewife keeps her word to the letter.'),
+  source('Region. From your adventure: The Reed Marches.'),
+]);
+const f1a = ipad('gm', `${turnBand()}<div class="cols2"><div>${harbourCard(true)}</div><div class="stack">${spotsCard}${tablesCard}${partyOrder()}</div></div>`,
+  '1a. <b>The party is in a place that holds spots, and at no one spot</b> (set 1’s page, 01-01, variant A: the map is the body), with every part of today’s place card placed. Down the place’s card: the trail (its tap is today’s “Part of …” button); the name and its line; <b>the rule’s icon button and Move on</b>, as set 1 and mc-52 have them (Move on is the page’s one accent; what today’s “Change place” does is Move on’s last row, “Somewhere else…”, set 1’s frame 11); <b>“Players see” with “Rename for players”</b>; the map and its tools; Knowledge and Rules; <b>the calls-to-adventure line</b> on a line of its own; <b>“Checks here”</b>, where the place’s own check is the line with the toggle; <b>“Pieces”</b>, with the count and “Hide all” on the heading’s row, the picture first with its own eye and its two buttons, then each piece with the bare eye (a tap on a piece’s words edits it, as today), and “+ Piece” under them; <b>“Notes”</b> folded with its first line; and one muted line for the pack’s name and the kind of place. The right column is 01-01’s, unchanged; <b>the eyes and the count on “Spots here” are not built yet: until they are, the list is frame 8’s.</b> <b>Not drawn, by the brief:</b> the facts row (Weather, Light, Rest, Encounter check) and the strip of steps sit between the title band and the two columns, as in 02-01.');
+
+// ---- 1b: at a spot inside one (02-01's base) ----
+const waitCol = `<div class="pcard"><h2 style="margin-top:0">Waiting for you</h2><p class="meta" style="margin:0">Nothing waits.</p></div>`;
+const sceneMap = (shared = false) => `<div class="pcard" aria-label="The map">${mapOpen(mapPic(true, '112 68 300 220').replace('<svg ', '<svg style="width:100%;height:100%" '), '', { style: 'height:210px', bare: true }).replace('class="mapopen', 'style="margin-top:0" class="mapopen')}${mapTools(eyeBtn(shared), locate(true))}</div>`;
+const jettyCrumb = `<a class="x">Saltwick Island</a>${sep}<a class="x">The Drowned Harbour</a>${sep}<b>1 The jetty</b>`;
+const jettyCard = (o = {}) => card([
+  headOf({ crumb: jettyCrumb, name: '1 The jetty', ident: 'Black piles, a mooring ring, weed to the waterline.', acts: splash + moveBtn() }),
+  seen('1 The jetty', o.first),
+  pair, o.mid || '', checks([]), o.about || '',
+  piecesHead(o.first ? '0 of 4 shown' : '2 of 4 shown'), jettyPieces(o.first), o.form || adders(false),
+  notes('Under the third plank: the ferryman’s cache.'),
+  source('Site. From your adventure: The Reed Marches.'),
+]);
+const f1b = ipad('gm', `${turnBand()}<div class="cols2"><div>${jettyCard()}</div><div class="stack">${waitCol}${sceneMap()}${partyOrder()}</div></div>`,
+  '1b. <b>The party is at a spot inside such a place</b> (set 2’s Scene, 02-01; mc-58: the place’s map sits at the right under “Waiting for you”, opened on where the party is). This is the moment of today’s built picture: “1 The jetty”, part of The Drowned Harbour. <b>Today’s parts sit in the same places as in frame 1a</b>; the card has no map of its own, so “Players see” is followed at once by Knowledge and Rules (the nearest place’s, as the built Rules button reads them). The trail’s two taps stand for today’s “Part of The Drowned Harbour” button. No calls-to-adventure line here: none is attached to this place (the line shows only where today’s card shows it). 02-01 drew two pieces as “Looks.” and “Clue.”; here each piece leads with its kind in today’s words (“Description”, “Clue”, “Exit”, “Treasure”), and a piece’s fact that is the GM’s alone stays under it in the small line, as today.');
+
+// ---- 2: no map ----
+const f2a = ipad('gm', `${turnBand()}<div class="cols2"><div>${harbourCard(false)}</div><div class="stack">${spotsCard}${tablesCard}</div></div>`,
+  '2a. <b>The same place when its pack carries no map picture.</b> The map and its tools are left out and nothing stands in their place: “Players see” is followed by Knowledge and Rules, and the card is otherwise frame 1a’s. The spots list at the right is then the only way to see what is here, which it already is for finding a spot by name. (The marching order is under the tables, unchanged; left off to keep the frame short.)');
+const madeCard = card([
+  headOf({ name: 'Fenwick Hole', around: 'Around them: Bog', acts: moveBtn() }),
+  seen('Fenwick Hole', true),
+  checks(['Wandering encounters,&nbsp;1 in 6', 'Getting lost, by terrain'], false),
+  piecesHead(''), adders(true),
+  notes(''),
+]);
+const emptyCard = card([headOf({ name: 'Where are we?', around: 'Around them: Bog', acts: setPlaceBtn })]);
+const f2b = ipad('gm', `${turnBand().split('The Drowned Harbour, turn 14').join('The Reedmere, day 3')}<div class="cols2"><div><p class="lbl"><b>A place the GM made by hand</b>, nothing written yet.</p>${madeCard}</div><div><p class="lbl"><b>No place yet</b> in this expedition (today’s empty card).</p>${emptyCard}</div></div>`,
+  '2b. <b>A place the GM made by hand</b> (left): no pack, so no trail, no map, no Knowledge, no Rules, no source line; each part with nothing in it is left out, not drawn empty. What remains is today’s card: the name; <b>“Around them: Bog”</b> (today’s line for the ground the party is on, in a mode that counts travel by the day); Move on, which here offers “Somewhere else…” only (set 1’s frame 18); “Players see” with its rename, and, since nothing has been shown yet, today’s two sentences about the name (frame 5); “Checks here” with the setting’s checks as plain lines, a die beside each chance; “Pieces” with no count, “+ Piece” and “+ Picture”; “Notes”. <b>No place yet</b> (right): today’s empty card, “Where are we?”, with <b>“Set place” in Move on’s slot, as the accent</b>: from nowhere there is nothing to move on from, and it is the one thing to do. It opens Move on’s own sheet with “Somewhere else…” alone (the state of set 1’s frame 18). The right column would hold “Waiting for you” and the marching order as usual.');
+
+const refused = (words) => `<div class="toast" style="margin-top:0"><span>${warn(words)}</span></div>`;
+const st = (label, html) => `<div><p class="lbl">${label}</p>${html}</div>`;
+const f2c = ipad('gm', `${turnBand()}<div class="cols2"><div>${harbourCard('want')}</div><div class="stack">${st('<b>At a spot (frame 1b):</b> the map’s card at the right holds the same row and nothing else.', `<div class="pcard">${mapWanted.replace('class="psee"', 'class="psee" style="margin-top:0"')}</div>`)}${st('<b>While the file is sent:</b> the row’s button gives way to one line.', '<p class="meta" role="status" style="margin:0">Uploading the map…</p>')}${st('<b>Added:</b> the map takes its place on the page, its eye closed.', `<div class="toast" style="margin-top:0"><span>Map added (hidden): The Drowned Harbour</span>${small('Undo')}</div>`)}${st('<b>Refused: too large.</b> The row stays as it was.', refused('That picture is too large for a map. Nothing was added.'))}${st('<b>Refused: not a picture.</b> Today’s words for a place’s picture.', refused('Couldn’t read that picture. Try a JPEG or PNG.'))}</div></div>`,
+  '2c. <b>The pack names a map for this place, and this campaign has not added the picture yet</b> (the lead’s plan: the GM picks the file once from their device, as “+ Picture” works today). Where the map will stand there is <b>one row, as small as “+ Picture”</b>: the map’s title as the pack gives it, the file’s name the pack asks for under it (so the GM can find the right file), and one small button, <b>“+ Map”</b>. Nothing else is said. At the right: the same row in the map’s card at a spot; the one line while the file is sent; the toast once it is added (hidden, with Undo, as a picture’s is); and what a refused file says, in a toast that goes by itself, the row left as it was. The words “+ Map”, “Uploading the map…”, “Map added (hidden): …” and “That picture is too large for a map. Nothing was added.” are made from today’s picture words and are approved with the page; the plan’s size limit has no figure yet, so none is drawn.');
+
+// ---- 8: until an eye on a spot is built ----
+const bareRow = (name, line) => `<div class="spot"><span><b>${num(name)}</b><small>${line}</small></span></div>`;
+const f8 = ipad('gm', `${turnBand()}<div class="cols2"><div>${st('<b>Frame 1a’s “Spots here”</b>, until an eye on a spot is built.', `<div class="pcard"><div class="hrow"><h2>Spots here</h2></div>${bareRow('1 The jetty', 'Where the bog road gives out.')}${bareRow('2 The wreck', 'A cog on her side on the bar, decks awash.')}${bareRow('3 The breakwater', 'A drowned wall with a gap a boat can thread.')}${bareRow('4 The customs shed', 'Stilted, shuttered, a light some nights.')}${bareRow('5 The sea cave', 'Only at low water, and only through the gap.')}</div>`)}</div><div></div></div>`,
+  '8. <b>“Spots here” as it will be until an eye on a spot is built</b> (showing a spot to players before any of its pieces is behaviour the app does not have; it waits for a plan and Francis’s yes). The same rows, numbered as the key, with <b>no eye and no “3 of 5 shown” count</b>, so no control stands with nothing behind it. The rows are plain lines here: nothing is drawn as a tap. Frames 1a, 2a, 2c, 4a and 4d show the list with its eyes, as it will be once that is built. <b>A town’s “Places in town” is not in this frame:</b> showing a place in town is built today, so frame 3’s list keeps its eyes and its count.');
+
+// ---- 3: a town (03-01's base) ----
+const portBand = `${band({ over: 'Session 1. In town.', title: 'Reedmouth, day 1', ident: '12 Reedmonth, spring. Morning.', acts: [b('Next part of day', { big: true, icon: 'clock' }), `<span class="btn sq" role="button" aria-label="More">${I.more}</span>`] })}<hr class="dbl">`;
+const gmOnly = `<span role="img" aria-label="Only for you: never sent" style="display:inline-flex;width:64px;justify-content:center">${sym('eyeoff', 24)}</span>`;
+const tfold = (name, eye) => `<div class="spot" role="button" aria-expanded="false"><span><b>${name}</b></span><span class="ctl">${eye === 'never' ? gmOnly : eyeBtn(!!eye)}${down}</span></div>`;
+const todo = (name, fold) => `<div class="spot"${fold ? ' role="button" aria-expanded="false"' : ''}><span><b style="font-weight:400">${name}</b></span><span class="ctl">${fold ? down : ''}</span></div>`;
+const townPlaces = [spot('1 The Lantern Chapel', 'A squat stone chapel with a brass lantern over its door.', true), spot('2 Wardens’ Hall', 'On stilts above the flood line.', true), spot('3 The Reed Market', 'Open stalls under a thatched roof, loud until noon.', true), spot('5 Hob Tanner’s (bladesmith)', 'A forge that never seems to go out. <b>Closed today.</b>', false)].join('');
+const townCard = card([
+  `<div class="crumb"><a class="x">The Reedmere</a>${sep}<b>Reedmouth</b></div><div class="band"><div><h3 class="display bk1">Reedmouth</h3><p class="ident">A river town of reed-cutters and ferrymen, held by the Heron Wardens.</p></div><div class="acts two">${ruleBtn('helm', 'The watch, and trouble in town')}${moveBtn(false)}</div></div>`,
+  seen('Reedmouth'),
+  pair, calls('6 of 17 sent'),
+  `<div class="tfour"><b>Inhabitants</b><span>1,100 (a small town).</span><b>Ruler</b><span><a class="x">Warden Halewyn</a>, for the <a class="x">Heron Wardens</a>.</span><b>Religion</b><span><a class="x">The Lantern rite</a>.</span><b>Overview</b><span>Safe. Living: Comfortable, 2 herons a day.</span></div>`,
+  `<div class="hrow" style="margin-top:var(--space-3)"><h2 class="bk2">About the town</h2></div>${tfold('The town', true)}${tfold('The Wardens’ grip', false)}${tfold('A brewing trouble', 'never')}`,
+  `<div class="hrow" style="margin-top:var(--space-3)"><h2 class="bk2">Places in town</h2><span class="meta">3 of 13 shown</span></div>${townPlaces}<div class="meta" style="margin-top:var(--space-2)">9 more places. <a class="x">Show all 13</a></div>`,
+  `<div class="hrow" style="margin-top:var(--space-3)"><h2 class="bk2">Things to do</h2></div>${todo('Hear the criers at the Reed Market', true)}${todo('Carouse at the Eel and Lantern', true)}${todo('Pay the Wardens’ toll', false)}`,
+  `<div class="hrow" style="margin-top:var(--space-3)"><h2 class="bk2">Encounters</h2></div><div class="chk">${dz('Encounters in town,&nbsp;1 in 6, only while Out and about today')}</div>${tgRow('Out and about today', '', false)}`,
+  piecesHead('1 of 2 shown').replace('<h2>', '<h2 class="bk2">'), pieceRow('Description', 'Smoke over reed roofs; a bell at the water gate.', true), pieceRow('Clue', 'New tar on the Wardens’ boats: they mean to sail.', false), adders(true),
+  notes('Halewyn owes the ferrymen a season’s pay.'),
+  source('Town. From your adventure: The Reed Marches.'),
+]);
+const townWait = `<div class="pcard"><h2 style="margin-top:0">Waiting for you</h2>${waitCard('sack', 'Wren asks for: a coil of rope', dz('At 3 The Reed Market. In stock on 1 to 4 on d6.'), [b('In stock', { accent: true }), b('Not here'), small('Price…')])}</div>`;
+const townMap = `<div class="pcard" aria-label="The map">${mapOpen(cityMap(), '', { cls: 'fitw', bare: true }).replace('class="mapopen', 'style="margin-top:0" class="mapopen')}${mapTools(eyeBtn(false))}</div>`;
+const f3 = ipad('gm', `${portBand}<div class="cols2 bktown"><div>${townCard}</div><div class="stack">${townWait}${townMap}${partyOrder(false, true)}</div></div>`,
+  '3. <b>A town</b> on the same page (set 3’s 03-01, approved; its right column unchanged). Today’s parts in the same places as frames 1a and 1b: the rule’s button and Move on (plain here, as in 03-01: something waits, so its first answer has the accent); “Players see”; Knowledge and Rules with <b>the calls-to-adventure line under them</b>, as 03-01. Then the town as 03-01 lays it out, with today’s four town sections each given a place: <b>“Overview”</b> (today: safe or hostile, and what living here costs) is a line of the facts grid; <b>“Places in town”</b> is 03-01’s list; <b>“Things to do”</b> is a short list under it, an entry with a note folding as today; <b>“Encounters”</b> keeps today’s heading and stands where “Checks here” stands on other places (as today, a town’s checks show once, here), with its check as a line and <b>today’s Off/On pair “Out and about today” drawn as the standard toggle</b> (ds-1). Then “Pieces” (a town has its own, added by hand), “Notes” and the source line. <b>Left off to keep the frame short, and unchanged:</b> 03-01’s “Tables” (between “About the town” and “Places in town”), all but four of its places, and its boxed aside (after “Notes”). 03-01 put “Hide all” on “Places in town”; today’s “Hide all” hides pieces and the picture, so it is drawn on “Pieces” (see the note’s list). <b>The eyes and the count on “Places in town” are today’s:</b> showing a place in town is already built, so they stay.');
+
+// ---- 5: before anything is shown ----
+const f5 = ipad('gm', `${turnBand()}<div class="cols2"><div>${jettyCard({ first: true })}</div><div class="stack">${waitCol}${sceneMap()}</div></div>`,
+  '5. <b>Before anything of the place is shown to the players.</b> Three things differ on the GM’s page and nothing else: every eye is closed; the count reads “0 of 4 shown”; and under “Players see” stand today’s two sentences, <b>“The name goes out with the first piece you show. Change it first if it gives something away.”</b> They carry a consequence, so they stay (mc-46), but only in this state: once a piece is shown the name is out and the sentences go. “Hide all” stays and, tapped now, answers “Nothing is shown to the party.” as today. The players’ side of this moment is set 1’s frame 15 (its right column in place and empty, mc-50); nothing placed here changes it.');
+
+// ---- 6: messy data ----
+const LONG = 'The Long Stair of the Drowned Customs House below the Old Lantern, seaward side';
+const twelve = [picture(true), pieceRow('Description', 'Worn steps down into the rock, a bell rope hanging, and a smell of tar and old smoke that the wind off the bar does not shift; forty steps, then a landing, then forty more, each slick, each a hand’s breadth too short for a boot.', true), pieceRow('Exit', 'Down, to the water stair.', true), pieceRow('Exit', 'A barred door on the landing.', false), pieceRow('Clue', 'The rope is new.', true), pieceRow('Clue', 'Chalk marks, tallied in fives, on the seaward wall.', false), pieceRow('Someone here', 'A boy with a lantern, who will not give his name.', false, 'The stat line never shows (Heron Warden’s runner).'), pieceRow('Treasure', 'A customs seal in lead.', false, 'Value stays yours (0 herons).'), pieceRow('Treasure', 'The harbourmaster’s strongbox.', false, 'Value stays yours (999 herons).'), pieceRow('Hazard', 'The twelfth step is loose.', false, 'Look only; trigger stays yours (a save, or a fall to the landing).'), pieceRow('Other', 'Ox.', false), pieceRow('Other', 'Gulls.', false), pieceRow('Description', 'A second description, added by hand.', false)].join('');
+const messyCard = card([
+  headOf({ crumb: `<a class="x">Saltwick Island</a>${sep}<a class="x">The Drowned Harbour</a>${sep}<b>${LONG}</b>`, name: LONG, ident: 'Worn steps down into the rock, a bell rope hanging.', acts: splash + moveBtn() }),
+  seen(LONG), pair, calls('0 of 41 sent'), checks([]),
+  piecesHead('3 of 12 shown'), twelve, adders(false),
+  notes('A very long first line of the notes, which is cut at the end of its one line and never wraps the fold to a second, however much is written under it'),
+  source('Site. From your adventure: The Reed Marches.'),
+]);
+const f6 = ipad('gm', `${turnBand()}<div class="cols2"><div>${messyCard}</div><div class="stack"><div><p class="lbl"><b>The calls line, every call sent.</b></p>${calls('41 of 41 sent')}</div><div><p class="lbl" style="margin-top:var(--space-3)"><b>A split party:</b> today’s count names the group.</p><div class="hrow"><h2>Pieces</h2><span class="meta">Group 2: 3 of 12 shown</span>${small('Hide all')}</div></div></div></div>`,
+  '6. <b>Messy data.</b> A very long place name: it wraps in the heading beside the two buttons, in the trail and in “Players see”, and pushes nothing off. <b>Twelve pieces</b>, all listed (today’s card cuts none and has no find field for pieces), one with long words that wrap beside its eye, one of a single word, and the pieces whose GM’s-alone fact shows in the small line, with 0 and 999. The picture is shown (its eye open). <b>Calls: “0 of 41 sent”</b> on the card, and “41 of 41 sent” at the right; the line never wraps. The notes’ first line is cut to one line. A split party’s count names its group, as today.');
+
+// ---- 7: + Piece / Edit piece, open in place ----
+const kinds = ['Description', 'Exit', 'Someone here', 'Clue', 'Treasure', 'Hazard', 'Other'];
+const form = `<div class="pform" role="group" aria-label="Edit piece"><h4>Edit piece</h4><div class="chips" role="group" aria-label="What kind of piece">${kinds.map((k) => `<span class="chip${k === 'Description' ? ' sel' : ''}" role="button" aria-pressed="${k === 'Description'}">${k === 'Description' ? sym('check', 16) : ''}${k}</span>`).join('')}</div><span class="flab">What players will see</span><span class="field">Black piles, a mooring ring, weed to the waterline.</span><p class="meta" style="margin:var(--space-2) 0 0">Shown to the party now, players see the change as you save it.</p><div class="foot">${small('Remove this piece')}<span class="sp"></span>${b('Cancel')}${b('Save')}</div></div>`;
+const f7 = ipad('gm', `${turnBand()}<div class="cols2"><div>${jettyCard({ form })}</div><div class="stack">${waitCol}</div></div>`,
+  '7. <b>“Edit piece” (and “+ Piece”, the same form empty and titled “+ Piece”, with “Add”)</b>: it opens in place at the foot of “Pieces”, where “+ Piece” was, as it does today; nothing about it is new. Today’s parts of it: the seven kinds as chips, the chosen one ticked; the field “What players will see”; for a piece already shown, today’s line that players see the change as it is saved (a consequence, so it stays); “Remove this piece” as the quiet button at the left; “Cancel” and “Save” at the right, both plain as today: Move on is the page’s one accent.');
+
+// ---- 9: an addition, not yet approved: the pack's facts and its headed prose (today's PlaceFactLines and PlaceFactsBody) ----
+const factGrid = `<div class="tfour"><b>Built</b><span>In the old harbourmaster’s time, of bog oak; the seaward half was rebuilt after the winter the harbour silted.</span><b>Depth</b><span>0 feet at low water, 9 at high.</span><b>Moorings</b><span>4.</span><b>Held by</b><span><a class="x">The ferrymen</a>, by custom.</span><b>Toll</b><span>None since the customs men left.</span><span style="grid-column:1 / -1">A light is hung here on fog nights.</span></div>`;
+const fold = (heading, open, body = '') => `<div class="spot" role="button" aria-expanded="${!!open}"><span><b>${heading}</b></span><span class="ctl">${svg(open ? '<path d="M6 15l6-6 6 6" ' + W + '/>' : '<path d="M6 9l6 6 6-6" ' + W + '/>', 20)}</span></div>${open ? `<div style="padding:0 0 var(--space-2)">${body}</div>` : ''}`;
+const longText = '<p style="margin:0 0 var(--space-2)">The jetty runs forty paces out over black water on piles as thick as a man. The landward half is sound. The seaward half was rebuilt in a hurry after the winter the harbour silted, and it shows: the planks are green, the nails are not, and the whole of it shifts a hand’s breadth under a loaded cart.</p><p style="margin:0 0 var(--space-2)">The ferrymen moor at the four rings on the lee side and nowhere else. Anyone who ties up to windward is a stranger, and is watched.</p><p style="margin:0">At low water the mud under the piles is firm enough to stand on for the length of a prayer, and no longer.</p>';
+const aboutPlace = `<div class="hrow" style="margin-top:var(--space-3)"><h2>About the place</h2></div>${fold('The jetty and who uses it', true, longText)}${fold('What the ferrymen will and will not carry, and what they ask for it at night', false)}${fold('Under the planks', false)}<div class="hrow" style="margin-top:var(--space-3)"><h2>Tables</h2></div>${dieRow('What the tide left', 'd6')}${dieRow('Who is on the jetty', 'd8')}`;
+const f9 = ipad('gm', `${turnBand()}<div class="cols2"><div>${jettyCard({ mid: factGrid, about: aboutPlace })}</div><div class="stack">${waitCol}${sceneMap()}</div></div>`,
+  '9. <b>Withdrawn: the facts and the headed sections live in the Knowledge sheet (set 1, frames 7 and 7b), built with the page. This frame is not built and was not put to Francis; kept for the record.</b> The card ships as set 1’s 01-01 has it, with neither on it (po-2: each thing once, in its final place); the place’s tables are the “Tables” card at the right, as in frame 1a. <i>As first drawn:</i> today’s card shows three more things from the place’s pack that the frames above did not place; this frame places them on the card of frame 1b: the facts where the town’s card already has them (set 3’s 03-01; frame 3), the prose where the lead put it. <b>The pack’s facts</b> (today: lines with a bold lead-in, in the pack’s order) sit under Knowledge and Rules (and under the calls line, where there is one), as the same grid of label and value the town has; a fact with no label takes the full width. Six here, one of them long. <b>“About the place”</b> (today’s heading; “About the town” in a town): the pack’s headed prose, each heading folding its text, sits under “Checks here” and above “Pieces”; as today, several headings start folded and one heading alone stays open. Three here, with a long heading and one opened at full length. <b>“Tables”</b>, the place’s own tables as rows that open the table, follow it, as on the town’s card (in frame 1a they are the “Tables” card at the right). Everything else is frame 1b’s, and a part with nothing in it is left out. <b>No eye on a section here:</b> today all of this is the GM’s alone; sharing a section is the Knowledge sheet’s (set 1, mc-35), not built. <b>On the phone</b> the order is the same, after the spots where there are spots. <b>The town’s watch</b> (today’s boxed “The watch”) is not redrawn: it sits at the foot of the town’s card as 03-01’s boxed aside. <b>One question this raises, for the lead:</b> set 1’s Knowledge sheet (frames 7 and 7b, approved) holds these same facts and headed sections; once it is built they would show twice unless one place is chosen (the note, point 13).');
+
+// ---- 4: the phone ----
+const phHead = (crumb, name, ident, around = '') => `${crumb ? `<div class="crumb">${crumb}</div>` : ''}<h3 class="display" style="font-size:24px;margin:0">${num(name)}</h3>${ident ? `<p class="ident">${ident}</p>` : ''}${around ? `<p class="meta" style="margin:var(--space-1) 0 0">${around}</p>` : ''}`;
+const phBar = (rule) => `<div style="display:flex;gap:var(--space-2);border-top:1px solid var(--rule);padding:var(--space-2) var(--space-3);background:var(--sheet)">${moveBtn().replace('class="btn', 'style="flex:1" class="btn')}${rule ? splash : ''}</div>`;
+const phPieces = (count, rows) => `<div class="hrow" style="margin-top:var(--space-3)"><h2>Pieces</h2><span class="meta">${count}</span>${small('Hide all')}</div>${rows}`;
+const phA = (mapHtml, short) => `${phoneBar('The Reed Marches')}<div class="inner">${phHead(`<a class="x">Saltwick Island</a>${sep}<b>The Drowned Harbour</b>`, 'The Drowned Harbour', 'A silted harbour of five spots.')}${seen('The Drowned Harbour')}${pair}${calls('1 of 4 sent')}${mapHtml}<div class="hrow" style="margin-top:var(--space-3)"><h2>Spots here</h2><span class="meta">3 of 5 shown</span></div>${spot('1 The jetty', 'Where the bog road gives out.', true)}${spot('2 The wreck', 'A cog on her side on the bar.', true)}${short ? '' : `${checks([])}${phPieces('2 of 4 shown', harbourPieces)}${adders(false)}${notes('The Tidewife keeps her word to the letter.')}${source('Region. From your adventure: The Reed Marches.')}`}</div>${phBar(true)}${tabBar('gm')}`;
+const ph1a = phone(phA(`<div style="margin-top:var(--space-2)">${b('The map', { wide: true })}</div>`),
+  '4a. The phone, 375 px, frame 1a. <b>On a phone the spots come first</b> (mc-31; set 1’s frame 22). <b>Move on is fixed above the tab bar</b>, at full width with the rule’s button beside it (set 1’s frame 22; mc-52), so the head has no button. The head keeps the card’s order: the trail, the name, “Players see”, Knowledge and Rules, the calls line, the map’s button. Then <b>“Spots here”</b>; then “Checks here”, “Pieces” and “Notes”, and the source line.');
+const ph2c = phone(phA(mapWanted, true),
+  '4d. The phone, frame 2c (the map not added yet): the map’s button gives way to the same row, the file’s name under the map’s title and “+ Map” beside it. The rest of the page is frame 4a’s.');
+const ph1b = phone(`${phoneBar('The Reed Marches')}<div class="inner">${phHead(jettyCrumb, '1 The jetty', 'Black piles, a mooring ring, weed to the waterline.')}${seen('1 The jetty')}${pair}<div style="margin-top:var(--space-2)">${b('The map', { wide: true })}</div>${checks([])}${phPieces('2 of 4 shown', jettyPieces(false))}${adders(false)}${notes('Under the third plank: the ferryman’s cache.')}${source('Site. From your adventure: The Reed Marches.')}</div>${phBar(true)}${tabBar('gm')}`,
+  '4b. The phone, frame 1b (at a spot): the same head, and Move on with the rule’s button above the tab bar; the place’s map behind its button. <b>A spot has no list of spots, so nothing takes that place:</b> “Checks here” leads, then “Pieces” and “Notes”, in the card’s own order. The picture’s two buttons wrap under its name; a piece’s words wrap beside its eye.');
+const ph2 = phone(`${phoneBar('The Reed Marches')}<div class="inner">${phHead('', 'Fenwick Hole', '', 'Around them: Bog')}${seen('Fenwick Hole', true)}${checks(['Wandering encounters,&nbsp;1 in 6', 'Getting lost, by terrain'], false)}<div class="hrow" style="margin-top:var(--space-3)"><h2>Pieces</h2>${small('Hide all')}</div>${adders(true)}${notes('')}</div>${phBar(false)}${tabBar('gm')}`,
+  '4c. The phone, frame 2 (no map; a place made by hand, nothing shown yet): Move on alone above the tab bar (no rule, so no rule’s button); no map button, and the two sentences about the name wrap under “Players see”, beside “Rename for players”.');
+
+mount(`
+  <h1>The GM’s place page with everything today’s card holds</h1>
+  <p class="note">For the lead (brief of 2026-11-13, evening). Set 1’s page of a place did not say where the parts of today’s built GM place card go. These frames place every one of them, on the two approved bases: the page of a place that holds spots (01-01) and the Scene at a spot inside one (02-01), and on a town (03-01). <b>The redesign dresses the built screen and removes nothing it shows.</b> The facts row and the strip of steps are not drawn, by the brief: they sit between the title band and the two columns. The table of each part, the list of new behaviour and the open points are in <code>docs/design/notes/gm-place-page-todays-parts-2026-11-13.md</code>. Names, words and numbers are invented; the pictures in the frames are stand-ins. <b>Approved by Francis 2026-11-13 (pg-1).</b> Two things on it are not approved as behaviour and are not built yet: an eye on each spot (the list is built as frame 8 has it) and the facts row (not drawn; it has no plan).</p>
+  <h1>1. A place of linked spots, with its map</h1>
+  <div class="wall">${f1a}</div>
+  <div class="wall">${f1b}</div>
+  <h1>2. With no map</h1>
+  <div class="wall">${f2a}</div>
+  <div class="wall">${f2b}</div>
+  <div class="wall">${f2c}</div>
+  <h1>3. A town</h1>
+  <div class="wall">${f3}</div>
+  <h1>4. The phone</h1>
+  <div class="wall">${ph1a}${ph1b}${ph2}${ph2c}</div>
+  <h1>5. Before anything is shown to players</h1>
+  <div class="wall">${f5}</div>
+  <h1>6. Messy data</h1>
+  <div class="wall">${f6}</div>
+  <h1>7. A piece’s form, open in place</h1>
+  <div class="wall">${f7}</div>
+  <h1>8. Until an eye on a spot is built</h1>
+  <div class="wall">${f8}</div>
+  <h1>9. Withdrawn: the pack’s facts and its prose on the card (they live in the Knowledge sheet)</h1>
+  <div class="wall">${f9}</div>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked, in the HTML.</b> Every part of today’s card listed in the brief is on a frame (the note’s table names the frame for each). One accent a screen: Move on, or a waiting card’s first answer (Move on is then plain, as 03-01); “Set place” and a piece’s “Save” are plain. No disabled button. Every eye is a shape with a spoken state, never colour alone; the toggle has its tick or cross. States drawn: with and without a map, a map the pack names that is not added yet (with its sending, added and two refused states), a made-by-hand place, no place, a town, nothing shown, twelve pieces, long words, 0, 41 and 999. Undo over confirm: nothing here adds a confirm; every act keeps today’s toast with Undo.</p>
+  <p class="note"><b>Not checked, or gaps.</b> The built card on main: read from the lead’s pictures and from an older copy of the source, so a part added since may be missing. Loading, a failed picture upload, offline: as today, not redrawn. Contrast by measurement; Larger text; 44 px targets by measurement (the small buttons are the shared 44 px part). The frames are in set 1’s type, not the sweep’s pair.</p>
+`);
+for (const c of document.querySelectorAll('.wall .cap')) { if (/^3\. /.test(c.textContent)) c.insertAdjacentHTML('beforeend', ' <b>Replaced by page 19 (the town, whole).</b>'); if (!/^9\. /.test(c.textContent)) c.insertAdjacentHTML('beforeend', ' Tidied to the measured sizes, 2026-11-14.'); }
+</script>
+</body>
+</html>

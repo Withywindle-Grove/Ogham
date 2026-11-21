@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: Move on’s rows as ruled, and proposals that wait (2026-11-13)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .mobody { flex:1; min-height:0; overflow:hidden; padding:0 var(--space-4); }
+  .mobody .pdest:first-child { margin-top:0; }
+  /* the pack's way names are longer than the players' action words: one size for the list, wide enough for the longest one-line name with its icon */
+  .mobody .pdest .modes .btn.mode { width:152px !important; }
+  .mobody .pdest .modes .btn.mode b { text-align:center; }
+  /* the buttons drop to a line of their own, right-justified, when they would leave the name less than about half the row */
+  .mobody .pdest.under .modes { flex:0 0 100%; justify-content:flex-end; }
+  .hid { display:inline-flex; align-items:center; gap:var(--space-1); }
+  .wl { display:block; }
+  .wl + .wl { margin-top:var(--space-1); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script>
+// the pack's own way names on the buttons; the stand-in icons answer to them
+MODE_ICON.Rowing = 'paddles';
+MODE_ICON.Swimming = 'double-fish';
+const go = svg(SY.right, 20);
+const sep = svg(SY.right, 16);
+const LONG = 'The Long Stair of the Drowned Customs House below the Old Lantern';
+const hidden = `<span class="hid">${sym('eyeshut', 16)}Hidden from players.</span> `;
+const moveRows = `
+  ${pdest('2 The wreck', 'Shown to the players.', [['Rowing', '1 turn'], ['Swimming', '3 turns']])}
+  ${pdest('3 The breakwater', 'Shown to the players.', [['Rowing', '1 turn']])}
+  ${pdest('4 The customs shed', 'Not yet shown: players see “not yet explored”.', [['Along the piles', '2 turns']])}
+  ${pdest('5 The sea cave', hidden + warn('An obstacle, the breakwater’s gap: 2 turns more; you decide.'), [['Rowing', '2 turns']])}
+  ${pdest(LONG, 'Shown to the players.', [['Climbing', '999 turns'], ['Rowing', '1 turn'], ['Wading', '0 turns']]).replace('class="pdest many"', 'class="pdest many under"')}
+  ${opt('Somewhere else…', '', { icon: 'search', right: go })}`;
+const moveSheet = `<div class="mappop" role="dialog" aria-label="Move on: From the jetty, where to?" style="left:152px;right:152px"><div class="mh"><div><div class="over">Move on</div><div class="ttl">From the jetty, where to?</div></div><span></span><span class="ico" role="button" aria-label="Close">${I.close}</span></div><div class="mobody">${moveRows}</div><div class="mf"><span class="say">${dz('Each move asks for the harbour’s check (1 in 6), after it.')}</span></div></div>`;
+const m1 = `<div><p class="cap" style="width:1024px">MO1. <b>The GM’s Move on sheet, its rows drawn as ruled</b> (mc-36, mc-36a: “for the GM and for players”). This replaces set 1’s frame 11 (picture 01-06), which drew a row for each way. <b>One row a destination; each way of getting there is a stacked mode button at the right of that row</b>, the way’s name over its time, every button one size: the same row as the players’ (01-08p). The button carries the pack’s own name for the way (“Rowing”, “Along the piles”), with its icon where it has one. Everything else is frame 11’s: under each name, what the players see of it; a way with an obstacle keeps its warning and its extra time in that line, and a way the GM keeps hidden says so with the closed eye; the check every move asks for is named in the foot; <b>“Somewhere else…” is the last row</b>. The sheet is the app’s wide pop-up, 720 px, over the dimmed page (in the narrow panel two buttons pushed a destination’s name onto a line of its own); the X closes. <b>One thing differs from the players’ row:</b> the pack’s way names are longer than the players’ action words (“Swimming” with its icon does not fit the players’ 116 px button), so here every button is 152 px wide, one size down the list. <b>The rule for a crowded row:</b> the buttons sit at the right of the row while they leave the name about half of it; when they would not (three ways with a long name, as in the fifth row; a narrow sheet), <b>the buttons drop to a line of their own under the name, right-justified</b>, and the name takes the full width above them, as set 1’s H4 does on the phone. <b>Messy:</b> the fifth row’s very long name and three ways; 999 turns and 0 turns fit; a way’s long name (“Along the piles”) wraps inside its button.</p><div class="dev ipad fixed" style="height:900px">${railOf('gm')}<div class="main">${topRow('gm')}<div class="page">${harbourBack()}</div></div><div class="veil"></div>${moveSheet}</div></div>`;
+
+// ---- proposals that wait ----
+const ruleBtn = (k, words) => `<span class="btn big sqb" role="button" aria-label="${words}">${gi(k, 34)}</span>`;
+const stt = (label, html) => `<div><p class="lbl">${label}</p>${html}</div>`;
+const answer = b('Answer…', { accent: true });
+const oneCard = waitCard('travel', 'Wren proposes: to the sea cave', 'Rowing, 2 turns. ' + warn('An obstacle.'), [answer]);
+const wl = (n, who, where, how, obst) => `<span class="wl"><b>${n}. ${who}:</b> ${where}. ${how}.${obst ? ' ' + warn('An obstacle.') : ''}</span>`;
+const threeCard = waitCard('travel', '3 ways proposed', `${wl(1, 'Wren', 'to the sea cave', 'Rowing, 2 turns', true)}${wl(2, 'Ash', 'to the wreck', 'Rowing, 1 turn')}${wl(3, 'Bram of the Long Stair of the Drowned Customs House', 'to the breakwater', 'Swimming, 999 turns')}`, [answer]);
+const waitCol = (cards) => `<div class="pcard"><h2 style="margin-top:0">Waiting for you</h2>${cards}</div>`;
+const jettyHead = `<div class="pcard"><div class="crumb"><a class="x">Saltwick Island</a>${sep}<a class="x">The Drowned Harbour</a>${sep}<b>1 The jetty</b></div><div class="band"><div><h3 class="display"><span class="keyno">1</span>The jetty</h3><p class="ident">Black piles, a mooring ring, weed to the waterline.</p></div><div class="acts two">${ruleBtn('water-splash', 'Someone fell in')}${b('Move on', { big: true, icon: 'travel' })}</div></div></div>`;
+const w1 = ipad('gm', `${turnBand()}<div class="cols2"><div><p class="lbl">The place’s card, cut short. Move on is plain while something waits.</p>${jettyHead}</div><div class="stack">${stt('<b>One proposal waits.</b>', waitCol(oneCard))}${stt('<b>Three wait</b>, first in, first out.', waitCol(threeCard))}${stt('<b>Beside another waiting card:</b> each keeps its own answers; the accent is the first card’s.', waitCol(oneCard + waitCard('sack', 'Tam asks for: a coil of rope', dz('At 3 The Reed Market. In stock on 1 to 4 on d6.'), [b('In stock'), b('Not here'), small('Price…')])))}</div></div>`,
+  'W1. <b>Proposals that wait, on the GM’s page.</b> A proposed way opens its sheet by itself (mc-42a; set 1’s frame F2). When the GM closes that sheet with its X, or taps “Not now”, the proposal stays waiting: <b>it is one card in “Waiting for you”</b>, in the right column, in the same style as the other waiting cards. <b>One waiting:</b> the card names who proposes and where (“Wren proposes: to the sea cave”, set 1’s own words), then the way and its time, and says if the way has an obstacle. <b>Several waiting:</b> the same one card, headed with the count (“3 ways proposed”), each proposal a numbered line in the order it came. <b>One button, “Answer…”</b>, reopens the sheet at the first of them (“1 of 3”); the rest follow as each is answered, as before. The answer itself is never given on the card: the sheet must show an obstacle before the GM answers (mc-42). Nothing is lost by closing the sheet, so there is no confirm. Messy: a very long name wraps in its line; 999 turns fits.');
+const phW = (card) => `${phoneBar('The Reed Marches')}<div class="inner"><div class="hrow"><h2>Waiting for you</h2></div>${card}<div class="crumb" style="margin-top:var(--space-4)"><a class="x">Saltwick Island</a>${sep}<a class="x">The Drowned Harbour</a>${sep}<b>1 The jetty</b></div><h3 class="display" style="font-size:24px;margin:0"><span class="keyno">1</span>The jetty</h3><p class="ident">Black piles, a mooring ring, weed to the waterline.</p></div><div style="display:flex;gap:var(--space-2);border-top:1px solid var(--rule);padding:var(--space-2) var(--space-3);background:var(--sheet)">${b('Move on', { big: true, icon: 'travel' }).replace('class="btn', 'style="flex:1" class="btn')}${ruleBtn('water-splash', 'Someone fell in')}</div>${tabBar('gm')}`;
+const w2 = phone(phW(oneCard), 'W2. The phone, 375 px, one waiting: the same card. <b>“Waiting for you” stands first on the page, above the place</b> (no earlier phone picture placed it; what waits on the GM is the most pressing thing on the screen). Move on, above the tab bar, is plain while something waits.');
+const w3 = phone(phW(threeCard), 'W3. The phone, three waiting: the numbered lines wrap; the long name takes the lines it needs; one “Answer…”.');
+
+mount(`
+  <h1>Move on’s rows as ruled, and proposals that wait</h1>
+  <p class="note">For the lead (2026-11-13, night), two frames the builders need that no approved picture shows correctly. Names, words and numbers are invented. <b>Approved by Francis 2026-11-13 (pg-1), with page 11.</b> Frame MO1 supersedes set 1’s frame 11 (picture 01-06) on one point: a destination is one row, its ways stacked buttons.</p>
+  <h1>1. The GM’s Move on sheet</h1>
+  <div class="wall">${m1}</div>
+  <h1>2. Proposals waiting, on the GM’s page</h1>
+  <div class="wall">${w1}</div>
+  <div class="wall">${w2}${w3}</div>
+  <h1>What was approved, and what is not drawn</h1>
+  <p class="note"><b>1. The card’s words.</b> One: “Wren proposes: to the sea cave” (set 1’s). Several: “3 ways proposed”, then “1. Wren: to the sea cave. Rowing, 2 turns.” The button: “Answer…”. Approved.</p>
+  <p class="note"><b>2. One card for all the proposals, not a card each.</b> Approved: they are answered in one order through one sheet, so one card with one button says that; a card each would offer three buttons that all open the first.</p>
+  <p class="note"><b>3. “Answer…” takes the accent</b> and Move on goes plain while a proposal waits, as set 3’s town does for a shop request. With two waiting cards the accent is the first card’s only. Approved.</p>
+  <p class="note"><b>4. On the phone, “Waiting for you” stands first, above the place.</b> Approved; no earlier picture placed it on a phone.</p>
+  <p class="note"><b>5. The Move on sheet on a phone</b> is not drawn: the wide pop-up is the whole screen there, and the rows follow the players’ phone rule (set 1’s H4 at 375 px: the buttons take a line under the name). <i>A line, not a frame.</i></p>
+  <p class="note"><b>6. A way’s icon on the GM’s button</b> is drawn where the players’ button has one (“Rowing”, “Swimming”); the stand-in names the icon from the way’s name. How the built part finds a way’s icon is the builder’s.</p>
+  <p class="note"><b>7. The GM’s mode button is wider than the players’</b> (152 px against 116), because it carries the pack’s way name (“Swimming”, not “Swim”). Kept by the lead: the pack’s words stay whole, with their icons. Where the buttons would leave a name less than about half its row, they drop under it, right-justified (frame MO1, fifth row).</p>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked, in the HTML.</b> The Move on sheet has no accent and no disabled row; every mode button is one size in the list and 52 px tall; a hidden way and an obstacle are told in words with a mark, not colour. The waiting card: one accent on the screen; no answer can be given without the sheet; a closed sheet loses nothing. Long names, 0 and 999 are on the frames.</p>
+  <p class="note"><b>Not checked, or gaps.</b> The built Move on part and its real width on a device; loading, offline and a refusal on the sheet (set 1’s frame 20 stands, with its rows redrawn the same way); a proposal withdrawn by its player while it waits (the line goes; with none left the card goes). Contrast by measurement; Larger text. The frames are in set 1’s type.</p>
+`);
+for (const c of document.querySelectorAll('.wall .cap')) { if (/^W\d/.test(c.textContent)) c.insertAdjacentHTML('beforeend', ' Tidied to the measured sizes, 2026-11-14.'); }
+</script>
+</body>
+</html>

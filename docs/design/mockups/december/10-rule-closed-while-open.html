@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: a rule the GM closes while a player has it open (2026-11-13)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<style>
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .gone { display:flex; gap:var(--space-2); align-items:flex-start; margin:var(--space-2) 0 0; }
+  .gone svg { flex:none; margin-top:2px; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script>
+const go = svg(SY.right, 20);
+const pWays = `<div class="pcard"><div class="crumb"><span>Saltwick Island</span>${svg(SY.right, 16)}<b>The Drowned Harbour</b></div><h3 class="display"><span class="keyno">1</span>The jetty</h3><p class="ident">Black piles, a mooring ring, weed to the waterline.</p><div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div>${pdest('2 The wreck', '', [['Row', '1 turn'], ['Swim', '3 turns']])}${pdest('3 The breakwater', '', [['Row', '1 turn']])}</div>`;
+const know = opt('What everyone knows', 'Shared, turn 9.', { icon: 'book', right: go });
+const placeCard = (row = '') => `<div class="pcard"><div class="hrow"><h2>The Drowned Harbour</h2></div>${know}${row}</div>`;
+const rulesRow = (title, sub) => opt(title, sub, { icon: 'scales', right: go });
+const page = (row, extra = '') => `${turnBand('player')}${turnFacts('player')}<div class="cols2"><div class="stack">${pWays}</div><div class="stack">${placeCard(row)}${extra}</div></div>`;
+const ruleText = `<div class="rule"><p>The harbour fills and empties twice a day.</p><p><b>At low water.</b> The bar is dry: the wreck can be reached on foot.</p><p><b>At high water.</b> The gap in the breakwater can be rowed.</p></div><p class="source">From your adventure: The Reed Marches, p. 41.</p>`;
+
+const c0 = withPanel('ipad', 'player', panel({ seq: 'The Drowned Harbour. Rules', title: 'The tide', body: ruleText, foot: footSay('', [b('Back')]) }),
+  'RC0. Before: a player is reading “The tide”, a rule of the place that is open to players, opened from the Rules list (so the sheet has “Back”, to the list). Then the GM closes it.', page(rulesRow('Rules', '3 rules')));
+const c1 = withPanel('ipad', 'player', panel({ seq: 'The Drowned Harbour. Rules', title: 'The tide', body: `<p class="gone" role="status">${I.info}<span>Your GM has closed this rule.</span></p>`, foot: footSay('', [b('Back')]) }),
+  'RC1. <b>Approved: the sheet stays, and says so.</b> Here the reader came from the Rules list. The rule’s words are taken off the screen at once (hidden means hidden: once closed, the text may not stay on a player’s device), and in their place is one line, with the information mark: <b>“Your GM has closed this rule.”</b> The sheet keeps its title, so the reader knows which rule the line is about; “Back” (to the list) and the X work as before; <b>“Back” shows only when the reader came from the Rules list</b> (frame RC1b is the other way in). Behind it the row’s count has already fallen (“2 rules”). <b>Why:</b> a panel that shuts by itself under a reader’s thumb looks like a fault; here the screen holds still and gives the reason. Nothing to undo and nothing to confirm: it is the GM’s act, not the player’s. If the GM opens the rule again while the sheet is still up, the words come back in place.', page(rulesRow('Rules', '2 rules')));
+const c1b = withPanel('ipad', 'player', panel({ seq: 'The Drowned Harbour. Rules', title: 'Falling into the harbour', body: `<p class="gone" role="status">${I.info}<span>Your GM has closed this rule.</span></p>` }),
+  'RC1b. <b>The other way in: the rule was opened from its own icon button.</b> The same sheet and the same one line; <b>no “Back”</b>, since there is no list behind it: the X is the one way out. This is also the sheet a tap opens when it lands on a button in the moment its rule is closed (frame RC3). Before the close this sheet showed the rule’s words, with the X alone.', page(rulesRow('Rules', '2 rules')));
+const c2 = ipad('player', page(rulesRow('Rules', '2 rules'), `<div class="toast" style="margin-top:var(--space-3)"><span>Your GM closed “The tide”.</span></div>`),
+  'RC2. <b>Not chosen (Francis, 2026-11-13); kept for the record, not for building.</b> The alternative was that <b>the sheet shuts by itself</b>, and a toast on the Scene says why: “Your GM closed “The tide”.” No Undo on it (it is not the player’s act). One step fewer for the reader, who is back on the Scene; but the panel vanishes without a tap, and a toast is easy to miss when the eye was on the rule.');
+
+// ---- what a rule's button does once its rule is closed ----
+const actRow = (btn) => `<div class="opt"><span>${I.info}</span><span class="ot"><b>Falling into the harbour</b></span>${btn}</div>`;
+const c3 = ipad('player short', `${turnBand('player')}<div class="cols2" style="margin-top:var(--space-3)"><div class="stack"><p class="lbl"><b>Open:</b> the rule’s icon button is on the page (set 1, frame A1).</p>${actRow(actIcon('Someone fell in', 'water'))}<p class="lbl" style="margin-top:var(--space-3)"><b>Closed: the button is gone</b>, with its row; nothing is greyed and nothing is left to tap.</p><div style="min-height:52px;border:1px dashed var(--rule);border-radius:4px;display:flex;align-items:center;padding:0 var(--space-3)" class="meta">Nothing here.</div></div><div class="stack"><p class="lbl"><b>The one moment it can still be tapped</b> (the GM closed the rule as the finger came down): it opens the sheet of frame RC1b (the X alone, no “Back”).</p><div class="pcard" style="margin:0"><div class="eyebrow" style="font-size:14px;color:var(--muted)">The Drowned Harbour. Rules</div><h3 class="display" style="font-size:22px;margin:var(--space-1) 0">Falling into the harbour</h3><p class="gone" role="status">${I.info}<span>Your GM has closed this rule.</span></p></div></div></div>`,
+  'RC3. <b>What a rule’s button does once its rule is closed.</b> Approved: <b>it is not there.</b> A closed rule sends nothing to a player, so there is no button, no row in the list and no count of it; never a disabled or greyed button (hard rule 7), and never a button that hints a hidden rule exists. In the one moment a tap can land on a button that is about to go, the tap opens the rule’s sheet with the same one line as frame RC1b, and nothing is done by the action. <b>Not chosen:</b> the button stays and answers “Your GM has closed this rule.” in a pop-up: it tells every player that a closed rule exists and what its action is, which is more than rp-1 lets them know.');
+
+const phSheet = (body) => `${phoneBar('The tide')}<div class="inner" style="min-height:300px"><p class="lbl" style="margin-bottom:var(--space-2)">The Drowned Harbour. Rules</p>${body}</div>`;
+const c4 = phone(phSheet(ruleText), 'RC4. The phone, 375 px, before: the rule is the whole screen, as the phone’s other panels are (its bar is drawn roughly here: on the phone a panel’s bar carries the way back).');
+const c5 = phone(phSheet(`<p class="gone" role="status">${I.info}<span>Your GM has closed this rule.</span></p>`), 'RC4b. The phone, after the GM closes it: the same screen and title; the rule’s words are gone and the one line stands in their place. The way back is the bar’s.');
+
+mount(`
+  <h1>A rule the GM closes while a player has it open</h1>
+  <p class="note">For the lead (brief of 2026-11-13, set 3). One small proposal with words, on the players’ redesigned page: what a player’s rule sheet shows when the GM closes that rule while the sheet is open, and what a rule’s button does once its rule is closed. Names and words are invented. <b>Approved by Francis 2026-11-13, with the lead’s fix</b> (“Back” shows only when the reader came from the Rules list). Frame RC2 is the alternative he did not choose: it is not for building.</p>
+  <h1>The sheet</h1>
+  <div class="wall">${c0}</div>
+  <div class="wall">${c1}</div>
+  <div class="wall">${c1b}</div>
+  <h1>The phone</h1>
+  <div class="wall">${c4}${c5}</div>
+  <h1>The button</h1>
+  <div class="wall">${c3}</div>
+  <h1>Not chosen, not for building: the alternative</h1>
+  <div class="wall">${c2}</div>
+  <h1>What was approved</h1>
+  <p class="note"><b>1. The sheet stays; its words go at once; one line with the information mark says “Your GM has closed this rule.”</b> (frames RC1, RC1b). If the GM opens the rule again while the sheet is up, the words come back. Not the sheet shutting with a toast (frame RC2).</p>
+  <p class="note"><b>2. “Back” shows only when the reader came from the Rules list</b> (frame RC1); opened from a rule’s button, the X is the one way out (frame RC1b).</p>
+  <p class="note"><b>3. A closed rule’s button is not there</b> (frame RC3): nothing greyed, nothing hinting; a tap landing in the same moment opens the sheet of frame RC1b. Not the button staying and explaining.</p>
+  <p class="note"><b>Not ruled, a line and not a frame:</b> if the list is open when its last rule is closed, the list could show “Your GM has closed these rules.” in the same way.</p>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked, in the HTML.</b> The closed rule’s words are on no frame after the close. The line is words with a mark, not colour. No disabled button. No Undo offered for an act that is not the player’s. “Back” only on the sheets reached from the list (RC0, RC1); the X alone on the sheet reached from a button (RC1b).</p>
+  <p class="note"><b>Not checked, or gaps.</b> The built place card’s sheet (no picture yet). A rule closed while a player is offline: it would read the same on reconnecting. Contrast by measurement; Larger text.</p>
+`);
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: where a player finds a place’s rules that have no button (2026-11-13)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<style>
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .four { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-4); align-items:start; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script>
+const go = svg(SY.right, 20);
+// the players' page of set 1 (frame 14), without its map card, to keep these frames short
+const pWays = `<div class="pcard"><div class="crumb"><span>Saltwick Island</span>${svg(SY.right, 16)}<b>The Drowned Harbour</b></div><h3 class="display"><span class="keyno">1</span>The jetty</h3><p class="ident">Black piles, a mooring ring, weed to the waterline.</p><div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div>${pdest('2 The wreck', '', [['Row', '1 turn'], ['Swim', '3 turns']])}${pdest('3 The breakwater', '', [['Row', '1 turn']])}</div>`;
+const pDo = `<div class="pcard"><div class="hrow"><h2>Activities</h2></div><div class="ideas">${b('Search', { icon: 'book' })}${b('Listen', { icon: 'book' })}${b('Force a door', { icon: 'book' })}</div></div>`;
+const know = opt('What everyone knows', 'Shared, turn 9.', { icon: 'book', right: go });
+const spots = `${spotP('2 The wreck', 'A cog on her side on the bar.')}${spotP('3 The breakwater', 'A drowned wall with a gap.')}`;
+const rulesRow = (title, sub) => opt(title, sub, { icon: 'scales', right: go });
+const placeCard = (row = '', withSpots = true) => `<div class="pcard"><div class="hrow"><h2>The Drowned Harbour</h2></div>${know}${row}${withSpots ? spots : ''}</div>`;
+const page = (row) => `${turnBand('player')}${turnFacts('player')}<div class="cols2"><div class="stack">${pWays}${pDo}</div><div class="stack">${placeCard(row)}${partyOrder(true)}</div></div>`;
+const ROW3 = rulesRow('Rules', '3 rules');
+
+const r1 = ipad('player', page(ROW3),
+  'PR1. <b>Approved: a row “Rules” in the place’s own card</b>, on the players’ redesigned page (set 1, frame 14; the map card is left out of these frames to keep them short). The players’ page already has a card for the place they have been shown (“The Drowned Harbour”) with the row “What everyone knows”, which is the players’ side of the GM’s Knowledge. The GM’s page pairs Knowledge with Rules; the players’ card gains the same pair: <b>“Rules”, with a bare count under it</b> (“3 rules”), the scales mark the GM’s Rules button carries, and the chevron every row to a panel has. One tap opens the list (frame PR2). <b>Why here and not beside Activities:</b> Activities are the setting’s rules, the same everywhere; these belong to the place and change when the party moves, so they sit in the place’s card; and a place can have many rules with long names, which a row and a list hold calmly where a block of buttons would grow (the alternative, not chosen, is frame PR6).');
+const listBody = (groups) => groups.map(([place, rules]) => `${place ? `<div class="subh">${place}</div>` : ''}${rules.map((r) => ruleItem(r, '')).join('')}`).join('');
+const L3 = [['', ['Falling into the harbour', 'Rowing and swimming', 'The tide']]];
+const r2 = withPanel('ipad', 'player', panel({ seq: 'The Drowned Harbour', title: 'Rules', body: listBody(L3) }),
+  'PR2. The list, in the panel at the right, the same panel a rule’s page and an activity’s rules open in (set 1, frames 8 and 14f). <b>Each rule is named as its book heads it, with no summary of ours</b> (as on the GM’s list); a tap on a name opens the rule (frame PR3). Players get no toggle and no eye: they see only what is open to them (rp-1). <b>A rule that has its own icon button is listed here too</b> (“Falling into the harbour”), by name only: one place holds every rule a player may read; its button stays where set 1 put it. The X closes.', page(ROW3));
+const r3 = withPanel('ipad', 'player', panel({ seq: 'The Drowned Harbour. Rules', title: 'The tide', body: `<div class="rule">
+  <p>The harbour fills and empties twice a day.</p>
+  <p><b>At low water.</b> The bar is dry: the wreck can be reached on foot.</p>
+  <p><b>At high water.</b> The gap in the breakwater can be rowed.</p>
+  <table><caption>The tide by the watch</caption><tr><th>Watch</th><th>Water</th></tr><tr><td>Dawn</td><td>Low</td></tr><tr><td>Noon</td><td>High</td></tr><tr><td>Dusk</td><td>Low</td></tr></table>
+  </div><p class="source">From your adventure: The Reed Marches, p. 41.</p>`, foot: footSay('', [b('Back')]) }),
+  'PR3. A rule opened from the list: the book’s own words, set out as the book sets them (rt-1), with its source: the same page as an activity’s rules (set 1, frame 14f). A reading aid: no button to roll or to propose, nothing sent to the GM. “Back” returns to the list; the X closes the panel. A link in the rule’s text that points at something the players have not been shown reads as plain words (rp-5): “the wreck” here is plain text, not a tap. The words and numbers are invented.', page(ROW3));
+
+// ---- the states ----
+const many = ['Falling into the harbour', 'Rowing and swimming', 'The tide', 'Fog on the water', 'Lights seen from the shore', 'The harbour bell', 'Mooring and casting off', 'What the piles will bear when a boat is made fast to them in a rising sea'];
+const st = (label, html) => `<div><p class="lbl">${label}</p>${html}</div>`;
+const r4 = ipad('player', `${turnBand('player')}<div class="four" style="margin-top:var(--space-3)">
+  ${st('<b>No rule open to players:</b> no row, and nothing in its place.', placeCard('', false))}
+  ${st('<b>One:</b> the row keeps its one form: it still reads “Rules”, its line is the rule’s name, and a tap opens the rule at once (no list of one).', placeCard(rulesRow('Rules', 'The tide'), false))}
+  ${st('<b>Many:</b> the same one row; the count grows, the page does not.', placeCard(rulesRow('Rules', '8 rules'), false))}
+  ${st('<b>One, with a long name:</b> the name wraps under “Rules”; the mark and the chevron keep their place.', placeCard(rulesRow('Rules', 'What the piles will bear when a boat is made fast to them in a rising sea'), false))}
+  ${st('<b>A rule from a wider region the players were never shown</b> (rp-4): it counts as this place’s; nothing names the region.', placeCard(rulesRow('Rules', '4 rules'), false))}
+  ${st('<b>The region has been shown too, and has a rule:</b> the line says whose they are.', placeCard(rulesRow('Rules', '3 here, 1 of Saltwick Island'), false))}
+</div>`,
+  'PR4. The row’s states, the place’s card alone (its spots left off). None, one, many, a long name; and the two cases of a rule that comes down from a wider region. <b>Never shown the region</b> (rp-4): its rule is counted and listed as this place’s own, under this place’s name; no name or other fact of the region appears. <b>Shown the region:</b> the row’s line and the list name it. <b>The words, approved:</b> the row always reads “Rules”; its line is a bare count, “3 rules”; with one rule the line is that rule’s name; when a second shown place has rules too, “3 here, 1 of Saltwick Island”.');
+const r5 = withPanel('ipad', 'player', panel({ seq: 'The Drowned Harbour', title: 'Rules', body: listBody([['', many]]) }),
+  'PR5a. The list with many rules and a long name: one row a rule, the long name wrapping in its row; the list scrolls in the panel if it is longer than the screen. No search and no folds: a place’s rules are few enough to read down.', page(rulesRow('Rules', '8 rules')));
+const r5b = withPanel('ipad', 'player', panel({ seq: 'The Drowned Harbour', title: 'Rules', body: listBody([['The Drowned Harbour', ['Falling into the harbour', 'Rowing and swimming', 'The tide']], ['Saltwick Island', ['Weather on the island']]]) }),
+  'PR5b. The list when the region has been shown as well: the rules under each place’s own name, the place the party is in first. When the region was never shown its rule sits in the one list with the others, with no heading at all (frame PR2’s form): a heading that named only this place would hint at another.', page(rulesRow('Rules', '3 here, 1 of Saltwick Island')));
+
+// ---- the phone ----
+const phPage = (row) => `${phoneBar('The Reed Marches')}<div class="inner"><h3 class="display" style="font-size:24px;margin:0"><span class="keyno">1</span>The jetty</h3><div class="hrow" style="margin-top:var(--space-2)"><h2>Where to?</h2></div>${pdest('2 The wreck', '', [['Row', '1 turn']])}<div class="hrow" style="margin-top:var(--space-3)"><h2>The Drowned Harbour</h2></div>${know}${row}</div>${tabBar('player')}`;
+const ph1 = phone(phPage(ROW3), 'PR7. The phone, 375 px: the same row under “What everyone knows” in the place’s block; one column.');
+const ph2 = phone(phPage(rulesRow('Rules', 'What the piles will bear when a boat is made fast to them in a rising sea')), 'PR7b. The phone with one rule of a long name: the name wraps under “Rules” to as many lines as it needs.');
+const ph3 = phone(`${phoneBar('Rules')}<div class="inner"><p class="lbl" style="margin-bottom:var(--space-1)">The Drowned Harbour</p>${listBody(L3)}</div>`, 'PR7c. The phone’s list: the whole screen, as the phone’s other panels are (its bar is drawn roughly here: on the phone a panel’s bar carries the way back to the Scene). A tap on a name opens the rule the same way.');
+
+// ---- the alternative ----
+const pRulesBlock = `<div class="pcard"><div class="hrow"><h2>Rules here</h2></div><div class="ideas">${b('Rowing and swimming', { icon: 'scales' })}${b('The tide', { icon: 'scales' })}${b('What the piles will bear when a boat is made fast to them in a rising sea', { icon: 'scales' })}</div></div>`;
+const r6 = ipad('player', `${turnBand('player')}${turnFacts('player')}<div class="cols2"><div class="stack">${pWays}${pDo}${pRulesBlock}</div><div class="stack">${placeCard('')}${partyOrder(true)}</div></div>`,
+  'PR6. <b>Not chosen (Francis, 2026-11-13); kept for the record, not for building.</b> The alternative was <b>a block “Rules here” under Activities</b>, each rule a button with the scales mark, a tap opening the rule at once. One tap fewer for a place with several rules, and it sits beside the block it most resembles. <b>What it costs:</b> the block grows with the place (eight rules is eight buttons before the party’s order); a long heading makes a button as wide as the column; two blocks of look-alike buttons, one the setting’s and one the place’s, are told apart only by their titles; and the block comes and goes as the party moves, shifting what is under it.');
+
+mount(`
+  <h1>Where a player finds a place’s rules that have no button</h1>
+  <p class="note"><b>Replaced by page 18 (the players’ Scene, whole), 2026-11-14.</b> Kept as the record of what was approved here.</p>
+  <p class="note">For the lead (brief of 2026-11-13, set 2). Ruled: players may read the open rules of the place they have been shown and of the places it sits in (rp-1 to rp-6). A rule with an action has its icon button; a rule without one has no home on the players’ page. This page proposes that home <b>on the players’ redesigned page</b> (set 1). The same proposal on today’s built place card is the second half and waits for the pictures of the built screen. Names, words and numbers are invented. <b>Approved by Francis 2026-11-13, with the lead’s fixes.</b> Frame PR6 is the alternative he did not choose: it is not for building.</p>
+  <h1>Approved: a row in the place’s card</h1>
+  <div class="wall">${r1}</div>
+  <div class="wall">${r2}</div>
+  <div class="wall">${r3}</div>
+  <h1>Its states</h1>
+  <div class="wall">${r4}</div>
+  <div class="wall">${r5}</div>
+  <div class="wall">${r5b}</div>
+  <h1>The phone</h1>
+  <div class="wall">${ph1}${ph2}${ph3}</div>
+  <h1>Not chosen, not for building: the alternative</h1>
+  <div class="wall">${r6}</div>
+  <h1>What was approved</h1>
+  <p class="note"><b>1. The home:</b> one row, “Rules”, in the place’s card under “What everyone knows” (frame PR1), opening a list. Not the block of buttons under Activities (frame PR6).</p>
+  <p class="note"><b>2. One form of the row.</b> It always reads “Rules”. With one rule its line is that rule’s name and a tap opens the rule at once; with more, its line is the count and a tap opens the list (frame PR4).</p>
+  <p class="note"><b>3. A rule that has its icon button is listed too</b>, by name: one place holds every rule a player may read (frame PR2).</p>
+  <p class="note"><b>4. The words:</b> “Rules”; “3 rules”; “3 here, 1 of Saltwick Island” when a second shown place has rules too. No sentence under the row.</p>
+  <p class="note"><b>5. A region never shown:</b> its rule is in the one list with no heading; headings appear only when two shown places have rules (frame PR5b).</p>
+  <p class="note"><b>A line, not a frame:</b> the Encounter check fact a player may read (rp-2, rp-6) is already on the fact row of set 1; nothing of it is drawn here.</p>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked, in the HTML.</b> Every state the brief lists: none, one, many, a long name, a region never shown, the phone. Nothing of an unshown place is named anywhere (rp-4). No toggle, eye or GM-only mark reaches a player’s frame. No accent button is added to the players’ page. No disabled button: with no rule there is no row. Rows are 44 px or more with the row’s own gaps. The list and the rule use set 1’s panel, row and rule page unchanged.</p>
+  <p class="note"><b>Not checked, or gaps.</b> One rule here and one of a shown region (two rules, so the count form: “1 here, 1 of Saltwick Island”) is not drawn. The built place card (the second half; no picture yet). The map card is left out of these frames. A rule whose text links to another rule (a tap inside the panel). Loading and offline. Contrast by measurement; Larger text.</p>
+`);
+</script>
+</body>
+</html>
