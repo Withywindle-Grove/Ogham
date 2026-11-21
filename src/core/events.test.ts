@@ -722,6 +722,13 @@ describe('places and messages in plain words (M5 step 11)', () => {
       'Priya showed the party “An archway to the east”.',
     );
     expect(say(event('place.hidePiece', { targetTable: 'piece_shows', targetId: 'show-2', before: { shown: true }, after: { shown: false } }))).toBe('Priya hid “An archway to the east” from Group 2.');
+    // A piece of a place in town (W4c): its words when the line made the show; otherwise what it is.
+    expect(say(event('town.showPiece', { targetTable: 'town_piece_shows', targetId: 'town-show-1', before: null, after: { piece_id: 'piece-arch', group_number: 2, shown: true } }))).toBe(
+      'Priya showed Group 2 “An archway to the east”.',
+    );
+    expect(say(event('town.hidePiece', { targetTable: 'town_piece_shows', targetId: 'town-show-1', before: { shown: true }, after: { shown: false } }))).toBe(
+      'Priya hid a piece of a place in town from the party.',
+    );
     const all = 'request-hide-all';
     expect(
       say(

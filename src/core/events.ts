@@ -1182,6 +1182,17 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       if (field === 'shown') return by(on ? (withTown ? `showed players ${place} and ${what}` : `showed players ${what} in ${place}`) : `hid ${what} in ${place} from players`);
       return by(on ? `opened ${what} in ${place}` : `closed ${what} in ${place}`);
     }
+    // A piece of a place in town shown or hidden (W4c, ge-1): the GM's lines alone. The piece's words when this line made
+    // the show (its first show on the visit); otherwise "a piece of a place in town" (the store's change holds only shown).
+    case 'town.showPiece':
+    case 'town.hidePiece': {
+      const made = entry.events.find((e) => e.targetTable === 'town_piece_shows' && e.before === null)?.after;
+      const groupNo = typeof made?.group_number === 'number' ? made.group_number : 1;
+      const group = groupNo !== 1 ? groupName(groupNo) : 'the party';
+      const text = named(names.pieces ?? new Map(), made?.piece_id, '');
+      const what = text ? `“${text}”` : 'a piece of a place in town';
+      return main.type === 'town.showPiece' ? by(`showed ${group} ${what}`) : by(`hid ${what} from ${group}`);
+    }
     // A place's rules (December dec-7 piece 3; mc-51, rg-5): the GM's lines alone; the rule and the place by the names
     // the pack gives them (kept on the switch's row).
     case 'placeRule.eye':
