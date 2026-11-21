@@ -69,7 +69,8 @@ export type NoLightView = { option: LightOption | null; words: string | null; li
 
 /**
  * Whether "No light" stands for this character, and its one-tap light: null while the group has light or it isn't
- * known. The Player tab puts it in the notices box (row C1, tfn-2); the Pack and Magic tabs draw it as `NoLight`.
+ * known. The Player tab puts it in the notices box (row C1, tfn-2); the Scene draws it as `NoLight` in its prompt slot
+ * (through `Darkness`). The Pack and Magic tabs show nothing (d5-20, ruled 2026-11-20).
  */
 export function useNoLight({ db, campaignId, characterId, setting, light, refresh }: DarknessProps): NoLightView | null {
   const dark = useInDarkness(db, campaignId, characterId, setting, refresh);
