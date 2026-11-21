@@ -36,6 +36,7 @@ export function TopRow({
   title,
   logTab = false,
   standard = false,
+  named = false,
   children,
 }: {
   /** Where the back link goes, in words: "Your campaigns", "Players". */
@@ -67,6 +68,11 @@ export function TopRow({
    * (`back` without `campaign`) shows ← as an icon named "Back to <back>", never "‹".
    */
   standard?: boolean;
+  /**
+   * With `standard` and `back`: the back link in words, "‹ Players", instead of ←, on a phone too, where it takes ≡'s
+   * place (the GM's view as the player: page 32, M3c, M3j; pg32-2).
+   */
+  named?: boolean;
   /** The screen's own ⋯ options, shown first. */
   children?: ReactNode;
 }) {
@@ -99,6 +105,10 @@ export function TopRow({
           ) : campaign ? (
             <button type="button" className="button-quiet top-row__back" onClick={onBack}>
               <CampaignBack {...campaign} />
+            </button>
+          ) : named ? (
+            <button type="button" className="button-quiet top-row__back" onClick={onBack}>
+              ‹ {back}
             </button>
           ) : (
             <button type="button" className="top-row__menu top-row__arrow" aria-label={back ? `Back to ${back}` : 'Back'} onClick={onBack}>

@@ -1403,6 +1403,13 @@ if (giveFlag === '1' || giveFlag === 'long') {
   world.addCharacter(campaign, giveFlag === 'long' ? 'Ashwin Thistlewood of the Long Stair, called the Lantern-Bearer' : 'Ash');
   if (giveFlag === 'long') world.addMember(campaign, world.addPerson('bart@lantern.example', 'Bartholomew Featherstone-Quillfeather the Younger'), 'player');
 }
+// The GM's view as the player with long names (page 32, M3b, M3d, M3k), only with ?view=long: a player with a long name
+// and their approved character with a long name, so the Players row wraps and the View band cuts its name line.
+if (new URLSearchParams(window.location.search).get('view') === 'long') {
+  const bart = world.addPerson('bart@lantern.example', 'Bartholomew Featherstone-Quillfeather the Younger');
+  const ashwin = world.addCharacter(campaign, 'Ashwin Thistlewood of the Long Stair, called the Lantern-Bearer', { ownerId: bart });
+  world.addMember(campaign, bart, 'player', ashwin);
+}
 // What the folded rail keeps (mn-2), only with ?railSigil=1: the retired campaign takes a 60-character name, and it and
 // the Drowned Marches a sigil picture (the layout check serves files.example's pictures itself).
 if (new URLSearchParams(window.location.search).get('railSigil') === '1') {

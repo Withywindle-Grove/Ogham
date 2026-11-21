@@ -38,47 +38,71 @@ export interface MyCharacter {
   expertise?: unknown;
 }
 
+const COLUMNS =
+  'id, campaign_id, owner_type, owner_user_id, approval, status, name, level, hp_current, hp_max, backstory, review_note, review_sections, fields, portrait_asset_id, company_id, created_at, classes, race_ref, creation, edited_fields, spell_book, weapon_skills, expertise';
+
 /** Oldest first. Null if they couldn't be loaded. */
 export async function loadMyCharacters(db: Db, campaignId: string, userId: string): Promise<MyCharacter[] | null> {
   const [actors, member] = await Promise.all([
-    db
-      .from('actors')
-      .select('id, campaign_id, owner_type, owner_user_id, approval, status, name, level, hp_current, hp_max, backstory, review_note, review_sections, fields, portrait_asset_id, company_id, created_at, classes, race_ref, creation, edited_fields, spell_book, weapon_skills, expertise')
-      .eq('campaign_id', campaignId)
-      .eq('kind', 'pc')
-      .eq('owner_user_id', userId),
+    db.from('actors').select(COLUMNS).eq('campaign_id', campaignId).eq('kind', 'pc').eq('owner_user_id', userId),
     db.from('members').select('active_actor_id').eq('campaign_id', campaignId).eq('user_id', userId).maybeSingle(),
   ]);
   if (actors.error || member.error) return null;
   const alignments = await loadAlignments(db, actors.data.map((a) => a.id));
   return [...actors.data]
     .sort((a, b) => a.created_at.localeCompare(b.created_at))
-    .map((row) => ({
-      id: row.id,
-      campaignId: row.campaign_id,
-      ownerType: row.owner_type as MyCharacter['ownerType'],
-      ownerUserId: row.owner_user_id,
-      approval: row.approval as Approval,
-      name: row.name,
-      level: row.level,
-      hpCurrent: row.hp_current,
-      hpMax: row.hp_max,
-      backstory: row.backstory,
-      reviewNote: row.review_note,
-      reviewSections: row.review_sections ?? [],
-      active: row.id === member.data?.active_actor_id,
-      archived: row.status === 'archived',
-      fields: withAlignment(row.fields, alignments.get(row.id)),
-      portraitAssetId: row.portrait_asset_id,
-      companyId: row.company_id,
-      classRef: Array.isArray(row.classes) && typeof (row.classes[0] as { classRef?: unknown } | undefined)?.classRef === 'string' ? ((row.classes[0] as { classRef: string }).classRef) : null,
-      raceRef: row.race_ref,
-      creation: row.creation,
-      editedFields: row.edited_fields ?? [],
-      spellBook: row.spell_book ?? [],
-      weaponSkills: row.weapon_skills ?? [],
-      expertise: row.expertise ?? {},
-    }));
+    .map((row) => toMyCharacter(row, row.id === member.data?.active_actor_id, alignments.get(row.id)));
+}
+
+/**
+ * One character as its player's own screen reads it, whoever reads it: the GM's view as the player (tfg-1, page 32)
+ * hosts the Player screen with it. Null if it couldn't be read or isn't there.
+ */
+export async function loadCharacter(db: Db, characterId: string): Promise<MyCharacter | null> {
+  const actor = await db.from('actors').select(COLUMNS).eq('id', characterId).maybeSingle();
+  if (actor.error || !actor.data) return null;
+  const row = actor.data;
+  const [member, alignments] = await Promise.all([
+    row.owner_user_id ? loadActiveCharacterId(db, row.campaign_id, row.owner_user_id) : Promise.resolve(null),
+    loadAlignments(db, [row.id]),
+  ]);
+  return toMyCharacter(row, member === row.id, alignments.get(row.id));
+}
+
+type ActorRow = {
+  id: string; campaign_id: string; owner_type: string; owner_user_id: string | null; approval: string; status: string; name: string; level: number;
+  hp_current: number | null; hp_max: number | null; backstory: string; review_note: string; review_sections: string[] | null; fields: unknown;
+  portrait_asset_id: string | null; company_id: string | null; classes: unknown; race_ref: string | null; creation: unknown; edited_fields: string[] | null;
+  spell_book: unknown; weapon_skills: unknown; expertise: unknown;
+};
+
+function toMyCharacter(row: ActorRow, active: boolean, alignment: Parameters<typeof withAlignment>[1]): MyCharacter {
+  return {
+    id: row.id,
+    campaignId: row.campaign_id,
+    ownerType: row.owner_type as MyCharacter['ownerType'],
+    ownerUserId: row.owner_user_id,
+    approval: row.approval as Approval,
+    name: row.name,
+    level: row.level,
+    hpCurrent: row.hp_current,
+    hpMax: row.hp_max,
+    backstory: row.backstory,
+    reviewNote: row.review_note,
+    reviewSections: row.review_sections ?? [],
+    active,
+    archived: row.status === 'archived',
+    fields: withAlignment(row.fields, alignment),
+    portraitAssetId: row.portrait_asset_id,
+    companyId: row.company_id,
+    classRef: Array.isArray(row.classes) && typeof (row.classes[0] as { classRef?: unknown } | undefined)?.classRef === 'string' ? ((row.classes[0] as { classRef: string }).classRef) : null,
+    raceRef: row.race_ref,
+    creation: row.creation,
+    editedFields: row.edited_fields ?? [],
+    spellBook: row.spell_book ?? [],
+    weaponSkills: row.weapon_skills ?? [],
+    expertise: row.expertise ?? {},
+  };
 }
 
 /** The id of the player's active character in the campaign; null with none, or if it couldn't be read. */

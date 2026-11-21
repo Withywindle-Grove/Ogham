@@ -3256,25 +3256,22 @@ describe('the full character sheet', () => {
     expect(await screen.findByText('Marsh folk, Level 3')).toBeTruthy();
   });
 
-  it("the GM opens a player's sheet from the player list, sees hidden fields, and changes the level", async () => {
+  // Since page 32 (pg32-1) the GM's Edit is in the row's ⋯ and opens the sheet's form straight away, as the player's
+  // Edit does; Save comes back to Players.
+  it("the GM edits a player's sheet from the player list, hidden fields included, and changes the level", async () => {
     const { gm, wren } = sheetWorld();
     world.signInAs(gm);
     const user = openApp();
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(user);
-    await user.click(await screen.findByRole('button', { name: "View Wren's sheet" }));
-
-    expect(await screen.findByRole('heading', { name: 'Hidden fields' })).toBeTruthy();
-    expect(screen.getByText('Retired value')).toBeTruthy();
+    await user.click(await screen.findByRole('button', { name: 'More for Wren' }));
     await user.click(screen.getByRole('button', { name: 'Edit' }));
+
+    expect(await screen.findByText('Retired value')).toBeTruthy();
     await user.selectOptions(screen.getByRole('combobox', { name: 'Level' }), 'Level 4');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(await screen.findByText('Saved.')).toBeTruthy();
     expect(actor(wren).level).toBe(4);
-    // With no class, the identity line is the GM's card fields, with commas (plan D); the name is its own heading.
-    expect(document.querySelector('.sheet__identity')?.textContent).toBe('Marsh folk, Level 4');
-
-    await user.click(screen.getByRole('button', { name: 'Back to Players' }));
     expect(await screen.findByRole('button', { name: 'Invite a player' })).toBeTruthy();
   });
 });
@@ -3438,11 +3435,11 @@ describe('undo', () => {
     const gmUser = openApp();
     await gmUser.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(gmUser);
-    await gmUser.click(await screen.findByRole('button', { name: "View Wren's sheet" }));
+    await gmUser.click(await screen.findByRole('button', { name: 'More for Wren' }));
     await gmUser.click(await screen.findByRole('button', { name: 'Edit' }));
     await writeBackstory(gmUser, 'Owes the ferryman');
     await screen.findByText('Saved.');
-    await gmUser.click(screen.getByRole('button', { name: 'Back to Players' }));
+    // Saved from the form, it comes back to Players (pg32-1: Edit in the row's ⋯, as the player's Edit).
     await screen.findByRole('heading', { name: 'Companies' });
     await gmUser.click(await screen.findByRole('button', { name: 'Companies options' }));
     await gmUser.click(screen.getByRole('button', { name: 'New company (GM)' }));
@@ -3541,11 +3538,11 @@ describe('notes', () => {
     const gmUser = openApp();
     await gmUser.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(gmUser);
-    await gmUser.click(await screen.findByRole('button', { name: "View Wren's sheet" }));
+    await gmUser.click(await screen.findByRole('button', { name: 'More for Wren' }));
     await gmUser.click(await screen.findByRole('button', { name: 'Edit' }));
     await writeBackstory(gmUser, 'Fever');
     await screen.findByText('Saved.');
-    await gmUser.click(screen.getByRole('button', { name: 'Back to Players' }));
+    // Saved from the form, it comes back to Players (pg32-1: Edit in the row's ⋯, as the player's Edit).
     await gmUser.click(await screen.findByRole('button', { name: 'Log' }));
     await openLine(gmUser, "You edited Wren's backstory.");
     await gmUser.click(await screen.findByRole('button', { name: "Add a note to: You edited Wren's backstory." }));
@@ -3581,7 +3578,7 @@ describe('fiat', () => {
     const gmUser = openApp();
     await gmUser.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(gmUser);
-    await gmUser.click(await screen.findByRole('button', { name: "View Wren's sheet" }));
+    await gmUser.click(await screen.findByRole('button', { name: 'More for Wren' }));
     await gmUser.click(await screen.findByRole('button', { name: 'Edit' }));
     expect(screen.getByText("This is a player's character, so your changes are logged as a GM ruling (fiat).")).toBeTruthy();
     await gmUser.type(screen.getByLabelText('Reason (optional)'), 'Failed the marsh crossing');

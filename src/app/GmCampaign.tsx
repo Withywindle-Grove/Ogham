@@ -12,7 +12,9 @@ import {
   characterLabel,
   loadGmCharacters,
   loadPlayers,
+  loadPreparedIds,
   loadWaitingInvites,
+  whoseIs,
   type GmCharacter,
   type Player,
   type PlayerCharacter,
@@ -43,15 +45,15 @@ import { BelowTopRowProvider, TopRow } from './TopRow.tsx';
 import { CampaignMenuProvider } from './shellMenu.tsx';
 import './GmCampaign.css';
 import { LogSheet, useLogVersion } from './campaignLog.tsx';
-import { usePhone } from './useWide.ts';
+import { usePhone, useWide } from './useWide.ts';
 import { noteTab, tabRestored, tabToRestore } from './placeOnReload.ts';
 import { gmPhoneTabs, gmTabs, type GmWaiting } from './navTabs.ts';
-import { MenuItem } from '../ui/MoreMenu.tsx';
+import { MenuItem, MenuItems, MoreMenu } from '../ui/MoreMenu.tsx';
 import { SectionNav } from '../ui/SectionNav.tsx';
 import { useNavCollapsed } from '../ui/navCollapsed.ts';
 import { DividerHandle } from '../ui/DividerHandle.tsx';
 import { loadCampaignSetting, type CampaignSetting } from './campaignSetting.ts';
-import { traitListsOf, traitLookup, type TraitList } from '../modules/characters/traitLists.ts';
+import { traitListsOf, traitLookup } from '../modules/characters/traitLists.ts';
 import { loadInventory, type InventoryLine } from '../modules/inventory/inventory.ts';
 import { reviewDetails } from './reviewDetails.ts';
 import { campaignChoices } from './weaponSetup.ts';
@@ -64,7 +66,16 @@ import { Chip } from '../ui/parts.tsx';
 import { GmException } from './GmException.tsx';
 import { reviewSections } from './reviewSections.ts';
 import { abilityNames } from '../modules/characters/creation.ts';
-import { ErrorToast, NoticeToast } from '../ui/ToastHost.tsx';
+import { ErrorToast, NoticeToast, useToast } from '../ui/ToastHost.tsx';
+import { SkeletonRows } from '../ui/parts.tsx';
+import { ViewBand } from '../ui/ViewBand.tsx';
+import { loadCharacter, type MyCharacter } from '../core/myCharacters.ts';
+import { fieldsInPlay, fieldsOffFor } from '../modules/library/optionGate.ts';
+import { characterFigures } from './fromSetting.ts';
+import { hasSpells } from './MagicTab.tsx';
+import type { PlayerTab } from './navTabs.ts';
+import { PlayerScreen } from './PlayerScreen.tsx';
+import { PlayerViewContext } from './playerView.ts';
 import { LogView } from './LogView.tsx';
 import { PartyGroups } from './PartyGroups.tsx';
 import { SceneCardProvider } from './sceneCard.tsx';
@@ -72,6 +83,9 @@ import { SceneMoveProvider } from './sceneMove.tsx';
 import { SceneWaitingProvider } from './sceneWaiting.tsx';
 import { SceneTime } from './SceneTime.tsx';
 import { BookType } from '../ui/creation.tsx';
+
+/** A tab of the GM's view as the player (page 32): what a row's View sheet, Pack, Magic or Scene opens. */
+type ViewTab = Exclude<PlayerTab, 'log'>;
 
 const shortDate = (iso: string) => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
@@ -101,12 +115,14 @@ export function GmCampaign({
   const logVersion = useLogVersion();
   // "Companies: On / Off" (ruled 2026-10-24): off hides the Companies section (nothing is deleted).
   const [withCompanies, setWithCompanies] = useState(true);
-  // The setting's trait lists, so a roster line's trait field shows the entry's name (M5b step 0b).
-  const [traitLists, setTraitLists] = useState<TraitList[]>([]);
+  // The setting: its trait lists, so a roster line's trait field shows the entry's name (M5b step 0b), and the classes,
+  // so a row offers Magic only to a character with a Magic tab (tfg-2, pg32-1).
+  const [setting, setSetting] = useState<CampaignSetting | null>(null);
+  const traitLists = setting ? traitListsOf(setting.all) : [];
   useEffect(() => {
     let current = true;
     void loadCampaignSettings(db, campaign.id).then((found) => current && setWithCompanies(found === null || companiesOn(found)));
-    void loadCampaignSetting(db, user.id, campaign.id).then((found) => current && setTraitLists(found ? traitListsOf(found.all) : []));
+    void loadCampaignSetting(db, user.id, campaign.id).then((found) => current && setSetting(found));
     return () => {
       current = false;
     };
@@ -143,9 +159,17 @@ export function GmCampaign({
   const [fieldsVersion, setFieldsVersion] = useState(0);
   // Bumped by the homebrew's "Edit character fields", which opens them in Rules for this campaign (N20).
   const [fieldsFocus, setFieldsFocus] = useState(0);
+  // The full sheet: View sheet on a character with no Player tab yet (waiting, sent back, a draft; d5-22).
   const [sheetFor, setSheetFor] = useState<string | null>(null);
-  // A character's pack, opened from Players and characters (2026-10-23), with the GM's extras.
-  const [packFor, setPackFor] = useState<string | null>(null);
+  // The GM's view as the player (tfg-1; page 32): a row's View sheet, Pack, Magic or Scene opens it on that tab.
+  const [viewing, setViewing] = useState<{ id: string; name: string; tab: ViewTab } | null>(null);
+  // Edit in a row's ⋯ (pg32-1): the same Edit screen the player's Edit opens (⚑ 44, the driver's call).
+  const [editFor, setEditFor] = useState<string | null>(null);
+  // Give to a player… or Remove… chosen in a row's ⋯ (pg32-1): their own sheet and panel, as before.
+  const [rowAct, setRowAct] = useState<{ id: string; act: 'give' | 'remove' } | null>(null);
+  // Who has a spell prepared: with the class's casting, what gives a Magic tab (tfg-2).
+  const [prepared, setPrepared] = useState<ReadonlySet<string>>(new Set());
+  const wide = useWide();
   // Waiting for you (2026-10-23; M5 step 12; bq3-8): players' one-offs to approve, requests to answer, bases to pick.
   const [waitingList, setWaitingList] = useState({ oneOffs: 0, bases: 0, requests: 0 });
   const waitingItems = waitingList.oneOffs + waitingList.bases + waitingList.requests;
@@ -184,9 +208,25 @@ export function GmCampaign({
     reload();
   };
 
-  /** One character's row on the Players page: a player's ("Sam, joined 12 Oct") or the GM's own ("Yours"). */
+  /** Whether a character has a Magic tab (tfg-2), as its Player screen decides it (`hasSpells`). */
+  const hasMagicTab = (character: PlayerCharacter | GmCharacter) =>
+    !!setting && (prepared.has(character.id) || hasSpells(characterFigures(setting, character, fieldsInPlay(fieldDefs, fieldsOffFor(setting, character))), null));
+
+  /**
+   * One character's row on the Players page: a player's ("Sam, joined 12 Oct") or the GM's own ("Yours"). An approved
+   * one (page 32, M3a, M3b; pg32-1): View sheet, Pack, Magic (only with a Magic tab) and Scene, each opening the GM's
+   * view as the player on that tab, then ⋯ with Edit, Give to a player… and Remove…, ⋯ beside the last door. One with
+   * no Player tab yet keeps today's row: View sheet opens the full sheet (d5-22), and Remove… (⚑ 43, not answered).
+   */
   const characterRow = (character: PlayerCharacter | GmCharacter, meta: string, everyone: readonly Player[]) => {
     const summary = fieldSummary(fieldDefs, character.fields, { onlyCard: true, lookup: traitLookup(traitLists) });
+    const open = character.approval === 'approved' && !character.archived;
+    const acting = open && rowAct?.id === character.id ? rowAct.act : null;
+    const door = (tab: ViewTab, words: string, label: string) => (
+      <button type="button" className="button-secondary button-secondary--small" aria-label={label} onClick={() => setViewing({ id: character.id, name: character.name, tab })}>
+        {words}
+      </button>
+    );
     return (
       <li key={character.id} className="gm__row gm__character-row">
         <Portrait db={db} campaignId={character.campaignId} assetId={character.portraitAssetId} name={character.name} size="small" />
@@ -197,21 +237,45 @@ export function GmCampaign({
           </span>
           <span className="gm__meta">{meta}</span>
         </span>
-        <span className="gm__character-actions">
-          <button type="button" className="button-secondary button-secondary--small" aria-label={`View ${character.name}'s sheet`} onClick={() => setSheetFor(character.id)}>
-            View sheet
-          </button>
-          {character.approval === 'approved' && !character.archived && (
-            <button type="button" className="button-secondary button-secondary--small" aria-label={`Open ${character.name}'s pack`} onClick={() => setPackFor(character.id)}>
-              Pack
+        {open ? (
+          <span className="gm__character-actions">
+            {door('player', 'View sheet', `View ${character.name}'s sheet`)}
+            {door('pack', 'Pack', `Open ${character.name}'s pack`)}
+            {hasMagicTab(character) && door('magic', 'Magic', `Open ${character.name}'s magic`)}
+            {/* At 375 px ⋯ never sits alone on a line: it stays beside the last door (pg32-1). */}
+            <span className="gm__last-door">
+              {door('scene', 'Scene', `Open ${character.name}'s scene`)}
+              <MoreMenu label={`More for ${character.name}`}>
+                <MenuItems>
+                  <MenuItem icon="quill-ink" onClick={() => setEditFor(character.id)}>
+                    Edit
+                  </MenuItem>
+                  <MenuItem icon="open-palm" onClick={() => setRowAct({ id: character.id, act: 'give' })}>
+                    Give to a player…
+                  </MenuItem>
+                  <MenuItem icon="cancel" onClick={() => setRowAct({ id: character.id, act: 'remove' })}>
+                    Remove…
+                  </MenuItem>
+                </MenuItems>
+              </MoreMenu>
+            </span>
+          </span>
+        ) : (
+          <span className="gm__character-actions">
+            <button type="button" className="button-secondary button-secondary--small" aria-label={`View ${character.name}'s sheet`} onClick={() => setSheetFor(character.id)}>
+              View sheet
             </button>
-          )}
-          {/* Page 13, G1: between Pack and Remove…, plain. */}
-          {character.approval === 'approved' && !character.archived && (
-            <GiveCharacter db={db} user={user} character={character} players={everyone} onChanged={reload} onInvite={() => setInviting(true)} />
-          )}
-          {character.approval !== 'pending' && <RemoveCharacter db={db} user={user} character={character} campaignName={campaign.name} onDone={done} />}
-        </span>
+            {character.approval !== 'pending' && <RemoveCharacter db={db} user={user} character={character} campaignName={campaign.name} onDone={done} />}
+          </span>
+        )}
+        {acting === 'give' && (
+          <GiveCharacter db={db} user={user} character={character} players={everyone} onChanged={reload} onInvite={() => setInviting(true)} open onClose={() => setRowAct(null)} />
+        )}
+        {acting === 'remove' && (
+          <div className="gm__row-panel">
+            <RemoveCharacter db={db} user={user} character={character} campaignName={campaign.name} onDone={done} open onClose={() => setRowAct(null)} />
+          </div>
+        )}
       </li>
     );
   };
@@ -220,6 +284,7 @@ export function GmCampaign({
     let current = true;
     void countWaiting(db, campaign.id).then((found) => current && setWaitingList(found));
     void loadSheetChanges(db, campaign.id, { waiting: true }).then((found) => current && setSheetChanges(found ?? []));
+    void loadPreparedIds(db, campaign.id).then((found) => current && setPrepared(found));
     Promise.all([loadWaitingInvites(db, campaign.id), loadPlayers(db, campaign.id), loadFieldDefinitions(db, campaign.id), loadGmCharacters(db, campaign.id)]).then(
       ([foundInvites, foundPlayers, foundFields, foundGm]) => {
         if (!current) return;
@@ -248,8 +313,9 @@ export function GmCampaign({
       icon="company"
       onClick={() => {
         setStashOpen(false);
-        setPackFor(null);
         setSheetFor(null);
+        setViewing(null);
+        setEditFor(null);
         setSection('players');
         setToCompanies((n) => n + 1);
       }}
@@ -260,7 +326,7 @@ export function GmCampaign({
 
   // The Compact time strip (DG2): under the top row on every GM screen but Scene (which has the whole strip), shown
   // only while an expedition is under way. Its "Scene ›" comes back to Scene.
-  const onScene = section === 'scene' && !stashOpen && !packFor && !sheetFor;
+  const onScene = section === 'scene' && !stashOpen && !sheetFor && !editFor;
   const compactStrip = onScene ? null : (
     <SceneTime
       db={db}
@@ -269,8 +335,8 @@ export function GmCampaign({
       compact
       onOpenScene={() => {
         setStashOpen(false);
-        setPackFor(null);
         setSheetFor(null);
+        setEditFor(null);
         setSection('scene');
       }}
     />
@@ -290,16 +356,43 @@ export function GmCampaign({
     );
   }
 
-  if (packFor) {
+  if (viewing) {
+    // The GM's view as the player (tfg-1; page 32): the character's Player screen, the band under its top row.
     return (
       <CampaignMenuProvider gm={campaignItems}>
-      <BelowTopRowProvider below={compactStrip}>
-        <section className="gm gm--sub">
-          <TopRow back="Players" onBack={() => setPackFor(null)} />
-          <PackScreen db={db} user={user} campaign={campaign} carrierId={packFor} onChanged={reload} />
-        </section>
-            </BelowTopRowProvider>
-    </CampaignMenuProvider>
+        <CharacterView
+          db={db}
+          user={user}
+          campaign={campaign}
+          characterId={viewing.id}
+          name={viewing.name}
+          startTab={viewing.tab}
+          fieldDefs={fieldDefs}
+          wide={wide}
+          who={Array.isArray(players) ? whoseIs(viewing.id, players, gmCharacters) : null}
+          onBack={() => {
+            setViewing(null);
+            reload();
+          }}
+        />
+      </CampaignMenuProvider>
+    );
+  }
+
+  if (editFor) {
+    // Edit from a row's ⋯ (pg32-1; ⚑ 44, the driver's call): the sheet's form straight away, as the player's Edit on
+    // Your characters opens it; Save or Cancel comes back to Players with its line.
+    const back = (message: string | null) => {
+      setEditFor(null);
+      if (message) setReviewed(message);
+      reload();
+    };
+    return (
+      <CampaignMenuProvider gm={campaignItems}>
+        <BelowTopRowProvider below={compactStrip}>
+          <CharacterSheet key={editFor} db={db} user={user} characterId={editFor} backLabel="Players" onBack={() => back(null)} onEdited={back} />
+        </BelowTopRowProvider>
+      </CampaignMenuProvider>
     );
   }
 
@@ -556,6 +649,125 @@ export function GmCampaign({
     </section>
           </BelowTopRowProvider>
     </CampaignMenuProvider>
+  );
+}
+
+/**
+ * The GM's view as the player (page 32, M3c to M3k; tfg-1, pg32-2, pg32-7, pg32-8): the character's own Player screen,
+ * hosted here, with the View band under the top row on every tab. Whose view it is comes at once from the Players list
+ * (so the band and the top row show while the character reads), and follows it: given to another player while open,
+ * the band follows with a toast; removed, a toast and back to Players. A read that fails says so with Try again, and
+ * "‹ Players" still goes back.
+ */
+function CharacterView({
+  db,
+  user,
+  campaign,
+  characterId,
+  name,
+  startTab,
+  fieldDefs,
+  wide,
+  who,
+  onBack,
+}: {
+  db: Db;
+  user: CurrentUser;
+  campaign: OpenCampaign;
+  characterId: string;
+  /** The character's name from its row, until the character has read. */
+  name: string;
+  startTab: ViewTab;
+  fieldDefs: FieldDefinition[];
+  wide: boolean;
+  /** Whose the character is now, from the Players list (null while it can't tell). */
+  who: { player: string | null } | 'gone' | null;
+  onBack: () => void;
+}) {
+  const logVersion = useLogVersion();
+  const show = useToast();
+  const [character, setCharacter] = useState<MyCharacter | null | 'error'>(null);
+  const [version, setVersion] = useState(0);
+  const [sheetRefresh, setSheetRefresh] = useState(0);
+  useEffect(() => {
+    let current = true;
+    // A later read that fails keeps what was read (offline: the tab reads as last loaded, M3k).
+    const failed = () => current && setCharacter((was) => (was && was !== 'error' ? was : 'error'));
+    void loadCharacter(db, characterId).then((found) => (found ? current && setCharacter(found) : failed()), failed);
+    return () => {
+      current = false;
+    };
+  }, [db, characterId, logVersion, version]);
+  const shownName = character && character !== 'error' ? character.name : name;
+
+  // Whose view the band names: the Players list's answer, kept while it can't tell; `moved` once it changed here.
+  const [owner, setOwner] = useState<{ player: string | null; moved: boolean }>({ player: who && who !== 'gone' ? who.player : null, moved: false });
+  if (who && who !== 'gone' && who.player !== owner.player) setOwner({ player: who.player, moved: true });
+  useEffect(() => {
+    if (!owner.moved) return;
+    // Given away while open (pg32-7a): "Wren is now Robin's."; given back to the GM, page 13's words.
+    show({ text: owner.player === null ? `${shownName} is yours again.` : `${shownName} is now ${owner.player}’s.` });
+    // Only when the owner changes, not when the name reads again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [owner]);
+  const gone = who === 'gone';
+  useEffect(() => {
+    if (!gone) return;
+    // Removed while open (pg32-7b): a toast, and back to Players.
+    show({ text: `${shownName} left the campaign.` });
+    onBack();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gone]);
+
+  return (
+    <PlayerViewContext.Provider value={{ player: owner.player, character: shownName }}>
+      <BelowTopRowProvider below={<ViewBand player={owner.player} character={shownName} />}>
+        {character && character !== 'error' ? (
+          <PlayerScreen
+            key={characterId}
+            db={db}
+            user={user}
+            campaign={campaign}
+            character={character}
+            fieldDefs={fieldDefs}
+            startTab={startTab}
+            wide={wide}
+            sheetRefresh={sheetRefresh}
+            onHpChange={() => setSheetRefresh((n) => n + 1)}
+            onDataChange={() => {
+              setVersion((v) => v + 1);
+              setSheetRefresh((n) => n + 1);
+            }}
+            onSheetSaved={() => setVersion((v) => v + 1)}
+            onBack={onBack}
+          />
+        ) : (
+          // Loading and couldn't load (M3k): the top row and the band at once, then still bars, or the warning.
+          <section className="player">
+            <TopRow back="Players" named onBack={onBack} menuLabel="Character options" title={shownName} logTab standard />
+            {character === 'error' ? (
+              <div className="gm__view-error">
+                <p className="form-error" role="alert">
+                  Couldn’t load {shownName}’s sheet.
+                </p>
+                <button
+                  type="button"
+                  className="button-secondary"
+                  onClick={() => {
+                    setCharacter(null);
+                    setVersion((v) => v + 1);
+                  }}
+                >
+                  Try again
+                </button>
+              </div>
+            ) : (
+              <SkeletonRows rows={5} label={`Opening ${shownName}`} />
+            )}
+          </section>
+        )}
+      </BelowTopRowProvider>
+    </PlayerViewContext.Provider>
   );
 }
 
