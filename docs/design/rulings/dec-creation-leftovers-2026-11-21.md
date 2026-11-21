@@ -5,9 +5,9 @@ absorbed-into: pending: docs/09-decisions-log.md (the lines below), docs/06-scre
 supersedes: nothing as a file. Inside `dec-scene-whole-2026-11-14.md`, row cs-45 to cs-53: cs-46 (special approvals last; clo-1), cs-53 (the sent-back screen's words only; clo-2), cs-52 (one column on an iPad, for the review; clo-3), cs-48 (the whole-screen loaders, for a step's own rows; clo-4), cs-51 ("Nothing to choose here." alone; clo-5), cs-47 (the GM's card, cs-25 only; clo-9). Francis's 2026-11-07 ruling that only Kindred and Class keep two columns (retest 2, `../notes/gate-m5b-walk-2026-11-05.md`) is reopened for the review (clo-3) and for Who they are, Details, Magic, Languages and Weapon skills (clo-7). cs-45, cs-49 and cs-50 stand
 ---
 
-# Creation's leftovers: Francis's answers, frame by frame (clo-1 to clo-12; 2026-11-21)
+# Creation's leftovers: Francis's answers, frame by frame (clo-1 to clo-12, clo-14 to clo-16; 2026-11-21)
 
-The plan [`creation-leftovers-2026-11-21.md`](../../plans/creation-leftovers-2026-11-21.md) listed twelve creation frames drawn on 2026-11-12 and never built, each one held back by the lead's rulings cs-45 to cs-53 ([`dec-scene-whole-2026-11-14.md`](dec-scene-whole-2026-11-14.md)) "for Francis as its own piece". Francis answered its ⚑ 1 to 12 at a sitting on 2026-11-21 with the driver, each frame in front of him. The fixes were put to him with each question and are part of his answer. Words in quotes are his.
+The plan [`creation-leftovers-2026-11-21.md`](../../plans/creation-leftovers-2026-11-21.md) listed twelve creation frames drawn on 2026-11-12 and never built, each one held back by the lead's rulings cs-45 to cs-53 ([`dec-scene-whole-2026-11-14.md`](dec-scene-whole-2026-11-14.md)) "for Francis as its own piece". Francis answered its ⚑ 1 to 12 at a sitting on 2026-11-21 with the driver, each frame in front of him, and ⚑ 14 to 16 later that day through the driver. The fixes were put to him with each question and are part of his answer. Words in quotes are his.
 
 The frames are now in this repository: `../mockups/creation/final/` pages 14 and 19 to 23, html and `png/` (see `../mockups/index.md`).
 
@@ -27,8 +27,11 @@ The frames are now in this repository: `../mockups/creation/final/` pages 14 and
 | clo-9 | 9 | 22-G6 | **The GM's approval card as drawn** (the frame's right-hand, swept column). **Fixes:** with "1 thing to settle", a tap on Approve says why in the usual pop-up; "Send back asks for a note" needs its drawing before it is built, unless it exists already. **Condition:** the builder first lists what differs from today; anything needing new behaviour (such as answering one pick with "Allow it" / "Take it off") comes back to Francis before it is built. Supersedes cs-47. | "Yes" |
 | clo-10 | 10 | 21-F5 | **The shared stepper on both the shop's count screen and the Pack's Add item sheet** (build once). The button reads "Buy N" in the shop only; the Add item sheet keeps its words. | "Yes" |
 | clo-11 | 11 | 23-H2 | **The offline step stays parked** until M9's offline queue. cs-49 stands. | "Keep it parked" |
+| clo-14 | 14 | 22-G8 | **On the review card, the alignment's tongue is plain words, "Reed-tongue (alignment)", not a chip.** The review card only: on the Languages step (20-E6) it keeps its ⓘ. Settles the open point in clo-3's "every chip alike". | "Yes" |
+| clo-15 | 15 | 23-H1 | **Next while a step loads shows "Still loading the classes." as a toast**, not a pop-up. Keeps clo-6's toasts for creation's blocked taps. | "Toast" |
+| clo-16 | 16 | 20-E6, 20-E7 | **Weapon skills open the entry as 20-E7 draws it** (in a pane beside the list, with an X, as Class has it); **Languages opens the entry as a sheet, like Magic.** Settles the open point in clo-7 (b). | "Yes" |
 
-Ids follow the ⚑ numbers, not the plan's rows: clo-7 rules L7 and L8, clo-8 rules L9, clo-9 L10, clo-10 L11, clo-11 L12.
+Ids follow the ⚑ numbers, not the plan's rows: clo-7 rules L7 and L8, clo-8 rules L9, clo-9 L10, clo-10 L11, clo-11 L12, clo-14 L3, clo-15 L4, clo-16 L8. ⚑ 13 (the frames carried in) is not a ruling; ⚑ 17 (L5's sentence form) is not answered yet.
 
 ## What stands
 
@@ -40,10 +43,8 @@ Ids follow the ⚑ numbers, not the plan's rows: clo-7 rules L7 and L8, clo-8 ru
 
 ## Not settled (collected in the plan's ⚑ list)
 
-- The unboxed "Reed-tongue" on 22-G8 has a meaning in the source: the alignment's tongue has no entry, so it is plain words among chips that open entries. clo-3's "all alike" needs words for what that chip does.
-- 23-H1 says Next during loading answers "Still loading the classes." in a pop-up; clo-6 keeps toasts for blocked taps.
-- 20-E7 draws the weapon's entry in a pane beside the list, with an X; clo-7 (b) speaks of a sheet, from 20-E5. 20-E6 does not say where a language's ⓘ opens.
-- Whether the fixes of clo-2, clo-3, clo-7 and clo-9 can be built from the frame and the written fix, or need a redrawn frame first.
+- L5's sentence form (singular or plural class name in the why-line, ⚑ 17): asked, not answered.
+- Whether the fixes of clo-2, clo-3, clo-7 and clo-9 can be built from the frame and the written fix, or need a redrawn frame first (⚑ 18); L10's Send back note (⚑ 19).
 
 ## Not checked
 
@@ -62,3 +63,4 @@ Ids follow the ⚑ numbers, not the plan's rows: clo-7 rules L7 and L8, clo-8 ru
 - 2026-11-21 — [sheet] Creation's states: a step's rows load inside the step (clo-4, supersedes cs-48 for steps); a skipped step says why in its own line, composed by the app (clo-5, supersedes cs-51); blocked taps keep their toasts (clo-6, cs-50 stands); the offline step waits for M9 (clo-11) — Francis: "Yes", "Yes", "Keep", "Keep it parked" — `design/rulings/dec-creation-leftovers-2026-11-21.md`
 - 2026-11-21 — [sheet] On an iPad, Who they are, Details, Magic, Languages and Weapon skills take two columns, the portrait at the left on Who they are (clo-7, reopens 2026-11-07 for these steps); the Patron step gets the find field past twelve patrons (clo-8) — Francis: "Yes" — `design/rulings/dec-creation-leftovers-2026-11-21.md`
 - 2026-11-21 — [ui] The GM's approval card as drawn in 22-G6, Approve with something to settle saying why in the usual pop-up, new behaviour back to Francis first (clo-9, supersedes cs-47); the shared stepper on the shop's count screen and the Add item sheet, "Buy N" in the shop only (clo-10) — Francis: "Yes" — `design/rulings/dec-creation-leftovers-2026-11-21.md`
+- 2026-11-21 — [sheet] Creation: on the review card the alignment's tongue is plain words, "Reed-tongue (alignment)", not a chip (clo-14); Next while a step loads shows "Still loading the classes." as a toast (clo-15); Weapon skills open the entry in a pane beside the list as 20-E7 draws it, Languages as a sheet like Magic (clo-16) — Francis: "Yes", "Toast", "Yes" — the drawn frames; the toast keeps clo-6's rule for blocked taps — `design/rulings/dec-creation-leftovers-2026-11-21.md`
