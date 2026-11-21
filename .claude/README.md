@@ -17,6 +17,49 @@ Agents live in `.claude/agents/` (`claude --agent driver`, `claude --agent build
 - **The exception to rvw-10** (Francis, 2026-11-17): the day before the reset the driver reads the week's meter with Francis. If usage will be left, it may add seats only for data-and-logic rows of the next screen, tests and owed look-back reviews, the checks for rvw-6 and rvw-7, and clean-up that touches no file a live row holds; never a second screen's visible rows, never more seats than the PC's memory allows.
 - **Two checks at once (ln-1, 2026-11-14; placed here 2026-11-18, Francis):** two checks may run at once while free memory is 12 GB or more; one below 10 GB. The second runs only with three test workers, only with 13 GB free at its start, and is dropped below 9 GB; a layout run counts as a heavy thing. Ruling: `docs/design/rulings/dec-pack-town-players-2026-11-14.md`.
 
+## Skills (Francis, 2026-11-21)
+
+Where this section differs from the rules above or in `CLAUDE.md`, those rules win. Load the named skill before doing the work it covers; where two could apply, use the one named here. Say which skill you used in one line. If a skill named here isn't available in the session, say so and continue without it (several are installed only on Francis's PC, not in cloud sessions).
+
+**Plan**
+- `grill-me`: in a design sitting with Francis, before anything non-trivial is planned; interview him in rounds until nothing is assumed. Builders working from an approved plan do not grill him.
+- `product-management:write-spec`: turn a settled plan into a spec.
+- `engineering:system-design`: new services, data models, API boundaries.
+- `engineering:architecture`: when choosing between technologies; record it as an ADR.
+
+**Build**
+- `ponytail`: on every coding task: the smallest change that fully delivers the plan's row. End with what you skipped and any risk.
+- `engineering:testing-strategy`: when Francis asks what to test or how.
+
+**Fix**
+- `engineering:debug`: any bug not obvious in one read. Reproduce before proposing a cause.
+
+**Review**
+- `ponytail-review`: the default for reviewing a change.
+- `engineering:code-review`: instead, when the change touches auth, user input, secrets or performance-critical paths.
+- `ponytail-audit`: whole-repo review, or "what can I delete".
+- `engineering:tech-debt`: only when Francis asks for a prioritised debt backlog.
+
+**Ship**
+- `engineering:deploy-checklist`: before any release with migrations or feature flags.
+- `engineering:documentation`: READMEs, runbooks, API docs.
+
+**UI** (mockups first and the design tokens still rule)
+- `frontend-design`: the default for building new UI; `uiux` if it isn't available.
+- `design:accessibility-review`: before a UI ships.
+- `design:ux-copy`: labels, errors, empty states (within the words and voice guide in 06).
+- `impeccable`: only when Francis names it or one of its commands.
+- `hallmark`: only when Francis names it.
+- `design:design-critique`: only when he asks for a critique without naming `impeccable`.
+
+**Data**
+- `data:sql-queries` for SQL; `dataviz` before any chart.
+
+**Rules**
+- A review or audit Francis asks for himself reports only: change nothing until he picks findings by number. The local reviewer before a merge is unchanged: the driver has the builder fix its findings (Roles and models, above).
+- `hallmark` and `impeccable` are condensed ports without their tooling. Never claim a linter or detector ran.
+- Do not use Adobe or marketing skills in this project unless Francis names one.
+
 ## How the driver runs the work (rvw-9, rvw-13, rvw-14, rvw-16, rvw-17)
 
 - **Unsaved work first** (rvw-17): right after `main` is green the driver commits and pushes, as drafts, the work in the eleven folders the review listed; only then is a local session archived.

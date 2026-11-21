@@ -20,6 +20,7 @@ If a guard, a hook or a permission check blocks you, stop and report to the driv
 - In your own worktree only, on a branch from freshly fetched `origin/main` named `<branch-name>`. Never work in, or switch the branch of, a folder another session uses. Run `npm ci` there if `node_modules` is missing (it installs exactly what `package-lock.json` lists and never rewrites it; never `npm install`, which rewrote the lock file in a cloud container on 2026-11-21; never in `<home>\Documents\grimoire`).
 - Tests with each feature, each with its purpose as a plain sentence first. On a `fix-` branch the failing test comes first as `it.fails`, and test files change only with the Edit tool (`.claude/README.md`, Fix branches).
 - Hard rules in `CLAUDE.md` in full: every command through `can()` and an event; tokens only; never a disabled button; the Components inventory's Code column kept current.
+- Load `ponytail` (`.claude/README.md`, Skills): the smallest change that fully delivers the row; say in the pull request what you skipped and any risk.
 - Stay inside the row's files. Another builder works on another row at the same time: if you need a file outside your row, stop and say which.
 - **No decisions are yours:** collect ⚑. A new feature or a change to approved behaviour is a scope check (`docs/08-roadmap.md`): write it and stop.
 - **A migration:** stop and report before writing one; the driver says how it goes (`.claude/agents/builder.md`, Database).
