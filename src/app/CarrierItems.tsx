@@ -16,6 +16,7 @@ import { lineInPlay, type CampaignSetting } from './campaignSetting.ts';
 import { asItem, equippedProblems, loadEquipContext, type EquipContext } from './EquipWarning.tsx';
 import { allowedByRule, castingStoppedBy, classAllowsWeapon, equipBlocks } from '../modules/inventory/equipWarnings.ts';
 import { ItemRow } from './ItemRow.tsx';
+import { usePlayerView } from './playerView.ts';
 import { lightFactsOf } from './AtHandSheets.tsx';
 import { useFoldOpen } from './packOpen.ts';
 import { foldSummary, itemCount, type Run } from './packHelpers.ts';
@@ -61,6 +62,19 @@ export function drawnAmmunition(
   stackEntry: { data: Record<string, unknown> } | null,
 ): { name: string; data: Record<string, unknown>; category: string } {
   return { name: stack.name, data: { ...(stackEntry?.data ?? {}), ...lineInPlay(setting, stack).details }, category: stack.category };
+}
+
+/** The words `weaponMagic` adds to what the player can't see (play.ts, `marked`). */
+const HIDDEN_MARK = ' (hidden from the player)';
+
+/**
+ * A weapon's figures hidden from its player, in the GM's words for the view's GM line (pg32-4; M3g2): each hidden part
+ * with its sign ("Old bronze sword, magic −1"), then each hidden note.
+ */
+export function hiddenFigures(magic: WeaponMagic): string[] {
+  const parts = magic.parts.filter((p) => p.label.endsWith(HIDDEN_MARK)).map((p) => `${p.label.slice(0, -HIDDEN_MARK.length)} ${p.value < 0 ? `−${-p.value}` : `+${p.value}`}`);
+  const notes = [...magic.hitNotes, ...magic.damageNotes].filter((n) => n.endsWith(HIDDEN_MARK)).map((n) => n.slice(0, -HIDDEN_MARK.length));
+  return [...parts, ...notes];
 }
 
 /** A weapon's attack bonus and damage ("+2, 1d8"), from its item data, the patches' damage change and a mode's parts. */
@@ -205,6 +219,9 @@ export function CarrierItems({
   const tinyOpen = tinySaved ?? false;
   // What's worn or held against the rules already (ruled 2026-10-25): marked on its row.
   const [equipContext, setEquipContext] = useState<EquipContext | null>(null);
+  // The GM's view as the player (pg32-4): each weapon's hidden figures, for the GM's line on its sheet.
+  const view = usePlayerView();
+  const gmInView = view !== null && isGm(user, campaign.id);
   useEffect(() => {
     if (!carrier.actorId) return;
     let live = true;
@@ -330,6 +347,7 @@ export function CarrierItems({
                   const range = atHand && weapon !== null ? attackRange(item, state?.engaged ? state.mode : null) : null;
                   const bearing = atHand ? attackRules(inMode, state?.engaged ? state.mode : null, [ruleNotes.get(line.id), problems.get(line.id)]) : [];
                   const inflicts = atHand && weapon !== null ? inflictedBy(item, state?.engaged ? state.stack : null, conditions) : [];
+                  const gmFacts = gmInView ? hiddenFigures(weaponMagic({ name: line.name, data: item, category: line.category }, setting?.rulesSets ?? [], true, stack ? drawnAmmunition(setting, stack, stackEntry) : null)) : [];
                   return (
                   <ItemRow
                     key={line.id}
@@ -363,6 +381,7 @@ export function CarrierItems({
                     rechargeDefault={rechargeDefault}
                     onNote={onNote}
                     secret={hidden.get(line.id) ?? null}
+                    gmFacts={gmFacts}
                     problem={problems.get(line.id) ?? null}
                     castingNote={castingNotes.get(line.id) ?? null}
                     blockedEquip={offReason ?? (equipContext ? (equipBlocks(equipContext.character, asItem(line, equipContext), equipContext.weaponRules ?? null)[0] ?? null) : null)}

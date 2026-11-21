@@ -1411,6 +1411,25 @@ if (new URLSearchParams(window.location.search).get('view') === 'long') {
   const ashwin = world.addCharacter(campaign, 'Ashwin Thistlewood of the Long Stair, called the Lantern-Bearer', { ownerId: bart });
   world.addMember(campaign, bart, 'player', ashwin);
 }
+// The Pack in the GM's view as the player (page 32, M3g, M3g2), only with ?viewPack=1: on Wren, a ring whose long
+// curse only the GM reads (a hidden field), so its sheet carries the GM's line and "Reveal…", and a wand whose charge
+// count is hidden, so its row reads as the player's.
+if (new URLSearchParams(window.location.search).get('viewPack') === '1') {
+  const rules = world.tables.library_entries.find((e) => e.id === 'entry-river-rules')!.data as Record<string, unknown>;
+  rules.magicItems = { charges: { 'magic-wand': '2d6', hidden: true, rechargeable: false } };
+  const ring = { id: 'mooring-ring', name: 'Mooring ring', category: 'ring', description: 'A plain band of old bronze, green at the seam.' };
+  world.tables.library_entries.push({
+    id: 'entry-mooring-ring',
+    pack_id: 'pack-river',
+    kind: 'item',
+    pack_entry_id: 'mooring-ring',
+    name: 'Mooring ring',
+    data: { ...ring, fields: { Curse: 'Whoever wears it cannot step off a boat until the next full moon, and hears the bell of the drowned lock-keeper at every dusk' }, gmOnly: ['fields'] },
+  });
+  line('line-mooring-ring', wren, 'Mooring ring', { category: 'ring', library_entry_id: 'entry-mooring-ring', source_pack_id: 'pack-river', source_entry_id: 'mooring-ring', item_data: ring });
+  Object.assign(world.tables.inventory_lines.find((l) => l.id === 'line-wand')!, { charges_hidden: true, charges_used: 1 });
+  world.tables.inventory_line_secrets.push({ id: 'line-wand', campaign_id: campaign, charges_total: 999, spent: false });
+}
 // What the folded rail keeps (mn-2), only with ?railSigil=1: the retired campaign takes a 60-character name, and it and
 // the Drowned Marches a sigil picture (the layout check serves files.example's pictures itself).
 if (new URLSearchParams(window.location.search).get('railSigil') === '1') {
