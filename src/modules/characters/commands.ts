@@ -206,7 +206,8 @@ async function checkFields(db: Db, campaignId: string, values: FieldValues) {
  * Whether a change touches the rules set's own figures (Design, 2026-11-08 on #567): Max HP, the level, or one of the
  * pack's scores (`scoreKeys`, the fields that hold them, when the caller knows them). Once a character is approved only
  * the GM changes them; a player asks (sheet.requestChange). A full field set is checked by the database, which knows
- * what changed (private.guard_rules_figures).
+ * what changed (private.guard_rules_figures; an Undo held to it too since
+ * 20261121100000_fix_rules_figures_undo_after_approval.sql).
  */
 export function touchesRulesFigures(changes: CharacterChanges, scoreKeys: readonly string[] = []): boolean {
   if (changes.hpMax !== undefined || changes.level !== undefined) return true;

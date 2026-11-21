@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: icons for the Player screen’s buttons that still carry a stand-in (2026-11-14)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* this page's own rules: the layout of the proposal's table only. Type, the book format, the stacked button and the corners come from ../shared/book.css. */
+  .ic20 { width:980px; }
+  .ir { display:grid; grid-template-columns:230px 136px 136px minmax(0,1fr); gap:var(--space-2) var(--space-4); align-items:center; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .ir.hd { font-size:14px; color:var(--muted); padding-top:0; }
+  .ir .what small { display:block; font-size:14px; color:var(--muted); }
+  .ir .cell { display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .ir .cell code { font-size:14px; color:var(--muted); text-align:center; overflow-wrap:anywhere; }
+  .ir .why { font-size:14px; color:var(--muted); }
+  .near { display:flex; gap:var(--space-4); flex-wrap:wrap; margin-top:var(--space-2); }
+  .lone { display:inline-flex; flex-direction:column; align-items:center; gap:2px; width:88px; font-size:14px; color:var(--muted); text-align:center; }
+  .lone svg { color:var(--ink); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+const stk = (words, k) => `<span class="btn stk" role="button">${gi(k, 24)}<span>${words}</span></span>`;
+const cell = (words, k) => (k ? `<span class="cell">${stk(words, k)}<code>${k}</code></span>` : '<span class="cell"></span>');
+const row = (words, where, pick, other, why) => `<div class="ir"><span class="what"><b>${words}</b><small>${where}</small></span>${cell(words, pick)}${cell(words, other)}<span class="why">${why}</span></div>`;
+const lone = (k, what) => `<span class="lone">${gi(k, 28)}<span>${what}</span></span>`;
+const ROWS = [
+  ['Wield', 'A weapon at hand: take it in hand', 'sword-hilt', '', 'Ruled: a hand on a sword’s hilt (the second candidate; the first, a sword and an axe changing places, was not chosen).'],
+  ['Grip', 'The weapon in hand: one hand or two', 'fist', '', 'Ruled: a mailed fist, the hold itself.'],
+  ['Quiver', 'A bow at hand: what it shoots', 'quiver', '', 'A quiver of arrows; nothing else in the set says it.'],
+  ['Quiver', 'Frame P5, when no arrows are chosen: it was worded “Open the quiver”', 'quiver', '', 'Ruled: “just use quiver”: the same button as “Quiver”, the same word.'],
+  ['Use', 'A wand’s charge, an ability with uses', 'pointing', '', 'Ruled: a hand pointing: “this, now”.'],
+  ['Pouch', 'A sling at hand: what it throws', 'swap-bag', '', 'Ruled: a tied bag, already in the library.'],
+  ['Refill', 'A lantern: pour in oil', 'jug', '', 'An oil jug. The set’s oil can is a modern one, and its pouring cup is too near “Empty…”.'],
+  ['Light', 'A burnt-out torch or lantern (it was “Light another”), and frame P5 with no light lit (it was “Light a torch”)', 'torch', '', 'Ruled: the one word “Light”, with the lit torch: “Light not light the torch or light another”.'],
+  ['Put out', 'A lit light', 'smoking-finger', '', 'Ruled: fingers pinching out a wick, with its smoke.'],
+  ['Answer', 'Frame P5: a question waits for you', 'scroll-quill', '', 'Ruled: a scroll and quill.'],
+  ['Set max', 'Frame P5: hit points with no maximum yet', 'heart-plus', '', 'A heart with a plus: the hit points’ ceiling. No second candidate holds at this size.'],
+  ['Clear', 'Frame P5: clear a status', 'broom', '', 'A broom: sweep it away. The set’s cross is already “Not here” and “Not now”.'],
+];
+const body = `<div class="ir hd"><span>The button, and where it stands on the Player screen</span><span style="text-align:center">Ruled</span><span></span><span>Why</span></div>${ROWS.map((r) => row(...r)).join('')}
+  <p class="lbl" style="font-size:14px;color:var(--muted);margin:var(--space-4) 0 0"><b>Beside what they must differ from</b>, already on the Player screen or ruled.</p>
+  <div class="near">${lone('sword-brandish', 'Attack')}${lone('magic-palm', 'Cast')}${lone('spell-book', 'Prepare')}${lone('herbs-bundle', 'Heal')}${lone('quill-ink', 'Edit')}${lone('open-palm', 'Give to…')}${lone('pouring-pot', 'Empty…')}${lone('two-coins', 'Buy')}${lone('cancel', 'Not here')}</div>`;
+const frame = `<div style="width:1014px"><p class="cap">IC1. <b>Ruled by Francis, 2026-11-14 (ic-3): “Wield - sword hilt / Open the quiver, just use quiver / Light not light the torch or light another / Otherwise I approve of your choices”.</b> Three changes to what was proposed: Wield takes the sword’s hilt; “Open the quiver” is worded “Quiver”; “Light a torch” and “Light another” are both worded “Light”. The candidates not chosen are out of the folder. <b>An icon for each button on the Player screen that carried the stand-in mark</b> (page 14: Wield, Grip, Quiver, Use, Pouch, Refill, Light another, Put out) <b>and for frame P5’s plain buttons</b> (Light a torch, Answer, Set max, Clear, Open the quiver). Each is from game-icons.net’s official repository (CC BY 3.0), credited with its author in <code>icons/CREDITS.md</code>; none is drawn here. Each is shown as the stacked button it would be (the icon above its word, ic-1), the ruled icon. All are medieval or fantasy in kind: no modern object was kept (the set’s oil can, speech bubbles alone, the gym grip sold as “hand-grip” and the medical cross were looked at and left). “Pouch” and “Light” reuse icons the library already has. Page 14 is redrawn with these.</p><div class="pcard ic20 bit">${body}</div></div>`;
+mount(`
+  <h1>Icons for the Player screen’s buttons that still carry a stand-in</h1>
+  <p class="note">For the lead (2026-11-14), ruled by Francis (ic-3): one frame, light and dark. Eleven buttons, eleven pictures. Names are the set’s own file names.</p>
+  <div class="wall">${frame}</div>
+  <h1>Self-review</h1>
+  <p class="note"><b>The stylesheet.</b> This page links the one shared mockup stylesheet and its type pass and restates none of their rules; its own rules lay out the proposal’s table. <b>Checked.</b> The page was measured with <code>shared/measure.cjs</code> before it was shown. Every button is the shared stacked button, 88 by 56 px or more; each icon stands with its word. <b>Not checked.</b> The icons in place on the Player screen’s rows (page 14 is not redrawn until an icon is ruled); how each reads at the toast’s 20 px.</p>
+`);
+for (const c of document.querySelectorAll('.wall .cap')) c.insertAdjacentHTML('beforeend', ' <b>Ruled 2026-11-14 (ic-3); shared stylesheet.</b>');
+applyBook();
+</script>
+</body>
+</html>

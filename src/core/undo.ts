@@ -3,7 +3,9 @@
 // change or is the GM, that nothing changed since, and that it wasn't already undone. Making and deleting
 // things can't be undone, except a drop (ruled 2026-10-25): its log keeps a copy, and undo puts the item back; and
 // moving part of a stack (ruled 2026-10-26): undo merges the split-off part back. A give the receiver has used some
-// of brings back what's left, and says how much was used (5b, ruled 2026-10-26).
+// of brings back what's left, and says how much was used (5b, ruled 2026-10-26). A thing that joined a same-name stack
+// (Q2, sw-4) comes back off it the same way, the stack never going below what it had; a whole line a move merged in
+// is made again (sw-9).
 import { defineCommand, failed, isGm, isMember, notAllowed, ok, type CommandResult } from './commands.ts';
 import type { Db } from './supabase.ts';
 
@@ -104,8 +106,18 @@ export const mayUndo = (type: string, events: readonly { before: unknown; after:
   const deletion = UNDOABLE_DELETIONS.includes(type);
   const removed = new Set(events.filter((e) => e.after === null).map((e) => e.targetId));
   const made = UNDOABLE_SPLIT === type || UNDOABLE_MAKINGS.includes(type);
-  return events.every((e) => (e.before !== null || made || (deletion && removed.has(e.targetId))) && (e.after !== null || deletion));
+  // A whole line a move merged into a same-name stack (Q2, sw-9): Undo makes it again, with what's left of it.
+  const merged = type === UNDOABLE_SPLIT && events.some((e) => isJoin(type, e));
+  return events.every((e) => (e.before !== null || made || (deletion && removed.has(e.targetId))) && (e.after !== null || deletion || merged));
 };
+
+/** A join's change (Q2): an add's or a move's raise of a same-name stack's count. */
+export function isJoin(type: string, event: { before: unknown; after: unknown }): boolean {
+  const count = (row: unknown) => (row && typeof row === 'object' && typeof (row as { qty?: unknown }).qty === 'number' ? (row as { qty: number }).qty : null);
+  const was = count(event.before);
+  const now = count(event.after);
+  return (type === 'inventory.add' || type === UNDOABLE_SPLIT) && was !== null && now !== null && now > was;
+}
 
 /**
  * The newest change of a kind this person made in the campaign ("inventory.remove"): what a toast's Undo undoes

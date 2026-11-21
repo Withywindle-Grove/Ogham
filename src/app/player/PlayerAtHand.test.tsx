@@ -7,7 +7,8 @@
 //   row, Keep lit and Refill under it (C7's parts, kept).
 //   The light comes after At hand's own rows (the pinned knife; the spear in hand is its own block above At hand since
 //   C14), as frame P1 draws it after the bow,
-//   and before a pinned trait (P1: bow, lantern, wand, pinned trait).
+//   and a pinned trait no longer joins At hand (euf-3, row P3 of plans/test-feedback-2026-11-19; page 28): it is a block
+//   in the right column's list instead.
 //   While the lantern burns its item row is left out, so the light's name opens the lantern's sheet (Unpin and all).
 //   A lit lantern held in hand shows once in At hand: the light's row, never a second row with Put out.
 //   With nothing else at hand, the lit light alone makes the At hand section.
@@ -123,16 +124,18 @@ describe('the light in At hand (dec-13 C9)', () => {
     expect(within(light).getByRole('button', { name: 'Light' })).toBeTruthy();
     await waitFor(() => expect(within(screen.getByRole('region', { name: 'At hand' })).queryByRole('img', { name: /^Storm lantern, lit/ })).toBeNull());
   });
-  // Purpose: items, then the light, then a pinned trait, in that order (frame P1: bow, lantern, wand, pinned trait).
-  it('puts the light after the items and before a pinned trait', async () => {
+  // Purpose: items, then the light; a pinned trait with uses is in the right column's list and not in At hand (euf-3).
+  it('puts the light after the items, and a pinned trait in the right column’s list, not At hand', async () => {
     const { atHand } = await brannoch(() => {
       world.tables.character_play[0]!.pins = [{ kind: 'trait', key: 'Steady flame' }];
     });
     const order = (el: Element) => [...atHand.querySelectorAll('*')].indexOf(el);
     const ring = within(atHand).getByRole('img', { name: /^Storm lantern, lit/ });
-    const trait = await within(atHand).findByRole('button', { name: 'Use Steady flame' });
     expect(order(within(atHand).getAllByRole('button', { name: /^Eel knife/ })[0]!)).toBeLessThan(order(ring));
-    expect(order(ring)).toBeLessThan(order(trait));
+    const list = await screen.findByRole('region', { name: 'Abilities and traits' });
+    const block = await waitFor(() => list.querySelector('.pinned-box--block') as HTMLElement);
+    expect(within(block).getByRole('button', { name: 'Use Steady flame' })).toBeTruthy();
+    expect(within(atHand).queryByRole('button', { name: 'Use Steady flame' })).toBeNull();
   });
 
   // Purpose: while the lantern burns its row is left out, so the light's name opens the lantern's item sheet, with Unpin.

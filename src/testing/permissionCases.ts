@@ -53,7 +53,7 @@ import { giveRumour } from '../modules/library/rumours.ts';
 import { resetStock, setStock } from '../modules/requests/shopStock.ts';
 import { addItem, approveItem, declineItem, emptyContainer, equipAnyway, equipItem, giveAway, hideFromAtHand, moveItem, noteRuleSkipped, pinItem, removeItem, revealItemField, setBaseArmour, setItemQty, setWeaponMode, useItem, type CarrierRef, type ItemCopy } from '../modules/inventory/inventory.ts';
 import { arrangeScreen } from '../modules/characters/screenLayout.ts';
-import { pinToAtHand } from '../modules/characters/pins.ts';
+import { movePin, pinToAtHand } from '../modules/characters/pins.ts';
 import { prepareSpells, setAc, setForm, useAbility } from '../modules/characters/playState.ts';
 import { castSpell, chooseSpells, sameAsYesterday, setSpells, uncastSpell } from '../modules/characters/magicState.ts';
 import { recordRoll } from '../core/rolls.ts';
@@ -189,6 +189,8 @@ export interface CaseWorld {
   freshInvite(): Promise<{ id: string; code: string }>;
   /** A new, unused text field in the campaign. */
   freshField(): Promise<{ id: string; campaignId: string; key: string }>;
+  /** Two fresh trait pins on that character, its pins list replaced by them (row P2's moves): their keys, in order. */
+  freshPins(on: 'wren' | 'ash'): Promise<string[]>;
   /** A logged HP change this person just made (to Player A's character; Player B's own when it's Player B). */
   freshChange(by: 'gm' | 'playerA' | 'playerB'): Promise<{ campaignId: string; eventId: string; authorUserId: string | null }>;
   /** A pack in this person's library. */
@@ -716,6 +718,11 @@ export const permissionCases: PermissionCase[] = [
   rule("a player can't pin anything for someone else's character", 'playerB', pinToAtHand, (w) => ({ character: w.wren, kind: 'spell' as const, key: 'mire-lamp', pinned: true }), false),
   rule("the GM can pin for any character", 'gm', pinToAtHand, (w) => ({ character: w.ash, kind: 'trait' as const, key: crypto.randomUUID(), pinned: true }), true),
   rule("an outsider can't pin for a character", 'outsider', pinToAtHand, (w) => ({ character: w.wren, kind: 'spell' as const, key: 'mire-lamp', pinned: true }), false),
+  // Moving a pin in the player's order (euf-4, row P2; the detailed log): the owner or the GM, nobody else.
+  rule('a player can move a pin of their own character', 'playerA', movePin, async (w) => ({ character: w.wren, key: (await w.freshPins('wren'))[1]!, at: 0 }), true),
+  rule("the GM can move a pin on any character", 'gm', movePin, async (w) => ({ character: w.ash, key: (await w.freshPins('ash'))[1]!, at: 0 }), true),
+  rule("a player can't move a pin on someone else's character", 'playerB', movePin, async (w) => ({ character: w.wren, key: (await w.freshPins('wren'))[1]!, at: 0 }), false),
+  rule("an outsider can't move a pin on a character", 'outsider', movePin, async (w) => ({ character: w.wren, key: (await w.freshPins('wren'))[1]!, at: 0 }), false),
   rule("a player can set their own character's AC by hand", 'playerA', setAc, (w) => ({ character: w.wren, ac: Math.floor(Math.random() * 900) }), true),
   rule("a player can't set someone else's character's AC", 'playerB', setAc, (w) => ({ character: w.wren, ac: 7 }), false),
   rule("the GM can set any character's AC by hand", 'gm', setAc, (w) => ({ character: w.ash, ac: -Math.floor(Math.random() * 900) }), true),

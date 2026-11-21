@@ -46,10 +46,10 @@ describe('giving the warning', () => {
     expect(messageFor(null)).toBe('');
   });
 
-  it('warns from 250,000 tokens on, and says how long the conversation is', () => {
-    expect(LIMIT).toBe(250_000);
+  it('warns from 400,000 tokens on, and says how long the conversation is', () => {
+    expect(LIMIT).toBe(400_000);
     expect(messageFor(249_999)).toBe('');
-    expect(messageFor(LIMIT)).toMatch(/about 250,000 tokens of history; the limit is 250,000/);
+    expect(messageFor(LIMIT)).toMatch(/about 400,000 tokens of history; the limit is 400,000/);
     const message = messageFor(412_300);
     expect(message).toMatch(/about 412,000 tokens/);
     expect(message).toMatch(/handover/);
