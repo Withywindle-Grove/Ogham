@@ -19,6 +19,11 @@
 //   9. On a phone the view's tab bar is Player, Scene, Pack, Magic and Log for a caster, four without Magic, and Log
 //      opens the GM's own log.
 //  10. The band's words, and whose a character is from the Players list (the pure parts).
+//  11. A character removed from ⋯ and then restored comes back without its "Remove … from …?" panel open.
+//  12. When the GM's own characters fail to read while the players read, the view on Ash stays open: no "Ash left the
+//      campaign." toast.
+//  13. When the view opens before it can tell whose Wren is, the first answer shows no toast ("Wren is now Sam's."):
+//      the owner did not change.
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -79,6 +84,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   delete (window as { matchMedia?: unknown }).matchMedia;
 });
 
@@ -88,6 +94,24 @@ const rowOf = (name: string) => screen.getByRole('button', { name: `View ${name}
 /** A row's buttons, ⋯ as "⋯". */
 const buttonsOf = (row: HTMLElement) => within(row).getAllByRole('button').map((b) => (b.getAttribute('aria-label')?.startsWith('More for') ? '⋯' : b.textContent));
 const band = () => screen.getByRole('note');
+
+/** The read of the GM's own characters fails (no connection) while `on`; `failed` counts the failed reads. */
+function gmReadsFail() {
+  const reads = { on: true, failed: 0 };
+  const from = world.db.from.bind(world.db);
+  vi.spyOn(world.db, 'from').mockImplementation(((table: string) => {
+    const query = from(table as never) as unknown as { eq: (column: string, value: unknown) => unknown };
+    if (table !== 'actors') return query;
+    const eq = query.eq.bind(query);
+    query.eq = (column, value) => {
+      if (!reads.on || column !== 'owner_type' || value !== 'gm') return eq(column, value);
+      reads.failed += 1;
+      return Promise.resolve({ data: null, error: { message: 'Failed to fetch' } });
+    };
+    return query;
+  }) as unknown as typeof world.db.from);
+  return reads;
+}
 
 async function openPlayers(): Promise<User> {
   world.signInAs(gm);
@@ -135,6 +159,17 @@ describe('the Players row (C15a; M3a, M3b)', () => {
     await user.click(within(await screen.findByRole('group', { name: 'Remove Tam' })).getByRole('button', { name: 'Remove' }));
     await screen.findByText(/Tam was removed from The Reed Marches/);
     expect(actor(tam).status).toBe('archived');
+  });
+
+  it('a character removed from ⋯ and then restored comes back without its Remove panel open', async () => {
+    const user = await openPlayers();
+    await user.click(screen.getByRole('button', { name: 'More for Tam' }));
+    await user.click(screen.getByRole('button', { name: 'Remove…' }));
+    await user.click(within(await screen.findByRole('group', { name: 'Remove Tam' })).getByRole('button', { name: 'Remove' }));
+    const archived = (await screen.findByRole('heading', { name: 'Archived characters' })).parentElement as HTMLElement;
+    await user.click(within(archived).getByRole('button', { name: /Restore/ }));
+    await screen.findByRole('button', { name: 'More for Tam' });
+    expect(screen.queryByRole('group', { name: 'Remove Tam' })).toBeNull();
   });
 
   it("an archived character keeps today's row; a waiting or sent-back one keeps today's, View sheet opening the full sheet", async () => {
@@ -212,6 +247,35 @@ describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
     await screen.findByRole('button', { name: 'Invite a player' });
     expect(screen.queryByRole('note')).toBeNull();
     void user;
+  });
+
+  it("the GM's own characters failing to read while the players read doesn't close the view on Ash", async () => {
+    world.addCharacter(campaign, 'Ash');
+    const user = await openPlayers();
+    await user.click(screen.getByRole('button', { name: "View Ash's sheet" }));
+    await waitFor(() => expect(band().getAttribute('aria-label')).toBe('Your view of Ash'));
+    const reads = gmReadsFail();
+    // A logged change elsewhere reads the Players list again; the GM's own characters can't be read this time.
+    const gmUser = { id: gm, roles: { [campaign]: 'gm' as const } };
+    expect((await runCommand(registry, world.db, gmUser, archiveCharacter, { character: toCharacterRef(actor(tam) as never) })).ok).toBe(true);
+    await waitFor(() => expect(reads.failed).toBeGreaterThan(0));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.queryByText('Ash left the campaign.')).toBeNull();
+    expect(band().getAttribute('aria-label')).toBe('Your view of Ash');
+  });
+
+  it("the view opened before it can tell whose Wren is shows no toast on the first answer", async () => {
+    const reads = gmReadsFail();
+    const user = await openPlayers();
+    await user.click(screen.getByRole('button', { name: "View Wren's sheet" }));
+    await screen.findByRole('region', { name: 'Vitals' });
+    // The GM's own characters read again: now it can tell Wren is Sam's, which is no change of owner.
+    reads.on = false;
+    const gmUser = { id: gm, roles: { [campaign]: 'gm' as const } };
+    expect((await runCommand(registry, world.db, gmUser, archiveCharacter, { character: toCharacterRef(actor(tam) as never) })).ok).toBe(true);
+    await waitFor(() => expect(band().getAttribute('aria-label')).toBe('Sam’s view of Wren. What you do here is logged as yours.'));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.queryByText('Wren is now Sam’s.')).toBeNull();
   });
 
   it("a read that fails says so with Try again, and ‹ Players still goes back", async () => {

@@ -110,6 +110,8 @@ export function GmCampaign({
   const [players, setPlayers] = useState<Player[] | null | 'error'>(null);
   // The GM's own characters (the lead's ruling on #768): after the players' rows, "Yours".
   const [gmCharacters, setGmCharacters] = useState<GmCharacter[]>([]);
+  // Whether the last read of them worked: until it does, the view can't tell a character has gone.
+  const [gmRead, setGmRead] = useState(false);
   const [version, setVersion] = useState(0);
   // An undo from the log reloads this in place.
   const logVersion = useLogVersion();
@@ -273,7 +275,19 @@ export function GmCampaign({
         )}
         {acting === 'remove' && (
           <div className="gm__row-panel">
-            <RemoveCharacter db={db} user={user} character={character} campaignName={campaign.name} onDone={done} open onClose={() => setRowAct(null)} />
+            <RemoveCharacter
+              db={db}
+              user={user}
+              character={character}
+              campaignName={campaign.name}
+              onDone={(message) => {
+                // Put away as Cancel does, so a later Restore doesn't bring the panel back.
+                setRowAct(null);
+                done(message);
+              }}
+              open
+              onClose={() => setRowAct(null)}
+            />
           </div>
         )}
       </li>
@@ -291,6 +305,7 @@ export function GmCampaign({
         setInvites(foundInvites ?? 'error');
         setPlayers(foundPlayers ?? 'error');
         setGmCharacters(foundGm ?? []);
+        setGmRead(foundGm !== null);
         setFieldDefs(foundFields ?? []);
         setFieldsLoaded(foundFields !== null);
       },
@@ -369,7 +384,7 @@ export function GmCampaign({
           startTab={viewing.tab}
           fieldDefs={fieldDefs}
           wide={wide}
-          who={Array.isArray(players) ? whoseIs(viewing.id, players, gmCharacters) : null}
+          who={Array.isArray(players) && gmRead ? whoseIs(viewing.id, players, gmCharacters) : null}
           onBack={() => {
             setViewing(null);
             reload();
@@ -700,9 +715,11 @@ function CharacterView({
   }, [db, characterId, logVersion, version]);
   const shownName = character && character !== 'error' ? character.name : name;
 
-  // Whose view the band names: the Players list's answer, kept while it can't tell; `moved` once it changed here.
-  const [owner, setOwner] = useState<{ player: string | null; moved: boolean }>({ player: who && who !== 'gone' ? who.player : null, moved: false });
-  if (who && who !== 'gone' && who.player !== owner.player) setOwner({ player: who.player, moved: true });
+  // Whose view the band names: the Players list's answer, kept while it can't tell; `moved` once it changed here, only
+  // from an answer already known (the first answer is no change of owner).
+  const answer = who && who !== 'gone' ? who : null;
+  const [owner, setOwner] = useState<{ player: string | null; known: boolean; moved: boolean }>({ player: answer?.player ?? null, known: !!answer, moved: false });
+  if (answer && (!owner.known || answer.player !== owner.player)) setOwner({ player: answer.player, known: true, moved: owner.known });
   useEffect(() => {
     if (!owner.moved) return;
     // Given away while open (pg32-7a): "Wren is now Robin's."; given back to the GM, page 13's words.

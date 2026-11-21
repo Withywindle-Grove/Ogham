@@ -4,9 +4,10 @@
 //      44 px high, with at least 8 px between buttons side by side.
 //   2. With a long character's name and a long player's name (?view=long), at 375 px, ⋯ never sits alone on a line: it
 //      shares its line with the last door, Scene.
-//   3. ⋯ opens Edit, Give to a player… and Remove…; Give to a player… opens its sheet, which keeps its own form.
+//   3. ⋯ opens Edit, Give to a player… and Remove…; Remove… opens its panel under the long-named row; Give to a
+//      player… opens its sheet, which keeps its own form.
 //   4. The page has no sideways scrolling, no text under 14 px, no small targets and no serious accessibility problem,
-//      closed and with ⋯ open.
+//      closed, with ⋯ open, and with the Remove panel open.
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
@@ -67,6 +68,18 @@ for (const size of [
       await page.screenshot({ path: `test-results/layout-screens/gm-view-row-menu-${size.width}-${scheme}.png`, fullPage: true });
       expect(await layoutProblems(page)).toEqual([]);
       expect(await accessibilityProblems(page)).toEqual([]);
+
+      // Remove… from ⋯: today's panel under the long-named row.
+      await menu.getByRole('button', { name: 'Remove…' }).click();
+      const panel = rowOf(page, LONG).getByRole('group', { name: `Remove ${LONG}` });
+      await expect(panel).toBeVisible();
+      await page.screenshot({ path: `test-results/layout-screens/gm-view-row-remove-${size.width}-${scheme}.png`, fullPage: true });
+      expect(await layoutProblems(page)).toEqual([]);
+      expect(await accessibilityProblems(page)).toEqual([]);
+      await panel.getByRole('button', { name: 'Cancel' }).click();
+      await expect(panel).toBeHidden();
+      await rowOf(page, LONG).getByRole('button', { name: `More for ${LONG}` }).click();
+      await expect(menu).toBeVisible();
 
       // Give to a player… from ⋯: its sheet, in the form it had as a button of the row.
       await menu.getByRole('button', { name: 'Give to a player…' }).click();
