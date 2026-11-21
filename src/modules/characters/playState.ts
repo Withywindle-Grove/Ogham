@@ -18,16 +18,23 @@ export interface PreparedSpell {
   level: number;
 }
 
-/** What a player can pin to At hand beside items (pin-2): a spell or a trait of their own character. */
+/**
+ * What a player can pin beside items (pin-2; widened by euf-2, 2026-11-19): a spell of their own character (At hand), or
+ * any ability or trait of it, with uses or without (the Player tab's right column's list). Kind `trait` covers both an
+ * ability and a trait: either is keyed by its name, as its spent uses are.
+ */
 export type PinKind = 'spell' | 'trait';
 export interface Pin {
   kind: PinKind;
-  /** The pack spell id (kind spell) or the trait's key (kind trait). */
+  /** The pack spell id (kind spell) or the ability's or trait's name (kind trait). */
   key: string;
 }
 
 export interface CharacterPlay {
-  /** What is pinned to At hand (pin-2), in the order pinned; read with `livePins` so a pin whose thing is gone is ignored. */
+  /**
+   * What is pinned (pin-2, euf-2), in the player's own order (euf-4: pinned last unless moved); read with `livePins` so a
+   * pin whose thing is gone is ignored.
+   */
   pins: Pin[];
   prepared: PreparedSpell[];
   /** Uses spent since the last refill, by the ability's name. */
@@ -64,6 +71,9 @@ export function readSpellList(value: unknown): PreparedSpell[] {
 /** The most pins a character holds, and the longest key (the database checks the same). */
 export const PIN_LIMIT = 24;
 export const PIN_KEY_LIMIT = 80;
+
+/** Why a pin past the limit is refused (pg28-5, ⚑ 29; page 28, frame M4i): the blocked-action pop-up's line. */
+export const PIN_LIMIT_WORDS = `A character can have ${PIN_LIMIT} pins. Unpin one to make room.`;
 
 /** A stored pin list read safely: entries with an unknown kind or an empty key are left out, and a pin listed twice once. */
 export function readPins(value: unknown): Pin[] {
@@ -161,16 +171,26 @@ function limited(entries: unknown, level: number, from: 'class' | 'race'): Limit
 }
 
 /**
- * Each trait once (dec-13 C8, pin-2): the traits pinned to At hand, in the order pinned, and the rest, which stay in
- * the Traits list in their own order. A trait's pin key is its name (as its spent uses are kept); a pin whose trait is
- * gone is ignored (`livePins`).
+ * Each thing once (dec-13 C8, pin-2; euf-2 to euf-4): the abilities and traits pinned, in the pins' own order (the
+ * player's), and the rest in their own order. Any ability or trait, with uses or without: an ability's or a trait's pin
+ * key is its name (as its spent uses are kept); a pin whose thing is gone is ignored (`livePins`).
  */
-export function pinnedTraits(all: readonly LimitedAbility[], pins: readonly Pin[]): { pinned: LimitedAbility[]; rest: LimitedAbility[] } {
+export function pinnedTraits<T extends { name: string }>(all: readonly T[], pins: readonly Pin[]): { pinned: T[]; rest: T[] } {
   const live = livePins(pins, { spell: () => false, trait: (key) => all.some((a) => a.name === key) });
-  // Every trait of that name goes (a class's and a kindred's alike), so none is lost from both places.
+  // Every one of that name goes (a class's and a kindred's alike), so none is lost from both places.
   const pinned = live.flatMap((p) => all.filter((a) => a.name === p.key));
   const keys = new Set(live.map((p) => p.key));
   return { pinned, rest: all.filter((a) => !keys.has(a.name)) };
+}
+
+/**
+ * The names of the abilities and traits pinned, in the player's order (euf-4), among `names` (every ability and trait
+ * the character has): a pin whose thing is gone, and a spell's, are left out. The order Move up and Move down step
+ * through, and the one hold to move rearranges. Pure.
+ */
+export function pinnedNames(pins: readonly Pin[], names: readonly string[]): string[] {
+  const has = new Set(names);
+  return livePins(pins, { spell: () => false, trait: (key) => has.has(key) }).map((p) => p.key);
 }
 
 /** The character's limited-use powers: the class's, then the race's. */

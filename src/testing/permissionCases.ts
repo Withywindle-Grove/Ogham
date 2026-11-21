@@ -715,6 +715,8 @@ export const permissionCases: PermissionCase[] = [
   rule("a player can't pin anything for someone else's character", 'playerB', pinToAtHand, (w) => ({ character: w.wren, kind: 'spell' as const, key: 'mire-lamp', pinned: true }), false),
   rule("the GM can pin for any character", 'gm', pinToAtHand, (w) => ({ character: w.ash, kind: 'trait' as const, key: crypto.randomUUID(), pinned: true }), true),
   rule("an outsider can't pin for a character", 'outsider', pinToAtHand, (w) => ({ character: w.wren, kind: 'spell' as const, key: 'mire-lamp', pinned: true }), false),
+  // Moving a pin in the player's order (euf-4, row P2) is the same command with a place: nobody else's character either.
+  rule("a player can't move a pin on someone else's character", 'playerB', pinToAtHand, (w) => ({ character: w.wren, kind: 'trait' as const, key: 'Fen sight', pinned: true, at: 0 }), false),
   rule("a player can set their own character's AC by hand", 'playerA', setAc, (w) => ({ character: w.wren, ac: Math.floor(Math.random() * 900) }), true),
   rule("a player can't set someone else's character's AC", 'playerB', setAc, (w) => ({ character: w.wren, ac: 7 }), false),
   rule("the GM can set any character's AC by hand", 'gm', setAc, (w) => ({ character: w.ash, ac: -Math.floor(Math.random() * 900) }), true),

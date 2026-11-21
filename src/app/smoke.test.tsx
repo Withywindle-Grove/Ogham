@@ -1487,8 +1487,9 @@ describe('invites', () => {
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
 
     // No Spells section on the Player screen (mp-20).
-    // The Player's own Traits first; the sheet's rows (a Traits row, a Magic row) follow Skills on a phone too (tfr-5).
-    expect((await screen.findAllByRole('region', { name: 'Traits' }))[0]).toBeTruthy();
+    // The Player's own Abilities and traits first (pg28-1); the sheet's rows (a Traits row, a Magic row) follow Skills on a
+    // phone too (tfr-5).
+    expect(await screen.findByRole('region', { name: 'Abilities and traits' })).toBeTruthy();
     expect(screen.queryByRole('region', { name: 'Spells' })).toBeNull();
     await user.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Magic' }));
     // Prepare is the first row, for the next rest (frame 04; dec-8 C brings its words back).
@@ -1533,7 +1534,7 @@ describe('invites', () => {
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Log' })).toBeNull());
 
     await user.click(screen.getByRole('button', { name: 'Player' }));
-    const abilities = within(screen.getByRole('region', { name: 'Traits' }));
+    const abilities = within(screen.getByRole('region', { name: 'Abilities and traits' }));
     expect(abilities.queryByText('Lantern lore')).toBeNull();
     // The row's Use marks one (plan m5b-players-screens-standard B); the trait's sheet keeps the dots to give one back.
     expect(abilities.getByText('2 of 2 left, back each day')).toBeTruthy();

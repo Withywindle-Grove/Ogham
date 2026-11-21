@@ -95,8 +95,13 @@ describe('log lines in plain words', () => {
     expect(say(event('character.castSpell', { ...play, before: { spells_cast: { '2:fog-ring': 1 } }, after: { spells_cast: { '2:fog-ring': 2 } } }))).toBe('Priya cast a level 2 spell for Wren.');
     expect(sayS(event('character.uncastSpell', { ...play, before: { spells_cast: { '1:mire-lamp': 1 } }, after: { spells_cast: {} } }))).toBe('Priya took back a cast of Mire lamp for Wren.');
     expect(sayS(event('character.pin', { ...play, before: { pins: [] }, after: { pins: [{ kind: 'spell', key: 'mire-lamp' }] } }))).toBe('Priya pinned Mire lamp to At hand for Wren.');
-    expect(say(event('character.pin', { ...play, before: { pins: [] }, after: { pins: [{ kind: 'trait', key: 'night-eyes' }] } }))).toBe('Priya pinned a trait to At hand for Wren.');
-    expect(say(event('character.pin', { ...play, before: { pins: [{ kind: 'trait', key: 'night-eyes' }] }, after: { pins: [] } }))).toBe("Priya unpinned a trait from Wren's At hand.");
+    // An ability or a trait is pinned to the Player tab's list, not At hand (euf-2, euf-3), and its key is its name.
+    expect(say(event('character.pin', { ...play, before: { pins: [] }, after: { pins: [{ kind: 'trait', key: 'Night eyes' }] } }))).toBe('Priya pinned Night eyes for Wren.');
+    expect(say(event('character.pin', { ...play, before: { pins: [{ kind: 'trait', key: 'Night eyes' }] }, after: { pins: [] } }))).toBe('Priya unpinned Night eyes for Wren.');
+    // A move in the player's order (euf-4) names the one that moved, and which way.
+    const three = [{ kind: 'trait', key: 'Night eyes' }, { kind: 'trait', key: 'Fen sight' }, { kind: 'trait', key: 'Horn charge' }];
+    expect(say(event('character.pin', { ...play, before: { pins: three }, after: { pins: [three[2], three[0], three[1]] } }))).toBe("Priya moved Horn charge up in Wren's pins.");
+    expect(say(event('character.pin', { ...play, before: { pins: three }, after: { pins: [three[1], three[2], three[0]] } }))).toBe("Priya moved Night eyes down in Wren's pins.");
     expect(say(event('character.setSpells', { ...play, before: { prepared: [] }, after: { prepared: [{ spell: 'a', level: 1 }] } }))).toBe("Priya changed Wren's spells.");
   });
 

@@ -10,6 +10,13 @@
 //   7. A pin whose spell or trait the character no longer has is ignored by the reader, never an error; a stored
 //      list with stray entries reads safely.
 //   8. The log line says which spell or trait was pinned or unpinned.
+//   Row P2 (euf-2, euf-4; plans/test-feedback-2026-11-19):
+//   12. An ability or a trait without uses can be pinned and unpinned, by its name.
+//   13. Moving a pin changes the list's order and nothing else: the same pins, one event, the list in its new order.
+//   14. A move past either end lands at that end; a move to where it already is writes nothing.
+//   15. The 25th pin is refused with the ruled words (pg28-5), and moving a pin at the limit still works.
+//   16. Another player cannot move a pin on this character, and writes nothing.
+//   17. The list's own order is the order shown: an ability without uses and traits with uses come out in the pins' order.
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../app/commandRegistry.ts';
 import { runCommand, type CurrentUser } from '../../core/commands.ts';
@@ -112,7 +119,7 @@ describe('pinning a spell or a trait', () => {
     for (let n = 0; n < PIN_LIMIT; n += 1) expect((await pin(sam, 'spell', `spell-${n}`)).ok).toBe(true);
     const over = await pin(sam, 'trait', 'one-too-many');
     expect(over).toMatchObject({ ok: false, reason: 'failed' });
-    expect(!over.ok && over.message).toMatch(/up to 24 pins/);
+    expect(!over.ok && over.message).toBe('A character can have 24 pins. Unpin one to make room.');
     expect(await pin(sam, 'spell', 'spell-0', false)).toMatchObject({ ok: true });
     expect(await pin(sam, 'trait', 'one-too-many')).toMatchObject({ ok: true });
     expect(await pins()).toHaveLength(PIN_LIMIT);
@@ -189,5 +196,60 @@ describe('pinned traits leave their list (C8, the screen half)', () => {
   it('10. with no trait pins, every trait stays in the list and At hand gets none', () => {
     const all = [trait('Steady flame')];
     expect(pinnedTraits(all, [])).toEqual({ pinned: [], rest: all });
+  });
+});
+
+describe('row P2: pins reach every ability and trait, in the player’s order', () => {
+  const put = (who: string, key: string, at?: number) =>
+    runCommand(registry, world.db, as(who), pinToAtHand, { character: wren, kind: 'trait', key, pinned: true, ...(at === undefined ? {} : { at }) });
+
+  it('12. an ability or a trait without uses is pinned and unpinned by its name', async () => {
+    expect(await put(sam, 'Sure-footed')).toEqual({ ok: true, value: [{ kind: 'trait', key: 'Sure-footed' }] });
+    expect(await pin(sam, 'trait', 'Sure-footed', false)).toEqual({ ok: true, value: [] });
+    expect(await pins()).toEqual([]);
+  });
+
+  it('13. moving a pin changes the list’s order and nothing else, with one event', async () => {
+    for (const key of ['Horn charge', 'Sure-footed', 'Shield wall']) await put(sam, key);
+    const before = eventsOf().length;
+    expect(await put(sam, 'Shield wall', 0)).toMatchObject({ ok: true });
+    expect((await pins())?.map((p) => p.key)).toEqual(['Shield wall', 'Horn charge', 'Sure-footed']);
+    expect(await put(sam, 'Horn charge', 2)).toMatchObject({ ok: true });
+    expect((await pins())?.map((p) => p.key)).toEqual(['Shield wall', 'Sure-footed', 'Horn charge']);
+    expect(eventsOf()).toHaveLength(before + 2);
+    expect(world.tables.character_play).toHaveLength(1);
+  });
+
+  it('14. a move past the end lands last; a move to where it is writes nothing', async () => {
+    for (const key of ['Horn charge', 'Sure-footed', 'Shield wall']) await put(sam, key);
+    const before = eventsOf().length;
+    await put(sam, 'Horn charge', 99);
+    expect((await pins())?.map((p) => p.key)).toEqual(['Sure-footed', 'Shield wall', 'Horn charge']);
+    await put(sam, 'Horn charge', 2);
+    await put(sam, 'Horn charge', 5);
+    expect(eventsOf()).toHaveLength(before + 1);
+  });
+
+  it('15. the 25th pin is refused with the ruled words, and a move at the limit still works', async () => {
+    for (let n = 0; n < PIN_LIMIT; n += 1) await put(sam, `Power ${n}`);
+    const over = await put(sam, 'Shield wall');
+    expect(over).toMatchObject({ ok: false, reason: 'failed', message: 'A character can have 24 pins. Unpin one to make room.' });
+    expect(await put(sam, 'Power 23', 0)).toMatchObject({ ok: true });
+    expect((await pins())?.[0]).toEqual({ kind: 'trait', key: 'Power 23' });
+  });
+
+  it('16. another player cannot move a pin on this character', async () => {
+    for (const key of ['Horn charge', 'Sure-footed']) await put(sam, key);
+    const before = eventsOf().length;
+    expect(await put(jo, 'Sure-footed', 0)).toMatchObject({ ok: false, reason: 'not-allowed' });
+    expect((await pins())?.map((p) => p.key)).toEqual(['Horn charge', 'Sure-footed']);
+    expect(eventsOf()).toHaveLength(before);
+  });
+
+  it('17. abilities with and without uses come out in the pins’ order', () => {
+    const things = [{ name: 'Horn charge', uses: 3 }, { name: 'Sure-footed' }, { name: 'Shield wall' }, { name: 'Second wind', uses: 1 }];
+    const split = pinnedTraits(things, readPins([{ kind: 'trait', key: 'Shield wall' }, { kind: 'trait', key: 'Horn charge' }, { kind: 'trait', key: 'Sure-footed' }]));
+    expect(split.pinned.map((t) => t.name)).toEqual(['Shield wall', 'Horn charge', 'Sure-footed']);
+    expect(split.rest.map((t) => t.name)).toEqual(['Second wind']);
   });
 });

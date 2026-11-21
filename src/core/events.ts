@@ -1427,18 +1427,24 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       return main.type === 'character.castSpell' ? by(`cast ${spell} for ${character()}`) : by(`took back a cast of ${spell} for ${character()}`);
     }
     case 'character.pin': {
-      // A spell or a trait pinned to At hand, or unpinned (pin-2): the one entry that came or went.
+      // A spell pinned to At hand, an ability or a trait pinned to the Player tab's list (pin-2, euf-2), or unpinned: the
+      // one entry that came or went. An ability's or a trait's key is its name. Neither: a pin moved in the player's
+      // order (euf-4), named by the one that moved furthest, up or down.
       const list = (row: Record<string, unknown>) => (Array.isArray(row.pins) ? (row.pins as { kind?: unknown; key?: unknown }[]) : []);
       const id = (p: { kind?: unknown; key?: unknown }) => `${String(p.kind)}:${String(p.key)}`;
       const was = new Set(list(before).map(id));
       const now = new Set(list(after).map(id));
       const added = list(after).find((p) => !was.has(id(p)));
       const gone = list(before).find((p) => !now.has(id(p)));
-      const entry = added ?? gone;
-      const what = entry?.kind === 'trait' ? 'a trait' : 'a spell';
-      const name = entry?.kind === 'spell' && typeof entry.key === 'string' ? names.spells?.get(entry.key) : undefined;
-      const named = name ?? what;
-      return added ? by(`pinned ${named} to At hand for ${character()}`) : by(`unpinned ${named} from ${possessive(character())} At hand`);
+      const nameOf = (p: { kind?: unknown; key?: unknown } | undefined) =>
+        p?.kind === 'trait' ? (typeof p.key === 'string' && p.key ? p.key : 'a trait') : ((typeof p?.key === 'string' ? names.spells?.get(p.key) : undefined) ?? 'a spell');
+      if (added) return added.kind === 'trait' ? by(`pinned ${nameOf(added)} for ${character()}`) : by(`pinned ${nameOf(added)} to At hand for ${character()}`);
+      if (gone) return gone.kind === 'trait' ? by(`unpinned ${nameOf(gone)} for ${character()}`) : by(`unpinned ${nameOf(gone)} from ${possessive(character())} At hand`);
+      const beforeIds = list(before).map(id);
+      const shifts = list(after).map((p, i) => ({ p, by: beforeIds.indexOf(id(p)) - i }));
+      const moved = shifts.reduce<(typeof shifts)[number] | undefined>((best, s) => (Math.abs(s.by) > Math.abs(best?.by ?? 0) ? s : best), undefined);
+      if (!moved) return by(`changed ${possessive(character())} pins`);
+      return by(`moved ${nameOf(moved.p)} ${moved.by > 0 ? 'up' : 'down'} in ${possessive(character())} pins`);
     }
     case 'character.setSpells':
       return by(`changed ${possessive(character())} spells`);

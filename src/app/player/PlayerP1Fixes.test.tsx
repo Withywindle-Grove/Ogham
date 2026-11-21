@@ -15,7 +15,11 @@
 //   6. The load's line says "coins’ weight", and its card is left-aligned and upright (not italic, not centred).
 //   7. A pinned weapon not in hand shows its two rolls with their die glyphs ("d20 +3", "d4"), not "+20, 1d4".
 //   8. A trait with uses shows its pips before "1 of 1 left".
-//   9. On a landscape tablet the full sheet's foot never names a trait with uses (it is in the Traits section above).
+//   9. On a landscape tablet the full sheet's foot never names a trait with uses (it is in the list above).
+// Row P3 (page 28, approved 2026-11-20; pg28-3, ⚑ 26):
+//   P3a. A pinned ability without uses leaves its foot row's line; the row still opens every one, the pinned one marked
+//        with the star; it stands in the right column's list as a row, whose pop-up (its entry) moves it.
+//   P3b. With every one of a foot row's names pinned, the row stays and its line says where they went.
 // The review's nits of 19 Nov 2026 (P1 again):
 //   2a. The Attack tile signs its figure when the rules read the attack as a bonus ("+1"), and a screen reader hears it.
 //   5.  The sample says its speed as P1 does: "120 paces", "Speed, 40 paces in a fight".
@@ -238,7 +242,8 @@ describe('the Player screen brought to frame P1', () => {
     expect(knife.querySelector('.pack__sub .pinned-mark')).toBeNull();
   });
 
-  // Purpose 7b: a pinned trait in At hand has its star before its name too (P1's "★ Horn charge"), and its pips in ink.
+  // Purpose 7b: a pinned trait has its star before its name too (P1's "★ Horn charge"), and its pips in ink; since row
+  // P3 it is a block in the right column's list, not At hand.
   it('puts a pinned trait’s star before its name', async () => {
     const gm = world.addPerson('priya@lantern.example', 'Priya');
     const sam = world.addPerson('sam@lantern.example', 'Sam');
@@ -248,8 +253,8 @@ describe('the Player screen brought to frame P1', () => {
     const user = userEvent.setup();
     render(<Root db={world.db} />);
     await user.click(await screen.findByRole('button', { name: new RegExp(P1_CAMPAIGN) }));
-    const atHand = await screen.findByRole('region', { name: 'At hand' });
-    const row = within(atHand).getByRole('button', { name: /^Steady flame, pinned/ });
+    const list = await screen.findByRole('region', { name: 'Abilities and traits' });
+    const row = await within(list).findByRole('button', { name: /^Steady flame, pinned/ });
     expect(row.querySelector('.list-row__title')!.firstElementChild?.classList.contains('pinned-mark')).toBe(true);
     expect(row.querySelector('.list-row__sub .pinned-mark')).toBeNull();
     expect(row.querySelector('.use-pips--ink')).not.toBeNull();
@@ -285,5 +290,61 @@ describe('the Player screen brought to frame P1', () => {
     expect(abilities.textContent).toMatch(/Oath of light/);
     expect(abilities.textContent).not.toMatch(/Steady flame/);
     expect(screen.getByRole('button', { name: 'Use Steady flame' })).toBeTruthy();
+  });
+
+  // Purpose P3a: a pinned ability without uses leaves its foot row's line, the row still opening it with the star; it is
+  // a row in the right column's list, and its entry moves it.
+  it('takes a pinned ability out of the foot row’s line and into the list, its entry moving it', async () => {
+    landscape();
+    const gm = world.addPerson('priya@lantern.example', 'Priya');
+    const sam = world.addPerson('sam@lantern.example', 'Sam');
+    const id = await addP1Character(world, { gm, sam, fenPack });
+    world.tables.character_play.find((p) => p.actor_id === id)!.pins = [
+      { kind: 'trait', key: 'Steady flame' },
+      { kind: 'trait', key: 'Oath of light' },
+    ];
+    world.signInAs(sam);
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await user.click(await screen.findByRole('button', { name: new RegExp(P1_CAMPAIGN) }));
+    const list = await screen.findByRole('region', { name: 'Abilities and traits' });
+    const row = await within(list).findByRole('button', { name: 'Oath of light, pinned' });
+    expect(row.closest('.pinned-box')?.classList.contains('pinned-box--block')).toBe(false);
+    // The foot's Abilities row no longer names it; it still opens it, with the star.
+    const abilities = await screen.findByRole('button', { name: /^Abilities/ });
+    expect(abilities.textContent).not.toMatch(/Oath of light/);
+    await user.click(abilities);
+    const opened = await screen.findByRole('dialog', { name: 'Abilities' });
+    expect(within(opened).getByRole('button', { name: /^Oath of light.*, pinned$/ })).toBeTruthy();
+    await user.click(within(opened).getByRole('button', { name: 'Close' }));
+    // Its own pop-up (the entry) ends with Move up, the last pinned one having no Move down.
+    await user.click(row);
+    const entry = await screen.findByRole('dialog', { name: 'Oath of light' });
+    expect(within(entry).queryByRole('button', { name: 'Move down' })).toBeNull();
+    await user.click(within(entry).getByRole('button', { name: 'Move up' }));
+    await vi.waitFor(() => expect(world.tables.character_play.find((p) => p.actor_id === id)!.pins).toEqual([
+      { kind: 'trait', key: 'Oath of light' },
+      { kind: 'trait', key: 'Steady flame' },
+    ]));
+  });
+
+  // Purpose P3b: with every name in a foot row pinned, the row stays and its line says where they went.
+  it('keeps a foot row whose every name is pinned, its line saying so', async () => {
+    landscape();
+    const gm = world.addPerson('priya@lantern.example', 'Priya');
+    const sam = world.addPerson('sam@lantern.example', 'Sam');
+    const id = await addP1Character(world, { gm, sam, fenPack });
+    world.signInAs(sam);
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await user.click(await screen.findByRole('button', { name: new RegExp(P1_CAMPAIGN) }));
+    const traitsRow = await screen.findByRole('button', { name: /^Traits/ });
+    const names = traitsRow.querySelector('.list-row__sub')!.textContent!.split(', ');
+    cleanup();
+    world.tables.character_play.find((p) => p.actor_id === id)!.pins = names.map((key) => ({ kind: 'trait', key }));
+    render(<Root db={world.db} />);
+    await userEvent.setup().click(await screen.findByRole('button', { name: new RegExp(P1_CAMPAIGN) }));
+    const after = await screen.findByRole('button', { name: /^Traits/ });
+    await vi.waitFor(() => expect(after.textContent).toContain('All pinned: they are in the list above'));
   });
 });

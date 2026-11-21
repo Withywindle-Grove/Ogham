@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { runCommand, type CurrentUser } from '../../core/commands.ts';
+import { runCommand, type CommandResult, type CurrentUser } from '../../core/commands.ts';
 import type { MyCharacter } from '../../core/myCharacters.ts';
 import type { Db } from '../../core/supabase.ts';
 import { pinToAtHand } from '../../modules/characters/pins.ts';
-import { pinnedTraits, traitsWithUsesOf, useAbility, type CharacterPlay, type LimitedAbility } from '../../modules/characters/playState.ts';
+import { PIN_LIMIT, PIN_LIMIT_WORDS, pinnedNames, pinnedTraits, traitsWithUsesOf, useAbility, type CharacterPlay, type LimitedAbility, type Pin } from '../../modules/characters/playState.ts';
+import { useBlockedSheet } from '../../ui/BlockedSheet.tsx';
 import { Dialog } from '../../ui/Dialog.tsx';
-import { ListRow, PinnedName, PinStar, RowList, SourceLine, UseDots, UsePips } from '../../ui/parts.tsx';
+import { ListRow, PinnedBox, PinnedName, PinStar, RowList, SourceLine, UseDots, UsePips } from '../../ui/parts.tsx';
+import { moved, SortableList } from '../../ui/SortableList.tsx';
 import { useToast } from '../../ui/ToastHost.tsx';
+import type { PinnableRow } from '../CharacterSheet.tsx';
 import type { characterFigures } from '../fromSetting.ts';
 import { registry } from '../services.ts';
 import { SheetSection } from '../SheetSection.tsx';
@@ -20,15 +23,41 @@ export function traitsWithUses(figures: ReturnType<typeof characterFigures>, lev
 }
 
 /**
- * Traits with uses (ruled 2026-10-26 as "Abilities"; headed "Traits" from 2026-11-05, docs PR #485): each limited-use
- * power from the class or race. Its row (plan m5b-players-screens-standard B, the mockup's Abilities): the name, how
- * many are left and when they come back, and **Use**, which marks one at once with Undo in the toast; with none left
- * Use stays tappable and says so. The name opens its sheet: what it does, and the uses as dots (tap a spent one to
- * give it back). Shown only when there's one.
- *
- * Pins (dec-13 C8, pin-2; frame P1): the sheet's head has the pin star. A pinned trait leaves this list and shows in
- * At hand instead (`place` "atHand": its rows alone, no heading, each name led by the small filled star, frame P1), so
- * each thing shows once; the same row, the same Use, the same sheet.
+ * Move a pinned ability or trait from one place to another in the player's order (euf-4, pg28-7): `live` is the order
+ * shown (`pinnedNames`), `from` and `to` places in it. The command's `at` is the place in the stored list of the one it
+ * lands beside, so a pin whose thing is gone, or a spell's, keeps its own place.
+ */
+export async function movePin(db: Db, user: CurrentUser, character: MyCharacter, pins: readonly Pin[], live: readonly string[], from: number, to: number): Promise<CommandResult<Pin[]>> {
+  const key = live[from]!;
+  const at = pins.findIndex((p) => p.kind === 'trait' && p.key === live[to]);
+  return runCommand(registry, db, user, pinToAtHand, { character, kind: 'trait', key, pinned: true, at });
+}
+
+/**
+ * Move up and Move down at the foot of a pinned one's own pop-up (pg28-7, frame M4e): each moves it at once and the
+ * pop-up stays open; the first has no Move up, the last no Move down. Nothing when it isn't pinned or is the only one.
+ */
+export function PinMoves({ name, live, onMove }: { name: string; live: readonly string[]; onMove: (from: number, to: number) => void }) {
+  const at = live.indexOf(name);
+  if (at < 0 || live.length < 2) return null;
+  return (
+    <RowList label={`Move ${name}`}>
+      {at > 0 && <ListRow title="Move up" chevron={false} onOpen={() => onMove(at, at - 1)} />}
+      {at < live.length - 1 && <ListRow title="Move down" chevron={false} onOpen={() => onMove(at, at + 1)} />}
+    </RowList>
+  );
+}
+
+/**
+ * The right column's list, **Abilities and traits** (pg28-1; row P3 of plans/test-feedback-2026-11-19; page 28, frames
+ * M4a to M4i, approved 2026-11-20). First the pinned abilities and traits, in the player's own order (euf-3, euf-4),
+ * each led by the small filled star: one with uses is a **Pinned block** (its name, Use, the pips and how many are
+ * left), one with only something to read a **Pinned row** (its name and a chevron, a tap opening its text, the sheet's
+ * own pop-up: `pinnable`). Hold one to move it (the Reorder list; the heading's ⓘ says so), or use Move up and Move
+ * down in its pop-up. Then the unpinned traits with uses, each the row it was (pg28-4): the name, how many are left and
+ * when they come back, and **Use**, which marks one at once with Undo in the toast; with none left Use stays tappable
+ * and says so. A trait's name opens its sheet: what it does, the uses as dots (tap a spent one to give it back), and
+ * the pin star in its head. Nothing pinned At hand any more (euf-3). Shown only when there's one.
  */
 export function PlayerTraits({
   db,
@@ -39,7 +68,7 @@ export function PlayerTraits({
   onChanged,
   source,
   more = [],
-  place = 'list',
+  pinnable = [],
 }: {
   db: Db;
   user: CurrentUser;
@@ -50,19 +79,30 @@ export function PlayerTraits({
   source: (from: 'class' | 'race') => string | null;
   /** The picked trait-list entries' powers with uses (G-213; retest 4 T9): their dots too, after the class's and race's. */
   more?: readonly LimitedAbility[];
-  /** The Traits list (the unpinned ones, headed), or At hand's rows (the pinned ones, in the order pinned). */
-  place?: 'list' | 'atHand';
+  /** The sheet's foot rows (`SheetParts.pinnable`): a pinned one without uses is drawn from these, opening its own pop-up. */
+  pinnable?: readonly PinnableRow[];
 }) {
   const toast = useToast();
+  const blocked = useBlockedSheet();
   const [open, setOpen] = useState<string | null>(null);
+  const [about, setAbout] = useState(false);
+  // A move shows at once, the list in its new order, until the pins read back (or the save fails).
+  const pinsKey = play.pins.map((p) => `${p.kind}:${p.key}`).join('|');
+  const [moving, setMoving] = useState<{ order: string[]; from: string } | null>(null);
+
   const all = traitsWithUses(figures, character.level, more);
-  const split = pinnedTraits(all, play.pins);
-  const abilities = place === 'atHand' ? split.pinned : split.rest;
-  if (abilities.length === 0) return null;
-  // Each row's own key: two traits may share a name (a class's and a kindred's), each with its own words.
-  const keyOf = (a: LimitedAbility, i: number) => `${a.from}:${i}:${a.name}`;
-  const shown = abilities.find((a, i) => keyOf(a, i) === open);
-  const pinnedNow = (name: string) => split.pinned.some((a) => a.name === name);
+  // Each trait's own key: two may share a name (a class's and a kindred's), each with its own words. Its place in the
+  // character's list, so it stays the same when the pins move.
+  const keyed = all.map((a, i) => ({ a, key: `${a.from}:${i}:${a.name}` }));
+  const withUses = new Set(all.map((a) => a.name));
+  // A thing with uses is drawn from the traits with uses (a block); the rest of the sheet's rows are the plain ones.
+  const plain = pinnable.filter((r) => !withUses.has(r.name));
+  const live = pinnedNames(play.pins, [...all.map((a) => a.name), ...plain.map((r) => r.name)]);
+  const shownOrder = moving && moving.from === pinsKey ? moving.order : live;
+  const rest = pinnedTraits(keyed.map((k) => ({ ...k, name: k.a.name })), play.pins).rest;
+  if (shownOrder.length === 0 && rest.length === 0) return null;
+  const shown = keyed.find((k) => k.key === open);
+  const pinnedNow = (name: string) => live.includes(name);
   const spentOf = (a: { name: string; uses: number }) => Math.min(a.uses, play.usesSpent[a.name] ?? 0);
 
   async function mark(name: string, spent: number, of: number): Promise<boolean> {
@@ -84,9 +124,11 @@ export function PlayerTraits({
 
   /**
    * The sheet's star: pin or unpin at once, Undo in the toast (06: undo over confirm). The trait moves, so its sheet
-   * closes. Undo of an unpin puts the pin back in its place among the pins (`at`).
+   * closes. Undo of an unpin puts the pin back in its place among the pins (`at`). At the limit the star stays a button
+   * and says why (pg28-5, frame M4i).
    */
   async function pin(name: string, pinned: boolean, undo = false, at?: number) {
+    if (pinned && !undo && play.pins.length >= PIN_LIMIT) return blocked.explain(`Can't pin ${name}`, PIN_LIMIT_WORDS);
     const was = play.pins.findIndex((p) => p.kind === 'trait' && p.key === name);
     const result = await runCommand(registry, db, user, pinToAtHand, { character, kind: 'trait', key: name, pinned, ...(at === undefined ? {} : { at }) });
     if (!result.ok) return toast({ text: result.message, error: true });
@@ -95,62 +137,104 @@ export function PlayerTraits({
     if (!undo) toast({ text: pinned ? `${name} pinned to the top` : `${name} unpinned`, onUndo: () => void pin(name, !pinned, true, !pinned && was >= 0 ? was : undefined) });
   }
 
-  const rows = (
-    <RowList>
-      {abilities.map((a, i) => {
-        const left = a.uses - spentOf(a);
-        const sub = `${left === 0 ? 'None' : left} of ${a.uses} left${a.refill ? `, back each ${a.refill}` : ''}`;
-        return (
-          <ListRow
-            key={keyOf(a, i)}
-            // In At hand the star leads the name, as frame P1 draws "★ Horn charge" (the review's nit of 19 Nov 2026).
-            title={place === 'atHand' ? <PinnedName>{a.name}</PinnedName> : a.name}
-            // The pips before "1 of 1 left" (frame P1; Francis's fix 8 of 19 Nov 2026): the uses left filled, the spent ones
-            // rings, in ink as P1 draws them (the ink pips), hidden from screen readers, which hear the words.
-            sub={
-              <>
-                <UsePips uses={a.uses} spent={spentOf(a)} ink /> {sub}
-              </>
-            }
-            onOpen={() => setOpen(keyOf(a, i))}
-            action="Use"
-            // The stacked button with the pointing hand (dec-13 C6; sb-2, ic-3), in At hand and the Traits section alike (frame P1).
-            actionIcon="pointing"
-            actionLabel={`Use ${a.name}`}
-            onAction={() => void use(a)}
-          />
-        );
-      })}
-    </RowList>
+  /** A move in the player's order, at once (hold to move, Move up, Move down); a failed save puts the list back. */
+  async function move(from: number, to: number) {
+    if (from === to) return;
+    setMoving({ order: moved(shownOrder, from, to), from: pinsKey });
+    const result = await movePin(db, user, character, play.pins, shownOrder, from, to);
+    if (!result.ok) {
+      setMoving(null);
+      return toast({ text: result.message, error: true });
+    }
+    onChanged();
+  }
+
+  // A trait with uses as a row (unpinned) or inside its block (pinned): the same name, line, Use and sheet.
+  const traitRow = ({ a, key }: { a: LimitedAbility; key: string }, pinned: boolean) => {
+    const left = a.uses - spentOf(a);
+    const sub = `${left === 0 ? 'None' : left} of ${a.uses} left${a.refill ? `, back each ${a.refill}` : ''}`;
+    return (
+      <ListRow
+        key={key}
+        title={pinned ? <PinnedName>{a.name}</PinnedName> : a.name}
+        // The pips before "1 of 1 left" (frame P1; Francis's fix 8 of 19 Nov 2026): the uses left filled, the spent ones
+        // rings, in ink as P1 draws them (the ink pips), hidden from screen readers, which hear the words. In a block,
+        // each pip up to ten and none past (pg28-8).
+        sub={
+          <>
+            <UsePips uses={a.uses} spent={spentOf(a)} ink block={pinned} /> {sub}
+          </>
+        }
+        onOpen={() => setOpen(key)}
+        action="Use"
+        // The stacked button with the pointing hand (dec-13 C6; sb-2, ic-3).
+        actionIcon="pointing"
+        actionLabel={`Use ${a.name}`}
+        onAction={() => void use(a)}
+      />
+    );
+  };
+
+  const pinnedList = shownOrder.length > 0 && (
+    <div className="pinned-list">
+      <SortableList
+        items={shownOrder.map((name) => ({ key: name, label: name }))}
+        label="Pinned abilities and traits"
+        onMove={(from, to) => void move(from, to)}
+        render={({ key: name }) => {
+          const blocks = keyed.filter((k) => k.a.name === name);
+          if (blocks.length > 0) {
+            return blocks.map((k) => (
+              <PinnedBox key={k.key} block>
+                {traitRow(k, true)}
+              </PinnedBox>
+            ));
+          }
+          // Only something to read: a row, its own pop-up the sheet's (its entry, with Move up and Move down).
+          const row = plain.find((r) => r.name === name);
+          return (
+            <PinnedBox>
+              <ListRow title={<PinnedName>{name}</PinnedName>} openLabel={`${name}, pinned`} {...(row?.onOpen ? { onOpen: row.onOpen } : {})} />
+            </PinnedBox>
+          );
+        }}
+      />
+    </div>
   );
+
   const sheet = shown && (
-    <Dialog label={shown.name} onClose={() => setOpen(null)} headAction={<PinStar pinned={pinnedNow(shown.name)} onToggle={() => void pin(shown.name, !pinnedNow(shown.name))} />}>
-      {shown.note ? <p className="reading">{shown.note}</p> : <p className="reading auth__meta">Your setting doesn't describe this ability.</p>}
+    <Dialog label={shown.a.name} onClose={() => setOpen(null)} headAction={<PinStar pinned={pinnedNow(shown.a.name)} onToggle={() => void pin(shown.a.name, !pinnedNow(shown.a.name))} />}>
+      {shown.a.note ? <p className="reading">{shown.a.note}</p> : <p className="reading auth__meta">Your setting doesn't describe this ability.</p>}
       <p className="reading">
-        {shown.uses === 1 ? '1 use' : `${shown.uses} uses`}
-        {shown.refill ? `, back each ${shown.refill}.` : '. Your GM says when they come back.'}
+        {shown.a.uses === 1 ? '1 use' : `${shown.a.uses} uses`}
+        {shown.a.refill ? `, back each ${shown.a.refill}.` : '. Your GM says when they come back.'}
       </p>
       {/* The dots stay here: tap a filled one to mark a use, a spent one to give it back (ruled 2026-10-26). */}
-      <UseDots name={shown.name} uses={shown.uses} spent={spentOf(shown)} onChange={(spent) => void mark(shown.name, spent, shown.uses)} />
-      {shown.from !== 'trait' && sourceLine(source(shown.from))}
+      <UseDots name={shown.a.name} uses={shown.a.uses} spent={spentOf(shown.a)} onChange={(spent) => void mark(shown.a.name, spent, shown.a.uses)} />
+      {shown.a.from !== 'trait' && sourceLine(source(shown.a.from))}
+      <PinMoves name={shown.a.name} live={shownOrder} onMove={(from, to) => void move(from, to)} />
     </Dialog>
   );
 
-  // In At hand: the rows alone, inside At hand's own section (PackScreen's "atHand" view, `extra`).
-  if (place === 'atHand') {
-    return (
-      <>
-        {rows}
-        {sheet}
-      </>
-    );
-  }
   return (
-    // Headed "Traits", the full sheet's word for them (Francis, docs PR #485, 2026-11-05), in the section heading
-    // Scores and Saves wear (the named part, the lead on #894, frame P1).
-    <SheetSection label="Traits">
-      {rows}
+    // Headed "Abilities and traits" now that it holds abilities too (pg28-1, ⚑ 24), in the section heading Scores and
+    // Saves wear; the ⓘ in its row says how to move a pinned one (pg28-7), while there is one.
+    <SheetSection label="Abilities and traits" {...(shownOrder.length > 0 ? { labelInfo: { label: 'moving pinned ones', onOpen: () => setAbout(true) } } : {})}>
+      {pinnedList}
+      {rest.length > 0 && <RowList>{rest.map((k) => traitRow(k, false))}</RowList>}
       {sheet}
+      {about && (
+        <Dialog label="Hold to move" onClose={() => setAbout(false)}>
+          <p className="reading">Hold a pinned one for half a second, then drag it up or down. The others make room.</p>
+          <p className="reading">A tap opens it. Move up and Move down are in its pop-up too.</p>
+          <div className="dialog__actions">
+            <button type="button" className="button-secondary" onClick={() => setAbout(false)}>
+              Got it
+            </button>
+          </div>
+        </Dialog>
+      )}
+      {blocked.sheet}
     </SheetSection>
   );
 }
