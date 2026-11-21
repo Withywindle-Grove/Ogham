@@ -38,7 +38,7 @@ import { checkEquip, EquipWarningCard, type EquipCheck } from './EquipWarning.ts
 import { countWords, shownName } from '../modules/inventory/packView.ts';
 import { cameBackText, latestChange, undoChange, type CameBack } from '../core/undo.ts';
 import { MoveSheet, type Placement } from './ItemMoves.tsx';
-import { Dialog } from '../ui/Dialog.tsx';
+import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { Breakdown, ListRow, PinStar, RowList, WarningSign } from '../ui/parts.tsx';
 import { RollPrompt } from '../ui/RollPrompt.tsx';
 import { RollCard } from '../ui/dice.tsx';
@@ -79,25 +79,30 @@ export function useItemSheetState(line: InventoryLine) {
 export type ItemSheetState = ReturnType<typeof useItemSheetState>;
 
 /**
- * The GM's line in the view (pg32-4; M3g, M3g2): what only the GM sees of an item, "Only you see this: …", or null
- * when nothing is hidden. Its parts: the entry's hidden fields not yet revealed (each "Label: value"), the hidden
- * charge count, and the weapon's hidden figures.
+ * The GM's line in the view (pg32-4), in the form M3g and M3g2 draw ("Only you see this: the true figure is d20 −1,
+ * cursed."; "…: Ring of the Drowned Bell, +1 to saves, cursed."), or null when nothing is hidden: the weapon's true
+ * figure and hidden notes first, then each hidden field not yet revealed by its value (a yes-or-no field by its name,
+ * "cursed"; a "no" left out), then the hidden charge count ("3 charges left"), joined by commas.
  */
 export function gmLineWords(hidden: readonly Line[], charges: { total: number | null; spent: boolean; used: number } | null, figures: readonly string[]): string | null {
-  const leaves = (all: readonly Line[]): string[] => all.flatMap((l) => (l.lines ? leaves(l.lines) : [l.value === undefined ? l.label : `${l.label}: ${l.value}`]));
+  const leaves = (all: readonly Line[]): string[] =>
+    all.flatMap((l) => (l.lines ? leaves(l.lines) : l.value === 'No' ? [] : l.value === 'Yes' ? [l.label.toLowerCase()] : [l.value ?? l.label]));
   const left = charges && charges.total !== null ? Math.max(0, charges.total - charges.used) : null;
-  const count = !charges ? [] : [`Charges: ${left === null ? 'not set' : charges.spent || left === 0 ? 'spent' : `${left} left`}`];
-  const facts = [...leaves(hidden), ...count, ...figures].map((f) => f.replace(/\.$/, '')).filter((f) => f !== '');
-  return facts.length === 0 ? null : `Only you see this: ${facts.join('; ')}.`;
+  const count = !charges ? [] : [left === null ? 'charges not set' : charges.spent || left === 0 ? 'spent' : left === 1 ? '1 charge left' : `${left} charges left`];
+  const facts = [...new Set([...figures, ...leaves(hidden), ...count].map((f) => f.trim().replace(/\.$/, '')).filter((f) => f !== ''))];
+  return facts.length === 0 ? null : `Only you see this: ${facts.join(', ')}.`;
 }
 
 /** "Reveal…" in the view (⚑ 40, ruled 2026-11-21): the GM's own item sheet for the item, as built, with its own state. */
 function GmItemSheet(props: ItemSheetProps) {
   const state = useItemSheetState(props.line);
+  // Opened from inside the item's sheet: its own form, not the outer sheet's (CLAUDE.md; checked by gm-view-pack.spec.ts).
   return (
-    <PlayerViewContext.Provider value={null}>
-      <ItemSheet {...props} state={state} atHand={null} />
-    </PlayerViewContext.Provider>
+    <SheetScope.Provider value={false}>
+      <PlayerViewContext.Provider value={null}>
+        <ItemSheet {...props} state={state} atHand={null} />
+      </PlayerViewContext.Provider>
+    </SheetScope.Provider>
   );
 }
 
@@ -230,8 +235,10 @@ export function ItemSheet(props: ItemSheetProps) {
   const hiddenNames = gm ? unrevealed : [];
   const hiddenLines = entry ? describeEntry({ ...entry, data: { ...Object.fromEntries(unrevealed.map((key) => [key, entry.data[key]])) } }, () => undefined, { gm: true }).lines : [];
   const gmLine = view && gmTruth ? gmLineWords(hiddenLines, line.chargesHidden && secret ? { ...secret, used: line.chargesUsed } : null, gmFacts) : null;
-  // "Reveal…" above the player's own rows (M3g): only where the GM's line shows.
-  const revealRow = gmLine && <ListRow icon={<Icon name="eye" size={24} />} title="Reveal…" onOpen={() => (busy ? undefined : setRevealing(true))} />;
+  // "Reveal…" above the player's own rows (M3g): only where the GM's own sheet has something to reveal, a hidden field or
+  // a hidden count (the driver's call under ⚑ 40); a weapon whose only hidden thing is its figure keeps the line alone.
+  const revealable = unrevealed.length > 0 || (line.chargesHidden && secret?.total != null);
+  const revealRow = gmLine && revealable && <ListRow icon={<Icon name="eye" size={24} />} title="Reveal…" onOpen={() => (busy ? undefined : setRevealing(true))} />;
   const oneOff = line.libraryEntryId === null && line.sourcePackId === null;
   /**
    * Runs a change that makes something leave your view, then the toast (B23; words batch 1): Undo is the log's
@@ -379,6 +386,8 @@ export function ItemSheet(props: ItemSheetProps) {
         {[...shown.notes, ...lineNotes].map((note) => (
           <p key={note}>{note}</p>
         ))}
+        {/* The GM's line under the player's own words, above the details (M3g: above Slot). */}
+        {gmLine && <GmLine>{gmLine}</GmLine>}
         {amount && amount !== '—' && <p>{mode === 'slot' ? 'Takes' : 'Weight'}: {amount}{stackable(line) && mode !== 'armour' ? ` for ${line.qty}` : ''}.</p>}
         {shown.lines.length > 0 && <Lines lines={shown.lines} kv />}
         {patchLines.length > 0 && <p className="auth__meta">Changed by your rules: {patchLines.join('; ')}.</p>}
@@ -514,7 +523,6 @@ export function ItemSheet(props: ItemSheetProps) {
             </div>
           </div>
         )}
-        {gmLine && <GmLine>{gmLine}</GmLine>}
         {revealRow && (!may || waiting) && <RowList label="Item actions">{revealRow}</RowList>}
         {revealing && <GmItemSheet {...props} onClose={() => setRevealing(false)} />}
         {waiting && (

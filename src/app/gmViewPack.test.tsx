@@ -4,15 +4,19 @@
 //   Purpose:
 //   1. In the view a cursed item's sheet shows the player's words and no "Hidden from players" group, then the GM's
 //      line "Only you see this: …" and "Reveal…" above Give to…; an item with nothing hidden shows neither.
-//   2. A blade whose curse is a hidden figure (a magic bonus of −1) carries it in the GM's line, never in the player's
-//      words.
-//   3. The Pack's list in the view shows nothing the player does not see: a hidden charge count reads as the player's
+//   2. A blade whose only hidden thing is its figure (a magic bonus of −1) carries it in the GM's line, "the true figure
+//      is …", with no "Reveal…" (nothing on the GM's sheet to reveal); the player's own figure in the view leaves out the
+//      −1: the sheet's words, the GM's line aside, are Sam's own sheet's.
+//   3. A cursed blade (its curse a hidden field) reads as M3g2 does: "Only you see this: the true figure is d20 −1,
+//      cursed.", with "Reveal…".
+//   4. The Pack's list in the view shows nothing the player does not see: a hidden charge count reads as the player's
 //      "Charges: ?"; its sheet's GM line gives the count.
-//   4. "Reveal…" opens the GM's own item sheet, as built (⚑ 40), where Reveal of a hidden field works and is logged.
-//   5. Outside the view (Players › Inventory › Whose pack) the GM's item sheet is unchanged: the "Hidden from players"
+//   5. "Reveal…" opens the GM's own item sheet, as built (⚑ 40), where Reveal of a hidden field works and is logged.
+//   6. Outside the view (Players › Inventory › Whose pack) the GM's item sheet is unchanged: the "Hidden from players"
 //      group, no GM line, no "Reveal…".
-//   6. What the GM adds in the view is logged as his.
-//   7. The GM's line's words, and a weapon's hidden figures (the pure parts).
+//   7. What the GM adds in the view is logged as his, and no charges prompt follows it there (it does outside).
+//   8. In armour mode the view's Pack has no treasure switch; the GM's own pack keeps it.
+//   9. The GM's line's words, and a weapon's hidden figures (the pure parts).
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -22,6 +26,7 @@ import { Root } from './App.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
 import { hiddenFigures } from './CarrierItems.tsx';
 import { gmLineWords } from './ItemSheet.tsx';
+import { HIDDEN_FROM_PLAYER, type AttackRoll } from '../modules/characters/play.ts';
 
 vi.mock('./services.ts', async () => {
   const { createAppRegistry } = await import('./commandRegistry.ts');
@@ -30,6 +35,7 @@ vi.mock('./services.ts', async () => {
 
 let world: FakeWorld;
 let gm: string;
+let sam: string;
 let campaign: string;
 let wren: string;
 
@@ -77,7 +83,7 @@ beforeEach(() => {
   sessionStorage.clear();
   window.history.replaceState(null, '', '/');
   gm = world.addPerson('priya@lantern.example', 'Priya');
-  const sam = world.addPerson('sam@lantern.example', 'Sam');
+  sam = world.addPerson('sam@lantern.example', 'Sam');
   campaign = world.addCampaign('The Reed Marches', gm);
   wren = world.addCharacter(campaign, 'Wren', { ownerId: sam });
   world.addMember(campaign, sam, 'player', wren);
@@ -122,7 +128,7 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     await user.click(await screen.findByRole('button', { name: /^Moon ring/ }));
     const sheet = within(screen.getByRole('region', { name: 'Moon ring' }));
     expect(sheet.getByText('A plain band of old bronze.')).toBeTruthy();
-    expect(sheet.getByText('Only you see this: Curse: Cold at the full moon.')).toBeTruthy();
+    expect(sheet.getByText('Only you see this: Cold at the full moon.')).toBeTruthy();
     // No GM tool on the player's sheet: the hidden group sits behind Reveal….
     expect(sheet.queryByRole('group', { name: 'Hidden from players' })).toBeNull();
     const rows = actions()
@@ -138,13 +144,55 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     expect(rope.queryByRole('button', { name: 'Reveal…' })).toBeNull();
   });
 
-  it('a hidden figure (a curse of −1) is in the GM line only', async () => {
+  it("a figure-only secret (a −1) is in the GM line alone, with no Reveal…; the rest of the sheet is exactly Sam's own", async () => {
     line('Old bronze sword', { category: 'weapon', item_data: { category: 'weapon', weapon: { damage: '1d8', magicBonus: -1 } } });
     const user = await openWrensPack();
     await user.click(await screen.findByRole('button', { name: /^Old bronze sword/ }));
+    const region = screen.getByRole('region', { name: 'Old bronze sword' });
+    const sheet = within(region);
+    expect(sheet.getByText(/^Only you see this: the true figure (is|adds) .*−1\.$/)).toBeTruthy();
+    expect(sheet.queryByRole('button', { name: 'Reveal…' })).toBeNull();
+    // The player's words: everything on the sheet but the GM's line. No GM figure joins them (no "the true figure", no
+    // hidden part); what they show of the item's own copy is Sam's (the scope check on #34: the copy's raw bonus).
+    const playersWords = (el: HTMLElement) => {
+      const copy = el.cloneNode(true) as HTMLElement;
+      copy.querySelector('.gm-line')?.remove();
+      return copy.textContent ?? '';
+    };
+    const inView = playersWords(region);
+    expect(inView).not.toMatch(/true figure|hidden from the player|Only you see this/);
+    // Sam's own sheet for the same sword reads exactly the same.
+    cleanup();
+    world.signInAs(sam);
+    const samUser = userEvent.setup();
+    render(<Root db={world.db} />);
+    await samUser.click(await screen.findByRole('button', { name: /The Reed Marches/ }));
+    await samUser.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
+    await samUser.click(await screen.findByRole('button', { name: /^Old bronze sword/ }));
+    expect(playersWords(screen.getByRole('region', { name: 'Old bronze sword' }))).toBe(inView);
+  });
+
+  it('a cursed blade reads as M3g2: "Only you see this: the true figure is …, cursed.", with Reveal…', async () => {
+    world.tables.library_entries.push({
+      id: 'entry-bronze-sword',
+      pack_id: 'pack-fen',
+      kind: 'item',
+      pack_entry_id: 'bronze-sword',
+      name: 'Old bronze sword',
+      data: { id: 'bronze-sword', name: 'Old bronze sword', category: 'weapon', weapon: { damage: '1d8', magicBonus: -1 }, cursed: true, gmOnly: ['cursed'] },
+    });
+    line('Old bronze sword', {
+      category: 'weapon',
+      library_entry_id: 'entry-bronze-sword',
+      source_pack_id: 'pack-fen',
+      source_entry_id: 'bronze-sword',
+      item_data: { id: 'bronze-sword', name: 'Old bronze sword', category: 'weapon', weapon: { damage: '1d8', magicBonus: -1 } },
+    });
+    const user = await openWrensPack();
+    await user.click(await screen.findByRole('button', { name: /^Old bronze sword/ }));
     const sheet = within(screen.getByRole('region', { name: 'Old bronze sword' }));
-    expect(sheet.getByText('Only you see this: Old bronze sword, magic −1.')).toBeTruthy();
-    expect(sheet.queryByText(/hidden from the player/)).toBeNull();
+    expect(sheet.getByText(/^Only you see this: the true figure (is|adds) .*−1, cursed\.$/)).toBeTruthy();
+    expect(sheet.getByRole('button', { name: 'Reveal…' })).toBeTruthy();
   });
 
   it("the list shows the player's \"Charges: ?\" for a hidden count; the sheet's GM line gives the count", async () => {
@@ -156,7 +204,8 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     expect(row.textContent).not.toMatch(/hidden|left/);
     await user.click(row);
     const sheet = within(screen.getByRole('region', { name: 'Murky wand' }));
-    expect(sheet.getByText('Only you see this: Charges: 3 left.')).toBeTruthy();
+    expect(sheet.getByText('Only you see this: 3 charges left.')).toBeTruthy();
+    expect(sheet.getByRole('button', { name: 'Reveal…' })).toBeTruthy();
     // The GM's Recharge and Reveal the count sit on his own sheet, behind Reveal….
     expect(sheet.queryByRole('button', { name: 'Reveal the count' })).toBeNull();
     expect(sheet.queryByRole('button', { name: /^Recharge/ })).toBeNull();
@@ -187,37 +236,60 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     expect(screen.queryByRole('button', { name: 'Reveal…' })).toBeNull();
   });
 
-  it('what the GM adds in the view is logged as his', async () => {
+  it('what the GM adds in the view is logged as his, and no charges prompt follows it there', async () => {
+    world.tables.library_entries.push({ id: 'entry-reed-wand', pack_id: 'pack-fen', kind: 'item', pack_entry_id: 'reed-wand', name: 'Reed wand', data: { id: 'reed-wand', name: 'Reed wand', category: 'wand', weightCoin: 1 } });
     const user = await openWrensPack();
     await user.click(await screen.findByRole('button', { name: 'Add item' }));
-    await user.type(await screen.findByLabelText('Search items'), 'rope');
-    await user.click(screen.getByRole('button', { name: /^Coil of rope/ }));
+    await user.type(await screen.findByLabelText('Search items'), 'reed');
+    await user.click(screen.getByRole('button', { name: /^Reed wand/ }));
     await user.click(screen.getByRole('button', { name: 'Add to Wren’s pack' }));
-    await waitFor(() => expect(world.tables.inventory_lines.filter((l) => l.name === 'Coil of rope')).toHaveLength(2));
+    await waitFor(() => expect(world.tables.inventory_lines.filter((l) => l.name === 'Reed wand')).toHaveLength(1));
     expect(world.tables.events.filter((e) => e.type === 'inventory.add').map((e) => e.actor_user_id)).toEqual([gm]);
+    await screen.findByRole('button', { name: /^Reed wand/ });
+    expect(screen.queryByRole('dialog', { name: 'Charges of Reed wand' })).toBeNull();
+  });
+
+  it("in armour mode the view's Pack has no treasure switch; the GM's own pack keeps it", async () => {
+    Object.assign(world.tables.campaigns.find((c) => c.id === campaign)!, { settings: { encumbrance: { mode: 'armour' } } });
+    const rules = world.tables.library_entries.find((e) => e.id === 'entry-fen-rules')!;
+    rules.data = { ...(rules.data as object), encumbrance: { mode: 'armour', armour: { maxLoadCoin: 500, movement: [{ armour: 'none', withoutTreasure: '100 ft', withTreasure: '70 ft' }] } } };
+    const user = await openWrensPack();
+    await screen.findByText(/carrying treasure/i);
+    expect(screen.queryByRole('button', { name: /^Switch (on|off)$/ })).toBeNull();
+    await user.click(screen.getByRole('button', { name: '‹ Players' }));
+    await user.click(await screen.findByRole('button', { name: 'Inventory' }));
+    await user.click(within(await screen.findByRole('group', { name: 'Whose pack' })).getByRole('button', { name: 'Wren' }));
+    expect(await screen.findByRole('button', { name: /^Switch (on|off)$/ })).toBeTruthy();
   });
 });
 
 describe("the GM's line's words (pure)", () => {
-  it('joins the hidden fields, the hidden count and the hidden figures; null when nothing is hidden', () => {
+  it("follows M3g2's form: the true figure first, then the hidden values, then the count; null when nothing is hidden", () => {
     expect(gmLineWords([], null, [])).toBeNull();
-    expect(gmLineWords([{ label: 'Fields', lines: [{ label: 'Curse', value: 'Cold at the full moon.' }] }, { label: 'Cursed', value: 'Yes' }], { total: 5, spent: false, used: 2 }, ['Old bronze sword, magic −1'])).toBe(
-      'Only you see this: Curse: Cold at the full moon; Cursed: Yes; Charges: 3 left; Old bronze sword, magic −1.',
+    expect(gmLineWords([{ label: 'Cursed', value: 'Yes' }], null, ['the true figure is d20 −1'])).toBe('Only you see this: the true figure is d20 −1, cursed.');
+    // M3g's form: the values, a yes-or-no field by its name, a "no" left out.
+    expect(gmLineWords([{ label: 'True name', value: 'Ring of the Drowned Bell' }, { label: 'Fields', lines: [{ label: 'Saves', value: '+1 to saves.' }] }, { label: 'Cursed', value: 'Yes' }, { label: 'Magic', value: 'No' }], null, [])).toBe(
+      'Only you see this: Ring of the Drowned Bell, +1 to saves, cursed.',
     );
-    expect(gmLineWords([], { total: null, spent: false, used: 0 }, [])).toBe('Only you see this: Charges: not set.');
-    expect(gmLineWords([], { total: 2, spent: true, used: 2 }, [])).toBe('Only you see this: Charges: spent.');
+    expect(gmLineWords([], { total: 5, spent: false, used: 2 }, [])).toBe('Only you see this: 3 charges left.');
+    expect(gmLineWords([], { total: 2, spent: false, used: 1 }, [])).toBe('Only you see this: 1 charge left.');
+    expect(gmLineWords([], { total: null, spent: false, used: 0 }, [])).toBe('Only you see this: charges not set.');
+    expect(gmLineWords([], { total: 2, spent: true, used: 2 }, [])).toBe('Only you see this: spent.');
   });
 
-  it("a weapon's hidden figures are its parts and notes marked hidden, in the GM's words", () => {
-    expect(
-      hiddenFigures({
-        parts: [
-          { label: 'Fenblade, magic (hidden from the player)', value: -1 },
-          { label: 'Reed arrows, magic', value: 1 },
-        ],
-        hitNotes: ['+2 vs bog lurkers (hidden from the player)', '+1 vs reeds'],
-        damageNotes: [],
-      }),
-    ).toEqual(['Fenblade, magic −1', '+2 vs bog lurkers']);
+  it("a weapon's hidden figure is its true to-hit roll, then each hidden note; without rolls, what the hidden parts add", () => {
+    const magic = {
+      parts: [
+        { label: `Fenblade, magic${HIDDEN_FROM_PLAYER}`, value: -1 },
+        { label: 'Reed arrows, magic', value: 1 },
+      ],
+      hitNotes: [`+2 vs bog lurkers${HIDDEN_FROM_PLAYER}`, '+1 vs reeds'],
+      damageNotes: [],
+    };
+    const hit = { roll: 'hit', dice: '1d20', line: 'To hit', adds: -1, which: null, againstTarget: false, lineNote: null } as unknown as AttackRoll;
+    expect(hiddenFigures(magic, () => [hit])).toEqual(['the true figure is d20 −1', '+2 vs bog lurkers']);
+    expect(hiddenFigures(magic, () => [])).toEqual(['the true figure adds −1', '+2 vs bog lurkers']);
+    // Nothing of the figure hidden: only the hidden notes, and the rolls are never worked out.
+    expect(hiddenFigures({ parts: [{ label: 'Reed arrows, magic', value: 1 }], hitNotes: [], damageNotes: [] }, () => { throw new Error('not asked'); })).toEqual([]);
   });
 });

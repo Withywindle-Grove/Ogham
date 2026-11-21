@@ -17,6 +17,7 @@ import { asItem, equippedProblems, loadEquipContext, type EquipContext } from '.
 import { allowedByRule, castingStoppedBy, classAllowsWeapon, equipBlocks } from '../modules/inventory/equipWarnings.ts';
 import { ItemRow } from './ItemRow.tsx';
 import { usePlayerView } from './playerView.ts';
+import { rollFace } from './WeaponInHand.tsx';
 import { lightFactsOf } from './AtHandSheets.tsx';
 import { useFoldOpen } from './packOpen.ts';
 import { foldSummary, itemCount, type Run } from './packHelpers.ts';
@@ -26,7 +27,7 @@ import { lightState } from '../modules/expedition/lightPlay.ts';
 import type { CharacterLightView } from './LightSection.tsx';
 import { attackRange, attackRules, inflictedBy, modeState, weaponModesOf, withMode, type ModeState } from '../modules/inventory/weaponModes.ts';
 import { conditionsOf } from '../modules/expedition/statusPlay.ts';
-import { magicNoteLines, weaponMagic, type AttackPart, type AttackRoll, type WeaponMagic } from '../modules/characters/play.ts';
+import { HIDDEN_FROM_PLAYER, magicNoteLines, weaponMagic, type AttackPart, type AttackRoll, type WeaponMagic } from '../modules/characters/play.ts';
 import './PackScreen.css';
 
 /**
@@ -64,17 +65,18 @@ export function drawnAmmunition(
   return { name: stack.name, data: { ...(stackEntry?.data ?? {}), ...lineInPlay(setting, stack).details }, category: stack.category };
 }
 
-/** The words `weaponMagic` adds to what the player can't see (play.ts, `marked`). */
-const HIDDEN_MARK = ' (hidden from the player)';
-
 /**
- * A weapon's figures hidden from its player, in the GM's words for the view's GM line (pg32-4; M3g2): each hidden part
- * with its sign ("Old bronze sword, magic −1"), then each hidden note.
+ * A weapon's figures hidden from its player, for the view's GM line in M3g2's words (pg32-4): where a part of its
+ * figure is hidden, "the true figure is d20 −1" (the to-hit roll as the GM's figures make it, from `trueRolls`; without
+ * rolls, what the hidden parts add, "the true figure adds −1"); then each hidden note ("+2 vs bog lurkers").
  */
-export function hiddenFigures(magic: WeaponMagic): string[] {
-  const parts = magic.parts.filter((p) => p.label.endsWith(HIDDEN_MARK)).map((p) => `${p.label.slice(0, -HIDDEN_MARK.length)} ${p.value < 0 ? `−${-p.value}` : `+${p.value}`}`);
-  const notes = [...magic.hitNotes, ...magic.damageNotes].filter((n) => n.endsWith(HIDDEN_MARK)).map((n) => n.slice(0, -HIDDEN_MARK.length));
-  return [...parts, ...notes];
+export function hiddenFigures(magic: WeaponMagic, trueRolls: () => readonly AttackRoll[]): string[] {
+  const hiddenParts = magic.parts.filter((p) => p.label.endsWith(HIDDEN_FROM_PLAYER));
+  const notes = [...magic.hitNotes, ...magic.damageNotes].filter((n) => n.endsWith(HIDDEN_FROM_PLAYER)).map((n) => n.slice(0, -HIDDEN_FROM_PLAYER.length));
+  if (hiddenParts.length === 0) return notes;
+  const hit = trueRolls().find((r) => r.roll === 'hit');
+  const adds = hiddenParts.reduce((sum, p) => sum + p.value, 0);
+  return [hit ? `the true figure is ${rollFace(hit).figure}` : `the true figure adds ${adds < 0 ? `−${-adds}` : `+${adds}`}`, ...notes];
 }
 
 /** A weapon's attack bonus and damage ("+2, 1d8"), from its item data, the patches' damage change and a mode's parts. */
@@ -347,7 +349,8 @@ export function CarrierItems({
                   const range = atHand && weapon !== null ? attackRange(item, state?.engaged ? state.mode : null) : null;
                   const bearing = atHand ? attackRules(inMode, state?.engaged ? state.mode : null, [ruleNotes.get(line.id), problems.get(line.id)]) : [];
                   const inflicts = atHand && weapon !== null ? inflictedBy(item, state?.engaged ? state.stack : null, conditions) : [];
-                  const gmFacts = gmInView ? hiddenFigures(weaponMagic({ name: line.name, data: item, category: line.category }, setting?.rulesSets ?? [], true, stack ? drawnAmmunition(setting, stack, stackEntry) : null)) : [];
+                  const gmMagic = gmInView ? weaponMagic({ name: line.name, data: item, category: line.category }, setting?.rulesSets ?? [], true, stack ? drawnAmmunition(setting, stack, stackEntry) : null) : null;
+                  const gmFacts = gmMagic ? hiddenFigures(gmMagic, () => weaponRolls?.({ ...inMode, name: line.name }, now.damageDelta ?? 0, lineFigureParts(state, gmMagic, line.sourceEntryId ?? null, classOk)) ?? []) : [];
                   return (
                   <ItemRow
                     key={line.id}
