@@ -5,7 +5,7 @@
 //   Gallery pictures expected to change: phone-light-atoms.png, tablet-dark-atoms.png
 //
 // When the picture check then fails only because those pictures differ, check.yml's redraw job runs this script on
-// the three layout shards' reports (layout-screens-N/layout-report.json, Playwright's JSON report). It accepts the
+// the six layout shards' reports (layout-screens-N/layout-report.json, Playwright's JSON report). It accepts the
 // redraws only when every failure in every shard is a gallery picture comparison, every differing picture was
 // announced, and each comparison has its 1x *-actual.png (the picture Playwright compared, never a gallery/ 2x one).
 // Anything else (an unannounced picture, any other failing test, a picture that never held still, a shard with no
@@ -14,7 +14,7 @@
 // GITHUB_SHA into its metadata): a report left from an earlier attempt of the run, or from other code, is refused, so
 // a re-run never judges an older attempt's pictures (#1082 review).
 //
-//   node scripts/ci-redraws.mjs --body <file> --shards <dir> --count 3 --baselines tests/layout/gallery-baselines \
+//   node scripts/ci-redraws.mjs --body <file> --shards <dir> --count 6 --baselines tests/layout/gallery-baselines \
 //     --attempt <GITHUB_RUN_ATTEMPT> --sha <GITHUB_SHA> [--write]
 //
 // <dir>/<n>/ holds shard n's layout-screens-n artifact. --write copies the accepted redraws over their baselines.
@@ -233,7 +233,7 @@ function readReport(file) {
 /** The whole job: read, judge, check every file is there, copy on --write. Returns the result with its summary. */
 export function run(argv) {
   const args = argsOf(argv);
-  const count = Number(args.count ?? 3);
+  const count = Number(args.count ?? 6);
   const announced = announcedPictures(existsSync(args.body ?? '') ? readFileSync(args.body, 'utf8') : '');
   const shards = [];
   for (let n = 1; n <= count; n++) {

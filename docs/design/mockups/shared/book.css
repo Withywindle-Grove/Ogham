@@ -1,0 +1,126 @@
+/*
+ * THE ONE SHARED SOURCE for the mockup pages' type and book-format parts (the lead, 2026-11-14).
+ * It draws the TARGET type: the book's faces everywhere. On main the app has them inside the book's scope only
+ * (creation and its pop-ups); the app reaches the target screen by screen, and the sweep finishes the rest.
+ *
+ * Link it LAST on a page, with shared/book.js for the type pass. A PAGE MUST NOT RESTATE ITS RULES: no page writes its
+ * own faces, labelled line, entry head, sub-heading, table, small-capitals label, stacked button, sheet head, toast or
+ * corners. (creation/final/sweep.css and december/december.css still carry older copies for the pages drawn before
+ * this file; where a page links one of them too, this file comes after it and wins.)
+ *
+ * Where each value comes from, in this order: (a) the app as built on main (src/ui/tokens.css, creation.css,
+ * parts.css, Dialog.css, read 2026-11-14); (b) where the app has no such part, the ruling; (c) where neither says,
+ * page 16's approved value. Sizes are the app's scale only: 14, 16, 20, 24, 30, 36, 48.
+ */
+@font-face { font-family:"T Bitter"; src:url(../december/fonts/Bitter-wght.ttf); font-weight:100 900; font-style:normal; }
+@font-face { font-family:"T Bitter"; src:url(../december/fonts/Bitter-Italic-wght.ttf); font-weight:100 900; font-style:italic; }
+@font-face { font-family:"T Alegreya Sans SC"; src:url(../december/fonts/AlegreyaSansSC-Bold.ttf); font-weight:400 900; }
+
+/* (a) the app's tokens for the book's parts and its pop-up */
+.light { --book-label:#b5482c; --book-subhead:#6f3221; --book-band:#efefef; --popup:#ffffff; --lbl:var(--book-label); }
+.dark { --book-label:#c9875a; --book-subhead:#dbb494; --book-band:#322d27; --popup:#28231d; --lbl:var(--book-label); }
+
+/* running text: the text face, the app's line height (a) */
+.bit, .dev { font-family:"T Bitter", Georgia, serif; line-height:1.5; }
+
+/* ---- the book format ---- */
+/* open: figures, for the sweep. Which zero the book's face shows is Francis's question for the font change; this keeps
+   what page 16's approved pictures show (c). On main the app's book block sets no slashed zero. */
+.bk { font-family:"T Bitter", Georgia, serif; font-size:16px; line-height:1.5; font-variant-numeric:slashed-zero; }
+.bk p { margin:0 0 var(--space-2); }
+/* a labelled line (a: .book-line, .book-label): the label in the label colour at regular weight, 4 px, then the words */
+.bk .ln, .bk p.ln { margin:0 0 var(--space-1); }
+.bk .lb, .lbk { color:var(--book-label); font-weight:400; margin-right:var(--space-1); }
+/* an entry's heading (a: .book-heading) */
+.ehead { font-family:"T Bitter", Georgia, serif; font-weight:900; font-size:24px; line-height:1.2; letter-spacing:.02em; text-transform:uppercase; color:var(--book-label); }
+/* the line under an entry's name (a: .book-tagline): the one place the small-capitals face is spaced .06em */
+.bk .dsc { font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:16px; letter-spacing:.06em; color:var(--muted); margin:0 0 var(--space-2); }
+/* the book's sub-heading (a: .book-subhead), which is also a card's and a section's heading (ds-7b) */
+.bsub, .bk h4, .bit h3.sec { font-family:"T Bitter", Georgia, serif; font-weight:800; font-size:20px; line-height:1.2; color:var(--book-subhead); margin:var(--space-3) 0 var(--space-1); font-variant:normal; letter-spacing:normal; text-transform:none; }
+.bsub:first-child { margin-top:0; }
+/* a book table and its title bar (a: .book-table) */
+.bk table { border-collapse:collapse; width:100%; margin:0; }
+.bk .tbar, .bk caption { background:var(--accent); color:var(--on-accent); font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:16px; letter-spacing:.06em; text-transform:uppercase; padding:var(--space-1) var(--space-3); text-align:left; }
+.bk th, .bk td { text-align:left; padding:var(--space-1) var(--space-2); border-bottom:1px solid var(--rule); font-variant-numeric:lining-nums tabular-nums; }
+.bk th { border-bottom:1.5px solid var(--ink); font-size:14px; font-weight:700; }
+.bk tbody tr:nth-child(even) td, .bk tr:nth-child(even) td { background:var(--book-band); }
+/* a list (a: .book-list) and a boxed aside (c: as page 15 draws the book's box; the app's rule-text box was not read) */
+.bk ul { margin:0 0 var(--space-2); padding-left:var(--space-4); }
+.bk .aside { border:1px solid var(--rule); border-radius:4px; background:var(--book-band); padding:var(--space-2) var(--space-3); margin:0 0 var(--space-2); }
+.bk .aside p:last-child { margin-bottom:0; }
+.bk .source { font-size:14px; color:var(--muted); margin-top:var(--space-3); }
+
+/* ---- the small-capitals label (a: 14 px, .04em, muted; the face by the type pass) ---- */
+.sclab { font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:14px; letter-spacing:.04em; color:var(--muted); margin:var(--space-3) 0 var(--space-1); }
+
+/* ---- the stacked button (b: ic-1; the lead, 2026-11-14): the icon above the word, one line, never under 88 px;
+   in a group every button takes the widest one's width ---- */
+.btn.stk { flex-direction:column; gap:2px; min-width:88px; min-height:56px; padding:var(--space-1) var(--space-2); border-width:2px; border-color:var(--ink); border-radius:4px; font-size:16px; line-height:1.2; white-space:nowrap; flex:none; box-sizing:border-box; text-align:center; }
+.btn.stk svg { flex:none; }
+/* a way's button: the same button with its time as a small line (mc-36a) */
+.btn.stk small { font-size:14px; font-weight:400; color:var(--muted); line-height:1.2; }
+.btn.stk.accent { border-color:var(--accent); }
+.btn.stk.on { background:var(--wash); border-color:var(--accent); font-weight:700; }
+.btn.stk.stk-wide { width:100%; min-height:64px; }
+.btn.stk.stk-wide + .btn.stk.stk-wide { margin-top:var(--space-2); }
+.stkgroup { display:inline-grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:var(--space-2); align-items:stretch; }
+
+/* ---- a card (a: the card's corner is 8 px) ---- */
+/* the older pages’ card and first waiting card take the same corner */
+.pcard, .wait { border-radius:8px; }
+.cardb { border:2px solid var(--ink); border-radius:8px; background:var(--sheet); padding:var(--space-3); margin:var(--space-2) 0; }
+.cardb p { margin:0 0 var(--space-1); }
+.cardb small { display:block; font-size:14px; color:var(--muted); }
+
+/* ---- a sheet's head (a: the pop-up: its ground, its 20 px corner, its title at 20 px in the heading face) ---- */
+.sheetup { background:var(--popup); border-radius:20px 20px 0 0; }
+.sheetup.card { border-radius:20px; }
+.sheetup .head .title, .sheet-title { font-family:"T Bitter", Georgia, serif; font-weight:700; font-size:20px; line-height:1.2; }
+
+/* ---- a pop-up (a: the app's dialog: a centred card, 440 px at most, its 20 px corner, its ground) ---- */
+.popb { max-width:440px; border-radius:20px; background:var(--popup); border:1px solid var(--rule); padding:var(--space-4); box-shadow:0 4px 16px rgb(0 0 0 / 25%); box-sizing:border-box; }
+.popb .hd { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-2); margin-bottom:var(--space-2); }
+.popb p { margin:0 0 var(--space-2); }
+
+/* ---- the toast (a: the app's: ink ground, page-coloured words, 8 px corners, the draining bar; a long message puts
+   its action on its own line at the right). One ruled change (ic-2): Undo carries the turned-back arrow beside its word ---- */
+.toastb { position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-2) var(--space-3); padding:var(--space-2) var(--space-2) var(--space-2) var(--space-4); overflow:hidden; border-radius:8px; background:var(--ink); color:var(--page); box-shadow:0 4px 16px rgb(0 0 0 / 25%); font-family:"T Bitter", Georgia, serif; line-height:1.5; }
+.toastb .tmsg { flex:1 1 auto; min-width:0; }
+/* the same Undo on a line of its own list (a stash's recent line) */
+.tu { display:inline-flex; align-items:center; gap:var(--space-1); min-height:44px; font-weight:700; text-decoration:underline; text-underline-offset:4px; white-space:nowrap; }
+.toastb .tu { margin-left:auto; display:inline-flex; align-items:center; gap:var(--space-1); min-height:44px; padding:0 var(--space-3); color:inherit; font-weight:700; text-decoration:underline; text-underline-offset:4px; }
+.toastb .tb { position:absolute; left:0; bottom:0; height:4px; width:72%; background:var(--page); opacity:.5; }
+.toastb .warnline { color:inherit; }
+
+/* ---- the tapped table in the book's style (c: the sweep pages' values, moved here so a page need not link their file;
+   not re-read from the app's book-tap rules) ---- */
+.tt { border:1px solid var(--rule); font-family:"T Bitter", Georgia, serif; }
+.tt .tbar { font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:16px; letter-spacing:.06em; text-transform:uppercase; text-align:center; background:var(--accent); color:var(--on-accent); padding:var(--space-1) var(--space-3); }
+.tt .th, .tt .tr { display:grid; grid-template-columns:4.6em minmax(0,1fr) 24px; gap:var(--space-2); align-items:center; padding:0 var(--space-3); }
+.tt .th { min-height:36px; border-bottom:2px solid var(--ink); font-weight:700; font-size:14px; }
+.tt .th span { display:inline-flex; align-items:center; gap:2px; }
+.tt .tr { min-height:44px; border-bottom:1px solid var(--rule); }
+.tt .tr:nth-of-type(even) { background:color-mix(in srgb, var(--ink) 7%, transparent); }
+.tt .tr.on { background:var(--wash); box-shadow:inset 0 0 0 2px var(--accent); font-weight:700; }
+.tt .tr .n { color:var(--muted); }
+.tt .tr small { display:block; font-size:14px; color:var(--muted); font-weight:400; }
+.tt .tr.shut { color:var(--muted); }
+.tt .tr { padding-top:var(--space-2); padding-bottom:var(--space-2); line-height:1.3; }
+
+/* ---- measured sizes (2026-11-14; the lead's ruling t44-1): every target 44 px, 8 px between separate controls ---- */
+/* a table row that is tapped: 44 px high with its padding */
+.bk tr[role="button"] td { height:36px; }
+/* the two-sided switch: each side 44 px high */
+.sw2 > span { min-height:44px; border-radius:23px; }
+.sw2 { border-radius:27px; }
+/* a link in the trail, and a name that opens its entry: a 44 px tap area, nothing visible changes */
+.crumb a.x { display:inline-block; padding:12px 0; margin:-12px 0; }
+.nmtap { min-width:44px; }
+/* a book table's stacked form for 375 px. A .bk opts in with .stacked: each row's first cell takes a line of its own,
+   the others share the line under it in the columns given by --stack-cols; no table stacks unless it asks.
+   Where a wrapped name’s tap area meets a toggle’s target, the toggle’s target wins the overlap (it is above in hit order) */
+.bk.stacked table, .bk.stacked tbody, .bk.stacked caption { display:block; }
+.bk.stacked tr { display:grid; grid-template-columns:var(--stack-cols, minmax(0,1fr) auto auto); }
+.bk.stacked th, .bk.stacked td { display:flex; align-items:center; height:auto; min-height:28px; }
+.bk.stacked tr > :first-child { grid-column:1 / -1; grid-row:1; border-bottom:0; }
+.bk.stacked td:first-child { padding-bottom:var(--space-4); }

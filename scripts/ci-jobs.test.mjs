@@ -378,19 +378,23 @@ describe('the workflow uses the plan', () => {
     expect(workflow).toMatch(/\n {2}layout:\n {4}needs: \[pick, changes, layout-shard\]\n {4}if: \$\{\{ !cancelled\(\) \}\}/);
   });
 
-  // The picture check runs in three shards (2026-11-05); the job named exactly "layout" stays the required check and
-  // passes only when the plan says skip or reuse, or all three shards passed.
-  it('runs layout in three shards and sums them up in the required layout job', () => {
+  // The picture check runs in six shards (three from 2026-11-05, six since ci-layout-shards-6, 2026-11-21); the job
+  // named exactly "layout" stays the required check and passes only when the plan says skip or reuse, or all six
+  // shards passed.
+  it('runs layout in six shards and sums them up in the required layout job', () => {
     expect(workflow).toMatch(/\n {2}layout-shard:\n {4}needs: \[pick, changes\]\n {4}if: needs\.changes\.outputs\.layout_plan == 'run'/);
-    expect(workflow).toContain('name: layout shard ${{ matrix.shard }}/3');
-    expect(workflow).toContain('shard: [1, 2, 3]');
-    expect(workflow).toContain('npm run test:layout -- --update-snapshots=missing --shard=${{ matrix.shard }}/3');
+    expect(workflow).toContain('name: layout shard ${{ matrix.shard }}/6');
+    expect(workflow).toContain('shard: [1, 2, 3, 4, 5, 6]');
+    expect(workflow).toContain('npm run test:layout -- --update-snapshots=missing --shard=${{ matrix.shard }}/6');
+    expect(workflow).toContain('All six layout shards passed.');
+    // The database shards stay at three.
+    expect(workflow).toContain('npm run test:db -- --shard=${{ matrix.shard }}/3');
     expect(workflow).toContain('SHARDS: ${{ needs.layout-shard.result }}');
     expect(workflow).toContain("A layout shard didn't pass");
   });
 
   // Francis, 2026-11-13 ("A", cq-1; widened by the lead, cq-1a): one heavy job runs on the PC at a time, across every
-  // run: check and the three layout shards share one queue that waits rather than cancels (queue: max; the default
+  // run: check and the six layout shards share one queue that waits rather than cancels (queue: max; the default
   // queue keeps one waiting job and cancels the rest). Database runs beside, outside the queue.
   // Francis, 2026-11-18: on GitHub's machines the queue is off; check and each shard run at once. The group follows
   // pick's heavy_target, so CI_RUNNER github leaves the queue; an auto run sent to GitHub (overflow) keeps its heavy
@@ -669,7 +673,7 @@ describe("the heavy queue follows pick's decision under each CI_RUNNER mode", ()
     for (const mode of [undefined, '', 'pc']) {
       const ctx = { ...run, ...heavyFor(mode) };
       expect(evaluate(check(), ctx), String(mode)).toBe('heavy-one-at-a-time');
-      for (const n of [1, 2, 3]) expect(evaluate(shard(), { ...ctx, shard: n }), String(mode)).toBe('heavy-one-at-a-time');
+      for (const n of [1, 2, 3, 4, 5, 6]) expect(evaluate(shard(), { ...ctx, shard: n }), String(mode)).toBe('heavy-one-at-a-time');
     }
   });
 
@@ -677,10 +681,13 @@ describe("the heavy queue follows pick's decision under each CI_RUNNER mode", ()
   it('gives check and each shard a group of its own when CI_RUNNER is github', () => {
     const ctx = { ...run, ...heavyFor('github') };
     expect(evaluate(check(), ctx)).toBe('light-555-1');
-    expect([1, 2, 3].map((n) => evaluate(shard(), { ...ctx, shard: n }))).toEqual([
+    expect([1, 2, 3, 4, 5, 6].map((n) => evaluate(shard(), { ...ctx, shard: n }))).toEqual([
       'light-555-1-shard-1',
       'light-555-1-shard-2',
       'light-555-1-shard-3',
+      'light-555-1-shard-4',
+      'light-555-1-shard-5',
+      'light-555-1-shard-6',
     ]);
   });
 
@@ -694,7 +701,7 @@ describe("the heavy queue follows pick's decision under each CI_RUNNER mode", ()
     const overflow = { ...run, ...heavyFor('auto', 2), attempt: '2' };
     expect(overflow).toMatchObject({ target: 'github', overflow: true, heavy: 'self' });
     expect(evaluate(check(), overflow)).toBe('heavy-one-at-a-time');
-    for (const n of [1, 2, 3]) expect(evaluate(shard(), { ...overflow, shard: n })).toBe('heavy-one-at-a-time');
+    for (const n of [1, 2, 3, 4, 5, 6]) expect(evaluate(shard(), { ...overflow, shard: n })).toBe('heavy-one-at-a-time');
   });
 
   // On the PC, a docs-only or reused check still runs at once in a group of its own (cq-1a).

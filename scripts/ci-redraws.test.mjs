@@ -12,6 +12,8 @@
 //   re-run never judges an older attempt's pictures.
 // - After the copy, git status must show exactly the accepted pictures modified: an untracked file, another modified
 //   file or no accepted picture at all stops the commit.
+// - With no --count the judge reads all six layout shards, so a missing sixth shard's report refuses the redraws
+//   (ci-layout-shards-6).
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -247,6 +249,34 @@ describe('which run attempt drew each report', () => {
     expect(run([...args, ...THIS_RUN]).verdict).toBe('accept');
     expect(readFileSync(path.join(baselines, 'phone-light-atoms.png'), 'utf8')).toBe('new');
   });
+
+  // Purpose: with no --count the judge reads all six layout shards (ci-layout-shards-6), so a run whose sixth shard
+  // kept no report is refused and nothing is copied; once the sixth is there, the same run is accepted.
+  it('reads six shards when --count is not given, and refuses when the sixth kept no report', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'redraws-'));
+    const baselines = path.join(dir, 'baselines');
+    mkdirSync(baselines);
+    writeFileSync(path.join(baselines, 'phone-light-atoms.png'), 'old');
+    const kept = path.join(dir, 'shards', '1', 'layout', 'gallery-phone-light-matches-retry1');
+    mkdirSync(kept, { recursive: true });
+    writeFileSync(path.join(kept, 'phone-light-atoms-actual.png'), 'new');
+    writeFileSync(path.join(dir, 'shards', '1', 'layout-report.json'), JSON.stringify(differs));
+    for (const n of [2, 3, 4, 5]) {
+      mkdirSync(path.join(dir, 'shards', String(n)), { recursive: true });
+      writeFileSync(path.join(dir, 'shards', String(n), 'layout-report.json'), JSON.stringify(passing));
+    }
+    const body = path.join(dir, 'body.txt');
+    writeFileSync(body, 'Gallery pictures expected to change: phone-light-atoms.png');
+    const args = ['--body', body, '--shards', path.join(dir, 'shards'), '--baselines', baselines, '--write', ...THIS_RUN];
+    const missing = run(args);
+    expect(missing.verdict).toBe('refuse');
+    expect(missing.problems).toEqual([expect.stringMatching(/^shard 6: no report/)]);
+    expect(readFileSync(path.join(baselines, 'phone-light-atoms.png'), 'utf8')).toBe('old');
+    mkdirSync(path.join(dir, 'shards', '6'), { recursive: true });
+    writeFileSync(path.join(dir, 'shards', '6', 'layout-report.json'), JSON.stringify(passing));
+    expect(run(args).verdict).toBe('accept');
+    expect(readFileSync(path.join(baselines, 'phone-light-atoms.png'), 'utf8')).toBe('new');
+  });
 });
 
 describe('the check before the redraw commit (--verify-status)', () => {
@@ -326,13 +356,13 @@ describe('the redrawn files', () => {
     mkdirSync(baselines);
     for (const name of ['phone-light-atoms.png', 'phone-light-colour.png']) writeFileSync(path.join(baselines, name), 'old');
     const shardReport = report(failedComparison(['phone-light-atoms.png']));
-    for (const n of [1, 2, 3]) {
+    for (const n of [1, 2, 3, 4, 5, 6]) {
       mkdirSync(path.join(dir, 'shards', String(n), 'layout', 'gallery-phone-light-matches-retry1'), { recursive: true });
       writeFileSync(path.join(dir, 'shards', String(n), 'layout-report.json'), JSON.stringify(n === 1 ? shardReport : passing));
     }
     writeFileSync(path.join(dir, 'shards', '1', 'layout', 'gallery-phone-light-matches-retry1', 'phone-light-atoms-actual.png'), 'new');
     const body = path.join(dir, 'body.txt');
-    const args = ['--body', body, '--shards', path.join(dir, 'shards'), '--count', '3', '--baselines', baselines, '--write', ...THIS_RUN];
+    const args = ['--body', body, '--shards', path.join(dir, 'shards'), '--count', '6', '--baselines', baselines, '--write', ...THIS_RUN];
 
     writeFileSync(body, 'Gallery pictures expected to change: none');
     expect(run(args).verdict).toBe('refuse');
@@ -384,6 +414,7 @@ describe('the redrawn files', () => {
 // - Its checkout keeps no token, its judge is the base's ci-redraws.mjs (the head's only while the base has none), and
 //   the judge is told this run's attempt and commit.
 // - The layout shards keep a JSON report with their screenshots, which is what the job reads.
+// - It fetches and judges exactly the shards the layout-shard matrix runs (six since ci-layout-shards-6), no fewer.
 // - Triage stays quiet when the redraw replaced the commit.
 describe('the redraw job in check.yml', () => {
   const workflow = readFileSync(fileURLToPath(new URL('../.github/workflows/check.yml', import.meta.url)), 'utf8').replace(/\r\n/g, '\n');
@@ -400,7 +431,7 @@ describe('the redraw job in check.yml', () => {
 
   it('commits only the announced pictures on the checked commit, and carries the checks only after the push', () => {
     expect(job).toContain('ref: ${{ github.event.pull_request.head.sha }}');
-    expect(job).toContain('--count 3 --baselines tests/layout/gallery-baselines --attempt "$GITHUB_RUN_ATTEMPT" --sha "$GITHUB_SHA" \\\n            --write');
+    expect(job).toContain('--count 6 --baselines tests/layout/gallery-baselines --attempt "$GITHUB_RUN_ATTEMPT" --sha "$GITHUB_SHA" \\\n            --write');
     expect(job).toContain("if: steps.judge.outputs.verdict == 'accept'");
     const verify = job.indexOf('--verify-status --pictures "$PICTURES" --baselines tests/layout/gallery-baselines');
     expect(verify).toBeGreaterThan(-1);
@@ -435,6 +466,19 @@ describe('the redraw job in check.yml', () => {
     expect(config).toContain("metadata: CI ? { runAttempt: process.env.GITHUB_RUN_ATTEMPT ?? '', sha: process.env.GITHUB_SHA ?? '' } : {},");
     expect(workflow).toContain('name: layout-screens-${{ matrix.shard }}\n          path: test-results/\n');
     expect(job).toContain('gh run download "$GITHUB_RUN_ID" --name "layout-screens-$n" --dir "$RUNNER_TEMP/shards/$n"');
+  });
+
+  // Purpose: the shards the redraw job fetches (its download loop) and judges (--count) are exactly the shards the
+  // layout-shard matrix runs and Playwright splits the tests into, so no shard's failure goes unjudged.
+  it('fetches and judges exactly the shards the layout-shard matrix runs', () => {
+    const shardJob = workflow.slice(workflow.indexOf('\n  layout-shard:\n'), workflow.indexOf('\n  layout:\n'));
+    const matrix = shardJob.match(/\n {8}shard: \[([\d, ]+)\]\n/)[1].split(',').map((n) => Number(n.trim()));
+    expect(matrix).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(shardJob).toContain(`--shard=\${{ matrix.shard }}/${matrix.length}`);
+    expect(shardJob).toContain(`name: layout shard \${{ matrix.shard }}/${matrix.length}\n`);
+    const fetched = job.match(/\n {10}for n in ([\d ]+); do\n {12}gh run download/)[1].split(' ').map(Number);
+    expect(fetched).toEqual(matrix);
+    expect(job).toContain(`--count ${matrix.length} --baselines`);
   });
 
   it('keeps triage quiet when the redraw replaced the commit', () => {

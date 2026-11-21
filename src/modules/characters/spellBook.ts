@@ -2,7 +2,8 @@
 // spell ids, written by First spells at creation. A list only: prepare, cast and Lost when hit stay in M7.
 // Who sets it: the GM always; the owner while the character isn't approved, or while "spells" is still on its To
 // finish list (Decide later on First spells, finished after approval). The database holds the same rule
-// (supabase/migrations/20261102200000_m5b_0c_creation_data.sql, guard_spell_book).
+// (supabase/migrations/20261102200000_m5b_0c_creation_data.sql, guard_spell_book; an Undo held to it too since
+// 20261120110000_fix_spellbook_undo_after_approval.sql).
 import { defineCommand, failed, fromWrite, isGm, type CommandResult } from '../../core/commands.ts';
 import type { Json } from '../../core/database.types.ts';
 import { gmRuling, isOwner, toCharacterRef, type CharacterRef } from './commands.ts';
