@@ -1,11 +1,11 @@
 // Tests for the real-names scan (scripts/check-names.mjs). The names here are invented.
-import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { findNames, hookVerdict, looksBinary, parseDenylist } from './check-names.mjs';
+import { addedLines, findInPullRequest, findNames, hookVerdict, looksBinary, parseDenylist } from './check-names.mjs';
 
 describe('the real-names scan', () => {
   it('reads one name per line and skips comments and blank lines', () => {
@@ -92,5 +92,168 @@ describe('the real-names scan as a Claude Code hook (--hook)', () => {
   it('exits 0 when the private list is missing', () => {
     const missing = join(tmpdir(), 'no-such-denylist-here.txt');
     expect(runHook(call(join(project, 'docs', 'a.md'), { content: 'Gloomwater Codex' }), missing).status).toBe(0);
+  });
+});
+
+describe("the real-names scan of a pull request (--pr), the GitHub check's scan", () => {
+  const names = ['Gloomwater Codex', 'GWC'];
+  const script = fileURLToPath(new URL('./check-names.mjs', import.meta.url));
+  const diff = [
+    'diff --git a/docs/a.md b/docs/a.md',
+    'index 1111111..2222222 100644',
+    '--- a/docs/a.md',
+    '+++ b/docs/a.md',
+    '@@ -3 +3,2 @@ a heading',
+    '-the Gloomwater Codex was named here before',
+    '+a clean line',
+    '+now the GWC pack is named',
+    '@@ -20,0 +22 @@',
+    '+++ a line that starts with two plus signs',
+    'diff --git a/old.md b/old.md',
+    'deleted file mode 100644',
+    '--- a/old.md',
+    '+++ /dev/null',
+    '@@ -1 +0,0 @@',
+    '-Gloomwater Codex',
+    'diff --git a/pic.png b/pic.png',
+    'Binary files a/pic.png and b/pic.png differ',
+  ].join('\n');
+
+  it('reads only the lines a diff adds, each with its file and its line number in the new file', () => {
+    expect(addedLines(diff)).toEqual([
+      { file: 'docs/a.md', line: 3, text: 'a clean line' },
+      { file: 'docs/a.md', line: 4, text: 'now the GWC pack is named' },
+      { file: 'docs/a.md', line: 22, text: '++ a line that starts with two plus signs' },
+    ]);
+  });
+
+  it('finds a name in an added line, and not in a line the pull request removes or in a deleted file', () => {
+    expect(findInPullRequest({ diffText: diff }, names)).toEqual([{ where: 'docs/a.md, line 4', name: 'GWC' }]);
+  });
+
+  it("finds a name in a new file's name, the title, the text, the branch's name and the commit messages", () => {
+    const found = findInPullRequest(
+      {
+        newFiles: ['docs/gwc/notes.md', 'docs/fine.md'],
+        texts: [
+          { label: "the pull request's title", text: 'B6: the GWC table' },
+          { label: "the pull request's text", text: 'What is built\n\nThe Gloomwater Codex table.' },
+          { label: "the branch's name", text: 'b6-table' },
+          { label: 'the commit messages', text: 'B6: a table\n\nfrom the gloomwater codex\n' },
+        ],
+      },
+      names,
+    );
+    expect(found.map((hit) => hit.where)).toEqual([
+      'docs/gwc/notes.md (its name)',
+      "the pull request's title",
+      "the pull request's text, line 3",
+      'the commit messages, line 3',
+    ]);
+  });
+
+  /** A throwaway repository: a base commit, then a pull request's commit that adds the given files. */
+  function repoWith(files, message = 'B6: a clean message') {
+    const dir = mkdtempSync(join(tmpdir(), 'names-pr-'));
+    const run = (...args) => execFileSync('git', ['-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd: dir, encoding: 'utf8' });
+    run('init', '-q', '-b', 'main');
+    mkdirSync(join(dir, 'docs'));
+    writeFileSync(join(dir, 'docs', 'old.md'), 'The Gloomwater Codex was here before the pull request.\n');
+    run('add', '.');
+    run('commit', '-q', '-m', 'base');
+    run('checkout', '-q', '-b', 'b6-table');
+    for (const [name, text] of Object.entries(files)) writeFileSync(join(dir, name), text);
+    run('add', '.');
+    run('commit', '-q', '-m', message);
+    return dir;
+  }
+  const scan = (dir, env = {}, args = []) =>
+    spawnSync(process.execPath, [script, '--pr', 'main', 'HEAD', ...args], {
+      cwd: dir,
+      encoding: 'utf8',
+      env: { ...process.env, GRIMOIRE_DENYLIST: join(dir, 'no-list.txt'), GRIMOIRE_NAMES: '', GRIMOIRE_NAMES_REQUIRED: '', PR_TITLE: '', PR_BODY: '', PR_BRANCH: '', ...env },
+    });
+  const list = '# invented\nGloomwater Codex\nGWC\n';
+
+  it('fails on a name the pull request adds, saying the file and line but never the name', () => {
+    const dir = repoWith({ 'docs/new.md': 'one\ntwo\nthe Gloomwater Codex\n' });
+    try {
+      const result = scan(dir, { GRIMOIRE_NAMES: list });
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain('A private name was found in docs/new.md, line 3.');
+      expect((result.stdout + result.stderr).toLowerCase()).not.toContain('gloomwater');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('passes a clean pull request even though an older file on the base branch holds a name', () => {
+    const dir = repoWith({ 'docs/new.md': 'the Bog lurker\n' });
+    try {
+      const result = scan(dir, { GRIMOIRE_NAMES: list });
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain('No private name in what this pull request adds (1 added lines, 1 new files');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("fails on a name in a commit message or in the pull request's title", () => {
+    const dir = repoWith({ 'docs/new.md': 'clean\n' }, 'B6: from the GWC');
+    try {
+      expect(scan(dir, { GRIMOIRE_NAMES: list }).stderr).toContain('A private name was found in the commit messages, line 1.');
+      const messages = join(dir, 'messages.txt');
+      writeFileSync(messages, 'B6: a clean message\n');
+      const titled = scan(dir, { GRIMOIRE_NAMES: list, PR_TITLE: 'B6: the Gloomwater Codex table' }, ['--messages', messages]);
+      expect(titled.status).toBe(1);
+      expect(titled.stderr).toContain("A private name was found in the pull request's title.");
+      expect(titled.stderr).not.toContain('the commit messages');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('shows the name only when asked with --show, for a run on your own machine', () => {
+    const dir = repoWith({ 'docs/new.md': 'the GWC pack\n' });
+    try {
+      expect(scan(dir, { GRIMOIRE_NAMES: list }, ['--show']).stderr).toContain('docs/new.md, line 1: "GWC"');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('passes with a note when there is no list (a fork, Dependabot), and fails when the list is required', () => {
+    const dir = repoWith({ 'docs/new.md': 'the Gloomwater Codex\n' });
+    try {
+      const unscanned = scan(dir);
+      expect(unscanned.status).toBe(0);
+      expect(unscanned.stdout).toContain('Not scanned for private names');
+      const required = scan(dir, { GRIMOIRE_NAMES_REQUIRED: 'true' });
+      expect(required.status).toBe(1);
+      expect(required.stderr).toContain('PRIVATE_NAMES is missing or empty');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("the GitHub check scans every pull request before anything else, and our own pull requests must have the list", () => {
+    const workflow = readFileSync(fileURLToPath(new URL('../.github/workflows/check.yml', import.meta.url)), 'utf8').replace(/\r\n/g, '\n');
+    const changes = workflow.slice(workflow.indexOf('\n  changes:\n'), workflow.indexOf('\n  check:\n'));
+    const step = changes.slice(changes.indexOf('- name: Private-names scan'), changes.indexOf('- id: what'));
+    // In the changes job, before the step that decides what runs: a hit fails check, database and layout with it.
+    expect(step.length).toBeGreaterThan(0);
+    expect(step).toContain("if: github.event_name == 'pull_request'");
+    // The list is the secret; it is required unless the pull request comes from a fork or from Dependabot.
+    expect(step).toContain('GRIMOIRE_NAMES: ${{ secrets.PRIVATE_NAMES }}');
+    expect(step).toContain(
+      "GRIMOIRE_NAMES_REQUIRED: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}",
+    );
+    // The pull request's own words reach the script through the environment, never pasted into the command.
+    expect(step).toContain('PR_TITLE: ${{ github.event.pull_request.title }}');
+    expect(step).toContain('PR_BODY: ${{ github.event.pull_request.body }}');
+    expect(step).toContain('PR_BRANCH: ${{ github.event.pull_request.head.ref }}');
+    expect(step.slice(step.indexOf('run: |'))).not.toContain('${{');
+    expect(step).toContain('node scripts/check-names.mjs --pr HEAD^1 HEAD --messages "$RUNNER_TEMP/pr-commit-messages.txt"');
+    expect(changes).toMatch(/\n {6}pull-requests: read\n/);
   });
 });

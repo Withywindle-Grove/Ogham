@@ -106,11 +106,13 @@ jobs:
   changes:
     needs: pick
     runs-on: ${{ fromJSON(needs.pick.outputs.runs_on) }}
-    # Reading the commit's earlier check results needs checks: read; finding main's last green run needs actions: read.
+    # Reading the commit's earlier check results needs checks: read; finding main's last green run needs actions: read;
+    # listing a pull request's commit messages (the private-names scan) needs pull-requests: read.
     permissions:
       contents: read
       checks: read
       actions: read
+      pull-requests: read
     outputs:
       kind: ${{ steps.what.outputs.kind }}
       screens: ${{ steps.what.outputs.screens }}
@@ -124,6 +126,26 @@ jobs:
           # The merge commit and its first parent (main before it), to list what a pull request's merge changes. A push
           # to main fetches its base (main's last green run) itself, below.
           fetch-depth: 2
+      # The private-names scan (Francis, 2026-11-21; docs/testing.md, The private-names scan). The repository is
+      # public and a cloud session has no private list for its commit hook, so every pull request is scanned here for
+      # what it adds: added lines, new files' names, its commit messages, title, text and branch name. The list is
+      # the repository secret PRIVATE_NAMES. The log is public, so the scan says the file and line, never the name.
+      # A hit fails this job, and with it check, database and layout. Our own pull requests must have the list (a
+      # missing secret fails); a fork's or Dependabot's gets no secrets and passes unscanned, with a note.
+      - name: Private-names scan
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GRIMOIRE_NAMES: ${{ secrets.PRIVATE_NAMES }}
+          GRIMOIRE_NAMES_REQUIRED: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/commits?per_page=100" --jq '.[].commit.message' > "$RUNNER_TEMP/pr-commit-messages.txt"
+          node scripts/check-names.mjs --pr HEAD^1 HEAD --messages "$RUNNER_TEMP/pr-commit-messages.txt"
       - id: what
         env:
           GH_TOKEN: ${{ github.token }}
