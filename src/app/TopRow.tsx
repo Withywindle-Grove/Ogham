@@ -99,7 +99,7 @@ export function TopRow({
     const own = children ? <MenuItems>{children}</MenuItems> : null;
     return (
       <div ref={row} className="top-row top-row--standard">
-        <div className="top-row__lead">
+        <div className={`top-row__lead${named && !withDrawer && !campaign ? ' top-row__lead--named' : ''}`}>
           {withDrawer ? (
             <DrawerStart title={title ?? drawer} drawerTitle={drawer} onYourCampaigns={onBack} bare />
           ) : campaign ? (

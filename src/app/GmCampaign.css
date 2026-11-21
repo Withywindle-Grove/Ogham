@@ -175,8 +175,14 @@
     flex-wrap: wrap;
   }
 
-  /* At 375 px the doors wrap under the name, from the left (M3b). */
+  /* At 375 px a long name and its player's line wrap beside the portrait, never under it (M3b). */
+  .gm__character-row .gm__row-main {
+    flex: 1 1 0;
+  }
+
+  /* At 375 px the doors wrap under the name, from the left, on a line of their own (M3b). */
   .gm__character-row .gm__character-actions {
+    flex-basis: 100%;
     justify-content: flex-start;
   }
 }

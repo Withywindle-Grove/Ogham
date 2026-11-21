@@ -3,7 +3,8 @@
 //   1. A caster's row (Wren, ?magic=1) reads View sheet, Pack, Magic, Scene, ⋯, in that order; every button is at least
 //      44 px high, with at least 8 px between buttons side by side.
 //   2. With a long character's name and a long player's name (?view=long), at 375 px, ⋯ never sits alone on a line: it
-//      shares its line with the last door, Scene.
+//      shares its line with the last door, Scene; and the name and the player's line wrap beside the portrait, never
+//      under it (M3b).
 //   3. ⋯ opens Edit, Give to a player… and Remove…; Remove… opens its panel under the long-named row; Give to a
 //      player… opens its sheet, which keeps its own form.
 //   4. The page has no sideways scrolling, no text under 14 px, no small targets and no serious accessibility problem,
@@ -54,6 +55,10 @@ for (const size of [
         // ⋯ never alone on its line: the last door, Scene, sits on the same line (pg32-1).
         const [scene, more] = all.slice(-2);
         expect(Math.abs(scene!.y - more!.y)).toBeLessThan(2);
+        // The name block beside the portrait, never under it (M3b): its left edge is right of the portrait's.
+        const portrait = (await row.locator('.portrait').first().boundingBox())!;
+        const main = (await row.locator('.gm__row-main').boundingBox())!;
+        expect(main.x).toBeGreaterThanOrEqual(portrait.x + portrait.width);
       }
 
       await page.screenshot({ path: `test-results/layout-screens/gm-view-row-${size.width}-${scheme}.png`, fullPage: true });

@@ -5,7 +5,8 @@
 //      "What you do here is logged as yours.", each on one line; on the Pack and Magic tabs the same band and way back.
 //      No sideways scrolling, no text under 14 px, no small targets, no serious accessibility problem.
 //   2. With a long player's name and a long character's name (?view=long), the band is two lines at most on a phone and
-//      on a tablet: the name line is cut with "…" on screen, its name is whole, and the logged line stays whole.
+//      on a tablet: the name line is cut with "…" on screen, its name is whole, and the logged line stays whole. The
+//      top row's "‹ Players" stays whole, never cut: the title alone takes the cut (M3d).
 //   3. The GM's own character (Ash, ?give=1): the band is one line, "Your view of Ash".
 //   4. The Scene tab: the same band and way back (what the Scene shows is row C15f's).
 import { expect, test, type Locator, type Page } from '@playwright/test';
@@ -75,6 +76,10 @@ for (const size of [
       expect(await name.evaluate((el) => el.scrollWidth > el.clientWidth && getComputedStyle(el).textOverflow === 'ellipsis')).toBe(true);
       // The logged line whole.
       expect(await band(page).locator('.view-band__logged').evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+      // "‹ Players" whole, not cut: the long title alone ends in "…" (M3d).
+      const back = page.getByRole('button', { name: '‹ Players' });
+      expect(await back.textContent()).toBe('‹ Players');
+      expect(await back.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
       await page.screenshot({ path: `test-results/layout-screens/gm-view-long-${size.width}-${scheme}.png`, fullPage: true });
       expect(await layoutProblems(page)).toEqual([]);
       expect(await accessibilityProblems(page)).toEqual([]);
