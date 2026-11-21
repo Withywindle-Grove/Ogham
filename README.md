@@ -9,3 +9,4 @@ A calm, rules-agnostic party and character tracker for tabletop RPG groups. Tabl
 ## Licence
 
 All rights reserved. The code is public to read; no licence is granted to use, copy, modify or distribute it. See `LICENSE`.
+
