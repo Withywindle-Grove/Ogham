@@ -3,7 +3,7 @@
 // A tap on the burden opens its levels in a pop-up, "Burden" (tfb-4, frame M2h of december/26, approved 2026-11-19):
 // every host passes `levelsPopUp`: the Player tab, the Pack, the full sheet, and (d5-19, 2026-11-20) the GM's character
 // overview and creation's Gear step. Without it the levels open in place, as the gallery's Pack page still draws them.
-import { Fragment, useRef, useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import type { TreasureSwitch } from '../modules/inventory/treasureSwitch.ts';
 import { raisedTiers, speedOf, type BandId, type BandLoad, type CarriedLoad, type CarryBonus, type EncumbranceRules, type Tier } from '../modules/inventory/encumbrance.ts';
 import { tierWords } from './packHelpers.ts';
@@ -275,8 +275,6 @@ interface BurdenTable {
   head: string[];
   rows: string[][];
   marked: number;
-  /** Each level's effect in the pack's words, a labelled line under the table (a column would not fit 375 px). */
-  effects?: { label: string; words: string }[];
 }
 
 /**
@@ -286,18 +284,12 @@ interface BurdenTable {
 const bonusWords = (bonuses: CarryBonus[] | undefined, unit: 'coin' | 'slot', to: 'each limit' | 'the limit' = 'each limit') =>
   (bonuses ?? []).map((b) => ` ${b.name}: +${num(b.amount)} ${unit}${b.amount === 1 ? '' : 's'} to ${to}, while worn or in hand.`).join('');
 
-/** A sentence's end: a full stop unless it has one. */
-const stop = (words: string) => (/[.!?]$/.test(words) ? words : `${words}.`);
-
-/** Words compared as said: no spaces at the ends or doubled, no closing full stop, any case ("120 ft." is "120 ft"). */
-const said = (words: string) => words.trim().replace(/\s+/g, ' ').replace(/[.!?]$/, '').toLowerCase();
-
 /**
  * A list of levels as a table, as frame M2h draws it: the level's name when the pack gives names, its limit ("400
  * coins", or "11 to 13" for slots filled), and its speed when any level has one. Over the most, a last row says so,
- * with the pack's words for it as its speed. The character's own row is the one in bold. Each level's effect follows
- * the table as a labelled line ("Laden Slowed."): a fourth column cut its words at 375 px. An effect that only says
- * the level's speed, already in its row, is not said again (fb-3, Francis, 2026-11-20: each level once).
+ * with the pack's words for it as its speed. The character's own row is the one in bold. Nothing follows the table:
+ * the lines that listed each level's effect under it ("Laden Slowed.") are gone (fb-3, plan row Q1; Francis approved
+ * the built screen with that fix, 2026-11-21: each level once, in the table).
  */
 function levelsTable(
   title: string,
@@ -310,12 +302,8 @@ function levelsTable(
   const speeds = tiers.some((t) => t.movement);
   const head = [...(named ? ['Level'] : []), limit.head, ...(speeds ? ['Speed'] : [])];
   const rows = tiers.map((t, i) => [...(named ? [t.label] : []), limit.of(t, i), ...(speeds ? [t.movement ?? ''] : [])]);
-  const repeatsSpeed = (t: Tier) => speeds && t.movement !== undefined && said(t.effect) === said(t.movement);
-  const effects = tiers.flatMap((t, i) => (t.effect.trim() && !repeatsSpeed(t) ? [{ label: t.label || limit.of(t, i), words: stop(t.effect.trim()) }] : []));
   if (over.is) rows.push([...(named ? ['Over the limit'] : []), 'More', ...(speeds ? [over.words] : [])]);
-  // Over the most with no speed column: the pack's words for it go with the effects.
-  if (over.is && !speeds && over.words) effects.push({ label: 'Over the limit', words: stop(over.words) });
-  return { title, head, rows, marked: over.is ? rows.length - 1 : (mine ?? -1), ...(effects.length > 0 ? { effects } : {}) };
+  return { title, head, rows, marked: over.is ? rows.length - 1 : (mine ?? -1) };
 }
 
 /** The level a load sits in, found in the raised list (`raisedTiers`, the same calculation as the load's own tier). */
@@ -416,7 +404,7 @@ export function burdenParts(load: Exclude<CarriedLoad, { mode: 'none' }>, rules:
  * The burden's levels, as a pop-up (tfb-4, 2026-11-19; frame M2h of december/26, approved 2026-11-19): titled "Burden",
  * a figure explained (band 2, the shared `BreakdownSheet`). Where the character stands; the levels as a book table
  * with the character's own row in bold (the first line says it too, so bold is never the only sign); what sets the
- * limit when something raises it; the source; each level said once (fb-3). Three kinds of load: by coins' weight, by
+ * limit when something raises it; the source; each level said once, in the table, with no lines under it (fb-3). Three kinds of load: by coins' weight, by
  * slots (with bands, only the band that sets the speed, of-6), and
  * armour's movement table with the line on treasure. The GM's "Switch on / Switch off" stays on the bar.
  */
@@ -448,14 +436,7 @@ export function BurdenSheet({
           </p>
         ))}
         {tables.map((t, n) => (
-          <Fragment key={`${n}:${t.title}`}>
-            <BookTable title={t.title} head={t.head} rows={t.rows} marked={t.marked} markedSpoken=", yours" wordsColumn={0} titleStart />
-            {t.effects?.map((e, i) => (
-              <BookLine key={`${i}:${e.label}`} label={e.label}>
-                {e.words}
-              </BookLine>
-            ))}
-          </Fragment>
+          <BookTable key={`${n}:${t.title}`} title={t.title} head={t.head} rows={t.rows} marked={t.marked} markedSpoken=", yours" wordsColumn={0} titleStart />
         ))}
         {lines.map((l, i) => (
           <BookLine key={`${i}:${l.label}`} label={l.label}>

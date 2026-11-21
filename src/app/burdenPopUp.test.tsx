@@ -7,9 +7,10 @@
 //   3. Slot bands: only the band that sets the speed has a table (of-6, 2026-11-20, as frame M2h draws it), with its
 //      slots filled and speeds, and it is named; the other band's count stays in the first line. Over the most, the
 //      table is the band that is over; two bands at the same speed, the one whose levels give it (as the load's tier).
-//   3a. Each level is said once (fb-3, Francis, 2026-11-20: "Duplicate information no need for the bottom listings"):
-//       a level's effect that only repeats its speed in the table is not said again under it, and the limit is not
-//       said again unless something worn or held raises it; an effect in other words still follows the table.
+//   3a. Each level is said once, in the table (fb-3, Francis, 2026-11-20: "Duplicate information no need for the
+//       bottom listings"; plan row Q1; approved from the built screen with this fix, 2026-11-21): no line under the
+//       table lists a level's effect, whatever its words, and the limit is not said again unless something worn or held
+//       raises it. The lead, the table and the source stay.
 //   4. Armour: the movement table with the armour worn in bold, and the line on treasure; the GM's switch stays on the
 //      bar, not in the pop-up.
 //   5. What raises the limit is named in the pop-up ("to each limit"), and the source line is at its foot.
@@ -214,9 +215,9 @@ describe('the burden’s levels as a pop-up (tfb-4)', () => {
     expect(lines).toContainEqual({ label: 'Your speed', words: 'The slower of the two counts.' });
   });
 
-  // Purpose 3a: a level whose effect is its speed is said once, in the table; the limit, in the first line and the
-  // table's last row, is not said again. The opening line and the table stay.
-  it('says each level once: no effect line repeating a speed, no limit line repeating the table', async () => {
+  // Purpose 3a: each level is said once, in the table; no effect line under it, and the limit, in the first line and
+  // the table's last row, is not said again. The opening line and the table stay.
+  it('says each level once: no effect line under the table, no limit line repeating it', async () => {
     const user = userEvent.setup();
     const twice = combineEncumbrance([
       {
@@ -243,12 +244,17 @@ describe('the burden’s levels as a pop-up (tfb-4)', () => {
     expect(within(dialog).getByText('From your setting: River Rules, p. 41')).toBeTruthy();
   });
 
-  // Purpose 3a, the same in slots: a band's limit is not said again either (only a bag or a worn thing names it).
-  it('says no limit line for slots when nothing raises it', () => {
+  // Purpose 3a, the same in slots: an effect in other words than the speed is not listed under the table either, and
+  // a band's limit is not said again (only a bag or a worn thing names it).
+  it('says no effect line and no limit line for slots when nothing raises it', async () => {
+    const user = userEvent.setup();
     const slotRules = combineEncumbrance([{ mode: 'slot', slot: { baseSlots: 10, tiers: [{ label: 'Nimble', maxSlots: 10, effect: 'Normal pace' }], overMax: '' } }]);
-    const { lines, tables } = burdenParts(carriedLoad(slots(0, 3), slotRules, 'slot') as Extract<CarriedLoad, { mode: 'coin' | 'slot' }>, slotRules);
-    expect(lines).toEqual([]);
-    expect(tables[0]!.effects).toEqual([{ label: 'Nimble', words: 'Normal pace.' }]);
+    render(<LoadSummary load={carriedLoad(slots(0, 3), slotRules, 'slot')} rules={slotRules} from={['River Rules, p. 41']} levelsPopUp />);
+    await user.click(screen.getByRole('button', { name: 'Nimble' }));
+    const dialog = screen.getByRole('dialog', { name: 'Burden' });
+    expect(tableOf(dialog, 'Burden by slots').cells.map((row) => row[0])).toEqual(['Nimble']);
+    expect(dialog.querySelectorAll('.book-line')).toHaveLength(0);
+    expect(dialog.textContent).not.toContain('Normal pace');
   });
 
   // Purpose 4.
@@ -274,20 +280,17 @@ describe('the burden’s levels as a pop-up (tfb-4)', () => {
     expect(lead).toEqual(['Carrying treasure: 60 paces.']);
   });
 
-  // Purpose 1, a level's effect: it follows the table as a labelled line (a fourth column cut its words at 375 px);
-  // over the most with no speed column, the pack's words for it go with them.
-  it('says each level’s effect as a labelled line under the table', () => {
+  // Purpose 3a, over the most with no speed column: no level's effect is listed under the table, and the pack's words
+  // for being over are the first line's, said once.
+  it('lists no level’s effect under the table, over the most with no speed column', () => {
     const rules = combineEncumbrance([{ mode: 'coin', coin: { maxLoadCoin: 900, tiers: [{ label: 'Light', max: 400, effect: 'Normal pace' }, { label: 'Bowed', max: 900, effect: 'Crawling.' }], overMax: 'Stuck in the mud' } }]);
     const over: Extract<CarriedLoad, { mode: 'coin' | 'slot' }> = { mode: 'coin', load: 999, capacity: 900, tier: null, over: true, overMax: 'Stuck in the mud' };
     const { tables, lead } = burdenParts(over, rules);
     expect(lead).toEqual(['Stuck in the mud: 999 of 900 coins’ weight.']);
     expect(tables[0]!.head).toEqual(['Level', 'Up to']);
     expect(tables[0]!.rows.at(-1)).toEqual(['Over the limit', 'More']);
-    expect(tables[0]!.effects).toEqual([
-      { label: 'Light', words: 'Normal pace.' },
-      { label: 'Bowed', words: 'Crawling.' },
-      { label: 'Over the limit', words: 'Stuck in the mud.' },
-    ]);
+    expect(tables[0]).not.toHaveProperty('effects');
+    expect(JSON.stringify(tables)).not.toMatch(/Normal pace|Crawling|Stuck in the mud/);
   });
 
   // Purpose 5.
