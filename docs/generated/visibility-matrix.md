@@ -71,6 +71,8 @@ Each cell lists the rules that let a signed-in person do that to a row (the rule
 | `status_secrets` | the GM reads | the GM keeps them | the GM keeps them, again | — |
 | `table_pins` | the GM reads | the GM pins | the GM unpins | — |
 | `table_reads` | the GM reads | the GM records one | the GM undoes one | — |
+| `town_piece_resets` | the GM reads | — | — | — |
+| `town_piece_shows` | the GM reads | the GM keeps them | the GM keeps them, again | — |
 | `travel_group_secrets` | the GM reads | — | the GM keeps them | — |
 | `travel_groups` | the GM, and players for their own group | the GM starts the day | the GM moves the group | — |
 | `undoable_deletions` | everyone signed in reads | — | — | — |

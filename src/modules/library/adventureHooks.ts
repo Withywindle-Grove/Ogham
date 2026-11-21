@@ -76,7 +76,8 @@ export interface HookGiver {
   place: string;
 }
 
-/** A hook as kept in the library: as read, with its giver's words (npcs are not kept as entries of their own). */
+/** A hook as kept in the library: as read, with its giver's words, read from the file at import (so a hook shows its giver without
+ * reading the pack's `npc` entries, which came later: dec-3). */
 export interface StoredHook extends AdventureHook {
   giver: HookGiver | null;
   /** Its place in the pack's list (0 first); hooks stored before it was kept read as last. */

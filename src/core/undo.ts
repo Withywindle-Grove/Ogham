@@ -93,6 +93,8 @@ export const UNDOABLE_MAKINGS: readonly string[] = [
   'hook.send',
   // A rumour (dec-12 piece E): a row's words given to a character or the party (Undo marks the give undone).
   'rumour.give',
+  // A piece of a place in town shown (W4c, ge-1): its first show on a visit makes the store's row (Undo marks it undone).
+  'town.showPiece',
   // A shop's stock (W12): a first answer for a thing that day makes its row (Undo marks it undone; it reads as its default).
   'stock.set',
 ];

@@ -54,6 +54,14 @@ export const PACK_PARTS = {
   // files stay with the GM). Read by packMaps.ts, not the loop below, so the checker and the importer read them alike;
   // a handout, art or a crop is left out, said once.
   images: 'map',
+  // An adventure's people (dec-3, town row W8; the lead's go of 2026-11-15): one entry each, the GM's (not player-
+  // facing, so the database never sends one to a player), the person as the pack wrote it (role, place, the GM's leads
+  // and lines). Data only for now: no screen shows them.
+  npcs: 'npc',
+  // An adventure's shops (07 Adventure packs §6; dec-3, town row W9; the lead's ruling sh-1, 2026-11-15): one entry each,
+  // the GM's (not player-facing), the shop as the pack wrote it (name, locationId, services, stock). Data only for now:
+  // no screen shows them.
+  shops: 'shop',
 } as const;
 
 export type PackPart = keyof typeof PACK_PARTS;

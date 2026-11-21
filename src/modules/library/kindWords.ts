@@ -28,4 +28,6 @@ export const KIND_WORDS: Record<EntryKind, [string, string]> = {
   // A screen's word, never the format's (pf-7a): "Call to adventure".
   adventureHook: ['call to adventure', 'calls to adventure'],
   map: ['map', 'maps'],
+  npc: ['person', 'people'],
+  shop: ['shop', 'shops'],
 };

@@ -20,4 +20,28 @@ describe('the Rules browser and routes', () => {
     expect(screen.queryByText(/Routes/)).toBeNull();
     expect(screen.queryByText(/mt-jetty-islet/)).toBeNull();
   });
+
+  // Purpose: a pack's people (dec-3) are the town's, never a rules entry: the GM sees no People group and no name.
+  it('shows the GM no People group', () => {
+    const entries: BrowsedEntry[] = [
+      { kind: 'class', packEntryId: 'lantern-warden', name: 'Lantern Warden', data: { id: 'lantern-warden' }, packId: 'pack-mire' },
+      { kind: 'npc', packEntryId: 'mt-npc-hobb', name: 'Hobb of the weir', data: { id: 'mt-npc-hobb', role: 'eel-catcher' }, packId: 'pack-mire' },
+    ];
+    render(<RulesBrowser entries={entries} gm />);
+    expect(screen.getByText(/Classes: 1/)).toBeTruthy();
+    expect(screen.queryByText(/People/)).toBeNull();
+    expect(screen.queryByText(/Hobb of the weir/)).toBeNull();
+  });
+
+  // Purpose: a pack's shops (dec-3, W9) are a place's, never a rules entry: the GM sees no Shops group and no name.
+  it('shows the GM no Shops group', () => {
+    const entries: BrowsedEntry[] = [
+      { kind: 'class', packEntryId: 'lantern-warden', name: 'Lantern Warden', data: { id: 'lantern-warden' }, packId: 'pack-mire' },
+      { kind: 'shop', packEntryId: 'mt-shop-stall', name: 'Lantern Warden’s stall', data: { id: 'mt-shop-stall', stock: [] }, packId: 'pack-mire' },
+    ];
+    render(<RulesBrowser entries={entries} gm />);
+    expect(screen.getByText(/Classes: 1/)).toBeTruthy();
+    expect(screen.queryByText(/Shops/)).toBeNull();
+    expect(screen.queryByText(/stall/)).toBeNull();
+  });
 });
