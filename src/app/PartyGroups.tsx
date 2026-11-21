@@ -53,6 +53,8 @@ import { loadPlayersRules, type PlayersRule } from '../modules/expedition/placeR
 import { useLastGoodRules } from './PlaceRules.tsx';
 import { NothingSharedYet, PlayersActivities, PlayersSceneCard, PlayersSceneLoading, PlayersScenePage, showsPlayersPage, SomewhereNew } from './PlayersScenePage.tsx';
 import { activitiesWithRules } from '../modules/expedition/playerActions.ts';
+import { PlayersWhereTo, usePlayersWaysOn, WhereToNoneYet } from './PlayersWhereTo.tsx';
+import { stepNowOf } from '../modules/expedition/playersWays.ts';
 import './PartyGroups.css';
 
 interface Loaded {
@@ -172,6 +174,8 @@ export function PartyGroups({
   const phone = usePhone();
   // A failed read of the players' place rules keeps the last good list (review of #726).
   const placeRules = useLastGoodRules(loaded && loaded !== 'error' ? loaded.placeRules : null);
+  // A player's ways on (P2), read beside the page so "Where to?" comes with it; a failed read keeps the last list.
+  const ways = usePlayersWaysOn(db, campaign.id, !isGm(user, campaign.id));
 
   useEffect(() => {
     let current = true;
@@ -511,9 +515,12 @@ export function PartyGroups({
               {placeLineShows(scene.get(n)) ? (
                 <PlayersSceneCard group={cardGroup(n)}>
                   <PlaceLine place={scene.get(n) ?? null} db={db} campaignId={campaign.id} rules={placeRules.filter((r) => r.group === n)} />
+                  <PlayersWhereTo read={ways} group={n} step={stepNowOf(expedition ? modeById(exploration.modes, expedition.mode) : null, expedition, now, units)} />
                 </PlayersSceneCard>
               ) : (
-                <SomewhereNew group={cardGroup(n)} />
+                <SomewhereNew group={cardGroup(n)}>
+                  <WhereToNoneYet />
+                </SomewhereNew>
               )}
             </Fragment>
           ))}

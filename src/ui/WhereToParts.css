@@ -1,0 +1,51 @@
+/*
+ * A player's Where to?, the parts beside its rows (plan dec-9-the-players-scene, row P2; page 18, PL2 and PL9; d5-2).
+ * Tokens only.
+ */
+
+/* PL2: the quiet line in place of rows. */
+.where-to__line {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+}
+
+/* PL9: the read that failed, a row of its own in the destination row's frame: the sign, the words, Try again. */
+.refresh-failed {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-hair) solid var(--control);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+}
+
+.refresh-failed__sign {
+  display: inline-flex;
+  flex: none;
+  color: var(--warning);
+}
+
+.refresh-failed__words {
+  flex: 1 1 10em;
+  min-inline-size: 0;
+  margin: 0;
+  overflow-wrap: break-word;
+}
+
+.refresh-failed .stacked-button {
+  flex: none;
+}
+
+/* d5-2 (WY1d's row): the last row in the destination row's frame, so it reads as one of the list. */
+.where-to__end {
+  border: var(--line-hair) solid var(--control);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+}
+
+.where-to__end > .list-row {
+  border-block-end: none;
+}

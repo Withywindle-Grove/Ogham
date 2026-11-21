@@ -1343,11 +1343,42 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
   const modeId = outdoors ? 'fen-walk' : 'dungeon';
   const started = (await world.db.rpc('start_expedition' as never, { campaign, mode_id: modeId } as never)) as unknown as { data: { id: string } | null };
   if (placePageFlag === 'hand') await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: 'Fenwick Hole', placeId: null, packEntry: null });
+  // &ways=1|none|messy with spot (plan dec-9-the-players-scene P2; PL1, PL9, PL10): the jetty's ways on, and one of its
+  // pieces shown, so a player has them (mc-28b). `1`: the wreck (row, swim) and the breakwater (row), both visited and
+  // shown before; the customs shed by walking, never shown ("Not yet explored."); the sea cave by a hidden way (sent to
+  // nobody). `none`: no ways at all (d5-1: "Where to?" is left out). `messy`: the customs shed named at length and shown,
+  // climbing 999 turns and swimming 12.
+  const waysFlag = placePageFlag === 'spot' ? new URLSearchParams(window.location.search).get('ways') : null;
+  if (waysFlag) {
+    const route = (id: string, to: string, travel: unknown, hidden = false) =>
+      world.tables.library_entries.push({ id: `entry-reed-${id}`, pack_id: 'pack-reed', kind: 'route', pack_entry_id: id, name: id, data: { id, from: 'the-jetty', to, travel, hidden } });
+    if (waysFlag === '1' || waysFlag === 'messy') {
+      route('jetty-wreck', 'the-wreck', [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }, { by: 'swim', name: 'Swimming', value: 3, unit: 'turn' }]);
+      route('jetty-breakwater', 'the-breakwater', [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }]);
+      route('jetty-cave', 'sea-cave', [{ by: 'row', name: 'Rowing', value: 2, unit: 'turn' }], true);
+    }
+    if (waysFlag === '1') route('jetty-shed', 'customs-shed', [{ by: 'walk', name: 'Walking', value: 2, unit: 'turn' }]);
+    if (waysFlag === 'messy') route('jetty-shed', 'customs-shed', [{ by: 'climb', name: 'Climbing', value: 999, unit: 'turn' }, { by: 'swim', name: 'Swimming', value: 12, unit: 'turn' }]);
+    if (waysFlag === 'messy') {
+      const shed = world.tables.library_entries.find((e) => e.id === 'entry-reed-customs-shed');
+      const long = 'The water stair under the customs house, by the tarred door';
+      spots[3]!.name = long;
+      if (shed) Object.assign(shed, { name: long, data: { ...(shed.data as Record<string, unknown>), name: long } });
+    }
+    const visited = waysFlag === 'none' ? [] : [spots[1]!, spots[2]!, ...(waysFlag === 'messy' ? [spots[3]!] : [])];
+    for (const spot of visited) {
+      const data = { ...spot, playerView: { text: spot.identity } };
+      await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: data.id, name: data.name, data } });
+      const there = started.data ? (await loadGroupPlaces(world.db, campaign, started.data.id))?.get(1) : undefined;
+      if (there?.pieces[0]) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row: there, piece: there.pieces[0] });
+    }
+  }
   if (placePageFlag === 'spots' || placePageFlag === 'spot') {
     const data = placePageFlag === 'spots' ? harbour : spots[0]!;
     await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: data.id, name: data.name, data } });
     const row = started.data ? (await loadGroupPlaces(world.db, campaign, started.data.id))?.get(1) : undefined;
     if (placePageFlag === 'spots' && row) for (const piece of row.pieces.slice(0, 2)) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row, piece });
+    if (waysFlag && row?.pieces[0]) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row, piece: row.pieces[0] });
     // The map (the whole Scene's S13, page 11's frames 1a, 1b, 2c, 4a, 4b, 4d), only with &map=…: the pack names a map
     // for the harbour; `wanted` leaves it to be added ("+ Map"); `added` stores the campaign's copy, hidden, tied to the
     // place the party is at (the layout spec serves its file, the invented harbour drawing).

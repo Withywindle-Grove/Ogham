@@ -79,9 +79,9 @@ const named = (group: string | null, words: string) => (group ? `${group}: ${wor
 
 /**
  * PL2's left card, before anything of the place is shown: no name, said in one line. `group` names whose card it is,
- * where the page has one for each of a player's groups.
+ * where the page has one for each of a player's groups. `children` stand under the line (PL2's "Where to?", P2).
  */
-export function SomewhereNew({ group = null }: { group?: string | null }) {
+export function SomewhereNew({ group = null, children }: { group?: string | null; children?: ReactNode }) {
   const over = named(group, 'Where you are');
   return (
     <PlayersSceneCard label={over}>
@@ -90,6 +90,7 @@ export function SomewhereNew({ group = null }: { group?: string | null }) {
       </p>
       <h3 className="players-page__name">Somewhere new</h3>
       <p className="players-page__line">Your GM hasn’t described this place yet.</p>
+      {children}
     </PlayersSceneCard>
   );
 }

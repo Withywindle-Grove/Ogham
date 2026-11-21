@@ -34,6 +34,8 @@ import { keyedName } from '../modules/expedition/placeTree.ts';
 import { Dialog } from '../ui/Dialog.tsx';
 import { DestinationRow, MoveOnSheet, NotYetExplored, ProposalSheet, ProposalsWaiting, WhereTo, type GmDestination, type RowProposal, type WayMove } from '../ui/MoveOnParts.tsx';
 import { ListRow, RowList } from '../ui/parts.tsx';
+import { EndExpeditionRow, RefreshFailedRow, WhereToLine } from '../ui/WhereToParts.tsx';
+import { WHERE_TO_WORDS } from '../modules/expedition/playersWays.ts';
 
 type SpecimenPart = (props: { name: string; children: ReactNode }) => ReactElement;
 
@@ -186,6 +188,19 @@ export function MoveOnSpecimens({ Specimen }: { Specimen: SpecimenPart }) {
         <PlayersRows spots={[SPOTS[0]!]} proposal={{ spot: 'wreck', way: 'row', by: 'you' }} />
         <PlayersRows spots={[SPOTS[1]!]} proposal={{ spot: 'breakwater', way: 'row', by: 'Wren' }} />
         <PlayersRows spots={[LONG]} />
+      </Specimen>
+      {/* A player's Where to? on the Scene (plan dec-9-the-players-scene P2; page 18, PL2 and PL9; d5-2). */}
+      <Specimen name="Where to? (players, PL2): before anything of the place is shown, one quiet line and no ways">
+        <WhereTo empty={false}>
+          <WhereToLine>{WHERE_TO_WORDS.noneYet}</WhereToLine>
+        </WhereTo>
+      </Specimen>
+      <Specimen name="Where to? (players, PL9; d5-2): a refresh that failed above the list it kept, Try again; End expedition last at a way out">
+        <WhereTo empty={false}>
+          <RefreshFailedRow words={WHERE_TO_WORDS.stale('turn 13')} onRetry={nothing} />
+          <DestinationRow name="The wreck" ways={choices(SPOTS[0]!)} onWay={nothing} />
+          <EndExpeditionRow onOpen={nothing} />
+        </WhereTo>
       </Specimen>
       {/* Page 12, W1 to W3 (5b): proposals that wait, one card in Waiting for you. Nothing feeds it yet (players
           can't propose until Moving on's second half), so it is shown here only. */}
