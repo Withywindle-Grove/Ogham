@@ -17,7 +17,7 @@ If a guard, a hook or a permission check blocks you, stop and report to the driv
 - If unsure, stop and ask the driver.
 
 **Build**
-- In your own worktree only, on a branch from freshly fetched `origin/main` named `<branch-name>`. Never work in, or switch the branch of, a folder another session uses. Run `npm install` there if `node_modules` is missing (never in `<home>\Documents\grimoire`).
+- In your own worktree only, on a branch from freshly fetched `origin/main` named `<branch-name>`. Never work in, or switch the branch of, a folder another session uses. Run `npm ci` there if `node_modules` is missing (it installs exactly what `package-lock.json` lists and never rewrites it; never `npm install`, which rewrote the lock file in a cloud container on 2026-11-21; never in `<home>\Documents\grimoire`).
 - Tests with each feature, each with its purpose as a plain sentence first. On a `fix-` branch the failing test comes first as `it.fails`, and test files change only with the Edit tool (`.claude/README.md`, Fix branches).
 - Hard rules in `CLAUDE.md` in full: every command through `can()` and an event; tokens only; never a disabled button; the Components inventory's Code column kept current.
 - Stay inside the row's files. Another builder works on another row at the same time: if you need a file outside your row, stop and say which.
