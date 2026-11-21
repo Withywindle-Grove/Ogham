@@ -468,7 +468,7 @@ export function createFakeDb(): FakeWorld {
     const entries = args.entries as Row[];
     if (!user) return { data: null, error: { message: 'Sign in first.', code: '42501' } };
     if (!Array.isArray(entries) || entries.length === 0) return { data: null, error: { message: 'A pack needs at least one entry.' } };
-    const kinds = ['fieldTemplate', 'item', 'class', 'xpTable', 'rulesSet', 'condition', 'lightType', 'statBlock', 'table', 'calendar', 'option', 'race', 'spell', 'spellList', 'treasureType', 'startingKit', 'hook', 'traitList', 'gmReferencePanel', 'location', 'patch', 'patron', 'route', 'adventureHook', 'map'];
+    const kinds = ['fieldTemplate', 'item', 'class', 'xpTable', 'rulesSet', 'condition', 'lightType', 'statBlock', 'table', 'calendar', 'option', 'race', 'spell', 'spellList', 'treasureType', 'startingKit', 'hook', 'traitList', 'gmReferencePanel', 'location', 'patch', 'patron', 'route', 'adventureHook', 'map', 'npc', 'shop'];
     if (entries.some((e) => !kinds.includes(String(e.kind)))) return { data: null, error: { message: 'invalid kind' } };
     const now = new Date().toISOString();
     const details = {

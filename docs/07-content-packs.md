@@ -1033,6 +1033,7 @@ It sits on a location and covers everything inside it unless a child location ha
 - **Introduce** is one tap and logged. Introduced NPCs appear in **Handouts → People** with their name and `playerView.description`.
 - **NPC status is campaign state.** The GM marks alive, dead, missing or absent, and friendly, neutral or hostile. It's logged, and GM only unless the GM shares it.
 - **Faction reputation** is R2.
+- **Read from dec-3** (2026-11-15, town row W8): the importer keeps each of `npcs` as a GM-only library entry (kind `npc`; never sent to a player), its fields as written. No screen shows them yet; `factions` are still left out.
 
 ### 6. `shops` (ruling 6)
 
@@ -1051,6 +1052,7 @@ It sits on a location and covers everything inside it unless a child location ha
 - **A price can be text.** The GM confirms those sales by hand.
 - **Services** take coin and write a log line. **Selling** follows `buys`, and the GM confirms the amount.
 - **Players browse an open shop** until the GM closes it. `gm` never shows.
+- **Read from dec-3** (2026-11-15, town row W9; sh-1, sh-2): the importer keeps each of `shops` as a GM-only library entry (kind `shop`; never sent to a player), its fields as written (each stock line's `itemRef`, price and availability unchanged). A stock line's item is read as the bare item id (the `<pack>:` prefix dropped) in one place, `src/modules/library/packShops.ts`. No screen shows them yet.
 
 ### 7. Rumours (ruling 7)
 

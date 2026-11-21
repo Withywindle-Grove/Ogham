@@ -27,8 +27,10 @@ export type OnPrefer = (entry: { key: string; name: string }, campaignPackId: st
 
 // Routes (December step 4a) are left out until the Move on sheet (piece b) gives them words: a route has only ids,
 // and the GM reads the ways on there (review of #634). Calls to adventure (dec-12 B) have their own sheet, from the place.
-// A pack's maps (dec-7 5m-1) are a place's, from its page (5m-2), never a rules entry to browse.
-const ORDER = (Object.keys(KIND_WORDS) as EntryKind[]).filter((kind) => kind !== 'route' && kind !== 'adventureHook' && kind !== 'map');
+// A pack's maps (dec-7 5m-1) are a place's, from its page (5m-2), never a rules entry to browse. Nor a pack's people
+// (dec-3, W8): the town's, from its people; nor its shops (dec-3, W9, sh-1): a place's, from its stock table.
+const HIDDEN_KINDS: readonly EntryKind[] = ['route', 'adventureHook', 'map', 'npc', 'shop'];
+const ORDER = (Object.keys(KIND_WORDS) as EntryKind[]).filter((kind) => !HIDDEN_KINDS.includes(kind));
 const capital = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
 /** An entry's place in the list: optional rules are each pack's own, so theirs includes the pack. */
 const keyOf = (entry: BrowsedEntry) => (entry.kind === 'option' ? `${entryKey(entry)}@${entry.packId ?? ''}` : entryKey(entry));
