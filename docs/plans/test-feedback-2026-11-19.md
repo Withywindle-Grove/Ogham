@@ -274,7 +274,7 @@ Collected, not decided. Numbered from 24; the ruling's "Not settled" has the sam
 - ⚑ 27. **On M4: an unpinned trait with uses**, under the pinned ones: a block too, or the row it is today? Ruled 2026-11-20 (pg28-4): the row it is today.
 - ⚑ 28. **On M4, after E7: the block's short line** (where the ability comes from, the pack's summary, or nothing). Still open: page 28 draws it three ways with placeholder words; waits on E7.
 - ⚑ 29. **On M4: the words when the 24th pin is taken** and one more is tapped. Ruled 2026-11-20 (pg28-5): "Can't pin <name>" / "A character can have 24 pins. Unpin one to make room."
-- ⚑ 30. **On M3: may the GM pin, unpin and reorder in the player's view?** Read as yes, logged as the GM's.
+- ⚑ 30. **On M3: may the GM pin, unpin and reorder in the player's view?** Ruled 2026-11-21 (pg32-9, `../design/rulings/page-32-m3-gm-view-2026-11-21.md`): "Yes": it works as on the player's screen, logged as the GM's, with Undo.
 - ⚑ 31. **For the Pack tab's sitting:** movement with the burden in one box and the three to five heaviest things (euf-7), with the player's note on the ⓘ beside "In the backpack".
 
 **Estimate:** P1 a third to half a builder turn; P2 half a turn to one; P3 sized after M4 (a first guess: 2 to 3); P4 half a turn, with the pop-ups' rows; P5 with magic. Page M4: 1 to 2 studio turns.
