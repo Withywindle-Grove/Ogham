@@ -68,7 +68,7 @@ afterAll(async () => {
 }, 60_000);
 
 describe('the Undo of a Max HP change after approval', () => {
-  it.fails("1. the owner's Undo of a Max HP set while the character waited is refused once it is approved", async () => {
+  it("1. the owner's Undo of a Max HP set while the character waited is refused once it is approved", async () => {
     const c = await waitingWithMaxHp('Wren of the Reeds');
     await c.approve();
     expect(await c.undoBy(world.playerA)).toMatchObject({ ok: false, reason: 'not-allowed' });
