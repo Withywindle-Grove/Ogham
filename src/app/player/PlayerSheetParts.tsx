@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { CurrentUser } from '../../core/commands.ts';
 import type { Db } from '../../core/supabase.ts';
-import { CharacterSheet } from '../CharacterSheet.tsx';
+import { CharacterSheet, type PinnableRow, type SheetPins } from '../CharacterSheet.tsx';
 import { BookPopUpScope } from '../../ui/Dialog.tsx';
 import { PlayerDetails } from './PlayerDetails.tsx';
 import { PlayerLevel } from './PlayerLevel.tsx';
@@ -25,7 +25,12 @@ export type PlayerSlots = {
    * the head's line (frames M1c, M1f). Without it (or a campaign) no box is drawn.
    */
   notices?: HTMLElement | null;
-  /** The right after the traits with uses: skills, languages and, beside, the full character sheet's section. */
+  /**
+   * The right column's list, "Abilities and traits" (row P3), between Movement and Skills: drawn with the sheet's foot
+   * rows (`traits`), so a pinned ability without uses can stand in it.
+   */
+  traits?: HTMLElement | null;
+  /** The right after the abilities and traits: skills, languages and, beside, the full character sheet's section. */
   more: HTMLElement | null;
 };
 
@@ -46,7 +51,13 @@ export function PlayerSheetParts({
   slots,
   notices = [],
   onPhase,
+  pins,
+  traits,
 }: {
+  /** The pins (row P3): a pinned ability or trait leaves the foot's rows' lines, and its pop-up ends with Move up and Move down. */
+  pins?: SheetPins | undefined;
+  /** The right column's list, given the sheet's foot rows (none while it opens): placed in `slots.traits`. */
+  traits?: ((pinnable: readonly PinnableRow[]) => ReactNode) | undefined;
   db: Db;
   user: CurrentUser;
   characterId: string;
@@ -75,6 +86,7 @@ export function PlayerSheetParts({
       characterId={characterId}
       refreshKey={refreshKey}
       {...(onSaved ? { onSaved } : {})}
+      {...(pins ? { pins } : {})}
       host={({ parts, fullSheet, notices: sheetNotices, status, phase }) => (
         <>
           <Phase phase={phase} onPhase={onPhase} />
@@ -96,6 +108,7 @@ export function PlayerSheetParts({
               </>,
               slots.top,
             )}
+          {slots.traits && traits && createPortal(traits(parts?.pinnable ?? []), slots.traits)}
           {slots.more &&
             createPortal(
               <>

@@ -1488,7 +1488,8 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       return main.type === 'character.castSpell' ? by(`cast ${spell} for ${character()}`) : by(`took back a cast of ${spell} for ${character()}`);
     }
     case 'character.pin': {
-      // A spell or a trait pinned to At hand, or unpinned (pin-2): the one entry that came or went.
+      // A spell pinned to At hand, an ability or a trait pinned to the Player tab's list (pin-2, euf-2), or unpinned: the
+      // one entry that came or went. An ability's or a trait's key is its name.
       const list = (row: Record<string, unknown>) => (Array.isArray(row.pins) ? (row.pins as { kind?: unknown; key?: unknown }[]) : []);
       const id = (p: { kind?: unknown; key?: unknown }) => `${String(p.kind)}:${String(p.key)}`;
       const was = new Set(list(before).map(id));
@@ -1496,10 +1497,30 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       const added = list(after).find((p) => !was.has(id(p)));
       const gone = list(before).find((p) => !now.has(id(p)));
       const entry = added ?? gone;
-      const what = entry?.kind === 'trait' ? 'a trait' : 'a spell';
-      const name = entry?.kind === 'spell' && typeof entry.key === 'string' ? names.spells?.get(entry.key) : undefined;
-      const named = name ?? what;
+      const named =
+        entry?.kind === 'trait'
+          ? typeof entry.key === 'string' && entry.key
+            ? entry.key
+            : 'a trait'
+          : ((typeof entry?.key === 'string' ? names.spells?.get(entry.key) : undefined) ?? 'a spell');
+      if (entry?.kind === 'trait') return added ? by(`pinned ${named} for ${character()}`) : by(`unpinned ${named} for ${character()}`);
       return added ? by(`pinned ${named} to At hand for ${character()}`) : by(`unpinned ${named} from ${possessive(character())} At hand`);
+    }
+    case 'character.movePin': {
+      // A pin moved in the player's order (euf-4; the detailed log), named as the command was given it. A move of one
+      // pin by two places or more shifts that pin alone by more than one, so it is the one named. Moved by one place, it
+      // and its neighbour simply swap and the stored lists can't tell which was moved: both are named.
+      const list = (row: Record<string, unknown>) => (Array.isArray(row.pins) ? (row.pins as { kind?: unknown; key?: unknown }[]) : []);
+      const id = (p: { kind?: unknown; key?: unknown }) => `${String(p.kind)}:${String(p.key)}`;
+      const nameOf = (p: { key?: unknown }) => (typeof p.key === 'string' && p.key ? p.key : 'a pin');
+      const beforeIds = list(before).map(id);
+      const shifts = list(after)
+        .map((p, i) => ({ p, by: beforeIds.indexOf(id(p)) - i }))
+        .filter((s) => s.by !== 0);
+      const far = shifts.filter((s) => Math.abs(s.by) > 1);
+      if (far.length === 1) return by(`moved ${nameOf(far[0]!.p)} ${far[0]!.by > 0 ? 'up' : 'down'} in ${possessive(character())} pins`);
+      if (shifts.length === 2) return by(`swapped ${nameOf(shifts[0]!.p)} and ${nameOf(shifts[1]!.p)} in ${possessive(character())} pins`);
+      return by(`changed the order of ${possessive(character())} pins`);
     }
     case 'character.setSpells':
       return by(`changed ${possessive(character())} spells`);
