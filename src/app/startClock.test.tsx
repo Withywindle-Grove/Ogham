@@ -11,6 +11,7 @@
 //   now" comes from the pack's daylight.
 //   Darkness (DG7; the dim removed at the M5 gate, R3 audit 8): a player whose group has no light sees "No light"
 //   with "Light a rushlight (N left)", and the page never darkens or greys (dark sight or not); a light ends it.
+//   It shows in the Player tab's notices box and on the Scene, and no longer on the Pack and Magic tabs (d5-20).
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import { pickListedPlace, typePlace } from '../testing/pickPlace.ts';
 import userEvent from '@testing-library/user-event';
@@ -394,6 +395,32 @@ describe('darkness on the player\'s screen (DG7)', () => {
     await user.click(within(await screen.findByRole('status', { name: 'No light' })).getByRole('button', { name: 'Light a rushlight (4 left)' }));
     await waitFor(() => expect(tiles().some((b) => /No light/.test(b.textContent ?? ''))).toBe(false));
     expect(tiles().some((b) => /rushlight/i.test(b.textContent ?? ''))).toBe(true);
+  });
+
+  // d5-20 (ruled 2026-11-20): "No light" no longer shows on the Pack tab; it stays in the Player tab's notices box.
+  it('"No light" no longer shows on the Pack tab, and still shows in the Player tab\'s notices box', async () => {
+    const user = await delving(table());
+    await user.click(await screen.findByRole('button', { name: /^\d+ notices?, open them$/ }));
+    expect(within(await screen.findByRole('dialog', { name: 'Notices' })).getByText('No light')).toBeTruthy();
+    await user.keyboard('{Escape}');
+    await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
+    await screen.findByText('Rushlights');
+    expect(screen.queryByRole('status', { name: 'No light' })).toBeNull();
+    expect(screen.queryByText('No light')).toBeNull();
+  });
+
+  // d5-20 (ruled 2026-11-20): "No light" no longer shows on the Magic tab either.
+  it('"No light" no longer shows on the Magic tab', async () => {
+    const t = table();
+    // A spell ready today gives Wren a Magic tab (hasSpells).
+    world.tables.character_play.push({ actor_id: t.wren, campaign_id: t.campaign, prepared: [{ spell: 'glimmer', level: 1 }], uses_spent: {}, ac_override: null, form_id: null, version: 1 });
+    const user = await delving(t);
+    // The dark is read: the Player tab's box has the notice.
+    await screen.findByRole('button', { name: /^[1-9]\d* notices?, open them$/ });
+    await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Magic' }));
+    await screen.findByRole('heading', { name: 'Spells' });
+    expect(screen.queryByRole('status', { name: 'No light' })).toBeNull();
+    expect(screen.queryByText('No light')).toBeNull();
   });
 
   // A character with dark sight gets the same reminder, and no grey layer either.
