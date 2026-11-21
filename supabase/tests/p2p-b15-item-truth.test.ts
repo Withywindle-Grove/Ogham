@@ -368,7 +368,8 @@ describe('B15: a revealed name is for everyone (Francis, 2026-11-21: "Once it\'s
   // compass's piece is shown to group 2 (Ash's) only (7b); a compass sent to Wren, in group 1, and one put in the party
   // stash, named by the eye on group 2, read by their real name for both players; a compass sent to Wren after that,
   // from group 1's card, where the piece isn't shown, arrives named without the GM's eye on group 1 (the local review
-  // of #10); and the piece itself stays on group 2's card only (which group sees a piece is unchanged).
+  // of #10); the piece itself stays on group 2's card only (which group sees a piece is unchanged); and a player who
+  // calls the naming alone after the reveal is refused with the permission error.
   it('8. shown to one group while split, a carrier in the other group and the stash read the real name', async () => {
     // Relies on 7b: the split (Ash into group 2, Wren left in group 1) and the GM's eye on the compass for group 2 only.
     const groups = (await loadGroupPlaces(asDb(world.gm), world.campaignId, visit.expeditionId))!;
@@ -408,12 +409,23 @@ describe('B15: a revealed name is for everyone (Francis, 2026-11-21: "Once it\'s
     expect(sceneA.map((p) => p.piece_id)).not.toContain(compass.id);
     const shows = must(await world.admin.from('piece_shows').select('group_number').eq('piece_id', compass.id).eq('undone', false)) as { group_number: number }[];
     expect(shows.map((s) => s.group_number)).toEqual([2]);
+
+    // After the reveal, the naming alone is still the GM's: a player who calls it, on a compass sent plain to Ash, is
+    // refused with the permission error, from either group, and the line stays plain.
+    await sendOne(world.ashId, 'A brass compass', '4:thing');
+    const [ashCompass] = await linesNamed(world.ashId, 'A brass compass');
+    for (const player of [world.playerA, world.playerB]) {
+      const tried = await player.db.rpc('name_item_truth', { piece: compass.id, lines: [ashCompass!] });
+      expect(tried.error?.code).toBe('42501');
+    }
+    expect(await pointerOf(ashCompass!)).toBeUndefined();
   });
 
   // Purpose: before the GM's eye nobody but the GM reads a magic item's truth, the party split or not: the spyglass,
   // sent to Wren (group 1) and to the party stash, arrives plain, even when the send asks to name it (it can't be named
-  // before a show, by the GM or a player), and reads plain for both players everywhere, while the GM reads its piece; the eye on group 1 then names both lines for both players, Ash's in group 2 included; and the eye's Undo
-  // takes the name back from everyone, the log included.
+  // before a show, by the GM or a player), and reads plain for both players everywhere, while the GM reads its piece;
+  // the eye on group 1 then names both lines for both players, Ash's in group 2 included; and the eye's Undo takes the
+  // name back from everyone, the log included.
   it('9. not shown, nobody but the GM reads it; the eye names it for all, and its Undo takes it back from all', async () => {
     const first = (await loadGroupPlaces(asDb(world.gm), world.campaignId, visit.expeditionId))!.get(1)!;
     const spyglass = spyglassPiece(first);
