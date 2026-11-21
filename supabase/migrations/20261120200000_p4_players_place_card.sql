@@ -251,6 +251,8 @@ language sql stable security definer set search_path = '' as $$
     from public.party_groups g
     cross join lateral private.current_group_place(g.campaign_id, g.number) gp
     join public.places p on p.id = gp.place_id and not p.undone and p.pack_id is not null
+    -- A pack no longer attached to the campaign sends nothing, as place_rules_for_players (review of P4).
+    join public.campaign_packs cp on cp.campaign_id = g.campaign_id and cp.pack_id = p.pack_id
     where g.campaign_id = campaign and private.in_my_group(campaign, g.number)
       and private.visit_shown(gp.id)
   )

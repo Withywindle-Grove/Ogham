@@ -229,4 +229,12 @@ describe("the players' place card, as the database sends it (p4s-1, p4s-2)", () 
     expect(new Set(lines.map((l) => l.audience))).toEqual(new Set(['gm']));
     expect(must(await world.playerA.db.from('events').select('id').eq('campaign_id', campaignId).eq('type', 'placeKnowledge.eye'))).toEqual([]);
   });
+
+  // Purpose: a pack taken off the campaign sends its shared Knowledge to no player, as the place's rules don't (review of
+  // P4). Last, as it detaches the pack.
+  it("sends a detached pack's shared Knowledge to no player", async () => {
+    expect((await loadPlayersKnowledge(asDb(world.playerA), campaignId))!.map((k) => k.section.heading)).toEqual(['What everyone knows']);
+    must(await world.admin.from('campaign_packs').delete().eq('campaign_id', campaignId).eq('pack_id', packId).select('id'));
+    expect(must(await world.playerA.db.rpc('knowledge_for_players', { campaign: campaignId }))).toEqual([]);
+  });
 });
