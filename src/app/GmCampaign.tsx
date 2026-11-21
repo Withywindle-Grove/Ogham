@@ -225,7 +225,15 @@ export function GmCampaign({
     const open = character.approval === 'approved' && !character.archived;
     const acting = open && rowAct?.id === character.id ? rowAct.act : null;
     const door = (tab: ViewTab, words: string, label: string) => (
-      <button type="button" className="button-secondary button-secondary--small" aria-label={label} onClick={() => setViewing({ id: character.id, name: character.name, tab })}>
+      <button
+        type="button"
+        className="button-secondary button-secondary--small"
+        aria-label={label}
+        onClick={() => {
+          setWaitingAt(null);
+          setViewing({ id: character.id, name: character.name, tab });
+        }}
+      >
         {words}
       </button>
     );
@@ -324,8 +332,12 @@ export function GmCampaign({
   // "Go to Waiting for you" at a sheet change (pg32-6): Players at Waiting for approval, where its card is, once it shows.
   const changeAt = waitingAt?.at && 'change' in waitingAt.at ? waitingAt : null;
   const atChange = changeAt !== null && section === 'players' && !viewing && waitingChanges.length > 0;
+  // Once landed it never scrolls again (the review of #36); leaving Players (a door, a section) puts it away.
+  const landedChange = useRef(0);
   useEffect(() => {
-    if (atChange) document.getElementById('gm-waiting-approval')?.scrollIntoView?.({ block: 'start' });
+    if (!atChange || !changeAt || landedChange.current === changeAt.n) return;
+    landedChange.current = changeAt.n;
+    document.getElementById('gm-waiting-approval')?.scrollIntoView?.({ block: 'start' });
   }, [atChange, changeAt]);
 
   // The GM's campaign items in every ⋯ inside the campaign (N17, ruled 2026-10-28): only what isn't a tab (ruled
@@ -477,8 +489,12 @@ export function GmCampaign({
               setLogOpen(true);
               return;
             }
-            // Leaving Players closes an open "Invite a player" (M4b re-test, 2026-10-26).
-            if (next !== section) setInviting(false);
+            // Leaving Players closes an open "Invite a player" (M4b re-test, 2026-10-26), and puts away where "Go to
+            // Waiting for you" was taking it (the review of #36).
+            if (next !== section) {
+              setInviting(false);
+              setWaitingAt(null);
+            }
             setSection(next);
           }}
         />
@@ -549,7 +565,7 @@ export function GmCampaign({
             {waitingItems > 0 && (
               <SceneWaitingProvider>
                 <WaitingForYou db={db} user={user} campaign={campaign} onChanged={reload} />
-                <OpenWaitingAt target={waitingAt} />
+                <OpenWaitingAt target={waitingAt} onLanded={() => setWaitingAt(null)} />
               </SceneWaitingProvider>
             )}
             <div className="gm__section-head">
@@ -691,7 +707,7 @@ export function GmCampaign({
  * "Go to Waiting for you" at a request (pg32-5, pg32-6): inside the panel's provider, opens it at the request once its
  * list holds it, and brings the panel into view; with no request (nothing sent yet), the panel's top.
  */
-function OpenWaitingAt({ target }: { target: { at: WaitingTarget; n: number } | null }) {
+function OpenWaitingAt({ target, onLanded }: { target: { at: WaitingTarget; n: number } | null; onLanded: () => void }) {
   const panel = useWaitingState();
   const done = useRef(0);
   const id = target?.at && 'request' in target.at ? `request:${target.at.request}` : null;
@@ -701,7 +717,8 @@ function OpenWaitingAt({ target }: { target: { at: WaitingTarget; n: number } | 
     done.current = target.n;
     if (id) panel.open(id);
     document.querySelector('.gm__main .waiting-card')?.scrollIntoView?.({ block: 'start' });
-  }, [ready, panel, target, id]);
+    onLanded();
+  }, [ready, panel, target, id, onLanded]);
   return null;
 }
 

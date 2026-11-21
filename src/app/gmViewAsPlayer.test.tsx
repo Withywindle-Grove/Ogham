@@ -198,6 +198,72 @@ describe('the player’s numbers in the GM’s view (C15c; pg32-3)', () => {
   });
 });
 
+describe('a hidden charge count in the view (C15c)', () => {
+  // Purpose: with a wand whose charges are hidden from Sam pinned to At hand, no part of the view's Player tab that is
+  // this batch's shows its count. At hand's own row is C15e's (ItemRow.tsx), fixed when #34 lands, so it is left out.
+  it('shows the hidden count nowhere outside At hand', async () => {
+    await setUp('modes', () => Object.assign(world.tables.inventory_lines.find((l) => l.id === 'line-p1-wand')!, { charges_hidden: true, charges_left: 7 }));
+    await inGmView();
+    await screen.findByRole('region', { name: 'At hand' });
+    await new Promise((r) => setTimeout(r, 30));
+    const main = document.querySelector('.player') as HTMLElement;
+    const outside = [...main.querySelectorAll('section, [role="region"]')]
+      .filter((el) => el.getAttribute('aria-label') !== 'At hand' && !el.closest('[aria-label="At hand"]') && !el.querySelector('[aria-label="At hand"]'))
+      .map((el) => el.textContent ?? '')
+      .join(' ');
+    expect(outside).not.toMatch(/\b7 (left|charges)/);
+  });
+});
+
+describe('Set max in the view (⚑ 42, ruled 2026-11-21)', () => {
+  // Purpose: in the view the GM's Set max writes at once, as his own change does outside it, logged as his: no request
+  // for Sam's approval, no "Only Sam can …" pop-up.
+  it('writes the most hit points at once, logged as the GM’s, with no request', async () => {
+    await setUp('four', () => Object.assign(world.tables.actors.find((a) => a.id === brannoch)!, { hp_max: null }));
+    const user = await inGmView();
+    await user.click(await screen.findByRole('button', { name: 'Set max' }));
+    const pop = await screen.findByRole('dialog', { name: 'Max hit points' });
+    await user.type(within(pop).getByLabelText('Max HP'), '18');
+    const before = world.tables.events.length;
+    await user.click(within(pop).getByRole('button', { name: 'Set' }));
+    await waitFor(() => expect(world.tables.actors.find((a) => a.id === brannoch)!.hp_max).toBe(18));
+    expect(world.tables.events.slice(before).map((e) => e.actor_user_id)).toEqual([gm]);
+    expect(world.tables.sheet_changes).toEqual([]);
+    expect(screen.queryByRole('dialog', { name: /^Only Sam can/ })).toBeNull();
+  });
+});
+
+describe('the GM’s Cast in the view (C15c; M3h)', () => {
+  // Purpose: the GM's Cast on the Magic tab of his view acts at once, with the player's toast and Undo, logged as his.
+  it('casts at once with Undo, logged as the GM’s', async () => {
+    const campaign = world.addCampaign('The Reed Marches', gm);
+    world.tables.packs.push({ id: 'pack-fen', owner_user_id: gm, campaign_id: null, name: 'Fen Rules', version: '1', kind: 'setting', format_version: 2, source: '', notes: '', updated_at: '2026-10-18T12:00:00Z' });
+    world.tables.library_entries.push(
+      { id: 'entry-rules', pack_id: 'pack-fen', kind: 'rulesSet', pack_entry_id: 'fen-rules', name: 'Fen rules', data: { id: 'fen-rules', name: 'Fen rules' } },
+      { id: 'entry-witch', pack_id: 'pack-fen', kind: 'class', pack_entry_id: 'reed-witch', name: 'Reed witch', data: { id: 'reed-witch', name: 'Reed witch', spellcasting: { listId: 'witch-list', type: 'arcane', castingType: 'arcane' }, progression: [{ level: 1, hitDice: '1d4', spellSlots: [2] }] } },
+      { id: 'entry-lamp', pack_id: 'pack-fen', kind: 'spell', pack_entry_id: 'mire-lamp', name: 'Mire lamp', data: { id: 'mire-lamp', name: 'Mire lamp', range: '30 paces' } },
+      { id: 'entry-list', pack_id: 'pack-fen', kind: 'spellList', pack_entry_id: 'witch-list', name: 'Witch spells', data: { id: 'witch-list', name: 'Witch spells', levels: [{ level: 1, spells: ['mire-lamp'] }] } },
+    );
+    world.tables.campaign_packs.push({ id: 'link-fen', campaign_id: campaign, pack_id: 'pack-fen', pack_name: 'Fen Rules', option_choices: {}, overrides: {}, priority: 1 });
+    const wren = world.addCharacter(campaign, 'Wren', { ownerId: sam });
+    Object.assign(world.tables.actors.find((a) => a.id === wren)!, { level: 1, hp_current: 4, hp_max: 4, classes: [{ classRef: 'reed-witch', level: 1, xp: 0 }] });
+    world.addMember(campaign, sam, 'player', wren);
+    world.tables.character_play.push({ actor_id: wren, campaign_id: campaign, prepared: [{ spell: 'mire-lamp', level: 1 }], uses_spent: {}, ac_override: null, form_id: null, version: 1 });
+    world.signInAs(gm);
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await user.click(await screen.findByRole('button', { name: /The Reed Marches/ }));
+    await user.click(within(await screen.findByRole('navigation', { name: 'Campaign sections' })).getByRole('button', { name: /^Players/ }));
+    await user.click(await screen.findByRole('button', { name: "Open Wren's magic" }));
+    const before = world.tables.events.length;
+    await user.click(await screen.findByRole('button', { name: 'Cast Mire lamp' }));
+    await waitFor(() => expect(world.tables.character_play[0]!.spells_cast).toEqual({ '1:mire-lamp': 1 }));
+    expect(world.tables.events.slice(before).map((e) => [e.type, e.actor_user_id])).toEqual([['character.castSpell', gm]]);
+    await user.click(await screen.findByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(world.tables.character_play[0]!.spells_cast).toEqual({}));
+  });
+});
+
 describe('the player-only actions in the GM’s view (C15d; pg32-6)', () => {
   it('Take back opens “Only Sam can take back this change”, writes nothing, and goes to Waiting for you', async () => {
     await setUp('finish');
@@ -246,6 +312,36 @@ describe('the view’s bar on a phone (M3j; pg32-match)', () => {
     } finally {
       Object.defineProperty(window, 'innerWidth', { configurable: true, value: wide });
       delete (window as { matchMedia?: unknown }).matchMedia;
+    }
+  });
+});
+
+describe('“Go to Waiting for you” lands once (the review of #36)', () => {
+  // Purpose: once "Go to Waiting for you" has brought Players to the change, a later return to Players (from the view
+  // again) neither scrolls back to it nor reopens anything.
+  it('scrolls to Waiting for approval once, and not again on a later return', async () => {
+    const scrolled: Element[] = [];
+    const was = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function (this: Element) {
+      scrolled.push(this);
+    };
+    try {
+      await setUp('finish');
+      const user = await inGmView();
+      await user.click(await screen.findByRole('button', { name: /notice/ }));
+      await user.click(await screen.findByRole('button', { name: /^Take back / }));
+      await user.click(within(await screen.findByRole('dialog', { name: 'Only Sam can take back this change' })).getByRole('button', { name: 'Go to Waiting for you' }));
+      await screen.findByRole('button', { name: 'Invite a player' });
+      await waitFor(() => expect(scrolled.filter((el) => el.id === 'gm-waiting-approval')).toHaveLength(1));
+      // Into the view again and back: no second scroll.
+      await user.click(screen.getByRole('button', { name: `View ${P1_CHARACTER}'s sheet` }));
+      await screen.findByRole('region', { name: 'Vitals' });
+      await user.click(screen.getByRole('button', { name: '‹ Players' }));
+      await screen.findByRole('button', { name: 'Invite a player' });
+      await new Promise((r) => setTimeout(r, 50));
+      expect(scrolled.filter((el) => el.id === 'gm-waiting-approval')).toHaveLength(1);
+    } finally {
+      Element.prototype.scrollIntoView = was;
     }
   });
 });

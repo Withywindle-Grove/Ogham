@@ -6,6 +6,7 @@ import { LogButton, useLogVersion } from './campaignLog.tsx';
 import { ReferenceButton, useReferenceMenuItem } from './GmReference.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { MessagesButton, useMessaging } from './Messages.tsx';
+import { usePlayerView } from './playerView.ts';
 import { Portrait } from './Portrait.tsx';
 import { ShellDrawer, ShellMenuItems } from './shellMenu.tsx';
 import { Icon } from '../ui/icons.tsx';
@@ -82,7 +83,7 @@ export function TopRow({
   const below = useContext(BelowTopRow);
   // The GM's view as the player on a phone (page 32, M3j; pg32-match): the bar carries only ⋯ at the right, and ✉ and
   // Reference are its first rows ("Messages", "Reference": the driver's words, ⋯ open not being drawn).
-  const inMore = standard && named && phone && !campaign && drawer === undefined;
+  const inMore = usePlayerView() !== null && standard && phone && !campaign && drawer === undefined;
   const messaging = useMessaging();
   const reference = useReferenceMenuItem();
   const messagesRow = inMore && messaging && (

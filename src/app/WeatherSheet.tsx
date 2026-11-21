@@ -17,6 +17,7 @@
 // with their top (S15), until then they enter on today's card.
 import { useState } from 'react';
 import { isGm, type CurrentUser } from '../core/commands.ts';
+import { usePlayerView } from './playerView.ts';
 import type { Db } from '../core/supabase.ts';
 import type { ReadTable } from '../modules/expedition/tables.ts';
 import { currentRollFor, entryForRow, weatherEntryWay, weatherTableRows } from '../modules/expedition/weatherSheet.ts';
@@ -72,7 +73,9 @@ export function WeatherSheet({
   const show = useToast();
   const [picked, setPicked] = useState<string | null>(null);
   const live = view.kind === 'waiting' || view.kind === 'unset' || view.kind === 'due' || view.kind === 'in' ? view : null;
-  const way = weatherEntryWay(live ? isGm(user, live.campaignId) : false);
+  // In the GM's view as the player, the player's way in, as the notice is the player's (the review of #36).
+  const inView = usePlayerView() !== null;
+  const way = weatherEntryWay(live ? isGm(user, live.campaignId) && !inView : false);
 
   const body = (() => {
     if (view.kind === 'loading') return <p className="weather__quiet">Loading today's weather…</p>;
