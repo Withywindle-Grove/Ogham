@@ -3,7 +3,7 @@
 // plain words:
 //   1. In the notices sheet, "To finish" is no card: "You can play now." a plain line, each step a row with its chevron
 //      and a dotted rule under it (M1e), and a step still opens.
-//   2. The right column's section headings (Scores, Saves, Movement, Traits, Skills, Languages) and Details are small
+//   2. The right column's section headings (Scores, Saves, Movement, Abilities and traits, Skills, Languages) and Details are small
 //      capitals at "At hand"'s size and look, every letter a small capital; the full sheet's own page keeps its own.
 //   3. The foot's rows (Abilities, Traits, Notes) are one list: each straight under the last, about 65 px a row on a
 //      tablet (M1a) and a phone (M1f), not about 105.
@@ -79,7 +79,7 @@ for (const scheme of SCHEMES) {
         const atHand = await typeOf(page, '[aria-label="At hand"] .pack__group-title');
         expect(atHand.caps).toBe('small-caps');
         expect(atHand.transform).toBe('lowercase');
-        for (const name of ['Scores', 'Saves', 'Movement', 'Traits', 'Skills', 'Languages']) {
+        for (const name of ['Scores', 'Saves', 'Movement', 'Abilities and traits', 'Skills', 'Languages']) {
           const heading = await typeOf(page, `.player section[aria-label="${name}"] > h2.sheet__label, .player section[aria-label="${name}"] .rule-heading h2.sheet__label`);
           expect({ name, ...heading }).toEqual({ name, ...atHand });
         }

@@ -427,6 +427,17 @@ export function PinnedMark() {
 }
 
 /**
+ * **Pinned block** and **Pinned row** (row P3 of plans/test-feedback-2026-11-19; page 28, frames M4a to M4f, approved
+ * 2026-11-20; euf-5, pg28-6): a pinned ability or trait in the Player tab's right column's list, as a box around its
+ * one List row. `block`: one with something to do (its uses), the weapon in hand's ink edge, its row with Use and the
+ * pips; else a row, the same box with a thin edge, its row the name and a chevron. Blocks and rows share one left edge,
+ * width, corner and gap, so the list reads as one stack.
+ */
+export function PinnedBox({ block = false, children }: { block?: boolean; children: ReactNode }) {
+  return <div className={block ? 'pinned-box pinned-box--block' : 'pinned-box'}>{children}</div>;
+}
+
+/**
  * **Pin star** (plan C; dec-13 C8): the pin in the head of a thing's sheet beside ✕, a toggle: empty "Pin to top",
  * filled and washed "Unpin" (`aria-pressed`). An item's, a trait's (and a spell's once its frame is approved) sheet.
  */
@@ -1356,16 +1367,20 @@ export function SaveRow({ saves, onOpen }: { saves: { key: string; short: string
 /** The use dots' two marks (ruled 2026-10-26): filled for a use left, a ring for a spent one (shape, never colour alone). */
 const PIP_LEFT = '●';
 const PIP_SPENT = '○';
+/** The most pips a Pinned block draws (pg28-8): past it, the words alone ("999 of 999 left"). */
+const BLOCK_PIPS = 10;
 
 /**
  * The use dots as marks only, inside a trait chip (tc-2): a filled dot per use left, then a ring per spent one, as
  * `UseDots` draws them; past five, "●×4 ○×3". Hidden from screen readers: the chip's label says "1 of 3 left".
  * `ink`: the **ink pips** (frame P1 of december/14): both marks in ink, as the Player screen's Traits rows draw them.
  */
-export function UsePips({ uses, spent, ink = false }: { uses: number; spent: number; ink?: boolean }) {
+export function UsePips({ uses, spent, ink = false, block = false }: { uses: number; spent: number; ink?: boolean; block?: boolean }) {
   const used = Math.max(0, Math.min(uses, spent));
   const left = uses - used;
-  const many = uses > 5;
+  // The **block** variant (a Pinned block; pg28-8, frame M4d): each pip up to ten; past ten no pips, the words alone count.
+  if (block && uses > BLOCK_PIPS) return null;
+  const many = !block && uses > 5;
   return (
     <span className={ink ? 'use-pips use-pips--ink' : 'use-pips'} aria-hidden="true">
       {' '}

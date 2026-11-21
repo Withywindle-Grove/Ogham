@@ -8,6 +8,7 @@ import { groupName, groupWords } from './partyGroups.ts';
 import { MOVE_ON_WORDS } from './moveWords.ts';
 import { timeWords } from './timeWords.ts';
 import { TRAVEL_PLACE_WORDS } from './travelWords.ts';
+import { isJoin } from './undo.ts';
 import { oneUpVerb, usedWords } from './useWords.ts';
 import { ENCUMBRANCE_WORDS, isEncumbranceMode } from './campaignSettings.ts';
 
@@ -53,6 +54,11 @@ export interface LogNames {
    * since a count's change logs only the count. A line deleted by its last use keeps its kind in the log's copy.
    */
   itemKinds?: Map<string, { category: string; details: Record<string, unknown>; stack: number; qty?: number }>;
+  /**
+   * Where inventory lines are, by line id (Q2): a join's change logs only the stack's count, so its line says where the
+   * stack is from this (a line that is gone: the log's last copy of it).
+   */
+  itemPlaces?: Map<string, { actor_id: unknown; location_id: unknown; container_line_id: unknown }>;
   /** Places items are kept, like the Party stash, by id (from M4). */
   places: Map<string, string>;
   /** Which of those places is the party stash (its kind; K28): a move out of another place is not a Take. */
@@ -197,7 +203,7 @@ export async function loadLogNames(db: Db, campaignId: string, me: string): Prom
     db.from('companies').select('id, name').eq('campaign_id', campaignId),
     db.from('field_definitions').select('id, label').eq('campaign_id', campaignId),
     db.from('campaign_packs').select('id, pack_name').eq('campaign_id', campaignId),
-    db.from('inventory_lines').select('id, name, category, item_data, stack, qty').eq('campaign_id', campaignId),
+    db.from('inventory_lines').select('id, name, category, item_data, stack, qty, actor_id, location_id, container_line_id').eq('campaign_id', campaignId),
     db.from('locations').select('id, name, kind').eq('campaign_id', campaignId),
     db.from('character_lights').select('id, actor_id, name').eq('campaign_id', campaignId),
     db.from('character_statuses').select('id, actor_id, name, levels, level').eq('campaign_id', campaignId),
@@ -234,6 +240,7 @@ export async function loadLogNames(db: Db, campaignId: string, me: string): Prom
     itemKinds: new Map(
       lines.map((i) => [i.id, { category: String(i.category ?? ''), details: (i.item_data && typeof i.item_data === 'object' ? i.item_data : {}) as Record<string, unknown>, stack: Number(i.stack ?? 1), qty: Number(i.qty ?? 1) }]),
     ),
+    itemPlaces: new Map(lines.map((i) => [i.id, { actor_id: i.actor_id, location_id: i.location_id, container_line_id: i.container_line_id }])),
     places: new Map((places.data ?? []).map((l) => [l.id, l.name])),
     stashIds: new Set((places.data ?? []).filter((l) => l.kind === 'stash').map((l) => l.id)),
     lights: new Map((lights.data ?? []).map((l) => [l.id, { who: characters.get(l.actor_id) ?? '', name: l.name }])),
@@ -252,7 +259,7 @@ export async function loadLogNames(db: Db, campaignId: string, me: string): Prom
   };
 }
 
-type ItemLineNames = { id: string; name: string; category: unknown; item_data: unknown; stack: unknown; qty: unknown };
+type ItemLineNames = { id: string; name: string; category: unknown; item_data: unknown; stack: unknown; qty: unknown; actor_id?: unknown; location_id?: unknown; container_line_id?: unknown };
 
 /**
  * The item lines a log line can name: the ones there now and, for a line that is gone, the newest copy the log kept of
@@ -263,7 +270,17 @@ export function itemLinesWithGone(current: readonly ItemLineNames[], gone: reado
   for (const event of gone) {
     const copy = event.before && typeof event.before === 'object' && !Array.isArray(event.before) ? (event.before as Record<string, unknown>) : null;
     if (!event.target_id || !copy || typeof copy.name !== 'string') continue;
-    byId.set(event.target_id, { id: event.target_id, name: copy.name, category: copy.category, item_data: copy.item_data, stack: copy.stack, qty: copy.qty });
+    byId.set(event.target_id, {
+      id: event.target_id,
+      name: copy.name,
+      category: copy.category,
+      item_data: copy.item_data,
+      stack: copy.stack,
+      qty: copy.qty,
+      actor_id: copy.actor_id,
+      location_id: copy.location_id,
+      container_line_id: copy.container_line_id,
+    });
   }
   for (const line of current) byId.set(line.id, line);
   return [...byId.values()];
@@ -337,6 +354,22 @@ function findIn(e: LogEvent): { to: string | null; placeId: string | null; hoard
     return { to: typeof find.to === 'string' ? find.to : null, placeId: text(find.placeId), hoardId: text(find.hoardId), coin: find.coin === true };
   } catch {
     return null; // Not a find's reason.
+  }
+}
+
+/**
+ * How a thing that joined a stack was got (Q2): public.join_added_line writes it on the add's own line as its reason,
+ * `{"join":{"howGot":"bought","cost":"6 cp","note":"…"}}`; null when the line carries none.
+ */
+function joinOf(e: LogEvent): { howGot: string; cost: string; note: string } | null {
+  if (!e.reason?.startsWith('{')) return null;
+  try {
+    const join = (JSON.parse(e.reason) as { join?: Record<string, unknown> }).join;
+    if (!join || typeof join !== 'object') return null;
+    const text = (v: unknown) => (typeof v === 'string' ? v : '');
+    return { howGot: text(join.howGot) || 'found', cost: text(join.cost), note: text(join.note) };
+  } catch {
+    return null; // Not a join's reason.
   }
 }
 
@@ -757,19 +790,26 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       return by(`undid a change to ${possessive(character())} ${listWords(changedWords(after))}${back}`);
     }
     case 'inventory.add': {
-      const what = counted(item(), after.qty);
-      if (after.how_got === 'bought') {
-        const cost = String(after.cost ?? '').trim();
-        return `${by(`bought ${what} for ${carrier(after)}${cost ? ` (${cost})` : ''}`)} Cost noted; purses arrive later.`;
+      // Joined a same-name stack (Q2, sw-1): the count added, to the stack's carrier, said as any add; how it was got,
+      // its price and the GM's note are kept on this line's reason (public.join_added_line), never on the stack.
+      const joined = isJoin(main.type, main);
+      const kept = joined ? joinOf(main) : null;
+      const added: Record<string, unknown> = joined
+        ? { ...((typeof main.targetId === 'string' ? names.itemPlaces?.get(main.targetId) : undefined) ?? {}), how_got: kept?.howGot ?? 'found', cost: kept?.cost ?? '', notes: kept?.note ?? '', approval: 'approved' }
+        : after;
+      const what = counted(item(), joined ? Number(after.qty) - Number(before.qty) : after.qty);
+      if (added.how_got === 'bought') {
+        const cost = String(added.cost ?? '').trim();
+        return `${by(`bought ${what} for ${carrier(added)}${cost ? ` (${cost})` : ''}`)} Cost noted; purses arrive later.`;
       }
       // Given by the GM (2026-10-23), with the GM's note; a player's other choice is No cost.
-      if (after.how_got === 'given') {
-        const note = String(after.notes ?? '').trim();
-        return by(`gave ${carrier(after)} ${what}${note ? `: ${note}` : ''}`);
+      if (added.how_got === 'given') {
+        const note = String(added.notes ?? '').trim();
+        return by(`gave ${carrier(added)} ${what}${note ? `: ${note}` : ''}`);
       }
-      return after.approval === 'pending'
-        ? by(`made ${what} for ${carrier(after)}, waiting for the GM`)
-        : by(`added ${what} to ${carrier(after)} (no cost)`);
+      return added.approval === 'pending'
+        ? by(`made ${what} for ${carrier(added)}, waiting for the GM`)
+        : by(`added ${what} to ${carrier(added)} (no cost)`);
     }
     case 'inventory.remove':
       return main.after === null
@@ -853,6 +893,27 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
     case 'inventory.reveal':
       return by(`revealed more about ${item()}`);
     case 'inventory.move': {
+      // Joined a same-name stack where it landed (Q2, sw-6, sw-9): the count moved, said as any move of it is.
+      const join = entry.events.find((e) => isJoin(main.type, e));
+      if (join?.after && join.before) {
+        const placeOf = (id: unknown) => (typeof id === 'string' ? names.itemPlaces?.get(id) : undefined) ?? {};
+        const into: Record<string, unknown> = placeOf(join.targetId);
+        // Where it came from: the merged line's copy, or the stack it was counted off.
+        const gone = entry.events.find((e) => e.after === null && e.before);
+        const countedOff = entry.events.find((e) => e !== join && e.before && e.after && 'qty' in e.after);
+        const from: Record<string, unknown> = gone?.before ?? placeOf(countedOff?.targetId);
+        const moved = Number(join.after.qty) - Number(join.before.qty);
+        const known = typeof join.targetId === 'string' ? names.itemKinds?.get(join.targetId) : undefined;
+        const name = counted(item({}, join.targetId), moved);
+        const fromStash = typeof from.location_id === 'string' && !!names.stashIds?.has(from.location_id) && typeof into.actor_id === 'string';
+        if (fromStash) {
+          const taker = main.actorUserId !== null && names.gms?.has(main.actorUserId) ? 'Your GM' : named(names.characters, into.actor_id, 'a character');
+          return `${taker} took ${pieces(item({}, join.targetId), known?.details, moved)} from the party stash.`;
+        }
+        if (into.actor_id !== from.actor_id || into.location_id !== from.location_id) return by(`moved ${name} to ${carrier(into)}`);
+        if (into.container_line_id) return by(`put ${name} in ${named(names.items, into.container_line_id, 'a container')}`);
+        return by(`took ${name} out of ${named(names.items, from.container_line_id, 'a container')}`);
+      }
       // Part of a stack moves as a new line (made, then handed over); a whole line just changes carrier.
       const made = entry.events.find((e) => e.before === null && e.after);
       const handed = entry.events.find((e) => e.after && ('actor_id' in e.after || 'location_id' in e.after) && e.before !== null);
@@ -1427,7 +1488,8 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       return main.type === 'character.castSpell' ? by(`cast ${spell} for ${character()}`) : by(`took back a cast of ${spell} for ${character()}`);
     }
     case 'character.pin': {
-      // A spell or a trait pinned to At hand, or unpinned (pin-2): the one entry that came or went.
+      // A spell pinned to At hand, an ability or a trait pinned to the Player tab's list (pin-2, euf-2), or unpinned: the
+      // one entry that came or went. An ability's or a trait's key is its name.
       const list = (row: Record<string, unknown>) => (Array.isArray(row.pins) ? (row.pins as { kind?: unknown; key?: unknown }[]) : []);
       const id = (p: { kind?: unknown; key?: unknown }) => `${String(p.kind)}:${String(p.key)}`;
       const was = new Set(list(before).map(id));
@@ -1435,10 +1497,30 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       const added = list(after).find((p) => !was.has(id(p)));
       const gone = list(before).find((p) => !now.has(id(p)));
       const entry = added ?? gone;
-      const what = entry?.kind === 'trait' ? 'a trait' : 'a spell';
-      const name = entry?.kind === 'spell' && typeof entry.key === 'string' ? names.spells?.get(entry.key) : undefined;
-      const named = name ?? what;
+      const named =
+        entry?.kind === 'trait'
+          ? typeof entry.key === 'string' && entry.key
+            ? entry.key
+            : 'a trait'
+          : ((typeof entry?.key === 'string' ? names.spells?.get(entry.key) : undefined) ?? 'a spell');
+      if (entry?.kind === 'trait') return added ? by(`pinned ${named} for ${character()}`) : by(`unpinned ${named} for ${character()}`);
       return added ? by(`pinned ${named} to At hand for ${character()}`) : by(`unpinned ${named} from ${possessive(character())} At hand`);
+    }
+    case 'character.movePin': {
+      // A pin moved in the player's order (euf-4; the detailed log), named as the command was given it. A move of one
+      // pin by two places or more shifts that pin alone by more than one, so it is the one named. Moved by one place, it
+      // and its neighbour simply swap and the stored lists can't tell which was moved: both are named.
+      const list = (row: Record<string, unknown>) => (Array.isArray(row.pins) ? (row.pins as { kind?: unknown; key?: unknown }[]) : []);
+      const id = (p: { kind?: unknown; key?: unknown }) => `${String(p.kind)}:${String(p.key)}`;
+      const nameOf = (p: { key?: unknown }) => (typeof p.key === 'string' && p.key ? p.key : 'a pin');
+      const beforeIds = list(before).map(id);
+      const shifts = list(after)
+        .map((p, i) => ({ p, by: beforeIds.indexOf(id(p)) - i }))
+        .filter((s) => s.by !== 0);
+      const far = shifts.filter((s) => Math.abs(s.by) > 1);
+      if (far.length === 1) return by(`moved ${nameOf(far[0]!.p)} ${far[0]!.by > 0 ? 'up' : 'down'} in ${possessive(character())} pins`);
+      if (shifts.length === 2) return by(`swapped ${nameOf(shifts[0]!.p)} and ${nameOf(shifts[1]!.p)} in ${possessive(character())} pins`);
+      return by(`changed the order of ${possessive(character())} pins`);
     }
     case 'character.setSpells':
       return by(`changed ${possessive(character())} spells`);

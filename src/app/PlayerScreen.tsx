@@ -7,8 +7,9 @@ import { cardLine, shortLabel, type FieldDefinition } from '../modules/character
 import { downAtOf } from '../modules/characters/hp.ts';
 import { combatFields, skillsOf } from '../modules/characters/play.ts';
 import { CentredPopUpScope, SheetScope } from '../ui/Dialog.tsx';
-import { limitedAbilities, loadCharacterPlay, pinnedTraits, powersWithUses, type CharacterPlay, type LimitedAbility } from '../modules/characters/playState.ts';
+import { limitedAbilities, loadCharacterPlay, pinnedNames, powersWithUses, type CharacterPlay, type LimitedAbility } from '../modules/characters/playState.ts';
 import { SectionNav } from '../ui/SectionNav.tsx';
+import { useToast } from '../ui/ToastHost.tsx';
 import { useNavCollapsed } from '../ui/navCollapsed.ts';
 import { DividerHandle } from '../ui/DividerHandle.tsx';
 import { CompanyPage } from './CompanyPage.tsx';
@@ -39,12 +40,12 @@ import { useStatusBook } from './Statuses.tsx';
 import { MessageCard, useMessaging } from './Messages.tsx';
 import { PlayerRequests } from './RequestCard.tsx';
 import { fieldsInPlay, fieldsOffFor } from '../modules/library/optionGate.ts';
-import { CharacterSheet } from './CharacterSheet.tsx';
+import { CharacterSheet, type SheetPins } from './CharacterSheet.tsx';
 import { BookType } from '../ui/creation.tsx';
 import { kindredAndTitle, nameKindredTitle, PlayerHead } from './player/PlayerHead.tsx';
 import { PlayerVitals } from './player/PlayerVitals.tsx';
 import { PlayerAtHand } from './player/PlayerAtHand.tsx';
-import { PlayerTraits, traitsWithUses } from './player/PlayerTraits.tsx';
+import { EntryPinStar, movePinTo, PinMoves, PlayerTraits, traitsWithUses } from './player/PlayerTraits.tsx';
 import { PlayerSheetParts } from './player/PlayerSheetParts.tsx';
 import { playerFigures } from './player/playerFigures.ts';
 import { PlayerStateLine } from './player/PlayerStates.tsx';
@@ -145,6 +146,8 @@ export function PlayerScreen({
   const [detailsSlot, setDetailsSlot] = useState<HTMLElement | null>(null);
   const [topSlot, setTopSlot] = useState<HTMLElement | null>(null);
   const [moreSlot, setMoreSlot] = useState<HTMLElement | null>(null);
+  const [traitsSlot, setTraitsSlot] = useState<HTMLElement | null>(null);
+  const toastMove = useToast();
   // The notices box's place (row C1): the right column's top beside, under the head's line in one column.
   const [noticesSlot, setNoticesSlot] = useState<HTMLElement | null>(null);
   // The screen's one loading state (dec-13 C11): where each read the Player tab is drawn from stands. Until the first
@@ -302,8 +305,8 @@ export function PlayerScreen({
   const headLine = wide ? cardWords : kindred || cardWords;
   const top = topRow(wide && current === 'player' ? nameKindredTitle(character.name, figures.shownRace, title) : character.name);
 
-  // The traits pinned to At hand (dec-13 C8, pin-2; frame P1): they leave Traits and join At hand, each thing once.
-  const traitsPinned = !!play && pinnedTraits(traitsWithUses(figures, character.level, traitPowers), play.pins).pinned.length > 0;
+  // The right column's list, Abilities and traits (row P3; page 28): the pinned ones first, in the player's order, then
+  // the unpinned traits with uses. Nothing pinned joins At hand any more (euf-3).
   const traitsProps = play && {
     db,
     user,
@@ -315,6 +318,27 @@ export function PlayerScreen({
     more: traitPowers,
   };
 
+  // The pins for the hosted sheet (row P3; pg28-3, pg28-7): the pinned names leave the foot's rows' lines, and a pinned
+  // one's own pop-up (its entry) ends with Move up and Move down.
+  const sheetPins: SheetPins | undefined = play
+    ? {
+        names: play.pins.filter((p) => p.kind === 'trait').map((p) => p.key),
+        star: (name) => <EntryPinStar db={db} user={user} character={character} name={name} pins={play.pins} onChanged={() => setPlayVersion((v) => v + 1)} />,
+        moves: (name, names) => {
+          const live = pinnedNames(play.pins, [...names, ...traitsWithUses(figures, character.level, traitPowers).map((a) => a.name)]);
+          return (
+            <PinMoves
+              name={name}
+              live={live}
+              onMove={(from, to) =>
+                void movePinTo(db, user, character, play.pins, live, from, to).then((result) => (result.ok ? setPlayVersion((v) => v + 1) : toastMove({ text: result.message, error: true })))
+              }
+            />
+          );
+        },
+      }
+    : undefined;
+
   // The right column (dec-13 C1, ps-2): the sheet's scores, saves (beside only), movement and load; the traits with
   // uses; the sheet's skills and languages; then the rest of the sheet's rows, on a phone too (tfr-5).
   const rightColumn = (
@@ -322,7 +346,7 @@ export function PlayerScreen({
       {/* Beside, the notices box at the top, over Scores (frame M1a). */}
       {wide && <div className="player__notices" ref={setNoticesSlot} />}
       <div className="player__slot" ref={setTopSlot} />
-      {traitsProps && <PlayerTraits {...traitsProps} />}
+      <div className="player__slot" ref={setTraitsSlot} />
       <div className="player__slot" ref={setMoreSlot} />
     </>
   );
@@ -405,7 +429,6 @@ export function PlayerScreen({
               weaponLine={weaponLine}
               weaponBreakdown={weaponParts}
               weaponRolls={weaponRollsOf}
-              extra={traitsProps && traitsPinned ? <PlayerTraits {...traitsProps} place="atHand" /> : null}
               onRead={onPackRead}
             />
             <div className="player__slot" ref={setLevelSlot} />
@@ -422,7 +445,9 @@ export function PlayerScreen({
               onSaved={onSheetSaved}
               beside={wide}
               onPhase={setSheetPhase}
-              slots={{ saves: savesSlot, level: levelSlot, details: detailsSlot, top: topSlot, more: moreSlot, notices: noticesSlot }}
+              slots={{ saves: savesSlot, level: levelSlot, details: detailsSlot, top: topSlot, traits: traitsSlot, more: moreSlot, notices: noticesSlot }}
+              traits={traitsProps ? (pinnable) => <PlayerTraits {...traitsProps} pinnable={pinnable} /> : undefined}
+              pins={sheetPins}
             />
           </TabPopUps>
           </div>
