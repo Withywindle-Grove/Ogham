@@ -5,7 +5,7 @@ absorbed-into: pending: docs/09-decisions-log.md (the lines below), docs/06-scre
 supersedes: nothing as a file. Inside `dec-scene-whole-2026-11-14.md`, row cs-45 to cs-53: cs-46 (special approvals last; clo-1), cs-53 (the sent-back screen's words only; clo-2), cs-52 (one column on an iPad, for the review; clo-3), cs-48 (the whole-screen loaders, for a step's own rows; clo-4), cs-51 ("Nothing to choose here." alone; clo-5), cs-47 (the GM's card, cs-25 only; clo-9). Francis's 2026-11-07 ruling that only Kindred and Class keep two columns (retest 2, `../notes/gate-m5b-walk-2026-11-05.md`) is reopened for the review (clo-3) and for Who they are, Details, Magic, Languages and Weapon skills (clo-7). cs-45, cs-49 and cs-50 stand
 ---
 
-# Creation's leftovers: Francis's answers, frame by frame (clo-1 to clo-12, clo-14 to clo-16; 2026-11-21)
+# Creation's leftovers: Francis's answers, frame by frame (clo-1 to clo-12, clo-14 to clo-17; 2026-11-21)
 
 The plan [`creation-leftovers-2026-11-21.md`](../../plans/creation-leftovers-2026-11-21.md) listed twelve creation frames drawn on 2026-11-12 and never built, each one held back by the lead's rulings cs-45 to cs-53 ([`dec-scene-whole-2026-11-14.md`](dec-scene-whole-2026-11-14.md)) "for Francis as its own piece". Francis answered its ⚑ 1 to 12 at a sitting on 2026-11-21 with the driver, each frame in front of him, and ⚑ 14 to 16 later that day through the driver. The fixes were put to him with each question and are part of his answer. Words in quotes are his.
 
@@ -30,8 +30,9 @@ The frames are now in this repository: `../mockups/creation/final/` pages 14 and
 | clo-14 | 14 | 22-G8 | **On the review card, the alignment's tongue is plain words, "Reed-tongue (alignment)", not a chip.** The review card only: on the Languages step (20-E6) it keeps its ⓘ. Settles the open point in clo-3's "every chip alike". | "Yes" |
 | clo-15 | 15 | 23-H1 | **Next while a step loads shows "Still loading the classes." as a toast**, not a pop-up. Keeps clo-6's toasts for creation's blocked taps. | "Toast" |
 | clo-16 | 16 | 20-E6, 20-E7 | **Weapon skills open the entry as 20-E7 draws it** (in a pane beside the list, with an X, as Class has it); **Languages opens the entry as a sheet, like Magic.** Settles the open point in clo-7 (b). | "Yes" |
+| clo-17 | 17 | 23-H3 | **L5's why-line names the class in the singular, as the pack gives it:** "A Lantern Warden has no spells to pick." Settles the open point in clo-5's sentence form. | "Singular" |
 
-Ids follow the ⚑ numbers, not the plan's rows: clo-7 rules L7 and L8, clo-8 rules L9, clo-9 L10, clo-10 L11, clo-11 L12, clo-14 L3, clo-15 L4, clo-16 L8. ⚑ 13 (the frames carried in) is not a ruling; ⚑ 17 (L5's sentence form) is not answered yet.
+Ids follow the ⚑ numbers, not the plan's rows: clo-7 rules L7 and L8, clo-8 rules L9, clo-9 L10, clo-10 L11, clo-11 L12, clo-14 L3, clo-15 L4, clo-16 L8, clo-17 L5. ⚑ 13 (the frames carried in) is not a ruling.
 
 ## What stands
 
@@ -43,7 +44,6 @@ Ids follow the ⚑ numbers, not the plan's rows: clo-7 rules L7 and L8, clo-8 ru
 
 ## Not settled (collected in the plan's ⚑ list)
 
-- L5's sentence form (singular or plural class name in the why-line, ⚑ 17): asked, not answered.
 - Whether the fixes of clo-2, clo-3, clo-7 and clo-9 can be built from the frame and the written fix, or need a redrawn frame first (⚑ 18); L10's Send back note (⚑ 19).
 
 ## Not checked
