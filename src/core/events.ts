@@ -174,6 +174,21 @@ export async function loadLog(
 }
 
 /**
+ * Every line one command wrote in a campaign that the reader may read, with the lines that reversed them, oldest first
+ * (B15: the hoard's "Sent to …" and where a found thing is now, read from the GM's send lines). Null on error.
+ */
+export async function loadCommandLog(db: Db, campaignId: string, type: string): Promise<LogEvent[] | null> {
+  const lines = await db.from('events').select(EVENT_COLUMNS).eq('campaign_id', campaignId).eq('type', type).order('seq', { ascending: true });
+  if (lines.error) return null;
+  const rows = lines.data as EventRow[];
+  const ids = rows.map((r) => r.id);
+  const back = ids.length > 0 ? await db.from('events').select(EVENT_COLUMNS).eq('campaign_id', campaignId).in('reverts_event_id', ids) : { data: [], error: null };
+  if (back.error) return null;
+  const seen = new Set(ids);
+  return [...rows, ...(back.data as EventRow[]).filter((r) => !seen.has(r.id))].map(toLogEvent).sort((a, b) => a.seq - b.seq);
+}
+
+/**
  * One row's history (the Status ring's sheet, plan m5b-creation-retest-3 F: "Set by" and its log line): every log
  * entry with an event on that row, newest first, each with all the events of its request. Null on error.
  */
@@ -1122,6 +1137,19 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
     case 'place.addPiece': {
       const made = entry.events.find((e) => e.targetTable === 'place_pieces' && e.before === null)?.after ?? after;
       return by(`added a piece to ${named(names.placeNames ?? new Map(), made.place_id, 'a place')}: “${String(made.body ?? '')}”`);
+    }
+    case 'place.showItemTruth': {
+      // B15 (p2p-29): a magic item's piece shown, and the item named wherever it is held, in one request. A reader who
+      // can't read the piece (a player after its Undo, say) reads no words of it: only that an item was named.
+      const made = entry.events.find((e) => e.targetTable === 'piece_shows');
+      const pieceId = made?.after?.piece_id ?? names.pieceShows?.get(String(made?.targetId))?.piece;
+      const groupNo = typeof made?.after?.group_number === 'number' ? made.after.group_number : (names.pieceShows?.get(String(made?.targetId))?.group ?? 1);
+      const group = groupNo !== 1 ? groupName(groupNo) : 'the party';
+      const text = named(names.pieces ?? new Map(), pieceId, '');
+      const items = entry.events.filter((e) => e.targetTable === 'inventory_lines').length;
+      const itemWords = items === 0 ? '' : items === 1 ? 'an item now carries its name' : `${items} items now carry their name`;
+      if (!text) return by(itemWords ? `showed what an item is: ${itemWords}` : 'showed what an item is');
+      return by(`showed ${group} “${text}”${itemWords ? `; ${itemWords}` : ''}`);
     }
     case 'place.showPiece':
     case 'place.hidePiece': {

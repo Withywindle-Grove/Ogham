@@ -3021,6 +3021,7 @@ export type Database = {
           piece_id: string
           shown: boolean
           shown_at: string
+          shown_to: string[] | null
           undone: boolean
           updated_at: string
         }
@@ -3034,6 +3035,7 @@ export type Database = {
           piece_id: string
           shown?: boolean
           shown_at?: string
+          shown_to?: string[] | null
           undone?: boolean
           updated_at?: string
         }
@@ -3047,6 +3049,7 @@ export type Database = {
           piece_id?: string
           shown?: boolean
           shown_at?: string
+          shown_to?: string[] | null
           undone?: boolean
           updated_at?: string
         }
@@ -5738,6 +5741,14 @@ export type Database = {
           timing: string
         }[]
       }
+      item_truths: {
+        Args: { campaign: string }
+        Returns: {
+          body: string
+          line_id: string
+          name: string
+        }[]
+      }
       join_party_groups: {
         Args: { campaign: string; from_group: number; into_group: number }
         Returns: {
@@ -6986,6 +6997,10 @@ export type Database = {
         Returns: {
           item_id: string
         }[]
+      }
+      show_item_truth: {
+        Args: { lines: string[]; piece: string; visit: string }
+        Returns: number
       }
       show_place_piece: {
         Args: { piece: string; show_it: boolean; visit: string }

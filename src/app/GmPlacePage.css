@@ -548,3 +548,10 @@ body:has(.place-page__bar) .toast-host {
   flex: 1;
   min-block-size: var(--tap-step);
 }
+
+/* B15 (pg30-1; HM1): the small arrow before a hoard's eye, saying a tap on its words opens it. Decorative. */
+.place-page__opens {
+  display: inline-flex;
+  flex: none;
+  color: var(--muted);
+}

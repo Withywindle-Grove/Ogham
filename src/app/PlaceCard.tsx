@@ -640,7 +640,25 @@ export function namedParts(text: string, names: readonly string[]): { text: stri
  * One piece (B1): its text and kind, and the 44 × 44 eye button that shows it to the group in focus. The text is the
  * tap target for Edit piece (g2b, gp-1: the whole row but the eye; no pencil, the text is the thing).
  */
-export function PieceRow({ piece, onToggle, onEdit, page = false, named = [] }: { piece: Piece; onToggle: () => void; onEdit: () => void; page?: boolean; named?: readonly string[] }) {
+export function PieceRow({
+  piece,
+  onToggle,
+  onEdit,
+  page = false,
+  named = [],
+  onOpen,
+  note,
+}: {
+  piece: Piece;
+  onToggle: () => void;
+  onEdit: () => void;
+  page?: boolean;
+  named?: readonly string[];
+  /** B15 (pg30-1): a hoard's piece opens its hoard on a tap, a small arrow before its eye saying so. */
+  onOpen?: () => void;
+  /** B15 (HM1, PK5b): the line under a hoard's piece, saying where it went. */
+  note?: ReactNode;
+}) {
   if (page) {
     // The Location's card (p2p-10; page 23, LA1, approved 2026-11-18): in the book's format, no kind word. A piece the
     // pack leads with its own word starts with it in bold; the description has none, and its words that name another
@@ -650,7 +668,7 @@ export function PieceRow({ piece, onToggle, onEdit, page = false, named = [] }: 
     const parts = piece.kind === 'description' ? namedParts(piece.text, named) : [{ text: piece.text, named: false }];
     return (
       <li className="place-page__piece">
-        <button type="button" className="place-page__piece-words" aria-label={`Edit piece: ${piece.text}`} onClick={onEdit}>
+        <button type="button" className="place-page__piece-words" aria-label={onOpen ? `Open ${piece.lead ?? piece.text}` : `Edit piece: ${piece.text}`} onClick={onOpen ?? onEdit}>
           <span className="place-page__piece-text">
             {piece.lead && (
               <>
@@ -661,8 +679,14 @@ export function PieceRow({ piece, onToggle, onEdit, page = false, named = [] }: 
               <Fragment key={i}>{part.named ? <strong className="place-page__named">{part.text}</strong> : part.text}</Fragment>
             ))}
           </span>
-          {fact && <span className="place-page__fact">{fact}</span>}
+          {fact && !onOpen && <span className="place-page__fact">{fact}</span>}
+          {note}
         </button>
+        {onOpen && (
+          <span className="place-page__opens" aria-hidden="true">
+            <Icon name="chevron" size={20} />
+          </span>
+        )}
         <EyeButton shown={piece.shown} show="Show players" hide="Hide from players" onToggle={onToggle} />
       </li>
     );

@@ -130,6 +130,7 @@ import { approveSheetChange, HP_MAX_FIELD, refuseSheetChange, requestSheetChange
 import { chooseStay, replyRequest, undoBuy } from '../modules/requests/townRequests.ts';
 import { setSpellBook } from '../modules/characters/spellBook.ts';
 import { giveFind, undoFind } from '../modules/expedition/findSend.ts';
+import { showItemTruth } from '../modules/expedition/itemTruth.ts';
 import { addCoin, giveCoin, removeCoin, spendCoin, takeCoin, type Coins, type TakeFrom } from '../modules/inventory/purse.ts';
 import { redoCreation, type RedoChoice } from '../modules/characters/redo.ts';
 
@@ -289,9 +290,10 @@ export interface CaseWorld {
    * Where the party is (M5 step 11): a fresh expedition under way in the campaign (any other ended first), the party
    * at the invented "Moth Gallery", hidden from players or (`shown`) shown. Gives back the party's row with its place
    * and its one piece (an exit, M5b g2), hidden or (`shown`) shown to the party; with `picture`, the place has the
-   * GM's picture (M5b step 1 follow-up); with `map`, a map of the GM's tied to it (dec-7 5m-2).
+   * GM's picture (M5b step 1 follow-up); with `map`, a map of the GM's tied to it (dec-7 5m-2); with `magic`, its one
+   * piece is a magic item's truth instead (B15, p2p-29: kind `other`, led by the item's real name).
    */
-  freshPlace(shown?: boolean, picture?: boolean, map?: boolean): Promise<GroupPlace>;
+  freshPlace(shown?: boolean, picture?: boolean, map?: boolean, magic?: boolean): Promise<GroupPlace>;
   /** A map of the GM's (dec-7 5m-3, the eye): the campaign's copy, an asset of kind `map`, hidden. Gives back its id. */
   freshMap(): Promise<string>;
   /** A find the GM just sent to Player A's character (K16b, find.give): the send's first log line, for its Undo. */
@@ -1271,6 +1273,19 @@ export const permissionCases: PermissionCase[] = [
   rule("a player can't show a piece", 'playerB', showPiece, async (w) => {
     const row = await w.freshPlace();
     return { campaignId: w.campaignId, row, piece: row.pieces[0]! };
+  }, false),
+  // B15 (p2p-29): a magic item's piece shown, and the item named where it is held; the GM's alone.
+  rule("the GM can show a magic item's truth", 'gm', showItemTruth, async (w) => {
+    const row = await w.freshPlace(false, false, false, true);
+    return { campaignId: w.campaignId, row, piece: row.pieces[0]!, lines: [] };
+  }, true),
+  rule("a player can't show a magic item's truth", 'playerA', showItemTruth, async (w) => {
+    const row = await w.freshPlace(false, false, false, true);
+    return { campaignId: w.campaignId, row, piece: row.pieces[0]!, lines: [] };
+  }, false),
+  rule("an outsider can't show a magic item's truth", 'outsider', showItemTruth, async (w) => {
+    const row = await w.freshPlace(false, false, false, true);
+    return { campaignId: w.campaignId, row, piece: row.pieces[0]!, lines: [] };
   }, false),
   rule('the GM can hide a piece again', 'gm', hidePiece, async (w) => {
     const row = await w.freshPlace(true);

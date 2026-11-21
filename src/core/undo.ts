@@ -90,6 +90,8 @@ export const UNDOABLE_MAKINGS: readonly string[] = [
   'rumour.give',
   // A shop's stock (W12): a first answer for a thing that day makes its row (Undo marks it undone; it reads as its default).
   'stock.set',
+  // B15 (p2p-29): the GM's eye on a magic item's piece makes the piece's show (as place.showPiece; Undo marks it undone).
+  'place.showItemTruth',
 ];
 
 /**

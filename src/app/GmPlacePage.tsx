@@ -65,6 +65,7 @@ import { PlaceMapPart } from './PlaceMap.tsx';
 import { TableListItem } from './EncounterTables.tsx';
 import { KnowledgeSheet } from './KnowledgeSheet.tsx';
 import { MoveOnWiring } from './MoveOn.tsx';
+import { useHoards } from './HoardSheet.tsx';
 import { AddPiece, NotesFold, PictureSection, PieceRow } from './PlaceCard.tsx';
 import { BookTextFold, PlaceTable } from './PlaceFacts.tsx';
 import { PlacePicker } from './PlacePicker.tsx';
@@ -296,6 +297,8 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
 
   const actions = usePlaceActions({ db, user, campaign, group, groupLabel, row, regionalTables, packPlaces, onChanged });
   const { editing, setEditing, who } = actions;
+  // B15 (page 30): a hoard's piece opens its hoard; a magic item's eye also names the item wherever it is held.
+  const hoards = useHoards({ db, user, campaign, row, place: readEntry?.data ?? null, who: groupLabel ?? 'the players', placeName: place ? numberedName(current?.key ?? null, place.name) : '', phone, onEdit: setEditing, onChanged });
 
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
@@ -527,7 +530,16 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
         <ul className="place-page__rows place-page__pieces">
           <PictureSection key={`picture:${place.id}`} page="row" db={db} user={user} campaign={campaign} place={place} row={row} picture={picture} who={who} onChanged={onChanged} />
           {ordered.map((piece) => (
-            <PieceRow key={piece.id} page piece={piece} named={named} onToggle={() => void actions.togglePiece(piece)} onEdit={() => setEditing(piece)} />
+            <PieceRow
+              key={piece.id}
+              page
+              piece={piece}
+              named={named}
+              onToggle={() => void (!piece.shown && hoards.isMagic(piece) ? hoards.showTruth(piece) : actions.togglePiece(piece))}
+              onEdit={() => setEditing(piece)}
+              onOpen={hoards.opens(piece) ? () => hoards.open(piece) : undefined}
+              note={hoards.noteOf(piece)}
+            />
           ))}
         </ul>
       )}
@@ -680,6 +692,7 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
         <LocationsPanel of={panelOf} places={packPlaces} partyAt={current} lines={panelLines?.key === panelKey ? panelLines.lines : null} onRead={readAhead} onClose={() => setPanelOf(null)} />
       )}
       {blocked.sheet}
+      {hoards.sheets}
       {knowledgeOpen && <KnowledgeSheet placeName={reading ? reading.name : (place?.name ?? '')} facts={cardFacts ?? NO_FACTS} source={cardSource} onClose={() => setKnowledgeOpen(false)} />}
       {rulesOpen && <PlaceRulesSheet db={db} user={user} campaignId={campaign.id} chain={placeChain} settingCheck={settingCheck} onChanged={changed} onClose={() => setRulesOpen(false)} onBlocked={reading ? notHere : undefined} />}
       {openTable && <PlaceTable table={openTable} onClose={() => setOpenTable(null)} />}

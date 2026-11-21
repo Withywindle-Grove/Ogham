@@ -1,0 +1,49 @@
+/* B15 (page 30, HM1 to HM5): a hoard's sent line, its sheet and the Send sheet. Tokens only (hard rule 7). */
+
+/* "✓ Sent to Wren" under a hoard's piece or row (PK5b): the ink in bold 14, the tick before it. */
+.hoard-sent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--ink);
+  font-size: var(--text-14);
+  font-weight: var(--weight-bold);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.hoard-sent svg {
+  flex: none;
+}
+
+.hoard-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* The book's line once, in the book's format (HM2). */
+.hoard-sheet__words {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: break-word;
+}
+
+/* "Send all" at the right under the rows (HM2, PK5). */
+.hoard-sheet__foot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* PK5's two equal answers, full width, one under the other. */
+.hoard-sheet__answers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.hoard-sheet__answers .stacked-button {
+  inline-size: 100%;
+}
