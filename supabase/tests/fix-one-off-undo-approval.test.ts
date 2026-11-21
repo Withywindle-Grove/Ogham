@@ -78,14 +78,14 @@ afterAll(async () => {
 }, 60_000);
 
 describe('the Undo of a one-off moved off a character that was approved since', () => {
-  it.fails("1. the player's Undo puts it back waiting for the GM, not approved", async () => {
+  it("1. the player's Undo puts it back waiting for the GM, not approved", async () => {
     const { draft, line, moved } = await movedOffDraft('Marram', 'A heron feather quill');
     await approve(draft);
     expect(await undo(world.playerA, moved, world.playerA)).toMatchObject({ ok: true });
     expect(await lineOf(line.id)).toMatchObject({ actor_id: draft.id, approval: 'pending' });
   });
 
-  it.fails('2. moved between two of the player\'s drafts, the first approved since, it comes back waiting', async () => {
+  it('2. moved between two of the player\'s drafts, the first approved since, it comes back waiting', async () => {
     const first = await draftOf('Sorrel');
     const second = await draftOf('Yarrow');
     const line = await oneOff(world.playerA, carrierOf(first.id, world.playerA.id), 'A cracked moonstone');
@@ -155,7 +155,7 @@ describe('the Undo of a one-off dropped from a draft', () => {
     return { draft, line, dropped };
   }
 
-  it.fails('8. once the GM approves the draft, the player\'s Undo brings it back waiting for the GM', async () => {
+  it('8. once the GM approves the draft, the player\'s Undo brings it back waiting for the GM', async () => {
     const { draft, line, dropped } = await droppedFromDraft('Pennywort', 'A snail-shell whistle');
     await approve(draft);
     expect(await undo(world.playerA, dropped, world.playerA)).toMatchObject({ ok: true });
