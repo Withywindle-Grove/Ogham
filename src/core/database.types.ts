@@ -4202,6 +4202,113 @@ export type Database = {
           },
         ]
       }
+      town_piece_resets: {
+        Row: {
+          campaign_id: string
+          group_place_id: string
+          id: string
+          reset_at: string
+        }
+        Insert: {
+          campaign_id: string
+          group_place_id: string
+          id?: string
+          reset_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          group_place_id?: string
+          id?: string
+          reset_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "town_piece_resets_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "town_piece_resets_group_place_id_fkey"
+            columns: ["group_place_id"]
+            isOneToOne: false
+            referencedRelation: "group_places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      town_piece_shows: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          created_by: string | null
+          group_number: number
+          group_place_id: string
+          id: string
+          piece_id: string
+          shown: boolean
+          shown_at: string
+          undone: boolean
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          created_by?: string | null
+          group_number: number
+          group_place_id: string
+          id?: string
+          piece_id: string
+          shown?: boolean
+          shown_at?: string
+          undone?: boolean
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          created_by?: string | null
+          group_number?: number
+          group_place_id?: string
+          id?: string
+          piece_id?: string
+          shown?: boolean
+          shown_at?: string
+          undone?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "town_piece_shows_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "town_piece_shows_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "town_piece_shows_group_place_id_fkey"
+            columns: ["group_place_id"]
+            isOneToOne: false
+            referencedRelation: "group_places"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "town_piece_shows_piece_id_fkey"
+            columns: ["piece_id"]
+            isOneToOne: false
+            referencedRelation: "place_pieces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       travel_group_secrets: {
         Row: {
           campaign_id: string
@@ -6485,6 +6592,26 @@ export type Database = {
           place_name: string
         }[]
       }
+      scene_town_pictures: {
+        Args: { campaign: string }
+        Returns: {
+          asset_id: string
+          entry_key: string
+          group_number: number
+        }[]
+      }
+      scene_town_pieces: {
+        Args: { campaign: string }
+        Returns: {
+          body: string
+          entry_key: string
+          group_number: number
+          kind: string
+          lead: string
+          piece_id: string
+          place_name: string
+        }[]
+      }
       season_not_now: { Args: { campaign: string }; Returns: string }
       send_hook: {
         Args: {
@@ -7035,6 +7162,28 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      show_town_place_piece: {
+        Args: { piece: string; show_it: boolean; visit: string }
+        Returns: {
+          campaign_id: string
+          created_at: string
+          created_by: string | null
+          group_number: number
+          group_place_id: string
+          id: string
+          piece_id: string
+          shown: boolean
+          shown_at: string
+          undone: boolean
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "town_piece_shows"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       spend_travel_day: {
         Args: { campaign: string; group_no: number; seen_version?: number }
         Returns: {
@@ -7297,6 +7446,12 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      town_parts_shown: {
+        Args: { visit: string }
+        Returns: {
+          piece_id: string
+        }[]
       }
       travel_move: {
         Args: {

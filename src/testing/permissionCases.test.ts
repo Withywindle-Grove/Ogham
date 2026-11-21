@@ -147,6 +147,7 @@ const world: CaseWorld = {
     reply: 'accept' as const,
   }),
   freshInn: async () => ({ key: 'lodging:the lantern rest', name: 'The Lantern Rest', town: 'Fenwick Market' }),
+  freshTownPart: async () => ({ visitId: 'group-place-town', pieceId: 'piece-chapel' }),
   freshSecretRequest: async () => ({
     ...request('request-secret', users.playerA.id, 'actor-wren', 'secretActivity', 'playerAsks'),
     text: 'Scout ahead',

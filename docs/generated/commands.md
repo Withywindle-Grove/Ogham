@@ -201,9 +201,11 @@ Every change goes through one of these commands, which checks `can(user, command
 | `time.set` | simple | GM: the GM can correct the time | Player A: a player can't correct the time |
 | `time.start` | simple | GM: the GM can set the start time while the clock has not moved | Player A: a player can't set the start time |
 | `town.activeNight` | simple | GM: the GM can switch Active tonight on | Player A: a player can't switch Active tonight on |
+| `town.hidePiece` | verbose | GM: the GM can hide a piece of a place in town | Player B: a player can't hide a piece of a place in town |
 | `town.openPlace` | verbose | GM: the GM can close a place in town | Player A: a player can't close a place in town |
 | `town.outDay` | simple | GM: the GM can switch Out and about today on | Player A: a player can't switch Out and about today on<br>Outsider: an outsider can't switch Out and about today on |
 | `town.reset` | simple | GM: the GM can reset the town switches at the morning | Player A: a player can't reset the town switches |
+| `town.showPiece` | verbose | GM: the GM can show players a piece of a place in town | Player A: a player can't show a piece of a place in town |
 | `town.showPlace` | verbose | GM: the GM can show players a place in town | Player A: a player can't show a place in town |
 | `town.stay` | simple | Player A: a player can pick a lodging the GM shows for their own character | Player B: a player can't pick a lodging for another player's character<br>GM: the GM can't pick a lodging for a player's character |
 | `travel.dayStart` | simple | GM: the GM can start the day's budget | Player A: a player can't start the day's budget |
