@@ -28,6 +28,8 @@ One page of the rules in force for the driver, each with its source. Compiled 19
 - Mockups first; a plan piece names its mockup and approval date or says "none: data and logic only". Whole, once (po-4). (CLAUDE.md; README)
 - No new process rules before 5 December, except the ones Francis orders. (README rvw-16; 09, 19 Nov)
 
+- Skills: which skill for which work is in `.claude/README.md`, Skills; the rules win where it differs. A review Francis asks for reports only until he picks findings by number; the local reviewer flow before a merge is unchanged. (Francis, 21 Nov: "approve")
+
 ## Briefing workers
 - Every worker gets a brief in a file: first line `Row: <id>`, then the guard line word for word, the objective, the output, the files to read, the boundaries, "if unsure, stop and ask". The pull request's title carries the row. (driver.md; memory, no-routing-round-guards; README rvw-15)
 - Builders use the standard brief, `.claude/briefs/builder-brief.md`.
