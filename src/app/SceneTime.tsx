@@ -189,6 +189,7 @@ export function SceneTime({
   compact = false,
   onOpenScene,
   tableView,
+  player,
 }: {
   db: Db;
   user: CurrentUser;
@@ -204,9 +205,18 @@ export function SceneTime({
    * and the weather card are the strip's own); `body` is the marching order and the place, given the Rest button
    * for a group (B5: calls a rest out of turn).
    */
+  /**
+   * The GM's view as the player (C15f, pg32-5; page 32, M3i): whose Scene this is. The strip is then the player's, their
+   * characters' group and Rest; what the GM does here still runs as his, through `can()`.
+   */
+  player?: string;
   tableView?: { /** The slot's other prompts, one keyed element each (the slot orders them, newest on top). */ prompts: ReactNode; body: (restButton: (group: number) => ReactNode, dark?: (group: number) => boolean) => ReactNode };
 }) {
-  const gm = isGm(user, campaign.id);
+  const gm = isGm(user, campaign.id) && !player;
+  // Whose characters are "mine": the player's in the GM's view, else the reader's.
+  const me = player ?? user.id;
+  // The players' reads are made as the player only when that is someone else (the GM's own character reads as him).
+  const readAs = player !== undefined && player !== user.id ? player : undefined;
   const logVersion = useLogVersion();
   // The GM's place page holds the screen's accent (Move on): the main advance is then plain (5b).
   const accentHeld = useAccentHeld();
@@ -428,7 +438,7 @@ export function SceneTime({
   useEffect(() => {
     if (gm || compact || !expeditionId) return;
     let current = true;
-    void Promise.all([loadLastShownPlaces(db, campaign.id), loadPlayersCheck(db, campaign.id)]).then(([places, checks]) => {
+    void Promise.all([loadLastShownPlaces(db, campaign.id, readAs), loadPlayersCheck(db, campaign.id, readAs)]).then(([places, checks]) => {
       if (!current) return;
       setShownRead((last) => {
         const kept = last.trip === expeditionId ? last : { trip: expeditionId, places: new Map<number, string>(), checks: [] };
@@ -438,7 +448,7 @@ export function SceneTime({
     return () => {
       current = false;
     };
-  }, [db, gm, compact, campaign.id, expeditionId, logVersion, version]);
+  }, [db, gm, compact, campaign.id, expeditionId, logVersion, version, readAs]);
   // Where? (DG1), the GM's alone: recent places between expeditions, and where the one under way started.
   useEffect(() => {
     if (!gm || compact) return;
@@ -812,7 +822,7 @@ export function SceneTime({
           forcedGroups: forcedRestGroups(travelRows?.values() ?? [], (openCamps ?? []).map((c) => c.camp)),
         })
       : [];
-  const mineIds = marchers.filter((m) => m.ownerUserId === user.id).map((m) => m.id);
+  const mineIds = marchers.filter((m) => m.ownerUserId === me).map((m) => m.id);
   const myFlows = gm ? flows : flows.filter((f) => f.members.some((id) => mineIds.includes(id)));
   const splitFlows = flows.length > 1;
   const restOf = (id: string) => rests.find((r) => r.actorId === id);
@@ -991,7 +1001,7 @@ export function SceneTime({
     // the database starts the days with the clock, so the day's record never waits for a travel card to be open.
     const morning =
       !moving && command !== nextPartOfDay && dayOf(result.to) > dayOf(result.from) && setting && settings && members
-        ? await loadTravelView(db, campaign.id, { clock: { ...clock, seconds: result.to }, session, expedition, seasonNotNow: seasonDeclined }, setting, settings as Record<string, Json | undefined>, members, marchers, { userId: user.id, gm })
+        ? await loadTravelView(db, campaign.id, { clock: { ...clock, seconds: result.to }, session, expedition, seasonNotNow: seasonDeclined }, setting, settings as Record<string, Json | undefined>, members, marchers, { userId: me, gm })
         : null;
     const days = morning ? travelDayStarts(morning) : [];
     const moved = moving
@@ -1244,7 +1254,7 @@ export function SceneTime({
   /** The Rest button (B5): calls a rest for the group (or, with one open, answers Rest for the player's own). */
   async function restCalled(group: number) {
     const flow = flows.find((f) => f.group === group);
-    const own = party.filter((p) => p.ownerUserId === user.id && (flow?.members.includes(p.id) ?? true));
+    const own = party.filter((p) => p.ownerUserId === me && (flow?.members.includes(p.id) ?? true));
     if (!flow || own.length === 0) return show({ text: 'None of your characters is in this group.' });
     if (flow.open) {
       const done = await act(answerRest, { target: { campaignId: campaign.id, characters: own }, answer: 'rest' });

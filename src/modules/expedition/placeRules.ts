@@ -16,6 +16,7 @@
 import { defineCommand, fromError, isGm, ok, type CommandResult, type CurrentUser } from '../../core/commands.ts';
 import type { Db } from '../../core/supabase.ts';
 import { plainLinks } from '../library/linkMarks.ts';
+import { readsAs } from './placePlay.ts';
 import type { RuleBlock as ReadBlock, RuleText as ReadRuleText } from '../library/ruleText.ts';
 import { readCheck, type Chance, type Check } from './modes.ts';
 import { facesWords } from './partyModifiers.ts';
@@ -396,8 +397,8 @@ export function chainAfterRead(last: readonly ChainEntry[], read: { chain: Chain
 }
 
 /** The rules a player reads, by group (only what the database gives them); null when they can't be read. */
-export async function loadPlayersRules(db: Db, campaignId: string): Promise<PlayersRule[] | null> {
-  const { data, error } = await db.rpc('place_rules_for_players', { campaign: campaignId });
+export async function loadPlayersRules(db: Db, campaignId: string, asPlayer?: string): Promise<PlayersRule[] | null> {
+  const { data, error } = await db.rpc('place_rules_for_players', readsAs(campaignId, asPlayer));
   if (error) return null;
   return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
     group: Number(r.group_number),
@@ -409,8 +410,8 @@ export async function loadPlayersRules(db: Db, campaignId: string): Promise<Play
 }
 
 /** The place's check a player reads, by group (none for a group where the setting's check holds); null when it can't be read. */
-export async function loadPlayersCheck(db: Db, campaignId: string): Promise<PlayersCheck[] | null> {
-  const { data, error } = await db.rpc('encounter_check_for_players', { campaign: campaignId });
+export async function loadPlayersCheck(db: Db, campaignId: string, asPlayer?: string): Promise<PlayersCheck[] | null> {
+  const { data, error } = await db.rpc('encounter_check_for_players', readsAs(campaignId, asPlayer));
   if (error) return null;
   return ((data ?? []) as Record<string, unknown>[]).map((r) => {
     const raw = isObject(r.checked) ? r.checked : {};

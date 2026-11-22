@@ -1484,6 +1484,16 @@ if (new URLSearchParams(window.location.search).get('viewPack') === '1') {
   Object.assign(world.tables.inventory_lines.find((l) => l.id === 'line-wand')!, { charges_hidden: true, charges_used: 1 });
   world.tables.inventory_line_secrets.push({ id: 'line-wand', campaign_id: campaign, charges_total: 999, spent: false });
 }
+// The Scene in the GM's view as the player (page 32, M3i; C15f), only with ?viewScene=1: Sam's request waiting on the
+// GM ("Search the hold"), so the view's prompt slot shows it with its Cancel. Use with &placePage=spot&ways=1 for M3i's
+// place and ways.
+if (new URLSearchParams(window.location.search).get('viewScene') === '1') {
+  world.tables.requests.push({
+    id: 'request-view-scene', campaign_id: campaign, expedition_id: null, group_number: null, requester_id: sam, actor_id: wren, kind: 'askGm', direction: 'playerAsks',
+    text: 'Search the hold', cost_text: '', prompt: {}, entry: null, status: 'waiting', answer_kind: 'yesNo', answer: null, answered_at: null, reply: null,
+    created_at: '2026-11-22T10:00:00Z', version: 1, undone: false,
+  });
+}
 // What the folded rail keeps (mn-2), only with ?railSigil=1: the retired campaign takes a 60-character name, and it and
 // the Drowned Marches a sigil picture (the layout check serves files.example's pictures itself).
 if (new URLSearchParams(window.location.search).get('railSigil') === '1') {
@@ -1504,7 +1514,17 @@ const mapParts = new URLSearchParams(window.location.search).get('mapParts');
 const moveOn = new URLSearchParams(window.location.search).get('moveOn');
 const knowledge = new URLSearchParams(window.location.search).get('knowledge');
 const placeCard = new URLSearchParams(window.location.search).get('placeCard');
-if (placeCard) {
+const viewPopUps = new URLSearchParams(window.location.search).get('viewPopUps');
+if (viewPopUps) {
+  // The GM's view's player-only pop-ups opened from inside a sheet (C15d, C15f): a travel day's activity, a town's stay.
+  const { GmViewPopUpsLayoutPage } = await import('../gallery/GmViewPopUpSpecimens.tsx');
+  await import('../gallery/Gallery.css');
+  createRoot(root).render(
+    <StrictMode>
+      <GmViewPopUpsLayoutPage state={viewPopUps} db={world.db} gm={gm} />
+    </StrictMode>,
+  );
+} else if (placeCard) {
   // The players' place card (P4) alone, as the gallery draws it; on the players' page with ?placePage=spot&ways=1.
   const { PlayersPlaceCardLayoutPage } = await import('../gallery/PlayersPlaceCardSpecimens.tsx');
   await import('../gallery/Gallery.css');

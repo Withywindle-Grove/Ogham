@@ -233,7 +233,9 @@ Collected, not decided. Numbered from 40 (Q's ⚑ 39 is the last).
 
 - ⚑ 40 and 41: ruled on 2026-11-21 (Francis), recorded in `09-decisions-log.md` by C15e.
 - ⚑ 42 to 46: ruled on 2026-11-21 (Francis, and the driver's calls on 44 to 46), recorded in `09-decisions-log.md` by C15c + C15d.
-- ⚑ 51. **Where "Go to Waiting for you" lands from a sheet change.** M3f2's "Only Sam can take back this change" says "Approve or Refuse it in Waiting for you", but sheet changes are answered under **Waiting for approval** on Players, where the built button brings the GM (#36). Change the words to name Waiting for approval, or move sheet changes into Waiting for you? Built meanwhile: the drawn words, landing at Waiting for approval.
+- ⚑ 50: ruled (a) on 2026-11-22 (Francis): the view's item sheet with nothing hidden stays purely the player's; nothing to build. Recorded in `09-decisions-log.md` by C15f.
+- ⚑ 52. **The recent log lines under the Scene in the GM's view.** They are the GM's own log: his words ("You put the party at …"), real place names where a move names one (public.party_moves), and any line only the GM reads. M3i draws no log lines. Leave them out of the view's Scene, or build a player's reading of the log for the GM (another read as the player)? Built meanwhile: the GM's own lines, as before.
+- ⚑ 51: ruled (a) on 2026-11-22 (Francis): the words name Waiting for approval; built and recorded in `09-decisions-log.md` by C15f. The question was: **Where "Go to Waiting for you" lands from a sheet change.** M3f2's "Only Sam can take back this change" says "Approve or Refuse it in Waiting for you", but sheet changes are answered under **Waiting for approval** on Players, where the built button brings the GM (#36). Change the words to name Waiting for approval, or move sheet changes into Waiting for you? Built meanwhile: the drawn words, landing at Waiting for approval.
 
 ### Where the specs and page 32 differ (listed, not fixed)
 
