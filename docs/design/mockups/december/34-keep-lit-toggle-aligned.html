@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: page 34, Keep lit's toggle under the light's toggle, Refill to its left (2026-11-22)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* this page's own rules: layout and the light's two rows only. Type, the stacked button and the small-capitals label
+     come from ../shared/book.css; the toggle (.tg, ds-1c: the wash, the 2 px edge, the glow, a tick or a cross on the
+     knob) from december.css. The rows are page 14's (frames P1, P2), copied as drawn. */
+  .pk { display:inline-block; border:1.5px dashed var(--info); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; }
+  /* the bare switch as built (tg-1, .switch--bare): the 52 px track is the whole box, 44 px high, so two toggles in one
+     column share both edges */
+  .tg { width:52px; }
+  /* the phone at its real width: 375 px, the app's 16 px gutter, 343 px inside */
+  .ph { width:375px; background:var(--page); outline:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; overflow:hidden; --ts:1; }
+  .theme > .wall > div { padding:2px; }
+  .ph .inner { padding:var(--space-2) var(--space-4) var(--space-3); }
+  .ph .bar .title { font-size:calc(20px * var(--ts)); }
+  .tabs { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--rule); background:var(--sheet); }
+  .tabs span { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60px; font-size:calc(14px * var(--ts)); color:var(--muted); }
+  .tabs .on { color:var(--ink); font-weight:700; box-shadow:inset 0 3px 0 var(--accent); }
+  .lg { --ts:1.25; }
+  .lg .sclab { font-size:calc(14px * var(--ts)); }
+  .lg .btn.stk { font-size:20px; }
+  /* At hand's rows (page 14's .ps-row) */
+  .row { display:flex; align-items:center; gap:var(--space-2); min-height:56px; padding:var(--space-1) 0; border-bottom:1px dotted var(--rule); }
+  .row .t, .lr .t { flex:1; min-width:0; }
+  .row .t b, .lr .t b { display:block; font-size:calc(20px * var(--ts)); line-height:1.2; overflow-wrap:anywhere; }
+  .row .t small, .lr .t small { display:block; font-size:calc(14px * var(--ts)); color:var(--muted); line-height:1.25; }
+  .pin { display:inline-flex; vertical-align:-1px; margin-right:var(--space-1); }
+  .dots { display:inline-flex; gap:4px; vertical-align:middle; margin-right:var(--space-2); }
+  .dots i { width:10px; height:10px; border-radius:50%; border:1.5px solid var(--ink); display:inline-block; box-sizing:border-box; }
+  .dots i.on { background:var(--ink); }
+  .acts { display:flex; gap:var(--space-2); flex:none; }
+  /* the light: its row, then Keep lit's row, 8 px apart (.light-block--at-hand) */
+  .lb { display:flex; flex-direction:column; gap:var(--space-2); padding:var(--space-1) 0 var(--space-2); border-bottom:1px dotted var(--rule); }
+  .lr { display:flex; align-items:center; gap:var(--space-2); min-height:56px; }
+  .lr .wn { color:var(--warn); display:inline-flex; vertical-align:-3px; margin-right:var(--space-1); }
+  .lr .t small.low { color:var(--warn); }
+  .kp { display:flex; align-items:center; gap:var(--space-2); min-height:44px; }
+  .kp .nm { font-size:calc(16px * var(--ts)); }
+  .kp .sp { flex:1 1 0; min-width:0; }
+  .i44 { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; color:var(--info); flex:none; }
+  /* the status ring as the light's glyph (page 14) */
+  .rg { position:relative; display:inline-flex; width:52px; height:52px; align-items:center; justify-content:center; flex:none; }
+  .rg .arc { position:absolute; inset:0; transform:rotate(-90deg); }
+  .rg .mid { position:relative; display:inline-flex; color:var(--glow); }
+  /* the tablet held sideways, 1180 px: the rail, then the Player screen's two columns (4 to 5) */
+  .tab { width:1180px; background:var(--page); border:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; overflow:hidden; display:grid; grid-template-columns:56px minmax(0,1fr); --ts:1; }
+  .tab .rail .ri { flex-direction:column; }
+  .tab .cols9 { display:grid; grid-template-columns:minmax(0,4fr) minmax(0,5fr); gap:var(--space-6); padding:var(--space-4) var(--space-6) var(--space-5); align-items:start; }
+  .tab .cols9 > div:last-child { border-left:1px solid var(--rule); padding-left:var(--space-6); }
+  .wpn { border:2px solid var(--ink); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-3); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-1) var(--space-3); align-items:center; }
+  .wpn .nm { font-size:20px; font-weight:700; line-height:1.2; }
+  .wpn .in { font-size:14px; color:var(--muted); }
+  .wpn .rl { grid-column:1 / -1; display:flex; gap:var(--space-4); font-size:20px; }
+  .wpn .rl span { display:inline-flex; align-items:center; gap:var(--space-1); }
+  .wpn .rl small { font-size:14px; color:var(--muted); }
+  .tiles { display:grid; gap:var(--space-2); }
+  .tile { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-1); text-align:center; min-height:64px; box-sizing:border-box; }
+  .tile .k { font-size:14px; color:var(--muted); display:block; line-height:1.2; }
+  .tile .v { font-size:20px; font-weight:700; line-height:1.2; display:block; }
+  .tile .c { font-size:14px; color:var(--muted); display:block; line-height:1.2; }
+  .cut { font-size:14px; color:var(--muted); font-style:italic; text-align:center; padding:var(--space-2); border-top:1px dashed var(--rule); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+// Invented names and numbers only. Brannoch's At hand, as page 14 draws it (frames P1 and P2).
+const PROPOSED = '<b>Proposed, not approved.</b> ';
+const dpick = (words) => `<span class="pk">Designer’s pick</span> ${words}`;
+const stk = (words, k) => `<span class="btn stk" role="button">${gi(k, 24)}<span>${words}</span></span>`;
+const FLAME = `<path d="M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.5-2.5 1.2-3.3C9.5 9 10.5 10 11 10.5 11 8 11 5.5 12 3z" ${W}/>`;
+const ring = (frac, label) => { const s = 52, k = 5, r = (s - k) / 2, c = 2 * Math.PI * r; return `<span class="rg" role="img" aria-label="${label}"><svg class="arc" viewBox="0 0 ${s} ${s}" width="${s}" height="${s}" aria-hidden="true"><circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--rule)" stroke-width="${k}"/><circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--glow)" stroke-width="${k}" stroke-dasharray="${(c * frac).toFixed(1)} ${c.toFixed(1)}"/></svg><span class="mid" aria-hidden="true">${svg(FLAME, 26)}</span></span>`; };
+const infoB = `<span class="i44" role="button" aria-label="About Keep lit">${I.info}</span>`;
+
+// the light's two rows. today: as built on main (the toggle right after ⓘ, Refill at the far right).
+// proposed: Keep lit's name and ⓘ at the left; Refill, then the toggle at the row's right edge, under the lit toggle.
+const light = (o) => {
+  const lit = `<div class="lr">${ring(o.frac, `${o.name}, lit, ${o.left}${o.low ? ', running low' : ''}`)}<span class="t" role="button" aria-label="${o.name}: its sheet"><b>${o.name}</b><small class="${o.low ? 'low' : ''}">${o.low ? `<span class="wn">${I.warn}</span>` : ''}${o.line}</small></span>${tg(true, { label: `${o.name}: lit` })}</div>`;
+  const keepT = tg(o.keep, { label: 'Keep lit' });
+  const refill = o.refill ? stk('Refill', 'jug') : '';
+  const keep = o.today
+    ? `<div class="kp" style="flex-wrap:wrap"><span class="nm">Keep lit</span>${infoB}${keepT}<span class="sp"></span>${refill}</div>`
+    : `<div class="kp"><span class="nm">Keep lit</span>${infoB}<span class="sp"></span>${refill}${keepT}</div>`;
+  return `<div class="lb">${lit}${keep}</div>`;
+};
+const TORCH = { name: 'Torch', left: '4 of 6 turns left', frac: 4 / 6, line: 'Lit, 4 turns left', keep: true, refill: false };
+const LANTERN = { name: 'Storm lantern', left: '4 of 6 turns left', frac: 4 / 6, line: 'Lit, 4 turns left. 3 refills left', keep: true, refill: true };
+const LONG = 'Hooded lantern of the drowned bell';
+const MESSY = { name: LONG, left: '999 turns left', frac: 0.83, line: 'Lit, 999 turns left. 999 refills left', keep: false, refill: true };
+const LOWNONE = { name: LONG, left: '1 turn left', frac: 1 / 12, line: 'Lit, 1 turn left', keep: false, refill: false, low: true };
+
+// At hand's other rows (page 14)
+const pinMark = `<span class="pin" role="img" aria-label="Pinned">${svg('<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z" fill="currentColor"/>', 16)}</span>`;
+const dots = (left, of) => `<span class="dots" role="img" aria-label="${left} of ${of} left">${Array.from({ length: of }, (_, i) => `<i class="${i < left ? 'on' : ''}"></i>`).join('')}</span>`;
+const bow = `<div class="row"><span class="t" role="button"><b>${pinMark}Shortbow</b><small>Quiver: Arrows ×18</small></span><span class="acts" data-stkgroup>${stk('Quiver', 'quiver')}${stk('Wield', 'sword-hilt')}</span></div>`;
+const wand = `<div class="row"><span class="t" role="button"><b>Glow wand</b><small>3 of 5 charges</small></span>${stk('Use', 'pointing')}</div>`;
+const horn = `<div class="row"><span class="t" role="button"><b>${pinMark}Horn charge</b><small>${dots(2, 3)}2 of 3 left, back each day</small></span>${stk('Use', 'pointing')}</div>`;
+const atHand = (lightHtml, o = {}) => `<p class="sclab">At hand</p>${o.bow === false ? '' : bow}${lightHtml}${wand}${o.horn ? horn : ''}`;
+
+// the phone at 375 px
+const phBar = (title) => `<div class="bar"><span class="ico" role="button" aria-label="Menu">${sym('menu', 24)}</span><span class="title">${title}</span><span class="ico" role="button" aria-label="Messages">${sym('mail', 24)}</span></div>`;
+const tabs = `<div class="tabs" role="tablist"><span class="on">${gi('crown', 24)}Player</span><span>${sym('fire', 24)}Scene</span><span>${sym('sack', 24)}Pack</span><span>${sym('book', 24)}Log</span></div>`;
+const ph = (inner, o = {}) => `<div class="ph bit${o.lg ? ' lg' : ''}">${phBar(o.title || 'Brannoch')}<div class="inner">${inner}</div>${tabs}</div>`;
+const colOf = (label, html) => `<div><p class="cap" style="width:375px;max-width:375px"><b>${label}</b></p>${html}</div>`;
+const frameOf = (cap, cols, w) => `<div><p class="cap" style="width:${w}px;max-width:${w}px">${cap}</p><div class="wall">${cols.join('')}</div></div>`;
+
+// ---- A: a lit torch, no Refill ----
+const kA = frameOf(`34A. ${PROPOSED}<b>A lit torch, on a phone at 375 px</b> (drawn at the app’s own width: the 16 px gutter, 343 px inside). <b>Left, as built today:</b> Keep lit’s toggle sits right after its ⓘ, so it is not under the torch’s toggle. <b>Right, proposed:</b> Keep lit’s name and ⓘ stay at the row’s left; its toggle moves to the row’s right edge, <b>directly under the torch’s lit toggle: one column, the same right edge</b> (both are the built bare switch, 52 px wide, 44 px high). A torch has no Refill, so the space between is empty. Nothing else moves.`,
+  [colOf('As built today', ph(atHand(light({ ...TORCH, today: true })))), colOf('Proposed', ph(atHand(light(TORCH))))], 774);
+
+// ---- B: a lit storm lantern with Refill ----
+const kB = frameOf(`34B. ${PROPOSED}<b>A lit storm lantern, with Refill, at 375 px.</b> <b>Left, as built today:</b> the toggle right after ⓘ, Refill at the far right. <b>Right, proposed:</b> Keep lit’s toggle at the right edge, under the lantern’s toggle; <b>Refill on the same row, to the toggle’s left</b>, 8 px from it; the name and ⓘ at the left. Refill keeps its stacked-button size (the jug over its word, 88 px wide), and the row stays one line. ${dpick('Refill now ends 60 px in from the right edge, so it no longer lines up with “Wield” and “Use” in the rows above and below; the toggles’ column takes the edge, as ruled (question 1 in the note).')}`,
+  [colOf('As built today', ph(atHand(light({ ...LANTERN, today: true })))), colOf('Proposed', ph(atHand(light(LANTERN))))], 774);
+
+// ---- C: the tablet held sideways ----
+const railP = `<div class="rail">${[['crown', 'Player', 1], ['fire', 'Scene'], ['sack', 'Pack']].map(([k, l, on]) => `<span class="ri${on ? ' on' : ''}" role="button" aria-label="${l}">${k === 'crown' ? gi('crown', 24) : sym(k, 24)}</span>`).join('')}</div>`;
+const d20 = (w = 18) => `<span role="img" aria-label="d20" style="display:inline-flex">${die(20, w)}</span>`;
+const weapon = `<div class="wpn"><div><div class="nm">Longsword</div><div class="in">In hand, Grip: one hand</div></div><span class="acts" data-stkgroup>${stk('Grip', 'fist')}${stk('Attack', 'sword-brandish')}</span><div class="rl"><span>${d20()}<b>d20 +2</b><small>to hit</small></span><span><span role="img" aria-label="d8" style="display:inline-flex">${die(8, 18)}</span><b>d8 +1</b><small>damage</small></span></div></div>`;
+const tile = (k, v, c = '') => `<div class="tile" role="button"><span class="k">${k}</span><span class="v">${v}</span>${c ? `<span class="c">${c}</span>` : ''}</div>`;
+const right = `<p class="sclab" style="margin-top:0">Scores</p><div class="tiles" style="grid-template-columns:repeat(3,minmax(0,1fr))">${[['Might', 14, '+1'], ['Grace', 10, '&nbsp;'], ['Grit', 13, '+1'], ['Wit', 9, '&nbsp;'], ['Sense', 11, '&nbsp;'], ['Voice', 12, '&nbsp;']].map(([k, v, c]) => tile(k, v, c)).join('')}</div><p class="sclab">Saves</p><div class="tiles" style="grid-template-columns:repeat(5,minmax(0,1fr))">${[['Body', 12], ['Nerve', 13], ['Wits', 14], ['Luck', 15], ['Ward', 16]].map(([k, v]) => tile(k, v)).join('')}</div>`;
+const kC = `<div><p class="cap" style="width:1180px;max-width:1180px">34C. ${PROPOSED}<b>A tablet held sideways, 1180 px: the storm lantern in At hand</b>, as page 14’s frame P1 draws the left column (the weapon in hand, then At hand: the pinned shortbow, the lantern’s two rows, the wand, the pinned trait). The left column is drawn at its share of 1180 px (4 to 5 against the right, about 440 px); the head, hit points and what follows are left out, and the frame is cut below. <b>The only change:</b> Keep lit’s toggle under the lantern’s toggle at the column’s right edge, Refill to its left. The wider column leaves more room between ⓘ and Refill; the row is the same row as on the phone.</p><div class="tab dev">${railP}<div class="main">${topRow('player')}<div class="cols9"><div class="bit">${weapon}${atHand(light(LANTERN), { horn: true })}</div><div class="bit">${right}</div></div><div class="cut">The screen goes on below: the level block, Details; on the right, movement, traits, skills.</div></div></div></div>`;
+
+// ---- D: messy data ----
+const kD = frameOf(`34D. ${PROPOSED}<b>Messy data, at 375 px, Keep lit off.</b> <b>Left:</b> a long name, “${LONG}”, with 999 turns and 999 refills left: the name and its line wrap beside the ring, and the lit toggle stays at the right edge, centred on the block of words; Keep lit’s row is unchanged by the long name (its name is always “Keep lit”), its toggle off (the cross on the knob, no wash, no glow), still under the lit toggle. <b>Middle: the same at the Larger text size</b> (the app’s ×1.25; the targets and the toggles keep their size, only the words grow). The house pages have not drawn Larger text; it is drawn here because it is where the Keep lit row would crowd first, and it still fits one line at 375 px: “Keep lit”, ⓘ, Refill and the toggle need about 280 px of the 343. <b>Right: no refills left and running low:</b> no Refill (as today: Refill shows only while there is fuel), so the Keep lit row is the torch’s row; the warning sign before the words. ${dpick('if a row ever had less room than this (narrower than any phone drawn here), Refill and the toggle would drop together to a second line at the right, the toggle still at the right edge; not drawn.')}`,
+  [colOf('A long name, 999, Keep lit off', ph(atHand(light(MESSY)))), colOf('The same, Larger text', ph(atHand(light(MESSY)), { lg: true })), colOf('No refills left, running low', ph(atHand(light(LOWNONE))))], 1160);
+
+mount(`
+  <h1>Keep lit’s toggle under the light’s toggle, Refill to its left</h1>
+  <p class="note">For the driver’s brief of 2026-11-22 (row mock-keeplit-align). Francis, shown a phone picture of a lit torch: “When does this alignment to toggles fix go live?”, then, on the options: “Refill goes to the left of toggle. Mock it up.” <b>As the driver reads his ruling:</b> Keep lit’s toggle sits at the right edge of its row, directly under the light’s lit or out toggle (one column, one right edge); for a holder, Refill sits on the Keep lit row, to the left of that toggle; Keep lit’s name and ⓘ stay at the row’s left; nothing else changes. Base: page 14’s approved frames P1 and P2 (ps-9) and the built rows (<code>LitLight</code>, <code>KeepLit</code>, <code>LightSection.css</code>). Names, words and numbers are invented. <b>A proposal from the Design Studio, not approved.</b></p>
+  <p class="note"><b>Questions for Francis.</b> 1. Refill now ends 60 px in from the right edge, so it no longer lines up with “Wield” and “Use” in At hand’s other rows (34B, 34C). Fine? (Pick: yes, the toggles’ column takes the edge.) 2. The character overview also shows Keep lit, but with no lit toggle above it. Pick: it stays as it is there (the ruling says nothing else changes). Should it move to the right edge too?</p>
+  <h1>34A. A lit torch, no Refill</h1>
+  <div class="wall">${kA}</div>
+  <h1>34B. A lit storm lantern, with Refill</h1>
+  <div class="wall">${kB}</div>
+  <h1>34C. A tablet held sideways</h1>
+  <div class="wall">${kC}</div>
+  <h1>34D. Messy data</h1>
+  <div class="wall">${kD}</div>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked, in the HTML and the pictures.</b> Both toggles are the built bare switch: a 52 px track in a 52 by 44 target, flush with the row’s right edge, so their left and right edges meet in one column. Targets: ⓘ 44 by 44, Refill 88 by 56, the toggles 52 by 44; 8 px between ⓘ and the space, Refill and the toggle, and between the two rows (vertically, the two toggles’ targets are 14 px apart for a torch and 21 px with Refill, measured). No sideways scroll at 375 px, at Standard and at Larger text. No disabled button; no accent button on these rows (none is the one thing to do). Undo over confirm, unchanged: turning a toggle acts at once (putting the light out with Undo; Keep lit with its toast). Colour alone: the toggle’s state is also the knob’s place and its mark (a tick on, a cross off), so no greyscale strip is needed; running low keeps its warning sign. States: a torch (no Refill), a holder with Refill, Keep lit on and off, a long name, 999, no refills left, running low, Larger text, a phone and a tablet held sideways. Not lit and burnt out have no Keep lit row and do not change (page 14, frame P5).</p>
+  <p class="note"><b>Measured</b> (WCAG ratio from the tokens). The off toggle’s edge (control) against the page: light 3.6, dark 3.6. The on toggle’s 2 px edge (accent) against its wash: light 8.6, dark 4.6; against the page, light 10.0, dark 6.4. The tick on the on knob (ink on sheet): light 17.9, dark 14.4; the cross on the off knob (ink on surface): light 15.8, dark 14.6. The light’s line (muted) on the page: light 6.8, dark 8.3; running low (warning colour), light 7.2, dark 13.0. The ⓘ (info) on the page: light 6.7, dark 8.7. The ring’s amber arc against the page reads 2.8 to 1 in light, known and unchanged from page 14 (dark 10.5).</p>
+  <p class="note"><b>Not checked.</b> A built screen: the rows are drawn from main’s source and page 14’s pictures, not from a picture of today’s app. The tablet column’s exact width (drawn at about 440 px for 1180; the app’s side menu width was not measured). A tablet held upright and the Large step. Offline and loading, unchanged and not drawn. The character overview’s Keep lit, not drawn (question 2). A screen reader’s order: in code the toggle now follows Refill, so Refill is read first on the Keep lit row; the builder should check that this reads well.</p>
+`);
+applyBook();
+</script>
+</body>
+</html>
