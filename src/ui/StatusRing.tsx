@@ -4,6 +4,7 @@
 // in the same colour (its first letter when the pack names no symbol of the set), the name (two lines at most, then …)
 // and the time left in words under it: a 72 × 88 px tile, the tap that opens its sheet. No end: a dashed track and no
 // arc. In the sheet the same ring at 84 px with a 7 px stroke. Never colour alone: the symbol and the words go with it.
+// The light's ring (lt-2, page 35): the ring as a tap over its verb (`StatusRingTap`), and still when not burning.
 import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import { StatusIcon } from './icons.tsx';
 import { RING_SIZES, ringArc, ringLetter, symbolNameOf, TONE_TOKEN, toneOf } from '../modules/expedition/statusLook.ts';
@@ -52,15 +53,25 @@ const BARE_SYMBOL = 18;
  * Variant **bare** (S12, the party circle): the symbol alone in its tone, no ring, fitted the same way; with no symbol
  * named, its letter in ink (text, so never in a tone under 4.5:1).
  */
-export function StatusRingMark({ name, icon, tone, fraction, endless = false, big = false, bare = false }: RingLook & { big?: boolean; bare?: boolean }) {
+export function StatusRingMark({
+  name,
+  icon,
+  tone,
+  fraction,
+  endless = false,
+  big = false,
+  bare = false,
+  still = null,
+}: RingLook & { big?: boolean; bare?: boolean; still?: RingStill | null }) {
   const { size, stroke, symbol } = big ? RING_SIZES.big : RING_SIZES.tile;
   const symbolBox = useRef<HTMLSpanElement>(null);
   const symbolName = symbolNameOf(icon);
-  useLayoutEffect(() => fitSymbol(symbolBox.current?.querySelector('svg')), [symbolName, symbol, bare]);
-  const shown = endless ? null : fraction;
+  useLayoutEffect(() => fitSymbol(symbolBox.current?.querySelector('svg')), [symbolName, symbol, bare, still]);
+  // A still light (lt-4, lt-5): the track alone, no arc and never dashed, the symbol in the muted colour.
+  const shown = endless || still ? null : fraction;
   const arc = ringArc(shown ?? 0, size, stroke);
   const toned = toneOf(tone);
-  const style = { '--ring-tone': `var(${TONE_TOKEN[toned]})` } as CSSProperties;
+  const style = { '--ring-tone': `var(${still ? '--muted' : TONE_TOKEN[toned]})` } as CSSProperties;
   const centre = size / 2;
   if (bare) {
     return (
@@ -75,7 +86,7 @@ export function StatusRingMark({ name, icon, tone, fraction, endless = false, bi
     <span className={big ? 'status-ring__mark status-ring__mark--big' : 'status-ring__mark'} style={style} data-tone={toned} aria-hidden="true">
       <svg className="status-ring__svg" viewBox={`0 0 ${size} ${size}`} width={size} height={size} focusable="false">
         <circle
-          className={endless ? 'status-ring__track status-ring__track--endless' : 'status-ring__track'}
+          className={endless && !still ? 'status-ring__track status-ring__track--endless' : 'status-ring__track'}
           cx={centre}
           cy={centre}
           r={arc.radius}
@@ -84,9 +95,54 @@ export function StatusRingMark({ name, icon, tone, fraction, endless = false, bi
         {shown !== null && shown > 0 && <circle className="status-ring__arc" cx={centre} cy={centre} r={arc.radius} strokeWidth={stroke} strokeDasharray={arc.dash} />}
       </svg>
       <span className="status-ring__symbol" ref={symbolBox}>
-        {symbolName ? <StatusIcon name={symbolName} size={symbol} /> : <span className={big ? 'status-ring__letter status-ring__letter--big' : 'status-ring__letter'}>{ringLetter(name)}</span>}
+        {still === 'out' ? (
+          <StruckFlame size={symbol} />
+        ) : symbolName ? (
+          <StatusIcon name={symbolName} size={symbol} />
+        ) : (
+          <span className={big ? 'status-ring__letter status-ring__letter--big' : 'status-ring__letter'}>{ringLetter(name)}</span>
+        )}
       </span>
     </span>
+  );
+}
+
+/**
+ * A light's ring when it isn't burning (lt-4, lt-5; page 35): `unlit`, the track alone and the symbol muted; `out`
+ * (burnt out), the flame struck through, muted. Neither is a status, so the struck flame is not one of the symbols.
+ */
+export type RingStill = 'unlit' | 'out';
+
+/** The flame struck through (page 35, scene.js's `flameout`): the status flame's drawing and one stroke across it. */
+function StruckFlame({ size }: { size: number }) {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      {/* The same path as the status symbol `flame` (icons.tsx). */}
+      <path d="M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.5-2.5 1.2-3.3C9.5 9 10.5 10 11 10.5 11 8 11 5.5 12 3z" />
+      <path d="M4 21L20 3" />
+    </svg>
+  );
+}
+
+/**
+ * Variant **ring as a tap** (lt-2; page 35): the 52 px ring over its verb ("Put out", "Light", "Light…"), one button
+ * with no edge, 72 by 76 px, the verb in the stacked button's word style, the rows' press flash. The verb is what tells
+ * it from the head's rings, which open details. `label` is what a screen reader hears ("Put out Storm lantern").
+ */
+export function StatusRingTap({
+  verb,
+  label,
+  onTap,
+  opensPick = false,
+  ...look
+}: RingLook & { verb: string; label: string; onTap: () => void; opensPick?: boolean; still?: RingStill | null }) {
+  return (
+    <button type="button" className="status-ring-tap" aria-label={label} aria-haspopup={opensPick ? 'dialog' : undefined} onClick={onTap}>
+      <StatusRingMark {...look} />
+      <span className="status-ring-tap__verb" aria-hidden="true">
+        {verb}
+      </span>
+    </button>
   );
 }
 

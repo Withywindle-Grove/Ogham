@@ -89,40 +89,46 @@ test('every gallery section starts on a whole pixel and is a whole number of pix
   expect(off).toEqual([]);
 });
 
-// The Light rows (Design on #561; tg-1, frame P1 of december/14): the 52 px ring at the left, the name and its line
-// beside it, the lit-or-out toggle at the right of the same row; under the row Keep lit (its name, ⓘ, its toggle) and,
-// for a holder, Refill, a stacked button at the right. Every control 44 px with at least 8 px between, at a phone's width.
+// The light's rows (Design on #561; lt-1 to lt-6, page 35): the ring at the left, a 72 by 76 tap over its verb (or, burnt
+// out, a still ring in the same 72 px column), the name and its line beside it, nothing at the row's right; under a lit
+// light Keep lit's row (its name, ⓘ, a holder's Refill, its toggle flush with the row's right edge); under a burnt-out
+// holder Refill and Light another, one width. Every control 44 px with at least 8 px between, at a phone's width.
 test.describe('Light rows', () => {
   test.use({ viewport: { width: 375, height: 812 } });
-  test("the ring leads each row, the words beside it, the toggle at the row's right; Keep lit under it", async ({ page }) => {
+  test("the ring leads each row, the words beside it, nothing at the row's right; Keep lit's toggle at the right edge", async ({ page }) => {
     await page.goto('/gallery.html?theme=light');
     await expect(page.getByRole('heading', { name: 'Component gallery' })).toBeVisible();
     const rows = await page.locator('#players-standard .light-block__row').all();
-    expect(rows.length).toBe(3);
+    expect(rows.length).toBe(6);
     for (const row of rows) {
       const box = (await row.boundingBox())!;
-      const ring = (await row.locator('.light-block__ring').boundingBox())!;
+      const ring = (await row.locator('.status-ring-tap, .light-block__still').boundingBox())!;
       const words = (await row.locator('.light-block__body').boundingBox())!;
-      const toggle = (await row.locator('[role="switch"]').boundingBox())!;
-      expect(Math.round(ring.width)).toBe(52);
-      expect(words.x).toBeGreaterThanOrEqual(ring.x + ring.width);
-      expect(toggle.x).toBeGreaterThanOrEqual(words.x + words.width);
-      expect(Math.round(toggle.x + toggle.width)).toBe(Math.round(box.x + box.width));
-      expect(Math.min(toggle.width, toggle.height)).toBeGreaterThanOrEqual(43.5);
+      expect(Math.round(ring.width)).toBe(72);
+      expect(words.x).toBeGreaterThanOrEqual(ring.x + ring.width + 7.5);
+      await expect(row.locator('[role="switch"]')).toHaveCount(0);
       const keep = row.locator('xpath=following-sibling::div[contains(@class, "light-block__keep")][1]');
+      if ((await keep.count()) === 0) continue;
       const controls = await keep.locator('button').all();
       const boxes = await Promise.all(controls.map(async (b) => (await b.boundingBox())!));
       expect(boxes.length).toBeGreaterThanOrEqual(2);
       for (const b of boxes) expect(Math.min(b.width, b.height)).toBeGreaterThanOrEqual(43.5);
       expect(boxes[0]!.y).toBeGreaterThanOrEqual(box.y + box.height);
+      const toggle = boxes[boxes.length - 1]!;
+      expect(Math.round(toggle.x + toggle.width)).toBe(Math.round(box.x + box.width));
       for (let i = 1; i < boxes.length; i++) {
         const [a, b] = [boxes[i - 1]!, boxes[i]!];
-        // On one line when they overlap top to bottom (centred, they needn't share a top edge).
-        const sameLine = a.y < b.y + b.height && b.y < a.y + a.height;
-        const gap = sameLine ? b.x - (a.x + a.width) : b.y - (a.y + a.height);
-        expect(gap).toBeGreaterThanOrEqual(7.5);
+        // On one line (lt-6: nothing wraps under the toggle).
+        expect(a.y < b.y + b.height && b.y < a.y + a.height).toBe(true);
+        expect(b.x - (a.x + a.width)).toBeGreaterThanOrEqual(7.5);
       }
     }
+    // Burnt out: Refill and Light another side by side, one width, at the row's right.
+    const acts = await page.locator('#players-standard .light-block__acts .stacked-button').all();
+    expect(acts.length).toBe(2);
+    const [refill, another] = await Promise.all(acts.map(async (b) => (await b.boundingBox())!));
+    expect(Math.round(refill!.width)).toBe(Math.round(another!.width));
+    expect(another!.x - (refill!.x + refill!.width)).toBeGreaterThanOrEqual(7.5);
   });
 });
 

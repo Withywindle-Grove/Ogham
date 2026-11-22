@@ -26,14 +26,38 @@ const TURN = 600;
  * axe with its grip and a wand with charges pinned to At hand (the stacked buttons, dec-13 C6); `weapon`, the spear in
  * hand swapped for a long-named hooked spear, melee and missile, with a Grip (two buttons and three roll lines: the
  * weapon in hand's messy data, dec-13 C14); `bare`, nothing at hand (no weapon in hand, nothing pinned, no light
- * burning), 0 hit points, a long level title and a score change waiting for the GM; `packless`, no pack at all and no light, 999 of 999 hit points (the
+ * carried), 0 hit points, a long level title and a score change waiting for the GM; `packless`, no pack at all and no light, 999 of 999 hit points (the
  * screen's states, dec-13 C11); `skills`, rules with a roll for skills (`rolls.skill`, so the Skills heading carries its
  * line, tfs-2) and three more skills beside Hark: a long-named one rolled the target or higher ("6+ on d6", tfs-3), one
  * "2-in-6" and one "35%" (the pack's other styles; plan test-feedback-2026-11-19 rows C13, C14); `pins`, the four of P1
  * with an ability without uses and the trait with uses pinned, in that order (row P3; page 28: a row and a block in the
- * right column's list). `1`, the four of P1. */
+ * right column's list). The light's states (plan light-tap, page 35): `unlit`, the lantern put out with 4 turns kept in
+ * it (35B); `several`, nothing lit and two lights to light, the lantern and reed torches (35E2, 1); `burnt`, the lantern
+ * burnt out with its oil and the torches (Refill and Light another, 35E2, 3); `burntnone`, a reed torch burnt out and no
+ * light left in the pack (35E2, 4); `longlight`, the lantern named at length with 999 turns and 999 refills (35D).
+ * `1`, the four of P1. */
 export const P1_LONG_NAME = 'Brannoch Fenward of the Seven Drowned Cairns, called the Unbowed';
-export type P1Head = 'four' | 'messy' | 'two' | 'noline' | 'classless' | 'heavy' | 'modes' | 'weapon' | 'bare' | 'packless' | 'skills' | 'finish' | 'pins';
+/** The long-named light (`longlight`, 35D's messy data). */
+export const P1_LONG_LIGHT = 'Hooded lantern of the drowned bell';
+export type P1Head =
+  | 'four'
+  | 'messy'
+  | 'two'
+  | 'noline'
+  | 'classless'
+  | 'heavy'
+  | 'modes'
+  | 'weapon'
+  | 'bare'
+  | 'packless'
+  | 'skills'
+  | 'finish'
+  | 'pins'
+  | 'unlit'
+  | 'several'
+  | 'burnt'
+  | 'burntnone'
+  | 'longlight';
 
 export async function addP1Character(
   world: FakeWorld,
@@ -100,6 +124,9 @@ export async function addP1Character(
   entry('pack-p1-lantern', 'rulesSet', { id: 'lantern-road-rules', name: 'Lantern road rules', rolls: head === 'noline' ? { save: { die: 'd20', pass: 'atOrOver' } } : { save: { die: 'd20', pass: 'atOrOver' }, abilityCheck: { die: 'd20', pass: 'atOrUnder' }, ...(head === 'skills' ? { skill: { die: 'd6', pass: 'atOrOver' } } : {}) }, saveCategories: [{ key: 'mire', name: 'Mire' }, { key: 'drown', name: 'Drowning' }, { key: 'fever', name: 'Fever' }, { key: 'wisp', name: 'Wisps' }, { key: 'barrow', name: 'Barrow' }] });
   entry('pack-p1-lantern', 'lightType', { id: 'storm-lantern', name: 'Storm lantern', duration: 6, unit: 'turn', radius: '30 ft', warnAt: 1, fuel: 'lamp-oil' });
   entry('pack-p1-lantern', 'item', { id: 'lamp-oil', name: 'Lamp oil', category: 'gear', weightCoin: 10 });
+  // A second kind of light for the light's heads (page 35): reed torches, used up, 6 turns each.
+  const torches = head === 'several' || head === 'burnt';
+  if (torches || head === 'burntnone') entry('pack-p1-lantern', 'lightType', { id: 'reed-torch', name: 'Reed torch', duration: 6, unit: 'turn', warnAt: 1, consumed: true });
   const conditions = [
     { id: 'lantern-blessed', name: 'Lantern-blessed', icon: 'star', tone: 'boon', notes: 'The beacon keepers’ blessing, until it is lifted.' },
     { id: 'chilled', name: 'Chilled', icon: 'snowflake', tone: 'harm', notes: 'Numb fingers until warmed by a fire.' },
@@ -174,8 +201,11 @@ export async function addP1Character(
     line('line-p1-spear', 'Hooked eel-spear of the Seven Drowned Cairns', { category: 'weapon', weight_coin: 40, equipped: true, item_data: hooked });
   } else line('line-p1-spear', 'Reed spear', { category: 'weapon', weight_coin: 30, equipped: head !== 'bare', item_data: item('reed-spear'), source_pack_id: 'pack-p1-fen', source_entry_id: 'reed-spear' });
   line('line-p1-knife', 'Eel knife', { category: 'weapon', weight_coin: 10, pinned: head !== 'bare', item_data: item('eel-knife'), source_pack_id: 'pack-p1-fen', source_entry_id: 'eel-knife' });
-  line('line-p1-lantern', 'Storm lantern', { category: 'light', weight_coin: 40, item_data: { lightTypeId: 'storm-lantern' } });
-  line('line-p1-oil', 'Lamp oil', { weight_coin: 10, qty: 3, stack: 10, source_pack_id: 'pack-p1-lantern', source_entry_id: 'lamp-oil' });
+  const lanternName = head === 'longlight' ? P1_LONG_LIGHT : 'Storm lantern';
+  // `bare` carries no light: a light not burning now sits in At hand too (lt-4), and bare has nothing at hand.
+  if (head !== 'burntnone' && head !== 'bare') line('line-p1-lantern', lanternName, { category: 'light', weight_coin: 40, item_data: { lightTypeId: 'storm-lantern' } });
+  line('line-p1-oil', 'Lamp oil', { weight_coin: 10, qty: head === 'longlight' ? 999 : 3, stack: head === 'longlight' ? 999 : 10, source_pack_id: 'pack-p1-lantern', source_entry_id: 'lamp-oil' });
+  if (torches) line('line-p1-torches', 'Reed torch', { category: 'light', weight_coin: 10, qty: 4, stack: 10, item_data: { lightTypeId: 'reed-torch' } });
   // Over the most (dec-13 C10's messy data): 999 bundles of reeds, a coin's weight each.
   if (head === 'heavy') line('line-p1-reeds', 'Bundle of reeds', { weight_coin: 1, qty: 999, stack: 999 });
   // At hand's stacked buttons (dec-13 C6; frames P1, P2): a bow with its quiver (Quiver beside Wield, its line naming
@@ -190,8 +220,22 @@ export async function addP1Character(
 
   // Lit through the stand-in database, then two turns burn: 4 of 6 left.
   world.signInAs(sam);
-  if (head !== 'bare' && head !== 'packless') await world.db.rpc('light_light' as never, { actor: brannoch, line: 'line-p1-lantern', light_type: 'storm-lantern', light_name: 'Storm lantern', burn_seconds: 6 * TURN, warn_seconds: TURN, consumed: false, fuel_item: 'lamp-oil' } as never);
+  // The long-named light burns 1001 turns, so 999 are left (35D).
+  const burn = (head === 'longlight' ? 1001 : 6) * TURN;
+  if (head !== 'bare' && head !== 'packless' && head !== 'several' && head !== 'burntnone')
+    await world.db.rpc('light_light' as never, { actor: brannoch, line: 'line-p1-lantern', light_type: 'storm-lantern', light_name: lanternName, burn_seconds: burn, warn_seconds: TURN, consumed: false, fuel_item: 'lamp-oil' } as never);
   world.tables.campaign_clocks.find((c) => c.campaign_id === campaign)!.seconds = 2 * TURN;
+  // The light's states (page 35): put out, with 4 turns kept; or burnt out as the clock would leave it.
+  const lightRow = () => world.tables.character_lights.find((l) => l.actor_id === brannoch)!;
+  if (head === 'unlit') await world.db.rpc('douse_light' as never, { actor: brannoch } as never);
+  if (head === 'burnt') Object.assign(lightRow(), { lit_at: null, left_seconds: null, out_at: 2 * TURN });
+  // The last reed torch burnt out (its line went with it), as the database leaves a used-up light.
+  if (head === 'burntnone') {
+    world.tables.character_lights.push({
+      id: 'light-p1', actor_id: brannoch, campaign_id: campaign, line_id: 'line-p1-torch-gone', type_id: 'reed-torch', name: 'Reed torch', lit_at: null, burn_seconds: 6 * TURN,
+      full_seconds: 6 * TURN, warn_seconds: TURN, left_seconds: null, consumed: true, fuel_item: null, keep_lit: false, out_at: 2 * TURN, version: 2,
+    });
+  }
 
   // Four statuses: the blessing with no end (dashed), the others with time left.
   const status = (id: string, conditionId: string, name: string, extra: Record<string, unknown>) =>
