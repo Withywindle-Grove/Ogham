@@ -626,8 +626,14 @@ export function ListRow({
     );
   }
   return (
-    <div className={`${figure ? 'list-row list-row--figure' : 'list-row'}${label ? ' list-row--label' : ''}`}>
+    <div className={`${figure ? 'list-row list-row--figure' : 'list-row'}${label ? ' list-row--label' : ''}${icon ? ' list-row--icon' : ''}`}>
       <span className="list-row__body list-row__body--still">
+        {/* The icon column on a row that opens nothing (the import's result, B14; page 24, IM1b): a tick, or its place kept empty. */}
+        {icon && (
+          <span className="list-row__icon" aria-hidden="true">
+            {icon}
+          </span>
+        )}
         {words}
         {end}
       </span>

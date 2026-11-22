@@ -4575,7 +4575,27 @@ export function createFakeDb(): FakeWorld {
       // Like the buckets' rules: campaign-files follow the assets table; message-files (M5b g4) follow the message
       // (the GM who sent it uploads once; its two parties read while the message is readable; 10 MB a file).
       from: (bucket?: string) => ({
+        // A pack's pictures (B14), like the bucket's rules: <pack id>/<map id>, written by the pack's owner; read by the
+        // owner and by the GM of a campaign that uses the pack; never by a player.
+        async list(folder: string, options?: { search?: string }) {
+          const pack = tables.packs.find((p) => p.id === folder);
+          const may = bucket === 'pack-files' && !!pack && (pack.owner_user_id === me() || tables.campaign_packs.some((cp) => cp.pack_id === folder && isGmOf(cp.campaign_id)));
+          const prefix = `pack-files/${folder}/`;
+          const names = may ? [...files.keys()].filter((key) => key.startsWith(prefix)).map((key) => key.slice(prefix.length)) : [];
+          return { data: names.filter((name) => name.includes(options?.search ?? '')).map((name) => ({ name })), error: null };
+        },
+        async download(path: string) {
+          const listed = await this.list(path.split('/')[0] ?? '');
+          const blob = listed.data.some((file) => file.name === path.split('/')[1]) ? files.get(`pack-files/${path}`) : undefined;
+          return blob ? { data: blob, error: null } : { data: null, error: { message: 'Object not found' } };
+        },
         async upload(path: string, blob: Blob) {
+          if (bucket === 'pack-files') {
+            const pack = tables.packs.find((p) => p.id === path.split('/')[0]);
+            if (!pack || pack.owner_user_id !== me() || path.split('/').length !== 2) return { data: null, error: { message: 'new row violates row-level security policy' } };
+            files.set(`pack-files/${path}`, blob);
+            return { data: { path }, error: null };
+          }
           if (bucket === 'message-files') {
             const message = tables.messages.find((m) => `${String(m.campaign_id)}/${String(m.id)}` === path);
             const may = !!message && message.from_gm === true && message.sender_user_id === me() && isGmOf(message.campaign_id) && message.attachment_name !== null && !message.undone;

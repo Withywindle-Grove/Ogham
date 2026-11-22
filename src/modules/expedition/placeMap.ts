@@ -10,7 +10,7 @@
 // One copy per campaign (⚑ 1 of the plan, settled by frame 2c): a map that belongs to several of the pack's places is
 // asked for once. The place it was added at holds the tie; every other place whose map it is finds it there.
 import { defineCommand, failed, fromWrite, isGm, ok, type CommandResult, type CurrentUser } from '../../core/commands.ts';
-import { assetPath, FILES_BUCKET, forgetFileLinks } from '../../core/files.ts';
+import { assetPath, FILES_BUCKET, forgetFileLinks, PACK_FILES_BUCKET, packPicturePath } from '../../core/files.ts';
 import type { Db } from '../../core/supabase.ts';
 import { mapsForPlace, readStoredMap, type PackMap } from '../library/packMaps.ts';
 import type { Place } from './placePlay.ts';
@@ -99,9 +99,11 @@ export type PlaceMapState =
   /** No map: the pack names none for this place (or it's a place made by hand with none tied). Nothing is drawn. */
   | { kind: 'none' }
   /** The pack names a map and this campaign has no copy yet (frame 2c): its title, its file, and "+ Map". */
-  | { kind: 'wanted'; map: PackMap; from?: string }
+  | { kind: 'wanted'; map: PackMap; from?: string; packed?: string }
   /** The campaign's copy: its asset, with the title and words for a screen reader. */
   | { kind: 'added'; assetId: string; title: string; alt: string; from?: string };
+// `packed` (B14, p2p-27): the picture came with the pack (its path in `pack-files`), so "+ Map" takes it from there with
+// no file to pick; absent, the GM picks the file by hand as before (a pack with no pictures, or a missing one).
 // `from` (S13, mc-58, frame 1b): the pack entry of the place up the trail whose map this is, when it isn't the place's
 // own (a spot no map names shows the map of the place it is in).
 
@@ -178,9 +180,19 @@ export async function loadPlaceMap(db: Db, campaignId: string, place: Pick<Place
     maps = (entries.data ?? []).map((e) => readStoredMap({ packEntryId: String(e.pack_entry_id), name: String(e.name ?? ''), data: e.data }));
   }
   const state = resolvePlaceMap(self, maps, places, new Map(), upTrail);
+  if (state.kind === 'wanted' && self.packId) {
+    const kept = await db.storage.from(PACK_FILES_BUCKET).list(self.packId, { search: state.map.id });
+    return kept.data?.some((file) => file.name === state.map.id) ? { ...state, packed: packPicturePath(self.packId, state.map.id) } : state;
+  }
   if (state.kind !== 'added' || ownMap(maps, self, upTrail)) return state;
   // A hand-made place's map (or one whose pack entry is gone): its title is the copy's own name.
   const asset = await db.from('assets').select('name').eq('id', state.assetId).maybeSingle();
   const name = asset.data?.name ? String(asset.data.name) : '';
   return name ? resolvePlaceMap(self, maps, places, new Map([[state.assetId, name]]), upTrail) : state;
+}
+
+/** The picture that came with the pack for a wanted map (its `packed` path); null when it can't be fetched. */
+export async function loadPackPicture(db: Db, path: string): Promise<Blob | null> {
+  const { data, error } = await db.storage.from(PACK_FILES_BUCKET).download(path);
+  return error ? null : data;
 }

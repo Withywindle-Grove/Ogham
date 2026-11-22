@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type ChangeEvent, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { EDITABLE } from '../modules/library/editor.ts';
@@ -11,8 +11,8 @@ import { FIND_FROM, findPacks, groupByKind, holdsLine, KIND_GROUPS, needsLine, s
 import type { PackKind } from '../modules/library/packFile.ts';
 import { ConvertWithAi } from './ConvertWithAi.tsx';
 import { downloadJson } from './download.ts';
-import { readChosenPack, updatePreview } from './packImport.ts';
-import { PackPreview, type Preview } from './PackPreview.tsx';
+import { importedWords, matchPicked, missingWords, readChosenPack, savePackPictures, savePicture, updatePreview, type ChosenBundle, type PackPictures, type SavedPack } from './packImport.ts';
+import { countsLine, PackPreview, type Preview } from './PackPreview.tsx';
 import { RulesBrowser, type BrowsedEntry } from './RulesBrowser.tsx';
 import { registry } from './services.ts';
 import { TopRow } from './TopRow.tsx';
@@ -20,8 +20,21 @@ import './LibraryScreen.css';
 import { ErrorToast, NoticeToast } from '../ui/ToastHost.tsx';
 import { MenuItem, MenuItems, MoreMenu } from '../ui/MoreMenu.tsx';
 import { KindChips, KindGroup, PackRow } from '../ui/packList.tsx';
-import { ActionBar } from '../ui/parts.tsx';
+import { ActionBar, ListRow, RowList, StackedButton, WarningLine } from '../ui/parts.tsx';
+import { Dialog } from '../ui/Dialog.tsx';
+import { Icon } from '../ui/icons.tsx';
 import { readStatBlockLayout } from '../modules/library/statBlockLayout.ts';
+
+/** A bundle just saved with a picture missing (B14; page 24, IM1b): what the panel shows until it is closed. */
+interface Imported extends PackPictures {
+  saved: SavedPack;
+  name: string;
+  /** Saved over a pack already in the library ("Updated" over its name, not "Imported"). */
+  updated: boolean;
+  /** The bundle's own file name. */
+  file: string;
+  pack: ReadPack;
+}
 
 // "Rules library": the packs in your library, grouped by kind with filter chips, sorted by name or last updated, and
 // a find field from 8 packs (lr-1, 2026-11-02). Each pack is a Pack row (lr-2) with Browse and Update on it, and a ⋯
@@ -29,7 +42,14 @@ import { readStatBlockLayout } from '../modules/library/statBlockLayout.ts';
 // a plain confirm when no campaign uses it; otherwise a warning naming each campaign and what it loses, then Delete
 // for good or Cancel. Import a file shows a preview first; updating shows what will change. "About this file" is
 // behind Browse. Attaching packs to a campaign happens on its Campaign screen.
+//
+// A file may be a bundle, a .zip of the pack and its pictures (B14, p2p-27; mockup december/24, IM1 and IM1b, approved
+// 2026-11-18 with fixes): once saved, each map's picture is kept with the pack. Every picture found: no panel, the
+// toast "Saltwick Island imported, with 2 maps.". A picture missing: the pack is imported all the same and the panel
+// names it, with what it costs and "Add it…" to pick the file.
 export function LibraryScreen({ db, user, onBack }: { db: Db; user: CurrentUser; onBack: () => void }) {
+  const [bundle, setBundle] = useState<ChosenBundle | null>(null);
+  const [imported, setImported] = useState<Imported | null>(null);
   const [packs, setPacks] = useState<LibraryPack[] | null | 'error'>(null);
   const [version, setVersion] = useState(0);
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -82,7 +102,31 @@ export function LibraryScreen({ db, user, onBack }: { db: Db; user: CurrentUser;
     if (!read) return null;
     setNotice(null);
     setProblem(read.ok ? null : read.message);
+    setBundle(read.ok ? (read.bundle ?? null) : null);
     return read.ok ? read.pack : null;
+  }
+
+  /** "Add it…" (IM1b): the picked files become the missing maps' pictures; with none left, the panel gives way to the toast. */
+  async function addMissing(files: File[]) {
+    if (!imported || files.length === 0) return;
+    const picked = matchPicked(imported.missing, files);
+    if (picked.length === 0) return setProblem(`None of those is a missing picture. Pick ${imported.missing.map((map) => map.file).join(', ')}.`);
+    setBusy(true);
+    let { found, missing } = imported;
+    let failed: string | null = null;
+    for (const { map, file } of picked) {
+      const why = await savePicture(db, user, imported.saved, map, file);
+      if (why) failed = why;
+      else {
+        found = [...found, map];
+        missing = missing.filter((m) => m.id !== map.id);
+      }
+    }
+    setBusy(false);
+    setProblem(failed);
+    if (missing.length > 0) return setImported({ ...imported, found, missing });
+    setImported(null);
+    setNotice(importedWords(imported.name, found.length, imported.updated));
   }
 
   async function startUpdate(target: LibraryPack, event: ChangeEvent<HTMLInputElement>) {
@@ -149,10 +193,26 @@ export function LibraryScreen({ db, user, onBack }: { db: Db; user: CurrentUser;
             ownerUserId: preview.target.ownerUserId,
             pack: preview.pack,
           });
+    if (!result.ok) {
+      setBusy(false);
+      return setProblem(result.message);
+    }
+    const { name } = preview.pack.meta;
+    const updated = preview.mode === 'update';
+    let said: string | null = updated ? `${name} was updated.` : `${name} was added to your library.`;
+    if (bundle) {
+      // The bundle's pictures are kept with the pack: all found, the toast says so; any missing, the panel names it.
+      const saved: SavedPack = preview.mode === 'update' ? preview.target : { id: result.value, ownerUserId: user.id };
+      const pictures = await savePackPictures(db, user, saved, preview.pack, bundle);
+      if (pictures.missing.length > 0) {
+        setImported({ saved, name, updated, file: bundle.name, pack: preview.pack, ...pictures });
+        said = null;
+      } else if (pictures.found.length > 0) said = importedWords(name, pictures.found.length, updated);
+    }
     setBusy(false);
-    if (!result.ok) return setProblem(result.message);
-    setNotice(preview.mode === 'import' ? `${preview.pack.meta.name} was added to your library.` : `${preview.pack.meta.name} was updated.`);
+    setNotice(said);
     setPreview(null);
+    setBundle(null);
     setVersion((v) => v + 1);
   }
 
@@ -253,6 +313,7 @@ export function LibraryScreen({ db, user, onBack }: { db: Db; user: CurrentUser;
       <ErrorToast message={problem} />
 
       {preview && <PackPreview preview={preview} busy={busy} onSave={() => void save()} onCancel={() => setPreview(null)} />}
+      {imported && <ImportedPanel imported={imported} onAdd={(files) => void addMissing(files)} onClose={() => setImported(null)} />}
 
       {packs === null && <p role="status">Opening…</p>}
       {packs === 'error' && (
@@ -328,6 +389,45 @@ export function LibraryScreen({ db, user, onBack }: { db: Db; user: CurrentUser;
         </>
       )}
     </section>
+  );
+}
+
+/**
+ * The import's result when a picture is missing (B14; page 24, IM1b): a Side sheet, "Imported" over the pack's name;
+ * a ticked row for the bundle and what the pack holds, one for the maps whose pictures were found, then each missing
+ * picture by its path in the bundle with what it costs. Its one accent, "Add it…", picks the file; the ✕ closes.
+ */
+function ImportedPanel({ imported, onAdd, onClose }: { imported: Imported; onAdd: (files: File[]) => void; onClose: () => void }) {
+  const picker = useRef<HTMLInputElement>(null);
+  const { found, missing } = imported;
+  const tick = <Icon name="tick" size={20} />;
+  return (
+    <Dialog side label={imported.name} over={imported.updated ? 'Updated' : 'Imported'} onClose={onClose}>
+      <RowList dotted>
+        <ListRow icon={tick} title={imported.file} sub={`The pack: ${countsLine(imported.pack.counts)}.`} />
+        {found.length > 0 && <ListRow icon={tick} title={`${found.length === 1 ? '1 map' : `${found.length} maps`}: ${found.map((map) => map.title).join(', ')}.`} />}
+        {missing.map((map) => (
+          // The icon column is kept, empty: the words line up under the ticked rows'.
+          <ListRow key={map.id} icon={<span />} title={`${missing.length === 1 ? '1 picture missing' : 'Picture missing'}: ${map.file}`} sub={<WarningLine>{missingWords(map, imported.pack)}</WarningLine>} />
+        ))}
+      </RowList>
+      <div className="sheet-foot">
+        <StackedButton icon="easel" label={missing.length === 1 ? 'Add it…' : 'Add them…'} variant="primary" onClick={() => picker.current?.click()} />
+        <input
+          ref={picker}
+          type="file"
+          accept="image/*"
+          multiple={missing.length > 1}
+          hidden
+          aria-label={`Choose the missing ${missing.length === 1 ? 'picture' : 'pictures'}: ${missing.map((map) => map.file).join(', ')}`}
+          onChange={(event) => {
+            const files = [...(event.target.files ?? [])];
+            event.target.value = '';
+            onAdd(files);
+          }}
+        />
+      </div>
+    </Dialog>
   );
 }
 

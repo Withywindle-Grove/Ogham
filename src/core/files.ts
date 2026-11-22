@@ -5,6 +5,11 @@ import type { Db } from './supabase.ts';
 
 export const FILES_BUCKET = 'campaign-files';
 
+/** A pack's pictures, kept with the pack in the GM's library (B14, p2p-27): <pack id>/<map id>. Its owner's to write;
+ *  read by its owner and by the GM of a campaign that uses the pack; never a player's (hard rule 5). */
+export const PACK_FILES_BUCKET = 'pack-files';
+export const packPicturePath = (packId: string, mapId: string) => `${packId}/${mapId}`;
+
 /** The database works out each file's place: <campaign id>/<asset id>. */
 export const assetPath = (campaignId: string, assetId: string) => `${campaignId}/${assetId}`;
 

@@ -13,7 +13,7 @@ import { assetPath, fileLinks, forgetFileLinks } from '../core/files.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import type { PackMap } from '../modules/library/packMaps.ts';
-import { addPlaceMap, loadMapShown, loadPlaceMap, setPlaceMap, shareEventOf, shareMap, type PlaceMapState, type UpTrail } from '../modules/expedition/placeMap.ts';
+import { addPlaceMap, loadMapShown, loadPackPicture, loadPlaceMap, setPlaceMap, shareEventOf, shareMap, type PlaceMapState, type UpTrail } from '../modules/expedition/placeMap.ts';
 import type { Place } from '../modules/expedition/placePlay.ts';
 import { MapCard, MapPopup, MapWanted, type MapSource } from '../ui/MapParts.tsx';
 import { EyeToggle } from '../ui/parts.tsx';
@@ -24,6 +24,8 @@ import { registry } from './services.ts';
 /** The toast once a map is added: hidden until the GM shares it (frame 2c). */
 export const mapAddedWords = (placeName: string) => `Map added (hidden): ${placeName.trim() || 'this place'}`;
 
+/** "+ Map" couldn't fetch the picture that came with the pack: nothing is added. */
+export const PACK_PICTURE_UNREAD_WORDS = "Couldn't fetch the pack's picture. Check your connection and try again.";
 /** Undo stops here when it can't read whether the map is shown: nothing is changed. */
 export const UNDO_UNREAD_WORDS = "Couldn't check the map. Nothing was undone. Try again.";
 /** Undo hid a shown map but found no tie left to take back. */
@@ -58,6 +60,7 @@ export function AddPlaceMap({
   campaignId,
   place,
   map,
+  packed,
   onChanged,
 }: {
   db: Db;
@@ -66,6 +69,8 @@ export function AddPlaceMap({
   place: Pick<Place, 'id' | 'name' | 'version'>;
   /** The map the pack names for this place, not added yet. */
   map: Pick<PackMap, 'title' | 'file'>;
+  /** The picture came with the pack (B14, p2p-27; its path there): "+ Map" adds it at once, with no file to pick. */
+  packed?: string;
   /** The map was added or its adding undone: read the place's map again. */
   onChanged: () => void;
 }) {
@@ -81,9 +86,15 @@ export function AddPlaceMap({
     if (outcome) show({ text: outcome.text, error: outcome.error, ...(outcome.retry ? { onUndo: () => void undo(assetId) } : {}) });
   };
 
-  async function pick(file: File | undefined) {
-    if (!file || sending) return;
+  // `file`: the one picked by hand, or (B14) the pack's own picture, fetched from where the pack keeps it.
+  async function pick(source: Blob | undefined | (() => Promise<Blob | null>)) {
+    if (!source || sending) return;
     setSending(true);
+    const file = typeof source === 'function' ? await source() : source;
+    if (!file) {
+      setSending(false);
+      return show({ text: PACK_PICTURE_UNREAD_WORDS, error: true });
+    }
     let image: Blob;
     try {
       image = await shrinkMap(file);
@@ -105,7 +116,7 @@ export function AddPlaceMap({
 
   return (
     <>
-      <MapWanted title={map.title} file={map.file} sending={sending} onAdd={() => picker.current?.click()} />
+      <MapWanted title={map.title} file={map.file} sending={sending} onAdd={() => (packed ? void pick(() => loadPackPicture(db, packed)) : picker.current?.click())} />
       <input
         ref={picker}
         type="file"
@@ -205,7 +216,7 @@ export function PlaceMapPart({
   const [open, setOpen] = useState(false);
 
   if (!state || state.kind === 'none') return null;
-  if (state.kind === 'wanted') return <AddPlaceMap db={db} user={user} campaignId={campaignId} place={place} map={state.map} onChanged={again} />;
+  if (state.kind === 'wanted') return <AddPlaceMap db={db} user={user} campaignId={campaignId} place={place} map={state.map} packed={state.packed} onChanged={again} />;
 
   const linked = link && assetId && link.key.startsWith(`${assetId}:`) ? link : null;
   const source: MapSource = { src: linked?.src ?? null, alt: state.alt, failed: !!linked && !linked.src };

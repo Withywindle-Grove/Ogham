@@ -13,7 +13,7 @@ import type { CurrentUser } from '../core/commands.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { ToastHost } from '../ui/ToastHost.tsx';
 import { MAP_TOO_LARGE } from './image.ts';
-import { AddPlaceMap, UNDO_UNREAD_WORDS } from './PlaceMap.tsx';
+import { AddPlaceMap, PACK_PICTURE_UNREAD_WORDS, UNDO_UNREAD_WORDS } from './PlaceMap.tsx';
 
 const harbour = { id: 'p-harbour', name: 'The Drowned Harbour', version: 1 };
 const chart = { title: 'The Drowned Harbour, the harbour chart', file: 'harbour-chart.png' };
@@ -67,6 +67,41 @@ describe('+ Map on a place whose pack names a map', () => {
     expect(changed).toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'Undo' }));
     await waitFor(() => expect(world.tables.places[0]?.map_asset_id).toBeNull());
+  });
+
+  // Purpose (B14, p2p-27; the driver's call on the trigger, 2026-11-22): where the picture came with the pack, "+ Map"
+  // adds it at once with no file to pick: the same hidden copy, the same toast and Undo.
+  it('takes the picture that came with the pack at once, with no file to pick', async () => {
+    const user = userEvent.setup();
+    world.tables.packs.push({ id: 'pack-marsh', owner_user_id: gm.id, campaign_id: null, name: 'The Marsh', version: '1', kind: 'adventure', format_version: 2, source: '', notes: '' });
+    world.files.set('pack-files/pack-marsh/harbour-chart', new Blob(['a chart'], { type: 'image/png' }));
+    render(
+      <ToastHost>
+        <AddPlaceMap db={world.db} user={gm} campaignId={campaign} place={harbour} map={chart} packed="pack-marsh/harbour-chart" onChanged={changed} />
+      </ToastHost>,
+    );
+    await user.click(screen.getByRole('button', { name: '+ Map' }));
+    await screen.findByText('Map added (hidden): The Drowned Harbour');
+    const asset = world.tables.assets.find((a) => a.kind === 'map');
+    expect(asset).toMatchObject({ visibility: 'gm', name: chart.title });
+    expect(world.tables.places[0]?.map_asset_id).toBe(asset?.id);
+    expect(await world.files.get(`${campaign}/${String(asset?.id)}`)?.text()).toBe('a chart');
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(world.tables.places[0]?.map_asset_id).toBeNull());
+  });
+
+  // Purpose: when the pack's picture can't be fetched, the toast says so and nothing is added.
+  it("says so when the pack's picture can't be fetched, and adds nothing", async () => {
+    const user = userEvent.setup();
+    render(
+      <ToastHost>
+        <AddPlaceMap db={world.db} user={gm} campaignId={campaign} place={harbour} map={chart} packed="pack-marsh/harbour-chart" onChanged={changed} />
+      </ToastHost>,
+    );
+    await user.click(screen.getByRole('button', { name: '+ Map' }));
+    await screen.findByText(PACK_PICTURE_UNREAD_WORDS);
+    expect(world.tables.assets.some((a) => a.kind === 'map')).toBe(false);
+    expect(screen.getByRole('button', { name: '+ Map' })).toBeTruthy();
   });
 
   // Purpose (Francis, "Yes hide", 2026-11-18): undoing + Map after the eye showed the map hides it again: the copy goes

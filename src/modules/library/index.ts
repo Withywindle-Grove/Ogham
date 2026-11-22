@@ -4,8 +4,9 @@ import { attachPack, detachPack, moveSettingRules, preferEntry, setPackOptions, 
 import { CALL_COMMANDS } from './callsToAdventure.ts';
 import { deleteHomebrewEntry, saveHomebrewEntry } from './homebrew.ts';
 import { copyHomebrewToLibrary, deletePack, editPackEntry, importPack, updatePack } from './library.ts';
+import { addPackPicture } from './packPictures.ts';
 import { giveRumour } from './rumours.ts';
 
 export function registerLibrary(registry: CommandRegistry): void {
-  for (const command of [importPack, updatePack, deletePack, attachPack, setPackOptions, detachPack, moveSettingRules, preferEntry, startHomebrew, saveHomebrewEntry, deleteHomebrewEntry, copyHomebrewToLibrary, editPackEntry, ...CALL_COMMANDS, giveRumour]) registry.register(command);
+  for (const command of [importPack, updatePack, deletePack, attachPack, setPackOptions, detachPack, moveSettingRules, preferEntry, startHomebrew, saveHomebrewEntry, deleteHomebrewEntry, copyHomebrewToLibrary, editPackEntry, addPackPicture, ...CALL_COMMANDS, giveRumour]) registry.register(command);
 }
