@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { isGm, runCommand, type CurrentUser } from '../../core/commands.ts';
+import { runCommand, type CurrentUser } from '../../core/commands.ts';
 import type { MyCharacter } from '../../core/myCharacters.ts';
 import type { Db } from '../../core/supabase.ts';
 import { latestChange, undoChange } from '../../core/undo.ts';
@@ -19,6 +19,7 @@ import { loadCampaignSetting, type CampaignSetting } from '../campaignSetting.ts
 import { figureSourceOf } from '../CharacterSheet.tsx';
 import type { characterFigures } from '../fromSetting.ts';
 import { HpInPlace } from '../HpInPlace.tsx';
+import { useSeesAsGm } from '../playerView.ts';
 import { lineNow, pickBaseArmour } from '../pickBase.ts';
 import { registry } from '../services.ts';
 
@@ -64,6 +65,7 @@ export function PlayerVitals({
   onAcSaved?: () => void;
 }) {
   const toast = useToast();
+  const seesAsGm = useSeesAsGm(user, character.campaignId);
   const [open, setOpen] = useState<'set-ac' | 'ac' | 'attack' | 'base' | null>(null);
   const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(false);
@@ -99,8 +101,9 @@ export function PlayerVitals({
   // AC is at the top when the sheet or the setting has one (N24): the number players use, with the ability
   // modifier in it, worked out from what's worn; "—" and a quiet Set AC when the setting gives no number, never a
   // guess (ruled 2026-10-29, B9). Its pop-up lists the parts; its quiet line stays compact ("AC +1 from DEX").
-  // The GM sees the true AC, hidden magic bonuses included (ruled 2026-10-29).
-  const acWorked = figures.ac(worn, isGm(user, character.campaignId));
+  // The GM sees the true AC, hidden magic bonuses included (ruled 2026-10-29); in his view as the player, the player's
+  // (pg32-3).
+  const acWorked = figures.ac(worn, seesAsGm);
   const acValue = acShown(value(ac), acWorked, acOverride);
   // Worn magic armour whose base isn't chosen yet (ruled 2026-10-29): AC reads "Choose base armour", and a tap chooses.
   const chooseBase = acValue === null ? (acWorked.chooseBase ?? null) : null;

@@ -219,6 +219,8 @@ export function CarrierItems({
   // The Tiny things section starts collapsed, then stays as it was left on this device (like the other folds).
   const [tinySaved, setTinyOpen] = useFoldOpen('tiny');
   const tinyOpen = tinySaved ?? false;
+  // A weapon's hidden magic: the GM's, but not in his view as the player, which shows the player's figure (pg32-3, M3e).
+  const inView = usePlayerView() !== null;
   // What's worn or held against the rules already (ruled 2026-10-25): marked on its row.
   const [equipContext, setEquipContext] = useState<EquipContext | null>(null);
   // The GM's view as the player (pg32-4): each weapon's hidden figures, for the GM's line on its sheet.
@@ -336,7 +338,7 @@ export function CarrierItems({
                     ? weaponMagic(
                         { name: line.name, data: item, category: line.category },
                         setting?.rulesSets ?? [],
-                        isGm(user, campaign.id),
+                        isGm(user, campaign.id) && !inView,
                         stack ? drawnAmmunition(setting, stack, stackEntry) : null,
                       )
                     : undefined;

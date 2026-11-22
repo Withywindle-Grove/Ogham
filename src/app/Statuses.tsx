@@ -13,7 +13,7 @@
 // homebrew as a condition, so it's offered next time.
 import { useCallback, useContext, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { loadCampaignSettings } from '../core/campaignCommands.ts';
-import { isGm, runCommand, type Command, type CurrentUser } from '../core/commands.ts';
+import { runCommand, type Command, type CurrentUser } from '../core/commands.ts';
 import { describeEntry, loadLogNames, loadTargetLog } from '../core/events.ts';
 import { loadCampaignHeading } from '../core/myCampaigns.ts';
 import type { Db } from '../core/supabase.ts';
@@ -56,6 +56,7 @@ import { ButtonRow, Chip, ListRow, RowList, StatusSymbol, Stepper, Switch, Toggl
 import { StatusRing, StatusRingMark, StatusRingMore, StatusRingRow, type RingLayout } from '../ui/StatusRing.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import { forgetCampaignSetting, loadCampaignSetting } from './campaignSetting.ts';
+import { useSeesAsGm } from './playerView.ts';
 import { registry } from './services.ts';
 import { ringView } from './statusRings.ts';
 import './Statuses.css';
@@ -77,7 +78,8 @@ export interface StatusBook {
 export function useStatusBook(db: Db, user: CurrentUser, campaignId: string, refresh: number): { book: StatusBook | null | 'error'; reload: () => void } {
   const [book, setBook] = useState<StatusBook | null | 'error'>(null);
   const [version, setVersion] = useState(0);
-  const gm = isGm(user, campaignId);
+  // The GM's view as the player reads no secret timers: it shows the player's statuses exactly (pg32-3).
+  const gm = useSeesAsGm(user, campaignId);
   useEffect(() => {
     let current = true;
     void Promise.all([
@@ -194,10 +196,11 @@ export function CharacterStatuses({
   // The GM's time-left taps, one after another, so quick taps land in the order they were made.
   const timeTaps = useRef<Promise<unknown>>(Promise.resolve());
   const show = useToast();
-  const viewer = isGm(user, character.campaignId) ? 'gm' : 'player';
+  // In the GM's view as the player, the player's statuses and words (pg32-3); his acts there still run as his.
+  const viewer = useSeesAsGm(user, character.campaignId) ? 'gm' : 'player';
   const may = mayChangeStatus(user, character);
-  // + Status is the GM's only (C1): a player asks aloud.
-  const mayAdd = mayAddStatus(user, character);
+  // + Status is the GM's only (C1): a player asks aloud. Not in the GM's view as the player, as the player's (M3c).
+  const mayAdd = viewer === 'gm' && mayAddStatus(user, character);
 
   if (book === null) return list ? <p className="auth__meta">Loading…</p> : null;
   if (book === 'error') return list ? <p className="auth__meta">Couldn't load the statuses. Check your connection and try again.</p> : null;

@@ -28,7 +28,7 @@ import { exceptionsOf, withoutException } from './creationReview.ts';
 import { creationShown } from './patronGarb.ts';
 import { patronFirstForGm, patronNeededIn } from '../modules/characters/patrons.ts';
 import { alignmentNamesOf } from '../modules/characters/whoTheyAre.ts';
-import { fieldSummary, loadFieldDefinitions, type FieldDefinition, type FieldValues } from '../modules/characters/fields.ts';
+import { loadFieldDefinitions, type FieldDefinition, type FieldValues } from '../modules/characters/fields.ts';
 import { CampaignHeading } from './CampaignHeading.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { canShare, copyText, shareLink } from './clipboard.ts';
@@ -53,7 +53,7 @@ import { SectionNav } from '../ui/SectionNav.tsx';
 import { useNavCollapsed } from '../ui/navCollapsed.ts';
 import { DividerHandle } from '../ui/DividerHandle.tsx';
 import { loadCampaignSetting, type CampaignSetting } from './campaignSetting.ts';
-import { traitListsOf, traitLookup } from '../modules/characters/traitLists.ts';
+import { traitListsOf } from '../modules/characters/traitLists.ts';
 import { loadInventory, type InventoryLine } from '../modules/inventory/inventory.ts';
 import { reviewDetails } from './reviewDetails.ts';
 import { campaignChoices } from './weaponSetup.ts';
@@ -75,12 +75,12 @@ import { characterFigures } from './fromSetting.ts';
 import { hasSpells } from './MagicTab.tsx';
 import type { PlayerTab } from './navTabs.ts';
 import { PlayerScreen } from './PlayerScreen.tsx';
-import { PlayerViewContext } from './playerView.ts';
+import { PlayerViewContext, type WaitingTarget } from './playerView.ts';
 import { LogView } from './LogView.tsx';
 import { PartyGroups } from './PartyGroups.tsx';
 import { SceneCardProvider } from './sceneCard.tsx';
 import { SceneMoveProvider } from './sceneMove.tsx';
-import { SceneWaitingProvider } from './sceneWaiting.tsx';
+import { SceneWaitingProvider, useWaitingState } from './sceneWaiting.tsx';
 import { SceneTime } from './SceneTime.tsx';
 import { BookType } from '../ui/creation.tsx';
 
@@ -117,10 +117,8 @@ export function GmCampaign({
   const logVersion = useLogVersion();
   // "Companies: On / Off" (ruled 2026-10-24): off hides the Companies section (nothing is deleted).
   const [withCompanies, setWithCompanies] = useState(true);
-  // The setting: its trait lists, so a roster line's trait field shows the entry's name (M5b step 0b), and the classes,
-  // so a row offers Magic only to a character with a Magic tab (tfg-2, pg32-1).
+  // The setting: its classes, so a row offers Magic only to a character with a Magic tab (tfg-2, pg32-1).
   const [setting, setSetting] = useState<CampaignSetting | null>(null);
-  const traitLists = setting ? traitListsOf(setting.all) : [];
   useEffect(() => {
     let current = true;
     void loadCampaignSettings(db, campaign.id).then((found) => current && setWithCompanies(found === null || companiesOn(found)));
@@ -165,6 +163,9 @@ export function GmCampaign({
   const [sheetFor, setSheetFor] = useState<string | null>(null);
   // The GM's view as the player (tfg-1; page 32): a row's View sheet, Pack, Magic or Scene opens it on that tab.
   const [viewing, setViewing] = useState<{ id: string; name: string; tab: ViewTab } | null>(null);
+  // "Go to Waiting for you" from the view's player-only pop-ups (pg32-5, pg32-6): where it opens, counted so a second
+  // tap at the same request opens it again.
+  const [waitingAt, setWaitingAt] = useState<{ at: WaitingTarget; n: number } | null>(null);
   // Edit in a row's ⋯ (pg32-1): the same Edit screen the player's Edit opens (⚑ 44, the driver's call).
   const [editFor, setEditFor] = useState<string | null>(null);
   // Give to a player… or Remove… chosen in a row's ⋯ (pg32-1): their own sheet and panel, as before.
@@ -221,11 +222,18 @@ export function GmCampaign({
    * no Player tab yet keeps today's row: View sheet opens the full sheet (d5-22), and Remove… (⚑ 43, not answered).
    */
   const characterRow = (character: PlayerCharacter | GmCharacter, meta: string, everyone: readonly Player[]) => {
-    const summary = fieldSummary(fieldDefs, character.fields, { onlyCard: true, lookup: traitLookup(traitLists) });
     const open = character.approval === 'approved' && !character.archived;
     const acting = open && rowAct?.id === character.id ? rowAct.act : null;
     const door = (tab: ViewTab, words: string, label: string) => (
-      <button type="button" className="button-secondary button-secondary--small" aria-label={label} onClick={() => setViewing({ id: character.id, name: character.name, tab })}>
+      <button
+        type="button"
+        className="button-secondary button-secondary--small"
+        aria-label={label}
+        onClick={() => {
+          setWaitingAt(null);
+          setViewing({ id: character.id, name: character.name, tab });
+        }}
+      >
         {words}
       </button>
     );
@@ -233,9 +241,10 @@ export function GmCampaign({
       <li key={character.id} className="gm__row gm__character-row">
         <Portrait db={db} campaignId={character.campaignId} assetId={character.portraitAssetId} name={character.name} size="small" />
         <span className="gm__row-main">
+          {/* "Wren, level 3" over the player's name and when they joined (M3a, M3b; pg32-match): a sent-back one says so. */}
           <span>
-            <span className="gm__row-name">{characterLabel(character)}</span>
-            {summary && <span className="gm__meta">, {summary}</span>}
+            <span className="gm__row-name">{character.approval === 'approved' ? character.name : characterLabel(character)}</span>
+            <span className="gm__meta">, level {character.level}</span>
           </span>
           <span className="gm__meta">{meta}</span>
         </span>
@@ -320,6 +329,17 @@ export function GmCampaign({
     };
   }, [db, campaign.id, version, section, logVersion]);
 
+  // "Go to Waiting for you" at a sheet change (pg32-6): Players at Waiting for approval, where its card is, once it shows.
+  const changeAt = waitingAt?.at && 'change' in waitingAt.at ? waitingAt : null;
+  const atChange = changeAt !== null && section === 'players' && !viewing && waitingChanges.length > 0;
+  // Once landed it never scrolls again (the review of #36); leaving Players (a door, a section) puts it away.
+  const landedChange = useRef(0);
+  useEffect(() => {
+    if (!atChange || !changeAt || landedChange.current === changeAt.n) return;
+    landedChange.current = changeAt.n;
+    document.getElementById('gm-waiting-approval')?.scrollIntoView?.({ block: 'start' });
+  }, [atChange, changeAt]);
+
   // The GM's campaign items in every ⋯ inside the campaign (N17, ruled 2026-10-28): only what isn't a tab (ruled
   // 2026-10-26): Companies, then This device. Handouts (M5) joins it when it's built, if it isn't a tab. From a
   // sub-screen (the stash, a pack, a sheet) Companies goes back to Players first.
@@ -387,6 +407,12 @@ export function GmCampaign({
           who={Array.isArray(players) && gmRead ? whoseIs(viewing.id, players, gmCharacters) : null}
           onBack={() => {
             setViewing(null);
+            reload();
+          }}
+          onGoToWaiting={(at) => {
+            setViewing(null);
+            setSection('players');
+            setWaitingAt((was) => ({ at, n: (was?.n ?? 0) + 1 }));
             reload();
           }}
         />
@@ -463,8 +489,12 @@ export function GmCampaign({
               setLogOpen(true);
               return;
             }
-            // Leaving Players closes an open "Invite a player" (M4b re-test, 2026-10-26).
-            if (next !== section) setInviting(false);
+            // Leaving Players closes an open "Invite a player" (M4b re-test, 2026-10-26), and puts away where "Go to
+            // Waiting for you" was taking it (the review of #36).
+            if (next !== section) {
+              setInviting(false);
+              setWaitingAt(null);
+            }
             setSection(next);
           }}
         />
@@ -532,7 +562,12 @@ export function GmCampaign({
           <>
             {/* Players holds what waits for the GM (only when something does, first), players and characters,
                 Companies, and the Party stash (2026-10-23). */}
-            {waitingItems > 0 && <WaitingForYou db={db} user={user} campaign={campaign} onChanged={reload} />}
+            {waitingItems > 0 && (
+              <SceneWaitingProvider>
+                <WaitingForYou db={db} user={user} campaign={campaign} onChanged={reload} />
+                <OpenWaitingAt target={waitingAt} onLanded={() => setWaitingAt(null)} />
+              </SceneWaitingProvider>
+            )}
             <div className="gm__section-head">
               <h2 className="gm__section-title">Players and characters</h2>
               {!inviting && !retired && (
@@ -571,7 +606,7 @@ export function GmCampaign({
             {/* What lit the Players tab leads it (plan m5b-sheet-revised PR 2, step 10): Waiting for you above, then
                 Waiting for approval, before the invites not used yet. */}
             {(waiting.length > 0 || waitingChanges.length > 0) && (
-              <div className="gm__block">
+              <div className="gm__block" id="gm-waiting-approval">
                 <h3 className="label">Waiting for approval</h3>
                 {waitingChanges.map((w) => (
                   <SheetChangeCard key={w.change.id} db={db} user={user} waiting={w} onAnswered={reload} />
@@ -607,7 +642,8 @@ export function GmCampaign({
                     {/* One line per character, naming its player; no player column (ruled 2026-10-26). A player
                         without a character still gets a line, so the GM sees who has joined. */}
                     {players.map((player) => {
-                      const shown = player.characters.filter((c) => !c.archived);
+                      // A character waiting for approval is not a row: it shows only in Waiting for approval (M3a).
+                      const shown = player.characters.filter((c) => !c.archived && c.approval !== 'pending');
                       const joined = `${player.name}, joined ${shortDate(player.joinedAt)}`;
                       if (shown.length === 0)
                         return (
@@ -621,7 +657,7 @@ export function GmCampaign({
                       return shown.map((character) => characterRow(character, joined, players));
                     })}
                     {/* The GM's own characters, after the players' rows (the lead's ruling on #768): "Yours". */}
-                    {gmCharacters.map((character) => characterRow(character, 'Yours', players))}
+                    {gmCharacters.filter((c) => c.approval !== 'pending').map((character) => characterRow(character, 'Yours', players))}
                   </ul>
                 )}
               </div>
@@ -668,6 +704,25 @@ export function GmCampaign({
 }
 
 /**
+ * "Go to Waiting for you" at a request (pg32-5, pg32-6): inside the panel's provider, opens it at the request once its
+ * list holds it, and brings the panel into view; with no request (nothing sent yet), the panel's top.
+ */
+function OpenWaitingAt({ target, onLanded }: { target: { at: WaitingTarget; n: number } | null; onLanded: () => void }) {
+  const panel = useWaitingState();
+  const done = useRef(0);
+  const id = target?.at && 'request' in target.at ? `request:${target.at.request}` : null;
+  const ready = !!panel && !!target && (id === null || panel.items.some((i) => i.id === id));
+  useEffect(() => {
+    if (!ready || !panel || !target || done.current === target.n || (target.at && 'change' in target.at)) return;
+    done.current = target.n;
+    if (id) panel.open(id);
+    document.querySelector('.gm__main .waiting-card')?.scrollIntoView?.({ block: 'start' });
+    onLanded();
+  }, [ready, panel, target, id, onLanded]);
+  return null;
+}
+
+/**
  * The GM's view as the player (page 32, M3c to M3k; tfg-1, pg32-2, pg32-7, pg32-8): the character's own Player screen,
  * hosted here, with the View band under the top row on every tab. Whose view it is comes at once from the Players list
  * (so the band and the top row show while the character reads), and follows it: given to another player while open,
@@ -685,6 +740,7 @@ function CharacterView({
   wide,
   who,
   onBack,
+  onGoToWaiting,
 }: {
   db: Db;
   user: CurrentUser;
@@ -698,6 +754,8 @@ function CharacterView({
   /** Whose the character is now, from the Players list (null while it can't tell). */
   who: { player: string | null } | 'gone' | null;
   onBack: () => void;
+  /** "Go to Waiting for you" in a player-only pop-up (pg32-6). */
+  onGoToWaiting: (at: WaitingTarget) => void;
 }) {
   const logVersion = useLogVersion();
   const show = useToast();
@@ -737,7 +795,7 @@ function CharacterView({
   }, [gone]);
 
   return (
-    <PlayerViewContext.Provider value={{ player: owner.player, character: shownName }}>
+    <PlayerViewContext.Provider value={{ player: owner.player, character: shownName, goToWaiting: onGoToWaiting }}>
       <BelowTopRowProvider below={<ViewBand player={owner.player} character={shownName} />}>
         {character && character !== 'error' ? (
           <PlayerScreen

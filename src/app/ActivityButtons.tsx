@@ -40,6 +40,7 @@ import { useToast } from '../ui/ToastHost.tsx';
 import { bundleOf, copyOf } from './AddItem.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { useLogVersion } from './campaignLog.tsx';
+import { usePlayerOnly } from './playerOnly.tsx';
 import { registry } from './services.ts';
 import type { TravelView } from './travelView.ts';
 import { terrainOf } from './travelView.ts';
@@ -172,6 +173,8 @@ function ActivitySheet({
   const dice = usable.yields?.dice ?? '';
   const [qty, setQty] = useState<number>(wholeDice(dice) ?? 1);
   const [busy, setBusy] = useState(false);
+  // In the GM's view as the player, Ask the GM is the player's: a pop-up says so (pg32-6, M3f2).
+  const playerOnly = usePlayerOnly();
 
   // The group's members and the terrain, for the activity's modifiers keyed to the party (ex-2, ga-3).
   const plan = rollPlan(activity, actor, [], { members: view.party?.get(group), terrain: terrainOf(view.mode, row.terrainId) });
@@ -196,7 +199,7 @@ function ActivitySheet({
 
   /** A secret activity (S4-3): one of g4's requests to the GM, with who's acting and the cost the GM's Yes applies. */
   async function ask() {
-    if (busy) return;
+    if (busy || playerOnly.blocked('sendRequest')) return;
     setBusy(true);
     const result = await runCommand(registry, db, user, sendRequest, {
       character: { id: actor.id, campaignId: campaign.id, ownerUserId: user.id },
@@ -255,6 +258,7 @@ function ActivitySheet({
   const best = activity.bestOf && acting.length > 1;
   return (
     <Dialog label={activity.name} onClose={onClose}>
+      {playerOnly.sheet}
       <div className="activity">
         {activity.who !== 'party' && everyone.length > 1 ? (
           <div className="activity__who" role="group" aria-label="Who's acting">

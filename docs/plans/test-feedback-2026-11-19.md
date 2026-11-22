@@ -231,11 +231,9 @@ Paths and lines read on `main` at `105e115` (2026-11-21). Each test's purpose is
 
 Collected, not decided. Numbered from 40 (Q's ⚑ 39 is the last).
 
-- ⚑ 42. **The Max hit points form in the view.** Today the GM's "Set max" on the Player tab writes at once (`src/app/HpInPlace.tsx:153-157`, `editCharacter`), where the player's waits for the GM (`requestSheetChange`). M3f2 says asking for a sheet change has no button in the view, so the page does not draw this form for the GM. In the view: the GM's own change, as today, or "Only Sam can ask for a change"?
-- ⚑ 43. **A sent-back or draft character's row** (no Player tab yet, d5-22) is not drawn on M3a or M3b (M3k: "not a state of the view"). Today it has View sheet and Remove…. With pg32-1: ⋯ with Edit and Remove…, or today's row, as the archived one keeps?
-- ⚑ 44. **What Edit in ⋯ opens.** No frame draws it. Read from tfg-4 ("as the player's sits on Your characters"): the same Edit screen the player's Edit opens; today the GM reaches Edit from the full sheet's page. A reversible point inside an approved page: the driver's (rvw-13), listed for Francis after.
-- ⚑ 45. **po-4 and the batches.** Whole, once keeps every batch off `main` until the view matches page 32, unless Francis says otherwise (as he did for point to point, 2026-11-18). How the four batches stack until then (one branch for the view, each batch a pull request into it) is the driver's.
-- ⚑ 46. **When 05 and 06 take page 32.** The ruling absorbs "with C15's build"; builders read 06. The designer absorbs it before G1 is handed out, or each batch carries its own lines: the driver's call.
+- ⚑ 40 and 41: ruled on 2026-11-21 (Francis), recorded in `09-decisions-log.md` by C15e.
+- ⚑ 42 to 46: ruled on 2026-11-21 (Francis, and the driver's calls on 44 to 46), recorded in `09-decisions-log.md` by C15c + C15d.
+- ⚑ 51. **Where "Go to Waiting for you" lands from a sheet change.** M3f2's "Only Sam can take back this change" says "Approve or Refuse it in Waiting for you", but sheet changes are answered under **Waiting for approval** on Players, where the built button brings the GM (#36). Change the words to name Waiting for approval, or move sheet changes into Waiting for you? Built meanwhile: the drawn words, landing at Waiting for approval.
 
 ### Where the specs and page 32 differ (listed, not fixed)
 
@@ -244,7 +242,7 @@ Collected, not decided. Numbered from 40 (Q's ⚑ 39 is the last).
 - 05 (`docs/05-features.md:100`, `:124`): the GM edits from the full sheet's page reached by View sheet; pg32-1 puts Edit in the row's ⋯.
 - 05, Unidentified items (`:193`): "where these extras then sit is ⚑, drawn on page M3"; settled by pg32-4.
 - The ruling `dec5-flags-sitting-2026-11-20.md` (its "Checked for the plan" line) says the GM's Reveal and "Tell them everything" exist; `src/` has the per-field Reveal only (above).
-- The code against M3f2: the GM's Max hit points form (⚑ 42).
+- The code against M3f2: the GM's Max hit points form (⚑ 42, ruled 2026-11-21: his own change, at once, as today; 09).
 
 ### Honest notes
 

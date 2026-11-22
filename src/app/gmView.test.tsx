@@ -172,14 +172,18 @@ describe('the Players row (C15a; M3a, M3b)', () => {
     expect(screen.queryByRole('group', { name: 'Remove Tam' })).toBeNull();
   });
 
-  it("an archived character keeps today's row; a waiting or sent-back one keeps today's, View sheet opening the full sheet", async () => {
+  // A waiting character is not a row on Players: only in Waiting for approval (M3a; pg32-match, 2026-11-21).
+  it("an archived character keeps today's row; a sent-back one keeps today's, View sheet opening the full sheet; a waiting one is no row", async () => {
     Object.assign(actor(tam), { status: 'archived' });
     world.addCharacter(campaign, 'Hollis', { ownerId: sam, approval: 'pending' });
     world.addCharacter(campaign, 'Moss', { ownerId: sam, approval: 'rejected' });
     const user = await openPlayers();
     const archived = (await screen.findByRole('heading', { name: 'Archived characters' })).parentElement as HTMLElement;
     expect(within(archived).getAllByRole('button').map((b) => b.textContent)).toEqual(['Restore', 'Delete permanently…']);
-    expect(buttonsOf(rowOf('Hollis'))).toEqual(['View sheet']);
+    expect(screen.queryByRole('button', { name: "View Hollis's sheet" })).toBeNull();
+    const approval = screen.getByRole('heading', { name: 'Waiting for approval' }).parentElement as HTMLElement;
+    expect(within(approval).getByText('New character waiting: Hollis')).toBeTruthy();
+    expect(within(rowOf('Moss')).getByText('Moss (sent back)')).toBeTruthy();
     expect(buttonsOf(rowOf('Moss'))).toEqual(['View sheet', 'Delete…']);
     await user.click(screen.getByRole('button', { name: "View Moss's sheet" }));
     // The full sheet's page, not the view: no band.

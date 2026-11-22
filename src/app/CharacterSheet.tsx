@@ -37,6 +37,8 @@ import {
   topSpellLevel,
 } from "../modules/characters/patrons.ts";
 import { classListOf, patronInSetting } from "./patronGarb.ts";
+import { usePlayerOnly } from "./playerOnly.tsx";
+import { usePlayerView } from "./playerView.ts";
 import {
   answerWords,
   changeWords,
@@ -484,6 +486,9 @@ export function CharacterSheet({
   // What's prepared (the Magic tab's Prepare), for the Magic section's Prepared tab (sr-4).
   const [prepared, setPrepared] = useState<PreparedSpell[]>([]);
   const toast = useToast();
+  // The GM's view as the player (page 32): the player's sheet exactly (pg32-3), and Take back a pop-up (pg32-6).
+  const inView = usePlayerView() !== null;
+  const playerOnly = usePlayerOnly();
   useEffect(() => {
     let live = true;
     void loadCharacterPlay(db, characterId).then((found) => {
@@ -569,6 +574,8 @@ export function CharacterSheet({
     character !== null &&
     character !== "error" &&
     isGm(user, character.campaignId);
+  // What only the GM sees (the hidden fields, the true AC, Move points): not in his view as the player (pg32-3).
+  const seesAsGm = gm && !inView;
   const canEdit =
     character !== null &&
     character !== "error" &&
@@ -670,6 +677,7 @@ export function CharacterSheet({
       changes.findIndex((o) => o.field === c.field) === n,
   );
   async function takeBack(change: SheetChange) {
+    if (playerOnly.blocked("takeBackChange", { change: change.id })) return;
     const result = await runCommand(registry, db, user, takeBackSheetChange, {
       change,
     });
@@ -677,7 +685,8 @@ export function CharacterSheet({
     setChangesVersion((v) => v + 1);
     toast({ text: `Took back ${changeWords(change)}.` });
   }
-  const mine = sheetOf?.ownerUserId === user.id;
+  // The player's own, or the GM's view of it, which shows the player's notices and buttons (M3f).
+  const mine = sheetOf?.ownerUserId === user.id || inView;
   const changeLines = (
     <SheetChangeLines
       changes={[...waiting, ...(mine ? refused : [])]}
@@ -773,7 +782,7 @@ export function CharacterSheet({
       <SheetView
         character={sheetOf}
         fieldDefs={fieldDefs}
-        showHidden={gm}
+        showHidden={seesAsGm}
         setting={setting}
         beside={beside}
         worn={worn}
@@ -790,7 +799,7 @@ export function CharacterSheet({
         companyName={companyName}
         changeLines={changeLines}
         notes={notes}
-        {...(gm && expertiseHere ? { onMovePoints: () => setMovingPoints(true) } : {})}
+        {...(seesAsGm && expertiseHere ? { onMovePoints: () => setMovingPoints(true) } : {})}
         {...(hosted ? { hosted } : {})}
         {...(hosted && pins ? { pins } : {})}
       />
@@ -946,6 +955,7 @@ export function CharacterSheet({
   if (host) {
     return (
       <SheetScope.Provider value>
+        {playerOnly.sheet}
         {viewing
           ? sheetView((parts) =>
               host({ parts, fullSheet: page(parts.rest), notices: [...changeNotices, ...finishNotice], status: null, phase: "ready" }),
@@ -963,6 +973,7 @@ export function CharacterSheet({
   return (
     // Every pop-up on the sheet is a Sheet (plan m5b-players-screens-standard A4).
     <SheetScope.Provider value>
+      {playerOnly.sheet}
       {page(editing ? sheetEdit : sheetView())}
     </SheetScope.Provider>
   );
