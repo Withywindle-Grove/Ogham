@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: page 37, the light's ⚑ 1 and ⚑ 6, as built and the alternative (proposed, 2026-11-22)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* page 35's rules (the light's rows, the ring as the tap, the phone, the tablet), copied as drawn; page 14's head,
+     hit points, tiles and weapon; page 26's notices box (M1). New on this page: the fold line, the error row. */
+  .pk { display:inline-block; border:1.5px dashed var(--info); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; }
+  .flag { display:inline-block; border:1.5px dashed var(--warn); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; }
+  .tg { width:52px; }
+  .theme > .wall > div { padding:2px; }
+  .ph { position:relative; width:375px; background:var(--page); outline:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; overflow:hidden; --ts:1; }
+  .ph .inner { padding:var(--space-2) var(--space-4) var(--space-3); }
+  .ph .bar .title { font-size:calc(20px * var(--ts)); }
+  .tabs { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--rule); background:var(--sheet); }
+  .tabs span { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60px; font-size:calc(14px * var(--ts)); color:var(--muted); }
+  .tabs .on { color:var(--ink); font-weight:700; box-shadow:inset 0 3px 0 var(--accent); }
+  .row { display:flex; align-items:center; gap:var(--space-2); min-height:56px; padding:var(--space-1) 0; border-bottom:1px dotted var(--rule); }
+  .row .t, .lr .t { flex:1; min-width:0; }
+  .row .t b, .lr .t b { display:block; font-size:calc(20px * var(--ts)); line-height:1.2; overflow-wrap:anywhere; }
+  .row .t small, .lr .t small { display:block; font-size:calc(14px * var(--ts)); color:var(--muted); line-height:1.25; }
+  .pin { display:inline-flex; vertical-align:-1px; margin-right:var(--space-1); }
+  .acts { display:flex; gap:var(--space-2); flex:none; }
+  .lb { display:flex; flex-direction:column; gap:var(--space-2); padding:var(--space-1) 0 var(--space-2); border-bottom:1px dotted var(--rule); }
+  .lr { display:flex; align-items:center; gap:var(--space-2); min-height:56px; }
+  .rg { position:relative; display:inline-flex; width:52px; height:52px; align-items:center; justify-content:center; flex:none; }
+  .rg .arc { position:absolute; inset:0; transform:rotate(-90deg); }
+  .rg .mid { position:relative; display:inline-flex; }
+  .rt { display:inline-flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:2px; width:72px; min-height:76px; flex:none; box-sizing:border-box; padding-top:2px; }
+  .rt .vb { font-size:calc(14px * var(--ts)); font-weight:700; line-height:1.2; color:var(--ink); white-space:nowrap; }
+  /* the head (page 14, M1c on a phone): the portrait, the head's line, the notices box under it; the rings under the portrait */
+  .hd1 { display:grid; grid-template-columns:96px minmax(0,1fr); gap:var(--space-3); align-items:start; }
+  .av { width:96px; height:96px; border-radius:50%; border:1.5px solid var(--control); display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:700; background:var(--surface); box-sizing:border-box; }
+  .hd1 .ln { font-size:16px; line-height:1.3; margin:0 0 var(--space-2); }
+  /* the notices box (page 26, M1; tfn-1) */
+  .nb { display:inline-flex; align-items:center; gap:var(--space-2); box-sizing:border-box; height:64px; min-width:44px; padding:0 var(--space-3) 0 var(--space-2); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); color:var(--muted); font-size:16px; line-height:1.2; white-space:nowrap; flex:none; }
+  .nb .pch { display:inline-flex; width:44px; height:44px; border-radius:50%; align-items:center; justify-content:center; flex:none; }
+  .nb.lit { border:2px solid var(--ink); color:var(--ink); font-weight:700; }
+  .nb.lit .pch { background:color-mix(in srgb, var(--glow) 40%, var(--sheet)); box-shadow:0 0 var(--space-2) var(--space-1) color-mix(in srgb, var(--glow) 60%, transparent); }
+  .nb.low { height:48px; }
+  .nb.low .pch { width:36px; height:36px; }
+  /* hit points, the tiles, the weapon (page 14) */
+  .hpb { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:var(--space-2); align-items:center; border:1.5px solid var(--control); border-radius:4px; padding:var(--space-2) var(--space-3); margin-top:var(--space-3); background:var(--sheet); }
+  .hpb .l { grid-column:1 / -1; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .hpb .v { font-size:48px; font-weight:700; line-height:1; }
+  .hpb .v small { font-size:16px; font-weight:400; color:var(--muted); margin-left:var(--space-1); }
+  .sq { width:56px; height:56px; padding:0; justify-content:center; }
+  .hpbar { grid-column:1 / -1; display:flex; gap:3px; }
+  .hpbar > span { flex:1; height:10px; background:var(--rule); border-radius:2px; overflow:hidden; }
+  .hpbar > span > i { display:block; height:100%; background:var(--ink); }
+  .tiles { display:grid; gap:var(--space-2); margin-top:var(--space-2); }
+  .tile { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-1); text-align:center; min-height:64px; box-sizing:border-box; min-width:0; }
+  .tile .k { font-size:14px; color:var(--muted); display:block; line-height:1.2; }
+  .tile .v { font-size:20px; font-weight:700; line-height:1.2; display:block; }
+  .tile.big .v { font-size:32px; }
+  .tile .c { font-size:14px; color:var(--muted); display:block; line-height:1.2; }
+  .wpn { border:2px solid var(--ink); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-3); margin-top:var(--space-2); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-1) var(--space-3); align-items:center; }
+  .wpn .nm { font-size:20px; font-weight:700; line-height:1.2; }
+  .wpn .in { font-size:14px; color:var(--muted); }
+  .wpn .rl { grid-column:1 / -1; display:flex; gap:var(--space-4); font-size:20px; }
+  .wpn .rl span { display:inline-flex; align-items:center; gap:var(--space-1); }
+  .wpn .rl small { font-size:14px; color:var(--muted); }
+  /* a pop-up from the foot over the dimmed page (page 35) */
+  .dimx { position:absolute; inset:0; background:rgba(0,0,0,.35); }
+  .shx { position:absolute; left:0; right:0; bottom:0; background:var(--popup); border-radius:20px 20px 0 0; padding:var(--space-3) var(--space-4) var(--space-5); }
+  .shx .hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-3); }
+  .ntt { display:flex; align-items:flex-start; gap:var(--space-2); margin:0; font-size:20px; font-weight:700; line-height:1.2; }
+  .ntt .sg { color:var(--warn); display:inline-flex; flex:none; padding-top:2px; }
+  .nbody { margin:var(--space-2) 0 0; font-size:16px; line-height:1.35; }
+  .nact { margin-top:var(--space-3); }
+  .nact .btn { min-height:48px; }
+  /* the error, as built (.form-error): its words in the warning colour on the surface, a 4 px warning edge at the left */
+  .ferr { padding:var(--space-2) var(--space-3); border-left:4px solid var(--warn); background:var(--surface); color:var(--warn); font-size:16px; line-height:1.35; margin:0 0 var(--space-2); }
+  .errw { padding:var(--space-2) 0 var(--space-2); border-bottom:1px dotted var(--rule); }
+  /* the fold: where a screen of the stated height ends */
+  .foldw { position:relative; }
+  .fold { position:absolute; left:0; right:0; height:0; border-top:2px dashed var(--danger); z-index:3; pointer-events:none; }
+  .fold span { position:absolute; right:var(--space-2); bottom:2px; background:var(--danger); color:var(--page); font-size:14px; font-weight:700; padding:0 var(--space-1); border-radius:2px; }
+  /* the tablet held sideways, 1180 by 820 (page 35, frame 35C), drawn whole down to the fold and a little past it */
+  .tab { position:relative; width:1180px; min-height:900px; background:var(--page); border:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; overflow:hidden; display:grid; grid-template-columns:56px minmax(0,1fr); --ts:1; }
+  .tab .cols9 { display:grid; grid-template-columns:minmax(0,4fr) minmax(0,5fr); gap:var(--space-6); padding:var(--space-4) var(--space-6) var(--space-5); align-items:start; }
+  .tab .cols9 > div:last-child { border-left:1px solid var(--rule); padding-left:var(--space-6); }
+  .tab .hdt { display:flex; align-items:center; gap:var(--space-3); height:96px; }
+  .tab .rtop { display:flex; flex-direction:column; justify-content:space-between; align-items:flex-start; height:96px; margin-bottom:var(--space-3); }
+  .tab .rtop .sclab { margin:0; }
+  .cut { font-size:14px; color:var(--muted); font-style:italic; text-align:center; padding:var(--space-2); border-top:1px dashed var(--rule); }
+  .grey { filter:grayscale(1); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+// Invented names and numbers only. Brannoch's Player tab in the dark, his torch not lit (page 35, frame 35E1).
+const PROPOSED = '<b>Proposed, for ⚑ 1 and ⚑ 6; not approved.</b> ';
+const dpick = (words) => `<span class="pk">Designer’s pick</span> ${words}`;
+const flag = (words) => `<span class="flag">Words flagged</span> ${words}`;
+const stk = (words, k) => `<span class="btn stk" role="button">${gi(k, 24)}<span>${words}</span></span>`;
+const FLAME = `<path d="M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.5-2.5 1.2-3.3C9.5 9 10.5 10 11 10.5 11 8 11 5.5 12 3z" ${W}/>`;
+const lightRing = (frac, state) => { const s = 52, k = 5, r = (s - k) / 2, c = 2 * Math.PI * r; const lit = state === 'lit'; return `<span class="rg" aria-hidden="true"><svg class="arc" viewBox="0 0 ${s} ${s}" width="${s}" height="${s}"><circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--rule)" stroke-width="${k}"/>${lit ? `<circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--glow)" stroke-width="${k}" stroke-dasharray="${(c * frac).toFixed(1)} ${c.toFixed(1)}"/>` : ''}</svg><span class="mid" style="color:var(--${lit ? 'glow' : 'muted'})">${svg(state === 'out' ? SY.flameout : FLAME, 26)}</span></span>`; };
+const ringTap = (frac, state, verb, label) => `<span class="rt" role="button" aria-label="${label}">${lightRing(frac, state)}<span class="vb" aria-hidden="true">${verb}</span></span>`;
+// page 35's not-lit row (35E1): the empty ring with "Light" under it, the name and its line
+const unlit = (o) => `<div class="lb"><div class="lr">${ringTap(0, 'unlit', 'Light', `Light ${o.name}`)}<span class="t" role="button" aria-label="${o.name}: its sheet"><b>${o.name}</b><small>${o.line}</small></span></div></div>`;
+const TORCHES = { name: 'Torch ×4', line: 'Not lit. 6 turns each' };
+
+// At hand's other rows (page 14, as page 35 draws them)
+const pinMark = `<span class="pin" role="img" aria-label="Pinned">${svg('<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z" fill="currentColor"/>', 16)}</span>`;
+const bow = `<div class="row"><span class="t" role="button"><b>${pinMark}Shortbow</b><small>Quiver: Arrows ×18</small></span><span class="acts" data-stkgroup>${stk('Quiver', 'quiver')}${stk('Wield', 'sword-hilt')}</span></div>`;
+const wand = `<div class="row"><span class="t" role="button"><b>Glow wand</b><small>3 of 5 charges</small></span>${stk('Use', 'pointing')}</div>`;
+const atHand = (lightHtml, o = {}) => `<p class="sclab">At hand</p>${o.bow === false ? '' : bow}${lightHtml}${o.wand === false ? '' : wand}`;
+
+// the head, hit points, the tiles, the weapon (page 14; the box under the head's line on a phone, M1c)
+const nb = (n, low) => `<span class="nb${n ? ' lit' : ''}${low ? ' low' : ''}" role="button" aria-label="Notices: ${n}, open them"><span class="pch" aria-hidden="true">${gi('trumpet', low ? 24 : 28)}</span><span>${n === 1 ? '1 notice' : `${n} notices`}</span></span>`;
+const headPhone = `<div class="hd1"><span class="av" role="button" aria-label="Portrait: change it">B</span><div><p class="ln">the Hornkin, Shieldbearer</p>${nb(1, true)}</div></div>`;
+const hpBar = (cur, max) => `<span class="hpbar" aria-hidden="true">${Array.from({ length: Math.ceil(max / 5) }, (_, i) => { const size = Math.min(5, max - i * 5); const f = Math.max(0, Math.min(1, (cur - i * 5) / size)); return `<span><i style="width:${Math.round(f * 100)}%"></i></span>`; }).join('')}</span>`;
+const hp = `<div class="hpb"><span class="l">Hit points</span><span class="v" role="button" aria-label="Hit points 11 of 16: type a value">11<small>of 16</small></span><span class="btn sq" role="button" aria-label="One less">${I.minus}</span><span class="btn sq" role="button" aria-label="One more">${I.plus}</span>${hpBar(11, 16)}</div>`;
+const tile = (k, v, c = '', big = '') => `<div class="tile${big ? ' big' : ''}" role="button"><span class="k">${k}</span><span class="v">${v}</span>${c ? `<span class="c">${c}</span>` : ''}</div>`;
+const acAtk = `<div class="tiles" style="grid-template-columns:1fr 1fr">${tile('Armour class', '15', 'Mail, shield', 1)}${tile('Attack', '+1', 'Melee +2, Missile +1', 1)}</div>`;
+const weapon = `<div class="wpn"><div><div class="nm">Longsword</div><div class="in">In hand, Grip: one hand</div></div><span class="acts" data-stkgroup>${stk('Grip', 'fist')}${stk('Attack', 'sword-brandish')}</span><div class="rl"><span><span role="img" aria-label="d20" style="display:inline-flex">${die(20, 18)}</span><b>d20 +2</b><small>to hit</small></span><span><span role="img" aria-label="d8" style="display:inline-flex">${die(8, 18)}</span><b>d8 +1</b><small>damage</small></span></div></div>`;
+
+// the phone at 375 px
+const phBar = (title) => `<div class="bar"><span class="ico" role="button" aria-label="Menu">${sym('menu', 24)}</span><span class="title">${title}</span><span class="ico" role="button" aria-label="Messages">${sym('mail', 24)}</span></div>`;
+const tabs = `<div class="tabs" role="tablist"><span class="on">${gi('crown', 24)}Player</span><span>${sym('fire', 24)}Scene</span><span>${sym('sack', 24)}Pack</span><span>${sym('book', 24)}Log</span></div>`;
+const ph = (inner, o = {}) => `<div class="ph bit">${phBar('Brannoch')}<div class="inner">${inner}</div>${o.foot || ''}${tabs}${o.over || ''}${o.fold ? `<div class="fold" style="top:${o.fold}px" data-fold><span>${o.fold} px</span></div>` : ''}</div>`;
+const colOf = (label, html) => `<div><p class="cap" style="width:375px;max-width:375px"><b>${label}</b></p>${html}</div>`;
+const frameOf = (cap, cols, w) => `<div><p class="cap" style="width:${w}px;max-width:${w}px">${cap}</p><div class="wall">${cols.join('')}</div></div>`;
+
+// ---- the notices sheet (NoticesSheet: the book heading "Notices", the notice's sign and title, its body, its action) ----
+const noticeSheet = (o) => `<div class="dimx"></div><div class="shx" role="dialog" aria-label="Notices"><div class="hd"><span class="ehead">Notices</span><span class="ico" role="button" aria-label="Close">${I.close}</span></div><p class="ntt"><span class="sg">${I.warn}</span><span>No light</span></p>${o.body ? `<p class="nbody">${o.body}</p>` : ''}${o.action ? `<div class="nact">${o.action}</div>` : ''}</div>`;
+const SHEET_A = noticeSheet({ action: `<span class="btn accent" role="button">Light a torch (4 left)</span>` });
+const SHEET_B = noticeSheet({ body: 'Tap “Light” under your torch, in At hand.' });
+
+// the Player tab in the dark: the box lit ("1 notice"), the torch not lit in At hand (35E1)
+const tabDark = `${headPhone}${hp}${acAtk}${weapon}${atHand(unlit(TORCHES))}`;
+
+// ---- 37A: ⚑ 1 on a phone ----
+const kA = frameOf(`37A. ${PROPOSED}<b>⚑ 1 on a phone at 375 px: the “No light” notice, and the torch not lit in At hand.</b> <b>Left, the tab itself, the same in (A) and (B):</b> the group has no light, so the notices box under the head’s line is lit, “1 notice”; the torch sits in At hand, not lit, with “Light” under its ring (35E1). <b>As built, the “No light” prompt is not on the tab itself:</b> it is a notice, behind the box (row C1, tfn-2; it moved there from above hit points, page 14’s P5). So the two ways to light are <b>never on screen together</b>: one is a tap away behind the box. The dashed line is where a 375 by 667 phone’s screen ends: the torch’s row sits across it, so on a small phone the ring is a scroll away. <b>Middle, (A) as built:</b> the box tapped; the notice “No light” with its one-tap light, <b>“Light a torch (4 left)”</b>, the sheet’s one accent. <b>Right, (B):</b> the same notice, <b>its words and no button</b>: ${flag('“Tap “Light” under your torch, in At hand.”')} To light, the player closes the sheet, scrolls if need be, and taps the ring. ${dpick('(A), as built. The notice names the trouble and fixes it in one tap; the box never shows the button beside the ring, so the screen does not show two ways at once. (B) turns the notice into directions and costs a close and a scroll (on a phone the ring can sit below the fold).')}`,
+  [colOf('The tab in the dark, (A) and (B) alike', ph(tabDark, { fold: 667 })), colOf('(A) As built: the notice keeps its button', ph(tabDark, { over: SHEET_A })), colOf('(B) The notice’s words, no button', ph(tabDark, { over: SHEET_B }))], 1160);
+
+// ---- 37B: ⚑ 1 on the tablet held sideways ----
+const railP = `<div class="rail">${[['crown', 'Player', 1], ['fire', 'Scene'], ['sack', 'Pack']].map(([k, l, on]) => `<span class="ri${on ? ' on' : ''}" role="button" aria-label="${l}">${k === 'crown' ? gi('crown', 24) : sym(k, 24)}</span>`).join('')}</div>`;
+const rings2 = `<span class="rg" role="button" aria-label="Poisoned, 1 of 4 turns left: its details" style="color:var(--ink)">${svg('<path d="M12 3c3 4.500 6 7.500 6 11a6 6 0 0 1-12 0c0-3.500 3-6.500 6-11z" ' + W + '/>', 24)}</span>`;
+const right = `<div class="rtop">${nb(1, false)}<p class="sclab">Scores</p></div><div class="tiles" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:0">${[['Might', 14, '+1'], ['Grace', 10, '&nbsp;'], ['Grit', 13, '+1'], ['Wit', 9, '&nbsp;'], ['Sense', 11, '&nbsp;'], ['Voice', 12, '&nbsp;']].map(([k, v, c]) => tile(k, v, c)).join('')}</div><p class="sclab">Saves</p><div class="tiles" style="grid-template-columns:repeat(5,minmax(0,1fr))">${[['Body', 12], ['Nerve', 13], ['Wits', 14], ['Luck', 15], ['Ward', 16]].map(([k, v]) => tile(k, v)).join('')}</div><p class="sclab">Movement</p><div class="row"><span class="t"><b>9 m a turn</b><small>Unburdened</small></span></div>`;
+const leftT = `<div class="hdt"><span class="av" role="button" aria-label="Portrait: change it">B</span>${rings2}</div>${hp}${acAtk}${weapon}${atHand(unlit(TORCHES))}`;
+const kB = `<div><p class="cap" style="width:1180px;max-width:1180px">37B. ${PROPOSED}<b>⚑ 1 on a tablet held sideways, 1180 by 820: where At hand sits.</b> As page 35’s frame 35C and page M1 draw it: the notices box at the top of the right column, over Scores (lit, “1 notice”); the left column the head, hit points, armour class and attack, the weapon in hand, then At hand with the torch not lit. <b>The dashed line is the screen’s foot at 820 px.</b> Measured in this drawing: <b data-measure="ring"></b> The box and the ring are both on screen at once, in the two columns; the notice’s button is still behind the box, so in (A) and in (B) the tablet shows one way to light on the tab itself, as on the phone. More rows pinned above the light in At hand would push it down; the measurement is for this pack.</p><div class="tab dev foldw">${railP}<div class="main">${topRow('player')}<div class="cols9"><div class="bit">${leftT}</div><div class="bit">${right}</div></div><div class="cut">The screen goes on below: the level block, Details; on the right, traits, skills.</div></div><div class="fold" style="top:820px" data-fold><span>820 px</span></div></div></div>`;
+
+// ---- 37C: ⚑ 6, the error ----
+const ERR = 'Couldn’t load the light. Check your connection and try again.';
+const tryAgain = `<span class="btn" role="button">Try again</span>`;
+const errA = `<p class="sclab">Light</p><p class="ferr" role="alert">${ERR}</p>${tryAgain}`;
+const errB = `<div class="errw"><p class="ferr" role="alert">${ERR}</p>${tryAgain}</div>`;
+const kC = frameOf(`37C. ${PROPOSED}<b>⚑ 6: the light could not be read.</b> The words and the button are the built ones (<code>LightSection</code>’s error): “${ERR}” in the warning colour with its edge, and “Try again” (secondary). <b>Left, (A) as built:</b> above At hand under its own <b>“Light”</b> heading; once page 35 is built this is the only time that heading shows. <b>Middle, (B):</b> no heading; the same words and Try again <b>in the light’s place inside At hand</b>, between the bow and the wand, where the torch sits when it loads. <b>Right, (B) with nothing else at hand:</b> the error alone makes At hand, as the light alone does (35E1, answer 2). In both, a tap on Try again reads the light again; when it loads, the light’s row stands where the error was (in (A) it moves down into At hand, in (B) it stays put). ${dpick('(B). The light keeps one place on the screen in every state, and no heading is left over from the section that went. It also lets the builder drop the slot above At hand (<code>beforeAtHand</code>) instead of keeping it for one state.')}`,
+  [colOf('(A) As built: a “Light” heading, above At hand', ph(`${errA}${atHand('')}`)), colOf('(B) In the light’s place, in At hand', ph(atHand(errB))), colOf('(B) With nothing else at hand', ph(atHand(errB, { bow: false, wand: false })))], 1160);
+
+mount(`
+  <h1>The light: ⚑ 1 and ⚑ 6, as built and the alternative</h1>
+  <p class="note"><b>Proposed, for ⚑ 1 and ⚑ 6 of <code>docs/plans/light-tap.md</code>; not approved.</b> For the driver’s brief of 2026-11-22 (row mock-light-flags-1-6): Francis asked to see these two before ruling. Built on page 35 (approved 2026-11-22: the ring is the tap; the not-lit light sits in At hand, 35E1), page 14’s P5 (the “No light” prompt) and page M1 (the notices box, approved 2026-11-19), and on <code>main</code>’s source: <code>Darkness.tsx</code> (the prompt’s words), <code>PlayerNotices.tsx</code> (“No light” as a notice) and <code>LightSection.tsx</code> (the error). Names, words and numbers are invented. Every other part of the screen is drawn as page 35 and page 14 draw it.</p>
+  <p class="note"><b>What I found in the source, for ⚑ 1.</b> The plan’s ⚑ 1 reads as if the prompt still sits above hit points (page 14, P5). On the Player tab it no longer does: since tfn-2 “No light” is <b>a notice behind the notices box</b>, its button “Light a torch (4 left)” the notice sheet’s accent. So the tab shows the lit box and the ring; the button shows only once the box is tapped. The Scene tab still draws “No light” with its button in its prompt slot; the Scene has no At hand, so it is not part of ⚑ 1 and is not drawn.</p>
+  <h1>37A. ⚑ 1, the “No light” notice, on a phone</h1>
+  <div class="wall">${kA}</div>
+  <h1>37B. ⚑ 1, on a tablet held sideways</h1>
+  <div class="wall">${kB}</div>
+  <h1>37C. ⚑ 6, the light could not be read</h1>
+  <div class="wall">${kC}</div>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked, in the HTML and the pictures.</b> Targets: the ring and its word 72 by 76; Try again 44 high, full words; the notice’s accent 48 high; ✕ 44 by 44. No sideways scroll at 375 px. No disabled button: in (B) of ⚑ 1 the notice has no button at all, not a dead one. One accent: (A)’s sheet has one (its light); the tab has none. Undo over confirm: the notice’s light and the ring both light at once with Undo (35E1), unchanged. Visibility of state: the box says “1 notice” in words, the ring says “Light”, the error says what happened and what to do. Error recovery: Try again in both (A) and (B). Consistency: (B) of ⚑ 6 keeps the light in one place, as page 35 does for lit, not lit and burnt out. Recognition over recall: (B) of ⚑ 1 asks the player to remember where the ring is once the sheet closes; that is its cost. States drawn: dark with one light not lit; the notice with and without its button; the error with other rows at hand and alone. Colour alone: nothing here rests on it (the box’s heavy edge and bold words, the error’s words), so no greyscale strip.</p>
+  <p class="note"><b>Measured</b> (WCAG ratio from the tokens). The error’s words (warn) on the surface: light <span data-ratio="--warn,--surface"></span>, dark <span data-ratio-dark="--warn,--surface"></span>. The notice’s words (ink) on the pop-up: light <span data-ratio="--ink,--popup"></span>, dark <span data-ratio-dark="--ink,--popup"></span>. The verb under the ring and the not-lit flame as page 35 measured them (17.1 and 15.9; 6.8 and 8.3).</p>
+  <p class="note"><b>Not checked.</b> A built screen: drawn from <code>main</code>’s source and the approved pages. The head is simplified (the portrait, the head’s line, the box; one ring on the tablet). The notice sheet’s exact spacing (the built <code>NoticesSheet</code>), and what it shows with several notices (Back and Next). A phone screen’s true height (667 is a small phone’s; larger phones show more, and the browser’s own bar shows less). The tablet’s fold is measured from this drawing’s heights, not the app’s. Words in (B) of ⚑ 1 are mine, flagged; with several lights it would say “Tap “Light…” in At hand.” (not drawn). The Larger text step; offline (the commands’ own behaviour, as today).</p>
+`);
+applyBook();
+// measure: where the ring sits against the tablet's fold, written into the caption
+(() => {
+  for (const tab of document.querySelectorAll('.tab.foldw')) {
+    const top = tab.getBoundingClientRect().top;
+    const ring = tab.querySelector('.rt').getBoundingClientRect();
+    const out = tab.closest('div').parentElement.querySelector('[data-measure="ring"]');
+    if (out && !out.textContent) out.textContent = `the torch’s ring runs from ${Math.round(ring.top - top)} to ${Math.round(ring.bottom - top)} px from the top, ${ring.bottom - top <= 820 ? `${Math.round(820 - (ring.bottom - top))} px above the fold: on screen without a scroll` : 'below the fold: a scroll away'}.`;
+  }
+  // contrast ratios from the tokens, light and dark
+  const lum = (hex) => { const n = hex.trim().replace('#', ''); const c = [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return ((x + 0.05) / (y + 0.05)).toFixed(1); };
+  const tokens = (mode) => { const el = document.querySelector(`.theme.${mode}`) || document.querySelector(`.${mode}`); return el ? getComputedStyle(el) : null; };
+  for (const [attr, mode] of [['data-ratio', 'light'], ['data-ratio-dark', 'dark']]) {
+    const s = tokens(mode);
+    for (const el of document.querySelectorAll(`[${attr}]`)) { if (!s) continue; const [f, b] = el.getAttribute(attr).split(','); el.textContent = ratio(s.getPropertyValue(f), s.getPropertyValue(b)); }
+  }
+})();
+</script>
+</body>
+</html>
