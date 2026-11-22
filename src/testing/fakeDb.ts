@@ -4022,6 +4022,10 @@ export function createFakeDb(): FakeWorld {
   const rpcs: Record<string, (args: Row) => Result> = {
     ...companyRpcs,
     ...ruleRpcs,
+    // K22b's tell (public.tell_item) isn't modelled here: it tells nothing (0), so the old per-field Reveal writes the
+    // field as before. The real tell is tested on the database (supabase/tests/k22-reveal-hidden.test.ts); K2's screens
+    // bring a fuller fake with them.
+    tell_item: () => ({ data: 0, error: null }),
     // Like the database (ruled 2026-10-29, A4): the GM gets every exception; a player only those for player-facing
     // entries (the fake doesn't model which items a player may read).
     campaign_exceptions: ({ campaign }) => {
