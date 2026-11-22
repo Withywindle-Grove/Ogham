@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: page 35, the light's ring is the tap; no lit or out toggle (2026-11-22)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* this page's own rules: layout, the light's rows and the ring as a tap. Type, the stacked button, the toast and the
+     small-capitals label come from ../shared/book.css; the toggle (.tg, ds-1c) from december.css. At hand's rows are
+     page 14's (frames P1, P2), copied as drawn; the frames are page 34's. */
+  .pk { display:inline-block; border:1.5px dashed var(--info); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; }
+  .tg { width:52px; }
+  .theme > .wall > div { padding:2px; }
+  .ph { position:relative; width:375px; background:var(--page); outline:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; overflow:hidden; --ts:1; }
+  .ph .inner { padding:var(--space-2) var(--space-4) var(--space-3); }
+  .ph .bar .title { font-size:calc(20px * var(--ts)); }
+  .tabs { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--rule); background:var(--sheet); }
+  .tabs span { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60px; font-size:calc(14px * var(--ts)); color:var(--muted); }
+  .tabs .on { color:var(--ink); font-weight:700; box-shadow:inset 0 3px 0 var(--accent); }
+  .lg { --ts:1.25; }
+  .lg .sclab { font-size:calc(14px * var(--ts)); }
+  .lg .btn.stk { font-size:20px; }
+  .row { display:flex; align-items:center; gap:var(--space-2); min-height:56px; padding:var(--space-1) 0; border-bottom:1px dotted var(--rule); }
+  .row .t, .lr .t { flex:1; min-width:0; }
+  .row .t b, .lr .t b { display:block; font-size:calc(20px * var(--ts)); line-height:1.2; overflow-wrap:anywhere; }
+  .row .t small, .lr .t small { display:block; font-size:calc(14px * var(--ts)); color:var(--muted); line-height:1.25; }
+  .pin { display:inline-flex; vertical-align:-1px; margin-right:var(--space-1); }
+  .dots { display:inline-flex; gap:4px; vertical-align:middle; margin-right:var(--space-2); }
+  .dots i { width:10px; height:10px; border-radius:50%; border:1.5px solid var(--ink); display:inline-block; box-sizing:border-box; }
+  .dots i.on { background:var(--ink); }
+  .acts { display:flex; gap:var(--space-2); flex:none; }
+  /* the light: its row (the ring, its name and line), then Keep lit's row, 8 px apart (.light-block--at-hand) */
+  .lb { display:flex; flex-direction:column; gap:var(--space-2); padding:var(--space-1) 0 var(--space-2); border-bottom:1px dotted var(--rule); }
+  .lr { display:flex; align-items:center; gap:var(--space-2); min-height:56px; }
+  .lr .wn { color:var(--warn); display:inline-flex; vertical-align:-3px; margin-right:var(--space-1); }
+  .lr .t small.low { color:var(--warn); }
+  .kp { display:flex; align-items:center; gap:var(--space-2); min-height:44px; }
+  .kp .nm { font-size:calc(16px * var(--ts)); }
+  .kp .sp { flex:1 1 0; min-width:0; }
+  .i44 { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; color:var(--info); flex:none; }
+  /* the ring (the Status ring, 52 px, 5 px stroke) */
+  .rg { position:relative; display:inline-flex; width:52px; height:52px; align-items:center; justify-content:center; flex:none; }
+  .rg .arc { position:absolute; inset:0; transform:rotate(-90deg); }
+  .rg .mid { position:relative; display:inline-flex; }
+  /* the ring as the tap (this page's new part): the ring over its verb, one target, 72 px wide (the status tile's
+     width), no edge; the verb in the stacked button's word style */
+  .rt { display:inline-flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:2px; width:72px; min-height:76px; flex:none; box-sizing:border-box; padding-top:2px; }
+  .rt .vb { font-size:calc(14px * var(--ts)); font-weight:700; line-height:1.2; color:var(--ink); white-space:nowrap; }
+  .rt.press { background:var(--tint, color-mix(in srgb, var(--ink) 8%, transparent)); border-radius:8px; }
+  /* where a ring is not a tap (burnt out), it stands in the same 72 px column, with no verb */
+  .rstill { display:inline-flex; justify-content:center; width:72px; flex:none; }
+  /* today's Light section, as built: its heading, the secondary button, the option's words */
+  .today-l { display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; margin-bottom:var(--space-2); }
+  .today-l .meta { font-size:14px; }
+  /* the toast, just above the tab bar */
+  .tst { padding:0 var(--space-3) var(--space-2); }
+  /* a pop-up from the foot over the dimmed page */
+  .dimx { position:absolute; inset:0; background:rgba(0,0,0,.35); }
+  .shx { position:absolute; left:0; right:0; bottom:0; background:var(--popup); border-radius:20px 20px 0 0; padding:var(--space-3) var(--space-4) var(--space-4); }
+  .shx .hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-2); }
+  .shx .hd b { font-size:20px; }
+  .shx .opt2 { display:flex; align-items:center; min-height:48px; width:100%; box-sizing:border-box; margin-bottom:var(--space-2); text-align:left; justify-content:flex-start; }
+  /* the tablet held sideways, 1180 px */
+  .tab { width:1180px; background:var(--page); border:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; overflow:hidden; display:grid; grid-template-columns:56px minmax(0,1fr); --ts:1; }
+  .tab .cols9 { display:grid; grid-template-columns:minmax(0,4fr) minmax(0,5fr); gap:var(--space-6); padding:var(--space-4) var(--space-6) var(--space-5); align-items:start; }
+  .tab .cols9 > div:last-child { border-left:1px solid var(--rule); padding-left:var(--space-6); }
+  .wpn { border:2px solid var(--ink); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-3); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-1) var(--space-3); align-items:center; }
+  .wpn .nm { font-size:20px; font-weight:700; line-height:1.2; }
+  .wpn .in { font-size:14px; color:var(--muted); }
+  .wpn .rl { grid-column:1 / -1; display:flex; gap:var(--space-4); font-size:20px; }
+  .wpn .rl span { display:inline-flex; align-items:center; gap:var(--space-1); }
+  .wpn .rl small { font-size:14px; color:var(--muted); }
+  .tiles { display:grid; gap:var(--space-2); }
+  .tile { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-1); text-align:center; min-height:64px; box-sizing:border-box; }
+  .tile .k { font-size:14px; color:var(--muted); display:block; line-height:1.2; }
+  .tile .v { font-size:20px; font-weight:700; line-height:1.2; display:block; }
+  .tile .c { font-size:14px; color:var(--muted); display:block; line-height:1.2; }
+  .cut { font-size:14px; color:var(--muted); font-style:italic; text-align:center; padding:var(--space-2); border-top:1px dashed var(--rule); }
+  .grey { filter:grayscale(1); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+// Invented names and numbers only. Brannoch's At hand, as page 14 draws it (frames P1 and P2).
+const PROPOSED = '<b>Proposed, not approved.</b> ';
+const dpick = (words) => `<span class="pk">Designer’s pick</span> ${words}`;
+const stk = (words, k) => `<span class="btn stk" role="button">${gi(k, 24)}<span>${words}</span></span>`;
+const FLAME = `<path d="M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.5-2.5 1.2-3.3C9.5 9 10.5 10 11 10.5 11 8 11 5.5 12 3z" ${W}/>`;
+// the ring: lit (the arc the burn left, the flame in the light tone); unlit (the track alone, the flame in muted);
+// out (the track alone, the flame struck through, muted: the Status ring's "0 left")
+const lightRing = (frac, state) => { const s = 52, k = 5, r = (s - k) / 2, c = 2 * Math.PI * r; const lit = state === 'lit'; return `<span class="rg" aria-hidden="true"><svg class="arc" viewBox="0 0 ${s} ${s}" width="${s}" height="${s}"><circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--rule)" stroke-width="${k}"/>${lit ? `<circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--glow)" stroke-width="${k}" stroke-dasharray="${(c * frac).toFixed(1)} ${c.toFixed(1)}"/>` : ''}</svg><span class="mid" style="color:var(--${lit ? 'glow' : 'muted'})">${svg(state === 'out' ? SY.flameout : FLAME, 26)}</span></span>`; };
+const ringTap = (frac, state, verb, label, press = false) => `<span class="rt${press ? ' press' : ''}" role="button" aria-label="${label}">${lightRing(frac, state)}<span class="vb" aria-hidden="true">${verb}</span></span>`;
+const ringStill = (label) => `<span class="rstill" role="img" aria-label="${label}">${lightRing(0, 'out')}</span>`;
+const infoB = `<span class="i44" role="button" aria-label="About Keep lit">${I.info}</span>`;
+const undoToast = (words) => `<div class="tst"><div class="toastb" role="status"><span class="tmsg">${words}</span><span class="tu" role="button">${gi('anticlockwise-rotation', 20)}Undo</span><span class="tb"></span></div></div>`;
+
+// ---- the light's rows ----
+// today, as built (tg-1): the lit toggle at the right of the light's row; Keep lit's toggle after its ⓘ; Refill at the far right
+const lightToday = (o) => `<div class="lb"><div class="lr">${lightRing(o.frac, 'lit').replace('aria-hidden="true"', `role="img" aria-label="${o.name}, lit"`)}<span class="t" role="button"><b>${o.name}</b><small>${o.line}</small></span>${tg(true, { label: `${o.name}: lit` })}</div><div class="kp" style="flex-wrap:wrap"><span class="nm">Keep lit</span>${infoB}${tg(o.keep, { label: 'Keep lit' })}<span class="sp"></span>${o.refill ? stk('Refill', 'jug') : ''}</div></div>`;
+// proposed, lit: the ring is the tap ("Put out"); Keep lit's row: name and ⓘ at the left, Refill, the toggle at the right edge
+const lit = (o) => `<div class="lb"><div class="lr">${ringTap(o.frac, 'lit', 'Put out', `Put out ${o.name}`, o.press)}<span class="t" role="button" aria-label="${o.name}: its sheet"><b>${o.name}</b><small class="${o.low ? 'low' : ''}">${o.low ? `<span class="wn">${I.warn}</span>` : ''}${o.line}</small></span></div><div class="kp"><span class="nm">Keep lit</span>${infoB}<span class="sp"></span>${o.refill ? stk('Refill', 'jug') : ''}${tg(o.keep, { label: 'Keep lit' })}</div></div>`;
+// proposed, not lit: the ring empty, "Light" (one light, at once) or "Light…" (several: today's pick); no Keep lit row
+const unlit = (o) => `<div class="lb"><div class="lr">${ringTap(0, 'unlit', o.several ? 'Light…' : 'Light', o.several ? 'Light: choose which' : `Light ${o.name}`)}<span class="t"${o.several ? '' : ` role="button" aria-label="${o.name}: its sheet"`}><b>${o.name}</b><small>${o.line}</small></span></div></div>`;
+// proposed, burnt out: the ring struck through and still (no verb, not a tap); the words; Refill and Light another at the right
+const burnt = (o) => `<div class="lb"><div class="lr">${ringStill(`${o.name}, burnt out`)}<span class="t" role="button" aria-label="${o.name}: its sheet"><b>${o.name}</b><small>${o.line}</small></span></div>${o.acts.length ? `<div class="kp"><span class="sp"></span><span class="acts" data-stkgroup>${o.acts.map(([w, k]) => stk(w, k)).join('')}</span></div>` : ''}</div>`;
+
+const TORCH = { name: 'Torch', frac: 4 / 6, line: 'Lit, 4 turns left', keep: true, refill: false };
+const LANTERN = { name: 'Storm lantern', frac: 4 / 6, line: 'Lit, 4 turns left. 3 refills left', keep: true, refill: true };
+const LONG = 'Hooded lantern of the drowned bell';
+const MESSY = { name: LONG, frac: 0.83, line: 'Lit, 999 turns left. 999 refills left', keep: false, refill: true };
+const LOWNONE = { name: LONG, frac: 1 / 12, line: 'Lit, 1 turn left', keep: false, refill: false, low: true };
+
+// At hand's other rows (page 14)
+const pinMark = `<span class="pin" role="img" aria-label="Pinned">${svg('<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z" fill="currentColor"/>', 16)}</span>`;
+const dots = (left, of) => `<span class="dots" role="img" aria-label="${left} of ${of} left">${Array.from({ length: of }, (_, i) => `<i class="${i < left ? 'on' : ''}"></i>`).join('')}</span>`;
+const bow = `<div class="row"><span class="t" role="button"><b>${pinMark}Shortbow</b><small>Quiver: Arrows ×18</small></span><span class="acts" data-stkgroup>${stk('Quiver', 'quiver')}${stk('Wield', 'sword-hilt')}</span></div>`;
+const wand = `<div class="row"><span class="t" role="button"><b>Glow wand</b><small>3 of 5 charges</small></span>${stk('Use', 'pointing')}</div>`;
+const horn = `<div class="row"><span class="t" role="button"><b>${pinMark}Horn charge</b><small>${dots(2, 3)}2 of 3 left, back each day</small></span>${stk('Use', 'pointing')}</div>`;
+const atHand = (lightHtml, o = {}) => `<p class="sclab">At hand</p>${bow}${lightHtml}${wand}${o.horn ? horn : ''}`;
+// today's not-lit Light section, as built: above At hand, its heading over its button and the option's words
+const todayLightSection = (meta) => `<p class="sclab">Light</p><div class="today-l"><span class="btn" role="button">Light</span><span class="meta">${meta}</span></div>`;
+
+// the phone at 375 px
+const phBar = (title) => `<div class="bar"><span class="ico" role="button" aria-label="Menu">${sym('menu', 24)}</span><span class="title">${title}</span><span class="ico" role="button" aria-label="Messages">${sym('mail', 24)}</span></div>`;
+const tabs = `<div class="tabs" role="tablist"><span class="on">${gi('crown', 24)}Player</span><span>${sym('fire', 24)}Scene</span><span>${sym('sack', 24)}Pack</span><span>${sym('book', 24)}Log</span></div>`;
+const ph = (inner, o = {}) => `<div class="ph bit${o.lg ? ' lg' : ''}">${phBar('Brannoch')}<div class="inner">${inner}</div>${o.toast || ''}${tabs}${o.over || ''}</div>`;
+const colOf = (label, html) => `<div><p class="cap" style="width:375px;max-width:375px"><b>${label}</b></p>${html}</div>`;
+const frameOf = (cap, cols, w) => `<div><p class="cap" style="width:${w}px;max-width:${w}px">${cap}</p><div class="wall">${cols.join('')}</div></div>`;
+
+// ---- A: a lit torch ----
+const kA = frameOf(`35A. ${PROPOSED}<b>A lit torch, on a phone at 375 px</b> (the app’s own width: the 16 px gutter, 343 px inside). <b>Left, as built today:</b> the lit or out toggle at the right of the torch’s row, Keep lit’s toggle after its ⓘ. <b>Right, proposed:</b> <b>the toggle is gone. The ring is the tap:</b> the Status ring as today (the flame, the arc the burn left) with the verb <b>“Put out”</b> under it, the ring and the word one target (72 by 76 px), read aloud as “Put out Torch”. A tap puts the torch out at once, with Undo (frame 35B shows the toast). The torch’s name still opens its sheet. <b>Keep lit keeps its own row:</b> its name and ⓘ at the left, its toggle (the bare switch, unchanged) at the row’s right edge; a torch has no Refill. ${dpick('the verb under the ring is what makes it read as a control without a button’s edge: it is the stacked button’s shape (a mark over a word) with the edge taken off, and it says what the tap does. The alternatives are in the note.')}`,
+  [colOf('As built today', ph(atHand(lightToday(TORCH)))), colOf('Proposed', ph(atHand(lit(TORCH))))], 774);
+
+// ---- B: a lit storm lantern with Refill, and the tap ----
+const OUT_LANTERN = { name: 'Storm lantern', line: 'Not lit. 4 turns left. 3 refills left' };
+const kB = frameOf(`35B. ${PROPOSED}<b>A lit storm lantern, with Refill, and what a tap does.</b> <b>Left, as built today.</b> <b>Middle, proposed:</b> “Put out” under the ring; Keep lit’s row with Refill 8 px to the left of its toggle, the toggle at the right edge. <b>Right, the ring tapped:</b> the lantern is put out at once, <b>no pop-up</b>, and the toast says <b>“Storm lantern put out.”</b> with Undo (6 s, its draining bar; hard rule 7, Undo over confirm). The lantern stays in its place in At hand, now not lit: the ring empty (the track alone, the flame in the muted colour) with <b>“Light”</b> under it, its line keeping the fuel left in it (as a holder put out does today), and no Keep lit row (as today: Keep lit shows only while a light burns). Undo brings back the middle picture.`,
+  [colOf('As built today', ph(atHand(lightToday(LANTERN)))), colOf('Proposed', ph(atHand(lit(LANTERN)))), colOf('The ring tapped: put out at once, with Undo', ph(atHand(unlit(OUT_LANTERN)), { toast: undoToast('Storm lantern put out.') }))], 1160);
+
+// ---- C: the tablet held sideways ----
+const railP = `<div class="rail">${[['crown', 'Player', 1], ['fire', 'Scene'], ['sack', 'Pack']].map(([k, l, on]) => `<span class="ri${on ? ' on' : ''}" role="button" aria-label="${l}">${k === 'crown' ? gi('crown', 24) : sym(k, 24)}</span>`).join('')}</div>`;
+const weapon = `<div class="wpn"><div><div class="nm">Longsword</div><div class="in">In hand, Grip: one hand</div></div><span class="acts" data-stkgroup>${stk('Grip', 'fist')}${stk('Attack', 'sword-brandish')}</span><div class="rl"><span><span role="img" aria-label="d20" style="display:inline-flex">${die(20, 18)}</span><b>d20 +2</b><small>to hit</small></span><span><span role="img" aria-label="d8" style="display:inline-flex">${die(8, 18)}</span><b>d8 +1</b><small>damage</small></span></div></div>`;
+const tile = (k, v, c = '') => `<div class="tile" role="button"><span class="k">${k}</span><span class="v">${v}</span>${c ? `<span class="c">${c}</span>` : ''}</div>`;
+const right = `<p class="sclab" style="margin-top:0">Scores</p><div class="tiles" style="grid-template-columns:repeat(3,minmax(0,1fr))">${[['Might', 14, '+1'], ['Grace', 10, '&nbsp;'], ['Grit', 13, '+1'], ['Wit', 9, '&nbsp;'], ['Sense', 11, '&nbsp;'], ['Voice', 12, '&nbsp;']].map(([k, v, c]) => tile(k, v, c)).join('')}</div><p class="sclab">Saves</p><div class="tiles" style="grid-template-columns:repeat(5,minmax(0,1fr))">${[['Body', 12], ['Nerve', 13], ['Wits', 14], ['Luck', 15], ['Ward', 16]].map(([k, v]) => tile(k, v)).join('')}</div>`;
+const kC = `<div><p class="cap" style="width:1180px;max-width:1180px">35C. ${PROPOSED}<b>A tablet held sideways, 1180 px: the storm lantern in At hand</b>, as page 14’s frame P1 draws the left column (the weapon in hand, then At hand). The left column is drawn at its share of 1180 px (4 to 5, about 440 px); the head, hit points and what follows are left out, and the frame is cut below. The light’s row is the phone’s: the ring with “Put out” under it, the name and its line; Keep lit’s row with Refill and the toggle at the column’s right edge. With the lit toggle gone, the only thing at the right of the light’s own row is space.</p><div class="tab dev">${railP}<div class="main">${topRow('player')}<div class="cols9"><div class="bit">${weapon}${atHand(lit(LANTERN), { horn: true })}</div><div class="bit">${right}</div></div><div class="cut">The screen goes on below: the level block, Details; on the right, movement, traits, skills.</div></div></div></div>`;
+
+// ---- D: messy data ----
+const kD = frameOf(`35D. ${PROPOSED}<b>Messy data, at 375 px, Keep lit off.</b> <b>Left:</b> a long name, “${LONG}”, with 999 turns and 999 refills: the name and its line wrap beside the ring, which keeps its 72 px column; Keep lit off (the cross on the knob, no wash, no glow). <b>Middle: the same at the Larger text size</b> (the app’s ×1.25: the words grow, the ring, the toggles and the targets keep their size); “Put out” still fits under the ring. <b>Right: running low, no refills left:</b> the warning sign before the words; no Refill; <b>the ring’s target is shaded</b> as the rows’ press flash would shade it, to show that the ring and its word are one target, 72 by 76 px.`,
+  [colOf('A long name, 999, Keep lit off', ph(atHand(lit(MESSY)))), colOf('The same, Larger text', ph(atHand(lit(MESSY)), { lg: true })), colOf('Running low, no refills; the target shaded', ph(atHand(lit({ ...LOWNONE, press: true }))))], 1160);
+
+// ---- E: the states when nothing burns ----
+const TORCHES = { name: 'Torch ×4', line: 'Not lit. 6 turns each' };
+const LIT_NOW = { name: 'Torch', frac: 1, line: 'Lit, 6 turns left', keep: false, refill: false };
+const kE1 = frameOf(`35E1. ${PROPOSED}<b>One light, not burning.</b> <b>Left, as built today:</b> a “Light” heading over a “Light” button and the light’s words, above At hand. <b>Middle, proposed:</b> no heading and no separate button: <b>the light’s own row, in At hand where it sits when lit</b>, with the ring empty and <b>“Light”</b> under it, the ring and the word one target (read aloud “Light Torch”); the name and its line beside it. <b>Right, the ring tapped:</b> with one light to light it lights at once, no pop-up, the toast <b>“Torch lit.”</b> with Undo; the row is the lit row of frame 35A, Keep lit under it. ${dpick('the not-lit light sits in At hand, in the lit light’s place, so the light never jumps between two places on the screen as it is lit and put out; today’s not-lit Light section above At hand goes. With nothing else at hand, the light alone makes At hand, as it does when lit (question 2).')}`,
+  [colOf('As built today', ph(`${todayLightSection('Torch ×4, 6 turns')}<p class="sclab">At hand</p>${bow}${wand}`)), colOf('Proposed', ph(atHand(unlit(TORCHES)))), colOf('The ring tapped: lit at once, with Undo', ph(atHand(lit(LIT_NOW)), { toast: undoToast('Torch lit.') }))], 1160);
+const SEVERAL = { name: 'No light lit', line: 'Torch ×4; Storm lantern, 4 turns left', several: true };
+const pickSheet = `<div class="dimx"></div><div class="shx" role="dialog" aria-label="Which light?"><div class="hd"><b>Which light?</b><span class="ico" role="button" aria-label="Close">${I.close}</span></div><span class="btn opt2" role="button">Torch ×4, 6 turns</span><span class="btn opt2" role="button">Storm lantern, 4 turns left</span><span class="btn opt2" role="button">Hand lamp, Refill and light (3 left)</span></div>`;
+const kE2 = frameOf(`35E2. ${PROPOSED}<b>Several lights, and burnt out.</b> <b>1, several lights:</b> the row says <b>“No light lit”</b> and what there is to light; the ring’s word is <b>“Light…”</b> (the ellipsis: a choice follows, as “Reveal…” elsewhere), read aloud “Light: choose which”. <b>2, the ring tapped:</b> today’s pick, unchanged (“Which light?”, one row per light, a holder that burnt out offered as “Refill and light”). <b>3, a holder burnt out:</b> its row stays in its place; the ring struck through and <b>not a tap</b> (no word under it); the words as today, “Burnt out. 3 refills left”; <b>Refill</b> and <b>Light another</b> as stacked buttons at the right, one width (page 14’s frame P5, approved). <b>4, a torch burnt out, none left:</b> the plain words, no button. ${dpick('a word under the ring means the ring is a tap; with no word it is a picture. Burnt out has two answers (Refill, or another light), so the ring takes neither and the buttons say them.')}`,
+  [colOf('1. Several lights', ph(atHand(unlit(SEVERAL)))), colOf('2. The ring tapped: today’s pick', ph(atHand(unlit(SEVERAL)), { over: pickSheet })), colOf('3. A holder burnt out', ph(atHand(burnt({ name: 'Storm lantern', line: 'Burnt out. 3 refills left', acts: [['Refill', 'jug'], ['Light another', 'torch']] })))), colOf('4. A torch burnt out, none left', ph(atHand(burnt({ name: 'Torch', line: 'Burnt out. No torches left', acts: [] }))))], 1560);
+
+// ---- the hue taken away ----
+const kF = frameOf(`35F. <b>The hue taken away</b> (for Francis to judge). Lit, not lit and burnt out in greyscale: lit is told by the arc and its verb “Put out”, not lit by the empty track and “Light”, burnt out by the struck-through flame and no verb, so no state rests on colour alone. The toggle’s on and off keep the tick and the cross.`,
+  [colOf('Lit, greyscale', `<div class="grey">${ph(lit(LANTERN))}</div>`), colOf('Not lit and burnt out, greyscale', `<div class="grey">${ph(`${unlit(TORCHES)}${burnt({ name: 'Storm lantern', line: 'Burnt out. 3 refills left', acts: [['Refill', 'jug'], ['Light another', 'torch']] })}`)}</div>`)], 774);
+
+mount(`
+  <h1>The light’s ring is the tap; no lit or out toggle</h1>
+  <p class="note">For the driver’s brief of 2026-11-22 (row mock-light-tap), after Francis turned down page 34 (“I don’t like it”). His idea, “Mock up your recommendation”, with the driver’s change that keeps hard rule 7 (Undo over confirm): <b>the lit or out toggle on the light’s row goes</b> (this would supersede tg-1 for the light’s lit or out only); <b>the light’s Status ring is the tap</b>: lit, a tap puts it out at once with Undo; not lit, the ring empty with “Light” under it lights the one light at once with Undo, or opens today’s pick when there are several; burnt out, today’s words with Refill and Light another. <b>Keep lit keeps its own row</b> under the light: its name and ⓘ at the left, its toggle (the bare switch, unchanged) at the right edge, and for a holder Refill 8 px to the toggle’s left. Base: page 14’s approved frames P1, P2 and P5 (ps-9), and the built rows (<code>LitLight</code>, <code>KeepLit</code>, <code>LightSection</code>). Names, words and numbers are invented. <b>A proposal from the Design Studio, not approved.</b></p>
+  <p class="note"><b>The affordance: how the ring reads as a tap.</b> My pick: <b>the verb under the ring</b> (“Put out”, “Light”, “Light…”), in the stacked button’s word style, the ring and the word one target with no edge. It says what the tap does before it is tapped; it is the stacked button’s own shape with the edge taken off; and it tells this ring from the head’s status rings, which carry a name, not a verb. <b>Alternatives, not drawn:</b> (a) the bare ring, its action only in its spoken name: cleanest, but nothing on screen says it can be tapped, or what it does; (b) a soft disc (the surface colour) behind the ring, like a round button: reads as pressable, but it is a button’s edge by another name and says nothing of what it does; (c) a small mark on the ring (the snuffing hand, ic-3’s Put out icon, at its corner): a second icon on an icon, small, and hard to read at 52 px; (d) the ring inside today’s stacked button (the ring over “Put out”, with the edge): the clearest control, but the edge is what Francis asked to lose.</p>
+  <p class="note"><b>Questions for Francis.</b> 1. The head’s status rings open a status’s details when tapped; the light’s ring puts the light out. Is one tap meaning two things across the screen fine, with the verb under the light’s ring as the difference? (Pick: yes.) 2. A light that is not burning sits in At hand, where the lit one sits, and today’s Light section above At hand goes (35E1). Fine? 3. The toast’s words: you asked for “Storm lantern put out.”; today the app says “Put out Storm lantern” and “Lit Torch”. Pick: the brief’s order, “Storm lantern put out.” and “Torch lit.” 4. The character overview also shows Keep lit, with no ring tap there. Pick: it stays as it is. Should anything change there?</p>
+  <h1>35A. A lit torch</h1>
+  <div class="wall">${kA}</div>
+  <h1>35B. A lit storm lantern, with Refill, and the tap</h1>
+  <div class="wall">${kB}</div>
+  <h1>35C. A tablet held sideways</h1>
+  <div class="wall">${kC}</div>
+  <h1>35D. Messy data</h1>
+  <div class="wall">${kD}</div>
+  <h1>35E. When nothing burns</h1>
+  <div class="wall">${kE1}</div>
+  <div class="wall">${kE2}</div>
+  <h1>35F. The hue taken away</h1>
+  <div class="wall">${kF}</div>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked, in the HTML and the pictures.</b> Targets: the ring and its word 72 by 76; ⓘ 44 by 44; the Keep lit toggle 52 by 44 at the row’s right edge; Refill 88 by 56, 8 px from the toggle; the light’s name, its row’s height. No sideways scroll at 375 px, at Standard and at Larger text. No disabled button: burnt out with nothing to light keeps its words and no button (as today, never a button that does nothing). Undo over confirm: putting out and lighting act at once with an Undo toast; no pop-up asks first; the pick is a choice, not a confirm. One accent: none on these rows. Visibility of state: the arc, the verb and the line’s words (“Lit, 4 turns left”, “Not lit”, “Burnt out”) all say the state. Recognition, not recall: the verb names the tap. Consistency: a word under the ring means a tap, everywhere on this page. Error prevention: an accidental tap on the ring is one Undo away; the light keeps its fuel. States drawn: lit (a torch, a holder), running low, Keep lit on and off, a long name, 999, Larger text, put out, one light not lit, lit from it, several lights and the pick, a holder burnt out, a torch burnt out with none left, a tablet held sideways, greyscale.</p>
+  <p class="note"><b>Measured</b> (WCAG ratio from the tokens). The verb (ink) on the page: light 17.1, dark 15.9. The not-lit flame (muted) on the page: light 6.8, dark 8.3. The lit flame and arc (the light tone) on the page: light 2.8, dark 10.5, known and unchanged from page 14; the lit state does not rest on it (the verb and the words say it). The empty track (rule) is decoration, not the state. The toggle as page 34: its off edge 3.6 in both; its on edge against the wash, light 8.6, dark 4.6. The toast, light 17.1, dark 15.9.</p>
+  <p class="note"><b>Not checked.</b> A built screen: drawn from main’s source and page 14’s pictures. Whether a torch put out keeps its fuel the way a holder does (35B uses a holder, which the spec says does). The tablet column’s exact width (about 440 px at 1180). A tablet held upright; the Large step; offline and loading (as today: the toggles’ and the buttons’ own behaviour); the error state (“Couldn’t load the light” with Try again), unchanged and not drawn. The “No light” prompt above hit points (page 14, frame P5) keeps its own Light button; with the not-lit row now in At hand, the screen can show both; not drawn, for the builder’s plan to settle with Francis. The press flash’s colour (the app’s tint token) is drawn as a light ink wash.</p>
+`);
+applyBook();
+</script>
+</body>
+</html>
