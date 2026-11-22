@@ -140,12 +140,13 @@ for (const size of [
     });
 
     test('5. Light a torch (player): 1–2 taps, 0 screen changes', async ({ page }) => {
-      // Light (→ pick if more than one light; M5 step 7). Wren carries one light, rushlights, so it's one tap.
+      // Light (→ pick if more than one light; M5 step 7). Wren carries one light, rushlights, so it's one tap: the
+      // light's ring over "Light", in At hand (lt-2, lt-4; page 35).
       await playerScreen(page);
       const journey = new Journey(page);
       await journey.start();
-      const light = page.getByRole('region', { name: 'Light' });
-      await journey.tap(light.getByRole('button', { name: 'Light', exact: true }));
+      const atHand = page.getByRole('region', { name: 'At hand' });
+      await journey.tap(atHand.getByRole('button', { name: /^Light / }));
       // Once lit, the light sits in At hand with no Light heading (dec-13 C9, frames P1 and P2), its line there.
       await expect(page.getByRole('region', { name: 'At hand' }).locator('.light-block--at-hand').getByText('Lit, 6 turns left')).toBeVisible();
       await expect(page.getByText('Lit Rushlight')).toBeVisible();

@@ -81,16 +81,16 @@ export function PackScreen({
   weaponRolls,
   light = null,
   litLight = null,
-  beforeAtHand = null,
   onRead,
   inBar = false,
   extra = null,
 }: {
   /**
-   * At hand on the Player screen (dec-13 C9, ps-9): the burning light's rows, drawn after At hand's items and before
-   * `extra`, with no heading of their own, and the pack line they stand for, whose item row is then left out (each thing
-   * shows once). `rows` is given the way to open that line's item sheet (the light's name opens it, frame P1), or null
-   * when the line isn't in the pack as loaded. With nothing else at hand, the light alone makes the section.
+   * At hand on the Player screen (dec-13 C9, ps-9; lt-4, page 35): the light's rows, lit, not lit or burnt out, drawn
+   * after At hand's items and before `extra`, with no heading of their own, and the pack line they stand for (null for
+   * several lights), whose item row is then left out (each thing shows once). `rows` is given the way to open that
+   * line's item sheet (the light's name opens it, frame P1), or null when the line isn't in the pack as loaded. With
+   * nothing else at hand, the light alone makes the section.
    */
   litLight?: { lineId: string | null; rows: (onOpenItem: (() => void) | null) => ReactNode } | null;
   /**
@@ -98,11 +98,6 @@ export function PackScreen({
    * the light; null or nothing when there are none. The section shows whenever there are items, the light or these.
    */
   extra?: ReactNode;
-  /**
-   * The Player screen's At hand only (dec-13 C14): what sits under the weapon in hand and above At hand (the Light
-   * section of a light not burning, frame P1's order), drawn once the pack is read, so nothing moves under a finger.
-   */
-  beforeAtHand?: ReactNode;
   /** Told once the pack's read has answered (read or failed): the Player screen's one loading state waits for it (C11). */
   onRead?: (() => void) | undefined;
   /**
@@ -311,8 +306,8 @@ export function PackScreen({
     // own); if the pack can't be read, the light and the pinned traits still show.
     if (!loaded) return null;
     const ready = loaded !== 'error' && mine && rules ? { loaded, mine, rules } : null;
-    // The burning light's pack line: its row is left out (the light's rows stand for it), but its sheet is kept, opened
-    // from the light's name (dec-13 C9; frame P1).
+    // The light's pack line: its row is left out (the light's rows stand for it), but its sheet is kept, opened from the
+    // light's name (dec-13 C9; frame P1; lt-4: lit or not).
     const litLine = ready && litLight?.lineId ? (linesOf(ready.mine).find((l) => l.id === litLight.lineId) ?? null) : null;
     // The lit line keeps its place in At hand's order (a row stays when it has Use a charge); when it isn't At hand
     // itself (not pinned, not in hand, or hidden) it's added last, for its sheet only, and never draws a row.
@@ -325,7 +320,7 @@ export function PackScreen({
     // so At hand never adds a second one for it (dec-13 C6).
     const litAlone = !!litLine && !pins.some((l) => l.id === litLine.id);
     const atHandShown = rest.length > 0 || !!litLight || !!extra;
-    if (inHand.length === 0 && !atHandShown && !beforeAtHand) return null;
+    if (inHand.length === 0 && !atHandShown) return null;
     const items = (lines: InventoryLine[], only: { inHand?: boolean; sheetOnly?: string | null; sheetAlone?: boolean }) =>
       ready && (
         <CarrierItems
@@ -374,7 +369,6 @@ export function PackScreen({
           {items(inHand, { inHand: true })}
         </section>
       )}
-      {beforeAtHand}
       {atHandShown && (
         <section className="pack pack--at-hand" aria-label="At hand">
           <h2 className="pack__group-title">At hand</h2>

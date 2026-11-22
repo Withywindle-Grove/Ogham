@@ -142,6 +142,9 @@
   --tap: 44px;
   --tap-hp: 56px;
   --tap-step: 48px;
+  /* The light's ring as a tap (lt-2, page 35): the 52 px ring over its verb, one target; a still ring keeps the width. */
+  --ring-tap-width: 72px;
+  --ring-tap-height: 76px;
   --tab-bar: 62px;
   /* A Scene fact tile's narrowest (S4): its icon, padding and a 20 px value such as "On every move", whole on one line;
      scaled with the device's text size. */

@@ -8,7 +8,7 @@
 //   lines, to hit then damage, whose sums are the Attack sheet's own lines (never a second sum).
 //   Its name opens the item's sheet and its Attack opens the Attack sheet, as the At hand row's did.
 //   With nothing else at hand the block stands alone, with no "At hand" heading under it.
-//   A light that isn't lit keeps its Light section, now under the weapon in hand and above At hand (P1's order).
+//   A light that isn't lit sits in At hand, under the weapon in hand, with no Light section (lt-4, page 35).
 //   Wield on the pinned knife puts it in hand, and it becomes the block (the row's own command and Undo, unchanged).
 //   A burning light whose line is also the weapon in hand shows once as the block and once as the light's rows, and the
 //   light's name opens one sheet for it, never two (dec-13 C6's second half).
@@ -119,15 +119,15 @@ describe('the weapon in hand (dec-13 C14)', () => {
     expect(screen.queryByRole('heading', { name: 'At hand' })).toBeNull();
   });
 
-  // Purpose: a light not lit keeps its Light section, under the weapon in hand and above At hand (P1's order).
-  it('keeps an unlit light’s section between the weapon in hand and At hand', async () => {
+  // Purpose: a light not lit sits in At hand, under the weapon in hand, with no Light section (lt-4, page 35).
+  it('keeps an unlit light in At hand, under the weapon in hand', async () => {
     const { user } = await brannoch();
     const atHand = await screen.findByRole('region', { name: 'At hand' });
-    await user.click(within(atHand).getByRole('switch', { name: 'Storm lantern: lit' }));
-    const light = await screen.findByRole('region', { name: 'Light' });
+    await user.click(await within(atHand).findByRole('button', { name: 'Put out Storm lantern' }));
+    const ring = await within(screen.getByRole('region', { name: 'At hand' })).findByRole('button', { name: 'Light Storm lantern' });
     const block = screen.getByRole('region', { name: 'Weapon in hand' });
-    expect(order(block)).toBeLessThan(order(light));
-    expect(order(light)).toBeLessThan(order(screen.getByRole('region', { name: 'At hand' })));
+    expect(order(block)).toBeLessThan(order(ring));
+    expect(screen.queryByRole('region', { name: 'Light' })).toBeNull();
   });
 
   // Purpose: a burning light whose line is the weapon in hand opens one sheet from the light's name, never two.

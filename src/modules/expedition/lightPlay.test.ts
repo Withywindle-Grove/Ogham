@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import type { InventoryLine } from '../inventory/inventory.ts';
 import { timeUnits } from './clock.ts';
-import { anotherLight, asLit, burnoutWords, fuelLeft, leftWords, lightable, lightOfWords, lightOptions, lightState, mayLight, othersThan, pluralName, refillable, type CharacterLight } from './lightPlay.ts';
+import { anotherLight, asLit, burnoutWords, fuelLeft, leftWords, lightable, lightBlock, lightOfWords, lightOptions, lightState, mayLight, othersThan, pluralName, refillable, type CharacterLight } from './lightPlay.ts';
 
 const units = timeUnits({ roundSeconds: 6, turnMinutes: 10, dayHours: 24 });
 const TURN = 600;
@@ -146,5 +146,86 @@ describe('who may light (03: the GM, or the player for their own carrier)', () =
     expect(mayLight({ id: 'priya', roles: { c: 'gm' } }, wren)).toBe(true);
     expect(mayLight({ id: 'jo', roles: { c: 'player' } }, wren)).toBe(false);
     expect(mayLight({ id: 'sam', roles: {} }, wren)).toBe(false);
+  });
+});
+
+// At hand's light block (lt-1 to lt-5, page 35). Purposes:
+//   Lit, the ring's verb is "Put out", and the block stands for the light's line.
+//   With one light to light, the ring says "Light" and the line says what it is ("Not lit. 6 turns each" for a stack,
+//   35E1); with two or more, "No light lit" and "Light…", what there is to light in the line, and no line to stand for.
+//   A holder put out keeps its fuel in its line ("Not lit. 4 turns left. 3 refills left", 35B); a torch put out keeps its
+//   time the same way (05, A2; ⚑ 2 of plan light-tap).
+//   Burnt out: Refill and Light another each only when it can act, the words without the name ("Burnt out. 3 refills
+//   left"); with nothing left, the plain words and no action. A holder no longer in the pack promises no refills.
+//   Only holders with no fuel: nothing to light, said plainly.
+describe("At hand's light block (page 35)", () => {
+  const rush = line('rush', 'Rushlights', 4, { lightTypeId: 'rushlight' });
+  const lamp = line('lamp', 'Reed lamp', 1, { lightTypeId: 'reed-lamp' });
+  const oil = line('oil', 'Fen oil', 3, {}, { sourceEntryId: 'fen-oil' });
+  const noFuel = { left: 0, name: null };
+
+  it('lit: Put out, standing for its line', () => {
+    expect(lightBlock(light({}), TURN, lightOptions([rush], types, units), [rush], noFuel)).toEqual({ kind: 'lit', lineId: 'rush' });
+  });
+
+  it('one light gives Light and its line; several give Light… and no line', () => {
+    const one = lightBlock(null, 0, lightOptions([rush], types, units), [rush], noFuel);
+    expect(one).toMatchObject({ kind: 'one', lineId: 'rush', name: 'Rushlights ×4', words: 'Not lit. 6 turns each', refillFirst: false });
+    const single = line('rush', 'Rushlight', 1, { lightTypeId: 'rushlight' });
+    expect(lightBlock(null, 0, lightOptions([single], types, units), [single], noFuel)).toMatchObject({ name: 'Rushlight', words: 'Not lit. 6 turns' });
+    const moss = line('moss', 'Glow-moss', 1, { lightTypeId: 'glow-moss' });
+    expect(lightBlock(null, 0, lightOptions([moss], types, units), [moss], noFuel)).toMatchObject({ words: 'Not lit. Burns on' });
+    const lines = [rush, lamp, oil];
+    const several = lightBlock(null, 0, lightOptions(lines, types, units), lines, noFuel);
+    expect(several).toMatchObject({ kind: 'several', lineId: null, name: 'No light lit', words: 'Rushlights ×4; Reed lamp' });
+  });
+
+  it('a holder put out keeps its fuel in its line, with its refills; a torch put out keeps its time', () => {
+    const lines = [lamp, oil];
+    const out = light({ lineId: 'lamp', typeId: 'reed-lamp', name: 'Reed lamp', fuelItem: 'fen-oil', litAt: null, leftSeconds: 4 * TURN });
+    expect(lightBlock(out, 2 * TURN, lightOptions(lines, types, units), lines, { left: 3, name: 'Fen oil' })).toMatchObject({
+      kind: 'one',
+      lineId: 'lamp',
+      words: 'Not lit. 4 turns left. 3 refills left',
+    });
+    const torch = light({ litAt: null, leftSeconds: 2 * TURN });
+    expect(lightBlock(torch, 4 * TURN, lightOptions([rush], types, units), [rush], noFuel)).toMatchObject({ kind: 'one', words: 'Not lit. 2 turns left' });
+  });
+
+  it('burnt out: Refill and Light another only when each can act; with nothing left, no action', () => {
+    const lampOut = light({ lineId: 'lamp', typeId: 'reed-lamp', name: 'Reed lamp', fuelItem: 'fen-oil', litAt: null, outAt: 4 * TURN });
+    const both = [lamp, rush, oil];
+    expect(lightBlock(lampOut, 4 * TURN, lightOptions(both, types, units), both, { left: 3, name: 'Fen oil' })).toMatchObject({
+      kind: 'burnt',
+      lineId: 'lamp',
+      name: 'Reed lamp',
+      words: 'Burnt out. 3 refills left',
+      refill: true,
+      another: true,
+    });
+    const fuelOnly = [lamp, oil];
+    expect(lightBlock(lampOut, 4 * TURN, lightOptions(fuelOnly, types, units), fuelOnly, { left: 3, name: 'Fen oil' })).toMatchObject({ refill: true, another: false });
+    const othersOnly = [lamp, rush];
+    expect(lightBlock(lampOut, 4 * TURN, lightOptions(othersOnly, types, units), othersOnly, { left: 0, name: 'Fen oil' })).toMatchObject({
+      words: 'Burnt out. Out of fen oil',
+      refill: false,
+      another: true,
+    });
+    // The lamp's line has left the pack: no Refill, and no refills promised in its words.
+    const gone = [rush, oil];
+    expect(lightBlock(lampOut, 4 * TURN, lightOptions(gone, types, units), gone, { left: 3, name: 'Fen oil' })).toMatchObject({ words: 'Burnt out', refill: false, another: true });
+    expect(lightBlock(lampOut, 4 * TURN, [], [oil], { left: 3, name: 'Fen oil' })).toMatchObject({ words: 'Burnt out. No reed lamps left', refill: false, another: false });
+    const rushOut = light({ litAt: null, outAt: 6 * TURN });
+    expect(lightBlock(rushOut, 6 * TURN, [], [], noFuel)).toMatchObject({ kind: 'burnt', words: 'Burnt out. No rushlights left', refill: false, another: false });
+  });
+
+  it('only holders with no fuel: nothing to light, said plainly; nothing at all: no block', () => {
+    const empty = line('lamp', 'Reed lamp', 1, { lightTypeId: 'reed-lamp' }, { needsFuel: true });
+    expect(lightBlock(null, 0, lightOptions([empty], types, units), [empty], noFuel)).toMatchObject({
+      kind: 'nothing',
+      lineId: 'lamp',
+      words: "Nothing to light: Reed lamp needs fuel, and there's none in the pack.",
+    });
+    expect(lightBlock(null, 0, [], [], noFuel)).toBeNull();
   });
 });
