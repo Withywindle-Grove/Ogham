@@ -3,7 +3,7 @@ import type { CommandRegistry } from '../../core/commands.ts';
 import { recharge, revealCharges, revealSpent, setCharges, useCharge } from './charges.ts';
 import { setCarryingTreasure } from './treasureSwitch.ts';
 import { addCoin, giveCoin, removeCoin, spendCoin, takeCoin } from './purse.ts';
-import { addItem, approveItem, declineItem, emptyContainer, equipAnyway, equipItem, giveAway, hideFromAtHand, moveItem, noteRuleSkipped, pinItem, removeItem, revealItemField, setBaseArmour, setItemQty, setWeaponMode, useItem } from './inventory.ts';
+import { addItem, approveItem, declineItem, editItemLook, emptyContainer, equipAnyway, equipItem, giveAway, hideFromAtHand, moveItem, noteRuleSkipped, pinItem, removeItem, revealItemField, setBaseArmour, setItemQty, setWeaponMode, tellItem, useItem } from './inventory.ts';
 
 export function registerInventory(registry: CommandRegistry): void {
   registry.register(addItem);
@@ -16,6 +16,9 @@ export function registerInventory(registry: CommandRegistry): void {
   registry.register(noteRuleSkipped);
   registry.register(moveItem);
   registry.register(revealItemField);
+  // K22b: the GM tells a hidden fact, and edits what players see of an item.
+  registry.register(tellItem);
+  registry.register(editItemLook);
   registry.register(pinItem);
   registry.register(setBaseArmour);
   registry.register(hideFromAtHand);

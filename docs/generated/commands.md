@@ -91,6 +91,7 @@ Every change goes through one of these commands, which checks `can(user, command
 | `inventory.atHand` | verbose | Player A: a player can hide their own item from At hand | Player B: a player can't hide someone else's item from At hand<br>Player A: nothing in the Party stash is in At hand to hide |
 | `inventory.carryingTreasure` | simple | GM: the GM can switch Carrying treasure on for a character | Player A: a player can't switch Carrying treasure for their own character<br>Outsider: an outsider can't switch Carrying treasure<br>GM: the GM can't switch Carrying treasure on the Party stash |
 | `inventory.decline` | simple | GM: the GM can decline a player's one-off | Player B: a player can't decline someone else's item |
+| `inventory.editLook` | simple | GM: the GM can change what players see of an item | Player A: a player can't change what players see of an item, even their own |
 | `inventory.empty` | simple | Player A: a player empties a container they carry into the Party stash | Player A: a player can't empty another player's container |
 | `inventory.equip` | simple | Player A: a player can equip their own items<br>GM: the GM can equip anyone’s items | Player B: a player can't equip someone else's items |
 | `inventory.equipAnyway` | simple | Player A: a player can put on their own item despite a warning (logged as an override) | Player A: a player can't put on someone else's item |
@@ -105,6 +106,7 @@ Every change goes through one of these commands, which checks `can(user, command
 | `inventory.setBaseArmour` | simple | Player A: a player can choose the base armour of their own magic armour<br>GM: the GM can change the base armour after it was chosen | Player A: a player can't change the base armour once it's chosen<br>Player B: a player can't choose the base armour of someone else's armour |
 | `inventory.setCharges` | simple | Player A: a player can set the visible charges of their own item, from the roll<br>GM: the GM can set hidden charges | Player A: a player can't set hidden charges, even on their own item |
 | `inventory.setQty` | verbose | Player A: a player can change how many of their own items they have | Player B: a player can't change how many items someone else has |
+| `inventory.tell` | simple | GM: the GM can tell the players what is hidden on an item | Player A: a player can't tell a hidden fact, even on their own item<br>Player B: a player can't tell a hidden fact on someone else's item |
 | `inventory.useCharge` | simple | Player A: a player can use a charge of their own item, hidden or not | Player B: a player can't use a charge of someone else's item |
 | `invite.create` | simple | GM: the GM can create an invite | Player A: a player can't create an invite |
 | `invite.redeem` | simple | Newcomer: a newcomer with a valid code can join | — |

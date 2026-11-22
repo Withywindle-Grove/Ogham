@@ -28,6 +28,7 @@ import {
 import { encumbranceModeOf, rechargeDefaultOf, type EncumbranceMode } from '../../core/campaignSettings.ts';
 import type { Json } from '../../core/database.types.ts';
 import type { Db } from '../../core/supabase.ts';
+import type { FactId } from './hiddenFacts.ts';
 
 /** Where items are carried: a character, or the Party stash (a location). */
 export interface CarrierRef {
@@ -102,6 +103,16 @@ export interface InventoryLine extends ItemCopy {
    * ids, or null for a fresh weapon (its default: the first mode it can use; round 3). A spent mode stays stored.
    */
   modeId?: string | null;
+  /**
+   * K22a: false while the item is unidentified (its true name not told): the database stores it as its face, its name
+   * what it appears as and its details without any fact not told. True (or left out) for anything else.
+   */
+  identified?: boolean;
+  /** What players see it as (empty: its category's singular name) and "What you notice" (empty: no line); the GM's to edit. */
+  appearsAs?: string;
+  noticed?: string;
+  /** The facts told on this line ("magic", "name", "bonus", "cursed", "charges", "power:<n>", "fields.<label>"; K22b). */
+  revealedFields?: string[];
   campaignId: string;
   actorId: string | null;
   locationId: string | null;
@@ -114,7 +125,7 @@ export interface InventoryLine extends ItemCopy {
 }
 
 const COLUMNS =
-  'id, campaign_id, actor_id, location_id, library_entry_id, name, category, weight_coin, slots, stack, qty, container_line_id, equipped, how_got, cost, notes, item_data, source_pack_id, source_entry_id, charges_left, charges_hidden, charges_used, spent_shown, pinned, at_hand_hidden, approval, per_units, version, base_armour_id, needs_fuel, fuel_left_seconds, mode_id';
+  'id, campaign_id, actor_id, location_id, library_entry_id, name, category, weight_coin, slots, stack, qty, container_line_id, equipped, how_got, cost, notes, item_data, source_pack_id, source_entry_id, charges_left, charges_hidden, charges_used, spent_shown, pinned, at_hand_hidden, approval, per_units, version, base_armour_id, needs_fuel, fuel_left_seconds, mode_id, identified, appears_as, noticed, revealed_fields';
 
 type LineRow = {
   id: string;
@@ -149,6 +160,10 @@ type LineRow = {
   needs_fuel?: boolean;
   fuel_left_seconds?: number | null;
   mode_id?: string | null;
+  identified?: boolean;
+  appears_as?: string;
+  noticed?: string;
+  revealed_fields?: string[] | null;
 };
 
 function toLine(row: LineRow): InventoryLine {
@@ -185,6 +200,10 @@ function toLine(row: LineRow): InventoryLine {
     needsFuel: row.needs_fuel === true,
     fuelLeftSeconds: typeof row.fuel_left_seconds === 'number' ? row.fuel_left_seconds : null,
     modeId: typeof row.mode_id === 'string' ? row.mode_id : null,
+    identified: row.identified !== false,
+    appearsAs: row.appears_as ?? '',
+    noticed: row.noticed ?? '',
+    revealedFields: Array.isArray(row.revealed_fields) ? row.revealed_fields : [],
   };
 }
 
@@ -654,14 +673,38 @@ export const hideFromAtHand = defineCommand({
 });
 
 /**
+ * The facts a hidden field of the old per-field "Reveal …" button is (K22): its bonus, its curse, its true name, each
+ * power, each field of a hidden `fields` block; null for anything else (the GM's notes, say), which is written as before.
+ */
+function factsOfField(field: string, value: unknown): FactId[] | null {
+  if (field === 'bonus' || field === 'cursed' || field === 'name') return [field];
+  if (field === 'properties') return Array.isArray(value) && value.length > 0 ? value.map((_, i) => `power:${i}` as const) : null;
+  if (field === 'fields') {
+    const labels = value && typeof value === 'object' && !Array.isArray(value) ? Object.keys(value) : [];
+    return labels.length > 0 ? labels.map((label) => `fields.${label}` as const) : null;
+  }
+  return null;
+}
+
+/**
  * The GM shows the holder one of an item's hidden fields (a curse, the true bonus): it's added to what the line
- * says about its item, where its holder (and everyone who sees the line) can read it. Logged.
+ * says about its item, where its holder (and everyone who sees the line) can read it. Logged. A field that is a fact
+ * (its bonus, curse, true name, powers, a hidden field) is told through the database's tell (public.tell_item) while
+ * K2 hasn't replaced this button: the line then records what was told, so a told bonus counts in the player's numbers
+ * (review of #40, finding 5).
  */
 export const revealItemField = defineCommand({
   name: 'inventory.reveal',
   target: (input: { line: LineRef; field: string; value: unknown }) => input.line.carrier,
   allowed: (user, carrier) => isGm(user, carrier.campaignId),
   run: async (db, _user, input, meta): Promise<CommandResult<InventoryLine>> => {
+    const facts = factsOfField(input.field, input.value);
+    if (facts) {
+      const { data, error } = await db.rpc('tell_item', { line: input.line.id, facts, ...seenVersion(input.line) });
+      if (error) return fromError(error);
+      // Nothing of it hidden as a fact (a one-off's own field, say): written as before.
+      if (typeof data === 'number' && data > 0) return lineNow(db, input.line.id);
+    }
     // Read fresh, and saved only if nothing changed in between.
     const found = fromWrite(await db.from('inventory_lines').select('item_data, version').eq('id', input.line.id));
     if (!found.ok) return found;
@@ -674,6 +717,50 @@ export const revealItemField = defineCommand({
       requestIdOf(meta),
     );
     return saved.ok ? ok(toLine(saved.value)) : saved;
+  },
+});
+
+/** The line as this person now sees it, read back after a database function changed it. */
+async function lineNow(db: Db, lineId: string): Promise<CommandResult<InventoryLine>> {
+  const read = fromWrite(await db.from('inventory_lines').select(COLUMNS).eq('id', lineId));
+  return read.ok ? ok(toLine(read.value as unknown as LineRow)) : read;
+}
+
+/** The version the person's copy showed, as the database functions take it. */
+const seenVersion = (line: { version?: number }) => (line.version !== undefined ? { seen_version: line.version } : {});
+
+/**
+ * The GM tells the players one fact still hidden on an item, or every one (K22b; k22-4 to k22-6, pick 6): the database
+ * copies what is told from the entry and its hidden part onto the line (public.tell_item), never from a device, and the
+ * line, its holder's sheet and the log follow. On a magic item any fact tells "That it's magic" too. A fact told
+ * already changes nothing. Undone by the log's Undo; after it the players' log leaves the tell out (k22-10).
+ */
+export const tellItem = defineCommand({
+  name: 'inventory.tell',
+  target: (input: { line: LineRef; fact: FactId | 'everything' }) => input.line.carrier,
+  allowed: (user, carrier) => isGm(user, carrier.campaignId),
+  run: async (db, _user, input): Promise<CommandResult<InventoryLine>> => {
+    const { error } = await db.rpc('tell_item', { line: input.line.id, facts: [input.fact], ...seenVersion(input.line) });
+    return error ? fromError(error) : lineNow(db, input.line.id);
+  },
+});
+
+/**
+ * The GM changes what players see of an item (K22b, k22-1, k22-3): what it appears as and "What you notice"; while it is
+ * unidentified its name follows (an empty one reads as its category's singular name). Logged for the GM alone (pick 3).
+ */
+export const editItemLook = defineCommand({
+  name: 'inventory.editLook',
+  target: (input: { line: LineRef; appearsAs: string; noticed: string }) => input.line.carrier,
+  allowed: (user, carrier) => isGm(user, carrier.campaignId),
+  run: async (db, _user, input): Promise<CommandResult<InventoryLine>> => {
+    const { error } = await db.rpc('edit_item_look', {
+      line: input.line.id,
+      appears_as: input.appearsAs.trim().slice(0, 200),
+      noticed: input.noticed.trim().slice(0, 2000),
+      ...seenVersion(input.line),
+    });
+    return error ? fromError(error) : lineNow(db, input.line.id);
   },
 });
 

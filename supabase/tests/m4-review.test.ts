@@ -201,6 +201,8 @@ describe('the triggers on inventory lines', () => {
     expect(rows).toEqual([
       // M5 step 4: the copy version is checked first, so a save from an old copy is refused before anything else.
       { name: 'check_copy_version', timing: 'before' },
+      // K22a: only the GM sets what players see of an item; before copy_item_details, which fills it from the entry.
+      { name: 'check_face', timing: 'before' },
       { name: 'check_inventory_line', timing: 'before' },
       { name: 'copy_item_details', timing: 'before' },
       { name: 'guard_charges', timing: 'before' },
