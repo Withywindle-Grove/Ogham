@@ -263,8 +263,8 @@ beforeAll(async () => {
         name: 'The Reed Inn',
         type: 'building',
         playerView: { text: 'Smoke and eel stew.' },
-        gm: { notes: 'The keeper fences stolen lanterns.' },
-        // A rule and a check of its own, for placeRule.eye and placeRule.inForce (dec-7 piece 3).
+        gm: { notes: 'The keeper fences stolen lanterns.', sections: [{ heading: 'The keeper', text: 'Fences stolen lanterns.' }] },
+        // A section of Knowledge, for placeKnowledge.eye (P4, p4s-2). A rule and a check of its own, for placeRule.eye and placeRule.inForce (dec-7 piece 3).
         rules: [{ id: 'slick-piles', name: 'Slick piles', text: 'Footing is poor.' }],
         encounterCheck: { when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] } },
       };
@@ -393,6 +393,28 @@ beforeAll(async () => {
           .select('id'),
       );
       return { key, name: 'The Lantern Rest', town: visit.place!.name };
+    },
+    async freshTownPart(shown = false) {
+      // A Safe town made from a pack, the party there on a fresh expedition; a place one level under it, in the town's
+      // list as `place:<id>`, with one piece, hidden or (`shown`) shown to the party (a store row, as the GM's show
+      // writes it).
+      const { packId } = await this.freshAttachedPack();
+      const tag = crypto.randomUUID().slice(0, 8);
+      const townId = `fenwick-${tag}`;
+      const chapelId = `lantern-chapel-${tag}`;
+      const expedition = await this.freshExpedition(world.campaignId);
+      const town = must(
+        await world.admin
+          .from('places')
+          .insert({ campaign_id: world.campaignId, name: `Fenwick ${tag}`, pack_id: packId, pack_entry_id: townId, safety: 'safe', town: { [`place:${chapelId}`]: { name: 'The Lantern Chapel', kind: 'other', shown: true, open: true } } })
+          .select('id')
+          .single(),
+      );
+      const chapel = must(await world.admin.from('places').insert({ campaign_id: world.campaignId, name: `The Lantern Chapel ${tag}`, pack_id: packId, pack_entry_id: chapelId, pack_parent_id: townId }).select('id').single());
+      const piece = must(await world.admin.from('place_pieces').insert({ campaign_id: world.campaignId, place_id: chapel.id, kind: 'description', body: 'Candles in green glass.' }).select('id').single());
+      const visit = must(await world.admin.from('group_places').insert({ campaign_id: world.campaignId, expedition_id: expedition.id, group_number: 1, place_id: town.id }).select('id').single());
+      if (shown) must(await world.admin.from('town_piece_shows').insert({ campaign_id: world.campaignId, group_place_id: visit.id, piece_id: piece.id, group_number: 1 }).select('id'));
+      return { visitId: visit.id as string, pieceId: piece.id as string };
     },
     async freshSecretRequest() {
       // A day started for group 1, then Wren's own request to Scout ahead (2 points), as send_request would store it.

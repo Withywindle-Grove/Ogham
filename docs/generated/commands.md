@@ -149,6 +149,7 @@ Every change goes through one of these commands, which checks `can(user, command
 | `place.setSafety` | verbose | GM: the GM can mark a place safe | Player A: a player can't mark a place hostile |
 | `place.shareMap` | verbose | GM: the GM can share a map with the players | Player A: a player can't share a map<br>Outsider: an outsider can't share a map |
 | `place.showPiece` | verbose | GM: the GM can show players one piece | Player B: a player can't show a piece |
+| `placeKnowledge.eye` | simple | GM: the GM can share a section of a place's knowledge with a group | Player A: a player can't share a section of a place's knowledge<br>Outsider: an outsider can't share a section of a place's knowledge |
 | `placeRule.eye` | simple | GM: the GM can open or close a place's rule to players | Player A: a player can't open a place's rule<br>Outsider: an outsider can't open a place's rule |
 | `placeRule.inForce` | simple | GM: the GM can switch a place's own check off | Player B: a player can't switch a place's own check |
 | `profile.rename` | none | Player A: a person can change their own display name | Player A: a person can't change someone else's display name |
@@ -201,9 +202,11 @@ Every change goes through one of these commands, which checks `can(user, command
 | `time.set` | simple | GM: the GM can correct the time | Player A: a player can't correct the time |
 | `time.start` | simple | GM: the GM can set the start time while the clock has not moved | Player A: a player can't set the start time |
 | `town.activeNight` | simple | GM: the GM can switch Active tonight on | Player A: a player can't switch Active tonight on |
+| `town.hidePiece` | verbose | GM: the GM can hide a piece of a place in town | Player B: a player can't hide a piece of a place in town |
 | `town.openPlace` | verbose | GM: the GM can close a place in town | Player A: a player can't close a place in town |
 | `town.outDay` | simple | GM: the GM can switch Out and about today on | Player A: a player can't switch Out and about today on<br>Outsider: an outsider can't switch Out and about today on |
 | `town.reset` | simple | GM: the GM can reset the town switches at the morning | Player A: a player can't reset the town switches |
+| `town.showPiece` | verbose | GM: the GM can show players a piece of a place in town | Player A: a player can't show a piece of a place in town |
 | `town.showPlace` | verbose | GM: the GM can show players a place in town | Player A: a player can't show a place in town |
 | `town.stay` | simple | Player A: a player can pick a lodging the GM shows for their own character | Player B: a player can't pick a lodging for another player's character<br>GM: the GM can't pick a lodging for a player's character |
 | `travel.dayStart` | simple | GM: the GM can start the day's budget | Player A: a player can't start the day's budget |

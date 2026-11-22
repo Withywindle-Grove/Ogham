@@ -17,6 +17,8 @@
 //               `proposal` a proposed way (1 of 3), `proposal-plain` one with no obstacle (2 of 3), `players` Where to?
 //               with your proposal, `players-other` with another's, `queue` the proposals' queue worked by hand
 //   ?placePage=spots|spot|hand|none  the GM's place page (dec-7 piece 5b): see the block that builds it, below
+//   ?placeCard=1 the players' place card (P4): the Location's card and the Area's in the page's two columns; `bare` the
+//               Area never shown, `messy` long names and 999; `gm` the GM's Knowledge sheet with its eyes
 //   ?knowledge=1 a place's Knowledge sheet open (dec-7 piece 6a), wired to no screen: `one` a lone section (open at
 //               the start, set out in blocks), `empty` a place with nothing written
 import { StrictMode } from 'react';
@@ -1111,7 +1113,8 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //   ?placePage=hand   the party at a place typed by hand (frame 2b, left);
 //   ?placePage=none   an expedition with no place yet (frame 2b, right).
 //   &map=wanted|added with spots or spot: the pack's map for the harbour, not added yet or added (S13; see below).
-//   &picture=1 with spots or spot: the place has a picture (TW13: the picture row, a tap opening it).
+//   &picture=1 with spots or spot: the place has a picture (TW13: the picture row, a tap opening it); with &ways=… too,
+//               shown to the players (the Location's card's small picture button, ppf-6 c).
 //   &mapTitle=long  with &map: the map's title long (the card's title on its own line above the tools).
 //   &session=running|paused  the band's session states (S9; see below).
 //   &strip=long  the harbour's own procedure of seven long-named steps (S7; see the harbour).
@@ -1254,13 +1257,22 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
   // &activities=1 (P6 of plan dec-9-the-players-scene; mc-45a; 01-08, 01-08j): the setting's common player actions,
   // three with rule text (the last in two paragraphs, with a source) and one without, which is not listed.
   // &activities=long: a fourth with a name longer than a phone's card, to wrap inside its button.
+  // &activities=blocks (d5-16; 01-08j): as =1, with Force a door's rule set out in pf-18's blocks as 01-08j draws it.
   const activitiesFlag = new URLSearchParams(window.location.search).get('activities');
-  if (activitiesFlag === '1' || activitiesFlag === 'long') {
+  if (activitiesFlag === '1' || activitiesFlag === 'long' || activitiesFlag === 'blocks') {
+    const forceInBlocks = {
+      blocks: [
+        { p: 'A stuck or barred door may be forced by one character at a time.' },
+        { p: 'Roll a d6: the door opens on a 1 or a 2.' },
+        { table: { title: 'Modifiers', columns: ['When', 'The door opens on'], rows: [['With a crowbar', '1 to 3'], ['A second character helps', '1 to 3'], ['An iron-bound door', '1 only']] } },
+        { lead: 'Time and noise', text: 'Each try takes a turn and is loud.' },
+      ],
+    };
     const playerActions = [
       { id: 'search', name: 'Search', group: 'Searching', text: 'One character searches a part of the room for a turn.' },
       { id: 'listen', name: 'Listen', group: 'Doors', text: 'Hold still at a door and listen for what is behind it.' },
       { id: 'shout', name: 'Shout', group: 'Noise' },
-      { id: 'force', name: 'Force a door', group: 'Doors', text: 'A stuck or barred door may be forced by one character at a time.\n\nEach try takes a turn and is loud.', source: 'Fen Rules, p. 88' },
+      { id: 'force', name: 'Force a door', group: 'Doors', text: activitiesFlag === 'blocks' ? forceInBlocks : 'A stuck or barred door may be forced by one character at a time.\n\nEach try takes a turn and is loud.', source: 'Fen Rules, p. 88' },
       ...(activitiesFlag === 'long' ? [{ id: 'long', name: 'Listen at the iron-bound door of the Drowned Customs House', group: 'Doors', text: 'As Listen, but the iron muffles it.' }] : []),
     ];
     world.tables.library_entries.push({ id: 'entry-fen-actions', pack_id: 'pack-fen', kind: 'rulesSet', pack_entry_id: 'fen-actions', name: 'Fen actions', data: { id: 'fen-actions', name: 'Fen actions', exploration: { playerActions } } });
@@ -1344,11 +1356,42 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
   const modeId = outdoors ? 'fen-walk' : 'dungeon';
   const started = (await world.db.rpc('start_expedition' as never, { campaign, mode_id: modeId } as never)) as unknown as { data: { id: string } | null };
   if (placePageFlag === 'hand') await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: 'Fenwick Hole', placeId: null, packEntry: null });
+  // &ways=1|none|messy with spot (plan dec-9-the-players-scene P2; PL1, PL9, PL10): the jetty's ways on, and one of its
+  // pieces shown, so a player has them (mc-28b). `1`: the wreck (row, swim) and the breakwater (row), both visited and
+  // shown before; the customs shed by walking, never shown ("Not yet explored."); the sea cave by a hidden way (sent to
+  // nobody). `none`: no ways at all (d5-1: "Where to?" is left out). `messy`: the customs shed named at length and shown,
+  // climbing 999 turns and swimming 12.
+  const waysFlag = placePageFlag === 'spot' ? new URLSearchParams(window.location.search).get('ways') : null;
+  if (waysFlag) {
+    const route = (id: string, to: string, travel: unknown, hidden = false) =>
+      world.tables.library_entries.push({ id: `entry-reed-${id}`, pack_id: 'pack-reed', kind: 'route', pack_entry_id: id, name: id, data: { id, from: 'the-jetty', to, travel, hidden } });
+    if (waysFlag === '1' || waysFlag === 'messy') {
+      route('jetty-wreck', 'the-wreck', [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }, { by: 'swim', name: 'Swimming', value: 3, unit: 'turn' }]);
+      route('jetty-breakwater', 'the-breakwater', [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }]);
+      route('jetty-cave', 'sea-cave', [{ by: 'row', name: 'Rowing', value: 2, unit: 'turn' }], true);
+    }
+    if (waysFlag === '1') route('jetty-shed', 'customs-shed', [{ by: 'walk', name: 'Walking', value: 2, unit: 'turn' }]);
+    if (waysFlag === 'messy') route('jetty-shed', 'customs-shed', [{ by: 'climb', name: 'Climbing', value: 999, unit: 'turn' }, { by: 'swim', name: 'Swimming', value: 12, unit: 'turn' }]);
+    if (waysFlag === 'messy') {
+      const shed = world.tables.library_entries.find((e) => e.id === 'entry-reed-customs-shed');
+      const long = 'The water stair under the customs house, by the tarred door';
+      spots[3]!.name = long;
+      if (shed) Object.assign(shed, { name: long, data: { ...(shed.data as Record<string, unknown>), name: long } });
+    }
+    const visited = waysFlag === 'none' ? [] : [spots[1]!, spots[2]!, ...(waysFlag === 'messy' ? [spots[3]!] : [])];
+    for (const spot of visited) {
+      const data = { ...spot, playerView: { text: spot.identity } };
+      await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: data.id, name: data.name, data } });
+      const there = started.data ? (await loadGroupPlaces(world.db, campaign, started.data.id))?.get(1) : undefined;
+      if (there?.pieces[0]) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row: there, piece: there.pieces[0] });
+    }
+  }
   if (placePageFlag === 'spots' || placePageFlag === 'spot') {
     const data = placePageFlag === 'spots' ? harbour : spots[0]!;
     await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: data.id, name: data.name, data } });
     const row = started.data ? (await loadGroupPlaces(world.db, campaign, started.data.id))?.get(1) : undefined;
     if (placePageFlag === 'spots' && row) for (const piece of row.pieces.slice(0, 2)) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row, piece });
+    if (waysFlag && row?.pieces[0]) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row, piece: row.pieces[0] });
     // The map (the whole Scene's S13, page 11's frames 1a, 1b, 2c, 4a, 4b, 4d), only with &map=…: the pack names a map
     // for the harbour; `wanted` leaves it to be added ("+ Map"); `added` stores the campaign's copy, hidden, tied to the
     // place the party is at (the layout spec serves its file, the invented harbour drawing).
@@ -1359,6 +1402,10 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
       world.tables.assets.push({ id: 'asset-jetty-picture', campaign_id: campaign, kind: 'place', name: 'The jetty', visibility: 'gm' });
       await world.db.storage.from('campaign-files').upload(`${campaign}/asset-jetty-picture`, new Blob(['a picture'], { type: 'image/svg+xml' }));
       await runCommand(registry, world.db, asGm, setPlacePicture, { campaignId: campaign, place: row.place, assetId: 'asset-jetty-picture' });
+      // With &ways=… (a player's Scene) the GM shows the picture too, so the Location's card has its small picture
+      // button (ppf-6 c).
+      const pictured = waysFlag && started.data ? (await loadGroupPlaces(world.db, campaign, started.data.id))?.get(1) : undefined;
+      if (pictured?.picture) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row: pictured, piece: { id: pictured.picture.id } });
     }
     const mapFlag = new URLSearchParams(window.location.search).get('map');
     if (mapFlag === 'wanted' || mapFlag === 'added') {
@@ -1456,7 +1503,17 @@ applyTextSize(getTextSize());
 const mapParts = new URLSearchParams(window.location.search).get('mapParts');
 const moveOn = new URLSearchParams(window.location.search).get('moveOn');
 const knowledge = new URLSearchParams(window.location.search).get('knowledge');
-if (mapParts) {
+const placeCard = new URLSearchParams(window.location.search).get('placeCard');
+if (placeCard) {
+  // The players' place card (P4) alone, as the gallery draws it; on the players' page with ?placePage=spot&ways=1.
+  const { PlayersPlaceCardLayoutPage } = await import('../gallery/PlayersPlaceCardSpecimens.tsx');
+  await import('../gallery/Gallery.css');
+  createRoot(root).render(
+    <StrictMode>
+      <PlayersPlaceCardLayoutPage state={placeCard} />
+    </StrictMode>,
+  );
+} else if (mapParts) {
   const { MapPartsLayoutPage } = await import('../gallery/MapPartsSpecimens.tsx');
   await import('../gallery/Gallery.css');
   createRoot(root).render(

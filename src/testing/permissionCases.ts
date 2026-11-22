@@ -120,9 +120,11 @@ import { addPlacePicture, setPlacePicture } from '../modules/expedition/placePic
 import { addPlaceMap, setPlaceMap, shareMap } from '../modules/expedition/placeMap.ts';
 import { placeFromPack, type PackPlaceEntry } from '../modules/expedition/placeFromPack.ts';
 import { setCheckInForce, setRuleEye } from '../modules/expedition/placeRules.ts';
+import { setKnowledgeShare } from '../modules/expedition/placeKnowledge.ts';
 import { setPlaceSafety } from '../modules/expedition/placeSafety.ts';
 import { moveOn } from '../modules/expedition/placeMove.ts';
 import { openTownPlace, showTownPlace } from '../modules/expedition/townPlaces.ts';
+import { hideTownPiece, showTownPiece } from '../modules/expedition/townParts.ts';
 import { readMessages, sendMessages } from '../modules/messages/messages.ts';
 import { markFindsSeen } from '../modules/characters/findsSeen.ts';
 import { answerRequest, askRequests, enterRequest, sendRequest, withdrawRequest, type Request } from '../modules/requests/requests.ts';
@@ -340,6 +342,12 @@ export interface CaseWorld {
    * its name and the town's name.
    */
   freshInn(): Promise<{ key: string; name: string; town: string }>;
+  /**
+   * A piece of a place in town (W4c, ge-1): a fresh expedition with the party at a Safe town made from a pack, and a
+   * place one level under it (its entry `place:<id>` in the town's list), with one piece, hidden or (`shown`) shown to
+   * the party. Gives back the party's visit to the town and the piece.
+   */
+  freshTownPart(shown?: boolean): Promise<{ visitId: string; pieceId: string }>;
   /**
    * A secret-activity request Wren (Player A's character) just sent, still waiting, in a fresh expedition with a
    * day started for group 1 (M5b step 3): "Scout ahead", costing 2 points.
@@ -1233,6 +1241,10 @@ export const permissionCases: PermissionCase[] = [
   rule("the GM can open or close a place's rule to players", 'gm', setRuleEye, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, ruleId: 'slick-piles', open: false }; }, true),
   rule("a player can't open a place's rule", 'playerA', setRuleEye, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, ruleId: 'slick-piles', open: true }; }, false),
   rule("an outsider can't open a place's rule", 'outsider', setRuleEye, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, ruleId: 'slick-piles', open: true }; }, false),
+  // The players' place card (P4, p4s-2): the GM's eye on a section of a place's Knowledge.
+  rule('the GM can share a section of a place\'s knowledge with a group', 'gm', setKnowledgeShare, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, group: 1, packId: e.packId, entryId: e.packEntryId, sectionAt: 0, share: true }; }, true),
+  rule("a player can't share a section of a place's knowledge", 'playerA', setKnowledgeShare, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, group: 1, packId: e.packId, entryId: e.packEntryId, sectionAt: 0, share: true }; }, false),
+  rule("an outsider can't share a section of a place's knowledge", 'outsider', setKnowledgeShare, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, group: 1, packId: e.packId, entryId: e.packEntryId, sectionAt: 0, share: true }; }, false),
   rule("the GM can switch a place's own check off", 'gm', setCheckInForce, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, on: false }; }, true),
   rule("a player can't switch a place's own check", 'playerB', setCheckInForce, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, on: false }; }, false),
   rule('the GM can start an expedition at a place picked by id', 'gm', startExpedition, async (w) => {
@@ -1334,6 +1346,11 @@ export const permissionCases: PermissionCase[] = [
     const row = await w.freshPlace(true);
     return { campaignId: w.campaignId, place: row.place!, entry: { key: 'service:stall', name: 'A stall', group: 'shop' as const }, shown: true };
   }, false),
+  // A piece of a place in town (W4c, ge-1): the GM shows or hides it while the party is in the town; a player can't.
+  rule('the GM can show players a piece of a place in town', 'gm', showTownPiece, async (w) => ({ campaignId: w.campaignId, ...(await w.freshTownPart()) }), true),
+  rule("a player can't show a piece of a place in town", 'playerA', showTownPiece, async (w) => ({ campaignId: w.campaignId, ...(await w.freshTownPart()) }), false),
+  rule('the GM can hide a piece of a place in town', 'gm', hideTownPiece, async (w) => ({ campaignId: w.campaignId, ...(await w.freshTownPart(true)) }), true),
+  rule("a player can't hide a piece of a place in town", 'playerB', hideTownPiece, async (w) => ({ campaignId: w.campaignId, ...(await w.freshTownPart(true)) }), false),
   rule('the GM can close a place in town', 'gm', openTownPlace, async (w) => {
     const row = await w.freshPlace();
     return { campaignId: w.campaignId, place: row.place!, entry: { key: 'lodging:an inn', name: 'An inn', group: 'lodging' as const }, open: false };

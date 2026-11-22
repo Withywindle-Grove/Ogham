@@ -51,8 +51,12 @@ import { registry } from './services.ts';
 import { usePhone } from './useWide.ts';
 import { loadPlayersRules, type PlayersRule } from '../modules/expedition/placeRules.ts';
 import { useLastGoodRules } from './PlaceRules.tsx';
-import { NothingSharedYet, PlayersActivities, PlayersSceneCard, PlayersSceneLoading, PlayersScenePage, showsPlayersPage, SomewhereNew } from './PlayersScenePage.tsx';
+import { NothingSharedYet, PlayersActivities, PlayersSceneLoading, PlayersScenePage, showsPlayersPage, SomewhereNew } from './PlayersScenePage.tsx';
 import { activitiesWithRules } from '../modules/expedition/playerActions.ts';
+import { PlayersWhereTo, usePlayersWaysOn, WhereToNoneYet } from './PlayersWhereTo.tsx';
+import { stepNowOf } from '../modules/expedition/playersWays.ts';
+import { PlayersAreaCard, PlayersLocationCard, usePlayersPlaceCards } from './PlayersPlaceCard.tsx';
+import type { TurnClock } from '../modules/expedition/placeKnowledge.ts';
 import './PartyGroups.css';
 
 interface Loaded {
@@ -172,6 +176,10 @@ export function PartyGroups({
   const phone = usePhone();
   // A failed read of the players' place rules keeps the last good list (review of #726).
   const placeRules = useLastGoodRules(loaded && loaded !== 'error' ? loaded.placeRules : null);
+  // A player's ways on (P2), read beside the page so "Where to?" comes with it; a failed read keeps the last list.
+  const ways = usePlayersWaysOn(db, campaign.id, !isGm(user, campaign.id));
+  // The players' place card (P4): the Area's card's read and what the GM has shared (a player's only).
+  const areaCards = usePlayersPlaceCards(db, campaign.id, !isGm(user, campaign.id));
 
   useEffect(() => {
     let current = true;
@@ -239,6 +247,9 @@ export function PartyGroups({
   // Join up (B1): only for groups in the same place (both with none counts as the same).
   const pairs = meetingPairs(groups.map((g) => g.number), meeting);
   const exploration = readExploration(setting?.rulesSets ?? []);
+  // The expedition's step on the clock (P4): a shared section's "turn 9" counts in it, as the strip does.
+  const tripMode = expedition ? modeById(exploration.modes, expedition.mode) : null;
+  const turns: TurnClock | null = expedition && units && tripMode && !isPartOfDay(tripMode.step.unit) ? { startedAt: expedition.startedAt, step: tripMode.step, units } : null;
   const choices = setting ? choicesInPlay(setting) : {};
   const checks = expedition ? (modeById(exploration.modes, expedition.mode)?.checks ?? []).filter((c) => optionOn(c.onlyWithOption ?? null, choices)) : [];
   // The town screen (M5b step 6c): the setting's towns, and the checks of the mode the party is in (or was last in).
@@ -416,6 +427,7 @@ export function PartyGroups({
         phone={phone}
         oneColumn={day}
         marching={marchingOf(n)}
+        turns={turns}
         onChanged={() => setVersion((v) => v + 1)}
       />
     );
@@ -506,17 +518,33 @@ export function PartyGroups({
     <PlayersScenePage
       left={
         <>
-          {shown.map((n) => (
-            <Fragment key={n}>
-              {placeLineShows(scene.get(n)) ? (
-                <PlayersSceneCard group={cardGroup(n)}>
-                  <PlaceLine place={scene.get(n) ?? null} db={db} campaignId={campaign.id} rules={placeRules.filter((r) => r.group === n)} />
-                </PlayersSceneCard>
-              ) : (
-                <SomewhereNew group={cardGroup(n)} />
-              )}
-            </Fragment>
-          ))}
+          {shown.map((n) => {
+            const here = scene.get(n);
+            // The Location's card (P4, ppf-6) in place of today's place line: the card's read gives the number and the
+            // trail; until it comes, while it fails, or while it is still of the place before a move (matched by the
+            // place's id), the place's name as the scene's read gives it, with no trail.
+            const read = areaCards.cards.get(n);
+            const card = read && here?.placeId && read.here.placeId === here.placeId ? read : { here: { placeId: '', key: '', name: here?.name ?? '' }, trail: [] };
+            return (
+              <Fragment key={n}>
+                {here && placeLineShows(here) ? (
+                  <PlayersLocationCard
+                    card={card}
+                    pieces={here.pieces.map((p) => ({ id: p.id, kind: p.kind, text: p.text, lead: p.lead ?? '' }))}
+                    rules={placeRules.filter((r) => r.group === n)}
+                    picture={here.pictureAssetId ? { db, campaignId: campaign.id, assetId: here.pictureAssetId } : null}
+                    group={cardGroup(n)}
+                  >
+                    <PlayersWhereTo read={ways} group={n} step={stepNowOf(expedition ? modeById(exploration.modes, expedition.mode) : null, expedition, now, units)} />
+                  </PlayersLocationCard>
+                ) : (
+                  <SomewhereNew group={cardGroup(n)}>
+                    <WhereToNoneYet />
+                  </SomewhereNew>
+                )}
+              </Fragment>
+            );
+          })}
           {/* Activities (P6; mc-45a; 01-08) under the place's card, once only: they are the setting's, not a group's.
               Before anything of the place is shown too (d5-18, 2026-11-20), so the card never blinks away at a new
               Location. */}
@@ -526,7 +554,13 @@ export function PartyGroups({
       right={
         <>
           {shown.map((n) => !placeLineShows(scene.get(n)) && <NothingSharedYet key={n} group={cardGroup(n)} />)}
-          {/* Today's card of what was shown stands where the place's card will (P4); PL1 doesn't draw it. */}
+          {/* The Area's card (P4; PL1b): its name once shown, what the GM has shared, the Rules row, the other Locations
+              the group knows. Only once something of the place is shown, as the read itself sends nothing before. */}
+          {shown.map((n) => {
+            const card = placeLineShows(scene.get(n)) ? areaCards.cards.get(n) : undefined;
+            return card ? <PlayersAreaCard key={`area-${n}`} db={db} campaignId={campaign.id} card={card} knowledge={areaCards.knowledge.filter((k) => k.group === n)} rules={placeRules.filter((r) => r.group === n)} turns={turns} group={cardGroup(n)} /> : null;
+          })}
+          {/* Today's card of what was shown stays until P4 and the players' map (P5) have both landed (p4s-3). */}
           <WhatWeKnow db={db} campaignId={campaign.id} />
           {/* The marching order last in the column (PL1), today's Split party under it (PL1 doesn't draw it). Split,
               a player with one group sees it as PL6 draws: their group alone, and who is elsewhere (P8). With a card

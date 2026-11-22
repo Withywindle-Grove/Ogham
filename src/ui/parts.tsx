@@ -948,15 +948,22 @@ export function ChoiceCard({ title, summary, onChoose }: { title: string; summar
  * and a quiet summary under it, the whole card one tap target. On a phone the › sits at the card's right edge, centred
  * (long names wrap in the text column); from 600 px it follows the summary. `label` is what a screen reader hears.
  */
-export function OpenCard({ title, summary, label, onOpen }: { title: string; summary: string; label: string; onOpen: () => void }) {
+export function OpenCard({ title, summary, label, onOpen, icon }: { title: string; summary: string; label: string; onOpen: () => void; icon?: IconName }) {
+  // The **icon** variant (the players' place card's rows, P4; frames PR4 and PL1b): the icon at the left, the title in the
+  // heading type, the chevron at the right edge at every width.
   return (
-    <button type="button" className="open-card" onClick={onOpen} aria-label={label}>
+    <button type="button" className={icon ? 'open-card open-card--icon' : 'open-card'} onClick={onOpen} aria-label={label}>
+      {icon && (
+        <span className="open-card__icon" aria-hidden="true">
+          <Icon name={icon} size={20} />
+        </span>
+      )}
       <span className="open-card__text">
         <span className="open-card__title">{title}</span>
-        <span className="open-card__summary">{summary}</span>
+        {summary && <span className="open-card__summary">{summary}</span>}
       </span>
       <span className="open-card__chevron" aria-hidden="true">
-        ›
+        {icon ? <Icon name="chevron" size={20} /> : '›'}
       </span>
     </button>
   );
