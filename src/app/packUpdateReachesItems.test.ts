@@ -297,3 +297,26 @@ describe('armour already owned after a pack update (review of #596)', () => {
     expect(workOutAc({ rulesSets: setting.rulesSets, chosenStyle: null, worn: gear, filled: {}, abilityName: (k) => k }).value).toBe(13);
   });
 });
+
+describe('an unidentified item’s told bonus (K22a)', () => {
+  // The Sorrow blade as a player's copy of its entry has it: the face, its weapon block with no magic bonus.
+  const face: CampaignEntry = { kind: 'item', packEntryId: 'sorrow-blade', name: 'Weapon', packId: 'pack-fen', data: { id: 'sorrow-blade', category: 'weapon', slot: 'hand', weapon: { damage: '1d8' } } };
+  // The GM's copy: the whole entry.
+  const whole: CampaignEntry = { ...face, name: 'Sorrow blade', data: { ...face.data, cursed: true, weapon: { damage: '1d8', magicBonus: -1 } } };
+  const blade = (weapon: Record<string, unknown>, revealedFields: string[]) => ({ category: 'weapon', details: { slot: 'hand', weapon }, sourceEntryId: 'sorrow-blade', sourcePackId: 'pack-fen', revealedFields });
+
+  // Purpose: the player's face has no bonus to bring back, so an untold line in play has none; the GM's whole entry
+  // brings the true −1 back for the GM's view (where bonusHidden marks it).
+  it('untold: the player reads no bonus, the GM reads the true one', () => {
+    expect(lineInPlay(fen([face]), blade({ damage: '1d8' }, [])).details.weapon).toEqual({ damage: '1d8' });
+    expect(lineInPlay(fen([whole]), blade({ damage: '1d8' }, [])).details.weapon).toEqual({ damage: '1d8', magicBonus: -1 });
+  });
+
+  // Purpose: once the GM tells the bonus, the line holds it, and fp-1's "read from the current entry" must not drop it
+  // because the player's copy of the entry (its face) has none.
+  it('told: the line keeps its bonus against the player’s face of the entry', () => {
+    expect(lineInPlay(fen([face]), blade({ damage: '1d8', magicBonus: -1 }, ['magic', 'bonus'])).details.weapon).toEqual({ damage: '1d8', magicBonus: -1 });
+    // Not told: a bonus a line carries from before K22 follows the entry, as fp-1 rules.
+    expect(lineInPlay(fen([face]), blade({ damage: '1d8', magicBonus: -1 }, [])).details.weapon).toEqual({ damage: '1d8' });
+  });
+});

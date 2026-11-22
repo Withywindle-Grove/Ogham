@@ -2148,6 +2148,7 @@ export type Database = {
       inventory_lines: {
         Row: {
           actor_id: string | null
+          appears_as: string
           approval: string
           at_hand_hidden: boolean
           base_armour_id: string | null
@@ -2165,6 +2166,7 @@ export type Database = {
           given_to: string | null
           how_got: string
           id: string
+          identified: boolean
           item_data: Json
           last_roll: string | null
           library_entry_id: string | null
@@ -2172,10 +2174,12 @@ export type Database = {
           mode_id: string | null
           name: string
           needs_fuel: boolean
+          noticed: string
           notes: string
           per_units: number
           pinned: boolean
           qty: number
+          revealed_fields: string[]
           slots: number | null
           source_entry_id: string | null
           source_pack_id: string | null
@@ -2187,6 +2191,7 @@ export type Database = {
         }
         Insert: {
           actor_id?: string | null
+          appears_as?: string
           approval?: string
           at_hand_hidden?: boolean
           base_armour_id?: string | null
@@ -2204,6 +2209,7 @@ export type Database = {
           given_to?: string | null
           how_got: string
           id?: string
+          identified?: boolean
           item_data?: Json
           last_roll?: string | null
           library_entry_id?: string | null
@@ -2211,10 +2217,12 @@ export type Database = {
           mode_id?: string | null
           name: string
           needs_fuel?: boolean
+          noticed?: string
           notes?: string
           per_units?: number
           pinned?: boolean
           qty?: number
+          revealed_fields?: string[]
           slots?: number | null
           source_entry_id?: string | null
           source_pack_id?: string | null
@@ -2226,6 +2234,7 @@ export type Database = {
         }
         Update: {
           actor_id?: string | null
+          appears_as?: string
           approval?: string
           at_hand_hidden?: boolean
           base_armour_id?: string | null
@@ -2243,6 +2252,7 @@ export type Database = {
           given_to?: string | null
           how_got?: string
           id?: string
+          identified?: boolean
           item_data?: Json
           last_roll?: string | null
           library_entry_id?: string | null
@@ -2250,10 +2260,12 @@ export type Database = {
           mode_id?: string | null
           name?: string
           needs_fuel?: boolean
+          noticed?: string
           notes?: string
           per_units?: number
           pinned?: boolean
           qty?: number
+          revealed_fields?: string[]
           slots?: number | null
           source_entry_id?: string | null
           source_pack_id?: string | null
@@ -5505,6 +5517,15 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      edit_item_look: {
+        Args: {
+          appears_as: string
+          line: string
+          noticed: string
+          seen_version?: number
+        }
+        Returns: undefined
+      }
       edit_place_piece: {
         Args: { body: string; kind: string; piece: string; seen?: number }
         Returns: {
@@ -7446,6 +7467,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      tell_item: {
+        Args: { fact: string; line: string; seen_version?: number }
+        Returns: undefined
       }
       town_parts_shown: {
         Args: { visit: string }

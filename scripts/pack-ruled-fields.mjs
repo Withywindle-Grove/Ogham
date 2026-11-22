@@ -6,7 +6,8 @@
 // - an encounter check's `name` (rp-6; `locations[].encounterCheck.name`): words when given; absent is fine (the app
 //   says "Encounter check");
 // - a coin's `unitName` and `pluralName` (pf-17; `rulesSets[].currency[]`): words when given, a warning when one comes
-//   without the other (the app uses them only together), and an error for a key listed twice in one list.
+//   without the other (the app uses them only together), and an error for a key listed twice in one list;
+// - an item category's `singular` and an item's `looks` (K22, ⚑ 4 and ⚑ 5, 2026-11-22): words when given, else a warning.
 // Each finding has a level, error, warning or note; the checker prints them among its format notes, each starting "Error:",
 // "Warning:" or "Note:". An error makes the command exit 1 (check-pack.mjs; the lead's ruling, 2026-11-13); a warning alone
 // doesn't. A pack that uses none of the three gets nothing from here.
@@ -79,10 +80,30 @@ function coinFindings(file) {
   return found;
 }
 
-/** Every finding on the three fields, `{ level: 'error' | 'warning' | 'note', text }`, in file order. Never throws. */
+// K22 (Francis, 2026-11-22, ⚑ 4 and ⚑ 5 of docs/plans/k22-reveal.md): an item category's `singular` (what an
+// unidentified item of it reads as when it has no appearsAs) and an item's `looks` (the look line players see), each
+// words when given. Absent is fine: the category's name as given, and no look line.
+function unidentifiedFindings(file) {
+  const found = [];
+  for (const rules of entriesOf(file, 'rulesSets')) {
+    for (const category of Array.isArray(rules.itemCategories) ? rules.itemCategories.filter(isObject) : []) {
+      if (category.singular !== undefined && !isText(category.singular)) {
+        found.push({ level: 'warning', text: `rulesSets: "${label(rules)}": itemCategories "${label(category)}": singular should be words (one of the category, "Ring"); without it an unidentified item reads as the category's name.` });
+      }
+    }
+  }
+  for (const item of entriesOf(file, 'items')) {
+    if (item.looks !== undefined && !isText(item.looks)) {
+      found.push({ level: 'warning', text: `items: "${label(item)}": looks should be words (what players see of it, "A plain band of old bronze."); it is left out.` });
+    }
+  }
+  return found;
+}
+
+/** Every finding on the ruled fields, `{ level: 'error' | 'warning' | 'note', text }`, in file order. Never throws. */
 export function ruledFieldFindings(file) {
   if (!isObject(file)) return [];
-  return [...placeFindings(file), ...coinFindings(file)];
+  return [...placeFindings(file), ...coinFindings(file), ...unidentifiedFindings(file)];
 }
 
 /** The findings as the checker's format notes, each starting with its level ("Error: …", "Warning: …"). */

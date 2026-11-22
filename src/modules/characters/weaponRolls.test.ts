@@ -132,6 +132,20 @@ describe('a weapon’s magic in its rolls (mw-1 … mw-3)', () => {
     expect(weaponMagic({ name: 'Fenblade', data: FENBLADE, category: 'odd-blades' }, unknown, false).parts).toEqual([]);
   });
 
+  it('gives the player the plain sword’s numbers for an untold cursed sword, and counts its −1 once told (K22a)', () => {
+    // Purpose: the driver's finding of 2026-11-21: the player's numbers for the cursed Sorrow blade are the plain
+    // sword's while its bonus is untold (and the GM's view marks the −1); once the GM tells "bonus" it counts, unmarked.
+    const blade = { name: 'Sorrow blade', cursed: true, weapon: { damage: '1d8', qualities: ['Melee'], magicBonus: -1 } };
+    expect(weaponMagic({ name: 'Sorrow blade', data: blade, told: [] }, [], false)).toEqual({ parts: [], hitNotes: [], damageNotes: [] });
+    expect(weaponMagic({ name: 'Sorrow blade', data: blade, told: [] }, [], true).parts).toEqual([{ label: 'Sorrow blade, magic (hidden from the player)', value: -1 }]);
+    expect(weaponMagic({ name: 'Sorrow blade', data: blade, told: ['magic', 'cursed'] }, [], false).parts).toEqual([]);
+    expect(weaponMagic({ name: 'Sorrow blade', data: blade, told: ['magic', 'bonus'] }, [], false).parts).toEqual([{ label: 'Sorrow blade, magic', value: -1 }]);
+    const unknown = [{ itemCategories: [{ id: 'odd-bows', unidentified: true }] }];
+    const bow = { name: 'Heron bow', weapon: { damage: '1d6', qualities: ['Missile'], bonusVs: [{ against: 'bog lurkers', bonus: 3 }] } };
+    expect(weaponMagic({ name: 'Heron bow', data: bow, category: 'odd-bows' }, unknown, false).hitNotes).toEqual([]);
+    expect(weaponMagic({ name: 'Heron bow', data: bow, category: 'odd-bows', told: ['bonus'] }, unknown, false).hitNotes).toEqual(['+3 vs bog lurkers']);
+  });
+
   it('adds the drawn ammunition’s bonus only where the setting says both apply', () => {
     // Purpose: mw-3: with `attack.ammunitionBonus: "add"` the arrows' bonus is its own row; with no rule, nothing.
     const bow = { name: 'Heron bow', weapon: { damage: '1d6', qualities: ['Missile'], magicBonus: 2 } };
