@@ -21,6 +21,7 @@ One page of the rules in force for the driver, each with its source. Compiled 19
 ## Ordering the work
 - One screen at a time, to live; the order in driver.md. (README rvw-9)
 - **One check run per batch:** rows of one plan that touch the same files go in one pull request, at most three rows, one review and one layout check for the batch, its title naming every row; batches that share no file may run side by side, two or three in flight. (CLAUDE.md; 09, 19 Nov: "Yes, batching too. Let's make sure this is carried forward.")
+- **A fresh worker per row and per fix round:** one pull request and one check run per batch stay; one builder per batch goes. Each row of a batch, and each round of review fixes, is done by a fresh short-lived worker that commits to the batch's branch; a worker is never resumed for a later round. (CLAUDE.md; README, Saving CI minutes; 09, 22 Nov: "Yes to 'fresh worker'")
 - Builders on Opus at high effort (`effort: "high"`); the driver on Fable at medium. Merges, conflicts, watching CI and look-ups on Sonnet or Haiku workers. (Francis, 19 Nov; README rvw-10)
 - At most four local sessions at once; cloud builders are outside the four. (README rvw-10; Francis, 19 Nov)
 - Cloud builders: no restrictions; use them when local seats are full. They start only in a turn where Francis typed. (Francis, 19 Nov; memory, standing-cloud-sessions)
@@ -32,6 +33,10 @@ One page of the rules in force for the driver, each with its source. Compiled 19
 
 ## Briefing workers
 - Every worker gets a brief in a file: first line `Row: <id>`, then the guard line word for word, the objective, the output, the files to read, the boundaries, "if unsure, stop and ask". The pull request's title carries the row. (driver.md; memory, no-routing-round-guards; README rvw-15)
+- The `Row: <id>` line goes in the worker's prompt itself as well as in its brief file: the usage report reads the prompt. (README, Measuring; 09, 22 Nov)
+- A later worker's brief (a batch's next row, a round of review fixes) names the branch, the files and the findings. (driver.md; README, Saving CI minutes)
+- Each worker keeps its files in its own scratch subfolder, named in its brief. (lesson, 22 Nov)
+- In a cloud clone with linked worktrees, never install the commit hook (`npm run hooks:install`): workers run `npm run check` by hand before each commit. (lesson, 22 Nov; CLAUDE.md, Testing)
 - Builders use the standard brief, `.claude/briefs/builder-brief.md`.
 - Never start a worker to do what you were refused; a refused action is never handed to another session, branch, tool or command. (driver.md, Never; memory, no-routing-round-guards)
 - Never work in, or switch the branch of, another session's worktree; use a worker in its own. (CLAUDE.md, Parallel work)
@@ -39,7 +44,7 @@ One page of the rules in force for the driver, each with its source. Compiled 19
 ## Reviewing and merging
 - Each code pull request gets one local `reviewer` run before it merges; docs-only and scripts-only are skipped; migrations and access rules always reviewed. One comment, and "Reviewed: local reviewer, N findings, fixed / not" in its text. (README; REVIEW.md)
 - A row with something to see shows its built screen beside the approved picture. (CLAUDE.md; builder.md)
-- **The driver adds `ready`** after its review and the builder's fixes, so the layout checks run once. After adding it, re-run the labelled run, not the push run. (CLAUDE.md; builder.md; handover lesson, 19 Nov)
+- **The driver adds `ready`** after its review and the fixes (made by a fresh worker), so the layout checks run once. After adding it, re-run the labelled run, not the push run. (CLAUDE.md; builder.md; handover lesson, 19 Nov)
 - **Before adding `ready`, compare the pull request's "Gallery pictures expected to change" line with what the fixes touched**; a stale line costs a second picture run. (docs/testing.md, Announced redraws; redraw-line-1, Francis, 20 Nov)
 - Merge on green under Francis's standing yes, and list the merges afterwards. Not without him: pull requests with migrations (until he has pushed them to the main database), screens he hasn't seen, drafts. (memory, standing-merge-permission, Francis 17 Nov)
 - `gh pr merge <n> --merge --repo Withywindle-Grove/Ogham` as a lone command. (memory, standing-merge-permission)
