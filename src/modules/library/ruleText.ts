@@ -1,6 +1,7 @@
 // Rule text set out like the book (docs/design/rulings/dec-rule-text-blocks-2026-11-13.md, pf-18 and pf-18a): the one
-// reader for a place rule's `text`, an area's `gm.text`, a GM section's `text` (pf-18b), a procedure step's `text`, and
-// a class's or kindred's trait note, `abilities[].note` (tfb-5, read by readTraitNote).
+// reader for a place rule's `text`, an area's `gm.text`, a GM section's `text` (pf-18b), a procedure step's `text`, a
+// class's or kindred's trait note, `abilities[].note` (tfb-5), and a common player action's rule,
+// `exploration.playerActions[].text` (d5-16); the last two through readWordsOrBlocks.
 // The value is either a plain string (always valid, kept as it is) or `{ "blocks": [ … ] }`; a block is an object with
 // one marker key:
 //   { p }  { h }  { lead, text }  { list: [strings], numbered? }  { table: { title, die?, columns, rows } }
@@ -170,26 +171,36 @@ export const ruleTextWords = (value: RuleText | null): string => ruleTextParagra
 /** Rule text that is in blocks, as read. */
 export type RuleTextBlocks = { blocks: RuleBlock[] };
 
-/** A trait's note as read (tfb-5): its words for a line or a row, and its blocks for its entry when written in blocks. */
-export interface TraitNote {
-  /** The words: a plain note as written (trimmed, as before tfb-5); a note in blocks as its plain words on one line. '' for none. */
+/**
+ * A text that is words or blocks, as read (tfb-5 for a trait's note; d5-16 for a common player action's rule): its words
+ * for a line, a row or a search, and its blocks for where it is set out whole.
+ */
+export interface WordsOrBlocks {
+  /** The words: plain words as written (trimmed); words in blocks as their plain words on one line. '' for none. */
   words: string;
-  /** The note's blocks, for its entry to set out one by one; null when the note is plain words, absent or unreadable. */
+  /** The blocks, to set out one by one; null when the text is plain words, absent or unreadable. */
   blocks: RuleTextBlocks | null;
 }
 
+/** A trait's note as read (tfb-5). */
+export type TraitNote = WordsOrBlocks;
+
 /**
- * A class's or a kindred's trait note (`abilities[].note`; tfb-5, 2026-11-19, widening pf-18): plain words, or pf-18's
- * `{ blocks }`, read by the one reader. Plain words come back exactly as before (trimmed, link marks untouched), so a
- * trait not yet rewritten reads as today everywhere. A note in blocks gives its plain words (pf-18a, the paragraphs
- * joined by a space) for a row, a chip or a line, and its blocks for its entry. Never throws; never the raw object.
+ * A text a pack may write as plain words or as pf-18's `{ blocks }`, read by the one reader: a class's or a kindred's
+ * trait note (`abilities[].note`; tfb-5, 2026-11-19) and a common player action's rule (`exploration.playerActions[].text`;
+ * d5-16, 2026-11-20). Plain words come back exactly as before (trimmed, link marks untouched), so a text not yet
+ * rewritten reads as today everywhere. Blocks give their plain words (pf-18a, the paragraphs joined by a space) for a
+ * row, a chip, a line or a search, and the blocks for where the text is set out. Never throws; never the raw object.
  */
-export function readTraitNote(raw: unknown): TraitNote {
+export function readWordsOrBlocks(raw: unknown): WordsOrBlocks {
   if (typeof raw === 'string') return { words: raw.trim(), blocks: null };
   const { value } = readRuleText(raw);
   if (value === null || typeof value === 'string') return { words: '', blocks: null };
   return { words: ruleTextParagraphs(value).join(' '), blocks: value };
 }
+
+/** A class's or a kindred's trait note (`abilities[].note`; tfb-5): the one reader, readWordsOrBlocks. */
+export const readTraitNote = readWordsOrBlocks;
 
 /** A trait note's words alone (readTraitNote), where it is read as a line. */
 export const traitNoteWords = (raw: unknown): string => readTraitNote(raw).words;

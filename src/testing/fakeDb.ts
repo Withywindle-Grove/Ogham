@@ -65,6 +65,7 @@ export interface FakeWorld {
     | 'place_pieces'
     | 'piece_shows'
     | 'place_rule_switches'
+    | 'knowledge_shares'
     | 'gm_messages'
     | 'message_recipients'
     | 'messages'
@@ -168,6 +169,8 @@ export function createFakeDb(): FakeWorld {
     // The GM's switches on a place's rules (December dec-7 piece 3): the GM's alone; players read through
     // place_rules_for_players and encounter_check_for_players.
     place_rule_switches: [],
+    // The GM's shares of a place's Knowledge (P4, p4s-2): the GM's alone; players read through knowledge_for_players.
+    knowledge_shares: [],
     gm_messages: [],
     message_recipients: [],
     // Messaging (M5b g4): one row per message, in its character's thread.
@@ -362,6 +365,7 @@ export function createFakeDb(): FakeWorld {
             // Like the database (fm-1): the GM's part of a travel row is the GM's alone.
             table === 'travel_group_secrets' ||
             table === 'place_rule_switches' ||
+            table === 'knowledge_shares' ||
             // Like the database (W12): a shop's stock lines are the GM's alone (whether players read a thing coming in is open).
             table === 'shop_stock' ||
             // Like the database (M5b step g3): pins and rows read by hand are the GM's alone.
@@ -672,7 +676,7 @@ export function createFakeDb(): FakeWorld {
     // Like the database (M5 step 5): a session or an expedition the action started is marked undone, never removed,
     // while it's as the action left it.
     const madeRows = [...UNDOABLE_MAKINGS, ...TRAVEL_MAKINGS].includes(String(picked.type))
-      ? changes.filter((e) => !e.before && e.after && ['sessions', 'expeditions', 'expedition_places', 'places', 'place_notes', 'group_places', 'place_moves', 'place_pieces', 'piece_shows', 'place_rule_switches', 'reminders', 'check_results', 'weather_rolls', 'character_statuses', 'table_pins', 'table_reads', 'waiting_encounters', 'messages', 'sheet_changes', 'travel_groups', 'group_lost', 'camps', 'camp_entries', 'hook_sends', 'shop_stock'].includes(String(e.target_table)))
+      ? changes.filter((e) => !e.before && e.after && ['sessions', 'expeditions', 'expedition_places', 'places', 'place_notes', 'group_places', 'place_moves', 'place_pieces', 'piece_shows', 'place_rule_switches', 'knowledge_shares', 'reminders', 'check_results', 'weather_rolls', 'character_statuses', 'table_pins', 'table_reads', 'waiting_encounters', 'messages', 'sheet_changes', 'travel_groups', 'group_lost', 'camps', 'camp_entries', 'hook_sends', 'shop_stock'].includes(String(e.target_table)))
       : [];
     for (const change of madeRows) {
       const row = rowOf(change);
@@ -1015,6 +1019,7 @@ export function createFakeDb(): FakeWorld {
       | 'place_pieces'
       | 'piece_shows'
       | 'place_rule_switches'
+      | 'knowledge_shares'
       | 'weather_rolls'
       | 'requests'
       | 'sheet_changes'
@@ -1277,6 +1282,23 @@ export function createFakeDb(): FakeWorld {
         tables.group_places.some((g) => g.place_id === p.id && Number(g.group_number) === group && !g.undone && visitShown(g.id)),
     );
     return shown ? String(shown.players_name || shown.name) : shownName;
+  };
+  // The name of a pack's place when it counts as shown to the group (P4's private.known_entry_name): a place made from it
+  // the group was shown, or (ppf-1) a place inside it the group was shown, then under the pack's name for players.
+  const fakeKnownEntryName = (campaign: unknown, group: number, pack: unknown, entry: Row): string | null => {
+    const shown = fakeShownPlaceName(campaign, group, pack, entry, '');
+    if (shown) return shown;
+    const inside = tables.places.some(
+      (q) =>
+        q.campaign_id === campaign &&
+        q.pack_id === pack &&
+        !q.undone &&
+        q.pack_entry_id !== entry.pack_entry_id &&
+        tables.group_places.some((g) => g.place_id === q.id && Number(g.group_number) === group && !g.undone && visitShown(g.id)) &&
+        fakeChain(pack, q.pack_entry_id).slice(1).includes(entry),
+    );
+    const view = ((entry.data ?? {}) as Row).playerView as Row | undefined;
+    return inside ? (typeof view?.name === 'string' && view.name.trim() ? view.name.trim().slice(0, 200) : String(entry.name ?? '')) : null;
   };
   // With one group left, everyone is the party (group 1) again.
   const tidyGroups = (campaign: unknown, tag: Tag) => {
@@ -1804,6 +1826,97 @@ export function createFakeDb(): FakeWorld {
         const checked = Object.fromEntries(['when', 'every', 'chance'].filter((k) => check[k] !== undefined && check[k] !== null).map((k) => [k, check[k]]));
         const own = String(place.players_name || place.name);
         return [{ group_number: group, place_name: chain[0] === owner ? own : fakeShownPlaceName(campaign, group, place.pack_id, owner, own), checked }];
+      });
+      return { data: rows, error: null };
+    },
+    // The players' place card (P4), like …_p4_players_place_card.sql: the GM's eye on a section of Knowledge (its words
+    // copied from the pack), a player's card of the place their group is shown, and the sections shared with them.
+    set_knowledge_share: ({ campaign, group_no, pack, entry_id, section_at, share }, tag) => {
+      if (!isGmOf(campaign)) return refused("You don't have permission to do that.");
+      const entry = tables.library_entries.find((e) => e.pack_id === pack && e.kind === 'location' && e.pack_entry_id === entry_id);
+      if (!entry || !tables.campaign_packs.some((cp) => cp.campaign_id === campaign && cp.pack_id === pack)) return plain("That place isn't in an attached pack.");
+      const gm = ((entry.data ?? {}) as Row).gm as Row | undefined;
+      const sections = gm && Array.isArray(gm.sections) ? (gm.sections as Row[]) : [];
+      const section = sections[Number(section_at)];
+      if (!section || typeof section !== 'object') return plain("That section isn't in that place's knowledge.");
+      const clock = Number(tables.campaign_clocks.find((c) => c.campaign_id === campaign)?.seconds ?? 0);
+      const row = tables.knowledge_shares.find((k) => k.campaign_id === campaign && Number(k.group_number) === Number(group_no) && k.pack_id === pack && k.entry_id === entry_id && Number(k.section_at) === Number(section_at) && !k.undone);
+      if (!row) {
+        if (share !== true) return { data: null, error: null };
+        const made: Row = { id: newId('knowledge-share'), campaign_id: campaign, group_number: Number(group_no), pack_id: pack, entry_id, section_at: Number(section_at), heading: String(section.heading ?? ''), body: section.text ?? null, shared: true, shared_clock: clock, place_name: String(entry.name ?? ''), undone: false };
+        tables.knowledge_shares.push(made);
+        log('knowledge_shares', null, structuredClone(made), tag);
+        return copy(made);
+      }
+      if (row.shared !== (share === true)) changeRow('knowledge_shares', row, share === true ? { shared: true, shared_clock: clock } : { shared: false }, tag);
+      return copy(row);
+    },
+    place_card_for_players: ({ campaign }) => {
+      withGroupRows();
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const rows = groups.flatMap((group) => {
+        const visit = tables.group_places
+          .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
+          .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+        const place = visit && tables.places.find((p) => p.id === visit.place_id && !p.undone);
+        // A detached pack's place sends nothing (local review of the P4 fixes, 1).
+        if (!visit || !place || !visitShown(visit.id) || (place.pack_id && !tables.campaign_packs.some((cp) => cp.campaign_id === campaign && cp.pack_id === place.pack_id))) return [];
+        const out: Row[] = [{ group_number: group, kind: 'here', at: 0, place_id: place.id, key: String(place.pack_key ?? ''), name: String(place.players_name || place.name) }];
+        if (!place.pack_id) return out;
+        const above = fakeChain(place.pack_id, place.pack_entry_id).slice(1);
+        const names = above.map((entry) => fakeKnownEntryName(campaign, group, place.pack_id, entry));
+        const trail = names.filter((n): n is string => !!n).reverse();
+        trail.forEach((name, i) => out.push({ group_number: group, kind: 'trail', at: i + 1, place_id: null, key: null, name }));
+        if (names[0]) out.push({ group_number: group, kind: 'area', at: 0, place_id: null, key: null, name: names[0] });
+        const parent = String(place.pack_parent_id ?? '');
+        if (parent) {
+          const known = tables.places.filter(
+            (q) =>
+              q.campaign_id === campaign && !q.undone && q.pack_id === place.pack_id && String(q.pack_parent_id ?? '') === parent && q.id !== place.id && q.pack_entry_id !== place.pack_entry_id &&
+              tables.group_places.some((g) => g.place_id === q.id && Number(g.group_number) === group && !g.undone && !tables.expeditions.some((x) => x.id === g.expedition_id && x.undone) && visitShown(g.id)),
+          );
+          known.sort((a, b) => String(a.pack_key ?? '').length - String(b.pack_key ?? '').length || String(a.pack_key ?? '').localeCompare(String(b.pack_key ?? '')));
+          // Each with the first piece the group was shown there (ppf-4), never a picture.
+          const lineOf = (q: Row) => {
+            const visits = new Set(tables.group_places.filter((g) => g.place_id === q.id && Number(g.group_number) === group && !g.undone && !tables.expeditions.some((x) => x.id === g.expedition_id && x.undone)).map((g) => g.id));
+            const first = tables.piece_shows
+              .filter((sh) => visits.has(sh.group_place_id) && sh.shown === true && !sh.undone)
+              .sort((a, b) => String(a.shown_at).localeCompare(String(b.shown_at)))
+              .map((sh) => tables.place_pieces.find((pc) => pc.id === sh.piece_id && !pc.undone && pc.kind !== 'picture' && String(pc.body ?? '').trim()))
+              .find(Boolean);
+            return first ? plainText(String(first.body)) : '';
+          };
+          known.forEach((q, i) => out.push({ group_number: group, kind: 'known', at: i + 1, place_id: q.id, key: String(q.pack_key ?? ''), name: String(q.players_name || q.name), line: lineOf(q) }));
+        }
+        return out;
+      });
+      return { data: rows, error: null };
+    },
+    knowledge_for_players: ({ campaign }) => {
+      withGroupRows();
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const rows = groups.flatMap((group) => {
+        const visit = tables.group_places
+          .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
+          .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+        const place = visit && tables.places.find((p) => p.id === visit.place_id && !p.undone);
+        if (!visit || !place || !place.pack_id || !visitShown(visit.id)) return [];
+        const chain = fakeChain(place.pack_id, place.pack_entry_id).map((e) => e.pack_entry_id);
+        const parent = String(place.pack_parent_id ?? '');
+        const own = String(place.players_name || place.name);
+        return tables.knowledge_shares
+          .filter((k) => k.campaign_id === campaign && Number(k.group_number) === group && k.pack_id === place.pack_id && k.shared === true && !k.undone)
+          .filter((k) => {
+            if (chain.includes(k.entry_id)) return true;
+            const entry = tables.library_entries.find((e) => e.pack_id === k.pack_id && e.kind === 'location' && e.pack_entry_id === k.entry_id);
+            return !!parent && ((entry?.data ?? {}) as Row).parentId === parent;
+          })
+          .sort((a, b) => Number(a.shared_clock) - Number(b.shared_clock))
+          .map((k) => {
+            const entry = tables.library_entries.find((e) => e.pack_id === k.pack_id && e.kind === 'location' && e.pack_entry_id === k.entry_id);
+            const placeName = k.entry_id === place.pack_entry_id || !entry ? own : (fakeKnownEntryName(campaign, group, place.pack_id, entry) ?? own);
+            return { group_number: group, share_id: k.id, place_name: placeName, heading: plainText(String(k.heading ?? '')), body: k.body === null || k.body === undefined ? null : plainDeep(k.body), shared_clock: Number(k.shared_clock) };
+          });
       });
       return { data: rows, error: null };
     },
@@ -5203,7 +5316,7 @@ class Query implements PromiseLike<Result> {
     // Like the access rules (M5 step 11; M5b g2): the GM reads every place, piece and group row; a player their own
     // group's row only; places, pieces and the GM's notes never leave the GM (players read shown pieces through
     // scene_pieces).
-    if (this.table === 'place_pieces' || this.table === 'piece_shows' || this.table === 'place_rule_switches') rows = rows.filter((row) => this.isGm(row.campaign_id));
+    if (this.table === 'place_pieces' || this.table === 'piece_shows' || this.table === 'place_rule_switches' || this.table === 'knowledge_shares') rows = rows.filter((row) => this.isGm(row.campaign_id));
     if (this.table === 'places' || this.table === 'group_places' || this.table === 'place_notes') {
       const mine = (campaignId: unknown) =>
         this.tables.actors
@@ -5568,7 +5681,7 @@ const LOGGED = [
   'campaigns', 'members', 'invites', 'companies', 'field_definitions', 'assets', 'actors', 'notes', 'campaign_packs', 'library_entries', 'campaign_pack_secrets',
   'inventory_lines', 'inventory_line_secrets', 'carrier_loads', 'character_layouts', 'character_play', 'campaign_clocks', 'sessions', 'expeditions',
   'reminders', 'check_results', 'character_lights', 'marching_orders', 'party_group_members', 'weather_rolls', 'character_statuses', 'status_secrets', 'character_rests',
-  'expedition_places', 'places', 'place_notes', 'group_places', 'place_pieces', 'piece_shows', 'place_rule_switches', 'requests', 'sheet_changes', 'table_pins', 'table_reads', 'messages', 'character_alignments', 'waiting_encounters',
+  'expedition_places', 'places', 'place_notes', 'group_places', 'place_pieces', 'piece_shows', 'place_rule_switches', 'knowledge_shares', 'requests', 'sheet_changes', 'table_pins', 'table_reads', 'messages', 'character_alignments', 'waiting_encounters',
   'travel_groups', 'travel_group_secrets', 'group_lost', 'camps', 'camp_entries', 'activity_runs', 'sheet_changes', 'hook_sends', 'place_moves', 'purses',
   'finds_seen', 'shop_stock',
 ] as const;

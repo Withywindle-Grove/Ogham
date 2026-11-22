@@ -18,7 +18,7 @@
 // it carries, in its order and words, each a button with the book mark; a tap opens the rule in the rule's sheet, and
 // nothing is proposed, rolled or sent. No such rules, no block (01-08e).
 import { useState, type ReactNode } from 'react';
-import { ruleBlocks, type RuleBlock } from '../modules/expedition/placeRules.ts';
+import { blocksOfRead, type RuleBlock } from '../modules/expedition/placeRules.ts';
 import type { PlayerAction } from '../modules/expedition/playerActions.ts';
 import { BookFaces } from '../ui/BookFaces.tsx';
 import { Icon } from '../ui/icons.tsx';
@@ -79,9 +79,9 @@ const named = (group: string | null, words: string) => (group ? `${group}: ${wor
 
 /**
  * PL2's left card, before anything of the place is shown: no name, said in one line. `group` names whose card it is,
- * where the page has one for each of a player's groups.
+ * where the page has one for each of a player's groups. `children` stand under the line (PL2's "Where to?", P2).
  */
-export function SomewhereNew({ group = null }: { group?: string | null }) {
+export function SomewhereNew({ group = null, children }: { group?: string | null; children?: ReactNode }) {
   const over = named(group, 'Where you are');
   return (
     <PlayersSceneCard label={over}>
@@ -90,6 +90,7 @@ export function SomewhereNew({ group = null }: { group?: string | null }) {
       </p>
       <h3 className="players-page__name">Somewhere new</h3>
       <p className="players-page__line">Your GM hasn’t described this place yet.</p>
+      {children}
     </PlayersSceneCard>
   );
 }
@@ -114,10 +115,13 @@ export function NothingSharedYet({ group = null }: { group?: string | null }) {
   );
 }
 
-/** An activity's rule as the sheet draws it: the pack's words, then its source as the setting's (01-08j). */
+/**
+ * An activity's rule as the sheet draws it (01-08j): the pack's words, or its blocks one by one when the pack sets the
+ * rule out in pf-18's blocks (d5-16), then its source as the setting's.
+ */
 export function activityBlocks(action: PlayerAction): RuleBlock[] {
   const source: RuleBlock[] = action.source ? [{ kind: 'source', text: `From your setting: ${action.source}` }] : [];
-  return [...ruleBlocks(action.text), ...source];
+  return [...blocksOfRead(action.blocks ?? action.text), ...source];
 }
 
 /**

@@ -333,6 +333,7 @@ export function PlacePicture({
   name,
   bare = false,
   large = false,
+  small = false,
 }: {
   db: Db;
   campaignId: string;
@@ -342,6 +343,8 @@ export function PlacePicture({
   bare?: boolean;
   /** Drawn large, as in the picture's pop-up (TW13). */
   large?: boolean;
+  /** The **small** variant (ppf-6 c, PL1b): a square button the rule's icon button's size, at a card's head. */
+  small?: boolean;
 }) {
   const path = assetPath(campaignId, assetId);
   // The link for the picture asked for (a link for an earlier picture reads as still loading).
@@ -359,12 +362,13 @@ export function PlacePicture({
     };
   }, [db, path]);
   const label = `The picture of ${name || 'this place'}`;
+  const size = small ? ' place-picture--small' : '';
   if (link === 'failed') return <p className="place-card__hint">The picture couldn't be opened. Check your connection.</p>;
-  if (link === null) return <span className="place-picture place-picture--loading" role="img" aria-label={`${label}, loading`} />;
+  if (link === null) return <span className={`place-picture place-picture--loading${size}`} role="img" aria-label={`${label}, loading`} />;
   if (bare || large) return <img className={large ? 'place-picture__full' : 'place-picture__img'} src={link} alt={large ? label : ''} />;
   return (
     <>
-      <button type="button" className="place-picture" aria-label={`Open ${label.charAt(0).toLowerCase()}${label.slice(1)}`} onClick={() => setFull(true)}>
+      <button type="button" className={`place-picture${size}`} aria-label={`Open ${label.charAt(0).toLowerCase()}${label.slice(1)}`} onClick={() => setFull(true)}>
         <img className="place-picture__img" src={link} alt="" />
       </button>
       {full && (

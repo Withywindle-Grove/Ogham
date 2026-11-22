@@ -127,6 +127,9 @@ describe('fewer links (fl-1): no action is drawn as underlined text', () => {
       // description that names another of its pieces is bold and underlined, in the book's format. Not a control: it
       // sits inside the piece's own row.
       ['.place-page__named', "a description's word naming another piece, bold and underlined (p2p-10, LA1)"],
+      // The players' card (P4; page 24, PL1b, approved 2026-11-18): the same mark, only once the piece it names is shown.
+      // Not a control: a paragraph's words.
+      ['.players-place__named', "a description's word naming a shown piece, bold and underlined (p2p-24, PL1b)"],
     ]);
     const underlined = css.flatMap(([path, text]) =>
       [...text.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*)\}/g)]

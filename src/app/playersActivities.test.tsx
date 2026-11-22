@@ -39,9 +39,10 @@ const FORCE: PlayerAction = {
   name: 'Force a door',
   group: 'Doors',
   text: 'A stuck door may be forced by one character at a time.\n\nEach try takes a turn and is loud.',
+  blocks: null,
   source: 'Fen Rules, p. 88',
 };
-const LISTEN: PlayerAction = { id: 'listen', name: 'Listen', group: 'Doors', text: 'Hold still and listen at the door.', source: null };
+const LISTEN: PlayerAction = { id: 'listen', name: 'Listen', group: 'Doors', text: 'Hold still and listen at the door.', blocks: null, source: null };
 
 describe('which actions are Activities (mc-45a)', () => {
   // Purpose: an action the pack names without rule text is not listed; the rest keep the pack's order and words.
@@ -117,6 +118,48 @@ describe('an activity’s rule (P6; 01-08j)', () => {
   it('has no source line when the pack gives none', () => {
     expect(activityBlocks(LISTEN)).toEqual([{ kind: 'p', lead: '', text: 'Hold still and listen at the door.' }]);
     expect(activityBlocks(FORCE).at(-1)).toEqual({ kind: 'source', text: 'From your setting: Fen Rules, p. 88' });
+  });
+});
+
+describe('an activity’s rule set out in blocks (d5-16; 01-08j)', () => {
+  const FORCE_BLOCKS = activitiesWithRules([
+    rules([
+      {
+        id: 'force',
+        name: 'Force a door',
+        text: {
+          blocks: [
+            { p: 'A stuck door may be forced by one character at a time.' },
+            { p: 'Roll a d6: the door opens on a 1 or a 2.' },
+            { table: { title: 'Modifiers', columns: ['When', 'The door opens on'], rows: [['With a crowbar', '1 to 3'], ['An iron-bound door', '1 only']] } },
+            { lead: 'Time and noise', text: 'Each try takes a turn and is loud.' },
+          ],
+        },
+        source: 'Fen Rules, p. 88',
+      },
+    ]),
+  ])[0]!;
+
+  // Purpose: a rule in blocks is set out block by block on its sheet: the paragraphs, the titled table under its
+  // column headings, the bold lead-in, then the source as the setting's (01-08j).
+  it('sets the rule out block by block', () => {
+    render(<PlayersActivities activities={[FORCE_BLOCKS]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Force a door' }));
+    const sheet = within(screen.getByRole('dialog', { name: 'Force a door' }));
+    expect(sheet.getByText('A stuck door may be forced by one character at a time.')).toBeTruthy();
+    expect(sheet.getByText('Roll a d6: the door opens on a 1 or a 2.')).toBeTruthy();
+    const table = within(sheet.getByRole('table'));
+    expect(table.getByText('Modifiers')).toBeTruthy();
+    expect(table.getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['When', 'The door opens on']);
+    expect(table.getByRole('cell', { name: 'An iron-bound door' })).toBeTruthy();
+    expect(sheet.getByText('Time and noise.').tagName).toBe('STRONG');
+    expect(sheet.getByText('From your setting: Fen Rules, p. 88')).toBeTruthy();
+    expect(sheet.getAllByRole('button')).toHaveLength(1);
+  });
+
+  // Purpose: the sheet's blocks are the reader's, in the pack's order, with the source last.
+  it('draws the blocks in the pack’s order, the source last', () => {
+    expect(activityBlocks(FORCE_BLOCKS).map((b) => b.kind)).toEqual(['p', 'p', 'table', 'p', 'source']);
   });
 });
 

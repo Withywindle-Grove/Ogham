@@ -1265,6 +1265,15 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       if (main.type === 'placeRule.eye') return by(on ? `opened ${rule} of ${place} to players` : `closed ${rule} of ${place} to players`);
       return by(on ? `put ${place}'s ${rule} back in force` : `switched off ${place}'s ${rule}: the setting's check applies there`);
     }
+    // A section of a place's Knowledge shared with a group, or taken back (P4, p4s-2): the GM's line alone; the section's
+    // heading and the place by the pack's words (kept on the share's row).
+    case 'placeKnowledge.eye': {
+      const row = entry.events.find((e) => e.targetTable === 'knowledge_shares')?.after ?? after;
+      const heading = typeof row.heading === 'string' && row.heading.trim() ? `“${row.heading.trim()}”` : 'a section';
+      const place = typeof row.place_name === 'string' && row.place_name ? row.place_name : 'a place';
+      const group = typeof row.group_number === 'number' && row.group_number !== 1 ? groupName(row.group_number) : 'the party';
+      return by(row.shared === true ? `shared ${heading} of ${place}'s knowledge with ${group}` : `took back ${heading} of ${place}'s knowledge from ${group}`);
+    }
     case 'place.edit': {
       const id = entry.events.find((e) => e.targetTable === 'places' || e.targetTable === 'place_notes')?.targetId;
       return by(`wrote about ${named(names.placeNames ?? new Map(), id, 'a place')}`);

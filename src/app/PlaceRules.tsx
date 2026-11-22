@@ -14,7 +14,7 @@
 //     a tap opens the rule's sheet. Where the rule's button names an icon of the app's set (pf-12c, pf-12e; dec-7
 //     piece 2), the button is that icon alone, its words the screen reader's (mc-49); else the generic mark with its
 //     words. (No long-press reveal of the words: no part has one yet.)
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
@@ -32,11 +32,12 @@ import {
   type RuleButton,
   type RuleSwitch,
 } from '../modules/expedition/placeRules.ts';
+import { rulesByPlace, rulesRowLine } from '../modules/expedition/placeKnowledge.ts';
 import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import { Dialog } from '../ui/Dialog.tsx';
 import { isSetIconName, type SetIconName } from '../ui/iconSet.ts';
 import { Icon } from '../ui/icons.tsx';
-import { Switch } from '../ui/parts.tsx';
+import { OpenCard, Switch } from '../ui/parts.tsx';
 import { RuleText } from '../ui/RuleText.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import { registry } from './services.ts';
@@ -93,7 +94,6 @@ export const RULE_CLOSED_WORDS = 'Your GM has closed this rule.';
 export function PlaceRuleButtons({ rules }: { rules: readonly PlayersRule[] }) {
   const [open, setOpen] = useState<{ placeName: string; name: string } | null>(null);
   const withButton = rules.filter((r) => r.button);
-  const now = open ? rules.find((r) => r.placeName === open.placeName && r.name === open.name) : undefined;
   return (
     <>
       {withButton.length > 0 && (
@@ -118,20 +118,67 @@ export function PlaceRuleButtons({ rules }: { rules: readonly PlayersRule[] }) {
           })}
         </div>
       )}
-      {open &&
-        (now ? (
-          <RuleSheet placeName={now.placeName} name={now.name} blocks={now.blocks} onClose={() => setOpen(null)} />
-        ) : (
-          <Dialog wide label={open.name} onClose={() => setOpen(null)}>
-            <p className="auth__meta rule-sheet__place">{`${open.placeName}. Rules`}</p>
-            <p className="rule-sheet__closed">
-              <Icon name="info" size={20} />
-              <span>{RULE_CLOSED_WORDS}</span>
-            </p>
-          </Dialog>
-        ))}
+      {open && <PlayersRuleSheet open={open} rules={rules} onClose={() => setOpen(null)} />}
     </>
   );
+}
+
+/**
+ * A rule a player opened, looked up in the rules the database gives now (by its place and name: the read sends no id),
+ * so a rule the GM closes while it is open loses its words at once and says "Your GM has closed this rule." (rp-8,
+ * RC1b); opened again, the words come back. Shared by the rule buttons and the Rules row (P4). The ✕ is the way out.
+ */
+export function PlayersRuleSheet({ open, rules, onClose }: { open: { placeName: string; name: string }; rules: readonly PlayersRule[]; onClose: () => void }) {
+  const now = rules.find((r) => r.placeName === open.placeName && r.name === open.name);
+  return now ? (
+    <RuleSheet placeName={now.placeName} name={now.name} blocks={now.blocks} onClose={onClose} />
+  ) : (
+    <Dialog wide label={open.name} onClose={onClose}>
+      <p className="auth__meta rule-sheet__place">{`${open.placeName}. Rules`}</p>
+      <p className="rule-sheet__closed">
+        <Icon name="info" size={20} />
+        <span>{RULE_CLOSED_WORDS}</span>
+      </p>
+    </Dialog>
+  );
+}
+
+/**
+ * The Rules row on a player's place card (rp-7; frames 09-PR1 to PR5b, PL1b): "Rules" with the scales and the row's line
+ * (`rulesRowLine`: one rule's name, a bare count, or "3 here, 1 of Saltwick Island"). One rule opens at once; more open
+ * the list in the panel a rule opens in, each rule by its name with the information mark, under each place's name only
+ * when two shown places have rules (the place the party is at first). No rule: no row. `here` is the place's name as
+ * the read gives it (the rules of a place never shown come under it, rp-4). Every rule the player may read is listed,
+ * those with a button of their own too.
+ */
+export function usePlayersRulesRow({ rules, here, over = null }: { rules: readonly PlayersRule[]; here: string; over?: string | null }): { row: ReactNode; sheets: ReactNode } {
+  const [list, setList] = useState(false);
+  const [open, setOpen] = useState<{ placeName: string; name: string } | null>(null);
+  // The row counts what the read gives now; the sheets are the caller's to place outside it, so a sheet stays open while
+  // its rule (or the last rule, and with it the row) leaves the read (rp-8).
+  const line = rulesRowLine(rules, here);
+  const places = rulesByPlace(rules, here);
+  const onRow = () => (rules.length === 1 ? setOpen({ placeName: rules[0]!.placeName, name: rules[0]!.name }) : setList(true));
+  const row = line && <OpenCard icon="scales" title="Rules" summary={line} label={`Rules: ${line}`} onOpen={onRow} />;
+  const sheets = (
+    <>
+      {list && (
+        <Dialog wide label="Rules" over={over ?? here} onClose={() => setList(false)}>
+          {rules.length === 0 && <p className="auth__meta">No rules open to you here now.</p>}
+          {places.map(([place, ofPlace]) => (
+            <section key={place} className="players-rules__place" aria-label={places.length > 1 ? place : undefined}>
+              {places.length > 1 && <h4 className="players-rules__heading">{place}</h4>}
+              {ofPlace.map((rule, at) => (
+                <OpenCard key={`${at}/${rule.name}`} icon="info" title={rule.name} summary="" label={rule.name} onOpen={() => setOpen({ placeName: rule.placeName, name: rule.name })} />
+              ))}
+            </section>
+          ))}
+        </Dialog>
+      )}
+      {open && <PlayersRuleSheet open={open} rules={rules} onClose={() => setOpen(null)} />}
+    </>
+  );
+  return { row, sheets };
 }
 
 /**

@@ -115,9 +115,18 @@ export function PlaceFactsBody({
  * part, plain text as its paragraphs through the same part; an empty one opens to nothing, one the app can't read says so
  * (sectionWords). A section with no heading is its text alone.
  */
-export function SectionFold({ section, open, firstLine = false }: { section: PlaceSection; open: boolean; firstLine?: boolean }) {
+export function SectionFold({ section, open, firstLine = false, note = null }: { section: PlaceSection; open: boolean; firstLine?: boolean; note?: string | null }) {
   const body = sectionWords(section);
-  if (!section.heading) return <div>{body}</div>;
+  // `note`: one quiet line under the heading and its first line, folded or open (the Knowledge sheet's "Shared with the
+  // players, turn 9.", frame 7b).
+  const noteLine = note && <span className="place-facts__first place-facts__note">{note}</span>;
+  if (!section.heading)
+    return (
+      <div>
+        {body}
+        {noteLine}
+      </div>
+    );
   const first = firstLine ? sectionFirstLine(section.text) : '';
   return (
     <details className="place-facts__fold" open={open}>
@@ -128,6 +137,7 @@ export function SectionFold({ section, open, firstLine = false }: { section: Pla
         <span className="place-card__summary-words">
           {firstLine ? <span className="place-facts__fold-heading">{section.heading}</span> : section.heading}
           {first && <span className="place-facts__first">{first}</span>}
+          {noteLine}
         </span>
       </summary>
       {body}
@@ -141,6 +151,11 @@ export function SectionFold({ section, open, firstLine = false }: { section: Pla
  * for an empty section (no words, no `text`); one muted line only for a section the app can't read (pick 1, as a place
  * rule with no words).
  */
+/** A section's words, opened (the players' shared section, P4, draws them by the same rule as the GM's sheet). */
+export function SectionWords({ section }: { section: PlaceSection }) {
+  return sectionWords(section);
+}
+
 function sectionWords(section: PlaceSection) {
   if (section.blocks === null) return section.text ? <RuleText blocks={plainBlocks(section.text)} /> : null;
   if (section.blocks.length > 0) return <RuleText blocks={section.blocks} />;

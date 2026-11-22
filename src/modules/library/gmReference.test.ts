@@ -48,6 +48,17 @@ describe('buildReference: the standard panels', () => {
     expect(book!.panels.map((p) => p.id)).toEqual(['dungeons']);
   });
 
+  // Purpose (d5-16): a common player action whose rule the pack sets out in blocks reads on the GM reference as its
+  // plain words, a paragraph each, in the pack's order (pf-18a), and a search finds it by a word inside its blocks.
+  it('a player action in blocks reads as its paragraphs', () => {
+    const text = { blocks: [{ p: 'Lever it with a bar.' }, { table: { title: 'Modifiers', columns: ['When', 'Opens on'], rows: [['Iron-bound', '1 only']] } }, { lead: 'Noise', text: 'Each try is loud.' }] };
+    const rules = entry('quiet', 'rulesSet', 'quiet-rules', 'Quiet rules', { exploration: { playerActions: [{ id: 'pry', name: 'Pry a door', group: 'Doors', text }] } });
+    const books = buildReference([pack('quiet', 'Quiet rules')], [rules]);
+    const pry = books[0]!.panels.find((p) => p.id === 'dungeons')!.entries.find((e) => e.heading === 'Pry a door')!;
+    expect(pry.paragraphs).toEqual(['Lever it with a bar.', 'Modifiers', 'Noise. Each try is loud.']);
+    expect(searchReference(books, 'loud').map((hit) => hit.entry.heading)).toEqual(['Pry a door']);
+  });
+
   it('Combat holds the fight sections as the pack words them, with their pages', () => {
     const combat = buildReference([pack('fen', 'Fen rules')], fenEntries)[0]!.panels.find((p) => p.id === 'combat')!;
     expect(combat.entries.map((e) => e.heading)).toEqual(['Initiative', 'Morale']);

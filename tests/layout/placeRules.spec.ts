@@ -41,8 +41,11 @@ for (const size of [
       const { line, first, second } = await placeLine(page);
       const description = line.getByText('Black piles, a mooring ring, weed to the waterline.');
       const name = line.getByRole('heading');
-      const [d, a, b, l, n] = await Promise.all([description.boundingBox(), first.boundingBox(), second.boundingBox(), line.boundingBox(), name.boundingBox()]);
-      if (!d || !a || !b || !l || !n) throw new Error('not drawn');
+      const [d, a, b, box, n] = await Promise.all([description.boundingBox(), first.boundingBox(), second.boundingBox(), line.boundingBox(), name.boundingBox()]);
+      if (!d || !a || !b || !box || !n) throw new Error('not drawn');
+      // The Location's card (ppf-6) is the region itself: its buttons end at its right padding, inside its edge.
+      const inset = await line.evaluate((el) => parseFloat(getComputedStyle(el).paddingRight) + parseFloat(getComputedStyle(el).borderRightWidth));
+      const l = { ...box, width: box.width - inset };
       // At the right of the card, not above the name, and over the description.
       expect(Math.abs(a.x + a.width - (l.x + l.width))).toBeLessThanOrEqual(1);
       expect(a.y).toBeGreaterThanOrEqual(n.y - 1);
