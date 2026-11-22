@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The purse on the swept Pack tab: the coin line, its sheet, the stash’s coin, the GM’s view (approved by Francis 2026-11-13, with the lead’s fixes)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../creation/final/sweep.css">
+<link rel="stylesheet" href="pk.css">
+<style>
+  .sheetup { max-height:none; }
+  .act { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); min-height:48px; border-top:1px solid var(--rule); }
+  .act .go { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; transform:rotate(-90deg); flex:none; }
+  .glab { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:var(--space-3) 0 var(--space-1); }
+  .opt { display:flex; align-items:center; gap:var(--space-2); min-height:44px; padding:var(--space-1) var(--space-3); border:1.5px solid var(--control); border-radius:4px; margin-bottom:var(--space-2); }
+  .opt.on { background:var(--wash); border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); font-weight:700; }
+  .back2 { display:inline-flex; align-items:center; min-height:44px; text-decoration:underline; text-underline-offset:3px; color:var(--accent); }
+  /* the coin line: a tap row. Under the load it sits between the groups' double rules; in the stash it is the first row */
+  .coinl { display:flex; align-items:center; gap:var(--space-2); min-height:52px; padding:var(--space-1) 0; border-top:3px double var(--rule); }
+  .coinl.inlist { border-top:0; border-bottom:1px dotted var(--rule); }
+  .coinl .t { flex:1; min-width:0; font-weight:700; }
+  .coinl .go { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; flex:none; transform:rotate(-90deg); }
+  /* how much of each coin: a typed figure is ink and bold; an untyped box shows a quiet 0 in the muted tone, regular weight */
+  .coinrow { display:grid; grid-template-columns:minmax(0,1fr) 112px; gap:var(--space-3); align-items:center; min-height:52px; padding:var(--space-1) 0; border-bottom:1px dotted var(--rule); }
+  .coinrow small { display:block; font-size:14px; color:var(--muted); }
+  .coinrow .field { text-align:right; font-weight:700; }
+  .coinrow .field.empty { font-weight:400; }
+  .refuse { margin:var(--space-1) 0 var(--space-2); }
+  .tst { position:absolute; left:var(--space-3); right:var(--space-3); bottom:var(--space-3); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../creation/final/sweep.js"></script>
+<script src="pk.js"></script>
+<script>
+const P_CHK = 'Approved by Francis 2026-11-13, with the lead’s fixes. Not built yet: drawn on the swept Pack tab (pack/05 and 06, psw-1 to psw-7) for docs/plans/dec-6-purse.md, piece c.';
+const X = `<span class="btn sq" role="button" aria-label="Close" style="border:0;background:transparent">${I.close}</span>`;
+const go = `<span class="go" aria-hidden="true">${I.chev}</span>`;
+const ln = (l, v) => `<p class="ln"><span class="lb">${l}</span>${v}</p>`;
+const opt = (name, on) => `<div class="opt${on ? ' on' : ''}" role="button"${on ? ' aria-pressed="true"' : ''}>${name}${on ? '<span style="margin-left:auto">✓</span>' : ''}</div>`;
+const sheetOf = (title, body) => `<div class="sheetup"><div class="head"><span class="title">${title}</span>${X}</div>${body}</div>`;
+const back = (to) => `<span class="back2" role="button">‹ ${to}</span>`;
+const act = (words) => `<div class="act" role="button"><span>${words}</span>${go}</div>`;
+const glab = (t) => `<div class="glab" data-sc>${t}</div>`;
+// the coin line: the amounts alone (no line under them: mc-46), a tap to its sheet
+const coinLine = (amounts, inList) => `<div class="coinl${inList ? ' inlist' : ''}" role="button" aria-label="Coin: ${amounts}"><span class="t">${amounts}</span>${go}</div>`;
+const W3 = '12 crowns, 30 herons, 4 bits';
+const tabOf = (line) => `${shell()}<div class="inner">${load(true, 'Light, speed 125', [96, 0, 0], '383 of 1,200 coins')}${line}${hands(true)}${worn(true)}</div>${tabs}`;
+const behind = (h = 640, line = coinLine(W3)) => `${shell()}<div class="inner" style="min-height:${h}px">${load(true, 'Light, speed 125', [96, 0, 0], '383 of 1,200 coins')}${line}${hands(true)}</div><div class="dim"></div>`;
+
+// ---- 1. the coin line ----
+const p1 = frame('PC1. The coin line on the swept Pack tab, on a phone (375 px). <b>Under the load and above “At hand”</b>: one row between the double rules the groups use. <b>The amounts by denomination, in the setting’s own coin names</b> (“12 crowns, 30 herons, 4 bits”), in bold body type; nothing under them (no explainer line). The row is a tap, with the chevron every row to a sheet carries; it opens the coin’s small sheet (frame PC3). <b>Second: with none: “No coin”</b>, the same row, still a tap. Only the character’s player and the GM are sent this row; nobody else’s screen has it. Coin weighs nothing: the load’s line above still counts in “coins’ weight”, the setting’s unit of weight (its words are a separate, open question).',
+  [col('With coin', tabOf(coinLine(W3)), 'bit'), col('No coin', tabOf(coinLine('No coin')), 'bit')], 720, P_CHK);
+const W5 = '2 moon-silver crowns of the Old Causeway, 14 heron marks, 120 reed-bits, 7 drowned pennies, 3 lantern tokens';
+const p2 = frame('PC2. The coin line with messy data. <b>First: five denominations with long coin names:</b> the line wraps to as many lines as it needs; nothing is cut and nothing is shortened to “…”; the chevron keeps its place. <b>Second: 999 of one coin and none of another</b> (ruled): a coin the character has none of is left out of the line (“999 crowns, 4 bits”: no herons) and shown as 0 in the sheet, where every denomination has its row; with none of any, the line is “No coin”.',
+  [col('Five denominations, long names', tabOf(coinLine(W5)), 'bit'), col('999 of one, none of another', tabOf(coinLine('999 crowns, 4 bits')), 'bit')], 720, P_CHK);
+
+// ---- 2. the small sheet ----
+const amounts = (rows) => `<div class="bk">${rows.map(([l, v]) => ln(l, v)).join('')}</div>`;
+const A3 = [['Crowns', 12], ['Herons', 30], ['Bits', 4]];
+const coinSheet = (title, rows, acts) => sheetOf(title, `${amounts(rows)}<div style="margin-top:var(--space-2)">${acts}</div>`);
+const ACTS = `${act('Spend…')}${act('Give to…')}`;
+const p3 = frame('PC3. The coin’s small sheet, from the coin line. <b>The title: “Wren’s coin”</b>, the app’s own kind of title (psw-4: a purse is not an entry, so no coloured capitals); the X is the one way out. <b>The amounts by denomination</b> as labelled lines in the book format: every denomination the setting names, a 0 shown as 0. Then the two things a player can do, as rows that lead on: <b>“Spend…”</b> and <b>“Give to…”</b>, with their dots (each leads to a sheet) and no sentence under them. No accent: the sheet only leads on. No recent lines here (ruled): Undo is on the toast and in the Log. <b>Second: six denominations with long names</b>, one a 0: a long label wraps and its figure follows it.',
+  [col('Three denominations', `${behind(520)}${coinSheet('Wren’s coin', A3, ACTS)}`, 'bit'), col('Six, with long names and a 0', `${behind(660, coinLine(W5))}${coinSheet('Wren’s coin', [['Moon-silver crowns of the Old Causeway', 2], ['Heron marks', 14], ['Reed-bits', 120], ['Drowned pennies', 7], ['Lantern tokens', 3], ['Ferry chits', 0]], ACTS)}`, 'bit')], 720, P_CHK);
+
+// ---- 3. Spend ----
+const crow = (name, has, v, refuse) => `<div class="coinrow"><span><b>${name}</b><small>${has}</small></span><span class="field${v ? '' : ' empty'}" role="spinbutton" aria-label="${name}">${v || 0}</span></div>${refuse ? `<div class="refuse" role="alert">${warn(refuse)}</div>` : ''}`;
+const wren = (c, h, b2, refuse) => `${crow('Crowns', 'Wren has 12.', c)}${crow('Herons', 'Wren has 30.', h, refuse)}${crow('Bits', 'Wren has 4.', b2)}`;
+const foot1 = (btn) => `<div class="efoot"><span class="btn accent">${btn}</span></div>`;
+const spendBody = (h, refuse, btn) => `${back('Wren’s coin')}${wren(0, h, 0, refuse)}${glab('What for')}<span class="field empty" style="display:block">If you like</span>${foot1(btn)}`;
+const toastTab = (words) => `${shell()}<div class="inner" style="min-height:520px;position:relative;padding-bottom:96px">${load(true, 'Light, speed 125', [96, 0, 0], '383 of 1,200 coins')}${coinLine('12 crowns, 28 herons, 4 bits')}${hands(true)}${worn(true)}<div class="toast tst"><span>${words}</span><span class="btn small">Undo</span><span aria-hidden="true" style="position:absolute;left:0;bottom:0;height:3px;width:72%;background:var(--muted);border-radius:0 2px 2px 4px"></span></div></div>${tabs}`;
+const p4 = frame('PC4. “Spend…” opens the sheet <b>“Spend”</b> (a sheet’s title carries no dots), with the way back to the coin’s sheet under it (psw-4, psw-6: one sheet at a time). <b>A row a denomination</b>: its name, what the character has under it (“Wren has 30.”), and a box for how much: a box, not a stepper, since an amount can be 999. <b>An untyped box shows a quiet 0</b>, muted and regular; a typed figure is ink and bold (measured: see the self-review). “What for” is optional and says so in the box. <b>The one accent names the amount</b>, right-justified: “Spend 2 herons”; with two kinds it names both (“Spend 2 crowns, 2 herons”). Spent coin leaves play. <b>Second: refused.</b> More than the character has: the button stays a button (never greyed); on its tap nothing is spent and the refusal shows under that coin’s row, with the warning sign: <b>“Wren has 30 herons.”</b> <b>Third: done:</b> the sheet shuts, the coin line shows the new amounts at once, and a toast says it in the log line’s words (ruled), with Undo and its running bar (psw-5): “Wren spent 2 herons: a room at the Eel and Lantern”; with nothing typed for “What for”, “Wren spent 2 herons”.',
+  [col('How much, and what for', `${behind(680)}${sheetOf('Spend', spendBody(2, '', 'Spend 2 herons'))}`, 'bit'), col('Refused: more than she has', `${behind(720)}${sheetOf('Spend', spendBody(45, 'Wren has 30 herons.', 'Spend 45 herons'))}`, 'bit'), col('Spent: the toast, with Undo', toastTab('Wren spent 2 herons: a room at the Eel and Lantern'), 'bit')], 1100, P_CHK);
+
+// ---- 4. Give to ----
+const giveBody = (who, btn) => `${back('Wren’s coin')}${wren(0, who === 'stash' ? 10 : 5, 0)}${glab('Party')}${opt('Party stash', who === 'stash')}${glab('People')}${opt('Fenna of the Long Causeway')}${opt('Moss', who === 'moss')}${foot1(btn)}`;
+const p5 = frame('PC5. “Give to…” opens the sheet <b>“Give to”</b>, the same sheet as giving a thing (frames PB3, PB4): how much first, as a stack asks “How many”; then the party’s stash, then the people, under small-capitals labels; the chosen one marked by wash, edge, bold and a tick. <b>People are names only</b>: nothing of their coin is shown, since no player reads another’s purse. <b>The accent names the amount and the receiver:</b> “Give Moss 5 herons”; to the stash it is “Put in 10 herons”. A gift needs no yes. More than she has is refused as in frame PC4. The toast afterwards uses the log line’s words, with Undo. No “Someone outside the party…”: coin that leaves the party is Spend. <b>Not drawn:</b> the receiver’s side, which is their own coin line showing more (the find card is not built and comes later, on its own page).',
+  [col('To a character', `${behind(820)}${sheetOf('Give to', giveBody('moss', 'Give Moss 5 herons'))}`, 'bit'), col('To the party stash', `${behind(820)}${sheetOf('Give to', giveBody('stash', 'Put in 10 herons'))}`, 'bit')], 720, P_CHK);
+
+// ---- 5. the stash ----
+const S2 = [['Crowns', 0], ['Herons', 40], ['Bits', 12]];
+const stashOpen = (coin) => `${shell()}<div class="inner">${gh(true, 'Carried', '5 items')}${row(true, 'Reed basket', { w: 20 })}${row(true, 'River pearls', { q: 6, w: 6 })}${fold(true, 'Party stash', STASH, true)}${coin}${row(true, 'Bundle of reeds', { q: 8, w: 80 })}${row(true, 'Silver ewer', { w: 30 })}${row(true, 'Week of fen rations', { q: 2, w: 140 })}<div style="margin-top:var(--space-2);display:flex;justify-content:flex-end"><span class="btn">Add to the Party stash</span></div>${pfoot('11 items')}</div>${tabs}`;
+const stashBehind = (h) => `${shell()}<div class="inner" style="min-height:${h}px">${gh(true, 'Carried', '5 items')}${row(true, 'River pearls', { q: 6, w: 6 })}${fold(true, 'Party stash', STASH, true)}${coinLine('40 herons, 12 bits', true)}${row(true, 'Bundle of reeds', { q: 8, w: 80 })}</div><div class="dim"></div>`;
+const stashRows = (h, b2, refuse) => `${crow('Crowns', 'The stash has 0.', 0)}${crow('Herons', 'The stash has 40.', h, refuse)}${crow('Bits', 'The stash has 12.', b2)}`;
+const p6 = frame('PC6. The party stash’s coin, in the stash as it is built: a fold inside the tab (frame PA4). <b>One pattern for coin everywhere:</b> the stash’s coin is <b>the same row as a character’s coin line</b>: the amounts in bold, a chevron, no button on the row and no figure under the “Weight” head. It is the first row of the open stash, above its things. The whole party reads it. With none it reads “No coin” (second). <b>Third: its small sheet, “Party stash’s coin”</b>: the amounts by denomination, every one the setting names (a 0 shown as 0, as on a character’s sheet), and for a player one row that leads on, <b>“Take…”</b>. Putting coin in is “Give to…” from the player’s own coin (frame PC5). The shut fold’s summary line is unchanged, as built.',
+  [col('The stash open, with its coin', stashOpen(coinLine('40 herons, 12 bits', true)), 'bit'), col('The stash with no coin', stashOpen(coinLine('No coin', true)), 'bit'), col('The stash’s sheet, for a player', `${stashBehind(520)}${coinSheet('Party stash’s coin', S2, act('Take…'))}`, 'bit')], 1100, P_CHK);
+const p6b = frame('PC6b. “Take…” opens the sheet <b>“Take coin”</b> (the same sheet and title the GM has: one sheet, one title), with the way back to the stash’s coin: a row a denomination, what the stash has under each (“The stash has 40.”), a box; one accent that names the amount, <b>“Take 10 herons”</b>. It goes to the taker’s own coin. <b>Second: refused:</b> more than the stash holds: “The stash has 40 herons.” under that row, with the warning sign; the button stays a button. Afterwards a toast in the log line’s words (“Wren took 10 herons from the stash”), with Undo.',
+  [col('Take coin', `${stashBehind(540)}${sheetOf('Take coin', `${back('Party stash’s coin')}${stashRows(10, 0)}${foot1('Take 10 herons')}`)}`, 'bit'), col('Refused: more than the stash has', `${stashBehind(580)}${sheetOf('Take coin', `${back('Party stash’s coin')}${stashRows(55, 0, 'The stash has 40 herons.')}${foot1('Take 55 herons')}`)}`, 'bit')], 720, P_CHK);
+
+// ---- 6. the GM ----
+const gmBar = `<div class="bar pk-bar pk-wide"><span class="pk-link" role="button" style="min-height:44px;display:inline-flex;align-items:center">‹ Players</span><span class="title"></span><span class="ico" role="button" aria-label="Messages">${G.mail}</span><span class="ico" role="button" aria-label="Rules">${G.book}</span><span class="ico" role="button" aria-label="More">${I.more}</span></div>`;
+const gmChips = (on) => `<div class="pk-chips" role="group" aria-label="Whose pack">${['Party stash', 'Fenna of the Long Causeway', 'Moss', 'Wren'].map((n) => `<span class="btn${n === on ? ' on' : ''}" role="button"${n === on ? ' aria-pressed="true"' : ''}>${n}</span>`).join('')}</div>`;
+const gmH = (t) => `<h2 style="text-align:center;margin:0 0 var(--space-2);font-variant:normal;text-transform:none;letter-spacing:0;font-size:24px">${t}</h2>`;
+const gmWren = (dim, h = 700) => `${gmBar}<div class="inner" style="min-height:${dim ? h : 520}px">${gmChips('Wren')}${gmH('Wren’s pack')}${load(true, 'Light, speed 125', [96, 0, 0], '383 of 1,200 coins')}${coinLine(W3)}${hands(true)}${worn(true)}</div>${dim ? '<div class="dim"></div>' : ''}`;
+const GM_ACTS = `${act('Give coin…')}${act('Take coin…')}`;
+const p7 = frame('PC7. The GM’s view: a character’s pack, reached from the “Pack” button on the character’s row (“Open Wren’s pack”) or the chips of frame PA5. <b>First: the same coin line in the same place.</b> The GM reads every purse. <b>Second: the same sheet, “Wren’s coin”</b>, with the amounts; the GM’s two acts in place of the player’s: <b>“Give coin…”</b> and <b>“Take coin…”</b> (ruled), as rows that lead on.',
+  [col('A character’s pack, as the GM', gmWren(false), 'bit'), col('The GM’s sheet', `${gmWren(true)}${coinSheet('Wren’s coin', A3, GM_ACTS)}`, 'bit')], 720, P_CHK);
+const p8 = frame('PC8. The GM gives and takes. <b>First: “Give coin…” opens the sheet “Give coin”:</b> a row a denomination with what the character has, a box; the accent names the amount and the receiver, “Give Wren 40 herons”. It is logged as “Your GM gave Wren 40 herons” and the player sees it on their coin line at once. <b>Second: “Take coin…” opens “Take coin”:</b> the same rows; the accent “Take 10 herons”. <b>Third: refused:</b> more than the character has: “Wren has 30 herons.” under the row. Each has its toast with Undo.',
+  [col('Give coin', `${gmWren(true)}${sheetOf('Give coin', `${back('Wren’s coin')}${wren(0, 40, 0)}${foot1('Give Wren 40 herons')}`)}`, 'bit'), col('Take coin', `${gmWren(true)}${sheetOf('Take coin', `${back('Wren’s coin')}${wren(0, 10, 0)}${foot1('Take 10 herons')}`)}`, 'bit'), col('Take coin, refused', `${gmWren(true, 740)}${sheetOf('Take coin', `${back('Wren’s coin')}${wren(0, 45, 0, 'Wren has 30 herons.')}${foot1('Take 45 herons')}`)}`, 'bit')], 1100, P_CHK);
+const gmStash = (dim) => `${gmBar}<div class="inner" style="min-height:${dim ? 700 : 520}px">${gmChips('Party stash')}${gmH('Party stash')}<div class="pk-gh" style="justify-content:flex-end"><span class="l" style="padding-right:44px">Weight</span></div>${coinLine('40 herons, 12 bits', true)}${row(true, 'Bundle of reeds', { q: 8, w: 80 })}${row(true, 'Silver ewer', { w: 30 })}${row(true, 'Week of fen rations', { q: 2, w: 140 })}${pfoot('3 items')}</div>${dim ? '<div class="dim"></div>' : ''}`;
+const p9 = frame('PC9. The stash, as the GM (frame PA5). <b>First: the stash’s coin row</b>, the same row, first under the chips. <b>Second: the same sheet, “Party stash’s coin”</b>, offering the GM <b>“Give coin…”</b> and <b>“Take coin…”</b>. <b>Third: “Give coin” for the stash:</b> the stash’s rows, every denomination (“The stash has 0.” for one it has none of, so the GM can put some in), and the accent in the words for coin going into the stash, “Put in 20 herons”. “Take coin” for the stash is frame PC6b’s sheet.',
+  [col('The stash, as the GM', gmStash(false), 'bit'), col('The stash’s sheet, for the GM', `${gmStash(true)}${coinSheet('Party stash’s coin', S2, GM_ACTS)}`, 'bit'), col('Give coin, to the stash', `${gmStash(true)}${sheetOf('Give coin', `${back('Party stash’s coin')}${stashRows(20, 0)}${foot1('Put in 20 herons')}`)}`, 'bit')], 1100, P_CHK);
+
+// ---- 7. the tablet ----
+const tabletF = `<div><p class="cap" style="max-width:1024px">PC10. The coin line at the iPad’s width, on the tablet as built (frame PA6, psw-7: the right column stays as built until the rework): <b>the coin line sits under the load, in the right column</b>. The sheets open as the tab’s other sheets do.</p><div class="tablet wide bit"><div class="bar pk-bar pk-wide"><span class="pk-link" role="button" style="min-height:44px;display:inline-flex;align-items:center">‹ The Reed Marches</span><span class="title">Wren’s pack</span><span class="ico" role="button" aria-label="Messages">${G.mail}</span><span class="ico" role="button" aria-label="Rules">${G.book}</span><span class="ico" role="button" aria-label="More">${I.more}</span></div><div style="display:grid;grid-template-columns:150px minmax(0,1fr) minmax(0,1.2fr);gap:var(--space-4);padding:var(--space-3);align-items:start"><div class="pk-nav" role="tablist"><span>${G.crown}Player</span><span>${G.fire}Scene</span><span class="on">${G.pouch}Pack</span></div><div>${hands(true)}${worn(true)}${basket(true)}${pfoot('11 items')}</div><div style="border-left:1px solid var(--rule);padding-left:var(--space-4)">${load(true, 'Light, speed 125', [96, 0, 0], '383 of 1,200 coins')}${coinLine(W3)}</div></div></div><p class="from">${P_CHK}</p></div>`;
+
+mount(`
+  <h1>The purse on the swept Pack tab</h1>
+  <p class="note"><b>Approved by Francis, 2026-11-13, with the lead’s fixes.</b> For the builder of December step 6, piece c (<code>docs/plans/dec-6-purse.md</code>): build from these frames. The coin line and its sheets, drawn solid on the swept Pack tab (pack/05 and 06; psw-1 to psw-7). The lead’s fixes are in: no explainer lines under an amount or an action (mc-46); one pattern for coin everywhere, the stash’s coin being the same row and sheet as a character’s; a sheet’s title carries no dots, the row that leads to it does. Coin names are invented (crowns, herons, bits); the app prints the setting’s own, and the pack’s format gives the form after a number (pf-17). Coin weighs nothing; no change is made between coins; nothing charges by itself.</p>
+  <h1>The coin line</h1>
+  <div class="wall">${p1}</div>
+  <div class="wall">${p2}</div>
+  <div class="wall">${tabletF}</div>
+  <h1>The small sheet; spend; give</h1>
+  <div class="wall">${p3}</div>
+  <div class="wall">${p4}</div>
+  <div class="wall">${p5}</div>
+  <h1>The party stash’s coin</h1>
+  <div class="wall">${p6}</div>
+  <div class="wall">${p6b}</div>
+  <h1>The GM</h1>
+  <div class="wall">${p7}</div>
+  <div class="wall">${p8}</div>
+  <div class="wall">${p9}</div>
+  <h1>Words, in one place</h1>
+  <p class="note"><b>Rows:</b> the amounts (“12 crowns, 30 herons, 4 bits”); “No coin”; “Spend…”; “Give to…”; “Take…”; “Give coin…”; “Take coin…”. <b>Sheet titles:</b> “Wren’s coin”; “Party stash’s coin”; “Spend”; “Give to”; “Give coin”; “Take coin” (for a player’s “Take…” and the GM’s “Take coin…” alike). <b>Under a box:</b> “Wren has 30.”; “The stash has 40.” <b>Buttons:</b> “Spend 2 herons”; “Give Moss 5 herons”; “Put in 10 herons”; “Take 10 herons”; “Give Wren 40 herons”. <b>Refusals:</b> “Wren has 30 herons.”; “The stash has 40 herons.” <b>Labels:</b> “What for”, with “If you like” in its box; “Party”; “People”. <b>Toasts and log lines:</b> “Wren spent 2 herons: a room at the Eel and Lantern”; “Your GM gave Wren 40 herons”; “Wren took 10 herons from the stash”.</p>
+  <h1>Not drawn, by the lead’s word (2026-11-13)</h1>
+  <p class="note"><b>A purse shows nowhere to another player today: there is no screen that opens another character’s pack.</b> So there is no frame of another player’s view, of a hireling’s purse as its employer sees it, or of a Down or dead character’s purse open to the party: they belong to pieces that are not this week’s. <b>Coin as a row in a hoard, and the find card naming coin</b>, are not built and come later as their own page, from pack/02’s approved frames in the sweep’s dress.</p>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked.</b> One accent a sheet, right-justified, naming the amount; none on a coin’s sheet, which only leads on. No disabled button: a refusal is words under the row with the warning sign (never colour alone). Undo on the toast, no confirm. One way out of a sheet (the X) and one way back inside it. Targets: the coin line 52 px, the act rows 48, the boxes 44, the options 44. Messy: five and six denominations with long names, 0 and 999, no coin (a character’s and the stash’s), a long character name among the receivers. 375 px and the iPad’s width; light and dark side by side. <b>The untyped 0, measured</b> from the token values: muted on the sheet is 7.1 to 1 in light and 7.5 to 1 in dark (the floor is 4.5), against a typed figure in ink at 17.9 and 14.4; the typed figure is also bold, so the two differ by weight as well as tone.</p>
+  <p class="note"><b>Not checked, or gaps.</b> No built screen exists to compare with. Words that are the Design Studio’s, within the lead’s rulings: the sheet title “Party stash’s coin”; “The stash has 40.”; “Put in 20 herons” for the GM’s gift to the stash; the toast with nothing typed for “What for”. The purse’s lines in the Log tab. Loading, offline and a failed save. Larger text.</p>
+`);
+applyPair();
+</script>
+</body>
+</html>

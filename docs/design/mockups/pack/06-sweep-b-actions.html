@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Pack tab, the style sweep: batch B, a thing’s sheet and what it does (2026-11-12)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../creation/final/sweep.css">
+<link rel="stylesheet" href="pk.css">
+<style>
+  .sheetup { max-height:none; }
+  .act { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); min-height:48px; border-top:1px solid var(--rule); }
+  .act .go { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; transform:rotate(-90deg); }
+  .dropb { border:1px solid var(--control); border-radius:4px; padding:var(--space-2) var(--space-3); margin-top:var(--space-3); }
+  .dropb small { display:block; font-size:14px; color:var(--muted); }
+  .glab { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:var(--space-3) 0 var(--space-1); }
+  .opt { display:flex; align-items:center; gap:var(--space-2); min-height:44px; padding:0 var(--space-3); border:1.5px solid var(--control); border-radius:4px; margin-bottom:var(--space-2); }
+  .opt.on { background:var(--wash); border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); font-weight:700; }
+  .opt .r { margin-left:auto; font-size:14px; color:var(--muted); font-weight:400; white-space:nowrap; flex:none; }
+  .opt { padding-top:var(--space-1); padding-bottom:var(--space-1); }
+  .starb { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; }
+  .sw2 { display:inline-flex; gap:3px; padding:3px; border:1.5px solid var(--control); border-radius:24px; background:var(--sheet); }
+  .sw2 > span { min-height:38px; padding:0 var(--space-4); border-radius:20px; display:inline-flex; align-items:center; }
+  .sw2 > span.on { background:var(--wash); font-weight:700; box-shadow:inset 0 0 0 2px var(--accent); }
+  .tst { position:absolute; left:var(--space-3); right:var(--space-3); bottom:var(--space-3); }
+  .back2 { display:inline-flex; align-items:center; min-height:44px; text-decoration:underline; text-underline-offset:3px; color:var(--accent); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../creation/final/sweep.js"></script>
+<script src="pk.js"></script>
+<script>
+const starO = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3l2.800 6 6.500.6-4.900 4.300 1.500 6.400L12 17l-5.900 3.300 1.500-6.400L2.700 9.600 9.200 9z" ${W}/></svg>`;
+const X = `<span class="btn sq" role="button" aria-label="Close" style="border:0;background:transparent">${I.close}</span>`;
+const pin = `<span class="starb" role="button" aria-label="Pin to At hand" aria-pressed="false">${starO}</span>`;
+const behind = (sw, h = 640) => `${shell()}<div class="inner" style="min-height:${h}px">${gh(sw, 'Carried', '5 items')}${row(sw, 'Coil of reed rope', { w: 50 })}${row(sw, 'Glow wand', { w: 10 })}${row(sw, 'Reed basket', { w: 20 })}${row(sw, 'River pearls', { q: 6, w: 6 })}</div><div class="dim"></div>`;
+const act = (words) => `<div class="act" role="button"><span>${words}</span><span class="go" aria-hidden="true">${I.chev}</span></div>`;
+const drop = `<div class="dropb" role="button">Drop<small>Leaves it where you stand. Undo from the toast</small></div>`;
+const ln = (l, v) => `<p class="ln"><span class="lb">${l}</span>${v}</p>`;
+const opt = (name, right, on) => `<div class="opt${on ? ' on' : ''}" role="button"${on ? ' aria-pressed="true"' : ''}>${name}${right ? `<span class="r">${right}</span>` : ''}${on ? `<span${right ? '' : ' style="margin-left:auto"'}>✓</span>` : ''}</div>`;
+const sheetOf = (sw, title, body, o = {}) => `<div class="sheetup"><div class="head">${sw && !o.act ? `<span class="ehead">${title}</span>` : `<span class="title">${title}</span>`}<span style="display:inline-flex">${o.pin ? pin : ''}${X}</span></div>${body}</div>`;
+// ---- a thing's sheet ----
+const itemOld = `${behind(false)}${sheetOf(false, 'Coil of reed rope', `<div class="card" style="margin:0"><div>Weight: 50 coins.</div>${act('Give to…')}${act('Put in…')}${drop}</div>`, { pin: true })}`;
+const itemNew = `${behind(true)}${sheetOf(true, 'Coil of reed rope', `<div class="bk">${ln('Weight', '50 coins')}</div>${act('Give to…')}${act('Put in…')}${drop}`, { pin: true })}`;
+const b1 = frame('PB1. A thing’s sheet, from its row. <b>Left: as built, today’s type. Right: swept:</b> the thing’s name as the heading in the book format; the star that pins it to “At hand”, and the X; <b>the thing’s facts in the book format</b>: a labelled line, “Weight 50 coins” (the build writes a sentence, “Weight: 50 coins.”; the label says weight, so the unit is the coin alone); then what can be done with it, as built: “Give to…” and “Put in…” as rows that lead on, and “Drop” as a boxed row that says what it does (“Leaves it where you stand. Undo from the toast”). Nothing is added. <b>Where the approved rework will land</b> (pack/04, not built, not drawn): every action a row that says what it will do; a stack’s own sheet.',
+  [col('As built, today’s type', itemOld), col('Swept', itemNew, 'bit')], 720, PK_CHK);
+const contOld = `${behind(false)}${sheetOf(false, 'Reed basket', `<div class="card" style="margin:0"><div>Weight: 20 coins.</div><div style="display:flex;justify-content:space-between;border-bottom:1px dotted var(--rule);padding:var(--space-2) 0"><span style="color:var(--muted)">Container</span><span>Holds (coins) 200</span></div>${act('Give to…')}${act('Empty…')}${drop}</div>`, { pin: true })}`;
+const contNew = `${behind(true)}${sheetOf(true, 'Reed basket', `<div class="bk">${ln('Weight', '20 coins')}${ln('Holds', '200 coins')}</div>${act('Give to…')}${act('Empty…')}${drop}`, { pin: true })}`;
+const b2 = frame('PB2. A container’s own sheet. <b>Left: as built, today’s type</b>, half raw (“Weight: 20 coins.” as a sentence; “Container: Holds (coins) 200”). <b>Right: swept, the fault cured and flagged:</b> the book format’s labelled lines, “Weight” and “Holds”; then “Give to…”, “Empty…” and “Drop”, as built. Nothing is added: the sheet says what the build’s says, what it holds.',
+  [col('As built, today’s type', contOld), col('Swept', contNew, 'bit')], 720, PK_CHK);
+// ---- Give ----
+const people = `${opt('Fenna of the Long Causeway')}${opt('Moss')}${opt('Someone outside the party…')}`;
+const giveOld = `${behind(false, 700)}${sheetOf(false, 'Give Coil of reed rope', `<h2 style="margin-top:0">Party</h2>${opt('Party stash', 'No limit', true)}<h2>People</h2>${people}<div style="border-top:1px solid var(--rule);margin-top:var(--space-2);padding-top:var(--space-2)"><span class="btn accent wide">Give to Party stash</span></div><span class="btn" style="margin-top:var(--space-2)">Not now</span>`)}`;
+const giveBody = (btn, head = '') => `${head}<div class="glab" style="margin-top:0">Party</div>${opt('Party stash', 'No limit', true)}<div class="glab">People</div>${people}<div class="efoot"><span class="btn accent">${btn}</span></div>`;
+const giveNew = `${behind(true, 700)}${sheetOf(true, 'Give to…', `<span class="back2" role="button">‹ Coil of reed rope</span>${giveBody('Give to Party stash')}`, { act: true })}`;
+const b3 = frame('PB3. “Give to…”. <b>Left: as built, today’s type:</b> the party’s stash (“No limit”, ticked), then the people, then “Someone outside the party…”; a full-width “Give to Party stash”, and “Not now” under it beside the sheet’s X. <b>Right: swept:</b> <b>an action’s sheet keeps the app’s own title</b> (ruled 2026-11-12: the coloured capitals heading is for an entry, a thing; this sheet is an act): “Give to…”, and the thing named once, in the link back under it; the two groups under small-capitals labels; the chosen one marked by wash, edge, bold and a tick; one button, the accent, right-justified, saying what it will do. <b>One way out</b> (ruled): the sheet has an X, so “Not now” goes. <b>The cure of a fault, flagged:</b> in the build this sheet opens over the thing’s sheet, whose head still shows above it; here it is one sheet at a time, with a way back to the thing at its top (“‹ Coil of reed rope”), since Give is a step inside the thing’s sheet. <b>Where the approved rework will land</b> (pack/04, not built): each character’s load on their row.',
+  [col('As built, today’s type', giveOld), col('Swept', giveNew, 'bit')], 720, PK_CHK);
+const manyOld = `${behind(false, 820)}${sheetOf(false, 'Give Eel hooks', `<div class="glab" style="margin-top:0">How many</div><div>${stepper(12)}<span class="btn" style="margin-left:var(--space-2)">All 12</span></div><p class="meta" style="margin:var(--space-2) 0">all Eel hooks ×12</p><h2>Party</h2>${opt('Party stash', 'No limit', true)}<h2>People</h2>${people}<div style="border-top:1px solid var(--rule);margin-top:var(--space-2);padding-top:var(--space-2)"><span class="btn accent wide">Give 12 to Party stash</span></div><span class="btn" style="margin-top:var(--space-2)">Not now</span>`)}`;
+const manyNew = `${behind(true, 820)}${sheetOf(true, 'Give to…', `<span class="back2" role="button">‹ Eel hooks</span>${giveBody('Give 12 to Party stash', `<div class="glab" style="margin-top:0">How many</div><div style="margin-bottom:var(--space-3)">${stepper(12)}<span class="btn" style="margin-left:var(--space-2)">All 12</span></div>`)}`, { act: true })}`;
+const b4 = frame('PB4. Giving from a stack: “How many”. <b>Left: as built, today’s type:</b> a stepper, “All 12”, and a line under them (“all Eel hooks ×12”). <b>Right: swept:</b> the same stepper and “All 12”; the button says the number (“Give 12 to Party stash”). <b>Cut</b> (ruled): the line “all Eel hooks ×12”: the stepper, “All 12” and the button already say it. The title is “Give to…”, the stack named in the link back; one sheet, one way out, as frame PB3.',
+  [col('As built, today’s type', manyOld), col('Swept', manyNew, 'bit')], 720, PK_CHK);
+// ---- Put in ----
+const putOld = `${behind(false, 560)}<div class="sheetup" style="bottom:auto;top:54%;opacity:.55"><div class="head"><span class="title">Coil of reed rope</span><span style="display:inline-flex">${pin}${X}</span></div></div>${sheetOf(false, 'Move Coil of reed rope', `<h2 style="margin-top:0">Containers</h2>${opt('Reed basket', '128 of 200 left', true)}<div style="border-top:1px solid var(--rule);margin-top:var(--space-2);padding-top:var(--space-2)"><span class="btn accent wide">Put in Reed basket</span></div><span class="btn" style="margin-top:var(--space-2)">Not now</span>`)}`;
+const putNew = `${behind(true, 560)}${sheetOf(true, 'Put in…', `<span class="back2" role="button">‹ Coil of reed rope</span><div class="glab" style="margin-top:0">Containers</div>${opt('Reed basket', '128 of 200 left', true)}${opt('A very long name for a sack that was once a sail and is now mostly patches', '0 of 999 left')}<div class="efoot"><span class="btn accent">Put in Reed basket</span></div>`, { act: true })}`;
+const b5 = frame('PB5. “Put in…”. <b>Left: as built, today’s type:</b> the sheet is titled “Move [the thing]”; a row a container with the room it has left (“128 of 200 left”), the chosen one ticked; a full-width “Put in Reed basket”; “Not now”. The thing’s own sheet still shows its head above this one. <b>Right: swept:</b> the title is the act, “Put in…”; one sheet at a time, with the way back to the thing (the cure of the stacked sheets, flagged); one way out; the accent right-justified. Messy: a second container with a very long name and no room left (0), which wraps and keeps its figure; it stays a tap and says why when tapped (not drawn). <i>The second container is mine, for the messy case.</i>',
+  [col('As built, today’s type', putOld), col('Swept', putNew, 'bit')], 720, PK_CHK);
+// ---- Drop and its toast ----
+const dropped = (sw) => `${shell()}<div class="inner" style="min-height:520px;position:relative;padding-bottom:96px">${load(sw, 'Light, speed 125', [78, 0, 0], '333 of 1,200 coins')}${hands(sw)}${worn(sw)}${basket(sw)}<div class="toast tst"><span>Dropped Coil of reed rope</span><span class="btn small">Undo</span><span aria-hidden="true" style="position:absolute;left:0;bottom:0;height:3px;width:72%;background:var(--muted);border-radius:0 2px 2px 4px"></span></div></div>${tabs}`;
+const b6 = frame('PB6. Drop, and its toast: the thing goes at once, the load falls (333), and a toast says what was dropped with Undo. <b>Left: as built, today’s type. Right: swept.</b> Undo over confirm, as built. The toast’s thin bar runs down as its time passes, as built: it is how a player sees how long Undo lasts.',
+  [col('As built, today’s type', dropped(false)), col('Swept', dropped(true), 'bit')], 720, PK_CHK);
+// ---- Add item ----
+const where = (sw) => `${sw ? '<div class="glab">Where it goes</div><div class="glab" style="margin-top:var(--space-1)">Equipped</div>' : '<div class="glab">Where it goes</div><h2 style="margin-top:0">Equipped</h2>'}${opt('In hand')}${sw ? '<div class="glab">Containers</div>' : '<h2>Containers</h2>'}${opt('Carried', '', true)}${opt('Reed basket', '128 of 200 left')}`;
+const addOld = `${shell()}<div class="inner"><div class="card" style="margin:0"><span class="back2" role="button">‹ Back to the list</span><h3 style="font-family:'EB Garamond',Georgia,serif;font-size:22px;margin:var(--space-2) 0">Storm lantern</h3><div>${stepper(1)}</div><div class="glab">How does Wren get it?</div><div style="display:flex;gap:var(--space-2)"><span class="btn" style="flex:1;background:var(--wash);border-color:var(--accent)">Bought</span><span class="btn" style="flex:1">No cost</span></div>${where(false)}<span class="btn accent wide" style="margin-top:var(--space-2)">Add to Wren’s pack</span><div class="glab">Cost</div><span class="field" style="width:160px;display:inline-block">4 gp</span></div></div>${tabs}`;
+const addNew = `${shell()}<div class="inner"><span class="back2" role="button">‹ Back to the list</span><h3 class="sec" style="margin-top:var(--space-2)">Storm lantern</h3><div>${stepper(1)}</div><div class="glab">How does Wren get it?</div><span class="sw2" role="group" aria-label="How does Wren get it?"><span class="on" role="button" aria-pressed="true">Bought</span><span role="button" aria-pressed="false">No cost</span></span><div class="glab">Cost</div><span class="field" style="width:160px;display:inline-block">4 silver</span>${where(true)}<div class="efoot"><span class="btn accent">Add to Wren’s pack</span></div></div>${tabs}`;
+const b7 = frame('PB7. “Add item”: the form for one thing, which takes the list’s place. <b>Left: as built, today’s type:</b> “Back to the list”; the thing’s name; a stepper; “How does Wren get it?” with Bought and No cost; “Where it goes” with the places; a full-width “Add to Wren’s pack”; and the Cost field UNDER the button. <b>Right: swept:</b> the same parts; Bought and No cost as the two-sided switch (wash, edge, bold, no tick); <b>the Cost field above the button, under the switch that asks for it: the cure of a layout fault, flagged</b>; the places as tap rows, the chosen one ticked; the accent right-justified, saying what it does. The coin is in the pack’s own word (“4 silver”; the build shows “4 gp”). <b>Not in the built picture:</b> the list this form comes from (the catalogue to add from), so it is not drawn.',
+  [col('As built, today’s type', addOld), col('Swept', addNew, 'bit')], 720, PK_CHK);
+// ---- after a purchase ----
+const noted = (sw) => `${shell()}<div class="inner" style="min-height:380px"><p class="meta" style="margin:0 0 var(--space-2)">Cost noted; purses arrive later.</p>${load(sw, 'Light, speed 125', [100, 6, 0], '423 of 1,200 coins')}${hands(sw)}${worn(sw)}</div>${tabs}`;
+const b8 = frame('PB8. After a purchase, as built: a quiet line at the top of the tab, “Cost noted; purses arrive later.”, and the load risen (423). <b>Left: as built, today’s type. Right: swept</b>, unchanged but for the type. The line goes when the approved rework’s purse is built (pack/01: the coin line under the load); nothing of it is drawn here.',
+  [col('As built, today’s type', noted(false)), col('Swept', noted(true), 'bit')], 720, PK_CHK);
+// ---- a container's note; tiny things; waiting ----
+const infoOld = `${shell()}<div class="inner" style="min-height:300px"><div class="pk-gh" style="flex-wrap:wrap"><span class="l">In the reed basket</span><span class="i">${I.info}</span><b style="font-size:14px;color:var(--muted)">holds things; doesn’t add capacity</b><span class="n" style="flex:1 0 100%">2 items</span></div>${row(false, 'Dry rations', { q: 3, w: 60 })}${row(false, 'Eel hooks', { q: 12, w: 12 })}</div>`;
+const infoNote = `<div role="dialog" aria-label="About the reed basket" style="background:var(--sheet);border:1.5px solid var(--control);border-radius:4px;padding:var(--space-2) var(--space-3);margin:var(--space-1) 0;display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)"><span>Holds things; doesn’t add capacity.</span>${X}</div>`;
+const infoNew = `${shell()}<div class="inner" style="min-height:300px">${gh(true, 'In the reed basket', '2 items', 'reed basket')}${infoNote}${row(true, 'Dry rations', { q: 3, w: 60 })}${row(true, 'Eel hooks', { q: 12, w: 12 })}</div>`;
+const tinyOpen = (sw) => `${shell()}<div class="inner" style="min-height:300px">${row(sw, 'River pearls', { q: 6, w: 6 })}${sw ? `<div class="pk-fold" role="button" aria-expanded="true"><span class="t"><b>Tiny things</b><small>They don’t count</small></span>${foldMark(true)}</div>` : fold(false, 'Tiny things', ['1 item: Reed whistle', 'They don’t count'], true)}${`<div class="pk-row" role="button"><span class="t"><b>Reed whistle</b></span><span class="go" aria-hidden="true">${I.chev}</span></div>`}${wait}</div>`;
+const b9 = frame('PB9. A container’s note, and “Tiny things” opened. <b>First pair: the ⓘ on a container’s head.</b> As built the note shows on the row itself, bold and lower case, wrapping under the head and pushing the count to a line of its own. <b>Swept, the fault cured and flagged:</b> the note belongs behind the ⓘ, its tap: the note opens under the head as a sentence, with an X to shut it, and pushes the rows down, hiding none; the head keeps to one line. <b>Second pair: “Tiny things” opened:</b> the fold’s chevron turned; its summary (“1 item: Reed whistle”) gone while it is open, since the row under it says it (ruled); “They don’t count” stays: it is the group’s rule, not a summary; a tiny thing’s row has no weight.',
+  [col('As built: the note on the row', infoOld), col('Swept: the note behind the ⓘ', infoNew, 'bit')], 720, PK_CHK);
+const b9b = frame('PB9b. “Tiny things” opened (the second pair of frame PB9).',
+  [col('As built, today’s type', tinyOpen(false)), col('Swept', tinyOpen(true), 'bit')], 720, PK_CHK);
+const waitOld = `${behind(false, 420)}${sheetOf(false, 'Waiting for the GM', `<div class="pk-row" role="button" style="border-top:1px solid var(--rule)"><span class="t"><b>Strange brass key</b><small>Waiting for the GM, 10 coins</small></span><span class="go" aria-hidden="true">${I.chev}</span></div>`)}`;
+const waitNew = `${behind(true, 420)}${sheetOf(true, 'Waiting for the GM', `<div class="pk-gh" style="border-top:0;margin-top:0;justify-content:flex-end"><span class="l" style="padding-right:44px">Weight</span></div><div class="pk-row" role="button"><span class="t"><b>Strange brass key</b></span><span class="wt">10</span><span class="go" aria-hidden="true">${I.chev}</span></div>`, { act: true })}`;
+const b10 = frame('PB10. The card “1 item waiting for the GM”, opened. <b>Left: as built, today’s type:</b> a sheet titled “Waiting for the GM” with a row a thing (“Waiting for the GM, 10 coins” under its name). <b>Right: swept:</b> the same row in the pack’s form: the name, its weight under “Weight”, the chevron to its sheet. <b>Cut</b> (ruled): “Waiting for the GM” under the thing’s name: the sheet’s title says it. The title is the app’s own (this sheet is a list, not an entry).',
+  [col('As built, today’s type', waitOld), col('Swept', waitNew, 'bit')], 720, PK_CHK);
+
+mount(`
+  <h1>The Pack tab, the style sweep: batch B</h1>
+  <p class="note">A thing’s sheet and what it does: give, put in, drop, add; a container’s sheet and note; tiny things; what waits for the GM. The built screens dressed in the type pair and today’s standards (cs-30: remove nothing the build shows, add nothing it lacks; a fault the Builder has named is drawn cured and flagged). Drawn from the Builder’s pictures of the real app (pack-as-built, 2026-11-12). The approved Pack rework is not built and is not drawn. Names, words and numbers are invented. A proposal from the Design Studio, not ruled.</p>
+  <h1>A thing’s sheet; a container’s sheet</h1>
+  <div class="wall">${b1}</div>
+  <div class="wall">${b2}</div>
+  <h1>Give; from a stack; put in</h1>
+  <div class="wall">${b3}</div>
+  <div class="wall">${b4}</div>
+  <div class="wall">${b5}</div>
+  <h1>Drop; add; after a purchase</h1>
+  <div class="wall">${b6}</div>
+  <div class="wall">${b7}</div>
+  <div class="wall">${b8}</div>
+  <h1>A container’s note; tiny things; waiting for the GM</h1>
+  <div class="wall">${b9}</div>
+  <div class="wall">${b9b}</div>
+  <div class="wall">${b10}</div>
+  <h1>Questions (drafts for the lead’s list)</h1>
+  <p class="note"><b>All ruled by the lead, 2026-11-12:</b> one sheet at a time for Give and Put in, with a link back to the thing; an action’s sheet keeps the app’s title and the coloured capitals heading is for an entry; the three cuts of things said twice; nothing added to a container’s sheet; “Weight 50 coins”; the pack’s own coin word on Add item; the toast’s running bar drawn.</p>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked.</b> Each frame beside the built picture. Every way out counted: a sheet has its X; a step inside a sheet has one way back; no “Not now”. One accent a screen or sheet, right-justified, saying what it does. No disabled button (a full container stays a tap). Undo on Drop. The chosen row has wash, edge, bold and a tick. Targets 44 px (rows, the star, the X, the options, the switch’s sides in a 44 px track). Messy: a very long container name, 0 and 999. Light and dark side by side.</p>
+  <p class="note"><b>Not checked, or gaps.</b> No built picture of: the list “Add item” opens; “Empty…”; “Someone outside the party…”; a refused give; the star pinned; any tablet picture of these sheets (not opened); any light theme. Contrast by measurement; Larger text.</p>
+`);
+applyPair();
+</script>
+</body>
+</html>
