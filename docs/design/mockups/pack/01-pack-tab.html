@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pack: the player's Pack tab, standing (2026-11-11)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="pack.css">
+<style>
+  .dev.short { min-height:0; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="pack.js"></script>
+<script>
+const addBtn = b('Add item', { big: true, accent: true, icon: 'plus' });
+const wrenBand = (ident = 'What she wears, holds and carries: 17 things, 493 coins’ weight.', acts = [addBtn]) => band({ over: 'Wren. Reed Witch, level 2.', title: 'Wren’s pack', ident, acts });
+const fLoad = loadFact({ v: 'Laden', s: '493 of 500 coins’ weight. Speed 20.', filled: 19, marks: [10] });
+const fHand = fact('hand', 'In hand', 'Reed spear', 'And a lantern, unlit.');
+const fNew = fact('gift', 'New', 'Nothing new', 'What you are given shows here.');
+const fStash = fact('chest', 'Party stash', '7 things', 'Last in: a silver ewer, from Tam.');
+const facts = (...f) => `<div class="facts">${f.join('')}</div>`;
+
+// the groups
+const atHand = (extra = []) => grp('At hand', '4 pinned', [
+  it('Lantern', 'In hand. Unlit; 3 flasks of oil.', { mark: 'starf', wt: 30, act: 'Light' }),
+  it('Reed arrows', 'In the backpack.', { mark: 'starf', n: 18, wt: 18, act: 'Fire' }),
+  it('Moss draught', 'In the backpack.', { mark: 'starf', wt: 5, act: 'Drink' }),
+  it('Reed spear', 'In hand.', { mark: 'starf', wt: 60, act: 'Attack' }),
+  ...extra], { note: 'Each has its one action; a tap on the name opens the item. Each is counted where it is carried.' });
+const worn = grp('Worn and in hand', '4 things, 2 shown At hand. Weight 310', [
+  it('Chain shirt', 'Worn. ' + warn('A Reed Witch can’t wear this'), { wt: 200 }),
+  it('Waxed coat', 'Worn.', { wt: 20 }),
+]);
+const backpack = (extra = []) => grp('In the backpack', '7 things, 2 shown At hand. Weight 183 of 400', [
+  ...extra,
+  it('Chalk', 'A stick lasts a long passage.', { n: 6, wt: 0 }),
+  it('Coil of rope', '50 ft, reed-twist.', { wt: 100 }),
+  it('Dry rations', 'A day each.', { n: 3, wt: 30 }),
+  it('Glow wand', '2 charges left.', { wt: 10 }),
+  it('Tinderbox', 'Flint, steel, char-cloth.', { wt: 20 }),
+]);
+const carried = grp('Carried', '1 thing', [it('Backpack', 'On her back. Holds 7 things: its list is above.', { mark: 'sack' })], { noWeight: true });
+const tiny = `<div class="grp">${foldr('Tiny things', '5, not counted: Button, Eel hooks ×12, Lucky pebble…')}</div>`;
+const waiting = `<div class="pcard"><h2 style="margin-top:0">Waiting for the GM</h2>${waitCard('note', '2 items you made up', 'Silver knife, Strange key. They join your pack when your GM says yes; until then they weigh nothing.', [small('See them')])}</div>`;
+
+const stashCard = (rows, more, empty) => `<div class="pcard"><div class="hrow"><h2>Party stash</h2><span class="meta">Shared by the party</span>${small('Open')}</div>${empty ? `<p class="meta" style="margin:0">Nothing in the stash. Anyone in the party can put things in and take them out.</p>` : rows.join('')}${more ? `<div class="meta" style="margin-top:var(--space-2)">${more}</div>` : ''}</div>`;
+const stashRows = [
+  it('Reed chest', 'Tam put it in, day 2. Holds 3 things.', { mark: 'chest' }),
+  it('Silver ewer', 'Tam put it in, today.', {}),
+  it('Torches', 'Ash put them in, day 1.', { n: 6 }),
+];
+const recently = `<div class="pcard"><h2 style="margin-top:0">Recently, in this pack</h2>${logLine('Wren fired a reed arrow. 18 left.', 'A moment ago')}${logLine('Tam gave Wren 3 dry rations.', 'Day 3')}${logLine('Wren bought a tinderbox. Cost noted.', 'Day 1')}</div>`;
+
+const standing = pdev('ipad', `${wrenBand()}<hr class="dbl">${facts(fLoad, fHand, fNew, fStash)}${coinLine()}<div class="cols2"><div class="pcard">${atHand()}${worn}${backpack()}${carried}${tiny}</div><div class="stack">${stashCard(stashRows, '4 more things in the stash.')}${waiting}${recently}</div></div>`,
+  '1. A player’s Pack tab, iPad landscape, in the Scene redesign’s language. A title and one line of identity; four facts (the load with its bar, what is in hand, what is new, the party stash), each a tap to its sheet; then the pack as titled lists, one per place a thing is carried, every row a bold name with one quiet line, how heavy it is, and either its one action (At hand, as ruled) or a chevron. The weight column is named once, by a small “Weight” over it in each list’s head, so a bare figure is never read as money; a list’s head counts everything carried there and says how many of them are shown under At hand instead. Under the facts, the coin line (ruled, pk-6): her coin by denomination, as the setting names its coins, read only by her player and the GM; a tap opens its small sheet (frames C1 to C3). Coin weighs nothing in the load. The party stash, things waiting for the GM and the pack’s recent lines sit beside the pack instead of under it. Add item is the one accent button, at the top where it never scrolls away.');
+
+const newCard = `<div class="pcard"><div class="hrow"><h2>New in your pack</h2>${small('Got it')}</div>${it('A waxed pouch', 'From your GM, just now. In the backpack. What you notice: heavy for its size, sewn shut.', { isNew: true, wt: 12, mark: 'gift' })}${it('Moon opals', 'From your GM, just now. In the backpack.', { isNew: true, n: 2, wt: 2, mark: 'gift' })}${it('Silver key', 'Tam gave it to you, day 3. In the backpack.', { isNew: true, wt: 0, mark: 'gift' })}</div>`;
+const arrived = pdev('ipad', `${wrenBand('What she wears, holds and carries: 20 things, 507 coins’ weight.')}<hr class="dbl">${facts(loadFact({ v: 'Over-loaded', s: '507 of 500 coins’ weight: 7 over. Speed 0 until something is put down or handed on.', filled: 20, marks: [10], over: true }), fHand, fact('gift', 'New', '3 things', '2 from your GM, 1 from Tam.', { due: true }), fStash)}${coinLine('12 crowns, 70 herons, 4 bits', 'Coin. Only you and your GM see this. 40 herons are new.')}<div class="cols2"><div class="pcard">${atHand()}${worn}${grp('In the backpack', '10 things, 2 shown At hand. Weight 197 of 400', [it('A waxed pouch', 'What you notice: heavy for its size, sewn shut.', { isNew: true, wt: 12 }), it('Chalk', 'A stick lasts a long passage.', { n: 6, wt: 0 }), it('Coil of rope', '50 ft, reed-twist.', { wt: 100 }), it('Dry rations', 'A day each.', { n: 3, wt: 30 }), it('Glow wand', '2 charges left.', { wt: 10 }), it('Moon opals', 'Treasure.', { isNew: true, n: 2, wt: 2 }), it('Silver key', 'Small, cold, unmarked.', { isNew: true, wt: 0 }), it('Tinderbox', 'Flint, steel, char-cloth.', { wt: 20 })])}${carried}${tiny}</div><div class="stack">${newCard}${stashCard(stashRows, '4 more things in the stash.')}</div></div>`,
+  '2. A find has arrived, and it tipped Wren over her limit. The New fact takes the wash and says how many and from whom; a card at the top of the right column lists what came, who from and where it went, with Got it; the same things carry a “New” tag and a washed edge in their own lists until then. The Load fact turns to a warning in a shape and words (▲, “Over-loaded”, by how much, and what it does), never colour alone. Nothing is blocked: the find went in, as today. NEW: all of the announcing (today the receiver gets a log line and nothing else: no toast, no mark on the row); “by how much” on the load (today the tier takes the warning colour and sign, with a banner when it changes); and “What you notice” on an unidentified thing, which is ruled but not built. How a find is sent is mockup (d).');
+
+// ---- the coin line's sheet (pk-6) ----
+const coinBack = `${wrenBand()}<hr class="dbl">${facts(fLoad, fHand, fNew, fStash)}${coinLine()}`;
+const c1 = pdev('ipad', coinBack, 'C1. The coin line’s small sheet, in the panel (ruled, pk-6). Her coin by denomination, in the setting’s own names for its coins (invented here: crowns, herons, bits); two actions, Spend… and Give to…; her own recent lines with Undo. <b>Hidden means hidden:</b> no other player is sent any of this, neither the amounts nor that they changed; on another player’s screen Wren’s row in the party, her pack’s card and every list simply carry no coin. The one exception is ruled: while a character is Down or dead the others can take from the purse, every take logged (mockup (b), frame 5). The GM reads every purse.', { panel: panel({ seq: 'Wren’s pack', title: 'Wren’s coin', body: `
+  <dl class="coins"><dt>Crowns</dt><dd>12</dd><dt>Herons</dt><dd>30</dd><dt>Bits</dt><dd>4</dd></dl>
+  <p class="meta" style="margin:var(--space-2) 0 0">Only you and your GM see this. Coin weighs nothing in her load.</p>
+  <div style="margin-top:var(--space-3)">${opt('Spend…', 'It leaves play. You can say what for.', { icon: 'sack', right: svg(SY.right, 20) })}${opt('Give to…', 'Another character, or the party stash.', { icon: 'people', right: svg(SY.right, 20) })}</div>
+  <div style="font-family:&quot;EB Garamond&quot;, Georgia, serif;font-weight:600;font-size:20px;font-variant:small-caps;margin:var(--space-4) 0 var(--space-1)">Recently</div>
+  <div class="logl">Your GM gave Wren 40 herons. <span>Today</span></div><div class="logl">Wren spent 2 herons: a room at the Eel and Lantern. <span>Day 1</span></div>`, foot: footSay('Every change is logged, with Undo.', [b('Close')]) }) });
+const c2 = pdev('ipad', coinBack, 'C2. Spend…: how much of each kind, with what she has beside each box; a few words on what for, if wanted; one button that names the amount. Spent coin leaves play. An amount can’t go below nothing: more than she has is answered in words (“Wren has 30 herons”), never a greyed button. No change is made between kinds of coin, and buying takes nothing by itself: the price is spent here by hand (both outside this first purse).', { panel: panel({ seq: 'Wren’s coin', title: 'Spend how much?', body: `
+  <div class="coinrow"><span><b>Crowns</b><small>She has 12.</small></span><span class="field empty">0</span></div>
+  <div class="coinrow"><span><b>Herons</b><small>She has 30.</small></span><span class="field">2</span></div>
+  <div class="coinrow"><span><b>Bits</b><small>She has 4.</small></span><span class="field empty">0</span></div>
+  <p style="margin:var(--space-3) 0 var(--space-1)"><b>What for?</b> <span class="meta">If you like.</span></p>
+  <span class="field empty">A coil of rope, at the Reed Market</span>`, foot: footSay('Logged as “Wren spent 2 herons”, with Undo.', [b('Back'), b('Spend 2 herons', { accent: true })]) }) });
+const c3 = pdev('ipad', coinBack, 'C3. Give to…: the party stash first, then the other characters, by name only (no load, no coin: nothing of theirs is shown); then how much, as in C2, with the button “Give Tam 5 herons”. The receiver is told by the same card as a find (“Wren gave Tam 5 herons”) and sees it on their own coin line; the stash’s coin is read by the whole party.', { panel: panel({ seq: 'Wren’s coin', title: 'Give coin to whom?', body: `
+  ${opt('The party stash', 'Shared. The party reads what it holds: 40 herons, 12 bits.', { icon: 'chest', right: svg(SY.right, 20) })}
+  ${opt('Ash', '', { icon: 'people', right: svg(SY.right, 20) })}
+  ${opt('Bram', '', { icon: 'people', right: svg(SY.right, 20) })}
+  ${opt('Tam', '', { icon: 'people', right: svg(SY.right, 20) })}
+  ${opt('Odo, your hireling', 'He has 3 herons.', { icon: 'people', right: svg(SY.right, 20) })}`, foot: footSay('Then how much. A gift needs no yes.', [b('Back')]) }) });
+
+const modes = `<div><p class="cap" style="width:1024px">3. The Load fact in each way a setting can count (only the campaign’s own way is ever shown). Left to right: slots in two bands, the slower one naming itself; armour and treasure, with why; a load that isn’t tracked; and coin weight at nothing. The figure and its line carry the detail; a tap opens the load’s own sheet with every part and its source.</p><div style="width:1024px">${facts(loadFact({ v: 'Speed 15', s: 'Stowed 12 of 14 slots: it sets your speed. Equipped 4 of 8.', filled: 12, of: 14 }), loadFact({ v: 'Move 90 ft', s: 'Not carrying treasure, the GM’s call. Treasure 40 of 900.', filled: 1, of: 20 }), fact('weight', 'Load', 'Not tracked', 'This campaign doesn’t count what is carried.'), loadFact({ v: 'Unladen', s: '0 of 500 coins’ weight. Speed 40.', filled: 0, marks: [10] }))}</div></div>`;
+
+const empty = pdev('ipad short', `${wrenBand('Nothing carried yet.')}<hr class="dbl">${facts(loadFact({ v: 'Unladen', s: '0 of 500 coins’ weight. Speed 40.', filled: 0, marks: [10] }), fact('hand', 'In hand', 'Empty hands', 'Nothing worn or held.'), fNew, fact('chest', 'Party stash', 'Empty', 'Nothing in it yet.'))}${coinLine('No coin', 'Only you and your GM see this.')}<div class="cols2"><div class="pcard"><p style="margin:0 0 var(--space-2)"><b>Wren carries nothing.</b></p><p class="meta" style="margin:0">Add item, at the top, opens the setting’s list. What your GM or the party gives you lands here by itself.</p></div><div class="stack">${stashCard([], '', true)}</div></div>`,
+  '4. Empty: a new character’s pack and an empty stash. Each says what it is and how it fills; no empty headings are drawn.');
+
+const many = pdev('ipad', `${wrenBand('What she wears, holds and carries: 60 things, 480 coins’ weight.', [`<span class="field empty" style="width:240px">Find in the pack</span>`, addBtn])}<hr class="dbl">${facts(fLoad, fHand, fNew, fStash)}${coinLine('0 crowns, 999 herons, 0 bits, 3 reed-tallies, 12 Warden’s tokens')}<div class="cols2"><div class="pcard">
+  <div class="grp">${foldr('At hand', '6 pinned: Lantern, Reed arrows ×18, Moss draught…')}${foldr('Worn and in hand', '5 things. Weight 290: Chain shirt, Waxed coat, Reed spear…')}</div>
+  ${grp('In the backpack', '31 things. Weight 160 of 400', [
+    it('A very long name for a thing found in the drowned chapel of the causeway wardens, with its ribbon', 'A long line too: it wraps under the name and never pushes the weight or the chevron off the row.', { wt: 999 }),
+    it('Chalk', 'Weighs nothing.', { n: 999, wt: 0 }),
+    it('Glow wand', '0 charges left: spent.', { wt: 10 }),
+    it('Moss draught', 'The last one.', { n: 1, wt: 5 }),
+    it('Ox', 'One word.', {}),
+  ], { note: 'Open. The first 5 of 31, A to Z; the list scrolls.' })}
+  ${grp('In the belt pouch', '4 things. Weight 12 of 50', [it('Eel hooks', 'Barbed.', { n: 12, wt: 1 }), it('Wax seal', 'The Wardens’ heron.', { wt: 1 })], { nest: true, note: 'Inside the backpack. A container in a container is set in, under its own name.' })}
+  <div class="grp">${foldr('In the saddlebag', '14 things. Weight 30 of 300: Bedroll, Cooking pot, Torch ×6…')}${foldr('Tiny things', '9, not counted')}</div></div>
+  <div class="stack">${stashCard(stashRows, '57 more things in the stash.')}</div></div>`,
+  '5. Overflow and messy data: sixty things. NEW: past about twenty the band gains a find field (by name; today the Pack has no search). Re-arranged: each list can fold to one line that names its first things and its weight, and what was open stays open on this device; a container inside a container is set in under its parent (today it is a row in its parent’s list and also a list of its own at the top level, with no indent). Messy rows: a very long name and line, ×999, a stack of 1, 0 charges, weight 0, and a thing with no weight at all (the column stays empty, not “—”).');
+
+const loading = pdev('ipad short', `${wrenBand('…')}<hr class="dbl"><div class="facts">${[1, 2, 3, 4].map(() => `<div class="fact plain" aria-busy="true"><span class="sk l1"></span><span class="sk l3"></span></div>`).join('')}</div><div class="cols2"><div class="pcard" aria-busy="true"><span class="sk l1"></span><span class="sk l2"></span><span class="sk l2"></span><span class="sk l3"></span></div><div></div></div>`,
+  '6. Loading: the title is there at once (the name is known); the facts and the lists are still bars, no spinner.');
+const failed = pdev('ipad short', `${wrenBand('…')}<hr class="dbl"><div class="pcard"><p style="margin:0 0 var(--space-3)">${warn('Wren’s pack didn’t load. Nothing was changed.')}</p>${b('Try again')}</div>`,
+  '7. Error: one plain sentence and Try again. (Today’s line is “Couldn’t load the pack. Check your connection and try again.” with no button that I could see in the gallery.)');
+const offline = pdev('ipad short', `${wrenBand('What she wears, holds and carries: 17 things, 493 coins’ weight.')}<p style="margin:var(--space-2) 0 0"><span class="ipill">${I.warn}Offline. 1 waiting</span> <span class="meta">You can read everything. What you do is kept and sent when you’re back.</span></p><hr class="dbl">${facts(fLoad, fHand, fNew, fact('chest', 'Party stash', '7 things', 'As it was when you were last online.'))}${coinLine()}<div class="cols2"><div class="pcard">${grp('In the backpack', '5 things. Weight 160 of 400', [it('Dry rations', 'A day each. 1 eaten here, waiting to be sent.', { n: 2, wt: 20 }), it('Coil of rope', '50 ft, reed-twist.', { wt: 100 })])}</div><div></div></div>`,
+  '8. Offline: a pill (a shape and a word) and one line under the title; the pack reads from the device; a change made here says it is waiting to be sent. This is 06’s ruled offline behaviour (2026-10-25: the pill with its count, a “waiting” tag, nothing hidden). It is NOT what the app does today: the Builder reports that offline an item action is refused with a raw error in a toast and nothing is kept. Listed for the lead as a gap, not designed anew here.');
+
+const wide = pdev('wide', `${wrenBand()}<hr class="dbl">${facts(fLoad, fHand, fNew, fStash)}${coinLine()}<div class="cols3"><div class="pcard">${atHand()}${worn}${carried}${tiny}</div><div class="pcard">${backpack()}</div><div class="stack">${stashCard(stashRows, '4 more things in the stash.')}${waiting}${recently}</div></div>`,
+  '9. A wide PC window: what is on Wren at the left, her containers in the middle (each container its own list, side by side when there are several), the stash and the rest at the right. The same parts, one more column.');
+
+const ph = phone(`${phoneBar('Wren')}<div class="inner">
+  <div class="over">Reed Witch, level 2</div><h3 class="display" style="font-size:24px">Wren’s pack</h3>
+  <div class="facts" style="margin-top:var(--space-2)">${loadFact({ v: 'Laden', s: '493 of 500. Speed 20.', filled: 19, marks: [10] }).replace('class="fact load', 'class="fact load plain')}${fact('chest', 'Party stash', '7 things', 'Last in: a silver ewer.', { plain: true })}</div>
+  ${coinLine('12 crowns, 30 herons, 4 bits', 'Coin. Only you and your GM.')}
+  ${grp('At hand', '3 pinned', [it('Lantern', 'In hand. Unlit.', { mark: 'starf', act: 'Light' }), it('Reed arrows', 'In the quiver.', { mark: 'starf', n: 18, act: 'Fire' }), it('Reed spear', 'In hand.', { mark: 'starf', act: 'Attack' })])}
+  ${grp('Worn and in hand', '4 things, 2 shown At hand', [it('Chain shirt', warn('A Reed Witch can’t wear this') + ' Worn. Weight 200.', {})])}
+  <div class="grp">${foldr('In the backpack', '7 things, 1 shown At hand. Weight 183 of 400')}${foldr('Tiny things', '5, not counted')}</div>
+  </div><div style="border-top:1px solid var(--rule);padding:var(--space-2) var(--space-3);background:var(--sheet)">${b('Add item', { accent: true, wide: true, icon: 'plus' })}</div>${packTabs}`,
+  '10. The phone, last: one column; two facts (the load and the stash; New shows only when there is something); a row’s weight moves into its quiet line; the containers fold; Add item stays in view above the tabs.');
+
+mount(`
+  <h1>Pack: the player’s Pack tab, standing</h1>
+  <p class="note">Mockup (a) of the Pack rework (brief <code>docs/design/notes/brief-pack-tab-rework-2026-11-11.md</code>, on the lead’s branch), for the campaign that starts on 5 December: “we need to do a visual rework of Pack and make sure it works properly (including party stash)” (Francis). Drawn in the language he has been ruling on for the Scene (mc-1 … mc-14, rt-1): a title and one line, facts in a row, bold lead-ins, titled lists, a panel at the right edge for anything that asks a step. <b>The mechanics stay</b>: the commands, the log, Undo, how the setting counts a load, who sees what. What changes is arrangement, hierarchy and words. <b>The Builder’s answers</b> to my 21 questions about what the app does today arrived on 2026-11-11 (read from the code, not run): “today” and NEW below follow them. A first-cut purse is ruled (pk-6, 2026-11-11), so the coin line and its sheet are drawn solid. iPad landscape first, then a wide PC window, then the phone.</p>
+
+  <h1>The Pack tab</h1>
+  <div class="wall">${standing}</div>
+  <div class="wall">${arrived}</div>
+  <div class="wall">${modes}</div>
+
+  <h1>The coin line and its sheet (ruled, pk-6)</h1>
+  <div class="wall">${c1}${c2}</div>
+  <div class="wall">${c3}</div>
+
+  <h1>States</h1>
+  <div class="wall">${empty}${many}</div>
+  <div class="wall">${loading}${failed}${offline}</div>
+
+  <h1>A wide PC window; the phone</h1>
+  <div class="wall">${wide}${ph}</div>
+
+  <h1>What changes against today’s Pack tab, and why</h1>
+  <div class="wall"><div class="pcard" style="max-width:1024px"><dl class="kvb">
+    <dt>The page</dt><dd><b>Today</b> (the Builder): on an iPad in landscape the Pack is two panes, the list at the left and the load summary at the right, where Add item also opens; the stash is a fold at the end of the list. <b>Drawn:</b> the load moves up into the facts; the right column holds what is shared, new or waiting; three columns on a PC.</dd>
+    <dt>The top</dt><dd><b>Today:</b> the load bar alone; no name, nothing about the stash or anything new. <b>Drawn:</b> whose pack it is, one line, and four facts.</dd>
+    <dt>Rows</dt><dd><b>Today:</b> three row patterns (a button, a chevron, a fold square with +), a quiet line mixing place and weight (“★ In hand, 30 coins”). <b>Drawn:</b> one row: name, one line, the weight in its own column, an action or a chevron. The star is kept for a pinned thing.</dd>
+    <dt>Weight in “coins”</dt><dd><b>Today:</b> “18 coins” under Reed arrows reads as money on the screen where money will land. <b>Drawn:</b> a figure in a column with a small “Weight” over it in each list’s head, and “coins’ weight” written out in the Load fact (a question below).</dd>
+    <dt>The party stash</dt><dd><b>Today:</b> for players, only a fold above each Pack’s foot; a row says neither who put a thing in nor when (only the log does). <b>Drawn:</b> a fact at the top and a card beside the pack with its last things and who put them in (<b>NEW</b>: who and when on a row); its own screen is mockup (b).</dd>
+    <dt>Add item</dt><dd><b>Today:</b> in the foot, which is not fixed: it ends the scroll. <b>Drawn:</b> in the title band on the iPad and PC, above the tabs on the phone.</dd>
+    <dt>A find</dt><dd><b>Today:</b> a log line only; no toast, no mark on the row. <b>Drawn:</b> the New fact, a card, and a tag on the row, until Got it. <b>NEW.</b></dd>
+    <dt>Over the limit</dt><dd><b>Today:</b> the tier and the bar take the warning colour and sign, with a banner and a log line when the tier changes; adding is never blocked. <b>Drawn:</b> the same, in the fact, plus by how much and what it does (the figure is NEW words, not a new rule).</dd>
+    <dt>The lists</dt><dd><b>Today</b> (the live order): the load, At hand, Worn and in hand, a list for each container, Carried, Gear (armour mode only), Tiny things, Other, the waiting card, the stash. The gallery’s picture differs from the live tab. <b>Drawn:</b> the same lists in the same order, as titled lists.</dd>
+    <dt>Coin</dt><dd><b>Today:</b> no coin anywhere; a purchase says “Cost noted; purses arrive later”. <b>NEW (pk-6):</b> the coin line and its sheet. A weight is never called “coins” beside it: the column says “Weight”.</dd>
+    <dt>Folds</dt><dd><b>Today:</b> a square with + (ruled: never “▸”), which on a screen whose main button is Add item also reads as “add”. <b>Drawn:</b> a chevron down or up at the row’s end, as the Scene’s folds have (a question below, since + was ruled).</dd>
+  </dl></div></div>
+
+  <h1>Questions for Francis (drafts for the lead’s ⚑ list)</h1>
+  <div class="q"><b>1. The Pack in two columns on the iPad, the stash and what is new beside it.</b><br>Today everything is one column and the stash is a fold at the foot. <i>Recommended: yes.</i></div>
+  <div class="q"><b>2. Four facts at the top: Load, In hand, New, Party stash.</b><br>Each opens its sheet. Coin is its own line under them (pk-6), not a fifth fact, so that the four stay readable. <i>Recommended: these four.</i></div>
+  <div class="q"><b>3. A weight is a figure in its own column, under the word “Weight”, not “30 coins” in the row’s line.</b><br>The setting’s unit stays in the Load fact (“493 of 500 coins’ weight”). <i>Recommended: yes.</i></div>
+  <div class="q"><b>4. Something new is announced: a fact, a card and a tag on the row, until Got it. Ruled (pk-5): yes.</b><br>For what the GM hands out and what another character gives. It is new work: today only the log says it. <i>Recommended: yes; it is what the first night needs.</i></div>
+  <div class="q"><b>5. Add item at the top.</b><br>In the title band, so it never scrolls away. <i>Recommended: yes.</i></div>
+  <div class="q"><b>6. Changes a ruling (the Fold row, cw-11; “+ and −, never ▸”, Design on #552): a fold is a chevron, not a + square.</b><br>It reverses that for the Pack only, because + beside Add item reads as “add”. <i>Recommended: the chevron down and up; or keep + and say so.</i></div>
+  <div class="q"><b>7. A find field once a pack passes about twenty things.</b><br>By name; the lists stay A to Z. New work (the Pack has no search today). The number is a guess. <i>Recommended: yes.</i></div>
+  <div class="q"><b>8. Coin and purses. Ruled (pk-6): a first-cut purse is built.</b><br>Coin by denomination, read only by its owner and the GM; spend, give, take from the stash; a coin line on the Pack tab with a small sheet (frames C1 to C3). Not in it: coin’s weight in the load, prices charged on buying, change-making, shares.</div>
+
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked.</b> Heuristics: the five-second facts are at the top (whose, how loaded, what is in hand, what is new, the stash); one row pattern; the system says what happened and who did it (New, Recently, “Tam put it in”); nothing is disabled (an over-loaded pack still takes a find; a thing the class can’t wear says so on its row); the main action is in one place. States: full, a find arrived, over the limit, the coin line (some, none, 0 and 999, five kinds of coin), its sheet, spending and giving, four ways of counting a load, empty pack and empty stash, sixty things with a nested container, loading, error, offline, messy data (a long name and line, ×999, a stack of 1, 0 charges, weight 0, no weight). Targets: rows 60 px, a row’s action 44 px, fold rows 52 px, buttons 44 px or more, 8 px between. One accent button per frame (Add item). Colour is never alone: over the limit has ▲ and words, new has a tag and an edge, pinned has the star, a warning has ▲. Hidden stays hidden: no other player’s pack or purse is on this screen, and Wren’s own coin line is sent only to her player and the GM; an unidentified thing shows only “what you notice”. Light and dark side by side. Tokens from 06; the parts are the Scene redesign’s with three named variants (the item row, the item group, the load fact).</p>
+  <p class="note"><b>Not checked, or uncertain.</b> I have not seen the live Pack tab, only the gallery’s two pages (pack-standard, pack-load), 05 and 06, and the Builder’s account of the code; the gallery’s Pack page does not match the live tab (the Builder), so my first drawing leaned on a picture that is partly wrong. The rules, weights, limits and speeds are invented. Whether four facts is one too many beside a short pack. The find field’s threshold. Contrast is worked out from token values, not measured on a screen. iPad portrait, text sizes Large and Larger and a device are not checked. An item’s sheet and the short actions are mockup (c); the stash’s own screen is (b); how a find is sent is (d). The build cost is the Builder’s to size.</p>
+`);
+</script>
+</body>
+</html>
