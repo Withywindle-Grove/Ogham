@@ -11,6 +11,8 @@
 //   5. Sam's waiting request shows in the view's prompt slot (Jo's does not), and its Cancel opens "Only Sam can take
 //      back this request" and writes nothing.
 //   6. The GM's Rest in the view rests Wren's group (not the other), logged as his, and Undo takes it back.
+//   7. With "players see hit points" off, the view's marching order shows hit points as Sam sees them: Wren's (his own),
+//      never Moss's (Jo's) nor Ash's (the GM's own); the GM's own Scene shows everyone's.
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -19,6 +21,7 @@ import { chooseGroup } from '../modules/expedition/groupPlay.ts';
 import { addPiece, loadGroupPlaces, setPlace, showPiece } from '../modules/expedition/placePlay.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { ToastHost } from '../ui/ToastHost.tsx';
+import { MarchingOrder } from './MarchingOrder.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
 import { createAppRegistry } from './commandRegistry.ts';
 import { PartyGroups } from './PartyGroups.tsx';
@@ -216,5 +219,34 @@ describe("the Scene in the GM's view (C15f)", () => {
     expect(call?.actor_user_id).toBe(t.gm);
     await user.click(screen.getByRole('button', { name: 'Undo' }));
     await waitFor(() => expect(restOf(t.wren)?.called_at ?? null).toBeNull());
+  });
+
+  it("shows hit points in the view's marching order as Sam sees them, and the GM's own as the GM's", async () => {
+    const t = await table();
+    world.tables.campaigns.find((c) => c.id === t.campaign)!.settings = { playersSeeHp: false };
+    for (const id of [t.wren, t.moss, t.ash]) Object.assign(world.tables.actors.find((a) => a.id === id)!, { hp_current: 7, hp_max: 12 });
+    const names = async () => {
+      await screen.findByRole('list', { name: 'Marching order, front to back' });
+      return within(screen.getByRole('list', { name: 'Marching order, front to back' }))
+        .getAllByRole('button')
+        .map((b) => b.getAttribute('aria-label') ?? '')
+        .sort();
+    };
+    world.signInAs(t.gm);
+    const view = render(
+      <PlayerViewContext.Provider value={VIEW}>
+        <ToastHost>
+          <MarchingOrder db={world.db} user={t.users.gm} campaign={gmCampaign(t)} player={t.sam} />
+        </ToastHost>
+      </PlayerViewContext.Provider>,
+    );
+    expect(await names()).toEqual(['Ash. Details', 'Moss. Details', 'Wren, 7 of 12 hit points. Details']);
+    view.unmount();
+    render(
+      <ToastHost>
+        <MarchingOrder db={world.db} user={t.users.gm} campaign={gmCampaign(t)} />
+      </ToastHost>,
+    );
+    expect(await names()).toEqual(['Ash, 7 of 12 hit points. Details', 'Moss, 7 of 12 hit points. Details', 'Wren, 7 of 12 hit points. Details']);
   });
 });

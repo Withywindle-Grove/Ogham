@@ -8,8 +8,8 @@
 //      no text under 14 px, no small targets, no serious accessibility problem.
 //   2. The request's Cancel opens "Only Sam can take back this request": the sheet from the foot on a phone, centred on
 //      a tablet, "Go to Waiting for you" then "Got it", both plain and 44 px high, 8 px apart.
-//   3. A secret activity's sheet in the view (layout.html?as=gm&viewPopUps=activity): its "Who acts?" chips lay out
-//      cleanly, and Ask the GM opens "Only Sam can send this request" in its own form over the sheet (a pop-up opened
+//   3. A secret activity's sheet in the view (layout.html?as=gm&viewPopUps=activity): its "Who acts?" chips are the
+//      player's (Sam's two, never the GM's own Ash) and lay out cleanly, and Ask the GM opens "Only Sam can send this request" in its own form over the sheet (a pop-up opened
 //      from inside a sheet keeps its own form: CLAUDE.md), whole on screen.
 //   4. A town's Where you stay in the view (layout.html?as=gm&viewPopUps=stay): Stay here opens "Only Sam can choose
 //      where … stays" in its own form over the stay sheet, whole on screen.
@@ -92,7 +92,8 @@ for (const size of [
       await setUp(page, size.width, size.height, scheme, '/layout.html?as=gm&viewPopUps=activity');
       await page.getByRole('button', { name: /^Sing low, / }).click();
       const sheet = page.getByRole('dialog', { name: 'Sing low' });
-      await expect(sheet.getByRole('group', { name: "Who's acting" })).toBeVisible();
+      const who = sheet.getByRole('group', { name: "Who's acting" });
+      await expect(who.getByRole('button')).toHaveText(['✓ Wren of the Lantern Wardens', 'Bree the Lantern Bearer of the Lower Sluices']);
       await page.evaluate(() => document.fonts.ready);
       await page.screenshot({ path: `test-results/layout-screens/gm-view-who-acts-${size.width}-${scheme}.png`, fullPage: false });
       expect(await layoutProblems(page)).toEqual([]);

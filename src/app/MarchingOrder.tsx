@@ -76,6 +76,7 @@ export function MarchingOrder({
   ownGroup = false,
   footer,
   dark = false,
+  player,
 }: {
   db: Db;
   user: CurrentUser;
@@ -93,6 +94,11 @@ export function MarchingOrder({
   footer?: ReactNode;
   /** The group is in darkness (05: the "in darkness" symbol): each tile reads "◑ No light" (SC-g6-2, ruled B 2026-11-03). */
   dark?: boolean;
+  /**
+   * The GM's view as the player (C15f, pg32-3): whose order this is, so the tiles show what that player sees (hit points
+   * by the player's rules, statuses as a player reads them). What the GM may do here stays his.
+   */
+  player?: string;
 }) {
   const show = useToast();
   const blocked = useBlockedSheet();
@@ -165,7 +171,9 @@ export function MarchingOrder({
   const order = orders.find((o) => o.group === group) ?? null;
   const partyOrder = orders.find((o) => o.group === 1) ?? null;
   const gm = isGm(user, campaign.id);
-  const viewer = gm ? 'gm' : 'player';
+  // In the GM's view the tiles read as the player's (C15f): hit points and statuses as that player sees them.
+  const seesAsGm = gm && player === undefined;
+  const viewer = seesAsGm ? 'gm' : 'player';
   const target: MarchingTarget = { campaignId: campaign.id, group, playersReorder: playersReorderOf(settings) };
   const why = whyNot(user, target);
   const rows = moving ?? arrange(order?.rows ?? [], party.map((m) => m.id));
@@ -177,7 +185,7 @@ export function MarchingOrder({
   const nameOf = (id: string) => byId.get(id)?.name ?? 'someone';
   const units = campaignUnits(settings, setting?.rulesSets ?? []);
   const lightTypes = new Map((setting?.all ?? []).filter((e) => e.kind === 'lightType').map((e) => [e.packEntryId, e.data]));
-  const seesHp = (m: Marcher) => gm || m.ownerUserId === user.id || playersSeeHpOf(settings);
+  const seesHp = (m: Marcher) => seesAsGm || m.ownerUserId === (player ?? user.id) || playersSeeHpOf(settings);
 
   /** Undoes this person's newest change of a kind (the same Undo as the log). */
   const undoLatest = async (type: string) => undoEvent(await latestChange(db, campaign.id, type, user.id));

@@ -1,5 +1,5 @@
 // The GM's view as the player reads the players' Scene as that player (row C15f of
-// docs/plans/test-feedback-2026-11-19.md; supabase/migrations/20261122120000_c15f_reads_as_player.sql; Francis's ruling
+// docs/plans/test-feedback-2026-11-19.md; supabase/migrations/20261122150000_c15f_reads_as_player.sql; Francis's ruling
 // a2, 2026-11-22; hard rule 5). Tested on what the DATABASE sends, never on what a screen draws. TEST project or CI's
 // local database; invented packs, places and words only. What it checks, in plain words:
 //   * the GM asking as Wren's player gets exactly what Wren's player gets from every one of the players' Scene reads;

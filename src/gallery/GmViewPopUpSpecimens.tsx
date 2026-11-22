@@ -41,7 +41,7 @@ const rules = {
 };
 const exploration = readExploration([rules]);
 const mode = exploration.modes.find((m) => m.id === 'roam')!;
-// Wren and the lantern bearer are Sam's; Ash is the GM's own: the group the GM sees in "Who acts?".
+// Wren and the lantern bearer are Sam's; Ash is the GM's own, so the view's "Who acts?" offers Sam's two alone.
 const view = {
   expeditionId: 'view-trip',
   mode,
@@ -85,6 +85,7 @@ export function GmViewPopUpsLayoutPage({ state, db, gm }: { state: string; db: D
               actor={{ id: 'wren', name: WREN, skills: new Set(), items: new Set() }}
               itemOf={() => null}
               onChanged={() => undefined}
+              player="sam"
             />
           ) : (
             <TownActions

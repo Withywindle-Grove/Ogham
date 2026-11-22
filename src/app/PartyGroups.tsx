@@ -378,6 +378,7 @@ export function PartyGroups({
                         return entry ? yieldItemOf(entry) : null;
                       }}
                       onChanged={() => setVersion((v) => v + 1)}
+                      player={player}
                     />
                   ) : null
               : undefined
@@ -417,6 +418,7 @@ export function PartyGroups({
       ownGroup={ownGroup}
       footer={!gm && expedition ? restButton?.(n) : undefined}
       dark={!gm && expedition ? (dark?.(n) ?? false) : false}
+      player={player}
     />
   );
   // The GM's place page (dec-7 piece 5b): wherever the party is during an expedition, but in a town, which keeps
