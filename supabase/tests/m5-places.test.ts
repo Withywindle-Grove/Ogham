@@ -89,7 +89,7 @@ describe('a place per group (DG9, DG14)', () => {
     const now = (await loadGroupPlaces(asDb(world.gm), t.campaignId, trip.id))!;
     const pieceId = await ok(as(world.gm, addPiece, { campaignId: t.campaignId, placeId: place.id, kind: 'description', text: 'Black water laps at the steps.' }));
     await ok(as(world.gm, showPiece, { campaignId: t.campaignId, row: now.get(1)!, piece: { id: pieceId } }));
-    expect((await loadScenePlaces(asDb(world.playerA), t.campaignId))?.get(1)).toEqual({ group: 1, name: 'The Drowned Stair', pieces: [{ id: pieceId, kind: 'description', text: 'Black water laps at the steps.' }], pictureAssetId: null });
+    expect((await loadScenePlaces(asDb(world.playerA), t.campaignId))?.get(1)).toEqual({ group: 1, name: 'The Drowned Stair', pieces: [{ id: pieceId, kind: 'description', text: 'Black water laps at the steps.' }], pictureAssetId: null, placeId: place.id });
     expect(await loadScenePlaces(asDb(world.playerB), t.campaignId)).toEqual(new Map());
     expect(await placesSeen(world.playerA, t.campaignId)).toEqual([]);
     expect(await placesSeen(world.playerB, t.campaignId)).toEqual([]);

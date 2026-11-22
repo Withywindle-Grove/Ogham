@@ -401,13 +401,16 @@ export function ProposalSheet({
   );
 }
 
-/** The players' list of destinations under "Where to?" (mc-36a), a row each; nothing at all when there are none. */
+/**
+ * The players' list of destinations under "Where to?" (mc-36a), a row each; nothing at all when there are none. The
+ * heading is a card's sub-heading in the book's faces, as "Activities" beside it (page 18, PL1; st-8).
+ */
 export function WhereTo({ children, empty }: { children: ReactNode; empty: boolean }) {
   const id = useId();
   if (empty) return null;
   return (
     <section className="where-to" aria-labelledby={id}>
-      <h3 id={id} className="label where-to__heading">
+      <h3 id={id} className="where-to__heading">
         Where to?
       </h3>
       <div className="move-sheet__rows">{children}</div>

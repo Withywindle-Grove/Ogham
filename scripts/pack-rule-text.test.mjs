@@ -1,12 +1,12 @@
 // npm run pack:check on rule text set out like the book (pf-18, pf-18a): the one shared check for a place rule's
-// text, an area's gm.text, a GM section's text (pf-18b) and a procedure step's text. Invented packs; the ruling's own
-// example.
+// text, an area's gm.text, a GM section's text (pf-18b), a procedure step's text, a trait note (tfb-5) and a common
+// player action's rule (d5-16). Invented packs; the ruling's own example.
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { ruleTextCheck, ruleTextContext, ruleTextFields, ruleTextFileCheck, traitNoteFields } from './pack-rule-text.mjs';
+import { playerActionTextFields, ruleTextCheck, ruleTextContext, ruleTextFields, ruleTextFileCheck, traitNoteFields } from './pack-rule-text.mjs';
 import { RULE_TEXT_PATH } from './pack-town.mjs';
 import { formatNotes } from './pack-format.mjs';
 
@@ -309,6 +309,82 @@ describe('pack:check on a trait note (tfb-5)', () => {
   it('says a broken link in a trait note once', () => {
     const p = traitPack();
     p.classes[0].abilities[1].note = { blocks: [{ p: 'See [[table:eel-weirs|the weirs]].' }] };
+    expect(ruleTextFileCheck(p).warnings).toEqual([]);
+    expect(formatNotes(p).filter((n) => n.includes('eel-weirs'))).toHaveLength(1);
+  });
+});
+
+/** An invented pack whose rules set lists common player actions: one in plain words, one in blocks (01-08j's shape), one with no rule. */
+const actionsPack = () => ({
+  format: 'tabletop-pack',
+  formatVersion: 2,
+  meta: { id: 'reed-actions', name: 'Reed actions', kind: 'setting' },
+  rulesSets: [
+    {
+      id: 'reed-rules',
+      name: 'Reed rules',
+      exploration: {
+        playerActions: [
+          { id: 'listen', name: 'Listen', group: 'Doors', text: 'Hold still at the door and listen.' },
+          {
+            id: 'force',
+            name: 'Force a door',
+            group: 'Doors',
+            text: {
+              blocks: [
+                { p: 'A stuck door may be forced by one character at a time.' },
+                { p: 'Roll a d6: the door opens on a 1 or a 2.' },
+                { table: { title: 'Modifiers', columns: ['When', 'The door opens on'], rows: [['With a crowbar', '1 to 3'], ['An iron-bound door', '1 only']] } },
+                { lead: 'Time and noise', text: 'Each try takes a turn and is loud.' },
+              ],
+            },
+            source: 'Reed Rules, p. 88',
+          },
+          { id: 'shout', name: 'Shout', group: 'Noise' },
+        ],
+      },
+    },
+  ],
+});
+
+describe("pack:check on a common player action's rule (d5-16)", () => {
+  // Purpose: an action's rule is found on a rules set's playerActions, and nowhere an action carries none.
+  it('finds every action rule', () => {
+    expect(playerActionTextFields(actionsPack()).map(([path]) => path)).toEqual(['rulesSets[0].exploration.playerActions[0].text', 'rulesSets[0].exploration.playerActions[1].text']);
+  });
+
+  // Purpose: pack:check accepts an action's rule in plain words and one in blocks, with no error and no warning.
+  it('accepts plain words and blocks', () => {
+    expect(ruleTextFileCheck(actionsPack())).toEqual({ errors: [], warnings: [] });
+    const { out, code } = run(actionsPack());
+    expect(code).toBe(0);
+    expect(out).not.toContain('Errors (');
+  });
+
+  // Purpose: pack:check refuses a malformed block in an action's rule, saying which action and which block, and exits 1.
+  it('refuses a malformed block, saying where', () => {
+    const bad = actionsPack();
+    bad.rulesSets[0].exploration.playerActions[1].text = { blocks: [{ p: 'Fine.' }, { lead: 'Time and noise' }, { table: { title: 'Modifiers', columns: ['When'] } }] };
+    expect(ruleTextFileCheck(bad).errors).toEqual([
+      'rulesSets[0].exploration.playerActions[1].text: block 2 (lead "Time and noise") has no text; left out.',
+      'rulesSets[0].exploration.playerActions[1].text: block 3 (table "Modifiers") rows should be a list of rows, each a list of cells; left out.',
+    ]);
+    const failed = run(bad);
+    expect(failed.code).toBe(1);
+    expect(failed.out).toContain('rulesSets[0].exploration.playerActions[1].text: block 2 (lead "Time and noise") has no text; left out.');
+  });
+
+  // Purpose: an action's rule that is neither words nor { blocks } (a bare list, a number) is refused with a clear line.
+  it('refuses a rule that is neither words nor blocks', () => {
+    const bad = actionsPack();
+    bad.rulesSets[0].exploration.playerActions[0].text = [{ p: 'A bare list.' }];
+    expect(ruleTextFileCheck(bad).errors).toEqual(['rulesSets[0].exploration.playerActions[0].text: The text ([{"p":"A bare list."}]) is neither words nor { "blocks": [ … ] }; left out.']);
+  });
+
+  // Purpose: a broken link inside an action's rule in blocks is said once (by the town check, which reads every string), not twice.
+  it('says a broken link in an action rule once', () => {
+    const p = actionsPack();
+    p.rulesSets[0].exploration.playerActions[1].text = { blocks: [{ p: 'See [[table:eel-weirs|the weirs]].' }] };
     expect(ruleTextFileCheck(p).warnings).toEqual([]);
     expect(formatNotes(p).filter((n) => n.includes('eel-weirs'))).toHaveLength(1);
   });

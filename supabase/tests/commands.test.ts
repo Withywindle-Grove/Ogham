@@ -263,8 +263,8 @@ beforeAll(async () => {
         name: 'The Reed Inn',
         type: 'building',
         playerView: { text: 'Smoke and eel stew.' },
-        gm: { notes: 'The keeper fences stolen lanterns.' },
-        // A rule and a check of its own, for placeRule.eye and placeRule.inForce (dec-7 piece 3).
+        gm: { notes: 'The keeper fences stolen lanterns.', sections: [{ heading: 'The keeper', text: 'Fences stolen lanterns.' }] },
+        // A section of Knowledge, for placeKnowledge.eye (P4, p4s-2). A rule and a check of its own, for placeRule.eye and placeRule.inForce (dec-7 piece 3).
         rules: [{ id: 'slick-piles', name: 'Slick piles', text: 'Footing is poor.' }],
         encounterCheck: { when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] } },
       };

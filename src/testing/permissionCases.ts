@@ -120,6 +120,7 @@ import { addPlacePicture, setPlacePicture } from '../modules/expedition/placePic
 import { addPlaceMap, setPlaceMap, shareMap } from '../modules/expedition/placeMap.ts';
 import { placeFromPack, type PackPlaceEntry } from '../modules/expedition/placeFromPack.ts';
 import { setCheckInForce, setRuleEye } from '../modules/expedition/placeRules.ts';
+import { setKnowledgeShare } from '../modules/expedition/placeKnowledge.ts';
 import { setPlaceSafety } from '../modules/expedition/placeSafety.ts';
 import { moveOn } from '../modules/expedition/placeMove.ts';
 import { openTownPlace, showTownPlace } from '../modules/expedition/townPlaces.ts';
@@ -1245,6 +1246,10 @@ export const permissionCases: PermissionCase[] = [
   rule("the GM can open or close a place's rule to players", 'gm', setRuleEye, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, ruleId: 'slick-piles', open: false }; }, true),
   rule("a player can't open a place's rule", 'playerA', setRuleEye, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, ruleId: 'slick-piles', open: true }; }, false),
   rule("an outsider can't open a place's rule", 'outsider', setRuleEye, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, ruleId: 'slick-piles', open: true }; }, false),
+  // The players' place card (P4, p4s-2): the GM's eye on a section of a place's Knowledge.
+  rule('the GM can share a section of a place\'s knowledge with a group', 'gm', setKnowledgeShare, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, group: 1, packId: e.packId, entryId: e.packEntryId, sectionAt: 0, share: true }; }, true),
+  rule("a player can't share a section of a place's knowledge", 'playerA', setKnowledgeShare, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, group: 1, packId: e.packId, entryId: e.packEntryId, sectionAt: 0, share: true }; }, false),
+  rule("an outsider can't share a section of a place's knowledge", 'outsider', setKnowledgeShare, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, group: 1, packId: e.packId, entryId: e.packEntryId, sectionAt: 0, share: true }; }, false),
   rule("the GM can switch a place's own check off", 'gm', setCheckInForce, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, on: false }; }, true),
   rule("a player can't switch a place's own check", 'playerB', setCheckInForce, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, on: false }; }, false),
   rule('the GM can start an expedition at a place picked by id', 'gm', startExpedition, async (w) => {

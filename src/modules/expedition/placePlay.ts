@@ -395,6 +395,11 @@ export interface ScenePlace {
   pieces: { id: string; kind: PieceKind; text: string; lead?: string }[];
   /** The place's picture, while the place is shown to the group (public.scene_pictures); null if none. */
   pictureAssetId: string | null;
+  /**
+   * The place's campaign id, found through its shown pieces in public.known_places_campaign (which already sends it
+   * with them): what the players' place card's read is matched by (P4). Absent when that read failed.
+   */
+  placeId?: string | null;
 }
 
 /**
@@ -402,14 +407,20 @@ export interface ScenePlace {
  * pieces in the order shown; nothing else about any place. Null if it couldn't be loaded.
  */
 export async function loadScenePlaces(db: Db, campaignId: string): Promise<Map<number, ScenePlace> | null> {
-  const [{ data, error }, pictures] = await Promise.all([db.rpc('scene_pieces', { campaign: campaignId }), db.rpc('scene_pictures', { campaign: campaignId })]);
+  const [{ data, error }, pictures, known] = await Promise.all([
+    db.rpc('scene_pieces', { campaign: campaignId }),
+    db.rpc('scene_pictures', { campaign: campaignId }),
+    db.rpc('known_places_campaign', { campaign: campaignId }),
+  ]);
   if (error) return null;
   // The pictures are extra: when they can't be read the place still shows, without its picture.
   const pictureOf = new Map((pictures.error ? [] : (pictures.data ?? [])).map((r) => [Number(r.group_number), String(r.asset_id)]));
+  // So is the place's id: a shown piece belongs to one place, so its id names the place (P4's card is matched by it).
+  const placeOfPiece = new Map((known.error ? [] : (known.data ?? [])).map((r) => [String(r.piece_id), String(r.place_id)]));
   const out = new Map<number, ScenePlace>();
   for (const row of data ?? []) {
     const group = Number(row.group_number);
-    const place = out.get(group) ?? { group, name: text(row.place_name), pieces: [], pictureAssetId: pictureOf.get(group) ?? null };
+    const place = out.get(group) ?? { group, name: text(row.place_name), pieces: [], pictureAssetId: pictureOf.get(group) ?? null, placeId: placeOfPiece.get(String(row.piece_id)) ?? null };
     out.set(group, place);
     // The picture is shown as itself (pictureAssetId), never as a line of text.
     if (row.kind === 'picture') continue;

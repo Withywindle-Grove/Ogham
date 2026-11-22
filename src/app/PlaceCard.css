@@ -164,6 +164,20 @@
   cursor: default;
 }
 
+/* The small variant (ppf-6 c, PL1b): a square at a players' card's head, the rule's icon button's size; the picture
+   fills it, cropped. A tap opens it whole, as the full-width one. */
+.place-picture--small {
+  flex: none;
+  inline-size: var(--tap-step);
+  block-size: var(--tap-step);
+  min-block-size: var(--tap-step);
+}
+
+.place-picture--small .place-picture__img {
+  block-size: 100%;
+  max-block-size: none;
+}
+
 .place-picture__img {
   display: block;
   inline-size: 100%;

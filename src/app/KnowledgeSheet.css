@@ -32,3 +32,20 @@
 .knowledge__sections > :last-child {
   border-block-end: var(--line-hair) solid var(--rule);
 }
+
+/* A section with its eye (p4s-2; frame 7b): the fold takes the row, the bare eye at its right, level with the heading. */
+.knowledge__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.knowledge__fold {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.knowledge__count {
+  margin: 0;
+}

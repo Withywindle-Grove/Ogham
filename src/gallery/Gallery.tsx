@@ -21,6 +21,7 @@ import { StandardPartsSpecimens } from './StandardPartsSpecimens.tsx';
 import { MapPartsSpecimens } from './MapPartsSpecimens.tsx';
 import { MoveOnSpecimens } from './MoveOnSpecimens.tsx';
 import { KnowledgeSpecimens } from './KnowledgeSpecimens.tsx';
+import { PlayersPlaceCardSpecimens } from './PlayersPlaceCardSpecimens.tsx';
 import { TraitListSpecimens } from './TraitListSpecimens.tsx';
 import { GmAttentionSpecimens } from './GmAttentionSpecimens.tsx';
 import {
@@ -936,6 +937,11 @@ export function Gallery() {
       {/* Last, so the sections above keep their pictures (plan dec-13 C11): the Player screen's state lines; new pictures. */}
       <Section id="player-states" title="The Player screen's states: opening, couldn't open, offline">
         <PlayerStatesSpecimens Specimen={Specimen} />
+      </Section>
+
+      {/* Last, so the sections above keep their pictures (plan dec-9-the-players-scene P4): new pictures for Francis. */}
+      <Section id="players-place-card" title="The players' place card: the Location, the Area, the GM's eyes on Knowledge">
+        <PlayersPlaceCardSpecimens Specimen={Specimen} />
       </Section>
 
       {reason && (
