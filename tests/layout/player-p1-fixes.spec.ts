@@ -64,7 +64,7 @@ function playerRows(page: Page) {
   const atHand = page.getByRole('region', { name: 'At hand' });
   return [
     atHand.getByRole('button', { name: /^Eel knife/ }),
-    atHand.locator('.light-block--at-hand').filter({ hasText: /^Storm lantern/ }),
+    atHand.locator('.light-block--at-hand').filter({ has: page.locator('.light-block__name', { hasText: /^Storm lantern/ }) }),
     page.locator('.list-row').filter({ hasText: /^Steady flame/ }).first(),
     page.getByRole('region', { name: 'Skills' }).locator('.list-row').filter({ hasText: /^Hark/ }),
     page.locator('.list-row').filter({ hasText: /^Lantern Warden, level 3/ }),

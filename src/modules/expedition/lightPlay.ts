@@ -247,6 +247,87 @@ export function refillable(options: readonly LightOption[], lines: readonly Inve
   return options.filter((o) => o.line.needsFuel && o.line.id !== current && fuelLeft(lines, o.type.fuel) > 0);
 }
 
+/** "3 refills left", "1 refill left": the count of refills in the light's line (frame P1). */
+export const refillsWords = (n: number) => `${n} ${n === 1 ? 'refill' : 'refills'} left`;
+
+/** A light line's name as the pick and the block show it: "Torch ×4". */
+export const optionName = (option: LightOption) => `${option.line.name}${option.line.qty > 1 ? ` ×${option.line.qty}` : ''}`;
+
+/**
+ * What At hand's light block shows (lt-1 to lt-5, page 35): `lit` (its ring "Put out"); `one` light to light (the ring
+ * "Light"; `refillFirst` when it is a holder that burnt out earlier, so the tap refills and lights it, ⚑ 5); `several`
+ * ("No light lit", the ring "Light…" opening the pick); `burnt` (the ring struck through, not a tap, with Refill and
+ * Light another when each can act); `nothing` (only holders with no fuel: the still ring and the words, ⚑ 5). Null:
+ * no block (no light and nothing to light). `lineId` is the pack line the block stands for (its item row is left out
+ * and the light's name opens its sheet); null for several.
+ */
+export type LightBlock =
+  | { kind: 'lit'; lineId: string | null }
+  | { kind: 'one'; lineId: string; name: string; words: string; option: LightOption; refillFirst: boolean }
+  | { kind: 'several'; lineId: null; name: string; words: string; lightable: LightOption[]; refills: LightOption[] }
+  | { kind: 'burnt'; lineId: string | null; name: string; words: string; refill: boolean; another: boolean; lightable: LightOption[]; refills: LightOption[] }
+  | { kind: 'nothing'; lineId: string | null; name: string; words: string };
+
+export function lightBlock(
+  light: CharacterLight | null,
+  now: number,
+  options: readonly LightOption[],
+  lines: readonly InventoryLine[],
+  fuel: { left: number; name: string | null },
+): LightBlock | null {
+  const state = lightState(light, now);
+  if (light && (state === 'lit' || state === 'low')) return { kind: 'lit', lineId: light.lineId };
+  // What can be lit now: after a holder burnt out, everything but it (it needs a Refill first), and never a holder
+  // that burnt out earlier (its line remembers); those can be refilled and lit from the pick instead.
+  const now1 = light && state === 'out' ? othersThan(options, light) : lightable(options);
+  const refills = refillable(options, lines, light?.lineId ?? null);
+  if (light && state === 'out') {
+    const name = light.name || 'Light';
+    const holderHere = !!light.fuelItem && !!light.lineId && options.some((o) => o.line.id === light.lineId);
+    // Today's words (burnoutWords) without the name, which is beside them: "Burnt out. 3 refills left" (35E2).
+    const tail = light.fuelItem ? (fuel.left > 0 ? refillsWords(fuel.left) : `Out of ${(fuel.name ?? 'fuel').toLowerCase()}`) : now1.length > 0 ? null : `No ${pluralName(name)} left`;
+    return { kind: 'burnt', lineId: light.lineId, name, words: tail ? `Burnt out. ${tail}` : 'Burnt out', refill: holderHere && fuel.left > 0, another: now1.length + refills.length > 0, lightable: now1, refills };
+  }
+  if (options.length === 0) return null;
+  const choices = [...now1, ...refills];
+  if (choices.length === 0) {
+    // Only holders that burnt out, and no fuel for them: said plainly (never a button that does nothing).
+    const only = options.length === 1 ? options[0]! : null;
+    return { kind: 'nothing', lineId: only?.line.id ?? null, name: only ? optionName(only) : 'No light lit', words: `Nothing to light: ${options.map((o) => o.line.name).join(', ')} ${options.length === 1 ? 'needs' : 'need'} fuel, and there's none in the pack.` };
+  }
+  if (choices.length > 1) {
+    // What there is to light (35E2): "Torch ×4; Storm lantern, 4 turns left".
+    const listed = (now1.length > 0 ? now1 : refills).map((o) => {
+      const kept = keptSeconds(light, o);
+      return kept !== null && o.unit ? `${optionName(o)}, ${leftWords(kept, o.unit)}` : optionName(o);
+    });
+    return { kind: 'several', lineId: null, name: 'No light lit', words: listed.join('; '), lightable: now1, refills };
+  }
+  const option = choices[0]!;
+  const refillFirst = !now1.includes(option);
+  const fuelFor = fuelLeft(lines, option.type.fuel);
+  const kept = keptSeconds(light, option);
+  const unit = option.unit;
+  const time = refillFirst
+    ? `Refill and light (${fuelFor} left)`
+    : kept !== null && unit
+      ? leftWords(kept, unit)
+      : option.type.seconds === null
+        ? 'Burns on'
+        : unit
+          ? leftWords(option.type.seconds, unit).replace(/ left$/, option.line.qty > 1 ? ' each' : '')
+          : '';
+  // A holder's refills in its line, as it is lit (35B: "Not lit. 4 turns left. 3 refills left").
+  const refillCount = !refillFirst && option.type.fuel && fuelFor > 0 ? refillsWords(fuelFor) : '';
+  return { kind: 'one', lineId: option.line.id, name: optionName(option), words: ['Not lit', time, refillCount].filter(Boolean).join('. '), option, refillFirst };
+}
+
+/** The time a light line keeps (a light put out keeps its time, 05 A2; a holder swapped out keeps its fuel), or null. */
+function keptSeconds(light: CharacterLight | null, option: LightOption): number | null {
+  if (light && light.litAt === null && light.lineId === option.line.id && light.leftSeconds !== null) return light.leftSeconds;
+  return option.line.fuelLeftSeconds ?? null;
+}
+
 // Commands ---------------------------------------------------------------------------------------------------------
 
 type Target = { id: string; campaignId: string; ownerUserId: string | null };

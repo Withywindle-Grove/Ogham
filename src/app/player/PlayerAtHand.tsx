@@ -3,16 +3,16 @@ import type { CurrentUser } from '../../core/commands.ts';
 import type { Db } from '../../core/supabase.ts';
 import type { OpenCampaign } from '../Campaigns.tsx';
 import type { WeaponBreakdown, WeaponLine, WeaponRolls } from '../CarrierItems.tsx';
-import { LightInAtHand, LightSection, litLineOf, type CharacterLightView } from '../LightSection.tsx';
+import { LightError, LightInAtHand, litLineOf, type CharacterLightView } from '../LightSection.tsx';
 import { PackScreen } from '../PackScreen.tsx';
 
 /**
- * The Player screen's At hand and its light (dec-13 C1 split it out, be-3; C9 placed the light, ps-9): At hand is the
- * Pack screen's own rows (its "atHand" view: the weapon in hand as its own block above At hand (C14), then the worn
- * or held things with uses, the pins), then the lit light with no "Light" heading, then the pinned traits (C8; frame
- * P1: weapon, then At hand's bow, lantern, wand, pinned trait). The lantern's own item row is then left out, so it shows
- * once; the light's name opens its item's sheet. A light not burning keeps the Light section, under the weapon in hand
- * and just above At hand (its states are not drawn by the frames; C7's Departures).
+ * The Player screen's At hand and its light (dec-13 C1 split it out, be-3; C9 placed the light, ps-9; lt-4, page 35):
+ * At hand is the Pack screen's own rows (its "atHand" view: the weapon in hand as its own block above At hand (C14),
+ * then the worn or held things with uses, the pins), then the light with no "Light" heading, lit, not lit or burnt
+ * out, in the one place (frame P1: weapon, then At hand's bow, lantern, wand). The light's own item row is then left
+ * out, so it shows once; the light's name opens its item's sheet. Only a light that couldn't be loaded keeps its
+ * "Light" heading, just above At hand (⚑ 6 of plan light-tap, as today).
  */
 export function PlayerAtHand({
   db,
@@ -41,7 +41,7 @@ export function PlayerAtHand({
   weaponBreakdown: WeaponBreakdown;
   weaponRolls: WeaponRolls;
 }) {
-  const lit = litLineOf(light);
+  const block = litLineOf(light);
   return (
     <PackScreen
       key="at-hand"
@@ -51,13 +51,13 @@ export function PlayerAtHand({
       carrierId={carrierId}
       view="atHand"
       light={light}
-      litLight={lit ? { lineId: lit.lineId, rows: (onOpenItem) => <LightInAtHand view={light} onOpenItem={onOpenItem} /> } : null}
+      litLight={block ? { lineId: block.lineId, rows: (onOpenItem) => <LightInAtHand view={light} onOpenItem={onOpenItem} /> } : null}
       onChanged={onChanged}
       weaponLine={weaponLine}
       weaponBreakdown={weaponBreakdown}
       weaponRolls={weaponRolls}
       extra={extra}
-      beforeAtHand={<LightSection view={light} litInAtHand />}
+      beforeAtHand={light.light === 'error' ? <LightError view={light} /> : null}
       onRead={onRead}
     />
   );
