@@ -28,6 +28,7 @@ import { Icon } from '../ui/icons.tsx';
 import { PinnedMark, PinnedName, WarningLine } from '../ui/parts.tsx';
 import { ItemSheet, useItemSheetState } from './ItemSheet.tsx';
 import { ItemAction } from './ItemAction.tsx';
+import { usePlayerView } from './playerView.ts';
 import { RollFigures, RollLines } from './WeaponInHand.tsx';
 import { registry } from './services.ts';
 import { chargeWords, type Run } from './packHelpers.ts';
@@ -59,6 +60,7 @@ export function ItemRow({
   rechargeDefault,
   onNote,
   secret,
+  gmFacts = [],
   packShortName,
   sourceTitles = {},
   problem,
@@ -136,6 +138,8 @@ export function ItemRow({
   chargeRules: ChargeRules;
   /** The GM's hidden charge total for this line, if any. */
   secret: { total: number | null; spent: boolean } | null;
+  /** In the GM's view as the player: the weapon's hidden figures, for the sheet's GM line (pg32-4). */
+  gmFacts?: readonly string[];
   /** The short name of the setting rules it came from, for the page reference. */
   packShortName: string | null;
   /** That pack's book titles by code (07 meta.sourceTitles): the page reference names the book, never its code. */
@@ -172,7 +176,9 @@ export function ItemRow({
   run: Run;
 }) {
   const marker = markerOf(line, rules);
-  const gmHere = isGm(user, campaign.id);
+  // In the GM's view as the player the row is the player's: no hidden count (pg32-3, pg32-4).
+  const view = usePlayerView();
+  const gmHere = isGm(user, campaign.id) && view === null;
   const charged = chargesOf(line, chargeRules, rechargeDefault);
   const chargeText = !charged ? '' : chargeWords(line, gmHere ? secret : null);
   const waiting = line.approval === 'pending';
@@ -361,6 +367,7 @@ export function ItemRow({
           chargeRules={chargeRules}
           rechargeDefault={rechargeDefault}
           secret={secret}
+          gmFacts={gmFacts}
           packShortName={packShortName}
           sourceTitles={sourceTitles}
           problem={problem}

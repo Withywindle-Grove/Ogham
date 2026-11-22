@@ -5864,7 +5864,7 @@ describe('the Pack tab (M4 step 4)', () => {
     expect(world.tables.inventory_lines[0]).toMatchObject({ charges_left: 0 });
   });
 
-  it('handing out a charged item pops up the charges prompt for the GM', async () => {
+  it("handing out a charged item from the GM's own pack pops up the charges prompt for the GM", async () => {
     const { gm } = packWorld('coin');
     wandRules(false);
     world.tables.library_entries.push({ id: 'entry-reed-wand', pack_id: 'pack-fen', kind: 'item', pack_entry_id: 'reed-wand', name: 'Reed wand', data: { id: 'reed-wand', name: 'Reed wand', category: 'wand', weightCoin: 1 } });
@@ -5872,7 +5872,9 @@ describe('the Pack tab (M4 step 4)', () => {
     const user = openApp();
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(user);
-    await user.click(await screen.findByRole('button', { name: "Open Wren's pack" }));
+    // The GM's own pack (Whose pack), not the view, which has no charges prompt (pg32-4, C15e).
+    await user.click(await screen.findByRole('button', { name: 'Inventory' }));
+    await user.click(within(await screen.findByRole('group', { name: 'Whose pack' })).getByRole('button', { name: 'Wren' }));
     await user.click(await screen.findByRole('button', { name: 'Add item' }));
     await user.type(await screen.findByLabelText('Search items'), 'reed');
     await user.click(screen.getByRole('button', { name: /Reed wand/ }));
@@ -5960,7 +5962,7 @@ describe('the Pack tab (M4 step 4)', () => {
     expect(world.tables.events.filter((e) => e.type === 'load.tier')).toEqual([]);
   });
 
-  it("the GM opens a character's pack from Players and characters and recharges a wand through the roll prompt", async () => {
+  it("the GM opens a character's pack from Players' Inventory and recharges a wand through the roll prompt", async () => {
     const { gm, wren, line } = packWorld('coin');
     wandRules(false);
     line(wren, 'Glow wand', wandLine({ charges_left: 1, item_data: { recharge: { amount: '2d6', every: 'day' } } }));
@@ -5968,9 +5970,10 @@ describe('the Pack tab (M4 step 4)', () => {
     const user = openApp();
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(user);
-    await user.click(await screen.findByRole('button', { name: "Open Wren's pack" }));
-    expect(await screen.findByRole('heading', { name: 'Wren’s pack' })).toBeTruthy();
-    await user.click(screen.getByRole('button', { name: /^Glow wand/ }));
+    // The GM's own pack (Whose pack), not the view, whose sheet is the player's (pg32-4, C15e).
+    await user.click(await screen.findByRole('button', { name: 'Inventory' }));
+    await user.click(within(await screen.findByRole('group', { name: 'Whose pack' })).getByRole('button', { name: 'Wren' }));
+    await user.click(await screen.findByRole('button', { name: /^Glow wand/ }));
     // The pack says it can't be recharged, so the GM's button is "Recharge (fiat)"; it opens a prompt.
     await user.click(screen.getByRole('button', { name: 'Recharge (fiat)' }));
     const prompt = within(screen.getByRole('dialog', { name: 'Recharge Glow wand' }));

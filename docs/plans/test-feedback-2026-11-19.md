@@ -231,8 +231,7 @@ Paths and lines read on `main` at `105e115` (2026-11-21). Each test's purpose is
 
 Collected, not decided. Numbered from 40 (Q's ⚑ 39 is the last).
 
-- ⚑ 40. **What "Reveal…" opens.** M3g's row opens "the Reveal pop-up of 05" (not drawn on page 32). It is not built, on `main` or in #10, and has no approved picture (dec-6's K22). Until it has one, C15e builds the GM's line and the row, and stops before the pop-up; the Pack is not put to Francis before this is answered.
-- ⚑ 41. **"What you notice" on M3g's ring** is the player's view of an unidentified item (05; dec-6's K22), and is not built. C15e shows the player's item sheet as built today, so the built Pack will differ from M3g by that line. Accepted for po-4, or does K22 come first?
+- ⚑ 40 and 41: ruled on 2026-11-21 (Francis), recorded in `09-decisions-log.md` by C15e.
 - ⚑ 42 to 46: ruled on 2026-11-21 (Francis, and the driver's calls on 44 to 46), recorded in `09-decisions-log.md` by C15c + C15d.
 - ⚑ 51. **Where "Go to Waiting for you" lands from a sheet change.** M3f2's "Only Sam can take back this change" says "Approve or Refuse it in Waiting for you", but sheet changes are answered under **Waiting for approval** on Players, where the built button brings the GM (#36). Change the words to name Waiting for approval, or move sheet changes into Waiting for you? Built meanwhile: the drawn words, landing at Waiting for approval.
 

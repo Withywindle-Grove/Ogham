@@ -108,6 +108,9 @@ export interface WeaponMagic {
 
 export const NO_MAGIC: WeaponMagic = { parts: [], hitNotes: [], damageNotes: [] };
 
+/** The words a figure's part or note carries when only the GM sees it (`weaponMagic`, a worn item's magic). */
+export const HIDDEN_FROM_PLAYER = ' (hidden from the player)';
+
 /** The magic's notes for a line under At hand's figure (mw-1): each once, the GM's ammunition note not repeated. */
 export const magicNoteLines = (magic: WeaponMagic): string[] => [...new Set([...magic.hitNotes, ...magic.damageNotes])];
 
@@ -138,7 +141,7 @@ export function weaponMagic(
   };
   const hiddenOf = (thing: { data: Record<string, unknown>; category?: string }) =>
     bonusHidden({ name: '', slot: null, armour: null, category: thing.category ?? text(thing.data.category), cursed: thing.data.cursed === true }, rulesSets);
-  const marked = (hidden: boolean) => (hidden ? ' (hidden from the player)' : '');
+  const marked = (hidden: boolean) => (hidden ? HIDDEN_FROM_PLAYER : '');
   // Each `bonusVs` entry as a note under the roll it changes (mw-2); `named` leads it with the thing's name (the ammunition's).
   const notesVs = (data: Record<string, unknown>, hidden: boolean, named: string) => {
     const vs = isRecord(data.weapon) && Array.isArray(data.weapon.bonusVs) ? data.weapon.bonusVs.filter(isRecord) : [];
@@ -861,7 +864,7 @@ export function workOutAc(input: {
     if (bonus === null || bonus === 0) continue;
     const hidden = bonusHidden(item, input.rulesSets);
     if (hidden && !input.seesHidden) continue;
-    lines.push(`${item.name}, magic: ${signed(better(bonus))}${hidden ? ' (hidden from the player)' : ''}`);
+    lines.push(`${item.name}, magic: ${signed(better(bonus))}${hidden ? HIDDEN_FROM_PLAYER : ''}`);
     if (total !== null) total += better(bonus);
   }
   for (const [name, row] of Object.entries(input.filled)) {
