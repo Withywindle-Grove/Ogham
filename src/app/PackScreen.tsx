@@ -81,7 +81,6 @@ export function PackScreen({
   weaponRolls,
   light = null,
   litLight = null,
-  beforeAtHand = null,
   onRead,
   inBar = false,
   extra = null,
@@ -99,11 +98,6 @@ export function PackScreen({
    * the light; null or nothing when there are none. The section shows whenever there are items, the light or these.
    */
   extra?: ReactNode;
-  /**
-   * The Player screen's At hand only (dec-13 C14): what sits under the weapon in hand and above At hand (a light that
-   * couldn't be loaded, ⚑ 6 of plan light-tap), drawn once the pack is read, so nothing moves under a finger.
-   */
-  beforeAtHand?: ReactNode;
   /** Told once the pack's read has answered (read or failed): the Player screen's one loading state waits for it (C11). */
   onRead?: (() => void) | undefined;
   /**
@@ -326,7 +320,7 @@ export function PackScreen({
     // so At hand never adds a second one for it (dec-13 C6).
     const litAlone = !!litLine && !pins.some((l) => l.id === litLine.id);
     const atHandShown = rest.length > 0 || !!litLight || !!extra;
-    if (inHand.length === 0 && !atHandShown && !beforeAtHand) return null;
+    if (inHand.length === 0 && !atHandShown) return null;
     const items = (lines: InventoryLine[], only: { inHand?: boolean; sheetOnly?: string | null; sheetAlone?: boolean }) =>
       ready && (
         <CarrierItems
@@ -375,7 +369,6 @@ export function PackScreen({
           {items(inHand, { inHand: true })}
         </section>
       )}
-      {beforeAtHand}
       {atHandShown && (
         <section className="pack pack--at-hand" aria-label="At hand">
           <h2 className="pack__group-title">At hand</h2>

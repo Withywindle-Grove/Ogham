@@ -120,8 +120,13 @@ describe('the ring as a tap, and a light not burning', () => {
     await userEvent.setup().click(tap);
     expect(onTap).toHaveBeenCalledTimes(1);
     const css = await ringCss();
-    expect(css).toMatch(/\.status-ring-tap \{[^}]*inline-size: 72px;[^}]*min-block-size: 76px;[^}]*border: 0;/);
+    expect(css).toMatch(/\.status-ring-tap \{[^}]*inline-size: var\(--ring-tap-width\);[^}]*min-block-size: var\(--ring-tap-height\);[^}]*border: 0;/);
     expect(css).toMatch(/\.status-ring-tap:active \{[^}]*background: var\(--tint\)/);
+    // The size lives in the tokens (72 by 76).
+    const fs = (await import(/* @vite-ignore */ ['node', 'fs'].join(':'))) as { readFileSync: (path: string, encoding: 'utf8') => string };
+    const tokens = fs.readFileSync('./src/ui/tokens.css', 'utf8');
+    expect(tokens).toMatch(/--ring-tap-width: 72px;/);
+    expect(tokens).toMatch(/--ring-tap-height: 76px;/);
   });
 
   it('not lit: no arc, a plain track, the symbol muted', () => {

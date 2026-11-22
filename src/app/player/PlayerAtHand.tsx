@@ -3,7 +3,7 @@ import type { CurrentUser } from '../../core/commands.ts';
 import type { Db } from '../../core/supabase.ts';
 import type { OpenCampaign } from '../Campaigns.tsx';
 import type { WeaponBreakdown, WeaponLine, WeaponRolls } from '../CarrierItems.tsx';
-import { LightError, LightInAtHand, litLineOf, type CharacterLightView } from '../LightSection.tsx';
+import { LightInAtHand, litLineOf, type CharacterLightView } from '../LightSection.tsx';
 import { PackScreen } from '../PackScreen.tsx';
 
 /**
@@ -11,8 +11,8 @@ import { PackScreen } from '../PackScreen.tsx';
  * At hand is the Pack screen's own rows (its "atHand" view: the weapon in hand as its own block above At hand (C14),
  * then the worn or held things with uses, the pins), then the light with no "Light" heading, lit, not lit or burnt
  * out, in the one place (frame P1: weapon, then At hand's bow, lantern, wand). The light's own item row is then left
- * out, so it shows once; the light's name opens its item's sheet. Only a light that couldn't be loaded keeps its
- * "Light" heading, just above At hand (⚑ 6 of plan light-tap, as today).
+ * out, so it shows once; the light's name opens its item's sheet. A light that couldn't be loaded says so, with Try
+ * again, in the same place (⚑ 6, B; page 37, 37C).
  */
 export function PlayerAtHand({
   db,
@@ -57,7 +57,6 @@ export function PlayerAtHand({
       weaponBreakdown={weaponBreakdown}
       weaponRolls={weaponRolls}
       extra={extra}
-      beforeAtHand={light.light === 'error' ? <LightError view={light} /> : null}
       onRead={onRead}
     />
   );

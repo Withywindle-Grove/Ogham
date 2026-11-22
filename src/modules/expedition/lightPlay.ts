@@ -284,8 +284,10 @@ export function lightBlock(
   if (light && state === 'out') {
     const name = light.name || 'Light';
     const holderHere = !!light.fuelItem && !!light.lineId && options.some((o) => o.line.id === light.lineId);
-    // Today's words (burnoutWords) without the name, which is beside them: "Burnt out. 3 refills left" (35E2).
-    const tail = light.fuelItem ? (fuel.left > 0 ? refillsWords(fuel.left) : `Out of ${(fuel.name ?? 'fuel').toLowerCase()}`) : now1.length > 0 ? null : `No ${pluralName(name)} left`;
+    // The block's own words, without the name beside them (35E2): "Burnt out. 3 refills left" for a holder still in
+    // the pack ("Out of oil" with no fuel); otherwise "Burnt out", and "No torches left" with nothing else to light.
+    // A holder no longer in the pack promises no refills it can't take.
+    const tail = holderHere ? (fuel.left > 0 ? refillsWords(fuel.left) : `Out of ${(fuel.name ?? 'fuel').toLowerCase()}`) : now1.length > 0 ? null : `No ${pluralName(name)} left`;
     return { kind: 'burnt', lineId: light.lineId, name, words: tail ? `Burnt out. ${tail}` : 'Burnt out', refill: holderHere && fuel.left > 0, another: now1.length + refills.length > 0, lightable: now1, refills };
   }
   if (options.length === 0) return null;

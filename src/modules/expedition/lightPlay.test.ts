@@ -156,7 +156,7 @@ describe('who may light (03: the GM, or the player for their own carrier)', () =
 //   A holder put out keeps its fuel in its line ("Not lit. 4 turns left. 3 refills left", 35B); a torch put out keeps its
 //   time the same way (05, A2; ⚑ 2 of plan light-tap).
 //   Burnt out: Refill and Light another each only when it can act, the words without the name ("Burnt out. 3 refills
-//   left"); with nothing left, the plain words and no action.
+//   left"); with nothing left, the plain words and no action. A holder no longer in the pack promises no refills.
 //   Only holders with no fuel: nothing to light, said plainly.
 describe("At hand's light block (page 35)", () => {
   const rush = line('rush', 'Rushlights', 4, { lightTypeId: 'rushlight' });
@@ -211,6 +211,10 @@ describe("At hand's light block (page 35)", () => {
       refill: false,
       another: true,
     });
+    // The lamp's line has left the pack: no Refill, and no refills promised in its words.
+    const gone = [rush, oil];
+    expect(lightBlock(lampOut, 4 * TURN, lightOptions(gone, types, units), gone, { left: 3, name: 'Fen oil' })).toMatchObject({ words: 'Burnt out', refill: false, another: true });
+    expect(lightBlock(lampOut, 4 * TURN, [], [oil], { left: 3, name: 'Fen oil' })).toMatchObject({ words: 'Burnt out. No reed lamps left', refill: false, another: false });
     const rushOut = light({ litAt: null, outAt: 6 * TURN });
     expect(lightBlock(rushOut, 6 * TURN, [], [], noFuel)).toMatchObject({ kind: 'burnt', words: 'Burnt out. No rushlights left', refill: false, another: false });
   });

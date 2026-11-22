@@ -12,6 +12,10 @@
 //   next one; with none left, the words alone ("Burnt out. No rushlights left") and no button, the ring a picture.
 //   A burnt-out lamp: the ring struck through, a picture; Refill uses one flask; Light another lights the next.
 //   A burnt-out lamp stays empty when another light is lit in between: switching back offers only Refill and light.
+//   Light another with exactly one light to light lights it at once, no pick.
+//   Running low is said aloud too ("Running low."), beside the warning sign.
+//   Only a lamp with no fuel anywhere: nothing to light, the still ring named "Reed lamp, not lit", the words, no button.
+//   The light that can't be read says so in its place, with no heading, and Try again reads it again (⚑ 6, B; 37C).
 //   The lit light's ring: the flame in the light tone, its arc the burn's time left (6 of 6, then 1 of 6), and a dashed
 //   ring with no arc for a light with no burn time. It stays a light.
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
@@ -32,7 +36,30 @@ let world: FakeWorld;
 beforeEach(() => {
   world = createFakeDb();
 });
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+
+/** The character's own light can't be read while `failing` says so (as when offline). */
+function lightReadsFail(failing: () => boolean) {
+  // A fresh world each test, so the read is swapped in place (the database's own types run too deep for a spy here).
+  const stand = world.db as unknown as { from: (table: string) => unknown };
+  const read = stand.from.bind(world.db);
+  stand.from = (table: string) => {
+    const query = read(table) as { select: (c: string) => { eq: (col: string, v: unknown) => unknown } };
+    if (table !== 'character_lights') return query;
+    const select = query.select.bind(query);
+    query.select = (c: string) => {
+      const q = select(c);
+      const eq = q.eq.bind(q);
+      q.eq = (col: string, v: unknown) =>
+        col === 'actor_id' && failing() ? { maybeSingle: () => Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }) } : eq(col, v);
+      return q;
+    };
+    return query;
+  };
+}
 
 const TURN = 600;
 
@@ -123,6 +150,9 @@ describe("the light's ring (option B on #560)", () => {
     // Running low: the warning sign with the words, not colour alone.
     const low = await screen.findByText(/Lit, 1 turn left/);
     expect(low.querySelector('.warning-sign')).not.toBeNull();
+    // And said aloud, not by the colour and the sign alone.
+    expect(low.querySelector('.visually-hidden')?.textContent).toBe('Running low. ');
+    expect(low.textContent).toBe('Running low. Lit, 1 turn left');
     expect(ringShare(screen.getByRole('button', { name: 'Put out Rushlight' }))).toBeCloseTo(1 / 6, 3);
   });
 
@@ -264,6 +294,48 @@ describe('the light in At hand (page 35)', () => {
     expect(within(block).getByRole('img', { name: 'Rushlight, burnt out' })).toBeTruthy();
     expect(within(block).getByText('Burnt out. No rushlights left')).toBeTruthy();
     expect(within(block).queryByRole('button')).toBeNull();
+  });
+
+  it('Light another with exactly one light to light lights it at once, no pick', async () => {
+    const t = table();
+    t.carry('line-rush', 'Rushlights', 2, { item_data: { lightTypeId: 'rushlight' } });
+    const { reread } = show(t);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Light Rushlight' }));
+    await screen.findByRole('button', { name: 'Put out Rushlight' });
+    await gmMoves(t, 6);
+    reread();
+    const block = screen.getByRole('region', { name: 'At hand' });
+    expect(await within(block).findByText('Burnt out')).toBeTruthy();
+    await user.click(within(block).getByRole('button', { name: 'Light another' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(await screen.findByRole('button', { name: 'Put out Rushlight' })).toBeTruthy();
+    expect(screen.getByText('Lit, 6 turns left')).toBeTruthy();
+  });
+
+  it('only a lamp with no fuel: nothing to light, the still ring and the words, no button', async () => {
+    const t = table();
+    t.carry('line-lamp', 'Reed lamp', 1, { item_data: { lightTypeId: 'reed-lamp' }, needs_fuel: true });
+    show(t);
+    const block = screen.getByRole('region', { name: 'At hand' });
+    expect(await within(block).findByRole('img', { name: 'Reed lamp, not lit' })).toBeTruthy();
+    expect(within(block).getByText("Nothing to light: Reed lamp needs fuel, and there's none in the pack.")).toBeTruthy();
+    expect(within(block).queryByRole('button', { name: /^(Light|Put out)/ })).toBeNull();
+  });
+
+  it("couldn't be read: the words and Try again in the light's place, no heading; Try again reads it again", async () => {
+    const t = table();
+    t.carry('line-rush', 'Rushlights', 4, { item_data: { lightTypeId: 'rushlight' } });
+    let failing = true;
+    lightReadsFail(() => failing);
+    show(t);
+    const block = screen.getByRole('region', { name: 'At hand' });
+    expect((await within(block).findByRole('alert')).textContent).toBe("Couldn't load the light. Check your connection and try again.");
+    expect(screen.queryByRole('heading')).toBeNull();
+    failing = false;
+    await userEvent.setup().click(within(block).getByRole('button', { name: 'Try again' }));
+    expect(await within(block).findByRole('button', { name: 'Light Rushlight' })).toBeTruthy();
+    expect(within(block).queryByRole('alert')).toBeNull();
   });
 
   it('a burnt-out lamp: the ring a picture; Refill uses one flask and lights it again', async () => {

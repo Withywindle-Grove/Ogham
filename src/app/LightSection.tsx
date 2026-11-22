@@ -6,7 +6,7 @@
 // refills left"), Refill and Light another when each can act, or the words alone when nothing's left.
 // useCharacterLight is mounted for the whole Player screen, so the burnout toast ("Torch burnt out · Light another",
 // no Undo: undoing the turn from the log brings it back) reaches the player on any tab.
-import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import { loadCampaignSettings } from '../core/campaignCommands.ts';
 import type { Db } from '../core/supabase.ts';
@@ -229,7 +229,6 @@ export function useCharacterLight({
   };
 }
 
-
 /**
  * The option's line in the picker: "Torches ×4 · 6 turns · 30 ft"; a holder put out earlier says the fuel left in it
  * ("Lantern · 3 turns left", ruled 2026-10-30: it keeps its fuel).
@@ -284,6 +283,8 @@ function blockOf(view: CharacterLightView): LightBlock | null {
  * light's; null for several): At hand draws the block instead of that item's row, so the light shows once.
  */
 export function litLineOf(view: CharacterLightView): { lineId: string | null } | null {
+  // The light that couldn't be read keeps the light's place in At hand (⚑ 6, B; page 37, 37C).
+  if (view.light === 'error') return { lineId: null };
   const block = blockOf(view);
   return block ? { lineId: block.lineId } : null;
 }
@@ -298,6 +299,20 @@ export function LightInAtHand({ view, onOpenItem = null }: { view: CharacterLigh
   const [picking, setPicking] = useState(false);
   const block = blockOf(view);
   const { light, now, fuel } = view;
+  // Couldn't be read (⚑ 6, ruled B 2026-11-22; page 37, frame 37C): the words and Try again in the light's place, no
+  // heading; with nothing else at hand it alone makes At hand.
+  if (light === 'error') {
+    return (
+      <div className="light-block light-block--at-hand">
+        <p className="form-error" role="alert">
+          Couldn't load the light. Check your connection and try again.
+        </p>
+        <button type="button" className="button-secondary light-block__retry" onClick={view.reload}>
+          Try again
+        </button>
+      </div>
+    );
+  }
   if (!block) return null;
   const name = (text: string) =>
     onOpenItem ? (
@@ -319,7 +334,7 @@ export function LightInAtHand({ view, onOpenItem = null }: { view: CharacterLigh
   );
   const flame = { icon: 'flame', tone: 'light' } as const;
 
-  if (block.kind === 'lit' && light && light !== 'error') {
+  if (block.kind === 'lit' && light) {
     const low = lightState(light, now) === 'low';
     const left = secondsLeft(light, now);
     const words = leftWords(left, view.unitOf(light.typeId));
@@ -333,6 +348,7 @@ export function LightInAtHand({ view, onOpenItem = null }: { view: CharacterLigh
           <>
             {/* Running low: the warning shape with the words, so it's never colour alone. */}
             {low && <WarningSign size={16} />}
+            {low && <span className="visually-hidden">Running low. </span>}
             {`Lit, ${words}${refills ? `. ${refillsWords(fuel.left)}` : ''}`}
           </>,
           low,
@@ -370,7 +386,8 @@ export function LightInAtHand({ view, onOpenItem = null }: { view: CharacterLigh
       <StatusRingTap verb="Light…" label="Light: choose which" opensPick onTap={() => setPicking(true)} name={block.name} {...flame} fraction={null} still="unlit" />
     ) : (
       // Burnt out, or nothing to light: a picture, not a tap (no verb under it, lt-5).
-      <span className="light-block__still" role="img" aria-label={`${block.name}, ${block.kind === 'burnt' ? 'burnt out' : 'not lit'}`}>
+      // Read aloud "Storm lantern, burnt out", "Reed lamp, not lit", or (nothing to light among several) "No light lit".
+      <span className="light-block__still" role="img" aria-label={block.kind === 'burnt' ? `${block.name}, burnt out` : block.lineId ? `${block.name}, not lit` : block.name}>
         <StatusRingMark name={block.name} {...flame} fraction={null} still={block.kind === 'burnt' ? 'out' : 'unlit'} />
       </span>
     );
@@ -421,27 +438,5 @@ export function LightInAtHand({ view, onOpenItem = null }: { view: CharacterLigh
         </Dialog>
       )}
     </div>
-  );
-}
-
-/**
- * The light that couldn't be loaded (⚑ 6 of plan light-tap: built as today until ruled): its "Light" heading, the words
- * and Try again, above At hand. The only place that heading is left. Nothing otherwise.
- */
-export function LightError({ view }: { view: CharacterLightView }) {
-  const headingId = useId();
-  if (view.light !== 'error') return null;
-  return (
-    <section className="play-block" aria-labelledby={headingId}>
-      <h2 id={headingId} className="play-block__title">
-        Light
-      </h2>
-      <p className="form-error" role="alert">
-        Couldn't load the light. Check your connection and try again.
-      </p>
-      <button type="button" className="button-secondary" onClick={view.reload}>
-        Try again
-      </button>
-    </section>
   );
 }

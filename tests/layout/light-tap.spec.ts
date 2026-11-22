@@ -7,6 +7,8 @@
 //   Burnt out: the ring is a picture, not a tap; Refill and Light another are one width, 8 px apart.
 //   Burnt out with nothing left: the words alone, no button.
 //   A long name with 999 turns and 999 refills wraps beside the ring, which keeps its 72 px column.
+//   A light that can't be read: the words and Try again in its place inside At hand, no heading (⚑ 6, B; page 37, 37C);
+//   with nothing else at hand the error alone makes At hand.
 //   Several lights: "Light…" opens "Which light?" from the foot on a phone and centred on a tablet.
 //   At Larger text, "Put out" stays under the ring, inside its target.
 //   No sideways scroll anywhere. At 1180, At hand's column width is measured and noted (the ruling's third note: drawn
@@ -109,6 +111,29 @@ for (const size of SIZES) {
         expect(body.x).toBeGreaterThanOrEqual(ring.x + ring.width);
         const block = await boxOf(light);
         expect(body.x + body.width).toBeLessThanOrEqual(block.x + block.width + 0.5);
+        await noSidewaysScroll(page);
+      });
+
+      test("couldn't be read: the words and Try again in the light's place inside At hand, no heading (⚑ 6, B)", async ({ page }) => {
+        const { atHand, light } = await openPlayer(page, '1&light=error');
+        const alert = light.getByRole('alert');
+        await expect(alert).toHaveText("Couldn't load the light. Check your connection and try again.");
+        await expect(page.getByRole('heading', { name: 'Light', exact: true })).toHaveCount(0);
+        // After At hand's item rows, inside its column.
+        const knife = await boxOf(atHand.getByRole('button', { name: /^Eel knife/ }).first());
+        const words = await boxOf(alert);
+        expect(words.y).toBeGreaterThanOrEqual(knife.y + knife.height);
+        const retry = await boxOf(light.getByRole('button', { name: 'Try again' }));
+        expect(retry.height).toBeGreaterThanOrEqual(43.5);
+        const column = await boxOf(atHand);
+        for (const b of [words, retry]) expect(b.x + b.width).toBeLessThanOrEqual(column.x + column.width + 0.5);
+        await noSidewaysScroll(page);
+      });
+
+      test("couldn't be read, nothing else at hand: the error alone makes At hand", async ({ page }) => {
+        const { atHand, light } = await openPlayer(page, 'bare&light=error');
+        await expect(atHand.getByRole('heading', { name: 'At hand' })).toBeVisible();
+        await expect(light.getByRole('button', { name: 'Try again' })).toBeVisible();
         await noSidewaysScroll(page);
       });
 

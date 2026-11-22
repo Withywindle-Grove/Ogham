@@ -55,7 +55,12 @@
   display: inline-flex;
   flex: none;
   justify-content: center;
-  inline-size: 72px;
+  inline-size: var(--ring-tap-width);
+}
+
+/* Couldn't be read (⚑ 6, B; page 37, 37C): Try again at the left, its own width. */
+.light-block__retry {
+  align-self: flex-start;
 }
 
 /* Burnt out (lt-5): Refill and Light another, one width (a StackedGroup), at the right under the light's row. */

@@ -32,7 +32,7 @@ describe('the gallery’s light in At hand', () => {
     expect(low!.querySelector('.status-ring__arc')).not.toBeNull();
     expect(block(low!).querySelector('.light-block__words .warning-sign')).not.toBeNull();
     expect(block(low!).querySelector('.light-block__name')!.textContent).toBe('Rushlight');
-    expect(block(low!).querySelector('.light-block__words')!.textContent).toBe('Lit, 1 turn left');
+    expect(block(low!).querySelector('.light-block__words')!.textContent).toBe('Running low. Lit, 1 turn left');
 
     expect(endless!.querySelector('.status-ring__track--endless')).not.toBeNull();
     expect(endless!.querySelector('.status-ring__arc')).toBeNull();

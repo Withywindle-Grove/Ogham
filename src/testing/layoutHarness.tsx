@@ -1101,6 +1101,23 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
   const p1Id = await addP1Character(world, { gm, sam, fenPack, head: p1Flag === '1' ? 'four' : p1Flag });
   // ?maxhp=none: no most hit points recorded, so the vitals offer "Set max" (N24) and its Max hit points pop-up (fb-7).
   if (new URLSearchParams(window.location.search).get('maxhp') === 'none') Object.assign(world.tables.actors.find((a) => a.id === p1Id)!, { hp_max: null });
+  // &light=error: the character's own light can't be read (⚑ 6 of plan light-tap, B; page 37, 37C), as when offline.
+  if (new URLSearchParams(window.location.search).get('light') === 'error') {
+    const stand = world.db as unknown as { from: (table: string) => unknown };
+    const read = stand.from.bind(world.db);
+    stand.from = (table: string) => {
+      const query = read(table) as { select: (c: string) => { eq: (col: string, v: unknown) => unknown } };
+      if (table !== 'character_lights') return query;
+      const select = query.select.bind(query);
+      query.select = (c: string) => {
+        const q = select(c);
+        const eq = q.eq.bind(q);
+        q.eq = (col: string, v: unknown) => (col === 'actor_id' ? { maybeSingle: () => Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }) } : eq(col, v));
+        return q;
+      };
+      return query;
+    };
+  }
 }
 
 // The GM's place page (dec-7 piece 5b, page 11), only with ?placePage=…: an invented adventure, "The Reed Marches",

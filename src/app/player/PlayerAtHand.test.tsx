@@ -14,6 +14,8 @@
 //   With nothing else at hand, the light alone makes the At hand section, lit or not.
 //   Put out with its ring, the light stays in its place in At hand, not lit, its ring over "Light" (page 35, 35B); its
 //   own item row is still left out and its name still opens its sheet. With another light, "No light lit" (⚑ 3).
+//   A light that can't be read says so in its place in At hand, after the items, with no "Light" heading; with nothing
+//   else at hand it alone makes At hand (⚑ 6, B; page 37, 37C).
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -45,6 +47,26 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
+
+/** The character's own light can't be read while `failing` says so (as when offline). */
+function lightReadsFail(failing: () => boolean) {
+  // A fresh world each test, so the read is swapped in place (the database's own types run too deep for a spy here).
+  const stand = world.db as unknown as { from: (table: string) => unknown };
+  const read = stand.from.bind(world.db);
+  stand.from = (table: string) => {
+    const query = read(table) as { select: (c: string) => { eq: (col: string, v: unknown) => unknown } };
+    if (table !== 'character_lights') return query;
+    const select = query.select.bind(query);
+    query.select = (c: string) => {
+      const q = select(c);
+      const eq = q.eq.bind(q);
+      q.eq = (col: string, v: unknown) =>
+        col === 'actor_id' && failing() ? { maybeSingle: () => Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }) } : eq(col, v);
+      return q;
+    };
+    return query;
+  };
+}
 
 const fenPack = JSON.parse(fixture) as Record<string, Record<string, unknown>[]>;
 
@@ -153,6 +175,41 @@ describe('the light in At hand (dec-13 C9)', () => {
     await user.click(within(section).getByRole('button', { name: 'Storm lantern' }));
     expect(within(await screen.findByRole('dialog', { name: 'Storm lantern' })).getByRole('button', { name: 'Unpin' })).toBeTruthy();
   });
+  // Purpose: a light that can't be read says so in its place in At hand, after the items, with no "Light" heading.
+  it("says the light couldn't be read in its place in At hand, with no heading", async () => {
+    lightReadsFail(() => true);
+    const gm = world.addPerson('priya@lantern.example', 'Priya');
+    const sam = world.addPerson('sam@lantern.example', 'Sam');
+    await addP1Character(world, { gm, sam, fenPack });
+    world.signInAs(sam);
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await user.click(await screen.findByRole('button', { name: new RegExp(P1_CAMPAIGN) }));
+    const atHand = await screen.findByRole('region', { name: 'At hand' });
+    const alert = await within(atHand).findByRole('alert');
+    expect(alert.textContent).toBe("Couldn't load the light. Check your connection and try again.");
+    expect(within(atHand).getByRole('button', { name: 'Try again' })).toBeTruthy();
+    const order = (el: Element) => [...atHand.querySelectorAll('*')].indexOf(el);
+    expect(order(within(atHand).getAllByRole('button', { name: /^Eel knife/ })[0]!)).toBeLessThan(order(alert));
+    expect(screen.queryByRole('region', { name: 'Light' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Light' })).toBeNull();
+  });
+
+  // Purpose: with nothing else at hand, the light that can't be read alone makes At hand.
+  it("makes At hand by itself with the light's error when nothing else is at hand", async () => {
+    lightReadsFail(() => true);
+    const gm = world.addPerson('priya@lantern.example', 'Priya');
+    const sam = world.addPerson('sam@lantern.example', 'Sam');
+    await addP1Character(world, { gm, sam, fenPack, head: 'bare' });
+    world.signInAs(sam);
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await user.click(await screen.findByRole('button', { name: new RegExp(P1_CAMPAIGN) }));
+    const atHand = await screen.findByRole('region', { name: 'At hand' });
+    expect(within(atHand).getByRole('heading', { name: 'At hand' })).toBeTruthy();
+    expect(await within(atHand).findByRole('button', { name: 'Try again' })).toBeTruthy();
+  });
+
   // Purpose: items, then the light; a pinned trait with uses is in the right column's list and not in At hand (euf-3).
   it('puts the light after the items, and a pinned trait in the right column’s list, not At hand', async () => {
     const { atHand } = await brannoch(() => {

@@ -171,8 +171,8 @@
   align-items: center;
   justify-content: flex-start;
   gap: var(--space-1);
-  inline-size: 72px;
-  min-block-size: 76px;
+  inline-size: var(--ring-tap-width);
+  min-block-size: var(--ring-tap-height);
   padding: var(--space-1) 0 0;
   border: 0;
   border-radius: var(--radius);
