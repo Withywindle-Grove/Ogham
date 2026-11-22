@@ -135,6 +135,8 @@ describe('a big pack (more entries than the database sends in one go)', () => {
     expect(gmSees.filter((e) => e.packId === made.value)).toHaveLength(1101);
     const playerSees = (await loadCampaignEntries(asDb(world.playerA), world.campaignId)) ?? [];
     expect(playerSees.filter((e) => e.packId === made.value)).toHaveLength(1101);
-    expect(playerSees.find((e) => e.packEntryId === 'humming-pebble')?.data).toEqual({ id: 'humming-pebble', name: 'Humming pebble' });
+    // K22a: a cursed item starts unidentified: the player gets its face, never its name.
+    expect(playerSees.find((e) => e.packEntryId === 'humming-pebble')).toMatchObject({ name: 'Item', data: { id: 'humming-pebble' } });
+    expect(JSON.stringify(playerSees.find((e) => e.packEntryId === 'humming-pebble'))).not.toContain('Humming pebble');
   }, 120_000);
 });

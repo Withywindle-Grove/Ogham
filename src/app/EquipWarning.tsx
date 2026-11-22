@@ -212,6 +212,8 @@ export function wornGearOf(lines: readonly InventoryLine[], setting: Pick<Campai
         armour: now.details.armour,
         category: l.category,
         cursed: l.details.cursed === true,
+        // K22a: a bonus the GM told on this line counts for the player's AC (bonusHidden).
+        told: l.revealedFields ?? [],
         baseArmourId: l.baseArmourId,
         line: { id: l.id, version: l.version },
         ...(now.lines.length > 0 ? { patched: { before: l.details.armour, lines: now.lines } } : {}),

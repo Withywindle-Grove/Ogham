@@ -433,6 +433,75 @@ function listWords(words: string[]): string {
   return `${words.slice(0, -1).join(', ')} and ${words.at(-1)!}`;
 }
 
+// K22b: the words of a told fact (pictures 6 of K22h and 4 of K22c). A tell changes one line; the facts it told are the
+// revealed fields it added (an Undo's are those it took away), read beside the line's details as they stood after it.
+const isObj = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
+const listOf = (value: unknown) => (Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []);
+const signedWords = (n: number) => (n < 0 ? `−${-n}` : `+${n}`);
+
+/** The facts in `more` and not in `less` (what a tell added, or an Undo took away), "magic" first. */
+function factsBetween(more: unknown, less: unknown): string[] {
+  const had = new Set(listOf(less));
+  return listOf(more).filter((f) => !had.has(f));
+}
+
+/** A bonus as the line now carries it: the setting's own words, else the magic bonus, else its first bonus against a foe. */
+function bonusPhrase(details: Record<string, unknown>): { gives: string } | { bare: string } | null {
+  if (typeof details.bonus === 'string' && details.bonus.trim()) return { gives: details.bonus.trim() };
+  for (const block of ['weapon', 'armour']) {
+    const part = details[block];
+    if (isObj(part) && typeof part.magicBonus === 'number') return { bare: signedWords(part.magicBonus) };
+  }
+  for (const block of ['weapon', 'armour']) {
+    const part = details[block];
+    const vs = isObj(part) && Array.isArray(part.bonusVs) ? part.bonusVs.find(isObj) : undefined;
+    const n = vs ? (typeof vs.bonus === 'number' ? vs.bonus : typeof vs.damage === 'number' ? vs.damage : null) : null;
+    if (vs && typeof vs.against === 'string' && n !== null) return { bare: `${signedWords(n)} against ${vs.against}` };
+  }
+  return null;
+}
+
+/** The powers a line carries now that it didn't before, by name. */
+function newPowers(before: Record<string, unknown>, after: Record<string, unknown>): string[] {
+  const had = new Set((Array.isArray(before.properties) ? before.properties : []).map((p) => JSON.stringify(p)));
+  return (Array.isArray(after.properties) ? after.properties : [])
+    .filter((p) => !had.has(JSON.stringify(p)))
+    .map((p) => (isObj(p) && typeof p.name === 'string' ? p.name : typeof p === 'string' ? p : ''))
+    .filter(Boolean);
+}
+
+/** One told fact as the end of "the Bronze ring …" ("is cursed", "gives +1 to saves", "’s Maker’s mark: …"). */
+function factPhrase(fact: string, details: Record<string, unknown>, beforeDetails: Record<string, unknown>, charges: unknown): string {
+  if (fact === 'magic') return ' is magic';
+  if (fact === 'cursed') return ' is cursed';
+  if (fact === 'bonus') {
+    const bonus = bonusPhrase(details);
+    return bonus === null ? ' has a bonus' : 'gives' in bonus ? ` gives ${bonus.gives}` : ` has a bonus of ${bonus.bare}`;
+  }
+  if (fact.startsWith('power:')) {
+    const power = newPowers(beforeDetails, details)[0];
+    return power ? ` has a power: ${power}` : ' has a power';
+  }
+  if (fact === 'charges') return typeof charges === 'number' ? ` has ${charges} ${charges === 1 ? 'charge' : 'charges'} left` : '’s charges';
+  if (fact.startsWith('fields.')) {
+    const label = fact.slice(7);
+    const value = isObj(details.fields) ? details.fields[label] : undefined;
+    return typeof value === 'string' || typeof value === 'number' ? `’s ${label}: ${String(value)}` : `’s ${label}`;
+  }
+  return '';
+}
+
+/** What a reader learns of a fact undone, for the GM's Undo line ("that the Bronze ring is cursed", "its true name"). */
+function hiddenAgainPhrase(fact: string, item: string): string {
+  if (fact === 'magic' || fact === 'cursed') return `that the ${item} is ${fact}`;
+  if (fact === 'name') return `the ${item}’s true name`;
+  if (fact === 'bonus') return `the ${item}’s bonus`;
+  if (fact === 'charges') return `the ${item}’s charges`;
+  if (fact.startsWith('power:')) return `a power of the ${item}`;
+  if (fact.startsWith('fields.')) return `the ${item}’s ${fact.slice(7)}`;
+  return `what was told about the ${item}`;
+}
+
 /**
  * "Out and about ended", "Out and about and Active tonight ended": the town switches a reset turned off (M5b step 6.0,
  * sw-3; the words match the module's townSwitches.ts endedWords, which core can't import). Null when none was on.
@@ -727,6 +796,23 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
         const nameOf = (visit: LogEvent | undefined) => (visit ? named(names.placeNames ?? new Map(), names.groupPlaces?.get(String(visit.targetId)), '') : '');
         return by(MOVE_ON_WORDS.gmUndone(nameOf(made) || move?.to || null, nameOf(left) || move?.from || null));
       }
+      // A tell undone (K22b, K22h picture 6): the GM's line alone (k22-10), "You undid a reveal: that the Bronze ring is
+      // cursed is hidden again." A look edit undone: the GM's too (pick 3).
+      if (main.targetTable === 'inventory_lines' && 'revealed_fields' in before && 'revealed_fields' in after) {
+        // An Undo of that Undo tells the facts again (review of #40, finding 7): the tell's own line is the players'
+        // again, and this one stays the GM's.
+        const again = factsBetween(after.revealed_fields, before.revealed_fields);
+        const facts = again.length > 0 ? again : factsBetween(before.revealed_fields, after.revealed_fields);
+        const real = facts.filter((f) => f !== 'magic');
+        const said = real.length > 0 ? real : facts;
+        // The name it goes by while the fact is hidden (its face, if its name is what comes and goes).
+        const shown = String((again.length > 0 ? before.name : after.name) ?? '') || item();
+        const what = said.length === 1 ? hiddenAgainPhrase(said[0]!, shown) : `what was told about the ${shown}`;
+        return again.length > 0 ? by(`undid an Undo: ${what} is told again`) : by(`undid a reveal: ${what} is hidden again`);
+      }
+      if (main.targetTable === 'inventory_lines' && ('appears_as' in after || 'noticed' in after) && main.before !== null) {
+        return by(`undid a change to what players see of the ${String(after.name ?? '') || item()}`);
+      }
       // A drop or a gift outside the party undone (ruled 2026-10-25): the item is back where it was.
       if (main.targetTable === 'inventory_lines' && main.before === null) {
         const back = entry.events.filter((e) => e.targetTable === 'inventory_lines' && e.before === null).length;
@@ -892,6 +978,48 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       return by('changed who sees every item in Add item');
     case 'inventory.reveal':
       return by(`revealed more about ${item()}`);
+    case 'inventory.tell': {
+      // K22b (K22h picture 6): the GM's "You told Wren the Bronze ring is cursed.", the players' "Wren learned the
+      // Bronze ring is cursed." (the holder and the party read it, k22-9); the true name's, every player's (sw-8).
+      const facts = factsBetween(after.revealed_fields, before.revealed_fields);
+      const real = facts.filter((f) => f !== 'magic');
+      const said = real.length > 0 ? real : facts;
+      const details = isObj(after.item_data) ? after.item_data : {};
+      const beforeDetails = isObj(before.item_data) ? before.item_data : {};
+      const place = names.itemPlaces?.get(String(main.targetId));
+      const inStash = typeof place?.location_id === 'string';
+      const holder = inStash ? 'the party' : named(names.characters, place?.actor_id, 'someone');
+      const Holder = inStash ? 'The party' : holder;
+      // The name it went by before this tell (the face), and the one it has after (the true name, when told).
+      const was = String(before.name ?? '') || item();
+      const now = String(after.name ?? '') || item();
+      const gmReads = names.gms?.has(names.me) === true;
+      if (said.length > 1) {
+        if (gmReads) return by(`told ${holder} everything about the ${now}`);
+        const traits = listWords(['magic', 'cursed'].filter((f) => facts.includes(f)));
+        const bonus = facts.includes('bonus') ? bonusPhrase(details) : null;
+        const parts = [
+          facts.includes('name') ? `the ${now}` : '',
+          facts.includes('magic') || facts.includes('cursed') ? traits : '',
+          bonus ? ('gives' in bonus ? bonus.gives : bonus.bare) : '',
+          ...newPowers(beforeDetails, details),
+        ].filter(Boolean);
+        return `${Holder} learned what the ${was} is: ${parts.join(', ')}.`;
+      }
+      const fact = said[0] ?? 'magic';
+      if (fact === 'name') {
+        return gmReads ? by(`showed the players the ${was}’s true name: ${now}`) : `${Holder} learned the ${was}’s true name: ${now}.`;
+      }
+      const phrase = factPhrase(fact, details, beforeDetails, after.charges_left);
+      return gmReads ? by(`told ${holder} the ${was}${phrase}`) : `${Holder} learned the ${was}${phrase}.`;
+    }
+    case 'inventory.editLook': {
+      // K22c picture 4: the GM's alone (pick 3; the database keeps the line from players).
+      const place = names.itemPlaces?.get(String(main.targetId));
+      const was = String(before.name ?? '') || item();
+      const whose = typeof place?.location_id === 'string' ? `the party’s ${was}` : `${named(names.characters, place?.actor_id, 'someone')}’s ${was}`;
+      return by(`changed what players see of ${whose}`);
+    }
     case 'inventory.move': {
       // Joined a same-name stack where it landed (Q2, sw-6, sw-9): the count moved, said as any move of it is.
       const join = entry.events.find((e) => isJoin(main.type, e));

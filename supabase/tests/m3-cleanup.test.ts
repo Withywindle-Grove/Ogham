@@ -72,8 +72,12 @@ describe('S1. hidden item fields', () => {
   });
 
   it("a player's device never receives the hidden fields, nor which fields are hidden", async () => {
-    const [blade] = must(await world.playerA.db.from('library_entries').select('data').eq('pack_id', packId).eq('pack_entry_id', 'grumbling-blade'));
-    expect(blade!.data).toEqual({ id: 'grumbling-blade', name: 'Grumbling blade', category: 'weapon' });
+    // K22a: a cursed item starts unidentified, so a player's plain select gets no row of it at all, and the campaign's
+    // library gives its face (the category's name, never its own).
+    expect(must(await world.playerA.db.from('library_entries').select('data').eq('pack_id', packId).eq('pack_entry_id', 'grumbling-blade'))).toEqual([]);
+    const face = ((await loadCampaignEntries(asDb(world.playerA), world.campaignId)) ?? []).find((e) => e.packEntryId === 'grumbling-blade');
+    if (face) expect(face).toMatchObject({ name: 'Weapon', data: { id: 'grumbling-blade', category: 'weapon' } });
+    expect(JSON.stringify(face ?? {})).not.toContain('Grumbling blade');
     expect(must(await world.playerA.db.from('library_entry_secrets').select('data'))).toEqual([]);
     const seen = (await loadCampaignEntries(asDb(world.playerA), world.campaignId)) ?? [];
     expect(JSON.stringify(seen)).not.toContain(CURSE);
