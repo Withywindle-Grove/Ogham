@@ -1,4 +1,4 @@
-// The players' map (plan dec-9-the-players-scene, P5; supabase/migrations/20261122100000_p5_players_map.sql; mc-37,
+// The players' map (plan dec-9-the-players-scene, P5; supabase/migrations/20261122140000_p5_players_map.sql; mc-37,
 // mc-39b, dp-3; Francis's yes "1a", 2026-11-22; hard rule 5). Tested on what the DATABASE sends a player, never on what
 // a screen draws. TEST project or CI's local database; invented packs, places and words only. What it checks, in plain
 // words:
