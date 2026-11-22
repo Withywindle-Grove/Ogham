@@ -112,7 +112,9 @@ const characterInGroupOne = async (owner: Person, name: string, extra: Record<st
   const id = must(
     await world.admin.from('actors').insert({ campaign_id: campaignId, kind: 'pc', name, owner_type: 'user', owner_user_id: owner.id, hp_current: 4, hp_max: 4, ...extra }).select('id').single(),
   ).id as string;
-  must(await world.admin.from('party_group_members').insert({ id, actor_id: id, campaign_id: campaignId, group_number: 1 }).select());
+  // The database may already have put the character in group 1 (its row's id is the character's): then that row stands.
+  await world.admin.from('party_group_members').upsert({ id, actor_id: id, campaign_id: campaignId, group_number: 1 }, { onConflict: 'id', ignoreDuplicates: true });
+  expect(must(await world.admin.from('party_group_members').select('group_number').eq('actor_id', id).single()).group_number).toBe(1);
 };
 
 beforeAll(async () => {
