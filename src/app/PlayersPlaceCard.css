@@ -98,8 +98,10 @@
   min-width: 0;
 }
 
-/* A known Location's second line (ppf-4, PL1b): its first shown piece, cut to one line with an ellipsis. */
+/* A known Location's second line (ppf-4, PL1b): its first shown piece, cut to one line with an ellipsis. Its length never
+   sets the card's width (contain): unwrapped, a long piece widened the card past a phone's side (#13's layout run). */
 .players-area .list-row__sub {
+  contain: inline-size;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;

@@ -23,7 +23,7 @@ import type { Db } from '../../src/core/supabase.ts';
 import { latestChange, undoChange } from '../../src/core/undo.ts';
 import { chooseGroup } from '../../src/modules/expedition/groupPlay.ts';
 import { loadPlayersKnowledge, loadPlayersPlaceCards, numbered, setKnowledgeShare } from '../../src/modules/expedition/placeKnowledge.ts';
-import { loadGroupPlaces, setPlace, showPiece } from '../../src/modules/expedition/placePlay.ts';
+import { hidePiece, loadGroupPlaces, setPlace, showPiece } from '../../src/modules/expedition/placePlay.ts';
 import { startExpedition } from '../../src/modules/expedition/play.ts';
 import { attachPack, loadCampaignEntries } from '../../src/modules/library/campaignPacks.ts';
 import { importPack } from '../../src/modules/library/library.ts';
@@ -230,9 +230,10 @@ describe("the players' place card, as the database sends it (p4s-1, p4s-2)", () 
   });
 
   // Purpose (local review of the P4 fixes, 2; ppf-1, ppf-4): each group's names and lines are its own. Group 2, shown
-  // only the Saltpan, reads its own Area and never group 1's ("The Drowned Harbour") nor the Wreck's line. Shown then
-  // only the Wreck's second piece and the Breakwater, its row for the Wreck carries that piece, never the description
-  // group 1 was shown first (the `line`'s own group); and the jetty's section shared with group 2 comes under the
+  // only the Saltpan, reads its own Area and never group 1's ("The Drowned Harbour") nor the Wreck's line. At the Wreck,
+  // the description group 1 was shown comes back shown (gp-5: the party knows the room); the GM hides it and shows only
+  // the second piece. Its row for the Wreck then carries that piece, never the description group 1 was shown first
+  // (the `line`'s own group); and the jetty's section shared with group 2 comes under the
   // Breakwater's name, though group 1 was shown a place inside the jetty (the ppf-1 lookup's own group).
   it("keeps each group's names and lines its own", async () => {
     await goAndShow('the-ladder');
@@ -243,6 +244,9 @@ describe("the players' place card, as the database sends it (p4s-1, p4s-2)", () 
     for (const never of ['Drowned Harbour', 'Jetty', 'Wreck', WRECK_SAYS, 'Ladder']) expect(elsewhere, never).not.toContain(never);
     expect(await readAll(world.playerA)).not.toContain('Salt Flats');
     await goAndShowGroup2('the-wreck', 1);
+    const wreck = (await loadGroupPlaces(asDb(world.gm), campaignId, tripId))!.get(2)!;
+    expect(wreck.pieces[0]!.shown).toBe(true);
+    await ok(as(world.gm, hidePiece, { campaignId, row: wreck, piece: wreck.pieces[0]! }));
     await goAndShowGroup2('the-breakwater');
     const card = (await loadPlayersPlaceCards(asDb(world.playerB), campaignId))!.get(2)!;
     expect(card.known.map((k) => [numbered(k), k.line])).toEqual([['2. The Wreck', WRECK_HIDDEN]]);
