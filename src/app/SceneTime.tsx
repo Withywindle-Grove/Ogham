@@ -212,7 +212,7 @@ export function SceneTime({
   player?: string;
   tableView?: { /** The slot's other prompts, one keyed element each (the slot orders them, newest on top). */ prompts: ReactNode; body: (restButton: (group: number) => ReactNode, dark?: (group: number) => boolean) => ReactNode };
 }) {
-  const gm = isGm(user, campaign.id) && !player;
+  const gm = isGm(user, campaign.id) && player === undefined;
   // Whose characters are "mine": the player's in the GM's view, else the reader's.
   const me = player ?? user.id;
   // The players' reads are made as the player only when that is someone else (the GM's own character reads as him).

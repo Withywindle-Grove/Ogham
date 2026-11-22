@@ -8,8 +8,10 @@
 --     named, only when the caller is the campaign's GM AND that player (a member) has an approved, active character of
 --     their own in the group. A player naming anyone reads nothing; another campaign's GM reads nothing;
 --   * each two-argument form is its one-argument form's newest body with private.in_my_group swapped for the gate
---     (the "-- builds on:" lines name each body's file); the one-argument forms stay, now one line calling the new form
---     with nobody named, so there is one body for each read;
+--     (the "-- builds on:" lines name each body's file); the public one-argument forms stay, now one line calling the
+--     new form with nobody named, so each public read has one body. The two private town helpers
+--     (private.town_parts_for and private.town_pictures_for) gain two-argument forms the same way; their one-argument
+--     forms stay as they were, no longer called by anything, since dropping them is not this migration's to do;
 --   * nothing is dropped, renamed or deleted; no player can read anything new.
 -- public.campaign_ways_on is unchanged: it already answers the GM for every group, as a player reads it.
 -- public.party_moves is unchanged: only the log reads it, and the log in the view is the GM's own (listed for Francis).

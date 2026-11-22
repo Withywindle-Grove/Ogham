@@ -187,7 +187,7 @@ export function PartyGroups({
   const placeRules = useLastGoodRules(loaded && loaded !== 'error' ? loaded.placeRules : null);
   // A player's ways on (P2), read beside the page so "Where to?" comes with it; a failed read keeps the last list.
   // The GM's own Scene shows every group; in his view as the player, the player's (C15f).
-  const gm = isGm(user, campaign.id) && !player;
+  const gm = isGm(user, campaign.id) && player === undefined;
   const me = player ?? user.id;
   // The players' reads are made as the player only when that is someone else (the GM's own character reads as him).
   const readAs = player !== undefined && player !== user.id ? player : undefined;
