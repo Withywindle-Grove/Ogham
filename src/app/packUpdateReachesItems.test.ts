@@ -319,4 +319,22 @@ describe('an unidentified item’s told bonus (K22a)', () => {
     // Not told: a bonus a line carries from before K22 follows the entry, as fp-1 rules.
     expect(lineInPlay(fen([face]), blade({ damage: '1d8', magicBonus: -1 }, [])).details.weapon).toEqual({ damage: '1d8' });
   });
+
+  // Purpose (review of #40, finding 5): a bonus told on the line (by the tell, or the old per-field Reveal, which now
+  // tells through the database) reaches the player's numbers while K2 isn't built: the worn gear and the drawn
+  // ammunition carry what was told into bonusHidden; untold, AC leaves the bonus out.
+  it('a told bonus counts for the player’s AC and travels with the drawn ammunition', () => {
+    const strange = settingFrom(
+      [link('pack-fen', 'Fen Rules', 'setting', 1)],
+      [{ kind: 'rulesSet', packEntryId: 'fen-rules', name: 'Fen rules', packId: 'pack-fen', data: { itemCategories: [{ id: 'strange-armour', name: 'Strange armour', unidentified: true }] } }],
+      {},
+    );
+    const coat = (revealedFields: string[]) =>
+      ({ id: 'line-coat', name: 'Dull coat', category: 'strange-armour', details: { slot: 'armour', armour: { aac: 13, magicBonus: 2 } }, sourceEntryId: null, sourcePackId: null, equipped: true, baseArmourId: null, version: 1, revealedFields }) as unknown as InventoryLine;
+    const ac = (line: InventoryLine) => workOutAc({ rulesSets: strange.rulesSets, chosenStyle: null, worn: wornGearOf([line], strange), filled: {}, abilityName: (k) => k }).value;
+    expect(ac(coat([]))).toBe(13);
+    expect(ac(coat(['magic', 'bonus']))).toBe(15);
+    const arrows = { name: 'Arrows', category: 'ammunition', details: { weapon: { magicBonus: 1 } }, sourceEntryId: null, sourcePackId: null, revealedFields: ['bonus'] };
+    expect(drawnAmmunition(null, arrows, null).told).toEqual(['bonus']);
+  });
 });

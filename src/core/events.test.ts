@@ -933,6 +933,12 @@ describe('a told fact, by reader (K22b; K22h picture 6, K22c picture 4)', () => 
     expect(read(gm, undo)).toBe('You undid a reveal: that the Bronze ring is cursed is hidden again.');
   });
 
+  // Purpose (review of #40, finding 7): the Undo of that Undo tells the curse again, and its line (the GM's) says so.
+  it('the GM’s Undo of the Undo: told again', () => {
+    const redo = event('event.undo', { ...ring, revertsEventId: 'event-undo', before: { revealed_fields: [], item_data: FACE }, after: { revealed_fields: ['magic', 'cursed'], item_data: { ...FACE, cursed: true } } });
+    expect(read(gm, redo)).toBe('You undid an Undo: that the Bronze ring is cursed is told again.');
+  });
+
   // Purpose: the look edit is the GM's line alone (pick 3): "You changed what players see of Wren’s Bronze ring."
   it('a look edit', () => {
     const edit = event('inventory.editLook', { ...ring, before: { appears_as: 'Bronze ring', noticed: '' }, after: { appears_as: 'Green ring', noticed: 'Cold.', name: 'Green ring' } });

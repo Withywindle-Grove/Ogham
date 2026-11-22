@@ -11,7 +11,12 @@
 --     `unidentified: true`, or a cursed item: `cursed: true`, or a negative magic bonus) is stored as its face:
 --     identified false; appears_as and noticed from the entry; its name the face (appears_as, else the category's
 --     singular name); its item_data the entry's visible part less every hidden fact (the true name, a bonus, powers,
---     the curse, labelled hidden fields, the item's own description, notes and source).
+--     the curse, labelled hidden fields, visible fields that carry a fact in words (Bonus, Curse, Cursed, Charges,
+--     Magic, Power, Powers), the item's own description, notes and source).
+--   A patch that changes such an item's truth is the GM's alone, as a patch on a gmOnly field already is
+--     (private.patch_hides_target_field, read by the library, a player's plain read, the log and a pack update's line).
+--   An Undo of a tell is refused, with its reason, once part of the line was split off since (the part keeps the told
+--     facts and the Undo can't reach it).
 --   A player's read of such an entry gets the same face: public.campaign_library returns the face's name and data, and
 --     the read rule on library_entries no longer lets a player's plain select reach the entry's row (it is read
 --     through campaign_library). The GM's and the pack owner's reads are unchanged.
@@ -21,14 +26,17 @@
 --   Only the GM sets the four columns; a player's change or a player's new line with them set is refused (42501).
 --   One bump of every campaign's seen stamp, so a device holding an old full copy of an entry fetches the face.
 -- Read rules that change: "library entries: owner or campaigns using the pack read" (dropped and made again under its
---   own name): a player no longer reads an entry that starts unidentified in a campaign they play in (not as GM).
--- Drops, renames or deletes no data. Adds an index-free set of helpers.
+--   own name): a player no longer reads an entry that starts unidentified in a campaign they play in (not as GM). And,
+--   through private.patch_hides_target_field: a player no longer reads a patch that changes an unidentified item's
+--   truth (in the library, by a plain read, in the log or a pack update's line).
+-- Drops, renames or deletes no data.
 --
 -- builds on: private.copy_item_details from 20261024230000_m4_review_fixes.sql
 -- builds on: public.split_inventory_line from 20261029160000_m5_intents.sql
 -- builds on: public.join_added_line from 20261121120000_q2_stacks_join.sql
 -- builds on: public.move_into_stack from 20261121120000_q2_stacks_join.sql
 -- builds on: public.campaign_library from 20261115002000_dec_12e_rumours_gm_only.sql
+-- builds on: private.patch_hides_target_field from 20261111110000_fix_hidden_data_cache_and_patches.sql
 
 -- 1. The columns ---------------------------------------------------------------------------------------------------------
 
@@ -122,6 +130,27 @@ $$;
 revoke execute on function private.hidden_labels(jsonb) from public, anon;
 grant execute on function private.hidden_labels(jsonb) to authenticated, service_role;
 
+-- The custom fields a setting leaves visible that carry a hidden fact in words (07 lets `fields.Bonus` carry the bonus,
+-- mw-1), by label, case and spaces aside: Bonus (the bonus), Curse and Cursed (the curse), Charges, Magic, Power and
+-- Powers. They are off an unidentified item's face and come back with their fact (Power and Powers once every power is
+-- told; any of them once nothing is left hidden). Review of #40, finding 4.
+create function private.fact_fields(whole jsonb) returns table (label text, fact text)
+language sql immutable set search_path = '' as $$
+  select f.key,
+    case lower(btrim(f.key))
+      when 'bonus' then 'bonus'
+      when 'curse' then 'cursed'
+      when 'cursed' then 'cursed'
+      when 'charges' then 'charges'
+      when 'magic' then 'magic'
+      else 'powers'
+    end
+  from jsonb_each(case when jsonb_typeof(whole -> 'fields') = 'object' then whole -> 'fields' else '{}'::jsonb end) f
+  where lower(btrim(f.key)) in ('bonus', 'curse', 'cursed', 'charges', 'magic', 'power', 'powers');
+$$;
+revoke execute on function private.fact_fields(jsonb) from public, anon;
+grant execute on function private.fact_fields(jsonb) to authenticated, service_role;
+
 -- Whether an item is magic, for "That it's magic" (⚑ 6, read as written): a magic category (`magic` or `magic-…`, as
 -- 07's forSale rule), or any item with a bonus or powers.
 create function private.is_magic(whole jsonb, category text) returns boolean
@@ -130,14 +159,17 @@ language sql immutable set search_path = '' as $$
     or whole ? 'bonus'
     or coalesce(whole -> 'weapon' ? 'magicBonus' or whole -> 'weapon' ? 'bonusVs', false)
     or coalesce(whole -> 'armour' ? 'magicBonus' or whole -> 'armour' ? 'bonusVs', false)
-    or coalesce(jsonb_typeof(whole -> 'properties') = 'array' and jsonb_array_length(whole -> 'properties') > 0, false);
+    or coalesce(jsonb_typeof(whole -> 'properties') = 'array' and jsonb_array_length(whole -> 'properties') > 0, false)
+    -- A bonus, magic or powers said in a visible field's words (review of #40, finding 4).
+    or exists (select 1 from private.fact_fields(whole) ff where ff.fact in ('bonus', 'magic', 'powers'));
 $$;
 revoke execute on function private.is_magic(jsonb, text) from public, anon;
 grant execute on function private.is_magic(jsonb, text) to authenticated, service_role;
 
 -- The face's details: the entry's visible part less every hidden fact (the true name, a bonus, powers, the curse,
--- labelled hidden fields, the item's own words and source, its one-unit and plural names), and less the two words that
--- now live on the line's own columns. A pack's `looks` (⚑ 5) stays: it is the look players see.
+-- labelled hidden fields, the visible fields that carry a fact in words, the item's own words and source, its
+-- one-unit and plural names), and less the two words that now live on the line's own columns. A pack's `looks` (⚑ 5)
+-- stays: it is the look players see.
 create function private.item_face_data(whole jsonb) returns jsonb
 language sql immutable set search_path = '' as $$
   select f.d
@@ -146,7 +178,8 @@ language sql immutable set search_path = '' as $$
     || case when jsonb_typeof(f.d -> 'armour') = 'object'
          then jsonb_build_object('armour', (f.d -> 'armour') - 'magicBonus' - 'bonusVs') else '{}'::jsonb end
     || case when jsonb_typeof(f.d -> 'fields') = 'object'
-         then jsonb_build_object('fields', (f.d -> 'fields') - private.hidden_labels(whole)) else '{}'::jsonb end
+         then jsonb_build_object('fields', (f.d -> 'fields') - private.hidden_labels(whole)
+           - array(select ff.label from private.fact_fields(whole) ff)) else '{}'::jsonb end
   from (
     select private.visible_part(coalesce(whole, '{}'::jsonb))
       - array['name', 'bonus', 'cursed', 'properties', 'description', 'source', 'notes', 'appearsAs', 'noticed',
@@ -182,10 +215,11 @@ language sql immutable set search_path = '' as $$
       select 2, 0, 'name' where not identified
       union all
       select 3, 0, 'bonus'
-      where whole is not null and exists (
+      where whole is not null and (exists (
         select 1 from (values (array['bonus']), (array['weapon', 'magicBonus']), (array['weapon', 'bonusVs']),
                               (array['armour', 'magicBonus']), (array['armour', 'bonusVs'])) p(path)
         where whole #> p.path is not null and coalesce(data, '{}'::jsonb) #> p.path is null)
+        or exists (select 1 from private.fact_fields(whole) ff where ff.fact = 'bonus' and not coalesce(data -> 'fields' ? ff.label, false)))
       union all
       select 4, p.i, 'power:' || (p.i - 1)
       from jsonb_array_elements(case when jsonb_typeof(whole -> 'properties') = 'array' then whole -> 'properties' else '[]'::jsonb end)
@@ -193,7 +227,8 @@ language sql immutable set search_path = '' as $$
       where not coalesce(jsonb_typeof(data -> 'properties') = 'array' and (data -> 'properties') @> jsonb_build_array(p.v), false)
       union all
       select 5, 0, 'cursed'
-      where (whole -> 'cursed') = 'true'::jsonb and (data -> 'cursed') is distinct from 'true'::jsonb
+      where ((whole -> 'cursed') = 'true'::jsonb and (data -> 'cursed') is distinct from 'true'::jsonb)
+        or exists (select 1 from private.fact_fields(whole) ff where ff.fact = 'cursed' and not coalesce(data -> 'fields' ? ff.label, false))
       union all
       select 6, 0, 'charges' where charges_hidden
       union all
@@ -227,13 +262,35 @@ grant execute on function private.same_face(public.inventory_lines, public.inven
 -- Undo puts a line back as the log kept it (grimoire.reverting): a copy kept before these columns existed has none, so
 -- they take their defaults (a NOT NULL check runs after this trigger).
 
+-- One more check, on an Undo that takes told facts back (K22b; review of #40, finding 1): once part of the line was split
+-- off since the tell (handed to someone, put in a bag, given out of the party), that part and its own log line carry the
+-- told facts, which an Undo of the tell can't reach; the Undo is refused with its reason rather than leave a player's read
+-- holding a fact the GM hid again.
 create function private.check_face() returns trigger
 language plpgsql security definer set search_path = '' as $$
+declare
+  told public.events;
 begin
   new.identified := coalesce(new.identified, true);
   new.appears_as := coalesce(new.appears_as, '');
   new.noticed := coalesce(new.noticed, '');
   new.revealed_fields := coalesce(new.revealed_fields, '{}');
+  if tg_op = 'UPDATE' and nullif(current_setting('grimoire.reverting', true), '') is not null
+    and not (old.revealed_fields <@ new.revealed_fields) then
+    select * into told from public.events e where e.id = current_setting('grimoire.reverting', true)::uuid;
+    if told.type in ('inventory.tell', 'inventory.reveal') and told.target_id = new.id and exists (
+      select 1 from public.events s
+      where s.campaign_id = new.campaign_id and s.target_table = 'inventory_lines' and s.target_id = new.id
+        and s.seq > told.seq and s.request_id is not null
+        and s.before ? 'qty' and s.after ? 'qty' and (s.after ->> 'qty')::integer < (s.before ->> 'qty')::integer
+        and exists (
+          select 1 from public.events p
+          where p.campaign_id = s.campaign_id and p.request_id = s.request_id and p.target_table = 'inventory_lines'
+            and p.before is null and p.target_id is distinct from new.id)
+    ) then
+      raise exception 'Some of it was split off and handed on since, so what was told can''t be hidden again.';
+    end if;
+  end if;
   if (select auth.uid()) is null or private.is_gm(new.campaign_id)
     or nullif(current_setting('grimoire.reverting', true), '') is not null
     or nullif(current_setting('grimoire.splitting', true), '') is not null then
@@ -609,6 +666,84 @@ create policy "library entries: owner or campaigns using the pack read" on publi
     -- fs-1: a table the pack opens to players, never a rumours table (rm-3).
     or (private.pack_in_my_campaign(pack_id) and kind = 'table' and (data -> 'gmOnly') = 'false'::jsonb and not private.is_rumours_table(data))
   );
+
+-- 7b. A patch on an unidentified item is masked like the item (review of #40, finding 3) ---------------------------------
+
+-- Whether a patch changes something of an unidentified item's truth: a path at a fact (its name, bonus, curse, powers,
+-- own words, source, notes, the words of its face, its one-unit and plural names), a weapon's or armour's magic bonus or
+-- bonus against a foe (or the whole block), or a field that is hidden or carries a fact in words (or the whole fields).
+create function private.patch_touches_face(patch jsonb, whole jsonb) returns boolean
+language sql immutable set search_path = '' as $$
+  select exists (
+    select 1
+    from jsonb_object_keys(case when jsonb_typeof(patch -> 'change') = 'object' then patch -> 'change' else '{}'::jsonb end) p(path)
+    cross join lateral (select btrim(p.path) as path, btrim(split_part(btrim(p.path), '.', 1)) as head) k
+    where k.head in ('name', 'bonus', 'cursed', 'properties', 'description', 'source', 'notes', 'appearsAs', 'noticed', 'unitName', 'pluralName')
+      or k.path in ('weapon', 'armour', 'fields')
+      or k.path ~ '^(weapon|armour)\.(magicBonus|bonusVs)(\.|$)'
+      or (k.head = 'fields' and (
+        substr(k.path, 8) = any (private.hidden_labels(whole))
+        or exists (select 1 from private.fact_fields(whole) ff where k.path = 'fields.' || ff.label or k.path like 'fields.' || ff.label || '.%')))
+  );
+$$;
+revoke execute on function private.patch_touches_face(jsonb, jsonb) from public, anon;
+grant execute on function private.patch_touches_face(jsonb, jsonb) to authenticated, service_role;
+
+-- As in 20261111110000_fix_hidden_data_cache_and_patches.sql (D), plus: a patch is the GM's too when it changes the
+-- truth of an item it may match that starts unidentified in a campaign using that item's pack. Its callers (the
+-- campaign's library, a player's plain read, the log's readers, a pack update's line) then keep it from players, as
+-- they keep a patch on a gmOnly field.
+create or replace function private.patch_hides_target_field(patch_pack uuid, patch jsonb) returns boolean
+language sql stable security definer set search_path = '' as $$
+  with target as (
+    select patch -> 'match' ->> 'kind' as kind,
+      private.patch_heads(patch) as heads,
+      private.patch_ids(patch) as ids,
+      nullif(btrim(case when jsonb_typeof(patch -> 'match' -> 'category') = 'string' then patch -> 'match' ->> 'category' else '' end), '') as category
+  ), alongside as (
+    select patch_pack as pack_id
+    union
+    select other.pack_id
+    from public.campaign_packs mine
+    join public.campaign_packs other on other.campaign_id = mine.campaign_id
+    where mine.pack_id = patch_pack
+  )
+  select exists (
+    select 1
+    from target
+    join public.library_entries e on e.kind = target.kind
+      and (cardinality(target.ids) = 0 or e.pack_entry_id = any (target.ids))
+    join alongside on alongside.pack_id = e.pack_id
+    -- Only an entry with a hidden part can keep a field hidden (private.visible_of moves gmOnly and every hidden
+    -- section there), so the others are never merged. The category is still read on the whole entry: it may itself
+    -- be one of the hidden fields.
+    join public.library_entry_secrets s on s.id = e.id
+    cross join lateral (select e.data || s.data as whole) w
+    where (target.category is null or w.whole ->> 'category' = target.category
+        or exists (select 1 from jsonb_each(case when jsonb_typeof(w.whole -> 'byOption') = 'object' then w.whole -> 'byOption' else '{}'::jsonb end) o
+                   where jsonb_typeof(o.value) = 'object' and o.value ->> 'category' = target.category))
+      and target.heads && case
+        when e.kind = 'rulesSet' then private.hidden_keys(e.kind, w.whole)
+        else coalesce(array(select jsonb_array_elements_text(case when jsonb_typeof(w.whole -> 'gmOnly') = 'array' then w.whole -> 'gmOnly' else '[]'::jsonb end)), '{}')
+      end
+  )
+  -- K22a: a patch on an unidentified item's truth.
+  or exists (
+    select 1
+    from target
+    join public.library_entries e on target.kind = 'item' and e.kind = 'item'
+      and (cardinality(target.ids) = 0 or e.pack_entry_id = any (target.ids))
+    join alongside on alongside.pack_id = e.pack_id
+    cross join lateral (
+      select e.data || coalesce((select s.data from public.library_entry_secrets s where s.id = e.id), '{}'::jsonb) as whole
+    ) w
+    where private.patch_touches_face(patch, w.whole)
+      and (target.category is null or w.whole ->> 'category' = target.category)
+      and exists (
+        select 1 from public.campaign_packs cp
+        where cp.pack_id = e.pack_id and private.is_masked(w.whole, private.unidentified_categories(cp.campaign_id)))
+  );
+$$;
 
 -- 8. Devices fetch the face ---------------------------------------------------------------------------------------------
 -- One bump of every campaign's seen stamp: a device that stored an entry's full copy downloads it again, as its face.

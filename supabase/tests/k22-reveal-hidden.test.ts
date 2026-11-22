@@ -23,6 +23,9 @@
 //   K22b: a tell, then the player gives the ring to Ash, then the GM's Undo: done (the generic Undo takes the line's
 //     change back whole), and no player's read holds the fact.
 //   K22b: only the GM tells or edits; a player is refused, even on their own item.
+//   The local review of #40: (1) an Undo of a tell is refused once part of the stack was split off since; (3) a patch on
+//     an unidentified item's truth reaches no player; (4) a Bonus or Curse field is off the face until its fact is told;
+//     (5) the old "Reveal …" button records the bonus as told; (7) a redone tell's line is the players' again.
 // Not tested here: the migration's one bump of every campaign's seen stamp (the world is built after the migration ran).
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../src/app/commandRegistry.ts';
@@ -30,7 +33,7 @@ import { runCommand, type CurrentUser } from '../../src/core/commands.ts';
 import { loadCurrentUser } from '../../src/core/currentUser.ts';
 import type { Db } from '../../src/core/supabase.ts';
 import { undoChange } from '../../src/core/undo.ts';
-import { addItem, editItemLook, moveItem, tellItem, type CarrierRef, type InventoryLine } from '../../src/modules/inventory/inventory.ts';
+import { addItem, editItemLook, moveItem, revealItemField, tellItem, type CarrierRef, type InventoryLine } from '../../src/modules/inventory/inventory.ts';
 import { attachPack, loadCampaignEntries } from '../../src/modules/library/campaignPacks.ts';
 import { importPack } from '../../src/modules/library/library.ts';
 import { readPackJson } from '../../src/modules/library/packFile.ts';
@@ -82,6 +85,8 @@ const ITEMS = [
   { id: 'heron-bow', name: 'Heron bow', category: 'magic-bow', slot: 'hand', weapon: { damage: '1d6', bonusVs: [{ against: 'bog lurkers', bonus: 3 }] } },
   { id: 'ember-arrows', name: 'Ember arrows', category: 'magic-arrows', stack: 20, appearsAs: 'Arrows', weapon: { magicBonus: 1 } },
   { id: 'arrows', name: 'Arrows', category: 'ammunition', stack: 20 },
+  // Review of #40, finding 4: visible fields that say a fact in words.
+  { id: 'glass-ring', name: 'Ring of Green Glass', category: 'ring', fields: { Bonus: '+2 to saves', Curse: 'Brittle in the cold', Glass: 'Sea-green' } },
 ];
 
 /** What a player's device can get of the campaign: every line, the campaign's library, a plain select, the log. */
@@ -225,7 +230,7 @@ describe('K22b: tell, Undo, and who reads the line', () => {
   it('only the GM tells or edits; a player is refused, even on their own item', async () => {
     const ring = await add(world.playerA, 'bronze-ring');
     expect(await as(world.playerA, tellItem, { line: refOf(ring, wren()), fact: 'cursed' })).toMatchObject({ ok: false, reason: 'not-allowed' });
-    expect(await world.playerA.db.rpc('tell_item', { line: ring.id, fact: 'cursed' })).toMatchObject({ error: { code: '42501' } });
+    expect(await world.playerA.db.rpc('tell_item', { line: ring.id, facts: ['cursed'] })).toMatchObject({ error: { code: '42501' } });
     expect(await world.playerA.db.rpc('edit_item_look', { line: ring.id, appears_as: 'Gold ring', noticed: '' })).toMatchObject({ error: { code: '42501' } });
     expect(await lineRow(world.gm, ring.id)).toMatchObject({ revealed_fields: [], appears_as: 'Bronze ring' });
   });
@@ -305,5 +310,93 @@ describe('K22b: tell, Undo, and who reads the line', () => {
       const log = must(await person.db.from('events').select('before, after').eq('target_id', blade.id));
       expect(JSON.stringify(log)).not.toContain('magicBonus');
     }
+  });
+});
+
+describe('the local review of #40', () => {
+  // Purpose (finding 1): a tell, then part of the stack is split off and handed on, then the GM's Undo: the part (and
+  // its own log line) carries the told fact, which the Undo can't reach, so the Undo is refused with its reason, and no
+  // player's read holds a fact the line no longer has.
+  it('1. an Undo of a tell is refused once part of the stack was split off since', async () => {
+    const arrows = await add(world.gm, 'ember-arrows', wren(), 6);
+    await ok(as(world.gm, tellItem, { line: refOf(arrows, wren()), fact: 'bonus' }));
+    const part = await ok(as(world.playerA, moveItem, { line: refOf(arrows, wren()), to: ash(), qty: 2, of: 6 }));
+    expect(part.id).not.toBe(arrows.id);
+    const tell = (await tellLines(world.gm, arrows.id)).find((e) => e.type === 'inventory.tell')!;
+    const undone = await as(world.gm, undoChange, { campaignId: world.campaignId, eventId: tell.id as string, authorUserId: world.gm.id });
+    expect(undone).toMatchObject({ ok: false });
+    expect(undone.ok ? '' : undone.message).toMatch(/split off/);
+    // As a player: what each line says is what was told, and both still say it.
+    for (const person of [world.playerA, world.playerB]) {
+      expect((await lineRow(person, arrows.id)).revealed_fields).toEqual(expect.arrayContaining(['bonus']));
+      expect((await lineRow(person, part.id)).revealed_fields).toEqual(expect.arrayContaining(['bonus']));
+    }
+  });
+
+  // Purpose (finding 3): a patch that changes an unidentified item's truth (its magic bonus) is the GM's, by any read;
+  // one that changes something players see of it (its damage) still reaches them.
+  it('3. a patch on an unidentified item’s truth reaches no player', async () => {
+    await add(world.gm, 'sorrow-blade');
+    must(
+      await world.admin
+        .from('library_entries')
+        .insert([
+          { pack_id: packId, kind: 'patch', pack_entry_id: 'sharper-sorrow', name: 'Sharper sorrow', data: { match: { kind: 'item', ids: ['sorrow-blade'] }, change: { 'weapon.magicBonus': { delta: -1 } } } },
+          { pack_id: packId, kind: 'patch', pack_entry_id: 'heavier-sorrow', name: 'Heavier sorrow', data: { match: { kind: 'item', ids: ['sorrow-blade'] }, change: { 'weapon.damage': { delta: 1 } } } },
+        ])
+        .select('id'),
+    );
+    for (const person of [world.playerA, world.playerB]) {
+      const library = must(await person.db.rpc('campaign_library', { campaign: world.campaignId, packs: [packId] })) as { kind: string; pack_entry_id: string }[];
+      const patches = library.filter((e) => e.kind === 'patch').map((e) => e.pack_entry_id);
+      expect(patches).toContain('heavier-sorrow');
+      expect(patches).not.toContain('sharper-sorrow');
+      expect(must(await person.db.from('library_entries').select('pack_entry_id').eq('pack_id', packId).eq('kind', 'patch')).map((e) => e.pack_entry_id)).not.toContain('sharper-sorrow');
+    }
+    const gmLibrary = must(await world.gm.db.rpc('campaign_library', { campaign: world.campaignId, packs: [packId] })) as { pack_entry_id: string }[];
+    expect(gmLibrary.map((e) => e.pack_entry_id)).toEqual(expect.arrayContaining(['sharper-sorrow', 'heavier-sorrow']));
+  });
+
+  // Purpose (finding 4): a visible field that says a fact in words (Bonus, Curse) is off the face, for every player
+  // read, and comes back with its fact; a field that says none (Glass) stays.
+  it('4. a Bonus or Curse field is off the face until its fact is told', async () => {
+    const ring = await add(world.playerA, 'glass-ring');
+    for (const person of [world.playerA, world.playerB]) {
+      const reads = JSON.stringify(await playerReads(person));
+      expect(reads).not.toMatch(/\+2 to saves|Brittle in the cold|Green Glass/);
+      expect((await lineRow(person, ring.id)).item_data).toMatchObject({ fields: { Glass: 'Sea-green' } });
+    }
+    await ok(as(world.gm, tellItem, { line: refOf(ring, wren()), fact: 'bonus' }));
+    const seen = await lineRow(world.playerB, ring.id);
+    expect(seen.item_data).toMatchObject({ fields: { Glass: 'Sea-green', Bonus: '+2 to saves' } });
+    expect(JSON.stringify(seen)).not.toContain('Brittle');
+  });
+
+  // Purpose (finding 5): the old per-field "Reveal …" button, still on main until K2, tells through the database, so
+  // the line records what was told (the player's numbers read it) and copies it from the entry, not the device.
+  it('5. the old Reveal of the bonus records it as told', async () => {
+    const ring = await add(world.playerA, 'bronze-ring');
+    await ok(as(world.gm, revealItemField, { line: refOf(ring, wren()), field: 'bonus', value: 'whatever the device says' }));
+    const seen = await lineRow(world.playerA, ring.id);
+    expect(seen.revealed_fields).toEqual(expect.arrayContaining(['magic', 'bonus']));
+    expect(seen.item_data).toMatchObject({ bonus: '+1 to saves' });
+  });
+
+  // Purpose (finding 7): the GM undoes a tell, then undoes that Undo: the fact is told again, and the tell's own line is
+  // the players' again; both Undo lines stay the GM's.
+  it('7. a redone tell’s line is read by the players again', async () => {
+    const ring = await add(world.playerA, 'bronze-ring');
+    await ok(as(world.gm, tellItem, { line: refOf(ring, wren()), fact: 'cursed' }));
+    const tell = (await tellLines(world.gm, ring.id)).find((e) => e.type === 'inventory.tell')!;
+    await ok(as(world.gm, undoChange, { campaignId: world.campaignId, eventId: tell.id as string, authorUserId: world.gm.id }));
+    const undo = (await tellLines(world.gm, ring.id)).find((e) => e.reverts_event_id === tell.id)!;
+    await ok(as(world.gm, undoChange, { campaignId: world.campaignId, eventId: undo.id as string, authorUserId: world.gm.id }));
+    for (const person of [world.playerA, world.playerB]) {
+      expect((await lineRow(person, ring.id)).item_data).toMatchObject({ cursed: true });
+      const log = await tellLines(person, ring.id);
+      expect(log.map((e) => e.type)).toContain('inventory.tell');
+      expect(log.filter((e) => e.reverts_event_id !== null)).toEqual([]);
+    }
+    expect((await tellLines(world.gm, ring.id)).filter((e) => e.reverts_event_id !== null)).toHaveLength(2);
   });
 });

@@ -82,6 +82,20 @@ describe('the facts still hidden on an item', () => {
     expect(hiddenFacts(named, RING, 'Ring of the Drowned Bell')).toEqual([]);
   });
 
+  // Purpose (review of #40, finding 4): a visible field that carries a fact in words (a Bonus or a Curse field) is that
+  // fact while the line lacks it, as the database's twin reads it; a field that carries none (Glass) is no fact.
+  it('counts a Bonus or Curse field the line lacks as its fact, and makes the item magic', () => {
+    const glass = { category: 'ring', fields: { Bonus: '+2 to saves', Curse: 'Brittle', Glass: 'Sea-green' } };
+    expect(hiddenFacts(face({ details: { fields: { Glass: 'Sea-green' } } }), glass).map((f) => [f.id, f.detail])).toEqual([
+      ['magic', ''],
+      ['name', ''],
+      ['bonus', '+2 to saves'],
+      ['cursed', ''],
+    ]);
+    const told = face({ details: { fields: { Glass: 'Sea-green', Bonus: '+2 to saves' } }, revealedFields: ['magic', 'bonus'] });
+    expect(hiddenFacts(told, glass).map((f) => f.id)).toEqual(['name', 'cursed']);
+  });
+
   // Purpose: with its entry gone, only the line's own hidden charges can be told.
   it('with the entry gone, lists only the line’s hidden charges', () => {
     expect(hiddenFacts({ identified: true, revealedFields: [], details: {}, chargesHidden: true, category: 'wand' }, null).map((f) => f.id)).toEqual(['charges']);

@@ -673,14 +673,38 @@ export const hideFromAtHand = defineCommand({
 });
 
 /**
+ * The facts a hidden field of the old per-field "Reveal …" button is (K22): its bonus, its curse, its true name, each
+ * power, each field of a hidden `fields` block; null for anything else (the GM's notes, say), which is written as before.
+ */
+function factsOfField(field: string, value: unknown): FactId[] | null {
+  if (field === 'bonus' || field === 'cursed' || field === 'name') return [field];
+  if (field === 'properties') return Array.isArray(value) && value.length > 0 ? value.map((_, i) => `power:${i}` as const) : null;
+  if (field === 'fields') {
+    const labels = value && typeof value === 'object' && !Array.isArray(value) ? Object.keys(value) : [];
+    return labels.length > 0 ? labels.map((label) => `fields.${label}` as const) : null;
+  }
+  return null;
+}
+
+/**
  * The GM shows the holder one of an item's hidden fields (a curse, the true bonus): it's added to what the line
- * says about its item, where its holder (and everyone who sees the line) can read it. Logged.
+ * says about its item, where its holder (and everyone who sees the line) can read it. Logged. A field that is a fact
+ * (its bonus, curse, true name, powers, a hidden field) is told through the database's tell (public.tell_item) while
+ * K2 hasn't replaced this button: the line then records what was told, so a told bonus counts in the player's numbers
+ * (review of #40, finding 5).
  */
 export const revealItemField = defineCommand({
   name: 'inventory.reveal',
   target: (input: { line: LineRef; field: string; value: unknown }) => input.line.carrier,
   allowed: (user, carrier) => isGm(user, carrier.campaignId),
   run: async (db, _user, input, meta): Promise<CommandResult<InventoryLine>> => {
+    const facts = factsOfField(input.field, input.value);
+    if (facts) {
+      const { data, error } = await db.rpc('tell_item', { line: input.line.id, facts, ...seenVersion(input.line) });
+      if (error) return fromError(error);
+      // Nothing of it hidden as a fact (a one-off's own field, say): written as before.
+      if (typeof data === 'number' && data > 0) return lineNow(db, input.line.id);
+    }
     // Read fresh, and saved only if nothing changed in between.
     const found = fromWrite(await db.from('inventory_lines').select('item_data, version').eq('id', input.line.id));
     if (!found.ok) return found;
@@ -716,7 +740,7 @@ export const tellItem = defineCommand({
   target: (input: { line: LineRef; fact: FactId | 'everything' }) => input.line.carrier,
   allowed: (user, carrier) => isGm(user, carrier.campaignId),
   run: async (db, _user, input): Promise<CommandResult<InventoryLine>> => {
-    const { error } = await db.rpc('tell_item', { line: input.line.id, fact: input.fact, ...seenVersion(input.line) });
+    const { error } = await db.rpc('tell_item', { line: input.line.id, facts: [input.fact], ...seenVersion(input.line) });
     return error ? fromError(error) : lineNow(db, input.line.id);
   },
 });

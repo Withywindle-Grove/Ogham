@@ -7469,8 +7469,8 @@ export type Database = {
         }
       }
       tell_item: {
-        Args: { fact: string; line: string; seen_version?: number }
-        Returns: undefined
+        Args: { facts: string[]; line: string; seen_version?: number }
+        Returns: number
       }
       town_parts_shown: {
         Args: { visit: string }

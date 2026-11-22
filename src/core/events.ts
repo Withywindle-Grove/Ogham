@@ -799,11 +799,16 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       // A tell undone (K22b, K22h picture 6): the GM's line alone (k22-10), "You undid a reveal: that the Bronze ring is
       // cursed is hidden again." A look edit undone: the GM's too (pick 3).
       if (main.targetTable === 'inventory_lines' && 'revealed_fields' in before && 'revealed_fields' in after) {
-        const facts = factsBetween(before.revealed_fields, after.revealed_fields);
+        // An Undo of that Undo tells the facts again (review of #40, finding 7): the tell's own line is the players'
+        // again, and this one stays the GM's.
+        const again = factsBetween(after.revealed_fields, before.revealed_fields);
+        const facts = again.length > 0 ? again : factsBetween(before.revealed_fields, after.revealed_fields);
         const real = facts.filter((f) => f !== 'magic');
         const said = real.length > 0 ? real : facts;
-        const shown = String(after.name ?? '') || item();
-        return by(`undid a reveal: ${said.length === 1 ? hiddenAgainPhrase(said[0]!, shown) : `what was told about the ${shown}`} is hidden again`);
+        // The name it goes by while the fact is hidden (its face, if its name is what comes and goes).
+        const shown = String((again.length > 0 ? before.name : after.name) ?? '') || item();
+        const what = said.length === 1 ? hiddenAgainPhrase(said[0]!, shown) : `what was told about the ${shown}`;
+        return again.length > 0 ? by(`undid an Undo: ${what} is told again`) : by(`undid a reveal: ${what} is hidden again`);
       }
       if (main.targetTable === 'inventory_lines' && ('appears_as' in after || 'noticed' in after) && main.before !== null) {
         return by(`undid a change to what players see of the ${String(after.name ?? '') || item()}`);

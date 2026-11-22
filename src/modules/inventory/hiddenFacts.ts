@@ -44,6 +44,27 @@ export function hiddenLabels(whole: Record<string, unknown>): string[] {
   return [...new Set(labels)].sort();
 }
 
+/**
+ * The custom fields a setting leaves visible that carry a hidden fact in words (07 lets `fields.Bonus` carry the bonus),
+ * by label, case and spaces aside, each with its fact; the database's private.fact_fields (review of #40, finding 4).
+ */
+const FACT_LABELS: Readonly<Record<string, 'bonus' | 'cursed' | 'charges' | 'magic' | 'powers'>> = {
+  bonus: 'bonus',
+  curse: 'cursed',
+  cursed: 'cursed',
+  charges: 'charges',
+  magic: 'magic',
+  power: 'powers',
+  powers: 'powers',
+};
+export function factFields(whole: Record<string, unknown>): { label: string; fact: string }[] {
+  if (!isRecord(whole.fields)) return [];
+  return Object.keys(whole.fields).flatMap((label) => {
+    const fact = FACT_LABELS[label.trim().toLowerCase()];
+    return fact ? [{ label, fact }] : [];
+  });
+}
+
 /** Whether an item is magic, for "That it's magic" (⚑ 6): a magic category, or any item with a bonus or powers. */
 export function isMagicItem(whole: Record<string, unknown>, category: string): boolean {
   return (
@@ -51,7 +72,8 @@ export function isMagicItem(whole: Record<string, unknown>, category: string): b
     'bonus' in whole ||
     (isRecord(whole.weapon) && ('magicBonus' in whole.weapon || 'bonusVs' in whole.weapon)) ||
     (isRecord(whole.armour) && ('magicBonus' in whole.armour || 'bonusVs' in whole.armour)) ||
-    (Array.isArray(whole.properties) && whole.properties.length > 0)
+    (Array.isArray(whole.properties) && whole.properties.length > 0) ||
+    factFields(whole).some((f) => f.fact === 'bonus' || f.fact === 'magic' || f.fact === 'powers')
   );
 }
 
@@ -61,6 +83,9 @@ const signed = (n: number) => (n < 0 ? `−${-n}` : `+${n}`);
 function bonusWords(whole: Record<string, unknown>): string {
   if (typeof whole.bonus === 'string' && whole.bonus.trim()) return whole.bonus.trim();
   if (typeof whole.bonus === 'number') return signed(whole.bonus);
+  const field = factFields(whole).find((f) => f.fact === 'bonus');
+  const said = field && isRecord(whole.fields) ? whole.fields[field.label] : undefined;
+  if (typeof said === 'string' && said.trim()) return said.trim();
   for (const block of ['weapon', 'armour']) {
     const value = at(whole, [block, 'magicBonus']);
     if (typeof value === 'number') return signed(value);
@@ -99,7 +124,10 @@ export function hiddenFacts(line: LineFacts, whole: Record<string, unknown> | nu
     facts.push({ id: 'magic', label: 'That it’s magic', detail: '' });
   }
   if (!line.identified) facts.push({ id: 'name', label: 'Its true name', detail: trueName });
-  if (whole && BONUS_PATHS.some((path) => has(whole, path) && !has(data, path))) {
+  // A fact said in a visible field's words, not yet on the line (its Bonus or Curse field).
+  const ownFields = isRecord(data.fields) ? data.fields : {};
+  const fieldUntold = (fact: string) => (whole ? factFields(whole).some((f) => f.fact === fact && !(f.label in ownFields)) : false);
+  if (whole && (BONUS_PATHS.some((path) => has(whole, path) && !has(data, path)) || fieldUntold('bonus'))) {
     facts.push({ id: 'bonus', label: 'Its bonus', detail: bonusWords(whole) });
   }
   if (whole && Array.isArray(whole.properties)) {
@@ -108,7 +136,7 @@ export function hiddenFacts(line: LineFacts, whole: Record<string, unknown> | nu
       if (!own.some((p) => same(p, power))) facts.push({ id: `power:${i}`, label: 'A power', detail: powerWords(power) });
     });
   }
-  if (whole && whole.cursed === true && data.cursed !== true) facts.push({ id: 'cursed', label: 'That it’s cursed', detail: '' });
+  if (whole && ((whole.cursed === true && data.cursed !== true) || fieldUntold('cursed'))) facts.push({ id: 'cursed', label: 'That it’s cursed', detail: '' });
   if (line.chargesHidden) facts.push({ id: 'charges', label: 'Its charges', detail: '' });
   if (whole && isRecord(whole.fields)) {
     const fields = whole.fields;

@@ -2,7 +2,7 @@
 -- picks 3, 6, 9): the GM tells a hidden fact, and edits what players see of an item; who reads those lines.
 --
 -- What it changes, plainly.
---   Adds public.tell_item (inventory.tell): the GM tells one fact still hidden on a line, or every one ("everything").
+--   Adds public.tell_item (inventory.tell): the GM tells facts still hidden on a line, or every one ("everything").
 --     The database copies the told values from the entry and its hidden part onto the line, never from a device; adds
 --     them to the line's revealed_fields; sets identified and the true name when the name is told; tells "That it's
 --     magic" with any other fact on a magic item (pick 6); "charges" shows the hidden count as inventory.revealCharges
@@ -14,15 +14,20 @@
 --   Two rows in public.logged_commands: inventory.tell and inventory.editLook.
 --   An index on events.reverts_event_id (the new read rule looks an undo up by it).
 -- Read rules that change: the policy "events: read what you may see" on public.events (dropped and made again under its
---   own name): a player (not the GM) no longer reads (1) an inventory.tell that a later Undo took back, (2) that Undo's
---   own line, (3) any inventory.editLook line (pick 3), or (4) the Undo of one. The GM reads all of them. Nothing is
+--   own name): a player (not the GM) no longer reads (1) an inventory.tell or inventory.reveal while an Undo of it
+--   stands (once that Undo is itself undone, the line is theirs again), (2) that Undo's own line and the Undo of that
+--   Undo, (3) any inventory.editLook line (pick 3), or (4) the Undo of one. The GM reads all of them. Nothing is
 --   deleted: the events stay (hard rule 4; k22-10). private.event_readable is unchanged; the policy calls it as before
 --   and adds the new check beside it.
 -- Drops, renames or deletes no data; no existing function is replaced.
 
 -- 1. The tell --------------------------------------------------------------------------------------------------------------
 
-create function public.tell_item(line uuid, fact text, seen_version integer default null) returns void
+-- Returns how many facts it told (0: nothing was hidden of those asked, and nothing changed).
+-- `facts`: the facts to tell, each an id private.hidden_facts gives, or ["everything"]. Those told already are skipped
+-- (a retry changes nothing twice); all of them in one change to the line, so one log line and one Undo (the old
+-- per-field "Reveal …" button, inventory.reveal, tells through here too while K2 isn't built: review of #40, finding 5).
+create function public.tell_item(line uuid, facts text[], seen_version integer default null) returns integer
 language plpgsql security invoker set search_path = '' as $$
 declare
   l public.inventory_lines;
@@ -31,10 +36,12 @@ declare
   true_name text;
   hidden text[];
   told text[];
+  remaining text[];
   data jsonb;
   block text;
   part jsonb;
   label text;
+  fact text;
   total integer;
   new_name text;
   new_identified boolean;
@@ -60,18 +67,22 @@ begin
     end if;
   end if;
   hidden := private.hidden_facts(l.identified, l.revealed_fields, l.item_data, l.charges_hidden, l.category, whole);
-  if coalesce(fact, '') = 'everything' then
-    told := hidden;
-  elsif coalesce(fact, '') !~ '^(magic|name|bonus|cursed|charges|power:[0-9]+|fields\..+)$' then
+  if facts is null or cardinality(facts) = 0 or cardinality(facts) > 200 then
     raise exception 'There''s nothing like that to tell.';
-  elsif not (fact = any (hidden)) then
-    -- Told already (or by a retry of this same request): nothing changes twice.
-    return;
+  end if;
+  foreach fact in array facts loop
+    if coalesce(fact, '') !~ '^(everything|magic|name|bonus|cursed|charges|power:[0-9]+|fields\..+)$' then
+      raise exception 'There''s nothing like that to tell.';
+    end if;
+  end loop;
+  if 'everything' = any (facts) then
+    told := hidden;
   else
-    told := array[fact];
+    -- Told already (or by a retry of this same request): nothing changes twice.
+    told := array(select h from unnest(hidden) h where h = any (facts));
   end if;
   if cardinality(told) = 0 then
-    return;
+    return 0;
   end if;
   -- Pick 6: on a magic item, telling any fact tells "That it's magic" too.
   if 'magic' = any (hidden) and not ('magic' = any (told)) then
@@ -103,7 +114,7 @@ begin
       end if;
     end loop;
   end if;
-  if 'cursed' = any (told) then
+  if 'cursed' = any (told) and whole ? 'cursed' then
     data := data || jsonb_build_object('cursed', whole -> 'cursed');
   end if;
   if exists (select 1 from unnest(told) t where t like 'power:%') then
@@ -128,9 +139,24 @@ begin
     left_now := greatest(total - l.charges_used, 0);
   end if;
   new_revealed := l.revealed_fields || array(select t from unnest(told) t where not (t = any (l.revealed_fields)));
+  -- A visible field that carries a fact in words (Bonus, Curse…) comes back with its fact (review of #40, finding 4).
+  for label in select ff.label from private.fact_fields(whole) ff where ff.fact = any (told) loop
+    data := data || jsonb_build_object('fields',
+      (case when jsonb_typeof(data -> 'fields') = 'object' then data -> 'fields' else '{}'::jsonb end)
+      || jsonb_build_object(label, whole -> 'fields' -> label));
+  end loop;
+  remaining := private.hidden_facts(new_identified, new_revealed, data, l.charges_hidden and not charges_shown, l.category, whole);
+  -- Power and Powers once every power is told; every such field once nothing is left hidden.
+  for label in
+    select ff.label from private.fact_fields(whole) ff
+    where cardinality(remaining) = 0 or (ff.fact = 'powers' and not exists (select 1 from unnest(remaining) r where r like 'power:%'))
+  loop
+    data := data || jsonb_build_object('fields',
+      (case when jsonb_typeof(data -> 'fields') = 'object' then data -> 'fields' else '{}'::jsonb end)
+      || jsonb_build_object(label, whole -> 'fields' -> label));
+  end loop;
   -- Nothing left hidden: the item's own words, notes (unless they are the GM's) and source follow (pick 11).
-  if cardinality(private.hidden_facts(new_identified, new_revealed, data, l.charges_hidden and not charges_shown, l.category, whole)) = 0
-    and whole is not null then
+  if cardinality(remaining) = 0 and whole is not null then
     data := data || jsonb_strip_nulls(jsonb_build_object(
       'description', whole -> 'description',
       'source', whole -> 'source',
@@ -146,10 +172,11 @@ begin
     charges_left = case when charges_shown then left_now else x.charges_left end,
     spent_shown = case when charges_shown then false else x.spent_shown end
   where x.id = l.id;
+  return cardinality(told);
 end;
 $$;
-revoke execute on function public.tell_item(uuid, text, integer) from public, anon;
-grant execute on function public.tell_item(uuid, text, integer) to authenticated, service_role;
+revoke execute on function public.tell_item(uuid, text[], integer) from public, anon;
+grant execute on function public.tell_item(uuid, text[], integer) to authenticated, service_role;
 
 -- 2. What players see (k22-1) ----------------------------------------------------------------------------------------------
 
@@ -186,15 +213,25 @@ insert into public.logged_commands (name, level, gm_only) values
 
 create index events_reverts_idx on public.events (reverts_event_id) where reverts_event_id is not null;
 
--- A line the GM alone reads, whoever else reads its row: a look edit (pick 3), a tell a later Undo took back (k22-10),
--- and the Undo of either. Reads the log as the database owner (the events read rule calls it).
+-- A line the GM alone reads, whoever else reads its row: a look edit (pick 3); a tell (or an inventory.reveal, which
+-- tells through public.tell_item) while an Undo of it stands (k22-10); and the Undo of either, and the Undo of that Undo.
+-- A tell whose Undo was itself undone is told again, so its line is the players' again (review of #40, finding 7). Reads
+-- the log as the database owner (the events read rule calls it).
 create function private.gm_only_event(campaign uuid, event_type text, event_id uuid, reverts uuid) returns boolean
 language sql stable security definer set search_path = '' as $$
   select not private.is_gm(campaign) and (
     event_type = 'inventory.editLook'
-    or (event_type = 'inventory.tell' and exists (select 1 from public.events r where r.reverts_event_id = event_id))
+    or (event_type in ('inventory.tell', 'inventory.reveal') and exists (
+      select 1 from public.events r
+      where r.reverts_event_id = event_id
+        and not exists (select 1 from public.events rr where rr.reverts_event_id = r.id)))
     or (reverts is not null and exists (
-      select 1 from public.events o where o.id = reverts and o.type in ('inventory.tell', 'inventory.editLook')))
+      select 1 from public.events o
+      where o.id = reverts and (
+        o.type in ('inventory.tell', 'inventory.reveal', 'inventory.editLook')
+        or (o.reverts_event_id is not null and exists (
+          select 1 from public.events oo
+          where oo.id = o.reverts_event_id and oo.type in ('inventory.tell', 'inventory.reveal', 'inventory.editLook'))))))
   );
 $$;
 revoke execute on function private.gm_only_event(uuid, text, uuid, uuid) from public, anon;
