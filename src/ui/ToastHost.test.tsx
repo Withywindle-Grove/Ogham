@@ -94,3 +94,49 @@ describe('how long a toast lasts', () => {
     expect(screen.queryByRole('status')).toBeNull();
   });
 });
+
+// K22d (pick 10; page 33, K22i 3): over an open pop-up that asks for it, on a phone, the toast sits just above the
+// sheet's top edge; elsewhere, and on a tablet, at the screen's foot as before.
+describe('the toast over an open pop-up', () => {
+  function Sheet({ asks }: { asks: boolean }) {
+    return (
+      <div role="dialog" aria-modal="true" className="dialog dialog--sheet">
+        {asks && <p data-toast-above>Bronze ring, in Wren’s pack</p>}
+      </div>
+    );
+  }
+  const host = () => screen.getByRole('status').closest('.toast-host') as HTMLElement;
+  afterEach(() => vi.restoreAllMocks());
+
+  it('on a phone it is lifted above a sheet that asks for it, and not above one that does not', async () => {
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(375);
+    const { rerender } = render(
+      <ToastHost>
+        <Sheet asks />
+        <NoticeToast message="Told Wren: the Bronze ring is cursed." />
+      </ToastHost>,
+    );
+    expect(host().classList.contains('toast-host--lifted')).toBe(true);
+    expect(host().style.getPropertyValue('--toast-lift-top')).toMatch(/^\d+px$/);
+    rerender(
+      <ToastHost>
+        <Sheet asks={false} />
+        <NoticeToast message="Told Wren: the Bronze ring is cursed." />
+      </ToastHost>,
+    );
+    // The host watches the page for pop-ups opening and closing (a change it hears a moment later).
+    await act(async () => undefined);
+    expect(host().classList.contains('toast-host--lifted')).toBe(false);
+  });
+
+  it('on a tablet it stays at the screen’s foot', () => {
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(1180);
+    render(
+      <ToastHost>
+        <Sheet asks />
+        <NoticeToast message="Told Wren: the Bronze ring is cursed." />
+      </ToastHost>,
+    );
+    expect(host().classList.contains('toast-host--lifted')).toBe(false);
+  });
+});

@@ -1457,6 +1457,12 @@ details[open] > summary > .disclosure::before {
   pointer-events: auto;
 }
 
+/* Over a pop-up that asks for it, on a phone (K22d, pick 10; ToastHost.tsx): just above the sheet's top edge, over the
+   dimmed page; with the sheet at full height, as low as keeps the toast on screen, over the sheet's title. */
+.toast-host.toast-host--lifted {
+  inset-block-end: min(calc(100dvh - var(--toast-lift-top) + var(--space-2)), calc(100dvh - var(--toast-height) - var(--gutter)));
+}
+
 /* A derived status (B25): its symbol and its words, tappable for why. */
 .casting-status {
   display: inline-flex;

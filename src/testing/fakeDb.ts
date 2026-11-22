@@ -10,6 +10,7 @@ import { plainLinks } from '../modules/library/linkMarks.ts';
 import { PATRON_GM_FIELDS, PLAYER_FACING, playerFacingEntry, type EntryKind, type PatchTargets } from '../modules/library/packFile.ts';
 import { routeWays } from '../modules/library/routes.ts';
 import { stockDefault } from '../modules/requests/shopStock.ts';
+import { hiddenFacts } from '../modules/inventory/hiddenFacts.ts';
 
 type Row = Record<string, unknown>;
 
@@ -2828,6 +2829,81 @@ export function createFakeDb(): FakeWorld {
       return copy(row);
     },
   };
+  // Like the database (…_k22_tell.sql; K2 brings it, as the stub here promised): the GM's tell and his edit of what
+  // players see. The fact list is the app's own (hiddenFacts, the database's twin); the told facts come from the entry.
+  const entryOfLine = (l: Row): Row | undefined =>
+    tables.library_entries.find((e) => e.kind === 'item' && e.pack_id === l.source_pack_id && e.pack_entry_id === l.source_entry_id);
+  const singularOf = (campaign: unknown, category: string): string => {
+    const packs = tables.campaign_packs.filter((cp) => cp.campaign_id === campaign).sort((a, b) => Number(b.priority ?? 0) - Number(a.priority ?? 0));
+    for (const cp of packs) {
+      for (const r of tables.library_entries.filter((e) => e.kind === 'rulesSet' && e.pack_id === cp.pack_id)) {
+        const cats = (r.data as Row).itemCategories;
+        const c = Array.isArray(cats) ? (cats as Row[]).find((x) => x?.id === category) : undefined;
+        const said = String(c?.singular ?? '').trim() || String(c?.name ?? '').trim();
+        if (said) return said;
+      }
+    }
+    const tidy = category.replace(/[-_]+/g, ' ').trim();
+    return tidy ? `${tidy.charAt(0).toUpperCase()}${tidy.slice(1)}` : 'Item';
+  };
+  const k22Rpcs: Record<string, (args: Row, tag: Tag) => Result> = {
+    tell_item: (args, tag) => {
+      const l = tables.inventory_lines.find((x) => x.id === args.line);
+      if (!l || !isGmOf(l.campaign_id)) return refused("You don't have permission to do that.");
+      if (isStale(l, args.seen_version)) return staleResult;
+      const entry = entryOfLine(l);
+      const whole = entry ? { ...(entry.data as Row), ...((tables.library_entry_secrets.find((s) => s.id === entry.id)?.data as Row | undefined) ?? {}) } : null;
+      const facts = (line: Row) =>
+        hiddenFacts(
+          { identified: line.identified !== false, revealedFields: (line.revealed_fields as string[] | undefined) ?? [], details: (line.item_data as Row) ?? {}, chargesHidden: line.charges_hidden === true, category: String(line.category) },
+          whole,
+        ).map((f) => f.id as string);
+      const hidden = facts(l);
+      const asked = Array.isArray(args.facts) ? (args.facts as string[]) : [];
+      let told = asked.includes('everything') ? hidden : hidden.filter((h) => asked.includes(h));
+      if (told.length === 0) return { data: 0, error: null };
+      if (hidden.includes('magic') && !told.includes('magic')) told = ['magic', ...told];
+      const data: Row = { ...((l.item_data as Row) ?? {}) };
+      const patch: Row = {};
+      if (told.includes('name')) {
+        if (!entry) return plain("Its setting rules are gone, so its name can't be told.");
+        Object.assign(patch, { name: entry.name, identified: true });
+      }
+      if (told.includes('bonus') && whole) {
+        if ('bonus' in whole) data.bonus = whole.bonus;
+        for (const block of ['weapon', 'armour']) {
+          const part = whole[block] as Row | undefined;
+          const picked = part ? Object.fromEntries(['magicBonus', 'bonusVs'].filter((k) => k in part).map((k) => [k, part[k]])) : {};
+          if (Object.keys(picked).length > 0) data[block] = { ...((data[block] as Row) ?? {}), ...picked };
+        }
+      }
+      if (told.includes('cursed') && whole && 'cursed' in whole) data.cursed = whole.cursed;
+      if (told.some((t) => t.startsWith('power:')) && whole && Array.isArray(whole.properties)) {
+        const own = Array.isArray(data.properties) ? (data.properties as unknown[]).map((p) => JSON.stringify(p)) : [];
+        data.properties = (whole.properties as unknown[]).filter((p, i) => told.includes(`power:${i}`) || own.includes(JSON.stringify(p)));
+      }
+      for (const t of told.filter((x) => x.startsWith('fields.'))) data.fields = { ...((data.fields as Row) ?? {}), [t.slice(7)]: (whole?.fields as Row)[t.slice(7)] };
+      if (told.includes('charges')) {
+        const total = tables.inventory_line_secrets.find((s) => s.id === l.id)?.charges_total;
+        if (total === null || total === undefined) return plain('Set its charges first, then tell them.');
+        Object.assign(patch, { charges_hidden: false, charges_left: Math.max(0, Number(total) - Number(l.charges_used ?? 0)), spent_shown: false });
+      }
+      const revealed = [...((l.revealed_fields as string[] | undefined) ?? []), ...told.filter((t) => !((l.revealed_fields as string[] | undefined) ?? []).includes(t))];
+      const after = { ...l, ...patch, item_data: data, revealed_fields: revealed };
+      if (facts(after).length === 0 && whole) for (const key of ['description', 'source']) if (key in whole) data[key] = whole[key];
+      changeRow('inventory_lines', l, { ...patch, item_data: data, revealed_fields: revealed }, tag);
+      return { data: told.length, error: null };
+    },
+    edit_item_look: (args, tag) => {
+      const l = tables.inventory_lines.find((x) => x.id === args.line);
+      if (!l || !isGmOf(l.campaign_id)) return refused("You don't have permission to do that.");
+      if (isStale(l, args.seen_version)) return staleResult;
+      const appears = String(args.appears_as ?? '').trim().slice(0, 200);
+      const noticed = String(args.noticed ?? '').trim().slice(0, 2000);
+      changeRow('inventory_lines', l, { appears_as: appears, noticed, ...(l.identified === false ? { name: appears || singularOf(l.campaign_id, String(l.category)) } : {}) }, tag);
+      return { data: null, error: null };
+    },
+  };
   // Like the database (supabase/migrations/…_m5b_weather_roll.sql): today's weather. The weather tables the campaign's
   // rules sets name; the row a typed roll lands on (its result and tags); who may enter it; the first entry counts.
   const weatherTables = (campaign: unknown): string[] => {
@@ -4135,10 +4211,6 @@ export function createFakeDb(): FakeWorld {
   const rpcs: Record<string, (args: Row) => Result> = {
     ...companyRpcs,
     ...ruleRpcs,
-    // K22b's tell (public.tell_item) isn't modelled here: it tells nothing (0), so the old per-field Reveal writes the
-    // field as before. The real tell is tested on the database (supabase/tests/k22-reveal-hidden.test.ts); K2's screens
-    // bring a fuller fake with them.
-    tell_item: () => ({ data: 0, error: null }),
     // Like the database (ruled 2026-10-29, A4): the GM gets every exception; a player only those for player-facing
     // entries (the fake doesn't model which items a player may read).
     campaign_exceptions: ({ campaign }) => {
@@ -4557,6 +4629,7 @@ export function createFakeDb(): FakeWorld {
             if (name === 'set_spells') return setSpellsRpc(args, tag);
             if (name in clockRpcs) return clockRpcs[name]!(args, readTag(headers));
             if (name in lightRpcs) return lightRpcs[name]!(args, readTag(headers));
+            if (name in k22Rpcs) return k22Rpcs[name]!(args, readTag(headers));
             if (name in joinRpcs) return joinRpcs[name]!(args, readTag(headers));
             if (name in weatherRpcs) return weatherRpcs[name]!(args, readTag(headers));
             if (name in marchingRpcs) return marchingRpcs[name]!(args, readTag(headers));

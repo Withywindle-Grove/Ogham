@@ -5,9 +5,8 @@
 //   2. The ring with a long hidden curse opens the player's sheet plus the GM's line, at body size (16 px), with the
 //      closed eye, and "Reveal…" above Give to…, at least 44 px high. No sideways scrolling, no text under 14 px, no
 //      small targets, no serious accessibility problem.
-//   3. "Reveal…" opens the GM's own sheet for the ring over it (⚑ 40), with its "Hidden from players" group, in its own
-//      form (a pop-up opened from inside a sheet is not itself a sheet: CLAUDE.md), whole on screen, and that pop-up
-//      lays out as cleanly.
+//   3. "Reveal…" opens the Reveal pop-up over it (k22-8, replacing ⚑ 40's reading), in its own form (CLAUDE.md): the
+//      Sheet K22i draws, whole on screen, and that pop-up lays out as cleanly (its own checks: k22-reveal.spec.ts).
 //   4. The cursed sword (M3g2) reads "Only you see this: the true figure is d20 …, cursed." from Wren's own figures,
 //      above the sheet's rows, with "Reveal…" (its curse is a hidden field).
 import { expect, test, type Page } from '@playwright/test';
@@ -37,7 +36,7 @@ for (const size of [
       await page.getByRole('button', { name: /^Mooring ring/ }).click();
       const sheet = page.getByRole('region', { name: 'Mooring ring' });
       const line = sheet.locator('.gm-line');
-      await expect(line).toContainText('Only you see this: Whoever wears it');
+      await expect(line).toContainText('Only you see this: cursed, Whoever wears it');
       expect(await line.evaluate((el) => getComputedStyle(el).fontSize)).toBe('16px');
       await expect(line.locator('svg')).toHaveCount(1);
       const rows = sheet.getByRole('group', { name: 'Item actions' }).getByRole('button');
@@ -50,11 +49,10 @@ for (const size of [
       expect(await layoutProblems(page)).toEqual([]);
       expect(await accessibilityProblems(page)).toEqual([]);
 
-      // Reveal… opens the GM's own sheet for the ring, as built, in its own form: not a sheet, whole on screen.
+      // Reveal… opens the Reveal pop-up for the ring, in its own form, whole on screen.
       await reveal.click();
-      await expect(page.getByRole('group', { name: 'Hidden from players' })).toBeVisible();
-      const inner = page.getByRole('dialog', { name: 'Mooring ring' }).last();
-      await expect(inner).not.toHaveClass(/dialog--sheet/);
+      const inner = page.getByRole('dialog', { name: 'Reveal' });
+      await expect(inner.getByRole('button', { name: /^Tell Curse/ })).toBeVisible();
       const box = (await inner.boundingBox())!;
       expect(box.x).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(size.width);

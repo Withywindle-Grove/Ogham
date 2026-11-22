@@ -231,7 +231,7 @@ Paths and lines read on `main` at `105e115` (2026-11-21). Each test's purpose is
 
 Collected, not decided. Numbered from 40 (Q's ⚑ 39 is the last).
 
-- ⚑ 40 and 41: ruled on 2026-11-21 (Francis), recorded in `09-decisions-log.md` by C15e.
+- ⚑ 40 and 41: ruled on 2026-11-21 (Francis), recorded in `09-decisions-log.md` by C15e. Both are answered as built by K22's batch K2 (K22c to K22e, 2026-11-22): k22-8 (the one "Reveal…" row opens the Reveal pop-up, replacing ⚑ 40's reading) and k22-0 (K22 before C15 goes to `main`; "What you notice" built), `plans/k22-reveal.md`.
 - ⚑ 42 to 46: ruled on 2026-11-21 (Francis, and the driver's calls on 44 to 46), recorded in `09-decisions-log.md` by C15c + C15d.
 - ⚑ 51. **Where "Go to Waiting for you" lands from a sheet change.** M3f2's "Only Sam can take back this change" says "Approve or Refuse it in Waiting for you", but sheet changes are answered under **Waiting for approval** on Players, where the built button brings the GM (#36). Change the words to name Waiting for approval, or move sheet changes into Waiting for you? Built meanwhile: the drawn words, landing at Waiting for approval.
 

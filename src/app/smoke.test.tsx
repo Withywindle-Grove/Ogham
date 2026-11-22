@@ -5823,9 +5823,11 @@ describe('the Pack tab (M4 step 4)', () => {
     await user.click(await screen.findByRole('button', { name: /Humming blade/ }));
     const hidden = within(screen.getByRole('group', { name: 'Hidden from players' }));
     expect(hidden.getByText('Hums at the full moon')).toBeTruthy();
-    await user.click(hidden.getByRole('button', { name: /^Reveal/ }));
+    // K22d: the one "Reveal…" row and its pop-up, a fact a tap (k22-8).
+    await user.click(screen.getByRole('button', { name: 'Reveal…' }));
+    await user.click(within(await screen.findByRole('dialog', { name: 'Reveal' })).getByRole('button', { name: 'Tell Curse: Hums at the full moon' }));
     await waitFor(() => expect(world.tables.inventory_lines[0]!.item_data).toMatchObject({ fields: { Curse: 'Hums at the full moon' } }));
-    expect(world.tables.events.filter((e) => e.type === 'inventory.reveal' && e.campaign_id === campaign)).toHaveLength(1);
+    expect(world.tables.events.filter((e) => e.type === 'inventory.tell' && e.campaign_id === campaign)).toHaveLength(1);
     expect(screen.queryByRole('group', { name: 'Hidden from players' })).toBeNull();
   });
 
@@ -5942,10 +5944,11 @@ describe('the Pack tab (M4 step 4)', () => {
     await gmUser.click(await screen.findByRole('button', { name: 'Inventory' }));
     await gmUser.click(within(await screen.findByRole('group', { name: 'Whose pack' })).getByRole('button', { name: 'Wren' }));
     await gmUser.click(await screen.findByRole('button', { name: /Murky wand.*Spent \(hidden\)/ }));
-    // The GM's Reveal: the holder sees the count from now on, like visible charges.
-    await gmUser.click(screen.getByRole('button', { name: 'Reveal the count' }));
+    // The GM tells the count (K22d, "Its charges"): the holder sees it from now on, like visible charges.
+    await gmUser.click(screen.getByRole('button', { name: 'Reveal…' }));
+    await gmUser.click(within(await screen.findByRole('dialog', { name: 'Reveal' })).getByRole('button', { name: 'Tell Its charges: 0 of 1 left' }));
     await waitFor(() => expect(world.tables.inventory_lines[0]).toMatchObject({ charges_hidden: false, charges_left: 0, spent_shown: false }));
-    expect(world.tables.events.filter((e) => e.type === 'inventory.revealCharges')).toHaveLength(1);
+    expect(world.tables.events.filter((e) => e.type === 'inventory.tell')).toHaveLength(1);
   });
 
   it('crossing into another tier shows its player the banner, and the device writes no tier (the database does; M5 step 4)', async () => {

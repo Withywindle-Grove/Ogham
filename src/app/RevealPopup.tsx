@@ -1,0 +1,184 @@
+// The Reveal pop-up (K22d; ruling k22-4 to k22-8, picks 4 to 10, 14; page 33, frames K22d, K22e, K22f, K22i 3 and 4,
+// K22j, approved 2026-11-21): what is still hidden on one item, one row per fact (hiddenFacts), the whole row a tap
+// that tells that fact at once; a told row turns to "Told" and is no longer a button, the pop-up stays open, and the
+// toast carries Undo (the log's Undo of the tell). "Tell them everything" is its one accent; with everything told the
+// foot reads "Nothing is left hidden.". Opened from inside the item's sheet: its own form, the Sheet, centred on a tablet
+// and from the foot on a phone (K22i), with the toast placed above it (ToastHost, `data-toast-above`).
+import { useState } from 'react';
+import { runCommand, type CurrentUser } from '../core/commands.ts';
+import type { Db } from '../core/supabase.ts';
+import { latestChange, undoChange } from '../core/undo.ts';
+import { hiddenFacts, type HiddenFact } from '../modules/inventory/hiddenFacts.ts';
+import { tellItem, type InventoryLine, type NamedCarrier } from '../modules/inventory/inventory.ts';
+import { shownName } from '../modules/inventory/packView.ts';
+import type { ResolvedEntry } from '../modules/library/stack.ts';
+import { CentredPopUpScope, Dialog, SheetScope } from '../ui/Dialog.tsx';
+import { Icon } from '../ui/icons.tsx';
+import { WarningSign } from '../ui/parts.tsx';
+import { useToast } from '../ui/ToastHost.tsx';
+import type { OpenCampaign } from './Campaigns.tsx';
+import type { Run } from './packHelpers.ts';
+import { registry } from './services.ts';
+import './RevealPopup.css';
+
+/** The facts still hidden on a line, as the GM's copy of its entry has them; charges with their count from the secret. */
+export function factsOf(line: InventoryLine, entry: ResolvedEntry | null, secret: { total: number | null } | null): HiddenFact[] {
+  const facts = hiddenFacts(
+    { identified: line.identified !== false, revealedFields: line.revealedFields ?? [], details: line.details, chargesHidden: line.chargesHidden, category: line.category },
+    entry?.data ?? null,
+    entry?.name ?? '',
+  );
+  const total = secret?.total ?? null;
+  return facts.map((f) => (f.id === 'charges' && total !== null ? { ...f, detail: `${Math.max(0, total - line.chargesUsed)} of ${total} left` } : f));
+}
+
+/** Who a tell tells, in the toast's words: the holder's name, or "the party" for the stash (K22f, 3). */
+const whoOf = (carrier: NamedCarrier) => (carrier.locationId !== null ? 'the party' : carrier.name);
+
+/** The toast after a tell (pick 10; K22e, K22f): "Told Wren: the Bronze ring is cursed.", the true name's (pg30-5), everything's. */
+export function toldWords(fact: HiddenFact | 'everything', line: Pick<InventoryLine, 'name'>, carrier: NamedCarrier, trueName: string): string {
+  const who = whoOf(carrier);
+  const item = shownName(line.name);
+  if (fact === 'everything') return `Told ${who} everything about the ${trueName || item}.`;
+  if (fact.id === 'name') {
+    const whose = carrier.locationId !== null ? `The party’s ${item}` : `${carrier.name}’s ${item}`;
+    return `Shown to the players: ${fact.detail}. ${whose} now carries its name.`;
+  }
+  const said =
+    fact.id === 'magic'
+      ? ' is magic'
+      : fact.id === 'cursed'
+        ? ' is cursed'
+        : fact.id === 'bonus'
+          ? /^[+−-]\d+$/.test(fact.detail)
+            ? ` has a bonus of ${fact.detail}`
+            : fact.detail
+              ? ` gives ${fact.detail}`
+              : ' has a bonus'
+          : fact.id === 'charges'
+            ? fact.detail
+              ? ` has ${fact.detail.replace(/ left$/, '')} charges left`
+              : '’s charges'
+            : fact.id.startsWith('power:')
+              ? ` has a power${fact.detail ? `: ${fact.detail}` : ''}`
+              : `’s ${fact.label}${fact.detail ? `: ${fact.detail}` : ''}`;
+  return `Told ${who}: the ${item}${said}.`;
+}
+
+export function RevealPopup({
+  line,
+  entry,
+  secret,
+  carrier,
+  db,
+  user,
+  campaign,
+  run,
+  busy,
+  onClose,
+}: {
+  line: InventoryLine;
+  entry: ResolvedEntry | null;
+  secret: { total: number | null } | null;
+  carrier: NamedCarrier;
+  db: Db;
+  user: CurrentUser;
+  campaign: OpenCampaign;
+  run: Run;
+  busy: boolean;
+  onClose: () => void;
+}) {
+  const toast = useToast();
+  const now = factsOf(line, entry, secret);
+  // The list as it was opened (k22-5): a told row stays, as "Told"; opened again later, only what is still hidden.
+  const [listed] = useState(now);
+  const [failed, setFailed] = useState(false);
+  const hiddenNow = new Set(now.map((f) => f.id));
+  const left = listed.filter((f) => hiddenNow.has(f.id));
+  const where = carrier.locationId !== null ? 'in the Party stash' : `in ${carrier.name}’s pack`;
+
+  function tell(fact: HiddenFact | 'everything') {
+    if (busy) return;
+    const words = toldWords(fact, line, carrier, entry?.name ?? '');
+    let toldOk = false;
+    void run(async () => {
+      const told = await runCommand(registry, db, user, tellItem, { line: { id: line.id, carrier, version: line.version }, fact: fact === 'everything' ? 'everything' : fact.id });
+      toldOk = told.ok;
+      setFailed(!told.ok);
+      // A failed tell says so in the pop-up, above the foot (pick 14), not in a second toast; the Pack still reads again.
+      return told.ok ? told : { ok: true as const, value: null };
+    }).then((done) => {
+      if (!done || !toldOk) return;
+      toast({
+        text: words,
+        onUndo: () =>
+          void run(async () => {
+            const eventId = await latestChange(db, campaign.id, 'inventory.tell', user.id);
+            if (!eventId) return { ok: false as const, message: 'There was nothing to undo.' };
+            return runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id });
+          }),
+      });
+    });
+  }
+
+  return (
+    <SheetScope.Provider value>
+      <CentredPopUpScope.Provider value>
+        <Dialog label="Reveal" onClose={onClose}>
+          <p className="auth__meta reveal-popup__where" data-toast-above>
+            {shownName(line.name)}, {where}
+          </p>
+          <ul className="reveal-popup__list" aria-label="What is hidden">
+            {listed.map((fact) => {
+              const told = !hiddenNow.has(fact.id);
+              const words = (
+                <>
+                  <span className="reveal-popup__eye" aria-hidden="true">
+                    <Icon name={told ? 'eye' : 'eye-shut'} size={24} />
+                  </span>
+                  <span className="reveal-popup__fact">
+                    <span className="reveal-popup__label">{fact.label}</span>
+                    {fact.detail && <span className="reveal-popup__detail">{fact.detail}</span>}
+                  </span>
+                </>
+              );
+              return (
+                <li key={fact.id}>
+                  {told ? (
+                    <div className="reveal-popup__row">
+                      {words}
+                      <span className="reveal-popup__told">
+                        <Icon name="tick" size={18} /> Told
+                      </span>
+                    </div>
+                  ) : (
+                    <button type="button" className="reveal-popup__row" aria-busy={busy} aria-label={`Tell ${fact.label}${fact.detail ? `: ${fact.detail}` : ''}`} onClick={() => tell(fact)}>
+                      {words}
+                      <span className="reveal-popup__tell" aria-hidden="true">
+                        Tell
+                      </span>
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          {failed && (
+            <p className="pack__problem reveal-popup__error" role="alert">
+              <WarningSign /> Couldn’t tell {whoOf(carrier)}. Try again.
+            </p>
+          )}
+          {left.length > 0 ? (
+            <div className="dialog__actions">
+              <button type="button" className="button-primary" aria-busy={busy} onClick={() => tell('everything')}>
+                Tell them everything
+              </button>
+            </div>
+          ) : (
+            <p className="auth__meta">Nothing is left hidden.</p>
+          )}
+        </Dialog>
+      </CentredPopUpScope.Provider>
+    </SheetScope.Provider>
+  );
+}
