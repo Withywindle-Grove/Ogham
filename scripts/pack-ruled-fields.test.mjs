@@ -180,6 +180,29 @@ describe('an unidentified item’s words (K22, ⚑ 4 and ⚑ 5)', () => {
   });
 });
 
+describe('an unidentified or cursed item’s id (Francis, 2026-11-22, "A", finding 2 of the review of #40)', () => {
+  // Purpose: an item that starts unidentified (its category is marked so) or cursed reaches a player's device by its id,
+  // so the checker warns when the id shares a word of three letters or more, common words aside, with its true name; an
+  // id that hints at nothing, and any id on an ordinary item, are silent.
+  it('warns on an id that shares a word with the true name, and only for an unidentified or cursed item', () => {
+    const file = {
+      rulesSets: [{ id: 'fen-rules', name: 'Fen rules', itemCategories: [{ id: 'ring', name: 'Rings', unidentified: true }] }],
+      items: [
+        { id: 'ring-of-the-drowned-bell', name: 'Ring of the Drowned Bell', category: 'ring' },
+        { id: 'ring-07', name: 'Ring of the Drowned Bell', category: 'ring' },
+        { id: 'cursed-blade-of-sorrow', name: 'Sorrow blade', category: 'weapon', cursed: true },
+        { id: 'blade-12', name: 'Grim edge', category: 'weapon', weapon: { magicBonus: -1 } },
+        { id: 'grim-hook', name: 'Grim hook', category: 'weapon', weapon: { magicBonus: -2 } },
+        { id: 'the-fenblade', name: 'Fenblade', category: 'weapon', weapon: { magicBonus: 1 } },
+      ],
+    };
+    const ids = ruledFieldFindings(file).map((f) => f.text.match(/^items: "([^"]+)" starts unidentified/)?.[1]).filter(Boolean);
+    expect(ids).toEqual(['ring-of-the-drowned-bell', 'cursed-blade-of-sorrow', 'grim-hook']);
+    // A word the face shows anyway (the category's "ring") is no hint; the rest are named.
+    expect(ruledFieldFindings(file).find((f) => f.text.includes('ring-of-the-drowned-bell'))?.text).toContain('shares "drowned", "bell" with');
+  });
+});
+
 describe('the command’s exit code', () => {
   // Purpose: a ruled-field error makes `npm run pack:check` exit 1; a warning alone leaves it at 0.
   it('exits 1 on an error and 0 on a warning alone', () => {

@@ -13,8 +13,10 @@
 --     singular name); its item_data the entry's visible part less every hidden fact (the true name, a bonus, powers,
 --     the curse, labelled hidden fields, visible fields that carry a fact in words (Bonus, Curse, Cursed, Charges,
 --     Magic, Power, Powers), the item's own description, notes and source).
---   A patch that changes such an item's truth is the GM's alone, as a patch on a gmOnly field already is
+--   A patch that targets such an item (by id, or by a category marked unidentified) and changes a fact of it not yet
+--     told on a line of it in the campaign is the GM's alone, as a patch on a gmOnly field already is
 --     (private.patch_hides_target_field, read by the library, a player's plain read, the log and a pack update's line).
+--     A patch on every item, or on a plain identified item, reads as before.
 --   An Undo of a tell is refused, with its reason, once part of the line was split off since (the part keeps the told
 --     facts and the Undo can't reach it).
 --   A player's read of such an entry gets the same face: public.campaign_library returns the face's name and data, and
@@ -27,8 +29,8 @@
 --   One bump of every campaign's seen stamp, so a device holding an old full copy of an entry fetches the face.
 -- Read rules that change: "library entries: owner or campaigns using the pack read" (dropped and made again under its
 --   own name): a player no longer reads an entry that starts unidentified in a campaign they play in (not as GM). And,
---   through private.patch_hides_target_field: a player no longer reads a patch that changes an unidentified item's
---   truth (in the library, by a plain read, in the log or a pack update's line).
+--   through private.patch_hides_target_field: a player no longer reads a patch that targets an unidentified item and
+--   changes a fact of it not yet told (in the library, by a plain read, in the log or a pack update's line).
 -- Drops, renames or deletes no data.
 --
 -- builds on: private.copy_item_details from 20261024230000_m4_review_fixes.sql
@@ -689,10 +691,33 @@ $$;
 revoke execute on function private.patch_touches_face(jsonb, jsonb) from public, anon;
 grant execute on function private.patch_touches_face(jsonb, jsonb) to authenticated, service_role;
 
+-- Whether every fact a patch changes of an entry is told on some line of it in a campaign: the true name when the line
+-- is identified, anything else when the line carries the path (a face carries no untold fact, so a path on the line is
+-- one told, or a line made before K22, which shows it). The driver's narrowing of review finding 3.
+create function private.patch_told_in(campaign uuid, pack uuid, entry_id text, patch jsonb, whole jsonb) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (
+    select 1 from public.inventory_lines l
+    where l.campaign_id = campaign and l.source_pack_id = pack and l.source_entry_id = entry_id
+      and not exists (
+        select 1
+        from jsonb_object_keys(case when jsonb_typeof(patch -> 'change') = 'object' then patch -> 'change' else '{}'::jsonb end) p(path)
+        where private.patch_touches_face(jsonb_build_object('change', jsonb_build_object(p.path, true)), whole)
+          and case
+            when btrim(split_part(btrim(p.path), '.', 1)) in ('name', 'unitName', 'pluralName') then not l.identified
+            else l.item_data #> string_to_array(btrim(p.path), '.') is null
+          end)
+  );
+$$;
+revoke execute on function private.patch_told_in(uuid, uuid, text, jsonb, jsonb) from public, anon;
+grant execute on function private.patch_told_in(uuid, uuid, text, jsonb, jsonb) to authenticated, service_role;
+
 -- As in 20261111110000_fix_hidden_data_cache_and_patches.sql (D), plus: a patch is the GM's too when it changes the
--- truth of an item it may match that starts unidentified in a campaign using that item's pack. Its callers (the
--- campaign's library, a player's plain read, the log's readers, a pack update's line) then keep it from players, as
--- they keep a patch on a gmOnly field.
+-- truth of an item it targets (by id, or by a category a rules set marks unidentified) that starts unidentified in a
+-- campaign using that item's pack, while that fact isn't told on a line of it there. A patch on every item, on a
+-- category not marked unidentified, or on a plain identified item reads as before. Its callers (the campaign's
+-- library, a player's plain read, the log's readers, a pack update's line) then keep it from players, as they keep a
+-- patch on a gmOnly field.
 create or replace function private.patch_hides_target_field(patch_pack uuid, patch jsonb) returns boolean
 language sql stable security definer set search_path = '' as $$
   with target as (
@@ -727,12 +752,13 @@ language sql stable security definer set search_path = '' as $$
         else coalesce(array(select jsonb_array_elements_text(case when jsonb_typeof(w.whole -> 'gmOnly') = 'array' then w.whole -> 'gmOnly' else '[]'::jsonb end)), '{}')
       end
   )
-  -- K22a: a patch on an unidentified item's truth.
+  -- K22a: a patch on an unidentified item's untold truth, when it targets that item (by id, or by an unidentified
+  -- category).
   or exists (
     select 1
     from target
     join public.library_entries e on target.kind = 'item' and e.kind = 'item'
-      and (cardinality(target.ids) = 0 or e.pack_entry_id = any (target.ids))
+      and (e.pack_entry_id = any (target.ids) or (cardinality(target.ids) = 0 and target.category is not null))
     join alongside on alongside.pack_id = e.pack_id
     cross join lateral (
       select e.data || coalesce((select s.data from public.library_entry_secrets s where s.id = e.id), '{}'::jsonb) as whole
@@ -741,7 +767,12 @@ language sql stable security definer set search_path = '' as $$
       and (target.category is null or w.whole ->> 'category' = target.category)
       and exists (
         select 1 from public.campaign_packs cp
-        where cp.pack_id = e.pack_id and private.is_masked(w.whole, private.unidentified_categories(cp.campaign_id)))
+        where cp.pack_id = e.pack_id
+          and case
+            when cardinality(target.ids) > 0 then private.is_masked(w.whole, private.unidentified_categories(cp.campaign_id))
+            else target.category = any (private.unidentified_categories(cp.campaign_id))
+          end
+          and not private.patch_told_in(cp.campaign_id, e.pack_id, e.pack_entry_id, patch, w.whole))
   );
 $$;
 

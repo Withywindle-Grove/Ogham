@@ -7,7 +7,8 @@
 //   says "Encounter check");
 // - a coin's `unitName` and `pluralName` (pf-17; `rulesSets[].currency[]`): words when given, a warning when one comes
 //   without the other (the app uses them only together), and an error for a key listed twice in one list;
-// - an item category's `singular` and an item's `looks` (K22, ⚑ 4 and ⚑ 5, 2026-11-22): words when given, else a warning.
+// - an item category's `singular` and an item's `looks` (K22, ⚑ 4 and ⚑ 5, 2026-11-22): words when given, else a warning;
+// - an item that starts unidentified or cursed whose id shares a word with its true name (2026-11-22): a warning.
 // Each finding has a level, error, warning or note; the checker prints them among its format notes, each starting "Error:",
 // "Warning:" or "Note:". An error makes the command exit 1 (check-pack.mjs; the lead's ruling, 2026-11-13); a warning alone
 // doesn't. A pack that uses none of the three gets nothing from here.
@@ -92,12 +93,40 @@ function unidentifiedFindings(file) {
       }
     }
   }
+  // An entry that starts unidentified (its category is marked so in this file) or cursed reaches a player's device by
+  // its id (Francis, 2026-11-22, "A", on finding 2 of the review of #40): the id must not hint at its truth. Warned when
+  // the id shares a word of three letters or more with its true name, common words aside, and words its face shows
+  // anyway aside (its category's id, name and singular, its appearsAs): "ring-07" for a ring is fine.
+  const categories = entriesOf(file, 'rulesSets').flatMap((rules) => (Array.isArray(rules.itemCategories) ? rules.itemCategories.filter(isObject) : []));
+  const unidentified = new Set(categories.filter((c) => c.unidentified === true && isText(c.id)).map((c) => c.id));
+  const faceWords = (item) =>
+    hintWords(
+      [item.category, item.appearsAs, ...categories.filter((c) => c.id === item.category).flatMap((c) => [c.name, c.singular])]
+        .filter(isText)
+        .join(' '),
+    );
+  const negative = (block) => isObject(block) && typeof block.magicBonus === 'number' && block.magicBonus < 0;
   for (const item of entriesOf(file, 'items')) {
     if (item.looks !== undefined && !isText(item.looks)) {
       found.push({ level: 'warning', text: `items: "${label(item)}": looks should be words (what players see of it, "A plain band of old bronze."); it is left out.` });
     }
+    const hidden = (isText(item.category) && unidentified.has(item.category)) || item.cursed === true || negative(item.weapon) || negative(item.armour);
+    if (!hidden || !isText(item.id) || !isText(item.name)) continue;
+    const shown = faceWords(item);
+    const shared = [...hintWords(item.id)].filter((word) => hintWords(item.name).has(word) && !shown.has(word));
+    if (shared.length > 0) {
+      found.push({ level: 'warning', text: `items: "${item.id}" starts unidentified or cursed, and its id shares "${shared.join('", "')}" with its true name; players' devices get the id, so give it one that hints at nothing ("ring-07").` });
+    }
   }
   return found;
+}
+
+/** Common words that hint at nothing, whatever the item. */
+const COMMON_WORDS = new Set(['the', 'and', 'for', 'with', 'from', 'into', 'onto', 'its', 'his', 'her', 'their', 'that', 'this', 'not']);
+
+/** The words of an id or a name, lower case: three letters or more, common words aside. */
+function hintWords(text) {
+  return new Set(text.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((word) => word.length >= 3 && !COMMON_WORDS.has(word)));
 }
 
 /** Every finding on the ruled fields, `{ level: 'error' | 'warning' | 'note', text }`, in file order. Never throws. */

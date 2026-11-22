@@ -85,6 +85,9 @@ const ITEMS = [
   { id: 'heron-bow', name: 'Heron bow', category: 'magic-bow', slot: 'hand', weapon: { damage: '1d6', bonusVs: [{ against: 'bog lurkers', bonus: 3 }] } },
   { id: 'ember-arrows', name: 'Ember arrows', category: 'magic-arrows', stack: 20, appearsAs: 'Arrows', weapon: { magicBonus: 1 } },
   { id: 'arrows', name: 'Arrows', category: 'ammunition', stack: 20 },
+  // A plain, identified magic sword: its patches reach players as before. Not for sale, so players know it only once
+  // it is handed out (test 3); the reads of the first test hold no magic bonus at all.
+  { id: 'fen-blade', name: 'Fenblade', category: 'weapon', forSale: false, slot: 'hand', weapon: { damage: '1d8', magicBonus: 1 } },
   // Review of #40, finding 4: visible fields that say a fact in words.
   { id: 'glass-ring', name: 'Ring of Green Glass', category: 'ring', fields: { Bonus: '+2 to saves', Curse: 'Brittle in the cold', Glass: 'Sea-green' } },
 ];
@@ -333,28 +336,41 @@ describe('the local review of #40', () => {
     }
   });
 
-  // Purpose (finding 3): a patch that changes an unidentified item's truth (its magic bonus) is the GM's, by any read;
-  // one that changes something players see of it (its damage) still reaches them.
-  it('3. a patch on an unidentified item’s truth reaches no player', async () => {
-    await add(world.gm, 'sorrow-blade');
+  // Purpose (finding 3, as the driver narrowed it): a patch that targets an unidentified item and changes a fact of it
+  // not yet told (its magic bonus) is the GM's, by any read, until that fact is told on a line of it; one that changes
+  // something players see of it (its damage) still reaches them; and a bonus patch on a plain, identified item, or on
+  // every item, reaches them as before (their numbers use it).
+  it('3. a patch on an unidentified item’s untold truth reaches no player; a plain item’s bonus patch does', async () => {
+    const sorrow = await add(world.gm, 'sorrow-blade');
+    await add(world.gm, 'fen-blade');
     must(
       await world.admin
         .from('library_entries')
         .insert([
           { pack_id: packId, kind: 'patch', pack_entry_id: 'sharper-sorrow', name: 'Sharper sorrow', data: { match: { kind: 'item', ids: ['sorrow-blade'] }, change: { 'weapon.magicBonus': { delta: -1 } } } },
           { pack_id: packId, kind: 'patch', pack_entry_id: 'heavier-sorrow', name: 'Heavier sorrow', data: { match: { kind: 'item', ids: ['sorrow-blade'] }, change: { 'weapon.damage': { delta: 1 } } } },
+          { pack_id: packId, kind: 'patch', pack_entry_id: 'sharper-fen', name: 'Sharper fen', data: { match: { kind: 'item', ids: ['fen-blade'] }, change: { 'weapon.magicBonus': { delta: 1 } } } },
+          { pack_id: packId, kind: 'patch', pack_entry_id: 'sharper-all', name: 'Sharper all', data: { match: { kind: 'item' }, change: { 'weapon.magicBonus': { delta: 1 } } } },
         ])
         .select('id'),
     );
-    for (const person of [world.playerA, world.playerB]) {
+    const patchesFor = async (person: Person) => {
       const library = must(await person.db.rpc('campaign_library', { campaign: world.campaignId, packs: [packId] })) as { kind: string; pack_entry_id: string }[];
-      const patches = library.filter((e) => e.kind === 'patch').map((e) => e.pack_entry_id);
-      expect(patches).toContain('heavier-sorrow');
-      expect(patches).not.toContain('sharper-sorrow');
-      expect(must(await person.db.from('library_entries').select('pack_entry_id').eq('pack_id', packId).eq('kind', 'patch')).map((e) => e.pack_entry_id)).not.toContain('sharper-sorrow');
+      const plain = must(await person.db.from('library_entries').select('pack_entry_id').eq('pack_id', packId).eq('kind', 'patch')).map((e) => e.pack_entry_id as string);
+      return { library: library.filter((e) => e.kind === 'patch').map((e) => e.pack_entry_id), plain };
+    };
+    for (const person of [world.playerA, world.playerB]) {
+      const { library, plain } = await patchesFor(person);
+      expect(library).toEqual(expect.arrayContaining(['heavier-sorrow', 'sharper-fen', 'sharper-all']));
+      expect(library).not.toContain('sharper-sorrow');
+      expect(plain).toEqual(expect.arrayContaining(['sharper-fen', 'sharper-all']));
+      expect(plain).not.toContain('sharper-sorrow');
     }
     const gmLibrary = must(await world.gm.db.rpc('campaign_library', { campaign: world.campaignId, packs: [packId] })) as { pack_entry_id: string }[];
-    expect(gmLibrary.map((e) => e.pack_entry_id)).toEqual(expect.arrayContaining(['sharper-sorrow', 'heavier-sorrow']));
+    expect(gmLibrary.map((e) => e.pack_entry_id)).toEqual(expect.arrayContaining(['sharper-sorrow', 'heavier-sorrow', 'sharper-fen', 'sharper-all']));
+    // The bonus told on a line of it: the patch on that bonus is the players' too (their numbers use it).
+    await ok(as(world.gm, tellItem, { line: refOf(sorrow, wren()), fact: 'bonus' }));
+    for (const person of [world.playerA, world.playerB]) expect((await patchesFor(person)).library).toContain('sharper-sorrow');
   });
 
   // Purpose (finding 4): a visible field that says a fact in words (Bonus, Curse) is off the face, for every player
