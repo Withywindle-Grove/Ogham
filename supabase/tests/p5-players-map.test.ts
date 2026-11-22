@@ -7,7 +7,8 @@
 //     its eye is open: its copy's id and its title, never a place id, a pack entry or the map entry's words;
 //   * it stays through a move to a place not shown yet (the last place shown, mc-39b), and at another Location of the
 //     same Area once shown (the one copy the campaign holds); at a place with no map, nothing;
-//   * a player in another group, someone outside the campaign, and a player asking about another campaign read nothing;
+//   * another group's shown, shared map reaches that group only, never player A; a campaign player A isn't in, with a
+//     place shown and its map shared, sends A nothing (its own player reads it); someone outside reads nothing;
 //   * the eye opened or closed ticks the group's signal, so screens read again.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../src/app/commandRegistry.ts';
@@ -16,7 +17,7 @@ import { loadCurrentUser } from '../../src/core/currentUser.ts';
 import type { Db } from '../../src/core/supabase.ts';
 import { chooseGroup } from '../../src/modules/expedition/groupPlay.ts';
 import { addPlaceMap, loadPlayersMaps, setPlaceMap, shareMap } from '../../src/modules/expedition/placeMap.ts';
-import { loadGroupPlaces, setPlace, showPiece } from '../../src/modules/expedition/placePlay.ts';
+import { addPiece, loadGroupPlaces, setPlace, showPiece } from '../../src/modules/expedition/placePlay.ts';
 import { startExpedition } from '../../src/modules/expedition/play.ts';
 import { attachPack, loadCampaignEntries } from '../../src/modules/library/campaignPacks.ts';
 import { importPack } from '../../src/modules/library/library.ts';
@@ -143,14 +144,52 @@ describe("the players' map, as the database sends it (P5)", () => {
     expect(await raw(world.playerA)).toEqual([{ group_number: 1, asset_id: assetId, title: CHART }]);
   });
 
-  // Purpose: nobody else reads group 1's map through this read: a player in another group, someone outside the campaign,
-  // and a player naming a campaign they aren't in.
-  it('sends nothing to another group, an outsider or about another campaign', async () => {
-    expect(await raw(world.playerB)).toEqual([]);
+  // Purpose: another group's map, shown to that group with its eye open, reaches that group's player and never player A,
+  // whose own group reads only its own; group 1's map never reaches player B either.
+  it("sends another group's shown map to that group only", async () => {
+    await ok(as(world.gm, setPlace, { campaignId, group: 2, name: 'The Heron Weir' }));
+    const weir = (await loadGroupPlaces(asDb(world.gm), campaignId, tripId))!.get(2)!.place!;
+    await ok(as(world.gm, addPiece, { campaignId, placeId: weir.id, kind: 'description', text: 'A weir of woven willow.' }));
+    const visit = (await loadGroupPlaces(asDb(world.gm), campaignId, tripId))!.get(2)!;
+    await ok(as(world.gm, showPiece, { campaignId, row: visit, piece: visit.pieces[0]! }));
+    const weirMap = await ok(as(world.gm, addPlaceMap, { campaignId, place: visit.place!, title: 'The Heron Weir, a sketch', image: new Blob(['a sketch'], { type: 'image/png' }) }));
+    await ok(as(world.gm, setPlaceMap, { campaignId, place: (await loadGroupPlaces(asDb(world.gm), campaignId, tripId))!.get(2)!.place!, assetId: weirMap }));
+    await ok(as(world.gm, shareMap, { campaignId, assetId: weirMap, shown: true }));
+    // Player B's group reads its own map (the read works for them), and nothing of group 1's.
+    expect(await raw(world.playerB)).toEqual([{ group_number: 2, asset_id: weirMap, title: 'The Heron Weir, a sketch' }]);
+    // Player A's group reads its own (the harbour chart, eye open since the last test), never the weir's.
+    expect(await raw(world.playerA)).toEqual([{ group_number: 1, asset_id: assetId, title: CHART }]);
+    expect(JSON.stringify(await raw(world.playerA))).not.toContain('Heron');
     expect(await raw(world.outsider)).toEqual([]);
-    const elsewhere = must(await world.admin.from('campaigns').insert({ name: 'The Ash Barrows', created_by: world.gm.id }).select().single());
-    expect(await raw(world.playerA, elsewhere.id as string)).toEqual([]);
-    await world.admin.from('campaigns').delete().eq('id', elsewhere.id as string);
+  });
+
+  // Purpose: a campaign player A isn't in, with a place shown and its map's eye open, sends player A nothing when A names
+  // it; its own player reads the map (so the read would send it to someone allowed).
+  it('sends nothing about a campaign the player is not in', async () => {
+    const other = must(await world.admin.from('campaigns').insert({ name: 'The Ash Barrows', created_by: world.gm.id }).select().single());
+    const otherId = other.id as string;
+    must(
+      await world.admin
+        .from('members')
+        .insert([
+          { campaign_id: otherId, user_id: world.gm.id, base_role: 'gm' },
+          { campaign_id: otherId, user_id: world.playerB.id, base_role: 'player' },
+        ])
+        .select(),
+    );
+    must(await world.admin.from('actors').insert({ campaign_id: otherId, kind: 'pc', name: 'Moss of the Bog Lights', owner_type: 'user', owner_user_id: world.playerB.id, approval: 'approved', status: 'active', level: 1 }).select('id'));
+    const trip = await ok(as(world.gm, startExpedition, { campaignId: otherId, mode: 'dungeon', place: 'The Salt Steps' }));
+    const steps = (await loadGroupPlaces(asDb(world.gm), otherId, trip.id))!.get(1)!.place!;
+    await ok(as(world.gm, addPiece, { campaignId: otherId, placeId: steps.id, kind: 'description', text: 'Steps cut in salt.' }));
+    const visit = (await loadGroupPlaces(asDb(world.gm), otherId, trip.id))!.get(1)!;
+    await ok(as(world.gm, showPiece, { campaignId: otherId, row: visit, piece: visit.pieces[0]! }));
+    const stepsMap = await ok(as(world.gm, addPlaceMap, { campaignId: otherId, place: visit.place!, title: 'The Salt Steps, a sketch', image: new Blob(['a sketch'], { type: 'image/png' }) }));
+    await ok(as(world.gm, setPlaceMap, { campaignId: otherId, place: (await loadGroupPlaces(asDb(world.gm), otherId, trip.id))!.get(1)!.place!, assetId: stepsMap }));
+    await ok(as(world.gm, shareMap, { campaignId: otherId, assetId: stepsMap, shown: true }));
+    expect(await raw(world.playerB, otherId)).toEqual([{ group_number: 1, asset_id: stepsMap, title: 'The Salt Steps, a sketch' }]);
+    expect(await raw(world.playerA, otherId)).toEqual([]);
+    expect(await raw(world.outsider, otherId)).toEqual([]);
+    await world.admin.from('campaigns').delete().eq('id', otherId);
   });
 
   // Purpose: the eye opened or closed ticks each group's signal, so players' screens read again at once.

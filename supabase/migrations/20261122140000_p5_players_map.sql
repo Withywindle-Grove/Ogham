@@ -16,7 +16,9 @@
 --      ("assets: read by visibility", 20261103200000_m5b_1b_place_picture.sql). It sends no place id, no pack or map
 --      entry, no place name, no position (a map's pins are R2, 07 §9).
 --   3. A map's eye opened or closed ticks the signal of every group of its campaign (private.tick_group), so players'
---      screens read again at once. The signal carries no word of what changed.
+--      screens read again at once. The signal carries no word of what changed. Every group, not only those whose last
+--      shown place has this map: working out which would repeat the read above in a trigger, and a needless tick costs
+--      one quiet re-read and tells a player nothing (ticks already come with each piece the GM shows). Accepted for that.
 -- builds on (calls, replaces nothing): private.in_my_group from 20261031180000_m5_places_review.sql; private.visit_shown
 -- and private.place_chain from 20261113120000_dec_7_3_place_check_and_rules.sql; private.tick_group from
 -- 20261102100000_m5b_g2_place_pieces.sql (each its newest definition).

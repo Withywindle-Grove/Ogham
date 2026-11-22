@@ -258,22 +258,34 @@ export function PlaceMapPart({
   );
 }
 
+/** A player's map read that failed with nothing read before (PL9's failed read, in the map's place). */
+export const MAP_UNREAD_WORDS = "Couldn't load the map. Check your connection and try again.";
+
+/** The maps a player's groups see, as last read: `maps` null until a read has come; `failed` when the latest failed. */
+export interface PlayersMapsRead {
+  maps: ReadonlyMap<number, PlayersMap> | null;
+  failed: boolean;
+  retry: () => void;
+}
+
 /**
- * The maps a player's groups see (P5; public.map_for_players), read again with the log and the group's signal; a failed
- * read keeps the last good one, so the frame never blinks away on a network blip.
+ * The maps a player's groups see (P5; public.map_for_players), read again with the log and the group's signal. "Not read
+ * yet" (null) is kept apart from "read, none shared" (an empty map); a failed read keeps the last good one, so the frame
+ * never blinks away on a network blip, and with none says so (the caller's Try again calls `retry`).
  */
-export function usePlayersMaps(db: Db, campaignId: string, player: boolean): ReadonlyMap<number, PlayersMap> {
+export function usePlayersMaps(db: Db, campaignId: string, player: boolean): PlayersMapsRead {
   const logVersion = useLogVersion();
-  const [maps, setMaps] = useState<ReadonlyMap<number, PlayersMap>>(new Map());
+  const [round, setRound] = useState(0);
+  const [read, setRead] = useState<{ maps: ReadonlyMap<number, PlayersMap> | null; failed: boolean }>({ maps: null, failed: false });
   useEffect(() => {
     if (!player) return;
     let live = true;
-    void loadPlayersMaps(db, campaignId).then((read) => live && read && setMaps(read));
+    void loadPlayersMaps(db, campaignId).then((maps) => live && setRead((was) => (maps ? { maps, failed: false } : { maps: was.maps, failed: true })));
     return () => {
       live = false;
     };
-  }, [db, campaignId, player, logVersion]);
-  return maps;
+  }, [db, campaignId, player, logVersion, round]);
+  return { ...read, retry: () => setRound((n) => n + 1) };
 }
 
 /**

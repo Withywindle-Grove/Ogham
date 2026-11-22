@@ -11,6 +11,7 @@
 //   * loading: still bars in both columns;
 //   * the parts that say "nothing yet" take nothing of a place, so nothing hidden can reach the screen through them.
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import { chooseGroup } from '../modules/expedition/groupPlay.ts';
@@ -180,7 +181,7 @@ describe("the players' Scene on the party's page (P1)", () => {
     expect(left.getByText('Dusty frames and a draught.')).toBeTruthy();
     expect(left.queryByRole('heading', { name: 'Somewhere new' })).toBeNull();
     const right = within(column(container, 'right'));
-    expect(right.queryByRole('region', { name: 'The map' })).toBeNull();
+    await waitFor(() => expect(right.queryByRole('region', { name: 'The map' })).toBeNull());
     expect(right.queryByRole('region', { name: 'This place' })).toBeNull();
     const order = await right.findByRole('heading', { name: 'Marching order' });
     expect(right.queryByRole('button', { name: /^What we know/ })).toBeNull();
@@ -395,7 +396,7 @@ describe("the players' map (P5; mc-37, dp-3; 01-08, 01-08c, PL1, PL2)", () => {
     await t.showFirst();
     const { container } = open(t, 'sam');
     await screen.findByRole('heading', { name: PLACE });
-    expect(within(column(container, 'right')).queryByRole('region', { name: 'The map' })).toBeNull();
+    await waitFor(() => expect(within(column(container, 'right')).queryByRole('region', { name: 'The map' })).toBeNull());
     expect(container.textContent).not.toContain('a plan');
   });
 
@@ -432,5 +433,30 @@ describe("the players' map (P5; mc-37, dp-3; 01-08, 01-08c, PL1, PL2)", () => {
     expect(await right.findByRole('region', { name: 'The map' })).toBeTruthy();
     expect(right.queryByText('No map shared yet.')).toBeNull();
     expect(right.getByRole('region', { name: 'This place' })).toBeTruthy();
+  });
+
+  // Purpose (PL9): when the map can't be read, the page says so with Try again in the map's place, never "No map shared
+  // yet." on a guess; Try again reads again, and the map comes once the read works.
+  it('says a failed read with Try again, never "No map shared yet."', async () => {
+    const t = await table();
+    await t.addMap(true);
+    const real = world.db.rpc.bind(world.db);
+    let failing = true;
+    const spy = vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: Record<string, unknown>) => {
+      if (name !== 'map_for_players' || !failing) return real(name as never, args as never);
+      const failed = Promise.resolve({ data: null, error: { message: 'Failed to fetch' } });
+      return Object.assign(failed, { setHeader: () => failed });
+    }) as never);
+    const { container } = open(t, 'sam');
+    await screen.findByRole('heading', { name: 'Somewhere new' });
+    const right = within(column(container, 'right'));
+    expect(await right.findByText("Couldn't load the map. Check your connection and try again.")).toBeTruthy();
+    expect(right.queryByText('No map shared yet.')).toBeNull();
+    failing = false;
+    await userEvent.click(right.getByRole('button', { name: 'Try again' }));
+    // Read now, and nothing shown yet: PL2's dashed frame (the read sends nothing before a place is shown).
+    expect(await right.findByText('No map shared yet.')).toBeTruthy();
+    expect(right.queryByText("Couldn't load the map. Check your connection and try again.")).toBeNull();
+    spy.mockRestore();
   });
 });

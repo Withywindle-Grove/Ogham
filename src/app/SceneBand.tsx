@@ -28,7 +28,6 @@ import { DiceWords, DieGlyph, dieOf } from '../ui/dice.tsx';
 import { Icon, StepIcon } from '../ui/icons.tsx';
 import { WarningSign } from '../ui/parts.tsx';
 import { RuleText } from '../ui/RuleText.tsx';
-import '../ui/creation.css';
 import './SceneBand.css';
 
 export interface DateLine {

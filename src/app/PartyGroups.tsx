@@ -28,7 +28,7 @@ import { readTown } from '../modules/expedition/town.ts';
 import { loadLastPlaces, loadSceneTowns, type SceneTown } from '../modules/expedition/townPlaces.ts';
 import { loadTownSwitches } from '../modules/expedition/townPlay.ts';
 import type { TownSwitches } from '../modules/expedition/townSwitches.ts';
-import { PlayersMapCard, usePlayersMaps } from './PlaceMap.tsx';
+import { MAP_UNREAD_WORDS, PlayersMapCard, usePlayersMaps } from './PlaceMap.tsx';
 import { WhatWeKnow } from './WhatWeKnow.tsx';
 import { TownActions } from './TownActions.tsx';
 import { campaignUnits } from '../modules/expedition/play.ts';
@@ -44,6 +44,7 @@ import type { CampEntry } from '../modules/expedition/camp.ts';
 import { loadCampaignSettings } from '../core/campaignCommands.ts';
 import { Dialog } from '../ui/Dialog.tsx';
 import { Chip, SkeletonRows, StackedButton } from '../ui/parts.tsx';
+import { RefreshFailedRow } from '../ui/WhereToParts.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { useLogVersion } from './campaignLog.tsx';
@@ -558,13 +559,20 @@ export function PartyGroups({
               stays through a move to a place not shown yet (mc-39b's rule; Francis, 2026-11-22). None shared: before
               anything is shown the dashed frame says so (PL2); after, no frame at all (dp-3). */}
           {shown.map((n) => {
-            const map = playersMaps.get(n);
-            const card = map && (
+            const label = cardGroup(n) ? `${cardGroup(n)}: the map` : 'The map';
+            const map = playersMaps.maps?.get(n);
+            // Read and none shared: nothing (or PL2's dashed frame). Not read yet: still bars (PL9). The first read
+            // failed: says so with Try again (PL9), never "No map shared yet." on a guess.
+            const card = map ? (
               <PlayersSceneCard key={`map-${n}`}>
-                <PlayersMapCard db={db} campaignId={campaign.id} map={map} label={cardGroup(n) ? `${cardGroup(n)}: the map` : 'The map'} />
+                <PlayersMapCard db={db} campaignId={campaign.id} map={map} label={label} />
+              </PlayersSceneCard>
+            ) : playersMaps.maps ? null : (
+              <PlayersSceneCard key={`map-${n}`} label={label}>
+                {playersMaps.failed ? <RefreshFailedRow words={MAP_UNREAD_WORDS} onRetry={playersMaps.retry} /> : <SkeletonRows rows={3} label="Loading the map" />}
               </PlayersSceneCard>
             );
-            return !placeLineShows(scene.get(n)) ? <NothingSharedYet key={n} group={cardGroup(n)} map={card || undefined} /> : card;
+            return !placeLineShows(scene.get(n)) ? <NothingSharedYet key={n} group={cardGroup(n)} map={card ?? undefined} /> : card;
           })}
           {/* The Area's card (P4; PL1b): its name once shown, what the GM has shared, the Rules row, the other Locations
               the group knows. Only once something of the place is shown, as the read itself sends nothing before. */}
