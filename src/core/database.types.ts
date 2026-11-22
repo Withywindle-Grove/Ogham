@@ -6121,6 +6121,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      map_for_players: {
+        Args: { campaign: string }
+        Returns: {
+          asset_id: string
+          group_number: number
+          title: string
+        }[]
+      }
       move_between_places: {
         Args: {
           by_seconds: number

@@ -15,13 +15,20 @@
 //     in the tile's accessible name and its sheet. Due takes the warm edge, a Light fact in the dark the cool glow and
 //     the warning sign (st-5); a tap opens the fact (its rule or its sheet). No row with no facts (before the first
 //     session).
+//   FactSheet: a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, PL8, approved 2026-11-14, ap-10):
+//     the fact's own state as labelled lines, then "The rule" in the book's format with its source, where the
+//     player's copy of the setting has words for it; nothing to run.
 // Nothing here is the GM's alone: the players' top (S15) uses the same parts with the facts it may read.
 import { useLayoutEffect, useRef, type ReactNode } from 'react';
-import type { Fact } from '../modules/expedition/sceneTop.ts';
+import type { RuleBlock } from '../modules/expedition/placeRules.ts';
+import type { Fact, FactLine } from '../modules/expedition/sceneTop.ts';
 import type { SetIconName } from '../ui/iconSet.ts';
-import { DieGlyph, dieOf } from '../ui/dice.tsx';
+import { BookFacesScope, Dialog } from '../ui/Dialog.tsx';
+import { DiceWords, DieGlyph, dieOf } from '../ui/dice.tsx';
 import { Icon, StepIcon } from '../ui/icons.tsx';
 import { WarningSign } from '../ui/parts.tsx';
+import { RuleText } from '../ui/RuleText.tsx';
+import '../ui/creation.css';
 import './SceneBand.css';
 
 export interface DateLine {
@@ -307,5 +314,33 @@ export function FactsRow({ facts, onOpen, centred = false }: { facts: readonly F
         <FactTile key={f.id} fact={f} onOpen={() => onOpen(f.id)} />
       ))}
     </div>
+  );
+}
+
+/**
+ * A player's tap on a fact (PL8): the app's centred pop-up in the book's faces, the fact's state as labelled lines (the
+ * book's labelled line, as the Weather sheet's), then "The rule" in the book's format with its source. No rule where the
+ * player's copy of the setting has no words for it (or keeps them for the GM): the state alone.
+ */
+export function FactSheet({ title, lines, rule, onClose }: { title: string; lines: readonly FactLine[]; rule: readonly RuleBlock[]; onClose: () => void }) {
+  return (
+    <BookFacesScope.Provider value>
+      <Dialog label={title} onClose={onClose}>
+        <div className="fact-sheet">
+          {lines.map((line, i) => (
+            <p key={i} className="book-line">
+              <span className="book-label">{line.label}</span>
+              {line.words && <DiceWords>{line.words}</DiceWords>}
+            </p>
+          ))}
+          {rule.length > 0 && (
+            <>
+              <h3 className="book-subhead">The rule</h3>
+              <RuleText blocks={rule} />
+            </>
+          )}
+        </div>
+      </Dialog>
+    </BookFacesScope.Provider>
   );
 }

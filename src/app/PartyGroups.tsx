@@ -28,6 +28,7 @@ import { readTown } from '../modules/expedition/town.ts';
 import { loadLastPlaces, loadSceneTowns, type SceneTown } from '../modules/expedition/townPlaces.ts';
 import { loadTownSwitches } from '../modules/expedition/townPlay.ts';
 import type { TownSwitches } from '../modules/expedition/townSwitches.ts';
+import { PlayersMapCard, usePlayersMaps } from './PlaceMap.tsx';
 import { WhatWeKnow } from './WhatWeKnow.tsx';
 import { TownActions } from './TownActions.tsx';
 import { campaignUnits } from '../modules/expedition/play.ts';
@@ -51,7 +52,7 @@ import { registry } from './services.ts';
 import { usePhone } from './useWide.ts';
 import { loadPlayersRules, type PlayersRule } from '../modules/expedition/placeRules.ts';
 import { useLastGoodRules } from './PlaceRules.tsx';
-import { NothingSharedYet, PlayersActivities, PlayersSceneLoading, PlayersScenePage, showsPlayersPage, SomewhereNew } from './PlayersScenePage.tsx';
+import { NothingSharedYet, PlayersActivities, PlayersSceneCard, PlayersSceneLoading, PlayersScenePage, showsPlayersPage, SomewhereNew } from './PlayersScenePage.tsx';
 import { activitiesWithRules } from '../modules/expedition/playerActions.ts';
 import { PlayersWhereTo, usePlayersWaysOn, WhereToNoneYet } from './PlayersWhereTo.tsx';
 import { stepNowOf } from '../modules/expedition/playersWays.ts';
@@ -180,6 +181,8 @@ export function PartyGroups({
   const ways = usePlayersWaysOn(db, campaign.id, !isGm(user, campaign.id));
   // The players' place card (P4): the Area's card's read and what the GM has shared (a player's only).
   const areaCards = usePlayersPlaceCards(db, campaign.id, !isGm(user, campaign.id));
+  // The players' map (P5): the shared map of the last place shown to each of a player's groups.
+  const playersMaps = usePlayersMaps(db, campaign.id, !isGm(user, campaign.id));
 
   useEffect(() => {
     let current = true;
@@ -231,9 +234,7 @@ export function PartyGroups({
             <p className="groups__note" role="alert">
               Couldn't load the party's groups. Check your connection and try again.
             </p>
-            <button type="button" className="button-secondary" onClick={() => setVersion((v) => v + 1)}>
-              Try again
-            </button>
+            <StackedButton icon="refresh" label="Try again" onClick={() => setVersion((v) => v + 1)} />
           </section>
         </div>
       </div>
@@ -553,15 +554,25 @@ export function PartyGroups({
       }
       right={
         <>
-          {shown.map((n) => !placeLineShows(scene.get(n)) && <NothingSharedYet key={n} group={cardGroup(n)} />)}
+          {/* The map (P5; PL1, PL5b): first in the column, the shared map of the last place shown to the group, so it
+              stays through a move to a place not shown yet (mc-39b's rule; Francis, 2026-11-22). None shared: before
+              anything is shown the dashed frame says so (PL2); after, no frame at all (dp-3). */}
+          {shown.map((n) => {
+            const map = playersMaps.get(n);
+            const card = map && (
+              <PlayersSceneCard key={`map-${n}`}>
+                <PlayersMapCard db={db} campaignId={campaign.id} map={map} label={cardGroup(n) ? `${cardGroup(n)}: the map` : 'The map'} />
+              </PlayersSceneCard>
+            );
+            return !placeLineShows(scene.get(n)) ? <NothingSharedYet key={n} group={cardGroup(n)} map={card || undefined} /> : card;
+          })}
           {/* The Area's card (P4; PL1b): its name once shown, what the GM has shared, the Rules row, the other Locations
               the group knows. Only once something of the place is shown, as the read itself sends nothing before. */}
           {shown.map((n) => {
             const card = placeLineShows(scene.get(n)) ? areaCards.cards.get(n) : undefined;
             return card ? <PlayersAreaCard key={`area-${n}`} db={db} campaignId={campaign.id} card={card} knowledge={areaCards.knowledge.filter((k) => k.group === n)} rules={placeRules.filter((r) => r.group === n)} turns={turns} group={cardGroup(n)} /> : null;
           })}
-          {/* Today's card of what was shown stays until P4 and the players' map (P5) have both landed (p4s-3). */}
-          <WhatWeKnow db={db} campaignId={campaign.id} />
+          {/* Today's "What we know" left this page with the players' map (p4s-3: once P4 and P5 have both landed). */}
           {/* The marching order last in the column (PL1), today's Split party under it (PL1 doesn't draw it). Split,
               a player with one group sees it as PL6 draws: their group alone, and who is elsewhere (P8). With a card
               for each of their groups each order keeps its group's name and no such line (no frame draws that). A

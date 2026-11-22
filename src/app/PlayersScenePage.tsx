@@ -97,16 +97,19 @@ export function SomewhereNew({ group = null, children }: { group?: string | null
 
 /**
  * PL2's right column, before anything of the place is shown: where the map will stand, and the place's card, empty.
- * `group` names whose they are, as on the left card.
+ * `group` names whose they are, as on the left card. `map`: the map shared at the last place shown (P5), in the dashed
+ * frame's place.
  */
-export function NothingSharedYet({ group = null }: { group?: string | null }) {
+export function NothingSharedYet({ group = null, map }: { group?: string | null; map?: ReactNode }) {
   return (
     <>
-      <section className="players-page__card" aria-label={named(group, 'The map')}>
-        <div className="players-page__no-map">
-          <p className="players-page__hint">No map shared yet.</p>
-        </div>
-      </section>
+      {map ?? (
+        <section className="players-page__card" aria-label={named(group, 'The map')}>
+          <div className="players-page__no-map">
+            <p className="players-page__hint">No map shared yet.</p>
+          </div>
+        </section>
+      )}
       <section className="players-page__card" aria-label={named(group, 'This place')}>
         <h3 className="players-page__heading">{named(group, 'This place')}</h3>
         <p className="players-page__hint">Nothing shared yet.</p>

@@ -184,3 +184,19 @@ export async function loadPlaceMap(db: Db, campaignId: string, place: Pick<Place
   const name = asset.data?.name ? String(asset.data.name) : '';
   return name ? resolvePlaceMap(self, maps, places, new Map([[state.assetId, name]]), upTrail) : state;
 }
+
+/** The map a group's players see (P5): the campaign's copy, shown to them, of the last place shown to the group. */
+export interface PlayersMap {
+  assetId: string;
+  title: string;
+}
+
+/**
+ * The maps a player reads, by group (public.map_for_players; plan dec-9-the-players-scene P5, Francis's yes "1a",
+ * 2026-11-22): only a copy whose eye is open, of the last place shown to one of their groups; null when it can't be read.
+ */
+export async function loadPlayersMaps(db: Db, campaignId: string): Promise<Map<number, PlayersMap> | null> {
+  const { data, error } = await db.rpc('map_for_players', { campaign: campaignId });
+  if (error) return null;
+  return new Map((data ?? []).map((r) => [Number(r.group_number), { assetId: String(r.asset_id), title: String(r.title ?? '') }]));
+}

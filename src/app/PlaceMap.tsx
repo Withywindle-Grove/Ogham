@@ -13,11 +13,12 @@ import { assetPath, fileLinks, forgetFileLinks } from '../core/files.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import type { PackMap } from '../modules/library/packMaps.ts';
-import { addPlaceMap, loadMapShown, loadPlaceMap, setPlaceMap, shareEventOf, shareMap, type PlaceMapState, type UpTrail } from '../modules/expedition/placeMap.ts';
+import { addPlaceMap, loadMapShown, loadPlaceMap, loadPlayersMaps, setPlaceMap, shareEventOf, shareMap, type PlaceMapState, type PlayersMap, type UpTrail } from '../modules/expedition/placeMap.ts';
 import type { Place } from '../modules/expedition/placePlay.ts';
 import { MapCard, MapPopup, MapWanted, type MapSource } from '../ui/MapParts.tsx';
 import { EyeToggle } from '../ui/parts.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
+import { useLogVersion } from './campaignLog.tsx';
 import { PhotoError, shrinkMap } from './image.ts';
 import { registry } from './services.ts';
 
@@ -253,6 +254,58 @@ export function PlaceMapPart({
         <MapCard source={source} title={state.title} tools={eyeButton} onOpen={() => setOpen(true)} onRetry={retry} />
       )}
       {open && <MapPopup source={source} place={whose} headTools={eyeButton} onClose={() => setOpen(false)} onRetry={retry} />}
+    </>
+  );
+}
+
+/**
+ * The maps a player's groups see (P5; public.map_for_players), read again with the log and the group's signal; a failed
+ * read keeps the last good one, so the frame never blinks away on a network blip.
+ */
+export function usePlayersMaps(db: Db, campaignId: string, player: boolean): ReadonlyMap<number, PlayersMap> {
+  const logVersion = useLogVersion();
+  const [maps, setMaps] = useState<ReadonlyMap<number, PlayersMap>>(new Map());
+  useEffect(() => {
+    if (!player) return;
+    let live = true;
+    void loadPlayersMaps(db, campaignId).then((read) => live && read && setMaps(read));
+    return () => {
+      live = false;
+    };
+  }, [db, campaignId, player, logVersion]);
+  return maps;
+}
+
+/**
+ * The players' map (plan dec-9-the-players-scene P5; mc-37, mc-44, mc-44a, dp-1, dp-3; set 1's `01-08`, `01-08c`,
+ * `01-08d`, approved 2026-11-12; page 18 PL1, PL5b): the map card with its title at the left and the magnifiers, on a
+ * phone too (PL5b); a tap opens the pop-up, a drag moves it. Fitted whole (01-08c): a map carries no positions yet (07
+ * §9, pins are R2), so there is no locate tool and nothing to open it on.
+ */
+export function PlayersMapCard({ db, campaignId, map, label }: { db: Db; campaignId: string; map: PlayersMap; label?: string }) {
+  const [link, setLink] = useState<{ key: string; src: string | null } | null>(null);
+  const [round, setRound] = useState(0);
+  const [open, setOpen] = useState(false);
+  const key = `${map.assetId}:${round}`;
+  useEffect(() => {
+    let live = true;
+    const path = assetPath(campaignId, map.assetId);
+    void fileLinks(db, [path]).then((links) => live && setLink({ key, src: links.get(path) ?? null }));
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the key names the copy and the try
+  }, [db, campaignId, key]);
+  const linked = link?.key === key ? link : null;
+  const source: MapSource = { src: linked?.src ?? null, alt: `${map.title || 'The map'}, the map`, failed: !!linked && !linked.src };
+  const retry = () => {
+    forgetFileLinks(assetPath(campaignId, map.assetId));
+    setRound((n) => n + 1);
+  };
+  return (
+    <>
+      <MapCard source={source} title={map.title || undefined} label={label} onOpen={() => setOpen(true)} onRetry={retry} />
+      {open && <MapPopup source={source} place={map.title} onClose={() => setOpen(false)} onRetry={retry} />}
     </>
   );
 }
