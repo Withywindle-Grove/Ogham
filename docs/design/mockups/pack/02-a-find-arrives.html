@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pack: a find arrives (2026-11-11)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="pack.css">
+<style>
+  .dev.short { min-height:0; }
+  .nts { display:flex; flex-wrap:wrap; gap:var(--space-2); margin-top:var(--space-2); }
+  .nt { width:44px; height:44px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); display:flex; align-items:center; justify-content:center; font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; box-sizing:border-box; }
+  .nt.sel { background:var(--wash); border:2px solid var(--accent); }
+  .subh { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; font-variant:small-caps; margin:var(--space-4) 0 var(--space-1); }
+  .hp { display:grid; grid-template-columns:minmax(0,1fr) 64px; gap:var(--space-3); align-items:center; border-bottom:1px dotted var(--rule); min-height:56px; padding:var(--space-1) 0; }
+  .hp:last-of-type { border-bottom:0; }
+  .mean { font-size:14px; color:var(--muted); border-top:1px dotted var(--rule); margin-top:var(--space-4); padding-top:var(--space-2); }
+  .ann { border:2px solid var(--accent); background:var(--wash); border-radius:4px; padding:var(--space-3); display:grid; grid-template-columns:auto minmax(0,1fr); gap:var(--space-1) var(--space-3); }
+  .ann .at { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; }
+  .ann .ab { display:flex; gap:var(--space-2); flex-wrap:wrap; margin-top:var(--space-2); }
+  .ifbuilt { border:1.5px dashed var(--control); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); }
+  .ifbuilt > .tagl { font-size:14px; color:var(--muted); display:block; margin-bottom:var(--space-2); }
+  .opt.dashed { border-style:dashed; box-shadow:none; }
+  .coinrow { display:grid; grid-template-columns:minmax(0,1fr) 120px; gap:var(--space-3); align-items:center; min-height:52px; border-bottom:1px dotted var(--rule); }
+  .coinrow:last-of-type { border-bottom:0; }
+  .tbl { border:1px solid var(--rule); border-radius:4px; overflow:hidden; margin-top:var(--space-2); }
+  .tbl .cap2 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; background:var(--accent); color:var(--on-accent); padding:var(--space-1) var(--space-3); display:flex; justify-content:space-between; gap:var(--space-2); }
+  .trw { display:grid; grid-template-columns:56px minmax(0,1fr) 24px; gap:var(--space-2); align-items:center; min-height:44px; padding:var(--space-1) var(--space-3); border-bottom:1px solid var(--rule); }
+  .trw:last-child { border-bottom:0; }
+  .trw b { font-family:"EB Garamond", Georgia, serif; font-size:20px; }
+  .trw.sel { background:var(--wash); box-shadow:inset 3px 0 0 var(--accent); font-weight:700; }
+  .who { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2) var(--space-3); align-items:center; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); min-height:60px; box-sizing:border-box; }
+  .who:last-of-type { border-bottom:0; }
+  .who small { display:block; font-size:14px; color:var(--muted); }
+  .hoard { border:1px solid var(--rule); border-radius:4px; background:var(--surface); padding:var(--space-2) var(--space-3); margin-top:var(--space-2); }
+  .hoard .hh { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-3); align-items:center; min-height:52px; border-bottom:3px double var(--rule); }
+  .hoard .hh small { display:block; font-size:14px; color:var(--muted); }
+  .hoard .it { grid-template-columns:20px minmax(0,1fr) auto; }
+  .hoard .it .iw { display:none; }
+  .it.dashed { border:1.5px dashed var(--control); border-radius:4px; padding-left:var(--space-2); padding-right:var(--space-2); margin-top:var(--space-1); }
+  .big2 { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-2); margin-top:var(--space-3); }
+  .big2 .btn { min-height:88px; flex-direction:column; font-size:20px; }
+  .ri { position:relative; }
+  .ri .cnt { position:absolute; right:0; top:0; min-width:20px; height:20px; border-radius:4px; background:var(--page); border:1.5px solid var(--ink); font-size:14px; font-weight:700; line-height:17px; text-align:center; box-sizing:border-box; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="pack.js"></script>
+<script>
+const rail3 = (at) => stepRail(['What', 'Who', 'How'], at, { all: false });
+const eyeRow = (lead, text, shown) => `<div class="hp"><div class="lead"><b>${lead}.</b> ${text}</div><span class="eye${shown ? ' on' : ''}" role="button" aria-pressed="${!!shown}">${sym(shown ? 'eye' : 'eyeoff', 24)}${shown ? 'Shown' : 'Hidden'}</span></div>`;
+const tiles = (list, sel) => `<div class="nts">${list.map((n) => `<span class="nt${n === sel ? ' sel' : ''}" role="button">${n}</span>`).join('')}</div>`;
+// The Scene behind a panel on the island: a place moved through in turns, so the facts are the turn's (no day's travel points).
+const dayBack = `<div class="band"><div><div class="over">Session 1. The island.</div><h3 class="display">The island, turn 14</h3><p class="ident">14 Reedmonth, spring. Two hours of light left.</p></div></div><hr class="dbl"><div class="facts">${fact('weather', 'Weather', 'Drizzle', 'Wet.')}${fact('flame', 'Light', 'Ash’s torch', '4 turns left.')}${fact('rest', 'Rest', 'In 4 turns', 'One turn in six.')}${fact('encounter', 'Encounter check', 'Next turn', '1 in 6, every second turn.')}</div><div class="cols2"><div class="pcard"><div class="over">Where the party is</div><h3 class="display">Moss Landing</h3><p class="ident">A drowned jetty where the bog road gives out.</p><div class="box" style="margin-top:var(--space-3)"><dl class="kvb"><dt>Ways on</dt><dd>3, each a turn or more.</dd><dt>Hidden here</dt><dd>2 things.</dd></dl></div></div><div></div></div>`;
+const coinStand = `<div class="opt dashed" role="button"><span>${sym('sack', 24)}</span><span class="ot"><b>Coin…</b><small>If purses are built: how much of each kind, then who.</small></span>${svg(SY.right, 20)}</div>`;
+const packChips = `<div class="chips" style="margin-bottom:var(--space-2)">${chip('The island adventure', true)}${chip('Every pack')}</div>`;
+
+// ---- the GM sends a find, from the place (pk-1) ----
+const sendB = small('Send…');
+const sent = (to) => `<span class="meta" style="white-space:nowrap">${sym('check', 16)} ${to}</span>`;
+const tItem = (name, line, state) => `<div class="it" role="button" aria-label="${name}"><span class="im">${sym(state ? 'check' : 'eyeoff', 20)}</span><span class="in"><b>${name}</b><small>${line}</small></span><span class="iw"></span><span class="ia">${state ? sent(state) : sendB}</span></div>`;
+const coinIt = `<div class="it" role="button"><span class="im">${sym('sack', 20)}</span><span class="in"><b>40 herons</b><small>Coin. Sent like any other thing: to a character’s purse, or the stash’s.</small></span><span class="iw"></span><span class="ia">${sendB}</span></div>`;
+const hoard = (name, sub, rows, all = true) => `<div class="hoard"><div class="hh" role="button"><span><b>${name}</b><small>${sub}</small></span>${all ? b('Send all…', { small: true, icon: 'gift' }) : sent('All sent')}</div>${rows.join('')}</div>`;
+const placeCard = (treasure) => `<div class="pcard"><div class="over">Where the party is</div><div class="band"><div><h3 class="display">Moss Landing</h3><p class="ident">A drowned jetty where the bog road gives out.</p></div><div class="acts">${b('Move on', { big: true, icon: 'travel' })}</div></div>
+  ${piece('Looks', 'Black piles, a mooring ring, weed to the waterline.', true)}
+  ${piece('Clue', 'Fresh rope on the mooring ring: someone tied up here this week.', false)}
+  <div class="hrow" style="margin-top:var(--space-3)"><h2>Treasure here</h2><span class="meta">Only for you</span></div>
+  ${treasure}
+  <div style="margin-top:var(--space-3)">${small('Something else…', { icon: 'search' })}</div></div>`;
+const islandTop = `<div class="band"><div><div class="over">Session 1. The island.</div><h3 class="display">The island, turn 14</h3><p class="ident">14 Reedmonth, spring. Two hours of light left.</p></div><div class="acts">${b('Next turn', { big: true, icon: 'clock' })}</div></div><hr class="dbl"><div class="facts">${fact('weather', 'Weather', 'Drizzle', 'Wet.')}${fact('flame', 'Light', 'Ash’s torch', '4 turns left.')}${fact('rest', 'Rest', 'In 4 turns', 'One turn in six.')}${fact('encounter', 'Encounter check', 'Next turn', '1 in 6, every second turn.')}</div>`;
+const partyCard = orderCard([rank(1, [pc(ash, { lg: true }), pc(wren, { lg: true })]), rank(2, [pc(tam, { lg: true }), pc(bram, { lg: true })])], { say: 'One light lit: Ash’s torch, 4 turns.' });
+const jetty = hoard('Under the jetty', 'A hoard: 3 things and coin, none sent yet.', [tItem('A waxed pouch', 'Unidentified: it arrives as “a waxed pouch”.'), tItem('Moon opals ×2', 'Treasure.'), tItem('Reed arrows ×20', 'In an oilskin.'), coinIt]);
+const lone = `<div class="hoard">${tItem('A drowned lantern', 'On the mud, by the third pile.')}</div>`;
+const g1 = ipad('gm', `${islandTop}<div class="cols2"><div>${placeCard(jetty + lone)}</div><div class="stack">${partyCard}</div></div>`,
+  '1. Ruled (pk-1): a find is sent from the place. The GM’s Scene at a place shows that place’s treasure, for the GM only, under its pieces: each hoard with the things in it, and things that lie alone. A hoard is sent whole (Send all…) or one thing at a time (Send…); a tap on either opens the sheet in frame 2. Nothing here is on a player’s screen. “Something else…” at the foot is the fallback (frame 7). Coin written into a hoard is a row in it (pk-6). NEW: all of it (today the GM opens Players, a character’s Pack, Add item, and searches one list of every item).');
+const sheetList = `<div class="box" style="margin-bottom:var(--space-3)"><div class="modl"><span>A waxed pouch</span><span class="meta">Unidentified</span></div><div class="modl"><span>Moon opals ×2</span><span></span></div><div class="modl"><span>Reed arrows ×20</span><span></span></div></div>`;
+const g2 = withPanel('ipad', 'gm', panel({ seq: 'Moss Landing. Under the jetty', title: 'Where does it go?', body: `
+  <p class="why">The whole hoard: 3 things.</p>
+  ${sheetList}
+  <div class="big2">${b(sym('people', 28) + 'Send to a character')}${b(sym('chest', 28) + 'Send to the party stash')}</div>`, foot: footSay('The stash: sent on the tap, with Undo. A character: it asks which.', [b('Close')]) }),
+  '2. The sheet, in the panel at the right edge: one question, two large answers. <b>Send to the party stash</b> acts on the tap, with Undo: two taps from the place to done. <b>Send to a character</b> asks which (frame 3). A whole hoard sent to a character sends every thing in it. The same sheet opens for one thing, with that thing alone listed.', dayBack);
+const g3 = withPanel('ipad', 'gm', panel({ seq: 'Under the jetty: 3 things', title: 'Which character?', body: `
+  ${opt('Ash', '', { icon: 'people' })}
+  ${opt('Bram', '', { icon: 'people' })}
+  ${opt('Tam', 'Exhausted.', { icon: 'people' })}
+  ${opt('Wren', 'This would over-load her.', { icon: 'warn' })}`, foot: footSay('Tapping a name sends it, with Undo. Nothing is blocked.', [b('Back')]) }),
+  '3. Which character: the characters at this place, a tap sends. The one this would over-load carries a warning in ▲ and words and still takes it on a tap (the load is shown as on Give to…, variant B: a warning, no figure; the GM can see every load in full from Players). Three taps from the place to done, unless something in it is unidentified (frame 4).', dayBack);
+const g4 = withPanel('ipad', 'gm', panel({ seq: 'Under the jetty, to Wren', title: 'What does she notice?', body: `
+  <p class="why">One thing in this hoard is unidentified. Wren’s player sees only what is shown here; tap an eye to tell her more, now or later.</p>
+  ${eyeRow('A waxed pouch: what she notices', 'Heavy for its size, sewn shut, smells of low tide.', true)}
+  ${eyeRow('A waxed pouch: what it is', 'A pouch of dream-salt (3 doses).', false)}
+  <p class="meta" style="margin:var(--space-3) 0 0">Moon opals ×2 and reed arrows ×20 have nothing to hide and go as they are.</p>
+  ${ruleRow('Finding and identifying things')}`, foot: footSay('Logged as “The GM gave Wren 3 things from under the jetty”, with Undo.', [b('Back'), b('Send', { accent: true })]) }),
+  '4. Only when a thing is unidentified: one more step, what the player notices and what stays hidden, with the Scene’s eye. Otherwise the tap on a name ends it. NEW: “what she notices” (ruled in 05, not built) and the eyes here; today the GM has a Reveal per hidden field on the item’s sheet.', dayBack);
+const jettySent = hoard('Under the jetty', 'A hoard: 3 things sent; the coin is still here.', [tItem('A waxed pouch', 'Unidentified. She was shown what she notices.', 'Sent to Wren'), tItem('Moon opals ×2', 'Treasure.', 'Sent to Wren'), tItem('Reed arrows ×20', 'In an oilskin.', 'Sent to Wren'), coinIt], true);
+const g5 = ipad('gm', `${islandTop}<div class="toast" style="margin-top:var(--space-3)"><span><b>Wren has 3 things from under the jetty.</b> She is now over-loaded.</span>${small('Undo')}</div><div class="cols2"><div>${placeCard(jettySent + `<div class="hoard">${tItem('A drowned lantern', 'On the mud, by the third pile.', 'In the party stash')}</div>`)}</div><div class="stack">${partyCard}</div></div>`,
+  '5. Done: a toast says what happened and what it did (Wren is now over-loaded), with Undo. On the place, each thing says where it went (“Sent to Wren”, “In the party stash”) with a tick and the words, and the hoard’s head says how much is left, so the GM sees at a glance what is still here. A sent thing’s row opens it where it now is.');
+const g3b = withPanel('ipad', 'gm', panel({ seq: 'Moss Landing. Reed arrows ×20', title: 'Where does it go?', body: `
+  <p class="why">One thing: reed arrows ×20.</p>
+  <div class="big2">${b(sym('people', 28) + 'Send to a character')}${b(sym('chest', 28) + 'Send to the party stash')}</div>
+  <div style="margin-top:var(--space-3)">${small('Only some of them…')}</div>
+  <p class="mean">“Only some of them…” asks how many (numbers to tap: 5, 10, All 20, or typed) and leaves the rest here, marked “10 left”.</p>`, foot: footSay('', [b('Close')]) }),
+  '6. One thing, a stack: the same two answers send all of it. “Only some of them…” is there for the rare split, so the common path stays at two or three taps.', dayBack);
+const g6 = withPanel('ipad', 'gm', panel({ seq: 'Moss Landing', title: 'Something else', body: `
+  ${packChips}
+  <span class="field empty">Find an item by name</span>
+  ${opt('Something not listed…', 'A one-off you describe. Yours need no approval.', { icon: 'note' })}
+  ${opt('Coin…', 'How much of each kind.', { icon: 'sack', right: svg(SY.right, 20) })}
+  <p class="mean">Picking a thing opens the same sheet: Send to a character, or Send to the party stash.</p>`, foot: footSay('', [b('Close')]) }),
+  '7. The fallback, “Something else…”, for what the adventure did not write here: a search kept to the adventure’s pack (Every pack a tap away), a one-off, and coin. It ends in the same sheet. This is today’s Add item, kept to one pack (NEW: the filter).', dayBack);
+const c1 = withPanel('ipad', 'gm', panel({ seq: 'Something else: coin', title: 'How much?', body: `
+  <div class="coinrow"><b>Crowns</b><span class="field empty">0</span></div>
+  <div class="coinrow"><b>Herons</b><span class="field">40</span></div>
+  <div class="coinrow"><b>Bits</b><span class="field empty">0</span></div>
+  <p class="meta" style="margin:var(--space-2) 0 0">Coin weighs nothing in anyone’s load.</p>`, foot: footSay('Then the same sheet: a character, or the party stash.', [b('Back'), b('Next')]) }),
+  '8. Coin that the adventure did not write (ruled, pk-6): how much of each kind of coin the setting names, then the same sheet. Coin written into a hoard is a row in it like any other thing (frame 1). Sent to a character it goes to that character’s purse, which only its owner and the GM read; sent to the stash it joins the stash’s coin, which the party reads.', dayBack);
+const trw = (range, text, sel) => `<div class="trw${sel ? ' sel' : ''}" role="button"><b>${range}</b><span>${text}</span>${sel ? sym('check', 20) : '<span></span>'}</div>`;
+const t1 = withPanel('ipad', 'gm', panel({ seq: 'Tables', title: 'What the tide left', body: `
+  <div class="roll" style="margin-top:0">${die(6)}<span>Roll d6 at the table, then tap the row.</span></div>
+  <div class="tbl"><div class="cap2"><span>What the tide left</span><span>d6</span></div>
+  ${trw('1', 'Nothing but weed')}${trw('2', 'A coil of rope, sound')}${trw('3–4', 'A waxed pouch; moon opals ×2; reed arrows ×20', true)}${trw('5', 'A drowned lantern')}${trw('6', 'Roll twice')}</div>
+  <div style="margin-top:var(--space-3)">${b('Send this row’s things…', { accent: true, big: true, wide: true, icon: 'gift' })}</div>
+  <p class="source">From your adventure: The Reed Marches, p. 41.</p>`, foot: footSay('3 things in this row.', [b('Back'), b('Close')]) }),
+  'A. Second, if time allows: from a table’s row. A table’s picked row that names things gains one button, “Send this row’s things…”, which opens the same sheet as a hoard (frame 2): a character, or the party stash. The same button sits on an encounter’s result when its creatures carry things. NEW (the Builder: 1 to 2 turns).', dayBack);
+const whoRow = (name, sub, to) => `<div class="who" role="button"><span><b>${name}</b><small>${sub}</small></span><span class="chips">${chip(to, true)}${small('Change')}</span></div>`;
+const t2 = withPanel('ipad', 'gm', panel({ seq: 'What the tide left: 3–4', title: 'Who takes each?', body: `
+  <p class="why">For a row or a hoard that should be shared out at once: each thing with who takes it. Everything starts in the party stash.</p>
+  ${whoRow('A waxed pouch', 'Arrives unidentified. What they notice: heavy for its size, sewn shut.', 'Party stash')}
+  ${whoRow('Moon opals ×2', 'Treasure.', 'Party stash')}
+  ${whoRow('Reed arrows ×20', '', 'Ash')}
+  <div style="margin-top:var(--space-3)">${b('All to the party stash')}</div>`, foot: footSay('Logged as one step, with Undo.', [b('Back'), b('Send them', { accent: true })]) }),
+  'B. Also second, if time allows: “Share it out…”, a quiet button on the sheet of a hoard or a row, for the GM who wants to split it there and then: each thing with who takes it, the stash by default. Not needed for the first night: sending the whole to the stash and letting the players Take does the same.', dayBack);
+
+// ---- what the player sees ----
+const railNew = `<div class="rail">${[['crown', 'Player'], ['fire', 'Scene', 1], ['sack', 'Pack, 1 new']].map(([k, l, on]) => `<span class="ri${on ? ' on' : ''}" role="button" aria-label="${l}">${sym(k, 24)}${k === 'sack' ? '<span class="cnt">1</span>' : ''}</span>`).join('')}</div>`;
+const p1 = `<div><p class="cap" style="width:1024px">P1. What Wren’s player sees, wherever they are (drawn on the Scene, where a player usually is): a card in the prompt slot, in the accent because it is theirs to answer: what, who from, what they notice, and that it tipped her over. Open it goes to the thing in her pack; Got it puts the card away. The Pack’s icon carries a count (a figure in a box, not a coloured dot). NEW: all of it; today the only sign is a line in the log.</p><div class="dev ipad short">${railNew}<div class="main">${topRow('player')}<div class="page">${band({ over: 'Session 1. The island.', title: 'The island, turn 14', ident: '14 Reedmonth, spring. Two hours of light left.' })}<hr class="dbl"><div class="cols2" style="margin-top:0"><div class="stack"><div class="ann"><span>${sym('gift', 28)}</span><span class="at">Your GM gave Wren a waxed pouch</span><span></span><span>What you notice: heavy for its size, sewn shut, smells of low tide. It is in what she carries. <b>Wren is now over-loaded</b>: 5 over.<span class="ab">${b('Open it', { accent: true })}${b('Got it')}</span></span></div><div class="pcard"><div class="over">Where you are</div><h3 class="display">Moss Landing</h3><p class="ident">A drowned jetty where the bog road gives out.</p></div></div><div></div></div></div></div></div></div>`;
+const pNew = pdev('ipad short', `${band({ over: 'Wren. Reed Witch, level 2.', title: 'Wren’s pack', ident: 'What she wears, holds and carries: 18 things, 505 coins’ weight.', acts: [b('Add item', { big: true, accent: true, icon: 'plus' })] })}<hr class="dbl"><div class="facts">${loadFact({ v: 'Over-loaded', s: '505 of 500 coins’ weight: 5 over. Speed 0 until something is put down or handed on.', filled: 20, marks: [10], over: true })}${fact('hand', 'In hand', 'Reed spear', 'And a lantern, unlit.')}${fact('gift', 'New', '1 thing', 'From your GM, a moment ago.', { due: true })}${fact('chest', 'Party stash', '9 things', 'Last in: moon opals ×2, from your GM.')}</div><div class="cols2"><div class="pcard">${grp('Carried', '2 things', [it('A waxed pouch', 'What you notice: heavy for its size, sewn shut, smells of low tide.', { isNew: true, wt: 12 }), it('Backpack', 'On her back. Holds 7 things.', { mark: 'sack' })])}</div><div class="stack"><div class="pcard"><div class="hrow"><h2>New in your pack</h2>${small('Got it')}</div>${it('A waxed pouch', 'From your GM, a moment ago. Carried, loose.', { isNew: true, wt: 12, mark: 'gift' })}</div></div></div>`,
+  'P2. The same find on the Pack tab (mockup (a), frame 2): it lands in the New fact, in the “New in your pack” card and with a New tag on its row under Carried, until Got it on either screen. The stash’s fact names the last thing in and who it came from.');
+const pCoin = `<div><p class="cap" style="width:1024px">P2b. The card names coin, and several finds are merged into one (pk-5, pk-6): “Your GM gave Wren 40 herons and 3 things”. Only Wren’s player gets this card and its amount; the other players see nothing of it, on any screen or in their log. Coin sent to the stash is told to everyone on the stash’s quiet card, since the party reads the stash’s coin.</p><div class="dev ipad short">${railNew.replace('<span class="cnt">1</span>', '<span class="cnt">3</span>')}<div class="main">${topRow('player')}<div class="page">${band({ over: 'Session 1. The island.', title: 'The island, turn 14', ident: '14 Reedmonth, spring. Two hours of light left.' })}<hr class="dbl"><div class="cols2" style="margin-top:0"><div class="stack"><div class="ann"><span>${sym('gift', 28)}</span><span class="at">Your GM gave Wren 40 herons and 3 things</span><span></span><span>From under the jetty: a waxed pouch, moon opals ×2, reed arrows ×20. The coin is in her purse; the things are in what she carries. <b>Wren is now over-loaded.</b><span class="ab">${b('Open her pack', { accent: true })}${b('Got it')}</span></span></div></div><div></div></div></div></div></div></div>`;
+const wrenBand = band({ over: 'Wren. Reed Witch, level 2.', title: 'Wren’s pack', ident: 'What she wears, holds and carries: 18 things, 505 coins’ weight.', acts: [b('Add item', { big: true, icon: 'plus' })] });
+const p2 = pdev('ipad', wrenBand, 'P3. Open it: the thing’s own panel, in her Pack. An unidentified thing says so in plain words: its name is what it looks like, “What you notice” is everything she knows, and one line says the rest is the GM’s to tell. The actions are the usual ones. Nothing here hints at what it really is: no weight but the one anyone would feel, no bonus, no true name.', { panel: panel({ seq: 'Wren’s pack. Carried', title: 'A waxed pouch', body: `
+  <p style="margin:0 0 var(--space-2)"><span class="newtag" style="display:inline-block;font-size:14px;font-weight:700;border:1.5px solid var(--ink);border-radius:4px;padding:0 var(--space-1);line-height:20px">New</span> <span class="meta">From your GM, a moment ago.</span></p>
+  <div class="lead"><p style="margin:0 0 var(--space-2)"><b>What you notice.</b> Heavy for its size, sewn shut, smells of low tide.</p></div>
+  <div class="box"><b>Not identified.</b> What it is and what it does are your GM’s to tell. What you learn is added here.</div>
+  <dl class="kvt" style="margin-top:var(--space-3)"><dt>Weight</dt><dd>12</dd><dt>Carried</dt><dd>Loose</dd></dl>
+  <div class="subh">Do</div>
+  ${opt('Put in…', 'The backpack has room for 217.', { icon: 'sack', right: svg(SY.right, 20) })}
+  ${opt('Give to…', 'Someone in the party, or the stash.', { icon: 'people', right: svg(SY.right, 20) })}
+  ${opt('Drop', 'It is gone, with Undo.', { icon: 'down' })}`, foot: footSay('', [b('Got it')]) }) });
+const p3 = pdev('ipad', wrenBand, 'P4. Later the GM taps an eye (from Wren’s pack, in Players, or from the place): the player learns it through the same card and the thing’s panel changes. A fact once shown stays shown (05). Its bonus and powers reach her numbers only now (ruled 2026-11-10). NEW as a card; the revealing itself exists per field today.', { panel: panel({ seq: 'Wren’s pack. Carried', title: 'A pouch of dream-salt', body: `
+  <p style="margin:0 0 var(--space-2)"><span style="display:inline-block;font-size:14px;font-weight:700;border:1.5px solid var(--ink);border-radius:4px;padding:0 var(--space-1);line-height:20px">Now you know</span> <span class="meta">Your GM told you what it is.</span></p>
+  <div class="lead"><p style="margin:0 0 var(--space-2)"><b>What it is.</b> Dream-salt, 3 doses. A pinch on the tongue and the sleeper walks where they last stood awake.</p><p style="margin:0 0 var(--space-2)"><b>What you notice.</b> Heavy for its size, sewn shut, smells of low tide.</p></div>
+  <dl class="kvt" style="margin-top:var(--space-3)"><dt>Doses</dt><dd>3</dd><dt>Weight</dt><dd>12</dd></dl>
+  <div class="subh">Do</div>
+  ${opt('Use a dose', '2 would be left.', { icon: 'drop' })}
+  ${opt('Pin to At hand', 'Its action shows on the Pack’s first list.', { icon: 'star' })}
+  ${opt('Put in…', '', { icon: 'sack', right: svg(SY.right, 20) })}`, foot: footSay('', [b('Close')]) }) });
+
+// ---- to the stash; the GM's later reveal ----
+const s1 = `<div><p class="cap" style="width:1024px">P5. A find sent to the party stash: every player gets the same quiet card (plain, not the accent: nobody has to answer), and the stash’s row says who put it there. Take is one tap from the card. NEW: the card, “from your GM” on the row, and Take (today taking is the thing’s sheet, Give to…, a character, how many).</p><div class="dev ipad short">${railOf('player')}<div class="main">${topRow('player')}<div class="page">${band({ over: 'Session 1. The island.', title: 'The island, turn 14', ident: '14 Reedmonth, spring. Two hours of light left.' })}<hr class="dbl"><div class="cols2" style="margin-top:0"><div class="stack">${waitCard('chest', 'The party stash gained moon opals ×2', 'From your GM, a moment ago. Anyone in the party can take them.', [b('Take…'), b('Got it')])}</div><div></div></div></div></div></div></div>`;
+const r1 = withPanel('ipad', 'gm', panel({ seq: 'Wren’s pack', title: 'A waxed pouch', body: `
+  <p class="why">Wren’s player sees “A waxed pouch” and what she notices. Tap an eye to tell her more; a thing once shown stays shown.</p>
+  ${eyeRow('What she notices', 'Heavy for its size, sewn shut, smells of low tide.', true)}
+  ${eyeRow('What it is', 'A pouch of dream-salt (3 doses).', false)}
+  ${eyeRow('What it does', 'A pinch on the tongue and the sleeper walks where they last stood awake.', false)}
+  ${eyeRow('That it is cursed', 'The third dose never wears off.', false)}
+  <div style="margin-top:var(--space-3)">${b('Tell her everything')}</div>`, foot: footSay('1 of 4 shown. Each reveal is logged.', [b('Close')]) }),
+  'P6. The GM’s side of the same thing, later: its hidden facts as rows with eyes, one tap each, and Tell her everything. Today’s per-field Reveal, re-arranged into the Scene’s eye; “Tell them everything” is in 05, not built.', dayBack);
+
+// ---- states ----
+const e0 = ipad('gm', `${islandTop}<div class="cols2"><div><div class="pcard"><div class="over">Where the party is</div><h3 class="display">The Drowned Stones</h3><p class="ident">Seven stones in the shallows that the locals will not row between.</p><div class="hrow" style="margin-top:var(--space-3)"><h2>Treasure here</h2><span class="meta">Only for you</span></div><p class="meta" style="margin:0 0 var(--space-2)">Nothing is written to be found here.</p>${small('Something else…', { icon: 'search' })}</div></div><div></div></div>`,
+  '9. Empty: a place with no treasure written says so in one line and keeps “Something else…”. A place whose treasure has all been sent keeps its rows, each marked with where it went (frame 5).');
+const e1 = withPanel('ipad', 'gm', panel({ seq: 'The Drowned Stones', title: 'Something else', body: `
+  ${packChips}
+  <span class="field">silver</span>
+  ${opt('Silver ewer', 'Treasure. From your adventure.', { icon: 'table' })}
+  ${opt('Silver knife of the Lantern Wardens, with its sheath, its chain and the warden’s own name scratched under the guard', 'Weapon. From your adventure.', { icon: 'table' })}
+  ${opt('Silver pieces ×999', 'Treasure. From your setting.', { icon: 'table' })}
+  <div class="meta" style="margin-top:var(--space-2)">3 of 3 named “silver”.</div>`, foot: footSay('Tapping a thing opens the sheet: a character, or the party stash.', [b('Close')]) }),
+  '10. Messy data in the fallback’s search: a long name wraps; ×999. A search with no match offers “Add “silver…” as a one-off”, as the loot picker is ruled.', dayBack);
+const e2 = withPanel('ipad', 'gm', panel({ seq: 'A waxed pouch', title: 'Which character?', body: `
+  ${opt('Sister Ermengarde of the Drowned Bell', '', { icon: 'people' })}
+  ${opt('Wren', 'Down. She can still be given things; the others can take from her while she is Down.', { icon: 'warn' })}
+  <p class="meta" style="margin:var(--space-2) 0 0">Ash and Tam are in the other group, at the causeway: <a style="color:var(--accent);text-decoration:underline">show them too</a>.</p>`, foot: footSay('', [b('Back')]) }),
+  '11. Messy: a long name, a Down character (said in words, still tappable), and a split party: only the group at this place is listed, the others a tap away.', dayBack);
+const e3 = withPanel('ipad', 'gm', panel({ seq: 'Under the jetty: 3 things', title: 'Which character?', body: `
+  <p style="margin:0 0 var(--space-3)">${warn('It wasn’t sent: Wren left the campaign a moment ago. Nothing changed.')}</p>
+  <div>${b('Pick someone else')}</div>
+  <p class="mean">Loading: the sheet shows its title and three still bars. Offline, today, an item action is refused; as 06 rules it would say “You’re offline: this is sent when you’re back”, once the app keeps changes offline (not built).</p>`, foot: footSay('', [b('Back'), b('Close')]) }),
+  '12. Error, a refusal: said in plain words, with the way on. Loading and offline in words.', dayBack);
+const wideF = withPanel('wide', 'gm', panel({ seq: 'Moss Landing. Under the jetty', title: 'Where does it go?', body: `
+  <p class="why">The whole hoard: 3 things.</p>
+  ${sheetList}
+  <div class="big2">${b(sym('people', 28) + 'Send to a character')}${b(sym('chest', 28) + 'Send to the party stash')}</div>`, foot: footSay('', [b('Close')]) }), '13. A wide PC window: the same sheet, 560 px, the Scene beside it.', dayBack);
+const ph1 = phone(panel({ seq: 'Moss Landing. Under the jetty', title: 'Where does it go?', body: `
+  <p class="why">The whole hoard: 3 things.</p>
+  <div class="big2" style="grid-template-columns:1fr">${b(sym('people', 28) + 'Send to a character')}${b(sym('chest', 28) + 'Send to the party stash')}</div>`, foot: footSay('', [b('Close')]) }), '14. The phone: the sheet is the whole screen, the two answers one above the other.');
+const ph2 = phone(`${phoneBar('The Reed Marches')}<div class="inner"><div class="ann"><span>${sym('gift', 28)}</span><span class="at">Your GM gave Wren a waxed pouch</span><span></span><span>What you notice: heavy for its size, sewn shut. <b>Wren is now over-loaded.</b><span class="ab">${b('Open it', { accent: true })}${b('Got it')}</span></span></div></div>${packTabs.replace('<span class="on">Pack</span>', '<span>Pack <b>1</b></span>').replace('<span>Scene</span>', '<span class="on">Scene</span>')}`, '15. The phone, the player’s card; the Pack tab carries the count.');
+
+mount(`
+  <h1>Pack: a find arrives</h1>
+  <p class="note">Mockup (d) of the Pack rework, drawn before (b) because it is the first night’s main event: the players “find treasure and items on an island, and share some of it” (the brief). <b>Ruled by Francis on 2026-11-11 (pk-1):</b> “DM should have that information readily available in the Scene screen when at a location, and should click the treasure/item either as a whole or individually with the option send to character (then prompts character) or send to party stash. This should be in pop-up sheets.” So the GM sends a find from the place’s own treasure on the Scene; the player is told; an unidentified thing shows only what is noticed until the GM says more. In the Scene redesign’s language: a short sequence in the panel at the right edge (mc-10), an answer moves on (mc-11), the eye for what is shown and hidden. <b>From the Builder (2026-11-11), today:</b> the GM gives by Players, the character’s Pack, Add item (one list of every item with a name search, no filter by pack or place), how many, a note, Where it goes; straight to the stash works; the player gets a log line and nothing else; no coin in any form; “Sending loot” and “Loot to share” (05, M6) are not built; unidentified things are mostly not built (no “appears as”, no “What you notice”, no Reveal pop-up; a per-field Reveal exists). So most of this page is NEW, and each caption says which part. iPad landscape first, then a wide PC window, then the phone.</p>
+
+  <h1>The GM sends a find, from the place (ruled, pk-1)</h1>
+  <div class="wall">${g1}</div>
+  <div class="wall">${g2}${g3}</div>
+  <div class="wall">${g4}${g5}</div>
+  <div class="wall">${g3b}${g6}${c1}</div>
+
+  <h1>Second, if time allows: from a table’s row; sharing a hoard out</h1>
+  <div class="wall">${t1}${t2}</div>
+
+  <h1>What the player sees</h1>
+  <div class="wall">${p1}${pNew}</div>
+  <div class="wall">${pCoin}</div>
+  <div class="wall">${p2}${p3}</div>
+
+  <h1>To the party stash; the GM tells more, later</h1>
+  <div class="wall">${s1}${r1}</div>
+
+  <h1>States and messy data</h1>
+  <div class="wall">${e0}${e1}</div>
+  <div class="wall">${e2}${e3}</div>
+
+  <h1>A wide PC window; the phone</h1>
+  <div class="wall">${wideF}${ph1}${ph2}</div>
+
+  <h1>What is today’s behaviour, and what is new</h1>
+  <div class="wall"><div class="pcard" style="max-width:1024px"><dl class="kvb">
+    <dt>Where the GM starts</dt><dd><b>Today:</b> Players, the character’s Pack, Add item. <b>NEW (pk-1):</b> the place’s treasure on the Scene, as hoards and things, for the GM only; today’s way stays for anything else.</dd>
+    <dt>The sheet</dt><dd><b>NEW (pk-1):</b> one question, Send to a character or Send to the party stash; a whole hoard or one thing; a tap acts, with Undo.</dd>
+    <dt>Something else…</dt><dd><b>Today:</b> one list of every item from every pack, by category, with a name search. <b>NEW:</b> the search kept to the adventure’s pack unless Every pack is tapped. The one-off is today’s.</dd>
+    <dt>What was sent</dt><dd><b>NEW:</b> each thing on the place says where it went.</dd>
+    <dt>From a table’s row (second, if time allows)</dt><dd><b>Today:</b> a table’s row is tapped for its result and nothing more. <b>NEW:</b> “Give this row’s things…” and the list of who takes each (the Builder sizes it at 1 to 2 turns). It needs the pack to carry a row’s things as items, not only as words.</dd>
+    <dt>Who</dt><dd><b>Today:</b> the pack the GM opened, or the stash from its own screen. <b>Re-arranged:</b> chosen on the sheet. <b>NEW:</b> the warning on a character this would over-load.</dd>
+    <dt>Where it goes</dt><dd><b>Today:</b> “Where it goes” asks for a place in the pack. <b>Drawn:</b> it lands loose (Carried) and the player puts it away; a question below.</dd>
+    <dt>How many, a note</dt><dd><b>Today:</b> both are asked each time. <b>Drawn:</b> a hoard’s things go as written; “Only some of them…” for the rare split; no note is asked (the log line names the place and the hoard).</dd>
+    <dt>Unidentified</dt><dd><b>Today:</b> a Reveal per hidden field on the GM’s item sheet; a hidden bonus is kept out of the player’s numbers. <b>Ruled, not built:</b> “appears as”, “What you notice”, Tell them everything. <b>Drawn:</b> those, with the Scene’s eye.</dd>
+    <dt>Telling the player</dt><dd><b>Today:</b> the log line. <b>NEW:</b> the card, the count on the Pack’s icon, New on the row, Open it, Got it.</dd>
+    <dt>To the stash</dt><dd><b>Today:</b> works, from the GM’s Inventory screen. <b>NEW:</b> the card for everyone, who it came from on the row, Take.</dd>
+    <dt>Coin</dt><dd><b>Today:</b> none anywhere. <b>NEW (pk-6):</b> a row in a hoard (frame 1), a row in Something else (frame 7) and frame 8; the card names it (frame P2b).</dd>
+  </dl></div></div>
+
+  <h1>Questions for Francis (drafts for the lead’s ⚑ list)</h1>
+  <div class="q"><b>1. How does the GM hand out a find? Ruled (pk-1): from the place’s treasure on the Scene, a hoard whole or one thing, sent to a character or to the party stash, in pop-up sheets.</b><br>Drawn in frames 1 to 7. The table’s row (frame A) is second, if time allows.</div>
+  <div class="q"><b>2. A find lands loose in what the character carries; the player puts it away. Ruled (pk-2): yes, “and the player puts it away in a container when they like”.</b><br>Today the GM is asked “Where it goes”. Drawn without, to keep the GM’s part to two or three taps. <i>Recommended: loose; say if the GM should choose.</i></div>
+  <div class="q"><b>3. The player is told by a card, wherever they are, and the Pack’s icon carries a count. Ruled (pk-5): yes; the stash’s more quietly; several merged into one card.</b><br>In the accent for their own character (it asks Open it or Got it); plain for the stash. <i>Recommended: yes.</i></div>
+  <div class="q"><b>4. An over-loaded taker is warned, not blocked.</b><br>The GM sees “This would over-load her” before choosing; the player is told on the card. As today, nothing refuses. <i>Recommended: yes.</i></div>
+  <div class="q"><b>5. What a thing really is, is shown with the eye, like a place’s pieces.</b><br>One eye per hidden fact, at hand-out and later, and Tell her everything. <i>Recommended: yes.</i></div>
+  <div class="q"><b>6. Overtaken by pk-1: a hoard is sent whole or one thing at a time.</b><br>What is left to ask: does the GM need “Share it out…” (frame B: each thing of a hoard to a different taker in one go), or is sending the whole to the stash and letting the players Take enough? <i>Recommended: not for the first night.</i></div>
+  <div class="q"><b>7. Take, on the stash’s card and rows. Ruled (pk-3): yes.</b><br>One tap to take a thing from the stash for your own character (it asks how many for a stack). Today it is four steps through Give to…. <i>Recommended: yes; drawn fully in mockup (b).</i></div>
+
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked.</b> Heuristics: the treasure is where the GM is looking (the place), one question on the sheet, two large answers, an answer acts; the place shows what was sent and what is left; the GM is warned before over-loading a taker; what is hidden says “Hidden” and stays so until an eye is tapped; the player is told what arrived, from whom, where it is and what it did; nothing is disabled (a Down or over-loaded character stays tappable and explains); Undo on the hand-out. States: the place with its hoards, the sheet, which character, what she notices, done with marks, one stack, Something else, coin (in dashes), a table’s row and sharing out, the player’s card, an unidentified thing and the same thing once told, a find to the stash, the GM’s later reveal, a place with nothing written, a search with messy data (a long name, ×999), a Down character, a long name, a split party, a refusal, loading and offline in words. Targets: the two answers 88 px high, treasure rows 60 px with a 44 px Send, option rows 56 px, number tiles 44 px and 8 px apart, eyes 64 × 52, chips 44 px, buttons 44 px. One accent button per frame at most (Send, only on the unidentified step; Send this row’s things…; Send them; Open it; Add item). The two answers on the sheet are equal and plain. Colour is never alone: the count is a figure, New and Now you know are words in a box, a warning has ▲, shown and hidden are words under the eye. Hidden stays hidden: a card that names coin goes only to that character’s player; the player’s frames carry no true name, bonus, power or curse until told; the weight is the one anyone would feel. Light and dark side by side. Tokens from 06; the parts are the Scene redesign’s and (a)’s.</p>
+  <p class="note"><b>Not checked, or uncertain.</b> I have not seen the GM’s Add item or item sheet as built; “today” is the Builder’s account of the code. The item, its hidden facts and every number are invented. Whether “the things written for this place” and “this row’s things” exist as data depends on the adventure pack carrying a place’s treasure and a table row’s things as items, not only as words (a question for the Pack Creator). The table’s accent title bar is ruled (mc-20). Whether the card should also show to the other players when one character gets a find (drawn: only to that character’s player; the log tells the rest). iPad portrait, text sizes Large and Larger and a device are not checked. The build cost is the Builder’s to size.</p>
+`);
+</script>
+</body>
+</html>

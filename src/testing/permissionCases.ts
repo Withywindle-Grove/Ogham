@@ -51,7 +51,7 @@ import { readPackJson, type ReadPack } from '../modules/library/packFile.ts';
 import { sendHook } from '../modules/library/callsToAdventure.ts';
 import { giveRumour } from '../modules/library/rumours.ts';
 import { resetStock, setStock } from '../modules/requests/shopStock.ts';
-import { addItem, approveItem, declineItem, emptyContainer, equipAnyway, equipItem, giveAway, hideFromAtHand, moveItem, noteRuleSkipped, pinItem, removeItem, revealItemField, setBaseArmour, setItemQty, setWeaponMode, useItem, type CarrierRef, type ItemCopy } from '../modules/inventory/inventory.ts';
+import { addItem, approveItem, declineItem, editItemLook, emptyContainer, equipAnyway, equipItem, giveAway, hideFromAtHand, moveItem, noteRuleSkipped, pinItem, removeItem, revealItemField, setBaseArmour, setItemQty, setWeaponMode, tellItem, useItem, type CarrierRef, type ItemCopy } from '../modules/inventory/inventory.ts';
 import { arrangeScreen } from '../modules/characters/screenLayout.ts';
 import { movePin, pinToAtHand } from '../modules/characters/pins.ts';
 import { prepareSpells, setAc, setForm, useAbility } from '../modules/characters/playState.ts';
@@ -666,6 +666,13 @@ export const permissionCases: PermissionCase[] = [
   rule("an outsider can't move anything", 'outsider', moveItem, async (w) => ({ line: await w.freshLine('stash'), to: await w.carrier('wren'), qty: 3, of: 3 }), false),
   rule("the GM can reveal an item's hidden field to its holder", 'gm', revealItemField, async (w) => ({ line: await w.freshLine('wren'), field: 'cursed', value: true }), true),
   rule("a player can't reveal a hidden field, even on their own item", 'playerA', revealItemField, async (w) => ({ line: await w.freshLine('wren'), field: 'cursed', value: true }), false),
+  // K22b: the GM tells a hidden fact and edits what players see; a player never, even on their own item. A plain line
+  // has nothing hidden, so the GM's tell of everything is allowed and changes nothing (the database tests tell for real).
+  quiet(rule('the GM can tell the players what is hidden on an item', 'gm', tellItem, async (w) => ({ line: await w.freshLine('wren'), fact: 'everything' as const }), true)),
+  rule("a player can't tell a hidden fact, even on their own item", 'playerA', tellItem, async (w) => ({ line: await w.freshLine('wren'), fact: 'everything' as const }), false),
+  rule("a player can't tell a hidden fact on someone else's item", 'playerB', tellItem, async (w) => ({ line: await w.freshLine('wren'), fact: 'cursed' as const }), false),
+  rule('the GM can change what players see of an item', 'gm', editItemLook, async (w) => ({ line: await w.freshLine('ash'), appearsAs: 'Grey stones', noticed: `Warm, today ${crypto.randomUUID().slice(0, 8)}.` }), true),
+  rule("a player can't change what players see of an item, even their own", 'playerA', editItemLook, async (w) => ({ line: await w.freshLine('wren'), appearsAs: 'Gold stones', noticed: '' }), false),
   rule('a player can set the visible charges of their own item, from the roll', 'playerA', setCharges, async (w) => ({ line: await w.freshLine('wren'), value: 12, hidden: false }), true),
   rule("a player can't set hidden charges, even on their own item", 'playerA', setCharges, async (w) => ({ line: await w.freshLine('wren'), value: 12, hidden: true }), false),
   rule('the GM can set hidden charges', 'gm', setCharges, async (w) => ({ line: await w.freshLine('wren'), value: 7, hidden: true }), true),

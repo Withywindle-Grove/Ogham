@@ -126,18 +126,20 @@ export const magicNoteLines = (magic: WeaponMagic): string[] => [...new Set([...
  * after one use in a fight is M6's (id-1, deferred on purpose).
  */
 export function weaponMagic(
-  weapon: { name: string; data: Record<string, unknown>; category?: string },
+  weapon: { name: string; data: Record<string, unknown>; category?: string; told?: readonly string[] },
   rulesSets: readonly Record<string, unknown>[],
   seesHidden: boolean,
-  ammo: { name: string; data: Record<string, unknown>; category?: string } | null = null,
+  ammo: { name: string; data: Record<string, unknown>; category?: string; told?: readonly string[] } | null = null,
 ): WeaponMagic {
   const magic: WeaponMagic = { parts: [], hitNotes: [], damageNotes: [] };
   const bonusOf = (data: Record<string, unknown>) => {
     const value = isRecord(data.weapon) ? data.weapon.magicBonus : undefined;
     return typeof value === 'number' && Number.isInteger(value) && value !== 0 ? value : null;
   };
-  const hiddenOf = (thing: { data: Record<string, unknown>; category?: string }) =>
-    bonusHidden({ name: '', slot: null, armour: null, category: thing.category ?? text(thing.data.category), cursed: thing.data.cursed === true }, rulesSets);
+  // K22a: a bonus the GM told (the line's revealed fields hold "bonus") is the player's, curse or not.
+  const toldOf = (thing: { told?: readonly string[] }) => thing.told?.includes('bonus') === true;
+  const hiddenOf = (thing: { data: Record<string, unknown>; category?: string; told?: readonly string[] }) =>
+    bonusHidden({ name: '', slot: null, armour: null, category: thing.category ?? text(thing.data.category), cursed: thing.data.cursed === true, told: thing.told }, rulesSets);
   const marked = (hidden: boolean) => (hidden ? ' (hidden from the player)' : '');
   // Each `bonusVs` entry as a note under the roll it changes (mw-2); `named` leads it with the thing's name (the ammunition's).
   const notesVs = (data: Record<string, unknown>, hidden: boolean, named: string) => {
@@ -151,14 +153,14 @@ export function weaponMagic(
   };
   const own = bonusOf(weapon.data);
   // A negative bonus is a curse: hidden from the player even where `cursed` is a GM-hidden field their copy lacks (#594 review).
-  const ownHidden = hiddenOf(weapon) || (own !== null && own < 0);
+  const ownHidden = !toldOf(weapon) && (hiddenOf(weapon) || (own !== null && own < 0));
   if (!ownHidden || seesHidden) {
     if (own !== null) magic.parts.push({ label: `${weapon.name}, magic${marked(ownHidden)}`, value: own });
     notesVs(weapon.data, ownHidden, '');
   }
   const attack = merged(rulesSets).attack;
   const bonus = ammo ? bonusOf(ammo.data) : null;
-  const ammoHidden = ammo ? hiddenOf(ammo) || (bonus !== null && bonus < 0) : false;
+  const ammoHidden = ammo ? !toldOf(ammo) && (hiddenOf(ammo) || (bonus !== null && bonus < 0)) : false;
   // The ammunition counts under mw-3 (the rule adds both) or mw-5 (no rule, a launcher with no bonus of its own). A
   // launcher bonus this viewer can't see counts as none, so the missing row doesn't give the bow away (#606 review). A
   // curse (a negative bonus) always counts, whatever the launcher and the rule (as-5); it stays hidden from the player.
@@ -721,6 +723,8 @@ export interface WornGear {
   armour: unknown;
   category?: string;
   cursed?: boolean;
+  /** The facts the GM has told on the item's line (K22b, its `revealedFields`): "bonus" makes its bonus the player's. */
+  told?: readonly string[];
   /**
    * Magic armour whose base is picked when it's found (`armour.baseArmour: { choose: [item ids] }`; ruled
    * 2026-10-29): the base armour chosen for this item (its name and its pack armour block), stored per item and
@@ -782,10 +786,11 @@ export function wornForAc(details: Record<string, unknown>): boolean {
 
 /**
  * Whether a worn item's magic bonus is hidden from the player (the 2026-10-24 rule, as ruled for AC on 2026-10-29):
- * the item is unidentified, that is in a category the rules set marks `unidentified: true`, or cursed. Unidentified
- * items can't be revealed yet (M4b's reveal of facts isn't built), so such a bonus stays out of the player's numbers.
+ * the item is unidentified, that is in a category the rules set marks `unidentified: true`, or cursed, and the GM hasn't
+ * told its bonus (K22a: the line's revealed fields hold "bonus" once told; until then the player's numbers leave it out).
  */
 export function bonusHidden(gear: WornGear, rulesSets: readonly Record<string, unknown>[]): boolean {
+  if (gear.told?.includes('bonus')) return false;
   if (gear.cursed === true) return true;
   if (!gear.category) return false;
   return rulesSets.some(

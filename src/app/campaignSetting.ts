@@ -279,7 +279,7 @@ export interface LineInPlay {
  */
 export function lineInPlay(
   setting: Pick<CampaignSetting, 'patches' | 'all'> | null,
-  line: { category: string; details: Record<string, unknown>; sourceEntryId: string | null; sourcePackId?: string | null },
+  line: { category: string; details: Record<string, unknown>; sourceEntryId: string | null; sourcePackId?: string | null; revealedFields?: readonly string[] },
 ): LineInPlay {
   if (!setting || !line.sourceEntryId) return { details: line.details, lines: [], off: null };
   const entry = setting.all.find((e) => e.kind === 'item' && e.packEntryId === line.sourceEntryId);
@@ -292,7 +292,26 @@ export function lineInPlay(
   const entryLines = (own?.patched ?? []).filter((l) => cameFromEntry(l.path, current.fromEntry)).map((l) => l.text);
   // A key the entry replaced (fp-1) shows the entry's patch line, not the line's copy's as well.
   const lineLines = patched.lines.filter((l) => !cameFromEntry(l.path, current.fromEntry)).map((l) => l.text);
-  return { details: current.details, lines: [...lineLines, ...entryLines], off, damageDelta: deltaAt(asEntry, setting.patches, 'weapon.damage') };
+  return { details: withToldBonus(current.details, line), lines: [...lineLines, ...entryLines], off, damageDelta: deltaAt(asEntry, setting.patches, 'weapon.damage') };
+}
+
+/**
+ * K22a: a bonus the GM told on this line stays the line's own. A player's copy of an unidentified entry is its face,
+ * with no magic bonus in its blocks, so fp-1's "read from the current entry" would drop the told one; it comes back
+ * from the line. Untold, nothing changes: the face has none to bring back, and the GM's entry brings back the truth.
+ */
+function withToldBonus(details: Record<string, unknown>, line: { details: Record<string, unknown>; revealedFields?: readonly string[] }): Record<string, unknown> {
+  if (!line.revealedFields?.includes('bonus')) return details;
+  let out = details;
+  for (const block of ['weapon', 'armour'] as const) {
+    const told = line.details[block];
+    if (!told || typeof told !== 'object' || Array.isArray(told)) continue;
+    const keep = Object.fromEntries(Object.entries(told).filter(([key]) => key === 'magicBonus' || key === 'bonusVs'));
+    const now = out[block];
+    if (Object.keys(keep).length === 0 || !now || typeof now !== 'object' || Array.isArray(now)) continue;
+    out = { ...out, [block]: { ...now, ...keep } };
+  }
+  return out;
 }
 
 const kept = new Map<string, Promise<CampaignSetting | null>>();

@@ -207,6 +207,17 @@ describe("the Player screen's figures (ruled 2026-10-26)", () => {
       expect(bonusHidden({ name: 'Plain coat', slot: 'armour', armour: 12, category: 'armour' }, unknownKind)).toBe(false);
     });
 
+    it('a bonus the GM told counts in the player’s numbers from then on, curse or not (K22a)', () => {
+      // Purpose: bonusHidden reads what was told on the line, not the category alone: once "bonus" is in its revealed
+      // fields the player's AC counts it, unmarked; untold it stays out (K22a; 05, a told bonus counts).
+      const unknownKind = [{ ...rising[0], itemCategories: [{ id: 'magic-armour', name: 'Strange armour', unidentified: true }] }];
+      const coat: WornGear = { name: 'Dull coat', slot: 'armour', armour: { aac: 13, magicBonus: 2 }, category: 'magic-armour', told: ['magic', 'bonus'] };
+      expect(work(unknownKind, [coat])).toMatchObject({ value: 15, lines: ['Dull coat: 13', 'Dull coat, magic: +2'] });
+      expect(work(unknownKind, [{ ...coat, told: ['magic'] }]).value).toBe(13);
+      const cursed: WornGear = { name: 'Itchy coat', slot: 'armour', armour: { aac: 13, magicBonus: -1 }, cursed: true, told: ['cursed', 'bonus'] };
+      expect(work(rising, [cursed])).toMatchObject({ value: 12, lines: ['Itchy coat: 13', 'Itchy coat, magic: −1'] });
+    });
+
     it('counts armour, shields and any worn item whose block gives a bonus', () => {
       expect(wornForAc({ slot: 'armour' })).toBe(true);
       expect(wornForAc({ slot: 'shield' })).toBe(true);
