@@ -98,6 +98,7 @@ Used on drawings (mockup pages) and as reports on built screens; never handed to
 | unslop | about 12,000 tokens, and its own style rules on pull request texts and docs |
 | UI/UX Pro Max (`uipro init` is not run in this repo) | chooses colours and fonts, against hard rule 7 and mockups first |
 | Matt Pocock's skills (its setup step and its spec, ticket and triage commands are never run here) | a second spec-and-ticket process across the artifact chain |
+| Anatomy (wheresryan22/anatomy) | draws decorative isometric figures, against hard rule 7 and the prime directive; each figure is costly to build and needs Chrome to check |
 
 ## How the driver runs the work (rvw-9, rvw-13, rvw-14, rvw-16, rvw-17)
 
