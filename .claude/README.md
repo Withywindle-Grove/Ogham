@@ -51,9 +51,35 @@ Where this section differs from the rules above or in `CLAUDE.md`, those rules w
 - `frontend-design`: the default for building new UI; `uiux` if it isn't available.
 - `design:accessibility-review`: before a UI ships.
 - `design:ux-copy`: labels, errors, empty states (within the words and voice guide in 06).
-- `impeccable`: only when Francis names it or one of its commands.
+- `impeccable`: only when Francis names it or one of its commands (When to name them, below).
 - `hallmark`: only when Francis names it.
 - `design:design-critique`: only when he asks for a critique without naming `impeccable`.
+
+**When Francis names `impeccable` and `hallmark`** (Francis, 2026-11-23)
+
+Used on drawings (mockup pages) and as reports on built screens; never handed to a builder. A report changes nothing until he picks findings by number.
+
+| Francis's question | Name | On |
+|---|---|---|
+| "Is this drawing good before I approve it?" | `impeccable critique` | a new mockup page |
+| "What's wrong across this whole built screen?" | `impeccable audit` | a built screen, before a retest or a gate |
+| "It's nearly right, tidy it" | `impeccable polish` | a drawing |
+| "This screen is too busy" | `impeccable quieter` or `distill` | a drawing |
+| "Players keep missing this" | `impeccable bolder` (rare) | a drawing |
+| "Things don't line up" or "the text hierarchy is off" | `impeccable layout` or `typeset` | a drawing |
+| "Long names, 999, offline, errors?" | `impeccable harden` | states, before they're built |
+| The first drawing of a whole screen looks like a template | `hallmark` | that drawing |
+
+`impeccable colorize` and `animate` are not used unless a design sitting is changing the tokens.
+
+**The driver's reminders.** One line each; a reminder, never a block, and he may say no.
+
+| When the driver | It offers |
+|---|---|
+| puts a new mockup page to him for approval | `critique`; for a whole new screen also `hallmark` |
+| tells him a screen is ready to retest, or a gate is near | `audit` |
+| hears him say a screen is busy, misaligned or easy to miss | the matching command from the table above |
+| brings a plan with undrawn states | `harden` |
 
 **Data**
 - `data:sql-queries` for SQL; `dataviz` before any chart.
@@ -63,6 +89,15 @@ Where this section differs from the rules above or in `CLAUDE.md`, those rules w
 - `hallmark` and `impeccable` are condensed ports without their tooling. Never claim a linter or detector ran.
 - Of the Superpowers plugin (obra/superpowers), only the three skills named above are used (Francis, 2026-11-22). The rest of it (its brainstorming, plan-writing, subagent and worktree workflows) is not: the project's own chain, driver and briefs stand.
 - Do not use Adobe or marketing skills in this project unless Francis names one.
+
+**Not used in this project** (Francis, 2026-11-22)
+
+| Skill set | Why not |
+|---|---|
+| GIA Chief of Staff | reads the inbox, not the project |
+| unslop | about 12,000 tokens, and its own style rules on pull request texts and docs |
+| UI/UX Pro Max (`uipro init` is not run in this repo) | chooses colours and fonts, against hard rule 7 and mockups first |
+| Matt Pocock's skills (its setup step and its spec, ticket and triage commands are never run here) | a second spec-and-ticket process across the artifact chain |
 
 ## How the driver runs the work (rvw-9, rvw-13, rvw-14, rvw-16, rvw-17)
 
