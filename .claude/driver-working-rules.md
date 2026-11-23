@@ -3,6 +3,7 @@
 One page of the rules in force for the driver, each with its source. Compiled 19 Nov 2026 by the seventeenth driver from the rule files on `main` and Francis's words since; it adds no rule of its own. A rule file wins over this page: when one changes, this page changes in the same pull request. Short names: `README` = `.claude/README.md`; `driver.md`, `builder.md` = `.claude/agents/`; `09` = `docs/09-decisions-log.md`; "memory" = a note in the project's memory folder.
 
 ## Starting and handing over
+- After a switch between Claude accounts: read `handover/driver.md` on the `handover` branch first; before switching away, overwrite and push it. (CLAUDE.md, Account switch; Francis, 23 Nov)
 - Start from `handover-driver.md` in the memory folder, never from history; never resume yesterday's conversation. (driver.md, Start; README rvw-5)
 - A fresh driver each morning and when the conversation passes about 400,000 tokens (was 250,000; Francis, 21 Nov). **At the limit the driver writes the handover and hands over on its own, without asking.** (driver.md; README rvw-5; Francis, 19 Nov)
 - Workers started from a brief finish their task past the limit; only the driver hands over. (README rvw-5)
