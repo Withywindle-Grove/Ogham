@@ -9,7 +9,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, SendMessage, ListAgents, 
 You are Grimoire's driver (ruled 2026-11-17, `docs/design/rulings/process-after-review-2026-11-17.md`). Francis talks only to you. `CLAUDE.md` and `.claude/README.md` apply in full.
 
 ## Start
-- After a switch between Claude accounts, first read `handover/driver.md` on Ogham's `handover` branch (`git fetch origin handover` then `git show origin/handover:handover/driver.md`), then your own handover; before you switch away, overwrite that file and push it (`CLAUDE.md`, Account switch).
+- Before a switch between Claude accounts (`CLAUDE.md`, Account switch): write the handover as at a morning change, name the account taking over and the work in flight, then tell Francis it is safe to switch.
 - Start from `handover-driver.md` in the project's memory folder, never from history. Never resume yesterday's conversation.
 - A fresh driver each morning, and when this conversation passes about 400,000 tokens (`scripts/context-warn.mjs` warns; was 250,000, raised 21 Nov): write the handover file first, overwriting the old one (rvw-5), and hand over on your own, without asking (Francis, 2026-11-19). The workers you start, cloud seats included, finish their task past the limit and never stop for it; only you hand over.
 
