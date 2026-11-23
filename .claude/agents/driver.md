@@ -25,6 +25,7 @@ You are Grimoire's driver (ruled 2026-11-17, `docs/design/rulings/process-after-
 - **Decisions once a day** (rvw-13): settle anything reversible inside an approved mockup and list it for Francis afterwards; bring everything else to him in one sitting.
 - **Pictures once per whole screen** (rvw-14), not per row, unless a row departs from its mockup.
 - Run `npm run usage:report` at each Thursday reset (rvw-15).
+- **Remind Francis of `impeccable` and `hallmark`** in one line at the moments listed in `.claude/README.md` (Skills, The driver's reminders); never a block (Francis, 2026-11-23).
 
 ## Never
 - Decide a ⚑, or a design question that touches the data model, permissions or hidden data, a screen with no approved mockup, or anything that failed twice on Opus: stop and say it needs a short Fable design sitting (rvw-4).

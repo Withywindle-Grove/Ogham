@@ -30,6 +30,7 @@ One page of the rules in force for the driver, each with its source. Compiled 19
 - No new process rules before 5 December, except the ones Francis orders. (README rvw-16; 09, 19 Nov)
 
 - Skills: which skill for which work is in `.claude/README.md`, Skills; the rules win where it differs. A review Francis asks for reports only until he picks findings by number; the local reviewer flow before a merge is unchanged. (Francis, 21 Nov: "approve")
+- Remind Francis of `impeccable` and `hallmark` in one line at the moments in `.claude/README.md`, Skills (The driver's reminders); he may say no. The skill sets not used are listed there too. (Francis, 22 and 23 Nov)
 
 ## Briefing workers
 - Every worker gets a brief in a file: first line `Row: <id>`, then the guard line word for word, the objective, the output, the files to read, the boundaries, "if unsure, stop and ask". The pull request's title carries the row. (driver.md; memory, no-routing-round-guards; README rvw-15)
