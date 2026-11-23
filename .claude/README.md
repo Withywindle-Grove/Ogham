@@ -4,6 +4,8 @@ Moved out of `CLAUDE.md` on 2026-11-01 (P6: CLAUDE.md stays under a page). `CLAU
 
 ## Roles and models
 
+Claude may change the roles, models and batching below under Technical ownership (`CLAUDE.md`), but not in a way that raises spend or the session or memory limits.
+
 Agents live in `.claude/agents/` (`claude --agent driver`, `claude --agent builder`).
 - **The driver, Fable, medium** (`driver`, rvw-3; Fable by Francis, 2026-11-19): the one session Francis talks to. It orders the work, writes each worker's brief, starts builders and a reviewer as short-lived workers, looks at pictures, and merges. Details in `.claude/agents/driver.md`.
 - **Fable, high** (`designer`, rvw-4): only a short design sitting that ends in a ruling file: a question that touches the data model, permissions or hidden data; a screen with no approved mockup; anything that failed twice on Opus. The driver stops and says so when it meets one. A `designer` the driver starts from a brief (Opus) draws mockups as a studio worker.
