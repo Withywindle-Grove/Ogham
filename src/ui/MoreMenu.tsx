@@ -8,7 +8,17 @@ import './MoreMenu.css';
 
 // The ⋯ button and the small panel it opens. Closes on Escape, a tap outside, or choosing an action in it
 // (a setting you switch, like the theme or text size, leaves it open).
-export function MoreMenu({ label, startOpen = false, children }: { label: string; startOpen?: boolean; children: ReactNode }) {
+export function MoreMenu({
+  label,
+  startOpen = false,
+  children,
+}: {
+  label: string;
+  startOpen?: boolean;
+  children: ReactNode;
+  /** A gallery example only: a tap or click outside leaves it open and goes where it lands. */
+  specimen?: boolean;
+}) {
   const [open, setOpen] = useState(startOpen);
   const panelId = useId();
   const root = useRef<HTMLDivElement>(null);

@@ -171,4 +171,26 @@ describe('the ⋯ menu', () => {
     fireEvent.click(outside);
     expect(beneath).toHaveBeenCalledTimes(1);
   });
+
+  // Purpose: a ⋯ menu shown as a gallery example lets a tap outside reach what is underneath.
+  it.fails('a ⋯ menu shown as a gallery example lets a tap outside reach what is underneath', async () => {
+    const user = userEvent.setup();
+    const beneath = vi.fn();
+    render(
+      <>
+        <button type="button" onClick={beneath}>
+          Bog lurker
+        </button>
+        <MoreMenu label="Options" startOpen specimen>
+          <MenuItem icon="scales" onClick={() => undefined}>
+            Lantern Warden
+          </MenuItem>
+        </MoreMenu>
+      </>,
+    );
+    await user.pointer({ keys: '[TouchA]', target: screen.getByRole('button', { name: 'Bog lurker' }) });
+    expect(beneath).toHaveBeenCalledTimes(1);
+    // The example stays shown open.
+    expect(screen.getByRole('button', { name: 'Lantern Warden' })).toBeTruthy();
+  });
 });
