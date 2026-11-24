@@ -52,7 +52,7 @@ Done for the 5th: the rules pack checked against its book; abilities' uses; the 
 ## Dates
 | Date | What |
 |---|---|
-| Fri 27 Nov | **Cut line.** A tier-1 piece without an approved picture and a started build is run by hand on the 5th, and the preparedness script says how |
+| ~~Fri 27 Nov~~ | No cut line (Francis, 24 Nov: "there is no cut line on nov 27. we build until i say stop."). Building goes on until he says stop; what is still not built then is run by hand on the 5th, and the preparedness script says how |
 | Tue 1 Dec | Creation is live; the preparedness script for the night is with Francis |
 | Wed 2 or Thu 3 Dec | Dress rehearsal on the live app: Francis as GM, the Tester as two players, on the night's own packs |
 | Fri 4 Dec | Nothing merges; packs imported; the campaign set up |
@@ -71,4 +71,6 @@ Done for the 5th: the rules pack checked against its book; abilities' uses; the 
 - Magic in play has no brief, no size and no plan yet.
 
 ## How we know it works
+**Test-ready** (Francis, 24 Nov): "test ready means that all functionality for dec 5 is complete in its first iteration, so that i can test it completely and offer feedback while you start building pack and settlement. same for Player tab." and "any fixes or changes i've already submitted should be completed before i retest." So the app is test-ready for the 5th, and the Player tab for its own test, when every piece is built in a first version and every fix or change he has already sent is done; then he tests it whole, and the pack and the settlement are built while he does.
+
 Each piece: its pull request's tests and local review, its manual checks in `docs/testing/<branch>.md`, and Francis's yes on its picture. The dress rehearsal walks the night end to end; whatever fails goes on a "by hand on the 5th" sheet.
