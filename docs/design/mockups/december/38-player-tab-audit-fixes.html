@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>December: page 38, the Player tab's audit fixes, as built beside the proposed fix (not ruled)</title>
+<title>December: page 38, the Player tab's audit fixes, as built beside the proposed fix (approved 2026-11-24, with fixes)</title>
 <link rel="stylesheet" href="../creation/final/final.css">
 <link rel="stylesheet" href="december.css">
 <style>
@@ -24,7 +24,7 @@
 <div class="theme light">
 
 <h1>Page 38. The Player tab: the audit's fixes, as built beside the proposed</h1>
-<p class="note"><b>Not ruled. Nothing here is approved.</b> For the driver's brief of 2026-11-24 (row mock-38), after the <code>impeccable audit</code> of the built Player tab on 2026-11-23. Each frame is two pictures of <b>the built screen</b> from <code>main</code> (the layout page, the sample character Brannoch; invented names only): left as built, right the same screen with the fix laid over it as CSS from the tokens (or, for words, the words changed in the page). Light, a tablet held sideways (1180 by 820), unless the frame says otherwise. Kept as asked: the word "Light" for both the burden and the lantern's button, and "No notices" in the phone's top spot.</p>
+<p class="note"><b>Approved 2026-11-24, with fixes (critique 7, critique 4, dark frames for 1 and 7; finding 8 ruled 8a).</b> For the driver's brief of 2026-11-24 (row mock-38), after the <code>impeccable audit</code> of the built Player tab on 2026-11-23. Each frame is two pictures of <b>the built screen</b> from <code>main</code> (the layout page, the sample character Brannoch; invented names only): left as built, right the same screen with the fix laid over it as CSS from the tokens (or, for words, the words changed in the page). Light, a tablet held sideways (1180 by 820), unless the frame says otherwise. Kept as asked: the word "Light" for both the burden and the lantern's button, and "No notices" in the phone's top spot.</p>
 <p class="note"><span class="flag">Numbering</span> <b>The audit's findings text was not saved.</b> The nine findings below are rebuilt. Their numbers follow the only record written against the real findings, the earlier worker's picture script (<code>mock/render.mjs</code> in the notes repository), which numbers them 1 to 9. The brief calls the rail's tabs and handle "finding 6" (that is audit picture 6); in the script that is finding 1, and its 6 is the two-button rows on a phone. Both have a phone frame here. <b>Francis, please correct the numbers and the wording.</b></p>
 <p class="note"><span class="ev">Pictures</span> = rebuilt from the audit's seven pictures and the built code. <span class="ev">Script</span> = from the earlier picture script only; none of the seven pictures shows it, so it is the weaker evidence.</p>
 
@@ -76,7 +76,7 @@
 <img src="png/38-7-words-tablet-dark.png" alt="The armour class and attack tiles in dark: as built and proposed"></div>
 
 <h1>38-8. Over the most he can carry <span class="ev">Script</span></h1>
-<div class="fr"><p class="cap"><b>Found:</b> "Can't move" is written twice side by side, and the warning sign touches its word. <b>Proposed (fix round, 2026-11-24, critique 4):</b> "Can't move" is said once, in the speed tile; the load tile keeps its warning sign, its full bar and its count, without the words.<small><span class="flag">⚑</span> Which tile keeps the words is not ruled; no new wording is drawn ("0 paces" is gone). The load tile's sign stands alone here, with no word beside it, so the 8 px between sign and word (the second half of the finding) is no longer drawn.</small></p>
+<div class="fr"><p class="cap"><b>Found:</b> "Can't move" is written twice side by side, and the warning sign touches its word. <b>Proposed (fix round, 2026-11-24, critique 4):</b> "Can't move" is said once, in the speed tile; the load tile keeps its warning sign, its full bar and its count, without the words.<small><span class="flag">⚑</span> Ruled 8a, 2026-11-24: the load tile keeps the lone warning sign, "Can't move" only on the speed tile. No new wording is drawn ("0 paces" is gone). The load tile's sign stands alone here, with no word beside it, so the 8 px between sign and word (the second half of the finding) is no longer drawn.</small></p>
 <img src="png/38-8-over-loaded-tablet-light.png" alt="Movement when over-loaded: as built and proposed"></div>
 
 <h1>38-9. "Hit points" is the one heading in another hand <span class="ev">Pictures: 1 to 5</span></h1>
@@ -88,7 +88,7 @@
 <table class="sc">
 <tr><th>Heuristic</th><th>0 to 4</th><th>Why</th></tr>
 <tr><td>Visibility of system status</td><td>3</td><td>The fade now says "more below"; the over-loaded state reads at once.</td></tr>
-<tr><td>Match to the user's language</td><td>3</td><td>The short forms go; "0 paces" beside "Can't move" still says one thing twice.</td></tr>
+<tr><td>Match to the user's language</td><td>3</td><td>The short forms go; "0 paces" beside "Can't move" was said twice in the first round; the fix round (critique 4) says it once, in the speed tile.</td></tr>
 <tr><td>User control and freedom</td><td>3</td><td>The way back keeps its words.</td></tr>
 <tr><td>Consistency</td><td>2</td><td>"Hit points" joins the headings, but fix 4 gives one heading a rule the others lack, and fix 6 makes two row shapes in one list.</td></tr>
 <tr><td>Error prevention</td><td>3</td><td>Targets 44 px and 8 px apart where the fixes reach.</td></tr>
@@ -105,18 +105,18 @@
 <li><b>Fix 4's double rule stands alone.</b> Scores, Saves and Movement keep bare headings, so one heading in the column looks different. Simpler: keep the single rule and only move the row down 8 px. (<code>layout</code>)</li>
 <li><b>Fix 5's fade dims a button.</b> In 38A "Refill" sits half-faded at the foot: a dim control reads as switched off, and the app has no switched-off buttons. A shorter fade (16 px), or a plain rule at the edge, avoids it. (<code>polish</code>)</li>
 <li><b>Fix 6 makes two row shapes in one list.</b> Two-button rows put buttons under the words; one-button rows keep theirs beside. On the phone the eye loses the single right-hand column of buttons. Is that only at Larger text, or always on a phone? Not said. (<code>layout</code>)</li>
-<li><b>Fix 8 still says it twice.</b> "0 paces" and "Can't move" are the same fact in two tiles. The speed tile could carry the reason instead (its small line now reads only "Speed"). (<code>clarify</code>)</li>
+<li><b>Fix 8 still says it twice.</b> "0 paces" and "Can't move" were the same fact in two tiles. Done in the fix round (critique 4): "Can't move" is said once, in the speed tile; the load tile keeps its warning sign (ruled 8a, 2026-11-24). (<code>clarify</code>)</li>
 <li><b>Fix 7 is not drawn with a long armour name or with none.</b> The tile is 216 px wide (measured); "Waxed coat, Nimbleness +1" just fits. (<code>harden</code>)</li>
 <li><b>Fix 3 puts the name in two places</b> on an upright tablet (the bar, cut; the head's line, whole), and the head grows by a line. The bar could drop the cut name there instead. On a phone it is not drawn. (<code>distill</code>)</li>
 <li><b>Fix 1 leaves the handle hard to see.</b> Its tap area is now clear of the rail, but what shows is still a 6 px grey bar and a small arrow; a first-timer will not know it opens the menu. Outside the audit's finding. (<code>clarify</code>)</li>
 <li><b>Fix 9: a heading inside a box.</b> In the headings' style "Hit points" now looks like a section heading but sits inside its box, where the others sit above theirs. Minor. (<code>typeset</code>)</li>
-<li><b>Dark and the other states are missing.</b> Every frame is light; the fade, the double rule and the warning sign's gap are not shown in dark. (<code>harden</code>)</li>
+<li><b>Dark and the other states are missing.</b> Dark frames for fixes 1 and 7 are drawn (done, 82c97eb); the other frames (the fade, the double rule, the warning sign) are not drawn in dark. (<code>harden</code>)</li>
 </ol>
 <p class="note"><b>Walked as:</b> a first-time player (finds the tabs; does not find the handle, 7); a player on a phone at Larger text, interrupted mid-fight (fix 6 helps most; 3 above); a keyboard or screen-reader user (the fixes change no names or order; the fade is visual only; not tested with a reader). <b>Questions for Francis:</b> is fix 6 for Larger text only or every phone? Should the tab bar's tabs keep touching (38-1)? May the armour's name appear in the armour class tile (38-7)?</p>
 
 <h1>Self-review</h1>
 <p class="note"><b>Checked, measured on the built screen before and after each fix:</b> the rail's tabs 40 to 44 px wide, 4 to 8 px apart; the handle 0 to 8 px from the rail; the weapon's buttons and the ⓘ 4 to 8 px; "Use" 5 px under its heading as built; the way back 44 px wide with a long name upright, 176 or more proposed. Every fix uses the tokens only (<code>--tap</code>, <code>--space-1</code> to <code>--space-6</code>, <code>--divider</code>, <code>--ink</code>); no new colour or size. Nothing under 14 px: fix 9 uses the headings' own size. No disabled button, no new accent button, no confirm. Messy data: the long name (38-3), the long weapon names (38-2, 38-6), 1,259 of 1,200 (38-8). 375 px: 38-1 and 38-6; the built screen has no sideways scroll at 375 px before or after fix 6 (measured).</p>
-<p class="note"><b>Not checked or not drawn.</b> Dark mode (the brief asked for light). Loading, offline and error states. Fix 5 is drawn as a still: the "only while something is cut" behaviour is described, not shown working. Fixes 2 (pins), 6 and 8 rest on the earlier script, not on the audit's pictures. Fixes 3, 6, 7 and 8 are not drawn at the other widths. Contrast is unchanged by any fix except the fade, which was not measured. Tome #1118 fb-1 lives in a repository this session cannot read: skipped. These are pictures of the built screen with CSS laid over it, not hand-drawn frames as on page 37, so the page has no dark column.</p>
+<p class="note"><b>Not checked or not drawn.</b> Dark mode, except the frames for fixes 1 and 7 (drawn in the fix round); the other frames are light only. Loading, offline and error states. Fix 5 is drawn as a still: the "only while something is cut" behaviour is described, not shown working. Fixes 2 (pins), 6 and 8 rest on the earlier script, not on the audit's pictures. Fixes 3, 6, 7 and 8 are not drawn at the other widths. Contrast is unchanged by any fix except the fade, which was not measured. Tome #1118 fb-1 lives in a repository this session cannot read: skipped. These are pictures of the built screen with CSS laid over it, not hand-drawn frames as on page 37, so the page has no dark column.</p>
 
 </div>
 </body>
