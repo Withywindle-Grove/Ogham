@@ -135,7 +135,7 @@ export function attackFigures(input: {
   // tfw-6: a figure typed on the sheet that is the class's own number is not listed twice; one that differs is
   // "Set by hand". Compared as whole numbers, so "+1", "1" and "−1" read as the numbers they are.
   if (typed && (base === null || wholeNumber(typed) !== base)) rows.push({ label: 'Set by hand', value: typed });
-  // tfw-7: the kind's word as the pack has it, with a capital ("Melee +2, Missile +1"), on the Player tab and the sheet.
+  // tfw-7: the kind's word as the pack has it. The sheet keeps the capital ("Melee +2, Missile +1"); the Player tab's line is set in plain case (row 7b, "Melee +2, missile +1").
   const kindWord = (kind: string) => `${kind.charAt(0).toUpperCase()}${kind.slice(1)}`;
   if (base !== null && direction === null) {
     // The setting doesn't say which way AC runs: the scores' modifiers as the caption; the pop-up keeps its old lines.
