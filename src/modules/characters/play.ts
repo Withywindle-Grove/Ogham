@@ -654,6 +654,8 @@ const capital = (words: string) => `${words.charAt(0).toUpperCase()}${words.slic
  *  - a save modifier a score drives (`saveModifiers` `{ from, plusRaceField }`): the score's own part, from its filled
  *    row as fills.ts ruleFills reads it ("Spell ward: +1 from Lore."), and the kindred's part (`plusRaceField`) on its
  *    own line ("Spell ward: +2 from Stone kin."). The pack doesn't say which save it belongs to, so every save has it;
+ *  - a save modifier read from the kindred's own field (`{ raceField }`, pf-21): "Vs hexes: +2 from Marsh-born.", nothing
+ *    at 0; a value carrying two shapes is read fill, then raceField, then from, as explain.ts reads it;
  *  - the kindred's bonus by its Constitution row (`saveBonusByCon`) for the saves it names ("Vs poison: +3 from Stone
  *    kin."), and the kindred's and class's `saveBonus` ("To the roll: +2 from Lantern Warden.").
  * A part that gives nothing is left out; none at all means no section. The class-and-level number is where the save
@@ -663,7 +665,8 @@ export function saveModifierLines(saveKey: string, input: SaveModifierInput): st
   const lines: string[] = [];
   const kindred = input.raceName ?? 'your kindred';
   const klass = input.className ?? 'your class';
-  for (const m of (Array.isArray(merged(input.rulesSets).saveModifiers) ? (merged(input.rulesSets).saveModifiers as unknown[]) : []).filter(isRecord).filter(fromScore)) {
+  // The shapes in the order the reader takes them (fills.ts ruleFills, explain.ts): fill, then raceField (pf-21), then from.
+  for (const m of (Array.isArray(merged(input.rulesSets).saveModifiers) ? (merged(input.rulesSets).saveModifiers as unknown[]) : []).filter(isRecord).filter((x) => fromScore(x) || raceFieldOf(x) !== null)) {
     const spec = m.value as Record<string, unknown>;
     const name = capital(text(m.name) || text(m.tag) || text(m.against) || text(m.id));
     const path = scoreFill(m);
@@ -672,6 +675,13 @@ export function saveModifierLines(saveKey: string, input: SaveModifierInput): st
       const row = input.filled[`abilityModifiers.${path.score}`];
       const own = isRecord(row) ? whole(row[path.column]) : null;
       if (own) lines.push(`${name}: ${signed(own)} from ${input.label(path.score)}.`);
+      continue;
+    }
+    const raceField = raceFieldOf(m);
+    if (raceField !== null) {
+      // The kindred's own field alone (pf-21): a whole number other than nought, else nothing.
+      const own = whole(input.race?.[raceField]);
+      if (own) lines.push(`${name}: ${signed(own)} from ${kindred}.`);
       continue;
     }
     const from = String(spec.from);
@@ -965,6 +975,9 @@ function scoreFill(m: Record<string, unknown>): { score: string; column: string 
  */
 const fromScore = (m: Record<string, unknown>) => (isRecord(m.value) && typeof m.value.from === 'string') || scoreFill(m) !== null;
 
+/** A save modifier's `value.raceField` (pf-21), the kindred's field it reads; else null. */
+const raceFieldOf = (m: Record<string, unknown>) => (isRecord(m.value) && typeof m.value.raceField === 'string' ? m.value.raceField : null);
+
 /**
  * How saves are rolled and what changes them, from the rules set (`saveRule`, `saveModifiers`), as plain lines.
  * `scoresApart`: leave out the save modifiers a score drives (a save's sheet shows them under "Modifiers", sv-2b).
@@ -978,9 +991,10 @@ export function saveRules(rulesSets: readonly Record<string, unknown>[], { score
   for (const m of mods) {
     const name = text(m.name) || text(m.tag) || text(m.against);
     const value = typeof m.value === 'number' ? signed(m.value) : typeof m.modifier === 'number' ? signed(m.modifier) : '';
-    // An entry with no number the app can read (and not one a score drives) is left out, never a bare name (24 Nov).
-    if (!value && !fromScore(m)) continue;
-    if (name || value) lines.push([name, value].filter(Boolean).join(' '));
+    // An entry with no number of its own is left out, never a bare name: a score-driven or kindred-field one shows its
+    // number under a save's Modifiers instead (24 Nov; #82 review).
+    if (!value) continue;
+    lines.push([name, value].filter(Boolean).join(' '));
   }
   return lines;
 }

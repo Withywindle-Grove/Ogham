@@ -153,7 +153,7 @@ describe("a save's Modifiers from the rules, the kindred and the class (play.ts 
     expect(saveRules(withFill, { scoresApart: true })).toEqual(['Roll a d20; meet the number to save.']);
   });
 
-  it.fails("shows a save modifier given by the kindred's own field under Modifiers, only for a whole number other than nought", () => {
+  it("shows a save modifier given by the kindred's own field under Modifiers, only for a whole number other than nought", () => {
     // Purpose (pf-21, #82 review): a `{ raceField }` modifier reads "Name: +N from <kindred>." when the character's kindred
     // carries that field with a whole number other than nought, and shows nothing at 0 or when the kindred lacks it.
     const withRace = [{ saveModifiers: [{ id: 'vs-hexes', name: 'vs hexes', value: { raceField: 'hexWard' } }] }];
@@ -164,7 +164,7 @@ describe("a save's Modifiers from the rules, the kindred and the class (play.ts 
     expect(saveModifierLines('M', marsh(null))).toEqual([]);
   });
 
-  it.fails('reads a save modifier carrying two shapes in the order explain.ts does: fill, then raceField, then from', () => {
+  it('reads a save modifier carrying two shapes in the order explain.ts does: fill, then raceField, then from', () => {
     // Purpose (#82 review): the Modifiers line and the figure's explanation agree on which shape a value counts by.
     const both = (value: Record<string, unknown>) => [{ saveModifiers: [{ id: 'two', name: 'Grit vs hexes', value }] }];
     const filled = { 'abilityModifiers.GRT': { hexSaves: 1 }, 'abilityModifiers.WIT': { saveBonus: 3 } };
@@ -173,7 +173,7 @@ describe("a save's Modifiers from the rules, the kindred and the class (play.ts 
     expect(saveModifierLines('M', input({ rulesSets: both({ raceField: 'hexWard', from: 'WIT' }), filled, label, race: { hexWard: 2 } }))).toEqual(['Grit vs hexes: +2 from Stone kin.']);
   });
 
-  it.fails('never prints a bare name for a score-driven save modifier, with the score-driven ones kept in or not', () => {
+  it('never prints a bare name for a score-driven save modifier, with the score-driven ones kept in or not', () => {
     // Purpose (#82 review): without scoresApart, a `{ fill }` or `{ from }` entry has no number of its own to show.
     const withFill = [{ saveRule: 'Roll a d20; meet the number to save.', saveModifiers: [{ id: 'grit-hexes', name: 'Grit vs hexes', value: { fill: 'abilityModifiers.GRT.hexSaves' } }] }];
     expect(saveRules(withFill)).toEqual(['Roll a d20; meet the number to save.']);
