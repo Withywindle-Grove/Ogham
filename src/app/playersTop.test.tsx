@@ -569,7 +569,7 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
   });
 
   // Purpose (PL8, the local review): when lighting fails, the Light pop-up stays open and the failure shows as a toast.
-  it.fails('keeps the Light pop-up open when lighting fails', async () => {
+  it('keeps the Light pop-up open when lighting fails', async () => {
     const { sam } = await table({ rules: true, rushlights: true });
     const user = await openScene(sam);
     await user.click(await factNamed('Light'));
@@ -589,7 +589,7 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
 
   // Purpose (PL8, the local review): "Which light?" opened from the Light pop-up keeps its own form, not the pop-up's
   // book faces, as At hand's pick.
-  it.fails('opens Which light? from the Light pop-up in its own form', async () => {
+  it('opens Which light? from the Light pop-up in its own form', async () => {
     const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
     const user = await openScene(sam);
     await user.click(await factNamed('Light'));
