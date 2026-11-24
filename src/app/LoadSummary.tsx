@@ -66,6 +66,9 @@ export function LoadSummary({
   const warn = load.over || (load.mode !== 'armour' && load.tier !== null && load.tier.label !== (load.mode === 'coin' ? rules.coin : rules.slot)?.tiers[0]?.label);
   const source = from.length > 0 ? `From your setting: ${from.join(', ')}` : '';
   const fill = load.capacity ? Math.min(1, load.load / load.capacity) : 0;
+  // Over the most with "speed said once" (dec-14 row 8, ruled 8a, frame 38-8): the speed card says it, so the tier is
+  // the warning sign alone, its spoken name the pack's own words. Armour mode is left as built.
+  const signAlone = speedOnce && load.over && load.mode !== 'armour';
 
   return (
     // "Speed said once" is also the Player screen's card as P1 draws it: left-aligned and upright (`pack__load--once`).
@@ -76,11 +79,12 @@ export function LoadSummary({
           type="button"
           className={warn ? 'pack__tier pack__tier--warn' : 'pack__tier'}
           {...(levelsPopUp ? { 'aria-haspopup': 'dialog' as const } : { 'aria-expanded': explain })}
+          {...(signAlone ? { 'aria-label': words } : {})}
           onClick={() => setExplain(!explain)}
         >
           {/* Over the limit carries the warning sign (plan m5b-players-screens-standard A3), the words still say it. */}
           {load.over && <WarningSign />}
-          {words}
+          {!signAlone && words}
         </button>
       )}
       {load.mode === 'slot' && load.capacity !== null ? (

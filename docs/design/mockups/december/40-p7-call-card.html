@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>December: page 40, P7, the call card reaching a player: the frames rulings p7-4 to p7-9 need (2026-11-24, approved as drawn)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* Page 18's own rules for the prompt slot and the call card, copied as drawn (PL4, PL4b). */
+  .lbl { font-size:14px; color:var(--muted); margin:var(--space-3) 0 var(--space-2); }
+  .dcap { display:inline-flex; align-items:center; gap:var(--space-1); font-size:16px; margin-right:var(--space-2); vertical-align:bottom; }
+  .dcap svg { color:var(--muted); flex:none; }
+  .two18 { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-4); align-items:start; }
+  .slot18 { display:grid; gap:var(--space-2); margin:var(--space-3) 0; }
+  .pr18 { display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:var(--space-3); align-items:center; min-height:56px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-1) var(--space-3); box-sizing:border-box; }
+  .pr18 > span:first-child { display:flex; color:var(--muted); }
+  .call18 { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:var(--space-1) var(--space-3); align-items:start; }
+  .call18 small { display:block; font-size:14px; color:var(--muted); }
+  /* New on this page. The "Pays" line: the book's labelled line (shared/book.css). The folded row: the prompt row's
+     box with a chevron in a tap-sized square; the whole row is the tap. Words that wrap anywhere, for long names. */
+  .call18 .bsub, .fold40 > span { overflow-wrap:anywhere; }
+  .call18 .ln { display:block; margin-top:var(--space-1); }
+  .slot18 .cardb { margin:0; }
+  .fold40 .go { display:inline-flex; width:var(--tap, 44px); height:var(--tap, 44px); align-items:center; justify-content:center; color:var(--ink); }
+  .fold40 .go.up svg { transform:rotate(180deg); }
+  /* the page's own text: the critique and the notes, as page 38 sets them */
+  .flag { display:inline-block; border:1.5px dashed var(--warn); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; font-size:14px; }
+  ol.crit { font-size:16px; max-width:900px; padding-left:var(--space-5); }
+  ol.crit li { margin-bottom:var(--space-2); }
+  table.sc { border-collapse:collapse; font-size:14px; margin:var(--space-2) 0 var(--space-4); }
+  table.sc td, table.sc th { border:1px solid var(--rule); padding:var(--space-1) var(--space-2); text-align:left; }
+  .fr40 { margin:0 0 var(--space-5); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="strip.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+// ---- approved parts, as page 18 wrote them (PL4, PL4b) ----
+const stk = (words, k, o = {}) => `<span class="btn stk${o.accent ? ' accent' : ''}" role="button">${gi(k, 24)}<span>${words}</span></span>`;
+const dl = (date, rest = '', season = 'sprout') => `<span class="dcap">${season ? gi(season, 18) : ''}${date}</span>${rest}`;
+const DATE = dl('14 Reedmonth, spring', 'Two hours of light left.');
+const pBand = (title, ident, over = 'Session 1. Saltwick Island.') => `${band({ over, title, ident, acts: [] })}<hr class="dbl">`;
+const pr = (icon, words, btn = '', cls = '') => `<div class="pr18${cls}" role="status"><span>${icon}</span><span>${words}</span>${btn}</div>`;
+const P_REST = (accent) => pr(sym('rest', 24), 'Rest is due.', stk('Answer', 'scroll-quill', { accent }));
+const slot = (...p) => `<div class="slot18" aria-label="What needs you">${p.join('')}</div>`;
+
+// ---- the call card under p7-4 to p7-6 and p7-9: PL4b's card; no source line; "Pays" when there is one; "1 of 3" when several ----
+const MARK = { hook: 'stabbed-note', rumour: 'beer-stein' };
+const card = ({ kind = 'hook', head, words, pays = '', count = '', btn = stk('Got it', 'check-mark') }) =>
+  `<div class="cardb call18" role="status"><span>${gi(MARK[kind], 28)}</span><span><h3 class="bsub">${head}</h3><span class="bk" style="display:block">${words}${pays ? `<span class="ln"><span class="lb">Pays</span>${pays}</span>` : ''}</span>${count ? `<small>${count}</small>` : ''}</span>${btn}</div>`;
+const fold = (kind, head, up = false) => `<div class="pr18 fold40" role="button" aria-expanded="${up}" aria-label="${head}: ${up ? 'fold away' : 'read it again'}"><span>${gi(MARK[kind], 24)}</span><span>${head}</span><span class="go${up ? ' up' : ''}">${I.chev}</span></div>`;
+
+const W_HOOK = '“The harbour office wants the manifest of the cog on the bar. No questions as to how.”';
+const W_RUM = '“They say the bell under the breakwater still rings on a spring tide.”';
+const LONGNAME = 'Fenna of the Long Causeway below the Old Lantern';
+const top40 = pBand('The Drowned Harbour, turn 14', DATE);
+const frame = (inner, cap) => ipad('player', `${top40}${inner}`, cap);
+
+// 40A: p7-4, p7-5, p7-6
+const f40a = frame(`<div class="two18"><div>
+  <p class="lbl" style="margin-top:0"><b>A call that pays</b> (p7-5): one “Pays” line under the words. No source line (p7-6).</p>${slot(card({ head: 'A call to adventure, for the party', words: W_HOOK, pays: '50 crowns.' }))}
+  <p class="lbl"><b>A call that pays nothing</b>: no “Pays” line, no gap left for it. To one character.</p>${slot(card({ head: 'A call to adventure, for Wren', words: '“Old Sedge asks after his brother, last seen rowing for the wreck.”' }))}
+  </div><div>
+  <p class="lbl" style="margin-top:0"><b>A rumour</b> (p7-4): the same card, the stein for its mark, “A rumour, for the party”. Never a “Pays” line.</p>${slot(card({ kind: 'rumour', head: 'A rumour, for the party', words: W_RUM }))}
+  <p class="lbl"><b>Messy data:</b> a long character name, long words, a long “Pays”.</p>${slot(card({ kind: 'rumour', head: `A rumour, for ${LONGNAME}` , words: '“The customs men were paid to look away the night the cog went on the bar, and the one who took the coin has not been seen at the Tarred Door since; some say he rows out to the wreck at low water and comes back with his boat riding lower than it went.”' }), card({ head: `A call to adventure, for ${LONGNAME}`, words: W_HOOK, pays: '999 crowns, a berth on the next ship out, and the harbour office’s thanks for as long as that lasts.' }))}
+  </div></div>`,
+  '40A. <b>New; approved 2026-11-24 (as drawn).</b> PL4b’s card (approved 2026-11-14, ap-10) under p7-4, p7-5 and p7-6. <b>Changed from PL4b:</b> the quiet source line is gone (p7-6); a “Pays” line, the book’s labelled line, stands under the words when the send carries one (p7-5); a rumour is the same card headed “A rumour, for the party” or “A rumour, for Wren”, with the stein (p7-4). The heading comes from the send’s kind, never from an older give’s stored name. One plain button, “Got it”; no accent. Words that are mine: none beyond the invented notices.');
+
+// 40B: p7-7
+const f40b = frame(`<div class="two18"><div>
+  <p class="lbl" style="margin-top:0"><b>After “Got it”</b> (p7-7): the card folds to one quiet row in the slot. A tap reads it again.</p>${slot(fold('hook', 'A call to adventure, for the party'))}
+  <p class="lbl"><b>A rumour, folded.</b></p>${slot(fold('rumour', 'A rumour, for the party'))}
+  <p class="lbl"><b>A long name</b> wraps; the chevron keeps its square.</p>${slot(fold('hook', `A call to adventure, for ${LONGNAME}`))}
+  </div><div>
+  <p class="lbl" style="margin-top:0"><b>Reopened from the row:</b> the row turns its chevron and the card stands under it, with no button of its own. A tap on the row folds it again.</p>${slot(fold('hook', 'A call to adventure, for the party', true) + card({ head: 'A call to adventure, for the party', words: W_HOOK, pays: '50 crowns.', btn: '<span></span>' }))}
+  </div></div>`,
+  '40B. <b>New; approved 2026-11-24 (as drawn).</b> p7-7: until Notes is built, “Got it” folds the card to one quiet row instead of removing it, so the words can be read again. The row is the prompt row’s box (PL4b): the call’s mark, its heading, a chevron in a 44 px square; the whole row is the tap. <b>Mine, for Francis:</b> the reopened card carries no “Got it” (it is already marked); the row above it folds it. <span class="flag">⚑ 1</span> Or should the reopened card keep “Got it” as its way to fold? <span class="flag">⚑ 2</span> Several folded calls: a row each, as drawn, or one row “3 calls to adventure”?');
+
+// 40C: p7-9
+const f40c = frame(`<div class="two18"><div>
+  <p class="lbl" style="margin-top:0"><b>A rest to answer and three unseen calls</b> (p7-9): the rest first, with the accent; then one call, the oldest, “1 of 3” on the quiet line.</p>${slot(P_REST(true), card({ head: 'A call to adventure, for the party', words: W_HOOK, pays: '50 crowns.', count: '1 of 3' }))}
+  </div><div>
+  <p class="lbl" style="margin-top:0"><b>After “Got it” on the first:</b> it folds under the next card; the next is the oldest left.</p>${slot(P_REST(true), card({ kind: 'rumour', head: 'A rumour, for the party', words: W_RUM, count: '1 of 2' }), fold('hook', 'A call to adventure, for the party'))}
+  <p class="lbl"><b>One unseen call:</b> no count.</p>${slot(card({ head: 'A call to adventure, for Wren', words: '“Old Sedge asks after his brother, last seen rowing for the wreck.”' }))}
+  </div></div>`,
+  '40C. <b>New; approved 2026-11-24 (as drawn).</b> p7-9: calls come last in the slot, after light and rest; one card at a time, oldest first; with several, the quiet line says “1 of 3”. The accent stays with the player’s own next step (the rest’s “Answer”, PL4); “Got it” is plain. <b>Mine, for Francis:</b> <span class="flag">⚑ 3</span> the count is of calls not yet seen, so after one “Got it” the next card reads “1 of 2” (drawn); or it keeps its place, “2 of 3”? <span class="flag">⚑ 4</span> folded rows sit under the unseen card, newest fold first (drawn); or above it?');
+
+document.body.insertAdjacentHTML('beforeend', `<div class="theme light" id="light">
+  <h1>Page 40. P7, the call card reaching a player</h1>
+  <p class="note"><b>Approved 2026-11-24 (as drawn; p7-10 to p7-13).</b> For the driver’s brief of 2026-11-24 (row design-p7-seen), after Francis’s “P7 all a” to the P7 sitting’s nine questions (<code>docs/design/rulings/p7-call-card-2026-11-24.md</code>, p7-1 to p7-9). The rulings are in words; these are the small frames they need before a builder draws anything. Each is PL4b’s card and prompt slot (<code>png/18-PL4b-prompts-light.png</code>, approved 2026-11-14, ap-10), changed only where a ruling changes it. A tablet, light. <b>Phone and dark are not drawn:</b> under p7-8 Francis approves them from pictures of the real screen. Names, words and numbers are invented. The <code>impeccable critique</code> of this page is under the frames; pick findings by number.</p>
+  <h1>40A. A rumour’s card, and the “Pays” line (p7-4, p7-5, p7-6)</h1>
+  <div class="wall fr40" id="f40a">${f40a}</div>
+  <h1>40B. The folded row, and the card reopened from it (p7-7)</h1>
+  <div class="wall fr40" id="f40b">${f40b}</div>
+  <h1>40C. Several calls, and a call beside a rest prompt (p7-9)</h1>
+  <div class="wall fr40" id="f40c">${f40c}</div>
+
+  <h1>Critique (<code>impeccable critique</code>, 2026-11-24)</h1>
+  <p class="note">Read from the three pictures of this page’s frames. A condensed port of the skill, without its tooling: no linter or detector ran. Scores are 0 to 4.</p>
+  <table class="sc">
+  <tr><th>Heuristic</th><th>Score</th><th>Why</th></tr>
+  <tr><td>Visibility of system status</td><td>3</td><td>“1 of 3” says more are waiting; the folded row shows the call is kept. Nothing says a call is new against one reopened but the missing button.</td></tr>
+  <tr><td>Match to the user’s language</td><td>4</td><td>“A call to adventure”, “A rumour”, “Pays”, “Got it”: the table’s own words.</td></tr>
+  <tr><td>User control and freedom</td><td>3</td><td>“Got it” is never undone, but nothing is lost: the row reads it again.</td></tr>
+  <tr><td>Consistency</td><td>3</td><td>The card and the row are PL4b’s parts. The chevron as a fold is new to the prompt slot.</td></tr>
+  <tr><td>Error prevention</td><td>3</td><td>No destructive tap. A mis-tapped “Got it” only folds.</td></tr>
+  <tr><td>Recognition over recall</td><td>3</td><td>The folded row keeps the heading and the mark; two folded calls to the party read the same.</td></tr>
+  <tr><td>Flexibility and efficiency</td><td>3</td><td>One tap a call; three calls are three taps, with no “all”.</td></tr>
+  <tr><td>Minimalist design</td><td>3</td><td>The source line is gone. Folded rows add up in the slot over an evening.</td></tr>
+  <tr><td>Error recovery</td><td>1</td><td>No failed “Got it”, loading or offline state is drawn.</td></tr>
+  <tr><td>Help and documentation</td><td>3</td><td>None needed for one button; the row’s chevron has no words.</td></tr>
+  <tr><th>Total</th><th>29 of 40</th><th></th></tr>
+  </table>
+  <p class="note"><b>What works.</b> The card stays PL4b’s: one heading, the words, one plain button. “Pays” as the book’s labelled line reads at a glance and takes no room when empty. The rumour needs no new part, only its mark and its heading. The accent stays on the rest’s answer, so a call never outranks what the table is waiting for. <b>Cognitive load and hierarchy:</b> one card at a time keeps the slot to one thing to read; the folded row is quiet enough to ignore. The surface suits its mode: read once, aloud or to oneself, then put away.</p>
+  <ol class="crit">
+  <li><b>Folded rows pile up.</b> Every call seen stays as a row in the slot until Notes ships: after six calls the slot is six rows over “Where to?”. Fix: one row for all seen calls (“3 calls to adventure”) opening a short list, or only the newest fold shown. This is ⚑ 2. (<code>distill</code>)</li>
+  <li><b>Two folded rows can read the same.</b> “A call to adventure, for the party” twice (40C would show it after a second “Got it”). Fix: a second quiet line on the row with the day it was sent (“Day 14”), which the send already keeps. (<code>clarify</code>)</li>
+  <li><b>The slot grows downward with the reopened card.</b> In 40B the row and the card together are taller than the unseen card was, and push the page down while read. Fix: accept it (it is the reader’s own tap), or open the card in the row’s place with a fold control at its right. (<code>layout</code>)</li>
+  <li><b>The chevron is the only sign that the row opens.</b> No words say “read again”. A first-timer may take the row for a notice. Fix: a stacked button “Read” (an icon over its word, as the slot’s other answers) in place of the chevron. (<code>clarify</code>)</li>
+  <li><b>“1 of 2” after “1 of 3” may read as a miscount.</b> The first number never moves. Fix: “3 calls waiting”, then “2 calls waiting”; or keep the place, “2 of 3”. This is ⚑ 3. (<code>clarify</code>)</li>
+  <li><b>A long rumour makes a tall card over the page.</b> 40A’s messy card is seven lines; on a phone it will fill the screen above “Where to?”. Fix: none proposed here; to be judged on the real screen at 375 px (p7-8), with a cut and “Read more” as the fallback. (<code>harden</code>)</li>
+  <li><b>No failure or offline state.</b> A “Got it” that does not reach the database, and a card read offline, are not drawn. Fix: as PL9 rules for prompts (the button stays a button and says on a tap that it waits until the player is back); to be confirmed on the real screen. (<code>harden</code>)</li>
+  <li><b>A rumour and a call differ by a 28 px mark and one word.</b> At a glance across the table they are the same card. Probably right (rm-1: read as a call is); named so it is a choice. (<code>bolder</code>, only if wanted)</li>
+  </ol>
+  <p class="note"><b>Walked as:</b> a first-time player (reads the card, taps “Got it”; may not find it again behind the chevron, 4); a player on a tablet mid-turn with a rest to answer (the accent leads to “Answer”; the call waits, as it should); a keyboard or screen-reader user (the row is a button with its state said, “read it again” or “fold away”; not tested with a reader). <b>Questions for Francis:</b> ⚑ 1 to ⚑ 4 in the captions.</p>
+
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked, in the HTML and measured on the rendered page.</b> One accent button in each state drawn at most (the rest’s “Answer”; 40C draws two states side by side); “Got it” is plain. No disabled button. Nothing under 14 px: the count line is 14 px, muted, as PL4b’s source line was. Targets: “Got it” and “Answer” are the approved stacked button (88 by 57 px, measured); the folded row is 56 px high (58 with a wrapped name) and the whole row is the tap; the chevron’s square is 44 px; rows and cards in the slot are 8 px apart. Colour carries nothing alone: a call and a rumour differ by mark and by word. Messy data: a 48-character name in a heading and in a folded row, a seven-line rumour, a three-line “Pays”, “999 crowns”. Tokens only; the one new rule is layout. Nothing a player may not read is drawn: no giver, no place, no truth of a rumour, no table’s name, no other player’s mark.</p>
+  <p class="note"><b>Not checked or not drawn.</b> Phone (375 px) and dark, on purpose (p7-8). Contrast by measurement: every colour here is one PL4b already uses on the same grounds, and none is new. Larger text. Loading, offline and a failed “Got it” (critique 7). The card in town (03-06’s place) and inside the whole page with “Where to?” under it: PL4 shows the slot’s place. Zero calls draws nothing (the slot takes no room, PL4). <b>Cost:</b> the folded row and the count are new parts for the builder beyond PL4b’s card, about a quarter turn; the reopened state is one more layout check.</p>
+</div>`);
+for (const el of document.querySelectorAll('.dev')) el.classList.add('short');
+for (const el of document.querySelectorAll('.dcap')) el.dataset.sc = '';
+applyBook();
+</script>
+</body>
+</html>

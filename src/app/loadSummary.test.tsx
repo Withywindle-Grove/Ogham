@@ -174,11 +174,22 @@ describe('the load bar, variant "speed said once" (the Player screen)', () => {
     expect(screen.getByText('999 of 1,200 coins’ weight')).toBeTruthy();
   });
 
-  // Purpose: over the most, the card says the pack's words for it with the warning sign, and the tiers stay one tap away.
-  it('reads over the most with the warning sign, and opens the tiers on a tap', async () => {
+  // Purpose: over the most, beside the speed card, the load card shows the warning sign with no words (the speed card
+  // says them, dec-14 row 8, ruled 8a); the sign keeps the pack's own words as its spoken name, and the tiers stay one tap away.
+  it('reads over the most as the warning sign alone, named by the pack, and opens the tiers on a tap', async () => {
     const { container } = render(<LoadSummary load={coin(1250)} rules={coinRules} from={[]} speedOnce />);
-    expect(top(container)).toBe('Stuck in the mud');
-    await userEvent.click(screen.getByRole('button', { name: /Stuck in the mud/ }));
+    expect(top(container)).toBe('');
+    expect(container.querySelector('.pack__tier .warning-sign')).toBeTruthy();
+    expect(screen.getByText('1,250 of 1,200 coins’ weight')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Stuck in the mud' }));
     expect(screen.getByText('Bowed: up to 1,200 coins, Crawling')).toBeTruthy();
+  });
+
+  // Purpose: with no speed card (the Pack, the GM's overview), over the most still says the pack's words beside the sign.
+  it('keeps the words over the most without "speed said once"', () => {
+    const { container } = render(<LoadSummary load={coin(1250)} rules={coinRules} from={[]} />);
+    expect(top(container)).toBe('Stuck in the mud');
+    expect(container.querySelector('.pack__tier .warning-sign')).toBeTruthy();
+    expect(container.querySelector('.pack__tier')?.getAttribute('aria-label')).toBeNull();
   });
 });

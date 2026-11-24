@@ -77,3 +77,31 @@ describe("the Player tab's source line follows the campaign it was read for (#10
     expect(await attackSheetFoot()).not.toContain('From your setting');
   });
 });
+
+// Row 7b of docs/plans/dec-14-player-audit-fixes.md (frame 38-7, approved 2026-11-24). Purposes:
+//   The attack tile's line has no capital after its first word: melee only, missile only, both, either AC style.
+//   A setting with no such figures shows no line.
+describe("the Player tab's attack line in plain case (dec-14 row 7b)", () => {
+  function lineFor(caption: string): string | null {
+    vi.mocked(loadCampaignSetting).mockResolvedValue(fenSetting);
+    const world = createFakeDb();
+    const character = wren('campaign-a');
+    render(<PlayerVitals db={world.db} user={user} character={character} fieldDefs={[attackField]} figures={characterFigures(null, character, [attackField])} attack={{ ...attack, caption }} worn={[]} acOverride={null} downAt={null} />);
+    const tile = within(screen.getByRole('region', { name: 'Vitals' })).getByRole('button', { name: /^Attack \+1: / });
+    return tile.querySelector('.stat-tile__caption')?.textContent ?? null;
+  }
+
+  it.each([
+    ['Melee +2, Missile +1', 'Melee +2, missile +1'],
+    ['Melee 19, Missile 18', 'Melee 19, missile 18'],
+    ['Melee +2', 'Melee +2'],
+    ['Missile −1', 'Missile −1'],
+    ['Melee +1000, Missile +999', 'Melee +1000, missile +999'],
+  ])('reads "%s" as "%s"', (caption, shown) => {
+    expect(lineFor(caption)).toBe(shown);
+  });
+
+  it('shows no line when the setting gives no melee or missile figure', () => {
+    expect(lineFor('')).toBeNull();
+  });
+});
