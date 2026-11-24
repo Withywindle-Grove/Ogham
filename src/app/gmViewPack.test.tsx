@@ -17,6 +17,12 @@
 //   7. What the GM adds in the view is logged as his, and no charges prompt follows it there (it does outside).
 //   8. In armour mode the view's Pack has no treasure switch; the GM's own pack keeps it.
 //   9. The GM's line's words, and a weapon's hidden figures (the pure parts).
+//  10. (Audit fix 6) The GM's line names only what is really hidden from the player: a −1 the player's own copy of the
+//      sword already shows ("Magic bonus -1") is no secret, so a sword whose only secret it was has no GM line, and a
+//      cursed one whose −1 Sam's copy shows names the curse alone.
+//  11. (Audit fix 7) The GM's line sits under the item's figures, after its details, as M3g2 draws it.
+//  12. (Audit fix 5) "Reveal…" opens the GM's own sheet under its own title, "Your sheet: Moon ring", so the one in front
+//      is plain; its ✕ closes that one alone, and the player's sheet stays open under it.
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -144,13 +150,14 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     expect(rope.queryByRole('button', { name: 'Reveal…' })).toBeNull();
   });
 
-  it("a figure-only secret (a −1) is in the GM line alone, with no Reveal…; the rest of the sheet is exactly Sam's own", async () => {
+  it.fails("a −1 that Sam's own copy shows is no secret: no GM line, no Reveal…; the sheet is exactly Sam's own", async () => {
     line('Old bronze sword', { category: 'weapon', item_data: { category: 'weapon', weapon: { damage: '1d8', magicBonus: -1 } } });
     const user = await openWrensPack();
     await user.click(await screen.findByRole('button', { name: /^Old bronze sword/ }));
     const region = screen.getByRole('region', { name: 'Old bronze sword' });
     const sheet = within(region);
-    expect(sheet.getByText(/^Only you see this: the true figure (is|adds) .*−1\.$/)).toBeTruthy();
+    expect(sheet.getByText(/Magic bonus/)).toBeTruthy();
+    expect(sheet.queryByText(/Only you see this/)).toBeNull();
     expect(sheet.queryByRole('button', { name: 'Reveal…' })).toBeNull();
     // The player's words: everything on the sheet but the GM's line. No GM figure joins them (no "the true figure", no
     // hidden part); what they show of the item's own copy is Sam's (the scope check on #34: the copy's raw bonus).
@@ -172,7 +179,7 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     expect(playersWords(screen.getByRole('region', { name: 'Old bronze sword' }))).toBe(inView);
   });
 
-  it('a cursed blade reads as M3g2: "Only you see this: the true figure is …, cursed.", with Reveal…', async () => {
+  it.fails('a cursed blade whose −1 Sam\'s copy shows names the curse alone: "Only you see this: cursed.", with Reveal…', async () => {
     world.tables.library_entries.push({
       id: 'entry-bronze-sword',
       pack_id: 'pack-fen',
@@ -191,8 +198,21 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     const user = await openWrensPack();
     await user.click(await screen.findByRole('button', { name: /^Old bronze sword/ }));
     const sheet = within(screen.getByRole('region', { name: 'Old bronze sword' }));
-    expect(sheet.getByText(/^Only you see this: the true figure (is|adds) .*−1, cursed\.$/)).toBeTruthy();
+    // Some of it shown (the −1, in Sam's copy), some hidden (the curse): the line names only the hidden part.
+    expect(sheet.getByText(/Magic bonus/)).toBeTruthy();
+    expect(sheet.getByText('Only you see this: cursed.')).toBeTruthy();
     expect(sheet.getByRole('button', { name: 'Reveal…' })).toBeTruthy();
+  });
+
+  it.fails("puts the GM's line under the item's figures, after its details (M3g2)", async () => {
+    const user = await openWrensPack();
+    await user.click(await screen.findByRole('button', { name: /^Moon ring/ }));
+    const region = screen.getByRole('region', { name: 'Moon ring' });
+    const gmLine = region.querySelector('.gm-line') as HTMLElement;
+    const details = region.querySelector('dl') as HTMLElement;
+    expect(gmLine).toBeTruthy();
+    expect(details).toBeTruthy();
+    expect(details.compareDocumentPosition(gmLine) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("the list shows the player's \"Charges: ?\" for a hidden count; the sheet's GM line gives the count", async () => {
@@ -220,6 +240,17 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     await user.click(hidden.getByRole('button', { name: /^Reveal/ }));
     await waitFor(() => expect(world.tables.inventory_lines[0]!.item_data).toMatchObject({ fields: { Curse: 'Cold at the full moon' } }));
     expect(world.tables.events.filter((e) => e.type === 'inventory.reveal').map((e) => e.actor_user_id)).toEqual([gm]);
+  });
+
+  it.fails("Reveal… opens the GM's own sheet as \"Your sheet: Moon ring\"; its ✕ closes it alone", async () => {
+    const user = await openWrensPack();
+    await user.click(await screen.findByRole('button', { name: /^Moon ring/ }));
+    await user.click(screen.getByRole('button', { name: 'Reveal…' }));
+    const own = await screen.findByRole('dialog', { name: 'Your sheet: Moon ring' });
+    expect(within(own).getByRole('group', { name: 'Hidden from players' })).toBeTruthy();
+    await user.click(within(own).getByRole('button', { name: 'Close' }));
+    expect(screen.queryByRole('dialog', { name: 'Your sheet: Moon ring' })).toBeNull();
+    expect(screen.getByRole('dialog', { name: 'Moon ring' })).toBeTruthy();
   });
 
   it("outside the view the GM's item sheet is as built: the hidden group, no GM line, no Reveal…", async () => {

@@ -24,6 +24,7 @@ import { forgetFileLinks } from '../core/files.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { addP1Character, P1_CAMPAIGN, P1_CHARACTER } from '../testing/layoutP1Character.ts';
 import { ToastHost } from '../ui/ToastHost.tsx';
+import { BookPopUpScope } from '../ui/Dialog.tsx';
 import { Root } from './App.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
 import { playerOnlyWords, usePlayerOnly, type PlayerOnlyAct } from './playerOnly.tsx';
@@ -265,7 +266,7 @@ describe('the GM’s Cast in the view (C15c; M3h)', () => {
 });
 
 describe('the player-only actions in the GM’s view (C15d; pg32-6)', () => {
-  it('Take back opens “Only Sam can take back this change”, writes nothing, and goes to Waiting for you', async () => {
+  it.fails('Take back opens “Only Sam can take back this change”, writes nothing, and goes to Waiting for approval, the place its words name', async () => {
     await setUp('finish');
     const user = await inGmView();
     await user.click(await screen.findByRole('button', { name: /notice/ }));
@@ -274,10 +275,10 @@ describe('the player-only actions in the GM’s view (C15d; pg32-6)', () => {
     const pop = await screen.findByRole('dialog', { name: 'Only Sam can take back this change' });
     expect(within(pop).getByText('Sam asked you for it. You can answer it instead: Approve or Refuse it in Waiting for approval.')).toBeTruthy();
     const foot = [...pop.querySelectorAll('.dialog__got-it button')].map((b) => b.textContent);
-    expect(foot).toEqual(['Go to Waiting for you', 'Got it']);
+    expect(foot).toEqual(['Go to Waiting for approval', 'Got it']);
     expect(world.tables.events.length).toBe(before);
     expect(world.tables.sheet_changes[0]).toMatchObject({ status: 'waiting' });
-    await user.click(within(pop).getByRole('button', { name: 'Go to Waiting for you' }));
+    await user.click(within(pop).getByRole('button', { name: 'Go to Waiting for approval' }));
     // Out of the view, on Players, the change waiting where the GM answers it.
     await screen.findByRole('button', { name: 'Invite a player' });
     expect(screen.queryByRole('note')).toBeNull();
@@ -319,7 +320,7 @@ describe('the view’s bar on a phone (M3j; pg32-match)', () => {
 describe('“Go to Waiting for you” lands once (the review of #36)', () => {
   // Purpose: once "Go to Waiting for you" has brought Players to the change, a later return to Players (from the view
   // again) neither scrolls back to it nor reopens anything.
-  it('scrolls to Waiting for approval once, and not again on a later return', async () => {
+  it.fails('scrolls to Waiting for approval once, and not again on a later return', async () => {
     const scrolled: Element[] = [];
     const was = Element.prototype.scrollIntoView;
     Element.prototype.scrollIntoView = function (this: Element) {
@@ -330,7 +331,7 @@ describe('“Go to Waiting for you” lands once (the review of #36)', () => {
       const user = await inGmView();
       await user.click(await screen.findByRole('button', { name: /notice/ }));
       await user.click(await screen.findByRole('button', { name: /^Take back / }));
-      await user.click(within(await screen.findByRole('dialog', { name: 'Only Sam can take back this change' })).getByRole('button', { name: 'Go to Waiting for you' }));
+      await user.click(within(await screen.findByRole('dialog', { name: 'Only Sam can take back this change' })).getByRole('button', { name: 'Go to Waiting for approval' }));
       await screen.findByRole('button', { name: 'Invite a player' });
       await waitFor(() => expect(scrolled.filter((el) => el.id === 'gm-waiting-approval')).toHaveLength(1));
       // Into the view again and back: no second scroll.
@@ -347,17 +348,19 @@ describe('“Go to Waiting for you” lands once (the review of #36)', () => {
 });
 
 describe('the pop-ups’ words (M3f2)', () => {
-  it('reads M3f2’s eight pop-ups word for word, three pointing to Waiting for you', () => {
+  // Purpose (audit fix 1, ⚑ 51): the three that point somewhere name in their button the place their words name:
+  // Waiting for you for the two requests, Waiting for approval for a sheet change.
+  it.fails('reads M3f2’s eight pop-ups word for word, three pointing where their words say', () => {
     const all: PlayerOnlyAct[] = ['askChange', 'sendRequest', 'takeBackRequest', 'chooseCharacter', 'takeBackChange', 'answerOffer', 'stayHere', 'undoPurchase'];
     expect(Object.fromEntries(all.map((act) => [act, playerOnlyWords(act, 'Sam', 'Wren')]))).toEqual({
-      askChange: { title: 'Only Sam can ask for a change', why: 'A change Sam asks for comes to you to approve. To change Wren’s sheet yourself, use Edit in ⋯ on Players.', toWaiting: false },
-      sendRequest: { title: 'Only Sam can send this request', why: 'A request goes from Sam to you. When Sam sends it, it waits for you in Waiting for you.', toWaiting: true },
-      takeBackRequest: { title: 'Only Sam can take back this request', why: 'You can answer it instead: it waits for you in Waiting for you.', toWaiting: true },
-      chooseCharacter: { title: 'Only Sam can choose who they play', why: 'Sam picks from Your characters on their own screen.', toWaiting: false },
-      takeBackChange: { title: 'Only Sam can take back this change', why: 'Sam asked you for it. You can answer it instead: Approve or Refuse it in Waiting for approval.', toWaiting: true },
-      answerOffer: { title: 'Only Sam can answer your offer', why: 'Sam accepts or declines it on their own screen.', toWaiting: false },
-      stayHere: { title: 'Only Sam can choose where Wren stays', why: 'Sam picks a lodging on their own screen.', toWaiting: false },
-      undoPurchase: { title: 'Only Sam can undo this purchase', why: 'The purchase was Sam’s, so its Undo is too.', toWaiting: false },
+      askChange: { title: 'Only Sam can ask for a change', why: 'A change Sam asks for comes to you to approve. To change Wren’s sheet yourself, use Edit in ⋯ on Players.', goTo: null },
+      sendRequest: { title: 'Only Sam can send this request', why: 'A request goes from Sam to you. When Sam sends it, it waits for you in Waiting for you.', goTo: 'Waiting for you' },
+      takeBackRequest: { title: 'Only Sam can take back this request', why: 'You can answer it instead: it waits for you in Waiting for you.', goTo: 'Waiting for you' },
+      chooseCharacter: { title: 'Only Sam can choose who they play', why: 'Sam picks from Your characters on their own screen.', goTo: null },
+      takeBackChange: { title: 'Only Sam can take back this change', why: 'Sam asked you for it. You can answer it instead: Approve or Refuse it in Waiting for approval.', goTo: 'Waiting for approval' },
+      answerOffer: { title: 'Only Sam can answer your offer', why: 'Sam accepts or declines it on their own screen.', goTo: null },
+      stayHere: { title: 'Only Sam can choose where Wren stays', why: 'Sam picks a lodging on their own screen.', goTo: null },
+      undoPurchase: { title: 'Only Sam can undo this purchase', why: 'The purchase was Sam’s, so its Undo is too.', goTo: null },
     });
   });
 });
@@ -404,6 +407,35 @@ describe('where a player-only pop-up opens (pg32-7c)', () => {
     await tap({ player: 'Sam', character: 'Wren', goToWaiting: vi.fn() }, 'answerOffer');
     const pop = await screen.findByRole('dialog', { name: 'Only Sam can answer your offer' });
     expect([...pop.querySelectorAll('.dialog__got-it button')].map((b) => b.textContent)).toEqual(['Got it']);
+  });
+
+  // Purpose (audit fix 3a): after Got it, keyboard focus is back on the button that opened the pop-up.
+  it.fails('puts focus back on the button that opened it after Got it', async () => {
+    const { user } = await tap({ player: 'Sam', character: 'Wren', goToWaiting: vi.fn() }, 'answerOffer');
+    const pop = await screen.findByRole('dialog', { name: 'Only Sam can answer your offer' });
+    await user.click(within(pop).getByRole('button', { name: 'Got it' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Tap' }));
+  });
+
+  // Purpose (audit fix 4): the pop-up's title is drawn as M3f draws it, in ink and sentence case at the Sheet's title
+  // size, not the book's red heading in capitals, even on the Player tab (inside the book's pop-up scope).
+  it.fails('titles the pop-up in ink, not the book’s red heading, even inside the book’s pop-up scope', async () => {
+    const user = userEvent.setup();
+    render(
+      <ToastHost>
+        <BookPopUpScope.Provider value>
+          <PlayerViewContext.Provider value={{ player: 'Sam', character: 'Wren', goToWaiting: vi.fn() }}>
+            <Button act="takeBackChange" acted={vi.fn()} />
+          </PlayerViewContext.Provider>
+        </BookPopUpScope.Provider>
+      </ToastHost>,
+    );
+    await user.click(screen.getByRole('button', { name: 'Tap' }));
+    const pop = await screen.findByRole('dialog', { name: 'Only Sam can take back this change' });
+    const title = within(pop).getByRole('heading', { name: 'Only Sam can take back this change' });
+    expect(title.className).not.toContain('book-heading');
+    expect(title.className).toContain('dialog__title--plain');
   });
 
   it('opens none on the GM’s own character, nor outside the view: the button acts', async () => {
