@@ -945,3 +945,10 @@
   min-block-size: var(--tap);
   min-inline-size: var(--tap);
 }
+
+/* Take's accent on a stack's sheet (K12, PK4b): the Coin sheet's, but a thing's long name wraps inside the button
+   rather than running past it. */
+.stash__take-go.stacked-button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

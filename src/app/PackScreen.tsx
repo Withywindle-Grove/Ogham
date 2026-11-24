@@ -18,6 +18,7 @@ import {
   loadInventorySettings,
   loadInventory,
   mayChangeCarrier,
+  moveItem,
   type InventoryLine,
   type NamedCarrier,
 } from '../modules/inventory/inventory.ts';
@@ -41,6 +42,7 @@ import { BookType, useOnline } from '../ui/creation.tsx';
 import { itemCount } from './packHelpers.ts';
 import { CoinLine, PackFoot, StashRow, WaitingCard } from './PackParts.tsx';
 import { StashScreen } from './StashScreen.tsx';
+import { takeToast } from '../modules/inventory/stashTake.ts';
 import { thingCount } from './stashWords.ts';
 import { PurseSheet } from './PurseSheet.tsx';
 import { coinLine, denominationsOf } from '../modules/inventory/coinWords.ts';
@@ -152,6 +154,8 @@ export function PackScreen({
   const stashShown = stashOpen ?? ownStash;
   const setStash = onStash ?? setOwnStash;
   const [takerId, setTakerId] = useState<string | null>(carrierId);
+  // Bumped by a take or its Undo, so the stash's history is read again (K12).
+  const [stashVersion, setStashVersion] = useState(0);
   const online = useOnline();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -202,7 +206,7 @@ export function PackScreen({
   const mine = showing === null ? null : (carriers.find((c) => c.actorId === showing) ?? null);
   const stash = carriers.find((c) => c.locationId !== null) ?? null;
   const main = mine ?? stash;
-  const linesOf = (carrier: NamedCarrier | null) => (loaded && loaded !== 'error' && carrier ? loaded.lines.filter((l) => sameCarrier(l, carrier)) : []);
+  const linesOf = (carrier: NamedCarrier | null, from = loaded) => (from && from !== 'error' && carrier ? from.lines.filter((l) => sameCarrier(l, carrier)) : []);
   const rules = loaded && loaded !== 'error' ? loaded.setting.encumbrance : null;
   const mode = loaded && loaded !== 'error' ? loaded.mode : 'none';
   // The GM's Carrying treasure switch (eq-3) rides along with the armour worn; null follows the pack.
@@ -211,12 +215,12 @@ export function PackScreen({
    * A character's load from what they carry (the pack's own, and a taker's room on the stash's screen, K11). A one-off
    * waiting for the GM counts for nothing until approved; what isn't carried ("Other") never counts.
    */
-  const loadOf = (carrier: NamedCarrier | null): CarriedLoad => {
+  const loadOf = (carrier: NamedCarrier | null, from = loaded): CarriedLoad => {
     if (!rules || !carrier?.actorId) return { mode: 'none' } as CarriedLoad;
-    const lines = linesOf(carrier)
+    const lines = linesOf(carrier, from)
       .filter((l) => l.approval === 'approved' && !isSeparate(l, rules))
       .map(toLoadLine);
-    const treasureOf: TreasureSwitch = loaded && loaded !== 'error' ? (loaded.treasure.get(carrier.actorId) ?? null) : null;
+    const treasureOf: TreasureSwitch = from && from !== 'error' ? (from.treasure.get(carrier.actorId) ?? null) : null;
     return carriedLoad(lines, rules, mode, { armour: wornArmour(lines, rules), carryingTreasure: treasureOf });
   };
   const carried = loadOf(main);
@@ -530,6 +534,38 @@ export function PackScreen({
     // The party stash's own screen (K11), in place of the pack; Put in adds to it (today's Add item, the PR's ⚑).
     const takers = carriers.filter((c) => c.actorId !== null && c.ownerUserId === user.id);
     const taker = takers.find((c) => c.actorId === takerId) ?? mine;
+    /**
+     * Take (K12; pk-2, pk-3, PK4b): this many of the line goes loose to the taker (inventory.move, logged), then the toast
+     * says it in the log line's words with the taker's load after it, and Undo; past the limit it warns, never blocks.
+     */
+    const take = async (line: InventoryLine, qty: number) => {
+      if (busy) return;
+      setBusy(true);
+      setProblem(null);
+      const done = await runCommand(registry, db, user, moveItem, { line: { id: line.id, carrier: stash, version: line.version }, to: taker, qty, of: line.qty });
+      const fresh = done.ok || done.reason === 'stale' ? await load() : null;
+      if (fresh) setLoaded(fresh);
+      setBusy(false);
+      setStashVersion((v) => v + 1);
+      if (!done.ok) return setProblem(done.message);
+      onChanged?.();
+      const said = takeToast(taker.name, line, qty, loadOf(taker, fresh ?? loaded));
+      show({
+        text: said.text,
+        ...(said.warning ? { warning: said.warning } : {}),
+        onUndo: () =>
+          void (async () => {
+            const eventId = await latestChange(db, campaign.id, moveItem.name, user.id);
+            const undone = eventId ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
+            const back = await load();
+            if (back) setLoaded(back);
+            setStashVersion((v) => v + 1);
+            onChanged?.();
+            if (!undone) show({ text: 'There was nothing to undo.', error: true });
+            else if (!undone.ok) show({ text: undone.message, error: true });
+          })(),
+      });
+    };
     return (
       <SheetScope.Provider value>
         <h1 className={inBar ? 'visually-hidden' : 'pack__title'}>{stash.name}</h1>
@@ -547,7 +583,7 @@ export function PackScreen({
           takerId={taker.actorId}
           onTaker={setTakerId}
           room={<LoadSummary load={loadOf(taker)} rules={rules} from={loaded.setting.encumbranceFrom} levelsPopUp />}
-          list={(rowNote) => (
+          list={(rowNote, rowEnd) => (
             <CarrierItems
               carrier={stash}
               lines={stashLines}
@@ -572,11 +608,13 @@ export function PackScreen({
               setting={loaded.setting}
               categoryName={categoryName}
               rowNote={rowNote}
+              rowEnd={rowEnd}
             />
           )}
+          onTake={(line, qty) => void take(line, qty)}
           onPutIn={() => setAdding(stash)}
           side={addItem ? null : side}
-          version={logVersion}
+          version={logVersion + stashVersion}
           onChanged={() => {
             void load().then((fresh) => fresh && setLoaded(fresh));
             onChanged?.();

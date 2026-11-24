@@ -5648,7 +5648,7 @@ describe('the Pack tab (M4 step 4)', () => {
     expect(stash.getByText('3 items')).toBeTruthy();
     expect(stash.getByRole('button', { name: 'Put in' }).className).not.toContain('button-primary');
     expect(stash.queryAllByRole('button').filter((b) => b.className.includes('button-primary'))).toEqual([]);
-    await user.click(screen.getByRole('button', { name: /Silver ewer/ }));
+    await user.click(screen.getByRole('button', { name: /^Silver ewer/ }));
     await giveTo(user, 'Silver ewer', 'Wren');
     await waitFor(() => expect(world.tables.inventory_lines.find((l) => l.name === 'Silver ewer')).toMatchObject({ actor_id: wren, location_id: null }));
   });
@@ -5704,6 +5704,93 @@ describe('the Pack tab (M4 step 4)', () => {
     expect(takers.getByRole('button', { name: 'Wren' }).getAttribute('aria-pressed')).toBe('true');
     await user.click(takers.getByRole('button', { name: 'Old Sedge' }));
     expect(stash.getByRole('heading', { name: 'Old Sedge’s room' })).toBeTruthy();
+  });
+
+  // Purpose: a single thing in the stash is taken on the tap of its Take, loose into the taker's pack (pk-2, pk-3); the
+  // toast says it in the log line's words with the taker's load, and its Undo puts the thing back in the stash (PK4b).
+  it('Take on a single thing: at once, loose to the taker, the toast naming the load, and Undo (K12, PK4b)', async () => {
+    const { wren, campaign, line } = packWorld('coin');
+    line(wren, 'Coil of twine', { weight_coin: 100 });
+    line(null, 'Silver ewer', { weight_coin: 30 });
+    const user = openApp();
+    await openPack(user);
+    const stash = await openStash(user);
+    // Every row ends in Take, a secondary button: nothing on the stash's screen is the accent.
+    const take = stash.getByRole('button', { name: 'Take Silver ewer' });
+    expect(take.className).not.toContain('button-primary');
+    await user.click(take);
+    await waitFor(() => expect(world.tables.inventory_lines.find((l) => l.name === 'Silver ewer')).toMatchObject({ actor_id: wren, location_id: null, container_line_id: null }));
+    expect(await screen.findByText('Wren took Silver ewer. Load 130 of 1,000 coins’ weight.')).toBeTruthy();
+    expect(world.tables.events.filter((e) => e.type === 'inventory.move' && e.target_id === 'line-silver-ewer')).toHaveLength(1);
+    expect(await screen.findByText('Nothing in the Party stash yet.')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(world.tables.inventory_lines.find((l) => l.name === 'Silver ewer')).toMatchObject({ actor_id: null, location_id: `location-stash-${campaign}` }));
+    expect(await screen.findByRole('button', { name: 'Take Silver ewer' })).toBeTruthy();
+  });
+
+  // Purpose: a stack's Take asks how many on the sheet "Take" (what the stash has, a box, one accent naming the amount);
+  // too many is refused in words under the row and nothing moves; a count it can take moves that many (pk-3, PK4b).
+  it('Take on a stack asks how many: refuses more than the stash has, then takes the count typed (K12, PK4b)', async () => {
+    const { wren, line } = packWorld('coin');
+    line(null, 'Torches', { qty: 6, stack: 10, weight_coin: 10, item_data: { unitName: 'torch', pluralName: 'torches' } });
+    const user = openApp();
+    await openPack(user);
+    const stash = await openStash(user);
+    await user.click(stash.getByRole('button', { name: 'Take Torches' }));
+    const sheet = within(await screen.findByRole('dialog', { name: 'Take' }));
+    expect(sheet.getByText('The stash has 6.')).toBeTruthy();
+    const box = sheet.getByLabelText('Torches');
+    await user.type(box, '7');
+    await user.click(sheet.getByRole('button', { name: 'Take' }));
+    expect(sheet.getByRole('alert').textContent).toBe('The stash has 6.');
+    expect(world.tables.inventory_lines.filter((l) => l.actor_id === wren)).toEqual([]);
+    await user.clear(box);
+    await user.type(box, '2');
+    const go = sheet.getByRole('button', { name: 'Take 2 torches' });
+    expect(go.className).toContain('button-primary');
+    await user.click(go);
+    await waitFor(() => expect(world.tables.inventory_lines.find((l) => l.actor_id === wren)).toMatchObject({ qty: 2, location_id: null, container_line_id: null }));
+    expect(world.tables.inventory_lines.find((l) => l.id === 'line-torches')).toMatchObject({ qty: 4 });
+    expect(await screen.findByText('Wren took 2 torches. Load 20 of 1,000 coins’ weight.')).toBeTruthy();
+    expect(screen.queryByRole('dialog', { name: 'Take' })).toBeNull();
+  });
+
+  // Purpose: a taker put over the limit is told in the toast, with the warning sign, and the take is not stopped (⚑ 18).
+  it('Take past the limit warns in the toast and still takes (K12, PK4b)', async () => {
+    const { wren, line } = packWorld('coin');
+    line(wren, 'Small anvil', { weight_coin: 900 });
+    line(null, 'Reed chest', { weight_coin: 200 });
+    const user = openApp();
+    await openPack(user);
+    const stash = await openStash(user);
+    await user.click(stash.getByRole('button', { name: 'Take Reed chest' }));
+    await waitFor(() => expect(world.tables.inventory_lines.find((l) => l.name === 'Reed chest')).toMatchObject({ actor_id: wren }));
+    const toast = await waitFor(() => document.querySelector('.toast')!);
+    expect(toast.querySelector('.toast__text')!.firstChild!.textContent).toBe('Wren took Reed chest.');
+    expect(toast.querySelector('.toast__warning')!.textContent).toBe('Over the limit: 1,100 of 1,000.');
+    expect(toast.querySelector('.warning-sign')).toBeTruthy();
+    expect(within(toast as HTMLElement).getByRole('button', { name: 'Undo' })).toBeTruthy();
+  });
+
+  // Purpose: offline, Take stays a button and a tap says why it waits; nothing moves (PK7b).
+  it('offline, Take stays a button and a tap explains; nothing moves (K12, PK7b)', async () => {
+    const { campaign, line } = packWorld('coin');
+    line(null, 'Silver ewer', { weight_coin: 30 });
+    const user = openApp();
+    await openPack(user);
+    const stash = await openStash(user);
+    await stash.findByRole('button', { name: 'Take Silver ewer' });
+    const offline = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    try {
+      window.dispatchEvent(new Event('offline'));
+      await stash.findByText('As it was when you were last online.');
+      await user.click(stash.getByRole('button', { name: 'Take Silver ewer' }));
+      expect(await screen.findByText('You’re offline. Taking from the stash needs the party’s latest, so it waits until you’re back.')).toBeTruthy();
+      expect(world.tables.inventory_lines.find((l) => l.name === 'Silver ewer')).toMatchObject({ location_id: `location-stash-${campaign}` });
+      expect(screen.queryByRole('dialog', { name: 'Take' })).toBeNull();
+    } finally {
+      offline.mockRestore();
+    }
   });
 
   // Purpose: an empty stash says so in one sentence and keeps Put in; offline, the stash says it is shown as last read,

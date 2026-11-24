@@ -724,6 +724,17 @@
   flex: 1 1 auto;
 }
 
+/* The warning variant (K12, PK4b): its own line under the words; on the ink toast the sign and words take the toast's
+   colour, the shape and the bold carrying the warning. */
+.toast__warning {
+  display: block;
+  margin-block-start: var(--space-1);
+}
+
+.toast__warning .warning-line {
+  color: inherit;
+}
+
 .toast__undo {
   margin-inline-start: auto;
   text-align: end; /* a label too long for one line wraps with its lines at the right */

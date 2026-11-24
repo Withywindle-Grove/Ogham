@@ -11,6 +11,8 @@ export interface ToastRequest {
   action?: { label: string; run: () => void };
   /** Something went wrong or can't be done (A11: messages are pop-ups, not boxes in the page). */
   error?: boolean;
+  /** A warning of its own under the words, with the warning sign: the taker put over the limit (K12, PK4b). */
+  warning?: string;
 }
 
 type Show = (toast: ToastRequest) => void;
@@ -139,6 +141,7 @@ export function ToastHost({ children }: { children: ReactNode }) {
           <Toast
             key={current.id}
             text={current.text}
+            warning={current.warning}
             error={current.error}
             onDone={done}
             onUndo={

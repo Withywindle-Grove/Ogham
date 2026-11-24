@@ -168,7 +168,9 @@ const SCENES: Scene[] = [
       // "Loose", with no other groups (N18).
       await page.getByRole('button', { name: /^Party stash/ }).click();
       await expect(page.getByRole('heading', { name: 'Loose' })).toBeVisible();
-      await expect(page.getByRole('button', { name: /Silver ewer/ })).toBeVisible();
+      await expect(page.getByRole('button', { name: /^Silver ewer/ })).toBeVisible();
+      // Every row ends in Take (K12, pk-3).
+      await expect(page.getByRole('button', { name: 'Take Silver ewer' })).toBeVisible();
     },
   },
   {

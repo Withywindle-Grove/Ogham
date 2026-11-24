@@ -5,8 +5,12 @@
 // and "Put in". Beside the lists on a tablet (under them on a phone): "You are taking for" (only for a player with more
 // than one character), the taker's room, and the stash's recent lines, your own keeping Undo while it can be undone.
 // No accent: nothing here is the one next step. Who and when are read from the log (K14, `stashHistory.ts`).
-// Slots for the rows that follow: `coin` (K13, the coin row first) and the lists' row ends (K12, Take).
-import { useEffect, useState, type ReactNode } from 'react';
+// Slots for the rows that follow: `coin` (K13, the coin row first).
+// Take (K12; pk-2, pk-3; frames PK4b and PK7b, approved 2026-11-14, ap-6): every row ends in Take. A single thing goes
+// on the tap (the screen that owns the pack writes it and shows the toast, with Undo and the taker's load); a stack
+// opens the sheet "Take": the thing, what the stash has, a box, and one accent naming the amount; a refusal is words
+// under the row and the button stays a button. Offline, Take stays a button and a tap says why it waits.
+import { useEffect, useId, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { loadCampaignSettings } from '../core/campaignCommands.ts';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
@@ -16,7 +20,9 @@ import { campaignUnits } from '../modules/expedition/play.ts';
 import { loadClockNow } from '../modules/expedition/lightPlay.ts';
 import type { InventoryLine, NamedCarrier } from '../modules/inventory/inventory.ts';
 import { loadStashHistory, whoWords, type StashHistory, type StashMove } from '../modules/inventory/stashHistory.ts';
-import { Chip, StackedButton, WarningSign } from '../ui/parts.tsx';
+import { asksHowMany, readTake, takeLabel, takeRefusal } from '../modules/inventory/stashTake.ts';
+import { Dialog } from '../ui/Dialog.tsx';
+import { Chip, StackedButton, WarningLine, WarningSign } from '../ui/parts.tsx';
 import { useOnline } from '../ui/creation.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import { itemCount } from './packHelpers.ts';
@@ -25,9 +31,65 @@ import type { OpenCampaign } from './Campaigns.tsx';
 import type { CampaignSetting } from './campaignSetting.ts';
 import { registry } from './services.ts';
 import './PackScreen.css';
+import './PurseSheet.css';
 
 /** How many of the stash's recent lines show (PK4 draws three, PK9b four). */
 const RECENT = 4;
+
+/** Offline, a tap on Take says why it waits (PK7b; question 6). */
+export const TAKE_OFFLINE = 'You’re offline. Taking from the stash needs the party’s latest, so it waits until you’re back.';
+
+/**
+ * A stack's "Take" sheet (PK4b): the thing named once, what the stash has under it, a box (a quiet 0 until typed), and
+ * one accent naming the amount. The Coin sheet's row and box (`.purse-sheet__row`), for a thing.
+ */
+function TakeSheet({ line, onClose, onTake }: { line: InventoryLine; onClose: () => void; onTake: (qty: number) => void }) {
+  const box = useId();
+  const [typed, setTyped] = useState('');
+  const [refusal, setRefusal] = useState<string | null>(null);
+  const name = line.name;
+  function take() {
+    const n = readTake(typed, line.qty);
+    if (n === null) return setRefusal(takeRefusal(typed, line.qty));
+    onTake(n);
+  }
+  return (
+    <Dialog label="Take" onClose={onClose}>
+      <div className="purse-sheet__rows" role="group" aria-label="How many">
+        <div className="purse-sheet__row">
+          <span className="purse-sheet__coin">
+            <label className="purse-sheet__name" htmlFor={box}>
+              {name}
+            </label>
+            <span className="purse-sheet__has" id={`${box}-has`}>{`The stash has ${line.qty.toLocaleString('en')}.`}</span>
+          </span>
+          <input
+            id={box}
+            className="field__input purse-sheet__box"
+            inputMode="numeric"
+            autoComplete="off"
+            placeholder="0"
+            aria-describedby={`${box}-has`}
+            aria-invalid={refusal !== null || undefined}
+            value={typed}
+            onChange={(event) => {
+              setTyped(event.target.value);
+              setRefusal(null);
+            }}
+          />
+        </div>
+        {refusal && (
+          <p className="purse-sheet__refusal" role="alert">
+            <WarningLine>{refusal}</WarningLine>
+          </p>
+        )}
+      </div>
+      <div className="dialog__actions purse-sheet__foot">
+        <StackedButton variant="primary" icon="grab" label={takeLabel(line, typed, line.qty)} className="purse-sheet__go stash__take-go" onClick={take} />
+      </div>
+    </Dialog>
+  );
+}
 
 export function StashScreen({
   db,
@@ -44,6 +106,7 @@ export function StashScreen({
   room,
   list,
   coin = null,
+  onTake,
   onPutIn,
   side,
   version,
@@ -66,8 +129,10 @@ export function StashScreen({
   onTaker: (actorId: string) => void;
   /** The taker's load, under "<Name>'s room" (the Pack's own load summary). */
   room: ReactNode;
-  /** The stash's lists, given each row's who-and-when line. */
-  list: (rowNote: (line: InventoryLine) => string | null) => ReactNode;
+  /** The stash's lists, given each row's who-and-when line and its end (Take, K12). */
+  list: (rowNote: (line: InventoryLine) => string | null, rowEnd: (line: InventoryLine) => ReactNode) => ReactNode;
+  /** Take this many of a line for the taker (K12): the owner of the pack writes it, then shows the toast. */
+  onTake: (line: InventoryLine, qty: number) => void;
   /** The coin row, first above the lists (K13). */
   coin?: ReactNode;
   onPutIn: () => void;
@@ -80,6 +145,8 @@ export function StashScreen({
 }) {
   const [history, setHistory] = useState<StashHistory | null>(null);
   const [again, setAgain] = useState(0);
+  // The stack whose "Take" sheet is open (PK4b).
+  const [asking, setAsking] = useState<InventoryLine | null>(null);
   const online = useOnline();
   const show = useToast();
   const lineIds = lines.map((l) => l.id).join(',');
@@ -148,6 +215,21 @@ export function StashScreen({
     onChanged();
   }
 
+  /** Every row ends in Take (pk-3): offline it explains; a stack asks how many; a single thing goes at once. */
+  const takeEnd = (line: InventoryLine) => (
+    <StackedButton
+      icon="grab"
+      label="Take"
+      aria-label={`Take ${line.name}`}
+      aria-haspopup={online && asksHowMany(line) ? 'dialog' : undefined}
+      onClick={() => {
+        if (!online) return show({ text: TAKE_OFFLINE });
+        if (asksHowMany(line)) return setAsking(line);
+        onTake(line, 1);
+      }}
+    />
+  );
+
   const taker = takers.find((t) => t.actorId === takerId) ?? takers[0] ?? null;
   const beside = (
     <div className="stash__beside">
@@ -213,12 +295,22 @@ export function StashScreen({
         </div>
       )}
       {coin}
-      {lines.length > 0 ? list(rowNote) : <p className="stash__empty">Nothing in the Party stash yet.</p>}
+      {lines.length > 0 ? list(rowNote, takeEnd) : <p className="stash__empty">Nothing in the Party stash yet.</p>}
       <div className="pack__foot">
         <span className="auth__meta">{itemCount(lines.length)}</span>
         <StackedButton icon="open-chest" label="Put in" onClick={onPutIn} />
       </div>
       {side ? createPortal(beside, side) : beside}
+      {asking && (
+        <TakeSheet
+          line={asking}
+          onClose={() => setAsking(null)}
+          onTake={(qty) => {
+            setAsking(null);
+            onTake(asking, qty);
+          }}
+        />
+      )}
     </section>
   );
 }

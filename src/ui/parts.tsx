@@ -892,8 +892,11 @@ export function Toast({
   onDone,
   seconds = TOAST_SECONDS,
   error = false,
+  warning,
 }: {
   text: string;
+  /** The **warning** variant (K12, PK4b): a line of its own under the words, the warning sign first ("Over the limit: …"). */
+  warning?: string;
   onUndo?: () => void;
   /**
    * The action variant (M5 step 7): one tap that does the obvious next thing instead of Undo, named for it ("Light
@@ -911,7 +914,14 @@ export function Toast({
   }, [onDone, seconds]);
   return (
     <div className="toast" role={error ? 'alert' : 'status'}>
-      <span className="toast__text">{text}</span>
+      <span className="toast__text">
+        {text}
+        {warning && (
+          <span className="toast__warning">
+            <WarningLine>{warning}</WarningLine>
+          </span>
+        )}
+      </span>
       {onUndo ? (
         <button type="button" className="toast__undo" onClick={onUndo}>
           Undo

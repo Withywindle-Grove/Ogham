@@ -430,6 +430,12 @@ line('line-arrows', wren, 'Reed arrows', { weight_coin: 1, qty: 18, stack: 20 })
 line('line-chalk', wren, 'Chalk');
 line('line-wand', wren, 'Glow wand', { category: 'magic-wand', weight_coin: 10 });
 line('line-ewer', null, 'Silver ewer', { weight_coin: 30 });
+// Take from the stash (K12, PK4b), only with ?stash=1: a stack of 999 with a long name (the "Take" sheet), and a heavy
+// chest that puts Wren over the limit (the toast's warning).
+if (new URLSearchParams(window.location.search).get('stash') === '1') {
+  line('line-beads', null, 'Glass trade beads from the drowned market at the edge of the long fen', { weight_coin: 0, qty: 999, stack: 999 });
+  line('line-chest', null, 'Iron-bound reed chest', { weight_coin: 5000 });
+}
 // The full sheet's Combat tiles (sheet plan order 4), only with ?combat=1: a long shield beside the coat, so AC's
 // caption has two parts ("Quilted coat · Barge-plank tower shield") that can't share a line in a phone's tile, and
 // Wren at level 3 with XP for Level's caption.
