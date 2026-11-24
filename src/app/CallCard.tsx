@@ -63,7 +63,7 @@ export function CallFoldedRow({ send, startOpen = false }: { send: CallSend; /**
 export function CallsInPromptSlot({ calls, onGotIt }: { calls: CallsInSlot; onGotIt: (send: CallSend) => void }) {
   if (!calls.card && calls.folded.length === 0) return null;
   return (
-    <div className="calls-slot" aria-label="Calls to adventure">
+    <div className="calls-slot" role="group" aria-label="Calls to adventure">
       {calls.card && <CallCard key={calls.card.id} send={calls.card} count={calls.count} onGotIt={() => onGotIt(calls.card!)} />}
       {calls.folded.map((send) => (
         <CallFoldedRow key={send.id} send={send} />

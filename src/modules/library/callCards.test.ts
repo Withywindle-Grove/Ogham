@@ -5,6 +5,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../app/commandRegistry.ts';
 import { runCommand, type CurrentUser } from '../../core/commands.ts';
+import { describeEntry, groupEntries, loadLog, loadLogNames } from '../../core/events.ts';
 import { createFakeDb, type FakeWorld } from '../../testing/fakeDb.ts';
 import { callHeading, callsInSlot, loadPlayerCalls, markCallSeen, type CallSend, type CallSendRef } from './callCards.ts';
 
@@ -110,6 +111,17 @@ describe('Got it on a call, on the stand-in database (p7-1 to p7-3)', () => {
     expect((await world.db.from('events').select('id').eq('target_table', 'calls_seen')).data).toEqual([]);
     world.signInAs(gm.id);
     expect((await world.db.from('events').select('id').eq('target_table', 'calls_seen')).data).toHaveLength(1);
+  });
+
+  // Purpose: the line reads in plain words: "You marked a call as seen." to the player, with their name to the GM.
+  it('reads its line in plain words', async () => {
+    await gotIt(sam, toParty);
+    for (const [who, words] of [[sam, 'You marked a call as seen.'], [gm, 'Sam marked a call as seen.']] as const) {
+      world.signInAs(who.id);
+      const log = await loadLog(world.db, campaign, { verbose: true });
+      const names = await loadLogNames(world.db, campaign, who.id);
+      expect(groupEntries(log!.events).map((e) => describeEntry(e, names))).toContain(words);
+    }
   });
 
   // Purpose: a player reads their own character's name on a call sent to it, and the send's kind and pays.

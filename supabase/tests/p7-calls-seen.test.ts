@@ -9,9 +9,22 @@
 //   5. The time is the server's and is never changed: a repeat keeps one row and gives back the first time.
 //   6. Its log line is its player's and the GM's, never another player's, even for a call to the party; it can't be undone.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { buildWorld, must, tearDownWorld, type World } from './world.ts';
+import { createAppRegistry } from '../../src/app/commandRegistry.ts';
+import { runCommand, type CurrentUser } from '../../src/core/commands.ts';
+import { loadCurrentUser } from '../../src/core/currentUser.ts';
+import type { Db } from '../../src/core/supabase.ts';
+import { undoChange } from '../../src/core/undo.ts';
+import { sendHook } from '../../src/modules/library/callsToAdventure.ts';
+import { buildWorld, must, tearDownWorld, type Person, type World } from './world.ts';
 
 let world: World;
+const registry = createAppRegistry();
+const asDb = (person: Person) => person.db as unknown as Db;
+const userOf = async (person: Person) => (await loadCurrentUser(asDb(person))) as CurrentUser;
+// The GM's sends and Undo go through the app's commands (tagged requests), as dec-12b-calls-to-adventure.test.ts does.
+async function as<I, T, O>(person: Person, command: Parameters<typeof runCommand<I, T, O>>[3], input: I) {
+  return runCommand(registry, asDb(person), await userOf(person), command, input);
+}
 let toParty = '';
 let toWren = '';
 let undone = '';
@@ -28,9 +41,9 @@ async function freshSend(actor: string | null): Promise<string> {
   const links = must(await world.admin.from('campaign_packs').select('priority').eq('campaign_id', world.campaignId));
   const priority = Math.max(0, ...links.map((link) => link.priority as number)) + 1;
   must(await world.admin.from('campaign_packs').insert({ campaign_id: world.campaignId, pack_id: packId, option_choices: {}, priority }).select());
-  const sent = await world.gm.db.rpc('send_hook', { campaign: world.campaignId, pack: packId, hook_key: hookId, body: 'Nailed to the quay post: a bounty.', pays: 'Ten silver a head', ...(actor ? { to_actor: actor } : {}) });
-  if (sent.error) throw sent.error;
-  return String((Array.isArray(sent.data) ? sent.data[0] : sent.data)!.id);
+  const sent = await as(world.gm, sendHook, { campaignId: world.campaignId, packId, hookId, actorId: actor, body: 'Nailed to the quay post: a bounty.', pays: 'Ten silver a head' });
+  if (!sent.ok) throw new Error(`The send failed: ${JSON.stringify(sent)}`);
+  return sent.value.id;
 }
 
 beforeAll(async () => {
@@ -39,9 +52,8 @@ beforeAll(async () => {
   toWren = await freshSend(world.wrenId);
   undone = await freshSend(null);
   // Undone by the GM's Undo of its send (nothing is erased; the send is marked undone).
-  const line = must(await world.admin.from('events').select('id').eq('target_table', 'hook_sends').eq('target_id', undone).eq('type', 'hook.send'))[0]!;
-  const back = await world.gm.db.rpc('undo_request_said', { event_id: line.id });
-  if (back.error) throw back.error;
+  const line = must(await world.admin.from('events').select('id, actor_user_id').eq('target_table', 'hook_sends').eq('target_id', undone).eq('type', 'hook.send'))[0]!;
+  expect(await as(world.gm, undoChange, { campaignId: world.campaignId, eventId: line.id, authorUserId: line.actor_user_id })).toMatchObject({ ok: true });
   expect(must(await world.admin.from('hook_sends').select('undone').eq('id', undone))[0]!.undone).toBe(true);
 }, 300_000);
 
