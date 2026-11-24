@@ -404,6 +404,12 @@
   border-block-start: none;
 }
 
+/* A heading row with its ⓘ at the right (the right column's "Abilities and traits", while one is pinned): the ⓘ sits
+   8 px above the first pinned box, the section's 4 px gap and 4 more (page 38, fix 2). */
+.player :is(.player__pane--play, .player__right) .sheet__section > .rule-heading:has(> .info-button) {
+  margin-block-end: var(--space-1);
+}
+
 .play-block {
   display: flex;
   flex-direction: column;
