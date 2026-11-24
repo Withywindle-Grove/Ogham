@@ -106,7 +106,7 @@ describe('importing a pack with its pictures in one bundled file (B14)', () => {
 
   // Purpose (audit 1 and 3, Francis's picks 24 Nov; IM1 draws the new pack in view): with every picture found, the list
   // brings the new pack's row into view, and focus lands on it (the preview that held "Save to your library" is gone).
-  it.fails("every picture found: the new pack's row is brought into view and takes focus", async () => {
+  it("every picture found: the new pack's row is brought into view and takes focus", async () => {
     const seen: Element[] = [];
     Element.prototype.scrollIntoView = function (this: Element) {
       seen.push(this);
@@ -122,14 +122,14 @@ describe('importing a pack with its pictures in one bundled file (B14)', () => {
   });
 
   // Purpose (audit 3): closing the panel by its ✕ returns focus to the new pack's row.
-  it.fails("closing the panel by its ✕ returns focus to the new pack's row", async () => {
+  it("closing the panel by its ✕ returns focus to the new pack's row", async () => {
     const user = await importFile(await bundle({}));
     await user.click(within(await screen.findByRole('dialog', { name: 'Imported: Saltwick Island' })).getByRole('button', { name: 'Close' }));
     await waitFor(() => expect(landed()).toBe('Browse Saltwick Island'));
   });
 
   // Purpose (audit 3): closing the panel by Escape does the same.
-  it.fails("closing the panel by Escape returns focus to the new pack's row", async () => {
+  it("closing the panel by Escape returns focus to the new pack's row", async () => {
     const user = await importFile(await bundle({}));
     await screen.findByRole('dialog', { name: 'Imported: Saltwick Island' });
     await user.keyboard('{Escape}');
@@ -138,7 +138,7 @@ describe('importing a pack with its pictures in one bundled file (B14)', () => {
   });
 
   // Purpose (audit 3): when "Add it…" finds the last picture, the panel gives way to the toast and focus lands on the row.
-  it.fails("the panel giving way to the toast leaves focus on the new pack's row", async () => {
+  it("the panel giving way to the toast leaves focus on the new pack's row", async () => {
     const user = await importFile(await bundle({ 'images/map-harbour.png': 'harbour' }));
     const panel = await screen.findByRole('dialog', { name: 'Imported: Saltwick Island' });
     await user.upload(within(panel).getByLabelText('Choose the missing picture: images/map-beach.png'), new File(['beach'], 'IMG_0042.png', { type: 'image/png' }));

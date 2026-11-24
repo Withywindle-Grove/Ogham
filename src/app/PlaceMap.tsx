@@ -119,7 +119,13 @@ export function AddPlaceMap({
 
   return (
     <>
-      <MapWanted title={map.title} file={map.file} sending={sending} onAdd={() => (packed ? void pick(() => loadPackPicture(db, packed)) : picker.current?.click())} />
+      <MapWanted
+        title={map.title}
+        file={map.file}
+        sending={sending}
+        addLabel={packed ? '+ Map from the pack' : undefined}
+        onAdd={() => (packed ? void pick(() => loadPackPicture(db, packed)) : picker.current?.click())}
+      />
       <input
         ref={picker}
         type="file"
@@ -192,7 +198,8 @@ export function PlaceMapPart({
   const assetId = state?.kind === 'added' ? state.assetId : null;
 
   // B14 (p2p-27; Francis, 2026-11-24): the pack brought the map's picture, so the place has its map with no tap: tied
-  // once a mount (packMapTie.ts), hidden, with no toast. Nothing is drawn while it runs; if it fails, throws or takes
+  // once a mount (packMapTie.ts), hidden, with no toast. While it runs, the spot says "Fetching the pack's map…"; if it
+  // fails, throws or takes
   // longer than TIE_WAIT_MS, the toast says so and the row's "+ Map" tries again (after that row's Undo, this mount
   // doesn't tie it back). After an Undo of the tie (the toast's or the log's), the read says `undone` and nothing is tied
   // on its own again: the row's "+ Map" offers the pack's picture, one tap (review, 2026-11-24).
@@ -264,7 +271,9 @@ export function PlaceMapPart({
   const [open, setOpen] = useState(false);
 
   if (!state || state.kind === 'none') return null;
-  if (state.kind === 'wanted' && tying) return null;
+  // While the pack's map is tied, its spot says so in one quiet line (B14 audit 2, Francis's words 2026-11-24).
+  if (state.kind === 'wanted' && tying)
+    return <MapWanted title={state.map.title} file={state.map.file} sending sendingWords="Fetching the pack's map…" onAdd={() => undefined} />;
   if (state.kind === 'wanted') return <AddPlaceMap db={db} user={user} campaignId={campaignId} place={place} map={state.map} packed={state.packed} onChanged={again} />;
 
   const linked = link && assetId && link.key.startsWith(`${assetId}:`) ? link : null;

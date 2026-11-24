@@ -532,7 +532,23 @@ export function MapPopup({
  * "+ Picture": the map's title as the pack gives it, the file's name the pack asks for under it (so the GM finds the
  * right file), and "+ Map". While the file is sent the button gives way to one line. Pure: the caller picks the file.
  */
-export function MapWanted({ title, file, sending, onAdd }: { title: string; file: string; sending: boolean; onAdd: () => void }) {
+export function MapWanted({
+  title,
+  file,
+  sending,
+  onAdd,
+  addLabel = '+ Map',
+  sendingWords = 'Uploading the map…',
+}: {
+  title: string;
+  file: string;
+  sending: boolean;
+  onAdd: () => void;
+  /** "+ Map from the pack" when the pack brought the picture (B14 audit 6, Francis 2026-11-24). */
+  addLabel?: string;
+  /** "Fetching the pack's map…" while the pack's picture is tied with no tap (B14 audit 2, Francis 2026-11-24). */
+  sendingWords?: string;
+}) {
   return (
     <div className="map-wanted">
       <span>
@@ -541,11 +557,11 @@ export function MapWanted({ title, file, sending, onAdd }: { title: string; file
       </span>
       {sending ? (
         <p className="map-wanted__sending" role="status">
-          Uploading the map…
+          {sendingWords}
         </p>
       ) : (
         <button type="button" className="button-secondary button-secondary--small" onClick={onAdd}>
-          + Map
+          {addLabel}
         </button>
       )}
     </div>

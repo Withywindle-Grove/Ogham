@@ -85,7 +85,7 @@ describe('+ Map on a place whose pack names a map', () => {
         <AddPlaceMap db={world.db} user={gm} campaignId={campaign} place={harbour} map={chart} packed="pack-marsh/harbour-chart" onChanged={changed} />
       </ToastHost>,
     );
-    await user.click(screen.getByRole('button', { name: '+ Map' }));
+    await user.click(screen.getByRole('button', { name: '+ Map from the pack' }));
     await screen.findByText('Map added (hidden): The Drowned Harbour');
     const asset = world.tables.assets.find((a) => a.kind === 'map');
     expect(asset).toMatchObject({ visibility: 'gm', name: chart.title });
@@ -103,10 +103,10 @@ describe('+ Map on a place whose pack names a map', () => {
         <AddPlaceMap db={world.db} user={gm} campaignId={campaign} place={harbour} map={chart} packed="pack-marsh/harbour-chart" onChanged={changed} />
       </ToastHost>,
     );
-    await user.click(screen.getByRole('button', { name: '+ Map' }));
+    await user.click(screen.getByRole('button', { name: '+ Map from the pack' }));
     await screen.findByText(PACK_PICTURE_UNREAD_WORDS);
     expect(world.tables.assets.some((a) => a.kind === 'map')).toBe(false);
-    expect(screen.getByRole('button', { name: '+ Map' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '+ Map from the pack' })).toBeTruthy();
   });
 
   // Purpose (Francis, "Yes hide", 2026-11-18): undoing + Map after the eye showed the map hides it again: the copy goes
@@ -291,7 +291,7 @@ describe("a place whose pack brought its map's picture (B14, p2p-27)", () => {
     await screen.findByText(PACK_PICTURE_UNREAD_WORDS);
     expect(maps()).toHaveLength(0);
     offline = false;
-    await user.click(await screen.findByRole('button', { name: '+ Map' }));
+    await user.click(await screen.findByRole('button', { name: '+ Map from the pack' }));
     await screen.findByRole('region', { name: 'The map' });
     expect(maps()).toHaveLength(1);
   });
@@ -316,7 +316,7 @@ describe("a place whose pack brought its map's picture (B14, p2p-27)", () => {
     expect(undone.ok).toBe(true);
     cleanup();
     open();
-    const add = await screen.findByRole('button', { name: '+ Map' });
+    const add = await screen.findByRole('button', { name: '+ Map from the pack' });
     expect(maps()).toHaveLength(1);
     expect(world.tables.places.find((p) => p.id === place.id)?.map_asset_id).toBeNull();
     await user.click(add);
@@ -339,10 +339,11 @@ describe("a place whose pack brought its map's picture (B14, p2p-27)", () => {
       open();
       // The tie is under way (its fetch asked for), and the slot is empty meanwhile.
       await waitFor(() => expect(asked).toBe(true));
-      expect(screen.queryByRole('button', { name: '+ Map' })).toBeNull();
+      expect(screen.queryByRole('button', { name: '+ Map from the pack' })).toBeNull();
       await vi.advanceTimersByTimeAsync(TIE_WAIT_MS);
-      expect(await screen.findByRole('button', { name: '+ Map' })).toBeTruthy();
-      expect(screen.getByText(PACK_PICTURE_UNREAD_WORDS)).toBeTruthy();
+      expect(await screen.findByRole('button', { name: '+ Map from the pack' })).toBeTruthy();
+      // The toast follows the row's render (its effect), so it is waited for, not read at once (flaked under load).
+      expect(await screen.findByText(PACK_PICTURE_UNREAD_WORDS)).toBeTruthy();
       expect(maps()).toHaveLength(0);
     } finally {
       end();
@@ -352,7 +353,7 @@ describe("a place whose pack brought its map's picture (B14, p2p-27)", () => {
 
   // Purpose (audit 2, Francis's words 24 Nov): while the pack's map is being tied, its spot says so in one quiet line,
   // as "+ Map" says "Uploading the map…", instead of standing empty.
-  it.fails("while the pack's map is tied, its spot says \"Fetching the pack's map…\"", async () => {
+  it("while the pack's map is tied, its spot says \"Fetching the pack's map…\"", async () => {
     let end = () => undefined as void;
     let asked = false;
     try {
@@ -370,7 +371,7 @@ describe("a place whose pack brought its map's picture (B14, p2p-27)", () => {
 
   // Purpose (audit 6, Francis's words 24 Nov): the "+ Map" that adds the pack's own picture at once says where it comes
   // from; the one that asks for a file stays "+ Map".
-  it.fails('"+ Map from the pack" adds the pack\'s picture; the file picker\'s stays "+ Map"', async () => {
+  it('"+ Map from the pack" adds the pack\'s picture; the file picker\'s stays "+ Map"', async () => {
     const user = userEvent.setup();
     const wanted = { title: map.title, file: map.file };
     render(
@@ -388,7 +389,7 @@ describe("a place whose pack brought its map's picture (B14, p2p-27)", () => {
   it('a tie that throws gives way to + Map', async () => {
     packDownload(() => Promise.reject(new Error('Failed to fetch')));
     open();
-    expect(await screen.findByRole('button', { name: '+ Map' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: '+ Map from the pack' })).toBeTruthy();
     expect(screen.getByText(PACK_PICTURE_UNREAD_WORDS)).toBeTruthy();
     expect(maps()).toHaveLength(0);
   });

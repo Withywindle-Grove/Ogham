@@ -50,6 +50,14 @@ interface Imported extends PackPictures {
 export function LibraryScreen({ db, user, onBack }: { db: Db; user: CurrentUser; onBack: () => void }) {
   const [bundle, setBundle] = useState<ChosenBundle | null>(null);
   const [imported, setImported] = useState<Imported | null>(null);
+  // B14 audit 1 and 3 (Francis's picks, 2026-11-24; IM1 draws the new pack in view): the pack a bundle's import ends on.
+  // Once the import is over (every picture found, the panel closed, or its last picture added), the list brings that
+  // pack's row into view and focus lands on its Browse; where the row isn't listed (a filter), on Import a file.
+  // Each landing is its own object, so a later import of the same pack lands again; `landed` holds the one done.
+  const [landOn, setLanding] = useState<{ id: string } | null>(null);
+  const setLandOn = (id: string) => setLanding({ id });
+  const landed = useRef<{ id: string } | null>(null);
+  const screenRef = useRef<HTMLElement>(null);
   const [packs, setPacks] = useState<LibraryPack[] | null | 'error'>(null);
   const [version, setVersion] = useState(0);
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -126,6 +134,7 @@ export function LibraryScreen({ db, user, onBack }: { db: Db; user: CurrentUser;
     setProblem(failed);
     if (missing.length > 0) return setImported({ ...imported, found, missing });
     setImported(null);
+    setLandOn(imported.saved.id);
     setNotice(importedWords(imported.name, found.length, imported.updated));
   }
 
@@ -207,7 +216,10 @@ export function LibraryScreen({ db, user, onBack }: { db: Db; user: CurrentUser;
       if (pictures.missing.length > 0) {
         setImported({ saved, name, updated, file: bundle.name, pack: preview.pack, ...pictures });
         said = null;
-      } else if (pictures.found.length > 0) said = importedWords(name, pictures.found.length, updated);
+      } else {
+        if (pictures.found.length > 0) said = importedWords(name, pictures.found.length, updated);
+        setLandOn(saved.id);
+      }
     }
     setBusy(false);
     setNotice(said);
@@ -215,6 +227,18 @@ export function LibraryScreen({ db, user, onBack }: { db: Db; user: CurrentUser;
     setBundle(null);
     setVersion((v) => v + 1);
   }
+
+  useEffect(() => {
+    if (!landOn || landed.current === landOn || !Array.isArray(packs) || imported || preview) return;
+    const pack = packs.find((p) => p.id === landOn.id);
+    if (!pack) return; // the list read again after the save names it
+    landed.current = landOn;
+    const here = screenRef.current;
+    const browse = [...(here?.querySelectorAll<HTMLElement>('button[aria-label]') ?? [])].find((b) => b.getAttribute('aria-label') === `Browse ${pack.name}`);
+    const target = browse ?? here?.querySelector<HTMLElement>(`#${CSS.escape(importId)}`);
+    target?.focus();
+    target?.scrollIntoView?.({ block: 'nearest' });
+  }, [landOn, packs, imported, preview, importId]);
 
   if (converting) return <ConvertWithAi onBack={() => setConverting(false)} />;
 
@@ -283,7 +307,7 @@ export function LibraryScreen({ db, user, onBack }: { db: Db; user: CurrentUser;
   const groups = groupByKind(sortPacks(found, sort));
 
   return (
-    <section className="library">
+    <section ref={screenRef} className="library">
       <TopRow back="Your campaigns" backShort="Campaigns" onBack={onBack} />
       <div className="library__head">
         <h1 className="library__title">Rules library</h1>
@@ -313,7 +337,16 @@ export function LibraryScreen({ db, user, onBack }: { db: Db; user: CurrentUser;
       <ErrorToast message={problem} />
 
       {preview && <PackPreview preview={preview} busy={busy} onSave={() => void save()} onCancel={() => setPreview(null)} />}
-      {imported && <ImportedPanel imported={imported} onAdd={(files) => void addMissing(files)} onClose={() => setImported(null)} />}
+      {imported && (
+        <ImportedPanel
+          imported={imported}
+          onAdd={(files) => void addMissing(files)}
+          onClose={() => {
+            setLandOn(imported.saved.id);
+            setImported(null);
+          }}
+        />
+      )}
 
       {packs === null && <p role="status">Opening…</p>}
       {packs === 'error' && (
@@ -411,7 +444,7 @@ function ImportedPanel({ imported, onAdd, onClose }: { imported: Imported; onAdd
           <ListRow key={map.id} icon={<span />} title={`${missing.length === 1 ? '1 picture missing' : 'Picture missing'}: ${map.file}`} sub={<WarningLine>{missingWords(map, imported.pack)}</WarningLine>} />
         ))}
       </RowList>
-      <div className="sheet-foot">
+      <div className="sheet-foot sheet-foot--end">
         <StackedButton icon="easel" label={missing.length === 1 ? 'Add it…' : 'Add them…'} variant="primary" onClick={() => picker.current?.click()} />
         <input
           ref={picker}

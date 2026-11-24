@@ -1420,6 +1420,13 @@ details[open] > summary > .disclosure::before {
   border-block-start: var(--line-hair) solid var(--rule);
 }
 
+/* Variant at the end (B14 audit 4, IM1b): in a Side sheet's body the foot sits at the sheet's bottom, not under the
+   rows, with the sheet's own air under it. */
+.sheet-foot--end {
+  margin-block-start: auto;
+  padding-block-end: var(--pad);
+}
+
 /* Reduced motion: rings, bars and skeletons step or hold still. */
 @media (prefers-reduced-motion: reduce) {
   .skeleton__row,
