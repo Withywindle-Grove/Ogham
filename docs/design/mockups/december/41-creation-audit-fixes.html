@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>December: page 41, character creation's audit fixes 2, 1 and 9, as built beside the proposed fix (a proposal, not ruled)</title>
+<title>December: page 41, character creation's audit fixes 2, 1 and 9, as built beside the fix (approved 2026-11-24 with fixes)</title>
 <link rel="stylesheet" href="../creation/final/final.css">
 <link rel="stylesheet" href="december.css">
 <style>
@@ -17,18 +17,60 @@
   ol.crit { font-size:16px; max-width:900px; padding-left:var(--space-5); }
   ol.crit li { margin-bottom:var(--space-2); }
   table.sc { border-collapse:collapse; font-size:14px; margin:var(--space-2) 0 var(--space-4); }
-  table.sc td, table.sc th { border:1px solid var(--rule); padding:var(--space-1) var(--space-2); text-align:left; }
+  table.sc td, table.sc th { border:1px solid var(--rule); padding:var(--space-1) var(--space-2); text-align:left; vertical-align:top; }
+  table.sc { max-width:900px; }
+  .ok { display:inline-block; border:1.5px solid var(--ink); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; font-size:14px; }
 </style>
 </head>
 <body>
 <div class="theme light">
 
-<h1>Page 41. Character creation: the audit's fixes 2, 1 and 9, as built beside the proposed</h1>
-<p class="note"><b>A proposal, not ruled.</b> For the driver's brief of 2026-11-24 (row mock-41-creation-fixes), after the <code>impeccable audit</code> of built character creation the same day and Francis's word on it: "fix 2, 1 and 9; merge same-name purchases." The numbers are the audit's own. Each frame is two pictures of <b>the built screen</b> from <code>main</code> (560a0ee; the layout page <code>layout.html?as=new&amp;gear=1</code>, the invented Fen sample; invented names only): left as built, right the same screen with the fix laid over it in the page (rows grouped, words changed, a gap from the tokens). Nothing in the app was changed. The plan is <code>docs/plans/dec-15-creation-audit-fixes.md</code>.</p>
-<p class="note"><span class="ev">Measured</span> = measured on the built screen by the picture script, before and after. <span class="flag">⚑</span> = a question for Francis; none is decided here.</p>
+<h1>Page 41. Character creation: the audit's fixes 2, 1 and 9, as built beside the fix</h1>
+<p class="note"><b>Approved 2026-11-24 with fixes.</b> Francis, on this page and its plan: "All recommended" (the driver's recommendation on each of the eight questions), with critique 1 and 6 picked. The ruling: <code>docs/design/rulings/creation-audit-fixes-2026-11-24.md</code> (caf-1 to caf-10). The frames the rulings changed are redrawn in the first section; the frames after it are the page as he saw it, each marked where a ruling replaced it. First drawn for the driver's brief of 2026-11-24 (row mock-41-creation-fixes), after the <code>impeccable audit</code> of built character creation the same day and Francis's word on it: "fix 2, 1 and 9; merge same-name purchases." The numbers are the audit's own. Each frame is two pictures of <b>the built screen</b> from <code>main</code> (560a0ee; the layout page <code>layout.html?as=new&amp;gear=1</code>, the invented Fen sample; invented names only): left as built, right the same screen with the fix laid over it in the page (rows grouped, words changed, a gap from the tokens). Nothing in the app was changed. The plan is <code>docs/plans/dec-15-creation-audit-fixes.md</code>.</p>
+<p class="note"><span class="ev">Measured</span> = measured on the built screen by the picture script, before and after. <span class="flag">⚑</span> = a question as it was put to Francis; all eight are ruled (the table below). <span class="ok">Ruled</span> = what the ruling made of a frame.</p>
+
+<h1>Approved 2026-11-24 with fixes: what was ruled, and the frames it changed</h1>
+<table class="sc">
+<tr><th>Ruling</th><th>What it says</th><th>Frame</th></tr>
+<tr><td>caf-1</td><td>A purchase of several at once joins its name's row; "Put back one" takes one back. The stored creation entry is split, or its count and price lowered. No migration; older records read as before.</td><td>As 41-2 draws a row of several; no frame of its own</td></tr>
+<tr><td>caf-2</td><td>"Put back one" on a row of several, "Put back" on a row of one.</td><td>41-2, as drawn</td></tr>
+<tr><td>caf-3</td><td>Rows join on the same name and the same price, in the order first bought.</td><td>41-2, as drawn</td></tr>
+<tr><td>caf-4</td><td>The refusal in the voice guide's pattern: "Muscle can't be above 16. Lower it to continue." and "Muscle can't be below 2. Raise it to continue.", the numbers from the setting.</td><td>New: 999, 0</td></tr>
+<tr><td>caf-5</td><td>A setting with no range: "Muscle must be a whole number."</td><td>New: no range</td></tr>
+<tr><td>caf-6</td><td>Typing stops at the point ("3.5" gives "3"); letters don't enter.</td><td>New: 3.5. Letters: as drawn</td></tr>
+<tr><td>caf-7</td><td>The line under the scores: "Nimbleness: the average, not rolled" (no figure); with none rolled, "All six: the average, not rolled" (the count from the setting's scores).</td><td>New: one not rolled (light, dark), none rolled</td></tr>
+<tr><td>caf-8</td><td>The GM's approval card gets the same change as fix 9, approved from pictures of the real screen after the build.</td><td>None: not drawn</td></tr>
+<tr><td>caf-9</td><td>Critique 1: a visible sign on the refused box itself, not only the line at the foot.</td><td>New: 999, 0, no range</td></tr>
+<tr><td>caf-10</td><td>Critique 6: "Undo last" keeps showing which row it undoes.</td><td>New: Gear, Undo last</td></tr>
+</table>
+<p class="note"><b>Two looks here are the designer's reading, drawn after the approval: Francis has not seen them.</b> caf-9 says a sign on the box, not which; drawn as the foot's own warning sign and short words in the tile's words line, and the box's edge in the warning colour. caf-10 says Undo last keeps showing its row, not how; drawn as a quiet line beside the button, "Last bought: Dry rations". Each reuses a form the screen has and adds no part.</p>
+
+<div class="fr"><p class="cap"><b>Scores, 999 (caf-4, caf-9).</b> The foot says what happened and what to do; the Muscle tile carries the warning sign and "Can't be above 16" where its own words go, and the box's edge takes the warning colour. The sign and the words carry it, never the colour alone.<small><span class="ev">Measured</span> the tile's line 14 px, bold, the warning colour on the tile's white (#7A4A00 on #FFFFFF, 7.5 to 1); the tile grows by its words line, as every tile with words; no sideways scroll at 375 px. 16 and 2 are the Fen sample's own, read from the built screen.</small></p>
+<img src="png/41-1-fix-scores-999-phone-light.png" alt="Scores with 999 typed: as built, Muscle is missing; approved, the tile says Can't be above 16 and the foot says Muscle can't be above 16. Lower it to continue."></div>
+<div class="fr"><p class="cap"><b>Scores, 0 (caf-4, caf-9).</b> "Muscle can't be below 2. Raise it to continue."</p>
+<img src="png/41-1-fix-scores-0-phone-light.png" alt="Scores with 0 typed: as built, Muscle is missing; approved, the tile says Can't be below 2 and the foot says Muscle can't be below 2. Raise it to continue."></div>
+<div class="fr"><p class="cap"><b>Scores, a setting with no range (caf-5, caf-9).</b> "Muscle must be a whole number." on the foot, "Must be a whole number" on the tile.<small>The Fen sample has a range, so the ruled words are laid over its screen on both sides; there is no built side. Which numbers a setting with no range refuses is as built (the box's own limits: 0 and three digits today); the ruling gives the words only. 999 and 0 are whole numbers, so the words may read oddly there: said here, not changed.</small></p>
+<img src="png/41-1-fix-scores-no-range-phone-light.png" alt="Scores in a setting with no range, 999 and 0 typed: the tile says Must be a whole number, the foot Muscle must be a whole number."></div>
+<div class="fr"><p class="cap"><b>Scores, 3.5 (caf-6).</b> Typing stops at the point: the box holds 3, which the Fen sample allows, so nothing is refused and the tile reads as any 3 does.<small>The right side is the app's own screen with 3 typed; nothing is laid over it. Letters still do not enter (the frame under 41-1 below stands).</small></p>
+<img src="png/41-1-fix-scores-3-5-phone-light.png" alt="Scores with 3.5 typed: as built, the box holds 3.5 and Muscle is missing; approved, the box holds 3"></div>
+<div class="fr"><p class="cap"><b>Gear, Undo last (caf-10; the rows as caf-1 to caf-3).</b> Beside Undo last, a quiet line names what it takes back: "Last bought: Dry rations". The rows are 41-2's, unchanged.<small><span class="ev">Measured</span> the line 14 px in the muted colour (#5E574C on #FAFAF7, 6.8 to 1), 16 px from the button, the button 98 by 44 px; no sideways scroll at 375 px. A purchase of several at once is named with its count ("Last bought: Dry rations ×3"): not drawn.</small></p>
+<img src="png/41-2-fix-gear-undo-last-phone-light.png" alt="The Gear step on a phone: as built, eleven rows and Undo last alone; approved, five rows and Last bought: Dry rations beside Undo last">
+<p class="cap"><b>The same line with a long item name.</b> It wraps beside the button, three lines at 375 px; the button keeps its size.</p>
+<img src="png/41-2-fix-gear-undo-last-long-name-phone-light.png" alt="Undo last with its Last bought line: a short name, and a long name on three lines"></div>
+<div class="fr"><p class="cap"><b>The review, one score not rolled (caf-7).</b> No "(rolled 9)" on Nimbleness, and the line under the scores carries no figure: "Nimbleness: the average, not rolled".</p>
+<img src="png/41-9-fix-review-not-rolled-phone-light.png" alt="The review's Scores card in light: as built, rolled 9 and Nimbleness 10: the average; approved, Nimbleness: the average, not rolled">
+<p class="cap"><b>The same in dark.</b></p>
+<img src="png/41-9-fix-review-not-rolled-phone-dark.png" alt="The review's Scores card in dark: as built and approved"></div>
+<div class="fr"><p class="cap"><b>The review, no score rolled (caf-7).</b> "All six: the average, not rolled": the list is said once. The count is the number of scores the setting has.</p>
+<img src="png/41-9-fix-review-none-rolled-phone-light.png" alt="The review's Scores card with no score rolled: as built, the list twice; approved, All six: the average, not rolled"></div>
+<p class="note"><b>Checked on the new frames:</b> 375 px, no sideways scroll (measured on Scores and Gear); nothing under 14 px; every button 44 px tall, none added; no new colour, size or part (the warning sign, the warning colour and the muted colour are the screen's own tokens); no disabled button, no new accent, no confirm; messy data: 999, 0, 3.5, a long item name, all six not rolled. Words: the voice guide's error pattern (what happened, what to do), sentence case, numerals. <b>Not drawn:</b> the new frames in dark (the review apart), on a tablet or at Larger text; a purchase of several at once; the GM's card (caf-8: from the real screen); the refused tile wider than a phone (the words line is centred there). Not tested with a screen reader.</p>
+
+<h1>The page as Francis saw it (2026-11-24, before the rulings)</h1>
+
 
 <h1>41-2. Gear: same-name purchases as one row <span class="ev">Audit pictures 8, 13</span></h1>
 <div class="fr"><p class="cap"><b>A phone (375 px), eleven purchases of five names.</b> <b>Found:</b> eleven rows, one a purchase, their buttons 0 px apart; the burden box a screen down. <b>Proposed:</b> one row a name with its count and its summed price ("Bog sling ×3, 4 gp 5 sp"), one button a row, rows 8 px apart.<small><span class="ev">Measured</span> Buttons 0 px apart as built, 8 px proposed; each 44 px tall, 122 px ("Put back one") or 91 px ("Put back") wide. The page is 232 px shorter (1,545 to 1,313). The coin line, the burden and the foot's "11 things bought" do not change: the merge is in how the rows are shown.</small><small><span class="flag">⚑ Words</span> Drawn: "Put back one" on a row of several (the Tapped table's own words, <code>06</code>), "Put back" on a row of one. As built the button says the refund ("Put back for 1 gp"). <span class="flag">⚑ Order</span> Drawn in the order each name was first bought.</small></p>
+<p class="cap"><span class="ok">Ruled</span> Stands (caf-1 to caf-3), with the "Last bought" line of the approved frame above added beside Undo last (caf-10).</p>
 <img src="png/41-2-gear-merged-phone-light.png" alt="The Gear step on a phone with eleven purchases: as built, eleven rows; proposed, five rows"></div>
 <div class="fr"><p class="cap"><b>A tablet held sideways (1180 by 820).</b> The same merge; rows 8 px apart.<small>The buttons stay at the far end of the row, as built: that is the audit's finding 13, not picked.</small></p>
 <img src="png/41-2-gear-merged-tablet-sideways-light.png" alt="The Gear step on a tablet held sideways: as built and proposed"></div>
@@ -43,22 +85,30 @@
 <h1>41-1. Scores: the refusal names the problem <span class="ev">Audit picture 1</span></h1>
 <p class="note"><b>Found:</b> 999, 0, letters and 3.5 are each answered "Muscle is missing" while the value sits in the box; the box takes letters; nothing marks it for a screen reader. (17 is already answered "Muscle must be 2–16": the range is the Fen sample's own.) <b>Proposed:</b> the box takes digits only; a number outside the setting's range is answered with the range, read from the setting ("Muscle must be 2 to 16" here); the box is marked invalid for a screen reader (<code>aria-invalid</code>, nothing to see). A phone, light.<small><span class="flag">⚑ Words</span> Drawn in the brief's form, "Muscle must be 2 to 16". The voice guide's pattern for an error is "What happened. What to do." ("Muscle can't be above 16. Lower it to continue."). As built the range has a dash ("2–16"); drawn "2 to 16", as the Tapped table writes a range. <span class="flag">⚑</span> A setting that gives no range (no scores rule and no modifier table): the app has no numbers of its own to name, so what 999 says there is open; not drawn.</small></p>
 <div class="fr"><p class="cap"><b>999.</b> The box keeps what was typed; the foot names the range.</p>
+<p class="cap"><span class="ok">Ruled</span> Replaced by the approved frame above (caf-4, caf-9): the words are now "Muscle can't be above 16. Lower it to continue."</p>
 <img src="png/41-1-scores-999-phone-light.png" alt="Scores with 999 typed: as built, Muscle is missing; proposed, Muscle must be 2 to 16"></div>
 <div class="fr"><p class="cap"><b>0.</b></p>
+<p class="cap"><span class="ok">Ruled</span> Replaced by the approved frame above (caf-4, caf-9).</p>
 <img src="png/41-1-scores-0-phone-light.png" alt="Scores with 0 typed: as built and proposed"></div>
 <div class="fr"><p class="cap"><b>Letters.</b> Nothing enters the box, so it stays empty with its "type" hint, and "Muscle is missing" is then true.<small>A refused key or a pasted word leaves the box as it was; nothing says why (critique 2).</small></p>
+<p class="cap"><span class="ok">Ruled</span> Stands (caf-6): letters don't enter.</p>
 <img src="png/41-1-scores-letters-phone-light.png" alt="Scores with letters typed: as built the letters sit in the box; proposed the box stays empty"></div>
 <div class="fr"><p class="cap"><b>3.5.</b> The point is not a digit, so the box holds "35", and the foot answers that number.<small>This is what a digits-only box really does with "3.5" (critique 3).</small></p>
+<p class="cap"><span class="ok">Ruled</span> Replaced by the approved frame above (caf-6): the box holds 3, not 35.</p>
 <img src="png/41-1-scores-3-5-phone-light.png" alt="Scores with 3.5 typed: as built, Muscle is missing; proposed, the box holds 35 and the foot names the range"></div>
 
 <h1>41-9. The review: a score not rolled says so once <span class="ev">Audit pictures 11, 12</span></h1>
 <div class="fr"><p class="cap"><b>A phone, light: one score left at the average.</b> <b>Found:</b> Nimbleness was never touched (the tile showed 9, "Average"; the Bog folk add 1), yet the review reads "Nimbleness 10 (rolled 9)" and then "Nimbleness 10: the average, not rolled". <b>Proposed:</b> an untouched score carries no "(rolled N)"; the second line says it was not rolled, once.<small>"Grit 13 (rolled 14)" stays: Grit was rolled, and the kindred lowered it.</small></p>
+<p class="cap"><span class="ok">Ruled</span> Replaced by the approved frame above (caf-7): the second line carries no figure.</p>
 <img src="png/41-9-review-not-rolled-phone-light.png" alt="The review's Scores card in light: as built with rolled 9; proposed without it">
 <p class="cap"><b>The same in dark.</b></p>
+<p class="cap"><span class="ok">Ruled</span> Replaced by the approved frame above (caf-7).</p>
 <img src="png/41-9-review-not-rolled-phone-dark.png" alt="The review's Scores card in dark: as built and proposed"></div>
 <div class="fr"><p class="cap"><span class="flag">⚑ Words</span> <b>The second line's figure.</b> "Nimbleness 10: the average" gives the score after the kindred's +1; the average was 9. Left: as proposed above (the built line kept). Right: the line without a figure.</p>
+<p class="cap"><span class="ok">Ruled</span> Ruled for the right-hand wording (caf-7); the approved frame is above.</p>
 <img src="png/41-9-review-not-rolled-other-words-phone-light.png" alt="The second line with its figure, and without"></div>
 <div class="fr"><p class="cap"><b>No score rolled at all.</b> As built two scores read "(rolled 9)" though none was rolled; proposed, none does.<small>The full list is then said twice (critique 8). Every score rolled: the second line is absent, as built; not drawn.</small></p>
+<p class="cap"><span class="ok">Ruled</span> Replaced by the approved frame above (caf-7): "All six: the average, not rolled".</p>
 <img src="png/41-9-review-none-rolled-phone-light.png" alt="The review's Scores card with all six scores left at the average: as built and proposed"></div>
 <p class="note"><b>A second place, not drawn:</b> the GM's approval card lists the same scores with "rolled N" and the same "the average, not rolled" line (<code>src/app/reviewSections.ts</code>). The audit did not reach it; the plan says how it is handled.</p>
 
