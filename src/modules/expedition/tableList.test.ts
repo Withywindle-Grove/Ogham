@@ -181,15 +181,16 @@ describe("the scene's candidates at a place with its own check (the tables-row f
     ]);
   });
 
-  // Purpose: the check counts when a parent region owns it and the place the party stands at has none of its own.
-  it("a check owned by a parent region counts at a place inside it", () => {
+  // Purpose: the check counts when a parent region owns it and the place the party stands at has none of its own; it
+  // stands in there, so the mode's table stays with no tag (d5-13).
+  it.fails("a check owned by a parent region counts at a place inside it", () => {
     // Reached by name: sceneCandidatesOf did not exist when this test was written (tests first, bq-6).
     const gather = (tableListModule as unknown as Record<string, (input: Record<string, unknown>) => TableCandidate[]>).sceneCandidatesOf!;
     const jetty = { packId: 'pack-reed', entryId: 'the-jetty', name: 'The jetty', data: { type: 'site' } };
     const island = { packId: 'pack-reed', entryId: 'saltwick-island', name: 'Saltwick Island', data: { type: 'region', encounterCheck: { name: 'Island encounters', replacesScheduled: true, chance: { die: 'd6', on: [1] }, onHit: { tableId: 'island-things' } } } };
     const place = placeCheckOf([jetty, island], []);
     expect(place?.owner.entryId).toBe('saltwick-island');
-    expect(gather({ mode: [cand('cellars-one', 'check')], own: [], place, rules: null })).toEqual([cand('cellars-one', 'check'), cand('island-things', 'place')]);
+    expect(gather({ mode: [cand('cellars-one', 'check')], own: [], place, rules: null }).map((c) => [c.tableId, c.why])).toEqual([['cellars-one', 'none'], ['island-things', 'place']]);
   });
 
   // Purpose (d5-12, ruled 2026-11-20): the table of a check the Location inherits from the Region it sits in reads
