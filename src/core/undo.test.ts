@@ -42,7 +42,7 @@ describe('mayUndo', () => {
 // it (the link it empties when an account is deleted) offers no Undo, not even to the GM; a person's line still offers
 // it to the GM and to that person, and to no other player.
 describe('undoOffered', () => {
-  it.fails('a line with no person on it offers no Undo; a person\'s line offers it to the GM and to them', () => {
+  it('a line with no person on it offers no Undo; a person\'s line offers it to the GM and to them', () => {
     expect(undoOffered(null, { gm: true, userId: 'user-gm' })).toBe(false);
     expect(undoOffered(null, { gm: false, userId: 'user-wren' })).toBe(false);
     expect(undoOffered('user-wren', { gm: true, userId: 'user-gm' })).toBe(true);

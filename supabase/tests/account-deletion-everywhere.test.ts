@@ -94,7 +94,7 @@ describe('deleting an account keeps every row it is linked to', () => {
     expect(await rowOf('places', place, 'created_by')).toEqual([{ created_by: world.gm.id }]);
   });
 
-  it.fails('deleting a player who made a character, a note and a sheet change, and was asked a question, succeeds; each row stays', async () => {
+  it('deleting a player who made a character, a note and a sheet change, and was asked a question, succeeds; each row stays', async () => {
     expect((await world.admin.auth.admin.deleteUser(world.playerA.id)).error).toBeNull();
     await profileGone(world.playerA.id);
     expect(await rowOf('actors', reed, 'name, owner_user_id, created_by')).toEqual([{ name: 'Reed the Eel-Catcher', owner_user_id: null, created_by: null }]);
@@ -104,20 +104,20 @@ describe('deleting an account keeps every row it is linked to', () => {
     expect(await rowOf('requests', question, 'requester_id, created_by')).toEqual([{ requester_id: null, created_by: world.gm.id }]);
   });
 
-  it.fails("after that player's deletion, the GM's Undo of an earlier change to their character still works", async () => {
+  it("after that player's deletion, the GM's Undo of an earlier change to their character still works", async () => {
     await profileGone(world.playerA.id);
     expect((await world.gm.db.rpc('undo_request', { event_id: hpChange })).error).toBeNull();
     expect(await rowOf('actors', world.wrenId, 'hp_current')).toEqual([{ hp_current: 7 }]);
   });
 
-  it.fails('in a retired campaign, deleting a player whose character is in it succeeds; the character stays with no player', async () => {
+  it('in a retired campaign, deleting a player whose character is in it succeeds; the character stays with no player', async () => {
     must(await world.admin.from('campaigns').update({ retired_at: new Date().toISOString() }).eq('id', world.campaignId).select('id'));
     expect((await world.admin.auth.admin.deleteUser(world.playerB.id)).error).toBeNull();
     await profileGone(world.playerB.id);
     expect(await rowOf('actors', world.ashId, 'name, owner_user_id')).toEqual([{ name: 'Ash the Reed Cutter', owner_user_id: null }]);
   });
 
-  it.fails('deleting the GM who created the retired campaign and made rows in every area succeeds; every row stays, its link emptied', async () => {
+  it('deleting the GM who created the retired campaign and made rows in every area succeeds; every row stays, its link emptied', async () => {
     expect((await world.admin.auth.admin.deleteUser(world.gm.id)).error).toBeNull();
     await profileGone(world.gm.id);
     expect(await rowOf('campaigns', world.campaignId, 'name, created_by')).toEqual([{ name: 'The Reedmouth Delve', created_by: null }]);
