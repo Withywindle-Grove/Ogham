@@ -1,13 +1,58 @@
 ---
 status: pending
 milestone: December first play (a player's bug report, 2026-11-24; row design-save-bonus-in-number)
-absorbed-into: nothing yet. Once Francis picks: docs/09-decisions-log.md, docs/07-content-packs.md (Races, Classes, `saveModifiers`), docs/06-screens-and-design.md (the Save tile, the Figure head's sheet), docs/05-features.md (the sheet's saves)
-supersedes: nothing until Francis picks. It would then supersede, for saves only: the 2026-10-25 line "Save modifiers … shown beside saves …, never added in (tentative)"; bq-8 of m5b-builder-questions-2026-11-03.md (a kindred's bonus by Constitution "beside the save, not added in"); pf-21 of dec-player-screen-2026-11-14.md ("shown beside the save and never added in"); the part of sv-2a (same file) that keeps the class-and-level line off a save's sheet; and, if he picks M, the part of sv-2 (same file) that puts the general rule on each save's sheet
+absorbed-into: nothing yet. Once Francis approves the drawing (frames 42-15 to 42-21): docs/09-decisions-log.md, docs/07-content-packs.md (Races, Classes, `saveModifiers`), docs/06-screens-and-design.md (the Save tile, the Figure head's sheet), docs/05-features.md (the sheet's saves)
+supersedes: nothing until Francis approves the drawing. It then supersedes, for saves only: the 2026-10-25 line "Save modifiers … shown beside saves …, never added in (tentative)"; bq-8 of m5b-builder-questions-2026-11-03.md (a kindred's bonus by Constitution "beside the save, not added in"); pf-21 of dec-player-screen-2026-11-14.md ("shown beside the save and never added in"); the part of sv-2a (same file) that keeps the class-and-level line off a save's sheet; and the part of sv-2 (same file) that puts the general rule on each save's sheet (he chose M)
 ---
 
 # Save bonuses counted in the save's number (pending, 2026-11-24)
 
-**Nothing here is ruled.** This file states the question, the options and the designer's pick. The drawings: `docs/design/mockups/december/42-save-bonuses-in-the-number.html` (frames 42-1 to 42-8, light and dark, with a critique of eighteen numbered findings; option D, added later the same day, is frames 42-9 to 42-14 with findings 19 to 30, by hand, a real `impeccable critique` by the PC session to follow).
+**Francis answered the questions on 2026-11-24; the drawing of his answers (frames 42-15 to 42-21) waits for his approval, so this file stays pending.** Nothing goes into `09` or the specs, and nothing is built, until he approves the pictures. One choice is open: on a tablet, the saves five across or three across.
+
+## Francis's answers, 2026-11-24 (the driver's chat)
+
+| Question | His answer | His words, or what it means |
+|---|---|---|
+| 1. A, B, C, D1 or D2 | **A** | "We can't add the modifier directly to save. For one thing a low score is better than a high score so you'd want to reduce the score by the bonus. I agree A is the move." S1 already works this way: where a high roll succeeds a +2 makes the number 2 lower; the direction comes from the rules set's `rolls.save`. |
+| 2. Long or several conditions on a tile | **(a)** | "2–8 as recommended." A long condition wraps; nothing is cut. |
+| 3. S6, the shared bonus once under the heading | **Yes** | As above. |
+| 4. A number past the die's lowest face | **Stop at the lowest face, with no sentence that states a rule** | As above; finding 8's second fix. Where low rolls succeed, the stop is the die's highest face. |
+| 5. The class's row back on a save's sheet (S3) | **Yes** | As above. |
+| 6. The sheet's right-hand column | **As drawn** (the number after each row) | As above. |
+| 7. The general rule | **M**: once, behind an ⓘ by the Saves heading | As above. |
+| 8. S7 and S8 | **Yes** | As above. |
+| "5(b)" | **A counted bonus names its source on the tile in words, with no signed number** ("with Bog folk" under Wisps 12). A bonus that holds at times keeps A's line ("11 vs venom"). | From the PC session's `impeccable critique` of option D, its finding 5. **The caption's rule: a signed number never appears under a counted figure.** |
+| "draw 6" | **Draw the saves three across on a tablet**, like the Scores, beside five across | The PC critique's finding 6. Drawn, not chosen: see below. |
+
+Also taken into the drawing from the PC critique: a kindred's name does not break across lines where the tile can hold it; a captionless tile's empty room stays accepted; the level is 3 in the drawings and in the built pictures alike.
+
+**This changes one proposal below.** The designer's pick left a counted bonus with no trace on the tile (finding 5 of the first critique); "5(b)" gives it one, in words. S1 to S8 otherwise stand as written.
+
+## The final drawing (awaiting approval)
+
+| Frame | What |
+|---|---|
+| 42-15 | The tiles on a phone, beside the tiles as built |
+| 42-16 | The tiles on a tablet in landscape, five across beside three across |
+| 42-17 | Messy data on the tiles: two on one save, counted and at times on one save, a long condition, three counted, a long kindred name, the shared bonus under the heading; phone and the tablet both ways |
+| 42-18 | Low rolls succeed; a number stopped at the lowest face |
+| 42-19 | A save's sheet (S3 rows, the save's own line, the modifier row with its number) and the ⓘ's pop-up for the general rule |
+| 42-20 | Messy data on the sheet |
+| 42-21 | Tablet landscape, light: the built screen beside the final A five across and three across (the second and third are the built screen edited in a browser, not built) |
+
+Findings 31 to 41 on the page are the designer's critique of these frames, by hand; the PC session's real `impeccable critique` follows.
+
+## ⚑ Still open (one)
+
+| # | Question | Measured on the built screen at 1024 by 768 | The designer's lean |
+|---|---|---|---|
+| 9 | On a tablet, the saves **five across** (as built) or **three across** (like the Scores)? | Five: 80 px tiles, each caption two lines, one row of 113 px. Three: 138 px tiles, each caption one line, two rows, 192 px; and 142 px against 67 for a character with no save bonus. | Three across, weakly: words on an 80 px tile are A's weak point. The cost in height is real (findings 35, 36). |
+
+For the plan, not for Francis unless he wants it: on the built screen the ⓘ pushes the Saves roll line onto its own row at 1024 px (finding 31, about 25 px).
+
+---
+
+*What follows is the file as it stood before he answered: the question, the options and the designer's pick. Kept as the record.* The drawings: `docs/design/mockups/december/42-save-bonuses-in-the-number.html` (frames 42-1 to 42-8, light and dark, with a critique of eighteen numbered findings; option D, added later the same day, is frames 42-9 to 42-14 with findings 19 to 30, by hand, a real `impeccable critique` by the PC session to follow).
 
 ## What happened
 
@@ -92,7 +137,7 @@ Francis widened the question (2026-11-24, the driver's chat): a save's sheet mus
 
 **On option D, builder then critic.** First pass: D1, since the shape is built, the number is the one to roll and the player sees his bonus. Challenge: the same grey line says "already in" under one save and "not in" under the next, against the Scores row's meaning; a kindred that helps every save writes itself five times. Second pass: D2, which reads like a Score tile. Challenge: it is the ruling Francis called bad, drawn better, and its sheet shows two numbers. What is left is A, built with the same caption.
 
-## ⚑ For Francis (one at a time)
+## ⚑ For Francis (one at a time): answered 2026-11-24, see the top of this file
 
 | # | Question | The designer's lean |
 |---|---|---|
@@ -115,8 +160,8 @@ Francis widened the question (2026-11-24, the driver's chat): a save's sheet mus
 
 Data and logic: the save's number worked out with its bonuses and the roll's direction, its tests, and the rows for the sheet. Screens: the tile's second line (A; D1 and D2 use the same part and cost about the same) and its spoken name, the sheet's rows and second roll line, the line under the heading. The save's own line, the Modifiers row for a `saveModifiers` entry, and (M) the ⓘ with its pop-up add a little. About 5 to 7 builder turns, one pull request, or two if the bug fix (S8) goes first; no migration, no stored data changes. Nothing is built until Francis picks and approves frames.
 
-## When he picks
+## When he approves the drawing
 
 Docs to update: `docs/09-decisions-log.md` (one line, below), `docs/07-content-packs.md` (Races and Classes: `saveBonus`, `saveBonusByCon`; `saveModifiers`), `docs/06-screens-and-design.md` (the Save tile and its sheet in the Components inventory), `docs/05-features.md` (the sheet's saves; the save's own line from `saveCategories[].notes`; where the general rule lives); mark the superseded parts in the three older ruling files; a plan in `docs/plans/`.
 
-The `09` line, to be completed with his choice: `2026-11-24 — [sheet] A save bonus that always holds is counted in the save's number; one that holds at times is shown <A | B | C | D1 | D2>; a save's sheet opens with the save's own line from the pack, a save modifier is never printed without its number, and the general rule <stays on each save's sheet | moves behind an ⓘ beside the Saves heading> — "this is a bad ruling" and "This should be passed by the pack, not the app" (Francis), on a player's report that his kindred's bonus did not change his saves — design/rulings/dec-save-bonus-in-number-2026-11-24.md`
+The `09` line, not yet written into `09` (its date is the day he approves the drawing; the tablet's layout is added then): `<date> — [sheet] A save bonus that always holds is counted in the save's number and names its source under it in words ("with Bog folk"), never as a signed number; one that holds at times is a second line with the number to roll then ("11 vs venom"); a number stops at the die's lowest face; a save's sheet opens with the save's own line from the pack and shows its working rows, a save modifier is never printed without its number, and the general rule moves behind an ⓘ beside the Saves heading; on a tablet the saves are <five | three> across — "this is a bad ruling" and "This should be passed by the pack, not the app" (Francis), on a player's report that his kindred's bonus did not change his saves — design/rulings/dec-save-bonus-in-number-2026-11-24.md`
