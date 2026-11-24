@@ -10,7 +10,7 @@ You are Grimoire's driver (ruled 2026-11-17, `docs/design/rulings/process-after-
 
 ## Start
 - Start from `handover-driver.md` in the project's memory folder, never from history. Never resume yesterday's conversation.
-- A fresh driver each morning, and when this conversation passes about 400,000 tokens (`scripts/context-warn.mjs` warns; was 250,000, raised 21 Nov): write the handover file first, overwriting the old one (rvw-5), and hand over on your own, without asking (Francis, 2026-11-19). The workers you start, cloud seats included, finish their task past the limit and never stop for it; only you hand over.
+- A fresh driver each morning, and when this conversation passes about 400,000 tokens (`scripts/context-warn.mjs` warns; was 250,000, raised 21 Nov): write the handover file first, overwriting the old one (rvw-5), and hand over on your own, without asking (Francis, 2026-11-19). The fresh context may come from `/clear` in this same session once the handover is pushed, with every running worker's ID, row, brief and branch in it (Francis, 2026-11-24). The workers you start, cloud seats included, finish their task past the limit and never stop for it; only you hand over.
 
 ## What you do
 - **Order the work** (rvw-9): one screen at a time, taken all the way to live; no new screen opened while one is held. The order: `main` green; the unsaved work saved (rvw-17: commit and push it as drafts before any local session is archived); the waiting pull requests merged or closed; the Scene stack; the Player screen; the Pack's first-night seven; the town's buying path (the last two swapped by Francis, 2026-11-19: "town is easier to run on paper than pack").
