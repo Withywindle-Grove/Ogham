@@ -3,6 +3,8 @@
 // pays) and give the party a rumour, so the player's slot holds "1 of 2". What it checks, in plain words:
 //   * the card stands in the players' prompt slot, last in it (p7-9), inside the screen, its "Got it" 44 px;
 //   * after "Got it" the next call's card stands, with the seen one folded under it to a row 44 px high (40C);
+//   * "Got it" by keyboard moves focus to the next card's "Got it", then to the folded row (audit finding 1);
+//   * on a phone the words run on under "Got it"; on a tablet they keep a column beside it (findings 4 and 6);
 //   * nothing scrolls sideways, no text is under 14 px, every tap is 44 px, axe finds no serious problem, at 375 and
 //     834 px, in light and dark. Each test saves its pictures (the phone and dark ones are owed to Francis, p7-8).
 import { expect, test, type Page } from '@playwright/test';
@@ -33,14 +35,26 @@ for (const width of [375, 834] as const) {
         expect(card!.x).toBeGreaterThanOrEqual(0);
         expect(card!.x + card!.width).toBeLessThanOrEqual(width);
         expect(gotIt!.height).toBeGreaterThanOrEqual(44);
+        // Findings 4 and 6: on a phone the words run on under "Got it" (they end right of its left edge, and start below
+        // it); on a tablet they keep their own column, left of it.
+        const words = await calls.locator('.call-card__words').first().boundingBox();
+        if (width === 375) {
+          expect(words!.x + words!.width).toBeGreaterThan(gotIt!.x);
+          expect(words!.y + words!.height).toBeGreaterThan(gotIt!.y + gotIt!.height);
+        } else {
+          expect(words!.x + words!.width).toBeLessThanOrEqual(gotIt!.x);
+        }
         await calls.scrollIntoViewIfNeeded();
         await page.screenshot({ path: `test-results/layout-screens/players-call-card-${width}-${scheme}.png`, fullPage: true });
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
 
-        await calls.getByRole('button', { name: /^Got it/ }).click();
-        const fold = calls.getByRole('button', { name: /read it again$/ });
+        // "Got it" by keyboard (finding 1): focus goes to the next card's "Got it", not to the page's top.
+        await calls.getByRole('button', { name: /^Got it/ }).focus();
+        await page.keyboard.press('Enter');
+        const fold = calls.getByRole('button', { name: 'A call to adventure, for the party' });
         await expect(fold).toBeVisible();
+        await expect(calls.getByRole('button', { name: 'Got it: A rumour, for the party' })).toBeFocused();
         // One call left unseen: no count (p7-12), its card above the folded row (p7-13).
         await expect(calls.getByText(/of 2/)).toHaveCount(0);
         const [next, row] = await Promise.all([calls.locator('.call-card').first().boundingBox(), fold.boundingBox()]);
@@ -49,6 +63,10 @@ for (const width of [375, 834] as const) {
         await page.screenshot({ path: `test-results/layout-screens/players-call-card-folded-${width}-${scheme}.png`, fullPage: true });
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
+
+        // The last "Got it" (finding 1): with no card left, focus goes to the row it folded to.
+        await page.keyboard.press('Enter');
+        await expect(calls.getByRole('button', { name: 'A rumour, for the party' })).toBeFocused();
       });
     });
   }

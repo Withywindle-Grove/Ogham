@@ -1,7 +1,8 @@
 /* The call card and its folded row (P7; page 18's PL4b, page 40's 40A to 40C). Tokens only.
-   The card: the book's card (an ink edge, the card's radius), its mark, then the heading, the words and the quiet line,
-   then "Got it" at the top right. The folded row: the prompt row's box (a control edge), the mark, the heading, a
-   chevron in a tap-sized square; the whole row is the tap. */
+   The card: the book's card (an ink edge in light, the prompt's lighter edge in dark; the card's radius), its mark,
+   then the heading, the words and the quiet line, with "Got it" at the top right: a column of its own on a tablet,
+   the words running on under it on a phone (the impeccable audit's findings 4 to 6, picked 24 Nov). The folded row:
+   the prompt row's box (a control edge), the mark, the heading, a chevron in a tap-sized square; the whole row is the tap. */
 
 .calls-slot {
   display: grid;
@@ -10,7 +11,7 @@
 
 .call-card {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: var(--space-1) var(--space-3);
   align-items: start;
   border: var(--line-selected) solid var(--ink);
@@ -20,9 +21,16 @@
   padding: var(--space-3);
 }
 
-/* Reopened from its row (40B): no button, the words take the room. */
-.call-card--reopened {
-  grid-template-columns: auto minmax(0, 1fr);
+/* Dark (audit finding 5): the 2 px ink edge turns near-white, louder than every prompt beside it; the card takes the
+   rest prompt's edge instead. Light keeps page 40's ink edge. */
+:root[data-theme='dark'] .call-card {
+  border: var(--line-hair) solid var(--control);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .call-card {
+    border: var(--line-hair) solid var(--control);
+  }
 }
 
 .call-card__mark,
@@ -32,7 +40,28 @@
 }
 
 .call-card__body {
+  display: flow-root;
   min-inline-size: 0;
+}
+
+/* "Got it" floats at the top right. A card reopened from its row (40B) has none, and the words take the room. */
+.call-card__got-it {
+  float: inline-end;
+  margin-inline-start: var(--space-3);
+  margin-block-end: var(--space-1);
+}
+
+/* On a tablet the words keep a column of their own beside "Got it" (40A as drawn). */
+.call-card__text {
+  display: flow-root;
+}
+
+/* On a phone the heading and the words run on under "Got it" (finding 4), so a heading no longer wraps to three
+   lines beside it (finding 6). */
+@media (max-width: 599px) {
+  .call-card__text {
+    display: block;
+  }
 }
 
 /* The book's sub-heading (.book-subhead's tokens), at the card's top. */

@@ -67,7 +67,7 @@ describe('the slot’s calls (40B, 40C)', () => {
   // Purpose: after Got it the call folds to one row under the card; a tap reads it again with no button, a tap folds it.
   // The row's name stays the same open or folded (its state is said once, by aria-expanded; audit finding 3), and it
   // names the card it opens; the reopened card is not a live region, so reading it again announces nothing (finding 2).
-  it.fails('folds a seen call to a row that reads it again and folds it again', async () => {
+  it('folds a seen call to a row that reads it again and folds it again', async () => {
     render(<CallsInPromptSlot calls={callsInSlot(three, new Map([['a', '2026-11-24T20:00:00Z']]))} onGotIt={() => {}} />);
     expect(screen.getByText('1 of 2')).toBeTruthy();
     expect(screen.getAllByRole('status')).toHaveLength(1);
@@ -89,7 +89,7 @@ describe('the slot’s calls (40B, 40C)', () => {
 
   // Purpose (audit finding 1): after Got it by keyboard, focus goes to the next card's Got it, so the player keeps their
   // place; with no card left, to the row the seen call folded to. Never to the page's top.
-  it.fails('moves focus to the next Got it, then to the folded row', async () => {
+  it('moves focus to the next Got it, then to the folded row', async () => {
     function Slot() {
       const [seen, setSeen] = useState(new Map<string, string>());
       return <CallsInPromptSlot calls={callsInSlot(three.slice(0, 2), seen)} onGotIt={(s) => setTimeout(() => setSeen((m) => new Map(m).set(s.id, '2026-11-24T20:00:00Z')), 0)} />;

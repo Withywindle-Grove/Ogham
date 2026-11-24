@@ -5,7 +5,8 @@
 // reloading). "Got it" runs hook.seen through the command layer; the card folds at once with the time it gives back,
 // and a refused or failed one leaves the card standing with the command's own words in a toast (page 40, critique 7:
 // no frame draws a failure). Loading and a failed read draw nothing: the slot's other prompts stand as they are, and a
-// failed read keeps the last good one.
+// failed read keeps the last good one. A read and this device's marks belong to their campaign: another campaign's are
+// never shown (they go the moment the campaign changes, before its own read answers).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
@@ -13,14 +14,14 @@ import { callsInSlot, loadPlayerCalls, markCallSeen, type CallSend, type CallsIn
 import { useToast } from '../ui/ToastHost.tsx';
 import { registry } from './services.ts';
 
-type Read = { sends: CallSend[]; seen: Map<string, string> };
+type Read = { campaignId: string; sends: CallSend[]; seen: Map<string, string> };
 
 /** The slot's calls (null until the first good read, and for the GM), and "Got it". */
 export function usePlayerCalls(db: Db, user: CurrentUser, campaignId: string, on: boolean, reloadKey: number): { calls: CallsInSlot | null; gotIt: (send: CallSend) => void } {
   const show = useToast();
   const [read, setRead] = useState<Read | null>(null);
   // Marks given on this device before the next read brings them back (so the card folds at once).
-  const [marked, setMarked] = useState<ReadonlyMap<string, string>>(new Map());
+  const [marked, setMarked] = useState<{ campaignId: string; marks: ReadonlyMap<string, string> } | null>(null);
   const sending = useRef(new Set<string>());
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export function usePlayerCalls(db: Db, user: CurrentUser, campaignId: string, on
     let current = true;
     void loadPlayerCalls(db, campaignId, user.id).then((found) => {
       // A failed read keeps the last good one (nothing hidden is guessed, nothing shown is lost).
-      if (current && found) setRead(found);
+      if (current && found) setRead({ campaignId, ...found });
     });
     return () => {
       current = false;
@@ -36,11 +37,11 @@ export function usePlayerCalls(db: Db, user: CurrentUser, campaignId: string, on
   }, [db, on, campaignId, user.id, reloadKey]);
 
   const calls = useMemo(() => {
-    if (!on || !read) return null;
+    if (!on || !read || read.campaignId !== campaignId) return null;
     const seen = new Map(read.seen);
-    for (const [id, at] of marked) if (!seen.has(id)) seen.set(id, at);
+    if (marked?.campaignId === campaignId) for (const [id, at] of marked.marks) if (!seen.has(id)) seen.set(id, at);
     return callsInSlot(read.sends, seen);
-  }, [on, read, marked]);
+  }, [on, read, marked, campaignId]);
 
   const gotIt = useCallback(
     (send: CallSend) => {
@@ -53,7 +54,7 @@ export function usePlayerCalls(db: Db, user: CurrentUser, campaignId: string, on
           show({ text: result.message, error: true });
           return;
         }
-        setMarked((m) => new Map(m).set(send.id, result.value));
+        setMarked((m) => ({ campaignId: send.campaignId, marks: new Map(m?.campaignId === send.campaignId ? m.marks : []).set(send.id, result.value) }));
       });
     },
     [db, user, show],

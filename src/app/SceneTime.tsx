@@ -381,8 +381,9 @@ export function SceneTime({
   const weather = useWeather(db, user, campaign.id, version);
   const weatherFold = useWeatherFold(weather.view);
   const [weatherOpen, setWeatherOpen] = useState(false);
-  // The calls to adventure and rumours sent to this player (P7; page 40): read again with the log, last in the slot.
-  const playerCalls = usePlayerCalls(db, user, campaign.id, !gm && !compact, logVersion + version);
+  // The calls to adventure and rumours sent to this player (P7; page 40): read again with the log, last in the slot;
+  // read only while the players' slot is drawn (its table view, once the time has loaded).
+  const playerCalls = usePlayerCalls(db, user, campaign.id, !gm && !compact && !!tableView && scene !== null && scene !== 'error', logVersion + version);
 
   const underWay = scene !== null && scene !== 'error' && scene.expedition !== null;
   const expeditionId = scene !== null && scene !== 'error' ? (scene.expedition?.id ?? null) : null;

@@ -113,7 +113,7 @@ describe("the call card in the players' prompt slot (P7, the mount)", () => {
     scene(t, 'sam');
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: 'Got it: A call to adventure, for Wren' }));
-    const row = await screen.findByRole('button', { name: 'A call to adventure, for Wren: read it again' });
+    const row = await screen.findByRole('button', { name: 'A call to adventure, for Wren' });
     expect(row.getAttribute('aria-expanded')).toBe('false');
     expect(screen.queryByRole('button', { name: /^Got it/ })).toBeNull();
     expect(world.tables.calls_seen.filter((m) => m.player_user_id === t.sam)).toHaveLength(1);
@@ -141,7 +141,7 @@ describe("the call card in the players' prompt slot (P7, the mount)", () => {
     await send(t, 'bounty', null, 'A bounty on the Bog lurker.');
     const samView = scene(t, 'sam');
     await userEvent.setup().click(await screen.findByRole('button', { name: 'Got it: A call to adventure, for the party' }));
-    await screen.findByRole('button', { name: 'A call to adventure, for the party: read it again' });
+    await screen.findByRole('button', { name: 'A call to adventure, for the party' });
     samView.unmount();
     scene(t, 'tess');
     expect(await screen.findByRole('button', { name: 'Got it: A call to adventure, for the party' })).toBeTruthy();
@@ -201,7 +201,7 @@ describe("the call card in the players' prompt slot (P7, the mount)", () => {
 
   // Purpose (review of #83): the calls are read only while the players' slot is drawn; when the time can't load (the
   // strip shows its error and no slot), nothing of the calls is read.
-  it.fails('reads no calls while the slot is not drawn', async () => {
+  it('reads no calls while the slot is not drawn', async () => {
     const t = table();
     await send(t, 'bounty', null, 'A bounty on the Bog lurker.');
     const from = world.db.from.bind(world.db);
@@ -225,7 +225,7 @@ describe("the call card in the players' prompt slot (P7, the mount)", () => {
 
   // Purpose (review of #83): a read belongs to its campaign. When the player moves to another campaign, the last one's
   // calls go at once, before the new read answers, and a late answer from the last campaign is never shown.
-  it.fails("never shows one campaign's calls in another", async () => {
+  it("never shows one campaign's calls in another", async () => {
     const t = table();
     const flats = world.addCampaign('The Salt Flats', t.gm);
     const reed = world.addCharacter(flats, 'Reed', { ownerId: t.sam });
