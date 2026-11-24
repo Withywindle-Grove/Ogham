@@ -136,9 +136,27 @@ describe("deleting a GM's account, or one with calls in a retired campaign, keep
     return sent.value.id;
   };
 
+  // Purpose (review nit 2: the first test's send half is stopped by the read rules before any guard): the GM, who may
+  // update a send for an Undo, still can't empty a standing player's link to it by hand; the guard refuses it.
+  it("the GM can't empty a standing player's link to a send by hand", async () => {
+    expect((await world.gm.db.from('hook_sends').update({ player_user_id: null }).eq('id', toAsh).select('id')).error).not.toBeNull();
+    expect((await world.gm.db.from('hook_sends').update({ created_by: null }).eq('id', toAsh).select('id')).error).not.toBeNull();
+    expect(await sendRow(toAsh)).toMatchObject({ player_user_id: world.playerB.id, name: 'The ferryman owes a toll' });
+  });
+
+  // Purpose: the log line the database wrote when it emptied the deleted player's link names no one, and an Undo of
+  // it is refused and changes nothing (the account can't come back).
+  it("the database's line for the emptied link names no one, and its Undo is refused and changes nothing", async () => {
+    const lines = must(await world.admin.from('events').select('id, type, actor_user_id, after').eq('target_table', 'hook_sends').eq('target_id', toWren).is('actor_user_id', null));
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatchObject({ type: 'hook_sends.update', after: { player_user_id: null } });
+    expect((await world.gm.db.rpc('undo_request', { event_id: lines[0]!.id })).error).not.toBeNull();
+    expect(await sendRow(toWren)).toMatchObject({ player_user_id: null, undone: false });
+  });
+
   // Purpose: once a player's account is deleted, the GM can still undo the call sent to their character (the
   // database emptying the link is not a later change that blocks it).
-  it.fails("after a player's deletion, the GM's Undo of the call sent to their character still works", async () => {
+  it("after a player's deletion, the GM's Undo of the call sent to their character still works", async () => {
     const line = must(await world.admin.from('events').select('id').eq('target_table', 'hook_sends').eq('target_id', toWren).eq('type', 'hook.send'))[0]!;
     const undone = await world.gm.db.rpc('undo_request', { event_id: line.id });
     expect(undone.error).toBeNull();
@@ -146,7 +164,7 @@ describe("deleting a GM's account, or one with calls in a retired campaign, keep
   });
 
   // Purpose: deleting the GM who sent the calls succeeds, and every send stays as it was, with no sender.
-  it.fails('deleting the GM who sent the calls succeeds, and every send stays with no sender', async () => {
+  it('deleting the GM who sent the calls succeeds, and every send stays with no sender', async () => {
     const pick = (rows: Record<string, unknown>[]) => rows.map((row) => ({ id: row.id, name: row.name, body: row.body, player_user_id: row.player_user_id, undone: row.undone }));
     const before = must(await world.admin.from('hook_sends').select('id, name, body, player_user_id, undone').eq('campaign_id', world.campaignId).order('id'));
     expect(before).toHaveLength(3);
@@ -157,8 +175,18 @@ describe("deleting a GM's account, or one with calls in a retired campaign, keep
     expect(after.map((row) => row.created_by)).toEqual([null, null, null]);
   });
 
+  // Purpose: a send whose sender was emptied still refuses every other change, even with the secret key, and its
+  // sender can't be filled in again.
+  it("a send whose sender was emptied still refuses every other change, and can't be given a sender", async () => {
+    expect((await world.admin.from('hook_sends').update({ name: 'A different toll' }).eq('id', toAsh)).error).not.toBeNull();
+    expect((await world.admin.from('hook_sends').update({ created_by: world.playerB.id }).eq('id', toAsh)).error).not.toBeNull();
+    expect((await world.admin.from('hook_sends').update({ player_user_id: null }).eq('id', toAsh)).error).not.toBeNull();
+    expect(await sendRow(toAsh)).toMatchObject({ player_user_id: world.playerB.id, name: 'The ferryman owes a toll' });
+    expect(must(await world.admin.from('hook_sends').select('created_by').eq('id', toAsh))[0]!.created_by).toBeNull();
+  });
+
   // Purpose: deleting a player whose seen mark is in a retired campaign succeeds, and the mark stays, with no player.
-  it.fails('deleting a player whose seen mark is in a retired campaign succeeds, and the mark stays with no player', async () => {
+  it('deleting a player whose seen mark is in a retired campaign succeeds, and the mark stays with no player', async () => {
     retired = must(await world.admin.from('campaigns').insert({ name: 'The Silted Weir' }).select('id').single()).id as string;
     must(await world.admin.from('members').insert([
       { campaign_id: retired, user_id: world.outsider.id, base_role: 'gm' },
@@ -174,9 +202,19 @@ describe("deleting a GM's account, or one with calls in a retired campaign, keep
   });
 
   // Purpose: deleting the GM whose call is in a retired campaign succeeds, and the send stays, with no sender.
-  it.fails('deleting the GM whose call is in a retired campaign succeeds, and the send stays with no sender', async () => {
+  it('deleting the GM whose call is in a retired campaign succeeds, and the send stays with no sender', async () => {
     const deleted = await world.admin.auth.admin.deleteUser(world.outsider.id);
     expect(deleted.error).toBeNull();
     expect(must(await world.admin.from('hook_sends').select('created_by, name, undone').eq('id', retiredSend))).toEqual([{ created_by: null, name: 'The ferryman owes a toll', undone: false }]);
+  });
+
+  // Purpose: in a retired campaign, every other change to the send and the mark is still refused, even with the secret
+  // key (then the test's retired campaign is cleaned away).
+  it('in a retired campaign every other change to the send and the mark is still refused', async () => {
+    expect((await world.admin.from('hook_sends').update({ name: 'A different toll' }).eq('id', retiredSend)).error).not.toBeNull();
+    expect((await world.admin.from('hook_sends').update({ created_by: world.playerB.id }).eq('id', retiredSend)).error).not.toBeNull();
+    expect((await world.admin.from('calls_seen').update({ seen_at: '2000-01-01T00:00:00Z' }).eq('send_id', retiredSend)).error).not.toBeNull();
+    expect(must(await world.admin.from('hook_sends').select('created_by, name').eq('id', retiredSend))).toEqual([{ created_by: null, name: 'The ferryman owes a toll' }]);
+    await world.admin.from('campaigns').delete().eq('id', retired);
   });
 });
