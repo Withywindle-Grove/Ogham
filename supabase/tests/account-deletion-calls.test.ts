@@ -111,3 +111,72 @@ describe('deleting a player account keeps their calls and seen marks', () => {
     expect((await sendRow(toWren)).name).toBe('The ferryman owes a toll');
   });
 });
+
+// Widened (Francis, 2026-11-24, "yes" to the pull request's ⚑ 3): deleting a GM's account, and deleting any account
+// whose sends or marks are in a retired campaign, works too and erases nothing: the row stays, only its link to the
+// deleted account is emptied. Runs after the block above (Player A is already deleted).
+describe("deleting a GM's account, or one with calls in a retired campaign, keeps every call and mark", () => {
+  let retired = '';
+  let retiredSend = '';
+  // A send of a fresh hook by `gm` in `campaignId`, to a character or the party (null).
+  const sendFrom = async (gm: Person, campaignId: string, actor: string | null): Promise<string> => {
+    const hookId = `ew-weir-toll-${crypto.randomUUID().slice(0, 8)}`;
+    const made = await gm.db.rpc('import_pack', {
+      meta: { name: 'The silted weirs', version: '1', kind: 'adventure', format_version: 2, source: '', notes: '' },
+      entries: [{ kind: 'adventureHook', pack_entry_id: hookId, name: 'The ferryman owes a toll', data: { text: 'A note under the ferry bell.', pays: 'A favour', giver: null, order: 0 } }],
+      replace_pack_id: null,
+    });
+    if (made.error) throw made.error;
+    const packId = made.data as string;
+    const links = must(await world.admin.from('campaign_packs').select('priority').eq('campaign_id', campaignId));
+    const priority = Math.max(0, ...links.map((link) => link.priority as number)) + 1;
+    must(await world.admin.from('campaign_packs').insert({ campaign_id: campaignId, pack_id: packId, option_choices: {}, priority }).select());
+    const sent = await runCommand(registry, asDb(gm), await userOf(gm), sendHook, { campaignId, packId, hookId, actorId: actor, body: 'A note under the ferry bell.', pays: 'A favour' });
+    if (!sent.ok) throw new Error(`The send failed: ${JSON.stringify(sent)}`);
+    return sent.value.id;
+  };
+
+  // Purpose: once a player's account is deleted, the GM can still undo the call sent to their character (the
+  // database emptying the link is not a later change that blocks it).
+  it.fails("after a player's deletion, the GM's Undo of the call sent to their character still works", async () => {
+    const line = must(await world.admin.from('events').select('id').eq('target_table', 'hook_sends').eq('target_id', toWren).eq('type', 'hook.send'))[0]!;
+    const undone = await world.gm.db.rpc('undo_request', { event_id: line.id });
+    expect(undone.error).toBeNull();
+    expect(await sendRow(toWren)).toMatchObject({ undone: true, player_user_id: null, name: 'The ferryman owes a toll' });
+  });
+
+  // Purpose: deleting the GM who sent the calls succeeds, and every send stays as it was, with no sender.
+  it.fails('deleting the GM who sent the calls succeeds, and every send stays with no sender', async () => {
+    const pick = (rows: Record<string, unknown>[]) => rows.map((row) => ({ id: row.id, name: row.name, body: row.body, player_user_id: row.player_user_id, undone: row.undone }));
+    const before = must(await world.admin.from('hook_sends').select('id, name, body, player_user_id, undone').eq('campaign_id', world.campaignId).order('id'));
+    expect(before).toHaveLength(3);
+    const deleted = await world.admin.auth.admin.deleteUser(world.gm.id);
+    expect(deleted.error).toBeNull();
+    const after = must(await world.admin.from('hook_sends').select('id, name, body, player_user_id, undone, created_by').eq('campaign_id', world.campaignId).order('id'));
+    expect(pick(after)).toEqual(pick(before));
+    expect(after.map((row) => row.created_by)).toEqual([null, null, null]);
+  });
+
+  // Purpose: deleting a player whose seen mark is in a retired campaign succeeds, and the mark stays, with no player.
+  it.fails('deleting a player whose seen mark is in a retired campaign succeeds, and the mark stays with no player', async () => {
+    retired = must(await world.admin.from('campaigns').insert({ name: 'The Silted Weir' }).select('id').single()).id as string;
+    must(await world.admin.from('members').insert([
+      { campaign_id: retired, user_id: world.outsider.id, base_role: 'gm' },
+      { campaign_id: retired, user_id: world.latecomer.id, base_role: 'player' },
+    ]).select());
+    retiredSend = await sendFrom(world.outsider, retired, null);
+    const marked = await world.latecomer.db.rpc('mark_call_seen', { send: retiredSend });
+    if (marked.error) throw marked.error;
+    must(await world.admin.from('campaigns').update({ retired_at: new Date().toISOString() }).eq('id', retired).select('id'));
+    const deleted = await world.admin.auth.admin.deleteUser(world.latecomer.id);
+    expect(deleted.error).toBeNull();
+    expect(must(await world.admin.from('calls_seen').select('player_user_id').eq('send_id', retiredSend))).toEqual([{ player_user_id: null }]);
+  });
+
+  // Purpose: deleting the GM whose call is in a retired campaign succeeds, and the send stays, with no sender.
+  it.fails('deleting the GM whose call is in a retired campaign succeeds, and the send stays with no sender', async () => {
+    const deleted = await world.admin.auth.admin.deleteUser(world.outsider.id);
+    expect(deleted.error).toBeNull();
+    expect(must(await world.admin.from('hook_sends').select('created_by, name, undone').eq('id', retiredSend))).toEqual([{ created_by: null, name: 'The ferryman owes a toll', undone: false }]);
+  });
+});
