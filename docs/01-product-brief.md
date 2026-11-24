@@ -1,6 +1,6 @@
 # 01 — Product Brief
 
-**Name:** the app (currently **Nemeton**, pronounced NEM-eh-ton), from the Gaulish word for a sacred place or grove where people gathered. Kept easy to change: the name never goes into database names, ids, code identifiers, the repo name or the pack format. The repo stays `grimoire`; the pack format ID stays `tabletop-pack`.
+**Name:** the app (**Tome**; it was Nemeton until 2026-11-24). Kept easy to change: the name never goes into database names, ids, code identifiers, the repo name or the pack format. The repo stays `grimoire`; the pack format ID stays `tabletop-pack`.
 
 ## Vision
 
@@ -15,7 +15,7 @@ Limit paperwork and distraction to maximize in-person play and conversation. Eve
 ## Who it's for (R1)
 
 - **Your group only:** 3–6 players plus one GM, OSR-style play with hirelings, domain play and downtime.
-- **Devices:** tablets (iPads) for the GM and, mostly, the players (ruled 2026-11-01, R2); phones fully supported; an optional shared screen (TV or spare tablet).
+- **Devices:** tablets primarily (iPads), for the GM and the players (ruled 2026-11-01, R2); second, laptops for downtime (widescreen: the layout scales with the window; how is a design question, `10-open-questions.md`); last, phones, fully supported but used mainly for character creation and the Player, Pack and Magic tabs (2026-11-24: a ranking of care, not a limit); an optional shared screen (TV or spare tablet).
 - **Play pattern:** sessions mostly in person; occasional remote play with players on a voice chat; downtime often remote and asynchronous.
 - Everyone has their own login. Each campaign is fully separate.
 
@@ -48,7 +48,7 @@ See `08-roadmap.md` for the full release plan. In short, R1 delivers:
 - Voting mini-app
 - Fiat, campaign log with notes (simple/verbose), rollback
 - Content library (items, classes, rules, stat blocks) via upload and in-app editor
-- Basic hirelings, holdings, organizations and long-term projects
+- Hirelings, holdings, organizations and long-term projects with their full working (M9), designed in one full design session held after the 5 December play session (2026-11-24)
 - Scene tab: the shared view on every player's device and on an optional tablet or small monitor for the table; offline reading of sheets
 - In-app alerts; dictation for quick text
 
