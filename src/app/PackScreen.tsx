@@ -46,7 +46,7 @@ import { takeToast } from '../modules/inventory/stashTake.ts';
 import { thingCount } from './stashWords.ts';
 import { PurseSheet } from './PurseSheet.tsx';
 import { coinLine, denominationsOf } from '../modules/inventory/coinWords.ts';
-import { loadPurse, type Coins } from '../modules/inventory/purse.ts';
+import { loadPurse, loadStashCoin, type Coins } from '../modules/inventory/purse.ts';
 import type { CharacterLightView } from './LightSection.tsx';
 import { registry } from './services.ts';
 
@@ -256,6 +256,22 @@ export function PackScreen({
   }, [db, campaign.id, purseOf, logVersion, purseVersion]);
   // Only the purse read for the pack on screen (a switch of character never shows the last one's coin).
   const purse = purseOf !== null && read?.of === purseOf ? read.coins : null;
+  // The stash's coin (K13, pu-3): read while its own screen is open (every member may read it). Offline, the last read
+  // stays, as the rest of the stash does.
+  const stashCoinOf = stashShown && stash && own ? stash.locationId : null;
+  const [stashCoin, setStashCoin] = useState<{ of: string; coins: Coins } | null>(null);
+  const [stashCoinOpen, setStashCoinOpen] = useState(false);
+  useEffect(() => {
+    if (!stashCoinOf) return;
+    let current = true;
+    loadStashCoin(db, campaign.id, stashCoinOf).then(
+      (found) => current && found && setStashCoin({ of: stashCoinOf, coins: found }),
+      () => undefined,
+    );
+    return () => {
+      current = false;
+    };
+  }, [db, campaign.id, stashCoinOf, logVersion, purseVersion]);
   useEffect(() => {
     if (!loaded || loaded === 'error' || !main) return;
     const [was, wasRank, wasTier] = (lastTier.current ?? '').split('|');
@@ -566,6 +582,31 @@ export function PackScreen({
           })(),
       });
     };
+    // The coin row first (K13; pu-3, PC6, PK4): the same row as a character's coin line, no button on it; it opens
+    // "Party stash's coin", with Take… for the taker. With no coin named and none held there is no row.
+    const coins = stashCoin?.of === stash.locationId ? stashCoin.coins : null;
+    const coinRow = coins && (denominations.length > 0 || Object.keys(coins).length > 0) && (
+      <BookType>
+        <CoinLine words={coinLine(denominations, coins)} onOpen={() => setStashCoinOpen(true)} />
+        {stashCoinOpen && (
+          <PurseSheet
+            db={db}
+            user={user}
+            carrier={stash}
+            recipients={[]}
+            denominations={denominations}
+            coins={coins}
+            taker={taker}
+            onClose={() => setStashCoinOpen(false)}
+            onChanged={() => {
+              setPurseVersion((v) => v + 1);
+              setStashVersion((v) => v + 1);
+              onChanged?.();
+            }}
+          />
+        )}
+      </BookType>
+    );
     return (
       <SheetScope.Provider value>
         <h1 className={inBar ? 'visually-hidden' : 'pack__title'}>{stash.name}</h1>
@@ -611,6 +652,7 @@ export function PackScreen({
               rowEnd={rowEnd}
             />
           )}
+          coin={coinRow}
           onTake={(line, qty) => void take(line, qty)}
           onPutIn={() => setAdding(stash)}
           side={addItem ? null : side}

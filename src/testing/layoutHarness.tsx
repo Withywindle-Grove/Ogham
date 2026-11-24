@@ -474,6 +474,11 @@ if (coinFlag) {
         ];
   const coins = coinFlag === 'messy' ? { moon: 2, heron: 999, reed: 120, penny: 7, token: 3 } : { crown: 12, heron: 30 };
   world.tables.purses.push({ id: 'purse-wren', campaign_id: campaign, actor_id: wren, location_id: null, coins, version: 1 });
+  // The stash's coin (K13, PC6), with ?stash=1 as well: 40 herons and 12 bits (messy: 999 of one long-named coin).
+  if (new URLSearchParams(window.location.search).get('stash') === '1') {
+    const stashCoins = coinFlag === 'messy' ? { moon: 1, heron: 999, token: 12 } : { heron: 40, bit: 12 };
+    world.tables.purses.push({ id: 'purse-stash', campaign_id: campaign, actor_id: null, location_id: `location-stash-${campaign}`, coins: stashCoins, version: 1 });
+  }
 }
 void ash;
 // A light (M5 step 7, invented): River Rules' rushlight, used up when it burns out, and four of them in Wren's pack,

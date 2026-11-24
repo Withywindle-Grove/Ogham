@@ -5,7 +5,7 @@
 // and "Put in". Beside the lists on a tablet (under them on a phone): "You are taking for" (only for a player with more
 // than one character), the taker's room, and the stash's recent lines, your own keeping Undo while it can be undone.
 // No accent: nothing here is the one next step. Who and when are read from the log (K14, `stashHistory.ts`).
-// Slots for the rows that follow: `coin` (K13, the coin row first).
+// The coin row first (K13, `coin`): the stash's coin line, opening "Party stash's coin" (`PurseSheet`).
 // Take (K12; pk-2, pk-3; frames PK4b and PK7b, approved 2026-11-14, ap-6): every row ends in Take. A single thing goes
 // on the tap (the screen that owns the pack writes it and shows the toast, with Undo and the taker's load); a stack
 // opens the sheet "Take": the thing, what the stash has, a box, and one accent naming the amount; a refusal is words
