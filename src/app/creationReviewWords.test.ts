@@ -110,6 +110,31 @@ describe('the creation review’s words', () => {
     expect(groups.given).toEqual(['Reed rope']);
   });
 
+  // Purpose (caf-1, frame 41-2-review-bought): the review's Bought line names each thing once with its count, in the
+  // order first bought, whether the things are lines of their own or one joined stack, and its total of items is unchanged.
+  it('the gear: the Bought line names each thing once with its count', () => {
+    const lines = [
+      { id: 'l-sling-1', name: 'Bog sling', qty: 1 },
+      { id: 'l-rations', name: 'Dry rations', qty: 3 },
+      { id: 'l-sling-2', name: 'Bog sling', qty: 1 },
+      { id: 'l-rope', name: 'Reed rope', qty: 1 },
+      { id: 'l-sling-3', name: 'Bog sling', qty: 1 },
+    ];
+    const record = {
+      bought: [
+        { label: 'Bog sling', price: 15, lines: [{ id: 'l-sling-1', qty: 1 }] },
+        { label: 'Dry rations', price: 10, lines: [{ id: 'l-rations', qty: 1 }] },
+        { label: 'Bog sling', price: 15, lines: [{ id: 'l-sling-2', qty: 1 }] },
+        { label: 'Reed rope', price: 10, lines: [{ id: 'l-rope', qty: 1 }] },
+        { label: 'Dry rations ×2', price: 20, lines: [{ id: 'l-rations', qty: 2 }] },
+        { label: 'Bog sling', price: 15, lines: [{ id: 'l-sling-3', qty: 1 }] },
+      ],
+    };
+    const groups = gearGroups(record, lines, '', () => '?');
+    expect(groups.rows.map((r) => [r.label, r.items])).toEqual([['Bought', 'Bog sling ×3, Dry rations ×3, Reed rope']]);
+    expect(groups.summary).toBe('7 items');
+  });
+
   it('the gear: a line gone from the pack is left out; an empty pack says "Nothing yet"', () => {
     const record = { bought: [{ label: "Warden's kit", price: 0, kitId: 'k', lines: [{ id: 'gone', qty: 1 }] }] };
     expect(gearGroups(record, [], '', () => '')).toEqual({ rows: [], given: [], givenCount: '0 items', summary: 'Nothing yet' });

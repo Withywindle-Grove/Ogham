@@ -46,6 +46,10 @@ import {
   piecesWords,
   priceOf,
   purchasesOf,
+  boughtRows,
+  takeOneOut,
+  shopPurchase,
+  withoutEntry,
   rangeWords,
   readMoney,
   shortOf,
@@ -457,15 +461,17 @@ export function StartingGear({
   }
 
   // Takes what one purchase put in the pack back out (only as many as it added), and refunds its full price. A given
-  // pick's lines (not bought) only come out (`bought` false).
-  async function remove(purchase: Purchase, bought = true): Promise<boolean> {
+  // pick's lines (not bought) only come out (`bought` false). With `one` (caf-1), only one of a purchase of several:
+  // its share of the lines and the price, the entry kept with what is left.
+  async function remove(purchase: Purchase, bought = true, one = false): Promise<boolean> {
     setProblem(null);
+    const part = one ? takeOneOut(purchase) : { refund: purchase.price, lines: purchase.lines, left: null };
     const inventory = await loadInventory(db, character.campaignId);
     if (!inventory) {
       setProblem("Couldn't put it back. Check your connection and try again.");
       return false;
     }
-    for (const line of purchase.lines) {
+    for (const line of part.lines) {
       const now = inventory.lines.find((l) => l.id === line.id);
       // Already gone (dropped from the pack): nothing to take out.
       if (!now) continue;
@@ -476,10 +482,10 @@ export function StartingGear({
       }
     }
     if (!bought) return true;
-    const same = (p: Purchase) => p === purchase || (p.label === purchase.label && p.lines[0]?.id === purchase.lines[0]?.id);
+    // Only this one entry leaves the record, or what is left of it stays (caf-1).
     const now = live.current;
-    const nextBought = now.bought.filter((p) => !same(p));
-    const nextSpent = Math.max(0, now.spent - purchase.price);
+    const nextBought = withoutEntry(now.bought, purchase, part.left);
+    const nextSpent = Math.max(0, now.spent - part.refund);
     live.current = { ...now, spent: nextSpent, bought: nextBought };
     setSpent(nextSpent);
     setBought(nextBought);
@@ -826,8 +832,10 @@ export function StartingGear({
     return true;
   }
 
+  // The purchase Undo last takes back, named beside it (caf-10).
+  const lastBought = [...bought].reverse().find((p) => p.lines.length > 0) ?? null;
   function undoLast() {
-    const last = [...bought].reverse().find((p) => p.lines.length > 0);
+    const last = lastBought;
     if (!last || !refunds) return toast({ text: 'Nothing to undo.' });
     void run(async () => {
       if (await remove(last)) toast({ text: `Put ${last.label} back.` });
@@ -881,10 +889,14 @@ export function StartingGear({
   const tallyOf = (withMoney: boolean) => (
     <div className="gear-tally">
       {withMoney && moneyLine}
-      {refunds && bought.some((p) => p.lines.length > 0) && (
-        <button type="button" className="button-secondary button-secondary--small" onClick={undoLast}>
-          Undo last
-        </button>
+      {refunds && lastBought && (
+        <>
+          <button type="button" className="button-secondary button-secondary--small" onClick={undoLast}>
+            Undo last
+          </button>
+          {/* What Undo last takes back (caf-10; frame 41-2-fix-gear-undo-last), with its count when bought several at once. */}
+          <p className="gear-tally__last">Last bought: {lastBought.label}</p>
+        </>
       )}
       {load.mode !== 'none' && (
         <div className="gear-tally__load">
@@ -930,7 +942,8 @@ export function StartingGear({
           },
           onBought: (entry, line, qty) => {
             const price = (priced(entry) ?? 0) * qty;
-            void recordBuy({ label: qty > 1 ? `${entry.name} ×${qty}` : entry.name, price, lines: [{ id: line.id, qty: line.qty }] }, show(price));
+            // As many as this buy added, not the joined stack's count (caf-1).
+            void recordBuy(shopPurchase(entry.name, qty, price, line, qty * bundleOf(entry)), show(price));
           },
           onDone: () => setShopping(false),
         }}
@@ -1362,27 +1375,35 @@ export function StartingGear({
               <DetailRow label="The shop" action="Open" onOpen={() => setShopping(true)} />
               {itemsBought.length > 0 && (
                 <ul className="starting-gear__bought" aria-label={`Bought for ${name}`}>
-                  {itemsBought.map((purchase, index) => (
-                    <li key={`${purchase.label}-${index}`} className="starting-gear__line">
-                      <span>
-                        {purchase.label}, {show(purchase.price)}
-                      </span>
-                      {refunds && purchase.lines.length > 0 && (
-                        <button
-                          type="button"
-                          className="button-secondary button-secondary--small"
-                          aria-label={`Put back ${purchase.label}, ${show(purchase.price)} back`}
-                          onClick={() =>
-                            void run(async () => {
-                              if (await remove(purchase)) toast({ text: `Put ${purchase.label} back.` });
-                            })
-                          }
-                        >
-                          Put back for {show(purchase.price)}
-                        </button>
-                      )}
-                    </li>
-                  ))}
+                  {/* Same-name purchases as one row (caf-1 to caf-3; frame 41-2-gear-merged): one button a row, which puts
+                      back the last one bought of that name. */}
+                  {boughtRows(itemsBought).map((row, index) => {
+                    const last = row.entries[row.entries.length - 1]!;
+                    const several = row.count > 1;
+                    const back = show(takeOneOut(last).refund);
+                    return (
+                      <li key={`${row.name}-${index}`} className="starting-gear__line">
+                        <span>
+                          {row.name}
+                          {several ? ` ×${row.count}` : ''}, {show(row.price)}
+                        </span>
+                        {refunds && last.lines.length > 0 && (
+                          <button
+                            type="button"
+                            className="button-secondary button-secondary--small"
+                            aria-label={`Put back ${several ? 'one ' : ''}${row.name}, ${back} back`}
+                            onClick={() =>
+                              void run(async () => {
+                                if (await remove(last, true, true)) toast({ text: several ? `Put one ${row.name} back.` : `Put ${row.name} back.` });
+                              })
+                            }
+                          >
+                            {several ? 'Put back one' : 'Put back'}
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </>
