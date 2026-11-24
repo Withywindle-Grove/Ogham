@@ -4,6 +4,8 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Hoard, HoardRow } from '../modules/expedition/hoard.ts';
+import type { Piece } from '../modules/expedition/placePlay.ts';
+import { PieceRow } from './PlaceCard.tsx';
 import { HoardSheetView, hoardLine, sendListWords, SendSheet, truthToastWords } from './HoardSheet.tsx';
 
 afterEach(cleanup);
@@ -40,6 +42,13 @@ describe("the line under a hoard's piece (HM1, HM3, HM5)", () => {
     expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', ['Wren'])).toBe('Shown to the players: Lantern of the Drowned. Wren\'s hooded lantern now carries its name.');
     expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', [null])).toBe('Shown to the players: Lantern of the Drowned. The hooded lantern in the party stash now carries its name.');
     expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', [])).toBe('Shown to the players: Lantern of the Drowned.');
+  });
+
+  // Purpose (impeccable audit 3, Francis picked 2026-11-24): after a name ending in s the possessive is the apostrophe
+  // alone ("Wardens' hooded lantern"); after any other name, "'s".
+  it.fails("puts the apostrophe alone after a name ending in s", () => {
+    expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', ['Wren of the Lantern Wardens'])).toBe("Shown to the players: Lantern of the Drowned. Wren of the Lantern Wardens' hooded lantern now carries its name.");
+    expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', ['Ash'])).toBe("Shown to the players: Lantern of the Drowned. Ash's hooded lantern now carries its name.");
   });
 });
 
@@ -80,5 +89,21 @@ describe("the hoard's sheet (HM2, HM5)", () => {
     expect(screen.getByRole('button', { name: 'To a character' })).toBeTruthy();
     await userEvent.click(screen.getByRole('button', { name: 'To the party stash' }));
     expect(onStash).toHaveBeenCalled();
+  });
+});
+
+describe("the hoard's piece on the GM's card (HM1)", () => {
+  // Purpose (impeccable audit 2, Francis picked 2026-11-24): the Strongbox piece's accessible name is its visible
+  // words, not a hidden "Open Strongbox" a screen reader alone would hear.
+  it.fails('is named by its visible words', () => {
+    const piece: Piece = { id: 'p-box', kind: 'other', lead: 'Strongbox', text: '240 herons and a hooded lantern.', shown: false, shownAt: null, gm: { value: '', trigger: '', statLine: '' }, version: 1 };
+    render(
+      <ul>
+        <PieceRow page piece={piece} onToggle={() => undefined} onEdit={() => undefined} onOpen={() => undefined} />
+      </ul>,
+    );
+    const words = document.querySelector('.place-page__piece-words') as HTMLElement;
+    expect(words.hasAttribute('aria-label')).toBe(false);
+    expect(screen.getByRole('button', { name: 'Strongbox. 240 herons and a hooded lantern.' })).toBe(words);
   });
 });

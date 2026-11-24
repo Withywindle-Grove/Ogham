@@ -106,6 +106,50 @@ for (const size of SIZES) {
         expect(await layoutProblems(page)).toEqual([]);
         await shot(page, 'hm5', size.width, scheme);
       });
+
+      // Purpose (impeccable audit 7, Francis picked 2026-11-24): the card and the hoard's sheet name the Location as
+      // page 30 draws it, "2. The Wreck", not "2. The wreck".
+      test.fail('the Location is named "The Wreck", as page 30 draws it', async ({ page }) => {
+        await openCard(page, scheme, '');
+        await expect(page.locator('.place-page__name')).toHaveText('2. The Wreck');
+      });
+
+      // Purpose (impeccable audit 1, Francis picked 2026-11-24): Escape closes the hoard's sheet and puts focus back on
+      // the Strongbox piece that opened it, so a keyboard user carries on where they were.
+      test.fail('Escape closes the hoard and puts focus back on the Strongbox', async ({ page }) => {
+        await openCard(page, scheme, '');
+        const box = page.locator('.place-page__piece-words').filter({ hasText: 'Strongbox.' });
+        await box.focus();
+        await page.keyboard.press('Enter');
+        await expect(page.getByRole('button', { name: 'Send all' })).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(page.getByRole('button', { name: 'Send all' })).toHaveCount(0);
+        await expect(box).toBeFocused();
+      });
+
+      // Purpose (impeccable audit 6, Francis picked 2026-11-24): a focused row of the hoard's sheet wears the whole
+      // focus ring, its four sides inside the sheet, not two full-width rules with the sides cut off.
+      test.fail('a focused row of the hoard wears the whole focus ring', async ({ page }) => {
+        await openCard(page, scheme, '');
+        await page.locator('.place-page__piece-words').filter({ hasText: 'Strongbox.' }).click();
+        const row = page.locator('.hoard-sheet .list-row__body').first();
+        await row.focus();
+        await expect(row).toBeFocused();
+        const ring = await row.evaluate((el) => {
+          const style = getComputedStyle(el);
+          const width = parseFloat(style.outlineWidth);
+          const out = width + parseFloat(style.outlineOffset);
+          const box = el.getBoundingClientRect();
+          // The nearest box that clips (the sheet's scrolling body): the ring must fit inside its padding box.
+          let clip = el.parentElement;
+          while (clip && getComputedStyle(clip).overflowY === 'visible' && getComputedStyle(clip).overflowX === 'visible') clip = clip.parentElement;
+          const c = clip!.getBoundingClientRect();
+          const inner = { left: c.left + clip!.clientLeft, right: c.left + clip!.clientLeft + clip!.clientWidth };
+          return { style: style.outlineStyle, width, left: box.left - out >= inner.left, right: box.right + out <= inner.right };
+        });
+        expect(ring).toEqual({ style: 'solid', width: expect.any(Number), left: true, right: true });
+        expect(ring.width).toBeGreaterThanOrEqual(2);
+      });
     });
   }
 }
