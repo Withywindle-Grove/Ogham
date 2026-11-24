@@ -22,6 +22,23 @@ describe('the pop-up', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  // Purpose (fix-tap-through, players' feedback via Francis 2026-11-24): a finger's tap on the dimmed page only closes
+  // the pop-up. The dimmed page stays through the press, so the same tap's click lands on it, not on what lies under
+  // it; the click is what closes it.
+  it.fails('touch: the press on the dimmed page leaves it open, and that tap\'s click closes it', () => {
+    const onClose = vi.fn();
+    render(
+      <Dialog label="Sack" onClose={onClose}>
+        <p>Inside the sack</p>
+      </Dialog>,
+    );
+    const backdrop = document.querySelector('.dialog__backdrop')!;
+    fireEvent.pointerDown(backdrop, { pointerType: 'touch' });
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.click(backdrop);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   // One Close everywhere (tf-8): a bare ✕ at the top right named "Close"; a tap closes, and focus still starts on the content.
   it('has one Close, named Close, that closes it; focus starts on the first control, not on Close', () => {
     const onClose = vi.fn();
