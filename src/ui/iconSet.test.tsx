@@ -209,13 +209,26 @@ describe('the icon set (ds-6)', () => {
   // last in the table, by Skoll as the Studio's CREDITS.md gives it (no link: the set's licence file gives none), under
   // the plain name the Credits show, resolving to its own path.
   it('holds the dropped sword for Drop, by Skoll, last, resolving', () => {
-    expect(SET_ICON_NAMES.slice(71)).toEqual(['drop-weapon']);
+    expect(SET_ICON_NAMES.slice(71, 72)).toEqual(['drop-weapon']);
     const icon = ICON_SET['drop-weapon'];
     expect(icon.author.name).toBe('Skoll');
     expect(icon.author.url).toBeUndefined();
     expect(icon.plain).toBe('Dropped sword');
     const { container } = render(<Icon name="drop-weapon" />);
     expect(container.querySelector('path')!.getAttribute('d')).toBe(icon.d);
+  });
+
+  // Purpose (P7; PL4b and page 40, p7-4): the call card's two marks, the stabbed note for a call to adventure (by
+  // Delapouite) and the beer stein for a rumour (by Lorc), come last in the table, each resolving to its own path.
+  it('holds the call card’s stabbed note and beer stein, last, each with its author, resolving', () => {
+    expect(SET_ICON_NAMES.slice(72)).toEqual(['stabbed-note', 'beer-stein']);
+    expect(ICON_SET['stabbed-note'].author.name).toBe('Delapouite');
+    expect(ICON_SET['beer-stein'].author.name).toBe('Lorc');
+    for (const name of ['stabbed-note', 'beer-stein'] as const) {
+      const { container, unmount } = render(<Icon name={name} />);
+      expect(container.querySelector('path')!.getAttribute('d')).toBe(ICON_SET[name].d);
+      unmount();
+    }
   });
 
   // Purpose: the Credits' plain names say what each picture shows (the Studio's names, via the lead, 2026-11-14).
