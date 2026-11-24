@@ -1178,7 +1178,8 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //                     (frame 5's sentences);
 //   ?placePage=hand   the party at a place typed by hand (frame 2b, left);
 //   ?placePage=none   an expedition with no place yet (frame 2b, right).
-//   &map=wanted|added with spots or spot: the pack's map for the harbour, not added yet or added (S13; see below).
+//   &map=wanted|added|shown with spots or spot: the pack's map for the harbour, not added yet, added, or added and shown
+//               to the players (S13; the players' map, P5; see below).
 //   &picture=1 with spots or spot: the place has a picture (TW13: the picture row, a tap opening it); with &ways=… too,
 //               shown to the players (the Location's card's small picture button, ppf-6 c).
 //   &mapTitle=long  with &map: the map's title long (the card's title on its own line above the tools).
@@ -1474,13 +1475,13 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
       if (pictured?.picture) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row: pictured, piece: { id: pictured.picture.id } });
     }
     const mapFlag = new URLSearchParams(window.location.search).get('map');
-    if (mapFlag === 'wanted' || mapFlag === 'added') {
+    if (mapFlag === 'wanted' || mapFlag === 'added' || mapFlag === 'shown') {
       // &mapTitle=long: a long title, so the card's title takes its own line above the tools (#851's round).
       const chartTitle = new URLSearchParams(window.location.search).get('mapTitle') === 'long' ? 'The Drowned Harbour and the Saltwick Breakwater at the turn of the tide' : 'The Drowned Harbour, the harbour chart';
       const chart = { file: 'harbour-chart.png', title: chartTitle, alt: 'A silted harbour, its bar and five spots', locationIds: ['drowned-harbour'] };
       world.tables.library_entries.push({ id: 'entry-reed-harbour-chart', pack_id: 'pack-reed', kind: 'map', pack_entry_id: 'harbour-chart', name: chart.title, data: chart });
-      if (mapFlag === 'added' && row) {
-        world.tables.assets.push({ id: 'asset-harbour-chart', campaign_id: campaign, kind: 'map', name: chart.title, visibility: 'gm' });
+      if ((mapFlag === 'added' || mapFlag === 'shown') && row) {
+        world.tables.assets.push({ id: 'asset-harbour-chart', campaign_id: campaign, kind: 'map', name: chart.title, visibility: mapFlag === 'shown' ? 'all' : 'gm' });
         await world.db.storage.from('campaign-files').upload(`${campaign}/asset-harbour-chart`, new Blob(['a chart'], { type: 'image/svg+xml' }));
         const tied = world.tables.places.find((p) => p.id === row.place?.id);
         if (tied) tied.map_asset_id = 'asset-harbour-chart';

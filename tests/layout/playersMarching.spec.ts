@@ -39,11 +39,18 @@ for (const width of [375, 1024] as const) {
           expect(inner.x).toBeGreaterThanOrEqual(box.x - 0.5);
           expect(inner.x + inner.width).toBeLessThanOrEqual(box.x + box.width + 0.5);
         }
-        // Last in the right column: nothing of the place's card comes after it but today's Split party (P1's departure).
+        // Last in the right column (PL1, PL5b: the map, the place's card, the marching order): it stands under the
+        // place's card, and nothing else in the column comes after it but today's Split party (P1's departure).
         const right = page.locator('.players-page__column[data-column="right"]');
-        const known = await right.getByRole('button', { name: /^What we know/ }).boundingBox();
-        expect(known).not.toBeNull();
-        expect(box.y).toBeGreaterThanOrEqual(known!.y + known!.height);
+        await expect(right.locator('section.players-area')).toBeVisible();
+        const [place, last] = await Promise.all([right.locator('section.players-area').boundingBox(), card.boundingBox()]);
+        expect(last!.y).toBeGreaterThanOrEqual(place!.y + place!.height);
+        const bottoms = await right.evaluate((column) => {
+          const marching = column.querySelector('section.marching')!;
+          return [...column.children].filter((part) => !part.contains(marching) && !part.classList.contains('groups__actions')).map((part) => part.getBoundingClientRect().bottom);
+        });
+        expect(bottoms.length).toBeGreaterThan(0);
+        for (const bottom of bottoms) expect(last!.y).toBeGreaterThanOrEqual(bottom - 0.5);
         await page.screenshot({ path: `test-results/layout-screens/players-marching-eight-${width}-${scheme}.png`, fullPage: true });
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
