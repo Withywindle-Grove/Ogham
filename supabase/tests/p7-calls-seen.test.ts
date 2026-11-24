@@ -100,8 +100,14 @@ describe('Got it on a call (P7, p7-1 to p7-3)', () => {
   });
 
   it('a send whose player was removed (actor set, player_user_id null) is refused with 42501', async () => {
-    const orphaned = await freshSend(world.wrenId);
-    must(await world.admin.from('hook_sends').update({ player_user_id: null }).eq('id', orphaned).select('id'));
+    // As the app makes it: a character's player (the latecomer, here) has their account removed, and the database
+    // clears player_user_id (on delete set null); the row itself is never edited (an immutability trigger forbids it).
+    const gone = must(await world.admin.from('actors').insert({ campaign_id: world.campaignId, kind: 'pc', name: 'Fenn the Weir Warden', owner_type: 'user', owner_user_id: world.latecomer.id, approval: 'approved', hp_current: 4, hp_max: 4 }).select('id').single());
+    const orphaned = await freshSend(gone.id);
+    expect(must(await world.admin.from('hook_sends').select('player_user_id').eq('id', orphaned))[0]!.player_user_id).toBe(world.latecomer.id);
+    const removed = await world.admin.auth.admin.deleteUser(world.latecomer.id);
+    expect(removed.error).toBeNull();
+    expect(must(await world.admin.from('hook_sends').select('player_user_id, actor_id').eq('id', orphaned))[0]).toEqual({ player_user_id: null, actor_id: gone.id });
     expect(denied(await markAs(world.playerA, orphaned))).toBe(true);
     expect(denied(await markAs(world.playerB, orphaned))).toBe(true);
     const rows = must(await world.admin.from('calls_seen').select('id').eq('send_id', orphaned));
