@@ -2,7 +2,8 @@
 // approved 2026-11-21). In the view each such button stays as the player sees it (never disabled, hard rule 7); a tap
 // opens a pop-up to read, "Only Sam can …", its one line, then "Got it". The three that point to Waiting for you carry
 // "Go to Waiting for you" before "Got it". Nothing is logged: nothing happened. On the GM's own character none opens.
-// M3f2's words, word for word; the ninth ("New" on a find) has no button and so no pop-up.
+// M3f2's words, word for word, but one: taking back a sheet change names Waiting for approval, where its "Go to Waiting
+// for you" lands (⚑ 51, ruled (a) 2026-11-22). The ninth ("New" on a find) has no button and so no pop-up.
 import { useState, type ReactNode } from 'react';
 import { BlockedSheet } from '../ui/BlockedSheet.tsx';
 import { usePlayerView, type WaitingTarget } from './playerView.ts';
@@ -21,7 +22,7 @@ export function playerOnlyWords(act: PlayerOnlyAct, player: string, character: s
     case 'chooseCharacter':
       return { title: `Only ${player} can choose who they play`, why: `${player} picks from Your characters on their own screen.`, toWaiting: false };
     case 'takeBackChange':
-      return { title: `Only ${player} can take back this change`, why: `${player} asked you for it. You can answer it instead: Approve or Refuse it in Waiting for you.`, toWaiting: true };
+      return { title: `Only ${player} can take back this change`, why: `${player} asked you for it. You can answer it instead: Approve or Refuse it in Waiting for approval.`, toWaiting: true };
     case 'answerOffer':
       return { title: `Only ${player} can answer your offer`, why: `${player} accepts or declines it on their own screen.`, toWaiting: false };
     case 'stayHere':

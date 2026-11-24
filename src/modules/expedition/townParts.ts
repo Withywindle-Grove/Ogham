@@ -10,6 +10,7 @@
 // Players read what is shown through public.scene_town_pieces and public.scene_town_pictures, and nothing else.
 import { defineCommand, fromError, isGm, ok, type CommandResult, type CurrentUser } from '../../core/commands.ts';
 import type { Db } from '../../core/supabase.ts';
+import { readsAs } from './placePlay.ts';
 
 const gmOnly = (user: CurrentUser, target: { campaignId: string }) => isGm(user, target.campaignId);
 
@@ -61,9 +62,12 @@ export interface SceneTownPicture {
   assetId: string;
 }
 
-/** What a player reads of the places in town shown to their groups; null if it couldn't be loaded. */
-export async function loadSceneTownParts(db: Db, campaignId: string): Promise<{ pieces: SceneTownPiece[]; pictures: SceneTownPicture[] } | null> {
-  const [pieces, pictures] = await Promise.all([db.rpc('scene_town_pieces', { campaign: campaignId }), db.rpc('scene_town_pictures', { campaign: campaignId })]);
+/**
+ * What a player reads of the places in town shown to their groups; null if it couldn't be loaded. `asPlayer`: the GM's
+ * view as the player (C15f, ruling a2), read as that player (see `readsAs`).
+ */
+export async function loadSceneTownParts(db: Db, campaignId: string, asPlayer?: string): Promise<{ pieces: SceneTownPiece[]; pictures: SceneTownPicture[] } | null> {
+  const [pieces, pictures] = await Promise.all([db.rpc('scene_town_pieces', readsAs(campaignId, asPlayer)), db.rpc('scene_town_pictures', readsAs(campaignId, asPlayer))]);
   if (pieces.error || pictures.error) return null;
   const rows = (pieces.data ?? []) as Record<string, unknown>[];
   const pics = (pictures.data ?? []) as Record<string, unknown>[];

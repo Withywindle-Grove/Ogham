@@ -272,7 +272,7 @@ describe('the player-only actions in the GM’s view (C15d; pg32-6)', () => {
     const before = world.tables.events.length;
     await user.click(await screen.findByRole('button', { name: /^Take back / }));
     const pop = await screen.findByRole('dialog', { name: 'Only Sam can take back this change' });
-    expect(within(pop).getByText('Sam asked you for it. You can answer it instead: Approve or Refuse it in Waiting for you.')).toBeTruthy();
+    expect(within(pop).getByText('Sam asked you for it. You can answer it instead: Approve or Refuse it in Waiting for approval.')).toBeTruthy();
     const foot = [...pop.querySelectorAll('.dialog__got-it button')].map((b) => b.textContent);
     expect(foot).toEqual(['Go to Waiting for you', 'Got it']);
     expect(world.tables.events.length).toBe(before);
@@ -354,7 +354,7 @@ describe('the pop-ups’ words (M3f2)', () => {
       sendRequest: { title: 'Only Sam can send this request', why: 'A request goes from Sam to you. When Sam sends it, it waits for you in Waiting for you.', toWaiting: true },
       takeBackRequest: { title: 'Only Sam can take back this request', why: 'You can answer it instead: it waits for you in Waiting for you.', toWaiting: true },
       chooseCharacter: { title: 'Only Sam can choose who they play', why: 'Sam picks from Your characters on their own screen.', toWaiting: false },
-      takeBackChange: { title: 'Only Sam can take back this change', why: 'Sam asked you for it. You can answer it instead: Approve or Refuse it in Waiting for you.', toWaiting: true },
+      takeBackChange: { title: 'Only Sam can take back this change', why: 'Sam asked you for it. You can answer it instead: Approve or Refuse it in Waiting for approval.', toWaiting: true },
       answerOffer: { title: 'Only Sam can answer your offer', why: 'Sam accepts or declines it on their own screen.', toWaiting: false },
       stayHere: { title: 'Only Sam can choose where Wren stays', why: 'Sam picks a lodging on their own screen.', toWaiting: false },
       undoPurchase: { title: 'Only Sam can undo this purchase', why: 'The purchase was Sam’s, so its Undo is too.', toWaiting: false },

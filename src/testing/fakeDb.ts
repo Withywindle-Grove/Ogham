@@ -244,6 +244,10 @@ export function createFakeDb(): FakeWorld {
     return keys.flatMap((k) => [k, k.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 36)]);
   };
   const isMemberOf = (campaignId: unknown) => tables.members.some((m) => m.campaign_id === campaignId && m.user_id === me());
+  // Like private.group_read_as (C15f; ruling a2): whose characters' groups a players' read answers for: the reader's own,
+  // or with `as_player` that player's, for the campaign's GM only and a member named; anyone else, nobody's.
+  const readerAs = (campaign: unknown, asPlayer: unknown): string =>
+    asPlayer == null ? String(me()) : isGmOf(campaign) && tables.members.some((m) => m.campaign_id === campaign && m.user_id === asPlayer) ? String(asPlayer) : '(nobody)';
   const mayWrite = (path: string) => {
     const asset = assetAt(path);
     return !!asset && (isGmOf(asset.campaign_id) || (asset.kind === 'portrait' && asset.uploaded_by === me()));
@@ -1224,9 +1228,9 @@ export function createFakeDb(): FakeWorld {
     tables.actors.filter((a) => a.campaign_id === campaign && ['pc', 'hireling'].includes(String(a.kind ?? 'pc')) && (a.approval ?? 'approved') === 'approved' && (a.status ?? 'active') === 'active');
   // A place's picture (M5b step 1 follow-up; ruled B), like private.place_picture_shown_to_me: for each of the reader's
   // groups, the picture piece shown to it on its current visit (the newest shown).
-  const shownPlacePictures = (campaign: unknown): { group: number; assetId: string }[] => {
+  const shownPlacePictures = (campaign: unknown, asPlayer?: unknown): { group: number; assetId: string }[] => {
     withGroupRows();
-    const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+    const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, asPlayer)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
     return groups.flatMap((group) => {
       const visit = tables.group_places
         .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
@@ -1736,9 +1740,9 @@ export function createFakeDb(): FakeWorld {
       }
       return { data: shows.length, error: null };
     },
-    scene_pieces: ({ campaign }) => {
+    scene_pieces: ({ campaign, as_player }) => {
       withGroupRows();
-      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, as_player)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
       const rows = groups.flatMap((group) => {
         const visit = tables.group_places
           .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
@@ -1782,9 +1786,9 @@ export function createFakeDb(): FakeWorld {
       if (row.value !== (value === true)) changeRow('place_rule_switches', row, { value: value === true }, tag);
       return copy(row);
     },
-    place_rules_for_players: ({ campaign }) => {
+    place_rules_for_players: ({ campaign, as_player }) => {
       withGroupRows();
-      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, as_player)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
       const rows = groups.flatMap((group) => {
         const visit = tables.group_places
           .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
@@ -1807,9 +1811,9 @@ export function createFakeDb(): FakeWorld {
       });
       return { data: rows, error: null };
     },
-    encounter_check_for_players: ({ campaign }) => {
+    encounter_check_for_players: ({ campaign, as_player }) => {
       withGroupRows();
-      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, as_player)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
       const rows = groups.flatMap((group) => {
         const visit = tables.group_places
           .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && visitShown(g.id) && tables.expeditions.some((x) => x.id === g.expedition_id && !x.undone && (x.ended_at ?? null) === null))
@@ -1851,9 +1855,9 @@ export function createFakeDb(): FakeWorld {
       if (row.shared !== (share === true)) changeRow('knowledge_shares', row, share === true ? { shared: true, shared_clock: clock } : { shared: false }, tag);
       return copy(row);
     },
-    place_card_for_players: ({ campaign }) => {
+    place_card_for_players: ({ campaign, as_player }) => {
       withGroupRows();
-      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, as_player)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
       const rows = groups.flatMap((group) => {
         const visit = tables.group_places
           .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
@@ -1892,9 +1896,9 @@ export function createFakeDb(): FakeWorld {
       });
       return { data: rows, error: null };
     },
-    knowledge_for_players: ({ campaign }) => {
+    knowledge_for_players: ({ campaign, as_player }) => {
       withGroupRows();
-      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, as_player)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
       const rows = groups.flatMap((group) => {
         const visit = tables.group_places
           .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
@@ -1922,18 +1926,18 @@ export function createFakeDb(): FakeWorld {
     },
     // A place's picture (M5b step 1 follow-up), like …_m5b_1b_place_picture.sql: each of the reader's groups shown its
     // current place (a piece shown on this visit) gets the place's picture, if it has one.
-    scene_pictures: ({ campaign }) => {
-      return { data: shownPlacePictures(campaign).map(({ group, assetId }) => ({ group_number: group, asset_id: assetId })), error: null };
+    scene_pictures: ({ campaign, as_player }) => {
+      return { data: shownPlacePictures(campaign, as_player).map(({ group, assetId }) => ({ group_number: group, asset_id: assetId })), error: null };
     },
     // The town screen (M5b step 6c), like …_m5b_6c_town_screen.sql: each of the reader's groups at a settlement place
     // (its current visit in the newest expedition, under way or ended) gets the places in town shown to players.
-    scene_town: ({ campaign }) => {
+    scene_town: ({ campaign, as_player }) => {
       withGroupRows();
       const newest = tables.expeditions
         .filter((x) => x.campaign_id === campaign && !x.undone)
         .sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')))[0];
       if (!newest) return { data: [], error: null };
-      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, as_player)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
       const rows = groups.flatMap((group) => {
         const visit = tables.group_places
           .filter((g) => g.campaign_id === campaign && g.expedition_id === newest.id && Number(g.group_number) === group && !g.undone && !g.moved_on)
@@ -3829,10 +3833,12 @@ export function createFakeDb(): FakeWorld {
       return { data: rows, error: null };
     },
     // What we know: the places shown to the reader's groups across the campaign, the current expedition's first.
-    known_places_campaign: ({ campaign }) => {
+    known_places_campaign: ({ campaign, as_player }) => {
       const rows: Row[] = [];
+      const readsGroup = (group: number) =>
+        as_player == null ? inMyGroup(campaign, group) : activeIn(campaign).some((a) => a.owner_user_id === readerAs(campaign, as_player) && groupNumberOf(a.id) === group);
       for (const gp of tables.group_places) {
-        if (gp.campaign_id !== campaign || gp.undone || !inMyGroup(campaign, Number(gp.group_number))) continue;
+        if (gp.campaign_id !== campaign || gp.undone || !readsGroup(Number(gp.group_number))) continue;
         const x = tables.expeditions.find((e) => e.id === gp.expedition_id && !e.undone);
         const place = tables.places.find((p) => p.id === gp.place_id && !p.undone);
         if (!x || !place) continue;
