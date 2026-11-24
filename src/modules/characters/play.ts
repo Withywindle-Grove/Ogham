@@ -666,6 +666,14 @@ export function saveModifierLines(saveKey: string, input: SaveModifierInput): st
   for (const m of (Array.isArray(merged(input.rulesSets).saveModifiers) ? (merged(input.rulesSets).saveModifiers as unknown[]) : []).filter(isRecord).filter(fromScore)) {
     const spec = m.value as Record<string, unknown>;
     const name = capital(text(m.name) || text(m.tag) || text(m.against) || text(m.id));
+    const path = scoreFill(m);
+    if (path) {
+      // A `fill` path into a score's row (`abilityModifiers.<score>.<column>`): that column's number, nothing at 0.
+      const row = input.filled[`abilityModifiers.${path.score}`];
+      const own = isRecord(row) ? whole(row[path.column]) : null;
+      if (own) lines.push(`${name}: ${signed(own)} from ${input.label(path.score)}.`);
+      continue;
+    }
     const from = String(spec.from);
     const field = typeof spec.plusRaceField === 'string' ? spec.plusRaceField : '';
     const row = input.filled[`abilityModifiers.${from}`];
@@ -945,8 +953,17 @@ export function unarmouredAc(rulesSets: readonly Record<string, unknown>[], chos
   return found ? found[1] : null;
 }
 
-/** A save modifier that a score drives (its `value.from` names the score; 07 `saveModifiers`, fills.ts ruleFills). */
-const fromScore = (m: Record<string, unknown>) => isRecord(m.value) && typeof m.value.from === 'string';
+/** A save modifier's `fill` path into a score's row (`abilityModifiers.<score>.<column>`), split; else null. */
+function scoreFill(m: Record<string, unknown>): { score: string; column: string } | null {
+  const found = isRecord(m.value) && typeof m.value.fill === 'string' ? /^abilityModifiers\.([^.]+)\.([^.]+)$/.exec(m.value.fill) : null;
+  return found ? { score: found[1]!, column: found[2]! } : null;
+}
+
+/**
+ * A save modifier that a score drives: its `value.from` names the score, or its `value.fill` is a path into a score's
+ * row (07 `saveModifiers`, fills.ts ruleFills; Francis's bug report, 24 Nov 2026).
+ */
+const fromScore = (m: Record<string, unknown>) => (isRecord(m.value) && typeof m.value.from === 'string') || scoreFill(m) !== null;
 
 /**
  * How saves are rolled and what changes them, from the rules set (`saveRule`, `saveModifiers`), as plain lines.
@@ -961,6 +978,8 @@ export function saveRules(rulesSets: readonly Record<string, unknown>[], { score
   for (const m of mods) {
     const name = text(m.name) || text(m.tag) || text(m.against);
     const value = typeof m.value === 'number' ? signed(m.value) : typeof m.modifier === 'number' ? signed(m.modifier) : '';
+    // An entry with no number the app can read (and not one a score drives) is left out, never a bare name (24 Nov).
+    if (!value && !fromScore(m)) continue;
     if (name || value) lines.push([name, value].filter(Boolean).join(' '));
   }
   return lines;

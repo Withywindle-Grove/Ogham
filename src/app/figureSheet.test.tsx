@@ -141,6 +141,24 @@ describe("a save's Modifiers from the rules, the kindred and the class (play.ts 
     // Purpose: no line said twice on the sheet.
     expect(saveRules(rulesSets, { scoresApart: true })).toEqual(['Roll a d20; meet the number to save.', 'Against eel venom +2']);
   });
+
+  it('shows a save modifier given by a fill path into a score\'s row under Modifiers with its number, never as a bare line', () => {
+    // Purpose (Francis's bug report, 24 Nov): a `{ fill: "abilityModifiers.<score>.<column>" }` modifier is score-driven,
+    // like `{ from }`: its number from the character's row under Modifiers, nothing in the rule's lines, nothing at 0.
+    const withFill = [{ saveRule: 'Roll a d20; meet the number to save.', saveModifiers: [{ id: 'grit-hexes', name: 'Grit vs hexes', value: { fill: 'abilityModifiers.GRT.hexSaves' }, appliesWhen: 'hexes' }] }];
+    const grit = (hexSaves: number) => input({ rulesSets: withFill, filled: { 'abilityModifiers.GRT': { hexSaves, melee: 2 } }, label: () => 'Grit' });
+    expect(saveModifierLines('M', grit(1))).toEqual(['Grit vs hexes: +1 from Grit.']);
+    expect(saveModifierLines('M', grit(-2))).toEqual(['Grit vs hexes: −2 from Grit.']);
+    expect(saveModifierLines('M', grit(0))).toEqual([]);
+    expect(saveRules(withFill, { scoresApart: true })).toEqual(['Roll a d20; meet the number to save.']);
+  });
+
+  it("prints nothing for a save modifier whose value the app can't read", () => {
+    // Purpose: an entry with neither a number, nor `{ from }`, nor a `fill` never leaves a bare name on the sheet.
+    const odd = [{ saveRule: 'Roll a d20; meet the number to save.', saveModifiers: [{ id: 'odd', name: 'Grit vs hexes', value: 'Grit modifier' }, { id: 'blank', name: 'Against marsh fog' }] }];
+    expect(saveRules(odd, { scoresApart: true })).toEqual(['Roll a d20; meet the number to save.']);
+    expect(saveModifierLines('M', input({ rulesSets: odd }))).toEqual([]);
+  });
 });
 
 describe("a score's sheet (sv-2a)", () => {
