@@ -88,11 +88,15 @@ const GROTTO = {
  * seasonal weather the players roll) and an invented harbour whose own check stands in on every move. A session runs
  * and the expedition is under way. `hideExploration` marks the rules set's exploration GM-only.
  */
-async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wade'; rules?: boolean } = {}) {
+async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wade'; rules?: boolean; rushlights?: boolean } = {}) {
   const gm = world.addPerson('priya@lantern.example', 'Priya');
   const sam = world.addPerson('sam@lantern.example', 'Sam');
   const campaign = world.addCampaign('The Ash Barrows', gm);
-  world.addMember(campaign, sam, 'player', world.addCharacter(campaign, 'Wren', { ownerId: sam }));
+  const wren = world.addCharacter(campaign, 'Wren', { ownerId: sam });
+  world.addMember(campaign, sam, 'player', wren);
+  // `rushlights` (P10, PL8's Light button): four rushlights in Wren's pack, none lit.
+  if (options.rushlights)
+    world.tables.inventory_lines.push({ id: 'line-rush', campaign_id: campaign, actor_id: wren, location_id: null, name: 'Rushlights', category: 'light', qty: 4, stack: 10, approval: 'approved', item_data: { lightTypeId: 'rushlight' }, source_entry_id: null, version: 1 });
   world.tables.packs.push({
     id: 'pack-fen',
     owner_user_id: gm,
@@ -181,6 +185,7 @@ async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wad
       pack_id: 'pack-fen',
       data: { exploration: { ...exploration, gmOnly: true } },
     });
+  entry('pack-fen', 'lightType', 'rushlight', 'Rushlight', { duration: 6, unit: 'turn', consumed: true });
   entry('pack-fen', 'table', 'spring-sky', 'Spring sky', {
     die: 'd6',
     rows: [{ min: 1, max: 6, result: 'Drizzle', tags: ['wet'] }],
@@ -512,5 +517,27 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
     const pop = await sheet('Light');
     expect(pop.getByText('No light.')).toBeTruthy();
     expect(pop.queryByRole('heading', { name: 'The rule' })).toBeNull();
+  });
+
+  // Purpose (PL8): a player whose character has a light to light finds "Light" at the foot of the Light pop-up; a tap
+  // lights it at once, as the Pack does (its toast with Undo), and the pop-up closes.
+  it.fails('lights the player’s own light from the Light pop-up', async () => {
+    const { sam } = await table({ rules: true, rushlights: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    const pop = await sheet('Light');
+    await user.click(pop.getByRole('button', { name: 'Light' }));
+    expect(await screen.findByText('Lit Rushlight')).toBeTruthy();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Light' })).toBeNull());
+    expect(world.tables.events.some((e) => e.type === 'light.light')).toBe(true);
+  });
+
+  // Purpose (PL8): a player with nothing to light has no button in the Light pop-up.
+  it('has no Light button with nothing to light', async () => {
+    const { sam } = await table({ rules: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    const pop = await sheet('Light');
+    expect(pop.queryByRole('button', { name: 'Light' })).toBeNull();
   });
 });

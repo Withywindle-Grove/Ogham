@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import type { InventoryLine } from '../inventory/inventory.ts';
 import { timeUnits } from './clock.ts';
-import { anotherLight, asLit, burnoutWords, fuelLeft, leftWords, lightable, lightBlock, lightOfWords, lightOptions, lightState, mayLight, othersThan, pluralName, refillable, type CharacterLight } from './lightPlay.ts';
+import { anotherLight, asLit, burnoutWords, fuelLeft, leftWords, lightable, lightAct, lightBlock, lightOfWords, lightOptions, lightState, mayLight, othersThan, pluralName, refillable, type CharacterLight } from './lightPlay.ts';
 
 const units = timeUnits({ roundSeconds: 6, turnMinutes: 10, dayHours: 24 });
 const TURN = 600;
@@ -227,5 +227,49 @@ describe("At hand's light block (page 35)", () => {
       words: "Nothing to light: Reed lamp needs fuel, and there's none in the pack.",
     });
     expect(lightBlock(null, 0, [], [], noFuel)).toBeNull();
+  });
+});
+
+describe("the Light pop-up's Light button (page 18, PL8: the same act as the Pack's)", () => {
+  const rush = line('rush', 'Rushlights', 4, { lightTypeId: 'rushlight' });
+  const lamp = line('lamp', 'Reed lamp', 1, { lightTypeId: 'reed-lamp' });
+  const oil = line('oil', 'Fen oil', 3, {}, { sourceEntryId: 'fen-oil' });
+  const noFuel = { left: 0, name: null };
+  const lampOut = light({ lineId: 'lamp', typeId: 'reed-lamp', name: 'Reed lamp', fuelItem: 'fen-oil', litAt: null, outAt: 4 * TURN });
+
+  // Purpose: with one light to light, the button lights it at once, as At hand's ring does.
+  it.fails('one light to light: lit at once', () => {
+    const options = lightOptions([rush], types, units);
+    expect(lightAct(lightBlock(null, 0, options, [rush], noFuel))).toEqual({ kind: 'light', option: options[0], refillFirst: false });
+  });
+
+  // Purpose: with several lights to light, the button opens the pick, as At hand's "Light…" does.
+  it.fails('several lights: the pick', () => {
+    const lines = [rush, lamp, oil];
+    const act = lightAct(lightBlock(null, 0, lightOptions(lines, types, units), lines, noFuel));
+    expect(act).toMatchObject({ kind: 'pick' });
+    expect(act?.kind === 'pick' ? act.lightable.map((o) => o.line.id) : []).toEqual(['rush', 'lamp']);
+  });
+
+  // Purpose: after a light burnt out, the button does what Light another does: the one other light at once, a holder
+  // that burnt out earlier refilled and lit.
+  it.fails('burnt out: Light another’s act', () => {
+    const lines = [lamp, rush];
+    const options = lightOptions(lines, types, units);
+    expect(lightAct(lightBlock(lampOut, 4 * TURN, options, lines, { left: 0, name: 'Fen oil' }))).toMatchObject({ kind: 'light', option: { line: { id: 'rush' } }, refillFirst: false });
+    const drained = line('lamp', 'Reed lamp', 1, { lightTypeId: 'reed-lamp' }, { needsFuel: true });
+    const refills = [drained, oil];
+    expect(lightAct(lightBlock(null, 0, lightOptions(refills, types, units), refills, noFuel))).toMatchObject({ kind: 'light', option: { line: { id: 'lamp' } }, refillFirst: true });
+  });
+
+  // Purpose: a player with a light lit, with nothing to light, or with only a Refill has no button.
+  it('a light lit, nothing to light, or only a Refill: no button', () => {
+    expect(lightAct(lightBlock(light({}), TURN, lightOptions([rush], types, units), [rush], noFuel))).toBeNull();
+    expect(lightAct(lightBlock(null, 0, [], [], noFuel))).toBeNull();
+    const empty = line('lamp', 'Reed lamp', 1, { lightTypeId: 'reed-lamp' }, { needsFuel: true });
+    expect(lightAct(lightBlock(null, 0, lightOptions([empty], types, units), [empty], noFuel))).toBeNull();
+    const fuelOnly = [lamp, oil];
+    expect(lightAct(lightBlock(lampOut, 4 * TURN, lightOptions(fuelOnly, types, units), fuelOnly, { left: 3, name: 'Fen oil' }))).toBeNull();
+    expect(lightAct(null)).toBeNull();
   });
 });

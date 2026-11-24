@@ -324,6 +324,19 @@ export function lightBlock(
   return { kind: 'one', lineId: option.line.id, name: optionName(option), words: ['Not lit', time, refillCount].filter(Boolean).join('. '), option, refillFirst };
 }
 
+/**
+ * What a player's "Light" does outside At hand (page 18, PL8: the Light pop-up's button, "the same act as the Pack's"):
+ * the act At hand's light block offers to light. One light, lit at once (a holder that burnt out earlier refilled
+ * first); several, the pick; burnt out, Light another's act. Null where At hand offers no light to light: a light lit,
+ * nothing to light, or only a Refill.
+ */
+export type LightAct = { kind: 'light'; option: LightOption; refillFirst: boolean } | { kind: 'pick'; lightable: LightOption[]; refills: LightOption[] };
+
+export function lightAct(block: LightBlock | null): LightAct | null {
+  void block;
+  return null;
+}
+
 /** The time a light line keeps (a light put out keeps its time, 05 A2; a holder swapped out keeps its fuel), or null. */
 function keptSeconds(light: CharacterLight | null, option: LightOption): number | null {
   if (light && light.litAt === null && light.lineId === option.line.id && light.leftSeconds !== null) return light.leftSeconds;
