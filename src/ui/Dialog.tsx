@@ -431,6 +431,9 @@ export function Dialog({
         downOutside.current = outside && finger;
         if (outside && !finger) close.current();
       }}
+      onPointerCancel={() => {
+        downOutside.current = false;
+      }}
       onClick={(event) => {
         if (downOutside.current && event.target === event.currentTarget) close.current();
         downOutside.current = false;

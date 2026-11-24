@@ -39,6 +39,21 @@ describe('the pop-up', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  // Purpose: A press on the dimmed page that is cancelled does not let a later click close the pop-up.
+  it('touch: a press on the dimmed page that is cancelled does not let a later click close the pop-up', () => {
+    const onClose = vi.fn();
+    render(
+      <Dialog label="Sack" onClose={onClose}>
+        <p>Inside the sack</p>
+      </Dialog>,
+    );
+    const backdrop = document.querySelector('.dialog__backdrop')!;
+    fireEvent.pointerDown(backdrop, { pointerType: 'touch' });
+    fireEvent.pointerCancel(backdrop, { pointerType: 'touch' });
+    fireEvent.click(backdrop);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   // One Close everywhere (tf-8): a bare ✕ at the top right named "Close"; a tap closes, and focus still starts on the content.
   it('has one Close, named Close, that closes it; focus starts on the first control, not on Close', () => {
     const onClose = vi.fn();
