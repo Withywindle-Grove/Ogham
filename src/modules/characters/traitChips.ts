@@ -4,9 +4,6 @@
 import type { Trait } from './bonuses.ts';
 import { limitedAbilities } from './playState.ts';
 
-/** A group folds after this many chips, "+ N more" opening the rest (tc-3: about three rows). */
-export const TRAIT_FOLD = 12;
-
 /** One trait as its chip shows it. */
 export interface TraitChip {
   key: string;
