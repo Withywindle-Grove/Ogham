@@ -1,16 +1,17 @@
 // A player's tap on a fact (plan dec-9-the-players-scene P10; page 18, PL8) and the players' map (P5; 01-08, 01-08c,
 // PL1, PL5b), in a real browser on the layout page's invented harbour. What it checks, in plain words:
 //   * the Encounter check's and the Light fact's pop-ups: their labelled lines in the book's faces, nothing cut or
-//     scrolling sideways, every tap 44 px, axe content; the Light pop-up's "Light" button at its foot's right;
+//     scrolling sideways, every tap 44 px, axe content; the Light pop-up's "Light" button at its foot's right, on the
+//     card's inner edge as every pop-up's foot buttons; "Which light?" opened from it in its own form, not the book's faces;
 //   * the shared map: first in the right column (under the left one on a phone), its picture and its title, no tools
 //     cut, the pop-up opening on a tap;
 //   * at 375, 834 and 1024 px, in light and dark. Each test saves its picture.
 import { expect, test, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
-async function openHarbour(page: Page, map: boolean) {
+async function openHarbour(page: Page, map: boolean, several = false) {
   await page.route('https://files.example/**', (route) => route.fulfill({ path: 'src/gallery/invented-harbour-map.svg', contentType: 'image/svg+xml' }));
-  await page.goto(`/layout.html?as=player&placePage=spots&session=running${map ? '&map=shown' : ''}`);
+  await page.goto(`/layout.html?as=player&placePage=spots&session=running${map ? '&map=shown' : ''}${several ? '&lights=several' : ''}`);
   await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
   await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Scene' }).click();
   await expect(page.getByRole('group', { name: 'Scene facts' })).toBeVisible();
@@ -58,9 +59,28 @@ for (const width of [375, 834, 1024] as const) {
         const box = (await button.boundingBox())!;
         const card = (await pop.boundingBox())!;
         expect(box.height).toBeGreaterThanOrEqual(44);
-        // At the foot's right, as PL8 draws it.
-        expect(card.x + card.width - (box.x + box.width)).toBeLessThan(48);
+        // At the foot's right, as PL8 draws it: its right edge on the card's inner edge, where every pop-up's foot
+        // buttons end (the card's right less its padding).
+        const inner = await pop.evaluate((el) => parseFloat(getComputedStyle(el).paddingRight) + parseFloat(getComputedStyle(el).borderRightWidth));
+        expect(Math.abs(card.x + card.width - inner - (box.x + box.width))).toBeLessThanOrEqual(1);
         await page.screenshot({ path: `test-results/layout-screens/players-fact-light-button-${width}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+      });
+
+      // Purpose (PL8, the local review): with several lights, the Light pop-up's Light opens "Which light?" over it, in
+      // its own form as At hand's pick (not the pop-up's book faces), its choices 44 px, nothing cut.
+      test('the Light pop-up’s pick', async ({ page }) => {
+        await openHarbour(page, false, true);
+        await page.getByRole('group', { name: 'Scene facts' }).getByRole('button', { name: /^Light:/ }).click();
+        await page.getByRole('dialog', { name: 'Light' }).getByRole('button', { name: 'Light', exact: true }).click();
+        const pick = page.getByRole('dialog', { name: 'Which light?' });
+        await expect(pick.getByRole('button', { name: /^Rushlights/ })).toBeVisible();
+        await expect(pick.getByRole('button', { name: /^Reed lamps/ })).toBeVisible();
+        expect(await pick.evaluate((el) => el.closest('.dialog__backdrop')?.classList.contains('book-faces'))).toBe(false);
+        for (const option of await pick.getByRole('button', { name: /^(Rushlights|Reed lamps)/ }).all()) expect((await option.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+        await page.waitForTimeout(400);
+        await page.screenshot({ path: `test-results/layout-screens/players-fact-light-pick-${width}-${scheme}.png` });
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
       });

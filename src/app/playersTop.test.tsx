@@ -88,7 +88,7 @@ const GROTTO = {
  * seasonal weather the players roll) and an invented harbour whose own check stands in on every move. A session runs
  * and the expedition is under way. `hideExploration` marks the rules set's exploration GM-only.
  */
-async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wade'; rules?: boolean; rushlights?: boolean } = {}) {
+async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wade'; rules?: boolean; rushlights?: boolean; reedLamps?: boolean } = {}) {
   const gm = world.addPerson('priya@lantern.example', 'Priya');
   const sam = world.addPerson('sam@lantern.example', 'Sam');
   const campaign = world.addCampaign('The Ash Barrows', gm);
@@ -97,6 +97,9 @@ async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wad
   // `rushlights` (P10, PL8's Light button): four rushlights in Wren's pack, none lit.
   if (options.rushlights)
     world.tables.inventory_lines.push({ id: 'line-rush', campaign_id: campaign, actor_id: wren, location_id: null, name: 'Rushlights', category: 'light', qty: 4, stack: 10, approval: 'approved', item_data: { lightTypeId: 'rushlight' }, source_entry_id: null, version: 1 });
+  // `reedLamps` (PL8's pick): two reed lamps too, so Light opens "Which light?".
+  if (options.reedLamps)
+    world.tables.inventory_lines.push({ id: 'line-lamp', campaign_id: campaign, actor_id: wren, location_id: null, name: 'Reed lamps', category: 'light', qty: 2, stack: 10, approval: 'approved', item_data: { lightTypeId: 'reed-lamp' }, source_entry_id: null, version: 1 });
   world.tables.packs.push({
     id: 'pack-fen',
     owner_user_id: gm,
@@ -186,6 +189,7 @@ async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wad
       data: { exploration: { ...exploration, gmOnly: true } },
     });
   entry('pack-fen', 'lightType', 'rushlight', 'Rushlight', { duration: 6, unit: 'turn', consumed: true });
+  entry('pack-fen', 'lightType', 'reed-lamp', 'Reed lamp', { duration: 4, unit: 'turn', consumed: true });
   entry('pack-fen', 'table', 'spring-sky', 'Spring sky', {
     die: 'd6',
     rows: [{ min: 1, max: 6, result: 'Drizzle', tags: ['wet'] }],
@@ -251,7 +255,7 @@ async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wad
     });
     if (!done.ok) throw new Error(done.message);
   };
-  return { gm, sam, campaign, trip, moveTo, tag };
+  return { gm, sam, campaign, trip, moveTo, tag, wren };
 }
 
 async function openScene(who: string) {
@@ -540,4 +544,76 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
     const pop = await sheet('Light');
     expect(pop.queryByRole('button', { name: 'Light' })).toBeNull();
   });
+
+  // Purpose (PL8, the local review): while the player's light is lit, the Light pop-up has no Light button.
+  it('has no Light button while the light is lit', async () => {
+    const { sam, wren, tag } = await table({ rules: true, rushlights: true });
+    world.signInAs(sam);
+    await world.db
+      .rpc('light_light' as never, { actor: wren, line: 'line-rush', light_type: 'rushlight', light_name: 'Rushlight', burn_seconds: 3600, warn_seconds: 600, consumed: true, fuel_item: null } as never)
+      .setHeader('x-grimoire-command', tag('light.light'));
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    const pop = await sheet('Light');
+    expect(pop.queryByRole('button', { name: 'Light' })).toBeNull();
+  });
+
+  // Purpose (PL8, the local review): while the player's light can't be read, the Light pop-up has no Light button.
+  it('has no Light button while the light can’t be read', async () => {
+    const { sam } = await table({ rules: true, rushlights: true });
+    lightReadsFail();
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    const pop = await sheet('Light');
+    expect(pop.queryByRole('button', { name: 'Light' })).toBeNull();
+  });
+
+  // Purpose (PL8, the local review): when lighting fails, the Light pop-up stays open and the failure shows as a toast.
+  it.fails('keeps the Light pop-up open when lighting fails', async () => {
+    const { sam } = await table({ rules: true, rushlights: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    const pop = await sheet('Light');
+    const real = world.db.rpc.bind(world.db);
+    vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: Record<string, unknown>) => {
+      if (name !== 'light_light') return real(name as never, args as never);
+      const failed = Promise.resolve({ data: null, error: { message: 'The network dropped.' } });
+      return Object.assign(failed, { setHeader: () => failed });
+    }) as never);
+    await user.click(pop.getByRole('button', { name: 'Light' }));
+    await waitFor(() => expect(document.querySelector('.toast--error, [role="alert"]')).not.toBeNull());
+    expect(screen.getByRole('dialog', { name: 'Light' })).toBeTruthy();
+    expect(world.tables.events.some((e) => e.type === 'light.light')).toBe(false);
+    vi.restoreAllMocks();
+  });
+
+  // Purpose (PL8, the local review): "Which light?" opened from the Light pop-up keeps its own form, not the pop-up's
+  // book faces, as At hand's pick.
+  it.fails('opens Which light? from the Light pop-up in its own form', async () => {
+    const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    const pop = await sheet('Light');
+    await user.click(pop.getByRole('button', { name: 'Light' }));
+    const pick = await screen.findByRole('dialog', { name: 'Which light?' });
+    expect(pick.closest('.dialog__backdrop')!.classList.contains('book-faces')).toBe(false);
+  });
 });
+
+/** The character's own light can't be read (as when offline): the read of `character_lights` by actor fails. */
+function lightReadsFail() {
+  const stand = world.db as unknown as { from: (table: string) => unknown };
+  const read = stand.from.bind(world.db);
+  stand.from = (table: string) => {
+    const query = read(table) as { select: (c: string) => { eq: (col: string, v: unknown) => unknown } };
+    if (table !== 'character_lights') return query;
+    const select = query.select.bind(query);
+    query.select = (c: string) => {
+      const q = select(c);
+      const eq = q.eq.bind(q);
+      q.eq = (col: string, v: unknown) => (col === 'actor_id' ? { maybeSingle: () => Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }) } : eq(col, v));
+      return q;
+    };
+    return query;
+  };
+}
