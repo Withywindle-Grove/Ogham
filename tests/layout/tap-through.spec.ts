@@ -81,7 +81,7 @@ for (const size of [
   test.describe(`${size.name} (${size.width} px), touch`, () => {
     test.use({ viewport: { width: size.width, height: size.height }, hasTouch: true });
 
-    it.fails('by touch, a tap outside the pop-up only closes it; a second tap opens what lies under it', async ({ page }) => {
+    it('by touch, a tap outside the pop-up only closes it; a second tap opens what lies under it', async ({ page }) => {
       await openPlayer(page);
       await openHitPoints(page);
       const spot = await portraitSpot(page);

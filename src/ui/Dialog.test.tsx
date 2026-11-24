@@ -25,7 +25,7 @@ describe('the pop-up', () => {
   // Purpose (fix-tap-through, players' feedback via Francis 2026-11-24): a finger's tap on the dimmed page only closes
   // the pop-up. The dimmed page stays through the press, so the same tap's click lands on it, not on what lies under
   // it; the click is what closes it.
-  it.fails('touch: the press on the dimmed page leaves it open, and that tap\'s click closes it', () => {
+  it('touch: the press on the dimmed page leaves it open, and that tap\'s click closes it', () => {
     const onClose = vi.fn();
     render(
       <Dialog label="Sack" onClose={onClose}>

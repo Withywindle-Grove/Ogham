@@ -340,6 +340,8 @@ export function Dialog({
   useEffect(() => {
     close.current = onClose;
   });
+  // Whether the tap now under way began on the dimmed page (fix-tap-through).
+  const downOutside = useRef(false);
   const gotIt = reading && !full && !drawer ? <GotItFoot onClose={() => close.current()} action={readingAction} /> : null;
 
   useEffect(() => {
@@ -417,11 +419,21 @@ export function Dialog({
   }
 
   return createPortal(
-    // A tap on the dimmed page closes it, never one that started inside the card (selecting text, a drag).
+    // A tap on the dimmed page closes it, never one that started inside the card (selecting text, a drag). It only
+    // closes (06 rule 12, fix-tap-through): a finger's or a pen's tap closes it on its click, so the dimmed page is still
+    // there to take that click and the tap never also lands on what lies under it; a mouse closes it on the press, as
+    // before (its click doesn't fall through).
     <div
       className={`dialog__backdrop${wide || picture ? ' dialog__backdrop--wide' : ''}${sheet ? ' dialog__backdrop--sheet' : ''}${drawer ? ' dialog__backdrop--drawer' : ''}${side ? ' dialog__backdrop--side' : ''}${book}`}
       onPointerDown={(event) => {
-        if (event.target === event.currentTarget) close.current();
+        const outside = event.target === event.currentTarget;
+        const finger = event.pointerType === 'touch' || event.pointerType === 'pen';
+        downOutside.current = outside && finger;
+        if (outside && !finger) close.current();
+      }}
+      onClick={(event) => {
+        if (downOutside.current && event.target === event.currentTarget) close.current();
+        downOutside.current = false;
       }}
     >
       <div
