@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>December: page 42, save bonuses counted in the save's number: options A, B and C for a bonus that holds only at times (not chosen; for Francis, 2026-11-24)</title>
+<title>December: page 42, save bonuses counted in the save's number: options A, B and C for a bonus that holds only at times, and option D, the bonus under the figure like a score (not chosen; for Francis, 2026-11-24)</title>
 <link rel="stylesheet" href="../creation/final/final.css">
 <link rel="stylesheet" href="../pack/pk.css">
 <link rel="stylesheet" href="../shared/book.css">
@@ -53,6 +53,20 @@
   table.sc td, table.sc th { border:1px solid var(--rule); padding:var(--space-1) var(--space-2); text-align:left; vertical-align:top; }
   .note { max-width:720px; }
   .note.big { font-size:16px; color:var(--ink); }
+  /* Option D (frames 42-9 to 42-14): the built Score tile's own measures, read from the Player tab on main in a
+     browser (src/ui/parts.css: a column, 4 px between its lines, the caption centred and balanced; a caption with
+     parts takes a line each, 4 px apart). The tablet block is the built right column's width at 1024 px (430 px). */
+  .blk.w4 { width:457px; }
+  .ps-tiles.bt .ps-tile { display:flex; flex-direction:column; align-items:center; gap:var(--space-1); }
+  .ps-tiles.bt .ps-tile .k, .ps-tiles.bt .ps-tile .c { line-height:1.5; }
+  .ps-tiles.bt .ps-tile .c { text-align:center; text-wrap:balance; max-width:100%; }
+  .ps-tiles.bt .ps-tile .c.cp { display:flex; flex-direction:column; gap:var(--space-1); align-self:stretch; }
+  .ps-tiles.bt .ps-tile .c .pt { line-height:1.25; }
+  .ps-gap { height:var(--space-4); }
+  .cmp3 { display:grid; grid-template-columns:repeat(3,495px); gap:var(--space-4); align-items:start; }
+  .cmp3 img { display:block; width:100%; height:auto; border:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; }
+  .cmp3 .lab { font-size:16px; color:var(--ink); }
+  #cmp .cap { max-width:960px; font-size:16px; color:var(--ink); }
 </style>
 </head>
 <body>
@@ -140,18 +154,68 @@ const longDesc = `${hd('Breath of the deep and the cold beneath', 12)}<div class
 const f8 = frame('42-8', `<b>42-8. Option M’s other half, and messy data, 375 px.</b> <b>The heading:</b> an ⓘ beside “Saves” (44 px, the info colour and its shape: the app’s usual ⓘ). <b>Its pop-up:</b> “Saves”, the heading’s own roll line, the general paragraph, the source, “Got it”: the general rule, once. In the packs the general rule is one plain text: where it carries lead-ins (“Rolling: …”) they are drawn as labelled lines, as here; a text with none is one paragraph. <b>A save the pack gives no line:</b> with M the sheet is the number, its roll line and the source; nothing is made up to fill it. <b>A long name and a long line</b> wrap; nothing is cut.`,
   [savesBlock('M. The heading with its ⓘ', A, { info: true }), psheet('M. The ⓘ’s pop-up: the general rule, once', aboutSaves), psheet('M. The pack gives this save no line', noDesc), psheet('A long name, a long line', longDesc)].join(''));
 
+// ---- option D (Francis, 24 November 2026: "Can we show the bonus underneath like attributes?"): the save tile takes
+//      the Score tile's shape, a caption under the figure (06, Components, "Stat": a value with a caption; a caption
+//      with parts). No new part. D1: the figure is the counted number. D2: the figure is the book's number. ----
+const SCORE_RULE = 'Roll d20: your score or lower succeeds.';
+const tileD = (k, v, o = {}) => `<div class="ps-tile" role="button" aria-label="${k} ${v}${o.say ? ', ' + o.say : ''}: where it comes from"><span class="k">${k}</span><span class="v" data-sc>${v}</span>${o.parts ? `<span class="c cp">${o.parts.map((p) => `<span class="pt">${p}</span>`).join('')}</span>` : o.c ? `<span class="c">${o.c}</span>` : ''}</div>`;
+const SCORES = [['Muscle', 15, { c: '+2', say: '+2 melee' }], ['Nimbleness', 12, { c: '+1', say: '+1 missile' }], ['Grit', 13, { c: '+1', say: '+1 hp' }], ['Wit', 10, { c: '+1', say: '+1 extra languages' }], ['Lore', 9, { c: '+0', say: '+0 save bonus' }], ['Charm', 11, { c: '+3', say: '+3 hirelings' }]];
+const scoresPart = `${labRule('Scores', SCORE_RULE)}<div class="ps-tiles bt c3">${SCORES.map(([k, v, x]) => tileD(k, v, x)).join('')}</div><div class="ps-gap"></div>`;
+const blockD = (label, list, o = {}) => `<div><p class="lab">${label}</p><div class="blk bit${o.tab ? ' w4' : ''}">${o.scores ? scoresPart : ''}${labRule('Saves', o.rule || OVER)}${o.also ? `<p class="ps-also">${o.also}</p>` : ''}<div class="ps-tiles bt c${o.tab ? 5 : 3}">${list.map(([k, v, x]) => tileD(k, v, x)).join('')}</div></div></div>`;
+const NOT = 'not counted';
+const D1 = [['Mire', 11], ['Drowning', 12], ['Fever', 13, { c: '+2 vs venom', say: '+2 against venom, ' + NOT }], ['Wisps', 12, { c: '+2 Bog folk', say: 'with +2 from Bog folk counted' }], ['Barrow', 13, { c: '+2 Bog folk', say: 'with +2 from Bog folk counted' }]];
+const D2 = [['Mire', 11], ['Drowning', 12], ['Fever', 13, { c: '+2 vs venom', say: '+2 against venom, ' + NOT }], ['Wisps', 14, { c: '+2 Bog folk', say: '+2 from Bog folk, ' + NOT }], ['Barrow', 15, { c: '+2 Bog folk', say: '+2 from Bog folk, ' + NOT }]];
+const BUILT = [['Mire', 11], ['Drowning', 12], ['Fever', 13], ['Wisps', 14], ['Barrow', 15]];
+
+const f9 = frame('42-9', `<b>42-9. Option D on a phone (375 px): the save tile takes the Score tile’s shape.</b> The built Score tile is a name, a figure and one quiet caption under it (“Muscle 15”, “+2”); the first block draws it with the Saves as built under it, where nothing is under a save. <b>D puts a save’s bonus on that same caption line. No new part:</b> it is the Stat tile’s caption (06, Components). <b>D1:</b> the figure is the number to roll, the always-on bonus counted (Wisps 12, Barrow 13), and the caption names what changed it (“+2 Bog folk”). <b>D2:</b> the figure is the book’s number (Wisps 14, Barrow 15) and the caption shows the bonus for the player to apply. <b>D2 is the old “beside, never added in” ruling with the bonus made visible on the tile; Francis called that ruling bad</b> (24 November). In both, Fever’s bonus holds only at times and is not counted: “+2 vs venom”.`,
+  [blockD('As built: the Score tile’s caption; nothing under a save', BUILT, { scores: true }), blockD('D1. The counted number; the caption says what changed it', D1, { scores: true }), blockD('D2. The book’s number; the caption is the bonus to apply', D2, { scores: true })].join(''));
+
+const f10 = frame('42-10', `<b>42-10. Option D on a tablet (the Player tab’s right column at 1024 px: 430 px, five saves across, each tile 80 px).</b> The Score tiles are three across and 138 px wide, so “+2” sits on one line. <b>A save tile is 80 px: “+2 Bog folk” and “+2 vs venom” each take two lines</b>, and the whole row grows with them (measured on the built screen: 67 px to 113 px; frame 42-14 shows it on the real screen).`,
+  [blockD('D1, tablet', D1, { scores: true, tab: true }), blockD('D2, tablet', D2, { scores: true, tab: true })].join(''), true);
+
+const D1_MESSY = [['Mire', 11], ['Drowning', 12], ['Fever', 13, { parts: ['+2 vs venom', '+4 vs marsh-rot'] }], ['Wisps', 14, { c: '+2 vs barrow-lights and will-o’-the-wisps' }], ['Barrow', 12, { parts: ['+2 Bog folk', '+2 Lantern Warden', '−1 Reed-sworn oath'] }]];
+const D2_MESSY = D1_MESSY.map(([k, v, x]) => (k === 'Barrow' ? [k, 15, x] : [k, v, x]));
+const D1_MIX = [['Mire', 11], ['Drowning', 12], ['Fever', 11, { parts: ['+2 Bog folk', '+2 vs venom'] }], ['Wisps', 12, { c: '+2 Bog folk' }], ['Barrow', 13, { c: '+2 Bog folk' }]];
+const D1_WORDS = [['Mire', 11], ['Drowning', 12], ['Fever', 13, { c: '+2 more vs venom' }], ['Wisps', 12, { c: 'with +2 Bog folk' }], ['Barrow', 13, { c: 'with +2 Bog folk' }]];
+const f11 = frame('42-11', `<b>42-11. Option D, messy data.</b> <b>Two bonuses on one save</b> are a caption with parts: the Stat tile’s own rule gives each part a line when they do not fit on one (Fever, two parts over three lines; Barrow, three parts over five lines on a phone). <b>A long condition</b> wraps (Wisps), nothing cut. <b>A bonus of 0: no caption</b> (Drowning; the Score tile differs here: it always shows its “+0”, ruled 19 November). In D1 Barrow’s figure is 12 (15, two that help, one that hurts); in D2 it stays 15 and the player works out three parts. <b>The fourth block is D1’s trap:</b> the kindred gives Fever +2 always and +2 more against venom; the figure is 11 and the caption reads “+2 Bog folk” (already in) above “+2 vs venom” (not in), in the same words and the same grey. <b>The fifth</b> is one way out, in words that are not ruled: “with +2 Bog folk” for what is counted, “+2 more vs venom” for what is not. <b>The last</b> is the same messy data on a tablet’s 80 px tiles.`,
+  [blockD('D1. Two on one save, a long condition, a bonus of 0', D1_MESSY), blockD('D2. The same', D2_MESSY), blockD('D1. Counted and not counted on one save', D1_MIX), blockD('D1 with words that say which is counted (not ruled)', D1_WORDS)].join('') + blockD('D1, the messy data on a tablet', D1_MESSY, { tab: true }), true);
+
+const ALL_D = TODAY.map(([k, v]) => [k, v, { c: '+1 vs magic' }]);
+const f12 = frame('42-12', `<b>42-12. Option D: low rolls succeed, and the bonus every save shares (375 px).</b> <b>Low rolls succeed</b> (the class gives Mire 9, Drowning 8, Fever 7, Wisps 7, Barrow 6). D1: the same +2 <b>raises</b> Wisps and Barrow (9 and 8), and the tile shows it. D2: the tiles keep 7 and 6 with “+2”, and the player has to know that here a bonus makes the number higher; nothing on the tile says so. In both, Fever’s “+2 vs venom” leaves that same sum to the player. <b>The bonus every save has at times</b> (S6; “Spell ward: +1 from Lore”, against magic): on the tiles it is five captions that say the same thing; <b>the designer’s answer is unchanged: say it once under the Saves heading</b>, and keep the caption for what belongs to one save.`,
+  [blockD('D1, low rolls succeed', [['Mire', 9], ['Drowning', 8], ['Fever', 7, { c: '+2 vs venom' }], ['Wisps', 9, { c: '+2 Bog folk' }], ['Barrow', 8, { c: '+2 Bog folk' }]], { rule: UNDER }), blockD('D2, low rolls succeed', [['Mire', 9], ['Drowning', 8], ['Fever', 7, { c: '+2 vs venom' }], ['Wisps', 7, { c: '+2 Bog folk' }], ['Barrow', 6, { c: '+2 Bog folk' }]], { rule: UNDER }), blockD('D1 or D2. One on every save: five captions', ALL_D), blockD('D1 or D2: said once under the heading', D1, { also: 'Spell ward: +1 vs magic, from Lore.' })].join(''));
+
+const d2Wisps = `${hd('Wisps', 14)}<div class="bk">${rollLn('Roll d20: 12 or higher succeeds.')}<h4 class="bsub">Modifiers</h4>${kv('Lantern Warden at level 2', 14)}${kv('+2 from Bog folk', 12)}${RULE}${src}</div>${got}`;
+const d2Two = `${hd('Barrow', 15)}<div class="bk">${rollLn('Roll d20: 12 or higher succeeds.')}<h4 class="bsub">Modifiers</h4>${kv('Lantern Warden at level 2', 15)}${kv('+2 from Bog folk', 13)}${kv('+2 from Lantern Warden', 11)}${kv('−1 from Reed-sworn oath', 12)}${RULE}${src}</div>${got}`;
+const f13 = frame('42-13', `<b>42-13. The save’s sheet for option D (the tap), 375 px, with the same working rows (S3).</b> <b>D1</b> needs nothing new: its sheets are frame 42-3’s. A bonus that always holds: head 12, the roll line 12, the rows from 14 to 12. A bonus that holds at times: head 13, a second roll line “Vs venom: 11 or higher succeeds.”, its row “Vs venom only”. <b>D2:</b> the head must match the tile, so it shows the book’s 14; the rows work down to 12, and the roll line gives 12. <b>So on D2’s sheet the big figure and the roll line disagree</b>, with one bonus (14 and 12) or with three (15 and 12). The other way, a roll line that also says 14, leaves the sum to the player on the sheet as well: that is today’s sheet (frame 42-3, first block).`,
+  [psheet('D1, always holds: as 42-3', wisps), psheet('D1 and D2, holds at times: as A’s', feverA), psheet('D2, always holds: the head is the book’s number', d2Wisps), psheet('D2, two that help, one that hurts', d2Two)].join(''));
+
 mount(`
   <h1>Page 42. Save bonuses counted in the save’s number</h1>
   <p class="note big"><b>Not chosen: options for Francis (24 November 2026).</b> A player reported that his kindred’s bonus to saves did not change his save tiles. That is the standing ruling (2026-10-25, and bq-8 of 2026-11-03, pf-21 of 2026-11-14): a bonus is “shown beside the number, never added in”. Francis: “this is a bad ruling.” He wants saves to reflect these bonuses. The question and the designer’s pick are in <code>docs/design/rulings/dec-save-bonus-in-number-2026-11-24.md</code> (pending).</p>
-  <p class="note big"><b>The same in every option:</b> a bonus that always holds is counted; the tile and the sheet’s head show the number to roll. <b>The options differ on a bonus that holds only at times</b> (“vs venom”): A, a second quiet figure on the tile; B, the tile shows the best case; C, a mark on the tile. <b>The designer’s pick: A</b>, with the one bonus every save shares said once under the heading (frame 42-5).</p>
+  <p class="note big"><b>The same in every option:</b> a bonus that always holds is counted; the tile and the sheet’s head show the number to roll. <b>The options differ on a bonus that holds only at times</b> (“vs venom”): A, a second quiet figure on the tile; B, the tile shows the best case; C, a mark on the tile. <b>The designer’s pick: A</b>, with the one bonus every save shares said once under the heading (frame 42-5). <b>Added later the same day: option D</b>, the bonus under the figure like a score (D1 and D2, frames 42-9 to 42-14, findings 19 to 30); the pick is still A.</p>
   <p class="note">Invented names only. The saves, the kindred (Bog folk), the class (Lantern Warden) and every figure are made up for the drawing. No colour carries a meaning on this page: the mark of option C is a sign in the ink colour, and the second figure of option A is words.</p>
   ${f1}${f2}${f3}${f4}${f5}${f6}
   <h1>Added the same day: each save’s own line, and the general rule</h1>
   <p class="note big">Francis widened the page (24 November 2026): a save’s sheet must show, at its top, that save’s own one-line description <b>from the pack</b> (“This should be passed by the pack, not the app”). The question that comes with it: does the rules set’s general paragraph on saves stay on every save’s sheet (K), or move off them to one place (M)? <b>The designer’s pick: M.</b> Frames 42-3 and 42-4 above were drawn before this and still show the general lines on each sheet (option K’s shape); they are about the numbers, not about this.</p>
   ${f7}${f8}
+  <h1>Added later the same day: option D, the bonus under the figure, like a score</h1>
+  <p class="note big">Francis, 24 November 2026: “Can we show the bonus underneath like attributes?” Read as a new option <b>D</b>: the save tile works like the Score tile, a figure with a caption under it, and the bonus sits on that caption. <b>D1:</b> the figure is the counted number and the caption names what changed it. <b>D2:</b> the figure is the book’s number and the caption is the bonus to apply; <b>D2 is the old “beside, never added in” ruling with the bonus made visible, and Francis called that ruling bad.</b> Not chosen. The shape is copied from the built Score tile (read on <code>main</code> in a browser); nothing new is invented. Frame 42-14, under the two drawings, sets D1 and D2 beside the built screen on a tablet.</p>
+  <p class="note big"><b>The designer’s recommendation is still A</b> (the reasons, the critique’s findings 19 to 30 and the scores are below). <b>A and D use the same part:</b> A’s quiet line is the Stat tile’s caption too. They differ only in what the caption says: A writes the number to roll (“11 vs venom”) and only for what is not counted; D writes the bonus (“+2 vs venom”, “+2 Bog folk”).</p>
+  ${f9}${f10}${f11}${f12}${f13}
 `);
 applyBook();
 </script>
+<!-- Frame 42-14: light only, as asked. Real pictures of the Player tab at 1024 by 768, so it sits once, outside the light and dark pair. -->
+<div class="pair" style="display:block"><div class="theme light" id="cmp" data-frame="42-14">
+<h1>Frame 42-14. Beside what is built: tablet landscape, light</h1>
+<p class="cap"><b>42-14. The Player tab’s Scores and Saves at 1024 by 768 px, light: built today, D1, D2</b> (Francis, 24 November 2026: “Side by side with what’s built, tablet landscape light.”). The same character in all three: Brannoch Fenward, a Bog folk Lantern Warden of level 3, whose class gives Mire 11, Drowning 12, Fever 13, Wisps 14, Barrow 15, and whose kindred gives +2 to Wisps and to Barrow always, and +2 to Fever against venom. <b>Built today:</b> a picture of the app on <code>main</code> (the layout checks’ stand-in page, in Chrome); the bonus is on no tile, only on each save’s sheet. <b>D1 and D2:</b> the same built screen with the five save tiles’ words changed in the browser for this drawing, in the built caption’s own style; <b>they are drawings, not built screens</b>. Each picture is the right-hand column, cut from the whole screen. The save tiles are 80 px wide here, so each caption takes two lines and the row grows from 67 px to 113 px.</p>
+<div class="cmp3">
+<div><p class="lab"><b>Built today</b> (on <code>main</code>): the bonus is on the sheet only</p><img src="png/42-14-built-tablet-light.png" alt="The built Player tab’s Scores and Saves: six score tiles with a modifier under each; five save tiles, Mire 11, Drowning 12, Fever 13, Wisps 14, Barrow 15, with nothing under them."></div>
+<div><p class="lab"><b>D1.</b> The counted number; the caption says what changed it</p><img src="png/42-14-d1-tablet-light.png" alt="The same screen with option D1: Fever 13 with plus 2 vs venom under it, Wisps 12 and Barrow 13 with plus 2 Bog folk under each."></div>
+<div><p class="lab"><b>D2.</b> The book’s number; the caption is the bonus to apply</p><img src="png/42-14-d2-tablet-light.png" alt="The same screen with option D2: Fever 13 with plus 2 vs venom under it, Wisps 14 and Barrow 15 with plus 2 Bog folk under each."></div>
+</div>
+<p class="from">The first picture is the built screen. The kindred’s bonus was put into the checks’ invented sample pack as the browser loaded it; no file in the repository was changed for it. The second and third are that screen with the save tiles’ figures and captions typed in.</p>
+</div></div>
 <!-- The critique and the self-review are plain text, once, under the two drawings. -->
 <div class="pair" style="display:block"><div class="theme light" id="words">
 <h1>What the options cost</h1>
@@ -231,8 +295,78 @@ applyBook();
 </ol>
 <p class="note big"><b>Walked as:</b> a first-time player (A reads at once; C’s sign means nothing; B looks fine and is wrong); a player on a phone mid-fight, asked for “a Fever save against venom” (A: the answer is on the tile; B: right by luck; C: a tap); a player asked for a plain Fever save (A and C: 13; B: 11, a wrong call); a keyboard or screen-reader user (the same tap; not tested). <b>Questions for Francis:</b> A, B or C? If A: what does a tile do with long or several conditions (2)? Is the one bonus every save shares said once under the heading (9)? Does a number stop at 1, and with which words (8)? K or M for the general rule (13, 14)?</p>
 
+<h1>Option D: the bonus under the figure, like a score (added 24 November 2026)</h1>
+<p class="note big">Francis: “Can we show the bonus underneath like attributes? Mock it up w impeccable and your recommendations.” Frames 42-9 to 42-14. <b>Nothing here is chosen.</b></p>
+<table class="sc">
+<tr><th></th><th>A. A second quiet figure</th><th>D1. The counted number, the bonus named under it</th><th>D2. The book’s number, the bonus under it</th></tr>
+<tr><td>The figure</td><td>The number to roll</td><td>The number to roll</td><td>The book’s number; the bonus is not in it</td></tr>
+<tr><td>The caption, a bonus that always holds</td><td>None</td><td>“+2 Bog folk”: already in the figure</td><td>“+2 Bog folk”: for the player to apply</td></tr>
+<tr><td>The caption, a bonus that holds at times</td><td>“11 vs venom”: the number to roll then</td><td>“+2 vs venom”: for the player to apply</td><td>“+2 vs venom”: for the player to apply</td></tr>
+<tr><td>Sums left to the player</td><td>None</td><td>One, for a bonus that holds at times</td><td>One at every roll with a bonus</td></tr>
+<tr><td>The risk at the table</td><td>A counted bonus leaves no trace on the tile (finding 5)</td><td>“+2 Bog folk” under 12 read as “add 2”: the bonus counted twice (finding 19)</td><td>The bonus forgotten or added the wrong way; the old ruling’s fault (finding 22)</td></tr>
+<tr><td>The part</td><td colspan="3">The same in all three: the Stat tile’s caption, as the Score tile has it. Nothing new to invent.</td></tr>
+</table>
+
+<h1>Measured for option D</h1>
+<p class="note big">The first table is read from the <b>built</b> Player tab on <code>main</code> (Chrome, 2026-11-24), with a caption typed into a save tile in the browser. The second is read from this page’s drawings, which use the built tile’s measures.</p>
+<table class="sc">
+<tr><th>The built save tile</th><th>No caption (today)</th><th>“+2 Bog folk”, “+2 vs venom” (D)</th><th>“11 vs venom” (A)</th></tr>
+<tr><td>Phone, 375 px, three across (109 px)</td><td>67 px high</td><td>one line, 92 px</td><td>one line, 92 px</td></tr>
+<tr><td>Tablet, 1024 px, five across (80 px)</td><td>67 px</td><td><b>two lines, 113 px</b></td><td><b>two lines, 113 px</b></td></tr>
+<tr><td>Tablet, 1180 px, five across (97 px)</td><td>67 px</td><td>one line, 92 px</td><td>one line, 92 px</td></tr>
+</table>
+<p class="note big">So A’s heights in the table further up (76 px) were drawn a little short: on the built tile a one-line caption makes the row 92 px, the Score tile’s own height, and at 1024 px A wraps to two lines just as D does.</p>
+<table class="sc">
+<tr><th>Drawn (frames 42-9 to 42-12)</th><th>Phone (100 px tile)</th><th>Tablet (80 px tile)</th></tr>
+<tr><td>One bonus on a save</td><td>one line, the row 92 px</td><td>two lines, 113 px</td></tr>
+<tr><td>Two that hold at times on one save</td><td>three lines, the row 128 px</td><td>four lines</td></tr>
+<tr><td>A long condition</td><td>four lines, the row 167 px</td><td>five lines</td></tr>
+<tr><td>Three bonuses on one save</td><td>five lines, the row 167 px</td><td>eight lines, the row 219 px</td></tr>
+<tr><td>Contrast of the caption on the tile (14 px, Muted)</td><td colspan="2">6.3 to 1 light, 7.6 to 1 dark; the figure 15.8 and 14.6 to 1</td></tr>
+</table>
+<p class="note big">Nothing under 14 px. No sideways scroll and no word wider than its tile in any block. Every tile is at least 80 by 67 px, 8 px apart.</p>
+
+<h1>Critique of option D (by hand; findings 19 to 30)</h1>
+<p class="note big"><b>A real <code>impeccable critique</code> of frames 42-9 to 42-14, run by the PC session, follows.</b> The skill is not installed in this cloud session, so, as for findings 1 to 18, this is the designer’s own critique in the same shape. <b>No skill file was read and no detector or linter ran.</b> Where the PC session’s findings differ, its findings stand. It changes nothing: Francis picks by number.</p>
+<table class="sc">
+<tr><th>Heuristic</th><th>A</th><th>B</th><th>C</th><th>D1</th><th>D2</th><th>Why, for D1 and D2</th></tr>
+<tr><td>Visibility of system status</td><td>4</td><td>1</td><td>2</td><td>3</td><td>2</td><td>D1: the right number, and what made it; a bonus that holds at times is shown but not worked out. D2: every bonus is in sight, the number to roll never is.</td></tr>
+<tr><td>Match to the user’s language</td><td>3</td><td>3</td><td>1</td><td>3</td><td>3</td><td>“+2 vs venom” is the book’s own phrase. D2 is the paper sheet’s shape; where low rolls succeed its “+2” does not say which way.</td></tr>
+<tr><td>User control and freedom</td><td>3</td><td>3</td><td>3</td><td>3</td><td>3</td><td>The same tap, the same sheet, “Got it”.</td></tr>
+<tr><td>Consistency</td><td>2</td><td>3</td><td>3</td><td>1</td><td>4</td><td>D1: one caption line, two meanings (in the figure; not in it), and the opposite of the Scores row above. D2: reads exactly as a Score tile does.</td></tr>
+<tr><td>Error prevention</td><td>3</td><td>0</td><td>2</td><td>1</td><td>2</td><td>D1 invites counting a bonus twice. D2 invites a slip in the sum, less than C invites forgetting.</td></tr>
+<tr><td>Recognition over recall</td><td>4</td><td>1</td><td>1</td><td>3</td><td>2</td><td>Nothing to remember in either; D2 leaves the working.</td></tr>
+<tr><td>Flexibility and efficiency</td><td>3</td><td>2</td><td>2</td><td>2</td><td>1</td><td>No tap in either. D1: a sum for a bonus that holds at times. D2: a sum at every roll.</td></tr>
+<tr><td>Minimalist design</td><td>2</td><td>4</td><td>3</td><td>1</td><td>1</td><td>A caption on every save with any bonus; two lines each on a tablet at 1024 px.</td></tr>
+<tr><td>Error recovery</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2</td><td>No error, offline or loading state is drawn.</td></tr>
+<tr><td>Help and documentation</td><td>3</td><td>3</td><td>3</td><td>3</td><td>3</td><td>The sheet’s rows show the working in both.</td></tr>
+<tr><th>Total</th><th>29 of 40</th><th>22 of 40</th><th>22 of 40</th><th>22 of 40</th><th>23 of 40</th><th>D1 with the plainer words of frame 42-11 (fifth block) would gain on consistency and error prevention: about 24.</th></tr>
+</table>
+<p class="note big"><b>What works.</b> The shape is right and it is already built: a figure with one quiet caption under it is how the Score tile, the Armour class tile and the Attack tile read, so a save’s bonus has an obvious home and no new part is needed. The bonus is in sight on the tile, which is what the player who reported this was missing. A’s second line is this same caption.</p>
+<ol class="crit" start="19">
+<li><b>D1’s caption means two opposite things.</b> Under Wisps, “+2 Bog folk” is already in the 12. Under Fever, “+2 vs venom” is not in the 13. Same place, same words, same grey; frame 42-11’s fourth block puts both under one figure. A player who reads “12, +2” as “add 2” counts the bonus twice and calls a fail a pass. Fix, one of: (a) the caption carries only what is <b>not</b> in the figure (that is A, with the bonus or the number as its words); (b) words that say which is which, as the fifth block of 42-11 (“with +2 Bog folk”, “+2 more vs venom”; not ruled, and longer). (<code>harden</code>)</li>
+<li><b>D1 reads against the row above it.</b> On a Score tile the caption is never part of the figure: Muscle is 15 and “+2” is a second number to use elsewhere. Two rows down, D1’s “+2” is inside the figure. The likeness Francis asked for teaches the wrong reading. D2 keeps the Scores row’s meaning. (<code>clarify</code>)</li>
+<li><b>On a tablet at 1024 px a save tile is 80 px wide, and every caption here takes two lines.</b> Measured on the built screen: the row grows from 67 to 113 px (frame 42-14). The Score tile’s “+2” fits because it is two characters on a 138 px tile; a save’s caption is words on an 80 px tile. A’s “11 vs venom” wraps the same way. At 375 px and at 1180 px each fits on one line (92 px). Fix: accept it; or shorter words from the pack (⚑ 2’s option c). (<code>layout</code>)</li>
+<li><b>D2 is the old ruling with the bonus made visible.</b> “Shown beside the number, never added in” is what Francis called bad on 24 November. D2 answers the player’s report (he would have seen his +2) but the tile still does not show the number to roll, and the sum is the player’s at every roll: three parts on Barrow in frame 42-11. That is paperwork the app exists to remove. (<code>distill</code>)</li>
+<li><b>D2’s “+2” does not say which way.</b> Where a high roll succeeds, +2 makes the number 2 lower (or is added to the die); where a low roll succeeds, 2 higher (frame 42-12). The tile leaves that to the player. D1 and A have the same gap for a bonus that holds at times only; A closes it by writing the number (“11 vs venom”). (<code>clarify</code>)</li>
+<li><b>D2’s sheet shows two numbers that disagree.</b> The head must match the tile (14); the roll line and the last working row say 12 (frame 42-13). If the roll line said 14 too, the sheet would leave the sum undone as well, which is today’s sheet. Neither is good. (<code>clarify</code>)</li>
+<li><b>For a bonus that holds at times, D shows the bonus where A shows the answer.</b> “+2 vs venom” is the book’s phrase and easy to recognise; “11 vs venom” is the number to roll. With the die in hand the second is what is wanted. This is the one real choice between A and D1 once finding 19 is fixed by (a). (<code>clarify</code>)</li>
+<li><b>A kindred that helps every save writes its name five times.</b> Common in play: one bonus to all saves. D1 then carries “+2 Bog folk” under all five figures, each already counted; it repeats on five tiles what each sheet already says. D2 the same, and all five need the sum. (<code>distill</code>)</li>
+<li><b>The caption-with-parts rule splits at a comma.</b> The built tile gives each part its own line by cutting the caption at “, ”. A pack’s condition that has a comma in it (“vs venom, rot and fever”) would be cut in two as if it were two bonuses. For the plan: the parts must be passed as a list, not as joined words. (<code>harden</code>)</li>
+<li><b>A bonus of 0 shows nothing; a score’s “+0” always shows.</b> Ruled for scores on 19 November (tfr-3). So “like attributes” has one difference on purpose: an empty caption means no bonus, and a row of saves with none is as short as today. For the ruling’s wording. (<code>clarify</code>)</li>
+<li><b>The spoken name has to say what the grey line cannot.</b> Drawn: “Wisps 12, with +2 from Bog folk counted”; “Fever 13, +2 against venom, not counted”. Written, not heard; no screen reader was tried. The built tile says “where it comes from”, not this page’s earlier “how it’s worked out” (frames 42-1 to 42-8). (<code>harden</code>)</li>
+<li><b>Not drawn or not real.</b> D1 and D2 in frame 42-14 are the built screen with words typed in, not built. A status that changes saves, the GM’s save prompt, a rules set with no roll direction (S5), Larger text, a tablet held upright, the full sheet’s Saves, loading, offline and error: as finding 11. (<code>harden</code>)</li>
+</ol>
+<p class="note big"><b>Walked as:</b> the player who reported it (D1 and D2 both show his “+2 Bog folk”; A shows 12 and he must tap to learn why); a player mid-fight asked for a Wisps save (A: 12, roll. D1: 12, and a “+2” that may be added again. D2: 14 and a sum); asked for a Fever save against venom (A: 11 on the tile. D1 and D2: 13 and a sum); a first-time player who has just read the Scores row (D2 reads the same way; D1 does not).</p>
+
+<h1>The designer’s recommendation: still A</h1>
+<p class="note big"><b>A, built with the Score tile’s caption, so the bonus that holds at times sits “underneath like attributes”.</b> The rule that keeps it honest: the caption carries only what is not in the figure, as on a Score tile. If Francis wants the kindred named on the tile as well, D1 with frame 42-11’s plainer words is the second choice. Not D2.</p>
+<p class="note big"><b>Builder, then critic, in short.</b> <b>First pass:</b> take D1. The shape is already built, the number is the one to roll, and the player sees his bonus, which was the complaint. <b>Challenge:</b> the same grey line then says “already in” under Wisps and “not in” under Fever, and both read against the Scores row above; one misreading is a fail called as a pass (19, 20). A kindred that helps every save writes itself five times (26). <b>Second pass:</b> D2 is clean and reads like a Score tile. <b>Challenge:</b> it is the ruling Francis called bad, drawn better: the tile still does not give the number to roll, and its sheet shows two numbers (22, 24). <b>What is left:</b> A is D’s shape with one rule added, and it leaves the player no sum. Its real costs stay: a counted bonus has no trace on the tile (finding 5; the sheet’s rows are the answer), and two-line captions at 1024 px (21).</p>
+<p class="note big"><b>Uncertain.</b> The scores are one person’s, by hand. Whether players would misread D1’s caption is a judgement, not a test: one session with the group would settle it. D costs about the same to build as A (the same part; the words differ).</p>
+
 <h1>Self-review</h1>
 <p class="note big"><b>Checked, in the page:</b> the tiles’ sizes and line counts in every block; no sideways scroll at the phone’s width in any block or sheet; nothing under 14 px; the contrast of every new piece of text in light and dark (above); tap targets of 44 px and more, 8 px apart; one accent button at most (none: “Got it” is the plain button, as approved on page 26); no disabled button, no confirm; no colour carries a distinction (C’s mark is a sign in ink, A’s line is words), so no greyscale strip is needed. Tokens only: the colours, spaces and sizes are the shared stylesheets’. Messy data: two bonuses and a penalty on one save, a number below 1, a bonus of 0, low rolls succeeding, two conditions on one save, a long condition, a bonus on every save; a save with no line from the pack, a long save name with a long line. Invented names and invented rule words only.</p>
+<p class="note big"><b>Option D (frames 42-9 to 42-14), checked:</b> the shape against the built Score tile on <code>main</code> (its styles and sizes read in a browser; the drawn tiles come out at the built heights: 67, 92 and 113 px); the built save tile’s caption lines at 375, 1024 and 1180 px; every drawn tile’s size and line count; no sideways scroll, no word wider than its tile; nothing under 14 px; contrast in light and dark; targets of 44 px and more, 8 px apart; no accent button, no disabled button, no confirm; no colour carries a distinction, so no greyscale strip. Messy data: an at-times bonus, two on one save, counted and not counted on one save, three on one save with a penalty, a long condition, a bonus of 0, low rolls succeeding, one bonus on every save. Tokens and the shared stylesheets only; the new rules in this page’s style block are layout. Invented names only. <b>Not checked:</b> finding 30’s list; a screen reader; frame 42-14 is light only, as asked, and its second and third pictures are edited, not built.</p>
 <p class="note big"><b>Not checked or not drawn.</b> These are hand drawings, not pictures of the built screen: the built tile’s exact padding and type may differ by a few pixels, so the heights are a guide (the built saves on a phone are a little wider than drawn). The whole Player tab and the whole full sheet around the tiles (the full sheet uses the same part; 42-2 stands for it). Larger text. A tablet held upright. A save’s name long enough to wrap with a second line under it. The states in finding 11. A screen reader. Empty, loading, offline and error states (the tiles are read from what the device already holds; nothing here changes that). Page 26, whose parts this page borrows, no longer draws in a browser on <code>main</code> (a script it links, <code>creation/final/sweep.js</code>, is not in the repository): its pictures stand, and this page does not link that script.</p>
 </div></div>
 </body>
