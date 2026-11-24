@@ -350,6 +350,40 @@ describe("a place whose pack brought its map's picture (B14, p2p-27)", () => {
     }
   });
 
+  // Purpose (audit 2, Francis's words 24 Nov): while the pack's map is being tied, its spot says so in one quiet line,
+  // as "+ Map" says "Uploading the map…", instead of standing empty.
+  it.fails("while the pack's map is tied, its spot says \"Fetching the pack's map…\"", async () => {
+    let end = () => undefined as void;
+    let asked = false;
+    try {
+      packDownload(() => {
+        asked = true;
+        return new Promise((resolve) => (end = () => resolve({ data: null, error: { message: 'offline' } })));
+      });
+      open();
+      await waitFor(() => expect(asked).toBe(true));
+      expect(screen.getByText("Fetching the pack's map…").getAttribute('role')).toBe('status');
+    } finally {
+      end();
+    }
+  });
+
+  // Purpose (audit 6, Francis's words 24 Nov): the "+ Map" that adds the pack's own picture at once says where it comes
+  // from; the one that asks for a file stays "+ Map".
+  it.fails('"+ Map from the pack" adds the pack\'s picture; the file picker\'s stays "+ Map"', async () => {
+    const user = userEvent.setup();
+    const wanted = { title: map.title, file: map.file };
+    render(
+      <ToastHost>
+        <AddPlaceMap db={world.db} user={gm} campaignId={campaign} place={place} map={wanted} packed="pack-marsh/harbour-chart" onChanged={() => undefined} />
+        <AddPlaceMap db={world.db} user={gm} campaignId={campaign} place={place} map={wanted} onChanged={() => undefined} />
+      </ToastHost>,
+    );
+    expect(screen.getByRole('button', { name: '+ Map' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '+ Map from the pack' }));
+    await screen.findByText('Map added (hidden): The Drowned Harbour');
+  });
+
   // Purpose (review, finding 3): a tie that throws (here, the fetch) leaves "+ Map" and the toast, not an empty slot.
   it('a tie that throws gives way to + Map', async () => {
     packDownload(() => Promise.reject(new Error('Failed to fetch')));

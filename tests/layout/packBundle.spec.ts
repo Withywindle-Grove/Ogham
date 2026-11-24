@@ -73,6 +73,9 @@ for (const size of [
         await page.screenshot({ path: `test-results/layout-screens/pack-bundle-missing-${size.width}-${scheme}.png` });
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page, '.dialog')).toEqual([]);
+        // (Audit 4) IM1b draws "Add it…" at the sheet's foot: the button sits at the sheet's bottom, not under the rows.
+        const card = await page.locator('.dialog--side').boundingBox();
+        expect(card!.y + card!.height - (add!.y + add!.height)).toBeLessThanOrEqual(32);
         // "Add it…" takes the picture, and the sheet gives way to the toast.
         await sheet.getByLabel('Choose the missing picture: images/map-beach.png').setInputFiles({ name: 'IMG_0042.png', mimeType: 'image/png', buffer: Buffer.from(PIXEL) });
         await expect(page.getByText('Saltwick Island imported, with 2 maps.')).toBeVisible();
