@@ -1344,6 +1344,8 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
   // magic item's truth (b15f-2 to b15f-4: a name, what it does, what the senses tell; no source). Invented.
   if (placePageFlag === 'wreck') {
     Object.assign(spots[1]!, {
+      // Named as page 30 draws it, "2. The Wreck" (impeccable audit 7); the other place pages keep "The wreck".
+      name: 'The Wreck',
       playerView: {
         text: 'A cog on her side on the bar, decks awash, her mast showing at every tide. In the stern cabin a strongbox is jammed under the fallen beams.',
         aspects: [{ lead: 'Mast', text: 'Gulls quarrel on it; they lift off whenever something moves below.' }],

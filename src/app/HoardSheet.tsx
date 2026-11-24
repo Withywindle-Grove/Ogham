@@ -5,9 +5,9 @@
 // is gone and each row says where it went), HM3 (the magic item's eye: the toast with Undo). The send itself is the Pack
 // page's PK5 and PK5b (approved 2026-11-14, ap-6): "Send", then "To a character" (which one) or "To the party stash",
 // and the toast with Undo. Everything here is the GM's: nothing of a hoard's rows or a thing's worth reaches a player.
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
-import { loadCommandLog, type LogEvent } from '../core/events.ts';
+import { loadCommandLog, possessive, type LogEvent } from '../core/events.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import { giveFind, NOT_NAMED_WORDS, rowKey, sendOf, sentRows, undoFind } from '../modules/expedition/findSend.ts';
@@ -53,7 +53,7 @@ export function sendListWords(rows: readonly HoardRow[]): string {
 
 /**
  * The toast of a magic item's eye (HM3, pg30-5's pick): "Shown to the players: <name>." and, for the item where it is
- * held, "<holder>'s <thing> now carries its name." (the stash: "The <thing> in the party stash now carries its name.").
+ * held, "<holder>'s <thing> now carries its name." (the apostrophe alone after a final s; the stash: "The <thing> in the party stash now carries its name.").
  * Never a group's name: once revealed, the name is every player's (Francis, 2026-11-21).
  */
 export function truthToastWords(name: string, thing: string, holders: readonly (string | null)[]): string {
@@ -61,7 +61,7 @@ export function truthToastWords(name: string, thing: string, holders: readonly (
   const plain = lowerFirst(thing);
   if (holders.length === 0) return first;
   if (holders.length > 1) return `${first} Each ${plain} sent now carries its name.`;
-  return holders[0] === null ? `${first} The ${plain} in the party stash now carries its name.` : `${first} ${holders[0]}'s ${plain} now carries its name.`;
+  return holders[0] === null ? `${first} The ${plain} in the party stash now carries its name.` : `${first} ${possessive(holders[0]!)} ${plain} now carries its name.`;
 }
 
 interface Setting {
@@ -106,6 +106,12 @@ export function useHoards({
   const [tick, setTick] = useState(0);
   const [open, setOpen] = useState<Open>(null);
   const [busy, setBusy] = useState(false);
+  // The piece's words that opened the hoard (impeccable audit 1): focus goes back to them when the sheet closes.
+  const opener = useRef<HTMLElement | null>(null);
+  const close = () => {
+    setOpen(null);
+    if (opener.current?.isConnected) opener.current.focus({ preventScroll: true });
+  };
   const placeId = row?.place?.id ?? null;
   const hasTreasure = !!place && Array.isArray(place.treasure) && place.treasure.length > 0;
 
@@ -259,19 +265,22 @@ export function useHoards({
             setOpen(null);
             onEdit(open.piece);
           }}
-          onClose={() => setOpen(null)}
+          onClose={close}
         />
       ) : open.step === 'send' ? (
-        <SendSheet side={!phone} back={hoard.name ?? ''} words={sendListWords(open.rows)} onBack={() => setOpen({ ...open, step: 'hoard', rows: [] })} onCharacter={() => setOpen({ ...open, step: 'who' })} onStash={() => void send(null, open.rows)} onClose={() => setOpen(null)} />
+        <SendSheet side={!phone} back={hoard.name ?? ''} words={sendListWords(open.rows)} onBack={() => setOpen({ ...open, step: 'hoard', rows: [] })} onCharacter={() => setOpen({ ...open, step: 'who' })} onStash={() => void send(null, open.rows)} onClose={close} />
       ) : (
-        <WhichCharacter side={!phone} characters={(setting?.carriers ?? []).filter((c) => c.actorId !== null)} onBack={() => setOpen({ ...open, step: 'send' })} onPick={(id) => void send(id, open.rows)} onClose={() => setOpen(null)} />
+        <WhichCharacter side={!phone} characters={(setting?.carriers ?? []).filter((c) => c.actorId !== null)} onBack={() => setOpen({ ...open, step: 'send' })} onPick={(id) => void send(id, open.rows)} onClose={close} />
       )
     ) : null;
 
   return {
     /** Whether a tap on this piece's words opens its hoard (pg30-1) rather than editing it. */
     opens: (piece: Piece) => hoardOf(piece) !== null,
-    open: (piece: Piece) => setOpen({ piece, step: 'hoard', rows: [] }),
+    open: (piece: Piece) => {
+      opener.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+      setOpen({ piece, step: 'hoard', rows: [] });
+    },
     noteOf,
     isMagic,
     showTruth,

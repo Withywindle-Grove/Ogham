@@ -31,7 +31,7 @@ async function open(page: Page, scheme: 'light' | 'dark', who: 'gm' | 'player', 
 async function openCard(page: Page, scheme: 'light' | 'dark', b15: '' | 'sent' | 'shown') {
   await open(page, scheme, 'gm', b15);
   await expect(page.locator('.place-page__name')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Open Strongbox' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Strongbox\. / })).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
 }
 
@@ -59,7 +59,7 @@ for (const size of SIZES) {
       // Purpose: HM2, the hoard's sheet: its things with their counts and one Send all.
       test('HM2: a tap on the Strongbox opens its hoard with counts and Send all', async ({ page }) => {
         await openCard(page, scheme, '');
-        await page.getByRole('button', { name: 'Open Strongbox' }).click();
+        await page.getByRole('button', { name: /^Strongbox\. / }).click();
         await expect(page.getByRole('button', { name: 'Send all' })).toBeVisible();
         await expect(page.getByText('240 herons', { exact: true })).toBeVisible();
         await expect(page.getByText('Moon opals ×2')).toBeVisible();
@@ -98,7 +98,7 @@ for (const size of SIZES) {
       // Purpose: HM5, the hoard after everything was sent: each row says where it went, and there is no Send all.
       test('HM5: the hoard once all is sent says where each thing went', async ({ page }) => {
         await openCard(page, scheme, 'sent');
-        await page.getByRole('button', { name: 'Open Strongbox' }).click();
+        await page.getByRole('button', { name: /^Strongbox\. / }).click();
         await expect(page.getByText(/Sent to Wren of the Lantern Wardens/).first()).toBeVisible();
         await expect(page.getByText('Sent to Ash').first()).toBeVisible();
         await expect(page.getByText('In the party stash').first()).toBeVisible();
@@ -109,14 +109,14 @@ for (const size of SIZES) {
 
       // Purpose (impeccable audit 7, Francis picked 2026-11-24): the card and the hoard's sheet name the Location as
       // page 30 draws it, "2. The Wreck", not "2. The wreck".
-      test.fail('the Location is named "The Wreck", as page 30 draws it', async ({ page }) => {
+      test('the Location is named "The Wreck", as page 30 draws it', async ({ page }) => {
         await openCard(page, scheme, '');
         await expect(page.locator('.place-page__name')).toHaveText('2. The Wreck');
       });
 
       // Purpose (impeccable audit 1, Francis picked 2026-11-24): Escape closes the hoard's sheet and puts focus back on
       // the Strongbox piece that opened it, so a keyboard user carries on where they were.
-      test.fail('Escape closes the hoard and puts focus back on the Strongbox', async ({ page }) => {
+      test('Escape closes the hoard and puts focus back on the Strongbox', async ({ page }) => {
         await openCard(page, scheme, '');
         const box = page.locator('.place-page__piece-words').filter({ hasText: 'Strongbox.' });
         await box.focus();
@@ -129,11 +129,12 @@ for (const size of SIZES) {
 
       // Purpose (impeccable audit 6, Francis picked 2026-11-24): a focused row of the hoard's sheet wears the whole
       // focus ring, its four sides inside the sheet, not two full-width rules with the sides cut off.
-      test.fail('a focused row of the hoard wears the whole focus ring', async ({ page }) => {
+      test('a focused row of the hoard wears the whole focus ring', async ({ page }) => {
         await openCard(page, scheme, '');
-        await page.locator('.place-page__piece-words').filter({ hasText: 'Strongbox.' }).click();
+        // By the keyboard, as the ring is for: the sheet opens with focus on its first row.
+        await page.locator('.place-page__piece-words').filter({ hasText: 'Strongbox.' }).focus();
+        await page.keyboard.press('Enter');
         const row = page.locator('.hoard-sheet .list-row__body').first();
-        await row.focus();
         await expect(row).toBeFocused();
         const ring = await row.evaluate((el) => {
           const style = getComputedStyle(el);

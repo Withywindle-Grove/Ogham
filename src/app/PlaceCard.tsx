@@ -672,7 +672,7 @@ export function PieceRow({
     const parts = piece.kind === 'description' ? namedParts(piece.text, named) : [{ text: piece.text, named: false }];
     return (
       <li className="place-page__piece">
-        <button type="button" className="place-page__piece-words" aria-label={onOpen ? `Open ${piece.lead ?? piece.text}` : `Edit piece: ${piece.text}`} onClick={onOpen ?? onEdit}>
+        <button type="button" className="place-page__piece-words" aria-label={onOpen ? undefined : `Edit piece: ${piece.text}`} aria-haspopup={onOpen ? 'dialog' : undefined} onClick={onOpen ?? onEdit}>
           <span className="place-page__piece-text">
             {piece.lead && (
               <>

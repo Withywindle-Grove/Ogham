@@ -47,3 +47,24 @@
 .hoard-sheet__answers .stacked-button {
   inline-size: 100%;
 }
+
+/* A focused row wears the whole focus ring (impeccable audit 6): the sheet's scrolling body clips anything past its
+   padding box, which cut the ring's sides off and left two full-width rules. The row's button reaches a step into the
+   sheet's padding on each side, its words where they were, and the ring sits just inside it, rounded. */
+.hoard-sheet .list-row__body {
+  margin-inline: calc(-1 * var(--space-2));
+  padding-inline: var(--space-2);
+}
+
+.hoard-sheet .list-row__body:focus-visible {
+  outline: var(--line-strong) solid var(--outline);
+  outline-offset: calc(-1 * var(--line-strong));
+  border-radius: var(--radius);
+}
+
+/* On a tablet the standing panel's scrolling body has no padding of its own (the panel's is outside it), so it lends
+   the rows the same step: reaching into the panel's padding, its words where they were. */
+.dialog__side-body:has(> .hoard-sheet) {
+  margin-inline: calc(-1 * var(--space-2));
+  padding-inline: var(--space-2);
+}
