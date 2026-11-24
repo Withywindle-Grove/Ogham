@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 // The call card and its folded row (P7; page 18's PL4b, page 40's 40A to 40C, approved 2026-11-24). Invented words.
 import { cleanup, render, screen } from '@testing-library/react';
+import { useState } from 'react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { callsInSlot, type CallSend } from '../modules/library/callCards.ts';
@@ -64,19 +65,45 @@ describe('the slot’s calls (40B, 40C)', () => {
   });
 
   // Purpose: after Got it the call folds to one row under the card; a tap reads it again with no button, a tap folds it.
-  it('folds a seen call to a row that reads it again and folds it again', async () => {
+  // The row's name stays the same open or folded (its state is said once, by aria-expanded; audit finding 3), and it
+  // names the card it opens; the reopened card is not a live region, so reading it again announces nothing (finding 2).
+  it.fails('folds a seen call to a row that reads it again and folds it again', async () => {
     render(<CallsInPromptSlot calls={callsInSlot(three, new Map([['a', '2026-11-24T20:00:00Z']]))} onGotIt={() => {}} />);
     expect(screen.getByText('1 of 2')).toBeTruthy();
-    const row = screen.getByRole('button', { name: 'A call to adventure, for the party: read it again' });
+    expect(screen.getAllByRole('status')).toHaveLength(1);
+    const row = screen.getByRole('button', { name: 'A call to adventure, for the party' });
     expect(row.getAttribute('aria-expanded')).toBe('false');
     await userEvent.click(row);
     expect(row.getAttribute('aria-expanded')).toBe('true');
-    expect(row.getAttribute('aria-label')).toBe('A call to adventure, for the party: fold away');
+    expect(screen.getByRole('button', { name: 'A call to adventure, for the party' })).toBe(row);
+    const card = document.getElementById(row.getAttribute('aria-controls') ?? '');
+    expect(card?.textContent).toContain('manifest of the cog');
+    expect(card?.getAttribute('role')).toBeNull();
+    expect(screen.getAllByRole('status')).toHaveLength(1);
     // The reopened card has no Got it of its own (p7-10): still only the unseen card's.
     expect(screen.getAllByRole('button', { name: /^Got it/ })).toHaveLength(1);
     expect(screen.getAllByRole('heading', { name: 'A call to adventure, for the party' })).toHaveLength(1);
     await userEvent.click(row);
     expect(screen.queryByRole('heading', { name: 'A call to adventure, for the party' })).toBeNull();
+  });
+
+  // Purpose (audit finding 1): after Got it by keyboard, focus goes to the next card's Got it, so the player keeps their
+  // place; with no card left, to the row the seen call folded to. Never to the page's top.
+  it.fails('moves focus to the next Got it, then to the folded row', async () => {
+    function Slot() {
+      const [seen, setSeen] = useState(new Map<string, string>());
+      return <CallsInPromptSlot calls={callsInSlot(three.slice(0, 2), seen)} onGotIt={(s) => setTimeout(() => setSeen((m) => new Map(m).set(s.id, '2026-11-24T20:00:00Z')), 0)} />;
+    }
+    render(<Slot />);
+    const user = userEvent.setup();
+    await user.tab();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Got it: A call to adventure, for the party' }));
+    await user.keyboard('{Enter}');
+    const next = await screen.findByRole('button', { name: 'Got it: A rumour, for the party' });
+    await vi.waitFor(() => expect(document.activeElement).toBe(next));
+    await user.keyboard('{Enter}');
+    await vi.waitFor(() => expect(screen.queryByRole('button', { name: /^Got it/ })).toBeNull());
+    await vi.waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'A rumour, for the party' })));
   });
 
   // Purpose: with no calls the slot takes no room.

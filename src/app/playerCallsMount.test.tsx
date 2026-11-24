@@ -5,10 +5,12 @@
 //   * "Got it" writes the player's own seen mark through the command layer and folds the card to its row (p7-7);
 //   * a call sent to another player's character never reaches this player, and neither does their mark;
 //   * a call the GM sends while the Scene is open arrives without reloading;
-//   * with no calls, nothing is drawn; while loading or after a failed read, nothing either, and the other prompts stand;
+//   * with no calls, nothing is drawn; while loading, nothing either, and the other prompts stand; a failed read after a
+//     good one keeps the good one;
+//   * the calls are read only while the players' slot is drawn, and a read never outlives its campaign;
 //   * a refused "Got it" leaves the card standing and says so in a toast;
 //   * the GM's Scene never draws the players' call card.
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, render, renderHook, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
@@ -19,6 +21,7 @@ import { CampaignLog } from './campaignLog.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
 import { createAppRegistry } from './commandRegistry.ts';
 import { SceneTime } from './SceneTime.tsx';
+import { usePlayerCalls } from './usePlayerCalls.ts';
 
 vi.mock('./services.ts', async () => {
   const { createAppRegistry: registryOf } = await import('./commandRegistry.ts');
@@ -168,22 +171,84 @@ describe("the call card in the players' prompt slot (P7, the mount)", () => {
     expect(container.querySelector('.prompt-slot__item--last')).toBeNull();
   });
 
-  // Purpose (error, page 40's critique 7): a failed read draws no card and no error of its own; the other prompts stand.
-  it('a failed read draws nothing, and the rest of the slot stands', async () => {
+  // Purpose (error, page 40's critique 7): after one good read, a re-read that fails (the log moved) keeps the card that
+  // stood; no error of its own is drawn, and the other prompts stand.
+  it('a failed re-read keeps the last good read, and the rest of the slot stands', async () => {
     const t = table();
     await send(t, 'bounty', null, 'A bounty on the Bog lurker.');
+    scene(t, 'sam');
+    expect(await screen.findByRole('heading', { name: 'A call to adventure, for the party' })).toBeTruthy();
     const from = world.db.from.bind(world.db);
+    let failed = 0;
     const failing = (): unknown => {
+      failed += 1;
       const chain: Record<string, unknown> = {};
       for (const k of ['select', 'eq', 'in']) chain[k] = () => chain;
       chain.then = (done: (v: unknown) => unknown) => Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }).then(done);
       return chain;
     };
     vi.spyOn(world.db, 'from').mockImplementation(((table: string) => (table === 'hook_sends' ? failing() : from(table as never))) as typeof world.db.from);
-    scene(t, 'sam');
-    expect(await screen.findByTestId('other-prompt')).toBeTruthy();
+    // The log moves (the GM sends a second call), so the calls are read again, and that read fails.
+    await send(t, 'lantern', null, 'A Lantern Warden never came back.');
+    world.signInAs(t.sam);
+    await waitFor(() => expect(failed).toBeGreaterThan(0), { timeout: 3000 });
     await new Promise((r) => setTimeout(r, 50));
-    expect(screen.queryByRole('group', { name: 'Calls to adventure' })).toBeNull();
+    expect(screen.getByRole('heading', { name: 'A call to adventure, for the party' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Got it: A call to adventure, for the party' })).toBeTruthy();
+    expect(screen.queryByText('A Lantern Warden never came back.')).toBeNull();
+    expect(screen.getByTestId('other-prompt')).toBeTruthy();
+  });
+
+  // Purpose (review of #83): the calls are read only while the players' slot is drawn; when the time can't load (the
+  // strip shows its error and no slot), nothing of the calls is read.
+  it.fails('reads no calls while the slot is not drawn', async () => {
+    const t = table();
+    await send(t, 'bounty', null, 'A bounty on the Bog lurker.');
+    const from = world.db.from.bind(world.db);
+    let callReads = 0;
+    const failing = (): unknown => {
+      const chain: Record<string, unknown> = {};
+      for (const k of ['select', 'eq', 'is', 'in', 'order', 'limit', 'maybeSingle']) chain[k] = () => chain;
+      chain.then = (done: (v: unknown) => unknown) => Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }).then(done);
+      return chain;
+    };
+    const counted = (): unknown => {
+      callReads += 1;
+      return from('hook_sends');
+    };
+    vi.spyOn(world.db, 'from').mockImplementation(((table: string) => (table === 'campaign_clocks' ? failing() : table === 'hook_sends' ? counted() : from(table as never))) as typeof world.db.from);
+    scene(t, 'sam');
+    expect(await screen.findByText("Couldn't load the time. Check your connection and try again.")).toBeTruthy();
+    await new Promise((r) => setTimeout(r, 50));
+    expect(callReads).toBe(0);
+  });
+
+  // Purpose (review of #83): a read belongs to its campaign. When the player moves to another campaign, the last one's
+  // calls go at once, before the new read answers, and a late answer from the last campaign is never shown.
+  it.fails("never shows one campaign's calls in another", async () => {
+    const t = table();
+    const flats = world.addCampaign('The Salt Flats', t.gm);
+    const reed = world.addCharacter(flats, 'Reed', { ownerId: t.sam });
+    world.addMember(flats, t.sam, 'player', reed);
+    const sam = { id: t.sam, roles: { [t.campaign]: 'player', [flats]: 'player' } } as CurrentUser;
+    await send(t, 'bounty', null, 'A bounty on the Bog lurker.');
+    world.signInAs(t.sam);
+    const { result, rerender } = renderHook(({ campaignId }) => usePlayerCalls(world.db, sam, campaignId, true, 0), {
+      initialProps: { campaignId: t.campaign },
+      wrapper: ToastHost,
+    });
+    await waitFor(() => expect(result.current.calls?.card?.campaignId).toBe(t.campaign));
+    // The new campaign's read never answers: what shows meanwhile must not be the old campaign's.
+    const from = world.db.from.bind(world.db);
+    const silent = (): unknown => {
+      const chain: Record<string, unknown> = {};
+      for (const k of ['select', 'eq', 'in']) chain[k] = () => chain;
+      chain.then = () => new Promise(() => {});
+      return chain;
+    };
+    vi.spyOn(world.db, 'from').mockImplementation(((table: string) => (table === 'hook_sends' ? silent() : from(table as never))) as typeof world.db.from);
+    rerender({ campaignId: flats });
+    expect(result.current.calls).toBeNull();
   });
 
   // Purpose (critique 7; ⚑ 4 of #69, ruled "keep"): a "Got it" the database refuses leaves the card standing and says so.
