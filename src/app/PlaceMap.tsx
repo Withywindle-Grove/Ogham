@@ -26,6 +26,9 @@ import { registry } from './services.ts';
 /** The toast once a map is added: hidden until the GM shares it (frame 2c). */
 export const mapAddedWords = (placeName: string) => `Map added (hidden): ${placeName.trim() || 'this place'}`;
 
+/** How long the place page waits for the pack's map to be tied before it offers "+ Map" (a hung fetch). */
+export const TIE_WAIT_MS = 20_000;
+
 /** Undo stops here when it can't read whether the map is shown: nothing is changed. */
 export const UNDO_UNREAD_WORDS = "Couldn't check the map. Nothing was undone. Try again.";
 /** Undo hid a shown map but found no tie left to take back. */
@@ -189,29 +192,49 @@ export function PlaceMapPart({
   const assetId = state?.kind === 'added' ? state.assetId : null;
 
   // B14 (p2p-27; Francis, 2026-11-24): the pack brought the map's picture, so the place has its map with no tap: tied
-  // once a mount (packMapTie.ts), hidden, with no toast. Nothing is drawn while it runs; if it fails, the toast says so
-  // and the row's "+ Map" tries again (after that row's Undo, this mount doesn't tie it back).
+  // once a mount (packMapTie.ts), hidden, with no toast. Nothing is drawn while it runs; if it fails, throws or takes
+  // longer than TIE_WAIT_MS, the toast says so and the row's "+ Map" tries again (after that row's Undo, this mount
+  // doesn't tie it back). After an Undo of the tie (the toast's or the log's), the read says `undone` and nothing is tied
+  // on its own again: the row's "+ Map" offers the pack's picture, one tap (review, 2026-11-24).
   // `tied`: the place this mount has tied (or tried to): until then a wanted map with the pack's picture is tied, and
   // nothing is drawn. A second run at once (the effect run twice) shares the first (tiePackMap).
   const [tied, setTied] = useState<{ placeKey: string; failed: string | null } | null>(null);
-  const tying = state?.kind === 'wanted' && !!state.packed && isGm(user, campaignId) && tied?.placeKey !== placeKey;
+  const tying = state?.kind === 'wanted' && !!state.packed && !state.undone && isGm(user, campaignId) && tied?.placeKey !== placeKey;
   useEffect(() => {
     if (!tying || state?.kind !== 'wanted' || !state.packed) return;
     const { map, packed } = state;
+    let settled = false;
+    const settle = (failed: string | null) => {
+      if (settled) return;
+      settled = true;
+      setTied({ placeKey, failed });
+    };
+    // A hung fetch gives way to "+ Map" (the tie, if it ends later, still shows the map: its read lands then).
+    const timer = setTimeout(() => settle(PACK_PICTURE_UNREAD_WORDS), TIE_WAIT_MS);
     void (async () => {
-      const done = await tiePackMap(registry, db, user, campaignId, place, map.title, packed);
-      // Read again before the row could show: the map and the end of the run land together (no "+ Map" flash).
-      const next = done.ok ? await loadPlaceMap(db, campaignId, place, upTrail) : null;
-      if (next) setRead({ key: `${placeKey}:tied`, placeKey, state: next });
-      setTied({ placeKey, failed: done.ok ? null : done.message });
+      let failed: string | null = PACK_PICTURE_UNREAD_WORDS;
+      try {
+        const done = await tiePackMap(registry, db, user, campaignId, place, map.title, packed);
+        failed = done.ok ? null : done.message;
+        // Read again before the row could show: the map and the end of the run land together (no "+ Map" flash).
+        const next = done.ok ? await loadPlaceMap(db, campaignId, place, upTrail) : null;
+        if (next) setRead({ key: `${placeKey}:tied`, placeKey, state: next });
+      } catch {
+        // failed stays: "+ Map" tries again.
+      } finally {
+        clearTimeout(timer);
+        settle(failed);
+      }
     })();
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once a mount for the place, when its read asks for it
   }, [tying, placeKey]);
-  // A failed tie's toast, once the row is drawn to try again.
+  // A failed tie's toast, once the row is drawn to try again. (A new place's failure follows a render with none, so
+  // the same words for another place toast again: the message alone is the dependency.)
   const tieFailed = tied?.placeKey === placeKey ? tied.failed : null;
   useEffect(() => {
     if (tieFailed) show({ text: tieFailed, error: true });
-  }, [tieFailed, tied, show]);
+  }, [tieFailed, show]);
 
   // The copy's eye and its file's link, once there is a copy.
   const [eye, setEye] = useState<{ key: string; assetId: string; shown: boolean | null } | null>(null);

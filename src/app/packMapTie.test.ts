@@ -8,12 +8,16 @@
 //   * a picture that can't be fetched says so and adds nothing;
 //   * (Francis, 2026-11-24, "A") a place with no map of its own shows its parent place's map: an area under the
 //     harbour gets the harbour's map with no tap, the same one copy, so one eye shows it at both; a map of the area's
-//     own, the pack's or the GM's, wins over the one it would inherit.
-import { beforeEach, describe, expect, it } from 'vitest';
+//     own, the pack's or the GM's, wins over the one it would inherit;
+//   * (review, 2026-11-24) a tie whose second step failed is finished at the next open with the copy already made, so
+//     the campaign still has one copy, now tied; the tie is tried twice in one run; another device's untied copy is
+//     reused; once the GM has undone the tie, the place reads `undone` and the page ties nothing on its own.
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CurrentUser } from '../core/commands.ts';
 import type { PackMap } from '../modules/library/packMaps.ts';
 import { runCommand } from '../core/commands.ts';
-import { loadMapShown, loadPlaceMap, shareMap } from '../modules/expedition/placeMap.ts';
+import { undoChange } from '../core/undo.ts';
+import { addPlaceMap, loadMapShown, loadPlaceMap, setPlaceMap, shareMap } from '../modules/expedition/placeMap.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { createAppRegistry } from './commandRegistry.ts';
 import { PACK_PICTURE_UNREAD_WORDS, tiePackMap } from './packMapTie.ts';
@@ -134,5 +138,83 @@ describe("a pack's map tied to its places with no tap", () => {
     world.tables.places.find((p) => p.id === pier.id)!.map_asset_id = 'asset-pier';
     expect(await loadPlaceMap(world.db, campaign, pier, upTrail)).toMatchObject({ kind: 'added', assetId: 'asset-pier' });
     expect(maps()).toHaveLength(1);
+  });
+
+  afterEach(() => vi.restoreAllMocks());
+
+  // Ties the place's map refuses while `failing.n` is above 0 (the connection lost at the tie's second step).
+  const failTies = (failing: { n: number }) => {
+    const from = world.db.from.bind(world.db);
+    vi.spyOn(world.db, 'from').mockImplementation(((table: string) => {
+      const query = from(table as never) as unknown as { update: (row: Record<string, unknown>) => unknown };
+      if (table !== 'places') return query;
+      const update = query.update.bind(query);
+      query.update = (row: Record<string, unknown>) => {
+        if (!('map_asset_id' in row) || failing.n <= 0) return update(row);
+        failing.n -= 1;
+        return { eq: () => ({ select: () => Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }) }) };
+      };
+      return query;
+    }) as typeof world.db.from);
+  };
+
+  // Purpose (review, finding 1): when the copy is made but the tie fails (twice: the run's own retry too), the next open
+  // ties that same copy, so the campaign still has one copy of the map, now tied to the place; nothing is erased.
+  it('a failed tie, then a later open: still one copy, now tied', async () => {
+    const failing = { n: 2 };
+    failTies(failing);
+    const first = await tie(harbour);
+    expect(first.ok).toBe(false);
+    expect(maps()).toHaveLength(1);
+    expect(world.tables.places.find((p) => p.id === harbour.id)?.map_asset_id).toBeNull();
+    const second = await tie(harbour);
+    expect(second.ok).toBe(true);
+    expect(maps()).toHaveLength(1);
+    expect(world.tables.places.find((p) => p.id === harbour.id)?.map_asset_id).toBe(maps()[0]!.id);
+    expect(world.tables.events.filter((e) => e.type === 'place.addMap' && e.after)).toHaveLength(1);
+  });
+
+  // Purpose (review, finding 1): a tie refused once is tried again in the same run, so one open is enough.
+  it('a tie refused once is tried again in the same run', async () => {
+    failTies({ n: 1 });
+    const done = await tie(harbour);
+    expect(done.ok).toBe(true);
+    expect(maps()).toHaveLength(1);
+    expect(world.tables.places.find((p) => p.id === harbour.id)?.map_asset_id).toBe(maps()[0]!.id);
+  });
+
+  // Purpose (review, finding 4): a copy another device made and left untied (its tie not yet written) is reused, not
+  // copied again, when this device opens another place the same map is for.
+  it("another device's untied copy is reused", async () => {
+    const image = new Blob(['the chart, bundled'], { type: 'image/png' });
+    const made = await runCommand(registry, world.db, gm, addPlaceMap, { campaignId: campaign, place: harbour, title: chart.title, image });
+    expect(made.ok).toBe(true);
+    const done = await tie(jetty);
+    expect(done).toEqual({ ok: true, value: made.ok ? made.value : '' });
+    expect(maps()).toHaveLength(1);
+  });
+
+  // Purpose (review, finding 1): a copy the GM untied with Undo is not taken back by the tie (the Undo holds): an untied
+  // copy is reused only if no place was ever tied to it.
+  it('a copy once tied and then untied is not reused', async () => {
+    await tie(harbour);
+    const setLine = world.tables.events.find((e) => e.type === setPlaceMap.name)!;
+    const undone = await runCommand(registry, world.db, gm, undoChange, { campaignId: campaign, eventId: String(setLine.id), authorUserId: gm.id });
+    expect(undone.ok).toBe(true);
+    await tie(jetty);
+    expect(maps()).toHaveLength(2);
+  });
+
+  // Purpose (review, finding 2): after the GM undoes the tie from the log, the place reads the map as wanted with the
+  // pack's picture and `undone`, so the page ties nothing on its own and "+ Map" offers the picture with one tap.
+  it('after an Undo of the tie, the place reads undone', async () => {
+    expect(await loadPlaceMap(world.db, campaign, harbour)).toEqual({ kind: 'wanted', map: chart, packed: PACKED });
+    await tie(harbour);
+    const setLine = world.tables.events.find((e) => e.type === setPlaceMap.name)!;
+    const undone = await runCommand(registry, world.db, gm, undoChange, { campaignId: campaign, eventId: String(setLine.id), authorUserId: gm.id });
+    expect(undone.ok).toBe(true);
+    expect(await loadPlaceMap(world.db, campaign, harbour)).toEqual({ kind: 'wanted', map: chart, packed: PACKED, undone: true });
+    // One copy a map: the other place the map is for holds to the Undo too.
+    expect(await loadPlaceMap(world.db, campaign, jetty)).toMatchObject({ kind: 'wanted', undone: true });
   });
 });

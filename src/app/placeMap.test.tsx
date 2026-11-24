@@ -5,16 +5,20 @@
 //   * a file from the device is uploaded as the campaign's map, the GM's alone, tied to the place; the toast says
 //     "Map added (hidden): <place>", and its Undo takes the map off again;
 //   * once the eye has shared the copy, Undo unties the place and hides the copy from the players again;
-//   * a file over the limit is refused in the approved words, nothing is added, and the row stays as it was.
+//   * a file over the limit is refused in the approved words, nothing is added, and the row stays as it was;
+//   * (B14 review, 2026-11-24) after the GM undoes the pack map's tie, the place isn't tied again on its own and "+ Map"
+//     takes the pack's picture with one tap; a tie that hangs or throws gives way to "+ Map".
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CurrentUser } from '../core/commands.ts';
+import { runCommand, type CurrentUser } from '../core/commands.ts';
+import { undoChange } from '../core/undo.ts';
+import { createAppRegistry } from './commandRegistry.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { ToastHost } from '../ui/ToastHost.tsx';
 import { MAP_TOO_LARGE } from './image.ts';
 import { PACK_PICTURE_UNREAD_WORDS } from './packMapTie.ts';
-import { AddPlaceMap, PlaceMapPart, UNDO_UNREAD_WORDS } from './PlaceMap.tsx';
+import { AddPlaceMap, PlaceMapPart, TIE_WAIT_MS, UNDO_UNREAD_WORDS } from './PlaceMap.tsx';
 
 const harbour = { id: 'p-harbour', name: 'The Drowned Harbour', version: 1 };
 const chart = { title: 'The Drowned Harbour, the harbour chart', file: 'harbour-chart.png' };
@@ -290,5 +294,68 @@ describe("a place whose pack brought its map's picture (B14, p2p-27)", () => {
     await user.click(await screen.findByRole('button', { name: '+ Map' }));
     await screen.findByRole('region', { name: 'The map' });
     expect(maps()).toHaveLength(1);
+  });
+
+  // The pack's picture fetched as `download` gives it (a hang, a throw).
+  const packDownload = (download: () => Promise<unknown>) => {
+    const from = world.db.storage.from.bind(world.db.storage);
+    (world.db.storage as { from: unknown }).from = (bucket: string) => {
+      const real = from(bucket);
+      return bucket === 'pack-files' ? { ...real, download } : real;
+    };
+  };
+
+  // Purpose (review, finding 2): after the GM undoes the tie from the log, opening the place again ties nothing on its
+  // own (the Undo holds); "+ Map" is there and takes the pack's picture with one tap, no file to pick.
+  it("after the tie's Undo, the next open ties nothing and + Map takes the pack's picture", async () => {
+    const user = userEvent.setup();
+    open();
+    await screen.findByRole('region', { name: 'The map' });
+    const setLine = world.tables.events.find((e) => e.type === 'place.setMap')!;
+    const undone = await runCommand(createAppRegistry(), world.db, gm, undoChange, { campaignId: campaign, eventId: String(setLine.id), authorUserId: gm.id });
+    expect(undone.ok).toBe(true);
+    cleanup();
+    open();
+    const add = await screen.findByRole('button', { name: '+ Map' });
+    expect(maps()).toHaveLength(1);
+    expect(world.tables.places.find((p) => p.id === place.id)?.map_asset_id).toBeNull();
+    await user.click(add);
+    await screen.findByRole('region', { name: 'The map' });
+    expect(world.tables.places.find((p) => p.id === place.id)?.map_asset_id).toBeTruthy();
+  });
+
+  // Purpose (review, finding 3): a fetch of the pack's picture that never ends doesn't leave the slot empty: after the
+  // wait, the toast says so and "+ Map" is there to try again.
+  it('a hung fetch gives way to + Map after the wait', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    // Ended when the test is over, so the hung run doesn't stay shared with the next test's open.
+    let end = () => undefined as void;
+    let asked = false;
+    try {
+      packDownload(() => {
+        asked = true;
+        return new Promise((resolve) => (end = () => resolve({ data: null, error: { message: 'offline' } })));
+      });
+      open();
+      // The tie is under way (its fetch asked for), and the slot is empty meanwhile.
+      await waitFor(() => expect(asked).toBe(true));
+      expect(screen.queryByRole('button', { name: '+ Map' })).toBeNull();
+      await vi.advanceTimersByTimeAsync(TIE_WAIT_MS);
+      expect(await screen.findByRole('button', { name: '+ Map' })).toBeTruthy();
+      expect(screen.getByText(PACK_PICTURE_UNREAD_WORDS)).toBeTruthy();
+      expect(maps()).toHaveLength(0);
+    } finally {
+      end();
+      vi.useRealTimers();
+    }
+  });
+
+  // Purpose (review, finding 3): a tie that throws (here, the fetch) leaves "+ Map" and the toast, not an empty slot.
+  it('a tie that throws gives way to + Map', async () => {
+    packDownload(() => Promise.reject(new Error('Failed to fetch')));
+    open();
+    expect(await screen.findByRole('button', { name: '+ Map' })).toBeTruthy();
+    expect(screen.getByText(PACK_PICTURE_UNREAD_WORDS)).toBeTruthy();
+    expect(maps()).toHaveLength(0);
   });
 });
