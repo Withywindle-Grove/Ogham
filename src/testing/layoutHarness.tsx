@@ -8,6 +8,7 @@
 //               Fenward, with a full right column, a lit storm lantern and oil, a spear in hand, a pinned knife and
 //               four statuses; every Player screen row of plan dec-13 is pictured against it
 //   &gear=1     "The Fen Muster" on the invented fixture pack, Jo (?as=new) joined with no character: creation's Gear step
+//   &gmWaiting=1  "The Fen Reckoning" on the invented fixture pack, Jo's Tam waiting for the GM (?as=gm), no score rolled
 //   &creation=full  "The Fen Census" on the whole fixture pack with creation-full.fixture.json over it, Jo (?as=new)
 //               joined with no character: guided creation reaches every step (Method, Patron, the hit points row,
 //               Roll for a name, First spells, Gear's pick and trinket sheets, Languages, Weapon skills, backgrounds,
@@ -936,6 +937,40 @@ if (new URLSearchParams(window.location.search).get('creation') === 'full') {
     });
 }
 
+// The GM's approval card with scores (plan dec-15 row 9, caf-8), only with ?gmWaiting=1: "The Fen Reckoning" on the
+// invented fixture pack, where Jo's Tam, a bog folk Lantern Warden, waits for the GM (Priya, ?as=gm). Tam's scores were
+// all left at the average (2d8: 9), none rolled; the kindred moved two of them (Nimbleness up one, Grit down one), so
+// the record's `rolled` differs from its `scores` there, as guided creation writes it. The layout's fields without hp
+// and the omen, as approvalHomebrew.test.tsx's world.
+if (new URLSearchParams(window.location.search).get('gmWaiting') === '1') {
+  const reckoning = world.addCampaign('The Fen Reckoning', gm);
+  world.addMember(reckoning, jo, 'player');
+  world.tables.packs.push({ id: 'pack-fen-reckoning', owner_user_id: gm, campaign_id: null, name: 'Fen sample', version: '0.1', kind: 'setting', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-24T12:00:00Z', extra_meta: { shortName: 'Fen sample' } });
+  const lists: [string, string][] = [['rulesSets', 'rulesSet'], ['races', 'race'], ['classes', 'class'], ['items', 'item'], ['startingKits', 'startingKit'], ['fieldTemplates', 'fieldTemplate']];
+  for (const [list, kind] of lists)
+    for (const data of fenPack[list] ?? []) world.tables.library_entries.push({ id: `entry-reckoning-${kind}-${String(data.id)}`, pack_id: 'pack-fen-reckoning', kind, pack_entry_id: String(data.id), name: String(data.name ?? data.id), data });
+  world.tables.campaign_packs.push({ id: 'campaign-pack-reckoning', campaign_id: reckoning, pack_id: 'pack-fen-reckoning', pack_name: 'Fen sample', option_choices: {}, overrides: {}, priority: 1 });
+  type ReckoningField = { key: string; label: string; type: string; group?: string; fill?: string; choices?: string[]; required?: boolean };
+  ((fenPack.fieldTemplates?.[0]?.fields ?? []) as ReckoningField[])
+    .filter((f) => f.key !== 'hp' && f.key !== 'omen')
+    .forEach((f, order) => {
+      const type = f.type === 'list' && !f.choices?.length ? 'text' : f.type;
+      world.tables.field_definitions.push({ id: `field-reckoning-${f.key}`, campaign_id: reckoning, applies_to: 'pc', key: f.key, label: f.label, type, choices: f.choices ?? [], field_group: f.group ?? '', sort_order: order, show_on_card: false, hidden: false, fill: f.fill ?? null, required: !!f.required, created_at: '2026-11-24T12:00:00Z' });
+    });
+  const tam = world.addCharacter(reckoning, 'Tam', { ownerId: jo, approval: 'pending' });
+  Object.assign(world.tables.actors.find((a) => a.id === tam)!, {
+    level: 1,
+    classes: [{ classRef: 'lantern-warden', level: 1, xp: 0 }],
+    race_ref: 'bog-folk',
+    creation: {
+      method: null,
+      rolled: { MUS: 9, NIM: 9, GRT: 9, WIT: 9, LORE: 9, CHARM: 9 },
+      scores: { MUS: 9, NIM: 10, GRT: 8, WIT: 9, LORE: 9, CHARM: 9 },
+      scoresAverage: ['MUS', 'NIM', 'GRT', 'WIT', 'LORE', 'CHARM'],
+    },
+  });
+}
+
 // A place's rules and its own check (December dec-7 piece 3), only with ?placeRules=1: an invented harbour in River
 // Rules with an encounter check on each move that stands in, a rule with a button, a plain rule and one the book keeps
 // for the GM; an expedition under way with the party at its jetty, the jetty's description shown. Made through the
@@ -1178,7 +1213,8 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //                     (frame 5's sentences);
 //   ?placePage=hand   the party at a place typed by hand (frame 2b, left);
 //   ?placePage=none   an expedition with no place yet (frame 2b, right).
-//   &map=wanted|added with spots or spot: the pack's map for the harbour, not added yet or added (S13; see below).
+//   &map=wanted|added|shown with spots or spot: the pack's map for the harbour, not added yet, added, or added and shown
+//               to the players (S13; the players' map, P5; see below).
 //   &picture=1 with spots or spot: the place has a picture (TW13: the picture row, a tap opening it); with &ways=… too,
 //               shown to the players (the Location's card's small picture button, ppf-6 c).
 //   &mapTitle=long  with &map: the map's title long (the card's title on its own line above the tools).
@@ -1474,13 +1510,13 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
       if (pictured?.picture) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row: pictured, piece: { id: pictured.picture.id } });
     }
     const mapFlag = new URLSearchParams(window.location.search).get('map');
-    if (mapFlag === 'wanted' || mapFlag === 'added') {
+    if (mapFlag === 'wanted' || mapFlag === 'added' || mapFlag === 'shown') {
       // &mapTitle=long: a long title, so the card's title takes its own line above the tools (#851's round).
       const chartTitle = new URLSearchParams(window.location.search).get('mapTitle') === 'long' ? 'The Drowned Harbour and the Saltwick Breakwater at the turn of the tide' : 'The Drowned Harbour, the harbour chart';
       const chart = { file: 'harbour-chart.png', title: chartTitle, alt: 'A silted harbour, its bar and five spots', locationIds: ['drowned-harbour'] };
       world.tables.library_entries.push({ id: 'entry-reed-harbour-chart', pack_id: 'pack-reed', kind: 'map', pack_entry_id: 'harbour-chart', name: chart.title, data: chart });
-      if (mapFlag === 'added' && row) {
-        world.tables.assets.push({ id: 'asset-harbour-chart', campaign_id: campaign, kind: 'map', name: chart.title, visibility: 'gm' });
+      if ((mapFlag === 'added' || mapFlag === 'shown') && row) {
+        world.tables.assets.push({ id: 'asset-harbour-chart', campaign_id: campaign, kind: 'map', name: chart.title, visibility: mapFlag === 'shown' ? 'all' : 'gm' });
         await world.db.storage.from('campaign-files').upload(`${campaign}/asset-harbour-chart`, new Blob(['a chart'], { type: 'image/svg+xml' }));
         const tied = world.tables.places.find((p) => p.id === row.place?.id);
         if (tied) tied.map_asset_id = 'asset-harbour-chart';

@@ -112,15 +112,3 @@ export function tabToRestore<T extends string>(campaignId: string, tabs: readonl
 export function tabRestored(campaignId: string): void {
   if (tabToReopen?.campaignId === campaignId) tabToReopen = null;
 }
-
-/** For tests: forget everything noted and kept. */
-export function resetPlaceOnReloadForTests(): void {
-  here = null;
-  tabHere = null;
-  tabToReopen = null;
-  try {
-    sessionStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // Nothing to forget.
-  }
-}

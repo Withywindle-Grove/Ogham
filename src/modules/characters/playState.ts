@@ -324,14 +324,6 @@ export function spellLine(name: string, data: Record<string, unknown>, level: nu
   return [name, ...spellParts(data, level)].join(', ');
 }
 
-/**
- * A spell's duration and range for its row's second line, joined by a comma ("6 turns, 30 ft"; no middle dot, plan
- * m5b-players-screens-standard A2); '' when the pack gives neither.
- */
-export function spellDetail(data: Record<string, unknown>, level: number): string {
-  return spellParts(data, level).join(', ');
-}
-
 /** The spell's worked-out duration and its range, each only when the pack gives it. */
 function spellParts(data: Record<string, unknown>, level: number): string[] {
   const d = data.duration;

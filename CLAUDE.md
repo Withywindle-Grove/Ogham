@@ -95,4 +95,5 @@ One line each, added when a review flags the same mistake twice (`REVIEW.md`, Fe
 - A pull request that conflicts with `main` starts no CI run on push: before a final push check `gh pr view <n> --json mergeable` and merge `main` in first if it says CONFLICTING. (Merely behind `main` is not a reason to merge it in.)
 - A pull request brought up to `main` after a long wait keeps stale paperwork: the departures in its own text and the spec lines it touches must be brought up to what has been ruled and applied since, in the same push as the merge (flagged twice on #628).
 - A test that runs git must strip every `GIT_*` variable from its env (`withoutGitVariables`, `scripts/git-test-env.mjs`): inside a commit hook they aim its throwaway repository at the real one.
+- After `cp -al …/node_modules` into a worktree, check there is no `node_modules/node_modules` link (unlink it): a loop there breaks the UI tests locally while CI stays green.
 - A pop-up opened from inside a sheet keeps its own form: wrap it in `SheetScope.Provider value={false}`, and add a layout check (flagged twice: #864, #877).
