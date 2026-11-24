@@ -19,7 +19,7 @@ Diagram: [design-and-build loop](diagrams/design-and-build-loop.md).
 
 ## Where things are
 
-- **Names:** the app is **Tome** (2026-11-24). This repository is Ogham. The earlier repository, also called Tome, is frozen and read-only: "Tome" in a task means the app unless it names the old repository.
+- **Names:** the app is **Tome** (2026-11-07). This repository is Ogham. The earlier repository, also called Tome, is frozen and read-only: "Tome" in a task means the app unless it names the old repository.
 - **Current rules:** the specs, `docs/01`–`08`, `10`, `11`. **Why:** `docs/09` (by `[topic]`), then `docs/design/rulings/`. **Pictures:** `docs/design/r1/` and `docs/design/mockups/index.md`.
 - **Plan:** `docs/08`. There's also a readable roadmap in Claude Docs ("Nemeton roadmap"), kept in step with 08. Milestone dates are on Google Calendar.
 - **Private:** `packs/` on the PC (packs, build scripts, design notes, the name map and denylist) and Drive `Grimoire/` (Design, Test Files, build zips). Nothing private ever goes into the repo. The repo names packs only by neutral ID: `classic-advanced`, `fae-woodland`, `fae-woodland-region`, `conv-fae-woodland-to-classic`, `valley-town-adventure`, `monster-overlay`, `slot-test-homebrew`; private folders and files carry the source's real name (07 §18, File names), and the private map from ID to folder is `packs/README.md`.

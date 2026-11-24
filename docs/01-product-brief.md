@@ -1,6 +1,6 @@
 # 01 — Product Brief
 
-**Name:** the app (**Tome**; it was Nemeton until 2026-11-24). Kept easy to change: the name never goes into database names, ids, code identifiers, the repo name or the pack format. The repo stays `grimoire`; the pack format ID stays `tabletop-pack`.
+**Name:** the app (**Tome**, ruled 2026-11-07; earlier Nemeton, and Grimoire as the working title). Kept easy to change: the name never goes into database names, ids, code identifiers, the repo name or the pack format. The repo stays `grimoire`; the pack format ID stays `tabletop-pack`.
 
 ## Vision
 
