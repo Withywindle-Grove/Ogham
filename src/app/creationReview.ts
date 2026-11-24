@@ -24,13 +24,37 @@ export function firstProblem(checks: readonly StepCheck[]): { step: string; mess
   return null;
 }
 
-/** "STR 14 (rolled 13) · WIT 9": the scores once, each changed one with its roll. */
-export function scoresLine(creation: unknown, label: (key: string) => string): string {
+/**
+ * The scores left at the average, never touched (final drafts A5): the record's `scoresAverage`, kept to the scores it
+ * has. Empty when every score was rolled, or the record predates the list.
+ */
+export function notRolledScores(creation: unknown): string[] {
+  const record = isRecord(creation) ? creation : {};
+  const scores = isRecord(record.scores) ? record.scores : {};
+  return Array.isArray(record.scoresAverage) ? record.scoresAverage.filter((k): k is string => typeof k === 'string' && scores[k] !== undefined) : [];
+}
+
+/**
+ * The scores a roll changed (the kindred, a trade), each with its roll: the GM's card marks them and the review says
+ * "(rolled N)". A score left at the average is no roll, whatever the kindred did to it (caf-7, finding 9).
+ */
+export function changedRolls(creation: unknown): { key: string; rolled: unknown }[] {
   const record = isRecord(creation) ? creation : {};
   const scores = isRecord(record.scores) ? record.scores : {};
   const rolled = isRecord(record.rolled) ? record.rolled : {};
+  const notRolled = new Set(notRolledScores(creation));
   return Object.keys(scores)
-    .map((key) => `${label(key)} ${String(scores[key])}${rolled[key] !== undefined && rolled[key] !== scores[key] ? ` (rolled ${String(rolled[key])})` : ''}`)
+    .filter((key) => !notRolled.has(key) && rolled[key] !== undefined && rolled[key] !== scores[key])
+    .map((key) => ({ key, rolled: rolled[key] }));
+}
+
+/** "STR 14 (rolled 13), WIT 9": the scores once, each changed one with its roll; a score not rolled carries none (caf-7). */
+export function scoresLine(creation: unknown, label: (key: string) => string): string {
+  const record = isRecord(creation) ? creation : {};
+  const scores = isRecord(record.scores) ? record.scores : {};
+  const changed = new Map(changedRolls(creation).map((c) => [c.key, c.rolled]));
+  return Object.keys(scores)
+    .map((key) => `${label(key)} ${String(scores[key])}${changed.has(key) ? ` (rolled ${String(changed.get(key))})` : ''}`)
     .join(', ');
 }
 
@@ -67,15 +91,21 @@ export function withoutException(creation: unknown, e: { step: string; entryId: 
   return record;
 }
 
+/** A count in words for "All six" (caf-7); past twelve, the figure. */
+const COUNT_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+
 /**
- * The scores left at the average, never touched (final drafts A5, slice B): "Wit 10, Lore 10: the average, not
- * rolled". '' when every score was rolled, or the record predates the flag.
+ * The scores left at the average, never touched (final drafts A5; caf-7): named with no figure, "Wit, Lore: the
+ * average, not rolled"; with none rolled, "All six: the average, not rolled", the count from the record's scores.
+ * '' when every score was rolled, or the record predates the list.
  */
 export function averageScoresLine(creation: unknown, label: (key: string) => string): string {
   const record = isRecord(creation) ? creation : {};
-  const scores = isRecord(record.scores) ? record.scores : {};
-  const left = Array.isArray(record.scoresAverage) ? record.scoresAverage.filter((k): k is string => typeof k === 'string' && scores[k] !== undefined) : [];
-  return left.length === 0 ? '' : `${left.map((k) => `${label(k)} ${String(scores[k])}`).join(', ')}: the average, not rolled`;
+  const all = Object.keys(isRecord(record.scores) ? record.scores : {}).length;
+  const left = notRolledScores(creation);
+  if (left.length === 0) return '';
+  const who = left.length === all && all > 1 ? `All ${COUNT_WORDS[all] ?? String(all)}` : left.map(label).join(', ');
+  return `${who}: the average, not rolled`;
 }
 
 /** The picks the GM must approve specially (ruled 2026-11-02, ca-3): bold, with the requirement they miss. */

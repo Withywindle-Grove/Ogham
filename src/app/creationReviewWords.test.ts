@@ -1,6 +1,6 @@
 // The creation review's words (M5b step 0c, slice 7; cr-18, ca-3). Every name and number is invented.
 import { describe, expect, it } from 'vitest';
-import { cantUseLine, coinRolled, firstProblem, gearGroups, moneyOf, scoresLine, specialLines, spellSources } from './creationReview.ts';
+import { averageScoresLine, cantUseLine, coinRolled, firstProblem, gearGroups, moneyOf, scoresLine, specialLines, spellSources } from './creationReview.ts';
 
 const gp = { key: 'gp', label: 'Gold', valueInBase: 10 };
 const coins = [gp, { key: 'sp', label: 'Silver', valueInBase: 1 }];
@@ -16,6 +16,30 @@ describe('the creation review’s words', () => {
     const label = (key: string) => key.toUpperCase();
     expect(scoresLine({ scores: { mus: 14, wit: 9 }, rolled: { mus: 13, wit: 9 } }, label)).toBe('MUS 14 (rolled 13), WIT 9');
     expect(scoresLine(null, label)).toBe('');
+  });
+
+  // Purpose (caf-7, finding 9): a score in the record's not-rolled list never reads "(rolled N)", whatever the kindred
+  // did to it; a rolled score the kindred changed still does.
+  it('a score not rolled carries no "(rolled N)"; a rolled one the kindred changed keeps it (caf-7)', () => {
+    const label = (key: string) => key.toUpperCase();
+    const creation = { scores: { mus: 12, nim: 10, grt: 13 }, rolled: { mus: 12, nim: 9, grt: 14 }, scoresAverage: ['nim'] };
+    expect(scoresLine(creation, label)).toBe('MUS 12, NIM 10, GRT 13 (rolled 14)');
+    expect(scoresLine({ ...creation, scoresAverage: ['mus', 'nim', 'grt'] }, label)).toBe('MUS 12, NIM 10, GRT 13');
+  });
+
+  // Purpose (caf-7): the line under the scores names the ones not rolled with no figure; with none rolled it says
+  // "All six" (the count in words from the record's scores, so four scores say "All four"); with every score rolled, or
+  // a record from before the list, there is no line.
+  it('the line under the scores names what was not rolled, with no figure, and "All six" for none rolled (caf-7)', () => {
+    const label = (key: string) => key.toUpperCase();
+    const six = { mus: 9, nim: 10, grt: 8, wit: 9, lore: 9, charm: 9 };
+    expect(averageScoresLine({ scores: six, scoresAverage: ['nim'] }, label)).toBe('NIM: the average, not rolled');
+    expect(averageScoresLine({ scores: six, scoresAverage: ['wit', 'lore'] }, label)).toBe('WIT, LORE: the average, not rolled');
+    expect(averageScoresLine({ scores: six, scoresAverage: Object.keys(six) }, label)).toBe('All six: the average, not rolled');
+    expect(averageScoresLine({ scores: { mus: 9, nim: 10, grt: 8, wit: 9 }, scoresAverage: ['mus', 'nim', 'grt', 'wit'] }, label)).toBe('All four: the average, not rolled');
+    expect(averageScoresLine({ scores: six, scoresAverage: [] }, label)).toBe('');
+    expect(averageScoresLine({ scores: six, rolled: { mus: 9 } }, label)).toBe('');
+    expect(averageScoresLine({ scores: six, scoresAverage: ['nim'] }, label)).not.toMatch(/\d/);
   });
 
   it('a special-approval pick is said in bold with the requirement it misses (ca-3)', () => {
