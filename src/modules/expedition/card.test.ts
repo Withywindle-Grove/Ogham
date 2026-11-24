@@ -209,7 +209,7 @@ describe('Check now on the card (M5 gate fix)', () => {
 describe("a place's own check on the card ('Which table?' tags, d5-12)", () => {
   // Purpose (d5-12, ruled 2026-11-20: "Yes to all three"): when a place's own check is the one that hit, its own
   // table reads "this place" in that hit's list, not "this check"; a mode's check that hits keeps "this check".
-  it.fails("a place's own check that hits tags its table as the place's; a mode's keeps its own", () => {
+  it("a place's own check that hits tags its table as the place's; a mode's keeps its own", () => {
     const check = readCheck({ id: 'harbour-wander', name: 'Encounters on the water', chance: { die: 'd6', on: [1] }, onHit: { tableChoices: ['on-the-water', 'under-the-piles'] } })!;
     const prompt = { ...checkPrompt(check, 'encounter', null), kind: 'check' as const, stepId: null, count: 1, again: false };
     const [place] = cardFrom({ prompts: [{ ...prompt, source: 'location' as const }], rest: null, reminders: [], to: 0 });

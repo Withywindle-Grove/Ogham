@@ -121,7 +121,7 @@ describe("the scene's candidates at a place with its own check (the tables-row f
   // Purpose (d5-13, ruled 2026-11-20): a place's own check that stands in for the mode's has its table gathered as this
   // place's, after the mode's and the GM's own; the list leads with it as the suggestion, and the mode's tables stay
   // in the list with no tag ("this check" would be untrue there), while the GM's own check's table keeps "this check".
-  it.fails("a place's check that stands in has its table gathered as the place's, the mode's tables untagged", () => {
+  it("a place's check that stands in has its table gathered as the place's, the mode's tables untagged", () => {
     // Reached by name: sceneCandidatesOf did not exist when this test was written (tests first, bq-6).
     const gather = (tableListModule as unknown as Record<string, (input: Record<string, unknown>) => TableCandidate[]>).sceneCandidatesOf!;
     const harbour = { packId: 'pack-reed', entryId: 'drowned-harbour', name: 'The Drowned Harbour', data: { encounterCheck: { name: 'Encounters on the water', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, onHit: { tableId: 'on-the-water' } } } };
@@ -155,7 +155,7 @@ describe("the scene's candidates at a place with its own check (the tables-row f
 
   // Purpose (d5-13): when the place's check names a table the mode also names, it is one row, the place's, and it is
   // the suggestion; the mode's other table stays in the list with no tag.
-  it.fails("a table the mode names too is one row, the place's; the mode's other table untagged", () => {
+  it("a table the mode names too is one row, the place's; the mode's other table untagged", () => {
     // Reached by name: sceneCandidatesOf did not exist when this test was written (tests first, bq-6).
     const gather = (tableListModule as unknown as Record<string, (input: Record<string, unknown>) => TableCandidate[]>).sceneCandidatesOf!;
     const harbour = { packId: 'pack-reed', entryId: 'drowned-harbour', name: 'The Drowned Harbour', data: { encounterCheck: { name: 'Encounters on the water', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, onHit: { tableId: 'on-the-water' } } } };
@@ -169,7 +169,7 @@ describe("the scene's candidates at a place with its own check (the tables-row f
 
   // Purpose (d5-13): the mode's tables lose their tag whatever it was (a terrain's, a region's, a season's), and a
   // pinned one keeps its pin, at a place whose check stands in.
-  it.fails("every tag of the mode's goes at a place whose check stands in, and a pin stays", () => {
+  it("every tag of the mode's goes at a place whose check stands in, and a pin stays", () => {
     const gather = (tableListModule as unknown as Record<string, (input: Record<string, unknown>) => TableCandidate[]>).sceneCandidatesOf!;
     const harbour = { packId: 'pack-reed', entryId: 'drowned-harbour', name: 'The Drowned Harbour', data: { encounterCheck: { name: 'Encounters on the water', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, onHit: { tableId: 'on-the-water' } } } };
     const found = gather({ mode: [cand('marsh', 'terrain'), cand('fen-lands', 'region'), cand('thaw', 'season', 'thaw')], own: [], place: placeCheckOf([harbour], []), rules: null });
@@ -183,7 +183,7 @@ describe("the scene's candidates at a place with its own check (the tables-row f
 
   // Purpose: the check counts when a parent region owns it and the place the party stands at has none of its own; it
   // stands in there, so the mode's table stays with no tag (d5-13).
-  it.fails("a check owned by a parent region counts at a place inside it", () => {
+  it("a check owned by a parent region counts at a place inside it", () => {
     // Reached by name: sceneCandidatesOf did not exist when this test was written (tests first, bq-6).
     const gather = (tableListModule as unknown as Record<string, (input: Record<string, unknown>) => TableCandidate[]>).sceneCandidatesOf!;
     const jetty = { packId: 'pack-reed', entryId: 'the-jetty', name: 'The jetty', data: { type: 'site' } };

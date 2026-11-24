@@ -101,7 +101,7 @@ describe('a destination row (mc-36, mc-36a)', () => {
   // mark, the two pins beside Move on (the app's `travel` mark), above its word and its time, so every button in a row
   // keeps one shape: an invented way, a link that names no way, a way given no id at all, and a way whose pack names an
   // icon the set lacks. The mark is decoration: the button's label stays its word and time.
-  it.fails('shows the generic way mark above an unknown way’s word', () => {
+  it('shows the generic way mark above an unknown way’s word', () => {
     const ways = [
       { key: 'r1|wade', word: 'Wade', time: '2 turns', by: 'wade' },
       { key: 'r2|', word: 'Move', time: '1 turn', by: '' },
@@ -138,7 +138,7 @@ describe('a destination row (mc-36, mc-36a)', () => {
 
   // Purpose: the gallery's and the layout page's harbour shows the pictures as the app will: Rowing the oars,
   // Swimming the two fish, Climbing the climber, and "Along the piles" and Wading the generic way mark (d5-11).
-  it.fails('draws the pictures on the gallery’s rows', () => {
+  it('draws the pictures on the gallery’s rows', () => {
     render(<MoveOnLayoutPage state="list" />);
     const rowing = screen.getAllByRole('button', { name: /^Rowing, / })[0]!;
     expect(rowing.querySelector('.way-button__icon path')!.getAttribute('d')).toBe(ICON_SET.paddles.d);
