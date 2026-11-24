@@ -2,6 +2,7 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { crc32, deflateSync } from 'node:zlib';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -258,6 +259,62 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
       expect(result.status).toBe(1);
       expect(result.stderr).toContain('A private name was found in docs/new.md, line 1.');
       expect(result.stderr).toContain('A private name was found in docs/odd.txt, line 2.');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  // A picture's compressed pixel bytes can spell a short name by chance (PR #64): the scan skips them.
+  it.fails("passes a picture whose pixel bytes happen to spell a name, in the end result and in each commit", () => {
+    const chunk = (type, data) => {
+      const body = Buffer.concat([Buffer.from(type, 'latin1'), data]);
+      const out = Buffer.alloc(12 + data.length);
+      out.writeUInt32BE(data.length, 0);
+      body.copy(out, 4);
+      out.writeUInt32BE(crc32(body), 8 + data.length);
+      return out;
+    };
+    const png = (pixels) =>
+      Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk('IHDR', Buffer.alloc(13)), chunk('IDAT', Buffer.from(pixels, 'latin1')), chunk('IEND', Buffer.alloc(0))]);
+    const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xfe, 0x00, 0x07]), Buffer.from('quiet'), Buffer.from([0xff, 0xda, 0x00, 0x02]), Buffer.from('\x01 GWC \x02', 'latin1'), Buffer.from([0xff, 0xd9])]);
+    const dir = repoWith({ 'docs/pic.png': png('\x01 GWC \x02'), 'docs/photo.jpg': jpeg });
+    try {
+      commitMore(dir, { 'docs/pic.png': png('\x03\nthe Gloomwater Codex\n\x04') });
+      const result = scan(dir, { GRIMOIRE_NAMES: list });
+      expect(result.stderr).toBe('');
+      expect(result.status).toBe(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  // Skipping the pixels must not skip the words a picture carries, nor a text file that is only named like a picture.
+  it.fails("still finds a name in a picture's text (a PNG's tEXt, zTXt and iTXt, a JPEG's comment) and in a text file named .png", () => {
+    const chunk = (type, data) => {
+      const body = Buffer.concat([Buffer.from(type, 'latin1'), data]);
+      const out = Buffer.alloc(12 + data.length);
+      out.writeUInt32BE(data.length, 0);
+      body.copy(out, 4);
+      out.writeUInt32BE(crc32(body), 8 + data.length);
+      return out;
+    };
+    const png = (textChunk) =>
+      Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk('IHDR', Buffer.alloc(13)), textChunk, chunk('IDAT', Buffer.from('clean')), chunk('IEND', Buffer.alloc(0))]);
+    const tEXt = chunk('tEXt', Buffer.from('Comment\0the Gloomwater Codex', 'latin1'));
+    const zTXt = chunk('zTXt', Buffer.concat([Buffer.from('Comment\0\0', 'latin1'), deflateSync(Buffer.from('the Gloomwater Codex'))]));
+    const iTXt = chunk('iTXt', Buffer.concat([Buffer.from('Comment\0\x01\0en\0\0', 'latin1'), deflateSync(Buffer.from('the GWC pack'))]));
+    const comment = Buffer.from('the GWC pack');
+    const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xfe, 0x00, comment.length + 2]), comment, Buffer.from([0xff, 0xda, 0x00, 0x02, 0x10, 0xff, 0xd9])]);
+    const dir = repoWith({ 'docs/a.png': png(tEXt), 'docs/b.png': png(zTXt), 'docs/c.png': png(iTXt), 'docs/photo.jpg': jpeg, 'docs/fake.png': 'one\nthe GWC pack\n' });
+    try {
+      const result = scan(dir, { GRIMOIRE_NAMES: list });
+      expect(result.status).toBe(1);
+      for (const file of ['docs/a.png', 'docs/b.png', 'docs/c.png', 'docs/photo.jpg']) {
+        expect(result.stderr).toContain(`A private name was found in ${file} (the text it carries).`);
+        expect(result.stderr).toMatch(new RegExp(`A private name was found in commit [0-9a-f]{7}: ${file.replace('.', '\\.')} \\(the text it carries\\)\\.`));
+      }
+      expect(result.stderr).toContain('A private name was found in docs/fake.png, line 2.');
+      expect(result.stderr.toLowerCase()).not.toContain('gloomwater');
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
