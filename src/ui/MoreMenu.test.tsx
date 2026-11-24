@@ -173,7 +173,7 @@ describe('the ⋯ menu', () => {
   });
 
   // Purpose: a ⋯ menu shown as a gallery example lets a tap outside reach what is underneath.
-  it.fails('a ⋯ menu shown as a gallery example lets a tap outside reach what is underneath', async () => {
+  it('a ⋯ menu shown as a gallery example lets a tap outside reach what is underneath', async () => {
     const user = userEvent.setup();
     const beneath = vi.fn();
     render(

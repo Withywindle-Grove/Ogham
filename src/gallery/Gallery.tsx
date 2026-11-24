@@ -598,7 +598,7 @@ export function Gallery() {
         </Specimen>
         <Specimen name="⋯ menu, shown open: a symbol beside each option, 48 px rows, This device below a divider; the version and Check for a new version at its foot (F55)">
           <div className="gallery__menu">
-            <MoreMenu label="Character options" startOpen>
+            <MoreMenu label="Character options" startOpen specimen>
               <MenuItems>
                 <MenuItem icon="characters" onClick={() => undefined}>
                   Your characters

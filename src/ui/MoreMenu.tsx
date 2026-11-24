@@ -12,6 +12,7 @@ export function MoreMenu({
   label,
   startOpen = false,
   children,
+  specimen = false,
 }: {
   label: string;
   startOpen?: boolean;
@@ -54,17 +55,20 @@ export function MoreMenu({
         button.current?.focus();
       }
     };
-    document.addEventListener('pointerdown', onPointer);
-    document.addEventListener('pointercancel', onCancel);
-    document.addEventListener('click', onClick, true);
     document.addEventListener('keydown', onKey);
+    // A gallery example (`specimen`) has no tap-outside handling: it stays shown open and the tap goes where it lands.
+    if (!specimen) {
+      document.addEventListener('pointerdown', onPointer);
+      document.addEventListener('pointercancel', onCancel);
+      document.addEventListener('click', onClick, true);
+    }
     return () => {
       document.removeEventListener('pointerdown', onPointer);
       document.removeEventListener('pointercancel', onCancel);
       document.removeEventListener('click', onClick, true);
       document.removeEventListener('keydown', onKey);
     };
-  }, [open]);
+  }, [open, specimen]);
 
   return (
     <div className="more-menu" ref={root}>
