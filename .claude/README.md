@@ -7,10 +7,10 @@ Moved out of `CLAUDE.md` on 2026-11-01 (P6: CLAUDE.md stays under a page). `CLAU
 Claude may change the roles, models and batching below under Technical ownership (`CLAUDE.md`), but not in a way that raises spend or the session or memory limits.
 
 Agents live in `.claude/agents/` (`claude --agent driver`, `claude --agent builder`).
-- **The driver, Fable, medium** (`driver`, rvw-3; Fable by Francis, 2026-11-19): the one session Francis talks to. It orders the work, writes each worker's brief, starts builders and a reviewer as short-lived workers, looks at pictures, and merges. Details in `.claude/agents/driver.md`.
-- **Fable, high** (`designer`, rvw-4): only a short design sitting that ends in a ruling file: a question that touches the data model, permissions or hidden data; a screen with no approved mockup; anything that failed twice on Opus. The driver stops and says so when it meets one. A `designer` the driver starts from a brief (Opus) draws mockups as a studio worker.
+- **The driver, Opus, medium, advisor Fable** (`driver`, rvw-3; Francis, 2026-11-24): the one session Francis talks to. It orders the work, writes each worker's brief, starts builders and a reviewer as short-lived workers, looks at pictures, and merges. Details in `.claude/agents/driver.md`.
+- **Fable, medium** (`designer`, rvw-4; medium from 2026-11-24): only a short design sitting that ends in a ruling file: a question that touches the data model, permissions or hidden data; a screen with no approved mockup; anything that failed twice on Opus. The driver stops and says so when it meets one. A `designer` the driver starts from a brief (Opus) draws mockups as a studio worker.
 - **Fable, high** (`project-review`, ruled 2026-11-10): reviews how we build, the app's architecture as built against as specified, and the pack pipeline, for cost, efficiency, efficacy and quality, after each milestone gate and on demand. It reports first and makes small technical fixes only on Francis's yes; on packs it advises, and the Pack Creator decides or sends the question to Design. Reports in `docs/health/project-review-<date>.md`.
-- **Opus, high** (`builder`; Francis, 2026-11-19): build steps, as short-lived workers of the driver. **A fresh worker per row and per fix round** (Francis, 2026-11-22): one builder builds one row and stops; each row of a batch, and each round of review fixes, is done by a fresh short-lived worker that commits to the batch's branch; a worker is never resumed for a later round (Saving CI minutes, below). **Fable, high, only on Francis’s yes each time** (rvw-18): the steps listed in `.claude/agents/builder.md`, Escalating to Fable.
+- **Opus, medium, advisor Fable** (`builder`; Francis, 2026-11-24): build steps, as short-lived workers of the driver. **A fresh worker per row and per fix round** (Francis, 2026-11-22): one builder builds one row and stops; each row of a batch, and each round of review fixes, is done by a fresh short-lived worker that commits to the batch's branch; a worker is never resumed for a later round (Saving CI minutes, below). **Fable, high, only on Francis’s yes each time** (rvw-18): the steps listed in `.claude/agents/builder.md`, Escalating to Fable.
 - **Opus, medium** (`reviewer`, read-only): against `REVIEW.md`. **Each code pull request gets one local review before it merges (ruled 2026-11-10):** the driver runs the `reviewer` once on it; docs-only and scripts-only pull requests are skipped; a pull request with a migration or access rules is always reviewed. The findings go in one comment on the pull request, and the pull request's text says "Reviewed: local reviewer, N findings, fixed / not"; for a pull request that draws a screen the comment names the mockup or ruling it was compared against. The CI review (P3) runs the same file when its API credit allows; it is not a substitute. **The order (restated 2026-11-13, rv-1):** the reviewer reports first; auto-merge is set only after its comment is on the pull request. Until 2026-12-01 the CI review is at its cap and the local review is the only one. One cloud seat may stay for first reviews (rvw-11).
 - **Opus, high** (`pack-reviewer`, read-only): an independent re-check of each pack review or build against the books, the private pack and the app, run in a fresh session; it reads the pack session's note last (ruled 2026-11-03, `docs/plans/pack-review-method.md`).
 - **Sonnet** (`tester`, `docs-sync`, `pack-tools`): tests, fixtures, docs sync, 09 lines, pack scripts, changelog, inventory Code column. Merges, conflicts and watching CI also go to Sonnet or Haiku workers (rvw-10).
@@ -18,6 +18,8 @@ Agents live in `.claude/agents/` (`claude --agent driver`, `claude --agent build
 - **At most four local sessions at once** (rvw-10; cloud builders are outside the four, Francis, 2026-11-19): the driver, two builders on the same screen (rows that share no file), one reviewer on demand. **Cloud builders: no restrictions** (Francis, 2026-11-19, ending rvw-11): the driver uses cloud seats for building rows whenever the local seats are full; the other rules hold (one check run per batch, batches that share no file, the brief with the guard line).
 - **The exception to rvw-10** (Francis, 2026-11-17): the day before the reset the driver reads the week's meter with Francis. If usage will be left, it may add seats only for data-and-logic rows of the next screen, tests and owed look-back reviews, the checks for rvw-6 and rvw-7, and clean-up that touches no file a live row holds; never a second screen's visible rows, never more seats than the PC's memory allows.
 - **Two checks at once (ln-1, 2026-11-14; placed here 2026-11-18, Francis):** two checks may run at once while free memory is 12 GB or more; one below 10 GB. The second runs only with three test workers, only with 13 GB free at its start, and is dropped below 9 GB; a layout run counts as a heavy thing. Ruling: `docs/design/rulings/dec-pack-town-players-2026-11-14.md`.
+
+- **The advisor** (Francis, 2026-11-24): Fable is the advisor for every session in this project (`advisorModel` in `.claude/settings.json`); workers inherit it. The agent files can't set an advisor.
 
 ## Skills (Francis, 2026-11-21)
 
@@ -53,7 +55,7 @@ Where this section differs from the rules above or in `CLAUDE.md`, those rules w
 - `frontend-design`: the default for building new UI; `uiux` if it isn't available.
 - `design:accessibility-review`: before a UI ships.
 - `design:ux-copy`: labels, errors, empty states (within the words and voice guide in 06).
-- `impeccable`: only when Francis names it or one of its commands (When to name them, below).
+- `impeccable`: only when Francis names it or one of its commands (When to name them, below), with one standing use: the designer runs `impeccable critique` on each new mockup page before it goes to him (2026-11-24).
 - `hallmark`: only when Francis names it.
 - `design:design-critique`: only when he asks for a critique without naming `impeccable`.
 
@@ -78,7 +80,7 @@ Used on drawings (mockup pages) and as reports on built screens; never handed to
 
 | When the driver | It offers |
 |---|---|
-| puts a new mockup page to him for approval | `critique`; for a whole new screen also `hallmark` |
+| puts a new mockup page to him for approval | for a whole new screen, `hallmark` (`critique` already ran: the designer's findings sit beside the drawing) |
 | tells him a screen is ready to retest, or a gate is near | `audit` |
 | hears him say a screen is busy, misaligned or easy to miss | the matching command from the table above |
 | brings a plan with undrawn states | `harden` |
@@ -122,7 +124,7 @@ Used on drawings (mockup pages) and as reports on built screens; never handed to
 - Fresh session per topic; `/compact` before a long build step; point to files, never paste whole docs into prompts.
 - Read the spec section you need, not the file (specs are large); the scout fetches line ranges.
 - Subagents return summaries; never ask them to paste logs or files back.
-- Fable only for the driver (Francis, 2026-11-19) and through the `designer` and `project-review` agents; Fable sessions start with the question and the files, not with history.
+- Fable only as the advisor and through the `designer` and `project-review` agents (Francis, 2026-11-24); Fable sessions start with the question and the files, not with history.
 - Francis watches Settings → Usage weekly: Fable stays under 35% of the week; past that, the rest of the week's design runs on Opus.
 - **November 2026 (Francis, 2026-11-01): a larger plan for the month.** The 35% rule is off until it ends; design sittings stay on Fable. The weekly rule returns on 2026-12-01 unless Francis says otherwise.
 - If the plan drops to a smaller one: `designer` switches to `model: opus`, effort high; Fable only for one or two approved decisions a month on credits.

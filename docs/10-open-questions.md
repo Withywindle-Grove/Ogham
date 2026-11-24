@@ -11,6 +11,7 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 **The Scene, point to point** (`design/rulings/scene-point-to-point-2026-11-18.md`)
 
 **Later**
+- ⚑ **Laptops, widescreen** (2026-11-24, `01` Devices): laptops are the second device, for downtime; how windows scale past the tablet's landscape layout (1024 px and up, `06`) needs a short design session before anything in `06` changes.
 - **After 5 December: text shown on hover, for a PC** (euf-8, Francis, 2026-11-19: "we'll want to support pc more in the future but not prior to dec 5"). A player asked for an ability's description on hover; on a tablet a tap on the name opens it.
 - **After 5 December: players arrange the sections of their own screen, saved to their view** (euf-9, 2026-11-19). "Arrange this screen" was removed on 2026-10-26; its command and log lines are kept (05). Until then the pins and their order are the player's way to arrange the Player tab.
 - ⚑ **The Pack tab's sitting: movement with the burden in one box, and the three to five heaviest things** (a player's idea; euf-7, 2026-11-19: not on the Player tab, "we'll need to figure out a way to implement it on Pack Tab"), with the same player's note on the ⓘ beside "In the backpack" (`intents/player-tab-end-user-feedback-2026-11-19.md`, messages 3, 4 and 6).
@@ -52,7 +53,7 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 - ⚑ Whether the world appendix (gods, languages, institutions) becomes a GM table (gods for clerics' choices; needs a new table `use`) or stays reference text — decide when adventure packs are real.
 
 **M9 hirelings design session (ruled 2026-11-04, 08 M9)**
-- ⚑ Date for the hirelings / holdings / organizations design session (survey, paper test, ruling): after the M5b gate, before M7b.
+- ⚑ Date for the hirelings / holdings / organizations design session (survey, paper test, ruling): a full design session after the 5 December play session, not before (Francis, 2026-11-24; was "after the M5b gate, before M7b").
   - On its agenda (2026-11-05): a companion whose bonuses count on its owner's sheet while it serves (familiars, ao-2; a5-5's conjured companion is the nearest shape).
 - ⚑ Date for the prep-space paper test, scope tables and encounters (ha-1): after the gate and the hirelings session, before M6 starts.
   - On its agenda (2026-11-05, Francis): a creature's rolled tables used in prep as well as at the table: flavour tables (features, what it's doing, names, lairs) and variant rows that apply a modification, rolled ahead of a session and saved with the prepared foe.
