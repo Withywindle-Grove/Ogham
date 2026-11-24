@@ -31,7 +31,7 @@ const TURN = 600;
  * line, tfs-2) and three more skills beside Hark: a long-named one rolled the target or higher ("6+ on d6", tfs-3), one
  * "2-in-6" and one "35%" (the pack's other styles; plan test-feedback-2026-11-19 rows C13, C14); `pins`, the four of P1
  * with an ability without uses and the trait with uses pinned, in that order (row P3; page 28: a row and a block in the
- * right column's list). The light's states (plan light-tap, page 35): `unlit`, the lantern put out with 4 turns kept in
+ * right column's list), and a second trait with uses, Beacon call, unpinned (a plain row after the pins, page 38's fix 4). The light's states (plan light-tap, page 35): `unlit`, the lantern put out with 4 turns kept in
  * it (35B); `several`, nothing lit and two lights to light, the lantern and reed torches (35E2, 1); `burnt`, the lantern
  * burnt out with its oil and the torches (Refill and Light another, 35E2, 3); `burntnone`, a reed torch burnt out and no
  * light left in the pack (35E2, 4); `longlight`, the lantern named at length with 999 turns and 999 refills (35D).
@@ -88,6 +88,11 @@ export async function addP1Character(
             const attack = typeof row.level === 'number' && row.level >= 3 ? 1 : 0;
             return { ...row, attack, saves: { ...saves, ...Object.fromEntries(Object.entries(MORE_SAVES).map(([k, d]) => [k, mire + d])) } };
           }),
+          // For `pins`, a second trait with uses, left unpinned, so a plain row follows the pinned boxes under "Abilities
+          // and traits" (plan dec-14, fix 4's "not drawn together" case). Invented.
+          ...(head === 'pins' && Array.isArray(data.abilities)
+            ? { abilities: [...(data.abilities as unknown[]), { name: 'Beacon call', note: 'Calls the lost toward the light.', blurb: 'Calls the lost toward the light.', uses: { count: 2, per: 'day' } }] }
+            : {}),
           // A long level title for the screen's messy data (dec-13 C11), at level 3.
           ...(head === 'bare' && Array.isArray(data.levelTitles) ? { levelTitles: [...(data.levelTitles as string[]).slice(0, 2), 'Warden of the Long Causeway and the Seven Drowned Cairns'] } : {}),
         };
