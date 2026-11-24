@@ -952,7 +952,7 @@ describe('a deleted player’s Got it line', () => {
   const seen = (extra: Partial<LogEvent>) => event('hook.seen', { level: 'verbose', targetTable: 'calls_seen', targetId: null, after: { send_id: 'send-1' }, ...extra });
 
   // Purpose: once a player's account is deleted (the line's author emptied), their Got it line reads "A former player marked a call as seen."
-  it.fails('reads “A former player” once the account is gone', () => {
+  it('reads “A former player” once the account is gone', () => {
     expect(say(seen({ actorUserId: null }))).toBe('A former player marked a call as seen.');
   });
 
