@@ -82,6 +82,7 @@ describe('the ⋯ menu', () => {
     localStorage.clear();
   });
 
+  // Purpose: a finger's tap outside the ⋯ menu only closes it and does not act on what lies beneath (fix-more-menu-tap).
   it('A tap outside the ⋯ menu closes it and does not act on what lies beneath (fix-more-menu-tap)', async () => {
     const user = userEvent.setup();
     const beneath = vi.fn();
@@ -97,16 +98,54 @@ describe('the ⋯ menu', () => {
         </MoreMenu>
       </>,
     );
-    // A mouse press and a finger's tap alike.
-    await user.click(screen.getByRole('button', { name: 'Bog lurker' }));
-    expect(screen.queryByRole('button', { name: 'Lantern Warden' })).toBeNull();
-    expect(beneath).not.toHaveBeenCalled();
-    await user.click(screen.getByRole('button', { name: 'Options' }));
     await user.pointer({ keys: '[TouchA]', target: screen.getByRole('button', { name: 'Bog lurker' }) });
     expect(screen.queryByRole('button', { name: 'Lantern Warden' })).toBeNull();
     expect(beneath).not.toHaveBeenCalled();
     // Once it's closed, the next tap acts as usual.
     await user.click(screen.getByRole('button', { name: 'Bog lurker' }));
+    expect(beneath).toHaveBeenCalledTimes(1);
+  });
+
+  // Purpose: A mouse press outside the ⋯ menu closes it at once, as before.
+  it('A mouse press outside the ⋯ menu closes it at once, as before', async () => {
+    const user = userEvent.setup();
+    const beneath = vi.fn();
+    render(
+      <>
+        <button type="button" onClick={beneath}>
+          Bog lurker
+        </button>
+        <MoreMenu label="Options" startOpen>
+          <MenuItem icon="scales" onClick={() => undefined}>
+            Lantern Warden
+          </MenuItem>
+        </MoreMenu>
+      </>,
+    );
+    // The press alone, before any click.
+    await user.pointer({ keys: '[MouseLeft>]', target: screen.getByRole('button', { name: 'Bog lurker' }) });
+    expect(screen.queryByRole('button', { name: 'Lantern Warden' })).toBeNull();
+  });
+
+  // Purpose: A key press after a stray touch outside does not leave the next click swallowed.
+  it('A key press after a stray touch outside does not leave the next click swallowed', () => {
+    const beneath = vi.fn();
+    render(
+      <>
+        <button type="button" onClick={beneath}>
+          Bog lurker
+        </button>
+        <MoreMenu label="Options" startOpen>
+          <MenuItem icon="scales" onClick={() => undefined}>
+            Lantern Warden
+          </MenuItem>
+        </MoreMenu>
+      </>,
+    );
+    const outside = screen.getByRole('button', { name: 'Bog lurker' });
+    fireEvent.pointerDown(outside, { pointerType: 'touch' });
+    fireEvent.keyDown(outside, { key: 'Enter' });
+    fireEvent.click(outside);
     expect(beneath).toHaveBeenCalledTimes(1);
   });
 
@@ -125,7 +164,7 @@ describe('the ⋯ menu', () => {
       </>,
     );
     const outside = screen.getByRole('button', { name: 'Bog lurker' });
-    fireEvent.pointerDown(outside);
+    fireEvent.pointerDown(outside, { pointerType: 'touch' });
     fireEvent.pointerCancel(outside);
     expect(screen.getByRole('button', { name: 'Lantern Warden' })).toBeTruthy();
     // A click with no press of its own (a key on a focused button) is not taken for the end of that tap.

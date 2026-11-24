@@ -16,12 +16,16 @@ export function MoreMenu({ label, startOpen = false, children }: { label: string
 
   useEffect(() => {
     if (!open) return;
-    // A tap outside only closes it (06 rule 12, fix-more-menu-tap; as pop-ups, fix-tap-through): the press is
-    // remembered and the same tap's click closes it, stopped before it reaches what lies under the finger. A press the
-    // browser cancels (a scroll) is forgotten; a click with no press of its own (a key) is let through.
+    // A finger's or a pen's tap outside only closes it (06 rule 12, fix-more-menu-tap; as pop-ups, fix-tap-through): the
+    // press is remembered and the same tap's click closes it, stopped before it reaches what lies under the finger. A
+    // mouse closes it on the press, as before (its click goes where it lands). A press the browser cancels (a scroll) or
+    // a key press forgets the remembered one; a click with no press of its own (a key) is let through.
     let downOutside = false;
     const onPointer = (event: PointerEvent) => {
-      downOutside = !root.current?.contains(event.target as Node);
+      const outside = !root.current?.contains(event.target as Node);
+      const finger = event.pointerType === 'touch' || event.pointerType === 'pen';
+      downOutside = outside && finger;
+      if (outside && !finger) setOpen(false);
     };
     const onCancel = () => {
       downOutside = false;
@@ -34,6 +38,7 @@ export function MoreMenu({ label, startOpen = false, children }: { label: string
       setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
+      downOutside = false;
       if (event.key === 'Escape') {
         setOpen(false);
         button.current?.focus();
