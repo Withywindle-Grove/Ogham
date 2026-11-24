@@ -122,6 +122,8 @@ export function PlayerScreen({
   const [logOpen, setLogOpen] = useState(false);
   const logOpener = useRef<HTMLElement | null>(null);
   const select = (next: PlayerTab) => {
+    // The Pack tab, tapped on the stash's screen, returns to the pack (K11).
+    if (next === 'pack') setStashOpen(false);
     if (next !== 'log') return setTab(next);
     logOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setLogOpen(true);
@@ -140,6 +142,11 @@ export function PlayerScreen({
   const logVersion = useLogVersion();
   // On a landscape tablet the Pack tab uses the right-hand column too (Add item opens there).
   const [packSide, setPackSide] = useState<HTMLElement | null>(null);
+  // The party stash's own screen on the Pack tab (K11, pk-4): the bar names it and its way back returns to the pack.
+  const [stashOpen, setStashOpen] = useState(false);
+  useEffect(() => {
+    if (tab !== 'pack') setStashOpen(false);
+  }, [tab]);
   // Where the full sheet's parts go in the two columns (dec-13 C1; player/PlayerSheetParts.tsx).
   const [savesSlot, setSavesSlot] = useState<HTMLElement | null>(null);
   const [levelSlot, setLevelSlot] = useState<HTMLElement | null>(null);
@@ -244,7 +251,13 @@ export function PlayerScreen({
   const topRow = (playerTitle: string) => (
     // Creation's standard (plan m5b-players-screens-standard A1): the title centred, ⋯ a sheet; the same bar on every tab
     // so it never jumps between them.
-    <TopRow campaign={{ db, campaign }} onBack={onBack} menuLabel="Character options" drawer={campaign.name} title={tab === 'scene' ? (phone ? undefined : '') : tab === 'pack' ? `${character.name}’s pack` : playerTitle} logTab standard />
+    tab === 'pack' && stashOpen ? (
+      // On the stash's screen (K11, PK4): the bar reads "Party stash"; on a tablet its way back returns to the pack (a
+      // phone keeps ≡, and the Pack tab returns to it).
+      <TopRow {...(phone ? { campaign: { db, campaign }, onBack } : { back: `${character.name}’s pack`, onBack: () => setStashOpen(false) })} menuLabel="Character options" drawer={campaign.name} title="Party stash" logTab standard />
+    ) : (
+      <TopRow campaign={{ db, campaign }} onBack={onBack} menuLabel="Character options" drawer={campaign.name} title={tab === 'scene' ? (phone ? undefined : '') : tab === 'pack' ? `${character.name}’s pack` : playerTitle} logTab standard />
+    )
   );
 
   if (companyOpen) {
@@ -482,6 +495,8 @@ export function PlayerScreen({
             carrierId={character.id}
             light={lightView}
             inBar
+            stashOpen={stashOpen}
+            onStash={setStashOpen}
             onChanged={onDataChange}
             side={wide ? packSide : null}
             weaponLine={weaponLine}

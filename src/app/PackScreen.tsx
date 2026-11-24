@@ -1,7 +1,7 @@
 // The Pack tab (docs/05-features.md "Inventory and encumbrance"; 06 Navigation; M4 step 4, ruled 2026-10-23; on
 // creation's standard from plan m5b-players-screens-standard C). One carrier's items, grouped by where they're carried
-// (A–Z in each group), with the load and its bar first (creation's Gear piece, LoadSummary), the folding groups and the
-// Party stash as fold rows, the items waiting for the GM as a card with the warning sign, and the foot: the count and
+// (A–Z in each group), with the load and its bar first (creation's Gear piece, LoadSummary), the folding groups as
+// fold rows, the Party stash as a row that opens its own screen (K11, StashScreen), the items waiting for the GM as a card with the warning sign, and the foot: the count and
 // Add item, the screen's one accent button. Tap an item for its sheet: its details and what you can do with it. After
 // any action on an item, or adding one, the item closes and the screen goes back to the top (ruled 2026-10-24).
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
@@ -37,9 +37,11 @@ import { useLogVersion } from './campaignLog.tsx';
 import { useWide } from './useWide.ts';
 import { ErrorToast, useToast } from '../ui/ToastHost.tsx';
 import { Dialog, SheetScope } from '../ui/Dialog.tsx';
-import { BookType, FoldedGroup } from '../ui/creation.tsx';
-import { foldSummary, itemCount } from './packHelpers.ts';
-import { CoinLine, PackFoot, WaitingCard } from './PackParts.tsx';
+import { BookType, useOnline } from '../ui/creation.tsx';
+import { itemCount } from './packHelpers.ts';
+import { CoinLine, PackFoot, StashRow, WaitingCard } from './PackParts.tsx';
+import { StashScreen } from './StashScreen.tsx';
+import { thingCount } from './stashWords.ts';
 import { PurseSheet } from './PurseSheet.tsx';
 import { coinLine, denominationsOf } from '../modules/inventory/coinWords.ts';
 import { loadPurse, type Coins } from '../modules/inventory/purse.ts';
@@ -84,7 +86,15 @@ export function PackScreen({
   onRead,
   inBar = false,
   extra = null,
+  stashOpen,
+  onStash,
 }: {
+  /**
+   * The party stash's own screen is open (K11, pk-4): held by the screen around the Pack where its bar names the stash
+   * (the Player screen); left out, the Pack keeps it itself.
+   */
+  stashOpen?: boolean;
+  onStash?: (open: boolean) => void;
   /**
    * At hand on the Player screen (dec-13 C9, ps-9; lt-4, page 35): the light's rows, lit, not lit or burnt out, drawn
    * after At hand's items and before `extra`, with no heading of their own, and the pack line they stand for (null for
@@ -133,11 +143,16 @@ export function PackScreen({
   const [open, setOpen] = useState<string | null>(null);
   const [adding, setAdding] = useState<NamedCarrier | null>(null);
   // How each folding group was left on this device (undefined until toggled here); until then they start as N19
-  // says, from what's At hand (below, once the pack is loaded). The stash on its own screen is always open.
+  // says, from what's At hand (below, once the pack is loaded).
   const [gearSaved, setGearOpen] = useFoldOpen('gear');
-  const [stashSaved, setStashOpen] = useFoldOpen('stash');
   // The items waiting for the GM: a card that opens their list as a sheet (plan C).
   const [waitingShown, setWaitingShown] = useState(false);
+  // The party stash's own screen (K11): open or not, and whom the player is taking for (PK9b).
+  const [ownStash, setOwnStash] = useState(false);
+  const stashShown = stashOpen ?? ownStash;
+  const setStash = onStash ?? setOwnStash;
+  const [takerId, setTakerId] = useState<string | null>(carrierId);
+  const online = useOnline();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [toast, setToast] = useState<{ text: string; warn: boolean } | null>(null);
@@ -190,17 +205,25 @@ export function PackScreen({
   const linesOf = (carrier: NamedCarrier | null) => (loaded && loaded !== 'error' && carrier ? loaded.lines.filter((l) => sameCarrier(l, carrier)) : []);
   const rules = loaded && loaded !== 'error' ? loaded.setting.encumbrance : null;
   const mode = loaded && loaded !== 'error' ? loaded.mode : 'none';
-  // A one-off waiting for the GM counts for nothing until approved; what isn't carried ("Other") never counts.
-  const counting = linesOf(main).filter((l) => l.approval === 'approved' && !(rules && isSeparate(l, rules)));
   // The GM's Carrying treasure switch (eq-3) rides along with the armour worn; null follows the pack.
   const treasureSwitch: TreasureSwitch = loaded && loaded !== 'error' && main?.actorId ? (loaded.treasure.get(main.actorId) ?? null) : null;
-  const countingLines = counting.map(toLoadLine);
-  const carried = rules && main && main.actorId ? carriedLoad(countingLines, rules, mode, { armour: wornArmour(countingLines, rules), carryingTreasure: treasureSwitch }) : ({ mode: 'none' } as CarriedLoad);
+  /**
+   * A character's load from what they carry (the pack's own, and a taker's room on the stash's screen, K11). A one-off
+   * waiting for the GM counts for nothing until approved; what isn't carried ("Other") never counts.
+   */
+  const loadOf = (carrier: NamedCarrier | null): CarriedLoad => {
+    if (!rules || !carrier?.actorId) return { mode: 'none' } as CarriedLoad;
+    const lines = linesOf(carrier)
+      .filter((l) => l.approval === 'approved' && !isSeparate(l, rules))
+      .map(toLoadLine);
+    const treasureOf: TreasureSwitch = loaded && loaded !== 'error' ? (loaded.treasure.get(carrier.actorId) ?? null) : null;
+    return carriedLoad(lines, rules, mode, { armour: wornArmour(lines, rules), carryingTreasure: treasureOf });
+  };
+  const carried = loadOf(main);
   const treasureSuggested = carried.mode === 'armour' ? (carried.treasureSuggested ?? carried.carriesTreasure) : false;
   // N19 (ruled 2026-10-28): with something At hand the folding groups start collapsed; with nothing, Gear starts open.
   const atHand = loaded && loaded !== 'error' && mine ? atHandLines(linesOf(mine), loaded.setting.charges).length > 0 : false;
   const gearOpen = gearSaved ?? startsOpen('gear', atHand);
-  const stashOpen = carrierId === null || (stashSaved ?? startsOpen('stash', atHand));
 
   // A brief note when the load crosses into another tier. The log line "<name> is now <tier>" is the database's:
   // it works the tier out and writes it once, whichever devices have the pack open (M5 step 4, health M4 item 11).
@@ -441,6 +464,19 @@ export function PackScreen({
   // The setting's coins (its own names, pu-10); with none named and nothing held there is no coin to show.
   const denominations = denominationsOf(loaded.setting.rulesSets);
   const coinShown = purseOf !== null && purse !== null && (denominations.length > 0 || Object.keys(purse).length > 0);
+  // The "Party stash" row (K11, PK1, PK6): a player's way to the stash's own screen, under the coin line. The GM has
+  // the stash on the console (K15 brings its own frame).
+  const stashRow = mine && stash && own && view === 'pack' && (
+    <StashRow
+      name={stash.name}
+      note={online ? thingCount(stashLines.length) : `${thingCount(stashLines.length)}, as last seen`}
+      onOpen={() => {
+        setOpen(null);
+        setStash(true);
+        toTop();
+      }}
+    />
+  );
   // The load and its notes: at the top on narrow screens; on the right on a landscape tablet.
   const summary = (
     <div className="pack__summary">
@@ -487,8 +523,69 @@ export function PackScreen({
           )}
         </BookType>
       )}
+      {stashRow}
     </div>
   );
+  if (stashShown && mine && stash && own) {
+    // The party stash's own screen (K11), in place of the pack; Put in adds to it (today's Add item, the PR's ⚑).
+    const takers = carriers.filter((c) => c.actorId !== null && c.ownerUserId === user.id);
+    const taker = takers.find((c) => c.actorId === takerId) ?? mine;
+    return (
+      <SheetScope.Provider value>
+        <h1 className={inBar ? 'visually-hidden' : 'pack__title'}>{stash.name}</h1>
+        <ErrorToast message={problem} />
+        <StashScreen
+          db={db}
+          user={user}
+          campaign={campaign}
+          stash={stash}
+          lines={stashLines}
+          allLines={loaded.lines}
+          carriers={carriers}
+          setting={loaded.setting}
+          takers={takers}
+          takerId={taker.actorId}
+          onTaker={setTakerId}
+          room={<LoadSummary load={loadOf(taker)} rules={rules} from={loaded.setting.encumbranceFrom} levelsPopUp />}
+          list={(rowNote) => (
+            <CarrierItems
+              carrier={stash}
+              lines={stashLines}
+              mode={mode}
+              rules={rules}
+              user={user}
+              campaign={campaign}
+              others={others(stash)}
+              open={open}
+              setOpen={setOpen}
+              busy={busy}
+              gearOpen
+              setGearOpen={() => undefined}
+              run={run}
+              db={db}
+              items={loaded.setting.items}
+              charges={loaded.setting.charges}
+              rechargeDefault={loaded.rechargeDefault}
+              onNote={setNote}
+              hidden={loaded.hidden}
+              packs={loaded.setting.packs}
+              setting={loaded.setting}
+              categoryName={categoryName}
+              rowNote={rowNote}
+            />
+          )}
+          onPutIn={() => setAdding(stash)}
+          side={addItem ? null : side}
+          version={logVersion}
+          onChanged={() => {
+            void load().then((fresh) => fresh && setLoaded(fresh));
+            onChanged?.();
+          }}
+        />
+        {addItem && side && createPortal(addItem, side)}
+      </SheetScope.Provider>
+    );
+  }
   const layout = !wide ? 'pack' : carrierId === null ? 'pack pack--wide pack--inventory' : side ? 'pack pack--wide pack--beside' : 'pack pack--wide pack--two';
 
   return (
@@ -621,44 +718,6 @@ export function PackScreen({
         </Dialog>
       )}
 
-      {mine && stash && carrierId !== null && (
-        // The Party stash below a pack: a fold row with its summary (plan C), N19's rule saying how it starts.
-        <section className="pack__stash" aria-label="Party stash">
-          <FoldedGroup label="Party stash" note={foldSummary(stashLines)} open={stashOpen} onToggle={(next) => (next === stashOpen ? undefined : setStashOpen(next))}>
-            {stashOpen && (
-              <>
-                <CarrierItems
-                  carrier={stash}
-                  lines={stashLines}
-                  mode={mode}
-                  rules={rules}
-                  user={user}
-                  campaign={campaign}
-                  others={others(stash)}
-                  open={open}
-                  setOpen={setOpen}
-                  busy={busy}
-                  gearOpen
-                  setGearOpen={() => undefined}
-                  run={run}
-                  db={db}
-                  items={loaded.setting.items}
-                  charges={loaded.setting.charges}
-                  rechargeDefault={loaded.rechargeDefault}
-                  onNote={setNote}
-                  hidden={loaded.hidden}
-                  packs={loaded.setting.packs}
-                  setting={loaded.setting}
-                  categoryName={categoryName}
-                />
-                <button type="button" className="button-secondary button-secondary--small" onClick={() => setAdding(stash)}>
-                  Add to the Party stash
-                </button>
-              </>
-            )}
-          </FoldedGroup>
-        </section>
-      )}
       {/* The foot (plan C): the count, then Add item, the screen's one accent button. */}
       <PackFoot count={carriedCount} onAdd={mayChangeCarrier(user, main) ? () => setAdding(main) : null} />
       </div>

@@ -1,0 +1,224 @@
+// The party stash as a screen of its own, for players (K11; pk-4, docs/design/rulings/pack-rework-rulings-2026-11-11.md;
+// mockup pack/08, frames PK4, PK6, PK7b, PK9b, approved 2026-11-14, ap-6 and ap-7). Opened from the Pack's "Party stash"
+// row; the bar names it and its way back returns to the pack. Three facts, each with who and when (what is in it, the
+// last thing in, the last thing out); the lists, every row saying who put the thing in and when; the foot, the count
+// and "Put in". Beside the lists on a tablet (under them on a phone): "You are taking for" (only for a player with more
+// than one character), the taker's room, and the stash's recent lines, your own keeping Undo while it can be undone.
+// No accent: nothing here is the one next step. Who and when are read from the log (K14, `stashHistory.ts`).
+// Slots for the rows that follow: `coin` (K13, the coin row first) and the lists' row ends (K12, Take).
+import { useEffect, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import { loadCampaignSettings } from '../core/campaignCommands.ts';
+import { runCommand, type CurrentUser } from '../core/commands.ts';
+import type { Db } from '../core/supabase.ts';
+import { undoChange } from '../core/undo.ts';
+import { campaignUnits } from '../modules/expedition/play.ts';
+import { loadClockNow } from '../modules/expedition/lightPlay.ts';
+import type { InventoryLine, NamedCarrier } from '../modules/inventory/inventory.ts';
+import { loadStashHistory, whoWords, type StashHistory, type StashMove } from '../modules/inventory/stashHistory.ts';
+import { Chip, StackedButton, WarningSign } from '../ui/parts.tsx';
+import { useOnline } from '../ui/creation.tsx';
+import { useToast } from '../ui/ToastHost.tsx';
+import { itemCount } from './packHelpers.ts';
+import { factWords, putInWords, recentWhen, recentWords, thingCount, thingWords } from './stashWords.ts';
+import type { OpenCampaign } from './Campaigns.tsx';
+import type { CampaignSetting } from './campaignSetting.ts';
+import { registry } from './services.ts';
+import './PackScreen.css';
+
+/** How many of the stash's recent lines show (PK4 draws three, PK9b four). */
+const RECENT = 4;
+
+export function StashScreen({
+  db,
+  user,
+  campaign,
+  stash,
+  lines,
+  allLines,
+  carriers,
+  setting,
+  takers,
+  takerId,
+  onTaker,
+  room,
+  list,
+  coin = null,
+  onPutIn,
+  side,
+  version,
+  onChanged,
+}: {
+  db: Db;
+  user: CurrentUser;
+  campaign: OpenCampaign;
+  stash: NamedCarrier;
+  /** What is in the stash now. */
+  lines: InventoryLine[];
+  /** Every line the reader may read (a thing taken out is named from where it is now). */
+  allLines: InventoryLine[];
+  /** The campaign's approved characters and the stash (names for who did it). */
+  carriers: NamedCarrier[];
+  setting: CampaignSetting;
+  /** The reader's own characters who may take (more than one shows "You are taking for"). */
+  takers: NamedCarrier[];
+  takerId: string | null;
+  onTaker: (actorId: string) => void;
+  /** The taker's load, under "<Name>'s room" (the Pack's own load summary). */
+  room: ReactNode;
+  /** The stash's lists, given each row's who-and-when line. */
+  list: (rowNote: (line: InventoryLine) => string | null) => ReactNode;
+  /** The coin row, first above the lists (K13). */
+  coin?: ReactNode;
+  onPutIn: () => void;
+  /** On a landscape tablet, the right-hand column: the taker's room and the recent lines go there. */
+  side: HTMLElement | null;
+  /** Bumped when the pack reloads, so the history is read again. */
+  version: number;
+  /** Something was undone here. */
+  onChanged: () => void;
+}) {
+  const [history, setHistory] = useState<StashHistory | null>(null);
+  const [again, setAgain] = useState(0);
+  const online = useOnline();
+  const show = useToast();
+  const lineIds = lines.map((l) => l.id).join(',');
+
+  useEffect(() => {
+    let live = true;
+    void Promise.all([loadClockNow(db, campaign.id), loadCampaignSettings(db, campaign.id)])
+      .then(([seconds, settings]) =>
+        loadStashHistory(db, campaign.id, {
+          stashId: stash.locationId!,
+          lineIds: lineIds ? lineIds.split(',') : [],
+          clock: seconds === null ? null : { seconds, units: campaignUnits(settings, setting.rulesSets) },
+          now: new Date().toISOString(),
+        }),
+      )
+      .then(
+        (found) => live && found && setHistory(found),
+        () => undefined,
+      );
+    return () => {
+      live = false;
+    };
+  }, [db, campaign.id, stash.locationId, lineIds, setting.rulesSets, version, again]);
+
+  const names = new Map(carriers.flatMap((c) => (c.actorId ? [[c.actorId, c.name] as const] : [])));
+  /** Who did it: "Your GM", the character, or, for a line a player made straight on the stash, their one character. */
+  const who = (move: StashMove): string | null => {
+    const said = whoWords(move.who, names);
+    if (said || move.who.gm || !move.userId) return said;
+    const theirs = carriers.filter((c) => c.actorId && c.ownerUserId === move.userId);
+    return theirs.length === 1 ? theirs[0]!.name : null;
+  };
+  /** The thing a move moved: the log's copy of it, else the line wherever it is now; null when neither says. */
+  const thing = (move: StashMove): string | null => {
+    const line = allLines.find((l) => l.id === move.lineId);
+    if (!line && !move.name) return null;
+    return thingWords(line ?? { name: move.name!, details: {} }, move.qty ?? line?.qty ?? 1);
+  };
+  const fact = (label: string, move: StashMove | null) => {
+    const named = move && thing(move);
+    if (!move || !named) return null;
+    return (
+      <p className="stash__fact">
+        <span className="stash__fact-label">{label}</span> {factWords(named, who(move), move)}
+      </p>
+    );
+  };
+  const rowNote = (line: InventoryLine) => {
+    const move = history?.rows.get(line.id);
+    return move ? putInWords(line, who(move), move) : null;
+  };
+  const recent = (history?.moves ?? [])
+    .slice()
+    .reverse()
+    .flatMap((move) => {
+      const named = thing(move);
+      const words = named ? recentWords(move, who(move), named) : null;
+      return words ? [{ move, words }] : [];
+    })
+    .slice(0, RECENT);
+
+  async function undo(move: StashMove) {
+    const done = await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId: move.eventId, authorUserId: user.id });
+    if (!done.ok) return show({ text: done.message, error: true });
+    setAgain((n) => n + 1);
+    onChanged();
+  }
+
+  const taker = takers.find((t) => t.actorId === takerId) ?? takers[0] ?? null;
+  const beside = (
+    <div className="stash__beside">
+      {takers.length > 1 && (
+        // "You are taking for" (PK9b): a chip a character, the chosen one pressed; the room under it follows.
+        <div className="stash__takers" role="group" aria-label="You are taking for">
+          <span>You are taking for</span>
+          {takers.map((t) => (
+            <Chip key={t.actorId} pressed={t.actorId === taker?.actorId} onClick={() => onTaker(t.actorId!)}>
+              {t.name}
+            </Chip>
+          ))}
+        </div>
+      )}
+      {taker && (
+        <section className="stash__room" aria-label={`${taker.name}’s room`}>
+          <h2 className="stash__head">{`${taker.name}’s room`}</h2>
+          {room}
+        </section>
+      )}
+      {recent.length > 0 && (
+        <section className="stash__recent" aria-label="Recently">
+          <h2 className="stash__head">Recently</h2>
+          <ul className="stash__recent-lines">
+            {recent.map(({ move, words }) => (
+              <li key={move.eventId} className="stash__recent-line">
+                <span className="stash__recent-words">
+                  <span>{words}</span>
+                  <span className="auth__meta">{recentWhen(move)}</span>
+                </span>
+                {/* Your own line keeps Undo while it can be undone (PK9b); the database says when it can't. */}
+                {move.userId === user.id && (
+                  <button type="button" className="button-secondary button-secondary--small stash__undo" aria-label={`Undo: ${words}`} onClick={() => void undo(move)}>
+                    Undo
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  );
+
+  return (
+    <section className="pack stash" aria-label="Party stash">
+      {!online && (
+        // Offline (PK7b): the word with the warning sign at the top, and the stash shown as last read, said once.
+        <>
+          <p className="stash__offline">
+            <WarningSign /> Offline
+          </p>
+          <p>As it was when you were last online.</p>
+        </>
+      )}
+      {lines.length > 0 && (
+        <div className="stash__facts">
+          <p className="stash__fact">
+            <span className="stash__fact-label">In it.</span> {`${thingCount(lines.length)}.`}
+          </p>
+          {fact('Last in.', history?.lastIn ?? null)}
+          {fact('Last out.', history?.lastOut ?? null)}
+        </div>
+      )}
+      {coin}
+      {lines.length > 0 ? list(rowNote) : <p className="stash__empty">Nothing in the Party stash yet.</p>}
+      <div className="pack__foot">
+        <span className="auth__meta">{itemCount(lines.length)}</span>
+        <StackedButton icon="open-chest" label="Put in" onClick={onPutIn} />
+      </div>
+      {side ? createPortal(beside, side) : beside}
+    </section>
+  );
+}

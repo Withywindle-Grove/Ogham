@@ -164,8 +164,10 @@ const SCENES: Scene[] = [
     name: 'pack',
     open: async (page) => {
       await openPack(page);
-      // The Party stash starts collapsed (N19, ruled 2026-10-28); opened, it shows its things with no groups (N18).
-      await foldRow(page, 'Party stash').locator('summary').click();
+      // The Party stash is its own screen (K11, pk-4), opened from its row under the coin line: its things under
+      // "Loose", with no other groups (N18).
+      await page.getByRole('button', { name: /^Party stash/ }).click();
+      await expect(page.getByRole('heading', { name: 'Loose' })).toBeVisible();
       await expect(page.getByRole('button', { name: /Silver ewer/ })).toBeVisible();
     },
   },
@@ -1847,8 +1849,7 @@ for (const size of [...SIZES, { name: 'phone-landscape', width: 844, height: 390
     test(`the top row stays at the top of a long page, with ${phone ? '≡ (Log in the tab bar, no ⋯)' : 'the back link, Log and ⋯'}`, async ({ page }) => {
       await larger(page);
       await openPack(page);
-      // A long Pack: the stash opened below the character's own items, and room below to scroll on a tall iPad.
-      await foldRow(page, 'Party stash').locator('summary').click();
+      // A long Pack: room below to scroll on a tall iPad.
       await page.evaluate(() => document.querySelector('.player')!.append(Object.assign(document.createElement('div'), { style: 'height: 1500px' })));
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
       const scrolled = await page.evaluate(() => window.scrollY);

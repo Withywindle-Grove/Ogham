@@ -11,6 +11,7 @@ import { forgetFileLinks } from '../core/files.ts';
 import { rememberInviteFromAddress } from './pendingInvite.ts';
 import { ICON_SET } from '../ui/iconSet.ts';
 import { openFullSheetFromMenu } from '../testing/openFullSheet.ts';
+import { moveItem } from '../modules/inventory/inventory.ts';
 
 // The pretend browser can't draw pictures, so shrinking a photo hands back a small stand-in file.
 const shrink = vi.hoisted(() => ({ fail: null as string | null }));
@@ -5112,6 +5113,12 @@ describe('the Pack tab (M4 step 4)', () => {
     await waitFor(() => expect(fold(label).open).toBe(!was));
   }
 
+  /** The Pack's "Party stash" row opens the stash's own screen (K11, pk-4). */
+  async function openStash(user: ReturnType<typeof openApp>) {
+    await user.click(screen.getByRole('button', { name: /^Party stash/ }));
+    return within(await screen.findByRole('region', { name: 'Party stash' }));
+  }
+
   async function openPack(user: ReturnType<typeof openApp>) {
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
@@ -5528,8 +5535,7 @@ describe('the Pack tab (M4 step 4)', () => {
     line(null, 'Silver ewer');
     const user = openApp();
     await openPack(user);
-    expect(foldNote('Party stash')).toBe('1 item: Silver ewer');
-    await toggleFold(user, 'Party stash');
+    await openStash(user);
     await user.click(screen.getByRole('button', { name: /^Silver ewer/ }));
     expect(screen.queryByRole('button', { name: 'Put in…' })).toBeNull();
     expect(screen.queryByRole('button', { name: /^(Wear|Hold)$/ })).toBeNull();
@@ -5619,24 +5625,105 @@ describe('the Pack tab (M4 step 4)', () => {
     expect(screen.getByRole('button', { name: /^Rope/ })).toBeTruthy();
   });
 
-  it('the Party stash sits at the bottom, collapsed until opened (N19), with no groups but its containers (N18); anyone can take from it', async () => {
+  // Purpose: the stash is no longer a fold at the Pack's foot but a row that opens its own screen (pk-4, PK1): the row
+  // says what is in it; the screen's bar names the stash; its lists have only "Loose" and its containers (N18, PK4).
+  it('the Party stash is a row on the Pack that opens its own screen, with only Loose and its containers (pk-4, N18); anyone can take from it', async () => {
     const { wren, line } = packWorld('armour');
     line(null, 'Reed chest', { item_data: { container: { capacityCoin: 500 } } });
     line(null, 'Silver ewer', { weight_coin: 30 });
     line(null, 'Coil of twine', { container_line_id: 'line-reed-chest' });
     const user = openApp();
     await openPack(user);
-    expect(foldNote('Party stash')).toBe('3 items: Coil of twine, Reed chest, Silver ewer');
-    expect(fold('Party stash').open).toBe(false);
-    await toggleFold(user, 'Party stash');
-    const stash = within(screen.getByRole('region', { name: 'Party stash' }));
-    // No Worn, Carried, Gear or Other in the stash; its container has its own group.
+    expect(screen.queryByText('Party stash', { selector: '.creation-fold__label' })).toBeNull();
+    expect(screen.getByRole('button', { name: /^Party stash/ }).textContent).toContain('3 things');
+    const stash = await openStash(user);
+    expect(document.querySelector('.top-row__title')!.textContent).toBe('Party stash');
+    // No Worn, Carried, Gear or Other in the stash; its loose things under "Loose", its container its own group.
     expect(stash.queryByRole('button', { name: /^Gear/ })).toBeNull();
     expect(stash.queryByRole('heading', { name: /Carried|Worn|Other/ })).toBeNull();
+    expect(stash.getByRole('heading', { name: 'Loose' })).toBeTruthy();
     expect(stash.getByRole('heading', { name: 'In the Reed chest' })).toBeTruthy();
+    // The first fact counts what is in it; the foot counts it and offers Put in (no accent: nothing is the one next step).
+    expect(stash.getByText('In it.').parentElement!.textContent).toBe('In it. 3 things.');
+    expect(stash.getByText('3 items')).toBeTruthy();
+    expect(stash.getByRole('button', { name: 'Put in' }).className).not.toContain('button-primary');
+    expect(stash.queryAllByRole('button').filter((b) => b.className.includes('button-primary'))).toEqual([]);
     await user.click(screen.getByRole('button', { name: /Silver ewer/ }));
     await giveTo(user, 'Silver ewer', 'Wren');
     await waitFor(() => expect(world.tables.inventory_lines.find((l) => l.name === 'Silver ewer')).toMatchObject({ actor_id: wren, location_id: null }));
+  });
+
+  // Purpose: the stash's screen reads who put each thing in and when, from the log (pk-4, K14): the row's line, the
+  // last thing in, and a recent line; the player's own recent line keeps Undo, and Undo puts the thing back in the pack.
+  it('the stash says who put a thing in and when, on its row, as the last in and in Recently; your own line keeps Undo (pk-4, PK4, PK9b)', async () => {
+    const { wren, campaign, line } = packWorld('coin');
+    line(wren, 'Silver ewer');
+    const user = openApp();
+    await openPack(user);
+    await user.click(screen.getByRole('button', { name: /^Silver ewer/ }));
+    await giveTo(user, 'Silver ewer', 'Party stash');
+    await waitFor(() => expect(world.tables.inventory_lines.find((l) => l.name === 'Silver ewer')).toMatchObject({ location_id: `location-stash-${campaign}` }));
+    const stash = await openStash(user);
+    expect((await stash.findByText('Last in.')).parentElement!.textContent).toBe('Last in. Silver ewer. Wren, today.');
+    expect(stash.getByText('Wren put it in, today.')).toBeTruthy();
+    // Beside the lists: the taker's room (Wren's own load), and Recently with the player's own line and its Undo.
+    expect(stash.getByRole('heading', { name: 'Wren’s room' })).toBeTruthy();
+    const recent = within(stash.getByRole('region', { name: 'Recently' }));
+    expect(recent.getByText('Wren put in Silver ewer.')).toBeTruthy();
+    // One character only: no "You are taking for".
+    expect(stash.queryByRole('group', { name: 'You are taking for' })).toBeNull();
+    await user.click(recent.getByRole('button', { name: 'Undo: Wren put in Silver ewer.' }));
+    await waitFor(() => expect(world.tables.inventory_lines.find((l) => l.name === 'Silver ewer')).toMatchObject({ actor_id: wren, location_id: null }));
+    expect(await screen.findByText('Nothing in the Party stash yet.')).toBeTruthy();
+  });
+
+  // Purpose: another player's recent line has no Undo, and a player with two characters chooses whom they take for;
+  // the room follows the choice (PK9b).
+  it('another player’s recent line has no Undo; with two characters "You are taking for" chooses whose room shows (PK9b)', async () => {
+    const { sam, ash, jo, campaign, line } = packWorld('coin');
+    const sedge = world.addCharacter(campaign, 'Old Sedge', { ownerId: sam });
+    world.addMember(campaign, sam, 'player', sedge);
+    line(ash, 'Reed basket');
+    // Ash's player puts the basket in the stash.
+    world.signInAs(jo);
+    const jos = { id: jo, roles: { [campaign]: 'player' as const } };
+    const carrierOf = (actorId: string | null) => ({ campaignId: campaign, actorId, locationId: actorId ? null : `location-stash-${campaign}`, ownerUserId: actorId ? jo : null, archived: false });
+    expect((await moveItem.run(world.db, jos, { line: { id: 'line-reed-basket', carrier: carrierOf(ash) }, to: carrierOf(null), qty: 1, of: 1 })).ok).toBe(true);
+    world.signInAs(sam);
+    const user = openApp();
+    // Two characters in the campaign: open Wren's.
+    const rows = await screen.findAllByRole('button', { name: /The Ash Barrows/ });
+    await user.click(rows.find((b) => b.textContent?.includes('Wren')) ?? rows[0]!);
+    await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
+    expect(await screen.findByRole('heading', { name: 'Wren’s pack' })).toBeTruthy();
+    const stash = await openStash(user);
+    const recent = within(await stash.findByRole('region', { name: 'Recently' }));
+    expect(recent.getByText('Ash put in Reed basket.')).toBeTruthy();
+    expect(recent.queryByRole('button', { name: /^Undo/ })).toBeNull();
+    const takers = within(stash.getByRole('group', { name: 'You are taking for' }));
+    expect(takers.getByRole('button', { name: 'Wren' }).getAttribute('aria-pressed')).toBe('true');
+    await user.click(takers.getByRole('button', { name: 'Old Sedge' }));
+    expect(stash.getByRole('heading', { name: 'Old Sedge’s room' })).toBeTruthy();
+  });
+
+  // Purpose: an empty stash says so in one sentence and keeps Put in; offline, the stash says it is shown as last read,
+  // once, and the Pack's row says "as last seen" (PK7b).
+  it('an empty stash says so and keeps Put in; offline it says it is as it was when last online (PK7b)', async () => {
+    packWorld('coin');
+    const user = openApp();
+    await openPack(user);
+    const offline = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    try {
+      window.dispatchEvent(new Event('offline'));
+      expect(await screen.findByText('0 things, as last seen')).toBeTruthy();
+      const stash = await openStash(user);
+      expect(stash.getByText('Nothing in the Party stash yet.')).toBeTruthy();
+      expect(stash.getByRole('button', { name: 'Put in' })).toBeTruthy();
+      expect(stash.getByText('As it was when you were last online.')).toBeTruthy();
+      expect(stash.queryByText('In it.')).toBeNull();
+    } finally {
+      offline.mockRestore();
+    }
   });
 
   it('the Players count (the one allowed counter): plain words for the GM only, counting items and characters, none at zero', async () => {

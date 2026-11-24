@@ -41,6 +41,28 @@ export function CoinLine({ words, onOpen }: { words: string; onOpen: () => void 
   );
 }
 
+/**
+ * The Pack's "Party stash" row (K11; pk-4; mockup pack/08 PK1, PK6, PK7b, approved 2026-11-14): a leading icon (ic-2: a
+ * row that opens a screen), the stash's name, what is in it under it ("7 things"; offline, "7 things, as last seen"),
+ * and the chevron. The whole row opens the stash's own screen. It sits under the coin line.
+ */
+export function StashRow({ name, note, onOpen }: { name: string; note: string; onOpen: () => void }) {
+  return (
+    <button type="button" className="pack__stash-row" onClick={onOpen}>
+      <span className="pack__stash-icon" aria-hidden="true">
+        <Icon name="open-chest" size={24} />
+      </span>
+      <span className="pack__stash-words">
+        <span className="pack__stash-name">{name}</span>
+        <span className="auth__meta">{note}</span>
+      </span>
+      <span className="pack__chevron" aria-hidden="true">
+        <Icon name="chevron" size={20} />
+      </span>
+    </button>
+  );
+}
+
 /** The Pack's foot: the count ("20 items"), then Add item, the screen's one accent button (none for a viewer who can't add). */
 export function PackFoot({ count, onAdd }: { count: number; onAdd: (() => void) | null }) {
   return (
