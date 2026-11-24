@@ -82,7 +82,7 @@ describe('the ⋯ menu', () => {
     localStorage.clear();
   });
 
-  it.fails('A tap outside the ⋯ menu closes it and does not act on what lies beneath (fix-more-menu-tap)', async () => {
+  it('A tap outside the ⋯ menu closes it and does not act on what lies beneath (fix-more-menu-tap)', async () => {
     const user = userEvent.setup();
     const beneath = vi.fn();
     render(
@@ -110,7 +110,7 @@ describe('the ⋯ menu', () => {
     expect(beneath).toHaveBeenCalledTimes(1);
   });
 
-  it.fails('A press outside that the browser cancels (a scroll) is forgotten: the menu stays open and the next click is not eaten', () => {
+  it('A press outside that the browser cancels (a scroll) is forgotten: the menu stays open and the next click is not eaten', () => {
     const beneath = vi.fn();
     render(
       <>

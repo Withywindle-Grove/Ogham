@@ -16,8 +16,22 @@ export function MoreMenu({ label, startOpen = false, children }: { label: string
 
   useEffect(() => {
     if (!open) return;
+    // A tap outside only closes it (06 rule 12, fix-more-menu-tap; as pop-ups, fix-tap-through): the press is
+    // remembered and the same tap's click closes it, stopped before it reaches what lies under the finger. A press the
+    // browser cancels (a scroll) is forgotten; a click with no press of its own (a key) is let through.
+    let downOutside = false;
     const onPointer = (event: PointerEvent) => {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
+      downOutside = !root.current?.contains(event.target as Node);
+    };
+    const onCancel = () => {
+      downOutside = false;
+    };
+    const onClick = (event: MouseEvent) => {
+      if (!downOutside) return;
+      downOutside = false;
+      event.preventDefault();
+      event.stopPropagation();
+      setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -26,9 +40,13 @@ export function MoreMenu({ label, startOpen = false, children }: { label: string
       }
     };
     document.addEventListener('pointerdown', onPointer);
+    document.addEventListener('pointercancel', onCancel);
+    document.addEventListener('click', onClick, true);
     document.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('pointerdown', onPointer);
+      document.removeEventListener('pointercancel', onCancel);
+      document.removeEventListener('click', onClick, true);
       document.removeEventListener('keydown', onKey);
     };
   }, [open]);
