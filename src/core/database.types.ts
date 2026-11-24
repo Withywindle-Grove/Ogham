@@ -373,6 +373,58 @@ export type Database = {
           },
         ]
       }
+      calls_seen: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          id: string
+          player_user_id: string
+          seen_at: string
+          send_id: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          id?: string
+          player_user_id: string
+          seen_at?: string
+          send_id: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          player_user_id?: string
+          seen_at?: string
+          send_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calls_seen_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_seen_player_user_id_fkey"
+            columns: ["player_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_seen_send_id_fkey"
+            columns: ["send_id"]
+            isOneToOne: false
+            referencedRelation: "hook_sends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       camp_entries: {
         Row: {
           actor_id: string
@@ -6326,6 +6378,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      mark_call_seen: { Args: { send: string }; Returns: string }
       mark_finds_seen: { Args: { character: string }; Returns: string }
       read_messages: { Args: { message_ids: string[] }; Returns: number }
       read_table_by_hand: {
