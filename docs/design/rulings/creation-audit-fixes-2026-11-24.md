@@ -49,6 +49,13 @@ Each ruling below is the driver's recommendation he took; the wording is the dri
 | `docs/05-features.md` | Guided creation: the "Audit fixes" line. |
 | `docs/06-screens-and-design.md` | The GM's review; Score tiles; the Creation step shell (Gear); the Review step. |
 
+## Seen 2026-11-24 (added after the ruling)
+
+| Point | Where it stands |
+|---|---|
+| **The looks of caf-9 and caf-10.** | Francis saw the two frames drawn after the approval (`41-1-fix-…`, `41-2-fix-…`) and approved them on 2026-11-24 "with those fixes". The rows above that say he has not seen them are history. |
+| **caf-5's words for 0 and 999.** | "Must be a whole number" for 0 and 999 in a setting with no range is left to row 1's builder (`docs/plans/dec-15-creation-audit-fixes.md`): build the words as ruled and say in the pull request what was refused. |
+
 ## 09 lines
 - 2026-11-24 — [ui] Creation audit fixes: page 41 approved with fixes; rows 2, 1 and 9 of `plans/dec-15-creation-audit-fixes.md` no longer held (caf-1 to caf-10) — Francis: "All recommended" — `design/rulings/creation-audit-fixes-2026-11-24.md`
 - 2026-11-24 — [items] At creation, bought rows join on the same name and the same price, in the order first bought; "Put back one" on a row of several, "Put back" on a row of one; a purchase of several at once joins its row and goes back one at a time, its stored creation entry split or lowered, no migration (caf-1 to caf-3); "Undo last" keeps showing which row it undoes (caf-10)
