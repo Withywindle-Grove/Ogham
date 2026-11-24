@@ -102,7 +102,8 @@ Drawings (branch `design-december-mockups`, folder `docs/design/mockups/december
 | The region in the session line until shown | st-7 (sf-1 on T9a) |
 | The book's text for the GM | gt-1 |
 | A hook before it is sent; a rumour's truth | dec-12 A, mc-65, rm-1 |
-| Another player's seen mark on a call or a rumour; who gives a call, and where | p7-2, p7-6 |
+| Another player's seen mark on a call or a rumour | p7-2 |
+| Who gives a call, and where (the book's own entry never reaches a player) | ca-1; so the card has no source line, p7-6 |
 | The map, and the pack's map entries, until the GM shares it | mc-37, 5m-1, 5m-2 |
 | Monster hit points | hard rule 5 |
 | **Not yet kept by the database:** another character's hit points when the campaign hides them. Until M6 they are hidden on the screen only (mo-2); the test for it is written as a test to do, with its reason | mo-2, 03, 04 |
