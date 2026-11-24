@@ -10,6 +10,13 @@ export const FILES_BUCKET = 'campaign-files';
 export const PACK_FILES_BUCKET = 'pack-files';
 export const packPicturePath = (packId: string, mapId: string) => `${packId}/${mapId}`;
 
+/** Whether a storage write was refused by the bucket's access rules (Storage answers 403, "…row-level security…"),
+ *  rather than lost on the way: the first is "not allowed", the second "try again". */
+export function storageRefused(error: { message?: string; statusCode?: string | number; status?: number } | null): boolean {
+  if (!error) return false;
+  return String(error.statusCode ?? '') === '403' || error.status === 403 || /row-level security/i.test(error.message ?? '');
+}
+
 /** The database works out each file's place: <campaign id>/<asset id>. */
 export const assetPath = (campaignId: string, assetId: string) => `${campaignId}/${assetId}`;
 

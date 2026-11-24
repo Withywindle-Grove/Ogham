@@ -25,6 +25,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { inflateSync } from 'node:zlib';
 
 /** Reads the names from the denylist's text: one per line, # starts a comment, blank lines are skipped. */
 export function parseDenylist(text) {
@@ -61,6 +62,78 @@ export function looksBinary(buffer) {
   return buffer.subarray(0, 8000).includes(0);
 }
 
+/** A picture, by its name: its pixel bytes are not read as text (they can spell a short name by chance, PR #64). */
+export const PICTURE = /\.(png|jpe?g|webp|gif)$/i;
+
+/**
+ * The words a picture carries, without its pixel bytes: a PNG's tEXt, zTXt and iTXt chunks and any chunk the scan
+ * doesn't know as binary, a JPEG's comments and XMP, a WebP's XMP, and anything after the picture's end. A GIF's
+ * pixels and its metadata are both skipped (no GIF is in the repo). Returns null when the bytes are not the picture
+ * the name says, so a text file named .png is read as text.
+ */
+export function pictureText(file, buffer) {
+  const parts = [];
+  const raw = (from, to = buffer.length) => parts.push(buffer.toString('latin1', from, to));
+  const inflated = (data) => {
+    try {
+      return inflateSync(data, { maxOutputLength: 16 * 1024 * 1024 });
+    } catch {
+      return data; // Not readable as compressed: read the bytes as they are.
+    }
+  };
+  if (/\.png$/i.test(file) && buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
+    const binary = new Set(['IHDR', 'PLTE', 'IDAT', 'IEND', 'tRNS', 'cHRM', 'gAMA', 'iCCP', 'sBIT', 'sRGB', 'bKGD', 'hIST', 'pHYs', 'sPLT', 'tIME', 'acTL', 'fcTL', 'fdAT']);
+    let at = 8;
+    for (; at + 12 <= buffer.length; ) {
+      const length = buffer.readUInt32BE(at);
+      const type = buffer.toString('latin1', at + 4, at + 8);
+      const data = buffer.subarray(at + 8, Math.min(at + 8 + length, buffer.length));
+      at += 12 + length;
+      const zero = data.indexOf(0);
+      if (type === 'zTXt' && zero >= 0) parts.push(data.toString('latin1', 0, zero), inflated(data.subarray(zero + 2)).toString('latin1'));
+      else if (type === 'iTXt' && zero >= 0) {
+        const lang = data.indexOf(0, zero + 3);
+        const translated = lang < 0 ? -1 : data.indexOf(0, lang + 1);
+        if (translated < 0) parts.push(data.toString('utf8'));
+        else {
+          const text = data.subarray(translated + 1);
+          parts.push(data.toString('utf8', 0, translated), (data[zero + 1] === 1 ? inflated(text) : text).toString('utf8'));
+        }
+      } else if (type === 'tEXt') parts.push(data.toString('latin1'));
+      else if (!binary.has(type)) parts.push(data.toString('latin1'));
+      if (type === 'IEND') break;
+    }
+    if (at < buffer.length) raw(at);
+  } else if (/\.jpe?g$/i.test(file) && buffer[0] === 0xff && buffer[1] === 0xd8) {
+    let at = 2;
+    while (at + 4 <= buffer.length && buffer[at] === 0xff && buffer[at + 1] !== 0xda) {
+      const end = at + 2 + buffer.readUInt16BE(at + 2);
+      const data = buffer.subarray(at + 4, end);
+      if (buffer[at + 1] === 0xfe || (buffer[at + 1] === 0xe1 && data.toString('latin1', 0, 28) === 'http://ns.adobe.com/xap/1.0/')) parts.push(data.toString('utf8'));
+      at = end;
+    }
+    // From the first scan to the end marker is pixel data; anything after the end marker is read, and so is all of
+    // a file whose segments can't be followed to its first scan.
+    const endMarker = buffer.lastIndexOf(Buffer.from([0xff, 0xd9]));
+    if (!(buffer[at] === 0xff && buffer[at + 1] === 0xda)) raw(at);
+    else if (endMarker > at) raw(endMarker + 2);
+  } else if (/\.webp$/i.test(file) && buffer.toString('latin1', 0, 4) === 'RIFF' && buffer.toString('latin1', 8, 12) === 'WEBP') {
+    let at = 12;
+    for (; at + 8 <= buffer.length; ) {
+      const type = buffer.toString('latin1', at, at + 4);
+      const length = buffer.readUInt32LE(at + 4);
+      if (type === 'XMP ') parts.push(buffer.toString('utf8', at + 8, Math.min(at + 8 + length, buffer.length)));
+      at += 8 + length + (length % 2);
+    }
+    if (at < buffer.length) raw(at);
+  } else if (/\.gif$/i.test(file) && /^GIF8[79]a$/.test(buffer.toString('latin1', 0, 6))) {
+    return '';
+  } else {
+    return null;
+  }
+  return parts.join('\n').replaceAll('\0', '\n');
+}
+
 /**
  * The lines a diff adds. Reads the text of `git diff --unified=0 --no-renames` and returns one entry per added line:
  * { file, line, text } (line numbers are the new file's, starting at 1). A binary file has no lines and is skipped.
@@ -93,10 +166,11 @@ export function addedLines(diffText) {
  * Where the listed names sit in what a pull request adds. `diffText` is the end result's diff (see addedLines),
  * `commits` each of its commits' own diff ({ sha, diffText }: a name added in one commit and taken out in a later one
  * is still public), `newFiles` the paths it creates, and `texts` its other words: { label, text } for each of the
- * title, the text, the branch's name and the commit messages. Returns one entry per place: { where, name }. The
+ * title, the text, the branch's name and the commit messages, and `pictures` the words each picture it adds or changes
+carries ({ file, text, sha }: see pictureText; sha for a commit's copy, none for the end result's). Returns one entry per place: { where, name }. The
  * caller decides whether to show the name; `where` itself never holds one (a path that does is not spelled out).
  */
-export function findInPullRequest({ diffText = '', commits = [], newFiles = [], texts = [] }, names) {
+export function findInPullRequest({ diffText = '', commits = [], newFiles = [], texts = [], pictures = [] }, names) {
   const found = [];
   const shown = (file) => (findNames(file, names).length > 0 ? 'a file whose own name holds a private name' : file);
   newFiles.forEach((file, i) => {
@@ -118,6 +192,9 @@ export function findInPullRequest({ diffText = '', commits = [], newFiles = [], 
   };
   scanDiff(diffText, '');
   for (const commit of commits) scanDiff(commit.diffText, `commit ${commit.sha.slice(0, 7)}: `);
+  for (const { file, text, sha } of pictures) {
+    for (const hit of findNames(text, names)) found.push({ where: `${sha ? `commit ${sha.slice(0, 7)}: ` : ''}${shown(file)} (the text it carries)`, name: hit.name });
+  }
   for (const { label, text } of texts) {
     const oneLine = !text.includes('\n');
     for (const hit of findNames(text, names)) found.push({ where: oneLine ? label : `${label}, line ${hit.line}`, name: hit.name });
@@ -247,9 +324,28 @@ function runPullRequest(argv) {
     from = base;
   }
   // --text and --no-textconv: every file is read as text, so a file git would call binary (a NUL byte, UTF-16, or a
-  // .gitattributes line the pull request adds) can't hide what it adds.
+  // .gitattributes line the pull request adds) can't hide what it adds. Pictures are the exception: their pixel bytes
+  // can spell a short name by chance (PR #64), so only the words they carry are read (pictureText). A file named like
+  // a picture that isn't one is diffed as text like the rest.
   const asText = ['--text', '--no-textconv', '--unified=0', '--no-renames', '--no-color', '--no-ext-diff'];
-  const diffText = git(['-c', 'core.quotepath=off', 'diff', ...asText, from, head]);
+  const pictures = [];
+  /** The diff of `range` (git diff or git show arguments), each picture's words collected from `rev` instead. */
+  const diffOf = (command, range, rev, sha) => {
+    const changed = git(['-c', 'core.quotepath=off', command, '--format=', '--name-only', '--no-renames', '--diff-filter=AMT', '-z', ...range])
+      .split('\0')
+      .filter((file) => PICTURE.test(file));
+    const notPictures = [];
+    for (const file of changed) {
+      const text = pictureText(file, execFileSync('git', ['show', `${rev}:${file}`], { maxBuffer: 64 * 1024 * 1024 }));
+      if (text === null) notPictures.push(file);
+      else pictures.push({ file, text, sha });
+    }
+    const skip = ['png', 'jpg', 'jpeg', 'webp', 'gif'].map((ext) => `:(top,exclude,icase)*.${ext}`);
+    let text = git(['-c', 'core.quotepath=off', command, '--format=', ...asText, ...range, '--', ':/', ...skip]);
+    if (notPictures.length > 0) text += git(['-c', 'core.quotepath=off', command, '--format=', ...asText, ...range, '--', ...notPictures.map((file) => `:(top,literal)${file}`)]);
+    return text;
+  };
+  const diffText = diffOf('diff', [from, head], head);
   // Each commit's own diff too: a name added in one commit and removed in a later one is still public. A merge
   // commit shows no plain diff here; what it brings in is in the end result's diff above.
   const shas = (commitsFile ? readFileSync(commitsFile, 'utf8') : git(['rev-list', '--no-merges', `${from}..${head}`]))
@@ -260,7 +356,7 @@ function runPullRequest(argv) {
     console.error('The private-names scan was given a commit list it cannot read. Nothing was scanned, so this fails.');
     return 1;
   }
-  const commits = shas.map((sha) => ({ sha, diffText: git(['-c', 'core.quotepath=off', 'show', '--format=', ...asText, sha]) }));
+  const commits = shas.map((sha) => ({ sha, diffText: diffOf('show', [sha], sha, sha) }));
   const newFiles = git(['-c', 'core.quotepath=off', 'diff', '--name-only', '--no-renames', '--diff-filter=A', '-z', from, head])
     .split('\0')
     .filter(Boolean);
@@ -272,7 +368,7 @@ function runPullRequest(argv) {
   // A trailing line break keeps a one-message list from reading as a one-line text.
   texts.push({ label: 'the commit messages', text: `${messages.trimEnd()}\n` });
 
-  const found = findInPullRequest({ diffText, commits, newFiles, texts }, names);
+  const found = findInPullRequest({ diffText, commits, newFiles, texts, pictures }, names);
   if (found.length === 0) {
     console.log(
       `No private name in what this pull request adds (${addedLines(diffText).length} added lines, ${newFiles.length} new files, ` +

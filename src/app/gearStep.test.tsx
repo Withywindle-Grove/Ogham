@@ -138,6 +138,9 @@ describe('Gear (cr-14)', () => {
     expect(hint()).toBe('No kit yet, nothing bought');
     await pick(user, "Warden's kit");
     await waitFor(() => expect(coin()).toBe('100 rolled, 22 gp spent: 78 gp left'));
+    // Purpose (Francis, 2026-11-24): after a kit is taken the line beside Undo last reads "Last taken", not "Last bought";
+    // a purchase after it reads "Last bought" again.
+    expect(document.querySelector('.gear-tally__last')?.textContent).toBe("Last taken: Warden's kit");
     // The shop: categories from the pack, each row with its price and Add.
     await user.click(screen.getByRole('button', { name: 'Open The shop' }));
     await waitFor(() => expect(shopLeft()).toBe('78 gp to spend'));
@@ -160,6 +163,7 @@ describe('Gear (cr-14)', () => {
     await waitFor(() => expect(shopLeft()).toBe('70 gp to spend'));
     await user.click(screen.getByRole('button', { name: 'Done shopping' }));
     expect(hint()).toBe('1 kit, 1 thing bought');
+    expect(document.querySelector('.gear-tally__last')?.textContent).toBe('Last bought: Storm lantern');
     await next(user);
     await screen.findAllByRole('button', { name: 'Send to the GM' });
     expect(tam().creation).toMatchObject({ startingMoney: 100, spentBase: 300, gearDone: true, bought: [{ label: "Warden's kit", price: 220, kitId: 'warden-kit' }, { label: 'Storm lantern', price: 80 }] });
@@ -213,6 +217,75 @@ describe('Gear (cr-14)', () => {
     expect(buy.previousElementSibling?.textContent).toBe('2 gp');
     await user.click(buy);
     await waitFor(() => expect(shopLeft()).toBe('98 gp to spend'));
+  });
+
+  // Purpose (plan dec-15 row 2; caf-1 to caf-3, caf-10; frames 41-2-gear-merged, 41-2-fix-gear-undo-last): same-name purchases show as one row with their count and summed price, one button a row
+  // ("Put back one", or "Put back" on a row of one), which puts back the last one bought: the row's count, the coin and
+  // the pack each move by one. A purchase of several at once joins its row and goes back one at a time. The line beside
+  // Undo last names the last purchase, with its count, follows each buy and put-back, and is gone with nothing to undo;
+  // Undo last still takes back the whole last purchase.
+  it('same-name purchases as one row: Put back one takes one, and Last bought names what Undo last takes', async () => {
+    fenWorld();
+    const user = openApp();
+    await toGear(user);
+    await typeMoney(user, '100');
+    const rows = () => [...document.querySelectorAll('.starting-gear__line > span')].map((s) => s.textContent);
+    const last = () => document.querySelector('.gear-tally__last')?.textContent ?? null;
+    // A character awaiting approval keeps its lines apart (public.join_added_line), so each buy is a line of its own.
+    const rations = () => world.tables.inventory_lines.filter((l) => l.actor_id === tam().id && l.name === 'Dry rations').reduce((n, l) => n + Number(l.qty), 0);
+    const lanterns = () => world.tables.inventory_lines.filter((l) => l.actor_id === tam().id && l.name === 'Storm lantern');
+    expect(last()).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Open The shop' }));
+    await user.click(screen.getByRole('button', { name: /Adventuring gear/ }));
+    // Two lanterns, one ration, then three rations at once.
+    await user.click(screen.getByRole('button', { name: 'Buy Storm lantern, 8 gp' }));
+    await waitFor(() => expect(shopLeft()).toBe('92 gp to spend'));
+    await user.click(screen.getByRole('button', { name: 'Buy Dry rations, 1 gp' }));
+    await user.click(await screen.findByRole('button', { name: 'Buy 1' }));
+    await waitFor(() => expect(shopLeft()).toBe('91 gp to spend'));
+    await user.click(screen.getByRole('button', { name: 'Buy Storm lantern, 8 gp' }));
+    await waitFor(() => expect(shopLeft()).toBe('83 gp to spend'));
+    await user.click(screen.getByRole('button', { name: 'Buy Dry rations, 1 gp' }));
+    await user.click(await screen.findByRole('button', { name: 'One more' }));
+    await user.click(screen.getByRole('button', { name: 'One more' }));
+    await user.click(screen.getByRole('button', { name: 'Buy 3' }));
+    await waitFor(() => expect(shopLeft()).toBe('80 gp to spend'));
+    await user.click(screen.getByRole('button', { name: 'Done shopping' }));
+    await waitFor(() => expect(rows()).toEqual(['Storm lantern ×2, 16 gp', 'Dry rations ×4, 4 gp']));
+    expect(rations()).toBe(4);
+    expect(lanterns()).toHaveLength(2);
+    expect(last()).toBe('Last bought: Dry rations ×3');
+    expect(hint()).toBe('No kit yet, 4 things bought');
+    // The record keeps what each buy added.
+    expect((tam().creation as { bought: unknown[] }).bought).toEqual([
+      expect.objectContaining({ label: 'Storm lantern', price: 80 }),
+      expect.objectContaining({ label: 'Dry rations', price: 10, lines: [expect.objectContaining({ qty: 1 })] }),
+      expect.objectContaining({ label: 'Storm lantern', price: 80 }),
+      expect.objectContaining({ label: 'Dry rations ×3', price: 30, lines: [expect.objectContaining({ qty: 3 })] }),
+    ]);
+    // One of the three bought at once goes back: the row reads ×3, the coin gains 1 gp, the pack loses one.
+    await user.click(screen.getByRole('button', { name: 'Put back one Dry rations, 1 gp back' }));
+    await waitFor(() => expect(rows()).toEqual(['Storm lantern ×2, 16 gp', 'Dry rations ×3, 3 gp']));
+    expect(coin()).toBe('100 rolled, 19 gp spent: 81 gp left');
+    expect(rations()).toBe(3);
+    expect(last()).toBe('Last bought: Dry rations ×2');
+    // A lantern goes back: one row of one, its button "Put back".
+    await user.click(screen.getByRole('button', { name: 'Put back one Storm lantern, 8 gp back' }));
+    await waitFor(() => expect(rows()).toEqual(['Storm lantern, 8 gp', 'Dry rations ×3, 3 gp']));
+    expect(lanterns()).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Put back Storm lantern, 8 gp back' }).textContent).toBe('Put back');
+    // Undo last, unchanged: the whole last purchase (the two left of the three bought at once).
+    await user.click(screen.getByRole('button', { name: 'Undo last' }));
+    await waitFor(() => expect(rows()).toEqual(['Storm lantern, 8 gp', 'Dry rations, 1 gp']));
+    expect(rations()).toBe(1);
+    expect(last()).toBe('Last bought: Dry rations');
+    // Putting the last of a row back removes the row; with nothing to undo, no line.
+    await user.click(screen.getByRole('button', { name: 'Put back Dry rations, 1 gp back' }));
+    await user.click(await screen.findByRole('button', { name: 'Put back Storm lantern, 8 gp back' }));
+    await waitFor(() => expect(rows()).toEqual([]));
+    expect(coin()).toBe('100 rolled');
+    expect(last()).toBeNull();
+    expect(rations()).toBe(0);
   });
 
   it('overspending is explained: Add answers instead of buying, and Next says how much is short and stays', async () => {

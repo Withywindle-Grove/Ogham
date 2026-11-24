@@ -180,7 +180,8 @@ export async function loadPlaceMap(db: Db, campaignId: string, place: Pick<Place
     maps = (entries.data ?? []).map((e) => readStoredMap({ packEntryId: String(e.pack_entry_id), name: String(e.name ?? ''), data: e.data }));
   }
   const state = resolvePlaceMap(self, maps, places, new Map(), upTrail);
-  if (state.kind === 'wanted' && self.packId) {
+  // The pack's picture is offered only for a place that is a row of the campaign (the tie is written on that row).
+  if (state.kind === 'wanted' && self.packId && places.some((p) => p.id === place.id)) {
     const kept = await db.storage.from(PACK_FILES_BUCKET).list(self.packId, { search: state.map.id });
     return kept.data?.some((file) => file.name === state.map.id) ? { ...state, packed: packPicturePath(self.packId, state.map.id) } : state;
   }
@@ -195,4 +196,20 @@ export async function loadPlaceMap(db: Db, campaignId: string, place: Pick<Place
 export async function loadPackPicture(db: Db, path: string): Promise<Blob | null> {
   const { data, error } = await db.storage.from(PACK_FILES_BUCKET).download(path);
   return error ? null : data;
+}
+
+/** The map a group's players see (P5): the campaign's copy, shown to them, of the last place shown to the group. */
+export interface PlayersMap {
+  assetId: string;
+  title: string;
+}
+
+/**
+ * The maps a player reads, by group (public.map_for_players; plan dec-9-the-players-scene P5, Francis's yes "1a",
+ * 2026-11-22): only a copy whose eye is open, of the last place shown to one of their groups; null when it can't be read.
+ */
+export async function loadPlayersMaps(db: Db, campaignId: string): Promise<Map<number, PlayersMap> | null> {
+  const { data, error } = await db.rpc('map_for_players', { campaign: campaignId });
+  if (error) return null;
+  return new Map((data ?? []).map((r) => [Number(r.group_number), { assetId: String(r.asset_id), title: String(r.title ?? '') }]));
 }

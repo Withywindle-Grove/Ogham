@@ -10,6 +10,7 @@ Each cell lists the rules that let a signed-in person do that to a row (the rule
 | `actor_secrets` | GM only | GM only | GM only | GM only |
 | `actors` | read approved or own | GM or player creates | GM or owner edits | delete unapproved or archived, by owner or GM |
 | `assets` | read by visibility | GM or own portrait creates | GM or own portrait updates | GM or own portrait deletes |
+| `calls_seen` | the player and the GM read | — | — | — |
 | `camp_entries` | the GM, and players for their own group | — | undone by the GM or the group's players | — |
 | `campaign_clocks` | members read | — | the GM moves it | — |
 | `campaign_pack_secrets` | the GM reads | — | the GM changes | — |

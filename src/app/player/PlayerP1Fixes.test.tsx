@@ -134,14 +134,15 @@ describe('the Player screen brought to frame P1', () => {
     expect(attack.getAttribute('aria-label')).toBe("Attack +1: how it's worked out");
   });
 
-  // Purpose A3 (test feedback of 19 Nov 2026, item 5; tfw-7): the Attack box's small line and its pop-up read the same
-  // figures, each kind with a capital. The sample's setting names no AC style, so both read the scores' modifiers (the
-  // pop-up's old lines, A4); a setting with a style reads the totals (sheetCombat.test.tsx).
-  it('reads the Attack box’s small line as its pop-up does, with a capital on each kind', async () => {
+  // Purpose A3 (test feedback of 19 Nov 2026, item 5): the Attack box's small line and its pop-up read the same
+  // figures; the line in plain case, a capital on its first word only (dec-14 row 7b), each pop-up row with its own.
+  // The sample's setting names no AC style, so both read the scores' modifiers (the pop-up's old lines, A4); a setting
+  // with a style reads the totals (sheetCombat.test.tsx).
+  it('reads the Attack box’s small line as its pop-up does, in plain case', async () => {
     const { user } = await brannoch();
     const vitals = screen.getByRole('region', { name: 'Vitals' });
     const attack = within(vitals).getByRole('button', { name: /^Attack / });
-    expect(attack.querySelector('.stat-tile__caption')!.textContent).toBe('Melee +2, Missile +1');
+    expect(attack.querySelector('.stat-tile__caption')!.textContent).toBe('Melee +2, missile +1');
     await user.click(attack);
     const sheet = within(await screen.findByRole('dialog', { name: 'Attack' }));
     expect(sheet.getByText('Melee +2 from Muscle')).toBeTruthy();

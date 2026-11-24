@@ -1,0 +1,112 @@
+{
+  "format": "tabletop-pack",
+  "formatVersion": 2,
+  "meta": {
+    "id": "fixture-fen-creation-full",
+    "name": "Invented creation sample, extras",
+    "shortName": "Fen extras",
+    "version": "0.1",
+    "kind": "setting",
+    "author": "Invented for the app's tests",
+    "description": "Laid over the invented creation sample (m5b-creation.fixture.json) by the layout harness's ?creation=full world, so guided creation reaches every step: an invented patron for the Reed Witch, behind its own option (the Patron step), and a table of odds and ends the Gear step picks from (its pick sheet). harnessRulesSet is not part of the pack format: the harness adds its keys to the sample's rules set."
+  },
+  "options": [
+    {
+      "id": "fen-patrons",
+      "name": "Patrons",
+      "default": "off",
+      "changeLater": "allow",
+      "choices": [
+        {
+          "id": "off",
+          "name": "Off",
+          "short": "Off",
+          "notes": "No patrons."
+        },
+        {
+          "id": "on",
+          "name": "On",
+          "short": "On",
+          "notes": "Reed witches answer to a patron."
+        }
+      ],
+      "notes": "Whether a reed witch picks the power she answers to."
+    }
+  ],
+  "patrons": [
+    {
+      "id": "the-drowned-lamp",
+      "name": "The Drowned Lamp",
+      "title": "The light under the water",
+      "blurb": "A lantern that still burns at the bottom of the mere.",
+      "description": "Witches who follow the Drowned Lamp keep a candle lit through the longest night.",
+      "option": "fen-patrons",
+      "followers": {
+        "classes": [
+          "reed-witch"
+        ]
+      }
+    }
+  ],
+  "harnessRulesSet": {
+    "startingEquipment": [
+      {
+        "pick": {
+          "tableId": "fen-odds-and-ends",
+          "upTo": 2
+        }
+      }
+    ]
+  },
+  "tables": [
+    {
+      "id": "fen-odds-and-ends",
+      "name": "Odds and ends",
+      "die": "d4",
+      "gmOnly": false,
+      "description": "Pick up to two for your pack.",
+      "rows": [
+        {
+          "min": 1,
+          "max": 1,
+          "result": "Reed rope",
+          "items": [
+            {
+              "itemId": "rope-reed"
+            }
+          ]
+        },
+        {
+          "min": 2,
+          "max": 2,
+          "result": "Dry rations",
+          "items": [
+            {
+              "itemId": "dry-rations"
+            }
+          ]
+        },
+        {
+          "min": 3,
+          "max": 3,
+          "result": "Reed basket",
+          "items": [
+            {
+              "itemId": "reed-basket"
+            }
+          ]
+        },
+        {
+          "min": 4,
+          "max": 4,
+          "result": "Storm lantern",
+          "items": [
+            {
+              "itemId": "storm-lantern"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

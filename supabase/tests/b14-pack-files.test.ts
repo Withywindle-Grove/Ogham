@@ -9,14 +9,21 @@
 //   A GM whose campaign doesn't use the pack is refused; once their campaign uses it they read it, and still can't
 //   write it.
 //   A path outside <pack id>/<map id>, or under someone else's pack, is refused.
+//   The map ties to its places with no tap (Francis, 2026-11-24): the GM opening an area with no map of its own gives
+//   the campaign its parent place's map, hidden, both steps logged; a player reads nothing of it (row, file, the
+//   players' map) until the GM opens its eye, and a second open adds no copy.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../src/app/commandRegistry.ts';
 import { runCommand, type CurrentUser } from '../../src/core/commands.ts';
 import { loadCurrentUser } from '../../src/core/currentUser.ts';
 import { assetPath, fileLinks, forgetFileLinks, PACK_FILES_BUCKET, packPicturePath } from '../../src/core/files.ts';
 import type { Db } from '../../src/core/supabase.ts';
-import { addPlaceMap, loadPackPicture, setPlaceMap, shareMap } from '../../src/modules/expedition/placeMap.ts';
-import { loadGroupPlaces } from '../../src/modules/expedition/placePlay.ts';
+import { tiePackMap } from '../../src/app/packMapTie.ts';
+import { addPlaceMap, loadPackPicture, loadPlaceMap, setPlaceMap, shareMap } from '../../src/modules/expedition/placeMap.ts';
+import { loadGroupPlaces, setPlace, showPiece } from '../../src/modules/expedition/placePlay.ts';
+import { attachPack, loadCampaignEntries } from '../../src/modules/library/campaignPacks.ts';
+import { importPack } from '../../src/modules/library/library.ts';
+import { readPackJson } from '../../src/modules/library/packFile.ts';
 import { startExpedition } from '../../src/modules/expedition/play.ts';
 import { addPackPicture } from '../../src/modules/library/packPictures.ts';
 import { buildWorld, must, tearDownWorld, type Person, type World } from './world.ts';
@@ -144,4 +151,63 @@ describe("a pack's pictures, kept with the pack", () => {
     expect(await writes(world.gm, packPicturePath(theirs, MAP))).toBe(false);
     expect(await writes(world.gm, packPicturePath(mine, MAP))).toBe(true);
   }, 120_000);
+});
+
+/** An invented adventure: a harbour with two numbered areas under it, and one map, which names the harbour only. */
+const harbourPack = () => {
+  const read = readPackJson(
+    JSON.stringify({
+      format: 'tabletop-pack',
+      formatVersion: 2,
+      meta: { name: 'Saltwick Island', version: '0.1', kind: 'adventure' },
+      locations: [
+        { id: 'drowned-harbour', name: 'The Drowned Harbour', type: 'site', playerView: { text: 'A silted harbour of black water.' } },
+        { id: 'the-jetty', name: 'The Jetty', type: 'area', key: '1', parentId: 'drowned-harbour', playerView: { text: 'Black piles and a slick deck.' } },
+        { id: 'the-wreck', name: 'The Wreck', type: 'area', key: '2', parentId: 'drowned-harbour', playerView: { text: 'A cog on her side on the bar.' } },
+      ],
+      images: [{ id: MAP, file: 'images/map-harbour.png', type: 'map', title: 'The Drowned Harbour', alt: 'A harbour, half under water.', visibility: 'gm', locationIds: ['drowned-harbour'], source: '' }],
+    }),
+  );
+  if (!read.ok) throw new Error(read.message);
+  return read.pack;
+};
+
+describe("a pack's map tied to its places with no tap (Francis, 2026-11-24)", () => {
+  // Purpose (hard rule 5, p2p-27 and the ruling "A"): the GM opening an area no map names gives the campaign its parent's
+  // map with no tap, hidden and logged; a player reads nothing of it until its eye is opened; a second open adds nothing.
+  it("the area's inherited map is tied hidden, and reaches a player only through its eye", async () => {
+    const campaignId = world.campaignId;
+    const packId = await ok(as(world.gm, importPack, { pack: harbourPack() }));
+    await ok(as(world.gm, addPackPicture, { packId, ownerUserId: world.gm.id, mapId: MAP, image: chart() }));
+    await ok(as(world.gm, attachPack, { campaignId, packId }));
+    const trip = await ok(as(world.gm, startExpedition, { campaignId, mode: 'dungeon' }));
+    const entry = ((await loadCampaignEntries(asDb(world.gm), campaignId)) ?? []).find((e) => e.kind === 'location' && e.packId === packId && e.packEntryId === 'the-jetty')!;
+    await ok(as(world.gm, setPlace, { campaignId, group: 1, name: '', packEntry: { packId, packEntryId: 'the-jetty', name: entry.name, data: entry.data as Record<string, unknown> } }));
+    const visit = (await loadGroupPlaces(asDb(world.gm), campaignId, trip.id))!.get(1)!;
+    await ok(as(world.gm, showPiece, { campaignId, row: visit, piece: visit.pieces[0]! }));
+    const place = (await loadGroupPlaces(asDb(world.gm), campaignId, trip.id))!.get(1)!.place!;
+    const upTrail = (id: string) => (id === 'the-jetty' ? ['the-jetty', 'drowned-harbour'] : [id]);
+
+    // The GM opens the jetty: its map is the harbour's, and the pack brought the picture, so it is tied with no tap.
+    const wanted = await loadPlaceMap(asDb(world.gm), campaignId, place, upTrail);
+    expect(wanted).toMatchObject({ kind: 'wanted', from: 'drowned-harbour', packed: packPicturePath(packId, MAP) });
+    if (wanted?.kind !== 'wanted' || !wanted.packed) throw new Error('not offered');
+    const requestTypes = async () => (must(await world.admin.from('events').select('type').eq('campaign_id', campaignId)) as { type: string }[]).map((e) => e.type);
+    const assetId = await ok(tiePackMap(registry, asDb(world.gm), await userOf(world.gm), campaignId, place, wanted.map.title, wanted.packed));
+    expect(await requestTypes()).toEqual(expect.arrayContaining(['place.addMap', 'place.setMap']));
+
+    // Hidden: the player reads no row, no file and no players' map of it.
+    expect(must(await world.playerA.db.from('assets').select('id').eq('id', assetId))).toEqual([]);
+    forgetFileLinks();
+    expect((await fileLinks(asDb(world.playerA), [assetPath(campaignId, assetId)])).size).toBe(0);
+    expect(must(await world.playerA.db.rpc('map_for_players', { campaign: campaignId }))).toEqual([]);
+
+    // A second open finds the map there: nothing more to tie, and still one copy.
+    expect(await loadPlaceMap(asDb(world.gm), campaignId, place, upTrail)).toMatchObject({ kind: 'added', assetId });
+    expect(must(await world.admin.from('assets').select('id').eq('campaign_id', campaignId).eq('kind', 'map'))).toHaveLength(1);
+
+    // The eye opened: now (and only now) the player's group reads it.
+    await ok(as(world.gm, shareMap, { campaignId, assetId, shown: true }));
+    expect(must(await world.playerA.db.rpc('map_for_players', { campaign: campaignId }))).toEqual([{ group_number: 1, asset_id: assetId, title: 'The Drowned Harbour' }]);
+  }, 180_000);
 });

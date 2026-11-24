@@ -50,8 +50,23 @@ describe('review sections', () => {
   // average, not rolled"; a record without the list says nothing of it.
   it('names the scores left at the average (A5)', () => {
     const scores = (creation: Record<string, unknown>) => reviewSections({ ...base, creation }).find((s) => s.id === 'scores')!.lines;
-    expect(scores({ ...base.creation, scoresAverage: ['STR'] })).toContainEqual({ text: 'STR 13: the average, not rolled' });
+    expect(scores({ ...base.creation, scoresAverage: ['STR'] })).toContainEqual({ text: 'STR: the average, not rolled' });
     expect(scores(base.creation).some((l) => l.text.includes('the average'))).toBe(false);
+  });
+
+  // Purpose (caf-8, finding 9): the GM's card reads the same lines as the review: a score not rolled is never marked
+  // "rolled N", even when the kindred changed it; a rolled score the kindred changed still is; with none rolled the
+  // line reads "Both" for the record's two scores (Francis, 2026-11-24), with no figure.
+  it('a score not rolled carries no "rolled N" on the GM’s card, and the line under it has no figure (caf-8)', () => {
+    const scores = (creation: Record<string, unknown>) => reviewSections({ ...base, creation }).find((s) => s.id === 'scores')!.lines;
+    const notRolled = scores({ scores: { STR: 13, WIS: 16 }, rolled: { STR: 12, WIS: 14 }, scoresAverage: ['STR'] });
+    expect(notRolled).toEqual([
+      { text: 'STR 13, WIS 16' },
+      { text: 'WIS 16', mark: 'override', why: 'rolled 14' },
+      { text: 'STR: the average, not rolled' },
+    ]);
+    const none = scores({ scores: { STR: 13, WIS: 16 }, rolled: { STR: 12, WIS: 14 }, scoresAverage: ['STR', 'WIS'] });
+    expect(none).toEqual([{ text: 'STR 13, WIS 16' }, { text: 'Both: the average, not rolled' }]);
   });
 
   // Purpose (cw-11, the coin wording): the GM's approval card says the starting coin as the player's review does: rolled

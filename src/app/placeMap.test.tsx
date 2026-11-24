@@ -13,7 +13,8 @@ import type { CurrentUser } from '../core/commands.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { ToastHost } from '../ui/ToastHost.tsx';
 import { MAP_TOO_LARGE } from './image.ts';
-import { AddPlaceMap, PACK_PICTURE_UNREAD_WORDS, UNDO_UNREAD_WORDS } from './PlaceMap.tsx';
+import { PACK_PICTURE_UNREAD_WORDS } from './packMapTie.ts';
+import { AddPlaceMap, PlaceMapPart, UNDO_UNREAD_WORDS } from './PlaceMap.tsx';
 
 const harbour = { id: 'p-harbour', name: 'The Drowned Harbour', version: 1 };
 const chart = { title: 'The Drowned Harbour, the harbour chart', file: 'harbour-chart.png' };
@@ -69,9 +70,9 @@ describe('+ Map on a place whose pack names a map', () => {
     await waitFor(() => expect(world.tables.places[0]?.map_asset_id).toBeNull());
   });
 
-  // Purpose (B14, p2p-27; the driver's call on the trigger, 2026-11-22): where the picture came with the pack, "+ Map"
-  // adds it at once with no file to pick: the same hidden copy, the same toast and Undo.
-  it('takes the picture that came with the pack at once, with no file to pick', async () => {
+  // Purpose (B14, p2p-27): when the place's own tie of the pack's picture failed, "+ Map" tries the pack's picture again
+  // with no file to pick: the same hidden copy, the same toast and Undo.
+  it("after a failed tie, + Map tries the pack's picture again, with no file to pick", async () => {
     const user = userEvent.setup();
     world.tables.packs.push({ id: 'pack-marsh', owner_user_id: gm.id, campaign_id: null, name: 'The Marsh', version: '1', kind: 'adventure', format_version: 2, source: '', notes: '' });
     world.files.set('pack-files/pack-marsh/harbour-chart', new Blob(['a chart'], { type: 'image/png' }));
@@ -207,5 +208,87 @@ describe('+ Map on a place whose pack names a map', () => {
     expect(world.tables.assets).toHaveLength(0);
     expect(world.tables.places[0]?.map_asset_id).toBeNull();
     expect(screen.getByRole('button', { name: '+ Map' })).toBeTruthy();
+  });
+});
+
+describe("a place whose pack brought its map's picture (B14, p2p-27)", () => {
+  let world: FakeWorld;
+  let gm: CurrentUser;
+  let campaign: string;
+  const place = { id: 'p-harbour', name: 'The Drowned Harbour', version: 1, pack: { packId: 'pack-marsh', entryId: 'harbour', type: 'region', parentId: '', key: '' } };
+  const map = { id: 'harbour-chart', file: 'harbour-chart.png', title: 'The harbour chart', alt: 'A silted harbour', locationIds: ['harbour'], source: '' };
+
+  beforeEach(() => {
+    world = createFakeDb();
+    const gmId = world.addPerson('priya@lantern.example', 'Priya');
+    campaign = world.addCampaign('The Reed Marches', gmId);
+    world.tables.packs.push({ id: 'pack-marsh', owner_user_id: gmId, campaign_id: null, name: 'The Marsh', version: '1', kind: 'adventure', format_version: 2, source: '', notes: '' });
+    world.tables.campaign_packs.push({ id: 'cp-marsh', campaign_id: campaign, pack_id: 'pack-marsh', option_choices: {}, priority: 1 });
+    world.tables.library_entries.push({ id: 'entry-chart', pack_id: 'pack-marsh', kind: 'map', pack_entry_id: map.id, name: map.title, data: { ...map } });
+    world.tables.places.push({ id: place.id, campaign_id: campaign, name: place.name, description: '', pack_id: 'pack-marsh', pack_entry_id: 'harbour', map_asset_id: null, version: 1, undone: false });
+    world.files.set('pack-files/pack-marsh/harbour-chart', new Blob(['the chart, bundled'], { type: 'image/png' }));
+    world.signInAs(gmId);
+    gm = { id: gmId, roles: { [campaign]: 'gm' } };
+    vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 1200, height: 800, close: () => undefined })));
+  });
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  const open = () =>
+    render(
+      <ToastHost>
+        <PlaceMapPart db={world.db} user={gm} campaignId={campaign} place={place} />
+      </ToastHost>,
+    );
+  const maps = () => world.tables.assets.filter((a) => a.kind === 'map');
+
+  // Purpose (Francis, 2026-11-24: "youre forcing gm to tap when they shouldn't need to"): opening the place shows its map,
+  // the copy hidden (its eye closed), with no "+ Map" to tap and no toast.
+  it('shows the map, hidden, with no tap', async () => {
+    open();
+    // The card (its eye waits for the picture, which a test page never draws), and the copy behind it, hidden.
+    await screen.findByRole('region', { name: 'The map' });
+    expect(screen.queryByRole('button', { name: '+ Map' })).toBeNull();
+    expect(screen.queryByText(/^Map added/)).toBeNull();
+    expect(maps()).toHaveLength(1);
+    expect(maps()[0]).toMatchObject({ visibility: 'gm' });
+  });
+
+  // Purpose: opening the place again adds no second copy.
+  it('a second open adds no second copy', async () => {
+    open();
+    await screen.findByRole('region', { name: 'The map' });
+    cleanup();
+    open();
+    await screen.findByRole('region', { name: 'The map' });
+    expect(maps()).toHaveLength(1);
+  });
+
+  // Purpose: where the pack brought no picture for the map, "+ Map" asks for the file by hand, as before (5m-2).
+  it('without the pack\'s picture, + Map asks for the file', async () => {
+    world.files.delete('pack-files/pack-marsh/harbour-chart');
+    open();
+    expect(await screen.findByRole('button', { name: '+ Map' })).toBeTruthy();
+    expect(maps()).toHaveLength(0);
+  });
+
+  // Purpose: when the pack's picture can't be fetched, the toast says so, nothing is added, and "+ Map" tries again.
+  it("says so when the pack's picture can't be fetched, and + Map tries again", async () => {
+    const user = userEvent.setup();
+    const from = world.db.storage.from.bind(world.db.storage);
+    let offline = true;
+    (world.db.storage as { from: unknown }).from = (bucket: string) => {
+      const real = from(bucket);
+      return offline && bucket === 'pack-files' ? { ...real, download: async () => ({ data: null, error: { message: 'offline' } }) } : real;
+    };
+    open();
+    await screen.findByText(PACK_PICTURE_UNREAD_WORDS);
+    expect(maps()).toHaveLength(0);
+    offline = false;
+    await user.click(await screen.findByRole('button', { name: '+ Map' }));
+    await screen.findByRole('region', { name: 'The map' });
+    expect(maps()).toHaveLength(1);
   });
 });
