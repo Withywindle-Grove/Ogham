@@ -5,11 +5,12 @@
 //   2. The ring with a long hidden curse opens the player's sheet plus the GM's line, at body size (16 px), with the
 //      closed eye, and "Reveal…" above Give to…, at least 44 px high. No sideways scrolling, no text under 14 px, no
 //      small targets, no serious accessibility problem.
-//   3. "Reveal…" opens the GM's own sheet for the ring over it (⚑ 40), with its "Hidden from players" group, in its own
-//      form (a pop-up opened from inside a sheet is not itself a sheet: CLAUDE.md), whole on screen, and that pop-up
-//      lays out as cleanly.
-//   4. The cursed sword (M3g2) reads "Only you see this: the true figure is d20 …, cursed." from Wren's own figures,
-//      above the sheet's rows, with "Reveal…" (its curse is a hidden field).
+//   3. "Reveal…" opens the GM's own sheet for the ring over it (⚑ 40), titled "Your sheet: Mooring ring" (audit fix 5),
+//      with its "Hidden from players" group, in its own form (a pop-up opened from inside a sheet is not itself a
+//      sheet: CLAUDE.md), whole on screen, and that pop-up lays out as cleanly; its ✕ closes it alone.
+//   4. The cursed sword (M3g2) names only what Sam can't see (audit fix 6): Sam's copy shows its "Magic bonus -1", so
+//      the line reads "Only you see this: cursed.", under the sword's details (audit fix 7), with "Reveal…" (its curse
+//      is a hidden field).
 import { expect, test, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
@@ -40,6 +41,8 @@ for (const size of [
       await expect(line).toContainText('Only you see this: Whoever wears it');
       expect(await line.evaluate((el) => getComputedStyle(el).fontSize)).toBe('16px');
       await expect(line.locator('svg')).toHaveCount(1);
+      // Under the item's figures, after its details (M3g2; audit fix 7).
+      expect(await sheet.evaluate((el) => !!(el.querySelector('dl')!.compareDocumentPosition(el.querySelector('.gm-line')!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
       const rows = sheet.getByRole('group', { name: 'Item actions' }).getByRole('button');
       const words = await rows.allTextContents();
       expect(words.indexOf('Reveal…')).toBeGreaterThanOrEqual(0);
@@ -53,7 +56,7 @@ for (const size of [
       // Reveal… opens the GM's own sheet for the ring, as built, in its own form: not a sheet, whole on screen.
       await reveal.click();
       await expect(page.getByRole('group', { name: 'Hidden from players' })).toBeVisible();
-      const inner = page.getByRole('dialog', { name: 'Mooring ring' }).last();
+      const inner = page.getByRole('dialog', { name: 'Your sheet: Mooring ring' });
       await expect(inner).not.toHaveClass(/dialog--sheet/);
       const box = (await inner.boundingBox())!;
       expect(box.x).toBeGreaterThanOrEqual(0);
@@ -61,13 +64,18 @@ for (const size of [
       await page.screenshot({ path: `test-results/layout-screens/gm-view-pack-reveal-${size.width}-${scheme}.png`, fullPage: true });
       expect(await layoutProblems(page)).toEqual([]);
       expect(await accessibilityProblems(page)).toEqual([]);
+      // One ✕ closes one layer: the player's sheet stays.
+      await inner.getByRole('button', { name: 'Close' }).click();
+      await expect(inner).toHaveCount(0);
+      await expect(page.getByRole('dialog', { name: 'Mooring ring' })).toBeVisible();
     });
 
     test(`the cursed sword's GM line, in M3g2's words (${size.name}, ${scheme})`, async ({ page }) => {
       await openPack(page, size.width, size.height, scheme);
       await page.getByRole('button', { name: /^Old bronze sword/ }).click();
       const sheet = page.getByRole('region', { name: 'Old bronze sword' });
-      await expect(sheet.locator('.gm-line')).toHaveText("Only you see this: the true figure is d20 −1, cursed.");
+      await expect(sheet.getByText(/Magic bonus/)).toBeVisible();
+      await expect(sheet.locator('.gm-line')).toHaveText('Only you see this: cursed.');
       await expect(sheet.getByRole('button', { name: 'Reveal…' })).toBeVisible();
       await page.screenshot({ path: `test-results/layout-screens/gm-view-pack-sword-${size.width}-${scheme}.png`, fullPage: true });
       expect(await layoutProblems(page)).toEqual([]);

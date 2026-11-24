@@ -150,7 +150,7 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     expect(rope.queryByRole('button', { name: 'Reveal…' })).toBeNull();
   });
 
-  it.fails("a −1 that Sam's own copy shows is no secret: no GM line, no Reveal…; the sheet is exactly Sam's own", async () => {
+  it("a −1 that Sam's own copy shows is no secret: no GM line, no Reveal…; the sheet is exactly Sam's own", async () => {
     line('Old bronze sword', { category: 'weapon', item_data: { category: 'weapon', weapon: { damage: '1d8', magicBonus: -1 } } });
     const user = await openWrensPack();
     await user.click(await screen.findByRole('button', { name: /^Old bronze sword/ }));
@@ -179,7 +179,7 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     expect(playersWords(screen.getByRole('region', { name: 'Old bronze sword' }))).toBe(inView);
   });
 
-  it.fails('a cursed blade whose −1 Sam\'s copy shows names the curse alone: "Only you see this: cursed.", with Reveal…', async () => {
+  it('a cursed blade whose −1 Sam\'s copy shows names the curse alone: "Only you see this: cursed.", with Reveal…', async () => {
     world.tables.library_entries.push({
       id: 'entry-bronze-sword',
       pack_id: 'pack-fen',
@@ -204,7 +204,7 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     expect(sheet.getByRole('button', { name: 'Reveal…' })).toBeTruthy();
   });
 
-  it.fails("puts the GM's line under the item's figures, after its details (M3g2)", async () => {
+  it("puts the GM's line under the item's figures, after its details (M3g2)", async () => {
     const user = await openWrensPack();
     await user.click(await screen.findByRole('button', { name: /^Moon ring/ }));
     const region = screen.getByRole('region', { name: 'Moon ring' });
@@ -242,7 +242,7 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     expect(world.tables.events.filter((e) => e.type === 'inventory.reveal').map((e) => e.actor_user_id)).toEqual([gm]);
   });
 
-  it.fails("Reveal… opens the GM's own sheet as \"Your sheet: Moon ring\"; its ✕ closes it alone", async () => {
+  it("Reveal… opens the GM's own sheet as \"Your sheet: Moon ring\"; its ✕ closes it alone", async () => {
     const user = await openWrensPack();
     await user.click(await screen.findByRole('button', { name: /^Moon ring/ }));
     await user.click(screen.getByRole('button', { name: 'Reveal…' }));
@@ -322,5 +322,27 @@ describe("the GM's line's words (pure)", () => {
     expect(hiddenFigures(magic, () => [])).toEqual(['the true figure adds −1', '+2 vs bog lurkers']);
     // Nothing of the figure hidden: only the hidden notes, and the rolls are never worked out.
     expect(hiddenFigures({ parts: [{ label: 'Reed arrows, magic', value: 1 }], hitNotes: [], damageNotes: [] }, () => { throw new Error('not asked'); })).toEqual([]);
+  });
+
+  // Purpose (audit fix 6): with some of a weapon's magic shown in the player's own copies and some hidden, only the
+  // hidden part is named: the blade's −1 its copy shows is left out, the arrows' hidden +1 and their note stay.
+  it('leaves out a part or a note the player’s own copy already shows; keeps the rest', () => {
+    const magic = {
+      parts: [
+        { label: `Fenblade, magic${HIDDEN_FROM_PLAYER}`, value: -1 },
+        { label: `Reed arrows, magic${HIDDEN_FROM_PLAYER}`, value: 1 },
+      ],
+      hitNotes: [`+2 vs bog lurkers${HIDDEN_FROM_PLAYER}`, `Reed arrows, +3 vs eels${HIDDEN_FROM_PLAYER}`],
+      damageNotes: [],
+    };
+    const blade = { name: 'Fenblade', details: { weapon: { damage: '1d8', magicBonus: -1, bonusVs: [{ against: 'bog lurkers', bonus: 2 }] } } };
+    const arrows = { name: 'Reed arrows', details: { weapon: {} } };
+    // The blade's −1 and its note are on its copy; the arrows' copy shows nothing: the figure is still not Sam's.
+    expect(hiddenFigures(magic, () => [], [blade, arrows])).toEqual(['the true figure adds +1', 'Reed arrows, +3 vs eels']);
+    // Everything shown: nothing left to name.
+    const told = { name: 'Reed arrows', details: { weapon: { magicBonus: 1, bonusVs: [{ against: 'eels', bonus: 3 }] } } };
+    expect(hiddenFigures(magic, () => { throw new Error('not asked'); }, [blade, told])).toEqual([]);
+    // No copies given: as before, every hidden part and note.
+    expect(hiddenFigures(magic, () => [])).toEqual(['the true figure adds +0', '+2 vs bog lurkers', 'Reed arrows, +3 vs eels']);
   });
 });

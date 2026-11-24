@@ -4,7 +4,8 @@
 // Purposes, in plain words:
 //   1. Scene on Wren in the view (layout.html?as=gm&placePage=spot&ways=1&activities=1&viewScene=1) is the players'
 //      Scene: no title in the top row on a tablet, the band saying whose it is, the jetty's card with "Where to?" and
-//      its ways, Activities, the marching order, and Sam's waiting request in the prompt slot. No sideways scrolling,
+//      its ways, Activities, the marching order, and Sam’s waiting request in the prompt slot; no Recently log lines
+//      (⚑ 52, ruled 2026-11-24). No sideways scrolling,
 //      no text under 14 px, no small targets, no serious accessibility problem.
 //   2. The request's Cancel opens "Only Sam can take back this request": the sheet from the foot on a phone, centred on
 //      a tablet, "Go to Waiting for you" then "Got it", both plain and 44 px high, 8 px apart.
@@ -71,6 +72,8 @@ for (const size of [
       await expect(page.getByRole('heading', { name: 'Where to?' })).toBeVisible();
       await expect(page.getByRole('region', { name: 'Activities' })).toBeVisible();
       await expect(page.getByRole('heading', { name: 'Marching order' })).toBeVisible();
+      // No Recently log lines in the view of Sam's Scene (⚑ 52, ruled 2026-11-24).
+      await expect(page.getByRole('region', { name: 'Recently' })).toHaveCount(0);
       // No title in the top row on a tablet: the band says whose Scene it is (M3i).
       if (size.width >= 600) await expect(page.locator('.top-row__title:not(:empty)')).toHaveCount(0);
       await page.screenshot({ path: `test-results/layout-screens/gm-view-scene-${size.width}-${scheme}.png`, fullPage: true });

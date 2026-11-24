@@ -93,20 +93,26 @@ export function gmLineWords(hidden: readonly Line[], charges: { total: number | 
   return facts.length === 0 ? null : `Only you see this: ${facts.join(', ')}.`;
 }
 
-/** "Reveal…" in the view (⚑ 40, ruled 2026-11-21): the GM's own item sheet for the item, as built, with its own state. */
+/**
+ * "Reveal…" in the view (⚑ 40, ruled 2026-11-21): the GM's own item sheet for the item, as built, with its own state,
+ * over the player's sheet under its own title, "Your sheet: Mooring ring", so the one in front is plain; its ✕ closes
+ * it alone (audit fix 5, 2026-11-24: a title of its own, the smaller change than replacing the player's sheet).
+ */
 function GmItemSheet(props: ItemSheetProps) {
   const state = useItemSheetState(props.line);
   // Opened from inside the item's sheet: its own form, not the outer sheet's (CLAUDE.md; checked by gm-view-pack.spec.ts).
   return (
     <SheetScope.Provider value={false}>
       <PlayerViewContext.Provider value={null}>
-        <ItemSheet {...props} state={state} atHand={null} />
+        <ItemSheet {...props} state={state} atHand={null} title={`Your sheet: ${shownName(props.line.name)}`} />
       </PlayerViewContext.Provider>
     </SheetScope.Provider>
   );
 }
 
 interface ItemSheetProps {
+  /** The sheet's title, when not the item's name ("Your sheet: Mooring ring", the GM's own sheet over the view's). */
+  title?: string;
   /**
    * The GM's view as the player (pg32-4): the weapon's figures hidden from its player, in the GM's words, for the GM's
    * line ("Old bronze sword, magic −1"). From `CarrierItems`; empty outside the view.
@@ -198,6 +204,7 @@ export function ItemSheet(props: ItemSheetProps) {
     preview = false,
     atHand = null,
     gmFacts = [],
+    title,
   } = props;
   const id = useId();
   const blocked = useBlockedSheet();
@@ -376,7 +383,7 @@ export function ItemSheet(props: ItemSheetProps) {
   }
 
   return (
-    <Dialog label={shownName(line.name)} onClose={onClose} headAction={star} preview={preview}>
+    <Dialog label={title ?? shownName(line.name)} onClose={onClose} headAction={star} preview={preview}>
       <div id={id} className="pack__sheet" role="region" aria-label={shownName(line.name)}>
         {problem && (
           <p className="pack__problem" role="note">
@@ -386,10 +393,10 @@ export function ItemSheet(props: ItemSheetProps) {
         {[...shown.notes, ...lineNotes].map((note) => (
           <p key={note}>{note}</p>
         ))}
-        {/* The GM's line under the player's own words, above the details (M3g: above Slot). */}
-        {gmLine && <GmLine>{gmLine}</GmLine>}
         {amount && amount !== '—' && <p>{mode === 'slot' ? 'Takes' : 'Weight'}: {amount}{stackable(line) && mode !== 'armour' ? ` for ${line.qty}` : ''}.</p>}
         {shown.lines.length > 0 && <Lines lines={shown.lines} kv />}
+        {/* The GM's line under the item's figures, after its details (M3g2; audit fix 7, 2026-11-24). */}
+        {gmLine && <GmLine>{gmLine}</GmLine>}
         {patchLines.length > 0 && <p className="auth__meta">Changed by your rules: {patchLines.join('; ')}.</p>}
         {source && <p className="auth__meta">{source}</p>}
         {weapon && (weaponRolls.length > 0 || weaponRows.length > 0) && (

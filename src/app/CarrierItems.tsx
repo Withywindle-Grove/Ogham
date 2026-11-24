@@ -66,14 +66,42 @@ export function drawnAmmunition(
   return { name: stack.name, data: { ...(stackEntry?.data ?? {}), ...lineInPlay(setting, stack).details }, category: stack.category, told: stack.revealedFields ?? [] };
 }
 
+/** The player's own copy of a thing whose magic counts in a weapon's figure: the weapon's line, or the drawn stack's. */
+export interface PlayersCopy {
+  name: string;
+  details: Record<string, unknown>;
+}
+
+/** Whether the player's copy shows a magic bonus, or a bonus against a kind of foe, in its details ("Magic bonus -1"). */
+function copyShows(details: Record<string, unknown>, what: 'magicBonus' | 'bonusVs'): boolean {
+  const weapon = details.weapon;
+  if (weapon === null || typeof weapon !== 'object') return false;
+  const value = (weapon as Record<string, unknown>)[what];
+  return what === 'magicBonus' ? typeof value === 'number' && value !== 0 : Array.isArray(value) && value.length > 0;
+}
+
 /**
  * A weapon's figures hidden from its player, for the view's GM line in M3g2's words (pg32-4): where a part of its
  * figure is hidden, "the true figure is d20 −1" (the to-hit roll as the GM's figures make it, from `trueRolls`; without
  * rolls, what the hidden parts add, "the true figure adds −1"); then each hidden note ("+2 vs bog lurkers").
+ * Only what is really hidden (audit fix 6, 2026-11-24): a part or a note the player's own copy already shows in its
+ * details (`seen`: the weapon's copy first, then the drawn stack's) is no secret and is left out. Until K22a keeps a
+ * cursed weapon's bonus off the player's copy, Sam's sheet reads "Magic bonus -1", so the line does not name it.
  */
-export function hiddenFigures(magic: WeaponMagic, trueRolls: () => readonly AttackRoll[]): string[] {
-  const hiddenParts = magic.parts.filter((p) => p.label.endsWith(HIDDEN_FROM_PLAYER));
-  const notes = [...magic.hitNotes, ...magic.damageNotes].filter((n) => n.endsWith(HIDDEN_FROM_PLAYER)).map((n) => n.slice(0, -HIDDEN_FROM_PLAYER.length));
+export function hiddenFigures(magic: WeaponMagic, trueRolls: () => readonly AttackRoll[], seen: readonly PlayersCopy[] = []): string[] {
+  const [weapon, ...others] = seen;
+  // A part is "<name>, magic (hidden …)"; a note is the weapon's own, or "<name>, …" for the drawn stack's.
+  const shownPart = (label: string) => seen.some((c) => label === `${c.name}, magic${HIDDEN_FROM_PLAYER}` && copyShows(c.details, 'magicBonus'));
+  const shownNote = (note: string) => {
+    const of = others.find((c) => note.startsWith(`${c.name}, `));
+    const copy = of ?? weapon;
+    return copy !== undefined && copyShows(copy.details, 'bonusVs');
+  };
+  const hiddenParts = magic.parts.filter((p) => p.label.endsWith(HIDDEN_FROM_PLAYER) && !shownPart(p.label));
+  const notes = [...magic.hitNotes, ...magic.damageNotes]
+    .filter((n) => n.endsWith(HIDDEN_FROM_PLAYER))
+    .map((n) => n.slice(0, -HIDDEN_FROM_PLAYER.length))
+    .filter((n) => !shownNote(n));
   if (hiddenParts.length === 0) return notes;
   const hit = trueRolls().find((r) => r.roll === 'hit');
   const adds = hiddenParts.reduce((sum, p) => sum + p.value, 0);
@@ -353,7 +381,11 @@ export function CarrierItems({
                   const bearing = atHand ? attackRules(inMode, state?.engaged ? state.mode : null, [ruleNotes.get(line.id), problems.get(line.id)]) : [];
                   const inflicts = atHand && weapon !== null ? inflictedBy(item, state?.engaged ? state.stack : null, conditions) : [];
                   const gmMagic = gmInView ? weaponMagic({ name: line.name, data: item, category: line.category }, setting?.rulesSets ?? [], true, stack ? drawnAmmunition(setting, stack, stackEntry) : null) : null;
-                  const gmFacts = gmMagic ? hiddenFigures(gmMagic, () => weaponRolls?.({ ...inMode, name: line.name }, now.damageDelta ?? 0, lineFigureParts(state, gmMagic, line.sourceEntryId ?? null, classOk)) ?? []) : [];
+                  // What the player's own copies already show is no secret (audit fix 6): the weapon's line, the drawn stack's.
+                  const seen = [{ name: line.name, details: line.details }, ...(stack ? [{ name: stack.name, details: lineInPlay(setting, stack).details }] : [])];
+                  const gmFacts = gmMagic
+                    ? hiddenFigures(gmMagic, () => weaponRolls?.({ ...inMode, name: line.name }, now.damageDelta ?? 0, lineFigureParts(state, gmMagic, line.sourceEntryId ?? null, classOk)) ?? [], seen)
+                    : [];
                   return (
                   <ItemRow
                     key={line.id}

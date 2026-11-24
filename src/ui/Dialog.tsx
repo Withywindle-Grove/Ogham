@@ -201,6 +201,7 @@ export function Dialog({
   figure,
   reading = false,
   readingAction,
+  plainTitle = false,
 }: {
   label: string;
   onClose: () => void;
@@ -265,6 +266,12 @@ export function Dialog({
    * on a skill's sheet). Only with `reading`.
    */
   readingAction?: ReactNode;
+  /**
+   * Variant "Plain title" (page 32, M3f, M3f2, M3j; audit fix 4, 2026-11-24): the title in ink and sentence case at the
+   * Sheet's title size, as M3f draws it, never the book's red heading, even with `reading` or inside `BookPopUpScope`.
+   * The GM's player-only pop-ups ("Only Sam can …", `BlockedSheet`'s "To read").
+   */
+  plainTitle?: boolean;
 }) {
   const head = figure !== undefined && figure !== null && figure !== '' ? <span className="dialog__figure">{figure}</span> : null;
   const card = useRef<HTMLDivElement>(null);
@@ -282,7 +289,7 @@ export function Dialog({
   // The book's pop-ups (tfb-1): the red heading on a card (never the navigation drawer or a full screen's bar), and
   // "Got it" at the foot of one to read (tfb-2).
   const bookPopUp = (useContext(BookPopUpScope) || reading) && !full && !drawer;
-  const titled = bookHeading || bookPopUp;
+  const titled = (bookHeading || bookPopUp) && !plainTitle;
   const bookCard = bookPopUp ? ' dialog--book' : '';
   // The sheet's anchor, read once as it opens (before focus moves into it).
   const [anchor] = useState(() => (anchored ? anchorNow() : null));
@@ -377,7 +384,7 @@ export function Dialog({
     return (
       <div ref={card} className={`dialog dialog--preview${drawer ? ' dialog--drawer' : ''}${side ? ' dialog--side' : ''}${table ? ' dialog--table' : ''}${picture ? ' dialog--picture' : ''}${bookCard}${book}`} role="group" aria-label={`${label} (preview)`}>
         <div className={`dialog__head${head ? ' dialog__head--figure' : ''}`}>
-          <Title label={label} over={over} bookHeading={titled} />
+          <Title label={label} over={over} bookHeading={titled} plain={plainTitle} />
           {head}
           {headAction}
           {!noClose && <CloseButton onClose={onClose} />}
@@ -454,7 +461,7 @@ export function Dialog({
               <span aria-hidden="true">‹</span>
             </button>
           )}
-          <Title label={label} over={over} bookHeading={titled} />
+          <Title label={label} over={over} bookHeading={titled} plain={plainTitle} />
           {head}
           {headAction}
           {!noClose && <CloseButton onClose={() => close.current()} />}
@@ -492,8 +499,8 @@ export function GotItFoot({ onClose, action }: { onClose: () => void; /** A plai
 }
 
 /** The head's title; with `over`, the small line over it (the picture pop-up's place name), read as one heading. */
-function Title({ label, over, bookHeading }: { label: string; over?: string; bookHeading: boolean }) {
-  const title = <h2 className={`dialog__title${bookHeading ? ' book-heading' : ''}`}>{label}</h2>;
+function Title({ label, over, bookHeading, plain = false }: { label: string; over?: string; bookHeading: boolean; plain?: boolean }) {
+  const title = <h2 className={`dialog__title${bookHeading ? ' book-heading' : ''}${plain ? ' dialog__title--plain' : ''}`}>{label}</h2>;
   if (!over) return title;
   return (
     <div className="dialog__titles">

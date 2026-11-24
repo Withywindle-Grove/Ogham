@@ -331,7 +331,7 @@ describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
 });
 
 describe('keyboard focus in the view (audit fix 3)', () => {
-  it.fails("a door on the Players row puts focus on the view's heading, the character's name", async () => {
+  it("a door on the Players row puts focus on the view's heading, the character's name", async () => {
     const user = await openPlayers();
     await user.click(screen.getByRole('button', { name: "Open Wren's pack" }));
     await waitFor(() => expect(document.activeElement?.textContent).toBe('Wren’s pack'));
@@ -342,7 +342,7 @@ describe('keyboard focus in the view (audit fix 3)', () => {
     expect(document.activeElement?.classList.contains('top-row__title')).toBe(true);
   });
 
-  it.fails("Enter on a row's ⋯ puts focus on the menu's first item; Escape puts it back on ⋯", async () => {
+  it("Enter on a row's ⋯ puts focus on the menu's first item; Escape puts it back on ⋯", async () => {
     const user = await openPlayers();
     const more = screen.getByRole('button', { name: 'More for Wren' });
     more.focus();
@@ -356,7 +356,7 @@ describe('keyboard focus in the view (audit fix 3)', () => {
 });
 
 describe("the view's Scene (⚑ 52)", () => {
-  it.fails("leaves out the Recently log lines in the view of a player's Scene; the view of the GM's own character keeps them", async () => {
+  it("leaves out the Recently log lines in the view of a player's Scene; the view of the GM's own character keeps them", async () => {
     world.addCharacter(campaign, 'Ash');
     const user = await openPlayers();
     await user.click(screen.getByRole('button', { name: "Open Ash's scene" }));

@@ -5,7 +5,7 @@
 import { createContext, useContext } from 'react';
 import { isGm, type CurrentUser } from '../core/commands.ts';
 
-/** Where "Go to Waiting for you" opens (pg32-5, pg32-6): at a request, at a sheet change, or at its top. */
+/** Where the go-there button ("Go to Waiting for you", "Go to Waiting for approval") opens (pg32-5, pg32-6): at a request, at a sheet change, or at its top. */
 export type WaitingTarget = { request: string } | { change: string } | null;
 
 export interface PlayerView {
@@ -13,7 +13,7 @@ export interface PlayerView {
   player: string | null;
   /** The character's name ("Wren"). */
   character: string;
-  /** "Go to Waiting for you" (pg32-6): leaves the view for Players, Waiting for you open at the target. */
+  /** The go-there button (pg32-6): leaves the view for Players, Waiting for you open at the request or Waiting for approval at the change. */
   goToWaiting?: (at: WaitingTarget) => void;
 }
 

@@ -10,8 +10,10 @@
 //   3. The GM's act in the view (hit points) happens at once with the player's toast and Undo, logged as the GM's.
 //   4. The GM pins, moves a pin and unpins in the view, each logged as his and each undone by Undo (pg32-9).
 //   5. "Take back" in the notices opens "Only Sam can take back this change" with M3f's line, writes no event, and
-//      "Go to Waiting for you" (before "Got it") leaves the view for Players at the change waiting (pg32-6).
-//   6. The pure words: M3f2's eight pop-ups, word for word; the three that point to Waiting for you, and only those.
+//      "Go to Waiting for approval" (before "Got it"; the place its words name, audit fix 1) leaves the view for Players
+//      at the change waiting (pg32-6).
+//   6. The pure words: M3f2's eight pop-ups, word for word; the three that point somewhere, and only those, each naming
+//      the place its words name.
 //   7. Inside the view of a player's character a player-only button opens its pop-up; on the GM's own character, or
 //      outside the view, none opens and the button acts (pg32-7c).
 //   8. Cancel on a request, and the answers to the GM's offer, open their pop-ups and write nothing; Cancel's "Go to
@@ -266,7 +268,7 @@ describe('the GM’s Cast in the view (C15c; M3h)', () => {
 });
 
 describe('the player-only actions in the GM’s view (C15d; pg32-6)', () => {
-  it.fails('Take back opens “Only Sam can take back this change”, writes nothing, and goes to Waiting for approval, the place its words name', async () => {
+  it('Take back opens “Only Sam can take back this change”, writes nothing, and goes to Waiting for approval, the place its words name', async () => {
     await setUp('finish');
     const user = await inGmView();
     await user.click(await screen.findByRole('button', { name: /notice/ }));
@@ -320,7 +322,7 @@ describe('the view’s bar on a phone (M3j; pg32-match)', () => {
 describe('“Go to Waiting for you” lands once (the review of #36)', () => {
   // Purpose: once "Go to Waiting for you" has brought Players to the change, a later return to Players (from the view
   // again) neither scrolls back to it nor reopens anything.
-  it.fails('scrolls to Waiting for approval once, and not again on a later return', async () => {
+  it('scrolls to Waiting for approval once, and not again on a later return', async () => {
     const scrolled: Element[] = [];
     const was = Element.prototype.scrollIntoView;
     Element.prototype.scrollIntoView = function (this: Element) {
@@ -350,7 +352,7 @@ describe('“Go to Waiting for you” lands once (the review of #36)', () => {
 describe('the pop-ups’ words (M3f2)', () => {
   // Purpose (audit fix 1, ⚑ 51): the three that point somewhere name in their button the place their words name:
   // Waiting for you for the two requests, Waiting for approval for a sheet change.
-  it.fails('reads M3f2’s eight pop-ups word for word, three pointing where their words say', () => {
+  it('reads M3f2’s eight pop-ups word for word, three pointing where their words say', () => {
     const all: PlayerOnlyAct[] = ['askChange', 'sendRequest', 'takeBackRequest', 'chooseCharacter', 'takeBackChange', 'answerOffer', 'stayHere', 'undoPurchase'];
     expect(Object.fromEntries(all.map((act) => [act, playerOnlyWords(act, 'Sam', 'Wren')]))).toEqual({
       askChange: { title: 'Only Sam can ask for a change', why: 'A change Sam asks for comes to you to approve. To change Wren’s sheet yourself, use Edit in ⋯ on Players.', goTo: null },
@@ -410,7 +412,7 @@ describe('where a player-only pop-up opens (pg32-7c)', () => {
   });
 
   // Purpose (audit fix 3a): after Got it, keyboard focus is back on the button that opened the pop-up.
-  it.fails('puts focus back on the button that opened it after Got it', async () => {
+  it('puts focus back on the button that opened it after Got it', async () => {
     const { user } = await tap({ player: 'Sam', character: 'Wren', goToWaiting: vi.fn() }, 'answerOffer');
     const pop = await screen.findByRole('dialog', { name: 'Only Sam can answer your offer' });
     await user.click(within(pop).getByRole('button', { name: 'Got it' }));
@@ -420,7 +422,7 @@ describe('where a player-only pop-up opens (pg32-7c)', () => {
 
   // Purpose (audit fix 4): the pop-up's title is drawn as M3f draws it, in ink and sentence case at the Sheet's title
   // size, not the book's red heading in capitals, even on the Player tab (inside the book's pop-up scope).
-  it.fails('titles the pop-up in ink, not the book’s red heading, even inside the book’s pop-up scope', async () => {
+  it('titles the pop-up in ink, not the book’s red heading, even inside the book’s pop-up scope', async () => {
     const user = userEvent.setup();
     render(
       <ToastHost>

@@ -73,6 +73,15 @@
   font-size: var(--text-item);
 }
 
+/* Variant "Plain title" (page 32, M3f, M3f2, M3j; audit fix 4): ink, sentence case, the Sheet's title size, wherever
+   it opens (the book's pop-up scope and a reading pop-up give the others the book's red heading). */
+.dialog__title--plain {
+  color: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: var(--text-item);
+}
+
 /* The foot of every sheet and pop-up (ft-1, 2026-11-14, "buttons are right justified"; the approved Pack frames PK3,
    PK5, PK10b and the shop's TW4a): a lone accent at the right at its own width, never stretched and never at the left;
    two or more side by side, the group at the right, in code order, which is reading order and Tab order (the order

@@ -491,7 +491,9 @@ export function PlayerScreen({
                 body: (restButton, dark) => <PartyGroups db={db} user={user} campaign={campaign} restButton={restButton} dark={dark} actor={actorFacts} player={scenePlayer} />,
               }}
             />
-            <LogView db={db} user={user} campaignId={character.campaignId} recent={RECENT_LINES} />
+            {/* In the GM's view of a player's Scene, no Recently lines: they would be his own log (⚑ 52, ruled 2026-11-24).
+                The view of his own character keeps them, as his own Scene does. */}
+            {!view?.player && <LogView db={db} user={user} campaignId={character.campaignId} recent={RECENT_LINES} />}
           </>
         ) : (
           <PackScreen
