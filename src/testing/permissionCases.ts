@@ -48,6 +48,7 @@ import { copyHomebrewToLibrary, deletePack, editPackEntry, importPack, updatePac
 import { attachPack, detachPack, moveSettingRules, preferEntry, setPackOptions, startHomebrew } from '../modules/library/campaignPacks.ts';
 import { deleteHomebrewEntry, saveHomebrewEntry } from '../modules/library/homebrew.ts';
 import { readPackJson, type ReadPack } from '../modules/library/packFile.ts';
+import { markCallSeen, type CallSendRef } from '../modules/library/callCards.ts';
 import { sendHook } from '../modules/library/callsToAdventure.ts';
 import { giveRumour } from '../modules/library/rumours.ts';
 import { resetStock, setStock } from '../modules/requests/shopStock.ts';
@@ -324,6 +325,8 @@ export interface CaseWorld {
    * the table's id and the row's range, a fresh table each time so a give is never refused as a repeat.
    */
   freshRumour(): Promise<{ packId: string; tableId: string; min: number; max: number }>;
+  /** A call to adventure the GM just sent, to the party or to Wren (P7), never seen by anyone. */
+  freshCallSend(to: 'party' | 'wren'): Promise<CallSendRef>;
   /** A message the GM just wrote to Wren (Player A's character; M5b g4). Gives back its id. */
   freshMessage(): Promise<string>;
   /** A Describe… request Wren (Player A's character) just sent, still waiting (M5 step 12). */
@@ -1318,6 +1321,12 @@ export const permissionCases: PermissionCase[] = [
   rule('the GM can give a rumour to one character', 'gm', giveRumour, async (w) => ({ campaignId: w.campaignId, ...(await w.freshRumour()), actorId: w.wren.id }), true),
   rule("a player can't give a rumour", 'playerA', giveRumour, async (w) => ({ campaignId: w.campaignId, ...(await w.freshRumour()), actorId: null }), false),
   rule("an outsider can't give a rumour", 'outsider', giveRumour, async (w) => ({ campaignId: w.campaignId, ...(await w.freshRumour()), actorId: null }), false),
+  // Got it on a call (P7, p7-1 to p7-3): a player marks a call they may read as seen; the GM and others can't.
+  rule('a player marks a call to the party as seen', 'playerA', markCallSeen, async (w) => ({ send: await w.freshCallSend('party') }), true),
+  rule('a player marks a call to their own character as seen', 'playerA', markCallSeen, async (w) => ({ send: await w.freshCallSend('wren') }), true),
+  rule("a player can't mark a call to another player's character as seen", 'playerB', markCallSeen, async (w) => ({ send: await w.freshCallSend('wren') }), false),
+  rule("the GM can't mark a call as seen", 'gm', markCallSeen, async (w) => ({ send: await w.freshCallSend('party') }), false),
+  rule("an outsider can't mark a call as seen", 'outsider', markCallSeen, async (w) => ({ send: await w.freshCallSend('party') }), false),
   // A shop's stock for the day (W12): the GM sets a thing in or out, or resets the things with a chance; a player can't.
   rule('the GM can set a thing in stock for the day', 'gm', setStock, (w) => ({ campaignId: w.campaignId, serviceId: 'perm-shop', itemId: `perm-${crypto.randomUUID()}`, day: 1, answer: 'in' as const }), true),
   rule("a player can't set a thing in stock", 'playerA', setStock, (w) => ({ campaignId: w.campaignId, serviceId: 'perm-shop', itemId: `perm-${crypto.randomUUID()}`, day: 1, answer: 'in' as const }), false),

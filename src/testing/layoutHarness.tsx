@@ -8,6 +8,14 @@
 //               Fenward, with a full right column, a lit storm lantern and oil, a spear in hand, a pinned knife and
 //               four statuses; every Player screen row of plan dec-13 is pictured against it
 //   &gear=1     "The Fen Muster" on the invented fixture pack, Jo (?as=new) joined with no character: creation's Gear step
+//   &gmWaiting=1  "The Fen Reckoning" on the invented fixture pack, Jo's Tam waiting for the GM (?as=gm), no score rolled
+//   &creation=full  "The Fen Census" on the whole fixture pack with creation-full.fixture.json over it, Jo (?as=new)
+//               joined with no character: guided creation reaches every step (Method, Patron, the hit points row,
+//               Roll for a name, First spells, Gear's pick and trinket sheets, Languages, Weapon skills, backgrounds,
+//               Details); walked in tests/layout/creationWorld.spec.ts
+//   &send=refuse   the send command (Send to the GM) comes back refused while online
+//   &send=offline  the send fails as offline: the device reads offline and the request errors, for the page's life (Try again never succeeds)
+//   &slow=1     every answer from the stand-in database waits 600 ms, so creation's loading state (300 ms) shows
 //   &skills=1   Wren is a level 3 Lantern Warden with two skills (the pop-up scene); off by default, so the
 //               gallery's pictures of Wren stay as they are
 //   ?mapParts=1 the map card and the map pop-up alone (dec-7 piece 5a), on an invented harbour picture, wired to no
@@ -32,7 +40,9 @@ import { applyTextSize, getTextSize } from '../ui/textSize.ts';
 import { applyThemeChoice, getThemeChoice } from '../ui/theme.ts';
 import { createFakeDb } from './fakeDb.ts';
 import fenFixture from '../../scripts/fixtures/m5b-creation.fixture.json?raw';
+import fullCreationFixture from '../../scripts/fixtures/creation-full.fixture.json?raw';
 import { BuildContext, STAND_IN_BUILD } from '../app/AppUpdate.tsx';
+import { EVENT_HEADER } from '../core/eventTags.ts';
 
 const world = createFakeDb();
 const gm = world.addPerson('priya@lantern.example', 'Priya');
@@ -888,6 +898,79 @@ if (new URLSearchParams(window.location.search).get('gear') === '1') {
     );
 }
 
+// Every step of guided creation on the invented fixture pack (row test-creation-world), only with ?creation=full: "The
+// Fen Census", which Jo (?as=new) has joined with no character yet. The whole fixture pack (its spells, tables, trait
+// lists, hooks and layout too) with creation-full.fixture.json laid over it (a patron, and a table of odds and ends
+// the rules set's given gear picks from: the Gear step's pick sheet), and the options that open the
+// rest: Method (each player chooses), Weapon skills (drill on), the stone kin's class limits lifted (so a stone-kin
+// Reed Witch has the name table, the trinket and Details beside First spells), and the patron option on. The campaign
+// asks for hit points, so Who they are has the hit points row. The fields as the importer makes them (kindredTables.test.tsx);
+// the omen left out, its option being off, and the layout's own hit points (the campaign's row stands for them).
+if (new URLSearchParams(window.location.search).get('creation') === 'full') {
+  const census = world.addCampaign('The Fen Census', gm);
+  world.addMember(census, jo, 'player');
+  Object.assign(world.tables.campaigns.find((c) => c.id === census)!, { settings: { encumbrance: { mode: 'coin' }, hpRequired: true } });
+  world.tables.packs.push({ id: 'pack-fen-full', owner_user_id: gm, campaign_id: null, name: 'Fen sample', version: '0.1', kind: 'setting', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-24T12:00:00Z', extra_meta: { shortName: 'Fen sample' } });
+  const extras = JSON.parse(fullCreationFixture) as Record<string, Record<string, unknown>[]>;
+  const lists: [string, string][] = [
+    ['rulesSets', 'rulesSet'], ['fieldTemplates', 'fieldTemplate'], ['options', 'option'], ['races', 'race'], ['classes', 'class'], ['spellLists', 'spellList'], ['spells', 'spell'],
+    ['tables', 'table'], ['items', 'item'], ['lightTypes', 'lightType'], ['startingKits', 'startingKit'], ['traitLists', 'traitList'], ['hooks', 'hook'], ['patrons', 'patron'],
+  ];
+  const addRules = (extras.harnessRulesSet ?? {}) as Record<string, unknown>;
+  for (const source of [fenPack, extras])
+    for (const [list, kind] of lists)
+      for (const found of source[list] ?? []) {
+        const data = kind === 'rulesSet' ? { ...found, ...addRules } : found;
+        world.tables.library_entries.push({ id: `entry-full-${kind}-${String(data.id)}`, pack_id: 'pack-fen-full', kind, pack_entry_id: String(data.id), name: String(data.name ?? data.id), data });
+      }
+  world.tables.campaign_packs.push({
+    id: 'campaign-pack-full', campaign_id: census, pack_id: 'pack-fen-full', pack_name: 'Fen sample', overrides: {}, priority: 1,
+    option_choices: { 'creation-path': 'players-choose', 'fen-weapon-drill': 'on', 'fen-kin-limits': 'lifted', 'fen-patrons': 'on' },
+  });
+  type FullField = { key: string; label: string; type: string; group?: string; fill?: string; choices?: string[]; required?: boolean; from?: string };
+  ((fenPack.fieldTemplates?.[0]?.fields ?? []) as FullField[])
+    .filter((f) => f.key !== 'omen' && f.key !== 'hp')
+    .forEach((f, order) => {
+      const fromList = f.from && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(f.from) ? f.from : null;
+      const type = f.type === 'list' && !f.choices?.length && !fromList ? 'text' : f.type;
+      world.tables.field_definitions.push({ id: `field-full-${f.key}`, campaign_id: census, applies_to: 'pc', key: f.key, label: f.label, type, choices: f.choices ?? [], field_group: f.group ?? '', sort_order: order, show_on_card: false, hidden: false, fill: f.fill ?? null, required: !!f.required, from_list: fromList, created_at: '2026-11-24T12:00:00Z' });
+    });
+}
+
+// The GM's approval card with scores (plan dec-15 row 9, caf-8), only with ?gmWaiting=1: "The Fen Reckoning" on the
+// invented fixture pack, where Jo's Tam, a bog folk Lantern Warden, waits for the GM (Priya, ?as=gm). Tam's scores were
+// all left at the average (2d8: 9), none rolled; the kindred moved two of them (Nimbleness up one, Grit down one), so
+// the record's `rolled` differs from its `scores` there, as guided creation writes it. The layout's fields without hp
+// and the omen, as approvalHomebrew.test.tsx's world.
+if (new URLSearchParams(window.location.search).get('gmWaiting') === '1') {
+  const reckoning = world.addCampaign('The Fen Reckoning', gm);
+  world.addMember(reckoning, jo, 'player');
+  world.tables.packs.push({ id: 'pack-fen-reckoning', owner_user_id: gm, campaign_id: null, name: 'Fen sample', version: '0.1', kind: 'setting', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-24T12:00:00Z', extra_meta: { shortName: 'Fen sample' } });
+  const lists: [string, string][] = [['rulesSets', 'rulesSet'], ['races', 'race'], ['classes', 'class'], ['items', 'item'], ['startingKits', 'startingKit'], ['fieldTemplates', 'fieldTemplate']];
+  for (const [list, kind] of lists)
+    for (const data of fenPack[list] ?? []) world.tables.library_entries.push({ id: `entry-reckoning-${kind}-${String(data.id)}`, pack_id: 'pack-fen-reckoning', kind, pack_entry_id: String(data.id), name: String(data.name ?? data.id), data });
+  world.tables.campaign_packs.push({ id: 'campaign-pack-reckoning', campaign_id: reckoning, pack_id: 'pack-fen-reckoning', pack_name: 'Fen sample', option_choices: {}, overrides: {}, priority: 1 });
+  type ReckoningField = { key: string; label: string; type: string; group?: string; fill?: string; choices?: string[]; required?: boolean };
+  ((fenPack.fieldTemplates?.[0]?.fields ?? []) as ReckoningField[])
+    .filter((f) => f.key !== 'hp' && f.key !== 'omen')
+    .forEach((f, order) => {
+      const type = f.type === 'list' && !f.choices?.length ? 'text' : f.type;
+      world.tables.field_definitions.push({ id: `field-reckoning-${f.key}`, campaign_id: reckoning, applies_to: 'pc', key: f.key, label: f.label, type, choices: f.choices ?? [], field_group: f.group ?? '', sort_order: order, show_on_card: false, hidden: false, fill: f.fill ?? null, required: !!f.required, created_at: '2026-11-24T12:00:00Z' });
+    });
+  const tam = world.addCharacter(reckoning, 'Tam', { ownerId: jo, approval: 'pending' });
+  Object.assign(world.tables.actors.find((a) => a.id === tam)!, {
+    level: 1,
+    classes: [{ classRef: 'lantern-warden', level: 1, xp: 0 }],
+    race_ref: 'bog-folk',
+    creation: {
+      method: null,
+      rolled: { MUS: 9, NIM: 9, GRT: 9, WIT: 9, LORE: 9, CHARM: 9 },
+      scores: { MUS: 9, NIM: 10, GRT: 8, WIT: 9, LORE: 9, CHARM: 9 },
+      scoresAverage: ['MUS', 'NIM', 'GRT', 'WIT', 'LORE', 'CHARM'],
+    },
+  });
+}
+
 // A place's rules and its own check (December dec-7 piece 3), only with ?placeRules=1: an invented harbour in River
 // Rules with an encounter check on each move that stands in, a rule with a button, a plain rule and one the book keeps
 // for the GM; an expedition under way with the party at its jetty, the jetty's description shown. Made through the
@@ -1095,13 +1178,31 @@ if (callsFlag === '1' || callsFlag === 'many' || callsFlag === 'long') {
 // (the screen's states, C11); ?p1=skills: a roll for skills and three more skills (rows C13, C14 of plan
 // test-feedback-2026-11-19); ?p1=finish: the languages left for "To finish" and a change waiting for the GM, two notices
 // in the notices box (row C1); ?p1=pins: an ability and a trait pinned, a row and a block in the right column's list
-// (row P3 of plan test-feedback-2026-11-19; page 28).
+// (row P3 of plan test-feedback-2026-11-19; page 28); ?p1=unlit|several|burnt|burntnone|longlight: the light's states
+// (plan light-tap, page 35).
 const p1Flag = new URLSearchParams(window.location.search).get('p1');
-if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noline' || p1Flag === 'classless' || p1Flag === 'heavy' || p1Flag === 'modes' || p1Flag === 'weapon' || p1Flag === 'bare' || p1Flag === 'packless' || p1Flag === 'skills' || p1Flag === 'finish' || p1Flag === 'pins') {
+if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noline' || p1Flag === 'classless' || p1Flag === 'heavy' || p1Flag === 'modes' || p1Flag === 'weapon' || p1Flag === 'bare' || p1Flag === 'packless' || p1Flag === 'skills' || p1Flag === 'finish' || p1Flag === 'pins' || p1Flag === 'unlit' || p1Flag === 'several' || p1Flag === 'burnt' || p1Flag === 'burntnone' || p1Flag === 'longlight') {
   const { addP1Character } = await import('./layoutP1Character.ts');
   const p1Id = await addP1Character(world, { gm, sam, fenPack, head: p1Flag === '1' ? 'four' : p1Flag });
   // ?maxhp=none: no most hit points recorded, so the vitals offer "Set max" (N24) and its Max hit points pop-up (fb-7).
   if (new URLSearchParams(window.location.search).get('maxhp') === 'none') Object.assign(world.tables.actors.find((a) => a.id === p1Id)!, { hp_max: null });
+  // &light=error: the character's own light can't be read (⚑ 6 of plan light-tap, B; page 37, 37C), as when offline.
+  if (new URLSearchParams(window.location.search).get('light') === 'error') {
+    const stand = world.db as unknown as { from: (table: string) => unknown };
+    const read = stand.from.bind(world.db);
+    stand.from = (table: string) => {
+      const query = read(table) as { select: (c: string) => { eq: (col: string, v: unknown) => unknown } };
+      if (table !== 'character_lights') return query;
+      const select = query.select.bind(query);
+      query.select = (c: string) => {
+        const q = select(c);
+        const eq = q.eq.bind(q);
+        q.eq = (col: string, v: unknown) => (col === 'actor_id' ? { maybeSingle: () => Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }) } : eq(col, v));
+        return q;
+      };
+      return query;
+    };
+  }
 }
 
 // The GM's place page (dec-7 piece 5b, page 11), only with ?placePage=…: an invented adventure, "The Reed Marches",
@@ -1112,7 +1213,8 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //                     (frame 5's sentences);
 //   ?placePage=hand   the party at a place typed by hand (frame 2b, left);
 //   ?placePage=none   an expedition with no place yet (frame 2b, right).
-//   &map=wanted|added with spots or spot: the pack's map for the harbour, not added yet or added (S13; see below).
+//   &map=wanted|added|shown with spots or spot: the pack's map for the harbour, not added yet, added, or added and shown
+//               to the players (S13; the players' map, P5; see below).
 //   &picture=1 with spots or spot: the place has a picture (TW13: the picture row, a tap opening it); with &ways=… too,
 //               shown to the players (the Location's card's small picture button, ppf-6 c).
 //   &mapTitle=long  with &map: the map's title long (the card's title on its own line above the tools).
@@ -1408,13 +1510,13 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
       if (pictured?.picture) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row: pictured, piece: { id: pictured.picture.id } });
     }
     const mapFlag = new URLSearchParams(window.location.search).get('map');
-    if (mapFlag === 'wanted' || mapFlag === 'added') {
+    if (mapFlag === 'wanted' || mapFlag === 'added' || mapFlag === 'shown') {
       // &mapTitle=long: a long title, so the card's title takes its own line above the tools (#851's round).
       const chartTitle = new URLSearchParams(window.location.search).get('mapTitle') === 'long' ? 'The Drowned Harbour and the Saltwick Breakwater at the turn of the tide' : 'The Drowned Harbour, the harbour chart';
       const chart = { file: 'harbour-chart.png', title: chartTitle, alt: 'A silted harbour, its bar and five spots', locationIds: ['drowned-harbour'] };
       world.tables.library_entries.push({ id: 'entry-reed-harbour-chart', pack_id: 'pack-reed', kind: 'map', pack_entry_id: 'harbour-chart', name: chart.title, data: chart });
-      if (mapFlag === 'added' && row) {
-        world.tables.assets.push({ id: 'asset-harbour-chart', campaign_id: campaign, kind: 'map', name: chart.title, visibility: 'gm' });
+      if ((mapFlag === 'added' || mapFlag === 'shown') && row) {
+        world.tables.assets.push({ id: 'asset-harbour-chart', campaign_id: campaign, kind: 'map', name: chart.title, visibility: mapFlag === 'shown' ? 'all' : 'gm' });
         await world.db.storage.from('campaign-files').upload(`${campaign}/asset-harbour-chart`, new Blob(['a chart'], { type: 'image/svg+xml' }));
         const tied = world.tables.places.find((p) => p.id === row.place?.id);
         if (tied) tied.map_asset_id = 'asset-harbour-chart';
@@ -1505,6 +1607,54 @@ if (new URLSearchParams(window.location.search).get('railSigil') === '1') {
   }
 }
 
+// The stand-in database as the screens get it (row test-creation-world). The in-memory database answers in the page,
+// so a layout check's page.route can't make a send fail; these flags do it here instead:
+//   &send=refuse   the send command (character.send) comes back refused, the device still online
+//   &send=offline  the send fails as it does when the connection drops: the device reads offline, the send errors.
+//                  The device stays offline for the page's life, so Try again never succeeds in this world.
+//   &slow=1        every answer from the database waits 600 ms, past the 300 ms before creation's loading state shows
+// With none of them, the database itself, untouched.
+function harnessDb(db: typeof world.db): typeof world.db {
+  const params = new URLSearchParams(window.location.search);
+  const send = params.get('send');
+  const slow = params.get('slow') === '1';
+  if (send !== 'refuse' && send !== 'offline' && !slow) return db;
+  const commandOf = (headers: Headers | undefined) => {
+    const value = headers?.get(EVENT_HEADER);
+    if (!value) return null;
+    try {
+      return (JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(value), (c) => c.charCodeAt(0)))) as { type?: string }).type ?? null;
+    } catch {
+      return null;
+    }
+  };
+  const later = <T,>(value: T) => (slow ? new Promise<T>((resolve) => window.setTimeout(() => resolve(value), 600)) : Promise.resolve(value));
+  type Thenable = { headers?: Headers; then: (onDone?: (value: unknown) => unknown, onFail?: (reason: unknown) => unknown) => PromiseLike<unknown> };
+  // Depends on the query builder's shape: `db.from(table)` returns one thenable object (with a `headers` Headers), so
+  // replacing its `then` catches the request when it is awaited. A builder that returned a fresh object per step would escape it.
+  const from = db.from.bind(db);
+  return new Proxy(db, {
+    get(target, property, receiver) {
+      if (property !== 'from') return Reflect.get(target, property, receiver) as unknown;
+      return (table: Parameters<typeof db.from>[0]) => {
+        const query = from(table) as unknown as Thenable;
+        const answer = query.then.bind(query);
+        // The command's name is in the request's header, set after this returns: read it when the query is awaited.
+        query.then = (onDone, onFail) => {
+          const command = commandOf(query.headers);
+          if (command === 'character.send' && send === 'refuse') return later({ data: null, error: { message: "You don't have permission to do that.", code: '42501' } }).then(onDone, onFail);
+          if (command === 'character.send' && send === 'offline') {
+            Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
+            return later(null).then(() => Promise.reject(new TypeError('Failed to fetch'))).then(onDone, onFail);
+          }
+          return slow ? later(null).then(() => answer(onDone, onFail)) : answer(onDone, onFail);
+        };
+        return query;
+      };
+    },
+  });
+}
+
 // The device's theme and text size, as the app applies them before it starts (src/main.tsx).
 applyThemeChoice(getThemeChoice());
 applyTextSize(getTextSize());
@@ -1565,7 +1715,7 @@ if (viewPopUps) {
 createRoot(root).render(
   <StrictMode>
     <BuildContext.Provider value={STAND_IN_BUILD}>
-      <Root db={world.db} />
+      <Root db={harnessDb(world.db)} />
     </BuildContext.Provider>
   </StrictMode>,
 );

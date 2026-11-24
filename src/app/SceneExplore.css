@@ -30,7 +30,6 @@
 .scene-card__lines,
 .scene-card__modifiers,
 .scene-reminders__list,
-.encounter-table__rows,
 .procedure-list {
   margin: 0;
   padding: 0;
@@ -392,36 +391,6 @@
   overflow-wrap: anywhere;
 }
 
-/* The encounter table: the lit row is marked ▶ and bold, never by colour alone. */
-.encounter-table__rows {
-  gap: var(--space-1);
-}
-
-.encounter-table__row {
-  display: flex;
-  gap: var(--space-3);
-  padding: var(--space-1) 0;
-  border-bottom: var(--row-rule);
-  font-size: var(--text-16);
-  line-height: var(--line-body);
-}
-
-.encounter-table__row--lit {
-  font-weight: var(--weight-heading);
-  background: var(--tint);
-}
-
-.encounter-table__roll {
-  flex: 0 0 auto;
-  min-inline-size: var(--space-7);
-  font-variant-numeric: tabular-nums;
-}
-
-.encounter-table__result {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
 .scene-reminders__list {
   gap: var(--space-1);
 }
@@ -452,40 +421,6 @@
   font-size: var(--text-16);
   line-height: var(--line-body);
   overflow-wrap: anywhere;
-}
-
-/* The scene's current table as one row, its name · Roll (ruled 2026-10-29); Table library › opens the table library. */
-.current-table {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  width: 100%;
-  min-height: var(--tap);
-  padding: var(--space-2) 0;
-  border: 0;
-  border-top: var(--line-hair) solid var(--rule);
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-}
-
-.current-table__name {
-  font-size: var(--text-16);
-  line-height: var(--line-body);
-  font-weight: var(--weight-heading);
-  overflow-wrap: anywhere;
-  min-width: 0;
-}
-
-.current-table__roll {
-  flex: none;
-  font-size: var(--text-16);
-  line-height: var(--line-body);
-  font-weight: var(--weight-heading);
-  color: var(--accent);
 }
 
 .tables-link {

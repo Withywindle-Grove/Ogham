@@ -117,6 +117,7 @@ const world: CaseWorld = {
   freshMovePlace: async () => ({ campaignId: 'campaign-fresh', placeId: 'place-fresh' }),
   freshAdventureHook: async () => ({ packId: 'pack-adventure', hookId: 'ew-bog-bounty' }),
   freshRumour: async () => ({ packId: 'pack-adventure', tableId: 'ew-quay-rumours', min: 1, max: 1 }),
+  freshCallSend: async (to) => ({ id: `send-${to}`, campaignId, actorId: to === 'wren' ? 'actor-wren' : null, playerUserId: to === 'wren' ? users.playerA.id : null }),
   freshMessage: async () => 'message-fresh',
   freshRequest: async () => request('request-fresh', users.playerA.id, 'actor-wren', 'describe', 'playerAsks'),
   freshSheetChange: async () => ({

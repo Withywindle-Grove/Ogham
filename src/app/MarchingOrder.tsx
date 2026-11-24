@@ -158,9 +158,7 @@ export function MarchingOrder({
         <p className="marching__note" role="alert">
           Couldn't load the marching order. Check your connection and try again.
         </p>
-        <button type="button" className="button-secondary" onClick={() => setVersion((v) => v + 1)}>
-          Try again
-        </button>
+        <StackedButton icon="refresh" label="Try again" onClick={() => setVersion((v) => v + 1)} />
       </section>
     );
   }

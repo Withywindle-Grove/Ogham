@@ -108,11 +108,6 @@ export function modifierEffects(rulesSets: readonly Record<string, unknown>[], k
   });
 }
 
-/** Whether the setting has a modifier table for this ability (cw-11; a number with no modifier leaves its caption blank, P4). */
-export function hasModifierTable(rulesSets: readonly Record<string, unknown>[], key: string): boolean {
-  return rulesSets.some((rules) => isRecord(rules.abilityModifiers) && Array.isArray(rules.abilityModifiers[key]));
-}
-
 /**
  * What Next says on the Scores step (cr-2, cr-9): the first score missing ("CHA is missing"), or outside the setting's
  * range ("STR must be 3–18"); null when every score is in. `range` gives the range when the pack has no `scores`

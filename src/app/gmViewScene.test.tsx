@@ -13,6 +13,8 @@
 //   6. The GM's Rest in the view rests Wren's group (not the other), logged as his, and Undo takes it back.
 //   7. With "players see hit points" off, the view's marching order shows hit points as Sam sees them: Wren's (his own),
 //      never Moss's (Jo's) nor Ash's (the GM's own); the GM's own Scene shows everyone's.
+//   8. With a place shown to Wren's group, the view of Sam's Scene never stays on "Loading the map" (the players' map
+//      read has no form naming a player yet, so the view makes none and shows no map).
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -139,6 +141,15 @@ describe("the Scene in the GM's view (C15f)", () => {
       expect(await screen.findByText('Dusty frames and a draught.')).toBeTruthy();
       expect(screen.queryByRole('heading', { name: 'Somewhere new' })).toBeNull();
     }
+  });
+
+  it("never leaves the map loading in the view of Sam's Scene, as its read has no form naming a player yet", async () => {
+    const t = await table({ shownTo: 1 });
+    groups(t, true);
+    expect(await screen.findByText('Dusty frames and a draught.')).toBeTruthy();
+    await new Promise((r) => setTimeout(r, 30));
+    expect(screen.queryByLabelText('Loading the map')).toBeNull();
+    expect(screen.queryByText(/Couldn't load the map/)).toBeNull();
   });
 
   it('gives the reads as Sam to the GM only, and exactly what Sam reads', async () => {

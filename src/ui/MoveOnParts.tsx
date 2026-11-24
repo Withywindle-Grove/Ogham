@@ -16,7 +16,7 @@ import { Dialog } from './Dialog.tsx';
 import { DiceWords } from './dice.tsx';
 import { wayIconOf } from './iconSet.ts';
 import { Icon } from './icons.tsx';
-import { ListRow, WarningLine } from './parts.tsx';
+import { ListRow, StackedButton, WarningLine } from './parts.tsx';
 import './MoveOnParts.css';
 
 /** One way of moving to a destination, as its button says it. */
@@ -124,9 +124,8 @@ export function DestinationRow({
         <div className="destination-row__proposed">
           <p>{proposal.by === 'you' ? 'Proposed by you: waiting for your GM.' : `Proposed by ${proposal.by}.`}</p>
           {'onCancel' in proposal && (
-            <button type="button" className="button-secondary button-secondary--small" onClick={proposal.onCancel}>
-              Cancel
-            </button>
+            // ic-1 (P12): the icon above the word, the app's cross in a circle as "Take it off" has it.
+            <StackedButton icon="cancel" label="Cancel" onClick={proposal.onCancel} />
           )}
         </div>
       )}

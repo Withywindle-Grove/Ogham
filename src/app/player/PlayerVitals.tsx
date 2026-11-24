@@ -26,6 +26,9 @@ import { registry } from '../services.ts';
 /** A caption's parts joined by commas, never a middle dot (plan m5b-players-screens-standard A2): "Melee +1, Missile +0". */
 const commas = (text: string) => text.replace(/ · /g, ', ');
 
+/** The attack tile's line in plain case, a capital on its first word only (plan dec-14-player-audit-fixes, row 7b): "Melee +2, missile +1". The full sheet's tile keeps its capitals (tfw-7). */
+const plainCase = (text: string) => text.replace(/, (\p{Lu})/gu, (_, first: string) => `, ${first.toLowerCase()}`);
+
 /**
  * The vitals: hit points largest, in the HP box (ruled 2026-11-08, mockup players/04 C): the figure at the left (a
  * tap types a value), − and + at the right, each tap at once; taps within two seconds fold into one setHp with one
@@ -201,7 +204,7 @@ export function PlayerVitals({
               label={attackName}
               value={attackShown}
               // The same line as the pop-up's rows and the full sheet's tile, from one source (tf-A3): the totals, or the scores' modifiers when the setting names no AC style.
-              caption={commas(attackFigure.caption) || undefined}
+              caption={plainCase(commas(attackFigure.caption)) || undefined}
               onTap={() => setOpen('attack')}
               tapLabel={`${attackName} ${attackShown}: how it's worked out`}
             />

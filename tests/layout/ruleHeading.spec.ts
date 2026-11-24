@@ -64,5 +64,5 @@ test("the shared character's lantern: its line counts the refills, and Refill sh
   const light = page.getByRole('region', { name: 'At hand' }).locator('.light-block--at-hand');
   await expect(light.getByText('Lit, 4 turns left. 3 refills left')).toBeVisible();
   await expect(light.getByRole('button', { name: 'Refill' })).toBeVisible();
-  await expect(light.getByRole('switch', { name: 'Storm lantern: lit' })).toHaveAttribute('aria-checked', 'true');
+  await expect(light.getByRole('button', { name: 'Put out Storm lantern' })).toBeVisible();
 });
