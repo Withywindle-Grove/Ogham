@@ -894,8 +894,11 @@ export function StartingGear({
           <button type="button" className="button-secondary button-secondary--small" onClick={undoLast}>
             Undo last
           </button>
-          {/* What Undo last takes back (caf-10; frame 41-2-fix-gear-undo-last), with its count when bought several at once. */}
-          <p className="gear-tally__last">Last bought: {lastBought.label}</p>
+          {/* What Undo last takes back (caf-10; frame 41-2-fix-gear-undo-last), with its count when bought several at once;
+              a kit reads "Last taken" (Francis, 2026-11-24). */}
+          <p className="gear-tally__last">
+            {kitOf(lastBought) ? 'Last taken' : 'Last bought'}: {lastBought.label}
+          </p>
         </>
       )}
       {load.mode !== 'none' && (

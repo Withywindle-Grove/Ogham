@@ -138,6 +138,9 @@ describe('Gear (cr-14)', () => {
     expect(hint()).toBe('No kit yet, nothing bought');
     await pick(user, "Warden's kit");
     await waitFor(() => expect(coin()).toBe('100 rolled, 22 gp spent: 78 gp left'));
+    // Purpose (Francis, 2026-11-24): after a kit is taken the line beside Undo last reads "Last taken", not "Last bought";
+    // a purchase after it reads "Last bought" again.
+    expect(document.querySelector('.gear-tally__last')?.textContent).toBe("Last taken: Warden's kit");
     // The shop: categories from the pack, each row with its price and Add.
     await user.click(screen.getByRole('button', { name: 'Open The shop' }));
     await waitFor(() => expect(shopLeft()).toBe('78 gp to spend'));
@@ -160,6 +163,7 @@ describe('Gear (cr-14)', () => {
     await waitFor(() => expect(shopLeft()).toBe('70 gp to spend'));
     await user.click(screen.getByRole('button', { name: 'Done shopping' }));
     expect(hint()).toBe('1 kit, 1 thing bought');
+    expect(document.querySelector('.gear-tally__last')?.textContent).toBe('Last bought: Storm lantern');
     await next(user);
     await screen.findAllByRole('button', { name: 'Send to the GM' });
     expect(tam().creation).toMatchObject({ startingMoney: 100, spentBase: 300, gearDone: true, bought: [{ label: "Warden's kit", price: 220, kitId: 'warden-kit' }, { label: 'Storm lantern', price: 80 }] });

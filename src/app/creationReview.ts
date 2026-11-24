@@ -96,7 +96,8 @@ const COUNT_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seve
 
 /**
  * The scores left at the average, never touched (final drafts A5; caf-7): named with no figure, "Wit, Lore: the
- * average, not rolled"; with none rolled, "All six: the average, not rolled", the count from the record's scores.
+ * average, not rolled"; with none rolled, "All six: the average, not rolled", the count from the record's scores
+ * ("Both" for two; Francis, 2026-11-24).
  * '' when every score was rolled, or the record predates the list.
  */
 export function averageScoresLine(creation: unknown, label: (key: string) => string): string {
@@ -104,7 +105,7 @@ export function averageScoresLine(creation: unknown, label: (key: string) => str
   const all = Object.keys(isRecord(record.scores) ? record.scores : {}).length;
   const left = notRolledScores(creation);
   if (left.length === 0) return '';
-  const who = left.length === all && all > 1 ? `All ${COUNT_WORDS[all] ?? String(all)}` : left.map(label).join(', ');
+  const who = left.length === all && all > 1 ? (all === 2 ? 'Both' : `All ${COUNT_WORDS[all] ?? String(all)}`) : left.map(label).join(', ');
   return `${who}: the average, not rolled`;
 }
 

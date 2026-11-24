@@ -56,7 +56,7 @@ describe('review sections', () => {
 
   // Purpose (caf-8, finding 9): the GM's card reads the same lines as the review: a score not rolled is never marked
   // "rolled N", even when the kindred changed it; a rolled score the kindred changed still is; with none rolled the
-  // line reads "All two" from the record's scores, with no figure.
+  // line reads "Both" for the record's two scores (Francis, 2026-11-24), with no figure.
   it('a score not rolled carries no "rolled N" on the GM’s card, and the line under it has no figure (caf-8)', () => {
     const scores = (creation: Record<string, unknown>) => reviewSections({ ...base, creation }).find((s) => s.id === 'scores')!.lines;
     const notRolled = scores({ scores: { STR: 13, WIS: 16 }, rolled: { STR: 12, WIS: 14 }, scoresAverage: ['STR'] });
@@ -66,7 +66,7 @@ describe('review sections', () => {
       { text: 'STR: the average, not rolled' },
     ]);
     const none = scores({ scores: { STR: 13, WIS: 16 }, rolled: { STR: 12, WIS: 14 }, scoresAverage: ['STR', 'WIS'] });
-    expect(none).toEqual([{ text: 'STR 13, WIS 16' }, { text: 'All two: the average, not rolled' }]);
+    expect(none).toEqual([{ text: 'STR 13, WIS 16' }, { text: 'Both: the average, not rolled' }]);
   });
 
   // Purpose (cw-11, the coin wording): the GM's approval card says the starting coin as the player's review does: rolled

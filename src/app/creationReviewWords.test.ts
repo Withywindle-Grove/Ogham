@@ -37,6 +37,9 @@ describe('the creation review’s words', () => {
     expect(averageScoresLine({ scores: six, scoresAverage: ['wit', 'lore'] }, label)).toBe('WIT, LORE: the average, not rolled');
     expect(averageScoresLine({ scores: six, scoresAverage: Object.keys(six) }, label)).toBe('All six: the average, not rolled');
     expect(averageScoresLine({ scores: { mus: 9, nim: 10, grt: 8, wit: 9 }, scoresAverage: ['mus', 'nim', 'grt', 'wit'] }, label)).toBe('All four: the average, not rolled');
+    // Purpose (Francis, 2026-11-24): two scores, none rolled, read "Both"; one score alone keeps its own name.
+    expect(averageScoresLine({ scores: { mus: 9, nim: 10 }, scoresAverage: ['mus', 'nim'] }, label)).toBe('Both: the average, not rolled');
+    expect(averageScoresLine({ scores: { mus: 9 }, scoresAverage: ['mus'] }, label)).toBe('MUS: the average, not rolled');
     expect(averageScoresLine({ scores: six, scoresAverage: [] }, label)).toBe('');
     expect(averageScoresLine({ scores: six, rolled: { mus: 9 } }, label)).toBe('');
     expect(averageScoresLine({ scores: six, scoresAverage: ['nim'] }, label)).not.toMatch(/\d/);
