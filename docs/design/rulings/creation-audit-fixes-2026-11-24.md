@@ -27,8 +27,8 @@ Each ruling below is the driver's recommendation he took; the wording is the dri
 | caf-6 | ⚑ 6. "3.5" and letters | **Typing stops at the point** ("3.5" gives "3"); letters don't enter. | "All recommended" |
 | caf-7 | ⚑ 7. The line under the scores | **"Nimbleness: the average, not rolled"**, no figure; with none rolled, **"All six: the average, not rolled"**, the count from the setting's scores. A score not rolled carries no "(rolled N)" (the fix itself, finding 9). | "All recommended" |
 | caf-8 | ⚑ 8. The GM's approval card | It gets **the same change** as finding 9, approved from pictures of the real screen after the build. | "All recommended" |
-| caf-9 | Critique 1 | **A visible sign on the refused box itself**, not only the line at the foot. | critique "1" picked |
-| caf-10 | Critique 6 | **"Undo last" keeps showing which row it undoes.** | critique "6" picked |
+| caf-9 | Critique 1 | **A visible sign on the refused box itself**, not only the line at the foot. | picked by number (critique 1), as the driver's brief reports it |
+| caf-10 | Critique 6 | **"Undo last" keeps showing which row it undoes.** | picked by number (critique 6), as the driver's brief reports it |
 
 ## What the rulings do not say
 
