@@ -412,8 +412,11 @@ export function restRuleWords(mode: Mode, conditionName: string | null): string[
   if (!rest) return [];
   const amount = (a: Amount) => plural(a.value, a.unit.replace(/s$/, ''));
   const plain = `Rest${rest.length ? ` ${amount(rest.length)}` : ''} every ${amount(rest.every)}.${conditionName ? ` Pushing on marks ${conditionName} on those who didn't rest.` : ''}`;
-  return [...(rest.note ? [rest.note] : []), plain, 'When a rest is due, answer Rest or Push on before the GM moves on: resting counts that step as rest (checks still run); pushing on, or not answering, marks the condition.'];
+  return [...(rest.note ? [rest.note] : []), plain, REST_ANSWER_WORDS];
 }
+
+/** The app's own line on how a rest is answered, last of `restRuleWords`; a player's Rest pop-up leaves it out (PL8). */
+export const REST_ANSWER_WORDS = 'When a rest is due, answer Rest or Push on before the GM moves on: resting counts that step as rest (checks still run); pushing on, or not answering, marks the condition.';
 
 // Commands ---------------------------------------------------------------------------------------------------------
 

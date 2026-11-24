@@ -10,7 +10,8 @@
 //     the last card at the right;
 //   * loading: still bars in both columns;
 //   * the parts that say "nothing yet" take nothing of a place, so nothing hidden can reach the screen through them.
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import { chooseGroup } from '../modules/expedition/groupPlay.ts';
@@ -56,7 +57,19 @@ async function table() {
     const shown = await runCommand(registry, world.db, users.gm, showPiece, { campaignId: campaign, row, piece: row.pieces[0]! });
     expect(shown.ok).toBe(true);
   };
-  return { gm, sam, campaign, users, showFirst };
+  /** The GM's copy of a map, tied to this place, its eye open (`shown`) or closed: as place.addMap and place.setMap leave it. */
+  const addMap = async (shown: boolean) => {
+    world.signInAs(gm);
+    world.tables.assets.push({ id: 'asset-moth-plan', campaign_id: campaign, kind: 'map', name: 'The Moth Gallery, a plan', visibility: shown ? 'all' : 'gm' });
+    await world.db.storage.from('campaign-files').upload(`${campaign}/asset-moth-plan`, new Blob(['a plan'], { type: 'image/svg+xml' }));
+    world.tables.places.find((p) => p.id === placeId)!.map_asset_id = 'asset-moth-plan';
+  };
+  /** The GM moves the group on to a place typed by hand, not shown. */
+  const moveOn = async () => {
+    world.signInAs(gm);
+    await runCommand(registry, world.db, users.gm, setPlace, { campaignId: campaign, group: 1, name: 'The Cellar Stair', placeId: null, packEntry: null });
+  };
+  return { gm, sam, campaign, users, showFirst, addMap, moveOn };
 }
 
 function open(t: Awaited<ReturnType<typeof table>>, who: 'gm' | 'sam') {
@@ -156,7 +169,8 @@ describe("the players' Scene on the party's page (P1)", () => {
   });
 
   // Purpose (PL1): once the GM shows a piece, the place and that piece stand in the left column, the empty frames are
-  // gone, and the marching order is still at the right, after today's card of what was shown.
+  // gone, and the marching order is still at the right; today's "What we know" has left the page with the players' map
+  // (p4s-3).
   it('once a piece is shown: the place at the left, the empty frames gone, the marching order still at the right', async () => {
     const t = await table();
     await t.showFirst();
@@ -167,11 +181,10 @@ describe("the players' Scene on the party's page (P1)", () => {
     expect(left.getByText('Dusty frames and a draught.')).toBeTruthy();
     expect(left.queryByRole('heading', { name: 'Somewhere new' })).toBeNull();
     const right = within(column(container, 'right'));
-    expect(right.queryByRole('region', { name: 'The map' })).toBeNull();
+    await waitFor(() => expect(right.queryByRole('region', { name: 'The map' })).toBeNull());
     expect(right.queryByRole('region', { name: 'This place' })).toBeNull();
-    const known = await right.findByRole('button', { name: /^What we know/ });
     const order = await right.findByRole('heading', { name: 'Marching order' });
-    expect(known.compareDocumentPosition(order) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(right.queryByRole('button', { name: /^What we know/ })).toBeNull();
     // Today's Split party keeps its place under the marching order.
     expect(order.compareDocumentPosition(right.getByRole('button', { name: 'Split party' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -371,5 +384,79 @@ describe("the players' place card on the page (P4)", () => {
     const row = await within(column(container, 'right')).findByRole('button', { name: /^2\. The Wreck/ });
     expect(row.querySelector('.list-row__sub')?.textContent).toBe('A cog on her side on the bar.');
     expect(container.textContent).not.toContain('tarred box');
+  });
+});
+
+describe("the players' map (P5; mc-37, dp-3; 01-08, 01-08c, PL1, PL2)", () => {
+  // Purpose: a map the GM hasn't shared never reaches the page: no frame at all once the place is shown (dp-3), and the
+  // map's title nowhere.
+  it('draws no map while its eye is closed', async () => {
+    const t = await table();
+    await t.addMap(false);
+    await t.showFirst();
+    const { container } = open(t, 'sam');
+    await screen.findByRole('heading', { name: PLACE });
+    await waitFor(() => expect(within(column(container, 'right')).queryByRole('region', { name: 'The map' })).toBeNull());
+    expect(container.textContent).not.toContain('a plan');
+  });
+
+  // Purpose: once shared, the map stands first in the right column, its picture the GM's copy, fitted whole with no
+  // locate tool (a map carries no positions yet).
+  it('draws the shared map first in the right column, with its title', async () => {
+    const t = await table();
+    await t.addMap(true);
+    await t.showFirst();
+    const { container } = open(t, 'sam');
+    await screen.findByRole('heading', { name: PLACE });
+    const map = await within(column(container, 'right')).findByRole('region', { name: 'The map' });
+    const right = column(container, 'right');
+    expect(right.firstElementChild!.contains(map)).toBe(true);
+    await waitFor(() => expect(map.querySelector('img')?.getAttribute('src')).toContain('asset-moth-plan'));
+    expect(within(map).queryByRole('button', { name: 'Where we are' })).toBeNull();
+  });
+
+  // Purpose: before anything is shown, a shared map isn't sent (the read waits for a place shown); after a move to a
+  // place not shown yet, the last shown place's map stays in the dashed frame's place (mc-39b's rule), so it doesn't go
+  // at each move.
+  it('is not sent before anything is shown, and stays through a move to a place not shown', async () => {
+    const t = await table();
+    await t.addMap(true);
+    let page = open(t, 'sam');
+    await screen.findByRole('heading', { name: 'Somewhere new' });
+    expect(within(column(page.container, 'right')).getByText('No map shared yet.')).toBeTruthy();
+    cleanup();
+    await t.showFirst();
+    await t.moveOn();
+    page = open(t, 'sam');
+    await screen.findByRole('heading', { name: 'Somewhere new' });
+    const right = within(column(page.container, 'right'));
+    expect(await right.findByRole('region', { name: 'The map' })).toBeTruthy();
+    expect(right.queryByText('No map shared yet.')).toBeNull();
+    expect(right.getByRole('region', { name: 'This place' })).toBeTruthy();
+  });
+
+  // Purpose (PL9): when the map can't be read, the page says so with Try again in the map's place, never "No map shared
+  // yet." on a guess; Try again reads again, and the map comes once the read works.
+  it('says a failed read with Try again, never "No map shared yet."', async () => {
+    const t = await table();
+    await t.addMap(true);
+    const real = world.db.rpc.bind(world.db);
+    let failing = true;
+    const spy = vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: Record<string, unknown>) => {
+      if (name !== 'map_for_players' || !failing) return real(name as never, args as never);
+      const failed = Promise.resolve({ data: null, error: { message: 'Failed to fetch' } });
+      return Object.assign(failed, { setHeader: () => failed });
+    }) as never);
+    const { container } = open(t, 'sam');
+    await screen.findByRole('heading', { name: 'Somewhere new' });
+    const right = within(column(container, 'right'));
+    expect(await right.findByText("Couldn't load the map. Check your connection and try again.")).toBeTruthy();
+    expect(right.queryByText('No map shared yet.')).toBeNull();
+    failing = false;
+    await userEvent.click(right.getByRole('button', { name: 'Try again' }));
+    // Read now, and nothing shown yet: PL2's dashed frame (the read sends nothing before a place is shown).
+    expect(await right.findByText('No map shared yet.')).toBeTruthy();
+    expect(right.queryByText("Couldn't load the map. Check your connection and try again.")).toBeNull();
+    spy.mockRestore();
   });
 });
