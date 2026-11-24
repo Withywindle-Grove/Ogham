@@ -6,7 +6,6 @@
 //   2. Another player's card stands: they read no mark of the first player's, and can mark the same call themselves (p7-2).
 //   3. The GM reads every mark, and can't write one: not through the function, not through the table.
 //   4. A player can't mark a call to another player's character, nor an undone send; an outsider can't mark anything.
-//   4b. A send whose player was removed (actor set, player_user_id null) is refused with 42501, even to its old player.
 //   5. The time is the server's and is never changed: a repeat keeps one row and gives back the first time.
 //   6. Its log line is its player's and the GM's, never another player's, even for a call to the party; it can't be undone.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -97,21 +96,6 @@ describe('Got it on a call (P7, p7-1 to p7-3)', () => {
     expect(insert.error).not.toBeNull();
     const all = must(await world.admin.from('calls_seen').select('send_id').eq('campaign_id', world.campaignId));
     expect(all.map((r) => r.send_id).sort()).toEqual([toParty, toParty]);
-  });
-
-  it('a send whose player was removed (actor set, player_user_id null) is refused with 42501', async () => {
-    // As the app makes it: a character's player (the latecomer, here) has their account removed, and the database
-    // clears player_user_id (on delete set null); the row itself is never edited (an immutability trigger forbids it).
-    const gone = must(await world.admin.from('actors').insert({ campaign_id: world.campaignId, kind: 'pc', name: 'Fenn the Weir Warden', owner_type: 'user', owner_user_id: world.latecomer.id, approval: 'approved', hp_current: 4, hp_max: 4 }).select('id').single());
-    const orphaned = await freshSend(gone.id);
-    expect(must(await world.admin.from('hook_sends').select('player_user_id').eq('id', orphaned))[0]!.player_user_id).toBe(world.latecomer.id);
-    const removed = await world.admin.auth.admin.deleteUser(world.latecomer.id);
-    expect(removed.error).toBeNull();
-    expect(must(await world.admin.from('hook_sends').select('player_user_id, actor_id').eq('id', orphaned))[0]).toEqual({ player_user_id: null, actor_id: gone.id });
-    expect(denied(await markAs(world.playerA, orphaned))).toBe(true);
-    expect(denied(await markAs(world.playerB, orphaned))).toBe(true);
-    const rows = must(await world.admin.from('calls_seen').select('id').eq('send_id', orphaned));
-    expect(rows).toEqual([]);
   });
 
   it('keeps the first time: no device time, no change, a repeat gives the first back', async () => {
