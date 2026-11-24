@@ -24,13 +24,37 @@ export function firstProblem(checks: readonly StepCheck[]): { step: string; mess
   return null;
 }
 
-/** "STR 14 (rolled 13) · WIT 9": the scores once, each changed one with its roll. */
-export function scoresLine(creation: unknown, label: (key: string) => string): string {
+/**
+ * The scores left at the average, never touched (final drafts A5): the record's `scoresAverage`, kept to the scores it
+ * has. Empty when every score was rolled, or the record predates the list.
+ */
+export function notRolledScores(creation: unknown): string[] {
+  const record = isRecord(creation) ? creation : {};
+  const scores = isRecord(record.scores) ? record.scores : {};
+  return Array.isArray(record.scoresAverage) ? record.scoresAverage.filter((k): k is string => typeof k === 'string' && scores[k] !== undefined) : [];
+}
+
+/**
+ * The scores a roll changed (the kindred, a trade), each with its roll: the GM's card marks them and the review says
+ * "(rolled N)". A score left at the average is no roll, whatever the kindred did to it (caf-7, finding 9).
+ */
+export function changedRolls(creation: unknown): { key: string; rolled: unknown }[] {
   const record = isRecord(creation) ? creation : {};
   const scores = isRecord(record.scores) ? record.scores : {};
   const rolled = isRecord(record.rolled) ? record.rolled : {};
+  const notRolled = new Set(notRolledScores(creation));
   return Object.keys(scores)
-    .map((key) => `${label(key)} ${String(scores[key])}${rolled[key] !== undefined && rolled[key] !== scores[key] ? ` (rolled ${String(rolled[key])})` : ''}`)
+    .filter((key) => !notRolled.has(key) && rolled[key] !== undefined && rolled[key] !== scores[key])
+    .map((key) => ({ key, rolled: rolled[key] }));
+}
+
+/** "STR 14 (rolled 13), WIT 9": the scores once, each changed one with its roll; a score not rolled carries none (caf-7). */
+export function scoresLine(creation: unknown, label: (key: string) => string): string {
+  const record = isRecord(creation) ? creation : {};
+  const scores = isRecord(record.scores) ? record.scores : {};
+  const changed = new Map(changedRolls(creation).map((c) => [c.key, c.rolled]));
+  return Object.keys(scores)
+    .map((key) => `${label(key)} ${String(scores[key])}${changed.has(key) ? ` (rolled ${String(changed.get(key))})` : ''}`)
     .join(', ');
 }
 
@@ -67,15 +91,22 @@ export function withoutException(creation: unknown, e: { step: string; entryId: 
   return record;
 }
 
+/** A count in words for "All six" (caf-7); past twelve, the figure. */
+const COUNT_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+
 /**
- * The scores left at the average, never touched (final drafts A5, slice B): "Wit 10, Lore 10: the average, not
- * rolled". '' when every score was rolled, or the record predates the flag.
+ * The scores left at the average, never touched (final drafts A5; caf-7): named with no figure, "Wit, Lore: the
+ * average, not rolled"; with none rolled, "All six: the average, not rolled", the count from the record's scores
+ * ("Both" for two; Francis, 2026-11-24).
+ * '' when every score was rolled, or the record predates the list.
  */
 export function averageScoresLine(creation: unknown, label: (key: string) => string): string {
   const record = isRecord(creation) ? creation : {};
-  const scores = isRecord(record.scores) ? record.scores : {};
-  const left = Array.isArray(record.scoresAverage) ? record.scoresAverage.filter((k): k is string => typeof k === 'string' && scores[k] !== undefined) : [];
-  return left.length === 0 ? '' : `${left.map((k) => `${label(k)} ${String(scores[k])}`).join(', ')}: the average, not rolled`;
+  const all = Object.keys(isRecord(record.scores) ? record.scores : {}).length;
+  const left = notRolledScores(creation);
+  if (left.length === 0) return '';
+  const who = left.length === all && all > 1 ? (all === 2 ? 'Both' : `All ${COUNT_WORDS[all] ?? String(all)}`) : left.map(label).join(', ');
+  return `${who}: the average, not rolled`;
 }
 
 /** The picks the GM must approve specially (ruled 2026-11-02, ca-3): bold, with the requirement they miss. */
@@ -158,7 +189,7 @@ const heldOf = (value: unknown): Held[] =>
 
 /**
  * The review's Gear card as lines (cw-11): each kit taken with what it gave ("Warden's kit · Ring coat, Reed spear"),
- * what was bought item by item ("Bought"), what a pick put in the pack under the list's name ("Keepsake · A bag of
+ * what was bought, each name once with its count ("Bought"), what a pick put in the pack under the list's name ("Keepsake · A bag of
  * sticky sweets"), the given gear apart (folded on the card), and "12 items · Unencumbered". It reads the creation
  * record's `bought`, `traitGear`, `givenGear` and `givenPicks` against what the pack holds: a line no longer there is
  * left out, and what the pack holds that none of them put in shows as "Also in the pack".
@@ -178,7 +209,7 @@ export function gearGroups(
   const itemCount = (n: number) => `${n} ${n === 1 ? 'item' : 'items'}`;
   let givenQty = 0;
   let named: string[] = [];
-  const names = (held: readonly Held[], counted = false): string[] =>
+  const counts = (held: readonly Held[], counted = false): { name: string; qty: number }[] =>
     held.flatMap((h) => {
       const line = byId.get(h.id);
       if (!line) return [];
@@ -187,8 +218,10 @@ export function gearGroups(
       said.set(h.id, (said.get(h.id) ?? 0) + qty);
       if (counted) givenQty += qty;
       named.push(h.id);
-      return [qty > 1 ? `${listedName(line.name)} ×${qty}` : listedName(line.name)];
+      return [{ name: listedName(line.name), qty }];
     });
+  const worded = (list: readonly { name: string; qty: number }[]) => list.map(({ name, qty }) => (qty > 1 ? `${name} ×${qty}` : name));
+  const names = (held: readonly Held[], counted = false): string[] => worded(counts(held, counted));
   const given = names(heldOf(record.givenGear), true);
   const rows: GearRow[] = [];
   const bought = Array.isArray(record.bought) ? record.bought.filter(isRecord) : [];
@@ -198,7 +231,18 @@ export function gearGroups(
     if (items.length > 0) rows.push({ label: listedName(String(kit.label ?? '')), items: items.join(', '), ids: named, kit: true });
   }
   named = [];
-  const shop = bought.filter((p) => typeof p.kitId !== 'string').flatMap((p) => names(heldOf(p.lines)));
+  // Each thing bought named once with its count, in the order first bought ("Bog sling ×3, Reed rope"; caf-1).
+  const shop = worded(
+    bought
+      .filter((p) => typeof p.kitId !== 'string')
+      .flatMap((p) => counts(heldOf(p.lines)))
+      .reduce<{ name: string; qty: number }[]>((all, one) => {
+        const same = all.find((a) => a.name === one.name);
+        if (same) same.qty += one.qty;
+        else all.push({ ...one });
+        return all;
+      }, []),
+  );
   if (shop.length > 0) rows.push({ label: 'Bought', items: shop.join(', '), ids: named });
   if (isRecord(record.traitGear)) {
     for (const [listId, held] of Object.entries(record.traitGear)) {
