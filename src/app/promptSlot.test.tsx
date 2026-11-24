@@ -5,6 +5,7 @@
 //   A prompt replaced by a new one of its kind (a new message: its data-prompt-id changes) goes back on top.
 //   A prompt that goes and comes back comes back on top.
 //   While focus is inside the slot, nothing moves; it moves when focus leaves.
+//   A call to adventure (the slot's `after`) comes last, after rest and the rest, even when it arrived after them (p7-9).
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { PromptSlot, slotOrder } from './PromptSlot.tsx';
@@ -97,5 +98,28 @@ describe('the prompt slot', () => {
     act(() => screen.getByRole('button', { name: 'Elsewhere' }).focus());
     await settle();
     expect(shownOrder()).toEqual(['Message from the GM', 'Rest due']);
+  });
+
+  // Purpose (p7-9): a call to adventure sits last in the slot, after rest and the other prompts, even though it arrived
+  // after them; a prompt that arrives later still goes on top, above the call.
+  it('keeps a call last, whatever arrived after it', async () => {
+    const call = <Card name="A call to adventure" on />;
+    const view = render(
+      <PromptSlot settleMs={0} after={call}>
+        <Card key="rest" name="Rest due" on />
+        <Card key="message" name="Message from the GM" id="m1" on={false} />
+      </PromptSlot>,
+    );
+    await settle();
+    expect(shownOrder()).toEqual(['Rest due', 'A call to adventure']);
+    await new Promise((r) => setTimeout(r, 5));
+    view.rerender(
+      <PromptSlot settleMs={0} after={call}>
+        <Card key="rest" name="Rest due" on />
+        <Card key="message" name="Message from the GM" id="m1" on />
+      </PromptSlot>,
+    );
+    await settle();
+    expect(shownOrder()).toEqual(['Message from the GM', 'Rest due', 'A call to adventure']);
   });
 });

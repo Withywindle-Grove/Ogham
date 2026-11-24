@@ -3,7 +3,7 @@
 // 40 (approved 2026-11-24 as drawn): 40A, the card (its mark, its heading from the send's kind, the words in the book's
 // format, one "Pays" line when there is one, "Got it"); 40B, the folded row a "Got it" leaves, a tap reading the card
 // again with no button of its own; 40C, one card at a time, "1 of 3" on its quiet line, folded rows under it, newest
-// fold first. No source line (p7-6). Not yet mounted in the Scene's prompt slot: that is a later row's, after PR #48.
+// fold first. No source line (p7-6). Mounted last in the players' prompt slot (SceneTime, usePlayerCalls.ts).
 import { useState } from 'react';
 import { Icon } from '../ui/icons.tsx';
 import { StackedButton } from '../ui/parts.tsx';
