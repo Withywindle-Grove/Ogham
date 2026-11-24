@@ -154,7 +154,7 @@ describe("the Scene in the GM's view (C15f)", () => {
     expect(screen.queryByText(/Couldn't load the map/)).toBeNull();
   });
 
-  it.fails('never says "No map shared yet." in the view of Sam\'s Scene, as the map is not read there', async () => {
+  it('never says "No map shared yet." in the view of Sam\'s Scene, as the map is not read there', async () => {
     const t = await table({ split: true, shownTo: 2 });
     const { container } = groups(t, true);
     expect(await screen.findByRole('heading', { name: 'Somewhere new' })).toBeTruthy();

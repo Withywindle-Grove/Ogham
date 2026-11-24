@@ -28,7 +28,7 @@ import { readTown } from '../modules/expedition/town.ts';
 import { loadLastPlaces, loadSceneTowns, type SceneTown } from '../modules/expedition/townPlaces.ts';
 import { loadTownSwitches } from '../modules/expedition/townPlay.ts';
 import type { TownSwitches } from '../modules/expedition/townSwitches.ts';
-import { MAP_UNREAD_WORDS, PlayersMapCard, usePlayersMaps, type PlayersMapsRead } from './PlaceMap.tsx';
+import { MAP_UNREAD_WORDS, PlayersMapCard, usePlayersMaps } from './PlaceMap.tsx';
 import { WhatWeKnow } from './WhatWeKnow.tsx';
 import { TownActions } from './TownActions.tsx';
 import { campaignUnits } from '../modules/expedition/play.ts';
@@ -62,7 +62,6 @@ import type { TurnClock } from '../modules/expedition/placeKnowledge.ts';
 import './PartyGroups.css';
 
 /** The players' map, not read: the GM's view as another player has no read naming that player yet (read, none shared). */
-const NO_MAPS_READ: PlayersMapsRead = { maps: new Map(), failed: false, retry: () => undefined };
 
 interface Loaded {
   members: GroupOf;
@@ -200,9 +199,10 @@ export function PartyGroups({
   // The players' place card (P4): the Area's card's read and what the GM has shared (a player's only).
   const areaCards = usePlayersPlaceCards(db, campaign.id, !gm, readAs);
   // The players' map (P5): the shared map of the last place shown to each of a player's groups. Its read has no form
-  // naming a player yet, so in the GM's view as another player it isn't made and no map shows (not a stuck skeleton).
-  const mapsRead = usePlayersMaps(db, campaign.id, !gm && readAs === undefined);
-  const playersMaps = readAs === undefined ? mapsRead : NO_MAPS_READ;
+  // naming a player yet, so in the GM's view as another player it isn't made: no map and no dashed frame show (not a
+  // stuck skeleton, and never "No map shared yet." on a guess: the player may still see the last place's map).
+  const mapsUnread = readAs !== undefined;
+  const playersMaps = usePlayersMaps(db, campaign.id, !gm && !mapsUnread);
 
   useEffect(() => {
     let current = true;
@@ -582,8 +582,9 @@ export function PartyGroups({
             const label = cardGroup(n) ? `${cardGroup(n)}: the map` : 'The map';
             const map = playersMaps.maps?.get(n);
             // Read and none shared: nothing (or PL2's dashed frame). Not read yet: still bars (PL9). The first read
-            // failed: says so with Try again (PL9), never "No map shared yet." on a guess.
-            const card = map ? (
+            // failed: says so with Try again (PL9), never "No map shared yet." on a guess. Not read at all (the GM's
+            // view as another player): false, so neither a map nor the dashed frame.
+            const card = mapsUnread ? false : map ? (
               <PlayersSceneCard key={`map-${n}`}>
                 <PlayersMapCard db={db} campaignId={campaign.id} map={map} label={label} />
               </PlayersSceneCard>
