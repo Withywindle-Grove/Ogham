@@ -410,6 +410,15 @@
   margin-block-end: var(--space-1);
 }
 
+/* "Abilities and traits" over a plain row (page 38, fix 4): the heading takes At hand's double rule and the first row
+   starts 8 px below it, its Use no longer on the rule. Only where a row comes first: with pinned boxes first the
+   heading stays as 38-2 draws it (the ⓘ, no rule). Scores, Saves and Movement keep bare headings; `.row-list` itself
+   is unchanged. */
+.player :is(.player__pane--play, .player__right) .sheet__section[aria-label='Abilities and traits'] > .sheet__label + .row-list {
+  border-block-start: var(--divider);
+  padding-block-start: var(--space-2);
+}
+
 .play-block {
   display: flex;
   flex-direction: column;

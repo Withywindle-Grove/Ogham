@@ -8,6 +8,13 @@
 //       this state: "Use" off the rule).
 //   2e. At Larger text both gaps still hold.
 // 2a to 2d on a tablet and at 375 px, light and dark; the page never scrolls sideways.
+// Row 4 (frame 38-4), "Use" off the heading's rule:
+//   4a. With a plain row first, "Abilities and traits" takes At hand's double rule and the first row's Use starts 8 px or
+//       more below it.
+//   4b. With pinned boxes first, no rule is added: the heading is as 38-2 draws it.
+//   4c. Scores, Saves and Movement keep bare headings: no double rule under them.
+// 4a to 4c on a tablet and at 375 px (one column), light and dark. With no traits at all the section isn't drawn
+// (`PlayerTraits` returns nothing), so there is no heading to rule.
 import { expect, test, type Page } from '@playwright/test';
 
 const SIZES = [
@@ -70,6 +77,45 @@ for (const scheme of ['light', 'dark'] as const) {
         const heading = (await list.getByRole('heading', { name: 'Abilities and traits' }).boundingBox())!;
         const next = (await list.locator('.row-list').first().boundingBox())!;
         expect(Math.round(next.y - (heading.y + heading.height))).toBe(4);
+      });
+
+      test(`4a. over a plain row the heading takes the double rule and Use starts 8 px below it (${size.name}, ${scheme})`, async ({ page }) => {
+        await page.setViewportSize({ width: size.width, height: size.height });
+        await openPlayer(page, '1');
+        const list = page.getByRole('region', { name: 'Abilities and traits' }).locator('.row-list').first();
+        const rule = await list.evaluate((el) => {
+          const s = getComputedStyle(el);
+          return { style: s.borderTopStyle, width: parseFloat(s.borderTopWidth) };
+        });
+        expect(rule).toEqual({ style: 'double', width: 3 });
+        const top = (await list.boundingBox())!;
+        const use = (await list.getByRole('button', { name: /^Use / }).first().boundingBox())!;
+        expect(use.y - (top.y + rule.width)).toBeGreaterThanOrEqual(8 - 0.5);
+        expect(await noSpill(page)).toBeLessThanOrEqual(0);
+      });
+
+      test(`4b. with pinned boxes first no rule is added (${size.name}, ${scheme})`, async ({ page }) => {
+        await page.setViewportSize({ width: size.width, height: size.height });
+        await openPlayer(page, 'pins');
+        const section = page.getByRole('region', { name: 'Abilities and traits' });
+        await expect(section.locator('.pinned-box--block')).toBeVisible();
+        const styles = await section.evaluate((el) =>
+          Array.from(el.querySelectorAll<HTMLElement>(':scope > *, :scope .row-list')).map((n) => getComputedStyle(n).borderTopStyle),
+        );
+        expect(styles).not.toContain('double');
+      });
+
+      test(`4c. Scores, Saves and Movement keep bare headings (${size.name}, ${scheme})`, async ({ page }) => {
+        await page.setViewportSize({ width: size.width, height: size.height });
+        await openPlayer(page, '1');
+        for (const name of ['Scores', 'Saves', 'Movement']) {
+          const section = page.getByRole('region', { name, exact: true });
+          await expect(section).toBeVisible();
+          const doubles = await section.evaluate((el) =>
+            Array.from(el.querySelectorAll<HTMLElement>(':scope > *')).filter((n) => getComputedStyle(n).borderTopStyle === 'double').length,
+          );
+          expect(doubles, name).toBe(0);
+        }
       });
     });
   }
