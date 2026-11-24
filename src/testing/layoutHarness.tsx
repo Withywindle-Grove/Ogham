@@ -13,7 +13,7 @@
 //               Roll for a name, First spells, Gear's pick and trinket sheets, Languages, Weapon skills, backgrounds,
 //               Details); walked in tests/layout/creationWorld.spec.ts
 //   &send=refuse   the send command (Send to the GM) comes back refused while online
-//   &send=offline  the send fails as offline: the device reads offline and the request errors
+//   &send=offline  the send fails as offline: the device reads offline and the request errors, for the page's life (Try again never succeeds)
 //   &slow=1     every answer from the stand-in database waits 600 ms, so creation's loading state (300 ms) shows
 //   &skills=1   Wren is a level 3 Lantern Warden with two skills (the pop-up scene); off by default, so the
 //               gallery's pictures of Wren stay as they are
@@ -1530,7 +1530,8 @@ if (new URLSearchParams(window.location.search).get('railSigil') === '1') {
 // The stand-in database as the screens get it (row test-creation-world). The in-memory database answers in the page,
 // so a layout check's page.route can't make a send fail; these flags do it here instead:
 //   &send=refuse   the send command (character.send) comes back refused, the device still online
-//   &send=offline  the send fails as it does when the connection drops: the device reads offline, the send errors
+//   &send=offline  the send fails as it does when the connection drops: the device reads offline, the send errors.
+//                  The device stays offline for the page's life, so Try again never succeeds in this world.
 //   &slow=1        every answer from the database waits 600 ms, past the 300 ms before creation's loading state shows
 // With none of them, the database itself, untouched.
 function harnessDb(db: typeof world.db): typeof world.db {
@@ -1549,6 +1550,8 @@ function harnessDb(db: typeof world.db): typeof world.db {
   };
   const later = <T,>(value: T) => (slow ? new Promise<T>((resolve) => window.setTimeout(() => resolve(value), 600)) : Promise.resolve(value));
   type Thenable = { headers?: Headers; then: (onDone?: (value: unknown) => unknown, onFail?: (reason: unknown) => unknown) => PromiseLike<unknown> };
+  // Depends on the query builder's shape: `db.from(table)` returns one thenable object (with a `headers` Headers), so
+  // replacing its `then` catches the request when it is awaited. A builder that returned a fresh object per step would escape it.
   const from = db.from.bind(db);
   return new Proxy(db, {
     get(target, property, receiver) {

@@ -22,13 +22,12 @@ const SEND_OFFLINE = "You're offline. Nothing is saved until you're back: keep t
 const h1 = (page: Page) => page.getByRole('heading', { level: 1 }).first();
 const next = (page: Page) => page.getByRole('button', { name: 'Next', exact: true }).click();
 
-/** A one-of-many pick moves on by itself (ct-1); otherwise Next. `then` is the heading of the step it leads to. */
+/**
+ * A pick on a one-of-many step moves to the next step at once, with an Undo toast (ct-1): the one thing the app
+ * guarantees, so there is no Next tap and no fixed wait. `then` is the heading of the step it leads to.
+ */
 async function pick(page: Page, name: string, then: string | RegExp) {
   await page.getByRole('checkbox', { name: `Pick ${name}` }).click();
-  const moved = await expect(h1(page))
-    .toHaveText(then, { timeout: 1_500 })
-    .then(() => true, () => false);
-  if (!moved) await next(page);
   await expect(h1(page)).toHaveText(then);
 }
 
@@ -49,7 +48,10 @@ async function walkToReview(page: Page, { slow = false } = {}) {
 
   // Method: each player chooses.
   await expect(h1(page)).toHaveText('How do you want to build?');
-  await pick(page, 'Kindred, then calling', /^Scores/);
+  // Method is a pick that waits for Next; it is not one of the one-of-many steps that move on by themselves.
+  await page.getByRole('checkbox', { name: 'Pick Kindred, then calling' }).click();
+  await next(page);
+  await expect(h1(page)).toHaveText(/^Scores/);
 
   // Scores: a Lore for the Reed Witch, a Wit giving one extra language.
   await expect(h1(page)).toHaveText(/^Scores/);
@@ -62,7 +64,9 @@ async function walkToReview(page: Page, { slow = false } = {}) {
   await expect(h1(page)).toHaveText('Class');
   await pick(page, 'Reed Witch', 'Patron');
   await expect(h1(page)).toHaveText('Patron');
-  await pick(page, 'The Drowned Lamp', 'Adjust scores');
+  // Patron: the pick stays on the step with an Undo toast, and Next moves on.
+  await page.getByRole('checkbox', { name: 'Pick The Drowned Lamp' }).click();
+  await next(page);
   await expect(h1(page)).toHaveText('Adjust scores');
   await next(page);
 
@@ -98,7 +102,10 @@ async function walkToReview(page: Page, { slow = false } = {}) {
   await next(page);
 
   await expect(h1(page)).toHaveText('Stone kin backgrounds');
-  await pick(page, '1–2: Causeway mason', 'Details');
+  // A rolled book that stays on its step until Next (not one of the one-of-many steps).
+  await page.getByRole('checkbox', { name: 'Pick 1–2: Causeway mason' }).click();
+  await next(page);
+  await expect(h1(page)).toHaveText('Details');
 
   // Details: one of its tables as a sheet.
   await expect(h1(page)).toHaveText('Details');
@@ -144,7 +151,7 @@ test.describe('the creation world (?creation=full) and the send and slow flags',
   }
 
   test('slow=1: creation shows its loading line', async ({ page }) => {
-    test.setTimeout(300_000);
+    test.setTimeout(50_000); // about twice its measured run (23.5 s)
     await page.goto('/layout.html?as=new&creation=full&slow=1');
     await walkToReview(page, { slow: true });
   });
