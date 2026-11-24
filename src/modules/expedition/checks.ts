@@ -96,7 +96,8 @@ export interface HitPlan {
 /** One table a hit may roll, and why it's offered. */
 export interface TableCandidate {
   tableId: string;
-  why: 'place' | 'terrain' | 'region' | 'season' | 'check';
+  /** `none`: offered with no tag (d5-13: the method's tables at a place whose own check stands in). */
+  why: 'place' | 'terrain' | 'region' | 'season' | 'check' | 'none';
   /** The special season whose swap it is (`why: 'season'`). */
   season: string | null;
 }

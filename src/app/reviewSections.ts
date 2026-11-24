@@ -3,7 +3,7 @@
 // backstory. A score the player changed from the roll, or a filled field they edited, is marked "Changed"; going
 // over the starting money is a broken rule (it becomes 0 when play starts). The sections the GM ticked stand out.
 import { entryMoneyOf, type Coin } from '../modules/characters/startingGear.ts';
-import { averageScoresLine, moneyOf } from './creationReview.ts';
+import { averageScoresLine, changedRolls, moneyOf } from './creationReview.ts';
 import { holdsAbility } from '../modules/characters/creation.ts';
 import { toFinishName, toFinishOf } from '../modules/characters/creationGuide.ts';
 import type { FieldDefinition } from '../modules/characters/fields.ts';
@@ -60,7 +60,6 @@ export interface ReviewInput {
 export function reviewSections(input: ReviewInput): ReviewSection[] {
   const creation = isRecord(input.creation) ? input.creation : {};
   const scores = isRecord(creation.scores) ? creation.scores : {};
-  const rolled = isRecord(creation.rolled) ? creation.rolled : {};
   const values = isRecord(input.fields) ? input.fields : {};
   const sections: Omit<ReviewSection, 'flagged'>[] = [];
 
@@ -91,9 +90,8 @@ export function reviewSections(input: ReviewInput): ReviewSection[] {
       title: stepTitle('scores'),
       lines: [
         { text: keys.map((k) => `${named(k)} ${String(scores[k])}`).join(', ') },
-        ...keys
-          .filter((k) => rolled[k] !== undefined && rolled[k] !== scores[k])
-          .map((k) => ({ text: `${named(k)} ${String(scores[k])}`, mark: 'override' as const, why: `rolled ${String(rolled[k])}` })),
+        // A score changed from its roll, with the roll; a score left at the average is no roll (caf-8, as the review).
+        ...changedRolls(creation).map((c) => ({ text: `${named(c.key)} ${String(scores[c.key])}`, mark: 'override' as const, why: `rolled ${String(c.rolled)}` })),
         // The scores left at the average (A5): said, so the GM knows they weren't rolled.
         ...(averageScoresLine(creation, named) ? [{ text: averageScoresLine(creation, named) }] : []),
         // A score kept below what the class or race needs, with the player's reason (05: overrides carry a reason).
