@@ -15,6 +15,7 @@
 // - With no --count the judge reads all six layout shards, so a missing sixth shard's report refuses the redraws
 //   (ci-layout-shards-6).
 import { execFileSync } from 'node:child_process';
+import { withoutGitVariables } from './git-test-env.mjs';
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -313,7 +314,7 @@ describe('the check before the redraw commit (--verify-status)', () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'redraws-git-'));
     // Without GIT_DIR, GIT_INDEX_FILE and the rest: inside a commit hook they point at the real repository, and
     // `git init` there would rewrite its shared config (it once set core.bare = true for every worktree).
-    const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.toUpperCase().startsWith('GIT_')));
+    const env = withoutGitVariables();
     const git = (...args) => execFileSync('git', ['-c', 'core.autocrlf=false', ...args], { cwd: dir, encoding: 'utf8', env });
     // Never let this test touch a repository other than its own temporary one.
     expect(git('init', '-q').trim()).toBe('');

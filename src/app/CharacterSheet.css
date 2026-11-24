@@ -50,11 +50,6 @@
   overflow-wrap: anywhere;
 }
 
-.sheet__line {
-  margin: 0;
-  color: var(--muted);
-}
-
 /* Who they are (plan m5b-players-screens-standard D): "Wren, Lantern Warden 1, Human, Lawful", the pack's words; the
    kindred, the calling and the alignment are Tap values. */
 .sheet__identity {
@@ -134,7 +129,6 @@
   cursor: pointer;
 }
 
-
 /* The Patron section (Francis, 2026-11-12): the book's layout as the pack carries it. Each field a paragraph opening
    with a bold lead-in; the alternative spells and the marks under small bold sub-headings, the marks a bulleted list
    whose items open with their tier in bold. */
@@ -196,30 +190,6 @@
   color: var(--muted);
 }
 
-.sheet__rows {
-  margin: 0;
-}
-
-.sheet__row {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--pad);
-  min-height: var(--tap);
-  align-items: center;
-  border-bottom: 1px dotted var(--row-rule);
-}
-
-.sheet__row dt {
-  color: var(--muted);
-}
-
-.sheet__row dd {
-  margin: 0;
-  text-align: right;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-
 .sheet__text {
   margin: 0;
   white-space: pre-wrap;
@@ -235,12 +205,6 @@
 .sheet__fixed {
   margin: 0;
   color: var(--muted);
-}
-
-.sheet__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--gap);
 }
 
 /* The GM editing a player's character: a quiet note and an optional reason. */
@@ -292,91 +256,7 @@
   padding-top: var(--space-1);
 }
 
-.sheet__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
-  gap: var(--space-2) var(--space-4);
-  margin: 0;
-}
-
-.sheet__cell {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  min-inline-size: 0;
-}
-
-.sheet__cell dt {
-  color: var(--muted);
-  font-size: var(--text-14);
-}
-
-/* A label with its ⓘ (ct3-3): the button sits on the label's line, its full 44 px target kept. */
-.sheet__cell dt:has(.info-button) {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.sheet__cell dd {
-  margin: 0;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-
-.sheet__abilities {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-
-/* An ability tile is tappable (what it does, its numbers): the control border marks it. */
-.sheet__ability {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-  min-height: var(--tap);
-  padding: var(--space-2);
-  border: var(--line-control) solid var(--control);
-  border-radius: var(--radius);
-  background: var(--sheet);
-  color: var(--ink);
-  cursor: pointer;
-}
-
-/* The race and class chosen at creation, at the top of the sheet. */
-.sheet__kind {
-  /* The kindred and the calling, each a Tap value (ct3-11), 8 px apart, wrapping on a phone. */
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  margin: 0;
-  font-family: var(--font-heading);
-  font-size: var(--text-20);
-}
-
-/* An ability's modifiers in its popup, one plain line each (ruled 2026-10-26). */
-.sheet__lines {
-  margin: 0;
-  padding-left: var(--space-4);
-  line-height: 1.5;
-}
-
-/* Advancement (sr-5): the XP line, a bar to the next level with its words under it, then the bonus and title. */
-.advancement__xp {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  margin-block-end: var(--space-3);
-}
-
-.advancement__line {
-  margin: 0;
-  font-weight: 700;
-}
-
+/* Advancement (sr-5): a bar to the next level. */
 .advancement__bar {
   display: block;
   inline-size: 100%;
@@ -393,31 +273,6 @@
   background: var(--ink);
 }
 
-.advancement__next,
-.advancement__reason {
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--text-14);
-}
-
-/* The bonus's reason (Design, 2026-11-05): a quiet caption on its own line under the bonus, no separator dot. */
-.advancement__reason {
-  display: block;
-  margin-block-start: var(--space-1);
-  font-weight: 400;
-}
-
-/* Skills in two groups (sr-2): everyone's, then the class's own, each with a quiet title. */
-.sheet__skill-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.sheet__skill-group + .sheet__skill-group {
-  margin-block-start: var(--space-3);
-}
-
 .sheet__group-title {
   margin: 0;
   font-size: var(--text-14);
@@ -429,7 +284,6 @@
 .sheet__fold {
   align-self: flex-start;
 }
-
 
 /* The left column (A1): the head, the HP box, AC and Attack, the hint; it stays in view on a tablet. */
 .sheet__vitals {
