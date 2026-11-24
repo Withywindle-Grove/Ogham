@@ -15,6 +15,8 @@
 //      never Moss's (Jo's) nor Ash's (the GM's own); the GM's own Scene shows everyone's.
 //   8. With a place shown to Wren's group, the view of Sam's Scene never stays on "Loading the map" (the players' map
 //      read has no form naming a player yet, so the view makes none and shows no map).
+//   9. Before anything is shown to Wren's group, the view of Sam's Scene never says "No map shared yet." (unread, Sam may
+//      still see the map of the last place shown), and draws no dashed map frame.
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -150,6 +152,16 @@ describe("the Scene in the GM's view (C15f)", () => {
     await new Promise((r) => setTimeout(r, 30));
     expect(screen.queryByLabelText('Loading the map')).toBeNull();
     expect(screen.queryByText(/Couldn't load the map/)).toBeNull();
+  });
+
+  it.fails('never says "No map shared yet." in the view of Sam\'s Scene, as the map is not read there', async () => {
+    const t = await table({ split: true, shownTo: 2 });
+    const { container } = groups(t, true);
+    expect(await screen.findByRole('heading', { name: 'Somewhere new' })).toBeTruthy();
+    await new Promise((r) => setTimeout(r, 30));
+    expect(screen.queryByText('No map shared yet.')).toBeNull();
+    expect(container.querySelector('.players-page__no-map')).toBeNull();
+    expect(screen.getByText('Nothing shared yet.')).toBeTruthy();
   });
 
   it('gives the reads as Sam to the GM only, and exactly what Sam reads', async () => {
