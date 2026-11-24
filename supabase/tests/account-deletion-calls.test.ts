@@ -77,19 +77,19 @@ describe('deleting a player account keeps their calls and seen marks', () => {
     expect(await sendRow(toAsh)).toMatchObject({ player_user_id: world.playerB.id, name: 'The ferryman owes a toll' });
   });
 
-  it.fails("a seen mark's time can't be changed, even with the secret key", async () => {
+  it("a seen mark's time can't be changed, even with the secret key", async () => {
     const was = must(await world.admin.from('calls_seen').select('seen_at').eq('send_id', toAsh))[0]!.seen_at;
     expect((await world.admin.from('calls_seen').update({ seen_at: '2000-01-01T00:00:00Z' }).eq('send_id', toAsh)).error).not.toBeNull();
     expect(must(await world.admin.from('calls_seen').select('seen_at').eq('send_id', toAsh))[0]!.seen_at).toBe(was);
   });
 
-  it.fails('deleting a player who was sent a call, and marked it seen, succeeds', async () => {
+  it('deleting a player who was sent a call, and marked it seen, succeeds', async () => {
     const deleted = await world.admin.auth.admin.deleteUser(world.playerA.id);
     expect(deleted.error).toBeNull();
     expect(must(await world.admin.from('profiles').select('id').eq('id', world.playerA.id))).toEqual([]);
   });
 
-  it.fails('the send stays, with no player; the GM still reads it, and its log line stays', async () => {
+  it('the send stays, with no player; the GM still reads it, and its log line stays', async () => {
     expect(await sendRow(toWren)).toMatchObject({ player_user_id: null, name: 'The ferryman owes a toll', body: 'A note under the ferry bell.', actor_id: world.wrenId, undone: false });
     expect(must(await world.gm.db.from('hook_sends').select('id').eq('id', toWren))).toHaveLength(1);
     expect(must(await world.playerB.db.from('hook_sends').select('id').eq('id', toWren))).toEqual([]);
@@ -97,7 +97,7 @@ describe('deleting a player account keeps their calls and seen marks', () => {
     expect(lines.map((line) => line.type)).toContain('hook.send');
   });
 
-  it.fails('the seen marks stay, with no player, read by the GM alone', async () => {
+  it('the seen marks stay, with no player, read by the GM alone', async () => {
     const kept = must(await world.admin.from('calls_seen').select('send_id').eq('campaign_id', world.campaignId).is('player_user_id', null));
     expect(kept.map((m) => m.send_id).sort()).toEqual([toParty, toWren].sort());
     const gmReads = must(await world.gm.db.from('calls_seen').select('send_id').eq('campaign_id', world.campaignId).is('player_user_id', null));
