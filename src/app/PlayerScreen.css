@@ -342,12 +342,24 @@
 
 /* Tile label, plain (dec-13 C15, frame P1; 06's Vitals tile): on the Player screen the tiles' labels (armour class and
    attack, scores, saves) are whole words in plain case, muted, in the book's text face; creation's small-capitals
-   label stays creation's own. The hit points box keeps its small-capitals label (P1). */
+   label stays creation's own. */
 .player .book-type :is(.stat-row, .score-row, .save-tiles) .stat-tile__label {
   font-family: var(--font-book-text);
   font-weight: var(--weight-book-text);
   font-variant: normal;
   letter-spacing: 0;
+}
+
+/* "Hit points" in the headings' hand (page 38, fix 9): on the Player screen the hit points box's label takes the
+   section headings' look (`.sheet__label` as the tab sets it, below): the heading face, every letter a small capital,
+   at the label's size. `HpBox.css` is unchanged, so the box elsewhere keeps its small spaced-out label. */
+.player .player__pane--play .hp-box > .stat-tile__label {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-label);
+  font-variant: small-caps;
+  letter-spacing: normal;
+  text-transform: lowercase;
 }
 
 .vitals .stat-tile__caption {

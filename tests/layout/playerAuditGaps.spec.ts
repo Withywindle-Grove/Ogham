@@ -15,6 +15,13 @@
 //   4c. Scores, Saves and Movement keep bare headings: no double rule under them.
 // 4a to 4c on a tablet and at 375 px (one column), light and dark. With no traits at all the section isn't drawn
 // (`PlayerTraits` returns nothing), so there is no heading to rule.
+// Row 9 (frame 38-9), "Hit points" in the headings' hand:
+//   9a. On the Player tab the hit points box's label has a section heading's face, weight, size, small capitals and case.
+//   9b. Nothing in it is under 14 px, at 0 and at 999 hit points too, and the page never scrolls sideways.
+//   9c. At Larger text it still matches the headings.
+//   9d. The hit points box elsewhere (the gallery; the full sheet on its own page) keeps its own small, spaced-out label.
+//       (The full sheet beside the Magic tab draws no hit points box.)
+// 9a and 9b on a tablet and at 375 px, light and dark.
 import { expect, test, type Page } from '@playwright/test';
 
 const SIZES = [
@@ -26,6 +33,26 @@ async function openPlayer(page: Page, p1: string) {
   await page.goto(`/layout.html?as=player&p1=${p1}`);
   await page.getByRole('button', { name: /The Storm Lantern Road/ }).click();
   await expect(page.getByRole('region', { name: 'Weapon in hand' })).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+}
+
+/** The type of the Player tab's hit points label and of its "Scores" heading, side by side. */
+async function hpAndHeading(page: Page) {
+  const pick = (at: ReturnType<Page['locator']>) =>
+    at.first().evaluate((el) => {
+      const s = getComputedStyle(el);
+      return { family: s.fontFamily, weight: s.fontWeight, size: s.fontSize, variant: s.fontVariantCaps, spacing: s.letterSpacing, transform: s.textTransform };
+    });
+  return {
+    hp: await pick(page.locator('.player__pane--play .hp-box > .stat-tile__label')),
+    heading: await pick(page.getByRole('region', { name: 'Scores', exact: true }).getByRole('heading', { name: 'Scores' })),
+  };
+}
+
+async function openPlayerAs(page: Page, p1: string) {
+  await page.goto(`/layout.html?as=player&p1=${p1}`);
+  await page.getByRole('button', { name: /The Storm Lantern Road/ }).click();
+  await expect(page.locator('.player .hp-box')).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
 }
 
@@ -77,6 +104,24 @@ for (const scheme of ['light', 'dark'] as const) {
         const heading = (await list.getByRole('heading', { name: 'Abilities and traits' }).boundingBox())!;
         const next = (await list.locator('.row-list').first().boundingBox())!;
         expect(Math.round(next.y - (heading.y + heading.height))).toBe(4);
+      });
+
+      test(`9a/9b. "Hit points" in the headings' hand, at 11, 0 and 999 (${size.name}, ${scheme})`, async ({ page }) => {
+        await page.setViewportSize({ width: size.width, height: size.height });
+        for (const p1 of ['1', 'bare', 'packless']) {
+          await openPlayerAs(page, p1);
+          const { hp, heading } = await hpAndHeading(page);
+          expect(hp, p1).toEqual(heading);
+          expect(hp.variant).toBe('small-caps');
+          expect(parseFloat(hp.size)).toBeGreaterThanOrEqual(14);
+          const sizes = await page.locator('.player .hp-box').evaluate((box) =>
+            Array.from(box.querySelectorAll<HTMLElement>('*'))
+              .filter((n) => n.textContent?.trim())
+              .map((n) => parseFloat(getComputedStyle(n).fontSize)),
+          );
+          expect(Math.min(...sizes), p1).toBeGreaterThanOrEqual(14);
+          expect(await noSpill(page)).toBeLessThanOrEqual(0);
+        }
       });
 
       test(`4a. over a plain row the heading takes the double rule and Use starts 8 px below it (${size.name}, ${scheme})`, async ({ page }) => {
@@ -134,4 +179,39 @@ test(`2e. at Larger text both gaps hold: the weapon's buttons and the ⓘ 8 px c
   const info = (await list.getByRole('button', { name: 'About moving pinned ones' }).boundingBox())!;
   const first = (await list.locator('.pinned-box').first().boundingBox())!;
   expect(first.y - (info.y + info.height)).toBeGreaterThanOrEqual(8 - 0.5);
+});
+
+test(`9c. at Larger text "Hit points" still matches the headings (phone, light)`, async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('grimoire.textSize', 'larger'));
+  await page.setViewportSize({ width: 375, height: 812 });
+  await openPlayerAs(page, '1');
+  const { hp, heading } = await hpAndHeading(page);
+  expect(hp).toEqual(heading);
+  expect(await noSpill(page)).toBeLessThanOrEqual(0);
+});
+
+test(`9d. the hit points box elsewhere keeps its small, spaced-out label (gallery, full sheet)`, async ({ page }) => {
+  await page.setViewportSize({ width: 1180, height: 820 });
+  const label = (sel: string) =>
+    page.locator(sel).first().evaluate((el) => {
+      const s = getComputedStyle(el);
+      return { size: s.fontSize, spacing: parseFloat(s.letterSpacing), transform: s.textTransform };
+    });
+  await page.goto('/gallery.html');
+  await expect(page.getByRole('heading', { name: 'Component gallery' })).toBeVisible();
+  const gallery = await label('#players-standard .hp-box > .stat-tile__label');
+  expect(gallery.size).toBe('14px');
+  expect(gallery.spacing).toBeGreaterThan(0);
+  expect(gallery.transform).toBe('none');
+  // The full sheet on its own page: from a phone's menu.
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/layout.html?as=player&full=1');
+  await page.getByRole('button', { name: /The Fen Ledger/ }).click();
+  await page.locator('.top-row').getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Full character sheet', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Level' })).toBeVisible();
+  const sheet = page.locator('.hp-box > .stat-tile__label').filter({ visible: true });
+  await expect(sheet.first()).toBeVisible();
+  expect(await sheet.first().evaluate((el) => el.closest('.player') === null)).toBe(true);
+  expect(await sheet.first().evaluate((el) => getComputedStyle(el).fontSize)).toBe('14px');
 });
