@@ -4,6 +4,10 @@
 //   The load card keeps its warning sign, its bar and its figures; the sign has the pack's own words as its spoken name,
 //   is still a 44 px target, and opens the burden's levels.
 //   No sideways scroll at 375 px, no serious accessibility problem, in light and dark.
+// Row 7b (frame 38-7) on the plain test character (`layout.html?as=player&p1=1`). Purposes:
+//   The Attack tile's line reads "Melee +2, missile +1": no capital after its first word (on a phone, stacked a part
+//   a line, as every tile's line is when it doesn't fit).
+//   No sideways scroll at 375 px, no serious accessibility problem, in light and dark.
 import { expect, test, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
@@ -51,6 +55,35 @@ for (const scheme of SCHEMES) {
         await tier.scrollIntoViewIfNeeded();
         await tier.click();
         await expect(page.getByRole('dialog', { name: 'Burden' })).toBeVisible();
+      });
+    }
+  });
+}
+
+for (const scheme of SCHEMES) {
+  test.describe(`row 7b: the attack line in plain case (${scheme})`, () => {
+    test.use({ colorScheme: scheme });
+
+    for (const size of SIZES) {
+      test(`no capital after the line's first word (${size.name}, ${scheme})`, async ({ page }) => {
+        await page.setViewportSize({ width: size.width, height: size.height });
+        await page.goto('/layout.html?as=player&p1=1');
+        await page.getByRole('button', { name: /The Storm Lantern Road/ }).click();
+        const vitals = page.getByRole('region', { name: 'Vitals' });
+        await expect(vitals).toBeVisible();
+        await page.evaluate(() => document.fonts.ready);
+
+        const line = vitals.getByRole('button', { name: /^Attack / }).locator('.stat-tile__caption');
+        await expect(line).toBeVisible();
+        // Too narrow for one line (a phone), the tile stacks the parts, one a line, without the comma.
+        const parts = line.locator('.stat-tile__part');
+        const shown = (await parts.count()) > 0 ? (await parts.allTextContents()).join(', ') : (await line.textContent())!;
+        expect(shown).toBe('Melee +2, missile +1');
+        expect(shown.slice(1)).not.toMatch(/\p{Lu}/u);
+
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+        expect(await accessibilityProblems(page, 'section[aria-label="Vitals"]')).toEqual([]);
       });
     }
   });
