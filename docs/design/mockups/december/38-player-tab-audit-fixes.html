@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>December: page 38, the Player tab's audit fixes, as built beside the proposed fix (not ruled)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="december.css">
+<style>
+  /* New on this page: the frame (a picture of the built screen and of the same screen with the fix), the labels. */
+  .fr { margin:0 0 var(--space-5); }
+  .fr img { display:block; max-width:100%; height:auto; }
+  .fr .cap { max-width:900px; font-size:16px; color:var(--ink); }
+  .fr .cap small { display:block; font-size:14px; color:var(--muted); margin-top:var(--space-1); }
+  .ev { display:inline-block; border:1.5px dashed var(--info); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; font-size:14px; }
+  .flag { display:inline-block; border:1.5px dashed var(--warn); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; font-size:14px; }
+  ol.crit { font-size:16px; max-width:900px; padding-left:var(--space-5); }
+  ol.crit li { margin-bottom:var(--space-2); }
+  table.sc { border-collapse:collapse; font-size:14px; margin:var(--space-2) 0 var(--space-4); }
+  table.sc td, table.sc th { border:1px solid var(--rule); padding:var(--space-1) var(--space-2); text-align:left; }
+</style>
+</head>
+<body>
+<div class="theme light">
+
+<h1>Page 38. The Player tab: the audit's fixes, as built beside the proposed</h1>
+<p class="note"><b>Not ruled. Nothing here is approved.</b> For the driver's brief of 2026-11-24 (row mock-38), after the <code>impeccable audit</code> of the built Player tab on 2026-11-23. Each frame is two pictures of <b>the built screen</b> from <code>main</code> (the layout page, the sample character Brannoch; invented names only): left as built, right the same screen with the fix laid over it as CSS from the tokens (or, for words, the words changed in the page). Light, a tablet held sideways (1180 by 820), unless the frame says otherwise. Kept as asked: the word "Light" for both the burden and the lantern's button, and "No notices" in the phone's top spot.</p>
+<p class="note"><span class="flag">Numbering</span> <b>The audit's findings text was not saved.</b> The nine findings below are rebuilt. Their numbers follow the only record written against the real findings, the earlier worker's picture script (<code>mock/render.mjs</code> in the notes repository), which numbers them 1 to 9. The brief calls the rail's tabs and handle "finding 6" (that is audit picture 6); in the script that is finding 1, and its 6 is the two-button rows on a phone. Both have a phone frame here. <b>Francis, please correct the numbers and the wording.</b></p>
+<p class="note"><span class="ev">Pictures</span> = rebuilt from the audit's seven pictures and the built code. <span class="ev">Script</span> = from the earlier picture script only; none of the seven pictures shows it, so it is the weaker evidence.</p>
+
+<h1>38A. The whole tab, with the fixes that show in the standard state</h1>
+<div class="fr"><p class="cap">Findings 1, 4, 5, 7 and 9 together (the others need a messy state to show).<small>The left column's lower edge fades where more lies below (finding 5).</small></p>
+<img src="png/38-A-whole-tablet-light.png" alt="The Player tab on a tablet held sideways: as built, and with fixes 1, 4, 5, 7 and 9 applied"></div>
+
+<h1>38-1. The rail's tabs and the handle (the brief's "finding 6") <span class="ev">Pictures: 6, 1</span></h1>
+<div class="fr"><p class="cap"><b>Found:</b> the rail's three tabs are 40 px wide (the floor is 44) and 4 px apart (the floor is 8); the handle's 44 px tap area touches the rail (0 px). <b>Proposed:</b> tabs 44 wide, 8 px apart; the handle 8 px clear of the rail.<small>Measured on the built screen, before and after. Cost: the left column moves 12 px to the right.</small></p>
+<img src="png/38-1-rail-and-handle-tablet-light.png" alt="The rail and the handle: as built and proposed"></div>
+<div class="fr"><p class="cap"><b>A tablet held upright (820 by 1180):</b> the tabs sit in a row, 4 px apart as built; proposed 8 px.</p>
+<img src="png/38-1-tabs-tablet-upright-light.png" alt="The tabs in a row on a tablet held upright: as built and proposed"></div>
+<div class="fr"><p class="cap"><b>A phone (375 px):</b> there is no rail and no handle; the four tabs are a bar at the foot, each 94 by 65, touching. <b>No change proposed.</b><small><span class="flag">⚑</span> Does the 8 px between targets apply to a tab bar's tabs? As built they touch, as tab bars usually do.</small></p>
+<img src="png/38-1-tab-bar-phone-light.png" alt="The phone's tab bar: as built, no change proposed"></div>
+
+<h1>38-2. Tight gaps: the weapon in hand, the pinned traits <span class="ev">Script</span></h1>
+<div class="fr"><p class="cap"><b>Found:</b> with a long weapon name the buttons wrap under it, 4 px below the words. <b>Proposed:</b> 8 px.</p>
+<img src="png/38-2-weapon-in-hand-tablet-light.png" alt="The weapon in hand with a long name: as built and proposed"></div>
+<div class="fr"><p class="cap"><b>Found:</b> the ⓘ beside "Abilities and traits" sits 4 px above the first pinned trait, itself a target. <b>Proposed:</b> 8 px.</p>
+<img src="png/38-2-pinned-traits-tablet-light.png" alt="Pinned traits under their heading: as built and proposed"></div>
+
+<h1>38-3. A long name squeezes the way back <span class="ev">Pictures: 3, 5</span></h1>
+<div class="fr"><p class="cap"><b>A tablet held upright, where it happens.</b> <b>Found:</b> the bar's name takes the room and the way back shrinks to "‹ …" (44 px), its words gone; the name is cut and can be read in full nowhere. <b>Proposed:</b> the way back keeps at least four targets' width (176 px), and the head's line carries the full name, wrapping.<small><span class="flag">⚑</span> The name in the head's line touches ps-5 ("the bar reads name, the kindred, title"): it needs a ruling. "No notices" keeps its place under the line.</small></p>
+<img src="png/38-3-long-name-tablet-upright-light.png" alt="A long name on a tablet held upright: as built and proposed"></div>
+<div class="fr"><p class="cap"><b>Held sideways:</b> the way back already keeps 179 px ("The Storm Lantern …") and the name fits. <b>No change at this width.</b></p>
+<img src="png/38-3-long-name-tablet-light.png" alt="A long name on a tablet held sideways: no change"></div>
+
+<h1>38-4. "Use" sits on the heading's rule <span class="ev">Pictures: 7, 1</span></h1>
+<div class="fr"><p class="cap"><b>Found:</b> the first trait's "Use" starts 5 px under "Abilities and traits", its top edge on the heading's rule. <b>Proposed:</b> the heading gets At hand's double rule and the row starts 8 px below it.<small>Only this heading in the right column would carry the double rule (see the critique, 1).</small></p>
+<img src="png/38-4-use-on-the-rule-tablet-light.png" alt="The Use button under the Abilities and traits heading: as built and proposed"></div>
+
+<h1>38-5. The left column is cut hard where it scrolls <span class="ev">Pictures: 1</span></h1>
+<div class="fr"><p class="cap"><b>Found:</b> held sideways the left column scrolls by itself; its content is sliced at the top and the foot with nothing to say more lies beyond. <b>Proposed:</b> a 32 px fade on an edge only while something is cut there (shown scrolled: both edges).<small>Cost: the screen must know whether the column is scrolled; more build than the other fixes. Not checked in dark.</small></p>
+<img src="png/38-5-left-column-edge-tablet-light.png" alt="The left column scrolled: as built and with the fade"></div>
+
+<h1>38-6. Two buttons on a row, a phone at larger text <span class="ev">Script; picture 4 shows it at standard text</span></h1>
+<div class="fr"><p class="cap"><b>A phone (375 px), Larger text.</b> <b>Found:</b> a row with two buttons leaves its name a 151 px column (measured): "Hand axe of the Seven Cairns, twice reforged" runs to six lines. <b>Proposed, on a phone only:</b> on such a row the words take the full width (343 px) and the two buttons sit under them, to the right.<small>The list gets shorter here (the axe's words: 302 px tall to 152). One-button rows keep the button beside the name. No sideways scroll before or after (measured, 375 px). <span class="flag">⚑</span> At Larger text only, or at every text size on a phone? At standard text the same row's words go from 186 px tall to 126.</small></p>
+<img src="png/38-6-two-buttons-larger-text-phone-light.png" alt="At hand on a phone at larger text: as built and proposed"></div>
+
+<div class="fr"><p class="cap"><b>A tablet held sideways:</b> the name keeps a 248 px column and wraps to two lines at most here. <b>No change at this width</b>: the fix is for a phone only.</p>
+<img src="png/38-6-two-buttons-tablet-light.png" alt="At hand on a tablet held sideways with two-button rows: no change"></div>
+
+<h1>38-7. Short forms in the tiles' lines <span class="ev">Pictures: 1, 2, 3, 5</span></h1>
+<div class="fr"><p class="cap"><b>Found:</b> "AC +1 from NIM" uses two short forms the screen never spells out (the tile above it says "Armour class", the score says "Nimbleness"); "Missile" has a capital mid-line. <b>Proposed:</b> "Waxed coat, Nimbleness +1" (what he wears, then the score) and "Melee +2, missile +1".<small><span class="flag">⚑ Words</span> The proposed line names the armour worn, which the built line does not: new content, for a ruling. A long armour name is not drawn.</small></p>
+<img src="png/38-7-words-tablet-light.png" alt="The armour class and attack tiles: as built and proposed"></div>
+
+<h1>38-8. Over the most he can carry <span class="ev">Script</span></h1>
+<div class="fr"><p class="cap"><b>Found:</b> "Can't move" is written twice side by side, and the warning sign touches its word. <b>Proposed:</b> the speed tile reads "0 paces"; the sign stands 8 px from the word.<small><span class="flag">⚑ Words</span> "0 paces" is new wording.</small></p>
+<img src="png/38-8-over-loaded-tablet-light.png" alt="Movement when over-loaded: as built and proposed"></div>
+
+<h1>38-9. "Hit points" is the one heading in another hand <span class="ev">Pictures: 1 to 5</span></h1>
+<div class="fr"><p class="cap"><b>Found:</b> "Hit points" is set in the plain face, small and spaced out; every other heading on the tab is in the book face's small capitals. <b>Proposed:</b> the same style as the section headings.</p>
+<img src="png/38-9-hit-points-heading-tablet-light.png" alt="The hit points heading: as built and proposed"></div>
+
+<h1>Critique (<code>impeccable critique</code>, of this page's proposed frames)</h1>
+<p class="note">The skill here is a condensed port without its tooling, read from its file: <b>no detector or linter ran</b>; this is a read of the pictures above. It changes nothing: Francis picks by number. Surface: an app screen used at the table (the skill's "Operate" mode: scanning and consistency over expression).</p>
+<table class="sc">
+<tr><th>Heuristic</th><th>0 to 4</th><th>Why</th></tr>
+<tr><td>Visibility of system status</td><td>3</td><td>The fade now says "more below"; the over-loaded state reads at once.</td></tr>
+<tr><td>Match to the user's language</td><td>3</td><td>The short forms go; "0 paces" beside "Can't move" still says one thing twice.</td></tr>
+<tr><td>User control and freedom</td><td>3</td><td>The way back keeps its words.</td></tr>
+<tr><td>Consistency</td><td>2</td><td>"Hit points" joins the headings, but fix 4 gives one heading a rule the others lack, and fix 6 makes two row shapes in one list.</td></tr>
+<tr><td>Error prevention</td><td>3</td><td>Targets 44 px and 8 px apart where the fixes reach.</td></tr>
+<tr><td>Recognition over recall</td><td>3</td><td>The rail is still three signs with no words when held sideways.</td></tr>
+<tr><td>Flexibility and efficiency</td><td>3</td><td>Unchanged.</td></tr>
+<tr><td>Minimalist design</td><td>3</td><td>Nothing added but a rule and a fade.</td></tr>
+<tr><td>Error recovery</td><td>2</td><td>No error, offline or loading state is drawn on this page.</td></tr>
+<tr><td>Help and documentation</td><td>3</td><td>The ⓘ and the roll lines stay.</td></tr>
+<tr><th>Total</th><th>28 of 40</th><th></th></tr>
+</table>
+<p class="note"><b>What works.</b> Every fix is small and keeps the screen as approved: nothing moves to a new place, no new colour, no new part. Fixes 1, 2 and 9 are plain repairs to the floors and the type the tab already uses. Fix 6 gives the biggest gain to the player with the least room. <b>Cognitive load and hierarchy:</b> no heavier than before; hit points stay the loudest thing, with one bordered card (the weapon) below them; fix 9 quiets one odd label. The tab suits its mode: a screen to glance at, not to read.</p>
+<ol class="crit">
+<li><b>Fix 4's double rule stands alone.</b> Scores, Saves and Movement keep bare headings, so one heading in the column looks different. Simpler: keep the single rule and only move the row down 8 px. (<code>layout</code>)</li>
+<li><b>Fix 5's fade dims a button.</b> In 38A "Refill" sits half-faded at the foot: a dim control reads as switched off, and the app has no switched-off buttons. A shorter fade (16 px), or a plain rule at the edge, avoids it. (<code>polish</code>)</li>
+<li><b>Fix 6 makes two row shapes in one list.</b> Two-button rows put buttons under the words; one-button rows keep theirs beside. On the phone the eye loses the single right-hand column of buttons. Is that only at Larger text, or always on a phone? Not said. (<code>layout</code>)</li>
+<li><b>Fix 8 still says it twice.</b> "0 paces" and "Can't move" are the same fact in two tiles. The speed tile could carry the reason instead (its small line now reads only "Speed"). (<code>clarify</code>)</li>
+<li><b>Fix 7 is not drawn with a long armour name or with none.</b> The tile is 216 px wide (measured); "Waxed coat, Nimbleness +1" just fits. (<code>harden</code>)</li>
+<li><b>Fix 3 puts the name in two places</b> on an upright tablet (the bar, cut; the head's line, whole), and the head grows by a line. The bar could drop the cut name there instead. On a phone it is not drawn. (<code>distill</code>)</li>
+<li><b>Fix 1 leaves the handle hard to see.</b> Its tap area is now clear of the rail, but what shows is still a 6 px grey bar and a small arrow; a first-timer will not know it opens the menu. Outside the audit's finding. (<code>clarify</code>)</li>
+<li><b>Fix 9: a heading inside a box.</b> In the headings' style "Hit points" now looks like a section heading but sits inside its box, where the others sit above theirs. Minor. (<code>typeset</code>)</li>
+<li><b>Dark and the other states are missing.</b> Every frame is light; the fade, the double rule and the warning sign's gap are not shown in dark. (<code>harden</code>)</li>
+</ol>
+<p class="note"><b>Walked as:</b> a first-time player (finds the tabs; does not find the handle, 7); a player on a phone at Larger text, interrupted mid-fight (fix 6 helps most; 3 above); a keyboard or screen-reader user (the fixes change no names or order; the fade is visual only; not tested with a reader). <b>Questions for Francis:</b> is fix 6 for Larger text only or every phone? Should the tab bar's tabs keep touching (38-1)? May the armour's name appear in the armour class tile (38-7)?</p>
+
+<h1>Self-review</h1>
+<p class="note"><b>Checked, measured on the built screen before and after each fix:</b> the rail's tabs 40 to 44 px wide, 4 to 8 px apart; the handle 0 to 8 px from the rail; the weapon's buttons and the ⓘ 4 to 8 px; "Use" 5 px under its heading as built; the way back 44 px wide with a long name upright, 176 or more proposed. Every fix uses the tokens only (<code>--tap</code>, <code>--space-1</code> to <code>--space-6</code>, <code>--divider</code>, <code>--ink</code>); no new colour or size. Nothing under 14 px: fix 9 uses the headings' own size. No disabled button, no new accent button, no confirm. Messy data: the long name (38-3), the long weapon names (38-2, 38-6), 1,259 of 1,200 (38-8). 375 px: 38-1 and 38-6; the built screen has no sideways scroll at 375 px before or after fix 6 (measured).</p>
+<p class="note"><b>Not checked or not drawn.</b> Dark mode (the brief asked for light). Loading, offline and error states. Fix 5 is drawn as a still: the "only while something is cut" behaviour is described, not shown working. Fixes 2 (pins), 6 and 8 rest on the earlier script, not on the audit's pictures. Fixes 3, 6, 7 and 8 are not drawn at the other widths. Contrast is unchanged by any fix except the fade, which was not measured. Tome #1118 fb-1 lives in a repository this session cannot read: skipped. These are pictures of the built screen with CSS laid over it, not hand-drawn frames as on page 37, so the page has no dark column.</p>
+
+</div>
+</body>
+</html>
