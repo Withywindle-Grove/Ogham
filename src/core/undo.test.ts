@@ -1,7 +1,7 @@
 // Which log lines offer Undo (ruled 2026-10-25): changes, plus the deletions with a copy kept (drops and gifts
 // outside the party), where a line made and removed at once (part of a stack given away) doesn't block it.
 import { describe, expect, it } from 'vitest';
-import { mayUndo } from './undo.ts';
+import { mayUndo, undoOffered } from './undo.ts';
 
 const change = (targetId: string) => ({ targetId, before: { qty: 6 }, after: { qty: 4 } });
 const made = (targetId: string) => ({ targetId, before: null, after: { qty: 2 } });
@@ -35,5 +35,18 @@ describe('mayUndo', () => {
     expect(mayUndo('expedition.start', [made('x'), change('campaign')])).toBe(true);
     expect(mayUndo('expedition.start', [removed('x')])).toBe(false);
     expect(mayUndo('session.end', [made('s')])).toBe(false);
+  });
+});
+
+// Purpose (Francis, 2026-11-24, "yes to both questions", #77's ⚑ 4): a log line the database wrote with no person on
+// it (the link it empties when an account is deleted) offers no Undo, not even to the GM; a person's line still offers
+// it to the GM and to that person, and to no other player.
+describe('undoOffered', () => {
+  it.fails('a line with no person on it offers no Undo; a person\'s line offers it to the GM and to them', () => {
+    expect(undoOffered(null, { gm: true, userId: 'user-gm' })).toBe(false);
+    expect(undoOffered(null, { gm: false, userId: 'user-wren' })).toBe(false);
+    expect(undoOffered('user-wren', { gm: true, userId: 'user-gm' })).toBe(true);
+    expect(undoOffered('user-wren', { gm: false, userId: 'user-wren' })).toBe(true);
+    expect(undoOffered('user-wren', { gm: false, userId: 'user-ash' })).toBe(false);
   });
 });

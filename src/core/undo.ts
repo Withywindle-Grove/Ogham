@@ -113,6 +113,10 @@ export const mayUndo = (type: string, events: readonly { before: unknown; after:
   return events.every((e) => (e.before !== null || made || (deletion && removed.has(e.targetId))) && (e.after !== null || deletion || merged));
 };
 
+/** Whether the log offers this person an Undo on a line made by `actorUserId`: the GM on anyone's, a player on their own. */
+export const undoOffered = (actorUserId: string | null, viewer: { gm: boolean; userId: string }) =>
+  viewer.gm || actorUserId === viewer.userId;
+
 /** A join's change (Q2): an add's or a move's raise of a same-name stack's count. */
 export function isJoin(type: string, event: { before: unknown; after: unknown }): boolean {
   const count = (row: unknown) => (row && typeof row === 'object' && typeof (row as { qty?: unknown }).qty === 'number' ? (row as { qty: number }).qty : null);
