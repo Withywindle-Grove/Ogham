@@ -3,7 +3,9 @@
 // change or is the GM, that nothing changed since, and that it wasn't already undone. Making and deleting
 // things can't be undone, except a drop (ruled 2026-10-25): its log keeps a copy, and undo puts the item back; and
 // moving part of a stack (ruled 2026-10-26): undo merges the split-off part back. A give the receiver has used some
-// of brings back what's left, and says how much was used (5b, ruled 2026-10-26).
+// of brings back what's left, and says how much was used (5b, ruled 2026-10-26). A thing that joined a same-name stack
+// (Q2, sw-4) comes back off it the same way, the stack never going below what it had; a whole line a move merged in
+// is made again (sw-9).
 import { defineCommand, failed, isGm, isMember, notAllowed, ok, type CommandResult } from './commands.ts';
 import type { Db } from './supabase.ts';
 
@@ -84,10 +86,15 @@ export const UNDOABLE_MAKINGS: readonly string[] = [
   // December dec-7 piece 3: the GM's first switch on a place's rule (its eye, or the stand-in check's toggle) makes
   // its row (Undo marks it undone; a later switch is an update and goes back the usual way).
   'placeRule.eye', 'placeRule.inForce',
+  // The players' place card (P4, p4s-2): the GM's first share of a Knowledge section makes its row (Undo marks it
+  // undone; sharing again or taking it back is an update and goes back the usual way).
+  'placeKnowledge.eye',
   // Calls to adventure (dec-12 piece B): a hook sent to a character or the party (Undo marks the send undone).
   'hook.send',
   // A rumour (dec-12 piece E): a row's words given to a character or the party (Undo marks the give undone).
   'rumour.give',
+  // A piece of a place in town shown (W4c, ge-1): its first show on a visit makes the store's row (Undo marks it undone).
+  'town.showPiece',
   // A shop's stock (W12): a first answer for a thing that day makes its row (Undo marks it undone; it reads as its default).
   'stock.set',
   // B15 (p2p-29): the GM's eye on a magic item's piece makes the piece's show (as place.showPiece; Undo marks it undone).
@@ -103,8 +110,18 @@ export const mayUndo = (type: string, events: readonly { before: unknown; after:
   const deletion = UNDOABLE_DELETIONS.includes(type);
   const removed = new Set(events.filter((e) => e.after === null).map((e) => e.targetId));
   const made = UNDOABLE_SPLIT === type || UNDOABLE_MAKINGS.includes(type);
-  return events.every((e) => (e.before !== null || made || (deletion && removed.has(e.targetId))) && (e.after !== null || deletion));
+  // A whole line a move merged into a same-name stack (Q2, sw-9): Undo makes it again, with what's left of it.
+  const merged = type === UNDOABLE_SPLIT && events.some((e) => isJoin(type, e));
+  return events.every((e) => (e.before !== null || made || (deletion && removed.has(e.targetId))) && (e.after !== null || deletion || merged));
 };
+
+/** A join's change (Q2): an add's or a move's raise of a same-name stack's count. */
+export function isJoin(type: string, event: { before: unknown; after: unknown }): boolean {
+  const count = (row: unknown) => (row && typeof row === 'object' && typeof (row as { qty?: unknown }).qty === 'number' ? (row as { qty: number }).qty : null);
+  const was = count(event.before);
+  const now = count(event.after);
+  return (type === 'inventory.add' || type === UNDOABLE_SPLIT) && was !== null && now !== null && now > was;
+}
 
 /**
  * The newest change of a kind this person made in the campaign ("inventory.remove"): what a toast's Undo undoes

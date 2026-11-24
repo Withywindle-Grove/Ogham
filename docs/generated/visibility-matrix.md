@@ -10,6 +10,7 @@ Each cell lists the rules that let a signed-in person do that to a row (the rule
 | `actor_secrets` | GM only | GM only | GM only | GM only |
 | `actors` | read approved or own | GM or player creates | GM or owner edits | delete unapproved or archived, by owner or GM |
 | `assets` | read by visibility | GM or own portrait creates | GM or own portrait updates | GM or own portrait deletes |
+| `calls_seen` | the player and the GM read | — | — | — |
 | `camp_entries` | the GM, and players for their own group | — | undone by the GM or the group's players | — |
 | `campaign_clocks` | members read | — | the GM moves it | — |
 | `campaign_pack_secrets` | the GM reads | — | the GM changes | — |
@@ -40,6 +41,7 @@ Each cell lists the rules that let a signed-in person do that to a row (the rule
 | `inventory_line_secrets` | the GM | the GM | the GM | the GM |
 | `inventory_lines` | read like the carrier | add to a carrier you may change | change, or hand on, what you may change | remove from a carrier you may change |
 | `invites` | GM reads | GM creates | GM updates | — |
+| `knowledge_shares` | the GM reads | the GM keeps them | the GM keeps them, again | — |
 | `known_items` | campaign members read | — | — | — |
 | `library_entries` | owner or campaigns using the pack read | owner adds | owner changes | owner deletes |
 | `library_entry_secrets` | owner or the campaign's GM read | — | the homebrew's GM changes | — |
@@ -70,6 +72,8 @@ Each cell lists the rules that let a signed-in person do that to a row (the rule
 | `status_secrets` | the GM reads | the GM keeps them | the GM keeps them, again | — |
 | `table_pins` | the GM reads | the GM pins | the GM unpins | — |
 | `table_reads` | the GM reads | the GM records one | the GM undoes one | — |
+| `town_piece_resets` | the GM reads | — | — | — |
+| `town_piece_shows` | the GM reads | the GM keeps them | the GM keeps them, again | — |
 | `travel_group_secrets` | the GM reads | — | the GM keeps them | — |
 | `travel_groups` | the GM, and players for their own group | the GM starts the day | the GM moves the group | — |
 | `undoable_deletions` | everyone signed in reads | — | — | — |

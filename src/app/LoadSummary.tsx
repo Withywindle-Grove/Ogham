@@ -3,7 +3,7 @@
 // A tap on the burden opens its levels in a pop-up, "Burden" (tfb-4, frame M2h of december/26, approved 2026-11-19):
 // every host passes `levelsPopUp`: the Player tab, the Pack, the full sheet, and (d5-19, 2026-11-20) the GM's character
 // overview and creation's Gear step. Without it the levels open in place, as the gallery's Pack page still draws them.
-import { Fragment, useRef, useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import type { TreasureSwitch } from '../modules/inventory/treasureSwitch.ts';
 import { raisedTiers, speedOf, type BandId, type BandLoad, type CarriedLoad, type CarryBonus, type EncumbranceRules, type Tier } from '../modules/inventory/encumbrance.ts';
 import { tierWords } from './packHelpers.ts';
@@ -66,6 +66,9 @@ export function LoadSummary({
   const warn = load.over || (load.mode !== 'armour' && load.tier !== null && load.tier.label !== (load.mode === 'coin' ? rules.coin : rules.slot)?.tiers[0]?.label);
   const source = from.length > 0 ? `From your setting: ${from.join(', ')}` : '';
   const fill = load.capacity ? Math.min(1, load.load / load.capacity) : 0;
+  // Over the most with "speed said once" (dec-14 row 8, ruled 8a, frame 38-8): the speed card says it, so the tier is
+  // the warning sign alone, its spoken name the pack's own words. Armour mode is left as built.
+  const signAlone = speedOnce && load.over && load.mode !== 'armour';
 
   return (
     // "Speed said once" is also the Player screen's card as P1 draws it: left-aligned and upright (`pack__load--once`).
@@ -76,11 +79,12 @@ export function LoadSummary({
           type="button"
           className={warn ? 'pack__tier pack__tier--warn' : 'pack__tier'}
           {...(levelsPopUp ? { 'aria-haspopup': 'dialog' as const } : { 'aria-expanded': explain })}
+          {...(signAlone ? { 'aria-label': words } : {})}
           onClick={() => setExplain(!explain)}
         >
           {/* Over the limit carries the warning sign (plan m5b-players-screens-standard A3), the words still say it. */}
           {load.over && <WarningSign />}
-          {words}
+          {!signAlone && words}
         </button>
       )}
       {load.mode === 'slot' && load.capacity !== null ? (
@@ -275,8 +279,6 @@ interface BurdenTable {
   head: string[];
   rows: string[][];
   marked: number;
-  /** Each level's effect in the pack's words, a labelled line under the table (a column would not fit 375 px). */
-  effects?: { label: string; words: string }[];
 }
 
 /**
@@ -286,14 +288,12 @@ interface BurdenTable {
 const bonusWords = (bonuses: CarryBonus[] | undefined, unit: 'coin' | 'slot', to: 'each limit' | 'the limit' = 'each limit') =>
   (bonuses ?? []).map((b) => ` ${b.name}: +${num(b.amount)} ${unit}${b.amount === 1 ? '' : 's'} to ${to}, while worn or in hand.`).join('');
 
-/** A sentence's end: a full stop unless it has one. */
-const stop = (words: string) => (/[.!?]$/.test(words) ? words : `${words}.`);
-
 /**
  * A list of levels as a table, as frame M2h draws it: the level's name when the pack gives names, its limit ("400
  * coins", or "11 to 13" for slots filled), and its speed when any level has one. Over the most, a last row says so,
- * with the pack's words for it as its speed. The character's own row is the one in bold. Each level's effect follows
- * the table as a labelled line ("Laden Slowed."): a fourth column cut its words at 375 px.
+ * with the pack's words for it as its speed. The character's own row is the one in bold. Nothing follows the table:
+ * the lines that listed each level's effect under it ("Laden Slowed.") are gone (fb-3, plan row Q1; Francis approved
+ * the built screen with that fix, 2026-11-21: each level once, in the table).
  */
 function levelsTable(
   title: string,
@@ -306,11 +306,8 @@ function levelsTable(
   const speeds = tiers.some((t) => t.movement);
   const head = [...(named ? ['Level'] : []), limit.head, ...(speeds ? ['Speed'] : [])];
   const rows = tiers.map((t, i) => [...(named ? [t.label] : []), limit.of(t, i), ...(speeds ? [t.movement ?? ''] : [])]);
-  const effects = tiers.flatMap((t, i) => (t.effect ? [{ label: t.label || limit.of(t, i), words: stop(t.effect) }] : []));
   if (over.is) rows.push([...(named ? ['Over the limit'] : []), 'More', ...(speeds ? [over.words] : [])]);
-  // Over the most with no speed column: the pack's words for it go with the effects.
-  if (over.is && !speeds && over.words) effects.push({ label: 'Over the limit', words: stop(over.words) });
-  return { title, head, rows, marked: over.is ? rows.length - 1 : (mine ?? -1), ...(effects.length > 0 ? { effects } : {}) };
+  return { title, head, rows, marked: over.is ? rows.length - 1 : (mine ?? -1) };
 }
 
 /** The level a load sits in, found in the raised list (`raisedTiers`, the same calculation as the load's own tier). */
@@ -324,6 +321,22 @@ const slotsFilled = (tiers: Tier[]) => (t: Tier, i: number) => {
 
 /** An armour row's name as its table says it: "None", "Light". */
 const armourName = (row: string) => (row === 'none' ? 'None' : `${row.charAt(0).toUpperCase()}${row.slice(1)}`);
+
+/**
+ * The band whose table the pop-up draws (of-6): over the most, the band (or bands) over it; else the one named as
+ * setting the speed; with the two at the same speed, the slower-or-first with a speed, else the stowed band, as the
+ * load's own tier is chosen (`bandedLoad`, encumbrance.ts).
+ */
+function speedBands(bands: BandLoad[], setsSpeed: BandId | null): BandLoad[] {
+  const over = bands.filter((b) => b.over);
+  if (over.length > 0) return over;
+  const named = bands.find((b) => b.id === setsSpeed);
+  if (named) return [named];
+  const slower = (a: BandLoad | null, b: BandLoad) => (b.speed === null ? a : a === null || a.speed === null || b.speed < a.speed ? b : a);
+  const slowest = bands.reduce<BandLoad | null>(slower, null);
+  const setter = slowest ?? bands.find((b) => b.id === 'stowed') ?? bands[0];
+  return setter ? [setter] : [];
+}
 
 /** "383 of 1,200", or "383" when there is no most. */
 const outOf = (n: number, most: number | null) => `${num(n)}${most !== null ? ` of ${num(most)}` : ''}`;
@@ -358,7 +371,9 @@ export function burdenParts(load: Exclude<CarriedLoad, { mode: 'none' }>, rules:
   } else if (load.bands) {
     if (load.over) lead.push(`${tierWords(load)}.`);
     lead.push(load.bands.map((b) => `${b.name}: ${outOf(b.load, b.capacity)} slots.`).join(' '));
-    for (const b of load.bands) {
+    // Only the band that sets the speed has its table (of-6, 2026-11-20, as frame M2h draws it); the other's count
+    // stays in the first line and on the bar.
+    for (const b of speedBands(load.bands, load.setsSpeed ?? null)) {
       // The band's levels as they stand for this carrier, raised by what adds room (the same as its own tier).
       const tiers = raisedTiers(b.tiers, b.added);
       tables.push(levelsTable(`Burden by slots ${b.name.toLowerCase()}`, tiers, { head: 'Slots filled', of: slotsFilled(tiers) }, b.step, { is: b.over, words: load.overMax }));
@@ -382,7 +397,9 @@ export function burdenParts(load: Exclude<CarriedLoad, { mode: 'none' }>, rules:
           words: load.overMax,
         }),
       );
-    if (load.capacity !== null) lines.push({ label: 'Limit', words: `${num(load.capacity)} ${coin ? 'coins' : 'slots'}.${bonusWords(load.bonuses, coin ? 'coin' : 'slot')}` });
+    // The limit is the first line's "of 1,600" and the table's last row: said again only to name what raises it (fb-3).
+    if (load.capacity !== null && load.bonuses && load.bonuses.length > 0)
+      lines.push({ label: 'Limit', words: `${num(load.capacity)} ${coin ? 'coins' : 'slots'}.${bonusWords(load.bonuses, coin ? 'coin' : 'slot')}` });
   }
   return { lead, tables, lines };
 }
@@ -391,7 +408,8 @@ export function burdenParts(load: Exclude<CarriedLoad, { mode: 'none' }>, rules:
  * The burden's levels, as a pop-up (tfb-4, 2026-11-19; frame M2h of december/26, approved 2026-11-19): titled "Burden",
  * a figure explained (band 2, the shared `BreakdownSheet`). Where the character stands; the levels as a book table
  * with the character's own row in bold (the first line says it too, so bold is never the only sign); what sets the
- * limit; the source. Three kinds of load: by coins' weight, by slots (each band, the slower setting the speed), and
+ * limit when something raises it; the source; each level said once, in the table, with no lines under it (fb-3). Three kinds of load: by coins' weight, by
+ * slots (with bands, only the band that sets the speed, of-6), and
  * armour's movement table with the line on treasure. The GM's "Switch on / Switch off" stays on the bar.
  */
 export function BurdenSheet({
@@ -422,14 +440,7 @@ export function BurdenSheet({
           </p>
         ))}
         {tables.map((t, n) => (
-          <Fragment key={`${n}:${t.title}`}>
-            <BookTable title={t.title} head={t.head} rows={t.rows} marked={t.marked} markedSpoken=", yours" wordsColumn={0} titleStart />
-            {t.effects?.map((e, i) => (
-              <BookLine key={`${i}:${e.label}`} label={e.label}>
-                {e.words}
-              </BookLine>
-            ))}
-          </Fragment>
+          <BookTable key={`${n}:${t.title}`} title={t.title} head={t.head} rows={t.rows} marked={t.marked} markedSpoken=", yours" wordsColumn={0} titleStart />
         ))}
         {lines.map((l, i) => (
           <BookLine key={`${i}:${l.label}`} label={l.label}>

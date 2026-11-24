@@ -27,7 +27,9 @@
 //      The pack half (taking from a Down or dead character's pack) is not built: a test to do, row K23.
 //   9. A treasure piece's value never reaches a player by the roads not yet pinned: known_places_campaign (a shown
 //      treasure) and the log line written when the piece is made.
-//   7, 8. Not built: tests to do, rows K18 and K22.
+//   7. Not built: a test to do, row K18.
+//   8. An unidentified thing's truth reaches no player before the GM tells (row K22a, built: k22-reveal-hidden.test.ts
+//      has the fuller set).
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../src/app/commandRegistry.ts';
 import { runCommand, type CurrentUser } from '../../src/core/commands.ts';
@@ -36,6 +38,7 @@ import { taggedDb } from '../../src/core/eventTags.ts';
 import type { Db } from '../../src/core/supabase.ts';
 import { loadGroupPlaces, showPiece } from '../../src/modules/expedition/placePlay.ts';
 import { startExpedition } from '../../src/modules/expedition/play.ts';
+import { addItem } from '../../src/modules/inventory/inventory.ts';
 import { buildWorld, must, tearDownWorld, type Person, type World } from './world.ts';
 
 type Coins = Record<string, number>;
@@ -158,12 +161,45 @@ describe("9. a place's Treasure piece and its value (pg-1, \"Value stays yours\"
   }, 120_000);
 });
 
-describe('7, 8. finds and things (not built yet)', () => {
+describe('7. finds (not built yet)', () => {
   // Not built: the player's find card is row K18 (today a find is a log line only; a coin line on a character's purse
   // is its owner's and the GM's, dec-6a-purse-data.test.ts, "7. who sees a purse's log lines").
   it.todo("a find's card naming coin reaches no one but that character's player and the GM (row K18)");
-  // Not built: an unidentified thing is row K22 (today an item line's hidden fields are kept from players until the GM
-  // reveals one, inventory-copy.test.ts: "copies what a player may see of the entry…never the hidden fields" and "only
-  // the GM can change what a line says about its item; a reveal is logged and the holder sees it").
-  it.todo("an unidentified thing's true name, bonus or curse reaches no player before the GM tells (row K22)");
+});
+
+describe('8. an unidentified thing (row K22a)', () => {
+  // Purpose: an unidentified thing's true name, bonus or curse reaches no player before the GM tells: not on the line
+  // (the database stores its face), not through the campaign's library, not by a plain select, not in the log. The
+  // fuller set is k22-reveal-hidden.test.ts; this is the Pack tab's row of K27.
+  it("an unidentified thing's true name, bonus or curse reaches no player before the GM tells", async () => {
+    const gm = await userOf(world.gm);
+    const pack = must(await world.admin.from('packs').insert({ owner_user_id: world.gm.id, name: 'Mere rules', version: '0.1', kind: 'setting' }).select('id').single()).id as string;
+    must(
+      await world.admin
+        .from('library_entries')
+        .insert([
+          { pack_id: pack, kind: 'rulesSet', pack_entry_id: 'mere-rules', name: 'Mere rules', data: { itemCategories: [{ id: 'charm', name: 'Charms', singular: 'Charm', unidentified: true }] } },
+          { pack_id: pack, kind: 'item', pack_entry_id: 'eel-charm', name: 'Charm of the Eel King', data: { category: 'charm', appearsAs: 'Knotted cord', bonus: 'Breathe under water', cursed: true, gmOnly: ['bonus', 'cursed'] } },
+        ])
+        .select('id'),
+    );
+    must(await world.admin.from('campaign_packs').insert({ campaign_id: world.campaignId, pack_id: pack, created_by: world.gm.id, option_choices: {} }).select('id'));
+    const entry = must(await world.admin.from('library_entries').select('id').eq('pack_id', pack).eq('pack_entry_id', 'eel-charm').single()).id as string;
+    try {
+      const carrier = { campaignId: world.campaignId, actorId: world.wrenId, locationId: null, ownerUserId: world.playerA.id, archived: false };
+      const line = await ok(runCommand(registry, asDb(world.gm), gm, addItem, { carrier, item: { libraryEntryId: entry, name: 'x', category: 'x', weightCoin: null, slots: null, stack: 1 }, qty: 1, howGot: 'given' }));
+      expect(line).toMatchObject({ name: 'Knotted cord', identified: false });
+      const secret = /Eel King|Breathe under water|cursed/;
+      for (const player of [world.playerA, world.playerB]) {
+        expect(JSON.stringify(must(await player.db.from('inventory_lines').select('*').eq('id', line.id)))).not.toMatch(secret);
+        expect(JSON.stringify(must(await player.db.rpc('campaign_library', { campaign: world.campaignId, packs: [pack] })))).not.toMatch(secret);
+        expect(must(await player.db.from('library_entries').select('id').eq('id', entry))).toEqual([]);
+        expect(JSON.stringify(must(await player.db.from('events').select('*').eq('campaign_id', world.campaignId)))).not.toMatch(secret);
+      }
+    } finally {
+      await world.admin.from('inventory_lines').delete().eq('source_pack_id', pack);
+      await world.admin.from('campaign_packs').delete().eq('pack_id', pack);
+      await world.admin.from('packs').delete().eq('id', pack);
+    }
+  }, 120_000);
 });

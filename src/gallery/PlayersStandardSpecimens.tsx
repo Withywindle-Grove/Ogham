@@ -5,8 +5,9 @@
 // names only. No pictures yet: CI draws them and they go to Design.
 import type { ReactNode } from 'react';
 import { SkillRollLine } from '../app/FigureSheets.tsx';
-import { LightSection, type CharacterLightView } from '../app/LightSection.tsx';
-import type { CharacterLight } from '../modules/expedition/lightPlay.ts';
+import { LightInAtHand, type CharacterLightView } from '../app/LightSection.tsx';
+import type { CharacterLight, LightOption } from '../modules/expedition/lightPlay.ts';
+import type { InventoryLine } from '../modules/inventory/inventory.ts';
 import { BreakdownSheet } from '../ui/BreakdownSheet.tsx';
 import { Dialog } from '../ui/Dialog.tsx';
 import { MenuItem, MenuItems } from '../ui/MoreMenu.tsx';
@@ -21,11 +22,12 @@ type SpecimenPart = (props: { name: string; children: ReactNode }) => ReactNode;
 const none = () => undefined;
 const nothing = async () => undefined;
 
-// The Player screen's Light section (the ring as its glyph, Francis's option B on #560): a light an hour long that
-// warns at its last 10 minutes, on a clock standing at 3,600 s; a turn is 10 minutes.
+// The Player screen's light in At hand (the ring as its glyph, Francis's option B on #560; the ring as the tap, lt-1 to
+// lt-5, page 35): a light an hour long that warns at its last 10 minutes, on a clock standing at 3,600 s; a turn is 10
+// minutes.
 const NOW = 3600;
 const TURN = { name: 'turn', seconds: 600 };
-const lantern = (name: string, litAt: number, burnSeconds: number | null): CharacterLight => ({
+const lantern = (name: string, litAt: number | null, burnSeconds: number | null): CharacterLight => ({
   id: `light-${name}`,
   actorId: 'wren',
   campaignId: 'gallery',
@@ -43,11 +45,20 @@ const lantern = (name: string, litAt: number, burnSeconds: number | null): Chara
   outAt: null,
   version: 1,
 });
-const lightView = (light: CharacterLight, fuelLeft = 0): CharacterLightView => ({
+/** A light line in the pack: `qty` of them, 6 turns each; `fuel` for a holder. */
+const lightLine = (name: string, qty: number, fuel: string | null = null): LightOption => ({
+  line: { id: `line-${name}`, name, qty, version: 1, needsFuel: false, fuelLeftSeconds: null },
+  type: { id: name.toLowerCase(), name, seconds: 6 * TURN.seconds, warnSeconds: TURN.seconds, consumed: !fuel, fuel },
+  unit: TURN,
+  radius: null,
+});
+/** Lamp oil in the pack, for a holder's refills. */
+const oil = (qty: number) => ({ id: 'line-oil', name: 'Lamp oil', qty, approval: 'approved', sourceEntryId: 'lamp-oil' }) as InventoryLine;
+const lightView = (light: CharacterLight | null, fuelLeft = 0, options: LightOption[] = [], lines: InventoryLine[] = []): CharacterLightView => ({
   light,
   now: NOW,
-  options: [],
-  lines: [],
+  options,
+  lines,
   units: { turn: TURN.seconds },
   fuel: { left: fuelLeft, name: fuelLeft > 0 ? 'Lamp oil' : null },
   unitOf: () => TURN,
@@ -59,14 +70,19 @@ const lightView = (light: CharacterLight, fuelLeft = 0): CharacterLightView => (
   refillAndLight: nothing,
   reload: none,
 });
+const STORM = lightLine('Storm lantern', 1, 'lamp-oil');
 /**
  * Lit just now (the full ring; a holder with 3 refills and Keep lit on, as frame P1 draws it), at its last sixth (the
- * warning sign), and a light that never runs out (dashed).
+ * warning sign), a light that never runs out (dashed); then one light not lit (35E1: "Light"), several (35E2: "No
+ * light lit", "Light…"), and a holder burnt out with Refill and Light another (35E2).
  */
 export const LIGHT_SPECIMENS: readonly CharacterLightView[] = [
   lightView({ ...lantern('Storm lantern', NOW, 3600), fuelItem: 'lamp-oil', keepLit: true }, 3),
   lightView(lantern('Rushlight', 600, 3600)),
   lightView(lantern('Glow-moss jar', 0, null)),
+  lightView(null, 0, [lightLine('Torch', 4)]),
+  lightView(null, 0, [lightLine('Torch', 4), STORM], [oil(3)]),
+  lightView({ ...lantern('Storm lantern', null, 3600), id: 'light-burnt', fuelItem: 'lamp-oil', outAt: NOW }, 3, [STORM, lightLine('Torch', 4)], [oil(3)]),
 ];
 /** The HP box's states (mockup players/04): full, hurt, at 0, a big figure (96 of 99: a 999 most would run the bar off the screen, a known HpBar limit), over the most, no most recorded, none set yet. */
 export const HP_SPECIMENS: readonly (readonly [number | null, number | null])[] = [
@@ -109,10 +125,10 @@ export function PlayersStandardSpecimens({ Specimen }: { Specimen: SpecimenPart 
           </div>
         </div>
       </Specimen>
-      <Specimen name="The Player screen's Light: the ring as its glyph, full; at its last sixth with the warning sign; a light that never runs out, dashed">
+      <Specimen name="The Player screen's light in At hand: the ring as the tap, full; at its last sixth with the warning sign; never runs out, dashed; one light not lit; several; a holder burnt out">
         <div className="gallery__col">
-          {LIGHT_SPECIMENS.map((view) => (
-            <LightSection key={(view.light as CharacterLight).id} view={view} />
+          {LIGHT_SPECIMENS.map((view, i) => (
+            <LightInAtHand key={i} view={view} />
           ))}
         </div>
       </Specimen>

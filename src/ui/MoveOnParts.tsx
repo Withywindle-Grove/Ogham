@@ -16,7 +16,7 @@ import { Dialog } from './Dialog.tsx';
 import { DiceWords } from './dice.tsx';
 import { wayIconOf } from './iconSet.ts';
 import { Icon } from './icons.tsx';
-import { ListRow, WarningLine } from './parts.tsx';
+import { ListRow, StackedButton, WarningLine } from './parts.tsx';
 import './MoveOnParts.css';
 
 /** One way of moving to a destination, as its button says it. */
@@ -124,9 +124,8 @@ export function DestinationRow({
         <div className="destination-row__proposed">
           <p>{proposal.by === 'you' ? 'Proposed by you: waiting for your GM.' : `Proposed by ${proposal.by}.`}</p>
           {'onCancel' in proposal && (
-            <button type="button" className="button-secondary button-secondary--small" onClick={proposal.onCancel}>
-              Cancel
-            </button>
+            // ic-1 (P12): the icon above the word, the app's cross in a circle as "Take it off" has it.
+            <StackedButton icon="cancel" label="Cancel" onClick={proposal.onCancel} />
           )}
         </div>
       )}
@@ -401,13 +400,16 @@ export function ProposalSheet({
   );
 }
 
-/** The players' list of destinations under "Where to?" (mc-36a), a row each; nothing at all when there are none. */
+/**
+ * The players' list of destinations under "Where to?" (mc-36a), a row each; nothing at all when there are none. The
+ * heading is a card's sub-heading in the book's faces, as "Activities" beside it (page 18, PL1; st-8).
+ */
 export function WhereTo({ children, empty }: { children: ReactNode; empty: boolean }) {
   const id = useId();
   if (empty) return null;
   return (
     <section className="where-to" aria-labelledby={id}>
-      <h3 id={id} className="label where-to__heading">
+      <h3 id={id} className="where-to__heading">
         Where to?
       </h3>
       <div className="move-sheet__rows">{children}</div>

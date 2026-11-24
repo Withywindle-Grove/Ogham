@@ -57,10 +57,11 @@ export function lineFigureParts(state: ModeState | null, magic: WeaponMagic | un
  */
 export function drawnAmmunition(
   setting: Parameters<typeof lineInPlay>[0],
-  stack: Pick<InventoryLine, 'name' | 'category' | 'details' | 'sourceEntryId' | 'sourcePackId'>,
+  stack: Pick<InventoryLine, 'name' | 'category' | 'details' | 'sourceEntryId' | 'sourcePackId' | 'revealedFields'>,
   stackEntry: { data: Record<string, unknown> } | null,
-): { name: string; data: Record<string, unknown>; category: string } {
-  return { name: stack.name, data: { ...(stackEntry?.data ?? {}), ...lineInPlay(setting, stack).details }, category: stack.category };
+): { name: string; data: Record<string, unknown>; category: string; told: readonly string[] } {
+  // K22a: what the GM told on the stack's line decides whether its bonus counts for the player (bonusHidden).
+  return { name: stack.name, data: { ...(stackEntry?.data ?? {}), ...lineInPlay(setting, stack).details }, category: stack.category, told: stack.revealedFields ?? [] };
 }
 
 /** A weapon's attack bonus and damage ("+2, 1d8"), from its item data, the patches' damage change and a mode's parts. */
@@ -315,7 +316,7 @@ export function CarrierItems({
                   const stackEntry = stack ? (items.find((e) => e.packId === stack.sourcePackId && e.packEntryId === stack.sourceEntryId) ?? null) : null;
                   const magic = atHand
                     ? weaponMagic(
-                        { name: line.name, data: item, category: line.category },
+                        { name: line.name, data: item, category: line.category, told: line.revealedFields ?? [] },
                         setting?.rulesSets ?? [],
                         isGm(user, campaign.id),
                         stack ? drawnAmmunition(setting, stack, stackEntry) : null,

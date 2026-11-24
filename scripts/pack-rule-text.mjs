@@ -2,8 +2,9 @@
 // pf-18 and pf-18a): one shared function, `ruleTextCheck`, validates a value wherever a pack may carry rule text — a
 // place rule's `text`, an area's `gm.text`, a GM section's `text` (pf-18b), a procedure step's `text` (on a place, a
 // rules set, a mode or its camp), and a class's or a kindred's trait note, `abilities[].note` (tfb-5, 2026-11-19; also
-// a kindred's `optionalAbilities.abilities[].note`). A trait note's links stay with the town check, which reads every
-// string in a pack, so its links are not said twice; everything else is checked here by the one rule.
+// a kindred's `optionalAbilities.abilities[].note`), and a common player action's rule, `exploration.playerActions[].text`
+// (d5-16, 2026-11-20). A trait note's and an action's links stay with the town check, which reads every string in a
+// pack, so their links are not said twice; everything else is checked here by the one rule.
 // It reads the value the way the app does (src/modules/library/ruleText.ts):
 //   errors    whatever the reader leaves out (a value that is neither words nor { blocks }, a block with no known
 //             marker or two, a block missing what it requires, a box inside a box, a list item that isn't words …)
@@ -109,6 +110,20 @@ export function traitNoteFields(file) {
   return fields;
 }
 
+/**
+ * Every common player action's rule a pack carries, as [path, value] (d5-16): a rules set's
+ * `exploration.playerActions[].text`. A plain string is always valid; `{ blocks }` takes pf-18's shape.
+ */
+export function playerActionTextFields(file) {
+  if (!isObject(file)) return [];
+  const fields = [];
+  list(file.rulesSets).forEach((rules, i) => {
+    const actions = isObject(rules) && isObject(rules.exploration) ? list(rules.exploration.playerActions) : [];
+    actions.forEach((action, j) => isObject(action) && action.text !== undefined && fields.push([`rulesSets[${i}].exploration.playerActions[${j}].text`, action.text]));
+  });
+  return fields;
+}
+
 /** Every rule text a pack carries, as [path, value]: the four fields wherever 07 allows them (pf-18, pf-18b, pf-14). */
 export function ruleTextFields(file) {
   if (!isObject(file)) return [];
@@ -144,7 +159,7 @@ export function ruleTextFileCheck(file) {
     errors.push(...found.errors);
     warnings.push(...found.warnings);
   }
-  for (const [path, value] of traitNoteFields(file)) {
+  for (const [path, value] of [...traitNoteFields(file), ...playerActionTextFields(file)]) {
     const found = ruleTextCheck(value, path, ctx, { links: false });
     errors.push(...found.errors);
     warnings.push(...found.warnings);

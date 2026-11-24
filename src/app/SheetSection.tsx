@@ -9,7 +9,7 @@ import { useState, type ReactNode } from 'react';
 import { Dialog } from '../ui/Dialog.tsx';
 import { FoldedGroup } from '../ui/creation.tsx';
 import { Icon } from '../ui/icons.tsx';
-import { ListRow, RowList } from '../ui/parts.tsx';
+import { InfoButton, ListRow, RowList } from '../ui/parts.tsx';
 import { RuleHeading } from '../ui/RuleHeading.tsx';
 import type { RollLine } from '../modules/library/rolls.ts';
 import { usePhone } from './useWide.ts';
@@ -43,6 +43,7 @@ export function SheetSection({
   className,
   labelAction,
   labelLine = null,
+  labelInfo,
   children,
 }: {
   /** The heading, and what a screen reader calls the section. */
@@ -68,12 +69,31 @@ export function SheetSection({
    * rules set's `rolls`; null for the heading alone. Only on a section that doesn't fold.
    */
   labelLine?: RollLine | null;
+  /**
+   * An ⓘ at the right of the heading's row, opening its explanation (the Player tab's "Abilities and traits": "Hold to
+   * move", pg28-7, frame M4e). `label` is what it explains ("About <label>"). Only on a section that doesn't fold.
+   */
+  labelInfo?: { label: string; onOpen: () => void };
   children: ReactNode;
 }) {
   const phone = usePhone();
   const [open, setOpen] = useState(() => openOnDevice()[label] === true);
   const [sheetOpen, setSheetOpen] = useState(false);
   const folds = foldWide || (fold && phone);
+  const heading = (
+    <h2 className="sheet__label">
+      {label}
+      {labelAction && (
+        <>
+          {' '}
+          <button type="button" className="sheet__label-tap" aria-label={labelAction.label} onClick={labelAction.onTap}>
+            {labelAction.text}
+            <Icon name="info" size={18} />
+          </button>
+        </>
+      )}
+    </h2>
+  );
   if (row) {
     return (
       <section className={['sheet__section', 'sheet__block', className ?? ''].filter(Boolean).join(' ')} aria-label={label}>
@@ -107,23 +127,15 @@ export function SheetSection({
         </FoldedGroup>
       ) : (
         <>
-          <RuleHeading
-            line={labelLine}
-            heading={
-              <h2 className="sheet__label">
-                {label}
-                {labelAction && (
-                  <>
-                    {' '}
-                    <button type="button" className="sheet__label-tap" aria-label={labelAction.label} onClick={labelAction.onTap}>
-                      {labelAction.text}
-                      <Icon name="info" size={18} />
-                    </button>
-                  </>
-                )}
-              </h2>
-            }
-          />
+          {labelInfo ? (
+            // The heading at the left and its ⓘ at the right of the row (pg28-7), as a rule line sits (`.rule-heading`).
+            <div className="rule-heading">
+              {heading}
+              <InfoButton label={labelInfo.label} onOpen={labelInfo.onOpen} />
+            </div>
+          ) : (
+            <RuleHeading line={labelLine} heading={heading} />
+          )}
           {children}
         </>
       )}

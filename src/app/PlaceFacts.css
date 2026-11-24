@@ -70,6 +70,12 @@
   display: none;
 }
 
+/* A section's note ("Shared with the players, turn 9.", frame 7b): one line, kept whether folded or open. */
+.place-facts__note,
+.place-facts__fold[open] .place-facts__note {
+  display: block;
+}
+
 /* The watch: a box with the accent's edge (mc-20: the edge of a person's box; the watch is the town's). */
 .place-facts__watch {
   display: flex;

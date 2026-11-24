@@ -87,14 +87,18 @@ describe('a line from the setting rules', () => {
       const [row] = must(
         await world.admin.from('inventory_lines').select('name, category, weight_coin, item_data, source_pack_id, source_entry_id').eq('id', added.value.id),
       );
+      // K22a: a cursed item starts unidentified, so its line is its face: the category's name, and none of its own
+      // words or source until the GM tells everything (k22-reveal-hidden.test.ts).
       expect(row).toMatchObject({
-        name: 'Humming blade',
+        name: 'Weapon',
         category: 'weapon',
         weight_coin: 50,
         source_pack_id: packId,
         source_entry_id: 'hum-blade',
-        item_data: { slot: 'hand', hands: 1, weaponTags: ['Melee'], notes: 'Sings softly.', source: 'Invented' },
+        item_data: { slot: 'hand', hands: 1, weaponTags: ['Melee'] },
       });
+      expect(row!.item_data).not.toHaveProperty('notes');
+      expect(row!.item_data).not.toHaveProperty('source');
       expect(JSON.stringify(row)).not.toContain(CURSE);
       expect(row!.item_data).not.toHaveProperty('cursed');
       expect(row!.item_data).not.toHaveProperty('gmOnly');

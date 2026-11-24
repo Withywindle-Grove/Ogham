@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: the players’ Scene at a spot, whole (2026-11-14)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* this page's own rules: layout and its own parts only. Type, the book format, the stacked button, the sheet's head,
+     the toast and the corners come from ../shared/book.css and are not restated here. */
+  .lbl { font-size:14px; color:var(--muted); margin:var(--space-3) 0 var(--space-2); }
+  .rem { justify-content:center; } .rem .gap { display:none; }
+  .phone .rem .step .nm { display:none; }
+  .dcap { display:inline-flex; align-items:center; gap:var(--space-1); font-size:16px; margin-right:var(--space-2); vertical-align:bottom; }
+  .dcap svg { color:var(--muted); flex:none; }
+  .phone .dcap { font-size:14px; }
+  .two18 { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-4); align-items:start; }
+  .three18 { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:var(--space-4); align-items:start; }
+  /* the prompt slot: one prompt a row, its sign, its words, its one answer */
+  .slot18 { display:grid; gap:var(--space-2); margin:var(--space-3) 0; }
+  .pr18 { display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:var(--space-3); align-items:center; min-height:56px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-1) var(--space-3); box-sizing:border-box; }
+  .pr18 > span:first-child { display:flex; color:var(--muted); }
+  .pr18.warn > span:first-child { color:var(--warn); }
+  .call18 { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:var(--space-1) var(--space-3); align-items:start; }
+  .call18 small { display:block; font-size:14px; color:var(--muted); }
+  /* a pop-up, as the app's: a centred card */
+  .pop18 { max-width:440px; border-radius:20px; background:var(--popup); border:1px solid var(--rule); padding:var(--space-4); box-shadow:0 4px 16px rgb(0 0 0 / 25%); }
+  .pop18 .hd { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-2); margin-bottom:var(--space-2); }
+  .pop18 p { margin:0 0 var(--space-2); }
+  /* the phone: the page in one column */
+  .phfacts { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-2); margin-top:var(--space-2); }
+  .phfacts .fact { padding-left:var(--space-2); padding-right:var(--space-2); column-gap:var(--space-2); }
+  .phfacts .fact .v { font-size:16px !important; white-space:nowrap; }
+  .phfacts .fact .k { white-space:nowrap; }
+  .phfacts .fact:last-child .v { font-size:14px !important; }
+  .phfacts .fact:last-child .k { letter-spacing:0 !important; }
+  .phfacts .fact.due .s { font-weight:400; }
+  /* measured (t44-1): the "Rules" row is its own control, not one of the spots under it: 8 px between them */
+  .opt + .spot { margin-top:var(--space-2); }
+  .phone .pdest { grid-template-columns:auto minmax(0,1fr); }
+  .phone .pdest .modes { grid-column:1 / -1; justify-content:flex-start; }
+  .phone .pcard { margin-top:var(--space-3); padding:var(--space-3); }
+  .pdest .modes .btn.stk { width:auto; }
+  .pill18 { display:inline-flex; align-items:center; gap:var(--space-1); border:1.5px solid var(--warn); color:var(--warn); border-radius:4px; padding:0 var(--space-2); min-height:28px; font-size:14px; font-weight:700; }
+  /* the dark Light fact in the cool tone (page 16, st-5): this page shows it once, in PL4 */
+  .fact.due.cool { border-color:var(--info); background:color-mix(in srgb, var(--info) 14%, var(--sheet)); box-shadow:0 0 var(--space-2) 1px color-mix(in srgb, var(--info) 45%, transparent); }
+  .pdest .ot b { overflow-wrap:break-word; word-break:normal; }
+  .sk18 { display:block; height:16px; border-radius:4px; background:var(--rule); margin:var(--space-2) 0; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="strip.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+// ---- approved parts, as their pages wrote them ----
+const sep16 = svg(SY.right, 16);
+const go = svg(SY.right, 20);
+const stk = (words, k, o = {}) => `<span class="btn stk${o.accent ? ' accent' : ''}" role="button">${gi(k, 24)}<span>${words}</span>${o.time ? `<small>${o.time}</small>` : ''}</span>`;
+const STEPS5 = [['trumpet', 'Describe'], ['ball', 'Question'], ['sword-brandish', 'Act'], ['wizard', 'Test'], ['chest', 'Resolve']].map(([k, n]) => remStep(gi(k, 32), n, false));
+const stripRow = remRow('Sequence of play', STEPS5);
+const dl = (date, rest = '', season = 'sprout') => `<span class="dcap">${season ? gi(season, 18) : ''}${date}</span>${rest}`;
+const DATE = dl('14 Reedmonth, spring', 'Two hours of light left.');
+const pBand = (title, ident, over = 'Session 1. Saltwick Island.') => `${band({ over, title, ident, acts: [] })}<hr class="dbl">`;
+const encNowFact = fact('encounter', 'Encounter check', 'On every move', `<span class="die" role="img" aria-label="Die">${die(6, 16)}</span>1 in 6`).replace('class="v"', 'class="v" style="font-size:20px;white-space:nowrap"');
+const F_W = fact('weather', 'Weather', 'Drizzle', 'Wet.');
+const F_L = fact('flame', 'Light', 'Ash’s torch', '4 turns left.');
+const F_R = fact('rest', 'Rest', 'In 4 turns', 'One turn in six.');
+const pFacts = (enc = 'On every move', l = F_L, r = F_R) => `<div class="facts">${F_W}${l}${r}${encNowFact.split('On every move').join(enc)}</div>`;
+const top18 = (title = 'The Drowned Harbour, turn 14', enc) => `${pBand(title, DATE)}${pFacts(enc)}${stripRow}`;
+const MI7 = { Row: 'paddles', Swim: 'double-fish', Walk: 'leather-boot', Climb: 'mountain-climbing' };
+const wayBtn = ([w, t, on]) => `<span class="btn stk${on ? ' on' : ''}" role="button"${on ? ' aria-pressed="true"' : ''}>${MI7[w] ? gi(MI7[w], 24) : sym('travel', 24)}<span>${on ? sym('check', 16) : ''}${w}</span><small>${t}</small></span>`;
+const pd18 = (to, sub, modes, o = {}) => `<div class="pdest${o.sel ? ' sel' : ''}"><span>${sym('travel', 24)}</span><span class="ot"><b>${to}</b>${sub ? `<small>${sub}</small>` : ''}</span><span class="modes" data-stkgroup>${modes.map(wayBtn).join('')}</span>${o.below ? `<span style="grid-column:1 / -1;display:flex;align-items:center;gap:var(--space-2);border-top:1px dotted var(--rule);padding-top:var(--space-2)"><span style="flex:1">${o.below}</span>${o.right || ''}</span>` : ''}</div>`;
+const ruleBtn = (k, words) => `<span class="btn big sqb" role="button" aria-label="${words}">${gi(k, 34)}</span>`;
+const pWays = (rows, note = '', name = 'The jetty', line = 'Black piles, a mooring ring, weed to the waterline.') => `<div class="pcard"><div class="crumb"><span>Saltwick Island</span>${sep16}<b>The Drowned Harbour</b></div><div class="band"><div><h3 class="display"><span class="keyno">1</span>${name}</h3><p class="ident">${line}</p></div><div class="acts two">${ruleBtn('water-splash', 'Falling into the harbour: read the rule')}</div></div><div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2><span class="meta">${note}</span></div>${rows}</div>`;
+const ROWS = pd18('2 The wreck', '', [['Row', '1 turn'], ['Swim', '3 turns']]) + pd18('3 The breakwater', '', [['Row', '1 turn']]) + pd18('Along the piles', 'Not yet explored.', [['Walk', '2 turns']]);
+const pMap = `<div class="pcard" aria-label="The map">${mapOpen(mapPic(true, '112 68 300 220').replace('<svg ', '<svg style="width:100%;height:100%" '), '', { style: 'height:290px', bare: true }).replace('class="mapopen', 'style="margin-top:0" class="mapopen')}${mapTools('', locate(true), 'The Drowned Harbour', true)}</div>`;
+const pDo = `<div class="pcard"><div class="hrow"><h2>Activities</h2></div><div class="ideas">${b('Search', { icon: 'book' })}${b('Listen', { icon: 'book' })}${b('Force a door', { icon: 'book' })}</div></div>`;
+const placeCard = (rules = '3 rules') => `<div class="pcard"><div class="hrow"><h2>The Drowned Harbour</h2></div>${opt('What everyone knows', 'Shared, turn 9.', { icon: 'book', right: go })}${opt('Rules', rules, { icon: 'scales', right: go })}${spotP('2 The wreck', 'A cog on her side on the bar.')}${spotP('3 The breakwater', 'A drowned wall with a gap.')}</div>`;
+
+// ---- PL1 ----
+const pl1 = ipad('player', `${top18()}<div class="cols2"><div class="stack">${pWays(ROWS)}${pDo}</div><div class="stack">${pMap}${placeCard()}${partyOrder(true)}</div></div>`,
+  'PL1. <b>Assembled from approved 16-T9a, 01-08, 02-20, 09-PR1 and R1’s marching order (mo-1).</b> The players’ Scene at a spot, whole, on a tablet. <b>The top</b> is 16-T9a: the band without a button or a menu, the season’s icon and the date (st-8), the four facts, the strip; the session line and heading name only places shown to the group (st-7). <b>Left:</b> the spot’s card with “Where to?” (one row a destination, each way a mode button at the row’s right, the far end “Not yet explored.” where not found; the hidden way is absent), then Activities (01-08). <b>The rule’s icon button</b> stands at the right of the card’s head, as 02-20 (R8) rules; 01-08 was drawn before it. <b>Right:</b> the map in its frame with its title and three tools (01-08); the place’s card with “What everyone knows”, <b>the “Rules” row with its bare count</b> (09-PR1, rp-7; 01-08 was drawn before it) and the shown spots; the marching order as circles with hit points under each (mo-1), at the bottom of the column. <b>Changed by later rulings, and only these:</b> the shared stylesheet and the book’s format on every part (st-8, pq-1): the book’s faces, card headings in the book’s sub-heading style at 20 px, cards at the app’s 8 px corner. <b>The way buttons are the approved form</b> (ap-10, frame PL7): the icon, the word, the time, on three lines. The Activities buttons keep the book mark beside the word, as 01-08 draws them.');
+
+// ---- PL2 ----
+const before = `<div class="cols2"><div><div class="pcard"><div class="over">Where you are</div><h3 class="display">Somewhere new</h3><p class="ident">Your GM hasn’t described this place yet.</p><div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div><p class="meta" style="margin:0">None to choose from yet. They show here once your GM has shown you something of this place.</p></div></div><div class="stack"><div class="pcard" aria-label="The map"><div style="height:290px;border:1.5px dashed var(--control);display:flex;align-items:center;justify-content:center;box-sizing:border-box"><span class="meta">No map shared yet.</span></div></div><div class="pcard"><div class="hrow"><h2>This place</h2></div><p class="meta" style="margin:0">Nothing shared yet.</p></div></div></div>`;
+const pl2 = ipad('player', `${top18('Saltwick Island, turn 14', 'Every 2 turns')}${before}`,
+  'PL2. <b>Assembled from approved 16-T9c (the top) and 01-09 (the body).</b> Before anything of the place has been shown (mc-28b, mc-50). The top is 16-T9c’s, which supersedes 01-09’s older band: the heading names the last place they were shown, and the Encounter check is that place’s. The body is 01-09’s, unchanged in its words: no name, no ways, each said in one line; the right column present and plainly empty. No rule button, no Rules row, no Activities and no marching order are drawn, as 01-09 drew none. <b>Where two approved frames disagreed:</b> 01-09’s band against 16-T9c’s; I followed T9c. <b>To check with the lead:</b> 01-09 shows no marching order and no Activities before a place is shown; both belong to the party and the setting, not to the place, so they may be wanted here. I kept to the approved picture.');
+
+// ---- PL3 ----
+const proposedRows = pd18('2 The wreck', '', [['Row', '1 turn', true], ['Swim', '3 turns']], { sel: true, below: 'Proposed by you: waiting for your GM.', right: stk('Cancel', 'cancel') }) + pd18('3 The breakwater', '', [['Row', '1 turn']]) + pd18('Along the piles', 'Not yet explored.', [['Walk', '2 turns']]);
+const noRows = pd18('2 The wreck', '', [['Row', '1 turn'], ['Swim', '3 turns']]) + pd18('3 The breakwater', '', [['Row', '1 turn']]) + pd18('5 The sea cave', '', [['Row', '2 turns']], { below: 'An obstacle: the breakwater’s gap. You did not get through. No time passed.' });
+const pl3 = ipad('player', `${pBand('The Drowned Harbour, turn 14', DATE)}<div class="cols2" style="margin-top:0"><div class="stack"><div><p class="lbl" style="margin-top:0"><b>A way proposed</b> (01-08b).</p>${pWays(proposedRows)}</div><div><p class="lbl"><b>After No</b> (01-07f): the way is one the party has found by now.</p>${pWays(noRows, 'You are the caller')}</div></div><div></div></div>`,
+  'PL3. <b>Assembled from approved 01-08b and 01-07f. For after 5 December</b> (pw-1: a player’s proposing a way waits until then; for first play a tap on a way’s button opens the pop-up of frame PL4c). <b>A way proposed</b> (above): the row is washed, the mode proposed is ticked, and the row says whose proposal waits; the others in the group see “Proposed by Wren”. <b>After No</b> (below): they are still at the jetty and the row says so in words: an obstacle, its name, that they did not get through, and whether time passed; the name stays on the row from then on, never the book’s note, the extra time or the chance (dp-5). <b>Changed by a later ruling:</b> “Cancel” is a stacked button with its icon above its word (ic-1), with the mark approved for “Dismiss” on page 16 (st-8), which is my reuse of it; the shared stylesheet (pq-1); the rule’s button at the card’s head (02-20).');
+
+// ---- PL4: the prompt slot at a spot ----
+const pr = (icon, words, btn = '', cls = '') => `<div class="pr18${cls}" role="status"><span>${icon}</span><span>${words}</span>${btn}</div>`;
+const P_REST = (accent) => pr(sym('rest', 24), 'Rest is due.', stk('Answer', 'scroll-quill', { accent }).replace('class="btn stk', 'data-ic4 class="btn stk'));
+const P_DARK = (accent) => pr(I.warn, 'No light.', stk('Light', 'torch', { accent }).replace('class="btn stk', 'data-ic4 class="btn stk'), ' warn');
+const P_WAIT = pr(I.info, 'Waiting for your GM: search the piles.', stk('Cancel', 'cancel'));
+const P_CALL = `<div class="cardb call18" role="status"><span>${gi('stabbed-note', 28)}</span><span><h3 class="bsub">A call to adventure, for the party</h3><span class="bk" style="display:block">“Fifty crowns to whoever brings the manifest of the cog on the bar to the harbour office. No questions as to how.”</span><small>Nailed to the customs-house door.</small></span>${stk('Got it', 'check-mark')}</div>`;
+const slot = (...p) => `<div class="slot18" aria-label="What needs you">${p.join('')}</div>`;
+const F_DARK = fact('flame', 'Light', 'No light', 'Since this turn.', { due: true }).replace('class="fact due"', 'class="fact due cool"').replace('>No light</span>', `><span style="display:inline-flex;align-items:center;gap:var(--space-1)">${I.warn}No light</span></span>`);
+const pl4 = ipad('player', `${pBand('The Drowned Harbour, turn 14', DATE)}${pFacts('On every move', F_DARK)}${stripRow}${slot(P_DARK(true), P_REST(false))}<div class="cols2" style="margin-top:0"><div class="stack">${pWays(ROWS)}</div><div class="stack">${pMap}</div></div>`,
+  'PL4. <b>New, a proposal: the prompt slot at a spot.</b> What needs this player stands <b>between the top and the page</b>, under the strip and over “Where to?”, the place 03-06 gave the call card in town and 16-T9a’s note names (“a prompt in their slot under this”). One prompt a row: its sign, its words, and its one answer as a stacked button (ic-1). <b>Two at once</b> (drawn here): no light, then a rest to answer; they stack in the order they need answering, the most pressing first. <b>The accent is the player’s own next step</b>: the first prompt’s answer; the second is plain; nothing else on a player’s Scene has the accent. With no prompt the slot takes no room at all. A fact still shows its own state above (the Light fact reads “No light” in the cool tone, with its warning sign, st-5): the prompt is what the player does about it. The page under it is unchanged.');
+const pl4b = ipad('player', `${pBand('The Drowned Harbour, turn 14', DATE)}<div class="two18"><div><p class="lbl" style="margin-top:0"><b>A rest to answer.</b></p>${slot(P_REST(true))}<p class="lbl"><b>No light</b>, with the warning sign; the answer is the player’s own torch.</p>${slot(P_DARK(true))}<p class="lbl"><b>A request of the player’s, waiting on the GM</b>: the info sign; “Cancel” withdraws it.</p>${slot(P_WAIT)}</div><div><p class="lbl" style="margin-top:0"><b>A call to adventure</b> (03-06, approved, drawn there in town): the same card at a spot.</p>${slot(P_CALL)}</div></div>`,
+  'PL4b. <b>New, a proposal: each prompt alone</b> (the call’s card is <b>assembled from approved 03-06</b>, moved from town to a spot). <b>A rest to answer:</b> “Rest is due.”, and “Answer”, which opens today’s rest question. <b>No light:</b> the warning sign and the words; “Light a torch” lights the player’s own (the same act as the Pack’s “Light”); a player with nothing to light sees the words alone. <b>A request waiting on the GM:</b> the info sign, what was asked, and “Cancel”; it is not a next step, so it never takes the accent. <b>A call to adventure:</b> the card as approved: whose it is, the notice in the book’s format, where it came from as a quiet line, and one plain button, “Got it”; it is already kept in notes (mc-67). Words that are mine: “Rest is due.”, “Waiting for your GM: search the piles.”. Icons: Answer and Got it and Cancel reuse page 16’s approved marks; “Light a torch” takes the Pack page’s proposed torch.');
+const pop = (title, body) => `<div class="pop18" role="dialog" aria-label="${title}"><div class="hd"><span class="sheet-title">${title}</span><span class="btn sq" role="button" aria-label="Close" style="border:0;background:transparent">${I.close}</span></div>${body}</div>`;
+const pl4c = ipad('player', `${pBand('The Drowned Harbour, turn 14', DATE)}<div class="cols2" style="margin-top:0"><div><p class="lbl" style="margin-top:0"><b>The tap:</b> “Row”, on the way to the wreck.</p>${pWays(ROWS)}</div><div><p class="lbl" style="margin-top:0"><b>What opens</b> (drawn without the dimmed page behind it).</p>${pop('To the wreck, rowing', '<p>1 turn.</p><p>Your GM moves the party. Say where you want to go.</p>')}</div></div>`,
+  'PL4c. <b>New, a proposal: a tap on a way’s button, for first play</b> (pw-1: proposing a way waits until after 5 December). The button is not disabled and not hidden: <b>a tap opens a pop-up that says what the way is and that the GM moves the party</b>. The pop-up is the app’s: a centred card with its title and the X, no other button (nothing here can be done). After 5 December the same tap proposes the way (frame PL3). The words are mine: “Your GM moves the party. Say where you want to go.”');
+
+// ---- PL5: the whole page at 375 px ----
+const phTop = `<h3 class="display" style="margin:0;font-size:20px">The Drowned Harbour, turn 14</h3><p class="ident" style="font-size:14px;margin:var(--space-1) 0 0">${dl('14 Reedmonth', '2 hours of light.')}</p><div class="phfacts">${F_W}${F_L}${fact('rest', 'Rest', 'Rest due', 'One turn in six.', { due: true })}${encNowFact.replace('font-size:20px', 'font-size:14px')}</div>${stripRow}`;
+const phWays = `<div class="crumb" style="margin-top:var(--space-3)"><span>Saltwick Island</span>${sep16}<b>The Drowned Harbour</b></div><div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)"><h3 class="display" style="font-size:24px;margin:0"><span class="keyno">1</span>The jetty</h3>${ruleBtn('water-splash', 'Falling into the harbour: read the rule')}</div><p class="ident">Black piles, a mooring ring.</p><div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div>${ROWS}`;
+const pl5 = phone(`${phoneBar('The Reed Marches')}<div class="inner">${phTop}${slot(P_REST(true))}${phWays}${pDo}</div>`,
+  'PL5. <b>New, a proposal: the whole page at 375 px, in one column</b> (drawn in two pictures: this is the first screenfuls; frame PL5b is the rest, down to the tab bar). <b>The order, and why:</b> (1) the top (16-T9d): the heading, the date, the four facts two by two, the strip as icons: where and when we are; (2) the prompt slot: what needs this player now; (3) the spot and “Where to?”, the rule’s button beside the spot’s name, the mode buttons under each destination’s name (01-08n): what the party can do next; (4) Activities; (5) the map; (6) the place’s card with “What everyone knows”, “Rules” and the shown spots: things to read; (7) the marching order last, as it is last in the tablet’s right column. What a player acts on comes before what a player reads. No button is fixed above the tab bar: a player has no Move on.');
+
+const pl5b = phone(`<div class="inner">${pMap}${placeCard()}${partyOrder(true)}</div>${tabBar('player')}`,
+  'PL5b. <b>New, a proposal:</b> the rest of the same column: the map, the place’s card, the marching order, then the tab bar.');
+
+// ---- PL6: a split party, as a player in one group sees it ----
+const F_L2 = fact('flame', 'Light', 'Wren’s lantern', '6 turns left.').replace('class="v"', 'class="v" style="font-size:20px;white-space:nowrap"');
+const F_R2 = fact('rest', 'Rest', 'In 3 turns', 'One turn in six.');
+const order2 = orderCard([rank(1, [pc({ ...wren, you: true, light: { k: 'flame', frac: 1, words: 'Lantern, 6 turns' } }, { lg: true }), pc(bram, { lg: true })])], { say: 'Your group. Ash and Tam are elsewhere.' });
+const pl6 = ipad('player', `${pBand('The Drowned Harbour, turn 14', DATE)}${pFacts('On every move', F_L2, F_R2)}${stripRow}<div class="cols2"><div class="stack">${pWays(pd18('1 The jetty', '', [['Row', '1 turn']]) + pd18('3 The breakwater', '', [['Row', '1 turn']]), '', 'The wreck', 'A cog on her side on the bar.').replace('<span class="keyno">1</span>', '<span class="keyno">2</span>')}</div><div class="stack">${order2}</div></div>`,
+  'PL6. <b>New, a proposal: a split party, as a player in one group sees it</b> (Wren’s player; Wren and Bram are at the wreck, Ash and Tam stayed at the jetty). <b>The facts are their own group’s</b>: Light is the light their group carries and Rest is their group’s; a fact has one value, with no count of groups (the GM’s two-group facts are 16-T7). Weather and the Encounter check are their place’s. <b>“Where to?” is from where their group stands.</b> <b>The marching order is their group alone</b>, and one line under its heading says what a player needs to know of the others: <b>“Your group. Ash and Tam are elsewhere.”</b>: who, not where; the others’ place is not named unless it has been shown to this group, and nothing of their light, rest or hit points is on this screen. The heading and the session line are as for anyone. <b>To settle:</b> whether “elsewhere” should name a place this group has itself been shown (“at the jetty”), which gives nothing away here but would where the others have gone somewhere unshown.');
+
+// ---- PL7: the mode button under ic-1 ----
+const mA = ([w, t]) => `<span class="btn stk" role="button">${gi(MI7[w], 24)}<span>${w}</span><small>${t}</small></span>`;
+const mB = ([w, t]) => `<span class="btn stk" role="button">${gi(MI7[w], 24)}<span>${w} <small>${t}</small></span></span>`;
+const drow = (mk, to, modes, sub = '') => `<div class="pdest"><span>${sym('travel', 24)}</span><span class="ot"><b>${to}</b>${sub ? `<small>${sub}</small>` : ''}</span><span class="modes" data-stkgroup>${modes.map(mk).join('')}</span></div>`;
+const dset = (mk) => drow(mk, '3 The breakwater', [['Row', '1 turn']]) + drow(mk, '2 The wreck', [['Row', '1 turn'], ['Swim', '3 turns']]) + drow(mk, 'Along the piles', [['Walk', '2 turns'], ['Climb', '4 turns'], ['Swim', '6 turns']], 'Not yet explored.');
+const pl7 = ipad('player', `${pBand('The Drowned Harbour, turn 14', DATE)}<div class="two18"><div><p class="lbl" style="margin-top:0"><b>(A) The icon, the word, the time: three lines. Approved (ap-10).</b></p><div class="pcard">${dset(mA)}</div></div><div><p class="lbl" style="margin-top:0"><b>(B) The icon over one line: the word and its time. Not chosen.</b></p><div class="pcard">${dset(mB)}</div></div></div>`,
+  'PL7. <b>The mode button under ic-1: (A) approved by Francis, 2026-11-14 (ap-10); (B) not chosen.</b> New on this page (every button carries its icon with its word under it). Today’s ruled button is the way’s word over its time (mc-36a), with the icon at the left where a way has one (2026-11-12, arrangement (b)); ic-1 came after. Two arrangements, each at one, two and three buttons a row. <b>(A), approved:</b> the icon above, the word, the time under it in the small line: the stacked button of the whole app with one more line. It is 88 px wide and about 76 px tall; a row grows some 20 px taller than today’s. <b>Seen in the picture:</b> one or two sit well beside the name; with three, they still fit on the row but squeeze a long name into a narrow column of three lines (third row). <b>(B):</b> the icon above one line, “Row 1 turn”: it keeps the 56 px height but is some 120 px wide: two already put a short name on two lines (second row), and three drop under the name onto a line of their own (third row). In a group every button takes the widest’s width. <b>Icons:</b> Row, the crossed oars, and Swim, the two fish, are ruled (2026-11-12); <b>Walk is a leather boot (<code>leather-boot</code>, Lorc)</b>, in place of the walking figure, which read as a road sign (Francis’s fix, ap-10); <b>Climb is a climber on a rock face (<code>mountain-climbing</code>, Caro Asercion)</b>. A way whose word has no icon in the app’s table and none named by the pack shows the generic way mark (the two pins beside “Move on”) above its word, so every button keeps one shape. <b>The pack’s format needs a line for a way’s icon</b> (the lead’s, with the Pack Creator).');
+const pl7b = phone(`${phoneBar('The Reed Marches')}<div class="inner"><h3 class="display" style="font-size:24px;margin:0"><span class="keyno">1</span>The jetty</h3><div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div><p class="lbl" style="margin-top:0"><b>(A)</b></p>${dset(mA)}<p class="lbl"><b>(B)</b></p>${dset(mB)}</div>${tabBar('player')}`,
+  'PL7b. <b>New, a proposal:</b> the two arrangements at 375 px: the buttons sit under the destination’s name, as approved (01-08n). (A): three fit one line (three times 88 px and two gaps is 280 px of the 319). (B): three do not fit one line; the third wraps under.');
+
+// ---- PL8: a player's tap on the Light, Rest and Encounter check facts ----
+const bookRule = (ps, src) => `<div class="bk">${ps.map((x) => `<p>${x}</p>`).join('')}<p class="source">${src}</p></div>`;
+const sLight = pop('Light', `<div class="bk"><p class="ln"><span class="lb">Ash’s torch.</span>4 turns left.</p><p class="ln"><span class="lb">Bram.</span>Sees in the dark.</p></div><h3 class="bsub">The rule</h3>${bookRule(['A torch burns for six turns and lights the ground about its bearer.', 'A party with no light moves at half its pace and cannot read or search.'], 'From your setting: River Rules, p. 52.')}<div style="display:flex;justify-content:flex-end;margin-top:var(--space-3)">${stk('Light', 'torch').replace('class="btn stk', 'data-ic4 class="btn stk')}</div>`);
+const sRest = pop('Rest', `<div class="bk"><p class="ln"><span class="lb">Next.</span>In 4 turns.</p></div><h3 class="bsub">The rule</h3>${bookRule(['The party rests one turn in every six.', 'A party that does not rest is tired until it does: each character takes −1 to what they attempt.'], 'From your setting: River Rules, p. 50.')}`);
+const sEnc = pop('Encounter check', `<div class="bk"><p class="ln"><span class="lb">When.</span>On every move.</p><p class="ln"><span class="lb">Chance.</span><span class="die" role="img" aria-label="Die">${die(6, 16)}</span> 1 in 6.</p></div><h3 class="bsub">The rule</h3>${bookRule(['Each time the party moves on the water, the GM checks whether something finds it.'], 'From your adventure: The Reed Marches, p. 40.')}`);
+const pl8 = ipad('player', `${pBand('The Drowned Harbour, turn 14', DATE)}${pFacts()}<div class="three18" style="margin-top:var(--space-4)"><div><p class="lbl" style="margin-top:0"><b>A tap on Light.</b></p>${sLight}</div><div><p class="lbl" style="margin-top:0"><b>A tap on Rest.</b></p>${sRest}</div><div><p class="lbl" style="margin-top:0"><b>A tap on the Encounter check.</b></p>${sEnc}</div></div>`,
+  'PL8. <b>New, a proposal: what a player’s tap on a fact opens.</b> Each fact opens a pop-up (the app’s centred card, drawn here without the dimmed page): <b>the fact’s own state as labelled lines, then the rule in the book’s format with its source.</b> <b>Light:</b> who carries light and for how long, and who sees in the dark; the rule; and <b>one thing a player may do: “Light a torch”</b>, their own, the same act as the Pack’s (a player with nothing to light has no button). <b>Rest:</b> when the next is due; the rule; nothing to do here: the answer is the prompt when the rest falls due (frame PL4). <b>The Encounter check:</b> when it is rolled and its chance, with the die; the rule’s words; <b>never the table, the GM’s note, or the check of a place not yet shown</b> (rp-2, mc-39b). The Weather fact’s sheet is 16-T6. A rule the pack keeps for the GM shows no rule here, only the state. The rules’ words and page numbers are invented.');
+
+// ---- PL9: loading, a failed read, offline ----
+const sk3 = `<span class="sk18" style="width:55%"></span><span class="sk18"></span><span class="sk18" style="width:80%"></span>`;
+const loadCard = `<div class="pcard" aria-busy="true">${sk3}${sk3}</div>`;
+const failCard = `<div class="pcard"><div class="crumb"><span>Saltwick Island</span>${sep16}<b>The Drowned Harbour</b></div><h3 class="display"><span class="keyno">1</span>The jetty</h3><div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div><div class="pr18 warn" role="alert" style="margin-bottom:var(--space-2)"><span>${I.warn}</span><span>The ways didn’t refresh. These are as they were at turn 13.</span>${stk('Try again', 'cycle')}</div>${ROWS}</div>`;
+const offCard = `<div class="pcard"><p style="margin:0 0 var(--space-2)"><span class="pill18">${I.warn}Offline</span></p><div class="crumb"><span>Saltwick Island</span>${sep16}<b>The Drowned Harbour</b></div><h3 class="display"><span class="keyno">1</span>The jetty</h3><div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div>${ROWS}</div>`;
+const pl9 = ipad('player', `${pBand('The Drowned Harbour, turn 14', DATE)}<div class="two18"><div><p class="lbl" style="margin-top:0"><b>Loading:</b> the band at once; still bars where the page will be.</p>${loadCard}<p class="lbl"><b>Offline:</b> everything reads as it was.</p>${offCard}</div><div><p class="lbl" style="margin-top:0"><b>A failed read:</b> the last good list is kept and says so.</p>${failCard}</div></div>`,
+  'PL9. <b>New, a proposal: loading, a failed read, offline</b> (each drawn as the left column’s card). <b>Loading:</b> the band and the facts’ places at once; still bars where the cards will be; nothing jumps when they arrive. <b>A failed read:</b> the page keeps the last list it had and one row says so in plain words, with the warning sign and “Try again”: “The ways didn’t refresh. These are as they were at turn 13.” Nothing is emptied and nothing is guessed. <b>Offline:</b> the word “Offline” with the warning sign; the page reads as it was when last online; every button stays a button: a rule and an activity’s rule open from what the device holds, and anything that needs the table (a prompt’s answer) says on a tap that it waits until the player is back. Words that are mine.');
+
+// ---- PL10: messy data ----
+const LONG = 'The Long Stair of the Drowned Customs House below the Old Lantern';
+const mk = (name, hp, extra = {}) => ({ name, ini: name[0], hp, ...extra });
+const eight = orderCard([rank(1, [pc(ash, { lg: true }), pc({ ...wren, you: true }, { lg: true })]), rank(2, [pc(tam, { lg: true }), pc(bram, { lg: true })]), rank(3, [pc(mk('Fenna of the Long Causeway', [0, 12]), { lg: true }), pc(mk('Moss', [40, 40]), { lg: true })]), rank(4, [pc(mk('Old Sedge', [3, 21]), { lg: true }), pc(mk('Pip', [1, 1]), { lg: true })])], { say: 'One light lit: Ash’s torch, 4 turns.' });
+const pl10 = ipad('player', `${pBand(`${LONG}, turn 999`, DATE)}${pFacts()}<div class="cols2"><div class="stack">${pWays(pd18('7 The water stair under the customs house, by the tarred door', 'Not yet explored.', [['Climb', '999 turns'], ['Swim', '12 turns']]) + pd18('3 The breakwater', '', [['Row', '1 turn']]), '', LONG, 'Worn steps down into the rock, a bell rope hanging.')}</div><div class="stack">${placeCard('12 rules')}${eight}</div></div>`,
+  'PL10. <b>New, a proposal: messy data.</b> <b>A long place name</b> wraps in the band’s heading and in the spot’s card; the turn count stays with it. <b>A way taking 999 turns</b> keeps its button’s shape; a long destination wraps beside its buttons. <b>Twelve rules:</b> the place’s card keeps its one “Rules” row, “12 rules”. <b>Eight in the marching order:</b> four ranks of two, each circle with its hit points under it; a long name wraps under its circle; 0 of 12 is drawn, and 40 of 40. <b>Found, for the lead:</b> the mockups’ marching order groups its marks as hit points grow (40 shows eight marks), but drawn at 999 of 999 its marks ran off the card. The bar needs a top width for very many hit points; I have not designed one, and I have not read how the built bar behaves. The way buttons are the approved three-line form (ap-10).');
+
+mount(`
+  <h1>The players’ Scene at a spot, whole</h1>
+  <p class="note">For the lead (brief of 2026-11-14; the plan it serves is <code>docs/plans/dec-9-the-players-scene.md</code>). One page that shows the players’ Scene at a place of linked spots whole. Each caption starts with “Assembled from approved …” or “New, a proposal”; in an assembled frame only what a later ruling changes is changed, and the ruling is named. Names, words and numbers are invented. <b>Approved by Francis, 2026-11-14 (ap-10), with his fixes drawn: Walk’s icon is a boot, and every frame shows the one approved way button.</b></p>
+  <h1>PL1. The whole page on a tablet</h1>
+  <div class="wall">${pl1}</div>
+  <h1>PL2. Before anything is shown</h1>
+  <div class="wall">${pl2}</div>
+  <h1>PL3. A way proposed, and after No (for after 5 December)</h1>
+  <div class="wall">${pl3}</div>
+  <h1>PL4. The prompt slot at a spot</h1>
+  <div class="wall">${pl4}</div>
+  <div class="wall">${pl4b}</div>
+  <div class="wall">${pl4c}</div>
+  <h1>PL5. The whole page at 375 px</h1>
+  <div class="wall">${pl5}${pl5b}</div>
+  <h1>PL6. A split party, as a player in one group sees it</h1>
+  <div class="wall">${pl6}</div>
+  <h1>PL7. The mode button under ic-1</h1>
+  <div class="wall">${pl7}</div>
+  <div class="wall">${pl7b}</div>
+  <h1>PL8. A player’s tap on a fact</h1>
+  <div class="wall">${pl8}</div>
+  <h1>PL9. Loading, a failed read, offline</h1>
+  <div class="wall">${pl9}</div>
+  <h1>PL10. Messy data</h1>
+  <div class="wall">${pl10}</div>
+  <h1>Self-review</h1>
+  <p class="note"><b>The stylesheet.</b> This page links the one shared mockup stylesheet (<code>../shared/book.css</code>) and its type pass, and restates none of their rules. Its own rules are layout and this page’s own parts: the date line’s layout, the prompt row, the call card’s grid, the pop-up’s box, the phone’s column, the offline mark, the loading bars.</p>
+  <p class="note"><b>Checked, in the HTML.</b> Nothing on these frames that the plan’s P14 says is never sent: the hidden way is absent; no obstacle’s note, time or chance; no unshown place’s name; no table; in PL6 nothing of the other group but two names; in PL8 no table and no GM’s note. No disabled button: a way’s button explains (PL4c); offline, buttons stay. One accent: the first prompt’s answer, where there is a prompt; none otherwise.</p>
+  <p class="note"><b>Not checked.</b> Contrast and target sizes by measurement; Larger text; the comparison by eye with the built place card’s pictures. Today’s rest question and the Activities’ rule sheets are not redrawn here.</p>
+`);
+// the shared file's marks for this page's own parts (no rules here)
+for (const c of document.querySelectorAll('.wall .cap')) { const m = c.innerHTML.match(/^(PL\d+[a-c]?)\. /); if (m) c.innerHTML = c.innerHTML.replace(m[0], m[1] + '. <b>Approved 2026-11-14 (ap-10); shared stylesheet.</b> '); if (m && ['PL1', 'PL5b', 'PL10'].includes(m[1])) c.insertAdjacentHTML('beforeend', ' Tidied to the measured sizes, 2026-11-14.'); if (m && ['PL1', 'PL5b', 'PL6', 'PL10'].includes(m[1])) c.insertAdjacentHTML('beforeend', ' The badge’s mark reads 2.81 to 1 in light, known, with the sweep.'); }
+for (const c of document.querySelectorAll('.wall .cap')) if (c.parentElement.querySelector('[data-ic4]')) c.insertAdjacentHTML('beforeend', ' Icons and words ruled, ic-4, 2026-11-14.');
+for (const el of document.querySelectorAll('.phone')) el.classList.add('bit');
+for (const el of document.querySelectorAll('.dev h2, .phone h2')) el.classList.add('bsub');
+for (const el of document.querySelectorAll('.fact .k, .tabbar span, .dcap')) el.dataset.sc = '';
+applyBook();
+</script>
+</body>
+</html>

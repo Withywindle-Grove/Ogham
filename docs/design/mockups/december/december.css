@@ -1,0 +1,496 @@
+/* Shared styles for the December mockups (2026-11-12), on top of ../creation/final/final.css, ../scene/scene.css and ../scene/scene-seq.css. Tokens from docs/06 only (4px = --radius, 1.5px = --line-control, 2px = --line-selected, 44px = --tap).
+   New variants named here: the here row, the spot row, the in-force line, the picture pop-up. The map picture is a stand-in drawing with its own greys, labelled so on every frame. */
+a.x { color:var(--accent); text-decoration:underline; }
+.dev.short { min-height:0; }
+.crumb { display:flex; align-items:center; gap:var(--space-1); flex-wrap:wrap; font-size:14px; color:var(--muted); margin:0 0 var(--space-1); }
+.crumb b { color:var(--ink); font-weight:700; }
+.two { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-2); margin-top:var(--space-3); }
+.subh { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; font-variant:small-caps; margin:var(--space-4) 0 var(--space-1); }
+.mean { font-size:14px; color:var(--muted); border-top:1px dotted var(--rule); margin-top:var(--space-4); padding-top:var(--space-2); }
+.sum { display:grid; grid-template-columns:auto minmax(0,1fr); gap:var(--space-2) var(--space-3); align-items:start; margin:0; }
+.sum dt { display:flex; align-items:center; gap:var(--space-2); font-weight:700; }
+.sum dd { margin:0; }
+
+/* the here row: the spot the party stands in, first on the page */
+.here { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:var(--space-3); align-items:center; min-height:60px; margin-top:var(--space-3); padding:var(--space-2) var(--space-3); border:2px solid var(--accent); border-radius:4px; background:var(--wash); box-sizing:border-box; }
+.heretag { display:inline-block; font-size:14px; font-weight:700; border:1.5px solid var(--ink); border-radius:4px; padding:0 var(--space-1); line-height:20px; white-space:nowrap; background:var(--sheet); }
+
+/* the in-force line: which check stands, and whose (rg-4) */
+.inforce { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:var(--space-3); align-items:center; min-height:52px; margin-top:var(--space-2); padding:var(--space-2) var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); box-sizing:border-box; }
+.inforce.detail { grid-template-columns:auto minmax(0,1fr); }
+.inforce.detail .more { grid-column:1 / -1; }
+.inforce small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+.forcepill, .notpill { display:inline-flex; align-items:center; gap:var(--space-1); min-height:28px; padding:0 var(--space-2); border:1.5px solid var(--ink); border-radius:4px; font-weight:700; font-size:14px; box-sizing:border-box; white-space:nowrap; }
+.notpill { border-color:var(--info); color:var(--info); }
+
+/* the spot row and the person row */
+.spot { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2) var(--space-3); align-items:center; min-height:60px; border-bottom:1px dotted var(--rule); padding:var(--space-1) 0; }
+.spot:last-of-type { border-bottom:0; }
+.spot small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+.spot .ctl { display:flex; gap:var(--space-2); align-items:center; }
+.phone .spot { grid-template-columns:minmax(0,1fr) auto; }
+
+/* the rule that stands in for the setting's (rg-4): its name as the book heads it, a toggle "In force here", the setting's rule as a quiet link under the words */
+.standin2 { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-3); }
+.standin2 .top { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-3); align-items:center; min-height:44px; }
+.standin2 .nm { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; }
+.standin2 .lab { display:flex; align-items:center; gap:var(--space-2); font-weight:700; }
+.standin2 p { margin:var(--space-1) 0 var(--space-1); color:var(--muted); }
+.standin2 .quiet { display:inline-flex; align-items:center; min-height:44px; color:var(--accent); text-decoration:underline; }
+
+/* The eye, as ruled 2026-11-12: a bare icon, an open eye when shown and a closed eye with lashes when hidden (two shapes, so never colour alone); no box and no word. The target stays 44 px, with 8 px between; its name is read aloud. */
+.eye, .eye.on { width:44px; min-height:44px; height:44px; border:0; background:transparent; border-radius:4px; font-size:0; font-weight:400; }
+.piece { grid-template-columns:minmax(0,1fr) 44px; }
+.ksec { grid-template-columns:minmax(0,1fr) 44px; }
+.toc { display:flex; flex-wrap:wrap; gap:var(--space-1) var(--space-3); font-size:14px; margin:0 0 var(--space-2); }
+.toc a { color:var(--accent); text-decoration:underline; min-height:44px; display:inline-flex; align-items:center; }
+.ksec .rule p { margin:0 0 var(--space-2); }
+.ksec .rule ul { margin:0 0 var(--space-2); padding-left:var(--space-5); }
+.ksec .rule li { margin-bottom:var(--space-1); }
+.ksec .first { color:var(--muted); font-size:14px; margin:0; }
+
+/* the players' ways on: one row a destination, its ways as modes on the row */
+.pdest { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:var(--space-2) var(--space-3); align-items:center; min-height:60px; padding:var(--space-2) var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); margin-top:var(--space-2); box-sizing:border-box; }
+.pdest .ot b { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; }
+.pdest small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+.pdest .modes { display:flex; gap:var(--space-2); flex-wrap:wrap; justify-content:flex-end; }
+.pdest .modes .btn small { display:inline; color:inherit; margin-left:var(--space-1); }
+.pdest.sel { background:var(--wash); border:2px solid var(--accent); }
+.fact.bare { grid-template-columns:auto minmax(0,1fr); }
+.fact.bare .v { font-size:20px; }
+.acts3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-2); }
+.acts3 .opt { margin:0; min-height:64px; }
+
+/* knowledge sections */
+.ksec { display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:var(--space-3); align-items:start; border-top:1px dotted var(--rule); padding:var(--space-3) 0; }
+.ksec h4 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; margin:0 0 var(--space-1); }
+.ksec p { margin:0; }
+.ksec .when { font-size:14px; color:var(--muted); margin-top:var(--space-1); }
+.onlyyou { font-size:14px; color:var(--muted); text-align:center; line-height:1.2; }
+
+/* a destination and its ways */
+.dest { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); margin-top:var(--space-2); padding:var(--space-1) var(--space-3); }
+.dest .dh { display:flex; justify-content:space-between; gap:var(--space-2); align-items:baseline; }
+.dest .dh b { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; }
+.dest small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+.dest .way { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:var(--space-3); align-items:center; min-height:44px; border-top:1px dotted var(--rule); margin-top:var(--space-1); }
+.dest .way + .way { margin-top:0; }
+.dest .way .t { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; white-space:nowrap; }
+
+/* the picture pop-up: wide, centred, over the dimmed page (a picture needs the width) */
+.mappop { position:absolute; top:var(--space-5); bottom:var(--space-5); left:72px; right:72px; background:var(--sheet); border:1px solid var(--rule); border-radius:4px; box-shadow:0 8px 32px rgba(0,0,0,.25); display:flex; flex-direction:column; box-sizing:border-box; }
+.mappop .mh { display:grid; grid-template-columns:minmax(0,1fr) auto 44px; gap:var(--space-2); align-items:center; padding:var(--space-3) var(--space-2) var(--space-2) var(--space-4); }
+.mappop .ttl { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1.2; }
+.mappop .mbody { flex:1; min-height:0; margin:0 var(--space-4); border:1px solid var(--control); overflow:hidden; display:flex; background:var(--surface); }
+.mappop .mbody svg { width:100%; height:100%; display:block; }
+.mappop .mf { padding:var(--space-3) var(--space-4); display:flex; gap:var(--space-2); align-items:center; }
+.mappop .mf .say { flex:1; font-size:14px; color:var(--muted); }
+.mwait { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--space-3); padding:var(--space-5); text-align:center; }
+.mwait p { margin:0; }
+.mapthumb { border:1px solid var(--control); }
+.mapthumb svg { width:100%; height:auto; display:block; }
+.mapbody { border:1px solid var(--control); margin-top:var(--space-3); position:relative; }
+.mapbody svg { width:100%; height:auto; display:block; }
+
+/* set 3: the call to adventure, and notes */
+.big2 { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-2); margin-top:var(--space-3); }
+.big2 .btn { min-height:88px; flex-direction:column; font-size:20px; }
+.bookwords { border-left:3px double var(--rule); padding-left:var(--space-3); margin:var(--space-2) 0; }
+.bookwords p { margin:0 0 var(--space-2); max-width:65ch; }
+.truth { display:inline-flex; align-items:center; gap:var(--space-1); min-height:28px; padding:0 var(--space-2); border:1.5px dashed var(--control); border-radius:4px; font-size:14px; font-weight:700; white-space:nowrap; box-sizing:border-box; }
+.rum { display:grid; grid-template-columns:40px minmax(0,1fr) auto; gap:var(--space-2) var(--space-3); align-items:center; min-height:56px; padding:var(--space-1) var(--space-3); border-bottom:1px solid var(--rule); }
+.rum:last-child { border-bottom:0; }
+.rum b.n { font-family:"EB Garamond", Georgia, serif; font-size:20px; }
+.rum small { display:block; font-size:14px; color:var(--muted); }
+.rum.sel { background:var(--wash); box-shadow:inset 3px 0 0 var(--accent); }
+.tbl { border:1px solid var(--rule); border-radius:4px; overflow:hidden; margin-top:var(--space-2); }
+.tbl .cap2 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; background:var(--accent); color:var(--on-accent); padding:var(--space-1) var(--space-3); display:flex; justify-content:space-between; gap:var(--space-2); }
+.kept { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-3); margin-top:var(--space-2); }
+.kept .kh { display:flex; justify-content:space-between; gap:var(--space-2); align-items:baseline; }
+.kept .kh b { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; }
+.kept small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+.subnote { border-left:3px double var(--rule); margin:var(--space-2) 0 0 var(--space-2); padding:var(--space-1) 0 var(--space-1) var(--space-3); font-size:14px; }
+.subnote span { color:var(--muted); }
+
+/* set 5: the toggle (ds-1), a standard part. Track 52 by 28, knob 22, inside a 44 px high target; the row with its words is the target. On: the track fills with ink; the tick and the cross are its shape. */
+.tg { position:relative; display:inline-flex; align-items:center; justify-content:center; width:60px; height:44px; flex:none; }
+.tg .tr { position:relative; width:52px; height:28px; border-radius:999px; border:1.5px solid var(--control); background:var(--sheet); box-sizing:border-box; display:block; }
+.tg .kn { position:absolute; top:1.5px; left:1.5px; width:22px; height:22px; border-radius:50%; background:var(--surface); border:1.5px solid var(--control); box-sizing:border-box; display:flex; align-items:center; justify-content:center; color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.18); }
+.tg.on .tr { background:var(--ink); border-color:var(--ink); }
+.tg.on .kn { left:25.5px; background:var(--sheet); border-color:var(--sheet); }
+.tg.wash.on .tr { background:var(--wash); border:2px solid var(--accent); }
+.tg.wash.on .kn { top:1px; left:25px; background:var(--sheet); border:1.5px solid var(--accent); }
+.tg.focus .tr { outline:2px solid var(--ink); outline-offset:3px; }
+.tg.busy .kn svg { display:none; }
+.tg.busy .kn::after { content:""; width:10px; height:10px; border-radius:50%; border:2px solid currentColor; border-right-color:transparent; box-sizing:border-box; }
+.tgrow { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2) var(--space-3); align-items:center; min-height:60px; border-bottom:1px dotted var(--rule); padding:var(--space-1) 0; }
+.tgrow:last-of-type { border-bottom:0; }
+.tgrow small { display:block; font-size:14px; color:var(--muted); line-height:1.25; }
+.tgrow .side { display:flex; align-items:center; gap:var(--space-2); }
+.tgrow .price { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; white-space:nowrap; }
+.spec { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-3); }
+.spec .cell { border:1px solid var(--rule); border-radius:4px; background:var(--sheet); padding:var(--space-3); }
+.spec .cell h4 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; margin:0 0 var(--space-1); }
+.spec .cell p { font-size:14px; color:var(--muted); margin:var(--space-2) 0 0; }
+.waittag { display:inline-block; font-size:14px; font-weight:700; border:1.5px solid var(--ink); border-radius:4px; padding:0 var(--space-1); line-height:20px; }
+
+/* a large map: the zoom controls of the picture pop-up; the fitted picture's note on the page */
+.mappop .mbody { position:relative; }
+.zoomctl { display:flex; align-items:center; gap:var(--space-2); }
+.zoomctl .zpct { min-width:48px; text-align:center; font-size:14px; }
+.mapbody.tall svg, .mapbody.fitw svg { max-height:420px; }
+.mapnote { font-size:14px; color:var(--muted); margin:var(--space-1) 0 0; }
+.phone .mappop { position:static; border:0; box-shadow:none; height:560px; }
+.phone .mappop .mbody { margin:0 var(--space-2); }
+.phone .mappop .mf { flex-wrap:wrap; }
+
+/* a map that opens whole on a tap: the picture and its caption strip are one target; the strip changes tone under the pointer and under the finger */
+.mapopen { border:1.5px solid var(--control); margin-top:var(--space-3); }
+.mapopen .mapbody, .mapopen .mapthumb { border:0; border-bottom:1px solid var(--control); margin:0; overflow:hidden; }
+.mapopen .mrow { display:flex; align-items:stretch; }
+.mapopen .mcap { flex:1; display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-2) var(--space-3); background:var(--sheet); font-size:14px; line-height:1.3; box-sizing:border-box; }
+.mapopen .mcap > span:first-child { flex:1; }
+.mapopen .meye { display:flex; align-items:center; border-left:1px solid var(--control); background:var(--sheet); }
+.mapopen.hover .mcap { background:var(--rule); }
+.mapopen.press { border-color:var(--accent); }
+.mapopen.press .mcap { background:var(--wash); }
+.facts.three { grid-template-columns:repeat(3, minmax(0,1fr)); }
+.fact.badge { grid-template-columns:minmax(0,1fr); justify-items:center; text-align:center; row-gap:var(--space-1); }
+.fact.badge .fi { grid-row:auto; }
+.fact.badge .s { color:var(--ink); }
+.trio > p { margin:var(--space-4) 0 var(--space-2); }
+.acts3 .opt .ot b { font-size:20px; }
+
+/* Francis's last look, 2026-11-12 */
+.mapopen .mz { display:flex; gap:var(--space-2); align-items:center; padding:var(--space-1) var(--space-2); background:var(--sheet); border-right:1px solid var(--control); }
+.mapopen .mcap.bare { justify-content:flex-end; }
+.spot.cur { background:var(--wash); box-shadow:inset 3px 0 0 var(--accent); padding-left:var(--space-3); padding-right:var(--space-2); margin:0 calc(-1 * var(--space-2)); }
+.spot .pin { display:inline-flex; vertical-align:-3px; margin-right:var(--space-1); }
+.keyno { font-variant-numeric:tabular-nums; margin-right:.3em; }
+.inforce.tgl { grid-template-columns:minmax(0,1fr) auto; }
+.inforce.tgl.detail .more { grid-column:1 / -1; }
+.die { display:inline-flex; vertical-align:-3px; margin-right:var(--space-1); }
+/* the toggle, on: a soft glow from the halo's token */
+.tg.on .tr { box-shadow:0 0 var(--space-2) 1px color-mix(in srgb, var(--glow) 60%, transparent); }
+.tg.on.noglow .tr { box-shadow:none; }
+.tg.on.inkglow .tr { box-shadow:0 0 var(--space-2) 1px color-mix(in srgb, var(--ink) 45%, transparent); }
+/* a rule's own action button */
+.btn.act { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; gap:var(--space-2); }
+.btn.act.edge { border:2px solid var(--ink); }
+.btn.act.tone { background:var(--flash); border-color:var(--control); }
+.glowgrid { display:grid; grid-template-columns:auto auto auto auto; gap:var(--space-2) var(--space-5); align-items:center; justify-content:start; }
+
+/* the badge: a fact with a name and no value, filling its card with an ornament to either side of its mark */
+.fact.badge { padding:var(--space-2); }
+.fact.badge .orn { display:flex; align-items:center; justify-content:center; gap:var(--space-2); color:var(--muted); width:100%; }
+.fact.badge .orn .mk { color:var(--ink); display:flex; }
+.fact.badge .orn svg.fl { flex:1; min-width:0; max-width:96px; height:12px; }
+.fact.badge .orn svg.fl.r { transform:scaleX(-1); }
+.fact.badge .orn .ring { width:48px; height:48px; border-radius:50%; border:1.5px solid var(--control); display:flex; align-items:center; justify-content:center; color:var(--ink); flex:none; }
+.fact.badge .nm { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; line-height:1.2; font-variant:small-caps; letter-spacing:.04em; white-space:nowrap; }
+.phone .fact.badge .nm { font-variant:normal; letter-spacing:0; font-size:17px; }
+
+/* H: a way's mode button: the action word over its time; every mode button the same size */
+.pdest .modes .btn.mode { flex-direction:column; gap:0; width:96px; min-height:52px; padding:var(--space-1) var(--space-2); border-width:2px; border-color:var(--ink); }
+.pdest .modes .btn.mode b { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.15; display:inline-flex; align-items:center; gap:var(--space-1); }
+.pdest .modes .btn.mode small { display:block; margin:0; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:14px; color:var(--muted); line-height:1.2; }
+.pdest .modes .btn.mode.line { flex-direction:row; justify-content:space-between; gap:var(--space-2); width:140px; min-height:44px; border-width:1.5px; border-color:var(--control); }
+.pdest .modes .btn.mode.on { border-color:var(--accent); }
+.dest .way > span:first-child { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; }
+.dest .way .t { font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:16px; color:var(--muted); }
+/* I: the map card is the picture alone; its edge answers the pointer and the finger; the tools sit under it */
+.mapopen.hover { border-color:var(--ink); }
+.mapopen.press { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+.mapopen.bare .mapbody, .mapopen.bare .mapthumb { border-bottom:0; }
+.maptools { display:flex; gap:var(--space-2); align-items:center; margin-top:var(--space-2); }
+/* J: ideas for what to say at the table; one with rules opens them */
+.ideas { display:flex; flex-wrap:wrap; gap:var(--space-2); }
+.ideas .btn { font-size:18px; }
+.ideas .plain { display:inline-flex; align-items:center; min-height:44px; padding:0 var(--space-2); font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; }
+.pdest .modes .btn.mode.line { width:148px; }
+.pdest .modes .btn.mode.line small { white-space:nowrap; }
+.dest .way > span:first-child { color:var(--ink); }
+
+/* L: a rule's own action is an icon button with no words; its words are its spoken label and show on a long press or under the pointer */
+.btn.sq.acti { border:2px solid var(--ink); position:relative; }
+.btn.sq.acti.accent { border-color:var(--accent); }
+.acti .tipw { position:absolute; bottom:calc(100% + var(--space-2)); left:50%; transform:translateX(-50%); white-space:nowrap; background:var(--ink); color:var(--sheet); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:14px; line-height:1.2; padding:var(--space-1) var(--space-2); border-radius:4px; }
+.markset { display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:var(--space-2); }
+.markset > span { display:flex; flex-direction:column; align-items:center; gap:var(--space-1); font-size:14px; text-align:center; }
+
+/* M: the phone's fact row, two by two, tighter so a value stays on one line */
+.facts.pf { grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-2); }
+.facts.pf .fact { padding:var(--space-2); column-gap:var(--space-2); }
+.facts.pf .fact .v { font-size:18px; white-space:nowrap; }
+.facts.pf .fact .fi svg { width:20px; height:20px; }
+.fact .s .die { vertical-align:-4px; }
+
+/* H2 chosen: with three modes or more, and always on a phone, the buttons take a line of their own under the name */
+.pdest.many .modes, .phone .pdest .modes { grid-column:1 / -1; justify-content:flex-start; }
+.phone .pdest { margin-left:0; margin-right:0; }
+/* the name stays on one line; the mode buttons sit beside it when both fit, and drop under it when they do not */
+.pdest { display:flex; flex-wrap:wrap; align-items:center; }
+.pdest > span:first-child { flex:none; }
+.pdest .ot { flex:1 0 auto; max-width:calc(100% - 40px); }
+.pdest .modes { flex:0 0 auto; max-width:100%; justify-content:flex-start; }
+.pdest > span[style*="grid-column"] { flex:0 0 100%; }
+.phone .pdest .modes { width:100%; }
+.phone .pdest .modes .btn.mode.line { width:auto; flex:1 1 120px; }
+
+/* N: a stronger rule under a table's column headings; a die's glyph beside its name */
+.rule th { border-bottom:2px solid var(--ink); }
+.btn .die { margin-right:0; }
+.cap2 .die svg * { stroke:currentColor; }
+
+/* O: the mode buttons always sit at the right of the destination's own row; the name gives way and wraps */
+.pdest .ot { flex:1 1 0; min-width:0; max-width:none; }
+.pdest .modes { flex:none; flex-wrap:nowrap; max-width:none; }
+.phone .pdest .ot { flex:1 0 auto; max-width:calc(100% - 40px); }
+.phone .pdest .modes { flex:0 0 100%; flex-wrap:wrap; }
+.phone .pdest .modes .btn.mode { width:auto; flex:1 1 80px; }
+.pdest .ot { overflow-wrap:break-word; }
+
+/* P: one sheet head: air between the small line and the title; a count sits beside the X; the obstacle block on the page's own tone */
+.panel .ph .over, .mappop .mh .over { margin-bottom:var(--space-2); }
+.panel .ph.counted { grid-template-columns:minmax(0,1fr) auto 44px; column-gap:var(--space-2); }
+.panel .ph .pcount { align-self:start; min-height:44px; display:flex; align-items:center; font-size:14px; color:var(--muted); white-space:nowrap; }
+.box.obst { background:var(--page); border-color:var(--control); }
+
+/* Q: a map's title sits at the left of its tools, on one line */
+.maptools .mt { flex:1; min-width:0; font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.maptools .mt.s { font-size:16px; }
+.btn.sq.acti + .btn.sq.acti { margin-left:var(--space-2); }
+
+/* one time control: the hourglass button with a caret joined to it */
+.btn.big + .btn.sq.caret { margin-left:calc(-1 * var(--space-2) - 1.5px); border-radius:0 4px 4px 0; align-self:stretch; height:auto; }
+.btn.big.joined { border-radius:4px 0 0 4px; }
+.tctl { display:flex; gap:var(--space-2); align-items:center; }
+
+/* the Sequence of play strip (shared by sets 2 and 3) */
+.rem { display:flex; align-items:flex-start; }
+.rem .step { flex:0 0 88px; min-height:0; }
+.rem .step .sc { border:1px solid var(--rule); background:transparent; box-shadow:none; color:var(--ink); }
+.rem .step.tap .sc { border:2px solid var(--ink); background:var(--sheet); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.18); }
+.rem .step .nm { font-size:14px; }
+.rem .lnk { flex:0 0 12px; border-top:2px dotted var(--control); margin-top:28px; }
+.rem .gap { flex:1 1 24px; }
+.rem .ctl { display:flex; border-left:3px double var(--rule); padding-left:var(--space-3); }
+.rem .numr { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; line-height:1; }
+.phone .rem .step { flex:1 1 0; min-width:0; }
+.phone .rem .step .sc { width:44px; height:44px; }
+.phone .rem .step .sc svg { width:22px; height:22px; }
+.phone .rem .lnk { display:none; }
+.phone .rem { gap:var(--space-1); }
+.phone .rem .step .nm { font-size:14px; letter-spacing:-.01em; }
+.phone .rem .step { font-size:14px; }
+.phone .rem { gap:var(--space-2); justify-content:space-between; }
+.phone .rem .step { flex:0 0 52px; min-width:0; }
+.phone .rem .step .sc { width:52px; height:52px; }
+.phone .rem .step .sc svg { width:30px; height:30px; }
+.phone .rem .step .nm { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.phone .rem .gap { display:none; }
+.band .acts.two { display:flex; gap:var(--space-2); align-items:center; }
+.btn.big.sqb { width:52px; padding:0; }
+
+.alts { display:flex; flex-wrap:wrap; gap:var(--space-4); }
+.alts .a { width:112px; text-align:center; font-size:14px; line-height:1.25; }
+.alts .a.now { outline:1.5px dashed var(--control); outline-offset:var(--space-1); border-radius:4px; }
+
+/* the book format in a sheet */
+@font-face { font-family:"T Bitter"; src:url(fonts/Bitter-wght.ttf); font-weight:100 900; font-style:normal; }
+@font-face { font-family:"T Bitter"; src:url(fonts/Bitter-Italic-wght.ttf); font-weight:100 900; font-style:italic; }
+.bk { font-family:"T Bitter", Georgia, serif; font-size:16px; line-height:1.45; font-variant-numeric:slashed-zero; }
+.bk p { margin:0 0 var(--space-2); max-width:65ch; }
+.bk .aloud { font-style:italic; margin-left:var(--space-4); }
+.bk .ln { margin:0 0 var(--space-1); }
+.bk .ln:first-of-type { margin-top:var(--space-3); }
+.bk .lb { color:var(--accent); font-weight:400; margin-right:var(--space-2); }
+.light .bk .lb { color:#B5482C; }
+.bk .source { font-size:14px; color:var(--muted); margin-top:var(--space-3); }
+.panel .ph.tools { grid-template-columns:minmax(0,1fr) 44px 44px; column-gap:var(--space-2); }
+
+/* the strip, three spacings */
+/* the strip, as ruled 2026-11-12 */
+/* (c): centred on its row, the dotted links stretched to 72 px at most; everywhere but the phone, whose strip fills its width. va and vb are the two versions not chosen, kept for the record frame. */
+.rem { justify-content:center; }
+.rem .lnk { flex:1 1 12px; max-width:72px; }
+.rem .gap { display:none; }
+.rem:has(.ctl) .gap { display:block; }
+.rem.va .lnk { flex:0 0 12px; }
+.rem.vb { justify-content:flex-start; }
+.rem.vb .lnk { max-width:none; }
+
+/* a table in the book format */
+@font-face { font-family:"T Alegreya Sans SC"; src:url(fonts/AlegreyaSansSC-Bold.ttf); font-weight:400 900; }
+.tbl.bkt { font-family:"T Bitter", Georgia, serif; font-variant-numeric:slashed-zero; margin-top:0; }
+.tbl.bkt .heads, .tbl.bkt .rum { grid-template-columns:48px minmax(0,1fr) auto; }
+.tbl.bkt .heads { display:grid; gap:var(--space-2) var(--space-3); align-items:center; padding:var(--space-2) var(--space-3); border-bottom:2px solid var(--ink); font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:15px; letter-spacing:.06em; color:var(--muted); }
+.tbl.bkt .heads span { display:inline-flex; align-items:center; gap:var(--space-1); }
+.tbl.bkt .rum b.n { font-family:"T Bitter", Georgia, serif; font-weight:700; font-size:18px; }
+.tbl.bkt .truth, .tbl.bkt .rum small, .tbl.bkt + .meta { font-family:"Atkinson Hyperlegible", Arial, sans-serif; }
+.bkk .ksec .rule { font-family:"T Bitter", Georgia, serif; font-variant-numeric:slashed-zero; }
+/* Notes: the switch (the toggle's two-option sibling), day groups, a kept thing with its tools, tags */
+.swrow { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-2) var(--space-3); }
+.sw2 { display:inline-flex; flex-wrap:wrap; gap:3px; padding:3px; border:1.5px solid var(--control); border-radius:24px; background:var(--sheet); }
+.sw2 > span { min-height:38px; padding:0 var(--space-4); border-radius:20px; display:inline-flex; align-items:center; gap:var(--space-1); }
+.sw2 > span.on { background:var(--ink); color:var(--page); font-weight:700; box-shadow:0 0 var(--space-2) 1px color-mix(in srgb, var(--glow) 60%, transparent); }
+.reads { display:inline-flex; align-items:center; gap:var(--space-1); font-size:14px; color:var(--muted); }
+.dayg { display:flex; align-items:center; gap:var(--space-2); min-height:44px; margin-top:var(--space-3); border-bottom:1px solid var(--rule); }
+.dayg h2 { margin:0; }
+.dayg .gap { flex:1; }
+.kn2 .kh2 { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:var(--space-2); align-items:start; }
+.kn2 .ki { display:inline-flex; height:44px; align-items:center; }
+.kn2 .kt { padding-top:var(--space-1); min-height:44px; box-sizing:border-box; }
+.kn2 .kt b { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; display:block; }
+.kn2 .tools { display:inline-flex; align-items:center; gap:var(--space-2); }
+.tool { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; border-radius:4px; box-sizing:border-box; flex:none; }
+.tool.on { border:2px solid var(--ink); background:var(--sheet); box-shadow:0 0 var(--space-2) 1px color-mix(in srgb, var(--glow) 60%, transparent); }
+.kn2 .first { margin:0; font-family:"T Bitter", Georgia, serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.kn2 .bk p { margin:0; }
+.tagrow { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; margin-top:var(--space-2); }
+.tagc { display:inline-flex; align-items:center; min-height:28px; padding:0 var(--space-2); border:1px solid var(--control); border-radius:999px; font-size:14px; }
+.tagadd { margin-top:var(--space-2); }
+.kn2 .kh2 { grid-template-columns:auto minmax(0,1fr); }
+.kn2 .kh2 > svg { align-self:start; margin-top:12px; }
+/* the caller's banner */
+.callban { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; column-gap:var(--space-2); margin-top:var(--space-3); color:var(--muted); }
+.callban svg.fl { width:100%; height:12px; }
+.callban svg.fl.r { transform:scaleX(-1); }
+.callban .mk { color:var(--ink); display:flex; }
+.callban .who { grid-column:1 / -1; position:relative; display:flex; justify-content:center; align-items:center; gap:var(--space-2); min-height:44px; color:var(--ink); }
+.callban .who .sc { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:18px; font-variant:small-caps; letter-spacing:.04em; color:var(--muted); }
+.callban .who b { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:22px; line-height:1.1; }
+.callban .chg { position:absolute; right:0; top:0; min-height:44px; display:inline-flex; align-items:center; font-size:14px; }
+/* the caller: circles to pick */
+.callban .chg { position:absolute; right:0; top:0; font-size:16px; }
+.pcard > .callban:first-child { margin-top:0; margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px solid var(--rule); }
+.youtag { display:inline-block; border:1.5px solid var(--ink); border-radius:4px; padding:0 var(--space-1); font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-size:14px; font-weight:700; line-height:1.3; color:var(--ink); }
+.cpick { display:flex; flex-wrap:wrap; gap:var(--space-2); margin-top:var(--space-2); }
+.cpick .cp { position:relative; width:76px; min-height:84px; display:flex; flex-direction:column; align-items:center; gap:2px; padding:var(--space-1) 2px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); box-sizing:border-box; font-size:14px; line-height:1.15; text-align:center; color:var(--ink); }
+.cpick .cp .nmx { overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow-wrap:anywhere; }
+.cpick .cp.cur { border:2px solid var(--ink); box-shadow:0 0 var(--space-2) 1px color-mix(in srgb, var(--glow) 60%, transparent); }
+.cpick .cp.cur > svg { position:absolute; right:2px; top:2px; }
+.popv { grid-column:1 / -1; margin-top:var(--space-2); background:var(--sheet); border:1px solid var(--rule); border-radius:4px; box-shadow:0 8px 32px rgba(0,0,0,.35); padding:var(--space-3); color:var(--ink); text-align:left; }
+.kn2 .kname { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; align-self:center; }
+.kn2 .ksrc { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); min-height:44px; padding-left:calc(24px + var(--space-2)); }
+.kn2 .ksrc small { flex:1; min-width:0; }
+.kn2 .ksrc svg { flex:none; }
+.callban.tap { border:1.5px solid transparent; border-radius:4px; padding:var(--space-2) var(--space-2) 0; }
+.callban.tap.hov { background:color-mix(in srgb, var(--ink) 7%, transparent); border-color:var(--control); }
+.callban.tap.prs { background:color-mix(in srgb, var(--ink) 15%, transparent); border-color:var(--ink); }
+.popv { margin-bottom:var(--space-3); }
+/* the pin: the set's plain dagger, mirrored left to right so its point is down to the left */
+.pinm { display:inline-flex; transform:scaleX(-1); }
+.popv .cpick .cp { width:68px; }
+.phone .cpick { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); }
+.phone .cpick .cp { width:auto; }
+/* the toggle, on: ruled 2026-11-12 (B): the Selected wash, the accent edge, the soft glow. ink: the version not chosen, for the record frame */
+.tg.on .tr { background:var(--wash); border:2px solid var(--accent); }
+.tg.on .kn { top:1px; left:25px; background:var(--sheet); border:1.5px solid var(--accent); }
+.tg.ink.on .tr { background:var(--ink); border:1.5px solid var(--ink); }
+.tg.ink.on .kn { top:1.5px; left:25.5px; background:var(--sheet); border-color:var(--sheet); }
+.greyed { filter:grayscale(1); }
+/* the switch in the toggle's ruled manner (to confirm): the chosen side on the wash with the accent edge */
+.sw2.wash > span.on { background:var(--wash); color:var(--ink); box-shadow:inset 0 0 0 2px var(--accent), 0 0 var(--space-2) 1px color-mix(in srgb, var(--glow) 60%, transparent); }
+/* a name that opens its entry: the link style, with a 44 px target that does not grow its row */
+.nmtap { display:inline-block; padding:10px 0; margin:-10px 0; }
+.bk .dsc { font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:15px; letter-spacing:.06em; color:var(--muted); margin:0 0 var(--space-2); }
+/* a place's sheet in the book format */
+.dark .bkp, .dark .pbx { --lbl:var(--accent); }
+.light .bkp, .light .pbx { --lbl:#B5482C; }
+.panel.bkp .ph .ttl { font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:28px; line-height:1.1; letter-spacing:.03em; color:var(--lbl); }
+.bkp .bksrow { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); min-height:44px; margin-top:var(--space-3); }
+.bkp .bks { font-family:"T Bitter", Georgia, serif; font-weight:700; font-size:20px; line-height:1.2; color:var(--lbl); margin:0; }
+.bkp .piece.bkpc { align-items:start; }
+.bkp .piece.bkpc .bk p:last-child { margin-bottom:0; }
+.signpic { display:block; width:100%; height:auto; border:1px solid var(--rule); }
+/* the titled box (a person): a thin edge in the heading's colour on a tinted ground made from two tokens */
+.pbx { border:1px solid var(--lbl); background:color-mix(in srgb, var(--wash) 55%, var(--sheet)); border-radius:2px; padding:var(--space-2) var(--space-3); margin:var(--space-3) 0; font-family:"T Bitter", Georgia, serif; font-variant-numeric:slashed-zero; line-height:1.4; }
+.pbx h5 { font-family:"T Bitter", Georgia, serif; font-weight:800; font-size:18px; line-height:1.2; color:var(--lbl); margin:0 0 var(--space-1); text-wrap:balance; }
+.pbx h5 a { color:inherit; }
+.pbx p { margin:0 0 var(--space-1); }
+.pbx .pbr { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2); align-items:start; }
+.pbx.gm .pbr { min-height:44px; }
+.pbx .pbr + .pbr { margin-top:var(--space-1); }
+.pbx .eye { margin-top:calc(-1 * var(--space-1)); }
+/* an icon button with its word under it */
+.btn.ibw { flex-direction:column; gap:0; min-width:56px; min-height:56px; padding:var(--space-1); box-sizing:border-box; font-family:"Atkinson Hyperlegible", Arial, sans-serif; font-weight:400; font-size:14px; line-height:1.15; }
+/* the switch, as ruled 2026-11-12 */
+.sw2 > span.on { background:var(--wash); color:var(--ink); font-weight:700; box-shadow:inset 0 0 0 2px var(--accent), 0 0 var(--space-2) 1px color-mix(in srgb, var(--glow) 60%, transparent); }
+.sw2.ink:not(.wash) > span.on { background:var(--ink); color:var(--page); box-shadow:0 0 var(--space-2) 1px color-mix(in srgb, var(--glow) 60%, transparent); }
+/* the caller: bare circles */
+.crow { display:flex; flex-wrap:wrap; gap:var(--space-2); margin-top:var(--space-2); }
+.cq { width:72px; display:flex; flex-direction:column; align-items:center; gap:var(--space-1); padding:var(--space-1) 0; font-size:14px; line-height:1.15; text-align:center; color:var(--ink); border-radius:4px; }
+.cq .cqc { width:56px; height:56px; border-radius:50%; border:1.5px solid var(--control); background:var(--sheet); overflow:hidden; display:flex; align-items:center; justify-content:center; font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; box-sizing:border-box; }
+.cq .cqc svg, .cq .cqc img { width:100%; height:100%; }
+.cq .nmx { overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow-wrap:anywhere; }
+.cq.cur .cqc { outline:2px solid var(--ink); outline-offset:3px; }
+.cq.cur .nmx { font-weight:700; }
+.cq.none .cqc { border:2px dashed var(--control); background:transparent; }
+.phone .crow { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); }
+.phone .crow .cq { width:auto; }
+.popv .crow { gap:var(--space-1); flex-wrap:nowrap; }
+.popv .cq { width:58px; }
+.popv .cq .cqc { width:52px; height:52px; }
+/* a place's sheet in two columns */
+.dev .panel.bkp.wide2 { width:auto; left:56px; }
+.two5 { display:grid; grid-template-columns:340px minmax(0,1fr); gap:var(--space-5); align-items:start; }
+.two5 .lc .pbx { margin-bottom:0; }
+.two5 .lc .pc5.piece { border-bottom:0; padding-top:0; }
+.two5 .rc > .piece:first-child { padding-top:0; }
+.two5 .rc > .bk:first-child p:first-child { margin-top:0; }
+.phone .two5 { display:flex; flex-direction:column; gap:0; }
+.phone .two5 .lc { display:contents; }
+.phone .two5 .pc5 { order:1; margin-bottom:var(--space-2); }
+.phone .two5 .rc { order:2; }
+.phone .two5 .pbx { order:3; margin-top:var(--space-3); }
+/* the book's two heading levels: heavy serif capitals in the heading colour; a smaller mixed-case sub-heading in a darker second colour (the heading colour mixed with ink) */
+.panel.bkp .ph .ttl { font-family:"T Bitter", Georgia, serif; font-weight:900; font-size:24px; line-height:1.15; letter-spacing:.02em; text-transform:uppercase; color:var(--lbl); }
+.bkp .bks { font-size:18px; font-weight:800; color:color-mix(in srgb, var(--lbl) 55%, var(--ink)); }
+/* the caller, final */
+.crow { justify-content:space-evenly; }
+.crow .cq .cqc { width:64px; height:64px; }
+.crow .cq { width:84px; }
+.dev .ann .crow { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); justify-items:center; row-gap:var(--space-3); }
+.phone .crow { justify-items:center; }
+.phone .crow .cq .cqc { width:56px; height:56px; }
+.popv .crow { flex-wrap:wrap; gap:var(--space-2) var(--space-3); justify-content:center; }
+.popv .cq { width:72px; }
+.popv .cq .cqc { width:56px; height:56px; }
+/* ruled 2026-11-12: no "You" tag on a marching-order circle */
+.pc .tag { display:none; }
+/* a table in the book's style (ruled 2026-11-12): a filled title bar with the name in capitals, the head row over a strong rule, banded rows. The band is ink at 7% over whatever ground the table sits on */
+.rule caption, .tbl .tbar { font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:16px; letter-spacing:.06em; text-transform:uppercase; text-align:center; background:var(--accent); color:var(--on-accent); padding:var(--space-1) var(--space-3); }
+.rule tr:nth-child(even) td { background:color-mix(in srgb, var(--ink) 7%, transparent); }
+.tbl.bkt .rum:nth-of-type(even) { background:color-mix(in srgb, var(--ink) 7%, transparent); }
+.tbl.bkt .rum.sel { background:var(--wash); }
+.bkp .rule table { font-family:"T Bitter", Georgia, serif; font-variant-numeric:slashed-zero; }
+.bkp .rule th { font-size:14px; }
+/* the town's card in the book's two heading levels */
+.dark .bktown { --lbl:var(--accent); }
+.light .bktown { --lbl:#B5482C; }
+.bktown h3.display.bk1 { font-family:"T Bitter", Georgia, serif; font-weight:900; text-transform:uppercase; letter-spacing:.02em; color:var(--lbl); font-size:28px; line-height:1.1; }
+.bktown h2.bk2 { font-family:"T Bitter", Georgia, serif; font-weight:800; font-size:18px; font-variant:normal; letter-spacing:0; color:color-mix(in srgb, var(--lbl) 55%, var(--ink)); }
+/* a Scene’s card headings (Where to?, Marching order, Waiting for you) take the book’s sub-heading on every Scene (ruled 2026-11-12) */
+.dark { --lbl:var(--accent); } .light { --lbl:#B5482C; }
+.pcard > h2:first-child, .pcard > .hrow > h2, .inner > .hrow > h2, .mo-head h2 { font-family:"T Bitter", Georgia, serif; font-weight:800; font-size:18px; font-variant:normal; text-transform:none; letter-spacing:0; color:color-mix(in srgb, var(--lbl) 55%, var(--ink)); }
+/* one heading family on the town's Scene (ruled 2026-11-12): the right column's card headings take the book's sub-heading too */
+.bktown .stack > .pcard > h2:first-child, .bktown .mo-head h2 { font-family:"T Bitter", Georgia, serif; font-weight:800; font-size:18px; font-variant:normal; text-transform:none; letter-spacing:0; color:color-mix(in srgb, var(--lbl) 55%, var(--ink)); }
+.bktown .pbx { margin-bottom:0; }
+/* a mode button with an icon: a (icon over word over time), b (icon left of word and time), c (icon over time, no word) */
+.pdest .modes .btn.mode.ma { min-height:76px; }
+.pdest .modes .btn.mode.mb { display:grid; grid-template-columns:auto auto; column-gap:var(--space-2); justify-content:center; align-items:center; width:116px; }
+.pdest .modes .btn.mode.mb > svg { grid-row:1 / 3; }
+.pdest .modes .btn.mode.mb.noi { display:flex; }
+.pdest .modes .btn.mode.mc { width:72px; }
+.pdest .modes .btn.mode svg { flex:none; }
+/* a phone’s row of three modes shows words and times only (ruled 2026-11-12): a word must never be cut; two across keep their icons */
+.phone .pdest.many .modes .btn.mode.mb { display:flex; }
+.phone .pdest.many .modes .btn.mode.mb > svg { display:none; }
+/* every mode button in a list is one size: where any has an icon, those without take the same width */
+:has(> .pdest .btn.mode.mb) > .pdest .modes .btn.mode:not(.line):not(.ma):not(.mc) { width:116px; }
+.phone :has(> .pdest .btn.mode.mb) > .pdest .modes .btn.mode:not(.line):not(.ma):not(.mc) { width:auto; }
+/* three icon buttons on a tablet row: a little narrower, so a short name beside them still wraps at a space */
+:has(> .pdest .btn.mode.mb) > .pdest.many .modes .btn.mode:not(.line):not(.ma):not(.mc) { width:104px; column-gap:var(--space-1); padding-left:var(--space-1); padding-right:var(--space-1); }
+:has(> .pdest .btn.mode.mb) > .pdest.many .modes .btn.mode.mb > svg { width:22px; height:22px; }
+.phone :has(> .pdest .btn.mode.mb) > .pdest.many .modes .btn.mode:not(.line):not(.ma):not(.mc) { width:auto; }

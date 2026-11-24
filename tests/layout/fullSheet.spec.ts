@@ -98,16 +98,16 @@ test('on a landscape tablet the play column and the sheet beside it share no sec
   expect(play).not.toContain('Skills');
   expect(play).not.toContain('Saves');
   expect(play).not.toContain('Scores');
-  // "Traits" heads both: on the play column the traits with a Use, on the sheet the kindred's traits as rows (A+B kept
-  // the play column's heading "Traits", its ⚑ 4).
-  expect(play.filter((n) => sheet.includes(n) && n !== 'Traits')).toEqual([]);
+  // No section on both: the play column's own list is "Abilities and traits" since row P3 (pg28-1), the sheet's foot
+  // keeps its "Traits" row.
+  expect(play.filter((n) => sheet.includes(n))).toEqual([]);
   // Beside the Player screen the sheet is the right column only (the play column is the left): no second column, no
   // left column's name and tiles, and the sections in the ruled order.
   await expect(page.locator('.player__aside .sheet__vitals')).toHaveCount(0);
   await expect(page.locator('.player__aside .sheet__columns--split')).toHaveCount(0);
   // The right column's order (ps-2): scores, saves, movement and load, the traits with uses, skills, languages, then
   // the rest of the full sheet.
-  const BESIDE = ['Scores', 'Saves', 'Movement', 'Traits', 'Skills', 'Languages', 'Abilities', 'Magic', 'Notes'];
+  const BESIDE = ['Scores', 'Saves', 'Movement', 'Abilities and traits', 'Skills', 'Languages', 'Abilities', 'Traits', 'Magic', 'Notes'];
   const order = sheet.filter((n, i) => BESIDE.includes(n) && sheet.indexOf(n) === i);
   expect(order).toEqual([...order].sort((a, b) => BESIDE.indexOf(a) - BESIDE.indexOf(b)));
 });

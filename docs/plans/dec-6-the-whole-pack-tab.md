@@ -2,6 +2,8 @@
 
 Written by the lead on 2026-11-14. It covers the Pack tab whole: a character's pack (its lists and load), the coin line and the purse's sheets, the party stash as a screen of its own, a find arriving from the GM with its card, and the short actions on an item. Rule po-4 (`docs/design/rulings/dec-scene-whole-2026-11-14.md`): before any piece of a screen with an approved redesign goes to a builder, its plan covers the whole screen's drawing; a drawn part with no row stops the hand-out; every visible row names its mockup and the date Francis approved it, or says "none: data and logic only". A ruling in words is not an approval of a screen.
 
+**Status, 2026-11-24: K29 (the Pack tab in the approved dress and type) is added and RELEASED, and K5 is RELEASED** (Francis, 2026-11-24; "The Pack tab in the approved dress and type" and "Ruled on 2026-11-24" below). K29 is built before #66 (K11 + K12 + K13) is shown to Francis and before K5.
+
 **Status, 2026-11-15: the seven first-night rows are RELEASED** (K7, K11, K12, K13, K15, K16, K21; the table "The first-night seven" below names each one's approved frame). The Pack tab's page is drawn whole and approved: `docs/design/mockups/pack/08-the-pack-tab-whole.html` on `design-december-mockups`, frames PK1 to PK7b by ap-6 (2026-11-14, at b474da61), PK6b and PK8 to PK13 by ap-7 (2026-11-14), PK8b to PK8d by ap-9; the purse's frames, page 07, at 395076bb (2026-11-13). The other rows are released in Francis's order (ord-2: the rest of the Pack tab after 5 December); their "Mockup" cells below still read as written on 14 November and are brought up to the frames when each is handed out. **What follows in this paragraph is the status as first written, kept for the record:** NOT RELEASED. It cannot be released until the Pack tab's drawing is whole and approved. Only the purse's frames (page 07) carry Francis's approval today. Drafted from the sources by a worker and reviewed by the lead. Francis put the Pack tab first in the order of design work (2026-11-14: "Priority in design is pack tab, city, map with map as the reach goal"); the Studio's brief is `docs/design/notes/brief-pack-tab-whole-2026-11-14.md`.
 
 ## The first-night seven (released 2026-11-15; ord-2)
@@ -24,6 +26,21 @@ Not pinned to a commit: ap-7 names none; the frames are read at the mockup branc
 Rulings: `pack-rework-rulings-2026-11-11.md` (pk-1 to pk-6, tb-1); `dec-pack-and-rules-sweeps-2026-11-13.md` (psw-1 to psw-7); `dec-purse-screens-2026-11-13.md` (pu-1 to pu-9, pf-17); `dec-afternoon-2026-11-13.md` (pu-10); `dec-evening-2026-11-13.md` (pk-11, pu-11); `dec-pack-formats-2026-11-11.md` (pf-6); `dec-midday-2026-11-14.md` (ic-1, ic-2). Plans: `dec-6-purse.md`, `december-first-play.md`.
 
 Drawings (branch `design-december-mockups`, folder `docs/design/mockups/pack/`): pages 01 to 07, below.
+
+## The Pack tab in the approved dress and type (K29; released 2026-11-24)
+
+Francis, 2026-11-24: "pack tab should be built using our latest design principles and formatting". The frames were approved in the swept dress (pack/05 to 07) and the book's type; the built tab and the stash's new screen (#66) still wear the older faces (Garamond heads, Atkinson body) everywhere but the coin line and its sheets (`BookType` in `PackScreen.tsx`, K9). No row owned the change for the whole tab: K1 to K8 each say "built in today's type" and are otherwise built. K29 owns it.
+
+| | |
+|---|---|
+| **Scope** | Every screen of the Pack tab takes the type, spacing and parts its frame draws: the pack and its lists (heads, rows, the foot), the load line, the coin line and the purse's sheets (already in the book's type: checked, not redone), the Party stash row and the stash's screen, a thing's, a stack's and a container's sheet, Give, Put in, Drop, use one, Empty…, Add item, Take, the toasts these raise, the GM's views of a pack and of the stash, the phone, and every state |
+| **Frames** | `docs/design/mockups/pack/08-the-pack-tab-whole.html`, pictures `docs/design/mockups/pack/png/08-PK*-light.png` and `-dark.png`: PK1 to PK7b approved 2026-11-14 (ap-6); PK6b, PK8 to PK13 approved 2026-11-14 (ap-7); PK8b to PK8d (ap-9, 2026-11-14). The purse: `docs/design/mockups/pack/07-purse.html`, PC1 to PC10, approved 2026-11-13 |
+| **What it touches** | The book's type as the Player tab takes it: the existing scope (`BookType`, with its pop-ups, `src/ui/creation.tsx`) around the whole Pack tab and the stash's screen, in place of the coin line's own wrap; then each screen's CSS brought to the frame's sizes and gaps with the tokens in `src/ui/tokens.css` (`--font-book-text` and the rest). Existing parts only (06, Components): stacked button, sheet, list row, coin line, toast. Likely files: `PackScreen.tsx` and `.css`, `PackLoad.css`, `CarrierItems.tsx`, `ItemRow.tsx`, `ItemSheet.tsx`, `ItemMoves.tsx`, `AddItem.tsx`, `PackParts.tsx`, the stash's screen on #66's branch. Which scope (`BookType` or the faces alone, `BookFaces`) is the Builder's, by which matches the frames' rows and chevrons |
+| **What it does not touch** | Behaviour, words, commands, data. A frame's change of layout or flow that another row owns stays that row's: Give and Put in as one sheet (K5), icons on every button (K25), the find card and New (K18 to K20). No new token and no raw value: a size, weight or colour a frame draws that no token carries is a ⚑ (20 below), not a new token |
+| **Order** | First on the Pack's path: before #66 is shown to Francis (its as-built pictures are taken in the dress), and before K5. It shares files with #66, so it is built on #66's branch or stacked straight on it, never beside it |
+| **Shown to Francis** | The built screens beside the approved pictures, light and dark, a tablet and 375 px, frame by frame (PK1, PK4, PK6, PK7, PK7b, PK8, PK10, PK10b, PK11, PK12). PK9 follows with K5 |
+| **Tests** | A test that the book's type reaches every Pack surface and its pop-ups (as `creationBookType.test.tsx` does for creation); the layout check's Pack and stash pictures retaken; contrast re-measured for any text whose face or weight changes at 14 px |
+| **Size** | 3 to 5 builder turns (the designer's estimate, not the Builder's): 1 for the scope and its test, 2 to 3 for the screens' spacing against the frames, 1 for the pictures and their fixes. Uncertain: how far today's Pack CSS sets its own faces and sizes was not read file by file |
 
 ## Where the drawing stands
 
@@ -67,7 +84,7 @@ A brief for the Design Studio. Nothing here is designed by the lead.
 | K2 | **The load line**: tier, bar, figure, unit once; over the limit with its sign | psw-2 | no approved picture: stops before the screen (PA1, PA2) | Built | Item 1 | to be sized by the Builder |
 | K3 | **The lists and rows**: At hand, Worn and in hand, each container, Carried, Tiny things, Other; the Weight head; chevron folds; the foot "11 items" | psw-1, psw-2, psw-3 | no approved picture: stops before the screen (PA1 to PA4) | Built in today's type | Item 1 | to be sized by the Builder |
 | K4 | **The item, stack and container sheets**; a container's note under its head | psw-4, psw-6, pin-1 | no approved picture: stops before the screen (PB1, PB2, PB9; 04 s1 to s3) | Built (`ItemSheet.tsx`) | Item 1; ⚑ 11, 12, 14 | to be sized by the Builder |
-| K5 | **Give and Put in** as one sheet with a link back; how many | psw-5, psw-6 | no approved picture: stops before the screen (PB3 to PB5; 04 gv1, hm, pi) | Built (`ItemMoves.tsx`), two sheets | Item 1; ⚑ 16 | to be sized by the Builder |
+| K5 | **Give and Put in** as one sheet with a link back; how many; **the stash's Put in** (your own things as rows, PK9's third frame) | psw-5, psw-6; ⚑ 16 = B and #66's ⚑ 1 = B (Francis, 2026-11-24) | **PK9** (`docs/design/mockups/pack/08-the-pack-tab-whole.html`; pictures `docs/design/mockups/pack/png/08-PK9-give-put-in-light.png`, `docs/design/mockups/pack/png/08-PK9-give-put-in-dark.png`), approved 2026-11-14 (ap-7). **Released 2026-11-24**, built whole from PK9: another's load is never shown; a receiver this would put over the limit shows the warning sign and words only | Built (`ItemMoves.tsx`), two sheets; the stash's Put in opens Add item (#66) | K29 | to be sized by the Builder |
 | K6 | **Drop, use one, Empty…**, each with its toast and Undo | psw-5 | no approved picture: stops before the screen (PB6; 04 dr, us, emp) | Built | Item 1; ⚑ 13, 15 | to be sized by the Builder |
 | K7 | **Add item and after a purchase** ("Bought / No cost" as the two-sided switch; the pack's coin word) | psw-5 | no approved picture: stops before the screen (PB7, PB8) | Built (`AddItem.tsx`); still says "Cost noted; purses arrive later." | Item 1; ⚑ 17 | to be sized by the Builder |
 | K8 | **Tiny things; the card "waiting for the GM"** | psw-1 | no approved picture: stops before the screen (PB9b, PB10) | Built | Item 1 | to be sized by the Builder |
@@ -84,13 +101,14 @@ A brief for the Design Studio. Nothing here is designed by the lead.
 | K19 | **The count on the Pack's icon** | pk-5 | no approved picture: stops before the screen (02, P1) | Not built | Item 1 | in K16's 3–5 |
 | K20 | **New until Got it**: the New fact, a card, a tag on the row | pk-5 | no approved picture: stops before the screen (01, arrived) | Not built | Item 1; where "seen" is kept (the Builder) | in K16's 3–5 |
 | K21 | **Coin in a hoard and on the find card**, the hoard's printed words with pk-11's note | pf-6, pk-11, pu-3, pu-5 | no approved picture: stops before the screen (not drawn; item 2) | Not built | Item 2 | in K9's 2 turns (dec-6-purse piece c) |
-| K22 | **What a player notices of an unidentified find**; the GM's eyes; Tell them everything | 05's unidentified rulings (not built) | no approved picture: stops before the screen (02, frame 4, P3, P4, P6, R1) | Mostly not built; a per-field Reveal exists | ⚑ 8; whether it is this plan's | "hidden information on an item (2–3)" (december-first-play, tier 2) |
+| K22 | **What a player notices of an unidentified find**; the GM's eyes; Tell them everything | 05's unidentified rulings (not built); k22-0 to k22-10, Francis, 2026-11-21 (`docs/design/rulings/k22-reveal-2026-11-21.md`) | **Page 33, frames K22a to K22j** (`docs/design/mockups/december/33-k22-what-you-notice-and-the-reveal-pop-up.html`; pictures `docs/design/mockups/december/png/33-*`): **approved by Francis from pictures, 2026-11-21**, "Approve with the fix" (the fix drawn: K22h, picture 5). The earlier 02, frame 4, P3, P4, P6, R1, were never approved and are replaced by it | Mostly not built; a per-field Reveal exists | ⚑ 8, answered by k22-4 and k22-5 (one row per hidden fact, a tap tells it); k22-0: all of K22 comes before the GM's view (C15) goes to `main`; who reads the log's line and the players' log after Undo, ruled (k22-9, k22-10); 05, 04, 06 and 07 take the rulings with this row's build plan, [`k22-reveal.md`](k22-reveal.md) (rows K22a to K22e, batches K1 and K2, its own ⚑) | 7 to 11 builder turns (`k22-reveal.md`); was "hidden information on an item (2–3)" (december-first-play, tier 2) |
 | K23 | **A Down or dead character's pack and purse** open to the others, every take logged | 2026-10-29; pu-7's line | no approved picture: stops before the screen (03, Down frame; no purse frame) | Purse: read rule and take built (pieces a, b); screen not built | Item 5 | to be sized by the Builder |
 | K24 | **The phone**: each of the above at 375 px; Add item above the tabs | psw-1 to psw-6, pu-1 | 07 PC1 approved 2026-11-13; the rest no approved picture | Built in today's type | Item 1 | with each row |
 | K25 | **Icons on every button** (word under); Undo's icon | ic-1, ic-2 | no approved picture: stops before the screen (no Pack frame drawn with them) | Not built on the Pack | Item 1 | to be sized by the Builder |
 | K26 | **Every state**: loading, offline, failed save, empty pack and stash, over the limit, messy data | — | no approved picture: stops before the screen (01's and 03's states predate the sweep) | Today's states; offline refuses with a raw error (the proposal, not checked) | Item 3; ⚑ 6 | with each row |
 | K27 | **Hidden means hidden** (tests on what the database sends): another living character's purse, to any player (piece a's read rule); a purse line's amount to anyone who can't read that purse (dec-6-purse); a find's card naming coin, to anyone but that character's player (02); an unidentified thing's true name, bonus or curse, before the GM tells (02); a place's Treasure piece and its value, to players (pg-1, "Value stays yours"); a Down purse, once the character recovers (2026-10-29) | hard rule 5; pu-9, pu-11 | none: data and logic only | Purse cases built (33 database, 27 stand-in); finds and stash none | — | with each row |
 | K28 | **The log lines and Undo**: the purse's lines in pu-7's words; a find's line naming the place and hoard; Take's line; every action with Undo in its toast; an item leaving play deleted with its copy in the log | pu-7, pk-3, hard rule 4 | none: data and logic only | Purse lines built (`events.ts`); finds and Take not | — | with each row |
+| K29 | **The Pack tab in the approved dress and type**: every screen of the tab in the type, spacing and parts its frame draws (the section above) | Francis, 2026-11-24; ap-6, ap-7, ap-9 | PK1 to PK13 (`docs/design/mockups/pack/08-the-pack-tab-whole.html`), approved 2026-11-14; page 07, PC1 to PC10, approved 2026-11-13. **Released 2026-11-24** | The coin line and its sheets alone are in the book's type; the rest, and #66's stash screen, in the older faces | #66's branch; ⚑ 20, 21 | 3 to 5 builder turns (the designer's estimate) |
 
 ## Needs the product owner's yes
 
@@ -98,7 +116,7 @@ A brief for the Design Studio. Nothing here is designed by the lead.
 - **Who and when on a stash row** (K14), if it is stored: a new field, a new migration.
 - **New until Got it** (K20), if "seen" is stored: a new thing a player writes about their own character.
 - **A find card that names coin** reaches only that character's player: who reads it, in plain words, before it is built.
-- **A player seeing another living character's load when giving** (04's variant A) would open something new to read. Variant B opens nothing.
+- ~~A player seeing another living character's load when giving~~: ruled B on 2026-11-24 (⚑ 16), which opens nothing new to read.
 
 ## ⚑
 
@@ -119,10 +137,26 @@ These are the questions the pages themselves raised that no ruling answers. The 
 13. "Eat one", "Drink one", "Use one" on a stack's sheet as well as At hand?
 14. The − and + on a stack become "Correct the count…"?
 15. Drop's line says "It is gone"? And "Use a charge" at 0 stays a row that explains?
-16. May a player see the others' load when giving: the figure (A) or a warning only (B)?
+16. May a player see the others' load when giving: the figure (A) or a warning only (B)? **Ruled B, 2026-11-24** (below).
 17. After a purchase, what replaces "Cost noted; purses arrive later." now purses exist?
 18. An over-loaded taker is warned, not blocked, and the GM sees it before sending?
 19. No Split: some of a stack moves by Give, Put in or Drop?
+20. (K29) A size, weight or colour a frame draws that no token carries: the Builder lists each one found, with the frame and the nearest token; none is added or rounded without Francis. Not checked frame by frame when this row was written; one to check: the frames' stylesheet draws a sheet's title at 20 px, where `--text-sheet-title` is 30.
+21. (K29) A Pack surface no PK frame draws (the Builder names each: a pack that failed to open, larger text, a Down character's pack are the likely ones): it takes the type through the scope; is its spacing left as built until a frame is drawn, or does it wait?
+
+### Ruled on 2026-11-24 (Francis, in the driver's chat)
+
+| ⚑ | Ruling | Where it lands |
+|---|---|---|
+| The dress (no ⚑ carried it) | The whole Pack tab is built in the dress and type its approved frames draw | K29 |
+| 16 | **B**, as PK9 draws it: another's load is never shown; a receiver this would put over the limit shows the warning sign and words only | K5 |
+| #66 ⚑ 1 | **B**: the stash's Put in gets PK9's sheet (your own things as rows); K5 is built whole from PK9 | K5 |
+| #66 ⚑ 2 | Kept as built: "Put in day 2." where the log can't say whose hands; "Someone put in …" in a recent line | #66's fix round |
+| #66 ⚑ 3, ⚑ 5 | **A**: the thing's name is the pack's own, never lower-cased, in a recent line and in Take's toast | #66's fix round |
+| #66 ⚑ 4, ⚑ 6 | Undo is a secondary button with the set's `anticlockwise-rotation` icon (ic-2) above the word, on a recent line and in the toast | #66's fix round |
+| #66 ⚑ 7 | Offline's explanation as PK7b draws it: a box under the tapped row, not a toast | #66's fix round |
+
+05 and 06 take 16 and #66's ⚑ 1 with K5's build, and #66's own rulings with its fix round (the pull request that builds a thing carries its spec lines).
 
 ## Not in this plan
 
@@ -139,7 +173,7 @@ These are the questions the pages themselves raised that no ruling answers. The 
 1. The drawing made whole and approved (items 1 to 3).
 2. The purse's migrations on the main database.
 3. K9, K10, K13, K15's coin, K21 (piece c), on the redrawn tab.
-4. K1 to K8, K24 to K26: the tab in its new dress, built once.
+4. K1 to K8, K24 to K26: the tab in its new dress, built once. **As it went:** the rows were built in the older faces; K29 (2026-11-24) brings the whole tab to the frames' dress and type, before #66 is shown and before K5.
 5. K11, K12, K14: the stash's own screen and Take.
 6. K16, K18 to K20: the hand-out and the announcement.
 7. K22, K23, K17: as Francis rules and time allows.

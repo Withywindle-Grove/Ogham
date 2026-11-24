@@ -10,7 +10,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { StatusRing, StatusRingMark } from './StatusRing.tsx';
+import { StatusRing, StatusRingMark, StatusRingTap } from './StatusRing.tsx';
 
 afterEach(() => cleanup());
 
@@ -100,5 +100,55 @@ describe('the Status ring tile', () => {
     expect(css).toMatch(/\.status-ring__name \{[^}]*-webkit-line-clamp: 2/);
     expect(css).toMatch(/\.status-ring \{[^}]*inline-size: 72px;[^}]*min-block-size: 88px/);
     expect(css).not.toMatch(/border-radius: var\(--radius-(pill|card|sheet)\)/);
+  });
+});
+
+// Variant ring as a tap and the light's still looks (lt-2, lt-4, lt-5; page 35). Purposes:
+//   The ring as a tap is one button, named for what it does ("Put out Torch"), its verb under the ring (decorative),
+//   and a tap runs it; it is at least 72 by 76, with no edge.
+//   Not lit draws the track alone (no arc, never dashed) and the symbol in the muted colour.
+//   Burnt out draws the flame struck through, muted, and no arc; in a picture, not a button.
+describe('the ring as a tap, and a light not burning', () => {
+  it('is one button named for its action, the verb under the ring, at least 72 by 76 with no edge', async () => {
+    const onTap = vi.fn();
+    render(<StatusRingTap verb="Put out" label="Put out Torch" onTap={onTap} name="Torch" icon="flame" tone="light" fraction={4 / 6} />);
+    const tap = screen.getByRole('button', { name: 'Put out Torch' });
+    const [mark, verb] = [...tap.children];
+    expect(mark!.classList.contains('status-ring__mark')).toBe(true);
+    expect(verb!.textContent).toBe('Put out');
+    expect(verb!.getAttribute('aria-hidden')).toBe('true');
+    await userEvent.setup().click(tap);
+    expect(onTap).toHaveBeenCalledTimes(1);
+    const css = await ringCss();
+    expect(css).toMatch(/\.status-ring-tap \{[^}]*inline-size: var\(--ring-tap-width\);[^}]*min-block-size: var\(--ring-tap-height\);[^}]*border: 0;/);
+    expect(css).toMatch(/\.status-ring-tap:active \{[^}]*background: var\(--tint\)/);
+    // The size lives in the tokens (72 by 76).
+    const fs = (await import(/* @vite-ignore */ ['node', 'fs'].join(':'))) as { readFileSync: (path: string, encoding: 'utf8') => string };
+    const tokens = fs.readFileSync('./src/ui/tokens.css', 'utf8');
+    expect(tokens).toMatch(/--ring-tap-width: 72px;/);
+    expect(tokens).toMatch(/--ring-tap-height: 76px;/);
+  });
+
+  it('not lit: no arc, a plain track, the symbol muted', () => {
+    const { container } = render(<StatusRingMark name="Torch" icon="flame" tone="light" fraction={1} endless still="unlit" />);
+    const mark = container.querySelector<HTMLElement>('.status-ring__mark')!;
+    expect(arcOf(container)).toBeNull();
+    expect(container.querySelector('.status-ring__track--endless')).toBeNull();
+    expect(mark.style.getPropertyValue('--ring-tone')).toBe('var(--muted)');
+    expect(container.querySelectorAll('.status-ring__symbol svg path')).toHaveLength(1);
+  });
+
+  it('burnt out: the flame struck through, muted, no arc, in a picture rather than a button', () => {
+    const { container } = render(
+      <span role="img" aria-label="Torch, burnt out">
+        <StatusRingMark name="Torch" icon="flame" tone="light" fraction={null} still="out" />
+      </span>,
+    );
+    const picture = screen.getByRole('img', { name: 'Torch, burnt out' });
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(arcOf(picture)).toBeNull();
+    expect(picture.querySelector<HTMLElement>('.status-ring__mark')!.style.getPropertyValue('--ring-tone')).toBe('var(--muted)');
+    // The flame and the stroke across it, in one drawing.
+    expect([...container.querySelectorAll('.status-ring__symbol svg path')].map((p) => p.getAttribute('d'))).toContain('M4 21L20 3');
   });
 });

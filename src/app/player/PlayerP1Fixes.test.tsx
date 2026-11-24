@@ -15,7 +15,15 @@
 //   6. The load's line says "coins’ weight", and its card is left-aligned and upright (not italic, not centred).
 //   7. A pinned weapon not in hand shows its two rolls with their die glyphs ("d20 +3", "d4"), not "+20, 1d4".
 //   8. A trait with uses shows its pips before "1 of 1 left".
-//   9. On a landscape tablet the full sheet's foot never names a trait with uses (it is in the Traits section above).
+//   9. On a landscape tablet the full sheet's foot never names a trait with uses (it is in the list above).
+// Row P3 (page 28, approved 2026-11-20; pg28-3, ⚑ 26):
+//   P3a. A pinned ability without uses leaves its foot row's line; the row still opens every one, the pinned one marked
+//        with the star; it stands in the right column's list as a row, whose pop-up (its entry) moves it.
+//   P3b. With every one of a foot row's names pinned, the row stays and its line says where they went.
+// Row P4 (euf-2; page 26's fix 1, drawn on page 28's frame M4e):
+//   P4a. An ability's entry opened from the Player tab carries the Pin star beside ✕; a tap pins it (an ability with no
+//        uses, from the screen), and pinned it reads "Unpin" and stands in the right column's list.
+//   P4b. The full sheet's own page carries no star on an entry (pins are the Player tab's).
 // The review's nits of 19 Nov 2026 (P1 again):
 //   2a. The Attack tile signs its figure when the rules read the attack as a bonus ("+1"), and a screen reader hears it.
 //   5.  The sample says its speed as P1 does: "120 paces", "Speed, 40 paces in a fight".
@@ -126,14 +134,15 @@ describe('the Player screen brought to frame P1', () => {
     expect(attack.getAttribute('aria-label')).toBe("Attack +1: how it's worked out");
   });
 
-  // Purpose A3 (test feedback of 19 Nov 2026, item 5; tfw-7): the Attack box's small line and its pop-up read the same
-  // figures, each kind with a capital. The sample's setting names no AC style, so both read the scores' modifiers (the
-  // pop-up's old lines, A4); a setting with a style reads the totals (sheetCombat.test.tsx).
-  it('reads the Attack box’s small line as its pop-up does, with a capital on each kind', async () => {
+  // Purpose A3 (test feedback of 19 Nov 2026, item 5): the Attack box's small line and its pop-up read the same
+  // figures; the line in plain case, a capital on its first word only (dec-14 row 7b), each pop-up row with its own.
+  // The sample's setting names no AC style, so both read the scores' modifiers (the pop-up's old lines, A4); a setting
+  // with a style reads the totals (sheetCombat.test.tsx).
+  it('reads the Attack box’s small line as its pop-up does, in plain case', async () => {
     const { user } = await brannoch();
     const vitals = screen.getByRole('region', { name: 'Vitals' });
     const attack = within(vitals).getByRole('button', { name: /^Attack / });
-    expect(attack.querySelector('.stat-tile__caption')!.textContent).toBe('Melee +2, Missile +1');
+    expect(attack.querySelector('.stat-tile__caption')!.textContent).toBe('Melee +2, missile +1');
     await user.click(attack);
     const sheet = within(await screen.findByRole('dialog', { name: 'Attack' }));
     expect(sheet.getByText('Melee +2 from Muscle')).toBeTruthy();
@@ -238,7 +247,8 @@ describe('the Player screen brought to frame P1', () => {
     expect(knife.querySelector('.pack__sub .pinned-mark')).toBeNull();
   });
 
-  // Purpose 7b: a pinned trait in At hand has its star before its name too (P1's "★ Horn charge"), and its pips in ink.
+  // Purpose 7b: a pinned trait has its star before its name too (P1's "★ Horn charge"), and its pips in ink; since row
+  // P3 it is a block in the right column's list, not At hand.
   it('puts a pinned trait’s star before its name', async () => {
     const gm = world.addPerson('priya@lantern.example', 'Priya');
     const sam = world.addPerson('sam@lantern.example', 'Sam');
@@ -248,8 +258,8 @@ describe('the Player screen brought to frame P1', () => {
     const user = userEvent.setup();
     render(<Root db={world.db} />);
     await user.click(await screen.findByRole('button', { name: new RegExp(P1_CAMPAIGN) }));
-    const atHand = await screen.findByRole('region', { name: 'At hand' });
-    const row = within(atHand).getByRole('button', { name: /^Steady flame, pinned/ });
+    const list = await screen.findByRole('region', { name: 'Abilities and traits' });
+    const row = await within(list).findByRole('button', { name: /^Steady flame, pinned/ });
     expect(row.querySelector('.list-row__title')!.firstElementChild?.classList.contains('pinned-mark')).toBe(true);
     expect(row.querySelector('.list-row__sub .pinned-mark')).toBeNull();
     expect(row.querySelector('.use-pips--ink')).not.toBeNull();
@@ -285,5 +295,89 @@ describe('the Player screen brought to frame P1', () => {
     expect(abilities.textContent).toMatch(/Oath of light/);
     expect(abilities.textContent).not.toMatch(/Steady flame/);
     expect(screen.getByRole('button', { name: 'Use Steady flame' })).toBeTruthy();
+  });
+
+  // Purpose P3a: a pinned ability without uses leaves its foot row's line, the row still opening it with the star; it is
+  // a row in the right column's list, and its entry moves it.
+  it('takes a pinned ability out of the foot row’s line and into the list, its entry moving it', async () => {
+    landscape();
+    const gm = world.addPerson('priya@lantern.example', 'Priya');
+    const sam = world.addPerson('sam@lantern.example', 'Sam');
+    const id = await addP1Character(world, { gm, sam, fenPack });
+    world.tables.character_play.find((p) => p.actor_id === id)!.pins = [
+      { kind: 'trait', key: 'Steady flame' },
+      { kind: 'trait', key: 'Oath of light' },
+    ];
+    world.signInAs(sam);
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await user.click(await screen.findByRole('button', { name: new RegExp(P1_CAMPAIGN) }));
+    const list = await screen.findByRole('region', { name: 'Abilities and traits' });
+    const row = await within(list).findByRole('button', { name: 'Oath of light, pinned' });
+    expect(row.closest('.pinned-box')?.classList.contains('pinned-box--block')).toBe(false);
+    // The foot's Abilities row no longer names it; it still opens it, with the star.
+    const abilities = await screen.findByRole('button', { name: /^Abilities/ });
+    expect(abilities.textContent).not.toMatch(/Oath of light/);
+    await user.click(abilities);
+    const opened = await screen.findByRole('dialog', { name: 'Abilities' });
+    expect(within(opened).getByRole('button', { name: /^Oath of light.*, pinned$/ })).toBeTruthy();
+    await user.click(within(opened).getByRole('button', { name: 'Close' }));
+    // Its own pop-up (the entry) ends with Move up, the last pinned one having no Move down.
+    await user.click(row);
+    const entry = await screen.findByRole('dialog', { name: 'Oath of light' });
+    expect(within(entry).queryByRole('button', { name: 'Move down' })).toBeNull();
+    await user.click(within(entry).getByRole('button', { name: 'Move up' }));
+    await vi.waitFor(() => expect(world.tables.character_play.find((p) => p.actor_id === id)!.pins).toEqual([
+      { kind: 'trait', key: 'Oath of light' },
+      { kind: 'trait', key: 'Steady flame' },
+    ]));
+  });
+
+  // Purpose P3b: with every name in a foot row pinned, the row stays and its line says where they went.
+  it('keeps a foot row whose every name is pinned, its line saying so', async () => {
+    landscape();
+    const gm = world.addPerson('priya@lantern.example', 'Priya');
+    const sam = world.addPerson('sam@lantern.example', 'Sam');
+    const id = await addP1Character(world, { gm, sam, fenPack });
+    world.signInAs(sam);
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await user.click(await screen.findByRole('button', { name: new RegExp(P1_CAMPAIGN) }));
+    const traitsRow = await screen.findByRole('button', { name: /^Traits/ });
+    const names = traitsRow.querySelector('.list-row__sub')!.textContent!.split(', ');
+    cleanup();
+    world.tables.character_play.find((p) => p.actor_id === id)!.pins = names.map((key) => ({ kind: 'trait', key }));
+    render(<Root db={world.db} />);
+    await userEvent.setup().click(await screen.findByRole('button', { name: new RegExp(P1_CAMPAIGN) }));
+    const after = await screen.findByRole('button', { name: /^Traits/ });
+    // Frame M4h's words exactly (the review's finding 6 on #23).
+    await vi.waitFor(() => expect(after.querySelector('.list-row__sub')?.textContent).toBe('All pinned: they are in the list above'));
+  });
+
+  // Purpose P4a: an ability's entry on the Player tab carries the star; a tap pins it, and pinned it reads "Unpin".
+  it('pins an ability without uses from its entry’s star', async () => {
+    landscape();
+    const { user } = await brannoch();
+    await user.click(await screen.findByRole('button', { name: /^Abilities/ }));
+    const list = await screen.findByRole('dialog', { name: 'Abilities' });
+    await user.click(within(list).getByRole('button', { name: /^Oath of light/ }));
+    const entry = await screen.findByRole('dialog', { name: 'Oath of light' });
+    const star = within(entry).getByRole('button', { name: 'Pin to top' });
+    expect(star.getAttribute('aria-pressed')).toBe('false');
+    await user.click(star);
+    expect(await screen.findByText('Oath of light pinned to the top')).toBeTruthy();
+    await vi.waitFor(() => expect(world.tables.character_play[0]!.pins).toEqual([{ kind: 'trait', key: 'Oath of light' }]));
+    await vi.waitFor(() => expect(within(screen.getByRole('dialog', { name: 'Oath of light' })).getByRole('button', { name: 'Unpin' }).getAttribute('aria-pressed')).toBe('true'));
+    expect(await within(screen.getByRole('region', { name: 'Abilities and traits' })).findByRole('button', { name: 'Oath of light, pinned' })).toBeTruthy();
+  });
+
+  // Purpose P4b: the full sheet's own page carries no star on an entry.
+  it('puts no star on an entry of the full sheet’s own page', async () => {
+    const { user } = await brannoch();
+    await openFullSheetFromMenu(user);
+    const abilities = await screen.findByRole('region', { name: 'Abilities' });
+    await user.click(within(abilities).getByRole('button', { name: /^Oath of light/ }));
+    const entry = await screen.findByRole('dialog', { name: 'Oath of light' });
+    expect(within(entry).queryByRole('button', { name: 'Pin to top' })).toBeNull();
   });
 });

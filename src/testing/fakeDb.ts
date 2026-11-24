@@ -2,7 +2,7 @@
 // It answers only the calls the sign-in and campaign screens make, and mimics the database's
 // behaviour for them. The real access rules are checked separately in supabase/tests.
 import { RETIRED, STALE, STALE_CODE } from '../core/commands.ts';
-import { UNDOABLE_DELETIONS, UNDOABLE_MAKINGS, UNDOABLE_SPLIT } from '../core/undo.ts';
+import { isJoin, UNDOABLE_DELETIONS, UNDOABLE_MAKINGS, UNDOABLE_SPLIT } from '../core/undo.ts';
 import { isRumoursTable as rumoursTable } from '../modules/library/rumours.ts';
 import { joinsAtOnce, partyLowest, startLevelFixedOf, startLevelLimit, startLevelOf } from '../core/campaignSettings.ts';
 import type { Db } from '../core/supabase.ts';
@@ -65,6 +65,7 @@ export interface FakeWorld {
     | 'place_pieces'
     | 'piece_shows'
     | 'place_rule_switches'
+    | 'knowledge_shares'
     | 'gm_messages'
     | 'message_recipients'
     | 'messages'
@@ -92,6 +93,7 @@ export interface FakeWorld {
     | 'purses'
     | 'hook_sends'
     | 'finds_seen'
+    | 'calls_seen'
     | 'shop_stock',
     Row[]
   >;
@@ -168,6 +170,8 @@ export function createFakeDb(): FakeWorld {
     // The GM's switches on a place's rules (December dec-7 piece 3): the GM's alone; players read through
     // place_rules_for_players and encounter_check_for_players.
     place_rule_switches: [],
+    // The GM's shares of a place's Knowledge (P4, p4s-2): the GM's alone; players read through knowledge_for_players.
+    knowledge_shares: [],
     gm_messages: [],
     message_recipients: [],
     // Messaging (M5b g4): one row per message, in its character's thread.
@@ -216,6 +220,8 @@ export function createFakeDb(): FakeWorld {
     hook_sends: [],
     // The seen mark (K20, pk-13): one row per character, written only by mark_finds_seen.
     finds_seen: [],
+    // The seen mark on a call (P7, p7-1): one row a send and a player, written only by mark_call_seen.
+    calls_seen: [],
     // A shop's stock for the day (W12): written only by set_shop_stock and reset_shop_stock.
     shop_stock: [],
   };
@@ -332,6 +338,9 @@ export function createFakeDb(): FakeWorld {
             : row.player_user_id
               ? 'owner'
               : 'gm'
+        : // Like the database (P7): a call's seen mark's lines are its player's alone, even for a call to the party.
+          table === 'calls_seen'
+          ? 'owner'
         : // Like the database (K20): a seen mark's lines are its character's player's (the GM reads every line).
           table === 'finds_seen'
           ? markOwner(row)
@@ -362,6 +371,7 @@ export function createFakeDb(): FakeWorld {
             // Like the database (fm-1): the GM's part of a travel row is the GM's alone.
             table === 'travel_group_secrets' ||
             table === 'place_rule_switches' ||
+            table === 'knowledge_shares' ||
             // Like the database (W12): a shop's stock lines are the GM's alone (whether players read a thing coming in is open).
             table === 'shop_stock' ||
             // Like the database (M5b step g3): pins and rows read by hand are the GM's alone.
@@ -468,7 +478,7 @@ export function createFakeDb(): FakeWorld {
     const entries = args.entries as Row[];
     if (!user) return { data: null, error: { message: 'Sign in first.', code: '42501' } };
     if (!Array.isArray(entries) || entries.length === 0) return { data: null, error: { message: 'A pack needs at least one entry.' } };
-    const kinds = ['fieldTemplate', 'item', 'class', 'xpTable', 'rulesSet', 'condition', 'lightType', 'statBlock', 'table', 'calendar', 'option', 'race', 'spell', 'spellList', 'treasureType', 'startingKit', 'hook', 'traitList', 'gmReferencePanel', 'location', 'patch', 'patron', 'route', 'adventureHook', 'map'];
+    const kinds = ['fieldTemplate', 'item', 'class', 'xpTable', 'rulesSet', 'condition', 'lightType', 'statBlock', 'table', 'calendar', 'option', 'race', 'spell', 'spellList', 'treasureType', 'startingKit', 'hook', 'traitList', 'gmReferencePanel', 'location', 'patch', 'patron', 'route', 'adventureHook', 'map', 'npc', 'shop'];
     if (entries.some((e) => !kinds.includes(String(e.kind)))) return { data: null, error: { message: 'invalid kind' } };
     const now = new Date().toISOString();
     const details = {
@@ -625,11 +635,54 @@ export function createFakeDb(): FakeWorld {
       cameBack = left.back!;
       used = cameBack.of - cameBack.left;
     }
+    // Like private.undo_check_join and private.undo_unjoin (Q2, sw-4, sw-9): a joined stack gives back what's left of the
+    // added part, never going below what it had; a whole line a move merged in is made again with it.
+    const joinChanges = changes.filter((e) => e.target_table === 'inventory_lines' && isJoin(String(picked.type), { before: e.before, after: e.after }));
+    const mergedChanges = joinChanges.length > 0 && picked.type === UNDOABLE_SPLIT ? changes.filter((e) => e.target_table === 'inventory_lines' && !e.after) : [];
+    const unjoins: { row: Row; change: Row; left: number }[] = [];
+    for (const change of joinChanges) {
+      if (tables.events.some((e) => e.reverts_event_id === change.id)) return refused('That was already undone.');
+      const row = rowOf(change);
+      if (!row || Number(row.qty) < 1) return refused('None of it is left, so nothing can come back.');
+      const handedOn = tables.events.some(
+        (e) =>
+          e.target_table === 'inventory_lines' &&
+          e.target_id === change.target_id &&
+          Number(e.seq) > Number(change.seq) &&
+          !e.reverts_event_id &&
+          e.request_id !== picked.request_id &&
+          !!e.after &&
+          ['actor_id', 'location_id', 'name', 'item_data'].some((key) => key in (e.after as Row)),
+      );
+      if (handedOn) return refused("It's changed since, so it can't go back.");
+      // Like private.joined_left: some of it handed on (a give, or out of the party) refuses; moved within the same
+      // pack (into a bag, onto another stack there) only leaves fewer here (sw-4).
+      const gaveSome = tables.events.some((e) => {
+        const was = (e.before ?? {}) as Row;
+        const now = (e.after ?? {}) as Row;
+        if (e.target_table !== 'inventory_lines' || e.target_id !== change.target_id || Number(e.seq) <= Number(change.seq) || e.reverts_event_id) return false;
+        if (!['inventory.move', 'inventory.giveAway'].includes(String(e.type)) || !('qty' in now) || Number(now.qty) >= Number(was.qty)) return false;
+        const others = tables.events.filter((o) => o.request_id === e.request_id && o.target_table === 'inventory_lines' && o.target_id !== change.target_id && o.after);
+        const handed = others.map((o) => ({ ...(o.after as Row), ...(o.before === null ? {} : (tables.inventory_lines.find((l) => l.id === o.target_id) ?? {})) }));
+        return handed.some((h) => !!h.given_to || (h.actor_id ?? null) !== (row.actor_id ?? null) || (h.location_id ?? null) !== (row.location_id ?? null));
+      });
+      if (gaveSome) return refused("Some of it was given on since, so it can't go back.");
+      const had = Number((change.before as Row).qty);
+      const added = Number((change.after as Row).qty) - had;
+      const left = Math.min(added, Number(row.qty) - had);
+      if (left < 1) return refused('None of it is left, so nothing can come back.');
+      const by = String(tables.actors.find((a) => a.id === row.actor_id)?.name ?? tables.locations.find((l) => l.id === row.location_id)?.name ?? '');
+      cameBack = { left, of: added, name: String(row.name), by };
+      used = added - left;
+      unjoins.push({ row, change, left });
+    }
+    if (mergedChanges.some((change) => rowOf(change))) return refused("That's changed since. Undo the later change first.");
+    changes = changes.filter((e) => !joinChanges.includes(e) && !mergedChanges.includes(e));
     const splitParts = changes.filter((e) => e.target_table === 'inventory_lines' && splits.has(e.target_id) && !e.before);
     // Like the database (M5 step 5): a session or an expedition the action started is marked undone, never removed,
     // while it's as the action left it.
     const madeRows = [...UNDOABLE_MAKINGS, ...TRAVEL_MAKINGS].includes(String(picked.type))
-      ? changes.filter((e) => !e.before && e.after && ['sessions', 'expeditions', 'expedition_places', 'places', 'place_notes', 'group_places', 'place_moves', 'place_pieces', 'piece_shows', 'place_rule_switches', 'reminders', 'check_results', 'weather_rolls', 'character_statuses', 'table_pins', 'table_reads', 'waiting_encounters', 'messages', 'sheet_changes', 'travel_groups', 'group_lost', 'camps', 'camp_entries', 'hook_sends', 'shop_stock'].includes(String(e.target_table)))
+      ? changes.filter((e) => !e.before && e.after && ['sessions', 'expeditions', 'expedition_places', 'places', 'place_notes', 'group_places', 'place_moves', 'place_pieces', 'piece_shows', 'place_rule_switches', 'knowledge_shares', 'reminders', 'check_results', 'weather_rolls', 'character_statuses', 'table_pins', 'table_reads', 'waiting_encounters', 'messages', 'sheet_changes', 'travel_groups', 'group_lost', 'camps', 'camp_entries', 'hook_sends', 'shop_stock'].includes(String(e.target_table)))
       : [];
     for (const change of madeRows) {
       const row = rowOf(change);
@@ -725,7 +778,7 @@ export function createFakeDb(): FakeWorld {
     }
     // The dropped lines come back first (containers before what was in them), then their GM-only rows.
     const comeBack = [
-      ...dropped.sort((a, b) => Number(!!(a.before as Row).container_line_id) - Number(!!(b.before as Row).container_line_id) || Number(a.seq) - Number(b.seq)),
+      ...dropped.filter((e) => !mergedChanges.includes(e)).sort((a, b) => Number(!!(a.before as Row).container_line_id) - Number(!!(b.before as Row).container_line_id) || Number(a.seq) - Number(b.seq)),
       ...changes.filter((e) => !e.after && e.target_table === 'inventory_line_secrets'),
     ];
     for (const change of comeBack) {
@@ -737,6 +790,17 @@ export function createFakeDb(): FakeWorld {
       const row = rowOf(change)!;
       tables.inventory_lines.splice(tables.inventory_lines.indexOf(row), 1);
       log('inventory_lines', structuredClone(row), null, tag, change);
+    }
+    for (const { row, change, left } of unjoins) {
+      const was = structuredClone(row);
+      row.qty = Number(row.qty) - left;
+      row.version = Number(row.version ?? 1) + 1;
+      log('inventory_lines', was, structuredClone(row), tag, change);
+    }
+    for (const change of mergedChanges) {
+      const row: Row = { ...structuredClone(change.before as Row), qty: unjoins.at(-1)?.left ?? (change.before as Row).qty, version: 1 };
+      tables.inventory_lines.push(row);
+      log('inventory_lines', null, structuredClone(row), tag, change);
     }
     for (const change of madeRows) {
       const row = rowOf(change)!;
@@ -961,6 +1025,7 @@ export function createFakeDb(): FakeWorld {
       | 'place_pieces'
       | 'piece_shows'
       | 'place_rule_switches'
+      | 'knowledge_shares'
       | 'weather_rolls'
       | 'requests'
       | 'sheet_changes'
@@ -1223,6 +1288,23 @@ export function createFakeDb(): FakeWorld {
         tables.group_places.some((g) => g.place_id === p.id && Number(g.group_number) === group && !g.undone && visitShown(g.id)),
     );
     return shown ? String(shown.players_name || shown.name) : shownName;
+  };
+  // The name of a pack's place when it counts as shown to the group (P4's private.known_entry_name): a place made from it
+  // the group was shown, or (ppf-1) a place inside it the group was shown, then under the pack's name for players.
+  const fakeKnownEntryName = (campaign: unknown, group: number, pack: unknown, entry: Row): string | null => {
+    const shown = fakeShownPlaceName(campaign, group, pack, entry, '');
+    if (shown) return shown;
+    const inside = tables.places.some(
+      (q) =>
+        q.campaign_id === campaign &&
+        q.pack_id === pack &&
+        !q.undone &&
+        q.pack_entry_id !== entry.pack_entry_id &&
+        tables.group_places.some((g) => g.place_id === q.id && Number(g.group_number) === group && !g.undone && visitShown(g.id)) &&
+        fakeChain(pack, q.pack_entry_id).slice(1).includes(entry),
+    );
+    const view = ((entry.data ?? {}) as Row).playerView as Row | undefined;
+    return inside ? (typeof view?.name === 'string' && view.name.trim() ? view.name.trim().slice(0, 200) : String(entry.name ?? '')) : null;
   };
   // With one group left, everyone is the party (group 1) again.
   const tidyGroups = (campaign: unknown, tag: Tag) => {
@@ -1808,6 +1890,132 @@ export function createFakeDb(): FakeWorld {
       });
       return { data: rows, error: null };
     },
+    // The players' place card (P4), like …_p4_players_place_card.sql: the GM's eye on a section of Knowledge (its words
+    // copied from the pack), a player's card of the place their group is shown, and the sections shared with them.
+    set_knowledge_share: ({ campaign, group_no, pack, entry_id, section_at, share }, tag) => {
+      if (!isGmOf(campaign)) return refused("You don't have permission to do that.");
+      const entry = tables.library_entries.find((e) => e.pack_id === pack && e.kind === 'location' && e.pack_entry_id === entry_id);
+      if (!entry || !tables.campaign_packs.some((cp) => cp.campaign_id === campaign && cp.pack_id === pack)) return plain("That place isn't in an attached pack.");
+      const gm = ((entry.data ?? {}) as Row).gm as Row | undefined;
+      const sections = gm && Array.isArray(gm.sections) ? (gm.sections as Row[]) : [];
+      const section = sections[Number(section_at)];
+      if (!section || typeof section !== 'object') return plain("That section isn't in that place's knowledge.");
+      const clock = Number(tables.campaign_clocks.find((c) => c.campaign_id === campaign)?.seconds ?? 0);
+      const row = tables.knowledge_shares.find((k) => k.campaign_id === campaign && Number(k.group_number) === Number(group_no) && k.pack_id === pack && k.entry_id === entry_id && Number(k.section_at) === Number(section_at) && !k.undone);
+      if (!row) {
+        if (share !== true) return { data: null, error: null };
+        const made: Row = { id: newId('knowledge-share'), campaign_id: campaign, group_number: Number(group_no), pack_id: pack, entry_id, section_at: Number(section_at), heading: String(section.heading ?? ''), body: section.text ?? null, shared: true, shared_clock: clock, place_name: String(entry.name ?? ''), undone: false };
+        tables.knowledge_shares.push(made);
+        log('knowledge_shares', null, structuredClone(made), tag);
+        return copy(made);
+      }
+      if (row.shared !== (share === true)) changeRow('knowledge_shares', row, share === true ? { shared: true, shared_clock: clock } : { shared: false }, tag);
+      return copy(row);
+    },
+    place_card_for_players: ({ campaign }) => {
+      withGroupRows();
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const rows = groups.flatMap((group) => {
+        const visit = tables.group_places
+          .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
+          .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+        const place = visit && tables.places.find((p) => p.id === visit.place_id && !p.undone);
+        // A detached pack's place sends nothing (local review of the P4 fixes, 1).
+        if (!visit || !place || !visitShown(visit.id) || (place.pack_id && !tables.campaign_packs.some((cp) => cp.campaign_id === campaign && cp.pack_id === place.pack_id))) return [];
+        const out: Row[] = [{ group_number: group, kind: 'here', at: 0, place_id: place.id, key: String(place.pack_key ?? ''), name: String(place.players_name || place.name) }];
+        if (!place.pack_id) return out;
+        const above = fakeChain(place.pack_id, place.pack_entry_id).slice(1);
+        const names = above.map((entry) => fakeKnownEntryName(campaign, group, place.pack_id, entry));
+        const trail = names.filter((n): n is string => !!n).reverse();
+        trail.forEach((name, i) => out.push({ group_number: group, kind: 'trail', at: i + 1, place_id: null, key: null, name }));
+        if (names[0]) out.push({ group_number: group, kind: 'area', at: 0, place_id: null, key: null, name: names[0] });
+        const parent = String(place.pack_parent_id ?? '');
+        if (parent) {
+          const known = tables.places.filter(
+            (q) =>
+              q.campaign_id === campaign && !q.undone && q.pack_id === place.pack_id && String(q.pack_parent_id ?? '') === parent && q.id !== place.id && q.pack_entry_id !== place.pack_entry_id &&
+              tables.group_places.some((g) => g.place_id === q.id && Number(g.group_number) === group && !g.undone && !tables.expeditions.some((x) => x.id === g.expedition_id && x.undone) && visitShown(g.id)),
+          );
+          known.sort((a, b) => String(a.pack_key ?? '').length - String(b.pack_key ?? '').length || String(a.pack_key ?? '').localeCompare(String(b.pack_key ?? '')));
+          // Each with the first piece the group was shown there (ppf-4), never a picture.
+          const lineOf = (q: Row) => {
+            const visits = new Set(tables.group_places.filter((g) => g.place_id === q.id && Number(g.group_number) === group && !g.undone && !tables.expeditions.some((x) => x.id === g.expedition_id && x.undone)).map((g) => g.id));
+            const first = tables.piece_shows
+              .filter((sh) => visits.has(sh.group_place_id) && sh.shown === true && !sh.undone)
+              .sort((a, b) => String(a.shown_at).localeCompare(String(b.shown_at)))
+              .map((sh) => tables.place_pieces.find((pc) => pc.id === sh.piece_id && !pc.undone && pc.kind !== 'picture' && String(pc.body ?? '').trim()))
+              .find(Boolean);
+            return first ? plainText(String(first.body)) : '';
+          };
+          known.forEach((q, i) => out.push({ group_number: group, kind: 'known', at: i + 1, place_id: q.id, key: String(q.pack_key ?? ''), name: String(q.players_name || q.name), line: lineOf(q) }));
+        }
+        return out;
+      });
+      return { data: rows, error: null };
+    },
+    knowledge_for_players: ({ campaign }) => {
+      withGroupRows();
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const rows = groups.flatMap((group) => {
+        const visit = tables.group_places
+          .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
+          .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+        const place = visit && tables.places.find((p) => p.id === visit.place_id && !p.undone);
+        if (!visit || !place || !place.pack_id || !visitShown(visit.id)) return [];
+        const chain = fakeChain(place.pack_id, place.pack_entry_id).map((e) => e.pack_entry_id);
+        const parent = String(place.pack_parent_id ?? '');
+        const own = String(place.players_name || place.name);
+        return tables.knowledge_shares
+          .filter((k) => k.campaign_id === campaign && Number(k.group_number) === group && k.pack_id === place.pack_id && k.shared === true && !k.undone)
+          .filter((k) => {
+            if (chain.includes(k.entry_id)) return true;
+            const entry = tables.library_entries.find((e) => e.pack_id === k.pack_id && e.kind === 'location' && e.pack_entry_id === k.entry_id);
+            return !!parent && ((entry?.data ?? {}) as Row).parentId === parent;
+          })
+          .sort((a, b) => Number(a.shared_clock) - Number(b.shared_clock))
+          .map((k) => {
+            const entry = tables.library_entries.find((e) => e.pack_id === k.pack_id && e.kind === 'location' && e.pack_entry_id === k.entry_id);
+            const placeName = k.entry_id === place.pack_entry_id || !entry ? own : (fakeKnownEntryName(campaign, group, place.pack_id, entry) ?? own);
+            return { group_number: group, share_id: k.id, place_name: placeName, heading: plainText(String(k.heading ?? '')), body: k.body === null || k.body === undefined ? null : plainDeep(k.body), shared_clock: Number(k.shared_clock) };
+          });
+      });
+      return { data: rows, error: null };
+    },
+    // The players' map (P5), like …_p5_players_map.sql: for each of the reader's groups, the copy of the map of the last
+    // place shown to it on the expedition under way (its own tie, else the copy another place holds for the same pack
+    // map, up the place's trail), only while its eye is open.
+    map_for_players: ({ campaign }) => {
+      withGroupRows();
+      const packMap = (packId: unknown, entryId: unknown) => {
+        if (!packId || !entryId) return null;
+        const maps = tables.library_entries
+          .filter((e) => e.pack_id === packId && e.kind === 'map' && Array.isArray((e.data as Row)?.locationIds))
+          .sort((a, b) => String(a.pack_entry_id).localeCompare(String(b.pack_entry_id)));
+        for (const entry of fakeChain(packId, entryId)) {
+          const found = maps.find((m) => ((m.data as Row).locationIds as unknown[]).includes(entry.pack_entry_id));
+          if (found) return String(found.pack_entry_id);
+        }
+        return null;
+      };
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const rows = groups.flatMap((group) => {
+        const visit = tables.group_places
+          .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && visitShown(g.id) && tables.expeditions.some((x) => x.id === g.expedition_id && !x.undone && (x.ended_at ?? null) === null))
+          .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+        const place = visit && tables.places.find((p) => p.id === visit.place_id && !p.undone);
+        if (!visit || !place) return [];
+        const own = packMap(place.pack_id, place.pack_entry_id);
+        const held = own
+          ? tables.places
+              .filter((q) => q.campaign_id === campaign && !q.undone && q.id !== place.id && q.map_asset_id && q.pack_id === place.pack_id && packMap(q.pack_id, q.pack_entry_id) === own)
+              .sort((a, b) => String(a.created_at ?? '').localeCompare(String(b.created_at ?? '')))[0]
+          : undefined;
+        const assetId = place.map_asset_id ?? held?.map_asset_id ?? null;
+        const asset = assetId && tables.assets.find((a) => a.id === assetId && a.campaign_id === campaign && a.kind === 'map' && a.visibility === 'all');
+        return asset ? [{ group_number: group, asset_id: asset.id, title: String(asset.name ?? '') }] : [];
+      });
+      return { data: rows, error: null };
+    },
     // A place's picture (M5b step 1 follow-up), like …_m5b_1b_place_picture.sql: each of the reader's groups shown its
     // current place (a piece shown on this visit) gets the place's picture, if it has one.
     scene_pictures: ({ campaign }) => {
@@ -2024,6 +2232,22 @@ export function createFakeDb(): FakeWorld {
         tables.finds_seen.push(row);
         log('finds_seen', null, structuredClone(row), named);
       }
+      return { data: seen, error: null };
+    },
+    // Got it on a call (P7, p7-1 to p7-3), like supabase/migrations/20261124120000_p7_calls_seen.sql: a member who isn't
+    // the GM, on a live send they may read, marks it seen; a repeat changes nothing and gives back the first time.
+    mark_call_seen: ({ send }, tag) => {
+      const sent = tables.hook_sends.find((s) => s.id === send);
+      const campaign = sent?.campaign_id;
+      if (!sent || sent.undone || !isMemberOf(campaign) || isGmOf(campaign) || ((sent.actor_id ?? null) !== null && sent.player_user_id !== me())) {
+        return refused("You don't have permission to do that.");
+      }
+      const was = tables.calls_seen.find((r) => r.send_id === send && r.player_user_id === me());
+      if (was) return { data: was.seen_at, error: null };
+      const seen = new Date(Date.now() + nextId).toISOString();
+      const row: Row = { id: newId('call-seen'), campaign_id: campaign, send_id: send, player_user_id: me(), seen_at: seen, created_at: seen, updated_at: seen };
+      tables.calls_seen.push(row);
+      log('calls_seen', null, structuredClone(row), { ...(tag ?? { requestId: crypto.randomUUID() }), type: 'hook.seen', level: 'verbose' });
       return { data: seen, error: null };
     },
     // Calls to adventure (dec-12 piece B), like supabase/migrations/20261113210000_dec_12b_calls_to_adventure.sql: the
@@ -4023,6 +4247,10 @@ export function createFakeDb(): FakeWorld {
   const rpcs: Record<string, (args: Row) => Result> = {
     ...companyRpcs,
     ...ruleRpcs,
+    // K22b's tell (public.tell_item) isn't modelled here: it tells nothing (0), so the old per-field Reveal writes the
+    // field as before. The real tell is tested on the database (supabase/tests/k22-reveal-hidden.test.ts); K2's screens
+    // bring a fuller fake with them.
+    tell_item: () => ({ data: 0, error: null }),
     // Like the database (ruled 2026-10-29, A4): the GM gets every exception; a player only those for player-facing
     // entries (the fake doesn't model which items a player may read).
     campaign_exceptions: ({ campaign }) => {
@@ -4139,6 +4367,111 @@ export function createFakeDb(): FakeWorld {
         invite.status = 'accepted';
       }
       return { data: campaignId, error: null };
+    },
+  };
+
+  // Like public.join_added_line and public.move_into_stack (Q2, sw-1 to sw-9): a stackable thing joins a same-name stack
+  // in the same place, counted in one step; null when nothing joined (the command then goes on as before).
+  const stackName = (name: unknown) => String(name ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const sameStackName = (a: unknown, b: unknown) => {
+    const [x, y] = [stackName(a), stackName(b)];
+    const ies = (one: string, other: string) => /[^aeiou]y$/.test(one) && `${one.slice(0, -1)}ies` === other;
+    return x !== '' && (x === y || `${x}s` === y || `${y}s` === x || `${x}es` === y || `${y}es` === x || ies(x, y) || ies(y, x));
+  };
+  const stackJoinable = (l: Row, moving = false) =>
+    l.approval === 'approved' &&
+    (moving || !l.equipped) &&
+    !l.given_to &&
+    !l.charges_hidden &&
+    (l.charges_left ?? null) === null &&
+    Number(l.charges_used ?? 0) === 0 &&
+    !(l.item_data && typeof l.item_data === 'object' && 'charges' in (l.item_data as Row)) &&
+    !l.needs_fuel &&
+    (l.fuel_left_seconds ?? null) === null &&
+    !tables.character_lights.some((c) => c.line_id === l.id && ((c.lit_at ?? null) !== null || (c.left_seconds ?? null) !== null));
+  const mayChangeCarrierOf = (campaign: unknown, actor: unknown, location: unknown) =>
+    isGmOf(campaign) ||
+    (isMemberOf(campaign) &&
+      (tables.locations.some((l) => l.id === location && l.campaign_id === campaign) ||
+        tables.actors.some((a) => a.id === actor && a.campaign_id === campaign && a.owner_user_id === me() && a.status !== 'archived')));
+  const mayReceiveAt = (campaign: unknown, actor: unknown, location: unknown) =>
+    isMemberOf(campaign) &&
+    (tables.locations.some((l) => l.id === location && l.campaign_id === campaign) ||
+      tables.actors.some((a) => a.id === actor && a.campaign_id === campaign && (isGmOf(campaign) || ((a.approval ?? 'approved') === 'approved' && a.status !== 'archived'))));
+  const joinDone = (tag: Tag): { done: boolean; line: unknown } => {
+    if (!tag?.requestId) return { done: false, line: null };
+    const earlier = tables.events.filter((e) => e.request_id === tag.requestId && e.actor_user_id === me());
+    const joined = earlier.find((e) => e.target_table === 'inventory_lines' && isJoin(String(e.type), { before: e.before, after: e.after }));
+    return { done: earlier.length > 0, line: joined?.target_id ?? null };
+  };
+  const stackAt = (campaign: unknown, actor: unknown, location: unknown, container: unknown, name: unknown, inNumbers: boolean, not: unknown = null) =>
+    tables.inventory_lines.find(
+      (l) =>
+        l.campaign_id === campaign &&
+        (l.actor_id ?? null) === (actor ?? null) &&
+        (l.location_id ?? null) === (location ?? null) &&
+        (l.container_line_id ?? null) === (container ?? null) &&
+        l.id !== not &&
+        sameStackName(l.name, name) &&
+        // Only things carried in numbers (sw-10): several to a slot, or a bundle's units.
+        (Number(l.stack) > 1 || Number(l.per_units ?? 1) > 1) &&
+        inNumbers &&
+        stackJoinable(l) &&
+        (actor === null || actor === undefined || tables.actors.some((a) => a.id === actor && (a.approval ?? 'approved') === 'approved')),
+    );
+  const countOn = (line: Row, qty: number, tag: Parameters<EventLog>[3]) => {
+    const was = structuredClone(line);
+    line.qty = qty;
+    line.version = Number(line.version ?? 1) + 1;
+    line.updated_at = new Date(Date.now() + nextId).toISOString();
+    log('inventory_lines', was, structuredClone(line), tag);
+  };
+  const joinRpcs: Record<string, (args: Row, tag: Tag) => Result> = {
+    join_added_line: (args, tag) => {
+      const done = joinDone(tag);
+      if (done.done) return { data: done.line, error: null };
+      const howMany = Number(args.how_many);
+      const howGot = typeof args.how_got === 'string' ? args.how_got : 'found';
+      if (!['bought', 'found', 'given'].includes(howGot) || (howGot === 'given' && !isGmOf(args.campaign))) return { data: null, error: null };
+      if (!Number.isInteger(howMany) || howMany < 1 || !args.entry || tables.inventory_lines.some((l) => l.id === args.made_id)) return { data: null, error: null };
+      if (!mayChangeCarrierOf(args.campaign, args.actor, args.location)) return { data: null, error: null };
+      const entry = tables.library_entries.find((e) => e.id === args.entry);
+      const data = (entry?.data ?? {}) as Row;
+      const used = !!entry && tables.campaign_packs.some((cp) => cp.campaign_id === args.campaign && cp.pack_id === entry.pack_id);
+      if (!entry || entry.kind !== 'item' || !used || 'charges' in data) return { data: null, error: null };
+      const bundled = typeof data.bundle === 'number' && data.bundle > 1;
+      const name = bundled && typeof data.unitName === 'string' && data.unitName.trim() ? data.unitName : entry.name;
+      const stack = typeof data.stack === 'number' && Number.isInteger(data.stack) ? data.stack : 1;
+      const target = stackAt(args.campaign, args.actor ?? null, args.location ?? null, args.container ?? null, name, stack > 1 || bundled);
+      if (!target) return { data: null, error: null };
+      // How it was got stays on the add's own line (its reason), never on the stack.
+      const words = (v: unknown, most: number) => (typeof v === 'string' ? v.trim().slice(0, most) : '');
+      const reason = JSON.stringify({ join: { howGot, cost: howGot === 'bought' ? words(args.cost, 100) : '', note: words(args.note, 300) } });
+      countOn(target, Number(target.qty) + howMany, tag ? { ...tag, whatFor: reason } : tag);
+      return { data: target.id, error: null };
+    },
+    move_into_stack: (args, tag) => {
+      const done = joinDone(tag);
+      if (done.done) return { data: done.line, error: null };
+      const source = tables.inventory_lines.find((l) => l.id === args.line);
+      const howMany = Number(args.how_many);
+      if (!source || !Number.isInteger(howMany) || howMany < 1 || howMany > Number(source.qty)) return { data: null, error: null };
+      if (args.seen_version !== undefined && args.seen_version !== null && args.seen_version !== source.version) return { data: null, error: null };
+      if (!mayChangeCarrierOf(source.campaign_id, source.actor_id, source.location_id) || !mayReceiveAt(source.campaign_id, args.to_actor, args.to_location)) return { data: null, error: null };
+      if ((!source.library_entry_id && !source.source_pack_id) || !stackJoinable(source, true) || tables.inventory_lines.some((l) => l.container_line_id === source.id)) {
+        return { data: null, error: null };
+      }
+      const inNumbers = Number(source.stack) > 1 || Number(source.per_units ?? 1) > 1;
+      const target = stackAt(source.campaign_id, args.to_actor ?? null, args.to_location ?? null, args.to_container ?? null, source.name, inNumbers, source.id);
+      if (!target) return { data: null, error: null };
+      if (howMany < Number(source.qty)) countOn(source, Number(source.qty) - howMany, tag);
+      countOn(target, Number(target.qty) + howMany, tag);
+      if (howMany === Number(source.qty)) {
+        const was = structuredClone(source);
+        tables.inventory_lines.splice(tables.inventory_lines.indexOf(source), 1);
+        log('inventory_lines', was, null, tag);
+      }
+      return { data: target.id, error: null };
     },
   };
 
@@ -4336,6 +4669,7 @@ export function createFakeDb(): FakeWorld {
             if (name === 'set_spells') return setSpellsRpc(args, tag);
             if (name in clockRpcs) return clockRpcs[name]!(args, readTag(headers));
             if (name in lightRpcs) return lightRpcs[name]!(args, readTag(headers));
+            if (name in joinRpcs) return joinRpcs[name]!(args, readTag(headers));
             if (name in weatherRpcs) return weatherRpcs[name]!(args, readTag(headers));
             if (name in marchingRpcs) return marchingRpcs[name]!(args, readTag(headers));
             if (name in groupRpcs) return groupRpcs[name]!(args, readTag(headers));
@@ -4708,7 +5042,7 @@ class Query implements PromiseLike<Result> {
         created_at: new Date(Date.UTC(2026, 9, 19) + createdOrder++).toISOString(),
         ...row,
       }));
-    } else if (this.table === 'purses' || this.table === 'finds_seen') {
+    } else if (this.table === 'purses' || this.table === 'finds_seen' || this.table === 'calls_seen') {
       // Like the database: the purse row is made with its character or stash, and a seen mark by mark_finds_seen
       // (K20), never by a device (refused in runQuery).
       this.inserted = [];
@@ -4929,8 +5263,8 @@ class Query implements PromiseLike<Result> {
       return { data: null, error: { message: 'permission denied for table purses', code: '42501' } };
     }
     // Like the database (K20): a seen mark has no write grant; only mark_finds_seen writes it.
-    if (this.table === 'finds_seen' && (this.inserted || this.patch || this.deleting)) {
-      return { data: null, error: { message: 'permission denied for table finds_seen', code: '42501' } };
+    if ((this.table === 'finds_seen' || this.table === 'calls_seen') && (this.inserted || this.patch || this.deleting)) {
+      return { data: null, error: { message: `permission denied for table ${this.table}`, code: '42501' } };
     }
     if (this.inserted && this.duplicate) {
       return { data: null, error: { message: 'duplicate key value violates unique constraint', code: '23505' } };
@@ -5098,7 +5432,7 @@ class Query implements PromiseLike<Result> {
     // Like the access rules (M5 step 11; M5b g2): the GM reads every place, piece and group row; a player their own
     // group's row only; places, pieces and the GM's notes never leave the GM (players read shown pieces through
     // scene_pieces).
-    if (this.table === 'place_pieces' || this.table === 'piece_shows' || this.table === 'place_rule_switches') rows = rows.filter((row) => this.isGm(row.campaign_id));
+    if (this.table === 'place_pieces' || this.table === 'piece_shows' || this.table === 'place_rule_switches' || this.table === 'knowledge_shares') rows = rows.filter((row) => this.isGm(row.campaign_id));
     if (this.table === 'places' || this.table === 'group_places' || this.table === 'place_notes') {
       const mine = (campaignId: unknown) =>
         this.tables.actors
@@ -5155,6 +5489,10 @@ class Query implements PromiseLike<Result> {
         const actor = this.tables.actors.find((a) => a.id === row.actor_id);
         return this.isMember(row.campaign_id) && actor?.owner_type === 'user' && actor.owner_user_id === this.me();
       });
+    }
+    // Like the access rules (P7, p7-1, p7-2): the GM reads every call's seen mark; a player their own, never another's.
+    if (this.table === 'calls_seen') {
+      rows = rows.filter((row) => !this.patch && !this.deleting && (this.isGm(row.campaign_id) || (this.isMember(row.campaign_id) && row.player_user_id === this.me())));
     }
     // Like the access rules (W12, 20261115110000_dec_3_w12_shop_stock.sql): the GM reads every line (fix-856-1,
     // 20261118090000_fix_856_1_shop_stock_gm_read.sql: only the GM); a player none, and reads stock through shop_stock_in; nothing is written through the table (the functions do it; an undo puts back).
@@ -5463,9 +5801,9 @@ const LOGGED = [
   'campaigns', 'members', 'invites', 'companies', 'field_definitions', 'assets', 'actors', 'notes', 'campaign_packs', 'library_entries', 'campaign_pack_secrets',
   'inventory_lines', 'inventory_line_secrets', 'carrier_loads', 'character_layouts', 'character_play', 'campaign_clocks', 'sessions', 'expeditions',
   'reminders', 'check_results', 'character_lights', 'marching_orders', 'party_group_members', 'weather_rolls', 'character_statuses', 'status_secrets', 'character_rests',
-  'expedition_places', 'places', 'place_notes', 'group_places', 'place_pieces', 'piece_shows', 'place_rule_switches', 'requests', 'sheet_changes', 'table_pins', 'table_reads', 'messages', 'character_alignments', 'waiting_encounters',
+  'expedition_places', 'places', 'place_notes', 'group_places', 'place_pieces', 'piece_shows', 'place_rule_switches', 'knowledge_shares', 'requests', 'sheet_changes', 'table_pins', 'table_reads', 'messages', 'character_alignments', 'waiting_encounters',
   'travel_groups', 'travel_group_secrets', 'group_lost', 'camps', 'camp_entries', 'activity_runs', 'sheet_changes', 'hook_sends', 'place_moves', 'purses',
-  'finds_seen', 'shop_stock',
+  'finds_seen', 'calls_seen', 'shop_stock',
 ] as const;
 
 /**

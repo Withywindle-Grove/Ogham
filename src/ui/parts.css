@@ -879,6 +879,45 @@
   }
 }
 
+/* Open card, the icon variant (the players' place card's rows, P4; frames PR4, PL1b): the icon at the left, the title in
+   the heading type, the chevron at the right edge at every width; no margin of its own (the card's gap spaces them). */
+.open-card.open-card--icon {
+  display: flex;
+  margin-block: 0;
+  border-color: var(--control);
+  background: var(--sheet);
+}
+
+.open-card--icon .open-card__icon {
+  display: flex;
+  flex: none;
+  align-self: flex-start;
+  padding-block-start: var(--space-1);
+  color: var(--ink);
+}
+
+.open-card--icon .open-card__text {
+  display: flex;
+}
+
+.open-card--icon .open-card__title {
+  display: block;
+  margin-block-end: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+}
+
+.open-card--icon .open-card__summary {
+  font-size: var(--text-14);
+}
+
+.open-card--icon .open-card__chevron {
+  display: flex;
+  margin-inline-start: 0;
+  color: var(--ink);
+}
+
 .choice-card {
   display: flex;
   flex-direction: column;
@@ -1960,4 +1999,40 @@ details[open] > summary > .disclosure::before {
 /* Pin star (plan C; dec-13 C8): pressed, it is filled and washed. */
 .pin-star[aria-pressed='true'] {
   background: var(--selected);
+}
+
+/* Pinned block and Pinned row (row P3; page 28, M4c, pg28-6): a pinned ability's or trait's box in the Player tab's
+   right column's list, around its one List row. One left edge, width, corner and gap for both; the block's edge is the
+   weapon in hand's ink, the row's the thin edge of anything tappable. */
+.pinned-list > .sortable {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* The Reorder list's rows here are the boxes themselves: no rule under each, the page behind the gap. */
+.pinned-list .sortable__row {
+  border-bottom: none;
+  background: transparent;
+}
+
+/* The pinned ones, then the unpinned traits with uses as rows (pg28-4): a gap between, as between the boxes. */
+.pinned-list + .row-list {
+  margin-block-start: var(--space-2);
+}
+
+.pinned-box {
+  border: var(--line-hair) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  padding: 0 var(--space-3);
+}
+
+.pinned-box--block {
+  border: var(--line-control) solid var(--ink);
+  padding-block: var(--space-1);
+}
+
+.pinned-box > .list-row {
+  border-block-end: none;
 }

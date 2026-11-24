@@ -28,6 +28,7 @@ import { readTown } from '../modules/expedition/town.ts';
 import { loadLastPlaces, loadSceneTowns, type SceneTown } from '../modules/expedition/townPlaces.ts';
 import { loadTownSwitches } from '../modules/expedition/townPlay.ts';
 import type { TownSwitches } from '../modules/expedition/townSwitches.ts';
+import { MAP_UNREAD_WORDS, PlayersMapCard, usePlayersMaps } from './PlaceMap.tsx';
 import { WhatWeKnow } from './WhatWeKnow.tsx';
 import { TownActions } from './TownActions.tsx';
 import { campaignUnits } from '../modules/expedition/play.ts';
@@ -43,6 +44,7 @@ import type { CampEntry } from '../modules/expedition/camp.ts';
 import { loadCampaignSettings } from '../core/campaignCommands.ts';
 import { Dialog } from '../ui/Dialog.tsx';
 import { Chip, SkeletonRows, StackedButton } from '../ui/parts.tsx';
+import { RefreshFailedRow } from '../ui/WhereToParts.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { useLogVersion } from './campaignLog.tsx';
@@ -53,6 +55,10 @@ import { loadPlayersRules, type PlayersRule } from '../modules/expedition/placeR
 import { useLastGoodRules } from './PlaceRules.tsx';
 import { NothingSharedYet, PlayersActivities, PlayersSceneCard, PlayersSceneLoading, PlayersScenePage, showsPlayersPage, SomewhereNew } from './PlayersScenePage.tsx';
 import { activitiesWithRules } from '../modules/expedition/playerActions.ts';
+import { PlayersWhereTo, usePlayersWaysOn, WhereToNoneYet } from './PlayersWhereTo.tsx';
+import { stepNowOf } from '../modules/expedition/playersWays.ts';
+import { PlayersAreaCard, PlayersLocationCard, usePlayersPlaceCards } from './PlayersPlaceCard.tsx';
+import type { TurnClock } from '../modules/expedition/placeKnowledge.ts';
 import './PartyGroups.css';
 
 interface Loaded {
@@ -172,6 +178,12 @@ export function PartyGroups({
   const phone = usePhone();
   // A failed read of the players' place rules keeps the last good list (review of #726).
   const placeRules = useLastGoodRules(loaded && loaded !== 'error' ? loaded.placeRules : null);
+  // A player's ways on (P2), read beside the page so "Where to?" comes with it; a failed read keeps the last list.
+  const ways = usePlayersWaysOn(db, campaign.id, !isGm(user, campaign.id));
+  // The players' place card (P4): the Area's card's read and what the GM has shared (a player's only).
+  const areaCards = usePlayersPlaceCards(db, campaign.id, !isGm(user, campaign.id));
+  // The players' map (P5): the shared map of the last place shown to each of a player's groups.
+  const playersMaps = usePlayersMaps(db, campaign.id, !isGm(user, campaign.id));
 
   useEffect(() => {
     let current = true;
@@ -223,9 +235,7 @@ export function PartyGroups({
             <p className="groups__note" role="alert">
               Couldn't load the party's groups. Check your connection and try again.
             </p>
-            <button type="button" className="button-secondary" onClick={() => setVersion((v) => v + 1)}>
-              Try again
-            </button>
+            <StackedButton icon="refresh" label="Try again" onClick={() => setVersion((v) => v + 1)} />
           </section>
         </div>
       </div>
@@ -239,6 +249,9 @@ export function PartyGroups({
   // Join up (B1): only for groups in the same place (both with none counts as the same).
   const pairs = meetingPairs(groups.map((g) => g.number), meeting);
   const exploration = readExploration(setting?.rulesSets ?? []);
+  // The expedition's step on the clock (P4): a shared section's "turn 9" counts in it, as the strip does.
+  const tripMode = expedition ? modeById(exploration.modes, expedition.mode) : null;
+  const turns: TurnClock | null = expedition && units && tripMode && !isPartOfDay(tripMode.step.unit) ? { startedAt: expedition.startedAt, step: tripMode.step, units } : null;
   const choices = setting ? choicesInPlay(setting) : {};
   const checks = expedition ? (modeById(exploration.modes, expedition.mode)?.checks ?? []).filter((c) => optionOn(c.onlyWithOption ?? null, choices)) : [];
   // The town screen (M5b step 6c): the setting's towns, and the checks of the mode the party is in (or was last in).
@@ -416,6 +429,7 @@ export function PartyGroups({
         phone={phone}
         oneColumn={day}
         marching={marchingOf(n)}
+        turns={turns}
         onChanged={() => setVersion((v) => v + 1)}
       />
     );
@@ -506,17 +520,33 @@ export function PartyGroups({
     <PlayersScenePage
       left={
         <>
-          {shown.map((n) => (
-            <Fragment key={n}>
-              {placeLineShows(scene.get(n)) ? (
-                <PlayersSceneCard group={cardGroup(n)}>
-                  <PlaceLine place={scene.get(n) ?? null} db={db} campaignId={campaign.id} rules={placeRules.filter((r) => r.group === n)} />
-                </PlayersSceneCard>
-              ) : (
-                <SomewhereNew group={cardGroup(n)} />
-              )}
-            </Fragment>
-          ))}
+          {shown.map((n) => {
+            const here = scene.get(n);
+            // The Location's card (P4, ppf-6) in place of today's place line: the card's read gives the number and the
+            // trail; until it comes, while it fails, or while it is still of the place before a move (matched by the
+            // place's id), the place's name as the scene's read gives it, with no trail.
+            const read = areaCards.cards.get(n);
+            const card = read && here?.placeId && read.here.placeId === here.placeId ? read : { here: { placeId: '', key: '', name: here?.name ?? '' }, trail: [] };
+            return (
+              <Fragment key={n}>
+                {here && placeLineShows(here) ? (
+                  <PlayersLocationCard
+                    card={card}
+                    pieces={here.pieces.map((p) => ({ id: p.id, kind: p.kind, text: p.text, lead: p.lead ?? '' }))}
+                    rules={placeRules.filter((r) => r.group === n)}
+                    picture={here.pictureAssetId ? { db, campaignId: campaign.id, assetId: here.pictureAssetId } : null}
+                    group={cardGroup(n)}
+                  >
+                    <PlayersWhereTo read={ways} group={n} step={stepNowOf(expedition ? modeById(exploration.modes, expedition.mode) : null, expedition, now, units)} />
+                  </PlayersLocationCard>
+                ) : (
+                  <SomewhereNew group={cardGroup(n)}>
+                    <WhereToNoneYet />
+                  </SomewhereNew>
+                )}
+              </Fragment>
+            );
+          })}
           {/* Activities (P6; mc-45a; 01-08) under the place's card, once only: they are the setting's, not a group's.
               Before anything of the place is shown too (d5-18, 2026-11-20), so the card never blinks away at a new
               Location. */}
@@ -525,9 +555,32 @@ export function PartyGroups({
       }
       right={
         <>
-          {shown.map((n) => !placeLineShows(scene.get(n)) && <NothingSharedYet key={n} group={cardGroup(n)} />)}
-          {/* Today's card of what was shown stands where the place's card will (P4); PL1 doesn't draw it. */}
-          <WhatWeKnow db={db} campaignId={campaign.id} />
+          {/* The map (P5; PL1, PL5b): first in the column, the shared map of the last place shown to the group, so it
+              stays through a move to a place not shown yet (mc-39b's rule; Francis, 2026-11-22). None shared: before
+              anything is shown the dashed frame says so (PL2); after, no frame at all (dp-3). */}
+          {shown.map((n) => {
+            const label = cardGroup(n) ? `${cardGroup(n)}: the map` : 'The map';
+            const map = playersMaps.maps?.get(n);
+            // Read and none shared: nothing (or PL2's dashed frame). Not read yet: still bars (PL9). The first read
+            // failed: says so with Try again (PL9), never "No map shared yet." on a guess.
+            const card = map ? (
+              <PlayersSceneCard key={`map-${n}`}>
+                <PlayersMapCard db={db} campaignId={campaign.id} map={map} label={label} />
+              </PlayersSceneCard>
+            ) : playersMaps.maps ? null : (
+              <PlayersSceneCard key={`map-${n}`} label={label}>
+                {playersMaps.failed ? <RefreshFailedRow words={MAP_UNREAD_WORDS} onRetry={playersMaps.retry} /> : <SkeletonRows rows={3} label="Loading the map" />}
+              </PlayersSceneCard>
+            );
+            return !placeLineShows(scene.get(n)) ? <NothingSharedYet key={n} group={cardGroup(n)} map={card ?? undefined} /> : card;
+          })}
+          {/* The Area's card (P4; PL1b): its name once shown, what the GM has shared, the Rules row, the other Locations
+              the group knows. Only once something of the place is shown, as the read itself sends nothing before. */}
+          {shown.map((n) => {
+            const card = placeLineShows(scene.get(n)) ? areaCards.cards.get(n) : undefined;
+            return card ? <PlayersAreaCard key={`area-${n}`} db={db} campaignId={campaign.id} card={card} knowledge={areaCards.knowledge.filter((k) => k.group === n)} rules={placeRules.filter((r) => r.group === n)} turns={turns} group={cardGroup(n)} /> : null;
+          })}
+          {/* Today's "What we know" left this page with the players' map (p4s-3: once P4 and P5 have both landed). */}
           {/* The marching order last in the column (PL1), today's Split party under it (PL1 doesn't draw it). Split,
               a player with one group sees it as PL6 draws: their group alone, and who is elsewhere (P8). With a card
               for each of their groups each order keeps its group's name and no such line (no frame draws that). A

@@ -107,12 +107,13 @@ describe("a town's GM sections in blocks (pf-18b)", () => {
         { kind: 'p', lead: 'The keeper', text: 'Old Marrow, who keeps the moods.' },
         { kind: 'box', title: '', blocks: [{ kind: 'p', lead: '', text: 'Anyone asking after the Wardens is pointed to the quay.' }] },
       ],
+      at: 0,
     });
   });
 
   // Purpose: a plain-string section reads as it does today: its words with link marks as labels, and no blocks.
   it('keeps a plain-string section as it is today', () => {
-    expect(readPlaceFacts(reedmouth).sections[1]).toEqual({ heading: 'A brewing trouble', text: 'Halewyn owes the ferrymen.\nSee the Warden.', blocks: null });
+    expect(readPlaceFacts(reedmouth).sections[1]).toEqual({ heading: 'A brewing trouble', text: 'Halewyn owes the ferrymen.\nSee the Warden.', blocks: null, at: 1 });
   });
 
   // Purpose: a section with nothing to draw keeps its heading; only one the app can't read is marked so (blocks []),
@@ -120,14 +121,14 @@ describe("a town's GM sections in blocks (pf-18b)", () => {
   // null, no words), Francis's ruling of 2026-11-18.
   it('keeps the heading of a section with nothing to draw, unreadable apart from empty', () => {
     const [, , older, rolls] = readPlaceFacts(reedmouth).sections;
-    expect(older).toEqual({ heading: 'Older notes', text: '', blocks: [] });
-    expect(rolls).toEqual({ heading: 'The rolls', text: '', blocks: null });
+    expect(older).toEqual({ heading: 'Older notes', text: '', blocks: [], at: 2 });
+    expect(rolls).toEqual({ heading: 'The rolls', text: '', blocks: null, at: 3 });
     const empty = readPlaceFacts({ gm: { sections: [{ heading: 'No blocks', text: { blocks: [] } }, { heading: 'No words', text: '' }, { heading: 'No text' }, { heading: 'A number', text: 7 }] } });
     expect(empty.sections).toEqual([
-      { heading: 'No blocks', text: '', blocks: null },
-      { heading: 'No words', text: '', blocks: null },
-      { heading: 'No text', text: '', blocks: null },
-      { heading: 'A number', text: '', blocks: [] },
+      { heading: 'No blocks', text: '', blocks: null, at: 0 },
+      { heading: 'No words', text: '', blocks: null, at: 1 },
+      { heading: 'No text', text: '', blocks: null, at: 2 },
+      { heading: 'A number', text: '', blocks: [], at: 3 },
     ]);
   });
 
@@ -144,8 +145,8 @@ describe("a town's GM sections in blocks (pf-18b)", () => {
       },
     });
     expect(facts.sections).toEqual([
-      { heading: 'A box of rolls', text: '', blocks: null },
-      { heading: 'A titled box', text: 'On the quay', blocks: [{ kind: 'box', title: 'On the quay', blocks: [] }] },
+      { heading: 'A box of rolls', text: '', blocks: null, at: 0 },
+      { heading: 'A titled box', text: 'On the quay', blocks: [{ kind: 'box', title: 'On the quay', blocks: [] }], at: 1 },
     ]);
     expect(facts.tableIds).toEqual(['eel-rolls', 'quay-rolls']);
   });
@@ -158,7 +159,8 @@ describe("a town's GM sections in blocks (pf-18b)", () => {
   // Purpose: a section with neither a heading nor anything to draw is left out, in blocks as in plain words.
   it('leaves out a section with no heading and nothing to draw', () => {
     const facts = readPlaceFacts({ gm: { sections: [{ text: { blocks: [] } }, { text: '' }, { text: { blocks: [{ p: 'Reeds.' }] } }] } });
-    expect(facts.sections).toEqual([{ heading: '', text: 'Reeds.', blocks: [{ kind: 'p', lead: '', text: 'Reeds.' }] }]);
+    // Its place in the pack's list counts the two left out before it (`at`: what the GM's eye on it names, P4).
+    expect(facts.sections).toEqual([{ heading: '', text: 'Reeds.', blocks: [{ kind: 'p', lead: '', text: 'Reeds.' }], at: 2 }]);
   });
 });
 

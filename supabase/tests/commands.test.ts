@@ -267,8 +267,8 @@ beforeAll(async () => {
         name: 'The Reed Inn',
         type: 'building',
         playerView: { text: 'Smoke and eel stew.' },
-        gm: { notes: 'The keeper fences stolen lanterns.' },
-        // A rule and a check of its own, for placeRule.eye and placeRule.inForce (dec-7 piece 3).
+        gm: { notes: 'The keeper fences stolen lanterns.', sections: [{ heading: 'The keeper', text: 'Fences stolen lanterns.' }] },
+        // A section of Knowledge, for placeKnowledge.eye (P4, p4s-2). A rule and a check of its own, for placeRule.eye and placeRule.inForce (dec-7 piece 3).
         rules: [{ id: 'slick-piles', name: 'Slick piles', text: 'Footing is poor.' }],
         encounterCheck: { when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] } },
       };
@@ -317,6 +317,14 @@ beforeAll(async () => {
       const priority = Math.max(0, ...links.map((link) => link.priority as number)) + 1;
       must(await world.admin.from('campaign_packs').insert({ campaign_id: world.campaignId, pack_id: packId, option_choices: {}, priority }).select());
       return { packId, tableId, min: 1, max: 1 };
+    },
+    async freshCallSend(to: 'party' | 'wren') {
+      // A call the GM just sent (P7): a fresh hook, sent to the party or to Wren, so a mark is never a repeat.
+      const { packId, hookId } = await this.freshAdventureHook();
+      const sent = await world.gm.db.rpc('send_hook', { campaign: world.campaignId, pack: packId, hook_key: hookId, body: 'Nailed to the quay post: a bounty.', pays: '', ...(to === 'wren' ? { to_actor: this.wren.id } : {}) });
+      if (sent.error) throw sent.error;
+      const row = (Array.isArray(sent.data) ? sent.data[0] : sent.data) as { id: string };
+      return { id: row.id, campaignId: world.campaignId, actorId: to === 'wren' ? this.wren.id : null, playerUserId: to === 'wren' ? world.playerA.id : null };
     },
     async freshMessage() {
       const message = must(
@@ -397,6 +405,28 @@ beforeAll(async () => {
           .select('id'),
       );
       return { key, name: 'The Lantern Rest', town: visit.place!.name };
+    },
+    async freshTownPart(shown = false) {
+      // A Safe town made from a pack, the party there on a fresh expedition; a place one level under it, in the town's
+      // list as `place:<id>`, with one piece, hidden or (`shown`) shown to the party (a store row, as the GM's show
+      // writes it).
+      const { packId } = await this.freshAttachedPack();
+      const tag = crypto.randomUUID().slice(0, 8);
+      const townId = `fenwick-${tag}`;
+      const chapelId = `lantern-chapel-${tag}`;
+      const expedition = await this.freshExpedition(world.campaignId);
+      const town = must(
+        await world.admin
+          .from('places')
+          .insert({ campaign_id: world.campaignId, name: `Fenwick ${tag}`, pack_id: packId, pack_entry_id: townId, safety: 'safe', town: { [`place:${chapelId}`]: { name: 'The Lantern Chapel', kind: 'other', shown: true, open: true } } })
+          .select('id')
+          .single(),
+      );
+      const chapel = must(await world.admin.from('places').insert({ campaign_id: world.campaignId, name: `The Lantern Chapel ${tag}`, pack_id: packId, pack_entry_id: chapelId, pack_parent_id: townId }).select('id').single());
+      const piece = must(await world.admin.from('place_pieces').insert({ campaign_id: world.campaignId, place_id: chapel.id, kind: 'description', body: 'Candles in green glass.' }).select('id').single());
+      const visit = must(await world.admin.from('group_places').insert({ campaign_id: world.campaignId, expedition_id: expedition.id, group_number: 1, place_id: town.id }).select('id').single());
+      if (shown) must(await world.admin.from('town_piece_shows').insert({ campaign_id: world.campaignId, group_place_id: visit.id, piece_id: piece.id, group_number: 1 }).select('id'));
+      return { visitId: visit.id as string, pieceId: piece.id as string };
     },
     async freshSecretRequest() {
       // A day started for group 1, then Wren's own request to Scout ahead (2 points), as send_request would store it.
@@ -562,6 +592,18 @@ beforeAll(async () => {
         return toCharacterStatus(must(await world.admin.from('character_statuses').insert({ ...row, ...clock }).select().single()));
       }
       return toCharacterStatus(must(await world.admin.from('character_statuses').insert(row).select().single()));
+    },
+    async freshPins(on) {
+      // Two fresh trait pins, the list replaced by them so the 24-pin limit is never met (row P2's moves).
+      const keys = [`Fen sight ${crypto.randomUUID().slice(0, 8)}`, `Horn charge ${crypto.randomUUID().slice(0, 8)}`];
+      const actorId = on === 'wren' ? world.wrenId : world.ashId;
+      must(
+        await world.admin
+          .from('character_play')
+          .upsert({ actor_id: actorId, campaign_id: world.campaignId, pins: keys.map((key) => ({ kind: 'trait', key })) })
+          .select('actor_id'),
+      );
+      return keys;
     },
     async freshReadySpell(on, cast = false) {
       const spell = `mire-lamp-${crypto.randomUUID()}`;

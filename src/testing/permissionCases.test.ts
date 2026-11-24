@@ -112,11 +112,12 @@ const world: CaseWorld = {
     place: { id: 'place-fresh', campaignId, name: 'The Moth Gallery', description: '', notes: null, version: 1, notesVersion: 1 },
     pieces: [{ id: 'piece-fresh', kind: 'exit', text: 'An archway to the east', shown: false, shownAt: null, gm: { value: '', trigger: '', statLine: '' }, version: 1 }],
   }),
-  freshPackPlace: async () => ({ packId: 'pack-fresh', packEntryId: 'the-reed-inn', name: 'The Reed Inn', data: { type: 'building', playerView: { text: 'Smoke and eel stew.' }, rules: [{ id: 'slick-piles', name: 'Slick piles', text: 'Footing is poor.' }], encounterCheck: { when: 'eachMove', replacesScheduled: true } } }),
+  freshPackPlace: async () => ({ packId: 'pack-fresh', packEntryId: 'the-reed-inn', name: 'The Reed Inn', data: { type: 'building', playerView: { text: 'Smoke and eel stew.' }, gm: { sections: [{ heading: 'The keeper', text: 'Fences stolen lanterns.' }] }, rules: [{ id: 'slick-piles', name: 'Slick piles', text: 'Footing is poor.' }], encounterCheck: { when: 'eachMove', replacesScheduled: true } } }),
   freshIdlePlace: async () => ({ campaignId: 'campaign-fresh', placeId: 'place-fresh' }),
   freshMovePlace: async () => ({ campaignId: 'campaign-fresh', placeId: 'place-fresh' }),
   freshAdventureHook: async () => ({ packId: 'pack-adventure', hookId: 'ew-bog-bounty' }),
   freshRumour: async () => ({ packId: 'pack-adventure', tableId: 'ew-quay-rumours', min: 1, max: 1 }),
+  freshCallSend: async (to) => ({ id: `send-${to}`, campaignId, actorId: to === 'wren' ? 'actor-wren' : null, playerUserId: to === 'wren' ? users.playerA.id : null }),
   freshMessage: async () => 'message-fresh',
   freshRequest: async () => request('request-fresh', users.playerA.id, 'actor-wren', 'describe', 'playerAsks'),
   freshSheetChange: async () => ({
@@ -147,6 +148,7 @@ const world: CaseWorld = {
     reply: 'accept' as const,
   }),
   freshInn: async () => ({ key: 'lodging:the lantern rest', name: 'The Lantern Rest', town: 'Fenwick Market' }),
+  freshTownPart: async () => ({ visitId: 'group-place-town', pieceId: 'piece-chapel' }),
   freshSecretRequest: async () => ({
     ...request('request-secret', users.playerA.id, 'actor-wren', 'secretActivity', 'playerAsks'),
     text: 'Scout ahead',
@@ -200,6 +202,7 @@ const world: CaseWorld = {
   }),
   freshLight: async (on) => `light-line-${on}`,
   freshReadySpell: async (on) => ({ spell: `mire-lamp-${on}`, level: 1 }),
+  freshPins: async (on) => [`Fen sight ${on}`, `Horn charge ${on}`],
   marching: async (state = {}) => ({
     target: { campaignId, group: 1, playersReorder: state.playersReorder ?? true },
     order: { id: 'marching-order', campaignId, group: 1, rows: [], presets: [{ name: 'Tunnel', rows: [['actor-ash']] }], lastPreset: null, locked: state.locked ?? false, version: 1 },

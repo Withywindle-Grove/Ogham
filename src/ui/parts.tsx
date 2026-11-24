@@ -1,6 +1,7 @@
 // Small shared parts from the component inventory (docs/06 "Components"; conventions ruled 2026-10-25). Each is
 // built once here and composed by screens; the gallery (gallery.html) shows every one in every state.
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { flushSync } from 'react-dom';
 import './parts.css';
 import { hasStepIcon, Icon, StepIcon, type IconName } from './icons.tsx';
 import type { SetIconName } from './iconSet.ts';
@@ -424,6 +425,17 @@ export function PinnedMark() {
       <span className="visually-hidden">pinned, </span>
     </span>
   );
+}
+
+/**
+ * **Pinned block** and **Pinned row** (row P3 of plans/test-feedback-2026-11-19; page 28, frames M4a to M4f, approved
+ * 2026-11-20; euf-5, pg28-6): a pinned ability or trait in the Player tab's right column's list, as a box around its
+ * one List row. `block`: one with something to do (its uses), the weapon in hand's ink edge, its row with Use and the
+ * pips; else a row, the same box with a thin edge, its row the name and a chevron. Blocks and rows share one left edge,
+ * width, corner and gap, so the list reads as one stack.
+ */
+export function PinnedBox({ block = false, children }: { block?: boolean; children: ReactNode }) {
+  return <div className={block ? 'pinned-box pinned-box--block' : 'pinned-box'}>{children}</div>;
 }
 
 /**
@@ -937,15 +949,22 @@ export function ChoiceCard({ title, summary, onChoose }: { title: string; summar
  * and a quiet summary under it, the whole card one tap target. On a phone the › sits at the card's right edge, centred
  * (long names wrap in the text column); from 600 px it follows the summary. `label` is what a screen reader hears.
  */
-export function OpenCard({ title, summary, label, onOpen }: { title: string; summary: string; label: string; onOpen: () => void }) {
+export function OpenCard({ title, summary, label, onOpen, icon }: { title: string; summary: string; label: string; onOpen: () => void; icon?: IconName }) {
+  // The **icon** variant (the players' place card's rows, P4; frames PR4 and PL1b): the icon at the left, the title in the
+  // heading type, the chevron at the right edge at every width.
   return (
-    <button type="button" className="open-card" onClick={onOpen} aria-label={label}>
+    <button type="button" className={icon ? 'open-card open-card--icon' : 'open-card'} onClick={onOpen} aria-label={label}>
+      {icon && (
+        <span className="open-card__icon" aria-hidden="true">
+          <Icon name={icon} size={20} />
+        </span>
+      )}
       <span className="open-card__text">
         <span className="open-card__title">{title}</span>
-        <span className="open-card__summary">{summary}</span>
+        {summary && <span className="open-card__summary">{summary}</span>}
       </span>
       <span className="open-card__chevron" aria-hidden="true">
-        ›
+        {icon ? <Icon name="chevron" size={20} /> : '›'}
       </span>
     </button>
   );
@@ -1285,10 +1304,19 @@ function useTileColumns(labels: string[], max: number) {
   }, [step, steps.length, tried]);
   useEffect(() => {
     const el = ref.current;
-    // A font that finishes loading after the first measure changes every word's width.
-    const fontsLoaded = () => setFonts((n) => n + 1);
+    // A font that finishes loading after the first measure changes every word's width. WebKit (Safari's engine) fires
+    // `loading` but never `loadingdone` (gate finding F8, fix-F8), so wait on `ready` instead: now (fonts still
+    // loading as the row mounted), and after each `loading`. flushSync re-measures before anything else reads the
+    // row, the layout check's own `await document.fonts.ready` included.
+    let live = true;
     const fontSet = 'fonts' in document ? document.fonts : null;
-    fontSet?.addEventListener('loadingdone', fontsLoaded);
+    const fontsLoaded = () => {
+      void fontSet?.ready.then(() => {
+        if (live) flushSync(() => setFonts((n) => n + 1));
+      });
+    };
+    fontsLoaded();
+    fontSet?.addEventListener('loading', fontsLoaded);
     // The row's width; never the labels themselves (measuring them as they re-flow would loop).
     const watch = el && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => setWidth(Math.round(el.clientWidth))) : null;
     if (el) watch?.observe(el);
@@ -1296,7 +1324,8 @@ function useTileColumns(labels: string[], max: number) {
     const sized = typeof MutationObserver !== 'undefined' ? new MutationObserver(() => setScale(textScale())) : null;
     sized?.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
     return () => {
-      fontSet?.removeEventListener('loadingdone', fontsLoaded);
+      live = false;
+      fontSet?.removeEventListener('loading', fontsLoaded);
       watch?.disconnect();
       sized?.disconnect();
     };
@@ -1356,16 +1385,20 @@ export function SaveRow({ saves, onOpen }: { saves: { key: string; short: string
 /** The use dots' two marks (ruled 2026-10-26): filled for a use left, a ring for a spent one (shape, never colour alone). */
 const PIP_LEFT = '●';
 const PIP_SPENT = '○';
+/** The most pips a Pinned block draws (pg28-8): past it, the words alone ("999 of 999 left"). */
+const BLOCK_PIPS = 10;
 
 /**
  * The use dots as marks only, inside a trait chip (tc-2): a filled dot per use left, then a ring per spent one, as
  * `UseDots` draws them; past five, "●×4 ○×3". Hidden from screen readers: the chip's label says "1 of 3 left".
  * `ink`: the **ink pips** (frame P1 of december/14): both marks in ink, as the Player screen's Traits rows draw them.
  */
-export function UsePips({ uses, spent, ink = false }: { uses: number; spent: number; ink?: boolean }) {
+export function UsePips({ uses, spent, ink = false, block = false }: { uses: number; spent: number; ink?: boolean; block?: boolean }) {
   const used = Math.max(0, Math.min(uses, spent));
   const left = uses - used;
-  const many = uses > 5;
+  // The **block** variant (a Pinned block; pg28-8, frame M4d): each pip up to ten; past ten no pips, the words alone count.
+  if (block && uses > BLOCK_PIPS) return null;
+  const many = !block && uses > 5;
   return (
     <span className={ink ? 'use-pips use-pips--ink' : 'use-pips'} aria-hidden="true">
       {' '}

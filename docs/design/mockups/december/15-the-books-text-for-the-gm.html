@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: where the GM reads the book’s own text for a place (2026-11-14)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .ksheet { background:var(--sheet); border:1px solid var(--rule); border-radius:20px; box-shadow:0 8px 32px rgba(0,0,0,.25); padding:var(--space-3) var(--space-4) var(--space-4); }
+  .ksheet .kh { display:grid; grid-template-columns:minmax(0,1fr) 44px; align-items:start; }
+  .ksheet .over { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .ksheet .ttl { margin:var(--space-1) 0 var(--space-2); }
+  .ksheet .x { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; }
+  .kfact { margin:0 0 var(--space-1); }
+  .ktext { border-top:1px solid var(--rule); margin-top:var(--space-2); padding-top:var(--space-2); }
+  .ktext p { margin:0 0 var(--space-2); }
+  .ktext ul { margin:0 0 var(--space-2); padding-left:var(--space-5); }
+  .ktext li { margin-bottom:var(--space-1); }
+  .ktext .box { margin:0 0 var(--space-2); }
+  .kfold { border-top:1px solid var(--rule); padding:var(--space-2) 0; display:grid; grid-template-columns:24px minmax(0,1fr); gap:0 var(--space-1); align-items:start; min-height:44px; }
+  .kfold b { font-size:20px; line-height:1.2; }
+  .kfold small { display:block; font-size:14px; color:var(--muted); grid-column:2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .gmfold { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2) var(--space-3); align-items:center; min-height:60px; border-top:1px dotted var(--rule); border-bottom:1px dotted var(--rule); padding:var(--space-1) 0; margin-top:var(--space-3); }
+  .gmfold small { display:block; font-size:14px; color:var(--muted); line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .gmfold .ctl { display:flex; gap:var(--space-2); align-items:center; }
+  .gmopen { border-bottom:1px dotted var(--rule); padding:var(--space-2) 0 var(--space-1); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+const sep = svg(SY.right, 16);
+const down = svg('<path d="M6 9l6 6 6-6" ' + W + '/>', 20);
+const up = svg('<path d="M6 15l6-6 6 6" ' + W + '/>', 20);
+const ruleBtn = (k, words) => `<span class="btn big sqb" role="button" aria-label="${words}">${gi(k, 34)}</span>`;
+// the crossed eye: the page's own mark for what is the GM's alone and is never sent (page 11, the town's "A brewing trouble" and the boxed aside)
+const gmOnly = `<span role="img" aria-label="Only for you: never sent" style="display:inline-flex;width:44px;justify-content:center">${sym('eyeoff', 24)}</span>`;
+
+// the book's own text for the GM about this place: paragraphs, a list, a boxed aside (invented words)
+const FIRST = 'The ferrymen moor here and nowhere else, and they notice who does not.';
+const TEXT = `<p>${FIRST} Anyone who ties up on the windward side is a stranger, and by nightfall every ferryman on the water knows it.</p>
+  <p>Three things on the jetty are worth a look:</p>
+  <ul><li>The fourth mooring ring is new iron; the other three are green. Someone replaced it this month.</li><li>The planks of the seaward half are nailed, not pegged: a hurried job, and it gives a hand’s breadth under a loaded cart.</li><li>Under the third plank from the landward end is a tarred box (see Under the planks).</li></ul>
+  <div class="box"><b>If the party asks the ferrymen about the ring.</b> They say the old one “went into the water with a boat on it”, and no more than that for less than a week’s wages.</div>
+  <p>At low water the mud under the piles will bear a person for about as long as it takes to say a prayer.</p>`;
+
+// ---- A: in the Knowledge sheet, as built: a centred wide sheet, the facts as bold lead-ins, folding sections, the source line ----
+const kfold = (name, first) => `<div class="kfold" role="button" aria-expanded="false"><span aria-hidden="true" style="display:inline-flex;transform:rotate(-90deg);margin-top:2px">${down}</span><b>${name}</b><small>${first}</small></div>`;
+const sheetA = `<div class="ksheet" role="dialog" aria-label="1 The jetty: Knowledge"><div class="kh"><div><div class="over">1 The jetty</div><div class="ttl">Knowledge</div></div><span class="x" role="button" aria-label="Close">${I.close}</span></div>
+  <p class="kfact"><b>Built.</b> In the old harbourmaster’s time, of bog oak.</p><p class="kfact"><b>Moorings.</b> Four.</p><p class="kfact"><b>Held by.</b> The ferrymen, by custom.</p>
+  <div class="ktext rule">${TEXT}</div>
+  ${kfold('The jetty and who uses it', 'The jetty runs forty paces out over black water on piles as thick as a man…')}${kfold('Under the planks', 'The box is tarred canvas over oak, the length of a forearm…')}
+  <p class="source" style="border-top:1px solid var(--rule);padding-top:var(--space-2)">From your adventure: The Reed Marches, p. 39.</p></div>`;
+
+// ---- B: on the place page: a GM-only block under the place's description, folded to the book's first line ----
+const headB = `<div class="crumb"><a class="x">Saltwick Island</a>${sep}<a class="x">The Drowned Harbour</a>${sep}<b>1 The jetty</b></div><div class="band"><div><h3 class="display"><span class="keyno">1</span>The jetty</h3><p class="ident">Black piles, a mooring ring, weed to the waterline.</p></div><div class="acts two">${ruleBtn('water-splash', 'Someone fell in')}${b('Move on', { big: true, accent: true, icon: 'travel' })}</div></div>`;
+const foldB = (open) => `<div class="gmfold" role="button" aria-expanded="${open}"><span><b>From the book, for the GM</b>${open ? '' : `<small>${FIRST}</small>`}</span><span class="ctl">${gmOnly}${open ? up : down}</span></div>${open ? `<div class="gmopen rule ktext" style="border-top:0;margin-top:0">${TEXT}</div>` : ''}`;
+const seen = `<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--space-2) var(--space-3);align-items:center;min-height:44px;margin-top:var(--space-2)"><span>Players see: <b>1 The jetty</b></span>${small('Rename for players')}</div>`;
+const pair = `<div class="two">${b('Knowledge', { icon: 'book' })}${b('Rules', { icon: 'scales' })}</div>`;
+const piecesTop = `<div class="hrow" style="margin-top:var(--space-3)"><h2>Pieces</h2><span class="meta">2 of 4 shown</span>${small('Hide all')}</div>`;
+const cardB = (open) => `<div class="pcard">${headB}${foldB(open)}${seen}${pair}${piecesTop}</div>`;
+
+const frame1 = ipad('gm', `${turnBand()}<div class="cols2"><div><p class="lbl"><b>B. On the place page</b>, folded, as it rests.</p>${cardB(false)}<p class="lbl" style="margin-top:var(--space-4)"><b>B, opened in place.</b></p>${cardB(true)}</div><div><p class="lbl"><b>A. In the Knowledge sheet</b> (the sheet as built, drawn here without the dimmed page behind it).</p>${sheetA}</div></div>`,
+  'BT1. <b>Where the GM reads the book’s own text for a place: two homes, side by side. Home B ruled 2026-11-14 (gt-1): the folded block on the place page.</b> A pack’s place can carry the book’s text for the GM about that place (paragraphs, lists, boxed asides). Nothing shows it during play today or in the approved place page. Invented words. <b>A, in the Knowledge sheet</b> (right; drawn narrower than the built sheet, which is the wide centred one): the place’s own text is in the sheet in full, under the facts and above the headed sections, never folded; the sections follow, folded as approved; then the source. <i>What it costs:</i> nothing on the page at rest (0 px); one tap, on “Knowledge”, to read it; while it is read the sheet covers the page, pieces and eyes included; in the sheet the headed sections start lower by the text’s whole length (here about 330 px), so a long text pushes them off the first screen. <b>B, on the place page</b> (left, in the place card’s own column, folded and then opened): a block under the place’s description, headed <b>“From the book, for the GM”</b>, folded to the book’s first line with the chevron as Knowledge’s sections fold, and marked with the crossed eye, the page’s own mark for what is the GM’s alone and is never sent. A tap opens it in place to the full text, with its list and its box. <i>What it costs:</i> one row at rest (about 60 px), which pushes “Players see”, Knowledge and Rules, and the pieces down by that much on every place that has such text; one tap to read it; opened, it pushes them down by the text’s length until it is folded again. <b>My pick: B.</b> This text is what the GM reads as the party arrives, with the pieces and their eyes under the same thumb; in a sheet it hides them. It costs one row on the page. A is the calmer page and the better home if the text is read once before play and rarely during it; if both are wanted, the text must still have one home, not two.');
+
+mount(`
+  <h1>Where the GM reads the book’s own text for a place</h1>
+  <p class="note">For the lead (2026-11-14, night; the gap the Builder found). One frame, two homes side by side, using approved parts only: the place page of page 11, the Knowledge sheet as built (a centred wide sheet, the facts as bold lead-ins, folding sections, the source line), and the rule-text blocks with a list and a boxed aside. Names and words are invented. <b>Home B ruled 2026-11-14 (gt-1).</b></p>
+  <div class="wall">${frame1}</div>
+  <h1>Picks and words (drafts for the lead’s list)</h1>
+  <p class="note"><b>1. The home.</b> <i>My pick: B, on the place page</i>, folded to the book’s first line. The alternative is A, in the Knowledge sheet.</p>
+  <p class="note"><b>2. The heading, for B:</b> “From the book, for the GM”. <i>Mine.</i> Others I weighed: “For the GM” (it does not say whose words they are); “The book’s notes” (the page already has “Notes”, the GM’s own).</p>
+  <p class="note"><b>3. The mark:</b> the crossed eye, with no switch, as page 11’s town frame marks “A brewing trouble” and the boxed aside. Nothing in the block can be shown to players.</p>
+  <p class="note"><b>4. In A the text has no heading of its own</b>: it stands between the facts and the first section, parted by the sheet’s hairline. If it needs one, the same words as B’s would do.</p>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked, in the HTML.</b> Full text in both homes, nothing trimmed (mc-34): paragraphs, a list, a boxed aside. No new control: a fold row and a chevron (B), nothing (A). One accent on the page (Move on). GM-only is a shape with a spoken name, never colour alone. The fold row is 60 px; the chevron’s row is the tap.</p>
+  <p class="note"><b>Not checked, or gaps.</b> The phone (B is the same row in the one column; A is the whole screen). A place with this text and no description, or with a very long first line (it is cut with an ellipsis at rest). Twelve places with a box were not looked at: the words here are invented. The Knowledge sheet is drawn from the built picture, narrower than its real width so that it sits beside the page’s card. Contrast by measurement; Larger text.</p>
+`);
+for (const el of document.querySelectorAll('.ksheet .ttl')) el.classList.add('sheet-title');
+for (const el of document.querySelectorAll('.dev h2')) el.classList.add('bsub');
+for (const el of document.querySelectorAll('.fact .k')) el.dataset.sc = '';
+applyBook();
+</script>
+</body>
+</html>

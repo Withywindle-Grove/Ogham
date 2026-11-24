@@ -60,6 +60,8 @@ const HARBOUR = {
   identity: 'A silted harbour of five spots, crossed by boat or by swimming.',
   playerView: { text: 'Black water, a dry bar, a mast that shows at every tide.' },
   facts: [{ lead: 'Tides', text: 'Two a day; the bar dries at low water.' }],
+  // A section of knowledge for the eye (P4, p4s-2).
+  gm: { sections: [{ heading: 'What everyone knows', text: 'Nobody crosses at slack water.' }] },
   // The pack's own sentence for its check (p2p-14), word for word.
   encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' },
   tableIds: ['tide-left'],
@@ -386,6 +388,24 @@ describe('the GM’s place page', () => {
     await user.click(within(sheet).getByRole('button', { name: /Close/ }));
     await user.click(screen.getByRole('button', { name: 'Rules' }));
     expect(await screen.findByRole('dialog', { name: /Rules/ })).toBeTruthy();
+  });
+
+  // Purpose (P4, p4s-2; frame 7b): the eye on a section shares it with the party at once, with an Undo toast; the
+  // section then says so and the foot counts it; Undo takes the share away again.
+  it("Knowledge's eye shares a section at once, and Undo takes it back", async () => {
+    const user = userEvent.setup();
+    const { trip, row } = await at('harbour');
+    page(trip, row);
+    await within(await screen.findByRole('region', { name: 'Tables' })).findByText('What the tide left');
+    await user.click(screen.getByRole('button', { name: 'Knowledge' }));
+    const sheet = await screen.findByRole('dialog', { name: /Knowledge/ });
+    expect(await within(sheet).findByText('0 of 1 section shared.')).toBeTruthy();
+    await user.click(within(sheet).getByRole('switch', { name: 'Share with the players: What everyone knows' }));
+    expect(await within(sheet).findByText('1 of 1 section shared.')).toBeTruthy();
+    expect(within(sheet).getByText(/^Shared with the players/)).toBeTruthy();
+    expect(world.tables.knowledge_shares.filter((k) => k.shared === true && !k.undone)).toHaveLength(1);
+    await user.click(await screen.findByRole('button', { name: 'Undo' }));
+    await vi.waitFor(() => expect(world.tables.knowledge_shares.filter((k) => k.shared === true && !k.undone)).toHaveLength(0));
   });
 
   it('a place made by hand: no Knowledge, Rules or foot; Move on offers Somewhere else… alone, which opens the picker', async () => {
@@ -858,6 +878,8 @@ describe('the trail and reading ahead (B2)', () => {
     identity: 'A silted cove: black water, a dry bar.',
     playerView: { text: 'Black water and a dry bar.' },
     encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' },
+    // The Area's Knowledge, which its eye shares while reading ahead (ppf-2).
+    gm: { sections: [{ heading: 'What the cove knows', text: 'The bar dries at low water.' }] },
   };
   const ANCHORAGE = {
     id: 'anchorage',
@@ -877,7 +899,7 @@ describe('the trail and reading ahead (B2)', () => {
     parentId: 'drowned-cove',
     identity: 'A drowned wall of fitted stone.',
     playerView: { text: BREAKWATER_SAYS, aspects: [{ lead: 'Gap', text: 'Two oars wide; the tide runs hard through it.' }] },
-    gm: { notes: 'The fourth ring is new iron.' },
+    gm: { notes: 'The fourth ring is new iron.', sections: [{ heading: 'The new ring', text: 'Set this month by someone in a hurry.' }] },
     source: 'p. 41',
     rules: [{ id: 'cold-water', name: 'Cold water', text: 'A character in the water is cold at once.' }],
   };
@@ -1002,6 +1024,41 @@ describe('the trail and reading ahead (B2)', () => {
     // No form opened, nothing shown, nothing made.
     expect(within(card).queryByRole('group', { name: /Edit piece|\+ Piece/ })).toBeNull();
     expect({ places: world.tables.places.length, shows: world.tables.piece_shows.length, pieces: world.tables.place_pieces.length }).toEqual(before);
+  });
+
+  // Purpose (ppf-2, 2026-11-20): reading ahead the Area the party is in, the eye on its Knowledge works, the one thing
+  // written there: a tap shares the Area's section with the group at once; nothing else is written.
+  it("reading ahead the party's Area, Knowledge's eye shares its section with the group", async () => {
+    const user = userEvent.setup();
+    const { trip, row } = await partyAt(ANCHORAGE);
+    const before = { places: world.tables.places.length, shows: world.tables.piece_shows.length };
+    page(trip, row);
+    await readAheadAt(user, /^The Drowned Cove/);
+    const card = await screen.findByRole('region', { name: 'Reading ahead: The Drowned Cove' });
+    await user.click(within(card).getByRole('button', { name: 'Knowledge' }));
+    const sheet = await screen.findByRole('dialog', { name: /Knowledge/ });
+    expect(await within(sheet).findByText('0 of 1 section shared.')).toBeTruthy();
+    await user.click(within(sheet).getByRole('switch', { name: 'Share with the players: What the cove knows' }));
+    expect(await within(sheet).findByText('1 of 1 section shared.')).toBeTruthy();
+    expect(screen.queryByRole('dialog', { name: "The party isn't here" })).toBeNull();
+    expect(world.tables.knowledge_shares.filter((k) => k.shared === true && !k.undone).map((k) => [k.group_number, k.entry_id])).toEqual([[1, 'drowned-cove']]);
+    expect({ places: world.tables.places.length, shows: world.tables.piece_shows.length }).toEqual(before);
+  });
+
+  // Purpose (ppf-2: a Location's Knowledge keeps its own sections; B2's pop-up stays for the rest): reading ahead
+  // another Location, its Knowledge's eye explains in the pop-up and shares nothing.
+  it("reading ahead another Location, Knowledge's eye explains and shares nothing", async () => {
+    const user = userEvent.setup();
+    const { trip, row } = await partyAt(ANCHORAGE);
+    page(trip, row);
+    await readAheadAt(user, /^3\. The Breakwater/);
+    const card = await screen.findByRole('region', { name: 'Reading ahead: 3. The Breakwater' });
+    await user.click(within(card).getByRole('button', { name: 'Knowledge' }));
+    const sheet = await screen.findByRole('dialog', { name: /Knowledge/ });
+    expect(within(sheet).queryByText('What the cove knows')).toBeNull();
+    await user.click(await within(sheet).findByRole('switch', { name: 'Share with the players: The new ring' }));
+    expect(await screen.findByRole('dialog', { name: "The party isn't here" })).toBeTruthy();
+    expect(world.tables.knowledge_shares).toEqual([]);
   });
 
   // Purpose (the local review of #1044, finding 1): while reading ahead the "Checks here" switch writes nothing either:

@@ -1,0 +1,46 @@
+/* Shared by the pages of the Pack tab’s style sweep. Load after creation/final/final.css and sweep.css. */
+  .pk-bar .title { flex:1; text-align:center; }
+  .pk-bar.pk-wide { display:flex; align-items:center; gap:var(--space-2); }
+  .pk-bar.pk-wide .pk-link { white-space:nowrap; }
+  .pk-bar.pk-wide .ico { flex:none; }
+  .pk-state { text-align:center; font-family:"EB Garamond", Georgia, serif; font-style:italic; font-weight:600; font-size:22px; margin:var(--space-3) 0 var(--space-2); }
+  .bit .pk-state { font-style:normal; }
+  .pk-state.over { color:var(--warn); }
+  .pk-state svg { vertical-align:-2px; margin-right:var(--space-1); }
+  .pk-track { display:flex; gap:2px; }
+  .pk-track > span { flex:1; height:8px; background:var(--rule); border-radius:4px; overflow:hidden; }
+  .pk-track > span > i { display:block; height:100%; background:var(--ink); }
+  .pk-track.over > span > i { background:var(--warn); }
+  .pk-of { text-align:center; font-size:14px; color:var(--muted); margin:var(--space-2) 0 var(--space-3); }
+  .pk-gh { display:flex; align-items:baseline; gap:var(--space-2); border-top:3px double var(--rule); margin-top:var(--space-2); padding-top:var(--space-2); min-height:32px; }
+  .pk-gh .l { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .pk-gh .n { font-size:14px; color:var(--muted); white-space:nowrap; }
+  .pk-gh .l { white-space:nowrap; }
+  .pk-gh:has(.i) { gap:0; }
+  .pk-gh:has(.i) .i { width:36px; }
+  .pk-gh .i { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; color:var(--info); align-self:center; margin:calc(-1 * var(--space-2)) 0; }
+  .pk-gh .w { margin-left:auto; font-size:14px; color:var(--muted); padding-right:44px; }
+  .pk-row { display:flex; align-items:center; gap:var(--space-2); min-height:52px; padding:var(--space-1) 0; border-bottom:1px dotted var(--rule); }
+  .pk-row .t { flex:1; min-width:0; }
+  .pk-row .t b { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; }
+  .pk-row .t .q { font-size:14px; color:var(--muted); margin-left:var(--space-1); }
+  .pk-row .t small { display:block; font-size:14px; color:var(--muted); }
+  .pk-row .t small svg { vertical-align:-2px; margin-right:var(--space-1); }
+  .pk-row .wt { font-size:14px; color:var(--muted); white-space:nowrap; }
+  .pk-row .go { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; flex:none; transform:rotate(-90deg); }
+  .pk-fold { display:flex; align-items:center; gap:var(--space-2); border-top:3px double var(--rule); margin-top:var(--space-2); padding:var(--space-2) 0; }
+  .pk-fold .t { flex:1; min-width:0; }
+  .pk-fold .t small { display:block; font-size:14px; color:var(--muted); }
+  .pk-wait { display:flex; align-items:center; gap:var(--space-2); border:1px solid var(--rule); border-radius:4px; background:var(--surface); padding:var(--space-2) var(--space-3); margin:var(--space-2) 0; }
+  .pk-wait .t { flex:1; } .pk-wait .t small { display:block; font-size:14px; color:var(--muted); }
+  .pk-foot { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); border-top:3px double var(--rule); margin-top:var(--space-3); padding-top:var(--space-3); }
+  .pk-foot .say { font-size:14px; color:var(--muted); }
+  .pk-tabs { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--rule); margin-top:var(--space-4); }
+  .pk-tabs > span { display:flex; flex-direction:column; align-items:center; gap:var(--space-1); min-height:56px; padding-top:var(--space-2); font-size:14px; color:var(--muted); box-sizing:border-box; }
+  .pk-tabs > span.on { color:var(--ink); font-weight:700; border-top:3px solid var(--accent); margin-top:-2px; }
+  .pk-chips { display:flex; flex-wrap:wrap; gap:var(--space-2); margin-bottom:var(--space-3); }
+  .pk-chips .btn.on { background:var(--wash); border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); font-weight:700; }
+  .pk-nav { display:flex; flex-direction:column; gap:var(--space-2); }
+  .pk-nav > span { display:flex; align-items:center; gap:var(--space-2); min-height:44px; padding:0 var(--space-3); border-radius:4px; color:var(--muted); }
+  .pk-nav > span.on { color:var(--ink); font-weight:700; background:var(--wash); box-shadow:inset 0 0 0 2px var(--accent); }
+  .pk-link { color:var(--accent); text-decoration:underline; text-underline-offset:3px; }
