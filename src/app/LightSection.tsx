@@ -19,6 +19,7 @@ import {
   fuelLeft,
   keepLightLit,
   leftWords,
+  lightAct,
   lightBlock,
   lightLight,
   lightOptions,
@@ -31,6 +32,7 @@ import {
   secondsLeft,
   unitOf,
   type CharacterLight,
+  type LightAct,
   type LightBlock,
   type LightOption,
 } from '../modules/expedition/lightPlay.ts';
@@ -362,14 +364,12 @@ export function LightInAtHand({ view, onOpenItem = null }: { view: CharacterLigh
   }
   if (block.kind === 'lit') return null;
 
-  // Light (journey 5): the one light at once; a pick when there's more than one.
-  const pickFrom = block.kind === 'several' || block.kind === 'burnt' ? block : null;
+  // Light (journey 5): the one light at once; a pick when there's more than one (`lightAct`, as the Scene's Light
+  // pop-up does it, PL8).
+  const act = lightAct(block);
   const lightOne = () => {
-    if (!pickFrom) return;
-    const [first] = pickFrom.lightable;
-    if (pickFrom.lightable.length + pickFrom.refills.length > 1) setPicking(true);
-    else if (first) void view.lightIt(first);
-    else if (pickFrom.refills[0]) void view.refillAndLight(pickFrom.refills[0]);
+    if (act?.kind === 'pick') setPicking(true);
+    else if (act) runLightAct(view, act.option, act.refillFirst);
   };
   const ring =
     block.kind === 'one' ? (
@@ -399,44 +399,75 @@ export function LightInAtHand({ view, onOpenItem = null }: { view: CharacterLigh
         <div className="light-block__acts">
           <StackedGroup>
             {block.refill && <StackedButton icon="jug" label="Refill" onClick={() => void view.refill()} />}
-            {block.another && <StackedButton icon="torch" label="Light another" aria-haspopup={block.lightable.length + block.refills.length > 1 ? 'dialog' : undefined} onClick={lightOne} />}
+            {block.another && <StackedButton icon="torch" label="Light another" aria-haspopup={act?.kind === 'pick' ? 'dialog' : undefined} onClick={lightOne} />}
           </StackedGroup>
         </div>
       )}
-      {picking && pickFrom && (
-        <Dialog label="Which light?" onClose={() => setPicking(false)}>
-          <ul className="light-block__pick">
-            {pickFrom.lightable.map((o) => (
-              <li key={o.line.id}>
-                <button
-                  type="button"
-                  className="button-secondary light-block__option"
-                  onClick={() => {
-                    setPicking(false);
-                    void view.lightIt(o);
-                  }}
-                >
-                  {optionWords(o)}
-                </button>
-              </li>
-            ))}
-            {pickFrom.refills.map((o) => (
-              <li key={o.line.id}>
-                <button
-                  type="button"
-                  className="button-secondary light-block__option"
-                  onClick={() => {
-                    setPicking(false);
-                    void view.refillAndLight(o);
-                  }}
-                >
-                  {`${optionWords(o)}, Refill and light (${fuelLeft(view.lines, o.type.fuel)} left)`}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </Dialog>
-      )}
+      {picking && act?.kind === 'pick' && <LightPick view={view} act={act} onPicked={() => undefined} onClose={() => setPicking(false)} />}
+    </div>
+  );
+}
+
+/** Lights one light, as At hand's ring does: a holder that burnt out earlier is refilled first. */
+function runLightAct(view: CharacterLightView, option: LightOption, refillFirst: boolean) {
+  void (refillFirst ? view.refillAndLight(option) : view.lightIt(option));
+}
+
+/**
+ * The pick "Which light?" (journey 5; page 35): each light to light, then each holder that burnt out earlier as
+ * "Refill and light (N left)". A tap lights it and closes the pick (`onPicked` first, for a pop-up that closes with it).
+ */
+function LightPick({ view, act, onPicked, onClose }: { view: CharacterLightView; act: Extract<LightAct, { kind: 'pick' }>; onPicked: () => void; onClose: () => void }) {
+  const choose = (option: LightOption, refillFirst: boolean) => {
+    onClose();
+    onPicked();
+    runLightAct(view, option, refillFirst);
+  };
+  return (
+    <Dialog label="Which light?" onClose={onClose}>
+      <ul className="light-block__pick">
+        {act.lightable.map((o) => (
+          <li key={o.line.id}>
+            <button type="button" className="button-secondary light-block__option" onClick={() => choose(o, false)}>
+              {optionWords(o)}
+            </button>
+          </li>
+        ))}
+        {act.refills.map((o) => (
+          <li key={o.line.id}>
+            <button type="button" className="button-secondary light-block__option" onClick={() => choose(o, true)}>
+              {`${optionWords(o)}, Refill and light (${fuelLeft(view.lines, o.type.fuel)} left)`}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </Dialog>
+  );
+}
+
+/**
+ * The Light pop-up's one act (page 18, PL8, approved 2026-11-14): "Light", the stacked button with the torch at the
+ * pop-up's foot, lighting the player's own light as At hand does (`lightAct`: one at once, several through the pick,
+ * after a burnout Light another's act), with its "Lit Torch" toast and Undo. Nothing while their light is lit, with
+ * nothing to light, or while the light can't be read. `onDone` closes the pop-up as the light is lit.
+ */
+export function LightButton({ view, onDone }: { view: CharacterLightView; onDone: () => void }) {
+  const [picking, setPicking] = useState(false);
+  const act = lightAct(blockOf(view));
+  if (!act) return null;
+  return (
+    <div className="dialog__actions">
+      <StackedButton
+        icon="torch"
+        label="Light"
+        aria-haspopup={act.kind === 'pick' ? 'dialog' : undefined}
+        onClick={() => {
+          if (act.kind === 'pick') return setPicking(true);
+          onDone();
+          runLightAct(view, act.option, act.refillFirst);
+        }}
+      />
+      {picking && act.kind === 'pick' && <LightPick view={view} act={act} onPicked={onDone} onClose={() => setPicking(false)} />}
     </div>
   );
 }

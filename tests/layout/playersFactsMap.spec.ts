@@ -4,7 +4,7 @@
 //     scrolling sideways, every tap 44 px, axe content; the Light pop-up's "Light" button at its foot's right;
 //   * the shared map: first in the right column (under the left one on a phone), its picture and its title, no tools
 //     cut, the pop-up opening on a tap;
-//   * at 375 and 1024 px, in light and dark. Each test saves its picture.
+//   * at 375, 834 and 1024 px, in light and dark. Each test saves its picture.
 import { expect, test, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
@@ -16,7 +16,7 @@ async function openHarbour(page: Page, map: boolean) {
   await expect(page.getByRole('group', { name: 'Scene facts' })).toBeVisible();
 }
 
-for (const width of [375, 1024] as const) {
+for (const width of [375, 834, 1024] as const) {
   for (const scheme of ['light', 'dark'] as const) {
     test.describe(`a player's facts and map (${width} px, ${scheme})`, () => {
       test.use({ viewport: { width, height: 1000 }, colorScheme: scheme, reducedMotion: 'reduce' });
@@ -48,7 +48,7 @@ for (const width of [375, 1024] as const) {
 
       // Purpose (PL8): the Light pop-up ends with the player's "Light" button (the torch over the word) at the right, a
       // 44 px target, nothing cut; the pick it opens with several lights is At hand's own.
-      test.fail('the Light pop-up’s Light button', async ({ page }) => {
+      test('the Light pop-up’s Light button', async ({ page }) => {
         await openHarbour(page, false);
         const light = page.getByRole('group', { name: 'Scene facts' }).getByRole('button', { name: /^Light:/ });
         await light.click();

@@ -521,7 +521,7 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
 
   // Purpose (PL8): a player whose character has a light to light finds "Light" at the foot of the Light pop-up; a tap
   // lights it at once, as the Pack does (its toast with Undo), and the pop-up closes.
-  it.fails('lights the player’s own light from the Light pop-up', async () => {
+  it('lights the player’s own light from the Light pop-up', async () => {
     const { sam } = await table({ rules: true, rushlights: true });
     const user = await openScene(sam);
     await user.click(await factNamed('Light'));

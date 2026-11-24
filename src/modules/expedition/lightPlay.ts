@@ -333,8 +333,14 @@ export function lightBlock(
 export type LightAct = { kind: 'light'; option: LightOption; refillFirst: boolean } | { kind: 'pick'; lightable: LightOption[]; refills: LightOption[] };
 
 export function lightAct(block: LightBlock | null): LightAct | null {
-  void block;
-  return null;
+  if (block?.kind === 'one') return { kind: 'light', option: block.option, refillFirst: block.refillFirst };
+  if (block?.kind === 'several') return { kind: 'pick', lightable: block.lightable, refills: block.refills };
+  if (block?.kind !== 'burnt' || !block.another) return null;
+  if (block.lightable.length + block.refills.length > 1) return { kind: 'pick', lightable: block.lightable, refills: block.refills };
+  const [first] = block.lightable;
+  if (first) return { kind: 'light', option: first, refillFirst: false };
+  const [refill] = block.refills;
+  return refill ? { kind: 'light', option: refill, refillFirst: true } : null;
 }
 
 /** The time a light line keeps (a light put out keeps its time, 05 A2; a holder swapped out keeps its fuel), or null. */

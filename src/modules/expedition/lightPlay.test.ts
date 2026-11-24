@@ -238,13 +238,13 @@ describe("the Light pop-up's Light button (page 18, PL8: the same act as the Pac
   const lampOut = light({ lineId: 'lamp', typeId: 'reed-lamp', name: 'Reed lamp', fuelItem: 'fen-oil', litAt: null, outAt: 4 * TURN });
 
   // Purpose: with one light to light, the button lights it at once, as At hand's ring does.
-  it.fails('one light to light: lit at once', () => {
+  it('one light to light: lit at once', () => {
     const options = lightOptions([rush], types, units);
     expect(lightAct(lightBlock(null, 0, options, [rush], noFuel))).toEqual({ kind: 'light', option: options[0], refillFirst: false });
   });
 
   // Purpose: with several lights to light, the button opens the pick, as At hand's "Light…" does.
-  it.fails('several lights: the pick', () => {
+  it('several lights: the pick', () => {
     const lines = [rush, lamp, oil];
     const act = lightAct(lightBlock(null, 0, lightOptions(lines, types, units), lines, noFuel));
     expect(act).toMatchObject({ kind: 'pick' });
@@ -253,7 +253,7 @@ describe("the Light pop-up's Light button (page 18, PL8: the same act as the Pac
 
   // Purpose: after a light burnt out, the button does what Light another does: the one other light at once, a holder
   // that burnt out earlier refilled and lit.
-  it.fails('burnt out: Light another’s act', () => {
+  it('burnt out: Light another’s act', () => {
     const lines = [lamp, rush];
     const options = lightOptions(lines, types, units);
     expect(lightAct(lightBlock(lampOut, 4 * TURN, options, lines, { left: 0, name: 'Fen oil' }))).toMatchObject({ kind: 'light', option: { line: { id: 'rush' } }, refillFirst: false });

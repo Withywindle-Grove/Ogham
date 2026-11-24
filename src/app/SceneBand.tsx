@@ -321,7 +321,7 @@ export function FactsRow({ facts, onOpen, centred = false }: { facts: readonly F
  * book's labelled line, as the Weather sheet's), then "The rule" in the book's format with its source. No rule where the
  * player's copy of the setting has no words for it (or keeps them for the GM): the state alone.
  */
-export function FactSheet({ title, lines, rule, onClose }: { title: string; lines: readonly FactLine[]; rule: readonly RuleBlock[]; onClose: () => void }) {
+export function FactSheet({ title, lines, rule, onClose, foot = null }: { title: string; lines: readonly FactLine[]; rule: readonly RuleBlock[]; onClose: () => void; /** The pop-up's one act at its foot (Light's "Light", PL8). */ foot?: ReactNode }) {
   return (
     <BookFacesScope.Provider value>
       <Dialog label={title} onClose={onClose}>
@@ -339,6 +339,7 @@ export function FactSheet({ title, lines, rule, onClose }: { title: string; line
             </>
           )}
         </div>
+        {foot}
       </Dialog>
     </BookFacesScope.Provider>
   );

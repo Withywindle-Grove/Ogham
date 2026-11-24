@@ -172,6 +172,7 @@ import { registry } from './services.ts';
 import { useMessaging } from './Messages.tsx';
 import { useWeather, useWeatherFold, WeatherCard } from './WeatherCard.tsx';
 import { WeatherSheet } from './WeatherSheet.tsx';
+import { LightButton, type CharacterLightView } from './LightSection.tsx';
 import './SceneTime.css';
 import { EndCard, RestLines } from './EndCard.tsx';
 import { SafePlaceQuestion, StayingAWhile } from './EndSafety.tsx';
@@ -204,7 +205,7 @@ export function SceneTime({
    * and the weather card are the strip's own); `body` is the marching order and the place, given the Rest button
    * for a group (B5: calls a rest out of turn).
    */
-  tableView?: { /** The slot's other prompts, one keyed element each (the slot orders them, newest on top). */ prompts: ReactNode; body: (restButton: (group: number) => ReactNode, dark?: (group: number) => boolean) => ReactNode };
+  tableView?: { /** The slot's other prompts, one keyed element each (the slot orders them, newest on top). */ prompts: ReactNode; /** The player's own light, for the Light pop-up's "Light" (PL8). */ light?: CharacterLightView; body: (restButton: (group: number) => ReactNode, dark?: (group: number) => boolean) => ReactNode };
 }) {
   const gm = isGm(user, campaign.id);
   const logVersion = useLogVersion();
@@ -2482,7 +2483,16 @@ export function SceneTime({
       {weatherOpen && <WeatherSheet db={db} user={user} view={weather.view} over={[bandDate.words, bandDate.season].filter(Boolean).join(', ')} onChanged={weather.reload} onClose={() => setWeatherOpen(false)} />}
       {/* A player's tap on Light, Rest or the Encounter check (P10; page 18, PL8): the state, then the rule where the
           player's copy of the setting has its words. The Rest prompt's ⓘ opens the same Rest pop-up. */}
-      {lightAbout && <FactSheet title="Light" lines={lightSheetLines(lightGroups, stepWord)} rule={[]} onClose={() => setLightAbout(false)} />}
+      {lightAbout && (
+        <FactSheet
+          title="Light"
+          lines={lightSheetLines(lightGroups, stepWord)}
+          rule={[]}
+          onClose={() => setLightAbout(false)}
+          // PL8: the player's one act here, lighting their own light as At hand does; none with nothing to light.
+          foot={tableView?.light ? <LightButton view={tableView.light} onDone={() => setLightAbout(false)} /> : null}
+        />
+      )}
       {restAbout && bandRest && (
         <FactSheet title="Rest" lines={restSheetLines(bandRest, mode?.rest ? restEveryWords(mode.rest) : null)} rule={settingRule(restWords.filter((w) => w !== REST_ANSWER_WORDS), mode?.rest?.source)} onClose={() => setRestAbout(false)} />
       )}
