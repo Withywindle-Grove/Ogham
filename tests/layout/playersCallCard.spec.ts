@@ -5,6 +5,7 @@
 //   * after "Got it" the next call's card stands, with the seen one folded under it to a row 44 px high (40C);
 //   * "Got it" by keyboard moves focus to the next card's "Got it", then to the folded row (audit finding 1);
 //   * on a phone the words run on under "Got it"; on a tablet they keep a column beside it (findings 4 and 6);
+//   * the card reads heading, Got it, words; on a phone the heading has the full width above Got it (re-audit 1, 2);
 //   * nothing scrolls sideways, no text is under 14 px, every tap is 44 px, axe finds no serious problem, at 375 and
 //     834 px, in light and dark. Each test saves its pictures (the phone and dark ones are owed to Francis, p7-8).
 import { expect, test, type Page } from '@playwright/test';
@@ -67,6 +68,29 @@ for (const width of [375, 834] as const) {
         // The last "Got it" (finding 1): with no card left, focus goes to the row it folded to.
         await page.keyboard.press('Enter');
         await expect(calls.getByRole('button', { name: 'A rumour, for the party' })).toBeFocused();
+      });
+
+      // Purpose (Home Two's second audit, findings 1 and 2): the live region's text starts with the heading; on a phone
+      // the heading has the card's full width, above "Got it" (it never wraps beside it); on a tablet "Got it" keeps its
+      // drawn place, at the top right beside the heading and the words (40A).
+      test.fail('reads the heading first, and gives it the full width on a phone', async ({ page }) => {
+        await openScene(page);
+        const calls = page.getByRole('group', { name: 'Calls to adventure' });
+        await expect(calls.getByRole('status')).toHaveText(/^A call to adventure, for the party/);
+        const [heading, gotIt, words] = await Promise.all([
+          calls.locator('.call-card__heading').first().boundingBox(),
+          calls.getByRole('button', { name: /^Got it/ }).boundingBox(),
+          calls.locator('.call-card__words').first().boundingBox(),
+        ]);
+        if (width === 375) {
+          expect(heading!.y + heading!.height).toBeLessThanOrEqual(gotIt!.y + 0.5);
+          expect(heading!.x + heading!.width).toBeGreaterThan(gotIt!.x);
+          expect(words!.y + words!.height).toBeGreaterThan(gotIt!.y + gotIt!.height);
+        } else {
+          expect(heading!.x + heading!.width).toBeLessThanOrEqual(gotIt!.x);
+          expect(words!.x + words!.width).toBeLessThanOrEqual(gotIt!.x);
+          expect(Math.abs(gotIt!.y - heading!.y)).toBeLessThanOrEqual(8);
+        }
       });
     });
   }
