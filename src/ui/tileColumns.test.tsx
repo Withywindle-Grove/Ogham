@@ -83,7 +83,7 @@ describe('a row of tiles measures again once the fonts arrive, in WebKit too (F8
   // Purpose: when the fonts are still loading as the row first measures, and they arrive wider without a `loadingdone`
   // event (as in WebKit), the row measures again once `document.fonts.ready` resolves and steps down to two columns
   // rather than run a word past its tile.
-  it.fails('re-measures when fonts loading at mount arrive, with no loadingdone', async () => {
+  it('re-measures when fonts loading at mount arrive, with no loadingdone', async () => {
     const fonts = webkitFonts(true);
     const { container } = render(<ScoreRow scores={scores} onOpen={() => {}} />);
     expect(tileColumns(container)).toBe('3');
@@ -93,7 +93,7 @@ describe('a row of tiles measures again once the fonts arrive, in WebKit too (F8
 
   // Purpose: when a font starts loading after the row was measured with the fonts already loaded (a `loading` event),
   // and it arrives wider without a `loadingdone` event, the row measures again and steps down to two columns.
-  it.fails('re-measures when a later font load finishes, with no loadingdone', async () => {
+  it('re-measures when a later font load finishes, with no loadingdone', async () => {
     const fonts = webkitFonts(false);
     const { container } = render(<ScoreRow scores={scores} onOpen={() => {}} />);
     await act(async () => {});
