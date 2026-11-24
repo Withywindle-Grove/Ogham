@@ -893,8 +893,14 @@ export function Toast({
   seconds = TOAST_SECONDS,
   error = false,
   warning,
+  undoIcon = false,
 }: {
   text: string;
+  /**
+   * The **icon Undo** variant (K12, the lead's ruling on ⚑ 6 of #66, 24 Nov): Undo as a small stacked button, the set's
+   * turned-back arrow (ic-2) above the word, never underlined (fl-1). The stash's Take uses it.
+   */
+  undoIcon?: boolean;
   /** The **warning** variant (K12, PK4b): a line of its own under the words, the warning sign first ("Over the limit: …"). */
   warning?: string;
   onUndo?: () => void;
@@ -922,7 +928,9 @@ export function Toast({
           </span>
         )}
       </span>
-      {onUndo ? (
+      {onUndo && undoIcon ? (
+        <StackedButton icon="anticlockwise-rotation" label="Undo" className="toast__undo-icon" onClick={onUndo} />
+      ) : onUndo ? (
         <button type="button" className="toast__undo" onClick={onUndo}>
           Undo
         </button>

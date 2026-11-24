@@ -13,6 +13,8 @@ const move = (over: Partial<StashMove> = {}): StashMove => ({
   qty: null,
   name: null,
   leftPlay: false,
+  type: 'inventory.move',
+  undoable: true,
   seq: 1,
   eventId: 'event-1',
   userId: 'user-tam',

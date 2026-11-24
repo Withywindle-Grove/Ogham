@@ -13,6 +13,8 @@ export interface ToastRequest {
   error?: boolean;
   /** A warning of its own under the words, with the warning sign: the taker put over the limit (K12, PK4b). */
   warning?: string;
+  /** The **icon Undo** variant: Undo as a small stacked button, the turned-back arrow above the word (the stash's Take, ⚑ 6). */
+  undoIcon?: boolean;
 }
 
 type Show = (toast: ToastRequest) => void;
@@ -143,6 +145,7 @@ export function ToastHost({ children }: { children: ReactNode }) {
             text={current.text}
             warning={current.warning}
             error={current.error}
+            undoIcon={current.undoIcon}
             onDone={done}
             onUndo={
               current.onUndo

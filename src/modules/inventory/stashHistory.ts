@@ -17,6 +17,7 @@ import { readClock, type TimeUnits } from '../expedition/clock.ts';
 import { allRows } from '../library/allRows.ts';
 import type { Db } from '../../core/supabase.ts';
 import type { LogEvent } from '../../core/events.ts';
+import { mayUndo } from '../../core/undo.ts';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const text = (value: unknown): string | null => (typeof value === 'string' && value ? value : null);
@@ -54,6 +55,13 @@ export interface StashMove {
   eventId: string;
   /** The person who did it (null when the log can't say): a player's line made straight on the stash names no character. */
   userId: string | null;
+  /** The log event's type ("inventory.move", "inventory.add"). */
+  type: string;
+  /**
+   * Whether the log's Undo may undo it, by the app's one rule (`mayUndo`, as the log's own lines): a give or a take
+   * (inventory.move) may; a line made straight on the stash (inventory.add, Put in) may not.
+   */
+  undoable: boolean;
 }
 
 export interface StashHistory {
@@ -93,6 +101,11 @@ export function stashHistory(events: readonly LogEvent[], ctx: StashContext): St
   const whenOf = (e: LogEvent): StashWhen => whenAt(e, clocks, ctx);
   const whoOf = (e: LogEvent, characterId: string | null): StashWho => (e.actorUserId && ctx.gmUserIds.has(e.actorUserId) ? { gm: true } : { gm: false, characterId });
 
+  // The event's type, and whether its request may be undone (the request's own changes, as the log groups them).
+  const about = (e: LogEvent) => {
+    const request = e.requestId === null ? [e] : events.filter((r) => r.requestId === e.requestId);
+    return { type: e.type, undoable: mayUndo(e.type, request) };
+  };
   const moves: StashMove[] = [];
   for (const e of lines) {
     const lineId = e.targetId!;
@@ -105,14 +118,14 @@ export function stashHistory(events: readonly LogEvent[], ctx: StashContext): St
       // the stash's last out, with who did it (a player's character the log can't name: none, as for a line made there).
       if (carrierOf(e.before).locationId === ctx.stashId) {
         const qty = typeof e.before!.qty === 'number' ? e.before!.qty : null;
-        moves.push({ lineId, direction: 'out', who: whoOf(e, null), when: whenOf(e), qty, name: text(e.before!.name), seq: e.seq, leftPlay: true, eventId: e.id, userId: e.actorUserId });
+        moves.push({ lineId, direction: 'out', who: whoOf(e, null), when: whenOf(e), qty, name: text(e.before!.name), seq: e.seq, leftPlay: true, eventId: e.id, userId: e.actorUserId, ...about(e) });
       }
       continue;
     }
     // Part of a stack on the stash used up or dropped (counted down, the line stays): that many left play.
     const countedDown = (e.type === 'inventory.remove' || e.type === 'item.use') && isRecord(e.before) && isRecord(e.after) && !changed;
     if (countedDown && typeof e.before!.qty === 'number' && typeof e.after!.qty === 'number' && e.after!.qty < e.before!.qty && carrierNow(lineId, e.seq, lines) === ctx.stashId) {
-      moves.push({ lineId, direction: 'out', who: whoOf(e, null), when: whenOf(e), qty: e.before!.qty - e.after!.qty, name: null, seq: e.seq, leftPlay: true, eventId: e.id, userId: e.actorUserId });
+      moves.push({ lineId, direction: 'out', who: whoOf(e, null), when: whenOf(e), qty: e.before!.qty - e.after!.qty, name: null, seq: e.seq, leftPlay: true, eventId: e.id, userId: e.actorUserId, ...about(e) });
       continue;
     }
     const before = carrierOf(e.before);
@@ -126,10 +139,10 @@ export function stashHistory(events: readonly LogEvent[], ctx: StashContext): St
       // A part split off elsewhere and handed to the stash: its count is the made row's.
       const madeRow = made ? e.after : lines.find((m) => m.targetId === lineId && m.before === null && m.seq < e.seq)?.after;
       const qty = !made && madeRow && splitBefore(e, lines) && typeof madeRow.qty === 'number' ? madeRow.qty : null;
-      moves.push({ lineId, direction: 'in', who: whoOf(e, made ? null : before.actorId), when: whenOf(e), qty, name: text(madeRow?.name), seq: e.seq, leftPlay: false, eventId: e.id, userId: e.actorUserId });
+      moves.push({ lineId, direction: 'in', who: whoOf(e, made ? null : before.actorId), when: whenOf(e), qty, name: text(madeRow?.name), seq: e.seq, leftPlay: false, eventId: e.id, userId: e.actorUserId, ...about(e) });
     } else if (outOfStash) {
       const madeRow = lines.find((m) => m.targetId === lineId && m.before === null && m.seq < e.seq && splitTakenAway(m, lines))?.after;
-      moves.push({ lineId, direction: 'out', who: whoOf(e, after.actorId), when: whenOf(e), qty: madeRow && typeof madeRow.qty === 'number' ? madeRow.qty : null, name: text(madeRow?.name), seq: e.seq, leftPlay: false, eventId: e.id, userId: e.actorUserId });
+      moves.push({ lineId, direction: 'out', who: whoOf(e, after.actorId), when: whenOf(e), qty: madeRow && typeof madeRow.qty === 'number' ? madeRow.qty : null, name: text(madeRow?.name), seq: e.seq, leftPlay: false, eventId: e.id, userId: e.actorUserId, ...about(e) });
     }
   }
 

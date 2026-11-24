@@ -20,7 +20,8 @@ import { campaignUnits } from '../modules/expedition/play.ts';
 import { loadClockNow } from '../modules/expedition/lightPlay.ts';
 import type { InventoryLine, NamedCarrier } from '../modules/inventory/inventory.ts';
 import { loadStashHistory, whoWords, type StashHistory, type StashMove } from '../modules/inventory/stashHistory.ts';
-import { asksHowMany, readTake, takeLabel, takeRefusal } from '../modules/inventory/stashTake.ts';
+import { shownName } from '../modules/inventory/packView.ts';
+import { asksHowMany, readTake, TAKE_OFFLINE, takeLabel, takeRefusal } from '../modules/inventory/stashTake.ts';
 import { Dialog } from '../ui/Dialog.tsx';
 import { Chip, StackedButton, WarningLine, WarningSign } from '../ui/parts.tsx';
 import { useOnline } from '../ui/creation.tsx';
@@ -36,9 +37,6 @@ import './PurseSheet.css';
 /** How many of the stash's recent lines show (PK4 draws three, PK9b four). */
 const RECENT = 4;
 
-/** Offline, a tap on Take says why it waits (PK7b; question 6). */
-export const TAKE_OFFLINE = 'You’re offline. Taking from the stash needs the party’s latest, so it waits until you’re back.';
-
 /**
  * A stack's "Take" sheet (PK4b): the thing named once, what the stash has under it, a box (a quiet 0 until typed), and
  * one accent naming the amount. The Coin sheet's row and box (`.purse-sheet__row`), for a thing.
@@ -47,8 +45,12 @@ function TakeSheet({ line, onClose, onTake }: { line: InventoryLine; onClose: ()
   const box = useId();
   const [typed, setTyped] = useState('');
   const [refusal, setRefusal] = useState<string | null>(null);
-  const name = line.name;
+  const online = useOnline();
+  const show = useToast();
+  const name = shownName(line.name);
   function take() {
+    // Offline the accent stays a button and says why it waits; nothing is written (as the Coin sheet's, PurseSheet).
+    if (!online) return show({ text: TAKE_OFFLINE });
     const n = readTake(typed, line.qty);
     if (n === null) return setRefusal(takeRefusal(typed, line.qty));
     onTake(n);
@@ -260,11 +262,11 @@ export function StashScreen({
                   <span>{words}</span>
                   <span className="auth__meta">{recentWhen(move)}</span>
                 </span>
-                {/* Your own line keeps Undo while it can be undone (PK9b); the database says when it can't. */}
-                {move.userId === user.id && (
-                  <button type="button" className="button-secondary button-secondary--small stash__undo" aria-label={`Undo: ${words}`} onClick={() => void undo(move)}>
-                    Undo
-                  </button>
+                {/* Your own line keeps Undo while it can be undone (PK9b): by the log's own rule (`mayUndo`), a give or a
+                    take may, a Put in may not; the database still says when the thing has moved on since. The turned-back
+                    arrow above the word (ic-2; ⚑ 4, ruled 24 Nov). */}
+                {move.userId === user.id && move.undoable && (
+                  <StackedButton icon="anticlockwise-rotation" label="Undo" className="stash__undo" aria-label={`Undo: ${words}`} onClick={() => void undo(move)} />
                 )}
               </li>
             ))}

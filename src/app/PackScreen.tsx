@@ -569,6 +569,8 @@ export function PackScreen({
       show({
         text: said.text,
         ...(said.warning ? { warning: said.warning } : {}),
+        // Undo with the turned-back arrow above the word (⚑ 6, ruled 24 Nov).
+        undoIcon: true,
         onUndo: () =>
           void (async () => {
             const eventId = await latestChange(db, campaign.id, moveItem.name, user.id);

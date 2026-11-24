@@ -8,6 +8,9 @@ import type { CarriedLoad } from './encumbrance.ts';
 import type { InventoryLine } from './inventory.ts';
 import { countWords, shownName } from './packView.ts';
 
+/** Offline, a tap on Take says why it waits (PK7b; question 6): the stash's things and its coin alike. */
+export const TAKE_OFFLINE = 'You’re offline. Taking from the stash needs the party’s latest, so it waits until you’re back.';
+
 const num = (n: number) => n.toLocaleString('en');
 const outOf = (n: number, most: number | null) => `${num(n)}${most !== null ? ` of ${num(most)}` : ''}`;
 
@@ -22,7 +25,8 @@ export function takeLoadWords(load: CarriedLoad): string | null {
  * line of its own ("Over the limit: 1,263 of 1,200."), and the take stands (told, not blocked; ⚑ 18).
  */
 export function takeToast(taker: string, line: Pick<InventoryLine, 'name' | 'details'>, qty: number, load: CarriedLoad): { text: string; warning: string | null } {
-  const text = `${taker} took ${countWords(line, qty)}.`;
+  // One thing by the pack's own name ("Wren took Torch."; ⚑ 5 ruled A, 24 Nov), more by the pack's count words.
+  const text = `${taker} took ${qty === 1 ? shownName(line.name) : countWords(line, qty)}.`;
   if ((load.mode === 'coin' || load.mode === 'slot') && load.over) return { text, warning: `Over the limit: ${outOf(load.load, load.capacity)}.` };
   const said = takeLoadWords(load);
   return { text: said ? `${text} ${said}` : text, warning: null };

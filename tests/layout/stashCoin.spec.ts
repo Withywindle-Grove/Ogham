@@ -6,6 +6,7 @@
 //   3. "Take coin": the stash's amount under each coin, the accent naming the amount, a refusal under the row with
 //      the warning sign, and the toast in the log line's words with Undo.
 //   4. Messy coin (long names, 999) wraps without sideways scrolling; offline, Take… stays a row and explains.
+//   5. (fixme, ⚑ 8 of #66) Two long-named coins at once: the accent's label stays inside its button.
 //   Every scene: no sideways scrolling, every target at least 44 px, readable text, no serious accessibility problem.
 // The pictures it saves (deviceScaleFactor 2) are the as-built pictures beside PC6, PC6b and PK4 in the pull request.
 import { expect, test, type Page } from '@playwright/test';
@@ -132,6 +133,20 @@ for (const size of SIZES) {
           },
         },
       ];
+      // Purpose: with two long-named coins typed at once, the accent's label stays inside the button at 375 px. Known to
+      // fail: the shared Coin sheet keeps its amount on one line (the lead's rule, 2026-11-14), so it runs past the
+      // edge; ⚑ 8 of #66 asks whether to let it wrap (as K12's Take does), shorten it, or leave it.
+      test.fixme('stash-coin-two-long: the accent naming two long coins stays inside its button', async ({ page }) => {
+        await openStash(page, 'stash=1&coin=messy');
+        await openTake(page);
+        const sheet = page.getByRole('dialog');
+        await sheet.getByRole('textbox', { name: 'Moon-silver crowns of the Old Causeway' }).fill('1');
+        await sheet.getByRole('textbox', { name: 'Heron marks' }).fill('999');
+        const go = sheet.locator('.purse-sheet__go');
+        await expect(go).toBeVisible();
+        expect(await go.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+      });
+
       for (const scene of scenes) {
         test(`${scene.name}: no sideways scrolling, taps at least 44px, readable text, accessible`, async ({ page }) => {
           await openStash(page, scene.query);

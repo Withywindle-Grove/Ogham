@@ -120,6 +120,13 @@ describe('Take’s words (K12, frame PK4b)', () => {
     expect(takeToast('Wren', { name: 'Reed rope', details: {} }, 3, { mode: 'slot', load: 9, capacity: 12, tier: tier('Laden'), over: false, overMax: '' }).text).toBe('Wren took Reed rope ×3. Load 9 of 12 slots.');
   });
 
+  // Purpose: one thing taken reads by the pack's own name, never its piece's word ("Wren took Torch.", not "torch";
+  // ⚑ 5 ruled A, 24 Nov); more than one keeps the count words.
+  it('names one thing by the pack’s own name', () => {
+    expect(takeToast('Wren', torch, 1, { mode: 'none' }).text).toBe('Wren took Torch.');
+    expect(takeToast('Wren', { name: 'reed whistle', details: {} }, 1, { mode: 'none' }).text).toBe('Wren took Reed whistle.');
+  });
+
   // Purpose: a taker put over the limit is told in the toast, on a warning line of its own, and the take is not stopped.
   it('warns past the limit, and says the thing alone where no load is counted', () => {
     expect(takeToast('Wren', { name: 'Reed chest', details: {} }, 1, coinLoad(1263, true))).toEqual({ text: 'Wren took Reed chest.', warning: 'Over the limit: 1,263 of 1,200.' });

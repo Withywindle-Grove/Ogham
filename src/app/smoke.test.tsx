@@ -11,7 +11,7 @@ import { forgetFileLinks } from '../core/files.ts';
 import { rememberInviteFromAddress } from './pendingInvite.ts';
 import { ICON_SET } from '../ui/iconSet.ts';
 import { openFullSheetFromMenu } from '../testing/openFullSheet.ts';
-import { moveItem } from '../modules/inventory/inventory.ts';
+import { addItem, moveItem } from '../modules/inventory/inventory.ts';
 
 // The pretend browser can't draw pictures, so shrinking a photo hands back a small stand-in file.
 const shrink = vi.hoisted(() => ({ fail: null as string | null }));
@@ -5791,6 +5791,74 @@ describe('the Pack tab (M4 step 4)', () => {
     } finally {
       offline.mockRestore();
     }
+  });
+
+  // Purpose: a Put in shows no Undo in Recently; a take does, a small stacked button with the turned-back arrow above
+  // the word, and the take's toast has the same (review of #66, finding 1; ⚑ 4 and ⚑ 6, ruled 24 Nov).
+  it('a Put in shows no Undo in Recently; a take does, with the turned-back arrow, as does its toast (K11, K12)', async () => {
+    const { sam, wren, campaign, line } = packWorld('coin');
+    line(null, 'Silver ewer', { weight_coin: 30 });
+    const stashCarrier = { campaignId: campaign, actorId: null, locationId: `location-stash-${campaign}`, ownerUserId: null, archived: false };
+    const sams = { id: sam, roles: { [campaign]: 'player' as const } };
+    const item = { libraryEntryId: null, name: 'Reed basket', category: 'gear', weightCoin: 5, slots: null, stack: 1 };
+    expect((await addItem.run(world.db, sams, { carrier: stashCarrier, item, qty: 1, howGot: 'found' })).ok).toBe(true);
+    const user = openApp();
+    await openPack(user);
+    const stash = await openStash(user);
+    await user.click(stash.getByRole('button', { name: 'Take Silver ewer' }));
+    await waitFor(() => expect(world.tables.inventory_lines.find((l) => l.name === 'Silver ewer')).toMatchObject({ actor_id: wren }));
+    const toast = await waitFor(() => document.querySelector<HTMLElement>('.toast')!);
+    const toastUndo = within(toast).getByRole('button', { name: 'Undo' });
+    expect(toastUndo.className).toContain('stacked-button');
+    expect(toastUndo.querySelector('svg')).toBeTruthy();
+    const recent = within(await stash.findByRole('region', { name: 'Recently' }));
+    await recent.findByText('Wren took Silver ewer.');
+    expect(recent.getByText('Wren put in Reed basket.')).toBeTruthy();
+    expect(recent.queryByRole('button', { name: 'Undo: Wren put in Reed basket.' })).toBeNull();
+    const undo = recent.getByRole('button', { name: 'Undo: Wren took Silver ewer.' });
+    expect(undo.className).toContain('stacked-button');
+    expect(undo.className).toContain('button-secondary');
+    expect(undo.textContent).toBe('Undo');
+    expect(undo.querySelector('svg')).toBeTruthy();
+    await user.click(undo);
+    await waitFor(() => expect(world.tables.inventory_lines.find((l) => l.name === 'Silver ewer')).toMatchObject({ actor_id: null, location_id: `location-stash-${campaign}` }));
+  });
+
+  // Purpose: offline, the Take sheet's accent stays a button and a tap says why it waits; nothing is written (review of
+  // #66, nit 3, as the Coin sheet's).
+  it('offline, the Take sheet’s accent explains and nothing moves (K12)', async () => {
+    const { wren, line } = packWorld('coin');
+    line(null, 'Torches', { qty: 6, stack: 10, weight_coin: 10, item_data: { unitName: 'torch', pluralName: 'torches' } });
+    const user = openApp();
+    await openPack(user);
+    const stash = await openStash(user);
+    await user.click(stash.getByRole('button', { name: 'Take Torches' }));
+    const sheet = within(await screen.findByRole('dialog', { name: 'Take' }));
+    await user.type(sheet.getByLabelText('Torches'), '2');
+    const offline = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    try {
+      window.dispatchEvent(new Event('offline'));
+      await user.click(sheet.getByRole('button', { name: 'Take 2 torches' }));
+      expect(await screen.findByText('You’re offline. Taking from the stash needs the party’s latest, so it waits until you’re back.')).toBeTruthy();
+      expect(world.tables.inventory_lines.filter((l) => l.actor_id === wren)).toEqual([]);
+      expect(world.tables.inventory_lines.find((l) => l.id === 'line-torches')).toMatchObject({ qty: 6 });
+    } finally {
+      offline.mockRestore();
+    }
+  });
+
+  // Purpose: the Take sheet names the thing as everywhere else, its first letter a capital (`shownName`), whatever
+  // case the line was saved in (review of #66, nit 5).
+  it('the Take sheet names the thing as the rows do, a capital first (K12)', async () => {
+    const { line } = packWorld('coin');
+    line(null, 'reed arrows', { qty: 3, stack: 20 });
+    const user = openApp();
+    await openPack(user);
+    const stash = await openStash(user);
+    await user.click(stash.getByRole('button', { name: 'Take reed arrows' }));
+    const sheet = within(await screen.findByRole('dialog', { name: 'Take' }));
+    expect(sheet.getByLabelText('Reed arrows')).toBeTruthy();
+    expect(sheet.queryByText('reed arrows')).toBeNull();
   });
 
   // Purpose: an empty stash says so in one sentence and keeps Put in; offline, the stash says it is shown as last read,

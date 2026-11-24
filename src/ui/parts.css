@@ -749,6 +749,13 @@
   cursor: pointer;
 }
 
+/* The icon Undo variant (K12, ⚑ 6 of #66): the small stacked button at the right, the arrow above the word; a light
+   button on the ink toast, its own colours, no underline (fl-1). It clears the draining bar under it. */
+.toast__undo-icon {
+  margin-inline-start: auto;
+  margin-block-end: var(--space-1);
+}
+
 .toast__bar {
   position: absolute;
   inset-inline: 0;

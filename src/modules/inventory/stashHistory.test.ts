@@ -65,6 +65,24 @@ describe('in and out (pk-4)', () => {
     ]);
   });
 
+  // Purpose: a Put in (a line made straight on the stash, inventory.add) may not be undone from Recently, by the log's
+  // own Undo rule; a take (inventory.move), whole or part, may (review of #66, finding 1).
+  it('a Put in is not undoable; a take, whole or part, is', () => {
+    seq = 0;
+    const events = [
+      ev({ targetId: 'line-basket', type: 'inventory.add', requestId: 'req-1', before: null, after: { id: 'line-basket', actor_id: null, location_id: STASH, name: 'Reed basket', qty: 1 } }),
+      ev({ targetId: 'line-chest', before: { actor_id: null, location_id: STASH }, after: { actor_id: TAM, location_id: null } }),
+      ev({ targetId: 'line-part', requestId: 'req-3', before: null, after: { id: 'line-part', actor_id: null, location_id: STASH, name: 'Torches', qty: 2 } }),
+      ev({ targetId: 'line-part', requestId: 'req-3', before: { actor_id: null, location_id: STASH }, after: { actor_id: TAM, location_id: null } }),
+    ];
+    const h = stashHistory(events, ctx({ lineIds: ['line-basket'] }));
+    expect(h.moves.map((m) => [m.lineId, m.direction, m.type, m.undoable])).toEqual([
+      ['line-basket', 'in', 'inventory.add', false],
+      ['line-chest', 'out', 'inventory.move', true],
+      ['line-part', 'out', 'inventory.move', true],
+    ]);
+  });
+
   // Purpose: a thing moved from a character into the stash reads who put it in (that character) and when, on its row
   // and as the stash's last thing in.
   it('a thing put in reads who and when, on its row and as the last in', () => {

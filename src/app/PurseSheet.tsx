@@ -24,12 +24,12 @@ import { latestChange, undoChange } from '../core/undo.ts';
 import { amountWords, coinLine, type Denomination } from '../modules/inventory/coinWords.ts';
 import type { NamedCarrier } from '../modules/inventory/inventory.ts';
 import { addCoin, AMOUNT, giveCoin, removeCoin, spendCoin, takeCoin, type CoinNames, type Coins } from '../modules/inventory/purse.ts';
+import { TAKE_OFFLINE } from '../modules/inventory/stashTake.ts';
 import { useOnline } from '../ui/creation.tsx';
 import { Dialog } from '../ui/Dialog.tsx';
 import { DestinationList, ListRow, RowList, StackedButton, WarningLine } from '../ui/parts.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import { registry } from './services.ts';
-import { TAKE_OFFLINE } from './StashScreen.tsx';
 import './PurseSheet.css';
 
 /** One coin's row in a sheet: the setting's coin (or a key it doesn't list, as written) and how many are held. */
@@ -207,7 +207,8 @@ export function PurseSheet({
     const type = page === 'add' ? addCoin.name : page === 'remove' ? removeCoin.name : page === 'take' ? takeCoin.name : page === 'spend' ? spendCoin.name : giveCoin.name;
     onClose();
     onChanged();
-    show({ text: words, onUndo: () => void undo(type) });
+    // The stash's Take: Undo with the turned-back arrow above the word, as a thing's take (⚑ 6, ruled 24 Nov).
+    show({ text: words, onUndo: () => void undo(type), ...(page === 'take' ? { undoIcon: true } : {}) });
   }
 
   const refusalLine = (key: string) =>
