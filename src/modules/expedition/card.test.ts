@@ -14,6 +14,7 @@ import { checkPrompt } from './checks.ts';
 import { readCheck, readExploration } from './modes.ts';
 import { campaignUnits } from './play.ts';
 import { nextSteps } from './procedure.ts';
+import { whichTables } from './tableList.ts';
 
 const units = campaignUnits({ time: { roundSeconds: 6, turnMinutes: 10, dayHours: 24 } }, []);
 const rules = readExploration([fenRules]);
@@ -202,5 +203,22 @@ describe('Check now on the card (M5 gate fix)', () => {
     const other = line('gm-a', 'gm');
     const { card, added } = addCheckNow([other], [now]);
     expect(withoutLines(card, added)).toEqual([other]);
+  });
+});
+
+describe("a place's own check on the card ('Which table?' tags, d5-12)", () => {
+  // Purpose (d5-12, ruled 2026-11-20: "Yes to all three"): when a place's own check is the one that hit, its own
+  // table reads "this place" in that hit's list, not "this check"; a mode's check that hits keeps "this check".
+  it.fails("a place's own check that hits tags its table as the place's; a mode's keeps its own", () => {
+    const check = readCheck({ id: 'harbour-wander', name: 'Encounters on the water', chance: { die: 'd6', on: [1] }, onHit: { tableChoices: ['on-the-water', 'under-the-piles'] } })!;
+    const prompt = { ...checkPrompt(check, 'encounter', null), kind: 'check' as const, stepId: null, count: 1, again: false };
+    const [place] = cardFrom({ prompts: [{ ...prompt, source: 'location' as const }], rest: null, reminders: [], to: 0 });
+    expect(place!.check!.hit.candidates).toEqual([
+      { tableId: 'on-the-water', why: 'place', season: null },
+      { tableId: 'under-the-piles', why: 'place', season: null },
+    ]);
+    expect(whichTables({ pins: [], candidates: place!.check!.hit.candidates, known: () => true }).rows.map((r) => r.why)).toEqual(['this place', 'this place']);
+    const [mode] = cardFrom({ prompts: [{ ...prompt, source: 'mode' as const }], rest: null, reminders: [], to: 0 });
+    expect(mode!.check!.hit.candidates.map((c) => c.why)).toEqual(['check', 'check']);
   });
 });

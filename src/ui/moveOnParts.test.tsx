@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MoveOnLayoutPage } from '../gallery/MoveOnSpecimens.tsx';
 import { ICON_SET } from './iconSet.ts';
+import { StepIcon } from './icons.tsx';
 import { DestinationRow, MoveOnSheet, ObstacleBlock, ProposalSheet, WhereTo, type WayMove } from './MoveOnParts.tsx';
 
 afterEach(cleanup);
@@ -96,21 +97,33 @@ describe('a destination row (mc-36, mc-36a)', () => {
     expect(picture.getAttribute('d')).toBe(ICON_SET['water-splash'].d);
   });
 
-  // Purpose (the plan's B16): a way the app has no picture for shows its word and its time alone: an invented way, a
-  // link that names no way, a way given no id at all, and a way whose pack names an icon the set lacks.
-  it('shows an unknown way’s word alone', () => {
+  // Purpose (d5-11, ruled 2026-11-20; pf-25, page 18's PL7): a way the app has no picture for carries the generic way
+  // mark, the two pins beside Move on (the app's `travel` mark), above its word and its time, so every button in a row
+  // keeps one shape: an invented way, a link that names no way, a way given no id at all, and a way whose pack names an
+  // icon the set lacks. The mark is decoration: the button's label stays its word and time.
+  it.fails('shows the generic way mark above an unknown way’s word', () => {
     const ways = [
       { key: 'r1|wade', word: 'Wade', time: '2 turns', by: 'wade' },
       { key: 'r2|', word: 'Move', time: '1 turn', by: '' },
       { key: 'r3|piles', word: 'Along the piles', time: '6 turns' },
       { key: 'r4|row', word: 'Row', time: '1 turn', by: 'row', icon: 'lantern-moth' },
     ];
+    const mark = render(<StepIcon name="travel" size={24} />).container.innerHTML;
+    cleanup();
     render(<DestinationRow name="The wreck" ways={ways} onWay={() => undefined} />);
     const buttons = within(screen.getByRole('group', { name: 'The wreck' })).getAllByRole('button');
-    expect(buttons).toHaveLength(4);
+    expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
+      'Wade, 2 turns, to The wreck',
+      'Move, 1 turn, to The wreck',
+      'Along the piles, 6 turns, to The wreck',
+      'Row, 1 turn, to The wreck',
+    ]);
     for (const button of buttons) {
-      expect(button.querySelector('.way-button__icon'), button.getAttribute('aria-label') ?? '').toBeNull();
-      expect([...button.children].map((child) => child.className)).toEqual(['way-button__word', 'way-button__time']);
+      const label = button.getAttribute('aria-label') ?? '';
+      const picture = button.querySelector('.way-button__icon')!;
+      expect(picture.innerHTML, label).toBe(mark);
+      expect(picture.getAttribute('aria-hidden'), label).toBe('true');
+      expect([...button.children].map((child) => child.className), label).toEqual(['way-button__icon', 'way-button__word', 'way-button__time']);
     }
   });
 

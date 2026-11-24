@@ -118,18 +118,22 @@ describe("a place's own table in Explore's row (the tables-row fault, scene-poin
 });
 
 describe("the scene's candidates at a place with its own check (the tables-row fault; the review of pull request 1001)", () => {
-  // Purpose: a place's own check that stands in for the mode's has its table gathered as this place's, after the mode's and the GM's own, and the list then leads with it as the suggestion.
-  it("a place's check that stands in has its table gathered as the place's, and the list leads with it", () => {
+  // Purpose (d5-13, ruled 2026-11-20): a place's own check that stands in for the mode's has its table gathered as this
+  // place's, after the mode's and the GM's own; the list leads with it as the suggestion, and the mode's tables stay
+  // in the list with no tag ("this check" would be untrue there), while the GM's own check's table keeps "this check".
+  it.fails("a place's check that stands in has its table gathered as the place's, the mode's tables untagged", () => {
     // Reached by name: sceneCandidatesOf did not exist when this test was written (tests first, bq-6).
     const gather = (tableListModule as unknown as Record<string, (input: Record<string, unknown>) => TableCandidate[]>).sceneCandidatesOf!;
     const harbour = { packId: 'pack-reed', entryId: 'drowned-harbour', name: 'The Drowned Harbour', data: { encounterCheck: { name: 'Encounters on the water', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, onHit: { tableId: 'on-the-water' } } } };
     const found = gather({ mode: [cand('cellars-one', 'check')], own: ['bell-buoy'], place: placeCheckOf([harbour], []), rules: null });
-    expect(found).toEqual([cand('cellars-one', 'check'), cand('bell-buoy', 'check'), cand('on-the-water', 'place')]);
-    expect(whichTables({ pins: [], candidates: found, known }).rows.map((r) => [r.tableId, r.likely, r.why])).toEqual([
+    expect(found.map((c) => c.tableId)).toEqual(['cellars-one', 'bell-buoy', 'on-the-water']);
+    const { rows } = whichTables({ pins: [], candidates: found, known });
+    expect(rows.map((r) => [r.tableId, r.likely, r.why])).toEqual([
       ['on-the-water', true, 'this place'],
-      ['cellars-one', false, 'this check'],
+      ['cellars-one', false, null],
       ['bell-buoy', false, 'this check'],
     ]);
+    expect(rows.map((r) => tableTag(r, 'd6'))).toEqual(['likely, this place, d6', 'd6', 'this check, d6']);
   });
 
   // Purpose: a place's check that does not stand in (the GM switched it off, or it does not replace the scheduled check), or no place's check at all, leaves the gathered list exactly as it was.
@@ -149,16 +153,31 @@ describe("the scene's candidates at a place with its own check (the tables-row f
     expect(gather({ mode: [cand('cellars-one', 'check')], own: ['bell-buoy'], place: null, rules: null })).toEqual(asItWas);
   });
 
-  // Purpose: when the place's check names a table the mode also names, it is one row, the place's, and it is the suggestion.
-  it("a table the mode names too is one row, the place's", () => {
+  // Purpose (d5-13): when the place's check names a table the mode also names, it is one row, the place's, and it is
+  // the suggestion; the mode's other table stays in the list with no tag.
+  it.fails("a table the mode names too is one row, the place's; the mode's other table untagged", () => {
     // Reached by name: sceneCandidatesOf did not exist when this test was written (tests first, bq-6).
     const gather = (tableListModule as unknown as Record<string, (input: Record<string, unknown>) => TableCandidate[]>).sceneCandidatesOf!;
     const harbour = { packId: 'pack-reed', entryId: 'drowned-harbour', name: 'The Drowned Harbour', data: { encounterCheck: { name: 'Encounters on the water', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, onHit: { tableId: 'on-the-water' } } } };
     const found = gather({ mode: [cand('cellars-one', 'check'), cand('on-the-water', 'check')], own: [], place: placeCheckOf([harbour], []), rules: null });
-    expect(found).toEqual([cand('cellars-one', 'check'), cand('on-the-water', 'place')]);
+    expect(found.map((c) => c.tableId)).toEqual(['cellars-one', 'on-the-water']);
     expect(whichTables({ pins: [], candidates: found, known }).rows.map((r) => [r.tableId, r.likely, r.why])).toEqual([
       ['on-the-water', true, 'this place'],
-      ['cellars-one', false, 'this check'],
+      ['cellars-one', false, null],
+    ]);
+  });
+
+  // Purpose (d5-13): the mode's tables lose their tag whatever it was (a terrain's, a region's, a season's), and a
+  // pinned one keeps its pin, at a place whose check stands in.
+  it.fails("every tag of the mode's goes at a place whose check stands in, and a pin stays", () => {
+    const gather = (tableListModule as unknown as Record<string, (input: Record<string, unknown>) => TableCandidate[]>).sceneCandidatesOf!;
+    const harbour = { packId: 'pack-reed', entryId: 'drowned-harbour', name: 'The Drowned Harbour', data: { encounterCheck: { name: 'Encounters on the water', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, onHit: { tableId: 'on-the-water' } } } };
+    const found = gather({ mode: [cand('marsh', 'terrain'), cand('fen-lands', 'region'), cand('thaw', 'season', 'thaw')], own: [], place: placeCheckOf([harbour], []), rules: null });
+    expect(whichTables({ pins: ['fen-lands'], candidates: found, known }).rows.map((r) => [r.tableId, r.pinned, r.likely, r.why])).toEqual([
+      ['fen-lands', true, false, null],
+      ['on-the-water', false, true, 'this place'],
+      ['marsh', false, false, null],
+      ['thaw', false, false, null],
     ]);
   });
 
@@ -171,5 +190,15 @@ describe("the scene's candidates at a place with its own check (the tables-row f
     const place = placeCheckOf([jetty, island], []);
     expect(place?.owner.entryId).toBe('saltwick-island');
     expect(gather({ mode: [cand('cellars-one', 'check')], own: [], place, rules: null })).toEqual([cand('cellars-one', 'check'), cand('island-things', 'place')]);
+  });
+
+  // Purpose (d5-12, ruled 2026-11-20): the table of a check the Location inherits from the Region it sits in reads
+  // "this place" in the list, as the Location's own would, and is the suggestion.
+  it("a parent region's check's table reads \"this place\" at a Location inside it", () => {
+    const gather = (tableListModule as unknown as Record<string, (input: Record<string, unknown>) => TableCandidate[]>).sceneCandidatesOf!;
+    const jetty = { packId: 'pack-reed', entryId: 'the-jetty', name: 'The jetty', data: { type: 'site' } };
+    const island = { packId: 'pack-reed', entryId: 'saltwick-island', name: 'Saltwick Island', data: { type: 'region', encounterCheck: { name: 'Island encounters', replacesScheduled: true, chance: { die: 'd6', on: [1] }, onHit: { tableId: 'island-things' } } } };
+    const found = gather({ mode: [], own: [], place: placeCheckOf([jetty, island], []), rules: null });
+    expect(whichTables({ pins: [], candidates: found, known }).rows.map((r) => [r.tableId, r.likely, r.why])).toEqual([['island-things', true, 'this place']]);
   });
 });
