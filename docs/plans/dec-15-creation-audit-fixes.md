@@ -29,7 +29,7 @@ Read on `main` at 560a0ee; nothing was changed.
 
 **One case is not display-only (⚑ 1):** a purchase made as several at once in the shop's form is one entry ("Dry rations ×3", one price), and it goes back whole. "Put back one" on it would split a stored entry.
 
-**Technical, for the builder (not a decision):** `remove` tells entries apart by label and first pack line. Two single buys of a stackable share a line, so they look the same to it. On the layout page putting one of three back left two rows and took one out of the pack (probed 2026-11-24), but the layout page's store may not join stacks as the database does. Row 2's tests cover it.
+**Technical, for the builder (not a decision):** `remove` tells entries apart by label and first pack line. Two single buys of a stackable share a line, so they look the same to it. On the layout page putting one of three back left two rows and took one out of the pack (probed 2026-11-24), but that settles nothing: the layout page's store may not join stacks as the database does. Two things to check against a store that really joins: the shop's `onBought` keeps the count of the line the add returns, and a join returns the whole stack read back, so a later buy's entry may hold the stack's count and its put-back may take more than one. Row 2's test for it runs against a store that joins stacks (the database tests, or a unit test of the join's answer), not the layout page.
 
 ## The rows
 Sizes are a designer's guess read against `main` (560a0ee), in builder turns low / likely / high.
@@ -78,6 +78,8 @@ Every batch also edits `docs/06-screens-and-design.md` (the inventory): the know
 - **`fix-f8-tile-label-flake`**: its brief names `src/ui/parts.tsx` (the tile columns). Batch B edits `parts.tsx` (`TypedStepper`): another part of the file, but one file. Start B after it merges, or merge `main` in before the final push.
 - **`fix-tap-through`**: not read (no commits, no plan found). If it touches the toast or the sheets, it meets row 2's put-back toast only in passing.
 - **`pack-k11-k12-k13`**: pack work; if it changes the Fen sample or the layout page's creation data, the tests' figures here (2 to 16, the prices) move with it.
+- **#51 (`scene-b14-pack-pictures`, on the remote)** changes `src/ui/parts.tsx`: the one unmerged remote branch that touches a file of this plan (batch B; read with `git log --remotes --not origin/main` over the plan's files on 2026-11-24). The same advice as for the F8 fix.
+- **`plan-creation-leftovers` (on the remote)**: docs only (the creation sweep's mockup pages F and G, a ruling and a plan of 2026-11-21); nothing in it speaks of the bought rows, the Scores refusal or "rolled N". It also adds rows to the mockup index.
 - **`mock-player-audit-fixes`** and this branch both add rows to `docs/design/mockups/index.md`: page 38's rows are on `main` already.
 
 ## The Components inventory (Code column, `docs/06-screens-and-design.md`)
