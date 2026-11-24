@@ -93,6 +93,7 @@ export interface FakeWorld {
     | 'purses'
     | 'hook_sends'
     | 'finds_seen'
+    | 'calls_seen'
     | 'shop_stock',
     Row[]
   >;
@@ -219,6 +220,8 @@ export function createFakeDb(): FakeWorld {
     hook_sends: [],
     // The seen mark (K20, pk-13): one row per character, written only by mark_finds_seen.
     finds_seen: [],
+    // The seen mark on a call (P7, p7-1): one row a send and a player, written only by mark_call_seen.
+    calls_seen: [],
     // A shop's stock for the day (W12): written only by set_shop_stock and reset_shop_stock.
     shop_stock: [],
   };
@@ -335,6 +338,9 @@ export function createFakeDb(): FakeWorld {
             : row.player_user_id
               ? 'owner'
               : 'gm'
+        : // Like the database (P7): a call's seen mark's lines are its player's alone, even for a call to the party.
+          table === 'calls_seen'
+          ? 'owner'
         : // Like the database (K20): a seen mark's lines are its character's player's (the GM reads every line).
           table === 'finds_seen'
           ? markOwner(row)
@@ -2136,6 +2142,22 @@ export function createFakeDb(): FakeWorld {
         tables.finds_seen.push(row);
         log('finds_seen', null, structuredClone(row), named);
       }
+      return { data: seen, error: null };
+    },
+    // Got it on a call (P7, p7-1 to p7-3), like supabase/migrations/20261124120000_p7_calls_seen.sql: a member who isn't
+    // the GM, on a live send they may read, marks it seen; a repeat changes nothing and gives back the first time.
+    mark_call_seen: ({ send }, tag) => {
+      const sent = tables.hook_sends.find((s) => s.id === send);
+      const campaign = sent?.campaign_id;
+      if (!sent || sent.undone || !isMemberOf(campaign) || isGmOf(campaign) || ((sent.actor_id ?? null) !== null && sent.player_user_id !== me())) {
+        return refused("You don't have permission to do that.");
+      }
+      const was = tables.calls_seen.find((r) => r.send_id === send && r.player_user_id === me());
+      if (was) return { data: was.seen_at, error: null };
+      const seen = new Date(Date.now() + nextId).toISOString();
+      const row: Row = { id: newId('call-seen'), campaign_id: campaign, send_id: send, player_user_id: me(), seen_at: seen, created_at: seen, updated_at: seen };
+      tables.calls_seen.push(row);
+      log('calls_seen', null, structuredClone(row), { ...(tag ?? { requestId: crypto.randomUUID() }), type: 'hook.seen', level: 'verbose' });
       return { data: seen, error: null };
     },
     // Calls to adventure (dec-12 piece B), like supabase/migrations/20261113210000_dec_12b_calls_to_adventure.sql: the
@@ -4930,7 +4952,7 @@ class Query implements PromiseLike<Result> {
         created_at: new Date(Date.UTC(2026, 9, 19) + createdOrder++).toISOString(),
         ...row,
       }));
-    } else if (this.table === 'purses' || this.table === 'finds_seen') {
+    } else if (this.table === 'purses' || this.table === 'finds_seen' || this.table === 'calls_seen') {
       // Like the database: the purse row is made with its character or stash, and a seen mark by mark_finds_seen
       // (K20), never by a device (refused in runQuery).
       this.inserted = [];
@@ -5151,8 +5173,8 @@ class Query implements PromiseLike<Result> {
       return { data: null, error: { message: 'permission denied for table purses', code: '42501' } };
     }
     // Like the database (K20): a seen mark has no write grant; only mark_finds_seen writes it.
-    if (this.table === 'finds_seen' && (this.inserted || this.patch || this.deleting)) {
-      return { data: null, error: { message: 'permission denied for table finds_seen', code: '42501' } };
+    if ((this.table === 'finds_seen' || this.table === 'calls_seen') && (this.inserted || this.patch || this.deleting)) {
+      return { data: null, error: { message: `permission denied for table ${this.table}`, code: '42501' } };
     }
     if (this.inserted && this.duplicate) {
       return { data: null, error: { message: 'duplicate key value violates unique constraint', code: '23505' } };
@@ -5377,6 +5399,10 @@ class Query implements PromiseLike<Result> {
         const actor = this.tables.actors.find((a) => a.id === row.actor_id);
         return this.isMember(row.campaign_id) && actor?.owner_type === 'user' && actor.owner_user_id === this.me();
       });
+    }
+    // Like the access rules (P7, p7-1, p7-2): the GM reads every call's seen mark; a player their own, never another's.
+    if (this.table === 'calls_seen') {
+      rows = rows.filter((row) => !this.patch && !this.deleting && (this.isGm(row.campaign_id) || (this.isMember(row.campaign_id) && row.player_user_id === this.me())));
     }
     // Like the access rules (W12, 20261115110000_dec_3_w12_shop_stock.sql): the GM reads every line (fix-856-1,
     // 20261118090000_fix_856_1_shop_stock_gm_read.sql: only the GM); a player none, and reads stock through shop_stock_in; nothing is written through the table (the functions do it; an undo puts back).
@@ -5687,7 +5713,7 @@ const LOGGED = [
   'reminders', 'check_results', 'character_lights', 'marching_orders', 'party_group_members', 'weather_rolls', 'character_statuses', 'status_secrets', 'character_rests',
   'expedition_places', 'places', 'place_notes', 'group_places', 'place_pieces', 'piece_shows', 'place_rule_switches', 'knowledge_shares', 'requests', 'sheet_changes', 'table_pins', 'table_reads', 'messages', 'character_alignments', 'waiting_encounters',
   'travel_groups', 'travel_group_secrets', 'group_lost', 'camps', 'camp_entries', 'activity_runs', 'sheet_changes', 'hook_sends', 'place_moves', 'purses',
-  'finds_seen', 'shop_stock',
+  'finds_seen', 'calls_seen', 'shop_stock',
 ] as const;
 
 /**
