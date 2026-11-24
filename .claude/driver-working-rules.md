@@ -5,6 +5,7 @@ One page of the rules in force for the driver, each with its source. Compiled 19
 ## Starting and handing over
 - Start from `handover-driver.md` in the memory folder, never from history; never resume yesterday's conversation. (driver.md, Start; README rvw-5)
 - A fresh driver each morning and when the conversation passes about 400,000 tokens (was 250,000; Francis, 21 Nov). **At the limit the driver writes the handover and hands over on its own, without asking.** (driver.md; README rvw-5; Francis, 19 Nov)
+- **A fresh context may come from `/clear` instead of a new session**, once the handover is written and pushed. The handover names every running worker (ID, row, brief, branch or PR), so the cleared driver can pick up their reports. `/clear` keeps the session's trust card, PR subscriptions, running workers and container; a new session has none of them. Home Two may `/clear` likewise, restarting from the prompt the driver gives Francis. (Francis, 24 Nov: "Yes write clear in")
 - Workers started from a brief finish their task past the limit; only the driver hands over. (README rvw-5)
 - Re-create the hourly check at the start: "what are the builders working on and what is our bottleneck?" (Francis; memory, handover)
 
@@ -24,7 +25,9 @@ One page of the rules in force for the driver, each with its source. Compiled 19
 - **A fresh worker per row and per fix round:** one pull request and one check run per batch stay; one builder per batch goes. Each row of a batch, and each round of review fixes, is done by a fresh short-lived worker that commits to the batch's branch; a worker is never resumed for a later round. A batch's pull request is opened as a draft by the worker of its first row; later rows' workers push to the same branch; the layout checks still run once, when the driver adds `ready`. (CLAUDE.md; README, Saving CI minutes; 09, 22 Nov: "Yes to 'fresh worker'", "Your suggestion")
 - Builders on Opus at medium effort (`effort: "medium"`); the driver on Opus at medium; Fable is the project-wide advisor (Francis, 24 Nov). Merges, conflicts, watching CI and look-ups on Sonnet or Haiku workers. (Francis, 19 Nov; README rvw-10)
 - At most four local sessions at once; cloud builders are outside the four. (README rvw-10; Francis, 19 Nov)
-- In a cloud driver session, no fixed number of workers: as many as there is independent work; never two on the same file, branch or task, and check what is in flight before starting one. (README, Roles and models; Francis, 24 Nov)
+- In a cloud driver session, **at most four builders at once; reviewers don't count**. Never two workers on the same file, branch or task; check what is in flight before starting one. (README, Roles and models; Francis, 24 Nov: "Four builders max if reviewers use less")
+- **Push as you go:** a worker commits and pushes its branch each time its check passes; the pull request opens when the row is done (a branch push without a pull request runs no CI). A branch with an open pull request pushes once. (Francis, 24 Nov: "Yes")
+- **One full check at a time in a cloud container:** builders run the full check through a shared lock, `flock /tmp/ogham-check.lock npm run check`, and only the tests they touch while working. Four checks at once on four cores slowed each other and made tests time out. (technical ownership, 24 Nov)
 - Cloud builders: no restrictions; use them when local seats are full. They start only in a turn where Francis typed. (Francis, 19 Nov; memory, standing-cloud-sessions)
 - Before waiting on CI, ask what can build now. (memory, idle-seats-check)
 - Mockups first; a plan piece names its mockup and approval date or says "none: data and logic only". Whole, once (po-4). (CLAUDE.md; README)
