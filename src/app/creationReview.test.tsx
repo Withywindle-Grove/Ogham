@@ -263,7 +263,9 @@ describe('the creation review (cr-18)', () => {
     await toReview(user);
     const average = () => (tam().creation as { scoresAverage?: string[] }).scoresAverage;
     expect(average()).toEqual(['MUS', 'NIM', 'GRT', 'WIT', 'LORE', 'CHARM']);
-    expect(lines('Scores').some((l) => l.startsWith('Muscle 9, ') && l.endsWith(': the average, not rolled'))).toBe(true);
+    expect(lines('Scores')).toContain('All six: the average, not rolled');
+    // caf-7: no score left at the average reads "(rolled N)", whatever the kindred did to it.
+    expect(lines('Scores').some((l) => l.includes('(rolled'))).toBe(false);
     await user.click(screen.getByRole('button', { name: 'Change Scores' }));
     await screen.findByRole('heading', { name: /^Scores/ });
     expect(screen.getByRole('group', { name: 'Muscle score' }).querySelector('.score-tile__words')?.textContent).toBe('Average');
@@ -280,7 +282,7 @@ describe('the creation review (cr-18)', () => {
     if (heading() === 'Adjust scores') await next(user);
     await screen.findByRole('button', { name: 'Send to the GM' });
     expect(average()).toEqual(['NIM', 'GRT', 'WIT', 'LORE', 'CHARM']);
-    expect(lines('Scores').some((l) => /^Nimbleness \d+, /.test(l) && !l.includes('Muscle') && l.endsWith(': the average, not rolled'))).toBe(true);
+    expect(lines('Scores')).toContain('Nimbleness, Grit, Wit, Lore, Charm: the average, not rolled');
   });
 
   it('Change › on Scores re-walks the scores with the values kept; Next through to the review keeps gear, languages and the book, and the record carries the new scores', async () => {

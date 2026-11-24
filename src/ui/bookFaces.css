@@ -30,6 +30,25 @@
   font-weight: var(--weight-book-label);
 }
 
+/* The book's labelled line and sub-heading (creation's book format, dec-10 S3; moved here from creation.css for the
+   Scene's fact pop-ups, P10, PL8): a line that opens with a `.book-label`, a line under it indented, and "The rule". */
+.book-line {
+  margin: 0 0 var(--space-1);
+}
+
+.book-line--sub {
+  margin-inline-start: var(--space-4);
+}
+
+.book-subhead {
+  margin: var(--space-3) 0 var(--space-1);
+  font-family: var(--font-book-text);
+  font-weight: var(--weight-book-subhead);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+  color: var(--book-subhead);
+}
+
 /* The host's wrapper adds no box of its own. */
 .book-faces--host {
   display: contents;

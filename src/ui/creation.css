@@ -1201,6 +1201,16 @@ body:has(.creation-step__bar--app) .top-row {
   margin: 0;
 }
 
+/* What Undo last takes back (caf-10; frame 41-2-fix-gear-undo-last): quiet, beside the button, wrapping there. */
+.gear-tally__last {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  margin: 0;
+  font-size: var(--text-14);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
 .gear-tally__load {
   flex: 1 1 100%;
   min-inline-size: 0;
@@ -1918,22 +1928,7 @@ body:has(.creation-step__bar--app) .top-row {
   margin: 0 0 var(--space-2);
 }
 
-.book-line {
-  margin: 0 0 var(--space-1);
-}
-
-.book-line--sub {
-  margin-inline-start: var(--space-4);
-}
-
-.book-subhead {
-  margin: var(--space-3) 0 var(--space-1);
-  font-family: var(--font-book-text);
-  font-weight: var(--weight-book-subhead);
-  font-size: var(--text-20);
-  line-height: var(--line-heading);
-  color: var(--book-subhead);
-}
+/* `.book-line`, `.book-line--sub` and `.book-subhead` live in bookFaces.css, shared with the Scene's pop-ups (P10). */
 
 .book-list {
   margin: 0 0 var(--space-2);
