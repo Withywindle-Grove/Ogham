@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DeviceMenuSection, MenuItem, MenuItems, MoreMenu } from './MoreMenu.tsx';
@@ -80,5 +80,56 @@ describe('the ⋯ menu', () => {
     expect(root.getAttribute('data-theme')).toBe('light');
     root.removeAttribute('data-theme');
     localStorage.clear();
+  });
+
+  it.fails('A tap outside the ⋯ menu closes it and does not act on what lies beneath (fix-more-menu-tap)', async () => {
+    const user = userEvent.setup();
+    const beneath = vi.fn();
+    render(
+      <>
+        <button type="button" onClick={beneath}>
+          Bog lurker
+        </button>
+        <MoreMenu label="Options" startOpen>
+          <MenuItem icon="scales" onClick={() => undefined}>
+            Lantern Warden
+          </MenuItem>
+        </MoreMenu>
+      </>,
+    );
+    // A mouse press and a finger's tap alike.
+    await user.click(screen.getByRole('button', { name: 'Bog lurker' }));
+    expect(screen.queryByRole('button', { name: 'Lantern Warden' })).toBeNull();
+    expect(beneath).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: 'Options' }));
+    await user.pointer({ keys: '[TouchA]', target: screen.getByRole('button', { name: 'Bog lurker' }) });
+    expect(screen.queryByRole('button', { name: 'Lantern Warden' })).toBeNull();
+    expect(beneath).not.toHaveBeenCalled();
+    // Once it's closed, the next tap acts as usual.
+    await user.click(screen.getByRole('button', { name: 'Bog lurker' }));
+    expect(beneath).toHaveBeenCalledTimes(1);
+  });
+
+  it.fails('A press outside that the browser cancels (a scroll) is forgotten: the menu stays open and the next click is not eaten', () => {
+    const beneath = vi.fn();
+    render(
+      <>
+        <button type="button" onClick={beneath}>
+          Bog lurker
+        </button>
+        <MoreMenu label="Options" startOpen>
+          <MenuItem icon="scales" onClick={() => undefined}>
+            Lantern Warden
+          </MenuItem>
+        </MoreMenu>
+      </>,
+    );
+    const outside = screen.getByRole('button', { name: 'Bog lurker' });
+    fireEvent.pointerDown(outside);
+    fireEvent.pointerCancel(outside);
+    expect(screen.getByRole('button', { name: 'Lantern Warden' })).toBeTruthy();
+    // A click with no press of its own (a key on a focused button) is not taken for the end of that tap.
+    fireEvent.click(outside);
+    expect(beneath).toHaveBeenCalledTimes(1);
   });
 });
