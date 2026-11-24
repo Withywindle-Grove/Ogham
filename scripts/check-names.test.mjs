@@ -265,7 +265,7 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
   });
 
   // A picture's compressed pixel bytes can spell a short name by chance (PR #64): the scan skips them.
-  it.fails("passes a picture whose pixel bytes happen to spell a name, in the end result and in each commit", () => {
+  it("passes a picture whose pixel bytes happen to spell a name, in the end result and in each commit", () => {
     const chunk = (type, data) => {
       const body = Buffer.concat([Buffer.from(type, 'latin1'), data]);
       const out = Buffer.alloc(12 + data.length);
@@ -289,7 +289,7 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
   });
 
   // Skipping the pixels must not skip the words a picture carries, nor a text file that is only named like a picture.
-  it.fails("still finds a name in a picture's text (a PNG's tEXt, zTXt and iTXt, a JPEG's comment) and in a text file named .png", () => {
+  it("still finds a name in a picture's text (a PNG's tEXt, zTXt and iTXt, a JPEG's comment) and in a text file named .png", () => {
     const chunk = (type, data) => {
       const body = Buffer.concat([Buffer.from(type, 'latin1'), data]);
       const out = Buffer.alloc(12 + data.length);
