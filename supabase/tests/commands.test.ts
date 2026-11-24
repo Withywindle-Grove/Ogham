@@ -314,6 +314,14 @@ beforeAll(async () => {
       must(await world.admin.from('campaign_packs').insert({ campaign_id: world.campaignId, pack_id: packId, option_choices: {}, priority }).select());
       return { packId, tableId, min: 1, max: 1 };
     },
+    async freshCallSend(to: 'party' | 'wren') {
+      // A call the GM just sent (P7): a fresh hook, sent to the party or to Wren, so a mark is never a repeat.
+      const { packId, hookId } = await this.freshAdventureHook();
+      const sent = await world.gm.db.rpc('send_hook', { campaign: world.campaignId, pack: packId, hook_key: hookId, body: 'Nailed to the quay post: a bounty.', pays: '', ...(to === 'wren' ? { to_actor: this.wren.id } : {}) });
+      if (sent.error) throw sent.error;
+      const row = (Array.isArray(sent.data) ? sent.data[0] : sent.data) as { id: string };
+      return { id: row.id, campaignId: world.campaignId, actorId: to === 'wren' ? this.wren.id : null, playerUserId: to === 'wren' ? world.playerA.id : null };
+    },
     async freshMessage() {
       const message = must(
         await world.admin
