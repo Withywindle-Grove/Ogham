@@ -1,7 +1,7 @@
 ---
 status: pending
 milestone: December first play (the toast, app-wide; plan `docs/plans/dec-17-toast-restyle.md`, rows T1 and T2)
-absorbed-into: docs/06-screens-and-design.md (Toasts with Undo; Words batch 1's Toasts line; Design tokens, Shapes; the Toast, Weather card and Messages rows; Pop-ups), docs/05-features.md (the weather roll's Undo; Messaging's Send), docs/10-open-questions.md (the toast's seconds), docs/09-decisions-log.md (2026-11-25). Frame 43H approved 2026-11-25 with its fixes drawn (tr-8 to tr-14). Pending until rows T1 and T2 are built; 03, 04 and `docs/testing.md` still say 6 seconds and change with the build
+absorbed-into: docs/06-screens-and-design.md (Toasts with Undo; Words batch 1's Toasts line; Design tokens, Shapes; the Toast, Weather card and Messages rows; Pop-ups), docs/05-features.md (the weather roll's Undo; Messaging's Send), docs/10-open-questions.md (the toast's seconds), docs/09-decisions-log.md (2026-11-25). Frame 43H approved 2026-11-25 with its fixes drawn (tr-8 to tr-14); redrawn pictures approved by Francis, 25 Nov. Pending until rows T1 and T2 are built; 03, 04 and `docs/testing.md` still say 6 seconds and change with the build
 supersedes: nothing as a file. tr-2 replaces mm-6's 6 seconds (`m5c-magic-mockups-2026-11-10.md`). tr-3 reverses what the garb toast's approval left as it was on 13 November, "nothing but its words marks it as an error" (`dec-evening-2026-11-13.md`, Settled since, gs-5a). tr-5 amends tw-1 (`dec-night-and-morning-2026-11-13.md`) from tablet width only. Those files stand as written
 ---
 
@@ -9,7 +9,7 @@ supersedes: nothing as a file. tr-2 replaces mm-6's 6 seconds (`m5c-magic-mockup
 
 Francis asked on 25 November: "How easy is it to change the toast? I don't think it looks good and its duration is too long. I want impeccable's opinion. I'm thinking rounded edges and partially opaque frosted glass." Page 43 drew four dresses (A today, B rounded glass, C a pill in glass, D rounded and solid) and the duration panel. Home Two ran `impeccable critique` on it the same day (29/40) and chose D. Shown its recommendations in the driver's chat, he said: **"Approve with those recommendations."** The seven recommendations are as the driver relayed them; only the words in quotes are his own.
 
-Mockup: `docs/design/mockups/december/43-the-toast-restyled.html`. Frames 43A to 43G are **ruled** by this file (`december/png/43-a-*` to `43-g-*`). Frame **43H** (`43-h1-*` to `43-h4-*`) was drawn after the ruling and is **approved 2026-11-25 with its fixes drawn** (tr-8 to tr-14, below).
+Mockup: `docs/design/mockups/december/43-the-toast-restyled.html`. Frames 43A to 43G are **ruled** by this file (`december/png/43-a-*` to `43-g-*`). Frame **43H** (`43-h1-*` to `43-h4-*`) was drawn after the ruling, redrawn to tr-8 to tr-14 (below), and **the redrawn pictures are approved by Francis, 25 Nov**.
 
 ## Ruled
 
@@ -25,7 +25,7 @@ Mockup: `docs/design/mockups/december/43-the-toast-restyled.html`. Frames 43A to
 
 ## Ruled on 43H (2026-11-25, later the same day)
 
-Home Two ran `impeccable critique` on the eight 43H pictures (32/40; its text is a comment on pull request #95). The driver put seven recommendations to Francis in its chat, and he said again: **"Approve with those recommendations."** The recommendations are as the driver relayed them; only the words in quotes are his own. 43H is redrawn to them and is **approved 2026-11-25 with these fixes drawn**. He approved the recommendations, not the redrawn pictures, which he had not yet seen.
+Home Two ran `impeccable critique` on the eight 43H pictures (32/40; its text is a comment on pull request #95). The driver put seven recommendations to Francis in its chat, and he said again: **"Approve with those recommendations."** The recommendations are as the driver relayed them; only the words in quotes are his own. 43H is redrawn to them. **Redrawn pictures approved by Francis, 25 Nov:** shown the eight (`43-h1-*` to `43-h4-*`, light and dark), he said **"Approved both 3 and 95"** (95 is this file's pull request). That approval is of the pictures; it does not answer what is left open below (a top to tr-8's seconds, how a line is counted).
 
 | # | Ruling | Critique | Frame |
 |---|---|---|---|
@@ -62,17 +62,19 @@ As they were put, with what 43H first drew. Kept for the record.
 
 - **The 13 November "ruling" was an approval from a picture**, with the missing mark "told to him and left for the sweep". Page 43 called it a ruling; tr-3 reverses it either way.
 - **Home Two's critique is not in the repository.** Its findings were not put beside the frames on page 43; the page records its score and its choice only, as relayed.
-- **43H's critique was run on the frames as first drawn.** The redrawn ones have had none, and Francis has not seen them: they are drawn to findings he approved. Drawn in Chrome only; nothing on the page moves.
+- **43H's critique was run on the frames as first drawn.** The redrawn ones have had none: they are drawn to findings he approved. Redrawn pictures approved by Francis, 25 Nov. Drawn in Chrome only; nothing on the page moves.
 - **The disc makes the words 4 px narrower,** so the garb swap's two errors wrap to three and six lines at 375 px, where the critique counted two and five. tr-8 gives them 6 and 9 seconds.
 - **The danger colour is not used on the toast.** It measures 2.19:1 (light) and 2.03:1 (dark) on the toast's back, under the 3:1 floor, so the mark is in the words' colour and the shape carries it.
 - **Page 43's contrast table gave the bar at 65% as 5.20:1 and 4.65:1**; those were the glass's. On D's solid back it measures 7.77:1 (light) and 5.55:1 (dark).
 - **The pause can outlast a server window.** The weather roll's Undo is allowed by the database for 30 seconds; a toast held longer still shows Undo, and the tap is then refused in the usual words.
 - **03, 04 and `docs/testing.md` still say 6 seconds** (03's weather row, 04's ExplorationState, two manual checks). They change in the build's pull request, as mm-6's did.
 
-Docs to update: 06 (Toasts with Undo, Words batch 1's Toasts line, Shapes, the Toast, Weather card and Messages rows, Pop-ups), 05 (the weather roll's Undo, Messaging's Send), 10 (the toast's seconds), 09; done in this pull request. With the build: 03, 04, `docs/testing.md`, 06's Toast row Code column. For tr-8 to tr-14: 06 (Toasts with Undo, Shapes, Reduced motion, the Toast row), 09, the plan, page 43 and the mockup index; done in this pull request.
+Docs to update: 06 (Toasts with Undo, Words batch 1's Toasts line, Shapes, the Toast, Weather card and Messages rows, Pop-ups), 05 (the weather roll's Undo, Messaging's Send), 10 (the toast's seconds), 09; done in this pull request. With the build: 03, 04, `docs/testing.md`, 06's Toast row Code column. For tr-8 to tr-14: 06 (Toasts with Undo, Shapes, Reduced motion, the Toast row), 09, the plan, page 43 and the mockup index; done in this pull request. For the redrawn pictures' approval: 09, the plan, page 43 and the mockup index; done in this pull request.
 
 09: 2026-11-25 — [ui] The toast is restyled: rounded and solid (the sheet's corner, no glass), 5 seconds (was 6, mm-6) and only with a pause while a finger, a pointer or keyboard focus is on it; the bar at 65%, inset and rounded, still and fading at the end under reduced motion; on a tablet the long toast's words wrap beside Undo (amends tw-1 from tablet width); a new toast still replaces the one showing (tr-1, tr-2, tr-4 to tr-7) — Francis: "Approve with those recommendations", on Home Two's critique of page 43 (29/40), which chose D — `design/rulings/toast-restyle-2026-11-25.md`
 
 09: 2026-11-25 — [ui] The error toast carries the ✕, the danger shape, in the words' colour (tr-3); reverses 13 November, when the garb toast was approved with nothing but its words marking it (gs-5a). Frame 43H is not approved yet: from its picture, with five ⚑ (the mark's form, the fade's length, the spoken word, the toast's width on a tablet, the one-line pill) — the same approval; 06: every semantic colour carries a shape — same file
 
 09: 2026-11-25 — [ui] Frame 43H is approved with its fixes drawn: an error toast stays 5 seconds plus 1 for each line over two (it pauses like any toast; it does not stay until tapped and has no close button); its mark is the ✕ on a disc; under reduced motion the bar fades over the toast's whole time (amends tr-4's "at the end"); every toast is at least 60 px tall; under 600 px the toast fills the width between the margins and from 600 px it is as wide as its words; a screen reader hears "Problem" first; a held toast looks like a running one, accepted as drawn (tr-8 to tr-14) — Francis: "Approve with those recommendations", on Home Two's critique of 43H (32/40): a long error was gone before it was read, and an error's words are not in the log — `design/rulings/toast-restyle-2026-11-25.md`
+
+09: 2026-11-25 — [ui] Frame 43H's eight redrawn pictures (43-h1 to 43-h4, light and dark) are approved from the pictures; the plan's ⚑ 9 (no top to the error's seconds) and ⚑ 10 (lines counted once, when the toast appears) stay open — Francis, shown them: "Approved both 3 and 95" (#95); until then he had approved the critique's recommendations, not the pictures drawn to them — `design/rulings/toast-restyle-2026-11-25.md`
