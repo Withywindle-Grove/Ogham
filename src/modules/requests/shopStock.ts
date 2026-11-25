@@ -40,6 +40,22 @@ export function readAvailability(value: unknown): ItemAvailability | null {
   return read.where.length > 0 || read.chance || read.rarity || read.note ? read : null;
 }
 
+const firstUp = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
+const joinAnd = (parts: readonly string[]) => (parts.length < 2 ? parts.join('') : `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}`);
+
+/**
+ * An item's availability as its entry shows it (town row TC11; tn-5, tn-6; page 19 frame TW8b's second entry card,
+ * ap-13): "Rarity" (the pack's word) and "Sold in" (the sizes as the pack names them, then its note in words), each only
+ * where the pack gives it. Never the chance: that is the GM's stock table's (TW8j), for the GM and a player alike.
+ */
+export function availabilityEntryLines(value: unknown): { label: string; value: string }[] {
+  const a = readAvailability(value);
+  if (!a) return [];
+  const where = a.where.length > 0 ? `${firstUp(joinAnd(a.where))}.` : '';
+  const soldIn = [where, a.note].filter(Boolean).join(' ');
+  return [...(a.rarity ? [{ label: 'Rarity', value: firstUp(a.rarity) }] : []), ...(soldIn ? [{ label: 'Sold in', value: soldIn }] : [])];
+}
+
 /** Whether a chance is "always" (any case). */
 export const isAlways = (chance: string): boolean => chance.trim().toLowerCase() === 'always';
 

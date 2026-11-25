@@ -23,7 +23,7 @@ const labelled = (lines: readonly Line[]) => lines.map((l) => [l.label, l.value 
 const words = (lines: readonly Line[]) => JSON.stringify(lines);
 
 describe("a thing's entry: Rarity and Sold in (TC11, TW8b)", () => {
-  it.fails('shows the rarity and where it is sold as two labelled lines, the note riding on "Sold in"', () => {
+  it('shows the rarity and where it is sold as two labelled lines, the note riding on "Sold in"', () => {
     // Purpose (TW8b, ap-13): the second entry card's two lines, "Rarity" and "Sold in", in the entry's own format.
     const { lines } = describeEntry(item({ where: ['Town', 'city'], rarity: 'rare', note: 'Waterside settlements only.' }), nameOf);
     expect(labelled(lines)).toContainEqual(['Rarity', 'Rare']);
@@ -31,7 +31,7 @@ describe("a thing's entry: Rarity and Sold in (TC11, TW8b)", () => {
     expect(lines.some((l) => l.label === 'Availability')).toBe(false);
   });
 
-  it.fails('shows each line only where the pack gives it', () => {
+  it('shows each line only where the pack gives it', () => {
     // Purpose (TC11's test): with and without each; a thing with neither has neither line.
     const rarityOnly = labelled(describeEntry(item({ rarity: 'Uncommon' }), nameOf).lines);
     expect(rarityOnly).toContainEqual(['Rarity', 'Uncommon']);
@@ -45,7 +45,7 @@ describe("a thing's entry: Rarity and Sold in (TC11, TW8b)", () => {
     expect(neither.some((l) => ['Rarity', 'Sold in', 'Availability'].includes(l.label))).toBe(false);
   });
 
-  it.fails('never shows the chance, to a player or to the GM', () => {
+  it('never shows the chance, to a player or to the GM', () => {
     // Purpose (TC11: "A player's entry never shows a chance"; TW8b draws the entry the same for the GM and a player).
     for (const gm of [false, true]) {
       const chanceOnly = describeEntry(item({ chance: '3-in-6' }), nameOf, { gm }).lines;
@@ -57,7 +57,7 @@ describe("a thing's entry: Rarity and Sold in (TC11, TW8b)", () => {
     }
   });
 
-  it.fails('keeps an availability the pack marks GM-only from a player', () => {
+  it('keeps an availability the pack marks GM-only from a player', () => {
     // Purpose (hard rule 5): a field the pack hides stays hidden; the GM still reads its two lines.
     const hidden = item({ rarity: 'rare', where: ['City'] }, { gmOnly: ['availability'] });
     expect(describeEntry(hidden, nameOf).lines.some((l) => ['Rarity', 'Sold in'].includes(l.label))).toBe(false);
