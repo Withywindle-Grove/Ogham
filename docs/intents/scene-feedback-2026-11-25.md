@@ -173,6 +173,16 @@ Picture: [F14-row-popup.png](scene-feedback-2026-11-25/F14-row-popup.png) (cropp
 
 Reads as: tighten the pop-up's spacing; run it through an `impeccable` critique against the current design standards.
 
+### F15. The "Move on" pop-up: better layout, less space
+
+Screen: the "Move on" pop-up (GM's Scene). Eyebrow "Move on", title "Row to 1. <place>", the X. Two label rows: "Takes" (hourglass) "1 turn." and "Then" (crossed swords) "a roll on <check name>." Then a full-width accent "Move" button, a rule, and "Back" at the bottom right.
+
+Picture: one screenshot, not committed: it shows a private pack's place and check names (hard rule 2).
+
+> same story, can be formatted better and with less open space
+
+Reads as: the same ask as F14 for this pop-up: a tighter, better layout with less empty space.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
