@@ -54,11 +54,37 @@ describe('how a figure is worked out (ruled 2026-10-26)', () => {
     ]);
   });
 
-  it("AC's quiet line on the Player screen stays compact, with the short names (N23)", () => {
-    expect(acCaption(warden.filled, (k) => k)).toBe('AC −1 from DEX');
-    expect(acCaption({}, (k) => k)).toBe('');
-    // In the setting's direction (ruled 2026-10-29, B9): where lower AC is better, a penalty raises it.
-    expect(acCaption(warden.filled, (k) => k, 'descending')).toBe('AC +1 from DEX');
+  // Row 7a of docs/plans/dec-14-player-audit-fixes.md (A2, page 39, frames 39-4 to 39-6; approved 2026-11-24, "approve
+  // A2 as drawn, no line for zero"). Purposes:
+  //   The armour class tile's line names the score in full, the setting's own long name, then its figure, and never
+  //   "AC" or "from".
+  //   A score that adds nothing leaves no line.
+  //   In a setting where lower is better, the figure is turned round, as before (B9).
+  //   Two scores read one after the other, a comma between; a long name is passed whole, never cut.
+  describe("the armour class tile's line in whole words (dec-14 row 7a, A2)", () => {
+    const longName = (k: string) => ({ NIM: 'Nimbleness', GRT: 'Grit', PRM: 'Presence of mind' })[k] ?? k;
+
+    it.fails('names the score in full, then its figure, with no "AC" and no "from"', () => {
+      const line = acCaption({ 'abilityModifiers.NIM': { ac: 1 } }, longName);
+      expect(line).toBe('Nimbleness +1');
+      expect(line).not.toMatch(/\bAC\b|\bfrom\b/);
+      expect(acCaption(warden.filled, warden.abilityLabel!)).toBe('Dexterity −1');
+    });
+
+    it('leaves no line when the score adds nothing', () => {
+      expect(acCaption({ 'abilityModifiers.NIM': { ac: 0 } }, longName)).toBe('');
+      expect(acCaption({}, longName)).toBe('');
+    });
+
+    it.fails('turns the figure round where lower is better (B9)', () => {
+      expect(acCaption({ 'abilityModifiers.NIM': { ac: 1 } }, longName, 'descending')).toBe('Nimbleness −1');
+      expect(acCaption(warden.filled, warden.abilityLabel!, 'descending')).toBe('Dexterity +1');
+    });
+
+    it.fails('reads two scores one after the other, and a long name whole', () => {
+      expect(acCaption({ 'abilityModifiers.NIM': { ac: 1 }, 'abilityModifiers.GRT': { ac: 1 } }, longName)).toBe('Nimbleness +1, Grit +1');
+      expect(acCaption({ 'abilityModifiers.NIM': { ac: 1 }, 'abilityModifiers.PRM': { ac: 1 } }, longName)).toBe('Nimbleness +1, Presence of mind +1');
+    });
   });
 
   it('attack: the class figure at this level, then melee and missile from the scores', () => {

@@ -134,19 +134,34 @@ describe('the Player screen brought to frame P1', () => {
     expect(attack.getAttribute('aria-label')).toBe("Attack +1: how it's worked out");
   });
 
-  // Purpose A3 (test feedback of 19 Nov 2026, item 5): the Attack box's small line and its pop-up read the same
-  // figures; the line in plain case, a capital on its first word only (dec-14 row 7b), each pop-up row with its own.
-  // The sample's setting names no AC style, so both read the scores' modifiers (the pop-up's old lines, A4); a setting
-  // with a style reads the totals (sheetCombat.test.tsx).
-  it('reads the Attack box’s small line as its pop-up does, in plain case', async () => {
+  // Purpose A3 (test feedback of 19 Nov 2026, item 5; tfw-7): the Attack box's small line and its pop-up read the same
+  // figures, each kind with a capital ("Back to Missile", Francis, 2026-11-25, reversing dec-14 row 7b). The sample's
+  // setting names no AC style, so both read the scores' modifiers (the pop-up's old lines, A4); a setting with a style
+  // reads the totals (sheetCombat.test.tsx).
+  it.fails('reads the Attack box’s small line as its pop-up does, with a capital on each kind', async () => {
     const { user } = await brannoch();
     const vitals = screen.getByRole('region', { name: 'Vitals' });
     const attack = within(vitals).getByRole('button', { name: /^Attack / });
-    expect(attack.querySelector('.stat-tile__caption')!.textContent).toBe('Melee +2, missile +1');
+    expect(attack.querySelector('.stat-tile__caption')!.textContent).toBe('Melee +2, Missile +1');
     await user.click(attack);
     const sheet = within(await screen.findByRole('dialog', { name: 'Attack' }));
     expect(sheet.getByText('Melee +2 from Muscle')).toBeTruthy();
     expect(sheet.getByText('Missile +1 from Nimbleness')).toBeTruthy();
+  });
+
+  // Row 7a of docs/plans/dec-14-player-audit-fixes.md (A2, page 39; approved 2026-11-24). Purpose: the armour class
+  // tile's line names the score by the setting's own long name, then its figure ("Nimbleness +1"), never "AC", "from"
+  // or the short name; its pop-up names the score the same way (page 39's A2-7).
+  it.fails('reads the armour class tile’s line in whole words, as its pop-up names the score', async () => {
+    const { user } = await brannoch();
+    const vitals = screen.getByRole('region', { name: 'Vitals' });
+    const ac = within(vitals).getByRole('button', { name: /^Armour class / });
+    const line = ac.querySelector('.stat-tile__caption')!.textContent!;
+    expect(line).toBe('Nimbleness +1');
+    expect(line).not.toMatch(/\bAC\b|\bfrom\b|NIM/);
+    await user.click(ac);
+    const sheet = await screen.findByRole('dialog', { name: 'Armour class' });
+    expect(sheet.textContent).toContain('Nimbleness');
   });
 
   // Purpose 3.

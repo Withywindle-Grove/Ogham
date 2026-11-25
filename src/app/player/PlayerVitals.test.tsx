@@ -78,10 +78,12 @@ describe("the Player tab's source line follows the campaign it was read for (#10
   });
 });
 
-// Row 7b of docs/plans/dec-14-player-audit-fixes.md (frame 38-7, approved 2026-11-24). Purposes:
-//   The attack tile's line has no capital after its first word: melee only, missile only, both, either AC style.
+// The attack tile's line keeps a capital on each kind (tfw-7): "Back to Missile" (Francis, 2026-11-25), reversing
+// row 7b of docs/plans/dec-14-player-audit-fixes.md (its plain case, merged in #68). Purposes:
+//   The attack tile's line reads as the setting gives it, each kind with its capital: melee only, missile only, both,
+//   either AC style.
 //   A setting with no such figures shows no line.
-describe("the Player tab's attack line in plain case (dec-14 row 7b)", () => {
+describe("the Player tab's attack line keeps its capitals (Back to Missile, 2026-11-25)", () => {
   function lineFor(caption: string): string | null {
     vi.mocked(loadCampaignSetting).mockResolvedValue(fenSetting);
     const world = createFakeDb();
@@ -91,12 +93,17 @@ describe("the Player tab's attack line in plain case (dec-14 row 7b)", () => {
     return tile.querySelector('.stat-tile__caption')?.textContent ?? null;
   }
 
+  it.fails.each([
+    ['Melee +2, Missile +1', 'Melee +2, Missile +1'],
+    ['Melee 19, Missile 18', 'Melee 19, Missile 18'],
+    ['Melee +1000, Missile +999', 'Melee +1000, Missile +999'],
+  ])('reads "%s" as "%s"', (caption, shown) => {
+    expect(lineFor(caption)).toBe(shown);
+  });
+
   it.each([
-    ['Melee +2, Missile +1', 'Melee +2, missile +1'],
-    ['Melee 19, Missile 18', 'Melee 19, missile 18'],
     ['Melee +2', 'Melee +2'],
     ['Missile −1', 'Missile −1'],
-    ['Melee +1000, Missile +999', 'Melee +1000, missile +999'],
   ])('reads "%s" as "%s"', (caption, shown) => {
     expect(lineFor(caption)).toBe(shown);
   });
