@@ -203,6 +203,17 @@ Picture: one screenshot, not committed: it shows a private pack's place text (ha
 
 Reads as: the crossed-out eye suggests the GM can reveal this text, but he cannot. Remove the icon.
 
+### F18. Keep the boxed item inside the book's text
+
+Screen: GM's Scene, the same "From the book, for the GM" section as F17, opened. The place's text with bold lead-ins, then a bordered box for a magic item (its name in capitals and its description), then "p. 14".
+
+Picture: one screenshot, not committed: it shows a private pack's place text, a character and an item (hard rule 2).
+
+> I like this box, i may have earlier said to remove it, but i think it should stay
+
+Reads as: keep the bordered box for an item inside the book's text. This may reverse something he said before this collection; the driver should check for an earlier ruling.
+Question (held for the end): "this box" is the bordered item box, not the whole "From the book" section?
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
