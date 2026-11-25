@@ -24,7 +24,8 @@ import { latestChange, undoChange } from '../core/undo.ts';
 import { amountWords, coinLine, type Denomination } from '../modules/inventory/coinWords.ts';
 import type { NamedCarrier } from '../modules/inventory/inventory.ts';
 import { addCoin, AMOUNT, giveCoin, removeCoin, spendCoin, takeCoin, type CoinNames, type Coins } from '../modules/inventory/purse.ts';
-import { TAKE_OFFLINE } from '../modules/inventory/stashTake.ts';
+import { TAKE_OFFLINE, TAKE_OFFLINE_TITLE, TAKE_OFFLINE_WHY } from '../modules/inventory/stashTake.ts';
+import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import { useOnline } from '../ui/creation.tsx';
 import { Dialog } from '../ui/Dialog.tsx';
 import { DestinationList, ListRow, RowList, StackedButton, WarningLine } from '../ui/parts.tsx';
@@ -130,6 +131,8 @@ export function PurseSheet({
   const [busy, setBusy] = useState(false);
   const show = useToast();
   const online = useOnline();
+  // Offline, the stash coin's Take… opens the blocked-action pop-up over this sheet (⚑ 7, re-ruled "A" 25 Nov).
+  const blocked = useBlockedSheet();
   const rows = purseRows(denominations, coins);
   const name = carrier.name;
   // The stash's coin (K13): what it holds reads "The stash has 40." (PC6b).
@@ -234,10 +237,11 @@ export function PurseSheet({
             <ListRow title="Take coin…" onOpen={() => go('remove')} />
           </RowList>
         ) : stash ? (
-          // A player on the stash's coin (PC6): one row leads on; offline it stays a row and says why it waits.
+          // A player on the stash's coin (PC6): one row leads on; offline it stays a row and a tap opens the blocked-action
+          // pop-up saying why it waits (⚑ 7, re-ruled "A" 25 Nov).
           taker && (
             <RowList>
-              <ListRow title="Take…" onOpen={() => (online ? go('take') : show({ text: TAKE_OFFLINE }))} />
+              <ListRow title="Take…" onOpen={() => (online ? go('take') : blocked.explain(TAKE_OFFLINE_TITLE, TAKE_OFFLINE_WHY))} />
             </RowList>
           )
         ) : (
@@ -246,6 +250,7 @@ export function PurseSheet({
             <ListRow title="Give to…" onOpen={() => go('give')} />
           </RowList>
         )}
+        {blocked.sheet}
       </Dialog>
     );
   }

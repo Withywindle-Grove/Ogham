@@ -9,7 +9,8 @@
 // Take (K12; pk-2, pk-3; frames PK4b and PK7b, approved 2026-11-14, ap-6): every row ends in Take. A single thing goes
 // on the tap (the screen that owns the pack writes it and shows the toast, with Undo and the taker's load); a stack
 // opens the sheet "Take": the thing, what the stash has, a box, and one accent naming the amount; a refusal is words
-// under the row and the button stays a button. Offline, Take stays a button and a tap says why it waits.
+// under the row and the button stays a button. Offline, Take stays a button and a tap opens the blocked-action pop-up
+// saying why it waits (⚑ 7, re-ruled "A" 25 Nov: `BlockedSheet`, not PK7b's box on a phone).
 import { useEffect, useId, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { loadCampaignSettings } from '../core/campaignCommands.ts';
@@ -21,7 +22,8 @@ import { loadClockNow } from '../modules/expedition/lightPlay.ts';
 import type { InventoryLine, NamedCarrier } from '../modules/inventory/inventory.ts';
 import { loadStashHistory, whoWords, type StashHistory, type StashMove } from '../modules/inventory/stashHistory.ts';
 import { shownName } from '../modules/inventory/packView.ts';
-import { asksHowMany, readTake, TAKE_OFFLINE, takeLabel, takeRefusal } from '../modules/inventory/stashTake.ts';
+import { asksHowMany, readTake, TAKE_OFFLINE, TAKE_OFFLINE_TITLE, TAKE_OFFLINE_WHY, takeLabel, takeRefusal } from '../modules/inventory/stashTake.ts';
+import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import { Dialog } from '../ui/Dialog.tsx';
 import { Chip, StackedButton, WarningLine, WarningSign } from '../ui/parts.tsx';
 import { useOnline } from '../ui/creation.tsx';
@@ -151,6 +153,8 @@ export function StashScreen({
   const [asking, setAsking] = useState<InventoryLine | null>(null);
   const online = useOnline();
   const show = useToast();
+  // Offline, Take's why opens under the button on a tablet, from the foot on a phone (⚑ 7, re-ruled "A" 25 Nov).
+  const blocked = useBlockedSheet();
   const lineIds = lines.map((l) => l.id).join(',');
 
   useEffect(() => {
@@ -225,7 +229,7 @@ export function StashScreen({
       aria-label={`Take ${line.name}`}
       aria-haspopup={online && asksHowMany(line) ? 'dialog' : undefined}
       onClick={() => {
-        if (!online) return show({ text: TAKE_OFFLINE });
+        if (!online) return blocked.explain(TAKE_OFFLINE_TITLE, TAKE_OFFLINE_WHY);
         if (asksHowMany(line)) return setAsking(line);
         onTake(line, 1);
       }}
@@ -313,6 +317,7 @@ export function StashScreen({
           }}
         />
       )}
+      {blocked.sheet}
     </section>
   );
 }

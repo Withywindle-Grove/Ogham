@@ -5,7 +5,8 @@
 //      text, no serious accessibility problem.
 //   2. A long name on a stack of 999 wraps beside its Take, which stays on the screen, at least 44 px; on the sheet it
 //      wraps inside the accent.
-//   3. Offline, Take stays a button and a tap says why it waits (PK7b).
+//   3. Offline, Take stays a button and a tap opens the blocked-action pop-up saying why it waits: under the button on
+//      a tablet, from the foot on a phone (⚑ 7, re-ruled "A" 25 Nov).
 //   4. The over-limit toast carries its warning on a line of its own under the words, with the warning sign, and Undo.
 // The pictures it saves (deviceScaleFactor 2) are the as-built pictures beside PK4b and PK7b in the pull request.
 import { expect, test, type Page } from '@playwright/test';
@@ -87,9 +88,24 @@ for (const size of SIZES) {
           open: async (page) => {
             await page.context().setOffline(true);
             await expect(page.getByText('As it was when you were last online.')).toBeVisible();
-            await page.getByRole('button', { name: 'Take Silver ewer' }).click();
-            await expect(page.locator('.toast')).toContainText('You’re offline. Taking from the stash needs the party’s latest, so it waits until you’re back.');
+            const take = page.getByRole('button', { name: 'Take Silver ewer' });
+            await take.click();
+            // ⚑ 7, re-ruled "A" 25 Nov: the blocked-action pop-up, under the button on a tablet, from the foot on a phone.
+            const why = page.getByRole('dialog', { name: 'You’re offline' });
+            await expect(why).toContainText('Taking from the stash needs the party’s latest, so it waits until you’re back.');
+            await expect(why).toHaveClass(/dialog--sheet/);
+            await expect(page.locator('.toast')).toHaveCount(0);
             await expect(page.getByRole('dialog', { name: 'Take' })).toHaveCount(0);
+            // The phone's sheet slides up (200 ms): measured once it has come to rest.
+            await why.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+            const card = (await why.boundingBox())!;
+            if (size.width >= 700) {
+              await expect(why).toHaveClass(/dialog--anchored/);
+              const button = (await take.boundingBox())!;
+              expect(card.y).toBeGreaterThanOrEqual(button.y + button.height);
+            } else {
+              expect(card.y + card.height).toBeCloseTo(size.height, 0);
+            }
           },
         },
       ];

@@ -5,7 +5,8 @@
 //   2. Its sheet "Party stash's coin" lists every coin the setting names (0 shown as 0) and one row, Take….
 //   3. "Take coin": the stash's amount under each coin, the accent naming the amount, a refusal under the row with
 //      the warning sign, and the toast in the log line's words with Undo.
-//   4. Messy coin (long names, 999) wraps without sideways scrolling; offline, Take… stays a row and explains.
+//   4. Messy coin (long names, 999) wraps without sideways scrolling; offline, Take… stays a row and opens the
+//      blocked-action pop-up (⚑ 7, re-ruled "A" 25 Nov).
 //   5. (fixme, ⚑ 8 of #66) Two long-named coins at once: the accent's label stays inside its button.
 //   Every scene: no sideways scrolling, every target at least 44 px, readable text, no serious accessibility problem.
 // The pictures it saves (deviceScaleFactor 2) are the as-built pictures beside PC6, PC6b and PK4 in the pull request.
@@ -127,9 +128,25 @@ for (const size of SIZES) {
             await page.context().setOffline(true);
             await expect(page.getByText('As it was when you were last online.')).toBeVisible();
             await stashCoin(page).click();
-            await page.getByRole('dialog').getByRole('button', { name: 'Take…' }).click();
-            await expect(page.locator('.toast')).toContainText('You’re offline. Taking from the stash needs the party’s latest, so it waits until you’re back.');
-            await expect(page.getByRole('dialog').getByRole('heading', { name: 'Party stash’s coin' })).toBeVisible();
+            const take = page.getByRole('dialog', { name: 'Party stash’s coin' }).getByRole('button', { name: 'Take…' });
+            await take.click();
+            // ⚑ 7, re-ruled "A" 25 Nov: the blocked-action pop-up over the coin sheet, which stays open under it; under
+            // the row on a tablet, from the foot on a phone (opened from inside a sheet, it keeps its own form).
+            const why = page.getByRole('dialog', { name: 'You’re offline' });
+            await expect(why).toContainText('Taking from the stash needs the party’s latest, so it waits until you’re back.');
+            await expect(why).toHaveClass(/dialog--sheet/);
+            await expect(page.locator('.toast')).toHaveCount(0);
+            await expect(page.getByRole('dialog', { name: 'Party stash’s coin' })).toBeAttached();
+            // The phone's sheet slides up (200 ms): measured once it has come to rest.
+            await why.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+            const card = (await why.boundingBox())!;
+            if (size.width >= 700) {
+              await expect(why).toHaveClass(/dialog--anchored/);
+              const row = (await take.boundingBox())!;
+              expect(card.y).toBeGreaterThanOrEqual(row.y + row.height);
+            } else {
+              expect(card.y + card.height).toBeCloseTo(size.height, 0);
+            }
           },
         },
       ];

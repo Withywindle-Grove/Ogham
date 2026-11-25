@@ -8,8 +8,14 @@ import type { CarriedLoad } from './encumbrance.ts';
 import type { InventoryLine } from './inventory.ts';
 import { countWords, shownName } from './packView.ts';
 
-/** Offline, a tap on Take says why it waits (PK7b; question 6): the stash's things and its coin alike. */
-export const TAKE_OFFLINE = 'You’re offline. Taking from the stash needs the party’s latest, so it waits until you’re back.';
+/**
+ * Offline, a tap on Take says why it waits (PK7b; question 6): the stash's things and its coin alike. A row's Take and
+ * the coin's Take… open the blocked-action pop-up with the title and why (⚑ 7, re-ruled "A" 25 Nov); a sheet's accent,
+ * already open, says the whole line in a toast.
+ */
+export const TAKE_OFFLINE_TITLE = 'You’re offline';
+export const TAKE_OFFLINE_WHY = 'Taking from the stash needs the party’s latest, so it waits until you’re back.';
+export const TAKE_OFFLINE = `${TAKE_OFFLINE_TITLE}. ${TAKE_OFFLINE_WHY}`;
 
 const num = (n: number) => n.toLocaleString('en');
 const outOf = (n: number, most: number | null) => `${num(n)}${most !== null ? ` of ${num(most)}` : ''}`;
