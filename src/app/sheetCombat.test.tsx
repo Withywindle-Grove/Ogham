@@ -178,7 +178,8 @@ describe('the full sheet: Combat, Movement, Skills (sr-1, sr-2, sr-8)', () => {
 describe("the Player tab's Attack box (test feedback of 19 Nov 2026, A3 and B3)", () => {
   it("reads the pop-up's totals in its small line, and a typed figure that is the class's own is listed once", async () => {
     // Purpose (A3, tfw-7): with an AC style, the Attack box's small line reads each kind's total, the same figure as the
-    // pop-up's row, never the score's modifier alone; in plain case, "Melee +1, missile +2" (dec-14 row 7b).
+    // pop-up's row, with a capital ("Melee +1, Missile +2"; "Back to Missile", 2026-11-25), never the score's modifier
+    // alone.
     // Purpose (B3, tfw-6): creation's copy of the class's figure on the sheet is not a second row; no "Written on the sheet".
     fenWorld('ascending');
     const tam = world.tables.actors.find((a) => a.name === 'Tam')!;
@@ -195,8 +196,8 @@ describe("the Player tab's Attack box (test feedback of 19 Nov 2026, A3 and B3)"
     const rows = [...sheet.querySelectorAll('.breakdown__row')].map((r) => [r.querySelector('dt')!.textContent!, r.querySelector('dd')!.textContent!]);
     const kinds = rows.filter(([label]) => /^(Melee|Missile),/.test(label!)).map(([label, value]) => `${label!.split(',')[0]} ${value}`);
     expect(kinds.length).toBe(2);
-    expect(line).toBe(kinds.join(', ').replace(', Missile', ', missile'));
-    expect(line).toMatch(/^Melee [+−]\d+, missile [+−]\d+$/);
+    expect(line).toBe(kinds.join(', '));
+    expect(line).toMatch(/^Melee [+−]\d+, Missile [+−]\d+$/);
     expect(rows.map(([label]) => label)).not.toContain('Written on the sheet');
     expect(rows.map(([label]) => label)).not.toContain('Set by hand');
   });
@@ -204,8 +205,7 @@ describe("the Player tab's Attack box (test feedback of 19 Nov 2026, A3 and B3)"
   it('follows a figure set by hand, on the Player tab and on the full sheet\'s tile (H1)', async () => {
     // Purpose (H1, "Follow hand-set", 2026-11-19): for the class's bonus of +1, a typed +3 and a missile modifier of +1
     // (NIM 13), the box's small line reads the totals from the typed figure, "Missile +4", not the class's "Missile +2";
-    // the same figures on the Player tab's box and the full sheet's tile, and the pop-up's rows agree (⚑ 22). The
-    // Player tab's line is in plain case (dec-14 row 7b); the sheet's tile keeps its capitals (tfw-7).
+    // the same line on the Player tab's box and the full sheet's tile, and the pop-up's rows agree (⚑ 22).
     fenWorld('ascending');
     const tam = world.tables.actors.find((a) => a.name === 'Tam')!;
     tam.fields = { ...(tam.fields as Record<string, unknown>), attack: '+3' };
@@ -215,7 +215,7 @@ describe("the Player tab's Attack box (test feedback of 19 Nov 2026, A3 and B3)"
     const vitals = within(await screen.findByRole('region', { name: 'Vitals' }));
     const box = vitals.getByRole('button', { name: /^Attack \+3/ });
     const line = box.querySelector('.stat-tile__caption')!.textContent!;
-    expect(line).toMatch(/^Melee [+−]\d+, missile \+4$/);
+    expect(line).toMatch(/^Melee [+−]\d+, Missile \+4$/);
     await user.click(box);
     const sheet = await screen.findByRole('dialog', { name: 'Attack' });
     const labels = [...sheet.querySelectorAll('.breakdown__row dt')].map((dt) => dt.textContent);
@@ -226,7 +226,7 @@ describe("the Player tab's Attack box (test feedback of 19 Nov 2026, A3 and B3)"
     await user.click(within(screen.getByRole('dialog', { name: 'More' })).getByRole('button', { name: 'Full character sheet' }));
     await screen.findByRole('region', { name: 'Level' });
     const tile = within(document.querySelector('.sheet__vitals') as HTMLElement).getByRole('button', { name: /^Attack \+3: how it's worked out$/ });
-    expect(tile.textContent).toContain(line.replace(', missile', ', Missile'));
+    expect(tile.textContent).toContain(line);
   });
 });
 
