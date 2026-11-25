@@ -197,7 +197,7 @@ describe("deleting an account keeps a player's requests, the messages sent to th
     expect(await rowOfIn(second, 'requests', asked, 'requester_id')).toEqual([{ requester_id: second.playerA.id }]);
   });
 
-  it.fails('deleting a player who asked the GM something succeeds; the request and the messages sent to them stay, with no player', async () => {
+  it('deleting a player who asked the GM something succeeds; the request and the messages sent to them stay, with no player', async () => {
     expect((await second.admin.auth.admin.deleteUser(second.playerA.id)).error).toBeNull();
     expect(must(await second.admin.from('profiles').select('id').eq('id', second.playerA.id))).toEqual([]);
     expect(await rowOfIn(second, 'requests', asked, 'text, direction, requester_id')).toEqual([{ text: 'Wade across the eel pool.', direction: 'playerAsks', requester_id: null }]);
@@ -206,7 +206,7 @@ describe("deleting an account keeps a player's requests, the messages sent to th
     expect(must(await second.admin.from('members').select('user_id').eq('campaign_id', second.campaignId).eq('user_id', second.playerA.id))).toEqual([]);
   });
 
-  it.fails("deleting the GM keeps the campaign's homebrew pack and what hangs on it; their membership and library pack go", async () => {
+  it("deleting the GM keeps the campaign's homebrew pack and what hangs on it; their membership and library pack go", async () => {
     expect((await second.admin.auth.admin.deleteUser(second.gm.id)).error).toBeNull();
     expect(must(await second.admin.from('profiles').select('id').eq('id', second.gm.id))).toEqual([]);
     expect(await rowOfIn(second, 'packs', homebrew, 'name, campaign_id, owner_user_id')).toEqual([{ name: 'Homebrew', campaign_id: second.campaignId, owner_user_id: null }]);
