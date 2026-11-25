@@ -119,6 +119,8 @@ import { answerOf, answerRest, callRest, flipped, forcedRestGroups, forcedWithou
 import type { Marcher } from '../modules/expedition/marchingPlay.ts';
 import { RestPanel, RestPrompt, RestRule, type RestLine } from './RestPrompt.tsx';
 import { PromptSlot } from './PromptSlot.tsx';
+import { CallsInPromptSlot } from './CallCard.tsx';
+import { usePlayerCalls } from './usePlayerCalls.ts';
 import { darkMode, inDarkness } from '../modules/expedition/darkness.ts';
 import { loadTownSwitches, resetTownSwitches, setActiveNight, setOutDay } from '../modules/expedition/townPlay.ts';
 import { ACTIVE_NIGHT, afterFlip, anyOn, endedWords, flipToastWords, OUT_DAY, reachesMorning, runsNow, switchesLine, SWITCHES_OFF, type TownSwitches } from '../modules/expedition/townSwitches.ts';
@@ -388,6 +390,9 @@ export function SceneTime({
   const weather = useWeather(db, user, campaign.id, version);
   const weatherFold = useWeatherFold(weather.view);
   const [weatherOpen, setWeatherOpen] = useState(false);
+  // The calls to adventure and rumours sent to this player (P7; page 40): read again with the log, last in the slot;
+  // read only while the players' slot is drawn (its table view, once the time has loaded).
+  const playerCalls = usePlayerCalls(db, user, campaign.id, !gm && !compact && !!tableView && scene !== null && scene !== 'error', logVersion + version);
 
   const underWay = scene !== null && scene !== 'error' && scene.expedition !== null;
   const expeditionId = scene !== null && scene !== 'error' ? (scene.expedition?.id ?? null) : null;
@@ -2529,8 +2534,8 @@ export function SceneTime({
             <>
               {/* B18: the prompt slot, between the time band and the marching order (space reserved), newest on top
                   (SC-g6-4): the rest prompt, the screen's other prompts (a request, a message, No light), the weather;
-                  what is there when the screen opens keeps that order. */}
-              <PromptSlot>
+                  what is there when the screen opens keeps that order. The calls to adventure come last, always (p7-9). */}
+              <PromptSlot after={<CallsInPromptSlot calls={playerCalls.calls} onGotIt={playerCalls.gotIt} />}>
                 {restViews.map((flow) => (
                   <RestPrompt
                     key={`rest-${flow.group}`}

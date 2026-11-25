@@ -26,7 +26,7 @@ export function slotOrder(keys: readonly string[], arrived: ReadonlyMap<string, 
     .map((k) => k.key);
 }
 
-export function PromptSlot({ children, settleMs = SETTLE_MS }: { children: ReactNode; settleMs?: number }) {
+export function PromptSlot({ children, after = null, settleMs = SETTLE_MS }: { children: ReactNode; /** Drawn last, always (p7-9). */ after?: ReactNode; settleMs?: number }) {
   const items = Children.toArray(children).filter(isValidElement);
   const keys = items.map((item) => String(item.key));
   const box = useRef<HTMLDivElement>(null);
@@ -93,6 +93,7 @@ export function PromptSlot({ children, settleMs = SETTLE_MS }: { children: React
           {byKey.get(key)}
         </div>
       ))}
+      {after && <div className="prompt-slot__item prompt-slot__item--last">{after}</div>}
     </div>
   );
 }

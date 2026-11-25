@@ -55,6 +55,9 @@ const FOCUS_CALLS: Record<string, number> = {
   '/src/app/LightSection.tsx': 2,
   // Back to the Scene's Light fact once a light is lit (P10 audit 1): the fact, a button, never a field.
   '/src/app/SceneTime.tsx': 1,
+  // After "Got it" folds a call (P7, impeccable audit finding 1): the next card's "Got it", else the folded row; both
+  // buttons, never a field.
+  '/src/app/CallCard.tsx': 1,
 };
 
 describe('no keyboard on open (A4)', () => {

@@ -94,7 +94,7 @@ All IDs are UUIDs. Every row has `createdAt`, `createdBy`, `updatedAt` (library 
 **From the setting rules, for the sheet** (ruled 2026-10-25; the shapes are in 07):
 - **traitLists** (a pack kind: backgrounds, affiliations, signs…) feed sheet fields of `type: "list"` with `from: "<traitList id>"` (kept on the campaign field as `from`, M5b step 0b); the value saved is the entry's id, shown by name; the owner picks or changes one any time (logged); without the list in the setting it's free text.
 - **Sheet field types:** number, text, longtext, checkbox, list (choices, or `from` a trait list), ref (later).
-- **saveModifiers** `[{id, name, value, appliesWhen}]`: shown beside the saves, never added into them (tentative).
+- **saveModifiers** `[{id, name, value, appliesWhen}]`: each holds at times; never counted into a save's figure, shown with its number (05, "Save bonuses in the number"; ruled 2026-11-25).
 - **skills** in the rules set `[{id, name, die, default, fill}]`, merged with classes' own `skills` (including `gmRolls`) into one Skills block.
 - **movement.combat** (feet per round, for M6) alongside the exploration modes' movement.
 - **encumbrance.labels** (what "At hand" is called), **encumbrance.slots** `{equipped, stowed, adjust}` and speed **bands**; **unencumbering** on items or categories (the Tiny section). Equipped, stowed and tiny are worked out from At hand, containers and that flag, never stored as a new state.
