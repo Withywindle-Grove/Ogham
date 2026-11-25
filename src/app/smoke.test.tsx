@@ -5796,6 +5796,32 @@ describe('the Pack tab (M4 step 4)', () => {
     }
   });
 
+  // Purpose: offline, a tap on Take opens the blocked-action pop-up (BlockedSheet) saying why it waits, not a toast; the
+  // button stays a button and nothing moves (⚑ 7, re-ruled "A" 25 Nov).
+  it.fails('offline, a tap on Take opens the blocked-action pop-up, not a toast; nothing moves (K12, ⚑ 7 A)', async () => {
+    const { campaign, line } = packWorld('coin');
+    line(null, 'Silver ewer', { weight_coin: 30 });
+    const user = openApp();
+    await openPack(user);
+    const stash = await openStash(user);
+    await stash.findByRole('button', { name: 'Take Silver ewer' });
+    const offline = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    try {
+      window.dispatchEvent(new Event('offline'));
+      await stash.findByText('As it was when you were last online.');
+      const take = stash.getByRole('button', { name: 'Take Silver ewer' });
+      await user.click(take);
+      const why = within(await screen.findByRole('dialog', { name: 'You’re offline' }));
+      expect(why.getByText('Taking from the stash needs the party’s latest, so it waits until you’re back.')).toBeTruthy();
+      expect(document.querySelector('.toast')).toBeNull();
+      expect(take.hasAttribute('disabled')).toBe(false);
+      expect(world.tables.inventory_lines.find((l) => l.name === 'Silver ewer')).toMatchObject({ location_id: `location-stash-${campaign}` });
+      expect(screen.queryByRole('dialog', { name: 'Take' })).toBeNull();
+    } finally {
+      offline.mockRestore();
+    }
+  });
+
   // Purpose: a Put in shows no Undo in Recently; a take does, a small stacked button with the turned-back arrow above
   // the word, and the take's toast has the same (review of #66, finding 1; ⚑ 4 and ⚑ 6, ruled 24 Nov).
   it('a Put in shows no Undo in Recently; a take does, with the turned-back arrow, as does its toast (K11, K12)', async () => {

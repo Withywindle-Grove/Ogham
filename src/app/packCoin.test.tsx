@@ -558,4 +558,25 @@ describe('coin in the stash (K13, PC6, PC6b, PK4)', () => {
       offline.mockRestore();
     }
   });
+
+  // Purpose: offline, a tap on the stash coin's Take… opens the blocked-action pop-up (BlockedSheet) saying why it waits,
+  // not a toast; the coin sheet stays open under it and nothing moves (⚑ 7, re-ruled "A" 25 Nov).
+  it.fails('offline, Take… opens the blocked-action pop-up, not a toast; nothing moves (⚑ 7 A)', async () => {
+    await coinWorld({ stash: { heron: 40 } });
+    const user = await openStashCoin();
+    await coinRow();
+    const offline = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    try {
+      window.dispatchEvent(new Event('offline'));
+      await user.click(await coinRow());
+      await user.click(within(sheet()).getByRole('button', { name: 'Take…' }));
+      const why = within(await screen.findByRole('dialog', { name: 'You’re offline' }));
+      expect(why.getByText('Taking from the stash needs the party’s latest, so it waits until you’re back.')).toBeTruthy();
+      expect(document.querySelector('.toast')).toBeNull();
+      expect(screen.getByRole('dialog', { name: 'Party stash’s coin' })).toBeTruthy();
+      expect(stashPurse()).toEqual({ heron: 40 });
+    } finally {
+      offline.mockRestore();
+    }
+  });
 });
