@@ -33,36 +33,43 @@
     background: var(--rule);
   }
 
-  /* The quiet pill at mid-height: a shape, in the Control token. */
+  /* The grip at mid-height (plan dec-14 row 1, frame 38-1): a 24 by 44 lozenge on the line, in the Surface fill with
+     the Control edge (3 to 1 on the page), covering the line behind it. */
   .divider-handle__pill {
     position: relative;
-    width: 6px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-5);
     height: var(--tap);
-    border-radius: 3px;
-    background: var(--control);
+    border: var(--line-control) solid var(--control);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
   }
 
-  /* The triangle beside the pill (P32): which way the menu folds, on the side it goes to. */
+  /* The triangle inside the grip (P32): which way the menu folds, in Ink. */
   .divider-handle__arrow {
-    position: relative;
-    color: var(--control);
-    font-size: var(--text-14);
+    color: var(--ink);
+    font-size: var(--text-16);
     line-height: 1;
   }
 
-  .divider-handle__arrow--fold {
-    margin-inline-end: var(--space-1);
+  /* A triangle's ink sits toward its point, so it looks off-centre by about 2 px the way it points: a hairline back
+     the other way centres it to the eye (approval fix, 25 Nov). */
+  .divider-handle__arrow--left {
+    transform: translateX(var(--line-hair));
   }
 
-  .divider-handle__arrow--show {
-    margin-inline-start: var(--space-1);
+  .divider-handle__arrow--right {
+    transform: translateX(calc(var(--line-hair) * -1));
   }
 
   .divider-handle:focus-visible {
     outline: none;
   }
 
-  /* The keyboard's focus ring goes round the pill (base.css's ring), not the whole tall tap zone. */
+  /* The keyboard's focus ring goes round the grip (base.css's ring), not the whole tall tap zone. */
   .divider-handle:focus-visible .divider-handle__pill {
     outline: 3px solid var(--outline);
     outline-offset: 2px;

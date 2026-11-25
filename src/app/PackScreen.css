@@ -204,6 +204,21 @@
   gap: var(--gap);
 }
 
+/* Variant: two buttons under the words (dec-14 row 6, frame 38-6; ruled "3 every size pack included"): on a phone a
+   row with two buttons or more gives its words the full width and sets the buttons under them, at the right, at every
+   text size, on the Player tab's At hand and the Pack tab alike. A tablet keeps them beside the words. */
+@media (max-width: 599px) {
+  .pack__row--two-buttons {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    padding-bottom: var(--gap);
+  }
+
+  .pack__row--two-buttons > .pack__row-main {
+    flex-basis: 100%;
+  }
+}
+
 .pack__row-main {
   flex: 1;
   display: grid;
@@ -529,7 +544,7 @@
   border-top: var(--divider);
 }
 
-/* Landscape tablet (ruled 2026-10-24): a list at least a third wide on the left, never an empty right side. */
+/* Landscape tablet (ruled 2026-10-24): a list about a third (06, landscape rule) on the left, never an empty right side. */
 .pack__summary,
 .pack__list {
   display: flex;

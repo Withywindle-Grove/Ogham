@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: Locations and reading ahead (2026-11-18)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* This page's own rules. Type, the book format, the stacked button, the sheet's title and the corners come from
+     ../shared/book.css and are not restated here. */
+  /* (1) copied as they stand from pages 11, 16 and 19: the layout of the parts reused here */
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .rem { justify-content:center; } .rem .gap { display:none; }
+  .phone .rem .step .nm { display:none; }
+  .ibs { display:inline-flex; gap:var(--space-2); }
+  .btn.sq.ib { padding:6px; }
+  .dcap { display:inline-flex; align-items:center; gap:var(--space-1); font-size:16px; letter-spacing:.04em; margin-right:var(--space-2); vertical-align:bottom; }
+  .dcap svg { color:var(--muted); flex:none; }
+  .phone .dcap { font-size:14px; }
+  .phband { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2); align-items:center; margin-top:var(--space-1); }
+  .phone .facts { margin-top:var(--space-2); }
+  .phone .facts.pf .fact .v { font-size:16px !important; white-space:nowrap; }
+  .phone .facts.pf .fact .s { font-size:14px; }
+  .phone .facts.pf .fact .k { white-space:nowrap; letter-spacing:0; }
+  .phone .facts.pf .fact { padding-left:var(--space-2); padding-right:var(--space-2); gap:var(--space-2); }
+  .phone .facts.pf .fact:last-child .v { font-size:14px !important; }
+  .phibs { display:flex; gap:var(--space-2); margin-top:var(--space-2); }
+  .phfoot { display:flex; gap:var(--space-2); border-top:1px solid var(--rule); padding:var(--space-2) var(--space-3); background:var(--sheet); }
+  .phone .inner > .crumb:first-child { margin-top:var(--space-1); }
+  .pce { display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:var(--space-3); align-items:center; min-height:52px; border-bottom:1px dotted var(--rule); padding:var(--space-1) 0; }
+  .pce > [role="button"] { min-height:44px; align-content:center; }
+  .adders { display:flex; gap:var(--space-2); flex-wrap:wrap; align-items:center; margin-top:var(--space-2); }
+  /* (2) new on this page (the “22” in these names is the page's first number, kept so the rules need no renaming) */
+  /* a word in the description that names another piece: bold and underlined (ruled 2026-11-18) */
+  .kw22 { font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+  /* the pack's own sentence under the check's first line: running text, not the small muted line */
+  .inforce .own22 { display:block; margin-top:var(--space-1); }
+  /* the line that says the GM is reading ahead, at the very top of the card */
+  .ahead22 { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2) var(--space-3); align-items:center; min-height:44px; background:var(--wash); border-radius:4px; padding:var(--space-2) var(--space-3); margin:0 0 var(--space-3); }
+  .phone .ahead22 { grid-template-columns:minmax(0,1fr); margin-top:var(--space-3); }
+  /* the Locations list: a row's quiet line is cut to one line */
+  .loc22 .spot > span:first-child { min-width:0; }
+  .loc22 .spot small { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  /* controls side by side in one row share one height (ruled 2026-11-18): the band's icon buttons and its menu button take Next turn's 52 px */
+  .dev .band .acts .btn.sq { width:52px; min-height:52px; }
+  /* the same ruling: the map’s tools (zoom out, zoom in, where we are, the eye) all stand 44 px high; they measured 46, 46, 48 and 44 */
+  .maptools .btn.sq { height:44px; padding:0; }
+  /* frame LA4: two phones side by side */
+  .pair22 { display:grid; grid-template-columns:343px 343px; gap:var(--space-4) var(--space-6); align-items:start; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="strip.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+{
+// ---- parts of pages 11, 16 and 19, as those pages wrote them ----
+const sep = svg(SY.right, 16);
+const stk = (words, k, o = {}) => `<span class="btn stk${o.accent ? ' accent' : ''}" role="button">${o.sym ? sym(k, 24) : gi(k, 24)}<span>${words}</span></span>`;
+const ruleBtn = (k, words) => `<span class="btn big sqb" role="button" aria-label="${words}">${gi(k, 34)}</span>`;
+const splash = ruleBtn('water-splash', 'Someone fell in');
+const moveBtn = b('Move on', { big: true, accent: true, icon: 'travel' });
+// page 16, frame T2: the band, the facts row, the strip
+const moreBtn = `<span class="btn sq" role="button" aria-label="More">${I.more}</span>`;
+// the app's own five steps, as page 16 draws them: ruled 2026-11-18 for point to point; plain, with no state
+const STEPS5 = [['trumpet', 'Describe'], ['ball', 'Question'], ['sword-brandish', 'Act'], ['wizard', 'Test'], ['chest', 'Resolve']].map(([k, n]) => remStep(gi(k, 32), n, false));
+const stripRow = remRow('Sequence of play', STEPS5);
+const nextTurn = b('Next turn', { big: true, icon: 'clock' });
+const ib = (k, words) => `<span class="btn sq ib" role="button" aria-label="${words}">${k === 'encounter' ? sym('encounter', 28) : gi(k, 30)}</span>`;
+const ibs3 = [ib('camping-tent', 'Make camp'), ib('encounter', 'Encounter check'), ib('exit-door', 'Leave the dungeon')].join('');
+const dl = (date, rest = '') => `<span class="dcap">${gi('sprout', 18)}${date}</span>${rest}`;
+const encTile = fact('encounter', 'Encounter check', 'On every move', `${dieMark(20, 16)}d20`).replace('class="v"', 'class="v" style="font-size:20px;white-space:nowrap"');
+const tiles = `${fact('weather', 'Weather', 'Drizzle', 'Wet.')}${fact('flame', 'Light', 'Ash’s torch', '4 turns left.')}${fact('rest', 'Rest', 'In 5 turns', 'One turn in six.')}${encTile}`;
+const sceneTop = `${band({ over: 'Session 1. Saltwick Island.', title: 'The Anchorage, turn 1', ident: dl('14 Reedmonth, spring', 'Two hours of light left.'), acts: [`<span class="ibs" role="group">${ibs3}</span>`, nextTurn, moreBtn] })}<hr class="dbl"><div class="facts">${tiles}</div>${stripRow}`;
+// page 11, frame 1b: the place card, brought up to the rulings of 2026-11-18
+const num22 = (name) => { const m = /^([0-9]+[.]) (.*)$/.exec(name); return m ? `<span class="keyno">${m[1]}</span>${m[2]}` : name; };
+const trail = (last) => `<div class="crumb"><a class="x">Saltwick Island</a>${sep}<a class="x">The Drowned Harbour</a>${sep}<b>${last}</b></div>`;
+const headOf = (name, acts) => `<div class="band"><div><h3 class="display">${num22(name)}</h3></div><div class="acts two">${acts}</div></div>`;
+const pair = `<div class="two">${b('Knowledge', { icon: 'book' })}${b('Rules', { icon: 'scales' })}</div>`;
+const checkCard = `<div class="hrow" style="margin-top:var(--space-3)"><h2>Checks here</h2></div><div class="inforce tgl" style="margin-top:0"><span role="button" aria-label="Encounter check: read the rule"><b>Encounter check: on every move.</b><span class="own22">${dieMark(20, 16)}Roll d20 for an encounter each time the party rows to a new Location.</span></span>${tg(true, { label: 'The Drowned Harbour’s encounter check: in force here' })}</div>`;
+const kw = (w) => `<b class="kw22">${w}</b>`;
+const PIC = `<svg viewBox="0 0 120 80" width="120" height="80" role="img" aria-label="A stand-in picture of the place" style="display:block;border:1px solid var(--control);flex:none"><rect width="120" height="80" fill="#8f9a98"/><path d="M0 0h120v30C90 26 70 40 40 34 20 30 10 36 0 34z" fill="#d9d2bf"/><path d="M50 34v34M62 36v32M44 46h24M44 58h24" stroke="#222" stroke-width="3"/></svg>`;
+const picRow = (shown) => `<div class="pce"><div role="button" aria-label="Picture: open it" style="display:flex;gap:var(--space-3);align-items:center">${PIC}<span><span class="lbk">Picture.</span></span></div>${eyeBtn(shown)}</div>`;
+const textRow = (html, shown, say) => `<div class="pce"><div role="button" aria-label="Edit piece: ${say}">${html}</div>${eyeBtn(shown)}</div>`;
+const led = (word, text, shown) => textRow(`<b>${word}.</b> ${text}`, shown, word);
+const listFoot = (count) => `<div class="adders">${stk('+ Piece', 'jigsaw-piece')}<span style="flex:1"></span><span class="meta">${count}</span>${stk('Hide all', 'eyeshut', { sym: true })}</div>`;
+const plusMark = svg('<path d="M12 5v14M5 12h14" ' + W + '/>', 20);
+const notesRow = `<div class="spot" role="button" aria-expanded="false" style="border-top:1px dotted var(--rule);margin-top:var(--space-3)"><span><b>Notes</b></span><span class="ctl">${plusMark}</span></div>`;
+const pieces = (rows) => `<div style="margin-top:var(--space-3)">${rows.join('')}</div>`;
+
+// The Anchorage's pieces: the picture, the description, three more
+const anchorPieces = pieces([
+  picRow(false),
+  textRow(`Slack water in the lee of the bar, three fathoms over mud. The boat swings on a ${kw('mooring buoy')}; its ${kw('chain')} runs down out of sight, and ${kw('gulls')} quarrel on the wreck’s mast to the north.`, true, 'the description'),
+  led('Mooring buoy', 'Tarred cork, with a turn of new rope: someone tied up here this week.', false),
+  led('Chain', 'Bright links among the weed, as if lately hauled.', true),
+  led('Gulls', 'They lift off the mast whenever something moves below it.', false),
+]);
+const breakPieces = pieces([
+  picRow(false),
+  textRow(`A drowned wall of fitted stone, awash at high water. A boat can thread the ${kw('gap')} at its middle; rusted ${kw('iron rings')} line the lee side, and a ${kw('cairn')} of ballast stones stands at the seaward end.`, true, 'the description'),
+  led('Gap', 'Two oars wide. The tide runs hard through it on the ebb.', false),
+  led('Iron rings', 'Six of them; the fourth is new iron.', false),
+  led('Cairn', 'Stacked by hand since the last storm.', false),
+]);
+const card = (parts) => `<div class="pcard">${parts.join('')}</div>`;
+const anchorCard = card([trail('The Anchorage'), headOf('The Anchorage', splash + moveBtn), pair, checkCard, anchorPieces, listFoot('2 of 5 shown'), notesRow]);
+const aheadWords = '<span><b>Reading ahead.</b> The party is at The Anchorage.</span>';
+const aheadLine = `<div class="ahead22" role="status">${aheadWords}${b('Back to the party', { icon: 'people' })}</div>`;
+const breakCard = card([aheadLine, trail('3. The Breakwater'), headOf('3. The Breakwater', ''), pair, checkCard, breakPieces, listFoot('1 of 5 shown'), notesRow]);
+
+// the right column: frame 1b's, with the marching order as built less its lock switch
+// the stand-in map's key (the shared drawing's words) takes the names as ruled: "N. Name"
+const KEY22 = [['1 The jetty', '1. The Jetty'], ['2 The wreck', '2. The Wreck'], ['3 The breakwater', '3. The Breakwater'], ['4 The customs shed', '4. The Customs Shed'], ['5 The sea cave', '5. The Sea Cave']];
+const waitCol = `<div class="pcard"><h2 style="margin-top:0">Waiting for you</h2><p class="meta" style="margin:0">Nothing waits.</p></div>`;
+const sceneMap = `<div class="pcard" aria-label="The map">${mapOpen(KEY22.reduce((s, [a, c]) => s.split('>' + a + '<').join('>' + c + '<'), mapPic(true, '190 118 300 220')).replace('<svg ', '<svg style="width:100%;height:100%" '), '', { style: 'height:210px', bare: true }).replace('class="mapopen', 'style="margin-top:0" class="mapopen')}${mapTools(eyeBtn(false), locate(true))}</div>`;
+const callBan = (name) => `<div class="callban tap" role="button" aria-label="Caller: ${name}. Change the caller">${flair(1)}<span class="mk">${gi('knight-banner', 52)}</span>${flair(1, true)}<span class="who"><span class="sc">Caller</span><b>${name}</b></span></div>`;
+const order = orderCard([rank(1, [pc(ash, { lg: true }), pc(wren, { lg: true })]), rank(2, [pc(tam, { lg: true }), pc(bram, { lg: true })])], { say: 'One light lit: Ash’s torch, 4 turns.', head: stk('Saved orders', 'scroll-unfurled') }).replace('<div class="pcard"><div class="mo-head">', `<div class="pcard">${callBan('Wren')}<div class="mo-head">`);
+const rightCol = `<div class="stack">${waitCol}${sceneMap}${order}</div>`;
+
+// ---- LA1 ----
+const la1Inner = `${sceneTop}<div class="cols2"><div>${anchorCard}</div>${rightCol}</div>`;
+const la1 = ipad('gm', la1Inner,
+  'LA1. <b>Approved 2026-11-18 with fixes, drawn here; shared stylesheet.</b> Assembled from page 16’s frame T2 (the top) and page 11’s frame 1b (the place card, the map, the marching order), brought up to Francis’s rulings of 2026-11-18. <b>The party is at “The Anchorage”</b>, where it starts in The Drowned Harbour; it has no number. <b>The trail is the way in to reading ahead, and it never moves the party:</b> a tap on the Area’s name opens the list of its Locations (frame LA2); a tap on the Region’s name opens the list of its Areas (frame LA2b). Nothing new is marked on the trail: it is as it was drawn. <b>The fixes, drawn:</b> no “Locations” button (the row is Knowledge and Rules again, two of equal width); the strip is the app’s own five (Describe, Question, Act, Test, Resolve), ruled 2026-11-18 for point to point: plain, with no state, as page 16 draws it; the lone word “Location” at the card’s foot is gone. <b>As approved:</b> the words Region, Area and Location; a numbered Location reads “1. The Jetty”; the head is the name, the rule’s icon button and Move on, with no line under the name; no “Players see” line and no Rename; the description once, as the first written piece, each word that names another piece in bold and underlined; each further piece led by its own word in bold, with its eye; no “Pieces” heading and no kind words; the picture’s row as built, at the head of the list; the check’s card gives the place’s own sentence with the die and keeps its switch; “Notes” fully folded; no lock switch on the marching order; the map loaded; the count (“2 of 5 shown”) and “Hide all” at the foot of the list, beside “+ Piece”; controls side by side in one row at one height (the band’s buttons at 52 px, the map’s tools at 44). <b>Mine, to check:</b> the Encounter check tile’s small line reads “d20”, to agree with the place’s sentence; the facts are drawn quiet (nothing waits); “Saved orders” (ic-4) and the caller’s banner (page 04) are added to frame 1b’s marching order, which did not draw them. Move on is the one accent. Names and words are invented; the pictures are stand-ins.');
+
+// ---- LA2: the Locations list; LA2b: the Areas list ----
+const locRow = (name, line, say = '') => `<div class="spot" role="button"${say ? ` aria-label="${say}"` : ''}><span><b>${num22(name)}</b><small>${line}</small></span><span class="ctl">${svg(SY.right, 20)}</span></div>`;
+const pinMark = `<span class="pin" aria-hidden="true">${sym('people', 16)}</span>`;
+const hereRow = `<div class="spot cur"><span><b>${pinMark}The Anchorage</b><small>The party is here.</small></span></div>`;
+const LOCS = [
+  ['1. The Jetty', 'Black piles, a mooring ring, weed to the waterline; a tarred skiff rocks under the ladder at its seaward end.'],
+  ['2. The Wreck', 'A cog on her side on the bar, decks awash, her mast showing at every tide.'],
+  ['3. The Breakwater', 'A drowned wall of fitted stone, awash at high water. A boat can thread the gap at its middle.'],
+  ['4. The Customs Shed', 'Stilted, shuttered, a light some nights; the stair is gone and the door stands a man’s height above the mud.'],
+  ['5. The Sea Cave', 'Only at low water, and only through the gap; the swell booms inside it.'],
+  ['6. The Salt Pans', 'Square ponds behind a broken dyke, crusted white.'],
+  ['7. The Chain Tower', 'A squat tower where the harbour chain was made fast.'],
+  ['8. The Eel Weir', 'Stakes and wattle across the creek mouth, half of it new.'],
+  ['9. The Harbourmaster’s Landing Stage below the Old Lantern Tower, Seaward Side', 'Worn steps down into the water, a bell rope hanging, and a smell of tar that the wind does not shift.'],
+  ['10. The Mud Flats', 'Bare at low water; a boot goes in to the knee.'],
+  ['11. The Lighter Hulks', 'Three flat barges rotting side by side.'],
+  ['12. The Sluice', 'An oak gate in the dyke, jammed half open.'],
+];
+const areaRow = locRow('The Drowned Harbour', 'A silted harbour: black water, a dry bar, a mast that shows at every tide.', 'The Drowned Harbour: open the Area’s own page');
+const listPanel = (over, title, rows) => panel({ seq: over, title, body: `<div class="loc22">${rows}</div>` }).replace('class="ttl"', 'class="ttl sheet-title"');
+const locPanel = listPanel('The Drowned Harbour', 'Locations', `${areaRow}${hereRow}${LOCS.map(([n, l]) => locRow(n, l)).join('')}`);
+const la2 = withPanel('ipad', 'gm', locPanel,
+  'LA2. <b>Approved 2026-11-18 with fixes, drawn here; shared stylesheet.</b> <b>The Locations list, opened by a tap on “The Drowned Harbour” in the trail.</b> The standing panel over the Scene (the one the approved sheets of pages 05 and 19 use), titled “Locations” with the Area’s name over it, closed by its X. <b>Its first row is the Area itself:</b> “The Drowned Harbour” and one quiet line of its description; it opens the Area’s own page, to read. <b>Then the party’s own row</b>, with the party’s mark, its wash and edge, and the words “The party is here.”; it is not a tap. <b>Then one row a Location:</b> its number, its name, and one quiet line of its description, cut with “…”; each opens that Location to read ahead (frame LA3). Nothing in this panel moves the party. A row is 60 px high, never under 44. <b>Messy data:</b> a very long name wraps (9), and its line is still cut to one; the list is longer than the sheet and scrolls under its head, so the last row here is cut by the sheet’s foot (the tablet is drawn 992 px high to show the long name whole; Locations 6 to 12 are added for this frame only; the map’s key has five). No accent in the sheet. <b>Mine, to check:</b> the Area’s row is told from the Locations’ only by standing first and having no number; the panel at the right, not a centred pop-up; no eye and no count on a row (an eye on a Location is not built); no find field. The strip behind is the app’s own five, ruled 2026-11-18 for point to point.',
+  la1Inner).replace('class="dev ipad fixed"', 'class="dev ipad fixed" style="height:992px"');
+const areasPanel = listPanel('Saltwick Island', 'Areas', `<div class="spot cur" role="button" aria-label="The Drowned Harbour: the party is here. Open the Area’s own page"><span><b>${pinMark}The Drowned Harbour</b><small>The party is here.</small></span><span class="ctl">${svg(SY.right, 20)}</span></div>${locRow('The Shingle Beach', 'A mile of grey stones under the cliff, bare at every tide.')}`);
+const la2b = withPanel('ipad', 'gm', areasPanel,
+  'LA2b. <b>New, a proposal, 2026-11-18; shared stylesheet.</b> Assembled from frame LA2. <b>A tap on the Region in the trail</b> (“Saltwick Island”) opens the same kind of panel: titled “Areas”, with the Region’s name over it, closed by its X. <b>One row an Area:</b> its name and one quiet line. The Area the party is in carries the party’s mark, its wash and edge, and the words “The party is here.”. Nothing in this panel moves the party. <b>Mine, to check:</b> a row opens that Area’s own page, to read (it could open that Area’s list of Locations instead); the party’s Area is still a tap, since the party is at a Location inside it and not on the Area’s page; its line gives “The party is here.” in place of its description; no row for the Region itself (LA2 has the Area’s own row first: say if this panel should have one). Two Areas only: no long name and no scroll are drawn here; they would behave as in LA2. The strip behind is the app’s own five, ruled 2026-11-18 for point to point.',
+  la1Inner);
+
+// ---- LA3: reading ahead ----
+const la3 = ipad('gm', `${sceneTop}<div class="cols2"><div>${breakCard}</div>${rightCol}</div>`,
+  'LA3. <b>Approved 2026-11-18 with fixes, drawn here; shared stylesheet.</b> Assembled from frame LA1. <b>Reading ahead at “3. The Breakwater”</b>, reached from its row in the list (frame LA2). The top is unchanged and still names the party’s place (“The Anchorage, turn 1”). The card is the Breakwater’s own page: its pieces with working eyes (one shown here, the rest not). <b>At the very top of the card, above the trail, one line:</b> “Reading ahead. The party is at The Anchorage.”, with a plain button, “Back to the party”, at its right. <b>The head has no Move on and no rule’s button:</b> the right of the name is empty, and nothing on this screen has the accent. The right column (Waiting for you, the map, the marching order) is the party’s, unchanged. <b>The fixes, drawn:</b> no “Locations” button; the strip is the app’s own five, ruled 2026-11-18 for point to point; no lone word at the card’s foot. <b>Not drawn, an idea only: a “Move the party here” button in the head while reading ahead.</b> <b>Mine, to check:</b> the line stands on the wash, so the state is seen at a glance; the party’s mark on “Back to the party”. Names and words are invented; the pictures are stand-ins.');
+
+// ---- LA4: 375 px ----
+const phNext = `<span class="btn" role="button">${gi('hourglass', 20)}Next turn</span>`;
+const phTop = `<h3 class="display" style="margin:0;font-size:20px">The Anchorage, turn 1</h3><div class="phband"><p class="ident" style="font-size:14px;margin:0">${dl('14 Reedmonth')}</p>${phNext}</div><p class="ident" style="font-size:14px;margin:var(--space-1) 0 0">2 hours of light.</p><div class="phibs" role="group">${ibs3}</div><div class="facts pf">${tiles}</div>${stripRow}`;
+const phHead = (name) => `${trail(name)}<h3 class="display" style="font-size:24px;margin:0">${num22(name)}</h3>`;
+const phPair = `${pair}<div style="margin-top:var(--space-2)">${b('The map', { wide: true })}</div>`;
+const phAhead = `<div class="phone">${phoneBar('The Reed Marches')}<div class="inner">${phTop}<div class="ahead22" role="status">${aheadWords}</div>${phHead('3. The Breakwater')}${phPair}${checkCard}${breakPieces}${listFoot('1 of 5 shown')}${notesRow}</div><div class="phfoot">${b('Back to the party', { big: true, icon: 'people' }).replace('class="btn', 'style="flex:1" class="btn')}</div>${tabBar('gm')}</div>`;
+const phParty = `<div class="phone">${phoneBar('The Reed Marches')}<div class="inner">${phHead('The Anchorage')}${phPair}${checkCard}${anchorPieces}${listFoot('2 of 5 shown')}${notesRow}</div><div class="phfoot">${moveBtn.replace('class="btn', 'style="flex:1" class="btn')}${splash}</div>${tabBar('gm')}</div>`;
+const la4 = `<div style="width:718px"><p class="cap" style="width:718px">LA4. <b>Approved 2026-11-18 with fixes, drawn here; shared stylesheet.</b> Assembled from page 11’s frame 4b (the phone at a place inside an Area) and page 16’s frame T8a (the phone’s top), brought up to the rulings of 2026-11-18. <b>A: frame LA3 at 375 px.</b> The top still names the party’s place. The line at the top of the place keeps its words only: “Reading ahead. The party is at The Anchorage.” <b>“Back to the party” sits in the fixed bar at the bottom</b>, where Move on sits at the party’s place; it is plain, not the accent, and stays in reach however long the page is. <b>B: frame LA1’s card at 375 px</b> (its top is A’s, left off). Knowledge and Rules stand side by side, then “The map”, as page 11 has it: no “Locations” button. Move on is fixed above the tab bar with the rule’s button, as page 11. On both, the trail’s taps open the lists of frames LA2 and LA2b; the strip is the app’s own five, ruled 2026-11-18 for point to point, shown as its icons alone; no lone word at the foot. <b>Mine, to check:</b> “Back to the party” is drawn at Move on’s height, 52 px.</p><div class="pair22"><div><p class="lbl"><b>A.</b> Reading ahead at 3. The Breakwater.</p>${phAhead}</div><div><p class="lbl"><b>B.</b> The party’s own place.</p>${phParty}</div></div></div>`;
+
+mount(`
+  <h1>Reading ahead: the trail, the lists, a Location read before the party is there</h1>
+  <p class="note">For the designer (2026-11-18). <b>Frames LA1 to LA4: approved by Francis 2026-11-18 with fixes, drawn here. Frame LA2b: new, a proposal, not ruled.</b> How the GM reaches the other Locations of the Area the party is in, and reads one before the party gets there: the trail is the way in, and it never moves the party. Every frame shows Francis’s rulings of 2026-11-18 on the place card. The strip is the app’s own five, ruled 2026-11-18 for point to point. This page was first numbered 22. Names, words and numbers are invented; the pictures are stand-ins.</p>
+  <h1>LA1. The party is at “The Anchorage”</h1>
+  <div class="wall">${la1}</div>
+  <h1>LA2. The Locations list, from the Area’s name in the trail</h1>
+  <div class="wall">${la2}</div>
+  <h1>LA2b. The Areas list, from the Region’s name in the trail (a proposal)</h1>
+  <div class="wall">${la2b}</div>
+  <h1>LA3. Reading ahead at “3. The Breakwater”</h1>
+  <div class="wall">${la3}</div>
+  <h1>LA4. At 375 px</h1>
+  <div class="wall">${la4}</div>
+  <h1>Self-review</h1>
+  <p class="note"><b>The stylesheet.</b> This page links the one shared mockup stylesheet (<code>../shared/book.css</code>) and its type pass last, and restates none of their rules. Its own rules are in two groups, named in the page’s head: the layout rules copied as they stand from pages 11, 16 and 19 for the parts reused here, and nine new ones (the underlined word; the check’s own sentence; the reading-ahead line and its phone form; the list’s cut line, two rules; the band’s buttons at one height; the map’s tools at one height; the two phones side by side).</p>
+  <p class="note"><b>Checked.</b> Measured with <code>shared/measure.cjs</code> before it was shown (contrast, 44 px targets, 8 px between separate controls): clean but for two known things, the lit-light badge’s amber mark on the marching order (2.81 to 1 in light; a token, with the sweep) and the 13 px words inside the stand-in map. <b>Controls side by side in one row share one height</b> (ruled 2026-11-18), measured row by row: the band (52 px), the head’s rule button and Move on (52), Knowledge and Rules (44), “+ Piece” and “Hide all”, the map’s tools (44), and the phone’s rows. One accent a screen: Move on in LA1 and on phone B; none in a panel; none in LA3 or on phone A. No disabled button: the party’s own row in the Locations list is not a control. Never colour alone: the party’s row has its mark and its words; an eye is a shape with a spoken state; the switch has its tick. States drawn: the party’s place; the Locations list with a long name and more rows than fit; the Areas list; reading ahead; both at 375 px. Undo over confirm: nothing here adds a confirm.</p>
+  <p class="note"><b>Not checked, or gaps.</b> The built place card on main was not opened: the frames stand on pages 11, 16 and 19 and the rulings as briefed. Not drawn: the Area’s own page (the first row of LA2 opens it); a list while it loads; an Area with no Locations or with one; a Region with one Area; the trail’s taps on the phone (the panel as a full sheet); what a player sees (nothing here is the players’); what an eye opened while reading ahead sends to players about a place they have not reached; Notes open; Larger text; offline. The lists have no find field. “Saved orders” and the caller’s banner are drawn from ic-4 and page 04, not from the built screen.</p>
+`);
+for (const el of document.querySelectorAll('.phone')) el.classList.add('bit');
+for (const el of document.querySelectorAll('.dev h2, .phone h2')) el.classList.add('bsub');
+for (const el of document.querySelectorAll('.fact .k, .tabbar span, .dcap')) el.dataset.sc = '';
+for (const el of document.querySelectorAll('.adders')) el.dataset.stkgroup = '';
+applyBook();
+}
+</script>
+</body>
+</html>
