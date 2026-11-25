@@ -298,6 +298,36 @@ describe('K22d: the Reveal pop-up', () => {
     expect(sheet.queryByRole('button', { name: 'Edit what players see…' })).toBeNull();
   });
 
+  // Purpose: charges hidden but never rolled (no count in the secret) can't be told yet, so the pop-up offers no tap that
+  // would fail: "Its charges" is a quiet row reading "Not set yet", and "Tell them everything" tells every other fact.
+  it.fails('with hidden charges never set, "Its charges" is no button and "Tell them everything" tells the rest', async () => {
+    Object.assign(ring(), { charges_hidden: true });
+    const user = await openInView();
+    const popup = await openReveal(user);
+    expect(popup.queryByRole('button', { name: /^Tell Its charges/ })).toBeNull();
+    expect(popup.getByText('Not set yet')).toBeTruthy();
+    await user.click(popup.getByRole('button', { name: 'Tell them everything' }));
+    await waitFor(() => expect(ring().revealed_fields).toEqual(['magic', 'name', 'bonus', 'cursed']));
+    expect(ring()).toMatchObject({ name: 'Ring of the Drowned Bell', identified: true, charges_hidden: true });
+    expect(await screen.findByText('Told Wren everything about the Ring of the Drowned Bell but its charges.')).toBeTruthy();
+    expect(popup.queryByText(/Couldn’t tell/)).toBeNull();
+    expect(popup.getAllByText('Told')).toHaveLength(4);
+    expect(popup.queryByRole('button', { name: 'Tell them everything' })).toBeNull();
+    expect(popup.getByText('Set its charges first, then tell them.')).toBeTruthy();
+  });
+
+  // Purpose: when the database refuses a tell, the pop-up says why in the database's own words, not "Try again".
+  it.fails('a tell the database refuses shows its own words', async () => {
+    const user = await openInView();
+    const popup = await openReveal(user);
+    const real = world.db.rpc.bind(world.db);
+    vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: Record<string, unknown>) =>
+      name === 'tell_item' ? Promise.resolve({ data: null, error: { message: "Its setting rules are gone, so its name can't be told.", code: 'P0001' } }) : real(name as never, args as never)) as never);
+    await user.click(popup.getByRole('button', { name: 'Tell Its true name: Ring of the Drowned Bell' }));
+    expect(await popup.findByText(/Its setting rules are gone, so its name can't be told\./)).toBeTruthy();
+    expect(popup.queryByText(/Try again/)).toBeNull();
+  });
+
   it('opened again after the curse was told, only what is still hidden is listed', async () => {
     await tell('cursed');
     const user = await openInView();
