@@ -4,6 +4,8 @@
 // toast carries Undo (the log's Undo of the tell). "Tell them everything" is its one accent; with everything told the
 // foot reads "Nothing is left hidden.". Opened from inside the item's sheet: its own form, the Sheet, centred on a tablet
 // and from the foot on a phone (K22i), with the toast placed above it (ToastHost, `data-toast-above`).
+// Charges hidden but never set (no count in the secret) can't be told yet (public.tell_item refuses): their row is the
+// told row's plain form, "Not set yet", with no Tell, and "Tell them everything" tells every other fact (review of #50).
 import { useState } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
@@ -32,14 +34,18 @@ export function factsOf(line: InventoryLine, entry: ResolvedEntry | null, secret
   return facts.map((f) => (f.id === 'charges' && total !== null ? { ...f, detail: `${Math.max(0, total - line.chargesUsed)} of ${total} left` } : f));
 }
 
+/** A hidden count never set: the one fact the pop-up lists but can't tell yet (public.tell_item: "Set its charges first"). */
+export const countNotSet = (fact: HiddenFact, secret: { total: number | null } | null) => fact.id === 'charges' && (secret?.total ?? null) === null;
+
 /** Who a tell tells, in the toast's words: the holder's name, or "the party" for the stash (K22f, 3). */
 const whoOf = (carrier: NamedCarrier) => (carrier.locationId !== null ? 'the party' : carrier.name);
 
 /** The toast after a tell (pick 10; K22e, K22f): "Told Wren: the Bronze ring is cursed.", the true name's (pg30-5), everything's. */
-export function toldWords(fact: HiddenFact | 'everything', line: Pick<InventoryLine, 'name'>, carrier: NamedCarrier, trueName: string): string {
+export function toldWords(fact: HiddenFact | 'everything' | 'all but charges', line: Pick<InventoryLine, 'name'>, carrier: NamedCarrier, trueName: string): string {
   const who = whoOf(carrier);
   const item = shownName(line.name);
   if (fact === 'everything') return `Told ${who} everything about the ${trueName || item}.`;
+  if (fact === 'all but charges') return `Told ${who} everything about the ${trueName || item} but its charges.`;
   if (fact.id === 'name') {
     const whose = carrier.locationId !== null ? `The party’s ${item}` : `${carrier.name}’s ${item}`;
     return `Shown to the players: ${fact.detail}. ${whose} now carries its name.`;
@@ -92,19 +98,27 @@ export function RevealPopup({
   const now = factsOf(line, entry, secret);
   // The list as it was opened (k22-5): a told row stays, as "Told"; opened again later, only what is still hidden.
   const [listed] = useState(now);
-  const [failed, setFailed] = useState(false);
+  // A failed tell: the database's words when it refused, '' when no answer came back ("Try again"); null: none.
+  const [failed, setFailed] = useState<string | null>(null);
   const hiddenNow = new Set(now.map((f) => f.id));
   const left = listed.filter((f) => hiddenNow.has(f.id));
+  const tellable = left.filter((f) => !countNotSet(f, secret));
+  const waiting = left.length > tellable.length;
   const where = carrier.locationId !== null ? 'in the Party stash' : `in ${carrier.name}’s pack`;
 
   function tell(fact: HiddenFact | 'everything') {
     if (busy) return;
-    const words = toldWords(fact, line, carrier, entry?.name ?? '');
+    // "Everything" with a count never set tells the rest, as one act, and leaves the count hidden.
+    const skip = fact === 'everything' && waiting;
+    const words = toldWords(skip ? 'all but charges' : fact, line, carrier, entry?.name ?? '');
     let toldOk = false;
     void run(async () => {
-      const told = await runCommand(registry, db, user, tellItem, { line: { id: line.id, carrier, version: line.version }, fact: fact === 'everything' ? 'everything' : fact.id });
+      const told = await runCommand(registry, db, user, tellItem, {
+        line: { id: line.id, carrier, version: line.version },
+        fact: fact !== 'everything' ? fact.id : skip ? tellable.map((f) => f.id) : 'everything',
+      });
       toldOk = told.ok;
-      setFailed(!told.ok);
+      setFailed(told.ok ? null : told.message);
       // A failed tell says so in the pop-up, above the foot (pick 14), not in a second toast; the Pack still reads again.
       return told.ok ? told : { ok: true as const, value: null };
     }).then((done) => {
@@ -131,6 +145,7 @@ export function RevealPopup({
           <ul className="reveal-popup__list" aria-label="What is hidden">
             {listed.map((fact) => {
               const told = !hiddenNow.has(fact.id);
+              const notYet = !told && countNotSet(fact, secret);
               const words = (
                 <>
                   <span className="reveal-popup__eye" aria-hidden="true">
@@ -138,18 +153,20 @@ export function RevealPopup({
                   </span>
                   <span className="reveal-popup__fact">
                     <span className="reveal-popup__label">{fact.label}</span>
-                    {fact.detail && <span className="reveal-popup__detail">{fact.detail}</span>}
+                    {(notYet || fact.detail) && <span className="reveal-popup__detail">{notYet ? 'Not set yet' : fact.detail}</span>}
                   </span>
                 </>
               );
               return (
                 <li key={fact.id}>
-                  {told ? (
+                  {told || notYet ? (
                     <div className="reveal-popup__row">
                       {words}
-                      <span className="reveal-popup__told">
-                        <Icon name="tick" size={18} /> Told
-                      </span>
+                      {told && (
+                        <span className="reveal-popup__told">
+                          <Icon name="tick" size={18} /> Told
+                        </span>
+                      )}
                     </div>
                   ) : (
                     <button type="button" className="reveal-popup__row" aria-busy={busy} aria-label={`Tell ${fact.label}${fact.detail ? `: ${fact.detail}` : ''}`} onClick={() => tell(fact)}>
@@ -163,19 +180,19 @@ export function RevealPopup({
               );
             })}
           </ul>
-          {failed && (
+          {failed !== null && (
             <p className="pack__problem reveal-popup__error" role="alert">
-              <WarningSign /> Couldn’t tell {whoOf(carrier)}. Try again.
+              <WarningSign /> {failed || `Couldn’t tell ${whoOf(carrier)}. Try again.`}
             </p>
           )}
-          {left.length > 0 ? (
+          {tellable.length > 0 ? (
             <div className="dialog__actions">
               <button type="button" className="button-primary" aria-busy={busy} onClick={() => tell('everything')}>
                 Tell them everything
               </button>
             </div>
           ) : (
-            <p className="auth__meta">Nothing is left hidden.</p>
+            <p className="auth__meta">{waiting ? 'Set its charges first, then tell them.' : 'Nothing is left hidden.'}</p>
           )}
         </Dialog>
       </CentredPopUpScope.Provider>

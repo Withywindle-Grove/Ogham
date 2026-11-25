@@ -1084,6 +1084,8 @@ export function createFakeDb(): FakeWorld {
   const isStale = (row: Row, seen: unknown) => seen !== undefined && seen !== null && row.version !== seen;
   const staleResult: Result = { data: null, error: { message: STALE, code: STALE_CODE } };
   const plain = (message: string): Result => ({ data: null, error: { message } });
+  /** A refusal a function raised, as Postgres reports one: its words and the code `raise exception` gives (P0001). */
+  const raised = (message: string): Result => ({ data: null, error: { message, code: 'P0001' } });
   const copy = (row: Row | undefined): Result => ({ data: row ? { ...row } : null, error: null });
   const moveClock = (campaign: unknown, seen: unknown, tag: Tag, to: (seconds: number) => number, rest: unknown = null): Result => {
     if (!isGmOf(campaign)) return refused("You don't have permission to do that.");
@@ -2982,7 +2984,7 @@ export function createFakeDb(): FakeWorld {
       const data: Row = { ...((l.item_data as Row) ?? {}) };
       const patch: Row = {};
       if (told.includes('name')) {
-        if (!entry) return plain("Its setting rules are gone, so its name can't be told.");
+        if (!entry) return raised("Its setting rules are gone, so its name can't be told.");
         Object.assign(patch, { name: entry.name, identified: true });
       }
       if (told.includes('bonus') && whole) {
@@ -3001,7 +3003,7 @@ export function createFakeDb(): FakeWorld {
       for (const t of told.filter((x) => x.startsWith('fields.'))) data.fields = { ...((data.fields as Row) ?? {}), [t.slice(7)]: (whole?.fields as Row)[t.slice(7)] };
       if (told.includes('charges')) {
         const total = tables.inventory_line_secrets.find((s) => s.id === l.id)?.charges_total;
-        if (total === null || total === undefined) return plain('Set its charges first, then tell them.');
+        if (total === null || total === undefined) return raised('Set its charges first, then tell them.');
         Object.assign(patch, { charges_hidden: false, charges_left: Math.max(0, Number(total) - Number(l.charges_used ?? 0)), spent_shown: false });
       }
       const revealed = [...((l.revealed_fields as string[] | undefined) ?? []), ...told.filter((t) => !((l.revealed_fields as string[] | undefined) ?? []).includes(t))];

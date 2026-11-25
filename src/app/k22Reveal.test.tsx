@@ -300,7 +300,7 @@ describe('K22d: the Reveal pop-up', () => {
 
   // Purpose: charges hidden but never rolled (no count in the secret) can't be told yet, so the pop-up offers no tap that
   // would fail: "Its charges" is a quiet row reading "Not set yet", and "Tell them everything" tells every other fact.
-  it.fails('with hidden charges never set, "Its charges" is no button and "Tell them everything" tells the rest', async () => {
+  it('with hidden charges never set, "Its charges" is no button and "Tell them everything" tells the rest', async () => {
     Object.assign(ring(), { charges_hidden: true });
     const user = await openInView();
     const popup = await openReveal(user);
@@ -317,7 +317,7 @@ describe('K22d: the Reveal pop-up', () => {
   });
 
   // Purpose: when the database refuses a tell, the pop-up says why in the database's own words, not "Try again".
-  it.fails('a tell the database refuses shows its own words', async () => {
+  it('a tell the database refuses shows its own words', async () => {
     const user = await openInView();
     const popup = await openReveal(user);
     const real = world.db.rpc.bind(world.db);
