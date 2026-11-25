@@ -378,7 +378,7 @@ export type Database = {
           campaign_id: string
           created_at: string
           id: string
-          player_user_id: string
+          player_user_id: string | null
           seen_at: string
           send_id: string
           updated_at: string
@@ -387,7 +387,7 @@ export type Database = {
           campaign_id: string
           created_at?: string
           id?: string
-          player_user_id: string
+          player_user_id?: string | null
           seen_at?: string
           send_id: string
           updated_at?: string
@@ -396,7 +396,7 @@ export type Database = {
           campaign_id?: string
           created_at?: string
           id?: string
-          player_user_id?: string
+          player_user_id?: string | null
           seen_at?: string
           send_id?: string
           updated_at?: string

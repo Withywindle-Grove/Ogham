@@ -1543,8 +1543,10 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
     // Got it (K20, pk-13): a verbose line, read by the character's player and the GM alone, in the Pack's voice (the
     // character's name, never the player's). Words not given in the brief: the status file's question.
     // Got it on a call (P7, p7-1): a verbose line, its player's and the GM's alone. Words of the builder's, for Francis.
+    // Its author is never empty when written (only a signed-in player can mark), so an empty one means that player's
+    // account was deleted since (#77 ⚑ 1, Francis, 24 Nov): "A former player …". A name not loaded stays "Someone".
     case 'hook.seen':
-      return by('marked a call as seen');
+      return main.actorUserId === null ? 'A former player marked a call as seen.' : by('marked a call as seen');
     case 'character.seenFinds':
       return `${named(names.characters, after.actor_id ?? before.actor_id, 'A character')} saw the new finds.`;
     // Sheet changes (plan m5b-sheet-revised B): a player asks the GM for a score or Max HP; the GM approves or refuses.
