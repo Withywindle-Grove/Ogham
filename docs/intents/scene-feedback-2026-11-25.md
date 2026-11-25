@@ -248,6 +248,16 @@ Pictures: two screenshots, not committed: they show a private pack's place text,
 
 Reads as: the same needs as F19 and F20, as a general principle. (a) The sailors here need their stat line at hand. (b) The creature group needs its stat line at hand; the row says "The stat line never shows", though the book text already has it. A sailor stat line could sit here the same way. (c) A found item needs a way to share it out (F20 (b)) and its rule at hand, not only inside the book's text.
 
+### F22. "Where to?" rows have no map numbers
+
+Screen: GM's Scene at place 2, "Where to?". Four rows, each with "Row" (1 turn) and "Swim" (3 turns): "Arrival", "<place 1's name>", and two rows named like the travel choice, each "Not yet explored." No row shows a map number.
+
+Picture: one screenshot, not committed: it shows private pack place names (hard rule 2).
+
+> Another reminder these should all be numbered even if unknown
+
+Reads as: the same ask as F13 (b), on the GM's side too: every "Where to?" row shows its map number, also for an unexplored place.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
