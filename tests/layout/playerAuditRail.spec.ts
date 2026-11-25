@@ -68,7 +68,7 @@ for (const who of [PLAYER, CASTER, GM]) {
     test.describe(`${who.name}, ${state}, sideways`, () => {
       test.use({ viewport: SIDEWAYS });
 
-      test.fail(`1a. each rail tab is 44 px wide or more and 8 px from the next (${who.name}, ${state})`, async ({ page }) => {
+      test(`1a. each rail tab is 44 px wide or more and 8 px from the next (${who.name}, ${state})`, async ({ page }) => {
         const nav = await open(page, who, folded);
         const tabs = await boxes(nav);
         for (const tab of tabs) expect(tab.width).toBeGreaterThanOrEqual(44 - 0.5);
@@ -76,7 +76,7 @@ for (const who of [PLAYER, CASTER, GM]) {
         expect(await layoutProblems(page)).toEqual([]);
       });
 
-      test.fail(`1b. the handle's tap area is 8 px or more from the nearest tab (${who.name}, ${state})`, async ({ page }) => {
+      test(`1b. the handle's tap area is 8 px or more from the nearest tab (${who.name}, ${state})`, async ({ page }) => {
         const nav = await open(page, who, folded);
         const zone = (await page.getByRole('button', { name: folded ? 'Show the menu' : 'Fold the menu' }).boundingBox())!;
         const right = Math.max(...(await boxes(nav)).map((tab) => tab.x + tab.width));
@@ -92,7 +92,7 @@ for (const scheme of ['light', 'dark'] as const) {
     test.describe(`the grip, ${state}, ${scheme}`, () => {
       test.use({ viewport: SIDEWAYS, colorScheme: scheme });
 
-      test.fail(`1c. the handle is a 24 by 44 grip, its arrow inside in Ink at 16 px, its edge 3 to 1 on the page (${state}, ${scheme})`, async ({ page }) => {
+      test(`1c. the handle is a 24 by 44 grip, its arrow inside in Ink at 16 px, its edge 3 to 1 on the page (${state}, ${scheme})`, async ({ page }) => {
         await open(page, PLAYER, folded);
         const handle = page.getByRole('button', { name: folded ? 'Show the menu' : 'Fold the menu' });
         const grip = handle.locator('.divider-handle__pill');
@@ -141,7 +141,7 @@ test.describe('upright', () => {
   test.use({ viewport: { width: 820, height: 1180 } });
 
   for (const who of [PLAYER, CASTER, GM]) {
-    test.fail(`1d. the tabs in their row are 8 px or more apart (${who.name})`, async ({ page }) => {
+    test(`1d. the tabs in their row are 8 px or more apart (${who.name})`, async ({ page }) => {
       const nav = await open(page, who, false);
       const tabs = await boxes(nav);
       for (const tab of tabs) expect(Math.abs(tab.y - tabs[0]!.y)).toBeLessThanOrEqual(1);

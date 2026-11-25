@@ -57,16 +57,18 @@ describe('the divider is the handle (lr-4)', () => {
     expect(screen.getByRole('button', { name: 'Fold the menu' }).textContent).toBe('◀');
   });
 
-  // P32 (2026-11-06): the handle says which way it folds by a shape, and the shape swaps sides once folded.
-  it('points the way it folds: ◀ before the pill while open, ▶ after it once folded', async () => {
+  // P32 (2026-11-06): the handle says which way it folds by a shape. Plan dec-14 row 1 (frame 38-1): the shape sits
+  // inside the grip, ◀ while open and ▶ once folded.
+  it('points the way it folds, inside the grip: ◀ while open, ▶ once folded', async () => {
     const user = userEvent.setup();
     render(<Column width={280} />);
     const handle = () => screen.getByRole('button', { name: /the menu$/ });
-    const order = () => [...handle().children].map((c) => (c.classList.contains('divider-handle__pill') ? 'pill' : c.textContent));
-    expect(order()).toEqual(['◀', 'pill']);
+    const grip = () => handle().querySelector('.divider-handle__pill');
+    expect(handle().children).toHaveLength(1);
+    expect(grip()?.textContent).toBe('◀');
     await user.click(handle());
     expect(screen.getByRole('button', { name: 'Show the menu' })).toBeTruthy();
-    expect(order()).toEqual(['pill', '▶']);
+    expect(grip()?.textContent).toBe('▶');
   });
 
   it('a tap folds the menu and a second tap unfolds it', async () => {

@@ -246,8 +246,9 @@
   .gm__side {
     position: sticky;
     top: calc(var(--top-row-h, 0px) + var(--pad));
-    /* The divider is the handle (lr-4): it draws the line on this edge; the padding keeps its tap zone off the tabs. */
-    padding-right: calc(var(--tap) / 2);
+    /* The divider is the handle (lr-4): it draws the line on this edge; the padding keeps its tap zone 8 px clear of
+       the tabs (plan dec-14 row 1, ruled 7a: every screen that places it). */
+    padding-right: calc(var(--tap) / 2 + var(--space-2));
   }
 
   /* The side menu keeps a long campaign name to two lines, ending in "…" (ruled 2026-11-05); the campaign's own
