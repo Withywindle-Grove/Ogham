@@ -152,6 +152,7 @@ Every change goes through one of these commands, which checks `can(user, command
 | `place.setPicture` | verbose | GM: the GM can take a place's picture off | Player A: a player can't change a place's picture |
 | `place.setSafety` | verbose | GM: the GM can mark a place safe | Player A: a player can't mark a place hostile |
 | `place.shareMap` | verbose | GM: the GM can share a map with the players | Player A: a player can't share a map<br>Outsider: an outsider can't share a map |
+| `place.showItemTruth` | simple | GM: the GM can show a magic item's truth | Player A: a player can't show a magic item's truth<br>Outsider: an outsider can't show a magic item's truth |
 | `place.showPiece` | verbose | GM: the GM can show players one piece | Player B: a player can't show a piece |
 | `placeKnowledge.eye` | simple | GM: the GM can share a section of a place's knowledge with a group | Player A: a player can't share a section of a place's knowledge<br>Outsider: an outsider can't share a section of a place's knowledge |
 | `placeRule.eye` | simple | GM: the GM can open or close a place's rule to players | Player A: a player can't open a place's rule<br>Outsider: an outsider can't open a place's rule |

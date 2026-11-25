@@ -378,7 +378,7 @@ export type Database = {
           campaign_id: string
           created_at: string
           id: string
-          player_user_id: string
+          player_user_id: string | null
           seen_at: string
           send_id: string
           updated_at: string
@@ -387,7 +387,7 @@ export type Database = {
           campaign_id: string
           created_at?: string
           id?: string
-          player_user_id: string
+          player_user_id?: string | null
           seen_at?: string
           send_id: string
           updated_at?: string
@@ -396,7 +396,7 @@ export type Database = {
           campaign_id?: string
           created_at?: string
           id?: string
-          player_user_id?: string
+          player_user_id?: string | null
           seen_at?: string
           send_id?: string
           updated_at?: string
@@ -6003,6 +6003,14 @@ export type Database = {
           timing: string
         }[]
       }
+      item_truths: {
+        Args: { campaign: string }
+        Returns: {
+          body: string
+          line_id: string
+          name: string
+        }[]
+      }
       join_added_line: {
         Args: {
           actor: string
@@ -6264,6 +6272,10 @@ export type Database = {
           to_location: string
         }
         Returns: string
+      }
+      name_item_truth: {
+        Args: { lines: string[]; piece: string }
+        Returns: number
       }
       note_rule_skipped: {
         Args: { campaign: string; hook: string }
@@ -7470,6 +7482,10 @@ export type Database = {
         Returns: {
           item_id: string
         }[]
+      }
+      show_item_truth: {
+        Args: { lines: string[]; piece: string; visit: string }
+        Returns: number
       }
       show_place_piece: {
         Args: { piece: string; show_it: boolean; visit: string }

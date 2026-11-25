@@ -216,7 +216,7 @@ beforeAll(async () => {
       if (!ended) return toExpedition(made);
       return toExpedition(must(await world.admin.from('expeditions').update({ ended_at: made.started_at, summary: { seconds: 0 } }).eq('id', made.id).select().single()));
     },
-    async freshPlace(shown = false, picture = false, map = false) {
+    async freshPlace(shown = false, picture = false, map = false, magic = false) {
       const expedition = await this.freshExpedition(world.campaignId);
       const name = `The Moth Gallery ${crypto.randomUUID().slice(0, 8)}`;
       // The GM's picture of it (M5b step 1 follow-up), when asked for.
@@ -229,11 +229,15 @@ beforeAll(async () => {
       must(await world.admin.from('place_notes').insert({ id: place.id, campaign_id: world.campaignId }).select());
       const row = must(await world.admin.from('group_places').insert({ campaign_id: world.campaignId, expedition_id: expedition.id, group_number: 1, place_id: place.id }).select().single());
       if (shown) must(await world.admin.from('group_places').update({ shown: true }).eq('id', row.id).select());
-      // Its one piece (M5b g2), shown to the party when the place is.
-      const piece = must(await world.admin.from('place_pieces').insert({ campaign_id: world.campaignId, place_id: place.id, kind: 'exit', body: 'An archway to the east' }).select().single());
+      // Its one piece (M5b g2), shown to the party when the place is; with `magic`, a magic item's truth (B15: kind
+      // 'other', led by the item's real name), the only piece place.showItemTruth accepts.
+      const one = magic
+        ? { kind: 'other' as const, lead: 'The Moth Lamp', body: 'A lamp of folded wings; lit, it draws every moth within ten paces.' }
+        : { kind: 'exit' as const, lead: null, body: 'An archway to the east' };
+      const piece = must(await world.admin.from('place_pieces').insert({ campaign_id: world.campaignId, place_id: place.id, kind: one.kind, lead: one.lead, body: one.body }).select().single());
       if (shown) must(await world.admin.from('piece_shows').insert({ campaign_id: world.campaignId, group_place_id: row.id, piece_id: piece.id, group_number: 1 }).select());
       return {
-        pieces: [{ id: piece.id as string, kind: 'exit' as const, text: 'An archway to the east', shown, shownAt: null, gm: { value: '', trigger: '', statLine: '' }, version: 1 }],
+        pieces: [{ id: piece.id as string, kind: one.kind, text: one.body, ...(one.lead ? { lead: one.lead } : {}), shown, shownAt: null, gm: { value: '', trigger: '', statLine: '' }, version: 1 }],
         id: row.id as string,
         campaignId: world.campaignId,
         expeditionId: expedition.id,
