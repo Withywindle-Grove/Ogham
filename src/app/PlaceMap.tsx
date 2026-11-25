@@ -8,22 +8,26 @@
 //
 // A part: the GM's place page (5b) mounts it where the map will stand, and reads the place's map again on `onAdded`.
 import { useEffect, useRef, useState } from 'react';
-import { runCommand, type CurrentUser } from '../core/commands.ts';
+import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
 import { assetPath, fileLinks, forgetFileLinks } from '../core/files.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import type { PackMap } from '../modules/library/packMaps.ts';
-import { addPlaceMap, loadMapShown, loadPlaceMap, loadPlayersMaps, setPlaceMap, shareEventOf, shareMap, type PlaceMapState, type PlayersMap, type UpTrail } from '../modules/expedition/placeMap.ts';
+import { addPlaceMap, loadMapShown, loadPackPicture, loadPlaceMap, loadPlayersMaps, setPlaceMap, shareEventOf, shareMap, type PlaceMapState, type PlayersMap, type UpTrail } from '../modules/expedition/placeMap.ts';
 import type { Place } from '../modules/expedition/placePlay.ts';
 import { MapCard, MapPopup, MapWanted, type MapSource } from '../ui/MapParts.tsx';
 import { EyeToggle } from '../ui/parts.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import { useLogVersion } from './campaignLog.tsx';
 import { PhotoError, shrinkMap } from './image.ts';
+import { PACK_PICTURE_UNREAD_WORDS, tiePackMap } from './packMapTie.ts';
 import { registry } from './services.ts';
 
 /** The toast once a map is added: hidden until the GM shares it (frame 2c). */
 export const mapAddedWords = (placeName: string) => `Map added (hidden): ${placeName.trim() || 'this place'}`;
+
+/** How long the place page waits for the pack's map to be tied before it offers "+ Map" (a hung fetch). */
+export const TIE_WAIT_MS = 20_000;
 
 /** Undo stops here when it can't read whether the map is shown: nothing is changed. */
 export const UNDO_UNREAD_WORDS = "Couldn't check the map. Nothing was undone. Try again.";
@@ -59,6 +63,8 @@ export function AddPlaceMap({
   campaignId,
   place,
   map,
+  packed,
+  fetchFailed = false,
   onChanged,
 }: {
   db: Db;
@@ -67,12 +73,18 @@ export function AddPlaceMap({
   place: Pick<Place, 'id' | 'name' | 'version'>;
   /** The map the pack names for this place, not added yet. */
   map: Pick<PackMap, 'title' | 'file'>;
+  /** The picture came with the pack (B14, p2p-27; its path there): "+ Map" adds it at once, with no file to pick. */
+  packed?: string;
+  /** The place's own tie of the pack's picture failed (its fetch): "or choose a file…" shows under the retry. */
+  fetchFailed?: boolean;
   /** The map was added or its adding undone: read the place's map again. */
   onChanged: () => void;
 }) {
   const show = useToast();
   const picker = useRef<HTMLInputElement>(null);
   const [sending, setSending] = useState(false);
+  // A tap on "+ Map from the pack" whose fetch failed: as the tie's failure, "or choose a file…" shows (2026-11-25).
+  const [failedHere, setFailedHere] = useState(false);
 
   const undo = async (assetId: string): Promise<void> => {
     const eventId = await latestChange(db, campaignId, setPlaceMap.name, user.id);
@@ -82,9 +94,21 @@ export function AddPlaceMap({
     if (outcome) show({ text: outcome.text, error: outcome.error, ...(outcome.retry ? { onUndo: () => void undo(assetId) } : {}) });
   };
 
-  async function pick(file: File | undefined) {
-    if (!file || sending) return;
+  // `file`: the one picked by hand, or (B14) the pack's own picture, fetched from where the pack keeps it.
+  async function pick(source: Blob | undefined | (() => Promise<Blob | null>)) {
+    if (!source || sending) return;
     setSending(true);
+    let file: Blob | null;
+    try {
+      file = typeof source === 'function' ? await source() : source;
+    } catch {
+      file = null;
+    }
+    if (!file) {
+      setSending(false);
+      setFailedHere(true);
+      return show({ text: PACK_PICTURE_UNREAD_WORDS, error: true });
+    }
     let image: Blob;
     try {
       image = await shrinkMap(file);
@@ -106,7 +130,15 @@ export function AddPlaceMap({
 
   return (
     <>
-      <MapWanted title={map.title} file={map.file} sending={sending} onAdd={() => picker.current?.click()} />
+      <MapWanted
+        title={map.title}
+        file={map.file}
+        sending={sending}
+        addLabel={packed ? '+ Map from the pack' : undefined}
+        packed={!!packed}
+        onAdd={() => (packed ? void pick(() => loadPackPicture(db, packed)) : picker.current?.click())}
+        onChoose={packed && (fetchFailed || failedHere) ? () => picker.current?.click() : undefined}
+      />
       <input
         ref={picker}
         type="file"
@@ -178,6 +210,52 @@ export function PlaceMapPart({
   const state = read?.placeKey === placeKey ? read.state : null;
   const assetId = state?.kind === 'added' ? state.assetId : null;
 
+  // B14 (p2p-27; Francis, 2026-11-24): the pack brought the map's picture, so the place has its map with no tap: tied
+  // once a mount (packMapTie.ts), hidden, with no toast. While it runs, the spot says "Fetching the pack's map…"; if it
+  // fails, throws or takes
+  // longer than TIE_WAIT_MS, the toast says so and the row's "+ Map" tries again (after that row's Undo, this mount
+  // doesn't tie it back). After an Undo of the tie (the toast's or the log's), the read says `undone` and nothing is tied
+  // on its own again: the row's "+ Map" offers the pack's picture, one tap (review, 2026-11-24).
+  // `tied`: the place this mount has tied (or tried to): until then a wanted map with the pack's picture is tied, and
+  // nothing is drawn. A second run at once (the effect run twice) shares the first (tiePackMap).
+  const [tied, setTied] = useState<{ placeKey: string; failed: string | null } | null>(null);
+  const tying = state?.kind === 'wanted' && !!state.packed && !state.undone && isGm(user, campaignId) && tied?.placeKey !== placeKey;
+  useEffect(() => {
+    if (!tying || state?.kind !== 'wanted' || !state.packed) return;
+    const { map, packed } = state;
+    let settled = false;
+    const settle = (failed: string | null) => {
+      if (settled) return;
+      settled = true;
+      setTied({ placeKey, failed });
+    };
+    // A hung fetch gives way to "+ Map" (the tie, if it ends later, still shows the map: its read lands then).
+    const timer = setTimeout(() => settle(PACK_PICTURE_UNREAD_WORDS), TIE_WAIT_MS);
+    void (async () => {
+      let failed: string | null = PACK_PICTURE_UNREAD_WORDS;
+      try {
+        const done = await tiePackMap(registry, db, user, campaignId, place, map.title, packed);
+        failed = done.ok ? null : done.message;
+        // Read again before the row could show: the map and the end of the run land together (no "+ Map" flash).
+        const next = done.ok ? await loadPlaceMap(db, campaignId, place, upTrail) : null;
+        if (next) setRead({ key: `${placeKey}:tied`, placeKey, state: next });
+      } catch {
+        // failed stays: "+ Map" tries again.
+      } finally {
+        clearTimeout(timer);
+        settle(failed);
+      }
+    })();
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once a mount for the place, when its read asks for it
+  }, [tying, placeKey]);
+  // A failed tie's toast, once the row is drawn to try again. (A new place's failure follows a render with none, so
+  // the same words for another place toast again: the message alone is the dependency.)
+  const tieFailed = tied?.placeKey === placeKey ? tied.failed : null;
+  useEffect(() => {
+    if (tieFailed) show({ text: tieFailed, error: true });
+  }, [tieFailed, show]);
+
   // The copy's eye and its file's link, once there is a copy.
   const [eye, setEye] = useState<{ key: string; assetId: string; shown: boolean | null } | null>(null);
   const [link, setLink] = useState<{ key: string; src: string | null } | null>(null);
@@ -206,7 +284,10 @@ export function PlaceMapPart({
   const [open, setOpen] = useState(false);
 
   if (!state || state.kind === 'none') return null;
-  if (state.kind === 'wanted') return <AddPlaceMap db={db} user={user} campaignId={campaignId} place={place} map={state.map} onChanged={again} />;
+  // While the pack's map is tied, its spot says so in one quiet line (B14 audit 2, Francis's words 2026-11-24).
+  if (state.kind === 'wanted' && tying)
+    return <MapWanted title={state.map.title} file={state.map.file} packed sending sendingWords="Fetching the pack's map…" onAdd={() => undefined} />;
+  if (state.kind === 'wanted') return <AddPlaceMap db={db} user={user} campaignId={campaignId} place={place} map={state.map} packed={state.packed} fetchFailed={!!tieFailed} onChanged={again} />;
 
   const linked = link && assetId && link.key.startsWith(`${assetId}:`) ? link : null;
   const source: MapSource = { src: linked?.src ?? null, alt: state.alt, failed: !!linked && !linked.src };

@@ -23,7 +23,7 @@ import { permissionCases, type CaseWorld, type Who } from '../../src/testing/per
 import { buildWorld, must, tearDownWorld, type World } from './world.ts';
 
 // Account-level changes (your own name) aren't campaign events.
-const UNLOGGED = new Set(['profile.rename', 'library.import', 'library.update', 'library.copyHomebrew', 'library.editEntry', 'roll.record', 'rule.skipped']);
+const UNLOGGED = new Set(['profile.rename', 'library.import', 'library.update', 'library.copyHomebrew', 'library.editEntry', 'roll.record', 'rule.skipped', 'library.addPicture']);
 
 let world: World;
 let cases: CaseWorld;
