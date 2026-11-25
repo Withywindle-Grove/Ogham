@@ -79,6 +79,14 @@ if (typeof document !== 'undefined') {
     },
     true,
   );
+  // A key pressed after it: the keyboard is what's in use now, so the button with focus opens what comes next.
+  document.addEventListener(
+    'keydown',
+    () => {
+      lastTapped = null;
+    },
+    true,
+  );
 }
 
 /** The element a new sheet opens beside: the button just tapped, else the one with focus (a keyboard), else none. */
@@ -89,13 +97,47 @@ function anchorNow(): Element | null {
 }
 
 /**
- * The button that is opening a pop-up, for focus to go back to when it closes: the one with focus (a keyboard, or a tap
- * where a tap focuses), else the one just tapped (Safari doesn't focus a tapped button), else none.
+ * The button that is opening a pop-up, for focus to go back to when it closes: the one just tapped, unless a key was
+ * pressed since (Safari doesn't focus a tapped button, so focus may still sit on the last one given it back), else the
+ * one with focus (a keyboard), else none.
  */
 export function openerNow(): HTMLElement | null {
   const focused = typeof document !== 'undefined' ? document.activeElement : null;
-  const candidate = focused && focused !== document.body ? focused : lastTapped?.isConnected ? lastTapped : null;
+  const candidate = lastTapped?.isConnected ? lastTapped : focused && focused !== document.body ? focused : null;
   return candidate instanceof HTMLElement ? candidate : null;
+}
+
+// Each open pop-up's openers, nearest first, so a pop-up opened from a button inside another (or a step that replaced
+// it) can go back past that button once it has gone with its pop-up.
+const openersOf = new WeakMap<Element, readonly HTMLElement[]>();
+
+/** The opener now, then, when it sits inside an open pop-up, that pop-up's own openers. */
+function openersNow(): readonly HTMLElement[] {
+  const first = openerNow();
+  if (!first) return [];
+  const host = first.closest('[role="dialog"]');
+  return [first, ...((host && openersOf.get(host)) || [])];
+}
+
+/** Whether focus has nowhere on purpose: on the page's body, or on something no longer in it (the pop-up just gone). */
+function focusFell(): boolean {
+  const at = document.activeElement;
+  return at === null || at === document.body || !at.isConnected;
+}
+
+/**
+ * Focus back to the opener as a pop-up closes (fix-dialog-focus-on-close, Home Two's audits 24–25 Nov), for every
+ * pop-up: only when focus fell to the page (✕, Escape, a tap outside), never when the closing action moved it on purpose
+ * (after lighting, the Light fact; a step that opened as another pop-up, its own first control). The first opener still
+ * on the page that takes focus gets it; one gone or disabled is passed over, and with none focus is left where it fell.
+ */
+export function giveFocusBack(openers: readonly HTMLElement[]): void {
+  if (typeof document === 'undefined' || !focusFell()) return;
+  for (const el of openers) {
+    if (!el.isConnected || el.hasAttribute('disabled') || el.closest('[inert]')) continue;
+    el.focus({ preventScroll: true });
+    if (document.activeElement === el) return;
+  }
 }
 
 /**
@@ -309,6 +351,8 @@ export function Dialog({
   const bookCard = bookPopUp ? ' dialog--book' : '';
   // The sheet's anchor, read once as it opens (before focus moves into it).
   const [anchor] = useState(() => (anchored ? anchorNow() : null));
+  // Who opened it, read once as it opens (before focus moves into it), for focus to go back to as it closes.
+  const [openers] = useState(() => (preview || typeof document === 'undefined' ? [] : openersNow()));
   // `top` and `left` where it sits; `capTop` where it opened, which caps its height (`--sheet-top`, T2) and never
   // changes while it's open, so a move can't change its height and set off another move.
   const [place, setPlace] = useState<{ top: number; left: number; capTop: number } | null>(null);
@@ -371,6 +415,8 @@ export function Dialog({
 
   useEffect(() => {
     if (preview) return;
+    const el = card.current;
+    if (el) openersOf.set(el, openers);
     // The first control, past the ✕ (tf-8): Close sits first, at the top right, but focus starts on the content.
     const first = [...(card.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])].find((el) => !el.hasAttribute('data-close')) ?? null;
     (first && !opensKeyboard(first) ? first : card.current)?.focus({ preventScroll: true });
@@ -394,8 +440,13 @@ export function Dialog({
       }
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [preview]);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      // Once the close's own work is done (its effects, a step's next pop-up taking focus): back to the opener if focus
+      // fell to the page.
+      queueMicrotask(() => giveFocusBack(openers));
+    };
+  }, [preview, openers]);
 
   // The "preview" variant (the component gallery): the open card in place, without the dimmed page or the focus trap.
   if (preview) {

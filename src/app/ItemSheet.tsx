@@ -3,7 +3,7 @@
 // rows (a chevron where one asks more), Drop last and set apart (no confirm, Undo in the toast), and the star beside ✕
 // that pins the item to the top. Give to…, Put in… and Drop on a stack open the MoveSheet (ItemMoves.tsx). After an
 // action the item closes and the screen goes back to the top of the Pack (ruled 2026-10-24).
-import { useId, useRef, useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
@@ -38,7 +38,7 @@ import { checkEquip, EquipWarningCard, type EquipCheck } from './EquipWarning.ts
 import { countWords, shownName } from '../modules/inventory/packView.ts';
 import { cameBackText, latestChange, undoChange, type CameBack } from '../core/undo.ts';
 import { MoveSheet, type Placement } from './ItemMoves.tsx';
-import { Dialog, openerNow, SheetScope } from '../ui/Dialog.tsx';
+import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { Breakdown, ListRow, PinStar, RowList, WarningSign } from '../ui/parts.tsx';
 import { RollPrompt } from '../ui/RollPrompt.tsx';
 import { RollCard } from '../ui/dice.tsx';
@@ -216,18 +216,9 @@ export function ItemSheet(props: ItemSheetProps) {
   const gmTruth = isGm(user, campaign.id);
   const gmHere = gmTruth && view === null;
   const [revealing, setRevealing] = useState(false);
-  // Reveal… itself, for focus to go back to when the GM's sheet closes (as after the other pop-ups, audit fix 3a).
-  const revealOpener = useRef<HTMLElement | null>(null);
-  const openReveal = () => {
-    revealOpener.current = openerNow();
-    setRevealing(true);
-  };
-  const closeReveal = () => {
-    setRevealing(false);
-    const el = revealOpener.current;
-    revealOpener.current = null;
-    if (el?.isConnected) el.focus({ preventScroll: true });
-  };
+  // Focus goes back to Reveal… as the GM's sheet closes (audit fix 3a): the Dialog's own rule now.
+  const openReveal = () => setRevealing(true);
+  const closeReveal = () => setRevealing(false);
   const charged = chargesOf(line, chargeRules, rechargeDefault);
   const chargeText = !charged ? '' : chargeWords(line, gmHere ? secret : null);
   const waiting = line.approval === 'pending';

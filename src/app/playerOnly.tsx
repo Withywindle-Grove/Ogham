@@ -6,7 +6,7 @@
 // 2026-11-24). Nothing is logged: nothing happened. On the GM's own character none opens. M3f2's words, word for word,
 // but one: taking back a sheet change names Waiting for approval, where it lands. The ninth ("New" on a find) has no
 // button and so no pop-up. Got it, ✕ or Escape puts focus back on the button that opened it (audit fix 3a).
-import { useRef, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { BlockedSheet } from '../ui/BlockedSheet.tsx';
 import { usePlayerView, type WaitingTarget } from './playerView.ts';
 
@@ -45,14 +45,8 @@ export function playerOnlyWords(act: PlayerOnlyAct, player: string, character: s
 export function usePlayerOnly(): { sheet: ReactNode; blocked: (act: PlayerOnlyAct, at?: WaitingTarget) => boolean } {
   const view = usePlayerView();
   const [open, setOpen] = useState<{ act: PlayerOnlyAct; at: WaitingTarget } | null>(null);
-  // The button that opened it, for focus to go back to when it closes (audit fix 3a).
-  const opener = useRef<HTMLElement | null>(null);
-  const close = () => {
-    setOpen(null);
-    const el = opener.current;
-    opener.current = null;
-    if (el?.isConnected) el.focus({ preventScroll: true });
-  };
+  // Focus goes back to the button that opened it as it closes (audit fix 3a): the Dialog's own rule now.
+  const close = () => setOpen(null);
   const words = open && view?.player ? playerOnlyWords(open.act, view.player, view.character) : null;
   const goTo = view?.goToWaiting;
   const sheet =
@@ -68,7 +62,6 @@ export function usePlayerOnly(): { sheet: ReactNode; blocked: (act: PlayerOnlyAc
               type="button"
               className="button-secondary"
               onClick={() => {
-                opener.current = null;
                 setOpen(null);
                 goTo(open.at);
               }}
@@ -83,8 +76,6 @@ export function usePlayerOnly(): { sheet: ReactNode; blocked: (act: PlayerOnlyAc
     sheet,
     blocked: (act, at = null) => {
       if (!view?.player) return false;
-      const focused = typeof document !== 'undefined' ? document.activeElement : null;
-      opener.current = focused instanceof HTMLElement && focused !== document.body ? focused : null;
       setOpen({ act, at });
       return true;
     },

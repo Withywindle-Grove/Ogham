@@ -61,7 +61,7 @@ async function openByKey(): Promise<HTMLElement> {
 
 describe('focus back to the opener on close', () => {
   // Purpose: the ✕ closes the pop-up and focus lands on the button that opened it, not the page's body.
-  it.fails('✕ gives focus back to the opener', async () => {
+  it('✕ gives focus back to the opener', async () => {
     render(<Page />);
     const opener = await openByKey();
     await act(async () => {
@@ -72,7 +72,7 @@ describe('focus back to the opener on close', () => {
   });
 
   // Purpose: Escape closes the pop-up and focus lands on the button that opened it.
-  it.fails('Escape gives focus back to the opener', async () => {
+  it('Escape gives focus back to the opener', async () => {
     render(<Page />);
     const opener = await openByKey();
     await act(async () => {
@@ -83,7 +83,7 @@ describe('focus back to the opener on close', () => {
   });
 
   // Purpose: a mouse's press on the dimmed page closes the pop-up and focus lands on the opener.
-  it.fails('a mouse tap outside gives focus back to the opener', async () => {
+  it('a mouse tap outside gives focus back to the opener', async () => {
     render(<Page />);
     const opener = await openByKey();
     await act(async () => {
@@ -94,7 +94,7 @@ describe('focus back to the opener on close', () => {
   });
 
   // Purpose: a finger's tap on the dimmed page (closing on its click) also gives focus back to the opener.
-  it.fails('a finger tap outside gives focus back to the opener', async () => {
+  it('a finger tap outside gives focus back to the opener', async () => {
     render(<Page />);
     const opener = await openByKey();
     const backdrop = document.querySelector('.dialog__backdrop')!;
@@ -108,7 +108,7 @@ describe('focus back to the opener on close', () => {
 
   // Purpose: on a tablet whose browser doesn't focus a tapped button (iPad Safari), the button just tapped is the
   // opener focus goes back to, even while focus sat somewhere else when it was tapped.
-  it.fails('a tapped opener that never took focus still gets it back', async () => {
+  it('a tapped opener that never took focus still gets it back', async () => {
     render(<Page />);
     const opener = screen.getByRole('button', { name: 'Open' });
     screen.getByRole('button', { name: 'Light fact' }).focus();
@@ -218,7 +218,7 @@ async function press(name: string) {
 describe('focus back through steps and pop-ups opened from pop-ups', () => {
   // Purpose: a pop-up that went a step on as another pop-up gives focus back to the page's opener on ✕, since the
   // button that opened the step went with the first pop-up.
-  it.fails('✕ on a later step goes back to the button that opened the first', async () => {
+  it('✕ on a later step goes back to the button that opened the first', async () => {
     render(<Steps />);
     const hoard = await press('Hoard');
     await press('Send…');
@@ -239,7 +239,7 @@ describe('focus back through steps and pop-ups opened from pop-ups', () => {
   });
 
   // Purpose: a pop-up opened from inside another gives focus back to its button in the first one on Escape.
-  it.fails('Escape on a pop-up opened from a pop-up goes back to its button there', async () => {
+  it('Escape on a pop-up opened from a pop-up goes back to its button there', async () => {
     render(<Steps />);
     await press('Hoard');
     const more = await press('More');

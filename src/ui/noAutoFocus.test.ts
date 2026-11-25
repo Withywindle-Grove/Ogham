@@ -23,9 +23,9 @@ function tagAt(source: string, at: number): string {
  */
 const FOCUS_CALLS: Record<string, number> = {
   '/src/app/campaignLog.tsx': 5,
-  // Back to ≡ when the phone's drawer closes (slice E): a button. And the GM's view's heading, the character's name
-  // (a span, tabindex -1), as the view opens from a door (audit fix 3b on #85): never a field.
-  '/src/app/TopRow.tsx': 2,
+  // The GM's view's heading, the character's name (a span, tabindex -1), as the view opens from a door (audit fix 3b
+  // on #85): never a field. (Back to ≡ as the drawer closes is the Dialog's own rule now.)
+  '/src/app/TopRow.tsx': 1,
   // Back to the phone's Log tab when the log closes (slice E): a button.
   '/src/app/PlayerScreen.tsx': 1,
   // Back to the GM's Log tab when the log closes (Design on #549): a button.
@@ -40,8 +40,6 @@ const FOCUS_CALLS: Record<string, number> = {
   // A stat block in full (December 5c, #642 review): its heading on open, the View button that opened it on Back; and
   // (S8b) the heading again when the waiting card's link opens the pop-up on the creature. Never a field.
   '/src/app/EncounterWaiting.tsx': 3,
-  // Back to Reveal… as the GM's own sheet for the item closes (Francis's A on #85, 24 Nov): a button, never a field.
-  '/src/app/ItemSheet.tsx': 1,
   '/src/app/NewCampaign.tsx': 1,
   '/src/app/RulesBrowser.tsx': 1,
   '/src/app/RulesForCampaign.tsx': 1,
@@ -49,24 +47,23 @@ const FOCUS_CALLS: Record<string, number> = {
   // between the strip and the page; never a field the GM hadn't tapped. And (S8a, #857's review) a row of "Waiting for
   // you" opened by a tap: its card's first button or link, or its heading, never a text field.
   '/src/app/sceneWaiting.tsx': 2,
-  '/src/ui/Dialog.tsx': 3,
-  // ⋯ back to its button as its sheet closes (plan m5b-players-screens-standard A1): a button. And (audit fix 3c on
-  // #85) the panel's first item when ⋯ is opened from the keyboard: a menu button or link, never a field.
-  '/src/ui/MoreMenu.tsx': 3,
-  // The GM's player-only pop-up (audit fix 3a on #85): back to the button that opened it as it closes, a button.
-  '/src/app/playerOnly.tsx': 1,
+  // Its first control or the card on open (never a field), Tab's two wraps round its controls, and (fix-dialog-focus-on-
+  // close) back to the control that opened it on every close where focus fell to the page: a control the person had
+  // tapped or tabbed to, so never a field the cursor wasn't in already.
+  '/src/ui/Dialog.tsx': 4,
+  // ⋯ back to its button as its small panel closes on Escape: a button (the Sheet's is the Dialog's own rule now). And
+  // (audit fix 3c on #85) the panel's first item when ⋯ is opened from the keyboard: a menu button or link, never a field.
+  '/src/ui/MoreMenu.tsx': 2,
   // Help me choose (final drafts A6): the ✕ on open, the button on close; both buttons.
   '/src/ui/parts.tsx': 1,
-  // Back to the burden's tier as the Burden pop-up closes (tfb-4, row C7): a button.
-  '/src/app/LoadSummary.tsx': 1,
   // The Light pop-up's pick step (P10 audit 2–3): the first light's button as the pick opens, and Light again on Back;
   // both buttons.
   '/src/app/LightSection.tsx': 2,
   // Back to the Scene's Light fact once a light is lit (P10 audit 1): the fact, a button, never a field.
   '/src/app/SceneTime.tsx': 1,
-  // Back to the hoard's piece as its sheet closes (B15, impeccable audit 1): the piece's words, a button; and after a
-  // send that leaves things (Francis picked A, 24 Nov), the hoard's first row not sent, a button. Never a field.
-  '/src/app/HoardSheet.tsx': 2,
+  // After a send that leaves things (Francis picked A, 24 Nov), the hoard's first row not sent, a button, never a field.
+  // (Back to the hoard's piece as its sheet closes is the Dialog's own rule now.)
+  '/src/app/HoardSheet.tsx': 1,
   // After "Got it" folds a call (P7, impeccable audit finding 1): the next card's "Got it", else the folded row; both
   // buttons, never a field.
   '/src/app/CallCard.tsx': 1,
