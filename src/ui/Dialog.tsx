@@ -201,6 +201,7 @@ export function Dialog({
   wide = false,
   meta,
   onBack,
+  onEscape,
   drawer = false,
   side = false,
   table = false,
@@ -230,6 +231,11 @@ export function Dialog({
    * another sheet (Roll for a name's tables, R3-1); without it only the ✕.
    */
   onBack?: () => void;
+  /**
+   * What Escape does instead of closing: a step inside the pop-up goes back that step, as its Back does (the Light
+   * pop-up's "Which light?", the audit of #86). Without it Escape closes, as ✕ does.
+   */
+  onEscape?: () => void;
   /**
    * Variant "Drawer" (the phone's navigation, final drafts A11, slice E): the whole height at the left, over the dimmed
    * page; the title and ✕ at its top. A tap outside, ✕ or Escape closes it, as every pop-up does.
@@ -354,8 +360,10 @@ export function Dialog({
   }, [anchored, anchor]);
   // The latest onClose, so a re-render doesn't run the opening effect again.
   const close = useRef(onClose);
+  const escape = useRef(onEscape);
   useEffect(() => {
     close.current = onClose;
+    escape.current = onEscape;
   });
   // Whether the tap now under way began on the dimmed page (fix-tap-through).
   const downOutside = useRef(false);
@@ -370,7 +378,7 @@ export function Dialog({
       // A pop-up opened from inside another (Where now? from the location view's sheet) takes the keys: Escape closes
       // the top one only, and Tab stays in it.
       if (!onTop(card.current)) return;
-      if (event.key === 'Escape') close.current();
+      if (event.key === 'Escape') (escape.current ?? close.current)();
       else if (event.key === 'Tab' && card.current) {
         const stops = [...card.current.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => !el.hasAttribute('disabled'));
         if (stops.length === 0) return;

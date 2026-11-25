@@ -25,6 +25,7 @@
 //               `proposal` a proposed way (1 of 3), `proposal-plain` one with no obstacle (2 of 3), `players` Where to?
 //               with your proposal, `players-other` with another's, `queue` the proposals' queue worked by hand
 //   ?placePage=spots|spot|hand|none  the GM's place page (dec-7 piece 5b): see the block that builds it, below
+//   &lights=several    two reed lamps beside Wren's rushlights (the pick "Which light?")
 //   ?placeCard=1 the players' place card (P4): the Location's card and the Area's in the page's two columns; `bare` the
 //               Area never shown, `messy` long names and 999; `gm` the GM's Knowledge sheet with its eyes
 //   ?knowledge=1 a place's Knowledge sheet open (dec-7 piece 6a), wired to no screen: `one` a lone section (open at
@@ -491,6 +492,19 @@ world.tables.library_entries.push({
   data: { id: 'rushlight', name: 'Rushlight', duration: 6, unit: 'turn', radius: '30 ft', warnAt: 1, consumed: true },
 });
 line('line-rushlights', wren, 'Rushlights', { category: 'light', qty: 4, stack: 10, item_data: { lightTypeId: 'rushlight' } });
+// &lights=several (PL8's Light button, the local review): two reed lamps too, so the Light pop-up's Light opens
+// "Which light?".
+if (new URLSearchParams(window.location.search).get('lights') === 'several') {
+  world.tables.library_entries.push({
+    id: 'entry-reed-lamp',
+    pack_id: 'pack-river',
+    kind: 'lightType',
+    pack_entry_id: 'reed-lamp',
+    name: 'Reed lamp',
+    data: { id: 'reed-lamp', name: 'Reed lamp', duration: 4, unit: 'turn', radius: '20 ft', warnAt: 1, consumed: true },
+  });
+  line('line-reed-lamps', wren, 'Reed lamps', { category: 'light', qty: 2, stack: 10, item_data: { lightTypeId: 'reed-lamp' } });
+}
 
 // The GM's reminders (M5 step 6, invented): an encounter check every 2 turns, the GM's own, and a public reminder
 // with a long name (messy data for the players' reference list).

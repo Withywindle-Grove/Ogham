@@ -170,7 +170,7 @@ describe("the light's ring (option B on #560)", () => {
 });
 
 describe('the light in At hand (page 35)', () => {
-  it('one light: the ring over "Light" lights it at once, toast "Lit Rushlight" with Undo, which puts it out again', async () => {
+  it('one light: the ring over "Light" lights it at once, toast "Lit a rushlight." with Undo, which puts it out again', async () => {
     const t = table();
     t.carry('line-rush', 'Rushlights', 4, { item_data: { lightTypeId: 'rushlight' } });
     show(t);
@@ -185,7 +185,7 @@ describe('the light in At hand (page 35)', () => {
     await user.click(ring);
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(await screen.findByText('Lit, 6 turns left')).toBeTruthy();
-    await user.click(within(await toastOf('Lit Rushlight')).getByRole('button', { name: 'Undo' }));
+    await user.click(within(await toastOf('Lit a rushlight.')).getByRole('button', { name: 'Undo' }));
     expect(await screen.findByRole('button', { name: 'Light Rushlight' })).toBeTruthy();
   });
 
