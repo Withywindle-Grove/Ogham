@@ -8,7 +8,18 @@ import './MoreMenu.css';
 
 // The ⋯ button and the small panel it opens. Closes on Escape, a tap outside, or choosing an action in it
 // (a setting you switch, like the theme or text size, leaves it open).
-export function MoreMenu({ label, startOpen = false, children }: { label: string; startOpen?: boolean; children: ReactNode }) {
+export function MoreMenu({
+  label,
+  startOpen = false,
+  children,
+  specimen = false,
+}: {
+  label: string;
+  startOpen?: boolean;
+  children: ReactNode;
+  /** A gallery example only: a tap or click outside leaves it open and goes where it lands. */
+  specimen?: boolean;
+}) {
   const [open, setOpen] = useState(startOpen);
   const panelId = useId();
   const root = useRef<HTMLDivElement>(null);
@@ -24,22 +35,48 @@ export function MoreMenu({ label, startOpen = false, children }: { label: string
 
   useEffect(() => {
     if (!open) return;
+    // A finger's or a pen's tap outside only closes it (06 rule 12, fix-more-menu-tap; as pop-ups, fix-tap-through): the
+    // press is remembered and the same tap's click closes it, stopped before it reaches what lies under the finger. A
+    // mouse closes it on the press, as before (its click goes where it lands). A press the browser cancels (a scroll) or
+    // a key press forgets the remembered one; a click with no press of its own (a key) is let through.
+    let downOutside = false;
     const onPointer = (event: PointerEvent) => {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
+      const outside = !root.current?.contains(event.target as Node);
+      const finger = event.pointerType === 'touch' || event.pointerType === 'pen';
+      downOutside = outside && finger;
+      if (outside && !finger) setOpen(false);
+    };
+    const onCancel = () => {
+      downOutside = false;
+    };
+    const onClick = (event: MouseEvent) => {
+      if (!downOutside) return;
+      downOutside = false;
+      event.preventDefault();
+      event.stopPropagation();
+      setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
+      downOutside = false;
       if (event.key === 'Escape') {
         setOpen(false);
         button.current?.focus();
       }
     };
-    document.addEventListener('pointerdown', onPointer);
     document.addEventListener('keydown', onKey);
+    // A gallery example (`specimen`) has no tap-outside handling: it stays shown open and the tap goes where it lands.
+    if (!specimen) {
+      document.addEventListener('pointerdown', onPointer);
+      document.addEventListener('pointercancel', onCancel);
+      document.addEventListener('click', onClick, true);
+    }
     return () => {
       document.removeEventListener('pointerdown', onPointer);
+      document.removeEventListener('pointercancel', onCancel);
+      document.removeEventListener('click', onClick, true);
       document.removeEventListener('keydown', onKey);
     };
-  }, [open]);
+  }, [open, specimen]);
 
   return (
     <div className="more-menu" ref={root}>
