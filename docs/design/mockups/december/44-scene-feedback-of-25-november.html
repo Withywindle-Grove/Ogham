@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>December: page 44, the Scene feedback of 25 November (proposals, not approved)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* This page's own rules. Type, the book format, the stacked button, the sheet's title, the pop-up, the tapped table and
+     the corners come from ../shared/book.css and are not restated here. */
+  /* (1) copied as they stand from page 24 (and through it pages 04, 12, 16, 18 and 23): the layout of the parts reused here */
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .rem { justify-content:center; } .rem .gap { display:none; }
+  .phone .rem .step .nm { display:none; }
+  .ibs { display:inline-flex; gap:var(--space-2); }
+  .btn.sq.ib { padding:6px; }
+  .dcap { display:inline-flex; align-items:center; gap:var(--space-1); font-size:16px; letter-spacing:.04em; margin-right:var(--space-2); vertical-align:bottom; }
+  .dcap svg { color:var(--muted); flex:none; }
+  .phone .dcap { font-size:14px; }
+  .phband { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2); align-items:center; margin-top:var(--space-1); }
+  .phibs { display:flex; gap:var(--space-2); margin-top:var(--space-2); }
+  .four { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-4); align-items:start; }
+  .mseq { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .mx { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; flex:none; }
+  .flab { display:block; font-size:14px; color:var(--muted); margin:var(--space-3) 0 var(--space-1); }
+  .wait .wb { grid-column:1 / -1; align-items:stretch; }
+  .bk td:first-child, .bk th:first-child { width:96px; }
+  .phone .pdest { grid-template-columns:auto minmax(0,1fr); }
+  .phone .pdest .modes { grid-column:1 / -1; justify-content:flex-start; }
+  .phone .pcard { margin-top:var(--space-3); padding:var(--space-3); }
+  .pdest .modes .btn.stk { width:auto; }
+  .pdest .ot b { overflow-wrap:break-word; word-break:normal; }
+  .dev .band .acts .btn.sq { width:52px; min-height:52px; }
+  .maptools .btn.sq { height:44px; padding:0; }
+  .kw22 { font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+  .inforce .own22 { display:block; margin-top:var(--space-1); }
+  .pk23 { display:flex; align-items:center; gap:var(--space-2); min-height:44px; border-bottom:1px dotted var(--rule); }
+  .due23 { display:flex; align-items:center; gap:var(--space-1); font-size:14px; font-weight:700; margin-top:var(--space-1); }
+  .shown23 p { margin:var(--space-2) 0 0; }
+  .phs23 { display:grid; grid-auto-flow:column; grid-auto-columns:343px; gap:var(--space-4) var(--space-6); align-items:start; }
+  .behind { position:relative; height:52px; overflow:hidden; box-sizing:border-box; }
+  .sheetup.flow { position:relative; max-height:none; }
+  /* (2) new on this page */
+  .fr44 { margin:0 0 var(--space-6); }
+  .fr44 > .cap { font-size:14px; }
+  /* the pop-up's head: its title (or an entry's name) and the X on one line */
+  .pu44 { display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:var(--space-2); align-items:center; margin-bottom:var(--space-2); }
+  .pu44 .ehead, .pu44 .sheet-title { overflow-wrap:break-word; min-width:0; }
+  .popb.w44 { width:440px; }
+  .popb.w72 { width:640px; max-width:720px; }
+  .phone .popb.w44, .popb.ph44 { width:auto; max-width:none; }
+  /* a pop-up centred over a dimmed screen */
+  .pc44 { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:var(--space-4); box-sizing:border-box; }
+  /* tiles centred: each keeps a quarter of the row (two across on a phone) */
+  .facts.c44 { display:flex; flex-wrap:wrap; justify-content:center; }
+  .facts.c44 .fact { flex:0 0 calc((100% - 3 * var(--space-3)) / 4); }
+  .phone .facts.c44 { gap:var(--space-2); margin-top:var(--space-2); }
+  .phone .facts.c44 .fact { flex:0 0 calc((100% - var(--space-2)) / 2); padding-left:var(--space-2); padding-right:var(--space-2); column-gap:var(--space-2); }
+  .phone .facts.c44 .fact .v { font-size:16px !important; white-space:nowrap; }
+  .phone .facts.c44 .fact .k { white-space:nowrap; letter-spacing:0 !important; }
+  .phone .facts.c44 .fact .fi svg { width:20px; height:20px; }
+  .phone .facts.c44 .fact:last-child .v { font-size:14px !important; }
+  .phone .two.pp44 { grid-template-columns:minmax(0,1fr); }
+  /* the encounter's one card: the icon and what was rolled on the first line, the rest across the card */
+  .wait.e44 .wi { grid-row:1; }
+  .wait.e44 > .all { grid-column:1 / -1; }
+  .shown44 { display:flex; align-items:center; gap:var(--space-2); font-size:14px; margin-top:var(--space-2); }
+  /* the detail row: a name the pack links, with its stat line or its rule's first words; the whole row is the tap */
+  .dt44 { display:grid; grid-template-columns:minmax(0,1fr) 20px; gap:var(--space-2); align-items:center; min-height:44px; padding:var(--space-2) var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); margin-top:var(--space-2); box-sizing:border-box; }
+  .dt44 .nm { font-weight:700; }
+  .dt44 .st { display:block; font-size:14px; line-height:1.4; overflow-wrap:break-word; }
+  .pr44 { margin-right:var(--space-2); }
+  .gm44 { display:block; font-size:14px; color:var(--muted); margin-top:var(--space-2); }
+  .dot44 { border:0; border-top:1px dotted var(--rule); margin:var(--space-2) 0; }
+  /* the fold "From the book, for the GM": its head is one row, with no eye */
+  .fb44 { display:grid; grid-template-columns:minmax(0,1fr) 44px; align-items:center; min-height:44px; border-top:1px dotted var(--rule); border-bottom:1px dotted var(--rule); margin-top:var(--space-3); }
+  .fb44 b { display:block; }
+  .fb44 small { display:block; font-size:14px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .fbb44 { padding:var(--space-3) 0; border-bottom:1px dotted var(--rule); }
+  /* a piece with an arrow before its eye */
+  .piece.ar44 { grid-template-columns:minmax(0,1fr) 44px 44px; gap:var(--space-2); }
+  .piece > .un44 { grid-column:1 / -1; margin-top:calc(-1 * var(--space-2)); }
+  .un44 .gm44:first-child { margin-top:0; }
+  .sent44 { display:flex; align-items:center; gap:var(--space-1); font-size:14px; margin-top:var(--space-1); }
+  /* the Depart list: the group's head with its fold square; the back row; the search field's label */
+  .gh44 { display:grid; grid-template-columns:minmax(0,1fr) auto 44px; gap:var(--space-2); align-items:center; min-height:52px; border-bottom:1.5px solid var(--ink); margin-top:var(--space-3); }
+  .gh44 .sclab { margin:0; }
+  .gh44 .btn.sq { width:44px; }
+  .pk23 .ar { margin-left:auto; color:var(--muted); font-size:14px; }
+  .back44 { display:inline-flex; align-items:center; gap:var(--space-1); min-height:44px; padding:0 var(--space-3) 0 var(--space-2); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); margin-bottom:var(--space-2); }
+  .ind44 { padding-left:var(--space-5); }
+  /* "Where to?": an Area's name over its rows */
+  .ah44 { margin:var(--space-3) 0 0; }
+  .ah44:first-child { margin-top:0; }
+  /* the Move on pop-up's foot: Back at the left, Move at the right */
+  .mf44 { display:flex; justify-content:space-between; gap:var(--space-2); margin-top:var(--space-4); }
+  /* the Edit piece form */
+  .fld44 { margin:0 0 var(--space-3); }
+  .fld44 .fl { display:block; font-weight:700; margin-bottom:var(--space-1); }
+  .fld44 .field.area { min-height:96px; }
+  .kind44 { display:grid; grid-template-columns:auto minmax(0,1fr) 20px; gap:var(--space-3); align-items:center; min-height:44px; padding:0 var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); }
+  /* the encounter tables page */
+  .chips44 { display:flex; flex-wrap:wrap; gap:var(--space-2); margin:var(--space-2) 0 var(--space-3); }
+  .tp44 { max-width:640px; }
+  .tt .tr { grid-template-columns:4.6em minmax(0,1fr) 24px; }
+  ol.q44 { font-size:16px; max-width:760px; padding-left:var(--space-5); color:var(--ink); }
+  ol.q44 li { margin-bottom:var(--space-2); }
+  .note.big { font-size:16px; color:var(--ink); max-width:760px; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="strip.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+{
+// ---- parts of pages 18, 23, 24, 30 and 33, as those pages wrote them ----
+const sep = svg(SY.right, 16);
+const go = svg(SY.right, 20);
+const NEW = '<b>A proposal, 2026-11-25. Not approved.</b>';
+const stk = (words, k, o = {}) => `<span class="btn stk${o.accent ? ' accent' : ''}" role="button"${o.label ? ` aria-label="${o.label}"` : ''}>${o.sym ? sym(k, 24) : gi(k, 24)}<span>${words}</span></span>`;
+const ruleBtn = (k, words) => `<span class="btn big sqb" role="button" aria-label="${words}">${gi(k, 34)}</span>`;
+const splash = ruleBtn('water-splash', 'Someone fell in');
+const moreBtn = `<span class="btn sq" role="button" aria-label="More">${I.more}</span>`;
+const stt = (label, html) => `<div><p class="lbl">${label}</p>${html}</div>`;
+const num22 = (name) => { const m = /^([0-9]+[.]) (.*)$/.exec(name); return m ? `<span class="keyno">${m[1]}</span>${m[2]}` : name; };
+const STEP5 = [['trumpet', 'Describe'], ['ball', 'Question'], ['sword-brandish', 'Act'], ['wizard', 'Test'], ['chest', 'Resolve']];
+const stripRow = remRow('Sequence of play', STEP5.map(([k, n]) => remStep(gi(k, 32), n, false)));
+const nextTurn = b('Next turn', { big: true, icon: 'clock' });
+const ENCI = { line: sym('encounter', 28), swords: gi('crossed-swords', 30), dice: gi('rolling-dices', 30) };
+const ib = (k, words) => `<span class="btn sq ib" role="button" aria-label="${words}">${ENCI[k] || gi(k, 30)}</span>`;
+const ibs3 = (enc = 'swords') => [ib('camping-tent', 'Make camp'), ib(enc, 'Encounter check'), ib('exit-door', 'Leave the dungeon')].join('');
+const dl = (date, rest = '') => `<span class="dcap">${gi('sprout', 18)}${date}</span>${rest}`;
+const DATE = dl('14 Reedmonth, spring', 'Two hours of light left.');
+const foldBtn = (open) => `<span class="btn sq fold23" role="button" aria-expanded="${open}" aria-label="${open ? 'Fold the top away' : 'Show the top'}">${svg(open ? '<path d="M5 12h14" ' + W + '/>' : '<path d="M12 5v14M5 12h14" ' + W + '/>', 24)}</span>`;
+const dueLine = `<span class="due23" role="status">${I.warn}No light</span>`;
+const F_W = fact('weather', 'Weather', 'Drizzle', 'Wet.');
+const F_L = fact('flame', 'Light', 'Ash’s torch', '4 turns left.');
+const F_R = fact('rest', 'Rest', 'In 5 turns', 'One turn in six.');
+const F_E = fact('encounter', 'Encounter check', 'On every move', `${dieMark(20, 16)}d20`).replace('class="v"', 'class="v" style="font-size:20px;white-space:nowrap"');
+const tiles = (list) => `<div class="facts c44">${list.join('')}</div>`;
+const T3 = tiles([F_L, F_R, F_E]);
+// the GM's band, in the order ruled 2026-11-25: the three icon buttons, Next turn, the fold mark, then the menu last
+const gmBand = (title, o = {}) => `${band({ over: 'Session 1. Saltwick Island.', title, ident: DATE + (o.under || ''), acts: [`<span class="ibs" role="group">${ibs3(o.enc)}</span>`, nextTurn, o.fold === undefined ? foldBtn(true) : o.fold === null ? '' : foldBtn(o.fold), moreBtn] })}<hr class="dbl">`;
+const gmTop = (title, o = {}) => `${gmBand(title, o)}${T3}${stripRow}`;
+const trail = (last, area = 'The Drowned Harbour') => `<div class="crumb"><a class="x">Saltwick Island</a>${sep}<a class="x">${area}</a>${sep}<b>${last}</b></div>`;
+const headOf = (name, acts) => `<div class="band"><div><h3 class="display">${num22(name)}</h3></div><div class="acts two">${acts}</div></div>`;
+const pair = `<div class="two">${b('Knowledge', { icon: 'book' })}${b('Rules', { icon: 'scales' })}</div>`;
+const SENT = `${dieMark(20, 16)}Roll d20 for an encounter each time the party rows to a new Location.`;
+const waitHead = '<div class="hrow" style="min-height:0;margin-bottom:var(--space-2)"><h2>Waiting for you</h2></div>';
+const waitNone = `<div class="pcard"><h2 style="margin-top:0">Waiting for you</h2><p class="meta" style="margin:0">Nothing waits.</p></div>`;
+const pX = `<span class="mx" role="button" aria-label="Close">${I.close}</span>`;
+const toast = (words, undo = true) => `<div class="toastb" role="status"><span class="tmsg">${words}</span>${undo ? `<span class="tu" role="button">${gi('anticlockwise-rotation', 20)}Undo</span>` : ''}<span class="tb" aria-hidden="true"></span></div>`;
+const frame = (id, cap, body, w = 1024) => `<div data-frame="${id}" class="fr44"><p class="cap" style="width:${w}px;max-width:${w}px">${cap}</p><div class="wall bit">${body}</div></div>`;
+const dframe = (id, html) => `<div data-frame="${id}" class="fr44">${html}</div>`;
+const shortPad = (role, inner, cap) => ipad(role, inner, cap).replace('class="dev ipad"', 'class="dev ipad short"');
+const overPop = (role, back, pop, h) => `<div class="dev ipad fixed" style="height:${h}px">${railOf(role)}<div class="main">${topRow(role)}<div class="page">${back}</div></div><div class="veil"></div><div class="pc44">${pop}</div></div>`;
+const phSheet = (behind, inner, o = {}) => `<div class="phone"><div class="behind">${behind}<div class="dim"></div></div><div class="sheetup flow" role="dialog"${o.label ? ` aria-label="${o.label}"` : ''}>${inner}</div></div>`;
+const phBehind = `${phoneBar('The Reed Marches')}`;
+const phGm = (inner, foot = '') => `<div class="phone">${phoneBar('The Reed Marches')}<div class="inner">${inner}</div>${foot}${tabBar('gm')}</div>`;
+const phPl = (inner) => `<div class="phone">${phoneBar('The Reed Marches')}<div class="inner">${inner}</div>${tabBar('player')}</div>`;
+
+// ---- the book's figures, invented (the labels are the gallery's own: Level, Armour, Hit points, Attacks, Speed, Morale) ----
+const fig = (pairs) => pairs.map(([k, v]) => `<span class="pr44"><span class="lbk">${k}</span>${v}</span>`).join(' ');
+const LURK1 = [['Level', '2'], ['Armour', '7'], ['Hit points', `${dieMark(8, 16)}2d8 (9)`], ['Attacks', `Bite (+1, ${dieMark(6, 16)}1d6) and drag under`], ['Speed', '60 swimming'], ['Morale', '8']];
+const EEL1 = [['Level', '1'], ['Armour', '8'], ['Hit points', `${dieMark(8, 16)}1d8 (4)`], ['Attacks', `Pinch (+0, ${dieMark(4, 16)}1d4)`], ['Speed', '20'], ['Morale', '6']];
+const FERRY1 = [['Level', '1'], ['Armour', '9'], ['Hit points', `${dieMark(6, 16)}1d6 (3)`], ['Attacks', `Boat hook (+0, ${dieMark(6, 16)}1d6)`], ['Speed', '40'], ['Morale', '7']];
+// the detail row: one part, in three homes (the encounter's card, a piece's own line, "From the book, for the GM")
+const dRow = (name, o = {}) => `<div class="dt44 all" role="button" aria-label="${name}: read it"><span><span class="nm">${name}${o.count ? ` ×${o.count}` : ''}</span>${o.as ? `<span class="meta">, ${o.as}</span>` : ''}<span class="st bk">${o.line}</span></span>${go}</div>`;
+const lurkRow = (n) => dRow('Bog lurker', { count: n, line: fig(LURK1) });
+const eelRow = dRow('Mud crab', { count: 4, line: fig(EEL1) });
+const harlRow = dRow('Old Harl', { as: 'a ferryman', line: fig(FERRY1) });
+const ferryRow = dRow('Ferryman', { count: 3, line: fig(FERRY1) });
+const oilRow = dRow('Lamp oil', { count: 8, line: 'One flask fills a lantern once. Thrown and lit, it burns where it lands.' });
+const ringRow = dRow('Ring of the Drowned Bell', { line: 'Its wearer is steadier against harm. Cursed: it does not come off within sight of the sea.' });
+
+// ================= EN: the encounter as one card =================
+const encCard = (title, body, buttons) => `<div class="wait e44"><span class="wi">${sym('encounter', 28)}</span><span class="wt">${title}</span>${body}<span class="wb" data-stkgroup>${buttons.join('')}</span></div>`;
+const BTN_ROLL = stk('Enter roll…', 'rolling-dices', { accent: true });
+const BTN_DISMISS = stk('Dismiss', 'cancel');
+const BTN_REVEAL = stk('Reveal', 'eye', { sym: true, label: 'Reveal to players' });
+const BTN_MSG = stk('Message…', 'mail', { sym: true });
+const BTN_DONE = stk('Done', 'check-mark', { accent: true });
+const RES = 'Two bog lurkers rise from the weed and reach for the oars.';
+const encDue = encCard('Encounters in the harbour', `<span class="all">${SENT}</span>`, [BTN_ROLL, BTN_DISMISS]);
+const encRolled = encCard(RES, lurkRow(2), [BTN_REVEAL, BTN_MSG, BTN_DONE]);
+const encShown = encCard(RES, `${lurkRow(2)}<span class="shown44 all" role="status">${sym('eye', 20)}Players see this result.</span>`, [BTN_MSG, BTN_DONE]);
+const encNamed = encCard('Old Harl poles his ferry out of the mist, and asks who is paying.', harlRow, [BTN_REVEAL, BTN_MSG, BTN_DONE]);
+const iconSet = (k, label) => `<div><p class="lbl">${label}</p><span class="ibs" role="group">${ibs3(k)}</span></div>`;
+const en1 = ipad('gm', `${gmTop('1. The Jetty, turn 2')}<div class="four" style="margin-top:var(--space-4)">
+  ${stt('<b>A. The check is due</b> (after a move, or from the band’s button).', `<div class="pcard">${waitHead}${encDue}</div>`)}
+  ${stt('<b>B. After the roll:</b> the same card. What was rolled leads it.', `<div class="pcard">${waitHead}${encRolled}</div>`)}
+  ${stt('<b>C. After “Reveal”:</b> the line stands in the button’s place.', `<div class="pcard">${waitHead}${encShown}</div>`)}
+  ${stt('<b>D. A row that names a character.</b>', `<div class="pcard">${waitHead}${encNamed}</div>`)}
+  ${stt('<b>E. A row with no encounter</b> (“Nothing stirs”): no card; the toast says it.', `${waitNone}<div style="margin-top:var(--space-3)">${toast('Rolled 7: nothing stirs.')}</div>`)}
+  ${stt('<b>F. “Dismiss” tapped on A:</b> the card goes; the toast brings it back.', `${waitNone}<div style="margin-top:var(--space-3)">${toast('Encounter check dismissed.')}</div>`)}
+</div>
+<div class="pcard" style="margin-top:var(--space-4)"><p class="lbl" style="margin-bottom:var(--space-3)"><b>The band’s encounter button</b> (F3 b: “needs a better icon”). The three, at the band’s size:</p><div style="display:flex;gap:var(--space-6);flex-wrap:wrap">${iconSet('line', 'Today: thin crossed swords.')}${iconSet('swords', '1. The icon set’s crossed swords (drawn in the band above).')}${iconSet('dice', '2. The rolling dice of “Enter roll…”.')}</div></div>`,
+  `EN1 (F3 a, b; F4 a, b; F5 a, b; F6 a, b, c; F7 a; F9). ${NEW} <b>One encounter is one card in “Waiting for you”.</b> Today the check’s line and the card “An encounter waits” both show, and “Start” opens a third place. <b>A.</b> The check is due: the table’s name, the pack’s sentence, “Enter roll…” (the accent) and a new “Dismiss”, so the GM can close a check started by mistake (F3 b). <b>B.</b> After the roll the same card changes: what was rolled is its title (no check name, no “Turn 1”: F5 b); each creature the row names is a <b>detail row</b> (its name, how many, its stat line; the whole row is the tap) in place of the underlined link (F6 b); then “Reveal”, “Message…” and “Done”. Gone from the card: “Encounter tables ›” (F4 b), “Start” and “Dismiss” on a second card (F5 a, F6 c). <b>C.</b> After “Reveal”. <b>D.</b> A named character has the same row (“Old Harl, a ferryman”, the ferryman’s stat line). <b>E, F.</b> No card left behind. <b>The top:</b> “…” is last, after the fold mark (F3 a, ruled); three tiles stand centred (F7 a, ruled). <b>Mine, to check:</b> the button reads “Reveal” (it is read aloud as “Reveal to players”) so that three buttons fit one row; “Done” keeps the accent, as today; a row with no encounter closes at once; a wrong row is put right with the toast’s Undo; “Start” is gone until fights are built (⚑ 2); the icon set’s crossed swords are drawn in the band (⚑ 1): today’s thin pair reads as a close mark.`);
+
+const ENC = [['1–8', 'Nothing stirs.'], ['9–10', 'Gulls mob the boat. Anyone standing must sit or be knocked down.'], ['11–12', 'A seal follows the boat, curious, and will not be driven off.'], ['13–14', 'A bell rings twice under the water, somewhere near the wreck.'], ['15–16', 'Two bog lurkers rise from the weed and reach for the oars.'], ['17–18', 'Old Harl poles his ferry out of the mist, and asks who is paying.'], ['19', 'A drowned sailor drifts by, face down, a purse still at his belt.'], ['20', 'The Tidewife surfaces beside the boat and looks at each of the party in turn.']];
+const rollRow = `<p style="margin:0 0 var(--space-2);display:flex;align-items:center;gap:var(--space-2)">${dieMark(20, 24)}<b>Roll d20, then tap the row.</b></p>`;
+const encTable = `<div class="bk">${rollRow}<table class="tap"><tr><th>${dieMark(20, 16)}d20</th><th>Encounter</th></tr>${ENC.map(([n, w]) => `<tr role="button"><td>${n}</td><td>${w}</td></tr>`).join('')}</table></div>`;
+const rollPop = (cls = 'w72') => `<div class="popb ${cls}" role="dialog" aria-label="Encounters in the harbour"><div class="pu44"><span class="sheet-title">Encounters in the harbour</span>${pX}</div>${encTable}</div>`;
+const backEnc = `${gmTop('1. The Jetty, turn 2')}<div class="cols2"><div><div class="pcard">${trail('1. The Jetty')}${headOf('1. The Jetty', splash + b('Move on', { big: true, icon: 'travel' }))}${pair}</div></div><div class="stack"><div class="pcard">${waitHead}${encDue}</div></div></div>`;
+const en2 = frame('44-2', `EN2 (F3 c). ${NEW} <b>“Enter roll…” opens the table as a pop-up in the middle of the screen</b>, not inside the narrow card. The pop-up is the app’s Wide one (it fits its table, 720 px at most), since a row is often a whole sentence. Its title is the table’s own name; then the roll row and the table in the book’s tapped-table form, as page 24’s frame WY1b has it. A tap on a row is the answer: the pop-up closes and the card shows the result (frame EN1, B). The X closes it with nothing recorded; the card still waits. <b>Mine, to check:</b> a table taller than the screen (twenty rows of a sentence each) scrolls inside the pop-up, its head staying in place; a d100 table keeps “Go to number”, as the tables screen has; neither is drawn.`,
+  overPop('gm', backEnc, rollPop(), 760));
+
+const statPop = (o) => `<div class="popb ${o.cls || 'w44'}" role="dialog" aria-label="${o.name}"><div class="pu44"><span class="ehead">${o.name}</span>${pX}</div><div class="bk">${o.body}</div></div>`;
+const lurkBody = `<p class="meta" style="font-size:14px;margin:0 0 var(--space-2)">How many: 2</p><p>A grey shape under the duckweed. Drags its prey under and holds it there.</p><p class="dsc">Medium beast, animal wits</p><p class="ln">${fig(LURK1.slice(0, 3))}</p><p class="ln">${fig(LURK1.slice(3))}</p><hr class="dot44"><p class="ln">${fig([['Behaviour', 'Patient, territorial, never leaves the water'], ['Speech', 'None']])}</p><p><b>Ambush from the water:</b> A lurker lying still under weed is not seen unless someone searches the water.</p><p><b>Drag under:</b> A bitten character is held, and begins to drown.</p><p class="source">From your setting: Fen Rules, p. 31</p>`;
+const harlBody = `<p class="dsc">A ferryman, wary</p><p>Works the ferry at the jetty and knows who tied up this week. He will not cross after dark, and he is owed for the last three crossings.</p><p><b>Wants:</b> his fare, and no trouble with the wardens.</p><h4>Ferryman</h4><p class="ln">${fig(FERRY1.slice(0, 3))}</p><p class="ln">${fig(FERRY1.slice(3))}</p><p class="source">From your adventure: Saltwick Island, p. 13 and p. 14</p>`;
+const oilBody = `<p class="meta" style="font-size:14px;margin:0 0 var(--space-2)">How many: 8</p><p>A clay flask, stoppered with wax.</p><p><b>In a lantern:</b> one flask fills a lantern once.</p><p><b>Thrown:</b> lit and thrown, it burns where it lands.</p><p class="source">From your setting: Fen Rules, p. 12</p>`;
+const LONGN = 'The Old Ferrywarden of the Nine Drowned Tides';
+const en3 = frame('44-3', `EN3 (F5 c; F6 a; F4 d; F19). ${NEW} <b>What a detail row opens: one pop-up, the same for a creature, a named character and an item.</b> It is the stat pop-up Francis liked, with his two changes: no title line over it (“Encounter waiting: …” is gone) and the X on the line of the name. <b>A.</b> A creature: how many, its description, its figures in the pack’s groups, its abilities, its source. <b>B.</b> A named character: their own notes first, then the stat line of what they are (“Ferryman”), under its own sub-heading. <b>C.</b> An item: how many, then its rule. <b>D.</b> Messy: a very long name wraps under the X’s line; a character with no stat block in the packs says so. <b>Gone:</b> “‹ Back to the encounter” and the pop-up it opened (F6 a): the card behind already holds those facts, and the X closes. <b>Mine, to check:</b> a named character’s stat line needs the pack to link the character to a stat block (work for the pack tools); with no link, D’s line shows.`,
+  `${stt('<b>A.</b> A creature.', statPop({ name: 'Bog lurker', body: lurkBody }))}${stt('<b>B.</b> A named character.', statPop({ name: 'Old Harl', body: harlBody }))}${stt('<b>C.</b> An item.', statPop({ name: 'Lamp oil', body: oilBody }))}${stt('<b>D.</b> Messy: a long name, and no stat block in the packs.', statPop({ name: LONGN, body: `<p class="dsc">A warden, old</p><p>Keeps the customs shed and its ledgers.</p><p class="meta" style="font-size:14px">Not in your packs: a stat line for this character.</p><p class="source">From your adventure: Saltwick Island</p>` }))}`, 1880);
+
+const phTopGm = `<div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)"><h3 class="display" style="margin:0;font-size:20px">1. The Jetty, turn 2</h3><span style="display:inline-flex;gap:var(--space-2)">${foldBtn(false)}${moreBtn}</span></div><div class="phband" style="margin-top:var(--space-2)"><p class="ident" style="font-size:14px;margin:0">${dl('14 Reedmonth')}</p><span class="btn" role="button">${gi('hourglass', 20)}Next turn</span></div>`;
+const phWait = (card) => `<div class="pcard">${waitHead}${card}</div>`;
+const en4 = frame('44-4', `EN4 (F3 c; F4; F5; F6). ${NEW} <b>The same at 375 px.</b> <b>A.</b> The check is due; the top is folded, with “…” last. <b>B.</b> “Enter roll…”: the table as a sheet from the foot. <b>C.</b> The result on the same card; the three buttons do not fit one row at this width (a stacked button is never under 88 px), so “Done” takes the next row. <b>D.</b> A detail row tapped: the stat pop-up as a sheet, the X on the name’s line. <b>Mine, to check:</b> on a phone a pop-up is drawn as a sheet from the foot, as pages 33 and 42 draw it; each phone is cut after its card.`,
+  `<div class="phs23">${stt('<b>A.</b> The check is due.', phGm(`${phTopGm}${phWait(encDue)}`))}${stt('<b>B.</b> “Enter roll…”.', phSheet(phBehind, `<div class="pu44"><span class="sheet-title">Encounters in the harbour</span>${pX}</div>${encTable}`))}${stt('<b>C.</b> The result.', phGm(`${phTopGm}${phWait(encRolled)}`))}${stt('<b>D.</b> A detail row tapped.', phSheet(phBehind, `<div class="pu44"><span class="ehead">Bog lurker</span>${pX}</div><div class="bk">${lurkBody}</div>`))}</div>`, 1520);
+
+// ================= DT: details at hand =================
+const bookFold = (open, inner = '') => `<div class="fb44" role="button" aria-expanded="${open}"><span><b>From the book, for the GM</b>${open ? '' : '<small>A cog on her side on the bar. Three ferrymen sleep under the sailcloth…</small>'}</span><span class="mx">${svg(open ? '<path d="M6 15l6-6 6 6" ' + W + '/>' : '<path d="M6 9l6 6 6-6" ' + W + '/>', 20)}</span></div>${open ? `<div class="fbb44 bk">${inner}</div>` : ''}`;
+const BOOK = `<p>A cog on her side on the bar, decks awash. Three ferrymen sleep under the sailcloth by day and strip her by night. <b>Old Harl</b> comes for them at dusk.</p><p><b>Below.</b> The hold is flooded to the knee. Four mud crabs have the run of it and pinch at anything that wades.</p><p><b>Stern cabin.</b> A crate of eight flasks of lamp oil, dry, under the fallen beams.</p><div class="aside"><p style="margin-bottom:var(--space-1)"><b>RING OF THE DROWNED BELL</b></p><p>Cast from the bronze of a sunken bell. Its wearer is steadier against harm, and cannot take it off within sight of the sea.</p></div>`;
+const bookRows = `<h4>Stat lines</h4>${eelRow}${ferryRow}${harlRow}<h4>Items</h4>${oilRow}${ringRow}<p class="source">p. 14</p>`;
+const pieceRow = (html, shown, o = {}) => `<div class="piece${o.arrow ? ' ar44' : ''}"><div class="lead">${html}</div>${o.arrow ? `<span class="mx" role="button" aria-label="${o.arrow}">${go}</span>` : ''}${eyeBtn(shown)}${o.under ? `<div class="un44">${o.under}</div>` : ''}</div>`;
+const gmOnly = (row) => `<span class="gm44">Only you see this.</span>${row}`;
+const P_DESC = pieceRow(`A cog on her side on the bar, decks awash, her <b class="kw22">mast</b> showing at every tide. Someone has stretched a <b class="kw22">sailcloth</b> over the stern.`, true);
+const P_SAIL = pieceRow('<b>Sailcloth.</b> Three men sleep under it, a boat hook beside them.', false, { under: gmOnly(ferryRow) });
+const P_HOLD = pieceRow('<b>Hold.</b> Black water to the knee. Something moves in it.', false, { under: gmOnly(eelRow) });
+const pieceFoot = (n, of) => `<div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-2)">${stk('+ Piece', 'jigsaw-piece')}<span class="meta" style="flex:1;text-align:right">${n} of ${of} shown</span>${stk('Hide all', 'cancel').replace(gi('cancel', 24), sym('eyeshut', 24))}</div>`;
+const wreckHead = (accent = true) => `${trail('2. The Wreck')}${headOf('2. The Wreck', splash + b('Move on', { big: true, accent, icon: 'travel' }))}`;
+const dt1 = ipad('gm', `${gmBand('2. The Wreck, turn 3', { fold: false })}<div class="cols2"><div><div class="pcard">${wreckHead()}${bookFold(true, BOOK + bookRows)}${pair}${P_DESC}${P_SAIL}${P_HOLD}${pieceFoot(1, 3)}</div></div><div class="stack">${waitNone}${stt('<b>A tap on “Lamp oil ×8”:</b> the same pop-up as an encounter’s (frame EN3).', statPop({ name: 'Lamp oil', body: oilBody, cls: 'ph44' }))}${stt('<b>The fold at rest:</b> one row, and no eye.', `<div class="pcard">${bookFold(false)}</div>`)}</div></div>`,
+  `DT1 (F4 d; F17; F18; F19; F21). ${NEW} <b>Details at hand: a name the pack links is one tap from where the GM reads it.</b> The party is at “2. The Wreck”; the top is folded. <b>“From the book, for the GM”</b> stays whole (F18, ruled) and has no eye (F17, ruled: the crossed eye is gone; nothing here can be revealed). It now ends with two short groups, <b>“Stat lines”</b> and <b>“Items”</b>: one detail row for each creature, named character and item the place names. The row shows the stat line or the rule’s first words; a tap opens the pop-up of frame EN3. <b>On a piece:</b> the line “The stat line never shows (…)” becomes the same detail row under the words “Only you see this.” (two rows drawn: “Ferryman ×3”, “Mud crab ×4”). It has no eye: it is never shown. <b>Mine, to check:</b> the two group names (⚑ 9); both homes at once repeat a row (⚑ 9); the boxed item in the book’s text stays as the book has it, and its row under “Items” is the tap; the top is drawn folded only to give the card room.`);
+const dt2 = frame('44-6', `DT2 (F19; F21). ${NEW} <b>The same at 375 px.</b> <b>A.</b> The fold open: the book’s words, then the two groups; each row wraps its stat line. <b>B.</b> A piece with its detail row. <b>C.</b> “Old Harl” tapped: the pop-up as a sheet. <b>Mine, to check:</b> on a phone the open fold is long (about two screens here); it is folded again with one tap on its head.`,
+  `<div class="phs23">${stt('<b>A.</b> The fold open.', phGm(`<div class="crumb">${'<span>The Drowned Harbour</span>'}${sep}<b>2. The Wreck</b></div><h3 class="display" style="font-size:24px;margin:0">${num22('2. The Wreck')}</h3>${bookFold(true, BOOK + bookRows)}`))}${stt('<b>B.</b> A piece and its row.', phGm(`<h3 class="display" style="font-size:24px;margin:0">${num22('2. The Wreck')}</h3>${bookFold(false)}${pair}${P_DESC}${P_SAIL}`))}${stt('<b>C.</b> “Old Harl” tapped.', phSheet(phBehind, `<div class="pu44"><span class="ehead">Old Harl</span>${pX}</div><div class="bk">${harlBody}</div>`))}</div>`, 1140);
+
+// ================= TR: found treasure =================
+const P_BOX = pieceRow('<b>Strongbox.</b> 240 herons, two moon opals, four boat hooks and a hooded lantern, under a rotted sailcloth.', false, { arrow: 'Strongbox: send its things' });
+const P_RING = (sent) => pieceRow('<b>Bronze ring.</b> A plain band of old bronze, on a hook by the cabin door.', true, { arrow: 'Bronze ring: send it', under: `${sent ? `<span class="sent44">${sym('check', 16)}Sent to Wren.</span>` : ''}${gmOnly(ringRow)}` });
+const P_OIL = pieceRow('<b>Crate.</b> Eight flasks of lamp oil, dry.', true, { arrow: 'Lamp oil: send it', under: gmOnly(oilRow) });
+const sendHead = (over, title) => `<div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">${over}</span><span class="sheet-title">${title}</span></span>${pX}</div>`;
+const lrow = (k, words, o = {}) => `<div class="pk23" role="button">${o.sym ? sym(k, 24) : gi(k, 24)}<span style="flex:1">${words}</span>${go}</div>`;
+const ringSheet = `${sendHead('2. The Wreck', 'Bronze ring')}<div class="bk"><p>A plain band of old bronze, on a hook by the cabin door.</p></div>${lrow('open-palm', 'To a character')}${lrow('swap-bag', 'To the party stash')}${lrow('quill-ink', 'Edit the piece’s words')}`;
+const oilSheet = `${sendHead('2. The Wreck', 'Crate')}<div class="bk"><p>Eight flasks of lamp oil, dry.</p></div><div class="pk23" role="button"><span style="flex:1"><b>Lamp oil ×8</b></span>${go}</div><div style="display:flex;justify-content:flex-end;margin-top:var(--space-3)">${stk('Send all', 'open-palm', { accent: true })}</div>${lrow('quill-ink', 'Edit the piece’s words')}`;
+const tr1 = ipad('gm', `${gmBand('2. The Wreck, turn 3', { fold: false })}<div class="cols2"><div><div class="pcard">${wreckHead(false)}${bookFold(false)}${pair}${P_DESC}${P_BOX}${P_RING(true)}${P_OIL}${pieceFoot(3, 5)}</div><div style="margin-top:var(--space-3)">${toast('Bronze ring sent to Wren.')}</div></div><div class="stack">${stt('<b>A tap on “Bronze ring”</b> (one thing): where it goes, at once.', `<div class="popb ph44">${ringSheet}</div>`)}${stt('<b>A tap on “Crate”</b> (a count): a row a thing, as a hoard has.', `<div class="popb ph44">${oilSheet}</div>`)}</div></div>`,
+  `TR1 (F20 b, d; F21 c; F23). ${NEW} <b>Every found thing has the hoard’s arrow, and the hoard’s “Send”.</b> The hoard’s sheet and its “To a character” / “To the party stash” are built (page 30, frame HM2); today only a piece the pack writes as a hoard has the arrow. <b>Proposed:</b> any Treasure piece has it, also a single thing; a tap on the piece’s words opens the sheet, as a hoard’s words do, and the arrow says so. <b>One thing</b> (“Bronze ring”): the sheet shows the piece’s words and goes straight to where it is sent. <b>A count</b> (“Lamp oil ×8”): one row a thing and “Send all”, as a hoard. After a send the piece says where it went (“Sent to Wren.”) and the toast has Undo, as built. <b>The eye and the arrow are two acts:</b> the eye shows the piece’s words to the players; the arrow hands the thing over. <b>A magic item under a plain description (F23):</b> the party gets “Bronze ring”; its truth is the row under “Only you see this.”, and the GM tells it later from the item’s own card (“Reveal…”, page 33), unchanged. <b>Mine, to check:</b> the two sheets are drawn as cards (on a tablet they stand in the right-hand panel, as HM2); “Send all” is the sheet’s one accent, so “Move on” is drawn plain while a sheet is open; a thing the setting has no item for is sent as a one-off by its words, as the hoard does.`);
+const tr2 = frame('44-8', `TR2 (F20 b; F21 c). ${NEW} <b>The same at 375 px.</b> <b>A.</b> The pieces, each with its arrow and its eye, 8 px apart; what only the GM sees takes the card’s whole width under the words. <b>B.</b> The sheet for one thing. <b>C.</b> The sheet for a count. <b>Mine, to check:</b> the words and two 44 px targets share 343 px, so the words wrap to about 26 characters a line.`,
+  `<div class="phs23">${stt('<b>A.</b> The pieces.', phGm(`<h3 class="display" style="font-size:24px;margin:0">${num22('2. The Wreck')}</h3>${P_BOX}${P_RING(true)}${P_OIL}`))}${stt('<b>B.</b> One thing.', phSheet(phBehind, ringSheet))}${stt('<b>C.</b> A count.', phSheet(phBehind, oilSheet))}</div>`, 1140);
+
+// ================= DP: the Depart list =================
+const pkRow = (name, o = {}) => `<div class="pk23${o.ind ? ' ind44' : ''}" role="button"><span style="flex:1;min-width:0;overflow-wrap:break-word">${num22(name)}</span>${o.area ? `<span class="ar">${o.area}</span>` : ''}</div>`;
+const grp = (area, n, open, rows = []) => `<div class="gh44"><span class="sclab" data-sc>${area}</span><span class="meta">${n} Location${n === 1 ? '' : 's'}</span><span class="btn sq" role="button" aria-expanded="${open}" aria-label="${open ? 'Fold' : 'Unfold'} ${area}">${open ? I.minus : I.plus}</span></div>${open ? rows.map((r) => pkRow(r)).join('') : ''}`;
+const HARB = ['The Old Mooring', '0. The Anchorage', '1. The Jetty', '2. The Wreck', '3. The Breakwater', '4. The Customs Shed', '5. The Sea Cave'];
+const HARB12 = [...HARB, '6. The Sluice', '7. The Net Loft', '8. The Chain Tower', '9. The Salt Pans', '10. The Sea Gate', '11. The Outer Mole'];
+const searchField = (v) => `<span class="flab" style="margin-top:0">Search places by name or map number</span><span class="field${v ? '' : ' empty'}" role="textbox" aria-label="Search places by name or map number">${v || '&nbsp;'}</span>`;
+const otherRow = `<div style="margin-top:var(--space-3)">${b('Other… a place that isn’t listed')}</div>`;
+const whereHead = `<div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">Depart</span><span class="sheet-title">Where?</span></span>${pX}</div>`;
+const packRow = (name, n, open) => `<div class="gh44"><span><b>${name}</b></span><span class="meta">${n} places</span><span class="btn sq" role="button" aria-expanded="${open}" aria-label="${open ? 'Fold' : 'Unfold'} ${name}">${open ? I.minus : I.plus}</span></div>`;
+const dpA = `${whereHead}${searchField('')}<p class="sclab" data-sc>Recently visited</p>${pkRow('2. The Wreck', { area: 'The Drowned Harbour' })}${pkRow('0. The Landing', { area: 'The Shingle Beach' })}${grp('The Drowned Harbour', 7, true, HARB)}${grp('The Shingle Beach', 5, false)}<p class="sclab" data-sc style="margin-top:var(--space-4)">From your packs</p>${packRow('The Reed Marches', 212, false)}${packRow('Fenwick Hole', 4, false)}${otherRow}`;
+const dpB = `${whereHead}${searchField('1')}<p class="meta" style="margin:var(--space-2) 0 0">4 places.</p>${pkRow('1. The Jetty', { area: 'The Drowned Harbour' })}${pkRow('1. The Wrack Line', { area: 'The Shingle Beach' })}${pkRow('10. The Sea Gate', { area: 'The Drowned Harbour' })}${pkRow('11. The Outer Mole', { area: 'The Drowned Harbour' })}`;
+const dpC = `${whereHead}${searchField('')}${grp('The Drowned Harbour and the Wrecks of the Outer Bar', 13, true, HARB12)}`;
+const dpD = `${whereHead}<span class="back44" role="button">${svg('<path d="M15 6l-6 6 6 6" ' + W + '/>', 20)}Back</span><p class="sclab" data-sc style="margin-top:0">The Reed Marches</p><div class="gh44" style="margin-top:0"><span><b>Moss Landing</b> <span class="meta">(Area)</span></span><span class="meta">3 places</span><span class="btn sq" role="button" aria-expanded="true" aria-label="Fold Moss Landing">${I.minus}</span></div>${pkRow('The Ford', { ind: true })}${pkRow('1. The Drowned Jetty', { ind: true })}${pkRow('2. The Reeve’s Post', { ind: true })}<div class="gh44"><span><b>The Bog Road</b> <span class="meta">(Area)</span></span><span class="meta">4 places</span><span class="btn sq" role="button" aria-expanded="false" aria-label="Unfold The Bog Road">${I.plus}</span></div>`;
+const dpE = `${whereHead}${searchField('quay')}<p style="margin:var(--space-3) 0 var(--space-2)">No place matches “quay”.</p>${b('Other… use “quay” as a new place')}`;
+const dp3 = frame('44-9', `DP3 (F1 a, c; F2). ${NEW} <b>The Depart list, “Where?”, as one view.</b> Base: page 24’s frame DP1 and the built list. <b>A. As it opens.</b> New at the top: the search field and “Recently visited”, which the first picker has and this list did not (F2: no way back to them; now there is no second view to come back from). Then each Area as a <b>group that folds</b> (F1 c), with its count and the app’s own fold square, “−” and “+”. <b>The order (F1 a, ruled):</b> places with no number first, then by number: 0, 1, 2 … 9, 10, 11, never 1, 10, 11, 2. Then “From your packs” and “Other…”, as built. <b>B. A search for “1”:</b> each row names its Area at the right, so two places numbered 1 are told apart. <b>C. Messy:</b> a long Area name wraps; thirteen places stay in number order. <b>D. A pack opened</b> (from “From your packs”): its places carry their numbers, in the same order (F2), and <b>“Back”</b> returns to the list. <b>E. Nothing found.</b> <b>Mine, to check:</b> which group starts open (drawn: the Area last played open, the others folded; ⚑ 10); the tick on a picked row is as DP1 and is not redrawn; the pack’s view replaces the list inside the same pop-up; loading is DP1’s two skeleton rows, not redrawn.`,
+  `<div class="four" style="grid-template-columns:repeat(3,440px);gap:var(--space-5)">${stt('<b>A.</b> As it opens.', `<div class="popb w44">${dpA}</div>`)}${stt('<b>B.</b> A search for “1”.', `<div class="popb w44">${dpB}</div>${`<p class="lbl" style="margin-top:var(--space-4)"><b>E.</b> Nothing found.</p><div class="popb w44">${dpE}</div>`}${`<p class="lbl" style="margin-top:var(--space-4)"><b>D.</b> A pack opened, with “Back”.</p><div class="popb w44">${dpD}</div>`}`)}${stt('<b>C.</b> Messy: a long name, thirteen places.', `<div class="popb w44">${dpC}</div>`)}</div>`, 1420);
+const dp3b = frame('44-10', `DP3b (F1; F2). ${NEW} <b>The same at 375 px</b>, as a whole-screen sheet (as DP1b). <b>A.</b> As it opens. <b>B.</b> A pack opened, with “Back”. <b>Mine, to check:</b> “Recently visited” puts the Area under the name on a phone, since the two do not fit one line.`,
+  `<div class="phs23">${stt('<b>A.</b> As it opens.', `<div class="phone"><div class="inner">${dpA.split('<span class="ar">').join('<span class="ar" style="margin-left:0;flex-basis:100%">').split('class="pk23" role="button"><span style="flex:1;min-width:0;overflow-wrap:break-word">').join('class="pk23" role="button" style="flex-wrap:wrap;row-gap:0;padding:var(--space-1) 0"><span style="flex:1 0 100%;min-width:0;overflow-wrap:break-word">')}</div></div>`)}${stt('<b>B.</b> A pack opened.', `<div class="phone"><div class="inner">${dpD}</div></div>`)}</div>`, 760);
+
+// ================= WT: "Where to?" rows =================
+const MI = { Row: 'paddles', Swim: 'double-fish', Walk: 'leather-boot' };
+const wayBtn = ([w, t]) => `<span class="btn stk" role="button">${gi(MI[w], 24)}<span>${w}</span><small>${t}</small></span>`;
+const dest = (to, sub, modes) => `<div class="pdest"><span>${sym('travel', 24)}</span><span class="ot"><b>${num22(to)}</b>${sub ? `<small>${sub}</small>` : ''}</span><span class="modes" data-stkgroup>${modes.map(wayBtn).join('')}</span></div>`;
+const areaHead = (name) => `<p class="sclab ah44" data-sc>${name}</p>`;
+const R1 = [['Row', '1 turn']], R2 = [['Row', '1 turn'], ['Swim', '3 turns']];
+const gmWays = `${areaHead('The Drowned Harbour')}${dest('3. The Breakwater', '', R1)}${dest('4. The Customs Shed', 'Not yet shown: players see “4. Unexplored”.', R2)}${dest('10. The Sea Gate', 'Not yet shown: players see “10. Unexplored”.', R1)}${areaHead('The Shingle Beach')}${dest('0. The Landing', 'Not yet shown: players see “0. Unexplored”.', R1)}${opt('Somewhere else…', '', { icon: 'search', right: go })}`;
+const plWays = (known) => `${areaHead('The Drowned Harbour')}${dest('3. The Breakwater', '', R1)}${dest('4. Unexplored', '', R2)}${dest('10. Unexplored', '', R1)}${areaHead(known ? 'The Shingle Beach' : 'Elsewhere')}${dest(known ? '0. The Landing' : '0. Unexplored', '', R1)}`;
+const oneArea = `${dest('1. The Jetty', '', R2)}${dest('2. Unexplored', '', R1)}${dest('3. Unexplored', '', R1)}`;
+const moHead = `<div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">Move on</span><span class="sheet-title">From 5. The Sea Cave, where to?</span></span>${pX}</div>`;
+const wt1 = ipad('gm', `${gmBand('5. The Sea Cave, turn 9', { fold: false })}<div class="four" style="margin-top:var(--space-4)">
+  ${stt('<b>A. The GM’s “Move on”</b>, at a place whose ways lead into two Areas.', `<div class="pcard">${moHead}${gmWays}</div>`)}
+  ${stt('<b>B. The players’ “Where to?”</b> at the same place; the second Area is not known to them yet.', `<div class="pcard"><div class="hrow"><h2>Where to?</h2></div>${plWays(false)}</div><p class="lbl" style="margin-top:var(--space-4)"><b>C. One Area only</b> (the usual case): no Area name; the rows by number.</p><div class="pcard"><div class="hrow"><h2>Where to?</h2></div>${oneArea}</div>`)}
+</div>`,
+  `WT1 (F13 b; F22; F25; F1 a). ${NEW} <b>Every way shows its place’s map number, in number order; where two Areas mix, each Area’s name stands over its rows.</b> Base: page 24’s frames WY1d and PL1b. <b>A. The GM’s list:</b> “N. Name” on every row (F22), also for a place not shown yet; the line under it says what players see. Rows are grouped under their Area’s name (F25), the Area the party is in first; in each group, places with no number first, then by number (F1 a). <b>B. The players’ list:</b> a place they have not explored reads <b>“N. Unexplored”</b> (F13 b, his words); it replaces the row named by its way with “Not yet explored.” under it. An Area they do not know yet reads “Elsewhere” (⚑ 6). <b>C. One Area:</b> no heading. <b>Hidden data:</b> today a player’s device gets nothing about a place not explored; this sends its map number (⚑ 6). A way the GM hides is still absent. <b>Mine, to check:</b> group headings and not a line on each row (⚑ 8); a place with no number keeps today’s naming by its way; the players’ list has no accent, as approved.`);
+
+// ================= PS: the players' Scene =================
+const pBand = (open, under = '') => `${band({ over: 'Session 1. Saltwick Island.', title: 'The Drowned Harbour, turn 14', ident: DATE + under, acts: [foldBtn(open)] })}<hr class="dbl">`;
+const P_L = fact('flame', 'Light', 'Ash’s torch', '4 turns left.');
+const P_R = fact('rest', 'Rest', 'In 4 turns', 'One turn in six.');
+const P_E = fact('encounter', 'Encounter check', 'On every move', `${dieMark(6, 16)}1 in 6`).replace('class="v"', 'class="v" style="font-size:20px;white-space:nowrap"');
+const pTop = `${pBand(true)}${tiles([P_L, P_R, P_E])}${stripRow}`;
+const kwIf = (w, on) => (on ? `<b class="kw22">${w}</b>` : w);
+const shownP = `<div class="shown23"><p>Black piles and a slick deck, forty paces out over black water. Past the ${kwIf('mooring ring', true)}, a skiff rocks under the ${kwIf('ladder', true)}.</p><p><b>Mooring ring.</b> Fresh rope: someone tied up here this week.</p><p><b>Ladder.</b> Iron rungs down to the water, the lowest three green.</p></div>`;
+const pRule = ruleBtn('water-splash', 'Falling into the harbour: read the rule');
+const pPair = `<div class="two pp44">${b('What everyone knows', { icon: 'book' })}${b('Rules', { icon: 'scales' })}</div>`;
+const pCard = `<div class="pcard"><div class="crumb"><span>Saltwick Island</span>${sep}<b>The Drowned Harbour</b></div><div class="band"><div><h3 class="display">${num22('1. The Jetty')}</h3></div><div class="acts two">${pRule}</div></div>${pPair}${shownP}<div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div>${dest('2. The Wreck', '', R2)}${dest('3. Unexplored', '', R1)}${dest('4. Unexplored', '', [['Walk', '2 turns']])}</div>`;
+const pDo = `<div class="pcard"><div class="hrow"><h2>Activities</h2></div><div class="ideas">${b('Search', { icon: 'book' })}${b('Listen', { icon: 'book' })}${b('Force a door', { icon: 'book' })}</div></div>`;
+const KEY22 = [['1 The jetty', '1. The Jetty'], ['2 The wreck', '2. The Wreck'], ['3 The breakwater', '3. The Breakwater'], ['4 The customs shed', '4. The Customs Shed'], ['5 The sea cave', '5. The Sea Cave']];
+const mapNamed = (vb) => KEY22.reduce((s, [a, c]) => s.split('>' + a + '<').join('>' + c + '<'), mapPic(true, vb));
+const pMap = `<div class="pcard" aria-label="The map">${mapOpen(mapNamed('112 68 300 220').replace('<svg ', '<svg style="width:100%;height:100%" '), '', { style: 'height:290px', bare: true }).replace('class="mapopen', 'style="margin-top:0" class="mapopen')}${mapTools('', locate(true), 'The Drowned Harbour', true)}</div>`;
+const knownCard = `<div class="pcard"><div class="hrow"><h2>Places you know</h2></div>${spotP(num22('2. The Wreck'), 'A cog on her side on the bar.')}</div>`;
+const ps1 = ipad('player', `${pTop}<div class="cols2"><div class="stack">${pCard}${pDo}</div><div class="stack">${pMap}${knownCard}${partyOrder(true)}</div></div>`,
+  `PS1 (F11 a, b; F12 a, b; F13 b). ${NEW} <b>The players’ Scene, whole, with four changes.</b> Base: page 24’s frame PL1b (approved 2026-11-18). <b>1. “Rules” stands in the main column under the place’s name</b> (F12 b, his answer), beside “What everyone knows”, as the GM’s “Knowledge” and “Rules” stand; both left the right-hand card. <b>2. The tiles are centred</b> (F11 a): three here, since this setting gives no weather. <b>3. The top folds</b> (F11 b): the fold mark stands at the band’s right, “−” while open; frame PS2 shows it folded. <b>4. “Where to?”</b> reads “3. Unexplored” (F13 b; frame WT1). <b>The right-hand card</b> now lists only the places the group knows, under “Places you know”. <b>F12 a (“why is that place showing?”):</b> as designed, a Location shown to the group on an earlier visit stays listed here with its first shown line (page 18, PL1; ruled 2026-11-20). Whether place 2 was ever shown in his test is the bug worker’s question (F13 a). <b>Mine, to check:</b> “What everyone knows” moves with “Rules” (⚑ 5); the card’s name “Places you know”; with nothing shared and no rule, the pair’s row is left out.`);
+const pFold = `${pBand(false, dueLine)}<div class="cols2"><div><div class="pcard"><div class="crumb"><span>Saltwick Island</span>${sep}<b>The Drowned Harbour</b></div><div class="band"><div><h3 class="display">${num22('1. The Jetty')}</h3></div><div class="acts two">${pRule}</div></div>${pPair}</div></div><div></div></div>`;
+const gmFold = (o) => `${gmBand('1. The Jetty, turn 2', o)}`;
+const ps2 = shortPad('gm', `
+  <p class="lbl"><b>A. The players’ top, folded:</b> the band alone; the mark is “+”; a fact that is due keeps one small line.</p>${pFold}
+  <p class="lbl" style="margin-top:var(--space-6)"><b>B. The GM’s top with four, three and two tiles:</b> four fill the row; fewer stand centred at the same width.</p>${tiles([F_W, F_L, F_R, F_E])}<div style="height:var(--space-3)"></div>${T3}<div style="height:var(--space-3)"></div>${tiles([F_L, F_E])}
+  <p class="lbl" style="margin-top:var(--space-6)"><b>C. The GM’s top, folded:</b> nothing under the band but the page. “Encounter check, nothing due” is gone (F10).</p>${gmFold({ fold: false })}<div class="cols2"><div><div class="pcard">${trail('1. The Jetty')}${headOf('1. The Jetty', splash + b('Move on', { big: true, accent: true, icon: 'travel' }))}${pair}</div></div><div class="stack">${waitNone}</div></div>`,
+  `PS2 (F7 a; F9; F10; F11 a, b; F3 a). ${NEW} <b>The folds and the tiles.</b> Base: page 24’s frame TF1. <b>A.</b> The players’ top folds as the GM’s does (F11 b): the facts and the strip go; the band stays; a due fact is one small line with its warning sign. The fold is each device’s own and is remembered. A players’ band has no other button, so the mark stands alone. <b>B.</b> Tiles centred (F7 a, F11 a): each tile keeps a quarter of the row, so a tile is the same size on every Scene. <b>C.</b> The GM’s top folded shows nothing between the band and the page (F10). The two encounter rows are not drawn anywhere on this page (F9, ⚑ 4): “nothing due” is said by the toast, as today, and “Encounter tables” moves into the “…” menu. <b>Mine, to check:</b> the frame is drawn in the GM’s shell for B and C; A is a player’s screen.`);
+const phPTop = (open) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)"><h3 class="display" style="margin:0;font-size:20px">The Drowned Harbour, turn 14</h3>${foldBtn(open)}</div><p class="ident" style="font-size:14px;margin:var(--space-1) 0 0">${dl('14 Reedmonth', '2 hours of light.')}</p>${open ? `${tiles([P_L, P_R, P_E])}${stripRow}` : ''}`;
+const phPlace = `<div class="crumb" style="margin-top:var(--space-3)"><span>Saltwick Island</span>${sep}<b>The Drowned Harbour</b></div><div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)"><h3 class="display" style="font-size:24px;margin:0">${num22('1. The Jetty')}</h3>${pRule}</div>${pPair}${shownP}<div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div>${dest('2. The Wreck', '', R2)}${dest('3. Unexplored', '', R1)}`;
+const ps3 = frame('44-14', `PS3 (F11 a, b; F12 b; F13 b). ${NEW} <b>The players’ Scene at 375 px.</b> <b>A.</b> Unfolded: two tiles across, the third centred under them; “What everyone knows” and “Rules” under the place’s name, one over the other, since the two do not fit side by side at 375 px. <b>B.</b> Folded: the place and “Where to?” start about 230 px higher. <b>C.</b> “Where to?” with two Areas, the second not known yet. <b>Mine, to check:</b> each phone is cut after its rows.`,
+  `<div class="phs23">${stt('<b>A.</b> Unfolded.', phPl(`${phPTop(true)}${phPlace}`))}${stt('<b>B.</b> Folded.', phPl(`${phPTop(false)}${phPlace}`))}${stt('<b>C.</b> Two Areas.', phPl(`<div class="hrow"><h2>Where to?</h2></div>${plWays(false)}`))}</div>`, 1140);
+
+const prompt = (icon, body, btn) => `<div class="wait e44" style="grid-template-columns:auto minmax(0,1fr) auto;align-items:center"><span class="wi">${icon}</span><span>${body}</span>${btn}</div>`;
+const revealed = prompt(sym('encounter', 28), `<b style="display:block">An encounter</b>${RES}`, stk('Got it', 'check-mark'));
+const pTopFor5 = () => `${pBand(true)}${tiles([P_L, P_R, P_E])}${stripRow}`;
+const en5 = frame('44-19', `EN5 (F4 c). ${NEW} <b>Where a revealed result shows on the players’ Scene.</b> Today “Reveal to players” writes the result to the players’ log, and nothing shows on their Scene (its card went at the M5 gate, B17), though the GM’s card says “Players see this result.” <b>Proposed:</b> the result takes the players’ <b>prompt slot</b>, under the top (page 18, frame PL4b, where “Rest is due.” and a call to adventure stand): the encounter’s mark, “An encounter”, the row’s words, and “Got it”. Players get the words only: never the stat line, how many beyond what the words say, or the table. “Got it” puts the card away on that device; the log keeps the line. The GM’s Undo of the reveal takes the card back. With the party split, it goes to the group whose check it was. <b>A.</b> A tablet. <b>B.</b> At 375 px. <b>Mine, to check:</b> “An encounter” as the card’s heading; “Got it” is plain (no accent on a player’s Scene); the card also shows if the top is folded, since the slot is not part of the fold.`,
+  `${stt('<b>A.</b> On a tablet: the slot, under the top.', `<div class="dev ipad short">${railOf('player')}<div class="main">${topRow('player')}<div class="page">${pTopFor5()}<div style="margin-top:var(--space-4)">${revealed}</div><div class="cols2"><div><div class="pcard"><div class="crumb"><span>Saltwick Island</span>${sep}<b>The Drowned Harbour</b></div><div class="band"><div><h3 class="display">${num22('1. The Jetty')}</h3></div><div class="acts two">${pRule}</div></div>${pPair}</div></div><div></div></div></div></div></div>`)}${stt('<b>B.</b> At 375 px.', phPl(`${phPTop(false)}<div style="margin-top:var(--space-3)">${revealed}</div>${phPlace}`))}`, 1400);
+
+// ================= KN: Knowledge =================
+const kHead = (over) => `<div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">${over}</span><span class="sheet-title">Knowledge</span></span>${pX}</div>`;
+const kFacts = (rows) => rows.map(([k, v]) => `<p style="margin:0 0 var(--space-1)"><b>${k}.</b> ${v}</p>`).join('');
+const kSec = (title, first, shared) => `<div class="ksec"><div><h4>${svg(SY.right, 16)} ${title}</h4><p class="first">${first}</p>${shared ? `<div class="when">${shared}</div>` : ''}</div>${eyeBtn(!!shared)}</div>`;
+const AREA_K = `<h4 class="bsub" style="margin-top:var(--space-4)">The Drowned Harbour</h4>${kFacts([['Tides', 'Two a day; the bar dries at low water.'], ['Law', 'None since the customs men left.']])}${kSec('What everyone knows', 'The harbour silted in a single winter. The old men say the river changed its mind…', 'Shared with the players, turn 9.')}${kSec('The wreck’s cargo', 'The manifest lists her cargo plainly, and the list is honest as far as it goes…', '')}${kSec('What the Tidewife wants', 'The Tidewife wants the chest. She cannot leave the water to fetch it…', '')}`;
+const kFoot = (n, of) => `<p class="meta" style="margin:var(--space-2) 0 0;border-top:1px dotted var(--rule);padding-top:var(--space-2)">${n} of ${of} sections shared.</p><p class="meta" style="margin:var(--space-1) 0 0">From your adventure: Saltwick Island, p. 10.</p>`;
+const knA = `${kHead('0. The Anchorage')}<p class="meta" style="margin:0">Nothing written for this place alone.</p>${AREA_K}${kFoot(1, 3)}`;
+const knB = `${kHead('2. The Wreck')}${kFacts([['Sank', 'Nine winters ago, at night.'], ['Owned by', 'Nobody living.']])}${kSec('Who strips her', 'Three ferrymen work the wreck by night and sell what they lift at the customs shed…', '')}${AREA_K}${kFoot(1, 4)}`;
+const knC = `${kHead('Fenwick Hole')}<p style="margin:0">The pack gives no knowledge for this place, or for a place it is in.</p>`;
+const kn1 = frame('44-15', `KN1 (F8 a; F16; F26 d). ${NEW} <b>A place’s Knowledge also shows its Area’s knowledge, and every section can be shared.</b> Base: the built Knowledge sheet (a Wide pop-up; drawn here at 440 px). <b>A. A Location with nothing of its own</b> (his case, “Arrival”): one line says so, then the Area’s knowledge under the Area’s name: its facts, then each section folded under its heading, with its eye. <b>B. A Location with its own:</b> its own first, then the Area’s, the same way. <b>C. Neither.</b> <b>Sharing (F16):</b> the eye on a section shares it with the group, at once, with Undo; a shared section says when (“Shared with the players, turn 9.”); the foot counts them. The eyes are built today, on the Area’s own sheet; here they also work from any of its Locations. Players read a shared section under “What everyone knows”, as built. <b>D. At 375 px.</b> <b>Mine, to check:</b> the Area’s knowledge shows always, not only when the place has none (⚑ 3); the Region’s knowledge is not added (one more group would follow the same way); the bold facts have no eye, as built.`,
+  `${stt('<b>A.</b> Nothing of its own.', `<div class="popb w44">${knA}</div>`)}${stt('<b>B.</b> Its own, then its Area’s.', `<div class="popb w44">${knB}</div>`)}${stt('<b>C.</b> Neither.', `<div class="popb w44">${knC}</div>`)}${stt('<b>D.</b> At 375 px.', phSheet(phBehind, knA))}`, 1760);
+
+// ================= ET: the encounter tables' pages =================
+const chips = `<div class="chips44">${chip('Encounters in the harbour', true)}${chip('Encounters on the beach')}${chip('What the tide brings')}</div>`;
+const ttRow = ([n, w], on) => `<div class="tr${on ? ' on' : ''}" role="button"${on ? ' aria-pressed="true"' : ''}><span class="n">${n}</span><span>${w}</span><span>${on ? sym('check', 20) : ''}</span></div>`;
+const ttOf = (title, dieN, rows, on) => `<div class="tt"><div class="tbar">${title}</div><div class="th"><span>${dieMark(dieN, 16)}d${dieN}</span><span>Encounter</span><span></span></div>${rows.map((r, i) => ttRow(r, i === on)).join('')}</div>`;
+const etBody = (on) => `<div class="tp44"><div class="band"><div><div class="over">Rolled by hand</div><h3 class="display">Encounter tables</h3></div></div>${chips}<div class="bk">${rollRow}</div>${ttOf('Encounters in the harbour', 20, ENC, on)}</div>`;
+const TIDE = [['1', 'Driftwood, sound'], ['2–3', 'A net, torn, with floats'], ['4', 'A drowned sheep'], ['5', 'A sea chest, empty'], ['6', 'A bottle, sealed, with a paper in it and a name on the paper nobody here knows']];
+const et1 = frame('44-16', `ET1 (F8 b). ${NEW} <b>The pages opened from “Encounter tables” in the book’s table format</b>, every table, not only this one. Today they show large serif numbers, plain text and dotted rules. <b>Proposed:</b> the book’s tapped table, as creation and frame EN2 have it: the roll row; the table’s name on its bar; the die over its column; banded rows, 44 px high; a tap on a row is the answer; the picked row is washed and ticked, with a toast and Undo. The row’s other tables are chips over it, as built. <b>A.</b> A d20 table on a tablet, one row picked. <b>B.</b> A short d6 table with one long row, at 375 px. <b>Mine, to check:</b> the page keeps its back link and “Rolled by hand” (opened from a hit it reads the check’s name and “Hit”); the table is capped at 640 px, so a line stays near 65 characters; a table the pack prints with columns keeps its column chips, not drawn.`,
+  `${stt('<b>A.</b> A d20 table, one row picked.', `<div class="dev ipad short">${railOf('gm')}<div class="main"><div class="toprow"><span class="back">‹ Scene</span>${ico('mail', 'Messages')}${ico('book', 'Reference')}${ico('note', 'Log')}<span class="ico" role="button" aria-label="More">${I.more}</span></div><div class="page">${etBody(4)}<div style="max-width:640px;margin-top:var(--space-4)">${toast('Rolled by hand: 16, two bog lurkers rise from the weed.')}</div></div></div></div>`)}${stt('<b>B.</b> A short table at 375 px.', phGm(`<div class="over">Rolled by hand</div><h3 class="display" style="font-size:24px;margin:0 0 var(--space-2)">Encounter tables</h3><div class="bk"><p style="margin:0 0 var(--space-2);display:flex;align-items:center;gap:var(--space-2)">${dieMark(6, 24)}<b>Roll d6, then tap the row.</b></p></div>${ttOf('What the tide brings', 6, TIDE, -1)}`))}`, 1400);
+
+// ================= PU: the pop-ups' spacing =================
+const travelPop = (cls) => `<div class="popb ${cls}" role="dialog" aria-label="Row to 2. Unexplored"><div class="pu44"><span class="sheet-title">Row to 2. Unexplored</span>${pX}</div><p style="margin:0 0 var(--space-1)">1 turn.</p><p style="margin:0">Your GM moves the party. Say where you want to go.</p></div>`;
+const movePop = (cls) => `<div class="popb ${cls}" role="dialog" aria-label="Move on: Row to 1. The Jetty"><div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">Move on</span><span class="sheet-title">Row to 1. The Jetty</span></span>${pX}</div><dl class="sum"><dt>${sym('clock', 20)}Takes</dt><dd>1 turn.</dd><dt>${sym('encounter', 20)}Then</dt><dd>a roll on Encounters in the harbour.</dd></dl><div class="mf44">${b('Back')}${b('Move', { accent: true, icon: 'travel' })}</div></div>`;
+const moveLong = `<div class="popb w44" role="dialog"><div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">Move on</span><span class="sheet-title">Swim to 10. The Sea Gate of the Outer Mole and the Chain Tower</span></span>${pX}</div><dl class="sum"><dt>${sym('clock', 20)}Takes</dt><dd>999 turns.</dd><dt>${sym('encounter', 20)}Then</dt><dd>a roll on Encounters in the harbour and on the water beyond the bar.</dd></dl><div class="mf44">${b('Back')}${b('Move', { accent: true, icon: 'travel' })}</div></div>`;
+const backMove = `${gmTop('The Anchorage, turn 1')}<div class="cols2"><div><div class="pcard">${trail('0. The Anchorage')}${headOf('0. The Anchorage', splash + b('Move on', { big: true, icon: 'travel' }))}${pair}</div></div><div class="stack">${waitNone}</div></div>`;
+const pu1 = frame('44-17', `PU1 (F14; F15). ${NEW} <b>Two pop-ups, tightened.</b> <b>A. The GM’s “Move on” step</b> as the app’s standard pop-up, centred, as tall as its words. Today it is a full-height panel with the button in the middle and “Back” far below (page 24’s frame WY1a). The eyebrow, the title, the two lines, then one foot row: “Back” at the left, “Move” (the accent) at the right. <b>B. The players’ travel pop-up:</b> the title says the way and the place; two lines 4 px apart; no empty band. The words are the built ones. <b>C. Messy:</b> a long name wraps; 999 turns; a long table name. <b>D, E. At 375 px</b>, as sheets from the foot. <b>Mine, to check:</b> the players’ title gains the place (“Row to 2. Unexplored”; today it reads “Row”); “Back” returns to the list of ways, as today; inside each pop-up the gaps are 8 px between the head and the words and 24 px over the foot row.`,
+  `${stt('<b>A.</b> The GM’s “Move on”, centred.', overPop('gm', backMove, movePop('w44'), 560))}<div>${stt('<b>B.</b> The players’ travel pop-up.', travelPop('w44'))}<div style="height:var(--space-4)"></div>${stt('<b>C.</b> Messy.', moveLong)}</div><div class="phs23">${stt('<b>D.</b> “Move on” at 375 px.', phSheet(phBehind, movePop('ph44').replace('class="popb ph44"', 'style="display:contents"')))}${stt('<b>E.</b> The players’ at 375 px.', phSheet(phBehind, travelPop('ph44').replace('class="popb ph44"', 'style="display:contents"')))}</div>`, 1900);
+
+// ================= EP: the "Edit piece" form =================
+const fld = (label, value, o = {}) => `<div class="fld44"><span class="fl">${label}</span><span class="field${o.area ? ' area' : ''}" role="textbox" aria-label="${label}">${value}</span></div>`;
+const kindRow = (k) => `<div class="fld44"><span class="fl">Kind</span><div class="kind44" role="button" aria-label="Kind: ${k}. Change it">${gi('jigsaw-piece', 24)}<span>${k}</span>${go}</div></div>`;
+const epFoot = `<div class="mf44">${b('Remove this piece')}${b('Save', { accent: true })}</div>`;
+const epForm = (text, kind) => `<div class="pu44"><span class="sheet-title">Edit piece</span>${pX}</div>${fld('What players will see', text, { area: true })}${kindRow(kind)}${epFoot}`;
+const kindList = `<div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">Edit piece</span><span class="sheet-title">Kind</span></span>${pX}</div>${['Description', 'Exit', 'Someone here', 'Clue', 'Treasure', 'Hazard', 'Other'].map((k) => `<div class="pk23${k === 'Treasure' ? ' sel' : ''}" role="button" aria-pressed="${k === 'Treasure'}" style="${k === 'Treasure' ? 'font-weight:700' : ''}"><span style="width:24px;display:inline-flex">${k === 'Treasure' ? sym('check', 20) : ''}</span><span style="flex:1">${k}</span></div>`).join('')}`;
+const LONGT = 'A plain band of old bronze, on a hook by the cabin door, green where the sea air has reached it and bright on the inside, as if it had been worn every day until the day it was hung up here and left.';
+const ep1 = frame('44-18', `EP1 (F24). ${NEW} <b>The “Edit piece” form, to the standard pop-up.</b> Today: seven kind chips first, then the text, a rule, “Remove this piece”, “Cancel” and “Save”. <b>A. Proposed:</b> the words first (they are what the GM comes to change); the kind as one row that opens its list (B), since it is seldom changed; one foot row: “Remove this piece” at the left, “Save” (the accent) at the right. The X closes with nothing saved, so “Cancel” is gone. “Remove” takes the piece off the card with an Undo toast, as built. <b>B.</b> The kind’s list. <b>C. Messy:</b> a long text grows the box. <b>D. At 375 px.</b> <b>Where it lives (his “not clear how often I’d use it”):</b> drawn as today, opened by a tap on a piece’s words. The other choice moves it behind the piece’s arrow (“Edit the piece’s words”, as a hoard has, frame TR1) so that a stray tap on the words opens nothing (⚑ 7). <b>Mine, to check:</b> “+ Piece” uses the same form, titled “Add a piece”, with no “Remove”; not drawn.`,
+  `${stt('<b>A.</b> The form.', `<div class="popb w44">${epForm('A plain band of old bronze, on a hook by the cabin door.', 'Treasure')}</div>`)}${stt('<b>B.</b> “Kind” tapped.', `<div class="popb w44">${kindList}</div>`)}${stt('<b>C.</b> Messy: a long text.', `<div class="popb w44">${epForm(LONGT, 'Someone here')}</div>`)}${stt('<b>D.</b> At 375 px.', phSheet(phBehind, epForm('A plain band of old bronze, on a hook by the cabin door.', 'Treasure')))}`, 1800);
+
+mount(`
+  <h1>The Scene feedback of 25 November: the proposals</h1>
+  <p class="note big"><b>Proposals, not approved.</b> For Francis’s 27 notes on the Scene (<code>docs/intents/scene-feedback-2026-11-25.md</code>); the table of every note, its track and the questions for him is <code>docs/design/rulings/scene-feedback-2026-11-25.md</code>. Each caption names the notes it answers (F1 to F27) and marks what is the designer’s own as “Mine, to check”. Names, words, numbers and table rows are invented; the map is a stand-in.</p>
+  <p class="note big"><b>The <code>impeccable critique</code> has not run on this page yet.</b> The driver sends the page to the PC for it before Francis sees the page; its findings will stand here, numbered, for him to pick from.</p>
+  <h1>EN. An encounter is one card</h1>
+  ${dframe('44-1', en1)}
+  ${en2}
+  ${en3}
+  ${en4}
+  ${en5}
+  <h1>DT. Details at hand</h1>
+  ${dframe('44-5', dt1)}
+  ${dt2}
+  <h1>TR. Found treasure</h1>
+  ${dframe('44-7', tr1)}
+  ${tr2}
+  <h1>DP. The Depart list</h1>
+  ${dp3}
+  ${dp3b}
+  <h1>WT. “Where to?” rows</h1>
+  ${dframe('44-11', wt1)}
+  <h1>PS. The players’ Scene, the folds and the tiles</h1>
+  ${dframe('44-12', ps1)}
+  ${dframe('44-13', ps2)}
+  ${ps3}
+  <h1>KN. Knowledge</h1>
+  ${kn1}
+  <h1>ET. The encounter tables’ pages</h1>
+  ${et1}
+  <h1>PU. Two pop-ups, tightened</h1>
+  ${pu1}
+  <h1>EP. The “Edit piece” form</h1>
+  ${ep1}
+  <h1>Questions for Francis (⚑)</h1>
+  <ol class="q44">
+    <li><b>The band’s encounter button</b> (frame EN1): the icon set’s crossed swords, or the rolling dice? Drawn: the crossed swords.</li>
+    <li><b>“Start” on an encounter</b> (EN1): gone until fights are built, and “Done” closes the card? Drawn: gone.</li>
+    <li><b>The Area’s knowledge at a Location</b> (KN1): always, under the place’s own, or only when the place has none? Drawn: always.</li>
+    <li><b>The two encounter rows on the Scene</b> (PS2): both gone, with “Encounter tables” in the “…” menu? Drawn: gone.</li>
+    <li><b>The players’ “What everyone knows”</b> (PS1): under the place with “Rules”, or left in the right-hand card? Drawn: with “Rules”.</li>
+    <li><b>Hidden data</b> (WT1): a player’s device gets the map number of a place not explored yet, also when the map is not shown; an Area not known yet reads “Elsewhere”. Yes to both?</li>
+    <li><b>“Edit piece”</b> (EP1): stays on a tap of the piece’s words, or moves behind the piece’s arrow? Drawn: stays.</li>
+    <li><b>“Where to?” with two Areas</b> (WT1): the Area’s name over its rows, or a small line on each row? Drawn: over its rows.</li>
+    <li><b>Details at hand</b> (DT1): in “From the book, for the GM” and on the piece, or in the fold only? And the two group names, “Stat lines” and “Items”? Drawn: both homes.</li>
+    <li><b>The Depart list</b> (DP3): which group starts open? Drawn: the Area last played; the others folded.</li>
+    <li><b>A map without its key</b> (F13 c; not drawn): the pack can now give players a picture with the key’s names painted out. May the GM later show them the full map too, as a second step? The format does not allow that yet.</li>
+  </ol>
+  <h1>Self-review</h1>
+  <p class="note big"><b>The stylesheet.</b> The page links the one shared mockup stylesheet (<code>../shared/book.css</code>) and its type pass last, and restates none of their rules. Its own rules are in two groups in the page’s head: layout rules copied as they stand from page 24 for the parts reused here, and new ones for this page’s parts (the pop-up’s head with the X on the name’s line; the centred pop-up; the centred tiles; the encounter’s one card; the detail row; the fold’s head; a piece with an arrow; the Depart groups; the Area’s name over rows; the foot row; the form’s fields; the tables page). Every size and gap is a token from 06.</p>
+  <p class="note big"><b>Checked</b> (in a browser, both themes, with a script: 529 tappable parts a theme, the smallest 44 px; no two separate controls nearer than 8 px): no text under 14 px inside a frame; every tappable part at least 44 px in both directions, or a row of a list at least 44 px tall; 8 px between separate controls; no frame wider than its device; the 375 px frames have no sideways overflow. One accent a screen or a pop-up: “Enter roll…” or “Done” in “Waiting for you”; “Move on” on a place’s card when nothing waits; “Send all” in a hoard’s sheet; “Move” and “Save” in their pop-ups; none on a player’s frame. No disabled button on the page. Undo over confirm: “Dismiss”, “Done”, a send, a share and “Remove this piece” act at once with a toast. No distinction rests on colour alone: a shared section has its open eye and a line of words; a picked row has its tick; a folded top has “+”; a due fact has its warning sign. Messy data: a long name in a pop-up’s head (EN3, PU1), a long Area name and thirteen places (DP3), 999 turns (PU1), a long text (EP1), a long table row at 375 px (ET1), a character with no stat block (EN3).</p>
+  <p class="note big"><b>Not checked, or gaps.</b> The <code>impeccable critique</code> (see the top). Contrast was not measured again: the page uses only the tokens’ pairs, which the gallery tests. The built screens were read in the source and from Francis’s descriptions, not opened: only two of his screenshots (the Depart list) had arrived when the page was drawn. Not drawn: loading, offline and error states of any part here (the Depart list keeps DP1’s skeleton rows; a send that fails keeps the hoard’s built message); Larger text; a d100 table in the roll pop-up; an encounter row that names three or more creatures (each is one more detail row); the “…” menu with “Encounter tables” in it; “+ Piece”; the settlement (out of scope, F1 d); a map without its key (F13 c: a question for the pack tools). The phone’s pop-ups are drawn as sheets from the foot, which no ruling fixes. A card’s heading and the Activities buttons are 18 px, a size outside the app’s scale: it comes from the older shared sheet (<code>december.css</code>), as on pages 18 to 24, and is left for the one sweep.</p>
+`);
+for (const el of document.querySelectorAll('.phone')) el.classList.add('bit');
+for (const el of document.querySelectorAll('.dev h2, .phone h2, .bit h2')) el.classList.add('bsub');
+for (const el of document.querySelectorAll('.fact .k, .mseq, .flab, .tabbar span, .dcap')) el.dataset.sc = '';
+for (const el of document.querySelectorAll('.sw2 > span')) el.style.fontWeight = el.classList.contains('on') ? '700' : '';
+applyBook();
+}
+</script>
+</body>
+</html>
