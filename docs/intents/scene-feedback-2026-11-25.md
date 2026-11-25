@@ -133,8 +133,11 @@ Picture: one screenshot, not committed: it shows a character's name and a privat
 
 > These boxes should be centered
 
-Reads as: the same ask as F7 (a), on this view: centre the row of tiles.
-Question: is this the players' Scene, or the GM's Scene with the rail open?
+His follow-up note, sent right after:
+
+> And collapsible on the player scene too
+
+Reads as: this view is the players' Scene. Two parts. (a) The same ask as F7 (a): centre the row of tiles. (b) The players' Scene header (with its tiles) can be folded, like the GM's (F10).
 
 ## Problem
 To be filled in by the driver when it processes the items.
