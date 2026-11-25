@@ -419,6 +419,105 @@ Run before each milestone gate, on the real devices. Add the next milestone's it
 - [ ] Step 6, sayings: an empty Your campaigns, Rules library or GM Players and characters shows one of Ogham's sayings; the Player, Scene and Pack tabs never do.
 - [ ] Step 1, emails (by hand, once): in the Supabase dashboard (main project), Authentication → Emails → SMTP settings, set the sender name to the brand file's `emailSenderName` ("Ogham"); in the email templates, use the brand file's `appName` wherever the app is named, and its `tagline` ("Under the old oaks.") in the footer. Then sign in from a fresh device: the code email comes from Ogham.
 
+### Scene dress rehearsal (December 5)
+
+One sitting at a real table, in play order: the GM's Scene and the players' Scene from an import to End expedition. It is run once the Scene is test-ready (09, 2026-11-24, "Test-ready"). Written on 2026-11-25 from 05, 06 and the plans (`plans/dec-9-the-players-scene.md`, `plans/scene-point-to-point.md`), not from a walk of the app: where the screen's words differ from a step's, note the step's number and what the screen says.
+
+**Set-up.** The preview or the live app. The GM on a tablet (landscape), Player A on a phone (375 px), Player B on a tablet. One campaign with its setting rules and the 5 December adventure pack as a bundle (.zip, from `packs/_current`), and a second copy of the bundle with one map picture taken out. Three approved characters: A's carries two kinds of light, B's one light, and the GM has one of his own. "Players can reorder marching order" on. Light mode first.
+
+**Marks.** ⇄ needs two devices side by side (the GM's and a player's, or both players'). ★ is repeated in dark mode. ◇ is in a pull request that was still open when this was written (#85 the GM's view, #10 the hoard, #51 the maps, #86 the Light button): its words come from that pull request's 05 and 06 lines.
+
+**1 · Before play: the pack and its pictures (GM)**
+1. [ ] ◇ Rules library → Import a file: pick the bundle. It is previewed like any pack file; once saved, the toast "<pack> imported, with N maps." (no Undo), the pack's row in view, focus on its Browse.
+2. [ ] ◇ Update the pack with the copy that lacks a picture: it imports all the same and a side sheet opens, "Updated" over the pack's name: a ticked row for the file, a ticked row for the maps found, then "1 picture missing: images/…" with the warning sign and "<place> has no map until this picture is added."
+3. [ ] ◇ "Add it…" at the sheet's foot picks the picture; with none left missing the sheet gives way to the toast. The ✕ instead closes it and nothing is lost.
+
+**2 · Starting at a pack place**
+4. [ ] With no session the GM's band shows Start alone; a paused one, Resume alone. Depart shows only while a session runs.
+5. [ ] Depart: "Where?" comes first, Locations only, grouped under their Area; then "Exploration method": Dungeon, Wilderness, Point to point, filled in from the place. Start with nothing picked opens "Pick a Location first": "An expedition starts at a Location."
+6. [ ] ★ Pick the adventure's first Location, Point to point, Start: the band, the facts (Weather, Light, Rest, Encounter check), the strip's five steps, then the Location's card. The framed square at the band folds the facts and the strip; leave the Scene and come back: it is as you left it.
+7. [ ] ⇄ ★ Both players, before anything is shown: "Somewhere new" at the left, no Location's name anywhere; "Where to?" says "None to choose from yet. They show here once your GM has shown you something of this place."; the map's empty frame, "No map shared yet."; the marching order and Activities are there already. The phone has one column.
+
+**3 · The place card and its pieces**
+8. [ ] The GM's card: "1. <name>" at the left, the rule's button and Move on (the footprints) at its right; the description first, its words that name other pieces bold and underlined; each piece with its eye; the count and Hide all at the foot beside "+ Piece". No "Players see", no Rename.
+9. [ ] ⇄ The GM taps the description's eye: "Shown to the players" with Undo. Within seconds, with no reload, both players see the trail, "1. <name>" and the description in the book's format, and "Where to?" has its rows.
+10. [ ] ⇄ A second piece's eye: it appears on the players' card under the description, led by its own word in bold; in the description that word turns bold and underlined only now, and a word naming a piece still hidden stays plain.
+11. [ ] ⇄ The eye again takes that piece off the players' card; Hide all takes every piece off; Undo brings them back.
+12. [ ] ⇄ The GM shows the place's picture: a small square button at the top right of the players' card; a tap opens it whole.
+13. [ ] ⇄ The GM opens the Area's Knowledge and taps a section's eye: the players' Area card (right column; under the place on the phone) gains a row with the open book, its heading and "Shared, turn N."; a tap opens its words.
+
+**4 · The prompt slot and a call card**
+14. [ ] ⇄ The GM sends the party a call to adventure, then a rumour. Each player gets a card in the slot under the top: "A call to adventure, for the party", the words, one "Pays" line where the call pays, no source line, "Got it", and "1 of 2".
+15. [ ] ⇄ Player A taps "Got it": the card folds to one quiet row and the next card shows, "A rumour, for the party", with no "Pays" line and no count. Player B still has both unseen.
+16. [ ] ★ A tap on a folded row reads the card again, with no button; a second tap folds it. After both "Got it", two folded rows, the newest fold first. On the phone the heading takes the full width with "Got it" under it at the right.
+
+**5 · Light**
+17. [ ] A player taps the Light fact: the pop-up "Light" with each lit light and its time left; with none lit, in the dark, "No light. Nobody in the group has a light lit, so they are in darkness. Light one from a pack."
+18. [ ] ◇ Player B (one light): "Light", the stacked button with the torch at the foot's right, lights it at once: the pop-up closes, "Lit a torch." with Undo, and the Light fact names the light. Open the pop-up again: no button while their light is lit.
+19. [ ] ◇ ★ Player A (two kinds): "Light" opens "Which light?" as a step in the same card, with ‹ and ✕. ‹ goes back to the first step; ✕ closes it all; a pick lights it and closes the pop-up.
+20. [ ] ⇄ With every light put out, the GM's Light fact reads "No light" with the warning sign; with one lit it names it, and the lights lit show in a line on the marching order of all three devices.
+21. [ ] A player taps Rest ("Next." and when) and the Encounter check ("When." and "Chance." with its die); the rule shows under them only where the setting has words for it.
+
+**6 · The marching order, rest, splitting and joining**
+22. [ ] ⇄ The same card on all three devices: the lights, "↑ Front", the circles with hit points under each, "Rear". No lock switch anywhere. Player A holds a rank and drags it: it moves at once with Undo, and the others see it within seconds.
+23. [ ] A tap on a circle opens the overview; "Walk beside …" and "A row of their own" move the character.
+24. [ ] ⇄ The GM takes Next turn until the Rest fact reads "Rest due". Each player's slot shows the rest prompt, above the calls' rows: Rest (the accent), Push on, ⓘ. A rests: it folds to "Resting this turn · Change". B pushes on.
+25. [ ] ⇄ The GM's panel reads "Rest due · 2 of 2 answered", a row per character (a tap flips it), with Everyone rests and No one rests. Next turn applies it: one log line, and B's Rest fact keeps "Rest due" with "You pushed on."
+26. [ ] ⇄ Player A: Split party → their character → New group: "<name> is in Group 2" with Undo. A's order is headed "Marching order" with "Your group. <B's character> is elsewhere."; the GM sees both groups, and his Light and Rest facts name the group that needs him.
+27. [ ] ⇄ Join up: "Joined up: the party is together again" with Undo; one order again on every device.
+
+**7 · Moving and the travel lines**
+28. [ ] ★ A player's "Where to?": one row a destination, each way a button with its picture, word and time; a far end not shown reads "Not yet explored."; a hidden way is nowhere. A tap on a way opens "Your GM moves the party. Say where you want to go." and sends nothing.
+29. [ ] The GM's Move on: "From <here>, where to?", Locations only, then "Somewhere else…". A way's step is titled like "Rowing to 2. <name>", with Takes, Then and Move (the accent); no Where line, no foot line.
+30. [ ] ⇄ Move: the clock moves on; the players read the line of what happened, like "You rowed here from <place>. 4 turns passed: it is turn 18.", and "Somewhere new" until the GM shows something of the new Location.
+31. [ ] ⇄ A way with an obstacle: "Obstacle: <name>" and "Do they get through?" Yes or No. After No, the players' row carries the obstacle's name and "No time passed."; after Yes, their line names it.
+32. [ ] After a move, a check with a table and no chance is a roll on the table: the die, the pack's sentence, one button to enter the roll; no Hit or Miss. No check shows a machine name.
+33. [ ] ⇄ The players' Area card now lists the Location they left, "1. <name>", with its first shown piece on one line under it; a tap opens a sheet titled with that name, holding its shown pieces and nothing else.
+34. [ ] The GM taps the Area in the trail: the panel of its Locations, "The party is here." on the party's row. Another Location opens to read: "Reading ahead. The party is at <Location>." with "Back to the party"; the party has not moved and the players see no change.
+
+**8 · The hoard and the magic item**
+35. [ ] ◇ At a Location with a hoard: one piece led by its name, in the book's words, a small arrow before its eye; no value line. A tap on its words opens the hoard: the book's line, a row a thing with its count ("Swords ×4"), coin a row like any other, the magic item under its plain name, "Send all" (the accent), "Edit the piece's words" last.
+36. [ ] ◇ ⇄ A tap on a row: "To a character" or "To the party stash"; To a character, then who: "Sent to <name>: …" with Undo. The row reads "✓ Sent to <name>", the piece "1 of N sent", and the thing is in that player's Pack within seconds.
+37. [ ] ◇ ⇄ "Send all", To the party stash: "Put in the party stash: …" with Undo; "Send all" is gone and the piece reads "✓ All sent: …". The magic item sits in the stash under its plain name on both players' devices.
+38. [ ] ◇ ⇄ The hoard's eye shows the players the book's line on their card, never the rows behind it.
+39. [ ] ◇ ⇄ ★ The eye on the magic item's own piece: "Shown to the players: <real name>. The <thing> in the party stash now carries its name." with Undo. Both players see the piece on the card and the item's real name and what it does in the Pack and on its pop-up; nothing pops up on their side.
+40. [ ] ◇ ⇄ Undo takes back both (the piece leaves the card, the item its name). Tap the eye again, then hide the piece later: it leaves the card, and the item keeps the name the players now know.
+
+**9 · The pack's maps and the players' map**
+41. [ ] ◇ The GM opens a place whose map came with the pack: "Fetching the pack's map…" for a moment, then the map's card with its eye closed: no tap, no toast, no file-name line. A numbered Location with no map of its own shows its Area's map.
+42. [ ] ◇ ⇄ The map's eye: "Map shown to the players". Both players' map card shows the picture fitted whole, its title at the left, zoom out and zoom in, no locate tool; a tap opens the map pop-up; drag and pinch work on the phone. One eye a map: it is open at the Area and at each of its Locations.
+43. [ ] ⇄ The GM moves the party on: the players' map stays, the map of the last place shown to them.
+44. [ ] ◇ A place whose picture did not come with the pack shows "+ Map", which asks for a file: "Map added (hidden): <place>" with Undo. If a fetch fails (it can't be forced at the table): "+ Map from the pack" tries again, and "or choose a file…" under it opens the file picker.
+45. [ ] ⇄ Undo of "+ Map" on a map already shown hides it from the players as well.
+
+**10 · The GM's view as a player**
+46. [ ] ◇ Players: a character's row reads "<name>, level N" over its player's name and when they joined ("Yours" on the GM's own), with View sheet, Pack, Magic (a caster only), Scene and ⋯ holding Edit, "Give to a player…" and "Remove…".
+47. [ ] ◇ ★ View sheet opens the Player tab as its player sees it, under the band "<Player>'s view of <character>" and "What you do here is logged as yours."; "‹ Players" goes back. On the GM's own character the band is one line, "Your view of <character>".
+48. [ ] ◇ ⇄ Change the character's hit points in the view: the player's device follows within seconds; the toast has Undo; the log gives the act as the GM's, on that character.
+49. [ ] ◇ An action that is the player's alone (asking for a sheet change, Cancel on their own request) opens "Only <Player> can …" with "Got it"; one that points somewhere adds "Go to Waiting for you" or "Go to Waiting for approval".
+50. [ ] ◇ Pack, an item with something hidden: "Only you see this: …" with the closed eye under the item's figures, and "Reveal…" first among its rows. "Reveal…" opens "Your sheet: <item>" over the player's, with "Reveal the count" and "Hidden from players"; its ✕ closes it alone. An item with nothing hidden shows neither.
+51. [ ] ◇ ⇄ Scene, beside that player's own device: the same place card, shown pieces, "Where to?" and prompt slot; their group only after a split; no "Recently" log lines. Known gap, ruled for after 5 December: no players' map in the view of another player's Scene.
+
+**11 · Ending the expedition**
+52. [ ] ⇄ At a Location the pack marks a way out, the players' "Where to?" ends with an "End expedition" row (the door). A tap opens "End expedition": "Your GM ends the expedition." Nothing ends.
+53. [ ] The GM's Move on there ends with "End expedition" after "Somewhere else…"; it ends the expedition as the menu's End expedition does. No Leave button anywhere in point to point.
+54. [ ] "Expedition ended" in Waiting for you: the time it took, "In a safe place?" with neither side chosen. Yes offers the rest and "Staying a while?"; Undo brings the expedition back.
+55. [ ] ⇄ Both players' Scenes leave the expedition within seconds: no Light or Rest fact, no "Where to?"; the folded calls are still there to read.
+56. [ ] ★ The phone throughout: nothing scrolls sideways, no word is cut or broken, every button takes a thumb; in dark mode every line reads. End session.
+
+#### Owed pictures (the Scene, 2026-11-25)
+
+On `main`, built without a frame, and not yet approved by Francis from pictures of the real screen (09 records no approval). Each is seen at the rehearsal too (the step named); the harness or gallery gives the same screen on invented data, on the preview or the live site, with `?theme=dark` for the gallery.
+
+| Screen | Ruling | Where to take the picture | Step |
+|---|---|---|---|
+| The prompt slot on the players' Scene (a rest to answer, no light, a request, a call) | p2p-flag3 (09, 2026-11-18) | `/layout.html?as=player&placePage=spots&session=running` (the slot over both columns), and with a call in it `/layout.html?as=player&calls=1`; the rest prompt itself only at the table (step 24) | 14, 24 |
+| The known-Location sheet (a tap on "2. The Wreck" on the Area card) | p4s-4 (09, 2026-11-20) | `/layout.html?placeCard=1`, then tap a known Location; gallery `/gallery.html#players-place-card` | 33 |
+| The players' "End expedition" row and its pop-up | d5-2 (09, 2026-11-20) | gallery `/gallery.html#move-on-parts`, the specimen "Where to? (players, PL9; d5-2)" for the row; the pop-up only at a way out in the app (step 52) | 52 |
+| The call card on a phone and in dark | p7-8 (09, 2026-11-24) | `/layout.html?as=player&calls=1` at 375 px, light and dark; gallery `/gallery.html#call-card` | 14 to 16 |
+
+Not owed: the shown pieces on the players' Location card (PL1b, "Yes, go live"). Francis saw the built card and approved it from the real screen with three fixes on 2026-11-20 (ppf-6, `design/rulings/p4-p2-flags-2026-11-20.md`).
+
 ### M6 — encounters and fights (items so far)
 
 - [ ] Linking a tactics table on a monster feels right in live play (tables dry run, 2026-10-29).
