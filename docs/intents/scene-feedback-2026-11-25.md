@@ -150,6 +150,19 @@ Picture: one screenshot, not committed: it shows a private pack's area, rule and
 Reads as: two parts. (a) The players' Scene lists a place in the area, with its description, that the party has not reached; he asks why. (b) "Rules" should sit on the left.
 Question: "on the left" of what: the page's left column (or rail), or inside this card?
 
+### F13. Players' Scene: unexplored places by map number; a map without its key
+
+Screen: players' Scene, on his tablet. Left: breadcrumb (region › area), the place "Arrival" with its read-aloud text, "Someone fell in", then "Where to?" with two rows: "<place 2's name>" and a row named like the travel choice ("Not yet explored."), each with "Row" (1 turn) and "Swim" (3 turns) buttons. Right: the area map the GM revealed, with its printed key (numbers and every place's name) at the bottom, zoom buttons, and the area's "Rules" card below.
+
+Picture: one screenshot, not committed: it shows a private pack's map, place names and text (hard rule 2).
+
+> Not sure how [place] was revealed, maybe an prior test. Players will navigate to unexplored locations by map key. So they should see as options - 1. Unexplored 2. Unexplored
+> The map that the gm revealed shows the labeled key. Do we think the pack creator can separate the key from the map so that the players get only the map? That version could display by default and the gm could later reveal the full key.
+
+([place] is the place at map number 2, shown by name.)
+
+Reads as: three parts. (a) He does not know how place 2's name came to show to players; perhaps an earlier test revealed it. (b) Players pick a destination by its map number; an unexplored place shows as "<number>. Unexplored", not by name. (c) He asks whether the pack builder can split the map from its printed key: players see the map alone by default, and the GM can reveal the full key later. Part (c) is a question for the driver and the pack tools.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
