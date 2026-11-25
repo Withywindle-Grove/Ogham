@@ -72,6 +72,18 @@ Pictures: three screenshots, not committed: they show a private pack's encounter
 
 Reads as: three parts. (a) One encounter shows as two cards; keep one, built on the "An encounter waits" card. (b) On that card, drop the check's name and "Turn 1"; the encounter result alone starts the card. (c) The stat pop-up is right, but drop its title line ("Encounter waiting: …") and put the X on the line of the creature's name.
 
+### F6. The encounter pop-up behind "Back to the encounter" and "Start"; the result link
+
+Screen: GM's Scene. "‹ Back to the encounter" (in the stat pop-up from F5) opens a pop-up titled "Encounter waiting: <check name>, now". It shows "Turn 1, <check name>, 2", the result, "<creature>, 3" in bold, the stat line, and "View". "Start" on the "An encounter waits" card opens the same layout. The result on that card is an underlined text link.
+
+Pictures: two screenshots, not committed: they show a private pack's encounter text and a stat line (hard rule 2).
+
+> clicking "Back to the encounter" brings this screen which is less well organized and containst he same information.
+> This underlined link looks ugly, and should be a tapabble button or other interface.
+> "Start" encounter brings me back to the first picture above, when "View" is what i really need.
+
+Reads as: three parts. (a) "Back to the encounter" opens a pop-up that holds the same facts as the stat pop-up, less well laid out. (b) The result on the "An encounter waits" card is an underlined link; make it a button or another tappable control. (c) "Start" opens that same less-organised pop-up; he wants it to open what "View" opens (the stat pop-up from F5).
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
