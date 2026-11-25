@@ -390,7 +390,59 @@ describe("a place whose pack brought its map's picture (B14, p2p-27)", () => {
     packDownload(() => Promise.reject(new Error('Failed to fetch')));
     open();
     expect(await screen.findByRole('button', { name: '+ Map from the pack' })).toBeTruthy();
-    expect(screen.getByText(PACK_PICTURE_UNREAD_WORDS)).toBeTruthy();
+    // The toast follows the row's render (its effect): waited for, not read at once (flaked under load, 25 Nov).
+    expect(await screen.findByText(PACK_PICTURE_UNREAD_WORDS)).toBeTruthy();
     expect(maps()).toHaveLength(0);
+  });
+
+  // Purpose (re-audit New 2b, Francis 25 Nov): a map the pack brought shows no file-name line, there being no file for
+  // the GM to find: neither on "+ Map from the pack" nor while "Fetching the pack's map…" shows.
+  it.fails('a map the pack brought shows no file-name line, fetching or not', async () => {
+    let end = () => undefined as void;
+    let asked = false;
+    try {
+      packDownload(() => {
+        asked = true;
+        return new Promise((resolve) => (end = () => resolve({ data: null, error: { message: 'offline' } })));
+      });
+      open();
+      await waitFor(() => expect(asked).toBe(true));
+      expect(screen.getByText("Fetching the pack's map…")).toBeTruthy();
+      expect(screen.queryByText(map.file)).toBeNull();
+    } finally {
+      end();
+    }
+    expect(await screen.findByRole('button', { name: '+ Map from the pack' })).toBeTruthy();
+    expect(screen.queryByText(map.file)).toBeNull();
+  });
+
+  // Purpose (re-audit question, ruled yes 25 Nov): after a failed fetch the row offers "or choose a file…" under the
+  // retry; it opens the usual file picker, and the file chosen becomes the place's map.
+  it.fails('after a failed fetch, "or choose a file…" opens the file picker and the file becomes the map', async () => {
+    const user = userEvent.setup();
+    packDownload(async () => ({ data: null, error: { message: 'offline' } }));
+    open();
+    await screen.findByRole('button', { name: '+ Map from the pack' });
+    const picker = screen.getByLabelText(`Choose the map's file: ${map.file}`) as HTMLInputElement;
+    const opened = vi.spyOn(picker, 'click');
+    await user.click(screen.getByRole('button', { name: 'or choose a file…' }));
+    expect(opened).toHaveBeenCalled();
+    await user.upload(picker, new File(['the chart, by hand'], 'chart.png', { type: 'image/png' }));
+    await screen.findByRole('region', { name: 'The map' });
+    expect(maps()).toHaveLength(1);
+    const tiedTo = world.tables.places.find((p) => p.id === place.id)?.map_asset_id;
+    expect(tiedTo).toBe(maps()[0]?.id);
+    expect(await world.files.get(`${campaign}/${String(tiedTo)}`)?.text()).toBe('the chart, by hand');
+  });
+
+  // Purpose: "or choose a file…" is only for after a failed fetch: the "+ Map from the pack" an Undo leaves has none.
+  it('no "or choose a file…" before any fetch has failed', () => {
+    render(
+      <ToastHost>
+        <AddPlaceMap db={world.db} user={gm} campaignId={campaign} place={place} map={{ title: map.title, file: map.file }} packed="pack-marsh/harbour-chart" onChanged={() => undefined} />
+      </ToastHost>,
+    );
+    expect(screen.getByRole('button', { name: '+ Map from the pack' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'or choose a file…' })).toBeNull();
   });
 });

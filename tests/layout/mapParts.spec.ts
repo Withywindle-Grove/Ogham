@@ -137,6 +137,34 @@ for (const size of [
         expect((await page.getByRole('button', { name: '+ Map' }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
         expect(await layoutProblems(page)).toEqual([]);
       });
+
+      // Purpose (re-audit New 2 and its question, 25 Nov): a map the pack brought shows no file-name line, fetching or
+      // not; on a phone its "+ Map from the pack" (or the fetching line) goes under the title, so the title keeps to two
+      // lines; after a failed fetch "or choose a file…" stands under the retry as a 44 px target.
+      test.fail("the pack's map row: no file line, under the title on a phone, or choose a file… after a failure", async ({ page }) => {
+        const phone = size.width < 600;
+        for (const state of ['packed', 'fetching', 'fetchFailed'] as const) {
+          await page.goto(`/layout.html?mapParts=${state}`);
+          const row = page.locator('.map-wanted');
+          await expect(row).toBeVisible();
+          await expect(row.locator('.map-wanted__file')).toHaveCount(0);
+          const title = row.locator('.map-wanted__title');
+          const lines = await title.evaluate((el) => Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)));
+          expect(lines).toBeLessThanOrEqual(2);
+          const action = state === 'fetching' ? row.getByRole('status') : row.getByRole('button', { name: '+ Map from the pack' });
+          const [t, a] = [(await title.boundingBox())!, (await action.boundingBox())!];
+          if (phone) expect(a.y).toBeGreaterThanOrEqual(t.y + t.height - 1);
+          else expect(a.x).toBeGreaterThan(t.x + t.width - 1);
+          if (state === 'fetchFailed') {
+            const choose = (await row.getByRole('button', { name: 'or choose a file…' }).boundingBox())!;
+            expect(choose.height).toBeGreaterThanOrEqual(44);
+            expect(choose.y).toBeGreaterThanOrEqual(a.y + a.height - 1);
+          }
+          await page.screenshot({ path: `test-results/layout-screens/pack-map-row-${state}-${size.width}-${scheme}.png` });
+          expect(await layoutProblems(page)).toEqual([]);
+          expect(await accessibilityProblems(page)).toEqual([]);
+        }
+      });
     });
   }
 }

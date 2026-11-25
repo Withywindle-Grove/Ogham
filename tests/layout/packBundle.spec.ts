@@ -82,6 +82,37 @@ for (const size of [
         await expect(page.getByRole('dialog')).toHaveCount(0);
       });
 
+      // Purpose (re-audit New 1, 25 Nov): with focus on "Add it…" (where the sheet opens it), its whole focus ring shows:
+      // no box that scrolls or clips (the sheet's body, the sheet) cuts it off, at either width.
+      test.fail('the focus ring on Add it… is not clipped', async ({ page }) => {
+        await importBundle(page, { 'saltwick-island.pack.json': pack('Saltwick Island', 'images/map-beach.png'), 'images/map-harbour.png': PIXEL });
+        const add = page.getByRole('dialog', { name: 'Imported: Saltwick Island' }).getByRole('button', { name: 'Add it…' });
+        await expect(add).toBeFocused();
+        // A keyboard's way back to it, so the ring is the one :focus-visible draws.
+        await page.keyboard.press('Shift+Tab');
+        await page.keyboard.press('Tab');
+        await expect(add).toBeFocused();
+        const cut = await add.evaluate((el) => {
+          const style = getComputedStyle(el);
+          const ring = parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
+          const r = el.getBoundingClientRect();
+          const box = { left: r.left - ring, right: r.right + ring, top: r.top - ring, bottom: r.bottom + ring };
+          const found: string[] = [];
+          if (style.outlineStyle === 'none' || !(ring > 0)) found.push('no ring drawn');
+          for (let up = el.parentElement; up; up = up.parentElement) {
+            const s = getComputedStyle(up);
+            if (s.overflowX === 'visible' && s.overflowY === 'visible') continue;
+            const u = up.getBoundingClientRect();
+            const inner = { left: u.left + up.clientLeft, top: u.top + up.clientTop, right: u.left + up.clientLeft + up.clientWidth, bottom: u.top + up.clientTop + up.clientHeight };
+            if (box.left < inner.left - 0.5 || box.right > inner.right + 0.5 || box.top < inner.top - 0.5 || box.bottom > inner.bottom + 0.5)
+              found.push(`${up.className || up.tagName}: ring ${JSON.stringify(box)} outside ${JSON.stringify(inner)}`);
+          }
+          return found;
+        });
+        expect(cut).toEqual([]);
+        await page.screenshot({ path: `test-results/layout-screens/pack-bundle-focus-${size.width}-${scheme}.png` });
+      });
+
       // Purpose: a long pack name and a long path wrap inside the sheet; nothing scrolls sideways.
       test('long names wrap inside the sheet', async ({ page }) => {
         const long = 'The Drowned Marches of the Lantern Coast, the whole of the Saltwick Island cycle';
