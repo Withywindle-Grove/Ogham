@@ -53,6 +53,9 @@ const FOCUS_CALLS: Record<string, number> = {
   '/src/ui/parts.tsx': 1,
   // Back to the burden's tier as the Burden pop-up closes (tfb-4, row C7): a button.
   '/src/app/LoadSummary.tsx': 1,
+  // After "Got it" folds a call (P7, impeccable audit finding 1): the next card's "Got it", else the folded row; both
+  // buttons, never a field.
+  '/src/app/CallCard.tsx': 1,
 };
 
 describe('no keyboard on open (A4)', () => {
