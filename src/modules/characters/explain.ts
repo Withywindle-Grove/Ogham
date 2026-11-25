@@ -49,15 +49,23 @@ export function abilityLines(row: Value, kinds: Readonly<Record<string, ColumnKi
   });
 }
 
-/** Every ability row's entries whose key matches, as "Melee +1 from Strength". */
-function fromAbilities(filled: Filled, match: RegExp, labelOf: (ability: string) => string, nameOf: (key: string) => string = plainName): string[] {
+/** One ability row's entry as a line: the ability, the entry's key and its figure (never 0). */
+type LineOf = (ability: string, key: string, value: number) => string;
+
+/** Every ability row's entries whose key matches, one line each as `lineOf` writes it; by default "Melee +1 from Strength". */
+function fromAbilities(
+  filled: Filled,
+  match: RegExp,
+  labelOf: (ability: string) => string,
+  lineOf: LineOf = (ability, key, value) => `${plainName(key)} ${signed(value)} from ${labelOf(ability)}`,
+): string[] {
   const lines: string[] = [];
   for (const [name, row] of Object.entries(filled)) {
     if (!name.startsWith('abilityModifiers.') || !isRecord(row)) continue;
     const ability = name.slice('abilityModifiers.'.length);
     for (const [key, value] of Object.entries(row)) {
       if (!match.test(key) || typeof value !== 'number' || value === 0) continue;
-      lines.push(`${nameOf(key)} ${signed(value)} from ${labelOf(ability)}`);
+      lines.push(lineOf(ability, key, value));
     }
   }
   return lines;
@@ -80,13 +88,15 @@ export interface Explaining {
 }
 
 /**
- * What the scores change in AC, for the AC tile's quiet line: compact, with short names ("AC +1 from DEX"; the
- * compact places keep short names, N23). `shortName` is the setting's short name for an ability.
+ * What the scores change in AC, for the AC tile's quiet line, in whole words: the score's long name in the setting,
+ * then its figure ("Nimbleness +1"), never "AC" or "from" (A2, plan dec-14-player-audit-fixes row 7a, page 39,
+ * approved 2026-11-24; it departs from N23's short names for this tile). A score that adds nothing leaves no line.
+ * `longName` is the setting's long name for an ability.
  */
-export function acCaption(filled: Filled, shortName: (ability: string) => string, direction: 'ascending' | 'descending' = 'ascending'): string {
+export function acCaption(filled: Filled, longName: (ability: string) => string, direction: 'ascending' | 'descending' = 'ascending'): string {
   // In the setting's direction (ruled 2026-10-29, B9): where lower AC is better, a bonus takes it down.
   const toward = direction === 'ascending' ? filled : flipAc(filled);
-  return fromAbilities(toward, AC_KEY, shortName, () => 'AC').join(', ');
+  return fromAbilities(toward, AC_KEY, longName, (ability, _key, value) => `${longName(ability)} ${signed(value)}`).join(', ');
 }
 
 /** The scores' AC modifiers turned round, for a setting where lower AC is better. */

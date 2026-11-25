@@ -32,10 +32,13 @@ export interface World {
 }
 
 const runId = Math.random().toString(36).slice(2, 8);
+// Counts people made in this module, so a second buildWorld() in one file gets new emails.
+let personCount = 0;
 const password = `T-${crypto.randomUUID()}`;
 
 async function createPerson(project: TestProject, admin: SupabaseClient, label: string): Promise<Person> {
-  const email = `${label}-${runId}@grimoire.test`;
+  personCount += 1;
+  const email = `${label}-${runId}-${personCount}@grimoire.test`;
   const created = await admin.auth.admin.createUser({ email, password, email_confirm: true });
   if (created.error) throw created.error;
   const db = createClient(project.url, project.publishableKey, {
