@@ -73,7 +73,7 @@ for (const size of [
       await expect(page.getByRole('dialog', { name: 'Mooring ring' })).toBeVisible();
     });
 
-    test.fails(`after Your sheet: Mooring ring closes, focus is back on Reveal… (${size.name}, ${scheme})`, async ({ page }) => {
+    test(`after Your sheet: Mooring ring closes, focus is back on Reveal… (${size.name}, ${scheme})`, async ({ page }) => {
       await openPack(page, size.width, size.height, scheme);
       await page.getByRole('button', { name: /^Mooring ring/ }).click();
       const reveal = page.getByRole('region', { name: 'Mooring ring' }).getByRole('button', { name: 'Reveal…' });

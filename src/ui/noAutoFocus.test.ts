@@ -37,6 +37,8 @@ const FOCUS_CALLS: Record<string, number> = {
   // A stat block in full (December 5c, #642 review): its heading on open, the View button that opened it on Back; and
   // (S8b) the heading again when the waiting card's link opens the pop-up on the creature. Never a field.
   '/src/app/EncounterWaiting.tsx': 3,
+  // Back to Reveal… as the GM's own sheet for the item closes (Francis's A on #85, 24 Nov): a button, never a field.
+  '/src/app/ItemSheet.tsx': 1,
   '/src/app/NewCampaign.tsx': 1,
   '/src/app/RulesBrowser.tsx': 1,
   '/src/app/RulesForCampaign.tsx': 1,

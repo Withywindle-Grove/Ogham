@@ -50,10 +50,13 @@ describe("a sheet's foot (ft-1, 2026-11-14)", () => {
     expect(css).not.toMatch(/\.dialog__actions[^{]*\{[^}]*\border:/);
     // A plain button's own `align-self: flex-start` would put it at the top of the row or the left of the stack.
     expect(decl(rules(css, '.dialog__actions > .button-secondary'), 'align-self')).toEqual(['auto']);
-    // Stacked (Dialog.tsx adds the class when a row would wrap): a column, each at the right.
-    const stacked = rules(css, '.dialog__actions--stacked');
-    expect(decl(stacked, 'flex-direction')).toEqual(['column']);
-    expect(decl(stacked, 'align-items')).toEqual(['flex-end']);
+    // Stacked (Dialog.tsx adds the class when a row would wrap): one column at the right, every button the widest
+    // one's width, so the stack looks intended (Francis, 24 Nov, #85's last round).
+    const stacked = rules(css, '.dialog__actions.dialog__actions--stacked');
+    expect(decl(stacked, 'display')).toEqual(['grid']);
+    expect(decl(stacked, 'grid-template-columns')).toEqual(['minmax(0, max-content)']);
+    expect(decl(stacked, 'justify-content')).toEqual(['end']);
+    expect(decl(stacked, 'justify-items')).toEqual(['stretch']);
   });
 
   it('a stacked accent alone in a foot: the same rule, at its own width', () => {

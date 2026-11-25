@@ -3,7 +3,7 @@
 // rows (a chevron where one asks more), Drop last and set apart (no confirm, Undo in the toast), and the star beside ✕
 // that pins the item to the top. Give to…, Put in… and Drop on a stack open the MoveSheet (ItemMoves.tsx). After an
 // action the item closes and the screen goes back to the top of the Pack (ruled 2026-10-24).
-import { useId, useState, type ReactNode } from 'react';
+import { useId, useRef, useState, type ReactNode } from 'react';
 import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
@@ -38,7 +38,7 @@ import { checkEquip, EquipWarningCard, type EquipCheck } from './EquipWarning.ts
 import { countWords, shownName } from '../modules/inventory/packView.ts';
 import { cameBackText, latestChange, undoChange, type CameBack } from '../core/undo.ts';
 import { MoveSheet, type Placement } from './ItemMoves.tsx';
-import { Dialog, SheetScope } from '../ui/Dialog.tsx';
+import { Dialog, openerNow, SheetScope } from '../ui/Dialog.tsx';
 import { Breakdown, ListRow, PinStar, RowList, WarningSign } from '../ui/parts.tsx';
 import { RollPrompt } from '../ui/RollPrompt.tsx';
 import { RollCard } from '../ui/dice.tsx';
@@ -216,6 +216,18 @@ export function ItemSheet(props: ItemSheetProps) {
   const gmTruth = isGm(user, campaign.id);
   const gmHere = gmTruth && view === null;
   const [revealing, setRevealing] = useState(false);
+  // Reveal… itself, for focus to go back to when the GM's sheet closes (as after the other pop-ups, audit fix 3a).
+  const revealOpener = useRef<HTMLElement | null>(null);
+  const openReveal = () => {
+    revealOpener.current = openerNow();
+    setRevealing(true);
+  };
+  const closeReveal = () => {
+    setRevealing(false);
+    const el = revealOpener.current;
+    revealOpener.current = null;
+    if (el?.isConnected) el.focus({ preventScroll: true });
+  };
   const charged = chargesOf(line, chargeRules, rechargeDefault);
   const chargeText = !charged ? '' : chargeWords(line, gmHere ? secret : null);
   const waiting = line.approval === 'pending';
@@ -245,7 +257,7 @@ export function ItemSheet(props: ItemSheetProps) {
   // "Reveal…" above the player's own rows (M3g): only where the GM's own sheet has something to reveal, a hidden field or
   // a hidden count (the driver's call under ⚑ 40); a weapon whose only hidden thing is its figure keeps the line alone.
   const revealable = unrevealed.length > 0 || (line.chargesHidden && secret?.total != null);
-  const revealRow = gmLine && revealable && <ListRow icon={<Icon name="eye" size={24} />} title="Reveal…" onOpen={() => (busy ? undefined : setRevealing(true))} />;
+  const revealRow = gmLine && revealable && <ListRow icon={<Icon name="eye" size={24} />} title="Reveal…" onOpen={() => (busy ? undefined : openReveal())} />;
   const oneOff = line.libraryEntryId === null && line.sourcePackId === null;
   /**
    * Runs a change that makes something leave your view, then the toast (B23; words batch 1): Undo is the log's
@@ -531,7 +543,7 @@ export function ItemSheet(props: ItemSheetProps) {
           </div>
         )}
         {revealRow && (!may || waiting) && <RowList label="Item actions">{revealRow}</RowList>}
-        {revealing && <GmItemSheet {...props} onClose={() => setRevealing(false)} />}
+        {revealing && <GmItemSheet {...props} onClose={closeReveal} />}
         {waiting && (
           // A player's one-off waits for the GM (ruled 2026-10-23): it counts for nothing until approved.
           <div className="pack__actions" role="group" aria-label="Waiting for the GM">

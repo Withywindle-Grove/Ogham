@@ -29,7 +29,7 @@ async function openView(page: Page, width: number, height: number, scheme: 'ligh
 }
 
 for (const scheme of ['light', 'dark'] as const) {
-  test.fails(`Take back's stacked foot at 375 px: both buttons one width, at the right (${scheme})`, async ({ page }) => {
+  test(`Take back's stacked foot at 375 px: both buttons one width, at the right (${scheme})`, async ({ page }) => {
     await openView(page, 375, 812, scheme);
     await page.getByRole('button', { name: /notice/ }).first().click();
     await page.getByRole('button', { name: /^Take back / }).click();

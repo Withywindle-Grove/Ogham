@@ -121,7 +121,7 @@ for (const size of [
 
 // Purpose: when a foot of two or more buttons stacks (the three-button foot at 375 px), every button takes the widest
 // one's width, at the right, not stretched to the foot's left edge (Francis, 24 Nov: every stacked foot alike).
-test.fails("a stacked foot at 375 px: every button one width, the widest one's, at the right", async ({ page }) => {
+test("a stacked foot at 375 px: every button one width, the widest one's, at the right", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto('/gallery.html?theme=light');
   await expect(page.getByRole('heading', { name: 'Component gallery' })).toBeVisible();

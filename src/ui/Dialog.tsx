@@ -89,6 +89,16 @@ function anchorNow(): Element | null {
 }
 
 /**
+ * The button that is opening a pop-up, for focus to go back to when it closes: the one with focus (a keyboard, or a tap
+ * where a tap focuses), else the one just tapped (Safari doesn't focus a tapped button), else none.
+ */
+export function openerNow(): HTMLElement | null {
+  const focused = typeof document !== 'undefined' ? document.activeElement : null;
+  const candidate = focused && focused !== document.body ? focused : lastTapped?.isConnected ? lastTapped : null;
+  return candidate instanceof HTMLElement ? candidate : null;
+}
+
+/**
  * Where a sheet sits on a tablet: below its anchor with a gap, else above it, else as low as fits; its left edge at
  * the anchor's, kept inside the screen's margins. Null (centred) without an anchor on screen. Pure, for the tests.
  */

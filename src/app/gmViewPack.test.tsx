@@ -255,7 +255,7 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     expect(screen.getByRole('dialog', { name: 'Moon ring' })).toBeTruthy();
   });
 
-  it.fails('after the ✕ on "Your sheet: Moon ring", focus is back on Reveal… in the player\'s sheet', async () => {
+  it('after the ✕ on "Your sheet: Moon ring", focus is back on Reveal… in the player\'s sheet', async () => {
     const user = await openWrensPack();
     await user.click(await screen.findByRole('button', { name: /^Moon ring/ }));
     const reveal = screen.getByRole('button', { name: 'Reveal…' });
