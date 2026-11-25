@@ -288,6 +288,19 @@ Picture: one screenshot, not committed: it shows private pack place names (hard 
 
 Reads as: each "Where to?" row shows the area its place is in, so that two places with the same map number in different areas can be told apart. The mixed order is the same fault as F1 (a).
 
+### F26. A second area's arrival place, its links, and area knowledge
+
+Screen: GM's Scene at place 1 of the second area (breadcrumb: region › second area › "1. <place>"). "Move on", "From the book, for the GM" (folded), "Knowledge", "Rules", "Checks here", then the place's text as rows with closed-eye icons.
+
+Picture: one screenshot, not committed: it shows a private pack's place text and characters (hard rule 2).
+
+> need to label 0. Arrival ([area A]), and need to add 0. Arrival ([area B]) with it's opening text and descriptions on source material page 18. change the movement map so that harbor 10/11 go to beach 0, and beach 0 can go to beach 1,2,3,4 and harbor 10,11.
+> Beach knowledge needs to show in it's locations just as harbor knowledge needs to for harbor locations
+
+([area A] is the first area, the "harbor"; [area B] is the second area, the "beach".)
+
+Reads as: pack data changes, plus one app rule. (a) Label the first area's arrival place "0. Arrival ([area A])". (b) Add "0. Arrival ([area B])" with its opening text and descriptions from p. 18 of the source. (c) Change the links between places: [area A] places 10 and 11 lead to [area B] place 0; [area B] place 0 leads to [area B] places 1, 2, 3 and 4, and to [area A] places 10 and 11. (d) The same rule as F8 (a): each area's knowledge shows at its places. Parts (a) to (c) look like work for the pack tools.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
