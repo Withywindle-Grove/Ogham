@@ -73,7 +73,11 @@ export function CallFoldedRow({ send, startOpen = false }: { send: CallSend; /**
 }
 
 /** The calls in the slot (40C): the oldest unseen card with its count, then each folded row, newest fold first. */
-export function CallsInPromptSlot({ calls, onGotIt }: { calls: CallsInSlot; onGotIt: (send: CallSend) => void }) {
+/** No calls yet (the first read still on its way, or none sent): the slot holds its empty live region (last audit, new 1). */
+const NO_CALLS: CallsInSlot = { card: null, count: null, folded: [] };
+
+export function CallsInPromptSlot({ calls: read, onGotIt }: { calls: CallsInSlot | null; onGotIt: (send: CallSend) => void }) {
+  const calls = read ?? NO_CALLS;
   const slot = useRef<HTMLDivElement>(null);
   // The call whose "Got it" was pressed, until it folds (a refused one never does, and focus stays where it is).
   const given = useRef<string | null>(null);
@@ -89,13 +93,15 @@ export function CallsInPromptSlot({ calls, onGotIt }: { calls: CallsInSlot; onGo
     const next = root.querySelector<HTMLElement>('.call-card__got-it') ?? [...root.querySelectorAll<HTMLElement>('.call-fold')].find((row) => row.dataset.sendId === id);
     next?.focus();
   }, [calls]);
-  if (!calls.card && calls.folded.length === 0) return null;
   const card = calls.card;
+  const empty = !card && calls.folded.length === 0;
   // One live region for the slot (audit finding 2, re-audit finding 3): it stays while the cards change, so a new card's
   // words are a change inside a region the screen reader already watches, and the next call is announced. It is empty,
-  // and takes no room, when only folded rows are left; a card reopened from its row sits outside it.
+  // and takes no room, when only folded rows are left; a card reopened from its row sits outside it. With no calls at
+  // all it is still drawn (Home Two's last audit, new 1), empty and without room or a group to name, so the session's
+  // first call is a change inside it too, not a region arriving with its card already in it.
   return (
-    <div ref={slot} className="calls-slot" role="group" aria-label="Calls to adventure">
+    <div ref={slot} className={`calls-slot${empty ? ' calls-slot--empty' : ''}`} role={empty ? undefined : 'group'} aria-label={empty ? undefined : 'Calls to adventure'}>
       <div className="calls-slot__live" role="status">
         {card && (
           <CallCard

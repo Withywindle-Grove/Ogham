@@ -15,6 +15,12 @@
   margin-block-start: 0;
 }
 
+/* With no calls at all (Home Two's last audit, new 1): the slot is only its empty live region, out of the prompt slot's
+   flow, so the prompt slot leaves no gap for it and it takes no room. */
+.calls-slot--empty {
+  position: absolute;
+}
+
 .call-card {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

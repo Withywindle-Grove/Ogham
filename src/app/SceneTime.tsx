@@ -2515,7 +2515,7 @@ export function SceneTime({
               {/* B18: the prompt slot, between the time band and the marching order (space reserved), newest on top
                   (SC-g6-4): the rest prompt, the screen's other prompts (a request, a message, No light), the weather;
                   what is there when the screen opens keeps that order. The calls to adventure come last, always (p7-9). */}
-              <PromptSlot after={playerCalls.calls && (playerCalls.calls.card || playerCalls.calls.folded.length > 0) && <CallsInPromptSlot calls={playerCalls.calls} onGotIt={playerCalls.gotIt} />}>
+              <PromptSlot after={<CallsInPromptSlot calls={playerCalls.calls} onGotIt={playerCalls.gotIt} />}>
                 {restViews.map((flow) => (
                   <RestPrompt
                     key={`rest-${flow.group}`}

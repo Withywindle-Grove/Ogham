@@ -105,12 +105,6 @@ describe('the slot’s calls (40B, 40C)', () => {
     await vi.waitFor(() => expect(screen.queryByRole('button', { name: /^Got it/ })).toBeNull());
     await vi.waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'A rumour, for the party' })));
   });
-
-  // Purpose: with no calls the slot takes no room.
-  it('draws nothing with no calls', () => {
-    const { container } = render(<CallsInPromptSlot calls={callsInSlot([], new Map())} onGotIt={() => {}} />);
-    expect(container.innerHTML).toBe('');
-  });
 });
 
 describe('the second audit (Home Two, findings 1 to 4, picked 24 Nov)', () => {
@@ -161,7 +155,7 @@ describe('the second audit (Home Two, findings 1 to 4, picked 24 Nov)', () => {
 describe('the last audit (Home Two, new finding 1, the driver’s call 25 Nov)', () => {
   // Purpose: with no calls the slot's live region is already on the page, empty, so the session's first call is a change
   // inside a region the screen reader already watches: after the call arrives its words are inside that same element.
-  it.fails('keeps the empty live region mounted, and the first call arrives inside it', () => {
+  it('keeps the empty live region mounted, and the first call arrives inside it', () => {
     const { rerender } = render(<CallsInPromptSlot calls={callsInSlot([], new Map())} onGotIt={() => {}} />);
     const live = document.querySelector('.calls-slot__live');
     expect(live).not.toBeNull();

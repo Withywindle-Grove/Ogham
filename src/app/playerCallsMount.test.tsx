@@ -158,9 +158,9 @@ describe("the call card in the players' prompt slot (P7, the mount)", () => {
     expect(await screen.findByRole('heading', { name: 'A call to adventure, for the party' }, { timeout: 3000 })).toBeTruthy();
   });
 
-  // Purpose (empty, loading): with no calls, or before the calls are read, nothing of the calls is drawn and the slot's
-  // other prompts stand.
-  it('draws nothing with no calls', async () => {
+  // Purpose (empty, loading; Home Two's last audit, new 1): with no calls, or before the calls are read, no card, row or
+  // group is drawn, only the slot's empty live region, and the slot's other prompts stand.
+  it('draws only the empty live region with no calls', async () => {
     const t = table();
     const { container } = scene(t, 'sam');
     // Before the first read answers, nothing is drawn.
@@ -168,7 +168,9 @@ describe("the call card in the players' prompt slot (P7, the mount)", () => {
     expect(await screen.findByTestId('other-prompt')).toBeTruthy();
     await new Promise((r) => setTimeout(r, 50));
     expect(screen.queryByRole('group', { name: 'Calls to adventure' })).toBeNull();
-    expect(container.querySelector('.prompt-slot__item--last')).toBeNull();
+    const live = container.querySelector('.prompt-slot__item--last .calls-slot__live');
+    expect(live).not.toBeNull();
+    expect(live!.textContent).toBe('');
   });
 
   // Purpose (error, page 40's critique 7): after one good read, a re-read that fails (the log moved) keeps the card that

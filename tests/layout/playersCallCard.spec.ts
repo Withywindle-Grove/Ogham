@@ -72,7 +72,7 @@ for (const width of [375, 834] as const) {
 
       // Purpose (Home Two's last audit, new finding 1): with no calls the slot's live region is already on the page,
       // empty, so the session's first call is announced as a change inside it; it adds no height to the players' slot.
-      test.fail('keeps an empty live region with no calls, taking no room', async ({ page }) => {
+      test('keeps an empty live region with no calls, taking no room', async ({ page }) => {
         await page.goto('/layout.html?as=player&placePage=spots&session=running');
         await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
         await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Scene' }).click();
