@@ -214,6 +214,18 @@ Picture: one screenshot, not committed: it shows a private pack's place text, a 
 Reads as: keep the bordered box for an item inside the book's text. This may reverse something he said before this collection; the driver should check for an earlier ruling.
 Question (held for the end): "this box" is the bordered item box, not the whole "From the book" section?
 
+### F19. A character at a place needs their stat line at hand
+
+Screen: GM's Scene, the "From the book, for the GM" text from F17 and F18. The paragraph "Woman." describes a named character at this place, a sailor.
+
+Picture: one screenshot, not committed: it shows a private pack's character text (hard rule 2).
+
+> [NPC] is a sailor and should have a stat line that Gm can quickly reference. there is a sailor stat line on pg 13 of the source material. In general if an npc is at a location i should be able to quickly access their information. need to verify this when i get to location 5 with [NPC 2]
+
+([NPC] and [NPC 2] are named characters in the pack.)
+
+Reads as: when a named character is at a place, the GM can open their stat line and notes in one tap. Here the character is a sailor, and the source has a sailor stat line on p. 13. Same need as F4 (d). He will check again at place 5, which has another named character.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
