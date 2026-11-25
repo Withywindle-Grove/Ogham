@@ -293,4 +293,21 @@ export const undoBuy = defineCommand({
   run: (db, _user, input) => rpcRequest(db.rpc('undo_buy', { request: input.request.id })),
 });
 
+/** The input to town.askFor (TC12): the player's own character, the words of the ask, the campaign day, the thing. */
+export interface AskForInput {
+  character: AskingCharacter;
+  text: string;
+  day: number;
+  prompt: BuyPrompt;
+}
+
+/** Ask for… answered at once (town.askFor, TC12): not built yet; its tests come first (it.fails). Not registered. */
+export const askFor = defineCommand({
+  name: 'town.askFor',
+  log: 'simple',
+  target: (input: AskForInput) => ({ campaignId: input.character.campaignId, ownerUserId: input.character.ownerUserId }),
+  allowed: (user: CurrentUser, target: { campaignId: string; ownerUserId: string | null }) => isMember(user, target.campaignId) && target.ownerUserId === user.id,
+  run: async (): Promise<CommandResult<Request>> => fromError({ code: '42501', message: 'Not built yet.' }),
+});
+
 export const TOWN_REQUEST_COMMANDS = [replyRequest, chooseStay, undoBuy] as const;

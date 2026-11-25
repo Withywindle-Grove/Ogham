@@ -258,6 +258,15 @@ export function Switch(
   );
 }
 
+/** The three positions of the stock toggle: in stock, not in stock, or not decided today ("?"). */
+export type StockToggleState = 'in' | 'out' | 'undecided';
+
+/** The three-position toggle (TC9): not built yet; its tests come first (it.fails). */
+export function StockToggle(props: { thing: string; state: StockToggleState; onChange: (answer: 'in' | 'out') => void }) {
+  void props;
+  return null;
+}
+
 /**
  * The eye (ds-2): a bare 44 px button, no box and no word. An open eye when a thing is shown to the players, a closed eye
  * with lashes when it is hidden; read aloud as a switch with the caller's label ("Shown to the players") and its state.
