@@ -16,7 +16,7 @@ export interface TableListRow {
 }
 
 /** Why a candidate is offered, in words (05: "likely · this place", "this terrain"). */
-export function whyWords(candidate: TableCandidate, seasonName: (id: string) => string = (id) => id): string {
+export function whyWords(candidate: TableCandidate, seasonName: (id: string) => string = (id) => id): string | null {
   switch (candidate.why) {
     case 'place':
       return 'this place';
@@ -28,6 +28,8 @@ export function whyWords(candidate: TableCandidate, seasonName: (id: string) => 
       return candidate.season ? seasonName(candidate.season) : 'this season';
     case 'check':
       return 'this check';
+    case 'none':
+      return null;
   }
 }
 
@@ -79,7 +81,9 @@ export function whichTables({
  * place's own check stands in for the mode's (pf-12b: `place.inForce`; the nearest place in the chain that has one,
  * so a parent Area's or Region's counts) and names tables, those tables as this place's: one the list already holds
  * becomes the place's, one row. `whichTables` leads with the place's, so the row names it and not the mode's (the
- * tables-row fault, 2026-11-18). A check not in force, or none, leaves the list as it was. Pure.
+ * tables-row fault, 2026-11-18). There the mode's tables stay in the list with no tag (d5-13, ruled 2026-11-20: "this
+ * check" would be untrue); the GM's own checks' keep theirs. A check not in force, or none, leaves the list as it was
+ * (d5-14). Pure.
  */
 export function sceneCandidatesOf({
   mode,
@@ -93,9 +97,14 @@ export function sceneCandidatesOf({
   rules: ExplorationRules | null;
 }): TableCandidate[] {
   const found: TableCandidate[] = [];
-  for (const c of mode) if (!found.some((f) => f.tableId === c.tableId)) found.push(c);
-  for (const tableId of own) if (!found.some((f) => f.tableId === tableId)) found.push({ tableId, why: 'check', season: null });
-  if (place?.inForce) {
+  const standsIn = place?.inForce === true;
+  for (const c of mode) if (!found.some((f) => f.tableId === c.tableId)) found.push(standsIn ? { ...c, why: 'none', season: null } : c);
+  for (const tableId of own) {
+    const at = found.findIndex((f) => f.tableId === tableId);
+    if (at < 0) found.push({ tableId, why: 'check', season: null });
+    else if (found[at]!.why === 'none') found[at] = { tableId, why: 'check', season: null };
+  }
+  if (standsIn) {
     for (const c of checkPrompt(place.check, 'encounter', rules, {}).hit.candidates) {
       const at = found.findIndex((f) => f.tableId === c.tableId);
       if (at >= 0) found[at] = { ...found[at]!, why: 'place' };

@@ -113,16 +113,6 @@
   gap: var(--pad);
 }
 
-.setting-rules__move {
-  display: flex;
-  gap: var(--gap);
-}
-
-.setting-rules__arrow {
-  min-width: var(--tap);
-  padding: 0;
-}
-
 .setting-rules__layout {
   margin: 0;
   padding-left: var(--space-5);

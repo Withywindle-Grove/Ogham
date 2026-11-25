@@ -212,12 +212,21 @@ export const isSetIconName = (value: unknown): value is SetIconName => typeof va
 const WAY_ICONS: Readonly<Record<string, SetIconName>> = { row: 'paddles', swim: 'double-fish', walk: 'leather-boot', climb: 'mountain-climbing' };
 
 /**
- * A way of travelling's icon (pf-25's reader; plan scene-point-to-point, B16): the way's own `icon` where the pack
- * names one, else the picture the app has for its `by`. Null is no picture, and the way then shows its word alone:
- * a `by` the app has no picture for, and (pf-25: "an `icon` the set lacks falls back to the mark") an `icon` that is
- * not in the set, which is never swapped for the `by`'s own picture. Pure: the button that draws it is part 2.
+ * The generic way mark (pf-25; d5-11, ruled 2026-11-20: "A: the pins mark"): the two pins beside Move on, the app's
+ * `travel` line icon, which a way the app has no picture for carries above its word (page 18's note on PL7).
  */
-export function wayIconOf(way: { by: string; icon?: string }): SetIconName | null {
-  if (way.icon) return isSetIconName(way.icon) ? way.icon : null;
-  return Object.prototype.hasOwnProperty.call(WAY_ICONS, way.by) ? WAY_ICONS[way.by]! : null;
+export const WAY_MARK = 'way-mark' as const;
+
+/** What a way's button draws above its word: a picture from the set, or the generic way mark. */
+export type WayPicture = SetIconName | typeof WAY_MARK;
+
+/**
+ * A way of travelling's icon (pf-25's reader; plan scene-point-to-point, B16): the way's own `icon` where the pack
+ * names one, else the picture the app has for its `by`. With neither, the generic way mark (d5-11), so every button
+ * in a row keeps one shape: a `by` the app has no picture for, and (pf-25: "an `icon` the set lacks falls back to the
+ * mark") an `icon` that is not in the set, which is never swapped for the `by`'s own picture. Pure.
+ */
+export function wayIconOf(way: { by: string; icon?: string }): WayPicture {
+  if (way.icon) return isSetIconName(way.icon) ? way.icon : WAY_MARK;
+  return Object.prototype.hasOwnProperty.call(WAY_ICONS, way.by) ? WAY_ICONS[way.by]! : WAY_MARK;
 }

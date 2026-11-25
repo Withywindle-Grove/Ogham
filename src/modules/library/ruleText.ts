@@ -182,9 +182,6 @@ export interface WordsOrBlocks {
   blocks: RuleTextBlocks | null;
 }
 
-/** A trait's note as read (tfb-5). */
-export type TraitNote = WordsOrBlocks;
-
 /**
  * A text a pack may write as plain words or as pf-18's `{ blocks }`, read by the one reader: a class's or a kindred's
  * trait note (`abilities[].note`; tfb-5, 2026-11-19) and a common player action's rule (`exploration.playerActions[].text`;

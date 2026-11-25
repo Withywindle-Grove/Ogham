@@ -53,6 +53,9 @@ const FOCUS_CALLS: Record<string, number> = {
   // Back to the hoard's piece as its sheet closes (B15, impeccable audit 1): the piece's words, a button; and after a
   // send that leaves things (Francis picked A, 24 Nov), the hoard's first row not sent, a button. Never a field.
   '/src/app/HoardSheet.tsx': 2,
+  // After "Got it" folds a call (P7, impeccable audit finding 1): the next card's "Got it", else the folded row; both
+  // buttons, never a field.
+  '/src/app/CallCard.tsx': 1,
 };
 
 describe('no keyboard on open (A4)', () => {
