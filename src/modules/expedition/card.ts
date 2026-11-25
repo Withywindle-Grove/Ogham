@@ -110,7 +110,8 @@ export function cardFrom(
         always: p.always,
         ruledOut: p.ruledOut,
         modifiers: p.modifiers,
-        hit: p.hit,
+        // d5-12 (ruled 2026-11-20): a place's own check's tables are the place's ("this place" in Which table?).
+        hit: source === 'location' ? { ...p.hit, candidates: p.hit.candidates.map((c) => (c.why === 'check' ? { ...c, why: 'place' as const } : c)) } : p.hit,
         encounter: p.icon === 'encounter' || p.icon === 'monster' || p.hit.tables.length > 0 || p.hit.regionTables,
         // A lost check (05: never an encounter check): its hit queues no Encounter waiting card (M5b step 2).
         lost: p.terrainChance ? p.terrainChance === 'lostChance' : p.icon === 'lost',

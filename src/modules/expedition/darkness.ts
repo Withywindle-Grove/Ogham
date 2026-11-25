@@ -35,6 +35,11 @@ function withArticle(name: string): string {
   return `${/^[aeiou]/.test(word) ? 'an' : 'a'} ${word}`;
 }
 
+/** The toast once a light is lit (the voice guide, 06): "Lit a rushlight.", "Lit an oil lamp."; the item keeps its name. */
+export function litWords(name: string): string {
+  return `Lit ${withArticle(name)}.`;
+}
+
 /**
  * The reminder's button for the first light the character can light (its name and how many are left: "Light a torch
  * (4 left)"), or null when there's nothing to light.

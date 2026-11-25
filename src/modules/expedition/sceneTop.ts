@@ -9,9 +9,9 @@
 // alone: what goes in is what the screen already holds, so the players' top (S15) can use the same words.
 import type { SetIconName } from '../../ui/iconSet.ts';
 import { isPartOfDay, type Amount } from './clock.ts';
-import { POINT_TO_POINT_ID, type Chance } from './modes.ts';
+import { POINT_TO_POINT_ID, type Chance, type Mode } from './modes.ts';
 import { isSettlement, type Place } from './placePlay.ts';
-import { checkChanceWords, checkWhenWords, type ChainEntry } from './placeRules.ts';
+import { checkChanceWords, checkWhenWords, ruleBlocks, type ChainEntry, type RuleBlock } from './placeRules.ts';
 import { ancestorsOf, childrenOf, isLocation, packsWithPlaces, rootsOf, type PackPlace } from './placeTree.ts';
 
 /** The session's state (S9): never played, played before with none running (paused), or running. */
@@ -232,6 +232,56 @@ export function checkFact(input: { name: string | null; eachMove: boolean; every
     sub: checkChanceWords(input.chance),
     die: input.chance?.die?.trim().toLowerCase() || null,
   });
+}
+
+// A player's tap on a fact (plan dec-9-the-players-scene P10; page 18, PL8, approved 2026-11-14, ap-10) ----------------
+
+/** One labelled line of a fact's pop-up (PL8): the label with its full stop, then its words (a chance's die drawn by `DiceWords`). */
+export interface FactLine {
+  label: string;
+  words: string;
+}
+
+/** A group in the dark (PL8; the GM's Light pop-up too): what it means and what to do, after "No light.". */
+export const NO_LIGHT_WORDS = 'Nobody in the group has a light lit, so they are in darkness. Light one from a pack.';
+
+/**
+ * Light (PL8): each lit light and the time it has left ("Ash's torch. 4 turns left."); a group in the dark "No light."
+ * in today's words; a group with nothing lit "Nothing lit.". Each group named where the player has more than one.
+ */
+export function lightSheetLines(groups: readonly LightGroup[], stepWord: string): FactLine[] {
+  const named = (g: LightGroup, label: string) => `${groups.length > 1 ? `${g.name}: ` : ''}${label}.`;
+  return groups.flatMap((g) => {
+    if (g.dark) return [{ label: named(g, 'No light'), words: NO_LIGHT_WORDS }];
+    if (g.lights.length === 0) return [{ label: named(g, 'Nothing lit'), words: '' }];
+    return g.lights.map((l) => ({ label: named(g, l.name), words: l.stepsLeft === null ? '' : `${plural(l.stepsLeft, stepWord)} left.` }));
+  });
+}
+
+/** Rest (PL8): "Next." and the fact's whole value, with its small line where that says more than the rule ("You pushed on."). */
+export function restSheetLines(fact: Fact, ruleWords: string | null): FactLine[] {
+  return [{ label: 'Next.', words: [sentence(fact.value), fact.sub && fact.sub !== ruleWords ? fact.sub : null].filter(Boolean).join(' ') }];
+}
+
+/** The Encounter check (PL8): "When." and "Chance."; no chance line where the check has none. */
+export function checkSheetLines(fact: Fact): FactLine[] {
+  return [{ label: 'When.', words: sentence(fact.value) }, ...(fact.sub ? [{ label: 'Chance.', words: sentence(fact.sub) }] : [])];
+}
+
+/** A rule in the pack's words, then its page as the setting's (as Activities say it); nothing when the pack gives no words. */
+export function settingRule(words: readonly (string | null)[], source?: string): RuleBlock[] {
+  const blocks = words.flatMap((w) => ruleBlocks(w));
+  return blocks.length > 0 && source ? [...blocks, { kind: 'source', text: `From your setting: ${source}` }] : blocks;
+}
+
+/**
+ * The words of the setting's encounter check a player may read (PL8): the note of the procedure step that runs it, only
+ * while the rules set opens its procedures to players (`playerReadable`, as the procedure list does). The check's own
+ * note and its table stay the GM's (rp-2, mc-39b); a place's own check has none here (its read sends when and chance only).
+ */
+export function checkRule(mode: Pick<Mode, 'procedure'>, checkId: string, playerReadable: boolean): RuleBlock[] {
+  const step = playerReadable ? mode.procedure.find((s) => s.kind === 'check' && s.checkId === checkId) : undefined;
+  return step ? settingRule([step.note], step.source) : [];
 }
 
 // The town's and downtime's top (S5; page 16, T4 and T5; st-1, st-8, mc-69) ------------------------------------------

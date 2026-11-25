@@ -237,7 +237,7 @@ async function openSheet(as: string): Promise<User> {
   return user;
 }
 
-/** The GM's Players tab, then Wren's sheet. */
+/** The GM's Players tab, then Edit in Wren's ⋯ (page 32, pg32-1): Wren's sheet, on its form. */
 async function openSheetAsGm(gm: string): Promise<User> {
   const user = await openCampaign(gm);
   await user.click(
@@ -246,17 +246,19 @@ async function openSheetAsGm(gm: string): Promise<User> {
     ).getByRole("button", { name: /^Players/ }),
   );
   await user.click(
-    await screen.findByRole("button", { name: "View Wren's sheet" }),
+    await screen.findByRole("button", { name: "More for Wren" }),
   );
-  await screen.findByRole("region", { name: "Level" });
+  await user.click(screen.getByRole("button", { name: "Edit" }));
+  await screen.findByRole("form", { name: "Edit Wren" });
   return user;
 }
 
 const footOf = () => document.querySelector(".sheet__foot") as HTMLElement;
 
-/** Edit, then Muscle (or another score) stepped up by one, then Done in its sheet. */
+/** Edit (unless the form is open), then Muscle (or another score) stepped up by one, then Done in its sheet. */
 async function stepScore(user: User, tile: RegExp, name: string, times = 1) {
-  await user.click(within(footOf()).getByRole("button", { name: "Edit" }));
+  if (!screen.queryByRole("form", { name: "Edit Wren" }))
+    await user.click(within(footOf()).getByRole("button", { name: "Edit" }));
   const form = within(await screen.findByRole("form", { name: "Edit Wren" }));
   await user.click(form.getByRole("button", { name: tile }));
   const dialog = within(await screen.findByRole("dialog", { name }));
@@ -1117,6 +1119,10 @@ describe("the GM answers a sheet change", () => {
     await waitFor(() => expect(fieldsOf(ids.wren).MUS).toBe(14));
     expect(world.tables.sheet_changes).toHaveLength(0);
     expect(screen.queryByText(/Waiting for your GM:/)).toBeNull();
+    // Saved, back on Players (as the player's Edit comes back to Your characters); Wren's sheet shows the new score.
+    await user.click(
+      await screen.findByRole("button", { name: "View Wren's sheet" }),
+    );
     expect(
       await screen.findByRole("button", { name: /^Muscle 14/ }),
     ).toBeTruthy();

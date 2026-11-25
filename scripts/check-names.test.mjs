@@ -6,6 +6,7 @@ import { crc32, deflateSync } from 'node:zlib';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { withoutGitVariables } from './git-test-env.mjs';
 import { addedLines, findInPullRequest, findNames, hookVerdict, looksBinary, parseDenylist } from './check-names.mjs';
 
 describe('the real-names scan', () => {
@@ -171,7 +172,7 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
   /** A throwaway repository: a base commit, then a pull request's commit that adds the given files. */
   function repoWith(files, message = 'B6: a clean message') {
     const dir = mkdtempSync(join(tmpdir(), 'names-pr-'));
-    const run = (...args) => execFileSync('git', ['-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd: dir, encoding: 'utf8' });
+    const run = (...args) => execFileSync('git', ['-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd: dir, encoding: 'utf8', env: withoutGitVariables() });
     run('init', '-q', '-b', 'main');
     mkdirSync(join(dir, 'docs'));
     writeFileSync(join(dir, 'docs', 'old.md'), 'The Gloomwater Codex was here before the pull request.\n');
@@ -185,7 +186,7 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
   }
   /** One more commit on that pull request: the given files written (or, for null, deleted). */
   function commitMore(dir, files, message = 'B6: more') {
-    const run = (...args) => execFileSync('git', ['-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd: dir, encoding: 'utf8' });
+    const run = (...args) => execFileSync('git', ['-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd: dir, encoding: 'utf8', env: withoutGitVariables() });
     for (const [name, text] of Object.entries(files)) {
       if (text === null) rmSync(join(dir, name));
       else writeFileSync(join(dir, name), text);
@@ -197,9 +198,66 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
     spawnSync(process.execPath, [script, '--pr', 'main', 'HEAD', ...args], {
       cwd: dir,
       encoding: 'utf8',
-      env: { ...process.env, GRIMOIRE_DENYLIST: join(dir, 'no-list.txt'), GRIMOIRE_NAMES: '', GRIMOIRE_NAMES_REQUIRED: '', PR_TITLE: '', PR_BODY: '', PR_BRANCH: '', ...env },
+      env: withoutGitVariables(process.env, { GRIMOIRE_DENYLIST: join(dir, 'no-list.txt'), GRIMOIRE_NAMES: '', GRIMOIRE_NAMES_REQUIRED: '', PR_TITLE: '', PR_BODY: '', PR_BRANCH: '', ...env }),
     });
   const list = '# invented\nGloomwater Codex\nGWC\n';
+
+  // Purpose: a throwaway repository built inside a git hook (where git exports GIT_DIR and GIT_INDEX_FILE) is built in
+  // its own folder, and the repository those variables point at keeps its config, refs, worktree and index exactly.
+  // On 24 Nov this helper, run by the pre-commit hook in a linked worktree, committed "base" to a real branch, switched
+  // that worktree to b6-table, and its `git init` set core.bare = true in the real repository's shared config.
+  it("builds its throwaway repository in its own folder even when git's hook variables point at another one", () => {
+    const outer = mkdtempSync(join(tmpdir(), 'names-outside-'));
+    const main = join(outer, 'main');
+    const worktree = join(outer, 'wt');
+    mkdirSync(main);
+    const plain = withoutGitVariables(process.env, { GIT_CONFIG_NOSYSTEM: '1' });
+    const at = (cwd) => (...args) =>
+      execFileSync('git', ['-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd, encoding: 'utf8', env: plain });
+    at(main)('init', '-q', '-b', 'trunk');
+    at(main)('config', 'user.name', 'Outer');
+    writeFileSync(join(main, 'keep.md'), 'untouched\n');
+    at(main)('add', '.');
+    at(main)('commit', '-q', '-m', 'outside');
+    at(main)('worktree', 'add', '-q', '-b', 'side', worktree);
+    const snapshot = () =>
+      [
+        at(main)('config', '--local', '--list'),
+        at(main)('for-each-ref', '--format=%(refname) %(objectname)'),
+        at(main)('symbolic-ref', 'HEAD'),
+        at(worktree)('symbolic-ref', 'HEAD'),
+        at(main)('ls-files', '--stage'),
+        at(worktree)('ls-files', '--stage'),
+      ].join('\n');
+    const before = snapshot();
+    expect(before).toContain('core.bare=false');
+    expect(before).toContain('user.name=Outer');
+    // As the pre-commit hook in that worktree would have them.
+    const gitDir = at(worktree)('rev-parse', '--absolute-git-dir').trim();
+    const saved = { GIT_DIR: process.env.GIT_DIR, GIT_INDEX_FILE: process.env.GIT_INDEX_FILE };
+    process.env.GIT_DIR = gitDir;
+    process.env.GIT_INDEX_FILE = join(gitDir, 'index');
+    let dir;
+    try {
+      dir = repoWith({ 'docs/new.md': 'clean\n' });
+    } catch {
+      // A helper that followed the variables may also fail part-way; the comparison below says what it touched.
+    } finally {
+      for (const [name, value] of Object.entries(saved)) {
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+      }
+    }
+    try {
+      expect(snapshot()).toBe(before);
+      const own = (...args) => execFileSync('git', args, { cwd: dir, encoding: 'utf8', env: plain }).trim();
+      expect(own('rev-parse', '--abbrev-ref', 'HEAD')).toBe('b6-table');
+      expect(own('log', '--format=%s')).toBe('B6: a clean message\nbase');
+    } finally {
+      rmSync(outer, { recursive: true, force: true });
+      if (dir) rmSync(dir, { recursive: true, force: true });
+    }
+  });
 
   it('fails on a name the pull request adds, saying the file and line but never the name', () => {
     const dir = repoWith({ 'docs/new.md': 'one\ntwo\nthe Gloomwater Codex\n' });

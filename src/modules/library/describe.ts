@@ -56,9 +56,10 @@ const LABELS: Record<string, string> = {
  * The app's own bookkeeping on an entry (sn-1b: `pinnedFrom` names the pack an entry was copied from; links, an image,
  * how a block is turned; an entry's `tags` and a variant's `baseId`, of-7): read by code, never a row a reader sees
  * (test feedback 2026-11-19, A4; ruled 2026-11-20, of-7). One list, shared with the stat block (statBlockLayout.ts),
- * which hides these and the block-only keys it draws elsewhere.
+ * which hides these and the block-only keys it draws elsewhere. `truthPiece` is an item line's pointer to the piece
+ * that tells its truth (B15, p2p-29): the item shows the truth, never the pointer.
  */
-export const BOOKKEEPING_KEYS: readonly string[] = ['pinnedFrom', 'convertedFrom', 'sameAs', 'imageId', 'turnAs', 'tags', 'baseId'];
+export const BOOKKEEPING_KEYS: readonly string[] = ['pinnedFrom', 'convertedFrom', 'sameAs', 'imageId', 'turnAs', 'tags', 'baseId', 'truthPiece'];
 
 /**
  * A stat block's behaviour fields (07, Encounters and fights): read by the fight's foe card, never a row of the block's

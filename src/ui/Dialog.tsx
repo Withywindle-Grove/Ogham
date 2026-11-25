@@ -89,6 +89,16 @@ function anchorNow(): Element | null {
 }
 
 /**
+ * The button that is opening a pop-up, for focus to go back to when it closes: the one with focus (a keyboard, or a tap
+ * where a tap focuses), else the one just tapped (Safari doesn't focus a tapped button), else none.
+ */
+export function openerNow(): HTMLElement | null {
+  const focused = typeof document !== 'undefined' ? document.activeElement : null;
+  const candidate = focused && focused !== document.body ? focused : lastTapped?.isConnected ? lastTapped : null;
+  return candidate instanceof HTMLElement ? candidate : null;
+}
+
+/**
  * Where a sheet sits on a tablet: below its anchor with a gap, else above it, else as low as fits; its left edge at
  * the anchor's, kept inside the screen's margins. Null (centred) without an anchor on screen. Pure, for the tests.
  */
@@ -191,6 +201,7 @@ export function Dialog({
   wide = false,
   meta,
   onBack,
+  onEscape,
   drawer = false,
   side = false,
   table = false,
@@ -201,6 +212,7 @@ export function Dialog({
   figure,
   reading = false,
   readingAction,
+  plainTitle = false,
 }: {
   label: string;
   onClose: () => void;
@@ -219,6 +231,11 @@ export function Dialog({
    * another sheet (Roll for a name's tables, R3-1); without it only the ✕.
    */
   onBack?: () => void;
+  /**
+   * What Escape does instead of closing: a step inside the pop-up goes back that step, as its Back does (the Light
+   * pop-up's "Which light?", the audit of #86). Without it Escape closes, as ✕ does.
+   */
+  onEscape?: () => void;
   /**
    * Variant "Drawer" (the phone's navigation, final drafts A11, slice E): the whole height at the left, over the dimmed
    * page; the title and ✕ at its top. A tap outside, ✕ or Escape closes it, as every pop-up does.
@@ -265,6 +282,12 @@ export function Dialog({
    * on a skill's sheet). Only with `reading`.
    */
   readingAction?: ReactNode;
+  /**
+   * Variant "Plain title" (page 32, M3f, M3f2, M3j; audit fix 4, 2026-11-24): the title in ink and sentence case at the
+   * Sheet's title size, as M3f draws it, never the book's red heading, even with `reading` or inside `BookPopUpScope`.
+   * The GM's player-only pop-ups ("Only Sam can …", `BlockedSheet`'s "To read").
+   */
+  plainTitle?: boolean;
 }) {
   const head = figure !== undefined && figure !== null && figure !== '' ? <span className="dialog__figure">{figure}</span> : null;
   const card = useRef<HTMLDivElement>(null);
@@ -282,7 +305,7 @@ export function Dialog({
   // The book's pop-ups (tfb-1): the red heading on a card (never the navigation drawer or a full screen's bar), and
   // "Got it" at the foot of one to read (tfb-2).
   const bookPopUp = (useContext(BookPopUpScope) || reading) && !full && !drawer;
-  const titled = bookHeading || bookPopUp;
+  const titled = (bookHeading || bookPopUp) && !plainTitle;
   const bookCard = bookPopUp ? ' dialog--book' : '';
   // The sheet's anchor, read once as it opens (before focus moves into it).
   const [anchor] = useState(() => (anchored ? anchorNow() : null));
@@ -337,8 +360,10 @@ export function Dialog({
   }, [anchored, anchor]);
   // The latest onClose, so a re-render doesn't run the opening effect again.
   const close = useRef(onClose);
+  const escape = useRef(onEscape);
   useEffect(() => {
     close.current = onClose;
+    escape.current = onEscape;
   });
   // Whether the tap now under way began on the dimmed page (fix-tap-through).
   const downOutside = useRef(false);
@@ -353,7 +378,7 @@ export function Dialog({
       // A pop-up opened from inside another (Where now? from the location view's sheet) takes the keys: Escape closes
       // the top one only, and Tab stays in it.
       if (!onTop(card.current)) return;
-      if (event.key === 'Escape') close.current();
+      if (event.key === 'Escape') (escape.current ?? close.current)();
       else if (event.key === 'Tab' && card.current) {
         const stops = [...card.current.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => !el.hasAttribute('disabled'));
         if (stops.length === 0) return;
@@ -377,7 +402,7 @@ export function Dialog({
     return (
       <div ref={card} className={`dialog dialog--preview${drawer ? ' dialog--drawer' : ''}${side ? ' dialog--side' : ''}${table ? ' dialog--table' : ''}${picture ? ' dialog--picture' : ''}${bookCard}${book}`} role="group" aria-label={`${label} (preview)`}>
         <div className={`dialog__head${head ? ' dialog__head--figure' : ''}`}>
-          <Title label={label} over={over} bookHeading={titled} />
+          <Title label={label} over={over} bookHeading={titled} plain={plainTitle} />
           {head}
           {headAction}
           {!noClose && <CloseButton onClose={onClose} />}
@@ -429,7 +454,13 @@ export function Dialog({
         const outside = event.target === event.currentTarget;
         const finger = event.pointerType === 'touch' || event.pointerType === 'pen';
         downOutside.current = outside && finger;
-        if (outside && !finger) close.current();
+        // A mouse's press closes it, and its own default (the mousedown that follows) would then move focus to the page,
+        // off the opener the pop-up's close has just focused (Home Two's re-check, Francis picked 1b, 24 Nov): it is
+        // stopped. A finger's tap still closes it on its click, as before.
+        if (outside && !finger) {
+          event.preventDefault();
+          close.current();
+        }
       }}
       onPointerCancel={() => {
         downOutside.current = false;
@@ -454,7 +485,7 @@ export function Dialog({
               <span aria-hidden="true">‹</span>
             </button>
           )}
-          <Title label={label} over={over} bookHeading={titled} />
+          <Title label={label} over={over} bookHeading={titled} plain={plainTitle} />
           {head}
           {headAction}
           {!noClose && <CloseButton onClose={() => close.current()} />}
@@ -492,8 +523,8 @@ export function GotItFoot({ onClose, action }: { onClose: () => void; /** A plai
 }
 
 /** The head's title; with `over`, the small line over it (the picture pop-up's place name), read as one heading. */
-function Title({ label, over, bookHeading }: { label: string; over?: string; bookHeading: boolean }) {
-  const title = <h2 className={`dialog__title${bookHeading ? ' book-heading' : ''}`}>{label}</h2>;
+function Title({ label, over, bookHeading, plain = false }: { label: string; over?: string; bookHeading: boolean; plain?: boolean }) {
+  const title = <h2 className={`dialog__title${bookHeading ? ' book-heading' : ''}${plain ? ' dialog__title--plain' : ''}`}>{label}</h2>;
   if (!over) return title;
   return (
     <div className="dialog__titles">

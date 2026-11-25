@@ -49,6 +49,7 @@ import { EntryPinStar, movePinTo, PinMoves, PlayerTraits, traitsWithUses } from 
 import { PlayerSheetParts } from './player/PlayerSheetParts.tsx';
 import { playerFigures } from './player/playerFigures.ts';
 import { PlayerStateLine } from './player/PlayerStates.tsx';
+import { usePlayerView } from './playerView.ts';
 
 type Tab = Exclude<PlayerTab, 'log'>;
 
@@ -89,6 +90,7 @@ export function PlayerScreen({
   wide = false,
   sheetRefresh = 0,
   onSheetSaved,
+  startTab,
 }: {
   db: Db;
   user: CurrentUser;
@@ -109,11 +111,20 @@ export function PlayerScreen({
   sheetRefresh?: number;
   /** The sheet beside saved something (its Edit). */
   onSheetSaved?: () => void;
+  /** The GM's view as the player (page 32): the tab its door opens (View sheet, Pack, Magic, Scene; tfg-1). */
+  startTab?: Tab;
 }) {
-  // After a reload into a new version, the tab the player was on (placeOnReload.ts).
-  const [tab, setTab] = useState<Tab>(() => tabToRestore<Tab>(campaign.id, ['player', 'scene', 'pack', 'magic']) ?? 'player');
-  useEffect(() => tabRestored(campaign.id), [campaign.id]);
-  useEffect(() => noteTab(campaign.id, tab), [campaign.id, tab]);
+  // The GM's view as the player (page 32): whose view this is, or null on the player's own screen.
+  const view = usePlayerView();
+  // After a reload into a new version, the tab the player was on (placeOnReload.ts). The GM's view neither restores
+  // nor notes one, so it never changes the tab the GM's own sections or a player's device come back to (C15b).
+  const [tab, setTab] = useState<Tab>(() => (view ? (startTab ?? 'player') : (tabToRestore<Tab>(campaign.id, ['player', 'scene', 'pack', 'magic']) ?? 'player')));
+  useEffect(() => {
+    if (!view) tabRestored(campaign.id);
+  }, [view, campaign.id]);
+  useEffect(() => {
+    if (!view) noteTab(campaign.id, tab);
+  }, [view, campaign.id, tab]);
   const phone = usePhone();
   const messaging = useMessaging();
   const waiting = messaging && messaging.user.roles[campaign.id] !== 'gm' ? messaging.unread : 0;
@@ -241,11 +252,15 @@ export function PlayerScreen({
   // On a phone the campaign's name sits beside ≡, which opens the drawer, and Log is a tab (slice E).
   // Beside ≡ the character's name on Player, "<name>’s pack" on Pack, the campaign's on Scene (Design on #549, mockup 17).
   // On Player, in two columns, the bar reads the name, "the" kindred and the title (dec-13 C2, frame P1).
-  const topRow = (playerTitle: string) => (
+  const topRow = (playerTitle: string) => {
+    const title = tab === 'scene' ? (phone ? undefined : '') : tab === 'pack' ? `${character.name}’s pack` : playerTitle;
+    // The GM's view (page 32, M3c, M3j): "‹ Players" at the left (in ≡'s place on a phone), the same title, and the
+    // GM's own Log, ✉ and Reference; the band sits under the row (its host's BelowTopRowProvider).
+    if (view) return <TopRow back="Players" named onBack={onBack} menuLabel="Character options" title={title ?? ''} logTab standard />;
     // Creation's standard (plan m5b-players-screens-standard A1): the title centred, ⋯ a sheet; the same bar on every tab
     // so it never jumps between them.
-    <TopRow campaign={{ db, campaign }} onBack={onBack} menuLabel="Character options" drawer={campaign.name} title={tab === 'scene' ? (phone ? undefined : '') : tab === 'pack' ? `${character.name}’s pack` : playerTitle} logTab standard />
-  );
+    return <TopRow campaign={{ db, campaign }} onBack={onBack} menuLabel="Character options" drawer={campaign.name} title={title} logTab standard />;
+  };
 
   if (companyOpen) {
     return (
@@ -303,6 +318,8 @@ export function PlayerScreen({
   const kindred = kindredAndTitle(figures.shownRace, title);
   const cardWords = figures.className ? '' : cardLine(fieldDefs, character.fields, character.level, traitLookup(traitListsOf(setting?.all ?? [])));
   const headLine = wide ? cardWords : kindred || cardWords;
+  // In the GM's view the Scene is its player's (C15f, pg32-5): whose group, requests and Rest it shows.
+  const scenePlayer = view ? (character.ownerUserId ?? user.id) : undefined;
   const top = topRow(wide && current === 'player' ? nameKindredTitle(character.name, figures.shownRace, title) : character.name);
 
   // The right column's list, Abilities and traits (row P3; page 28): the pinned ones first, in the player's order, then
@@ -458,21 +475,26 @@ export function PlayerScreen({
           // The players' live table view (B18, M5 gate): the time band, the prompt slot (the rest prompt, a request, a
           // message from the GM: the silent card, B3; No light; the weather), the marching order as tiles with Rest
           // under it (their own group's after a split), then the place; then its few recent log lines.
+          // In the GM's view (C15f, pg32-5; M3i) it is the player's Scene: their group, their requests, their Rest.
           <>
             <SceneTime
               db={db}
               user={user}
               campaign={campaign}
+              player={scenePlayer}
               tableView={{
                 prompts: [
-                  <PlayerRequests key="requests" db={db} user={user} campaign={campaign} setting={setting} />,
+                  <PlayerRequests key="requests" db={db} user={user} campaign={campaign} setting={setting} player={scenePlayer} />,
                   <MessageCard key="message" />,
                   <Darkness key="dark" db={db} campaignId={character.campaignId} characterId={character.id} setting={setting} light={lightView} refresh={logVersion} />,
                 ],
-                body: (restButton, dark) => <PartyGroups db={db} user={user} campaign={campaign} restButton={restButton} dark={dark} actor={actorFacts} />,
+                light: lightView,
+                body: (restButton, dark) => <PartyGroups db={db} user={user} campaign={campaign} restButton={restButton} dark={dark} actor={actorFacts} player={scenePlayer} />,
               }}
             />
-            <LogView db={db} user={user} campaignId={character.campaignId} recent={RECENT_LINES} />
+            {/* In the GM's view of a player's Scene, no Recently lines: they would be his own log (⚑ 52, ruled 2026-11-24).
+                The view of his own character keeps them, as his own Scene does. */}
+            {!view?.player && <LogView db={db} user={user} campaignId={character.campaignId} recent={RECENT_LINES} />}
           </>
         ) : (
           <PackScreen

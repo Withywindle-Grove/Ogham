@@ -29,7 +29,7 @@ export async function openDepart(user: Pick<Clicker, 'click'>): Promise<Scope> {
 }
 
 /** The sheet's Where? row (B7: its name reads "Where?: " and the picked place, or "Pick a Location"). */
-export const WHERE = /^Where\?:/;
+const WHERE = /^Where\?:/;
 
 /**
  * Start expedition: the Depart sheet's Start (opening the sheet first if it isn't open). Where nothing is picked yet,

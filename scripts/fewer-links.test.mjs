@@ -59,6 +59,9 @@ function allowed(path, label, opening) {
   // was rolled is a link that opens its creature's stat block, or the encounter's details, in the pop-up: going
   // somewhere, nothing started.
   if (path.endsWith('EncounterWaiting.tsx') && label === '{card.hit.rowText}') return 'goes somewhere (06-03)';
+  // "+ Map from the pack / or choose a file…" after a failed fetch of the pack's picture (Francis, 2026-11-25, B14's
+  // re-audit, "I take your recommendations"): the quiet second way, read as the end of the button's sentence.
+  if (path.endsWith('MapParts.tsx') && label === 'or choose a file…') return "the retry's sentence, its second way (2026-11-25)";
   return null;
 }
 

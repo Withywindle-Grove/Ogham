@@ -1,11 +1,12 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { loadCampaignHeading } from '../core/myCampaigns.ts';
 import type { Db } from '../core/supabase.ts';
-import { MenuItems, MoreMenu, MoreSheet } from '../ui/MoreMenu.tsx';
+import { MenuItem, MenuItems, MoreMenu, MoreSheet } from '../ui/MoreMenu.tsx';
 import { LogButton, useLogVersion } from './campaignLog.tsx';
-import { ReferenceButton } from './GmReference.tsx';
+import { ReferenceButton, useReferenceMenuItem } from './GmReference.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
-import { MessagesButton } from './Messages.tsx';
+import { MessagesButton, useMessaging } from './Messages.tsx';
+import { usePlayerView } from './playerView.ts';
 import { Portrait } from './Portrait.tsx';
 import { ShellDrawer, ShellMenuItems } from './shellMenu.tsx';
 import { Icon } from '../ui/icons.tsx';
@@ -36,6 +37,7 @@ export function TopRow({
   title,
   logTab = false,
   standard = false,
+  named = false,
   children,
 }: {
   /** Where the back link goes, in words: "Your campaigns", "Players". */
@@ -67,6 +69,11 @@ export function TopRow({
    * (`back` without `campaign`) shows ← as an icon named "Back to <back>", never "‹".
    */
   standard?: boolean;
+  /**
+   * With `standard` and `back`: the back link in words, "‹ Players", instead of ←, on a phone too, where it takes ≡'s
+   * place (the GM's view as the player: page 32, M3c, M3j; pg32-2).
+   */
+  named?: boolean;
   /** The screen's own ⋯ options, shown first. */
   children?: ReactNode;
 }) {
@@ -74,6 +81,25 @@ export function TopRow({
   const phone = usePhone();
   const withDrawer = phone && drawer !== undefined;
   const below = useContext(BelowTopRow);
+  // The GM's view as the player on a phone (page 32, M3j; pg32-match): the bar carries only ⋯ at the right, and ✉ and
+  // Reference are its first rows ("Messages", "Reference": the driver's words, ⋯ open not being drawn).
+  const inMore = usePlayerView() !== null && standard && phone && !campaign && drawer === undefined;
+  const messaging = useMessaging();
+  const reference = useReferenceMenuItem();
+  const messagesRow = inMore && messaging && (
+    <MenuItem icon="messages" onClick={() => messaging.open()} {...(messaging.unread > 0 ? { sub: `${messaging.unread > 99 ? '99+' : messaging.unread} unread` } : {})}>
+      Messages
+    </MenuItem>
+  );
+  // The GM's view as the player (`named`): opened from a door on the Players row, the door is gone, so focus goes to the
+  // view's heading, the character's name, not to the page (audit fix 3b). Only when nothing holds focus: a tab tapped
+  // in the view keeps it.
+  const heading = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!named || typeof document === 'undefined') return;
+    const at = document.activeElement;
+    if (at === null || at === document.body) heading.current?.focus({ preventScroll: true });
+  }, [named]);
   // Its height, for what sticks below it (the landscape tabs, Add item's search). It grows with the text size.
   useEffect(() => {
     const el = row.current;
@@ -91,14 +117,24 @@ export function TopRow({
 
   if (standard) {
     const own = children ? <MenuItems>{children}</MenuItems> : null;
+    const moved = inMore && (messagesRow || reference.item) ? (
+      <MenuItems>
+        {messagesRow}
+        {reference.item}
+      </MenuItems>
+    ) : null;
     return (
       <div ref={row} className="top-row top-row--standard">
-        <div className="top-row__lead">
+        <div className={`top-row__lead${named && !withDrawer && !campaign ? ' top-row__lead--named' : ''}`}>
           {withDrawer ? (
             <DrawerStart title={title ?? drawer} drawerTitle={drawer} onYourCampaigns={onBack} bare />
           ) : campaign ? (
             <button type="button" className="button-quiet top-row__back" onClick={onBack}>
               <CampaignBack {...campaign} />
+            </button>
+          ) : named ? (
+            <button type="button" className="button-quiet top-row__back" onClick={onBack}>
+              ‹ {back}
             </button>
           ) : (
             <button type="button" className="top-row__menu top-row__arrow" aria-label={back ? `Back to ${back}` : 'Back'} onClick={onBack}>
@@ -106,21 +142,29 @@ export function TopRow({
             </button>
           )}
         </div>
-        {(title ?? (withDrawer ? drawer : undefined)) ? <span className="top-row__title top-row__title--centred">{title ?? drawer}</span> : <span />}
+        {(title ?? (withDrawer ? drawer : undefined)) ? (
+          <span ref={heading} className="top-row__title top-row__title--centred" {...(named ? { tabIndex: -1 } : {})}>
+            {title ?? drawer}
+          </span>
+        ) : (
+          <span />
+        )}
         <div className="top-row__end">
           {actions}
           {/* The Log (the open book) before Messages, as frame P1 of december/14 draws the bar (Francis's fix 4, 19 Nov 2026). */}
           {!(phone && logTab) && <LogButton />}
-          <MessagesButton />
-          <ReferenceButton />
+          {!inMore && <MessagesButton />}
+          {!inMore && <ReferenceButton />}
           {withDrawer ? (
             own && <MoreSheet label={menuLabel}>{own}</MoreSheet>
           ) : (
             <MoreSheet label={menuLabel}>
+              {moved}
               {own}
               <ShellMenuItems />
             </MoreSheet>
           )}
+          {inMore && reference.panel}
         </div>
         {below && <div className="top-row__below">{below}</div>}
       </div>

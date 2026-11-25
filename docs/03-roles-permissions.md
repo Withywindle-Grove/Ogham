@@ -65,6 +65,7 @@ Anyone signed in can create a campaign and becomes its GM. Everyone else joins w
 | Annotate a log entry | ✅ | ✅ | ✅ | ✅ (edit your own notes, the old text stays in the log; GM can edit any; notes are never deleted) |
 | Edit others' notes, pin notes, session summaries | ✅ | — | Archivist | — |
 | Import packs into your own library (private to you) | ✅ | ✅ | ✅ | ✅ |
+| A pack's pictures, kept with the pack (a bundle's maps; p2p-27; Francis, 2026-11-22; enforced by the bucket `pack-files`) | ✅ keeps and replaces them for packs they own; reads those of any pack a campaign of theirs uses | — | — | — (only a pack's owner keeps a picture with it; a player never reads one, even once a map's eye is open: the eye shares the campaign's own copy) |
 | Read a pack table the pack marks `"gmOnly": false` (a class's starting-spell table; ruled 2026-11-02, `design/rulings/m5b-0c-first-spells-table-2026-11-02.md`) | ✅ | ✅ | ✅ | ✅ (enforced by the database; every other table stays the GM's) |
 | Read the setting's sheet layouts (field names, kinds, lists, `fill` marks; ruled 2026-11-02, cf-5, `design/rulings/m5b-0c-creation-followups-2026-11-02.md`) | ✅ | ✅ | ✅ | ✅ (enforced by the database; a per-race list and a field's option gate need it at creation) |
 | Attach a pack to a campaign | ✅ (that campaign's GM only) | — | — | — |

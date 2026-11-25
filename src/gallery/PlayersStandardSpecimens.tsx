@@ -62,12 +62,12 @@ const lightView = (light: CharacterLight | null, fuelLeft = 0, options: LightOpt
   units: { turn: TURN.seconds },
   fuel: { left: fuelLeft, name: fuelLeft > 0 ? 'Lamp oil' : null },
   unitOf: () => TURN,
-  lightIt: nothing,
+  lightIt: async () => true,
   lightAnother: nothing,
   douse: nothing,
   keepLit: nothing,
   refill: nothing,
-  refillAndLight: nothing,
+  refillAndLight: async () => true,
   reload: none,
 });
 const STORM = lightLine('Storm lantern', 1, 'lamp-oil');

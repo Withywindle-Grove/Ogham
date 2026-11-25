@@ -23,6 +23,7 @@ import type { YieldItem } from './ActivityButtons.tsx';
 import { ToastHost } from '../ui/ToastHost.tsx';
 import { ActivityButtons, offeredActivities } from './ActivityButtons.tsx';
 import type { TravelView } from './travelView.ts';
+import { PlayerViewContext, type PlayerView } from './playerView.ts';
 
 vi.mock('./services.ts', async () => {
   const { createAppRegistry } = await import('./commandRegistry.ts');
@@ -132,9 +133,10 @@ function requestsTable() {
   return chain;
 }
 
-function show(overrides: Partial<{ terrainId: string | null; actor: ActorFacts; view: TravelView; user: CurrentUser }> = {}) {
+function show(overrides: Partial<{ terrainId: string | null; actor: ActorFacts; view: TravelView; user: CurrentUser; playerView: PlayerView; player: string }> = {}) {
   const db = { rpc, from: () => requestsTable() } as unknown as Db;
   return render(
+    <PlayerViewContext.Provider value={overrides.playerView ?? null}>
     <ToastHost>
       <ActivityButtons
         db={db}
@@ -146,8 +148,10 @@ function show(overrides: Partial<{ terrainId: string | null; actor: ActorFacts; 
         actor={overrides.actor ?? reed}
         itemOf={(id) => items[id] ?? null}
         onChanged={onChanged}
+        player={overrides.player}
       />
-    </ToastHost>,
+    </ToastHost>
+    </PlayerViewContext.Provider>,
   );
 }
 
@@ -180,6 +184,18 @@ describe('Activity buttons (M5b step 3)', () => {
       ),
     );
     expect(await screen.findByText('Sent to the GM: Sing low')).toBeTruthy();
+  });
+
+  // Purpose (C15d; page 32, M3f2): in the GM's view as the player, a secret activity's Ask the GM opens "Only Sam can send
+  // this request", with "Go to Waiting for you", and sends nothing.
+  it("in the GM's view, Ask the GM opens Only Sam can send this request and sends nothing", async () => {
+    show({ user: { id: 'priya', roles: { camp: 'gm' } }, playerView: { player: 'Sam', character: 'Reed the Ferrywarden', goToWaiting: () => undefined } });
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Sing low, 1 point' }));
+    await user.click(within(await screen.findByRole('dialog', { name: 'Sing low' })).getByRole('button', { name: 'Ask the GM' }));
+    const pop = await screen.findByRole('dialog', { name: 'Only Sam can send this request' });
+    expect([...pop.querySelectorAll('.dialog__got-it button')].map((b) => b.textContent)).toEqual(['Go to Waiting for you', 'Got it']);
+    expect(rpc).not.toHaveBeenCalledWith('send_request', expect.anything());
   });
 
   // Purpose: tfw-2 (2026-11-19; voice rule 16): a secret activity's sheet shows its cost, then Ask the GM, with no line
@@ -359,5 +375,28 @@ describe('Activity buttons (M5b step 3)', () => {
     expect(await chipsOf('Dig roots', user)).toEqual(['Reed the Ferrywarden', 'Hob the Lantern-bearer']);
     expect(await chipsOf('Dig roots', gm)).toEqual(['Reed the Ferrywarden', 'Moss of the Bog Lights', 'Hob the Lantern-bearer']);
     expect(await chipsOf('Drag the punt', user)).toEqual(['Reed the Ferrywarden', 'Moss of the Bog Lights', 'Hob the Lantern-bearer']);
+  });
+
+  // Purpose (C15f; page 32, M3i): in the GM's view of Sam's screen, an activity one character does offers what Sam is
+  // offered (his own Reed and Hob), never another player's Moss nor the GM's own; one several do, the whole group.
+  it("in the GM's view, Who's acting offers what the player is offered", async () => {
+    const group = [
+      { id: 'reed', name: 'Reed the Ferrywarden', speed: 20, ownerUserId: 'sam' },
+      { id: 'moss', name: 'Moss of the Bog Lights', speed: 20, ownerUserId: 'pat' },
+      { id: 'ash', name: 'Ash', speed: 20, ownerUserId: 'gail' },
+      { id: 'hob', name: 'Hob the Lantern-bearer', speed: 20, ownerUserId: 'sam' },
+    ];
+    const shared = { ...view, travellers: new Map([[1, group]]) } as TravelView;
+    const gm: CurrentUser = { id: 'gail', roles: { camp: 'gm' } };
+    const chipsOf = async (activity: string) => {
+      show({ terrainId: 'fen', view: shared, user: gm, player: 'sam', playerView: { player: 'Sam', character: 'Reed the Ferrywarden', goToWaiting: () => undefined } });
+      await userEvent.setup().click(screen.getByRole('button', { name: activity }));
+      const sheet = within(await screen.findByRole('dialog', { name: activity }));
+      const names = within(sheet.getByRole('group', { name: "Who's acting" })).getAllByRole('button').map((b) => b.textContent?.replace('✓ ', ''));
+      cleanup();
+      return names;
+    };
+    expect(await chipsOf('Dig roots')).toEqual(['Reed the Ferrywarden', 'Hob the Lantern-bearer']);
+    expect(await chipsOf('Drag the punt')).toEqual(['Reed the Ferrywarden', 'Moss of the Bog Lights', 'Ash', 'Hob the Lantern-bearer']);
   });
 });

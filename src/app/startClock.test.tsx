@@ -376,7 +376,7 @@ describe('darkness on the player\'s screen (DG7)', () => {
     expect(document.documentElement.dataset.darkness).toBeUndefined();
     expect(document.querySelector('.darkness')).toBeNull();
     await user.click(reminder.getByRole('button', { name: 'Light a rushlight (4 left)' }));
-    expect(await screen.findByText('Lit Rushlight')).toBeTruthy();
+    expect(await screen.findByText('Lit a rushlight.')).toBeTruthy();
     await waitFor(() => expect(screen.queryByText('No light')).toBeNull());
   });
 

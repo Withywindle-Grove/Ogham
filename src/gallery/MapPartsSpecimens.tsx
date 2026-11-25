@@ -85,6 +85,26 @@ export function MapPartsSpecimens({ Specimen }: { Specimen: SpecimenPart }) {
  */
 export function MapPartsLayoutPage({ state, open }: { state: string; open: boolean }) {
   // The map wanted (5m-2, `wanted`; `sending` while the file goes; `long` for a long title and file name).
+  // A map the pack brought (B14 re-audit, 2026-11-25): `packed` ("+ Map from the pack", no file line), `fetching`
+  // ("Fetching the pack's map…"), `fetchFailed` (the retry with "or choose a file…" under it).
+  if (state === 'packed' || state === 'fetching' || state === 'fetchFailed') {
+    return (
+      <main className="gallery__map-page">
+        <h1>{PLACE}</h1>
+        <p>A silted harbour of five spots.</p>
+        <MapWanted
+          title={WANTED.title}
+          file={WANTED.file}
+          packed
+          sending={state === 'fetching'}
+          sendingWords="Fetching the pack's map…"
+          addLabel="+ Map from the pack"
+          onAdd={() => undefined}
+          onChoose={state === 'fetchFailed' ? () => undefined : undefined}
+        />
+      </main>
+    );
+  }
   if (state === 'wanted' || state === 'sending' || state === 'long') {
     const map = state === 'long' ? LONG_WANTED : WANTED;
     return (
