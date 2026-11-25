@@ -115,6 +115,16 @@ Picture: one screenshot, not committed: it shows a private pack's check name (ha
 
 Reads as: the two encounter rows may repeat what the crossed-swords button beside "Next turn" (F3) already does; he questions whether they stay on the Scene.
 
+### F10. "Encounter check, nothing due" shows with the header folded
+
+Screen: GM's Scene, the header folded (its button shows "+"). The header shows the session and region, "<place>, turn 1", the date and season, "⚠ No light", and the crossed-swords, "Next turn", "…" and "+" buttons. Under it, the line "Encounter check, nothing due" still shows.
+
+Picture: one screenshot, not committed: it shows a private pack's region and calendar names (hard rule 2).
+
+> "encounter check, nothing due" should be part of the collapsed menu
+
+Reads as: when the header is folded, "Encounter check, nothing due" is hidden with the rest of the header's folded part.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
