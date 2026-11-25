@@ -116,7 +116,7 @@ describe('the slot’s calls (40B, 40C)', () => {
 describe('the second audit (Home Two, findings 1 to 4, picked 24 Nov)', () => {
   // Purpose (finding 1): the card reads heading, then Got it, then the words, so a screen reader meets the heading first
   // and once; the live region's text starts with the heading.
-  it.fails('reads the heading first, then Got it, then the words', () => {
+  it('reads the heading first, then Got it, then the words', () => {
     render(<CallsInPromptSlot calls={callsInSlot([send('a', '2026-11-24T19:00:00Z', { pays: '50 crowns.' })], new Map())} onGotIt={() => {}} />);
     const heading = screen.getByRole('heading', { name: 'A call to adventure, for the party' });
     const button = screen.getByRole('button', { name: /^Got it/ });
@@ -128,7 +128,7 @@ describe('the second audit (Home Two, findings 1 to 4, picked 24 Nov)', () => {
 
   // Purpose (finding 3): after Got it the next card's words go into the live region that stood before it, so a touch
   // screen reader announces the second call; focus still goes to the next Got it.
-  it.fails('announces the next call in the live region that stood before it', async () => {
+  it('announces the next call in the live region that stood before it', async () => {
     const two = [send('a', '2026-11-24T19:00:00Z'), send('b', '2026-11-24T19:10:00Z', { kind: 'rumour', body: '“A light was seen on the wreck.”' })];
     function Slot() {
       const [seen, setSeen] = useState(new Map<string, string>());
@@ -147,7 +147,7 @@ describe('the second audit (Home Two, findings 1 to 4, picked 24 Nov)', () => {
 
   // Purpose (finding 4): the folded row names the card it opens in aria-controls only while that card is open; folded,
   // there is no card to name.
-  it.fails('sets aria-controls only while the row is open', async () => {
+  it('sets aria-controls only while the row is open', async () => {
     render(<CallsInPromptSlot calls={callsInSlot([send('a', '2026-11-24T19:00:00Z')], new Map([['a', '2026-11-24T20:00:00Z']]))} onGotIt={() => {}} />);
     const row = screen.getByRole('button', { name: 'A call to adventure, for the party' });
     expect(row.hasAttribute('aria-controls')).toBe(false);

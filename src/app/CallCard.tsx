@@ -5,7 +5,9 @@
 // again with no button of its own; 40C, one card at a time, "1 of 3" on its quiet line, folded rows under it, newest
 // fold first. No source line (p7-6). Mounted last in the players' prompt slot (SceneTime, usePlayerCalls.ts).
 // Francis picked the impeccable audit's findings 1 to 6 (24 Nov): focus after "Got it", one live region, the row's
-// state said once, the words under "Got it" on a phone, and the lighter edge in dark (CallCard.css).
+// state said once, the words under "Got it" on a phone, and the lighter edge in dark (CallCard.css). Then Home Two's
+// re-audit findings 1 (b) to 4 (24 Nov): the card reads heading, "Got it", words; on a phone the heading has the full
+// width; the slot keeps one live region whose text changes with each new card; aria-controls only while open.
 import { useEffect, useId, useRef, useState } from 'react';
 import { Icon } from '../ui/icons.tsx';
 import { StackedButton } from '../ui/parts.tsx';
@@ -15,23 +17,24 @@ import './CallCard.css';
 
 const MARK = { hook: 'stabbed-note', rumour: 'beer-stein' } as const;
 
-/** The card (40A): with `onGotIt`, its one plain button; without, the card reopened from its row (40B, p7-10). */
+/** The card (40A): with `onGotIt`, its one plain button; without, the card reopened from its row (40B, p7-10). The
+ *  live region is the slot's, not the card's (CallsInPromptSlot). */
 export function CallCard({ send, count = null, onGotIt, id }: { send: CallSend; count?: string | null; onGotIt?: () => void; /** The reopened card's, for its row's aria-controls. */ id?: string }) {
   const heading = callHeading(send);
   // A rumour never pays (p7-5; 40A): its send's pays is empty, and the card says nothing of it.
   const pays = send.kind === 'hook' ? send.pays.trim() : '';
-  // Only the arriving card is a live region (audit finding 2): a card reopened from its row is read, not announced.
-  // "Got it" comes first so it can float at the top right: beside the words on a tablet, the words running on under it
-  // on a phone (finding 4, CallCard.css).
+  // The order read is heading, "Got it", words, at every width (re-audit finding 1, option b), so a screen reader meets
+  // the heading first and once. CallCard.css puts "Got it" back where 40A draws it on a tablet, and floats it under the
+  // full-width heading on a phone (finding 2).
   return (
-    <div id={id} className={`call-card book-faces${onGotIt ? '' : ' call-card--reopened'}`} role={onGotIt ? 'status' : undefined} data-prompt-id={onGotIt ? `call-${send.id}` : undefined}>
+    <div id={id} className={`call-card book-faces${onGotIt ? '' : ' call-card--reopened'}`} data-prompt-id={onGotIt ? `call-${send.id}` : undefined}>
       <span className="call-card__mark">
         <Icon name={MARK[send.kind]} size={28} />
       </span>
       <div className="call-card__body">
+        <h3 className="call-card__heading">{heading}</h3>
         {onGotIt && <StackedButton icon="check-mark" label="Got it" aria-label={`Got it: ${heading}`} className="call-card__got-it" onClick={onGotIt} />}
         <div className="call-card__text">
-          <h3 className="call-card__heading">{heading}</h3>
           <p className="call-card__words">{send.body}</p>
           {pays && (
             <p className="call-card__words call-card__pays">
@@ -51,10 +54,11 @@ export function CallFoldedRow({ send, startOpen = false }: { send: CallSend; /**
   const [open, setOpen] = useState(startOpen);
   const cardId = useId();
   const heading = callHeading(send);
-  // Its name is its heading, open or folded: aria-expanded says the state once (audit finding 3).
+  // Its name is its heading, open or folded: aria-expanded says the state once (audit finding 3). aria-controls names
+  // the card only while it is open: folded, there is none (re-audit finding 4).
   return (
     <>
-      <button type="button" className="call-fold" aria-expanded={open} aria-controls={cardId} data-send-id={send.id} onClick={() => setOpen((o) => !o)}>
+      <button type="button" className="call-fold" aria-expanded={open} aria-controls={open ? cardId : undefined} data-send-id={send.id} onClick={() => setOpen((o) => !o)}>
         <span className="call-fold__mark">
           <Icon name={MARK[send.kind]} size={24} />
         </span>
@@ -87,19 +91,24 @@ export function CallsInPromptSlot({ calls, onGotIt }: { calls: CallsInSlot; onGo
   }, [calls]);
   if (!calls.card && calls.folded.length === 0) return null;
   const card = calls.card;
+  // One live region for the slot (audit finding 2, re-audit finding 3): it stays while the cards change, so a new card's
+  // words are a change inside a region the screen reader already watches, and the next call is announced. It is empty,
+  // and takes no room, when only folded rows are left; a card reopened from its row sits outside it.
   return (
     <div ref={slot} className="calls-slot" role="group" aria-label="Calls to adventure">
-      {card && (
-        <CallCard
-          key={card.id}
-          send={card}
-          count={calls.count}
-          onGotIt={() => {
-            given.current = card.id;
-            onGotIt(card);
-          }}
-        />
-      )}
+      <div className="calls-slot__live" role="status">
+        {card && (
+          <CallCard
+            key={card.id}
+            send={card}
+            count={calls.count}
+            onGotIt={() => {
+              given.current = card.id;
+              onGotIt(card);
+            }}
+          />
+        )}
+      </div>
       {calls.folded.map((send) => (
         <CallFoldedRow key={send.id} send={send} />
       ))}

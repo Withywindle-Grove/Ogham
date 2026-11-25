@@ -73,7 +73,7 @@ for (const width of [375, 834] as const) {
       // Purpose (Home Two's second audit, findings 1 and 2): the live region's text starts with the heading; on a phone
       // the heading has the card's full width, above "Got it" (it never wraps beside it); on a tablet "Got it" keeps its
       // drawn place, at the top right beside the heading and the words (40A).
-      test.fail('reads the heading first, and gives it the full width on a phone', async ({ page }) => {
+      test('reads the heading first, and gives it the full width on a phone', async ({ page }) => {
         await openScene(page);
         const calls = page.getByRole('group', { name: 'Calls to adventure' });
         await expect(calls.getByRole('status')).toHaveText(/^A call to adventure, for the party/);
