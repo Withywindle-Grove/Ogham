@@ -12,6 +12,9 @@ import './bookFaces.css';
 
 const FOCUSABLE = 'input, select, textarea, button, [href], [tabindex]:not([tabindex="-1"])';
 
+/** What a tap can open a pop-up from and give focus back to: anything focusable, or a control by its role. */
+const OPENER = `${FOCUSABLE}, [role="button"], summary`;
+
 /** Input types that don't open a keyboard (everything else typed into does). */
 const NO_KEYBOARD = new Set(['button', 'submit', 'reset', 'checkbox', 'radio', 'range', 'color', 'file', 'image', 'hidden']);
 
@@ -103,7 +106,10 @@ function anchorNow(): Element | null {
  */
 export function openerNow(): HTMLElement | null {
   const focused = typeof document !== 'undefined' ? document.activeElement : null;
-  const candidate = lastTapped?.isConnected ? lastTapped : focused && focused !== document.body ? focused : null;
+  // The tap counts only on something that can take focus or inside one: plain words tapped can't, so then it's the
+  // one with focus (review of #90).
+  const tapped = lastTapped?.isConnected ? lastTapped.closest(OPENER) : null;
+  const candidate = tapped ?? (focused && focused !== document.body ? focused : null);
   return candidate instanceof HTMLElement ? candidate : null;
 }
 
@@ -111,12 +117,17 @@ export function openerNow(): HTMLElement | null {
 // it) can go back past that button once it has gone with its pop-up.
 const openersOf = new WeakMap<Element, readonly HTMLElement[]>();
 
-/** The opener now, then, when it sits inside an open pop-up, that pop-up's own openers. Exported for the tests. */
+/**
+ * The opener now, then, when it sits inside an open pop-up, that pop-up's card itself (so focus with the button gone
+ * stays in the pop-up still open, review of #90) and its own openers; only those still on the page, each once, so going
+ * Back and on between steps doesn't pile them up. Exported for the tests.
+ */
 export function openersNow(): readonly HTMLElement[] {
   const first = openerNow();
   if (!first) return [];
-  const host = first.closest('[role="dialog"]');
-  return [first, ...((host && openersOf.get(host)) || [])];
+  const host = first.closest<HTMLElement>('[role="dialog"]');
+  const chain = host ? [first, host, ...(openersOf.get(host) ?? [])] : [first];
+  return chain.filter((el, i) => el.isConnected && chain.indexOf(el) === i);
 }
 
 /** Whether focus has nowhere on purpose: on the page's body, or on something no longer in it (the pop-up just gone). */
@@ -129,12 +140,15 @@ function focusFell(): boolean {
  * Focus back to the opener as a pop-up closes (fix-dialog-focus-on-close, Home Two's audits 24–25 Nov), for every
  * pop-up: only when focus fell to the page (✕, Escape, a tap outside), never when the closing action moved it on purpose
  * (after lighting, the Light fact; a step that opened as another pop-up, its own first control). The first opener still
- * on the page that takes focus gets it; one gone or disabled is passed over, and with none focus is left where it fell.
+ * on the page that takes focus gets it; one gone, disabled, inert or behind a pop-up still open (outside the top one) is
+ * passed over, and with none focus is left where it fell.
  */
 export function giveFocusBack(openers: readonly HTMLElement[]): void {
   if (typeof document === 'undefined' || !focusFell()) return;
+  const open = document.querySelectorAll('[role="dialog"][aria-modal="true"]');
+  const top = open[open.length - 1] ?? null;
   for (const el of openers) {
-    if (!el.isConnected || el.hasAttribute('disabled') || el.closest('[inert]')) continue;
+    if (!el.isConnected || el.hasAttribute('disabled') || el.closest('[inert]') || (top && !top.contains(el))) continue;
     el.focus({ preventScroll: true });
     if (document.activeElement === el) return;
   }

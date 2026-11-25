@@ -190,7 +190,7 @@ describe('focus back to the opener on close', () => {
 
   // Purpose: a tap on plain words (no control under it) never counts as the opener, so the button with focus that
   // opens the pop-up gets focus back as it closes.
-  it.fails('a tap on plain words leaves the focused button as the opener', async () => {
+  it('a tap on plain words leaves the focused button as the opener', async () => {
     render(
       <>
         <p>Plain words</p>
@@ -296,7 +296,7 @@ describe('focus back through steps and pop-ups opened from pop-ups', () => {
 
   // Purpose: going Back and on again between steps never piles up openers that have left the page: the list for the
   // step open now holds only what is still on it (its own button, its pop-up, the page's opener).
-  it.fails('Back and on again keeps the openers to what is on the page', async () => {
+  it('Back and on again keeps the openers to what is on the page', async () => {
     render(<Steps />);
     await press('Hoard');
     for (let i = 0; i < 3; i += 1) {
@@ -350,7 +350,7 @@ function Reveal() {
 describe('focus never lands behind a pop-up still open', () => {
   // Purpose: when a pop-up opened from a button inside another closes after that button has gone, focus goes to the
   // pop-up still open (its card), never to the page's opener behind it.
-  it.fails('an inner pop-up whose button has gone gives focus to the outer card', async () => {
+  it('an inner pop-up whose button has gone gives focus to the outer card', async () => {
     render(<Reveal />);
     const item = await press('Item');
     await press('Reveal…');
