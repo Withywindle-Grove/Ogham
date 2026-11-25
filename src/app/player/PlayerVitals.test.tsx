@@ -93,7 +93,7 @@ describe("the Player tab's attack line keeps its capitals (Back to Missile, 2026
     return tile.querySelector('.stat-tile__caption')?.textContent ?? null;
   }
 
-  it.fails.each([
+  it.each([
     ['Melee +2, Missile +1', 'Melee +2, Missile +1'],
     ['Melee 19, Missile 18', 'Melee 19, Missile 18'],
     ['Melee +1000, Missile +999', 'Melee +1000, Missile +999'],

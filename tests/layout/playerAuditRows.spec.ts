@@ -72,7 +72,6 @@ for (const scheme of SCHEMES) {
 
     for (const text of ['standard', 'larger'] as const) {
       test(`6a, 6b. on a phone, a two-button row's buttons go under its words; one button stays beside (${text} text, ${scheme})`, async ({ page }) => {
-        test.fail();
         if (text === 'larger') await page.addInitScript(() => localStorage.setItem('grimoire.textSize', 'larger'));
         await page.setViewportSize(PHONE);
         await openModes(page);
@@ -88,7 +87,6 @@ for (const scheme of SCHEMES) {
     }
 
     test(`6c. the Pack tab's own At hand rows do the same on a phone (${scheme})`, async ({ page }) => {
-      test.fail();
       await page.setViewportSize(PHONE);
       await openModes(page);
       await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Pack' }).click();
@@ -126,7 +124,6 @@ for (const scheme of SCHEMES) {
 
     for (const at of AC_SIZES) {
       test(`7a. "Nimbleness +1", whole and never cut (${at.name}, ${scheme})`, async ({ page }) => {
-        test.fail();
         if (at.larger) await page.addInitScript(() => localStorage.setItem('grimoire.textSize', 'larger'));
         await page.setViewportSize(at.size);
         await page.goto('/layout.html?as=player&p1=1');

@@ -176,7 +176,7 @@ describe('the full sheet: Combat, Movement, Skills (sr-1, sr-2, sr-8)', () => {
 });
 
 describe("the Player tab's Attack box (test feedback of 19 Nov 2026, A3 and B3)", () => {
-  it.fails("reads the pop-up's totals in its small line, and a typed figure that is the class's own is listed once", async () => {
+  it("reads the pop-up's totals in its small line, and a typed figure that is the class's own is listed once", async () => {
     // Purpose (A3, tfw-7): with an AC style, the Attack box's small line reads each kind's total, the same figure as the
     // pop-up's row, with a capital ("Melee +1, Missile +2"; "Back to Missile", 2026-11-25), never the score's modifier
     // alone.
@@ -202,7 +202,7 @@ describe("the Player tab's Attack box (test feedback of 19 Nov 2026, A3 and B3)"
     expect(rows.map(([label]) => label)).not.toContain('Set by hand');
   });
 
-  it.fails('follows a figure set by hand, on the Player tab and on the full sheet\'s tile (H1)', async () => {
+  it('follows a figure set by hand, on the Player tab and on the full sheet\'s tile (H1)', async () => {
     // Purpose (H1, "Follow hand-set", 2026-11-19): for the class's bonus of +1, a typed +3 and a missile modifier of +1
     // (NIM 13), the box's small line reads the totals from the typed figure, "Missile +4", not the class's "Missile +2";
     // the same line on the Player tab's box and the full sheet's tile, and the pop-up's rows agree (⚑ 22).

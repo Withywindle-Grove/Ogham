@@ -438,6 +438,8 @@ export function ItemRow({
       )}
     </button>
   );
+  // How many buttons the row carries, the same conditions as `buttons` below.
+  const buttonCount = [action, light, verb, modes && (attack || wield), wield, attack].filter(Boolean).length;
   const buttons = (
     <>
       {action && (
@@ -492,7 +494,9 @@ export function ItemRow({
           <RollLines rolls={weaponRolls} />
         </>
       ) : (
-        <div className="pack__row">
+        // Two buttons or more (dec-14 row 6, frame 38-6): on a phone the words take the row's full width and the
+        // buttons sit under them, at the right (`.pack__row--two-buttons`, PackScreen.css); a tablet keeps them beside.
+        <div className={buttonCount >= 2 ? 'pack__row pack__row--two-buttons' : 'pack__row'}>
           {main}
           {buttons}
         </div>

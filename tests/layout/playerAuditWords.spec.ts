@@ -67,7 +67,6 @@ for (const scheme of SCHEMES) {
 
     for (const size of SIZES) {
       test(`a capital on each kind (${size.name}, ${scheme})`, async ({ page }) => {
-        test.fail();
         await page.setViewportSize({ width: size.width, height: size.height });
         await page.goto('/layout.html?as=player&p1=1');
         await page.getByRole('button', { name: /The Storm Lantern Road/ }).click();

@@ -64,7 +64,7 @@ describe('how a figure is worked out (ruled 2026-10-26)', () => {
   describe("the armour class tile's line in whole words (dec-14 row 7a, A2)", () => {
     const longName = (k: string) => ({ NIM: 'Nimbleness', GRT: 'Grit', PRM: 'Presence of mind' })[k] ?? k;
 
-    it.fails('names the score in full, then its figure, with no "AC" and no "from"', () => {
+    it('names the score in full, then its figure, with no "AC" and no "from"', () => {
       const line = acCaption({ 'abilityModifiers.NIM': { ac: 1 } }, longName);
       expect(line).toBe('Nimbleness +1');
       expect(line).not.toMatch(/\bAC\b|\bfrom\b/);
@@ -76,12 +76,12 @@ describe('how a figure is worked out (ruled 2026-10-26)', () => {
       expect(acCaption({}, longName)).toBe('');
     });
 
-    it.fails('turns the figure round where lower is better (B9)', () => {
+    it('turns the figure round where lower is better (B9)', () => {
       expect(acCaption({ 'abilityModifiers.NIM': { ac: 1 } }, longName, 'descending')).toBe('Nimbleness −1');
       expect(acCaption(warden.filled, warden.abilityLabel!, 'descending')).toBe('Dexterity +1');
     });
 
-    it.fails('reads two scores one after the other, and a long name whole', () => {
+    it('reads two scores one after the other, and a long name whole', () => {
       expect(acCaption({ 'abilityModifiers.NIM': { ac: 1 }, 'abilityModifiers.GRT': { ac: 1 } }, longName)).toBe('Nimbleness +1, Grit +1');
       expect(acCaption({ 'abilityModifiers.NIM': { ac: 1 }, 'abilityModifiers.PRM': { ac: 1 } }, longName)).toBe('Nimbleness +1, Presence of mind +1');
     });

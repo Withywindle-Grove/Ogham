@@ -138,7 +138,7 @@ describe('the Player screen brought to frame P1', () => {
   // figures, each kind with a capital ("Back to Missile", Francis, 2026-11-25, reversing dec-14 row 7b). The sample's
   // setting names no AC style, so both read the scores' modifiers (the pop-up's old lines, A4); a setting with a style
   // reads the totals (sheetCombat.test.tsx).
-  it.fails('reads the Attack box’s small line as its pop-up does, with a capital on each kind', async () => {
+  it('reads the Attack box’s small line as its pop-up does, with a capital on each kind', async () => {
     const { user } = await brannoch();
     const vitals = screen.getByRole('region', { name: 'Vitals' });
     const attack = within(vitals).getByRole('button', { name: /^Attack / });
@@ -152,7 +152,7 @@ describe('the Player screen brought to frame P1', () => {
   // Row 7a of docs/plans/dec-14-player-audit-fixes.md (A2, page 39; approved 2026-11-24). Purpose: the armour class
   // tile's line names the score by the setting's own long name, then its figure ("Nimbleness +1"), never "AC", "from"
   // or the short name; its pop-up names the score the same way (page 39's A2-7).
-  it.fails('reads the armour class tile’s line in whole words, as its pop-up names the score', async () => {
+  it('reads the armour class tile’s line in whole words, as its pop-up names the score', async () => {
     const { user } = await brannoch();
     const vitals = screen.getByRole('region', { name: 'Vitals' });
     const ac = within(vitals).getByRole('button', { name: /^Armour class / });
