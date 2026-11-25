@@ -129,7 +129,7 @@ describe('deleting an account keeps every row it is linked to', () => {
     expect(await rowOf('actors', world.wrenId, 'hp_current')).toEqual([{ hp_current: 7 }]);
   });
 
-  it.fails("after that player's deletion, another player can't read or change the GM's question to them", async () => {
+  it("after that player's deletion, another player can't read or change the GM's question to them", async () => {
     await profileGone(world.playerA.id);
     const b = world.playerB.db;
     expect(must(await b.from('requests').select('id').eq('id', question))).toEqual([]);
@@ -230,7 +230,7 @@ describe("deleting an account keeps a player's requests, the messages sent to th
     expect(must(await second.admin.from('members').select('user_id').eq('campaign_id', second.campaignId).eq('user_id', second.playerA.id))).toEqual([]);
   });
 
-  it.fails("after the asker's deletion, the GM's answer to their request isn't readable by another player", async () => {
+  it("after the asker's deletion, the GM's answer to their request isn't readable by another player", async () => {
     const answered = await second.gm.db.rpc('answer_request', { request: asked, answer: { kind: 'yesNo', yes: true, note: 'The pool is shallow here.' } });
     expect(answered.error).toBeNull();
     const gmLines = must(await second.gm.db.from('events').select('id, after').eq('target_id', asked)) as unknown as { after: { status?: string } | null }[];

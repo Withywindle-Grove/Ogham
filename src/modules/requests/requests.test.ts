@@ -64,7 +64,7 @@ describe("a player's own requests and the party's", () => {
     expect(mine([ask('party', {})], 'u-bryn').map((r) => r.id)).toEqual(['party']);
   });
 
-  it.fails("doesn't show another player a question whose player was deleted (no player, but a character)", () => {
+  it("doesn't show another player a question whose player was deleted (no player, but a character)", () => {
     expect(mine([ask('orphan', { actorId: 'wren', kind: 'askGm' })], 'u-bryn')).toEqual([]);
   });
 });

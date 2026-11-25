@@ -185,9 +185,18 @@ export async function loadHirelingsByPlayer(db: Db, campaignId: string): Promise
   return found;
 }
 
+/**
+ * The party's request: asked of the whole party, it has no player and no character (as the database reads it,
+ * private.is_party_request). A question to one player whose account was deleted has no player but keeps its
+ * character: it stays the GM's.
+ */
+export function isPartyRequest(r: { requesterId: string | null; direction: Direction; actorId?: string | null }): boolean {
+  return r.requesterId === null && r.direction === 'gmAsks' && (r.actorId ?? null) === null;
+}
+
 /** A player's own requests, and the party's: those to show on their Scene (waiting first, then answered, newest first). */
 export function mine(requests: readonly Request[], userId: string): Request[] {
-  const own = requests.filter((r) => r.requesterId === userId || (r.requesterId === null && r.direction === 'gmAsks'));
+  const own = requests.filter((r) => r.requesterId === userId || isPartyRequest(r));
   return [...own.filter((r) => r.status === 'waiting'), ...own.filter((r) => r.status === 'answered')];
 }
 
@@ -300,10 +309,12 @@ export const withdrawRequest = defineCommand({
 export const enterRequest = defineCommand({
   name: 'request.enter',
   log: 'verbose',
-  target: (input: { request: Request; entry: EscapeEntry }) => ({ campaignId: input.request.campaignId, requesterId: input.request.requesterId, direction: input.request.direction }),
-  allowed: (user: CurrentUser, target: { campaignId: string; requesterId: string | null; direction?: Direction }) =>
+  target: (input: { request: Request; entry: EscapeEntry }) => ({ campaignId: input.request.campaignId, requesterId: input.request.requesterId, direction: input.request.direction, actorId: input.request.actorId }),
+  allowed: (user: CurrentUser, target: { campaignId: string; requesterId: string | null; direction?: Direction; actorId?: string | null }) =>
     isMember(user, target.campaignId) &&
-    (isGm(user, target.campaignId) ? target.direction === 'gmAsks' : target.requesterId === null || target.requesterId === user.id),
+    (isGm(user, target.campaignId)
+      ? target.direction === 'gmAsks'
+      : target.requesterId === user.id || isPartyRequest({ ...target, direction: target.direction ?? 'gmAsks' })),
   run: (db, _user, input) => rpcRow(db.rpc('enter_request', { request: input.request.id, entry: input.entry as unknown as Json, seen_version: input.request.version })),
 });
 

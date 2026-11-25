@@ -28,8 +28,8 @@ export interface Message {
   campaignId: string;
   /** The character the thread is about. */
   actorId: string;
-  /** The character's player when it was sent. */
-  playerUserId: string;
+  /** The character's player when it was sent (null once that player's account is deleted). */
+  playerUserId: string | null;
   fromGm: boolean;
   senderUserId: string | null;
   body: string;
@@ -45,7 +45,7 @@ export function toMessage(row: Record<string, unknown>): Message {
     id: String(row.id),
     campaignId: String(row.campaign_id),
     actorId: String(row.actor_id),
-    playerUserId: String(row.player_user_id),
+    playerUserId: typeof row.player_user_id === 'string' ? row.player_user_id : null,
     fromGm: row.from_gm === true,
     senderUserId: typeof row.sender_user_id === 'string' ? row.sender_user_id : null,
     body: String(row.body ?? ''),
