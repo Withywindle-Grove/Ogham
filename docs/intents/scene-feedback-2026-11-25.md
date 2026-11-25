@@ -94,6 +94,17 @@ Pictures: two screenshots, not committed: they show a private pack's check name 
 
 Reads as: two parts. (a) Centre the row of tiles (Light, Rest, encounter check). (b) "Someone fell in" shows a scales icon; its mockup has a splash icon.
 
+### F8. A place's Knowledge leaves out its area's knowledge; the encounter tables page
+
+Screen: GM's Scene at a place (breadcrumb: region › area › place). Buttons "Someone fell in", "Move on" (accent), "Knowledge" and "Rules". "Knowledge" opens a pop-up: "The pack gives no knowledge for this place." and "From your adventure: <adventure>, p. 10." A row lower on the Scene, "Encounter tables, <check name> likely ›", opens a full page: a back button, the table's name, "Rolled by hand", the roll line, then the table as numbered rows (large serif numbers, plain sans-serif text, dotted rules between rows).
+
+Pictures: three screenshots, not committed: they show a private pack's place names and encounter table (hard rule 2).
+
+> The knowledge for this place should also check for the area knowledge and display it here (Pg10 of the source material contains it.) Encounters is not formatted properly with our latest standards and book formatting
+
+Reads as: two parts. (a) When a place has no knowledge of its own, "Knowledge" also shows the knowledge of its area (the source has it on p. 10). (b) The encounter tables page does not follow the current table and book styles.
+Question: for (b), which standard do you mean: the d20 table inside the "Due now" card (F3), or another ruling or mockup?
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
