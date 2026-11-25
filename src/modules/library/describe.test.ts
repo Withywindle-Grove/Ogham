@@ -156,9 +156,9 @@ describe("the app's own bookkeeping never prints (test feedback 2026-11-19, A4)"
   });
 
   // Purpose: the list names the keys the plan calls the app's own, starting with sn-1b's pinnedFrom, with of-7's tags
-  // and baseId.
-  it('the shared list holds pinnedFrom, convertedFrom, sameAs, imageId, turnAs, tags and baseId', () => {
-    expect([...BOOKKEEPING_KEYS].sort()).toEqual(['baseId', 'convertedFrom', 'imageId', 'pinnedFrom', 'sameAs', 'tags', 'turnAs']);
+  // and baseId, and B15's truthPiece (an item line's pointer to its truth's piece).
+  it('the shared list holds pinnedFrom, convertedFrom, sameAs, imageId, turnAs, tags, baseId and truthPiece', () => {
+    expect([...BOOKKEEPING_KEYS].sort()).toEqual(['baseId', 'convertedFrom', 'imageId', 'pinnedFrom', 'sameAs', 'tags', 'truthPiece', 'turnAs']);
   });
 });
 
