@@ -125,6 +125,17 @@ Picture: one screenshot, not committed: it shows a private pack's region and cal
 
 Reads as: when the header is folded, "Encounter check, nothing due" is hidden with the rest of the header's folded part.
 
+### F11. The tracker tiles not centred (a second view)
+
+Screen: a Scene with the left rail open (the campfire icon picked) and a "‹ <campaign>" back link at the top. Header: "Session 10.", "<place>, turn 1", the date and season. Then a row of three tiles, aligned to the left: "Light" (a character's name, cut off, "24 turns left."), "Rest" ("In 6 turns", "1 turn in 6.") and "Encounter check" ("On every move").
+
+Picture: one screenshot, not committed: it shows a character's name and a private pack's calendar name (hard rule 2).
+
+> These boxes should be centered
+
+Reads as: the same ask as F7 (a), on this view: centre the row of tiles.
+Question: is this the players' Scene, or the GM's Scene with the rail open?
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
