@@ -84,6 +84,16 @@ Pictures: two screenshots, not committed: they show a private pack's encounter t
 
 Reads as: three parts. (a) "Back to the encounter" opens a pop-up that holds the same facts as the stat pop-up, less well laid out. (b) The result on the "An encounter waits" card is an underlined link; make it a button or another tappable control. (c) "Start" opens that same less-organised pop-up; he wants it to open what "View" opens (the stat pop-up from F5).
 
+### F7. The Scene's tracker tiles not centred; the wrong icon on "Someone fell in"
+
+Screen: GM's Scene during an expedition. A row of three tiles, aligned to the left: "Light" ("⚠ No light", picked, with a blue outline), "Rest" ("In 6 turns", "1 turn in 6."), and the encounter check ("On every move"). Elsewhere, a button "Someone fell in" with a scales icon.
+
+Pictures: two screenshots, not committed: they show a private pack's check name and procedure (hard rule 2).
+
+> These buttons should be centered. Someone fell in is using the incorrect button. It should be a splash icon as designed.
+
+Reads as: two parts. (a) Centre the row of tiles (Light, Rest, encounter check). (b) "Someone fell in" shows a scales icon; its mockup has a splash icon.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
