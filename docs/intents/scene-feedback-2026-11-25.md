@@ -258,6 +258,16 @@ Picture: one screenshot, not committed: it shows private pack place names (hard 
 
 Reads as: the same ask as F13 (b), on the GM's side too: every "Where to?" row shows its map number, also for an unexplored place.
 
+### F23. Test magic items and what they reveal
+
+Screen: GM's Scene, a found row with an open-eye icon: a plain description of an item, then "Value stays yours (Item: <pack item ID>)." The pack ID shows a magic item behind the plain description.
+
+Picture: one screenshot, not committed: it shows a private pack's item text and ID (hard rule 2).
+
+> need to test magic items and revealed information
+
+Reads as: a note for testing, not a fault seen. Test a magic item found under a plain description: what the party sees when it is revealed, and what the GM can reveal later about its magic.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
