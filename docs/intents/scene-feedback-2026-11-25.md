@@ -193,6 +193,16 @@ Picture: one screenshot, not committed: it shows a private pack's adventure and 
 
 Reads as: the GM can share a place's knowledge with the party from this pop-up. He thinks the share control may be missing here only because this place has no knowledge (see F8 (a)).
 
+### F17. The crossed-out eye on "From the book, for the GM"
+
+Screen: GM's Scene at a place ("1. <place>"), below "Someone fell in" and "Move on". A section header "From the book, for the GM" with a crossed-out eye icon and a fold chevron, then the book's text for the place.
+
+Picture: one screenshot, not committed: it shows a private pack's place text (hard rule 2).
+
+> This crossed out eye symbol is confusing because i can't reveal it. Better to remove the icon
+
+Reads as: the crossed-out eye suggests the GM can reveal this text, but he cannot. Remove the icon.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
