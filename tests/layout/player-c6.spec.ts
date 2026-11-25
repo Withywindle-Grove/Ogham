@@ -6,7 +6,8 @@
 //   knife, Use on the wand, Use on the pinned trait) is a 44 px target at least, 88 px wide at least, all one size, its
 //   word on one line under its icon, the last at its row's right edge, 8 px between a pair; nothing reaches past At hand
 //   and the page never scrolls sideways; at 1180 and 375 px, in light and dark.
-//   The axe's long name wraps beside its two buttons rather than being cut.
+//   The axe's long name wraps rather than being cut (beside its two buttons on a tablet; on a phone the buttons sit
+//   under it, dec-14 row 6, tests/layout/playerAuditRows.spec.ts).
 //   Each icon is drawn in its button's own text colour, so it holds in dark mode as the word does.
 //   Edit, with the quill, is on the cards of Your characters, not the Player tab (tfr-4; M1's second frame, approved
 //   2026-11-19; moved here on Francis's yes of 20 Nov 2026): the stacked button, 44 by 88 px at least, at the card's
@@ -83,7 +84,7 @@ for (const scheme of ['light', 'dark'] as const) {
         expect(Math.round(wield.left - quiver.right)).toBe(8);
         expect(Math.abs(wield.right - wield.rowRight)).toBeLessThanOrEqual(1);
 
-        // The long name wraps beside its buttons; it's never cut.
+        // The long name wraps; it's never cut.
         const axe = atHand.locator('.pack__name', { hasText: 'Hand axe of the Seven Cairns' });
         const cut = await axe.evaluate((el) => el.scrollWidth > el.clientWidth + 1 || getComputedStyle(el).textOverflow === 'ellipsis');
         expect(cut).toBe(false);

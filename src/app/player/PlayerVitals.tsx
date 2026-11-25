@@ -26,9 +26,6 @@ import { registry } from '../services.ts';
 /** A caption's parts joined by commas, never a middle dot (plan m5b-players-screens-standard A2): "Melee +1, Missile +0". */
 const commas = (text: string) => text.replace(/ · /g, ', ');
 
-/** The attack tile's line in plain case, a capital on its first word only (plan dec-14-player-audit-fixes, row 7b): "Melee +2, missile +1". The full sheet's tile keeps its capitals (tfw-7). */
-const plainCase = (text: string) => text.replace(/, (\p{Lu})/gu, (_, first: string) => `, ${first.toLowerCase()}`);
-
 /**
  * The vitals: hit points largest, in the HP box (ruled 2026-11-08, mockup players/04 C): the figure at the left (a
  * tap types a value), − and + at the right, each tap at once; taps within two seconds fold into one setHp with one
@@ -103,7 +100,7 @@ export function PlayerVitals({
   const attackShown = attackWhole !== null && attackIsBonus(figures.klass, character.level, attackFigure.direction) ? signedNumber(attackWhole) : attackRaw;
   // AC is at the top when the sheet or the setting has one (N24): the number players use, with the ability
   // modifier in it, worked out from what's worn; "—" and a quiet Set AC when the setting gives no number, never a
-  // guess (ruled 2026-10-29, B9). Its pop-up lists the parts; its quiet line stays compact ("AC +1 from DEX").
+  // guess (ruled 2026-10-29, B9). Its pop-up lists the parts; its quiet line names the score in whole words ("Nimbleness +1"; dec-14 row 7a, A2).
   // The GM sees the true AC, hidden magic bonuses included (ruled 2026-10-29); in his view as the player, the player's
   // (pg32-3).
   const acWorked = figures.ac(worn, seesAsGm);
@@ -113,7 +110,7 @@ export function PlayerVitals({
   const choosingFor = chooseBase ? (worn ?? []).find((g) => g.slot === 'armour' && g.name === chooseBase.item) : undefined;
   const showAc = ac !== undefined || acOverride !== null || acWorked.value !== null || chooseBase !== null || figures.ac([]).value !== null;
   const acLines = acLinesOf(value(ac), acWorked, acOverride);
-  const acLine = acOverride !== null ? 'set by hand' : acCaption(figures.filled, (k) => figures.abilityName(k).short, figures.acDirection);
+  const acLine = acOverride !== null ? 'set by hand' : acCaption(figures.filled, (k) => figures.abilityName(k).long, figures.acDirection);
   const canSetAc = showAc && acValue === null && acWorked.known && chooseBase === null;
 
   /** Chooses the worn magic armour's base (logged; Undo puts it back to unchosen). */
@@ -204,7 +201,7 @@ export function PlayerVitals({
               label={attackName}
               value={attackShown}
               // The same line as the pop-up's rows and the full sheet's tile, from one source (tf-A3): the totals, or the scores' modifiers when the setting names no AC style.
-              caption={plainCase(commas(attackFigure.caption)) || undefined}
+              caption={commas(attackFigure.caption) || undefined}
               onTap={() => setOpen('attack')}
               tapLabel={`${attackName} ${attackShown}: how it's worked out`}
             />
