@@ -44,6 +44,18 @@ Pictures: [F3-more-menu.png](scene-feedback-2026-11-25/F3-more-menu.png) (the "�
 
 Reads as: three parts. (a) Move "…" to the far right, after "−". (b) The crossed-swords button needs a better icon. Once it starts an encounter, the GM can only end the encounter by resolving it or by Undo; he wants a way to close it. (c) "Enter roll…" opens the encounter table as a pop-up in the middle of the screen, not inside the narrow card.
 
+### F4. The encounter card after the roll: clean-up, details at hand, reveal not reaching players
+
+Screen: GM's Scene, "Waiting for you" (1 of 2), after the encounter roll. The card shows the rolled result as "Rolled: <table name>: <result>", then "Encounter tables ›", "Done", "Reveal to players" and "Message…". Below it, a second row for the same encounter check with a "Start" button. After "Reveal to players", the card says "Players see this result." in that button's place. "Start" opens a pop-up, "Started: <check name>", with the result, the creature's stat line and "View", ending "Run it at the table. Fights come in a later update."
+
+Pictures: four screenshots, not committed: they show a private pack's encounter text, a stat line and a character name (hard rule 2).
+
+> This screen needs impeccable-cleaning. The encounter Tables menu needs redesign, and in this case we dont need an encounter table because we already rolled on one "[encounter result]" The encounter was revealed but never appeared on the players scene, that seems like a bug. I need the details of each encounter check. This may require a design session. For example, for this encounter I need stat lines and descriptions for the skeletons close at hand so that I can run the encounter. or in another example i would want npc info for [NPC].
+
+(The quoted result is a row from the pack's encounter table: three skeletons board the party's boat. [NPC] is a named character in another row of the same table.)
+
+Reads as: four parts. (a) The encounter card needs a clean-up pass (an `impeccable` critique). (b) "Encounter tables ›" needs a redesign; once the table has been rolled, the card does not need it. (c) Bug: after "Reveal to players", the encounter did not appear on the players' Scene. (d) Each encounter check's result should bring its details close at hand: the creatures' stat lines and descriptions, or a named character's notes. He thinks (d) may need a design session.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
