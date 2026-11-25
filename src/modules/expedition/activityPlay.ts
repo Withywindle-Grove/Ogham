@@ -143,9 +143,3 @@ export async function loadCarriedItemIds(db: Db, actorId: string): Promise<Set<s
   if (error || !data) return new Set();
   return new Set((data as { source_entry_id: string | null }[]).map((l) => l.source_entry_id).filter((id): id is string => typeof id === 'string'));
 }
-
-/** Loads a run (null when it can't be read). */
-export async function loadActivityRun(db: Db, id: string): Promise<ActivityRun | null> {
-  const { data, error } = await db.from('activity_runs').select('*').eq('id', id).maybeSingle();
-  return error || !data ? null : toActivityRun(data as Record<string, unknown>);
-}

@@ -1,6 +1,7 @@
 // Small shared parts from the component inventory (docs/06 "Components"; conventions ruled 2026-10-25). Each is
 // built once here and composed by screens; the gallery (gallery.html) shows every one in every state.
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { flushSync } from 'react-dom';
 import './parts.css';
 import { hasStepIcon, Icon, StepIcon, type IconName } from './icons.tsx';
 import type { SetIconName } from './iconSet.ts';
@@ -626,8 +627,14 @@ export function ListRow({
     );
   }
   return (
-    <div className={`${figure ? 'list-row list-row--figure' : 'list-row'}${label ? ' list-row--label' : ''}`}>
+    <div className={`${figure ? 'list-row list-row--figure' : 'list-row'}${label ? ' list-row--label' : ''}${icon ? ' list-row--icon' : ''}`}>
       <span className="list-row__body list-row__body--still">
+        {/* The icon column on a row that opens nothing (the import's result, B14; page 24, IM1b): a tick, or its place kept empty. */}
+        {icon && (
+          <span className="list-row__icon" aria-hidden="true">
+            {icon}
+          </span>
+        )}
         {words}
         {end}
       </span>
@@ -1303,10 +1310,19 @@ function useTileColumns(labels: string[], max: number) {
   }, [step, steps.length, tried]);
   useEffect(() => {
     const el = ref.current;
-    // A font that finishes loading after the first measure changes every word's width.
-    const fontsLoaded = () => setFonts((n) => n + 1);
+    // A font that finishes loading after the first measure changes every word's width. WebKit (Safari's engine) fires
+    // `loading` but never `loadingdone` (gate finding F8, fix-F8), so wait on `ready` instead: now (fonts still
+    // loading as the row mounted), and after each `loading`. flushSync re-measures before anything else reads the
+    // row, the layout check's own `await document.fonts.ready` included.
+    let live = true;
     const fontSet = 'fonts' in document ? document.fonts : null;
-    fontSet?.addEventListener('loadingdone', fontsLoaded);
+    const fontsLoaded = () => {
+      void fontSet?.ready.then(() => {
+        if (live) flushSync(() => setFonts((n) => n + 1));
+      });
+    };
+    fontsLoaded();
+    fontSet?.addEventListener('loading', fontsLoaded);
     // The row's width; never the labels themselves (measuring them as they re-flow would loop).
     const watch = el && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => setWidth(Math.round(el.clientWidth))) : null;
     if (el) watch?.observe(el);
@@ -1314,7 +1330,8 @@ function useTileColumns(labels: string[], max: number) {
     const sized = typeof MutationObserver !== 'undefined' ? new MutationObserver(() => setScale(textScale())) : null;
     sized?.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
     return () => {
-      fontSet?.removeEventListener('loadingdone', fontsLoaded);
+      live = false;
+      fontSet?.removeEventListener('loading', fontsLoaded);
       watch?.disconnect();
       sized?.disconnect();
     };

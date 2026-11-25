@@ -209,13 +209,26 @@ describe('the icon set (ds-6)', () => {
   // last in the table, by Skoll as the Studio's CREDITS.md gives it (no link: the set's licence file gives none), under
   // the plain name the Credits show, resolving to its own path.
   it('holds the dropped sword for Drop, by Skoll, last, resolving', () => {
-    expect(SET_ICON_NAMES.slice(71)).toEqual(['drop-weapon']);
+    expect(SET_ICON_NAMES.slice(71, 72)).toEqual(['drop-weapon']);
     const icon = ICON_SET['drop-weapon'];
     expect(icon.author.name).toBe('Skoll');
     expect(icon.author.url).toBeUndefined();
     expect(icon.plain).toBe('Dropped sword');
     const { container } = render(<Icon name="drop-weapon" />);
     expect(container.querySelector('path')!.getAttribute('d')).toBe(icon.d);
+  });
+
+  // Purpose (P7; PL4b and page 40, p7-4): the call card's two marks, the stabbed note for a call to adventure (by
+  // Delapouite) and the beer stein for a rumour (by Lorc), come last in the table, each resolving to its own path.
+  it('holds the call card’s stabbed note and beer stein, last, each with its author, resolving', () => {
+    expect(SET_ICON_NAMES.slice(72)).toEqual(['stabbed-note', 'beer-stein']);
+    expect(ICON_SET['stabbed-note'].author.name).toBe('Delapouite');
+    expect(ICON_SET['beer-stein'].author.name).toBe('Lorc');
+    for (const name of ['stabbed-note', 'beer-stein'] as const) {
+      const { container, unmount } = render(<Icon name={name} />);
+      expect(container.querySelector('path')!.getAttribute('d')).toBe(ICON_SET[name].d);
+      unmount();
+    }
   });
 
   // Purpose: the Credits' plain names say what each picture shows (the Studio's names, via the lead, 2026-11-14).
@@ -307,18 +320,20 @@ describe('a way of travelling’s icon (pf-25’s reader; B16, p2p-30)', () => {
     expect(wayIconOf({ by: 'wade', icon: 'leather-boot' })).toBe('leather-boot');
   });
 
-  // Purpose: a way the app has no picture for gives no icon, so its button shows its word alone: an invented way, a
-  // route's one unnamed amount, a name that only looks like one (an object's own method), and a known id in capitals.
-  it('gives an unknown way no icon', () => {
-    for (const by of ['wade', '', 'toString', 'Row', 'Climb']) expect(wayIconOf({ by }), by).toBeNull();
+  // Purpose (d5-11, ruled 2026-11-20: "A: the pins mark"; pf-25 and page 18's note on PL7): a way the app has no
+  // picture for gives the generic way mark, so its button keeps the one shape: an invented way, a route's one unnamed
+  // amount, a name that only looks like one (an object's own method), and a known id in capitals.
+  it('gives an unknown way the generic way mark', () => {
+    for (const by of ['wade', '', 'toString', 'Row', 'Climb']) expect(wayIconOf({ by }), by).toBe('way-mark');
   });
 
-  // Purpose: an icon the app's set lacks gives no icon (pf-25: it "falls back to the mark"); it is never swapped for
-  // the picture of the way's `by`, and a line icon's or a status symbol's name is not a name from the set.
-  it('gives no icon for an icon the set lacks, even on a way it knows', () => {
-    expect(wayIconOf({ by: 'row', icon: 'lantern-moth' })).toBeNull();
-    expect(wayIconOf({ by: 'swim', icon: 'scene' })).toBeNull();
-    expect(wayIconOf({ by: 'walk', icon: 'toString' })).toBeNull();
+  // Purpose (d5-11; pf-25: an `icon` the set lacks "falls back to the mark"): an icon the app's set lacks gives the
+  // generic way mark; it is never swapped for the picture of the way's `by`, and a line icon's or a status symbol's
+  // name is not a name from the set.
+  it('gives the generic way mark for an icon the set lacks, even on a way it knows', () => {
+    expect(wayIconOf({ by: 'row', icon: 'lantern-moth' })).toBe('way-mark');
+    expect(wayIconOf({ by: 'swim', icon: 'scene' })).toBe('way-mark');
+    expect(wayIconOf({ by: 'walk', icon: 'toString' })).toBe('way-mark');
   });
 
   // Purpose: the icon a pack names on a way comes through the route's reader as written (trimmed), so the reader

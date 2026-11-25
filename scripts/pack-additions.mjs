@@ -452,6 +452,48 @@ function treasureCoinNotes(where, treasure, coinKeys) {
   return notes;
 }
 
+/** Conclusions `noticed` must not draw (07 `noticed`: the senses only, never magic, cursed, enchanted, sentient or +N). */
+const NOTICED_LEAKS = /\b(magic(al)?|cursed|enchanted|sentient)\b|\+\s*\d/i;
+
+/**
+ * B15 (p2p-28, p2p-29; 07 Adventure packs §2): a hoard's own words (`hoards: [{ name, text }]`, one piece in the book's
+ * words for the treasure entries naming that hoard), a treasure entry's `qty` (b15f-1; a whole number of 1 or more), and
+ * a magic item's truth (`magicItem: { name, text, noticed?, source? }`, a piece of its own, the GM's until its eye).
+ * `noticed` (b15f-2) is the players' to read: the leak check notes one that draws a conclusion or names the item.
+ */
+function hoardNotes(where, loc) {
+  const notes = [];
+  const treasure = Array.isArray(loc.treasure) ? loc.treasure : [];
+  const named = new Set(treasure.filter((t) => isObject(t) && isText(t.hoard)).map((t) => t.hoard.trim()));
+  if (loc.hoards !== undefined) {
+    if (!Array.isArray(loc.hoards)) notes.push(`${where}: hoards should be a list of { name, text } (a hoard's own words, p2p-28).`);
+    else
+      loc.hoards.forEach((hoard, i) => {
+        const at = `${where}: hoards ${i + 1}`;
+        if (!isObject(hoard) || !isText(hoard.name) || !isText(hoard.text)) notes.push(`${at} should be { name, text }: the hoard's name, as treasure entries name it, and its words as the book prints them.`);
+        else if (!named.has(hoard.name.trim())) notes.push(`${at}: no treasure entry here names the hoard "${hoard.name.trim()}", so its words show nowhere.`);
+      });
+  }
+  treasure.forEach((entry, i) => {
+    if (!isObject(entry)) return;
+    const at = `${where}: treasure ${i + 1}`;
+    if (entry.qty !== undefined && !(isWhole(entry.qty) && entry.qty >= 1)) notes.push(`${at}: qty should be a whole number of 1 or more, not ${JSON.stringify(entry.qty)} (it is read as 1).`);
+    if (entry.magicItem !== undefined) {
+      const magic = isObject(entry.magicItem) ? entry.magicItem : {};
+      const missing = ['name', 'text'].filter((k) => !isText(magic[k]));
+      if (missing.length > 0) notes.push(`${at}: magicItem should be { name, text, noticed?, source? }: ${missing.join(' and ')} ${missing.length > 1 ? 'are' : 'is'} missing, so it makes no piece (p2p-29).`);
+      if (magic.source !== undefined && !isText(magic.source)) notes.push(`${at}: magicItem's source should be text.`);
+      if (magic.noticed !== undefined && !isText(magic.noticed)) notes.push(`${at}: magicItem's noticed should be text (what the senses tell, b15f-2).`);
+      else if (isText(magic.noticed)) {
+        const leak = magic.noticed.match(NOTICED_LEAKS)?.[0];
+        if (leak) notes.push(`${at}: leak: magicItem's noticed says "${leak.trim()}", a conclusion; say only what the senses tell (07 noticed).`);
+        if (isText(magic.name) && magic.noticed.toLowerCase().includes(magic.name.trim().toLowerCase())) notes.push(`${at}: leak: magicItem's noticed names the item ("${magic.name.trim()}"); players read it before the eye.`);
+      }
+    }
+  });
+  return notes;
+}
+
 /** `locations` in a rules or overlay pack (G-58): a light check on the adventure shape (07 Adventure packs §2). */
 function locationNotes(file) {
   if (file.locations === undefined) return [];
@@ -490,6 +532,7 @@ function locationNotes(file) {
     if (loc.wayOut !== undefined && typeof loc.wayOut !== 'boolean') notes.push(`${where}: wayOut should be true or false (true marks "a way out"; 07 Adventure packs §2).`);
     else if (loc.wayOut === true && (loc.type === 'site' || loc.type === 'region')) notes.push(`${where}: wayOut marks this place alone, not the Locations in it: mark each Location the party can leave from.`);
     notes.push(...treasureCoinNotes(where, loc.treasure, coinKeys));
+    notes.push(...hoardNotes(where, loc));
   }
   for (const loc of file.locations.filter(isObject)) {
     if (isText(loc.parentId) && !ids.has(loc.parentId)) notes.push(`locations: "${label(loc)}": parentId "${loc.parentId}" isn't a place in this pack.`);

@@ -59,7 +59,8 @@ import './RequestCard.css';
 
 // The player's side ------------------------------------------------------------------------------------------------
 
-export function PlayerRequests({ db, user, campaign, setting = null }: { db: Db; user: CurrentUser; campaign: OpenCampaign; setting?: CampaignSetting | null }) {
+/** `player`: in the GM's view (C15f, pg32-5), whose requests these are; the reader's own elsewhere. */
+export function PlayerRequests({ db, user, campaign, setting = null, player = user.id }: { db: Db; user: CurrentUser; campaign: OpenCampaign; setting?: CampaignSetting | null; player?: string }) {
   const logVersion = useLogVersion();
   const show = useToast();
   const [requests, setRequests] = useState<Request[] | null>(null);
@@ -140,7 +141,7 @@ export function PlayerRequests({ db, user, campaign, setting = null }: { db: Db;
 
   if (!requests) return null;
   // A listed lodging is answered at once (no GM): nothing to show for it here; Where you stay shows it.
-  const shown = mine(requests, user.id).filter((r) => !(r.kind === 'lodging' && r.answer?.kind === 'stay')).filter((r) => r.status === 'waiting' || waitsForReply(r) || !seen.includes(r.id));
+  const shown = mine(requests, player).filter((r) => !(r.kind === 'lodging' && r.answer?.kind === 'stay')).filter((r) => r.status === 'waiting' || waitsForReply(r) || !seen.includes(r.id));
   if (shown.length === 0) return null;
   return (
     <section className="requests" aria-label="Your requests" data-prompt-id={shown.map((r) => `${r.id}:${r.status}`).join(' ')}>

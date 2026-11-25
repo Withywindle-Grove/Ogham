@@ -114,11 +114,13 @@ import {
   type WentCharacter,
 } from '../modules/expedition/play.ts';
 import { loadPartyLights } from '../modules/expedition/lightPlay.ts';
-import { engineStatuses, loadRests, restNow, restRuleWords, statusEffects, type CharacterRest } from '../modules/expedition/statusPlay.ts';
+import { engineStatuses, loadRests, REST_ANSWER_WORDS, restNow, restRuleWords, statusEffects, type CharacterRest } from '../modules/expedition/statusPlay.ts';
 import { answerOf, answerRest, callRest, flipped, forcedRestGroups, forcedWithoutCamp, pushedOn, restArg, restFlows, restToApply, withForcedOpen, type RestFlow } from '../modules/expedition/restFlow.ts';
 import type { Marcher } from '../modules/expedition/marchingPlay.ts';
 import { RestPanel, RestPrompt, RestRule, type RestLine } from './RestPrompt.tsx';
 import { PromptSlot } from './PromptSlot.tsx';
+import { CallsInPromptSlot } from './CallCard.tsx';
+import { usePlayerCalls } from './usePlayerCalls.ts';
 import { darkMode, inDarkness } from '../modules/expedition/darkness.ts';
 import { loadTownSwitches, resetTownSwitches, setActiveNight, setOutDay } from '../modules/expedition/townPlay.ts';
 import { ACTIVE_NIGHT, afterFlip, anyOn, endedWords, flipToastWords, OUT_DAY, reachesMorning, runsNow, switchesLine, SWITCHES_OFF, type TownSwitches } from '../modules/expedition/townSwitches.ts';
@@ -128,8 +130,8 @@ import { advanceBy, checkNow, encounterCheckOf, hourTrackNow, needsSeason, nextS
 import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { BookFaces } from '../ui/BookFaces.tsx';
 import { DiceWords } from '../ui/dice.tsx';
-import { bandHeading, checkFact, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, seasonIconOf, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
-import { BandTool, BandTools, DepartButton, FactsRow, NextTurnButton, SceneBand, SessionButton, type DateLine } from './SceneBand.tsx';
+import { bandHeading, checkFact, checkSheetLines, checkRule, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, lightSheetLines, NO_LIGHT_WORDS, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, restSheetLines, seasonIconOf, settingRule, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
+import { BandTool, BandTools, DepartButton, FactSheet, FactsRow, NextTurnButton, SceneBand, SessionButton, type DateLine } from './SceneBand.tsx';
 import { useSceneTopOpen } from './sceneTopOpen.ts';
 import { loadWayOut } from '../modules/expedition/dungeonWayOut.ts';
 import { applyNightRest, loadRestCharacters, NightRestSheet, REST_READ_FAILED, restListed, type Rester } from './NightRest.tsx';
@@ -172,6 +174,7 @@ import { registry } from './services.ts';
 import { useMessaging } from './Messages.tsx';
 import { useWeather, useWeatherFold, WeatherCard } from './WeatherCard.tsx';
 import { WeatherSheet } from './WeatherSheet.tsx';
+import { LightFactSheet, type CharacterLightView } from './LightSection.tsx';
 import './SceneTime.css';
 import { EndCard, RestLines } from './EndCard.tsx';
 import { SafePlaceQuestion, StayingAWhile } from './EndSafety.tsx';
@@ -189,6 +192,7 @@ export function SceneTime({
   compact = false,
   onOpenScene,
   tableView,
+  player,
 }: {
   db: Db;
   user: CurrentUser;
@@ -204,9 +208,18 @@ export function SceneTime({
    * and the weather card are the strip's own); `body` is the marching order and the place, given the Rest button
    * for a group (B5: calls a rest out of turn).
    */
-  tableView?: { /** The slot's other prompts, one keyed element each (the slot orders them, newest on top). */ prompts: ReactNode; body: (restButton: (group: number) => ReactNode, dark?: (group: number) => boolean) => ReactNode };
+  /**
+   * The GM's view as the player (C15f, pg32-5; page 32, M3i): whose Scene this is. The strip is then the player's, their
+   * characters' group and Rest; what the GM does here still runs as his, through `can()`.
+   */
+  player?: string;
+  tableView?: { /** The slot's other prompts, one keyed element each (the slot orders them, newest on top). */ prompts: ReactNode; /** The player's own light, for the Light pop-up's "Light" (PL8). */ light?: CharacterLightView; body: (restButton: (group: number) => ReactNode, dark?: (group: number) => boolean) => ReactNode };
 }) {
-  const gm = isGm(user, campaign.id);
+  const gm = isGm(user, campaign.id) && player === undefined;
+  // Whose characters are "mine": the player's in the GM's view, else the reader's.
+  const me = player ?? user.id;
+  // The players' reads are made as the player only when that is someone else (the GM's own character reads as him).
+  const readAs = player !== undefined && player !== user.id ? player : undefined;
   const logVersion = useLogVersion();
   // The GM's place page holds the screen's accent (Move on): the main advance is then plain (5b).
   const accentHeld = useAccentHeld();
@@ -236,6 +249,14 @@ export function SceneTime({
   // after Yes the summary offers Start downtime · Not yet, and Not yet puts that offer away on this screen.
   const [notYet, setNotYet] = useState(false);
   const [asking, setAsking] = useState<'by' | 'part' | 'day' | 'checklist' | 'date' | 'season' | 'no-check' | 'leave' | 'light' | 'check' | 'camp' | 'reminders' | 'why' | 'depart' | null>(null);
+  // Once a player lights their light from the Light pop-up, focus goes back to the Light fact, which then names the
+  // light (the audit of #86, pick 1).
+  const refocusLight = useRef(false);
+  useEffect(() => {
+    if (asking === 'light' || !refocusLight.current) return;
+    refocusLight.current = false;
+    document.querySelector<HTMLElement>('.scene-facts .scene-fact--light')?.focus({ preventScroll: true });
+  }, [asking]);
   // A blocked band button's reason (S2: it stays tappable and says why), shown in the 'why' pop-up.
   const [whyBlocked, setWhyBlocked] = useState<{ title: string; words: string } | null>(null);
   // st-11 (the lead, on #807): from Start expedition until the reload lands, the band's buttons hold (a tap is
@@ -379,6 +400,9 @@ export function SceneTime({
   const weather = useWeather(db, user, campaign.id, version);
   const weatherFold = useWeatherFold(weather.view);
   const [weatherOpen, setWeatherOpen] = useState(false);
+  // The calls to adventure and rumours sent to this player (P7; page 40): read again with the log, last in the slot;
+  // read only while the players' slot is drawn (its table view, once the time has loaded).
+  const playerCalls = usePlayerCalls(db, user, campaign.id, !gm && !compact && !!tableView && scene !== null && scene !== 'error', logVersion + version);
 
   const underWay = scene !== null && scene !== 'error' && scene.expedition !== null;
   const expeditionId = scene !== null && scene !== 'error' ? (scene.expedition?.id ?? null) : null;
@@ -428,7 +452,7 @@ export function SceneTime({
   useEffect(() => {
     if (gm || compact || !expeditionId) return;
     let current = true;
-    void Promise.all([loadLastShownPlaces(db, campaign.id), loadPlayersCheck(db, campaign.id)]).then(([places, checks]) => {
+    void Promise.all([loadLastShownPlaces(db, campaign.id, readAs), loadPlayersCheck(db, campaign.id, readAs)]).then(([places, checks]) => {
       if (!current) return;
       setShownRead((last) => {
         const kept = last.trip === expeditionId ? last : { trip: expeditionId, places: new Map<number, string>(), checks: [] };
@@ -438,7 +462,7 @@ export function SceneTime({
     return () => {
       current = false;
     };
-  }, [db, gm, compact, campaign.id, expeditionId, logVersion, version]);
+  }, [db, gm, compact, campaign.id, expeditionId, logVersion, version, readAs]);
   // Where? (DG1), the GM's alone: recent places between expeditions, and where the one under way started.
   useEffect(() => {
     if (!gm || compact) return;
@@ -812,7 +836,7 @@ export function SceneTime({
           forcedGroups: forcedRestGroups(travelRows?.values() ?? [], (openCamps ?? []).map((c) => c.camp)),
         })
       : [];
-  const mineIds = marchers.filter((m) => m.ownerUserId === user.id).map((m) => m.id);
+  const mineIds = marchers.filter((m) => m.ownerUserId === me).map((m) => m.id);
   const myFlows = gm ? flows : flows.filter((f) => f.members.some((id) => mineIds.includes(id)));
   const splitFlows = flows.length > 1;
   const restOf = (id: string) => rests.find((r) => r.actorId === id);
@@ -991,7 +1015,7 @@ export function SceneTime({
     // the database starts the days with the clock, so the day's record never waits for a travel card to be open.
     const morning =
       !moving && command !== nextPartOfDay && dayOf(result.to) > dayOf(result.from) && setting && settings && members
-        ? await loadTravelView(db, campaign.id, { clock: { ...clock, seconds: result.to }, session, expedition, seasonNotNow: seasonDeclined }, setting, settings as Record<string, Json | undefined>, members, marchers, { userId: user.id, gm })
+        ? await loadTravelView(db, campaign.id, { clock: { ...clock, seconds: result.to }, session, expedition, seasonNotNow: seasonDeclined }, setting, settings as Record<string, Json | undefined>, members, marchers, { userId: me, gm })
         : null;
     const days = morning ? travelDayStarts(morning) : [];
     const moved = moving
@@ -1244,7 +1268,7 @@ export function SceneTime({
   /** The Rest button (B5): calls a rest for the group (or, with one open, answers Rest for the player's own). */
   async function restCalled(group: number) {
     const flow = flows.find((f) => f.group === group);
-    const own = party.filter((p) => p.ownerUserId === user.id && (flow?.members.includes(p.id) ?? true));
+    const own = party.filter((p) => p.ownerUserId === me && (flow?.members.includes(p.id) ?? true));
     if (!flow || own.length === 0) return show({ text: 'None of your characters is in this group.' });
     if (flow.open) {
       const done = await act(answerRest, { target: { campaignId: campaign.id, characters: own }, answer: 'rest' });
@@ -1981,6 +2005,15 @@ export function SceneTime({
   const factGroups = gm || myGroups.length === 0 ? groupsInPlay : myGroups;
   const factFlows = gm || myFlows.length === 0 ? flows : myFlows;
   const myGroupNumber = myGroups[0]?.number ?? 1;
+  // The light by group, for the Light fact and a player's Light pop-up (PL8).
+  const lightGroups = factGroups.map((g) => ({
+    group: g.number,
+    name: groupName(g.number),
+    dark: darkGroups.includes(g),
+    lights: litNow
+      .filter((l) => g.ids.includes(l.id))
+      .map((l) => ({ name: l.name, stepsLeft: l.seconds === null || !perStep ? null : Math.max(1, Math.ceil((l.litAt + l.seconds - now) / perStep)) })),
+  }));
   const bandFacts: Fact[] =
     sessionNow === 'none'
       ? []
@@ -1993,17 +2026,7 @@ export function SceneTime({
           // A town's mode has no light fact (mc-69).
           isPartOfDay(mode.step.unit)
             ? null
-            : lightFact({
-                stepWord,
-                groups: factGroups.map((g) => ({
-                  group: g.number,
-                  name: groupName(g.number),
-                  dark: darkGroups.includes(g),
-                  lights: litNow
-                    .filter((l) => g.ids.includes(l.id))
-                    .map((l) => ({ name: l.name, stepsLeft: l.seconds === null || !perStep ? null : Math.max(1, Math.ceil((l.litAt + l.seconds - now) / perStep)) })),
-                })),
-              }),
+            : lightFact({ stepWord, groups: lightGroups }),
           rest ? restFact({ stepWord, day: restDay, ruleWords: restEveryWords(mode.rest), pushedOn: !gm && factFlows.some((f) => !f.open && f.members.some((id) => mineIds.includes(id) && pushedOn(restOf(id), expedition.startedAt))), groups: factFlows.map((f) => ({ group: f.group, name: groupName(f.group), open: f.open, stepsLeft: f.stepsLeft })) }) : null,
           (() => {
             // A player's: the last shown place's own check where it stands in (mc-39b, mc-50; the database sends when
@@ -2022,6 +2045,13 @@ export function SceneTime({
   const bandPart = bandFacts.find((f) => f.id === 'part') ?? null;
   // The Rest fact's whole words head its sheet (tv-1: the tile may cut them).
   const bandRest = bandFacts.find((f) => f.id === 'rest') ?? null;
+  // A player's Encounter check pop-up (PL8): the setting's check's words where the player's copy opens them; none for
+  // the shown place's own check, whose read sends when and chance only (⚑ on P10: its words would widen that read).
+  const playersCheckRule = (() => {
+    if (gm || !mode || !engine || playersChecks.some((c) => c.group === myGroupNumber)) return [];
+    const inForce = encounterCheckOf(engine);
+    return inForce?.source === 'mode' ? checkRule(mode, inForce.check.id, exploration.playerReadable) : [];
+  })();
   const openFact = (id: Fact['id']) => {
     // The Weather fact opens its sheet (S10, T6): today's weather in plain words, and the roll when it is due.
     if (id === 'weather') setWeatherOpen(true);
@@ -2474,6 +2504,24 @@ export function SceneTime({
       <ProcedureStrip steps={strip.steps} onOpen={setStepOpen} />
       {stepOpen && <RuleSheet placeName="" name={stepOpen.name} blocks={blocksOfRead(stepOpen.text)} onClose={() => setStepOpen(null)} />}
       {weatherOpen && <WeatherSheet db={db} user={user} view={weather.view} over={[bandDate.words, bandDate.season].filter(Boolean).join(', ')} onChanged={weather.reload} onClose={() => setWeatherOpen(false)} />}
+      {/* A player's tap on Light, Rest or the Encounter check (P10; page 18, PL8): the state, then the rule where the
+          player's copy of the setting has its words. The Rest prompt's ⓘ opens the same Rest pop-up. */}
+      {lightAbout && (
+        <LightFactSheet
+          lines={lightSheetLines(lightGroups, stepWord)}
+          // PL8: the player's one act here, lighting their own light as At hand does; none with nothing to light.
+          view={tableView?.light ?? null}
+          onClose={() => setLightAbout(false)}
+          onLit={() => {
+            refocusLight.current = true;
+            setLightAbout(false);
+          }}
+        />
+      )}
+      {restAbout && bandRest && (
+        <FactSheet title="Rest" lines={restSheetLines(bandRest, mode?.rest ? restEveryWords(mode.rest) : null)} rule={settingRule(restWords.filter((w) => w !== REST_ANSWER_WORDS), mode?.rest?.source)} onClose={() => setRestAbout(false)} />
+      )}
+      {asking === 'check' && bandCheck && <FactSheet title={bandCheck.label} lines={checkSheetLines(bandCheck)} rule={playersCheckRule} onClose={() => setAsking(null)} />}
     </BookFaces>
   );
 
@@ -2496,8 +2544,8 @@ export function SceneTime({
             <>
               {/* B18: the prompt slot, between the time band and the marching order (space reserved), newest on top
                   (SC-g6-4): the rest prompt, the screen's other prompts (a request, a message, No light), the weather;
-                  what is there when the screen opens keeps that order. */}
-              <PromptSlot>
+                  what is there when the screen opens keeps that order. The calls to adventure come last, always (p7-9). */}
+              <PromptSlot after={<CallsInPromptSlot calls={playerCalls.calls} onGotIt={playerCalls.gotIt} />}>
                 {restViews.map((flow) => (
                   <RestPrompt
                     key={`rest-${flow.group}`}
@@ -2579,12 +2627,12 @@ export function SceneTime({
                 onRule={() => setRestAbout(true)}
               />
             ))}
-          {restAbout && <RestRule head={bandRest ? `${bandRest.value}.${bandRest.sub && bandRest.sub !== restWords[0] ? ` ${bandRest.sub}` : ''}` : null} words={restWords} onClose={() => setRestAbout(false)} />}
-          {lightAbout && (
+          {restAbout && (gm || !bandRest) && <RestRule head={bandRest ? `${bandRest.value}.${bandRest.sub && bandRest.sub !== restWords[0] ? ` ${bandRest.sub}` : ''}` : null} words={restWords} onClose={() => setRestAbout(false)} />}
+          {lightAbout && gm && (
             <Dialog label="Light" onClose={() => setLightAbout(false)}>
               <p className="time-strip__notes">
                 {lightMarks.some((m) => m.dark)
-                  ? 'No light: nobody in the group has a light lit, so they are in darkness. Light one from a pack (Light a torch).'
+                  ? `No light. ${NO_LIGHT_WORDS}`
                   : gm
                     ? 'The lights lit and the time each has left. They burn down as the clock moves on.'
                     : 'Your light and the time it has left. It burns down as the GM moves the clock on.'}
@@ -2732,7 +2780,7 @@ export function SceneTime({
           )}
           {seasonDialog}
           {/* The Encounter check fact's tap (S4): the check in force, to read; checking now is the band's Encounter check (S2). */}
-          {asking === 'check' && bandCheck && (
+          {asking === 'check' && bandCheck && gm && (
             <Dialog label={bandCheck.label} onClose={() => setAsking(null)}>
               <p className="time-strip__notes">
                 <DiceWords>{`${bandCheck.value}${bandCheck.sub ? `, ${bandCheck.sub}` : ''}.`}</DiceWords>

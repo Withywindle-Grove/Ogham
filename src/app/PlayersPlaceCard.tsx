@@ -136,12 +136,12 @@ function SharedSectionSheet({ shared, onClose }: { shared: SharedKnowledge; onCl
  * card's book format, nothing else. Its pieces are read when it opens (known_places_campaign: only what the group was
  * shown, on any visit), and again with the log.
  */
-export function KnownLocationSheet({ db, campaignId, place, onClose }: { db: Db; campaignId: string; place: KnownPlace; onClose: () => void }) {
+export function KnownLocationSheet({ db, campaignId, place, onClose, asPlayer }: { db: Db; campaignId: string; place: KnownPlace; onClose: () => void; asPlayer?: string }) {
   const logVersion = useLogVersion();
   const [read, setRead] = useState<{ pieces: ShownPiece[] } | 'failed' | null>(null);
   useEffect(() => {
     let live = true;
-    void loadShownPlaces(db, campaignId).then((found) => {
+    void loadShownPlaces(db, campaignId, asPlayer).then((found) => {
       if (!live) return;
       if (!found) return setRead((was) => (was && was !== 'failed' ? was : 'failed'));
       const pieces = [...found.current, ...found.earlier].filter((p) => p.placeId === place.placeId).flatMap((p) => p.pieces.map((piece) => ({ id: piece.id, kind: piece.kind, text: piece.text, lead: piece.lead ?? '' })));
@@ -150,7 +150,7 @@ export function KnownLocationSheet({ db, campaignId, place, onClose }: { db: Db;
     return () => {
       live = false;
     };
-  }, [db, campaignId, place.placeId, logVersion]);
+  }, [db, campaignId, place.placeId, logVersion, asPlayer]);
   return (
     <Dialog wide label={numbered(place)} onClose={onClose}>
       {read === null && <p className="auth__meta">Opening…</p>}
@@ -173,6 +173,7 @@ export function PlayersAreaCard({
   rules,
   turns,
   group = null,
+  asPlayer,
 }: {
   db: Db;
   campaignId: string;
@@ -181,6 +182,8 @@ export function PlayersAreaCard({
   rules: readonly PlayersRule[];
   turns: TurnClock | null;
   group?: string | null;
+  /** The GM's view as the player (C15f): whose reading a known Location opens with. */
+  asPlayer?: string;
 }) {
   const [section, setSection] = useState<SharedKnowledge | null>(null);
   const [location, setLocation] = useState<KnownPlace | null>(null);
@@ -191,7 +194,7 @@ export function PlayersAreaCard({
     <>
       {rulesRow.sheets}
       {section && <SharedSectionSheet shared={section} onClose={() => setSection(null)} />}
-      {location && <KnownLocationSheet db={db} campaignId={campaignId} place={location} onClose={() => setLocation(null)} />}
+      {location && <KnownLocationSheet db={db} campaignId={campaignId} place={location} onClose={() => setLocation(null)} asPlayer={asPlayer} />}
     </>
   );
   if (!areaCardShows(card, knowledge, rules)) return sheets;
@@ -227,19 +230,19 @@ export function PlayersAreaCard({
  * A player's cards and shared knowledge, read now and again with every log line or group signal; a failed read keeps the
  * last good one (as the rules do, review of #726), so a network blip never empties the card. Nothing for the GM.
  */
-export function usePlayersPlaceCards(db: Db, campaignId: string, player: boolean): { cards: ReadonlyMap<number, PlayersPlaceCard>; knowledge: readonly SharedKnowledge[] } {
+export function usePlayersPlaceCards(db: Db, campaignId: string, player: boolean, asPlayer?: string): { cards: ReadonlyMap<number, PlayersPlaceCard>; knowledge: readonly SharedKnowledge[] } {
   const logVersion = useLogVersion();
   const [read, setRead] = useState<{ cards: ReadonlyMap<number, PlayersPlaceCard>; knowledge: readonly SharedKnowledge[] }>({ cards: new Map(), knowledge: [] });
   useEffect(() => {
     if (!player) return;
     let live = true;
-    void Promise.all([loadPlayersPlaceCards(db, campaignId), loadPlayersKnowledge(db, campaignId)]).then(([cards, knowledge]) => {
+    void Promise.all([loadPlayersPlaceCards(db, campaignId, asPlayer), loadPlayersKnowledge(db, campaignId, asPlayer)]).then(([cards, knowledge]) => {
       if (!live) return;
       setRead((was) => ({ cards: cards ?? was.cards, knowledge: knowledge ?? was.knowledge }));
     });
     return () => {
       live = false;
     };
-  }, [db, campaignId, player, logVersion]);
+  }, [db, campaignId, player, logVersion, asPlayer]);
   return read;
 }

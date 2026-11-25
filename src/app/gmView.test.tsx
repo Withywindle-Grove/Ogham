@@ -24,6 +24,10 @@
 //      campaign." toast.
 //  13. When the view opens before it can tell whose Wren is, the first answer shows no toast ("Wren is now Sam's."):
 //      the owner did not change.
+//  14. Keyboard focus (audit fix 3): a door on the Players row puts focus on the view's heading, the character's name;
+//      Enter on a row's ⋯ puts it on the menu's first item, and Escape puts it back on ⋯.
+//  15. In the GM's view of a player's Scene the "Recently" log lines are left out (⚑ 52, ruled 2026-11-24); the view of
+//      the GM's own character keeps them, as his own Scene does.
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -323,6 +327,47 @@ describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
     await again.click(screen.getByRole('button', { name: "View Tam's sheet" }));
     const bar = within(await screen.findByRole('navigation', { name: 'Main' }));
     await waitFor(() => expect(bar.getAllByRole('button').map((b) => b.textContent)).toEqual(['Player', 'Scene', 'Pack', 'Log']));
+  });
+});
+
+describe('keyboard focus in the view (audit fix 3)', () => {
+  it("a door on the Players row puts focus on the view's heading, the character's name", async () => {
+    const user = await openPlayers();
+    await user.click(screen.getByRole('button', { name: "Open Wren's pack" }));
+    await waitFor(() => expect(document.activeElement?.textContent).toBe('Wren’s pack'));
+    expect(document.activeElement?.classList.contains('top-row__title')).toBe(true);
+    await user.click(screen.getByRole('button', { name: '‹ Players' }));
+    await user.click(await screen.findByRole('button', { name: "View Wren's sheet" }));
+    await waitFor(() => expect(document.activeElement?.textContent).toBe('Wren'));
+    expect(document.activeElement?.classList.contains('top-row__title')).toBe(true);
+  });
+
+  it("Enter on a row's ⋯ puts focus on the menu's first item; Escape puts it back on ⋯", async () => {
+    const user = await openPlayers();
+    const more = screen.getByRole('button', { name: 'More for Wren' });
+    more.focus();
+    await user.keyboard('{Enter}');
+    const menu = document.querySelector('.more-menu__panel') as HTMLElement;
+    expect(document.activeElement).toBe(within(menu).getByRole('button', { name: 'Edit' }));
+    await user.keyboard('{Escape}');
+    expect(document.querySelector('.more-menu__panel')).toBeNull();
+    expect(document.activeElement).toBe(more);
+  });
+});
+
+describe("the view's Scene (⚑ 52)", () => {
+  it("leaves out the Recently log lines in the view of a player's Scene; the view of the GM's own character keeps them", async () => {
+    world.addCharacter(campaign, 'Ash');
+    const user = await openPlayers();
+    await user.click(screen.getByRole('button', { name: "Open Ash's scene" }));
+    expect(await screen.findByRole('region', { name: 'Recently' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '‹ Players' }));
+    await user.click(await screen.findByRole('button', { name: "Open Wren's scene" }));
+    const nav = within(await screen.findByRole('navigation', { name: 'Main' }));
+    await waitFor(() => expect(nav.getByRole('button', { name: 'Scene' }).getAttribute('aria-current')).toBe('page'));
+    await waitFor(() => expect(band().getAttribute('aria-label')).toMatch(/^Sam’s view of Wren\./));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.queryByRole('region', { name: 'Recently' })).toBeNull();
   });
 });
 

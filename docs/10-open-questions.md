@@ -11,8 +11,18 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 **The Scene, point to point** (`design/rulings/scene-point-to-point-2026-11-18.md`)
 
 **Later**
+- ⚑ **Laptops, widescreen** (2026-11-24, `01` Devices): laptops are the second device, for downtime; how windows scale past the tablet's landscape layout (1024 px and up, `06`) needs a short design session before anything in `06` changes.
 - **After 5 December: text shown on hover, for a PC** (euf-8, Francis, 2026-11-19: "we'll want to support pc more in the future but not prior to dec 5"). A player asked for an ability's description on hover; on a tablet a tap on the name opens it.
 - **After 5 December: players arrange the sections of their own screen, saved to their view** (euf-9, 2026-11-19). "Arrange this screen" was removed on 2026-10-26; its command and log lines are kept (05). Until then the pins and their order are the player's way to arrange the Player tab.
+- **After 5 December: the players' map's locate tool** (the post-5-December list, 2026-11-24): the players' map card opens fitted whole with no locate; a locate button on it needs a design (P5, `plans/dec-9-the-players-scene.md`; 09, 24 Nov).
+- **After 5 December: a trait that is a table** (2026-11-24): shown as the book's table until a design is ruled.
+- **After 5 December: "Missile" or "missile" on the attack tile's line** (2026-11-24): dec-14 row 7b is held; the line stays "Melee +2, Missile +1" as built (tfw-7) until re-examined.
+- **After 5 December: a hand-added map inherited by the place's areas?** (2026-11-24): for 5 December only the pack's maps flow down the place tree (#51).
+- **After 5 December: the players' map and What we know in the GM's view of another player's Scene, as that player reads them** (Francis, 2026-11-24: "Agree"; #85 leaves them out). Needs a migration (an "as this player" form of the reads) and a plan.
+- **After 5 December: an account-deletion migration so every kept log line reads "A former player"** (Francis, 2026-11-25: "77 accept"; #77 does it for the call card's "Got it" line only; #84 keeps every row). Needs a plan and his yes to the migration in plain words (CLAUDE.md, Database changes).
+- **After 5 December: the eyes on a keeper's lines in town** (`plans/dec-16-town-carry.md`, row TC6; Francis, 2026-11-25: "Approve with your recommendations"). It needs a migration on a table that is now on the main database (a store of which of a person's lines are open, a read for players of the opened lines only, and one index replaced; it removes no data). **Ask Francis again, in plain words, before the migration is written:** his earlier yes (idx-1) was given while the table had not reached main. Until then the GM reads a keeper's lines aloud.
+- **After 5 December: rework the campaign's Rules screens** (Francis, 2026-11-18: "note for post dec 5 we need to rework the campaign rules screens"). No detail given: ask him what bothered him before any design; it likely sits with the "Priority" sheet ruled 2026-11-13 (09). A design sitting and mockups first.
+- **After 5 December: light sources offered as weapon-proficiency picks** (Francis, 2026-11-18: "leave it for now revisit after the fifth"). In creation's proficiency step, a pack's light source that carries a weapon line (a torch, a flask of oil) is offered as a pick. To decide then: keep it, leave lights or improvised things out of the list in the app, or change the pack.
 - ⚑ **The Pack tab's sitting: movement with the burden in one box, and the three to five heaviest things** (a player's idea; euf-7, 2026-11-19: not on the Player tab, "we'll need to figure out a way to implement it on Pack Tab"), with the same player's note on the ⓘ beside "In the backpack" (`intents/player-tab-end-user-feedback-2026-11-19.md`, messages 3, 4 and 6).
 - An item's action verb from the pack (a \`verb\` field, 07) instead of a guess from the category id; a weapon-to-ammunition link (the bow's Fire) with M6 (parked 2026-11-07).
 - Player-readable reference panels (`gmOnly: false`, ruled 2026-11-07): the data is in the zine; the app side (a migration splitting only GM-only panels, a player visibility test, a "Reference" heading on the players' Setting rules screen) is built later, in one migration batch with the pack cache, after the players' screens (Francis, 2026-11-07).
@@ -26,7 +36,7 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 
 
 **Deliberately open (◈)**
-- ◈ CS-3 save modifier design is tentative; review after the first table test.
+- ◈ CS-3 save modifiers in a fight's save prompt are tentative; review after the first table test. (The tiles and the sheet were ruled on 2026-11-25: 05, "Save bonuses in the number".)
 - ◈ The full sheet's compact grid (B20) is approved for now and may iterate.
 - ◈ The toast's 8 seconds may shorten after use.
 - ⚑ The dark warning colour against the Copper accent: moved to #F2D46B (2026-10-25); the gallery confirms the pair.
@@ -52,7 +62,7 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 - ⚑ Whether the world appendix (gods, languages, institutions) becomes a GM table (gods for clerics' choices; needs a new table `use`) or stays reference text — decide when adventure packs are real.
 
 **M9 hirelings design session (ruled 2026-11-04, 08 M9)**
-- ⚑ Date for the hirelings / holdings / organizations design session (survey, paper test, ruling): after the M5b gate, before M7b.
+- ⚑ Date for the hirelings / holdings / organizations design session (survey, paper test, ruling): a full design session after the 5 December play session, not before (Francis, 2026-11-24; was "after the M5b gate, before M7b").
   - On its agenda (2026-11-05): a companion whose bonuses count on its owner's sheet while it serves (familiars, ao-2; a5-5's conjured companion is the nearest shape).
 - ⚑ Date for the prep-space paper test, scope tables and encounters (ha-1): after the gate and the hirelings session, before M6 starts.
   - On its agenda (2026-11-05, Francis): a creature's rolled tables used in prep as well as at the table: flavour tables (features, what it's doing, names, lairs) and variant rows that apply a modification, rolled ahead of a session and saved with the prepared foe.
@@ -73,3 +83,8 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 
 **The test feedback of 19 November, sittings 2 to 7** (2026-11-19; each ruling's "Not settled" has the rest; pages M1 and M2 were approved on 2026-11-19 and settled theirs, the rest ride with page M3)
 - ⚑ For a skill rolled low or by percentage, what does the pop-up's top line read? After the Pack Creator's answer (E6). (`design/rulings/dec-test-feedback-skills-2026-11-19.md`, ⚑ 1)
+
+**Save bonuses in the number** (the four questions here were ruled on 2026-11-25: `plans/dec-15-save-bonus.md`, Ruled 2026-11-25; `09`). What is left is work to come, not a question:
+- A status that changes saves (a blessing's +1 for some turns), a save set by hand, and creation's review: each stays as built until it has its own frame. The fight's save prompt is ◈ CS-3, above.
+- The shapes of the two pack-format flags (G-220, G-221) and a condition's short word (G-222): designed with the Pack Creator (`11`); the plan's row 8 is held until then.
+- At the 5 December session: look at the 12 px line at the real table, at arm's length on a tablet lying flat. Nothing to build.

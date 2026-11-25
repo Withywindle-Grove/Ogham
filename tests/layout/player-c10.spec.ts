@@ -71,7 +71,9 @@ for (const scheme of SCHEMES) {
       await openPlayer(page, 'heavy');
       const movement = page.getByRole('region', { name: 'Movement' });
       const tier = movement.locator('.pack__tier');
-      await expect(tier).toHaveText("Can't move");
+      // The sign alone, "Can't move" said on the speed card (dec-14 row 8, ruled 8a); the sign keeps it as its name.
+      await expect(tier).toHaveText('');
+      await expect(tier).toHaveAccessibleName("Can't move");
       await expect(tier.locator('svg, .warning-sign').first()).toBeVisible();
       await expect(movement.getByText('1,259 of 1,200 coins')).toBeVisible();
       expect(await layoutProblems(page)).toEqual([]);

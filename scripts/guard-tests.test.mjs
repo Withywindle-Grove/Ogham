@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { decide, isTestFile, onlyAddsFailsTests, onlyRemovesFails } from './guard-tests.mjs';
 import { branchOf, canonicalPath, committedOf, runGit } from './guard-tests.mjs';
 import { execFileSync } from 'node:child_process';
+import { withoutGitVariables } from './git-test-env.mjs';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -472,7 +473,7 @@ describe('the fix-branch test guard: reading what the branch has committed (gd-1
   // Without the GIT_* variables a pre-commit hook sets (GIT_DIR, GIT_INDEX_FILE ...), which would aim these calls at the
   // repo being committed instead of the temporary one; and without the user's own or the system's git config (hooks,
   // signing, templates), read from an empty file instead.
-  const inherited = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')));
+  const inherited = withoutGitVariables();
   const git = (...args) =>
     execFileSync(
       'git',

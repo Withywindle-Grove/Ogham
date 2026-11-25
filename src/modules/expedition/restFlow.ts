@@ -112,17 +112,6 @@ export const withForcedOpen = (flows: readonly RestFlow[], groups: ReadonlySet<n
 /** Whether a character pushed on during this expedition and hasn't rested since. */
 export const pushedOn = (rest: CharacterRest | undefined, startedAt: number): boolean => !!rest && rest.pushedOnAt !== null && rest.pushedOnAt >= startedAt;
 
-/**
- * The rest marker on the strip (B5): "Rest in 2", "Rest due" ("Rest day in 2", "Rest day" in day modes); "Rest due ·
- * you pushed on" for a player whose character pushed on (while no rest is open); the GM's minimised panel adds "· 2 of 4".
- */
-export function restMarkerWords(flow: RestFlow, options: { day: boolean; pushedOn?: boolean; count?: boolean }): string {
-  const due = options.day ? 'Rest day' : 'Rest due';
-  if (flow.open) return options.count ? `${due}, ${flow.answered} of ${flow.members.length}` : due;
-  if (options.pushedOn) return `${due}, you pushed on`;
-  return `${options.day ? 'Rest day' : 'Rest'} in ${flow.stepsLeft}`;
-}
-
 /** What the GM's Next turn sends: everyone in an open flow, and the pack's condition for those who didn't rest. */
 export interface RestApply {
   actors: string[];

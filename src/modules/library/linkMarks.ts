@@ -6,7 +6,6 @@
 
 /** The kinds a link may name (pf-5; `adventureHook`, an adventure's hook, from pf-5a). */
 export const LINK_KINDS = ['place', 'npc', 'item', 'table', 'statBlock', 'spell', 'rule', 'adventureHook'] as const;
-export type LinkKind = (typeof LINK_KINDS)[number];
 
 /** One link: its kind as written, the pack it names ('' for this pack), the id in that pack, and its label. */
 export interface LinkMark {

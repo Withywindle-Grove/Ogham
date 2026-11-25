@@ -73,6 +73,15 @@
   font-size: var(--text-item);
 }
 
+/* Variant "Plain title" (page 32, M3f, M3f2, M3j; audit fix 4): ink, sentence case, the Sheet's title size, wherever
+   it opens (the book's pop-up scope and a reading pop-up give the others the book's red heading). */
+.dialog__title--plain {
+  color: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: var(--text-item);
+}
+
 /* The foot of every sheet and pop-up (ft-1, 2026-11-14, "buttons are right justified"; the approved Pack frames PK3,
    PK5, PK10b and the shop's TW4a): a lone accent at the right at its own width, never stretched and never at the left;
    two or more side by side, the group at the right, in code order, which is reading order and Tab order (the order
@@ -87,10 +96,14 @@
 }
 
 /* When they don't fit one row (Dialog.tsx measures it, `stackFeet`), they stack, each at the right, in the same order
-   (B19: a long label never breaks the row). */
-.dialog__actions--stacked {
-  flex-direction: column;
-  align-items: flex-end;
+   (B19: a long label never breaks the row): one column at the right, every button the widest one's width, so the
+   stack looks intended (Francis, 24 Nov, on #85's Take back: every stacked foot alike). A long label still wraps
+   inside the foot's width. */
+.dialog__actions.dialog__actions--stacked {
+  display: grid;
+  grid-template-columns: minmax(0, max-content);
+  justify-content: end;
+  justify-items: stretch;
 }
 
 /* A group of stacked buttons in a foot (stk-2, `StackedGroup`) stacks the same way: one column at the right, in the

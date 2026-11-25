@@ -59,15 +59,15 @@ The `09` line is already written (2026-11-22). A departure Francis rules gets it
 
 ## ⚑ for this plan
 
-Collected, not decided. Each is **built as today until ruled**, unless it says otherwise.
+Collected, not decided. Each is **built as today until ruled**, unless it says otherwise. **All seven answered 2026-11-22** (Francis, relayed by the driver; 09 lines of 2026-11-22): ⚑ 2, 3, 4, 5 and 7 confirmed as built; ⚑ 1 (A) as built and ⚑ 6 (B), from page 37's pictures ("1A 6B").
 
-1. **The "No light" prompt above hit points** (page 14, P5; the Notices box) keeps its own "Light a torch (N left)" button. With a not-lit light now in At hand, the screen can show two ways to light. Built as today: both show.
-2. **A torch put out keeps its fuel.** 05 (`:264`, A2) already says a consumable light keeps its time when put out, and loses it when a different one is lit. Built as today; the line reads like the holder's (35B) less the refills. Confirm.
-3. **Put out with other lights in the pack.** 35B draws a pack with one light (it shows itself, "Light"). With other lights, lt-4 read word for word gives "No light lit" and "Light…", as today's section does. Built so.
-4. **Another light's own row in At hand** (a pinned or held lantern while "No light lit" shows): it keeps its own Light button, as today. Not drawn.
-5. **Not lit, and the only light needs fuel first.** Today: "Light" with ", Refill and light" in its words; with no fuel, "Nothing to light: … needs fuel …". Not drawn. Built as: the ring's "Light" refills and lights it, today's words in the line; with no fuel, the still ring and the words, no button.
-6. **The error state** ("Couldn't load the light", Try again) is not drawn and lives in the Light section. Built as today, above At hand with its heading, the one place that heading is left. The alternative: the same words and Try again in the light's place in At hand.
-7. **Words not drawn:** a single torch not lit (35E1 draws "Torch ×4, Not lit. 6 turns each"), a light that never runs out, not lit. Built on 35E1's pattern ("Not lit. 6 turns"; "Not lit. Burns on").
+1. **Answered 2026-11-22: (A), as built.** **The "No light" prompt above hit points** (page 14, P5; the Notices box) keeps its own "Light a torch (N left)" button. With a not-lit light now in At hand, the screen can show two ways to light. Built as today: both show.
+2. **Answered 2026-11-22: as built.** **A torch put out keeps its fuel.** 05 (`:264`, A2) already says a consumable light keeps its time when put out, and loses it when a different one is lit. Built as today; the line reads like the holder's (35B) less the refills. Confirm.
+3. **Answered 2026-11-22: as built.** **Put out with other lights in the pack.** 35B draws a pack with one light (it shows itself, "Light"). With other lights, lt-4 read word for word gives "No light lit" and "Light…", as today's section does. Built so.
+4. **Answered 2026-11-22: as built.** **Another light's own row in At hand** (a pinned or held lantern while "No light lit" shows): it keeps its own Light button, as today. Not drawn.
+5. **Answered 2026-11-22: as built.** **Not lit, and the only light needs fuel first.** Today: "Light" with ", Refill and light" in its words; with no fuel, "Nothing to light: … needs fuel …". Not drawn. Built as: the ring's "Light" refills and lights it, today's words in the line; with no fuel, the still ring and the words, no button.
+6. **Answered 2026-11-22: (B), in the light's place inside At hand, no heading (page 37, 37C).** **The error state** ("Couldn't load the light", Try again) is not drawn and lives in the Light section. Built as today, above At hand with its heading, the one place that heading is left. The alternative: the same words and Try again in the light's place in At hand.
+7. **Answered 2026-11-22: as built.** **Words not drawn:** a single torch not lit (35E1 draws "Torch ×4, Not lit. 6 turns each"), a light that never runs out, not lit. Built on 35E1's pattern ("Not lit. 6 turns"; "Not lit. Burns on").
 
 Every other visible piece is on page 35, or is today's and unchanged (the pick, the toasts, the burnout toast, the overview).
 

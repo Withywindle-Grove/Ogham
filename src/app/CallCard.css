@@ -1,0 +1,166 @@
+/* The call card and its folded row (P7; page 18's PL4b, page 40's 40A to 40C). Tokens only.
+   The card: the book's card (an ink edge in light, the prompt's lighter edge in dark; the card's radius), its mark,
+   then the heading, "Got it" and the words, read in that order (Home Two's re-audit, finding 1 (b)). On a tablet
+   "Got it" keeps 40A's place, a column of its own at the top right beside the heading and the words; on a phone the
+   heading has the full width, "Got it" floats right under it, and the words run beside it and on under it (the
+   impeccable audit's findings 4 to 6 and the re-audit's finding 2, picked 24 Nov). The folded row:
+   the prompt row's box (a control edge), the mark, the heading, a chevron in a tap-sized square; the whole row is the tap. */
+
+.calls-slot > * + * {
+  margin-block-start: var(--space-2);
+}
+
+/* The slot's one live region (re-audit finding 3): with no card in it, it stays in the page, empty and without room. */
+.calls-slot__live:empty + * {
+  margin-block-start: 0;
+}
+
+/* With no calls at all (Home Two's last audit, new 1): the slot is only its empty live region, out of the prompt slot's
+   flow, so the prompt slot leaves no gap for it and it takes no room. */
+.calls-slot--empty {
+  position: absolute;
+}
+
+.call-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  align-items: start;
+  border: var(--line-selected) solid var(--ink);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+  color: var(--ink);
+  padding: var(--space-3);
+}
+
+/* Dark (audit finding 5): the 2 px ink edge turns near-white, louder than every prompt beside it; the card takes the
+   rest prompt's edge instead. Light keeps page 40's ink edge. */
+:root[data-theme='dark'] .call-card {
+  border: var(--line-hair) solid var(--control);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .call-card {
+    border: var(--line-hair) solid var(--control);
+  }
+}
+
+.call-card__mark,
+.call-fold__mark {
+  display: flex;
+  color: var(--ink);
+}
+
+/* A tablet (40A as drawn): the heading and the words in one column, "Got it" in its own at the top right, spanning
+   both rows; any height it has beyond the heading goes to the words' row, so the words still start under the heading. */
+.call-card__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'heading got-it'
+    'text got-it';
+  column-gap: var(--space-3);
+  align-items: start;
+  min-inline-size: 0;
+}
+
+.call-card__got-it {
+  grid-area: got-it;
+}
+
+.call-card__text {
+  grid-area: text;
+}
+
+/* A card reopened from its row (40B) has no "Got it": the heading and the words take the whole room. */
+.call-card--reopened .call-card__body {
+  display: block;
+}
+
+/* A phone: the heading takes the full width, so it never wraps beside "Got it" (finding 6, re-audit finding 2);
+   "Got it" floats at the right under it, and the words run beside it and then on under it (finding 4). */
+@media (max-width: 599px) {
+  .call-card__body {
+    display: flow-root;
+  }
+
+  .call-card__got-it {
+    float: inline-end;
+    margin-inline-start: var(--space-3);
+    margin-block-end: var(--space-1);
+  }
+}
+
+/* The book's sub-heading (.book-subhead's tokens), at the card's top. */
+.call-card__heading {
+  grid-area: heading;
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-book-text);
+  font-weight: var(--weight-book-subhead);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+  color: var(--book-subhead);
+  overflow-wrap: anywhere;
+}
+
+.call-card__words {
+  margin: 0;
+  font-family: var(--font-book-text);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+/* "Pays", the book's labelled line, with a little room above it (40A). */
+.call-card__pays {
+  margin-block-start: var(--space-2);
+}
+
+/* "1 of 3" (40C): the quiet line. */
+.call-card__count {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-14);
+  color: var(--muted);
+}
+
+.call-fold {
+  display: grid;
+  grid-template-columns: var(--space-6) minmax(0, 1fr) var(--tap);
+  gap: var(--space-3);
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: var(--tap-hp);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  color: var(--ink);
+  padding: var(--space-1) var(--space-3);
+  font: inherit;
+  font-family: var(--font-book-text);
+  font-size: var(--text-16);
+  text-align: start;
+  cursor: pointer;
+}
+
+.call-fold__mark {
+  color: var(--muted);
+}
+
+.call-fold__heading {
+  overflow-wrap: anywhere;
+}
+
+.call-fold__chevron {
+  display: inline-flex;
+  inline-size: var(--tap);
+  block-size: var(--tap);
+  align-items: center;
+  justify-content: center;
+  transform: rotate(90deg);
+}
+
+.call-fold__chevron--open {
+  transform: rotate(-90deg);
+}

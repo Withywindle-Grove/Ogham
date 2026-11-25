@@ -318,6 +318,8 @@ export function PlayerScreen({
   const kindred = kindredAndTitle(figures.shownRace, title);
   const cardWords = figures.className ? '' : cardLine(fieldDefs, character.fields, character.level, traitLookup(traitListsOf(setting?.all ?? [])));
   const headLine = wide ? cardWords : kindred || cardWords;
+  // In the GM's view the Scene is its player's (C15f, pg32-5): whose group, requests and Rest it shows.
+  const scenePlayer = view ? (character.ownerUserId ?? user.id) : undefined;
   const top = topRow(wide && current === 'player' ? nameKindredTitle(character.name, figures.shownRace, title) : character.name);
 
   // The right column's list, Abilities and traits (row P3; page 28): the pinned ones first, in the player's order, then
@@ -473,21 +475,26 @@ export function PlayerScreen({
           // The players' live table view (B18, M5 gate): the time band, the prompt slot (the rest prompt, a request, a
           // message from the GM: the silent card, B3; No light; the weather), the marching order as tiles with Rest
           // under it (their own group's after a split), then the place; then its few recent log lines.
+          // In the GM's view (C15f, pg32-5; M3i) it is the player's Scene: their group, their requests, their Rest.
           <>
             <SceneTime
               db={db}
               user={user}
               campaign={campaign}
+              player={scenePlayer}
               tableView={{
                 prompts: [
-                  <PlayerRequests key="requests" db={db} user={user} campaign={campaign} setting={setting} />,
+                  <PlayerRequests key="requests" db={db} user={user} campaign={campaign} setting={setting} player={scenePlayer} />,
                   <MessageCard key="message" />,
                   <Darkness key="dark" db={db} campaignId={character.campaignId} characterId={character.id} setting={setting} light={lightView} refresh={logVersion} />,
                 ],
-                body: (restButton, dark) => <PartyGroups db={db} user={user} campaign={campaign} restButton={restButton} dark={dark} actor={actorFacts} />,
+                light: lightView,
+                body: (restButton, dark) => <PartyGroups db={db} user={user} campaign={campaign} restButton={restButton} dark={dark} actor={actorFacts} player={scenePlayer} />,
               }}
             />
-            <LogView db={db} user={user} campaignId={character.campaignId} recent={RECENT_LINES} />
+            {/* In the GM's view of a player's Scene, no Recently lines: they would be his own log (⚑ 52, ruled 2026-11-24).
+                The view of his own character keeps them, as his own Scene does. */}
+            {!view?.player && <LogView db={db} user={user} campaignId={character.campaignId} recent={RECENT_LINES} />}
           </>
         ) : (
           <PackScreen

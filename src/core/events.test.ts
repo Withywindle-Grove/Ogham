@@ -945,3 +945,19 @@ describe('a told fact, by reader (K22b; K22h picture 6, K22c picture 4)', () => 
     expect(read(gm, { ...edit, before: { ...edit.before, name: 'Bronze ring' } })).toBe('You changed what players see of Wren’s Bronze ring.');
   });
 });
+
+// #77 ⚑ 1 (Francis, 24 Nov): a deleted player's kept lines read "A former player …". Only "Got it" is told apart: the
+// database writes it only for a signed-in player, so an empty author there means the account is gone.
+describe('a deleted player’s Got it line', () => {
+  const seen = (extra: Partial<LogEvent>) => event('hook.seen', { level: 'verbose', targetTable: 'calls_seen', targetId: null, after: { send_id: 'send-1' }, ...extra });
+
+  // Purpose: once a player's account is deleted (the line's author emptied), their Got it line reads "A former player marked a call as seen."
+  it('reads “A former player” once the account is gone', () => {
+    expect(say(seen({ actorUserId: null }))).toBe('A former player marked a call as seen.');
+  });
+
+  // Purpose: a Got it line whose author is still there but whose name the log hasn't loaded reads as today, "Someone marked a call as seen."
+  it('a name not loaded still reads “Someone”', () => {
+    expect(say(seen({ actorUserId: 'user-not-loaded' }))).toBe('Someone marked a call as seen.');
+  });
+});

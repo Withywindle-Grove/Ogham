@@ -91,6 +91,15 @@ export function TopRow({
       Messages
     </MenuItem>
   );
+  // The GM's view as the player (`named`): opened from a door on the Players row, the door is gone, so focus goes to the
+  // view's heading, the character's name, not to the page (audit fix 3b). Only when nothing holds focus: a tab tapped
+  // in the view keeps it.
+  const heading = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!named || typeof document === 'undefined') return;
+    const at = document.activeElement;
+    if (at === null || at === document.body) heading.current?.focus({ preventScroll: true });
+  }, [named]);
   // Its height, for what sticks below it (the landscape tabs, Add item's search). It grows with the text size.
   useEffect(() => {
     const el = row.current;
@@ -133,7 +142,13 @@ export function TopRow({
             </button>
           )}
         </div>
-        {(title ?? (withDrawer ? drawer : undefined)) ? <span className="top-row__title top-row__title--centred">{title ?? drawer}</span> : <span />}
+        {(title ?? (withDrawer ? drawer : undefined)) ? (
+          <span ref={heading} className="top-row__title top-row__title--centred" {...(named ? { tabIndex: -1 } : {})}>
+            {title ?? drawer}
+          </span>
+        ) : (
+          <span />
+        )}
         <div className="top-row__end">
           {actions}
           {/* The Log (the open book) before Messages, as frame P1 of december/14 draws the bar (Francis's fix 4, 19 Nov 2026). */}
@@ -195,10 +210,9 @@ export function TopRow({
  */
 export function DrawerStart({ title, drawerTitle = title, onYourCampaigns, bare = false }: { title: string; drawerTitle?: string; onYourCampaigns: () => void; bare?: boolean }) {
   const [open, setOpen] = useState(false);
-  const button = useRef<HTMLButtonElement>(null);
   return (
     <div className="top-row__start">
-      <button ref={button} type="button" className="top-row__menu" aria-label="Menu" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
+      <button type="button" className="top-row__menu" aria-label="Menu" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
         <Icon name="menu" />
       </button>
       {/* The standard bar (A1) puts the title in its own centred column instead (`bare`). */}
@@ -207,11 +221,8 @@ export function DrawerStart({ title, drawerTitle = title, onYourCampaigns, bare 
         <ShellDrawer
           title={drawerTitle}
           onYourCampaigns={onYourCampaigns}
-          onClose={() => {
-            setOpen(false);
-            // Back to ≡ without scrolling, so the screen keeps its place (as the log does).
-            button.current?.focus({ preventScroll: true });
-          }}
+          // Focus goes back to ≡ as it closes, without scrolling: the Dialog's own rule.
+          onClose={() => setOpen(false)}
         />
       )}
     </div>

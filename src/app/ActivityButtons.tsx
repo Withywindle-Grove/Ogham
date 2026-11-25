@@ -58,6 +58,8 @@ export interface ActivityButtonsProps {
   /** The pack's items by their id, as copies to put in a pack (null: not in the setting rules). */
   itemOf: (id: string) => YieldItem | null;
   onChanged: () => void;
+  /** The GM's view as the player (C15f): whose screen this is, so the sheet offers what that player is offered. */
+  player?: string;
 }
 
 /** A yield's item: the copy for the pack, its bundle (07 `bundle`, 1 for most) and its single piece's name (`unitName`). */
@@ -87,7 +89,7 @@ export function offeredActivities(view: TravelView, terrainId: string | null | u
 /** The request button's words (S4-3): "Search the area · 3 travel points". */
 export const secretButtonLabel = (name: string, cost: string) => `${name}, ${cost}`;
 
-export function ActivityButtons({ db, user, campaign, group, view, row, actor, itemOf, onChanged }: ActivityButtonsProps) {
+export function ActivityButtons({ db, user, campaign, group, view, row, actor, itemOf, onChanged, player }: ActivityButtonsProps) {
   const show = useToast();
   const logVersion = useLogVersion();
   const [open, setOpen] = useState<Usable | null>(null);
@@ -99,7 +101,7 @@ export function ActivityButtons({ db, user, campaign, group, view, row, actor, i
     let current = true;
     void loadRequests(db, campaign.id, { waiting: true }).then((found) => {
       if (!current || !found) return;
-      const ids = mine(found, user.id)
+      const ids = mine(found, player ?? user.id)
         .filter((r) => r.kind === 'secretActivity' && r.status === 'waiting')
         .flatMap((r) => readSecretActivityPrompt(r.prompt)?.activityId ?? []);
       setWaiting(new Set(ids));
@@ -107,7 +109,7 @@ export function ActivityButtons({ db, user, campaign, group, view, row, actor, i
     return () => {
       current = false;
     };
-  }, [db, campaign.id, user.id, hasSecret, logVersion]);
+  }, [db, campaign.id, user.id, player, hasSecret, logVersion]);
   if (!row) return null;
   const offered = offeredActivities(view, row.terrainId, actor);
   const left = Math.max(0, row.total - row.spent);
@@ -131,7 +133,7 @@ export function ActivityButtons({ db, user, campaign, group, view, row, actor, i
         ),
       )}
       {open && (
-        <ActivitySheet db={db} user={user} campaign={campaign} group={group} view={view} row={row} actor={actor} usable={open} itemOf={itemOf} onChanged={onChanged} onClose={() => setOpen(null)} />
+        <ActivitySheet db={db} user={user} campaign={campaign} group={group} view={view} row={row} actor={actor} usable={open} itemOf={itemOf} onChanged={onChanged} onClose={() => setOpen(null)} player={player} />
       )}
     </>
   );
@@ -151,6 +153,7 @@ function ActivitySheet({
   itemOf,
   onChanged,
   onClose,
+  player,
 }: Omit<ActivityButtonsProps, 'row'> & { row: TravelDay & { terrainId?: string | null }; usable: Usable; onClose: () => void }) {
   const show = useToast();
   const { activity } = usable;
@@ -160,11 +163,14 @@ function ActivitySheet({
   // In an activity one character does, a player is offered only their own characters and hirelings (ac-1); the GM
   // anyone. The others aren't shown at all (nothing disabled).
   const travellers = view.travellers.get(group) ?? [];
-  const gm = isGm(user, campaign.id);
+  // In the GM's view as the player (C15f) the sheet offers what that player is offered: their own characters and
+  // hirelings in an activity one does; the GM's acts here still run as his, through `can()`.
+  const gm = isGm(user, campaign.id) && player === undefined;
+  const me = player ?? user.id;
   // The screen's own character is the reader's (a player's screen shows only their own; the database checks anyway).
-  const ownerOf = (id: string) => travellers.find((t) => t.id === id)?.ownerUserId ?? (id === actor.id ? user.id : null);
+  const ownerOf = (id: string) => travellers.find((t) => t.id === id)?.ownerUserId ?? (id === actor.id ? me : null);
   const others: ActorFacts[] = travellers
-    .filter((t) => t.id !== actor.id && mayName(activity, gm, user.id, t.ownerUserId))
+    .filter((t) => t.id !== actor.id && mayName(activity, gm, me, t.ownerUserId))
     .map((t) => ({ id: t.id, name: t.name, skills: new Set(activity.requires.skill ? [activity.requires.skill] : []), items: new Set(activity.requires.item ? [activity.requires.item] : []) }));
   const everyone = [actor, ...others];
   const cap = actorCap(activity, everyone.length);
@@ -202,7 +208,7 @@ function ActivitySheet({
     if (busy || playerOnly.blocked('sendRequest')) return;
     setBusy(true);
     const result = await runCommand(registry, db, user, sendRequest, {
-      character: { id: actor.id, campaignId: campaign.id, ownerUserId: user.id },
+      character: { id: actor.id, campaignId: campaign.id, ownerUserId: me },
       kind: 'secretActivity',
       text: activity.name,
       costText: cost,

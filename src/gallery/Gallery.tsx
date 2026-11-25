@@ -22,6 +22,7 @@ import { MapPartsSpecimens } from './MapPartsSpecimens.tsx';
 import { MoveOnSpecimens } from './MoveOnSpecimens.tsx';
 import { KnowledgeSpecimens } from './KnowledgeSpecimens.tsx';
 import { PlayersPlaceCardSpecimens } from './PlayersPlaceCardSpecimens.tsx';
+import { CallCardSpecimens } from './CallCardSpecimens.tsx';
 import { TraitListSpecimens } from './TraitListSpecimens.tsx';
 import { GmAttentionSpecimens } from './GmAttentionSpecimens.tsx';
 import {
@@ -598,7 +599,7 @@ export function Gallery() {
         </Specimen>
         <Specimen name="⋯ menu, shown open: a symbol beside each option, 48 px rows, This device below a divider; the version and Check for a new version at its foot (F55)">
           <div className="gallery__menu">
-            <MoreMenu label="Character options" startOpen>
+            <MoreMenu label="Character options" startOpen specimen>
               <MenuItems>
                 <MenuItem icon="characters" onClick={() => undefined}>
                   Your characters
@@ -942,6 +943,12 @@ export function Gallery() {
       {/* Last, so the sections above keep their pictures (plan dec-9-the-players-scene P4): new pictures for Francis. */}
       <Section id="players-place-card" title="The players' place card: the Location, the Area, the GM's eyes on Knowledge">
         <PlayersPlaceCardSpecimens Specimen={Specimen} />
+      </Section>
+
+      {/* Last, so the sections above keep their pictures (plan dec-9-the-players-scene P7; page 40, approved 2026-11-24):
+          new pictures for Francis (phone and dark approved from them, p7-8). */}
+      <Section id="call-card" title="The call card: a call or a rumour reaching a player, folded after Got it">
+        <CallCardSpecimens Specimen={Specimen} />
       </Section>
 
       {reason && (

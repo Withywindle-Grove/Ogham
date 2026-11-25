@@ -27,7 +27,8 @@ export function sendOf(rows: readonly HoardRow[], libraryIds: ReadonlyMap<string
   for (const row of rows) {
     if (row.kind === 'thing') {
       const entry = row.itemId ? libraryIds.get(row.itemId) : undefined;
-      things.push(entry ? { libraryEntryId: entry, qty: 1 } : { name: row.text, qty: 1 });
+      // As many as the pack's qty (B15, p2p-28, b15f-1); a magic item goes under its plain words, never its real name.
+      things.push(entry ? { libraryEntryId: entry, qty: row.qty } : { name: row.text, qty: row.qty });
     } else {
       for (const [key, n] of Object.entries(row.coins)) coins[key] = (coins[key] ?? 0) + n;
     }
@@ -43,14 +44,33 @@ export interface GiveFindInput {
   things: FindThing[];
   coins: Coins;
   rows: string[];
+  /**
+   * B15 (page 30, HM3's pick): each thing whose magic item's piece is revealed (shown to some group, not undone) arrives
+   * named, whichever group's card it is sent from (the local review of #10). `thing` is its place among `things`; the
+   * new line is named (public.name_item_truth, which shows nothing) in the same request, so the send's own Undo still
+   * takes everything back. Every such thing in the send, not only the first (the local review of #1101).
+   */
+  named?: readonly { piece: string; thing: number }[] | null;
 }
+
+/**
+ * What a send answers: its first log line (for its Undo), and whether a thing meant to arrive named arrived plain
+ * (`notNamed`: the send stands, with its Undo, and the GM's eye on the piece names it; the review of #1101).
+ */
+export interface GiveFindResult {
+  eventId: string;
+  notNamed: boolean;
+}
+
+/** The words for a send whose magic item arrived plain: no database message, only what to do (docs/06 words guide). */
+export const NOT_NAMED_WORDS = "The magic item arrived under its plain name. Tap its eye again.";
 
 /** find.give: the GM sends things and coin, in one request. Answers the send's first log line (for its Undo). */
 export const giveFind = defineCommand({
   name: 'find.give',
   target: (input: GiveFindInput) => ({ campaignId: input.campaignId }),
   allowed: (user, target: { campaignId: string }) => isMember(user, target.campaignId) && isGm(user, target.campaignId),
-  run: async (db, _user, input): Promise<CommandResult<string>> => {
+  run: async (db, _user, input, meta): Promise<CommandResult<GiveFindResult>> => {
     const { data, error } = await db.rpc('give_find', {
       campaign: input.campaignId,
       to_actor: input.to as string,
@@ -60,7 +80,30 @@ export const giveFind = defineCommand({
       rows: input.rows as unknown as Json,
     });
     if (error) return fromError(error);
-    return typeof data === 'string' ? ok(data) : failed("Couldn't send it. Try again.");
+    if (typeof data !== 'string') return failed("Couldn't send it. Try again.");
+    const toName = input.named ?? [];
+    if (toName.length === 0) return ok({ eventId: data, notNamed: false });
+    let notNamed = !meta;
+    if (meta) {
+      // The send's own lines, in the order public.give_find made them (one per thing).
+      const made = await db
+        .from('events')
+        .select('target_id, seq')
+        .eq('campaign_id', input.campaignId)
+        .eq('request_id', meta.requestId)
+        .eq('target_table', 'inventory_lines')
+        .is('before', null)
+        .order('seq');
+      const lines = made.error ? [] : (made.data as { target_id: string | null }[]);
+      // The send stands either way, with its Undo (the reviews of #1101): a thing that couldn't be named arrives plain,
+      // the toast says so, and the GM's eye on its piece names it.
+      for (const one of toName) {
+        const line = lines[one.thing]?.target_id;
+        const named = line ? await db.rpc('name_item_truth', { piece: one.piece, lines: [line] }) : null;
+        if (!named || named.error) notNamed = true;
+      }
+    }
+    return ok({ eventId: data, notNamed });
   },
 });
 

@@ -281,6 +281,82 @@ export interface Purchase {
   picks?: number[][];
 }
 
+/**
+ * A shop purchase's name and how many it bought (caf-1): a purchase of several at once is stored as "Dry rations ×3",
+ * one entry with one price, so its count is read from the label (records from before the change read the same way).
+ */
+export function purchaseCount(purchase: Pick<Purchase, 'label'>): { name: string; count: number } {
+  const several = /^(.*\S) ×(\d+)$/.exec(purchase.label);
+  const count = several ? Number(several[2]) : 1;
+  return several?.[1] && count > 1 ? { name: several[1], count } : { name: purchase.label, count: 1 };
+}
+
+/** One bought row on the Gear step (caf-1 to caf-3): a name, how many, their summed price, and the entries it groups. */
+export interface BoughtRow {
+  name: string;
+  count: number;
+  price: number;
+  /** The stored entries in the order bought; "Put back one" takes from the last. */
+  entries: Purchase[];
+}
+
+/**
+ * The shop's purchases grouped for the Gear step (caf-3): one row for the same name at the same price of one, in the
+ * order each row was first bought. Two things of one name at two prices stay two rows.
+ */
+export function boughtRows(purchases: readonly Purchase[]): BoughtRow[] {
+  const rows: BoughtRow[] = [];
+  for (const purchase of purchases) {
+    const { name, count } = purchaseCount(purchase);
+    // The same price of one, compared without dividing (integers, hard rule 8).
+    const row = rows.find((r) => {
+      const first = r.entries[0]!;
+      return r.name === name && first.price * count === purchase.price * purchaseCount(first).count;
+    });
+    if (row) {
+      row.count += count;
+      row.price += purchase.price;
+      row.entries.push(purchase);
+    } else rows.push({ name, count, price: purchase.price, entries: [purchase] });
+  }
+  return rows;
+}
+
+/**
+ * Taking one out of a purchase (caf-1): what is refunded, which pack lines lose how many, and what is left of the
+ * entry (null when it was the last one). One of several refunds its share rounded down and takes its share of each
+ * line rounded down; the last one takes whatever is left, so the coin and the pack come out even over all of them.
+ */
+export function takeOneOut(purchase: Purchase): { refund: number; lines: Purchase['lines']; left: Purchase | null } {
+  const { name, count } = purchaseCount(purchase);
+  if (count <= 1) return { refund: purchase.price, lines: purchase.lines, left: null };
+  const refund = Math.floor(purchase.price / count);
+  const lines = purchase.lines.map((l) => ({ id: l.id, qty: Math.floor(l.qty / count) })).filter((l) => l.qty > 0);
+  const kept = purchase.lines.map((l) => ({ id: l.id, qty: l.qty - Math.floor(l.qty / count) })).filter((l) => l.qty > 0);
+  return { refund, lines, left: { ...purchase, label: count - 1 > 1 ? `${name} ×${count - 1}` : name, price: purchase.price - refund, lines: kept } };
+}
+
+/**
+ * A shop buy as its creation entry: "Dry rations ×3" for several at once, the price of all of them, and the pack line
+ * with only as many as this buy added (`added`). A character awaiting approval keeps its lines apart (public.
+ * join_added_line), but where a stackable joins its stack the add reads the whole stack back, and the line's own count
+ * would make a later put-back take more than was bought (caf-1).
+ */
+export function shopPurchase(name: string, count: number, price: number, line: { id: string; qty: number }, added: number): Purchase {
+  return { label: count > 1 ? `${name} ×${count}` : name, price, lines: [{ id: line.id, qty: Math.min(line.qty, added) }] };
+}
+
+/**
+ * The record's purchases with one entry taken out, or replaced by what is left of it (caf-1). Only that entry: the
+ * entry itself is found first, else the last that looks the same (two entries may share a label, a price and a pack
+ * line where a stack joined, and putting one back must leave the other).
+ */
+export function withoutEntry(bought: readonly Purchase[], purchase: Purchase, left: Purchase | null = null): Purchase[] {
+  const looksSame = (p: Purchase) => p.label === purchase.label && p.price === purchase.price && p.lines[0]?.id === purchase.lines[0]?.id;
+  const at = bought.includes(purchase) ? bought.lastIndexOf(purchase) : bought.map(looksSame).lastIndexOf(true);
+  return at < 0 ? [...bought] : [...bought.slice(0, at), ...(left ? [left] : []), ...bought.slice(at + 1)];
+}
+
 // The Gear step (m5b-0c slice 5; cr-14, mockup creation/06) ----------------------------------------------------------
 
 /**

@@ -31,9 +31,3 @@ export function setThemeChoice(choice: ThemeChoice): void {
   }
   applyThemeChoice(choice);
 }
-
-/** The theme actually showing right now, after following the device. */
-export function effectiveTheme(choice: ThemeChoice): 'light' | 'dark' {
-  if (choice !== 'device') return choice;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}

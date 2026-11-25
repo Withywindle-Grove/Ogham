@@ -421,10 +421,10 @@ export function ItemSheet(props: ItemSheetProps) {
             <span className="pack__notice">What you notice.</span> {notice}
           </p>
         )}
-        {/* The GM's line under the player's own words, above the details (M3g: above Slot). */}
-        {gmLine && <GmLine>{gmLine}</GmLine>}
         {amount && amount !== '—' && <p>{mode === 'slot' ? 'Takes' : 'Weight'}: {amount}{stackable(line) && mode !== 'armour' ? ` for ${line.qty}` : ''}.</p>}
         {shown.lines.length > 0 && <Lines lines={shown.lines} kv />}
+        {/* The GM's line under the item's figures, after its details (M3g2; audit fix 7, 2026-11-24). */}
+        {gmLine && <GmLine>{gmLine}</GmLine>}
         {patchLines.length > 0 && <p className="auth__meta">Changed by your rules: {patchLines.join('; ')}.</p>}
         {source && <p className="auth__meta">{source}</p>}
         {weapon && (weaponRolls.length > 0 || weaponRows.length > 0) && (

@@ -7,6 +7,7 @@ import { adminClient, readTestProject, type TestProject } from './testProject.ts
 
 export const BUCKET = 'campaign-files';
 export const MESSAGE_BUCKET = 'message-files';
+export const PACK_BUCKET = 'pack-files';
 
 export interface Person {
   id: string;
@@ -31,10 +32,13 @@ export interface World {
 }
 
 const runId = Math.random().toString(36).slice(2, 8);
+// Counts people made in this module, so a second buildWorld() in one file gets new emails.
+let personCount = 0;
 const password = `T-${crypto.randomUUID()}`;
 
 async function createPerson(project: TestProject, admin: SupabaseClient, label: string): Promise<Person> {
-  const email = `${label}-${runId}@grimoire.test`;
+  personCount += 1;
+  const email = `${label}-${runId}-${personCount}@grimoire.test`;
   const created = await admin.auth.admin.createUser({ email, password, email_confirm: true });
   if (created.error) throw created.error;
   const db = createClient(project.url, project.publishableKey, {
@@ -152,6 +156,13 @@ export async function tearDownWorld(world: World | undefined): Promise<void> {
   // The world's two campaigns, plus any campaign a test person created during the run.
   const made = await admin.from('campaigns').select('id').in('created_by', people.map((person) => person.id));
   const campaignIds = new Set([world.campaignId, world.otherCampaignId, ...(made.data ?? []).map((row) => row.id as string)]);
+  // The pictures kept with these people's packs (B14): each pack's files in the pack-files bucket.
+  const packs = await admin.from('packs').select('id').in('owner_user_id', people.map((person) => person.id));
+  for (const pack of packs.data ?? []) {
+    const files = await admin.storage.from(PACK_BUCKET).list(pack.id as string);
+    const names = (files.data ?? []).map((file) => `${pack.id as string}/${file.name}`);
+    if (names.length > 0) await admin.storage.from(PACK_BUCKET).remove(names);
+  }
   for (const campaignId of campaignIds) {
     // Its files: portraits and the like, and messages' pictures (M5b g4), each in their bucket.
     for (const bucket of [BUCKET, MESSAGE_BUCKET]) {
