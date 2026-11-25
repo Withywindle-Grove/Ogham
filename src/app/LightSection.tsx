@@ -38,7 +38,10 @@ import {
 } from '../modules/expedition/lightPlay.ts';
 import { campaignUnits } from '../modules/expedition/play.ts';
 import { loadInventory, type InventoryLine } from '../modules/inventory/inventory.ts';
-import { BookFacesScope, Dialog, SheetScope } from '../ui/Dialog.tsx';
+import { Dialog } from '../ui/Dialog.tsx';
+import { litWords } from '../modules/expedition/darkness.ts';
+import type { FactLine } from '../modules/expedition/sceneTop.ts';
+import { FactSheet } from './SceneBand.tsx';
 import { InfoButton, StackedButton, StackedGroup, Switch, WarningSign } from '../ui/parts.tsx';
 import { StatusRingMark, StatusRingTap } from '../ui/StatusRing.tsx';
 import './LightSection.css';
@@ -158,7 +161,7 @@ export function useCharacterLight({
 
   async function lightIt(option: LightOption) {
     const lit = await run(lightLight, { character, light: row, option });
-    if (lit) show({ text: `Lit ${option.type.name || option.line.name}`, onUndo: () => void undoLatest('light.light')() });
+    if (lit) show({ text: litWords(option.type.name || option.line.name), onUndo: () => void undoLatest('light.light')() });
     return !!lit;
   }
 
@@ -406,7 +409,7 @@ export function LightInAtHand({ view, onOpenItem = null }: { view: CharacterLigh
           </StackedGroup>
         </div>
       )}
-      {picking && act?.kind === 'pick' && <LightPick view={view} act={act} onPicked={() => undefined} onClose={() => setPicking(false)} />}
+      {picking && act?.kind === 'pick' && <LightPick view={view} act={act} onClose={() => setPicking(false)} />}
     </div>
   );
 }
@@ -417,67 +420,91 @@ function runLightAct(view: CharacterLightView, option: LightOption, refillFirst:
 }
 
 /**
- * The pick "Which light?" (journey 5; page 35): each light to light, then each holder that burnt out earlier as
- * "Refill and light (N left)". A tap closes the pick and lights it; `onPicked` runs once it is lit (for a pop-up that
- * closes with it), not when lighting failed.
+ * The pick's choices (journey 5; page 35): each light to light, then each holder that burnt out earlier as "Refill and
+ * light (N left)". `onChoose` lights the one tapped. `focusFirst`: focus on the first choice as it shows (a step inside
+ * a pop-up, which keeps the focus it opened with; a pop-up of its own focuses it itself).
  */
-function LightPick({ view, act, onPicked, onClose }: { view: CharacterLightView; act: Extract<LightAct, { kind: 'pick' }>; onPicked: () => void; onClose: () => void }) {
-  const choose = async (option: LightOption, refillFirst: boolean) => {
-    onClose();
-    if (await runLightAct(view, option, refillFirst)) onPicked();
-  };
+function LightChoices({ view, act, onChoose, focusFirst = false }: { view: CharacterLightView; act: Extract<LightAct, { kind: 'pick' }>; onChoose: (option: LightOption, refillFirst: boolean) => void; focusFirst?: boolean }) {
+  const list = useRef<HTMLUListElement>(null);
+  useEffect(() => {
+    if (focusFirst) list.current?.querySelector('button')?.focus({ preventScroll: true });
+  }, [focusFirst]);
+  return (
+    <ul ref={list} className="light-block__pick">
+      {act.lightable.map((o) => (
+        <li key={o.line.id}>
+          <button type="button" className="button-secondary light-block__option" onClick={() => onChoose(o, false)}>
+            {optionWords(o)}
+          </button>
+        </li>
+      ))}
+      {act.refills.map((o) => (
+        <li key={o.line.id}>
+          <button type="button" className="button-secondary light-block__option" onClick={() => onChoose(o, true)}>
+            {`${optionWords(o)}, Refill and light (${fuelLeft(view.lines, o.type.fuel)} left)`}
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** At hand's pick "Which light?", a pop-up of its own: a tap closes it and lights the light tapped. */
+function LightPick({ view, act, onClose }: { view: CharacterLightView; act: Extract<LightAct, { kind: 'pick' }>; onClose: () => void }) {
   return (
     <Dialog label="Which light?" onClose={onClose}>
-      <ul className="light-block__pick">
-        {act.lightable.map((o) => (
-          <li key={o.line.id}>
-            <button type="button" className="button-secondary light-block__option" onClick={() => void choose(o, false)}>
-              {optionWords(o)}
-            </button>
-          </li>
-        ))}
-        {act.refills.map((o) => (
-          <li key={o.line.id}>
-            <button type="button" className="button-secondary light-block__option" onClick={() => void choose(o, true)}>
-              {`${optionWords(o)}, Refill and light (${fuelLeft(view.lines, o.type.fuel)} left)`}
-            </button>
-          </li>
-        ))}
-      </ul>
+      <LightChoices
+        view={view}
+        act={act}
+        onChoose={(option, refillFirst) => {
+          onClose();
+          void runLightAct(view, option, refillFirst);
+        }}
+      />
     </Dialog>
   );
 }
 
 /**
- * The Light pop-up's one act (page 18, PL8, approved 2026-11-14): "Light", the stacked button with the torch at the
- * pop-up's foot, lighting the player's own light as At hand does (`lightAct`: one at once, several through the pick,
- * after a burnout Light another's act), with its "Lit Torch" toast and Undo. Nothing while their light is lit, with
- * nothing to light, or while the light can't be read. `onDone` closes the pop-up once the light is lit; when lighting
- * fails the pop-up stays open under its toast. The pick opens over the pop-up in its own form, as At hand's (neither a
- * sheet nor the pop-up's book faces: a pop-up opened from inside one keeps its own form).
+ * The players' Light pop-up (page 18, PL8, approved 2026-11-14): the group's light as `FactSheet`'s lines, then its one
+ * act, "Light", the stacked button with the torch at the foot's right, lighting the player's own light as At hand does
+ * (`lightAct`: one at once, several through the pick, after a burnout Light another's act), with its "Lit a torch."
+ * toast and Undo. No button while their light is lit, with nothing to light, or while the light can't be read (`view`
+ * null for the GM). With several, the pick "Which light?" is a step inside the same card (the audit of #86, pick 3):
+ * Back ‹ or Escape go back to the first step with focus on Light; the one ✕ closes it all. Once lit, `onLit` (the
+ * pop-up closes and focus goes back to the Light fact); when lighting fails it stays open under its toast, on its first
+ * step with focus on Light.
  */
-export function LightButton({ view, onDone }: { view: CharacterLightView; onDone: () => void }) {
+export function LightFactSheet({ lines, view, onClose, onLit }: { lines: readonly FactLine[]; view: CharacterLightView | null; onClose: () => void; onLit: () => void }) {
   const [picking, setPicking] = useState(false);
-  const act = lightAct(blockOf(view));
-  if (!act) return null;
+  const foot = useRef<HTMLDivElement>(null);
+  const act = view ? lightAct(blockOf(view)) : null;
+  const pick = picking && act?.kind === 'pick' ? act : null;
+  // Back from the pick (Back, Escape, a light that couldn't be lit): focus on Light again once the first step shows.
+  const wasPicking = useRef(false);
+  useEffect(() => {
+    if (wasPicking.current && !pick) foot.current?.querySelector('button')?.focus({ preventScroll: true });
+    wasPicking.current = pick !== null;
+  }, [pick]);
+  const light = async (option: LightOption, refillFirst: boolean) => {
+    if (!view) return;
+    if (await runLightAct(view, option, refillFirst)) onLit();
+    else setPicking(false);
+  };
   return (
-    <div className="dialog__actions">
-      <StackedButton
-        icon="torch"
-        label="Light"
-        aria-haspopup={act.kind === 'pick' ? 'dialog' : undefined}
-        onClick={() => {
-          if (act.kind === 'pick') return setPicking(true);
-          void runLightAct(view, act.option, act.refillFirst).then((lit) => lit && onDone());
-        }}
-      />
-      {picking && act.kind === 'pick' && (
-        <SheetScope.Provider value={false}>
-          <BookFacesScope.Provider value={false}>
-            <LightPick view={view} act={act} onPicked={onDone} onClose={() => setPicking(false)} />
-          </BookFacesScope.Provider>
-        </SheetScope.Provider>
-      )}
-    </div>
+    <FactSheet
+      title="Light"
+      lines={lines}
+      rule={[]}
+      onClose={onClose}
+      foot={
+        act && (
+          <div ref={foot} className="dialog__actions">
+            <StackedButton icon="torch" label="Light" onClick={() => (act.kind === 'pick' ? setPicking(true) : void light(act.option, act.refillFirst))} />
+          </div>
+        )
+      }
+      step={pick && view ? { title: 'Which light?', body: <LightChoices view={view} act={pick} onChoose={(o, r) => void light(o, r)} focusFirst />, onBack: () => setPicking(false) } : null}
+    />
   );
 }

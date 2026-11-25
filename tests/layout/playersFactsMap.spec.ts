@@ -2,7 +2,8 @@
 // PL1, PL5b), in a real browser on the layout page's invented harbour. What it checks, in plain words:
 //   * the Encounter check's and the Light fact's pop-ups: their labelled lines in the book's faces, nothing cut or
 //     scrolling sideways, every tap 44 px, axe content; the Light pop-up's "Light" button at its foot's right, on the
-//     card's inner edge as every pop-up's foot buttons; "Which light?" opened from it in its own form, not the book's faces;
+//     card's inner edge as every pop-up's foot buttons; "Which light?" a step inside the same pop-up (Back, Escape
+//     back, one ✕), and focus back on the Light fact once lit, by keyboard;
 //   * the shared map: first in the right column (under the left one on a phone), its picture and its title, no tools
 //     cut, the pop-up opening on a tap;
 //   * at 375, 834 and 1024 px, in light and dark. Each test saves its picture.
@@ -48,7 +49,7 @@ for (const width of [375, 834, 1024] as const) {
       });
 
       // Purpose (PL8): the Light pop-up ends with the player's "Light" button (the torch over the word) at the right, a
-      // 44 px target, nothing cut; the pick it opens with several lights is At hand's own.
+      // 44 px target, nothing cut; with several lights it turns the same card to the pick (the next test).
       test('the Light pop-up’s Light button', async ({ page }) => {
         await openHarbour(page, false);
         const light = page.getByRole('group', { name: 'Scene facts' }).getByRole('button', { name: /^Light:/ });
@@ -68,27 +69,10 @@ for (const width of [375, 834, 1024] as const) {
         expect(await accessibilityProblems(page)).toEqual([]);
       });
 
-      // Purpose (PL8, the local review): with several lights, the Light pop-up's Light opens "Which light?" over it, in
-      // its own form as At hand's pick (not the pop-up's book faces), its choices 44 px, nothing cut.
-      test('the Light pop-up’s pick', async ({ page }) => {
-        await openHarbour(page, false, true);
-        await page.getByRole('group', { name: 'Scene facts' }).getByRole('button', { name: /^Light:/ }).click();
-        await page.getByRole('dialog', { name: 'Light' }).getByRole('button', { name: 'Light', exact: true }).click();
-        const pick = page.getByRole('dialog', { name: 'Which light?' });
-        await expect(pick.getByRole('button', { name: /^Rushlights/ })).toBeVisible();
-        await expect(pick.getByRole('button', { name: /^Reed lamps/ })).toBeVisible();
-        expect(await pick.evaluate((el) => el.closest('.dialog__backdrop')?.classList.contains('book-faces'))).toBe(false);
-        for (const option of await pick.getByRole('button', { name: /^(Rushlights|Reed lamps)/ }).all()) expect((await option.boundingBox())!.height).toBeGreaterThanOrEqual(44);
-        await page.waitForTimeout(400);
-        await page.screenshot({ path: `test-results/layout-screens/players-fact-light-pick-${width}-${scheme}.png` });
-        expect(await layoutProblems(page)).toEqual([]);
-        expect(await accessibilityProblems(page)).toEqual([]);
-      });
-
       // Purpose (the audit of #86, picks 1 and 3, by keyboard): with several lights, Light turns the same pop-up to the
       // step "Which light?" (one card, one ✕, Back, the pop-up's own faces), focus on its first light; Escape goes back
       // with focus on Light; a pick lights it, the pop-up closes, and focus is back on the Light fact naming the light.
-      test.fail('the Light pop-up’s pick step, by keyboard', async ({ page }) => {
+      test('the Light pop-up’s pick step, by keyboard', async ({ page }) => {
         await openHarbour(page, false, true);
         const fact = page.getByRole('group', { name: 'Scene facts' }).getByRole('button', { name: /^Light:/ });
         await fact.focus();
@@ -112,14 +96,14 @@ for (const width of [375, 834, 1024] as const) {
         await page.keyboard.press('Enter');
         await page.keyboard.press('Enter');
         await expect(page.getByRole('dialog')).toHaveCount(0);
-        await expect(page.getByRole('group', { name: 'Scene facts' }).getByRole('button', { name: /^Light:.*Rushlight/ })).toBeFocused();
+        await expect(page.getByRole('group', { name: 'Scene facts' }).getByRole('button', { name: /^Light:.*rushlight/i })).toBeFocused();
         await page.waitForTimeout(400);
         await page.screenshot({ path: `test-results/layout-screens/players-fact-light-lit-${width}-${scheme}.png` });
       });
 
       // Purpose (pick 1, by keyboard): with one light, Enter on Light lights it, the pop-up closes, and focus is back on
       // the Light fact, which names the lit light.
-      test.fail('focus back on the Light fact once lit', async ({ page }) => {
+      test('focus back on the Light fact once lit', async ({ page }) => {
         await openHarbour(page, false);
         const fact = page.getByRole('group', { name: 'Scene facts' }).getByRole('button', { name: /^Light:/ });
         await fact.focus();
@@ -128,7 +112,7 @@ for (const width of [375, 834, 1024] as const) {
         await page.keyboard.press('Enter');
         await expect(page.getByRole('dialog')).toHaveCount(0);
         await expect(page.getByText('Lit a rushlight.')).toBeVisible();
-        await expect(page.getByRole('group', { name: 'Scene facts' }).getByRole('button', { name: /^Light:.*Rushlight/ })).toBeFocused();
+        await expect(page.getByRole('group', { name: 'Scene facts' }).getByRole('button', { name: /^Light:.*rushlight/i })).toBeFocused();
       });
 
       // Purpose (P5; PL1, PL5b): the shared map stands first in the right column with its picture and title; a tap on

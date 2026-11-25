@@ -535,7 +535,7 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
     await user.click(await factNamed('Light'));
     const pop = await sheet('Light');
     await user.click(pop.getByRole('button', { name: 'Light' }));
-    expect(await screen.findByText('Lit Rushlight')).toBeTruthy();
+    expect(await screen.findByText('Lit a rushlight.')).toBeTruthy();
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Light' })).toBeNull());
     expect(world.tables.events.some((e) => e.type === 'light.light')).toBe(true);
   });
@@ -591,21 +591,9 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
     vi.restoreAllMocks();
   });
 
-  // Purpose (PL8, the local review): "Which light?" opened from the Light pop-up keeps its own form, not the pop-up's
-  // book faces, as At hand's pick.
-  it('opens Which light? from the Light pop-up in its own form', async () => {
-    const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
-    const user = await openScene(sam);
-    await user.click(await factNamed('Light'));
-    const pop = await sheet('Light');
-    await user.click(pop.getByRole('button', { name: 'Light' }));
-    const pick = await screen.findByRole('dialog', { name: 'Which light?' });
-    expect(pick.closest('.dialog__backdrop')!.classList.contains('book-faces')).toBe(false);
-  });
-
   // Purpose (the audit of #86, pick 6): the toast names the light in lower case with its article, as the voice guide
   // asks ("Lit a rushlight."), built from the item's name, which stays as it is.
-  it.fails('says "Lit a rushlight." once lit', async () => {
+  it('says "Lit a rushlight." once lit', async () => {
     const { sam } = await table({ rules: true, rushlights: true });
     const user = await openScene(sam);
     await user.click(await factNamed('Light'));
@@ -615,7 +603,7 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
   });
 
   // Purpose (pick 6): a light whose name starts with a vowel takes "an" ("Lit an oil lamp.").
-  it.fails('says "Lit an oil lamp." for a name starting with a vowel', async () => {
+  it('says "Lit an oil lamp." for a name starting with a vowel', async () => {
     const { sam } = await table({ rules: true, oilLamps: true });
     const user = await openScene(sam);
     await user.click(await factNamed('Light'));
@@ -625,7 +613,7 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
 
   // Purpose (pick 1): after Light with one light, the pop-up closes and focus goes back to the Scene's Light fact, which
   // now names the lit light.
-  it.fails('puts focus back on the Light fact once lit', async () => {
+  it('puts focus back on the Light fact once lit', async () => {
     const { sam } = await table({ rules: true, rushlights: true });
     const user = await openScene(sam);
     (await factNamed('Light')).focus();
@@ -635,12 +623,12 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
     await user.keyboard('{Enter}');
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Light' })).toBeNull());
     await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('group', { name: 'Scene facts' }).querySelector('.scene-fact--light')));
-    await waitFor(() => expect(document.activeElement?.getAttribute('aria-label')).toMatch(/Rushlight/));
+    await waitFor(() => expect(document.activeElement?.getAttribute('aria-label')).toMatch(/rushlight/i));
   });
 
   // Purpose (pick 3): with several lights, "Which light?" is a step inside the same Light pop-up (one card, one ✕),
   // with Back, in the pop-up's own faces; focus starts on its first light.
-  it.fails('opens Which light? as a step inside the Light pop-up, with Back', async () => {
+  it('opens Which light? as a step inside the Light pop-up, with Back', async () => {
     const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
     const user = await openScene(sam);
     await user.click(await factNamed('Light'));
@@ -657,7 +645,7 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
   });
 
   // Purpose (pick 2): Escape on "Which light?" goes back to the first step, with focus on Light; the pop-up stays open.
-  it.fails('goes back from Which light? on Escape, focus on Light', async () => {
+  it('goes back from Which light? on Escape, focus on Light', async () => {
     const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
     const user = await openScene(sam);
     await user.click(await factNamed('Light'));
@@ -669,7 +657,7 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
   });
 
   // Purpose (pick 3): the one ✕ on "Which light?" closes the whole pop-up.
-  it.fails('closes the whole pop-up from Which light?’s ✕', async () => {
+  it('closes the whole pop-up from Which light?’s ✕', async () => {
     const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
     const user = await openScene(sam);
     await user.click(await factNamed('Light'));
@@ -680,7 +668,7 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
   });
 
   // Purpose (pick 1): after a pick, the pop-up closes and focus goes back to the Scene's Light fact.
-  it.fails('puts focus back on the Light fact after a pick', async () => {
+  it('puts focus back on the Light fact after a pick', async () => {
     const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
     const user = await openScene(sam);
     await user.click(await factNamed('Light'));

@@ -357,7 +357,7 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
 
   // Purpose (the audit of #86, Francis's pick 5): a group in the dark reads "No light." then "Nobody in the group has a
   // light lit, so they are in darkness. Light one from a pack.", with no bracket after it.
-  it.fails('says the dark in plain words, with no bracket', () => {
+  it('says the dark in plain words, with no bracket', () => {
     expect(lightSheetLines([{ group: 1, name: 'Group 1', dark: true, lights: [] }], 'turn')).toEqual([
       { label: 'No light.', words: 'Nobody in the group has a light lit, so they are in darkness. Light one from a pack.' },
     ]);

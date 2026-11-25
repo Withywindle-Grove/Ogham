@@ -50,6 +50,11 @@ const FOCUS_CALLS: Record<string, number> = {
   '/src/ui/parts.tsx': 1,
   // Back to the burden's tier as the Burden pop-up closes (tfb-4, row C7): a button.
   '/src/app/LoadSummary.tsx': 1,
+  // The Light pop-up's pick step (P10 audit 2–3): the first light's button as the pick opens, and Light again on Back;
+  // both buttons.
+  '/src/app/LightSection.tsx': 2,
+  // Back to the Scene's Light fact once a light is lit (P10 audit 1): the fact, a button, never a field.
+  '/src/app/SceneTime.tsx': 1,
 };
 
 describe('no keyboard on open (A4)', () => {
