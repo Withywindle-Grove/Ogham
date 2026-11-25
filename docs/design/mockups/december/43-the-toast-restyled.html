@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>December: page 43, the toast restyled: A today, B rounded glass, C a pill in glass, D rounded and solid, with the duration panel (43A to 43G ruled by Francis, 25 November: D, 5 seconds, a pause) and 43H, the frames the ruling owes (not approved yet: from its picture)</title>
+<title>December: page 43, the toast restyled: A today, B rounded glass, C a pill in glass, D rounded and solid, with the duration panel (43A to 43G ruled by Francis, 25 November: D, 5 seconds, a pause) and 43H, the frames the ruling owes (approved by Francis, 25 November, with these fixes drawn)</title>
 <link rel="stylesheet" href="../creation/final/final.css">
 <link rel="stylesheet" href="../scene/scene.css">
 <link rel="stylesheet" href="december.css">
@@ -87,18 +87,22 @@
   /* ---- 43H: the ruled dress (D), with what the ruling of 25 November adds ----
      .h is D with: the toast as wide as its words (as the app draws it: 43A to 43G stretched it to the full width),
      the bar inset to the words' edge (--space-4), lifted --space-1 and rounded (--radius-pill), at --toast-bar-ink (65%). */
-  .tz.h { width:auto; max-width:min(100%, 572px); }
+  .tz.h { width:auto; max-width:min(100%, 572px); min-height:60px; } /* tr-11: every toast at least the height of one with Undo (8 + 44 + 8) */
+  .phone .tz.h { width:100%; } /* tr-12: under 600 px the toast fills the width between the margins */
   .tz.h .zbar { left:var(--space-4); right:var(--space-4); bottom:var(--space-1); border-radius:999px; }
   /* from tablet width the words take what is left beside the button; a button wider than half the toast still drops under */
   .tz.h.wide .zt { flex:1 1 50%; }
   .tz.h.wide .zu { flex:0 1 auto; }
   /* the error mark: the Note part's danger shape, before the words, level with their first line, in the words' colour */
-  .tz.h .zt.err { position:relative; padding-left:var(--space-5); }
-  .tz.h .zx { position:absolute; left:0; top:0; font-weight:700; }
-  .tz.h .zt.err.disc { padding-left:calc(20px + var(--space-2)); }
-  .tz.h .zx.disc { top:2px; width:20px; height:20px; border-radius:999px; background:var(--page); color:var(--ink); font-size:14px; line-height:20px; text-align:center; }
-  /* reduced motion: the bar holds still, then fades over the last second (drawn half-way) */
-  .tz.h .zbar.fade { opacity:.32; }
+  /* tr-9: the mark is the ✕ on a disc (a badge, not a close). The bare ✕ is kept for 43H2's record only */
+  .tz.h .zt.err { position:relative; padding-left:calc(20px + var(--space-2)); }
+  .tz.h .zx { position:absolute; left:0; top:2px; width:20px; height:20px; border-radius:999px; background:var(--page); color:var(--ink); font-size:14px; font-weight:700; line-height:20px; text-align:center; }
+  .tz.h .zt.err.bare { padding-left:var(--space-5); }
+  .tz.h .zx.bare { top:0; width:auto; height:auto; border-radius:0; background:none; color:inherit; font-size:16px; line-height:inherit; }
+  /* tr-10: reduced motion: the bar holds still and fades over the toast's whole time, 65% to nothing */
+  .tz.h .zbar.f50 { opacity:.32; }
+  .tz.h .zbar.f20 { opacity:.13; }
+  .tz.h.gone { opacity:.35; } /* the "not followed" way in 43H2 */
   .zstates { display:grid; gap:var(--space-3); max-width:572px; justify-items:start; }
   .zstates .tz { width:fit-content; }
 </style>
@@ -177,11 +181,11 @@ const duration = `<div class="zdur">
 </div>`;
 
 /* ---------------- H: the ruled dress with the error mark, the words beside Undo, the inset bar ---------------- */
-// o.wide: tablet width (the button beside the words); o.action: a named action instead of Undo; o.disc: the other mark
+// o.wide: tablet width (the button beside the words); o.action: a named action instead of Undo; o.bare: the mark not followed (43H2 only)
 const tzh = (words, kind = 'undo', o = {}) =>
-  `<div class="tz d h${o.wide ? ' wide' : ''}" role="${kind === 'error' ? 'alert' : 'status'}">` +
-  `<span class="zt${kind === 'error' ? ' err' + (o.disc ? ' disc' : '') : ''}">` +
-  (kind === 'error' ? `<span class="zx${o.disc ? ' disc' : ''}" aria-hidden="true">✕</span>` : '') + `${words}</span>` +
+  `<div class="tz d h${o.wide ? ' wide' : ''}${o.bare ? ' gone' : ''}" role="${kind === 'error' ? 'alert' : 'status'}">` +
+  `<span class="zt${kind === 'error' ? ' err' + (o.bare ? ' bare' : '') : ''}">` +
+  (kind === 'error' ? `<span class="zx${o.bare ? ' bare' : ''}" aria-hidden="true">✕</span>` : '') + `${words}</span>` +
   (kind === 'undo' ? `<span class="zu" role="button">${o.action || 'Undo'}</span>` : '') +
   tzBar(o.bar || '') + '</div>';
 const ERR1 = 'Couldn’t mark it seen. Try again.';
@@ -190,34 +194,36 @@ const ERR5 = ERR2 + ' Patron: the Reed Mother. Your leaning is now Lantern, and 
 const PLAYAS = 'Play as Mirelda Ashgrove-Thistlewaite of the drowned causeway';
 const JOINED = 'Mirelda Ashgrove-Thistlewaite of the drowned causeway has joined the party.';
 const hMark = `<div class="zfour">
-  ${dev('tablet', 'busy', tzh(ERR1, 'error', { wide: true }), '<b>H1 · a tablet, a one-line error.</b> The ✕ before the words, in the words’ own colour. The toast is as wide as its words, as the app draws it.')}
-  ${dev('tablet', 'plain', tzh(ERR5, 'error', { wide: true }), '<b>H1 · a tablet, a long error</b> (the garb swap’s, gs-5a, with its patron line). The ✕ stays level with the first line; the words hang clear of it.')}
-  ${dev('phone', 'busy', tzh(ERR1, 'error'), '<b>H1 · a phone (375 px), one line.</b>')}
-  ${dev('phone', 'plain', tzh(ERR2, 'error'), '<b>H1 · a phone, two lines.</b>')}
-  ${dev('phone', 'plain', tzh(ERR5, 'error'), '<b>H1 · a phone, the long one.</b> Messy data: the longest error the app has.')}
+  ${dev('tablet', 'busy', tzh(ERR1, 'error', { wide: true }), '<b>H1 · a tablet, a one-line error.</b> The ✕ on its disc before the words. The toast is as wide as its words and 60 px tall, the height of one with Undo. It stays 5 seconds.')}
+  ${dev('tablet', 'plain', tzh(ERR5, 'error', { wide: true }), '<b>H1 · a tablet, a long error</b> (the garb swap’s, gs-5a, with its patron line). The disc stays level with the first line; the words hang clear of it. Three lines here: 6 seconds.')}
+  ${dev('phone', 'busy', tzh(ERR1, 'error'), '<b>H1 · a phone (375 px), one line.</b> The toast fills the width between the margins, so no list row shows at its sides. 5 seconds.')}
+  ${dev('phone', 'plain', tzh(ERR2, 'error'), '<b>H1 · a phone, three lines.</b> One line over two: 6 seconds.')}
+  ${dev('phone', 'plain', tzh(ERR5, 'error'), '<b>H1 · a phone, the long one.</b> Messy data: the longest error the app has. Six lines: 5 + 4 = <b>9 seconds</b>.')}
 </div>`;
 const hWays = `<div class="zstates">
-  <div><p class="lbl" style="margin-top:0"><b>1 · the bare ✕</b> — drawn in H1. The Note part’s danger shape as it is today; nothing new to build.</p>${tzh(ERR1, 'error')}</div>
-  <div><p class="lbl"><b>2 · the ✕ on a disc</b> — reads as a badge, so less like the ✕ that closes a sheet. One new small shape.</p>${tzh(ERR1, 'error', { disc: true })}</div>
-  <div><p class="lbl"><b>For comparison:</b> an ordinary toast in the same dress. Nothing but the mark and the words tells them apart; no colour is used.</p>${tzh(UNDO)}</div>
+  <div><p class="lbl" style="margin-top:0"><b>2 · the ✕ on a disc: ruled.</b> Reads as a badge, not as the ✕ that closes a sheet. One new small shape. Drawn in H1.</p>${tzh(ERR1, 'error')}</div>
+  <div><p class="lbl"><b>1 · the bare ✕: not followed</b> (drawn faint, for the record). On a short toast it read as “close”, and a tap on it does nothing.</p>${tzh(ERR1, 'error', { bare: true })}</div>
+  <div><p class="lbl"><b>For comparison:</b> an ordinary toast in the same dress, the same height. Nothing but the mark and the words tells them apart; no colour is used.</p>${tzh(UNDO)}</div>
 </div>`;
 const hBeside = `<div class="zfour">
   ${dev('tablet', 'plain', tzh(LONG, 'undo', { wide: true }), '<b>H3 · a tablet, the long toast.</b> The words wrap <b>beside</b> Undo; Undo keeps its place at the right, centred on the words. (43D drew it dropped to its own line.)')}
-  ${dev('tablet', 'busy', tzh(UNDO, 'undo', { wide: true }), '<b>H3 · a tablet, the short toast.</b> One line, as wide as its words.')}
+  ${dev('tablet', 'busy', tzh(UNDO, 'undo', { wide: true }), '<b>H3 · a tablet, the short toast.</b> One line, as wide as its words, 60 px tall.')}
   ${dev('tablet', 'plain', tzh(JOINED, 'undo', { wide: true, action: PLAYAS }), '<b>H3 · a tablet, no room.</b> Messy data: a button longer than half the toast still drops under the words, at the right (tw-1, 13 November, unchanged).')}
-  ${dev('phone', 'plain', tzh(LONG), '<b>H3 · a phone (375 px).</b> Unchanged from tw-1: the words keep the width, Undo under them at the right.')}
-  ${dev('phone', 'busy', tzh(UNDO), '<b>H3 · a phone, the short toast.</b> One line.')}
+  ${dev('phone', 'plain', tzh(LONG), '<b>H3 · a phone (375 px).</b> The toast fills the width between the margins. The wrap is unchanged from tw-1: the words keep the width, Undo under them at the right.')}
+  ${dev('phone', 'busy', tzh(UNDO), '<b>H3 · a phone, the short toast.</b> One line, the full width, Undo at the right.')}
 </div>`;
 const hBar = `<div class="zstates">
   <div><p class="lbl" style="margin-top:0"><b>Running, two seconds into five.</b> The bar starts at the words’ left edge, sits 4 px up and has round ends, so the corner never cuts it. 65% strength in both themes.</p>${tzh(UNDO, 'undo', { bar: 'p60' })}</div>
-  <div><p class="lbl"><b>Held</b> (a finger, a pointer or keyboard focus on the toast). The bar stops where it is and nothing else changes: no word, no new mark. It goes on from the same place after.</p>${tzh(UNDO, 'undo', { bar: 'p60' })}</div>
-  <div><p class="lbl"><b>Reduced motion, seconds 0 to 4.</b> The bar is whole and still.</p>${tzh(UNDO)}</div>
-  <div><p class="lbl"><b>Reduced motion, the last second.</b> The bar fades out where it stands (drawn half-way), then the toast goes. The fade’s length is mine: <span class="flag">⚑ H2</span>.</p>${tzh(UNDO, 'undo', { bar: 'fade' })}</div>
+  <div><p class="lbl"><b>Held</b> (a finger, a pointer or keyboard focus on the toast). The bar stops where it is and nothing else changes: no word, no new mark. It goes on from the same place after. Accepted as drawn.</p>${tzh(UNDO, 'undo', { bar: 'p60' })}</div>
+  <div><p class="lbl"><b>Reduced motion, at the start.</b> The bar is whole and never moves. It fades over the toast’s whole time, from 65% to nothing, so time is seen running out from the first second.</p>${tzh(UNDO)}</div>
+  <div><p class="lbl"><b>Reduced motion, half-way</b> (2½ seconds into five). The bar is whole, at half its strength.</p>${tzh(UNDO, 'undo', { bar: 'f50' })}</div>
+  <div><p class="lbl"><b>Reduced motion, the last second.</b> Nearly gone; then the toast goes. Held, the fade stops where it is, as the drain does.</p>${tzh(UNDO, 'undo', { bar: 'f20' })}</div>
+  <div><p class="lbl"><b>A toast with neither a button nor a mark</b> (“Saved”). The same 60 px, so the bar has its air under the words and no toast is a pill.</p>${tzh('Saved', 'plain')}</div>
 </div>`;
 
 mount(`
   <h1>Page 43. The toast restyled</h1>
-  <p class="note big"><b>Ruled, 25 November: 43A to 43G.</b> Francis, on Home Two’s <code>impeccable critique</code> of this page (25 November, 29/40, which chose D): “Approve with those recommendations.” <b>D</b> (rounded, solid, no glass); <b>5 seconds</b>, only with a <b>pause</b> under a finger, a pointer or keyboard focus; the error toast gains the <b>✕</b>; with reduced motion the bar stays still and fades at the end; on a tablet the long toast’s words wrap beside Undo; the bar at 65%, inset and rounded; a new toast still replaces the one showing. The ruling: <code>docs/design/rulings/toast-restyle-2026-11-25.md</code>. <b>43H, at the foot, is new and not approved yet: from its picture.</b> B, C, F and the glass tokens are not followed.</p>
+  <p class="note big"><b>Ruled, 25 November: 43A to 43G.</b> Francis, on Home Two’s <code>impeccable critique</code> of this page (25 November, 29/40, which chose D): “Approve with those recommendations.” <b>D</b> (rounded, solid, no glass); <b>5 seconds</b>, only with a <b>pause</b> under a finger, a pointer or keyboard focus; the error toast gains the <b>✕</b>; with reduced motion the bar stays still and fades at the end; on a tablet the long toast’s words wrap beside Undo; the bar at 65%, inset and rounded; a new toast still replaces the one showing. The ruling: <code>docs/design/rulings/toast-restyle-2026-11-25.md</code>. <b>43H, at the foot, is approved 2026-11-25 with its fixes drawn</b> (tr-8 to tr-14). B, C, F and the glass tokens are not followed.</p>
   <p class="note"><b>As first put to him, 25 November.</b> For his question of today: “How easy is it to change the toast? I don’t think it looks good and its duration is too long. I’m thinking rounded edges and partially opaque frosted glass.” Four dresses are drawn, each over a <b>busy</b> page (the map and a long list) and a <b>plain</b> one, at tablet width and at 375 px, light and dark, with the <b>Undo</b> toast, a <b>long</b> one whose Undo wraps, and an <b>error</b> toast. Then the duration panel, the fallback where blur is not drawn, and the measured contrast of every one. The <code>impeccable critique</code> of this page is run by the PC session and its findings go in beside these frames; <b>pick findings by number</b> once they are there. Names, numbers and words are invented.</p>
   <p class="note"><b>What is not up for change here:</b> one toast at a time, above the tab bar; the words (past tense, what moved, then one action); the draining bar; Undo as the toast’s own, with the same Undo in the log. The dress and the seconds are what this page asks about.</p>
 
@@ -296,37 +302,60 @@ mount(`
   <p class="note"><b>Checked, in the markup and on the drawn page.</b> Tokens only: corners 8, 20 and 999, spacing 4 to 24, type 16 with the captions at 14, nothing under 14. Undo is a 44 px target with the toast’s own padding keeping it 8 px clear of the words; on a phone it wraps to its own line at the right and keeps its height. One accent button a screen: a toast has none, so none of these frames adds one. No disabled button. Undo over confirm: unchanged, this is the Undo. Both themes, side by side, cloned from the same markup. Both widths: a tablet at 740 px standing in for 820, and a phone at 375 px (343 inside). Messy data: a 62-character sentence and a long person’s name wrapping to three lines, “3” and “12” in the list behind, a one-line toast and a three-line one in the same dress. Every state the toast has: with Undo, without (the error), long, over a busy page, over a plain page, mid-drain (43G), and the no-blur fallback (43F). Contrast computed for every combination above, both themes.</p>
   <p class="note"><b>Not checked, honestly.</b> Blur is drawn here by the browser that took the pictures (Chrome); <b>I could not render these frames in WebKit</b> — no WebKit is installed in this container — so Safari’s blur strength and its behaviour over a scrolling list are unverified, and the layout check’s own pictures may differ by a shade. Loading and offline states of the page behind are not drawn (the toast does not change with them). Larger text. Motion: the drain is drawn still, at a fraction, not animated. A real pack’s picture behind the glass (December’s stand-in map is used, with its own greys). The 5-second feel can only be judged in the app. <b>Cost:</b> B or D is CSS and one token pair; C adds a second shape rule for a wrapped toast; the pause is app code with tests.</p>
 
-  <h1>43H. What the ruling owes a picture <span class="flag">not approved yet: from its picture</span></h1>
-  <p class="note big"><b>New, 25 November, after the ruling.</b> Dress D as ruled, with the four things the ruling changed that no frame above shows: the error’s <b>✕</b>, the long toast’s words <b>beside Undo</b> on a tablet, the bar <b>inset and rounded</b>, and the <b>reduced-motion</b> end. Light and dark, a tablet and 375 px. The error words are the app’s own (“Couldn’t mark it seen. Try again.” and the garb swap’s, gs-5a), in the voice guide’s pattern: what happened, then what to do. One thing differs from 43A to 43G on purpose: here a toast is <b>as wide as its words</b>, which is how the app draws it; the frames above stretched every toast to the full width.</p>
+  <h1>43H. What the ruling owes a picture <span class="flag">approved 2026-11-25 with these fixes drawn</span></h1>
+  <p class="note big"><b>Approved, 25 November.</b> Francis, on Home Two’s <code>impeccable critique</code> of 43H (32/40, below): “Approve with those recommendations.” The frames below are <b>redrawn to them</b>: the error’s mark is the <b>✕ on a disc</b>; every toast is at least <b>60 px</b> tall; on a <b>phone</b> (under 600 px) the toast fills the width between the margins, and on a tablet it stays as wide as its words; with <b>reduced motion</b> the bar fades over the toast’s whole time; an <b>error stays longer</b>, 5 seconds plus 1 for each line over two. The keyboard hold looking like a running toast is accepted as drawn. The ruling: <code>docs/design/rulings/toast-restyle-2026-11-25.md</code>, tr-8 to tr-14. He approved the recommendations; the redrawn pictures are for his eye.</p>
+  <p class="note"><b>As first drawn, 25 November, after the first ruling.</b> Dress D as ruled, with the four things the ruling changed that no frame above shows: the error’s <b>✕</b>, the long toast’s words <b>beside Undo</b> on a tablet, the bar <b>inset and rounded</b>, and the <b>reduced-motion</b> end. Light and dark, a tablet and 375 px. The error words are the app’s own (“Couldn’t mark it seen. Try again.” and the garb swap’s, gs-5a), in the voice guide’s pattern: what happened, then what to do.</p>
 
   <h1>43H1. The error mark</h1>
-  <p class="cap">The ✕ is the danger shape the Note part already uses (06: “every semantic colour carries a shape”). It sits before the words, level with their first line, and is <b>not a button</b>. It is in the words’ colour, not the danger red: the toast is ink in light and cream in dark, and the danger token measures 2.19:1 and 2.03:1 on those, under the 3:1 floor. So the shape and the words carry it, and colour carries nothing. A screen reader hears “Problem” before the words, as it does for a Note (<span class="flag">⚑ H3</span>).</p>
+  <p class="cap">The ✕ is the danger shape the Note part already uses (06: “every semantic colour carries a shape”), here on a small disc so it reads as a badge. It sits before the words, level with their first line, and is <b>not a button</b>. It is in the toast’s own two colours, not the danger red: the toast is ink in light and cream in dark, and the danger token measures 2.19:1 and 2.03:1 on those, under the 3:1 floor. So the shape and the words carry it, and colour carries nothing. A screen reader hears <b>“Problem”</b> first, then the words, as it does for a Note.</p>
   <div class="wall fr43 shot" data-k="h1">${hMark}</div>
+  <table class="sc">
+  <tr><th>How long an error toast stays</th><th>Lines, as it is drawn</th><th>Seconds</th></tr>
+  <tr><td>“Couldn’t mark it seen. Try again.”</td><td>1</td><td>5</td></tr>
+  <tr><td>Any error of two lines (none is drawn)</td><td>2</td><td>5</td></tr>
+  <tr><td>The garb swap’s, on a phone, without its patron line</td><td>3</td><td>6</td></tr>
+  <tr><td>The garb swap’s long one, on a tablet</td><td>3</td><td>6</td></tr>
+  <tr><td>The same, on a phone</td><td>6</td><td>9</td></tr>
+  </table>
+  <p class="note"><b>The rule:</b> 5 seconds, plus 1 second for each line over two. Only an error toast: every other toast stays 5 seconds whatever its length. It pauses under a finger, a pointer or keyboard focus like every toast. It does <b>not</b> stay until it is tapped away, and it has no close button. The bar drains, or fades, over the toast’s own time.</p>
 
   <h1>43H2. The mark, two ways</h1>
-  <p class="cap"><span class="flag">⚑ H1</span> The bare ✕ is also the app’s close mark (top right of every sheet). On a toast it is at the left, before the words, where no close ever sits, but a tap on it does nothing. A disc under it makes it a badge. I drew H1 with the bare ✕ because it is the part the app has; pick 1 or 2.</p>
+  <p class="cap"><b>Ruled: 2, the disc.</b> The bare ✕ is also the app’s close mark (top right of every sheet), and at the left of a short toast it read as “close” (critique 3). Kept here for the record.</p>
   <div class="wall fr43 shot" data-k="h2">${hWays}</div>
 
   <h1>43H3. The words beside Undo</h1>
-  <p class="cap">From tablet width (600 px), the words take the room that is left and wrap beside the button. Under 600 px nothing changes (tw-1). A button longer than half the toast still drops under, at any width.</p>
+  <p class="cap">From tablet width (600 px), the toast is as wide as its words, and the words take the room that is left and wrap beside the button. Under 600 px the toast fills the width between the margins and wraps as before (tw-1). A button longer than half the toast still drops under, at any width.</p>
   <div class="wall fr43 shot" data-k="h3">${hBeside}</div>
 
   <h1>43H4. The bar, held, and with reduced motion</h1>
   <div class="wall fr43 shot" data-k="h4">${hBar}</div>
 
+  <h1>43H: the critique, and what was ruled on it</h1>
+  <p class="note"><b><code>impeccable critique</code>, run by Home Two on the PC, 25 November: 32/40</b> (visibility 3, language 4, control 3, consistency 3, error prevention 3, recognition 4, efficiency 3, minimalism 4, error recovery 2, help 3), on the eight 43H pictures as first drawn. Its full text is on pull request #95. Francis: “Approve with those recommendations.”</p>
+  <table class="sc">
+  <tr><th>#</th><th>Finding</th><th>Ruled</th></tr>
+  <tr><td>1</td><td><b>High.</b> A long error is gone before it is read: five lines on a phone want 8 to 9 seconds, and an error’s words are not in the log.</td><td>An error stays 5 s plus 1 s for each line over two. Not “until tapped”. Table under 43H1.</td></tr>
+  <tr><td>2</td><td><b>Medium.</b> Under reduced motion there is no countdown for four seconds.</td><td>The bar fades over the whole time. Redrawn, 43H4.</td></tr>
+  <tr><td>3</td><td><b>Medium.</b> The bare ✕ at the left of a pill reads as “close”.</td><td>The ✕ on a disc. Redrawn, 43H1 and 43H2.</td></tr>
+  <tr><td>4</td><td><b>Medium.</b> A one-line toast with no button is a 40 px pill with the bar close under its words.</td><td>Every toast at least 60 px. Redrawn, 43H1 and 43H4.</td></tr>
+  <tr><td>5</td><td><b>Low.</b> “Held” looks the same as “running”.</td><td>Accepted as drawn. Looked at again only if the build shows focus with no ring.</td></tr>
+  <tr><td>6</td><td><b>Low.</b> On a phone a narrow toast sits over the last list row, the row showing at both sides.</td><td>On a phone the toast fills the width; on a tablet, as wide as its words. Redrawn, 43H1 and 43H3.</td></tr>
+  <tr><td>7</td><td><b>Low.</b> The long Undo toast on a tablet is right.</td><td>No change.</td></tr>
+  </table>
+
   <h1>43H: self-review and ⚑</h1>
-  <p class="note"><b>Checked, on the drawn page.</b> Tokens only (corner 20, the pill for the bar’s ends, spacing 4 to 24, type 16, the mark 16, nothing under 14). Contrast: words and mark 17.11:1 light, 15.87:1 dark; the bar at 65%, 7.77:1 light and 5.55:1 dark against the solid toast (the table above gave 5.20 and 4.65, which were the glass’s); fading, it passes under 3:1 on its way out, as a fade must. No colour carries anything here, so no greyscale strip. Undo and the named action stay 44 px tall with the gap’s 12 px from the words; the ✕ is not a target. 375 px and a tablet, both themes. Messy data: a one-line, a two-line and a five-line error; a 73-character toast; a 60-character button. States: with Undo, with an action, error, short, long, running, held, reduced motion still and fading. Heuristics: the mark matches the Note’s (consistency); the held bar shows the system’s state without a word; nothing is disabled; no accent button is added.</p>
-  <p class="note"><b>Not checked, honestly.</b> <code>impeccable critique</code> has not been run on 43H: it runs on the PC, not in this container. Drawn in Chrome only (no WebKit here). Nothing moves on this page: the drain, the hold and the fade are drawn still. Larger text. An error toast with a button (the app has none today). Whether a finger resting on a toast feels like a hold or an accident can only be judged on a tablet.</p>
+  <p class="note"><b>Checked, on the redrawn page.</b> Tokens only (corner 20, the pill for the bar’s ends and the disc, spacing 4 to 24, type 16, the mark 14 on a 20 px disc, nothing under 14). Contrast: words 17.11:1 light, 15.87:1 dark; the ✕ on its disc is the same pair turned round, so the same figures; the disc against the toast likewise. The bar at 65%, 7.77:1 light and 5.55:1 dark against the solid toast; fading, it passes under 3:1 on its way out, as a fade must (under reduced motion that is from about the half-way point: the bar is a second sign beside the words, never the only one). No colour carries anything here, so no greyscale strip. Every toast is 60 px or taller; Undo and the named action stay 44 px tall with the gap’s 12 px from the words; the disc is not a target. 375 px and a tablet, both themes. Messy data: a one-line, a three-line and a six-line error; a 73-character toast; a 60-character button; “Saved”. States: with Undo, with an action, with neither, error, short, long, running, held, reduced motion at the start, half-way and near the end. Heuristics: the mark matches the Note’s shape and spoken word (consistency); a long error has time to be read (error recovery); nothing is disabled; no accent button is added.</p>
+  <p class="note"><b>Not checked, honestly.</b> The redrawn frames have had no second <code>impeccable critique</code>; they are drawn to the first one’s findings. Drawn in Chrome only (no WebKit here). Nothing moves on this page: the drain, the hold and the fade are drawn still. Larger text. An error toast with a button (the app has none today). Whether a finger resting on a toast feels like a hold or an accident can only be judged on a tablet. <b>Costs build time:</b> the error’s seconds depend on how many lines its words take on that screen, so the toast must measure itself when it appears.</p>
   <ol class="crit">
-  <li><span class="flag">⚑ H1</span> <b>Which mark?</b> 1, the bare ✕ (drawn), or 2, the ✕ on a disc.</li>
-  <li><span class="flag">⚑ H2</span> <b>The reduced-motion fade:</b> over the last second, as drawn? (He ruled “fades at the end”; the length is not his.)</li>
-  <li><span class="flag">⚑ H3</span> <b>What a screen reader hears for the mark:</b> “Problem”, as the Note part says it, or nothing (the toast is already announced as an alert).</li>
-  <li><span class="flag">⚑ H4</span> <b>A toast as wide as its words on a tablet</b> is what the app does today and what 43H draws; 43A to 43G showed it stretched. Keep the app’s, or stretch it?</li>
-  <li><span class="flag">⚑ H5</span> <b>A one-line toast with no button is a pill.</b> It is 40 px tall, so 20 px corners round it fully (H1, the one-line error; “Saved” is the same). No frame above showed one. The bar also sits close under its words there. Fine as drawn, or give a toast with no button the 60 px height of one with Undo?</li>
+  <li><span class="flag">H1, answered</span> <b>Which mark?</b> The ✕ on a disc.</li>
+  <li><span class="flag">H2, answered</span> <b>The reduced-motion fade:</b> over the whole time, not the last second.</li>
+  <li><span class="flag">H3, answered</span> <b>What a screen reader hears:</b> “Problem” first, then the words.</li>
+  <li><span class="flag">H4, answered</span> <b>The width:</b> as wide as its words on a tablet; the full width between the margins on a phone (under 600 px).</li>
+  <li><span class="flag">H5, answered</span> <b>The one-line pill:</b> gone. Every toast is at least 60 px tall, the height of one with Undo.</li>
   </ol>
 
   <h1>⚑ For Francis <span class="flag">all eight answered, 25 November</span></h1>
-  <p class="note">1: <b>D</b>. 2 and 3: fall away (no pill, no glass). 4: <b>yes, the ✕</b> (43H1). 5: <b>5 seconds</b>. 6: <b>yes, the pause</b>, and the 5 seconds only with it. 7: the bar <b>stays still and fades at the end</b> (43H4), not stepped. 8: <b>left as it is</b>: a new toast replaces the one showing; the log keeps the Undo. As first put:</p>
+  <p class="note">1: <b>D</b>. 2 and 3: fall away (no pill, no glass). 4: <b>yes, the ✕</b> (43H1). 5: <b>5 seconds</b>. 6: <b>yes, the pause</b>, and the 5 seconds only with it. 7: the bar <b>stays still and fades</b> (43H4; over the whole time, ruled later the same day), not stepped. 8: <b>left as it is</b>: a new toast replaces the one showing; the log keeps the Undo. As first put:</p>
   <ol class="crit">
   <li><span class="flag">⚑ 1</span> <b>Which dress?</b> A (leave it), B (rounded, frosted), C (a pill, frosted) or D (rounded, solid).</li>
   <li><span class="flag">⚑ 2</span> If C: does the pill keep its corner when the toast wraps, or become B’s corner on a second line?</li>
