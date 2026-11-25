@@ -278,6 +278,8 @@ export function createFakeDb(): FakeWorld {
     const actor = row.actor_id ? tables.actors.find((a) => a.id === row.actor_id) : undefined;
     return actor && (actor.owner_type ?? 'user') === 'user' && typeof actor.owner_user_id === 'string' ? actor.owner_user_id : null;
   };
+  // TC12: the answer ask_for_thing gives the request it is making (the database's `grimoire.stock_answer`).
+  let stockAnswer: { campaign: string; actor: string; item: string; answer: Row } | null = null;
   const log: EventLog = (table, before, after, tag, reverting) => {
     const row = after ?? before!;
     // Like the database: a library entry is logged only in the campaign whose own homebrew holds it.
@@ -2158,6 +2160,11 @@ export function createFakeDb(): FakeWorld {
         if (!entry || !String(asked.key ?? '').startsWith('lodging:') || entry.shown !== true || entry.open !== true) return plain('That lodging isn\'t offered here.');
         Object.assign(row, { status: 'answered', answer: { kind: 'stay', listed: true }, answered_at: new Date().toISOString() });
       }
+      // TC12 (…_dec16_tc12_ask_answered_at_once.sql): ask_for_thing's answer, like the database's transaction setting
+      // read by private.request_stock_answer: only for this very ask (its campaign, character and thing).
+      if (stockAnswer && kind === 'buy' && stockAnswer.campaign === campaign && stockAnswer.actor === actor && String(asked.itemId ?? '') === stockAnswer.item) {
+        Object.assign(row, { status: 'answered', answer: stockAnswer.answer, answered_at: new Date().toISOString() });
+      }
       tables.requests.push(row);
       log('requests', null, structuredClone(row), tag);
       return copy(row);
@@ -2370,6 +2377,38 @@ export function createFakeDb(): FakeWorld {
         .map(([id]) => id)
         .sort();
       return { data: ids.map((item_id) => ({ item_id })), error: null };
+    },
+    // Ask for… answered at once (TC12), like supabase/migrations/20261125180000_dec16_tc12_ask_answered_at_once.sql: what
+    // the day's stock says of the thing (as the players' reader works it out: a stored answer, else the default for a
+    // setting's shop; a pack's shop its stored answers alone), never a day before the newest day with a live row; "in"
+    // with a price, or "out", makes the request already answered; else it waits for the GM as send_request's does.
+    ask_for_thing: ({ campaign, actor, body, on_day, prompt }, tag) => {
+      const made = madeBy('requests', tag);
+      if (made) return copy(tables.requests.find((r) => r.id === made.target_id));
+      if (!isMemberOf(campaign)) return refused("You don't have permission to do that.");
+      const words = typeof body === 'string' ? body.trim() : '';
+      if (!words) return plain('Write what you want to do.');
+      if (typeof on_day !== 'number' || !Number.isInteger(on_day) || on_day < 1) return plain("That day isn't on the campaign's clock.");
+      const asked = (prompt && typeof prompt === 'object' && !Array.isArray(prompt) ? prompt : {}) as Row;
+      const service = typeof asked.serviceId === 'string' ? asked.serviceId : '';
+      const item = typeof asked.itemId === 'string' ? asked.itemId : '';
+      const price = typeof asked.price === 'string' ? asked.price.trim() : '';
+      const liveDays = tables.shop_stock.filter((r) => r.campaign_id === campaign && !r.undone).map((r) => Number(r.day));
+      let decided: 'in' | 'out' | null = null;
+      if (service && item && !(liveDays.length > 0 && on_day < Math.max(...liveDays))) {
+        const inStock = groupRpcs.shop_stock_in!({ campaign, service, on_day, offered: [item] }, tag);
+        const stored = tables.shop_stock.find((r) => r.campaign_id === campaign && r.service_id === service && r.item_id === item && r.day === on_day && !r.undone)?.answer;
+        const listed = tables.library_entries.some((e) => e.kind === 'item' && e.pack_entry_id === item && tables.campaign_packs.some((cp) => cp.campaign_id === campaign && cp.pack_id === e.pack_id));
+        if (Array.isArray(inStock.data) && inStock.data.some((r: Row) => r.item_id === item)) decided = 'in';
+        else if (stored === 'out' && listed) decided = 'out';
+      }
+      const answer = decided === 'in' && price ? { kind: 'buy', result: 'inStock', price, note: '' } : decided === 'out' ? { kind: 'buy', result: 'notHere', price: '', note: '' } : null;
+      stockAnswer = answer ? { campaign: String(campaign), actor: String(actor), item, answer } : null;
+      try {
+        return groupRpcs.send_request!({ campaign, actor, kind: 'buy', body: words, cost_text: '', prompt: asked }, tag);
+      } finally {
+        stockAnswer = null;
+      }
     },
     // A rumour given (dec-12 piece E), like supabase/migrations/20261114220000_dec_12e_rumours.sql: the GM gives the row
     // of a rumours table of an attached adventure whose range is row_min to row_max; only its words are copied (never

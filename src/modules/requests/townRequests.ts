@@ -293,21 +293,39 @@ export const undoBuy = defineCommand({
   run: (db, _user, input) => rpcRequest(db.rpc('undo_buy', { request: input.request.id })),
 });
 
-/** The input to town.askFor (TC12): the player's own character, the words of the ask, the campaign day, the thing. */
+/** The input to town.askFor: the player's own character, the words of the ask, the campaign day, and what is asked for. */
 export interface AskForInput {
   character: AskingCharacter;
   text: string;
+  /** The campaign clock's day as the app counts it (readClock(...).day; day 1 is the clock's first), as stock.set's. */
   day: number;
   prompt: BuyPrompt;
 }
 
-/** Ask for… answered at once (town.askFor, TC12): not built yet; its tests come first (it.fails). Not registered. */
+/**
+ * Ask for… answered at once (town.askFor; town row TC12, the stack's W10a; tn-7, tn-8; migration
+ * 20261125180000_dec16_tc12_ask_answered_at_once.sql): a buy request for the player's own character. When the day's
+ * stock has decided the thing (the GM's answer, else its default, as the players' reader works it out), the database
+ * makes the request already answered, "In stock: <price>" (with a price to say) or "Not here", and no card reaches
+ * the GM; a thing still on "?", or not in the shop's list, waits for the GM as before. The answer is on the asker's own
+ * request: a player learns "Not here" only for the thing asked for, and a later flip in the stock table never unsends
+ * it. Logged as the player's line, like any request.
+ */
 export const askFor = defineCommand({
   name: 'town.askFor',
   log: 'simple',
   target: (input: AskForInput) => ({ campaignId: input.character.campaignId, ownerUserId: input.character.ownerUserId }),
   allowed: (user: CurrentUser, target: { campaignId: string; ownerUserId: string | null }) => isMember(user, target.campaignId) && target.ownerUserId === user.id,
-  run: async (): Promise<CommandResult<Request>> => fromError({ code: '42501', message: 'Not built yet.' }),
+  run: (db, _user, input) =>
+    rpcRequest(
+      db.rpc('ask_for_thing', {
+        campaign: input.character.campaignId,
+        actor: input.character.id,
+        body: input.text.trim(),
+        on_day: input.day,
+        prompt: { ...input.prompt } as unknown as Json,
+      }),
+    ),
 });
 
-export const TOWN_REQUEST_COMMANDS = [replyRequest, chooseStay, undoBuy] as const;
+export const TOWN_REQUEST_COMMANDS = [replyRequest, chooseStay, undoBuy, askFor] as const;

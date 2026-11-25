@@ -74,7 +74,7 @@ async function ask(p: BuyPrompt, day = 1) {
 
 describe('answered at once from the day\'s stock (tn-7)', () => {
   // Purpose: a thing set in today is answered at once, In stock at its price; one set out, Not here.
-  it.fails('a thing set in or out today is answered at once', async () => {
+  it('a thing set in or out today is answered at once', async () => {
     expect(await set(OIL, 'in')).toMatchObject({ ok: true });
     expect(await set(ROPE, 'out')).toMatchObject({ ok: true });
     const oil = await ask(prompt(OIL));
@@ -85,7 +85,7 @@ describe('answered at once from the day\'s stock (tn-7)', () => {
 
   // Purpose: with no stored answer an "always" thing is answered from its default; a chance thing, an unlisted thing,
   // Something not listed… and an in thing with no price to say wait for the GM.
-  it.fails('the default decides; the undecided and the unlisted wait', async () => {
+  it('the default decides; the undecided and the unlisted wait', async () => {
     expect((await ask(prompt(TRAP))).status).toBe('answered');
     expect((await ask(prompt(GLASS))).status).toBe('waiting');
     expect((await ask(prompt('tc12-no-such-thing'))).status).toBe('waiting');
@@ -96,7 +96,7 @@ describe('answered at once from the day\'s stock (tn-7)', () => {
 
 describe('logged, kept, and told only to the asker (tn-8)', () => {
   // Purpose: the answer is one log line, town.askFor, which the asker and the GM read and the other player doesn't.
-  it.fails('one log line, read by the asker and the GM', async () => {
+  it('one log line, read by the asker and the GM', async () => {
     const asked = await ask(prompt(ROPE));
     const lineOf = async (person: Person) => must(await person.db.from('events').select('type, after').eq('campaign_id', world.campaignId).eq('target_id', asked.id));
     expect((await lineOf(world.playerA)).map((e) => e.type)).toEqual(['town.askFor']);
@@ -106,7 +106,7 @@ describe('logged, kept, and told only to the asker (tn-8)', () => {
   });
 
   // Purpose: a later flip in the stock table does not unsend the answer, and the GM can't answer it again.
-  it.fails('a later flip does not unsend it', async () => {
+  it('a later flip does not unsend it', async () => {
     const asked = await ask(prompt(OIL));
     expect(await set(OIL, 'out')).toMatchObject({ ok: true });
     const kept = must(await world.playerA.db.from('requests').select('status, answer').eq('id', asked.id))[0]!;
@@ -117,7 +117,7 @@ describe('logged, kept, and told only to the asker (tn-8)', () => {
   });
 
   // Purpose: the asker reads no stock line out or undecided, and nothing of another thing: only their own answer.
-  it.fails("the asker reads no other thing's answer", async () => {
+  it("the asker reads no other thing's answer", async () => {
     expect(await set(HOOK, 'out')).toMatchObject({ ok: true });
     await ask(prompt(OIL));
     const rows = JSON.stringify(must(await world.playerA.db.from('shop_stock').select('*').eq('campaign_id', world.campaignId)));
@@ -130,7 +130,7 @@ describe('logged, kept, and told only to the asker (tn-8)', () => {
 
 describe('forged ids (hard rule 5)', () => {
   // Purpose: another player's character, another campaign's character and a campaign the asker isn't in are refused.
-  it.fails('refuses a character that is not the asker\'s, and a campaign they are not in', async () => {
+  it('refuses a character that is not the asker\'s, and a campaign they are not in', async () => {
     const asB = await world.playerB.db.rpc('ask_for_thing', { campaign: world.campaignId, actor: world.wrenId, body: 'Rope', on_day: 1, prompt: prompt(ROPE) as never });
     expect(asB.error).not.toBeNull();
     const elsewhere = await world.playerA.db.rpc('ask_for_thing', { campaign: world.otherCampaignId, actor: world.wrenId, body: 'Rope', on_day: 1, prompt: prompt(ROPE) as never });
@@ -142,13 +142,13 @@ describe('forged ids (hard rule 5)', () => {
   });
 
   // Purpose: another campaign's shop answers never answer a request here (its thing is not this campaign's).
-  it.fails("another campaign's stock answers nothing here", async () => {
+  it("another campaign's stock answers nothing here", async () => {
     expect(await set(FAR, 'in', 1, world.otherCampaignId)).toMatchObject({ ok: true });
     expect((await ask(prompt(FAR))).status).toBe('waiting');
   });
 
   // Purpose: a device can't name a past day to learn its answers: before the newest stocked day it waits.
-  it.fails('a past day is never answered at once', async () => {
+  it('a past day is never answered at once', async () => {
     expect(await set(GLASS, 'in', 3)).toMatchObject({ ok: true });
     expect((await ask(prompt(ROPE), 2)).status).toBe('waiting');
     expect((await ask(prompt(GLASS), 3)).status).toBe('answered');

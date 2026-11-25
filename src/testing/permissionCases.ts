@@ -131,7 +131,7 @@ import { readMessages, sendMessages } from '../modules/messages/messages.ts';
 import { markFindsSeen } from '../modules/characters/findsSeen.ts';
 import { answerRequest, askRequests, enterRequest, sendRequest, withdrawRequest, type Request } from '../modules/requests/requests.ts';
 import { approveSheetChange, HP_MAX_FIELD, refuseSheetChange, requestSheetChange, takeBackSheetChange, type SheetChange } from '../modules/characters/sheetChanges.ts';
-import { chooseStay, replyRequest, undoBuy } from '../modules/requests/townRequests.ts';
+import { askFor, chooseStay, replyRequest, undoBuy } from '../modules/requests/townRequests.ts';
 import { setSpellBook } from '../modules/characters/spellBook.ts';
 import { giveFind, undoFind } from '../modules/expedition/findSend.ts';
 import { showItemTruth } from '../modules/expedition/itemTruth.ts';
@@ -1502,6 +1502,11 @@ export const permissionCases: PermissionCase[] = [
     const inn = await w.freshInn();
     return { character: w.wren, stay: { listed: true, key: inn.key, name: inn.name, rate: '2 sp a night', at: 0, town: inn.town } };
   }, false),
+  // TC12 (tn-7, tn-8): Ask for…, answered at once from the day's stock when decided: a player's own character only.
+  rule('a player can ask for a thing for their own character', 'playerA', askFor, (w) => ({ character: w.wren, text: 'Lamp oil, The Chandler', day: 1, prompt: { serviceId: 'tc12-chandler', shop: 'The Chandler', itemId: 'tc12-lamp-oil', item: 'Lamp oil', price: '2 herons' } }), true),
+  rule("a player can't ask for a thing for another player's character", 'playerB', askFor, (w) => ({ character: w.wren, text: 'Lamp oil, The Chandler', day: 1, prompt: { serviceId: 'tc12-chandler', shop: 'The Chandler', itemId: 'tc12-lamp-oil', item: 'Lamp oil', price: '2 herons' } }), false),
+  rule("the GM can't ask for a thing as a player's character", 'gm', askFor, (w) => ({ character: w.wren, text: 'Lamp oil, The Chandler', day: 1, prompt: { serviceId: 'tc12-chandler', shop: 'The Chandler', itemId: 'tc12-lamp-oil', item: 'Lamp oil', price: '2 herons' } }), false),
+  rule("an outsider can't ask for a thing", 'outsider', askFor, (w) => ({ character: w.wren, text: 'Lamp oil, The Chandler', day: 1, prompt: { serviceId: 'tc12-chandler', shop: 'The Chandler', itemId: 'tc12-lamp-oil', item: 'Lamp oil', price: '2 herons' } }), false),
   rule('the GM can answer a request', 'gm', answerRequest, async (w) => ({ request: await w.freshRequest(), answer: { kind: 'yesNo' as const, yes: true, turns: 0, note: '' } }), true),
   rule("a player can't answer their own request", 'playerA', answerRequest, async (w) => ({ request: await w.freshRequest(), answer: { kind: 'yesNo' as const, yes: true, turns: 0, note: '' } }), false),
   // M5b step 3: the GM's Yes to a secret activity takes its cost off the group's day; a player can't answer.

@@ -62,7 +62,7 @@ async function ask(w: ReturnType<typeof setup>, p: BuyPrompt, day = 1) {
 
 describe('Ask for… answered at once (TC12)', () => {
   // Purpose (tn-7): a thing the GM set in today is answered at once, In stock at its price; the GM gets no card.
-  it.fails('a thing set in today: In stock at once', async () => {
+  it('a thing set in today: In stock at once', async () => {
     const w = setup();
     await set(w, 'lamp-oil', 'in');
     const r = await ask(w, prompt('lamp-oil'));
@@ -71,7 +71,7 @@ describe('Ask for… answered at once (TC12)', () => {
   });
 
   // Purpose (tn-7): a thing the GM set out today is answered at once, Not here.
-  it.fails('a thing set out today: Not here at once', async () => {
+  it('a thing set out today: Not here at once', async () => {
     const w = setup();
     await set(w, 'rope', 'out');
     const r = await ask(w, prompt('rope'));
@@ -80,14 +80,14 @@ describe('Ask for… answered at once (TC12)', () => {
   });
 
   // Purpose (tn-7): with no stored answer, the default decides at a setting's shop: "always" is in; a chance waits.
-  it.fails('no stored answer: an "always" thing is answered, a chance thing waits', async () => {
+  it('no stored answer: an "always" thing is answered, a chance thing waits', async () => {
     const w = setup();
     expect((await ask(w, prompt('eel-trap'))).status).toBe('answered');
     expect((await ask(w, prompt('spyglass'))).status).toBe('waiting');
   });
 
   // Purpose (tn-7): an undecided thing, a thing not in the list, and Something not listed… still reach the GM.
-  it.fails('undecided, unlisted and not-listed asks wait for the GM', async () => {
+  it('undecided, unlisted and not-listed asks wait for the GM', async () => {
     const w = setup();
     await set(w, 'lamp-oil', 'in');
     expect((await ask(w, prompt('spyglass'))).status).toBe('waiting');
@@ -98,7 +98,7 @@ describe('Ask for… answered at once (TC12)', () => {
   });
 
   // Purpose (tn-8): a later flip in the stock table does not unsend an answer already given.
-  it.fails('a later flip does not unsend the answer', async () => {
+  it('a later flip does not unsend the answer', async () => {
     const w = setup();
     await set(w, 'lamp-oil', 'in');
     const r = await ask(w, prompt('lamp-oil'));
@@ -109,7 +109,7 @@ describe('Ask for… answered at once (TC12)', () => {
   });
 
   // Purpose: a device can't name a past day to learn its answers: a day before the newest stocked day waits.
-  it.fails('a past day is never answered at once', async () => {
+  it('a past day is never answered at once', async () => {
     const w = setup();
     await set(w, 'rope', 'out', 1);
     await set(w, 'lamp-oil', 'in', 2);
@@ -118,7 +118,7 @@ describe('Ask for… answered at once (TC12)', () => {
   });
 
   // Purpose (tn-8): the answer is one log line, the player's, naming what was answered.
-  it.fails('one log line says what was answered', async () => {
+  it('one log line says what was answered', async () => {
     const w = setup();
     await set(w, 'rope', 'out');
     await ask(w, prompt('rope'));
