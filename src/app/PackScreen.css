@@ -544,7 +544,7 @@
   border-top: var(--divider);
 }
 
-/* Landscape tablet (ruled 2026-10-24): a list at least a third wide on the left, never an empty right side. */
+/* Landscape tablet (ruled 2026-10-24): a list about a third (06, landscape rule) on the left, never an empty right side. */
 .pack__summary,
 .pack__list {
   display: flex;
