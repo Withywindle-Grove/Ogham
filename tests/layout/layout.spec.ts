@@ -1659,10 +1659,11 @@ for (const size of SIZES) {
         const handle = page.getByRole('button', { name: 'Fold the menu' });
         const zone = (await handle.boundingBox())!;
         expect(Math.round(zone.width)).toBe(44);
-        // The zone straddles the column's right edge, beside the tabs, not over them.
+        // The zone straddles the column's right edge, beside the tabs, not over them (8 px clear: playerAuditRail.spec.ts).
         expect(zone.x).toBeGreaterThanOrEqual(open.x + open.width - 1);
         const pill = (await handle.locator('.divider-handle__pill').boundingBox())!;
-        expect([Math.round(pill.width), Math.round(pill.height)]).toEqual([6, 44]);
+        // The grip (plan dec-14 row 1, frame 38-1): 24 by 44.
+        expect([Math.round(pill.width), Math.round(pill.height)]).toEqual([24, 44]);
         // A drag left by a quarter of the column: nothing happens.
         const midX = zone.x + zone.width / 2;
         const midY = pill.y + pill.height / 2;
@@ -1985,7 +1986,7 @@ for (const size of [...SIZES, { name: 'phone-landscape', width: 844, height: 390
   });
 }
 
-// The landscape rule for list-and-detail screens (ruled 2026-10-24): the list on the left, at least a third wide;
+// The landscape rule for list-and-detail screens (ruled 2026-10-24): the list on the left, about a third (06, landscape rule);
 // the right side never empty; item details as a centred card.
 test.describe('landscape tablet (1180×820): the Pack', () => {
   test.use({ viewport: { width: 1180, height: 820 } });
@@ -2012,15 +2013,16 @@ test.describe('landscape tablet (1180×820): the Pack', () => {
 
   // The same rule with the menu folded (the default since mn-1; review of #848): measured against the rule itself
   // (docs/06, the landscape rule), not the half-screen line: the load starts right of the list column, and the list
-  // column is at least a third of the screen wide.
-  test("the player's Pack with the menu folded keeps the list at least a third wide and the load to its right", async ({ page }) => {
+  // column is about a third (06, landscape rule): within 3 px of it, since the folded rail grew by 12 px (plan dec-14
+  // row 1, frame 38-1: 44 px tabs and the handle 8 px clear) and the list gives up 2/5 of that.
+  test("the player's Pack with the menu folded keeps the list about a third (06, landscape rule) and the load to its right", async ({ page }) => {
     await page.goto('/layout.html?as=player');
     await page.getByRole('button', { name: /The Drowned Marches/ }).click();
     await expect(page.getByRole('navigation', { name: 'Main' })).toHaveClass(/section-nav--collapsed/);
     await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Pack' }).click();
     const summary = (await page.locator('.player__aside .pack__summary').boundingBox())!;
     const list = (await page.locator('.player__pane').boundingBox())!;
-    expect(list.width).toBeGreaterThanOrEqual(1180 / 3);
+    expect(list.width).toBeGreaterThanOrEqual(1180 / 3 - 3);
     expect(summary.x).toBeGreaterThanOrEqual(list.x + list.width);
   });
 

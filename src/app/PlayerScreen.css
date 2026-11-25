@@ -35,8 +35,9 @@
   grid-column: 1;
   position: sticky;
   top: calc(var(--top-row-h, 0px) + var(--pad));
-  /* Room for the divider handle's tap zone (lr-4), which straddles this edge, so it never covers a tab. */
-  padding-right: calc(var(--tap) / 2);
+  /* Room for the divider handle's tap zone (lr-4), which straddles this edge, and 8 px more so it sits clear of the
+     tabs (plan dec-14 row 1, frame 38-1). */
+  padding-right: calc(var(--tap) / 2 + var(--space-2));
 }
 
 .player--solo > .player__pane {
