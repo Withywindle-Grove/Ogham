@@ -1,13 +1,50 @@
 ---
 status: pending
 milestone: December first play (a player's bug report, 2026-11-24; row design-save-bonus-in-number)
-absorbed-into: nothing yet. Once Francis approves the drawing (frames 42-22 to 42-28, with the sheets of 42-19 and 42-20): docs/09-decisions-log.md, docs/07-content-packs.md (Races, Classes, `saveModifiers`), docs/06-screens-and-design.md (the Save tile, the Figure head's sheet), docs/05-features.md (the sheet's saves)
+absorbed-into: nothing yet. Once Francis approves the drawing (frames 42-22 to 42-29, with the sheets of 42-19 and 42-20): docs/09-decisions-log.md, CLAUDE.md (hard rule 7, the named exception), docs/07-content-packs.md (Races, Classes, `saveModifiers`; the low-natural flag as pending), docs/06-screens-and-design.md (the Save tile, the Figure head's sheet, the tokens table), docs/05-features.md (the sheet's saves)
 supersedes: nothing until Francis approves the drawing. It then supersedes, for saves only: the 2026-10-25 line "Save modifiers … shown beside saves …, never added in (tentative)"; bq-8 of m5b-builder-questions-2026-11-03.md (a kindred's bonus by Constitution "beside the save, not added in"); pf-21 of dec-player-screen-2026-11-14.md ("shown beside the save and never added in"); the part of sv-2a (same file) that keeps the class-and-level line off a save's sheet; and the part of sv-2 (same file) that puts the general rule on each save's sheet (he chose M)
 ---
 
 # Save bonuses counted in the save's number (pending, 2026-11-24)
 
-**Francis answered the questions on 2026-11-24 and ruled twice more on 2026-11-25; the drawing of his answers (frames 42-22 to 42-28, with the sheets of 42-19 and 42-20) waits for his approval, so this file stays pending.** Nothing goes into `09` or the specs, and nothing is built, until he approves the pictures. Open: how the line of a bonus that holds at times stays on one line (⚑ 10), three options he has not answered (⚑ 11 to 13), and two drawn after the PC session's critique (⚑ 14 and 15).
+**Francis answered the questions on 2026-11-24 and ruled on 2026-11-25, twice and then on ⚑ 10 to 13; the drawing of his answers (frames 42-29 and the redrawn 42-28, then 42-22 to 42-27, with the sheets of 42-19 and 42-20) waits for his approval, so this file stays pending.** Nothing goes into `09`, `CLAUDE.md` or the specs, and nothing is built, until he approves the pictures. Open: ⚑ 14 and ⚑ 15.
+
+## Francis's rulings on ⚑ 10 to 13, 2026-11-25 (the driver's chat)
+
+His words: **"10 make an exception and drop to 12 px, 11-13 agreed"**.
+
+| ⚑ | Ruled | Drawn |
+|---|---|---|
+| 10 | The line of a bonus that holds at times keeps "vs" ("11 vs venom") and is set at **12 px**: a **named exception to hard rule 7** ("nothing under 14"). Francis owns the hard rules and made it. It covers that one line only: not the tile's name, its figure, or anything else. Forms (b1) to (d) are not taken up. | 42-29; 42-28 (third picture) |
+| 11 | The number stops at 2 **only where the pack says so as data** (an explicit flag that a low natural fails: a pack-format change, to `07` as pending). Otherwise it stops at 1, with no rule sentence. | 42-25, as drawn |
+| 12 | On the sheet: the "Only at times" label and the "→" figures. | 42-26 |
+| 13 | Keep the ⓘ, at the end of the roll line. | 42-29, 42-28 |
+
+**The exception (⚑ 10), for the record.**
+
+| | |
+|---|---|
+| Where | The line under a save tile's figure that gives the number to roll when a bonus holds at times. Nowhere else. |
+| Why | Five across was ruled, with "try to prevent wrapping with small font or abbreviation"; at 14 px "11 vs venom" is 75.8 px in 70 px of room; he chose smaller type over shorter words: "make an exception and drop to 12 px". |
+| Risk | The smallest text in the app carries a number needed at a roll, read at arm's length on a tablet at the table. Larger text raises it with everything else (15 px). The sheet repeats it at 16 px. |
+| Colour | Muted, kept: 6.31 to 1 on the tile in light, 7.63 to 1 in dark (small text needs 4.5 to 1). Ink (15.82, 14.63) is not needed. |
+| Token | None exists for 12 px (the scale starts at `--text-14`). Proposed, in the drawing only: `--text-12: calc(12px * var(--text-scale, 1))`, with the role name `--text-save-line: var(--text-12)`. The builder adds both with 06's tokens table. |
+
+**Measured at 12 px inside the built save tile** (Chrome, 2026-11-25; Bitter). Room: 70 px (80 px tile), 87 px (97 px tile), 99 px (phone).
+
+| The words | 14 px | 12 px | 80 px tile | 97 px tile | Phone |
+|---|---|---|---|---|---|
+| 11 vs venom | 75.8 | **64.9** | one line, 5 px to spare | one line | one line |
+| 20 vs venom | 81.0 | 69.4 | one line, 0.6 px to spare (fragile) | one line | one line |
+| 7 vs marsh-rot | 94.2 | 80.8 | **wraps, two lines** | one line | one line |
+| 11 vs drowning | 93.5 | 80.1 | wraps, two lines | one line | one line |
+| 20 vs marsh-rot | 103.8 | 88.9 | wraps | wraps (2 px over) | one line |
+| 12 vs barrow-lights and will-o'-the-wisps | 263.2 | 225.6 | wraps, five lines | three lines | three lines |
+| Two conditions joined | 172.8 | 148.2 | a line each | a line each | a line each |
+
+The row of tiles at 1024 px: 67 px today, 113 px with the line at 14 px, **89 px at 12 px**, 107 px where "7 vs marsh-rot" wraps. With the ⓘ at its end the roll line (385 px) still takes its own row in the 430 px column: the heading is 49 px (24 today). With Larger text at 1180 px "11 vs venom" (81.2 px) fits on one line.
+
+**For the driver, not ruled:** 42-25's second sheet shows the pack's own sentence under the roll line where the number stops at 2. "With no rule sentence" was said of the stop at 1; whether the sentence shows beside a flagged stop at 2 is not said. Left as drawn.
 
 ## Francis's rulings, 2026-11-25 (the driver's chat)
 
@@ -18,19 +55,20 @@ supersedes: nothing until Francis approves the drawing. It then supersedes, for 
 
 **The caption's rule now:** a caption under a save's figure is always something that is *not* in the figure, as on a Score tile. No signed number appears on a save tile.
 
-**On "small font":** not available. The built caption is 14 px (hard rule 7: nothing under 14 px) and the tile's side padding is 4 px, the smallest spacing token. Only the words can change.
+**On "small font"** (replaced the same day by the exception above, for the tile's line): not available. The built caption is 14 px (hard rule 7: nothing under 14 px) and the tile's side padding is 4 px, the smallest spacing token. Only the words can change.
 
 ## The revised drawing, 2026-11-25 (awaiting approval)
 
 | Frame | What |
 |---|---|
+| 42-29 | **The line at 12 px:** the usual case and another character's longer data at 80 px, 97 px and on a phone; 14 px beside 12 px; the widest figures; Larger text (15 px) at 97 px. The ⓘ at the end of the roll line |
 | 42-22 | The tiles five across at 1024 px (80 px tiles) and 1180 px (97 px), and on a phone (three across, 109 px): counted saves with no caption, "11 vs venom" for a bonus at times, and the bonus every save shares once under the heading (S6); another character's longer conditions; and, not ruled, that shared bonus as a line on every tile (⚑ 15) |
 | 42-23 | Ways to keep the line on one line, at 80 px and 97 px: (a) as built, (b1) "11 venom", (b2) "venom 11", (b3) "11 vs ven.", (c) the pack's short word, (b1 + c), (d) a cut with "…" |
 | 42-24 | The same forms on a phone |
 | 42-25 | An option: the number stops at the lowest roll that can succeed. A second option, not ruled: a stopped row says "no lower than 1" (⚑ 14) |
 | 42-26 | An option: on the sheet, an "Only at times" label and "→ 11" figures, on the sheets of 42-22's character |
 | 42-27 | An option: the Saves roll line itself opens the general rule, with no ⓘ |
-| 42-28 | Tablet landscape, light: the built screen beside the revised A with "11 vs venom" and with "11 venom" (the second and third are the built screen edited in a browser, not built), each with the shared bonus's line under the Saves heading |
+| 42-28 | Tablet landscape, light, redrawn: the built screen beside the revised A with "11 vs venom" at 14 px (two lines) and at 12 px (one line, as ruled); the second and third are the built screen edited in a browser, not built, each with the ⓘ at the end of the roll line and the shared bonus's line under the Saves heading. The "11 venom" picture is withdrawn |
 
 Of the drawing of 2026-11-24, the "with Bog folk" captions and the three-across blocks (in 42-15 to 42-18 and 42-21) are replaced; the sheets (42-19, 42-20) stand. Findings 42 to 55 on the page are the designer's critique of the new frames, by hand; the PC session's real `impeccable critique` follows.
 
@@ -53,14 +91,14 @@ Two conditions on one save are a line each in every form: the shortest joined fo
 - **A short word for a condition: no.** `saveBonus` is a whole number, `{ bonus, vs?, saves? }` or a list; `vs` is free words. `saveBonusByCon` and `saveModifiers` have none either. Form (c) is a pack-format change (an optional short form beside `vs`).
 - **"A rolled 1 always fails" as data: in part.** `naturals.save.low` is `{ on, text }`: the face is data, what happens on it is the pack's words, and 07 rules it "never automated"; the app reads none of it today. Option 42-25 needs a ruling that a low natural on a save means "fails", or a new key.
 
-## ⚑ Open after 2026-11-25 (one at a time)
+## ⚑ Open after 2026-11-25 (one at a time): 10 to 13 answered that day (above); 14 and 15 open
 
 | # | Question | The designer's lean |
 |---|---|---|
-| 10 | The line of a bonus that holds at times, to stay on one line: (a) as built, it wraps at 80 px; (b1) "11 venom"; (b2) "venom 11"; (b3) "11 vs ven."; (c) a short word from the pack; (d) a cut with "…". | **(b1)**, the same words on every device, nothing cut; a condition too long for the tile wraps as ruled (question 2, a); **(c) follows** as an optional short word in the pack. Not (b3), not (d). |
-| 11 | A number stops at the die's lowest face (ruled, question 4), or at the lowest roll that can succeed where the pack says a rolled 1 always fails (42-25)? | Keep the ruling; show the pack's own sentence under the roll line where it has one. |
-| 12 | On the sheet, an "Only at times" label and "→ 11" on the rows that hold at times (42-26)? | Yes: the sheet is now the only place a counted bonus is explained. |
-| 13 | The roll line as the tap that opens the general rule, in place of the ⓘ (42-27)? | Keep the ⓘ (ruled M). The tap line is 44 px against 51 on a tablet, taller on a phone, and the Scores line beside it would not be a tap. |
+| 10 (**answered: "vs" kept, 12 px**) | The line of a bonus that holds at times, to stay on one line: (a) as built, it wraps at 80 px; (b1) "11 venom"; (b2) "venom 11"; (b3) "11 vs ven."; (c) a short word from the pack; (d) a cut with "…". | **(b1)**, the same words on every device, nothing cut; a condition too long for the tile wraps as ruled (question 2, a); **(c) follows** as an optional short word in the pack. Not (b3), not (d). |
+| 11 (**answered: 2 only where the pack flags it as data**) | A number stops at the die's lowest face (ruled, question 4), or at the lowest roll that can succeed where the pack says a rolled 1 always fails (42-25)? | Keep the ruling; show the pack's own sentence under the roll line where it has one. |
+| 12 (**agreed**) | On the sheet, an "Only at times" label and "→ 11" on the rows that hold at times (42-26)? | Yes: the sheet is now the only place a counted bonus is explained. |
+| 13 (**answered: keep the ⓘ, at the end of the roll line**) | The roll line as the tap that opens the general rule, in place of the ⓘ (42-27)? | Keep the ⓘ (ruled M). The tap line is 44 px against 51 on a tablet, taller on a phone, and the Scores line beside it would not be a tap. |
 | 14 | A Modifiers row that the stop holds back says so in quiet words under it, "no lower than 1" (42-25, fifth sheet; the PC session's critique, finding 3)? Question 4 was ruled "with no sentence that states a rule". | Not given: drawn at the driver's word as an option only. |
 | 15 | The bonus every save has at times (the +1 against magic): once under the Saves heading (S6, ruled 2026-11-24, and drawn so), or a line on every tile, as the PC session's critique read "Only partial save like +2 vs poison needs to be listed" (42-22, third set)? | Keep S6: on every tile it is five lines that say one thing, two lines deep at 80 px and four on a save with a second condition. |
 
@@ -225,8 +263,8 @@ Data and logic: the save's number worked out with its bonuses and the roll's dir
 
 ## When he approves the drawing
 
-Docs to update: `docs/09-decisions-log.md` (one line, below), `docs/07-content-packs.md` (Races and Classes: `saveBonus`, `saveBonusByCon`; `saveModifiers`), `docs/06-screens-and-design.md` (the Save tile and its sheet in the Components inventory), `docs/05-features.md` (the sheet's saves; the save's own line from `saveCategories[].notes`; where the general rule lives); mark the superseded parts in the three older ruling files; a plan in `docs/plans/`.
+Docs to update: `docs/09-decisions-log.md` (one line, below), `CLAUDE.md` (hard rule 7: the named exception, in the same commit as 06), `docs/07-content-packs.md` (Races and Classes: `saveBonus`, `saveBonusByCon`; `saveModifiers`; the low-natural flag, as pending), `docs/06-screens-and-design.md` (the Save tile and its sheet in the Components inventory; the tokens table: `--text-12`, `--text-save-line`; the type rule's exception), `docs/05-features.md` (the sheet's saves; the save's own line from `saveCategories[].notes`; where the general rule lives); mark the superseded parts in the three older ruling files; a plan in `docs/plans/`.
 
-The `09` line, not yet written into `09` (its date is the day he approves the drawing; the open points ⚑ 10 to 13 are added then): `<date> — [sheet] A save bonus that always holds is counted in the save's number and says nothing on the tile; its source is on the save's sheet. One that holds at times is a line under the figure with the number to roll then (<the ruled form>); a number stops at the die's lowest face; a save's sheet opens with the save's own line from the pack and shows its working rows, a save modifier is never printed without its number, and the general rule moves behind an ⓘ beside the Saves heading; on a tablet the saves stay five across — "this is a bad ruling", "If we're adding it to the number we don't need with bog folk" and "This should be passed by the pack, not the app" (Francis), on a player's report that his kindred's bonus did not change his saves — design/rulings/dec-save-bonus-in-number-2026-11-24.md`
+The `09` line, not yet written into `09` (its date is the day he approves the drawing): `<date> — [sheet] A save bonus that always holds is counted in the save's number and says nothing on the tile; its source is on the save's sheet. One that holds at times is a line under the figure with the number to roll then ("11 vs venom"), set at 12 px as a named exception to hard rule 7, for that line only; a number stops at the die's lowest face, or one short of it only where the pack flags as data that a low natural fails; a save's sheet opens with the save's own line from the pack and shows its working rows, a save modifier is never printed without its number, the rows that hold at times stand under "Only at times" with "→" figures, and the general rule moves behind an ⓘ at the end of the Saves roll line; on a tablet the saves stay five across — "this is a bad ruling", "If we're adding it to the number we don't need with bog folk", "make an exception and drop to 12 px" and "This should be passed by the pack, not the app" (Francis), on a player's report that his kindred's bonus did not change his saves — design/rulings/dec-save-bonus-in-number-2026-11-24.md`
 
 (The line as drafted on 2026-11-24 named the source under the figure, "with Bog folk", and left five or three across open; both were ruled otherwise on 2026-11-25.)
