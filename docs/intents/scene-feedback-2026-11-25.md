@@ -139,6 +139,17 @@ His follow-up note, sent right after:
 
 Reads as: this view is the players' Scene. Two parts. (a) The same ask as F7 (a): centre the row of tiles. (b) The players' Scene header (with its tiles) can be folded, like the GM's (F10).
 
+### F12. Players' Scene: an unvisited place shows; where "Rules" sits
+
+Screen: players' Scene. A card headed with the area's name. Inside: a "Rules" button (scales icon, the rule's name below it, "›"), then a place row "2. <place>" with the start of its description and "›". The party is at "Arrival", not at that place.
+
+Picture: one screenshot, not committed: it shows a private pack's area, rule and place text (hard rule 2).
+
+> This is player scene. Why is the frigate showing? Rules should be on the left
+
+Reads as: two parts. (a) The players' Scene lists a place in the area, with its description, that the party has not reached; he asks why. (b) "Rules" should sit on the left.
+Question: "on the left" of what: the page's left column (or rail), or inside this card?
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
