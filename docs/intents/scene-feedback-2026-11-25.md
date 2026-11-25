@@ -18,6 +18,19 @@ Picture: two screenshots, not committed. They show a private pack's adventure, a
 
 Reads as: four parts. (a) Sort places by their number, with places that have no number first. (b) "Arrival" becomes "0. Arrival". (c) Each group in the list can be folded. (d) Later, not for this test: an area of subtype Settlement behaves differently from an exploration, a dungeon or a point-to-point area. He also asks a question for the driver to answer: does the pop-up open on the adventure the party last started?
 
+### F2. The Depart pop-up: a way back, and unnumbered places in the pack tree
+
+Screen: GM's Scene, the Depart pop-up ("Where?"). Two states:
+1. The first view: "Search places by name or map number" (a text box), "Recently visited" (four rows, each a place with its kind in brackets, for example "(Area)" or "(Location)"), "From your packs" (three packs, each with its count of places and a +), and "Other… a place that isn't listed".
+2. One pack opened as a tree: pack → region → area → its places, each level with a − or + to fold it. The places show their kind in brackets but no map number. They are in the same mixed order as in F1.
+
+Picture: two screenshots, not committed (private pack names, hard rule 2).
+
+> This screen should have a back button or navigation to get me to the initial screen. Locations are not numbered or ordered.
+
+Reads as: the grouped place list from F1 has no way back to the first view (search, recently visited, packs). In the pack tree, places show no map number and are not in number order.
+Question: which screen has no way back: the grouped list in F1, or the opened pack tree?
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
