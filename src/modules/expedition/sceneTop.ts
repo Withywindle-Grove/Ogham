@@ -242,6 +242,9 @@ export interface FactLine {
   words: string;
 }
 
+/** A group in the dark (PL8; the GM's Light pop-up too): what it means and what to do, after "No light.". */
+export const NO_LIGHT_WORDS = 'Nobody in the group has a light lit, so they are in darkness. Light one from a pack.';
+
 /**
  * Light (PL8): each lit light and the time it has left ("Ash's torch. 4 turns left."); a group in the dark "No light."
  * in today's words; a group with nothing lit "Nothing lit.". Each group named where the player has more than one.
@@ -249,7 +252,7 @@ export interface FactLine {
 export function lightSheetLines(groups: readonly LightGroup[], stepWord: string): FactLine[] {
   const named = (g: LightGroup, label: string) => `${groups.length > 1 ? `${g.name}: ` : ''}${label}.`;
   return groups.flatMap((g) => {
-    if (g.dark) return [{ label: named(g, 'No light'), words: 'Nobody in the group has a light lit, so they are in darkness. Light one from a pack (Light a torch).' }];
+    if (g.dark) return [{ label: named(g, 'No light'), words: NO_LIGHT_WORDS }];
     if (g.lights.length === 0) return [{ label: named(g, 'Nothing lit'), words: '' }];
     return g.lights.map((l) => ({ label: named(g, l.name), words: l.stepsLeft === null ? '' : `${plural(l.stepsLeft, stepWord)} left.` }));
   });

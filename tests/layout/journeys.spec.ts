@@ -149,7 +149,7 @@ for (const size of [
       await journey.tap(atHand.getByRole('button', { name: /^Light / }));
       // Once lit, the light sits in At hand with no Light heading (dec-13 C9, frames P1 and P2), its line there.
       await expect(page.getByRole('region', { name: 'At hand' }).locator('.light-block--at-hand').getByText('Lit, 6 turns left')).toBeVisible();
-      await expect(page.getByText('Lit Rushlight')).toBeVisible();
+      await expect(page.getByText('Lit a rushlight.')).toBeVisible();
       journey.expectWithin({ taps: 2, screens: 0 });
     });
 

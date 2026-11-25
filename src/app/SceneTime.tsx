@@ -130,7 +130,7 @@ import { advanceBy, checkNow, encounterCheckOf, hourTrackNow, needsSeason, nextS
 import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { BookFaces } from '../ui/BookFaces.tsx';
 import { DiceWords } from '../ui/dice.tsx';
-import { bandHeading, checkFact, checkSheetLines, checkRule, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, lightSheetLines, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, restSheetLines, seasonIconOf, settingRule, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
+import { bandHeading, checkFact, checkSheetLines, checkRule, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, lightSheetLines, NO_LIGHT_WORDS, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, restSheetLines, seasonIconOf, settingRule, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
 import { BandTool, BandTools, DepartButton, FactSheet, FactsRow, NextTurnButton, SceneBand, SessionButton, type DateLine } from './SceneBand.tsx';
 import { useSceneTopOpen } from './sceneTopOpen.ts';
 import { loadWayOut } from '../modules/expedition/dungeonWayOut.ts';
@@ -174,6 +174,7 @@ import { registry } from './services.ts';
 import { useMessaging } from './Messages.tsx';
 import { useWeather, useWeatherFold, WeatherCard } from './WeatherCard.tsx';
 import { WeatherSheet } from './WeatherSheet.tsx';
+import { LightFactSheet, type CharacterLightView } from './LightSection.tsx';
 import './SceneTime.css';
 import { EndCard, RestLines } from './EndCard.tsx';
 import { SafePlaceQuestion, StayingAWhile } from './EndSafety.tsx';
@@ -206,7 +207,7 @@ export function SceneTime({
    * and the weather card are the strip's own); `body` is the marching order and the place, given the Rest button
    * for a group (B5: calls a rest out of turn).
    */
-  tableView?: { /** The slot's other prompts, one keyed element each (the slot orders them, newest on top). */ prompts: ReactNode; body: (restButton: (group: number) => ReactNode, dark?: (group: number) => boolean) => ReactNode };
+  tableView?: { /** The slot's other prompts, one keyed element each (the slot orders them, newest on top). */ prompts: ReactNode; /** The player's own light, for the Light pop-up's "Light" (PL8). */ light?: CharacterLightView; body: (restButton: (group: number) => ReactNode, dark?: (group: number) => boolean) => ReactNode };
 }) {
   const gm = isGm(user, campaign.id);
   const logVersion = useLogVersion();
@@ -238,6 +239,14 @@ export function SceneTime({
   // after Yes the summary offers Start downtime · Not yet, and Not yet puts that offer away on this screen.
   const [notYet, setNotYet] = useState(false);
   const [asking, setAsking] = useState<'by' | 'part' | 'day' | 'checklist' | 'date' | 'season' | 'no-check' | 'leave' | 'light' | 'check' | 'camp' | 'reminders' | 'why' | 'depart' | null>(null);
+  // Once a player lights their light from the Light pop-up, focus goes back to the Light fact, which then names the
+  // light (the audit of #86, pick 1).
+  const refocusLight = useRef(false);
+  useEffect(() => {
+    if (asking === 'light' || !refocusLight.current) return;
+    refocusLight.current = false;
+    document.querySelector<HTMLElement>('.scene-facts .scene-fact--light')?.focus({ preventScroll: true });
+  }, [asking]);
   // A blocked band button's reason (S2: it stays tappable and says why), shown in the 'why' pop-up.
   const [whyBlocked, setWhyBlocked] = useState<{ title: string; words: string } | null>(null);
   // st-11 (the lead, on #807): from Start expedition until the reload lands, the band's buttons hold (a tap is
@@ -2487,7 +2496,18 @@ export function SceneTime({
       {weatherOpen && <WeatherSheet db={db} user={user} view={weather.view} over={[bandDate.words, bandDate.season].filter(Boolean).join(', ')} onChanged={weather.reload} onClose={() => setWeatherOpen(false)} />}
       {/* A player's tap on Light, Rest or the Encounter check (P10; page 18, PL8): the state, then the rule where the
           player's copy of the setting has its words. The Rest prompt's ⓘ opens the same Rest pop-up. */}
-      {lightAbout && <FactSheet title="Light" lines={lightSheetLines(lightGroups, stepWord)} rule={[]} onClose={() => setLightAbout(false)} />}
+      {lightAbout && (
+        <LightFactSheet
+          lines={lightSheetLines(lightGroups, stepWord)}
+          // PL8: the player's one act here, lighting their own light as At hand does; none with nothing to light.
+          view={tableView?.light ?? null}
+          onClose={() => setLightAbout(false)}
+          onLit={() => {
+            refocusLight.current = true;
+            setLightAbout(false);
+          }}
+        />
+      )}
       {restAbout && bandRest && (
         <FactSheet title="Rest" lines={restSheetLines(bandRest, mode?.rest ? restEveryWords(mode.rest) : null)} rule={settingRule(restWords.filter((w) => w !== REST_ANSWER_WORDS), mode?.rest?.source)} onClose={() => setRestAbout(false)} />
       )}
@@ -2602,7 +2622,7 @@ export function SceneTime({
             <Dialog label="Light" onClose={() => setLightAbout(false)}>
               <p className="time-strip__notes">
                 {lightMarks.some((m) => m.dark)
-                  ? 'No light: nobody in the group has a light lit, so they are in darkness. Light one from a pack (Light a torch).'
+                  ? `No light. ${NO_LIGHT_WORDS}`
                   : gm
                     ? 'The lights lit and the time each has left. They burn down as the clock moves on.'
                     : 'Your light and the time it has left. It burns down as the GM moves the clock on.'}

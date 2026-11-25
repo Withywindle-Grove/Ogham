@@ -469,6 +469,7 @@ export function PlayerScreen({
                   <MessageCard key="message" />,
                   <Darkness key="dark" db={db} campaignId={character.campaignId} characterId={character.id} setting={setting} light={lightView} refresh={logVersion} />,
                 ],
+                light: lightView,
                 body: (restButton, dark) => <PartyGroups db={db} user={user} campaign={campaign} restButton={restButton} dark={dark} actor={actorFacts} />,
               }}
             />
