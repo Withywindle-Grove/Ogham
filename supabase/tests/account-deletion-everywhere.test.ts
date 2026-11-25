@@ -10,17 +10,23 @@
 //      stays, with its link to them emptied.
 //   4. After that player's deletion, the GM's Undo of an earlier change to the player's character still works (the
 //      database's own lines for the emptied links are not later changes).
-//   5. In a retired campaign, deleting a player whose character is in it succeeds; the character stays, with no player.
-//   6. Deleting the GM who created the (retired) campaign and made rows in every area succeeds; every row stays, its
+//   5. After that player's deletion, another player can't read or change the GM's question to them: a question with
+//      no player but a character is not the party's (20261125150000_account_deletion_orphaned_requests_stay_hidden.sql).
+//   6. The party's request (the GM asks everyone: no player, no character) is still read by every member, its lines
+//      too, after a player's deletion.
+//   7. In a retired campaign, deleting a player whose character is in it succeeds; the character stays, with no player.
+//   8. Deleting the GM who created the (retired) campaign and made rows in every area succeeds; every row stays, its
 //      link emptied.
-//   7. In the retired campaign, every other change is still refused, even with the secret key.
+//   9. In the retired campaign, every other change is still refused, even with the secret key.
 // And the rows a cascade used to take (Francis, 2026-11-25, "2 a, 3 as recommended", on #84's ⚑ 1 and ⚑ 2;
 // supabase/migrations/20261125090000_account_deletion_keeps_asks_and_homebrew.sql), in a world of their own:
-//   8. A standing account's asker, a message's player, a recipient and a pack's owner can't be emptied by hand, even
+//  10. A standing account's asker, a message's player, a recipient and a pack's owner can't be emptied by hand, even
 //      with the secret key; a request a player asks can't be made without its asker.
-//   9. Deleting a player who asked the GM something succeeds: the request stays with no asker, and the messages sent
+//  11. Deleting a player who asked the GM something succeeds: the request stays with no asker, and the messages sent
 //      to them (a thread message, and a message's recipient row) stay with no player; their membership goes.
-//  10. Deleting the GM keeps the campaign's own homebrew pack and what hangs on it (an entry, its link to the
+//  12. After the asker's deletion, the GM's answer to their request isn't readable by another player (its lines are
+//      the GM's alone once the asker is gone; 20261125150000_account_deletion_orphaned_requests_stay_hidden.sql).
+//  13. Deleting the GM keeps the campaign's own homebrew pack and what hangs on it (an entry, its link to the
 //      campaign), its owner emptied; the GM's membership and their personal library pack (attached or not) go.
 // Not in this file (they need a pack's places, shops, weather or activities set up; rehearsed locally only):
 // activity_runs, camps, camp_entries, place_moves, weather_rolls, shop_stock, knowledge_shares, place_rule_switches,
@@ -36,6 +42,7 @@ let note = '';
 let sheetChange = '';
 let question = '';
 let hpChange = '';
+let partyAsk = '';
 
 const rowOf = async (table: string, id: string, columns: string) =>
   must(await world.admin.from(table).select(columns).eq('id', id)) as unknown as Record<string, unknown>[];
@@ -68,6 +75,8 @@ beforeAll(async () => {
   await make('expedition_places', 'created_by', { expedition_id: expedition, name: 'The Drowned Stair', mode: 'dungeon' });
   await make('gm_messages', 'created_by', { body: 'The water rises.' });
   question = await make('requests', 'created_by', { kind: 'askGm', direction: 'gmAsks', actor_id: world.wrenId, requester_id: world.playerA.id });
+  // The party's request: the GM asks everyone, no player and no character.
+  partyAsk = (must(await gm.from('requests').insert({ campaign_id: c, kind: 'escapeRoll', direction: 'gmAsks', text: 'Everyone: swim for it.' }).select('id').single()) as { id: string }).id;
   // A change to Player A's character, made by the GM before the player's account goes.
   must(await gm.from('actors').update({ hp_current: 6 }).eq('id', world.wrenId).select('id'));
   hpChange = (must(await world.admin.from('events').select('id').eq('target_id', world.wrenId).eq('type', 'actors.update').eq('actor_user_id', world.gm.id).order('seq', { ascending: false }).limit(1))[0] as { id: string }).id;
@@ -118,6 +127,21 @@ describe('deleting an account keeps every row it is linked to', () => {
     await profileGone(world.playerA.id);
     expect((await world.gm.db.rpc('undo_request', { event_id: hpChange })).error).toBeNull();
     expect(await rowOf('actors', world.wrenId, 'hp_current')).toEqual([{ hp_current: 7 }]);
+  });
+
+  it.fails("after that player's deletion, another player can't read or change the GM's question to them", async () => {
+    await profileGone(world.playerA.id);
+    const b = world.playerB.db;
+    expect(must(await b.from('requests').select('id').eq('id', question))).toEqual([]);
+    expect(must(await b.from('requests').update({ entry: { roll: 20 } }).eq('id', question).select('id'))).toEqual([]);
+    expect(await rowOf('requests', question, 'entry')).toEqual([{ entry: null }]);
+  });
+
+  it("the party's request (no player, no character) is still read by every member, its lines too, after a player's deletion", async () => {
+    await profileGone(world.playerA.id);
+    const b = world.playerB.db;
+    expect(must(await b.from('requests').select('id, text').eq('id', partyAsk))).toEqual([{ id: partyAsk, text: 'Everyone: swim for it.' }]);
+    expect(must(await b.from('events').select('id').eq('target_id', partyAsk)).length).toBeGreaterThan(0);
   });
 
   it('in a retired campaign, deleting a player whose character is in it succeeds; the character stays with no player', async () => {
@@ -204,6 +228,15 @@ describe("deleting an account keeps a player's requests, the messages sent to th
     expect(await rowOfIn(second, 'messages', thread, 'body, player_user_id, sender_user_id')).toEqual([{ body: 'The eels are watching you.', player_user_id: null, sender_user_id: second.gm.id }]);
     expect(await rowOfIn(second, 'message_recipients', recipient, 'actor_id, user_id')).toEqual([{ actor_id: second.wrenId, user_id: null }]);
     expect(must(await second.admin.from('members').select('user_id').eq('campaign_id', second.campaignId).eq('user_id', second.playerA.id))).toEqual([]);
+  });
+
+  it.fails("after the asker's deletion, the GM's answer to their request isn't readable by another player", async () => {
+    const answered = await second.gm.db.rpc('answer_request', { request: asked, answer: { kind: 'yesNo', yes: true, note: 'The pool is shallow here.' } });
+    expect(answered.error).toBeNull();
+    const gmLines = must(await second.gm.db.from('events').select('id, after').eq('target_id', asked)) as unknown as { after: { status?: string } | null }[];
+    expect(gmLines.some((line) => line.after?.status === 'answered')).toBe(true);
+    expect(must(await second.playerB.db.from('events').select('id').eq('target_id', asked))).toEqual([]);
+    expect(must(await second.playerB.db.from('requests').select('id').eq('id', asked))).toEqual([]);
   });
 
   it("deleting the GM keeps the campaign's homebrew pack and what hangs on it; their membership and library pack go", async () => {
