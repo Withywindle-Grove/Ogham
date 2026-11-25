@@ -210,10 +210,9 @@ export function TopRow({
  */
 export function DrawerStart({ title, drawerTitle = title, onYourCampaigns, bare = false }: { title: string; drawerTitle?: string; onYourCampaigns: () => void; bare?: boolean }) {
   const [open, setOpen] = useState(false);
-  const button = useRef<HTMLButtonElement>(null);
   return (
     <div className="top-row__start">
-      <button ref={button} type="button" className="top-row__menu" aria-label="Menu" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
+      <button type="button" className="top-row__menu" aria-label="Menu" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
         <Icon name="menu" />
       </button>
       {/* The standard bar (A1) puts the title in its own centred column instead (`bare`). */}
@@ -222,11 +221,8 @@ export function DrawerStart({ title, drawerTitle = title, onYourCampaigns, bare 
         <ShellDrawer
           title={drawerTitle}
           onYourCampaigns={onYourCampaigns}
-          onClose={() => {
-            setOpen(false);
-            // Back to ≡ without scrolling, so the screen keeps its place (as the log does).
-            button.current?.focus({ preventScroll: true });
-          }}
+          // Focus goes back to ≡ as it closes, without scrolling: the Dialog's own rule.
+          onClose={() => setOpen(false)}
         />
       )}
     </div>

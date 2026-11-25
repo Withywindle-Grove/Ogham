@@ -507,16 +507,13 @@ One sitting at a real table, in play order: the GM's Scene and the players' Scen
 
 #### Owed pictures (the Scene, 2026-11-25)
 
-On `main`, built without a frame, and not yet approved by Francis from pictures of the real screen (09 records no approval). Each is seen at the rehearsal too (the step named); the harness or gallery gives the same screen on invented data, on the preview or the live site, with `?theme=dark` for the gallery.
+Approved by Francis from pictures of the real screens on 2026-11-25 ("5 approved"; 09): the prompt slot (p2p-flag3), the known-Location sheet (p4s-4), the players' End expedition row (d5-2), the call card on a phone and in dark (p7-8), and the shown pieces on the players' Location card after ppf-6. Still owed, because no harness page or gallery specimen can show them; see them at the rehearsal:
 
-| Screen | Ruling | Where to take the picture | Step |
-|---|---|---|---|
-| The prompt slot on the players' Scene (a rest to answer, no light, a request, a call) | p2p-flag3 (09, 2026-11-18) | `/layout.html?as=player&placePage=spots&session=running` (the slot over both columns), and with a call in it `/layout.html?as=player&calls=1`; the rest prompt itself only at the table (step 24) | 14, 24 |
-| The known-Location sheet (a tap on "2. The Wreck" on the Area card) | p4s-4 (09, 2026-11-20) | `/layout.html?placeCard=1`, then tap a known Location; gallery `/gallery.html#players-place-card` | 33 |
-| The players' "End expedition" row and its pop-up | d5-2 (09, 2026-11-20) | gallery `/gallery.html#move-on-parts`, the specimen "Where to? (players, PL9; d5-2)" for the row; the pop-up only at a way out in the app (step 52) | 52 |
-| The call card on a phone and in dark | p7-8 (09, 2026-11-24) | `/layout.html?as=player&calls=1` at 375 px, light and dark; gallery `/gallery.html#call-card` | 14 to 16 |
-
-Not owed: the shown pieces on the players' Location card (PL1b, "Yes, go live"). Francis saw the built card and approved it from the real screen with three fixes on 2026-11-20 (ppf-6, `design/rulings/p4-p2-flags-2026-11-20.md`).
+| Screen | Ruling | Step |
+|---|---|---|
+| The rest prompt in the players' prompt slot | p2p-flag3 (09, 2026-11-18) | 24 |
+| The players' "End expedition" pop-up (the row's tap; covered by `playersWhereTo.test.tsx` only) | d5-2 (09, 2026-11-20) | 52 |
+| The picture button on the players' Location card | ppf-6 (c) (`design/rulings/p4-p2-flags-2026-11-20.md`) | 33 |
 
 ### M6 — encounters and fights (items so far)
 
