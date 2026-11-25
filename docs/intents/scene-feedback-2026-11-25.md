@@ -6,7 +6,17 @@ Francis's notes on the Scene screens (the GM's Scene and the players' Scene), se
 
 ## Items
 
-(None yet.)
+### F1. The Depart pop-up's place list
+
+Screen: GM's Scene, the Depart pop-up ("Where?"). It lists the places of one adventure in two headed groups, then "From your packs" (each pack with its count of places and a + to open it, one opened to its area row), then "Other… a place that isn't listed".
+
+Picture: two screenshots, not committed. They show a private pack's adventure, area and place names (hard rule 2). The driver can ask Francis for them. What they show: the places are listed in no clear order (for example 2, Arrival, 5, 7, 3, 6, 4, 8, 1, 9, 11, 10, then 12, 7, 10, 9, 4, 15, 5 in the second group). The pop-up opened on the adventure the party last started.
+
+> Locations should be ordered sequentially, with locations that have no sequence at the beginning "Arrival" - in fact "Arrival" should be "0. Arrival." These lists should be collapsable.
+>
+> I'm assuming it defaulted to the island adventure because that's where the party last started - is that correct? [setting] is an area but it's subtype is Settlement which will impact how players interact with it. Outside the scope of this test but note for later it should not be treated the same as an exploration or dungeon or point-to-point
+
+Reads as: four parts. (a) Sort places by their number, with places that have no number first. (b) "Arrival" becomes "0. Arrival". (c) Each group in the list can be folded. (d) Later, not for this test: an area of subtype Settlement behaves differently from an exploration, a dungeon or a point-to-point area. He also asks a question for the driver to answer: does the pop-up open on the adventure the party last started?
 
 ## Problem
 To be filled in by the driver when it processes the items.
