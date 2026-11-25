@@ -16,6 +16,7 @@ import { withRowLinks } from '../modules/expedition/rowLinks.ts';
 import type { CampaignEntry, CampaignPack } from '../modules/library/campaignPacks.ts';
 import { buildReference, searchReference, type RefEntry, type RefPack, type RefPanel } from '../modules/library/gmReference.ts';
 import { Icon } from '../ui/icons.tsx';
+import { MenuItem } from '../ui/MoreMenu.tsx';
 import { LogPanel, useLogUserId } from './campaignLog.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { TableListItem, TableRows } from './EncounterTables.tsx';
@@ -56,6 +57,29 @@ export function ReferenceButton() {
       )}
     </>
   );
+}
+
+/**
+ * Reference as a row in ⋯ (the GM's view as the player on a phone, where the top row carries only ⋯: page 32, M3j,
+ * pg32-match): `item` the row (null for anyone but the GM), `panel` the same full screen the icon opens, rendered by
+ * the bar outside ⋯, which closes as the row is picked.
+ */
+export function useReferenceMenuItem(): { item: ReactNode; panel: ReactNode } {
+  const reference = useContext(Context);
+  const [open, setOpen] = useState(false);
+  if (!reference) return { item: null, panel: null };
+  return {
+    item: (
+      <MenuItem icon="reference" onClick={() => setOpen(true)}>
+        Reference
+      </MenuItem>
+    ),
+    panel: open ? (
+      <LogPanel label="Reference" onClose={() => setOpen(false)}>
+        <GmReference db={reference.db} campaign={reference.campaign} />
+      </LogPanel>
+    ) : null,
+  };
 }
 
 /** Where the screen was last left, per campaign, on this device (a convenience: it may be lost). */

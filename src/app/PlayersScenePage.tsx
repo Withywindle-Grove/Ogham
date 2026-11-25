@@ -98,7 +98,7 @@ export function SomewhereNew({ group = null, children }: { group?: string | null
 /**
  * PL2's right column, before anything of the place is shown: where the map will stand, and the place's card, empty.
  * `group` names whose they are, as on the left card. `map`: the map shared at the last place shown (P5), in the dashed
- * frame's place.
+ * frame's place; `false` where the map isn't read (the GM's view as another player): neither the map nor the frame.
  */
 export function NothingSharedYet({ group = null, map }: { group?: string | null; map?: ReactNode }) {
   return (

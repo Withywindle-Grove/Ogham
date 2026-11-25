@@ -61,6 +61,8 @@ import { PlayersAreaCard, PlayersLocationCard, usePlayersPlaceCards } from './Pl
 import type { TurnClock } from '../modules/expedition/placeKnowledge.ts';
 import './PartyGroups.css';
 
+/** The players' map, not read: the GM's view as another player has no read naming that player yet (read, none shared). */
+
 interface Loaded {
   members: GroupOf;
   marchers: Marcher[];
@@ -100,23 +102,25 @@ interface Loaded {
   placeRules: PlayersRule[] | null;
 }
 
-/** The expedition under way, its groups' places, which groups share a place, and (the GM's) the places named before. */
-async function loadPlaces(db: Db, user: CurrentUser, campaignId: string, members: GroupOf | null, marchers: readonly Marcher[] | null) {
+/**
+ * The expedition under way, its groups' places, which groups share a place, and (the GM's) the places named before.
+ * `gm` is false in the GM's view as the player (C15f), whose reads are the player's; `me` is whose characters are mine.
+ */
+async function loadPlaces(db: Db, user: CurrentUser, campaignId: string, members: GroupOf | null, marchers: readonly Marcher[] | null, gm: boolean, me: string, asPlayer: string | undefined) {
   const [scene, meeting, setting, settings] = await Promise.all([loadScene(db, campaignId), loadMeeting(db, campaignId), loadCampaignSetting(db, user.id, campaignId), loadCampaignSettings(db, campaignId)]);
   const expedition = scene?.expedition ?? null;
-  const gm = isGm(user, campaignId);
   const [places, known, shown, lastPlaces, towns, switches, placeRules] = await Promise.all([
     expedition && gm ? loadGroupPlaces(db, campaignId, expedition.id) : Promise.resolve(new Map<number, GroupPlace>()),
     gm ? loadRecentPlaceRows(db, campaignId) : Promise.resolve([]),
-    expedition && !gm ? loadScenePlaces(db, campaignId) : Promise.resolve(new Map<number, ScenePlace>()),
+    expedition && !gm ? loadScenePlaces(db, campaignId, asPlayer) : Promise.resolve(new Map<number, ScenePlace>()),
     !expedition && gm ? loadLastPlaces(db, campaignId) : Promise.resolve(new Map<number, GroupPlace>()),
     // A player's towns are extra: when they can't be read the rest of Scene still shows.
-    gm ? Promise.resolve(new Map<number, SceneTown>()) : loadSceneTowns(db, campaignId),
+    gm ? Promise.resolve(new Map<number, SceneTown>()) : loadSceneTowns(db, campaignId, asPlayer),
     gm ? loadTownSwitches(db, campaignId) : Promise.resolve(null),
     // A player's place rules are extra too: unreadable, the place line shows without its rule buttons.
-    expedition && !gm ? loadPlayersRules(db, campaignId) : Promise.resolve([] as PlayersRule[]),
+    expedition && !gm ? loadPlayersRules(db, campaignId, asPlayer) : Promise.resolve([] as PlayersRule[]),
   ]);
-  const travel = scene && setting && settings && members && marchers ? await loadTravelView(db, campaignId, scene, setting, settings, members, marchers, { userId: user.id, gm }) : null;
+  const travel = scene && setting && settings && members && marchers ? await loadTravelView(db, campaignId, scene, setting, settings, members, marchers, { userId: me, gm }) : null;
   const camps = travel ? await loadCamps(db, campaignId, travel.expeditionId, travel.day) : new Map<number, { camp: CampRow; entries: CampEntry[] }>();
   return scene && places && meeting && shown && camps && lastPlaces
     ? {
@@ -149,6 +153,7 @@ export function PartyGroups({
   dark,
   actor,
   lead,
+  player,
 }: {
   db: Db;
   user: CurrentUser;
@@ -165,6 +170,12 @@ export function PartyGroups({
    * order on the right. Always the first thing in the same place, so it never reloads as the layout changes.
    */
   lead?: ReactNode;
+  /**
+   * The GM's view as the player (C15f, pg32-5; page 32, M3i): whose Scene this is, so it shows their group's page as
+   * they see it, never every group. The place's reads (pieces, picture, card, knowledge, rules, town) are then made as
+   * that player, which the database answers for the campaign's GM only (ruling a2, 2026-11-22).
+   */
+  player?: string;
 }) {
   const show = useToast();
   const logVersion = useLogVersion();
@@ -179,25 +190,32 @@ export function PartyGroups({
   // A failed read of the players' place rules keeps the last good list (review of #726).
   const placeRules = useLastGoodRules(loaded && loaded !== 'error' ? loaded.placeRules : null);
   // A player's ways on (P2), read beside the page so "Where to?" comes with it; a failed read keeps the last list.
-  const ways = usePlayersWaysOn(db, campaign.id, !isGm(user, campaign.id));
+  // The GM's own Scene shows every group; in his view as the player, the player's (C15f).
+  const gm = isGm(user, campaign.id) && player === undefined;
+  const me = player ?? user.id;
+  // The players' reads are made as the player only when that is someone else (the GM's own character reads as him).
+  const readAs = player !== undefined && player !== user.id ? player : undefined;
+  const ways = usePlayersWaysOn(db, campaign.id, !gm);
   // The players' place card (P4): the Area's card's read and what the GM has shared (a player's only).
-  const areaCards = usePlayersPlaceCards(db, campaign.id, !isGm(user, campaign.id));
-  // The players' map (P5): the shared map of the last place shown to each of a player's groups.
-  const playersMaps = usePlayersMaps(db, campaign.id, !isGm(user, campaign.id));
+  const areaCards = usePlayersPlaceCards(db, campaign.id, !gm, readAs);
+  // The players' map (P5): the shared map of the last place shown to each of a player's groups. Its read has no form
+  // naming a player yet, so in the GM's view as another player it isn't made: no map and no dashed frame show (not a
+  // stuck skeleton, and never "No map shared yet." on a guess: the player may still see the last place's map).
+  const mapsUnread = readAs !== undefined;
+  const playersMaps = usePlayersMaps(db, campaign.id, !gm && !mapsUnread);
 
   useEffect(() => {
     let current = true;
     void Promise.all([loadGroupMembers(db, campaign.id), loadMarchers(db, campaign.id)]).then(async ([members, marchers]) => {
-      const places = await loadPlaces(db, user, campaign.id, members, marchers);
+      const places = await loadPlaces(db, user, campaign.id, members, marchers, gm, me, readAs);
       if (!current) return;
       setLoaded(members && marchers && places ? { members, marchers, ...places } : 'error');
     });
     return () => {
       current = false;
     };
-  }, [db, user, campaign.id, logVersion, version]);
+  }, [db, user, campaign.id, logVersion, version, gm, me, readAs]);
 
-  const gm = isGm(user, campaign.id);
   // A place page (and with it "Waiting for you") shows for the GM wherever the party is during an expedition, but in a
   // town; while the read is still out it may: the strip keeps what waits out of sight meanwhile (S8b).
   useExpectPanel(
@@ -286,7 +304,7 @@ export function PartyGroups({
     ) : null;
   const shownFocus = groups.some((g) => g.number === focus) ? focus : groups[0]!.number;
   // A player's own groups: where their characters are (all groups' first, the party, if they have none here).
-  const mine = groups.filter((g) => g.ids.some((id) => marchers.find((m) => m.id === id)?.ownerUserId === user.id));
+  const mine = groups.filter((g) => g.ids.some((id) => marchers.find((m) => m.id === id)?.ownerUserId === me));
   const shown = gm ? [shownFocus] : (mine.length > 0 ? mine : groups.slice(0, 1)).map((g) => g.number);
 
   /** Undoes this person's newest change of a kind (the same Undo as the log). */
@@ -367,6 +385,7 @@ export function PartyGroups({
                         return entry ? yieldItemOf(entry) : null;
                       }}
                       onChanged={() => setVersion((v) => v + 1)}
+                      player={player}
                     />
                   ) : null
               : undefined
@@ -406,6 +425,7 @@ export function PartyGroups({
       ownGroup={ownGroup}
       footer={!gm && expedition ? restButton?.(n) : undefined}
       dark={!gm && expedition ? (dark?.(n) ?? false) : false}
+      player={player}
     />
   );
   // The GM's place page (dec-7 piece 5b): wherever the party is during an expedition, but in a town, which keeps
@@ -562,8 +582,9 @@ export function PartyGroups({
             const label = cardGroup(n) ? `${cardGroup(n)}: the map` : 'The map';
             const map = playersMaps.maps?.get(n);
             // Read and none shared: nothing (or PL2's dashed frame). Not read yet: still bars (PL9). The first read
-            // failed: says so with Try again (PL9), never "No map shared yet." on a guess.
-            const card = map ? (
+            // failed: says so with Try again (PL9), never "No map shared yet." on a guess. Not read at all (the GM's
+            // view as another player): false, so neither a map nor the dashed frame.
+            const card = mapsUnread ? false : map ? (
               <PlayersSceneCard key={`map-${n}`}>
                 <PlayersMapCard db={db} campaignId={campaign.id} map={map} label={label} />
               </PlayersSceneCard>
@@ -578,7 +599,7 @@ export function PartyGroups({
               the group knows. Only once something of the place is shown, as the read itself sends nothing before. */}
           {shown.map((n) => {
             const card = placeLineShows(scene.get(n)) ? areaCards.cards.get(n) : undefined;
-            return card ? <PlayersAreaCard key={`area-${n}`} db={db} campaignId={campaign.id} card={card} knowledge={areaCards.knowledge.filter((k) => k.group === n)} rules={placeRules.filter((r) => r.group === n)} turns={turns} group={cardGroup(n)} /> : null;
+            return card ? <PlayersAreaCard key={`area-${n}`} db={db} campaignId={campaign.id} card={card} knowledge={areaCards.knowledge.filter((k) => k.group === n)} rules={placeRules.filter((r) => r.group === n)} turns={turns} group={cardGroup(n)} asPlayer={readAs} /> : null;
           })}
           {/* Today's "What we know" left this page with the players' map (p4s-3: once P4 and P5 have both landed). */}
           {/* The marching order last in the column (PL1), today's Split party under it (PL1 doesn't draw it). Split,
@@ -611,7 +632,7 @@ export function PartyGroups({
                 </div>
               ))}
               {/* What we know (S4-4): the places shown and the maps revealed to this player, on this expedition. */}
-              {expedition && !gm && <WhatWeKnow db={db} campaignId={campaign.id} />}
+              {expedition && !gm && <WhatWeKnow db={db} campaignId={campaign.id} asPlayer={readAs} />}
               {!day && groupActions}
             </>
           )}
@@ -634,7 +655,7 @@ export function PartyGroups({
         <SplitDialog
           user={user}
           campaignId={campaign.id}
-          gm={gm}
+          gm={isGm(user, campaign.id)}
           groups={groups}
           members={members}
           marchers={marchers}

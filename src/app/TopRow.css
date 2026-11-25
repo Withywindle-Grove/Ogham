@@ -124,6 +124,16 @@ body:has(.creation-step__bar--app) .top-row__back {
   overflow: hidden;
 }
 
+/* The back link in words ("‹ Players", the GM's view as the player; M3c, M3d) never shrinks or cuts, on a phone too:
+   the title alone ends in "…". */
+.top-row__lead--named {
+  min-width: max-content;
+}
+
+.top-row__lead--named .top-row__back {
+  flex: none;
+}
+
 .top-row--standard .top-row__end {
   justify-self: end;
 }

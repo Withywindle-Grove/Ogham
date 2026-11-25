@@ -1635,6 +1635,50 @@ if (giveFlag === '1' || giveFlag === 'long') {
   world.addCharacter(campaign, giveFlag === 'long' ? 'Ashwin Thistlewood of the Long Stair, called the Lantern-Bearer' : 'Ash');
   if (giveFlag === 'long') world.addMember(campaign, world.addPerson('bart@lantern.example', 'Bartholomew Featherstone-Quillfeather the Younger'), 'player');
 }
+// The GM's view as the player with long names (page 32, M3b, M3d, M3k), only with ?view=long: a player with a long name
+// and their approved character with a long name, so the Players row wraps and the View band cuts its name line, on a
+// tablet held sideways too, in every browser's text widths (the band's line holds about 1050 px there).
+if (new URLSearchParams(window.location.search).get('view') === 'long') {
+  const bart = world.addPerson('bart@lantern.example', 'Bartholomew Featherstone-Quillfeather the Younger, Keeper of the Lamps of the Seventh Sluice-Gate');
+  const ashwin = world.addCharacter(campaign, 'Ashwin Thistlewood of the Long Stair, called the Lantern-Bearer', { ownerId: bart });
+  world.addMember(campaign, bart, 'player', ashwin);
+}
+// The Pack in the GM's view as the player (page 32, M3g, M3g2), only with ?viewPack=1: on Wren, a ring whose long
+// curse only the GM reads (a hidden field), so its sheet carries the GM's line and "Reveal…"; a cursed sword (M3g2's
+// line); and a wand whose charge count is hidden, so its row reads as the player's.
+if (new URLSearchParams(window.location.search).get('viewPack') === '1') {
+  const rules = world.tables.library_entries.find((e) => e.id === 'entry-river-rules')!.data as Record<string, unknown>;
+  rules.magicItems = { charges: { 'magic-wand': '2d6', hidden: true, rechargeable: false } };
+  const ring = { id: 'mooring-ring', name: 'Mooring ring', category: 'ring', description: 'A plain band of old bronze, green at the seam.' };
+  world.tables.library_entries.push({
+    id: 'entry-mooring-ring',
+    pack_id: 'pack-river',
+    kind: 'item',
+    pack_entry_id: 'mooring-ring',
+    name: 'Mooring ring',
+    data: { ...ring, fields: { Curse: 'Whoever wears it cannot step off a boat until the next full moon, and hears the bell of the drowned lock-keeper at every dusk' }, gmOnly: ['fields'] },
+  });
+  line('line-mooring-ring', wren, 'Mooring ring', { category: 'ring', library_entry_id: 'entry-mooring-ring', source_pack_id: 'pack-river', source_entry_id: 'mooring-ring', item_data: ring });
+  // A cursed sword (M3g2): its −1 hidden from the player, its curse a hidden field; Wren a level 1 Lantern Warden with an
+  // invented attack figure, so the sword has a to-hit roll ("the true figure is d20 …").
+  for (const id of ['entry-lantern-warden', 'entry-fen-warden']) (world.tables.library_entries.find((e) => e.id === id)!.data as Record<string, unknown>).progression = [{ level: 1, attackBonus: 0 }];
+  Object.assign(world.tables.actors.find((a) => a.id === wren)!, { classes: [{ classRef: 'lantern-warden', level: 1, xp: 0 }] });
+  const sword = { id: 'sluice-sword', name: 'Old bronze sword', category: 'weapon', weapon: { damage: '1d8', magicBonus: -1 } };
+  world.tables.library_entries.push({ id: 'entry-sluice-sword', pack_id: 'pack-river', kind: 'item', pack_entry_id: 'sluice-sword', name: 'Old bronze sword', data: { ...sword, cursed: true, gmOnly: ['cursed'] } });
+  line('line-sluice-sword', wren, 'Old bronze sword', { category: 'weapon', library_entry_id: 'entry-sluice-sword', source_pack_id: 'pack-river', source_entry_id: 'sluice-sword', item_data: sword });
+  Object.assign(world.tables.inventory_lines.find((l) => l.id === 'line-wand')!, { charges_hidden: true, charges_used: 1 });
+  world.tables.inventory_line_secrets.push({ id: 'line-wand', campaign_id: campaign, charges_total: 999, spent: false });
+}
+// The Scene in the GM's view as the player (page 32, M3i; C15f), only with ?viewScene=1: Sam's request waiting on the
+// GM ("Search the hold"), so the view's prompt slot shows it with its Cancel. Use with &placePage=spot&ways=1 for M3i's
+// place and ways.
+if (new URLSearchParams(window.location.search).get('viewScene') === '1') {
+  world.tables.requests.push({
+    id: 'request-view-scene', campaign_id: campaign, expedition_id: null, group_number: null, requester_id: sam, actor_id: wren, kind: 'askGm', direction: 'playerAsks',
+    text: 'Search the hold', cost_text: '', prompt: {}, entry: null, status: 'waiting', answer_kind: 'yesNo', answer: null, answered_at: null, reply: null,
+    created_at: '2026-11-22T10:00:00Z', version: 1, undone: false,
+  });
+}
 // What the folded rail keeps (mn-2), only with ?railSigil=1: the retired campaign takes a 60-character name, and it and
 // the Drowned Marches a sigil picture (the layout check serves files.example's pictures itself).
 if (new URLSearchParams(window.location.search).get('railSigil') === '1') {
@@ -1703,7 +1747,17 @@ const mapParts = new URLSearchParams(window.location.search).get('mapParts');
 const moveOn = new URLSearchParams(window.location.search).get('moveOn');
 const knowledge = new URLSearchParams(window.location.search).get('knowledge');
 const placeCard = new URLSearchParams(window.location.search).get('placeCard');
-if (placeCard) {
+const viewPopUps = new URLSearchParams(window.location.search).get('viewPopUps');
+if (viewPopUps) {
+  // The GM's view's player-only pop-ups opened from inside a sheet (C15d, C15f): a travel day's activity, a town's stay.
+  const { GmViewPopUpsLayoutPage } = await import('../gallery/GmViewPopUpSpecimens.tsx');
+  await import('../gallery/Gallery.css');
+  createRoot(root).render(
+    <StrictMode>
+      <GmViewPopUpsLayoutPage state={viewPopUps} db={world.db} gm={gm} />
+    </StrictMode>,
+  );
+} else if (placeCard) {
   // The players' place card (P4) alone, as the gallery draws it; on the players' page with ?placePage=spot&ways=1.
   const { PlayersPlaceCardLayoutPage } = await import('../gallery/PlayersPlaceCardSpecimens.tsx');
   await import('../gallery/Gallery.css');

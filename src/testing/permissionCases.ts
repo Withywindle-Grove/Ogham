@@ -461,6 +461,8 @@ export const permissionCases: PermissionCase[] = [
   rule('a player can make their own character active', 'playerA', setActiveCharacter, (w) => ({ campaignId: w.campaignId, character: w.wren }), true),
   rule("a player can't make someone else's character active", 'playerA', setActiveCharacter, (w) => ({ campaignId: w.campaignId, character: w.ash }), false),
   rule("an outsider can't pick an active character", 'outsider', setActiveCharacter, (w) => ({ campaignId: w.campaignId, character: w.wren }), false),
+  // The GM's view as the player (page 32, M3f2): choosing who they play is the player's alone (tfg-5, d5-21).
+  rule("the GM can't make a player's character that player's active one", 'gm', setActiveCharacter, (w) => ({ campaignId: w.campaignId, character: w.wren }), false),
   rule("a player can't make their waiting character active", 'playerA', setActiveCharacter, async (w) => ({ campaignId: w.campaignId, character: await w.freshCharacter('playerA', 'pending') }), false),
 
   // Companies run by the players (ruled 2026-10-24).
