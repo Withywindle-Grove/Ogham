@@ -1,12 +1,17 @@
 // The divider is the handle (ruled 2026-11-02, lr-4; mockup design/mockups/library/02-menu-fold.html, option A): on a
-// landscape tablet the line between the menu column and the page folds the column to its icons and back. A quiet
-// pill (6 × 44, the Control token) sits on the line at mid-height; the whole line is a 44 px-wide tap zone. A tap
+// landscape tablet the line between the menu column and the page folds the column to its icons and back. A grip
+// (24 × 44, the Surface fill with the Control edge, the arrow inside in Ink; plan dec-14 row 1) sits on the line at
+// mid-height; the whole line is a 44 px-wide tap zone. A tap
 // folds or unfolds; a sideways drag past half does the same, and a drag short of half changes nothing (nothing in
 // between is kept). No words on screen: the names "Fold the menu" / "Show the menu" are for assistive tech. The
 // owner places it inside its column (a positioned element) and remembers the fold per device (`useNavCollapsed`).
 // It shows only where the column does (the CSS hides it under 1024 px).
 import { useRef, type PointerEvent } from 'react';
 import './DividerHandle.css';
+
+/** The triangles, each with the text-presentation selector (U+FE0E): iOS would otherwise draw them as colour emoji. */
+const ARROW_LEFT = '\u25C0\uFE0E';
+const ARROW_RIGHT = '\u25B6\uFE0E';
 
 /** How far a press may wander and still count as a tap, in CSS pixels. */
 const TAP_SLOP = 8;
@@ -77,19 +82,14 @@ export function DividerHandle({ collapsed, onToggle }: { collapsed: boolean; onT
         onToggle(!collapsed);
       }}
     >
-      {/* A small triangle pointing the way it folds (P32, 2026-11-06): ◀ on the pill's left while open, ▶ on its
-          right once folded. A shape beside the pill, never colour alone; the button's name says it in words. */}
-      {!collapsed && (
-        <span className="divider-handle__arrow divider-handle__arrow--fold" aria-hidden="true">
-          ◀
+      {/* The grip (plan dec-14 row 1, frame 38-1), with a triangle inside it pointing the way it folds (P32,
+          2026-11-06): ◀ while open, ▶ once folded. A shape, never colour alone; the button's name says it in words.
+          Each triangle carries U+FE0E so iOS draws it as text in Ink, never as a colour emoji (approval fix, 25 Nov). */}
+      <span className="divider-handle__pill" aria-hidden="true">
+        <span className={`divider-handle__arrow divider-handle__arrow--${collapsed ? 'right' : 'left'}`}>
+          {collapsed ? ARROW_RIGHT : ARROW_LEFT}
         </span>
-      )}
-      <span className="divider-handle__pill" aria-hidden="true" />
-      {collapsed && (
-        <span className="divider-handle__arrow divider-handle__arrow--show" aria-hidden="true">
-          ▶
-        </span>
-      )}
+      </span>
     </button>
   );
 }
