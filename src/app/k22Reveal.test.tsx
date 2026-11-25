@@ -22,6 +22,8 @@
 //      look, and the source line (K22e, pick 11, his fix). An emptied "What you notice" leaves no line.
 //  11. In the GM's view the GM's line lists only what is still hidden (K22g 1 to 3).
 //  12. Outside the view the GM's own Pack reads the true name, row and sheet, with "Players see: Bronze ring" (K22g 4, ⚑ 10).
+//  13. An item whose name starts with "The" gets toasts with no doubled article: a tell of one fact, of everything and
+//      of all but its charges, and a change to what players see (review of #50, round 2).
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -32,6 +34,7 @@ import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { Root } from './App.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
 import { registry } from './services.ts';
+import { toldWords } from './RevealPopup.tsx';
 
 vi.mock('./services.ts', async () => {
   const { createAppRegistry } = await import('./commandRegistry.ts');
@@ -449,5 +452,30 @@ describe("K22e: the player's side, and the GM's line as facts are told", () => {
     const sheet = screen.getByRole('region', { name: 'Ring of the Drowned Bell' });
     expect(within(sheet).getByText('Players see: Bronze ring')).toBeTruthy();
     expect(sheet.textContent).not.toContain('What you notice');
+  });
+});
+
+describe('A name that starts with "The" gets no second "the"', () => {
+  const holder = { campaignId: 'c', actorId: 'a', locationId: null, ownerUserId: 'u', archived: false, name: 'Wren' };
+
+  it.fails('the toasts after a tell read "The Old Lantern", never "the The Old Lantern"', () => {
+    const cursed = { id: 'cursed' as const, label: 'That it’s cursed', detail: '' };
+    expect(toldWords(cursed, { name: 'The Old Lantern' }, holder, '')).toBe('Told Wren: The Old Lantern is cursed.');
+    expect(toldWords(cursed, { name: 'the old lantern' }, holder, '')).toBe('Told Wren: The old lantern is cursed.');
+    expect(toldWords('everything', { name: 'Bronze lantern' }, holder, 'The Lamp of Quiet Reeds')).toBe('Told Wren everything about The Lamp of Quiet Reeds.');
+    expect(toldWords('all but charges', { name: 'Bronze lantern' }, holder, 'the Lamp of Quiet Reeds')).toBe('Told Wren everything about the Lamp of Quiet Reeds but its charges.');
+    // A name that only begins with the letters keeps its "the".
+    expect(toldWords(cursed, { name: 'Thew-bound staff' }, holder, '')).toBe('Told Wren: the Thew-bound staff is cursed.');
+  });
+
+  it.fails('the toast after a change to what players see reads "of The Tarnished Ring"', async () => {
+    Object.assign(ring(), { name: 'The Tarnished Ring', appears_as: 'The Tarnished Ring' });
+    const user = await openInView();
+    await user.click(await screen.findByRole('button', { name: /^The Tarnished Ring/ }));
+    await user.click(screen.getByRole('button', { name: 'Edit what players see…' }));
+    const form = within(await screen.findByRole('dialog', { name: 'What players see' }));
+    await user.clear(form.getByLabelText('What you notice'));
+    await user.click(form.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('Changed what players see of The Tarnished Ring.')).toBeTruthy();
   });
 });
