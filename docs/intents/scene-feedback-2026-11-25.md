@@ -183,6 +183,16 @@ Picture: one screenshot, not committed: it shows a private pack's place and chec
 
 Reads as: the same ask as F14 for this pop-up: a tighter, better layout with less empty space.
 
+### F16. Knowledge can be shared with the party
+
+Screen: GM's Scene, the "Knowledge" pop-up for "Arrival" (as in F8): "The pack gives no knowledge for this place." and "From your adventure: <adventure>, p. 10." It has no share control.
+
+Picture: one screenshot, not committed: it shows a private pack's adventure and place names (hard rule 2).
+
+> knowledge should be shareable to party. in this case maybe i dont see it because there is no knowledge
+
+Reads as: the GM can share a place's knowledge with the party from this pop-up. He thinks the share control may be missing here only because this place has no knowledge (see F8 (a)).
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
