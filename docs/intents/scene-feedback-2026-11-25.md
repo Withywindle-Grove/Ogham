@@ -268,6 +268,16 @@ Picture: one screenshot, not committed: it shows a private pack's item text and 
 
 Reads as: a note for testing, not a fault seen. Test a magic item found under a plain description: what the party sees when it is revealed, and what the GM can reveal later about its magic.
 
+### F24. The "Edit piece" form needs a redesign
+
+Screen: GM's Scene, the "Edit piece" form for one row of a place (here the item row from F23). Kind chips: "Description", "Exit", "Someone here", "Clue", "Treasure" (picked), "Hazard", "Other". Then "What players will see" (a text box holding the row's text), a rule, "Remove this piece", "Cancel" and "Save".
+
+Picture: one screenshot, not committed: it shows a private pack's item text (hard rule 2).
+
+> we need a redesign on this. it's not clear to me how often i'd use it, and the formatting is not impeccable or project standard
+
+Reads as: redesign the "Edit piece" form to the project's standards (with an `impeccable` critique). He is not sure how often a GM would use it, so its place on the Scene is also in question.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
