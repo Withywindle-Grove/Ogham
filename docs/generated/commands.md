@@ -114,6 +114,7 @@ Every change goes through one of these commands, which checks `can(user, command
 | `invite.revoke` | simple | GM: the GM can revoke an invite | Player A: a player can't revoke an invite |
 | `item.setMode` | simple | Player A: a player can choose their own weapon's mode (Quiver, Grip…)<br>GM: the GM can choose the mode of anyone's weapon | Player B: a player can't choose the mode of someone else's weapon<br>Outsider: an outsider can't choose a weapon's mode<br>Player A: a mode belongs to a character’s weapon: nothing in the Party stash has one |
 | `item.use` | simple | Player A: a player can use one of their own items up (Drink, Fire, Eat, Use)<br>GM: the GM can use up an item on anyone's character | Player B: a player can't use up someone else's items |
+| `library.addPicture` | none | GM: you can keep a map's picture with your own pack | Player A: you can't keep a picture with someone else's pack |
 | `library.copyHomebrew` | none | GM: the GM can copy the campaign's homebrew to their Rules library | Outsider: an outsider can't copy a campaign's homebrew |
 | `library.delete` | simple | GM: you can delete your own setting rules, even ones a campaign uses (each campaign logs it) | Player A: you can't delete someone else's setting rules |
 | `library.editEntry` | none | GM: you can edit an entry of your own pack (Edit pack) | Player A: you can't edit an entry of someone else's pack |
@@ -151,6 +152,7 @@ Every change goes through one of these commands, which checks `can(user, command
 | `place.setPicture` | verbose | GM: the GM can take a place's picture off | Player A: a player can't change a place's picture |
 | `place.setSafety` | verbose | GM: the GM can mark a place safe | Player A: a player can't mark a place hostile |
 | `place.shareMap` | verbose | GM: the GM can share a map with the players | Player A: a player can't share a map<br>Outsider: an outsider can't share a map |
+| `place.showItemTruth` | simple | GM: the GM can show a magic item's truth | Player A: a player can't show a magic item's truth<br>Outsider: an outsider can't show a magic item's truth |
 | `place.showPiece` | verbose | GM: the GM can show players one piece | Player B: a player can't show a piece |
 | `placeKnowledge.eye` | simple | GM: the GM can share a section of a place's knowledge with a group | Player A: a player can't share a section of a place's knowledge<br>Outsider: an outsider can't share a section of a place's knowledge |
 | `placeRule.eye` | simple | GM: the GM can open or close a place's rule to players | Player A: a player can't open a place's rule<br>Outsider: an outsider can't open a place's rule |

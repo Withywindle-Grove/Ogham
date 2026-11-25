@@ -1,7 +1,7 @@
 ---
-status: pending
+status: absorbed
 milestone: December first play (row B15 of plans/scene-point-to-point.md: a hoard as one piece, a magic item's truth as a piece)
-absorbed-into: docs/plans/scene-point-to-point.md (the B15 rows); docs/09-decisions-log.md (2026-11-20). Still to absorb, with B15's build: docs/05-features.md (Unidentified items; Places), docs/06-screens-and-design.md (the place card's pieces), docs/07-content-packs.md (a hoard's words, a treasure entry's count, a magic item's piece)
+absorbed-into: docs/plans/scene-point-to-point.md (the B15 rows); docs/09-decisions-log.md (2026-11-20); with B15's build: docs/05-features.md (A hoard as one piece; A magic item's truth as a piece), docs/06-screens-and-design.md (the Hoard sheet row of the components inventory), docs/07-content-packs.md (`hoards`, a treasure entry's `count`, `magicItem`)
 supersedes: nothing as a file. Inside it: pg30-1 to pg30-3 replace three details of the Pack page's frame PK5 (approved 2026-11-14) on the GM's Location card
 ---
 

@@ -437,7 +437,13 @@ export function Dialog({
         const outside = event.target === event.currentTarget;
         const finger = event.pointerType === 'touch' || event.pointerType === 'pen';
         downOutside.current = outside && finger;
-        if (outside && !finger) close.current();
+        // A mouse's press closes it, and its own default (the mousedown that follows) would then move focus to the page,
+        // off the opener the pop-up's close has just focused (Home Two's re-check, Francis picked 1b, 24 Nov): it is
+        // stopped. A finger's tap still closes it on its click, as before.
+        if (outside && !finger) {
+          event.preventDefault();
+          close.current();
+        }
       }}
       onPointerCancel={() => {
         downOutside.current = false;

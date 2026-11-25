@@ -45,6 +45,7 @@ import { clearPortrait, setPortrait } from '../modules/characters/portraits.ts';
 import { undoChange } from '../core/undo.ts';
 import { addNote, editNote } from '../core/notes.ts';
 import { copyHomebrewToLibrary, deletePack, editPackEntry, importPack, updatePack } from '../modules/library/library.ts';
+import { addPackPicture } from '../modules/library/packPictures.ts';
 import { attachPack, detachPack, moveSettingRules, preferEntry, setPackOptions, startHomebrew } from '../modules/library/campaignPacks.ts';
 import { deleteHomebrewEntry, saveHomebrewEntry } from '../modules/library/homebrew.ts';
 import { readPackJson, type ReadPack } from '../modules/library/packFile.ts';
@@ -133,6 +134,7 @@ import { approveSheetChange, HP_MAX_FIELD, refuseSheetChange, requestSheetChange
 import { chooseStay, replyRequest, undoBuy } from '../modules/requests/townRequests.ts';
 import { setSpellBook } from '../modules/characters/spellBook.ts';
 import { giveFind, undoFind } from '../modules/expedition/findSend.ts';
+import { showItemTruth } from '../modules/expedition/itemTruth.ts';
 import { addCoin, giveCoin, removeCoin, spendCoin, takeCoin, type Coins, type TakeFrom } from '../modules/inventory/purse.ts';
 import { redoCreation, type RedoChoice } from '../modules/characters/redo.ts';
 
@@ -294,9 +296,10 @@ export interface CaseWorld {
    * Where the party is (M5 step 11): a fresh expedition under way in the campaign (any other ended first), the party
    * at the invented "Moth Gallery", hidden from players or (`shown`) shown. Gives back the party's row with its place
    * and its one piece (an exit, M5b g2), hidden or (`shown`) shown to the party; with `picture`, the place has the
-   * GM's picture (M5b step 1 follow-up); with `map`, a map of the GM's tied to it (dec-7 5m-2).
+   * GM's picture (M5b step 1 follow-up); with `map`, a map of the GM's tied to it (dec-7 5m-2); with `magic`, its one
+   * piece is a magic item's truth instead (B15, p2p-29: kind `other`, led by the item's real name).
    */
-  freshPlace(shown?: boolean, picture?: boolean, map?: boolean): Promise<GroupPlace>;
+  freshPlace(shown?: boolean, picture?: boolean, map?: boolean, magic?: boolean): Promise<GroupPlace>;
   /** A map of the GM's (dec-7 5m-3, the eye): the campaign's copy, an asset of kind `map`, hidden. Gives back its id. */
   freshMap(): Promise<string>;
   /** A find the GM just sent to Player A's character (K16b, find.give): the send's first log line, for its Undo. */
@@ -570,6 +573,9 @@ export const permissionCases: PermissionCase[] = [
   rule("an outsider can't copy a campaign's homebrew", 'outsider', copyHomebrewToLibrary, async (w) => ({ campaignId: w.campaignId, packId: (await w.freshAttachedPack()).packId, name: 'Fen homebrew' }), false),
   rule('you can edit an entry of your own pack (Edit pack)', 'gm', editPackEntry, async (w) => ({ ...(await w.freshPack('gm')), kind: 'item' as const, packEntryId: 'rope', data: { name: 'Rope', weightCoin: 40 } }), true),
   rule("you can't edit an entry of someone else's pack", 'playerA', editPackEntry, async (w) => ({ ...(await w.freshPack('gm')), kind: 'item' as const, packEntryId: 'rope', data: { name: 'Mine' } }), false),
+  // A pack's pictures, kept with the pack (B14, p2p-27): its owner's alone to keep.
+  rule("you can keep a map's picture with your own pack", 'gm', addPackPicture, async (w) => ({ ...(await w.freshPack('gm')), mapId: 'harbour-chart', image: new Blob(['chart'], { type: 'image/png' }) }), true),
+  rule("you can't keep a picture with someone else's pack", 'playerA', addPackPicture, async (w) => ({ ...(await w.freshPack('gm')), mapId: 'harbour-chart', image: new Blob(['chart'], { type: 'image/png' }) }), false),
   rule('you can update your own setting rules', 'gm', updatePack, async (w) => ({ ...(await w.freshPack('gm')), pack: tinyPack() }), true),
   rule("you can't update someone else's setting rules", 'playerA', updatePack, async (w) => ({ ...(await w.freshPack('gm')), pack: tinyPack() }), false),
   rule('you can delete your own setting rules, even ones a campaign uses (each campaign logs it)', 'gm', deletePack, async (w) => { const { packId, ownerUserId } = await w.freshAttachedPack(); return { packId, ownerUserId }; }, true),
@@ -1300,6 +1306,19 @@ export const permissionCases: PermissionCase[] = [
   rule("a player can't show a piece", 'playerB', showPiece, async (w) => {
     const row = await w.freshPlace();
     return { campaignId: w.campaignId, row, piece: row.pieces[0]! };
+  }, false),
+  // B15 (p2p-29): a magic item's piece shown, and the item named where it is held; the GM's alone.
+  rule("the GM can show a magic item's truth", 'gm', showItemTruth, async (w) => {
+    const row = await w.freshPlace(false, false, false, true);
+    return { campaignId: w.campaignId, row, piece: row.pieces[0]!, lines: [] };
+  }, true),
+  rule("a player can't show a magic item's truth", 'playerA', showItemTruth, async (w) => {
+    const row = await w.freshPlace(false, false, false, true);
+    return { campaignId: w.campaignId, row, piece: row.pieces[0]!, lines: [] };
+  }, false),
+  rule("an outsider can't show a magic item's truth", 'outsider', showItemTruth, async (w) => {
+    const row = await w.freshPlace(false, false, false, true);
+    return { campaignId: w.campaignId, row, piece: row.pieces[0]!, lines: [] };
   }, false),
   rule('the GM can hide a piece again', 'gm', hidePiece, async (w) => {
     const row = await w.freshPlace(true);

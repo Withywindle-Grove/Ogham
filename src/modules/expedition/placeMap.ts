@@ -10,12 +10,15 @@
 // One copy per campaign (⚑ 1 of the plan, settled by frame 2c): a map that belongs to several of the pack's places is
 // asked for once. The place it was added at holds the tie; every other place whose map it is finds it there.
 import { defineCommand, failed, fromWrite, isGm, ok, type CommandResult, type CurrentUser } from '../../core/commands.ts';
-import { assetPath, FILES_BUCKET, forgetFileLinks } from '../../core/files.ts';
+import { assetPath, FILES_BUCKET, forgetFileLinks, PACK_FILES_BUCKET, packPicturePath } from '../../core/files.ts';
 import type { Db } from '../../core/supabase.ts';
 import { mapsForPlace, readStoredMap, type PackMap } from '../library/packMaps.ts';
 import type { Place } from './placePlay.ts';
 
 const gmOnly = (user: CurrentUser, target: { campaignId: string }) => isGm(user, target.campaignId);
+
+/** The name the campaign's copy of a map is given (the pack map's title, else the place's name). */
+export const mapCopyName = (title: string, placeName: string): string => (title.trim() || placeName.trim() || 'A map').slice(0, 200);
 
 /** The map's copy: uploaded as the campaign's map asset, the GM's alone. Gives back the asset's id. */
 export const addPlaceMap = defineCommand({
@@ -24,7 +27,7 @@ export const addPlaceMap = defineCommand({
   target: (input: { campaignId: string; place: Pick<Place, 'id' | 'name'>; title: string; image: Blob }) => ({ campaignId: input.campaignId }),
   allowed: gmOnly,
   run: async (db, _user, input): Promise<CommandResult<string>> => {
-    const name = (input.title.trim() || input.place.name.trim() || 'A map').slice(0, 200);
+    const name = mapCopyName(input.title, input.place.name);
     // A refusal (not the GM) says so; anything else is a plain "try again".
     const made = fromWrite(await db.from('assets').insert({ campaign_id: input.campaignId, kind: 'map', name, visibility: 'gm' }).select('id'));
     if (!made.ok) return made.reason === 'not-allowed' ? made : failed("Couldn't save the map. Try again.");
@@ -99,9 +102,13 @@ export type PlaceMapState =
   /** No map: the pack names none for this place (or it's a place made by hand with none tied). Nothing is drawn. */
   | { kind: 'none' }
   /** The pack names a map and this campaign has no copy yet (frame 2c): its title, its file, and "+ Map". */
-  | { kind: 'wanted'; map: PackMap; from?: string }
+  | { kind: 'wanted'; map: PackMap; from?: string; packed?: string; undone?: true }
   /** The campaign's copy: its asset, with the title and words for a screen reader. */
   | { kind: 'added'; assetId: string; title: string; alt: string; from?: string };
+// `packed` (B14, p2p-27): the picture came with the pack (its path in `pack-files`), so "+ Map" takes it from there with
+// no file to pick; absent, the GM picks the file by hand as before (a pack with no pictures, or a missing one).
+// `undone` (B14 review, 2026-11-24): the GM undid a tie of this pack map in this campaign (the log holds a place.setMap
+// to its copy, undone), so the page doesn't tie it again on its own; "+ Map" offers the pack's picture, one tap.
 // `from` (S13, mc-58, frame 1b): the pack entry of the place up the trail whose map this is, when it isn't the place's
 // own (a spot no map names shows the map of the place it is in).
 
@@ -178,11 +185,73 @@ export async function loadPlaceMap(db: Db, campaignId: string, place: Pick<Place
     maps = (entries.data ?? []).map((e) => readStoredMap({ packEntryId: String(e.pack_entry_id), name: String(e.name ?? ''), data: e.data }));
   }
   const state = resolvePlaceMap(self, maps, places, new Map(), upTrail);
+  // The pack's picture is offered only for a place that is a row of the campaign (the tie is written on that row).
+  if (state.kind === 'wanted' && self.packId && places.some((p) => p.id === place.id)) {
+    const kept = await db.storage.from(PACK_FILES_BUCKET).list(self.packId, { search: state.map.id });
+    if (!kept.data?.some((file) => file.name === state.map.id)) return state;
+    const packed = { ...state, packed: packPicturePath(self.packId, state.map.id) };
+    return (await tieUndone(db, campaignId, self.packId, state.map.id, maps, places, upTrail)) ? { ...packed, undone: true } : packed;
+  }
   if (state.kind !== 'added' || ownMap(maps, self, upTrail)) return state;
   // A hand-made place's map (or one whose pack entry is gone): its title is the copy's own name.
   const asset = await db.from('assets').select('name').eq('id', state.assetId).maybeSingle();
   const name = asset.data?.name ? String(asset.data.name) : '';
   return name ? resolvePlaceMap(self, maps, places, new Map([[state.assetId, name]]), upTrail) : state;
+}
+
+/**
+ * Whether the GM undid a tie of this pack map in this campaign (B14 review, 2026-11-24: an Undo of the tie holds): a
+ * place.setMap that tied a copy to a place whose map (its own, or a place's up its trail) is this one, with a line in
+ * the log reverting it. The whole campaign, not the one place: there is one copy a map, so a tie made again at another
+ * place the map is for would bring it back here too. A log that can't be read counts as undone: nothing is tied on its
+ * own then, and "+ Map" is one tap.
+ */
+async function tieUndone(db: Db, campaignId: string, packId: string, mapId: string, maps: readonly PackMap[], places: readonly PlaceMapRow[], upTrail: UpTrail): Promise<boolean> {
+  const sets = await db.from('events').select('id, target_id, after').eq('campaign_id', campaignId).eq('type', setPlaceMap.name);
+  if (sets.error || !sets.data) return true;
+  const forMap = new Set(places.filter((p) => p.packId === packId && ownMap(maps, p, upTrail)?.map.id === mapId).map((p) => p.id));
+  const ties = sets.data
+    .filter((e) => forMap.has(String(e.target_id)) && !!(e.after as { map_asset_id?: unknown } | null)?.map_asset_id)
+    .map((e) => String(e.id));
+  if (!ties.length) return false;
+  const back = await db.from('events').select('id').eq('campaign_id', campaignId).in('reverts_event_id', ties).limit(1);
+  return back.error || !back.data ? true : back.data.length > 0;
+}
+
+/**
+ * A copy of a map the campaign already has (B14 review, 2026-11-24: a tie that stopped part-way is finished with it) and no place has ever been tied to: made by place.addMap (its line in the
+ * log) under the map's name, and named by no place.setMap and no place's tie. The oldest first, so two devices finishing
+ * the same part-way tie pick the same one. Null when there is none, or the log can't be read (a new copy is made then).
+ */
+export async function untiedMapCopy(db: Db, campaignId: string, name: string): Promise<string | null> {
+  const made = await db.from('events').select('target_id, seq').eq('campaign_id', campaignId).eq('type', addPlaceMap.name).eq('target_table', 'assets').order('seq');
+  if (made.error || !made.data?.length) return null;
+  const ids = [...new Set(made.data.map((e) => String(e.target_id)))];
+  const [assets, places, sets] = await Promise.all([
+    db.from('assets').select('id, name').eq('campaign_id', campaignId).eq('kind', 'map').in('id', ids),
+    db.from('places').select('map_asset_id').eq('campaign_id', campaignId),
+    db.from('events').select('after').eq('campaign_id', campaignId).eq('type', setPlaceMap.name),
+  ]);
+  if (assets.error || places.error || sets.error) return null;
+  const named = new Set((assets.data ?? []).filter((a) => String(a.name) === name).map((a) => String(a.id)));
+  const tiedOnce = new Set<string>([
+    ...(places.data ?? []).map((p) => String(p.map_asset_id ?? '')),
+    ...(sets.data ?? []).map((e) => String((e.after as { map_asset_id?: unknown } | null)?.map_asset_id ?? '')),
+  ]);
+  return ids.find((id) => named.has(id) && !tiedOnce.has(id)) ?? null;
+}
+
+/** A place's tie as it stands now: its version and its map's copy; null when it can't be read. */
+export async function loadPlaceTie(db: Db, placeId: string): Promise<{ version: number; mapAssetId: string | null } | null> {
+  const { data, error } = await db.from('places').select('version, map_asset_id').eq('id', placeId).maybeSingle();
+  if (error || !data) return null;
+  return { version: Number(data.version), mapAssetId: data.map_asset_id ? String(data.map_asset_id) : null };
+}
+
+/** The picture that came with the pack for a wanted map (its `packed` path); null when it can't be fetched. */
+export async function loadPackPicture(db: Db, path: string): Promise<Blob | null> {
+  const { data, error } = await db.storage.from(PACK_FILES_BUCKET).download(path);
+  return error ? null : data;
 }
 
 /** The map a group's players see (P5): the campaign's copy, shown to them, of the last place shown to the group. */

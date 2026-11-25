@@ -720,6 +720,25 @@ export const revealItemField = defineCommand({
   },
 });
 
+/** What a reader has been shown of an item (B15, p2p-29): its real name and what it does, as its piece says them. */
+export interface ItemTruth {
+  lineId: string;
+  name: string;
+  text: string;
+}
+
+/**
+ * The lines as the reader knows them (B15, p2p-29; page 30, HM4): a line whose magic item's truth was shown carries the
+ * real name and, as its description, what it does; every other line is unchanged. The truths come from the database
+ * (public.item_truths), only for lines the reader may read and only once shown, so nothing here can reveal more.
+ */
+export function withTruths(lines: readonly InventoryLine[], truths: readonly ItemTruth[]): InventoryLine[] {
+  const byLine = new Map(truths.filter((t) => t.name.trim() && t.text.trim()).map((t) => [t.lineId, t]));
+  return lines.map((line) => {
+    const truth = byLine.get(line.id);
+    return truth ? { ...line, name: truth.name.trim(), details: { ...line.details, description: truth.text.trim() } } : line;
+  });
+}
 /** The line as this person now sees it, read back after a database function changed it. */
 async function lineNow(db: Db, lineId: string): Promise<CommandResult<InventoryLine>> {
   const read = fromWrite(await db.from('inventory_lines').select(COLUMNS).eq('id', lineId));
@@ -771,7 +790,15 @@ export async function loadInventory(db: Db, campaignId: string): Promise<{ lines
     db.from('locations').select('id').eq('campaign_id', campaignId).eq('kind', 'stash').maybeSingle(),
   ]);
   if (lines.error || stash.error) return null;
-  return { lines: (lines.data as LineRow[]).map(toLine), stashId: (stash.data as { id: string } | null)?.id ?? null };
+  const read = (lines.data as LineRow[]).map(toLine);
+  // B15: only a line a truth was shown for carries the pointer (itemData.truthPiece); without one, nothing more is read.
+  // No truths read (the read failed): every item as its plain self, never an error for the Pack.
+  let shown: ItemTruth[] = [];
+  if (read.some((line) => typeof line.details.truthPiece === 'string')) {
+    const truths = await db.rpc('item_truths', { campaign: campaignId });
+    shown = truths.error || !Array.isArray(truths.data) ? [] : truths.data.map((t) => ({ lineId: t.line_id, name: t.name, text: t.body }));
+  }
+  return { lines: withTruths(read, shown), stashId: (stash.data as { id: string } | null)?.id ?? null };
 }
 
 /** A carrier with a name to show ("Ash", "Party stash"). */
