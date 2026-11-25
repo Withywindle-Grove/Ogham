@@ -278,6 +278,16 @@ Picture: one screenshot, not committed: it shows a private pack's item text (har
 
 Reads as: redesign the "Edit piece" form to the project's standards (with an `impeccable` critique). He is not sure how often a GM would use it, so its place on the Scene is also in question.
 
+### F25. "Where to?" rows need their area
+
+Screen: GM's Scene, "Where to?". Seven rows, each "<number>. <place>" with "Not yet shown: players see "not yet explored"." and "Row" / "Swim" buttons. The rows come from two areas and are in mixed order (11, 6, 9, 1, 2, 3, 4). Two areas can each have a place with the same number, so two rows can both start "1.".
+
+Picture: one screenshot, not committed: it shows private pack place names (hard rule 2).
+
+> need to indicate the area for each of these choices. 1. [place in one area] vs 1. [place in another area]
+
+Reads as: each "Where to?" row shows the area its place is in, so that two places with the same map number in different areas can be told apart. The mixed order is the same fault as F1 (a).
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
