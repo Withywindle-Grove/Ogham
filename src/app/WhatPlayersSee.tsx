@@ -8,7 +8,7 @@ import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import { editItemLook, type InventoryLine, type NamedCarrier } from '../modules/inventory/inventory.ts';
-import { shownName } from '../modules/inventory/packView.ts';
+import { shownName, withThe } from '../modules/inventory/packView.ts';
 import { CentredPopUpScope, Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
@@ -55,7 +55,7 @@ export function WhatPlayersSee({
     event.preventDefault();
     if (busy) return;
     if (appearsAs.trim() === (line.appearsAs ?? '').trim() && noticed.trim() === (line.noticed ?? '').trim()) return onClose();
-    const words = `Changed what players see of the ${shownName(line.name)}.`;
+    const words = `Changed what players see of ${withThe(shownName(line.name))}.`;
     void run(() => runCommand(registry, db, user, editItemLook, { line: { id: line.id, carrier, version: line.version }, appearsAs, noticed })).then((done) => {
       if (!done) return;
       onClose();

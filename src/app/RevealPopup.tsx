@@ -12,7 +12,7 @@ import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import { hiddenFacts, type HiddenFact } from '../modules/inventory/hiddenFacts.ts';
 import { tellItem, type InventoryLine, type NamedCarrier } from '../modules/inventory/inventory.ts';
-import { shownName } from '../modules/inventory/packView.ts';
+import { shownName, withThe } from '../modules/inventory/packView.ts';
 import type { ResolvedEntry } from '../modules/library/stack.ts';
 import { CentredPopUpScope, Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { Icon } from '../ui/icons.tsx';
@@ -44,8 +44,8 @@ const whoOf = (carrier: NamedCarrier) => (carrier.locationId !== null ? 'the par
 export function toldWords(fact: HiddenFact | 'everything' | 'all but charges', line: Pick<InventoryLine, 'name'>, carrier: NamedCarrier, trueName: string): string {
   const who = whoOf(carrier);
   const item = shownName(line.name);
-  if (fact === 'everything') return `Told ${who} everything about the ${trueName || item}.`;
-  if (fact === 'all but charges') return `Told ${who} everything about the ${trueName || item} but its charges.`;
+  if (fact === 'everything') return `Told ${who} everything about ${withThe(trueName || item)}.`;
+  if (fact === 'all but charges') return `Told ${who} everything about ${withThe(trueName || item)} but its charges.`;
   if (fact.id === 'name') {
     const whose = carrier.locationId !== null ? `The party’s ${item}` : `${carrier.name}’s ${item}`;
     return `Shown to the players: ${fact.detail}. ${whose} now carries its name.`;
@@ -68,7 +68,7 @@ export function toldWords(fact: HiddenFact | 'everything' | 'all but charges', l
             : fact.id.startsWith('power:')
               ? ` has a power${fact.detail ? `: ${fact.detail}` : ''}`
               : `’s ${fact.label}${fact.detail ? `: ${fact.detail}` : ''}`;
-  return `Told ${who}: the ${item}${said}.`;
+  return `Told ${who}: ${withThe(item)}${said}.`;
 }
 
 export function RevealPopup({

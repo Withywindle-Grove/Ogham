@@ -458,7 +458,7 @@ describe("K22e: the player's side, and the GM's line as facts are told", () => {
 describe('A name that starts with "The" gets no second "the"', () => {
   const holder = { campaignId: 'c', actorId: 'a', locationId: null, ownerUserId: 'u', archived: false, name: 'Wren' };
 
-  it.fails('the toasts after a tell read "The Old Lantern", never "the The Old Lantern"', () => {
+  it('the toasts after a tell read "The Old Lantern", never "the The Old Lantern"', () => {
     const cursed = { id: 'cursed' as const, label: 'That it’s cursed', detail: '' };
     expect(toldWords(cursed, { name: 'The Old Lantern' }, holder, '')).toBe('Told Wren: The Old Lantern is cursed.');
     expect(toldWords(cursed, { name: 'the old lantern' }, holder, '')).toBe('Told Wren: The old lantern is cursed.');
@@ -468,7 +468,7 @@ describe('A name that starts with "The" gets no second "the"', () => {
     expect(toldWords(cursed, { name: 'Thew-bound staff' }, holder, '')).toBe('Told Wren: the Thew-bound staff is cursed.');
   });
 
-  it.fails('the toast after a change to what players see reads "of The Tarnished Ring"', async () => {
+  it('the toast after a change to what players see reads "of The Tarnished Ring"', async () => {
     Object.assign(ring(), { name: 'The Tarnished Ring', appears_as: 'The Tarnished Ring' });
     const user = await openInView();
     await user.click(await screen.findByRole('button', { name: /^The Tarnished Ring/ }));
