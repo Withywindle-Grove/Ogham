@@ -286,7 +286,7 @@ export function bestFill(
  *  - save modifiers (`saveModifiers.<id>`): a `fill` path, or an ability's modifier (`from`; the row's column named by
  *    `plusRaceField`, else its one number) plus the race's field (`plusRaceField`), or the race's field alone
  *    (`raceField`, pf-21: a whole number other than nought, else no line).
- *    Shown beside the saves, never added in: no save's number is given here.
+ *    No save's number is given here: the save's working (characters/saveWorking.ts, ruled 2026-11-25) counts them.
  * Only numbers the pack gives; a formula that can't run is left out, never guessed.
  */
 export function ruleFills(
@@ -379,8 +379,9 @@ export function conSaveBonus(race: Record<string, unknown> | null, scores: Recor
 
 /**
  * What the race says beside a figure, by the figure's fill name (the creation surveys' follow-up, 2026-11-03; 07
- * Races). Shown beside the number, never added in, as the rules set's `saveModifiers` are (07): the pack gives no
- * structured way to say which way a save runs, and a bonus "vs poison" isn't the whole save.
+ * Races). Shown beside the number today. Ruled 2026-11-25 (plan dec-15-save-bonus): a `saveBonusByCon` entry that
+ * names a whole save is counted into it and one for part of a save ("D(poison)") holds at times, by the direction in
+ * the rules set's `rolls.save`; characters/saveWorking.ts counts it, and the screens read that from batch B on.
  *  - `saves.<key>`: the race's `saveBonusByCon` {saves, byCon [{con, bonus}]}, the row for the CON score: "+3 to the
  *    roll", or "+3 to the roll vs poison" for a save named "D(poison)". A 0 bonus says nothing;
  *  - `skills.<id>`: a `skillTargets` entry that holds only in a situation ({value, when}): "5 when foraging". The

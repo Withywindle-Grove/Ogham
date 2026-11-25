@@ -20,7 +20,7 @@ const input = (over: Partial<SaveWorkingInput> = {}): SaveWorkingInput => ({
 });
 
 describe("a save's working: the counting (plan dec-15-save-bonus, row 1)", () => {
-  it.fails('a bonus with no condition lowers the number where a high roll succeeds and raises it where a low roll succeeds', () => {
+  it('a bonus with no condition lowers the number where a high roll succeeds and raises it where a low roll succeeds', () => {
     const race = { saveBonus: 2 };
     const up = saveWorking('F', input({ race }))!;
     expect(up.base).toBe(15);
@@ -31,21 +31,21 @@ describe("a save's working: the counting (plan dec-15-save-bonus, row 1)", () =>
     expect(down.counted[0]!.number).toBe(17);
   });
 
-  it.fails('a bonus with a condition never changes the figure and gives its own number', () => {
+  it('a bonus with a condition never changes the figure and gives its own number', () => {
     const w = saveWorking('F', input({ race: { saveBonus: { bonus: 4, vs: 'venom' } } }))!;
     expect(w.counted).toEqual([]);
     expect(w.figure).toBe(15);
     expect(w.atTimes).toEqual([{ condition: 'venom', parts: [{ bonus: 4, from: 'Bog folk', kind: 'kindred', more: false }], bonus: 4, number: 11, held: null }]);
   });
 
-  it.fails('the "otherwise" part of a list is counted and its conditional part gives the difference', () => {
+  it('the "otherwise" part of a list is counted and its conditional part gives the difference', () => {
     const w = saveWorking('F', input({ race: { saveBonus: [{ bonus: 4, vs: 'venom' }, { bonus: 2, vs: 'all other' }] } }))!;
     expect(w.counted.map((r) => [r.bonus, r.number])).toEqual([[2, 13]]);
     expect(w.figure).toBe(13);
     expect(w.atTimes).toEqual([{ condition: 'venom', parts: [{ bonus: 2, from: 'Bog folk', kind: 'kindred', more: true }], bonus: 2, number: 11, held: null }]);
   });
 
-  it.fails('a by-Constitution entry that names a whole save is counted; one written for part of a save holds at times', () => {
+  it('a by-Constitution entry that names a whole save is counted; one written for part of a save holds at times', () => {
     const race = { saveBonusByCon: { saves: ['F(marsh-rot)', 'W'], byCon: [{ con: '7+', bonus: 3 }] } };
     const scores = { CON: 9 };
     const wisps = saveWorking('W', input({ race, scores }))!;
@@ -57,7 +57,7 @@ describe("a save's working: the counting (plan dec-15-save-bonus, row 1)", () =>
     expect(fever.atTimes.map((r) => [r.condition, r.number])).toEqual([['marsh-rot', 12]]);
   });
 
-  it.fails('every saveModifiers entry holds at times, and one that gives nothing is left out', () => {
+  it('every saveModifiers entry holds at times, and one that gives nothing is left out', () => {
     const rulesSets = [
       {
         rolls: { save: { die: 'd20', pass: 'atOrOver' } },
@@ -89,7 +89,7 @@ describe("a save's working: the counting (plan dec-15-save-bonus, row 1)", () =>
     ]);
   });
 
-  it.fails('a bonus of 0 gives no row', () => {
+  it('a bonus of 0 gives no row', () => {
     const w = saveWorking('F', input({ race: { saveBonus: [0, { bonus: 0, vs: 'venom' }], saveBonusByCon: { saves: ['F'], byCon: [{ con: 9, bonus: 0 }] } }, scores: { CON: 9 } }))!;
     expect(w.counted).toEqual([]);
     expect(w.atTimes).toEqual([]);
@@ -102,7 +102,7 @@ describe("a save's working: the counting (plan dec-15-save-bonus, row 1)", () =>
     expect(saveWorking('X', input({ race: { saveBonus: 2 } }))).toBeNull();
   });
 
-  it.fails("a kindred-class's own bonus replaces its kindred's", () => {
+  it("a kindred-class's own bonus replaces its kindred's", () => {
     const kindred = { id: 'bog-folk', name: 'Bog folk', saveBonus: 4 };
     const kindredClass = { name: 'Bog folk wanderer', race: 'bog-folk', saveBonus: 1 };
     const race = raceDataAsPlayed(kindred, 'bog-folk', kindredClass);
@@ -111,12 +111,12 @@ describe("a save's working: the counting (plan dec-15-save-bonus, row 1)", () =>
     expect(w.figure).toBe(14);
   });
 
-  it.fails('a penalty moves the number the other way', () => {
+  it('a penalty moves the number the other way', () => {
     expect(saveWorking('F', input({ race: { saveBonus: -2 } }))!.figure).toBe(17);
     expect(saveWorking('F', input({ race: { saveBonus: -2 }, rulesSets: low() }))!.figure).toBe(13);
   });
 
-  it.fails('three counted bonuses each give the number after them, in the order kindred by Constitution, kindred, class', () => {
+  it('three counted bonuses each give the number after them, in the order kindred by Constitution, kindred, class', () => {
     const race = { saveBonus: 1, saveBonusByCon: { saves: ['F'], byCon: [{ con: '9+', bonus: 2 }] } };
     const klass = { name: 'Lantern Warden', saveBonus: -1 };
     const w = saveWorking('F', input({ race, klass, scores: { CON: 12 } }))!;
@@ -128,13 +128,13 @@ describe("a save's working: the counting (plan dec-15-save-bonus, row 1)", () =>
     expect(w.figure).toBe(13);
   });
 
-  it.fails('a counted bonus and one at times on one save: the at-times number starts from the counted figure', () => {
+  it('a counted bonus and one at times on one save: the at-times number starts from the counted figure', () => {
     const w = saveWorking('F', input({ race: { saveBonus: [2, { bonus: 2, vs: 'venom' }] } }))!;
     expect(w.figure).toBe(13);
     expect(w.atTimes.map((r) => [r.condition, r.number])).toEqual([['venom', 11]]);
   });
 
-  it.fails('two conditions on one save are two at-times rows', () => {
+  it('two conditions on one save are two at-times rows', () => {
     const w = saveWorking('F', input({ race: { saveBonus: [{ bonus: 2, vs: 'venom' }, { bonus: 1, vs: 'barrow-lights and will-o-the-wisps' }] } }))!;
     expect(w.atTimes.map((r) => [r.condition, r.number])).toEqual([
       ['venom', 13],
@@ -142,7 +142,7 @@ describe("a save's working: the counting (plan dec-15-save-bonus, row 1)", () =>
     ]);
   });
 
-  it.fails('two sources with the same condition are one row with both parts and one number (ruling 6)', () => {
+  it('two sources with the same condition are one row with both parts and one number (ruling 6)', () => {
     const w = saveWorking('F', input({ race: { saveBonus: { bonus: 2, vs: 'venom' } }, klass: { name: 'Lantern Warden', saveBonus: { bonus: 1, vs: 'Vs Venom' } } }))!;
     expect(w.atTimes).toEqual([
       {
@@ -158,14 +158,14 @@ describe("a save's working: the counting (plan dec-15-save-bonus, row 1)", () =>
     ]);
   });
 
-  it.fails('a bonus that names other saves leaves this save alone', () => {
+  it('a bonus that names other saves leaves this save alone', () => {
     const w = saveWorking('F', input({ race: { saveBonus: { bonus: 2, saves: ['W'] } } }))!;
     expect(w.counted).toEqual([]);
     expect(w.figure).toBe(15);
     expect(saveWorking('W', input({ race: { saveBonus: { bonus: 2, saves: ['W'] } } }))!.figure).toBe(12);
   });
 
-  it.fails('a character with no class has no class name in the working (ruling 11), and still counts', () => {
+  it('a character with no class has no class name in the working (ruling 11), and still counts', () => {
     const w = saveWorking('F', input({ klass: null, className: null, race: { saveBonus: 2 } }))!;
     expect(w.className).toBeNull();
     expect(w.figure).toBe(13);
@@ -173,7 +173,7 @@ describe("a save's working: the counting (plan dec-15-save-bonus, row 1)", () =>
 });
 
 describe("a save's working: the stops without a pack flag (plan dec-15-save-bonus, row 2)", () => {
-  it.fails('a number never goes below the lowest face where a high roll succeeds, nor above the highest where a low roll succeeds', () => {
+  it('a number never goes below the lowest face where a high roll succeeds, nor above the highest where a low roll succeeds', () => {
     const w = saveWorking('F', input({ filled: { 'saves.F': 3 }, race: { saveBonus: 5 } }))!;
     expect(w.figure).toBe(1);
     expect(w.stops).toEqual({ easy: 1, hard: null });
@@ -182,7 +182,7 @@ describe("a save's working: the stops without a pack flag (plan dec-15-save-bonu
     expect(up.stops).toEqual({ easy: 20, hard: null });
   });
 
-  it.fails('the row that lands on the face exactly is not marked; the next one is (rows 3, 1, 1)', () => {
+  it('the row that lands on the face exactly is not marked; the next one is (rows 3, 1, 1)', () => {
     const race = { saveBonus: 2, saveBonusByCon: { saves: ['F'], byCon: [{ con: '9+', bonus: 0 }] } };
     const w = saveWorking('F', input({ filled: { 'saves.F': 5 }, race, klass: { name: 'Lantern Warden', saveBonus: 2 }, scores: { CON: 9 } }))!;
     // 5, then +2 → 3, then +2 → 1: lands on the face, not marked.
@@ -199,12 +199,12 @@ describe("a save's working: the stops without a pack flag (plan dec-15-save-bonu
     expect(past.figure).toBe(1);
   });
 
-  it.fails('an at-times number past the easy face stops there and is marked', () => {
+  it('an at-times number past the easy face stops there and is marked', () => {
     const w = saveWorking('F', input({ filled: { 'saves.F': 4 }, race: { saveBonus: { bonus: 5, vs: 'venom' } } }))!;
     expect(w.atTimes.map((r) => [r.number, r.held])).toEqual([[1, 1]]);
   });
 
-  it.fails("an at-times number past the top face is given as worked, and so is a tile's own figure a penalty takes past it (ruling 1)", () => {
+  it("an at-times number past the top face is given as worked, and so is a tile's own figure a penalty takes past it (ruling 1)", () => {
     const line = saveWorking('F', input({ filled: { 'saves.F': 19 }, race: { saveBonus: { bonus: -2, vs: 'venom' } } }))!;
     expect(line.atTimes.map((r) => [r.number, r.held])).toEqual([[21, null]]);
     const tile = saveWorking('F', input({ filled: { 'saves.F': 19 }, race: { saveBonus: -2 } }))!;
@@ -212,7 +212,7 @@ describe("a save's working: the stops without a pack flag (plan dec-15-save-bonu
     expect(tile.counted.map((r) => [r.number, r.held])).toEqual([[21, null]]);
   });
 
-  it.fails('with another stop passed in, the number stops there and the marks carry that number', () => {
+  it('with another stop passed in, the number stops there and the marks carry that number', () => {
     const w = saveWorking('F', input({ filled: { 'saves.F': 4 }, race: { saveBonus: [2, 1] }, stops: { easy: 2 } }))!;
     expect(w.counted.map((r) => [r.number, r.held])).toEqual([
       [2, null],
@@ -223,7 +223,7 @@ describe("a save's working: the stops without a pack flag (plan dec-15-save-bonu
     expect(top.atTimes.map((r) => [r.number, r.held])).toEqual([[20, 20]]);
   });
 
-  it.fails("a die other than twenty-sided stops at its own face", () => {
+  it("a die other than twenty-sided stops at its own face", () => {
     const w = saveWorking('F', input({ filled: { 'saves.F': 10 }, rulesSets: low('d12'), race: { saveBonus: 4 } }))!;
     expect(w.figure).toBe(12);
     expect(w.counted[0]!.held).toBe(12);
