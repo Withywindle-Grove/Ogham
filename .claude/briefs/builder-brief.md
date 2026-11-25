@@ -20,14 +20,14 @@ If a guard, a hook or a permission check blocks you, stop and report to the driv
 
 **Build**
 - In your own worktree only, on the batch's branch `<branch-name>`: from freshly fetched `origin/main` for the batch's first row, from the freshly fetched branch itself for a later row or a round of fixes. Keep your own files (notes, the pull request's text) in your scratch subfolder `<scratch-path>`, never in another worker's. Never work in, or switch the branch of, a folder another session uses. Run `npm ci` there if `node_modules` is missing (it installs exactly what `package-lock.json` lists and never rewrites it; never `npm install`, which rewrote the lock file in a cloud container on 2026-11-21; never in `<home>\Documents\grimoire`).
-- Tests with each feature, each with its purpose as a plain sentence first. On a `fix-` branch the failing test comes first as `it.fails`, and test files change only with the Edit tool (`.claude/README.md`, Fix branches).
+- Tests with each feature, each with its purpose as a plain sentence first. On a `fix-` branch the failing test comes first as `it.fails`, in a commit of its own: that commit passes the commit hook (the test fails, as marked); only a plain failing test is refused, so never fold the test and the fix into one commit. And test files change only with the Edit tool (`.claude/README.md`, Fix branches).
 - Hard rules in `CLAUDE.md` in full: every command through `can()` and an event; tokens only; never a disabled button; the Components inventory's Code column kept current.
 - Load `ponytail` (`.claude/README.md`, Skills): the smallest change that fully delivers the row; say in the pull request what you skipped and any risk.
 - Stay inside the row's files. Another builder works on another row at the same time: if you need a file outside your row, stop and say which.
 - **No decisions are yours:** collect ⚑. A new feature or a change to approved behaviour is a scope check (`docs/08-roadmap.md`): write it and stop.
 - **A migration:** stop and report before writing one; the driver says how it goes (`.claude/agents/builder.md`, Database).
 - Self-review (`CLAUDE.md`, Components): every state, 375 px, long names, 0 and 999, light and dark.
-- `npm run check` passes before every commit; never `--no-verify`, not even on a temporary commit. In a cloud clone with linked worktrees, never run `npm run hooks:install`: run `npm run check` by hand, as one command, before each commit. Commit messages end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+- `npm run check` passes before every commit; never `--no-verify`, not even on a temporary commit. In a cloud clone with linked worktrees, never run `npm run hooks:install`. Where the hooks are on (an absolute `core.hooksPath`), commit through `scripts/check-slot.sh git commit …`: the hook is the check, so don't run it by hand right before; where they are not, run `scripts/check-slot.sh npm run check` before each commit. A docs- or mockup-only change runs `npm run docs:check` only, never the full check by hand. Commit messages end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 
 **Pull request**
 - Before the final push, `gh pr view <n> --json mergeable`: if CONFLICTING, merge `origin/main` in first; if merely behind, don't.

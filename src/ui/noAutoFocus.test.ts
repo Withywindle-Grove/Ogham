@@ -32,6 +32,9 @@ const FOCUS_CALLS: Record<string, number> = {
   '/src/app/GmCampaign.tsx': 1,
   // Back to the Reference button on close; a phone's panel heading on open (never the search field).
   '/src/app/GmReference.tsx': 2,
+  // A bundle's import over (B14 audits 1 and 3): the new pack's Browse, a button; else Import a file's file input. Never a
+  // text field.
+  '/src/app/LibraryScreen.tsx': 1,
   // Go to number (M5b step g3): the row found, a button, never a field.
   '/src/app/EncounterTables.tsx': 1,
   // A stat block in full (December 5c, #642 review): its heading on open, the View button that opened it on Back; and
@@ -56,6 +59,9 @@ const FOCUS_CALLS: Record<string, number> = {
   '/src/ui/parts.tsx': 1,
   // Back to the burden's tier as the Burden pop-up closes (tfb-4, row C7): a button.
   '/src/app/LoadSummary.tsx': 1,
+  // After "Got it" folds a call (P7, impeccable audit finding 1): the next card's "Got it", else the folded row; both
+  // buttons, never a field.
+  '/src/app/CallCard.tsx': 1,
 };
 
 describe('no keyboard on open (A4)', () => {
