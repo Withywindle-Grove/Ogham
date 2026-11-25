@@ -105,6 +105,16 @@ Pictures: three screenshots, not committed: they show a private pack's place nam
 Reads as: two parts. (a) When a place has no knowledge of its own, "Knowledge" also shows the knowledge of its area (the source has it on p. 10). (b) The encounter tables page does not follow the current table and book styles.
 Question: for (b), which standard do you mean: the d20 table inside the "Due now" card (F3), or another ruling or mockup?
 
+### F9. The encounter rows on the Scene may not be needed
+
+Screen: GM's Scene, low on the page. Two rows: "Encounter check, nothing due", and "Encounter tables, <check name> likely ›".
+
+Picture: one screenshot, not committed: it shows a private pack's check name (hard rule 2).
+
+> It's not clear i need the encounter rows shown when i have the encounter button next to "next turn" which serves a similar purpose.
+
+Reads as: the two encounter rows may repeat what the crossed-swords button beside "Next turn" (F3) already does; he questions whether they stay on the Scene.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
