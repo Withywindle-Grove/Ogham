@@ -355,6 +355,14 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
     expect(lightSheetLines([lit, { group: 2, name: 'Group 2', dark: false, lights: [] }], 'turn').map((l) => l.label)).toEqual(['Group 1: Ash’s torch.', 'Group 1: Glow-worm jar.', 'Group 2: Nothing lit.']);
   });
 
+  // Purpose (the audit of #86, Francis's pick 5): a group in the dark reads "No light." then "Nobody in the group has a
+  // light lit, so they are in darkness. Light one from a pack.", with no bracket after it.
+  it.fails('says the dark in plain words, with no bracket', () => {
+    expect(lightSheetLines([{ group: 1, name: 'Group 1', dark: true, lights: [] }], 'turn')).toEqual([
+      { label: 'No light.', words: 'Nobody in the group has a light lit, so they are in darkness. Light one from a pack.' },
+    ]);
+  });
+
   // Purpose: the Rest pop-up says when the next rest falls, whole; the small line that only repeats the rule is left
   // to "The rule", and one that says more ("You pushed on.") stays.
   it('says when the next rest falls', () => {

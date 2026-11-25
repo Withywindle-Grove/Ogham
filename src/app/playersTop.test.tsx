@@ -88,7 +88,7 @@ const GROTTO = {
  * seasonal weather the players roll) and an invented harbour whose own check stands in on every move. A session runs
  * and the expedition is under way. `hideExploration` marks the rules set's exploration GM-only.
  */
-async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wade'; rules?: boolean; rushlights?: boolean; reedLamps?: boolean } = {}) {
+async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wade'; rules?: boolean; rushlights?: boolean; reedLamps?: boolean; oilLamps?: boolean } = {}) {
   const gm = world.addPerson('priya@lantern.example', 'Priya');
   const sam = world.addPerson('sam@lantern.example', 'Sam');
   const campaign = world.addCampaign('The Ash Barrows', gm);
@@ -100,6 +100,9 @@ async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wad
   // `reedLamps` (PL8's pick): two reed lamps too, so Light opens "Which light?".
   if (options.reedLamps)
     world.tables.inventory_lines.push({ id: 'line-lamp', campaign_id: campaign, actor_id: wren, location_id: null, name: 'Reed lamps', category: 'light', qty: 2, stack: 10, approval: 'approved', item_data: { lightTypeId: 'reed-lamp' }, source_entry_id: null, version: 1 });
+  // `oilLamps` (the audit of #86): two oil lamps alone, a light whose name starts with a vowel ("Lit an oil lamp.").
+  if (options.oilLamps)
+    world.tables.inventory_lines.push({ id: 'line-oil', campaign_id: campaign, actor_id: wren, location_id: null, name: 'Oil lamps', category: 'light', qty: 2, stack: 10, approval: 'approved', item_data: { lightTypeId: 'oil-lamp' }, source_entry_id: null, version: 1 });
   world.tables.packs.push({
     id: 'pack-fen',
     owner_user_id: gm,
@@ -190,6 +193,7 @@ async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wad
     });
   entry('pack-fen', 'lightType', 'rushlight', 'Rushlight', { duration: 6, unit: 'turn', consumed: true });
   entry('pack-fen', 'lightType', 'reed-lamp', 'Reed lamp', { duration: 4, unit: 'turn', consumed: true });
+  entry('pack-fen', 'lightType', 'oil-lamp', 'Oil lamp', { duration: 4, unit: 'turn', consumed: true });
   entry('pack-fen', 'table', 'spring-sky', 'Spring sky', {
     die: 'd6',
     rows: [{ min: 1, max: 6, result: 'Drizzle', tags: ['wet'] }],
@@ -597,6 +601,95 @@ describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, P
     await user.click(pop.getByRole('button', { name: 'Light' }));
     const pick = await screen.findByRole('dialog', { name: 'Which light?' });
     expect(pick.closest('.dialog__backdrop')!.classList.contains('book-faces')).toBe(false);
+  });
+
+  // Purpose (the audit of #86, pick 6): the toast names the light in lower case with its article, as the voice guide
+  // asks ("Lit a rushlight."), built from the item's name, which stays as it is.
+  it.fails('says "Lit a rushlight." once lit', async () => {
+    const { sam } = await table({ rules: true, rushlights: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    await user.click((await sheet('Light')).getByRole('button', { name: 'Light' }));
+    expect(await screen.findByText('Lit a rushlight.')).toBeTruthy();
+    expect(world.tables.inventory_lines.find((l) => l.id === 'line-rush')?.name).toBe('Rushlights');
+  });
+
+  // Purpose (pick 6): a light whose name starts with a vowel takes "an" ("Lit an oil lamp.").
+  it.fails('says "Lit an oil lamp." for a name starting with a vowel', async () => {
+    const { sam } = await table({ rules: true, oilLamps: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    await user.click((await sheet('Light')).getByRole('button', { name: 'Light' }));
+    expect(await screen.findByText('Lit an oil lamp.')).toBeTruthy();
+  });
+
+  // Purpose (pick 1): after Light with one light, the pop-up closes and focus goes back to the Scene's Light fact, which
+  // now names the lit light.
+  it.fails('puts focus back on the Light fact once lit', async () => {
+    const { sam } = await table({ rules: true, rushlights: true });
+    const user = await openScene(sam);
+    (await factNamed('Light')).focus();
+    await user.keyboard('{Enter}');
+    const pop = await sheet('Light');
+    expect(document.activeElement).toBe(pop.getByRole('button', { name: 'Light' }));
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Light' })).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('group', { name: 'Scene facts' }).querySelector('.scene-fact--light')));
+    await waitFor(() => expect(document.activeElement?.getAttribute('aria-label')).toMatch(/Rushlight/));
+  });
+
+  // Purpose (pick 3): with several lights, "Which light?" is a step inside the same Light pop-up (one card, one ✕),
+  // with Back, in the pop-up's own faces; focus starts on its first light.
+  it.fails('opens Which light? as a step inside the Light pop-up, with Back', async () => {
+    const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    await user.click((await sheet('Light')).getByRole('button', { name: 'Light' }));
+    const pick = await screen.findByRole('dialog', { name: 'Which light?' });
+    expect(screen.getAllByRole('dialog')).toHaveLength(1);
+    expect(within(pick).getAllByRole('button', { name: 'Close' })).toHaveLength(1);
+    expect(pick.closest('.dialog__backdrop')!.classList.contains('book-faces')).toBe(true);
+    expect(document.activeElement).toBe(within(pick).getByRole('button', { name: /^Rushlights/ }));
+    await user.click(within(pick).getByRole('button', { name: 'Back' }));
+    const pop = await sheet('Light');
+    expect(pop.getByText('No light.')).toBeTruthy();
+    expect(document.activeElement).toBe(pop.getByRole('button', { name: 'Light' }));
+  });
+
+  // Purpose (pick 2): Escape on "Which light?" goes back to the first step, with focus on Light; the pop-up stays open.
+  it.fails('goes back from Which light? on Escape, focus on Light', async () => {
+    const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    await user.click((await sheet('Light')).getByRole('button', { name: 'Light' }));
+    await screen.findByRole('dialog', { name: 'Which light?' });
+    await user.keyboard('{Escape}');
+    const pop = await sheet('Light');
+    expect(document.activeElement).toBe(pop.getByRole('button', { name: 'Light' }));
+  });
+
+  // Purpose (pick 3): the one ✕ on "Which light?" closes the whole pop-up.
+  it.fails('closes the whole pop-up from Which light?’s ✕', async () => {
+    const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    await user.click((await sheet('Light')).getByRole('button', { name: 'Light' }));
+    const pick = await screen.findByRole('dialog', { name: 'Which light?' });
+    await user.click(within(pick).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryAllByRole('dialog')).toHaveLength(0));
+  });
+
+  // Purpose (pick 1): after a pick, the pop-up closes and focus goes back to the Scene's Light fact.
+  it.fails('puts focus back on the Light fact after a pick', async () => {
+    const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    await user.click((await sheet('Light')).getByRole('button', { name: 'Light' }));
+    const pick = await screen.findByRole('dialog', { name: 'Which light?' });
+    await user.click(within(pick).getByRole('button', { name: /^Reed lamps/ }));
+    expect(await screen.findByText('Lit a reed lamp.')).toBeTruthy();
+    await waitFor(() => expect(screen.queryAllByRole('dialog')).toHaveLength(0));
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('group', { name: 'Scene facts' }).querySelector('.scene-fact--light')));
   });
 });
 
