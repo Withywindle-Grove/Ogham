@@ -2,16 +2,17 @@
 // Focus goes back to the opener on every close (fix-dialog-focus-on-close; Home Two's impeccable audits, 24–25 Nov):
 // when a pop-up closes without an action that moves focus on purpose (✕, Escape, a tap outside), keyboard focus goes
 // back to the control that opened it, never to the page's body. An action that moves focus on purpose keeps its own
-// target, and an opener gone from the page (or disabled) is left alone, with no error.
+// target, and an opener gone from the page (or inert) is left alone, with no error, and focus never lands behind a pop-up
+// still open.
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { useEffect, useRef, useState } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { Dialog } from './Dialog.tsx';
+import { Dialog, openersNow } from './Dialog.tsx';
 
 afterEach(cleanup);
 
 /** A page with an opener and a pop-up; `onLit` is an action inside it that closes it and moves focus on purpose. */
-function Page({ withOpener = true, disabledOpener = false, focusInEffect = false }: { withOpener?: boolean; disabledOpener?: boolean; focusInEffect?: boolean }) {
+function Page({ withOpener = true, focusInEffect = false }: { withOpener?: boolean; focusInEffect?: boolean }) {
   const [open, setOpen] = useState(false);
   const [lit, setLit] = useState(false);
   const fact = useRef<HTMLButtonElement>(null);
@@ -25,7 +26,7 @@ function Page({ withOpener = true, disabledOpener = false, focusInEffect = false
         Light fact
       </button>
       {withOpener && (
-        <button type="button" disabled={disabledOpener} onClick={() => setOpen(true)}>
+        <button type="button" onClick={() => setOpen(true)}>
           Open
         </button>
       )}
@@ -157,18 +158,56 @@ describe('focus back to the opener on close', () => {
     expect(document.activeElement === document.body || document.activeElement === null).toBe(true);
   });
 
-  // Purpose: a disabled opener is never given focus (it can't take it): focus is left alone, with no error.
-  it('a disabled opener is not focused', async () => {
-    const { rerender } = render(<Page />);
-    await openByKey();
-    rerender(<Page disabledOpener />);
-    // Disabled while the pop-up is open, and still disabled as it closes.
-    const opener = screen.getByRole('button', { name: 'Open' }) as HTMLButtonElement;
-    expect(opener.disabled).toBe(true);
+  // Purpose: an opener that could take focus but sits in a part of the page shut off for now (inert) is passed over:
+  // focus is left alone, with no error.
+  it('an inert opener is not focused', async () => {
+    render(<Page />);
+    const opener = await openByKey();
+    opener.setAttribute('inert', '');
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     });
+    expect(screen.queryByRole('dialog')).toBeNull();
     expect(document.activeElement).not.toBe(opener);
+  });
+
+  // Purpose: after a tap, a key pressed on another button means the keyboard is in use, so that button (the one with
+  // focus) is the opener focus goes back to, not the one tapped before.
+  it('a key pressed after a tap makes the focused button the opener', async () => {
+    render(<Page />);
+    const fact = screen.getByRole('button', { name: 'Light fact' });
+    // Tap the Light fact, and let its pop-up-free tap end; then the keyboard takes over on Open.
+    await act(async () => {
+      fireEvent.pointerDown(fact, { pointerType: 'touch' });
+      fireEvent.click(fact);
+    });
+    const opener = await openByKey();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    });
+    expect(document.activeElement).toBe(opener);
+  });
+
+  // Purpose: a tap on plain words (no control under it) never counts as the opener, so the button with focus that
+  // opens the pop-up gets focus back as it closes.
+  it.fails('a tap on plain words leaves the focused button as the opener', async () => {
+    render(
+      <>
+        <p>Plain words</p>
+        <Page />
+      </>,
+    );
+    const opener = screen.getByRole('button', { name: 'Open' });
+    opener.focus();
+    await act(async () => {
+      fireEvent.pointerDown(screen.getByText('Plain words'), { pointerType: 'mouse' });
+      fireEvent.click(opener);
+    });
+    expect(screen.getByRole('dialog', { name: 'Light' })).toBeTruthy();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    });
+    expect(document.activeElement).toBe(opener);
   });
 });
 
@@ -199,6 +238,9 @@ function Steps() {
       {step === 'second' && (
         <Dialog label="Second" onClose={() => setStep('none')}>
           <button type="button">To the stash</button>
+          <button type="button" onClick={() => setStep('first')}>
+            Back
+          </button>
         </Dialog>
       )}
     </main>
@@ -250,5 +292,76 @@ describe('focus back through steps and pop-ups opened from pop-ups', () => {
     expect(screen.queryByRole('dialog', { name: 'Inner' })).toBeNull();
     expect(screen.getByRole('dialog', { name: 'First' })).toBeTruthy();
     expect(document.activeElement).toBe(more);
+  });
+
+  // Purpose: going Back and on again between steps never piles up openers that have left the page: the list for the
+  // step open now holds only what is still on it (its own button, its pop-up, the page's opener).
+  it.fails('Back and on again keeps the openers to what is on the page', async () => {
+    render(<Steps />);
+    await press('Hoard');
+    for (let i = 0; i < 3; i += 1) {
+      await press('Send…');
+      await press('Back');
+    }
+    screen.getByRole('button', { name: 'More' }).focus();
+    const openers = openersNow();
+    expect(openers.every((el) => el.isConnected)).toBe(true);
+    expect(openers.length).toBeLessThanOrEqual(3);
+  });
+});
+
+/** A pop-up with a Reveal… row that opens another; revealing the last hidden thing there removes the row (ItemSheet). */
+function Reveal() {
+  const [outer, setOuter] = useState(false);
+  const [inner, setInner] = useState(false);
+  const [hidden, setHidden] = useState(true);
+  return (
+    <main>
+      <button type="button" onClick={() => setOuter(true)}>
+        Item
+      </button>
+      {outer && (
+        <Dialog label="Lantern" onClose={() => setOuter(false)}>
+          <button type="button">Use</button>
+          {hidden && (
+            <button type="button" onClick={() => setInner(true)}>
+              Reveal…
+            </button>
+          )}
+          {inner && (
+            <Dialog label="Reveal" onClose={() => setInner(false)}>
+              <button
+                type="button"
+                onClick={() => {
+                  setHidden(false);
+                  setInner(false);
+                }}
+              >
+                Reveal the last
+              </button>
+            </Dialog>
+          )}
+        </Dialog>
+      )}
+    </main>
+  );
+}
+
+describe('focus never lands behind a pop-up still open', () => {
+  // Purpose: when a pop-up opened from a button inside another closes after that button has gone, focus goes to the
+  // pop-up still open (its card), never to the page's opener behind it.
+  it.fails('an inner pop-up whose button has gone gives focus to the outer card', async () => {
+    render(<Reveal />);
+    const item = await press('Item');
+    await press('Reveal…');
+    expect(screen.getByRole('dialog', { name: 'Reveal' })).toBeTruthy();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Reveal the last' }));
+    });
+    expect(screen.queryByRole('dialog', { name: 'Reveal' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Reveal…' })).toBeNull();
+    const card = screen.getByRole('dialog', { name: 'Lantern' });
+    expect(document.activeElement).not.toBe(item);
+    expect(document.activeElement).toBe(card);
   });
 });

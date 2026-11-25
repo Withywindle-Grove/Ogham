@@ -111,8 +111,8 @@ export function openerNow(): HTMLElement | null {
 // it) can go back past that button once it has gone with its pop-up.
 const openersOf = new WeakMap<Element, readonly HTMLElement[]>();
 
-/** The opener now, then, when it sits inside an open pop-up, that pop-up's own openers. */
-function openersNow(): readonly HTMLElement[] {
+/** The opener now, then, when it sits inside an open pop-up, that pop-up's own openers. Exported for the tests. */
+export function openersNow(): readonly HTMLElement[] {
   const first = openerNow();
   if (!first) return [];
   const host = first.closest('[role="dialog"]');
