@@ -31,6 +31,19 @@ Picture: two screenshots, not committed (private pack names, hard rule 2).
 Reads as: the grouped place list from F1 has no way back to the first view (search, recently visited, packs). In the pack tree, places show no map number and are not in number order.
 Question: which screen has no way back: the grouped list in F1, or the opened pack tree?
 
+### F3. The Scene's top buttons, the swords button, and the encounter check
+
+Screen: GM's Scene during an expedition. Top right, left to right: a crossed-swords button, "Next turn" (hourglass), "…" (more), and "−". The "…" menu holds "Advance by…", "Reminders", "End expedition" ("You'll be asked whether the party is somewhere safe") and "End session" ("Stop playing for today; the clock keeps its place"). Below, "Waiting for you" holds a "Due now" card for the encounter check, with an "Enter roll…" button. Tapping it opens a d20 encounter table inside the card ("Roll d20, then tap the row.").
+
+Pictures: [F3-more-menu.png](scene-feedback-2026-11-25/F3-more-menu.png) (the "…" menu, open). Three more screenshots are not committed: they show a private pack's encounter text (hard rule 2).
+
+> "..." should be the rightmost buttons to the right of "-"
+> clicking the swords (needs a better icon) creates an encounter  and no means of closing the encounter without resolving, aside from undo.
+>
+> Encounter check is narrow and long. it should be a centered pop-up when "enter roll" is clicked
+
+Reads as: three parts. (a) Move "…" to the far right, after "−". (b) The crossed-swords button needs a better icon. Once it starts an encounter, the GM can only end the encounter by resolving it or by Undo; he wants a way to close it. (c) "Enter roll…" opens the encounter table as a pop-up in the middle of the screen, not inside the narrow card.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
