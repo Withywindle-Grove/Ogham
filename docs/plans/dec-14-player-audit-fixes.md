@@ -4,7 +4,7 @@ Written by a designer worker on 2026-11-24 (row plan-player-audit), from the dri
 
 It covers the nine findings of the `impeccable audit` of the built Player tab (2026-11-23), as drawn on page 38. The Player screen itself is `docs/plans/dec-13-the-player-screen.md` (built); this plan repairs it and adds nothing.
 
-**Status: approved 2026-11-24 with Francis's answers ("Ruled 2026-11-24" below).** Rows 1 to 6, 7b, 8 and 9 are ready once this plan and the mockup's pull request (#58) are on `main`. Row 7a is ready too: Francis approved A2 as drawn (⚑ 5, ruled 2026-11-24).
+**Status: approved 2026-11-24 with Francis's answers ("Ruled 2026-11-24" below).** Rows 1 to 6, 7b (7b reversed 2026-11-25), 8 and 9 are ready once this plan and the mockup's pull request (#58) are on `main`. Row 7a is ready too: Francis approved A2 as drawn (⚑ 5, ruled 2026-11-24).
 
 ## How it is built
 - **Mockups first.** The pictures of record: `docs/design/mockups/december/38-player-tab-audit-fixes.html` and its `png/38-*.png`, on branch `mock-player-audit-fixes` at 52319db (pull request #58, not on `main` when this was written). **Approved 2026-11-24, with fixes** (critique 7, critique 4, dark frames for 1 and 7); finding 8 **ruled 8a** the same day (the load tile keeps the lone warning sign; "Can't move" only on the speed tile). A builder branches only after #58 and this plan are merged.

@@ -49,15 +49,23 @@ export function abilityLines(row: Value, kinds: Readonly<Record<string, ColumnKi
   });
 }
 
-/** Every ability row's entries whose key matches, as "Melee +1 from Strength". */
-function fromAbilities(filled: Filled, match: RegExp, labelOf: (ability: string) => string, nameOf: (key: string) => string = plainName): string[] {
+/** One ability row's entry as a line: the ability, the entry's key and its figure (never 0). */
+type LineOf = (ability: string, key: string, value: number) => string;
+
+/** Every ability row's entries whose key matches, one line each as `lineOf` writes it; by default "Melee +1 from Strength". */
+function fromAbilities(
+  filled: Filled,
+  match: RegExp,
+  labelOf: (ability: string) => string,
+  lineOf: LineOf = (ability, key, value) => `${plainName(key)} ${signed(value)} from ${labelOf(ability)}`,
+): string[] {
   const lines: string[] = [];
   for (const [name, row] of Object.entries(filled)) {
     if (!name.startsWith('abilityModifiers.') || !isRecord(row)) continue;
     const ability = name.slice('abilityModifiers.'.length);
     for (const [key, value] of Object.entries(row)) {
       if (!match.test(key) || typeof value !== 'number' || value === 0) continue;
-      lines.push(`${nameOf(key)} ${signed(value)} from ${labelOf(ability)}`);
+      lines.push(lineOf(ability, key, value));
     }
   }
   return lines;
@@ -88,16 +96,7 @@ export interface Explaining {
 export function acCaption(filled: Filled, longName: (ability: string) => string, direction: 'ascending' | 'descending' = 'ascending'): string {
   // In the setting's direction (ruled 2026-10-29, B9): where lower AC is better, a bonus takes it down.
   const toward = direction === 'ascending' ? filled : flipAc(filled);
-  const parts: string[] = [];
-  for (const [name, row] of Object.entries(toward)) {
-    if (!name.startsWith('abilityModifiers.') || !isRecord(row)) continue;
-    const ability = name.slice('abilityModifiers.'.length);
-    for (const [key, value] of Object.entries(row)) {
-      if (!AC_KEY.test(key) || typeof value !== 'number' || value === 0) continue;
-      parts.push(`${longName(ability)} ${signed(value)}`);
-    }
-  }
-  return parts.join(', ');
+  return fromAbilities(toward, AC_KEY, longName, (ability, _key, value) => `${longName(ability)} ${signed(value)}`).join(', ');
 }
 
 /** The scores' AC modifiers turned round, for a setting where lower AC is better. */
