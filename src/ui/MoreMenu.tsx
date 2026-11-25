@@ -119,14 +119,11 @@ export function MoreMenu({
  */
 export function MoreSheet({ label, children }: { label: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const button = useRef<HTMLButtonElement>(null);
-  const close = () => {
-    setOpen(false);
-    button.current?.focus({ preventScroll: true });
-  };
+  // Focus goes back to ⋯ as its sheet closes (A1): the Dialog's own rule.
+  const close = () => setOpen(false);
   return (
     <>
-      <button ref={button} type="button" className="more-menu__button" aria-label={label} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
+      <button type="button" className="more-menu__button" aria-label={label} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
         <span aria-hidden="true">⋯</span>
       </button>
       {open && (

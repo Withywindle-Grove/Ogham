@@ -112,12 +112,9 @@ export function useHoards({
   const [busy, setBusy] = useState(false);
   // After a send that leaves things in the hoard, the row focus goes to: the first one not sent yet (Francis picked A).
   const [focusRow, setFocusRow] = useState<number | null>(null);
-  // The piece's words that opened the hoard (impeccable audit 1): focus goes back to them when the sheet closes.
-  const opener = useRef<HTMLElement | null>(null);
-  const close = () => {
-    setOpen(null);
-    if (opener.current?.isConnected) opener.current.focus({ preventScroll: true });
-  };
+  // Focus goes back to the piece's words that opened the hoard as the sheet closes, from any step (impeccable audit 1):
+  // the Dialog's own rule now, which goes back past a step's button to the piece.
+  const close = () => setOpen(null);
   const placeId = row?.place?.id ?? null;
   const hasTreasure = !!place && Array.isArray(place.treasure) && place.treasure.length > 0;
 
@@ -293,7 +290,6 @@ export function useHoards({
     /** Whether a tap on this piece's words opens its hoard (pg30-1) rather than editing it. */
     opens: (piece: Piece) => hoardOf(piece) !== null,
     open: (piece: Piece) => {
-      opener.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
       setFocusRow(null);
       setOpen({ piece, step: 'hoard', rows: [] });
     },

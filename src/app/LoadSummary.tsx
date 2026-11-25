@@ -3,7 +3,7 @@
 // A tap on the burden opens its levels in a pop-up, "Burden" (tfb-4, frame M2h of december/26, approved 2026-11-19):
 // every host passes `levelsPopUp`: the Player tab, the Pack, the full sheet, and (d5-19, 2026-11-20) the GM's character
 // overview and creation's Gear step. Without it the levels open in place, as the gallery's Pack page still draws them.
-import { useRef, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { TreasureSwitch } from '../modules/inventory/treasureSwitch.ts';
 import { raisedTiers, speedOf, type BandId, type BandLoad, type CarriedLoad, type CarryBonus, type EncumbranceRules, type Tier } from '../modules/inventory/encumbrance.ts';
 import { tierWords } from './packHelpers.ts';
@@ -55,7 +55,6 @@ export function LoadSummary({
   levelsPopUp?: boolean;
 }) {
   const [explain, setExplain] = useState(false);
-  const tierButton = useRef<HTMLButtonElement>(null);
   if (load.mode === 'none') return null;
   if (load.mode === 'slot' && load.bands)
     return <BandedSummary load={load} bands={load.bands} setsSpeed={load.setsSpeed ?? null} from={from} levelsPopUp={levelsPopUp} />;
@@ -75,7 +74,6 @@ export function LoadSummary({
     <div className={speedOnce ? 'pack__load pack__load--once' : 'pack__load'}>
       {words && (
         <button
-          ref={tierButton}
           type="button"
           className={warn ? 'pack__tier pack__tier--warn' : 'pack__tier'}
           {...(levelsPopUp ? { 'aria-haspopup': 'dialog' as const } : { 'aria-expanded': explain })}
@@ -129,7 +127,7 @@ export function LoadSummary({
         </p>
       )}
       {explain && levelsPopUp && (
-        <BurdenSheet load={load} rules={rules} from={from} treasure={treasure} onClose={() => closeAndReturn(setExplain, tierButton.current)} />
+        <BurdenSheet load={load} rules={rules} from={from} treasure={treasure} onClose={() => setExplain(false)} />
       )}
       {explain && !levelsPopUp && (
         <div className="pack__explain">
@@ -218,7 +216,6 @@ function BandedSummary({
   levelsPopUp: boolean;
 }) {
   const [explain, setExplain] = useState(false);
-  const tierButton = useRef<HTMLButtonElement>(null);
   const speed = speedOf(load);
   // Past a band's first tier is a warning (the words say which band); over the most too.
   const words = load.over ? load.overMax || 'Over the limit' : speed !== null ? `Speed ${speed}` : 'Speed: your GM says';
@@ -227,7 +224,6 @@ function BandedSummary({
   return (
     <div className="pack__load">
       <button
-        ref={tierButton}
         type="button"
         className={warn ? 'pack__tier pack__tier--warn' : 'pack__tier'}
         {...(levelsPopUp ? { 'aria-haspopup': 'dialog' as const } : { 'aria-expanded': explain })}
@@ -237,7 +233,7 @@ function BandedSummary({
         {words}
       </button>
       <LoadBands bands={bands} setsSpeed={setsSpeed} overMax={load.overMax} />
-      {explain && levelsPopUp && <BurdenSheet load={load} rules={null} from={from} onClose={() => closeAndReturn(setExplain, tierButton.current)} />}
+      {explain && levelsPopUp && <BurdenSheet load={load} rules={null} from={from} onClose={() => setExplain(false)} />}
       {explain && !levelsPopUp && (
         <div className="pack__explain">
           {bands.map((b) => (
@@ -256,12 +252,6 @@ function BandedSummary({
       )}
     </div>
   );
-}
-
-/** The pop-up closed, focus goes back to the tier that opened it (as the Log's panel does). */
-function closeAndReturn(setOpen: (open: boolean) => void, opener: HTMLButtonElement | null) {
-  setOpen(false);
-  opener?.focus({ preventScroll: true });
 }
 
 /** A labelled line in the book's style (cs-41): the label in the book label's colour, then its words. */
