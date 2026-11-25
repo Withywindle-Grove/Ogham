@@ -45,6 +45,7 @@ import { coinLine, denominationsOf } from '../modules/inventory/coinWords.ts';
 import { loadPurse, type Coins } from '../modules/inventory/purse.ts';
 import type { CharacterLightView } from './LightSection.tsx';
 import { registry } from './services.ts';
+import { usePlayerView } from './playerView.ts';
 
 // Kept here too, for the screens that already import it from the Pack (AddItem, WaitingForYou).
 export { homebrewItem } from './packHelpers.ts';
@@ -215,6 +216,10 @@ export function PackScreen({
   // The coin line is its own player's (K9; hard rule 5) and the GM's, who reads every purse (K15, PC7): a player's
   // Pack asks for no other purse, and the database's read rule sends nothing of another living character's.
   const coinAsGm = isGm(user, campaign.id) && mine?.ownerUserId !== user.id;
+  // The GM's own tools on the Pack, not in the GM's view as the player (pg32-3, pg32-4): the charges prompt after
+  // handing something out, and the treasure switch.
+  const playerView = usePlayerView();
+  const gmTools = isGm(user, campaign.id) && playerView === null;
   const purseOf = view === 'pack' && mine && mine.actorId && (mine.ownerUserId === user.id || coinAsGm) ? mine.actorId : null;
   useEffect(() => {
     if (!purseOf) return;
@@ -419,7 +424,7 @@ export function PackScreen({
           // A player's one-off waits for the GM, and says so where the screen lands.
           if (added?.approval === 'pending') setNote('Sent to the GM for approval.');
           // Handed out by the GM with charges not set yet: ask for them now.
-          if (added && isGm(user, campaign.id) && chargesOf(added, loaded.setting.charges) && added.chargesLeft === null) setAskCharges(added);
+          if (added && gmTools && chargesOf(added, loaded.setting.charges) && added.chargesLeft === null) setAskCharges(added);
         }}
       />
   );
@@ -459,7 +464,7 @@ export function PackScreen({
           load={carried}
           rules={rules}
           from={loaded.setting.encumbranceFrom}
-          treasure={carried.mode === 'armour' ? { gmSwitch: treasureSwitch, onSwitch: isGm(user, campaign.id) ? () => void flipTreasure() : null } : undefined}
+          treasure={carried.mode === 'armour' ? { gmSwitch: treasureSwitch, onSwitch: gmTools ? () => void flipTreasure() : null } : undefined}
           // A tap on the burden opens its levels in a pop-up (tfb-4, frame M2h).
           levelsPopUp
         />
@@ -583,6 +588,8 @@ export function PackScreen({
           setting={loaded.setting}
         categoryName={categoryName}
         tinyCategories={loaded.setting.tinyCategories ?? NO_TINY}
+        // Only for the GM's line in the GM's view (a weapon's true figure, pg32-4): a row here draws no rolls.
+        weaponRolls={playerView ? weaponRolls : undefined}
       />
       )}
       {waitingLines.length > 0 && (

@@ -799,7 +799,8 @@
   margin: 0;
 }
 
-.at-hand-popup .list-row--icon .list-row__title {
+.at-hand-popup .list-row--icon .list-row__title,
+.pack__sheet .list-row--icon .list-row__title {
   font-weight: 400;
 }
 

@@ -24,6 +24,14 @@ export function MoreMenu({
   const panelId = useId();
   const root = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
+  // Opened from the keyboard (Enter or Space: a click with no pointer), focus goes into the menu, to its first item
+  // (audit fix 3c, 2026-11-24); Escape puts it back on ⋯. A tap leaves focus where it was, as before.
+  const byKeyboard = useRef(false);
+  useEffect(() => {
+    if (!open || !byKeyboard.current) return;
+    byKeyboard.current = false;
+    root.current?.querySelector<HTMLElement>('.more-menu__panel button, .more-menu__panel [href]')?.focus();
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -79,7 +87,10 @@ export function MoreMenu({
         aria-label={label}
         aria-expanded={open}
         aria-controls={panelId}
-        onClick={() => setOpen((value) => !value)}
+        onClick={(event) => {
+          byKeyboard.current = !open && event.detail === 0;
+          setOpen((value) => !value);
+        }}
       >
         <span aria-hidden="true">⋯</span>
       </button>

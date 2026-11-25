@@ -76,15 +76,26 @@ export function RemoveCharacter({
   character,
   campaignName,
   onDone,
+  open: opened,
+  onClose,
 }: {
   db: Db;
   user: CurrentUser;
   character: CharacterRef & { name: string };
   campaignName: string;
   onDone: (message: string) => void;
+  /** Opened from elsewhere (a row's ⋯, pg32-1): no button of its own; the panel shows while true. */
+  open?: boolean;
+  /** Cancel (opened from elsewhere). */
+  onClose?: () => void;
 }) {
   const kind = kindOf(character);
-  const [open, setOpen] = useState(false);
+  const [own, setOwn] = useState(false);
+  const open = opened ?? own;
+  const setOpen = (value: boolean) => {
+    setOwn(value);
+    if (!value) onClose?.();
+  };
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -111,6 +122,7 @@ export function RemoveCharacter({
   }
 
   if (!open) {
+    if (opened !== undefined) return null;
     return (
       <button type="button" className="button-secondary button-secondary--small" aria-label={`${OPEN_LABEL[kind]} ${character.name}`} onClick={() => setOpen(true)}>
         {OPEN_LABEL[kind]}

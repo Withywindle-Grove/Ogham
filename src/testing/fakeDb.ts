@@ -247,6 +247,10 @@ export function createFakeDb(): FakeWorld {
     return keys.flatMap((k) => [k, k.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 36)]);
   };
   const isMemberOf = (campaignId: unknown) => tables.members.some((m) => m.campaign_id === campaignId && m.user_id === me());
+  // Like private.group_read_as (C15f; ruling a2): whose characters' groups a players' read answers for: the reader's own,
+  // or with `as_player` that player's, for the campaign's GM only and a member named; anyone else, nobody's.
+  const readerAs = (campaign: unknown, asPlayer: unknown): string =>
+    asPlayer == null ? String(me()) : isGmOf(campaign) && tables.members.some((m) => m.campaign_id === campaign && m.user_id === asPlayer) ? String(asPlayer) : '(nobody)';
   const mayWrite = (path: string) => {
     const asset = assetAt(path);
     return !!asset && (isGmOf(asset.campaign_id) || (asset.kind === 'portrait' && asset.uploaded_by === me()));
@@ -1230,9 +1234,9 @@ export function createFakeDb(): FakeWorld {
     tables.actors.filter((a) => a.campaign_id === campaign && ['pc', 'hireling'].includes(String(a.kind ?? 'pc')) && (a.approval ?? 'approved') === 'approved' && (a.status ?? 'active') === 'active');
   // A place's picture (M5b step 1 follow-up; ruled B), like private.place_picture_shown_to_me: for each of the reader's
   // groups, the picture piece shown to it on its current visit (the newest shown).
-  const shownPlacePictures = (campaign: unknown): { group: number; assetId: string }[] => {
+  const shownPlacePictures = (campaign: unknown, asPlayer?: unknown): { group: number; assetId: string }[] => {
     withGroupRows();
-    const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+    const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, asPlayer)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
     return groups.flatMap((group) => {
       const visit = tables.group_places
         .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
@@ -1672,6 +1676,61 @@ export function createFakeDb(): FakeWorld {
       if (row.shown !== (show_it === true)) changeRow('piece_shows', row, show_it === true ? { shown: true, shown_at: new Date(Date.now() + nextId++).toISOString() } : { shown: false }, tag);
       return copy(row);
     },
+    // B15 (…_p2p_b15_item_truth.sql), a stand-in for the layout pictures only: the GM's eye on a magic item's piece
+    // shows it and writes a pointer to it (`item_data.truthPiece`) on the given lines; item_truths gives a reader the
+    // real name and words of a line they read whose pointer names a piece shown to any group and not undone. It skips
+    // the check that a GM wrote the pointer: the real database's, tested in supabase/tests/p2p-b15-item-truth.test.ts.
+    show_item_truth: ({ visit, piece, lines }, tag) => {
+      const here = tables.group_places.find((g) => g.id === visit);
+      if (!here || !isGmOf(here.campaign_id)) return refused("You don't have permission to do that.");
+      const truth = tables.place_pieces.find((pc) => pc.id === piece && !pc.undone);
+      if (!truth || truth.kind !== 'other' || !String(truth.lead ?? '').trim()) return plain("That piece isn't a magic item's truth.");
+      const shown = groupRpcs.show_place_piece!({ visit, piece, show_it: true }, tag);
+      if (shown.error) return shown;
+      let named = 0;
+      for (const id of Array.isArray(lines) ? (lines as unknown[]) : []) {
+        const line = tables.inventory_lines.find((l) => l.id === id && l.campaign_id === here.campaign_id);
+        const data = (line?.item_data ?? {}) as Row;
+        if (!line || data.truthPiece === piece) continue;
+        changeRow('inventory_lines', line, { item_data: { ...data, truthPiece: piece } }, tag);
+        named += 1;
+      }
+      return { data: named, error: null };
+    },
+    // A thing sent after the reveal (the local review of #10): the pointer on the given lines, nothing shown; refused for
+    // a piece not shown to some group (a show not undone).
+    name_item_truth: ({ piece, lines }, tag) => {
+      const truth = tables.place_pieces.find((pc) => pc.id === piece && !pc.undone);
+      if (!truth || !isGmOf(truth.campaign_id)) return refused("You don't have permission to do that.");
+      if (truth.kind !== 'other' || !String(truth.lead ?? '').trim()) return plain("Only a magic item's piece can name an item.");
+      if (!tables.piece_shows.some((s) => s.piece_id === piece && !s.undone)) return plain("That magic item hasn't been shown yet.");
+      let named = 0;
+      for (const id of Array.isArray(lines) ? (lines as unknown[]) : []) {
+        const line = tables.inventory_lines.find((l) => l.id === id && l.campaign_id === truth.campaign_id);
+        const data = (line?.item_data ?? {}) as Row;
+        if (!line || data.truthPiece === piece) continue;
+        changeRow('inventory_lines', line, { item_data: { ...data, truthPiece: piece } }, tag);
+        named += 1;
+      }
+      return { data: named, error: null };
+    },
+    item_truths: ({ campaign }) => {
+      const gmHere = isGmOf(campaign);
+      if (!gmHere && !tables.members.some((m) => m.campaign_id === campaign && m.user_id === me())) return { data: [], error: null };
+      const reads = (l: Row) => {
+        if (gmHere || l.location_id) return true;
+        const carrier = tables.actors.find((a) => a.id === l.actor_id);
+        return !!carrier && (carrier.approval === 'approved' || carrier.owner_user_id === me());
+      };
+      const out = tables.inventory_lines.flatMap((l) => {
+        const pointer = ((l.item_data ?? {}) as Row).truthPiece;
+        if (l.campaign_id !== campaign || typeof pointer !== 'string' || !reads(l)) return [];
+        const truth = tables.place_pieces.find((pc) => pc.id === pointer && !pc.undone && pc.kind === 'other' && String(pc.lead ?? '').trim());
+        if (!truth || !tables.piece_shows.some((s) => s.piece_id === pointer && !s.undone)) return [];
+        return [{ line_id: l.id, name: String(truth.lead), body: String(truth.body) }];
+      });
+      return { data: out, error: null };
+    },
     hide_all_pieces: ({ visit }, tag) => {
       const here = tables.group_places.find((g) => g.id === visit);
       if (!here || !isGmOf(here.campaign_id)) return refused("You don't have permission to do that.");
@@ -1742,9 +1801,9 @@ export function createFakeDb(): FakeWorld {
       }
       return { data: shows.length, error: null };
     },
-    scene_pieces: ({ campaign }) => {
+    scene_pieces: ({ campaign, as_player }) => {
       withGroupRows();
-      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, as_player)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
       const rows = groups.flatMap((group) => {
         const visit = tables.group_places
           .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
@@ -1788,9 +1847,9 @@ export function createFakeDb(): FakeWorld {
       if (row.value !== (value === true)) changeRow('place_rule_switches', row, { value: value === true }, tag);
       return copy(row);
     },
-    place_rules_for_players: ({ campaign }) => {
+    place_rules_for_players: ({ campaign, as_player }) => {
       withGroupRows();
-      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, as_player)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
       const rows = groups.flatMap((group) => {
         const visit = tables.group_places
           .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
@@ -1813,9 +1872,9 @@ export function createFakeDb(): FakeWorld {
       });
       return { data: rows, error: null };
     },
-    encounter_check_for_players: ({ campaign }) => {
+    encounter_check_for_players: ({ campaign, as_player }) => {
       withGroupRows();
-      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, as_player)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
       const rows = groups.flatMap((group) => {
         const visit = tables.group_places
           .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && visitShown(g.id) && tables.expeditions.some((x) => x.id === g.expedition_id && !x.undone && (x.ended_at ?? null) === null))
@@ -1857,9 +1916,9 @@ export function createFakeDb(): FakeWorld {
       if (row.shared !== (share === true)) changeRow('knowledge_shares', row, share === true ? { shared: true, shared_clock: clock } : { shared: false }, tag);
       return copy(row);
     },
-    place_card_for_players: ({ campaign }) => {
+    place_card_for_players: ({ campaign, as_player }) => {
       withGroupRows();
-      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, as_player)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
       const rows = groups.flatMap((group) => {
         const visit = tables.group_places
           .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
@@ -1898,9 +1957,9 @@ export function createFakeDb(): FakeWorld {
       });
       return { data: rows, error: null };
     },
-    knowledge_for_players: ({ campaign }) => {
+    knowledge_for_players: ({ campaign, as_player }) => {
       withGroupRows();
-      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, as_player)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
       const rows = groups.flatMap((group) => {
         const visit = tables.group_places
           .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && !g.moved_on)
@@ -1926,20 +1985,55 @@ export function createFakeDb(): FakeWorld {
       });
       return { data: rows, error: null };
     },
+    // The players' map (P5), like …_p5_players_map.sql: for each of the reader's groups, the copy of the map of the last
+    // place shown to it on the expedition under way (its own tie, else the copy another place holds for the same pack
+    // map, up the place's trail), only while its eye is open.
+    map_for_players: ({ campaign }) => {
+      withGroupRows();
+      const packMap = (packId: unknown, entryId: unknown) => {
+        if (!packId || !entryId) return null;
+        const maps = tables.library_entries
+          .filter((e) => e.pack_id === packId && e.kind === 'map' && Array.isArray((e.data as Row)?.locationIds))
+          .sort((a, b) => String(a.pack_entry_id).localeCompare(String(b.pack_entry_id)));
+        for (const entry of fakeChain(packId, entryId)) {
+          const found = maps.find((m) => ((m.data as Row).locationIds as unknown[]).includes(entry.pack_entry_id));
+          if (found) return String(found.pack_entry_id);
+        }
+        return null;
+      };
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const rows = groups.flatMap((group) => {
+        const visit = tables.group_places
+          .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && visitShown(g.id) && tables.expeditions.some((x) => x.id === g.expedition_id && !x.undone && (x.ended_at ?? null) === null))
+          .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+        const place = visit && tables.places.find((p) => p.id === visit.place_id && !p.undone);
+        if (!visit || !place) return [];
+        const own = packMap(place.pack_id, place.pack_entry_id);
+        const held = own
+          ? tables.places
+              .filter((q) => q.campaign_id === campaign && !q.undone && q.id !== place.id && q.map_asset_id && q.pack_id === place.pack_id && packMap(q.pack_id, q.pack_entry_id) === own)
+              .sort((a, b) => String(a.created_at ?? '').localeCompare(String(b.created_at ?? '')))[0]
+          : undefined;
+        const assetId = place.map_asset_id ?? held?.map_asset_id ?? null;
+        const asset = assetId && tables.assets.find((a) => a.id === assetId && a.campaign_id === campaign && a.kind === 'map' && a.visibility === 'all');
+        return asset ? [{ group_number: group, asset_id: asset.id, title: String(asset.name ?? '') }] : [];
+      });
+      return { data: rows, error: null };
+    },
     // A place's picture (M5b step 1 follow-up), like …_m5b_1b_place_picture.sql: each of the reader's groups shown its
     // current place (a piece shown on this visit) gets the place's picture, if it has one.
-    scene_pictures: ({ campaign }) => {
-      return { data: shownPlacePictures(campaign).map(({ group, assetId }) => ({ group_number: group, asset_id: assetId })), error: null };
+    scene_pictures: ({ campaign, as_player }) => {
+      return { data: shownPlacePictures(campaign, as_player).map(({ group, assetId }) => ({ group_number: group, asset_id: assetId })), error: null };
     },
     // The town screen (M5b step 6c), like …_m5b_6c_town_screen.sql: each of the reader's groups at a settlement place
     // (its current visit in the newest expedition, under way or ended) gets the places in town shown to players.
-    scene_town: ({ campaign }) => {
+    scene_town: ({ campaign, as_player }) => {
       withGroupRows();
       const newest = tables.expeditions
         .filter((x) => x.campaign_id === campaign && !x.undone)
         .sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')))[0];
       if (!newest) return { data: [], error: null };
-      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === readerAs(campaign, as_player)).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
       const rows = groups.flatMap((group) => {
         const visit = tables.group_places
           .filter((g) => g.campaign_id === campaign && g.expedition_id === newest.id && Number(g.group_number) === group && !g.undone && !g.moved_on)
@@ -3851,10 +3945,12 @@ export function createFakeDb(): FakeWorld {
       return { data: rows, error: null };
     },
     // What we know: the places shown to the reader's groups across the campaign, the current expedition's first.
-    known_places_campaign: ({ campaign }) => {
+    known_places_campaign: ({ campaign, as_player }) => {
       const rows: Row[] = [];
+      const readsGroup = (group: number) =>
+        as_player == null ? inMyGroup(campaign, group) : activeIn(campaign).some((a) => a.owner_user_id === readerAs(campaign, as_player) && groupNumberOf(a.id) === group);
       for (const gp of tables.group_places) {
-        if (gp.campaign_id !== campaign || gp.undone || !inMyGroup(campaign, Number(gp.group_number))) continue;
+        if (gp.campaign_id !== campaign || gp.undone || !readsGroup(Number(gp.group_number))) continue;
         const x = tables.expeditions.find((e) => e.id === gp.expedition_id && !e.undone);
         const place = tables.places.find((p) => p.id === gp.place_id && !p.undone);
         if (!x || !place) continue;
@@ -4597,7 +4693,27 @@ export function createFakeDb(): FakeWorld {
       // Like the buckets' rules: campaign-files follow the assets table; message-files (M5b g4) follow the message
       // (the GM who sent it uploads once; its two parties read while the message is readable; 10 MB a file).
       from: (bucket?: string) => ({
+        // A pack's pictures (B14), like the bucket's rules: <pack id>/<map id>, written by the pack's owner; read by the
+        // owner and by the GM of a campaign that uses the pack; never by a player.
+        async list(folder: string, options?: { search?: string }) {
+          const pack = tables.packs.find((p) => p.id === folder);
+          const may = bucket === 'pack-files' && !!pack && (pack.owner_user_id === me() || tables.campaign_packs.some((cp) => cp.pack_id === folder && isGmOf(cp.campaign_id)));
+          const prefix = `pack-files/${folder}/`;
+          const names = may ? [...files.keys()].filter((key) => key.startsWith(prefix)).map((key) => key.slice(prefix.length)) : [];
+          return { data: names.filter((name) => name.includes(options?.search ?? '')).map((name) => ({ name })), error: null };
+        },
+        async download(path: string) {
+          const listed = await this.list(path.split('/')[0] ?? '');
+          const blob = listed.data.some((file) => file.name === path.split('/')[1]) ? files.get(`pack-files/${path}`) : undefined;
+          return blob ? { data: blob, error: null } : { data: null, error: { message: 'Object not found' } };
+        },
         async upload(path: string, blob: Blob) {
+          if (bucket === 'pack-files') {
+            const pack = tables.packs.find((p) => p.id === path.split('/')[0]);
+            if (!pack || pack.owner_user_id !== me() || path.split('/').length !== 2) return { data: null, error: { message: 'new row violates row-level security policy', statusCode: '403' } };
+            files.set(`pack-files/${path}`, blob);
+            return { data: { path }, error: null };
+          }
           if (bucket === 'message-files') {
             const message = tables.messages.find((m) => `${String(m.campaign_id)}/${String(m.id)}` === path);
             const may = !!message && message.from_gm === true && message.sender_user_id === me() && isGmOf(message.campaign_id) && message.attachment_name !== null && !message.undone;

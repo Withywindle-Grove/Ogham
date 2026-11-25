@@ -12,7 +12,7 @@
 //     both, for everyone (the log's live updates reload it).
 // The entrant's Undo is in the toast (6 seconds); after that only the GM changes it (the sheet, logged as a correction).
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
+import { runCommand, type CurrentUser } from '../core/commands.ts';
 import { loadCampaignSettings } from '../core/campaignCommands.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
@@ -38,6 +38,7 @@ import { StackedButton, StepSymbol } from '../ui/parts.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import { useLogVersion } from './campaignLog.tsx';
 import { choicesInPlay, loadCampaignSetting } from './campaignSetting.ts';
+import { useSeesAsGm } from './playerView.ts';
 import { registry } from './services.ts';
 import './WeatherCard.css';
 
@@ -71,17 +72,19 @@ export function useWeather(db: Db, user: CurrentUser, campaignId: string, versio
   const logVersion = useLogVersion();
   const [view, setView] = useState<WeatherView>({ kind: 'loading' });
   const [own, setOwn] = useState(0);
+  // The GM's view as the player reads the weather as the player does: the die to roll (pg32-3).
+  const gm = useSeesAsGm(user, campaignId);
   useEffect(() => {
     let current = true;
-    void readWeatherView(db, user, campaignId).then((found) => current && setView(found));
+    void readWeatherView(db, user, campaignId, gm).then((found) => current && setView(found));
     return () => {
       current = false;
     };
-  }, [db, user, campaignId, logVersion, version, own]);
+  }, [db, user, campaignId, gm, logVersion, version, own]);
   return { view, reload: () => setOwn((n) => n + 1) };
 }
 
-async function readWeatherView(db: Db, user: CurrentUser, campaignId: string): Promise<WeatherView> {
+async function readWeatherView(db: Db, user: CurrentUser, campaignId: string, gm: boolean): Promise<WeatherView> {
   try {
     const [scene, settings, setting] = await Promise.all([loadScene(db, campaignId), loadCampaignSettings(db, campaignId), loadCampaignSetting(db, user.id, campaignId)]);
     if (!scene || settings === null || setting === null) return { kind: 'error' };
@@ -115,7 +118,7 @@ async function readWeatherView(db: Db, user: CurrentUser, campaignId: string): P
     }
     if (now.waitingForSeason) return { ...base, kind: 'waiting' };
     if (!now.tableId) return { ...base, kind: 'unset' };
-    const die = isGm(user, campaignId) ? null : await loadWeatherDie(db, campaignId, now.tableId);
+    const die = gm ? null : await loadWeatherDie(db, campaignId, now.tableId);
     return { ...base, kind: 'due', die };
   } catch {
     return { kind: 'error' };
@@ -372,8 +375,10 @@ export function useWeatherNotice(
 ): { key: string; title: ReactNode; action?: ReactNode; act?: boolean } | null {
   const { view, reload } = useWeather(db, user, campaignId);
   const { enter } = useWeatherActions(db, user, reload);
-  if (view.kind === 'waiting' && !isGm(user, view.campaignId)) return { key: 'weather', title: 'Weather: no season set yet.' };
-  if (view.kind !== 'due' || isGm(user, view.campaignId) || !mayEnter(user, view)) return null;
+  // In the GM's view as the player, the player's notice (pg32-3); his roll entered there is logged as his.
+  const gm = useSeesAsGm(user, campaignId);
+  if (view.kind === 'waiting' && !gm) return { key: 'weather', title: 'Weather: no season set yet.' };
+  if (view.kind !== 'due' || gm || !mayEnter(user, view)) return null;
   const die = view.die ? dieOf(view.die) : null;
   const label = view.die ? `Weather due: roll ${view.die}` : 'Weather due: enter the roll';
   const due = `${view.expeditionId}:${view.now.startsAt}`;

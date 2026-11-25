@@ -535,8 +535,6 @@ export interface CharacterDetails {
   averaged?: PhysicalKey[];
 }
 
-export const NO_DETAILS: CharacterDetails = { tables: {} };
-
 /** The details as the character's fields keep them; empty when none. */
 export function detailsOf(fields: unknown): CharacterDetails {
   const saved = isRecord(fields) && isRecord(fields[DETAILS_KEY]) ? fields[DETAILS_KEY] : null;

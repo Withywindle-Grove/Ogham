@@ -403,14 +403,20 @@ export interface ScenePlace {
 }
 
 /**
- * A player's view (public.scene_pieces): for each of their groups shown something, the place's name and the shown
- * pieces in the order shown; nothing else about any place. Null if it couldn't be loaded.
+ * The players' reads' arguments: the reader's own groups, or, with `asPlayer` (the GM's view as the player, C15f; ruling
+ * a2), that player's groups as they read them, which the database gives only to the campaign's GM.
  */
-export async function loadScenePlaces(db: Db, campaignId: string): Promise<Map<number, ScenePlace> | null> {
+export const readsAs = (campaignId: string, asPlayer?: string) => (asPlayer ? { campaign: campaignId, as_player: asPlayer } : { campaign: campaignId });
+
+/**
+ * A player's view (public.scene_pieces): for each of their groups shown something, the place's name and the shown
+ * pieces in the order shown; nothing else about any place. Null if it couldn't be loaded. `asPlayer`: see `readsAs`.
+ */
+export async function loadScenePlaces(db: Db, campaignId: string, asPlayer?: string): Promise<Map<number, ScenePlace> | null> {
   const [{ data, error }, pictures, known] = await Promise.all([
-    db.rpc('scene_pieces', { campaign: campaignId }),
-    db.rpc('scene_pictures', { campaign: campaignId }),
-    db.rpc('known_places_campaign', { campaign: campaignId }),
+    db.rpc('scene_pieces', readsAs(campaignId, asPlayer)),
+    db.rpc('scene_pictures', readsAs(campaignId, asPlayer)),
+    db.rpc('known_places_campaign', readsAs(campaignId, asPlayer)),
   ]);
   if (error) return null;
   // The pictures are extra: when they can't be read the place still shows, without its picture.
@@ -450,8 +456,8 @@ export interface ShownPlaces {
  * list, with the pieces shown on any visit (each once, in the order shown). Only what the GM showed, and only while
  * it stays shown. Null if it couldn't be loaded. M8b's location browser takes this over.
  */
-export async function loadShownPlaces(db: Db, campaignId: string): Promise<ShownPlaces | null> {
-  const { data, error } = await db.rpc('known_places_campaign', { campaign: campaignId });
+export async function loadShownPlaces(db: Db, campaignId: string, asPlayer?: string): Promise<ShownPlaces | null> {
+  const { data, error } = await db.rpc('known_places_campaign', readsAs(campaignId, asPlayer));
   if (error) return null;
   const lists = { current: new Map<string, ShownPlace>(), earlier: new Map<string, ShownPlace>() };
   for (const row of data ?? []) {
@@ -472,8 +478,8 @@ export async function loadShownPlaces(db: Db, campaignId: string): Promise<Shown
  * players know it. The same read as What we know (public.known_places_campaign): nothing the GM hasn't shown. Null if
  * it couldn't be loaded.
  */
-export async function loadLastShownPlaces(db: Db, campaignId: string): Promise<Map<number, string> | null> {
-  const { data, error } = await db.rpc('known_places_campaign', { campaign: campaignId });
+export async function loadLastShownPlaces(db: Db, campaignId: string, asPlayer?: string): Promise<Map<number, string> | null> {
+  const { data, error } = await db.rpc('known_places_campaign', readsAs(campaignId, asPlayer));
   if (error) return null;
   const newest = new Map<number, { at: string; name: string }>();
   for (const row of data ?? []) {

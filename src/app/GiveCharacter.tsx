@@ -34,6 +34,8 @@ export function GiveCharacter({
   players,
   onChanged,
   onInvite,
+  open: opened,
+  onClose,
 }: {
   db: Db;
   user: CurrentUser;
@@ -43,8 +45,17 @@ export function GiveCharacter({
   onChanged: () => void;
   /** No players yet: "Invite a player" opens today's invite. */
   onInvite: () => void;
+  /** Opened from elsewhere (a row's ⋯, pg32-1): no button of its own; the sheet shows while true. */
+  open?: boolean;
+  /** The sheet shut (opened from elsewhere). */
+  onClose?: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [own, setOwn] = useState(false);
+  const open = opened ?? own;
+  const setOpen = (value: boolean) => {
+    setOwn(value);
+    if (!value) onClose?.();
+  };
   const [busy, setBusy] = useState(false);
   const show = useToast();
   const sheet = giveSheet(character, candidatesOf(players));
@@ -86,9 +97,11 @@ export function GiveCharacter({
   const empty = players.length === 0;
   return (
     <>
-      <button type="button" className="button-secondary button-secondary--small" aria-label={`Give ${character.name} to a player`} onClick={() => setOpen(true)}>
-        Give to a player…
-      </button>
+      {opened === undefined && (
+        <button type="button" className="button-secondary button-secondary--small" aria-label={`Give ${character.name} to a player`} onClick={() => setOpen(true)}>
+          Give to a player…
+        </button>
+      )}
       {open && (
         <Dialog label="Give to a player" over={character.name} onClose={() => setOpen(false)}>
           {sheet.hasLine && (

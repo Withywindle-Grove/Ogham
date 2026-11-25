@@ -13,7 +13,7 @@
 //     gives both rows.
 import { plainLinks } from '../library/linkMarks.ts';
 import { amountWords, type Denomination } from '../inventory/coinWords.ts';
-import { chunksOf } from './placeFromPack.ts';
+import { chunksOf, hoardWordsOf, magicItemOf } from './placeFromPack.ts';
 import { PLACE_TEXT_MAX } from './placePlay.ts';
 
 /** Coin by the setting's coin key, whole numbers (hard rule 8). */
@@ -39,6 +39,16 @@ export interface ThingRow {
   unknownItemId?: string;
   /** What it is worth (`value`), the GM's alone (pg-1); null when the pack gives none. */
   worth: Coins | null;
+  /** How many the row hands out (B15, p2p-28: a treasure entry's `qty`, b15f-1; a whole number of 1 or more); 1 when not given. */
+  qty: number;
+  /**
+   * What the senses tell of the magic item this thing is (b15f-2: the pack's `magicItem.noticed`), the players' to read
+   * once drawn, never mixed with the truth; kept here with the thing as found and drawn nowhere before 5 December. Null
+   * otherwise.
+   */
+  noticed: string | null;
+  /** The real name of the magic item this thing is (B15, p2p-29: the entry's `magicItem`), the GM's alone; null otherwise. */
+  magic: string | null;
 }
 
 /** Coin to hand out: one entry's `coins`. */
@@ -65,6 +75,8 @@ export type HoardRow = ThingRow | CoinRow;
 /** The rows a tap on a Treasure piece offers: its hoard (pf-6) and the hoard's name; a lone entry is a hoard of one. */
 export interface Hoard {
   name: string | null;
+  /** The hoard's own line of words (B15, p2p-28: the place's `hoards`), as the piece shows it; null for a hoard without. */
+  words: string | null;
   rows: HoardRow[];
 }
 
@@ -105,7 +117,9 @@ function coinRow(entry: Record<string, unknown>, index: number, text: string, se
 
 function thingRow(entry: Record<string, unknown>, index: number, text: string, items: ReadonlySet<string>): ThingRow {
   const id = words(entry.itemId);
-  const row: ThingRow = { kind: 'thing', entry: index, text, itemId: id && items.has(id) ? id : null, worth: worthOf(entry.value) };
+  const qty = whole(entry.qty) && entry.qty >= 1 ? entry.qty : 1;
+  const magic = magicItemOf(entry);
+  const row: ThingRow = { kind: 'thing', entry: index, text, itemId: id && items.has(id) ? id : null, worth: worthOf(entry.value), qty, magic: magic?.name ?? null, noticed: magic?.noticed || null };
   if (id && !items.has(id)) row.unknownItemId = id;
   return row;
 }
@@ -125,17 +139,58 @@ function rowsOf(entry: Record<string, unknown>, index: number, setting: readonly
  * parts of a long one); its hoard is every entry at the place sharing its `hoard` name, or the entry alone. No
  * treasure behind the piece: no rows. Never throws; changes nothing it is given.
  */
-export function hoardRows(piece: { kind: string; text: string }, place: Record<string, unknown>, coins: readonly Denomination[], items: ReadonlySet<string>): Hoard {
-  const none: Hoard = { name: null, rows: [] };
+export function hoardRows(piece: { kind: string; text: string; lead?: string | null }, place: Record<string, unknown>, coins: readonly Denomination[], items: ReadonlySet<string>): Hoard {
+  const none: Hoard = { name: null, words: null, rows: [] };
   if (piece.kind !== 'treasure' || !Array.isArray(place.treasure)) return none;
   const entries = place.treasure as unknown[];
+  // A hoard with its own words is one piece led by its name (B15): found by that name, so the GM may change its words.
+  const lead = (piece.lead ?? '').trim();
+  const hoardWords = lead ? hoardWordsOf(place).get(lead) : undefined;
+  if (hoardWords !== undefined) {
+    const members = entries.flatMap((e, index) => (isObject(e) && words(e.text) !== '' && words(e.hoard) === lead ? [[e, index] as const] : []));
+    return { name: lead, words: hoardWords, rows: members.flatMap(([e, index]) => rowsOf(e, index, coins, items)) };
+  }
   const said = piece.text.trim();
   const at = entries.findIndex((e) => isObject(e) && words(e.text) !== '' && pieceParts(words(e.text)).includes(said));
   if (at < 0) return none;
   const tapped = entries[at] as Record<string, unknown>;
   const name = words(tapped.hoard) || null;
   const members = entries.flatMap((e, index) => (isObject(e) && words(e.text) !== '' && (index === at || (name !== null && words(e.hoard) === name)) ? [[e, index] as const] : []));
-  return { name, rows: members.flatMap(([e, index]) => rowsOf(e, index, coins, items)) };
+  return { name, words: null, rows: members.flatMap(([e, index]) => rowsOf(e, index, coins, items)) };
+}
+
+/** A thing row's words with how many, as the hoard's sheet shows it (page 30, HM2): "Swords ×4"; a single one alone. */
+export const thingWords = (row: Pick<ThingRow, 'text' | 'qty'>): string => (row.qty > 1 ? `${row.text} ×${row.qty}` : row.text);
+
+/**
+ * The thing a magic item's piece tells the truth of (B15, p2p-29): the piece is led by the item's real name, and the
+ * place's treasure entry whose `magicItem` has that name is the thing (`entry`, its place in the treasure list, as a
+ * hoard row's). Null for any other piece, or when no entry has that name. Pure; never throws.
+ */
+export function magicPieceOf(piece: { kind: string; lead?: string | null }, place: Record<string, unknown>): { entry: number; name: string } | null {
+  const lead = (piece.lead ?? '').trim();
+  if (piece.kind !== 'other' || !lead || !Array.isArray(place.treasure)) return null;
+  const entry = (place.treasure as unknown[]).findIndex((e) => isObject(e) && words(e.text) !== '' && magicItemOf(e)?.name === lead);
+  return entry < 0 ? null : { entry, name: lead };
+}
+
+/**
+ * The things in a send that arrive named (B15, page 30, HM3's pick): each thing row with a magic item whose piece is
+ * revealed (`revealed`: shown to some group by a show not undone, hidden since or not), as `find.give`'s `named` (its
+ * piece, and its place among the send's things). Whichever group's card it is sent from (the local review of #10, under
+ * sw-8: a name revealed is everyone's). Every such thing, not only the first (the local review of #1101). Pure.
+ */
+export function namedThings(
+  rows: readonly HoardRow[],
+  pieces: readonly { id: string; kind: string; lead?: string | null }[],
+  place: Record<string, unknown>,
+  revealed: ReadonlySet<string>,
+): { piece: string; thing: number }[] {
+  const things = rows.filter((r): r is ThingRow => r.kind === 'thing');
+  return things.flatMap((thing, at) => {
+    const piece = thing.magic ? pieces.find((p) => revealed.has(p.id) && magicPieceOf(p, place)?.entry === thing.entry) : undefined;
+    return piece ? [{ piece: piece.id, thing: at }] : [];
+  });
 }
 
 // K21's logic half (docs/plans/dec-6-the-whole-pack-tab.md, row K21 and "The first-night seven"; pf-6, pf-24, pf-24a,

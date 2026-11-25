@@ -43,6 +43,8 @@ export interface Step {
   onBadRest: { condition: string }[];
   /** Only while this optional rule is on (07 `option`, WA1: any camp step may carry it); missing or null: always. */
   onlyWithOption?: string | null;
+  /** The book's page for the step (07 `source`, G-07); absent when the pack gives none. */
+  source?: string;
 }
 
 export type CheckModifier = (
@@ -171,6 +173,8 @@ export interface Rest {
   length: Amount | null;
   condition: string | null;
   note: string | null;
+  /** The book's page for the rest rule (07 `source`, G-07); absent when the pack gives none. */
+  source?: string;
 }
 
 /** The campfire (07 `camp.fire`, D16): the light type it burns as; its `fuelItemId` is the firewood. */
@@ -262,6 +266,8 @@ export interface ExplorationRules {
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const text = (value: unknown): string | null => (typeof value === 'string' && value.trim() ? value : null);
+/** A `source` the pack gives, as a field to spread; nothing when it gives none (so readers' shapes stay as they were). */
+const sourceOf = (value: Record<string, unknown>): { source?: string } => (text(value.source) ? { source: (value.source as string).trim() } : {});
 const int = (value: unknown): number | null => (typeof value === 'number' && Number.isInteger(value) ? value : null);
 const records = (value: unknown): Record<string, unknown>[] => (Array.isArray(value) ? value.filter(isRecord) : []);
 const strings = (value: unknown): string[] => (Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string' && v.length > 0) : []);
@@ -302,6 +308,7 @@ function readStep(data: Record<string, unknown>, i: number): Step | null {
     icon: iconOf(data.icon),
     kind,
     note: noteOf(data),
+    ...sourceOf(data),
     tableId: text(data.tableId),
     tableBySeason: stringMap(data.tableBySeason),
     checkId: text(data.checkId),
@@ -486,7 +493,7 @@ export function readWeather(value: unknown): Weather | null {
 function readRest(value: unknown): Rest | null {
   if (!isRecord(value)) return null;
   const every = amountOf(value.every);
-  return every && every.value > 0 ? { every, length: amountOf(value.length), condition: text(value.condition), note: noteOf(value) } : null;
+  return every && every.value > 0 ? { every, length: amountOf(value.length), condition: text(value.condition), note: noteOf(value), ...sourceOf(value) } : null;
 }
 
 function readCamp(value: unknown): Camp | null {

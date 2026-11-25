@@ -6,6 +6,8 @@ import type { PackPlace } from './placeTree.ts';
 import {
   bandHeading,
   checkFact,
+  checkRule,
+  checkSheetLines,
   dateWords,
   departAreaName,
   departLocationGroups,
@@ -21,12 +23,15 @@ import {
   TOWN_STEP_LABEL,
   lightFact,
   lightLeftWords,
+  lightSheetLines,
   regionOfChain,
   restEveryWords,
   restFact,
+  restSheetLines,
   seasonIconOf,
   sessionLine,
   sessionStateOf,
+  settingRule,
   weatherFact,
 } from './sceneTop.ts';
 
@@ -333,5 +338,83 @@ describe('the Depart sheet of p2p-5 (plan scene-point-to-point B7; page 24, DP1)
     const b = place('b', 'Loop B', 'site', 'a');
     // The loop's places are no pack's roots, so the walk never reaches them; the rest still lists, and nothing hangs.
     expect(departLocationGroups([a, b, anchorage]).flatMap((g) => g.locations.map((p) => p.name))).toEqual(['The Anchorage']);
+  });
+});
+
+describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, PL8)", () => {
+  // Purpose: the Light pop-up lists each lit light with the time it has left, a light that never runs out by its name
+  // alone, a group in the dark as "No light." and one with nothing lit as "Nothing lit."; groups are named only where
+  // the player has more than one.
+  it('says each light and its time left, the dark and nothing lit', () => {
+    const lit = { group: 1, name: 'Group 1', dark: false, lights: [{ name: 'Ash’s torch', stepsLeft: 4 }, { name: 'Glow-worm jar', stepsLeft: null }] };
+    expect(lightSheetLines([lit], 'turn')).toEqual([
+      { label: 'Ash’s torch.', words: '4 turns left.' },
+      { label: 'Glow-worm jar.', words: '' },
+    ]);
+    expect(lightSheetLines([{ group: 1, name: 'Group 1', dark: true, lights: [] }], 'turn')[0]!.label).toBe('No light.');
+    expect(lightSheetLines([lit, { group: 2, name: 'Group 2', dark: false, lights: [] }], 'turn').map((l) => l.label)).toEqual(['Group 1: Ash’s torch.', 'Group 1: Glow-worm jar.', 'Group 2: Nothing lit.']);
+  });
+
+  // Purpose (the audit of #86, Francis's pick 5): a group in the dark reads "No light." then "Nobody in the group has a
+  // light lit, so they are in darkness. Light one from a pack.", with no bracket after it.
+  it('says the dark in plain words, with no bracket', () => {
+    expect(lightSheetLines([{ group: 1, name: 'Group 1', dark: true, lights: [] }], 'turn')).toEqual([
+      { label: 'No light.', words: 'Nobody in the group has a light lit, so they are in darkness. Light one from a pack.' },
+    ]);
+  });
+
+  // Purpose: the Rest pop-up says when the next rest falls, whole; the small line that only repeats the rule is left
+  // to "The rule", and one that says more ("You pushed on.") stays.
+  it('says when the next rest falls', () => {
+    const rule = 'One turn in six.';
+    expect(restSheetLines(restFact({ groups: [{ group: 1, name: 'Group 1', open: false, stepsLeft: 4 }], ruleWords: rule, stepWord: 'turn', day: false })!, rule)).toEqual([{ label: 'Next.', words: 'In 4 turns.' }]);
+    expect(restSheetLines(restFact({ groups: [{ group: 1, name: 'Group 1', open: false, stepsLeft: 4 }], ruleWords: rule, stepWord: 'turn', day: false, pushedOn: true })!, rule)).toEqual([{ label: 'Next.', words: 'Rest due. You pushed on.' }]);
+  });
+
+  // Purpose: the Encounter check pop-up says when it is rolled and its chance; a check with no chance has no chance line.
+  it('says when the check is rolled and its chance', () => {
+    const fact = checkFact({ name: null, eachMove: true, every: null, chance: { die: 'd6', on: [1] }, fallbackUnit: 'turn' });
+    expect(checkSheetLines(fact)).toEqual([
+      { label: 'When.', words: 'On every move.' },
+      { label: 'Chance.', words: '1 in 6.' },
+    ]);
+    expect(checkSheetLines(checkFact({ name: null, eachMove: true, every: null, chance: null, fallbackUnit: 'turn' }))).toHaveLength(1);
+  });
+
+  // Purpose: a rule shows the pack's words and then its page as the setting's; with no words there is no rule at all,
+  // not even a source line.
+  it('ends a rule with its source, and has none without words', () => {
+    expect(settingRule(['The party rests one turn in every six.'], 'Fen Rules, p. 50')).toEqual([
+      { kind: 'p', lead: '', text: 'The party rests one turn in every six.' },
+      { kind: 'source', text: 'From your setting: Fen Rules, p. 50' },
+    ]);
+    expect(settingRule([null], 'Fen Rules, p. 50')).toEqual([]);
+  });
+
+  // Purpose: the check's words a player reads are the note of the procedure step that runs it, and only while the rules
+  // set opens its procedures to players; the check's own note (the GM's) is never among them.
+  it('reads the check step’s words only where the procedures are open to players', () => {
+    const [mode] = readExploration([
+      {
+        exploration: {
+          playerReadable: true,
+          modes: [
+            {
+              id: 'creep',
+              name: 'Creeping',
+              step: { value: 1, unit: 'turn' },
+              procedure: [{ id: 'wander-step', name: 'Wandering', kind: 'check', checkId: 'wander', note: 'The GM rolls for what wanders the fen.', source: 'Fen Rules, p. 40' }],
+              checks: [{ id: 'wander', name: 'Wandering things', every: { value: 2, unit: 'turn' }, chance: { die: 'd6', on: [1] }, note: 'Only the GM reads this.' }],
+            },
+          ],
+        },
+      },
+    ]).modes;
+    expect(checkRule(mode!, 'wander', true)).toEqual([
+      { kind: 'p', lead: '', text: 'The GM rolls for what wanders the fen.' },
+      { kind: 'source', text: 'From your setting: Fen Rules, p. 40' },
+    ]);
+    expect(checkRule(mode!, 'wander', false)).toEqual([]);
+    expect(JSON.stringify(checkRule(mode!, 'wander', true))).not.toContain('Only the GM');
   });
 });

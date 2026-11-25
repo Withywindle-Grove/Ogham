@@ -11,6 +11,7 @@ import { readPackFile } from '../src/modules/library/packMarkdown.ts';
 import { conditionLookNotes, conditionNoteNotes } from './pack-descriptions.mjs';
 import { FORMAT_ONLY_PARTS, USES_PER, formatCounts, formatNotes, rumourWeatherErrors, rumourWeatherLibraryErrors } from './pack-format.mjs';
 import { kitDiceFinding } from './pack-additions.mjs';
+import { bundlePictures, readPackOrBundle } from './pack-bundle.mjs';
 import { itemClashNotes, sameNameOptionNotes, sameNamePairLines } from './pack-library.mjs';
 import { manualNotes, manualOptions } from './pack-manual.mjs';
 import { fieldGateNotes, optionGateNotes, patchLibraryErrors, patchLibraryNotes, patchPathErrors } from './pack-option-gates.mjs';
@@ -41,9 +42,15 @@ if (paths.length === 0) {
 }
 
 /** Checks one file and prints what it found; returns its exit code and, when it reads, the pack's name and entries. */
-function checkOne(path) {
-  const fileText = readFileSync(path, "utf8");
-  const read = readPackFile(basename(path), fileText);
+async function checkOne(path) {
+  // A bundle (B14): the pack file inside the .zip is checked as any pack file is.
+  const picked = await readPackOrBundle(basename(path), readFileSync(path));
+  if (!picked.ok) {
+    console.error(`Can't be imported: ${picked.message}`);
+    return { code: 1, pack: null };
+  }
+  const fileText = picked.text;
+  const read = readPackFile(picked.name, fileText);
   if (!read.ok) {
     console.error(`Can't be imported: ${read.message}`);
     return { code: 1, pack: null };
@@ -142,6 +149,13 @@ function checkOne(path) {
   if (layout.errors.length > 0) console.log(`\nStat block layout, to fix (${layout.errors.length}):\n${layout.errors.map((e) => `  - ${e}`).join('\n')}`);
   if (layout.warnings.length > 0) console.log(`\nStat block layout notes (${layout.warnings.length}):\n${layout.warnings.map((w) => `  - ${w}`).join('\n')}`);
 
+  // A bundle's pictures (B14, p2p-27): a missing one is named; the pack still imports, so the exit code stays.
+  if (picked.picture) {
+    const pictures = bundlePictures(file, picked.picture);
+    console.log(`\nBundle: the pack file is ${picked.name}; pictures for ${pictures.found} of ${pictures.maps === 1 ? '1 map' : `${pictures.maps} maps`}.`);
+    if (pictures.missing.length > 0) console.log(`Missing pictures (${pictures.missing.length}; the pack still imports, and each can be added by hand):\n${pictures.missing.map((m) => `  - ${m}`).join('\n')}`);
+  }
+
   if (warnings.length > 0) console.log(`\nGood to know (${warnings.length}):\n${warnings.map((w) => `  - ${w}`).join('\n')}`);
   // Shapes the app can't read: a procedure on a place or the rules set (pf-14) and rule text (pf-18). Errors, so the
   // exit code is 1.
@@ -198,7 +212,7 @@ function checkOne(path) {
 const results = [];
 for (const path of paths) {
   if (paths.length > 1) console.log(`\n=== ${path}`);
-  results.push(checkOne(path));
+  results.push(await checkOne(path));
 }
 const packs = results.map((r) => r.pack).filter((p) => p !== null);
 /** Errors only the packs together show (pf-19's refused sets); any makes the exit code 1. */
