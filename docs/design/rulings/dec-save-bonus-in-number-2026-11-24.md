@@ -1,13 +1,54 @@
 ---
-status: pending
+status: absorbed
 milestone: December first play (a player's bug report, 2026-11-24; row design-save-bonus-in-number)
-absorbed-into: nothing yet. Once Francis approves the drawing (frames 42-22 to 42-29, with the sheets of 42-19 and 42-20): docs/09-decisions-log.md, CLAUDE.md (hard rule 7, the named exception), docs/07-content-packs.md (Races, Classes, `saveModifiers`; the low-natural flag as pending), docs/06-screens-and-design.md (the Save tile, the Figure head's sheet, the tokens table), docs/05-features.md (the sheet's saves)
-supersedes: nothing until Francis approves the drawing. It then supersedes, for saves only: the 2026-10-25 line "Save modifiers … shown beside saves …, never added in (tentative)"; bq-8 of m5b-builder-questions-2026-11-03.md (a kindred's bonus by Constitution "beside the save, not added in"); pf-21 of dec-player-screen-2026-11-14.md ("shown beside the save and never added in"); the part of sv-2a (same file) that keeps the class-and-level line off a save's sheet; and the part of sv-2 (same file) that puts the general rule on each save's sheet (he chose M)
+absorbed-into: 2026-11-25: docs/09-decisions-log.md (nine lines, 2026-11-25), docs/05-features.md ("Save bonuses in the number"), docs/06-screens-and-design.md (Type and its table; the Save row; the Breakdown sheet; the gallery tests), docs/07-content-packs.md (`saveBonus`, `saveBonusByCon`, `saveModifiers`; the two flags under `naturals` and a condition's short word, as pending), docs/04-data-model.md (saveModifiers), docs/11-modelling-gaps.md (G-220, G-221, G-222), docs/10-open-questions.md (what it left open), docs/testing.md (the under-14 rule's exception). Not in that commit: CLAUDE.md, hard rule 7's sentence for the named exception (see "Absorbed", below)
+supersedes: for saves only: the 2026-10-25 line "Save modifiers … shown beside saves …, never added in (tentative)"; bq-8 of m5b-builder-questions-2026-11-03.md (a kindred's bonus by Constitution "beside the save, not added in"); pf-21 of dec-player-screen-2026-11-14.md ("shown beside the save and never added in"); the part of sv-2a (same file) that keeps the class-and-level line off a save's sheet; and the part of sv-2 (same file) that puts the general rule on each save's sheet (he chose M)
 ---
 
-# Save bonuses counted in the save's number (pending, 2026-11-24)
+# Save bonuses counted in the save's number (absorbed 2026-11-25)
 
-**Francis answered the questions on 2026-11-24 and ruled on 2026-11-25, twice and then on ⚑ 10 to 13; the drawing of his answers (frames 42-29 and the redrawn 42-28, then 42-22 to 42-27, with the sheets of 42-19 and 42-20) waits for his approval, so this file stays pending.** Nothing goes into `09`, `CLAUDE.md` or the specs, and nothing is built, until he approves the pictures. Open: ⚑ 14 and ⚑ 15.
+## Absorbed, 2026-11-25: every answer, and whose words
+
+Francis's own words are quoted. "Overnight" means: the driver's advice, approved under Francis's overnight authority (25 Nov), after the PC session's impeccable critique of c3ce6a4. His words for that authority, until 07:00 EST on 25 November: **"I approve your advise on screens after impeccable reviews."** The critique scored the page 34 of 40.
+
+| Topic | Ruled | Whose words | Drawn |
+|---|---|---|---|
+| ⚑ 10 | The at-times line keeps "vs" ("11 vs venom") and is **12 px**: a named exception to hard rule 7, for that line only | Francis: "10 make an exception and drop to 12 px" | 42-29; 42-28 (third picture) |
+| ⚑ 10, the critique's finding 1 | The line's **number is in ink**; "vs venom" stays muted; 12 px, the same font and weight | Overnight | 42-29, 42-28, 42-25 |
+| ⚑ 11 | The number stops at 2 **only where the pack says so as data**; otherwise at 1, with no rule sentence | Francis: "11-13 agreed" | 42-25 |
+| ⚑ 12 | On the sheet, the "Only at times" label and the "→" figures | Francis: "11-13 agreed" | 42-26 |
+| ⚑ 13 | Keep the ⓘ, at the end of the roll line | Francis: "11-13 agreed" | 42-29, 42-28 |
+| The critique's finding 4 | 42-29's 1024 px block redrawn to match the real screen (42-28): the roll line with the ⓘ at its end takes its own row under "Saves"; the heading row grows from 24 to 49 px. Accepted | Overnight | 42-29 |
+| ⚑ 14 | **Yes.** A sheet row that the floor held back says "no lower than 1" in quiet words. It says what happened to this character's number, not a rule | Overnight | 42-25, 42-26 (fifth sheet) |
+| ⚑ 15 | **Keep S6**, once under the Saves heading, reworded so it has no signed number: "Vs magic: each save 1 lower (Spell ward, from Lore)." Where low rolls succeed it reads "1 higher". The app builds the words from the rules set's direction | S6 itself is Francis's (24 Nov, "2–8 as recommended"); keeping it and the new words are overnight | 42-29; 42-28 (third picture) |
+| 42-25, the sentence | At a stop at 2 that the pack flags as data, the sheet shows the pack's own sentence under the roll line (it agrees with the number). At the stop at 1, no sentence, as ruled | Overnight | 42-25 |
+| The top of the die (the critique's finding 3) | Ruled the same way as the bottom: where an at-times bonus pushes the number past the die's top face ("21 vs venom"), the line shows the worked number as it is (honest: it cannot succeed). It stops at the top face only if the pack flags, as data, that a top natural always succeeds: the same pending pack-format flag as the bottom's | Overnight | 42-25 (second row) |
+
+**Build notes** (overnight; for the plan):
+
+| # | Note |
+|---|---|
+| 1 | A no-break space between the number and "vs", so a wrap never leaves the number alone |
+| 2 | A layout check at 80 px with "20 vs venom", in Chromium **and** WebKit, that accepts one line or the clean break "20 vs" / "venom", and nothing else |
+| 3 | **One** role token only, `--text-save-line: calc(12px * var(--text-scale, 1))`, and **no** general `--text-12` (this replaces the two-token proposal in the exception's table below) |
+| 4 | A guard test that `--text-save-line` is used only in the save tile's CSS |
+| 5 | The layout checks' "nothing under 14 px" whitelists that one selector by name |
+
+**The frames of record:** 42-29, 42-28's third picture, 42-25 and 42-26, with the sheets of 42-19 and 42-20. 42-22, 42-23, 42-24 and 42-27 are kept as first drawn (the ⓘ beside "Saves", the heading's line with "+1", the line all muted); where they differ, 42-29 wins. On the sheets the rows keep the book's own sign ("+1 from Lore"; S3): ⚑ 15 reworded the heading's line only.
+
+**Drawn beyond what was said, for the driver to confirm:** 42-26's fifth sheet puts "no lower than 1" on an "Only at times" row (⚑ 14 with ⚑ 12); 42-25's flagged sheets say "no lower than 2" and "no higher than 20" (the stop's own number); 42-29 shows the "1 higher" wording and the usual case with the hue taken away.
+
+**Not in the absorbing commit: `CLAUDE.md`.** The sentence for hard rule 7 is ready: "One named exception: a save tile's at-times line is 12 px (`--text-save-line`), ruled by Francis 2026-11-25; nothing else under 14." The design agent does not change `CLAUDE.md` on another session's word; it goes in from Francis or from a session he tells directly. Until then 06 (Type) and 09 carry the exception.
+
+**Left open** (in `docs/10-open-questions.md`): a tile's own figure past the hard end; a status that changes saves, a save set by hand and the fight's save prompt; the two flags' shapes and a condition's short word (G-220 to G-222); the 12 px line at the real table.
+
+The `09` lines are in `docs/09-decisions-log.md` under 2026-11-25 (`[sheet]` four, `[ui]` two, `[words]` two, `[packs]` one).
+
+---
+
+*What follows is the file as it stood while pending, kept as the record. Where it differs from the table above, the table wins.*
+
+**Francis answered the questions on 2026-11-24 and ruled on 2026-11-25, twice and then on ⚑ 10 to 13; the drawing of his answers (frames 42-29 and the redrawn 42-28, then 42-22 to 42-27, with the sheets of 42-19 and 42-20) waited for his approval, so this file stayed pending** until 2026-11-25 (above).
 
 ## Francis's rulings on ⚑ 10 to 13, 2026-11-25 (the driver's chat)
 
@@ -99,8 +140,8 @@ Two conditions on one save are a line each in every form: the shortest joined fo
 | 11 (**answered: 2 only where the pack flags it as data**) | A number stops at the die's lowest face (ruled, question 4), or at the lowest roll that can succeed where the pack says a rolled 1 always fails (42-25)? | Keep the ruling; show the pack's own sentence under the roll line where it has one. |
 | 12 (**agreed**) | On the sheet, an "Only at times" label and "→ 11" on the rows that hold at times (42-26)? | Yes: the sheet is now the only place a counted bonus is explained. |
 | 13 (**answered: keep the ⓘ, at the end of the roll line**) | The roll line as the tap that opens the general rule, in place of the ⓘ (42-27)? | Keep the ⓘ (ruled M). The tap line is 44 px against 51 on a tablet, taller on a phone, and the Scores line beside it would not be a tap. |
-| 14 | A Modifiers row that the stop holds back says so in quiet words under it, "no lower than 1" (42-25, fifth sheet; the PC session's critique, finding 3)? Question 4 was ruled "with no sentence that states a rule". | Not given: drawn at the driver's word as an option only. |
-| 15 | The bonus every save has at times (the +1 against magic): once under the Saves heading (S6, ruled 2026-11-24, and drawn so), or a line on every tile, as the PC session's critique read "Only partial save like +2 vs poison needs to be listed" (42-22, third set)? | Keep S6: on every tile it is five lines that say one thing, two lines deep at 80 px and four on a save with a second condition. |
+| 14 (**answered: yes**) | A Modifiers row that the stop holds back says so in quiet words under it, "no lower than 1" (42-25, fifth sheet; the PC session's critique, finding 3)? Question 4 was ruled "with no sentence that states a rule". | Not given: drawn at the driver's word as an option only. |
+| 15 (**answered: keep S6, reworded with no signed number**) | The bonus every save has at times (the +1 against magic): once under the Saves heading (S6, ruled 2026-11-24, and drawn so), or a line on every tile, as the PC session's critique read "Only partial save like +2 vs poison needs to be listed" (42-22, third set)? | Keep S6: on every tile it is five lines that say one thing, two lines deep at 80 px and four on a save with a second condition. |
 
 **Redrawn 2026-11-25 after the PC session's `impeccable critique`, finding 1** (the tiles and the sheets disagreed: the tiles had no word of the +1 against magic that every sheet shows, and 42-26 used another character's Fever). One character now runs through 42-22, 42-26, 42-27 and 42-28, and his sheets are 42-19's: Fever 13 with "11 vs venom" and, on its sheet, 12 against magic; Wisps 12, 11 against magic. Every row of a sheet that holds at times is on the Player tab: on its tile, or in the heading's line. The forms of 42-23 and 42-24 are untouched.
 
@@ -261,7 +302,7 @@ Francis widened the question (2026-11-24, the driver's chat): a save's sheet mus
 
 Data and logic: the save's number worked out with its bonuses and the roll's direction, its tests, and the rows for the sheet. Screens: the tile's second line (A; D1 and D2 use the same part and cost about the same) and its spoken name, the sheet's rows and second roll line, the line under the heading. The save's own line, the Modifiers row for a `saveModifiers` entry, and (M) the ⓘ with its pop-up add a little. About 5 to 7 builder turns, one pull request, or two if the bug fix (S8) goes first; no migration, no stored data changes. Nothing is built until Francis picks and approves frames.
 
-## When he approves the drawing
+## When he approves the drawing (done 2026-11-25; the line below was split into nine)
 
 Docs to update: `docs/09-decisions-log.md` (one line, below), `CLAUDE.md` (hard rule 7: the named exception, in the same commit as 06), `docs/07-content-packs.md` (Races and Classes: `saveBonus`, `saveBonusByCon`; `saveModifiers`; the low-natural flag, as pending), `docs/06-screens-and-design.md` (the Save tile and its sheet in the Components inventory; the tokens table: `--text-12`, `--text-save-line`; the type rule's exception), `docs/05-features.md` (the sheet's saves; the save's own line from `saveCategories[].notes`; where the general rule lives); mark the superseded parts in the three older ruling files; a plan in `docs/plans/`.
 
