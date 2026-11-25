@@ -236,6 +236,18 @@ Picture: one screenshot, not committed: it shows a private pack's item text and 
 
 Reads as: four parts. (a) Bug: tapping the closed eye does not reveal either row to the party. (b) A found item needs a way for the party to take it, into the party stash or to a character. (c) The row shows the pack's machine ID for the item; show a name a person can read. (d) A question for the driver: is there a plan for sharing out found treasure before 5 December?
 
+### F21. Stat lines and item rules at hand: the second place
+
+Screen: GM's Scene at place 2. "From the book, for the GM" (folded, with the crossed-out eye), "Knowledge", "Rules", "Checks here" (the encounter check with a toggle), then the place's text as rows, each with an open-eye icon. One row names two sailors (with "(p. 13)"). Lower, two found rows: a stack of 12 of a pack item ("Value stays yours (Item: <pack item ID>).") and a creature group ("The stat line never shows (<pack creature ID> ×6).").
+
+Pictures: two screenshots, not committed: they show a private pack's place text, characters, items and IDs (hard rule 2).
+
+> same story, need a sailor stat line. and an [creature] stat line (there is already an eel stat line in "for the gm" we could. put a "sailor" stat line here too.) need a way to distribute the [item] and need their mechanic easily at hand. (it's already in "for the gm" but this is a general principle.)
+
+([creature] and [item] are a pack creature and a pack item.)
+
+Reads as: the same needs as F19 and F20, as a general principle. (a) The sailors here need their stat line at hand. (b) The creature group needs its stat line at hand; the row says "The stat line never shows", though the book text already has it. A sailor stat line could sit here the same way. (c) A found item needs a way to share it out (F20 (b)) and its rule at hand, not only inside the book's text.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
