@@ -15,6 +15,7 @@ import { clockShown, type Amount, type TimeUnits } from './clock.ts';
 import { readPlaceFacts, type PlaceSection } from './placeFacts.ts';
 import type { PlayersRule } from './placeRules.ts';
 import { keyedName } from './placeTree.ts';
+import { readsAs } from './placePlay.ts';
 
 const text = (value: unknown): string => (typeof value === 'string' ? value : '');
 
@@ -143,8 +144,8 @@ export function readPlaceCards(rows: readonly Record<string, unknown>[]): Map<nu
 }
 
 /** A player's cards; null when they can't be read (the screen keeps its last good read). */
-export async function loadPlayersPlaceCards(db: Db, campaignId: string): Promise<Map<number, PlayersPlaceCard> | null> {
-  const { data, error } = await db.rpc('place_card_for_players', { campaign: campaignId });
+export async function loadPlayersPlaceCards(db: Db, campaignId: string, asPlayer?: string): Promise<Map<number, PlayersPlaceCard> | null> {
+  const { data, error } = await db.rpc('place_card_for_players', readsAs(campaignId, asPlayer));
   if (error) return null;
   return readPlaceCards((data ?? []) as Record<string, unknown>[]);
 }
@@ -169,8 +170,8 @@ export function readSharedKnowledge(rows: readonly Record<string, unknown>[]): S
 }
 
 /** What a player's groups have been shared; null when it can't be read. */
-export async function loadPlayersKnowledge(db: Db, campaignId: string): Promise<SharedKnowledge[] | null> {
-  const { data, error } = await db.rpc('knowledge_for_players', { campaign: campaignId });
+export async function loadPlayersKnowledge(db: Db, campaignId: string, asPlayer?: string): Promise<SharedKnowledge[] | null> {
+  const { data, error } = await db.rpc('knowledge_for_players', readsAs(campaignId, asPlayer));
   if (error) return null;
   return readSharedKnowledge((data ?? []) as Record<string, unknown>[]);
 }

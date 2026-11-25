@@ -265,7 +265,10 @@ describe("the GM's Campaign screen", () => {
     await vi.waitFor(() => expect(screen.queryByText('For Wren')).toBeNull());
   });
 
-  it("lists each player with their characters, marking the active one and any waiting for approval", async () => {
+  // Purpose (page 32, M3a and M3b; pg32-match, 2026-11-21): a character's row reads "Wren, level 1" over its player's
+  // name and when they joined, with no "(active)"; a character waiting for approval is not a row, only in Waiting for
+  // approval.
+  it("lists each player's characters by name and level over the player's line; a waiting one only in Waiting for approval", async () => {
     const gm = world.addPerson('priya@lantern.example', 'Priya');
     const wrenPlayer = world.addPerson('wren@lantern.example', 'Sam');
     const campaign = world.addCampaign('The Ash Barrows', gm);
@@ -278,8 +281,11 @@ describe("the GM's Campaign screen", () => {
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(user);
     // One line per character, each naming its player (ruled 2026-10-26).
-    expect((await screen.findByText('Wren (active)')).closest('li')!.textContent).toContain('Sam, joined');
-    expect(screen.getByText('Hollis (waiting for approval)').closest('li')!.textContent).toContain('Sam, joined');
+    const row = (await screen.findByText('Wren', { selector: '.gm__row-name' })).closest('li')!;
+    expect(row.querySelector('.gm__row-main')!.textContent).toMatch(/^Wren, level 1Sam, joined /);
+    expect(screen.queryByText(/\(active\)/)).toBeNull();
+    expect(screen.queryByText(/Hollis \(waiting for approval\)/)).toBeNull();
+    expect(await screen.findByText('New character waiting: Hollis')).toBeTruthy();
   });
 
   function waitingCharacter(hpMax: number | null = 5) {
@@ -312,7 +318,7 @@ describe("the GM's Campaign screen", () => {
     await user.click(screen.getByRole('button', { name: 'Approve' }));
 
     expect(await screen.findByText('Hollis approved at level 2.')).toBeTruthy();
-    await vi.waitFor(() => expect(screen.getByText('Hollis (active)').closest('li')!.textContent).toContain('Sam, joined'));
+    await vi.waitFor(() => expect(screen.getByText('Hollis', { selector: '.gm__row-name' }).closest('li')!.textContent).toContain('Sam, joined'));
     const member = world.tables.members.find((m) => m.user_id === player)!;
     expect(world.tables.actors.find((a) => a.id === member.active_actor_id)).toMatchObject({ level: 2, hp_max: null });
   });
@@ -2663,7 +2669,7 @@ describe('portraits', () => {
     const gmUser = openApp();
     await gmUser.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(gmUser);
-    const line = (await screen.findByText('Wren (active)')).closest('.gm__character-row') as HTMLElement;
+    const line = (await screen.findByText('Wren', { selector: '.gm__row-name' })).closest('.gm__character-row') as HTMLElement;
     await vi.waitFor(() => expect(pictureIn(line)).toBe(`https://files.example/${campaign}/asset-wren?signed`));
     // The character's own line names its player (ruled 2026-10-26: no player column).
     expect(line.textContent).toMatch(/, joined /);
@@ -3257,25 +3263,22 @@ describe('the full character sheet', () => {
     expect(await screen.findByText('Marsh folk, Level 3')).toBeTruthy();
   });
 
-  it("the GM opens a player's sheet from the player list, sees hidden fields, and changes the level", async () => {
+  // Since page 32 (pg32-1) the GM's Edit is in the row's ⋯ and opens the sheet's form straight away, as the player's
+  // Edit does; Save comes back to Players.
+  it("the GM edits a player's sheet from the player list, hidden fields included, and changes the level", async () => {
     const { gm, wren } = sheetWorld();
     world.signInAs(gm);
     const user = openApp();
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(user);
-    await user.click(await screen.findByRole('button', { name: "View Wren's sheet" }));
-
-    expect(await screen.findByRole('heading', { name: 'Hidden fields' })).toBeTruthy();
-    expect(screen.getByText('Retired value')).toBeTruthy();
+    await user.click(await screen.findByRole('button', { name: 'More for Wren' }));
     await user.click(screen.getByRole('button', { name: 'Edit' }));
+
+    expect(await screen.findByText('Retired value')).toBeTruthy();
     await user.selectOptions(screen.getByRole('combobox', { name: 'Level' }), 'Level 4');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(await screen.findByText('Saved.')).toBeTruthy();
     expect(actor(wren).level).toBe(4);
-    // With no class, the identity line is the GM's card fields, with commas (plan D); the name is its own heading.
-    expect(document.querySelector('.sheet__identity')?.textContent).toBe('Marsh folk, Level 4');
-
-    await user.click(screen.getByRole('button', { name: 'Back to Players' }));
     expect(await screen.findByRole('button', { name: 'Invite a player' })).toBeTruthy();
   });
 });
@@ -3439,11 +3442,11 @@ describe('undo', () => {
     const gmUser = openApp();
     await gmUser.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(gmUser);
-    await gmUser.click(await screen.findByRole('button', { name: "View Wren's sheet" }));
+    await gmUser.click(await screen.findByRole('button', { name: 'More for Wren' }));
     await gmUser.click(await screen.findByRole('button', { name: 'Edit' }));
     await writeBackstory(gmUser, 'Owes the ferryman');
     await screen.findByText('Saved.');
-    await gmUser.click(screen.getByRole('button', { name: 'Back to Players' }));
+    // Saved from the form, it comes back to Players (pg32-1: Edit in the row's ⋯, as the player's Edit).
     await screen.findByRole('heading', { name: 'Companies' });
     await gmUser.click(await screen.findByRole('button', { name: 'Companies options' }));
     await gmUser.click(screen.getByRole('button', { name: 'New company (GM)' }));
@@ -3542,11 +3545,11 @@ describe('notes', () => {
     const gmUser = openApp();
     await gmUser.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(gmUser);
-    await gmUser.click(await screen.findByRole('button', { name: "View Wren's sheet" }));
+    await gmUser.click(await screen.findByRole('button', { name: 'More for Wren' }));
     await gmUser.click(await screen.findByRole('button', { name: 'Edit' }));
     await writeBackstory(gmUser, 'Fever');
     await screen.findByText('Saved.');
-    await gmUser.click(screen.getByRole('button', { name: 'Back to Players' }));
+    // Saved from the form, it comes back to Players (pg32-1: Edit in the row's ⋯, as the player's Edit).
     await gmUser.click(await screen.findByRole('button', { name: 'Log' }));
     await openLine(gmUser, "You edited Wren's backstory.");
     await gmUser.click(await screen.findByRole('button', { name: "Add a note to: You edited Wren's backstory." }));
@@ -3582,7 +3585,7 @@ describe('fiat', () => {
     const gmUser = openApp();
     await gmUser.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(gmUser);
-    await gmUser.click(await screen.findByRole('button', { name: "View Wren's sheet" }));
+    await gmUser.click(await screen.findByRole('button', { name: 'More for Wren' }));
     await gmUser.click(await screen.findByRole('button', { name: 'Edit' }));
     expect(screen.getByText("This is a player's character, so your changes are logged as a GM ruling (fiat).")).toBeTruthy();
     await gmUser.type(screen.getByLabelText('Reason (optional)'), 'Failed the marsh crossing');
@@ -6103,7 +6106,7 @@ describe('the Pack tab (M4 step 4)', () => {
     expect(world.tables.inventory_lines[0]).toMatchObject({ charges_left: 0 });
   });
 
-  it('handing out a charged item pops up the charges prompt for the GM', async () => {
+  it("handing out a charged item from the GM's own pack pops up the charges prompt for the GM", async () => {
     const { gm } = packWorld('coin');
     wandRules(false);
     world.tables.library_entries.push({ id: 'entry-reed-wand', pack_id: 'pack-fen', kind: 'item', pack_entry_id: 'reed-wand', name: 'Reed wand', data: { id: 'reed-wand', name: 'Reed wand', category: 'wand', weightCoin: 1 } });
@@ -6111,7 +6114,9 @@ describe('the Pack tab (M4 step 4)', () => {
     const user = openApp();
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(user);
-    await user.click(await screen.findByRole('button', { name: "Open Wren's pack" }));
+    // The GM's own pack (Whose pack), not the view, which has no charges prompt (pg32-4, C15e).
+    await user.click(await screen.findByRole('button', { name: 'Inventory' }));
+    await user.click(within(await screen.findByRole('group', { name: 'Whose pack' })).getByRole('button', { name: 'Wren' }));
     await user.click(await screen.findByRole('button', { name: 'Add item' }));
     await user.type(await screen.findByLabelText('Search items'), 'reed');
     await user.click(screen.getByRole('button', { name: /Reed wand/ }));
@@ -6199,7 +6204,7 @@ describe('the Pack tab (M4 step 4)', () => {
     expect(world.tables.events.filter((e) => e.type === 'load.tier')).toEqual([]);
   });
 
-  it("the GM opens a character's pack from Players and characters and recharges a wand through the roll prompt", async () => {
+  it("the GM opens a character's pack from Players' Inventory and recharges a wand through the roll prompt", async () => {
     const { gm, wren, line } = packWorld('coin');
     wandRules(false);
     line(wren, 'Glow wand', wandLine({ charges_left: 1, item_data: { recharge: { amount: '2d6', every: 'day' } } }));
@@ -6207,9 +6212,10 @@ describe('the Pack tab (M4 step 4)', () => {
     const user = openApp();
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(user);
-    await user.click(await screen.findByRole('button', { name: "Open Wren's pack" }));
-    expect(await screen.findByRole('heading', { name: 'Wren’s pack' })).toBeTruthy();
-    await user.click(screen.getByRole('button', { name: /^Glow wand/ }));
+    // The GM's own pack (Whose pack), not the view, whose sheet is the player's (pg32-4, C15e).
+    await user.click(await screen.findByRole('button', { name: 'Inventory' }));
+    await user.click(within(await screen.findByRole('group', { name: 'Whose pack' })).getByRole('button', { name: 'Wren' }));
+    await user.click(await screen.findByRole('button', { name: /^Glow wand/ }));
     // The pack says it can't be recharged, so the GM's button is "Recharge (fiat)"; it opens a prompt.
     await user.click(screen.getByRole('button', { name: 'Recharge (fiat)' }));
     const prompt = within(screen.getByRole('dialog', { name: 'Recharge Glow wand' }));

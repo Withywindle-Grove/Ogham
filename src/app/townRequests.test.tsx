@@ -13,6 +13,7 @@ import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { Root } from './App.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
 import { openDepart, startExpedition } from '../testing/depart.ts';
+import { PlayerViewContext } from './playerView.ts';
 
 vi.mock('./services.ts', async () => {
   const { createAppRegistry } = await import('./commandRegistry.ts');
@@ -329,5 +330,75 @@ describe('town requests (M5b step 6e)', () => {
     const answer = await screen.findByRole('article', { name: "The GM's answer" });
     expect(within(answer).getByText('The miller owes the abbey money.')).toBeTruthy();
     void player;
+  });
+});
+
+// The GM's view as the player (page 32, M3f2, M3i; C15d of plans/test-feedback-2026-11-19.md). Purposes, in plain words:
+//   In the view, the town's player-only buttons (Ask for…, Sell…, Stay here) open their "Only Sam can …" pop-up and
+//   write nothing; so do Cancel on Sam's waiting request and Accept and Decline on the GM's offer.
+// The whole app is wrapped in the view's context with Sam signed in, so his own Scene's real buttons stand for the
+// view's: the view's Scene shows them once C15f makes it the player's.
+describe("the player-only buttons in the GM's view (C15d)", () => {
+  async function inView(person: string) {
+    cleanup();
+    world.signInAs(person);
+    forgetCampaignSetting();
+    const user = userEvent.setup();
+    render(
+      <PlayerViewContext.Provider value={{ player: 'Sam', character: 'Wren', goToWaiting: () => undefined }}>
+        <Root db={world.db} />
+      </PlayerViewContext.Provider>,
+    );
+    await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
+    await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Scene' }));
+    return user;
+  }
+  /** The pop-up by its title; "Got it" puts it away. */
+  async function readAndClose(user: User, title: string) {
+    const pop = await screen.findByRole('dialog', { name: title });
+    await user.click(within(pop).getByRole('button', { name: 'Got it' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: title })).toBeNull());
+  }
+
+  it('Ask for…, Sell… and Stay here open their pop-ups and write nothing', async () => {
+    const { gm, sam } = table();
+    await townReady(gm);
+    const user = await inView(sam);
+    await screen.findByRole('region', { name: 'In Quay Gate: Wren' });
+    const before = { events: world.tables.events.length, requests: world.tables.requests.length };
+    await user.click(actions().getByRole('button', { name: 'Ask for…' }));
+    await readAndClose(user, 'Only Sam can send this request');
+    await user.click(actions().getByRole('button', { name: 'Sell…' }));
+    await readAndClose(user, 'Only Sam can send this request');
+    expect(screen.queryByRole('dialog', { name: 'Sell…' })).toBeNull();
+    await user.click(actions().getByRole('button', { name: 'Where you stay' }));
+    await pick(user, 'Where you stay', 'The Lantern Rest');
+    await user.click(within(screen.getByRole('dialog', { name: 'Where you stay' })).getByRole('button', { name: 'Stay here' }));
+    await readAndClose(user, 'Only Sam can choose where Wren stays');
+    expect({ events: world.tables.events.length, requests: world.tables.requests.length }).toEqual(before);
+  });
+
+  it("Cancel on Sam's request, and Accept and Decline on the GM's offer, open their pop-ups and write nothing", async () => {
+    const { campaign, sam, wren } = table();
+    const row = (id: string, extra: Record<string, unknown>) => ({
+      id, campaign_id: campaign, expedition_id: null, group_number: null, requester_id: sam, actor_id: wren, kind: 'sell', direction: 'playerAsks',
+      text: 'Otter pelt', cost_text: '', prompt: { lineId: 'line-pelt', qty: 1 }, entry: null, answer_kind: 'offer', answered_at: null, reply: null,
+      created_at: '2026-11-21T10:00:00Z', version: 1, undone: false, ...extra,
+    });
+    world.tables.requests.push(
+      row('req-waiting', { status: 'waiting', answer: null }) as never,
+      row('req-offer', { status: 'answered', answer: { kind: 'offer', price: '2 gp', note: '' }, answered_at: '2026-11-21T10:05:00Z' }) as never,
+    );
+    const user = await inView(sam);
+    const before = { events: world.tables.events.length, requests: JSON.stringify(world.tables.requests) };
+    await user.click(within(await screen.findByRole('article', { name: 'Sent to the GM' })).getByRole('button', { name: 'Cancel' }));
+    const cancel = await screen.findByRole('dialog', { name: 'Only Sam can take back this request' });
+    expect([...cancel.querySelectorAll('.dialog__got-it button')].map((b) => b.textContent)).toEqual(['Go to Waiting for you', 'Got it']);
+    await readAndClose(user, 'Only Sam can take back this request');
+    for (const answer of ['Accept', 'Decline']) {
+      await user.click(within(await screen.findByRole('article', { name: "The GM's answer" })).getByRole('button', { name: answer }));
+      await readAndClose(user, 'Only Sam can answer your offer');
+    }
+    expect({ events: world.tables.events.length, requests: JSON.stringify(world.tables.requests) }).toEqual(before);
   });
 });

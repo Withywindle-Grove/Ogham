@@ -108,6 +108,9 @@ export interface WeaponMagic {
 
 export const NO_MAGIC: WeaponMagic = { parts: [], hitNotes: [], damageNotes: [] };
 
+/** The words a figure's part or note carries when only the GM sees it (`weaponMagic`, a worn item's magic). */
+export const HIDDEN_FROM_PLAYER = ' (hidden from the player)';
+
 /** The magic's notes for a line under At hand's figure (mw-1): each once, the GM's ammunition note not repeated. */
 export const magicNoteLines = (magic: WeaponMagic): string[] => [...new Set([...magic.hitNotes, ...magic.damageNotes])];
 
@@ -140,7 +143,7 @@ export function weaponMagic(
   const toldOf = (thing: { told?: readonly string[] }) => thing.told?.includes('bonus') === true;
   const hiddenOf = (thing: { data: Record<string, unknown>; category?: string; told?: readonly string[] }) =>
     bonusHidden({ name: '', slot: null, armour: null, category: thing.category ?? text(thing.data.category), cursed: thing.data.cursed === true, told: thing.told }, rulesSets);
-  const marked = (hidden: boolean) => (hidden ? ' (hidden from the player)' : '');
+  const marked = (hidden: boolean) => (hidden ? HIDDEN_FROM_PLAYER : '');
   // Each `bonusVs` entry as a note under the roll it changes (mw-2); `named` leads it with the thing's name (the ammunition's).
   const notesVs = (data: Record<string, unknown>, hidden: boolean, named: string) => {
     const vs = isRecord(data.weapon) && Array.isArray(data.weapon.bonusVs) ? data.weapon.bonusVs.filter(isRecord) : [];
@@ -648,12 +651,63 @@ export interface SaveModifierInput {
 const whole = (value: unknown) => (typeof value === 'number' && Number.isInteger(value) ? value : null);
 const capital = (words: string) => `${words.charAt(0).toUpperCase()}${words.slice(1)}`;
 
+/** The rules set's `saveModifiers` entries, the rules sets merged (the highest winning). */
+export function saveModifierEntries(rulesSets: readonly Record<string, unknown>[]): Record<string, unknown>[] {
+  const list = merged(rulesSets).saveModifiers;
+  return Array.isArray(list) ? list.filter(isRecord) : [];
+}
+
+/** A save modifier's name as the pack gives it: `name`, else `tag`, `against`, `id`. */
+export const saveModifierName = (m: Record<string, unknown>) => text(m.name) || text(m.tag) || text(m.against) || text(m.id);
+
+/** One part of a save modifier for this character: how much, from whom ("Lore", "Bog folk"), and which kind of source. */
+export interface SaveModifierPart {
+  bonus: number;
+  from: string;
+  kind: 'score' | 'kindred';
+}
+
+/**
+ * The parts of one save modifier a score or the kindred drives, read as fills.ts ruleFills reads them (fill, then
+ * raceField, then from): a `fill` path into a score's row, that column's number; `{ raceField }` (pf-21), the
+ * kindred's own field; `{ from, plusRaceField }`, the score's part and the kindred's part. Nothing at 0. Shared by a
+ * save's "Modifiers" lines and its working (saveWorking.ts). A plain-number `value` is not read here.
+ */
+export function saveModifierParts(m: Record<string, unknown>, input: SaveModifierInput): SaveModifierPart[] {
+  const kindred = input.raceName ?? 'your kindred';
+  const path = scoreFill(m);
+  if (path) {
+    const row = input.filled[`abilityModifiers.${path.score}`];
+    const own = isRecord(row) ? whole(row[path.column]) : null;
+    return own ? [{ bonus: own, from: input.label(path.score), kind: 'score' }] : [];
+  }
+  const raceField = raceFieldOf(m);
+  if (raceField !== null) {
+    const own = whole(input.race?.[raceField]);
+    return own ? [{ bonus: own, from: kindred, kind: 'kindred' }] : [];
+  }
+  if (!fromScore(m)) return [];
+  const spec = m.value as Record<string, unknown>;
+  const from = String(spec.from);
+  const field = typeof spec.plusRaceField === 'string' ? spec.plusRaceField : '';
+  const row = input.filled[`abilityModifiers.${from}`];
+  const numbers = isRecord(row) ? Object.values(row).filter((v): v is number => typeof v === 'number') : [];
+  const fromScoreRow = whole(isRecord(row) && field && typeof row[field] === 'number' ? row[field] : numbers.length === 1 ? numbers[0] : null);
+  const parts: SaveModifierPart[] = [];
+  if (fromScoreRow) parts.push({ bonus: fromScoreRow, from: input.label(from), kind: 'score' });
+  const fromKindred = field ? whole(input.race?.[field]) : null;
+  if (fromKindred) parts.push({ bonus: fromKindred, from: kindred, kind: 'kindred' });
+  return parts;
+}
+
 /**
  * A save's "Modifiers" (sv-2b, and the lead's ruling on ⚑ 1 of plan dec-player-figure-sheet): each thing that really
  * changes this save for this character, one line each, worded as a score's line is, "<what>: +N from <where>.":
  *  - a save modifier a score drives (`saveModifiers` `{ from, plusRaceField }`): the score's own part, from its filled
  *    row as fills.ts ruleFills reads it ("Spell ward: +1 from Lore."), and the kindred's part (`plusRaceField`) on its
  *    own line ("Spell ward: +2 from Stone kin."). The pack doesn't say which save it belongs to, so every save has it;
+ *  - a save modifier read from the kindred's own field (`{ raceField }`, pf-21): "Vs hexes: +2 from Marsh-born.", nothing
+ *    at 0; a value carrying two shapes is read fill, then raceField, then from, as explain.ts reads it;
  *  - the kindred's bonus by its Constitution row (`saveBonusByCon`) for the saves it names ("Vs poison: +3 from Stone
  *    kin."), and the kindred's and class's `saveBonus` ("To the roll: +2 from Lantern Warden.").
  * A part that gives nothing is left out; none at all means no section. The class-and-level number is where the save
@@ -663,17 +717,9 @@ export function saveModifierLines(saveKey: string, input: SaveModifierInput): st
   const lines: string[] = [];
   const kindred = input.raceName ?? 'your kindred';
   const klass = input.className ?? 'your class';
-  for (const m of (Array.isArray(merged(input.rulesSets).saveModifiers) ? (merged(input.rulesSets).saveModifiers as unknown[]) : []).filter(isRecord).filter(fromScore)) {
-    const spec = m.value as Record<string, unknown>;
-    const name = capital(text(m.name) || text(m.tag) || text(m.against) || text(m.id));
-    const from = String(spec.from);
-    const field = typeof spec.plusRaceField === 'string' ? spec.plusRaceField : '';
-    const row = input.filled[`abilityModifiers.${from}`];
-    const numbers = isRecord(row) ? Object.values(row).filter((v): v is number => typeof v === 'number') : [];
-    const fromScoreRow = isRecord(row) && field && typeof row[field] === 'number' ? (row[field] as number) : numbers.length === 1 ? numbers[0]! : null;
-    if (fromScoreRow) lines.push(`${name}: ${signed(fromScoreRow)} from ${input.label(from)}.`);
-    const fromKindred = field ? whole(input.race?.[field]) : null;
-    if (fromKindred) lines.push(`${name}: ${signed(fromKindred)} from ${kindred}.`);
+  for (const m of saveModifierEntries(input.rulesSets).filter((x) => fromScore(x) || raceFieldOf(x) !== null)) {
+    const name = capital(saveModifierName(m));
+    for (const part of saveModifierParts(m, input)) lines.push(`${name}: ${signed(part.bonus)} from ${part.from}.`);
   }
   const byCon = conSaveBonus(input.race, input.scores);
   const table = isRecord(input.race?.saveBonusByCon) ? input.race.saveBonusByCon : null;
@@ -866,7 +912,7 @@ export function workOutAc(input: {
     if (bonus === null || bonus === 0) continue;
     const hidden = bonusHidden(item, input.rulesSets);
     if (hidden && !input.seesHidden) continue;
-    lines.push(`${item.name}, magic: ${signed(better(bonus))}${hidden ? ' (hidden from the player)' : ''}`);
+    lines.push(`${item.name}, magic: ${signed(better(bonus))}${hidden ? HIDDEN_FROM_PLAYER : ''}`);
     if (total !== null) total += better(bonus);
   }
   for (const [name, row] of Object.entries(input.filled)) {
@@ -945,8 +991,20 @@ export function unarmouredAc(rulesSets: readonly Record<string, unknown>[], chos
   return found ? found[1] : null;
 }
 
-/** A save modifier that a score drives (its `value.from` names the score; 07 `saveModifiers`, fills.ts ruleFills). */
-const fromScore = (m: Record<string, unknown>) => isRecord(m.value) && typeof m.value.from === 'string';
+/** A save modifier's `fill` path into a score's row (`abilityModifiers.<score>.<column>`), split; else null. */
+function scoreFill(m: Record<string, unknown>): { score: string; column: string } | null {
+  const found = isRecord(m.value) && typeof m.value.fill === 'string' ? /^abilityModifiers\.([^.]+)\.([^.]+)$/.exec(m.value.fill) : null;
+  return found ? { score: found[1]!, column: found[2]! } : null;
+}
+
+/**
+ * A save modifier that a score drives: its `value.from` names the score, or its `value.fill` is a path into a score's
+ * row (07 `saveModifiers`, fills.ts ruleFills; Francis's bug report, 24 Nov 2026).
+ */
+const fromScore = (m: Record<string, unknown>) => (isRecord(m.value) && typeof m.value.from === 'string') || scoreFill(m) !== null;
+
+/** A save modifier's `value.raceField` (pf-21), the kindred's field it reads; else null. */
+const raceFieldOf = (m: Record<string, unknown>) => (isRecord(m.value) && typeof m.value.raceField === 'string' ? m.value.raceField : null);
 
 /**
  * How saves are rolled and what changes them, from the rules set (`saveRule`, `saveModifiers`), as plain lines.
@@ -961,7 +1019,10 @@ export function saveRules(rulesSets: readonly Record<string, unknown>[], { score
   for (const m of mods) {
     const name = text(m.name) || text(m.tag) || text(m.against);
     const value = typeof m.value === 'number' ? signed(m.value) : typeof m.modifier === 'number' ? signed(m.modifier) : '';
-    if (name || value) lines.push([name, value].filter(Boolean).join(' '));
+    // An entry with no number of its own is left out, never a bare name: a score-driven or kindred-field one shows its
+    // number under a save's Modifiers instead (24 Nov; #82 review).
+    if (!value) continue;
+    lines.push([name, value].filter(Boolean).join(' '));
   }
   return lines;
 }

@@ -13,7 +13,7 @@ import type { Db } from '../../core/supabase.ts';
 import { undoChange } from '../../core/undo.ts';
 import { createFakeDb, type FakeWorld } from '../../testing/fakeDb.ts';
 import type { PackMap } from '../library/packMaps.ts';
-import { addPlaceMap, loadMapShown, loadPlaceMap, resolvePlaceMap, setPlaceMap, shareEventOf, shareMap, type PlaceMapRow } from './placeMap.ts';
+import { addPlaceMap, loadMapShown, loadPackPicture, loadPlaceMap, resolvePlaceMap, setPlaceMap, shareEventOf, shareMap, type PlaceMapRow } from './placeMap.ts';
 
 const chart: PackMap = { id: 'harbour-chart', file: 'maps/harbour-chart.png', title: 'The harbour chart', alt: 'A silted harbour, its bar and five spots', locationIds: ['harbour', 'jetty'], source: 'p. 12' };
 const cave: PackMap = { id: 'cave-plan', file: 'maps/cave-plan.png', title: 'The sea cave', alt: 'A cave behind the breakwater', locationIds: ['sea-cave'], source: '' };
@@ -115,6 +115,22 @@ describe('+ Map: the copy uploaded and tied (fake database)', () => {
   // Purpose: before anything is added, the harbour asks for its map by the pack's title and file.
   it('the place asks for the map the pack names', async () => {
     expect(await loadPlaceMap(world.db, campaign, harbour)).toEqual({ kind: 'wanted', map: { ...chart, locationIds: ['harbour', 'jetty'] } });
+  });
+
+  // Purpose (B14, p2p-27): a picture that came with the pack is offered at the place to the GM of a campaign that uses
+  // the pack (whoever owns the pack), and fetched from where the pack keeps it; a player is offered and fetches nothing.
+  it("the picture that came with the pack is offered to the campaign's GM, and never to a player", async () => {
+    world.tables.packs.push({ id: 'pack-marsh', owner_user_id: world.addPerson('wren@lantern.example', 'Wren'), campaign_id: null, name: 'The Marsh', version: '1', kind: 'adventure', format_version: 2, source: '', notes: '' });
+    const kept = new Blob(['the chart, bundled'], { type: 'image/png' });
+    world.files.set('pack-files/pack-marsh/harbour-chart', kept);
+    expect(await loadPlaceMap(world.db, campaign, harbour)).toEqual({ kind: 'wanted', map: { ...chart, locationIds: ['harbour', 'jetty'] }, packed: 'pack-marsh/harbour-chart' });
+    expect(await loadPackPicture(world.db, 'pack-marsh/harbour-chart')).toBe(kept);
+    // Another map of the pack, whose picture didn't come: asked for by hand, as before.
+    expect(await loadPackPicture(world.db, 'pack-marsh/cave-plan')).toBeNull();
+    world.signInAs(samId);
+    expect(await loadPlaceMap(world.db, campaign, harbour)).toEqual({ kind: 'none' });
+    expect(await loadPackPicture(world.db, 'pack-marsh/harbour-chart')).toBeNull();
+    expect((await world.db.storage.from('pack-files').list('pack-marsh')).data).toEqual([]);
   });
 
   // Purpose: + Map stores the copy as the campaign's map, the GM's alone, ties it to the place and logs the tie;

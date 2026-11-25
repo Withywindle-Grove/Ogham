@@ -502,6 +502,35 @@ describe("a treasure entry's coins and how an odd coin word is read (pf-24, pf-2
   });
   const treasureNotes = (file) => additionNotes(file).filter((n) => /coins/.test(n));
 
+  // Purpose (B15, p2p-28, p2p-29; b15f-1, b15f-2): a hoard's words, a qty and a magic item (with its noticed) written as
+  // 07 says give no note; words for a hoard nothing names, a qty that isn't a whole number of 1 or more, a magic item
+  // missing its name or words, and a noticed that isn't text are each named; `count` is no longer read (no alias).
+  it('checks hoards, qty and magic items', () => {
+    const good = { ...withTreasure([{ text: 'Swords', qty: 4, hoard: 'Strongbox' }, { text: 'Hooded lantern', hoard: 'Strongbox', magicItem: { name: 'Lantern of the Drowned', text: 'Lit, it burns no oil.', noticed: 'Cold to the touch; the glass smells of the sea.', source: 'p. 14' } }]) };
+    good.locations[0].hoards = [{ name: 'Strongbox', text: 'Four swords and a hooded lantern.' }];
+    const b15 = (file) => additionNotes(file).filter((n) => /hoard|qty|count|magicItem/.test(n));
+    expect(b15(good)).toEqual([]);
+    const bad = withTreasure([{ text: 'Swords', qty: 0, hoard: 'Strongbox' }, { text: 'Hooded lantern', magicItem: { name: 'Lantern of the Drowned' } }, { text: 'Pale key', magicItem: { name: 'Pale key of reeds', text: 'Opens any reed gate.', noticed: 3 } }]);
+    bad.locations[0].hoards = [{ name: 'Sea chest', text: 'Nothing.' }];
+    const notes = b15(bad);
+    expect(notes.some((n) => /no treasure entry here names the hoard "Sea chest"/.test(n))).toBe(true);
+    expect(notes.some((n) => /qty should be a whole number of 1 or more, not 0/.test(n))).toBe(true);
+    expect(notes.some((n) => /magicItem should be \{ name, text, noticed\?, source\? \}: text is missing/.test(n))).toBe(true);
+    expect(notes.some((n) => /noticed should be text/.test(n))).toBe(true);
+    // The old word is not an alias: a count on a treasure entry is neither read nor noted.
+    expect(b15(withTreasure([{ text: 'Swords', count: 0 }]))).toEqual([]);
+  });
+
+  // Purpose (b15f-2): a magicItem's noticed is the players' to read, so the leak check notes one that draws a
+  // conclusion (magic, cursed, +N) or names the item, and says nothing of one that tells only the senses.
+  it("runs the leak check on a magic item's noticed", () => {
+    const leaky = (noticed) => additionNotes(withTreasure([{ text: 'Hooded lantern', magicItem: { name: 'Lantern of the Drowned', text: 'Lit, it burns no oil.', noticed } }])).filter((n) => /leak/.test(n));
+    expect(leaky('Cold to the touch.')).toEqual([]);
+    expect(leaky('It feels magical.')).toHaveLength(1);
+    expect(leaky('A cursed chill, +2 to something.')).toHaveLength(1);
+    expect(leaky('Scratched on the hood: lantern of the drowned.')).toHaveLength(1);
+  });
+
   // Purpose: coins written the way 07 says (the setting's coin keys, whole numbers of 0 or more; coinsReadAs with both
   // its words, beside coins) and a thing's value alone give no note.
   it('says nothing of coins and coinsReadAs written as 07 says', () => {

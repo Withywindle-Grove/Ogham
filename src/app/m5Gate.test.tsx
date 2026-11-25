@@ -108,7 +108,7 @@ it('a ten-turn delve: place, light, turns with a wandering check, rest, no Somet
   expect(await screen.findByRole('heading', { name: 'The Drowned Stair' })).toBeTruthy();
   const reminder = within(await screen.findByRole('status', { name: 'No light' }));
   await user.click(reminder.getByRole('button', { name: 'Light a rushlight (4 left)' }));
-  expect(await screen.findByText('Lit Rushlight')).toBeTruthy();
+  expect(await screen.findByText('Lit a rushlight.')).toBeTruthy();
   await waitFor(() => expect(screen.queryByRole('status', { name: 'No light' })).toBeNull());
 
   // Step 4. The GM turns: the wandering check falls due after turn 2 and is recorded (Miss); rest falls due on turn 3.

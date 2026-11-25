@@ -12,6 +12,9 @@ import './bookFaces.css';
 
 const FOCUSABLE = 'input, select, textarea, button, [href], [tabindex]:not([tabindex="-1"])';
 
+/** What a tap can open a pop-up from and give focus back to: anything focusable, or a control by its role. */
+const OPENER = `${FOCUSABLE}, [role="button"], summary`;
+
 /** Input types that don't open a keyboard (everything else typed into does). */
 const NO_KEYBOARD = new Set(['button', 'submit', 'reset', 'checkbox', 'radio', 'range', 'color', 'file', 'image', 'hidden']);
 
@@ -79,6 +82,14 @@ if (typeof document !== 'undefined') {
     },
     true,
   );
+  // A key pressed after it: the keyboard is what's in use now, so the button with focus opens what comes next.
+  document.addEventListener(
+    'keydown',
+    () => {
+      lastTapped = null;
+    },
+    true,
+  );
 }
 
 /** The element a new sheet opens beside: the button just tapped, else the one with focus (a keyboard), else none. */
@@ -86,6 +97,61 @@ function anchorNow(): Element | null {
   const focused = typeof document !== 'undefined' ? document.activeElement : null;
   const candidate = lastTapped?.isConnected ? lastTapped : focused && focused !== document.body ? focused : null;
   return candidate;
+}
+
+/**
+ * The button that is opening a pop-up, for focus to go back to when it closes: the one just tapped, unless a key was
+ * pressed since (Safari doesn't focus a tapped button, so focus may still sit on the last one given it back), else the
+ * one with focus (a keyboard), else none.
+ */
+export function openerNow(): HTMLElement | null {
+  const focused = typeof document !== 'undefined' ? document.activeElement : null;
+  // The tap counts only on something that can take focus or inside one: plain words tapped can't, so then it's the
+  // one with focus (review of #90).
+  const tapped = lastTapped?.isConnected ? lastTapped.closest(OPENER) : null;
+  const candidate = tapped ?? (focused && focused !== document.body ? focused : null);
+  return candidate instanceof HTMLElement ? candidate : null;
+}
+
+// Each open pop-up's openers, nearest first, so a pop-up opened from a button inside another (or a step that replaced
+// it) can go back past that button once it has gone with its pop-up.
+const openersOf = new WeakMap<Element, readonly HTMLElement[]>();
+
+/**
+ * The opener now, then, when it sits inside an open pop-up, that pop-up's card itself (so focus with the button gone
+ * stays in the pop-up still open, review of #90) and its own openers; only those still on the page, each once, so going
+ * Back and on between steps doesn't pile them up. Exported for the tests.
+ */
+export function openersNow(): readonly HTMLElement[] {
+  const first = openerNow();
+  if (!first) return [];
+  const host = first.closest<HTMLElement>('[role="dialog"]');
+  const chain = host ? [first, host, ...(openersOf.get(host) ?? [])] : [first];
+  return chain.filter((el, i) => el.isConnected && chain.indexOf(el) === i);
+}
+
+/** Whether focus has nowhere on purpose: on the page's body, or on something no longer in it (the pop-up just gone). */
+function focusFell(): boolean {
+  const at = document.activeElement;
+  return at === null || at === document.body || !at.isConnected;
+}
+
+/**
+ * Focus back to the opener as a pop-up closes (fix-dialog-focus-on-close, Home Two's audits 24–25 Nov), for every
+ * pop-up: only when focus fell to the page (✕, Escape, a tap outside), never when the closing action moved it on purpose
+ * (after lighting, the Light fact; a step that opened as another pop-up, its own first control). The first opener still
+ * on the page that takes focus gets it; one gone, disabled, inert or behind a pop-up still open (outside the top one) is
+ * passed over, and with none focus is left where it fell.
+ */
+export function giveFocusBack(openers: readonly HTMLElement[]): void {
+  if (typeof document === 'undefined' || !focusFell()) return;
+  const open = document.querySelectorAll('[role="dialog"][aria-modal="true"]');
+  const top = open[open.length - 1] ?? null;
+  for (const el of openers) {
+    if (!el.isConnected || el.hasAttribute('disabled') || el.closest('[inert]') || (top && !top.contains(el))) continue;
+    el.focus({ preventScroll: true });
+    if (document.activeElement === el) return;
+  }
 }
 
 /**
@@ -191,6 +257,7 @@ export function Dialog({
   wide = false,
   meta,
   onBack,
+  onEscape,
   drawer = false,
   side = false,
   table = false,
@@ -201,6 +268,7 @@ export function Dialog({
   figure,
   reading = false,
   readingAction,
+  plainTitle = false,
 }: {
   label: string;
   onClose: () => void;
@@ -219,6 +287,11 @@ export function Dialog({
    * another sheet (Roll for a name's tables, R3-1); without it only the ✕.
    */
   onBack?: () => void;
+  /**
+   * What Escape does instead of closing: a step inside the pop-up goes back that step, as its Back does (the Light
+   * pop-up's "Which light?", the audit of #86). Without it Escape closes, as ✕ does.
+   */
+  onEscape?: () => void;
   /**
    * Variant "Drawer" (the phone's navigation, final drafts A11, slice E): the whole height at the left, over the dimmed
    * page; the title and ✕ at its top. A tap outside, ✕ or Escape closes it, as every pop-up does.
@@ -265,6 +338,12 @@ export function Dialog({
    * on a skill's sheet). Only with `reading`.
    */
   readingAction?: ReactNode;
+  /**
+   * Variant "Plain title" (page 32, M3f, M3f2, M3j; audit fix 4, 2026-11-24): the title in ink and sentence case at the
+   * Sheet's title size, as M3f draws it, never the book's red heading, even with `reading` or inside `BookPopUpScope`.
+   * The GM's player-only pop-ups ("Only Sam can …", `BlockedSheet`'s "To read").
+   */
+  plainTitle?: boolean;
 }) {
   const head = figure !== undefined && figure !== null && figure !== '' ? <span className="dialog__figure">{figure}</span> : null;
   const card = useRef<HTMLDivElement>(null);
@@ -282,10 +361,12 @@ export function Dialog({
   // The book's pop-ups (tfb-1): the red heading on a card (never the navigation drawer or a full screen's bar), and
   // "Got it" at the foot of one to read (tfb-2).
   const bookPopUp = (useContext(BookPopUpScope) || reading) && !full && !drawer;
-  const titled = bookHeading || bookPopUp;
+  const titled = (bookHeading || bookPopUp) && !plainTitle;
   const bookCard = bookPopUp ? ' dialog--book' : '';
   // The sheet's anchor, read once as it opens (before focus moves into it).
   const [anchor] = useState(() => (anchored ? anchorNow() : null));
+  // Who opened it, read once as it opens (before focus moves into it), for focus to go back to as it closes.
+  const [openers] = useState(() => (preview || typeof document === 'undefined' ? [] : openersNow()));
   // `top` and `left` where it sits; `capTop` where it opened, which caps its height (`--sheet-top`, T2) and never
   // changes while it's open, so a move can't change its height and set off another move.
   const [place, setPlace] = useState<{ top: number; left: number; capTop: number } | null>(null);
@@ -337,8 +418,10 @@ export function Dialog({
   }, [anchored, anchor]);
   // The latest onClose, so a re-render doesn't run the opening effect again.
   const close = useRef(onClose);
+  const escape = useRef(onEscape);
   useEffect(() => {
     close.current = onClose;
+    escape.current = onEscape;
   });
   // Whether the tap now under way began on the dimmed page (fix-tap-through).
   const downOutside = useRef(false);
@@ -346,6 +429,8 @@ export function Dialog({
 
   useEffect(() => {
     if (preview) return;
+    const el = card.current;
+    if (el) openersOf.set(el, openers);
     // The first control, past the ✕ (tf-8): Close sits first, at the top right, but focus starts on the content.
     const first = [...(card.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])].find((el) => !el.hasAttribute('data-close')) ?? null;
     (first && !opensKeyboard(first) ? first : card.current)?.focus({ preventScroll: true });
@@ -353,7 +438,7 @@ export function Dialog({
       // A pop-up opened from inside another (Where now? from the location view's sheet) takes the keys: Escape closes
       // the top one only, and Tab stays in it.
       if (!onTop(card.current)) return;
-      if (event.key === 'Escape') close.current();
+      if (event.key === 'Escape') (escape.current ?? close.current)();
       else if (event.key === 'Tab' && card.current) {
         const stops = [...card.current.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => !el.hasAttribute('disabled'));
         if (stops.length === 0) return;
@@ -369,15 +454,20 @@ export function Dialog({
       }
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [preview]);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      // Once the close's own work is done (its effects, a step's next pop-up taking focus): back to the opener if focus
+      // fell to the page.
+      queueMicrotask(() => giveFocusBack(openers));
+    };
+  }, [preview, openers]);
 
   // The "preview" variant (the component gallery): the open card in place, without the dimmed page or the focus trap.
   if (preview) {
     return (
       <div ref={card} className={`dialog dialog--preview${drawer ? ' dialog--drawer' : ''}${side ? ' dialog--side' : ''}${table ? ' dialog--table' : ''}${picture ? ' dialog--picture' : ''}${bookCard}${book}`} role="group" aria-label={`${label} (preview)`}>
         <div className={`dialog__head${head ? ' dialog__head--figure' : ''}`}>
-          <Title label={label} over={over} bookHeading={titled} />
+          <Title label={label} over={over} bookHeading={titled} plain={plainTitle} />
           {head}
           {headAction}
           {!noClose && <CloseButton onClose={onClose} />}
@@ -429,7 +519,13 @@ export function Dialog({
         const outside = event.target === event.currentTarget;
         const finger = event.pointerType === 'touch' || event.pointerType === 'pen';
         downOutside.current = outside && finger;
-        if (outside && !finger) close.current();
+        // A mouse's press closes it, and its own default (the mousedown that follows) would then move focus to the page,
+        // off the opener the pop-up's close has just focused (Home Two's re-check, Francis picked 1b, 24 Nov): it is
+        // stopped. A finger's tap still closes it on its click, as before.
+        if (outside && !finger) {
+          event.preventDefault();
+          close.current();
+        }
       }}
       onPointerCancel={() => {
         downOutside.current = false;
@@ -454,7 +550,7 @@ export function Dialog({
               <span aria-hidden="true">‹</span>
             </button>
           )}
-          <Title label={label} over={over} bookHeading={titled} />
+          <Title label={label} over={over} bookHeading={titled} plain={plainTitle} />
           {head}
           {headAction}
           {!noClose && <CloseButton onClose={() => close.current()} />}
@@ -492,8 +588,8 @@ export function GotItFoot({ onClose, action }: { onClose: () => void; /** A plai
 }
 
 /** The head's title; with `over`, the small line over it (the picture pop-up's place name), read as one heading. */
-function Title({ label, over, bookHeading }: { label: string; over?: string; bookHeading: boolean }) {
-  const title = <h2 className={`dialog__title${bookHeading ? ' book-heading' : ''}`}>{label}</h2>;
+function Title({ label, over, bookHeading, plain = false }: { label: string; over?: string; bookHeading: boolean; plain?: boolean }) {
+  const title = <h2 className={`dialog__title${bookHeading ? ' book-heading' : ''}${plain ? ' dialog__title--plain' : ''}`}>{label}</h2>;
   if (!over) return title;
   return (
     <div className="dialog__titles">

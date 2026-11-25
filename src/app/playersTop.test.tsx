@@ -51,6 +51,9 @@ afterEach(() => {
 });
 
 const CHECK_NOTE = 'The pike-mother rises when the bell is rung';
+const GM_CHECK_NOTE = 'Roll twice when the party carries the bell';
+const STEP_WORDS = 'Every second turn the GM checks whether something wandering finds the party.';
+const REST_WORDS = 'A party that does not rest is tired until it does.';
 const HARBOUR = {
   id: 'drowned-harbour',
   name: 'The Drowned Harbour',
@@ -85,11 +88,21 @@ const GROTTO = {
  * seasonal weather the players roll) and an invented harbour whose own check stands in on every move. A session runs
  * and the expedition is under way. `hideExploration` marks the rules set's exploration GM-only.
  */
-async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wade' } = {}) {
+async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wade'; rules?: boolean; rushlights?: boolean; reedLamps?: boolean; oilLamps?: boolean } = {}) {
   const gm = world.addPerson('priya@lantern.example', 'Priya');
   const sam = world.addPerson('sam@lantern.example', 'Sam');
   const campaign = world.addCampaign('The Ash Barrows', gm);
-  world.addMember(campaign, sam, 'player', world.addCharacter(campaign, 'Wren', { ownerId: sam }));
+  const wren = world.addCharacter(campaign, 'Wren', { ownerId: sam });
+  world.addMember(campaign, sam, 'player', wren);
+  // `rushlights` (P10, PL8's Light button): four rushlights in Wren's pack, none lit.
+  if (options.rushlights)
+    world.tables.inventory_lines.push({ id: 'line-rush', campaign_id: campaign, actor_id: wren, location_id: null, name: 'Rushlights', category: 'light', qty: 4, stack: 10, approval: 'approved', item_data: { lightTypeId: 'rushlight' }, source_entry_id: null, version: 1 });
+  // `reedLamps` (PL8's pick): two reed lamps too, so Light opens "Which light?".
+  if (options.reedLamps)
+    world.tables.inventory_lines.push({ id: 'line-lamp', campaign_id: campaign, actor_id: wren, location_id: null, name: 'Reed lamps', category: 'light', qty: 2, stack: 10, approval: 'approved', item_data: { lightTypeId: 'reed-lamp' }, source_entry_id: null, version: 1 });
+  // `oilLamps` (the audit of #86): two oil lamps alone, a light whose name starts with a vowel ("Lit an oil lamp.").
+  if (options.oilLamps)
+    world.tables.inventory_lines.push({ id: 'line-oil', campaign_id: campaign, actor_id: wren, location_id: null, name: 'Oil lamps', category: 'light', qty: 2, stack: 10, approval: 'approved', item_data: { lightTypeId: 'oil-lamp' }, source_entry_id: null, version: 1 });
   world.tables.packs.push({
     id: 'pack-fen',
     owner_user_id: gm,
@@ -123,13 +136,17 @@ async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wad
       name,
       data: { id, name, ...data },
     });
+  // `rules` (P10): the procedures open to players, a step that runs the wandering check with its words and page, and a
+  // rest rule with its words and page.
   const exploration = {
+    ...(options.rules ? { playerReadable: true } : {}),
     modes: [
       {
         id: 'creep',
         name: 'Creeping',
         step: { value: 1, unit: 'turn' },
-        procedure: [],
+        procedure: options.rules ? [{ id: 'wander-step', name: 'Wandering', kind: 'check', checkId: 'wander', note: STEP_WORDS, source: 'Fen Rules, p. 40' }] : [],
+        ...(options.rules ? { rest: { every: { value: 6, unit: 'turn' }, length: { value: 1, unit: 'turn' }, note: REST_WORDS, source: 'Fen Rules, p. 50' } } : {}),
         checks: [
           {
             id: 'wander',
@@ -137,6 +154,7 @@ async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wad
             every: { value: 2, unit: 'turn' },
             chance: { die: 'd6', on: [1] },
             onHit: { tableId: 'river-wanderers' },
+            note: GM_CHECK_NOTE,
           },
         ],
       },
@@ -173,6 +191,9 @@ async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wad
       pack_id: 'pack-fen',
       data: { exploration: { ...exploration, gmOnly: true } },
     });
+  entry('pack-fen', 'lightType', 'rushlight', 'Rushlight', { duration: 6, unit: 'turn', consumed: true });
+  entry('pack-fen', 'lightType', 'reed-lamp', 'Reed lamp', { duration: 4, unit: 'turn', consumed: true });
+  entry('pack-fen', 'lightType', 'oil-lamp', 'Oil lamp', { duration: 4, unit: 'turn', consumed: true });
   entry('pack-fen', 'table', 'spring-sky', 'Spring sky', {
     die: 'd6',
     rows: [{ min: 1, max: 6, result: 'Drizzle', tags: ['wet'] }],
@@ -238,7 +259,7 @@ async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wad
     });
     if (!done.ok) throw new Error(done.message);
   };
-  return { gm, sam, campaign, trip, moveTo, tag };
+  return { gm, sam, campaign, trip, moveTo, tag, wren };
 }
 
 async function openScene(who: string) {
@@ -436,3 +457,244 @@ describe('the setting’s check where the player may not read it (the lead, 2026
     expect(document.body.textContent).not.toContain('Wandering things');
   });
 });
+
+describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, PL8)", () => {
+  const sheet = async (name: string | RegExp) => within(await screen.findByRole('dialog', { name }));
+
+  // Purpose: the Encounter check opens a pop-up with when it is rolled and its chance as labelled lines, then "The rule"
+  // in the pack's words with its page, where the setting opens its procedures to players; never the check's own note or
+  // its table.
+  it('opens the setting’s check with its rule, never its note or table', async () => {
+    const { sam } = await table({ rules: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Encounter check'));
+    const pop = await sheet('Encounter check');
+    expect(pop.getByText('When.')).toBeTruthy();
+    expect(pop.getByText('Every 2 turns.')).toBeTruthy();
+    expect(pop.getByText('Chance.')).toBeTruthy();
+    expect(pop.getByRole('heading', { name: 'The rule' })).toBeTruthy();
+    expect(pop.getByText(STEP_WORDS)).toBeTruthy();
+    expect(pop.getByText('From your setting: Fen Rules, p. 40')).toBeTruthy();
+    expect(document.body.textContent).not.toContain(GM_CHECK_NOTE);
+    expect(document.body.textContent).not.toContain('river-wanderers');
+  });
+
+  // Purpose: where the setting keeps its procedures from players, the pop-up has the check's state alone: no rule.
+  it('shows the state alone where the procedures are not open to players', async () => {
+    const { sam } = await table();
+    const user = await openScene(sam);
+    await user.click(await factNamed('Encounter check'));
+    const pop = await sheet('Encounter check');
+    expect(pop.getByText('When.')).toBeTruthy();
+    expect(pop.queryByRole('heading', { name: 'The rule' })).toBeNull();
+  });
+
+  // Purpose: at a shown place whose own check stands in, the pop-up has its when and chance and no rule: its read sends
+  // nothing more, and its note never reaches the screen.
+  it('shows a shown place’s own check without a rule or its note', async () => {
+    const { sam, moveTo } = await table({ rules: true });
+    await moveTo(JETTY, true);
+    const user = await openScene(sam);
+    await user.click(await factNamed('Encounter check'));
+    const pop = await sheet('Encounter check');
+    expect(pop.getByText('On every move.')).toBeTruthy();
+    expect(pop.queryByRole('heading', { name: 'The rule' })).toBeNull();
+    expect(document.body.textContent).not.toContain(CHECK_NOTE);
+  });
+
+  // Purpose: Rest opens a pop-up with when the next rest falls, then the pack's rest words and page under "The rule";
+  // the app's line on answering a rest is the prompt's business, not this pop-up's.
+  it('opens Rest with when the next falls and its rule', async () => {
+    const { sam } = await table({ rules: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Rest'));
+    const pop = await sheet('Rest');
+    expect(pop.getByText('Next.')).toBeTruthy();
+    expect(pop.getByText(/^In \d+ turns?\.$/)).toBeTruthy();
+    expect(pop.getByText(REST_WORDS)).toBeTruthy();
+    expect(pop.getByText('From your setting: Fen Rules, p. 50')).toBeTruthy();
+    expect(pop.queryByText(/answer Rest or Push on/)).toBeNull();
+  });
+
+  // Purpose: Light opens a pop-up with the group's light state as a labelled line ("No light." in a turn mode with
+  // nothing lit), and no rule (the pack format gives a light no words).
+  it('opens Light with the group’s light', async () => {
+    const { sam } = await table({ rules: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    const pop = await sheet('Light');
+    expect(pop.getByText('No light.')).toBeTruthy();
+    expect(pop.queryByRole('heading', { name: 'The rule' })).toBeNull();
+  });
+
+  // Purpose (PL8): a player whose character has a light to light finds "Light" at the foot of the Light pop-up; a tap
+  // lights it at once, as the Pack does (its toast with Undo), and the pop-up closes.
+  it('lights the player’s own light from the Light pop-up', async () => {
+    const { sam } = await table({ rules: true, rushlights: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    const pop = await sheet('Light');
+    await user.click(pop.getByRole('button', { name: 'Light' }));
+    expect(await screen.findByText('Lit a rushlight.')).toBeTruthy();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Light' })).toBeNull());
+    expect(world.tables.events.some((e) => e.type === 'light.light')).toBe(true);
+  });
+
+  // Purpose (PL8): a player with nothing to light has no button in the Light pop-up.
+  it('has no Light button with nothing to light', async () => {
+    const { sam } = await table({ rules: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    const pop = await sheet('Light');
+    expect(pop.queryByRole('button', { name: 'Light' })).toBeNull();
+  });
+
+  // Purpose (PL8, the local review): while the player's light is lit, the Light pop-up has no Light button.
+  it('has no Light button while the light is lit', async () => {
+    const { sam, wren, tag } = await table({ rules: true, rushlights: true });
+    world.signInAs(sam);
+    await world.db
+      .rpc('light_light' as never, { actor: wren, line: 'line-rush', light_type: 'rushlight', light_name: 'Rushlight', burn_seconds: 3600, warn_seconds: 600, consumed: true, fuel_item: null } as never)
+      .setHeader('x-grimoire-command', tag('light.light'));
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    const pop = await sheet('Light');
+    expect(pop.queryByRole('button', { name: 'Light' })).toBeNull();
+  });
+
+  // Purpose (PL8, the local review): while the player's light can't be read, the Light pop-up has no Light button.
+  it('has no Light button while the light can’t be read', async () => {
+    const { sam } = await table({ rules: true, rushlights: true });
+    lightReadsFail();
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    const pop = await sheet('Light');
+    expect(pop.queryByRole('button', { name: 'Light' })).toBeNull();
+  });
+
+  // Purpose (PL8, the local review): when lighting fails, the Light pop-up stays open and the failure shows as a toast.
+  it('keeps the Light pop-up open when lighting fails', async () => {
+    const { sam } = await table({ rules: true, rushlights: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    const pop = await sheet('Light');
+    const real = world.db.rpc.bind(world.db);
+    vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: Record<string, unknown>) => {
+      if (name !== 'light_light') return real(name as never, args as never);
+      const failed = Promise.resolve({ data: null, error: { message: 'The network dropped.' } });
+      return Object.assign(failed, { setHeader: () => failed });
+    }) as never);
+    await user.click(pop.getByRole('button', { name: 'Light' }));
+    await waitFor(() => expect(document.querySelector('.toast--error, [role="alert"]')).not.toBeNull());
+    expect(screen.getByRole('dialog', { name: 'Light' })).toBeTruthy();
+    expect(world.tables.events.some((e) => e.type === 'light.light')).toBe(false);
+    vi.restoreAllMocks();
+  });
+
+  // Purpose (the audit of #86, pick 6): the toast names the light in lower case with its article, as the voice guide
+  // asks ("Lit a rushlight."), built from the item's name, which stays as it is.
+  it('says "Lit a rushlight." once lit', async () => {
+    const { sam } = await table({ rules: true, rushlights: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    await user.click((await sheet('Light')).getByRole('button', { name: 'Light' }));
+    expect(await screen.findByText('Lit a rushlight.')).toBeTruthy();
+    expect(world.tables.inventory_lines.find((l) => l.id === 'line-rush')?.name).toBe('Rushlights');
+  });
+
+  // Purpose (pick 6): a light whose name starts with a vowel takes "an" ("Lit an oil lamp.").
+  it('says "Lit an oil lamp." for a name starting with a vowel', async () => {
+    const { sam } = await table({ rules: true, oilLamps: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    await user.click((await sheet('Light')).getByRole('button', { name: 'Light' }));
+    expect(await screen.findByText('Lit an oil lamp.')).toBeTruthy();
+  });
+
+  // Purpose (pick 1): after Light with one light, the pop-up closes and focus goes back to the Scene's Light fact, which
+  // now names the lit light.
+  it('puts focus back on the Light fact once lit', async () => {
+    const { sam } = await table({ rules: true, rushlights: true });
+    const user = await openScene(sam);
+    (await factNamed('Light')).focus();
+    await user.keyboard('{Enter}');
+    const pop = await sheet('Light');
+    expect(document.activeElement).toBe(pop.getByRole('button', { name: 'Light' }));
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Light' })).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('group', { name: 'Scene facts' }).querySelector('.scene-fact--light')));
+    await waitFor(() => expect(document.activeElement?.getAttribute('aria-label')).toMatch(/rushlight/i));
+  });
+
+  // Purpose (pick 3): with several lights, "Which light?" is a step inside the same Light pop-up (one card, one ✕),
+  // with Back, in the pop-up's own faces; focus starts on its first light.
+  it('opens Which light? as a step inside the Light pop-up, with Back', async () => {
+    const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    await user.click((await sheet('Light')).getByRole('button', { name: 'Light' }));
+    const pick = await screen.findByRole('dialog', { name: 'Which light?' });
+    expect(screen.getAllByRole('dialog')).toHaveLength(1);
+    expect(within(pick).getAllByRole('button', { name: 'Close' })).toHaveLength(1);
+    expect(pick.closest('.dialog__backdrop')!.classList.contains('book-faces')).toBe(true);
+    expect(document.activeElement).toBe(within(pick).getByRole('button', { name: /^Rushlights/ }));
+    await user.click(within(pick).getByRole('button', { name: 'Back' }));
+    const pop = await sheet('Light');
+    expect(pop.getByText('No light.')).toBeTruthy();
+    expect(document.activeElement).toBe(pop.getByRole('button', { name: 'Light' }));
+  });
+
+  // Purpose (pick 2): Escape on "Which light?" goes back to the first step, with focus on Light; the pop-up stays open.
+  it('goes back from Which light? on Escape, focus on Light', async () => {
+    const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    await user.click((await sheet('Light')).getByRole('button', { name: 'Light' }));
+    await screen.findByRole('dialog', { name: 'Which light?' });
+    await user.keyboard('{Escape}');
+    const pop = await sheet('Light');
+    expect(document.activeElement).toBe(pop.getByRole('button', { name: 'Light' }));
+  });
+
+  // Purpose (pick 3): the one ✕ on "Which light?" closes the whole pop-up.
+  it('closes the whole pop-up from Which light?’s ✕', async () => {
+    const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    await user.click((await sheet('Light')).getByRole('button', { name: 'Light' }));
+    const pick = await screen.findByRole('dialog', { name: 'Which light?' });
+    await user.click(within(pick).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryAllByRole('dialog')).toHaveLength(0));
+  });
+
+  // Purpose (pick 1): after a pick, the pop-up closes and focus goes back to the Scene's Light fact.
+  it('puts focus back on the Light fact after a pick', async () => {
+    const { sam } = await table({ rules: true, rushlights: true, reedLamps: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    await user.click((await sheet('Light')).getByRole('button', { name: 'Light' }));
+    const pick = await screen.findByRole('dialog', { name: 'Which light?' });
+    await user.click(within(pick).getByRole('button', { name: /^Reed lamps/ }));
+    expect(await screen.findByText('Lit a reed lamp.')).toBeTruthy();
+    await waitFor(() => expect(screen.queryAllByRole('dialog')).toHaveLength(0));
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('group', { name: 'Scene facts' }).querySelector('.scene-fact--light')));
+  });
+});
+
+/** The character's own light can't be read (as when offline): the read of `character_lights` by actor fails. */
+function lightReadsFail() {
+  const stand = world.db as unknown as { from: (table: string) => unknown };
+  const read = stand.from.bind(world.db);
+  stand.from = (table: string) => {
+    const query = read(table) as { select: (c: string) => { eq: (col: string, v: unknown) => unknown } };
+    if (table !== 'character_lights') return query;
+    const select = query.select.bind(query);
+    query.select = (c: string) => {
+      const q = select(c);
+      const eq = q.eq.bind(q);
+      q.eq = (col: string, v: unknown) => (col === 'actor_id' ? { maybeSingle: () => Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }) } : eq(col, v));
+      return q;
+    };
+    return query;
+  };
+}

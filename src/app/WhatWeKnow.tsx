@@ -45,18 +45,19 @@ function PlaceList({ places }: { places: readonly ShownPlace[] }) {
   );
 }
 
-export function WhatWeKnow({ db, campaignId }: { db: Db; campaignId: string }) {
+/** `asPlayer`: the GM's view as the player (C15f): the places shown to that player's groups. */
+export function WhatWeKnow({ db, campaignId, asPlayer }: { db: Db; campaignId: string; asPlayer?: string }) {
   const logVersion = useLogVersion();
   const [known, setKnown] = useState<{ places: ShownPlaces; images: RevealedImage[] } | null>(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let current = true;
-    void Promise.all([loadShownPlaces(db, campaignId), loadRevealedImages(db, campaignId)]).then(([places, images]) => current && setKnown({ places: places ?? { current: [], earlier: [] }, images }));
+    void Promise.all([loadShownPlaces(db, campaignId, asPlayer), loadRevealedImages(db, campaignId)]).then(([places, images]) => current && setKnown({ places: places ?? { current: [], earlier: [] }, images }));
     return () => {
       current = false;
     };
-  }, [db, campaignId, logVersion]);
+  }, [db, campaignId, logVersion, asPlayer]);
 
   const summary = known ? knownSummary(known.places.current.length, known.images.length, known.places.earlier.length) : 'Opening…';
   const nothing = known !== null && known.places.current.length === 0 && known.places.earlier.length === 0 && known.images.length === 0;

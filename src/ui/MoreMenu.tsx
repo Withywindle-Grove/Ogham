@@ -8,30 +8,75 @@ import './MoreMenu.css';
 
 // The ⋯ button and the small panel it opens. Closes on Escape, a tap outside, or choosing an action in it
 // (a setting you switch, like the theme or text size, leaves it open).
-export function MoreMenu({ label, startOpen = false, children }: { label: string; startOpen?: boolean; children: ReactNode }) {
+export function MoreMenu({
+  label,
+  startOpen = false,
+  children,
+  specimen = false,
+}: {
+  label: string;
+  startOpen?: boolean;
+  children: ReactNode;
+  /** A gallery example only: a tap or click outside leaves it open and goes where it lands. */
+  specimen?: boolean;
+}) {
   const [open, setOpen] = useState(startOpen);
   const panelId = useId();
   const root = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
+  // Opened from the keyboard (Enter or Space: a click with no pointer), focus goes into the menu, to its first item
+  // (audit fix 3c, 2026-11-24); Escape puts it back on ⋯. A tap leaves focus where it was, as before.
+  const byKeyboard = useRef(false);
+  useEffect(() => {
+    if (!open || !byKeyboard.current) return;
+    byKeyboard.current = false;
+    root.current?.querySelector<HTMLElement>('.more-menu__panel button, .more-menu__panel [href]')?.focus();
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
+    // A finger's or a pen's tap outside only closes it (06 rule 12, fix-more-menu-tap; as pop-ups, fix-tap-through): the
+    // press is remembered and the same tap's click closes it, stopped before it reaches what lies under the finger. A
+    // mouse closes it on the press, as before (its click goes where it lands). A press the browser cancels (a scroll) or
+    // a key press forgets the remembered one; a click with no press of its own (a key) is let through.
+    let downOutside = false;
     const onPointer = (event: PointerEvent) => {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
+      const outside = !root.current?.contains(event.target as Node);
+      const finger = event.pointerType === 'touch' || event.pointerType === 'pen';
+      downOutside = outside && finger;
+      if (outside && !finger) setOpen(false);
+    };
+    const onCancel = () => {
+      downOutside = false;
+    };
+    const onClick = (event: MouseEvent) => {
+      if (!downOutside) return;
+      downOutside = false;
+      event.preventDefault();
+      event.stopPropagation();
+      setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
+      downOutside = false;
       if (event.key === 'Escape') {
         setOpen(false);
         button.current?.focus();
       }
     };
-    document.addEventListener('pointerdown', onPointer);
     document.addEventListener('keydown', onKey);
+    // A gallery example (`specimen`) has no tap-outside handling: it stays shown open and the tap goes where it lands.
+    if (!specimen) {
+      document.addEventListener('pointerdown', onPointer);
+      document.addEventListener('pointercancel', onCancel);
+      document.addEventListener('click', onClick, true);
+    }
     return () => {
       document.removeEventListener('pointerdown', onPointer);
+      document.removeEventListener('pointercancel', onCancel);
+      document.removeEventListener('click', onClick, true);
       document.removeEventListener('keydown', onKey);
     };
-  }, [open]);
+  }, [open, specimen]);
 
   return (
     <div className="more-menu" ref={root}>
@@ -42,7 +87,10 @@ export function MoreMenu({ label, startOpen = false, children }: { label: string
         aria-label={label}
         aria-expanded={open}
         aria-controls={panelId}
-        onClick={() => setOpen((value) => !value)}
+        onClick={(event) => {
+          byKeyboard.current = !open && event.detail === 0;
+          setOpen((value) => !value);
+        }}
       >
         <span aria-hidden="true">⋯</span>
       </button>
@@ -71,14 +119,11 @@ export function MoreMenu({ label, startOpen = false, children }: { label: string
  */
 export function MoreSheet({ label, children }: { label: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const button = useRef<HTMLButtonElement>(null);
-  const close = () => {
-    setOpen(false);
-    button.current?.focus({ preventScroll: true });
-  };
+  // Focus goes back to ⋯ as its sheet closes (A1): the Dialog's own rule.
+  const close = () => setOpen(false);
   return (
     <>
-      <button ref={button} type="button" className="more-menu__button" aria-label={label} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
+      <button type="button" className="more-menu__button" aria-label={label} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
         <span aria-hidden="true">⋯</span>
       </button>
       {open && (

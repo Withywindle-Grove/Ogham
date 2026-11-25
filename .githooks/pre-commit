@@ -8,5 +8,7 @@ if [ "$(node scripts/docs-only.mjs --staged)" = "docs" ]; then
   echo "Docs-only commit: running the docs check only (scripts/docs-only.mjs)."
   npm run docs:check || { echo "Nothing was committed: npm run docs:check failed. Fix what it names above, then commit again."; exit 1; }
 else
+  # Tests build throwaway repositories with plain git: git's hook variables would point them at this one.
+  unset GIT_DIR GIT_INDEX_FILE GIT_WORK_TREE GIT_PREFIX GIT_OBJECT_DIRECTORY GIT_COMMON_DIR GIT_ALTERNATE_OBJECT_DIRECTORIES
   npm run check || { echo "Nothing was committed: npm run check failed. Fix what it names above, then commit again."; exit 1; }
 fi

@@ -3,7 +3,7 @@
 // the stand-in database. Invented names.
 //   Purpose:
 //   1. A GM-made character has its own row after the players' rows, its small line "Yours", with "Give to a player…"
-//      between Pack and Remove….
+//      in the row's ⋯ (page 32, pg32-1; before, a button between Pack and Remove…).
 //   2. The sheet lists the players as option rows, each with the character they play or "no character yet"; a tap
 //      gives at once: the toast says "Ash given to Sam." and the row now names Sam; Undo makes it the GM's again.
 //   3. For a character a player has, the sheet names them in the line with the tick ("Sam has Wren now.") and offers
@@ -51,7 +51,7 @@ afterEach(() => {
 });
 
 const actor = (id: string) => world.tables.actors.find((a) => a.id === id)!;
-const rowOf = (name: string) => screen.getByRole('button', { name: `Give ${name} to a player` }).closest('li') as HTMLElement;
+const rowOf = (name: string) => screen.getByRole('button', { name: `More for ${name}` }).closest('li') as HTMLElement;
 
 async function openPlayers() {
   world.signInAs(gm);
@@ -59,8 +59,14 @@ async function openPlayers() {
   render(<Root db={world.db} />);
   await user.click(await screen.findByRole('button', { name: /The Reed Marches/ }));
   await user.click(within(await screen.findByRole('navigation', { name: 'Campaign sections' })).getByRole('button', { name: /^Players/ }));
-  await screen.findByRole('button', { name: 'Give Ash to a player' });
+  await screen.findByRole('button', { name: 'More for Ash' });
   return user;
+}
+
+/** Give to a player…, from the row's ⋯ (page 32, pg32-1). */
+async function openGive(user: ReturnType<typeof userEvent.setup>, name: string) {
+  await user.click(screen.getByRole('button', { name: `More for ${name}` }));
+  await user.click(screen.getByRole('button', { name: 'Give to a player…' }));
 }
 
 describe('Give to a player… (page 13)', () => {
@@ -70,9 +76,9 @@ describe('Give to a player… (page 13)', () => {
     const user = await openPlayers();
     const row = rowOf('Ash');
     expect(within(row).getByText('Yours')).toBeTruthy();
-    expect(within(row).getAllByRole('button').map((b) => b.textContent)).toEqual(['View sheet', 'Pack', 'Give to a player…', 'Remove…']);
+    expect(within(row).getAllByRole('button').map((b) => b.getAttribute('aria-label') === 'More for Ash' ? '⋯' : b.textContent)).toEqual(['View sheet', 'Pack', 'Scene', '⋯']);
 
-    await user.click(within(row).getByRole('button', { name: 'Give Ash to a player' }));
+    await openGive(user, 'Ash');
     const sheet = await screen.findByRole('dialog', { name: /: Give to a player$/ });
     expect(within(sheet).queryByRole('radio', { name: /You, the GM/ })).toBeNull();
     await user.click(within(sheet).getByRole('radio', { name: 'Give Ash to Sam, plays Wren' }));
@@ -90,7 +96,7 @@ describe('Give to a player… (page 13)', () => {
     const robin = world.addPerson('robin@lantern.example', 'Robin');
     world.addMember(campaign, robin, 'player');
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: 'Give Wren to a player' }));
+    await openGive(user, 'Wren');
     const sheet = await screen.findByRole('dialog', { name: /: Give to a player$/ });
     expect(within(sheet).getByText('Sam has Wren now.')).toBeTruthy();
     expect(within(sheet).getAllByRole('radio').map((r) => r.getAttribute('aria-label'))).toEqual([
@@ -105,7 +111,7 @@ describe('Give to a player… (page 13)', () => {
 
   it('with no players, says so and offers Invite a player', async () => {
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: 'Give Ash to a player' }));
+    await openGive(user, 'Ash');
     const sheet = await screen.findByRole('dialog', { name: /: Give to a player$/ });
     expect(within(sheet).getByText('No players yet. Invite someone to get started.')).toBeTruthy();
     await user.click(within(sheet).getByRole('button', { name: 'Invite a player' }));
@@ -116,7 +122,7 @@ describe('Give to a player… (page 13)', () => {
     const robin = world.addPerson('robin@lantern.example', 'Robin');
     world.addMember(campaign, robin, 'player');
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: 'Give Ash to a player' }));
+    await openGive(user, 'Ash');
     const sheet = await screen.findByRole('dialog', { name: /: Give to a player$/ });
     // Robin leaves as the GM taps.
     world.tables.members = world.tables.members.filter((m) => m.user_id !== robin);
@@ -129,7 +135,7 @@ describe('Give to a player… (page 13)', () => {
     wren = world.addCharacter(campaign, 'Wren', { ownerId: sam });
     world.addMember(campaign, sam, 'player', wren);
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: 'Give Ash to a player' }));
+    await openGive(user, 'Ash');
     await user.click(within(await screen.findByRole('dialog', { name: /: Give to a player$/ })).getByRole('radio', { name: 'Give Ash to Sam, plays Wren' }));
     await screen.findByText('Ash given to Sam.');
     cleanup();
@@ -153,7 +159,7 @@ describe('Give to a player… (page 13)', () => {
     const robin = world.addPerson('robin@lantern.example', 'Robin');
     world.addMember(campaign, robin, 'player');
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: 'Give Ash to a player' }));
+    await openGive(user, 'Ash');
     await user.click(within(await screen.findByRole('dialog', { name: /: Give to a player$/ })).getByRole('radio', { name: 'Give Ash to Sam, plays Wren' }));
     await screen.findByText('Ash given to Sam.');
     const lines = () => world.tables.events.filter((e) => e.type === 'character.reassign' && e.target_id === ash);
@@ -177,7 +183,7 @@ describe('Give to a player… (page 13)', () => {
     const robin = world.addPerson('robin@lantern.example', 'Robin');
     world.addMember(campaign, robin, 'player');
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: 'Give Ash to a player' }));
+    await openGive(user, 'Ash');
     const sheet = await screen.findByRole('dialog', { name: /: Give to a player$/ });
     // Ash is removed in another tab as the GM taps; Robin is still a player.
     world.tables.actors = world.tables.actors.filter((a) => a.id !== ash);

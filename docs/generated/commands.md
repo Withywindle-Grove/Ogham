@@ -114,6 +114,7 @@ Every change goes through one of these commands, which checks `can(user, command
 | `invite.revoke` | simple | GM: the GM can revoke an invite | Player A: a player can't revoke an invite |
 | `item.setMode` | simple | Player A: a player can choose their own weapon's mode (Quiver, Grip…)<br>GM: the GM can choose the mode of anyone's weapon | Player B: a player can't choose the mode of someone else's weapon<br>Outsider: an outsider can't choose a weapon's mode<br>Player A: a mode belongs to a character’s weapon: nothing in the Party stash has one |
 | `item.use` | simple | Player A: a player can use one of their own items up (Drink, Fire, Eat, Use)<br>GM: the GM can use up an item on anyone's character | Player B: a player can't use up someone else's items |
+| `library.addPicture` | none | GM: you can keep a map's picture with your own pack | Player A: you can't keep a picture with someone else's pack |
 | `library.copyHomebrew` | none | GM: the GM can copy the campaign's homebrew to their Rules library | Outsider: an outsider can't copy a campaign's homebrew |
 | `library.delete` | simple | GM: you can delete your own setting rules, even ones a campaign uses (each campaign logs it) | Player A: you can't delete someone else's setting rules |
 | `library.editEntry` | none | GM: you can edit an entry of your own pack (Edit pack) | Player A: you can't edit an entry of someone else's pack |
@@ -128,7 +129,7 @@ Every change goes through one of these commands, which checks `can(user, command
 | `marching.savePreset` | verbose | Player A: a player can save the marching order as a preset | Player B: a player can't save a preset when players can't reorder it |
 | `marching.set` | simple | Player A: a player can move the marching order<br>GM: the GM can move the marching order<br>Player B: a player can still move it in a campaign locked before the lock went<br>GM: the GM can move it in a campaign locked before the lock went<br>GM: the GM can move it when players can't reorder it | Outsider: an outsider can't move the marching order<br>Player A: a player can't move it when players can't reorder it<br>Player B: a player can't move it when players can't reorder it, locked or not |
 | `marching.usePreset` | simple | Player B: a player can use a saved preset | Outsider: an outsider can't use a preset |
-| `member.setActiveCharacter` | simple | Player A: a player can make their own character active | Player A: a player can't make someone else's character active<br>Outsider: an outsider can't pick an active character<br>Player A: a player can't make their waiting character active |
+| `member.setActiveCharacter` | simple | Player A: a player can make their own character active | Player A: a player can't make someone else's character active<br>Outsider: an outsider can't pick an active character<br>GM: the GM can't make a player's character that player's active one<br>Player A: a player can't make their waiting character active |
 | `message.read` | verbose | Player A: the recipient can read a message | Player B: a player it wasn't written to can't read it |
 | `message.send` | simple | GM: the GM can write to a character<br>Player A: a player can write to the GM as their own character | Player B: a player can't write as another player's character<br>Outsider: an outsider can't write to anyone |
 | `note.add` | simple | Player A: a player can write a note | Outsider: an outsider can't write a note |
@@ -151,6 +152,7 @@ Every change goes through one of these commands, which checks `can(user, command
 | `place.setPicture` | verbose | GM: the GM can take a place's picture off | Player A: a player can't change a place's picture |
 | `place.setSafety` | verbose | GM: the GM can mark a place safe | Player A: a player can't mark a place hostile |
 | `place.shareMap` | verbose | GM: the GM can share a map with the players | Player A: a player can't share a map<br>Outsider: an outsider can't share a map |
+| `place.showItemTruth` | simple | GM: the GM can show a magic item's truth | Player A: a player can't show a magic item's truth<br>Outsider: an outsider can't show a magic item's truth |
 | `place.showPiece` | verbose | GM: the GM can show players one piece | Player B: a player can't show a piece |
 | `placeKnowledge.eye` | simple | GM: the GM can share a section of a place's knowledge with a group | Player A: a player can't share a section of a place's knowledge<br>Outsider: an outsider can't share a section of a place's knowledge |
 | `placeRule.eye` | simple | GM: the GM can open or close a place's rule to players | Player A: a player can't open a place's rule<br>Outsider: an outsider can't open a place's rule |

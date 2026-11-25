@@ -44,8 +44,8 @@ describe("a hoard's rows from a Treasure piece (K16a)", () => {
       ['thing', 'Two moon opals'],
       ['thing', 'A silver hook (5 hn.)'],
     ]);
-    expect(hoard.rows[2]).toEqual({ kind: 'thing', entry: 2, text: 'Two moon opals', itemId: 'moon-opal', worth: { heron: 30 } });
-    expect(hoard.rows[3]).toEqual({ kind: 'thing', entry: 3, text: 'A silver hook (5 hn.)', itemId: null, worth: { heron: 5 } });
+    expect(hoard.rows[2]).toEqual({ kind: 'thing', entry: 2, text: 'Two moon opals', itemId: 'moon-opal', worth: { heron: 30 }, qty: 1, magic: null, noticed: null });
+    expect(hoard.rows[3]).toEqual({ kind: 'thing', entry: 3, text: 'A silver hook (5 hn.)', itemId: null, worth: { heron: 5 }, qty: 1, magic: null, noticed: null });
   });
 
   // Purpose: two coin entries in one hoard give two coin rows (pf-6: coin is a row like any other), each with its
@@ -83,7 +83,7 @@ describe("a hoard's rows from a Treasure piece (K16a)", () => {
   it('a mixed entry gives a thing row and a coin row', () => {
     const place = { treasure: [{ text: 'A reed chest and the herons in it', itemId: 'waxed-pouch', coins: { heron: 12 }, value: { crown: 1 } }] };
     expect(hoardRows(piece('A reed chest and the herons in it'), place, COINS, ITEMS).rows).toEqual([
-      { kind: 'thing', entry: 0, text: 'A reed chest and the herons in it', itemId: 'waxed-pouch', worth: { crown: 1 } },
+      { kind: 'thing', entry: 0, text: 'A reed chest and the herons in it', itemId: 'waxed-pouch', worth: { crown: 1 }, qty: 1, magic: null, noticed: null },
       { kind: 'coin', entry: 0, text: 'A reed chest and the herons in it', amounts: [{ key: 'heron', amount: 12, words: '12 herons' }], coins: { heron: 12 }, readAs: null, notCoins: [] },
     ]);
   });
@@ -93,23 +93,23 @@ describe("a hoard's rows from a Treasure piece (K16a)", () => {
   it('a hoard with no coin', () => {
     const place = { treasure: [{ text: 'A tin cup', value: { bit: 2 }, hoard: 'Shelf' }, { text: 'A lantern of eel-glass', itemId: 'eel-lantern', hoard: 'Shelf' }] };
     expect(hoardRows(piece('A tin cup'), place, COINS, ITEMS).rows).toEqual([
-      { kind: 'thing', entry: 0, text: 'A tin cup', itemId: null, worth: { bit: 2 } },
-      { kind: 'thing', entry: 1, text: 'A lantern of eel-glass', itemId: null, worth: null, unknownItemId: 'eel-lantern' },
+      { kind: 'thing', entry: 0, text: 'A tin cup', itemId: null, worth: { bit: 2 }, qty: 1, magic: null, noticed: null },
+      { kind: 'thing', entry: 1, text: 'A lantern of eel-glass', itemId: null, worth: null, qty: 1, magic: null, noticed: null, unknownItemId: 'eel-lantern' },
     ]);
   });
 
   // Purpose: a treasure entry with no hoard is a hoard of one: the tapped entry alone.
   it('a treasure with no hoard is a hoard of its own', () => {
     const hoard = hoardRows(piece('A tin cup'), STAIR, COINS, ITEMS);
-    expect(hoard).toEqual({ name: null, rows: [{ kind: 'thing', entry: 4, text: 'A tin cup', itemId: null, worth: { bit: 2 } }] });
+    expect(hoard).toEqual({ name: null, words: null, rows: [{ kind: 'thing', entry: 4, text: 'A tin cup', itemId: null, worth: { bit: 2 }, qty: 1, magic: null, noticed: null }] });
   });
 
   // Purpose: a piece with no treasure behind it (another kind, words the place's treasure doesn't have, or a place with
   // none) gives no rows, never an error.
   it('a piece with no treasure', () => {
-    expect(hoardRows({ kind: 'exit', text: 'Two moon opals' }, STAIR, COINS, ITEMS)).toEqual({ name: null, rows: [] });
-    expect(hoardRows(piece('A heron feather'), STAIR, COINS, ITEMS)).toEqual({ name: null, rows: [] });
-    expect(hoardRows(piece('A tin cup'), { name: 'Empty loft' }, COINS, ITEMS)).toEqual({ name: null, rows: [] });
+    expect(hoardRows({ kind: 'exit', text: 'Two moon opals' }, STAIR, COINS, ITEMS)).toEqual({ name: null, words: null, rows: [] });
+    expect(hoardRows(piece('A heron feather'), STAIR, COINS, ITEMS)).toEqual({ name: null, words: null, rows: [] });
+    expect(hoardRows(piece('A tin cup'), { name: 'Empty loft' }, COINS, ITEMS)).toEqual({ name: null, words: null, rows: [] });
   });
 
   // Purpose: the Treasure piece is found again by the words it was made from: a long entry split into parts is found

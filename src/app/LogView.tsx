@@ -14,7 +14,7 @@ import {
 import { addNote, editNote, loadNotes, type Note } from '../core/notes.ts';
 import { loadParty, type PartyMember } from '../core/party.ts';
 import type { Db } from '../core/supabase.ts';
-import { cameBackText, mayUndo, undoChange, type CameBack } from '../core/undo.ts';
+import { cameBackText, mayUndo, undoChange, undoOffered, type CameBack } from '../core/undo.ts';
 import { runOfEntry, undoActivity } from '../modules/expedition/activityPlay.ts';
 import { denominationsOf } from '../modules/inventory/coinWords.ts';
 import { coinAmountIn } from '../modules/inventory/purse.ts';
@@ -237,7 +237,7 @@ export function LogView({
               names={names}
               undone={entry.events.some((e) => undone.has(e.id))}
               canUndo={
-                (gm || entry.main.actorUserId === user.id) && (mayUndo(entry.main.type, entry.events) || activityRunOf(entry) !== null)
+                undoOffered(entry.main.actorUserId, { gm, userId: user.id }) && (mayUndo(entry.main.type, entry.events) || activityRunOf(entry) !== null)
               }
               mayEdit={mayEdit}
               busy={busy}

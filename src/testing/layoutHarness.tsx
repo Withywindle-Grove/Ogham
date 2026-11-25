@@ -8,6 +8,7 @@
 //               Fenward, with a full right column, a lit storm lantern and oil, a spear in hand, a pinned knife and
 //               four statuses; every Player screen row of plan dec-13 is pictured against it
 //   &gear=1     "The Fen Muster" on the invented fixture pack, Jo (?as=new) joined with no character: creation's Gear step
+//   &gmWaiting=1  "The Fen Reckoning" on the invented fixture pack, Jo's Tam waiting for the GM (?as=gm), no score rolled
 //   &creation=full  "The Fen Census" on the whole fixture pack with creation-full.fixture.json over it, Jo (?as=new)
 //               joined with no character: guided creation reaches every step (Method, Patron, the hit points row,
 //               Roll for a name, First spells, Gear's pick and trinket sheets, Languages, Weapon skills, backgrounds,
@@ -24,6 +25,7 @@
 //               `proposal` a proposed way (1 of 3), `proposal-plain` one with no obstacle (2 of 3), `players` Where to?
 //               with your proposal, `players-other` with another's, `queue` the proposals' queue worked by hand
 //   ?placePage=spots|spot|hand|none  the GM's place page (dec-7 piece 5b): see the block that builds it, below
+//   &lights=several    two reed lamps beside Wren's rushlights (the pick "Which light?")
 //   ?placeCard=1 the players' place card (P4): the Location's card and the Area's in the page's two columns; `bare` the
 //               Area never shown, `messy` long names and 999; `gm` the GM's Knowledge sheet with its eyes
 //   ?knowledge=1 a place's Knowledge sheet open (dec-7 piece 6a), wired to no screen: `one` a lone section (open at
@@ -501,6 +503,19 @@ world.tables.library_entries.push({
   data: { id: 'rushlight', name: 'Rushlight', duration: 6, unit: 'turn', radius: '30 ft', warnAt: 1, consumed: true },
 });
 line('line-rushlights', wren, 'Rushlights', { category: 'light', qty: 4, stack: 10, item_data: { lightTypeId: 'rushlight' } });
+// &lights=several (PL8's Light button, the local review): two reed lamps too, so the Light pop-up's Light opens
+// "Which light?".
+if (new URLSearchParams(window.location.search).get('lights') === 'several') {
+  world.tables.library_entries.push({
+    id: 'entry-reed-lamp',
+    pack_id: 'pack-river',
+    kind: 'lightType',
+    pack_entry_id: 'reed-lamp',
+    name: 'Reed lamp',
+    data: { id: 'reed-lamp', name: 'Reed lamp', duration: 4, unit: 'turn', radius: '20 ft', warnAt: 1, consumed: true },
+  });
+  line('line-reed-lamps', wren, 'Reed lamps', { category: 'light', qty: 2, stack: 10, item_data: { lightTypeId: 'reed-lamp' } });
+}
 
 // The GM's reminders (M5 step 6, invented): an encounter check every 2 turns, the GM's own, and a public reminder
 // with a long name (messy data for the players' reference list).
@@ -947,6 +962,40 @@ if (new URLSearchParams(window.location.search).get('creation') === 'full') {
     });
 }
 
+// The GM's approval card with scores (plan dec-15 row 9, caf-8), only with ?gmWaiting=1: "The Fen Reckoning" on the
+// invented fixture pack, where Jo's Tam, a bog folk Lantern Warden, waits for the GM (Priya, ?as=gm). Tam's scores were
+// all left at the average (2d8: 9), none rolled; the kindred moved two of them (Nimbleness up one, Grit down one), so
+// the record's `rolled` differs from its `scores` there, as guided creation writes it. The layout's fields without hp
+// and the omen, as approvalHomebrew.test.tsx's world.
+if (new URLSearchParams(window.location.search).get('gmWaiting') === '1') {
+  const reckoning = world.addCampaign('The Fen Reckoning', gm);
+  world.addMember(reckoning, jo, 'player');
+  world.tables.packs.push({ id: 'pack-fen-reckoning', owner_user_id: gm, campaign_id: null, name: 'Fen sample', version: '0.1', kind: 'setting', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-24T12:00:00Z', extra_meta: { shortName: 'Fen sample' } });
+  const lists: [string, string][] = [['rulesSets', 'rulesSet'], ['races', 'race'], ['classes', 'class'], ['items', 'item'], ['startingKits', 'startingKit'], ['fieldTemplates', 'fieldTemplate']];
+  for (const [list, kind] of lists)
+    for (const data of fenPack[list] ?? []) world.tables.library_entries.push({ id: `entry-reckoning-${kind}-${String(data.id)}`, pack_id: 'pack-fen-reckoning', kind, pack_entry_id: String(data.id), name: String(data.name ?? data.id), data });
+  world.tables.campaign_packs.push({ id: 'campaign-pack-reckoning', campaign_id: reckoning, pack_id: 'pack-fen-reckoning', pack_name: 'Fen sample', option_choices: {}, overrides: {}, priority: 1 });
+  type ReckoningField = { key: string; label: string; type: string; group?: string; fill?: string; choices?: string[]; required?: boolean };
+  ((fenPack.fieldTemplates?.[0]?.fields ?? []) as ReckoningField[])
+    .filter((f) => f.key !== 'hp' && f.key !== 'omen')
+    .forEach((f, order) => {
+      const type = f.type === 'list' && !f.choices?.length ? 'text' : f.type;
+      world.tables.field_definitions.push({ id: `field-reckoning-${f.key}`, campaign_id: reckoning, applies_to: 'pc', key: f.key, label: f.label, type, choices: f.choices ?? [], field_group: f.group ?? '', sort_order: order, show_on_card: false, hidden: false, fill: f.fill ?? null, required: !!f.required, created_at: '2026-11-24T12:00:00Z' });
+    });
+  const tam = world.addCharacter(reckoning, 'Tam', { ownerId: jo, approval: 'pending' });
+  Object.assign(world.tables.actors.find((a) => a.id === tam)!, {
+    level: 1,
+    classes: [{ classRef: 'lantern-warden', level: 1, xp: 0 }],
+    race_ref: 'bog-folk',
+    creation: {
+      method: null,
+      rolled: { MUS: 9, NIM: 9, GRT: 9, WIT: 9, LORE: 9, CHARM: 9 },
+      scores: { MUS: 9, NIM: 10, GRT: 8, WIT: 9, LORE: 9, CHARM: 9 },
+      scoresAverage: ['MUS', 'NIM', 'GRT', 'WIT', 'LORE', 'CHARM'],
+    },
+  });
+}
+
 // A place's rules and its own check (December dec-7 piece 3), only with ?placeRules=1: an invented harbour in River
 // Rules with an encounter check on each move that stands in, a rule with a button, a plain rule and one the book keeps
 // for the GM; an expedition under way with the party at its jetty, the jetty's description shown. Made through the
@@ -1189,7 +1238,8 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //                     (frame 5's sentences);
 //   ?placePage=hand   the party at a place typed by hand (frame 2b, left);
 //   ?placePage=none   an expedition with no place yet (frame 2b, right).
-//   &map=wanted|added with spots or spot: the pack's map for the harbour, not added yet or added (S13; see below).
+//   &map=wanted|added|shown with spots or spot: the pack's map for the harbour, not added yet, added, or added and shown
+//               to the players (S13; the players' map, P5; see below).
 //   &picture=1 with spots or spot: the place has a picture (TW13: the picture row, a tap opening it); with &ways=… too,
 //               shown to the players (the Location's card's small picture button, ppf-6 c).
 //   &mapTitle=long  with &map: the map's title long (the card's title on its own line above the tools).
@@ -1199,6 +1249,15 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //                (scene-test-small-fixes: a label wraps between words only; see the harbour).
 //   &name=long|word  the harbour's name at length, or with one over-long word (the place card's head, 5b's round).
 //   &kinds=p2p  the places typed as p2p-1 names them (an Area holding Locations), for the trail's panel (B2; see below).
+//   ?placePage=wreck  the party at the wreck (B15, page 30, HM1 to HM5; approved 2026-11-20): a hoard with its own words
+//                (the Strongbox, as page 30 draws it: 240 herons, moon opals ×2, swords ×4, daggers ×5 and a hooded
+//                lantern) and the lantern's truth as a piece of its own (Lantern of the Drowned); the description shown,
+//                nothing else, nothing sent (HM1; a tap on the Strongbox opens HM2's sheet).
+//   &b15=sent    with wreck: the GM has sent the hoard, the herons, the opals and the lantern to Wren, the swords to Ash,
+//                the daggers to the party stash (the card's "✓ All sent: …", HM5's sheet; the lantern's eye still
+//                closed, for HM3's tap).
+//   &b15=shown   with wreck: sent, and the GM's eye on the lantern's piece has named Wren's lantern (HM3's card; with
+//                ?as=player, HM4: Wren's Pack and the item's sheet read "Lantern of the Drowned").
 const placePageFlag = new URLSearchParams(window.location.search).get('placePage');
 // The jetty's own book text for the GM (gt-1, page 15 BT1; the whole Scene's S14): paragraphs, a list, a boxed aside.
 const JETTY_BOOK_TEXT = {
@@ -1216,7 +1275,7 @@ const JETTY_BOOK_TEXT = {
     { p: 'At low water the mud under the piles will bear a person for about as long as it takes to say a prayer.' },
   ],
 };
-if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === 'hand' || placePageFlag === 'none') {
+if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === 'hand' || placePageFlag === 'none' || placePageFlag === 'wreck') {
   world.tables.packs.push({ id: 'pack-reed', owner_user_id: gm, campaign_id: null, name: 'The Reed Marches', version: '0.1', kind: 'adventure', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-14T12:00:00Z', extra_meta: {} });
   world.tables.campaign_packs.push({ id: 'campaign-pack-reed', campaign_id: campaign, pack_id: 'pack-reed', pack_name: 'The Reed Marches', option_choices: {}, overrides: {}, priority: 5 });
   // &name=long: the harbour named at length (frame 6's messy data); &name=word: one word longer than the name's column.
@@ -1306,6 +1365,37 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
         ]
       : []),
   ].map((s) => ({ ...s, type: p2pKinds ? 'area' : 'site', parentId: 'drowned-harbour' }));
+  // ?placePage=wreck (B15, page 30): the wreck's hoard in the book's words, its things with their counts (b15f-1), and a
+  // magic item's truth (b15f-2 to b15f-4: a name, what it does, what the senses tell; no source). Invented.
+  if (placePageFlag === 'wreck') {
+    Object.assign(spots[1]!, {
+      // Named as page 30 draws it, "2. The Wreck" (impeccable audit 7); the other place pages keep "The wreck".
+      name: 'The Wreck',
+      playerView: {
+        text: 'A cog on her side on the bar, decks awash, her mast showing at every tide. In the stern cabin a strongbox is jammed under the fallen beams.',
+        aspects: [{ lead: 'Mast', text: 'Gulls quarrel on it; they lift off whenever something moves below.' }],
+      },
+      hoards: [{ name: 'Strongbox', text: '240 herons, two moon opals, nine swords and daggers and a hooded lantern, under a rotted sailcloth.' }],
+      treasure: [
+        { text: '240 herons', coins: { heron: 240 }, hoard: 'Strongbox' },
+        { text: 'Moon opals', qty: 2, hoard: 'Strongbox' },
+        { text: 'Swords', qty: 4, hoard: 'Strongbox' },
+        { text: 'Daggers', qty: 5, hoard: 'Strongbox' },
+        {
+          text: 'Hooded lantern',
+          hoard: 'Strongbox',
+          magicItem: {
+            name: 'Lantern of the Drowned',
+            text: 'Lit, it burns no oil and shows whatever lies under water within ten paces, as plainly as if the water were air. The drowned can see its bearer from as far.',
+            noticed: 'Cold to the touch; the glass smells of the sea.',
+          },
+        },
+      ],
+    });
+    // The setting's herons, so the hoard's coin is a row like any other (pf-6) that can be sent.
+    const rules = world.tables.library_entries.find((e) => e.id === 'entry-river-rules')!.data as Record<string, unknown>;
+    if (!Array.isArray(rules.currency)) rules.currency = [{ key: 'heron', label: 'herons', valueInBase: 1 }];
+  }
   for (const data of [island, harbour, ...spots]) world.tables.library_entries.push({ id: `entry-reed-${data.id}`, pack_id: 'pack-reed', kind: 'location', pack_entry_id: data.id, name: data.name, data });
   for (const t of [
     { id: 'tide-left', name: 'What the tide left', die: 'd6', rows: [{ min: 1, max: 6, result: 'A drowned lantern' }] },
@@ -1433,6 +1523,35 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
   const modeId = outdoors ? 'fen-walk' : 'dungeon';
   const started = (await world.db.rpc('start_expedition' as never, { campaign, mode_id: modeId } as never)) as unknown as { data: { id: string } | null };
   if (placePageFlag === 'hand') await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: 'Fenwick Hole', placeId: null, packEntry: null });
+  if (placePageFlag === 'wreck' && started.data) {
+    // B15's pictures (page 30): the party at the wreck; &b15=sent or shown, the hoard sent to Wren, then the lantern named.
+    const wreck = spots[1]!;
+    await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: wreck.id, name: wreck.name, data: wreck } });
+    const b15 = new URLSearchParams(window.location.search).get('b15');
+    const row = (await loadGroupPlaces(world.db, campaign, started.data.id))?.get(1);
+    // HM1: the description shown, every other piece hidden.
+    const description = row?.pieces.find((p) => p.kind === 'description');
+    if (row && description) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row, piece: description });
+    if ((b15 === 'sent' || b15 === 'shown') && row?.place) {
+      const { hoardRows } = await import('../modules/expedition/hoard.ts');
+      const { giveFind, sendOf } = await import('../modules/expedition/findSend.ts');
+      const { denominationsOf } = await import('../modules/inventory/coinWords.ts');
+      const coins = denominationsOf([world.tables.library_entries.find((e) => e.id === 'entry-river-rules')!.data as Record<string, unknown>]);
+      const hoard = hoardRows(row.pieces.find((p) => p.lead === 'Strongbox')!, wreck, coins, new Set());
+      // As HM5 C draws it: the herons, the opals and the lantern to Wren, the swords to Ash, the daggers to the stash.
+      const rowsOf = (...texts: string[]) => hoard.rows.filter((r) => texts.includes(r.text));
+      for (const [to, rows] of [[wren, rowsOf('240 herons', 'Moon opals', 'Hooded lantern')], [ash, rowsOf('Swords')], [null, rowsOf('Daggers')]] as const) {
+        const send = sendOf(rows, new Map());
+        await runCommand(registry, world.db, asGm, giveFind, { campaignId: campaign, to, placeId: row.place.id, things: send.things, coins: send.coins, rows: send.rows });
+      }
+      if (b15 === 'shown') {
+        const { showItemTruth } = await import('../modules/expedition/itemTruth.ts');
+        const lantern = world.tables.inventory_lines.find((l) => l.actor_id === wren && l.name === 'Hooded lantern')!;
+        const truth = row.pieces.find((p) => p.kind === 'other' && p.lead === 'Lantern of the Drowned')!;
+        await runCommand(registry, world.db, asGm, showItemTruth, { campaignId: campaign, row, piece: truth, lines: [String(lantern.id)] });
+      }
+    }
+  }
   // &ways=1|none|messy with spot (plan dec-9-the-players-scene P2; PL1, PL9, PL10): the jetty's ways on, and one of its
   // pieces shown, so a player has them (mc-28b). `1`: the wreck (row, swim) and the breakwater (row), both visited and
   // shown before; the customs shed by walking, never shown ("Not yet explored."); the sea cave by a hidden way (sent to
@@ -1485,13 +1604,13 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
       if (pictured?.picture) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row: pictured, piece: { id: pictured.picture.id } });
     }
     const mapFlag = new URLSearchParams(window.location.search).get('map');
-    if (mapFlag === 'wanted' || mapFlag === 'added') {
+    if (mapFlag === 'wanted' || mapFlag === 'added' || mapFlag === 'shown') {
       // &mapTitle=long: a long title, so the card's title takes its own line above the tools (#851's round).
       const chartTitle = new URLSearchParams(window.location.search).get('mapTitle') === 'long' ? 'The Drowned Harbour and the Saltwick Breakwater at the turn of the tide' : 'The Drowned Harbour, the harbour chart';
       const chart = { file: 'harbour-chart.png', title: chartTitle, alt: 'A silted harbour, its bar and five spots', locationIds: ['drowned-harbour'] };
       world.tables.library_entries.push({ id: 'entry-reed-harbour-chart', pack_id: 'pack-reed', kind: 'map', pack_entry_id: 'harbour-chart', name: chart.title, data: chart });
-      if (mapFlag === 'added' && row) {
-        world.tables.assets.push({ id: 'asset-harbour-chart', campaign_id: campaign, kind: 'map', name: chart.title, visibility: 'gm' });
+      if ((mapFlag === 'added' || mapFlag === 'shown') && row) {
+        world.tables.assets.push({ id: 'asset-harbour-chart', campaign_id: campaign, kind: 'map', name: chart.title, visibility: mapFlag === 'shown' ? 'all' : 'gm' });
         await world.db.storage.from('campaign-files').upload(`${campaign}/asset-harbour-chart`, new Blob(['a chart'], { type: 'image/svg+xml' }));
         const tied = world.tables.places.find((p) => p.id === row.place?.id);
         if (tied) tied.map_asset_id = 'asset-harbour-chart';
@@ -1526,6 +1645,50 @@ const giveFlag = new URLSearchParams(window.location.search).get('give');
 if (giveFlag === '1' || giveFlag === 'long') {
   world.addCharacter(campaign, giveFlag === 'long' ? 'Ashwin Thistlewood of the Long Stair, called the Lantern-Bearer' : 'Ash');
   if (giveFlag === 'long') world.addMember(campaign, world.addPerson('bart@lantern.example', 'Bartholomew Featherstone-Quillfeather the Younger'), 'player');
+}
+// The GM's view as the player with long names (page 32, M3b, M3d, M3k), only with ?view=long: a player with a long name
+// and their approved character with a long name, so the Players row wraps and the View band cuts its name line, on a
+// tablet held sideways too, in every browser's text widths (the band's line holds about 1050 px there).
+if (new URLSearchParams(window.location.search).get('view') === 'long') {
+  const bart = world.addPerson('bart@lantern.example', 'Bartholomew Featherstone-Quillfeather the Younger, Keeper of the Lamps of the Seventh Sluice-Gate');
+  const ashwin = world.addCharacter(campaign, 'Ashwin Thistlewood of the Long Stair, called the Lantern-Bearer', { ownerId: bart });
+  world.addMember(campaign, bart, 'player', ashwin);
+}
+// The Pack in the GM's view as the player (page 32, M3g, M3g2), only with ?viewPack=1: on Wren, a ring whose long
+// curse only the GM reads (a hidden field), so its sheet carries the GM's line and "Reveal…"; a cursed sword (M3g2's
+// line); and a wand whose charge count is hidden, so its row reads as the player's.
+if (new URLSearchParams(window.location.search).get('viewPack') === '1') {
+  const rules = world.tables.library_entries.find((e) => e.id === 'entry-river-rules')!.data as Record<string, unknown>;
+  rules.magicItems = { charges: { 'magic-wand': '2d6', hidden: true, rechargeable: false } };
+  const ring = { id: 'mooring-ring', name: 'Mooring ring', category: 'ring', description: 'A plain band of old bronze, green at the seam.' };
+  world.tables.library_entries.push({
+    id: 'entry-mooring-ring',
+    pack_id: 'pack-river',
+    kind: 'item',
+    pack_entry_id: 'mooring-ring',
+    name: 'Mooring ring',
+    data: { ...ring, fields: { Curse: 'Whoever wears it cannot step off a boat until the next full moon, and hears the bell of the drowned lock-keeper at every dusk' }, gmOnly: ['fields'] },
+  });
+  line('line-mooring-ring', wren, 'Mooring ring', { category: 'ring', library_entry_id: 'entry-mooring-ring', source_pack_id: 'pack-river', source_entry_id: 'mooring-ring', item_data: ring });
+  // A cursed sword (M3g2): its −1 hidden from the player, its curse a hidden field; Wren a level 1 Lantern Warden with an
+  // invented attack figure, so the sword has a to-hit roll ("the true figure is d20 …").
+  for (const id of ['entry-lantern-warden', 'entry-fen-warden']) (world.tables.library_entries.find((e) => e.id === id)!.data as Record<string, unknown>).progression = [{ level: 1, attackBonus: 0 }];
+  Object.assign(world.tables.actors.find((a) => a.id === wren)!, { classes: [{ classRef: 'lantern-warden', level: 1, xp: 0 }] });
+  const sword = { id: 'sluice-sword', name: 'Old bronze sword', category: 'weapon', weapon: { damage: '1d8', magicBonus: -1 } };
+  world.tables.library_entries.push({ id: 'entry-sluice-sword', pack_id: 'pack-river', kind: 'item', pack_entry_id: 'sluice-sword', name: 'Old bronze sword', data: { ...sword, cursed: true, gmOnly: ['cursed'] } });
+  line('line-sluice-sword', wren, 'Old bronze sword', { category: 'weapon', library_entry_id: 'entry-sluice-sword', source_pack_id: 'pack-river', source_entry_id: 'sluice-sword', item_data: sword });
+  Object.assign(world.tables.inventory_lines.find((l) => l.id === 'line-wand')!, { charges_hidden: true, charges_used: 1 });
+  world.tables.inventory_line_secrets.push({ id: 'line-wand', campaign_id: campaign, charges_total: 999, spent: false });
+}
+// The Scene in the GM's view as the player (page 32, M3i; C15f), only with ?viewScene=1: Sam's request waiting on the
+// GM ("Search the hold"), so the view's prompt slot shows it with its Cancel. Use with &placePage=spot&ways=1 for M3i's
+// place and ways.
+if (new URLSearchParams(window.location.search).get('viewScene') === '1') {
+  world.tables.requests.push({
+    id: 'request-view-scene', campaign_id: campaign, expedition_id: null, group_number: null, requester_id: sam, actor_id: wren, kind: 'askGm', direction: 'playerAsks',
+    text: 'Search the hold', cost_text: '', prompt: {}, entry: null, status: 'waiting', answer_kind: 'yesNo', answer: null, answered_at: null, reply: null,
+    created_at: '2026-11-22T10:00:00Z', version: 1, undone: false,
+  });
 }
 // What the folded rail keeps (mn-2), only with ?railSigil=1: the retired campaign takes a 60-character name, and it and
 // the Drowned Marches a sigil picture (the layout check serves files.example's pictures itself).
@@ -1595,7 +1758,17 @@ const mapParts = new URLSearchParams(window.location.search).get('mapParts');
 const moveOn = new URLSearchParams(window.location.search).get('moveOn');
 const knowledge = new URLSearchParams(window.location.search).get('knowledge');
 const placeCard = new URLSearchParams(window.location.search).get('placeCard');
-if (placeCard) {
+const viewPopUps = new URLSearchParams(window.location.search).get('viewPopUps');
+if (viewPopUps) {
+  // The GM's view's player-only pop-ups opened from inside a sheet (C15d, C15f): a travel day's activity, a town's stay.
+  const { GmViewPopUpsLayoutPage } = await import('../gallery/GmViewPopUpSpecimens.tsx');
+  await import('../gallery/Gallery.css');
+  createRoot(root).render(
+    <StrictMode>
+      <GmViewPopUpsLayoutPage state={viewPopUps} db={world.db} gm={gm} />
+    </StrictMode>,
+  );
+} else if (placeCard) {
   // The players' place card (P4) alone, as the gallery draws it; on the players' page with ?placePage=spot&ways=1.
   const { PlayersPlaceCardLayoutPage } = await import('../gallery/PlayersPlaceCardSpecimens.tsx');
   await import('../gallery/Gallery.css');

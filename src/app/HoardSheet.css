@@ -1,0 +1,70 @@
+/* B15 (page 30, HM1 to HM5): a hoard's sent line, its sheet and the Send sheet. Tokens only (hard rule 7). */
+
+/* "✓ Sent to Wren" under a hoard's piece or row (PK5b): the ink in bold 14, the tick before it. */
+.hoard-sent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--ink);
+  font-size: var(--text-14);
+  font-weight: var(--weight-bold);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.hoard-sent svg {
+  flex: none;
+}
+
+.hoard-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* The book's line once, in the book's format (HM2). */
+.hoard-sheet__words {
+  margin: 0;
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  overflow-wrap: break-word;
+}
+
+/* "Send all" at the right under the rows (HM2, PK5). */
+.hoard-sheet__foot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* PK5's two equal answers, full width, one under the other. */
+.hoard-sheet__answers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.hoard-sheet__answers .stacked-button {
+  inline-size: 100%;
+}
+
+/* A focused row wears the whole focus ring (impeccable audit 6): the sheet's scrolling body clips anything past its
+   padding box, which cut the ring's sides off and left two full-width rules. The row's button reaches a step into the
+   sheet's padding on each side, its words where they were, and the ring sits just inside it, rounded. */
+.hoard-sheet .list-row__body {
+  margin-inline: calc(-1 * var(--space-2));
+  padding-inline: var(--space-2);
+}
+
+.hoard-sheet .list-row__body:focus-visible {
+  outline: var(--line-strong) solid var(--outline);
+  outline-offset: calc(-1 * var(--line-strong));
+  border-radius: var(--radius);
+}
+
+/* On a tablet the standing panel's scrolling body has no padding of its own (the panel's is outside it), so it lends
+   the rows the same step: reaching into the panel's padding, its words where they were. */
+.dialog__side-body:has(> .hoard-sheet) {
+  margin-inline: calc(-1 * var(--space-2));
+  padding-inline: var(--space-2);
+}

@@ -97,6 +97,8 @@ export const UNDOABLE_MAKINGS: readonly string[] = [
   'town.showPiece',
   // A shop's stock (W12): a first answer for a thing that day makes its row (Undo marks it undone; it reads as its default).
   'stock.set',
+  // B15 (p2p-29): the GM's eye on a magic item's piece makes the piece's show (as place.showPiece; Undo marks it undone).
+  'place.showItemTruth',
 ];
 
 /**
@@ -112,6 +114,11 @@ export const mayUndo = (type: string, events: readonly { before: unknown; after:
   const merged = type === UNDOABLE_SPLIT && events.some((e) => isJoin(type, e));
   return events.every((e) => (e.before !== null || made || (deletion && removed.has(e.targetId))) && (e.after !== null || deletion || merged));
 };
+
+/** Whether the log offers this person an Undo on a line made by `actorUserId`: the GM on anyone's, a player on their own.
+ *  A line with no person on it (the database's own, e.g. a deleted account's link emptied) offers none (#77's ⚑ 4). */
+export const undoOffered = (actorUserId: string | null, viewer: { gm: boolean; userId: string }) =>
+  actorUserId !== null && (viewer.gm || actorUserId === viewer.userId);
 
 /** A join's change (Q2): an add's or a move's raise of a same-name stack's count. */
 export function isJoin(type: string, event: { before: unknown; after: unknown }): boolean {

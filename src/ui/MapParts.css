@@ -292,3 +292,26 @@
   color: var(--muted);
   font-size: var(--text-14);
 }
+
+/* The button and, after a failed fetch of the pack's picture, "or choose a file…" under it (ruled 2026-11-25). */
+.map-wanted__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.map-wanted__choose {
+  align-self: auto;
+}
+
+/* A map the pack brought, on a phone (B14 re-audit New 2a, Francis 2026-11-25): its longer "+ Map from the pack" goes
+   under the title, so the title keeps its width and doesn't drop to three lines. */
+@media (max-width: 599px) {
+  .map-wanted--packed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .map-wanted--packed .map-wanted__actions {
+    align-items: flex-start;
+  }
+}
