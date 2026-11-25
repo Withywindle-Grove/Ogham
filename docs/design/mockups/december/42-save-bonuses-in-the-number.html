@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>December: page 42, save bonuses counted in the save's number: the final A (ruled by Francis 2026-11-24; the drawing waits for his approval), and the options as they were put (A, B, C, D)</title>
+<title>December: page 42, save bonuses counted in the save's number: the final A (ruled by Francis 2026-11-24, revised 2026-11-25: five across, no caption for a counted bonus; the drawing, frames 42-22 to 42-28, waits for his approval), and the options as they were put (A, B, C, D)</title>
 <link rel="stylesheet" href="../creation/final/final.css">
 <link rel="stylesheet" href="../pack/pk.css">
 <link rel="stylesheet" href="../shared/book.css">
@@ -69,6 +69,17 @@
   #cmp .cap, #cmpA .cap { max-width:960px; font-size:16px; color:var(--ink); }
   .ps-tile .nm { white-space:nowrap; }
   .ps-tile .nm.wr { white-space:normal; }
+  /* The 25 November frames (42-22 on): blocks at the built tile widths, read on the Player tab in Chrome: 97 px tiles
+     at 1180 px (w6), 109 px tiles on a phone (wp); w4 above gives the 80 px tiles of 1024 px. */
+  .blk.w6 { width:544px; }
+  .blk.wp { width:370px; }
+  .trio.widec > div:has(> .blk.w6) { max-width:none; }
+  .trio > div:has(> .blk.wp) { max-width:none; }
+  .ps-tiles.bt .ps-tile .c.cut { align-self:stretch; }
+  .ps-tiles.bt .ps-tile .c.cut:not(.cp), .ps-tiles.bt .ps-tile .c.cut .pt { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-indent:0; padding:0; }
+  .pu-sub { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:var(--space-3) 0 var(--space-1); }
+  .ps-rl.tap { border:1.5px solid var(--control); border-radius:4px; background:var(--surface); min-height:44px; box-sizing:border-box; padding:var(--space-1) var(--space-3); }
+  .cmp3 img.nat { width:auto; max-width:100%; }
 </style>
 </head>
 <body>
@@ -237,10 +248,70 @@ const mixF = `${hd('Fever', 11)}<div class="bk"><p>${DESC}</p>${rollLn('Roll d20
 const f20 = frame('42-20', `<b>42-20. Messy data on the sheet, 375 px.</b> <b>Two that help and one that hurts</b> (Barrow): a row each, kindred, class, then the rest; the last counted row is the head’s 12. <b>Stopped at the lowest face</b> (Mire, level 12): the rows read 3, 1, 1; the second +2 leaves the number at 1 and <b>no sentence says why</b>, as ruled (question 4; finding 33). <b>Low rolls succeed:</b> the same “+2 from Bog folk” takes 7 to 9; the rows read the same way. <b>Counted and at times on one save</b> (the tile’s Fever in 42-17): the counted row first, then the row that holds only against venom, each with its number. <b>A save the pack gives no line</b> and no bonus: the number, its roll line and the source; nothing made up.`,
   [psheet('Two that help, one that hurts', twoF), psheet('Stopped at the lowest face', floorF), psheet('Low rolls succeed: +2 raises it', underF), psheet('Counted and at times on one save', mixF), psheet('No line from the pack, no bonus', noDesc)].join(''));
 
+// ---- the final A as revised by Francis on 25 November 2026 (frames 42-22 to 42-28). Two rulings: the saves stay five
+//      across on a tablet; a bonus that always holds is counted and gets NO caption on the tile (this replaces "5(b)",
+//      "with Bog folk"); only a bonus that holds at times gets a caption, A's line ("11 vs venom"). The tile is the
+//      built Stat tile, small variant, read on the Player tab in Chrome on 25 November: 14 px caption (Bitter), 4 px at
+//      each side, a 1 px edge. The blocks below give the built tile widths: 80 px (1024), 97 px (1180), 109 px (phone). ----
+const tileR = (k, v, o = {}) => `<div class="ps-tile" role="button" aria-label="${k} ${v}${o.say ? ', ' + o.say : ''}: where it comes from"><span class="k">${k}</span><span class="v" data-sc>${v}</span>${o.parts ? `<span class="c cp${o.cut ? ' cut' : ''}">${o.parts.map((p) => `<span class="pt">${p}</span>`).join('')}</span>` : o.c ? `<span class="c${o.cut ? ' cut' : ''}">${o.c}</span>` : ''}</div>`;
+const headR = (o) => (o.tapline ? `<div class="ps-l ps-lr"><span>Saves</span><span class="ps-rl tap" role="button" aria-label="About saves. ${o.rule || OVER}">${d(20, 16)}<span>${o.rule || OVER}</span></span></div>` : labRule('Saves', o.rule || OVER, o.info !== false));
+const blockR = (label, list, o = {}) => `<div><p class="lab">${label}</p><div class="blk bit ${o.w || 'w4'}">${o.scores ? scoresPart : ''}${o.head === false ? '' : headR(o)}<div class="ps-tiles bt c${o.w === 'wp' ? 3 : 5}">${list.map(([k, v, x]) => tileR(k, v, x)).join('')}</div></div></div>`;
+const W80 = 'Tablet, 1024 px: 80 px tiles';
+const W97 = 'Tablet, 1180 px: 97 px tiles';
+const W109 = 'Phone, 375 px: 109 px tiles';
+// One set of messy data in every form: Mire has two bonuses that hold at times; Fever one; Wisps a long condition;
+// Barrow's bonus always holds, so it is counted (15 to 13) and says nothing. `f` writes one caption from its parts.
+const mk = (f, cut = false) => [['Mire', 11, { parts: [f(9, 'venom', 'venom'), f(7, 'marsh-rot', 'rot')], cut }], ['Drowning', 12], ['Fever', 13, { c: f(11, 'venom', 'venom'), cut }], ['Wisps', 14, { c: f(12, 'barrow-lights and will-o’-the-wisps', 'lights'), cut }], ['Barrow', 13]];
+const RA = [['Mire', 11], ['Drowning', 12], ['Fever', 13, { c: '11 vs venom', say: '11 against venom' }], ['Wisps', 12], ['Barrow', 13]];
+const R_VS = mk((n, w) => `${n} vs ${w}`);
+const R_B1 = mk((n, w) => `${n} ${w}`);
+const R_B2 = mk((n, w) => `${w} ${n}`);
+const R_B3 = mk((n, w) => `${n} vs ${w.slice(0, 3)}.`);
+const R_C = mk((n, w, s) => `${n} vs ${s}`);
+const R_BC = mk((n, w, s) => `${n} ${s}`);
+const R_D = mk((n, w) => `${n} vs ${w}`, true);
+const RA_B1 = [['Mire', 11], ['Drowning', 12], ['Fever', 13, { c: '11 venom', say: '11 against venom' }], ['Wisps', 12], ['Barrow', 13]];
+
+const f22 = frame('42-22', `<b>42-22. The final A as ruled on 25 November: five across, and no caption for a bonus that always holds.</b> Francis, 25 November 2026: “Stick with 5 across, try to prevent wrapping with small font or abbreviation.” and “If we’re adding it to the number we don’t need with bog folk. Only partial save like +2 vs poison needs to be listed.” So <b>Wisps and Barrow show 12 and 13 and nothing else</b> (the kindred’s +2 is in the figure; its source is on the save’s sheet), and <b>only Fever has a line: “11 vs venom”</b>. Drawn at the built tile’s three widths. <b>On a phone (109 px) and at 1180 px (97 px) the line sits on one line. At 1024 px (80 px) it takes two</b>: the words are 76 px wide and the tile has 70 px of room. The second set is longer data with the same words: two conditions on one save (Mire) and a long condition (Wisps).`,
+  [blockR(`${W109}. The usual case`, RA, { w: 'wp' }), blockR(`${W80}. The usual case, with the Scores above`, RA, { scores: true }), blockR(`${W97}. The usual case`, RA, { w: 'w6' }), blockR(`${W109}. Two on one save; a long condition`, R_VS, { w: 'wp' }), blockR(`${W80}. The same`, R_VS), blockR(`${W97}. The same`, R_VS, { w: 'w6' })].join(''), true);
+
+const opt = (label, list) => blockR(`${label} · 80 px tiles`, list, { head: false }) + blockR(`${label} · 97 px tiles`, list, { head: false, w: 'w6' });
+const f23 = frame('42-23', `<b>42-23. Ways to keep the line on one line, in the same tiles, at 80 px and 97 px.</b> <b>(a) Smaller type or less padding: not available.</b> The built caption is already 14 px, the smallest size hard rule 7 allows, and the tile’s sides are already 4 px, the smallest spacing token; so (a) is the tile as built, the first pair. <b>(b) Shorter words made by the app:</b> “11 venom” (no “vs”), “venom 11” (the tile’s own order, name then number), “11 vs ven.” (the first three letters). <b>(c) A short word from the pack</b> (“rot” for marsh-rot, “lights” for the long one): the pack format has no such field today, so it is a pack-format change. Drawn with “vs” kept, and again with “vs” dropped. <b>(d) Cut with “…”</b>, the full words on the save’s sheet and in the tile’s spoken name: a cut needs a ruling. In every form <b>two conditions on one save are a line each</b>: no form measured puts both on one line at 80 or 97 px.`,
+  [opt('(a) As built: 14 px, 4 px sides, “vs”', R_VS), opt('(b1) No “vs”: “11 venom”', R_B1), opt('(b2) Name first: “venom 11”', R_B2), opt('(b3) Three letters: “11 vs ven.”', R_B3), opt('(c) The pack’s short word, “vs” kept', R_C), opt('(b1 + c) The pack’s short word, no “vs”', R_BC), opt('(d) Cut with “…”', R_D)].join(''), true);
+
+const f24 = frame('42-24', `<b>42-24. The same forms on a phone (three across, 109 px tiles).</b> A phone has the most room (99 px inside the tile), so “11 vs venom” already fits; the forms differ only on the longer conditions.`,
+  [blockR('(a) As built, “vs”', R_VS, { w: 'wp' }), blockR('(b1) No “vs”', R_B1, { w: 'wp' }), blockR('(b1 + c) The pack’s short word, no “vs”', R_BC, { w: 'wp' }), blockR('(d) Cut with “…”', R_D, { w: 'wp' })].join(''), true);
+
+// ---- finding 1: where the number stops ----
+const FLOOR_1 = [['Mire', 1], ['Drowning', 4], ['Fever', 3, { c: '1 vs venom' }], ['Wisps', 4], ['Barrow', 5]];
+const FLOOR_2 = [['Mire', 2], ['Drowning', 4], ['Fever', 3, { c: '2 vs venom' }], ['Wisps', 4], ['Barrow', 5]];
+const MLINE = 'When the ground itself tries to take you.';
+const floorNow = `${hd('Mire', 1)}<div class="bk"><p>${MLINE}</p>${rollLn('Roll d20: 1 or higher succeeds.')}<h4 class="bsub">Modifiers</h4>${kv('Lantern Warden at level 12', 3)}${kv('+2 from Bog folk', 1)}${kv('+2 from Lantern Warden', 1)}${src}</div>${got}`;
+const floorOpt = `${hd('Mire', 2)}<div class="bk"><p>${MLINE}</p>${rollLn('Roll d20: 2 or higher succeeds.')}<p>A rolled 1 always fails.</p><h4 class="bsub">Modifiers</h4>${kv('Lantern Warden at level 12', 3)}${kv('+2 from Bog folk', 2)}${kv('+2 from Lantern Warden', 2)}${src}</div>${got}`;
+const f25 = frame('42-25', `<b>42-25. Finding 1, an option: the number stops at the lowest roll that can succeed.</b> <b>As ruled on 24 November</b> (first and third): a number stops at the die’s lowest face, so Mire shows 1 and reads “1 or higher succeeds”, which a rolled 1 does not do in a setting where a 1 always fails. <b>The option</b> (second and fourth): where the pack says a rolled 1 always fails, the number stops at <b>2</b>, the lowest roll that can succeed; the tile, the head and the roll line say 2, and the sheet shows <b>the pack’s own sentence</b> under the roll line (“A rolled 1 always fails.” is invented here; the app writes none). A pack that says nothing about a rolled 1 stops at the lowest face, as ruled. Where low rolls succeed the same holds at the top: 19 where a rolled 20 always fails. <b>Can the pack say it as data? In part:</b> see the note under this page’s measures.`,
+  [blockR('As ruled: stops at the lowest face, 1', FLOOR_1), blockR('The option: stops at 2, the lowest roll that can succeed', FLOOR_2)].join('') + psheet('As ruled: rows 3, 1, 1', floorNow) + psheet('The option: rows 3, 2, 2, and the pack’s sentence', floorOpt), true);
+
+// ---- finding 2: the rows that hold only at times, on the sheet ----
+const sub = (words) => `<p class="pu-sub">${words}</p>`;
+const kvTo = (k, v) => `<p class="pu-kv"><span>${k}</span><b aria-label="gives ${v}">→ ${v}</b></p>`;
+const mixOpt = `${hd('Fever', 11)}<div class="bk"><p>${DESC}</p>${rollLn('Roll d20: 11 or higher succeeds.')}${rollLn('Vs venom: 9 or higher succeeds.')}<h4 class="bsub">Modifiers</h4>${kv(L3, 13)}${kv('+2 from Bog folk', 11)}${sub('Only at times')}${kvTo('Vs venom: +2 more from Bog folk', 9)}${kvTo('Vs magic: +1 from Lore', 10)}${src}</div>${got}`;
+const wispsOpt = `${hd('Wisps', 12)}<div class="bk"><p>${WLINE}</p>${rollLn('Roll d20: 12 or higher succeeds.')}<h4 class="bsub">Modifiers</h4>${kv(L3, 14)}${kv('+2 from Bog folk', 12)}${sub('Only at times')}${kvTo('Vs magic: +1 from Lore', 11)}${src}</div>${got}`;
+const f26 = frame('42-26', `<b>42-26. Finding 2, an option: on the sheet, an “Only at times” label and “→ 9” figures.</b> <b>As drawn on 24 November</b> (first and third): every Modifiers row ends in a plain number, so the last row’s figure (10, or 11) reads as the answer although the head says 11 (or 12); finding 37. <b>The option</b> (second and fourth): the counted rows come first and end in the head’s number; a quiet label, <b>“Only at times”</b>, then the rows that hold at times, each with <b>“→ 9”</b>: the number to roll when that row holds, not a running total. With the label the rows drop the word “only”. <b>Since 25 November this sheet is the only place a counted bonus names its source</b> (“+2 from Bog folk”), so the counted rows have to read clearly on their own.`,
+  [psheet('As drawn: counted and at times in one list', mixF), psheet('The option: “Only at times”, “→ 9”', mixOpt), psheet('As drawn: one counted, one at times', wispsF), psheet('The option', wispsOpt)].join(''));
+
+// ---- finding 3: what opens the general rule ----
+const f27 = frame('42-27', `<b>42-27. Finding 3, an option: the roll line itself opens the general rule, with no ⓘ.</b> <b>As ruled on 24 November</b> (M): an ⓘ beside “Saves” opens the general rule; on the built tablet screen it pushes the roll line onto its own row (finding 31). <b>The option:</b> the roll line “Roll d20: your save’s number or higher succeeds.” is the tap: a line with a control’s edge, 44 px high (06’s Tap line), and no ⓘ. The pop-up is the same (third). Drawn in the 1024 px column and on a phone. <b>The Scores heading above carries the same kind of line, and there it is not a tap</b>: two lines that look alike would act differently unless the Scores line follows.`,
+  [blockR(`${W80}. As ruled: the ⓘ`, RA, { scores: true }), blockR(`${W80}. The option: the roll line is the tap`, RA, { scores: true, tapline: true }), blockR(`${W109}. As ruled: the ⓘ`, RA, { w: 'wp' }), blockR(`${W109}. The option`, RA, { w: 'wp', tapline: true })].join('') + psheet('The pop-up either way: the general rule, once', aboutSaves), true);
+
 mount(`
   <h1>Page 42. Save bonuses counted in the save’s number</h1>
-  <p class="note big"><b>Ruled by Francis, 24 November 2026: A,</b> with the answers to the ruling’s eight questions and two points from the PC session’s critique of option D. <b>The final drawing is frames 42-15 to 42-21, first on this page; it waits for his approval.</b> The one choice still open: on a tablet, the saves five across or three across (42-16, 42-21). Frames 42-1 to 42-14 below are the options as they were put to him and are kept as the record.</p>
-  <h1>The final A (frames 42-15 to 42-21)</h1>
+  <p class="note big"><b>Ruled by Francis: A</b> (24 November 2026), <b>five across on a tablet, and no caption for a bonus that always holds</b> (25 November). <b>The drawing to approve is frames 42-22 to 42-28, first on this page.</b> Still his to choose: how the line of a bonus that holds at times stays on one line (42-23, 42-24), and three options from the first critique that he has not answered (42-25, 42-26, 42-27). Frames 42-15 to 42-21 under them are the drawing of 24 November: <b>their “with Bog folk” captions and their three-across blocks are replaced</b>; their sheets (42-19, 42-20) stand. Frames 42-1 to 42-14 are the options as first put, kept as the record.</p>
+  <h1>The final A, revised on 25 November (frames 42-22 to 42-28)</h1>
+  <p class="note big"><b>In his words, 25 November 2026.</b> “Stick with 5 across, try to prevent wrapping with small font or abbreviation.” and “If we’re adding it to the number we don’t need with bog folk. Only partial save like +2 vs poison needs to be listed.” <b>So:</b> the saves stay five across on a tablet. A bonus that always holds is counted into the figure and <b>the tile says nothing about it</b>; where it comes from is on the save’s sheet, in its Modifiers rows. Only a bonus that holds at times has a line on the tile, A’s line: the number to roll then (“11 vs venom”). This replaces “5(b)” of 24 November (“with Bog folk” under a counted figure).</p>
+  <p class="note big"><b>On “small font”: it is not available.</b> The built caption is 14 px, and hard rule 7 allows nothing under 14 px. The tile’s side padding is already 4 px, the smallest spacing token. What is left is the words: frames 42-23 and 42-24.</p>
+  <p class="note">Invented names only. No colour carries a meaning in these frames. The tile widths are the built Player tab’s, read in Chrome on 25 November: 80 px at 1024 px, 97 px at 1180 px, 109 px on a phone (three across).</p>
+  ${f22}${f23}${f24}${f25}${f26}${f27}
+  <h1>The final A as drawn on 24 November (frames 42-15 to 42-21; in part replaced)</h1>
   <p class="note big"><b>In his words.</b> Question 1: “We can’t add the modifier directly to save. For one thing a low score is better than a high score so you’d want to reduce the score by the bonus. I agree A is the move.” (S1 already works this way: where a high roll succeeds a +2 makes the number 2 lower; the direction comes from the rules set.) Questions 2 to 8: “2–8 as recommended”: a long condition wraps; the shared bonus once under the heading; a number stops at the die’s lowest face with no sentence that states a rule; the class’s row on the sheet; the right-hand column as drawn; M; S7 and S8. From the PC session’s critique of D: “5(b)”, a counted bonus names its source on the tile in words with no signed number; and “draw 6”, the saves three across on a tablet, drawn beside five across.</p>
   <p class="note">Invented names only. No colour carries a meaning in these frames: a counted bonus and one that holds at times differ by their words (“with …”, “… vs …”). The character is level 3 in these frames, as in the built screen’s pictures; frames 42-1 to 42-13 below were drawn at level 2 with the same numbers.</p>
   ${f15}${f16}${f17}${f18}${f19}${f20}
@@ -261,6 +332,98 @@ applyBook();
 // A source's name stays on one line where its tile can hold it; where it cannot, it wraps at its spaces.
 for (const n of document.querySelectorAll('.ps-tile .nm')) { const t = n.closest('.ps-tile'); const cs = getComputedStyle(t); if (n.getBoundingClientRect().width > t.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) { n.innerHTML = n.innerHTML.replace(/&nbsp;/g, ' ').replace(/\u2011/g, '-'); n.classList.add('wr'); } }
 </script>
+<!-- Frame 42-28: light only. Real pictures of the Player tab at 1024 by 768, outside the light and dark pair. -->
+<div class="pair" style="display:block"><div class="theme light" id="cmpB" data-frame="42-28">
+<h1>Frame 42-28. The revised A beside what is built: tablet landscape, light</h1>
+<p class="cap"><b>42-28. The Player tab’s Scores and Saves at 1024 by 768 px, light: built today; the revised A with “11 vs venom”; the revised A with “11 venom”.</b> The same character in all three: Brannoch Fenward, a Bog folk Lantern Warden of level 3 (Mire 11, Drowning 12, Fever 13, Wisps 14, Barrow 15 from the class; the kindred’s +2 to Wisps and Barrow always, and to Fever against venom). <b>Built today:</b> a picture of the app (the layout checks’ stand-in page, in Chrome); the bonus is on no tile. <b>The second and third</b> are that same screen with Wisps and Barrow changed to 12 and 13, Fever’s line typed in and the ⓘ added beside “Saves”: <b>drawings on the real screen, not built.</b> Five across in all three. With “11 vs venom” the line takes two lines and the row is 113 px high (67 today); with “11 venom” it is one line and the row is 92 px.</p>
+<div class="cmp3">
+<div><p class="lab"><b>Built today:</b> the bonus is on the sheet only</p><img src="png/42-28-built-tablet-light.png" alt="The built Player tab’s Scores and Saves: five save tiles in one row, Mire 11, Drowning 12, Fever 13, Wisps 14, Barrow 15, with nothing under them."></div>
+<div><p class="lab"><b>The revised A as ruled:</b> “11 vs venom”, two lines at 80 px</p><img src="png/42-28-a-as-ruled-tablet-light.png" alt="The same screen with the revised A: Wisps 12 and Barrow 13 with nothing under them; Fever 13 with 11 vs venom under it on two lines."></div>
+<div><p class="lab"><b>The revised A, one line:</b> “11 venom” (form b1, not ruled)</p><img src="png/42-28-a-one-line-tablet-light.png" alt="The same screen with the revised A: Wisps 12 and Barrow 13 with nothing under them; Fever 13 with 11 venom under it on one line."></div>
+</div>
+<p class="from">The first picture is the built screen (this branch’s copy of the app; the branch changes no app code). The second and third are that screen edited in the browser; no file in the repository was changed for them. The ⓘ is drawn in, not the app’s own part.</p>
+</div></div>
+<!-- The 25 November revision: measures, the two pack-format answers, critique and self-review, once, as plain text. -->
+<div class="pair" style="display:block"><div class="theme light" id="wordsB">
+<h1>The revised A: measured, the pack format, critique and self-review (frames 42-22 to 42-28)</h1>
+<p class="note big"><b>Measured</b> in Chrome on 25 November 2026, <b>inside the built save tile</b> on the Player tab (the caption’s own style: Bitter, 14 px), each set of words on one line. <b>The room inside a tile:</b> 70 px at 1024 px (an 80 px tile less 4 px of padding and a 1 px edge on each side), 87 px at 1180 px (a 97 px tile), 99 px on a phone (109 px).</p>
+<table class="sc">
+<tr><th>The form</th><th>The words</th><th>Width</th><th>80 px tile (70 px of room)</th><th>97 px tile (87 px)</th><th>Phone (99 px)</th></tr>
+<tr><td rowspan="3">(a) As built, “vs”: 14 px, 4 px sides</td><td>11 vs venom</td><td>75.8 px</td><td>no: 6 px over, two lines</td><td>one line</td><td>one line</td></tr>
+<tr><td>7 vs marsh-rot</td><td>94.2 px</td><td>no</td><td>no: 7 px over</td><td>one line</td></tr>
+<tr><td>12 vs barrow-lights and will-o’-the-wisps</td><td>263.2 px</td><td>no: five lines</td><td>no: four lines</td><td>no: three lines</td></tr>
+<tr><td rowspan="3">(b1) No “vs”</td><td>11 venom</td><td>59.2 px</td><td>one line</td><td>one line</td><td>one line</td></tr>
+<tr><td>7 marsh-rot</td><td>77.7 px</td><td>no: 8 px over</td><td>one line</td><td>one line</td></tr>
+<tr><td>12 barrow-lights and will-o’-the-wisps</td><td>246.6 px</td><td>no: four lines</td><td>no: four lines</td><td>no: three lines</td></tr>
+<tr><td rowspan="2">(b2) Name first</td><td>venom 11</td><td>59.2 px</td><td>one line</td><td>one line</td><td>one line</td></tr>
+<tr><td>marsh-rot 7</td><td>77.7 px</td><td>no; the number drops to a line of its own</td><td>one line</td><td>one line</td></tr>
+<tr><td rowspan="3">(b3) Three letters</td><td>11 vs ven.</td><td>57.4 px</td><td>one line</td><td>one line</td><td>one line</td></tr>
+<tr><td>7 vs mar.</td><td>55.6 px</td><td>one line</td><td>one line</td><td>one line</td></tr>
+<tr><td>12 vs bar.</td><td>56.6 px</td><td>one line</td><td>one line</td><td>one line</td></tr>
+<tr><td rowspan="3">(c) The pack’s short word, “vs” kept</td><td>11 vs venom</td><td>75.8 px</td><td>no: 6 px over</td><td>one line</td><td>one line</td></tr>
+<tr><td>7 vs rot</td><td>45.4 px</td><td>one line</td><td>one line</td><td>one line</td></tr>
+<tr><td>12 vs lights</td><td>68.8 px</td><td>one line, with 1 px to spare</td><td>one line</td><td>one line</td></tr>
+<tr><td rowspan="3">(b1 + c) The pack’s short word, no “vs”</td><td>11 venom</td><td>59.2 px</td><td>one line</td><td>one line</td><td>one line</td></tr>
+<tr><td>7 rot</td><td>28.8 px</td><td>one line</td><td>one line</td><td>one line</td></tr>
+<tr><td>12 lights</td><td>52.3 px</td><td>one line</td><td>one line</td><td>one line</td></tr>
+<tr><td rowspan="3">(d) Cut with “…”</td><td>11 vs venom</td><td>cut to fit</td><td>“11 vs ven…”</td><td>whole</td><td>whole</td></tr>
+<tr><td>7 vs marsh-rot</td><td>cut to fit</td><td>“7 vs mars…”</td><td>“7 vs marsh-…”</td><td>whole</td></tr>
+<tr><td>12 vs barrow-lights and will-o’-the-wisps</td><td>cut to fit</td><td>“12 vs bar…”</td><td>“12 vs barro…”</td><td>“12 vs barrow-l…”</td></tr>
+<tr><td>Two conditions on one save, on one line</td><td>9 venom, 7 rot (the shortest form)</td><td>90.9 px</td><td>no</td><td>no: 4 px over</td><td>one line</td></tr>
+<tr><td>Other figures</td><td>1 vs venom · 9 vs venom · 20 vs venom · 20 venom</td><td>70.1 · 72.6 · 81.0 · 64.4 px</td><td>no · no · no · one line</td><td>one line each</td><td>one line each</td></tr>
+<tr><td>Other short words with no “vs”</td><td>11 wisps · 11 curses · 11 charms · 11 embers · 11 drowning</td><td>51.2 · 56.8 · 63.5 · 63.7 · 77.0 px</td><td>one line up to six letters; “drowning” (eight) no</td><td>one line each</td><td>one line each</td></tr>
+</table>
+<table class="sc">
+<tr><th>The built screen, 1024 by 768 (frame 42-28)</th><th>Built today</th><th>Revised A, “11 vs venom”</th><th>Revised A, “11 venom”</th></tr>
+<tr><td>A save tile</td><td>80 by 67 px</td><td>80 by 113 px; the line on two lines</td><td>80 by 92 px; the line on one</td></tr>
+<tr><td>A character with no bonus that holds at times (worked out, not pictured)</td><td>67 px</td><td colspan="2">67 px: no tile has a line, so the row is as today</td></tr>
+<tr><td>The Saves heading</td><td>24 px, one row</td><td colspan="2">51 px: the ⓘ pushes the roll line onto its own row (finding 31; 49 px measured on 24 November with another drawn ⓘ)</td></tr>
+</table>
+<p class="note big"><b>Larger text</b> (the device’s setting; the caption is then 17.5 px), measured, not drawn: at 1024 px the built row already drops to <b>three across</b> by itself, because “Drowning” no longer fits an 80 px tile (the built rule since 10 November: a name never breaks inside a word, the row takes fewer columns instead). At 1180 px it stays five across with 87 px of room: “11 venom” is 74 px and fits; “11 vs venom” is 95 px and does not.</p>
+
+<h2>The two pack-format questions</h2>
+<table class="sc">
+<tr><th>Question</th><th>Answer</th><th>What <code>docs/07-content-packs.md</code> says</th></tr>
+<tr><td>Can a condition carry a short word for the tile?</td><td><b>No.</b> Form (c) is a pack-format change.</td><td>A <code>saveBonus</code> is a whole number, <code>{ bonus, vs?, saves? }</code> or a list of them; <code>vs</code> is one free line of words. A <code>saveBonusByCon</code> is <code>{ saves, byCon }</code>; a <code>saveModifiers</code> entry is <code>{ id, name, value, appliesWhen }</code>. None has a short form. (Choices and scores do have a <code>short</code>; a condition could take the same key.)</td></tr>
+<tr><td>Can the pack state “a rolled 1 always fails” as data?</td><td><b>In part.</b> The face is data; what happens on it is words. The app reads neither today.</td><td><code>naturals.save</code> is <code>{ die, high: { on, text }, low: { on, text } }</code>: <code>low.on</code> is the face (1) and <code>low.text</code> the pack’s sentence. 07 says of it: “Shown as text on save and skill prompts … never automated.” Nothing in <code>src/</code> reads <code>naturals</code> yet. So the option of 42-25 needs either a ruling that a low natural on a save means “fails” (no format change, but it ends “never automated” for this one use), or a new key that says so (a format change).</td></tr>
+</table>
+
+<h2>Critique of the revised A (by hand; findings 42 to 55)</h2>
+<p class="note big"><b>The <code>impeccable</code> skill is not installed in this cloud session</b>, so this is again the designer’s own critique in the same shape: <b>no skill file was read and no detector or linter ran.</b> <b>The PC session runs the real <code>impeccable critique</code> on frames 42-22 to 42-28 next;</b> where its findings differ, its findings stand. Francis picks by number.</p>
+<table class="sc">
+<tr><th>Heuristic</th><th>Revised A</th><th>Against the final A of 24 November (32 of 40)</th></tr>
+<tr><td>Visibility of system status</td><td>3</td><td>Down 1: a counted bonus leaves no trace on the tile (48).</td></tr>
+<tr><td>Match to the user’s language</td><td>4</td><td>Up 1: “with Bog folk” is gone, and with it findings 32 and 34.</td></tr>
+<tr><td>User control and freedom</td><td>3</td><td>The same.</td></tr>
+<tr><td>Consistency</td><td>3</td><td>The same: a caption now always means “not in the figure”, as on a Score tile; the sheet’s rows are still finding 37.</td></tr>
+<tr><td>Error prevention</td><td>4</td><td>The same: no signed number on a tile.</td></tr>
+<tr><td>Recognition over recall</td><td>4</td><td>The same.</td></tr>
+<tr><td>Flexibility and efficiency</td><td>3</td><td>The same.</td></tr>
+<tr><td>Minimalist design</td><td>4</td><td>Up 2: most tiles are a name and a number; a character with no bonus at times has the row as built.</td></tr>
+<tr><td>Error recovery</td><td>2</td><td>The same: no error, offline or loading state is drawn.</td></tr>
+<tr><td>Help and documentation</td><td>4</td><td>The same.</td></tr>
+<tr><th>Total</th><th>34 of 40</th><th></th></tr>
+</table>
+<ol class="crit" start="42">
+<li><b>At 1024 px the ruled line misses one line by 6 px, and type cannot shrink.</b> “11 vs venom” is 76 px in 70 px of room. The caption is already 14 px (hard rule 7’s floor) and the sides already 4 px (the smallest token), so form (a) changes nothing. Only the words can change. (<code>layout</code>)</li>
+<li><b>“11 venom” fits everywhere, and leans on its place.</b> Under “Fever 13” it reads as “11 against venom”; alone it could be a count. The spoken name keeps “11 against venom” and the sheet says “Vs venom: 11 or higher succeeds.” It is the only form that fits 80 px with no pack change and nothing cut. (<code>clarify</code>)</li>
+<li><b>“venom 11” copies the tile’s own order</b> (name, then number) but wraps badly: at 80 px “marsh-rot 7” leaves the 7 alone on a line, and a long condition ends “wisps 12”, the number far from the figure it answers. Number first keeps the two numbers together. (<code>layout</code>)</li>
+<li><b>Three letters made by the app lose the meaning.</b> “12 vs bar.” says nothing; “mar.” could be marsh-rot or a March date; two conditions that start alike collide. It always fits, and that is all it does. Not recommended. (<code>clarify</code>)</li>
+<li><b>A cut hides the part that tells conditions apart.</b> “11 vs ven…” is still readable; “12 vs bar…” is not. It also runs against the rule for a tile’s name (never cut, never “…”; 10 November), and a cut needs a ruling. The whole words would be on the sheet and in the spoken name. (<code>clarify</code>)</li>
+<li><b>Only the pack’s short word tames a long condition, and with “vs” kept it is too tight.</b> “12 vs lights” fits 80 px with 1 px to spare, “11 vs venom” not at all. With no “vs” a short word of up to six letters fits beside a two-figure number. It is a pack-format change and every pack has to be given the words; until then a long condition wraps, as ruled on 24 November (question 2, a). (<code>harden</code>)</li>
+<li><b>A counted bonus now leaves no trace on the tile.</b> The player who reported this will see Wisps 12 where his book says 14 and nothing that says why; the reason is one tap away, in the sheet’s rows. This is the ruling of 25 November working as meant; it makes the sheet’s rows carry more (42-26). (<code>clarify</code>)</li>
+<li><b>Two conditions on one save cannot share a line.</b> The shortest form (“9 venom, 7 rot”) is 91 px: over at 80 and at 97 px. So they are a line each, and that row is 110 px, not 92. “Prevent wrapping” holds for each condition, not for the tile. (<code>layout</code>)</li>
+<li><b>One tile with a line makes its whole row taller.</b> Four tiles have empty room under their figures (92 px against 67). Accepted on 24 November; said again because now most tiles are the empty ones. (<code>layout</code>)</li>
+<li><b>Larger text changes the count across.</b> At 1024 px with Larger text the built row is already three across; “five across” would need a line saying it holds at the standard size, or the built rule changed. Not drawn. (<code>harden</code>)</li>
+<li><b>42-25: stopping at 2 makes the app apply a rule it only quotes today.</b> The number is truer (“1 or higher succeeds” is false where a 1 always fails), but the pack’s <code>naturals</code> is “never automated” by ruling and its meaning is in words. The cheaper fix is to change nothing in the number and show the pack’s sentence under the roll line. (<code>harden</code>)</li>
+<li><b>42-26: “→” is a new sign and “Only at times” new words.</b> The arrow has to be learnt once; read aloud it is “gives 9”. The label splits a short list in two, a little heavier for a save with one row of each. It does end finding 37: the last plain number is the head’s. (<code>clarify</code>)</li>
+<li><b>42-27: the roll line as a tap takes the ⓘ away but makes two like lines act differently.</b> The Scores line above looks the same and opens nothing, unless it follows. Measured on the built screen: at 1024 px the heading is one row of 44 px (24 px today, 51 px with the ⓘ); on a phone the words take two lines inside the tap line and the heading is 80 px (49 px today). (<code>layout</code>)</li>
+<li><b>Not drawn, not heard.</b> The ⓘ’s wrap in the hand drawings (their heading runs narrower than the built one; 42-28 shows the real one); Larger text; a tablet held upright; the full sheet’s Saves; a rules set with no roll direction (S5); a status that changes saves; the GM’s save prompt; loading, offline, error. The spoken names are written, not tried with a screen reader. Dark mode is drawn for 42-22 to 42-27; 42-28 is light only, as asked. (<code>harden</code>)</li>
+</ol>
+<p class="note big"><b>Keeping the line on one line: builder, then critic.</b> <b>First pass:</b> the pack’s short word (c): the only form that also handles a long condition, in the setting’s own words. <b>Challenge:</b> it is a pack-format change, every pack must be given the words, and with “vs” kept the plainest case (“11 vs venom”) still does not fit 80 px; so (c) alone does not answer the question. A cut (d) needs no pack work but hides the telling part and breaks the tile’s own no-cut rule. Three letters (b3) is a cut with a full stop. <b>What is left:</b> <b>(b1), “11 venom”, built by the app, the same words on every device</b>; a condition too long for the tile wraps at its spaces as ruled on 24 November, nothing cut; and <b>(c) follows as an optional short word in the pack</b> for the long ones, when a pack needs it. Two conditions on one save stay a line each.</p>
+<p class="note big"><b>The three options, the designer’s lean.</b> <b>42-25:</b> keep the stop at the lowest face as ruled, and add the pack’s own sentence under the roll line where the pack has one; stopping at 2 only if Francis wants the app to apply that rule. <b>42-26:</b> yes; since 25 November the sheet is the one place a counted bonus is explained, and the label and arrow stop the last row reading as the answer. <b>42-27:</b> keep the ⓘ (ruled M), at the far end of the roll line where it fits; the tap line saves 7 px on a tablet, costs height on a phone and splits Saves from Scores.</p>
+<p class="note big"><b>Self-review, checked:</b> every new block’s tile width against the built tile (80, 97, 109 px) and each caption’s line count, read from the page in Chrome; every set of words measured inside the built tile; no sideways scroll in any block; nothing under 14 px; no accent button, no disabled button, no confirm; no colour carries a distinction, so no greyscale strip; no signed number on any tile; targets 44 px or more (the ⓘ, the tap line, the close mark, “Got it”) and tiles 8 px apart; light and dark for 42-22 to 42-27. Messy data: two conditions on one save, a long condition, figures of 1 and 20, a number stopped at its limit, counted and at times on one sheet. Contrast is as measured on 24 November for the same parts (the caption 6.3 to 1 light, 7.6 dark; the ⓘ 6.7 and 8.7); <b>not measured again</b>, and the new “Only at times” label and the tap line’s edge use the same muted and control colours. <b>Not checked:</b> finding 55’s list; the real <code>impeccable critique</code>.</p>
+</div></div>
 <!-- Frame 42-21: light only. Real pictures of the Player tab at 1024 by 768, outside the light and dark pair. -->
 <div class="pair" style="display:block"><div class="theme light" id="cmpA" data-frame="42-21">
 <h1>Frame 42-21. The final A beside what is built: tablet landscape, light</h1>
@@ -285,7 +448,7 @@ for (const n of document.querySelectorAll('.ps-tile .nm')) { const t = n.closest
 </div></div>
 <!-- The critique and the self-review are plain text, once, under the two drawings. -->
 <div class="pair" style="display:block"><div class="theme light" id="words">
-<h1>The final A: measured, critique and self-review (frames 42-15 to 42-21)</h1>
+<h1>The final A: measured, critique and self-review (frames 42-15 to 42-21; the record of 24 November: five across was ruled on 25 November)</h1>
 <p class="note big"><b>Measured</b> in Chrome, 2026-11-24. The first table is the <b>built</b> Player tab at 1024 by 768 px with the final A’s words typed in (frame 42-21). The second is this page’s drawings, which use the built tile’s measures.</p>
 <table class="sc">
 <tr><th>The built screen, 1024 by 768</th><th>Built today</th><th>Final A, five across</th><th>Final A, three across</th></tr>
