@@ -539,6 +539,8 @@ export function MapWanted({
   onAdd,
   addLabel = '+ Map',
   sendingWords = 'Uploading the map…',
+  packed = false,
+  onChoose,
 }: {
   title: string;
   file: string;
@@ -548,22 +550,35 @@ export function MapWanted({
   addLabel?: string;
   /** "Fetching the pack's map…" while the pack's picture is tied with no tap (B14 audit 2, Francis 2026-11-24). */
   sendingWords?: string;
+  /** The pack brought the picture (B14 re-audit New 2, Francis 2026-11-25): no file-name line (there is no file for the
+   *  GM to find), and on a phone the button (or the fetching line) goes under the title. */
+  packed?: boolean;
+  /** After a failed fetch of the pack's picture (ruled 2026-11-25): a quiet "or choose a file…" under the retry, the
+   *  usual file picker, so a damaged pack picture never leaves the GM stuck. */
+  onChoose?: () => void;
 }) {
   return (
-    <div className="map-wanted">
+    <div className={packed ? 'map-wanted map-wanted--packed' : 'map-wanted'}>
       <span>
         <b className="map-wanted__title">{title}</b>
-        <small className="map-wanted__file">{file}</small>
+        {!packed && <small className="map-wanted__file">{file}</small>}
       </span>
-      {sending ? (
-        <p className="map-wanted__sending" role="status">
-          {sendingWords}
-        </p>
-      ) : (
-        <button type="button" className="button-secondary button-secondary--small" onClick={onAdd}>
-          {addLabel}
-        </button>
-      )}
+      <span className="map-wanted__actions">
+        {sending ? (
+          <p className="map-wanted__sending" role="status">
+            {sendingWords}
+          </p>
+        ) : (
+          <button type="button" className="button-secondary button-secondary--small" onClick={onAdd}>
+            {addLabel}
+          </button>
+        )}
+        {!sending && onChoose && (
+          <button type="button" className="button-quiet map-wanted__choose" onClick={onChoose}>
+            or choose a file…
+          </button>
+        )}
+      </span>
     </div>
   );
 }

@@ -1424,7 +1424,10 @@ details[open] > summary > .disclosure::before {
    rows, with the sheet's own air under it. */
 .sheet-foot--end {
   margin-block-start: auto;
+  /* The inline end inset (re-audit New 1, 2026-11-25): the body scrolls, so it clips; the button's 3 px ring, 2 px out,
+     needs this room to show whole. */
   padding-block-end: var(--pad);
+  padding-inline-end: var(--space-2);
 }
 
 /* Reduced motion: rings, bars and skeletons step or hold still. */

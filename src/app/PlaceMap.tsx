@@ -64,6 +64,7 @@ export function AddPlaceMap({
   place,
   map,
   packed,
+  fetchFailed = false,
   onChanged,
 }: {
   db: Db;
@@ -74,12 +75,16 @@ export function AddPlaceMap({
   map: Pick<PackMap, 'title' | 'file'>;
   /** The picture came with the pack (B14, p2p-27; its path there): "+ Map" adds it at once, with no file to pick. */
   packed?: string;
+  /** The place's own tie of the pack's picture failed (its fetch): "or choose a file…" shows under the retry. */
+  fetchFailed?: boolean;
   /** The map was added or its adding undone: read the place's map again. */
   onChanged: () => void;
 }) {
   const show = useToast();
   const picker = useRef<HTMLInputElement>(null);
   const [sending, setSending] = useState(false);
+  // A tap on "+ Map from the pack" whose fetch failed: as the tie's failure, "or choose a file…" shows (2026-11-25).
+  const [failedHere, setFailedHere] = useState(false);
 
   const undo = async (assetId: string): Promise<void> => {
     const eventId = await latestChange(db, campaignId, setPlaceMap.name, user.id);
@@ -93,9 +98,15 @@ export function AddPlaceMap({
   async function pick(source: Blob | undefined | (() => Promise<Blob | null>)) {
     if (!source || sending) return;
     setSending(true);
-    const file = typeof source === 'function' ? await source() : source;
+    let file: Blob | null;
+    try {
+      file = typeof source === 'function' ? await source() : source;
+    } catch {
+      file = null;
+    }
     if (!file) {
       setSending(false);
+      setFailedHere(true);
       return show({ text: PACK_PICTURE_UNREAD_WORDS, error: true });
     }
     let image: Blob;
@@ -124,7 +135,9 @@ export function AddPlaceMap({
         file={map.file}
         sending={sending}
         addLabel={packed ? '+ Map from the pack' : undefined}
+        packed={!!packed}
         onAdd={() => (packed ? void pick(() => loadPackPicture(db, packed)) : picker.current?.click())}
+        onChoose={packed && (fetchFailed || failedHere) ? () => picker.current?.click() : undefined}
       />
       <input
         ref={picker}
@@ -273,8 +286,8 @@ export function PlaceMapPart({
   if (!state || state.kind === 'none') return null;
   // While the pack's map is tied, its spot says so in one quiet line (B14 audit 2, Francis's words 2026-11-24).
   if (state.kind === 'wanted' && tying)
-    return <MapWanted title={state.map.title} file={state.map.file} sending sendingWords="Fetching the pack's map…" onAdd={() => undefined} />;
-  if (state.kind === 'wanted') return <AddPlaceMap db={db} user={user} campaignId={campaignId} place={place} map={state.map} packed={state.packed} onChanged={again} />;
+    return <MapWanted title={state.map.title} file={state.map.file} packed sending sendingWords="Fetching the pack's map…" onAdd={() => undefined} />;
+  if (state.kind === 'wanted') return <AddPlaceMap db={db} user={user} campaignId={campaignId} place={place} map={state.map} packed={state.packed} fetchFailed={!!tieFailed} onChanged={again} />;
 
   const linked = link && assetId && link.key.startsWith(`${assetId}:`) ? link : null;
   const source: MapSource = { src: linked?.src ?? null, alt: state.alt, failed: !!linked && !linked.src };

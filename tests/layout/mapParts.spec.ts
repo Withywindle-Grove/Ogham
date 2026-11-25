@@ -141,7 +141,7 @@ for (const size of [
       // Purpose (re-audit New 2 and its question, 25 Nov): a map the pack brought shows no file-name line, fetching or
       // not; on a phone its "+ Map from the pack" (or the fetching line) goes under the title, so the title keeps to two
       // lines; after a failed fetch "or choose a file…" stands under the retry as a 44 px target.
-      test.fail("the pack's map row: no file line, under the title on a phone, or choose a file… after a failure", async ({ page }) => {
+      test("the pack's map row: no file line, under the title on a phone, or choose a file… after a failure", async ({ page }) => {
         const phone = size.width < 600;
         for (const state of ['packed', 'fetching', 'fetchFailed'] as const) {
           await page.goto(`/layout.html?mapParts=${state}`);

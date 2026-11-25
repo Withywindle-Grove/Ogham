@@ -397,7 +397,7 @@ describe("a place whose pack brought its map's picture (B14, p2p-27)", () => {
 
   // Purpose (re-audit New 2b, Francis 25 Nov): a map the pack brought shows no file-name line, there being no file for
   // the GM to find: neither on "+ Map from the pack" nor while "Fetching the pack's map…" shows.
-  it.fails('a map the pack brought shows no file-name line, fetching or not', async () => {
+  it('a map the pack brought shows no file-name line, fetching or not', async () => {
     let end = () => undefined as void;
     let asked = false;
     try {
@@ -418,7 +418,7 @@ describe("a place whose pack brought its map's picture (B14, p2p-27)", () => {
 
   // Purpose (re-audit question, ruled yes 25 Nov): after a failed fetch the row offers "or choose a file…" under the
   // retry; it opens the usual file picker, and the file chosen becomes the place's map.
-  it.fails('after a failed fetch, "or choose a file…" opens the file picker and the file becomes the map', async () => {
+  it('after a failed fetch, "or choose a file…" opens the file picker and the file becomes the map', async () => {
     const user = userEvent.setup();
     packDownload(async () => ({ data: null, error: { message: 'offline' } }));
     open();

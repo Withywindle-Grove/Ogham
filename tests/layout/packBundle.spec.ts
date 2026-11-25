@@ -84,7 +84,7 @@ for (const size of [
 
       // Purpose (re-audit New 1, 25 Nov): with focus on "Add it…" (where the sheet opens it), its whole focus ring shows:
       // no box that scrolls or clips (the sheet's body, the sheet) cuts it off, at either width.
-      test.fail('the focus ring on Add it… is not clipped', async ({ page }) => {
+      test('the focus ring on Add it… is not clipped', async ({ page }) => {
         await importBundle(page, { 'saltwick-island.pack.json': pack('Saltwick Island', 'images/map-beach.png'), 'images/map-harbour.png': PIXEL });
         const add = page.getByRole('dialog', { name: 'Imported: Saltwick Island' }).getByRole('button', { name: 'Add it…' });
         await expect(add).toBeFocused();
