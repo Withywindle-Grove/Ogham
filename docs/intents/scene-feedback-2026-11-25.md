@@ -1,6 +1,6 @@
 # Intent: Scene feedback, 25 November 2026
 
-Author: Francis · Date: 2026-11-25 · Status: draft (collecting)
+Author: Francis · Date: 2026-11-25 · Status: draft (collected, 27 items)
 
 Francis's notes on the Scene screens (the GM's Scene and the players' Scene), sent one at a time on 2026-11-25. Numbered F1, F2, … in the order he sent them. His words are quoted as he sent them. Nothing is decided here; the driver processes the items after the collection ends. Pictures go in `docs/intents/scene-feedback-2026-11-25/` and are linked from their items.
 
@@ -323,11 +323,17 @@ The Scene screens (GM and players), `06-screens-and-design.md`, `05-features.md`
 ## Constraints
 Hard rules 2 (IP-clean) and 7 (calm UI).
 
+## Scope of the test
+In scope (his words, at the end): point-to-point crawling in the first and second areas.
+
+> this ends my session of feedback on scene. In scope was point-to-point crawling harbour and beach. out of scope was the settlement. we'll need to revisit that in a design session later.
+
 ## Out of scope
-To be filled in by the driver.
+The settlement area (see F1 (d)). He wants a design session on it later.
 
 ## Open questions
-- ⚑ The clarifying questions, if any, sit under their items.
+- ⚑ Clarifying questions to Francis, asked at the end of the collection: F2, F8, F12, F18 (each under its item). F11's question was answered by his follow-up note.
+- Questions he asked for the driver: F1 (does Depart open on the last adventure?), F13 (c) (can the pack builder split a map from its key?), F20 (d) (a plan for sharing out found treasure before 5 December?).
 
 ## Links (filled in later)
 Ruling: — · Plan: — · Pull request: — · Status report: —
