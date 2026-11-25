@@ -56,6 +56,22 @@ Pictures: four screenshots, not committed: they show a private pack's encounter 
 
 Reads as: four parts. (a) The encounter card needs a clean-up pass (an `impeccable` critique). (b) "Encounter tables ›" needs a redesign; once the table has been rolled, the card does not need it. (c) Bug: after "Reveal to players", the encounter did not appear on the players' Scene. (d) Each encounter check's result should bring its details close at hand: the creatures' stat lines and descriptions, or a named character's notes. He thinks (d) may need a design session.
 
+### F5. Two encounter cards for one encounter; the stat pop-up's header
+
+Screen: GM's Scene, "Waiting for you". Two cards for the same encounter:
+1. The card from F4 ("<check name>, now", "Rolled: …", "Encounter tables ›", "Done", "Reveal to players", "Message…"), with a second row below it ("<check name>…" and "Start").
+2. A card "An encounter waits": "<check name>, now, Turn 1." then the result as a link, with "Start" (accent) and "Dismiss".
+
+Tapping the result link opens a pop-up. Its title is "Encounter waiting: <check name>, now", then the creature's name as a large heading, "How many: 3", the stat line, a short special-rules paragraph, "From your setting: <source>, p. <page>", and "‹ Back to the encounter". The close (X) sits beside the title, above the creature's name.
+
+Pictures: three screenshots, not committed: they show a private pack's encounter text and a stat line (hard rule 2).
+
+> It's not clear why there are two encounter notifications, that seem to describe the same notification. The second notification seems to be the more relevant one. Designing based on that, I dont need "[check name]" or "[check name] turn 1." The encounter description is a sufficient start. The third image is exactly what i need for stats but i dont need the description above "Skeleton" and the "X" should be aligned with skeleton.
+
+([check name] is the pack's name for the encounter check.)
+
+Reads as: three parts. (a) One encounter shows as two cards; keep one, built on the "An encounter waits" card. (b) On that card, drop the check's name and "Turn 1"; the encounter result alone starts the card. (c) The stat pop-up is right, but drop its title line ("Encounter waiting: …") and put the X on the line of the creature's name.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
