@@ -163,6 +163,16 @@ Picture: one screenshot, not committed: it shows a private pack's map, place nam
 
 Reads as: three parts. (a) He does not know how place 2's name came to show to players; perhaps an earlier test revealed it. (b) Players pick a destination by its map number; an unexplored place shows as "<number>. Unexplored", not by name. (c) He asks whether the pack builder can split the map from its printed key: players see the map alone by default, and the GM can reveal the full key later. Part (c) is a question for the driver and the pack tools.
 
+### F14. Players' Scene: the travel pop-up has too much empty space
+
+Screen: players' Scene. Tapping a travel button ("Row", from F13) opens a pop-up: the title "Row", the X, "1 turn.", and "Your GM moves the party. Say where you want to go.", with wide gaps between the lines.
+
+Picture: [F14-row-popup.png](scene-feedback-2026-11-25/F14-row-popup.png) (cropped to the pop-up; the map behind it is cut out).
+
+> Too much empty space, needs formatted with impeccable and latest design standards.
+
+Reads as: tighten the pop-up's spacing; run it through an `impeccable` critique against the current design standards.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
