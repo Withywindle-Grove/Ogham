@@ -16,7 +16,7 @@ afterEach(cleanup);
 
 describe('the stock toggle (TW8f)', () => {
   // Purpose (tn-4): a thing not decided today rests on "?", says so, and has neither choice taken.
-  it.fails('rests on "?" until flipped', () => {
+  it('rests on "?" until flipped', () => {
     render(<StockToggle thing="Lamp oil" state="undecided" onChange={vi.fn()} />);
     const group = screen.getByRole('radiogroup', { name: 'Lamp oil, stocked today: not decided' });
     expect(group.textContent).toBe('?');
@@ -25,7 +25,7 @@ describe('the stock toggle (TW8f)', () => {
   });
 
   // Purpose (TW8f): the right half always means in and the left half always means out, from "?" or from the other side.
-  it.fails('sets in from the right half and out from the left', async () => {
+  it('sets in from the right half and out from the left', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     const { rerender } = render(<StockToggle thing="Lamp oil" state="undecided" onChange={onChange} />);
@@ -39,7 +39,7 @@ describe('the stock toggle (TW8f)', () => {
   });
 
   // Purpose (TW8f): a tap on the side it is already on does nothing (no write, no second log line).
-  it.fails('does nothing on the side it is already on', async () => {
+  it('does nothing on the side it is already on', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     const { rerender } = render(<StockToggle thing="Lamp oil" state="in" onChange={onChange} />);
@@ -50,7 +50,7 @@ describe('the stock toggle (TW8f)', () => {
   });
 
   // Purpose (TW8f, never colour alone): each state carries its own mark and its spoken state.
-  it.fails('marks each state', () => {
+  it('marks each state', () => {
     const { container, rerender } = render(<StockToggle thing="Lamp oil" state="in" onChange={vi.fn()} />);
     expect(screen.getByRole('radiogroup', { name: 'Lamp oil, stocked today' })).toBeTruthy();
     expect(screen.getByRole('radio', { name: 'In stock' }).getAttribute('aria-checked')).toBe('true');
@@ -64,7 +64,7 @@ describe('the stock toggle (TW8f)', () => {
 
   // Purpose (the radio group's keys, the stack's review): one tab stop (the chosen half, else the left), the arrow keys move
   // between the halves without choosing (a choice writes the day's stock), and Space chooses the focused half.
-  it.fails('moves between the halves by the arrow keys without choosing', async () => {
+  it('moves between the halves by the arrow keys without choosing', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(<StockToggle thing="Lamp oil" state="undecided" onChange={onChange} />);
@@ -84,7 +84,7 @@ describe('the stock toggle (TW8f)', () => {
   });
 
   // Purpose (the stack's review): the toggle draws the Switch's own track and knob, so the two never drift apart.
-  it.fails('uses the Switch’s own track and knob', () => {
+  it('uses the Switch’s own track and knob', () => {
     const { container } = render(<StockToggle thing="Lamp oil" state="in" onChange={vi.fn()} />);
     expect(container.querySelector('.stock-toggle .switch__track .switch__thumb')).toBeTruthy();
     expect(screen.getByRole('radio', { name: 'In stock' }).tabIndex).toBe(0);

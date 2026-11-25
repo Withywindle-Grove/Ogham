@@ -25,7 +25,7 @@ for (const size of [
       test.use({ viewport: { width: size.width, height: size.height } });
 
       // Purpose (TW8f): the targets, the gap between them, the track and the knob's place; the track under the halves.
-      test.fail('two 44 px halves 8 px apart, the track centred under them, the knob in place', async ({ page }) => {
+      test('two 44 px halves 8 px apart, the track centred under them, the knob in place', async ({ page }) => {
         // The whole gallery loads and is measured for sideways scrolling: more than the default 30 s on a slow machine.
         test.setTimeout(90_000);
         await open(page, `theme=${theme}`);
@@ -72,7 +72,7 @@ for (const size of [
       });
 
       // Purpose (TW8f): the halves set in and out.
-      test.fail('a tap sets in, then out', async ({ page }) => {
+      test('a tap sets in, then out', async ({ page }) => {
         await open(page, `theme=${theme}`);
         const group = page.locator('#stock-toggle').getByRole('radiogroup', { name: /^Waxed coat, stocked today/ });
         await expect(group).toHaveAttribute('aria-label', 'Waxed coat, stocked today: not decided');
@@ -91,7 +91,7 @@ for (const size of [
 // nothing in the section scrolls sideways.
 test.describe('the stock toggle at Larger text', () => {
   test.use({ viewport: { width: 375, height: 812 } });
-  test.fail('the halves keep their size and gap', async ({ page }) => {
+  test('the halves keep their size and gap', async ({ page }) => {
     await open(page, 'theme=light&size=larger');
     const section = page.locator('#stock-toggle');
     await section.scrollIntoViewIfNeeded();

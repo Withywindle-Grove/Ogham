@@ -278,13 +278,15 @@
   transition: inset-inline-start var(--press-flash);
 }
 
-.switch[aria-checked='true'] .switch__track {
+.switch[aria-checked='true'] .switch__track,
+.stock-toggle[data-state='in'] .switch__track {
   border: var(--line-selected) solid var(--selected-edge);
   background: var(--selected);
   box-shadow: 0 0 var(--space-2) var(--line-hair) color-mix(in srgb, var(--light-glow) 60%, transparent);
 }
 
-.switch[aria-checked='true'] .switch__thumb {
+.switch[aria-checked='true'] .switch__thumb,
+.stock-toggle[data-state='in'] .switch__thumb {
   inset-inline-start: calc(100% - var(--space-5) + var(--line-selected) - var(--line-hair));
   border-color: var(--selected-edge);
   background: var(--sheet);
@@ -295,6 +297,49 @@
   flex: none;
   justify-content: center;
   min-inline-size: var(--tap);
+}
+
+/* The three-position stock toggle (tn-4, TW8f; town row TC9): two 44 px halves with 8 px between them, and the Switch's
+   own track and knob (`.switch__track`, `.switch__thumb`, one look) centred under them. Out is the Switch's off (the knob
+   at the left, the cross), in its on (the rules above: the knob at the right, the tick, the Selected wash, edge and
+   glow); this adds only the centring, the knob in the middle with "?", and the layering (the track under the halves, so
+   a half's focus ring is never painted over). */
+.stock-toggle {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  gap: var(--space-2);
+  align-items: center;
+  isolation: isolate;
+}
+
+.stock-toggle__half {
+  inline-size: var(--tap);
+  block-size: var(--tap);
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.stock-toggle .switch__track {
+  position: absolute;
+  z-index: -1;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.stock-toggle .switch__thumb {
+  font-size: var(--text-14);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stock-toggle[data-state='undecided'] .switch__thumb {
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /* The eye (ds-2): a bare 44 px target, no box and no word; the open or closed eye is the state. */
