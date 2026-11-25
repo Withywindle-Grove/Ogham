@@ -2784,7 +2784,7 @@ export type Database = {
           message_id: string
           undone: boolean
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           actor_id: string
@@ -2795,7 +2795,7 @@ export type Database = {
           message_id: string
           undone?: boolean
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           actor_id?: string
@@ -2806,7 +2806,7 @@ export type Database = {
           message_id?: string
           undone?: boolean
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -2851,7 +2851,7 @@ export type Database = {
           disappears: boolean
           from_gm: boolean
           id: string
-          player_user_id: string
+          player_user_id: string | null
           read_at: string | null
           sender_user_id: string | null
           undone: boolean
@@ -2868,7 +2868,7 @@ export type Database = {
           disappears?: boolean
           from_gm: boolean
           id?: string
-          player_user_id: string
+          player_user_id?: string | null
           read_at?: string | null
           sender_user_id?: string | null
           undone?: boolean
@@ -2885,7 +2885,7 @@ export type Database = {
           disappears?: boolean
           from_gm?: boolean
           id?: string
-          player_user_id?: string
+          player_user_id?: string | null
           read_at?: string | null
           sender_user_id?: string | null
           undone?: boolean
@@ -3008,7 +3008,7 @@ export type Database = {
           kind: string
           name: string
           notes: string
-          owner_user_id: string
+          owner_user_id: string | null
           source: string
           updated_at: string
           version: string
@@ -3024,7 +3024,7 @@ export type Database = {
           kind?: string
           name: string
           notes?: string
-          owner_user_id?: string
+          owner_user_id?: string | null
           source?: string
           updated_at?: string
           version?: string
@@ -3040,7 +3040,7 @@ export type Database = {
           kind?: string
           name?: string
           notes?: string
-          owner_user_id?: string
+          owner_user_id?: string | null
           source?: string
           updated_at?: string
           version?: string
@@ -7005,7 +7005,7 @@ export type Database = {
           disappears: boolean
           from_gm: boolean
           id: string
-          player_user_id: string
+          player_user_id: string | null
           read_at: string | null
           sender_user_id: string | null
           undone: boolean

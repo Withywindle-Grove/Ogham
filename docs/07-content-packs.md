@@ -1035,6 +1035,7 @@ It sits on a location and covers everything inside it unless a child location ha
 - **NPC status is campaign state.** The GM marks alive, dead, missing or absent, and friendly, neutral or hostile. It's logged, and GM only unless the GM shares it.
 - **Faction reputation** is R2.
 - **Read from dec-3** (2026-11-15, town row W8): the importer keeps each of `npcs` as a GM-only library entry (kind `npc`; never sent to a player), its fields as written. No screen shows them yet; `factions` are still left out.
+- **The people of one place come in the pack's own order** (ruled 2026-11-25, `plans/dec-16-town-carry.md` ⚑ 2; read from its row TC4): the importer keeps each person's position in `npcs`, and a place's sheet lists the people whose `locationId` is that place in that order. No field names a keeper: **the pack's writer puts a place's keeper first.** A pack imported before TC4 lists its people by name until its next import.
 
 ### 6. `shops` (ruling 6)
 

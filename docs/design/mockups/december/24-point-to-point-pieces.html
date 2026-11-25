@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: point to point, the pieces (2026-11-18)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* This page's own rules. Type, the book format, the stacked button, the sheet's title, the pop-up, the tapped table and
+     the corners come from ../shared/book.css and are not restated here. */
+  /* (1) copied as they stand from pages 04, 12, 16, 18 and 23: the layout of the parts reused here (the “22” in two names is page 23’s first number) */
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .rem { justify-content:center; } .rem .gap { display:none; }
+  .phone .rem .step .nm { display:none; }
+  .ibs { display:inline-flex; gap:var(--space-2); }
+  .btn.sq.ib { padding:6px; }
+  .dcap { display:inline-flex; align-items:center; gap:var(--space-1); font-size:16px; letter-spacing:.04em; margin-right:var(--space-2); vertical-align:bottom; }
+  .dcap svg { color:var(--muted); flex:none; }
+  .phone .dcap { font-size:14px; }
+  .tapline { text-decoration:underline; text-underline-offset:3px; }
+  .phband { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2); align-items:center; margin-top:var(--space-1); }
+  .phone .facts { margin-top:var(--space-2); }
+  .phone .facts.pf .fact .v { font-size:16px !important; white-space:nowrap; }
+  .phone .facts.pf .fact .s { font-size:14px; }
+  .phone .facts.pf .fact .k { white-space:nowrap; letter-spacing:0; }
+  .phone .facts.pf .fact { padding-left:var(--space-2); padding-right:var(--space-2); gap:var(--space-2); }
+  .phone .facts.pf .fact:last-child .v { font-size:14px !important; }
+  .phibs { display:flex; gap:var(--space-2); margin-top:var(--space-2); }
+  .phone .inner > .crumb:first-child { margin-top:var(--space-1); }
+  .four { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-4); align-items:start; }
+  .mseq { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .mhead { display:grid; grid-template-columns:minmax(0,1fr) 44px; align-items:start; }
+  .mx { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; }
+  .mttl { margin:var(--space-2) 0 var(--space-3); }
+  .flab { display:block; font-size:14px; color:var(--muted); margin:var(--space-3) 0 var(--space-1); }
+  .mfoot { display:flex; justify-content:flex-end; gap:var(--space-2); margin-top:var(--space-4); }
+  .wait .wb { grid-column:1 / -1; align-items:stretch; }
+  .bk td:first-child, .bk th:first-child { width:96px; }
+  .phfacts { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-2); margin-top:var(--space-2); }
+  .phfacts .fact { padding-left:var(--space-2); padding-right:var(--space-2); column-gap:var(--space-2); }
+  .phfacts .fact .v { font-size:16px !important; white-space:nowrap; }
+  .phfacts .fact .k { white-space:nowrap; }
+  .phfacts .fact:last-child .v { font-size:14px !important; }
+  .phfacts .fact:last-child .k { letter-spacing:0 !important; }
+  .opt + .spot { margin-top:var(--space-2); }
+  .phone .pdest { grid-template-columns:auto minmax(0,1fr); }
+  .phone .pdest .modes { grid-column:1 / -1; justify-content:flex-start; }
+  .phone .pcard { margin-top:var(--space-3); padding:var(--space-3); }
+  .pdest .modes .btn.stk { width:auto; }
+  .pdest .ot b { overflow-wrap:break-word; word-break:normal; }
+  .filerow { display:grid; grid-template-columns:24px minmax(0,1fr) auto; gap:var(--space-2) var(--space-3); align-items:center; min-height:52px; border-bottom:1px dotted var(--rule); }
+  .filerow:last-of-type { border-bottom:0; }
+  .filerow small { display:block; font-size:14px; color:var(--muted); }
+  .dev .band .acts .btn.sq { width:52px; min-height:52px; }
+  .maptools .btn.sq { height:44px; padding:0; }
+  .mobody { flex:1; min-height:0; overflow:hidden; padding:0 var(--space-4); }
+  .mobody .pdest:first-child { margin-top:0; }
+  .kw22 { font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+  .inforce .own22 { display:block; margin-top:var(--space-1); }
+  /* (2) new on this page */
+  /* DP1: the three-way choice shares the row's width; a picker's group heading and its rows */
+  .sw3 { display:flex; flex-wrap:nowrap; }
+  .sw3 > span { flex:1 1 auto; justify-content:center; padding:0 var(--space-2); white-space:nowrap; }
+  .phone .sw3 > span { padding:0 var(--space-1); }
+  .pk23 { display:flex; align-items:center; gap:var(--space-2); min-height:44px; border-bottom:1px dotted var(--rule); }
+  .pk23.sel { font-weight:700; }
+  /* TF1: a due fact's one small line in the folded band (the fold mark is the band's own framed square) */
+  .due23 { display:flex; align-items:center; gap:var(--space-1); font-size:14px; font-weight:700; margin-top:var(--space-1); }
+  .tabrow23 { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:0 var(--space-3); margin-top:var(--space-3); }
+  /* PL1b: the shown pieces on the player's card */
+  .shown23 p { margin:var(--space-2) 0 0; }
+  /* frames of several phones side by side */
+  .phs23 { display:grid; grid-auto-flow:column; grid-auto-columns:343px; gap:var(--space-4) var(--space-6); align-items:start; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="strip.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+{
+// ---- parts of pages 04, 16, 18, 19 and 22, as those pages wrote them ----
+const sep = svg(SY.right, 16);
+const go = svg(SY.right, 20);
+const NEW = '<b>New, a proposal, 2026-11-18; shared stylesheet.</b>';
+const APF = '<b>Approved 2026-11-18 with fix, drawn here; shared stylesheet.</b>';
+const APX = '<b>Approved 2026-11-18, with these fixes drawn; shared stylesheet.</b>';
+const APD = '<b>Approved 2026-11-18 as drawn; shared stylesheet.</b>';
+const stk = (words, k, o = {}) => `<span class="btn stk${o.accent ? ' accent' : ''}" role="button">${o.sym ? sym(k, 24) : gi(k, 24)}<span>${words}</span></span>`;
+const bg = (words, k, o = {}) => b(words, o).replace('>' + words + '<', '>' + gi(k, o.big ? 24 : 20) + words + '<');
+const ruleBtn = (k, words) => `<span class="btn big sqb" role="button" aria-label="${words}">${gi(k, 34)}</span>`;
+const splash = ruleBtn('water-splash', 'Someone fell in');
+const moreBtn = `<span class="btn sq" role="button" aria-label="More">${I.more}</span>`;
+const shortPad = (inner, cap) => ipad('gm', inner, cap).replace('class="dev ipad"', 'class="dev ipad short"');
+const stt = (label, html) => `<div><p class="lbl">${label}</p>${html}</div>`;
+const num22 = (name) => { const m = /^([0-9]+[.]) (.*)$/.exec(name); return m ? `<span class="keyno">${m[1]}</span>${m[2]}` : name; };
+// the strip: the app's own five steps, as page 16 draws them (ruled 2026-11-18 for point to point); plain, with no state
+const STEP5 = [['trumpet', 'Describe'], ['ball', 'Question'], ['sword-brandish', 'Act'], ['wizard', 'Test'], ['chest', 'Resolve']];
+const stripRow = remRow('Sequence of play', STEP5.map(([k, n]) => remStep(gi(k, 32), n, false)));
+const nextTurn = b('Next turn', { big: true, icon: 'clock' });
+const ib = (k, words) => `<span class="btn sq ib" role="button" aria-label="${words}">${k === 'encounter' ? sym('encounter', 28) : gi(k, 30)}</span>`;
+const ibs3 = [ib('camping-tent', 'Make camp'), ib('encounter', 'Encounter check'), ib('exit-door', 'Leave the dungeon')].join('');
+const dl = (date, rest = '') => `<span class="dcap">${gi('sprout', 18)}${date}</span>${rest}`;
+const DATE = dl('14 Reedmonth, spring', 'Two hours of light left.');
+const TDATE = dl('12 Reedmonth, spring', 'Morning.');
+const encTile = fact('encounter', 'Encounter check', 'On every move', `${dieMark(20, 16)}d20`).replace('class="v"', 'class="v" style="font-size:20px;white-space:nowrap"');
+const tiles = `${fact('weather', 'Weather', 'Drizzle', 'Wet.')}${fact('flame', 'Light', 'Ash’s torch', '4 turns left.')}${fact('rest', 'Rest', 'In 5 turns', 'One turn in six.')}${encTile}`;
+const gmBand = (title, extra = '', under = '') => `${band({ over: 'Session 1. Saltwick Island.', title, ident: DATE + under, acts: [`<span class="ibs" role="group">${ibs3}</span>`, nextTurn, moreBtn, extra] })}<hr class="dbl">`;
+const gmTop = (title) => `${gmBand(title)}<div class="facts">${tiles}</div>${stripRow}`;
+const townBand = `${band({ over: 'Session 1. In town.', title: 'Reedmouth, day 1', ident: TDATE, acts: [bg('Advance time', 'hourglass', { big: true }), bg('Depart', 'journey', { big: true, accent: true }), moreBtn] })}<hr class="dbl">`;
+const trail = (last) => `<div class="crumb"><a class="x">Saltwick Island</a>${sep}<a class="x">The Drowned Harbour</a>${sep}<b>${last}</b></div>`;
+const headOf = (name, acts) => `<div class="band"><div><h3 class="display">${num22(name)}</h3></div><div class="acts two">${acts}</div></div>`;
+const pair = `<div class="two">${b('Knowledge', { icon: 'book' })}${b('Rules', { icon: 'scales' })}</div>`;
+const SENT = `${dieMark(20, 16)}Roll d20 for an encounter each time the party rows to a new Location.`;
+const checkCard = `<div class="hrow" style="margin-top:var(--space-3)"><h2>Checks here</h2></div><div class="inforce tgl" style="margin-top:0"><span role="button" aria-label="Encounter check: read the rule"><b>Encounter check: on every move.</b><span class="own22">${SENT}</span></span>${tg(true, { label: 'The Drowned Harbour’s encounter check: in force here' })}</div>`;
+const waitCol = `<div class="pcard"><h2 style="margin-top:0">Waiting for you</h2><p class="meta" style="margin:0">Nothing waits.</p></div>`;
+const headCard = (name, accent = true) => `<div class="pcard">${trail(name)}${headOf(name, splash + b('Move on', { big: true, accent, icon: 'travel' }))}${pair}</div>`;
+const KEY22 = [['1 The jetty', '1. The Jetty'], ['2 The wreck', '2. The Wreck'], ['3 The breakwater', '3. The Breakwater'], ['4 The customs shed', '4. The Customs Shed'], ['5 The sea cave', '5. The Sea Cave']];
+const mapNamed = (vb) => KEY22.reduce((s, [a, c]) => s.split('>' + a + '<').join('>' + c + '<'), mapPic(true, vb));
+
+// ================= DP1: the Depart sheet =================
+const sheetHead = (seq, title) => `<div class="mhead"><div><div class="mseq">${seq}</div><div class="mttl sheet-title">${title}</div></div><span class="mx" role="button" aria-label="Close">${I.close}</span></div>`;
+const miniS = (seq, title, body) => `<div class="pcard">${sheetHead(seq, title)}${body}</div>`;
+const sw3 = (on) => `<span class="sw2 sw3" role="group" aria-label="Exploration method">${['Dungeon', 'Wilderness', 'Point to point'].map((m) => `<span${m === on ? ' class="on"' : ''} role="button" aria-pressed="${m === on}">${m}</span>`).join('')}</span>`;
+const startBtn = `<div class="mfoot">${stk('Start', 'campfire', { accent: true })}</div>`;
+const departBody = (picked) => `<span class="flab" style="margin-top:0">Where?</span>${picked ? opt('The Anchorage', 'The Drowned Harbour', { icon: 'travel', right: go }).replace('class="opt"', 'class="opt" style="margin-top:0"') : opt('Pick a Location', '', { icon: 'travel', right: go }).replace('class="opt"', 'class="opt" style="margin-top:0"')}<span class="flab">Exploration method</span>${sw3(picked ? 'Point to point' : '')}${startBtn}`;
+const pkRow = (name, on) => `<div class="pk23${on ? ' sel' : ''}" role="button" aria-pressed="${!!on}"><span style="width:24px;display:inline-flex">${on ? sym('check', 20) : ''}</span><span style="flex:1">${num22(name)}</span></div>`;
+const pkGroup = (area, names, first) => `<p class="sclab" data-sc${first ? ' style="margin-top:0"' : ''}>${area}</p>${names.map((n) => pkRow(n, false)).join('')}`;
+const pickBody = `${pkGroup('The Drowned Harbour', ['The Anchorage', '1. The Jetty', '2. The Wreck', '3. The Breakwater', '4. The Customs Shed', '5. The Sea Cave'], true)}${pkGroup('The Shingle Beach', ['The Landing', '1. The Wrack Line', '2. The Sea Stack'])}`;
+const needPop = `<div class="popb" role="dialog" aria-label="Pick a Location first"><div class="hd"><span class="sheet-title">Pick a Location first</span><span class="btn sq" role="button" aria-label="Close" style="border:0;background:transparent">${I.close}</span></div><p>An expedition starts at a Location.</p><div style="display:flex;justify-content:flex-end;margin-top:var(--space-3)">${stk('Got it', 'check-mark')}</div></div>`;
+const dp1 = ipad('gm', `${townBand}<div class="four" style="margin-top:var(--space-4)">
+  ${stt('<b>“Depart” tapped: nothing picked yet.</b> The method is unset.', miniS('Reedmouth, day 1', 'Depart', departBody(false)))}
+  ${stt('<b>The Anchorage picked:</b> the method is set from the place.', miniS('Reedmouth, day 1', 'Depart', departBody(true)))}
+  ${stt('<b>A tap on “Where?”:</b> only Locations, grouped under their Area.', miniS('Depart', 'Where?', pickBody))}
+  ${stt('<b>“Start” tapped with nothing picked:</b> it stays a button, and says why.', needPop)}
+</div>`,
+  `DP1. ${APF} <b>The fix:</b> the pop-up says only “An expedition starts at a Location.”; its second sentence is gone. <b>As approved, “Where?” is required before Start.</b> Base: page 16’s frame T6 (the sheet “Start session”, drawn as the sheet’s content alone) and the built Depart sheet (a mode and an optional “Where?”). <b>The Depart sheet, in the order ruled 2026-11-18.</b> <b>(a) “Where?” comes first and is required</b> (it was “Where? (optional)”, and second). It opens a picker that lists only Locations, each under its Area’s name as a group heading; an Area or a Region is never a row. <b>(b) “Exploration method”</b> (these words, not “Exploring how?”): a three-way choice, “Dungeon”, “Wilderness”, “Point to point”, its three sides sharing the row’s width, with no blank space at the right. It is unset until a Location is picked, then set from the place (here Point to point); a tap changes it. No line under it says where the choice came from. <b>(c) “Start”</b>, the sheet’s accent, with the campfire the band’s Start carries. <b>Two states:</b> nothing picked yet, and The Anchorage picked. <b>No disabled button:</b> with nothing picked, Start is still a button; a tap opens the pop-up at the lower right, which says a Location is needed. <b>Mine, to check:</b> the picked place shows its Area under its name; the three-way choice is drawn in the two-sided switch’s dress (T6 had chips for more than two ways); the picker’s rows carry no quiet line, no find field and no “recent places”; the hour question of T6 is left out (it is asked only when not known). The Shingle Beach’s Locations are invented.`);
+const phSheet = (seq, title, body) => `<div class="phone"><div class="inner">${sheetHead(seq, title)}${body}</div></div>`;
+const dp1b = `<div style="width:718px"><p class="cap" style="width:718px">DP1b. ${APF} <b>The Depart sheet at 375 px</b>, as a whole-screen sheet: the same order, “Where?” first, then “Exploration method”, then “Start” at the right. The three sides of the choice still share the row’s width; “Point to point” is the widest and fits on one line. <b>Mine, to check:</b> the sheet fills the phone (the app’s pop-up is a centred card; which it is on a phone is not ruled).</p><div class="phs23"><div><p class="lbl"><b>A.</b> Nothing picked yet.</p>${phSheet('Reedmouth, day 1', 'Depart', departBody(false))}</div><div><p class="lbl"><b>B.</b> The Anchorage picked.</p>${phSheet('Reedmouth, day 1', 'Depart', departBody(true))}</div></div></div>`;
+
+// ================= DP2: the band's buttons by session state =================
+const bandOf = (o) => `${band(o)}<hr class="dbl">`;
+const dp2 = shortPad(`
+  <p class="lbl"><b>No session yet:</b> “Start” alone.</p>${bandOf({ over: 'The Reed Marches', title: 'No session yet', ident: '<a class="tapline" role="button">Day 1. Set the date</a>', acts: [bg('Start', 'campfire', { big: true, accent: true }), moreBtn] })}
+  <p class="lbl" style="margin-top:var(--space-5)"><b>A session paused:</b> “Resume” alone.</p>${bandOf({ over: 'Session 1. In town.', title: 'Reedmouth', ident: TDATE, acts: [bg('Resume', 'campfire', { big: true, accent: true }), moreBtn] })}
+  <p class="lbl" style="margin-top:var(--space-5)"><b>A session running, in town:</b> “Advance time” and “Depart”.</p>${townBand}`,
+  `DP2. ${APF} Base: page 16’s frames T3a, T3b and T4 (the band; approved 2026-11-14), with the words and icons of ic-4 and ic-5. <b>The band’s buttons by the session’s state</b> (ruled 2026-11-18: “Depart” shows only while a session is running). <b>No session yet:</b> “Start”, with the campfire, as the accent, alone: no “Depart”. <b>A session paused:</b> “Resume” alone. <b>A session running, in town:</b> “Advance time” and “Depart”. The menu button stands at the right in each. <b>“End expedition” stays in the “⋯” menu for the GM, from anywhere</b> (ruled 2026-11-18); the menu is not redrawn here. Three states on one page: each band has its own one accent. <b>Mine, to check:</b> in town “Depart” keeps the accent, as page 19’s frame TW1 has it; the menu button is drawn at the buttons’ height, 52 px (one height in a row, ruled 2026-11-18).`);
+
+// ================= TF1: the top folded =================
+const foldBtn = (open) => `<span class="btn sq fold23" role="button" aria-expanded="${open}" aria-label="${open ? 'Fold the top away' : 'Show the top'}">${svg(open ? '<path d="M5 12h14" ' + W + '/>' : '<path d="M12 5v14M5 12h14" ' + W + '/>', 24)}</span>`;
+const dueLine = `<span class="due23" role="status">${I.warn}No light</span>`;
+const tablesRow = `<div class="tabrow23">${tableRow('Encounter tables', 'Encounters in the harbour likely.', false)}</div>`;
+const pageUnder = `<div class="cols2"><div>${headCard('The Anchorage')}</div><div class="stack">${waitCol}</div></div>`;
+const tf1 = shortPad(`
+  <p class="lbl"><b>A. Unfolded</b> (as today, with the fold mark “−” at the band’s right).</p>${gmBand('The Anchorage, turn 1', foldBtn(true))}<div class="facts">${tiles}</div>${stripRow}${tablesRow}${pageUnder}
+  <p class="lbl" style="margin-top:var(--space-6)"><b>B. Folded:</b> the band alone; the mark is “+”.</p>${gmBand('The Anchorage, turn 1', foldBtn(false))}${pageUnder}
+  <p class="lbl" style="margin-top:var(--space-6)"><b>C. Folded, with a fact due:</b> one small line in the band.</p>${gmBand('The Anchorage, turn 1', foldBtn(false), dueLine)}${pageUnder}`,
+  `TF1. ${APX} <b>The fix:</b> the fold mark has the same framed square as the menu button beside it (one height in the row, a 44 px target), keeping its “−” and “+”. For Francis’s “collapsible to save space”. Base: page 16’s frame T2 (the top) and page 23’s frame LA1. <b>The top folds away behind one fold mark at the band</b>: the app’s own mark, “−” while open and “+” while folded (pl-1). <b>What folds:</b> the facts row, the strip and the encounter-tables row. <b>What stays:</b> the band, whole: the heading, the date line and its buttons. <b>A. Unfolded.</b> <b>B. Folded:</b> the place’s card starts about 250 px higher. <b>C. Folded, with a fact due:</b> the fact still shows, as one small line in the band under the date line (“No light”, with its warning sign: never colour alone); a tap on the mark opens the top to read it whole. Three states stacked on one page, each cut after the head of the place’s card. <b>Mine, to check:</b> the mark stands at the band’s far right, after the menu button; the fold is the GM’s own and is remembered (not drawn); several facts due at once would each take a line, or one line “3 due” (not drawn); what is waiting stays in “Waiting for you”, which never folds. <b>The encounter-tables row</b> is drawn from the built row’s words (“Encounter tables”, the likely table named); it is on no approved December frame.`);
+const phTop = (open, due) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)"><h3 class="display" style="margin:0;font-size:20px">The Anchorage, turn 1</h3>${foldBtn(open)}</div><div class="phband" style="margin-top:var(--space-2)"><p class="ident" style="font-size:14px;margin:0">${dl('14 Reedmonth')}</p><span class="btn" role="button">${gi('hourglass', 20)}Next turn</span></div><p class="ident" style="font-size:14px;margin:var(--space-1) 0 0">2 hours of light.</p>${due ? dueLine : ''}<div class="phibs" role="group">${ibs3}</div>${open ? `<div class="facts pf">${tiles}</div>${stripRow}${tablesRow}` : ''}`;
+const phUnder = `<div style="margin-top:var(--space-5)">${trail('The Anchorage')}</div><h3 class="display" style="font-size:24px;margin:0">The Anchorage</h3>${pair}<div style="margin-top:var(--space-2)">${b('The map', { wide: true })}</div>${checkCard}`;
+const phFoot = `<div style="display:flex;gap:var(--space-2);border-top:1px solid var(--rule);padding:var(--space-2) var(--space-3);background:var(--sheet)">${b('Move on', { big: true, accent: true, icon: 'travel' }).replace('class="btn', 'style="flex:1" class="btn')}${splash}</div>`;
+const phOf = (open, due) => `<div class="phone">${phoneBar('The Reed Marches')}<div class="inner">${phTop(open, due)}${phUnder}</div>${phFoot}${tabBar('gm')}</div>`;
+const tf1b = `<div style="width:1093px"><p class="cap" style="width:1093px">TF1b. ${APX} <b>The fix:</b> the fold mark is a framed square, as on the tablet. <b>The same fold at 375 px</b>, where it saves the most: the facts, the strip’s icons and the encounter-tables row take about 330 px of a phone’s first screen. The fold mark stands at the right of the heading. Folded, the heading, the date line with “Next turn”, the light left and the three icon buttons stay; a due fact is one line under them. Each phone is cut after “Checks here”. <b>Mine, to check:</b> the three icon buttons stay when folded (they are the band’s buttons); on a phone the top could start folded.</p><div class="phs23"><div><p class="lbl"><b>A.</b> Unfolded.</p>${phOf(true, false)}</div><div><p class="lbl"><b>B.</b> Folded.</p>${phOf(false, false)}</div><div><p class="lbl"><b>C.</b> Folded, with a fact due.</p>${phOf(false, true)}</div></div></div>`;
+
+// ================= WY1: the Move sheet and the roll =================
+const backInner = `${gmTop('The Anchorage, turn 1')}<div class="cols2"><div><div class="pcard">${trail('The Anchorage')}${headOf('The Anchorage', splash + b('Move on', { big: true, accent: true, icon: 'travel' }))}${pair}${checkCard}</div></div><div class="stack">${waitCol}</div></div>`;
+const movePanel = panel({ seq: 'Move on', title: 'Row to 1. The Jetty', body: `<dl class="sum"><dt>${sym('clock', 20)}Takes</dt><dd>1 turn.</dd><dt>${sym('encounter', 20)}Then</dt><dd>a roll on Encounters in the harbour.</dd></dl><div style="margin-top:var(--space-4)">${b('Move', { accent: true, big: true, wide: true, icon: 'travel' })}</div>`, foot: `<span style="flex:1"></span>${b('Back')}` }).replace('class="ttl"', 'class="ttl sheet-title"');
+const wy1a = withPanel('ipad', 'gm', movePanel,
+  `WY1a. ${APX} <b>The fixes:</b> the title reads “Row to 1. The Jetty”; the “Where” line is gone (the title says it); “Then” reads “a roll on Encounters in the harbour”. Base: page 01’s frame 12 (the Move sheet after one way is chosen) and page 12’s frame MO1 (the ways). <b>The Move sheet after picking a way</b>, here “row” to 1. The Jetty. Title: “Row to 1. The Jetty”. <b>Two lines:</b> Takes “1 turn.”; Then “a roll on Encounters in the harbour.”: the table’s own name, never an id. The accent is “Move”; “Back” returns to the list of ways. <b>No explaining line in the foot</b> (page 01 had one). <b>Mine, to check:</b> page 01’s lines for the light and the rest are left out; “Back” is a plain word button as page 01 has it, with no icon.`,
+  backInner).replace('class="dev ipad fixed"', 'class="dev ipad fixed" style="height:620px"');
+const ENC = [['1–10', 'Nothing stirs'], ['11–13', 'Gulls, mobbing the boat'], ['14–15', 'A seal, curious'], ['16–17', 'Bog lurkers, 2'], ['18–19', 'A ferryman, wary'], ['20', 'The Tidewife']];
+const encTable = `<div class="bk" style="grid-column:1 / -1;margin-top:var(--space-2)"><p style="margin:var(--space-2) 0 0">Roll d20, then tap the row.</p><table class="tap"><tr><th>${dieMark(20, 16)}d20</th><th>Encounter</th></tr>${ENC.map(([n, w]) => `<tr role="button"><td>${n}</td><td>${w}</td></tr>`).join('')}</table></div>`;
+const waitHead = '<div class="hrow" style="min-height:0;margin-bottom:var(--space-2)"><h2>Waiting for you</h2></div>';
+const rollCard = waitCard('encounter', 'Encounters in the harbour', SENT, [stk('Enter roll…', 'rolling-dices', { accent: true })]);
+const rollOpen = `<div class="wait"><span class="wi">${sym('encounter', 28)}</span><span class="wt">Encounters in the harbour</span><span>${SENT}</span>${encTable}</div>`;
+const wy1b = ipad('gm', `${gmTop('1. The Jetty, turn 2')}<div class="four" style="margin-top:var(--space-4)">
+  ${stt('<b>After “Move”:</b> the check waits, with one button.', `<div class="pcard">${waitHead}${rollCard}</div>`)}
+  ${stt('<b>After “Enter roll…”:</b> the same card, open on its table.', `<div class="pcard">${waitHead}${rollOpen}</div>`)}
+</div>`,
+  `WY1b. ${APX} <b>The fix:</b> the open table has no title bar of its own (it repeated the card’s title). Base: page 16’s frame T2 (“Waiting for you” and its first card) and frame T6 (the Weather sheet’s tapped table). <b>“Waiting for you” after the move</b>; the party is at 1. The Jetty, turn 2. <b>Left: a card for a check that has a table and no chance.</b> Its title is the table’s own name, “Encounters in the harbour”; under it the die and the pack’s own sentence; then <b>one stacked button, “Enter roll…”</b>, with the rolling dice, as the accent (the first action of “Waiting for you”). No Hit, no Miss, no “−1” or “+1”, no Modifier: with no chance there is nothing to hit or miss. <b>Right: the same card after “Enter roll…”</b>: the table in the shared tapped-table form, as the Weather sheet has it: “Roll d20, then tap the row.”, the die over its column; a tap on a row is the answer. Six invented rows. The place’s card and the right column are left off. <b>Mine, to check:</b> the card opens in place (it could be a sheet, as Weather is); how the open card is closed without an answer is not drawn; no row is marked, since none is tapped yet.`);
+
+// ---- WY1d: Move on at a Location that is a way out ----
+const MIW = { Row: 'paddles', Swim: 'double-fish' };
+const gmWay = ([w, tm]) => `<span class="btn stk" role="button">${gi(MIW[w], 24)}<span>${w}</span><small>${tm}</small></span>`;
+const gmDest = (to, modes) => `<div class="pdest"><span>${sym('travel', 24)}</span><span class="ot"><b>${num22(to)}</b></span><span class="modes" data-stkgroup>${modes.map(gmWay).join('')}</span></div>`;
+const endRow = (words) => `<div class="opt" role="button"><span>${gi('exit-door', 24)}</span><span class="ot"><b>${words}</b></span>${go}</div>`;
+const moveOn = `<div class="mappop" role="dialog" aria-label="Move on: From The Anchorage, where to?" style="left:152px;right:152px"><div class="mh"><div><div class="over">Move on</div><div class="ttl sheet-title">From The Anchorage, where to?</div></div><span></span><span class="ico" role="button" aria-label="Close">${I.close}</span></div><div class="mobody">${gmDest('1. The Jetty', [['Row', '1 turn'], ['Swim', '3 turns']])}${gmDest('2. The Wreck', [['Row', '1 turn']])}${gmDest('3. The Breakwater', [['Row', '1 turn']])}${opt('Somewhere else…', '', { icon: 'search', right: go })}${endRow('End expedition')}</div></div>`;
+const wy1d = withPanel('ipad', 'gm', moveOn,
+  `WY1d. ${APX} <b>The fixes:</b> the foot line “Each move asks for…” is gone (p2p-17: no explaining lines); the last row reads “End expedition”. Base: page 12’s frame MO1 (the GM’s Move on sheet; approved 2026-11-13) and page 18’s frame PL7 (the way button’s three lines; ap-10). <b>The Move on sheet at a Location that is a way out</b>, here The Anchorage. One row a destination; each way is a stacked button of the approved three-line form: the icon, the word, the time (“Row”, with its oars, “1 turn”; “Swim”, “3 turns”). <b>One more row, at the end, ends the expedition: “End expedition”.</b> No explaining line stands under any row, and the sheet has no foot line. <b>Mine, to check:</b> “Somewhere else…” is kept as MO1’s row, with no line under it (say if it should go); the ending row carries the door of the band’s “Leave the dungeon” button, and a chevron, since it opens something; what it then asks (where the party goes back to; a confirm, since ending is costly) is not drawn; the GM’s buttons read “Row” and “Swim”, as briefed (MO1 had the pack’s “Rowing”, “Swimming”, 152 px wide); MO1’s line under each name (“Shown to the players.”) is left out; a Location that is not a way out has no such row.`,
+  backInner);
+// ================= PL1b: the player's card with shown pieces =================
+const pBand = `${band({ over: 'Session 1. Saltwick Island.', title: 'The Drowned Harbour, turn 14', ident: DATE, acts: [] })}<hr class="dbl">`;
+const pEnc = (px) => fact('encounter', 'Encounter check', 'On every move', `<span class="die" role="img" aria-label="Die">${die(6, 16)}</span>1 in 6`).replace('class="v"', `class="v" style="font-size:${px}px;white-space:nowrap"`);
+const F_W = fact('weather', 'Weather', 'Drizzle', 'Wet.');
+const F_L = fact('flame', 'Light', 'Ash’s torch', '4 turns left.');
+const F_R = fact('rest', 'Rest', 'In 4 turns', 'One turn in six.');
+const pTop = `${pBand}<div class="facts">${F_W}${F_L}${F_R}${pEnc(20)}</div>${stripRow}`;
+const MI7 = { Row: 'paddles', Swim: 'double-fish', Walk: 'leather-boot' };
+const wayBtn = ([w, t]) => `<span class="btn stk" role="button">${gi(MI7[w], 24)}<span>${w}</span><small>${t}</small></span>`;
+const pd18 = (to, sub, modes) => `<div class="pdest"><span>${sym('travel', 24)}</span><span class="ot"><b>${to}</b>${sub ? `<small>${sub}</small>` : ''}</span><span class="modes" data-stkgroup>${modes.map(wayBtn).join('')}</span></div>`;
+const ROWS = pd18('2. The Wreck', '', [['Row', '1 turn'], ['Swim', '3 turns']]) + pd18('3. The Breakwater', '', [['Row', '1 turn']]) + pd18('Along the piles', 'Not yet explored.', [['Walk', '2 turns']]);
+const kwIf = (w, on) => (on ? `<b class="kw22">${w}</b>` : w);
+const shown = (two) => `<div class="shown23"><p>Black piles and a slick deck, forty paces out over black water. Past the ${kwIf('mooring ring', two)}, a skiff rocks under the ${kwIf('ladder', two)}.</p>${two ? '<p><b>Mooring ring.</b> Fresh rope: someone tied up here this week.</p><p><b>Ladder.</b> Iron rungs down to the water, the lowest three green.</p>' : ''}</div>`;
+const pRule = ruleBtn('water-splash', 'Falling into the harbour: read the rule');
+const pCard = (two) => `<div class="pcard"><div class="crumb"><span>Saltwick Island</span>${sep}<b>The Drowned Harbour</b></div><div class="band"><div><h3 class="display">${num22('1. The Jetty')}</h3></div><div class="acts two">${pRule}</div></div>${shown(two)}<div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div>${ROWS}</div>`;
+const pDo = `<div class="pcard"><div class="hrow"><h2>Activities</h2></div><div class="ideas">${b('Search', { icon: 'book' })}${b('Listen', { icon: 'book' })}${b('Force a door', { icon: 'book' })}</div></div>`;
+const pMap = `<div class="pcard" aria-label="The map">${mapOpen(mapNamed('112 68 300 220').replace('<svg ', '<svg style="width:100%;height:100%" '), '', { style: 'height:290px', bare: true }).replace('class="mapopen', 'style="margin-top:0" class="mapopen')}${mapTools('', locate(true), 'The Drowned Harbour', true)}</div>`;
+const areaCard = `<div class="pcard"><div class="hrow"><h2>The Drowned Harbour</h2></div>${opt('What everyone knows', 'Shared, turn 9.', { icon: 'book', right: go })}${opt('Rules', '3 rules', { icon: 'scales', right: go })}${spotP('2. The Wreck', 'A cog on her side on the bar.')}${spotP('3. The Breakwater', 'A drowned wall with a gap.')}</div>`;
+const pl1b = ipad('player', `${pTop}<div class="cols2"><div class="stack">${pCard(true)}${pDo}</div><div class="stack">${pMap}${areaCard}${partyOrder(true)}</div></div>`,
+  `PL1b. ${APD} <b>Picked at approval:</b> a word in the description is bold and underlined only once the piece it names has been shown; on the phone the shown pieces are not folded for 5 December (noted for the sweep). Base: page 18’s frame PL1 (the players’ Scene at a place, whole; approved 2026-11-14, ap-10), with one change. <b>The pieces the GM has shown appear on the card itself</b>, at the left, under the name “1. The Jetty”, in the book’s format: the description first, then each shown piece led by its own word in bold. A piece not shown is simply absent; there are no eyes on a player’s side. “Where to?” follows under them. The right column’s “What everyone knows” stays, for the Area. <b>This state: the description and two pieces shown</b> (the mooring ring and the ladder; the skiff is not shown). <b>Also drawn, as ruled 2026-11-18:</b> names as “N. Name” in title case; the strip is the app’s own five, ruled 2026-11-18 for point to point (PL1’s own strip, unchanged); the marching order with no lock (PL1 had none); no description line under the name (the description is the first piece). <b>As picked: a word in the description is bold and underlined only once the piece it names has been shown.</b> Here “mooring ring” and “ladder” are marked and “skiff” is plain: marking a word whose piece is still hidden would tell players that something is there. The heading, the facts, the ways, the map and the marching order are PL1’s, unchanged.`);
+const pl1c = ipad('player', `${pBand}<div class="cols2" style="margin-top:var(--space-3)"><div>${pCard(false)}</div><div></div></div>`,
+  `PL1c. ${APD} <b>The same card with only the description shown.</b> One paragraph under the name, then “Where to?”. No word in it is marked, since no piece it names has been shown yet (as picked; see frame PL1b). Before anything at all is shown, the card is PL2’s on page 18, unchanged. The top’s facts and strip, the Activities and the right column are left off: they are frame PL1b’s.`).replace('class="dev ipad"', 'class="dev ipad short"');
+const phFacts = `<div class="phfacts">${F_W}${F_L}${F_R}${pEnc(14)}</div>`;
+const phPl = (two) => `<div class="phone">${phoneBar('The Reed Marches')}<div class="inner"><h3 class="display" style="margin:0;font-size:20px">The Drowned Harbour, turn 14</h3><p class="ident" style="font-size:14px;margin:var(--space-1) 0 0">${dl('14 Reedmonth', '2 hours of light.')}</p>${phFacts}${stripRow}<div class="crumb" style="margin-top:var(--space-3)"><span>Saltwick Island</span>${sep}<b>The Drowned Harbour</b></div><div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)"><h3 class="display" style="font-size:24px;margin:0">${num22('1. The Jetty')}</h3>${pRule}</div>${shown(two)}<div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div>${ROWS}${pDo}</div>${tabBar('player')}</div>`;
+const pl1d = `<div style="width:718px"><p class="cap" style="width:718px">PL1d. ${APD} Base: page 18’s frame PL5 (the player’s phone), without its prompt. <b>The same at 375 px.</b> The shown pieces stand under the name and its rule’s button, before “Where to?”; they push the ways down by their own height, so a place with many shown pieces makes a long page (as picked, they are not folded for 5 December; noted for the sweep). The map, the Area’s card and the marching order follow below, as PL5b has them.</p><div class="phs23"><div><p class="lbl"><b>A.</b> Only the description shown.</p>${phPl(false)}</div><div><p class="lbl"><b>B.</b> The description and two pieces shown.</p>${phPl(true)}</div></div></div>`;
+
+// ================= IM1: a pack arrives with its pictures =================
+const libBack = `${band({ over: 'Your campaigns', title: 'Rules library', ident: 'Your own: 4 packs.', acts: [b('Import a file', { big: true, accent: true })] })}<hr class="dbl">`;
+const file = (name, sub, state) => `<div class="filerow"><span>${state === 'ok' ? sym('check', 20) : ''}</span><span><b>${name}</b>${sub ? `<small>${sub}</small>` : ''}</span><span></span></div>`;
+const imPanel = (rows, foot) => panel({ seq: 'Imported', title: 'Saltwick Island', body: rows, foot: `<span style="flex:1"></span>${foot}` }).replace('class="ttl"', 'class="ttl sheet-title"');
+const cut = (frame) => frame.replace('class="dev ipad fixed"', 'class="dev ipad fixed" style="height:520px"');
+const libAfter = `${band({ over: 'Your campaigns', title: 'Rules library', ident: 'Your own: 5 packs.', acts: [b('Import a file', { big: true, accent: true })] })}<hr class="dbl">`;
+const LIB = [['Saltwick Island', 'An adventure, with 2 maps. Imported today.'], ['The Reed Marches', 'A region.'], ['Lantern Warden’s house rules', 'Setting rules.'], ['Bog lurkers and kin', 'Monsters.'], ['The fen calendar', 'Setting rules.']];
+const libList = `<div class="pcard" style="margin-top:var(--space-4)">${LIB.map(([n, s], i) => opt(n, s, { icon: 'book', right: go }).replace('class="opt"', i ? 'class="opt"' : 'class="opt" style="margin-top:0"')).join('')}</div>`;
+const importedToast = `<div style="display:flex;justify-content:center;margin-top:var(--space-6)"><div class="toastb" role="status" style="max-width:520px"><span class="tmsg">Saltwick Island imported, with 2 maps.</span><span class="tb" aria-hidden="true"></span></div></div>`;
+const im1 = ipad('gm', `${libAfter}${libList}${importedToast}`,
+  `IM1. ${APX} <b>The fix:</b> with every picture found there is no panel; the panel appears only when something is missing (frame IM1b). <b>A pack arrives with its pictures in one bundled file.</b> The bundle is a .zip, read by the app itself with no new library; if the builder finds a library is needed, it comes back to Francis first (hard rule 9). <b>Every picture found:</b> the library shows the pack’s row, “Saltwick Island”, first, and a toast reads “Saltwick Island imported, with 2 maps.”. The library’s head and its count are the frame’s earlier ones, the count now one more. <b>Mine, to check:</b> the library’s rows are drawn with the shared row (the built library was not opened), the other four packs are invented; the toast carries no Undo (not ruled); the new pack stands first.`).replace('class="dev ipad"', 'class="dev ipad short"');
+const im1b = cut(withPanel('ipad', 'gm', imPanel(`${file('saltwick-island.zip', 'The pack: 1 adventure, 2 Areas, 14 Locations, 3 tables.', 'ok')}${file('1 map: The Drowned Harbour.', '', 'ok')}<div class="filerow"><span></span><span><b>1 picture missing: images/map-beach.png</b><small>${warn('The Shingle Beach has no map until this picture is added.')}</small></span><span></span></div>`, stk('Add it…', 'easel', { accent: true })),
+  `IM1b. ${APX} <b>The fixes:</b> the line “Its picture was found.” is gone (the tick says it); “Done” is gone (the X closes); “Add it…” stays, with the accent. <b>The same result with one picture missing from the bundle:</b> “1 picture missing: images/map-beach.png”, with the warning sign and its one consequence in words. <b>The pack is still imported</b> (“Imported” over its name): nothing is refused for a missing picture, as page 04’s frame I2 ruled. “Add it…” picks the missing file; the X closes. <b>Mine, to check:</b> “Add it…” has the accent, as on I2; its easel is the mark “+ Picture” carries; the missing file is named by its path inside the bundle, as the pack names it.`, libBack));
+
+mount(`
+  <h1>Point to point: the pieces</h1>
+  <p class="note">For the designer (2026-11-18), to put to Francis. <b>Frames DP1, DP1b and DP2: approved by Francis 2026-11-18 with fix, drawn here. Frames TF1, TF1b, WY1a, WY1b and WY1d: approved by Francis 2026-11-18, with these fixes drawn. Frames PL1b, PL1c and PL1d: approved by Francis 2026-11-18 as drawn. Frames IM1 and IM1b: approved by Francis 2026-11-18, with these fixes drawn. Every frame of the page is approved.</b> Each draws what Francis ruled on 2026-11-18 as the brief gave it, and flags what is mine as “Mine, to check”. Names, words, numbers and table rows are invented; the pictures are stand-ins.</p>
+  <h1>DP1. The Depart sheet</h1>
+  <div class="wall">${dp1}</div>
+  <div class="wall">${dp1b}</div>
+  <h1>DP2. The band’s buttons by session state</h1>
+  <div class="wall">${dp2}</div>
+  <h1>TF1. The top, folded</h1>
+  <div class="wall">${tf1}</div>
+  <div class="wall">${tf1b}</div>
+  <h1>WY1. The Move sheet and the roll</h1>
+  <div class="wall">${wy1a}</div>
+  <div class="wall">${wy1b}</div>
+  <div class="wall">${wy1d}</div>
+  <h1>PL1b. The player’s card with shown pieces</h1>
+  <div class="wall">${pl1b}</div>
+  <div class="wall">${pl1c}</div>
+  <div class="wall">${pl1d}</div>
+  <h1>IM1. A pack arrives with its pictures</h1>
+  <div class="wall">${im1}</div>
+  <div class="wall">${im1b}</div>
+  <h1>Self-review</h1>
+  <p class="note"><b>The stylesheet.</b> This page links the one shared mockup stylesheet (<code>../shared/book.css</code>) and its type pass last, and restates none of their rules. Its own rules are in two groups, named in the page’s head: layout rules copied as they stand from pages 04, 12, 16, 18 and 23 for the parts reused here, and new ones for this page’s own parts (the three-way choice; the picker’s rows; the due line and the tables row; the shown pieces; phones side by side). The strip on every frame is the app’s own five, ruled 2026-11-18 for point to point.</p>
+  <p class="note"><b>Checked.</b> Measured with <code>shared/measure.cjs</code> before it was shown (contrast, 44 px targets, 8 px between separate controls), and row by row for one height among controls side by side. One accent a screen or a sheet: Start in the Depart sheet; one a band in DP2; Move on in TF1; Move in the Move sheet; “Enter roll…” in “Waiting for you”; none in the Move on sheet (each way is a plain button); none on a player’s frame; “Add it…” in IM1b. No disabled button: Start with nothing picked explains in a pop-up. Never colour alone: the chosen side of the three-way choice is its wash, its edge and its bold name; a due fact has its sign and its words; a found file has a tick and words, a missing one a sign and words. Hidden stays hidden: on the player’s frames a piece not shown is absent, and a word naming a hidden piece is not marked. States drawn are named in each caption.</p>
+  <p class="note"><b>Not checked, or gaps.</b> The built Depart sheet, the built encounter-tables row and the built import were read by name in the source or taken from older frames, not opened. Not drawn: loading, offline and error states of any piece here; the Depart picker with one Area, with none, or with a very long list; Larger text; the roll’s card after a row is tapped; the Move sheet for a way with an obstacle (page 01’s frame F2 has it); the import while the bundle uploads, a bundle that is not a pack, and a picture too large (page 04’s frame I3 has the words).</p>
+`);
+for (const el of document.querySelectorAll('.phone')) el.classList.add('bit');
+for (const el of document.querySelectorAll('.dev h2, .phone h2')) el.classList.add('bsub');
+for (const el of document.querySelectorAll('.fact .k, .mseq, .flab, .tabbar span, .dcap')) el.dataset.sc = '';
+for (const el of document.querySelectorAll('.wait .wb')) el.dataset.stkgroup = '';
+for (const el of document.querySelectorAll('.sw2 > span')) el.style.fontWeight = el.classList.contains('on') ? '700' : '';
+applyBook();
+}
+</script>
+</body>
+</html>
