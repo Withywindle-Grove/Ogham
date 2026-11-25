@@ -11,7 +11,10 @@
 //   4. The cursed sword (M3g2) names only what Sam can't see (audit fix 6): Sam's copy shows its "Magic bonus -1", so
 //      the line reads "Only you see this: cursed.", under the sword's details (audit fix 7), with "Reveal…" (its curse
 //      is a hidden field).
-import { expect, test, type Page } from '@playwright/test';
+//   5. After the ✕ on "Your sheet: Mooring ring" (a tap) or Escape (a keyboard), focus is back on "Reveal…" in the
+//      player's sheet, as it goes back to the opener after the other pop-ups (audit fix 3a; Francis's A, 24 Nov).
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openPack(page: Page, width: number, height: number, scheme: 'light' | 'dark') {
@@ -67,6 +70,25 @@ for (const size of [
       // One ✕ closes one layer: the player's sheet stays.
       await inner.getByRole('button', { name: 'Close' }).click();
       await expect(inner).toHaveCount(0);
+      await expect(page.getByRole('dialog', { name: 'Mooring ring' })).toBeVisible();
+    });
+
+    test.fails(`after Your sheet: Mooring ring closes, focus is back on Reveal… (${size.name}, ${scheme})`, async ({ page }) => {
+      await openPack(page, size.width, size.height, scheme);
+      await page.getByRole('button', { name: /^Mooring ring/ }).click();
+      const reveal = page.getByRole('region', { name: 'Mooring ring' }).getByRole('button', { name: 'Reveal…' });
+      const inner = page.getByRole('dialog', { name: 'Your sheet: Mooring ring' });
+      // A tap on Reveal…, then on the ✕.
+      await reveal.click();
+      await inner.getByRole('button', { name: 'Close' }).click();
+      await expect(inner).toHaveCount(0);
+      await expect(reveal).toBeFocused();
+      // The keyboard: Enter on Reveal…, then Escape.
+      await page.keyboard.press('Enter');
+      await expect(inner).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(inner).toHaveCount(0);
+      await expect(reveal).toBeFocused();
       await expect(page.getByRole('dialog', { name: 'Mooring ring' })).toBeVisible();
     });
 

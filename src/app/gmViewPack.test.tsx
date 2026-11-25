@@ -23,6 +23,8 @@
 //  11. (Audit fix 7) The GM's line sits under the item's figures, after its details, as M3g2 draws it.
 //  12. (Audit fix 5) "Reveal…" opens the GM's own sheet under its own title, "Your sheet: Moon ring", so the one in front
 //      is plain; its ✕ closes that one alone, and the player's sheet stays open under it.
+//  13. (Audit 3, A) After the ✕ on "Your sheet: Moon ring", keyboard focus is back on "Reveal…" in the player's sheet,
+//      as it goes back to the opener after the other pop-ups (audit fix 3a).
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -251,6 +253,18 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     await user.click(within(own).getByRole('button', { name: 'Close' }));
     expect(screen.queryByRole('dialog', { name: 'Your sheet: Moon ring' })).toBeNull();
     expect(screen.getByRole('dialog', { name: 'Moon ring' })).toBeTruthy();
+  });
+
+  it.fails('after the ✕ on "Your sheet: Moon ring", focus is back on Reveal… in the player\'s sheet', async () => {
+    const user = await openWrensPack();
+    await user.click(await screen.findByRole('button', { name: /^Moon ring/ }));
+    const reveal = screen.getByRole('button', { name: 'Reveal…' });
+    reveal.focus();
+    await user.keyboard('{Enter}');
+    const own = await screen.findByRole('dialog', { name: 'Your sheet: Moon ring' });
+    await user.click(within(own).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Your sheet: Moon ring' })).toBeNull());
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Reveal…' }));
   });
 
   it("outside the view the GM's item sheet is as built: the hidden group, no GM line, no Reveal…", async () => {

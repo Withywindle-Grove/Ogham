@@ -9,7 +9,11 @@
 //      accessibility problem.
 //   2. On a phone the view's top row carries only ⋯ at the right (M3j); on a tablet it keeps the GM's Log, ✉ and
 //      Reference (M3c).
-import { expect, test, type Page } from '@playwright/test';
+//   3. At 375 px Take back's foot stacks ("Go to Waiting for approval" over "Got it"), and the two buttons are one
+//      width, the wider one's, at the right, so the stack looks intended (ft-1 as Francis ruled on 24 Nov: every stacked
+//      foot alike).
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openView(page: Page, width: number, height: number, scheme: 'light' | 'dark') {
@@ -22,6 +26,28 @@ async function openView(page: Page, width: number, height: number, scheme: 'ligh
   await expect(page.getByRole('region', { name: 'Vitals' })).toBeVisible();
   await expect(page.getByRole('note')).toHaveAttribute('aria-label', /^Sam’s view of /);
   await page.evaluate(() => document.fonts.ready);
+}
+
+for (const scheme of ['light', 'dark'] as const) {
+  test.fails(`Take back's stacked foot at 375 px: both buttons one width, at the right (${scheme})`, async ({ page }) => {
+    await openView(page, 375, 812, scheme);
+    await page.getByRole('button', { name: /notice/ }).first().click();
+    await page.getByRole('button', { name: /^Take back / }).click();
+    const pop = page.getByRole('dialog', { name: 'Only Sam can take back this change' });
+    await expect(pop).toBeVisible();
+    await pop.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+    const foot = pop.locator('.dialog__got-it');
+    await expect(foot).toHaveClass(/dialog__actions--stacked/);
+    const right = (await foot.boundingBox())!;
+    const [go, got] = await foot.locator('button').evaluateAll((els) => els.map((el) => el.getBoundingClientRect().toJSON() as DOMRect));
+    expect(Math.abs(go!.width - got!.width)).toBeLessThanOrEqual(0.5);
+    for (const b of [go!, got!]) expect(Math.abs(right.x + right.width - b.right)).toBeLessThanOrEqual(1);
+    expect(got!.top - go!.bottom).toBeGreaterThanOrEqual(8 - 0.5);
+    // Not stretched to the foot's left edge: the stack's column is the wider button's.
+    expect(go!.left - right.x).toBeGreaterThan(8);
+    await page.screenshot({ path: `test-results/layout-screens/gm-view-popup-stacked-375-${scheme}.png`, fullPage: false });
+    expect(await layoutProblems(page)).toEqual([]);
+  });
 }
 
 for (const size of [
