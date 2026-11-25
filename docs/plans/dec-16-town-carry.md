@@ -144,7 +144,7 @@ Every batch also edits `docs/06-screens-and-design.md`: the known place for a sm
 - **#50 (`k22-k2-screens-2`)** and **#66 (`pack-k11-k12-k13`, draft)** both change `src/testing/layoutHarness.tsx`, `src/ui/parts.css` and `docs/06`; #66 also `src/ui/parts.tsx`, #50 also `fakeDb.ts`. They meet batches A, C and D there. Best: both merged before batch C opens, or C merges `main` in before its final push.
 - **#84 (account deletion, draft)** adds two migrations and changes `src/core/database.types.ts` and `src/core/undo.ts`: TC12's migration takes a later timestamp and regenerates the types after it.
 - **`dec-14` row 1 (the rail)** changes `SectionNav.css` and `DividerHandle.css`: the handle moves 12 px. TC3's `--rail-edge` is measured after it merges, not copied from the stack's 98 px.
-- **#93 and #25** are plans: no file shared.
+- **#25** is a plan: no file shared. (#93, the save-bonus plan, merged on 2026-11-25; this branch has it.)
 
 ## The Components inventory (Code column, `docs/06-screens-and-design.md`)
 | Row | Inventory row | Change |

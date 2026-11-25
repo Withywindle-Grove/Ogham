@@ -104,6 +104,7 @@ Some rules are enforced by hooks, because written instructions alone aren't foll
 - **Screenshots** of every screen at every width land in `test-results/layout-screens/` (not committed). Open them to see each layout; they aren't compared pixel by pixel, which breaks across machines.
 - **A new screen adds a scene** to the list in the test file.
 - First time on a computer: `npx playwright install webkit` downloads the browser (about 100–150 MB, in your user folder).
+- **One spec file also runs in Chromium** (ruled 2026-11-25; not built: plan `dec-15-save-bonus`, row 4): the save tile's 80 px check, `tests/layout/saveBonusTile.spec.ts`, and no other. It means a second browser download (about 150 MB) on the runner and in CI and about a minute a run; no new package.
 
 ## The component gallery
 

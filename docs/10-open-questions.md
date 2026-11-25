@@ -84,8 +84,7 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 **The test feedback of 19 November, sittings 2 to 7** (2026-11-19; each ruling's "Not settled" has the rest; pages M1 and M2 were approved on 2026-11-19 and settled theirs, the rest ride with page M3)
 - ⚑ For a skill rolled low or by percentage, what does the pop-up's top line read? After the Pack Creator's answer (E6). (`design/rulings/dec-test-feedback-skills-2026-11-19.md`, ⚑ 1)
 
-**Save bonuses in the number** (`design/rulings/dec-save-bonus-in-number-2026-11-24.md`, ruled 2026-11-25; what it left open)
-- ⚑ A save tile's own figure past the hard end (a penalty that always holds takes it past the face no roll reaches): the worked number, as the at-times line shows it, or a stop? Only the at-times line was ruled.
-- ⚑ A status that changes saves (a blessing's +1 for some turns), a save set by hand, and the GM's save prompt in a fight: do they follow the same rule? Each needs its own frame before it is built.
-- ⚑ The shapes of the two pack-format flags (G-220, G-221) and whether a condition gets a short word (G-222): with the Pack Creator.
-- ⚑ The 12 px line at the real table, at arm's length on a tablet lying flat: look at it at the 5 December session.
+**Save bonuses in the number** (the four questions here were ruled on 2026-11-25: `plans/dec-15-save-bonus.md`, Ruled 2026-11-25; `09`). What is left is work to come, not a question:
+- A status that changes saves (a blessing's +1 for some turns), a save set by hand, and creation's review: each stays as built until it has its own frame. The fight's save prompt is ◈ CS-3, above.
+- The shapes of the two pack-format flags (G-220, G-221) and a condition's short word (G-222): designed with the Pack Creator (`11`); the plan's row 8 is held until then.
+- At the 5 December session: look at the 12 px line at the real table, at arm's length on a tablet lying flat. Nothing to build.
