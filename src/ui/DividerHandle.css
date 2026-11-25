@@ -55,6 +55,16 @@
     line-height: 1;
   }
 
+  /* A triangle's ink sits toward its point, so it looks off-centre by about 2 px the way it points: a hairline back
+     the other way centres it to the eye (approval fix, 25 Nov). */
+  .divider-handle__arrow--left {
+    transform: translateX(var(--line-hair));
+  }
+
+  .divider-handle__arrow--right {
+    transform: translateX(calc(var(--line-hair) * -1));
+  }
+
   .divider-handle:focus-visible {
     outline: none;
   }

@@ -54,7 +54,7 @@ describe('the divider is the handle (lr-4)', () => {
 
   it('shows no words on screen, only its triangle: the name is for assistive tech only', () => {
     render(<Column width={280} />);
-    expect(screen.getByRole('button', { name: 'Fold the menu' }).textContent).toBe('◀');
+    expect(screen.getByRole('button', { name: 'Fold the menu' }).textContent).toBe('\u25C0\uFE0E');
   });
 
   // P32 (2026-11-06): the handle says which way it folds by a shape. Plan dec-14 row 1 (frame 38-1): the shape sits
@@ -65,10 +65,21 @@ describe('the divider is the handle (lr-4)', () => {
     const handle = () => screen.getByRole('button', { name: /the menu$/ });
     const grip = () => handle().querySelector('.divider-handle__pill');
     expect(handle().children).toHaveLength(1);
-    expect(grip()?.textContent).toBe('◀');
+    expect(grip()?.textContent).toBe('\u25C0\uFE0E');
     await user.click(handle());
     expect(screen.getByRole('button', { name: 'Show the menu' })).toBeTruthy();
-    expect(grip()?.textContent).toBe('▶');
+    expect(grip()?.textContent).toBe('\u25B6\uFE0E');
+  });
+
+  // Approval fix (25 Nov): iOS draws a bare ◀ or ▶ as a colour emoji. Each triangle must carry the text-presentation
+  // selector U+FE0E straight after it, folded and open, so it stays a plain shape in Ink.
+  it('asks for the text form of each triangle (U+FE0E), so no device draws it as a colour emoji', async () => {
+    const user = userEvent.setup();
+    render(<Column width={280} />);
+    const arrow = () => screen.getByRole('button', { name: /the menu$/ }).querySelector('.divider-handle__arrow');
+    expect([...(arrow()?.textContent ?? '')].map((c) => c.codePointAt(0))).toEqual([0x25c0, 0xfe0e]);
+    await user.click(screen.getByRole('button', { name: 'Fold the menu' }));
+    expect([...(arrow()?.textContent ?? '')].map((c) => c.codePointAt(0))).toEqual([0x25b6, 0xfe0e]);
   });
 
   it('a tap folds the menu and a second tap unfolds it', async () => {

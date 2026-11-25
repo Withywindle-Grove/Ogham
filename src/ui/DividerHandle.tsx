@@ -9,6 +9,10 @@
 import { useRef, type PointerEvent } from 'react';
 import './DividerHandle.css';
 
+/** The triangles, each with the text-presentation selector (U+FE0E): iOS would otherwise draw them as colour emoji. */
+const ARROW_LEFT = '\u25C0\uFE0E';
+const ARROW_RIGHT = '\u25B6\uFE0E';
+
 /** How far a press may wander and still count as a tap, in CSS pixels. */
 const TAP_SLOP = 8;
 
@@ -79,9 +83,12 @@ export function DividerHandle({ collapsed, onToggle }: { collapsed: boolean; onT
       }}
     >
       {/* The grip (plan dec-14 row 1, frame 38-1), with a triangle inside it pointing the way it folds (P32,
-          2026-11-06): ◀ while open, ▶ once folded. A shape, never colour alone; the button's name says it in words. */}
+          2026-11-06): ◀ while open, ▶ once folded. A shape, never colour alone; the button's name says it in words.
+          Each triangle carries U+FE0E so iOS draws it as text in Ink, never as a colour emoji (approval fix, 25 Nov). */}
       <span className="divider-handle__pill" aria-hidden="true">
-        <span className="divider-handle__arrow">{collapsed ? '▶' : '◀'}</span>
+        <span className={`divider-handle__arrow divider-handle__arrow--${collapsed ? 'right' : 'left'}`}>
+          {collapsed ? ARROW_RIGHT : ARROW_LEFT}
+        </span>
       </span>
     </button>
   );

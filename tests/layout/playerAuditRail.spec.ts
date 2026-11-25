@@ -6,7 +6,9 @@
 //       (the Player tab, a caster's four tabs, and the GM's campaign screen).
 //   1b. The handle's tap area is 8 px or more from the nearest tab, folded and open.
 //   1c. The handle is drawn as a grip, 24 by 44 px, with the arrow inside it in Ink at 16 px; the grip's edge is 3 to 1
-//       or better against the page, in light and in dark.
+//       or better against what is actually painted behind the grip, in light and in dark, on the Player tab and the GM's
+//       campaign screen. The arrow sits a hairline back from the way it points, so it looks centred (approval fix,
+//       25 Nov). With Larger text the arrow still sits inside the grip, across and down.
 //   1d. On a tablet held upright the tabs in their row are 8 px or more apart.
 //   1e. The phone's tab bar (375 px) and a phone on its side (the short 600 to 1023 px bar) keep their tabs touching,
 //       unchanged, and neither scrolls sideways.
@@ -92,32 +94,47 @@ for (const scheme of ['light', 'dark'] as const) {
     test.describe(`the grip, ${state}, ${scheme}`, () => {
       test.use({ viewport: SIDEWAYS, colorScheme: scheme });
 
-      test(`1c. the handle is a 24 by 44 grip, its arrow inside in Ink at 16 px, its edge 3 to 1 on the page (${state}, ${scheme})`, async ({ page }) => {
-        await open(page, PLAYER, folded);
-        const handle = page.getByRole('button', { name: folded ? 'Show the menu' : 'Fold the menu' });
-        const grip = handle.locator('.divider-handle__pill');
-        const box = (await grip.boundingBox())!;
-        expect([Math.round(box.width), Math.round(box.height)]).toEqual([24, 44]);
-        const arrow = (await handle.locator('.divider-handle__arrow').boundingBox())!;
-        expect(arrow.x).toBeGreaterThanOrEqual(box.x);
-        expect(arrow.x + arrow.width).toBeLessThanOrEqual(box.x + box.width);
-        const look = await page.evaluate(() => {
-          const grip = document.querySelector('.divider-handle__pill')!;
-          const arrow = document.querySelector('.divider-handle__arrow')!;
-          const probe = document.createElement('span');
-          probe.style.color = 'var(--ink)';
-          document.body.append(probe);
-          const ink = getComputedStyle(probe).color;
-          probe.remove();
-          const g = getComputedStyle(grip);
-          const a = getComputedStyle(arrow);
-          return { edge: g.borderTopColor, edgeWidth: g.borderTopWidth, page: getComputedStyle(document.body).backgroundColor, arrowColour: a.color, arrowSize: a.fontSize, ink };
+      for (const who of [PLAYER, GM]) {
+        test(`1c. the handle is a 24 by 44 grip, its arrow inside in Ink at 16 px, its edge 3 to 1 on the page (${who.name}, ${state}, ${scheme})`, async ({ page }) => {
+          await open(page, who, folded);
+          const handle = page.getByRole('button', { name: folded ? 'Show the menu' : 'Fold the menu' });
+          const grip = handle.locator('.divider-handle__pill');
+          const box = (await grip.boundingBox())!;
+          expect([Math.round(box.width), Math.round(box.height)]).toEqual([24, 44]);
+          const arrow = (await handle.locator('.divider-handle__arrow').boundingBox())!;
+          expect(arrow.x).toBeGreaterThanOrEqual(box.x);
+          expect(arrow.x + arrow.width).toBeLessThanOrEqual(box.x + box.width);
+          // The optical nudge: a hairline back from the way it points (◀ open: right; ▶ folded: left).
+          const off = arrow.x + arrow.width / 2 - (box.x + box.width / 2);
+          expect(off).toBeCloseTo(folded ? -1 : 1, 0);
+          const look = await page.evaluate(() => {
+            const grip = document.querySelector('.divider-handle__pill')!;
+            const arrow = document.querySelector('.divider-handle__arrow')!;
+            const probe = document.createElement('span');
+            probe.style.color = 'var(--ink)';
+            document.body.append(probe);
+            const ink = getComputedStyle(probe).color;
+            probe.remove();
+            // What is painted just outside the grip's edge: the first element under that point, the handle aside,
+            // with a fill of its own; else the page's root.
+            const r = grip.getBoundingClientRect();
+            const handle = grip.closest('.divider-handle')!;
+            const opaque = (el: Element) => {
+              const c = getComputedStyle(el).backgroundColor;
+              return c !== 'transparent' && !/rgba\([^)]*,\s*0\)$/.test(c);
+            };
+            const under = document.elementsFromPoint(r.left - 2, r.top + r.height / 2).find((el) => !handle.contains(el) && opaque(el));
+            const behind = getComputedStyle(under ?? document.documentElement).backgroundColor;
+            const g = getComputedStyle(grip);
+            const a = getComputedStyle(arrow);
+            return { edge: g.borderTopColor, edgeWidth: g.borderTopWidth, behind, arrowColour: a.color, arrowSize: a.fontSize, ink };
+          });
+          expect(parseFloat(look.edgeWidth)).toBeGreaterThanOrEqual(1.5);
+          expect(contrast(look.edge, look.behind)).toBeGreaterThanOrEqual(3);
+          expect(look.arrowColour).toBe(look.ink);
+          expect(look.arrowSize).toBe('16px');
         });
-        expect(parseFloat(look.edgeWidth)).toBeGreaterThanOrEqual(1.5);
-        expect(contrast(look.edge, look.page)).toBeGreaterThanOrEqual(3);
-        expect(look.arrowColour).toBe(look.ink);
-        expect(look.arrowSize).toBe('16px');
-      });
+      }
 
       test(`1f. the keyboard's focus ring goes round the grip (${state}, ${scheme})`, async ({ page }) => {
         const nav = await open(page, PLAYER, folded);
@@ -136,6 +153,29 @@ for (const scheme of ['light', 'dark'] as const) {
     });
   }
 }
+
+// Approval fix (25 Nov): with Larger text (set before the page loads) the arrow grows with the text and must still
+// sit inside the grip, across and down, folded and open, on the Player tab and the GM's campaign screen.
+test.describe('the grip with Larger text', () => {
+  test.use({ viewport: SIDEWAYS });
+
+  for (const who of [PLAYER, GM]) {
+    for (const folded of [true, false]) {
+      const state = folded ? 'folded' : 'open';
+      test(`1c. with Larger text the arrow is inside the grip on both axes (${who.name}, ${state})`, async ({ page }) => {
+        await page.addInitScript(() => localStorage.setItem('grimoire.textSize', 'larger'));
+        await open(page, who, folded);
+        const handle = page.getByRole('button', { name: folded ? 'Show the menu' : 'Fold the menu' });
+        const box = (await handle.locator('.divider-handle__pill').boundingBox())!;
+        const arrow = (await handle.locator('.divider-handle__arrow').boundingBox())!;
+        expect(arrow.x).toBeGreaterThanOrEqual(box.x);
+        expect(arrow.x + arrow.width).toBeLessThanOrEqual(box.x + box.width);
+        expect(arrow.y).toBeGreaterThanOrEqual(box.y);
+        expect(arrow.y + arrow.height).toBeLessThanOrEqual(box.y + box.height);
+      });
+    }
+  }
+});
 
 test.describe('upright', () => {
   test.use({ viewport: { width: 820, height: 1180 } });
