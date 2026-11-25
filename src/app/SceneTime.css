@@ -10,14 +10,6 @@
   min-width: 0;
 }
 
-.time-strip__clock {
-  margin: 0;
-  font-size: var(--text-16);
-  line-height: var(--line-body);
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
 .time-strip__controls {
   display: flex;
   flex-wrap: wrap;
@@ -42,8 +34,7 @@
   -webkit-touch-callout: none;
 }
 
-.time-strip__end,
-.time-strip__rest {
+.time-strip__end {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -73,31 +64,6 @@
   line-height: var(--line-body);
   color: var(--muted);
   overflow-wrap: anywhere;
-}
-
-.time-strip__rest p {
-  margin: 0;
-}
-
-.time-strip__who {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: var(--tap);
-}
-
-.time-strip__name {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.time-strip__hp {
-  white-space: nowrap;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
 }
 
 /* The calendar start (ruled 2026-10-29): the start form and "Which season?" chips. */

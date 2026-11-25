@@ -1926,6 +1926,41 @@ export function createFakeDb(): FakeWorld {
       });
       return { data: rows, error: null };
     },
+    // The players' map (P5), like …_p5_players_map.sql: for each of the reader's groups, the copy of the map of the last
+    // place shown to it on the expedition under way (its own tie, else the copy another place holds for the same pack
+    // map, up the place's trail), only while its eye is open.
+    map_for_players: ({ campaign }) => {
+      withGroupRows();
+      const packMap = (packId: unknown, entryId: unknown) => {
+        if (!packId || !entryId) return null;
+        const maps = tables.library_entries
+          .filter((e) => e.pack_id === packId && e.kind === 'map' && Array.isArray((e.data as Row)?.locationIds))
+          .sort((a, b) => String(a.pack_entry_id).localeCompare(String(b.pack_entry_id)));
+        for (const entry of fakeChain(packId, entryId)) {
+          const found = maps.find((m) => ((m.data as Row).locationIds as unknown[]).includes(entry.pack_entry_id));
+          if (found) return String(found.pack_entry_id);
+        }
+        return null;
+      };
+      const groups = [...new Set(activeIn(campaign).filter((a) => a.owner_user_id === me()).map((a) => groupNumberOf(a.id)))].sort((a, b) => a - b);
+      const rows = groups.flatMap((group) => {
+        const visit = tables.group_places
+          .filter((g) => g.campaign_id === campaign && Number(g.group_number) === group && !g.undone && visitShown(g.id) && tables.expeditions.some((x) => x.id === g.expedition_id && !x.undone && (x.ended_at ?? null) === null))
+          .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+        const place = visit && tables.places.find((p) => p.id === visit.place_id && !p.undone);
+        if (!visit || !place) return [];
+        const own = packMap(place.pack_id, place.pack_entry_id);
+        const held = own
+          ? tables.places
+              .filter((q) => q.campaign_id === campaign && !q.undone && q.id !== place.id && q.map_asset_id && q.pack_id === place.pack_id && packMap(q.pack_id, q.pack_entry_id) === own)
+              .sort((a, b) => String(a.created_at ?? '').localeCompare(String(b.created_at ?? '')))[0]
+          : undefined;
+        const assetId = place.map_asset_id ?? held?.map_asset_id ?? null;
+        const asset = assetId && tables.assets.find((a) => a.id === assetId && a.campaign_id === campaign && a.kind === 'map' && a.visibility === 'all');
+        return asset ? [{ group_number: group, asset_id: asset.id, title: String(asset.name ?? '') }] : [];
+      });
+      return { data: rows, error: null };
+    },
     // A place's picture (M5b step 1 follow-up), like …_m5b_1b_place_picture.sql: each of the reader's groups shown its
     // current place (a piece shown on this visit) gets the place's picture, if it has one.
     scene_pictures: ({ campaign }) => {

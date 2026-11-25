@@ -114,11 +114,13 @@ import {
   type WentCharacter,
 } from '../modules/expedition/play.ts';
 import { loadPartyLights } from '../modules/expedition/lightPlay.ts';
-import { engineStatuses, loadRests, restNow, restRuleWords, statusEffects, type CharacterRest } from '../modules/expedition/statusPlay.ts';
+import { engineStatuses, loadRests, REST_ANSWER_WORDS, restNow, restRuleWords, statusEffects, type CharacterRest } from '../modules/expedition/statusPlay.ts';
 import { answerOf, answerRest, callRest, flipped, forcedRestGroups, forcedWithoutCamp, pushedOn, restArg, restFlows, restToApply, withForcedOpen, type RestFlow } from '../modules/expedition/restFlow.ts';
 import type { Marcher } from '../modules/expedition/marchingPlay.ts';
 import { RestPanel, RestPrompt, RestRule, type RestLine } from './RestPrompt.tsx';
 import { PromptSlot } from './PromptSlot.tsx';
+import { CallsInPromptSlot } from './CallCard.tsx';
+import { usePlayerCalls } from './usePlayerCalls.ts';
 import { darkMode, inDarkness } from '../modules/expedition/darkness.ts';
 import { loadTownSwitches, resetTownSwitches, setActiveNight, setOutDay } from '../modules/expedition/townPlay.ts';
 import { ACTIVE_NIGHT, afterFlip, anyOn, endedWords, flipToastWords, OUT_DAY, reachesMorning, runsNow, switchesLine, SWITCHES_OFF, type TownSwitches } from '../modules/expedition/townSwitches.ts';
@@ -128,8 +130,8 @@ import { advanceBy, checkNow, encounterCheckOf, hourTrackNow, needsSeason, nextS
 import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { BookFaces } from '../ui/BookFaces.tsx';
 import { DiceWords } from '../ui/dice.tsx';
-import { bandHeading, checkFact, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, seasonIconOf, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
-import { BandTool, BandTools, DepartButton, FactsRow, NextTurnButton, SceneBand, SessionButton, type DateLine } from './SceneBand.tsx';
+import { bandHeading, checkFact, checkSheetLines, checkRule, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, lightSheetLines, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, restSheetLines, seasonIconOf, settingRule, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
+import { BandTool, BandTools, DepartButton, FactSheet, FactsRow, NextTurnButton, SceneBand, SessionButton, type DateLine } from './SceneBand.tsx';
 import { useSceneTopOpen } from './sceneTopOpen.ts';
 import { loadWayOut } from '../modules/expedition/dungeonWayOut.ts';
 import { applyNightRest, loadRestCharacters, NightRestSheet, REST_READ_FAILED, restListed, type Rester } from './NightRest.tsx';
@@ -379,6 +381,9 @@ export function SceneTime({
   const weather = useWeather(db, user, campaign.id, version);
   const weatherFold = useWeatherFold(weather.view);
   const [weatherOpen, setWeatherOpen] = useState(false);
+  // The calls to adventure and rumours sent to this player (P7; page 40): read again with the log, last in the slot;
+  // read only while the players' slot is drawn (its table view, once the time has loaded).
+  const playerCalls = usePlayerCalls(db, user, campaign.id, !gm && !compact && !!tableView && scene !== null && scene !== 'error', logVersion + version);
 
   const underWay = scene !== null && scene !== 'error' && scene.expedition !== null;
   const expeditionId = scene !== null && scene !== 'error' ? (scene.expedition?.id ?? null) : null;
@@ -1981,6 +1986,15 @@ export function SceneTime({
   const factGroups = gm || myGroups.length === 0 ? groupsInPlay : myGroups;
   const factFlows = gm || myFlows.length === 0 ? flows : myFlows;
   const myGroupNumber = myGroups[0]?.number ?? 1;
+  // The light by group, for the Light fact and a player's Light pop-up (PL8).
+  const lightGroups = factGroups.map((g) => ({
+    group: g.number,
+    name: groupName(g.number),
+    dark: darkGroups.includes(g),
+    lights: litNow
+      .filter((l) => g.ids.includes(l.id))
+      .map((l) => ({ name: l.name, stepsLeft: l.seconds === null || !perStep ? null : Math.max(1, Math.ceil((l.litAt + l.seconds - now) / perStep)) })),
+  }));
   const bandFacts: Fact[] =
     sessionNow === 'none'
       ? []
@@ -1993,17 +2007,7 @@ export function SceneTime({
           // A town's mode has no light fact (mc-69).
           isPartOfDay(mode.step.unit)
             ? null
-            : lightFact({
-                stepWord,
-                groups: factGroups.map((g) => ({
-                  group: g.number,
-                  name: groupName(g.number),
-                  dark: darkGroups.includes(g),
-                  lights: litNow
-                    .filter((l) => g.ids.includes(l.id))
-                    .map((l) => ({ name: l.name, stepsLeft: l.seconds === null || !perStep ? null : Math.max(1, Math.ceil((l.litAt + l.seconds - now) / perStep)) })),
-                })),
-              }),
+            : lightFact({ stepWord, groups: lightGroups }),
           rest ? restFact({ stepWord, day: restDay, ruleWords: restEveryWords(mode.rest), pushedOn: !gm && factFlows.some((f) => !f.open && f.members.some((id) => mineIds.includes(id) && pushedOn(restOf(id), expedition.startedAt))), groups: factFlows.map((f) => ({ group: f.group, name: groupName(f.group), open: f.open, stepsLeft: f.stepsLeft })) }) : null,
           (() => {
             // A player's: the last shown place's own check where it stands in (mc-39b, mc-50; the database sends when
@@ -2022,6 +2026,13 @@ export function SceneTime({
   const bandPart = bandFacts.find((f) => f.id === 'part') ?? null;
   // The Rest fact's whole words head its sheet (tv-1: the tile may cut them).
   const bandRest = bandFacts.find((f) => f.id === 'rest') ?? null;
+  // A player's Encounter check pop-up (PL8): the setting's check's words where the player's copy opens them; none for
+  // the shown place's own check, whose read sends when and chance only (⚑ on P10: its words would widen that read).
+  const playersCheckRule = (() => {
+    if (gm || !mode || !engine || playersChecks.some((c) => c.group === myGroupNumber)) return [];
+    const inForce = encounterCheckOf(engine);
+    return inForce?.source === 'mode' ? checkRule(mode, inForce.check.id, exploration.playerReadable) : [];
+  })();
   const openFact = (id: Fact['id']) => {
     // The Weather fact opens its sheet (S10, T6): today's weather in plain words, and the roll when it is due.
     if (id === 'weather') setWeatherOpen(true);
@@ -2474,6 +2485,13 @@ export function SceneTime({
       <ProcedureStrip steps={strip.steps} onOpen={setStepOpen} />
       {stepOpen && <RuleSheet placeName="" name={stepOpen.name} blocks={blocksOfRead(stepOpen.text)} onClose={() => setStepOpen(null)} />}
       {weatherOpen && <WeatherSheet db={db} user={user} view={weather.view} over={[bandDate.words, bandDate.season].filter(Boolean).join(', ')} onChanged={weather.reload} onClose={() => setWeatherOpen(false)} />}
+      {/* A player's tap on Light, Rest or the Encounter check (P10; page 18, PL8): the state, then the rule where the
+          player's copy of the setting has its words. The Rest prompt's ⓘ opens the same Rest pop-up. */}
+      {lightAbout && <FactSheet title="Light" lines={lightSheetLines(lightGroups, stepWord)} rule={[]} onClose={() => setLightAbout(false)} />}
+      {restAbout && bandRest && (
+        <FactSheet title="Rest" lines={restSheetLines(bandRest, mode?.rest ? restEveryWords(mode.rest) : null)} rule={settingRule(restWords.filter((w) => w !== REST_ANSWER_WORDS), mode?.rest?.source)} onClose={() => setRestAbout(false)} />
+      )}
+      {asking === 'check' && bandCheck && <FactSheet title={bandCheck.label} lines={checkSheetLines(bandCheck)} rule={playersCheckRule} onClose={() => setAsking(null)} />}
     </BookFaces>
   );
 
@@ -2496,8 +2514,8 @@ export function SceneTime({
             <>
               {/* B18: the prompt slot, between the time band and the marching order (space reserved), newest on top
                   (SC-g6-4): the rest prompt, the screen's other prompts (a request, a message, No light), the weather;
-                  what is there when the screen opens keeps that order. */}
-              <PromptSlot>
+                  what is there when the screen opens keeps that order. The calls to adventure come last, always (p7-9). */}
+              <PromptSlot after={<CallsInPromptSlot calls={playerCalls.calls} onGotIt={playerCalls.gotIt} />}>
                 {restViews.map((flow) => (
                   <RestPrompt
                     key={`rest-${flow.group}`}
@@ -2579,8 +2597,8 @@ export function SceneTime({
                 onRule={() => setRestAbout(true)}
               />
             ))}
-          {restAbout && <RestRule head={bandRest ? `${bandRest.value}.${bandRest.sub && bandRest.sub !== restWords[0] ? ` ${bandRest.sub}` : ''}` : null} words={restWords} onClose={() => setRestAbout(false)} />}
-          {lightAbout && (
+          {restAbout && (gm || !bandRest) && <RestRule head={bandRest ? `${bandRest.value}.${bandRest.sub && bandRest.sub !== restWords[0] ? ` ${bandRest.sub}` : ''}` : null} words={restWords} onClose={() => setRestAbout(false)} />}
+          {lightAbout && gm && (
             <Dialog label="Light" onClose={() => setLightAbout(false)}>
               <p className="time-strip__notes">
                 {lightMarks.some((m) => m.dark)
@@ -2732,7 +2750,7 @@ export function SceneTime({
           )}
           {seasonDialog}
           {/* The Encounter check fact's tap (S4): the check in force, to read; checking now is the band's Encounter check (S2). */}
-          {asking === 'check' && bandCheck && (
+          {asking === 'check' && bandCheck && gm && (
             <Dialog label={bandCheck.label} onClose={() => setAsking(null)}>
               <p className="time-strip__notes">
                 <DiceWords>{`${bandCheck.value}${bandCheck.sub ? `, ${bandCheck.sub}` : ''}.`}</DiceWords>

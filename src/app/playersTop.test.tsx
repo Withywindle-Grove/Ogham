@@ -51,6 +51,9 @@ afterEach(() => {
 });
 
 const CHECK_NOTE = 'The pike-mother rises when the bell is rung';
+const GM_CHECK_NOTE = 'Roll twice when the party carries the bell';
+const STEP_WORDS = 'Every second turn the GM checks whether something wandering finds the party.';
+const REST_WORDS = 'A party that does not rest is tired until it does.';
 const HARBOUR = {
   id: 'drowned-harbour',
   name: 'The Drowned Harbour',
@@ -85,7 +88,7 @@ const GROTTO = {
  * seasonal weather the players roll) and an invented harbour whose own check stands in on every move. A session runs
  * and the expedition is under way. `hideExploration` marks the rules set's exploration GM-only.
  */
-async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wade' } = {}) {
+async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wade'; rules?: boolean } = {}) {
   const gm = world.addPerson('priya@lantern.example', 'Priya');
   const sam = world.addPerson('sam@lantern.example', 'Sam');
   const campaign = world.addCampaign('The Ash Barrows', gm);
@@ -123,13 +126,17 @@ async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wad
       name,
       data: { id, name, ...data },
     });
+  // `rules` (P10): the procedures open to players, a step that runs the wandering check with its words and page, and a
+  // rest rule with its words and page.
   const exploration = {
+    ...(options.rules ? { playerReadable: true } : {}),
     modes: [
       {
         id: 'creep',
         name: 'Creeping',
         step: { value: 1, unit: 'turn' },
-        procedure: [],
+        procedure: options.rules ? [{ id: 'wander-step', name: 'Wandering', kind: 'check', checkId: 'wander', note: STEP_WORDS, source: 'Fen Rules, p. 40' }] : [],
+        ...(options.rules ? { rest: { every: { value: 6, unit: 'turn' }, length: { value: 1, unit: 'turn' }, note: REST_WORDS, source: 'Fen Rules, p. 50' } } : {}),
         checks: [
           {
             id: 'wander',
@@ -137,6 +144,7 @@ async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wad
             every: { value: 2, unit: 'turn' },
             chance: { die: 'd6', on: [1] },
             onHit: { tableId: 'river-wanderers' },
+            note: GM_CHECK_NOTE,
           },
         ],
       },
@@ -434,5 +442,75 @@ describe('the setting’s check where the player may not read it (the lead, 2026
     expect(time().queryByText(/\bin 6\b/)).toBeNull();
     expect(screen.getByRole('region', { name: 'Time' }).querySelector('.scene-fact__sub .die-glyph')).toBeNull();
     expect(document.body.textContent).not.toContain('Wandering things');
+  });
+});
+
+describe("a player's tap on a fact (plan dec-9-the-players-scene P10; page 18, PL8)", () => {
+  const sheet = async (name: string | RegExp) => within(await screen.findByRole('dialog', { name }));
+
+  // Purpose: the Encounter check opens a pop-up with when it is rolled and its chance as labelled lines, then "The rule"
+  // in the pack's words with its page, where the setting opens its procedures to players; never the check's own note or
+  // its table.
+  it('opens the setting’s check with its rule, never its note or table', async () => {
+    const { sam } = await table({ rules: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Encounter check'));
+    const pop = await sheet('Encounter check');
+    expect(pop.getByText('When.')).toBeTruthy();
+    expect(pop.getByText('Every 2 turns.')).toBeTruthy();
+    expect(pop.getByText('Chance.')).toBeTruthy();
+    expect(pop.getByRole('heading', { name: 'The rule' })).toBeTruthy();
+    expect(pop.getByText(STEP_WORDS)).toBeTruthy();
+    expect(pop.getByText('From your setting: Fen Rules, p. 40')).toBeTruthy();
+    expect(document.body.textContent).not.toContain(GM_CHECK_NOTE);
+    expect(document.body.textContent).not.toContain('river-wanderers');
+  });
+
+  // Purpose: where the setting keeps its procedures from players, the pop-up has the check's state alone: no rule.
+  it('shows the state alone where the procedures are not open to players', async () => {
+    const { sam } = await table();
+    const user = await openScene(sam);
+    await user.click(await factNamed('Encounter check'));
+    const pop = await sheet('Encounter check');
+    expect(pop.getByText('When.')).toBeTruthy();
+    expect(pop.queryByRole('heading', { name: 'The rule' })).toBeNull();
+  });
+
+  // Purpose: at a shown place whose own check stands in, the pop-up has its when and chance and no rule: its read sends
+  // nothing more, and its note never reaches the screen.
+  it('shows a shown place’s own check without a rule or its note', async () => {
+    const { sam, moveTo } = await table({ rules: true });
+    await moveTo(JETTY, true);
+    const user = await openScene(sam);
+    await user.click(await factNamed('Encounter check'));
+    const pop = await sheet('Encounter check');
+    expect(pop.getByText('On every move.')).toBeTruthy();
+    expect(pop.queryByRole('heading', { name: 'The rule' })).toBeNull();
+    expect(document.body.textContent).not.toContain(CHECK_NOTE);
+  });
+
+  // Purpose: Rest opens a pop-up with when the next rest falls, then the pack's rest words and page under "The rule";
+  // the app's line on answering a rest is the prompt's business, not this pop-up's.
+  it('opens Rest with when the next falls and its rule', async () => {
+    const { sam } = await table({ rules: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Rest'));
+    const pop = await sheet('Rest');
+    expect(pop.getByText('Next.')).toBeTruthy();
+    expect(pop.getByText(/^In \d+ turns?\.$/)).toBeTruthy();
+    expect(pop.getByText(REST_WORDS)).toBeTruthy();
+    expect(pop.getByText('From your setting: Fen Rules, p. 50')).toBeTruthy();
+    expect(pop.queryByText(/answer Rest or Push on/)).toBeNull();
+  });
+
+  // Purpose: Light opens a pop-up with the group's light state as a labelled line ("No light." in a turn mode with
+  // nothing lit), and no rule (the pack format gives a light no words).
+  it('opens Light with the group’s light', async () => {
+    const { sam } = await table({ rules: true });
+    const user = await openScene(sam);
+    await user.click(await factNamed('Light'));
+    const pop = await sheet('Light');
+    expect(pop.getByText('No light.')).toBeTruthy();
+    expect(pop.queryByRole('heading', { name: 'The rule' })).toBeNull();
   });
 });
