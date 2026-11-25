@@ -70,6 +70,32 @@ for (const width of [375, 834] as const) {
         await expect(calls.getByRole('button', { name: 'A rumour, for the party' })).toBeFocused();
       });
 
+      // Purpose (Home Two's last audit, new finding 1): with no calls the slot's live region is already on the page,
+      // empty, so the session's first call is announced as a change inside it; it adds no height to the players' slot.
+      test.fail('keeps an empty live region with no calls, taking no room', async ({ page }) => {
+        await page.goto('/layout.html?as=player&placePage=spots&session=running');
+        await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
+        await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Scene' }).click();
+        await expect(page.getByRole('heading', { name: 'Marching order' })).toBeVisible();
+        const live = page.locator('.prompt-slot .calls-slot__live');
+        await expect(live).toHaveCount(1);
+        await expect(live).toHaveText('');
+        await expect(live).toHaveAttribute('role', 'status');
+        // No room: the slot ends where its other prompts end (no gap left for the empty region), or keeps its own
+        // reserved height when it holds nothing else.
+        const room = await page.locator('.prompt-slot').first().evaluate((slot) => {
+          const box = slot.getBoundingClientRect();
+          const calls = slot.querySelector('.calls-slot')!.getBoundingClientRect();
+          const others = [...slot.querySelectorAll(':scope > .prompt-slot__item:not(.prompt-slot__item--last) > *')].map((e) => e.getBoundingClientRect().bottom);
+          const reserved = parseFloat(getComputedStyle(slot).minBlockSize);
+          return { calls: calls.height, extra: others.length > 0 ? box.bottom - Math.max(...others) : box.height - reserved, others: others.length };
+        });
+        expect(room.calls).toBe(0);
+        expect(Math.abs(room.extra)).toBeLessThanOrEqual(0.5);
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+      });
+
       // Purpose (Home Two's second audit, findings 1 and 2): the live region's text starts with the heading; on a phone
       // the heading has the card's full width, above "Got it" (it never wraps beside it); on a tablet "Got it" keeps its
       // drawn place, at the top right beside the heading and the words (40A).

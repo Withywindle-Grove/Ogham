@@ -157,3 +157,18 @@ describe('the second audit (Home Two, findings 1 to 4, picked 24 Nov)', () => {
     expect(row.hasAttribute('aria-controls')).toBe(false);
   });
 });
+
+describe('the last audit (Home Two, new finding 1, the driver’s call 25 Nov)', () => {
+  // Purpose: with no calls the slot's live region is already on the page, empty, so the session's first call is a change
+  // inside a region the screen reader already watches: after the call arrives its words are inside that same element.
+  it.fails('keeps the empty live region mounted, and the first call arrives inside it', () => {
+    const { rerender } = render(<CallsInPromptSlot calls={callsInSlot([], new Map())} onGotIt={() => {}} />);
+    const live = document.querySelector('.calls-slot__live');
+    expect(live).not.toBeNull();
+    expect(live!.textContent).toBe('');
+    expect(live!.getAttribute('role')).toBe('status');
+    rerender(<CallsInPromptSlot calls={callsInSlot([send('a', '2026-11-24T19:00:00Z')], new Map())} onGotIt={() => {}} />);
+    expect(document.querySelector('.calls-slot__live')).toBe(live);
+    expect(live!.textContent).toContain('manifest of the cog');
+  });
+});
