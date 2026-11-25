@@ -226,6 +226,16 @@ Picture: one screenshot, not committed: it shows a private pack's character text
 
 Reads as: when a named character is at a place, the GM can open their stat line and notes in one tap. Here the character is a sailor, and the source has a sailor stat line on p. 13. Same need as F4 (d). He will check again at place 5, which has another named character.
 
+### F20. Found treasure rows: reveal does not work, no way to take, a machine ID shown
+
+Screen: GM's Scene at a place, the treasure rows found there. Two rows, each with a closed-eye icon on the right: a stack of weapons, and a single magic item with the line "Value stays yours (Item: <pack item ID>)."
+
+Picture: one screenshot, not committed: it shows a private pack's item text and ID (hard rule 2).
+
+> neither of these rows will reveal to party, and both will need some kind of option for the party to take them in party stash or otherwise. [pack item ID] is a designation that is machine readable, but i need a human readable designation here. do we have a plan for distributing found treasure prior to dec 5?
+
+Reads as: four parts. (a) Bug: tapping the closed eye does not reveal either row to the party. (b) A found item needs a way for the party to take it, into the party stash or to a character. (c) The row shows the pack's machine ID for the item; show a name a person can read. (d) A question for the driver: is there a plan for sharing out found treasure before 5 December?
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
