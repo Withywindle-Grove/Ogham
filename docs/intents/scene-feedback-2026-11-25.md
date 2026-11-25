@@ -30,6 +30,9 @@ Picture: two screenshots, not committed (private pack names, hard rule 2).
 
 Reads as: the grouped place list from F1 has no way back to the first view (search, recently visited, packs). In the pack tree, places show no map number and are not in number order.
 Question: which screen has no way back: the grouped list in F1, or the opened pack tree?
+Answer (end of collection):
+
+> grouped place list
 
 ### F3. The Scene's top buttons, the swords button, and the encounter check
 
@@ -104,6 +107,11 @@ Pictures: three screenshots, not committed: they show a private pack's place nam
 
 Reads as: two parts. (a) When a place has no knowledge of its own, "Knowledge" also shows the knowledge of its area (the source has it on p. 10). (b) The encounter tables page does not follow the current table and book styles.
 Question: for (b), which standard do you mean: the d20 table inside the "Due now" card (F3), or another ruling or mockup?
+Answer (end of collection), with two more screenshots of table pages (an encounter table for the second area, and a short d6 table), not committed (private pack text, hard rule 2):
+
+> the encounter tables at the top of the page. they are not book-formatted.
+
+Reads as: the table pages opened from "Encounter tables ›" are not in the book table format. Every such page, not only this one.
 
 ### F9. The encounter rows on the Scene may not be needed
 
@@ -149,6 +157,11 @@ Picture: one screenshot, not committed: it shows a private pack's area, rule and
 
 Reads as: two parts. (a) The players' Scene lists a place in the area, with its description, that the party has not reached; he asks why. (b) "Rules" should sit on the left.
 Question: "on the left" of what: the page's left column (or rail), or inside this card?
+Answer (end of collection):
+
+> the left column (technically center if you count the rail) under the location, similar to what we see on the gm scene screen.
+
+Reads as: on the players' Scene, "Rules" sits in the main column under the place, as on the GM's Scene.
 
 ### F13. Players' Scene: unexplored places by map number; a map without its key
 
@@ -213,6 +226,11 @@ Picture: one screenshot, not committed: it shows a private pack's place text, a 
 
 Reads as: keep the bordered box for an item inside the book's text. This may reverse something he said before this collection; the driver should check for an earlier ruling.
 Question (held for the end): "this box" is the bordered item box, not the whole "From the book" section?
+Answer (end of collection):
+
+> the whole from the book section. I like having this consolidated information. not all books will be so clean in their information presentation, but having an easily referenceable section like this one is very handy for running a scene. I've noted a few places where I want more information which would mean it's "from the book, plus" (don't use that title) but generally i'm very happy with this section.
+
+Reads as: keep the whole "From the book, for the GM" section. It gathers a place's facts in one place for running the scene. The extra facts he asked for (F19, F21: stat lines, item rules) would join it. Do not title it "From the book, plus".
 
 ### F19. A character at a place needs their stat line at hand
 
@@ -332,7 +350,7 @@ In scope (his words, at the end): point-to-point crawling in the first and secon
 The settlement area (see F1 (d)). He wants a design session on it later.
 
 ## Open questions
-- ⚑ Clarifying questions to Francis, asked at the end of the collection: F2, F8, F12, F18 (each under its item). F11's question was answered by his follow-up note.
+- Clarifying questions to Francis (F2, F8, F12, F18) were answered at the end of the collection; each answer is under its item. F11's question was answered by his follow-up note.
 - Questions he asked for the driver: F1 (does Depart open on the last adventure?), F13 (c) (can the pack builder split a map from its key?), F20 (d) (a plan for sharing out found treasure before 5 December?).
 
 ## Links (filled in later)
