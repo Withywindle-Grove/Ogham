@@ -14,6 +14,14 @@
 //   6. Deleting the GM who created the (retired) campaign and made rows in every area succeeds; every row stays, its
 //      link emptied.
 //   7. In the retired campaign, every other change is still refused, even with the secret key.
+// And the rows a cascade used to take (Francis, 2026-11-25, "2 a, 3 as recommended", on #84's ⚑ 1 and ⚑ 2;
+// supabase/migrations/20261125090000_account_deletion_keeps_asks_and_homebrew.sql), in a world of their own:
+//   8. A standing account's asker, a message's player, a recipient and a pack's owner can't be emptied by hand, even
+//      with the secret key; a request a player asks can't be made without its asker.
+//   9. Deleting a player who asked the GM something succeeds: the request stays with no asker, and the messages sent
+//      to them (a thread message, and a message's recipient row) stay with no player; their membership goes.
+//  10. Deleting the GM keeps the campaign's own homebrew pack and what hangs on it (an entry, its link to the
+//      campaign), its owner emptied; the GM's membership and their personal library pack (attached or not) go.
 // Not in this file (they need a pack's places, shops, weather or activities set up; rehearsed locally only):
 // activity_runs, camps, camp_entries, place_moves, weather_rolls, shop_stock, knowledge_shares, place_rule_switches,
 // town_piece_shows. Their guards are skipped by the same WHEN as the tables here.
@@ -31,6 +39,8 @@ let hpChange = '';
 
 const rowOf = async (table: string, id: string, columns: string) =>
   must(await world.admin.from(table).select(columns).eq('id', id)) as unknown as Record<string, unknown>[];
+const rowOfIn = async (w: World, table: string, id: string, columns: string) =>
+  must(await w.admin.from(table).select(columns).eq('id', id)) as unknown as Record<string, unknown>[];
 const profileGone = async (id: string) => expect(must(await world.admin.from('profiles').select('id').eq('id', id))).toEqual([]);
 
 beforeAll(async () => {
@@ -131,5 +141,80 @@ describe('deleting an account keeps every row it is linked to', () => {
     expect((await world.admin.from('campaigns').update({ name: 'Elsewhere' }).eq('id', world.campaignId).select('id')).error).not.toBeNull();
     expect((await world.admin.from('actors').update({ name: 'Elsewhere' }).eq('id', world.ashId).select('id')).error).not.toBeNull();
     expect(await rowOf('places', gmRows.places!.id, 'name')).toEqual([{ name: 'The Drowned Stair' }]);
+  });
+});
+
+describe("deleting an account keeps a player's requests, the messages sent to them and the campaign's homebrew", () => {
+  let second: World;
+  let asked = '';
+  let thread = '';
+  let recipient = '';
+  let homebrew = '';
+  let homebrewEntry = '';
+  let library = '';
+
+  beforeAll(async () => {
+    second = await buildWorld();
+    const c = second.campaignId;
+    const sent = await second.playerA.db.rpc('send_request', { campaign: c, actor: second.wrenId, kind: 'describe', body: 'Wade across the eel pool.' });
+    if (sent.error) throw sent.error;
+    asked = (must(await second.admin.from('requests').select('id').eq('campaign_id', c).eq('direction', 'playerAsks'))[0] as { id: string }).id;
+    const toWren = await second.gm.db.rpc('send_messages', { campaign: c, to_characters: [second.wrenId], body: 'The eels are watching you.' });
+    if (toWren.error) throw toWren.error;
+    thread = (must(await second.admin.from('messages').select('id').eq('campaign_id', c).eq('actor_id', second.wrenId))[0] as { id: string }).id;
+    const note = await second.gm.db.rpc('send_message', { campaign: c, body: 'A cold wind off the marsh.', kind: 'text', keep: false, burn: false, to_characters: [second.wrenId] });
+    if (note.error) throw note.error;
+    recipient = (must(await second.admin.from('message_recipients').select('id').eq('campaign_id', c).eq('actor_id', second.wrenId))[0] as { id: string }).id;
+    // The campaign's own homebrew pack, with an entry and its link to the campaign.
+    homebrew = (must(await second.admin.from('packs').insert({ owner_user_id: second.gm.id, campaign_id: c, name: 'Homebrew', kind: 'homebrew' }).select('id').single()) as { id: string }).id;
+    homebrewEntry = (must(await second.admin.from('library_entries').insert({ pack_id: homebrew, kind: 'item', pack_entry_id: 'bog-lantern', name: 'Bog lantern' }).select('id').single()) as { id: string }).id;
+    must(await second.admin.from('campaign_packs').insert({ campaign_id: c, pack_id: homebrew, option_choices: {}, priority: 50 }).select('id'));
+    // A pack in the GM's own library, attached to the campaign too.
+    const made = await second.gm.db.rpc('import_pack', {
+      meta: { name: 'Marsh lore', version: '1', kind: 'adventure', format_version: 2, source: '', notes: '' },
+      entries: [{ kind: 'adventureHook', pack_entry_id: 'ew-reed-flute', name: 'The lost reed flute', data: { text: 'A flute in the reeds.', pays: 'A song', giver: null, order: 0 } }],
+      replace_pack_id: null,
+    });
+    if (made.error) throw made.error;
+    library = made.data as string;
+    must(await second.admin.from('campaign_packs').insert({ campaign_id: c, pack_id: library, option_choices: {}, priority: 49 }).select('id'));
+  }, 300_000);
+
+  afterAll(async () => {
+    await tearDownWorld(second);
+  }, 60_000);
+
+  it("a standing account's asker, a message's player, a recipient and a pack's owner can't be emptied by hand", async () => {
+    const admin = second.admin;
+    expect((await admin.from('requests').update({ requester_id: null }).eq('id', asked).select('id')).error).not.toBeNull();
+    expect((await second.gm.db.from('requests').update({ requester_id: null }).eq('id', asked).select('id')).error).not.toBeNull();
+    expect((await admin.from('messages').update({ player_user_id: null }).eq('id', thread).select('id')).error).not.toBeNull();
+    expect((await admin.from('message_recipients').update({ user_id: null }).eq('id', recipient).select('id')).error).not.toBeNull();
+    expect((await admin.from('packs').update({ owner_user_id: null }).eq('id', homebrew).select('id')).error).not.toBeNull();
+    expect((await admin.from('packs').update({ owner_user_id: null }).eq('id', library).select('id')).error).not.toBeNull();
+    const noAsker = await admin.from('requests').insert({ campaign_id: second.campaignId, actor_id: second.wrenId, kind: 'describe', direction: 'playerAsks', text: 'Nobody asked this.' }).select('id');
+    expect(noAsker.error).not.toBeNull();
+    expect(await rowOfIn(second, 'requests', asked, 'requester_id')).toEqual([{ requester_id: second.playerA.id }]);
+  });
+
+  it.fails('deleting a player who asked the GM something succeeds; the request and the messages sent to them stay, with no player', async () => {
+    expect((await second.admin.auth.admin.deleteUser(second.playerA.id)).error).toBeNull();
+    expect(must(await second.admin.from('profiles').select('id').eq('id', second.playerA.id))).toEqual([]);
+    expect(await rowOfIn(second, 'requests', asked, 'text, direction, requester_id')).toEqual([{ text: 'Wade across the eel pool.', direction: 'playerAsks', requester_id: null }]);
+    expect(await rowOfIn(second, 'messages', thread, 'body, player_user_id, sender_user_id')).toEqual([{ body: 'The eels are watching you.', player_user_id: null, sender_user_id: second.gm.id }]);
+    expect(await rowOfIn(second, 'message_recipients', recipient, 'actor_id, user_id')).toEqual([{ actor_id: second.wrenId, user_id: null }]);
+    expect(must(await second.admin.from('members').select('user_id').eq('campaign_id', second.campaignId).eq('user_id', second.playerA.id))).toEqual([]);
+  });
+
+  it.fails("deleting the GM keeps the campaign's homebrew pack and what hangs on it; their membership and library pack go", async () => {
+    expect((await second.admin.auth.admin.deleteUser(second.gm.id)).error).toBeNull();
+    expect(must(await second.admin.from('profiles').select('id').eq('id', second.gm.id))).toEqual([]);
+    expect(await rowOfIn(second, 'packs', homebrew, 'name, campaign_id, owner_user_id')).toEqual([{ name: 'Homebrew', campaign_id: second.campaignId, owner_user_id: null }]);
+    expect(await rowOfIn(second, 'library_entries', homebrewEntry, 'name')).toEqual([{ name: 'Bog lantern' }]);
+    expect(must(await second.admin.from('campaign_packs').select('pack_id').eq('campaign_id', second.campaignId))).toEqual([{ pack_id: homebrew }]);
+    expect(await rowOfIn(second, 'packs', library, 'id')).toEqual([]);
+    expect(must(await second.admin.from('library_entries').select('id').eq('pack_id', library))).toEqual([]);
+    expect(must(await second.admin.from('members').select('user_id').eq('campaign_id', second.campaignId).eq('user_id', second.gm.id))).toEqual([]);
+    expect(await rowOfIn(second, 'messages', thread, 'sender_user_id')).toEqual([{ sender_user_id: null }]);
   });
 });
