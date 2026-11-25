@@ -168,7 +168,7 @@ describe("a save's working: the counting (plan dec-15-save-bonus, row 1)", () =>
 
   it('a character with no class has no class name in the working (ruling 11), and still counts', () => {
     const w = saveWorking('F', input({ klass: null, className: null, race: { saveBonus: 2 } }))!;
-    expect(w.className).toBeNull();
+    expect(w).toMatchObject({ className: null, hasClass: false });
     expect(w.figure).toBe(13);
   });
 
@@ -191,7 +191,7 @@ describe("a save's working: the counting (plan dec-15-save-bonus, row 1)", () =>
     ]);
   });
 
-  it.fails('a kindred or class with no name gives its rows with no name (no words of the app\'s own), and a class with no name keeps its row', () => {
+  it('a kindred or class with no name gives its rows with no name (no words of the app\'s own), and a class with no name keeps its row', () => {
     const rulesSets = [{ rolls: { save: { die: 'd20', pass: 'atOrOver' } }, saveModifiers: [{ id: 'hexes', name: 'vs hexes', value: { raceField: 'hexBonus' }, appliesWhen: 'hexes' }] }];
     const w = saveWorking('F', input({ rulesSets, race: { saveBonus: 2, hexBonus: 1 }, raceName: null, klass: { saveBonus: 1 }, className: null }))!;
     expect(w.counted.map((r) => [r.from, r.kind])).toEqual([
@@ -205,7 +205,7 @@ describe("a save's working: the counting (plan dec-15-save-bonus, row 1)", () =>
     expect(named).toMatchObject({ className: 'Lantern Warden', hasClass: true });
   });
 
-  it.fails("a score's row that is not a whole number gives no part, in the working and in the Modifiers lines", () => {
+  it("a score's row that is not a whole number gives no part, in the working and in the Modifiers lines", () => {
     const rulesSets = [{ rolls: { save: { die: 'd20', pass: 'atOrOver' } }, saveModifiers: [{ id: 'ward', name: 'Spell ward', value: { from: 'LOR', plusRaceField: 'wardBonus' }, appliesWhen: 'magic' }] }];
     const fraction = input({ rulesSets, filled: { 'saves.F': 15, 'abilityModifiers.LOR': { wardBonus: 1.5 } } });
     expect(saveWorking('F', fraction)!.shared).toEqual([]);
@@ -269,7 +269,7 @@ describe("a save's working: the stops without a pack flag (plan dec-15-save-bonu
     expect(top.atTimes.map((r) => [r.number, r.held])).toEqual([[20, 20]]);
   });
 
-  it.fails("a hard stop passed in holds back only the at-times and shared numbers, never a counted row or the tile's figure", () => {
+  it("a hard stop passed in holds back only the at-times and shared numbers, never a counted row or the tile's figure", () => {
     const rulesSets = [{ rolls: { save: { die: 'd20', pass: 'atOrOver' } }, saveModifiers: [{ id: 'mire', name: 'Mire', value: -1, appliesWhen: 'in the mire' }] }];
     const w = saveWorking('F', input({ rulesSets, filled: { 'saves.F': 19 }, race: { saveBonus: [-2, { bonus: -3, vs: 'venom' }] }, stops: { hard: 20 } }))!;
     expect(w.counted.map((r) => [r.number, r.held])).toEqual([[21, null]]);

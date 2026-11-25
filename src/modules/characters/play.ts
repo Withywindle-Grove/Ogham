@@ -692,7 +692,7 @@ export function saveModifierParts(m: Record<string, unknown>, input: SaveModifie
   const field = typeof spec.plusRaceField === 'string' ? spec.plusRaceField : '';
   const row = input.filled[`abilityModifiers.${from}`];
   const numbers = isRecord(row) ? Object.values(row).filter((v): v is number => typeof v === 'number') : [];
-  const fromScoreRow = isRecord(row) && field && typeof row[field] === 'number' ? (row[field] as number) : numbers.length === 1 ? numbers[0]! : null;
+  const fromScoreRow = whole(isRecord(row) && field && typeof row[field] === 'number' ? row[field] : numbers.length === 1 ? numbers[0] : null);
   const parts: SaveModifierPart[] = [];
   if (fromScoreRow) parts.push({ bonus: fromScoreRow, from: input.label(from), kind: 'score' });
   const fromKindred = field ? whole(input.race?.[field]) : null;

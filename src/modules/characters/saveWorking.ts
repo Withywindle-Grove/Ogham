@@ -17,10 +17,12 @@
 //  - The stops (row 2): the easy end is the die's lowest face (the highest where low rolls succeed); a row past it
 //    shows the stop and is marked with the stop's number, a row landing on it exactly is not. The hard end has no stop
 //    by default: the worked number as it is, for the figure and the at-times numbers alike (ruling 1). Both are
-//    parameters, so the pack's flags (row 8, held) only pass other numbers. The running sum is never clamped: only
-//    each number shown is.
+//    parameters, so the pack's flags (row 8, held) only pass other numbers. A hard stop passed in holds back only the
+//    at-times and shared numbers (05: the pack flag's stop is for an at-times line), never a counted row or the
+//    figure. The running sum is never clamped: only each number shown is.
 //
-// Pure; every name and number comes from the pack.
+// Pure; every name and number comes from the pack, and it carries no words of the app's own: a source with no name
+// has `from: null`, and the screens word it.
 import { conSaveBonus, saveKeyOf } from '../library/fills.ts';
 import { rollInForce, type RollPass } from '../library/rolls.ts';
 import { isOtherwise, saveBonusesOn } from './bonuses.ts';
@@ -32,7 +34,7 @@ export type SaveSourceKind = 'kindred' | 'class' | 'score' | 'rule';
 /** One part of a bonus: how much (in the book's sign), and who gives it. */
 export interface SavePart {
   bonus: number;
-  /** "Bog folk", "Lantern Warden", "Lore"; null for a number the rules set gives itself. */
+  /** "Bog folk", "Lantern Warden", "Lore"; null for a number the rules set gives itself, or a source with no name. */
   from: string | null;
   kind: SaveSourceKind;
   /** The part beyond an "otherwise" in the same list ("+4 vs venom, +2 otherwise": 2 more vs venom). */
@@ -75,8 +77,10 @@ export interface SaveWorking {
   pass: RollPass;
   /** The class's number at this level (the save's filled figure). */
   base: number;
-  /** The class's name; null for a character with no class (its sheet leaves the class's row out, ruling 11). */
+  /** The class's name (the caller's, else the class's own `name`); null for no class or a class with no name. */
   className: string | null;
+  /** Whether the character has a class: false leaves the class's row out (ruling 11), a class with no name keeps it. */
+  hasClass: boolean;
   counted: CountedRow[];
   /** The number to roll: the last counted row's, else the base. */
   figure: number;
@@ -113,14 +117,15 @@ export function saveWorking(saveKey: string, input: SaveWorkingInput): SaveWorki
   const hard = input.stops?.hard ?? null;
   // The number a bonus gives, from a sum not yet stopped.
   const move = (n: number, bonus: number) => (lowers ? n - bonus : n + bonus);
-  const shown = (n: number): { number: number; held: number | null } => {
+  // The number shown for a sum: the easy stop always; the hard stop only for an at-times or shared number (`atTimes`).
+  const shown = (n: number, atTimes = false): { number: number; held: number | null } => {
     if (lowers ? n < easy : n > easy) return { number: easy, held: easy };
-    if (hard !== null && (lowers ? n > hard : n < hard)) return { number: hard, held: hard };
+    if (atTimes && hard !== null && (lowers ? n > hard : n < hard)) return { number: hard, held: hard };
     return { number: n, held: null };
   };
 
-  const kindred = input.raceName ?? 'your kindred';
-  const klass = input.className ?? 'your class';
+  const kindred = input.raceName ?? (text(input.race?.name) || null);
+  const klass = input.klass ? (input.className ?? (text(input.klass.name) || null)) : null;
   const always: SavePart[] = [];
   const atTimes: { condition: string; parts: SavePart[] }[] = [];
   const addAtTimes = (condition: string, part: SavePart) => {
@@ -169,10 +174,10 @@ export function saveWorking(saveKey: string, input: SaveWorkingInput): SaveWorki
   const shared = saveModifierEntries(input.rulesSets).flatMap((m): SharedRow[] => {
     const own = typeof m.value === 'number' && Number.isInteger(m.value) ? m.value : typeof m.modifier === 'number' && Number.isInteger(m.modifier) ? m.modifier : null;
     const parts: SavePart[] =
-      own !== null ? (own !== 0 ? [{ bonus: own, from: null, kind: 'rule', more: false }] : []) : saveModifierParts(m, input).map((p) => ({ ...p, more: false }));
+      own !== null ? (own !== 0 ? [{ bonus: own, from: null, kind: 'rule', more: false }] : []) : saveModifierParts(m, input).map((p) => ({ ...p, from: p.kind === 'kindred' ? kindred : p.from, more: false }));
     const bonus = summed(parts);
     if (bonus === 0) return [];
-    return [{ id: text(m.id), name: saveModifierName(m), appliesWhen: text(m.appliesWhen), parts, bonus, ...shown(move(total, bonus)) }];
+    return [{ id: text(m.id), name: saveModifierName(m), appliesWhen: text(m.appliesWhen), parts, bonus, ...shown(move(total, bonus), true) }];
   });
 
   return {
@@ -181,12 +186,13 @@ export function saveWorking(saveKey: string, input: SaveWorkingInput): SaveWorki
     sides: roll.sides,
     pass: roll.pass,
     base,
-    className: input.klass ? input.className : null,
+    className: klass,
+    hasClass: Boolean(input.klass),
     counted,
     figure: shown(total).number,
     atTimes: atTimes.flatMap((r) => {
       const bonus = summed(r.parts);
-      return bonus === 0 ? [] : [{ condition: r.condition, parts: r.parts, bonus, ...shown(move(total, bonus)) }];
+      return bonus === 0 ? [] : [{ condition: r.condition, parts: r.parts, bonus, ...shown(move(total, bonus), true) }];
     }),
     shared,
     stops: { easy, hard },
