@@ -301,6 +301,16 @@ Picture: one screenshot, not committed: it shows a private pack's place text and
 
 Reads as: pack data changes, plus one app rule. (a) Label the first area's arrival place "0. Arrival ([area A])". (b) Add "0. Arrival ([area B])" with its opening text and descriptions from p. 18 of the source. (c) Change the links between places: [area A] places 10 and 11 lead to [area B] place 0; [area B] place 0 leads to [area B] places 1, 2, 3 and 4, and to [area A] places 10 and 11. (d) The same rule as F8 (a): each area's knowledge shows at its places. Parts (a) to (c) look like work for the pack tools.
 
+### F27. The second area's Rules text names the GM; bring it up to F26
+
+Screen: the second area's "Rules" text. It starts "Francis's reading of the map (2026-11-12; the book draws no paths and gives no time):", then gives one turn between places next to each other, a barrier place that costs an extra turn and needs the GM's approval of the method, and the links from places 1 to 4 to the first area's 10 and 11 by water. It ends with page references.
+
+Picture: one screenshot, not committed: it shows a private pack's rule text (hard rule 2).
+
+> Beach rules shouldn't say "Francis' reading" - it should start with "One turn" and update based on my last feedback. The app is setting and gm agnostic so it should never mention me.
+
+Reads as: two parts. (a) Pack and app text never names a GM or a person; this rule starts "One turn …". (b) Bring the rule's links up to F26 (c): the second area's place 0, not places 1 to 4, links to the first area's 10 and 11. Both look like work for the pack tools; (a) may also call for a check in the pack checker.
+
 ## Problem
 To be filled in by the driver when it processes the items.
 
