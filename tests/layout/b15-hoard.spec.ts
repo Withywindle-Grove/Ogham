@@ -129,7 +129,7 @@ for (const size of SIZES) {
 
       // Purpose (Home Two's re-check, Francis picked A, 24 Nov): once a send leaves nothing in the hoard, its sheet closes
       // and focus goes back to the Strongbox piece that opened it, not to the page.
-      test.fail('after Send all, the sheet closes and focus is back on the Strongbox', async ({ page }) => {
+      test('after Send all, the sheet closes and focus is back on the Strongbox', async ({ page }) => {
         await openCard(page, scheme, '');
         const box = page.locator('.place-page__piece-words').filter({ hasText: 'Strongbox.' });
         await box.focus();
@@ -143,7 +143,7 @@ for (const size of SIZES) {
 
       // Purpose (the same pick): a send that leaves other things in the hoard brings its sheet back with focus on the
       // first row not sent yet, so the next send is one key away.
-      test.fail('a send of one row brings the hoard back with focus on the first row not sent', async ({ page }) => {
+      test('a send of one row brings the hoard back with focus on the first row not sent', async ({ page }) => {
         await openCard(page, scheme, '');
         await page.locator('.place-page__piece-words').filter({ hasText: 'Strongbox.' }).focus();
         await page.keyboard.press('Enter');
@@ -156,7 +156,7 @@ for (const size of SIZES) {
 
       // Purpose (Home Two's re-check, Francis picked 1b, 24 Nov): a mouse click on the dimmed page outside the hoard's
       // sheet closes it and leaves focus on the Strongbox piece; the browser's own press must not move it to the page.
-      test.fail('a mouse click outside the hoard closes it and leaves focus on the Strongbox', async ({ page }) => {
+      test('a mouse click outside the hoard closes it and leaves focus on the Strongbox', async ({ page }) => {
         await openCard(page, scheme, '');
         const box = page.locator('.place-page__piece-words').filter({ hasText: 'Strongbox.' });
         await box.focus();

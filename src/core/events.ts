@@ -438,8 +438,7 @@ const changedWords = (values: Record<string, unknown>) =>
     .map(([, word]) => word);
 
 /** "Wren's", but "Wren of the Wardens'". */
-/** A name's possessive: the apostrophe alone after a final s ("Wardens' pack"), else "'s" ("Wren's pack"). */
-export const possessive = (name: string) => (name.endsWith('s') ? `${name}'` : `${name}'s`);
+const possessive = (name: string) => (name.endsWith('s') ? `${name}'` : `${name}'s`);
 
 /** The review note an approval writes when it allowed exceptions (final drafts D): "Allowed: Croak and Starting coin 190". */
 export const ALLOWED_PREFIX = 'Allowed: ';

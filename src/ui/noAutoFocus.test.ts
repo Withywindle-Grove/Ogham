@@ -50,8 +50,9 @@ const FOCUS_CALLS: Record<string, number> = {
   '/src/ui/parts.tsx': 1,
   // Back to the burden's tier as the Burden pop-up closes (tfb-4, row C7): a button.
   '/src/app/LoadSummary.tsx': 1,
-  // Back to the hoard's piece as its sheet closes (B15, impeccable audit 1): the piece's words, a button.
-  '/src/app/HoardSheet.tsx': 1,
+  // Back to the hoard's piece as its sheet closes (B15, impeccable audit 1): the piece's words, a button; and after a
+  // send that leaves things (Francis picked A, 24 Nov), the hoard's first row not sent, a button. Never a field.
+  '/src/app/HoardSheet.tsx': 2,
 };
 
 describe('no keyboard on open (A4)', () => {

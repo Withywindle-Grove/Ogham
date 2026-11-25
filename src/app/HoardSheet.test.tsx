@@ -39,22 +39,16 @@ describe("the line under a hoard's piece (HM1, HM3, HM5)", () => {
   // says the first sentence alone while the thing is still in the hoard; it never names a group, since a revealed name
   // is every player's (Francis, 2026-11-21).
   it("words the eye's toast", () => {
-    expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', ['Wren'])).toBe('Shown to the players: Lantern of the Drowned. Wren\'s hooded lantern now carries its name.');
+    expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', ['Wren'])).toBe('Shown to the players: Lantern of the Drowned. The hooded lantern Wren holds now carries its name.');
     expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', [null])).toBe('Shown to the players: Lantern of the Drowned. The hooded lantern in the party stash now carries its name.');
     expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', [])).toBe('Shown to the players: Lantern of the Drowned.');
   });
 
-  // Purpose (impeccable audit 3, Francis picked 2026-11-24): after a name ending in s the possessive is the apostrophe
-  // alone ("Wardens' hooded lantern"); after any other name, "'s".
-  it("puts the apostrophe alone after a name ending in s", () => {
-    expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', ['Wren of the Lantern Wardens'])).toBe("Shown to the players: Lantern of the Drowned. Wren of the Lantern Wardens' hooded lantern now carries its name.");
-    expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', ['Ash'])).toBe("Shown to the players: Lantern of the Drowned. Ash's hooded lantern now carries its name.");
-  });
 
   // Purpose (Home Two's alternative, Francis picked B, 24 Nov): the toast names the item, then its holder by their full
   // name with no possessive ("The hooded lantern Wren of the Lantern Wardens holds now carries its name."), the same way
   // for a character and a hireling; the party stash its own way; and with the holder unknown, the item alone.
-  it.fails("words the eye's toast as the item its holder holds", () => {
+  it("words the eye's toast as the item its holder holds", () => {
     const shown = 'Shown to the players: Lantern of the Drowned.';
     expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', ['Wren of the Lantern Wardens'])).toBe(`${shown} The hooded lantern Wren of the Lantern Wardens holds now carries its name.`);
     expect(truthToastWords('Lantern of the Drowned', 'Hooded lantern', ['Brask the Torchbearer'])).toBe(`${shown} The hooded lantern Brask the Torchbearer holds now carries its name.`);
