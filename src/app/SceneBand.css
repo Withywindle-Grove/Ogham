@@ -380,7 +380,7 @@
 @media (min-width: 600px) {
   .scene-facts--few > .scene-fact {
     position: relative;
-    left: calc(var(--fact-shift, 0) * (100% + var(--space-3)));
+    inset-inline-start: calc(var(--fact-shift, 0) * (100% + var(--space-3)));
   }
 }
 

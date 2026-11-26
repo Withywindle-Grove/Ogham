@@ -326,9 +326,11 @@ export function lastLineShifts(count: number, columns: number): number[] {
 
 /**
  * The tracks the facts row's grid makes today (auto-fill at a fact's width), read from the grid itself, and again when
- * its width or a tile's width (the text size) changes; 0 where the browser gives no tracks (tests without layout).
+ * its width or any tile's width (the text size) changes; 0 where the browser gives no tracks (tests without layout).
+ * `tiles` names the tiles held (their ids): when a fact comes or goes the row watches the tiles it now holds, never one
+ * that has gone (the review of #110).
  */
-function useGridColumns(on: boolean) {
+function useGridColumns(on: boolean, tiles: string) {
   const ref = useRef<HTMLDivElement>(null);
   const [columns, setColumns] = useState(0);
   useLayoutEffect(() => {
@@ -341,9 +343,9 @@ function useGridColumns(on: boolean) {
     measure();
     const watch = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
     watch?.observe(el);
-    if (el.firstElementChild) watch?.observe(el.firstElementChild);
+    for (const tile of el.children) watch?.observe(tile);
     return () => watch?.disconnect();
-  }, [on]);
+  }, [on, tiles]);
   return { ref, columns };
 }
 
@@ -355,7 +357,7 @@ function useGridColumns(on: boolean) {
  */
 export function FactsRow({ facts, onOpen, centred = false }: { facts: readonly Fact[]; onOpen: (id: Fact['id']) => void; centred?: boolean }) {
   const few = !centred && facts.length > 0 && facts.length < 4;
-  const { ref, columns } = useGridColumns(few);
+  const { ref, columns } = useGridColumns(few, facts.map((f) => f.id).join(' '));
   if (facts.length === 0) return null;
   const shifts = few ? lastLineShifts(facts.length, columns) : [];
   return (

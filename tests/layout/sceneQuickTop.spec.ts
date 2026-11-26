@@ -13,7 +13,7 @@
 // four fit; a third at 1024 px, where the GM's side column narrows the row), on the GM's Scene and the players'; on a
 // phone they stay two by two from the left (unchanged, ⚑ 1 of the plan). It departs from page 16, T1 and T8a, and
 // page 18, PL1 (approved 2026-11-14), where the facts start at the row's left. The harbour draws two facts; Larger
-// text is checked too.
+// text is checked too. One fact (&check=none) and three (outdoors, the weather due) are checked on the GM's Scene.
 import { expect, test, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
@@ -84,13 +84,43 @@ for (const size of [
   }
 }
 
-/** The facts row's box, its grid tracks' widths, and each tile's box. */
+/** The facts row's box, its grid tracks' widths, the gap between them, and each tile's box. */
 async function factsGeometry(page: Page) {
   return page.getByRole('group', { name: 'Scene facts' }).evaluate((row) => {
     const box = row.getBoundingClientRect();
-    const tracks = getComputedStyle(row).gridTemplateColumns.split(' ').map(parseFloat);
-    return { row: { x: box.x, width: box.width }, tracks, tiles: [...row.children].map((t) => { const b = t.getBoundingClientRect(); return { x: b.x, width: b.width }; }) };
+    const style = getComputedStyle(row);
+    const tracks = style.gridTemplateColumns.split(' ').map(parseFloat);
+    return { row: { x: box.x, width: box.width }, tracks, gap: parseFloat(style.columnGap), tiles: [...row.children].map((t) => { const b = t.getBoundingClientRect(); return { x: b.x, width: b.width }; }) };
   });
+}
+
+/**
+ * Fewer than four facts (`count` of them) stand at a track's width each; on a tablet the last line, where it is not
+ * full, has its middle at the row's middle, and every tile stays inside the row; on a phone the first tile is at the
+ * row's left (two by two, as built).
+ */
+async function expectCentredAtATrack(page: Page, width: number, count: number) {
+  await expect(page.getByRole('group', { name: 'Scene facts' })).toBeVisible();
+  const { row, tracks, gap, tiles } = await factsGeometry(page);
+  expect(tiles.length).toBe(count);
+  const track = tracks[0]!;
+  for (const tile of tiles) {
+    expect(Math.abs(tile.width - track)).toBeLessThan(1);
+    expect(tile.x).toBeGreaterThanOrEqual(row.x - 1);
+    expect(tile.x + tile.width).toBeLessThanOrEqual(row.x + row.width + 1);
+  }
+  if (width >= 600) {
+    // The last line: the tiles after the full lines above it (none where all fit on one line).
+    const last = tiles.slice(tiles.length - (tiles.length % tracks.length || tracks.length));
+    const left = Math.min(...last.map((t) => t.x));
+    const right = Math.max(...last.map((t) => t.x + t.width));
+    // Its middle is the row's middle (a full line fills the row, as built).
+    expect(Math.abs((left + right) / 2 - (row.x + row.width / 2))).toBeLessThan(1.5);
+    // With four across, a tile is a quarter of the row and its gaps (the width it has with four).
+    if (tracks.length === 4) expect(Math.abs(track - (row.width - 3 * gap) / 4)).toBeLessThan(1);
+  } else {
+    expect(Math.abs(Math.min(...tiles.map((t) => t.x)) - row.x)).toBeLessThan(1);
+  }
 }
 
 for (const size of [
@@ -115,29 +145,45 @@ for (const size of [
               await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Scene' }).click();
               await page.evaluate(() => document.fonts.ready);
             }
-            await expect(page.getByRole('group', { name: 'Scene facts' })).toBeVisible();
-            const { row, tracks, tiles } = await factsGeometry(page);
-            expect(tiles.length).toBeGreaterThan(0);
-            expect(tiles.length).toBeLessThan(4);
-            const track = tracks[0]!;
-            for (const tile of tiles) expect(Math.abs(tile.width - track)).toBeLessThan(1);
-            const left = Math.min(...tiles.map((t) => t.x));
-            const right = Math.max(...tiles.map((t) => t.x + t.width));
-            if (size.width >= 600) {
-              // The group's middle is the row's middle (where Larger text leaves two tracks at 1024 px, the two fill
-              // the line, as built).
-              expect(Math.abs((left + right) / 2 - (row.x + row.width / 2))).toBeLessThan(1.5);
-              // With four across, a tile is a quarter of the row and its gaps (the width it has with four).
-              if (tracks.length === 4) expect(Math.abs(track - (row.width - 3 * 12) / 4)).toBeLessThan(1);
-            } else {
-              expect(Math.abs(left - row.x)).toBeLessThan(1);
-            }
+            await expectCentredAtATrack(page, size.width, 2);
             await page.screenshot({ path: `test-results/layout-screens/scene-quick-facts-${who}-${text}-${size.width}-${scheme}.png` });
             expect(await layoutProblems(page)).toEqual([]);
             expect(await accessibilityProblems(page)).toEqual([]);
           });
         });
       }
+    }
+  }
+}
+
+// One and three facts (the review of #110), on the GM's Scene: &check=none leaves Light alone; outdoors with the sun's
+// daylight and the weather not yet rolled gives Weather, Light and the encounter check.
+for (const size of [
+  { width: 375, height: 812 },
+  { width: 1024, height: 768 },
+  { width: 1180, height: 820 },
+] as const) {
+  for (const scheme of ['light', 'dark'] as const) {
+    for (const [count, flags] of [
+      [1, '&check=none'],
+      [3, '&outdoors=1&daylight=1&weather=due'],
+    ] as const) {
+      test.describe(`the Scene's facts, Q4, ${count} (${size.width}, ${scheme})`, () => {
+        test.use({ viewport: { width: size.width, height: size.height }, colorScheme: scheme });
+
+        // Purpose (Q4): one fact, and three, stand centred at a track each on a tablet, and at the row's left on a phone.
+        test(`${count === 1 ? 'one fact stands' : 'three facts stand'} centred at a track each`, async ({ page }) => {
+          await page.goto(`/layout.html?as=gm&placePage=spot&session=running${flags}`);
+          await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
+          // (Outdoors the band's step is "Next day".)
+          await expect(page.getByRole('button', { name: /^Next (turn|day)$/ })).toBeVisible();
+          await page.evaluate(() => document.fonts.ready);
+          await expectCentredAtATrack(page, size.width, count);
+          await page.screenshot({ path: `test-results/layout-screens/scene-quick-facts-${count}-${size.width}-${scheme}.png` });
+          expect(await layoutProblems(page)).toEqual([]);
+          expect(await accessibilityProblems(page)).toEqual([]);
+        });
+      });
     }
   }
 }

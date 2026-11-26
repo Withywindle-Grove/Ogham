@@ -147,6 +147,37 @@ describe('the facts row (S4)', () => {
     const between = render(<FactsRow facts={facts(2)} onOpen={() => undefined} centred />);
     expect(between.container.querySelector('.scene-facts')!.className).toBe('scene-facts scene-facts--centred');
   });
+
+  // Purpose (Q4, the review of #110): when a fact comes or goes, the row still watches every tile it now holds (not a
+  // tile that has gone), so a later text-size change re-counts the tracks and no tile is placed past the row's end.
+  it('watches the tiles it holds after a fact comes or goes', () => {
+    // Every live observer and what it watches (a tile's own value line has observers too; only the row's counts).
+    const live = new Set<Set<Element>>();
+    class FakeObserver {
+      private mine = new Set<Element>();
+      observe(el: Element) {
+        this.mine.add(el);
+        live.add(this.mine);
+      }
+      disconnect() {
+        live.delete(this.mine);
+      }
+      unobserve() {}
+    }
+    vi.stubGlobal('ResizeObserver', FakeObserver);
+    try {
+      const two = [fact({ id: 'weather', label: 'Weather', value: 'Fair' }), fact({ id: 'light', label: 'Light', value: 'No light' })];
+      const { container, rerender } = render(<FactsRow facts={two} onOpen={() => undefined} />);
+      rerender(<FactsRow facts={[fact({ id: 'light', label: 'Light', value: 'No light' }), fact({ id: 'rest', label: 'Rest', value: 'Fair' })]} onOpen={() => undefined} />);
+      const row = container.querySelector('.scene-facts')!;
+      const rowWatch = [...live].find((watched) => watched.has(row));
+      expect(rowWatch).toBeTruthy();
+      expect(row.children).toHaveLength(2);
+      for (const tile of row.children) expect(rowWatch!.has(tile)).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });
 
 describe('the last line of a few facts (Q4)', () => {

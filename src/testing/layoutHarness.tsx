@@ -1233,6 +1233,7 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //               shown to the players (the Location's card's small picture button, ppf-6 c).
 //   &mapTitle=long  with &map: the map's title long (the card's title on its own line above the tools).
 //   &session=running|paused  the band's session states (S9; see below).
+//   &check=none  the harbour without its own encounter check (the facts row's one fact, Light; see the harbour).
 //   &strip=long  the harbour's own procedure of seven long-named steps (S7; see the harbour).
 //   &strip=words  the harbour's own procedure of seven steps, one named in two words and one in a single 14-letter word
 //                (scene-test-small-fixes: a label wraps between words only; see the harbour).
@@ -1292,8 +1293,11 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     hazards: [{ name: 'The bar’s mud', appearance: 'The bar’s mud takes a boot to the knee.', trigger: 'a save, or stuck' }],
     facts: [{ lead: 'Tides', text: 'Two a day; the bar dries at low water.' }],
     gm: { sections: [{ heading: 'The Tidewife', text: 'She keeps her word to the letter, and expects the same.' }], notes: 'The Tidewife keeps her word to the letter.' },
-    // The pack's own sentence for its check (p2p-14; B3), shown on the place page's check card.
-    encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' },
+    // The pack's own sentence for its check (p2p-14; B3), shown on the place page's check card. &check=none: the harbour
+    // has no check of its own, so the Scene's facts row draws Light alone (Q4's one fact; the review of #110).
+    ...(new URLSearchParams(window.location.search).get('check') === 'none'
+      ? {}
+      : { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' } }),
     rules: [{ id: 'falling-in', name: 'Falling into the harbour', button: { icon: 'water-splash', words: 'Someone fell in' }, text: 'A character in the harbour’s water is cold at once.' }],
     tableIds: ['tide-left', 'on-the-water'],
     // &strip=long (plan dec-9-the-whole-scene S7; page 02, S5): the harbour's own procedure, seven steps with long
