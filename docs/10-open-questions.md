@@ -12,6 +12,17 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 - ⚑ **A control's edge on a pop-up in dark is 2.97 to 1, under the 3 to 1 floor** (the critique's finding 24 on page 44, measured 2026-11-25 and again 2026-11-26). It is the tokens' own pair (Control on the pop-up's ground), used across the app: a new value is a change to `06`'s tokens. Not changed on page 44, and left for later by Francis with the page's approval (2026-11-26).
 - ⚑ **A place's own section of Knowledge: how far does its share go?** (hidden data; found 2026-11-26 while writing `plans/dec-scene-feedback.md`, its ⚑ 3). Page 44's frame KN1 says of a Location's own section "A share reaches the party at 2. The Wreck only." The app as built and ruled (the p4 sitting: `knowledge_for_players`) sends a Location's own shared section to the group at the other places of its Area too. Either the line's words change (to "at every place in <Area>", as his "Whole Area"), or the read is narrowed. Until ruled, sf-13 builds the Area's sections and leaves a place's own section as built.
 
+**The Pack tab's finds** (page 45, approved 2026-11-26 in two sittings: `design/rulings/page-45-find-flow-2026-11-26.md`. F1, F2 and F7 are ruled: p45-21 to p45-23. The rest are not asked yet and stay ⚑ with the designer's lean; none holds a piece back: plan `plans/dec-6-the-whole-pack-tab.md`, "The find flow")
+- ⚑ F3 **"Just now": when it becomes "today".** Lean: under an hour, read when the card is drawn, with no ticking clock; then K14's words.
+- ⚑ F4 **A player with two characters: does the card name the character?** Lean: no. The card and the count belong to the character whose tabs are open, and the screen's title names it.
+- ⚑ F5 **The GM's view of a player's Pack** (page 32). Lean: the tags and the count show; no card, since "Got it" is the player's alone.
+- ⚑ F6 **A card's lines as taps,** beyond "and N more". Lean: not taps for now.
+- ⚑ F9 **A second find onto the same stack before Got it** (new with p45-22). Lean: one line a stack, the arrivals added together and the count as it now is ("River pearls ×5, now 11"), at the newest one's place and time; it counts as one.
+- **Not asked under p45-21:** a thing another person's tap makes by another road (an activity's yield the GM resolves; a hoard shared out, K17). Until he is asked, only the four roads p45-21 names count as "New".
+- **To check, the reading of p45-23:** with a find card and a call both due, the find card shows and the call waits for "Got it".
+- **Not yet seen by him:** FD11 as redrawn to his fixes, and the new frames FD3c and FD11b, all drawn after his "Approve" (`design/mockups/index.md`, page 45, pictures 45-22 to 45-24).
+- **Owed, the words sweep:** a find's log line drops its article ("Your GM gave Wren Bronze ring."); p45-18, `plans/app-sweep.md` Q-11. Not built with K18 to K21.
+
 **Later**
 - ⚑ **Laptops, widescreen** (2026-11-24, `01` Devices): laptops are the second device, for downtime; how windows scale past the tablet's landscape layout (1024 px and up, `06`) needs a short design session before anything in `06` changes.
 - **After 5 December: text shown on hover, for a PC** (euf-8, Francis, 2026-11-19: "we'll want to support pc more in the future but not prior to dec 5"). A player asked for an ability's description on hover; on a tablet a tap on the name opens it.
