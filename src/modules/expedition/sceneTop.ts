@@ -12,7 +12,7 @@ import { isPartOfDay, type Amount } from './clock.ts';
 import { POINT_TO_POINT_ID, type Chance, type Mode } from './modes.ts';
 import { isSettlement, type Place } from './placePlay.ts';
 import { checkChanceWords, checkWhenWords, ruleBlocks, type ChainEntry, type RuleBlock } from './placeRules.ts';
-import { ancestorsOf, childrenOf, isLocation, packsWithPlaces, rootsOf, type PackPlace } from './placeTree.ts';
+import { ancestorsOf, byMapNumber, childrenOf, isLocation, packsWithPlaces, rootsOf, type PackPlace } from './placeTree.ts';
 
 /** The session's state (S9): never played, played before with none running (paused), or running. */
 export type SessionState = 'none' | 'paused' | 'running';
@@ -415,8 +415,9 @@ export function departAreaName(places: readonly PackPlace[], place: PackPlace): 
 
 /**
  * The Locations the Depart sheet's Where? lists (p2p-2, p2p-5; page 24, DP1): only Locations, each group headed by its
- * Area's name, never an Area or a Region as a row. Groups and rows follow each pack's own tree, depth first, in the
- * packs' order, so a Location under another Location stays in its Area's group. Empty where no attached pack gives a
+ * Area's name, never an Area or a Region as a row. Groups follow each pack's own tree, depth first, in the packs'
+ * order, so a Location under another Location stays in its Area's group; a group's rows are in the Locations' order
+ * (`byMapNumber`, Q1: no map number first, then by number). Empty where no attached pack gives a
  * Location (the sheet then offers today's picker, the plan's ⚑ 6).
  */
 export function departLocationGroups(places: readonly PackPlace[]): LocationGroup[] {
@@ -438,5 +439,6 @@ export function departLocationGroups(places: readonly PackPlace[]): LocationGrou
     }
   };
   for (const pack of packsWithPlaces(places)) walk(rootsOf(places, pack.packId));
-  return [...groups.values()];
+  // Within a group, the Locations' own order (Q1): a Location under another one joins its Area's group in that order too.
+  return [...groups.values()].map((group) => ({ ...group, locations: byMapNumber(group.locations, (p) => p.key) }));
 }
