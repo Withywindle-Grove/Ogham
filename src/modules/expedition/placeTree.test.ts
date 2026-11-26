@@ -5,7 +5,7 @@
 // neighbours); the packs' counts; and which places are never a row to pick (p2p-2: an Area or a Region that holds
 // Locations), with every other place left as it was.
 import { describe, expect, it } from 'vitest';
-import { ancestorsOf, childrenOf, countUnder, holdersOfLocations, isLocation, keyedName, nearHere, packsWithPlaces, pickablePlaces, rootsOf, searchPlaces, typeWord, wordsFor, type PackPlace } from './placeTree.ts';
+import { ancestorsOf, byMapNumber, childrenOf, countUnder, holdersOfLocations, isLocation, keyedName, nearHere, packsWithPlaces, pickablePlaces, rootsOf, searchPlaces, typeWord, wordsFor, type PackPlace } from './placeTree.ts';
 
 const fen = (entryId: string, name: string, type: string, parentId: string | null, extra: Partial<PackPlace> = {}): PackPlace => ({
   packId: 'pack-fen',
@@ -87,6 +87,63 @@ describe('the tree', () => {
     expect(childrenOf(PLACES, PLACES[0]!).map((p) => p.key)).toEqual(['0412', '0413']);
     expect(childrenOf(PLACES, PLACES[2]!).map((p) => p.entryId)).toEqual(['heron-site', 'chapel', 'reed-road']);
     expect(countUnder(PLACES, PLACES[2]!)).toBe(3);
+  });
+
+  // Q1 (F1 a, ruled 2026-11-25): every list of Locations has the ones with no map number first, in the pack's order,
+  // then the rest by number as numbers; 0 is a number; a number with a letter sorts after its number; a shared number
+  // keeps the pack's order.
+  describe('the Locations\' order (Q1)', () => {
+    const loc = (entryId: string, key: string | null, parentId = 'harbour') => fen(entryId, `The ${entryId}`, 'area', parentId, { key });
+    const HARBOUR: PackPlace[] = [
+      fen('harbour', 'The Drowned Harbour', 'site', null),
+      loc('shed', '10'),
+      loc('wreck', '2'),
+      loc('anchorage', null),
+      loc('breakwater', '0'),
+      loc('cove', '4a'),
+      loc('jetty', '1'),
+      loc('steps', ''),
+      loc('quay', '4'),
+      loc('pier', '5'),
+      loc('twin', '2'),
+      fen('cellar', 'The Cellar', 'room', 'harbour'),
+      fen('hex-0102', 'Reedwater', 'area', 'harbour', { key: '0102', hex: '0102' }),
+      loc('far', '999'),
+    ];
+
+    // Purpose: places with no number come first in the pack's order; 0 before 1; 2 before 10; "4a" after 4 and before 5;
+    // two places with one number keep the pack's order; 999 last.
+    it('sorts by map number, those with none first', () => {
+      expect(byMapNumber(HARBOUR.filter(isLocation), (p) => p.key).map((p) => p.entryId)).toEqual(['anchorage', 'steps', 'breakwater', 'jetty', 'wreck', 'twin', 'quay', 'cove', 'pier', 'shed', 'far']);
+      expect(byMapNumber([], () => null)).toEqual([]);
+      expect(byMapNumber(['b', 'a'], () => null)).toEqual(['b', 'a']);
+    });
+
+    // Purpose: "0" is a number and reads "0. Name".
+    it('reads 0 as a number', () => {
+      expect(keyedName('0', 'The Breakwater')).toBe('0. The Breakwater');
+    });
+
+    // Purpose: the place picker's tree keeps other kinds first in the pack's order (a room), then the Locations by
+    // number, then hexes by map number; Near here reads the same order.
+    it('orders a level of the tree: others, then Locations by number, then hexes', () => {
+      expect(childrenOf(HARBOUR, HARBOUR[0]!).map((p) => p.entryId)).toEqual(['cellar', 'anchorage', 'steps', 'breakwater', 'jetty', 'wreck', 'twin', 'quay', 'cove', 'pier', 'shed', 'far', 'hex-0102']);
+      expect(nearHere(HARBOUR, HARBOUR[0]!).map((p) => p.entryId)).toEqual(childrenOf(HARBOUR, HARBOUR[0]!).map((p) => p.entryId));
+      expect(nearHere(HARBOUR, HARBOUR[1]!).map((p) => p.entryId)).toEqual(['cellar', 'anchorage', 'steps', 'breakwater', 'jetty', 'wreck', 'twin', 'quay', 'cove', 'pier', 'far', 'hex-0102']);
+    });
+
+    // Purpose: a pack's roots are in the same order (Locations dropped in with no parent in the pack).
+    it('orders a pack\'s roots the same way', () => {
+      const roots = [loc('b', '3', 'nowhere'), loc('a', null, 'nowhere'), loc('c', '1', 'nowhere')];
+      expect(rootsOf(roots, 'pack-fen').map((p) => p.entryId)).toEqual(['a', 'c', 'b']);
+    });
+
+    // Purpose: rooms keep the pack's order even with numbers (until their own sitting); search keeps best match first.
+    it('leaves rooms and search as they were', () => {
+      const rooms = [fen('vault', 'Vault', 'site', null), fen('r3', 'R three', 'room', 'vault', { key: '3' }), fen('r1', 'R one', 'room', 'vault', { key: '1' })];
+      expect(childrenOf(rooms, rooms[0]!).map((p) => p.entryId)).toEqual(['r3', 'r1']);
+      expect(searchPlaces(HARBOUR, 'the').map((p) => p.entryId).slice(0, 3)).toEqual(['harbour', 'shed', 'wreck']);
+    });
   });
 
   it('ancestors go up to the root, nearest first', () => {

@@ -1579,6 +1579,15 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       const cost = typeof made.cost_text === 'string' && made.cost_text ? `, ${made.cost_text}` : '';
       return by(`${String(made.text ?? 'chose a lodging').replace(/^Staying at/, 'chose to stay at')} for ${named(names.characters, made.actor_id, 'a character')}${cost}`);
     }
+    // TC12 (tn-7, tn-8): Ask for…, answered at once from the day's stock, or sent on to the GM when not decided.
+    case 'town.askFor': {
+      const made = entry.events.find((e) => e.targetTable === 'requests' && e.before === null)?.after ?? after;
+      const answer = made.answer && typeof made.answer === 'object' ? (made.answer as Record<string, unknown>) : {};
+      const whose = named(names.characters, made.actor_id, 'a character');
+      const asked = `asked for ${whose}: “${String(made.text ?? '')}”`;
+      if (made.status === 'answered' && answer.kind === 'buy') return by(`${asked}, ${answer.result === 'inStock' ? `In stock: ${String(answer.price ?? '')}` : 'Not here'} (today's stock)`);
+      return by(`${asked}, sent to the GM`);
+    }
     case 'request.reply': {
       const reply = entry.events.find((e) => e.targetTable === 'requests' && e.before && e.after)?.after ?? after;
       const answer = reply.answer && typeof reply.answer === 'object' ? (reply.answer as Record<string, unknown>) : {};

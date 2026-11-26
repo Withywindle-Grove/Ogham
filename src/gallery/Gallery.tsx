@@ -84,6 +84,7 @@ import { StackedButtonSpecimens } from './StackedButtonSpecimens.tsx';
 import { SheetFootSpecimens } from './SheetFootSpecimens.tsx';
 import { LevelNameSpecimens } from './LevelNameSpecimens.tsx';
 import { WeatherSheetSpecimens } from './WeatherSheetSpecimens.tsx';
+import { StockToggleSpecimens } from './StockToggleSpecimens.tsx';
 import { MagicBlock } from '../ui/MagicBlock.tsx';
 import { magicOf } from '../modules/characters/magic.ts';
 
@@ -882,7 +883,7 @@ export function Gallery() {
       </Section>
 
       {/* Last, so the sections above keep their approved pictures (December 5c, the stat block); new pictures. */}
-      <Section id="stat-block" title="The stat block: View, the Rules browser, the waiting card's stat lines, messy data">
+      <Section id="stat-block" title="The stat block: the detail row and its one pop-up, the Rules browser, messy data">
         <StatBlockSpecimens Specimen={Specimen} />
       </Section>
 
@@ -949,6 +950,12 @@ export function Gallery() {
           new pictures for Francis (phone and dark approved from them, p7-8). */}
       <Section id="call-card" title="The call card: a call or a rumour reaching a player, folded after Got it">
         <CallCardSpecimens Specimen={Specimen} />
+      </Section>
+
+      {/* Last, so the sections above keep their pictures (town row TC9, carried from the stack's W9a; page 19 frame TW8f,
+          ap-13): new pictures for Design. */}
+      <Section id="stock-toggle" title="The stock toggle: in, not in, not decided">
+        <StockToggleSpecimens Specimen={Specimen} />
       </Section>
 
       {reason && (

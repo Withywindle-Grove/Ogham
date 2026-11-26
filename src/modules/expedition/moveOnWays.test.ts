@@ -189,6 +189,21 @@ describe('the GM’s read', () => {
     expect(read.farEnds.get('islet')!.placeId).toBe('place-islet');
   });
 
+  // Purpose (Q1, F1 a): the GM's "Where to?" rows are in the Locations' order: a far end with no map number first, in
+  // the pack's order of its links, then by number as numbers (0 before 2, 2 before 10).
+  it('orders the GM’s rows by map number, those with none first', async () => {
+    const t = await mere();
+    const read = (await loadMoveOn(t.world.db as unknown as Db, t.campaign, t.expedition)) as MoveOnRead;
+    read.farEnds.get('islet')!.number = '10';
+    read.farEnds.get('cave')!.number = null;
+    read.farEnds.get('tower')!.number = '0';
+    expect(destinationsOf(read).map((r) => [r.number, r.name])).toEqual([
+      [null, 'The Sea Cave'],
+      ['0', 'The Tower'],
+      ['10', 'The Islet'],
+    ]);
+  });
+
   // Purpose (B16; pf-25): each way's button is given the way's short id, which its picture is read from, and the icon
   // the pack names where it names one; a link that names no way has no id and no icon.
   it('passes each way’s short id, and the icon its pack names, to its button', async () => {

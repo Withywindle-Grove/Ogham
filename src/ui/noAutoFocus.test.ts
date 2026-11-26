@@ -35,11 +35,8 @@ const FOCUS_CALLS: Record<string, number> = {
   // A bundle's import over (B14 audits 1 and 3): the new pack's Browse, a button; else Import a file's file input. Never a
   // text field.
   '/src/app/LibraryScreen.tsx': 1,
-  // Go to number (M5b step g3): the row found, a button, never a field.
-  '/src/app/EncounterTables.tsx': 1,
-  // A stat block in full (December 5c, #642 review): its heading on open, the View button that opened it on Back; and
-  // (S8b) the heading again when the waiting card's link opens the pop-up on the creature. Never a field.
-  '/src/app/EncounterWaiting.tsx': 3,
+  // Go to number (M5b step g3; and in "Roll…"'s pop-up, sf-5): the row found, a button, never a field.
+  '/src/app/EncounterTables.tsx': 2,
   '/src/app/NewCampaign.tsx': 1,
   '/src/app/RulesBrowser.tsx': 1,
   '/src/app/RulesForCampaign.tsx': 1,
@@ -54,8 +51,9 @@ const FOCUS_CALLS: Record<string, number> = {
   // ⋯ back to its button as its small panel closes on Escape: a button (the Sheet's is the Dialog's own rule now). And
   // (audit fix 3c on #85) the panel's first item when ⋯ is opened from the keyboard: a menu button or link, never a field.
   '/src/ui/MoreMenu.tsx': 2,
-  // Help me choose (final drafts A6): the ✕ on open, the button on close; both buttons.
-  '/src/ui/parts.tsx': 1,
+  // Help me choose (final drafts A6): the ✕ on open, the button on close; both buttons. And the stock toggle's arrow
+  // keys (TC9): from one half to the other, both buttons, only on a key press, never on open.
+  '/src/ui/parts.tsx': 2,
   // The Light pop-up's pick step (P10 audit 2–3): the first light's button as the pick opens, and Light again on Back;
   // both buttons.
   '/src/app/LightSection.tsx': 2,
