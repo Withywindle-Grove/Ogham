@@ -10,6 +10,18 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 
 **The Scene, point to point** (`design/rulings/scene-point-to-point-2026-11-18.md`)
 
+**The Pack tab's finds** (page 45, approved 2026-11-26 with picks: `design/rulings/page-45-find-flow-2026-11-26.md`. Francis asked for these to be written as ⚑ with the designer's lean and left unruled; plan `plans/dec-6-the-whole-pack-tab.md`, "The find flow", says which of them a row waits for)
+- ⚑ F1 **What counts as "New".** PK2 lists a gift from another character beside the GM's finds. Not said: the GM's "Give coin…", another character's coin, a thing the GM adds from the character's own Add item. Lean: anything another person puts in the pack or the purse; never the player's own act (Add item, Take, Buy it, a kit at creation). As built, "New" reads a row's age against the mark, so with no mark a whole pack is new: the build reads the send's or the gift's log line instead.
+- ⚑ F2 **A find that joins a stack she already carries.** Lean: the card names what arrived and says the stack's new count; the tag sits on the whole stack; it counts as one.
+- ⚑ F3 **"Just now": when it becomes "today".** Lean: under an hour, read when the card is drawn, with no ticking clock; then K14's words.
+- ⚑ F4 **A player with two characters: does the card name the character?** Lean: no. The card and the count belong to the character whose tabs are open, and the screen's title names it.
+- ⚑ F5 **The GM's view of a player's Pack** (page 32). Lean: the tags and the count show; no card, since "Got it" is the player's alone.
+- ⚑ F6 **A card's lines as taps,** beyond "and N more". Lean: not taps for now.
+- ⚑ F7 **The find card's turn in the Scene's prompt slot** (new with p45-3): where it stands among rest, light and the calls, and whether the Scene on a tablet follows the slot or the right column (p45-2). Lean: after rest and light and before a call, sharing the calls' one-card place; the slot at every width.
+- ⚑ F8 **The GM's Undo as the player meets it** (page 45's FD11, drawn at his ask): is she told? Lean: no toast; the card changes and the Log keeps the line.
+- **Owed, his look:** the pictures redrawn to his picks, and FD11, which is new (`design/mockups/index.md`, page 45). Until then FD11 is not approved.
+- **Owed, the words sweep:** a find's log line drops its article ("Your GM gave Wren Bronze ring."); p45-18, `plans/app-sweep.md` Q-11. Not built with K18 to K21.
+
 **Later**
 - ⚑ **Laptops, widescreen** (2026-11-24, `01` Devices): laptops are the second device, for downtime; how windows scale past the tablet's landscape layout (1024 px and up, `06`) needs a short design session before anything in `06` changes.
 - **After 5 December: text shown on hover, for a PC** (euf-8, Francis, 2026-11-19: "we'll want to support pc more in the future but not prior to dec 5"). A player asked for an ability's description on hover; on a tablet a tap on the name opens it.
