@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Fact } from '../modules/expedition/sceneTop.ts';
 import { ICON_SET } from '../ui/iconSet.ts';
-import { BandTool, BandTools, dueWords, FactsRow, isDue, NextTurnButton, SceneBand, SessionButton } from './SceneBand.tsx';
+import { BandTool, BandTools, dueWords, FactsRow, isDue, lastLineShifts, NextTurnButton, SceneBand, SessionButton } from './SceneBand.tsx';
 import { RestRule } from './RestPrompt.tsx';
 import { useSceneTopOpen } from './sceneTopOpen.ts';
 
@@ -130,6 +130,46 @@ describe('the facts row (S4)', () => {
   it('draws nothing with no facts', () => {
     const { container } = render(<FactsRow facts={[]} onOpen={() => undefined} />);
     expect(container.innerHTML).toBe('');
+  });
+
+  // Purpose (Q4): during an expedition one, two or three facts take the centred variant; four facts, and the row
+  // between expeditions (already centred), do not.
+  it('names the few-facts variant for one to three facts during an expedition only', () => {
+    const facts = (n: number) => (['weather', 'light', 'rest', 'check'] as const).slice(0, n).map((id) => fact({ id, label: id, value: 'Fair' }));
+    for (const n of [1, 2, 3]) {
+      const { container, unmount } = render(<FactsRow facts={facts(n)} onOpen={() => undefined} />);
+      expect(container.querySelector('.scene-facts')!.className).toContain('scene-facts--few');
+      unmount();
+    }
+    const four = render(<FactsRow facts={facts(4)} onOpen={() => undefined} />);
+    expect(four.container.querySelector('.scene-facts')!.className).not.toContain('scene-facts--few');
+    four.unmount();
+    const between = render(<FactsRow facts={facts(2)} onOpen={() => undefined} centred />);
+    expect(between.container.querySelector('.scene-facts')!.className).toBe('scene-facts scene-facts--centred');
+  });
+});
+
+describe('the last line of a few facts (Q4)', () => {
+  // Purpose: in a row of four tracks, one, two and three tiles move half the free tracks each, so their middle is the
+  // row's middle; four move nothing.
+  it('centres a short line in four tracks', () => {
+    expect(lastLineShifts(1, 4)).toEqual([1.5]);
+    expect(lastLineShifts(2, 4)).toEqual([1, 1]);
+    expect(lastLineShifts(3, 4)).toEqual([0.5, 0.5, 0.5]);
+    expect(lastLineShifts(4, 4)).toEqual([0, 0, 0, 0]);
+  });
+
+  // Purpose: where the column fits fewer across, only the last line that is not full moves; a full line stays.
+  it('moves only the last line that is not full', () => {
+    expect(lastLineShifts(2, 3)).toEqual([0.5, 0.5]);
+    expect(lastLineShifts(3, 3)).toEqual([0, 0, 0]);
+    expect(lastLineShifts(3, 2)).toEqual([0, 0, 0.5]);
+    expect(lastLineShifts(1, 1)).toEqual([0]);
+  });
+
+  // Purpose: where the browser gives no tracks (no layout), nothing moves.
+  it('moves nothing with no tracks', () => {
+    expect(lastLineShifts(2, 0)).toEqual([0, 0]);
   });
 });
 

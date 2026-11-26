@@ -374,6 +374,16 @@
   justify-content: center;
 }
 
+/* During an expedition, fewer than four (Q4; F7 a, F11 a): the same tracks as with four, each tile as wide as it is
+   then; the last line that is not full moves to the row's middle by `--fact-shift` tracks (`lastLineShifts`). A
+   percentage here is of the tile's own track, so a move of one track is the track and the gap. Not on a phone (⚑ 1). */
+@media (min-width: 600px) {
+  .scene-facts--few > .scene-fact {
+    position: relative;
+    left: calc(var(--fact-shift, 0) * (100% + var(--space-3)));
+  }
+}
+
 @media (max-width: 599px) {
   .scene-facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));

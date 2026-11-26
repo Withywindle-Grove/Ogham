@@ -10,7 +10,9 @@
 //     heading's right, as TF1b); folded, each due fact is one small line under the date.
 //   NextTurnButton: the hourglass and the mode's one unit ("Next turn"; mc-57).
 //   SessionButton: Start or Resume (the session) in Next turn's place, with the campfire (ic-4, S17).
-//   FactsRow: Weather, Light, Rest, Encounter check (S4), four across, two by two on a phone; a fact's value keeps to
+//   FactsRow: Weather, Light, Rest, Encounter check (S4), four across, two by two on a phone; during an expedition
+//     fewer than four stand centred, each at the width it has with four (`.scene-facts--few`; F7 a, F11 a, Francis
+//     2026-11-25; plan dec-scene-quickfix Q4; the phone unchanged, ⚑ 1 there); a fact's value keeps to
 //     one line (mc-39b; tv-1 as corrected by the lead, 2026-11-15): one step smaller where it would overrun its tile
 //     (never under 16), then cut with an ellipsis; its small line is one line, cut the same way; the whole of both is
 //     in the tile's accessible name and its sheet. Due takes the warm edge, a Light fact in the dark the cool glow and
@@ -20,7 +22,7 @@
 //     the fact's own state as labelled lines, then "The rule" in the book's format with its source, where the
 //     player's copy of the setting has words for it; nothing to run.
 // Nothing here is the GM's alone: the players' top (S15) uses the same parts with the facts it may read.
-import { useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { RuleBlock } from '../modules/expedition/placeRules.ts';
 import type { Fact, FactLine } from '../modules/expedition/sceneTop.ts';
 import type { SetIconName } from '../ui/iconSet.ts';
@@ -272,13 +274,14 @@ function useOneLineFit(value: string) {
 }
 
 /** One fact: its icon, label, value and small line, each kept to one line (tv-1); the whole tile is the tap that opens it. */
-function FactTile({ fact, onOpen }: { fact: Fact; onOpen: () => void }) {
+function FactTile({ fact, onOpen, shift = 0 }: { fact: Fact; onOpen: () => void; shift?: number }) {
   const die = fact.die ? dieOf(fact.die) : null;
   const valueRef = useOneLineFit(fact.value);
   return (
     <button
       type="button"
       className={`scene-fact scene-fact--${fact.state} scene-fact--${fact.id}`}
+      style={shift ? ({ '--fact-shift': shift } as CSSProperties) : undefined}
       // The whole value and small line, always (tv-1), and what the tap does where it opens something other than the
       // fact's own rule (the part of the day: Advance by…).
       aria-label={factName(fact)}
@@ -308,13 +311,57 @@ function FactTile({ fact, onOpen }: { fact: Fact; onOpen: () => void }) {
   );
 }
 
-/** The facts row (S4): nothing at all with no facts. */
+/**
+ * Q4 (F7 a, F11 a): how far each of `count` tiles moves, in tracks, so that the row's last line, where it is not
+ * full, stands centred in a grid of `columns` tracks. A full line, and every line above the last, moves 0. Pure.
+ */
+export function lastLineShifts(count: number, columns: number): number[] {
+  const shifts = Array.from({ length: count }, () => 0);
+  if (columns < 1) return shifts;
+  const onLast = count % columns;
+  if (onLast === 0) return shifts;
+  for (let i = count - onLast; i < count; i++) shifts[i] = (columns - onLast) / 2;
+  return shifts;
+}
+
+/**
+ * The tracks the facts row's grid makes today (auto-fill at a fact's width), read from the grid itself, and again when
+ * its width or a tile's width (the text size) changes; 0 where the browser gives no tracks (tests without layout).
+ */
+function useGridColumns(on: boolean) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [columns, setColumns] = useState(0);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || !on) return;
+    const measure = () => {
+      const tracks = getComputedStyle(el).gridTemplateColumns.split(' ').filter((t) => t.endsWith('px'));
+      setColumns(tracks.length);
+    };
+    measure();
+    const watch = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    watch?.observe(el);
+    if (el.firstElementChild) watch?.observe(el.firstElementChild);
+    return () => watch?.disconnect();
+  }, [on]);
+  return { ref, columns };
+}
+
+/**
+ * The facts row (S4): nothing at all with no facts. Between expeditions (`centred`) the few facts at a tile's width,
+ * centred (T4, T5). During an expedition fewer than four keep the grid's tracks, so each tile is as wide as with
+ * four, and the last line that is not full is moved to the row's middle (`.scene-facts--few`, Q4); on a phone the
+ * style moves nothing (two by two, as built; ⚑ 1 of plan dec-scene-quickfix).
+ */
 export function FactsRow({ facts, onOpen, centred = false }: { facts: readonly Fact[]; onOpen: (id: Fact['id']) => void; centred?: boolean }) {
+  const few = !centred && facts.length > 0 && facts.length < 4;
+  const { ref, columns } = useGridColumns(few);
   if (facts.length === 0) return null;
+  const shifts = few ? lastLineShifts(facts.length, columns) : [];
   return (
-    <div className={`scene-facts${centred ? ' scene-facts--centred' : ''}`} role="group" aria-label="Scene facts">
-      {facts.map((f) => (
-        <FactTile key={f.id} fact={f} onOpen={() => onOpen(f.id)} />
+    <div ref={ref} className={`scene-facts${centred ? ' scene-facts--centred' : ''}${few ? ' scene-facts--few' : ''}`} role="group" aria-label="Scene facts">
+      {facts.map((f, i) => (
+        <FactTile key={f.id} fact={f} onOpen={() => onOpen(f.id)} shift={shifts[i] ?? 0} />
       ))}
     </div>
   );
