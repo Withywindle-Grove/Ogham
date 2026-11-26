@@ -118,9 +118,11 @@ export function ToastHost({ children }: { children: ReactNode }) {
     show(toast);
   }, [show]);
   const done = useCallback(() => setCurrent(null), []);
-  // Over an open pop-up that asks for it (the Reveal pop-up, K22d; pick 10): on a phone, where that pop-up is the sheet
-  // from the foot, the toast sits just above the sheet's top edge, so it never covers a row or the foot; with the sheet
-  // at full height, as low as keeps it on screen (over the title). Elsewhere, and on a tablet, the screen's foot.
+  // Over an open pop-up that asks for it (the Reveal pop-up, K22d; pick 10; "What players see"): on a phone, where that
+  // pop-up is the sheet from the foot, the toast sits just above the sheet's top edge, so it never covers a row or the
+  // foot. The sheet gives up the toast's height at its top (`--toast-above-height`, parts.css), so a sheet at full height
+  // never pushes the toast over its title or ✕ (Home Two's audit of #50, finding 1); it keeps that room until it closes,
+  // so it doesn't jump back when the toast goes. Elsewhere, and on a tablet, the screen's foot.
   const host = useRef<HTMLDivElement>(null);
   const [lift, setLift] = useState<{ top: number; height: number } | null>(null);
   useLayoutEffect(() => {
@@ -129,8 +131,10 @@ export function ToastHost({ children }: { children: ReactNode }) {
       const open = document.querySelectorAll<HTMLElement>('[role="dialog"][aria-modal="true"]');
       const card = open[open.length - 1];
       const above = card && window.innerWidth < SHEET_PHONE && card.classList.contains('dialog--sheet') && card.querySelector('[data-toast-above]');
-      // offsetTop, not the box: it leaves out the sheet's rising transform while it opens.
-      const next = above ? { top: card.offsetTop, height: host.current?.firstElementChild?.getBoundingClientRect().height ?? 0 } : null;
+      const height = above ? (host.current?.firstElementChild?.getBoundingClientRect().height ?? 0) : 0;
+      if (above) card.style.setProperty('--toast-above-height', `${Math.ceil(height)}px`);
+      // offsetTop, not the box: it leaves out the sheet's rising transform while it opens; read after the room is made.
+      const next = above ? { top: card.offsetTop, height } : null;
       setLift((was) => (was?.top === next?.top && was?.height === next?.height ? was : next));
     };
     place();

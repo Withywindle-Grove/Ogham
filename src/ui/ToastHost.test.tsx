@@ -132,7 +132,7 @@ describe('the toast over an open pop-up', () => {
   // Purpose: on a phone, a sheet that asks for the toast above gives up the toast's own height at its top while the
   // toast shows, so a long list can never push the sheet up under the toast and its title and ✕ out of sight (Home
   // Two's audit of #50, finding 1).
-  it.fails('on a phone the sheet that asks for it leaves the toast’s height free at its top', () => {
+  it('on a phone the sheet that asks for it leaves the toast’s height free at its top', () => {
     vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(375);
     const real = HTMLElement.prototype.getBoundingClientRect;
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {

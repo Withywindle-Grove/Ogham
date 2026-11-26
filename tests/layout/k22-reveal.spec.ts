@@ -183,7 +183,7 @@ for (const size of [
 
 // On a phone only: the two places a toast met a phone sheet in Home Two's audit of #50 (findings 1 and 3).
 for (const scheme of ['light', 'dark'] as const) {
-  test.fails(`the toast after "Tell them everything" on nine facts sits above the sheet, clear of its title and ✕ (phone, ${scheme})`, async ({ page }) => {
+  test(`the toast after "Tell them everything" on nine facts sits above the sheet, clear of its title and ✕ (phone, ${scheme})`, async ({ page }) => {
     await openInView(page, 375, 812, scheme);
     await page.getByRole('button', { name: /^Hooded lantern/ }).click();
     await page.getByRole('region', { name: 'Hooded lantern' }).getByRole('button', { name: 'Reveal…' }).click();
