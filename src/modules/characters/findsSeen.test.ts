@@ -420,6 +420,25 @@ describe('what is new, read from the log (K20a)', () => {
     expect(await newForWren()).toEqual([]);
   });
 
+  // Purpose (review fix 2): in one request that uses up one line and raises another, the find on the used-up line is
+  // not carried onto the raised line unless they are the same thing (its name or its library entry).
+  it.fails('a line used up beside an unrelated raised line carries no find onto it', () => {
+    const ev = (n: number, over: Partial<LogEvent>): LogEvent => ({
+      id: `e${n}`, seq: n, type: 'find.give', level: 'simple', actorUserId: gm.id, targetTable: 'inventory_lines', targetId: null, before: null, after: null,
+      fiat: false, reason: null, revertsEventId: null, requestId: 'r1', createdAt: `2026-11-26T09:0${n}:00Z`, ...over,
+    });
+    const events = [
+      ev(1, { targetId: 'line-wand', after: { actor_id: wren.id, name: 'Glow wand', qty: 1 } }),
+      ev(2, { type: 'inventory.remove', actorUserId: sam.id, requestId: 'r2', targetId: 'line-wand', before: { actor_id: wren.id, name: 'Glow wand', qty: 1 } }),
+      ev(3, { type: 'inventory.add', actorUserId: sam.id, requestId: 'r2', targetId: 'line-hooks', before: { actor_id: wren.id, name: 'Fish hooks', qty: 3 }, after: { actor_id: wren.id, name: 'Fish hooks', qty: 5 } }),
+    ];
+    const found = findsSince({
+      character: { id: wren.id, ownerUserId: sam.id, purseId: null }, gmUserIds: new Set([gm.id]), events, seenAt: null,
+      lines: [{ id: 'line-hooks', actorId: wren.id, name: 'Fish hooks', qty: 5 }],
+    });
+    expect(found).toEqual([]);
+  });
+
   // Purpose: a whole-line gift logs no count, so it is read from the row; a find onto that row later is not counted
   // twice: what arrived is never more than the row holds.
   it('never counts more arrived than the row holds', async () => {
