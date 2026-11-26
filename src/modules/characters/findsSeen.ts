@@ -93,7 +93,7 @@ export interface FindsSource {
 
 type Row = Record<string, unknown>;
 type Arrival =
-  | { kind: 'thing'; ids: string[]; lineId: string; arrived: number; who: FindWho; at: string; seq: number }
+  | { kind: 'thing'; ids: string[]; lineId: string; arrived: number; joined?: true; who: FindWho; at: string; seq: number }
   | { kind: 'coin'; ids: string[]; coins: Record<string, number>; who: FindWho; at: string; seq: number };
 
 const row = (r: Row | null) => r ?? {};
@@ -125,14 +125,14 @@ export function findsSince(source: FindsSource): FindEntry[] {
   }
   const undoOf = new Map<string, LogEvent>();
   const mergedInto = new Map<string, string>();
-  const goneName = new Map<string, string>();
+  const goneCopy = new Map<string, Row>();
   for (const e of source.events) if (e.revertsEventId) undoOf.set(e.revertsEventId, e);
   for (const group of byRequest.values()) {
     const items = group.filter((e) => e.targetTable === 'inventory_lines' && e.targetId);
     const raised = items.find((e) => (qtyOf(e.after) ?? 0) > (qtyOf(e.before) ?? Infinity));
     for (const e of items) {
       if (e.after !== null || !e.before) continue;
-      goneName.set(e.targetId!, String(e.before.name ?? ''));
+      goneCopy.set(e.targetId!, e.before);
       // A whole line merged onto a same-name stack (Q2): the find lives on in that stack.
       if (raised && !e.revertsEventId) mergedInto.set(e.targetId!, raised.targetId!);
     }
@@ -164,7 +164,7 @@ export function findsSince(source: FindsSource): FindEntry[] {
       const joined = was !== null && now !== null && now > was;
       if (gm && (e.type === 'find.give' || e.type === 'inventory.add')) {
         if (made) arrivals.push({ kind: 'thing', ids, lineId, arrived: Number(now ?? 1), who: { kind: 'gm' }, ...base });
-        else if (joined && e.type === 'inventory.add') arrivals.push({ kind: 'thing', ids, lineId, arrived: now - was, who: { kind: 'gm' }, ...base });
+        else if (joined && e.type === 'inventory.add') arrivals.push({ kind: 'thing', ids, lineId, arrived: now - was, joined: true, who: { kind: 'gm' }, ...base });
         continue;
       }
       if (gm || e.type !== 'inventory.move') continue;
@@ -179,11 +179,13 @@ export function findsSince(source: FindsSource): FindEntry[] {
         // (ruling "A", as the log's sentence reads it). shortcut: wrong once the source line moves, until a line names it.
         const gone = group.find((m) => m.after === null && m.before);
         const countedOff = group.find((m) => m !== e && m.targetTable === 'inventory_lines' && (qtyOf(m.after) ?? Infinity) < (qtyOf(m.before) ?? 0));
-        const giver = gone ? gone.before!.actor_id : countedOff ? lineOf.get(countedOff.targetId ?? '')?.actorId : undefined;
-        // From the stash (a gone copy with no carrier) it is a Take, not a gift.
-        if (gone && typeof giver !== 'string') continue;
+        // The source line as the device holds it, or the log's last copy of it once gone.
+        const source = countedOff ? (lineOf.get(countedOff.targetId ?? '') ?? (goneCopy.has(countedOff.targetId ?? '') ? { actorId: goneCopy.get(countedOff.targetId!)!.actor_id ?? null } : undefined)) : undefined;
+        const giver = gone ? gone.before!.actor_id : source?.actorId;
+        // From the stash (a gone copy, or a source line, with no carrier) it is a Take, not a gift.
+        if ((gone || source) && typeof giver !== 'string') continue;
         const who: FindWho = typeof giver === 'string' && giver !== me ? { kind: 'character', characterId: giver } : { kind: 'unknown' };
-        arrivals.push({ kind: 'thing', ids, lineId, arrived: now - was, who, ...base });
+        arrivals.push({ kind: 'thing', ids, lineId, arrived: now - was, joined: true, who, ...base });
       }
     }
   }
@@ -213,8 +215,10 @@ export function findsSince(source: FindsSource): FindEntry[] {
     }
     const lineId = resolve(a.lineId);
     const line = lineOf.get(lineId);
+    // A join's line holds only a count: it is hers only if the stack is on her now (taken back or not).
+    if (a.joined && line?.actorId !== me) continue;
     if (takenBack) {
-      const name = line?.name ?? goneName.get(lineId) ?? goneName.get(a.lineId) ?? '';
+      const name = line?.name ?? String((goneCopy.get(lineId) ?? goneCopy.get(a.lineId))?.name ?? '');
       entries.push({ entry: { kind: 'thing', lineId: line ? lineId : null, name, arrived: a.arrived, now: null, who: a.who, at: a.at, takenBack }, seq: a.seq });
       continue;
     }

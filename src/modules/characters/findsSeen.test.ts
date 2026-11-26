@@ -272,11 +272,13 @@ describe('what is new, read from the log (K20a)', () => {
     expect(await newForWren(seenAt)).toMatchObject([{ kind: 'coin', coins: { heron: 40 }, who: { kind: 'gm' }, takenBack: null }]);
   });
 
-  // Purpose: her own acts are never new: her own Add item, a Take from the stash (a thing and coin), and a kit.
-  it('never counts her own Add item, Take or kit', async () => {
+  // Purpose: her own acts are never new: her own Add item, Buy it, a Take from the stash (a thing and coin), and a kit.
+  it('never counts her own Add item, Buy it, Take or kit', async () => {
     kit(wren.id, 'Reed basket', 1);
     const rope = kit(null, 'Coil of reed rope', 1);
     await mustOk(as(sam, 'inventory.add').from('inventory_lines').insert({ campaign_id: campaign, actor_id: wren.id, location_id: null, name: 'Fish hook', category: 'gear', qty: 3, stack: 1, how_got: 'bought', approval: 'approved' }).select('id'));
+    // Buy it lands the bought line in the reply's own request, the buyer's tap (request.reply, townRequests.ts).
+    await mustOk(as(sam, 'request.reply').from('inventory_lines').insert({ campaign_id: campaign, actor_id: wren.id, location_id: null, name: 'Lantern oil', category: 'gear', qty: 1, stack: 1, how_got: 'bought', approval: 'approved' }).select('id'));
     await mustOk(as(sam, 'inventory.move').from('inventory_lines').update({ actor_id: wren.id, location_id: null }).eq('id', rope).select('id'));
     world.tables.purses.find((p) => p.location_id === stash())!.coins = { heron: 9 };
     await mustOk(as(sam, 'purse.take').rpc('purse_take' as never, { campaign, from_actor: null, from_location: stash(), to_actor: wren.id, coins: { heron: 9 } } as never) as unknown as Promise<{ error: unknown }>);
@@ -285,7 +287,8 @@ describe('what is new, read from the log (K20a)', () => {
   });
 
   // Purpose: the GM's other moves with the same event types are not one of the four roads: an inventory.move from the
-  // stash or from another character onto her, and a purse.take onto her (⚑ in the pull request).
+  // stash or from another character onto her, and a purse.take onto her from another character or the stash (⚑ in
+  // the pull request).
   it("leaves out the GM's moves from the stash or another character", async () => {
     const rope = kit(null, 'Coil of reed rope', 1);
     const lamp = kit(moss.id, 'Hooded lamp', 1);
@@ -293,6 +296,9 @@ describe('what is new, read from the log (K20a)', () => {
     await mustOk(as(gm, 'inventory.move').from('inventory_lines').update({ actor_id: wren.id }).eq('id', lamp).select('id'));
     world.tables.purses.find((p) => p.actor_id === moss.id)!.coins = { heron: 9 };
     await mustOk(as(gm, 'purse.take').rpc('purse_take' as never, { campaign, from_actor: moss.id, from_location: null, to_actor: wren.id, coins: { heron: 9 } } as never) as unknown as Promise<{ error: unknown }>);
+    world.tables.purses.find((p) => p.location_id === stash())!.coins = { heron: 4 };
+    await mustOk(as(gm, 'purse.take').rpc('purse_take' as never, { campaign, from_actor: null, from_location: stash(), to_actor: wren.id, coins: { heron: 4 } } as never) as unknown as Promise<{ error: unknown }>);
+    expect(world.tables.purses.find((p) => p.actor_id === wren.id)!.coins).toEqual({ heron: 13 });
     expect(world.tables.inventory_lines.filter((l) => l.actor_id === wren.id)).toHaveLength(2);
     expect(await newForWren()).toEqual([]);
   });
@@ -312,7 +318,7 @@ describe('what is new, read from the log (K20a)', () => {
 
   // Purpose: a gift of part of a stack as its own line counts what was handed over; a whole line merged onto her stack
   // names its giver from the log's copy; part of one onto her stack names the giver from the source line's carrier now
-  // (ruling "A"), and none once that line has gone.
+  // (ruling "A"; the log's last copy once it is gone), and none once the device holds neither.
   it('a gift by every shape: part as a line, whole onto her stack, part onto her stack', async () => {
     const mossRope = kit(moss.id, 'Coil of reed rope', 4);
     await givePart(mossRope, 1);
@@ -324,7 +330,7 @@ describe('what is new, read from the log (K20a)', () => {
     expect(world.tables.inventory_lines.some((l) => l.id === mossPearls)).toBe(false);
     expect(things(await newForWren(seenAt))).toMatchObject([{ arrived: 3, now: 9, who: { kind: 'character', characterId: moss.id } }]);
     const next = markNow();
-    const morePearls = kit(moss.id, 'River pearls', 4, 'entry-pearl');
+    const morePearls = kit(moss.id, 'River pearl', 4, 'entry-pearl');
     await intoStack(tess, morePearls, 1);
     expect(things(await newForWren(next))).toMatchObject([{ arrived: 1, now: 10, who: { kind: 'character', characterId: moss.id } }]);
     world.tables.inventory_lines = world.tables.inventory_lines.filter((l) => l.id !== morePearls);
@@ -383,6 +389,24 @@ describe('what is new, read from the log (K20a)', () => {
     expect(await newForWren()).toEqual([]);
     // Nor were its reversal line named as the line it undoes, and written by another player.
     for (const e of world.tables.events.filter((x) => x.reverts_event_id)) Object.assign(e, { type: 'inventory.move', actor_user_id: tess.id });
+    expect(await newForWren()).toEqual([]);
+  });
+
+  // Purpose: a join's line holds only a count, so a find onto someone else's stack, undone, never reaches her list;
+  // nor does another player's Take from the stash onto her stack (part of a line or all of it).
+  it("leaves out joins onto others' stacks and Takes from the stash onto hers", async () => {
+    kit(moss.id, 'River pearls', 6, 'entry-pearl');
+    await mustOk(as(gm, 'inventory.add').rpc('join_added_line' as never, { campaign, actor: moss.id, location: null, container: null, entry: 'entry-pearl', how_many: 2, made_id: crypto.randomUUID(), how_got: 'given', cost: '', note: '' } as never) as unknown as Promise<{ error: unknown }>);
+    await mustOk(undo(gm, lastLineOf('inventory.add').id as string));
+    const loose = kit(moss.id, 'River pearl', 2, 'entry-pearl');
+    await mustOk(as(tess, 'inventory.move').rpc('move_into_stack' as never, { line: loose, how_many: 1, to_actor: moss.id, to_location: null, to_container: null } as never) as unknown as Promise<{ error: unknown }>);
+    await mustOk(undo(tess, lastLineOf('inventory.move').id as string));
+    expect(await newForWren()).toEqual([]);
+    kit(wren.id, 'Moon opals', 2, 'entry-pearl');
+    const stashed = kit(null, 'Moon opals', 4, 'entry-pearl');
+    await intoStack(tess, stashed, 1);
+    await intoStack(tess, stashed, 3);
+    expect(world.tables.inventory_lines.find((l) => l.actor_id === wren.id && l.name === 'Moon opals')!.qty).toBe(6);
     expect(await newForWren()).toEqual([]);
   });
 
