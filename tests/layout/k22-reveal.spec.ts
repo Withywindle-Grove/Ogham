@@ -140,7 +140,7 @@ for (const size of [
       expect(await accessibilityProblems(page)).toEqual([]);
     });
 
-    test.fails(`"Its charges / Not set yet" opens the blocked-action pop-up in its own form (${size.name}, ${scheme})`, async ({ page }) => {
+    test(`"Its charges / Not set yet" opens the blocked-action pop-up in its own form (${size.name}, ${scheme})`, async ({ page }) => {
       await openInView(page, size.width, size.height, scheme, '&k22charges=unset');
       await page.getByRole('button', { name: /^Hooded lantern/ }).click();
       await page.getByRole('region', { name: 'Hooded lantern' }).getByRole('button', { name: 'Reveal…' }).click();

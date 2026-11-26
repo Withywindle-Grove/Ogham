@@ -359,7 +359,7 @@ describe('K22d: the Reveal pop-up', () => {
   // Purpose: a count never set can't be told yet, but its row stays tappable (CLAUDE.md: a blocked action stays
   // tappable and explains why): a tap says why and where the count is set, and the Reveal pop-up stays under it
   // (Home Two's audit of #50, findings 4 and 5; Francis, 26 Nov).
-  it.fails('"Its charges / Not set yet" is a tap that says where to set the count, and tells nothing', async () => {
+  it('"Its charges / Not set yet" is a tap that says where to set the count, and tells nothing', async () => {
     Object.assign(ring(), { charges_hidden: true });
     const user = await openInView();
     const popup = await openReveal(user);

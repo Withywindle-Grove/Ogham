@@ -4,8 +4,10 @@
 // toast carries Undo (the log's Undo of the tell). "Tell them everything" is its one accent; with everything told the
 // foot reads "Nothing is left hidden.". Opened from inside the item's sheet: its own form, the Sheet, centred on a tablet
 // and from the foot on a phone (K22i), with the toast placed above it (ToastHost, `data-toast-above`).
-// Charges hidden but never set (no count in the secret) can't be told yet (public.tell_item refuses): their row is the
-// told row's plain form, "Not set yet", with no Tell, and "Tell them everything" tells every other fact (review of #50).
+// Charges hidden but never set (no count in the secret) can't be told yet (public.tell_item refuses): their row keeps the
+// told row's plain look, "Not set yet", with no Tell (⚑ 3, approved from pictures 25 Nov), and stays a tap that opens the
+// blocked-action pop-up saying where the count is rolled (Home Two's audit of #50, findings 4 and 5; Francis, 26 Nov);
+// "Tell them everything" tells every other fact (review of #50).
 import { useState } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
@@ -14,6 +16,7 @@ import { hiddenFacts, type HiddenFact } from '../modules/inventory/hiddenFacts.t
 import { tellItem, type InventoryLine, type NamedCarrier } from '../modules/inventory/inventory.ts';
 import { possessive, shownName, withThe } from '../modules/inventory/packView.ts';
 import type { ResolvedEntry } from '../modules/library/stack.ts';
+import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import { CentredPopUpScope, Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { Icon } from '../ui/icons.tsx';
 import { WarningSign } from '../ui/parts.tsx';
@@ -36,6 +39,10 @@ export function factsOf(line: InventoryLine, entry: ResolvedEntry | null, secret
 
 /** A hidden count never set: the one fact the pop-up lists but can't tell yet (public.tell_item: "Set its charges first"). */
 export const countNotSet = (fact: HiddenFact, secret: { total: number | null } | null) => fact.id === 'charges' && (secret?.total ?? null) === null;
+
+/** A count never set, tapped: the blocked-action pop-up's title and its why, with where the count is rolled. */
+export const NOT_SET_TITLE = 'Set its charges first';
+export const NOT_SET_WHY = 'Its count isn’t rolled yet. Roll it on your own Pack, under Players › Inventory › Whose pack: open this item there and roll under Charges. Then tell them.';
 
 /** Who a tell tells, in the toast's words: the holder's name, or "the party" for the stash (K22f, 3). */
 const whoOf = (carrier: NamedCarrier) => (carrier.locationId !== null ? 'the party' : carrier.name);
@@ -99,6 +106,7 @@ export function RevealPopup({
   onClose: () => void;
 }) {
   const toast = useToast();
+  const blocked = useBlockedSheet();
   const now = factsOf(line, entry, secret);
   // The list as it was opened (k22-5): a told row stays, as "Told"; opened again later, only what is still hidden.
   const [listed] = useState(now);
@@ -165,15 +173,18 @@ export function RevealPopup({
               );
               return (
                 <li key={fact.id}>
-                  {told || notYet ? (
+                  {told ? (
                     <div className="reveal-popup__row">
                       {words}
-                      {told && (
-                        <span className="reveal-popup__told">
-                          <Icon name="tick" size={18} /> Told
-                        </span>
-                      )}
+                      <span className="reveal-popup__told">
+                        <Icon name="tick" size={18} /> Told
+                      </span>
                     </div>
+                  ) : notYet ? (
+                    // Blocked, so it stays tappable and says why (CLAUDE.md), in the plain look approved (⚑ 3).
+                    <button type="button" className="reveal-popup__row" aria-label={`${fact.label}: Not set yet`} onClick={() => blocked.explain(NOT_SET_TITLE, NOT_SET_WHY)}>
+                      {words}
+                    </button>
                   ) : (
                     <button type="button" className="reveal-popup__row" aria-busy={busy} aria-label={`Tell ${fact.label}${fact.detail ? `: ${fact.detail}` : ''}`} onClick={() => tell(fact)}>
                       {words}
@@ -201,6 +212,7 @@ export function RevealPopup({
             <p className="auth__meta">{waiting ? 'Set its charges first, then tell them.' : 'Nothing is left hidden.'}</p>
           )}
         </Dialog>
+        {blocked.sheet}
       </CentredPopUpScope.Provider>
     </SheetScope.Provider>
   );
