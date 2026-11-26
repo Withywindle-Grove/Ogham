@@ -134,7 +134,7 @@ describe('findCard', () => {
     expect(names(c)).toEqual(['Your GM took back the Moon opals ×2.', 'Your GM took back the Bronze ring.']);
   });
 
-  // Purpose: coin and a name starting with "The" take no "the"; a giver's own Undo names the giver (⚑ F8's lean).
+  // Purpose: coin and a name starting with "The" take no "the"; a giver's own Undo names the giver (F8, ruled 2026-11-26).
   it('taken-back words', () => {
     const c = findCard([
       coin({ takenBack: back }),

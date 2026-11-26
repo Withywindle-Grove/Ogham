@@ -1,6 +1,7 @@
 // The find card's words and shape (K18a of docs/plans/dec-6-the-whole-pack-tab.md; page 45, p45-5 to p45-8, p45-15,
-// p45-22, p45-25; ⚑ F3 and F8 built to their leans). Data and logic only: the card itself is K18b. It reads K20a's
-// entries (`findsSince`); the words for coin and for a day come in from the caller, so no new link between modules.
+// p45-22, p45-25; ⚑ F3 built to its lean; F8, ruled 2026-11-26: keep as drawn). Data and logic only: the card itself
+// is K18b. It reads K20a's entries (`findsSince`); the words for coin and for a day come in from the caller, so no new
+// link between modules.
 import { findsCount, type FindEntry, type FindWho } from './findsSeen.ts';
 
 /** ⚑ F3's lean: a find is "just now" for under an hour, read when the card is drawn (no ticking clock). */
@@ -46,7 +47,7 @@ function whoWords(who: FindWho, when: string, many: boolean, w: FindCardWords): 
 }
 
 /**
- * ⚑ F8's lean (p45-25): "Your GM took back the Bronze ring."; coin takes no "the", nor a name that starts with "The".
+ * F8, ruled 2026-11-26 (keep as drawn; p45-25): "Your GM took back the Bronze ring."; coin takes no "the", nor a name that starts with "The".
  * A giver's own Undo names the giver; with no name to give, "Taken back: …" (neither drawn).
  */
 function backWords(e: FindEntry, w: FindCardWords): string {
@@ -62,7 +63,7 @@ export function findCard(entries: readonly FindEntry[], w: FindCardWords): FindC
   // p45-6: coin first, then the newest first (the sort is stable).
   const all = [...entries].sort((a, b) => (a.kind === 'coin' ? 0 : 1) - (b.kind === 'coin' ? 0 : 1));
   // p45-5: up to four lines; from five, three and "and N more". Judged on every entry, taken back or not, so an Undo
-  // never moves a line (p45-25); N and a counting head follow what is left (⚑ F8's lean), so N can reach 1 or 0.
+  // never moves a line (p45-25); N and a counting head follow what is left (F8, ruled 2026-11-26), so N can reach 1 or 0.
   const counted = all.length >= 5;
   const shown = counted ? all.slice(0, 3) : all;
   const live = findsCount(all);
