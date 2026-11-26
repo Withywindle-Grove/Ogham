@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>December: page 45, the Pack tab's find flow: the player's find card, the count on the Pack's icon, New until Got it, coin in a hoard and on the card (rows K18 to K21; a proposal of 2026-11-26, not approved; impeccable critique not yet run)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../pack/pk.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* This page's own rules: layout only, and the parts page 08 (pack/08-the-pack-tab-whole.html) drew as its own
+     (the count, the New tag, the coin line), copied as drawn. Type, the book format, the stacked button, the card,
+     the sheet's head and the pop-up come from ../shared/book.css and are not restated. Every value is a token of
+     docs/06: spacing 4/8/12/16/24/32, type 14/16/20, the tap 44, corners 4, 8, 20 (--radius-sheet) and 999 (--radius-pill). */
+  body { min-width:2560px; }
+  .pair { grid-template-columns:max-content max-content; }
+  .fr { margin:0 0 var(--space-5); padding:0 var(--space-5) var(--space-5) 0; width:max-content; max-width:none; }
+  .fr > .cap { font-size:16px; color:var(--ink); max-width:1180px; }
+  .headnote { max-width:1180px; font-size:16px; color:var(--ink); border:1.5px dashed var(--warn); border-radius:4px; padding:var(--space-3); margin:0 0 var(--space-4); }
+  .note { max-width:1180px; }
+  .note.big { font-size:16px; color:var(--ink); }
+  .lab { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); max-width:343px; }
+  .lab b { color:var(--ink); }
+  .trio { display:flex; gap:var(--space-4); align-items:flex-start; }
+  .flag { display:inline-block; border:1.5px dashed var(--warn); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; font-size:14px; }
+  .efoot { display:flex; justify-content:flex-end; gap:var(--space-2); margin-top:var(--space-3); }
+  .cardb .efoot { margin-top:var(--space-1); }
+  .fmark { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; flex:none; }
+  /* from pack/08 and pack/07 (approved), copied as drawn: the count, the New tag, the coin line, a sheet's row */
+  .b8 { display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--ink); color:var(--page); font-size:14px; font-weight:700; margin-left:var(--space-1); box-sizing:border-box; }
+  .pk-tabs > span { position:relative; }
+  .pk-tabs .b8 { position:absolute; top:var(--space-1); left:calc(50% + 8px); margin:0; }
+  .tag8 { display:inline-block; font-size:14px; font-weight:700; border:1.5px solid var(--ink); border-radius:4px; padding:0 var(--space-1); line-height:20px; margin-left:var(--space-2); vertical-align:2px; }
+  .coinl { display:flex; align-items:center; gap:var(--space-2); min-height:52px; padding:var(--space-1) 0; border-top:3px double var(--rule); }
+  .coinl .t { flex:1; min-width:0; font-weight:700; }
+  .coinl .t small { display:block; font-weight:400; font-size:14px; color:var(--muted); }
+  .coinl .go { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; flex:none; transform:rotate(-90deg); }
+  .coinl .li { display:inline-flex; color:var(--muted); flex:none; }
+  .act { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); min-height:48px; border-top:1px solid var(--rule); }
+  .act .go { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; transform:rotate(-90deg); flex:none; }
+  .act .li { display:inline-flex; color:var(--muted); margin-right:var(--space-2); flex:none; }
+  .act > span:first-child { display:inline-flex; align-items:center; flex:1; }
+  .hold8 { border:1.5px dashed var(--control); border-radius:4px; min-height:160px; display:flex; align-items:center; justify-content:center; text-align:center; color:var(--muted); font-size:14px; margin-top:var(--space-2); padding:var(--space-2); box-sizing:border-box; }
+  .pill8 { display:inline-flex; align-items:center; gap:var(--space-1); border:1.5px solid var(--warn); color:var(--warn); border-radius:4px; padding:0 var(--space-2); min-height:28px; font-size:14px; font-weight:700; }
+  .starb { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; margin-right:var(--space-2); }
+  .sheetup { max-height:none; }
+  .sheetup .head { align-items:flex-start; }
+  .sheetup .head .ehead { min-width:0; overflow-wrap:break-word; align-self:center; }
+  /* measured on page 08 (t44-1): the “About” mark is a full 44 px target; where it meets the first row under it, the mark’s target wins */
+  .pk-gh:has(.i) .i { width:44px; }
+  .kv2 { display:flex; justify-content:space-between; gap:var(--space-2); min-height:32px; align-items:center; border-bottom:1px dotted var(--rule); }
+
+  /* ---- the tablet, 1180 px: the rail as built (page 38), the lists, the right column (PK1) ---- */
+  .tablet.wide { width:1180px; margin-bottom:0; }
+  .grid9 { display:grid; grid-template-columns:56px minmax(0,1fr) 400px; align-items:start; }
+  .rail9 { align-self:stretch; display:flex; flex-direction:column; align-items:center; gap:var(--space-2); padding:var(--space-3) 0; border-right:1px solid var(--rule); background:var(--surface); }
+  .ri9 { position:relative; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:4px; color:var(--muted); }
+  .ri9.on { color:var(--ink); background:var(--wash); box-shadow:inset 0 0 0 2px var(--accent); }
+  .ri9 .b8 { position:absolute; top:calc(-1 * var(--space-1)); left:calc(50% + 6px); margin:0; }
+  .main9 { padding:var(--space-3) var(--space-5); min-width:0; }
+  .side9 { align-self:stretch; padding:var(--space-3) var(--space-4); border-left:1px solid var(--rule); min-width:0; }
+  .side9 > .cardb:first-child, .inner > .cardb:first-child { margin-top:0; }
+  .two9 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--space-5); }
+
+  /* ---- the find card's own additions (the card itself is shared/book.css's .cardb, as PK2 drew it) ---- */
+  .cardb p b, .cardb .bsub { overflow-wrap:anywhere; }
+  .cardb p { margin-bottom:var(--space-2); }
+  .cardb .more9 { font-weight:700; }
+  .cardb .once9 { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .cardb .bk { margin-top:2px; }
+  .cardb.why9 { margin-top:0; }
+  .call9 { display:grid; grid-template-columns:28px minmax(0,1fr); gap:var(--space-2); align-items:start; }
+  .call9 .efoot { grid-column:1 / -1; }
+
+  /* ---- the toast in the ruled dress (tr-1, tr-6, tr-11, tr-12: page 43, frame 43H; shared/book.css still carries the
+     toast as it was before that ruling, so this page draws 43H's values itself and says so) ---- */
+  .thost { position:absolute; left:var(--space-4); right:var(--space-4); bottom:var(--space-4); display:flex; justify-content:center; }
+  .phone .thost { left:var(--space-3); right:var(--space-3); bottom:var(--space-3); }
+  .tz9 { position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-2) var(--space-3); box-sizing:border-box; min-height:60px; max-width:min(100%, 572px); padding:var(--space-2) var(--space-4) var(--space-3); border-radius:20px; background:var(--ink); color:var(--page); box-shadow:0 8px 32px rgba(0,0,0,.25); overflow:hidden; font-family:"T Bitter", Georgia, serif; line-height:1.5; }
+  .tz9.und { padding-right:var(--space-2); }
+  .phone .tz9 { width:100%; }
+  .tz9 .zt { flex:1 1 auto; min-width:0; overflow-wrap:anywhere; }
+  .tz9 .zt.err { position:relative; padding-left:calc(20px + var(--space-2)); }
+  .tz9 .zx { position:absolute; left:0; top:2px; width:20px; height:20px; border-radius:999px; background:var(--page); color:var(--ink); font-size:14px; font-weight:700; line-height:20px; text-align:center; }
+  .tz9 .zu { margin-left:auto; display:inline-flex; align-items:center; gap:var(--space-1); min-height:44px; padding:0 var(--space-3); font-weight:700; text-decoration:underline; text-underline-offset:4px; }
+  .tz9 .zbar { position:absolute; left:var(--space-4); right:var(--space-4); bottom:var(--space-1); height:4px; border-radius:999px; background:var(--page); opacity:.65; transform-origin:left; transform:scaleX(.7); }
+
+  /* ---- over the page: the dim, a pop-up centred on the tablet (ap-7, PK13), the sheet from the foot on a phone ---- */
+  .popc { position:absolute; left:50%; top:calc(var(--space-6) * 3); transform:translateX(-50%); width:440px; }
+  .popc .hd .ehead { min-width:0; overflow-wrap:break-word; align-self:center; }
+  .popc .hd > span:last-child { display:inline-flex; flex:none; }
+
+  /* ---- the GM's hoard sheet, drawn as a card alone (page 30's HM2; page 44's TR1) ---- */
+  .hoard9 { position:static; width:343px; box-sizing:border-box; border:1px solid var(--rule); border-radius:20px; box-shadow:0 4px 16px rgb(0 0 0 / 25%); padding:var(--space-4); }
+  .hoard9 .where { margin:0; }
+  .hoard9 .ttl { font-weight:700; font-size:20px; line-height:1.2; }
+  .hoard9 .pk-row .t b { font-size:16px; }
+  .hoard9 .sent { display:block; font-size:14px; font-weight:700; }
+  .hoard9 .efoot { margin-bottom:var(--space-2); }
+  .hoards { padding-left:var(--space-3); }
+
+  /* ---- the count on the Pack's icon, alone ---- */
+  .cnt9 { display:flex; gap:var(--space-4); align-items:flex-start; flex-wrap:wrap; }
+  .railbox { width:120px; height:176px; border:1.5px solid var(--control); border-radius:4px; background:var(--page); overflow:hidden; display:grid; grid-template-columns:56px 1fr; box-sizing:border-box; }
+  .railbox .rail9 { padding-top:var(--space-3); }
+  .barbox { width:343px; border:1.5px solid var(--control); border-radius:4px; background:var(--page); overflow:hidden; box-sizing:border-box; }
+  .barbox { padding-top:var(--space-1); }
+  .barbox .pk-tabs { margin-top:0; }
+  .logl { display:flex; align-items:center; min-height:44px; border-bottom:1px dotted var(--rule); padding:var(--space-1) 0; }
+  .logl small { display:block; font-size:14px; color:var(--muted); }
+  table.flags { border-collapse:collapse; max-width:1180px; font-size:14px; color:var(--ink); margin:var(--space-2) 0 var(--space-4); }
+  table.flags td, table.flags th { text-align:left; vertical-align:top; padding:var(--space-1) var(--space-2); border-bottom:1px solid var(--rule); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../pack/pk.js"></script>
+<script src="icons/icons.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+// Invented names and numbers only. Sam plays Wren. The finds are the ones the GM sends on page 44, frames 44-7 and 44-8
+// (pull request #102, a proposal): at "2. The Wreck", the Bronze ring (really the Ring of the Drowned Bell), the Crate's
+// Lamp oil ×8 and the Strongbox (240 herons, two moon opals, four boat hooks and a hooded lantern).
+const NEW = '<b>A proposal, 2026-11-26. Not approved; the critique has not run.</b>';
+const pick9 = (n) => `<span class="flag">⚑ ${n}</span>`;
+// creation/final/sweep.js (the fold mark, a frame, a column) is not on main, so the three helpers this page needs are its own
+const foldMark = (open) => `<span class="fmark${open ? ' open' : ''}" aria-hidden="true">${I.chev}</span>`;
+const col9 = (label, inner, cls = '') => `<div><p class="lab">${label}</p><div class="phone bit ${cls}">${inner}</div></div>`;
+const fr9 = (n, slug, cap, body) => `<div class="fr" data-shot="45-${n}-${slug}"><p class="cap">${cap}</p>${body}</div>`;
+
+// ---- parts, as page 08 drew them (PK1 to PK3) ----
+const goC = `<span class="go" aria-hidden="true">${I.chev}</span>`;
+const X8 = `<span class="btn sq" role="button" aria-label="Close" style="border:0;background:transparent">${I.close}</span>`;
+const stk8 = (words, k, o = {}) => `<span class="btn stk${o.accent ? ' accent' : ''}" role="button">${gi(k, 24)}<span>${words}</span></span>`;
+const badge8 = (n) => `<span class="b8" role="img" aria-label="${n} new">${n}</span>`;
+const sub8 = (t) => `<h3 class="bsub">${t}</h3>`;
+const foot8 = (btn) => `<div class="efoot">${btn}</div>`;
+const tag8 = '<span class="tag8">New</span>';
+const coinLine8 = (amounts, isNew) => `<div class="coinl" role="button" aria-label="Coin: ${amounts}${isNew ? ', new' : ''}"><span class="t">${amounts}${isNew ? tag8 : ''}</span>${goC}</div>`;
+const stashRow8 = (line) => `<div class="coinl" role="button" aria-label="Party stash: ${line}"><span class="li">${gi('open-chest', 24)}</span><span class="t">Party stash<small>${line}</small></span>${goC}</div>`;
+const hand8 = (name, act, k) => `<div class="pk-row"><span class="t"><b>${name}</b><small>${G.star}In hand</small></span>${stk8(act, k)}</div>`;
+const hands8 = `${gh(true, 'At hand', '2 items')}${hand8('Reed spear', 'Attack', 'broadsword')}${hand8('Storm lantern', 'Light', 'torch')}`;
+const rowNew = (name, o) => row(true, name, o).replace('</b>', `</b>${tag8}`);
+const pfoot8 = (say, accent = true) => `<div class="pk-foot"><span class="say">${say}</span>${stk8('Add item', 'knapsack', { accent })}</div>`;
+const tabsOn = (on, n) => `<div class="pk-tabs" role="tablist">${[['Player', G.crown], ['Scene', G.fire], ['Pack', G.pouch], ['Log', G.book]].map(([w, i]) => `<span role="tab"${w === on ? ' class="on"' : ''}${w === 'Pack' && n ? ` aria-label="Pack, ${n} new"` : ''}>${i}${w}${w === 'Pack' && n ? badge8(n) : ''}</span>`).join('')}</div>`;
+const tbar8 = (title) => `<div class="bar pk-bar pk-wide"><span class="pk-link" role="button" style="min-height:44px;display:inline-flex;align-items:center;padding-left:var(--space-3)">‹ The Reed Marches</span><span class="title">${title}</span><span class="ico" role="button" aria-label="Messages">${G.mail}</span><span class="ico" role="button" aria-label="Rules">${G.book}</span><span class="ico" role="button" aria-label="More">${I.more}</span></div>`;
+const offPill = `<p style="margin:0 0 var(--space-2)"><span class="pill8">${I.warn}Offline</span></p>`;
+
+// ---- the tablet at 1180 px: the rail as built, the lists, the right column ----
+const rail9 = (on, n) => `<div class="rail9" role="tablist">${[['Player', G.crown], ['Scene', G.fire], ['Pack', G.pouch]].map(([w, i]) => `<span class="ri9${w === on ? ' on' : ''}" role="tab" aria-label="${w}${w === 'Pack' && n ? `, ${n} new` : ''}">${i}${w === 'Pack' && n ? badge8(n) : ''}</span>`).join('')}</div>`;
+const tab9 = (o) => `<div class="tablet wide bit"${o.h ? ` style="min-height:${o.h}px"` : ''}>${tbar8(o.title || 'Wren’s pack')}<div class="grid9">${rail9(o.on || 'Pack', o.n)}<div class="main9">${o.left}</div><div class="side9">${o.right}</div></div>${o.over || ''}</div>`;
+const ph9 = (title, body, on, n, o = {}) => `${shell(title)}<div class="inner" style="position:relative;min-height:${o.h || 480}px;box-sizing:border-box${o.pad ? ';padding-bottom:96px' : ''}">${body}</div>${tabsOn(on, n)}${o.over || ''}`;
+
+// ---- Wren's pack ----
+const COIN0 = '12 crowns, 30 herons, 4 bits';
+const COIN1 = '12 crowns, 270 herons, 4 bits';
+const LOAD0 = load(true, 'Light, speed 125', [96, 0, 0], '383 of 1,200 coins');
+const LOAD1 = load(true, 'Light, speed 125', [96, 0, 0], '384 of 1,200 coins');
+const LOAD6 = load(true, 'Light, speed 125', [100, 3, 0], '412 of 1,200 coins');
+const CARR = [['Bog sling', { w: 5 }], ['Coil of reed rope', { w: 50 }], ['Glow wand', { w: 10 }], ['Reed basket', { w: 20 }], ['River pearls', { q: 6, w: 6 }]];
+const carr9 = (skip = []) => CARR.filter(([n]) => !skip.includes(n)).map(([n, x]) => row(true, n, x)).join('');
+const lists9 = (news, n, o = {}) => `${hands8}${worn(true)}${basket(true)}${gh(true, 'Carried', `${n} items`)}${news}${carr9(o.skip)}${tiny(true)}`;
+const RING = rowNew('Bronze ring', { w: 1 });
+const SIX_ROWS = `${RING}${rowNew('Moon opals', { q: 2, w: 2 })}${rowNew('Hooded lantern', { w: 20 })}${rowNew('Boat hooks', { q: 4, w: 4 })}${rowNew('Silver key', { w: 0 })}`;
+const HOARD_ROWS = `${rowNew('Moon opals', { q: 2, w: 2 })}${rowNew('Boat hooks', { q: 4, w: 4 })}${rowNew('Hooded lantern', { w: 20 })}`;
+
+// ---- the find card (PK2's card) ----
+const GMNOW = 'From your GM, just now.';
+const card9 = (head, lines, o = {}) => `<div class="cardb" role="status" aria-label="${head}">${sub8(head)}${o.once ? `<p class="once9">${o.once}</p>` : ''}${lines.map(([n, s, extra]) => `<p><b>${n}</b>${s ? `<small>${s}</small>` : ''}${extra || ''}</p>`).join('')}${o.more ? `<p class="more9">${o.more}</p>` : ''}${foot8(stk8('Got it', 'check-mark', { accent: !o.plain }))}</div>`;
+const ONE = card9('New in your pack', [['Bronze ring', GMNOW]]);
+const SIX_HEAD = '6 new things: 5 from your GM, 1 from Tam';
+const SIX = card9(SIX_HEAD, [['240 herons', `${GMNOW} In your coin.`], ['Bronze ring', GMNOW], ['Moon opals ×2', GMNOW], ['Hooded lantern', GMNOW]], { more: 'and 2 more' });
+const COINCARD = card9('New in your coin', [['240 herons', GMNOW]]);
+const HOARD_LINES = [['240 herons', `${GMNOW} In your coin.`], ['Moon opals ×2', GMNOW], ['Boat hooks ×4', GMNOW], ['Hooded lantern', GMNOW]];
+const HOARDCARD = card9('New in your pack', HOARD_LINES);
+const toast9 = (words, o = {}) => `<div class="thost"><div class="tz9${o.undo ? ' und' : ''}" role="${o.err ? 'alert' : 'status'}"><span class="zt${o.err ? ' err' : ''}">${o.err ? '<span class="zx" role="img" aria-label="Problem">✕</span>' : ''}${words}</span>${o.undo ? `<span class="zu" role="button">${gi('anticlockwise-rotation', 20)}Undo</span>` : ''}<span class="zbar" aria-hidden="true"></span></div></div>`;
+const STASH_TOAST = 'Your GM put Lamp oil ×8 in the party stash.';
+const hold9 = (words, h = 160) => `<div class="hold8" style="min-height:${h}px">${words}</div>`;
+const elsewhere9 = (card, n, on = 'Player', extra = '') => ph9('Wren', `${card}${hold9('The tab she is on')}${extra}`, on, n);
+
+// ---- an item's sheet, as its holder sees it before anything is told (page 30's HM4, page 33's K22h, picture 1) ----
+const starO = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3l2.800 6 6.500.6-4.900 4.300 1.500 6.400L12 17l-5.900 3.300 1.500-6.400L2.700 9.600 9.200 9z" ${W}/></svg>`;
+const pin8 = `<span class="starb" role="button" aria-label="Pin to At hand" aria-pressed="false">${starO}</span>`;
+const act8 = (words, k, go = true) => `<div class="act" role="button"><span><span class="li">${gi(k, 24)}</span>${words}</span>${go ? goC : ''}</div>`;
+const ITEM_ACTS = `${act8('Give to…', 'open-palm')}${act8('Put in…', 'swap-bag')}${act8('Drop', 'drop-weapon', false)}`;
+const RING_BODY = `<div class="bk"><p>A plain band of old bronze.</p><p class="ln"><span class="lb">What you notice.</span>Cold to the touch, even by the fire.</p></div><div class="kv2"><span class="meta">Slot</span><span>Ring</span></div>${ITEM_ACTS}`;
+const ROPE_BODY = `<div class="bk"><p class="ln"><span class="lb">Weight</span>50 coins</p></div>${ITEM_ACTS}`;
+const sheetUp = (title, body) => `<div class="dim"></div><div class="sheetup"><div class="head"><span class="ehead">${title}</span><span style="display:inline-flex;flex:none">${pin8}${X8}</span></div>${body}</div>`;
+const popUp = (title, body) => `<div class="dim"></div><div class="popb popc"><div class="hd"><span class="ehead">${title}</span><span>${pin8}${X8}</span></div>${body}</div>`;
+
+// ---- the GM's hoard sheet (K21's screen: coin is a row; pk-11's note under a coin the book prints oddly) ----
+const hrow = (n, s, sent) => `<div class="pk-row" role="button"><span class="t"><b>${n}</b>${s ? `<small>${s}</small>` : ''}${sent ? `<span class="sent">✓ ${sent}</span>` : ''}</span>${goC}</div>`;
+const hoard9 = (where, name, line, rows, o = {}) => `<div class="sheetup hoard9 bit"><div class="head"><span style="min-width:0"><p class="sclab where">${where}</p><span class="ttl">${name}</span></span>${X8}</div><div class="bk"><p>${line}</p></div>${rows}${o.sent ? '' : foot8(stk8('Send all', 'open-palm', { accent: true }))}${act8('Edit the piece’s words', 'quill-ink')}</div>`;
+
+// =================================== the frames ===================================
+const f1 = fr9(1, 'fd1-one-find-to-me-tablet', `FD1 (K18, K19, K20). ${NEW} <b>One find, to me, on the Pack tab; a tablet at 1180 px.</b> The GM has just sent the Bronze ring to Wren (page 44, frame 44-7: “Bronze ring sent to Wren.”). <b>The card</b> heads the right column, as PK2 drew it (approved 2026-11-14, ap-6): what arrived, under the name the GM’s piece carries, who it came from and when, and “Got it”, the screen’s one accent while the card shows (“Add item” is plain meanwhile). <b>The count</b> sits on the Pack’s icon in the rail (the rail as built, page 38; PK2 drew a rail with words). <b>The row</b> is first under “Carried” (pk-2: it lands loose) with the “New” tag, a word in a box. Got it clears the card, the count and the tag together (pk-13: one mark a character). <b>Changed from PK2:</b> the rail, 1180 px, and nothing else.`,
+  tab9({ n: 1, left: `${lists9(RING, 6)}${pfoot8('12 items', false)}`, right: `${ONE}${LOAD1}${coinLine8(COIN0)}${stashRow8('7 things')}` }));
+
+const f2 = fr9(2, 'fd1b-the-card-on-another-tab-tablet', `FD1b (K18). ${NEW} <b>The same find while Sam is on another tab; a tablet.</b> “Wherever they are” (pk-5): the same card, with “Got it”, and the count on the Pack’s icon. ${pick9(1)} <b>On a tablet the card heads the right column on every tab</b>, as it does on the Pack tab, so it is always in the same place and the left column never moves. PK2b (approved) drew this on a phone only. The tab’s own content is not drawn.`,
+  tab9({ title: 'Wren', on: 'Player', n: 1, left: hold9('The Player tab’s left column', 360), right: `${ONE}${hold9('The Player tab’s right column', 220)}` }));
+
+const SCENE_CALL = `<div class="cardb call9"><span>${gi('stabbed-note', 28)}</span><span>${sub8('A call to adventure, for the party')}<span>“The harbour office wants the manifest of the cog on the bar.”</span></span>${foot8(stk8('Got it', 'check-mark'))}</div>`;
+const f3 = fr9(3, 'fd1c-one-find-to-me-phone', `FD1c (K18, K19, K20). ${NEW} <b>One find, to me, at 375 px.</b> <b>A.</b> On the Pack tab: the card first, then the load, the coin line and the stash’s row (PK3, PK6). <b>B.</b> On another tab: the card above that tab’s own content (PK2b). <b>C.</b> On the Scene, where the prompt slot may hold a call card (page 40, simplified here): ${pick9(2)} the find card stands above the slot, so two cards can show; ${pick9(3)} and its “Got it” is the accent as PK2 has it, while the call card’s is plain (page 40, approved later). <b>D.</b> What another player has: no card and no count, only the log’s line, which names the thing as it appears and never what it really is (PK2b’s question 9, ruled ap-6; K16b’s line as built).`,
+  `<div class="trio">${col9('<b>A.</b> On the Pack tab', ph9('Wren’s pack', `${ONE}${LOAD1}${coinLine8(COIN0)}${stashRow8('7 things')}${hands8}`, 'Pack', 1))}${col9('<b>B.</b> On another tab', elsewhere9(ONE, 1))}${col9('<b>C.</b> On the Scene, with a call card', ph9('Wren', `${ONE}${SCENE_CALL}${hold9('The Scene', 96)}`, 'Scene', 1))}${col9('<b>D.</b> Ash’s Log: another player', ph9('Ash', `<div class="logl"><span>Your GM gave Wren Bronze ring.<small>Today</small></span></div><div class="logl"><span>The party rowed to 2. The Wreck.<small>Today</small></span></div>`, 'Log', 0, { h: 200 }))}</div>`);
+
+const f4 = fr9(4, 'fd2-to-the-party-stash-tablet', `FD2 (K18). ${NEW} <b>One find, to the party stash; a tablet.</b> The GM sends the Crate’s Lamp oil ×8 to the stash (page 44, 44-7). <b>Told to everyone, more quietly</b> (pk-5; PK2b, approved): a toast that goes by itself, <b>no card, no count, no “New” tag</b>, and “Add item” keeps the accent. The toast wears the ruled dress (tr-1: rounded and solid; 5 seconds with the pause; as wide as its words on a tablet, tr-12; at least 60 px, tr-11). It has no Undo: the send was the GM’s. The Party stash row reads “8 things” at once. <b>Mine, to check:</b> the words follow pu-7’s lines and name the thing as the pack does (#66’s ⚑ 3: never lower-cased); K28’s own line was not read.`,
+  tab9({ h: 560, left: `${lists9('', 5)}${pfoot8('11 items')}`, right: `${LOAD0}${coinLine8(COIN0)}${stashRow8('8 things')}`, over: toast9(STASH_TOAST) }));
+
+const f5 = fr9(5, 'fd2b-to-the-party-stash-phone', `FD2b (K18). ${NEW} <b>To the party stash, at 375 px.</b> <b>A.</b> On another tab: the toast above the tab bar, filling the width between the margins (tr-12). <b>B.</b> Messy: a long name and 999; the toast wraps and never cuts a name. <b>C.</b> A card is already showing: the toast and the card do not touch each other, and the count stays the card’s (the stash’s thing is not counted).`,
+  `<div class="trio">${col9('<b>A.</b> On another tab', ph9('Wren', `${hold9('The tab she is on')}${toast9(STASH_TOAST)}`, 'Player', 0, { pad: true }))}${col9('<b>B.</b> A long name, 999', ph9('Wren', `${hold9('The tab she is on')}${toast9('Your GM put The Old Lantern of the Drowned and of the Nine Tides ×999 in the party stash.')}`, 'Player', 0, { pad: true, h: 520 }))}${col9('<b>C.</b> While a find card shows', ph9('Wren', `${ONE}${hold9('The tab she is on')}${toast9(STASH_TOAST)}`, 'Player', 1, { pad: true, h: 520 }))}</div>`);
+
+const f6 = fr9(6, 'fd3-several-merged-tablet', `FD3 (K18, K19, K20). ${NEW} <b>Several finds, merged into one card; a tablet.</b> Five from the GM (the Bronze ring, then the Strongbox whole: its coin and three things) and a key Tam gave. <b>One card</b> (pk-5), as PK2b drew it: the head counts them and says from whom; four lines, then “and 2 more”; the Pack lists them all, each with its tag, and the coin line carries the tag for the coin. <b>The count is 6:</b> a stack is one, coin is one (PK3). ${pick9(4)} <b>The head counts only when the card cannot list everything:</b> up to five things the head stays “New in your pack” and every thing has its line (FD3b, B); from six, four lines and “and N more”, so the card never says “and 1 more”. ${pick9(5)} <b>The order:</b> coin first, then the newest first; in the list, new rows first under “Carried” until Got it (PK2).`,
+  tab9({ n: 6, left: `${lists9(SIX_ROWS, 10)}${pfoot8('16 items', false)}`, right: `${SIX}${LOAD6}${coinLine8(COIN1, true)}${stashRow8('7 things')}` }));
+
+const FIVE = card9('New in your pack', [['Bronze ring', GMNOW], ['Moon opals ×2', GMNOW], ['Boat hooks ×4', GMNOW], ['Hooded lantern', GMNOW], ['Silver key', 'Tam gave it to you, day 3.']]);
+const MESSY = card9('14 new things: 12 from your GM, 2 from Fenna of the Long Causeway below the Old Lantern', [['999,999,999 herons', `${GMNOW} In your coin.`], ['The Old Lantern of the Drowned and of the Nine Tides ×999', GMNOW], ['River pearls ×2', `${GMNOW} With your River pearls: ×8 now.`], ['Silver key', 'Fenna of the Long Causeway below the Old Lantern gave it to you, day 3.']], { more: 'and 10 more' });
+const f7 = fr9(7, 'fd3b-several-merged-phone', `FD3b (K18, K19). ${NEW} <b>Several, merged, at 375 px.</b> <b>A.</b> Six, on another tab: FD3’s card. <b>B.</b> Five: every thing has its line and the head stays “New in your pack” (${pick9(4)}). <b>C.</b> Messy data: a long giver’s name in the head and in a line, a long thing’s name with ×999, coin at its cap, fourteen things; nothing is cut and nothing leaves the card. <b>A find that joins a stack she already carries</b> (River pearls ×2 onto her ×6; hard rule 4’s eighth exception): the card names what arrived and says the stack’s new count; the row’s tag sits on the whole stack.`,
+  `<div class="trio">${col9('<b>A.</b> Six, on another tab', elsewhere9(SIX, 6))}${col9('<b>B.</b> Five: all listed', elsewhere9(FIVE, 5))}${col9('<b>C.</b> Messy data', elsewhere9(MESSY, 14))}</div>`);
+
+const f8 = fr9(8, 'fd4-coin-only-tablet', `FD4 (K18, K19, K20, K21). ${NEW} <b>Coin only; a tablet.</b> As PK3 drew it (approved 2026-11-14): the card is headed <b>“New in your coin”</b>, the coin in the setting’s own words (pu-10), and it lands in the purse, not the lists. The coin line reads the new amounts at once and carries the “New” tag until Got it; no row has one. The count is 1. <b>Hidden means hidden:</b> a card that names coin reaches Wren’s player alone; the others’ log line says “coin” with no amount (K16b as built).`,
+  tab9({ n: 1, left: `${lists9('', 5)}${pfoot8('11 items', false)}`, right: `${COINCARD}${LOAD0}${coinLine8(COIN1, true)}${stashRow8('7 things')}` }));
+
+const f9 = fr9(9, 'fd4b-coin-only-phone', `FD4b (K18, K20, K21). ${NEW} <b>Coin only, at 375 px.</b> <b>A.</b> On the Pack tab (PK3’s second picture). <b>B.</b> Messy: two coins in one send are one line, in the setting’s order, as the coin line writes them, and count as one; a coin at its cap wraps. <b>C.</b> After Got it: the card, the tag and the count go together; the amounts stay.`,
+  `<div class="trio">${col9('<b>A.</b> On the Pack tab', ph9('Wren’s pack', `${COINCARD}${LOAD0}${coinLine8(COIN1, true)}${stashRow8('7 things')}${hands8}`, 'Pack', 1))}${col9('<b>B.</b> Two coins, the cap', ph9('Wren’s pack', `${card9('New in your coin', [['3 crowns, 999,999,999 herons', GMNOW]])}${LOAD0}${coinLine8('15 crowns, 999,999,999 herons, 4 bits', true)}${stashRow8('7 things')}`, 'Pack', 1))}${col9('<b>C.</b> After Got it', ph9('Wren’s pack', `${LOAD0}${coinLine8(COIN1)}${stashRow8('7 things')}${hands8}`, 'Pack', 0))}</div>`);
+
+const STRONG_LINE = '240 herons, two moon opals, four boat hooks and a hooded lantern, under a rotted sailcloth.';
+const STRONG = (sent) => hoard9('2. The Wreck', 'Strongbox', STRONG_LINE, `${hrow('240 herons', '', sent)}${hrow('Moon opals ×2', '', sent)}${hrow('Boat hooks ×4', '', sent)}${hrow('Hooded lantern', '', sent)}`, { sent });
+const PURSER = hoard9('5. The Purser’s Cabin', 'Sea chest', '200 hn. and a brass spyglass, under the bunk.', `${hrow('200 hn.', 'Printed “hn.” in the book: read as 200 herons.')}${hrow('Brass spyglass')}`);
+const f10 = fr9(10, 'fd5-the-gms-hoard-with-coin', `FD5 (K21’s screen). ${NEW} <b>Coin in a hoard: the GM’s sheet.</b> The hoard’s sheet is built and approved (page 30, HM2, 2026-11-20; PK5, ap-6); page 44’s TR1 (a proposal) is its newest drawing and is followed here. Drawn as cards alone; on a tablet the sheet stands where 44-7 puts it. <b>A.</b> Coin is a row like any other (pf-6), in the setting’s words: a tap sends the coin alone, “Send all” the whole hoard. <b>B.</b> <b>A coin the book prints oddly</b> (pk-11): the row keeps the book’s words as printed, and one quiet line under it says how they are read. The note’s words are the pack’s own, never reworded (K21 as built). <b>C.</b> After “Send all”, to Wren: each row says where it went with a tick and words, “Send all” is gone (HM5), and the toast has Undo. <b>What Wren’s player gets is FD5b.</b>`,
+  `<div class="trio hoards"><div><p class="lab"><b>A.</b> A hoard with coin and things</p>${STRONG('')}</div><div><p class="lab"><b>B.</b> A coin the book prints oddly</p>${PURSER}</div><div><p class="lab"><b>C.</b> Sent whole, to Wren</p>${STRONG('Sent to Wren.')}<div class="phone bit" style="border:0;background:transparent;margin-top:var(--space-3);overflow:visible"><div class="thost" style="position:static"><div class="tz9 und" role="status"><span class="zt">Strongbox sent to Wren.</span><span class="zu" role="button">${gi('anticlockwise-rotation', 20)}Undo</span><span class="zbar" aria-hidden="true"></span></div></div></div></div></div>`);
+
+const f11 = fr9(11, 'fd5b-a-hoard-arrives-tablet', `FD5b (K18 to K21). ${NEW} <b>A hoard with coin and things arrives; a tablet.</b> The Strongbox, sent whole (FD5, C). <b>One card</b>, headed “New in your pack”: the coin first, with “In your coin.” (PK3’s first picture), then each thing under the name the GM’s row carries. <b>The count is 4.</b> The three things are first under “Carried” with their tags; the coin line has its own. The Hooded lantern is a magic item sent before it is shown: it arrives like any other thing (FD6). <b>The card names no place and no hoard:</b> the players’ line carries none (K16b as built).`,
+  tab9({ n: 4, left: `${lists9(HOARD_ROWS, 8)}${pfoot8('14 items', false)}`, right: `${HOARDCARD}${LOAD6}${coinLine8(COIN1, true)}${stashRow8('7 things')}` }));
+
+const f12 = fr9(12, 'fd5c-a-hoard-arrives-phone', `FD5c (K18, K21). ${NEW} <b>A hoard arrives, at 375 px.</b> <b>A.</b> As PK2 and PK3 write a card: every line says who and when. <b>B.</b> ${pick9(6)} <b>Not drawn elsewhere, for his eye:</b> when every line has the same giver and time, the card says it once under its head. Shorter and calmer; my lean. A is the approved pattern. <b>C.</b> The oddly printed coin on the player’s side: the card says “200 herons”, the setting’s words, with no note (K21 as built: the book’s words and the note are the GM’s row’s).`,
+  `<div class="trio">${col9('<b>A.</b> Each line says who and when', elsewhere9(HOARDCARD, 4))}${col9('<b>B.</b> Said once (my lean)', elsewhere9(card9('New in your pack', [['240 herons', 'In your coin.'], ['Moon opals ×2'], ['Boat hooks ×4'], ['Hooded lantern']], { once: GMNOW }), 4))}${col9('<b>C.</b> The sea chest’s coin, as Wren’s player reads it', elsewhere9(card9('New in your pack', [['200 herons', `${GMNOW} In your coin.`], ['Brass spyglass', GMNOW]]), 2))}</div>`);
+
+const f13 = fr9(13, 'fd6-an-unidentified-thing-tablet', `FD6 (K18, K20, with K22). ${NEW} <b>An unidentified thing; a tablet.</b> The Bronze ring is really the Ring of the Drowned Bell. <b>On the card and on the row it is “Bronze ring”</b>, what it appears as (k22-3), exactly like a thing with nothing hidden: nothing on either says there is more to learn, and its true name, bonus and curse are not on Sam’s device (hard rule 5). <b>A tap on the row</b> opens its pop-up, centred (ap-7), as page 33’s K22h draws it before anything is told: its look, then “What you notice”. ${pick9(8)} <b>Reading it does not clear “New”:</b> only Got it does, so the card, the count and the tag are still there behind the pop-up.`,
+  tab9({ n: 1, h: 620, left: `${lists9(RING, 6)}${pfoot8('12 items', false)}`, right: `${ONE}${LOAD1}${coinLine8(COIN0)}${stashRow8('7 things')}`, over: popUp('Bronze ring', RING_BODY) }));
+
+const NOTICED = card9('New in your pack', [['Bronze ring', GMNOW, '<div class="bk"><p class="ln"><span class="lb">What you notice.</span>Cold to the touch, even by the fire.</p></div>']]);
+const f14 = fr9(14, 'fd6b-an-unidentified-thing-phone', `FD6b (K18, K20, with K22). ${NEW} <b>An unidentified thing, at 375 px.</b> ${pick9(7)} <b>A (my lean): the card names it and no more</b>, as it does for any thing; the look and “What you notice” are on its sheet. <b>B: the card carries “What you notice”</b> as the book’s labelled line, where the item has one. B saves a tap and suits a find read aloud; A keeps every card the same shape, and a card of four things short. <b>C.</b> The row’s sheet from the foot, as HM4 and K22h draw it. If the GM later tells its true name, the row and the sheet change and the log gains its line; no new card (k22-7: “the player gets no pop-up”).`,
+  `<div class="trio">${col9('<b>A.</b> The name alone (my lean)', elsewhere9(ONE, 1))}${col9('<b>B.</b> With what you notice', elsewhere9(NOTICED, 1))}${col9('<b>C.</b> The row’s sheet', ph9('Wren’s pack', `${ONE}${gh(true, 'Carried', '6 items')}${RING}${carr9()}`, 'Pack', 1, { h: 600, over: sheetUp('Bronze ring', RING_BODY) }))}</div>`);
+
+const railBox = (on, n) => `<div class="railbox bit">${rail9(on, n)}<span></span></div>`;
+const barBox = (on, n) => `<div class="barbox bit">${tabsOn(on, n)}</div>`;
+const f15 = fr9(15, 'fd7-the-count-on-the-packs-icon', `FD7 (K19). ${NEW} <b>The count on the Pack’s icon, alone.</b> A number in a filled mark at the icon’s upper right, the ink on the page’s colour (PK2’s mark, approved): 20 px tall, 14 px bold, as wide as its number. It is not a target of its own: the 44 px icon is. Read aloud with its tab: “Pack, 12 new”. <b>It counts things, not units:</b> a stack is one, a send’s coin is one (PK3). <b>With nothing new there is no mark</b>, never a “0”. ${pick9(9)} <b>Past 99 it reads “99+”</b> (not drawn before; the card and the Pack still say the true number). It shows the same on the tab she is on and on the others. Number alone, no colour: nothing here rests on hue.`,
+  `<p class="lab" style="max-width:none">The rail on a tablet: none, 1 on the Pack tab, 1 from another tab, 12, 99+.</p><div class="cnt9">${railBox('Pack', 0)}${railBox('Pack', 1)}${railBox('Player', 1)}${railBox('Player', 12)}${railBox('Scene', '99+')}</div><p class="lab" style="max-width:none;margin-top:var(--space-4)">The tab bar at 375 px: none, 1, 12 on the Pack tab, 12 from another tab, 99+.</p><div class="cnt9">${barBox('Pack', 0)}${barBox('Player', 1)}${barBox('Pack', 12)}</div><div class="cnt9" style="margin-top:var(--space-3)">${barBox('Scene', 12)}${barBox('Log', '99+')}</div>`);
+
+const AFTER_ROWS = [['Boat hooks', { q: 4, w: 4 }], ['Bog sling', { w: 5 }], ['Bronze ring', { w: 1 }], ['Coil of reed rope', { w: 50 }], ['Glow wand', { w: 10 }], ['Hooded lantern', { w: 20 }], ['Moon opals', { q: 2, w: 2 }], ['Reed basket', { w: 20 }], ['River pearls', { q: 6, w: 6 }], ['Silver key', { w: 0 }]].map(([n, x]) => row(true, n, x)).join('');
+const f16 = fr9(16, 'fd8-after-got-it-tablet', `FD8 (K20). ${NEW} <b>After Got it; a tablet.</b> FD3’s six, one tap later. <b>The card, the count and every tag go together</b>, and nothing else changes: the things and the coin were hers from the moment they arrived. “Add item” is the accent again. The right column closes up to the load. <b>Got it has no Undo and no toast</b> (pk-13: logged quietly, never undone); the things stay in the Pack and their lines in the Log. ${pick9(5)} <b>The rows take their place in the list’s own order</b> once the tag is gone; while New they stood first (FD3). <b>Mine, to check:</b> the order drawn is by name, as page 08’s lists read; the built list’s order was not read.`,
+  tab9({ left: `${hands8}${worn(true)}${basket(true)}${gh(true, 'Carried', '10 items')}${AFTER_ROWS}${tiny(true)}${pfoot8('16 items')}`, right: `${LOAD6}${coinLine8(COIN1)}${stashRow8('7 things')}` }));
+
+const f17 = fr9(17, 'fd8b-new-on-a-row-phone', `FD8b (K20). ${NEW} <b>“New” on a row, and after Got it, at 375 px</b> (the page scrolled to “Carried”). <b>A.</b> Before: a word in a 1.5 px box after the name, 14 px bold, the ink on the page; a stack’s count follows it. The tag is part of the row, not a target. A long name wraps and the tag stays with its last word. <b>B.</b> After: the same rows, no tag, in their own places. <b>C.</b> ${pick9(10)} <b>A new thing put away before Got it keeps its tag</b> where it now lies (here, in the reed basket), and stays on the card: “New” follows the thing, not the place. One she gives away or drops leaves the card and the count.`,
+  `<div class="trio">${col9('<b>A.</b> New, until Got it', ph9('Wren’s pack', `${gh(true, 'Carried', '10 items')}${SIX_ROWS}${rowNew('The Old Lantern of the Drowned and of the Nine Tides', { q: 999, w: 999 })}${carr9(['Glow wand', 'Reed basket', 'River pearls'])}`, 'Pack', 7, { h: 560 }))}${col9('<b>B.</b> After Got it', ph9('Wren’s pack', `${gh(true, 'Carried', '10 items')}${row(true, 'Boat hooks', { q: 4, w: 4 })}${row(true, 'Bog sling', { w: 5 })}${row(true, 'Bronze ring', { w: 1 })}${row(true, 'Coil of reed rope', { w: 50 })}${row(true, 'Hooded lantern', { w: 20 })}${row(true, 'Moon opals', { q: 2, w: 2 })}${row(true, 'Silver key', { w: 0 })}`, 'Pack', 0, { h: 560 }))}${col9('<b>C.</b> Put away while still New', ph9('Wren’s pack', `${gh(true, 'In the reed basket', '3 items', 'reed basket')}${rowNew('Bronze ring', { w: 1 })}${row(true, 'Dry rations', { q: 3, w: 60 })}${row(true, 'Eel hooks', { q: 12, w: 12 })}${gh(true, 'Carried', '5 items')}${carr9(['Reed basket', 'River pearls'])}`, 'Pack', 1, { h: 560 }))}</div>`);
+
+const WHY = `<div class="cardb why9" role="status"><p style="margin:0">You’re offline. Got it waits until you’re back. Your new things are in your pack all the same.</p></div>`;
+const f18 = fr9(18, 'fd9-offline-tablet', `FD9 (K18, K20). ${NEW} <b>Offline; a tablet.</b> The word “Offline” with the warning sign stands at the top (PK7b, approved). <b>What had arrived stays as it was:</b> the card, the count and the tags all read. ${pick9(11)} <b>“Got it” stays a button, and a tap explains</b> in a box under the card, as PK7b explains Take (#66’s ⚑ 7: a box, not a toast): the mark is the server’s time (pk-13), so it cannot be written offline. Nothing is disabled. <b>A find sent while she is offline does not arrive</b> until she is back (FD9b, C).`,
+  tab9({ n: 1, left: `${lists9(RING, 6)}${pfoot8('12 items', false)}`, right: `${offPill}${ONE}${WHY}${LOAD1}${coinLine8(COIN0)}${stashRow8('7 things, as last seen')}` }));
+
+const f19 = fr9(19, 'fd9b-offline-and-failures-phone', `FD9b (K18, K20). ${NEW} <b>Offline, back online, and a tap that fails, at 375 px.</b> <b>A.</b> Offline: the card as it was. <b>B.</b> A tap on “Got it” explains under the card; the button stays. <b>C.</b> Back online: what the GM sent meanwhile arrives now, with when it was sent, not “just now”. <b>D.</b> Online, but the tap did not reach the server: the error toast with its mark (tr-9), the card unchanged, so the tap can be made again. <b>Loading</b> is not drawn: until the Pack has loaded there is no card and no count, never a card that flashes and goes (PK7 draws the loading Pack).`,
+  `<div class="trio">${col9('<b>A.</b> Offline', ph9('Wren’s pack', `${offPill}${ONE}${LOAD1}${coinLine8(COIN0)}${stashRow8('7 things, as last seen')}`, 'Pack', 1))}${col9('<b>B.</b> A tap on Got it explains', ph9('Wren’s pack', `${offPill}${ONE}${WHY}${LOAD1}${coinLine8(COIN0)}`, 'Pack', 1))}${col9('<b>C.</b> Back online: sent while away', ph9('Wren’s pack', `${card9('New in your pack', [['Moon opals ×2', 'From your GM, today.'], ['Bronze ring', 'From your GM, today.']])}${LOAD1}${coinLine8(COIN0)}`, 'Pack', 2))}${col9('<b>D.</b> Got it did not save', ph9('Wren’s pack', `${ONE}${LOAD1}${coinLine8(COIN0)}${stashRow8('7 things')}${toast9('Couldn’t save that. Check your connection and try again.', { err: true })}`, 'Pack', 1, { pad: true, h: 520 }))}</div>`);
+
+const f20 = fr9(20, 'fd10-a-find-while-a-pop-up-is-open-tablet', `FD10 (K18, K19). ${NEW} <b>A find arrives while another pop-up is open; a tablet.</b> Sam has the Coil of reed rope’s pop-up open when the GM sends the ring. ${pick9(12)} <b>The find never covers, closes or moves a pop-up.</b> The card takes its place on the page behind, under the dim, and the count appears on the Pack’s icon; the pop-up and whatever is half typed in it are untouched. No toast: a toast would replace one still showing its Undo (tr-7). When the pop-up closes the screen is FD1. The same holds for every pop-up and sheet on every tab.`,
+  tab9({ n: 1, h: 620, left: `${lists9(RING, 6)}${pfoot8('12 items', false)}`, right: `${ONE}${LOAD1}${coinLine8(COIN0)}${stashRow8('7 things')}`, over: popUp('Coil of reed rope', ROPE_BODY) }));
+
+const TWO = card9('New in your pack', [['Moon opals ×2', GMNOW], ['Bronze ring', GMNOW]]);
+const f21 = fr9(21, 'fd10b-a-find-while-a-sheet-is-open-phone', `FD10b (K18, K19). ${NEW} <b>The same at 375 px, and a second find while the card shows.</b> <b>A.</b> A sheet is up from the foot: the card arrives behind it, dimmed; the sheet covers the tab bar, so the count is not seen until it closes. <b>B.</b> The sheet closed: the card is there, with the count. <b>C.</b> <b>Another find while the card shows</b> joins the same card as its first line (newest first) and the count goes up by one; the head changes only past five (${pick9(4)}). <b>Mine, to check:</b> the card arriving, or growing, pushes the page under it down. If she has scrolled, the build should hold her place rather than move what she is reading.`,
+  `<div class="trio">${col9('<b>A.</b> A sheet is open', ph9('Wren’s pack', `${ONE}${LOAD1}${coinLine8(COIN0)}${stashRow8('7 things')}${gh(true, 'Carried', '6 items')}${RING}${carr9(['Glow wand', 'Reed basket', 'River pearls'])}`, 'Pack', 1, { h: 600, over: sheetUp('Coil of reed rope', ROPE_BODY) }))}${col9('<b>B.</b> The sheet closed', ph9('Wren’s pack', `${ONE}${LOAD1}${coinLine8(COIN0)}${stashRow8('7 things')}${gh(true, 'Carried', '6 items')}${RING}${carr9(['Glow wand', 'Reed basket', 'River pearls'])}`, 'Pack', 1, { h: 600 }))}${col9('<b>C.</b> A second find joins the card', ph9('Wren’s pack', `${TWO}${LOAD1}${coinLine8(COIN0)}${stashRow8('7 things')}${gh(true, 'Carried', '7 items')}${rowNew('Moon opals', { q: 2, w: 2 })}${RING}${carr9(['Coil of reed rope', 'Glow wand', 'Reed basket', 'River pearls'])}`, 'Pack', 2, { h: 600 }))}</div>`);
+
+mount(`
+  <p class="headnote"><b>Page 45: the Pack tab’s find flow. A proposal of 2026-11-26. Nothing on this page is approved, and <code>impeccable critique</code> has not been run on it:</b> the page goes to Home Two for the critique, its findings are put beside the frames, and only then does it go to Francis, who picks findings by number. For rows K18 (the player’s find card), K19 (the count on the Pack’s icon), K20 (“New” until Got it) and K21’s screen (coin in a hoard and on the card) of <code>docs/plans/dec-6-the-whole-pack-tab.md</code>.</p>
+  <p class="note big"><b>What it stands on.</b> Rulings pk-1, pk-2, pk-5, pk-6, pk-11, pk-13, pf-6, pu-3, pu-5, pu-10, ls-3, k22-3, k22-7, tr-1 to tr-12. Page 08 of the Pack (<code>pack/08-the-pack-tab-whole.html</code>) already draws a find card, its count and its tags in frames <b>PK2, PK2b and PK3, approved on 2026-11-14 (ap-6)</b>, on a 1024 px tablet with a worded rail and on a phone, in light. This page keeps their card, tag and mark as drawn and adds what they do not show: the tablet at 1180 px with the rail as built, the dark theme, the card on another tab on a tablet, a hoard, an unidentified thing, the count at 12, offline, a failed tap, and a find while a pop-up is open. The finds are the ones the GM sends on page 44, frames 44-7 and 44-8 (pull request #102, itself a proposal).</p>
+  <p class="note big"><b>Reading it.</b> Each frame is drawn in light and in dark. A tablet is 1180 px; a phone is the 375 px screen (343 inside). Buttons are plain blocks. ${pick9('n')} marks a question for Francis; the table at the foot lists all twelve with my lean. “Mine, to check” marks a reading of mine that no ruling gives.</p>
+  <h1>One find, to me</h1>
+  ${f1}${f2}${f3}
+  <h1>One find, to the party stash</h1>
+  ${f4}${f5}
+  <h1>Several, merged</h1>
+  ${f6}${f7}
+  <h1>Coin only</h1>
+  ${f8}${f9}
+  <h1>A hoard with coin and things</h1>
+  ${f10}${f11}${f12}
+  <h1>An unidentified thing</h1>
+  ${f13}${f14}
+  <h1>The count on the Pack’s icon</h1>
+  ${f15}
+  <h1>“New” on a row, and after Got it</h1>
+  ${f16}${f17}
+  <h1>Offline</h1>
+  ${f18}${f19}
+  <h1>A find while another pop-up is open</h1>
+  ${f20}${f21}
+  <h1>The questions (⚑), with my lean</h1>
+  <table class="flags">
+    <tr><th>⚑</th><th>The question</th><th>Drawn as (my lean)</th><th>The other answer</th><th>Frame</th></tr>
+    <tr><td>1</td><td>Where does the card stand on a tablet, on a tab that is not the Pack?</td><td>At the head of the right column, on every tab, as on the Pack tab</td><td>Across the top of the page, above both columns</td><td>FD1b</td></tr>
+    <tr><td>2</td><td>On the Scene, does the find card share the prompt slot (one card at a time, p7-9) or stand above it?</td><td>Above it: a find is the player’s own and should not wait behind a rest or a light prompt. Two cards can then show</td><td>It takes its turn in the slot</td><td>FD1c, C</td></tr>
+    <tr><td>3</td><td>Is “Got it” the accent? PK2 (approved 14 Nov) makes it the accent and “Add item” plain; the call card’s “Got it” (page 40, approved 24 Nov) is plain</td><td>Drawn as PK2 has it. <b>My lean is the other answer</b></td><td>Plain on every tab, as the call card’s: “Add item” never gives up the accent, and no tab can show two</td><td>FD1, FD1c</td></tr>
+    <tr><td>4</td><td>When does the card stop listing every thing and count instead?</td><td>Up to five things: “New in your pack”, a line each. From six: the head counts and says from whom, four lines, “and N more”</td><td>PK2b’s words, “past four”: five things would read “and 1 more”</td><td>FD3, FD3b</td></tr>
+    <tr><td>5</td><td>The order: on the card, and of a new row in the list</td><td>Card: coin first, then newest first. List: new rows first under “Carried” (PK2), then in the list’s own order after Got it</td><td>New rows stay in the list’s order with only the tag</td><td>FD3, FD8</td></tr>
+    <tr><td>6</td><td>When every line of a card has the same giver and time, is it said once?</td><td>Drawn both ways. <b>My lean: once</b>, under the head</td><td>On every line, as PK2 and PK3 write it</td><td>FD5c, A and B</td></tr>
+    <tr><td>7</td><td>Does the card carry an unidentified thing’s “What you notice”?</td><td>No: the name alone; the look and the line are on its sheet</td><td>Yes, as the book’s labelled line under the name</td><td>FD6b, A and B</td></tr>
+    <tr><td>8</td><td>Does opening a new thing’s sheet clear its “New”?</td><td>No: only Got it does (one mark a character, pk-13)</td><td>Each thing clears as it is opened: a mark a thing, which is new data</td><td>FD6</td></tr>
+    <tr><td>9</td><td>The count past 99</td><td>“99+”</td><td>The true number, as wide as it needs</td><td>FD7</td></tr>
+    <tr><td>10</td><td>A new thing put in a container, given away or dropped before Got it</td><td>Put away: the tag follows it. Given or dropped: it leaves the card and the count</td><td>Moving it clears its tag</td><td>FD8b, C</td></tr>
+    <tr><td>11</td><td>Offline, what does “Got it” do?</td><td>It stays a button and a tap explains; the card stays until she is back</td><td>The card folds on this device at once and the mark is written later (needs a queue the app does not have)</td><td>FD9, FD9b</td></tr>
+    <tr><td>12</td><td>A find while a pop-up is open</td><td>The card arrives behind the pop-up; the count shows; no toast</td><td>A quiet toast over the pop-up, as the stash’s</td><td>FD10, FD10b</td></tr>
+  </table>
+  <h1>What the rulings leave unsettled (not drawn; for the plan)</h1>
+  <p class="note big"><b>1. What counts as “New”.</b> PK2 (approved) lists a thing another character gave beside the GM’s finds, so a gift counts. Not said anywhere: the GM’s “Give coin…”, another character’s coin, a thing the GM adds from the character’s own Add item. My reading: anything another person puts in the pack or the purse; never the player’s own act (Add item, Take, Buy it). K20’s function reads a row’s created time, so <b>a find that joins a stack she already carries is missed</b> (FD3b, C): the builder needs the find’s own line, not the row’s age. <b>2. “Just now”.</b> PK2 and PK3 write it; no ruling says when it becomes “today” (K14’s words). My reading: under an hour, read when the card is drawn; no ticking clock. <b>3. A player with two characters.</b> The card and the count belong to the character whose tabs are open; a find for the other shows when its screens are opened. Whether the card then names the character (“New in Wren’s pack”) is not ruled. <b>4. The GM’s view of a player’s Pack</b> (page 32, M3g): the tags show; whether the card does, with a “Got it” that is the player’s alone, is not ruled. My lean: tags and count, no card. <b>5. A card’s lines are not taps</b> as drawn: the Pack’s rows are. A tap on a line, or on “and 2 more”, opening the Pack is a later question. <b>6. A find Undone by the GM</b> (K16b’s Undo) before Got it: the line leaves the card and the count drops; with nothing left the card goes. Not drawn. <b>7. Larger text</b> is not drawn (the plan’s item 4: it can wait).</p>
+  <h1>Self-review</h1>
+  <p class="note big"><b>Checked, in the page</b> (measured in the browser that took the pictures, WebKit). <b>Type:</b> nothing under 14 px. <b>Targets:</b> every control drawn was measured: “Got it”, “Add item”, “Send all”, each rail icon, each tab, every row, the “About” mark and the pop-up’s ✕ and star are 44 px or more each way; 8 px or more between separate controls (rows of one list and tabs of one bar touch, as they do everywhere). The count and the “New” tag are not targets. <b>One accent a screen:</b> “Got it” while a card shows (with “Add item” plain), “Add item” otherwise, “Send all” on the GM’s sheet; none in a pop-up drawn here. On the Scene with a call card there is still one, because the call card’s button is plain (⚑ 3). <b>No disabled button:</b> offline, “Got it” stays and explains. <b>Undo over confirm:</b> no dialog anywhere; the GM’s send keeps its Undo; Got it is not undone by ruling (pk-13) and loses nothing. <b>Colour alone:</b> nothing; “New” is a word in a box, the count a number, offline and the error each a sign with words. <b>Contrast:</b> every text pair measured in both themes; the lowest is 5.3 to 1, the book’s label colour (a labelled line’s label on a pop-up in light, 5.35; a pop-up’s heading in dark, 5.26). The card’s heading is 9.8 in light and 9.0 in dark; its quiet lines 7.1 and 7.5; “Got it” 10.4 and 6.4; the count and the “New” tag 17.1 and 15.9. Words under a dim were measured without the dim: they are not there to be read. <b>Messy data:</b> a long thing’s name, a long giver’s name, ×999, coin at 999,999,999, fourteen things, nought (no mark, never “0”). <b>States:</b> none, one, several, overflow, offline, a failed save, a pop-up open; loading is said in words and not drawn; an empty Pack with a card is FD4’s case in all but its lists.</p>
+  <p class="note big"><b>Not checked.</b> Larger text. The built app: none of this exists on a screen; page 44’s send, which these cards answer, is itself a proposal, and the toasts’ and log’s words for a find were taken from K16b’s notes, not read in code. Motion: how the card arrives. A screen reader: the card is a status region and the icon’s label says the count, as drawn in the markup, but nothing was listened to. The tablet held upright (820 px). <b>Costs build time beyond the rows’ words:</b> the card on every tab’s right column on a tablet (⚑ 1); a find that joins a stack (the “New” function needs the find’s line); holding the reader’s place when the card arrives.</p>
+  <p class="note big"><b>The stylesheet.</b> Type, the book format, the stacked button, the card, a sheet’s head and the pop-up are <code>../shared/book.css</code>’s, not restated. The toast is drawn to page 43’s ruled frame (43H) in this page’s own rules, because the shared file still carries the toast as it was before tr-1. The helper file page 08 loads for its frames (<code>creation/final/sweep.js</code>) is not on <code>main</code>, so this page carries the three small helpers it needs.</p>
+`);
+applyBook();
+</script>
+</body>
+</html>
