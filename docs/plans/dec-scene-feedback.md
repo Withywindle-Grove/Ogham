@@ -197,7 +197,7 @@ Waits for A3.
 |---|---|---|
 | Loading | The roll's pop-up (EN7 D); the Depart list keeps page 24's two skeleton rows | A share, a send, a save: as built |
 | Offline | A row picked and a reveal that waits (EN7 B) | A share, a find's send and a save offline: as built (the app's pill and its sheet) |
-| Error | A reveal's send that fails (EN7 C) | The others use the built error toast |
+| Error | A reveal's send that fails (EN7 C). It is the Toast part's error form as page 43 rules it (tr-8 to tr-22: the ✕ on a disc, its own seconds, at most about 20 words; N5's words are 12). Page 44 draws it without the mark: the part's own look wins | The others use the built error toast |
 | Empty | "Nothing waits."; Knowledge with nothing; a search with nothing; "Show players" with nothing written | — |
 | Overflow and messy | A row of forty words in the reveal's box; a table taller than the screen; a d100 table; a long name in a pop-up's head; a pack of 212; thirteen places; 999 turns | A row that names three or more creatures: one detail row each, not drawn |
 | Larger text | Not drawn, by 06's rule: the layout checks run it once built | |
