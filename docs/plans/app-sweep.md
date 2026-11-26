@@ -65,6 +65,7 @@ Rulings files are in `docs/design/rulings/`. 09 is `docs/09-decisions-log.md`.
 | Q-8 | The right-hand panel for sheets: frame 7 draws it; it is "one later change to the shared sheet for every sheet (the sweep)" | `docs/plans/dec-7-5-place-page-and-map.md` (Shape) | frame 7 of that plan's page, in the December set; not ruled as built | ⚑ 11 |
 | Q-9 | The players' Scene on a phone: shown pieces not folded for 5 December, "for the sweep" | `docs/plans/dec-9-the-players-scene.md` P11, p2p-24 | none yet (no whole-page frame) | ⚑ 12 |
 | Q-10 | Whether the Player screen's redesign and the restyle are one pass (built once) | `docs/intents/2026-11-14-player-screen-redesign.md` (po-2); the screen went live 2026-11-19 (09) | P1, P2 approved 2026-11-14 | the screen is done; ⚑ 13 |
+| Q-11 | A find's log lines drop the article: "Your GM gave Wren Bronze ring." for "gave Wren the Bronze ring"; likewise "took back" and the stash's line (K16b's lines as built, `src/core/events.ts`) | `page-45-find-flow-2026-11-26.md` p45-18: Francis picked the critique's finding 5 for the words sweep; it is not built with K18 to K21 | page 45, FD1c D and FD11 D, which draw the lines as built | owed; the words to be proposed in the sweep |
 
 ### Found in the repo, not in the driver's notes
 | # | What | Where | Mockup | State |

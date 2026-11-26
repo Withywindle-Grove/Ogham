@@ -441,6 +441,12 @@ line('line-arrows', wren, 'Reed arrows', { weight_coin: 1, qty: 18, stack: 20 })
 line('line-chalk', wren, 'Chalk');
 line('line-wand', wren, 'Glow wand', { category: 'magic-wand', weight_coin: 10 });
 line('line-ewer', null, 'Silver ewer', { weight_coin: 30 });
+// Take from the stash (K12, PK4b), only with ?stash=1: a stack of 999 with a long name (the "Take" sheet), and a heavy
+// chest that puts Wren over the limit (the toast's warning).
+if (new URLSearchParams(window.location.search).get('stash') === '1') {
+  line('line-beads', null, 'Glass trade beads from the drowned market at the edge of the long fen', { weight_coin: 0, qty: 999, stack: 999 });
+  line('line-chest', null, 'Iron-bound reed chest', { weight_coin: 5000 });
+}
 // The full sheet's Combat tiles (sheet plan order 4), only with ?combat=1: a long shield beside the coat, so AC's
 // caption has two parts ("Quilted coat · Barge-plank tower shield") that can't share a line in a phone's tile, and
 // Wren at level 3 with XP for Level's caption.
@@ -479,6 +485,11 @@ if (coinFlag) {
         ];
   const coins = coinFlag === 'messy' ? { moon: 2, heron: 999, reed: 120, penny: 7, token: 3 } : { crown: 12, heron: 30 };
   world.tables.purses.push({ id: 'purse-wren', campaign_id: campaign, actor_id: wren, location_id: null, coins, version: 1 });
+  // The stash's coin (K13, PC6), with ?stash=1 as well: 40 herons and 12 bits (messy: 999 of one long-named coin).
+  if (new URLSearchParams(window.location.search).get('stash') === '1') {
+    const stashCoins = coinFlag === 'messy' ? { moon: 1, heron: 999, token: 12 } : { heron: 40, bit: 12 };
+    world.tables.purses.push({ id: 'purse-stash', campaign_id: campaign, actor_id: null, location_id: `location-stash-${campaign}`, coins: stashCoins, version: 1 });
+  }
 }
 void ash;
 // A light (M5 step 7, invented): River Rules' rushlight, used up when it burns out, and four of them in Wren's pack,
