@@ -2,7 +2,8 @@
 // 2026-11-21): the GM's form for an unidentified item's "Appears as" and "What you notice", each starting from the line's
 // words, either may be emptied, a quiet line under each saying what an empty one gives. Save runs inventory.editLook at
 // once with its toast and Undo; Save with nothing changed closes and says nothing. Opened from inside the item's sheet:
-// its own form, the Sheet, centred on a tablet and from the foot on a phone (K22b, K22i).
+// its own form, the Sheet, centred on a tablet and from the foot on a phone (K22b, K22i), with a toast placed above it
+// (ToastHost, `data-toast-above`).
 import { useId, useState, type FormEvent } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
@@ -75,7 +76,9 @@ export function WhatPlayersSee({
     <SheetScope.Provider value>
       <CentredPopUpScope.Provider value>
         <Dialog label="What players see" onClose={onClose}>
-          <form className="what-players-see" onSubmit={save}>
+          {/* A toast still up when the form opens sits above it on a phone, as over the Reveal pop-up (ToastHost), so it
+              never lands on a field (Home Two's audit of #50, finding 3). */}
+          <form className="what-players-see" onSubmit={save} data-toast-above>
             <div className="field">
               <label className="label" htmlFor={`${id}-appears`}>
                 Appears as

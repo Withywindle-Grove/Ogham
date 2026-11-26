@@ -258,7 +258,7 @@ describe('K22c: "Edit what players see…" and its form', () => {
 
   // Purpose: a toast still up when the form opens sits above the form on a phone, as over the Reveal pop-up, so it
   // never lands on a field (Home Two's audit of #50, finding 3).
-  it.fails('the form asks the toast to sit above it', async () => {
+  it('the form asks the toast to sit above it', async () => {
     const user = await openInView();
     await user.click(await screen.findByRole('button', { name: /^Bronze ring/ }));
     await user.click(screen.getByRole('button', { name: 'Edit what players see…' }));

@@ -200,7 +200,7 @@ for (const scheme of ['light', 'dark'] as const) {
     expect(await layoutProblems(page)).toEqual([]);
   });
 
-  test.fails(`a toast still up when "What players see" opens sits above the form, off its fields (phone, ${scheme})`, async ({ page }) => {
+  test(`a toast still up when "What players see" opens sits above the form, off its fields (phone, ${scheme})`, async ({ page }) => {
     await openInView(page, 375, 812, scheme);
     await page.getByRole('button', { name: /^Bronze ring/ }).click();
     const sheet = page.getByRole('region', { name: 'Bronze ring' });
