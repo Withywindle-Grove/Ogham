@@ -12,7 +12,7 @@ import { missingWords } from '../modules/expedition/rowLinks.ts';
 import { rowCountShown, type ReadTable, type TableRow } from '../modules/expedition/tables.ts';
 import { Dialog } from '../ui/Dialog.tsx';
 import type { StatBlockShown } from '../modules/library/statBlockLayout.ts';
-import { BookDetailRow, type BookDetail } from './BookDetail.tsx';
+import { BookDetailRow, countedName, type BookDetail } from './BookDetail.tsx';
 import { Chip, StackedButton, StackedGroup } from '../ui/parts.tsx';
 import './SceneExplore.css';
 import { useWaitingAccentItem, useWaitingSource, type WaitingSourceItem } from './sceneWaiting.tsx';
@@ -283,7 +283,7 @@ export function CreatureRows({ blocks }: { blocks: CreatureLine[] }) {
       {blocks.map((block, i) => (
         <li key={i}>
           {block.missing !== undefined ? (
-            <span className="book-detail__missing">{`${missingWords([block.missing])}${block.count ? `, ${block.count}` : ''}`}</span>
+            <span className="book-detail__missing">{countedName(missingWords([block.missing]), block.count)}</span>
           ) : (
             <BookDetailRow detail={creatureDetail(block)} />
           )}

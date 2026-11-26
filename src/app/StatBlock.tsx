@@ -16,8 +16,8 @@ import './StatBlock.css';
 /** The class a stat block's name takes (Bitter at 700), wherever its heading is. */
 export const STAT_BLOCK_NAME = 'stat-block__name';
 
-// "1d6", "2d8", "d20", and "2 in 6": a die the app draws gets its glyph before it; one it has none for (d3) none. An
-// average after it ("2d8 (9)") stays with it on its line (finding 12, page 44).
+// "1d6", "2d8", "d20", and "2 in 6": a die the app draws gets its glyph before it; one it has none for (d3) none. Either
+// way an average after it ("2d8 (9)", "1d3 (2)") stays with it on its line (finding 12, page 44; #111's review).
 const DIE = /(\b\d*d(\d+)\b(?: \(\d+\))?|\b\d+ in (\d+)\b)/g;
 
 /**
@@ -29,11 +29,10 @@ export function WordsWithDice({ text }: { text: string }) {
   let at = 0;
   for (const match of text.matchAll(DIE)) {
     const size = Number(match[2] ?? match[3]);
-    if (!isDieSize(size)) continue;
     if (match.index > at) out.push(text.slice(at, match.index));
     out.push(
       <span key={match.index} className="stat-block__die">
-        <DieGlyph die={size} size={16} />
+        {isDieSize(size) && <DieGlyph die={size} size={16} />}
         {match[0]}
       </span>,
     );

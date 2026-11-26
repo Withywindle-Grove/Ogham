@@ -2103,6 +2103,8 @@ export function SceneTime({
   async function rollRow(line: CardLine, tap: TableTap) {
     if (!line.check || rollingRow.current) return;
     rollingRow.current = true;
+    // The pop-up closes on the tap, before the commands are saved (sf-5: the tap is the answer, at once).
+    setRollingKey(null);
     try {
       const command = line.check.now ? recordCheckNow : line.check.again ? recordCheckAgain : recordCheck;
       const result = await act(command, {
@@ -2112,7 +2114,6 @@ export function SceneTime({
       if (!result) return;
       if (hitQueuesEncounter(line.check, reminders)) await act(queueEncounter, { campaignId: campaign.id, result });
       const saved = await act(setCheckRoll, { campaignId: campaign.id, result, tableId: tap.table.id, roll: tap.roll, rowText: tap.rowText });
-      setRollingKey(null);
       setCard((c) => takeOne(c, line.key));
       setRecorded((m) => new Map(m).set(line.key, saved ? `Rolled: ${tap.rowText}` : 'Rolled'));
       setHit({ line, result: saved ?? result });

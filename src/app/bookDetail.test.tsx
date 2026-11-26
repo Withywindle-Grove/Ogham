@@ -12,6 +12,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { layOutStatBlock } from '../modules/library/statBlockLayout.ts';
 import { BookDetailPopUp, BookDetailRow, countedName, NO_STAT_LINE, type BookDetail } from './BookDetail.tsx';
 import { CreatureRows } from './EncounterWaiting.tsx';
+import { WordsWithDice } from './StatBlock.tsx';
 
 afterEach(cleanup);
 
@@ -64,8 +65,17 @@ describe('the detail row (sf-6a)', () => {
   // row to tap.
   it('a creature the packs don’t have says so by name, and is no button', () => {
     render(<CreatureRows blocks={[{ ...lurker, description: null, count: '2' }, { missing: 'fen-rules:salt-hag', count: '1' }]} />);
-    expect(screen.getByText('Not in your packs: Salt hag (fen-rules), 1')).toBeTruthy();
+    expect(screen.getByText('Not in your packs: Salt hag (fen-rules) ×1')).toBeTruthy();
     expect(screen.getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual(['Bog lurker: read it']);
+  });
+
+  // Purpose (#111's review, finding 3): a creature the packs don't have reads its count as its neighbours do, "×2" for a
+  // fixed count and ", 1d4" for dice, so the list reads one way.
+  it('a creature the packs don’t have reads its count as a detail row does', () => {
+    render(<CreatureRows blocks={[{ missing: 'fen-rules:salt-hag', count: '2' }, { missing: 'fen-rules:reed-hag', count: '1d4' }, { missing: 'fen-rules:mire-cat', count: null }]} />);
+    expect(screen.getByText('Not in your packs: Salt hag (fen-rules) ×2')).toBeTruthy();
+    expect(screen.getByText('Not in your packs: Reed hag (fen-rules), 1d4')).toBeTruthy();
+    expect(screen.getByText('Not in your packs: Mire cat (fen-rules)')).toBeTruthy();
   });
 
   // Purpose: an item's row shows its rule's words, not a stat line.
@@ -94,6 +104,17 @@ describe('the detail pop-up (sf-6a)', () => {
     const popUp = screen.getByRole('dialog', { name: 'Bog lurker' });
     expect(popUp.querySelector('.source-line')!.textContent).toBe('From your setting: Fen Rules, p.\u00a031');
     expect(popUp.querySelector('.stat-block__die')!.textContent).toBe('2d8 (9)');
+  });
+
+  // Purpose (#111's review, finding 4): a die the app has no glyph for (a d3) still keeps its average on its line, in the
+  // same no-break span as a die with a glyph, with no glyph drawn.
+  it('keeps a die with no glyph whole with its average, with no glyph', () => {
+    const { container } = render(<WordsWithDice text="Bites 1d3 (2), then 2d8 (9)" />);
+    const dice = [...container.querySelectorAll('.stat-block__die')];
+    expect(dice.map((die) => die.textContent)).toEqual(['1d3 (2)', '2d8 (9)']);
+    expect(dice[0]!.querySelector('.die-glyph')).toBeNull();
+    expect(dice[1]!.querySelector('.die-glyph')).not.toBeNull();
+    expect(container.textContent).toBe('Bites 1d3 (2), then 2d8 (9)');
   });
 
   // Purpose (EN3 B): a named character shows their own words, then the block they use under its name.

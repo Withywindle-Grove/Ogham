@@ -225,6 +225,51 @@ describe('the feeders of Waiting for you (S8b)', () => {
     expect(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' })).toBeTruthy();
   });
 
+  // Purpose (#111's review, finding 2): a tapped row closes the pop-up on the tap, before its commands are saved, and
+  // it stays closed when check.record saves nothing.
+  it('a roll on its table: the pop-up closes on the tap, before the commands finish, and when nothing is saved', async () => {
+    const t = await table({ rollOnTable: true });
+    scene(t);
+    const user = userEvent.setup();
+    await nextTurn(user, 2);
+    const real = world.db.rpc.bind(world.db) as (name: string, args: unknown) => { setHeader(name: string, value: string): unknown; then: PromiseLike<unknown>['then'] };
+    let release = () => {};
+    const gate = new Promise<void>((done) => (release = done));
+    let fail = false;
+    const held = vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: unknown) => {
+      if (name !== 'record_check') return real(name, args);
+      const call = real(name, args);
+      const answer = fail ? Promise.resolve({ data: null, error: { message: 'The check could not be saved.' } }) : gate.then(() => call);
+      const wrapped = {
+        setHeader(header: string, value: string) {
+          call.setHeader(header, value);
+          return wrapped;
+        },
+        then: (onDone?: (value: unknown) => unknown, onFail?: (reason: unknown) => unknown) => answer.then(onDone, onFail),
+      };
+      return wrapped;
+    }) as never);
+    await user.click(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' }));
+    let pop = within(await screen.findByRole('dialog', { name: 'Encounters in the harbour' }));
+    await user.click(pop.getByRole('radio', { name: /Gulls, mobbing the boat/ }));
+    expect(screen.queryByRole('dialog', { name: 'Encounters in the harbour' })).toBeNull();
+    expect(world.tables.events.some((e) => e.type === 'check.record' || e.type === 'check.setRoll')).toBe(false);
+    release();
+    await waitFor(() => expect(world.tables.events.some((e) => e.type === 'check.setRoll')).toBe(true));
+    expect(await screen.findByText(/^11–20: Gulls, mobbing the boat/)).toBeTruthy();
+    // Undone, the check waits again; this time check.record saves nothing, and the pop-up still closes on the tap.
+    await user.click((await screen.findAllByRole('button', { name: 'Undo' })).at(-1)!);
+    await waitFor(() => expect(world.tables.events.filter((e) => e.type === 'event.undo').length).toBeGreaterThanOrEqual(2));
+    fail = true;
+    await user.click(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' }));
+    pop = within(await screen.findByRole('dialog', { name: 'Encounters in the harbour' }));
+    await user.click(pop.getByRole('radio', { name: /Gulls, mobbing the boat/ }));
+    expect(screen.queryByRole('dialog', { name: 'Encounters in the harbour' })).toBeNull();
+    expect(await screen.findByText('The check could not be saved.')).toBeTruthy();
+    expect(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' })).toBeTruthy();
+    held.mockRestore();
+  });
+
   // Purpose (#1086's review, finding 1): a check's table opened in its pop-up closes when its line leaves the card
   // unanswered (here the move is undone), so the next time that check comes due its card opens on Roll… again, not
   // straight onto the table (the line's key is the same each period).
