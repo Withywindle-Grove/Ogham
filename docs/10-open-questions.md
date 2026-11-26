@@ -101,3 +101,6 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 - A status that changes saves (a blessing's +1 for some turns), a save set by hand, and creation's review: each stays as built until it has its own frame. The fight's save prompt is ◈ CS-3, above.
 - The shapes of the two pack-format flags (G-220, G-221) and a condition's short word (G-222): designed with the Pack Creator (`11`); the plan's row 8 is held until then.
 - At the 5 December session: look at the 12 px line at the real table, at arm's length on a tablet lying flat. Nothing to build.
+
+**Wide PC screens** (2026-11-26, clo-21, `design/rulings/dec-creation-leftovers-2026-11-21.md`)
+- ⚑ Creation's two-column steps and review stretch to 1,440 px (`--page-max-wide`), then stay centred; text in a column stops at `--reading-width`. Do other screens (the Player tab, the GM's screens, the Scene) take the same cap? For a later design sitting. (`plans/creation-leftovers-2026-11-21.md`)
