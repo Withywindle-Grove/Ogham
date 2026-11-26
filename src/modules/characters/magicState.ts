@@ -54,6 +54,15 @@ export function nextReady(play: Pick<CharacterPlay, 'prepared' | 'chosen'>): Pre
   return play.chosen ?? play.prepared;
 }
 
+/**
+ * Whether the character's first spells are open (fsr-1, fsr-7): never rested (nor set by the GM by hand) and nothing
+ * cast today. While open, a choice in Prepare is ready at once. Never stored: a cast closes them and its Undo opens
+ * them again with no write of its own. The one place the rule is written.
+ */
+export function firstSpellsOpen(play: Pick<CharacterPlay, 'restedOnce' | 'spellsCast'>): boolean {
+  return !play.restedOnce && !Object.values(play.spellsCast).some((n) => n > 0);
+}
+
 /** The spells after a rest that brings magic back (piece D): the chosen set ready, nothing chosen anew, no casts. */
 export function afterRest(play: Pick<CharacterPlay, 'prepared' | 'chosen'>): Pick<CharacterPlay, 'prepared' | 'chosen' | 'spellsCast'> {
   return { prepared: [...nextReady(play)], chosen: null, spellsCast: {} };
@@ -77,8 +86,10 @@ function listProblem(list: PreparedSpell[]): string | null {
 
 /**
  * Choose the spells for the next rest (mp-1, mp-2; the simple log). Open at any time, for the owner and the GM; it
- * never touches what is ready today. `chosen` null clears a choice (the next rest brings back today's); Undo is this
- * command again with the list before. A list that doesn't fit the slots is refused (Prepare's "Level 1 is full").
+ * never touches what is ready today, except while the first spells are open (fsr-1): then a list given becomes what
+ * is ready, at once, and nothing is left chosen. `chosen` null clears a choice (the next rest brings back today's);
+ * Undo is this command again with the list before. A list that doesn't fit the slots is refused (Prepare's "Level 1
+ * is full"), open or not.
  */
 export const chooseSpells = defineCommand({
   name: 'character.chooseSpells',
@@ -90,10 +101,15 @@ export const chooseSpells = defineCommand({
       const problem = listProblem(input.chosen) ?? preparedProblem(input.chosen, input.slots);
       if (problem) return failed(problem);
     }
+    // Read first: open or not decides where the list goes (a missing row reads as open).
+    const found = await db.from('character_play').select('spells_cast, rested_once').eq('actor_id', input.character.id).maybeSingle();
+    if (found.error) return fromError(found.error);
+    const atOnce = input.chosen !== null && firstSpellsOpen(readPlay(found.data));
+    const change = atOnce ? { prepared: input.chosen as unknown as Json, chosen: null } : { chosen: input.chosen as unknown as Json };
     const saved = fromWrite(
       await db
         .from('character_play')
-        .upsert({ actor_id: input.character.id, campaign_id: input.character.campaignId, chosen: input.chosen as unknown as Json })
+        .upsert({ actor_id: input.character.id, campaign_id: input.character.campaignId, ...change })
         .select('actor_id'),
     );
     return saved.ok ? ok(input.chosen) : saved;

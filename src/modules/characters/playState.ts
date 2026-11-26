@@ -50,9 +50,14 @@ export interface CharacterPlay {
   chosen: PreparedSpell[] | null;
   /** Castings spent today by `castKey(level, spell)`; may run over a ready list that has since shrunk (read with `readySpells`). */
   spellsCast: Record<string, number>;
+  /**
+   * Whether the character has had its first rest, or the GM has set its spells by hand (fsr-4, fsr-5; `rested_once`).
+   * False with no row yet: until then, and while nothing is cast, a choice is ready at once (`firstSpellsOpen`).
+   */
+  restedOnce: boolean;
 }
 
-const EMPTY: CharacterPlay = { pins: [], prepared: [], usesSpent: {}, acOverride: null, formId: null, chosen: null, spellsCast: {} };
+const EMPTY: CharacterPlay = { pins: [], prepared: [], usesSpent: {}, acOverride: null, formId: null, chosen: null, spellsCast: {}, restedOnce: false };
 
 /** The most an AC set by hand may be, either way (the database checks the same). */
 export const AC_LIMIT = 999;
@@ -103,7 +108,7 @@ function readCounts(value: unknown): Record<string, number> {
 }
 
 export function readPlay(
-  row: { pins?: unknown; prepared?: unknown; uses_spent?: unknown; ac_override?: unknown; form_id?: unknown; chosen?: unknown; spells_cast?: unknown } | null | undefined,
+  row: { pins?: unknown; prepared?: unknown; uses_spent?: unknown; ac_override?: unknown; form_id?: unknown; chosen?: unknown; spells_cast?: unknown; rested_once?: unknown } | null | undefined,
 ): CharacterPlay {
   if (!row) return EMPTY;
   const prepared = readSpellList(row.prepared);
@@ -111,12 +116,15 @@ export function readPlay(
   const acOverride = Number.isInteger(row.ac_override) ? (row.ac_override as number) : null;
   const formId = typeof row.form_id === 'string' && row.form_id.trim() ? row.form_id : null;
   const chosen = Array.isArray(row.chosen) ? readSpellList(row.chosen) : null;
-  return { pins: readPins(row.pins), prepared, usesSpent, acOverride, formId, chosen, spellsCast: readCounts(row.spells_cast) };
+  // A row always has the column; one read without it (a select that left it out) counts as rested, as every row made
+  // before the column did (fsr-13), so only a row that says so, or no row at all, reads as open.
+  const restedOnce = row.rested_once !== false;
+  return { pins: readPins(row.pins), prepared, usesSpent, acOverride, formId, chosen, spellsCast: readCounts(row.spells_cast), restedOnce };
 }
 
 /** Null if it couldn't be loaded; nothing prepared or spent yet reads as empty. */
 export async function loadCharacterPlay(db: Db, characterId: string): Promise<CharacterPlay | null> {
-  const found = await db.from('character_play').select('pins, prepared, uses_spent, ac_override, form_id, chosen, spells_cast').eq('actor_id', characterId).maybeSingle();
+  const found = await db.from('character_play').select('pins, prepared, uses_spent, ac_override, form_id, chosen, spells_cast, rested_once').eq('actor_id', characterId).maybeSingle();
   return found.error ? null : readPlay(found.data);
 }
 

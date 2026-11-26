@@ -1779,6 +1779,8 @@ describe('invites', () => {
     );
     const wren = world.addCharacter(campaign, 'Wren', { ownerId: me });
     Object.assign(world.tables.actors.find((a) => a.id === wren)!, { level: 1, hp_current: 6, hp_max: 6, fields: { STR: 10 }, classes: [{ classRef: 'lantern-warden', level: 1, xp: 0 }], spell_book: [] });
+    // Rested before (fsr-4): the closed state's words; the first spells' own test follows.
+    world.tables.character_play.push({ actor_id: wren, campaign_id: campaign, prepared: [], uses_spent: {}, ac_override: null, form_id: null, rested_once: true, version: 1 });
     world.addMember(campaign, me, 'player', wren);
     world.signInAs(me);
     const user = openApp();
@@ -1795,6 +1797,81 @@ describe('invites', () => {
     expect(prepare.getByText('Saved as you go')).toBeTruthy();
     expect(prepare.queryByText(/still empty/)).toBeNull();
     expect(prepare.queryByRole('group', { name: 'Mire lamp' })).toBeNull();
+  });
+
+  // The first spells (FS1; fsr-1 to fsr-10, page 46). Purposes, in plain words:
+  //   * a new caster's Magic tab says "Ready at once. 2 slots empty" on Prepare and the empty row's line says a choice
+  //     is ready at once;
+  //   * in Prepare, the first line and the foot say so, no Same as yesterday is offered, and − on a spell not chosen
+  //     drops "for the next rest";
+  //   * a + makes the spell ready at once, nothing left chosen, and the log says "…, ready at once"; the tab then says
+  //     "Ready at once. 1 slot empty";
+  //   * the cast that closes the first spells says so in its toast, and only that cast: the second cast's is today's;
+  //     after Undo of both, the next cast says it again; then Prepare's row is today's "For your next rest".
+  it('the first spells: ready at once, the words say so, and the closing cast tells it once', async () => {
+    const { me, campaign } = fillWorld();
+    const warden = world.tables.library_entries.find((e) => e.pack_entry_id === 'lantern-warden')!;
+    Object.assign(warden.data as Record<string, unknown>, {
+      spellcasting: { listId: 'warden-list', type: 'book', castingType: 'arcane' },
+      progression: [{ level: 1, hitDice: '1d8', thac0: 19, saves: { R: 12 }, spellSlots: [2] }],
+    });
+    (world.tables.library_entries.find((e) => e.pack_entry_id === 'fill-level')!.data as Record<string, unknown>).target = ['hitDice', 'attack', 'saves', 'spellSlots'];
+    world.tables.library_entries.push(
+      { id: 'entry-lamp', pack_id: 'pack-fen', kind: 'spell', pack_entry_id: 'mire-lamp', name: 'Mire lamp', data: { id: 'mire-lamp', name: 'Mire lamp' } },
+      { id: 'entry-dart', pack_id: 'pack-fen', kind: 'spell', pack_entry_id: 'thorn-dart', name: 'Thorn dart', data: { id: 'thorn-dart', name: 'Thorn dart' } },
+      { id: 'entry-warden-list', pack_id: 'pack-fen', kind: 'spellList', pack_entry_id: 'warden-list', name: 'Warden spells', data: { id: 'warden-list', name: 'Warden spells', levels: [{ level: 1, spells: ['mire-lamp', 'thorn-dart'] }] } },
+    );
+    // A new caster: no play row yet, so never rested.
+    const wren = world.addCharacter(campaign, 'Wren', { ownerId: me });
+    Object.assign(world.tables.actors.find((a) => a.id === wren)!, { level: 1, hp_current: 6, hp_max: 6, fields: { STR: 10 }, classes: [{ classRef: 'lantern-warden', level: 1, xp: 0 }], spell_book: ['mire-lamp', 'thorn-dart'] });
+    world.addMember(campaign, me, 'player', wren);
+    world.signInAs(me);
+    const user = openApp();
+    await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
+    await user.click(await screen.findByRole('button', { name: 'Magic' }));
+    expect(await screen.findByText('Choose in Prepare. What you choose is ready at once.')).toBeTruthy();
+    await user.click(await screen.findByRole('button', { name: 'Prepare, Ready at once. 2 slots empty' }));
+
+    const prepare = within(await screen.findByRole('dialog', { name: 'Prepare' }));
+    expect(prepare.getByText('Until your first cast or rest, what you choose is ready at once.')).toBeTruthy();
+    expect(prepare.getByText('Ready as you choose. 2 slots still empty: fill them before you cast.')).toBeTruthy();
+    expect(prepare.queryByText('Same as yesterday')).toBeNull();
+    const one = within(prepare.getByRole('region', { name: 'Level 1' }));
+    await user.click(one.getByRole('button', { name: 'Less Thorn dart' }));
+    const none = within(await screen.findByRole('dialog', { name: "Thorn dart isn't chosen" }));
+    expect(none.getByText("Wren hasn't chosen Thorn dart, so there's none to take out.")).toBeTruthy();
+    await user.click(none.getByRole('button', { name: 'Close' }));
+
+    // + makes it ready at once; nothing is left chosen for a rest.
+    await user.click(one.getByRole('button', { name: 'More Mire lamp' }));
+    await vi.waitFor(() => expect(world.tables.character_play.find((p) => p.actor_id === wren)).toMatchObject({ prepared: [{ spell: 'mire-lamp', level: 1 }], chosen: null }));
+    expect(await prepare.findByText('Ready as you choose. 1 slot still empty: fill it before you cast.')).toBeTruthy();
+    await user.click(one.getByRole('button', { name: 'More Mire lamp' }));
+    await vi.waitFor(() => expect(world.tables.character_play.find((p) => p.actor_id === wren)!.prepared).toHaveLength(2));
+    expect(await prepare.findByText('Ready as you choose')).toBeTruthy();
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Prepare' })).toBeNull());
+    expect(await screen.findByRole('button', { name: 'Prepare, Ready at once' })).toBeTruthy();
+
+    // The cast that closes the first spells says so; its Undo opens them again, and the next cast says it again; the
+    // cast after that is today's.
+    const level = within(await screen.findByRole('region', { name: 'Level 1, 2 a day' }));
+    const closing = 'Mire lamp cast. From now, what you choose is ready after you rest.';
+    await user.click(await level.findByRole('button', { name: 'Cast Mire lamp' }));
+    expect(await screen.findByText(closing)).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Prepare, For your next rest' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await vi.waitFor(() => expect(world.tables.character_play.find((p) => p.actor_id === wren)!.spells_cast).toEqual({}));
+    expect(await screen.findByRole('button', { name: 'Prepare, Ready at once' })).toBeTruthy();
+    await user.click(await level.findByRole('button', { name: 'Cast Mire lamp' }));
+    expect(await screen.findByText(closing)).toBeTruthy();
+    await user.click(await level.findByRole('button', { name: 'Cast Mire lamp' }));
+    expect(await screen.findByText('Mire lamp cast')).toBeTruthy();
+    expect(screen.queryByText(closing)).toBeNull();
+    // The log's line for a choice that became ready (fsr-10).
+    await user.click(screen.getByRole('button', { name: 'Log' }));
+    expect((await screen.findAllByText(/You chose 2 spells for Wren, ready at once/)).length).toBeGreaterThan(0);
+    expect(world.tables.events.filter((e) => e.type === 'character.chooseSpells')).toHaveLength(2);
   });
 
   // A spell chosen but not yet rested, and a book emptied since (round 3's review, 2026-11-18). Purposes, in plain words:

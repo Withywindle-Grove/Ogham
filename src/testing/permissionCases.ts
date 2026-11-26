@@ -727,6 +727,9 @@ export const permissionCases: PermissionCase[] = [
   rule("a player can't choose spells for someone else's character", 'playerB', chooseSpells, (w) => ({ character: w.wren, chosen: [{ spell: 'mire-lamp', level: 1 }], slots: [1] }), false),
   rule("the GM can choose any character's spells", 'gm', chooseSpells, (w) => ({ character: w.ash, chosen: [{ spell: crypto.randomUUID(), level: 1 }], slots: [1] }), true),
   rule("an outsider can't choose a character's spells", 'outsider', chooseSpells, (w) => ({ character: w.wren, chosen: null, slots: [1] }), false),
+  // The first spells (FS1, fsr-1): while never rested and nothing cast, the choice writes what is ready; who may is the same.
+  rule("a player can choose their own unrested character's first spells", 'playerA', chooseSpells, (w) => ({ character: w.wren, chosen: [{ spell: crypto.randomUUID(), level: 1 }], slots: [1] }), true),
+  rule("another player can't choose an unrested character's first spells", 'playerB', chooseSpells, (w) => ({ character: w.wren, chosen: [{ spell: crypto.randomUUID(), level: 1 }], slots: [1] }), false),
   rule('a player can pick the same spells as yesterday for their own character', 'playerA', sameAsYesterday, async (w) => (await w.freshReadySpell('wren'), { character: w.wren }), true),
   rule("a player can't pick the same spells as yesterday for someone else's character", 'playerB', sameAsYesterday, (w) => ({ character: w.wren }), false),
   rule('a player can cast a ready spell of their own character', 'playerA', castSpell, async (w) => ({ character: w.wren, ...(await w.freshReadySpell('wren')) }), true),

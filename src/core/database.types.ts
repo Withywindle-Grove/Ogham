@@ -1046,6 +1046,7 @@ export type Database = {
           form_name: string | null
           pins: Json
           prepared: Json
+          rested_once: boolean
           spells_cast: Json
           updated_at: string
           uses_spent: Json
@@ -1059,6 +1060,7 @@ export type Database = {
           form_name?: string | null
           pins?: Json
           prepared?: Json
+          rested_once?: boolean
           spells_cast?: Json
           updated_at?: string
           uses_spent?: Json
@@ -1072,6 +1074,7 @@ export type Database = {
           form_name?: string | null
           pins?: Json
           prepared?: Json
+          rested_once?: boolean
           spells_cast?: Json
           updated_at?: string
           uses_spent?: Json
