@@ -21,7 +21,7 @@ import {
   type InventoryLine,
   type NamedCarrier,
 } from '../modules/inventory/inventory.ts';
-import { atHandAction, atHandLines, isContainer, isSeparate } from '../modules/inventory/packView.ts';
+import { atHandAction, atHandLines, isContainer, isSeparate, possessive } from '../modules/inventory/packView.ts';
 import { AddItem } from './AddItem.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { forgetCampaignSetting, loadCampaignSetting, type CampaignSetting } from './campaignSetting.ts';
@@ -499,7 +499,7 @@ export function PackScreen({
   return (
     // Every pop-up on the Pack is a Sheet (plan m5b-players-screens-standard A4): up from the bottom on a phone.
     <SheetScope.Provider value>
-    <section className={layout} aria-label={mine ? `${mine.name}’s pack` : 'Party stash'}>
+    <section className={layout} aria-label={mine ? `${possessive(mine.name)} pack` : 'Party stash'}>
       {carrierId === null && (
         <div className="pack__actions pack__whose" role="group" aria-label="Whose pack">
           {/* The Party stash first, then each character (ruled 2026-10-24: "Inventory"). */}
@@ -519,7 +519,7 @@ export function PackScreen({
           ))}
         </div>
       )}
-      <h1 className={inBar ? 'visually-hidden' : 'pack__title'}>{mine ? `${mine.name}’s pack` : 'Party stash'}</h1>
+      <h1 className={inBar ? 'visually-hidden' : 'pack__title'}>{mine ? `${possessive(mine.name)} pack` : 'Party stash'}</h1>
       {!side && summary}
       <div className="pack__list">
       <ErrorToast message={problem} />

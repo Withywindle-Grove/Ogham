@@ -43,7 +43,7 @@ vi.mock('./services.ts', async () => {
 });
 
 /** The blocked-action pop-up's words for a count never set (Home Two's audit of #50, findings 4 and 5). */
-const CHARGES_WHY = 'Its count isn’t rolled yet. Roll it on your own Pack, under Players › Inventory › Whose pack: open this item there and roll under Charges. Then tell them.';
+const CHARGES_WHY = 'Its count isn’t rolled yet. Roll it under Charges on this item, from your own Pack. Then tell them.';
 
 let world: FakeWorld;
 let gm: string;

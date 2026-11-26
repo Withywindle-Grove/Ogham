@@ -28,6 +28,7 @@ import { LogView } from './LogView.tsx';
 import { PackScreen } from './PackScreen.tsx';
 import { PartyGroups } from './PartyGroups.tsx';
 import { loadCarriedItemIds } from '../modules/expedition/activityPlay.ts';
+import { possessive } from '../modules/inventory/packView.ts';
 import { SceneTime } from './SceneTime.tsx';
 import { RetiredBanner } from './Retired.tsx';
 import { TopRow } from './TopRow.tsx';
@@ -253,7 +254,7 @@ export function PlayerScreen({
   // Beside ≡ the character's name on Player, "<name>’s pack" on Pack, the campaign's on Scene (Design on #549, mockup 17).
   // On Player, in two columns, the bar reads the name, "the" kindred and the title (dec-13 C2, frame P1).
   const topRow = (playerTitle: string) => {
-    const title = tab === 'scene' ? (phone ? undefined : '') : tab === 'pack' ? `${character.name}’s pack` : playerTitle;
+    const title = tab === 'scene' ? (phone ? undefined : '') : tab === 'pack' ? `${possessive(character.name)} pack` : playerTitle;
     // The GM's view (page 32, M3c, M3j): "‹ Players" at the left (in ≡'s place on a phone), the same title, and the
     // GM's own Log, ✉ and Reference; the band sits under the row (its host's BelowTopRowProvider).
     if (view) return <TopRow back="Players" named onBack={onBack} menuLabel="Character options" title={title ?? ''} logTab standard />;

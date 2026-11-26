@@ -113,7 +113,7 @@ async function openPack(page: Page, extra = '') {
   await page.goto(`/layout.html?as=player${extra}`);
   await campaignRow(page).click();
   await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Pack' }).click();
-  await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’s pack' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’ pack' })).toBeVisible();
 }
 
 /** Text size "Larger" on this device (ruled 2026-10-23: checked on the Pack and Player screens). */
@@ -1585,11 +1585,11 @@ for (const size of SIZES) {
       await page.getByRole('button', { name: 'Add item' }).click();
       const adding = await page.getByRole('region', { name: 'Add an item' }).boundingBox();
       if (wide) {
-        const pack = await page.getByRole('heading', { name: 'Wren of the Lantern Wardens’s pack' }).boundingBox();
+        const pack = await page.getByRole('heading', { name: 'Wren of the Lantern Wardens’ pack' }).boundingBox();
         expect(adding && pack).toBeTruthy();
         expect(pack!.x + pack!.width).toBeLessThanOrEqual(adding!.x);
       } else {
-        await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’s pack' })).toHaveCount(0);
+        await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’ pack' })).toHaveCount(0);
       }
     });
     for (const scheme of size.width < 600 ? (['light', 'dark'] as const) : []) {
@@ -1859,7 +1859,7 @@ for (const size of [...SIZES, { name: 'phone-landscape', width: 844, height: 390
       const bar = (await row.boundingBox())!;
       expect(Math.round(bar.y)).toBe(0);
       // The title is the standard bar's (plan A1; the Pack's own heading is for screen readers only since slice C).
-      const title = (await row.locator('.top-row__title', { hasText: 'Wren of the Lantern Wardens’s pack' }).boundingBox())!;
+      const title = (await row.locator('.top-row__title', { hasText: 'Wren of the Lantern Wardens’ pack' }).boundingBox())!;
       expect(title.y + title.height).toBeLessThanOrEqual(bar.y + bar.height);
 
       const back = phone ? row.getByRole('button', { name: 'Menu' }) : row.getByRole('button', { name: /^‹/ });

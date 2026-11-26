@@ -42,7 +42,7 @@ export const countNotSet = (fact: HiddenFact, secret: { total: number | null } |
 
 /** A count never set, tapped: the blocked-action pop-up's title and its why, with where the count is rolled. */
 export const NOT_SET_TITLE = 'Set its charges first';
-export const NOT_SET_WHY = 'Its count isn’t rolled yet. Roll it on your own Pack, under Players › Inventory › Whose pack: open this item there and roll under Charges. Then tell them.';
+export const NOT_SET_WHY = 'Its count isn’t rolled yet. Roll it under Charges on this item, from your own Pack. Then tell them.';
 
 /** Who a tell tells, in the toast's words: the holder's name, or "the party" for the stash (K22f, 3). */
 const whoOf = (carrier: NamedCarrier) => (carrier.locationId !== null ? 'the party' : carrier.name);

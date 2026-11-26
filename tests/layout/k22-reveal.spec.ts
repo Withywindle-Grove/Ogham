@@ -150,7 +150,7 @@ for (const size of [
       expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(56);
       await row.click();
       const why = page.getByRole('dialog', { name: 'Set its charges first' });
-      await expect(why).toContainText('Players › Inventory › Whose pack');
+      await expect(why).toContainText('Roll it under Charges on this item, from your own Pack.');
       await expectSheetForm(why, size.width, size.height);
       const box = (await why.boundingBox())!;
       expect(box.y).toBeGreaterThanOrEqual(0);
