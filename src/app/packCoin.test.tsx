@@ -135,7 +135,8 @@ async function openPack(name = 'Wren'): Promise<User> {
   render(<Root db={world.db} />);
   await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
   await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
-  expect(await screen.findByRole('heading', { name: `${name}’s pack` })).toBeTruthy();
+  // A name ending in "s" takes the mark alone ("Moss’ pack"; Home One audit of #50 round 3, finding 1).
+  expect(await screen.findByRole('heading', { name: /s$/.test(name) ? `${name}’ pack` : `${name}’s pack` })).toBeTruthy();
   return user;
 }
 

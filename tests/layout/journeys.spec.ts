@@ -80,7 +80,7 @@ async function gmScene(page: Page, session = false) {
 async function pack(page: Page) {
   await playerScreen(page);
   await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Pack' }).click();
-  await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’s pack' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’ pack' })).toBeVisible();
 }
 
 for (const size of [

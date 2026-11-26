@@ -11,9 +11,9 @@
 //      cursed.", with "Reveal…".
 //   4. The Pack's list in the view shows nothing the player does not see: a hidden charge count reads as the player's
 //      "Charges: ?"; its sheet's GM line gives the count.
-//   5. "Reveal…" opens the GM's own item sheet, as built (⚑ 40), where Reveal of a hidden field works and is logged.
-//   6. Outside the view (Players › Inventory › Whose pack) the GM's item sheet is unchanged: the "Hidden from players"
-//      group, no GM line, no "Reveal…".
+//   5. "Reveal…" opens the Reveal pop-up (k22-8, replacing ⚑ 40's reading), where a tap tells a fact, logged as his.
+//   6. Outside the view (Players › Inventory › Whose pack) the GM's item sheet keeps the "Hidden from players" group's
+//      lines without their buttons, no GM line, and the one "Reveal…" row (k22-8, pick 13).
 //   7. What the GM adds in the view is logged as his, and no charges prompt follows it there (it does outside).
 //   8. In armour mode the view's Pack has no treasure switch; the GM's own pack keeps it.
 //   9. The GM's line's words, and a weapon's hidden figures (the pure parts).
@@ -21,10 +21,9 @@
 //      sword already shows ("Magic bonus -1") is no secret, so a sword whose only secret it was has no GM line, and a
 //      cursed one whose −1 Sam's copy shows names the curse alone.
 //  11. (Audit fix 7) The GM's line sits under the item's figures, after its details, as M3g2 draws it.
-//  12. (Audit fix 5) "Reveal…" opens the GM's own sheet under its own title, "Your sheet: Moon ring", so the one in front
-//      is plain; its ✕ closes that one alone, and the player's sheet stays open under it.
-//  13. (Audit 3, A) After the ✕ on "Your sheet: Moon ring", keyboard focus is back on "Reveal…" in the player's sheet,
-//      as it goes back to the opener after the other pop-ups (audit fix 3a).
+//  12. (Audit 3, A) After the ✕ on the Reveal pop-up, keyboard focus is back on "Reveal…" in the player's sheet, as it
+//      goes back to the opener after the other pop-ups (audit fix 3a; the Dialog's shared rule, #90). Audit fix 5's
+//      "Your sheet: Moon ring" is gone with the GM's own sheet it titled: "Reveal…" opens the Reveal pop-up (k22-8).
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -136,7 +135,8 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     await user.click(await screen.findByRole('button', { name: /^Moon ring/ }));
     const sheet = within(screen.getByRole('region', { name: 'Moon ring' }));
     expect(sheet.getByText('A plain band of old bronze.')).toBeTruthy();
-    expect(sheet.getByText('Only you see this: Cold at the full moon.')).toBeTruthy();
+    // The GM's line words the facts still hidden (K22e): its curse field says both that it's cursed and how.
+    expect(sheet.getByText('Only you see this: cursed, Cold at the full moon.')).toBeTruthy();
     // No GM tool on the player's sheet: the hidden group sits behind Reveal….
     expect(sheet.queryByRole('group', { name: 'Hidden from players' })).toBeNull();
     const rows = actions()
@@ -233,41 +233,30 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     expect(sheet.queryByRole('button', { name: /^Recharge/ })).toBeNull();
   });
 
-  it("Reveal… opens the GM's own sheet for the item, where Reveal of a hidden field works and is logged", async () => {
+  it('Reveal… opens the Reveal pop-up, where a tap tells a hidden field and is logged as his', async () => {
     const user = await openWrensPack();
     await user.click(await screen.findByRole('button', { name: /^Moon ring/ }));
     await user.click(screen.getByRole('button', { name: 'Reveal…' }));
-    const hidden = within(await screen.findByRole('group', { name: 'Hidden from players' }));
-    expect(hidden.getByText('Cold at the full moon')).toBeTruthy();
-    await user.click(hidden.getByRole('button', { name: /^Reveal/ }));
+    const popup = within(await screen.findByRole('dialog', { name: 'Reveal' }));
+    await user.click(popup.getByRole('button', { name: 'Tell Curse: Cold at the full moon' }));
     await waitFor(() => expect(world.tables.inventory_lines[0]!.item_data).toMatchObject({ fields: { Curse: 'Cold at the full moon' } }));
-    expect(world.tables.events.filter((e) => e.type === 'inventory.reveal').map((e) => e.actor_user_id)).toEqual([gm]);
+    expect(world.tables.events.filter((e) => e.type === 'inventory.tell').map((e) => e.actor_user_id)).toEqual([gm]);
   });
 
-  it("Reveal… opens the GM's own sheet as \"Your sheet: Moon ring\"; its ✕ closes it alone", async () => {
-    const user = await openWrensPack();
-    await user.click(await screen.findByRole('button', { name: /^Moon ring/ }));
-    await user.click(screen.getByRole('button', { name: 'Reveal…' }));
-    const own = await screen.findByRole('dialog', { name: 'Your sheet: Moon ring' });
-    expect(within(own).getByRole('group', { name: 'Hidden from players' })).toBeTruthy();
-    await user.click(within(own).getByRole('button', { name: 'Close' }));
-    expect(screen.queryByRole('dialog', { name: 'Your sheet: Moon ring' })).toBeNull();
-    expect(screen.getByRole('dialog', { name: 'Moon ring' })).toBeTruthy();
-  });
-
-  it('after the ✕ on "Your sheet: Moon ring", focus is back on Reveal… in the player\'s sheet', async () => {
+  it('after the ✕ on the Reveal pop-up, focus is back on Reveal… in the player\'s sheet', async () => {
     const user = await openWrensPack();
     await user.click(await screen.findByRole('button', { name: /^Moon ring/ }));
     const reveal = screen.getByRole('button', { name: 'Reveal…' });
     reveal.focus();
     await user.keyboard('{Enter}');
-    const own = await screen.findByRole('dialog', { name: 'Your sheet: Moon ring' });
-    await user.click(within(own).getByRole('button', { name: 'Close' }));
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Your sheet: Moon ring' })).toBeNull());
+    const popup = await screen.findByRole('dialog', { name: 'Reveal' });
+    await user.click(within(popup).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Reveal' })).toBeNull());
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Reveal…' }));
+    expect(screen.getByRole('dialog', { name: 'Moon ring' })).toBeTruthy();
   });
 
-  it("outside the view the GM's item sheet is as built: the hidden group, no GM line, no Reveal…", async () => {
+  it("outside the view the GM's item sheet keeps the hidden group's lines without buttons, no GM line, and one Reveal…", async () => {
     world.signInAs(gm);
     const user = userEvent.setup();
     render(<Root db={world.db} />);
@@ -276,9 +265,11 @@ describe("the Pack in the GM's view (C15e; M3g, M3g2)", () => {
     await user.click(await screen.findByRole('button', { name: 'Inventory' }));
     await user.click(within(await screen.findByRole('group', { name: 'Whose pack' })).getByRole('button', { name: 'Wren' }));
     await user.click(await screen.findByRole('button', { name: /^Moon ring/ }));
-    expect(screen.getByRole('group', { name: 'Hidden from players' })).toBeTruthy();
+    const hidden = within(screen.getByRole('group', { name: 'Hidden from players' }));
+    expect(hidden.getByText('Cold at the full moon')).toBeTruthy();
+    expect(hidden.queryByRole('button')).toBeNull();
     expect(screen.queryByText(/Only you see this/)).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Reveal…' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Reveal…' })).toBeTruthy();
   });
 
   it('what the GM adds in the view is logged as his, and no charges prompt follows it there', async () => {
