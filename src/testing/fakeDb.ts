@@ -2378,10 +2378,13 @@ export function createFakeDb(): FakeWorld {
         .sort();
       return { data: ids.map((item_id) => ({ item_id })), error: null };
     },
-    // Ask for… answered at once (TC12), like supabase/migrations/20261125180000_dec16_tc12_ask_answered_at_once.sql: what
-    // the day's stock says of the thing (as the players' reader works it out: a stored answer, else the default for a
-    // setting's shop; a pack's shop its stored answers alone), never a day before the newest day with a live row; "in"
-    // with a price, or "out", makes the request already answered; else it waits for the GM as send_request's does.
+    // Ask for… answered at once (TC12), like supabase/migrations/20261125180000_dec16_tc12_ask_answered_at_once.sql and
+    // its review fixes (20261126100000_dec16_tc12_ask_only_offered_shop.sql): only at a shop offered where the asker's
+    // group is (its town's list has it shown and open; a pack's shop also its place live, one level under that town),
+    // what the day's stock says of the thing (as private.stock_answer_for: the winning entry for sale, a stored answer,
+    // else the default for a setting's shop; a pack's shop its stored answers alone), never a day before the newest day
+    // with a live row; "in" with the entry's own price (never the device's), or "out", makes the request already
+    // answered; else it waits for the GM as send_request's does.
     ask_for_thing: ({ campaign, actor, body, on_day, prompt }, tag) => {
       const made = madeBy('requests', tag);
       if (made) return copy(tables.requests.find((r) => r.id === made.target_id));
@@ -2392,15 +2395,19 @@ export function createFakeDb(): FakeWorld {
       const asked = (prompt && typeof prompt === 'object' && !Array.isArray(prompt) ? prompt : {}) as Row;
       const service = typeof asked.serviceId === 'string' ? asked.serviceId : '';
       const item = typeof asked.itemId === 'string' ? asked.itemId : '';
-      const price = typeof asked.price === 'string' ? asked.price.trim() : '';
       const liveDays = tables.shop_stock.filter((r) => r.campaign_id === campaign && !r.undone).map((r) => Number(r.day));
       let decided: 'in' | 'out' | null = null;
-      if (service && item && !(liveDays.length > 0 && on_day < Math.max(...liveDays))) {
-        const inStock = groupRpcs.shop_stock_in!({ campaign, service, on_day, offered: [item] }, tag);
-        const stored = tables.shop_stock.find((r) => r.campaign_id === campaign && r.service_id === service && r.item_id === item && r.day === on_day && !r.undone)?.answer;
-        const listed = tables.library_entries.some((e) => e.kind === 'item' && e.pack_entry_id === item && tables.campaign_packs.some((cp) => cp.campaign_id === campaign && cp.pack_id === e.pack_id));
-        if (Array.isArray(inStock.data) && inStock.data.some((r: Row) => r.item_id === item)) decided = 'in';
-        else if (stored === 'out' && listed) decided = 'out';
+      let price = '';
+      if (service && item && shopOfferedTo(campaign, actor, service) && !(liveDays.length > 0 && on_day < Math.max(...liveDays))) {
+        const winner = winningItem(campaign, item);
+        const whole = winner ? wholeEntry(winner) : null;
+        if (whole && entryForSale(whole)) {
+          const stored = tables.shop_stock.find((r) => r.campaign_id === campaign && r.service_id === service && r.item_id === item && r.day === on_day && !r.undone)?.answer;
+          const said = service.startsWith('place:') ? stored : (stored ?? stockDefault(whole.availability, null));
+          decided = said === 'in' || said === 'out' ? said : null;
+          // The price said is the entry's readable value, in priceText's words (private.stock_price_for).
+          if (decided === 'in') price = priceWords(visiblePart(whole).value);
+        }
       }
       const answer = decided === 'in' && price ? { kind: 'buy', result: 'inStock', price, note: '' } : decided === 'out' ? { kind: 'buy', result: 'notHere', price: '', note: '' } : null;
       stockAnswer = answer ? { campaign: String(campaign), actor: String(actor), item, answer } : null;
@@ -2608,6 +2615,59 @@ export function createFakeDb(): FakeWorld {
       return { data: numbers.map((n) => ({ group_number: n, meets: numbers[0] })), error: null };
     },
   };
+  // TC12's review fix (private.shop_offered_to): a shop offered where the asker's group is: its town's list has it
+  // (`service:<id>`, or a pack shop's own `place:<entry id>` key) shown and open, and a pack shop's place is live, one
+  // level under that town.
+  function shopOfferedTo(campaign: unknown, actor: unknown, service: string): boolean {
+    if (service.length < 1 || service.length > 200) return false;
+    const town = townPlaceOf(campaign, groupNumberOf(actor));
+    if (!town) return false;
+    const packShop = service.startsWith('place:');
+    const entry = ((town.town ?? {}) as Record<string, { shown?: unknown; open?: unknown } | undefined>)[packShop ? service : `service:${service}`];
+    if (!entry || entry.shown !== true || entry.open !== true) return false;
+    return (
+      !packShop ||
+      tables.places.some((p) => p.campaign_id === campaign && !p.undone && p.pack_id === town.pack_id && p.pack_parent_id === town.pack_entry_id && p.pack_entry_id === service.slice(6))
+    );
+  }
+  // The item's winning version in the campaign (as private.items_open_in orders them), its whole entry (the GM-only
+  // part merged over the readable part), whether a shop sells it (private.for_sale), its readable part
+  // (private.visible_part) and a value's words (private.price_words, the device's priceText).
+  function winningItem(campaign: unknown, item: string): Row | undefined {
+    const attached = tables.campaign_packs.filter((cp) => cp.campaign_id === campaign);
+    const rank = (e: Row): [number, number, number, string] => {
+      const cp = attached.find((c) => c.pack_id === e.pack_id)!;
+      const overrides = (tables.campaign_pack_secrets.find((x) => x.id === cp.id)?.overrides ?? {}) as Row;
+      const homebrew = tables.packs.find((p) => p.id === e.pack_id)?.kind === 'homebrew';
+      return [Object.hasOwn(overrides, `item:${String(e.pack_entry_id)}`) ? 1 : 0, homebrew ? 1 : 0, Number(cp.priority ?? 0), String(e.pack_id)];
+    };
+    let best: Row | undefined;
+    for (const e of tables.library_entries.filter((x) => x.kind === 'item' && x.pack_entry_id === item && attached.some((cp) => cp.pack_id === x.pack_id))) {
+      if (!best) {
+        best = e;
+        continue;
+      }
+      const [a, b] = [rank(e), rank(best)];
+      const better = a[0] - b[0] || a[1] - b[1] || a[2] - b[2] || (a[3] < b[3] ? 1 : a[3] > b[3] ? -1 : 0);
+      if (better > 0) best = e;
+    }
+    return best;
+  }
+  const wholeEntry = (e: Row): Row => ({ ...((e.data ?? {}) as Row), ...((tables.library_entry_secrets.find((x) => x.id === e.id)?.data ?? {}) as Row) });
+  const entryForSale = (whole: Row): boolean => (typeof whole.forSale === 'boolean' ? whole.forSale : !/(^|-)magic(-|$)/.test(typeof whole.category === 'string' ? whole.category : ''));
+  const visiblePart = (whole: Row): Row => {
+    if (!Array.isArray(whole.gmOnly)) return whole;
+    const out: Row = { ...whole };
+    for (const key of [...whole.gmOnly, 'gmOnly']) if (typeof key === 'string') delete out[key];
+    return out;
+  };
+  const priceWords = (value: unknown): string =>
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? Object.entries(value as Row)
+          .filter(([, amount]) => typeof amount === 'number')
+          .map(([coin, amount]) => `${String(amount)} ${coin}`)
+          .join(' ')
+      : '';
   // A group's town (M5b step 6e): its current visit's place in the newest expedition, when marked Safe or Hostile.
   function townPlaceOf(campaign: unknown, group: number): Row | undefined {
     const newest = tables.expeditions

@@ -120,7 +120,7 @@ describe('Ask for… answered at once (TC12)', () => {
   });
 
   // Purpose: an in-stock thing whose entry says no price waits for the GM, who prices it.
-  it.fails('an in-stock thing with no price on its entry waits for the GM', async () => {
+  it('an in-stock thing with no price on its entry waits for the GM', async () => {
     const w = setup();
     w.fake.tables.library_entries.push({ id: 'entry-bell', pack_id: 'pack-fen', kind: 'item', pack_entry_id: 'brass-bell', name: 'brass-bell', data: { category: 'gear', availability: { chance: 'always' } } });
     expect((await ask(w, prompt('brass-bell'))).status).toBe('waiting');
@@ -163,7 +163,7 @@ describe('Ask for… answered at once (TC12)', () => {
 
   // Purpose (review fix, hard rule 5): a shop not shown, closed, or not in this town answers nothing at once: a forged
   // shop key never reads back the GM's answers (in or out) nor whether a thing is decided there.
-  it.fails('a shop not shown, closed, or not in this town answers nothing at once', async () => {
+  it('a shop not shown, closed, or not in this town answers nothing at once', async () => {
     const w = setup();
     for (const shop of [HIDDEN, CLOSED, ELSEWHERE]) {
       await set(w, 'rope', 'out', 1, shop);
@@ -179,7 +179,7 @@ describe('Ask for… answered at once (TC12)', () => {
 
   // Purpose (review fix): the price said is the entry's, never the device's: a tampered prompt price reaches neither
   // the answer nor the log line.
-  it.fails("a tampered prompt price doesn't reach the answer or the log", async () => {
+  it("a tampered prompt price doesn't reach the answer or the log", async () => {
     const w = setup();
     await set(w, 'lamp-oil', 'in');
     const r = await ask(w, prompt('lamp-oil', 'lamp-oil', '0 herons'));
@@ -195,7 +195,7 @@ describe('Ask for… answered at once (TC12)', () => {
 
   // Purpose (review fix, as stock_answer_for): a thing not for sale is never answered at once, not even Not here from
   // a stored out.
-  it.fails('a thing not for sale is never answered at once', async () => {
+  it('a thing not for sale is never answered at once', async () => {
     const w = setup();
     w.fake.tables.shop_stock.push({ id: 'stock-charm', campaign_id: w.camp, service_id: SHOP, item_id: 'reed-charm', day: 1, answer: 'out', undone: false });
     const r = await ask(w, prompt('reed-charm'));

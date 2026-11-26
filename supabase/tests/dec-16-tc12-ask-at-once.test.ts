@@ -125,7 +125,7 @@ describe('answered at once from the day\'s stock (tn-7)', () => {
 
   // Purpose (review fix): the price said is the entry's, never the device's: a tampered prompt price reaches neither
   // the answer nor the log line; with no device price at all the entry's price is still said.
-  it.fails("a tampered prompt price doesn't reach the answer or the log", async () => {
+  it("a tampered prompt price doesn't reach the answer or the log", async () => {
     expect(await set(OIL, 'in')).toMatchObject({ ok: true });
     const tampered = await ask(prompt(OIL, '0 herons'));
     expect(tampered.answer).toEqual({ kind: 'buy', result: 'inStock', price: '2 herons', note: '' });
@@ -140,7 +140,7 @@ describe('answered at once from the day\'s stock (tn-7)', () => {
 describe('only a shop offered where the group is (review fix, hard rule 5)', () => {
   // Purpose: a shop not shown, closed, or not in the town the group is in answers nothing at once: a forged shop key
   // never reads back the GM's answers (in or out) nor whether a thing is decided there.
-  it.fails('a shop not shown, closed, or not in this town answers nothing at once', async () => {
+  it('a shop not shown, closed, or not in this town answers nothing at once', async () => {
     for (const shop of [HIDDEN, CLOSED, ELSEWHERE]) {
       expect(await set(ROPE, 'out', 1, world.campaignId, shop)).toMatchObject({ ok: true });
       expect(await set(OIL, 'in', 1, world.campaignId, shop)).toMatchObject({ ok: true });
