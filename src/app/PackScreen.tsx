@@ -4,7 +4,7 @@
 // fold rows, the Party stash as a row that opens its own screen (K11, StashScreen), the items waiting for the GM as a card with the warning sign, and the foot: the count and
 // Add item, the screen's one accent button. Tap an item for its sheet: its details and what you can do with it. After
 // any action on an item, or adding one, the item closes and the screen goes back to the top (ruled 2026-10-24).
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
@@ -38,9 +38,9 @@ import { useLogVersion } from './campaignLog.tsx';
 import { useWide } from './useWide.ts';
 import { ErrorToast, useToast } from '../ui/ToastHost.tsx';
 import { Dialog, SheetScope } from '../ui/Dialog.tsx';
-import { BookType, useOnline } from '../ui/creation.tsx';
+import { useOnline } from '../ui/creation.tsx';
 import { itemCount } from './packHelpers.ts';
-import { CoinLine, PackFoot, StashRow, WaitingCard } from './PackParts.tsx';
+import { CoinLine, PackDress, PackFoot, StashRow, WaitingCard } from './PackParts.tsx';
 import { StashScreen } from './StashScreen.tsx';
 import { takeToast } from '../modules/inventory/stashTake.ts';
 import { thingCount } from './stashWords.ts';
@@ -73,7 +73,16 @@ const NO_TINY: ReadonlySet<string> = new Set();
 const sameCarrier = (line: InventoryLine, carrier: NamedCarrier) =>
   carrier.actorId !== null ? line.actorId === carrier.actorId : line.locationId === carrier.locationId;
 
-export function PackScreen({
+/**
+ * The Pack tab (and At hand on the Player screen). The tab is drawn in its approved dress (K29, `PackDress`); At hand
+ * keeps the Player tab's own book type, which it sits inside.
+ */
+export function PackScreen(props: ComponentProps<typeof PackTab>) {
+  const tab = <PackTab {...props} />;
+  return props.view === 'atHand' ? tab : <PackDress>{tab}</PackDress>;
+}
+
+function PackTab({
   db,
   user,
   campaign,
@@ -533,9 +542,8 @@ export function PackScreen({
         />
       )}
       {coinShown && (
-        // The book's type (dec-10 S2) on the Pack's own coin surfaces: the line and the sheets it opens. The load above
-        // and the lists below belong to other rows of the plan and keep today's faces.
-        <BookType>
+        // The coin line and the sheets it opens, in the tab's dress (K29) like the rest.
+        <>
           <CoinLine words={coinLine(denominations, purse)} onOpen={() => setCoinOpen(true)} />
           {coinOpen && mine && purse && (
             <PurseSheet
@@ -553,7 +561,7 @@ export function PackScreen({
               }}
             />
           )}
-        </BookType>
+        </>
       )}
       {stashRow}
     </div>
@@ -600,7 +608,7 @@ export function PackScreen({
     // "Party stash's coin", with Take… for the taker. With no coin named and none held there is no row.
     const coins = stashCoin?.of === stash.locationId ? stashCoin.coins : null;
     const coinRow = coins && (denominations.length > 0 || Object.keys(coins).length > 0) && (
-      <BookType>
+      <>
         <CoinLine words={coinLine(denominations, coins)} onOpen={() => setStashCoinOpen(true)} />
         {stashCoinOpen && (
           <PurseSheet
@@ -619,7 +627,7 @@ export function PackScreen({
             }}
           />
         )}
-      </BookType>
+      </>
     );
     return (
       <SheetScope.Provider value>
@@ -676,7 +684,7 @@ export function PackScreen({
             onChanged?.();
           }}
         />
-        {addItem && side && createPortal(addItem, side)}
+        {addItem && side && createPortal(<PackDress>{addItem}</PackDress>, side)}
       </SheetScope.Provider>
     );
   }
@@ -817,8 +825,8 @@ export function PackScreen({
       {/* The foot (plan C): the count, then Add item, the screen's one accent button. */}
       <PackFoot count={carriedCount} onAdd={mayChangeCarrier(user, main) ? () => setAdding(main) : null} />
       </div>
-      {addItem && side && createPortal(addItem, side)}
-      {!addItem && side && createPortal(summary, side)}
+      {addItem && side && createPortal(<PackDress>{addItem}</PackDress>, side)}
+      {!addItem && side && createPortal(<PackDress>{summary}</PackDress>, side)}
       {askCharges && (
         <ChargesDialog
           line={askCharges}

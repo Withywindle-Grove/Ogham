@@ -20,6 +20,9 @@
 //      the log line's words, a log line, and Undo putting the purse back; more than she has is refused under the row.
 //   8. Coin weighs nothing: the load's figure is the same with a purse full of coin.
 //   9. The sheets draw no "›", " · " or "▲", and no button in them is disabled.
+//  12. The Pack tab in its approved dress (K29; PK1 to PK13, PC1 to PC10): the whole tab, the stash's screen and every
+//      pop-up opened from them are in the book's type; a thing's sheet takes its name as the entry's red heading (PK8),
+//      and an action's sheet, the coin's among them, keeps the app's plain title (psw-4, PC3).
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -156,7 +159,9 @@ describe('the coin line (K9)', () => {
     expect(load.compareDocumentPosition(line) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(line.compareDocumentPosition(firstGroup) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     // Nothing under it: the next thing after the line is not a sentence about coin.
-    expect(line.parentElement!.textContent).toBe('12 crowns, 4 bits');
+    // (The line sits straight in the load's column since K29 put the whole tab in the book's type: next comes the stash's row.)
+    const next = line.nextElementSibling;
+    expect(next === null || next.classList.contains('pack__stash-row')).toBe(true);
     // In the book's type, as creation is.
     expect(line.closest('.book-type')).toBeTruthy();
   });
@@ -584,5 +589,47 @@ describe('coin in the stash (K13, PC6, PC6b, PK4)', () => {
     } finally {
       offline.mockRestore();
     }
+  });
+});
+
+describe('the Pack tab in its approved dress (K29)', () => {
+  // Purpose: the whole tab, not only the coin line, is drawn in the book's type: the load, the coin line, the stash's row
+  // and the lists all sit in it, with the tab's own sizes and gaps (`.pack-dress`).
+  it('the tab whole sits in the book’s type and the dress: the load, the coin line, the stash’s row, the lists', async () => {
+    await coinWorld({ wren: { crown: 12 } });
+    await openPack();
+    const pack = screen.getByRole('region', { name: 'Wren’s pack' });
+    for (const part of [pack, pack.querySelector('.pack__load')!, await coinRow(), screen.getByRole('button', { name: /^Party stash/ }), pack.querySelector('.pack__group-title')!]) {
+      expect(part.closest('.book-type')).not.toBeNull();
+      expect(part.closest('.pack-dress')).not.toBeNull();
+    }
+  });
+
+  // Purpose: a thing's sheet reads as the entry it is, its name the red heading (PK8), while the coin's sheet, which is
+  // not an entry, keeps the app's own title (PC3, psw-4); both are drawn in the book's type though placed outside the tab.
+  it('a thing’s sheet: its name the entry’s red heading; the coin’s sheet: the plain title; both in the book’s type', async () => {
+    await coinWorld({ wren: { crown: 12 } });
+    const user = await openPack();
+    await user.click(screen.getByRole('button', { name: /Coil of reed rope/ }));
+    const thing = within(sheet()).getByRole('heading', { name: 'Coil of reed rope' });
+    expect(thing.classList.contains('book-heading')).toBe(true);
+    expect(thing.closest('.book-type')).not.toBeNull();
+    await user.click(within(sheet()).getByRole('button', { name: /^Close/ }));
+    await user.click(await coinRow());
+    const coin = within(sheet()).getByRole('heading', { name: 'Wren’s coin' });
+    expect(coin.classList.contains('book-heading')).toBe(false);
+    expect(coin.closest('.book-type')).not.toBeNull();
+  });
+
+  // Purpose: the stash's own screen (#66, K11) and its pop-ups take the same dress as the pack it opens from.
+  it('the stash’s screen and its coin’s sheet sit in the book’s type and the dress', async () => {
+    await coinWorld({ stash: { heron: 40 } });
+    ewerInStash();
+    const user = await openStashCoin();
+    const stash = screen.getByRole('region', { name: 'Party stash' });
+    expect(stash.closest('.book-type')).not.toBeNull();
+    expect(stash.closest('.pack-dress')).not.toBeNull();
+    await user.click(await coinRow());
+    expect(within(sheet()).getByRole('heading', { name: 'Party stash’s coin' }).closest('.book-type')).not.toBeNull();
   });
 });

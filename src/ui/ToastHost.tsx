@@ -2,6 +2,7 @@
 // with a draining bar and Undo. Any screen shows one through useToast(); a new toast replaces the one showing.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Toast } from './parts.tsx';
+import './bookFaces.css';
 
 export interface ToastRequest {
   text: string;
@@ -15,6 +16,8 @@ export interface ToastRequest {
   warning?: string;
   /** The **icon Undo** variant: Undo as a small stacked button, the turned-back arrow above the word (the stash's Take, ⚑ 6). */
   undoIcon?: boolean;
+  /** Drawn in the book's faces (`.book-faces`): set for every toast shown from inside `BookToasts` (the Pack tab, K29). */
+  book?: boolean;
 }
 
 type Show = (toast: ToastRequest) => void;
@@ -38,6 +41,16 @@ const ToastSwap = createContext<Swap>({ show: () => 0, take: () => undefined, re
 /** Shows a toast: past tense, what moved ("Dropped 3 torches"), and Undo where it can be undone. */
 export function useToast(): Show {
   return useContext(ToastContext);
+}
+
+/**
+ * Every toast shown from inside it is drawn in the book's faces (the Pack tab's dress, K29; frame PK4b draws its toasts
+ * in the book's text face). It changes faces only: the toast's words, Undo and timing stay the app's.
+ */
+export function BookToasts({ children }: { children: ReactNode }) {
+  const show = useContext(ToastContext);
+  const inBook = useCallback<Show>((toast) => show({ ...toast, book: true }), [show]);
+  return <ToastContext.Provider value={inBook}>{children}</ToastContext.Provider>;
 }
 
 /** Whether a toast is on screen now: a notice that waits its turn (the new version's, AppUpdate.tsx) never covers one. */
@@ -139,7 +152,7 @@ export function ToastHost({ children }: { children: ReactNode }) {
         <ToastShowing.Provider value={current !== null}>{children}</ToastShowing.Provider>
       </ToastSwap.Provider>
       {current && (
-        <div className="toast-host">
+        <div className={current.book ? 'toast-host book-faces' : 'toast-host'}>
           <Toast
             key={current.id}
             text={current.text}

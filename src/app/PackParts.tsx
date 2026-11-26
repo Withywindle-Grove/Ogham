@@ -1,10 +1,32 @@
 // The Pack's small pieces on creation's standard (plan m5b-players-screens-standard C; mockup players/01), built once
 // here so the Pack and the gallery draw the same thing: the card for the items waiting for the GM, the coin line,
 // and the foot.
+import type { ReactNode } from 'react';
+import { BookType } from '../ui/creation.tsx';
 import { Icon } from '../ui/icons.tsx';
+import { BookToasts } from '../ui/ToastHost.tsx';
 import { WarningLine } from '../ui/parts.tsx';
 import { itemCount } from './packHelpers.ts';
 import './PackScreen.css';
+
+/**
+ * The Pack tab's dress (K29; Francis, 2026-11-24; frames PK1 to PK13 of pack/08, approved 2026-11-14, and page 07's
+ * PC1 to PC10, approved 2026-11-13): the book's type (`BookType`: the book's faces, here and in every pop-up opened from
+ * the tab), and `.pack-dress` for the Pack's own sizes and gaps (PackScreen.css). Its pop-ups keep the app's plain title
+ * (psw-4: an action's sheet, the coin's sheets, PC3, PK4b); a thing's own sheet takes its name as the entry's red
+ * heading (PK8; `ItemSheet`). Its toasts take the book's faces (`BookToasts`, PK4b). It adds no box.
+ * What is put beside the pack (the load and coin, Add item, the stash's room) is wrapped again where it is placed, since
+ * a page's classes do not reach into another column.
+ */
+export function PackDress({ children }: { children: ReactNode }) {
+  return (
+    <BookType>
+      <BookToasts>
+        <div className="pack-dress">{children}</div>
+      </BookToasts>
+    </BookType>
+  );
+}
 
 /**
  * The items waiting for the GM (ruled 2026-10-24: not in the pack, counting for nothing until approved): a card with
