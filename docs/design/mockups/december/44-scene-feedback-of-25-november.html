@@ -374,7 +374,7 @@ const ep1 = frame('44-18', `EP1 (F24). ${NEW} <b>The “Edit piece” form, to t
 mount(`
   <h1>The Scene feedback of 25 November: the proposals</h1>
   <p class="note big"><b>Proposals, not approved.</b> For Francis’s 27 notes on the Scene (<code>docs/intents/scene-feedback-2026-11-25.md</code>); the table of every note, its track and the questions for him is <code>docs/design/rulings/scene-feedback-2026-11-25.md</code>. Each caption names the notes it answers (F1 to F27) and marks what is the designer’s own as “Mine, to check”. Names, words, numbers and table rows are invented; the map is a stand-in.</p>
-  <p class="note big"><b>The critique is under the frames, after the questions: 24 findings, numbered. Pick by number.</b> It is the designer’s own critique of 25 November in the shape of <code>impeccable critique</code>, by hand: <b>the skill is not installed in this cloud session, no skill file was read, and no detector or linter ran.</b> If the PC session runs the real one, its findings stand where they differ. No frame was changed for a finding. Contrast was measured again the same day: no text pair fails; one control edge in dark is a hair under its floor (finding 22).</p>
+  <p class="note big"><b>The critique is under the frames, after the questions: 26 findings, numbered, 24 of 40. Pick by number.</b> It is the <code>impeccable critique</code> run by Home Two on the PC on 25 November, and it replaces the designer’s by-hand critique. No frame was changed for a finding. Contrast was measured by the designer the same day: no text pair fails, and one control edge in dark is a hair under its floor (finding 24).</p>
   <h1>EN. An encounter is one card</h1>
   ${dframe('44-1', en1)}
   ${en2}
@@ -418,63 +418,149 @@ mount(`
     <li><b>The Depart list</b> (DP3): which group starts open? Drawn: the Area last played; the others folded.</li>
     <li><b>A map without its key</b> (F13 c; not drawn): the pack can now give players a picture with the key’s names painted out. May the GM later show them the full map too, as a second step? The format does not allow that yet.</li>
   </ol>
-  <h1>Critique (by hand, in the shape of <code>impeccable critique</code>, 2026-11-25)</h1>
-  <p class="note big"><b>The <code>impeccable</code> skill is not installed in this cloud session</b>, so this is the designer’s own critique in the same shape, as page 42’s was: <b>no skill file was read and no detector or linter ran.</b> If the PC session runs the real <code>impeccable critique</code> on this page, its findings stand where they differ. Read from the 38 pictures of the 19 frames and from the page in a browser. <b>No frame was changed for a finding: Francis picks by number.</b> Scores are 0 to 4.</p>
+  <h1>Critique (<code>impeccable critique</code>, run by Home Two on the PC, 2026-11-25)</h1>
+  <p class="note big"><b>This replaces the designer’s by-hand critique.</b> It was run by Home Two, the session on the PC, with the <code>impeccable</code> skill loaded (the condensed port: its <code>critique</code> command; that port has no detector or linter, so none ran). I read all 38 pictures of the 19 frames, every caption, and the questions, at commit 6c83a3e. Where this differs from the by-hand critique, this one stands. <b>No frame was changed for a finding: Francis picks by number.</b> Scores are 0 to 4. Findings new in this run: 5 (the band’s “+”), 11, 12 (“turn 14”), 18 (words), 19 and 20. Scores that differ from the by-hand critique: user control 2, not 3 (findings 3, 10); recognition 2, not 3 (5, 8, 18). The total is 24, not 26.</p>
   <table class="sc">
   <tr><th>Heuristic</th><th>Score</th><th>Why</th></tr>
-  <tr><td>Visibility of system status</td><td>3</td><td>“Players see this result.”, “Sent to Wren.”, “Shared with the players, turn 9.” and the counts say what happened. Two toasts quote a number nobody entered (4); a sent piece’s state is not drawn (15).</td></tr>
-  <tr><td>Match to the user’s language</td><td>3</td><td>The table’s own name, the book’s words, “N. Unexplored” in his words. “Enter roll…” opens a list to tap (4); “Stat lines” and “Items” are ⚑ 9.</td></tr>
-  <tr><td>User control and freedom</td><td>3</td><td>Undo on every act, a new “Dismiss”, “Back” in two pop-ups. A wrong row is fixed only while the toast lasts (3); the X drops typed words (9).</td></tr>
-  <tr><td>Consistency</td><td>2</td><td>“›” means four things and folds have three marks (6); “+” unfolds or swaps the view (7); a tap on a piece’s words does two things (5); the encounter’s mark is two drawings (19).</td></tr>
-  <tr><td>Error prevention</td><td>2</td><td>One tap sends the book’s row whole to the players (1); “Message…” slides under “Reveal” (2); an eye beside the row that unfolds (14).</td></tr>
-  <tr><td>Recognition over recall</td><td>3</td><td>A number on every way, the Area over its rows, a detail row where the name is read. “3. Unexplored” with no map says little (8); “Encounter tables” goes behind “…” (23).</td></tr>
-  <tr><td>Flexibility and efficiency</td><td>3</td><td>A stat line is one tap from the words; search by number; “Recently visited”. The open fold is about two screens on a phone (10).</td></tr>
-  <tr><td>Minimalist design</td><td>3</td><td>One card for an encounter, two rows gone from the Scene, two pop-ups as tall as their words. DT1 is the exception: seven boxed rows (10), boxes three deep (11).</td></tr>
-  <tr><td>Error recovery</td><td>1</td><td>No failed reveal, send, share or save is drawn, and no loading or offline state (23).</td></tr>
-  <tr><td>Help and documentation</td><td>3</td><td>“Only you see this.”, “Not yet shown: players see…”, a line for every empty state. The band’s buttons have no words.</td></tr>
-  <tr><th>Total</th><th>26 of 40</th><th></th></tr>
+  <tr><td>Visibility of system status</td><td>3</td><td>“Players see this result.”, “Sent to Wren.”, “Shared with the players, turn 9.” and “1 of 3 sections shared.” say what happened. Two toasts quote a number nobody entered (7). What a sent piece now does is not drawn (17).</td></tr>
+  <tr><td>Match to the user’s language</td><td>3</td><td>The table’s own name, the book’s words, and “N. Unexplored” in his words. But “Enter roll…” opens a list to tap (7); the same count is called “Locations” and “places” (11); “Stat lines” and “Items” are ⚑ 9.</td></tr>
+  <tr><td>User control and freedom</td><td>2</td><td>There is Undo on every act, a new “Dismiss”, and “Back” in two pop-ups. But a wrong row can be put right only while its toast lasts (3); the X drops typed words, and the Kind list has no Back (10); a reveal can’t be unread (1).</td></tr>
+  <tr><td>Consistency</td><td>2</td><td>Folds have four marks, and “+” sits among the GM’s actions (5). A tap on a piece’s words does two things (6). The encounter is two drawings (18). The same count has two names (11).</td></tr>
+  <tr><td>Error prevention</td><td>2</td><td>One tap sends the book’s row whole to the players (1). “Message…” slides under the thumb that just tapped “Reveal” (2). The share eye sits on the row that unfolds (4).</td></tr>
+  <tr><td>Recognition over recall</td><td>2</td><td>A number on every way, and the Area over its rows. But the band’s three marks have no words (18); “+” beside “…” reads as “add” (5); “3. Unexplored” says little without the map (8); “Encounter tables” goes behind “…” (25).</td></tr>
+  <tr><td>Flexibility and efficiency</td><td>3</td><td>A stat line is one tap from the words; search by name or number; “Recently visited”. On a phone the open fold is about two screens (9).</td></tr>
+  <tr><td>Minimalist design</td><td>3</td><td>One card for an encounter, two rows gone from the Scene, two pop-ups as tall as their words. The exceptions: DT1’s seven boxed rows (9), and boxes three deep (13).</td></tr>
+  <tr><td>Error recovery</td><td>1</td><td>No failed reveal, send, share or save is drawn, and no loading or offline state (25).</td></tr>
+  <tr><td>Help and documentation</td><td>3</td><td>“Only you see this.”, “Not yet shown: players see…”, and a line for every empty state. The band’s buttons have no words (18).</td></tr>
+  <tr><th>Total</th><th>24 of 40</th><th></th></tr>
   </table>
-  <p class="note big"><b>What works.</b> The encounter is one thing in one place: the check, its result and its details are the same card, and a row with nothing closes with no card left behind. A detail row puts the stat line where the name is read and opens one pop-up for a creature, a character and an item. The Depart list is one view in map order with a search by number. The two pop-ups and the form are the app’s standard pop-up, as tall as their words, with one accent at the foot’s right. <b>Does it look machine-made?</b> No: it is the book’s format and the app’s own parts, with no ornament added; the one template habit is a box inside a box inside a box (11). <b>Load:</b> lightest on EN, PU and EP; heaviest on DT1, where one card holds the book’s words, seven detail rows and the pieces.</p>
+  <p class="note big"><b>What works.</b>
+  <br>&bull; An encounter is one card: the check, its result and its details. A row with nothing in it leaves no card behind.
+  <br>&bull; The detail row puts the stat line where the name is read, and one pop-up serves a creature, a named character and an item (EN3 is the strongest frame on the page).
+  <br>&bull; The Depart list is one view in map order, searched by name or number.
+  <br>&bull; The two pop-ups and the form are the app’s standard pop-up, as tall as their words, with one accent at the foot’s right.
+  <br>&bull; The players’ “An encounter” card (EN5) gives them the words and nothing else.
+  <br><b>Mode:</b> Operate, at a table. The page keeps to the app’s parts and the book’s format, with no ornament added.
+  <br><b>Load:</b> lightest on EN, PU and EP; heaviest on DT1. <b>Hierarchy:</b> clear on every frame but EN1 B to D, where a rolled sentence at heading size outranks the place (14).
+  <br><b>Not counted:</b> a small-caps line over a heading (“Session 1. Saltwick Island.”, “Depart”, “Move on”, “Rolled by hand”, “2. The Wreck”). <code>impeccable</code> bans an eyebrow over a heading, but here it is the app’s approved house pattern, and the brief wins.</p>
   <ol class="crit">
-  <li><b>“Reveal” sends the row’s words whole, in one tap, to every player’s Scene</b> (EN1 B, EN5). A table’s row is written for the GM and may say more than the players should know yet. Today it lands in their log; here it is a card on every Scene. Undo takes the card back, not what was read. Fix: “Reveal…” opens the standard pop-up with the words in a box the GM can cut, and “Reveal” as its accent; or keep one tap and accept it. A hidden-data question: it needs his ruling. (<code>harden</code>)</li>
-  <li><b>After “Reveal”, “Message…” slides into the place “Reveal” had</b> (EN1 C, EN4 C). A second tap in the same spot opens a message. Fix: the three places stay: “Reveal” becomes a pressed “Revealed” with the open eye, and a tap on it takes the reveal back, which also gives that Undo a lasting home. (<code>layout</code>)</li>
-  <li><b>A wrong row can be put right only while the toast lasts</b> (EN1 B and E, EN2, ET1). The rows are 44 px high and eight to twenty deep: a slip is likely. Once the toast is gone the card has “Reveal”, “Message…” and “Done”, and no way back to the table. Fix: a quiet “Change…” on the card that opens the table again with the row ticked. (<code>harden</code>)</li>
-  <li><b>The button says “Enter roll…” and two toasts quote a number nobody entered</b> (EN1 A and E, ET1 A). The pop-up asks for a tap on a row; the app knows “1–8” and “15–16”, not “7” and “16”. Fix: the button reads “Roll…”; the toasts read “1–8: nothing stirs.” and “Rolled by hand: 15–16, two bog lurkers…”. (<code>clarify</code>)</li>
-  <li><b>A tap on a piece’s words does two things, by its kind</b> (TR1, EP1; ⚑ 7). On a Treasure piece it opens the send sheet; on any other it opens “Edit piece”. Nothing on the piece says which, and the kind can be changed. Fix: ⚑ 7’s other choice ends it: the words never open the form; “Edit the piece’s words” stands behind the arrow on every piece. The cost: one more 44 px control on each piece. (<code>clarify</code>)</li>
-  <li><b>“›” means four things on one Scene, and a fold has three marks</b> (DT1, TR1, KN1, DP3, PS2). “›” opens a detail pop-up, opens the send sheet, goes one step on (“To a character”) and unfolds a Knowledge section. A fold is “+” and “−” in a square (the top, the Depart groups), an up or down chevron at the right (“From the book, for the GM”) and “›” before a heading (Knowledge). Fix: the square for all three folds; the piece’s arrow takes the hand that “To a character” and “Send all” already carry; “›” then means “opens”. (<code>polish</code>)</li>
-  <li><b>In the Depart list “+” unfolds an Area in place and swaps the whole view for a pack</b> (DP3 A and D, DP3b). The same square gives two results, and the second needs “Back”. Fix: a pack unfolds in place too, its Areas as groups inside it, which keeps the one view F2 asks for; or a pack’s row ends in “›”. (<code>clarify</code>)</li>
-  <li><b>“3. Unexplored” says less than today’s row when no map is shown</b> (WT1 B and C, PS1, PS3; ⚑ 6). Three rows differ by one digit, and the way’s own name, which leads the row today, is gone. Fix: keep his words as the name and the way under them: “3. Unexplored”, then “By the sea stair.” in quiet words. With ⚑ 6: whether the number shows at all where the group has no map. (<code>clarify</code>)</li>
-  <li><b>The X drops what was typed in “Edit piece”, with no word; and “Kind” has no way back but the X</b> (EP1 A, B, C). A long text is lost on one tap. In B the list takes the form’s place with no “Back”, where PU1 and DP3 D have one. Fix: an X with changes closes and says “Changes dropped.” with Undo; B gets the same “Back”, or the kinds open under their row in place. (<code>harden</code>)</li>
-  <li><b>DT1 holds seven boxed rows on one card, three of them the same line</b> (DT1, DT2; ⚑ 9). Five in the fold and two on the pieces; “Ferryman ×3”, “Old Harl, a ferryman” and the piece’s “Ferryman ×3” carry one identical stat line: thirty rust labels in a column. On a phone the open fold is 1,298 px, about two screens. Fix, for ⚑ 9: one home. On the piece where a piece names it; the fold’s groups keep only what no piece names; identical lines join (“Ferryman ×3, and Old Harl”). (<code>distill</code>)</li>
-  <li><b>Boxes three deep</b> (EN1 B to D, EN4 C). “Waiting for you”, the encounter’s card and the detail row each draw their own edge, inside the screen’s. Fix: inside a card the detail row loses its box and keeps a dotted rule over and under it, as a piece has; the whole row is still the tap and keeps its “›”. (<code>quieter</code>)</li>
-  <li><b>A stat line breaks between a die and its number</b> (EN1 B, DT1, DT2, EN4 C). “(+0,” and the die end one line and “1d6)” starts the next; on a phone “Hit points 1d8” ends a line and “(4)” starts the next. Fix: each label and its value never break apart; the line breaks only between pairs. A build rule for the shared stat line; no new drawing. (<code>typeset</code>)</li>
-  <li><b>The rolled row is the card’s title, at heading size</b> (EN1 B and D, EN4 C). 20 px bold, two lines here. The table’s row 20 would be about three lines on a tablet and four or five on a phone (reckoned, not drawn); a pack’s row of forty words is a block of bold. Fix: the row’s words at body size and weight under the mark, or a cut at three lines that opens the rest. (<code>typeset</code>)</li>
-  <li><b>An Area’s section shared from one of its places: nothing says how far it goes</b> (KN1 A, B). Is it shared for the whole Area or at this place? “Shared with the players, turn 9.” does not say. And the eye stands on the row the GM taps to unfold: a slip shares it at once, and Undo cannot unread it. Fix: “Shared with the players, across The Drowned Harbour, turn 9.”; the eye only inside the unfolded section. (<code>clarify</code>)</li>
-  <li><b>A sent piece keeps its arrow, and what a second tap does is not drawn</b> (TR1, TR2). “Sent to Wren.” stands under the words; the arrow and the eye are unchanged. Fix: a sent piece’s sheet reads “Sent to Wren, turn 3.” with “Take it back” (the Undo’s lasting home) and “Edit the piece’s words”. (<code>harden</code>)</li>
-  <li><b>“Send all” stands above “Edit the piece’s words”</b> (TR1, TR2 C). The sheet’s one accent is in its middle and an edit row closes it. Fix: “Send all” at the foot’s right, as “Move” and “Save” are in PU1 and EP1; the edit row above the things, or quiet at the foot’s left. (<code>layout</code>)</li>
-  <li><b>On a phone the third tile stands alone, and two buttons take 96 px over the place’s words</b> (PS3 A and B, EN5 B). Centred was ruled for a tablet’s row; at 375 px one tile under two reads as a slip. “What everyone knows” and “Rules”, one over the other, start the place’s words 573 px down the unfolded screen. Fix: the third tile the row’s full width; the two as stacked buttons (an icon over its word) side by side. With ⚑ 5. (<code>layout</code>)</li>
-  <li><b>The GM’s “Move on” list says one sentence on every row not shown</b> (WT1 A). “Not yet shown: players see “4. Unexplored”.” three times, wrapping beside two buttons. Fix: the closed eye and “4. Unexplored”, the sign a piece already uses for “not shown”; or said once over the list. (<code>distill</code>)</li>
-  <li><b>The encounter’s mark is two drawings on one screen</b> (EN1; ⚑ 1). The band has the icon set’s crossed swords; the tile and the card keep today’s thin pair, which the caption says reads as a close mark. Fix: what ⚑ 1 picks goes to all three places. (<code>polish</code>)</li>
-  <li><b>“Remove this piece” stands where “Back” stands in the next pop-up</b> (EP1, PU1). The foot’s left is the safe way out in “Move on” and a removal in “Edit piece”. Undo covers a slip. Fix: “Remove this piece” as a quiet row under “Kind”; the foot holds “Save” alone. (<code>layout</code>)</li>
-  <li><b>The players’ travel pop-up is a tap that ends in a sentence</b> (PU1 B and E). The buttons that open it are the heaviest on a player’s Scene; the pop-up has the X as its only way out, no eyebrow, and “1 turn.” where the GM’s reads “Takes 1 turn.” Fix: the GM’s two labelled lines and a plain “Got it”, as EN5’s card has. The buttons themselves are PL1b’s, approved; not reopened here. (<code>clarify</code>)</li>
-  <li><b>In dark, the edge of a field or a plain button on a pop-up measures 2.97 to 1</b> (DP3, PU1, EP1; measured). The floor for a control’s edge is 3 to 1. It is the tokens’ own pair (a control’s edge on the pop-up’s ground), so the app has it too: a token question, not this page’s. On a card it is 3.30 and on the page 3.62. (<code>harden</code>)</li>
-  <li><b>Not drawn.</b> A failed, a loading and an offline reveal, send, share and save; Larger text; a table taller than the screen and a d100 table (EN2); the “…” menu that holds “Encounter tables” once the two rows go (F9): the tables are then two taps away and out of sight; twelve tables as chips, and what follows a row picked by hand: a card in “Waiting for you”, or the toast alone (ET1); “+ Piece”; a hoard already sent. (<code>harden</code>)</li>
-  <li><b>Small slips in the drawings.</b> EN5’s tile reads “1 in 6” where EN1’s reads “d20” for the same check. KN1’s section is named “What everyone knows”, the words of the players’ button. DT1’s boxed item in the book’s text looks like the detail rows under it and is not a tap. EN4 C’s “Done” stands alone on its row. DT2 C breaks “p.” from “14”. (<code>polish</code>)</li>
+  <li><b>High. “Reveal” sends the row’s words whole, in one tap, to every player’s Scene</b> (EN1 B, EN5).
+    <br>A table’s row is written for the GM and may say more than the players should know yet. Undo takes the card back, but not what was read.
+    <br>Fix: “Reveal…” opens the standard pop-up with the words in a box the GM can trim, and “Reveal” as its accent. Or keep one tap and accept the risk.
+    <br>A hidden-data question, so it needs his ruling. (<code>harden</code>)</li>
+  <li><b>High. After “Reveal”, “Message…” slides into the place where “Reveal” was</b> (EN1 C, EN4 C).
+    <br>A second tap in the same spot opens a message.
+    <br>Fix: the three buttons keep their places. “Reveal” becomes a pressed “Revealed” with the open eye, and a tap on it takes the reveal back, which gives that Undo a lasting home. (<code>layout</code>)</li>
+  <li><b>High. A wrong row can be put right only while the toast lasts</b> (EN1 B and E, EN2, ET1).
+    <br>Rows of eight to twenty, 44 px tall, tapped at a table: a slip is likely. Once the toast is gone, nothing leads back to the table.
+    <br>Fix: a quiet “Change…” on the result card that reopens the table with the row ticked. (<code>harden</code>)</li>
+  <li><b>High. Sharing an Area’s section from one of its places doesn’t say how far the share goes, and the eye sits on the row that unfolds</b> (KN1 A, B, D).
+    <br>“Shared with the players, turn 9.” doesn’t say whether it was shared for the whole Area or only here. And a slip beside the fold shares at once; Undo can’t unread it.
+    <br>Fix: say “Shared with the players, across The Drowned Harbour, turn 9.”, and show the eye only inside the unfolded section.
+    <br>Hidden data again, so it needs his ruling. (<code>clarify</code>)</li>
+  <li><b>High. Folds have four marks, and on the GM’s band the fold mark reads as “add”</b> (PS2 C, EN1, DT1, KN1, DP3, DP3b).
+    <ul>
+      <li>On the GM’s top, the fold square “+” stands in the row of actions, between “Next turn” and “…”. In that company it reads as “add something”, not “show the top”.</li>
+      <li>A fold is shown four ways: “+” and “−” in a square (the top, the Depart groups), a chevron at the right (“From the book, for the GM”), and “›” before a heading (Knowledge).</li>
+      <li>In the Depart list the same “+” unfolds an Area in place but swaps the whole view for a pack.</li>
+      <li>“›” also opens a detail pop-up, opens the send sheet and goes one step on.</li>
+    </ul>
+    Fix: one fold mark for all folds. Set the top’s fold apart from the actions (at the band’s left edge, by the title, or after a rule). A pack unfolds in place like an Area. “›” then means only “opens”. (<code>polish</code>)</li>
+  <li><b>Medium. A tap on a piece’s words does two things, depending on its kind</b> (TR1, EP1; ⚑ 7).
+    <br>A Treasure piece opens the send sheet; any other piece opens “Edit piece”. Nothing on the piece says which, and the kind can be changed.
+    <br>Fix: ⚑ 7’s other choice. The words never open the form; “Edit the piece’s words” stands behind the arrow on every piece. (<code>clarify</code>)</li>
+  <li><b>Medium. The button says “Enter roll…” and two toasts quote a number nobody entered</b> (EN1 A and E, ET1 A).
+    <br>The pop-up asks for a tap on a row. The app knows the range (“1–8”, “15–16”), not the roll (“7”, “16”).
+    <br>Fix: the button reads “Roll…”, and the toasts read “1–8: nothing stirs.” and “Rolled by hand: 15–16, two bog lurkers…”. (<code>clarify</code>)</li>
+  <li><b>Medium. “N. Unexplored” says less than today’s row when no map is shown</b> (WT1 B and C, PS1, PS3; ⚑ 6).
+    <br>Three rows differ by one digit, and the way’s own name is gone. Under “Elsewhere”, “0. Unexplored” quotes a number from a map the players have never been given.
+    <br>Fix: keep his words as the name, with the way under them in quiet words. With ⚑ 6, decide whether the number shows at all where the group has no map, and always under “Elsewhere”. (<code>clarify</code>)</li>
+  <li><b>Medium. DT1 holds seven boxed rows on one card, three of them the same stat line</b> (DT1, DT2; ⚑ 9).
+    <br>“Ferryman ×3”, “Old Harl, a ferryman” and the piece’s “Ferryman ×3” all carry it. On a phone the open fold is about two screens.
+    <br>Fix, with ⚑ 9: give each detail one home. It goes on the piece where a piece names it; the fold keeps only what no piece names; identical lines join (“Ferryman ×3, and Old Harl”). (<code>distill</code>)</li>
+  <li><b>Medium. In “Edit piece”, the X drops what was typed without a word; and the Kind list has no way back but the X</b> (EP1 A, B, C).
+    <br>A long text is lost in one tap. The Kind list takes the form’s place with no “Back”, where PU1 and DP3 D have one.
+    <br>Fix: if there are changes, the X closes and says “Changes dropped.” with Undo. The Kind list gets “Back”, or the kinds open in place under their row. (<code>harden</code>)</li>
+  <li><b>Medium. One count has two names in the same list</b> (DP3 A, C, D; DP3b). <i>New.</i>
+    <br>An Area’s group reads “7 Locations” and “13 Locations”, capitalised. A pack reads “212 places”. An Area inside a pack reads “3 places”.
+    <br>Fix: one word in the list, lower case: “7 places”. (<code>clarify</code>)</li>
+  <li><b>Medium. Line breaks part a number from its word</b> (PS3 A and B, EN5 B, EN1 B, EN4 C, DT1, DT2).
+    <br>On a phone the top reads “The Drowned Harbour, turn” with “14” alone on the next line (new in this run). A stat line breaks between a die and its number (“(+0,” then “1d6)”). DT2 C breaks “p.” from “14”.
+    <br>Fix: a no-break space in “turn 14” and in “p. 14”, and a stat line breaks only between label-and-value pairs. A build rule; no new drawing. (<code>typeset</code>)</li>
+  <li><b>Medium. Boxes three deep</b> (EN1 B to D, EN4 C).
+    <br>“Waiting for you”, the encounter’s card and the detail row each draw an edge, inside the screen’s own.
+    <br>Fix: inside a card, the detail row loses its box and keeps a dotted rule above and below, as a piece has. The whole row is still the tap. (<code>quieter</code>)</li>
+  <li><b>Medium. The rolled row is the card’s title, at heading size</b> (EN1 B and D, EN4 C).
+    <br>It is 20 px bold over two lines here, three on a phone. A pack’s 40-word row becomes a block of bold that outranks the place.
+    <br>Fix: the row’s words at body size under a short heading (“An encounter”, as the players’ card has), or cut at three lines with the rest behind a tap. (<code>typeset</code>)</li>
+  <li><b>Medium. On a phone the third tile stands alone, and two stacked buttons take 96 px above the place’s words</b> (PS3 A, EN5 B; ⚑ 5).
+    <br>One tile centred under two reads as a slip. “What everyone knows” and “Rules” one above the other push the place’s words down to about 573 px.
+    <br>Fix: the third tile takes the row’s full width, and the two buttons sit side by side as icon-over-word buttons. (<code>layout</code>)</li>
+  <li><b>Medium. “Send all” stands in the middle of the sheet, above “Edit the piece’s words”</b> (TR1, TR2 C).
+    <br>Fix: put “Send all” at the foot’s right, where “Move” and “Save” are in PU1 and EP1. The edit row goes above the things, or quiet at the foot’s left. (<code>layout</code>)</li>
+  <li><b>Medium. A sent piece keeps its arrow, and what a second tap does isn’t drawn</b> (TR1, TR2).
+    <br>Fix: a sent piece’s sheet reads “Sent to Wren, turn 3.” with “Take it back” (the Undo’s lasting home) and “Edit the piece’s words”. (<code>harden</code>)</li>
+  <li><b>Medium. The band’s three marks have no words, and the encounter’s mark is two drawings</b> (EN1, PS2 C; ⚑ 1).
+    <br>Camp, encounter and depart are icons alone, next to “Next turn”, which has a word. A first-time GM has to learn them. The band uses the icon set’s crossed swords, while the tiles and the card keep today’s thin pair.
+    <br>Fix: whatever ⚑ 1 picks goes in all three places, and each mark gets a word under it on a tablet, where there is room. (<code>polish</code>)</li>
+  <li><b>Low. A place’s own knowledge has no heading, while its Area’s does</b> (KN1 B). <i>New.</i>
+    <br>“Sank”, “Owned by” and “Who strips her” start with no name over them. The line between the place’s sections and the Area’s shows only when “The Drowned Harbour” appears.
+    <br>Fix: the place’s name, “2. The Wreck”, as a matching heading over its own. (<code>clarify</code>)</li>
+  <li><b>Low. The Kind row shows the same jigsaw for every kind</b> (EP1 A, C, D). <i>New.</i>
+    <br>“Treasure” and “Someone here” carry one icon, so it says nothing.
+    <br>Fix: drop it, or give each kind its own. (<code>polish</code>)</li>
+  <li><b>Low. The GM’s “Move on” list repeats one sentence on every row not shown</b> (WT1 A).
+    <br>“Not yet shown: players see “4. Unexplored”.” appears three times, wrapping beside two buttons.
+    <br>Fix: the closed eye with “4. Unexplored”, the sign a piece already uses; or say it once above the list. (<code>distill</code>)</li>
+  <li><b>Low. “Remove this piece” stands where “Back” stands in the next pop-up</b> (EP1, PU1).
+    <br>The foot’s left is the safe way out in “Move on”, but a removal in “Edit piece”. Undo covers a slip.
+    <br>Fix: “Remove this piece” as a quiet row under “Kind”, so the foot holds “Save” alone. (<code>layout</code>)</li>
+  <li><b>Low. The players’ travel pop-up ends in a sentence with only the X</b> (PU1 B, E).
+    <br>It says “1 turn.” where the GM’s says “Takes 1 turn.”
+    <br>Fix: the GM’s two labelled lines, and a plain “Got it”, as EN5’s card has. (<code>clarify</code>)</li>
+  <li><b>Low. In dark, the edge of a field or plain button on a pop-up is 2.97 to 1, under the 3 to 1 floor</b> (DP3, PU1, EP1).
+    <br>This is the designer’s measurement, which I did not take again. It comes from the tokens’ own pair, so it is a token question, not this page’s. (<code>harden</code>)</li>
+  <li><b>Low. Not drawn:</b>
+    <ul>
+      <li>a failed, loading or offline reveal, send, share and save;</li>
+      <li>Larger text;</li>
+      <li>a table taller than the screen, and a d100 table (EN2);</li>
+      <li>the “…” menu that holds “Encounter tables” once the two rows go (F9): the tables are then two taps away and out of sight;</li>
+      <li>what follows a row picked by hand (ET1);</li>
+      <li>“+ Piece”;</li>
+      <li>a hoard already sent.</li>
+    </ul>
+    (<code>harden</code>)</li>
+  <li><b>Low. Small slips in the drawings:</b>
+    <ul>
+      <li>EN5’s tile reads “1 in 6” where EN1’s reads “d20” for the same check.</li>
+      <li>On a phone the top reads “2 hours of light.” where the tablet reads “Two hours of light left.”</li>
+      <li>KN1’s section is named “What everyone knows”, the words of the players’ button.</li>
+      <li>DT1’s boxed item in the book’s text looks like the detail rows under it, but can’t be tapped.</li>
+      <li>EN4 C’s accent, “Done”, stands alone on its own row.</li>
+    </ul>
+    (<code>polish</code>)</li>
   </ol>
   <table class="sc">
   <tr><th>Frame</th><th>Findings</th><th>Frame</th><th>Findings</th></tr>
-  <tr><td>44-1, EN1</td><td>1, 2, 3, 4, 11, 12, 13, 19</td><td>44-10, DP3b</td><td>7</td></tr>
-  <tr><td>44-2, EN2</td><td>3, 4, 23</td><td>44-11, WT1</td><td>8, 18</td></tr>
+  <tr><td>44-1, EN1</td><td>1, 2, 3, 5, 7, 12, 13, 14, 18</td><td>44-10, DP3b</td><td>5, 11</td></tr>
+  <tr><td>44-2, EN2</td><td>3, 25</td><td>44-11, WT1</td><td>8, 21</td></tr>
   <tr><td>44-3, EN3</td><td>none</td><td>44-12, PS1</td><td>8</td></tr>
-  <tr><td>44-4, EN4</td><td>2, 11, 12, 13, 24</td><td>44-13, PS2</td><td>6, 23</td></tr>
-  <tr><td>44-19, EN5</td><td>1, 17, 24</td><td>44-14, PS3</td><td>8, 17</td></tr>
-  <tr><td>44-5, DT1</td><td>6, 10, 12, 24</td><td>44-15, KN1</td><td>6, 14, 24</td></tr>
-  <tr><td>44-6, DT2</td><td>10, 12, 24</td><td>44-16, ET1</td><td>3, 4, 23</td></tr>
-  <tr><td>44-7, TR1</td><td>5, 6, 15, 16</td><td>44-17, PU1</td><td>20, 21, 22</td></tr>
-  <tr><td>44-8, TR2</td><td>15, 16</td><td>44-18, EP1</td><td>5, 9, 20, 22</td></tr>
-  <tr><td>44-9, DP3</td><td>6, 7, 22</td><td></td><td></td></tr>
+  <tr><td>44-4, EN4</td><td>2, 12, 13, 14, 26</td><td>44-13, PS2</td><td>5, 18</td></tr>
+  <tr><td>44-19, EN5</td><td>1, 12, 15, 26</td><td>44-14, PS3</td><td>8, 12, 15, 26</td></tr>
+  <tr><td>44-5, DT1</td><td>5, 9, 12, 26</td><td>44-15, KN1</td><td>4, 5, 19, 26</td></tr>
+  <tr><td>44-6, DT2</td><td>9, 12</td><td>44-16, ET1</td><td>3, 7, 25</td></tr>
+  <tr><td>44-7, TR1</td><td>5, 6, 16, 17</td><td>44-17, PU1</td><td>22, 23, 24</td></tr>
+  <tr><td>44-8, TR2</td><td>16, 17</td><td>44-18, EP1</td><td>6, 10, 20, 22, 24</td></tr>
+  <tr><td>44-9, DP3</td><td>5, 11, 24</td><td></td><td></td></tr>
   </table>
-  <p class="note big"><b>Walked as:</b> a GM at the table with a check due (two taps to a result; a wrong row has seconds to be put right, 3; “Reveal” is final in effect, 1). A GM reading a place aloud (the stat line is at the name; on DT1 the same line three times, 10). A player on a phone (the place’s words start 573 px down, 17; “3. Unexplored” tells them little, 8). A first-time GM (which “›” does what, 6; where “Encounter tables” went, 23). A keyboard or screen-reader user: not tried; the drawing’s roles and spoken names were not checked in this critique. <b>Questions for Francis from the critique:</b> 1 and 14 touch hidden data and need a ruling before a builder; 5, 8, 10 and 17 bear on ⚑ 7, ⚑ 6, ⚑ 9 and ⚑ 5.</p>
+  <p class="note big"><b>Walked as:</b>
+  <br>&bull; <b>A GM at the table with a check due:</b> two taps to a result. A wrong row has seconds to be put right (3), and “Reveal” is final in effect (1).
+  <br>&bull; <b>A GM reading a place aloud:</b> the stat line is at the name, but on DT1 it is there three times (9).
+  <br>&bull; <b>A first-time GM:</b> what are the band’s three marks (18)? Is “+” “add” or “open” (5)? Where did “Encounter tables” go (25)?
+  <br>&bull; <b>A player on a phone, interrupted:</b> the place’s words start low (15); “3. Unexplored” tells them little (8); “turn” and its number split (12).
+  <br>&bull; <b>Keyboard or screen-reader user:</b> not tried. These are drawings; their roles and spoken names aren’t the build’s.
+  <br><b>Questions for Francis from the critique:</b> 1 and 4 touch hidden data and need a ruling before a builder. 6, 8, 9, 15 and 18 bear on ⚑ 7, ⚑ 6, ⚑ 9, ⚑ 5 and ⚑ 1.</p>
   <h1>Contrast, measured 2026-11-25</h1>
   <p class="note big"><b>No text pair fails.</b> Every text on the page was read in a browser in both themes: its colour over the grounds under it, 1,568 texts a theme (1,362 in the frames, 155 in the captions, 51 in the page’s own notes). The 72 a theme that lie under a dimmed screen or behind a pop-up were left out. The floor is 4.5 to 1; no text needed the lower floor for large type. <b>Not a detector:</b> a script of the designer’s, written for this page.</p>
   <table class="sc">
@@ -487,11 +573,11 @@ mount(`
   <tr><td>Ink, on every ground and wash</td><td>14.78 to 17.89</td><td>11.39 to 15.87</td></tr>
   <tr><td>A toast</td><td>17.11</td><td>15.87</td></tr>
   </table>
-  <p class="note big"><b>Beside the text.</b> The quiet edge of a field or a plain button: 3.59 and 3.75 in light; 3.30 and 3.62 in dark, and <b>2.97 on a pop-up in dark, under the 3 to 1 floor</b> (finding 22). Icons on controls and the die marks: 6.82 or more in light, 5.26 or more in dark. Dotted rules are 1.4 to 1.5: rules, not edges. <b>Named, not judged:</b> on PS1’s marching order the torch ring and its badge measure 2.6 and 2.8 in light; they come with the approved base (PL1b) and are not this page’s parts. The map and the portraits are pictures and were left out. <b>Colour alone:</b> in a stat line the label is rust and the value ink, at one size and weight; against each other they are 3.3 to 1 in light and 2.5 to 1 in dark, so they differ in lightness as well as hue. It is the book’s approved format, new at 14 px in the detail row; no greyscale strip is drawn on this page, so this one is his to judge from the numbers.</p>
+  <p class="note big"><b>Beside the text.</b> The quiet edge of a field or a plain button: 3.59 and 3.75 in light; 3.30 and 3.62 in dark, and <b>2.97 on a pop-up in dark, under the 3 to 1 floor</b> (finding 24). Icons on controls and the die marks: 6.82 or more in light, 5.26 or more in dark. Dotted rules are 1.4 to 1.5: rules, not edges. <b>Named, not judged:</b> on PS1’s marching order the torch ring and its badge measure 2.6 and 2.8 in light; they come with the approved base (PL1b) and are not this page’s parts. The map and the portraits are pictures and were left out. <b>Colour alone:</b> in a stat line the label is rust and the value ink, at one size and weight; against each other they are 3.3 to 1 in light and 2.5 to 1 in dark, so they differ in lightness as well as hue. It is the book’s approved format, new at 14 px in the detail row; no greyscale strip is drawn on this page, so this one is his to judge from the numbers.</p>
   <h1>Self-review</h1>
   <p class="note big"><b>The stylesheet.</b> The page links the one shared mockup stylesheet (<code>../shared/book.css</code>) and its type pass last, and restates none of their rules. Its own rules are in two groups in the page’s head: layout rules copied as they stand from page 24 for the parts reused here, and new ones for this page’s parts (the pop-up’s head with the X on the name’s line; the centred pop-up; the centred tiles; the encounter’s one card; the detail row; the fold’s head; a piece with an arrow; the Depart groups; the Area’s name over rows; the foot row; the form’s fields; the tables page). Every size and gap is a token from 06.</p>
   <p class="note big"><b>Checked</b> (in a browser, both themes, with a script: 529 tappable parts a theme, the smallest 44 px; no two separate controls nearer than 8 px): no text under 14 px inside a frame; every tappable part at least 44 px in both directions, or a row of a list at least 44 px tall; 8 px between separate controls; no frame wider than its device; the 375 px frames have no sideways overflow. One accent a screen or a pop-up: “Enter roll…” or “Done” in “Waiting for you”; “Move on” on a place’s card when nothing waits; “Send all” in a hoard’s sheet; “Move” and “Save” in their pop-ups; none on a player’s frame. No disabled button on the page. Undo over confirm: “Dismiss”, “Done”, a send, a share and “Remove this piece” act at once with a toast. No distinction rests on colour alone: a shared section has its open eye and a line of words; a picked row has its tick; a folded top has “+”; a due fact has its warning sign. Messy data: a long name in a pop-up’s head (EN3, PU1), a long Area name and thirteen places (DP3), 999 turns (PU1), a long text (EP1), a long table row at 375 px (ET1), a character with no stat block (EN3).</p>
-  <p class="note big"><b>Not checked, or gaps.</b> The real <code>impeccable critique</code>: the one above is by hand (see the top). Contrast was measured on 25 November (the table above); the pictures were not taken again, since no frame changed. The built screens were read in the source and from Francis’s descriptions, not opened: only two of his screenshots (the Depart list) had arrived when the page was drawn. Not drawn: loading, offline and error states of any part here (the Depart list keeps DP1’s skeleton rows; a send that fails keeps the hoard’s built message); Larger text; a d100 table in the roll pop-up; an encounter row that names three or more creatures (each is one more detail row); the “…” menu with “Encounter tables” in it; “+ Piece”; the settlement (out of scope, F1 d); a map without its key (F13 c: a question for the pack tools). The phone’s pop-ups are drawn as sheets from the foot, which no ruling fixes. A card’s heading and the Activities buttons are 18 px, a size outside the app’s scale: it comes from the older shared sheet (<code>december.css</code>), as on pages 18 to 24, and is left for the one sweep.</p>
+  <p class="note big"><b>Not checked, or gaps.</b> The <code>impeccable critique</code> above is Home Two’s, from the pictures and captions; it re-measured no contrast. Contrast was measured on 25 November (the table above); the pictures were not taken again, since no frame changed. The built screens were read in the source and from Francis’s descriptions, not opened: only two of his screenshots (the Depart list) had arrived when the page was drawn. Not drawn: loading, offline and error states of any part here (the Depart list keeps DP1’s skeleton rows; a send that fails keeps the hoard’s built message); Larger text; a d100 table in the roll pop-up; an encounter row that names three or more creatures (each is one more detail row); the “…” menu with “Encounter tables” in it; “+ Piece”; the settlement (out of scope, F1 d); a map without its key (F13 c: a question for the pack tools). The phone’s pop-ups are drawn as sheets from the foot, which no ruling fixes. A card’s heading and the Activities buttons are 18 px, a size outside the app’s scale: it comes from the older shared sheet (<code>december.css</code>), as on pages 18 to 24, and is left for the one sweep.</p>
 `);
 for (const el of document.querySelectorAll('.phone')) el.classList.add('bit');
 for (const el of document.querySelectorAll('.dev h2, .phone h2, .bit h2')) el.classList.add('bsub');
