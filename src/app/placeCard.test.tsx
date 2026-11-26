@@ -149,6 +149,34 @@ describe('the place card as pieces (B1)', () => {
     card(row([piece('t', 'A silver seal under a loose flagstone', false, { kind: 'treasure', gm: { value: '40 gp', trigger: '', statLine: '' } })]));
     expect(screen.getByText('Treasure, value stays yours (40 gp)')).toBeTruthy();
   });
+
+  // Purpose: the kind line names the pack's item, creature and character as a person would (Q7), never their ids, and
+  // an id the packs don't know is left out.
+  it("names the pack's entries on the kind line, never their ids", async () => {
+    const world = createFakeDb();
+    const gm = world.addPerson('priya@lantern.example', 'Priya');
+    const campaign = world.addCampaign('The Ash Barrows', gm);
+    world.signInAs(gm);
+    world.tables.campaign_packs.push({ campaign_id: campaign, pack_id: 'pack-reed', priority: 1 });
+    world.tables.library_entries.push(
+      { id: 'e1', pack_id: 'pack-reed', kind: 'item', pack_entry_id: 'silver-arrows', name: 'Silver-tipped arrows', data: {} },
+      { id: 'e2', pack_id: 'pack-reed', kind: 'statBlock', pack_entry_id: 'bog-lurker', name: 'Bog lurker', data: {} },
+      { id: 'e3', pack_id: 'pack-reed', kind: 'npc', pack_entry_id: 'npc-oswy', name: 'Oswy', data: {} },
+    );
+    const gm3 = (value: string, statLine: string) => ({ value, trigger: '', statLine });
+    const place = row([
+      piece('t', 'A quiver under the planks', false, { kind: 'treasure', gm: gm3('40 gp, Item: silver-arrows', '') }),
+      piece('c', 'Six humps in the mud', false, { kind: 'person', gm: gm3('', 'bog-lurker ×6 (asleep)') }),
+      piece('n', 'A ferryman mends a net', false, { kind: 'person', gm: gm3('', 'NPC: npc-oswy') }),
+      piece('u', 'A pouch of something', false, { kind: 'treasure', gm: gm3('3 sp, Item: no-such-thing', '') }),
+    ]);
+    card({ ...place, campaignId: campaign }, world.db, { id: gm, roles: { [campaign]: 'gm' } } as unknown as CurrentUser);
+    expect(await screen.findByText('Treasure, value stays yours (40 gp, Item: Silver-tipped arrows)')).toBeTruthy();
+    expect(screen.getByText('Someone here, the stat line never shows (Bog lurker ×6 (asleep))')).toBeTruthy();
+    expect(screen.getByText('Someone here, the stat line never shows (NPC: Oswy)')).toBeTruthy();
+    expect(screen.getByText('Treasure, value stays yours (3 sp)')).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/silver-arrows|bog-lurker|npc-oswy|no-such-thing/);
+  });
 });
 
 /** A world with the GM, an expedition under way, the party at the Moth Gallery and its pieces. */

@@ -1231,6 +1231,7 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //               to the players (S13; the players' map, P5; see below).
 //   &picture=1 with spots or spot: the place has a picture (TW13: the picture row, a tap opening it); with &ways=… too,
 //               shown to the players (the Location's card's small picture button, ppf-6 c).
+//   &ids=1  with spot: the jetty's pieces name the pack's entries by id (Q7: the GM's small line names them).
 //   &mapTitle=long  with &map: the map's title long (the card's title on its own line above the tools).
 //   &session=running|paused  the band's session states (S9; see below).
 //   &strip=long  the harbour's own procedure of seven long-named steps (S7; see the harbour).
@@ -1354,6 +1355,26 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
         ]
       : []),
   ].map((s) => ({ ...s, type: p2pKinds ? 'area' : 'site', parentId: 'drowned-harbour' }));
+  // &ids=1 with spot (plan dec-scene-quickfix Q7): the jetty's pieces name the pack's entries by id (an item beside a
+  // value, an item alone with a long name, a creature with a count and a note, a character, and an id no pack has), so
+  // the GM's small line can be seen naming them. Invented.
+  if (new URLSearchParams(window.location.search).get('ids') === '1') {
+    Object.assign(spots[0]!, {
+      treasure: [
+        { text: 'A green copper chest, wedged under the planks.', value: { herons: 40 }, itemId: 'reed-silver-arrows' },
+        { text: 'A long oilcloth bundle lashed to a pile.', itemId: 'reed-lantern-pole' },
+        { text: 'A pouch of something that clinks.', value: { sp: 3 }, itemId: 'reed-no-such-thing' },
+      ],
+      contents: [{ statBlockId: 'reed-bog-lurker', count: 6, note: 'asleep under the planks', appearance: 'Six humps in the mud, breathing.' }],
+      playerView: { ...spots[0]!.playerView, people: [{ description: 'A ferryman mends a net on the end post.', npcId: 'reed-npc-oswy' }] },
+    });
+    for (const [kind, id, name] of [
+      ['item', 'reed-silver-arrows', 'Silver-tipped arrows'],
+      ['item', 'reed-lantern-pole', 'Lantern Warden’s hooked pole of the drowned customs house, with its spare wick'],
+      ['statBlock', 'reed-bog-lurker', 'Bog lurker'],
+      ['npc', 'reed-npc-oswy', 'Oswy the ferryman'],
+    ] as const) world.tables.library_entries.push({ id: `entry-${id}`, pack_id: 'pack-reed', kind, pack_entry_id: id, name, data: { id, name } });
+  }
   // ?placePage=wreck (B15, page 30): the wreck's hoard in the book's words, its things with their counts (b15f-1), and a
   // magic item's truth (b15f-2 to b15f-4: a name, what it does, what the senses tell; no source). Invented.
   if (placePageFlag === 'wreck') {

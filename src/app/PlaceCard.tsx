@@ -26,6 +26,7 @@
 import { Fragment, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { loadPackPlaceEntry, loadPackPlaces, loadPackTables, loadStatBlockName } from '../modules/expedition/placePlay.ts';
 import type { PackPlaceEntry } from '../modules/expedition/placeFromPack.ts';
+import { idsInFacts, loadPieceNames, namedFacts, type PieceNames } from '../modules/expedition/pieceNames.ts';
 import { hasPlaceFacts, leadWords, readPlaceFacts } from '../modules/expedition/placeFacts.ts';
 import type { ReadTable } from '../modules/expedition/tables.ts';
 import { NoteLines, PlaceFactLines, PlaceFactsBody, PlaceIdentity, PlaceTable } from './PlaceFacts.tsx';
@@ -101,6 +102,7 @@ export function PlaceCard({ db, user, campaign, group, groupLabel, row, checks, 
   const [hereOpen, setHereOpen] = useState(false);
   const place = row?.place ?? null;
   const pieces = row?.pieces ?? [];
+  const names = usePieceNames(db, campaign.id, pieces);
   const who = groupLabel ?? 'the party';
   // A place from a pack (pull request 2): the pack's places, for its words, its parent and the places under it.
   const [packPlaces, setPackPlaces] = useState<readonly PackPlace[] | null>(null);
@@ -234,7 +236,7 @@ export function PlaceCard({ db, user, campaign, group, groupLabel, row, checks, 
           {pieces.length > 0 && (
             <ul className="place-card__piece-list">
               {pieces.map((piece) => (
-                <PieceRow key={piece.id} piece={piece} onToggle={() => void togglePiece(piece)} onEdit={() => setEditing(piece)} />
+                <PieceRow key={piece.id} piece={piece} names={names} onToggle={() => void togglePiece(piece)} onEdit={() => setEditing(piece)} />
               ))}
             </ul>
           )}
@@ -596,23 +598,47 @@ export function EyeButton({ shown, show, hide, onToggle }: { shown: boolean; sho
   );
 }
 
+const NO_NAMES: PieceNames = new Map();
+
+/**
+ * The names of the pack entries the pieces' GM facts name (Q7, F20 c): read on the GM's device when the pieces change;
+ * empty until then, so an id is never drawn while they load.
+ */
+export function usePieceNames(db: Db, campaignId: string, pieces: readonly Piece[]): PieceNames {
+  const key = pieces.flatMap((p) => idsInFacts(p.gm).map((w) => `${w.kind}/${w.id}`)).sort().join(' ');
+  const [found, setFound] = useState<{ key: string; names: PieceNames } | null>(null);
+  useEffect(() => {
+    if (!key) return;
+    let live = true;
+    void loadPieceNames(db, campaignId, pieces.map((p) => p.gm)).then((names) => live && setFound({ key, names }));
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the key names every id the pieces name
+  }, [db, campaignId, key]);
+  return found?.key === key ? found.names : NO_NAMES;
+}
+
 /**
  * The GM's alone fact of a piece, as its own small line on the place page (page 11): "Value stays yours (40 herons).";
- * '' when it keeps none.
+ * '' when it keeps none. A pack's id in it is named as a person would (Q7): "Value stays yours (Item: Silver-tipped
+ * arrows)."; an id `names` doesn't know is left out.
  */
-export function gmFactLine(piece: Piece): string {
-  if (piece.kind === 'treasure' && piece.gm.value) return `Value stays yours (${piece.gm.value}).`;
-  if (piece.kind === 'hazard' && piece.gm.trigger) return `Look only; trigger stays yours (${piece.gm.trigger}).`;
-  if (piece.kind === 'person' && piece.gm.statLine) return `The stat line never shows (${piece.gm.statLine}).`;
+export function gmFactLine(piece: Piece, names: PieceNames = NO_NAMES): string {
+  const gm = namedFacts(piece.gm, names);
+  if (piece.kind === 'treasure' && gm.value) return `Value stays yours (${gm.value}).`;
+  if (piece.kind === 'hazard' && gm.trigger) return `Look only; trigger stays yours (${gm.trigger}).`;
+  if (piece.kind === 'person' && gm.statLine) return `The stat line never shows (${gm.statLine}).`;
   return '';
 }
 
-/** What a piece is, and the GM-only facts it keeps (never shown): "Treasure · value stays yours (40 gp)". */
-function kindLine(piece: Piece): string {
+/** What a piece is, and the GM-only facts it keeps (never shown), named as `gmFactLine` names them: "Treasure, value stays yours (40 gp)". */
+export function kindLine(piece: Piece, names: PieceNames = NO_NAMES): string {
   const kind = PIECE_KIND_WORDS[piece.kind];
-  if (piece.kind === 'treasure' && piece.gm.value) return `${kind}, value stays yours (${piece.gm.value})`;
-  if (piece.kind === 'hazard' && piece.gm.trigger) return `${kind}, look only; trigger stays yours (${piece.gm.trigger})`;
-  if (piece.kind === 'person' && piece.gm.statLine) return `${kind}, the stat line never shows (${piece.gm.statLine})`;
+  const gm = namedFacts(piece.gm, names);
+  if (piece.kind === 'treasure' && gm.value) return `${kind}, value stays yours (${gm.value})`;
+  if (piece.kind === 'hazard' && gm.trigger) return `${kind}, look only; trigger stays yours (${gm.trigger})`;
+  if (piece.kind === 'person' && gm.statLine) return `${kind}, the stat line never shows (${gm.statLine})`;
   return kind;
 }
 
@@ -652,12 +678,15 @@ export function PieceRow({
   named = [],
   onOpen,
   note,
+  names = NO_NAMES,
 }: {
   piece: Piece;
   onToggle: () => void;
   onEdit: () => void;
   page?: boolean;
   named?: readonly string[];
+  /** The pack entries' names for the GM's small line (Q7): `usePieceNames`. */
+  names?: PieceNames;
   /** B15 (pg30-1): a hoard's piece opens its hoard on a tap, a small arrow before its eye saying so. */
   onOpen?: () => void;
   /** B15 (HM1, PK5b): the line under a hoard's piece, saying where it went. */
@@ -668,7 +697,7 @@ export function PieceRow({
     // pack leads with its own word starts with it in bold; the description has none, and its words that name another
     // piece (`named`: the other pieces' own words) are bold and underlined. Then the GM's alone fact in the small line,
     // and the bare eye at the right.
-    const fact = gmFactLine(piece);
+    const fact = gmFactLine(piece, names);
     const parts = piece.kind === 'description' ? namedParts(piece.text, named) : [{ text: piece.text, named: false }];
     return (
       <li className="place-page__piece">
@@ -707,7 +736,7 @@ export function PieceRow({
           )}
           {piece.text}
         </span>
-        <span className="place-card__piece-kind">{kindLine(piece)}</span>
+        <span className="place-card__piece-kind">{kindLine(piece, names)}</span>
       </button>
       {/* The eye with its word (2c): Shown or Hidden beside the icon, never the icon alone. */}
       <button
