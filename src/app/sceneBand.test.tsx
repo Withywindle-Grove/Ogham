@@ -301,6 +301,39 @@ describe("the top's fold (p2p-20; page 24, TF1, TF1b)", () => {
     expect(screen.queryByRole('button', { name: /the top/ })).toBeNull();
   });
 
+  // Purpose (Q3, F3 a): with the fold mark, the band's buttons come in the order the eye and the Tab key meet them:
+  // Next turn, the fold mark, then the menu button last.
+  it('puts the menu button last, after the fold mark', () => {
+    render(
+      <SceneBand
+        over="Session 1. Saltwick Island."
+        heading="The Anchorage, turn 1"
+        date={{ icon: 'sprout', words: '14 Reedmonth', light: null }}
+        actions={<NextTurnButton label="Next turn" accent={false} onTap={() => undefined} />}
+        menu={<button type="button">Time options</button>}
+        fold={{ open: true, onToggle: () => undefined, due: [] }}
+      />,
+    );
+    const names = [...document.querySelectorAll('.scene-band button')].map((b) => b.getAttribute('aria-label') ?? b.textContent);
+    expect(names).toEqual(['Next turn', 'Fold the top away', 'Time options']);
+  });
+
+  // Purpose (Q3): with no fold mark (between expeditions, the players' band) the menu button stays where it was, the
+  // last of the actions.
+  it('keeps the menu in the actions without a fold', () => {
+    render(
+      <SceneBand
+        over="Session 1. Saltwick Island."
+        heading="The Reedmouth Quay"
+        date={{ icon: 'sprout', words: '14 Reedmonth', light: null }}
+        actions={<NextTurnButton label="Advance time" accent={false} onTap={() => undefined} />}
+        menu={<button type="button">Time options</button>}
+      />,
+    );
+    expect(document.querySelector('.scene-band__actions')!.lastElementChild!.textContent).toBe('Time options');
+    expect(document.querySelector('.scene-band__menu')).toBeNull();
+  });
+
   // The GM's band as SceneTime wires it (B12b): the fold read from and kept on the device.
   function GmTop() {
     const [open, setOpen] = useSceneTopOpen();

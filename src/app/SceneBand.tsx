@@ -5,8 +5,9 @@
 //     date line (the season's icon, the date in small capitals, the light left; itself the tap while the date is
 //     unset, st-2), an optional quiet line under it ("Resumed: …"), then `actions` (S2's icon buttons and Next turn,
 //     or Start / Resume session) and `menu` (⋯, S3's) at its right. On a phone the actions drop under the date.
-//     `fold` (p2p-20; page 24, TF1, TF1b): the fold mark, a framed square with − open and + folded, after the menu
-//     button (on a phone at the heading's right); folded, each due fact is one small line under the date.
+//     `fold` (p2p-20; page 24, TF1, TF1b): the fold mark, a framed square with − open and + folded, between Next turn
+//     and the menu button, the menu last (F3 a, Francis 2026-11-25; plan dec-scene-quickfix Q3; on a phone at the
+//     heading's right, as TF1b); folded, each due fact is one small line under the date.
 //   NextTurnButton: the hourglass and the mode's one unit ("Next turn"; mc-57).
 //   SessionButton: Start or Resume (the session) in Next turn's place, with the campfire (ic-4, S17).
 //   FactsRow: Weather, Light, Rest, Encounter check (S4), four across, two by two on a phone; a fact's value keeps to
@@ -72,7 +73,7 @@ export function SceneBand({
   under?: string | null;
   actions: ReactNode;
   menu?: ReactNode;
-  /** The fold mark at the band's far right (on a phone at the heading's right), or none. */
+  /** The fold mark, between the actions and the menu button (on a phone at the heading's right), or none. */
   fold?: TopFold | null;
 }) {
   const due = fold && !fold.open ? fold.due.filter(isDue) : [];
@@ -130,8 +131,10 @@ export function SceneBand({
       </div>
       <div className="scene-band__actions">
         {actions}
-        {menu}
+        {!fold && menu}
       </div>
+      {/* Q3 (F3 a): with the fold mark, the menu stands after it, the band's last button, in the eye's order and the
+          Tab key's. */}
       {fold && (
         <button
           type="button"
@@ -144,6 +147,7 @@ export function SceneBand({
           <Icon name={fold.open ? 'minus' : 'plus'} size={24} />
         </button>
       )}
+      {fold && menu && <div className="scene-band__menu">{menu}</div>}
     </div>
   );
 }
