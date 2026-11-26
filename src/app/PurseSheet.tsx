@@ -10,6 +10,11 @@
 // The GM (K15; pu-3, pu-8; frames PC7 and PC8, approved 2026-11-13) opens the same sheet on a character's Pack, with
 // the GM's two acts in place of the player's: "Give coin…" (purse.add: "Give Wren 40 herons") and "Take coin…"
 // (purse.remove, out of play: "Take 10 herons"), on the same rows, box, refusal and accent.
+// The Party stash's coin (K13; pu-3, pu-5; frames PC6 and PC6b, approved 2026-11-13): the same sheet, "Party stash's
+// coin", opened from the stash's own coin row; for a player one row leads on, "Take…", to "Take coin": "The stash has
+// 40." under each coin, one accent naming the amount ("Take 10 herons"), the refusal "The stash has 40 herons.", and
+// the toast "Wren took 10 herons from the stash" with Undo (purse.take, into the taker's own coin). Offline, Take… stays
+// a row and a tap says why it waits. Coin goes in by "Give to…" from a player's own coin (PC5).
 // Only the character's own player and the GM open these (the Pack shows the coin line to them alone); the commands
 // and the database check again (src/modules/inventory/purse.ts).
 import { useId, useState } from 'react';
@@ -18,7 +23,10 @@ import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import { amountWords, coinLine, type Denomination } from '../modules/inventory/coinWords.ts';
 import type { NamedCarrier } from '../modules/inventory/inventory.ts';
-import { addCoin, AMOUNT, giveCoin, removeCoin, spendCoin, type CoinNames, type Coins } from '../modules/inventory/purse.ts';
+import { addCoin, AMOUNT, giveCoin, removeCoin, spendCoin, takeCoin, type CoinNames, type Coins } from '../modules/inventory/purse.ts';
+import { TAKE_OFFLINE_TITLE, TAKE_OFFLINE_WHY } from '../modules/inventory/stashTake.ts';
+import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
+import { useOnline } from '../ui/creation.tsx';
 import { Dialog } from '../ui/Dialog.tsx';
 import { DestinationList, ListRow, RowList, StackedButton, WarningLine } from '../ui/parts.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
@@ -80,8 +88,11 @@ export const gmGaveWords = (name: string, amount: string) => `Your GM gave ${nam
 /** The toast after the GM takes, in the log line's words: "Your GM took 10 herons from Wren" (pu-7). */
 export const gmTookWords = (name: string, amount: string) => `Your GM took ${amount} from ${name}`;
 
-/** The player's pages (spend, give) and the GM's (add: "Give coin", remove: "Take coin"). */
-type Page = 'coin' | 'spend' | 'give' | 'add' | 'remove';
+/** The toast after a player takes from the stash, in the log line's words: "Wren took 10 herons from the stash" (K13). */
+export const tookWords = (name: string, amount: string) => `${name} took ${amount} from the stash`;
+
+/** The player's pages (spend, give; take, from the stash) and the GM's (add: "Give coin", remove: "Take coin"). */
+type Page = 'coin' | 'spend' | 'give' | 'take' | 'add' | 'remove';
 
 export function PurseSheet({
   db,
@@ -91,12 +102,13 @@ export function PurseSheet({
   denominations,
   coins,
   gm = false,
+  taker = null,
   onClose,
   onChanged,
 }: {
   db: Db;
   user: CurrentUser;
-  /** The character whose coin it is (the person's own). */
+  /** The character whose coin it is (the person's own), or the Party stash (K13). */
   carrier: NamedCarrier;
   /** Who coin can go to: the Party stash and the other characters. */
   recipients: readonly NamedCarrier[];
@@ -104,6 +116,8 @@ export function PurseSheet({
   coins: Coins;
   /** The GM's sheet (K15): "Give coin…" and "Take coin…" in place of Spend… and Give to…. */
   gm?: boolean;
+  /** On the stash's coin (K13): the player's character the coin is taken for ("You are taking for"). */
+  taker?: NamedCarrier | null;
   onClose: () => void;
   /** Coin moved (or a move was undone): read the purse again. */
   onChanged: () => void;
@@ -116,8 +130,15 @@ export function PurseSheet({
   const [refusal, setRefusal] = useState<{ key: string; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const show = useToast();
+  const online = useOnline();
+  // Offline, the stash coin's Take… opens the blocked-action pop-up over this sheet (⚑ 7, re-ruled "A" 25 Nov), and so
+  // does Take coin's accent when the network drops while it is open (Home Two's audit of #66, finding 1, 26 Nov).
+  const blocked = useBlockedSheet();
   const rows = purseRows(denominations, coins);
   const name = carrier.name;
+  // The stash's coin (K13): what it holds reads "The stash has 40." (PC6b).
+  const stash = carrier.locationId !== null;
+  const holder = stash ? 'The stash' : name;
   const keyOf = (c: NamedCarrier) => (c.actorId ?? c.locationId)!;
   // The party's stash first, then the people (PC5).
   const others = [...recipients.filter((r) => r.locationId !== null), ...recipients.filter((r) => r.actorId !== null && r.actorId !== carrier.actorId)];
@@ -136,7 +157,7 @@ export function PurseSheet({
   const verb =
     page === 'add'
       ? `Give ${name}${amount ? ` ${amount}` : ''}`
-      : page === 'remove'
+      : page === 'remove' || page === 'take'
         ? `Take${amount ? ` ${amount}` : ''}`
         : page === 'spend'
       ? amount
@@ -158,6 +179,8 @@ export function PurseSheet({
 
   async function confirm() {
     if (busy) return;
+    // Offline, nothing is read or written: the pop-up says why it waits, before any refusal.
+    if (page === 'take' && !online) return blocked.explain(TAKE_OFFLINE_TITLE, TAKE_OFFLINE_WHY);
     setRefusal(null);
     const first = rows[0]?.coin.key ?? '';
     if ('bad' in read) return setRefusal({ key: read.bad, text: AMOUNT });
@@ -167,7 +190,7 @@ export function PurseSheet({
     // The GM's give has no ceiling here: the database refuses past 999,999,999 (pu-8), shown under the row.
     if (page !== 'add') for (const row of rows) {
       const n = wanted[row.coin.key] ?? 0;
-      if (n > row.has) return setRefusal({ key: row.coin.key, text: `${name} has ${amountWords(row.coin, row.has) ?? `${count(row.has)} ${row.coin.label}`}.` });
+      if (n > row.has) return setRefusal({ key: row.coin.key, text: `${holder} has ${amountWords(row.coin, row.has) ?? `${count(row.has)} ${row.coin.label}`}.` });
     }
     if (page === 'give' && !chosen) return show({ text: 'Choose who gets it.' });
     setBusy(true);
@@ -177,17 +200,20 @@ export function PurseSheet({
         ? await runCommand(registry, db, user, addCoin, { to: carrier, coins: wanted, names })
         : page === 'remove'
           ? await runCommand(registry, db, user, removeCoin, { from: carrier, coins: wanted, names })
+          : page === 'take'
+          ? await runCommand(registry, db, user, takeCoin, { from: { ...carrier, downOrDead: false }, to: taker!, coins: wanted, names })
           : page === 'spend'
             ? await runCommand(registry, db, user, spendCoin, { from: carrier, coins: wanted, whatFor, names })
             : await runCommand(registry, db, user, giveCoin, { from: carrier, to: chosen!, coins: wanted, names });
     setBusy(false);
     if (!done.ok) return setRefusal({ key: keys[0]!, text: done.message });
     const words =
-      page === 'add' ? gmGaveWords(name, amount) : page === 'remove' ? gmTookWords(name, amount) : page === 'spend' ? spentWords(name, amount, whatFor) : gaveWords(name, chosen!, amount);
-    const type = page === 'add' ? addCoin.name : page === 'remove' ? removeCoin.name : page === 'spend' ? spendCoin.name : giveCoin.name;
+      page === 'add' ? gmGaveWords(name, amount) : page === 'remove' ? gmTookWords(name, amount) : page === 'take' ? tookWords(taker!.name, amount) : page === 'spend' ? spentWords(name, amount, whatFor) : gaveWords(name, chosen!, amount);
+    const type = page === 'add' ? addCoin.name : page === 'remove' ? removeCoin.name : page === 'take' ? takeCoin.name : page === 'spend' ? spendCoin.name : giveCoin.name;
     onClose();
     onChanged();
-    show({ text: words, onUndo: () => void undo(type) });
+    // The stash's Take: Undo with the turned-back arrow above the word, as a thing's take (⚑ 6, ruled 24 Nov).
+    show({ text: words, onUndo: () => void undo(type), ...(page === 'take' ? { undoIcon: true } : {}) });
   }
 
   const refusalLine = (key: string) =>
@@ -212,18 +238,27 @@ export function PurseSheet({
             <ListRow title="Give coin…" onOpen={() => go('add')} />
             <ListRow title="Take coin…" onOpen={() => go('remove')} />
           </RowList>
+        ) : stash ? (
+          // A player on the stash's coin (PC6): one row leads on; offline it stays a row and a tap opens the blocked-action
+          // pop-up saying why it waits (⚑ 7, re-ruled "A" 25 Nov).
+          taker && (
+            <RowList>
+              <ListRow title="Take…" onOpen={() => (online ? go('take') : blocked.explain(TAKE_OFFLINE_TITLE, TAKE_OFFLINE_WHY))} />
+            </RowList>
+          )
         ) : (
           <RowList>
             <ListRow title="Spend…" onOpen={() => go('spend')} />
             <ListRow title="Give to…" onOpen={() => go('give')} />
           </RowList>
         )}
+        {blocked.sheet}
       </Dialog>
     );
   }
 
   return (
-    <Dialog label={page === 'add' ? 'Give coin' : page === 'remove' ? 'Take coin' : page === 'spend' ? 'Spend' : 'Give to'} onClose={onClose}>
+    <Dialog label={page === 'add' ? 'Give coin' : page === 'remove' || page === 'take' ? 'Take coin' : page === 'spend' ? 'Spend' : 'Give to'} onClose={onClose}>
       <button type="button" className="button-quiet purse-sheet__back" onClick={() => go('coin')}>
         ‹ {name}’s coin
       </button>
@@ -238,7 +273,7 @@ export function PurseSheet({
                   <label className="purse-sheet__name" htmlFor={box}>
                     {rowLabel(coin)}
                   </label>
-                  <span className="purse-sheet__has" id={`${box}-has`}>{`${name} has ${count(has)}.`}</span>
+                  <span className="purse-sheet__has" id={`${box}-has`}>{`${holder} has ${count(has)}.`}</span>
                 </span>
                 <input
                   id={box}
@@ -279,12 +314,13 @@ export function PurseSheet({
         {/* Stacked (ic-1, stk-1): the icon over the words, which keep the amount on one line (the lead, 2026-11-14). */}
         <StackedButton
           variant="primary"
-          icon={page === 'spend' ? 'two-coins' : page === 'remove' ? 'grab' : page === 'add' ? 'receive-money' : !chosen?.locationId ? 'open-palm' : 'open-chest'}
+          icon={page === 'spend' ? 'two-coins' : page === 'remove' || page === 'take' ? 'grab' : page === 'add' ? 'receive-money' : !chosen?.locationId ? 'open-palm' : 'open-chest'}
           label={verb}
           className="purse-sheet__go"
           onClick={() => void confirm()}
         />
       </div>
+      {blocked.sheet}
     </Dialog>
   );
 }

@@ -161,10 +161,9 @@ for (const size of [
       await journey.tap(page.getByRole('button', { name: 'Give to…' }));
       // The Party stash is first and chosen (ruled 2026-10-23), so choosing the person is already done.
       await journey.tap(page.getByRole('dialog', { name: 'Give Chalk' }).getByRole('button', { name: 'Give to Party stash' }));
-      // It's left the pack; the Party stash below starts collapsed (N19, ruled 2026-10-28), a fold row whose summary
-      // counts one more (plan m5b-players-screens-standard C).
+      // It's left the pack; the Pack's Party stash row (K11) counts one more.
       await expect(page.getByRole('button', { name: /^Chalk/ })).toHaveCount(0);
-      await expect(page.getByRole('region', { name: 'Party stash' }).locator('.creation-fold__note')).toHaveText(/^2 items: /);
+      await expect(page.getByRole('button', { name: /^Party stash/ })).toContainText('2 things');
       journey.expectWithin({ taps: 4, screens: 1 });
     });
 

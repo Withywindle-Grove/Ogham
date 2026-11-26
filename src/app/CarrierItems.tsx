@@ -1,7 +1,7 @@
 // One carrier's items in the Pack (docs/06 "Pack groups"): grouped by where they're carried, A–Z in each group. Each
 // group's heading carries its count ("Worn and in hand", "4 items"); the groups that fold (Gear, Tiny things) are fold
 // rows with a one-line summary (plan m5b-players-screens-standard C), N19's rule saying how they start.
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
 import { isGm, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
@@ -172,12 +172,18 @@ export function CarrierItems({
   weaponRolls,
   setting = null,
   tinyCategories,
+  rowNote,
+  rowEnd,
 }: {
   /**
    * The tiny item categories (`CampaignSetting.tinyCategories`): given, the tiny things leave their groups for a folded
    * "Tiny things" section before Other (SC-5-2), as on the sheet's Pack load. Left out (At hand, the stash, waiting): no split.
    */
   tinyCategories?: ReadonlySet<string>;
+  /** A line of its own under each row's line (the stash's screen: who put it in and when, K11). */
+  rowNote?: (line: InventoryLine) => string | null;
+  /** What ends each row in place of its chevron (the stash's Take, K12). */
+  rowEnd?: (line: InventoryLine) => ReactNode;
   /** At hand (M5 gate C3): a weapon's attack bonus and damage from its item data, or null; with a weapon mode's parts (ah-1). */
   weaponLine?: WeaponLine;
   /** At hand (sq-4): that figure's parts, for the breakdown a tap on the weapon's row opens. */
@@ -436,6 +442,8 @@ export function CarrierItems({
                     inflicts={inflicts}
                     modeView={state}
                     tiny={tiny}
+                    note={rowNote?.(line) ?? null}
+                    end={rowEnd?.(line) ?? null}
                   />
                   );
                 })}
