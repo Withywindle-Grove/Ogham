@@ -150,8 +150,8 @@ describe('the place card as pieces (B1)', () => {
     expect(screen.getByText('Treasure, value stays yours (40 gp)')).toBeTruthy();
   });
 
-  // Purpose: the kind line names the pack's item, creature and character as a person would (Q7), never their ids, and
-  // an id the packs don't know is left out.
+  // Purpose: the kind line names the pack's item, creature and character as a person would (Q7), never their ids; on a
+  // place the GM made by hand, words no pack knows stay as typed ("asleep", an unknown item id).
   it("names the pack's entries on the kind line, never their ids", async () => {
     const world = createFakeDb();
     const gm = world.addPerson('priya@lantern.example', 'Priya');
@@ -169,13 +169,15 @@ describe('the place card as pieces (B1)', () => {
       piece('c', 'Six humps in the mud', false, { kind: 'person', gm: gm3('', 'bog-lurker ×6 (asleep)') }),
       piece('n', 'A ferryman mends a net', false, { kind: 'person', gm: gm3('', 'NPC: npc-oswy') }),
       piece('u', 'A pouch of something', false, { kind: 'treasure', gm: gm3('3 sp, Item: no-such-thing', '') }),
+      piece('a', 'A dog by the fire', false, { kind: 'person', gm: gm3('', 'asleep') }),
     ]);
     card({ ...place, campaignId: campaign }, world.db, { id: gm, roles: { [campaign]: 'gm' } } as unknown as CurrentUser);
     expect(await screen.findByText('Treasure, value stays yours (40 gp, Item: Silver-tipped arrows)')).toBeTruthy();
     expect(screen.getByText('Someone here, the stat line never shows (Bog lurker ×6 (asleep))')).toBeTruthy();
     expect(screen.getByText('Someone here, the stat line never shows (NPC: Oswy)')).toBeTruthy();
-    expect(screen.getByText('Treasure, value stays yours (3 sp)')).toBeTruthy();
-    expect(document.body.textContent).not.toMatch(/silver-arrows|bog-lurker|npc-oswy|no-such-thing/);
+    expect(screen.getByText('Treasure, value stays yours (3 sp, Item: no-such-thing)')).toBeTruthy();
+    expect(screen.getByText('Someone here, the stat line never shows (asleep)')).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/silver-arrows|bog-lurker|npc-oswy/);
   });
 });
 

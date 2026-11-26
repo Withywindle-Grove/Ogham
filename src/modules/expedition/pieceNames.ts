@@ -1,19 +1,32 @@
 // The pack's ids in a piece's GM-only facts, named as a person would (plan dec-scene-quickfix Q7; F20 c, F21 b).
 // `composePackPlace` writes three shapes into those columns: a treasure's "<value>, Item: <item id>", a person's
 // "NPC: <npc id>", and a creature's "<stat block id> ×<count> (<note>)". The stored words keep the id; the name is
-// found when the line is drawn, on the GM's device, so places made before this fix read by name too. An id nobody
-// knows is left out of the line, never printed (the pack checker is where a wrong id is reported). Words a GM typed
-// by hand are never touched: only a pack id's shape (lower case, no spaces) in one of the three places is read.
+// found when the line is drawn, on the GM's device, so places made before this fix read by name too. Only those three
+// shapes are read, and a known id is named wherever it is. An id nobody knows is left as stored on a place the GM made
+// by hand (a typed "asleep" or "wolves ×3" reads as typed), and left out on a place made from a pack ("a creature" for
+// a stat block), never printed there (the pack checker is where a wrong id is reported).
 // sf-6 keeps the look-up when the line becomes a detail row.
-import type { Db } from '../../core/supabase.ts';
 
 export type NamedKind = 'item' | 'npc' | 'statBlock';
-/** A pack entry's name by `<kind>/<id>`; an id with no entry (or a name that is only its id) is not in it. */
-export type PieceNames = ReadonlyMap<string, string>;
+/**
+ * A pack entry's name by `<kind>/<id>` (an id with no entry, or a name that is only its id, is not in `byId`), and the
+ * pack the place was made from (null: made by hand), which decides what an unknown id reads as.
+ */
+export interface PieceNames {
+  readonly byId: ReadonlyMap<string, string>;
+  readonly packId: string | null;
+}
 export interface GmFacts {
   value: string;
   trigger: string;
   statLine: string;
+}
+/** A pack entry, as the campaign's setting rules hold it (`CampaignEntry`). */
+export interface NamedEntry {
+  packId: string;
+  kind: string;
+  packEntryId: string;
+  name: string;
 }
 
 const ID = '[a-z0-9][a-z0-9_.-]*';
@@ -36,45 +49,43 @@ export function idsInFacts(gm: GmFacts): { kind: NamedKind; id: string }[] {
   return found;
 }
 
-/** The GM facts with each id named ("Item: Silver-tipped arrows", "NPC: Oswy", "Bog lurker ×6"), an unknown id left out. */
+/**
+ * The GM facts with each known id named ("Item: Silver-tipped arrows", "NPC: Oswy", "Bog lurker ×6"). An unknown id
+ * stays as stored on a hand-made place; on a pack-made one it is left out ("a creature ×3" for a stat block).
+ */
 export function namedFacts(gm: GmFacts, names: PieceNames): GmFacts {
-  const value = gm.value.replace(ITEM, (_all, before: string, id: string) => {
-    const name = names.get(`item/${id}`);
-    return name ? `${before}Item: ${name}` : '';
+  const fromPack = names.packId !== null;
+  const value = gm.value.replace(ITEM, (all: string, before: string, id: string) => {
+    const name = names.byId.get(`item/${id}`);
+    return name ? `${before}Item: ${name}` : fromPack ? '' : all;
   });
   let statLine = gm.statLine;
   const npc = NPC.exec(statLine);
-  if (npc) statLine = names.has(`npc/${npc[1]}`) ? `NPC: ${names.get(`npc/${npc[1]}`)}` : '';
-  else {
+  if (npc) {
+    const name = names.byId.get(`npc/${npc[1]}`);
+    statLine = name ? `NPC: ${name}` : fromPack ? '' : statLine;
+  } else {
     const creature = CREATURE.exec(statLine);
-    if (creature) statLine = `${names.get(`statBlock/${creature[1]}`) ?? ''}${creature[2]}`.trim();
+    const name = creature && names.byId.get(`statBlock/${creature[1]}`);
+    if (creature && (name || fromPack)) statLine = `${name || 'a creature'}${creature[2]}`.trim();
   }
   return { ...gm, value, statLine };
 }
 
 /**
- * The names of the entries the pieces name, from the campaign's attached packs (the first pack in the campaign's order
- * wins where two name one id). An empty map when nothing is named or the read fails: the line then leaves the ids out.
+ * The names of the entries the pieces name, from the campaign's entries: the place's own pack first, then the packs
+ * in the campaign's order (`packOrder`, top of the stack first). A name that is only its id counts as unknown.
  */
-export async function loadPieceNames(db: Db, campaignId: string, facts: readonly GmFacts[]): Promise<Map<string, string>> {
-  const names = new Map<string, string>();
-  const wanted = facts.flatMap(idsInFacts);
-  if (wanted.length === 0) return names;
-  const links = await db.from('campaign_packs').select('pack_id, priority').eq('campaign_id', campaignId);
-  if (links.error || links.data.length === 0) return names;
-  const order = links.data.sort((a, b) => Number(a.priority ?? 0) - Number(b.priority ?? 0)).map((l) => l.pack_id);
-  const rows = await db
-    .from('library_entries')
-    .select('pack_id, kind, pack_entry_id, name')
-    .in('pack_id', order)
-    .in('kind', [...new Set(wanted.map((w) => w.kind))])
-    .in('pack_entry_id', [...new Set(wanted.map((w) => w.id))]);
-  if (rows.error) return names;
-  const byPack = [...rows.data].sort((a, b) => order.indexOf(a.pack_id) - order.indexOf(b.pack_id));
-  for (const row of byPack) {
-    const key = `${row.kind}/${row.pack_entry_id}`;
-    const name = (row.name ?? '').trim();
-    if (name && name !== row.pack_entry_id && !names.has(key)) names.set(key, name);
+export function pieceNamesFrom(entries: readonly NamedEntry[], packOrder: readonly string[], facts: readonly GmFacts[], packId: string | null): PieceNames {
+  const byId = new Map<string, string>();
+  const wanted = new Set(facts.flatMap(idsInFacts).map((w) => `${w.kind}/${w.id}`));
+  const order = packId ? [packId, ...packOrder.filter((p) => p !== packId)] : [...packOrder];
+  const rank = (p: string) => (order.indexOf(p) < 0 ? order.length : order.indexOf(p));
+  const named = entries.filter((e) => wanted.has(`${e.kind}/${e.packEntryId}`) && order.includes(e.packId));
+  for (const entry of [...named].sort((a, b) => rank(a.packId) - rank(b.packId))) {
+    const key = `${entry.kind}/${entry.packEntryId}`;
+    const name = (entry.name ?? '').trim();
+    if (name && name !== entry.packEntryId && !byId.has(key)) byId.set(key, name);
   }
-  return names;
+  return { byId, packId };
 }

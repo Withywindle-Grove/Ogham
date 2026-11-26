@@ -332,7 +332,7 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
   const ordered = bookOrder(pieces);
   const named = namedIn(pieces);
   // The pack entries' names for the GM's small line (Q7): read on this device, the stored ids kept.
-  const names = usePieceNames(db, campaign.id, pieces);
+  const names = usePieceNames(db, campaign.id, pieces, place?.pack?.packId ?? null);
 
   // The card's own place while reading ahead (B2): its name, its entry, its facts and its source line. The party's
   // stand as they are for the top, the right column and the line that says where the party is.
@@ -589,7 +589,7 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
   // party's visit.
   const aheadPieces = aheadNow?.page?.pieces ?? [];
   const aheadNamed = namedIn(aheadPieces);
-  const aheadNames = usePieceNames(db, campaign.id, aheadPieces);
+  const aheadNames = usePieceNames(db, campaign.id, aheadPieces, aheadNow?.page?.place.pack?.packId ?? null);
   const aheadPart = reading && (
     <div className="place-page__section">
       {aheadNow === null ? (
