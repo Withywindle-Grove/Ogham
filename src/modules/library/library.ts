@@ -61,7 +61,7 @@ export async function loadLibrary(db: Db, userId: string): Promise<LibraryPack[]
       const guide = guides.find((row) => row.pack_id === pack.id)?.guide;
       return {
         id: pack.id,
-        ownerUserId: pack.owner_user_id,
+        ownerUserId: userId, // the query reads only this account's own library packs
         name: pack.name,
         version: pack.version,
         kind: pack.kind as PackKind,

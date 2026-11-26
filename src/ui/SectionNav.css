@@ -132,7 +132,8 @@
   .section-nav {
     position: static;
     justify-content: flex-start;
-    gap: var(--space-1);
+    /* 8 px between tabs, upright and in the landscape column (plan dec-14 row 1, frame 38-1). */
+    gap: var(--space-2);
     padding: var(--pad) 0 0;
     border-top: var(--divider);
     background: transparent;
@@ -171,8 +172,10 @@
 /* Folded (B15; the divider handle folds it, lr-4): the icons alone; each tab still says its name to screen readers
    (its aria-label). Only in the landscape tablet's left column. */
 @media (min-width: 1024px) {
+  /* Each folded tab is a full tap target wide, not just its icon and padding (plan dec-14 row 1, frame 38-1). */
   .section-nav--collapsed .section-nav__tab {
     justify-content: center;
+    min-width: var(--tap);
     padding: var(--space-2);
   }
 

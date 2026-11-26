@@ -8,7 +8,7 @@ import { runCommand, type CurrentUser } from '../../core/commands.ts';
 import { describeEntry, groupEntries, loadLog, loadLogNames, type LogEvent } from '../../core/events.ts';
 import { createFakeDb } from '../../testing/fakeDb.ts';
 import type { HoardRow } from './hoard.ts';
-import { giveFind, rowKey, sendOf, sentRows, undoFind } from './findSend.ts';
+import { giveFind, NOT_NAMED_WORDS, rowKey, sendOf, sentRows, undoFind } from './findSend.ts';
 
 const registry = createAppRegistry();
 
@@ -56,8 +56,8 @@ describe('what a hoard sends (K16a rows to K16b)', () => {
   const rows: HoardRow[] = [
     { kind: 'coin', entry: 0, text: '40 herons', amounts: [{ key: 'heron', amount: 40, words: '40 herons' }], coins: { heron: 40 }, readAs: null, notCoins: [] },
     { kind: 'coin', entry: 1, text: '200 hn.', amounts: [{ key: 'heron', amount: 200, words: '200 herons' }], coins: { heron: 200 }, readAs: { printed: 'hn.', note: 'Read as herons.' }, notCoins: [] },
-    { kind: 'thing', entry: 2, text: 'Two moon opals', itemId: 'moon-opal', worth: { heron: 30 } },
-    { kind: 'thing', entry: 3, text: 'A silver hook', itemId: null, worth: { heron: 5 } },
+    { kind: 'thing', entry: 2, text: 'Two moon opals', itemId: 'moon-opal', worth: { heron: 30 }, qty: 1, magic: null, noticed: null },
+    { kind: 'thing', entry: 3, text: 'A silver hook', itemId: null, worth: { heron: 5 }, qty: 1, magic: null, noticed: null },
   ];
 
   // Purpose: the rows chosen become one send: a known item by its library entry, a one-off by its words, every coin
@@ -168,13 +168,55 @@ describe('the GM sends a find, through the stand-in database (pk-12)', () => {
     expect(linesOf(t, t.wren)).toEqual([]);
   });
 
+  // Purpose (the reviews of #1101): when the send worked but its magic item couldn't be named, the send still answers
+  // ok with its log line (so the toast keeps its Undo) and says so, with plain words and no database message; a send
+  // with nothing to name says nothing of it.
+  it('answers ok with a warning when the item could not be named', async () => {
+    const t = table();
+    const plain = await send(t, t.gm, t.wren);
+    expect(plain.ok && plain.value.notNamed).toBe(false);
+    t.world.signInAs(t.gm.id);
+    const sent = await runCommand(registry, t.world.db, t.gm, giveFind, {
+      campaignId: t.campaign, to: t.wren, placeId: 'place-stair', things: [{ name: 'A silver hook', qty: 1 }], coins: {}, rows: ['2:thing'],
+      named: [{ piece: 'piece-gone', thing: 0 }],
+    });
+    if (!sent.ok) throw new Error(sent.message);
+    expect(sent.value.notNamed).toBe(true);
+    expect(typeof sent.value.eventId).toBe('string');
+    expect(linesOf(t, t.wren)).toContainEqual(['A silver hook', 1]);
+    expect(NOT_NAMED_WORDS).toBe('The magic item arrived under its plain name. Tap its eye again.');
+  });
+
+  // Purpose (the local review of #10): a thing sent after its magic item's piece was revealed arrives named, even when
+  // the piece was shown only to another group and hidden since, and the send shows the piece to nobody new; a thing
+  // whose piece was never shown arrives plain, and the send says so.
+  it('names a thing sent after the reveal, from any card, and shows nothing', async () => {
+    const t = table();
+    const piece = (id: string, lead: string) => ({ id, campaign_id: t.campaign, place_id: 'place-stair', kind: 'other', lead, body: 'It hums under water.', position: 9, gm_value: '', gm_trigger: '', gm_stat_line: '', undone: false });
+    t.world.tables.place_pieces.push(piece('piece-hook', 'Hook of the Deep'), piece('piece-net', 'Net of the Shallows'));
+    // Shown to group 2 once, then hidden: revealed.
+    t.world.tables.piece_shows.push({ id: 'show-hook', campaign_id: t.campaign, group_place_id: 'visit-group-2', piece_id: 'piece-hook', group_number: 2, shown: false, shown_at: '2026-11-21T10:00:00Z', undone: false });
+    t.world.signInAs(t.gm.id);
+    const sendNamed = (name: string, pieceId: string) =>
+      runCommand(registry, t.world.db, t.gm, giveFind, { campaignId: t.campaign, to: t.wren, placeId: 'place-stair', things: [{ name, qty: 1 }], coins: {}, rows: ['2:thing'], named: [{ piece: pieceId, thing: 0 }] });
+    const hook = await sendNamed('A silver hook', 'piece-hook');
+    expect(hook.ok && hook.value.notNamed).toBe(false);
+    const line = t.world.tables.inventory_lines.find((l) => l.actor_id === t.wren && l.name === 'A silver hook')!;
+    expect((line.item_data as Record<string, unknown>).truthPiece).toBe('piece-hook');
+    expect(t.world.tables.piece_shows.map((s) => [s.id, s.shown])).toEqual([['show-hook', false]]);
+    const net = await sendNamed('A torn net', 'piece-net');
+    expect(net.ok && net.value.notNamed).toBe(true);
+    const plain = t.world.tables.inventory_lines.find((l) => l.actor_id === t.wren && l.name === 'A torn net')!;
+    expect(((plain.item_data ?? {}) as Record<string, unknown>).truthPiece).toBeUndefined();
+  });
+
   // Purpose: the GM's Undo takes the things and the coin back in one step, its lines reversals of the send's.
   it("the GM's Undo takes both back in one step", async () => {
     const t = table();
     const sent = await send(t, t.gm, t.wren);
     if (!sent.ok) throw new Error(sent.message);
     t.world.signInAs(t.gm.id);
-    const undone = await runCommand(registry, t.world.db, t.gm, undoFind, { campaignId: t.campaign, eventId: sent.value });
+    const undone = await runCommand(registry, t.world.db, t.gm, undoFind, { campaignId: t.campaign, eventId: sent.value.eventId });
     expect(undone.ok).toBe(true);
     expect(linesOf(t, t.wren)).toEqual([]);
     expect(coinsOf(t, t.wren)).toEqual({});
@@ -197,10 +239,10 @@ describe('the GM sends a find, through the stand-in database (pk-12)', () => {
     const sent = await send(t, t.gm, t.wren);
     if (!sent.ok) throw new Error(sent.message);
     t.world.signInAs(t.sam.id);
-    expect((await runCommand(registry, t.world.db, t.sam, undoFind, { campaignId: t.campaign, eventId: sent.value })).ok).toBe(false);
+    expect((await runCommand(registry, t.world.db, t.sam, undoFind, { campaignId: t.campaign, eventId: sent.value.eventId })).ok).toBe(false);
     t.world.tables.purses.find((p) => p.actor_id === t.wren)!.coins = { heron: 10 };
     t.world.signInAs(t.gm.id);
-    const spent = await runCommand(registry, t.world.db, t.gm, undoFind, { campaignId: t.campaign, eventId: sent.value });
+    const spent = await runCommand(registry, t.world.db, t.gm, undoFind, { campaignId: t.campaign, eventId: sent.value.eventId });
     expect(spent).toMatchObject({ ok: false, message: "That's changed since. Undo the later change first." });
     expect(linesOf(t, t.wren)).toHaveLength(2);
   });
@@ -228,7 +270,7 @@ describe('the GM sends a find, through the stand-in database (pk-12)', () => {
     const bag = t.world.tables.inventory_lines.find((l) => l.name === 'A silver hook')!;
     t.world.tables.inventory_lines.push({ ...structuredClone(bag), id: 'line-jerky', name: 'Eel jerky', how_got: 'bought', container_line_id: bag.id });
     t.world.signInAs(t.gm.id);
-    const undone = await runCommand(registry, t.world.db, t.gm, undoFind, { campaignId: t.campaign, eventId: sent.value });
+    const undone = await runCommand(registry, t.world.db, t.gm, undoFind, { campaignId: t.campaign, eventId: sent.value.eventId });
     expect(undone).toMatchObject({ ok: false, message: "That's changed since. Undo the later change first." });
     expect(linesOf(t, t.wren)).toHaveLength(3);
     expect(coinsOf(t, t.wren)).toEqual({ heron: 40 });

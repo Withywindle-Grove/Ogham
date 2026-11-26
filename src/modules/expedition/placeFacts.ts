@@ -25,6 +25,11 @@ export interface PlaceSection {
   text: string;
   /** Its blocks to draw, when the pack sets the section out in blocks (pf-18b): [] when the app can't read it; null for plain text or an empty section. */
   blocks: RuleBlock[] | null;
+  /**
+   * Its place in the pack's `gm.sections`, counted from 0 as the pack lists them (a section the reader leaves out still
+   * counts): what the GM's eye on it names (p4s-2, `knowledge_shares.section_at`). Set by `readPlaceFacts`.
+   */
+  at?: number;
 }
 
 /** A settlement's watch (pf-5): its box's words, its lead-ins, and the stat block it fights as ('' if none). */
@@ -69,21 +74,21 @@ const leadLines = (value: unknown): LeadLine[] =>
 export function readPlaceFacts(data: Record<string, unknown>): PlaceFacts {
   const gm = isObject(data.gm) ? data.gm : {};
   const settlement = isObject(data.settlement) ? data.settlement : {};
-  const sections = list(gm.sections).flatMap((s): PlaceSection[] => {
+  const sections = list(gm.sections).flatMap((s, at): PlaceSection[] => {
     if (!isObject(s)) return [];
     const heading = plainLinks(text(s.heading));
     // Plain words (or no text): as before pf-18b.
     if (typeof s.text === 'string' || s.text === undefined || s.text === null) {
       const body = plainLinks(text(s.text));
-      return heading || body ? [{ heading, text: body, blocks: null }] : [];
+      return heading || body ? [{ heading, text: body, blocks: null, at }] : [];
     }
     // Blocks, or a text the reader can't use: the one reader, strictly (pf-18a); empty is judged on the blocks drawn,
     // not on what the pack wrote. With nothing to draw, a section keeps its heading: `blocks: []` when the reader left
     // something out (the app can't read it: pick 1's muted line), else it is an empty section (Francis, 2026-11-18).
     const { value: read, leftOut } = readRuleText(s.text);
     const blocks = drawable(blocksOfRead(read));
-    if (blocks.length === 0) return heading ? [{ heading, text: '', blocks: leftOut.length > 0 ? [] : null }] : [];
-    return [{ heading, text: ruleTextWords(read), blocks }];
+    if (blocks.length === 0) return heading ? [{ heading, text: '', blocks: leftOut.length > 0 ? [] : null, at }] : [];
+    return [{ heading, text: ruleTextWords(read), blocks, at }];
   });
   const watchData = isObject(settlement.watch) ? settlement.watch : null;
   const watch: PlaceWatch | null = watchData ? { text: plainLinks(text(watchData.text)), leads: leadLines(watchData.leads), statBlockId: text(watchData.statBlockId) } : null;

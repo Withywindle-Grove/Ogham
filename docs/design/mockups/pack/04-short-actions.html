@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pack: the short actions (2026-11-11)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="pack.css">
+<style>
+  .dev.short { min-height:0; }
+  .nts { display:flex; flex-wrap:wrap; gap:var(--space-2); margin-top:var(--space-2); }
+  .nt { min-width:44px; height:44px; padding:0 var(--space-2); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); display:flex; align-items:center; justify-content:center; font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; box-sizing:border-box; }
+  .nt.sel { background:var(--wash); border:2px solid var(--accent); }
+  .subh { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; font-variant:small-caps; margin:var(--space-4) 0 var(--space-1); }
+  .apart { border-top:3px double var(--rule); margin-top:var(--space-4); padding-top:var(--space-2); }
+  .mean { font-size:14px; color:var(--muted); border-top:1px dotted var(--rule); margin-top:var(--space-4); padding-top:var(--space-2); }
+  .ifbuilt { border:1.5px dashed var(--control); border-radius:4px; padding:var(--space-3); margin-top:var(--space-3); }
+  .ifbuilt > .tagl { font-size:14px; color:var(--muted); display:block; margin-bottom:var(--space-2); }
+  .coinrow { display:grid; grid-template-columns:minmax(0,1fr) 120px; gap:var(--space-3); align-items:center; min-height:52px; border-bottom:1px dotted var(--rule); }
+  .coinrow:last-of-type { border-bottom:0; }
+  .ph .star { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="pack.js"></script>
+<script>
+const tiles = (list, sel) => `<div class="nts">${list.map((n) => `<span class="nt${n === sel ? ' sel' : ''}" role="button">${n}</span>`).join('')}</div>`;
+const go = svg(SY.right, 20);
+const wrenBack = (toast = '') => `${band({ over: 'Wren. Reed Witch, level 2.', title: 'Wren’s pack', ident: 'What she wears, holds and carries: 17 things, 493 coins’ weight.', acts: [b('Add item', { big: true, icon: 'plus' })] })}${toast}<hr class="dbl"><div class="facts">${loadFact({ v: 'Laden', s: '493 of 500 coins’ weight. Speed 20.', filled: 19, marks: [10] })}${fact('hand', 'In hand', 'Reed spear', 'And a lantern, unlit.')}${fact('gift', 'New', 'Nothing new', 'What you are given shows here.')}${fact('chest', 'Party stash', '9 things', 'Last in: a silver ewer, from Tam.')}</div>`;
+const on = (pan, cap, back = wrenBack()) => pdev('ipad', back, cap, { panel: pan });
+const pin = (filled) => `<span class="star" role="button" aria-pressed="${!!filled}" aria-label="${filled ? 'Unpin' : 'Pin to At hand'}">${sym(filled ? 'starf' : 'star', 24)}</span>`;
+const toastF = (words, cap, extra = '') => pdev('ipad short', wrenBack(`<div class="toast" style="margin-top:var(--space-3)"><span>${words}</span>${small('Undo')}${extra}</div>`), cap);
+
+// ---- an item's sheet ----
+const s1 = on(panel({ seq: 'Wren’s pack. In the backpack', title: 'Lantern', body: `
+  <p style="margin:0 0 var(--space-2)">Bullseye lantern, a 30 ft beam. Three flasks of oil left.</p>
+  <dl class="kvt"><dt>Weight</dt><dd>30</dd><dt>Held in</dt><dd>One hand</dd><dt>Burns</dt><dd>4 hours a flask</dd></dl>
+  <p class="source">From your setting: River Rules, p. 88.</p>
+  <div class="subh">Do</div>
+  ${opt('Hold', 'In hand. Her reed spear stays in the other.', { icon: 'hand' })}
+  ${opt('Pin to At hand', 'Its Light button shows on the Pack’s first list.', { icon: 'star' })}
+  ${opt('Put in…', 'Another container, or carried loose.', { icon: 'sack', right: go })}
+  ${opt('Give to…', 'Someone in the party, the stash, or someone else.', { icon: 'people', right: go })}
+  <div class="apart">${opt('Drop', 'It is gone. Undo for a while, from the toast or the log.', { icon: 'down' })}</div>`, foot: footSay('An action closes this and returns to the top of the pack.', [b('Close')]) }),
+  '1. An item’s sheet, as the panel at the right edge (today a centred pop-up; mc-10 for the Scene’s short steps). The description, its details as two columns, its source; then “Do”: every action is a row with an icon, a name and one line saying what it will do, a chevron only where it asks more. The one that fits the thing comes first (Hold, Wear, Use). Drop is last and set apart, with no confirm; its line says what is true (“It is gone”), where today’s says “Leaves it where you stand”. Today’s rows, re-arranged; nothing new.');
+const s2 = on(panel({ seq: 'Wren’s pack. In the backpack', title: 'Dry rations ×3', body: `
+  <p style="margin:0 0 var(--space-2)">A day’s food each: hard bread, smoked eel.</p>
+  <dl class="kvt"><dt>Weight</dt><dd>30 for 3</dd></dl>
+  <div class="subh">Do</div>
+  ${opt('Eat one', '2 would be left.', { icon: 'drop' })}
+  ${opt('Put in…', 'All 3, or some: it asks how many.', { icon: 'sack', right: go })}
+  ${opt('Give to…', 'All 3, or some: it asks how many.', { icon: 'people', right: go })}
+  ${opt('Correct the count…', 'If the number is wrong. Logged as a correction, not as eating.', { icon: 'note', right: go })}
+  <div class="apart">${opt('Drop…', 'All 3, or some. Gone, with Undo.', { icon: 'down', right: go })}</div>`, foot: footSay('', [b('Close')]) }),
+  '2. A stack’s sheet. NEW: “Eat one” on the sheet (today a stack is used only from its At hand row; the sheet has a bare − and + that changes the count without a use line). That stepper becomes “Correct the count…”, named for what it does. There is no Split: moving or giving some of a stack is how a stack is split, as today (a question below).');
+const s3 = on(panel({ seq: 'Wren’s pack. Worn', title: 'Chain shirt', body: `
+  <p style="margin:0 0 var(--space-3)">${warn('A Reed Witch can’t wear this. River Rules, p. 31.')}</p>
+  <p style="margin:0 0 var(--space-2)">A shirt of riveted rings.</p>
+  <dl class="kvt"><dt>Weight</dt><dd>200</dd><dt>Armour</dt><dd>Heavy</dd></dl>
+  <div class="subh">Do</div>
+  ${opt('Take it off', 'It goes into what she carries, loose.', { icon: 'sack' })}
+  ${opt('Give to…', 'Someone in the party, the stash, or someone else.', { icon: 'people', right: go })}
+  <div class="apart">${opt('Drop', 'It is gone, with Undo.', { icon: 'down' })}</div>`, foot: footSay('', [b('Close')]) }),
+  '3. A thing in a state the rules don’t allow says so at the top of its sheet, with the source, and offers the way out first. Wear, on a thing the class can’t wear, stays a row and explains on a tap (never greyed).');
+
+// ---- give ----
+const gv1 = on(panel({ seq: 'Silver ewer', title: 'Give it to whom?', body: `
+  ${opt('The party stash', 'Shared. It weighs on no one.', { icon: 'chest' })}
+  ${opt('Ash', 'Unladen: 120 of 600.', { icon: 'people' })}
+  ${opt('Bram', 'Laden: 380 of 500.', { icon: 'people' })}
+  ${opt('Tam', 'Unladen: 90 of 400. This puts him at 130.', { icon: 'people' })}
+  ${opt('Odo, your hireling', 'Unladen: 60 of 300.', { icon: 'people' })}
+  ${opt('Someone outside the party…', 'It leaves the party. You say who gets it.', { icon: 'right', right: go })}`, foot: footSay('Tapping a name gives it, with Undo. A gift needs no yes.', [b('Back')]) }),
+  '4 (variant A). Give to…: today’s list in today’s order (the party stash, the other characters, someone outside the party). A single thing is given on the tap, with Undo; a stack asks how many first (frame 5). <b>NEW, and a question of who may see what:</b> each character’s load on their row, so the giver sees who has room. Whether a player may see another living character’s load is not settled (03 opens a pack to the others only when its owner is Down or dead); variant B beside this shows no figure. The player’s own hireling is theirs to see either way. Also NEW: the receiver is told (mockup (d): the card and New).');
+const gv1b = on(panel({ seq: 'Silver ewer', title: 'Give it to whom?', body: `
+  ${opt('The party stash', 'Shared. It weighs on no one.', { icon: 'chest' })}
+  ${opt('Ash', '', { icon: 'people' })}
+  ${opt('Bram', '', { icon: 'people' })}
+  ${opt('Tam', 'This would over-load him.', { icon: 'warn' })}
+  ${opt('Odo, your hireling', 'Unladen: 60 of 300.', { icon: 'people' })}
+  ${opt('Someone outside the party…', 'It leaves the party. You say who gets it.', { icon: 'right', right: go })}`, foot: footSay('Tapping a name gives it, with Undo. A gift needs no yes.', [b('Back')]) }),
+  '4 (variant B). The same list with no figure for another player’s character: only a warning, in ▲ and words, on the one this gift would over-load (it still goes through on a tap). Your own hireling keeps the figure. This tells the giver the one thing that matters and nothing more.');
+const gv2 = toastF('<b>Wren gave Tam the silver ewer.</b> Tam is told.', '6. Given: the panel closes, the pack is back at its top, and the toast says what happened, with Undo. If Tam has used or passed on part of it, Undo brings back what is left and says so (ruled 2026-10-26); if none is left it explains why not.');
+const hm = on(panel({ seq: 'Dry rations ×3. Give to Tam', title: 'How many?', body: `
+  ${tiles(['1', '2', 'All 3'], 'All 3')}
+  <p class="meta" style="margin:var(--space-3) 0 0">Past 12 in a stack, a box to type the number sits beside “All”.</p>`, foot: footSay('Tapping a number gives them, with Undo.', [b('Back')]) }),
+  '5. How many: one question, shared by Give, Put in, Drop and Take (today one prompt with a stepper starting at the whole stack, plus “All N”). Numbers to tap, All picked; a tap acts and closes. Re-arranged; the numbers instead of a stepper are new as a control.');
+
+// ---- put in ----
+const pi = on(panel({ seq: 'Coil of rope', title: 'Put it where?', body: `
+  ${opt('Carried, loose', 'On her, in no container.', { icon: 'hand' })}
+  ${opt('Belt pouch', 'Room for 38. The rope weighs 100: more than it holds.', { icon: 'warn' })}
+  ${opt('Saddlebag', 'Room for 270.', { icon: 'sack' })}
+  ${opt('Quiver', 'Full.', { icon: 'warn' })}
+  <p class="meta" style="margin:var(--space-3) 0 0">It is in the backpack now. The party stash is under Give to….</p>`, foot: footSay('Tapping a place moves it, with Undo.', [b('Back')]) }),
+  '7. Put in… (today the sheet it opens is titled “Move to”; one name, “Put in…”, everywhere). This character’s containers with the room left, and carried loose. A full one says Full with ▲ and explains on a tap, never greyed. NEW words: a thing too big for the room left is warned before the tap (today only an exactly full container refuses and a too-big thing still goes in: the Builder; the rule itself is the lead’s to sort).');
+const emp = on(panel({ seq: 'Backpack. 7 things inside', title: 'Empty it where?', body: `
+  ${opt('Carried, loose', 'All 7 stay on Wren.', { icon: 'hand' })}
+  ${opt('The party stash', 'All 7 go to the stash.', { icon: 'chest' })}
+  ${opt('Give to…', 'All 7 to one character.', { icon: 'people', right: go })}
+  <div class="apart">${opt('Drop all 7…', 'Gone. This one asks once before it acts.', { icon: 'down', right: go })}</div>`, foot: footSay('One logged change, with Undo. Only what is inside moves.', [b('Back')]) }),
+  '8. Empty…, on a container’s sheet (ruled 2026-10-24): the count, four places, and Drop all asks once because it is many things at a stroke. Re-arranged.');
+
+// ---- drop, use ----
+const dr = toastF('<b>Wren dropped the wolf pelt.</b> It is gone.', '9. Drop, a single thing: at once, no confirm, an 8-second toast with Undo; after that Undo is in the log while the line can still be undone (05). The words say it is gone: a dropped thing is listed nowhere.');
+const us = toastF('<b>Wren ate a dry ration.</b> 2 left.', '10. Use one of a stack, from its At hand row or its sheet: at once, the toast in the log’s own words, with Undo. The last one says “That was the last” and the row goes.');
+
+// ---- the stash: put something in ----
+const put1 = on(panel({ seq: 'The party stash', title: 'Put what in?', body: `
+  <p class="why">From Wren’s pack. Tap a thing to put it in.</p>
+  <span class="field empty">Find in her pack</span>
+  <div class="subh">Carried and in the backpack</div>
+  ${opt('Coil of rope', 'Weight 100.', {})}
+  ${opt('Dry rations ×3', 'Weight 30. Asks how many.', { right: go })}
+  ${opt('Moon opals ×2', 'Weight 2. Asks how many.', { right: go })}
+  ${opt('Tinderbox', 'Weight 20.', {})}
+  ${opt('Coin…', 'From her purse: 12 crowns, 30 herons, 4 bits.', { icon: 'sack', right: go })}
+  <div class="subh">Worn and in hand</div>
+  ${opt('Waxed coat', 'Worn. Comes off first.', {})}
+  <div class="meta" style="margin-top:var(--space-2)">9 more. They scroll under these. <a style="color:var(--accent);text-decoration:underline">Something not in her pack…</a></div>`, foot: footSay('Tapping a thing puts it in, with Undo.', [b('Close')]) }), '11. The stash’s “Put something in”: Wren’s things as rows, carried first, what she wears last; a tap puts a single thing in, a stack asks how many. “Something not in her pack…” opens Add item with the stash as the place, which is today’s “Add to the Party stash”. Re-arranged from Give to…, the party stash; NEW as a way in from the stash’s side.',
+  `<p style="margin:0 0 var(--space-2)"><a style="color:var(--accent);text-decoration:underline">‹ Wren’s pack</a></p>${band({ over: 'The Reed Marches', title: 'The party stash', ident: 'Shared by the party: anyone puts things in and takes them out. It weighs on no one.', acts: [b('Put something in', { big: true, icon: 'plus' })] })}`);
+const coin = on(panel({ seq: 'The party stash', title: 'Coin: put in, or take out', body: `
+  <div class="chips" style="margin-bottom:var(--space-2)">${chip('Put in', true)}${chip('Take out')}</div>
+  <div class="coinrow"><span><b>Crowns</b><small>Wren has 12. The stash has 0.</small></span><span class="field empty">0</span></div>
+  <div class="coinrow"><span><b>Herons</b><small>Wren has 30. The stash has 40.</small></span><span class="field">10</span></div>
+  <div class="coinrow"><span><b>Bits</b><small>Wren has 4. The stash has 12.</small></span><span class="field empty">0</span></div>`, foot: footSay('Logged, with Undo. Only Wren’s player and the GM see what she has.', [b('Back'), b('Put in 10 herons', { accent: true })]) }), '12. Coin into and out of the stash (ruled, pk-6): put in or take out, how much of each kind, with what she and the stash hold beside each box, and one button that names the amount. What she has is on her own screen only; what the stash has, the party reads. No change is made between kinds of coin.',
+  `<p style="margin:0 0 var(--space-2)"><a style="color:var(--accent);text-decoration:underline">‹ Wren’s pack</a></p>${band({ over: 'The Reed Marches', title: 'The party stash', ident: 'Shared by the party.', acts: [] })}`);
+
+// ---- refusals and states ----
+const r1 = on(panel({ seq: 'Backpack', title: 'Put it where?', body: `
+  <p style="margin:0 0 var(--space-3)">${warn('The backpack can’t go into the belt pouch: the belt pouch is inside the backpack.')}</p>
+  ${opt('Carried, loose', 'On her, in no container.', { icon: 'hand' })}
+  ${opt('Saddlebag', 'Room for 270. The backpack and what is in it weigh 183.', { icon: 'sack' })}`, foot: footSay('Nothing changed.', [b('Back')]) }),
+  '13. A refusal, in plain words with the reason: a container can’t go inside something it holds. (Today nothing stops this loop: the Builder. Listed for the lead; drawn so the words exist.)');
+const r2 = toastF(warn('The silver ewer didn’t come back: Tam gave it to Bram. Nothing changed.').replace('<span', '<span'), '15. Undo refused, naming why (ruled 2026-10-26): the thing was given on. The same toast for renamed, identified, charges spent, none left. No Undo button on a refusal.').replace(/<span class="btn small"[^>]*>Undo<\/span>/, '');
+const r3 = on(panel({ seq: 'Wren’s pack', title: 'Lantern', body: `
+  <p style="margin:0 0 var(--space-3)">${warn('That changed a moment ago. Here is the latest.')}</p>
+  <p style="margin:0 0 var(--space-2)">Bullseye lantern. <b>Lit</b>: Ash lit it from his torch.</p>
+  <div class="subh">Do</div>
+  ${opt('Put out', 'Saves the oil.', { icon: 'flameout' })}
+  <p class="mean">Loading: the panel shows its title and three still bars. Offline: every row stays; a tap says “You’re offline. This waits until you’re back” once the app keeps changes offline (06; today a raw error).</p>`, foot: footSay('', [b('Close')]) }),
+  '14. A stale sheet: someone else changed the thing while it was open. The sheet says so and shows the latest (today: “That’s changed since. Here’s the latest.”). Loading and offline in words.');
+const messy = on(panel({ seq: 'Wren’s pack. In the backpack', title: 'A very long name for a thing found in the drowned chapel of the causeway wardens, with its ribbon', body: `
+  <p style="margin:0 0 var(--space-2)">A long description too, which wraps and never pushes the actions off the panel; past eight lines it folds to “More”.</p>
+  <dl class="kvt"><dt>Weight</dt><dd>999</dd><dt>Charges</dt><dd>0 left: spent</dd></dl>
+  <div class="subh">Do</div>
+  ${opt('Use a charge', 'None left. It explains on a tap.', { icon: 'warn' })}
+  ${opt('Give to…', '', { icon: 'people', right: go })}`, foot: footSay('', [b('Close')]) }),
+  '16. Messy data: a very long name as the panel’s title, a long description, 999, 0 charges. “Use a charge” at 0 stays a row and explains (05 keeps it greyed beside “0 left, spent” for visible charges; the no-disabled-buttons rule argues for a row that explains: a question below).');
+
+const wide = pdev('wide', wrenBack(), '17. A wide PC window: the panel is 560 px at the right edge, the pack beside it.', { panel: panel({ seq: 'Silver ewer', title: 'Give it to whom?', body: `${opt('The party stash', 'Shared. It weighs on no one.', { icon: 'chest' })}${opt('Ash', 'Unladen: 120 of 600.', { icon: 'people' })}${opt('Bram', 'Laden: 380 of 500.', { icon: 'people' })}${opt('Tam', 'Unladen: 90 of 400.', { icon: 'people' })}${opt('Someone outside the party…', 'It leaves the party.', { icon: 'right', right: go })}`, foot: footSay('', [b('Back')]) }) });
+const ph1 = phone(panel({ seq: 'Wren’s pack', title: 'Dry rations ×3', body: `
+  <p style="margin:0 0 var(--space-2)">A day’s food each.</p>
+  <div class="subh">Do</div>
+  ${opt('Eat one', '2 would be left.', { icon: 'drop' })}
+  ${opt('Put in…', '', { icon: 'sack', right: go })}
+  ${opt('Give to…', '', { icon: 'people', right: go })}
+  <div class="apart">${opt('Drop…', 'Gone, with Undo.', { icon: 'down', right: go })}</div>`, foot: footSay('', [b('Close')]) }), '18. The phone: the sheet is the whole screen.');
+const ph2 = phone(panel({ seq: 'Dry rations ×3. Give to Tam', title: 'How many?', body: `${tiles(['1', '2', 'All 3'], 'All 3')}`, foot: footSay('', [b('Back')]) }), '19. The phone, how many.');
+
+mount(`
+  <h1>Pack: the short actions</h1>
+  <p class="note">Mockup (c) of the Pack rework: an item’s sheet; give to someone; put in a container; drop; use one of a stack; split a stack; take from and add to the stash; coin into and out of the stash (ruled, pk-6). All of them in the panel at the right edge (the whole screen on the phone), each a single question whose answer acts and closes, with Undo (mc-10, mc-11); “after any action the item closes and the screen returns to the top of the Pack” stays (05). <b>From the Builder (2026-11-11), today:</b> the sheet is a centred pop-up with the actions as list rows; Give to… lists the party stash, the other characters and someone outside the party, and the receiver gets only a log line; Put in… opens a sheet titled “Move to”, with this character’s containers and the room left; only an exactly full container refuses; a stack is split only through Give, Put in or Drop with “How many”; a stack is used only from its At hand row, and the sheet’s − and + change the count without a use line; nothing stops a container going inside one it holds. Take from the stash is in mockup (b). iPad landscape first, then a wide PC window, then the phone.</p>
+
+  <h1>An item’s sheet</h1>
+  <div class="wall">${s1}${s2}</div>
+  <div class="wall">${s3}</div>
+
+  <h1>Give to…; how many</h1>
+  <div class="wall">${gv1}${gv1b}</div>
+  <div class="wall">${hm}${gv2}</div>
+
+  <h1>Put in…; Empty…</h1>
+  <div class="wall">${pi}${emp}</div>
+
+  <h1>Drop; use one</h1>
+  <div class="wall">${dr}${us}</div>
+
+  <h1>The stash: put something in; coin</h1>
+  <div class="wall">${put1}${coin}</div>
+
+  <h1>Refusals, states and messy data</h1>
+  <div class="wall">${r1}${r3}</div>
+  <div class="wall">${r2}${messy}</div>
+
+  <h1>A wide PC window; the phone</h1>
+  <div class="wall">${wide}${ph1}${ph2}</div>
+
+  <h1>What is today’s behaviour, and what is new</h1>
+  <div class="wall"><div class="pcard" style="max-width:1024px"><dl class="kvb">
+    <dt>The sheet</dt><dd><b>Today:</b> a centred pop-up; actions as bare list rows. <b>Re-arranged:</b> the panel; each action a row with an icon and one line saying what it will do; the fitting one first.</dd>
+    <dt>Pin</dt><dd><b>Today:</b> a star in the sheet’s head. <b>Drawn:</b> a row, “Pin to At hand”, with what it does (a question below: the star was ruled).</dd>
+    <dt>Use one, on the sheet</dt><dd><b>Today:</b> only on the At hand row. <b>NEW</b> on the sheet.</dd>
+    <dt>The − and + on a stack</dt><dd><b>Today:</b> they change the count with no use line. <b>Renamed:</b> “Correct the count…”, logged as a correction.</dd>
+    <dt>Give to…</dt><dd><b>Today:</b> the list and its order, a tap gives, Undo. <b>NEW:</b> telling the receiver; and something about the receiver’s load on their row, as a figure (variant A) or only a warning when the gift would over-load them (variant B): a question of who may see what.</dd>
+    <dt>How many</dt><dd><b>Today:</b> a stepper from the whole stack, plus All N. <b>Re-arranged:</b> numbers to tap.</dd>
+    <dt>Put in…</dt><dd><b>Today:</b> titled “Move to”; room left shown; an exactly full container refuses. <b>Renamed</b> to match its row. <b>NEW words:</b> the warning when a thing is bigger than the room left.</dd>
+    <dt>Split</dt><dd><b>Today:</b> no Split; some of a stack moves by Give, Put in or Drop. <b>Same.</b></dd>
+    <dt>Drop</dt><dd><b>Today:</b> at once, Undo; the sub-line says “Leaves it where you stand”. <b>Words changed</b> to what is true.</dd>
+    <dt>Empty…</dt><dd><b>Today:</b> as ruled. <b>Re-arranged.</b></dd>
+    <dt>Put something in (the stash)</dt><dd><b>Today:</b> from the thing’s sheet, Give to…, the party stash; or the fold’s “Add to the Party stash”. <b>NEW</b> as a list from the stash’s side.</dd>
+    <dt>A container inside itself</dt><dd><b>Today:</b> possible (a fault). <b>Drawn:</b> the refusal’s words.</dd>
+    <dt>Coin</dt><dd><b>Today:</b> none. <b>NEW (pk-6):</b> frame 12; a Coin… row in Put something in; spending and giving from the coin line are in mockup (a), frames C1 to C3.</dd>
+  </dl></div></div>
+
+  <h1>Questions for Francis (drafts for the lead’s ⚑ list)</h1>
+  <div class="q"><b>1. An item’s sheet opens in the panel at the right edge, like the Scene’s short steps.</b><br>Today it is a centred pop-up. <i>Recommended: the panel; the pack stays in view beside it.</i></div>
+  <div class="q"><b>2. Every action is a row with an icon and one line saying what it will do.</b><br>“Give to… Someone in the party, the stash, or someone else.” It costs a line of height per action. <i>Recommended: yes.</i></div>
+  <div class="q"><b>3. Changes a ruling of 2026-11-07: Pin is a row, not a star in the head.</b><br>The star was ruled (plan C, 2026-11-07) and stays as the mark on a pinned row; as a control it is the one action on the sheet with no word. <i>Recommended: the row; or keep the star and say so.</i></div>
+  <div class="q"><b>4. “Eat one”, “Drink one”, “Use one” on a stack’s sheet as well as on its At hand row.</b><br><i>Recommended: yes.</i></div>
+  <div class="q"><b>5. The − and + on a stack become “Correct the count…”.</b><br>So that a changed number is never mistaken for a use. <i>Recommended: yes.</i></div>
+  <div class="q"><b>6. No Split action: some of a stack is moved or given, as today.</b><br><i>Recommended: no Split.</i></div>
+  <div class="q"><b>7. Drop’s line says “It is gone”, not “Leaves it where you stand”.</b><br>05 rules that a dropped thing is listed nowhere. <i>Recommended: the true words.</i></div>
+  <div class="q"><b>8. Changes a ruling of 2026-10-25: “Use a charge” at 0 charges stays a row that explains, instead of greyed.</b><br>05 kept it greyed for visible charges (2026-10-25); CLAUDE.md’s rule since is “never a disabled button”. <i>Recommended: a row that explains.</i></div>
+  <div class="q"><b>9. May a player see the other characters’ load when giving?</b><br>Variant A shows each one’s tier and figure (“Laden: 380 of 500”); variant B shows nothing but a warning on the one the gift would over-load. Today the list shows names only. Other players’ packs and purses stay closed either way. <i>Recommended: B, the warning only: it is enough to give well and it opens nothing new.</i></div>
+
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked.</b> Heuristics: one question a panel; each action says what it will do before the tap; the giver sees who has room; every act has Undo and a toast in the log’s words; refusals name the reason and say nothing changed; nothing is disabled; one name for one thing (Put in…). States: a single thing, a stack, a thing the class can’t wear, give, how many, put in with a full and a too-small container, empty a container, drop, use one, put into the stash, coin, a loop refused, Undo refused, a stale sheet, loading and offline in words, messy data (a long name, 999, 0 charges). Targets: option rows 56 px, number tiles 44 px and 8 px apart, chips 44 px, buttons 44 px. One accent button per frame at most (only the coin sheet has one, naming its amount; elsewhere an answer is a row). Colour is never alone: a warning has ▲ and words, picked has ✓. Hidden stays hidden: Give to… never shows another character’s pack or purse, and the coin sheet shows only the player’s own coin and the stash’s; whether it may show their load is question 9, drawn both ways. Light and dark side by side. Tokens from 06; the parts are the Scene redesign’s and (a)’s.</p>
+  <p class="note"><b>Not checked, or uncertain.</b> I have not seen the sheet, Give to… or Put in… as built; “today” is the Builder’s account of the code. Whether another living character’s load may be shown to a player is unsettled (the lead could not confirm what the app shows today); it is drawn both ways and asked. The numbers are invented. iPad portrait, text sizes Large and Larger and a device are not checked. The build cost is the Builder’s to size.</p>
+`);
+</script>
+</body>
+</html>

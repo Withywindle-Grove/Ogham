@@ -6,13 +6,15 @@
 //   * its buttons in the pack's order, the one without rule text left out, each at least 44 px tall, a long name
 //     wrapping inside its button and never past the card's edge;
 //   * a tap opens the rule's sheet: "Activities", the name, the words, the source, and no button but the ✕;
+//   * a rule the pack sets out in blocks (d5-16, ?activities=blocks) is drawn block by block as 01-08j: its paragraphs,
+//     the titled table inside the sheet's width, the bold lead-in, the source last;
 //   * before anything is shown the card is there too, under "Somewhere new" (d5-18, 2026-11-20);
 //   * nothing scrolls sideways, no text is under 14 px, and axe finds no serious problem, at 375, 834 and 1024 px, in
 //     light and dark. Each test saves its picture.
 import { expect, test, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
-async function openScene(page: Page, state: 'spots' | 'spot', activities: '1' | 'long' = '1') {
+async function openScene(page: Page, state: 'spots' | 'spot', activities: '1' | 'long' | 'blocks' = '1') {
   await page.goto(`/layout.html?as=player&placePage=${state}&session=running&activities=${activities}`);
   await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
   await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Scene' }).click();
@@ -58,6 +60,28 @@ for (const width of [375, 834, 1024] as const) {
         await expect(sheet.getByText('From your setting: Fen Rules, p. 88')).toBeVisible();
         await expect(sheet.getByRole('button')).toHaveCount(1);
         await page.screenshot({ path: `test-results/layout-screens/players-activity-rule-${width}-${scheme}.png`, fullPage: false });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+      });
+
+      // Purpose (d5-16; 01-08j): a rule set out in blocks is drawn block by block on the same sheet: the roll line, the
+      // titled table with its headings and rows inside the sheet, the bold lead-in, the source last, nothing to tap but ✕.
+      test('an activity’s rule in blocks', async ({ page }) => {
+        await openScene(page, 'spots', 'blocks');
+        await page.getByRole('region', { name: 'Activities' }).getByRole('button', { name: 'Force a door' }).click();
+        const sheet = page.getByRole('dialog', { name: 'Force a door' });
+        await expect(sheet.getByText('Roll a d6: the door opens on a 1 or a 2.')).toBeVisible();
+        const table = sheet.getByRole('table');
+        await expect(table.getByText('Modifiers')).toBeVisible();
+        await expect(table.getByRole('columnheader')).toHaveText(['When', 'The door opens on']);
+        await expect(table.getByRole('row')).toHaveCount(4);
+        await expect(sheet.locator('strong', { hasText: 'Time and noise' })).toBeVisible();
+        await expect(sheet.getByText('From your setting: Fen Rules, p. 88')).toBeVisible();
+        const [sheetBox, tableBox, sourceBox] = await Promise.all([sheet.boundingBox(), table.boundingBox(), sheet.getByText('From your setting: Fen Rules, p. 88').boundingBox()]);
+        expect(tableBox!.x + tableBox!.width).toBeLessThanOrEqual(sheetBox!.x + sheetBox!.width + 0.5);
+        expect(sourceBox!.y).toBeGreaterThan(tableBox!.y + tableBox!.height);
+        await expect(sheet.getByRole('button')).toHaveCount(1);
+        await page.screenshot({ path: `test-results/layout-screens/players-activity-rule-blocks-${width}-${scheme}.png`, fullPage: false });
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
       });

@@ -7,6 +7,8 @@
 //     only when they don't fit one row:
 //     the three-button foot is one row on a tablet and stacks at 375 px; the two-button foot is one row at both;
 //   * a stacked accent alone in a foot: at the right edge, at its own width;
+//   * a stacked foot of two or more buttons (the three-button foot at 375 px): every button one width, the widest
+//     one's, at the right, so the stack looks intended (Francis, 24 Nov, on #85's Take back);
 //   * the Patron step's foot keeps its own order (Back to Class, then Choose a patron), at the right;
 //   * in a two-button foot, Tab order follows the order on screen;
 //   * the kit's roll sequence (a sheet) keeps Next at the right at its own width at 375 px, after Back.
@@ -116,6 +118,26 @@ for (const size of [
     await expect(foot.getByRole('button', { name: 'Cancel' })).toBeFocused();
   });
 }
+
+// Purpose: when a foot of two or more buttons stacks (the three-button foot at 375 px), every button takes the widest
+// one's width, at the right, not stretched to the foot's left edge (Francis, 24 Nov: every stacked foot alike).
+test("a stacked foot at 375 px: every button one width, the widest one's, at the right", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/gallery.html?theme=light');
+  await expect(page.getByRole('heading', { name: 'Component gallery' })).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  const three = page.locator('#sheet-foot .dialog__actions').nth(2);
+  await expect(three).toHaveClass(/dialog__actions--stacked/);
+  const foot = (await three.boundingBox())!;
+  const buttons = await three.locator(':scope > button').evaluateAll((els) => els.map((el) => el.getBoundingClientRect().toJSON() as DOMRect));
+  expect(buttons).toHaveLength(3);
+  const widest = Math.max(...buttons.map((b) => b.width));
+  for (const b of buttons) {
+    expect(Math.abs(b.width - widest), 'one width').toBeLessThanOrEqual(0.5);
+    expect(Math.abs(foot.x + foot.width - b.right), 'at the right').toBeLessThanOrEqual(1);
+  }
+  expect(buttons[0]!.left - foot.x, 'not stretched to the left').toBeGreaterThan(8);
+});
 
 // Purpose: the kit's roll sequence is a sheet (the lead, 2026-11-14), so at 375 px its accent (Next or Done) sits at the
 // right at its own width, after Back, never the full width the phone gives other accents.

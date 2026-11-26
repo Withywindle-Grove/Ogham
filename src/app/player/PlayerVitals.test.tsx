@@ -77,3 +77,38 @@ describe("the Player tab's source line follows the campaign it was read for (#10
     expect(await attackSheetFoot()).not.toContain('From your setting');
   });
 });
+
+// The attack tile's line keeps a capital on each kind (tfw-7): "Back to Missile" (Francis, 2026-11-25), reversing
+// row 7b of docs/plans/dec-14-player-audit-fixes.md (its plain case, merged in #68). Purposes:
+//   The attack tile's line reads as the setting gives it, each kind with its capital: melee only, missile only, both,
+//   either AC style.
+//   A setting with no such figures shows no line.
+describe("the Player tab's attack line keeps its capitals (Back to Missile, 2026-11-25)", () => {
+  function lineFor(caption: string): string | null {
+    vi.mocked(loadCampaignSetting).mockResolvedValue(fenSetting);
+    const world = createFakeDb();
+    const character = wren('campaign-a');
+    render(<PlayerVitals db={world.db} user={user} character={character} fieldDefs={[attackField]} figures={characterFigures(null, character, [attackField])} attack={{ ...attack, caption }} worn={[]} acOverride={null} downAt={null} />);
+    const tile = within(screen.getByRole('region', { name: 'Vitals' })).getByRole('button', { name: /^Attack \+1: / });
+    return tile.querySelector('.stat-tile__caption')?.textContent ?? null;
+  }
+
+  it.each([
+    ['Melee +2, Missile +1', 'Melee +2, Missile +1'],
+    ['Melee 19, Missile 18', 'Melee 19, Missile 18'],
+    ['Melee +1000, Missile +999', 'Melee +1000, Missile +999'],
+  ])('reads "%s" as "%s"', (caption, shown) => {
+    expect(lineFor(caption)).toBe(shown);
+  });
+
+  it.each([
+    ['Melee +2', 'Melee +2'],
+    ['Missile −1', 'Missile −1'],
+  ])('reads "%s" as "%s"', (caption, shown) => {
+    expect(lineFor(caption)).toBe(shown);
+  });
+
+  it('shows no line when the setting gives no melee or missile figure', () => {
+    expect(lineFor('')).toBeNull();
+  });
+});

@@ -75,6 +75,34 @@ export function valueWords(value: unknown): string {
 }
 
 /**
+ * A place's hoards that carry their own words (B15, p2p-28; 07 `hoards`): each hoard's name to its words, link marks
+ * read as their words. Only a hoard some treasure entry at the place names; a name given twice keeps its first words.
+ */
+export function hoardWordsOf(data: Record<string, unknown>): Map<string, string> {
+  const named = new Set(list(data.treasure).flatMap((t) => (isObject(t) && text(t.hoard) ? [text(t.hoard)] : [])));
+  const out = new Map<string, string>();
+  for (const hoard of list(data.hoards)) {
+    if (!isObject(hoard)) continue;
+    const name = text(hoard.name);
+    const words = plainLinks(text(hoard.text));
+    if (name && words && named.has(name) && !out.has(name)) out.set(name, words);
+  }
+  return out;
+}
+
+/**
+ * A treasure entry's magic item, the truth the GM may show (B15, p2p-29; 07 `magicItem`): its real name and what it
+ * does, as written, and what the senses tell of it (`noticed`, b15f-2; '' when not given), link marks read as their
+ * words. The pack's `source` is not read: it stays the GM's, in the book (b15f-4). Null without both a name and words.
+ */
+export function magicItemOf(treasure: Record<string, unknown>): { name: string; text: string; noticed: string } | null {
+  const magic = isObject(treasure.magicItem) ? treasure.magicItem : null;
+  const name = magic ? plainLinks(text(magic.name)).slice(0, PIECE_LEAD_MAX) : '';
+  const words = magic ? plainLinks(text(magic.text)) : '';
+  return name && words ? { name, text: words, noticed: plainLinks(text(magic!.noticed)) } : null;
+}
+
+/**
  * The region whose encounter tables this location's own encounter check names (⚑ 7): the key in the rules set's
  * `wildEncounters.regionalTables` whose table is the check's `tableRef` (with or without the pack's prefix). '' when
  * the location names no table, or no region has it.
@@ -190,10 +218,29 @@ export function composePackPlace(entry: PackPlaceEntry, regionalTables?: Record<
     if (!isObject(clue) || !text(clue.text)) continue;
     piece('clue', text(clue.text), { gm_value: [text(clue.source) ? `Source: ${text(clue.source)}` : '', text(clue.pointsTo) ? `Points to ${text(clue.pointsTo)}` : ''].filter(Boolean).join(', ') });
   }
-  for (const treasure of list(data.treasure)) {
-    if (!isObject(treasure) || !text(treasure.text)) continue;
+  // B15 (p2p-28, p2p-29; page 30, HM1): a hoard with its own words (`hoards`) is one piece in the book's words, led by
+  // the hoard's name, where its first thing stands; its things make no piece of their own, and it carries no value line
+  // (pg30-2). A magic item's truth (`magicItem`) is a piece of its own right after the piece its thing is in, led by
+  // the item's real name; it keeps nothing in the piece's GM-only column (b15f-4: no source on it, so nothing of a magic
+  // item's piece is ever the GM's alone once shown). Every piece starts hidden, as ever.
+  const worded = hoardWordsOf(data);
+  const treasures = list(data.treasure).filter((t): t is Record<string, unknown> => isObject(t) && !!text(t.text));
+  const truthPiece = (treasure: Record<string, unknown>) => {
+    const truth = magicItemOf(treasure);
+    if (truth) piece('other', truth.text, { lead: truth.name });
+  };
+  treasures.forEach((treasure, at) => {
+    const hoard = text(treasure.hoard);
+    if (hoard && worded.has(hoard)) {
+      // The hoard's piece where its first thing stands; then each of its things' truths, in the pack's order.
+      if (treasures.findIndex((t) => text(t.hoard) === hoard) !== at) return;
+      piece('treasure', worded.get(hoard)!, { lead: hoard.slice(0, PIECE_LEAD_MAX) });
+      treasures.filter((t) => text(t.hoard) === hoard).forEach(truthPiece);
+      return;
+    }
     piece('treasure', text(treasure.text), { gm_value: [valueWords(treasure.value), text(treasure.itemId) ? `Item: ${text(treasure.itemId)}` : ''].filter(Boolean).join(', ') });
-  }
+    truthPiece(treasure);
+  });
   const creatureWords = (c: Record<string, unknown>) => [text(c.statBlockId) || 'a creature', words(c.count) ? `×${words(c.count)}` : '', text(c.note) ? `(${text(c.note)})` : ''].filter(Boolean).join(' ');
   const hazardWords = (h: Record<string, unknown>) => [text(h.name), [text(h.trigger), text(h.effect)].filter(Boolean).join(' → ')].filter(Boolean).join(' — ');
   const creaturesUnshown: string[] = [];

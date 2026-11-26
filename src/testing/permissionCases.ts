@@ -45,15 +45,17 @@ import { clearPortrait, setPortrait } from '../modules/characters/portraits.ts';
 import { undoChange } from '../core/undo.ts';
 import { addNote, editNote } from '../core/notes.ts';
 import { copyHomebrewToLibrary, deletePack, editPackEntry, importPack, updatePack } from '../modules/library/library.ts';
+import { addPackPicture } from '../modules/library/packPictures.ts';
 import { attachPack, detachPack, moveSettingRules, preferEntry, setPackOptions, startHomebrew } from '../modules/library/campaignPacks.ts';
 import { deleteHomebrewEntry, saveHomebrewEntry } from '../modules/library/homebrew.ts';
 import { readPackJson, type ReadPack } from '../modules/library/packFile.ts';
+import { markCallSeen, type CallSendRef } from '../modules/library/callCards.ts';
 import { sendHook } from '../modules/library/callsToAdventure.ts';
 import { giveRumour } from '../modules/library/rumours.ts';
 import { resetStock, setStock } from '../modules/requests/shopStock.ts';
-import { addItem, approveItem, declineItem, emptyContainer, equipAnyway, equipItem, giveAway, hideFromAtHand, moveItem, noteRuleSkipped, pinItem, removeItem, revealItemField, setBaseArmour, setItemQty, setWeaponMode, useItem, type CarrierRef, type ItemCopy } from '../modules/inventory/inventory.ts';
+import { addItem, approveItem, declineItem, editItemLook, emptyContainer, equipAnyway, equipItem, giveAway, hideFromAtHand, moveItem, noteRuleSkipped, pinItem, removeItem, revealItemField, setBaseArmour, setItemQty, setWeaponMode, tellItem, useItem, type CarrierRef, type ItemCopy } from '../modules/inventory/inventory.ts';
 import { arrangeScreen } from '../modules/characters/screenLayout.ts';
-import { pinToAtHand } from '../modules/characters/pins.ts';
+import { movePin, pinToAtHand } from '../modules/characters/pins.ts';
 import { prepareSpells, setAc, setForm, useAbility } from '../modules/characters/playState.ts';
 import { castSpell, chooseSpells, sameAsYesterday, setSpells, uncastSpell } from '../modules/characters/magicState.ts';
 import { recordRoll } from '../core/rolls.ts';
@@ -120,9 +122,11 @@ import { addPlacePicture, setPlacePicture } from '../modules/expedition/placePic
 import { addPlaceMap, setPlaceMap, shareMap } from '../modules/expedition/placeMap.ts';
 import { placeFromPack, type PackPlaceEntry } from '../modules/expedition/placeFromPack.ts';
 import { setCheckInForce, setRuleEye } from '../modules/expedition/placeRules.ts';
+import { setKnowledgeShare } from '../modules/expedition/placeKnowledge.ts';
 import { setPlaceSafety } from '../modules/expedition/placeSafety.ts';
 import { moveOn } from '../modules/expedition/placeMove.ts';
 import { openTownPlace, showTownPlace } from '../modules/expedition/townPlaces.ts';
+import { hideTownPiece, showTownPiece } from '../modules/expedition/townParts.ts';
 import { readMessages, sendMessages } from '../modules/messages/messages.ts';
 import { markFindsSeen } from '../modules/characters/findsSeen.ts';
 import { answerRequest, askRequests, enterRequest, sendRequest, withdrawRequest, type Request } from '../modules/requests/requests.ts';
@@ -130,6 +134,7 @@ import { approveSheetChange, HP_MAX_FIELD, refuseSheetChange, requestSheetChange
 import { chooseStay, replyRequest, undoBuy } from '../modules/requests/townRequests.ts';
 import { setSpellBook } from '../modules/characters/spellBook.ts';
 import { giveFind, undoFind } from '../modules/expedition/findSend.ts';
+import { showItemTruth } from '../modules/expedition/itemTruth.ts';
 import { addCoin, giveCoin, removeCoin, spendCoin, takeCoin, type Coins, type TakeFrom } from '../modules/inventory/purse.ts';
 import { redoCreation, type RedoChoice } from '../modules/characters/redo.ts';
 
@@ -188,6 +193,8 @@ export interface CaseWorld {
   freshInvite(): Promise<{ id: string; code: string }>;
   /** A new, unused text field in the campaign. */
   freshField(): Promise<{ id: string; campaignId: string; key: string }>;
+  /** Two fresh trait pins on that character, its pins list replaced by them (row P2's moves): their keys, in order. */
+  freshPins(on: 'wren' | 'ash'): Promise<string[]>;
   /** A logged HP change this person just made (to Player A's character; Player B's own when it's Player B). */
   freshChange(by: 'gm' | 'playerA' | 'playerB'): Promise<{ campaignId: string; eventId: string; authorUserId: string | null }>;
   /** A pack in this person's library. */
@@ -289,9 +296,10 @@ export interface CaseWorld {
    * Where the party is (M5 step 11): a fresh expedition under way in the campaign (any other ended first), the party
    * at the invented "Moth Gallery", hidden from players or (`shown`) shown. Gives back the party's row with its place
    * and its one piece (an exit, M5b g2), hidden or (`shown`) shown to the party; with `picture`, the place has the
-   * GM's picture (M5b step 1 follow-up); with `map`, a map of the GM's tied to it (dec-7 5m-2).
+   * GM's picture (M5b step 1 follow-up); with `map`, a map of the GM's tied to it (dec-7 5m-2); with `magic`, its one
+   * piece is a magic item's truth instead (B15, p2p-29: kind `other`, led by the item's real name).
    */
-  freshPlace(shown?: boolean, picture?: boolean, map?: boolean): Promise<GroupPlace>;
+  freshPlace(shown?: boolean, picture?: boolean, map?: boolean, magic?: boolean): Promise<GroupPlace>;
   /** A map of the GM's (dec-7 5m-3, the eye): the campaign's copy, an asset of kind `map`, hidden. Gives back its id. */
   freshMap(): Promise<string>;
   /** A find the GM just sent to Player A's character (K16b, find.give): the send's first log line, for its Undo. */
@@ -320,6 +328,8 @@ export interface CaseWorld {
    * the table's id and the row's range, a fresh table each time so a give is never refused as a repeat.
    */
   freshRumour(): Promise<{ packId: string; tableId: string; min: number; max: number }>;
+  /** A call to adventure the GM just sent, to the party or to Wren (P7), never seen by anyone. */
+  freshCallSend(to: 'party' | 'wren'): Promise<CallSendRef>;
   /** A message the GM just wrote to Wren (Player A's character; M5b g4). Gives back its id. */
   freshMessage(): Promise<string>;
   /** A Describe… request Wren (Player A's character) just sent, still waiting (M5 step 12). */
@@ -338,6 +348,12 @@ export interface CaseWorld {
    * its name and the town's name.
    */
   freshInn(): Promise<{ key: string; name: string; town: string }>;
+  /**
+   * A piece of a place in town (W4c, ge-1): a fresh expedition with the party at a Safe town made from a pack, and a
+   * place one level under it (its entry `place:<id>` in the town's list), with one piece, hidden or (`shown`) shown to
+   * the party. Gives back the party's visit to the town and the piece.
+   */
+  freshTownPart(shown?: boolean): Promise<{ visitId: string; pieceId: string }>;
   /**
    * A secret-activity request Wren (Player A's character) just sent, still waiting, in a fresh expedition with a
    * day started for group 1 (M5b step 3): "Scout ahead", costing 2 points.
@@ -445,6 +461,8 @@ export const permissionCases: PermissionCase[] = [
   rule('a player can make their own character active', 'playerA', setActiveCharacter, (w) => ({ campaignId: w.campaignId, character: w.wren }), true),
   rule("a player can't make someone else's character active", 'playerA', setActiveCharacter, (w) => ({ campaignId: w.campaignId, character: w.ash }), false),
   rule("an outsider can't pick an active character", 'outsider', setActiveCharacter, (w) => ({ campaignId: w.campaignId, character: w.wren }), false),
+  // The GM's view as the player (page 32, M3f2): choosing who they play is the player's alone (tfg-5, d5-21).
+  rule("the GM can't make a player's character that player's active one", 'gm', setActiveCharacter, (w) => ({ campaignId: w.campaignId, character: w.wren }), false),
   rule("a player can't make their waiting character active", 'playerA', setActiveCharacter, async (w) => ({ campaignId: w.campaignId, character: await w.freshCharacter('playerA', 'pending') }), false),
 
   // Companies run by the players (ruled 2026-10-24).
@@ -557,6 +575,9 @@ export const permissionCases: PermissionCase[] = [
   rule("an outsider can't copy a campaign's homebrew", 'outsider', copyHomebrewToLibrary, async (w) => ({ campaignId: w.campaignId, packId: (await w.freshAttachedPack()).packId, name: 'Fen homebrew' }), false),
   rule('you can edit an entry of your own pack (Edit pack)', 'gm', editPackEntry, async (w) => ({ ...(await w.freshPack('gm')), kind: 'item' as const, packEntryId: 'rope', data: { name: 'Rope', weightCoin: 40 } }), true),
   rule("you can't edit an entry of someone else's pack", 'playerA', editPackEntry, async (w) => ({ ...(await w.freshPack('gm')), kind: 'item' as const, packEntryId: 'rope', data: { name: 'Mine' } }), false),
+  // A pack's pictures, kept with the pack (B14, p2p-27): its owner's alone to keep.
+  rule("you can keep a map's picture with your own pack", 'gm', addPackPicture, async (w) => ({ ...(await w.freshPack('gm')), mapId: 'harbour-chart', image: new Blob(['chart'], { type: 'image/png' }) }), true),
+  rule("you can't keep a picture with someone else's pack", 'playerA', addPackPicture, async (w) => ({ ...(await w.freshPack('gm')), mapId: 'harbour-chart', image: new Blob(['chart'], { type: 'image/png' }) }), false),
   rule('you can update your own setting rules', 'gm', updatePack, async (w) => ({ ...(await w.freshPack('gm')), pack: tinyPack() }), true),
   rule("you can't update someone else's setting rules", 'playerA', updatePack, async (w) => ({ ...(await w.freshPack('gm')), pack: tinyPack() }), false),
   rule('you can delete your own setting rules, even ones a campaign uses (each campaign logs it)', 'gm', deletePack, async (w) => { const { packId, ownerUserId } = await w.freshAttachedPack(); return { packId, ownerUserId }; }, true),
@@ -656,6 +677,13 @@ export const permissionCases: PermissionCase[] = [
   rule("an outsider can't move anything", 'outsider', moveItem, async (w) => ({ line: await w.freshLine('stash'), to: await w.carrier('wren'), qty: 3, of: 3 }), false),
   rule("the GM can reveal an item's hidden field to its holder", 'gm', revealItemField, async (w) => ({ line: await w.freshLine('wren'), field: 'cursed', value: true }), true),
   rule("a player can't reveal a hidden field, even on their own item", 'playerA', revealItemField, async (w) => ({ line: await w.freshLine('wren'), field: 'cursed', value: true }), false),
+  // K22b: the GM tells a hidden fact and edits what players see; a player never, even on their own item. A plain line
+  // has nothing hidden, so the GM's tell of everything is allowed and changes nothing (the database tests tell for real).
+  quiet(rule('the GM can tell the players what is hidden on an item', 'gm', tellItem, async (w) => ({ line: await w.freshLine('wren'), fact: 'everything' as const }), true)),
+  rule("a player can't tell a hidden fact, even on their own item", 'playerA', tellItem, async (w) => ({ line: await w.freshLine('wren'), fact: 'everything' as const }), false),
+  rule("a player can't tell a hidden fact on someone else's item", 'playerB', tellItem, async (w) => ({ line: await w.freshLine('wren'), fact: 'cursed' as const }), false),
+  rule('the GM can change what players see of an item', 'gm', editItemLook, async (w) => ({ line: await w.freshLine('ash'), appearsAs: 'Grey stones', noticed: `Warm, today ${crypto.randomUUID().slice(0, 8)}.` }), true),
+  rule("a player can't change what players see of an item, even their own", 'playerA', editItemLook, async (w) => ({ line: await w.freshLine('wren'), appearsAs: 'Gold stones', noticed: '' }), false),
   rule('a player can set the visible charges of their own item, from the roll', 'playerA', setCharges, async (w) => ({ line: await w.freshLine('wren'), value: 12, hidden: false }), true),
   rule("a player can't set hidden charges, even on their own item", 'playerA', setCharges, async (w) => ({ line: await w.freshLine('wren'), value: 12, hidden: true }), false),
   rule('the GM can set hidden charges', 'gm', setCharges, async (w) => ({ line: await w.freshLine('wren'), value: 7, hidden: true }), true),
@@ -715,6 +743,11 @@ export const permissionCases: PermissionCase[] = [
   rule("a player can't pin anything for someone else's character", 'playerB', pinToAtHand, (w) => ({ character: w.wren, kind: 'spell' as const, key: 'mire-lamp', pinned: true }), false),
   rule("the GM can pin for any character", 'gm', pinToAtHand, (w) => ({ character: w.ash, kind: 'trait' as const, key: crypto.randomUUID(), pinned: true }), true),
   rule("an outsider can't pin for a character", 'outsider', pinToAtHand, (w) => ({ character: w.wren, kind: 'spell' as const, key: 'mire-lamp', pinned: true }), false),
+  // Moving a pin in the player's order (euf-4, row P2; the detailed log): the owner or the GM, nobody else.
+  rule('a player can move a pin of their own character', 'playerA', movePin, async (w) => ({ character: w.wren, key: (await w.freshPins('wren'))[1]!, at: 0 }), true),
+  rule("the GM can move a pin on any character", 'gm', movePin, async (w) => ({ character: w.ash, key: (await w.freshPins('ash'))[1]!, at: 0 }), true),
+  rule("a player can't move a pin on someone else's character", 'playerB', movePin, async (w) => ({ character: w.wren, key: (await w.freshPins('wren'))[1]!, at: 0 }), false),
+  rule("an outsider can't move a pin on a character", 'outsider', movePin, async (w) => ({ character: w.wren, key: (await w.freshPins('wren'))[1]!, at: 0 }), false),
   rule("a player can set their own character's AC by hand", 'playerA', setAc, (w) => ({ character: w.wren, ac: Math.floor(Math.random() * 900) }), true),
   rule("a player can't set someone else's character's AC", 'playerB', setAc, (w) => ({ character: w.wren, ac: 7 }), false),
   rule("the GM can set any character's AC by hand", 'gm', setAc, (w) => ({ character: w.ash, ac: -Math.floor(Math.random() * 900) }), true),
@@ -1224,6 +1257,10 @@ export const permissionCases: PermissionCase[] = [
   rule("the GM can open or close a place's rule to players", 'gm', setRuleEye, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, ruleId: 'slick-piles', open: false }; }, true),
   rule("a player can't open a place's rule", 'playerA', setRuleEye, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, ruleId: 'slick-piles', open: true }; }, false),
   rule("an outsider can't open a place's rule", 'outsider', setRuleEye, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, ruleId: 'slick-piles', open: true }; }, false),
+  // The players' place card (P4, p4s-2): the GM's eye on a section of a place's Knowledge.
+  rule('the GM can share a section of a place\'s knowledge with a group', 'gm', setKnowledgeShare, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, group: 1, packId: e.packId, entryId: e.packEntryId, sectionAt: 0, share: true }; }, true),
+  rule("a player can't share a section of a place's knowledge", 'playerA', setKnowledgeShare, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, group: 1, packId: e.packId, entryId: e.packEntryId, sectionAt: 0, share: true }; }, false),
+  rule("an outsider can't share a section of a place's knowledge", 'outsider', setKnowledgeShare, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, group: 1, packId: e.packId, entryId: e.packEntryId, sectionAt: 0, share: true }; }, false),
   rule("the GM can switch a place's own check off", 'gm', setCheckInForce, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, on: false }; }, true),
   rule("a player can't switch a place's own check", 'playerB', setCheckInForce, async (w) => { const e = await w.freshPackPlace(); return { campaignId: w.campaignId, packId: e.packId, entryId: e.packEntryId, on: false }; }, false),
   rule('the GM can start an expedition at a place picked by id', 'gm', startExpedition, async (w) => {
@@ -1272,6 +1309,19 @@ export const permissionCases: PermissionCase[] = [
     const row = await w.freshPlace();
     return { campaignId: w.campaignId, row, piece: row.pieces[0]! };
   }, false),
+  // B15 (p2p-29): a magic item's piece shown, and the item named where it is held; the GM's alone.
+  rule("the GM can show a magic item's truth", 'gm', showItemTruth, async (w) => {
+    const row = await w.freshPlace(false, false, false, true);
+    return { campaignId: w.campaignId, row, piece: row.pieces[0]!, lines: [] };
+  }, true),
+  rule("a player can't show a magic item's truth", 'playerA', showItemTruth, async (w) => {
+    const row = await w.freshPlace(false, false, false, true);
+    return { campaignId: w.campaignId, row, piece: row.pieces[0]!, lines: [] };
+  }, false),
+  rule("an outsider can't show a magic item's truth", 'outsider', showItemTruth, async (w) => {
+    const row = await w.freshPlace(false, false, false, true);
+    return { campaignId: w.campaignId, row, piece: row.pieces[0]!, lines: [] };
+  }, false),
   rule('the GM can hide a piece again', 'gm', hidePiece, async (w) => {
     const row = await w.freshPlace(true);
     return { campaignId: w.campaignId, row, piece: row.pieces[0]! };
@@ -1290,6 +1340,12 @@ export const permissionCases: PermissionCase[] = [
   rule('the GM can give a rumour to one character', 'gm', giveRumour, async (w) => ({ campaignId: w.campaignId, ...(await w.freshRumour()), actorId: w.wren.id }), true),
   rule("a player can't give a rumour", 'playerA', giveRumour, async (w) => ({ campaignId: w.campaignId, ...(await w.freshRumour()), actorId: null }), false),
   rule("an outsider can't give a rumour", 'outsider', giveRumour, async (w) => ({ campaignId: w.campaignId, ...(await w.freshRumour()), actorId: null }), false),
+  // Got it on a call (P7, p7-1 to p7-3): a player marks a call they may read as seen; the GM and others can't.
+  rule('a player marks a call to the party as seen', 'playerA', markCallSeen, async (w) => ({ send: await w.freshCallSend('party') }), true),
+  rule('a player marks a call to their own character as seen', 'playerA', markCallSeen, async (w) => ({ send: await w.freshCallSend('wren') }), true),
+  rule("a player can't mark a call to another player's character as seen", 'playerB', markCallSeen, async (w) => ({ send: await w.freshCallSend('wren') }), false),
+  rule("the GM can't mark a call as seen", 'gm', markCallSeen, async (w) => ({ send: await w.freshCallSend('party') }), false),
+  rule("an outsider can't mark a call as seen", 'outsider', markCallSeen, async (w) => ({ send: await w.freshCallSend('party') }), false),
   // A shop's stock for the day (W12): the GM sets a thing in or out, or resets the things with a chance; a player can't.
   rule('the GM can set a thing in stock for the day', 'gm', setStock, (w) => ({ campaignId: w.campaignId, serviceId: 'perm-shop', itemId: `perm-${crypto.randomUUID()}`, day: 1, answer: 'in' as const }), true),
   rule("a player can't set a thing in stock", 'playerA', setStock, (w) => ({ campaignId: w.campaignId, serviceId: 'perm-shop', itemId: `perm-${crypto.randomUUID()}`, day: 1, answer: 'in' as const }), false),
@@ -1325,6 +1381,11 @@ export const permissionCases: PermissionCase[] = [
     const row = await w.freshPlace(true);
     return { campaignId: w.campaignId, place: row.place!, entry: { key: 'service:stall', name: 'A stall', group: 'shop' as const }, shown: true };
   }, false),
+  // A piece of a place in town (W4c, ge-1): the GM shows or hides it while the party is in the town; a player can't.
+  rule('the GM can show players a piece of a place in town', 'gm', showTownPiece, async (w) => ({ campaignId: w.campaignId, ...(await w.freshTownPart()) }), true),
+  rule("a player can't show a piece of a place in town", 'playerA', showTownPiece, async (w) => ({ campaignId: w.campaignId, ...(await w.freshTownPart()) }), false),
+  rule('the GM can hide a piece of a place in town', 'gm', hideTownPiece, async (w) => ({ campaignId: w.campaignId, ...(await w.freshTownPart(true)) }), true),
+  rule("a player can't hide a piece of a place in town", 'playerB', hideTownPiece, async (w) => ({ campaignId: w.campaignId, ...(await w.freshTownPart(true)) }), false),
   rule('the GM can close a place in town', 'gm', openTownPlace, async (w) => {
     const row = await w.freshPlace();
     return { campaignId: w.campaignId, place: row.place!, entry: { key: 'lodging:an inn', name: 'An inn', group: 'lodging' as const }, open: false };

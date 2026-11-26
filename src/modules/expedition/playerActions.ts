@@ -3,13 +3,20 @@
 // does). Pure. Players' Something else… that showed it was removed at the M5 gate (A5); the list moves to the GM
 // reference screen (B4), which will read it from here. The players' Activities on their Scene read it again (mc-45a,
 // plan dec-9-the-players-scene P6): only those with rule text, each opening its rule.
+// An action's `text` is plain words or pf-18's `{ blocks }` (d5-16, 2026-11-20; frame 01-08j), read by the one reader
+// (readWordsOrBlocks, library/ruleText.ts): `text` keeps its words for a line and a search, `blocks` its blocks for its
+// sheet. Plain words read exactly as before.
+import { readWordsOrBlocks, type RuleTextBlocks } from '../library/ruleText.ts';
 
 export interface PlayerAction {
   id: string;
   name: string;
   /** The heading it sorts under ("Doors", "Searching"); actions without one go under "Other". */
   group: string;
+  /** The rule's words: plain words as written; a rule in blocks as its plain words. '' when it has none. */
   text: string;
+  /** The rule's blocks when the pack sets it out in pf-18's blocks (d5-16); null for plain words or none. */
+  blocks: RuleTextBlocks | null;
   /** Its page reference, if the pack gives one. */
   source: string | null;
 }
@@ -32,7 +39,8 @@ export function readPlayerActions(rulesSets: readonly Record<string, unknown>[])
     const actions = listed.filter(isRecord).flatMap((a, i): PlayerAction[] => {
       const name = words(a.name);
       if (!name) return [];
-      return [{ id: words(a.id) ?? `action-${i}`, name, group: words(a.group) ?? OTHER_GROUP, text: words(a.text) ?? '', source: words(a.source) }];
+      const rule = readWordsOrBlocks(a.text);
+      return [{ id: words(a.id) ?? `action-${i}`, name, group: words(a.group) ?? OTHER_GROUP, text: rule.words, blocks: rule.blocks, source: words(a.source) }];
     });
     if (actions.length > 0) return actions;
   }

@@ -29,7 +29,14 @@ export function SortableList<T extends { key: string; label: string }>({
   blocked = false,
   onBlocked,
   tallRows = false,
+  landingBox = false,
 }: {
+  /**
+   * The **landing box** variant (the Player tab's pinned abilities and traits; page 28, frame M4e, approved 2026-11-20):
+   * while a row is lifted a dashed box shows where it will land, and the rows making room move by the row and the gap
+   * between rows (the boxes sit 8 px apart there). Without it, nothing marks the place and they move by the row alone.
+   */
+  landingBox?: boolean;
   items: T[];
   /** What the list is, for screen readers ("Player screen sections"). */
   label: string;
@@ -47,7 +54,7 @@ export function SortableList<T extends { key: string; label: string }>({
 }) {
   const list = useRef<HTMLUListElement>(null);
   // The row being dragged, where it would land, how far the finger has moved, and the rows' places when it began.
-  const [dragging, setDragging] = useState<{ from: number; over: number; by: number; height: number } | null>(null);
+  const [dragging, setDragging] = useState<{ from: number; over: number; by: number; height: number; tops: number[]; heights: number[]; gap: number } | null>(null);
   const start = useRef<{ y: number; middles: number[]; heights: number[] } | null>(null);
   // A hold in progress: where it began and its timer; and whether the last pointer-up ended a drag (its click is eaten).
   const holding = useRef<{ x: number; y: number; timer: ReturnType<typeof setTimeout>; index: number } | null>(null);
@@ -61,7 +68,7 @@ export function SortableList<T extends { key: string; label: string }>({
     return () => document.removeEventListener('touchmove', stay);
   }, [lifted]);
 
-  const rowsNow = () => [...(list.current?.querySelectorAll(':scope > li') ?? [])].map((row) => row.getBoundingClientRect());
+  const rowsNow = () => [...(list.current?.querySelectorAll(':scope > li.sortable__row') ?? [])].map((row) => row.getBoundingClientRect());
 
   // Where the dragged row would land: the first row whose middle is below the dragged row's middle.
   const landing = (from: number, by: number): number => {
@@ -97,7 +104,10 @@ export function SortableList<T extends { key: string; label: string }>({
     (target as HTMLElement).setPointerCapture?.(pointerId);
     const rects = rowsNow();
     start.current = { y, middles: rects.map((r) => r.top + r.height / 2), heights: rects.map((r) => r.height) };
-    setDragging({ from: index, over: index, by: 0, height: rects[index]?.height ?? 0 });
+    // The landing box's places, from the list's own top, and the gap between rows (the landing variant).
+    const top = list.current?.getBoundingClientRect().top ?? 0;
+    const gap = rects.length > 1 ? Math.max(0, rects[1]!.top - rects[0]!.bottom) : 0;
+    setDragging({ from: index, over: index, by: 0, height: rects[index]?.height ?? 0, tops: rects.map((r) => r.top - top), heights: rects.map((r) => r.height), gap });
   }
 
   function down(event: PointerEvent, index: number) {
@@ -149,16 +159,26 @@ export function SortableList<T extends { key: string; label: string }>({
   // The dragged row follows the finger; the rows it passes slide by one row's height to make room.
   const placeOf = (index: number): CSSProperties | undefined => {
     if (!dragging) return undefined;
-    const { from, over, by, height } = dragging;
+    const { from, over, by, height, gap } = dragging;
+    const step = height + (landingBox ? gap : 0);
     // The lifted row keeps the finger's movement for itself (touch screens: no pan or scroll takes it over).
     if (index === from) return { transform: `translateY(${by}px)`, touchAction: 'none' };
-    if (from < over && index > from && index <= over) return { transform: `translateY(${-height}px)` };
-    if (from > over && index >= over && index < from) return { transform: `translateY(${height}px)` };
+    if (from < over && index > from && index <= over) return { transform: `translateY(${-step}px)` };
+    if (from > over && index >= over && index < from) return { transform: `translateY(${step}px)` };
     return undefined;
   };
 
+  // Where the lifted row will land (the landing variant): the room the others leave, the lifted row's own height.
+  const landingPlace = (): CSSProperties | null => {
+    if (!dragging) return null;
+    const { from, over, height, tops, heights } = dragging;
+    const top = over <= from ? (tops[over] ?? 0) : (tops[over] ?? 0) + (heights[over] ?? 0) - height;
+    return { top, height };
+  };
+  const box = landingBox ? landingPlace() : null;
+
   return (
-    <ul ref={list} className="sortable" aria-label={label}>
+    <ul ref={list} className={landingBox ? 'sortable sortable--landing' : 'sortable'} aria-label={label}>
       {items.map((item, index) => (
         <li
           key={item.key}
@@ -192,6 +212,7 @@ export function SortableList<T extends { key: string; label: string }>({
           </span>
         </li>
       ))}
+      {box && <li className="sortable__landing" aria-hidden="true" style={box} />}
     </ul>
   );
 }

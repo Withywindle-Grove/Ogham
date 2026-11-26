@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pack: the party stash (2026-11-11)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="pack.css">
+<style>
+  .dev.short { min-height:0; }
+  .nts { display:flex; flex-wrap:wrap; gap:var(--space-2); margin-top:var(--space-2); }
+  .nt { width:44px; height:44px; border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); display:flex; align-items:center; justify-content:center; font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; box-sizing:border-box; }
+  .nt.sel { background:var(--wash); border:2px solid var(--accent); }
+  .forwho { display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap; margin-top:var(--space-3); }
+  .whose { display:flex; flex-direction:column; gap:var(--space-2); }
+  .logu { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2); align-items:center; font-size:14px; padding:var(--space-1) 0; border-bottom:1px dotted var(--rule); min-height:44px; }
+  .logu:last-child { border-bottom:0; }
+  .logu span.w { color:var(--muted); }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="pack.js"></script>
+<script>
+const tiles = (list, sel) => `<div class="nts">${list.map((n) => `<span class="nt${n === sel ? ' sel' : ''}" role="button">${n}</span>`).join('')}</div>`;
+const putBtn = b('Put something in', { big: true, accent: true, icon: 'plus' });
+const back = `<p style="margin:0 0 var(--space-2)"><a style="color:var(--accent);text-decoration:underline">‹ Wren’s pack</a></p>`;
+const stashBand = (ident = 'Shared by the party: anyone puts things in and takes them out. It weighs on no one.', acts = [putBtn]) => band({ over: 'The Reed Marches', title: 'The party stash', ident, acts });
+const sFacts = (a, bb, c, d = '') => `<div class="facts"${d ? '' : ' style="grid-template-columns:repeat(3,minmax(0,1fr))"'}>${a}${bb}${c}${d}</div>`;
+const fIn = fact('chest', 'In the stash', '9 things', '6 loose, 3 in the reed chest.');
+const fLast = fact('gift', 'Last in', 'Silver ewer', 'Tam put it in, today.');
+const fOut = fact('hand', 'Last out', 'Coil of rope', 'Ash took it, day 2.');
+const fCoin = fact('sack', 'Coin', '40 herons', 'And 12 bits. Last in: 40 herons, from your GM.');
+const coinGrp = (take = 'Take…') => grp('Coin in the stash', 'The party reads this', [it('40 herons, 12 bits', 'Your GM put in 40 herons, today. Bram put in 12 bits, day 2.', { mark: 'sack', act: take })], { noWeight: true });
+const forWho = (sel = 'Wren') => `<div class="forwho"><b>You are taking for</b><span class="chips">${chip('Wren', sel === 'Wren')}${chip('Odo, your hireling', sel === 'Odo')}</span><span class="meta">${sel === 'Wren' ? 'Wren: 493 of 500 coins’ weight.' : 'Odo: 60 of 300 coins’ weight.'}</span></div>`;
+const loose = (take = 'Take', extra = []) => grp('Loose in the stash', '6 things', [
+  ...extra,
+  it('A waxed pouch', 'Your GM put it in, today. What you notice: heavy for its size, sewn shut.', { wt: 12, act: take }),
+  it('Moon opals', 'Your GM put them in, today. Treasure.', { n: 2, wt: 2, act: take }),
+  it('Reed chest', 'Tam put it in, day 2. Holds 3 things: its list is below.', { mark: 'chest', wt: 80, act: take }),
+  it('Silver ewer', 'Tam put it in, today.', { wt: 40, act: take }),
+  it('Torches', 'Ash put them in, day 1.', { n: 6, wt: 6, act: take }),
+  it('Wolf pelt', 'Bram put it in, day 2.', { wt: 30, act: take }),
+]);
+const chest = (take = 'Take') => grp('In the reed chest', '3 things. Weight 25 of 200', [
+  it('Bandages', 'Ash put them in, day 2.', { n: 4, wt: 4, act: take }),
+  it('Iron spikes', 'Tam put them in, day 2.', { n: 12, wt: 12, act: take }),
+  it('Lamp oil', 'Tam put it in, day 2. A flask each.', { n: 3, wt: 9, act: take }),
+]);
+const logu = (text, when, undo) => `<div class="logu"><span>${text} <span class="w">${when}</span></span>${undo ? small('Undo') : '<span></span>'}</div>`;
+const recent = (first = '') => `<div class="pcard"><h2 style="margin-top:0">Recently, in the stash</h2>${first}${logu('Tam put in a silver ewer.', 'Today')}${logu('Your GM put in moon opals ×2 and a waxed pouch.', 'Today')}${logu('Ash took a coil of rope.', 'Day 2')}${logu('Bram put in a wolf pelt.', 'Day 2')}</div>`;
+const yours = `<div class="pcard"><div class="hrow"><h2>Wren’s room</h2>${small('Her pack')}</div><dl class="kvt"><dt>Load</dt><dd>Laden: 493 of 500</dd><dt>Her coin</dt><dd>12 crowns, 30 herons, 4 bits</dd><dt>Backpack</dt><dd>Room for 217</dd><dt>Hands</dt><dd>Reed spear, lantern</dd></dl></div>`;
+
+// ---- a player ----
+const p1 = pdev('ipad', `${back}${stashBand()}<hr class="dbl">${sFacts(fIn, fLast, fOut, fCoin)}${forWho()}<div class="cols2"><div class="pcard">${coinGrp()}${loose()}${chest()}</div><div class="stack">${yours}${recent()}</div></div>`,
+  '1. The party stash as a screen of its own, for a player (NEW: today a player has only a fold at the end of their own Pack). Opened from the Pack’s stash fact or card. A title and one line saying what it is; three facts (what is in it, the last thing in, the last thing out, each with who and when); then the stash’s lists as 05 rules them: loose things in one list, then “In the …” for each container, nothing else. Every row says who put it in and when (NEW on the row: today only the log knows) and ends in <b>Take</b> (NEW: today taking is the thing’s sheet, Give to…, a character, how many). “You are taking for” shows only when the player has more than one character or a hireling. Beside the lists: the taker’s room, and the stash’s recent lines. The stash’s coin (ruled, pk-6) is a fourth fact and the first row, read by the whole party, with Take… (frame 3b).');
+const p2 = pdev('ipad short', `${back}${stashBand()}<hr class="dbl">${sFacts(fact('chest', 'In the stash', '8 things', '5 loose, 3 in the reed chest.'), fLast, fact('hand', 'Last out', 'Silver ewer', 'Wren took it, a moment ago.'))}${forWho()}<div class="toast" style="margin-top:var(--space-3)"><span><b>Wren took the silver ewer.</b> It is in what she carries. She is now over-loaded: 533 of 500.</span>${small('Undo')}</div><div class="cols2"><div class="pcard">${grp('Loose in the stash', '5 things', [it('Moon opals', 'Your GM put them in, today. Treasure.', { n: 2, wt: 2, act: 'Take' }), it('Reed chest', 'Tam put it in, day 2. Holds 3 things.', { mark: 'chest', wt: 80, act: 'Take' })])}</div><div class="stack">${recent(logu('Wren took a silver ewer.', 'A moment ago', true))}</div></div>`,
+  '2. Take, a single thing: it happens at once, with an Undo toast that says where it went and what it did to her load (over-loaded is told, never blocked). It lands loose in what she carries, as today. The line joins the stash’s recent lines, with Undo on your own while it can still be undone. A stack asks how many first (frame 3).');
+const p3 = pdev('ipad', `${back}${stashBand()}`, '3. Take from a stack: one question in the panel at the right edge, the numbers to tap with All picked; a tap takes that many and closes. “Put something in” is the same panel the other way: your pack’s things as rows, then how many. Both are drawn in full with the short actions, mockup (c).', { panel: panel({ seq: 'The party stash', title: 'Take how many torches?', body: `
+  <p class="why">6 in the stash. For Wren: each weighs 1.</p>
+  ${tiles([1, 2, 3, 4, 5, 'All 6'].map(String), 'All 6').replace('width:44px', '')}
+  <style>.nt { min-width:44px; width:auto; padding:0 var(--space-2); }</style>`, foot: footSay('Tapping a number takes them, with Undo.', [b('Cancel')]) }) });
+
+const p3b = pdev('ipad', `${back}${stashBand()}`, '3b. Take coin from the stash (ruled, pk-6): how much of each kind, with what the stash holds beside each box, and one button that names the amount. It goes to the taker’s purse. More than the stash holds is answered in words. Putting coin in is the same sheet from her own coin line (mockup (a), frame C3) or from “Put something in”.', { panel: panel({ seq: 'The party stash', title: 'Take how much coin?', body: `
+  <p class="why">For Wren. It goes to her purse.</p>
+  <div class="coinrow"><span><b>Herons</b><small>The stash has 40.</small></span><span class="field">10</span></div>
+  <div class="coinrow"><span><b>Bits</b><small>The stash has 12.</small></span><span class="field empty">0</span></div>`, foot: footSay('Logged as “Wren took 10 herons from the stash”, with Undo.', [b('Cancel'), b('Take 10 herons', { accent: true })]) }) });
+
+// ---- the GM ----
+const whose = `<div class="pcard"><h2 style="margin-top:0">Whose pack</h2><div class="whose">${opt('The party stash', '9 things.', { icon: 'chest', sel: true })}${opt('Ash', 'Unladen: 120 of 600.', { icon: 'people' })}${opt('Bram', 'Laden: 380 of 500.', { icon: 'people' })}${opt('Tam', 'Unladen: 90 of 400.', { icon: 'people' })}${opt('Wren', 'Laden: 493 of 500.', { icon: 'people' })}</div></div>`;
+const g1 = pdev('ipad', `${band({ over: 'Players. Inventory.', title: 'The party stash', ident: 'Shared by the party. You see everything, hidden facts included.', acts: [b('Hand out a find', { big: true, accent: true, icon: 'gift' })] })}<hr class="dbl">${sFacts(fIn, fLast, fOut, fCoin.replace('from your GM', 'from you'))}<div class="cols2"><div class="pcard">${coinGrp('Give or take…').replace('Your GM put in 40 herons', 'You put in 40 herons')}${grp('Loose in the stash', '6 things', [it('A waxed pouch', 'You put it in, today. <b>Hidden:</b> a pouch of dream-salt, 3 doses.', { mark: 'eyeoff', wt: 12 }), it('Moon opals', 'You put them in, today. Treasure.', { n: 2, wt: 2 }), it('Reed chest', 'Tam put it in, day 2. Holds 3 things.', { mark: 'chest', wt: 80 }), it('Silver ewer', 'Tam put it in, today.', { wt: 40 })], { note: 'The first 4 of 6, A to Z.' })}${chest('')}</div><div class="stack">${whose}</div></div>`,
+  '4. The GM’s stash (today’s screen, re-arranged: Players, Inventory, with the “Whose pack” list, the stash first). The same lists; a row opens the thing with the GM’s extras (its hidden facts and their eyes, Give to…). A thing with something hidden says so with the crossed eye and the word. The accent is Hand out a find (mockup (d)), which starts here with the stash as the taker. No Take: the GM gives. The GM gives coin to the stash and takes it from it (pk-6), and reads every purse from each character’s pack in this list.', { role: 'gm' });
+
+// ---- the same screen for a Down character ----
+const d1 = pdev('ipad short', `<p style="margin:0 0 var(--space-2)"><a style="color:var(--accent);text-decoration:underline">‹ Ash’s pack</a></p>${band({ over: 'Open to the party while she is Down', title: 'Wren’s pack', ident: 'Wren is Down. Until she is up, anyone in the party can take from her pack. Every take is logged.', acts: [] })}<hr class="dbl"><div class="forwho"><b>You are taking for</b><span class="chips">${chip('Ash', true)}</span><span class="meta">Ash: 120 of 600 coins’ weight.</span></div><div class="cols2"><div class="pcard">${grp('Her coin', 'Open while she is Down', [it('12 crowns, 30 herons, 4 bits', 'Take what the party needs; every take is logged.', { mark: 'sack', act: 'Take…' })], { noWeight: true })}${grp('Worn and in hand', '4 things', [it('Lantern', 'In hand. Lit.', { wt: 30, act: 'Take' }), it('Reed spear', 'In hand.', { wt: 60, act: 'Take' })])}${grp('In the backpack', '7 things. Weight 183 of 400', [it('Dry rations', 'A day each.', { n: 3, wt: 30, act: 'Take' }), it('Moss draught', 'A healing drink.', { wt: 5, act: 'Take' })])}</div><div class="stack"><div class="pcard"><h2 style="margin-top:0">Recently, from Wren</h2>${logu('Ash took a moss draught from Wren.', 'A moment ago', true)}</div></div></div>`,
+  '5. The same screen, a second use, as Ash’s player sees it: a Down or dead character’s pack, open to the others (ruled 2026-10-29; the Builder reports it is not built). The title says whose and why, the lists are hers, each row ends in Take, and it closes again when she is up. Her coin is shown here and only here to the other players: this is the one ruled case in which a player reads another character’s purse (2026-10-29; pk-6). Drawn here because it is the stash’s screen with another carrier; listed for the lead as a gap in “works properly”, not as a new design.');
+
+// ---- states ----
+const e1 = pdev('ipad short', `${back}${stashBand('Shared by the party: anyone puts things in and takes them out. It weighs on no one.')}<hr class="dbl"><div class="pcard"><p style="margin:0 0 var(--space-2)"><b>Nothing in the stash.</b></p><p class="meta" style="margin:0">Put something in, at the top, moves a thing from your pack. What your GM hands to the party lands here.</p></div>`,
+  '6. Empty: one sentence and how it fills; no facts, no empty lists.');
+const e2 = pdev('ipad', `${back}${stashBand(undefined, [`<span class="field empty" style="width:240px">Find in the stash</span>`, putBtn])}<hr class="dbl">${sFacts(fact('chest', 'In the stash', '60 things', '41 loose, 19 in 3 containers.'), fLast, fOut)}${forWho()}<div class="cols2"><div class="pcard">${grp('Loose in the stash', '41 things', [
+    it('A very long name for a thing found in the drowned chapel of the causeway wardens, with its ribbon', 'Sister Ermengarde of the Drowned Bell put it in, day 2.', { wt: 999, act: 'Take' }),
+    it('Chalk', 'Ash put it in, day 1. Weighs nothing.', { n: 999, wt: 0, act: 'Take' }),
+    it('Moss draught', 'Tam put it in, today. The last one.', { n: 1, wt: 5, act: 'Take' }),
+    it('Ox', 'Bram put it in, day 1.', { act: 'Take' }),
+  ], { note: 'The first 4 of 41, A to Z; the list scrolls.' })}
+  ${grp('In the reed chest', '12 things. Weight 96 of 200', [it('Iron spikes', 'Tam put them in, day 2.', { n: 12, wt: 12, act: 'Take' })])}
+  ${grp('In the oilskin bag', '4 things. Weight 8 of 50', [it('Wax seal', 'Tam put it in, day 2.', { wt: 1, act: 'Take' })], { nest: true, note: 'Inside the reed chest.' })}
+  <div class="grp">${foldr('In the saddlebag', '3 things. Weight 30 of 300: Bedroll, Cooking pot, Rope')}</div></div><div class="stack">${yours}</div></div>`,
+  '7. Overflow and messy data: sixty things. A find field past about twenty; a container inside a container set in under its parent; a list can fold. Messy: a very long name and a long name for who put it in, ×999, a stack of 1, weight 0, no weight.');
+const e3 = pdev('ipad short', `${back}${stashBand()}<div class="toast" style="margin-top:var(--space-3)"><span>${warn('Wren didn’t take the silver ewer: Tam took it a moment ago. Nothing changed.')}</span></div><hr class="dbl">${sFacts(fact('chest', 'In the stash', '8 things', '5 loose, 3 in the reed chest.'), fLast, fact('hand', 'Last out', 'Silver ewer', 'Tam took it, a moment ago.'))}`,
+  '8. A refusal: two players reached for the same thing. The second is told who has it, in plain words, and the stash shows what is true now.');
+const e4 = pdev('ipad short', `${back}${stashBand('…')}<hr class="dbl"><div class="facts" style="grid-template-columns:repeat(3,minmax(0,1fr))">${[1, 2, 3].map(() => `<div class="fact plain" aria-busy="true"><span class="sk l1"></span><span class="sk l3"></span></div>`).join('')}</div><div class="pcard" style="margin-top:var(--space-4)" aria-busy="true"><span class="sk l1"></span><span class="sk l2"></span><span class="sk l3"></span></div>`,
+  '9. Loading: the title at once, the rest as still bars.');
+const e5 = pdev('ipad short', `${back}${stashBand('…')}<hr class="dbl"><div class="pcard"><p style="margin:0 0 var(--space-3)">${warn('The stash didn’t load. Nothing was changed.')}</p>${b('Try again')}</div>`,
+  '10. Error: one sentence and Try again.');
+const e6 = pdev('ipad short', `${back}${stashBand()}<p style="margin:var(--space-2) 0 0"><span class="ipill">${I.warn}Offline</span> <span class="meta">This is the stash as it was when you were last online. Others may have changed it since.</span></p><hr class="dbl"><div class="pcard">${grp('Loose in the stash', '6 things', [it('Silver ewer', 'Tam put it in, today.', { wt: 40, act: 'Take' })])}<p class="meta" style="margin:var(--space-2) 0 0">Take stays tappable and says: “You’re offline. Taking from the stash needs the party’s latest, so it waits until you’re back.”</p></div>`,
+  '11. Offline: the stash is shared, so it shows its age in words and Take explains itself on a tap instead of guessing (06: offline hides nothing; an action that can’t work offline stays visible and says why). Today an item action offline is refused with a raw error (the Builder).');
+
+const wide = pdev('wide', `${back}${stashBand()}<hr class="dbl">${sFacts(fIn, fLast, fOut, fCoin)}${forWho()}<div class="cols3"><div class="pcard">${coinGrp()}${loose()}</div><div class="pcard">${chest()}</div><div class="stack">${yours}${recent()}</div></div>`,
+  '12. A wide PC window: the loose things at the left, each container its own list in the middle, the taker’s room and the recent lines at the right.');
+const ph = phone(`${phoneBar('The party stash')}<div class="inner">
+  <div class="over">Shared by the party</div><h3 class="display" style="font-size:24px">The party stash</h3>
+  <div class="facts" style="margin-top:var(--space-2)">${fact('chest', 'In the stash', '9 things', '6 loose.', { plain: true })}${fact('gift', 'Last in', 'Silver ewer', 'Tam, today.', { plain: true })}</div>
+  <div class="forwho"><b>Taking for</b><span class="chips">${chip('Wren', true)}${chip('Odo')}</span></div>
+  ${coinGrp()}
+  ${grp('Loose in the stash', '6 things', [it('Moon opals', 'Your GM, today. Weight 2.', { n: 2, act: 'Take' }), it('Reed chest', 'Tam, day 2. Holds 3. Weight 80.', { mark: 'chest', act: 'Take' }), it('Silver ewer', 'Tam, today. Weight 40.', { act: 'Take' })])}
+  <div class="grp">${foldr('In the reed chest', '3 things. Weight 25 of 200')}</div>
+  </div><div style="border-top:1px solid var(--rule);padding:var(--space-2) var(--space-3);background:var(--sheet)">${b('Put something in', { accent: true, wide: true, icon: 'plus' })}</div>${packTabs}`,
+  '13. The phone, last: one column, two facts, Take on each row, the containers folded, Put something in above the tabs.');
+
+mount(`
+  <h1>Pack: the party stash</h1>
+  <p class="note">Mockup (b) of the Pack rework: the shared store, “what is in it, who put it there, taking and adding” (the brief), for a player and for the GM. On the first night the players “find treasure and items on an island, and share some of it”: this is where sharing happens. <b>From the Builder (2026-11-11), today:</b> a player has only a fold above the foot of their own Pack tab, with “Add to the Party stash”; the GM has a screen (Players, Inventory) with a “Whose pack” list, the stash first; a row says neither who put a thing in nor when (only the log does); there is no Take: taking is the thing’s sheet, Give to…, a character, how many, and it lands loose; no coin in the stash and no party fund; Take from a Down or dead character is ruled but not built. The stash’s rules stay (05): anyone in the party puts in and takes out, logged; no movement rules; it weighs on no one; loose things in one list, then each container. iPad landscape first, then a wide PC window, then the phone.</p>
+
+  <h1>A player’s stash</h1>
+  <div class="wall">${p1}</div>
+  <div class="wall">${p2}${p3}</div>
+  <div class="wall">${p3b}</div>
+
+  <h1>The GM’s stash; a Down character’s pack</h1>
+  <div class="wall">${g1}${d1}</div>
+
+  <h1>States and messy data</h1>
+  <div class="wall">${e1}${e2}</div>
+  <div class="wall">${e3}${e4}${e5}${e6}</div>
+
+  <h1>A wide PC window; the phone</h1>
+  <div class="wall">${wide}${ph}</div>
+
+  <h1>What is today’s behaviour, and what is new</h1>
+  <div class="wall"><div class="pcard" style="max-width:1024px"><dl class="kvb">
+    <dt>A screen of its own for players</dt><dd><b>Today:</b> a fold in the player’s Pack. <b>NEW:</b> the screen (the GM’s already exists). The fold’s place on the Pack tab becomes the fact and the card of mockup (a).</dd>
+    <dt>Who and when on a row</dt><dd><b>Today:</b> in the log only; a line has no “added by”. <b>NEW</b> on the screen, and for the three facts.</dd>
+    <dt>Take</dt><dd><b>Today:</b> the thing’s sheet, Give to…, a character, how many; it lands loose. <b>NEW:</b> one button on the row, at once with Undo for a single thing, one question for a stack; it still lands loose.</dd>
+    <dt>Put something in</dt><dd><b>Today:</b> from your own pack, the thing’s sheet, Give to…, Party stash; and the fold’s “Add to the Party stash”, which opens Add item. <b>Re-arranged:</b> one button on the stash that lists your pack’s things; Add item stays reachable from it.</dd>
+    <dt>Taking for</dt><dd><b>Today:</b> the Give to… list names the character. <b>Re-arranged:</b> chosen once at the top, only when a player has more than one.</dd>
+    <dt>Recently, with Undo</dt><dd><b>Today:</b> the log has the lines and their Undo. <b>Re-arranged:</b> the stash’s own lines beside it.</dd>
+    <dt>Over-loaded by a take</dt><dd><b>Today:</b> never blocked; the tier changes with a banner. <b>Same</b>, said in the toast.</dd>
+    <dt>A Down character’s pack</dt><dd><b>Ruled 2026-10-29, not built.</b> Drawn as this screen with another carrier.</dd>
+    <dt>Coin</dt><dd><b>Today:</b> none; no party fund (M7b). <b>NEW (pk-6):</b> the stash holds coin that the party reads: a fourth fact, the first row, Take… (frame 3b). No shares and no change-making.</dd>
+  </dl></div></div>
+
+  <h1>Questions for Francis (drafts for the lead’s ⚑ list)</h1>
+  <div class="q"><b>1. The party stash gets a screen of its own for players. Ruled (pk-4): yes.</b><br>Opened from the Pack’s fact or card; today it is a fold in each player’s pack. <i>Recommended: yes.</i></div>
+  <div class="q"><b>2. Every row says who put the thing in, and when. Ruled (pk-4): yes.</b><br>New on the screen (the log has it). It answers “who put it there” in your brief’s words. <i>Recommended: yes.</i></div>
+  <div class="q"><b>3. Take is one button on the row. Ruled (pk-3): a single thing at once with Undo, a stack asks how many.</b><br>A single thing is taken at once, with Undo; a stack asks how many. (The find page’s question on Take is this one.) <i>Recommended: yes.</i></div>
+  <div class="q"><b>4. A taken thing lands loose in what the character carries. Ruled (pk-2): yes.</b><br>As today. The other way is to ask where it goes each time, which costs a tap on every take. <i>Recommended: loose; the player puts it away when there is time.</i></div>
+  <div class="q"><b>5. The stash’s facts: what is in it, the last thing in, the last thing out, and its coin (pk-6).</b><br><i>Recommended: yes.</i></div>
+  <div class="q"><b>6. Offline, Take waits and says why, rather than guessing at a shared store.</b><br>Your own pack can keep changes offline (06); the stash is everyone’s, so a take made on stale news could take what is already gone. <i>Recommended: Take explains itself offline.</i></div>
+
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked.</b> Heuristics: the screen says what it is and whose; every row says who and when; the commonest action (Take) is one tap and can be undone; the taker’s room is beside the list so nothing has to be remembered; a refusal names who has the thing; nothing is disabled (offline Take explains; an over-loading take goes through and is told). States: full, a take, a stack’s question, the GM’s view, a Down character’s pack, empty, sixty things with a nested container, a refusal, loading, error, offline, messy data (a long name twice, ×999, a stack of 1, weight 0, no weight). Targets: rows 60 px, Take 44 px high and at least 44 wide, chips 44 px, number tiles 44 px and 8 px apart, option rows 56 px. One accent button per frame (Put something in; Hand out a find for the GM). Colour is never alone: hidden has the crossed eye and the word, picked has ✓, a warning has ▲. Hidden stays hidden: a player sees “a waxed pouch” and what is noticed; the GM’s row alone names what it is. Coin: the stash’s is the party’s to read; a player’s own coin shows in their own “room”; no other living character’s purse is on any player frame; a Down character’s is, as ruled. Light and dark side by side. Tokens from 06; the parts are the Scene redesign’s and (a)’s.</p>
+  <p class="note"><b>Not checked, or uncertain.</b> I have not seen the GM’s Inventory screen or the fold as built; “today” is the Builder’s account of the code. Who and when need either a field on the line or a read of the log: the Builder’s to say which. Whether “You are taking for” should remember the last character per device. Whether a player should see who took what in “Recently” for every player (drawn: yes, the stash is shared and the log is already open to all). The numbers are invented. iPad portrait, text sizes Large and Larger and a device are not checked. The build cost is the Builder’s to size.</p>
+`);
+</script>
+</body>
+</html>

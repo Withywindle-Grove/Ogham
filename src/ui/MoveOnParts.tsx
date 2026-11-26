@@ -3,7 +3,8 @@
 // only: no request is sent, no proposal is stored and no move is made here (piece 4b). Wired to no screen until the
 // redesigned place page (5b); shown in the gallery and on the layout page (`layout.html?moveOn=…`).
 //
-// - `WayButton`: a way of moving, stacked: its picture where the app has one (B16; pf-25, ap-10), the action word,
+// - `WayButton`: a way of moving, stacked: its picture where the app has one, else the generic way mark (B16; pf-25,
+//   ap-10; d5-11), the action word,
 //   its time; every one a list's size (mc-36a).
 // - `DestinationRow`: one destination, its ways as way buttons at the right; for the GM and players alike (mc-36,
 //   mc-36a). On a narrow row (a phone) the buttons take a line under the name, sharing its width (frame H4, phone).
@@ -14,9 +15,9 @@ import { useId, useState, type ReactNode } from 'react';
 import { keyedName } from '../modules/expedition/placeTree.ts';
 import { Dialog } from './Dialog.tsx';
 import { DiceWords } from './dice.tsx';
-import { wayIconOf } from './iconSet.ts';
-import { Icon } from './icons.tsx';
-import { ListRow, WarningLine } from './parts.tsx';
+import { WAY_MARK, wayIconOf } from './iconSet.ts';
+import { Icon, StepIcon } from './icons.tsx';
+import { ListRow, StackedButton, WarningLine } from './parts.tsx';
 import './MoveOnParts.css';
 
 /** One way of moving to a destination, as its button says it. */
@@ -50,11 +51,9 @@ export function WayButton({ way, destination, pressed, onTap }: { way: WayChoice
   const picture = wayIconOf({ by: way.by ?? '', icon: way.icon });
   return (
     <button type="button" className={pressed ? 'way-button way-button--proposed' : 'way-button'} aria-label={`${way.word}, ${way.time}, to ${destination}${pressed ? ', proposed' : ''}`} onClick={onTap}>
-      {picture && (
-        <span className="way-button__icon" aria-hidden="true">
-          <Icon name={picture} size={24} />
-        </span>
-      )}
+      <span className="way-button__icon" aria-hidden="true">
+        {picture === WAY_MARK ? <StepIcon name="travel" size={24} /> : <Icon name={picture} size={24} />}
+      </span>
       <span className="way-button__word">
         {pressed && (
           <span className="way-button__tick" aria-hidden="true">
@@ -124,9 +123,8 @@ export function DestinationRow({
         <div className="destination-row__proposed">
           <p>{proposal.by === 'you' ? 'Proposed by you: waiting for your GM.' : `Proposed by ${proposal.by}.`}</p>
           {'onCancel' in proposal && (
-            <button type="button" className="button-secondary button-secondary--small" onClick={proposal.onCancel}>
-              Cancel
-            </button>
+            // ic-1 (P12): the icon above the word, the app's cross in a circle as "Take it off" has it.
+            <StackedButton icon="cancel" label="Cancel" onClick={proposal.onCancel} />
           )}
         </div>
       )}
@@ -401,13 +399,16 @@ export function ProposalSheet({
   );
 }
 
-/** The players' list of destinations under "Where to?" (mc-36a), a row each; nothing at all when there are none. */
+/**
+ * The players' list of destinations under "Where to?" (mc-36a), a row each; nothing at all when there are none. The
+ * heading is a card's sub-heading in the book's faces, as "Activities" beside it (page 18, PL1; st-8).
+ */
 export function WhereTo({ children, empty }: { children: ReactNode; empty: boolean }) {
   const id = useId();
   if (empty) return null;
   return (
     <section className="where-to" aria-labelledby={id}>
-      <h3 id={id} className="label where-to__heading">
+      <h3 id={id} className="where-to__heading">
         Where to?
       </h3>
       <div className="move-sheet__rows">{children}</div>

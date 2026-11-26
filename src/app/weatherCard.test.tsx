@@ -250,3 +250,29 @@ describe("the players' weather roll (M5b)", () => {
     await waitFor(() => expect((world.tables.campaigns.find((c) => c.id === campaign)!.settings as Record<string, unknown>).weatherRolledBy).toBe('gm'));
   });
 });
+
+// The GM's view as the player (page 32, pg32-3; C15c of plans/test-feedback-2026-11-19.md). Purpose, in plain words:
+//   In the GM's view of Wren's Player tab the notices box holds Sam's weather prompt, with Sam's die; a roll the GM
+//   enters there is the GM's (the record and its log line name him), and its Undo puts it back to due.
+describe("the weather prompt in the GM's view as the player (C15c)", () => {
+  it('shows Sam’s prompt with the die; the GM’s roll there is logged as his, with Undo', async () => {
+    const { gm, campaign } = await table();
+    world.signInAs(gm);
+    await world.db.rpc('start_session', { campaign });
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
+    await user.click(within(await screen.findByRole('navigation', { name: 'Campaign sections' })).getByRole('button', { name: /^Players/ }));
+    await user.click(await screen.findByRole('button', { name: "View Wren's sheet" }));
+    await user.click(await screen.findByRole('button', { name: '1 notice, open them' }));
+    const notices = within(await screen.findByRole('dialog', { name: 'Notices' }));
+    const before = world.tables.events.length;
+    await user.type(await notices.findByLabelText('Weather due: roll d6'), '2');
+    await user.click(notices.getByRole('button', { name: 'Enter roll' }));
+    await waitFor(() => expect(weatherOf()).toMatchObject([{ result: 'Drizzle', entered_by: gm }]));
+    expect(world.tables.events.slice(before).map((e) => [e.type, e.actor_user_id])).toEqual([['weather.enter', gm]]);
+    const toast = (await screen.findAllByText(/Drizzle/)).map((el) => el.closest('.toast')).find(Boolean) as HTMLElement;
+    await user.click(within(toast).getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(weatherOf()).toEqual([]));
+  });
+});

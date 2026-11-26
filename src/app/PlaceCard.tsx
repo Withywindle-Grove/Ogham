@@ -333,6 +333,7 @@ export function PlacePicture({
   name,
   bare = false,
   large = false,
+  small = false,
 }: {
   db: Db;
   campaignId: string;
@@ -342,6 +343,8 @@ export function PlacePicture({
   bare?: boolean;
   /** Drawn large, as in the picture's pop-up (TW13). */
   large?: boolean;
+  /** The **small** variant (ppf-6 c, PL1b): a square button the rule's icon button's size, at a card's head. */
+  small?: boolean;
 }) {
   const path = assetPath(campaignId, assetId);
   // The link for the picture asked for (a link for an earlier picture reads as still loading).
@@ -359,12 +362,13 @@ export function PlacePicture({
     };
   }, [db, path]);
   const label = `The picture of ${name || 'this place'}`;
+  const size = small ? ' place-picture--small' : '';
   if (link === 'failed') return <p className="place-card__hint">The picture couldn't be opened. Check your connection.</p>;
-  if (link === null) return <span className="place-picture place-picture--loading" role="img" aria-label={`${label}, loading`} />;
+  if (link === null) return <span className={`place-picture place-picture--loading${size}`} role="img" aria-label={`${label}, loading`} />;
   if (bare || large) return <img className={large ? 'place-picture__full' : 'place-picture__img'} src={link} alt={large ? label : ''} />;
   return (
     <>
-      <button type="button" className="place-picture" aria-label={`Open ${label.charAt(0).toLowerCase()}${label.slice(1)}`} onClick={() => setFull(true)}>
+      <button type="button" className={`place-picture${size}`} aria-label={`Open ${label.charAt(0).toLowerCase()}${label.slice(1)}`} onClick={() => setFull(true)}>
         <img className="place-picture__img" src={link} alt="" />
       </button>
       {full && (
@@ -640,7 +644,25 @@ export function namedParts(text: string, names: readonly string[]): { text: stri
  * One piece (B1): its text and kind, and the 44 × 44 eye button that shows it to the group in focus. The text is the
  * tap target for Edit piece (g2b, gp-1: the whole row but the eye; no pencil, the text is the thing).
  */
-export function PieceRow({ piece, onToggle, onEdit, page = false, named = [] }: { piece: Piece; onToggle: () => void; onEdit: () => void; page?: boolean; named?: readonly string[] }) {
+export function PieceRow({
+  piece,
+  onToggle,
+  onEdit,
+  page = false,
+  named = [],
+  onOpen,
+  note,
+}: {
+  piece: Piece;
+  onToggle: () => void;
+  onEdit: () => void;
+  page?: boolean;
+  named?: readonly string[];
+  /** B15 (pg30-1): a hoard's piece opens its hoard on a tap, a small arrow before its eye saying so. */
+  onOpen?: () => void;
+  /** B15 (HM1, PK5b): the line under a hoard's piece, saying where it went. */
+  note?: ReactNode;
+}) {
   if (page) {
     // The Location's card (p2p-10; page 23, LA1, approved 2026-11-18): in the book's format, no kind word. A piece the
     // pack leads with its own word starts with it in bold; the description has none, and its words that name another
@@ -650,7 +672,7 @@ export function PieceRow({ piece, onToggle, onEdit, page = false, named = [] }: 
     const parts = piece.kind === 'description' ? namedParts(piece.text, named) : [{ text: piece.text, named: false }];
     return (
       <li className="place-page__piece">
-        <button type="button" className="place-page__piece-words" aria-label={`Edit piece: ${piece.text}`} onClick={onEdit}>
+        <button type="button" className="place-page__piece-words" aria-label={onOpen ? undefined : `Edit piece: ${piece.text}`} aria-haspopup={onOpen ? 'dialog' : undefined} onClick={onOpen ?? onEdit}>
           <span className="place-page__piece-text">
             {piece.lead && (
               <>
@@ -661,8 +683,14 @@ export function PieceRow({ piece, onToggle, onEdit, page = false, named = [] }: 
               <Fragment key={i}>{part.named ? <strong className="place-page__named">{part.text}</strong> : part.text}</Fragment>
             ))}
           </span>
-          {fact && <span className="place-page__fact">{fact}</span>}
+          {fact && !onOpen && <span className="place-page__fact">{fact}</span>}
+          {note}
         </button>
+        {onOpen && (
+          <span className="place-page__opens" aria-hidden="true">
+            <Icon name="chevron" size={20} />
+          </span>
+        )}
         <EyeButton shown={piece.shown} show="Show players" hide="Hide from players" onToggle={onToggle} />
       </li>
     );

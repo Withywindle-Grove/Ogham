@@ -1,7 +1,7 @@
 // One carrier's items in the Pack (docs/06 "Pack groups"): grouped by where they're carried, A–Z in each group. Each
 // group's heading carries its count ("Worn and in hand", "4 items"); the groups that fold (Gear, Tiny things) are fold
 // rows with a one-line summary (plan m5b-players-screens-standard C), N19's rule saying how they start.
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
 import { isGm, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
@@ -16,6 +16,8 @@ import { lineInPlay, type CampaignSetting } from './campaignSetting.ts';
 import { asItem, equippedProblems, loadEquipContext, type EquipContext } from './EquipWarning.tsx';
 import { allowedByRule, castingStoppedBy, classAllowsWeapon, equipBlocks } from '../modules/inventory/equipWarnings.ts';
 import { ItemRow } from './ItemRow.tsx';
+import { usePlayerView } from './playerView.ts';
+import { rollFace } from './WeaponInHand.tsx';
 import { lightFactsOf } from './AtHandSheets.tsx';
 import { useFoldOpen } from './packOpen.ts';
 import { foldSummary, itemCount, type Run } from './packHelpers.ts';
@@ -25,7 +27,7 @@ import { lightState } from '../modules/expedition/lightPlay.ts';
 import type { CharacterLightView } from './LightSection.tsx';
 import { attackRange, attackRules, inflictedBy, modeState, weaponModesOf, withMode, type ModeState } from '../modules/inventory/weaponModes.ts';
 import { conditionsOf } from '../modules/expedition/statusPlay.ts';
-import { magicNoteLines, weaponMagic, type AttackPart, type AttackRoll, type WeaponMagic } from '../modules/characters/play.ts';
+import { HIDDEN_FROM_PLAYER, magicNoteLines, weaponMagic, type AttackPart, type AttackRoll, type WeaponMagic } from '../modules/characters/play.ts';
 import './PackScreen.css';
 
 /**
@@ -57,10 +59,53 @@ export function lineFigureParts(state: ModeState | null, magic: WeaponMagic | un
  */
 export function drawnAmmunition(
   setting: Parameters<typeof lineInPlay>[0],
-  stack: Pick<InventoryLine, 'name' | 'category' | 'details' | 'sourceEntryId' | 'sourcePackId'>,
+  stack: Pick<InventoryLine, 'name' | 'category' | 'details' | 'sourceEntryId' | 'sourcePackId' | 'revealedFields'>,
   stackEntry: { data: Record<string, unknown> } | null,
-): { name: string; data: Record<string, unknown>; category: string } {
-  return { name: stack.name, data: { ...(stackEntry?.data ?? {}), ...lineInPlay(setting, stack).details }, category: stack.category };
+): { name: string; data: Record<string, unknown>; category: string; told: readonly string[] } {
+  // K22a: what the GM told on the stack's line decides whether its bonus counts for the player (bonusHidden).
+  return { name: stack.name, data: { ...(stackEntry?.data ?? {}), ...lineInPlay(setting, stack).details }, category: stack.category, told: stack.revealedFields ?? [] };
+}
+
+/** The player's own copy of a thing whose magic counts in a weapon's figure: the weapon's line, or the drawn stack's. */
+export interface PlayersCopy {
+  name: string;
+  details: Record<string, unknown>;
+}
+
+/** Whether the player's copy shows a magic bonus, or a bonus against a kind of foe, in its details ("Magic bonus -1"). */
+function copyShows(details: Record<string, unknown>, what: 'magicBonus' | 'bonusVs'): boolean {
+  const weapon = details.weapon;
+  if (weapon === null || typeof weapon !== 'object') return false;
+  const value = (weapon as Record<string, unknown>)[what];
+  return what === 'magicBonus' ? typeof value === 'number' && value !== 0 : Array.isArray(value) && value.length > 0;
+}
+
+/**
+ * A weapon's figures hidden from its player, for the view's GM line in M3g2's words (pg32-4): where a part of its
+ * figure is hidden, "the true figure is d20 −1" (the to-hit roll as the GM's figures make it, from `trueRolls`; without
+ * rolls, what the hidden parts add, "the true figure adds −1"); then each hidden note ("+2 vs bog lurkers").
+ * Only what is really hidden (audit fix 6, 2026-11-24): a part or a note the player's own copy already shows in its
+ * details (`seen`: the weapon's copy first, then the drawn stack's) is no secret and is left out. Until K22a keeps a
+ * cursed weapon's bonus off the player's copy, Sam's sheet reads "Magic bonus -1", so the line does not name it.
+ */
+export function hiddenFigures(magic: WeaponMagic, trueRolls: () => readonly AttackRoll[], seen: readonly PlayersCopy[] = []): string[] {
+  const [weapon, ...others] = seen;
+  // A part is "<name>, magic (hidden …)"; a note is the weapon's own, or "<name>, …" for the drawn stack's.
+  const shownPart = (label: string) => seen.some((c) => label === `${c.name}, magic${HIDDEN_FROM_PLAYER}` && copyShows(c.details, 'magicBonus'));
+  const shownNote = (note: string) => {
+    const of = others.find((c) => note.startsWith(`${c.name}, `));
+    const copy = of ?? weapon;
+    return copy !== undefined && copyShows(copy.details, 'bonusVs');
+  };
+  const hiddenParts = magic.parts.filter((p) => p.label.endsWith(HIDDEN_FROM_PLAYER) && !shownPart(p.label));
+  const notes = [...magic.hitNotes, ...magic.damageNotes]
+    .filter((n) => n.endsWith(HIDDEN_FROM_PLAYER))
+    .map((n) => n.slice(0, -HIDDEN_FROM_PLAYER.length))
+    .filter((n) => !shownNote(n));
+  if (hiddenParts.length === 0) return notes;
+  const hit = trueRolls().find((r) => r.roll === 'hit');
+  const adds = hiddenParts.reduce((sum, p) => sum + p.value, 0);
+  return [hit ? `the true figure is ${rollFace(hit).figure}` : `the true figure adds ${adds < 0 ? `−${-adds}` : `+${adds}`}`, ...notes];
 }
 
 /** A weapon's attack bonus and damage ("+2, 1d8"), from its item data, the patches' damage change and a mode's parts. */
@@ -127,12 +172,18 @@ export function CarrierItems({
   weaponRolls,
   setting = null,
   tinyCategories,
+  rowNote,
+  rowEnd,
 }: {
   /**
    * The tiny item categories (`CampaignSetting.tinyCategories`): given, the tiny things leave their groups for a folded
    * "Tiny things" section before Other (SC-5-2), as on the sheet's Pack load. Left out (At hand, the stash, waiting): no split.
    */
   tinyCategories?: ReadonlySet<string>;
+  /** A line of its own under each row's line (the stash's screen: who put it in and when, K11). */
+  rowNote?: (line: InventoryLine) => string | null;
+  /** What ends each row in place of its chevron (the stash's Take, K12). */
+  rowEnd?: (line: InventoryLine) => ReactNode;
   /** At hand (M5 gate C3): a weapon's attack bonus and damage from its item data, or null; with a weapon mode's parts (ah-1). */
   weaponLine?: WeaponLine;
   /** At hand (sq-4): that figure's parts, for the breakdown a tap on the weapon's row opens. */
@@ -203,8 +254,13 @@ export function CarrierItems({
   // The Tiny things section starts collapsed, then stays as it was left on this device (like the other folds).
   const [tinySaved, setTinyOpen] = useFoldOpen('tiny');
   const tinyOpen = tinySaved ?? false;
+  // A weapon's hidden magic: the GM's, but not in his view as the player, which shows the player's figure (pg32-3, M3e).
+  const inView = usePlayerView() !== null;
   // What's worn or held against the rules already (ruled 2026-10-25): marked on its row.
   const [equipContext, setEquipContext] = useState<EquipContext | null>(null);
+  // The GM's view as the player (pg32-4): each weapon's hidden figures, for the GM's line on its sheet.
+  const view = usePlayerView();
+  const gmInView = view !== null && isGm(user, campaign.id);
   useEffect(() => {
     if (!carrier.actorId) return;
     let live = true;
@@ -315,9 +371,9 @@ export function CarrierItems({
                   const stackEntry = stack ? (items.find((e) => e.packId === stack.sourcePackId && e.packEntryId === stack.sourceEntryId) ?? null) : null;
                   const magic = atHand
                     ? weaponMagic(
-                        { name: line.name, data: item, category: line.category },
+                        { name: line.name, data: item, category: line.category, told: line.revealedFields ?? [] },
                         setting?.rulesSets ?? [],
-                        isGm(user, campaign.id),
+                        isGm(user, campaign.id) && !inView,
                         stack ? drawnAmmunition(setting, stack, stackEntry) : null,
                       )
                     : undefined;
@@ -330,6 +386,12 @@ export function CarrierItems({
                   const range = atHand && weapon !== null ? attackRange(item, state?.engaged ? state.mode : null) : null;
                   const bearing = atHand ? attackRules(inMode, state?.engaged ? state.mode : null, [ruleNotes.get(line.id), problems.get(line.id)]) : [];
                   const inflicts = atHand && weapon !== null ? inflictedBy(item, state?.engaged ? state.stack : null, conditions) : [];
+                  const gmMagic = gmInView ? weaponMagic({ name: line.name, data: item, category: line.category }, setting?.rulesSets ?? [], true, stack ? drawnAmmunition(setting, stack, stackEntry) : null) : null;
+                  // What the player's own copies already show is no secret (audit fix 6): the weapon's line, the drawn stack's.
+                  const seen = [{ name: line.name, details: line.details }, ...(stack ? [{ name: stack.name, details: lineInPlay(setting, stack).details }] : [])];
+                  const gmFacts = gmMagic
+                    ? hiddenFigures(gmMagic, () => weaponRolls?.({ ...inMode, name: line.name }, now.damageDelta ?? 0, lineFigureParts(state, gmMagic, line.sourceEntryId ?? null, classOk)) ?? [], seen)
+                    : [];
                   return (
                   <ItemRow
                     key={line.id}
@@ -363,6 +425,7 @@ export function CarrierItems({
                     rechargeDefault={rechargeDefault}
                     onNote={onNote}
                     secret={hidden.get(line.id) ?? null}
+                    gmFacts={gmFacts}
                     problem={problems.get(line.id) ?? null}
                     castingNote={castingNotes.get(line.id) ?? null}
                     blockedEquip={offReason ?? (equipContext ? (equipBlocks(equipContext.character, asItem(line, equipContext), equipContext.weaponRules ?? null)[0] ?? null) : null)}
@@ -379,6 +442,8 @@ export function CarrierItems({
                     inflicts={inflicts}
                     modeView={state}
                     tiny={tiny}
+                    note={rowNote?.(line) ?? null}
+                    end={rowEnd?.(line) ?? null}
                   />
                   );
                 })}

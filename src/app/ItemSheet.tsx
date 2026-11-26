@@ -38,7 +38,7 @@ import { checkEquip, EquipWarningCard, type EquipCheck } from './EquipWarning.ts
 import { countWords, shownName } from '../modules/inventory/packView.ts';
 import { cameBackText, latestChange, undoChange, type CameBack } from '../core/undo.ts';
 import { MoveSheet, type Placement } from './ItemMoves.tsx';
-import { Dialog } from '../ui/Dialog.tsx';
+import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { Breakdown, ListRow, PinStar, RowList, WarningSign } from '../ui/parts.tsx';
 import { RollPrompt } from '../ui/RollPrompt.tsx';
 import { RollCard } from '../ui/dice.tsx';
@@ -50,6 +50,9 @@ import { chargeWords, homebrewItem, type Run } from './packHelpers.ts';
 import './PackScreen.css';
 import './RulesBrowser.css';
 import { useToast } from '../ui/ToastHost.tsx';
+import { GmLine } from '../ui/GmLine.tsx';
+import type { Line } from '../modules/library/describe.ts';
+import { PlayerViewContext, usePlayerView } from './playerView.ts';
 
 /**
  * The sheet's own state (which pop-up is open, what's typed). It lives with the item's row, not the sheet, so it
@@ -75,38 +78,46 @@ export function useItemSheetState(line: InventoryLine) {
 
 export type ItemSheetState = ReturnType<typeof useItemSheetState>;
 
-export function ItemSheet({
-  onClose,
-  state,
-  db,
-  user,
-  campaign,
-  line,
-  carrier,
-  lines,
-  mode,
-  rules,
-  others,
-  may,
-  busy,
-  run,
-  entry,
-  chargeRules,
-  rechargeDefault,
-  secret,
-  packShortName,
-  sourceTitles = {},
-  problem,
-  blockedEquip,
-  patchLines = [],
-  weapon = null,
-  weaponRows = [],
-  weaponRolls = [],
-  offReason = null,
-  onNote,
-  preview = false,
-  atHand = null,
-}: {
+/**
+ * The GM's line in the view (pg32-4), in the form M3g and M3g2 draw ("Only you see this: the true figure is d20 −1,
+ * cursed."; "…: Ring of the Drowned Bell, +1 to saves, cursed."), or null when nothing is hidden: the weapon's true
+ * figure and hidden notes first, then each hidden field not yet revealed by its value (a yes-or-no field by its name,
+ * "cursed"; a "no" left out), then the hidden charge count ("3 charges left"), joined by commas.
+ */
+export function gmLineWords(hidden: readonly Line[], charges: { total: number | null; spent: boolean; used: number } | null, figures: readonly string[]): string | null {
+  const leaves = (all: readonly Line[]): string[] =>
+    all.flatMap((l) => (l.lines ? leaves(l.lines) : l.value === 'No' ? [] : l.value === 'Yes' ? [l.label.toLowerCase()] : [l.value ?? l.label]));
+  const left = charges && charges.total !== null ? Math.max(0, charges.total - charges.used) : null;
+  const count = !charges ? [] : [left === null ? 'charges not set' : charges.spent || left === 0 ? 'spent' : left === 1 ? '1 charge left' : `${left} charges left`];
+  const facts = [...new Set([...figures, ...leaves(hidden), ...count].map((f) => f.trim().replace(/\.$/, '')).filter((f) => f !== ''))];
+  return facts.length === 0 ? null : `Only you see this: ${facts.join(', ')}.`;
+}
+
+/**
+ * "Reveal…" in the view (⚑ 40, ruled 2026-11-21): the GM's own item sheet for the item, as built, with its own state,
+ * over the player's sheet under its own title, "Your sheet: Mooring ring", so the one in front is plain; its ✕ closes
+ * it alone (audit fix 5, 2026-11-24: a title of its own, the smaller change than replacing the player's sheet).
+ */
+function GmItemSheet(props: ItemSheetProps) {
+  const state = useItemSheetState(props.line);
+  // Opened from inside the item's sheet: its own form, not the outer sheet's (CLAUDE.md; checked by gm-view-pack.spec.ts).
+  return (
+    <SheetScope.Provider value={false}>
+      <PlayerViewContext.Provider value={null}>
+        <ItemSheet {...props} state={state} atHand={null} title={`Your sheet: ${shownName(props.line.name)}`} />
+      </PlayerViewContext.Provider>
+    </SheetScope.Provider>
+  );
+}
+
+interface ItemSheetProps {
+  /** The sheet's title, when not the item's name ("Your sheet: Mooring ring", the GM's own sheet over the view's). */
+  title?: string;
+  /**
+   * The GM's view as the player (pg32-4): the weapon's figures hidden from its player, in the GM's words, for the GM's
+   * line ("Old bronze sword, magic −1"). From `CarrierItems`; empty outside the view.
+   */
+  gmFacts?: readonly string[];
   /**
    * The **At hand pop-up** variant (tfh-1 to tfh-5, 2026-11-19; page M2, frames M2l to M2n): what a thing At hand opens
    * on the Player tab. `top` (a weapon's Attack view, or a thing's facts) stands where the details were; no slot, hands,
@@ -158,11 +169,56 @@ export function ItemSheet({
   may: boolean;
   busy: boolean;
   run: Run;
-}) {
+}
+
+export function ItemSheet(props: ItemSheetProps) {
+  const {
+    onClose,
+    state,
+    db,
+    user,
+    campaign,
+    line,
+    carrier,
+    lines,
+    mode,
+    rules,
+    others,
+    may,
+    busy,
+    run,
+    entry,
+    chargeRules,
+    rechargeDefault,
+    secret,
+    packShortName,
+    sourceTitles = {},
+    problem,
+    blockedEquip,
+    patchLines = [],
+    weapon = null,
+    weaponRows = [],
+    weaponRolls = [],
+    offReason = null,
+    onNote,
+    preview = false,
+    atHand = null,
+    gmFacts = [],
+    title,
+  } = props;
   const id = useId();
   const blocked = useBlockedSheet();
   const { figure, setFigure, recharging, setRecharging, alsoHomebrew, setAlsoHomebrew, moving, setMoving, emptying, setEmptying, warned, setWarned, emptyTo, setEmptyTo, rechargeBy, setRechargeBy } = state;
-  const gmHere = isGm(user, campaign.id);
+  // The GM's view as the player (pg32-3, pg32-4; M3g, M3g2): the sheet is the player's, with no GM tool and no hidden
+  // figure, plus the GM's line and "Reveal…" on an item with something hidden. "Reveal…" opens the GM's own sheet, as
+  // built (⚑ 40, ruled 2026-11-21), where "Reveal the count" and "Hidden from players" sit.
+  const view = usePlayerView();
+  const gmTruth = isGm(user, campaign.id);
+  const gmHere = gmTruth && view === null;
+  const [revealing, setRevealing] = useState(false);
+  // Focus goes back to Reveal… as the GM's sheet closes (audit fix 3a): the Dialog's own rule now.
+  const openReveal = () => setRevealing(true);
+  const closeReveal = () => setRevealing(false);
   const charged = chargesOf(line, chargeRules, rechargeDefault);
   const chargeText = !charged ? '' : chargeWords(line, gmHere ? secret : null);
   const waiting = line.approval === 'pending';
@@ -183,10 +239,16 @@ export function ItemSheet({
   // What the line says about its item, in the same plain words as the setting rules browser.
   const shown = describeEntry({ kind: 'item', packEntryId: line.sourceEntryId ?? line.id, name: line.name, data: line.details }, () => undefined);
   const lineNotes = line.notes && !shown.notes.includes(line.notes) ? [line.notes] : [];
-  // For the GM: the entry's hidden fields this line doesn't show yet, each with Reveal.
+  // For the GM: the entry's hidden fields this line doesn't show yet, each with Reveal (in the view, behind "Reveal…").
   const gm = gmHere;
-  const hiddenNames = gm && entry && Array.isArray(entry.data.gmOnly) ? entry.data.gmOnly.map(String).filter((key) => key in entry.data && !(key in line.details)) : [];
-  const hiddenLines = entry ? describeEntry({ ...entry, data: { ...Object.fromEntries(hiddenNames.map((key) => [key, entry.data[key]])) } }, () => undefined, { gm: true }).lines : [];
+  const unrevealed = gmTruth && entry && Array.isArray(entry.data.gmOnly) ? entry.data.gmOnly.map(String).filter((key) => key in entry.data && !(key in line.details)) : [];
+  const hiddenNames = gm ? unrevealed : [];
+  const hiddenLines = entry ? describeEntry({ ...entry, data: { ...Object.fromEntries(unrevealed.map((key) => [key, entry.data[key]])) } }, () => undefined, { gm: true }).lines : [];
+  const gmLine = view && gmTruth ? gmLineWords(hiddenLines, line.chargesHidden && secret ? { ...secret, used: line.chargesUsed } : null, gmFacts) : null;
+  // "Reveal…" above the player's own rows (M3g): only where the GM's own sheet has something to reveal, a hidden field or
+  // a hidden count (the driver's call under ⚑ 40); a weapon whose only hidden thing is its figure keeps the line alone.
+  const revealable = unrevealed.length > 0 || (line.chargesHidden && secret?.total != null);
+  const revealRow = gmLine && revealable && <ListRow icon={<Icon name="eye" size={24} />} title="Reveal…" onOpen={() => (busy ? undefined : openReveal())} />;
   const oneOff = line.libraryEntryId === null && line.sourcePackId === null;
   /**
    * Runs a change that makes something leave your view, then the toast (B23; words batch 1): Undo is the log's
@@ -324,7 +386,7 @@ export function ItemSheet({
   }
 
   return (
-    <Dialog label={shownName(line.name)} onClose={onClose} headAction={star} preview={preview}>
+    <Dialog label={title ?? shownName(line.name)} onClose={onClose} headAction={star} preview={preview}>
       <div id={id} className="pack__sheet" role="region" aria-label={shownName(line.name)}>
         {problem && (
           <p className="pack__problem" role="note">
@@ -336,6 +398,8 @@ export function ItemSheet({
         ))}
         {amount && amount !== '—' && <p>{mode === 'slot' ? 'Takes' : 'Weight'}: {amount}{stackable(line) && mode !== 'armour' ? ` for ${line.qty}` : ''}.</p>}
         {shown.lines.length > 0 && <Lines lines={shown.lines} kv />}
+        {/* The GM's line under the item's figures, after its details (M3g2; audit fix 7, 2026-11-24). */}
+        {gmLine && <GmLine>{gmLine}</GmLine>}
         {patchLines.length > 0 && <p className="auth__meta">Changed by your rules: {patchLines.join('; ')}.</p>}
         {source && <p className="auth__meta">{source}</p>}
         {weapon && (weaponRolls.length > 0 || weaponRows.length > 0) && (
@@ -469,6 +533,8 @@ export function ItemSheet({
             </div>
           </div>
         )}
+        {revealRow && (!may || waiting) && <RowList label="Item actions">{revealRow}</RowList>}
+        {revealing && <GmItemSheet {...props} onClose={closeReveal} />}
         {waiting && (
           // A player's one-off waits for the GM (ruled 2026-10-23): it counts for nothing until approved.
           <div className="pack__actions" role="group" aria-label="Waiting for the GM">
@@ -516,6 +582,7 @@ export function ItemSheet({
                 (whichever fits the item) puts it on at once; Give to… and Put in… each open one sheet with how many
                 (for a stack) and where (B19, B24). */}
             <RowList label="Item actions">
+              {revealRow}
               {counted && <ListRow title="Use a charge" onOpen={spendCharge} chevron={false} />}
               {stackable(line) && (
                 // How many (today's − and +, moved from the row to the sheet): one fewer stops at one, never greyed.

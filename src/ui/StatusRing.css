@@ -161,3 +161,36 @@
   font-variant-numeric: tabular-nums;
   cursor: pointer;
 }
+
+/* Variant ring as a tap (lt-2; page 35): the 52 px ring over its verb, one button with no edge, 72 by 76 px (the
+   tile's width); the verb in the stacked button's word style; the rows' press flash. */
+.status-ring-tap {
+  display: inline-flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-1);
+  inline-size: var(--ring-tap-width);
+  min-block-size: var(--ring-tap-height);
+  padding: var(--space-1) 0 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color var(--press-flash);
+}
+
+.status-ring-tap:active {
+  background: var(--tint);
+}
+
+.status-ring-tap__verb {
+  font-family: var(--font-heading);
+  font-size: var(--text-14);
+  font-weight: var(--weight-heading);
+  line-height: 1.15;
+  white-space: nowrap;
+}

@@ -1,6 +1,6 @@
 // The creation review's words (M5b step 0c, slice 7; cr-18, ca-3). Every name and number is invented.
 import { describe, expect, it } from 'vitest';
-import { cantUseLine, coinRolled, firstProblem, gearGroups, moneyOf, scoresLine, specialLines, spellSources } from './creationReview.ts';
+import { averageScoresLine, cantUseLine, coinRolled, firstProblem, gearGroups, moneyOf, scoresLine, specialLines, spellSources } from './creationReview.ts';
 
 const gp = { key: 'gp', label: 'Gold', valueInBase: 10 };
 const coins = [gp, { key: 'sp', label: 'Silver', valueInBase: 1 }];
@@ -16,6 +16,33 @@ describe('the creation review’s words', () => {
     const label = (key: string) => key.toUpperCase();
     expect(scoresLine({ scores: { mus: 14, wit: 9 }, rolled: { mus: 13, wit: 9 } }, label)).toBe('MUS 14 (rolled 13), WIT 9');
     expect(scoresLine(null, label)).toBe('');
+  });
+
+  // Purpose (caf-7, finding 9): a score in the record's not-rolled list never reads "(rolled N)", whatever the kindred
+  // did to it; a rolled score the kindred changed still does.
+  it('a score not rolled carries no "(rolled N)"; a rolled one the kindred changed keeps it (caf-7)', () => {
+    const label = (key: string) => key.toUpperCase();
+    const creation = { scores: { mus: 12, nim: 10, grt: 13 }, rolled: { mus: 12, nim: 9, grt: 14 }, scoresAverage: ['nim'] };
+    expect(scoresLine(creation, label)).toBe('MUS 12, NIM 10, GRT 13 (rolled 14)');
+    expect(scoresLine({ ...creation, scoresAverage: ['mus', 'nim', 'grt'] }, label)).toBe('MUS 12, NIM 10, GRT 13');
+  });
+
+  // Purpose (caf-7): the line under the scores names the ones not rolled with no figure; with none rolled it says
+  // "All six" (the count in words from the record's scores, so four scores say "All four"); with every score rolled, or
+  // a record from before the list, there is no line.
+  it('the line under the scores names what was not rolled, with no figure, and "All six" for none rolled (caf-7)', () => {
+    const label = (key: string) => key.toUpperCase();
+    const six = { mus: 9, nim: 10, grt: 8, wit: 9, lore: 9, charm: 9 };
+    expect(averageScoresLine({ scores: six, scoresAverage: ['nim'] }, label)).toBe('NIM: the average, not rolled');
+    expect(averageScoresLine({ scores: six, scoresAverage: ['wit', 'lore'] }, label)).toBe('WIT, LORE: the average, not rolled');
+    expect(averageScoresLine({ scores: six, scoresAverage: Object.keys(six) }, label)).toBe('All six: the average, not rolled');
+    expect(averageScoresLine({ scores: { mus: 9, nim: 10, grt: 8, wit: 9 }, scoresAverage: ['mus', 'nim', 'grt', 'wit'] }, label)).toBe('All four: the average, not rolled');
+    // Purpose (Francis, 2026-11-24): two scores, none rolled, read "Both"; one score alone keeps its own name.
+    expect(averageScoresLine({ scores: { mus: 9, nim: 10 }, scoresAverage: ['mus', 'nim'] }, label)).toBe('Both: the average, not rolled');
+    expect(averageScoresLine({ scores: { mus: 9 }, scoresAverage: ['mus'] }, label)).toBe('MUS: the average, not rolled');
+    expect(averageScoresLine({ scores: six, scoresAverage: [] }, label)).toBe('');
+    expect(averageScoresLine({ scores: six, rolled: { mus: 9 } }, label)).toBe('');
+    expect(averageScoresLine({ scores: six, scoresAverage: ['nim'] }, label)).not.toMatch(/\d/);
   });
 
   it('a special-approval pick is said in bold with the requirement it misses (ca-3)', () => {
@@ -108,6 +135,31 @@ describe('the creation review’s words', () => {
       { label: 'Trinket', items: 'A pebble that is always warm', ids: ['l-pebble'] },
     ]);
     expect(groups.given).toEqual(['Reed rope']);
+  });
+
+  // Purpose (caf-1, frame 41-2-review-bought): the review's Bought line names each thing once with its count, in the
+  // order first bought, whether the things are lines of their own or one joined stack, and its total of items is unchanged.
+  it('the gear: the Bought line names each thing once with its count', () => {
+    const lines = [
+      { id: 'l-sling-1', name: 'Bog sling', qty: 1 },
+      { id: 'l-rations', name: 'Dry rations', qty: 3 },
+      { id: 'l-sling-2', name: 'Bog sling', qty: 1 },
+      { id: 'l-rope', name: 'Reed rope', qty: 1 },
+      { id: 'l-sling-3', name: 'Bog sling', qty: 1 },
+    ];
+    const record = {
+      bought: [
+        { label: 'Bog sling', price: 15, lines: [{ id: 'l-sling-1', qty: 1 }] },
+        { label: 'Dry rations', price: 10, lines: [{ id: 'l-rations', qty: 1 }] },
+        { label: 'Bog sling', price: 15, lines: [{ id: 'l-sling-2', qty: 1 }] },
+        { label: 'Reed rope', price: 10, lines: [{ id: 'l-rope', qty: 1 }] },
+        { label: 'Dry rations ×2', price: 20, lines: [{ id: 'l-rations', qty: 2 }] },
+        { label: 'Bog sling', price: 15, lines: [{ id: 'l-sling-3', qty: 1 }] },
+      ],
+    };
+    const groups = gearGroups(record, lines, '', () => '?');
+    expect(groups.rows.map((r) => [r.label, r.items])).toEqual([['Bought', 'Bog sling ×3, Dry rations ×3, Reed rope']]);
+    expect(groups.summary).toBe('7 items');
   });
 
   it('the gear: a line gone from the pack is left out; an empty pack says "Nothing yet"', () => {

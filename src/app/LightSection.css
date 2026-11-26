@@ -1,7 +1,8 @@
-/* The Light section (LightSection.tsx): its own stylesheet, so the Player screen, the character overview and the
+/* The light in At hand (LightSection.tsx): its own stylesheet, so the Player screen, the character overview and the
    gallery draw it alike (it was in PlayerScreen.css, which the gallery doesn't load; Design on #561). */
-/* Light (M5 step 7; tg-1, frame P1): the ring, the light's name and its line, and the lit-or-out toggle at the right
-   of its row; under it Keep lit (its name, ⓘ, its toggle) and Refill, a stacked button, at the right. */
+/* The light's row (lt-1 to lt-5, page 35): the ring at the left (a tap over its verb, 72 by 76; or still, burnt out),
+   the light's name and its line beside it, nothing at its right. Under it, lit, Keep lit's row; burnt out, Refill and
+   Light another at the right. */
 .light-block__row {
   display: flex;
   align-items: center;
@@ -32,21 +33,40 @@
   color: var(--warning);
 }
 
+/* Keep lit's own row (lt-6): its name and ⓘ at the left, the switch at the row's right edge, a holder's Refill 8 px to
+   its left (the third of Keep lit's parts, after the name and ⓘ, takes the space: Refill, or the switch). One line. */
 .light-block__keep {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
+  min-block-size: var(--tap);
 }
 
-.light-block__refill {
+.light-block__keep > .keep-lit {
+  display: flex;
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.light-block__keep > .keep-lit > :nth-child(3) {
   margin-inline-start: auto;
 }
 
-/* The row's glyph: the Status ring (52 px), the flame in the light tone (option B on #560). */
-.light-block__ring {
+/* A ring that is not a tap (burnt out, or nothing to light): the same 72 px column as the tap, so names line up. */
+.light-block__still {
   display: inline-flex;
   flex: none;
+  justify-content: center;
+  inline-size: var(--ring-tap-width);
+}
+
+/* Couldn't be read (⚑ 6, B; page 37, 37C): Try again at the left, its own width. */
+.light-block__retry {
+  align-self: flex-start;
+}
+
+/* Burnt out (lt-5): Refill and Light another, one width (a StackedGroup), at the right under the light's row. */
+.light-block__acts {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .light-block__words {
@@ -64,19 +84,6 @@
   vertical-align: text-bottom;
 }
 
-.light-block__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.light-block__meta {
-  color: var(--muted);
-  font-size: var(--text-14);
-  overflow-wrap: anywhere;
-}
-
 .light-block__pick {
   display: flex;
   flex-direction: column;
@@ -92,8 +99,8 @@
   overflow-wrap: anywhere;
 }
 
-/* At hand's light (dec-13 C9, frames P1, P2): the lit rows among At hand's rows, with no heading; the row and Keep lit
-   under it keep the Light section's gap. */
+/* At hand's light (dec-13 C9, frames P1, P2; page 35): its rows among At hand's rows, with no heading; the row and the
+   row under it 8 px apart. */
 .light-block--at-hand {
   display: flex;
   flex-direction: column;

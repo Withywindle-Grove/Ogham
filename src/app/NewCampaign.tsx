@@ -21,7 +21,7 @@ import { missingBases, missingWords, withExtends, type RuleSource } from '../mod
 import { layoutFields } from '../modules/library/sheetLayout.ts';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { metaIdOf, SetupPacksStep, SetupRulesStep, shortNameOf } from './CampaignSetupSteps.tsx';
-import { readChosenPack } from './packImport.ts';
+import { readChosenPack, savePackPictures, type ChosenBundle } from './packImport.ts';
 import { PackPreview } from './PackPreview.tsx';
 import { registry } from './services.ts';
 import { appRuleGroups, appRuleSetting, CompaniesAbout } from './appRules.tsx';
@@ -69,6 +69,8 @@ export function NewCampaign({
   const heading = useRef<HTMLHeadingElement>(null);
   const page = useRef<HTMLDivElement>(null);
   const firstStep = useRef(true);
+  /** The bundle the file being imported came in, when it is one (B14). */
+  const bundle = useRef<ChosenBundle | undefined>(undefined);
   const toast = useToast();
 
   useEffect(() => {
@@ -207,6 +209,7 @@ export function NewCampaign({
     if (!read) return;
     if (!read.ok) return setError(read.message);
     setError(null);
+    bundle.current = read.bundle;
     setImporting(read.pack);
   }
 
@@ -214,6 +217,8 @@ export function NewCampaign({
     if (!importing) return;
     setBusy(true);
     const made = await runCommand(registry, db, user, importPack, { pack: importing });
+    // A bundle's pictures are kept with the pack (B14); one that is missing is asked for at its place, as before.
+    if (made.ok && bundle.current) await savePackPictures(db, user, { id: made.value, ownerUserId: user.id }, importing, bundle.current);
     setBusy(false);
     if (!made.ok) return setError(made.message);
     const packId = made.value;

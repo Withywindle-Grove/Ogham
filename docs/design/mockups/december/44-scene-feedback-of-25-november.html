@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>December: page 44, the Scene feedback of 25 November (approved by Francis 26 November, with picks)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* This page's own rules. Type, the book format, the stacked button, the sheet's title, the pop-up, the tapped table and
+     the corners come from ../shared/book.css and are not restated here. */
+  /* (1) copied as they stand from page 24 (and through it pages 04, 12, 16, 18 and 23): the layout of the parts reused here */
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .rem { justify-content:center; } .rem .gap { display:none; }
+  .phone .rem .step .nm { display:none; }
+  .ibs { display:inline-flex; gap:var(--space-2); }
+  .btn.sq.ib { padding:6px; }
+  .dcap { display:inline-flex; align-items:center; gap:var(--space-1); font-size:16px; letter-spacing:.04em; margin-right:var(--space-2); vertical-align:bottom; }
+  .dcap svg { color:var(--muted); flex:none; }
+  .phone .dcap { font-size:14px; }
+  .phband { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2); align-items:center; margin-top:var(--space-1); }
+  .phibs { display:flex; gap:var(--space-2); margin-top:var(--space-2); }
+  .four { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-4); align-items:start; }
+  .mseq { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .mx { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; flex:none; }
+  .flab { display:block; font-size:14px; color:var(--muted); margin:var(--space-3) 0 var(--space-1); }
+  .wait .wb { grid-column:1 / -1; align-items:stretch; }
+  .bk td:first-child, .bk th:first-child { width:96px; }
+  .phone .pdest { grid-template-columns:auto minmax(0,1fr); }
+  .phone .pdest .modes { grid-column:1 / -1; justify-content:flex-start; }
+  .phone .pcard { margin-top:var(--space-3); padding:var(--space-3); }
+  .pdest .modes .btn.stk { width:auto; }
+  .pdest .ot b { overflow-wrap:break-word; word-break:normal; }
+  .dev .band .acts .btn.sq { width:52px; min-height:52px; }
+  .maptools .btn.sq { height:44px; padding:0; }
+  .kw22 { font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+  .inforce .own22 { display:block; margin-top:var(--space-1); }
+  .pk23 { display:flex; align-items:center; gap:var(--space-2); min-height:44px; border-bottom:1px dotted var(--rule); }
+  .due23 { display:flex; align-items:center; gap:var(--space-1); font-size:14px; font-weight:700; margin-top:var(--space-1); }
+  .shown23 p { margin:var(--space-2) 0 0; }
+  .phs23 { display:grid; grid-auto-flow:column; grid-auto-columns:343px; gap:var(--space-4) var(--space-6); align-items:start; }
+  .behind { position:relative; height:52px; overflow:hidden; box-sizing:border-box; }
+  .sheetup.flow { position:relative; max-height:none; }
+  /* (2) new on this page */
+  .fr44 { margin:0 0 var(--space-6); }
+  .fr44 > .cap { font-size:14px; }
+  /* the pop-up's head: its title (or an entry's name) and the X on one line */
+  .pu44 { display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:var(--space-2); align-items:center; margin-bottom:var(--space-2); }
+  .pu44 .ehead, .pu44 .sheet-title { overflow-wrap:break-word; min-width:0; }
+  .popb.w44 { width:440px; }
+  .popb.w72 { width:640px; max-width:720px; }
+  .phone .popb.w44, .popb.ph44 { width:auto; max-width:none; }
+  /* a pop-up centred over a dimmed screen */
+  .pc44 { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:var(--space-4); box-sizing:border-box; }
+  /* tiles centred: each keeps a quarter of the row (two across on a phone) */
+  .facts.c44 { display:flex; flex-wrap:wrap; justify-content:center; }
+  .facts.c44 .fact { flex:0 0 calc((100% - 3 * var(--space-3)) / 4); }
+  .phone .facts.c44 { gap:var(--space-2); margin-top:var(--space-2); }
+  .phone .facts.c44 .fact { flex:0 0 calc((100% - var(--space-2)) / 2); padding-left:var(--space-2); padding-right:var(--space-2); column-gap:var(--space-2); }
+  .phone .facts.c44 .fact .v { font-size:16px !important; white-space:nowrap; }
+  .phone .facts.c44 .fact .k { white-space:nowrap; letter-spacing:0 !important; }
+  .phone .facts.c44 .fact .fi svg { width:20px; height:20px; }
+  .phone .facts.c44 .fact:last-child .v { font-size:14px !important; }
+  .phone .two.pp44 { grid-template-columns:minmax(0,1fr); }
+  /* the encounter's one card: the icon and what was rolled on the first line, the rest across the card */
+  .wait.e44 .wi { grid-row:1; }
+  .wait.e44 > .all { grid-column:1 / -1; }
+  .shown44 { display:flex; align-items:center; gap:var(--space-2); font-size:14px; margin-top:var(--space-2); }
+  /* the detail row: a name the pack links, with its stat line or its rule's first words; the whole row is the tap */
+  .dt44 { display:grid; grid-template-columns:minmax(0,1fr) 20px; gap:var(--space-2); align-items:center; min-height:44px; padding:var(--space-2) var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); margin-top:var(--space-2); box-sizing:border-box; }
+  .dt44 .nm { font-weight:700; }
+  .dt44 .st { display:block; font-size:14px; line-height:1.4; overflow-wrap:break-word; }
+  .pr44 { margin-right:var(--space-2); }
+  .gm44 { display:block; font-size:14px; color:var(--muted); margin-top:var(--space-2); }
+  .dot44 { border:0; border-top:1px dotted var(--rule); margin:var(--space-2) 0; }
+  /* the fold "From the book, for the GM": its head is one row, with no eye */
+  .fb44 { display:grid; grid-template-columns:minmax(0,1fr) 44px; align-items:center; min-height:44px; border-top:1px dotted var(--rule); border-bottom:1px dotted var(--rule); margin-top:var(--space-3); }
+  .fb44 b { display:block; }
+  .fb44 small { display:block; font-size:14px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .fbb44 { padding:var(--space-3) 0; border-bottom:1px dotted var(--rule); }
+  /* a piece with an arrow before its eye */
+  .piece.ar44 { grid-template-columns:minmax(0,1fr) 44px 44px; gap:var(--space-2); }
+  .piece > .un44 { grid-column:1 / -1; margin-top:calc(-1 * var(--space-2)); }
+  .un44 .gm44:first-child { margin-top:0; }
+  .sent44 { display:flex; align-items:center; gap:var(--space-1); font-size:14px; margin-top:var(--space-1); }
+  /* the Depart list: the group's head with its fold square; the back row; the search field's label */
+  .gh44 { display:grid; grid-template-columns:minmax(0,1fr) auto 44px; gap:var(--space-2); align-items:center; min-height:52px; border-bottom:1.5px solid var(--ink); margin-top:var(--space-3); }
+  .gh44 .sclab { margin:0; }
+  .gh44 .btn.sq { width:44px; }
+  .pk23 .ar { margin-left:auto; color:var(--muted); font-size:14px; }
+  .back44 { display:inline-flex; align-items:center; gap:var(--space-1); min-height:44px; padding:0 var(--space-3) 0 var(--space-2); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); margin-bottom:var(--space-2); }
+  .ind44 { padding-left:var(--space-5); }
+  /* "Where to?": an Area's name over its rows */
+  .ah44 { margin:var(--space-3) 0 0; }
+  .ah44:first-child { margin-top:0; }
+  /* the Move on pop-up's foot: Back at the left, Move at the right */
+  .mf44 { display:flex; justify-content:space-between; gap:var(--space-2); margin-top:var(--space-4); }
+  /* the Edit piece form */
+  .fld44 { margin:0 0 var(--space-3); }
+  .fld44 .fl { display:block; font-weight:700; margin-bottom:var(--space-1); }
+  .fld44 .field.area { min-height:96px; }
+  .kind44 { display:grid; grid-template-columns:auto minmax(0,1fr) 20px; gap:var(--space-3); align-items:center; min-height:44px; padding:0 var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); }
+  /* the encounter tables page */
+  .chips44 { display:flex; flex-wrap:wrap; gap:var(--space-2); margin:var(--space-2) 0 var(--space-3); }
+  .tp44 { max-width:640px; }
+  .tt .tr { grid-template-columns:4.6em minmax(0,1fr) 24px; }
+  ol.q44 { font-size:16px; max-width:760px; padding-left:var(--space-5); color:var(--ink); }
+  ol.q44 li { margin-bottom:var(--space-2); }
+  .note.big { font-size:16px; color:var(--ink); max-width:760px; }
+  /* the critique: its score table and its numbered findings, as pages 40 and 42 have them */
+  ol.crit { font-size:16px; max-width:760px; padding-left:var(--space-5); color:var(--ink); }
+  ol.crit li { margin-bottom:var(--space-2); }
+  table.sc { border-collapse:collapse; font-size:14px; max-width:760px; margin:var(--space-2) 0 var(--space-4); color:var(--ink); }
+  table.sc td, table.sc th { border:1px solid var(--rule); padding:var(--space-1) var(--space-2); text-align:left; vertical-align:top; }
+  /* (3) redrawn 2026-11-26, to Francis's rulings and the critique's findings he picked */
+  /* the band: a thin rule sets the fold mark apart from the actions; with the words under the marks (a wide screen) the row is the stacked button's height */
+  .vr44 { width:1px; align-self:stretch; background:var(--control); margin:var(--space-1) 0; }
+  .dev .band.w44 .acts .btn.big, .dev .band.w44 .acts .btn.sq { min-height:56px; }
+  .dev .band.w44 .acts .btn.sq { width:56px; }
+  /* the detail row loses its box: a dotted rule above and below, as a piece has (finding 13) */
+  .dt44 { border:0; border-top:1px dotted var(--rule); border-bottom:1px dotted var(--rule); border-radius:0; background:transparent; padding:var(--space-2) 0; }
+  .dt44 + .dt44 { margin-top:0; border-top:0; }
+  .dt44 .st.meta { color:var(--muted); }
+  /* a stat line breaks between pairs; a die stays with its number (finding 12) */
+  .pr44 { display:inline-block; max-width:100%; }
+  .nw44 { white-space:nowrap; }
+  /* the encounter's card: the words at body size; the line that says what was picked, with "Change…" */
+  .ew44 { font-size:16px; line-height:1.5; }
+  .rl44 { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); margin-top:var(--space-1); }
+  .rl44 .meta { font-size:14px; min-width:0; }
+  .shown44 { align-items:flex-start; }
+  .shown44 svg { flex:none; margin-top:1px; }
+  .phone .wait.e44 .wb.w3 { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); }
+  .phone .wait.e44 .wb.w3 .btn.stk { min-width:0 !important; width:100%; padding-left:var(--space-1); padding-right:var(--space-1); }
+  /* at 375 px the encounter's card has no box of its own inside "Waiting for you": two boxes deep, and room for three 88 px buttons */
+  .phone .pcard .wait.e44 { border:0; padding:0; background:transparent; }
+  /* the tapped table's picked row, in the roll's pop-up */
+  table.tap tr.on44 td { background:var(--wash); font-weight:700; }
+  table.tap tr.on44 { outline:2px solid var(--accent); outline-offset:-2px; }
+  /* N2 (picked 2026-11-26): a row found by number has a rule at its leading edge and its range in bold; the wash is the tapped row's */
+  table.tap tr.at44 td:first-child { font-weight:700; box-shadow:inset var(--space-1) 0 0 var(--ink); }
+  .tk44 { float:right; margin-left:var(--space-2); display:inline-flex; }
+  /* N1 (picked 2026-11-26): a reveal waiting to be sent keeps "Reveal…", with the "waiting" tag on the button */
+  .btn.stk .waittag { margin:2px 0 0; font-weight:700; }
+  /* a warning line under a field */
+  .wl44 { display:flex; align-items:center; gap:var(--space-1); font-weight:700; color:var(--warn); margin:calc(-1 * var(--space-1)) 0 var(--space-2); }
+  /* the "…" menu, as page 32 draws it */
+  .menu44 { border:1px solid var(--rule); border-radius:8px; background:var(--popup); box-shadow:0 4px 16px rgb(0 0 0 / 25%); padding:var(--space-1) 0; }
+  .menu44 .mi { display:flex; align-items:center; gap:var(--space-3); min-height:48px; padding:0 var(--space-4); }
+  .menu44 .mi svg { color:var(--muted); flex:none; }
+  .mdiv44 { border:0; border-top:1px solid var(--rule); margin:var(--space-1) 0; }
+  .sw44 { width:52px; height:44px; display:inline-flex; align-items:center; flex:none; }
+  .sw44 i { display:block; width:52px; height:28px; border-radius:14px; border:1.5px solid var(--control); background:var(--sheet); position:relative; box-sizing:border-box; }
+  .sw44 i::after { content:""; position:absolute; left:3px; top:3px; width:19px; height:19px; border-radius:50%; background:var(--control); }
+  /* skeleton rows; a pop-up that stops at the screen's height, its rows scrolling */
+  .sk44 { height:16px; border-radius:4px; background:var(--rule); margin:0 0 var(--space-3); }
+  .popb.tall44 { display:flex; flex-direction:column; max-height:520px; }
+  .scr44 { position:relative; overflow:hidden; min-height:0; flex:1 1 auto; padding-right:var(--space-3); }
+  .sb44 { position:absolute; right:0; top:var(--space-1); width:4px; height:38%; border-radius:2px; background:var(--control); }
+  .gn44 { display:grid; grid-template-columns:auto 96px; gap:var(--space-3); align-items:center; justify-content:start; margin:0 0 var(--space-3); }
+  .gn44 .fl { font-weight:700; }
+  /* a piece's words that are a tap of their own (a Treasure piece) keep the row's height */
+  .piece .lead[role="button"] { min-height:44px; display:flex; align-items:center; }
+  /* the Depart list: a second level of indent inside a pack */
+  .gh44.ind44 { margin-top:0; padding:var(--space-1) 0 var(--space-1) var(--space-4); border-bottom:1px dotted var(--rule); }
+  .pk23.ind2 { padding-left:calc(var(--space-4) + var(--space-5)); }
+  /* "Where to?": the closed eye and what the players read */
+  .ns44 { display:inline-flex; align-items:center; gap:var(--space-1); }
+  /* the players' pair at 375 px: two stacked buttons of one width; the third tile takes the row */
+  .two.pp44.ph { grid-template-columns:auto minmax(0,1fr); }
+  .two.pp44.ph .btn.stk { width:100%; }
+  .phone .facts.c44 .fact:nth-child(3):last-child { flex:0 0 100%; }
+  .phone .facts.c44 .fact:nth-child(3):last-child .v { font-size:16px !important; }
+  /* Knowledge: an unfolded section, its eye on its own heading */
+  .ksec.k44 { align-items:center; }
+  .ksec.k44.open { display:block; }
+  .kh44 { display:grid; grid-template-columns:minmax(0,1fr) 44px 44px; gap:var(--space-2); align-items:center; }
+  .kh44 h4 { margin:0; }
+  .ksec.k44 .when { display:flex; align-items:flex-start; gap:var(--space-1); }
+  .ksec.k44 .when svg { flex:none; margin-top:2px; }
+  .ksec.k44 .bk { margin-top:var(--space-1); }
+  /* "Edit piece": the kinds unfold in place; "Remove this piece" as a quiet row */
+  .kind44 { grid-template-columns:minmax(0,1fr) 20px; }
+  .kl44 { border:1.5px solid var(--control); border-top:0; border-radius:0 0 4px 4px; padding:0 var(--space-3); }
+  .kl44 .pk23:last-child { border-bottom:0; }
+  .rm44 { border-bottom:0; margin-top:calc(-1 * var(--space-1)); }
+  table.sc td b.ok { font-weight:700; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="strip.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+{
+// ---- parts of pages 18, 23, 24, 30 and 33, as those pages wrote them ----
+const sep = svg(SY.right, 16);
+const go = svg(SY.right, 20);
+const NEW = '<b>Approved by Francis, 2026-11-26: “Approve with picks”.</b>';
+// a part redrawn after his approval, to one of his picks: he has not seen that part as drawn
+const RD = (what) => `<b>Redrawn after his approval, to ${what}.</b>`;
+const AG = '<b>Agreed by Home Two, approved by Francis 26 Nov:</b>';
+const stk = (words, k, o = {}) => `<span class="btn stk${o.accent ? ' accent' : ''}${o.on ? ' on' : ''}" role="button"${o.on !== undefined ? ` aria-pressed="${!!o.on}"` : ''}${o.label ? ` aria-label="${o.label}"` : ''}>${o.sym ? sym(k, 24) : gi(k, 24)}<span>${words}</span></span>`;
+const ruleBtn = (k, words) => `<span class="btn big sqb" role="button" aria-label="${words}">${gi(k, 34)}</span>`;
+const splash = ruleBtn('water-splash', 'Someone fell in');
+const moreBtn = `<span class="btn sq" role="button" aria-label="More">${I.more}</span>`;
+const stt = (label, html) => `<div><p class="lbl">${label}</p>${html}</div>`;
+const num22 = (name) => { const m = /^([0-9]+[.]) (.*)$/.exec(name); return m ? `<span class="keyno">${m[1]}</span>${m[2]}` : name; };
+const STEP5 = [['trumpet', 'Describe'], ['ball', 'Question'], ['sword-brandish', 'Act'], ['wizard', 'Test'], ['chest', 'Resolve']];
+const stripRow = remRow('Sequence of play', STEP5.map(([k, n]) => remStep(gi(k, 32), n, false)));
+const nextTurn = b('Next turn', { big: true, icon: 'clock' });
+// ⚑ 1, ruled 2026-11-26: the encounter's mark is the icon set's crossed swords, in the band, the tile and the card alike
+const SW = (w) => gi('crossed-swords', w);
+const swap = (html, w) => html.split(sym('encounter', w)).join(SW(w));
+// the band's three marks, as built: 52 px squares, read aloud by their words
+const ib = (k, words) => `<span class="btn sq ib" role="button" aria-label="${words}">${gi(k, 30)}</span>`;
+const bandMarks = `<span class="ibs" role="group">${ib('camping-tent', 'Make camp')}${ib('crossed-swords', 'Encounter check')}${ib('exit-door', 'Leave the dungeon')}</span>`;
+// finding 18: where the band has room (1180 px and wider) each mark has its word under it (the stacked button)
+const bandTools = `<span class="ibs" role="group" data-stkgroup>${stk('Camp', 'camping-tent', { label: 'Make camp' })}${stk('Encounter', 'crossed-swords', { label: 'Encounter check' })}${stk('Leave', 'exit-door', { label: 'Leave the dungeon' })}</span>`;
+const dl = (date, rest = '') => `<span class="dcap">${gi('sprout', 18)}${date}</span>${rest}`;
+const DATE = dl('14 Reedmonth, spring', 'Two hours of light left.');
+// finding 5: one fold mark on the page, the chevron (down while folded, up while open); "+" is left to mean "add"
+const foldMark = (open, w = 24) => svg(open ? '<path d="M6 15l6-6 6 6" ' + W + '/>' : '<path d="M6 9l6 6 6-6" ' + W + '/>', w);
+const foldBtn = (open) => `<span class="btn sq fold23" role="button" aria-expanded="${open}" aria-label="${open ? 'Fold the top away' : 'Show the top'}">${foldMark(open)}</span>`;
+const foldSq = (open, name) => `<span class="btn sq" role="button" aria-expanded="${open}" aria-label="${open ? 'Fold' : 'Unfold'} ${name}">${foldMark(open)}</span>`;
+const vr = '<span class="vr44" aria-hidden="true"></span>';
+const dueLine = `<span class="due23" role="status">${I.warn}No light</span>`;
+const F_W = fact('weather', 'Weather', 'Drizzle', 'Wet.');
+const F_L = fact('flame', 'Light', 'Ash’s torch', '4 turns left.');
+const F_R = fact('rest', 'Rest', 'In 5 turns', 'One turn in six.');
+const F_E = swap(fact('encounter', 'Encounter check', 'On every move', `${dieMark(20, 16)}d20`).replace('class="v"', 'class="v" style="font-size:20px;white-space:nowrap"'), 28);
+const tiles = (list) => `<div class="facts c44">${list.join('')}</div>`;
+const T3 = tiles([F_L, F_R, F_E]);
+// the GM's band: the three marks, Next turn, a rule, the fold mark, then the menu last (F3 a, ruled 2026-11-25)
+const gmBand = (title, o = {}) => `${band({ over: 'Session 1. Saltwick Island.', title, ident: DATE + (o.under || ''), acts: [o.words ? bandTools : bandMarks, nextTurn, vr, foldBtn(o.fold === undefined ? true : o.fold), moreBtn] }).replace('class="band"', o.words ? 'class="band w44"' : 'class="band"')}<hr class="dbl">`;
+const gmTop = (title, o = {}) => `${gmBand(title, o)}${T3}${stripRow}`;
+const trail = (last, area = 'The Drowned Harbour') => `<div class="crumb"><a class="x">Saltwick Island</a>${sep}<a class="x">${area}</a>${sep}<b>${last}</b></div>`;
+const headOf = (name, acts) => `<div class="band"><div><h3 class="display">${num22(name)}</h3></div><div class="acts two">${acts}</div></div>`;
+const pair = `<div class="two">${b('Knowledge', { icon: 'book' })}${b('Rules', { icon: 'scales' })}</div>`;
+const SENT = `${dieMark(20, 16)}Roll d20 for an encounter each time the party rows to a new Location.`;
+const waitHead = '<div class="hrow" style="min-height:0;margin-bottom:var(--space-2)"><h2>Waiting for you</h2></div>';
+const waitNone = `<div class="pcard"><h2 style="margin-top:0">Waiting for you</h2><p class="meta" style="margin:0">Nothing waits.</p></div>`;
+const pX = `<span class="mx" role="button" aria-label="Close">${I.close}</span>`;
+const toast = (words, undo = true) => `<div class="toastb" role="status"><span class="tmsg">${words}</span>${undo ? `<span class="tu" role="button">${gi('anticlockwise-rotation', 20)}Undo</span>` : ''}<span class="tb" aria-hidden="true"></span></div>`;
+const frame = (id, cap, body, w = 1024) => `<div data-frame="${id}" class="fr44"><p class="cap" style="width:${w}px;max-width:${w}px">${cap}</p><div class="wall bit">${body}</div></div>`;
+const dframe = (id, html) => `<div data-frame="${id}" class="fr44">${html}</div>`;
+const shortPad = (role, inner, cap) => ipad(role, inner, cap).replace('class="dev ipad"', 'class="dev ipad short"');
+const overPop = (role, back, pop, h) => `<div class="dev ipad fixed" style="height:${h}px">${railOf(role)}<div class="main">${topRow(role)}<div class="page">${back}</div></div><div class="veil"></div><div class="pc44">${pop}</div></div>`;
+const phSheet = (behind, inner, o = {}) => `<div class="phone"><div class="behind">${behind}<div class="dim"></div></div><div class="sheetup flow" role="dialog"${o.label ? ` aria-label="${o.label}"` : ''}>${inner}</div></div>`;
+const phBehind = `${phoneBar('The Reed Marches')}`;
+const phGm = (inner, foot = '') => `<div class="phone">${phoneBar('The Reed Marches')}<div class="inner">${inner}</div>${foot}${tabBar('gm')}</div>`;
+const phPl = (inner) => `<div class="phone">${phoneBar('The Reed Marches')}<div class="inner">${inner}</div>${tabBar('player')}</div>`;
+const fld = (label, value, o = {}) => `<div class="fld44"><span class="fl">${label}</span><span class="field${o.area ? ' area' : ''}${value ? '' : ' empty'}" role="textbox" aria-label="${label}">${value || '&nbsp;'}</span></div>`;
+const warnLine = (words) => `<p class="wl44" role="alert">${I.warn}<span>${words}</span></p>`;
+const waitTag = '<span class="waittag" style="margin-right:var(--space-1)">waiting</span>';
+
+// ---- the book's figures, invented (the labels are the gallery's own: Level, Armour, Hit points, Attacks, Speed, Morale) ----
+// finding 12: a stat line breaks only between a label and the next label; a die never parts from its number
+const dn = (n, words) => `<span class="nw44">${dieMark(n, 16)}${words}</span>`;
+const fig = (pairs) => pairs.map(([k, v]) => `<span class="pr44"><span class="lbk">${k}</span>${v}</span>`).join(' ');
+const LURK1 = [['Level', '2'], ['Armour', '7'], ['Hit points', dn(8, '2d8 (9)')], ['Attacks', `Bite <span class="nw44">(+1, ${dieMark(6, 16)}1d6)</span> and drag under`], ['Speed', '60 swimming'], ['Morale', '8']];
+const EEL1 = [['Level', '1'], ['Armour', '8'], ['Hit points', dn(8, '1d8 (4)')], ['Attacks', `Pinch <span class="nw44">(+0, ${dieMark(4, 16)}1d4)</span>`], ['Speed', '20'], ['Morale', '6']];
+const FERRY1 = [['Level', '1'], ['Armour', '9'], ['Hit points', dn(6, '1d6 (3)')], ['Attacks', `Boat hook <span class="nw44">(+0, ${dieMark(6, 16)}1d6)</span>`], ['Speed', '40'], ['Morale', '7']];
+// the detail row: one part, in three homes. Finding 13: no box of its own, a dotted rule above and below; the whole row is the tap.
+// A short row (no line) is the name alone, where the same line already stands once on the card (finding 9; ⚑ 9, ruled 2026-11-26).
+const dRow = (name, o = {}) => `<div class="dt44 all" role="button" aria-label="${name}: read it"><span><span class="nm">${name}${o.count ? ` ×${o.count}` : ''}</span>${o.as ? `<span class="meta">, ${o.as}</span>` : ''}${o.line ? `<span class="st bk">${o.line}</span>` : ''}${o.note ? `<span class="st meta">${o.note}</span>` : ''}</span>${go}</div>`;
+const lurkRow = (n) => dRow('Bog lurker', { count: n, line: fig(LURK1) });
+const eelRow = dRow('Mud crab', { count: 4, line: fig(EEL1) });
+const harlRow = dRow('Old Harl', { as: 'a ferryman', line: fig(FERRY1) });
+// ⚑ 9, ruled 2026-11-26 ("Home Two's fix"): a line is printed once per identical line. Old Harl uses the Ferryman's block, so his row is short;
+// with a block of his own he keeps his own line
+const harlSame = dRow('Old Harl', { as: 'a ferryman', note: 'Same stat line as the Ferryman.' });
+const HARL1 = [['Level', '2'], ['Armour', '8'], ['Hit points', dn(6, '2d6 (7)')], ['Attacks', `Boat hook <span class="nw44">(+1, ${dieMark(6, 16)}1d6)</span>`], ['Speed', '40'], ['Morale', '9']];
+const harlOwn = dRow('Old Harl', { as: 'a ferryman', line: fig(HARL1) });
+const ferryRow = dRow('Ferryman', { count: 3, line: fig(FERRY1) });
+const OIL_L = 'One flask fills a lantern once. Thrown and lit, it burns where it lands.';
+const RING_L = 'Its wearer is steadier against harm. Cursed: it does not come off within sight of the sea.';
+const oilRow = dRow('Lamp oil', { count: 8, line: OIL_L });
+const ringRow = dRow('Ring of the Drowned Bell', { line: RING_L });
+
+// ================= EN: the encounter as one card =================
+// finding 14: a short heading, then the row's words at body size. Finding 3: the line that says what was picked, with "Change…".
+const encCard = (title, body, buttons) => `<div class="wait e44"><span class="wi">${SW(28)}</span><span class="wt">${title}</span>${body}<span class="wb${buttons.length === 3 ? ' w3' : ''}" data-stkgroup>${buttons.join('')}</span></div>`;
+const BTN_ROLL = stk('Roll…', 'rolling-dices', { accent: true });
+const BTN_DISMISS = stk('Dismiss', 'cancel');
+const BTN_REVEAL = stk('Reveal…', 'eye', { sym: true, on: false, label: 'Reveal to players: read the words first' });
+const BTN_REVEALED = stk('Revealed', 'eye', { sym: true, on: true, label: 'Revealed to players. Take it back' });
+const BTN_REVEAL_WAIT = stk('Reveal…', 'eye', { sym: true, on: false, label: 'Reveal to players: waiting to be sent. Open the words' }).replace(/<\/span>$/, '<span class="waittag">waiting</span></span>');
+const BTN_MSG = stk('Message…', 'mail', { sym: true });
+const BTN_DONE = stk('Done', 'check-mark', { accent: true });
+const RES = 'Two bog lurkers rise from the weed and reach for the oars.';
+const RES_CUT = 'Two grey shapes rise from the weed and reach for the oars.';
+const HARL = 'Old Harl poles his ferry out of the mist, and asks who is paying.';
+const ew = (w) => `<span class="all ew44">${w}</span>`;
+const rolled = (range, tag = '') => `<span class="all rl44"><span class="meta">${tag}Encounters in the harbour, ${range}.</span>${b('Change…', { small: true })}</span>`;
+const seen = (w, tag = '') => `<span class="shown44 all" role="status">${tag || sym('eye', 20)}<span>${w}</span></span>`;
+const encDue = encCard('Encounters in the harbour', `<span class="all">${SENT}</span>`, [BTN_ROLL, BTN_DISMISS]);
+const encRolled = encCard('An encounter', `${ew(RES)}${lurkRow(2)}${rolled('15–16')}`, [BTN_REVEAL, BTN_MSG, BTN_DONE]);
+const encShown = encCard('An encounter', `${ew(RES)}${lurkRow(2)}${rolled('15–16')}${seen(`Players see: “${RES_CUT}”`)}`, [BTN_REVEALED, BTN_MSG, BTN_DONE]);
+const encNamed = encCard('An encounter', `${ew(HARL)}${harlRow}${rolled('17–18')}`, [BTN_REVEAL, BTN_MSG, BTN_DONE]);
+const JETTY = '1. The Jetty, turn&nbsp;2';
+const en1 = ipad('gm', `${gmTop(JETTY)}<div class="four" style="margin-top:var(--space-4)">
+  ${stt('<b>A. The check is due</b> (after a move, or from the band’s crossed swords).', `<div class="pcard">${waitHead}${encDue}</div>`)}
+  ${stt('<b>B. A row picked:</b> the same card. A short heading, then the row’s words.', `<div class="pcard">${waitHead}${encRolled}</div>`)}
+  ${stt('<b>C. After “Show players”</b> (frame EN6): no button has moved.', `<div class="pcard">${waitHead}${encShown}</div>`)}
+  ${stt('<b>D. A row that names a character.</b>', `<div class="pcard">${waitHead}${encNamed}</div>`)}
+  ${stt('<b>E. A row with no encounter</b> (“Nothing stirs”): no card; the toast says it.', `${waitNone}<div style="margin-top:var(--space-3)">${toast('1–8: nothing stirs.')}</div>`)}
+  ${stt('<b>F. “Dismiss” tapped on A:</b> the card goes; the toast brings it back.', `${waitNone}<div style="margin-top:var(--space-3)">${toast('Encounter check dismissed.')}</div>`)}
+</div>`,
+  `EN1 (F3 a, b; F4 a, b; F5 a, b; F6 a, b, c; F7 a; F9. ⚑ 1, 2, 4. Findings 2, 3, 5, 7, 12, 13, 14, 18). ${NEW} <b>One encounter is one card in “Waiting for you”.</b> <b>A.</b> The check is due: the table’s name, the pack’s sentence, <b>“Roll…”</b> (the accent; it was “Enter roll…”, but the pop-up asks for a tap on a row, finding 7) and “Dismiss”. <b>B.</b> A row picked, the same card: the short heading <b>“An encounter”</b>, then the row’s words at body size (finding 14: they were the card’s title at heading size); each creature the row names as a <b>detail row</b>, now without a box of its own, between dotted rules (finding 13); then one quiet line that says what was picked, “Encounters in the harbour, 15–16.”, with <b>“Change…”</b>, which opens the table again with that row ticked (frame EN2, B; finding 3: a wrong row could be put right only while the toast lasted). Then “Reveal…”, “Message…” and “Done”. <b>C.</b> After “Show players”: the three buttons keep their places (finding 2). “Reveal…” is now a pressed <b>“Revealed”</b> with the open eye, and a tap on it takes the reveal back; the line over the buttons quotes what the players see. <b>D.</b> A named character has the same row. <b>E, F.</b> No card left behind; the toast names the row’s range, never a number nobody entered (finding 7). <b>Ruled 26 Nov:</b> the crossed swords are the encounter’s mark in the band, on the tile and on the card (⚑ 1); “Start” is gone until fights are built and “Done” closes the card (⚑ 2); no encounter row stands on the Scene (⚑ 4). <b>The band:</b> the fold mark is a chevron after a thin rule, and “…” is last (finding 5; F3 a); the three marks stand without words at this width, and with their words on a wider screen (finding 18; frame PS2, D). <b>Mine, to check:</b> a wrong “Nothing stirs” has no card to hold “Change…”, so after its toast the GM taps “Encounter” again; a row of forty words is not cut on the GM’s card. ${AG} the chevron for the top’s fold (built as “−” and “+”).`);
+
+const ENC = [['1–8', 'Nothing stirs.'], ['9–10', 'Gulls mob the boat. Anyone standing must sit or be knocked down.'], ['11–12', 'A seal follows the boat, curious, and will not be driven off.'], ['13–14', 'A bell rings twice under the water, somewhere near the wreck.'], ['15–16', 'Two bog lurkers rise from the weed and reach for the oars.'], ['17–18', 'Old Harl poles his ferry out of the mist, and asks who is paying.'], ['19', 'A drowned sailor drifts by, face down, a purse still at his belt.'], ['20', 'The Tidewife surfaces beside the boat and looks at each of the party in turn.']];
+const rollRow = `<p style="margin:0 0 var(--space-2);display:flex;align-items:center;gap:var(--space-2)">${dieMark(20, 24)}<b>Roll d20, then tap the row.</b></p>`;
+const tapTable = (head, rows, on = -1) => `<table class="tap"><tr><th>${head}</th><th>Encounter</th></tr>${rows.map(([n, w], i) => `<tr role="button"${i === on ? ' class="on44" aria-pressed="true"' : ''}><td>${n}</td><td>${i === on ? `<span class="tk44">${sym('check', 20)}</span>` : ''}${w}</td></tr>`).join('')}</table>`;
+const encTable = (on = -1) => `<div class="bk">${rollRow}${tapTable(`${dieMark(20, 16)}d20`, ENC, on)}</div>`;
+const rollHead = `<div class="pu44"><span class="sheet-title">Encounters in the harbour</span>${pX}</div>`;
+const rollPop = (cls = 'w72', on = -1) => `<div class="popb ${cls}" role="dialog" aria-label="Encounters in the harbour">${rollHead}${encTable(on)}</div>`;
+const backEnc = `${gmTop(JETTY)}<div class="cols2"><div><div class="pcard">${trail('1. The Jetty')}${headOf('1. The Jetty', splash + b('Move on', { big: true, icon: 'travel' }))}${pair}</div></div><div class="stack"><div class="pcard">${waitHead}${encDue}</div></div></div>`;
+const en2 = frame('44-2', `EN2 (F3 c. Findings 3, 7). ${NEW} <b>“Roll…” opens the table as a pop-up in the middle of the screen.</b> The pop-up is the app’s Wide one (it fits its table, 720 px at most). Its title is the table’s own name; then the roll row and the table in the book’s tapped-table form. A tap on a row is the answer: the pop-up closes and the card shows the result (frame EN1, B). The X closes it with nothing recorded; the card still waits. <b>A.</b> Opened from “Roll…”. <b>B. Opened from “Change…”</b> on the result’s card (finding 3): the same pop-up, the row picked before washed and ticked; a tap on another row changes the result (the toast says so, with Undo); the X leaves it as it was. If the result was already shown to the players, a change takes that reveal back first and the toast says so: nothing new goes out unseen. <b>Mine, to check:</b> the tall table, the d100 table and the loading state are in frame EN7.`,
+  `${stt('<b>A.</b> Opened from “Roll…”.', overPop('gm', backEnc, rollPop(), 760))}${stt('<b>B.</b> Opened from “Change…”: the picked row is ticked.', rollPop('w72', 4))}`, 1700);
+
+const statPop = (o) => `<div class="popb ${o.cls || 'w44'}" role="dialog" aria-label="${o.name}"><div class="pu44"><span class="ehead">${o.name}</span>${pX}</div><div class="bk">${o.body}</div></div>`;
+const lurkBody = `<p class="meta" style="font-size:14px;margin:0 0 var(--space-2)">How many: 2</p><p>A grey shape under the duckweed. Drags its prey under and holds it there.</p><p class="dsc">Medium beast, animal wits</p><p class="ln">${fig(LURK1.slice(0, 3))}</p><p class="ln">${fig(LURK1.slice(3))}</p><hr class="dot44"><p class="ln">${fig([['Behaviour', 'Patient, territorial, never leaves the water'], ['Speech', 'None']])}</p><p><b>Ambush from the water:</b> A lurker lying still under weed is not seen unless someone searches the water.</p><p><b>Drag under:</b> A bitten character is held, and begins to drown.</p><p class="source">From your setting: Fen Rules, p.&nbsp;31</p>`;
+const harlBody = `<p class="dsc">A ferryman, wary</p><p>Works the ferry at the jetty and knows who tied up this week. He will not cross after dark, and he is owed for the last three crossings.</p><p><b>Wants:</b> his fare, and no trouble with the wardens.</p><h4>Ferryman</h4><p class="ln">${fig(FERRY1.slice(0, 3))}</p><p class="ln">${fig(FERRY1.slice(3))}</p><p class="source">From your adventure: Saltwick Island, p.&nbsp;13 and p.&nbsp;14</p>`;
+const oilBody = `<p class="meta" style="font-size:14px;margin:0 0 var(--space-2)">How many: 8</p><p>A clay flask, stoppered with wax.</p><p><b>In a lantern:</b> one flask fills a lantern once.</p><p><b>Thrown:</b> lit and thrown, it burns where it lands.</p><p class="source">From your setting: Fen Rules, p.&nbsp;12</p>`;
+const LONGN = 'The Old Ferrywarden of the Nine Drowned Tides';
+const en3 = frame('44-3', `EN3 (F5 c; F6 a; F4 d; F19. Finding 12). ${NEW} <b>What a detail row opens: one pop-up, the same for a creature, a named character and an item.</b> Unchanged but for the line breaks: a die stays with its number, and “p.” with its page (finding 12). <b>A.</b> A creature: how many, its description, its figures in the pack’s groups, its abilities, its source. <b>B.</b> A named character: their own notes first, then the stat line of what they are (“Ferryman”), under its own sub-heading. <b>C.</b> An item: how many, then its rule. <b>D.</b> Messy: a very long name wraps under the X’s line; a character with no stat block in the packs says so. No title line over the name, and the X on the name’s line (F5 c). <b>Gone:</b> “‹ Back to the encounter” and the pop-up it opened (F6 a). <b>Mine, to check:</b> a named character’s stat line needs the pack to link the character to a stat block (work for the pack tools); with no link, D’s line shows.`,
+  `${stt('<b>A.</b> A creature.', statPop({ name: 'Bog lurker', body: lurkBody }))}${stt('<b>B.</b> A named character.', statPop({ name: 'Old Harl', body: harlBody }))}${stt('<b>C.</b> An item.', statPop({ name: 'Lamp oil', body: oilBody }))}${stt('<b>D.</b> Messy: a long name, and no stat block in the packs.', statPop({ name: LONGN, body: `<p class="dsc">A warden, old</p><p>Keeps the customs shed and its ledgers.</p><p class="meta" style="font-size:14px">Not in your packs: a stat line for this character.</p><p class="source">From your adventure: Saltwick Island</p>` }))}`, 1880);
+
+const phTopGm = `<div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)"><h3 class="display" style="margin:0;font-size:20px">${JETTY}</h3><span style="display:inline-flex;gap:var(--space-2)">${foldBtn(false)}${moreBtn}</span></div><div class="phband" style="margin-top:var(--space-2)"><p class="ident" style="font-size:14px;margin:0">${dl('14 Reedmonth')}</p><span class="btn" role="button">${gi('hourglass', 20)}Next turn</span></div>`;
+const phWait = (card) => `<div class="pcard">${waitHead}${card}</div>`;
+const en4 = frame('44-4', `EN4 (F3 c; F4; F5; F6. Findings 2, 12, 13, 14, 26). ${NEW} <b>The same at 375 px.</b> <b>A.</b> The check is due; the top is folded, its mark a chevron, with “…” last. <b>B.</b> “Roll…”: the table as a sheet from the foot. <b>C.</b> The result on the same card: the heading, the words, the detail row between dotted rules, the picked line with “Change…”, then the <b>three buttons on one row</b>, each a third of the card (finding 26: “Done” stood alone on a second row). <b>D.</b> A detail row tapped: the stat pop-up as a sheet, the X on the name’s line. <b>Mine, to check:</b> at this width the encounter’s card has no box of its own inside “Waiting for you” (two boxes deep, where a tablet has three); that gives each of the three buttons 92 px, over the stacked button’s 88 px floor; on a phone a pop-up is drawn as a sheet from the foot, as pages 33 and 42 draw it; each phone is cut after its card.`,
+  `<div class="phs23">${stt('<b>A.</b> The check is due.', phGm(`${phTopGm}${phWait(encDue)}`))}${stt('<b>B.</b> “Roll…”.', phSheet(phBehind, `${rollHead}${encTable()}`))}${stt('<b>C.</b> The result.', phGm(`${phTopGm}${phWait(encRolled)}`))}${stt('<b>D.</b> A detail row tapped.', phSheet(phBehind, `<div class="pu44"><span class="ehead">Bog lurker</span>${pX}</div><div class="bk">${lurkBody}</div>`))}</div>`, 1520);
+
+// ---- EN6: "Reveal…" is a preview, then a send (finding 1, ruled 2026-11-26) ----
+const revHead = `<div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">An encounter</span><span class="sheet-title">Reveal to players</span></span>${pX}</div>`;
+const revNote = '<p class="meta" style="margin:0">Players get these words and nothing else.</p>';
+const revFoot = `<div class="mf44" style="justify-content:flex-end">${b('Show players', { accent: true, icon: 'eye' })}</div>`;
+const revBody = (text, warn = '') => `${revHead}${fld('What players will see', text, { area: true })}${warn}${revNote}${revFoot}`;
+const revPop = (cls, text, warn) => `<div class="popb ${cls}" role="dialog" aria-label="Reveal to players">${revBody(text, warn)}</div>`;
+const LONGR = 'Two bog lurkers rise from the weed on either side of the boat, grey and slow, and reach for the oars; the nearer one has a length of old net caught round its neck, and the water behind them is moving where a third has not yet come up.';
+const backRev = `${gmTop(JETTY)}<div class="cols2"><div><div class="pcard">${trail('1. The Jetty')}${headOf('1. The Jetty', splash + b('Move on', { big: true, icon: 'travel' }))}${pair}</div></div><div class="stack"><div class="pcard">${waitHead}${encRolled.split('btn stk accent').join('btn stk')}</div></div></div>`;
+const en6 = frame('44-20', `EN6 (F4 c. Finding 1, ruled 26 Nov: “Preview, then send”). ${NEW} <b>“Reveal…” opens the words the players will see. Nothing goes out unseen.</b> A table’s row is written for the GM and may say more than the players should know yet; before, one tap sent it whole. <b>A.</b> “Reveal…” opens the standard pop-up: the row’s words in a box the GM can change, one quiet line that says what goes, and <b>“Show players”</b>, the pop-up’s one accent, at the foot’s right. The X sends nothing. <b>B.</b> The GM has cut the words (“bog lurkers” is now “grey shapes”). <b>C.</b> After “Show players”: the toast, with Undo, and the card of frame EN1, C, which quotes what was sent. <b>D. Messy:</b> a row of forty words grows the box. <b>E. Nothing written:</b> “Show players” stays a button; tapped, it sends nothing and the line says why. <b>F, G. At 375 px</b>, as a sheet from the foot. <b>Hidden data:</b> only the words in the box are sent to a player’s device, and only on “Show players”: never the row as the book has it, the stat line, the count, or the table. The players’ log line carries the same words. <b>Mine, to check:</b> the eyebrow “An encounter” and the title “Reveal to players”; the quiet line’s words; no “Back” in the foot, since the X is the way out of a pop-up over the Scene; while the pop-up is open the card’s “Done” is drawn plain, so “Show players” is the screen’s one accent.`,
+  `${stt('<b>A.</b> “Reveal…” tapped: the words, as the row has them.', overPop('gm', backRev, revPop('w44', RES), 700))}<div>${stt('<b>B.</b> The words cut by the GM.', revPop('w44', RES_CUT))}<div style="height:var(--space-4)"></div>${stt('<b>C.</b> After “Show players”.', `<div style="width:440px">${toast('Shown to the players.')}</div>`)}<div style="height:var(--space-4)"></div>${stt('<b>E.</b> Nothing written, and “Show players” tapped.', revPop('w44', '', warnLine('Write what the players will see.')))}</div><div>${stt('<b>D.</b> Messy: a row of forty words.', revPop('w44', LONGR))}</div><div class="phs23">${stt('<b>F.</b> At 375 px.', phSheet(phBehind, revBody(RES)))}${stt('<b>G.</b> At 375 px, a long row.', phSheet(phBehind, revBody(LONGR)))}</div>`, 1500);
+
+// ---- EN7: the states of what is built first (finding 25) ----
+const menuOf = (rows) => `<div class="menu44" role="menu" aria-label="More">${rows.map(([k, w, o = {}]) => (k === '-' ? '<hr class="mdiv44">' : `<div class="mi" role="menuitem">${o.gi ? gi(k, 24) : sym(k, 24)}<span style="flex:1">${w}</span>${o.right || ''}</div>`)).join('')}</div>`;
+const sw44 = (on) => `<span class="sw44${on ? ' on' : ''}" role="switch" aria-checked="${!!on}" aria-label="Travelling in darkness"><i></i></span>`;
+const menuCard = menuOf([['table', 'Encounter tables'], ['flag', 'Reminders'], ['flameout', 'Travelling in darkness', { right: sw44(false) }], ['-'], ['people', 'The campaign’s items, as today']]);
+const offPill = `<span class="pill" role="button">${I.warn}Offline · 2 waiting</span>`;
+const encOff = encCard('An encounter', `${ew(RES)}${lurkRow(2)}${rolled('15–16', waitTag)}${seen('Players see it when you are back online.', sym('eyeshut', 20))}`, [BTN_REVEAL_WAIT, BTN_MSG, BTN_DONE]);
+const skel = (w) => `<div class="sk44" style="width:${w}" aria-hidden="true"></div>`;
+const loadPop = `<div class="popb w72" role="dialog" aria-label="Encounters in the harbour" aria-busy="true">${rollHead}<p class="meta" style="margin:0 0 var(--space-3)">Loading the table…</p>${skel('30%')}${skel('86%')}${skel('72%')}${skel('80%')}</div>`;
+const ENC20 = [['1', 'Nothing stirs.'], ['2', 'Nothing stirs.'], ['3', 'Nothing stirs.'], ['4', 'Gulls mob the boat. Anyone standing must sit or be knocked down.'], ['5', 'A seal follows the boat, curious, and will not be driven off.'], ['6', 'A bell rings twice under the water, somewhere near the wreck.'], ['7', 'Two bog lurkers rise from the weed and reach for the oars.'], ['8', 'Old Harl poles his ferry out of the mist, and asks who is paying.'], ['9', 'A drowned sailor drifts by, face down, a purse still at his belt.'], ['10', 'The Tidewife surfaces beside the boat and looks at each of the party in turn.'], ['11', 'A net drifts across the bow, heavy with something.']];
+const tallPop = `<div class="popb w44 tall44" role="dialog" aria-label="Encounters on the open water">${`<div class="pu44"><span class="sheet-title">Encounters on the open water</span>${pX}</div>`}<div class="bk">${rollRow}</div><div class="bk scr44" role="group" aria-label="The table’s rows, scrolling">${tapTable(`${dieMark(20, 16)}d20`, ENC20)}<span class="sb44" aria-hidden="true"></span></div></div>`;
+const D100 = [['01–40', 'Nothing stirs.'], ['41–52', 'Gulls mob the boat. Anyone standing must sit or be knocked down.'], ['53–61', 'A seal follows the boat, curious, and will not be driven off.'], ['62–70', 'A bell rings twice under the water, somewhere near the wreck.'], ['71–79', 'Two bog lurkers rise from the weed and reach for the oars.'], ['80–86', 'Old Harl poles his ferry out of the mist, and asks who is paying.'], ['87–93', 'A drowned sailor drifts by, face down, a purse still at his belt.']];
+const d100Pop = `<div class="popb w44 tall44" role="dialog" aria-label="What the deep sends"><div class="pu44"><span class="sheet-title">What the deep sends</span>${pX}</div><div class="bk"><p style="margin:0 0 var(--space-2);display:flex;align-items:center;gap:var(--space-2)">${dieMark(10, 24)}<b>Roll d100, then tap the row.</b></p></div><div class="gn44"><span class="fl">Go to number</span><span class="field" role="textbox" aria-label="Go to number">64</span></div><div class="bk scr44" role="group" aria-label="The table’s rows, scrolling">${tapTable(`${dieMark(10, 16)}d100`, D100.slice(3), 0).replace('class="on44" aria-pressed="true"', 'class="at44"').replace(`<span class="tk44">${sym('check', 20)}</span>`, '')}<span class="sb44" style="top:45%" aria-hidden="true"></span></div></div>`;
+const en7 = frame('44-21', `EN7 (finding 25: the states not drawn, for what is built first; ⚑ 4; new findings N1, N2, N5). ${NEW} <b>The states of the encounter’s card and the roll’s pop-up.</b> <b>A. The “…” menu</b> on the Scene’s band, with <b>“Encounter tables”</b> first (⚑ 4, ruled: both encounter rows leave the Scene, and the tables go into this menu). The other rows are today’s and stand in for the built menu. <b>B. Offline:</b> the app’s pill; a row picked offline carries the “waiting” tag. “Show players” waits too: <b>the button stays “Reveal…”, with the “waiting” tag on it, and becomes the pressed “Revealed” only once the words are sent</b> (N1: pressed, it claimed an act not yet done). The line over the buttons says the players see it when the GM is back online. Each waiting change has its Undo in the pill’s sheet, as built. <b>C. A send that fails</b> (the server refuses, or the connection drops mid-send): a plain toast with no Undo, and the card is as before, “Reveal…” not pressed; nothing reached a player. <b>The toast names the way to try again</b> (N5): “Tap Reveal… to try again.” <b>D. Loading:</b> the pop-up opens at once with skeleton rows and one line; under 300 ms nothing of this shows. <b>E. A table taller than the screen:</b> the pop-up stops at the screen’s height less its margins; the title, the X and the roll row stay; the rows scroll under them. <b>F. A d100 table:</b> “Go to number”, as the tables’ screen has it: typing 64 brings the row 62–70 to the top of the rows, <b>marked by a rule at its leading edge</b> and with its range in bold (N2: the wash is a tapped row’s, frame ET1, and nothing is tapped yet); the tap on the row is still the answer. <b>Not drawn, by rule:</b> Larger text (06: layouts are drawn at Standard; Large and Larger keep working, untuned, and the gallery shows them once built). <b>Not drawn, built later:</b> what follows a row picked by hand on the tables’ page, “+ Piece”, a hoard already sent, and the failed and offline states of a share, a send and a save. <b>Mine, to check:</b> the menu’s icon for “Encounter tables”; the offline line’s words and its closed eye; a tap on the waiting “Reveal…” opens the words again, and the way to take a waiting reveal back is the pill’s sheet. ${RD('his picks N1, N2 and N5: B’s button and line, C’s toast and F’s found row')} <b>Ruled by those picks:</b> an offline reveal waits and is not refused (N1); the failed toast’s words (N5).`,
+  `<div>${stt('<b>A.</b> The “…” menu on the band.', `<div style="width:300px">${menuCard}</div>`)}<div style="height:var(--space-4)"></div>${stt('<b>D.</b> Loading.', loadPop.replace('popb w72', 'popb w44'))}</div><div style="width:460px">${stt('<b>B.</b> Offline: a row picked, then “Show players”.', `<div style="margin-bottom:var(--space-2)">${offPill}</div><div class="pcard">${waitHead}${encOff}</div>`)}<div style="height:var(--space-4)"></div>${stt('<b>C.</b> A send that fails.', `<div class="pcard">${waitHead}${encRolled}</div><div style="margin-top:var(--space-3)">${toast('Couldn’t show the players. Nothing was sent. Tap Reveal… to try again.', false)}</div>`)}</div>${stt('<b>E.</b> A table taller than the screen.', tallPop)}${stt('<b>F.</b> A d100 table, with “Go to number”.', d100Pop)}`, 1860);
+
+// ================= DT: details at hand (⚑ 9, ruled 2026-11-26: "Home Two's fix") =================
+const bookFold = (open, inner = '') => `<div class="fb44" role="button" aria-expanded="${open}"><span><b>From the book, for the GM</b>${open ? '' : '<small>A cog on her side on the bar. Three ferrymen sleep under the sailcloth…</small>'}</span><span class="mx">${foldMark(open, 20)}</span></div>${open ? `<div class="fbb44 bk">${inner}</div>` : ''}`;
+const BOOK = `<p>A cog on her side on the bar, decks awash. Three ferrymen sleep under the sailcloth by day and strip her by night. <b>Old Harl</b> comes for them at dusk.</p><p><b>Below.</b> The hold is flooded to the knee. Four mud crabs have the run of it and pinch at anything that wades.</p><p><b>Stern cabin.</b> A crate of eight flasks of lamp oil, dry, under the fallen beams.</p><div class="aside"><p style="margin-bottom:var(--space-1)"><b>RING OF THE DROWNED BELL</b></p><p>Cast from the bronze of a sunken bell. Its wearer is steadier against harm, and cannot take it off within sight of the sea.</p></div>`;
+const SRC = '<p class="source">p.&nbsp;14</p>';
+// each stat line and each item's line is printed once, on the piece that names it; the fold keeps only the rows no piece names
+const TO_PIECES = '<p class="meta" style="margin:var(--space-2) 0 0">The other stat lines and the items are on their pieces.</p>';
+const bookRows = (harl) => `<h4>Stat lines</h4>${harl}${TO_PIECES}${SRC}`;
+// ⚑ 7, ruled: every piece has the arrow. On a Treasure piece it opens the find sheet (and so do the words); on any other it opens "Edit piece".
+const pieceRow = (html, shown, o = {}) => `<div class="piece ar44"><div class="lead"${o.send ? ' role="button"' : ''}><span>${html}</span></div><span class="mx" role="button" aria-label="${o.send || o.edit}">${go}</span>${eyeBtn(shown)}${o.under ? `<div class="un44">${o.under}</div>` : ''}</div>`;
+const gmOnly = (row) => `<span class="gm44">Only you see this.</span>${row}`;
+const P_DESC = pieceRow(`A cog on her side on the bar, decks awash, her <b class="kw22">mast</b> showing at every tide. Someone has stretched a <b class="kw22">sailcloth</b> over the stern.`, true, { edit: 'The description: edit this piece' });
+const P_SAIL = (row) => pieceRow('<b>Sailcloth.</b> Three men sleep under it, a boat hook beside them.', false, { edit: 'Sailcloth: edit this piece', under: gmOnly(row) });
+const P_HOLD = (row) => pieceRow('<b>Hold.</b> Black water to the knee. Something moves in it.', false, { edit: 'Hold: edit this piece', under: gmOnly(row) });
+const P_BOX = pieceRow('<b>Strongbox.</b> 240 herons, two moon opals, four boat hooks and a hooded lantern, under a rotted sailcloth.', false, { send: 'Strongbox: send its things' });
+const P_RING = (sent, row = ringRow) => pieceRow('<b>Bronze ring.</b> A plain band of old bronze, on a hook by the cabin door.', true, { send: sent ? 'Bronze ring: sent to Wren. Open it' : 'Bronze ring: send it', under: `${sent ? `<span class="sent44">${sym('check', 16)}Sent to Wren.</span>` : ''}${gmOnly(row)}` });
+const P_OIL = (row = oilRow) => pieceRow('<b>Crate.</b> Eight flasks of lamp oil, dry.', true, { send: 'Lamp oil: send it', under: gmOnly(row) });
+const pieceFoot = (n, of) => `<div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-2)">${stk('+ Piece', 'jigsaw-piece')}<span class="meta" style="flex:1;text-align:right">${n} of ${of} shown</span>${stk('Hide all', 'cancel').replace(gi('cancel', 24), sym('eyeshut', 24))}</div>`;
+const WRECK = '2. The Wreck, turn&nbsp;3';
+const wreckHead = (accent = true) => `${trail('2. The Wreck')}${headOf('2. The Wreck', splash + b('Move on', { big: true, accent, icon: 'travel' }))}`;
+const dtPieces = `${pair}${P_DESC}${P_SAIL(ferryRow)}${P_HOLD(eelRow)}${P_RING(false)}${P_OIL()}${pieceFoot(3, 5)}`;
+const dtOpen = `<div class="pcard">${wreckHead(false)}${bookFold(true, BOOK + bookRows(harlSame))}${dtPieces}</div>`;
+const dtRest = `<div class="pcard">${wreckHead(false)}${bookFold(false)}${dtPieces}</div>`;
+const dtOwn = `<div class="pcard"><div class="fbb44 bk" style="margin:0;border:0;padding:0"><h4 style="margin-top:0">Stat lines</h4>${harlOwn}</div></div>`;
+const dt1 = ipad('gm', `${gmBand(WRECK, { fold: false })}<div class="four" style="margin-top:var(--space-4)">
+  ${stt('<b>A. The fold open.</b> Each line stands once: on the piece that names it, otherwise in the fold.', dtOpen)}
+  ${stt('<b>B. The fold at rest</b>, the usual state: every piece’s line in sight.', `${dtRest}<p class="lbl" style="margin-top:var(--space-4)"><b>C. A named character with a stat block of their own</b> keeps their own line: the fold’s row, were Old Harl given one.</p>${dtOwn}`)}
+</div>`,
+  `DT1 (F4 d; F17; F18; F19; F21. ⚑ 9, ruled 26 Nov: “Home Two’s fix”; ⚑ 7. Findings 5, 9, 12, 13, 26). ${NEW} ${RD('his ruling on ⚑ 9: one drawing in place of options a and b')} <b>Details at hand: each stat line and each item’s line is printed once, on the piece that names it, otherwise in “From the book, for the GM”.</b> The party is at “2. The Wreck”. “From the book, for the GM” stays whole (F18) and has no eye (F17); a detail row has no box, only dotted rules (finding 13), so the book’s own boxed item does not look like a row that can be tapped (finding 26); a tap on any row, long or short, opens the pop-up of frame EN3. <b>A. The fold open.</b> A piece that names a creature or a thing carries its full row under “Only you see this.”: “Ferryman ×3” on Sailcloth, “Mud crab ×4” on Hold, the ring and the oil on theirs. The fold ends with <b>only the rows no piece names</b>, so no row is lost: here Old Harl, whom the book’s words name and no piece does. <b>Once per identical line:</b> Old Harl uses the Ferryman’s stat block, and that line already stands on Sailcloth, so his row is the short one, his name and one quiet line; nothing is printed twice (finding 9: the same line stood three times). <b>B. The fold at rest:</b> one row, no eye, and every piece’s line in sight. <b>C. A named character with a stat block of their own keeps their own line:</b> were Old Harl given his own block, his row would carry his own figures, not a pointer to the Ferryman’s. <b>By the same rule, not drawn:</b> a second piece that names the same creature or thing carries the short row; where every line is on a piece, the fold ends with its quiet line alone. <b>Every piece has an arrow</b> before its eye (⚑ 7, frame TR1). <b>Mine, to check:</b> the quiet line that points to the pieces (“The other stat lines and the items are on their pieces.”); the short row’s second line (“Same stat line as the Ferryman.”); the heading “Stat lines” over a single row; the top is drawn folded only to give the cards room.`);
+const phHead = `<div class="crumb"><span>The Drowned Harbour</span>${sep}<b>2. The Wreck</b></div><h3 class="display" style="font-size:24px;margin:0">${num22('2. The Wreck')}</h3>`;
+const dt2 = frame('44-6', `DT2 (F19; F21. ⚑ 9, ruled 26 Nov: “Home Two’s fix”. Findings 9, 12). ${NEW} ${RD('his ruling on ⚑ 9')} <b>Details at hand at 375 px.</b> <b>A. The fold open:</b> the book’s words, then the one row no piece names, short, and the quiet line. <b>B. The pieces:</b> each with its full row; a stat line wraps only between a label and the next. <b>C. Old Harl with a stat block of his own:</b> his row keeps its own line. <b>D.</b> “Old Harl” tapped: the pop-up as a sheet. <b>Mine, to check:</b> on a phone the open fold is about a screen, and the pieces about a screen and a half; each phone is cut after its rows.`,
+  `<div class="phs23">${stt('<b>A.</b> The fold open.', phGm(`${phHead}${bookFold(true, BOOK + bookRows(harlSame))}`))}${stt('<b>B.</b> The pieces.', phGm(`${phHead}${bookFold(false)}${pair}${P_SAIL(ferryRow)}${P_HOLD(eelRow)}${P_RING(false)}${P_OIL()}`))}${stt('<b>C.</b> A block of his own.', phGm(`${phHead}${bookFold(true, BOOK + bookRows(harlOwn))}`))}${stt('<b>D.</b> “Old Harl” tapped.', phSheet(phBehind, `<div class="pu44"><span class="ehead">Old Harl</span>${pX}</div><div class="bk">${harlBody}</div>`))}</div>`, 1520);
+
+// ================= TR: found treasure =================
+const sendHead = (over, title) => `<div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">${over}</span><span class="sheet-title">${title}</span></span>${pX}</div>`;
+// a list row: with the arrow it opens something; without, it acts at once (finding 5: the arrow means only "opens")
+const lrow = (k, words, o = {}) => `<div class="pk23" role="button">${o.sym ? sym(k, 24) : gi(k, 24)}<span style="flex:1">${words}</span>${o.act ? '' : go}</div>`;
+const editRow = lrow('quill-ink', 'Edit the piece’s words');
+const RINGW = '<div class="bk"><p>A plain band of old bronze, on a hook by the cabin door.</p></div>';
+const ringSheet = `${sendHead('2. The Wreck', 'Bronze ring')}${RINGW}${lrow('open-palm', 'To a character')}${lrow('swap-bag', 'To the party stash')}${editRow}`;
+const oilSheet = `${sendHead('2. The Wreck', 'Crate')}<div class="bk"><p>Eight flasks of lamp oil, dry.</p></div><div class="pk23" role="button"><span style="flex:1"><b>Lamp oil ×8</b></span>${go}</div>${editRow}<div class="mf44" style="justify-content:flex-end">${stk('Send all', 'open-palm', { accent: true })}</div>`;
+const sentSheet = `${sendHead('2. The Wreck', 'Bronze ring')}${RINGW}<p class="sent44" role="status" style="margin:0 0 var(--space-2)">${sym('check', 16)}Sent to Wren, turn&nbsp;3.</p>${lrow('anticlockwise-rotation', 'Take it back', { act: true })}${editRow}`;
+const tr1 = ipad('gm', `${gmBand(WRECK, { fold: false })}<div class="cols2"><div><div class="pcard">${wreckHead(false)}${bookFold(false)}${pair}${P_DESC}${P_SAIL(ferryRow)}${P_BOX}${P_RING(true)}${P_OIL()}${pieceFoot(3, 5)}</div><div style="margin-top:var(--space-3)">${toast('Bronze ring sent to Wren.')}</div></div><div class="stack">${stt('<b>A tap on “Bronze ring”</b> (one thing, not sent yet): where it goes, at once.', `<div class="popb ph44">${ringSheet}</div>`)}${stt('<b>A tap on “Crate”</b> (a count): a row a thing; “Send all” at the foot’s right.', `<div class="popb ph44">${oilSheet}</div>`)}${stt('<b>A tap on “Bronze ring” once it is sent:</b> where it went, and the way back.', `<div class="popb ph44">${sentSheet}</div>`)}</div></div>`,
+  `TR1 (F20 b, d; F21 c; F23; F24. ⚑ 7, ruled: “Behind the arrow”. Findings 5, 6, 16, 17). ${NEW} <b>Every piece has an arrow, and a tap on a piece’s words never opens the form.</b> <b>A Treasure piece</b> (“Strongbox”, “Bronze ring”, “Crate”): its words and its arrow open the find sheet, its main thing, as a hoard’s do today (page 30, HM2); the sheet’s last row is “Edit the piece’s words”. <b>Any other piece</b> (the description, “Sailcloth”): its words open nothing, so a stray tap does nothing; its arrow opens “Edit piece” (frame EP1). <b>One thing, not sent:</b> the piece’s words, then where it goes. <b>A count:</b> one row a thing; <b>“Send all” at the foot’s right</b>, where “Move” and “Save” stand in their pop-ups (finding 16: it stood in the middle). <b>A sent piece</b> (finding 17) keeps its arrow: its sheet says “Sent to Wren, turn 3.”, with <b>“Take it back”</b>, the Undo’s lasting home, and the edit row. “Take it back” acts at once, with a toast, so it has no arrow: on this page an arrow means only “opens” (finding 5). <b>The eye and the arrow are two acts:</b> the eye shows the piece’s words to the players; the arrow opens what the piece has. <b>A magic item under a plain description (F23):</b> the party gets “Bronze ring”; its truth is the row under “Only you see this.”, and the GM tells it later from the item’s own card (“Reveal…”, page 33), unchanged. <b>Mine, to check:</b> the three sheets are drawn as cards (on a tablet they stand in the right-hand panel, as HM2); “Send all” is its sheet’s one accent, so “Move on” is drawn plain while a sheet is open; “Take it back” after the receiver has used or passed on the thing says why it can’t, in the why-blocked pop-up (not drawn). ${AG} on a piece with nothing to send the arrow opens the form straight away, not a sheet with one row. ${RD('his ruling on ⚑ 9: each piece carries its full row (frame DT1); the rows were drawn short')}`);
+const tr2 = frame('44-8', `TR2 (F20 b; F21 c. ⚑ 7. Findings 16, 17). ${NEW} <b>The same at 375 px.</b> <b>A.</b> The pieces, each with its arrow and its eye, 8 px apart; what only the GM sees takes the card’s whole width under the words. ${RD('his ruling on ⚑ 9: each piece carries its full row')} <b>B.</b> The sheet for one thing. <b>C.</b> The sheet for a count, “Send all” at the foot’s right. <b>D.</b> The sheet of a sent piece. <b>Mine, to check:</b> the words and two 44 px targets share 343 px, so the words wrap to about 26 characters a line.`,
+  `<div class="phs23">${stt('<b>A.</b> The pieces.', phGm(`<h3 class="display" style="font-size:24px;margin:0">${num22('2. The Wreck')}</h3>${P_SAIL(ferryRow)}${P_BOX}${P_RING(true)}${P_OIL()}`))}${stt('<b>B.</b> One thing.', phSheet(phBehind, ringSheet))}${stt('<b>C.</b> A count.', phSheet(phBehind, oilSheet))}${stt('<b>D.</b> A sent piece.', phSheet(phBehind, sentSheet))}</div>`, 1520);
+
+// ================= DP: the Depart list =================
+const pkRow = (name, o = {}) => `<div class="pk23${o.ind ? ' ind44' : ''}${o.ind === 2 ? ' ind2' : ''}" role="button"><span style="flex:1;min-width:0;overflow-wrap:break-word">${num22(name)}</span>${o.area ? `<span class="ar">${o.area}</span>` : ''}</div>`;
+const nPlaces = (n) => `${n} place${n === 1 ? '' : 's'}`;
+const grp = (area, n, open, rows = [], o = {}) => `<div class="gh44${o.ind ? ' ind44' : ''}"><span class="sclab" data-sc>${area}</span><span class="meta">${nPlaces(n)}</span>${foldSq(open, area)}</div>${open ? rows.map((r) => pkRow(r, { ind: o.ind ? 2 : 0 })).join('') : ''}`;
+const HARB = ['The Old Mooring', '0. The Anchorage', '1. The Jetty', '2. The Wreck', '3. The Breakwater', '4. The Customs Shed', '5. The Sea Cave'];
+const HARB12 = [...HARB, '6. The Sluice', '7. The Net Loft', '8. The Chain Tower', '9. The Salt Pans', '10. The Sea Gate', '11. The Outer Mole'];
+const searchField = (v) => `<span class="flab" style="margin-top:0">Search places by name or map number</span><span class="field${v ? '' : ' empty'}" role="textbox" aria-label="Search places by name or map number">${v || '&nbsp;'}</span>`;
+const otherRow = `<div style="margin-top:var(--space-3)">${b('Other… a place that isn’t listed')}</div>`;
+const whereHead = `<div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">Depart</span><span class="sheet-title">Where?</span></span>${pX}</div>`;
+const packRow = (name, n, open, inner = '') => `<div class="gh44"><span><b>${name}</b></span><span class="meta">${nPlaces(n)}</span>${foldSq(open, name)}</div>${open ? inner : ''}`;
+const packHead = '<p class="sclab" data-sc style="margin-top:var(--space-4)">From your packs</p>';
+const dpA = `${whereHead}${searchField('')}<p class="sclab" data-sc>Recently visited</p>${pkRow('2. The Wreck', { area: 'The Drowned Harbour' })}${pkRow('0. The Landing', { area: 'The Shingle Beach' })}${grp('The Drowned Harbour', 7, true, HARB)}${grp('The Shingle Beach', 5, false)}${packHead}${packRow('The Reed Marches', 212, false)}${packRow('Fenwick Hole', 4, false)}${otherRow}`;
+const dpB = `${whereHead}${searchField('1')}<p class="meta" style="margin:var(--space-2) 0 0">4 places.</p>${pkRow('1. The Jetty', { area: 'The Drowned Harbour' })}${pkRow('1. The Wrack Line', { area: 'The Shingle Beach' })}${pkRow('10. The Sea Gate', { area: 'The Drowned Harbour' })}${pkRow('11. The Outer Mole', { area: 'The Drowned Harbour' })}`;
+const dpC = `${whereHead}${searchField('')}${grp('The Drowned Harbour and the Wrecks of the Outer Bar', 13, true, HARB12)}`;
+const dpD = `${whereHead}${searchField('')}${grp('The Drowned Harbour', 7, false)}${grp('The Shingle Beach', 5, false)}${packHead}${packRow('The Reed Marches', 212, true, `${grp('Moss Landing', 3, true, ['The Ford', '1. The Drowned Jetty', '2. The Reeve’s Post'], { ind: true })}${grp('The Bog Road', 4, false, [], { ind: true })}${grp('Thornwater', 205, false, [], { ind: true })}`)}${packRow('Fenwick Hole', 4, false)}${otherRow}`;
+const dpE = `${whereHead}${searchField('quay')}<p style="margin:var(--space-3) 0 var(--space-2)">No place matches “quay”.</p>${b('Other… use “quay” as a new place')}`;
+const dp3 = frame('44-9', `DP3 (F1 a, c; F2. ⚑ 10, ruled. Findings 5, 11, 24). ${NEW} <b>The Depart list, “Where?”, as one view.</b> <b>A. As it opens.</b> The search field and “Recently visited” at the top; then each Area as a <b>group that folds</b> (F1 c), with its count and the fold mark. <b>Ruled 26 Nov (⚑ 10):</b> the Area last played starts open, the others folded. <b>The order (F1 a, ruled):</b> places with no number first, then by number: 0, 1, 2 … 9, 10, 11. Then “From your packs” and “Other…”. <b>One word for the count</b> (finding 11): “7 places”, “212 places”, lower case, never “Locations” beside “places”. <b>One fold mark</b> (finding 5): the chevron in its square, down while folded and up while open, here, on the Scene’s top, on “From the book” and in Knowledge; no “+” on the page, so “+” keeps meaning “add”. <b>B. A search for “1”:</b> each row names its Area at the right. <b>C. Messy:</b> a long Area name wraps; thirteen places in number order. <b>D. A pack unfolded in place</b> (finding 5: the same mark used to swap the whole view for a pack): the pack opens where it stands, as an Area does; its Areas are groups inside it, <b>stepped in 16 px</b> (N4: they stood at the top-level Areas’ edge), and their places step in again and carry their numbers in the same order (F2). There is no second view, so there is nothing to come back from, and <b>“Back” is gone</b>. <b>E. Nothing found.</b> <b>Mine, to check:</b> inside a pack an Area’s places step in 24 px more than their Area (40 px from the pack’s edge); a pack of 212 places unfolds to its Areas, never to 212 rows; the tick on a picked row is as page 24’s DP1; loading is DP1’s two skeleton rows, not redrawn; the dark edge of a field on a pop-up is finding 24, a token’s question, not changed here. ${AG} the chevron in place of “−” and “+” for these groups. ${RD('his pick N4: D’s indent')}`,
+  `<div class="four" style="grid-template-columns:repeat(3,440px);gap:var(--space-5)">${stt('<b>A.</b> As it opens.', `<div class="popb w44">${dpA}</div>`)}${stt('<b>B.</b> A search for “1”.', `<div class="popb w44">${dpB}</div>${`<p class="lbl" style="margin-top:var(--space-4)"><b>E.</b> Nothing found.</p><div class="popb w44">${dpE}</div>`}${`<p class="lbl" style="margin-top:var(--space-4)"><b>D.</b> A pack unfolded in place.</p><div class="popb w44">${dpD}</div>`}`)}${stt('<b>C.</b> Messy: a long name, thirteen places.', `<div class="popb w44">${dpC}</div>`)}</div>`, 1420);
+const dpPhone = (html) => html.split('<span class="ar">').join('<span class="ar" style="margin-left:0;flex-basis:100%">').split('class="pk23" role="button"><span style="flex:1;min-width:0;overflow-wrap:break-word">').join('class="pk23" role="button" style="flex-wrap:wrap;row-gap:0;padding:var(--space-1) 0"><span style="flex:1 0 100%;min-width:0;overflow-wrap:break-word">');
+const dp3b = frame('44-10', `DP3b (F1; F2. ⚑ 10. Findings 5, 11). ${NEW} <b>The same at 375 px</b>, as a whole-screen sheet (as DP1b). <b>A.</b> As it opens: the Area last played open. <b>B.</b> A pack unfolded in place, its Areas inside it, stepped in 16 px. ${RD('his pick N4: B’s indent')} <b>Mine, to check:</b> “Recently visited” puts the Area under the name on a phone, since the two do not fit one line.`,
+  `<div class="phs23">${stt('<b>A.</b> As it opens.', `<div class="phone"><div class="inner">${dpPhone(dpA)}</div></div>`)}${stt('<b>B.</b> A pack unfolded in place.', `<div class="phone"><div class="inner">${dpD}</div></div>`)}</div>`, 760);
+
+// ================= WT: "Where to?" rows =================
+const MI = { Row: 'paddles', Swim: 'double-fish', Walk: 'leather-boot' };
+const wayBtn = ([w, t]) => `<span class="btn stk" role="button">${gi(MI[w], 24)}<span>${w}</span><small>${t}</small></span>`;
+const dest = (to, sub, modes) => `<div class="pdest"><span>${sym('travel', 24)}</span><span class="ot"><b>${num22(to)}</b>${sub ? `<small>${sub}</small>` : ''}</span><span class="modes" data-stkgroup>${modes.map(wayBtn).join('')}</span></div>`;
+const areaHead = (name) => `<p class="sclab ah44" data-sc>${name}</p>`;
+const R1 = [['Row', '1&nbsp;turn']], R2 = [['Row', '1&nbsp;turn'], ['Swim', '3&nbsp;turns']], W2 = [['Walk', '2&nbsp;turns']];
+// finding 21: the closed eye and what the players read, in place of a sentence on every row
+const notShown = (reads) => `<span class="ns44" role="note" aria-label="Not shown yet. Players read: ${reads}">${sym('eyeshut', 16)}${reads}</span>`;
+const gmWays = `${areaHead('The Drowned Harbour')}${dest('3. The Breakwater', '', R1)}${dest('4. The Customs Shed', notShown('4. Unexplored'), R2)}${dest('10. The Sea Gate', notShown('10. Unexplored'), R1)}${areaHead('The Shingle Beach')}${dest('0. The Landing', notShown('Unexplored, under “Elsewhere”'), R1)}${opt('Somewhere else…', '', { icon: 'search', right: go })}`;
+const plWays = (known) => `${areaHead('The Drowned Harbour')}${dest('3. The Breakwater', '', R1)}${dest('4. Unexplored', 'Rowing or swimming.', R2)}${dest('10. Unexplored', 'Rowing.', R1)}${areaHead(known ? 'The Shingle Beach' : 'Elsewhere')}${dest(known ? '0. The Landing' : 'Unexplored', known ? '' : 'Rowing.', R1)}`;
+const oneArea = `${dest('1. The Jetty', '', R2)}${dest('2. Unexplored', 'Rowing.', R1)}${dest('3. Unexplored', 'Walking.', W2)}${dest('Unexplored', 'Walking.', W2)}`;
+const moHead = `<div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">Move on</span><span class="sheet-title">From 5. The Sea Cave, where to?</span></span>${pX}</div>`;
+const wt1 = ipad('gm', `${gmBand('5. The Sea Cave, turn&nbsp;9', { fold: false })}<div class="four" style="margin-top:var(--space-4)">
+  ${stt('<b>A. The GM’s “Move on”</b>, at a place whose ways lead into two Areas.', `<div class="pcard">${moHead}${gmWays}</div>`)}
+  ${stt('<b>B. The players’ “Where to?”</b> at the same place; the second Area is not known to them yet.', `<div class="pcard"><div class="hrow"><h2>Where to?</h2></div>${plWays(false)}</div><p class="lbl" style="margin-top:var(--space-4)"><b>C. One Area only</b> (the usual case): no Area name. The last row is a place with no map number.</p><div class="pcard"><div class="hrow"><h2>Where to?</h2></div>${oneArea}</div>`)}
+</div>`,
+  `WT1 (F13 b; F22; F25; F1 a. ⚑ 6 and ⚑ 8, ruled. Findings 8, 12, 21). ${NEW} <b>Every way shows its place’s map number, in number order; where two Areas mix, each Area’s name stands over its rows</b> (⚑ 8, ruled). <b>A. The GM’s list:</b> “N. Name” on every row (F22), also for a place not shown yet. Under such a row, the closed eye and what the players read (“4. Unexplored”), in place of a sentence repeated on every row (finding 21). <b>B. The players’ list:</b> a place they have not explored reads <b>“N. Unexplored”</b> (F13 b, his words), and <b>under it the way, as today’s row names it</b> (“Rowing.”, “Rowing or swimming.”), so the new row says no less than the old (finding 8). <b>“Elsewhere”</b> stands over the ways into an Area the group does not know, and <b>a row under it has no map number</b>: “Unexplored”, then the way (⚑ 6 as ruled, with finding 8’s change: a number there would quote a map the players were never given). <b>C. One Area:</b> no heading. <b>One pattern for a place not explored</b> (N3): a place with no map number reads “Unexplored”, with the way under it (“Walking.”), as a numbered one reads “3. Unexplored”; the row named by its way (“Walking”, then “Not yet explored.”) is gone. <b>Hidden data (⚑ 6, ruled “Yes, both”):</b> for a way that is not hidden, a player’s device now also gets the map number of a place not yet explored, whether or not the Area’s map is shown, when the place is in an Area the group knows. For a place in an Area the group does not know it gets no number and no Area name: only that the way leads elsewhere. A way the GM hides is still absent. <b>Mine, to check:</b> “an Area the group knows” is one where a piece of one of its places has been shown to the group, the same test a place has; the closed eye’s spoken name is “Not shown yet. Players read: …”; the players’ list has no accent, as approved. ${AG} under “Elsewhere” no number and no Area name are sent. ${RD('his pick N3: C’s last row')} <b>Ruled by that pick:</b> the way’s words stay repeated under the name and on the buttons (his “no less than today”).`);
+
+// ================= PS: the players' Scene =================
+const TURN14 = 'The Drowned Harbour, turn&nbsp;14';
+const pBand = (open, under = '') => `${band({ over: 'Session 1. Saltwick Island.', title: TURN14, ident: DATE + under, acts: [foldBtn(open)] })}<hr class="dbl">`;
+const P_L = fact('flame', 'Light', 'Ash’s torch', '4 turns left.');
+const P_R = fact('rest', 'Rest', 'In 4 turns', 'One turn in six.');
+const P_E = F_E;
+const pTop = `${pBand(true)}${tiles([P_L, P_R, P_E])}${stripRow}`;
+const kwIf = (w, on) => (on ? `<b class="kw22">${w}</b>` : w);
+const shownP = `<div class="shown23"><p>Black piles and a slick deck, forty paces out over black water. Past the ${kwIf('mooring ring', true)}, a skiff rocks under the ${kwIf('ladder', true)}.</p><p><b>Mooring ring.</b> Fresh rope: someone tied up here this week.</p><p><b>Ladder.</b> Iron rungs down to the water, the lowest three green.</p></div>`;
+const pRule = ruleBtn('water-splash', 'Falling into the harbour: read the rule');
+const pPair = `<div class="two pp44">${b('What everyone knows', { icon: 'book' })}${b('Rules', { icon: 'scales' })}</div>`;
+// finding 15: at 375 px the two stand side by side as stacked buttons
+const pPairPh = `<div class="two pp44 ph">${stk('What everyone knows', 'book', { sym: true })}${stk('Rules', 'scales', { sym: true })}</div>`;
+const crumbP = `<div class="crumb"><span>Saltwick Island</span>${sep}<b>The Drowned Harbour</b></div>`;
+const pCard = `<div class="pcard">${crumbP}<div class="band"><div><h3 class="display">${num22('1. The Jetty')}</h3></div><div class="acts two">${pRule}</div></div>${pPair}${shownP}<div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div>${dest('2. The Wreck', '', R2)}${dest('3. Unexplored', 'Rowing.', R1)}${dest('4. Unexplored', 'Walking.', W2)}</div>`;
+const pDo = `<div class="pcard"><div class="hrow"><h2>Activities</h2></div><div class="ideas">${b('Search', { icon: 'book' })}${b('Listen', { icon: 'book' })}${b('Force a door', { icon: 'book' })}</div></div>`;
+const KEY22 = [['1 The jetty', '1. The Jetty'], ['2 The wreck', '2. The Wreck'], ['3 The breakwater', '3. The Breakwater'], ['4 The customs shed', '4. The Customs Shed'], ['5 The sea cave', '5. The Sea Cave']];
+const mapNamed = (vb) => KEY22.reduce((s, [a, c]) => s.split('>' + a + '<').join('>' + c + '<'), mapPic(true, vb));
+const pMap = `<div class="pcard" aria-label="The map">${mapOpen(mapNamed('112 68 300 220').replace('<svg ', '<svg style="width:100%;height:100%" '), '', { style: 'height:290px', bare: true }).replace('class="mapopen', 'style="margin-top:0" class="mapopen')}${mapTools('', locate(true), 'The Drowned Harbour', true)}</div>`;
+const knownCard = `<div class="pcard"><div class="hrow"><h2>Places you know</h2></div>${spotP(num22('2. The Wreck'), 'A cog on her side on the bar.')}</div>`;
+const ps1 = ipad('player', `${pTop}<div class="cols2"><div class="stack">${pCard}${pDo}</div><div class="stack">${pMap}${knownCard}${partyOrder(true)}</div></div>`,
+  `PS1 (F11 a, b; F12 a, b; F13 b. ⚑ 5 and ⚑ 6, ruled. Findings 5, 8, 26). ${NEW} <b>The players’ Scene, whole.</b> Base: page 24’s frame PL1b (approved 2026-11-18). <b>1. “What everyone knows” and “Rules” stand in the main column under the place’s name</b> (⚑ 5, ruled “Under place”; F12 b), as the GM’s “Knowledge” and “Rules” stand; both left the right-hand card. <b>2. The tiles are centred</b> (F11 a): three here, since this setting gives no weather. The encounter tile has the crossed swords (⚑ 1) and reads “d20”, as the GM’s does (finding 26: it read “1 in 6”). <b>3. The top folds</b> (F11 b): the fold mark at the band’s right is a chevron, up while open (finding 5); frame PS2 shows it folded. <b>4. “Where to?”</b> reads “3. Unexplored” with the way under it (⚑ 6; finding 8; frame WT1). <b>The right-hand card</b> lists only the places the group knows, under “Places you know”. <b>F12 a (“why is that place showing?”):</b> as designed, a Location shown to the group on an earlier visit stays listed here with its first shown line. <b>Mine, to check:</b> the card’s name “Places you know”; with nothing shared and no rule, the pair’s row is left out.`);
+const pFold = `${pBand(false, dueLine)}<div class="cols2"><div><div class="pcard">${crumbP}<div class="band"><div><h3 class="display">${num22('1. The Jetty')}</h3></div><div class="acts two">${pRule}</div></div>${pPair}</div></div><div></div></div>`;
+const wideBand = `<p class="lbl" style="margin-top:var(--space-5)"><b>D. The GM’s band on a wider screen</b> (drawn at 1440 px; from 1180 px): each mark has its word under it.</p><div class="dev wide short">${railOf('gm')}<div class="main">${topRow('gm')}<div class="page">${gmBand('The Drowned Harbour and the Wrecks, turn&nbsp;14', { words: true })}${tiles([F_W, F_L, F_R, F_E])}</div></div></div>`;
+const ps2 = shortPad('gm', `
+  <p class="lbl"><b>A. The players’ top, folded:</b> the band alone; the mark points down; a fact that is due keeps one small line.</p>${pFold}
+  <p class="lbl" style="margin-top:var(--space-6)"><b>B. The GM’s top with four, three and two tiles:</b> four fill the row; fewer stand centred at the same width.</p>${tiles([F_W, F_L, F_R, F_E])}<div style="height:var(--space-3)"></div>${T3}<div style="height:var(--space-3)"></div>${tiles([F_L, F_E])}
+  <p class="lbl" style="margin-top:var(--space-6)"><b>C. The GM’s top, folded:</b> nothing under the band but the page. No encounter row anywhere (⚑ 4).</p>${gmBand(JETTY, { fold: false })}<div class="cols2"><div><div class="pcard">${trail('1. The Jetty')}${headOf('1. The Jetty', splash + b('Move on', { big: true, accent: true, icon: 'travel' }))}${pair}</div></div><div class="stack">${waitNone}</div></div>`,
+  `PS2 (F7 a; F9; F10; F11 a, b; F3 a. ⚑ 1 and ⚑ 4, ruled. Findings 5, 18). ${NEW} <b>The folds and the tiles.</b> Base: page 24’s frame TF1. <b>A.</b> The players’ top folds as the GM’s does (F11 b): the facts and the strip go; the band stays; a due fact is one small line with its warning sign. The fold is each device’s own and is remembered. <b>B.</b> Tiles centred (F7 a, F11 a): each tile keeps a quarter of the row. The encounter tile carries the crossed swords, the same mark as the band’s button and the card (⚑ 1; finding 18). <b>C.</b> The GM’s top folded shows nothing between the band and the page. <b>Ruled 26 Nov (⚑ 4):</b> both encounter rows are gone from the Scene: “nothing due” is said by the toast, and “Encounter tables” is in the “…” menu (frame EN7, A). <b>The fold mark (finding 5):</b> a chevron, down while folded and up while open; on the GM’s band it stands after a thin rule, apart from the actions, with “…” still last (F3 a). <b>D. The band’s words (finding 18):</b> “Camp”, “Encounter”, “Leave” under their marks, as stacked buttons, <b>where the band has room: from 1180 px wide</b>. At 1024 px the words take 144 px more than the marks, and a place’s name with its turn then breaks over two lines (“5. The Sea Cave, turn 9” does); so at 1024 px and on a phone the marks stand alone, as built, and are read aloud by their words. <b>Mine, to check:</b> the three short words; the frame is drawn in the GM’s shell for B and C; A is a player’s screen. ${AG} the band’s words only from 1180 px wide, a 1024 px tablet and a phone keeping the marks alone; the chevron in place of the built “−” and “+” on the top.`);
+const phPTop = (open) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)"><h3 class="display" style="margin:0;font-size:20px">${TURN14}</h3>${foldBtn(open)}</div><p class="ident" style="font-size:14px;margin:var(--space-1) 0 0">${dl('14 Reedmonth', 'Two hours of light left.')}</p>${open ? `${tiles([P_L, P_R, P_E])}${stripRow}` : ''}`;
+const phPlace = `<div class="crumb" style="margin-top:var(--space-3)"><span>Saltwick Island</span>${sep}<b>The Drowned Harbour</b></div><div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)"><h3 class="display" style="font-size:24px;margin:0">${num22('1. The Jetty')}</h3>${pRule}</div>${pPairPh}${shownP}<div class="hrow" style="margin-top:var(--space-3)"><h2>Where to?</h2></div>${dest('2. The Wreck', '', R2)}${dest('3. Unexplored', 'Rowing.', R1)}`;
+const ps3 = frame('44-14', `PS3 (F11 a, b; F12 b; F13 b. ⚑ 5, ⚑ 6. Findings 8, 12, 15, 26). ${NEW} <b>The players’ Scene at 375 px.</b> <b>A.</b> Unfolded: two tiles across, and <b>the third takes the row’s whole width</b> (finding 15: centred alone it read as a slip); “What everyone knows” and “Rules” <b>side by side</b>, as two stacked buttons of one width, where one over the other took 96 px. “turn” keeps its number on its line (finding 12), and the light’s line reads as the tablet’s does (finding 26). <b>B.</b> Folded: the place and “Where to?” start about 290 px higher. <b>C.</b> “Where to?” with two Areas, the second not known yet: “Elsewhere”, and a row with no number. <b>Mine, to check:</b> “What everyone knows” keeps to one line in its half of the row at the stacked button’s size; each phone is cut after its rows.`,
+  `<div class="phs23">${stt('<b>A.</b> Unfolded.', phPl(`${phPTop(true)}${phPlace}`))}${stt('<b>B.</b> Folded.', phPl(`${phPTop(false)}${phPlace}`))}${stt('<b>C.</b> Two Areas.', phPl(`<div class="hrow"><h2>Where to?</h2></div>${plWays(false)}`))}</div>`, 1140);
+
+const prompt = (icon, body, btn) => `<div class="wait e44" style="grid-template-columns:auto minmax(0,1fr) auto;align-items:center"><span class="wi">${icon}</span><span>${body}</span>${btn}</div>`;
+const revealed = prompt(SW(28), `<b style="display:block">An encounter</b>${RES_CUT}`, stk('Got it', 'check-mark'));
+const en5 = frame('44-19', `EN5 (F4 c. Finding 1, ruled; findings 12, 15, 26). ${NEW} <b>Where a revealed result shows on the players’ Scene.</b> The result takes the players’ <b>prompt slot</b>, under the top (page 18, frame PL4b): the crossed swords, “An encounter”, the words, and “Got it”. <b>The words are the ones the GM saw and sent</b> in “Reveal to players” (frame EN6): here the cut ones, “Two grey shapes…”, not the book’s row. Players never get the stat line, the count, or the table. “Got it” puts the card away on that device; the log keeps the line. The GM’s “Revealed”, tapped again, takes the card back. With the party split, it goes to the group whose check it was. <b>A.</b> A tablet. <b>B.</b> At 375 px, the top folded. <b>Mine, to check:</b> “An encounter” as the card’s heading; “Got it” is plain (no accent on a player’s Scene); the card also shows if the top is folded, since the slot is not part of the fold.`,
+  `${stt('<b>A.</b> On a tablet: the slot, under the top.', `<div class="dev ipad short">${railOf('player')}<div class="main">${topRow('player')}<div class="page">${pTop}<div style="margin-top:var(--space-4)">${revealed}</div><div class="cols2"><div><div class="pcard">${crumbP}<div class="band"><div><h3 class="display">${num22('1. The Jetty')}</h3></div><div class="acts two">${pRule}</div></div>${pPair}</div></div><div></div></div></div></div></div>`)}${stt('<b>B.</b> At 375 px.', phPl(`${phPTop(false)}<div style="margin-top:var(--space-3)">${revealed}</div>${phPlace}`))}`, 1400);
+
+// ================= KN: Knowledge =================
+const kHead = (over) => `<div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">${over}</span><span class="sheet-title">Knowledge</span></span>${pX}</div>`;
+const kFacts = (rows) => rows.map(([k, v]) => `<p style="margin:0 0 var(--space-1)"><b>${k}.</b> ${v}</p>`).join('');
+const AREA = 'The Drowned Harbour';
+// finding 4, ruled "Whole Area": a folded section has no eye; unfolded, the eye is on the section's own heading, and one line says how far a share goes
+const kSec = (title, first, o = {}) => (o.open
+  ? `<div class="ksec k44 open"><div class="kh44"><h4>${title}</h4>${eyeBtn(!!o.shared)}<span class="mx" role="button" aria-expanded="true" aria-label="Fold ${title}">${foldMark(true, 20)}</span></div><div class="bk">${o.open}</div><div class="when" role="status">${o.shared ? `${sym('eye', 16)} ${o.shared}` : o.reach}</div></div>`
+  : `<div class="ksec k44" role="button" aria-expanded="false" aria-label="Unfold ${title}"><div><h4>${title}</h4><p class="first">${first}</p>${o.shared ? `<div class="when">${sym('eye', 16)} ${o.shared}</div>` : ''}</div><span class="mx">${foldMark(false, 20)}</span></div>`);
+const SH_AREA = `Shared with the party: all of ${AREA}, turn&nbsp;9.`;
+const REACH_AREA = `Not shared. A share reaches the party at every place in ${AREA}.`;
+const CARGO = '<p>The manifest lists her cargo plainly, and the list is honest as far as it goes. It leaves out the chest in the stern cabin, which came aboard at night and was never written down.</p>';
+const areaK = (openCargo) => `<h4 class="bsub" style="margin-top:var(--space-4)">${AREA}</h4><p class="meta" style="margin:0 0 var(--space-2)">The Area’s knowledge, at each of its places.</p>${kFacts([['Tides', 'Two a day; the bar dries at low water.'], ['Law', 'None since the customs men left.']])}${kSec('How the harbour silted', 'The harbour silted in a single winter. The old men say the river changed its mind…', { shared: SH_AREA })}${kSec('The wreck’s cargo', 'The manifest lists her cargo plainly, and the list is honest as far as it goes…', openCargo ? { open: CARGO, reach: REACH_AREA } : {})}${kSec('What the Tidewife wants', 'The Tidewife wants the chest. She cannot leave the water to fetch it…')}`;
+const kFoot = (n, of) => `<p class="meta" style="margin:var(--space-2) 0 0;border-top:1px dotted var(--rule);padding-top:var(--space-2)">${n} of ${of} sections shared.</p><p class="meta" style="margin:var(--space-1) 0 0">From your adventure: Saltwick Island, p.&nbsp;10.</p>`;
+const knA = `${kHead('0. The Anchorage')}<p class="meta" style="margin:0">Nothing written for this place alone.</p>${areaK(true)}${kFoot(1, 3)}`;
+const knB = `${kHead('2. The Wreck')}<h4 class="bsub">${num22('2. The Wreck')}</h4>${kFacts([['Sank', 'Nine winters ago, at night.'], ['Owned by', 'Nobody living.']])}${kSec('Who strips her', '', { open: '<p>Three ferrymen work the wreck by night and sell what they lift at the customs shed. Old Harl takes a third.</p>', reach: 'Not shared. A share reaches the party at 2. The Wreck only.' })}${areaK(false)}${kFoot(1, 4)}`;
+const knC = `${kHead('Fenwick Hole')}<p style="margin:0">The pack gives no knowledge for this place, or for a place it is in.</p>`;
+const kn1 = frame('44-15', `KN1 (F8 a; F16; F26 d. ⚑ 3, ruled; finding 4, ruled “Whole Area” and “Yes, per section”; findings 5, 19, 26). ${NEW} <b>A place’s Knowledge also shows its Area’s knowledge, always, under the place’s own</b> (⚑ 3, ruled “Always, under”). <b>A. A Location with nothing of its own</b> (his case, “Arrival”): one line says so, then the Area’s knowledge under the Area’s name and one quiet line. <b>B. A Location with its own:</b> its own first, now under the place’s name as a heading that matches the Area’s (finding 19), then the Area’s. <b>C. Neither.</b> <b>D. At 375 px.</b> <b>A share reaches the whole Area</b> (finding 4, ruled): a section of the Area’s knowledge shared from any one of its places is known at every place in that Area, and the line says so: <b>“Shared with the party: all of The Drowned Harbour, turn 9.”</b> <b>Where the eye sits:</b> a folded section is one row with the fold mark and no eye, so a slip beside the fold shares nothing. Unfolded, the section’s own heading carries its eye, and the line under the words says how far a share will go before the tap (“Not shared. A share reaches the party at every place in The Drowned Harbour.”). A place’s own section says “at 2. The Wreck only”. The share is at once, with Undo, as built. <b>Each section keeps its own eye</b>, on that section’s heading once unfolded, and its share reaches the whole Area. This is the driver’s reading of his pick (the eye “moves to the Area’s own heading, not the row that unfolds”), agreed by Home Two and <b>confirmed by Francis, 26 Nov: “Yes, per section”</b>. One eye on the Area’s heading would send every section in one tap, the GM’s secrets with them. <b>Mine, to check:</b> “the party” in these lines, where the built line says “the players”; the Area’s quiet line; the section once named “What everyone knows” is renamed, since those are the words of the players’ button (finding 26); the Region’s knowledge is not added; the bold facts have no eye, as built.`,
+  `${stt('<b>A.</b> Nothing of its own; one of the Area’s sections unfolded.', `<div class="popb w44">${knA}</div>`)}${stt('<b>B.</b> Its own, then its Area’s.', `<div class="popb w44">${knB}</div>`)}${stt('<b>C.</b> Neither.', `<div class="popb w44">${knC}</div>`)}${stt('<b>D.</b> At 375 px.', phSheet(phBehind, knA))}`, 1760);
+
+// ================= ET: the encounter tables' pages =================
+const chips = `<div class="chips44">${chip('Encounters in the harbour', true)}${chip('Encounters on the beach')}${chip('What the tide brings')}</div>`;
+const ttRow = ([n, w], on) => `<div class="tr${on ? ' on' : ''}" role="button"${on ? ' aria-pressed="true"' : ''}><span class="n">${n}</span><span>${w}</span><span>${on ? sym('check', 20) : ''}</span></div>`;
+const ttOf = (title, dieN, rows, on) => `<div class="tt"><div class="tbar">${title}</div><div class="th"><span>${dieMark(dieN, 16)}d${dieN}</span><span>Encounter</span><span></span></div>${rows.map((r, i) => ttRow(r, i === on)).join('')}</div>`;
+const etBody = (on) => `<div class="tp44"><div class="band"><div><div class="over">Rolled by hand</div><h3 class="display">Encounter tables</h3></div></div>${chips}<div class="bk">${rollRow}</div>${ttOf('Encounters in the harbour', 20, ENC, on)}</div>`;
+const TIDE = [['1', 'Driftwood, sound'], ['2–3', 'A net, torn, with floats'], ['4', 'A drowned sheep'], ['5', 'A sea chest, empty'], ['6', 'A bottle, sealed, with a paper in it and a name on the paper nobody here knows']];
+const et1 = frame('44-16', `ET1 (F8 b. ⚑ 4. Finding 7). ${NEW} <b>The pages opened from “Encounter tables” in the book’s table format</b>, every table. They are now reached from the Scene’s “…” menu (⚑ 4, ruled; frame EN7, A). The book’s tapped table: the roll row; the table’s name on its bar; the die over its column; banded rows, 44 px high; a tap on a row is the answer; the picked row is washed and ticked, with a toast and Undo. <b>The toast names the row’s range</b>, “15–16”, never a number nobody entered (finding 7). The row’s other tables are chips over it, as built. <b>A.</b> A d20 table on a tablet, one row picked. <b>B.</b> A short d6 table with one long row, at 375 px. <b>Mine, to check:</b> the page keeps its back link and “Rolled by hand”; the table is capped at 640 px; a table the pack prints with columns keeps its column chips, not drawn; what follows a row picked by hand is not drawn (built later).`,
+  `${stt('<b>A.</b> A d20 table, one row picked.', `<div class="dev ipad short">${railOf('gm')}<div class="main"><div class="toprow"><span class="back">‹ Scene</span>${ico('mail', 'Messages')}${ico('book', 'Reference')}${ico('note', 'Log')}<span class="ico" role="button" aria-label="More">${I.more}</span></div><div class="page">${etBody(4)}<div style="max-width:640px;margin-top:var(--space-4)">${toast('Rolled by hand: 15–16, two bog lurkers rise from the weed.')}</div></div></div></div>`)}${stt('<b>B.</b> A short table at 375 px.', phGm(`<div class="over">Rolled by hand</div><h3 class="display" style="font-size:24px;margin:0 0 var(--space-2)">Encounter tables</h3><div class="bk"><p style="margin:0 0 var(--space-2);display:flex;align-items:center;gap:var(--space-2)">${dieMark(6, 24)}<b>Roll d6, then tap the row.</b></p></div>${ttOf('What the tide brings', 6, TIDE, -1)}`))}`, 1400);
+
+// ================= PU: the pop-ups' spacing =================
+const takes = (t) => `<dt>${sym('clock', 20)}Takes</dt><dd>${t}</dd>`;
+const travelPop = (cls) => `<div class="popb ${cls}" role="dialog" aria-label="Row to 2. Unexplored"><div class="pu44"><span class="sheet-title">Row to 2. Unexplored</span>${pX}</div><dl class="sum">${takes('1&nbsp;turn.')}</dl><p style="margin:var(--space-2) 0 0">Your GM moves the party. Say where you want to go.</p><div class="mf44" style="justify-content:flex-end">${b('Got it')}</div></div>`;
+const thenRow = (w) => `<dt>${SW(20)}Then</dt><dd>${w}</dd>`;
+const movePop = (cls) => `<div class="popb ${cls}" role="dialog" aria-label="Move on: Row to 1. The Jetty"><div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">Move on</span><span class="sheet-title">Row to 1. The Jetty</span></span>${pX}</div><dl class="sum">${takes('1&nbsp;turn.')}${thenRow('a roll on Encounters in the harbour.')}</dl><div class="mf44">${b('Back')}${b('Move', { accent: true, icon: 'travel' })}</div></div>`;
+const moveLong = `<div class="popb w44" role="dialog"><div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">Move on</span><span class="sheet-title">Swim to 10. The Sea Gate of the Outer Mole and the Chain Tower</span></span>${pX}</div><dl class="sum">${takes('999&nbsp;turns.')}${thenRow('a roll on Encounters in the harbour and on the water beyond the bar.')}</dl><div class="mf44">${b('Back')}${b('Move', { accent: true, icon: 'travel' })}</div></div>`;
+const backMove = `${gmTop('The Anchorage, turn&nbsp;1')}<div class="cols2"><div><div class="pcard">${trail('0. The Anchorage')}${headOf('0. The Anchorage', splash + b('Move on', { big: true, icon: 'travel' }))}${pair}</div></div><div class="stack">${waitNone}</div></div>`;
+const pu1 = frame('44-17', `PU1 (F14; F15. Findings 22, 23, 24). ${NEW} <b>Two pop-ups, tightened.</b> <b>A. The GM’s “Move on” step</b> as the app’s standard pop-up, centred, as tall as its words: the eyebrow, the title, the two lines, then one foot row, “Back” at the left and “Move” (the accent) at the right. <b>B. The players’ travel pop-up</b> (finding 23): the title says the way and the place; then <b>“Takes 1 turn.”</b>, labelled as the GM’s line is, the built sentence, and a plain <b>“Got it”</b> at the foot’s right, so the pop-up no longer ends in a sentence with only the X. <b>C. Messy:</b> a long name wraps; 999 turns; a long table name. <b>D, E. At 375 px</b>, as sheets from the foot. <b>Mine, to check:</b> the players’ title gains the place (“Row to 2. Unexplored”; today it reads “Row”); for a row under “Elsewhere” it reads “Row to an unexplored place”; “Back” returns to the list of ways, as today, and stays at the foot’s left as the safe way out (finding 22 moves “Remove this piece” away from that spot, frame EP1); the dark edge of a plain button on a pop-up is finding 24, a token’s question, not changed here.`,
+  `${stt('<b>A.</b> The GM’s “Move on”, centred.', overPop('gm', backMove, movePop('w44'), 580))}<div>${stt('<b>B.</b> The players’ travel pop-up.', travelPop('w44'))}<div style="height:var(--space-4)"></div>${stt('<b>C.</b> Messy.', moveLong)}</div><div class="phs23">${stt('<b>D.</b> “Move on” at 375 px.', phSheet(phBehind, movePop('ph44').replace('class="popb ph44"', 'style="display:contents"')))}${stt('<b>E.</b> The players’ at 375 px.', phSheet(phBehind, travelPop('ph44').replace('class="popb ph44"', 'style="display:contents"')))}</div>`, 1900);
+
+// ================= EP: the "Edit piece" form =================
+const KINDS = ['Description', 'Exit', 'Someone here', 'Clue', 'Treasure', 'Hazard', 'Other'];
+// findings 10 and 20: the kind is a fold that opens in place, with no icon of its own
+const kindRow = (k, open) => `<div class="fld44"><span class="fl">Kind</span><div class="kind44" role="button" aria-expanded="${!!open}" aria-label="Kind: ${k}. Change it"><span>${k}</span>${foldMark(!!open, 20)}</div>${open ? `<div class="kl44" role="radiogroup" aria-label="Kind">${KINDS.map((x) => `<div class="pk23" role="radio" aria-checked="${x === k}" style="${x === k ? 'font-weight:700' : ''}"><span style="width:24px;display:inline-flex">${x === k ? sym('check', 20) : ''}</span><span style="flex:1">${x}</span></div>`).join('')}</div>` : ''}</div>`;
+// finding 22: "Remove this piece" is a quiet row under Kind; the foot holds Save alone
+const removeRow = `<div class="pk23 rm44" role="button">${gi('cancel', 24)}<span style="flex:1">Remove this piece</span></div>`;
+const epFoot = `<div class="mf44" style="justify-content:flex-end">${b('Save', { accent: true })}</div>`;
+const epForm = (text, kind, open) => `<div class="pu44"><span class="sheet-title">Edit piece</span>${pX}</div>${fld('What players will see', text, { area: true })}${kindRow(kind, open)}${removeRow}${epFoot}`;
+const RINGT = 'A plain band of old bronze, on a hook by the cabin door.';
+const LONGT = 'A plain band of old bronze, on a hook by the cabin door, green where the sea air has reached it and bright on the inside, as if it had been worn every day until the day it was hung up here and left.';
+const ep1 = frame('44-18', `EP1 (F24. ⚑ 7, ruled: “Behind the arrow”. Findings 6, 10, 20, 22, 24). ${NEW} <b>The “Edit piece” form, to the standard pop-up.</b> <b>How it opens (⚑ 7):</b> never from a tap on a piece’s words. On a piece with nothing to send, the piece’s arrow opens it; on a Treasure piece, “Edit the piece’s words” in its sheet does (frame TR1). <b>A. The form:</b> the words first; the kind as one row; a quiet row, <b>“Remove this piece”</b>, under it (finding 22: it stood at the foot’s left, where “Back” stands in “Move on”); the foot holds “Save” alone, the accent, at the right. <b>B. “Kind” tapped:</b> the seven kinds <b>unfold in place</b> under their row, the picked one ticked; a tap picks and folds them again. No second view, so nothing needs a “Back” (finding 10). The row has no icon: one jigsaw for every kind said nothing (finding 20). <b>C. Messy:</b> a long text grows the box. <b>D. At 375 px.</b> <b>E. The X with words changed</b> (finding 10): the form closes and a toast says “Changes dropped.”, with Undo, which opens the form again with the words as typed. With nothing changed, the X only closes. “Remove” takes the piece off the card with an Undo toast, as built. <b>Mine, to check:</b> “+ Piece” uses the same form, titled “Add a piece”, with no “Remove”; not drawn (built later); the kinds unfold in place and not in a second view with “Back”; the dark edge of a field on a pop-up is finding 24, a token’s question.`,
+  `${stt('<b>A.</b> The form.', `<div class="popb w44">${epForm(RINGT, 'Treasure')}</div><div style="height:var(--space-4)"></div><p class="lbl"><b>E.</b> The X tapped with words changed.</p><div style="width:440px">${toast('Changes dropped.')}</div>`)}${stt('<b>B.</b> “Kind” tapped: the kinds unfold in place.', `<div class="popb w44">${epForm(RINGT, 'Treasure', true)}</div>`)}${stt('<b>C.</b> Messy: a long text.', `<div class="popb w44">${epForm(LONGT, 'Someone here')}</div>`)}${stt('<b>D.</b> At 375 px.', phSheet(phBehind, epForm(RINGT, 'Treasure')))}`, 1800);
+
+mount(`
+  <h1>The Scene feedback of 25 November: approved 26 November, with picks</h1>
+  <p class="note big"><b>Approved by Francis on 26 November: “Approve with picks”.</b> The redrawn frames are approved as they stand, with his picks applied; only the parts the picks touch were redrawn after, and each of those says so in its caption. Home Two ran <code>impeccable critique</code> on the redrawn page first: 31 of 40, up from 24 (its tables are under the frames). <b>Nothing here is built yet:</b> the build plan is <code>docs/plans/dec-scene-feedback.md</code>. His 27 notes are in <code>docs/intents/scene-feedback-2026-11-25.md</code>; every ruling, in his words, is in <code>docs/design/rulings/scene-feedback-2026-11-25.md</code>. Each caption names the notes (F1 to F27), the rulings (⚑) and the findings it answers. “Mine, to check” marks what is the designer’s own and was not singled out by the critique or by him. Names, words, numbers and table rows are invented; the map is a stand-in.</p>
+  <p class="note big"><b>Redrawn after his approval, to his picks</b> (he has not seen these parts as drawn): <b>DT1 and DT2</b>, one drawing in place of options a and b (⚑ 9, “Home Two’s fix”); <b>TR1 and TR2</b>, the pieces’ rows, which follow ⚑ 9; <b>EN7</b> B, C and F (N1, N5, N2); <b>WT1</b> C (N3); <b>DP3</b> D and <b>DP3b</b> B (N4). <b>Confirmed by him:</b> in Knowledge each section keeps its own eye, and its share reaches the whole Area (finding 4: “Yes, per section”; frame KN1, not redrawn). <b>Still open, for later:</b> finding 24, the 2.97 to 1 dark edge of a control on a pop-up, a token’s question; not changed here. <b>Found while writing the build plan, his to rule (hidden data):</b> on KN1 B the line under a place’s own section says “A share reaches the party at 2. The Wreck only.”, while the app as built and ruled sends a Location’s own shared section to the group at the other places of its Area too. The frame is not changed; the plan’s ⚑ 3 and <code>docs/10-open-questions.md</code> carry it, and sf-13 leaves that one line as built until he rules.</p>
+  <h1>EN. An encounter is one card</h1>
+  ${dframe('44-1', en1)}
+  ${en2}
+  ${en3}
+  ${en4}
+  ${en6}
+  ${en5}
+  ${en7}
+  <h1>DT. Details at hand</h1>
+  ${dframe('44-5', dt1)}
+  ${dt2}
+  <h1>TR. Found treasure, and where “Edit piece” lives</h1>
+  ${dframe('44-7', tr1)}
+  ${tr2}
+  <h1>DP. The Depart list</h1>
+  ${dp3}
+  ${dp3b}
+  <h1>WT. “Where to?” rows</h1>
+  ${dframe('44-11', wt1)}
+  <h1>PS. The players’ Scene, the folds and the tiles</h1>
+  ${dframe('44-12', ps1)}
+  ${dframe('44-13', ps2 + wideBand)}
+  ${ps3}
+  <h1>KN. Knowledge</h1>
+  ${kn1}
+  <h1>ET. The encounter tables’ pages</h1>
+  ${et1}
+  <h1>PU. Two pop-ups, tightened</h1>
+  ${pu1}
+  <h1>EP. The “Edit piece” form</h1>
+  ${ep1}
+  <h1>Francis’s rulings of 26 November</h1>
+  <p class="note big">His choice is in quotes. Each is drawn in the frame named.</p>
+  <ol class="q44">
+    <li><b>The encounter’s icon:</b> “Crossed swords”. In the band, on the tile and on the card (EN1, PS2).</li>
+    <li><b>“Start”:</b> “Gone until fights”. “Done” closes the card (EN1).</li>
+    <li><b>The Area’s knowledge at a Location:</b> “Always, under” the place’s own (KN1).</li>
+    <li><b>The two encounter rows on the Scene:</b> both gone; “Encounter tables” moves into the “…” menu (PS2; EN7, A).</li>
+    <li><b>“What everyone knows”:</b> “Under place”, beside “Rules” (PS1, PS3).</li>
+    <li><b>Hidden data:</b> “Yes, both”. A player’s device gets the map number of a place not yet explored (“N. Unexplored”), and an Area the group does not know reads “Elsewhere”. With finding 8: no map number under “Elsewhere”, and the row keeps the way’s words, so it says no less than today’s (WT1).</li>
+    <li><b>“Edit piece”:</b> “Behind the arrow”. A tap on a piece’s words does the piece’s main thing and never opens the form (TR1, EP1). This settles finding 6.</li>
+    <li><b>“Where to?” with two Areas:</b> the Area’s name over its rows (WT1).</li>
+    <li><b>Details at hand:</b> “Mock it up”, then, from the drawing, <b>“Home Two’s fix”</b>: each stat line or item line is printed once per identical line, on the piece that names it, otherwise in the “From the book” fold. A named character with a block of their own keeps their own line. Nothing is printed twice, and no row (such as “Old Harl”) is lost (DT1, DT2, redrawn to this in place of options a and b).</li>
+    <li><b>The Depart list:</b> the Area last played starts open, the others folded (DP3).</li>
+    <li><b>The full map:</b> “Yes, after Dec 5”. Not drawn. It is on the list for after 5 December, with the pack format’s change for the Pack Creator.</li>
+  </ol>
+  <p class="note big"><b>The hidden-data findings.</b> <b>Finding 1, “Preview, then send”:</b> “Reveal…” opens the words the players will see, which the GM can change, with “Show players” as the accent; nothing goes out unseen (EN6). <b>Finding 4, “Whole Area”:</b> a share from one place reaches the whole Area, and the row says so (“Shared with the party: all of The Drowned Harbour”); each section keeps its own eye, on its own heading once unfolded, and its share reaches the whole Area (KN1; the driver’s reading, confirmed by him on 26 November: “Yes, per section”). <b>The other findings:</b> “All High+Medium”: fixes are drawn for 2, 3, 5, 7 and 10 to 18; among the Lows, 19 to 23 and 26 are fixed, 24 is a token’s question, not changed on this page and left for later, and 25’s missing states are drawn only for what is built first (EN7). <b>The second critique’s five new findings</b> (N1 to N5) are all picked; they are listed with the second critique, below.</p>
+  <h1>What was done for each finding (26 November)</h1>
+  <p class="note big">The critique’s 26 findings, in its own numbers. <b>The first critique follows as Home Two wrote it on 25 November, about the page as it then stood</b> (commit 6c83a3e): its scores, its frame table and its “no frame was changed” are history now. The second critique, of the redrawn page, stands between this table and it.</p>
+  <table class="sc">
+  <tr><th>#</th><th>Finding</th><th>Francis, 26 Nov</th><th>Drawn</th><th>Frames</th></tr>
+  <tr><td>1</td><td>High. “Reveal” sends the row whole in one tap</td><td>“Preview, then send”</td><td>“Reveal…” opens “Reveal to players”: the words, which the GM can change; “Show players” is the accent. Nothing goes out unseen</td><td>EN6; EN1 C; EN5</td></tr>
+  <tr><td>2</td><td>High. “Message…” slides into “Reveal”’s place</td><td>Fix</td><td>The three buttons keep their places. “Reveal…” becomes a pressed “Revealed”; a tap on it takes the reveal back</td><td>EN1 C; EN7 B</td></tr>
+  <tr><td>3</td><td>High. A wrong row, only while the toast lasts</td><td>Fix</td><td>“Change…” on the result’s card opens the table again with the row ticked</td><td>EN1 B; EN2 B</td></tr>
+  <tr><td>4</td><td>High. How far a share goes; the eye on the row that unfolds</td><td>“Whole Area”</td><td>A share from one place reaches the whole Area, and the line says “Shared with the party: all of The Drowned Harbour”. A folded section has no eye; unfolded, its own heading carries it. The driver’s reading of his pick, <b>confirmed by him: “Yes, per section”</b></td><td>KN1</td></tr>
+  <tr><td>5</td><td>High. Four fold marks; “+” reads as “add”</td><td>Fix</td><td>One mark, the chevron. On the GM’s band it stands after a thin rule. A pack unfolds in place, as an Area does. An arrow means only “opens”</td><td>PS2; EN1; DT1; KN1; DP3; DP3b; TR1</td></tr>
+  <tr><td>6</td><td>Medium. A tap on a piece’s words does two things</td><td>Settled by ⚑ 7</td><td>The words never open the form. Every piece has the arrow</td><td>TR1; EP1</td></tr>
+  <tr><td>7</td><td>Medium. “Enter roll…”, and a number nobody entered</td><td>Fix</td><td>“Roll…”. Toasts name the row’s range (“1–8: nothing stirs.”)</td><td>EN1; ET1</td></tr>
+  <tr><td>8</td><td>Medium. “N. Unexplored” says less than today’s row</td><td>With ⚑ 6</td><td>The way’s words stand under “N. Unexplored”. No number under “Elsewhere”</td><td>WT1; PS1; PS3</td></tr>
+  <tr><td>9</td><td>Medium. Seven boxed rows, three the same stat line</td><td>With ⚑ 9: “Home Two’s fix”</td><td>Each line printed once per identical line, on the piece that names it, otherwise in the fold; a named character with a block of their own keeps their own line</td><td>DT1; DT2</td></tr>
+  <tr><td>10</td><td>Medium. The X drops typed words; the Kind list has no Back</td><td>Fix</td><td>“Changes dropped.” with Undo. The kinds unfold in place</td><td>EP1</td></tr>
+  <tr><td>11</td><td>Medium. “Locations” and “places” for one count</td><td>Fix</td><td>“places”, lower case, everywhere in the list</td><td>DP3; DP3b</td></tr>
+  <tr><td>12</td><td>Medium. A number parted from its word</td><td>Fix</td><td>“turn 14”, “p. 14” and “1 turn” never break; a stat line breaks only between a label and the next; a die keeps its number</td><td>all</td></tr>
+  <tr><td>13</td><td>Medium. Boxes three deep</td><td>Fix</td><td>The detail row has no box: a dotted rule above and below</td><td>EN1; EN4; DT1; DT2; TR1</td></tr>
+  <tr><td>14</td><td>Medium. The rolled row as the card’s title</td><td>Fix</td><td>The heading “An encounter”, then the row’s words at body size</td><td>EN1; EN4</td></tr>
+  <tr><td>15</td><td>Medium. The third tile alone; two stacked buttons 96 px tall</td><td>Fix</td><td>The third tile takes the row. The two buttons stand side by side</td><td>PS3; EN5</td></tr>
+  <tr><td>16</td><td>Medium. “Send all” in the middle of the sheet</td><td>Fix</td><td>“Send all” at the foot’s right; the edit row over it</td><td>TR1; TR2</td></tr>
+  <tr><td>17</td><td>Medium. A sent piece keeps its arrow</td><td>Fix</td><td>Its sheet: “Sent to Wren, turn 3.”, “Take it back”, the edit row</td><td>TR1; TR2</td></tr>
+  <tr><td>18</td><td>Medium. The band’s marks have no words; the encounter is two drawings</td><td>Fix, with ⚑ 1</td><td>The crossed swords in all three places. Words under the marks from 1180 px wide. <b>Not at 1024 px:</b> there the words push a place’s name onto two lines</td><td>PS2 D; EN1</td></tr>
+  <tr><td>19</td><td>Low. A place’s own knowledge has no heading</td><td>Fix</td><td>The place’s name over its own knowledge</td><td>KN1 B</td></tr>
+  <tr><td>20</td><td>Low. One jigsaw for every kind</td><td>Fix</td><td>The Kind row has no icon</td><td>EP1</td></tr>
+  <tr><td>21</td><td>Low. One sentence on every row not shown</td><td>Fix</td><td>The closed eye and what the players read</td><td>WT1 A</td></tr>
+  <tr><td>22</td><td>Low. “Remove this piece” where “Back” stands</td><td>Fix</td><td>A quiet row under “Kind”; the foot holds “Save” alone</td><td>EP1</td></tr>
+  <tr><td>23</td><td>Low. The players’ pop-up ends in a sentence</td><td>Fix</td><td>“Takes 1 turn.”, labelled, and a plain “Got it”</td><td>PU1 B, E</td></tr>
+  <tr><td>24</td><td>Low. A control’s dark edge on a pop-up, 2.97 to 1</td><td>A small slip to fix; then, 26 Nov, left for later</td><td><b>Not changed.</b> It is the tokens’ own pair (Control on the pop-up’s ground, in dark), used across the app; a new value is a change to 06’s tokens and needs his ruling. Still 2.97 to 1 here</td><td>EN6; EN7; DP3; PU1; EP1</td></tr>
+  <tr><td>25</td><td>Low. States not drawn</td><td>Only for what is built first</td><td>The “…” menu with “Encounter tables”; offline; a send that fails; loading; a tall table; a d100 table. Larger text is not drawn, by 06’s rule. The rest waits for its own row</td><td>EN7</td></tr>
+  <tr><td>26</td><td>Low. Small slips</td><td>Fix</td><td>Both encounter tiles read “d20”; the phone’s light line reads as the tablet’s; the Knowledge section is renamed; the book’s boxed item no longer looks like a row; “Done” is not alone on a row</td><td>EN5; PS3; KN1; DT1; EN4</td></tr>
+  </table>
+  <h1>The second critique (<code>impeccable critique</code>, run by Home Two on the PC, 2026-11-26): 31 of 40</h1>
+  <p class="note big"><b>Of the redrawn page</b> (commit f422129), against the first run’s 24. Home Two looked closely at EN1, EN6, EN7, DT1, TR1, DP3, WT1, PS2, PS3 and KN1, and checked EP1 and PU1 from the source text only; EN2, EN3, EN4, EN5, DT2, TR2, DP3b, PS1 and ET1 were not opened as pictures this time. No file was changed by the critique. <b>Francis then approved the page: “Approve with picks”.</b> What follows is the critique in short; its full text is the comment on pull request #102.</p>
+  <table class="sc">
+  <tr><th>Heuristic</th><th>Score</th><th>Was</th><th>Why it moved</th></tr>
+  <tr><td>Visibility of status</td><td>3</td><td>3</td><td></td></tr>
+  <tr><td>The user’s language</td><td>4</td><td>3</td><td></td></tr>
+  <tr><td>User control</td><td>3</td><td>2</td><td>“Change…”, “Take it back”, “Changes dropped.” with Undo</td></tr>
+  <tr><td>Consistency</td><td>3</td><td>2</td><td>One fold mark; new finding N3</td></tr>
+  <tr><td>Error prevention</td><td>3</td><td>2</td><td>The preview; the eye on a section’s own heading</td></tr>
+  <tr><td>Recognition</td><td>3</td><td>2</td><td>The band’s words from 1180 px</td></tr>
+  <tr><td>Efficiency</td><td>3</td><td>3</td><td></td></tr>
+  <tr><td>Minimalism</td><td>3</td><td>3</td><td>“until ⚑ 9 is picked”</td></tr>
+  <tr><td>Error recovery</td><td>3</td><td>1</td><td>EN7 draws offline, failed and loading</td></tr>
+  <tr><td>Help</td><td>3</td><td>3</td><td></td></tr>
+  <tr><td><b>Total</b></td><td><b>31</b></td><td>24</td><td></td></tr>
+  </table>
+  <p class="note big"><b>The first run’s 26 findings.</b> <b>Met:</b> 1 to 8 and 10 to 23 (10, 20, 22 and 23 from the source text), 25 for what is built first, and 26 where Home Two looked (EN5 not viewed again). <b>Half met:</b> 9, which waited on ⚑ 9; ruled since (“Home Two’s fix”) and redrawn. <b>Not met, rightly:</b> 24, a token’s question for Francis; left for later.</p>
+  <p class="note big"><b>The designer’s own choices, each agreed by Home Two and approved by Francis with the page</b> (their “Mine, to check” marks are dropped from the captions): the band’s words stand under its marks only from 1180 px wide; the chevron is the one fold mark; on a piece with nothing to send the arrow opens “Edit piece” straight away; under “Elsewhere” no number is sent; each section keeps its own eye, the driver’s reading, which Home Two agreed with strongly (“one eye for the Area would share the GM’s own sections in a single tap”) and Francis confirmed (“Yes, per section”). The reading of ⚑ 9 was agreed with one condition, once per <i>identical</i> line, which became his ruling.</p>
+  <table class="sc">
+  <tr><th>#</th><th>New finding</th><th>Francis, 26 Nov</th><th>Drawn</th><th>Frame</th></tr>
+  <tr><td>N1</td><td>Medium. Offline, “Revealed” shows pressed while nothing has reached the players</td><td>Picked</td><td>“Reveal…” stays, with the “waiting” tag on it, until the words are sent; then it is pressed</td><td>EN7 B</td></tr>
+  <tr><td>N2</td><td>Low. In the d100 table “Go to number” washes the row it finds, as a picked row is washed</td><td>Picked</td><td>The found row has a rule at its leading edge and its range in bold; the wash is kept for the tap</td><td>EN7 F</td></tr>
+  <tr><td>N3</td><td>Low. Two patterns for an unexplored place in one list</td><td>Picked</td><td>One pattern, “Unexplored”, then the way (“Walking.”), with or without a number. The way’s words stay repeated under the buttons, by his “no less than today”</td><td>WT1 C</td></tr>
+  <tr><td>N4</td><td>Low. In the Depart list a pack’s Areas aren’t indented</td><td>Picked</td><td>A pack’s Areas step in 16 px; their places step in again</td><td>DP3 D; DP3b B</td></tr>
+  <tr><td>N5</td><td>Low. The failed toast says “Try again.” with no way to try</td><td>Picked</td><td>“Couldn’t show the players. Nothing was sent. Tap Reveal… to try again.”</td><td>EN7 C</td></tr>
+  </table>
+  <p class="note big"><b>Not checked by the second critique:</b> Larger text; WebKit; contrast (not measured again by Home Two; the designer’s measure is below); the frames it did not open.</p>
+  <h1>The first critique (<code>impeccable critique</code>, run by Home Two on the PC, 2026-11-25)</h1>
+  <p class="note big"><b>This replaces the designer’s by-hand critique.</b> It was run by Home Two, the session on the PC, with the <code>impeccable</code> skill loaded (the condensed port: its <code>critique</code> command; that port has no detector or linter, so none ran). I read all 38 pictures of the 19 frames, every caption, and the questions, at commit 6c83a3e. Where this differs from the by-hand critique, this one stands. <b>No frame was changed for a finding: Francis picks by number.</b> Scores are 0 to 4. Findings new in this run: 5 (the band’s “+”), 11, 12 (“turn 14”), 18 (words), 19 and 20. Scores that differ from the by-hand critique: user control 2, not 3 (findings 3, 10); recognition 2, not 3 (5, 8, 18). The total is 24, not 26.</p>
+  <table class="sc">
+  <tr><th>Heuristic</th><th>Score</th><th>Why</th></tr>
+  <tr><td>Visibility of system status</td><td>3</td><td>“Players see this result.”, “Sent to Wren.”, “Shared with the players, turn 9.” and “1 of 3 sections shared.” say what happened. Two toasts quote a number nobody entered (7). What a sent piece now does is not drawn (17).</td></tr>
+  <tr><td>Match to the user’s language</td><td>3</td><td>The table’s own name, the book’s words, and “N. Unexplored” in his words. But “Enter roll…” opens a list to tap (7); the same count is called “Locations” and “places” (11); “Stat lines” and “Items” are ⚑ 9.</td></tr>
+  <tr><td>User control and freedom</td><td>2</td><td>There is Undo on every act, a new “Dismiss”, and “Back” in two pop-ups. But a wrong row can be put right only while its toast lasts (3); the X drops typed words, and the Kind list has no Back (10); a reveal can’t be unread (1).</td></tr>
+  <tr><td>Consistency</td><td>2</td><td>Folds have four marks, and “+” sits among the GM’s actions (5). A tap on a piece’s words does two things (6). The encounter is two drawings (18). The same count has two names (11).</td></tr>
+  <tr><td>Error prevention</td><td>2</td><td>One tap sends the book’s row whole to the players (1). “Message…” slides under the thumb that just tapped “Reveal” (2). The share eye sits on the row that unfolds (4).</td></tr>
+  <tr><td>Recognition over recall</td><td>2</td><td>A number on every way, and the Area over its rows. But the band’s three marks have no words (18); “+” beside “…” reads as “add” (5); “3. Unexplored” says little without the map (8); “Encounter tables” goes behind “…” (25).</td></tr>
+  <tr><td>Flexibility and efficiency</td><td>3</td><td>A stat line is one tap from the words; search by name or number; “Recently visited”. On a phone the open fold is about two screens (9).</td></tr>
+  <tr><td>Minimalist design</td><td>3</td><td>One card for an encounter, two rows gone from the Scene, two pop-ups as tall as their words. The exceptions: DT1’s seven boxed rows (9), and boxes three deep (13).</td></tr>
+  <tr><td>Error recovery</td><td>1</td><td>No failed reveal, send, share or save is drawn, and no loading or offline state (25).</td></tr>
+  <tr><td>Help and documentation</td><td>3</td><td>“Only you see this.”, “Not yet shown: players see…”, and a line for every empty state. The band’s buttons have no words (18).</td></tr>
+  <tr><th>Total</th><th>24 of 40</th><th></th></tr>
+  </table>
+  <p class="note big"><b>What works.</b>
+  <br>&bull; An encounter is one card: the check, its result and its details. A row with nothing in it leaves no card behind.
+  <br>&bull; The detail row puts the stat line where the name is read, and one pop-up serves a creature, a named character and an item (EN3 is the strongest frame on the page).
+  <br>&bull; The Depart list is one view in map order, searched by name or number.
+  <br>&bull; The two pop-ups and the form are the app’s standard pop-up, as tall as their words, with one accent at the foot’s right.
+  <br>&bull; The players’ “An encounter” card (EN5) gives them the words and nothing else.
+  <br><b>Mode:</b> Operate, at a table. The page keeps to the app’s parts and the book’s format, with no ornament added.
+  <br><b>Load:</b> lightest on EN, PU and EP; heaviest on DT1. <b>Hierarchy:</b> clear on every frame but EN1 B to D, where a rolled sentence at heading size outranks the place (14).
+  <br><b>Not counted:</b> a small-caps line over a heading (“Session 1. Saltwick Island.”, “Depart”, “Move on”, “Rolled by hand”, “2. The Wreck”). <code>impeccable</code> bans an eyebrow over a heading, but here it is the app’s approved house pattern, and the brief wins.</p>
+  <ol class="crit">
+  <li><b>High. “Reveal” sends the row’s words whole, in one tap, to every player’s Scene</b> (EN1 B, EN5).
+    <br>A table’s row is written for the GM and may say more than the players should know yet. Undo takes the card back, but not what was read.
+    <br>Fix: “Reveal…” opens the standard pop-up with the words in a box the GM can trim, and “Reveal” as its accent. Or keep one tap and accept the risk.
+    <br>A hidden-data question, so it needs his ruling. (<code>harden</code>)</li>
+  <li><b>High. After “Reveal”, “Message…” slides into the place where “Reveal” was</b> (EN1 C, EN4 C).
+    <br>A second tap in the same spot opens a message.
+    <br>Fix: the three buttons keep their places. “Reveal” becomes a pressed “Revealed” with the open eye, and a tap on it takes the reveal back, which gives that Undo a lasting home. (<code>layout</code>)</li>
+  <li><b>High. A wrong row can be put right only while the toast lasts</b> (EN1 B and E, EN2, ET1).
+    <br>Rows of eight to twenty, 44 px tall, tapped at a table: a slip is likely. Once the toast is gone, nothing leads back to the table.
+    <br>Fix: a quiet “Change…” on the result card that reopens the table with the row ticked. (<code>harden</code>)</li>
+  <li><b>High. Sharing an Area’s section from one of its places doesn’t say how far the share goes, and the eye sits on the row that unfolds</b> (KN1 A, B, D).
+    <br>“Shared with the players, turn 9.” doesn’t say whether it was shared for the whole Area or only here. And a slip beside the fold shares at once; Undo can’t unread it.
+    <br>Fix: say “Shared with the players, across The Drowned Harbour, turn 9.”, and show the eye only inside the unfolded section.
+    <br>Hidden data again, so it needs his ruling. (<code>clarify</code>)</li>
+  <li><b>High. Folds have four marks, and on the GM’s band the fold mark reads as “add”</b> (PS2 C, EN1, DT1, KN1, DP3, DP3b).
+    <ul>
+      <li>On the GM’s top, the fold square “+” stands in the row of actions, between “Next turn” and “…”. In that company it reads as “add something”, not “show the top”.</li>
+      <li>A fold is shown four ways: “+” and “−” in a square (the top, the Depart groups), a chevron at the right (“From the book, for the GM”), and “›” before a heading (Knowledge).</li>
+      <li>In the Depart list the same “+” unfolds an Area in place but swaps the whole view for a pack.</li>
+      <li>“›” also opens a detail pop-up, opens the send sheet and goes one step on.</li>
+    </ul>
+    Fix: one fold mark for all folds. Set the top’s fold apart from the actions (at the band’s left edge, by the title, or after a rule). A pack unfolds in place like an Area. “›” then means only “opens”. (<code>polish</code>)</li>
+  <li><b>Medium. A tap on a piece’s words does two things, depending on its kind</b> (TR1, EP1; ⚑ 7).
+    <br>A Treasure piece opens the send sheet; any other piece opens “Edit piece”. Nothing on the piece says which, and the kind can be changed.
+    <br>Fix: ⚑ 7’s other choice. The words never open the form; “Edit the piece’s words” stands behind the arrow on every piece. (<code>clarify</code>)</li>
+  <li><b>Medium. The button says “Enter roll…” and two toasts quote a number nobody entered</b> (EN1 A and E, ET1 A).
+    <br>The pop-up asks for a tap on a row. The app knows the range (“1–8”, “15–16”), not the roll (“7”, “16”).
+    <br>Fix: the button reads “Roll…”, and the toasts read “1–8: nothing stirs.” and “Rolled by hand: 15–16, two bog lurkers…”. (<code>clarify</code>)</li>
+  <li><b>Medium. “N. Unexplored” says less than today’s row when no map is shown</b> (WT1 B and C, PS1, PS3; ⚑ 6).
+    <br>Three rows differ by one digit, and the way’s own name is gone. Under “Elsewhere”, “0. Unexplored” quotes a number from a map the players have never been given.
+    <br>Fix: keep his words as the name, with the way under them in quiet words. With ⚑ 6, decide whether the number shows at all where the group has no map, and always under “Elsewhere”. (<code>clarify</code>)</li>
+  <li><b>Medium. DT1 holds seven boxed rows on one card, three of them the same stat line</b> (DT1, DT2; ⚑ 9).
+    <br>“Ferryman ×3”, “Old Harl, a ferryman” and the piece’s “Ferryman ×3” all carry it. On a phone the open fold is about two screens.
+    <br>Fix, with ⚑ 9: give each detail one home. It goes on the piece where a piece names it; the fold keeps only what no piece names; identical lines join (“Ferryman ×3, and Old Harl”). (<code>distill</code>)</li>
+  <li><b>Medium. In “Edit piece”, the X drops what was typed without a word; and the Kind list has no way back but the X</b> (EP1 A, B, C).
+    <br>A long text is lost in one tap. The Kind list takes the form’s place with no “Back”, where PU1 and DP3 D have one.
+    <br>Fix: if there are changes, the X closes and says “Changes dropped.” with Undo. The Kind list gets “Back”, or the kinds open in place under their row. (<code>harden</code>)</li>
+  <li><b>Medium. One count has two names in the same list</b> (DP3 A, C, D; DP3b). <i>New.</i>
+    <br>An Area’s group reads “7 Locations” and “13 Locations”, capitalised. A pack reads “212 places”. An Area inside a pack reads “3 places”.
+    <br>Fix: one word in the list, lower case: “7 places”. (<code>clarify</code>)</li>
+  <li><b>Medium. Line breaks part a number from its word</b> (PS3 A and B, EN5 B, EN1 B, EN4 C, DT1, DT2).
+    <br>On a phone the top reads “The Drowned Harbour, turn” with “14” alone on the next line (new in this run). A stat line breaks between a die and its number (“(+0,” then “1d6)”). DT2 C breaks “p.” from “14”.
+    <br>Fix: a no-break space in “turn 14” and in “p. 14”, and a stat line breaks only between label-and-value pairs. A build rule; no new drawing. (<code>typeset</code>)</li>
+  <li><b>Medium. Boxes three deep</b> (EN1 B to D, EN4 C).
+    <br>“Waiting for you”, the encounter’s card and the detail row each draw an edge, inside the screen’s own.
+    <br>Fix: inside a card, the detail row loses its box and keeps a dotted rule above and below, as a piece has. The whole row is still the tap. (<code>quieter</code>)</li>
+  <li><b>Medium. The rolled row is the card’s title, at heading size</b> (EN1 B and D, EN4 C).
+    <br>It is 20 px bold over two lines here, three on a phone. A pack’s 40-word row becomes a block of bold that outranks the place.
+    <br>Fix: the row’s words at body size under a short heading (“An encounter”, as the players’ card has), or cut at three lines with the rest behind a tap. (<code>typeset</code>)</li>
+  <li><b>Medium. On a phone the third tile stands alone, and two stacked buttons take 96 px above the place’s words</b> (PS3 A, EN5 B; ⚑ 5).
+    <br>One tile centred under two reads as a slip. “What everyone knows” and “Rules” one above the other push the place’s words down to about 573 px.
+    <br>Fix: the third tile takes the row’s full width, and the two buttons sit side by side as icon-over-word buttons. (<code>layout</code>)</li>
+  <li><b>Medium. “Send all” stands in the middle of the sheet, above “Edit the piece’s words”</b> (TR1, TR2 C).
+    <br>Fix: put “Send all” at the foot’s right, where “Move” and “Save” are in PU1 and EP1. The edit row goes above the things, or quiet at the foot’s left. (<code>layout</code>)</li>
+  <li><b>Medium. A sent piece keeps its arrow, and what a second tap does isn’t drawn</b> (TR1, TR2).
+    <br>Fix: a sent piece’s sheet reads “Sent to Wren, turn 3.” with “Take it back” (the Undo’s lasting home) and “Edit the piece’s words”. (<code>harden</code>)</li>
+  <li><b>Medium. The band’s three marks have no words, and the encounter’s mark is two drawings</b> (EN1, PS2 C; ⚑ 1).
+    <br>Camp, encounter and depart are icons alone, next to “Next turn”, which has a word. A first-time GM has to learn them. The band uses the icon set’s crossed swords, while the tiles and the card keep today’s thin pair.
+    <br>Fix: whatever ⚑ 1 picks goes in all three places, and each mark gets a word under it on a tablet, where there is room. (<code>polish</code>)</li>
+  <li><b>Low. A place’s own knowledge has no heading, while its Area’s does</b> (KN1 B). <i>New.</i>
+    <br>“Sank”, “Owned by” and “Who strips her” start with no name over them. The line between the place’s sections and the Area’s shows only when “The Drowned Harbour” appears.
+    <br>Fix: the place’s name, “2. The Wreck”, as a matching heading over its own. (<code>clarify</code>)</li>
+  <li><b>Low. The Kind row shows the same jigsaw for every kind</b> (EP1 A, C, D). <i>New.</i>
+    <br>“Treasure” and “Someone here” carry one icon, so it says nothing.
+    <br>Fix: drop it, or give each kind its own. (<code>polish</code>)</li>
+  <li><b>Low. The GM’s “Move on” list repeats one sentence on every row not shown</b> (WT1 A).
+    <br>“Not yet shown: players see “4. Unexplored”.” appears three times, wrapping beside two buttons.
+    <br>Fix: the closed eye with “4. Unexplored”, the sign a piece already uses; or say it once above the list. (<code>distill</code>)</li>
+  <li><b>Low. “Remove this piece” stands where “Back” stands in the next pop-up</b> (EP1, PU1).
+    <br>The foot’s left is the safe way out in “Move on”, but a removal in “Edit piece”. Undo covers a slip.
+    <br>Fix: “Remove this piece” as a quiet row under “Kind”, so the foot holds “Save” alone. (<code>layout</code>)</li>
+  <li><b>Low. The players’ travel pop-up ends in a sentence with only the X</b> (PU1 B, E).
+    <br>It says “1 turn.” where the GM’s says “Takes 1 turn.”
+    <br>Fix: the GM’s two labelled lines, and a plain “Got it”, as EN5’s card has. (<code>clarify</code>)</li>
+  <li><b>Low. In dark, the edge of a field or plain button on a pop-up is 2.97 to 1, under the 3 to 1 floor</b> (DP3, PU1, EP1).
+    <br>This is the designer’s measurement, which I did not take again. It comes from the tokens’ own pair, so it is a token question, not this page’s. (<code>harden</code>)</li>
+  <li><b>Low. Not drawn:</b>
+    <ul>
+      <li>a failed, loading or offline reveal, send, share and save;</li>
+      <li>Larger text;</li>
+      <li>a table taller than the screen, and a d100 table (EN2);</li>
+      <li>the “…” menu that holds “Encounter tables” once the two rows go (F9): the tables are then two taps away and out of sight;</li>
+      <li>what follows a row picked by hand (ET1);</li>
+      <li>“+ Piece”;</li>
+      <li>a hoard already sent.</li>
+    </ul>
+    (<code>harden</code>)</li>
+  <li><b>Low. Small slips in the drawings:</b>
+    <ul>
+      <li>EN5’s tile reads “1 in 6” where EN1’s reads “d20” for the same check.</li>
+      <li>On a phone the top reads “2 hours of light.” where the tablet reads “Two hours of light left.”</li>
+      <li>KN1’s section is named “What everyone knows”, the words of the players’ button.</li>
+      <li>DT1’s boxed item in the book’s text looks like the detail rows under it, but can’t be tapped.</li>
+      <li>EN4 C’s accent, “Done”, stands alone on its own row.</li>
+    </ul>
+    (<code>polish</code>)</li>
+  </ol>
+  <table class="sc">
+  <tr><th>Frame</th><th>Findings</th><th>Frame</th><th>Findings</th></tr>
+  <tr><td>44-1, EN1</td><td>1, 2, 3, 5, 7, 12, 13, 14, 18</td><td>44-10, DP3b</td><td>5, 11</td></tr>
+  <tr><td>44-2, EN2</td><td>3, 25</td><td>44-11, WT1</td><td>8, 21</td></tr>
+  <tr><td>44-3, EN3</td><td>none</td><td>44-12, PS1</td><td>8</td></tr>
+  <tr><td>44-4, EN4</td><td>2, 12, 13, 14, 26</td><td>44-13, PS2</td><td>5, 18</td></tr>
+  <tr><td>44-19, EN5</td><td>1, 12, 15, 26</td><td>44-14, PS3</td><td>8, 12, 15, 26</td></tr>
+  <tr><td>44-5, DT1</td><td>5, 9, 12, 26</td><td>44-15, KN1</td><td>4, 5, 19, 26</td></tr>
+  <tr><td>44-6, DT2</td><td>9, 12</td><td>44-16, ET1</td><td>3, 7, 25</td></tr>
+  <tr><td>44-7, TR1</td><td>5, 6, 16, 17</td><td>44-17, PU1</td><td>22, 23, 24</td></tr>
+  <tr><td>44-8, TR2</td><td>16, 17</td><td>44-18, EP1</td><td>6, 10, 20, 22, 24</td></tr>
+  <tr><td>44-9, DP3</td><td>5, 11, 24</td><td></td><td></td></tr>
+  </table>
+  <p class="note big"><b>Walked as:</b>
+  <br>&bull; <b>A GM at the table with a check due:</b> two taps to a result. A wrong row has seconds to be put right (3), and “Reveal” is final in effect (1).
+  <br>&bull; <b>A GM reading a place aloud:</b> the stat line is at the name, but on DT1 it is there three times (9).
+  <br>&bull; <b>A first-time GM:</b> what are the band’s three marks (18)? Is “+” “add” or “open” (5)? Where did “Encounter tables” go (25)?
+  <br>&bull; <b>A player on a phone, interrupted:</b> the place’s words start low (15); “3. Unexplored” tells them little (8); “turn” and its number split (12).
+  <br>&bull; <b>Keyboard or screen-reader user:</b> not tried. These are drawings; their roles and spoken names aren’t the build’s.
+  <br><b>Questions for Francis from the critique:</b> 1 and 4 touch hidden data and need a ruling before a builder. 6, 8, 9, 15 and 18 bear on ⚑ 7, ⚑ 6, ⚑ 9, ⚑ 5 and ⚑ 1.</p>
+  <h1>Contrast, measured again 2026-11-26, after his picks were drawn</h1>
+  <p class="note big"><b>No text pair fails.</b> Every text on the redrawn page was read in a browser in both themes: its colour over the grounds under it, 2,534 texts a theme (1,752 in the frames, 238 in the captions, 544 in the page’s own notes). The 122 a theme that lie under a dimmed screen or behind a pop-up were left out. The floor is 4.5 to 1; no text needed the lower floor for large type. <b>Not a detector:</b> the designer’s script of 25 November, run again on this page once the picks were drawn. The lowest pairs are the same as before them; the “waiting” tag on a button and the rule on a found row are ink.</p>
+  <table class="sc">
+  <tr><th>Text</th><th>Light, lowest to highest</th><th>Dark, lowest to highest</th></tr>
+  <tr><td>A stat line’s rust labels and a pop-up’s rust name</td><td>5.11 (a row with no box, on the phone’s page), 5.35 (on a card or a pop-up)</td><td>5.26 (on a pop-up), 5.84 (on a card)</td></tr>
+  <tr><td>Quiet words</td><td>5.89 (on the picked row), 5.93 (on a banded row); 6.31 to 7.13 elsewhere (the captions 6.82)</td><td>5.98 (on the picked row); 6.79 to 8.28 elsewhere (the captions 8.28)</td></tr>
+  <tr><td>A warning line and the “waiting” tag (new)</td><td>7.15, 7.48</td><td>10.68, 13.03</td></tr>
+  <tr><td>The link back and the breadcrumb</td><td>9.97, 10.43</td><td>5.84, 6.42</td></tr>
+  <tr><td>Words on the accent (a button, a table’s bar)</td><td>10.43</td><td>6.42</td></tr>
+  <tr><td>Section headings</td><td>9.32 to 9.76</td><td>8.13 to 9.92</td></tr>
+  <tr><td>Ink, on every ground and wash (a pressed “Revealed” among them)</td><td>14.78 to 17.89</td><td>11.39 to 15.87</td></tr>
+  <tr><td>A toast</td><td>17.11</td><td>15.87</td></tr>
+  </table>
+  <p class="note big"><b>Beside the text.</b> The quiet edge of a field or a plain button: 3.59 and 3.75 in light; 3.30 and 3.62 in dark, and <b>2.97 on a pop-up in dark, under the 3 to 1 floor</b> (finding 24, not changed: a token’s question; it now also shows on EN6’s field and EN7’s “Go to number”). <b>The detail row has no edge now</b> (finding 13): its dotted rules are 1.4 to 1.5, rules and not edges, so the row is known as a tap by its arrow (ink) and its bold name, not by a box. Icons on controls: 6.82 or more in light, 5.26 or more in dark. <b>Named, not judged:</b> the amber die beside “Roll d100” (EN7, F) is 2.94 on a pop-up in light; it is the app’s own die mark, decorative beside its words. On PS1’s marching order the torch ring and its badge measure 2.6 and 2.8 in light; they come with the approved base (PL1b). The map and the portraits are pictures and were left out. <b>Colour alone:</b> nothing new rests on it. A pressed “Revealed” has its new word, its weight and the line that quotes what players see; a picked row has its tick; the d100 row found by number is first in the list and has a rule at its leading edge and its range in bold; an eye is open or struck through; a warning has its sign and words. In a stat line the label is rust and the value ink, at one size and weight (3.3 to 1 against each other in light, 2.5 in dark): the book’s approved format, at 14 px in the detail row; no greyscale strip is drawn, so that one is still his to judge from the numbers.</p>
+  <h1>Self-review, 26 November (the parts redrawn to his picks included)</h1>
+  <p class="note big"><b>The stylesheet.</b> As before, the page links the one shared mockup stylesheet (<code>../shared/book.css</code>) and its type pass last, and restates none of their rules. Its own rules now stand in three groups in the page’s head: the layout rules copied from page 24; the parts new on 25 November; and the rules of this redraw (the band’s thin rule, the detail row without its box, the line breaks, the encounter card’s picked line, the picked row of a tapped table, the menu, the skeleton rows, the scrolling pop-up, a second indent in the Depart list, the players’ pair at 375 px, an unfolded Knowledge section, the kinds unfolding in place), and three rules for his picks of 26 November (the “waiting” tag on a stacked button, the rule on a row found by number, the indent of a pack’s Areas). Every size and gap is a token from 06, or a size the shared parts already carry (the stacked button’s 56 px).</p>
+  <p class="note big"><b>Checked</b> (in a browser, both themes, with the scripts of 25 November run again: 707 tappable parts a theme, the smallest 44 px).
+  <br>&bull; <b>14 px floor:</b> no text under 14 px inside a frame.
+  <br>&bull; <b>44 px targets:</b> every tappable part is at least 44 px in both directions, or a row of a list at least 44 px tall (a menu’s rows are 48). At 375 px the encounter card’s three buttons are 92 px wide each, over the stacked button’s 88: to give them that, the card has no box of its own inside “Waiting for you” on a phone (boxed, they measured 86).
+  <br>&bull; <b>8 px gaps:</b> no two separate controls nearer than 8 px. Rows of one list touch, as list rows do: the detail rows of a group now do too, having lost their boxes.
+  <br>&bull; <b>375 px:</b> no frame wider than its device; no sideways overflow in any phone, sheet or pop-up. The one overflow found while drawing (“What everyone knows” in half a row, PS3) was fixed by giving that button its own width.
+  <br>&bull; <b>One accent a screen or pop-up:</b> “Roll…” or “Done” in “Waiting for you”; “Show players”, “Move”, “Save” and “Send all” in their pop-ups, with the screen’s own accent drawn plain behind them; “Move on” on a place’s card when nothing waits (PS2, C); none on a player’s frame. DT1 holds the same card twice, so “Move on” is drawn plain on both.
+  <br>&bull; <b>No disabled button:</b> “Show players” with nothing written stays a button and says why (EN6, E); an offline reveal waits and says so, on the button and in its line (EN7, B).
+  <br>&bull; <b>Undo over confirm:</b> “Dismiss”, “Done”, “Show players”, a changed row, a send, “Take it back”, a share, “Remove this piece” and the X on changed words all act at once with a toast. No confirm dialog is added.
+  <br>&bull; <b>Contrast:</b> the table above. One control edge is under its floor, as on 25 November (finding 24).
+  <br>&bull; <b>Messy data:</b> a row of forty words in the reveal’s box (EN6); a long name in a pop-up’s head (EN3, PU1); a long Area name and thirteen places, a pack of 212 (DP3); 999 turns (PU1); a long text (EP1); a long table row at 375 px (ET1); a table taller than the screen and a d100 table (EN7); a character with no stat block (EN3); a place with no map number (WT1, C); a long place name in the wide band (PS2, D).
+  <br>&bull; <b>Nielsen’s ten, where the redraw moved a score’s cause:</b> status (the card quotes what players see; “Sent to Wren, turn 3.”; “waiting”); the user’s language (“Roll…”, “places”); control (“Change…”, “Take it back”, “Changes dropped.” with Undo, “Revealed” takes back); consistency (one fold mark; an arrow only opens; one encounter mark; words never open a form); error prevention (the preview before a reveal; no eye on a folded row); recognition (the way under “N. Unexplored”; the closed eye on the GM’s rows; “Encounter tables” first in the menu); recovery (EN7’s offline and failed states). The scores themselves are Home Two’s to give again.</p>
+  <p class="note big"><b>Not checked, or gaps.</b>
+  <br>&bull; <b>The parts redrawn after his approval have had no critique and he has not seen them as drawn:</b> DT1 and DT2 whole, the rows on TR1’s and TR2’s pieces, EN7 B, C and F, WT1 C’s last row, DP3 D’s and DP3b B’s indent. In DT1 two lines of words are the designer’s (“The other stat lines and the items are on their pieces.”, “Same stat line as the Ferryman.”).
+  <br>&bull; The second critique did not open EN2, EN3, EN4, EN5, DT2, TR2, DP3b, PS1 or ET1 as pictures, and read EP1 and PU1 in the source only.
+  <br>&bull; The built screens were read in the source and from Francis’s descriptions, not opened.
+  <br>&bull; <b>Finding 18 is met only from 1180 px wide.</b> At 1024 px the band’s marks still have no words, by the designer’s choice, since the words there break a place’s name over two lines.
+  <br>&bull; <b>Finding 24 is not fixed</b> (a token).
+  <br>&bull; <b>Not drawn:</b> Larger text (by 06’s rule); the failed, loading and offline states of a share, a send, a save and the Depart list (they wait for their own rows; the Depart list keeps DP1’s skeleton rows); what follows a row picked by hand on the tables’ page; “+ Piece”; a hoard already sent; an encounter row that names three or more creatures (each is one more detail row); “Take it back” refused in the why-blocked pop-up; the menu’s other rows as built (EN7, A stands in for them); the settlement (out of scope, F1 d); the full map (⚑ 11, after 5 December).
+  <br>&bull; Roles and spoken names were not tried with a screen reader: these are drawings.
+  <br>&bull; The phone’s pop-ups are drawn as sheets from the foot, which no ruling fixes.
+  <br>&bull; A card’s heading and the Activities buttons are 18 px, a size outside the app’s scale: it comes from the older shared sheet (<code>december.css</code>), as on pages 18 to 24, and is left for the one sweep.</p>
+`);
+for (const el of document.querySelectorAll('.phone')) el.classList.add('bit');
+for (const el of document.querySelectorAll('.dev h2, .phone h2, .bit h2')) el.classList.add('bsub');
+for (const el of document.querySelectorAll('.fact .k, .mseq, .flab, .tabbar span, .dcap')) el.dataset.sc = '';
+for (const el of document.querySelectorAll('.sw2 > span')) el.style.fontWeight = el.classList.contains('on') ? '700' : '';
+applyBook();
+}
+</script>
+</body>
+</html>

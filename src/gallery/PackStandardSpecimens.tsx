@@ -1,6 +1,6 @@
 // The Pack on creation's standard in the component gallery (plan m5b-players-screens-standard C; mockup players/01):
 // the load line first, a group with its count, rows with their chevron (a pinned one with its star, one not allowed),
-// an At hand row with its action, Gear and the Party stash as fold rows, the waiting card, the foot, and an item's
+// the Party stash's row under the load (K11), an At hand row with its action, Gear as a fold row, the waiting card, the foot, and an item's
 // sheet drawn in the page. Invented rules and names only (hard rule 2); no database (nothing here saves).
 import type { ReactElement, ReactNode } from 'react';
 import type { CurrentUser } from '../core/commands.ts';
@@ -9,7 +9,8 @@ import type { OpenCampaign } from '../app/Campaigns.tsx';
 import { ItemRow } from '../app/ItemRow.tsx';
 import { ItemSheet, useItemSheetState } from '../app/ItemSheet.tsx';
 import { LoadSummary } from '../app/LoadSummary.tsx';
-import { PackFoot, WaitingCard } from '../app/PackParts.tsx';
+import { PackFoot, StashRow, WaitingCard } from '../app/PackParts.tsx';
+import { thingCount } from '../app/stashWords.ts';
 import { foldSummary, itemCount } from '../app/packHelpers.ts';
 import '../app/PackScreen.css';
 import { carriedLoad, combineEncumbrance, toLoadLine } from '../modules/inventory/encumbrance.ts';
@@ -166,10 +167,11 @@ export function PackStandardSpecimens({ Specimen }: { Specimen: (props: { name: 
   const load = carriedLoad(all.map(toLoadLine), RULES, 'coin');
   return (
     <>
-      <Specimen name="The Pack: the load line first, At hand (pinned items with an action: Light, Fire, Drink, Attack), Worn and in hand with its count (a row not allowed, a long name), Gear and the Party stash as fold rows, the waiting card, the foot with Add item">
+      <Specimen name="The Pack: the load line first, At hand (pinned items with an action: Light, Fire, Drink, Attack), Worn and in hand with its count (a row not allowed, a long name), Gear as a fold row, the Party stash's row under the load (K11), the waiting card, the foot with Add item">
         <section className="pack" aria-label="Wren’s pack, in the gallery">
           <div className="pack__summary">
             <LoadSummary load={load} rules={RULES} from={['Fen rules']} />
+            <StashRow name="Party stash" note={thingCount(STASH.length)} onOpen={() => undefined} />
           </div>
           <div className="pack__list">
             <section className="pack__group pack__group--at-hand" aria-label="At hand">
@@ -200,11 +202,6 @@ export function PackStandardSpecimens({ Specimen }: { Specimen: (props: { name: 
               </FoldedGroup>
             </section>
             <WaitingCard names={['Silver knife', 'Strange key']} onOpen={() => undefined} />
-            <section className="pack__stash" aria-label="Party stash, in the gallery">
-              <FoldedGroup label="Party stash" note={foldSummary(STASH)}>
-                {null}
-              </FoldedGroup>
-            </section>
             <PackFoot count={20} onAdd={() => undefined} />
           </div>
         </section>

@@ -373,6 +373,58 @@ export type Database = {
           },
         ]
       }
+      calls_seen: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          id: string
+          player_user_id: string | null
+          seen_at: string
+          send_id: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          id?: string
+          player_user_id?: string | null
+          seen_at?: string
+          send_id: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          player_user_id?: string | null
+          seen_at?: string
+          send_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calls_seen_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_seen_player_user_id_fkey"
+            columns: ["player_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_seen_send_id_fkey"
+            columns: ["send_id"]
+            isOneToOne: false
+            referencedRelation: "hook_sends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       camp_entries: {
         Row: {
           actor_id: string
@@ -2148,6 +2200,7 @@ export type Database = {
       inventory_lines: {
         Row: {
           actor_id: string | null
+          appears_as: string
           approval: string
           at_hand_hidden: boolean
           base_armour_id: string | null
@@ -2165,6 +2218,7 @@ export type Database = {
           given_to: string | null
           how_got: string
           id: string
+          identified: boolean
           item_data: Json
           last_roll: string | null
           library_entry_id: string | null
@@ -2172,10 +2226,12 @@ export type Database = {
           mode_id: string | null
           name: string
           needs_fuel: boolean
+          noticed: string
           notes: string
           per_units: number
           pinned: boolean
           qty: number
+          revealed_fields: string[]
           slots: number | null
           source_entry_id: string | null
           source_pack_id: string | null
@@ -2187,6 +2243,7 @@ export type Database = {
         }
         Insert: {
           actor_id?: string | null
+          appears_as?: string
           approval?: string
           at_hand_hidden?: boolean
           base_armour_id?: string | null
@@ -2204,6 +2261,7 @@ export type Database = {
           given_to?: string | null
           how_got: string
           id?: string
+          identified?: boolean
           item_data?: Json
           last_roll?: string | null
           library_entry_id?: string | null
@@ -2211,10 +2269,12 @@ export type Database = {
           mode_id?: string | null
           name: string
           needs_fuel?: boolean
+          noticed?: string
           notes?: string
           per_units?: number
           pinned?: boolean
           qty?: number
+          revealed_fields?: string[]
           slots?: number | null
           source_entry_id?: string | null
           source_pack_id?: string | null
@@ -2226,6 +2286,7 @@ export type Database = {
         }
         Update: {
           actor_id?: string | null
+          appears_as?: string
           approval?: string
           at_hand_hidden?: boolean
           base_armour_id?: string | null
@@ -2243,6 +2304,7 @@ export type Database = {
           given_to?: string | null
           how_got?: string
           id?: string
+          identified?: boolean
           item_data?: Json
           last_roll?: string | null
           library_entry_id?: string | null
@@ -2250,10 +2312,12 @@ export type Database = {
           mode_id?: string | null
           name?: string
           needs_fuel?: boolean
+          noticed?: string
           notes?: string
           per_units?: number
           pinned?: boolean
           qty?: number
+          revealed_fields?: string[]
           slots?: number | null
           source_entry_id?: string | null
           source_pack_id?: string | null
@@ -2364,6 +2428,82 @@ export type Database = {
             columns: ["invited_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_shares: {
+        Row: {
+          body: Json | null
+          campaign_id: string
+          created_at: string
+          created_by: string | null
+          entry_id: string
+          group_number: number
+          heading: string
+          id: string
+          pack_id: string
+          place_name: string
+          section_at: number
+          shared: boolean
+          shared_clock: number
+          undone: boolean
+          updated_at: string
+        }
+        Insert: {
+          body?: Json | null
+          campaign_id: string
+          created_at?: string
+          created_by?: string | null
+          entry_id: string
+          group_number: number
+          heading?: string
+          id?: string
+          pack_id: string
+          place_name?: string
+          section_at: number
+          shared: boolean
+          shared_clock?: number
+          undone?: boolean
+          updated_at?: string
+        }
+        Update: {
+          body?: Json | null
+          campaign_id?: string
+          created_at?: string
+          created_by?: string | null
+          entry_id?: string
+          group_number?: number
+          heading?: string
+          id?: string
+          pack_id?: string
+          place_name?: string
+          section_at?: number
+          shared?: boolean
+          shared_clock?: number
+          undone?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_shares_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_shares_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_shares_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "packs"
             referencedColumns: ["id"]
           },
         ]
@@ -2644,7 +2784,7 @@ export type Database = {
           message_id: string
           undone: boolean
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           actor_id: string
@@ -2655,7 +2795,7 @@ export type Database = {
           message_id: string
           undone?: boolean
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           actor_id?: string
@@ -2666,7 +2806,7 @@ export type Database = {
           message_id?: string
           undone?: boolean
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -2711,7 +2851,7 @@ export type Database = {
           disappears: boolean
           from_gm: boolean
           id: string
-          player_user_id: string
+          player_user_id: string | null
           read_at: string | null
           sender_user_id: string | null
           undone: boolean
@@ -2728,7 +2868,7 @@ export type Database = {
           disappears?: boolean
           from_gm: boolean
           id?: string
-          player_user_id: string
+          player_user_id?: string | null
           read_at?: string | null
           sender_user_id?: string | null
           undone?: boolean
@@ -2745,7 +2885,7 @@ export type Database = {
           disappears?: boolean
           from_gm?: boolean
           id?: string
-          player_user_id?: string
+          player_user_id?: string | null
           read_at?: string | null
           sender_user_id?: string | null
           undone?: boolean
@@ -2868,7 +3008,7 @@ export type Database = {
           kind: string
           name: string
           notes: string
-          owner_user_id: string
+          owner_user_id: string | null
           source: string
           updated_at: string
           version: string
@@ -2884,7 +3024,7 @@ export type Database = {
           kind?: string
           name: string
           notes?: string
-          owner_user_id?: string
+          owner_user_id?: string | null
           source?: string
           updated_at?: string
           version?: string
@@ -2900,7 +3040,7 @@ export type Database = {
           kind?: string
           name?: string
           notes?: string
-          owner_user_id?: string
+          owner_user_id?: string | null
           source?: string
           updated_at?: string
           version?: string
@@ -4202,6 +4342,113 @@ export type Database = {
           },
         ]
       }
+      town_piece_resets: {
+        Row: {
+          campaign_id: string
+          group_place_id: string
+          id: string
+          reset_at: string
+        }
+        Insert: {
+          campaign_id: string
+          group_place_id: string
+          id?: string
+          reset_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          group_place_id?: string
+          id?: string
+          reset_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "town_piece_resets_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "town_piece_resets_group_place_id_fkey"
+            columns: ["group_place_id"]
+            isOneToOne: false
+            referencedRelation: "group_places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      town_piece_shows: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          created_by: string | null
+          group_number: number
+          group_place_id: string
+          id: string
+          piece_id: string
+          shown: boolean
+          shown_at: string
+          undone: boolean
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          created_by?: string | null
+          group_number: number
+          group_place_id: string
+          id?: string
+          piece_id: string
+          shown?: boolean
+          shown_at?: string
+          undone?: boolean
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          created_by?: string | null
+          group_number?: number
+          group_place_id?: string
+          id?: string
+          piece_id?: string
+          shown?: boolean
+          shown_at?: string
+          undone?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "town_piece_shows_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "town_piece_shows_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "town_piece_shows_group_place_id_fkey"
+            columns: ["group_place_id"]
+            isOneToOne: false
+            referencedRelation: "group_places"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "town_piece_shows_piece_id_fkey"
+            columns: ["piece_id"]
+            isOneToOne: false
+            referencedRelation: "place_pieces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       travel_group_secrets: {
         Row: {
           campaign_id: string
@@ -5398,6 +5645,15 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      edit_item_look: {
+        Args: {
+          appears_as: string
+          line: string
+          noticed: string
+          seen_version?: number
+        }
+        Returns: undefined
+      }
       edit_place_piece: {
         Args: { body: string; kind: string; piece: string; seen?: number }
         Returns: {
@@ -5454,14 +5710,23 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      encounter_check_for_players: {
-        Args: { campaign: string }
-        Returns: {
-          checked: Json
-          group_number: number
-          place_name: string
-        }[]
-      }
+      encounter_check_for_players:
+        | {
+            Args: { campaign: string }
+            Returns: {
+              checked: Json
+              group_number: number
+              place_name: string
+            }[]
+          }
+        | {
+            Args: { as_player: string; campaign: string }
+            Returns: {
+              checked: Json
+              group_number: number
+              place_name: string
+            }[]
+          }
       end_downtime: { Args: { campaign: string }; Returns: string }
       end_expedition: {
         Args: { expedition: string; seen_version?: number }
@@ -5738,6 +6003,29 @@ export type Database = {
           timing: string
         }[]
       }
+      item_truths: {
+        Args: { campaign: string }
+        Returns: {
+          body: string
+          line_id: string
+          name: string
+        }[]
+      }
+      join_added_line: {
+        Args: {
+          actor: string
+          campaign: string
+          container: string
+          cost?: string
+          entry: string
+          how_got?: string
+          how_many: number
+          location: string
+          made_id: string
+          note?: string
+        }
+        Returns: string
+      }
       join_party_groups: {
         Args: { campaign: string; from_group: number; into_group: number }
         Returns: {
@@ -5782,6 +6070,29 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      knowledge_for_players:
+        | {
+            Args: { campaign: string }
+            Returns: {
+              body: Json
+              group_number: number
+              heading: string
+              place_name: string
+              share_id: string
+              shared_clock: number
+            }[]
+          }
+        | {
+            Args: { as_player: string; campaign: string }
+            Returns: {
+              body: Json
+              group_number: number
+              heading: string
+              place_name: string
+              share_id: string
+              shared_clock: number
+            }[]
+          }
       known_places: {
         Args: { campaign: string }
         Returns: {
@@ -5795,23 +6106,41 @@ export type Database = {
           visited_at: string
         }[]
       }
-      known_places_campaign: {
-        Args: { campaign: string }
-        Returns: {
-          body: string
-          current: boolean
-          expedition_id: string
-          expedition_started: number
-          group_number: number
-          kind: string
-          lead: string
-          piece_id: string
-          place_id: string
-          place_name: string
-          visit_id: string
-          visited_at: string
-        }[]
-      }
+      known_places_campaign:
+        | {
+            Args: { campaign: string }
+            Returns: {
+              body: string
+              current: boolean
+              expedition_id: string
+              expedition_started: number
+              group_number: number
+              kind: string
+              lead: string
+              piece_id: string
+              place_id: string
+              place_name: string
+              visit_id: string
+              visited_at: string
+            }[]
+          }
+        | {
+            Args: { as_player: string; campaign: string }
+            Returns: {
+              body: string
+              current: boolean
+              expedition_id: string
+              expedition_started: number
+              group_number: number
+              kind: string
+              lead: string
+              piece_id: string
+              place_id: string
+              place_name: string
+              visit_id: string
+              visited_at: string
+            }[]
+          }
       light_light: {
         Args: {
           actor: string
@@ -5912,6 +6241,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      map_for_players: {
+        Args: { campaign: string }
+        Returns: {
+          asset_id: string
+          group_number: number
+          title: string
+        }[]
+      }
       move_between_places: {
         Args: {
           by_seconds: number
@@ -5924,6 +6261,21 @@ export type Database = {
           way_name?: string
         }
         Returns: Json
+      }
+      move_into_stack: {
+        Args: {
+          how_many: number
+          line: string
+          seen_version?: number
+          to_actor: string
+          to_container: string
+          to_location: string
+        }
+        Returns: string
+      }
+      name_item_truth: {
+        Args: { lines: string[]; piece: string }
+        Returns: number
       }
       note_rule_skipped: {
         Args: { campaign: string; hook: string }
@@ -6002,16 +6354,52 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      place_rules_for_players: {
-        Args: { campaign: string }
-        Returns: {
-          body: Json
-          button: string
-          group_number: number
-          name: string
-          place_name: string
-        }[]
-      }
+      place_card_for_players:
+        | {
+            Args: { campaign: string }
+            Returns: {
+              at: number
+              group_number: number
+              key: string
+              kind: string
+              line: string
+              name: string
+              place_id: string
+            }[]
+          }
+        | {
+            Args: { as_player: string; campaign: string }
+            Returns: {
+              at: number
+              group_number: number
+              key: string
+              kind: string
+              line: string
+              name: string
+              place_id: string
+            }[]
+          }
+      place_rules_for_players:
+        | {
+            Args: { campaign: string }
+            Returns: {
+              body: Json
+              button: string
+              group_number: number
+              name: string
+              place_name: string
+            }[]
+          }
+        | {
+            Args: { as_player: string; campaign: string }
+            Returns: {
+              body: Json
+              button: string
+              group_number: number
+              name: string
+              place_name: string
+            }[]
+          }
       purse_add: {
         Args: { actor: string; campaign: string; coins: Json; location: string }
         Returns: undefined
@@ -6073,6 +6461,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      mark_call_seen: { Args: { send: string }; Returns: string }
       mark_finds_seen: { Args: { character: string }; Returns: string }
       read_messages: { Args: { message_ids: string[] }; Returns: number }
       read_table_by_hand: {
@@ -6430,35 +6819,109 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      scene_pictures: {
-        Args: { campaign: string }
-        Returns: {
-          asset_id: string
-          group_number: number
-        }[]
-      }
-      scene_pieces: {
-        Args: { campaign: string }
-        Returns: {
-          body: string
-          group_number: number
-          kind: string
-          lead: string
-          piece_id: string
-          place_name: string
-        }[]
-      }
-      scene_town: {
-        Args: { campaign: string }
-        Returns: {
-          entry_key: string
-          group_number: number
-          kind: string
-          name: string
-          open: boolean
-          place_name: string
-        }[]
-      }
+      scene_pictures:
+        | {
+            Args: { campaign: string }
+            Returns: {
+              asset_id: string
+              group_number: number
+            }[]
+          }
+        | {
+            Args: { as_player: string; campaign: string }
+            Returns: {
+              asset_id: string
+              group_number: number
+            }[]
+          }
+      scene_pieces:
+        | {
+            Args: { campaign: string }
+            Returns: {
+              body: string
+              group_number: number
+              kind: string
+              lead: string
+              piece_id: string
+              place_name: string
+            }[]
+          }
+        | {
+            Args: { as_player: string; campaign: string }
+            Returns: {
+              body: string
+              group_number: number
+              kind: string
+              lead: string
+              piece_id: string
+              place_name: string
+            }[]
+          }
+      scene_town:
+        | {
+            Args: { campaign: string }
+            Returns: {
+              entry_key: string
+              group_number: number
+              kind: string
+              name: string
+              open: boolean
+              place_name: string
+            }[]
+          }
+        | {
+            Args: { as_player: string; campaign: string }
+            Returns: {
+              entry_key: string
+              group_number: number
+              kind: string
+              name: string
+              open: boolean
+              place_name: string
+            }[]
+          }
+      scene_town_pictures:
+        | {
+            Args: { campaign: string }
+            Returns: {
+              asset_id: string
+              entry_key: string
+              group_number: number
+            }[]
+          }
+        | {
+            Args: { as_player: string; campaign: string }
+            Returns: {
+              asset_id: string
+              entry_key: string
+              group_number: number
+            }[]
+          }
+      scene_town_pieces:
+        | {
+            Args: { campaign: string }
+            Returns: {
+              body: string
+              entry_key: string
+              group_number: number
+              kind: string
+              lead: string
+              piece_id: string
+              place_name: string
+            }[]
+          }
+        | {
+            Args: { as_player: string; campaign: string }
+            Returns: {
+              body: string
+              entry_key: string
+              group_number: number
+              kind: string
+              lead: string
+              piece_id: string
+              place_name: string
+            }[]
+          }
       season_not_now: { Args: { campaign: string }; Returns: string }
       send_hook: {
         Args: {
@@ -6542,7 +7005,7 @@ export type Database = {
           disappears: boolean
           from_gm: boolean
           id: string
-          player_user_id: string
+          player_user_id: string | null
           read_at: string | null
           sender_user_id: string | null
           undone: boolean
@@ -6830,6 +7293,39 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      set_knowledge_share: {
+        Args: {
+          campaign: string
+          entry_id: string
+          group_no: number
+          pack: string
+          section_at: number
+          share: boolean
+        }
+        Returns: {
+          body: Json | null
+          campaign_id: string
+          created_at: string
+          created_by: string | null
+          entry_id: string
+          group_number: number
+          heading: string
+          id: string
+          pack_id: string
+          place_name: string
+          section_at: number
+          shared: boolean
+          shared_clock: number
+          undone: boolean
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "knowledge_shares"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       set_place_rule_switch: {
         Args: {
           campaign: string
@@ -6987,6 +7483,10 @@ export type Database = {
           item_id: string
         }[]
       }
+      show_item_truth: {
+        Args: { lines: string[]; piece: string; visit: string }
+        Returns: number
+      }
       show_place_piece: {
         Args: { piece: string; show_it: boolean; visit: string }
         Returns: {
@@ -7005,6 +7505,28 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "piece_shows"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      show_town_place_piece: {
+        Args: { piece: string; show_it: boolean; visit: string }
+        Returns: {
+          campaign_id: string
+          created_at: string
+          created_by: string | null
+          group_number: number
+          group_place_id: string
+          id: string
+          piece_id: string
+          shown: boolean
+          shown_at: string
+          undone: boolean
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "town_piece_shows"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -7271,6 +7793,16 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      tell_item: {
+        Args: { facts: string[]; line: string; seen_version?: number }
+        Returns: number
+      }
+      town_parts_shown: {
+        Args: { visit: string }
+        Returns: {
+          piece_id: string
+        }[]
       }
       travel_move: {
         Args: {

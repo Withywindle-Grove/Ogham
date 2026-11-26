@@ -50,6 +50,39 @@ const ctx = (over: Partial<StashContext> = {}): StashContext => ({
 const names = new Map([[ASH, 'Ash'], [TAM, 'Tam']]);
 
 describe('in and out (pk-4)', () => {
+  // Purpose: the stash's recent lines (K11) read every move in and out, oldest first, each with the event that made it
+  // (for its Undo) and the person who did it (whose own line keeps Undo).
+  it('lists every move, oldest first, with its event and the person who did it', () => {
+    seq = 0;
+    const events = [
+      ev({ targetId: 'line-chest', before: { actor_id: ASH, location_id: null }, after: { actor_id: null, location_id: STASH } }),
+      ev({ targetId: 'line-chest', actorUserId: 'user-tam', before: { actor_id: null, location_id: STASH }, after: { actor_id: TAM, location_id: null } }),
+    ];
+    const h = stashHistory(events, ctx({ lineIds: [] }));
+    expect(h.moves.map((m) => [m.direction, m.eventId, m.userId])).toEqual([
+      ['in', 'event-1', 'user-ash'],
+      ['out', 'event-2', 'user-tam'],
+    ]);
+  });
+
+  // Purpose: a Put in (a line made straight on the stash, inventory.add) may not be undone from Recently, by the log's
+  // own Undo rule; a take (inventory.move), whole or part, may (review of #66, finding 1).
+  it('a Put in is not undoable; a take, whole or part, is', () => {
+    seq = 0;
+    const events = [
+      ev({ targetId: 'line-basket', type: 'inventory.add', requestId: 'req-1', before: null, after: { id: 'line-basket', actor_id: null, location_id: STASH, name: 'Reed basket', qty: 1 } }),
+      ev({ targetId: 'line-chest', before: { actor_id: null, location_id: STASH }, after: { actor_id: TAM, location_id: null } }),
+      ev({ targetId: 'line-part', requestId: 'req-3', before: null, after: { id: 'line-part', actor_id: null, location_id: STASH, name: 'Torches', qty: 2 } }),
+      ev({ targetId: 'line-part', requestId: 'req-3', before: { actor_id: null, location_id: STASH }, after: { actor_id: TAM, location_id: null } }),
+    ];
+    const h = stashHistory(events, ctx({ lineIds: ['line-basket'] }));
+    expect(h.moves.map((m) => [m.lineId, m.direction, m.type, m.undoable])).toEqual([
+      ['line-basket', 'in', 'inventory.add', false],
+      ['line-chest', 'out', 'inventory.move', true],
+      ['line-part', 'out', 'inventory.move', true],
+    ]);
+  });
+
   // Purpose: a thing moved from a character into the stash reads who put it in (that character) and when, on its row
   // and as the stash's last thing in.
   it('a thing put in reads who and when, on its row and as the last in', () => {
@@ -128,7 +161,7 @@ describe('in and out (pk-4)', () => {
   it('coin counts toward neither fact', () => {
     seq = 0;
     const events = [ev({ targetTable: 'purses', targetId: 'purse-stash', type: 'purse.give', before: { coins: {} }, after: { location_id: STASH, coins: { heron: 40 } } })];
-    expect(stashHistory(events, ctx())).toEqual({ rows: new Map(), lastIn: null, lastOut: null });
+    expect(stashHistory(events, ctx())).toEqual({ rows: new Map(), lastIn: null, lastOut: null, moves: [] });
   });
 
   // Purpose: a thing that left play straight from the stash (dropped, used up) has no row, and IS the stash's last out,
@@ -324,6 +357,6 @@ describe('through the stand-in database, as a player', () => {
     const own = await world.db.from('events').select('id').eq('campaign_id', campaign).in('target_table', ['inventory_lines']);
     expect(own.data).toEqual([]);
     const h = await loadStashHistory(world.db, campaign, { stashId: stash, lineIds: ['line-torches'], clock: null, now: new Date().toISOString() });
-    expect(h).toEqual({ rows: new Map(), lastIn: null, lastOut: null });
+    expect(h).toEqual({ rows: new Map(), lastIn: null, lastOut: null, moves: [] });
   });
 });

@@ -13,7 +13,7 @@
 // approved. A row opens that place to read ahead: its own card, with the line "Reading ahead. The party is at …" and
 // "Back to the party" (on a phone, in the fixed bar); the top and the right column stay the party's. The eyes are drawn,
 // and a tap on one (or on any change to the place) explains in a pop-up that the party isn't there: nothing is written
-// while reading ahead, and no migration was made for it (the eyes' real behaviour is for a design sitting).
+// while reading ahead, but for the eye on the Knowledge of the Area the party is in (ppf-2, 2026-11-20).
 // The page is otherwise the place the party is in. Every part of today's place card has its place:
 //   the card at the left: the trail (each place up it a tap that opens its Locations panel), the name numbered as the key
 //   writes it with no line under it, the rule's icon buttons and Move on (the footprints, ⚑ 2; the accent, or plain
@@ -63,8 +63,10 @@ import type { OpenCampaign } from './Campaigns.tsx';
 import { CallsLine, type CallsAt } from './CallsToAdventure.tsx';
 import { PlaceMapPart } from './PlaceMap.tsx';
 import { TableListItem } from './EncounterTables.tsx';
-import { KnowledgeSheet } from './KnowledgeSheet.tsx';
+import { KnowledgeSheet, useKnowledgeSharing } from './KnowledgeSheet.tsx';
+import type { TurnClock } from '../modules/expedition/placeKnowledge.ts';
 import { MoveOnWiring } from './MoveOn.tsx';
+import { useHoards } from './HoardSheet.tsx';
 import { AddPiece, NotesFold, PictureSection, PieceRow } from './PlaceCard.tsx';
 import { BookTextFold, PlaceTable } from './PlaceFacts.tsx';
 import { PlacePicker } from './PlacePicker.tsx';
@@ -99,6 +101,8 @@ export interface GmPlacePageProps {
   oneColumn?: boolean;
   /** The marching order, the last thing in the right column. */
   marching?: ReactNode;
+  /** The expedition's step on the clock, for the Knowledge sheet's "Shared with the players, turn 9." (P4). */
+  turns?: TurnClock | null;
   onChanged: () => void;
 }
 
@@ -142,7 +146,7 @@ const bookOrder = (pieces: readonly Piece[]): Piece[] => [...pieces.filter((p) =
 /** The other pieces' own words, which the description marks. */
 const namedIn = (pieces: readonly Piece[]): string[] => pieces.flatMap((p) => (p.kind !== 'description' && p.lead ? [p.lead] : []));
 
-export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabel, row, checks, recent, regionalTables, terrain = null, phone = false, oneColumn = false, marching = null, onChanged }: GmPlacePageProps) {
+export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabel, row, checks, recent, regionalTables, terrain = null, phone = false, oneColumn = false, marching = null, turns = null, onChanged }: GmPlacePageProps) {
   const show = useToast();
   const place = row?.place ?? null;
   const pieces = row?.pieces ?? [];
@@ -296,8 +300,15 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
 
   const actions = usePlaceActions({ db, user, campaign, group, groupLabel, row, regionalTables, packPlaces, onChanged });
   const { editing, setEditing, who } = actions;
+  // B15 (page 30): a hoard's piece opens its hoard; a magic item's eye also names the item wherever it is held.
+  const hoards = useHoards({ db, user, campaign, row, place: readEntry?.data ?? null, placeName: place ? numberedName(current?.key ?? null, place.name) : '', phone, onEdit: setEditing, onChanged });
 
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
+  // The eye on each section of the Knowledge sheet (P4, p4s-2): shared with this group. Reading ahead, it works on the
+  // Knowledge of a place the party's Location sits in (its Area: ppf-2, the one thing written while reading ahead);
+  // anywhere else read ahead, the page's pop-up and nothing written, as every other eye there (B2).
+  const readingHolder = !!reading && !!current && !!packPlaces && ancestorsOf(packPlaces, current).some((p) => samePlace(p, reading));
+  const sharing = useKnowledgeSharing({ db, user, campaignId: campaign.id, group, groupLabel, place: chainOf, turns, open: knowledgeOpen, blocked: reading && !readingHolder ? notHere : undefined });
   const [rulesOpen, setRulesOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
   const [elsewhere, setElsewhere] = useState(false);
@@ -527,7 +538,16 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
         <ul className="place-page__rows place-page__pieces">
           <PictureSection key={`picture:${place.id}`} page="row" db={db} user={user} campaign={campaign} place={place} row={row} picture={picture} who={who} onChanged={onChanged} />
           {ordered.map((piece) => (
-            <PieceRow key={piece.id} page piece={piece} named={named} onToggle={() => void actions.togglePiece(piece)} onEdit={() => setEditing(piece)} />
+            <PieceRow
+              key={piece.id}
+              page
+              piece={piece}
+              named={named}
+              onToggle={() => void (!piece.shown && hoards.isMagic(piece) ? hoards.showTruth(piece) : actions.togglePiece(piece))}
+              onEdit={() => setEditing(piece)}
+              onOpen={hoards.opens(piece) ? () => hoards.open(piece) : undefined}
+              note={hoards.noteOf(piece)}
+            />
           ))}
         </ul>
       )}
@@ -680,7 +700,8 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
         <LocationsPanel of={panelOf} places={packPlaces} partyAt={current} lines={panelLines?.key === panelKey ? panelLines.lines : null} onRead={readAhead} onClose={() => setPanelOf(null)} />
       )}
       {blocked.sheet}
-      {knowledgeOpen && <KnowledgeSheet placeName={reading ? reading.name : (place?.name ?? '')} facts={cardFacts ?? NO_FACTS} source={cardSource} onClose={() => setKnowledgeOpen(false)} />}
+      {hoards.sheets}
+      {knowledgeOpen && <KnowledgeSheet placeName={reading ? reading.name : (place?.name ?? '')} facts={cardFacts ?? NO_FACTS} source={cardSource} sharing={sharing} onClose={() => setKnowledgeOpen(false)} />}
       {rulesOpen && <PlaceRulesSheet db={db} user={user} campaignId={campaign.id} chain={placeChain} settingCheck={settingCheck} onChanged={changed} onClose={() => setRulesOpen(false)} onBlocked={reading ? notHere : undefined} />}
       {openTable && <PlaceTable table={openTable} onClose={() => setOpenTable(null)} />}
       {moveOpen &&

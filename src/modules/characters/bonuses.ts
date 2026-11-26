@@ -8,8 +8,10 @@
 //    commas); a `when` it can't read ("vs Large") is a situational bonus, named in the breakdown and not counted;
 //  - a class's progression row `acBonus` (by level, the latest row at or below the character's level);
 //  - a race's or class's `saveBonus`: a whole number, `{ bonus | value, vs? | when?, saves? }`, or a list of them.
-//    Shown beside each save it names (all saves when it names none) as "+2 to the roll", never added in: a save's
-//    figure is the number to roll, and the race's bonus by CON is shown the same way (bq-8, 2026-11-03).
+//    Shown beside each save it names (all saves when it names none) as "+2 to the roll" (bq-8, 2026-11-03). Ruled
+//    2026-11-25 (plan dec-15-save-bonus): one that always holds is counted into the save's number and one at times
+//    gives its own; saveWorking.ts does that counting, and the screens read it from the plan's batch B on. Until
+//    then these words stay beside the number, not added in.
 import { readTraitNote, type RuleTextBlocks } from '../library/ruleText.ts';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -123,10 +125,13 @@ function saveBonusesOf(field: unknown): SaveBonus[] {
   });
 }
 
+/** Whether a save bonus's condition is the "otherwise" of its list ("all other", "others"): it always holds. */
+export const isOtherwise = (against: string | null) => against !== null && /^(all )?others?$/i.test(against);
+
 /** "+4 to the roll vs fungal spores", "+2 to the roll" (no condition), "+2 to the roll otherwise" ("vs all other"). */
 function saveWords(b: SaveBonus): string {
   if (!b.against) return `${signed(b.bonus)} to the roll`;
-  if (/^(all )?others?$/i.test(b.against)) return `${signed(b.bonus)} to the roll otherwise`;
+  if (isOtherwise(b.against)) return `${signed(b.bonus)} to the roll otherwise`;
   return `${signed(b.bonus)} to the roll vs ${b.against.replace(/^vs\.? /i, '')}`;
 }
 
@@ -159,7 +164,7 @@ export function saveBonusesOn(entry: Record<string, unknown> | null, saveKey: st
 /** What a save bonus is against, as a Modifiers line's lead: "Vs poison", "Otherwise", "To the roll" (none named). */
 export function saveBonusLead(against: string | null): string {
   if (!against) return 'To the roll';
-  if (/^(all )?others?$/i.test(against)) return 'Otherwise';
+  if (isOtherwise(against)) return 'Otherwise';
   return `Vs ${against.replace(/^vs\.? /i, '')}`;
 }
 

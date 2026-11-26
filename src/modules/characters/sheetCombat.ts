@@ -37,17 +37,6 @@ export function hpCaption(filled: Filled, klass: Record<string, unknown> | null,
 }
 
 /**
- * Hit points' caption on the players' standard (Design's answer 3 on slice D, 2026-11-07): the die a level, "1d8 a
- * level", from the class's hit die; the score's modifier belongs in the breakdown. Without a hit die, the class's hit
- * dice at this level as before; '' without either.
- */
-export function hpDieCaption(filled: Filled, klass: Record<string, unknown> | null): string {
-  const die = typeof klass?.hitDie === 'string' ? klass.hitDie.trim() : '';
-  if (die) return `${/^d/i.test(die) ? `1${die}` : die} a level`;
-  return typeof filled.hitDice === 'string' ? filled.hitDice : '';
-}
-
-/**
  * AC's caption (sr-1): what's worn that counts (the armour, else "unarmoured"; each shield) and each score's AC
  * modifier in the setting's direction ("leather · DEX +0"); "set by hand" when it is. Empty while what's worn loads.
  */
@@ -135,7 +124,7 @@ export function attackFigures(input: {
   // tfw-6: a figure typed on the sheet that is the class's own number is not listed twice; one that differs is
   // "Set by hand". Compared as whole numbers, so "+1", "1" and "−1" read as the numbers they are.
   if (typed && (base === null || wholeNumber(typed) !== base)) rows.push({ label: 'Set by hand', value: typed });
-  // tfw-7: the kind's word as the pack has it, with a capital ("Melee +2, Missile +1"), on the Player tab and the sheet.
+  // tfw-7: the kind's word with its capital ("Melee +2, Missile +1"), on the sheet and the Player tab alike ("Back to Missile", 2026-11-25, reversing dec-14 row 7b).
   const kindWord = (kind: string) => `${kind.charAt(0).toUpperCase()}${kind.slice(1)}`;
   if (base !== null && direction === null) {
     // The setting doesn't say which way AC runs: the scores' modifiers as the caption; the pop-up keeps its old lines.

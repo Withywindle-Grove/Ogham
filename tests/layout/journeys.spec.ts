@@ -140,15 +140,16 @@ for (const size of [
     });
 
     test('5. Light a torch (player): 1–2 taps, 0 screen changes', async ({ page }) => {
-      // Light (→ pick if more than one light; M5 step 7). Wren carries one light, rushlights, so it's one tap.
+      // Light (→ pick if more than one light; M5 step 7). Wren carries one light, rushlights, so it's one tap: the
+      // light's ring over "Light", in At hand (lt-2, lt-4; page 35).
       await playerScreen(page);
       const journey = new Journey(page);
       await journey.start();
-      const light = page.getByRole('region', { name: 'Light' });
-      await journey.tap(light.getByRole('button', { name: 'Light', exact: true }));
+      const atHand = page.getByRole('region', { name: 'At hand' });
+      await journey.tap(atHand.getByRole('button', { name: /^Light / }));
       // Once lit, the light sits in At hand with no Light heading (dec-13 C9, frames P1 and P2), its line there.
       await expect(page.getByRole('region', { name: 'At hand' }).locator('.light-block--at-hand').getByText('Lit, 6 turns left')).toBeVisible();
-      await expect(page.getByText('Lit Rushlight')).toBeVisible();
+      await expect(page.getByText('Lit a rushlight.')).toBeVisible();
       journey.expectWithin({ taps: 2, screens: 0 });
     });
 
@@ -160,10 +161,9 @@ for (const size of [
       await journey.tap(page.getByRole('button', { name: 'Give to…' }));
       // The Party stash is first and chosen (ruled 2026-10-23), so choosing the person is already done.
       await journey.tap(page.getByRole('dialog', { name: 'Give Chalk' }).getByRole('button', { name: 'Give to Party stash' }));
-      // It's left the pack; the Party stash below starts collapsed (N19, ruled 2026-10-28), a fold row whose summary
-      // counts one more (plan m5b-players-screens-standard C).
+      // It's left the pack; the Pack's Party stash row (K11) counts one more.
       await expect(page.getByRole('button', { name: /^Chalk/ })).toHaveCount(0);
-      await expect(page.getByRole('region', { name: 'Party stash' }).locator('.creation-fold__note')).toHaveText(/^2 items: /);
+      await expect(page.getByRole('button', { name: /^Party stash/ })).toContainText('2 things');
       journey.expectWithin({ taps: 4, screens: 1 });
     });
 

@@ -37,6 +37,8 @@ import {
   topSpellLevel,
 } from "../modules/characters/patrons.ts";
 import { classListOf, patronInSetting } from "./patronGarb.ts";
+import { usePlayerOnly } from "./playerOnly.tsx";
+import { usePlayerView } from "./playerView.ts";
 import {
   answerWords,
   changeWords,
@@ -137,6 +139,7 @@ import { SheetScope } from "../ui/Dialog.tsx";
 import {
   ListRow,
   NameFrom,
+  PinnedMark,
   RowList,
   ScoreRow,
   StatRow,
@@ -236,6 +239,26 @@ export type SheetParts = {
   details: SheetDetails;
   /** The rest of the full sheet, in its order: Abilities, Traits, Patron, Magic, Notes. */
   rest: ReactNode[];
+  /**
+   * Every row of the foot's Abilities and Traits (row P3 of plans/test-feedback-2026-11-19; euf-2): what can be pinned
+   * to the Player tab's list, each with the tap that opens its own pop-up (its entry, or how it's worked out).
+   */
+  pinnable: PinnableRow[];
+};
+
+/** An ability or a trait on the foot's rows (euf-2): its row's key, its name (its pin key) and what opens it. */
+export type PinnableRow = { key: string; name: string; onOpen?: () => void };
+
+/**
+ * The pins the Player tab hands its hosted sheet (row P3; page 28, approved 2026-11-20): the names pinned, which leave
+ * the foot's rows' lines (pg28-3), and the Move up and Move down rows for a pinned one's own pop-up (pg28-7), given the
+ * names of every ability and trait the sheet has.
+ */
+export type SheetPins = {
+  names: readonly string[];
+  moves: (name: string, all: readonly string[]) => ReactNode;
+  /** The Pin star for an ability's or a trait's entry, beside its ✕ (row P4; euf-2, page 26's fix 1). */
+  star: (name: string) => ReactNode;
 };
 
 /**
@@ -370,7 +393,10 @@ export function CharacterSheet({
   onSaved,
   host,
   onEdited,
+  pins,
 }: {
+  /** On the Player tab (hosted): the pins, for the foot's rows and a pinned one's pop-up (row P3). */
+  pins?: SheetPins;
   db: Db;
   user: CurrentUser;
   characterId: string;
@@ -460,6 +486,9 @@ export function CharacterSheet({
   // What's prepared (the Magic tab's Prepare), for the Magic section's Prepared tab (sr-4).
   const [prepared, setPrepared] = useState<PreparedSpell[]>([]);
   const toast = useToast();
+  // The GM's view as the player (page 32): the player's sheet exactly (pg32-3), and Take back a pop-up (pg32-6).
+  const inView = usePlayerView() !== null;
+  const playerOnly = usePlayerOnly();
   useEffect(() => {
     let live = true;
     void loadCharacterPlay(db, characterId).then((found) => {
@@ -545,6 +574,8 @@ export function CharacterSheet({
     character !== null &&
     character !== "error" &&
     isGm(user, character.campaignId);
+  // What only the GM sees (the hidden fields, the true AC, Move points): not in his view as the player (pg32-3).
+  const seesAsGm = gm && !inView;
   const canEdit =
     character !== null &&
     character !== "error" &&
@@ -646,6 +677,7 @@ export function CharacterSheet({
       changes.findIndex((o) => o.field === c.field) === n,
   );
   async function takeBack(change: SheetChange) {
+    if (playerOnly.blocked("takeBackChange", { change: change.id })) return;
     const result = await runCommand(registry, db, user, takeBackSheetChange, {
       change,
     });
@@ -653,7 +685,8 @@ export function CharacterSheet({
     setChangesVersion((v) => v + 1);
     toast({ text: `Took back ${changeWords(change)}.` });
   }
-  const mine = sheetOf?.ownerUserId === user.id;
+  // The player's own, or the GM's view of it, which shows the player's notices and buttons (M3f).
+  const mine = sheetOf?.ownerUserId === user.id || inView;
   const changeLines = (
     <SheetChangeLines
       changes={[...waiting, ...(mine ? refused : [])]}
@@ -749,7 +782,7 @@ export function CharacterSheet({
       <SheetView
         character={sheetOf}
         fieldDefs={fieldDefs}
-        showHidden={gm}
+        showHidden={seesAsGm}
         setting={setting}
         beside={beside}
         worn={worn}
@@ -766,8 +799,9 @@ export function CharacterSheet({
         companyName={companyName}
         changeLines={changeLines}
         notes={notes}
-        {...(gm && expertiseHere ? { onMovePoints: () => setMovingPoints(true) } : {})}
+        {...(seesAsGm && expertiseHere ? { onMovePoints: () => setMovingPoints(true) } : {})}
         {...(hosted ? { hosted } : {})}
+        {...(hosted && pins ? { pins } : {})}
       />
     );
 
@@ -921,6 +955,7 @@ export function CharacterSheet({
   if (host) {
     return (
       <SheetScope.Provider value>
+        {playerOnly.sheet}
         {viewing
           ? sheetView((parts) =>
               host({ parts, fullSheet: page(parts.rest), notices: [...changeNotices, ...finishNotice], status: null, phase: "ready" }),
@@ -938,6 +973,7 @@ export function CharacterSheet({
   return (
     // Every pop-up on the sheet is a Sheet (plan m5b-players-screens-standard A4).
     <SheetScope.Provider value>
+      {playerOnly.sheet}
       {page(editing ? sheetEdit : sheetView())}
     </SheetScope.Provider>
   );
@@ -973,8 +1009,11 @@ function SheetView({
   changeLines = null,
   notes = null,
   hosted,
+  pins,
   onMovePoints,
 }: {
+  /** Hosted on the Player tab: the pins (row P3). */
+  pins?: SheetPins;
   /** The GM's Move points on a class skill's sheet (G-208, ex-6). */
   onMovePoints?: () => void;
   /** Hosted by the Player screen (dec-13 C1): the parts go to it by name, and it places them; no columns here. */
@@ -2060,15 +2099,25 @@ function SheetView({
         ]
       : []),
   ];
+  // On the Player tab a pinned ability or trait is in the right column's list (row P3; pg28-3, ⚑ 26): it leaves its
+  // foot row's line, so each thing shows once; the row still opens every one, a pinned one with the Pinned mark.
+  const pinnedHere = new Set(hosted && pins ? pins.names : []);
+  // Every ability and trait the foot's rows hold: an entry of one of them is pinnable (euf-2).
+  const pinnableNames = new Set([...abilityRows, ...traitsRows].map((r) => r.name));
+  const footLine = (rows: readonly { name: string }[]) => {
+    const left = rows.filter((r) => !pinnedHere.has(r.name));
+    return left.length > 0 ? summaryLine(left.map((r) => r.name)) : "All pinned: they are in the list above";
+  };
   const rowsOf = (rows: typeof abilityRows) => (
     <RowList dotted>
       {rows.map((r) => (
         <ListRow
           key={r.key}
           figure
+          {...(pinnedHere.has(r.name) ? { lead: <PinnedMark /> } : {})}
           title={r.name}
           value={r.figure || undefined}
-          openLabel={r.said}
+          openLabel={pinnedHere.has(r.name) ? `${r.said}, pinned` : r.said}
           {...(r.onOpen ? { onOpen: r.onOpen } : {})}
         />
       ))}
@@ -2081,7 +2130,7 @@ function SheetView({
       key="abilities"
       label="Abilities"
       {...(hosted
-        ? { row: true, summary: summaryLine(abilityFoot.map((r) => r.name)) }
+        ? { row: true, summary: footLine(abilityFoot) }
         : {})}
     >
       {rowsOf(abilityFoot)}
@@ -2092,7 +2141,7 @@ function SheetView({
       key="traits"
       label="Traits"
       {...(hosted
-        ? { row: true, summary: summaryLine(traitsFoot.map((r) => r.name)) }
+        ? { row: true, summary: footLine(traitsFoot) }
         : {})}
     >
       {rowsOf(traitsFoot)}
@@ -2391,6 +2440,11 @@ function SheetView({
             : null,
       },
       rest: [abilitiesBlock, traitsBlock, patronBlock, magicBlock, notes],
+      pinnable: [...abilityRows, ...traitsRows].map((r) => ({
+        key: r.key,
+        name: r.name,
+        ...(r.onOpen ? { onOpen: r.onOpen } : {}),
+      })),
     })
   ) : (
     <>
@@ -2428,6 +2482,12 @@ function SheetView({
           onClose={() => setEntry(null)}
           backLabel="Got it"
           asSheet
+          // On the Player tab an ability's or a trait's entry carries the Pin star beside ✕ (row P4; page 26's fix 1),
+          // and a pinned one's ends with Move up and Move down (pg28-7, frame M4e).
+          {...(pins && pinnableNames.has(entry.name) ? { headAction: pins.star(entry.name) } : {})}
+          {...(pins && pinnedHere.has(entry.name)
+            ? { extra: pins.moves(entry.name, [...pinnableNames]) }
+            : {})}
         />
       )}
       {open && breakdown(open)}

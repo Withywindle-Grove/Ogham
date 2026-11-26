@@ -8,6 +8,7 @@ import { groupName, groupWords } from './partyGroups.ts';
 import { MOVE_ON_WORDS } from './moveWords.ts';
 import { timeWords } from './timeWords.ts';
 import { TRAVEL_PLACE_WORDS } from './travelWords.ts';
+import { isJoin } from './undo.ts';
 import { oneUpVerb, usedWords } from './useWords.ts';
 import { ENCUMBRANCE_WORDS, isEncumbranceMode } from './campaignSettings.ts';
 
@@ -53,6 +54,11 @@ export interface LogNames {
    * since a count's change logs only the count. A line deleted by its last use keeps its kind in the log's copy.
    */
   itemKinds?: Map<string, { category: string; details: Record<string, unknown>; stack: number; qty?: number }>;
+  /**
+   * Where inventory lines are, by line id (Q2): a join's change logs only the stack's count, so its line says where the
+   * stack is from this (a line that is gone: the log's last copy of it).
+   */
+  itemPlaces?: Map<string, { actor_id: unknown; location_id: unknown; container_line_id: unknown }>;
   /** Places items are kept, like the Party stash, by id (from M4). */
   places: Map<string, string>;
   /** Which of those places is the party stash (its kind; K28): a move out of another place is not a Take. */
@@ -174,6 +180,21 @@ export async function loadLog(
 }
 
 /**
+ * Every line one command wrote in a campaign that the reader may read, with the lines that reversed them, oldest first
+ * (B15: the hoard's "Sent to …" and where a found thing is now, read from the GM's send lines). Null on error.
+ */
+export async function loadCommandLog(db: Db, campaignId: string, type: string): Promise<LogEvent[] | null> {
+  const lines = await db.from('events').select(EVENT_COLUMNS).eq('campaign_id', campaignId).eq('type', type).order('seq', { ascending: true });
+  if (lines.error) return null;
+  const rows = lines.data as EventRow[];
+  const ids = rows.map((r) => r.id);
+  const back = ids.length > 0 ? await db.from('events').select(EVENT_COLUMNS).eq('campaign_id', campaignId).in('reverts_event_id', ids) : { data: [], error: null };
+  if (back.error) return null;
+  const seen = new Set(ids);
+  return [...rows, ...(back.data as EventRow[]).filter((r) => !seen.has(r.id))].map(toLogEvent).sort((a, b) => a.seq - b.seq);
+}
+
+/**
  * One row's history (the Status ring's sheet, plan m5b-creation-retest-3 F: "Set by" and its log line): every log
  * entry with an event on that row, newest first, each with all the events of its request. Null on error.
  */
@@ -197,7 +218,7 @@ export async function loadLogNames(db: Db, campaignId: string, me: string): Prom
     db.from('companies').select('id, name').eq('campaign_id', campaignId),
     db.from('field_definitions').select('id, label').eq('campaign_id', campaignId),
     db.from('campaign_packs').select('id, pack_name').eq('campaign_id', campaignId),
-    db.from('inventory_lines').select('id, name, category, item_data, stack, qty').eq('campaign_id', campaignId),
+    db.from('inventory_lines').select('id, name, category, item_data, stack, qty, actor_id, location_id, container_line_id').eq('campaign_id', campaignId),
     db.from('locations').select('id, name, kind').eq('campaign_id', campaignId),
     db.from('character_lights').select('id, actor_id, name').eq('campaign_id', campaignId),
     db.from('character_statuses').select('id, actor_id, name, levels, level').eq('campaign_id', campaignId),
@@ -234,6 +255,7 @@ export async function loadLogNames(db: Db, campaignId: string, me: string): Prom
     itemKinds: new Map(
       lines.map((i) => [i.id, { category: String(i.category ?? ''), details: (i.item_data && typeof i.item_data === 'object' ? i.item_data : {}) as Record<string, unknown>, stack: Number(i.stack ?? 1), qty: Number(i.qty ?? 1) }]),
     ),
+    itemPlaces: new Map(lines.map((i) => [i.id, { actor_id: i.actor_id, location_id: i.location_id, container_line_id: i.container_line_id }])),
     places: new Map((places.data ?? []).map((l) => [l.id, l.name])),
     stashIds: new Set((places.data ?? []).filter((l) => l.kind === 'stash').map((l) => l.id)),
     lights: new Map((lights.data ?? []).map((l) => [l.id, { who: characters.get(l.actor_id) ?? '', name: l.name }])),
@@ -252,7 +274,7 @@ export async function loadLogNames(db: Db, campaignId: string, me: string): Prom
   };
 }
 
-type ItemLineNames = { id: string; name: string; category: unknown; item_data: unknown; stack: unknown; qty: unknown };
+type ItemLineNames = { id: string; name: string; category: unknown; item_data: unknown; stack: unknown; qty: unknown; actor_id?: unknown; location_id?: unknown; container_line_id?: unknown };
 
 /**
  * The item lines a log line can name: the ones there now and, for a line that is gone, the newest copy the log kept of
@@ -263,7 +285,17 @@ export function itemLinesWithGone(current: readonly ItemLineNames[], gone: reado
   for (const event of gone) {
     const copy = event.before && typeof event.before === 'object' && !Array.isArray(event.before) ? (event.before as Record<string, unknown>) : null;
     if (!event.target_id || !copy || typeof copy.name !== 'string') continue;
-    byId.set(event.target_id, { id: event.target_id, name: copy.name, category: copy.category, item_data: copy.item_data, stack: copy.stack, qty: copy.qty });
+    byId.set(event.target_id, {
+      id: event.target_id,
+      name: copy.name,
+      category: copy.category,
+      item_data: copy.item_data,
+      stack: copy.stack,
+      qty: copy.qty,
+      actor_id: copy.actor_id,
+      location_id: copy.location_id,
+      container_line_id: copy.container_line_id,
+    });
   }
   for (const line of current) byId.set(line.id, line);
   return [...byId.values()];
@@ -340,6 +372,22 @@ function findIn(e: LogEvent): { to: string | null; placeId: string | null; hoard
   }
 }
 
+/**
+ * How a thing that joined a stack was got (Q2): public.join_added_line writes it on the add's own line as its reason,
+ * `{"join":{"howGot":"bought","cost":"6 cp","note":"…"}}`; null when the line carries none.
+ */
+function joinOf(e: LogEvent): { howGot: string; cost: string; note: string } | null {
+  if (!e.reason?.startsWith('{')) return null;
+  try {
+    const join = (JSON.parse(e.reason) as { join?: Record<string, unknown> }).join;
+    if (!join || typeof join !== 'object') return null;
+    const text = (v: unknown) => (typeof v === 'string' ? v : '');
+    return { howGot: text(join.howGot) || 'found', cost: text(join.cost), note: text(join.note) };
+  } catch {
+    return null; // Not a join's reason.
+  }
+}
+
 /** Groups events into lines (one per action), newest first. */
 export function groupEntries(events: LogEvent[]): LogEntry[] {
   const groups = new Map<string, LogEvent[]>();
@@ -398,6 +446,75 @@ export const ALLOWED_PREFIX = 'Allowed: ';
 function listWords(words: string[]): string {
   if (words.length <= 1) return words[0] ?? 'details';
   return `${words.slice(0, -1).join(', ')} and ${words.at(-1)!}`;
+}
+
+// K22b: the words of a told fact (pictures 6 of K22h and 4 of K22c). A tell changes one line; the facts it told are the
+// revealed fields it added (an Undo's are those it took away), read beside the line's details as they stood after it.
+const isObj = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
+const listOf = (value: unknown) => (Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []);
+const signedWords = (n: number) => (n < 0 ? `−${-n}` : `+${n}`);
+
+/** The facts in `more` and not in `less` (what a tell added, or an Undo took away), "magic" first. */
+function factsBetween(more: unknown, less: unknown): string[] {
+  const had = new Set(listOf(less));
+  return listOf(more).filter((f) => !had.has(f));
+}
+
+/** A bonus as the line now carries it: the setting's own words, else the magic bonus, else its first bonus against a foe. */
+function bonusPhrase(details: Record<string, unknown>): { gives: string } | { bare: string } | null {
+  if (typeof details.bonus === 'string' && details.bonus.trim()) return { gives: details.bonus.trim() };
+  for (const block of ['weapon', 'armour']) {
+    const part = details[block];
+    if (isObj(part) && typeof part.magicBonus === 'number') return { bare: signedWords(part.magicBonus) };
+  }
+  for (const block of ['weapon', 'armour']) {
+    const part = details[block];
+    const vs = isObj(part) && Array.isArray(part.bonusVs) ? part.bonusVs.find(isObj) : undefined;
+    const n = vs ? (typeof vs.bonus === 'number' ? vs.bonus : typeof vs.damage === 'number' ? vs.damage : null) : null;
+    if (vs && typeof vs.against === 'string' && n !== null) return { bare: `${signedWords(n)} against ${vs.against}` };
+  }
+  return null;
+}
+
+/** The powers a line carries now that it didn't before, by name. */
+function newPowers(before: Record<string, unknown>, after: Record<string, unknown>): string[] {
+  const had = new Set((Array.isArray(before.properties) ? before.properties : []).map((p) => JSON.stringify(p)));
+  return (Array.isArray(after.properties) ? after.properties : [])
+    .filter((p) => !had.has(JSON.stringify(p)))
+    .map((p) => (isObj(p) && typeof p.name === 'string' ? p.name : typeof p === 'string' ? p : ''))
+    .filter(Boolean);
+}
+
+/** One told fact as the end of "the Bronze ring …" ("is cursed", "gives +1 to saves", "’s Maker’s mark: …"). */
+function factPhrase(fact: string, details: Record<string, unknown>, beforeDetails: Record<string, unknown>, charges: unknown): string {
+  if (fact === 'magic') return ' is magic';
+  if (fact === 'cursed') return ' is cursed';
+  if (fact === 'bonus') {
+    const bonus = bonusPhrase(details);
+    return bonus === null ? ' has a bonus' : 'gives' in bonus ? ` gives ${bonus.gives}` : ` has a bonus of ${bonus.bare}`;
+  }
+  if (fact.startsWith('power:')) {
+    const power = newPowers(beforeDetails, details)[0];
+    return power ? ` has a power: ${power}` : ' has a power';
+  }
+  if (fact === 'charges') return typeof charges === 'number' ? ` has ${charges} ${charges === 1 ? 'charge' : 'charges'} left` : '’s charges';
+  if (fact.startsWith('fields.')) {
+    const label = fact.slice(7);
+    const value = isObj(details.fields) ? details.fields[label] : undefined;
+    return typeof value === 'string' || typeof value === 'number' ? `’s ${label}: ${String(value)}` : `’s ${label}`;
+  }
+  return '';
+}
+
+/** What a reader learns of a fact undone, for the GM's Undo line ("that the Bronze ring is cursed", "its true name"). */
+function hiddenAgainPhrase(fact: string, item: string): string {
+  if (fact === 'magic' || fact === 'cursed') return `that the ${item} is ${fact}`;
+  if (fact === 'name') return `the ${item}’s true name`;
+  if (fact === 'bonus') return `the ${item}’s bonus`;
+  if (fact === 'charges') return `the ${item}’s charges`;
+  if (fact.startsWith('power:')) return `a power of the ${item}`;
+  if (fact.startsWith('fields.')) return `the ${item}’s ${fact.slice(7)}`;
+  return `what was told about the ${item}`;
 }
 
 /**
@@ -694,6 +811,23 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
         const nameOf = (visit: LogEvent | undefined) => (visit ? named(names.placeNames ?? new Map(), names.groupPlaces?.get(String(visit.targetId)), '') : '');
         return by(MOVE_ON_WORDS.gmUndone(nameOf(made) || move?.to || null, nameOf(left) || move?.from || null));
       }
+      // A tell undone (K22b, K22h picture 6): the GM's line alone (k22-10), "You undid a reveal: that the Bronze ring is
+      // cursed is hidden again." A look edit undone: the GM's too (pick 3).
+      if (main.targetTable === 'inventory_lines' && 'revealed_fields' in before && 'revealed_fields' in after) {
+        // An Undo of that Undo tells the facts again (review of #40, finding 7): the tell's own line is the players'
+        // again, and this one stays the GM's.
+        const again = factsBetween(after.revealed_fields, before.revealed_fields);
+        const facts = again.length > 0 ? again : factsBetween(before.revealed_fields, after.revealed_fields);
+        const real = facts.filter((f) => f !== 'magic');
+        const said = real.length > 0 ? real : facts;
+        // The name it goes by while the fact is hidden (its face, if its name is what comes and goes).
+        const shown = String((again.length > 0 ? before.name : after.name) ?? '') || item();
+        const what = said.length === 1 ? hiddenAgainPhrase(said[0]!, shown) : `what was told about the ${shown}`;
+        return again.length > 0 ? by(`undid an Undo: ${what} is told again`) : by(`undid a reveal: ${what} is hidden again`);
+      }
+      if (main.targetTable === 'inventory_lines' && ('appears_as' in after || 'noticed' in after) && main.before !== null) {
+        return by(`undid a change to what players see of the ${String(after.name ?? '') || item()}`);
+      }
       // A drop or a gift outside the party undone (ruled 2026-10-25): the item is back where it was.
       if (main.targetTable === 'inventory_lines' && main.before === null) {
         const back = entry.events.filter((e) => e.targetTable === 'inventory_lines' && e.before === null).length;
@@ -757,19 +891,26 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       return by(`undid a change to ${possessive(character())} ${listWords(changedWords(after))}${back}`);
     }
     case 'inventory.add': {
-      const what = counted(item(), after.qty);
-      if (after.how_got === 'bought') {
-        const cost = String(after.cost ?? '').trim();
-        return `${by(`bought ${what} for ${carrier(after)}${cost ? ` (${cost})` : ''}`)} Cost noted; purses arrive later.`;
+      // Joined a same-name stack (Q2, sw-1): the count added, to the stack's carrier, said as any add; how it was got,
+      // its price and the GM's note are kept on this line's reason (public.join_added_line), never on the stack.
+      const joined = isJoin(main.type, main);
+      const kept = joined ? joinOf(main) : null;
+      const added: Record<string, unknown> = joined
+        ? { ...((typeof main.targetId === 'string' ? names.itemPlaces?.get(main.targetId) : undefined) ?? {}), how_got: kept?.howGot ?? 'found', cost: kept?.cost ?? '', notes: kept?.note ?? '', approval: 'approved' }
+        : after;
+      const what = counted(item(), joined ? Number(after.qty) - Number(before.qty) : after.qty);
+      if (added.how_got === 'bought') {
+        const cost = String(added.cost ?? '').trim();
+        return `${by(`bought ${what} for ${carrier(added)}${cost ? ` (${cost})` : ''}`)} Cost noted; purses arrive later.`;
       }
       // Given by the GM (2026-10-23), with the GM's note; a player's other choice is No cost.
-      if (after.how_got === 'given') {
-        const note = String(after.notes ?? '').trim();
-        return by(`gave ${carrier(after)} ${what}${note ? `: ${note}` : ''}`);
+      if (added.how_got === 'given') {
+        const note = String(added.notes ?? '').trim();
+        return by(`gave ${carrier(added)} ${what}${note ? `: ${note}` : ''}`);
       }
-      return after.approval === 'pending'
-        ? by(`made ${what} for ${carrier(after)}, waiting for the GM`)
-        : by(`added ${what} to ${carrier(after)} (no cost)`);
+      return added.approval === 'pending'
+        ? by(`made ${what} for ${carrier(added)}, waiting for the GM`)
+        : by(`added ${what} to ${carrier(added)} (no cost)`);
     }
     case 'inventory.remove':
       return main.after === null
@@ -852,7 +993,70 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       return by('changed who sees every item in Add item');
     case 'inventory.reveal':
       return by(`revealed more about ${item()}`);
+    case 'inventory.tell': {
+      // K22b (K22h picture 6): the GM's "You told Wren the Bronze ring is cursed.", the players' "Wren learned the
+      // Bronze ring is cursed." (the holder and the party read it, k22-9); the true name's, every player's (sw-8).
+      const facts = factsBetween(after.revealed_fields, before.revealed_fields);
+      const real = facts.filter((f) => f !== 'magic');
+      const said = real.length > 0 ? real : facts;
+      const details = isObj(after.item_data) ? after.item_data : {};
+      const beforeDetails = isObj(before.item_data) ? before.item_data : {};
+      const place = names.itemPlaces?.get(String(main.targetId));
+      const inStash = typeof place?.location_id === 'string';
+      const holder = inStash ? 'the party' : named(names.characters, place?.actor_id, 'someone');
+      const Holder = inStash ? 'The party' : holder;
+      // The name it went by before this tell (the face), and the one it has after (the true name, when told).
+      const was = String(before.name ?? '') || item();
+      const now = String(after.name ?? '') || item();
+      const gmReads = names.gms?.has(names.me) === true;
+      if (said.length > 1) {
+        if (gmReads) return by(`told ${holder} everything about the ${now}`);
+        const traits = listWords(['magic', 'cursed'].filter((f) => facts.includes(f)));
+        const bonus = facts.includes('bonus') ? bonusPhrase(details) : null;
+        const parts = [
+          facts.includes('name') ? `the ${now}` : '',
+          facts.includes('magic') || facts.includes('cursed') ? traits : '',
+          bonus ? ('gives' in bonus ? bonus.gives : bonus.bare) : '',
+          ...newPowers(beforeDetails, details),
+        ].filter(Boolean);
+        return `${Holder} learned what the ${was} is: ${parts.join(', ')}.`;
+      }
+      const fact = said[0] ?? 'magic';
+      if (fact === 'name') {
+        return gmReads ? by(`showed the players the ${was}’s true name: ${now}`) : `${Holder} learned the ${was}’s true name: ${now}.`;
+      }
+      const phrase = factPhrase(fact, details, beforeDetails, after.charges_left);
+      return gmReads ? by(`told ${holder} the ${was}${phrase}`) : `${Holder} learned the ${was}${phrase}.`;
+    }
+    case 'inventory.editLook': {
+      // K22c picture 4: the GM's alone (pick 3; the database keeps the line from players).
+      const place = names.itemPlaces?.get(String(main.targetId));
+      const was = String(before.name ?? '') || item();
+      const whose = typeof place?.location_id === 'string' ? `the party’s ${was}` : `${named(names.characters, place?.actor_id, 'someone')}’s ${was}`;
+      return by(`changed what players see of ${whose}`);
+    }
     case 'inventory.move': {
+      // Joined a same-name stack where it landed (Q2, sw-6, sw-9): the count moved, said as any move of it is.
+      const join = entry.events.find((e) => isJoin(main.type, e));
+      if (join?.after && join.before) {
+        const placeOf = (id: unknown) => (typeof id === 'string' ? names.itemPlaces?.get(id) : undefined) ?? {};
+        const into: Record<string, unknown> = placeOf(join.targetId);
+        // Where it came from: the merged line's copy, or the stack it was counted off.
+        const gone = entry.events.find((e) => e.after === null && e.before);
+        const countedOff = entry.events.find((e) => e !== join && e.before && e.after && 'qty' in e.after);
+        const from: Record<string, unknown> = gone?.before ?? placeOf(countedOff?.targetId);
+        const moved = Number(join.after.qty) - Number(join.before.qty);
+        const known = typeof join.targetId === 'string' ? names.itemKinds?.get(join.targetId) : undefined;
+        const name = counted(item({}, join.targetId), moved);
+        const fromStash = typeof from.location_id === 'string' && !!names.stashIds?.has(from.location_id) && typeof into.actor_id === 'string';
+        if (fromStash) {
+          const taker = main.actorUserId !== null && names.gms?.has(main.actorUserId) ? 'Your GM' : named(names.characters, into.actor_id, 'a character');
+          return `${taker} took ${pieces(item({}, join.targetId), known?.details, moved)} from the party stash.`;
+        }
+        if (into.actor_id !== from.actor_id || into.location_id !== from.location_id) return by(`moved ${name} to ${carrier(into)}`);
+        if (into.container_line_id) return by(`put ${name} in ${named(names.items, into.container_line_id, 'a container')}`);
+        return by(`took ${name} out of ${named(names.items, from.container_line_id, 'a container')}`);
+      }
       // Part of a stack moves as a new line (made, then handed over); a whole line just changes carrier.
       const made = entry.events.find((e) => e.before === null && e.after);
       const handed = entry.events.find((e) => e.after && ('actor_id' in e.after || 'location_id' in e.after) && e.before !== null);
@@ -1123,6 +1327,19 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       const made = entry.events.find((e) => e.targetTable === 'place_pieces' && e.before === null)?.after ?? after;
       return by(`added a piece to ${named(names.placeNames ?? new Map(), made.place_id, 'a place')}: “${String(made.body ?? '')}”`);
     }
+    case 'place.showItemTruth': {
+      // B15 (p2p-29): a magic item's piece shown, and the item named wherever it is held, in one request. A reader who
+      // can't read the piece (a player after its Undo, say) reads no words of it: only that an item was named.
+      const made = entry.events.find((e) => e.targetTable === 'piece_shows');
+      const pieceId = made?.after?.piece_id ?? names.pieceShows?.get(String(made?.targetId))?.piece;
+      const groupNo = typeof made?.after?.group_number === 'number' ? made.after.group_number : (names.pieceShows?.get(String(made?.targetId))?.group ?? 1);
+      const group = groupNo !== 1 ? groupName(groupNo) : 'the party';
+      const text = named(names.pieces ?? new Map(), pieceId, '');
+      const items = entry.events.filter((e) => e.targetTable === 'inventory_lines').length;
+      const itemWords = items === 0 ? '' : items === 1 ? 'an item now carries its name' : `${items} items now carry their name`;
+      if (!text) return by(itemWords ? `showed what an item is: ${itemWords}` : 'showed what an item is');
+      return by(`showed ${group} “${text}”${itemWords ? `; ${itemWords}` : ''}`);
+    }
     case 'place.showPiece':
     case 'place.hidePiece': {
       const show = names.pieceShows?.get(String(main.targetId));
@@ -1182,6 +1399,17 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       if (field === 'shown') return by(on ? (withTown ? `showed players ${place} and ${what}` : `showed players ${what} in ${place}`) : `hid ${what} in ${place} from players`);
       return by(on ? `opened ${what} in ${place}` : `closed ${what} in ${place}`);
     }
+    // A piece of a place in town shown or hidden (W4c, ge-1): the GM's lines alone. The piece's words when this line made
+    // the show (its first show on the visit); otherwise "a piece of a place in town" (the store's change holds only shown).
+    case 'town.showPiece':
+    case 'town.hidePiece': {
+      const made = entry.events.find((e) => e.targetTable === 'town_piece_shows' && e.before === null)?.after;
+      const groupNo = typeof made?.group_number === 'number' ? made.group_number : 1;
+      const group = groupNo !== 1 ? groupName(groupNo) : 'the party';
+      const text = named(names.pieces ?? new Map(), made?.piece_id, '');
+      const what = text ? `“${text}”` : 'a piece of a place in town';
+      return main.type === 'town.showPiece' ? by(`showed ${group} ${what}`) : by(`hid ${what} from ${group}`);
+    }
     // A place's rules (December dec-7 piece 3; mc-51, rg-5): the GM's lines alone; the rule and the place by the names
     // the pack gives them (kept on the switch's row).
     case 'placeRule.eye':
@@ -1192,6 +1420,15 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       const on = row.value === true;
       if (main.type === 'placeRule.eye') return by(on ? `opened ${rule} of ${place} to players` : `closed ${rule} of ${place} to players`);
       return by(on ? `put ${place}'s ${rule} back in force` : `switched off ${place}'s ${rule}: the setting's check applies there`);
+    }
+    // A section of a place's Knowledge shared with a group, or taken back (P4, p4s-2): the GM's line alone; the section's
+    // heading and the place by the pack's words (kept on the share's row).
+    case 'placeKnowledge.eye': {
+      const row = entry.events.find((e) => e.targetTable === 'knowledge_shares')?.after ?? after;
+      const heading = typeof row.heading === 'string' && row.heading.trim() ? `“${row.heading.trim()}”` : 'a section';
+      const place = typeof row.place_name === 'string' && row.place_name ? row.place_name : 'a place';
+      const group = typeof row.group_number === 'number' && row.group_number !== 1 ? groupName(row.group_number) : 'the party';
+      return by(row.shared === true ? `shared ${heading} of ${place}'s knowledge with ${group}` : `took back ${heading} of ${place}'s knowledge from ${group}`);
     }
     case 'place.edit': {
       const id = entry.events.find((e) => e.targetTable === 'places' || e.targetTable === 'place_notes')?.targetId;
@@ -1305,6 +1542,11 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       return by('read a message');
     // Got it (K20, pk-13): a verbose line, read by the character's player and the GM alone, in the Pack's voice (the
     // character's name, never the player's). Words not given in the brief: the status file's question.
+    // Got it on a call (P7, p7-1): a verbose line, its player's and the GM's alone. Words of the builder's, for Francis.
+    // Its author is never empty when written (only a signed-in player can mark), so an empty one means that player's
+    // account was deleted since (#77 ⚑ 1, Francis, 24 Nov): "A former player …". A name not loaded stays "Someone".
+    case 'hook.seen':
+      return main.actorUserId === null ? 'A former player marked a call as seen.' : by('marked a call as seen');
     case 'character.seenFinds':
       return `${named(names.characters, after.actor_id ?? before.actor_id, 'A character')} saw the new finds.`;
     // Sheet changes (plan m5b-sheet-revised B): a player asks the GM for a score or Max HP; the GM approves or refuses.
@@ -1427,7 +1669,8 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       return main.type === 'character.castSpell' ? by(`cast ${spell} for ${character()}`) : by(`took back a cast of ${spell} for ${character()}`);
     }
     case 'character.pin': {
-      // A spell or a trait pinned to At hand, or unpinned (pin-2): the one entry that came or went.
+      // A spell pinned to At hand, an ability or a trait pinned to the Player tab's list (pin-2, euf-2), or unpinned: the
+      // one entry that came or went. An ability's or a trait's key is its name.
       const list = (row: Record<string, unknown>) => (Array.isArray(row.pins) ? (row.pins as { kind?: unknown; key?: unknown }[]) : []);
       const id = (p: { kind?: unknown; key?: unknown }) => `${String(p.kind)}:${String(p.key)}`;
       const was = new Set(list(before).map(id));
@@ -1435,10 +1678,30 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       const added = list(after).find((p) => !was.has(id(p)));
       const gone = list(before).find((p) => !now.has(id(p)));
       const entry = added ?? gone;
-      const what = entry?.kind === 'trait' ? 'a trait' : 'a spell';
-      const name = entry?.kind === 'spell' && typeof entry.key === 'string' ? names.spells?.get(entry.key) : undefined;
-      const named = name ?? what;
+      const named =
+        entry?.kind === 'trait'
+          ? typeof entry.key === 'string' && entry.key
+            ? entry.key
+            : 'a trait'
+          : ((typeof entry?.key === 'string' ? names.spells?.get(entry.key) : undefined) ?? 'a spell');
+      if (entry?.kind === 'trait') return added ? by(`pinned ${named} for ${character()}`) : by(`unpinned ${named} for ${character()}`);
       return added ? by(`pinned ${named} to At hand for ${character()}`) : by(`unpinned ${named} from ${possessive(character())} At hand`);
+    }
+    case 'character.movePin': {
+      // A pin moved in the player's order (euf-4; the detailed log), named as the command was given it. A move of one
+      // pin by two places or more shifts that pin alone by more than one, so it is the one named. Moved by one place, it
+      // and its neighbour simply swap and the stored lists can't tell which was moved: both are named.
+      const list = (row: Record<string, unknown>) => (Array.isArray(row.pins) ? (row.pins as { kind?: unknown; key?: unknown }[]) : []);
+      const id = (p: { kind?: unknown; key?: unknown }) => `${String(p.kind)}:${String(p.key)}`;
+      const nameOf = (p: { key?: unknown }) => (typeof p.key === 'string' && p.key ? p.key : 'a pin');
+      const beforeIds = list(before).map(id);
+      const shifts = list(after)
+        .map((p, i) => ({ p, by: beforeIds.indexOf(id(p)) - i }))
+        .filter((s) => s.by !== 0);
+      const far = shifts.filter((s) => Math.abs(s.by) > 1);
+      if (far.length === 1) return by(`moved ${nameOf(far[0]!.p)} ${far[0]!.by > 0 ? 'up' : 'down'} in ${possessive(character())} pins`);
+      if (shifts.length === 2) return by(`swapped ${nameOf(shifts[0]!.p)} and ${nameOf(shifts[1]!.p)} in ${possessive(character())} pins`);
+      return by(`changed the order of ${possessive(character())} pins`);
     }
     case 'character.setSpells':
       return by(`changed ${possessive(character())} spells`);

@@ -283,8 +283,14 @@
   gap: var(--space-2);
 }
 
+/* A card's sub-heading in the book's faces (page 18, PL1; st-8), as the players' page's own headings. */
 .where-to__heading {
   margin: 0;
+  color: var(--book-subhead);
+  font-family: var(--font-heading);
+  font-size: var(--text-20);
+  font-weight: var(--weight-book-subhead);
+  line-height: var(--line-heading);
 }
 
 /* Proposals that wait (page 12, W1 to W3): a card inside "Waiting for you", the way-on mark at the left. */

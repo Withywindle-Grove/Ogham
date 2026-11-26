@@ -59,6 +59,9 @@ function allowed(path, label, opening) {
   // was rolled is a link that opens its creature's stat block, or the encounter's details, in the pop-up: going
   // somewhere, nothing started.
   if (path.endsWith('EncounterWaiting.tsx') && label === '{card.hit.rowText}') return 'goes somewhere (06-03)';
+  // "+ Map from the pack / or choose a file…" after a failed fetch of the pack's picture (Francis, 2026-11-25, B14's
+  // re-audit, "I take your recommendations"): the quiet second way, read as the end of the button's sentence.
+  if (path.endsWith('MapParts.tsx') && label === 'or choose a file…') return "the retry's sentence, its second way (2026-11-25)";
   return null;
 }
 
@@ -127,6 +130,9 @@ describe('fewer links (fl-1): no action is drawn as underlined text', () => {
       // description that names another of its pieces is bold and underlined, in the book's format. Not a control: it
       // sits inside the piece's own row.
       ['.place-page__named', "a description's word naming another piece, bold and underlined (p2p-10, LA1)"],
+      // The players' card (P4; page 24, PL1b, approved 2026-11-18): the same mark, only once the piece it names is shown.
+      // Not a control: a paragraph's words.
+      ['.players-place__named', "a description's word naming a shown piece, bold and underlined (p2p-24, PL1b)"],
     ]);
     const underlined = css.flatMap(([path, text]) =>
       [...text.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*)\}/g)]

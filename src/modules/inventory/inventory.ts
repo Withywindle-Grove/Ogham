@@ -28,6 +28,7 @@ import {
 import { encumbranceModeOf, rechargeDefaultOf, type EncumbranceMode } from '../../core/campaignSettings.ts';
 import type { Json } from '../../core/database.types.ts';
 import type { Db } from '../../core/supabase.ts';
+import type { FactId } from './hiddenFacts.ts';
 
 /** Where items are carried: a character, or the Party stash (a location). */
 export interface CarrierRef {
@@ -102,6 +103,16 @@ export interface InventoryLine extends ItemCopy {
    * ids, or null for a fresh weapon (its default: the first mode it can use; round 3). A spent mode stays stored.
    */
   modeId?: string | null;
+  /**
+   * K22a: false while the item is unidentified (its true name not told): the database stores it as its face, its name
+   * what it appears as and its details without any fact not told. True (or left out) for anything else.
+   */
+  identified?: boolean;
+  /** What players see it as (empty: its category's singular name) and "What you notice" (empty: no line); the GM's to edit. */
+  appearsAs?: string;
+  noticed?: string;
+  /** The facts told on this line ("magic", "name", "bonus", "cursed", "charges", "power:<n>", "fields.<label>"; K22b). */
+  revealedFields?: string[];
   campaignId: string;
   actorId: string | null;
   locationId: string | null;
@@ -114,7 +125,7 @@ export interface InventoryLine extends ItemCopy {
 }
 
 const COLUMNS =
-  'id, campaign_id, actor_id, location_id, library_entry_id, name, category, weight_coin, slots, stack, qty, container_line_id, equipped, how_got, cost, notes, item_data, source_pack_id, source_entry_id, charges_left, charges_hidden, charges_used, spent_shown, pinned, at_hand_hidden, approval, per_units, version, base_armour_id, needs_fuel, fuel_left_seconds, mode_id';
+  'id, campaign_id, actor_id, location_id, library_entry_id, name, category, weight_coin, slots, stack, qty, container_line_id, equipped, how_got, cost, notes, item_data, source_pack_id, source_entry_id, charges_left, charges_hidden, charges_used, spent_shown, pinned, at_hand_hidden, approval, per_units, version, base_armour_id, needs_fuel, fuel_left_seconds, mode_id, identified, appears_as, noticed, revealed_fields';
 
 type LineRow = {
   id: string;
@@ -149,6 +160,10 @@ type LineRow = {
   needs_fuel?: boolean;
   fuel_left_seconds?: number | null;
   mode_id?: string | null;
+  identified?: boolean;
+  appears_as?: string;
+  noticed?: string;
+  revealed_fields?: string[] | null;
 };
 
 function toLine(row: LineRow): InventoryLine {
@@ -185,6 +200,10 @@ function toLine(row: LineRow): InventoryLine {
     needsFuel: row.needs_fuel === true,
     fuelLeftSeconds: typeof row.fuel_left_seconds === 'number' ? row.fuel_left_seconds : null,
     modeId: typeof row.mode_id === 'string' ? row.mode_id : null,
+    identified: row.identified !== false,
+    appearsAs: row.appears_as ?? '',
+    noticed: row.noticed ?? '',
+    revealedFields: Array.isArray(row.revealed_fields) ? row.revealed_fields : [],
   };
 }
 
@@ -245,7 +264,23 @@ async function removeLine(db: Db, line: { id: string; version?: number }, reques
   return gone.data.length > 0 ? ok(null) : noLineWhy(db, line.id, requestId, line.version);
 }
 
-/** Add an item to a carrier: from the setting rules (a copy of it) or a one-off. How it was got is kept. */
+/**
+ * A join's answer (Q2): the stack it joined, read back as the person sees it; null when nothing joined (the command
+ * then goes on as before).
+ */
+async function joinedLine(call: PromiseLike<{ data: unknown; error: { code?: string; message: string } | null }>, db: Db): Promise<CommandResult<InventoryLine> | null> {
+  const { data, error } = await call;
+  if (error) return fromError(error);
+  if (typeof data !== 'string') return null;
+  const stack = fromWrite(await db.from('inventory_lines').select(COLUMNS).eq('id', data));
+  return stack.ok ? ok(toLine(stack.value as unknown as LineRow)) : stack;
+}
+
+/**
+ * Add an item to a carrier: from the setting rules (a copy of it) or a one-off. How it was got is kept. A stackable
+ * thing from the setting rules joins a same-name stack in the same place instead (Q2): the stack keeps its own figures
+ * (sw-3, sw-7), and the add is one log line whose Undo takes the added count back off (sw-4).
+ */
 export const addItem = defineCommand({
   name: 'inventory.add',
   target: (input: {
@@ -262,6 +297,11 @@ export const addItem = defineCommand({
     note?: string;
     /** Magic armour's base, picked as it's added (one of its armour.baseArmour.choose); left out to choose later. */
     baseArmourId?: string | null;
+    /**
+     * False keeps it a line of its own even where a same-name stack is: a town purchase, whose buyer's Undo (bu-1)
+     * removes the line the purchase made.
+     */
+    join?: boolean;
   }) =>
     input.carrier,
   allowed: mayChangeCarrier,
@@ -271,6 +311,28 @@ export const addItem = defineCommand({
     if (!name) return failed('The item needs a name.');
     // The new line's id is the request's, so a retry of the same add finds the line it made instead of a second one.
     const lineId = requestIdOf(meta);
+    // A stackable thing from the setting rules joins a same-name stack in the same place (Q2, sw-1 to sw-7): the
+    // database finds it and raises its count in one step, or changes nothing (public.join_added_line).
+    if (input.join !== false && input.item.libraryEntryId && !input.equipped && !input.chargesHidden && !input.baseArmourId) {
+      const joined = await joinedLine(
+        // A null goes through as SQL null (the stash has no character, a loose thing no container).
+        db.rpc('join_added_line', {
+          campaign: input.carrier.campaignId,
+          actor: input.carrier.actorId as string,
+          location: input.carrier.locationId as string,
+          container: (input.containerLineId ?? null) as string,
+          entry: input.item.libraryEntryId,
+          how_many: input.qty,
+          made_id: lineId,
+          // Kept on the add's own log line, never on the stack (the log says what was paid, and the GM's note).
+          how_got: input.howGot,
+          cost: input.howGot === 'bought' ? (input.cost ?? '').trim() : '',
+          note: (input.note ?? '').trim(),
+        }),
+        db,
+      );
+      if (joined !== null) return joined;
+    }
     const inserted = await db
         .from('inventory_lines')
         .insert({
@@ -445,6 +507,20 @@ export const moveItem = defineCommand({
   allowed: (user, target: { from: CarrierRef; to: CarrierRef }) => mayChangeCarrier(user, target.from) && mayReceive(user, target.from, target.to),
   run: async (db, _user, input, meta): Promise<CommandResult<InventoryLine>> => {
     if (!isWholeCount(input.qty) || input.qty > input.of) return failed(`How many must be a whole number from 1 to ${input.of}.`);
+    // A same-name stack where it lands takes it (Q2, sw-6): part of a stack is counted over, a whole line merged in
+    // and removed, the log keeping its copy (sw-9). Nothing joined: moved as before.
+    const joined = await joinedLine(
+      db.rpc('move_into_stack', {
+        line: input.line.id,
+        how_many: input.qty,
+        to_actor: input.to.actorId as string,
+        to_location: input.to.locationId as string,
+        to_container: (input.containerLineId ?? null) as string,
+        ...(input.line.version !== undefined ? { seen_version: input.line.version } : {}),
+      }),
+      db,
+    );
+    if (joined !== null) return joined;
     const placed = { ...carrierColumns(input.to), container_line_id: input.containerLineId ?? null, equipped: false };
     if (input.qty === input.of) {
       const moved = await changeLine<LineRow>(db, input.line, placed, COLUMNS, requestIdOf(meta));
@@ -597,14 +673,38 @@ export const hideFromAtHand = defineCommand({
 });
 
 /**
+ * The facts a hidden field of the old per-field "Reveal …" button is (K22): its bonus, its curse, its true name, each
+ * power, each field of a hidden `fields` block; null for anything else (the GM's notes, say), which is written as before.
+ */
+function factsOfField(field: string, value: unknown): FactId[] | null {
+  if (field === 'bonus' || field === 'cursed' || field === 'name') return [field];
+  if (field === 'properties') return Array.isArray(value) && value.length > 0 ? value.map((_, i) => `power:${i}` as const) : null;
+  if (field === 'fields') {
+    const labels = value && typeof value === 'object' && !Array.isArray(value) ? Object.keys(value) : [];
+    return labels.length > 0 ? labels.map((label) => `fields.${label}` as const) : null;
+  }
+  return null;
+}
+
+/**
  * The GM shows the holder one of an item's hidden fields (a curse, the true bonus): it's added to what the line
- * says about its item, where its holder (and everyone who sees the line) can read it. Logged.
+ * says about its item, where its holder (and everyone who sees the line) can read it. Logged. A field that is a fact
+ * (its bonus, curse, true name, powers, a hidden field) is told through the database's tell (public.tell_item) while
+ * K2 hasn't replaced this button: the line then records what was told, so a told bonus counts in the player's numbers
+ * (review of #40, finding 5).
  */
 export const revealItemField = defineCommand({
   name: 'inventory.reveal',
   target: (input: { line: LineRef; field: string; value: unknown }) => input.line.carrier,
   allowed: (user, carrier) => isGm(user, carrier.campaignId),
   run: async (db, _user, input, meta): Promise<CommandResult<InventoryLine>> => {
+    const facts = factsOfField(input.field, input.value);
+    if (facts) {
+      const { data, error } = await db.rpc('tell_item', { line: input.line.id, facts, ...seenVersion(input.line) });
+      if (error) return fromError(error);
+      // Nothing of it hidden as a fact (a one-off's own field, say): written as before.
+      if (typeof data === 'number' && data > 0) return lineNow(db, input.line.id);
+    }
     // Read fresh, and saved only if nothing changed in between.
     const found = fromWrite(await db.from('inventory_lines').select('item_data, version').eq('id', input.line.id));
     if (!found.ok) return found;
@@ -620,6 +720,69 @@ export const revealItemField = defineCommand({
   },
 });
 
+/** What a reader has been shown of an item (B15, p2p-29): its real name and what it does, as its piece says them. */
+export interface ItemTruth {
+  lineId: string;
+  name: string;
+  text: string;
+}
+
+/**
+ * The lines as the reader knows them (B15, p2p-29; page 30, HM4): a line whose magic item's truth was shown carries the
+ * real name and, as its description, what it does; every other line is unchanged. The truths come from the database
+ * (public.item_truths), only for lines the reader may read and only once shown, so nothing here can reveal more.
+ */
+export function withTruths(lines: readonly InventoryLine[], truths: readonly ItemTruth[]): InventoryLine[] {
+  const byLine = new Map(truths.filter((t) => t.name.trim() && t.text.trim()).map((t) => [t.lineId, t]));
+  return lines.map((line) => {
+    const truth = byLine.get(line.id);
+    return truth ? { ...line, name: truth.name.trim(), details: { ...line.details, description: truth.text.trim() } } : line;
+  });
+}
+/** The line as this person now sees it, read back after a database function changed it. */
+async function lineNow(db: Db, lineId: string): Promise<CommandResult<InventoryLine>> {
+  const read = fromWrite(await db.from('inventory_lines').select(COLUMNS).eq('id', lineId));
+  return read.ok ? ok(toLine(read.value as unknown as LineRow)) : read;
+}
+
+/** The version the person's copy showed, as the database functions take it. */
+const seenVersion = (line: { version?: number }) => (line.version !== undefined ? { seen_version: line.version } : {});
+
+/**
+ * The GM tells the players one fact still hidden on an item, or every one (K22b; k22-4 to k22-6, pick 6): the database
+ * copies what is told from the entry and its hidden part onto the line (public.tell_item), never from a device, and the
+ * line, its holder's sheet and the log follow. On a magic item any fact tells "That it's magic" too. A fact told
+ * already changes nothing. Undone by the log's Undo; after it the players' log leaves the tell out (k22-10).
+ */
+export const tellItem = defineCommand({
+  name: 'inventory.tell',
+  target: (input: { line: LineRef; fact: FactId | 'everything' }) => input.line.carrier,
+  allowed: (user, carrier) => isGm(user, carrier.campaignId),
+  run: async (db, _user, input): Promise<CommandResult<InventoryLine>> => {
+    const { error } = await db.rpc('tell_item', { line: input.line.id, facts: [input.fact], ...seenVersion(input.line) });
+    return error ? fromError(error) : lineNow(db, input.line.id);
+  },
+});
+
+/**
+ * The GM changes what players see of an item (K22b, k22-1, k22-3): what it appears as and "What you notice"; while it is
+ * unidentified its name follows (an empty one reads as its category's singular name). Logged for the GM alone (pick 3).
+ */
+export const editItemLook = defineCommand({
+  name: 'inventory.editLook',
+  target: (input: { line: LineRef; appearsAs: string; noticed: string }) => input.line.carrier,
+  allowed: (user, carrier) => isGm(user, carrier.campaignId),
+  run: async (db, _user, input): Promise<CommandResult<InventoryLine>> => {
+    const { error } = await db.rpc('edit_item_look', {
+      line: input.line.id,
+      appears_as: input.appearsAs.trim().slice(0, 200),
+      noticed: input.noticed.trim().slice(0, 2000),
+      ...seenVersion(input.line),
+    });
+    return error ? fromError(error) : lineNow(db, input.line.id);
+  },
+});
+
 /** Everything carried in a campaign that this person may see, and the campaign's Party stash. */
 export async function loadInventory(db: Db, campaignId: string): Promise<{ lines: InventoryLine[]; stashId: string | null } | null> {
   const [lines, stash] = await Promise.all([
@@ -627,7 +790,15 @@ export async function loadInventory(db: Db, campaignId: string): Promise<{ lines
     db.from('locations').select('id').eq('campaign_id', campaignId).eq('kind', 'stash').maybeSingle(),
   ]);
   if (lines.error || stash.error) return null;
-  return { lines: (lines.data as LineRow[]).map(toLine), stashId: (stash.data as { id: string } | null)?.id ?? null };
+  const read = (lines.data as LineRow[]).map(toLine);
+  // B15: only a line a truth was shown for carries the pointer (itemData.truthPiece); without one, nothing more is read.
+  // No truths read (the read failed): every item as its plain self, never an error for the Pack.
+  let shown: ItemTruth[] = [];
+  if (read.some((line) => typeof line.details.truthPiece === 'string')) {
+    const truths = await db.rpc('item_truths', { campaign: campaignId });
+    shown = truths.error || !Array.isArray(truths.data) ? [] : truths.data.map((t) => ({ lineId: t.line_id, name: t.name, text: t.body }));
+  }
+  return { lines: withTruths(read, shown), stashId: (stash.data as { id: string } | null)?.id ?? null };
 }
 
 /** A carrier with a name to show ("Ash", "Party stash"). */

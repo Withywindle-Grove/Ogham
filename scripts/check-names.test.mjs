@@ -2,9 +2,11 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { crc32, deflateSync } from 'node:zlib';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { withoutGitVariables } from './git-test-env.mjs';
 import { addedLines, findInPullRequest, findNames, hookVerdict, looksBinary, parseDenylist } from './check-names.mjs';
 
 describe('the real-names scan', () => {
@@ -170,7 +172,7 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
   /** A throwaway repository: a base commit, then a pull request's commit that adds the given files. */
   function repoWith(files, message = 'B6: a clean message') {
     const dir = mkdtempSync(join(tmpdir(), 'names-pr-'));
-    const run = (...args) => execFileSync('git', ['-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd: dir, encoding: 'utf8' });
+    const run = (...args) => execFileSync('git', ['-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd: dir, encoding: 'utf8', env: withoutGitVariables() });
     run('init', '-q', '-b', 'main');
     mkdirSync(join(dir, 'docs'));
     writeFileSync(join(dir, 'docs', 'old.md'), 'The Gloomwater Codex was here before the pull request.\n');
@@ -184,7 +186,7 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
   }
   /** One more commit on that pull request: the given files written (or, for null, deleted). */
   function commitMore(dir, files, message = 'B6: more') {
-    const run = (...args) => execFileSync('git', ['-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd: dir, encoding: 'utf8' });
+    const run = (...args) => execFileSync('git', ['-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd: dir, encoding: 'utf8', env: withoutGitVariables() });
     for (const [name, text] of Object.entries(files)) {
       if (text === null) rmSync(join(dir, name));
       else writeFileSync(join(dir, name), text);
@@ -196,9 +198,66 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
     spawnSync(process.execPath, [script, '--pr', 'main', 'HEAD', ...args], {
       cwd: dir,
       encoding: 'utf8',
-      env: { ...process.env, GRIMOIRE_DENYLIST: join(dir, 'no-list.txt'), GRIMOIRE_NAMES: '', GRIMOIRE_NAMES_REQUIRED: '', PR_TITLE: '', PR_BODY: '', PR_BRANCH: '', ...env },
+      env: withoutGitVariables(process.env, { GRIMOIRE_DENYLIST: join(dir, 'no-list.txt'), GRIMOIRE_NAMES: '', GRIMOIRE_NAMES_REQUIRED: '', PR_TITLE: '', PR_BODY: '', PR_BRANCH: '', ...env }),
     });
   const list = '# invented\nGloomwater Codex\nGWC\n';
+
+  // Purpose: a throwaway repository built inside a git hook (where git exports GIT_DIR and GIT_INDEX_FILE) is built in
+  // its own folder, and the repository those variables point at keeps its config, refs, worktree and index exactly.
+  // On 24 Nov this helper, run by the pre-commit hook in a linked worktree, committed "base" to a real branch, switched
+  // that worktree to b6-table, and its `git init` set core.bare = true in the real repository's shared config.
+  it("builds its throwaway repository in its own folder even when git's hook variables point at another one", () => {
+    const outer = mkdtempSync(join(tmpdir(), 'names-outside-'));
+    const main = join(outer, 'main');
+    const worktree = join(outer, 'wt');
+    mkdirSync(main);
+    const plain = withoutGitVariables(process.env, { GIT_CONFIG_NOSYSTEM: '1' });
+    const at = (cwd) => (...args) =>
+      execFileSync('git', ['-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd, encoding: 'utf8', env: plain });
+    at(main)('init', '-q', '-b', 'trunk');
+    at(main)('config', 'user.name', 'Outer');
+    writeFileSync(join(main, 'keep.md'), 'untouched\n');
+    at(main)('add', '.');
+    at(main)('commit', '-q', '-m', 'outside');
+    at(main)('worktree', 'add', '-q', '-b', 'side', worktree);
+    const snapshot = () =>
+      [
+        at(main)('config', '--local', '--list'),
+        at(main)('for-each-ref', '--format=%(refname) %(objectname)'),
+        at(main)('symbolic-ref', 'HEAD'),
+        at(worktree)('symbolic-ref', 'HEAD'),
+        at(main)('ls-files', '--stage'),
+        at(worktree)('ls-files', '--stage'),
+      ].join('\n');
+    const before = snapshot();
+    expect(before).toContain('core.bare=false');
+    expect(before).toContain('user.name=Outer');
+    // As the pre-commit hook in that worktree would have them.
+    const gitDir = at(worktree)('rev-parse', '--absolute-git-dir').trim();
+    const saved = { GIT_DIR: process.env.GIT_DIR, GIT_INDEX_FILE: process.env.GIT_INDEX_FILE };
+    process.env.GIT_DIR = gitDir;
+    process.env.GIT_INDEX_FILE = join(gitDir, 'index');
+    let dir;
+    try {
+      dir = repoWith({ 'docs/new.md': 'clean\n' });
+    } catch {
+      // A helper that followed the variables may also fail part-way; the comparison below says what it touched.
+    } finally {
+      for (const [name, value] of Object.entries(saved)) {
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+      }
+    }
+    try {
+      expect(snapshot()).toBe(before);
+      const own = (...args) => execFileSync('git', args, { cwd: dir, encoding: 'utf8', env: plain }).trim();
+      expect(own('rev-parse', '--abbrev-ref', 'HEAD')).toBe('b6-table');
+      expect(own('log', '--format=%s')).toBe('B6: a clean message\nbase');
+    } finally {
+      rmSync(outer, { recursive: true, force: true });
+      if (dir) rmSync(dir, { recursive: true, force: true });
+    }
+  });
 
   it('fails on a name the pull request adds, saying the file and line but never the name', () => {
     const dir = repoWith({ 'docs/new.md': 'one\ntwo\nthe Gloomwater Codex\n' });
@@ -258,6 +317,62 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
       expect(result.status).toBe(1);
       expect(result.stderr).toContain('A private name was found in docs/new.md, line 1.');
       expect(result.stderr).toContain('A private name was found in docs/odd.txt, line 2.');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  // A picture's compressed pixel bytes can spell a short name by chance (PR #64): the scan skips them.
+  it("passes a picture whose pixel bytes happen to spell a name, in the end result and in each commit", () => {
+    const chunk = (type, data) => {
+      const body = Buffer.concat([Buffer.from(type, 'latin1'), data]);
+      const out = Buffer.alloc(12 + data.length);
+      out.writeUInt32BE(data.length, 0);
+      body.copy(out, 4);
+      out.writeUInt32BE(crc32(body), 8 + data.length);
+      return out;
+    };
+    const png = (pixels) =>
+      Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk('IHDR', Buffer.alloc(13)), chunk('IDAT', Buffer.from(pixels, 'latin1')), chunk('IEND', Buffer.alloc(0))]);
+    const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xfe, 0x00, 0x07]), Buffer.from('quiet'), Buffer.from([0xff, 0xda, 0x00, 0x02]), Buffer.from('\x01 GWC \x02', 'latin1'), Buffer.from([0xff, 0xd9])]);
+    const dir = repoWith({ 'docs/pic.png': png('\x01 GWC \x02'), 'docs/photo.jpg': jpeg });
+    try {
+      commitMore(dir, { 'docs/pic.png': png('\x03\nthe Gloomwater Codex\n\x04') });
+      const result = scan(dir, { GRIMOIRE_NAMES: list });
+      expect(result.stderr).toBe('');
+      expect(result.status).toBe(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  // Skipping the pixels must not skip the words a picture carries, nor a text file that is only named like a picture.
+  it("still finds a name in a picture's text (a PNG's tEXt, zTXt and iTXt, a JPEG's comment) and in a text file named .png", () => {
+    const chunk = (type, data) => {
+      const body = Buffer.concat([Buffer.from(type, 'latin1'), data]);
+      const out = Buffer.alloc(12 + data.length);
+      out.writeUInt32BE(data.length, 0);
+      body.copy(out, 4);
+      out.writeUInt32BE(crc32(body), 8 + data.length);
+      return out;
+    };
+    const png = (textChunk) =>
+      Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk('IHDR', Buffer.alloc(13)), textChunk, chunk('IDAT', Buffer.from('clean')), chunk('IEND', Buffer.alloc(0))]);
+    const tEXt = chunk('tEXt', Buffer.from('Comment\0the Gloomwater Codex', 'latin1'));
+    const zTXt = chunk('zTXt', Buffer.concat([Buffer.from('Comment\0\0', 'latin1'), deflateSync(Buffer.from('the Gloomwater Codex'))]));
+    const iTXt = chunk('iTXt', Buffer.concat([Buffer.from('Comment\0\x01\0en\0\0', 'latin1'), deflateSync(Buffer.from('the GWC pack'))]));
+    const comment = Buffer.from('the GWC pack');
+    const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xfe, 0x00, comment.length + 2]), comment, Buffer.from([0xff, 0xda, 0x00, 0x02, 0x10, 0xff, 0xd9])]);
+    const dir = repoWith({ 'docs/a.png': png(tEXt), 'docs/b.png': png(zTXt), 'docs/c.png': png(iTXt), 'docs/photo.jpg': jpeg, 'docs/fake.png': 'one\nthe GWC pack\n' });
+    try {
+      const result = scan(dir, { GRIMOIRE_NAMES: list });
+      expect(result.status).toBe(1);
+      for (const file of ['docs/a.png', 'docs/b.png', 'docs/c.png', 'docs/photo.jpg']) {
+        expect(result.stderr).toContain(`A private name was found in ${file} (the text it carries).`);
+        expect(result.stderr).toMatch(new RegExp(`A private name was found in commit [0-9a-f]{7}: ${file.replace('.', '\\.')} \\(the text it carries\\)\\.`));
+      }
+      expect(result.stderr).toContain('A private name was found in docs/fake.png, line 2.');
+      expect(result.stderr.toLowerCase()).not.toContain('gloomwater');
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

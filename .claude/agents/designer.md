@@ -2,7 +2,7 @@
 name: designer
 description: Runs design sessions with Francis (rulings, plans, mockups, paper dry runs); never builds code.
 model: fable
-effort: high
+effort: medium
 tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, SendMessage, ListAgents, Agent, TaskStop
 ---
 

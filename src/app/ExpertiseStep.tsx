@@ -316,6 +316,3 @@ export function ExpertiseStep({
     </CreationStep>
   );
 }
-
-/** The step's title: the pack's word for the points (`points.name`, "Expertise"), else "Skill points" (the ruling's Technical: Name). */
-export const expertiseTitle = (setup: ExpertiseSetup) => setup.rule.name;

@@ -3,8 +3,8 @@
 // Purposes:
 //   The lit storm lantern sits inside At hand, after its item rows (and before any pinned trait, frame P1), and the
 //   screen has no "Light" heading.
-//   Its line reads "Lit, 4 turns left. 3 refills left"; its name (it opens the lantern's sheet), the lit toggle, Keep
-//   lit's toggle and Refill are 44 px targets
+//   Its line reads "Lit, 4 turns left. 3 refills left"; its name (it opens the lantern's sheet), its ring (the tap,
+//   "Put out"; lt-1), Keep lit's toggle and Refill are 44 px targets
 //   at least, and the light's block stays inside At hand's width at 375 px (no sideways scroll).
 import { expect, test, type Page } from '@playwright/test';
 
@@ -39,10 +39,10 @@ for (const size of SIZES) {
     });
     expect(afterItems).toBe(true);
 
-    // 44 px targets (t44-1): the name, the lit toggle, Keep lit's toggle, Refill.
+    // 44 px targets (t44-1): the name, the ring, Keep lit's toggle, Refill.
     const name = light.getByRole('button', { name: 'Storm lantern', exact: true });
     expect((await name.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
-    for (const target of [light.getByRole('switch', { name: 'Storm lantern: lit' }), light.getByRole('switch', { name: 'Keep lit' }), light.getByRole('button', { name: 'Refill' })]) {
+    for (const target of [light.getByRole('button', { name: 'Put out Storm lantern' }), light.getByRole('switch', { name: 'Keep lit' }), light.getByRole('button', { name: 'Refill' })]) {
       const box = await target.boundingBox();
       expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
       expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);

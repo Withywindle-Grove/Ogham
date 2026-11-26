@@ -1,7 +1,7 @@
 // Requests (M5 step 12): the escape roll's prompt and total, pure. Invented rules only.
 import { describe, expect, it } from 'vitest';
 import type { RolledExit } from '../expedition/dungeonExit.ts';
-import { escapePromptOf, escapeTotal, readEscapePrompt, readSecretActivityPrompt } from './requests.ts';
+import { escapePromptOf, escapeTotal, mine, readEscapePrompt, readSecretActivityPrompt, type Request } from './requests.ts';
 
 const rule: RolledExit = {
   roll: { save: 'nerve' },
@@ -47,5 +47,24 @@ describe('reading a secret activity prompt', () => {
     expect(readSecretActivityPrompt({ activityId: 'scout' })?.spend).toBe(0);
     expect(readSecretActivityPrompt({ activityId: 'scout' })?.group).toBe(1);
     expect(readSecretActivityPrompt({ activityId: 'scout', actorIds: ['reed', 7, null] })?.actorIds).toEqual(['reed']);
+  });
+});
+
+// A request with no player shows as the party's only when it has no character either (as the database reads it,
+// 20261125150000_account_deletion_orphaned_requests_stay_hidden.sql): the GM's question to a player whose account was
+// deleted stays the GM's.
+describe("a player's own requests and the party's", () => {
+  const ask = (id: string, extra: Partial<Request>): Request => ({
+    id, campaignId: 'c', expeditionId: null, group: null, requesterId: null, actorId: null, kind: 'escapeRoll', direction: 'gmAsks',
+    text: '', costText: '', prompt: {}, entry: null, status: 'waiting', answerKind: 'yesNo', answer: null, answeredAt: null,
+    reply: null, createdAt: '', version: 1, ...extra,
+  });
+
+  it("shows the party's request (no player, no character) to every player", () => {
+    expect(mine([ask('party', {})], 'u-bryn').map((r) => r.id)).toEqual(['party']);
+  });
+
+  it("doesn't show another player a question whose player was deleted (no player, but a character)", () => {
+    expect(mine([ask('orphan', { actorId: 'wren', kind: 'askGm' })], 'u-bryn')).toEqual([]);
   });
 });

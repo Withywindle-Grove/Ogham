@@ -121,7 +121,7 @@ describe('a trait-list entry’s powers (T9, G-213)', () => {
   it('a power with uses gets the Player screen’s Use row; one without uses gets none', async () => {
     const { me } = heronWorld();
     await openPlayer(me);
-    const traits = screen.getByRole('heading', { name: 'Traits' }).closest('section') as HTMLElement;
+    const traits = screen.getByRole('heading', { name: 'Abilities and traits' }).closest('section') as HTMLElement;
     expect(within(traits).getByRole('button', { name: 'Use Still water' })).toBeTruthy();
     expect(within(traits).queryByRole('button', { name: "Use Heron's patience" })).toBeNull();
     expect(within(traits).getAllByRole('button', { name: 'Use Steady flame' })).toHaveLength(1);

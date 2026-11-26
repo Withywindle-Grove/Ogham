@@ -178,7 +178,8 @@ describe('the full sheet: Combat, Movement, Skills (sr-1, sr-2, sr-8)', () => {
 describe("the Player tab's Attack box (test feedback of 19 Nov 2026, A3 and B3)", () => {
   it("reads the pop-up's totals in its small line, and a typed figure that is the class's own is listed once", async () => {
     // Purpose (A3, tfw-7): with an AC style, the Attack box's small line reads each kind's total, the same figure as the
-    // pop-up's row, with a capital ("Melee +1, Missile +2"), never the score's modifier alone.
+    // pop-up's row, with a capital ("Melee +1, Missile +2"; "Back to Missile", 2026-11-25), never the score's modifier
+    // alone.
     // Purpose (B3, tfw-6): creation's copy of the class's figure on the sheet is not a second row; no "Written on the sheet".
     fenWorld('ascending');
     const tam = world.tables.actors.find((a) => a.name === 'Tam')!;

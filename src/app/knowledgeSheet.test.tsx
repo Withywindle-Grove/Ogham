@@ -5,7 +5,8 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import { knowledgeSourceLine, readPlaceFacts } from '../modules/expedition/placeFacts.ts';
-import { KnowledgeSheet } from './KnowledgeSheet.tsx';
+import type { PlaceSection } from '../modules/expedition/placeFacts.ts';
+import { KnowledgeSheet, type KnowledgeSharing } from './KnowledgeSheet.tsx';
 
 afterEach(cleanup);
 
@@ -65,7 +66,8 @@ describe('the Knowledge sheet', () => {
     expect(sheet.querySelector('details')!.open).toBe(true);
   });
 
-  // Purpose: Knowledge carries no tables, no town watch and no eye or sharing line (the lead's rulings); it is read-only.
+  // Purpose: Knowledge carries no tables and no town watch (the lead's rulings); without the eyes' side (`sharing`) it
+  // stays read-only, with no eye and no sharing line.
   it('shows no tables, no watch, and nothing to share', () => {
     const sheet = open();
     expect(sheet.textContent).not.toContain('Tables');
@@ -79,5 +81,45 @@ describe('the Knowledge sheet', () => {
   it('says so when the place has no knowledge', () => {
     const sheet = open(readPlaceFacts({}));
     expect(sheet.textContent).toContain('The pack gives no knowledge for this place.');
+  });
+});
+
+describe("the Knowledge sheet's eyes (P4, p4s-2; frame 7b)", () => {
+  function withEyes(shared: number[]) {
+    const taps: [string, boolean][] = [];
+    const sharing: KnowledgeSharing = {
+      sharedLine: (section: PlaceSection) => (shared.includes(section.at ?? -1) ? 'Shared with the players, turn 9.' : null),
+      onEye: (section, share) => taps.push([section.heading, share]),
+    };
+    render(<KnowledgeSheet placeName="The Drowned Harbour" facts={harbour} source={source} sharing={sharing} onClose={() => undefined} />);
+    return { sheet: screen.getByRole('dialog', { name: 'The Drowned Harbour: Knowledge' }), taps };
+  }
+
+  // Purpose: each section carries the bare eye, open for a shared one, shut for one not shared; a shared section says
+  // "Shared with the players, turn 9." under its heading; the foot counts them, "1 of 2 sections shared."
+  it('draws an eye on each section, the shared line, and the count', () => {
+    const { sheet } = withEyes([0]);
+    const eyes = within(sheet).getAllByRole('switch');
+    expect(eyes.map((e) => [e.getAttribute('aria-label'), e.getAttribute('aria-checked')])).toEqual([
+      ['Shared with the players: What everyone knows', 'true'],
+      ['Share with the players: The wreck’s cargo', 'false'],
+    ]);
+    expect(within(sheet).getAllByText('Shared with the players, turn 9.')).toHaveLength(1);
+    expect(sheet.textContent).toContain('1 of 2 sections shared.');
+  });
+
+  // Purpose: a tap on an eye asks to share a section not shared, and to take back a shared one; it never opens or
+  // folds the section (the eye is its own control).
+  it('asks to share or take back, and leaves the fold as it was', async () => {
+    const user = userEvent.setup();
+    const { sheet, taps } = withEyes([0]);
+    const [shared, unshared] = within(sheet).getAllByRole('switch');
+    await user.click(unshared!);
+    await user.click(shared!);
+    expect(taps).toEqual([
+      ['The wreck’s cargo', true],
+      ['What everyone knows', false],
+    ]);
+    expect([...sheet.querySelectorAll('details')].map((d) => d.open)).toEqual([false, false]);
   });
 });

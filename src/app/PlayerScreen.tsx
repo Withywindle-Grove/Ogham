@@ -7,8 +7,9 @@ import { cardLine, shortLabel, type FieldDefinition } from '../modules/character
 import { downAtOf } from '../modules/characters/hp.ts';
 import { combatFields, skillsOf } from '../modules/characters/play.ts';
 import { CentredPopUpScope, SheetScope } from '../ui/Dialog.tsx';
-import { limitedAbilities, loadCharacterPlay, pinnedTraits, powersWithUses, type CharacterPlay, type LimitedAbility } from '../modules/characters/playState.ts';
+import { limitedAbilities, loadCharacterPlay, pinnedNames, powersWithUses, type CharacterPlay, type LimitedAbility } from '../modules/characters/playState.ts';
 import { SectionNav } from '../ui/SectionNav.tsx';
+import { useToast } from '../ui/ToastHost.tsx';
 import { useNavCollapsed } from '../ui/navCollapsed.ts';
 import { DividerHandle } from '../ui/DividerHandle.tsx';
 import { CompanyPage } from './CompanyPage.tsx';
@@ -39,15 +40,16 @@ import { useStatusBook } from './Statuses.tsx';
 import { MessageCard, useMessaging } from './Messages.tsx';
 import { PlayerRequests } from './RequestCard.tsx';
 import { fieldsInPlay, fieldsOffFor } from '../modules/library/optionGate.ts';
-import { CharacterSheet } from './CharacterSheet.tsx';
+import { CharacterSheet, type SheetPins } from './CharacterSheet.tsx';
 import { BookType } from '../ui/creation.tsx';
 import { kindredAndTitle, nameKindredTitle, PlayerHead } from './player/PlayerHead.tsx';
 import { PlayerVitals } from './player/PlayerVitals.tsx';
 import { PlayerAtHand } from './player/PlayerAtHand.tsx';
-import { PlayerTraits, traitsWithUses } from './player/PlayerTraits.tsx';
+import { EntryPinStar, movePinTo, PinMoves, PlayerTraits, traitsWithUses } from './player/PlayerTraits.tsx';
 import { PlayerSheetParts } from './player/PlayerSheetParts.tsx';
 import { playerFigures } from './player/playerFigures.ts';
 import { PlayerStateLine } from './player/PlayerStates.tsx';
+import { usePlayerView } from './playerView.ts';
 
 type Tab = Exclude<PlayerTab, 'log'>;
 
@@ -88,6 +90,7 @@ export function PlayerScreen({
   wide = false,
   sheetRefresh = 0,
   onSheetSaved,
+  startTab,
 }: {
   db: Db;
   user: CurrentUser;
@@ -108,11 +111,20 @@ export function PlayerScreen({
   sheetRefresh?: number;
   /** The sheet beside saved something (its Edit). */
   onSheetSaved?: () => void;
+  /** The GM's view as the player (page 32): the tab its door opens (View sheet, Pack, Magic, Scene; tfg-1). */
+  startTab?: Tab;
 }) {
-  // After a reload into a new version, the tab the player was on (placeOnReload.ts).
-  const [tab, setTab] = useState<Tab>(() => tabToRestore<Tab>(campaign.id, ['player', 'scene', 'pack', 'magic']) ?? 'player');
-  useEffect(() => tabRestored(campaign.id), [campaign.id]);
-  useEffect(() => noteTab(campaign.id, tab), [campaign.id, tab]);
+  // The GM's view as the player (page 32): whose view this is, or null on the player's own screen.
+  const view = usePlayerView();
+  // After a reload into a new version, the tab the player was on (placeOnReload.ts). The GM's view neither restores
+  // nor notes one, so it never changes the tab the GM's own sections or a player's device come back to (C15b).
+  const [tab, setTab] = useState<Tab>(() => (view ? (startTab ?? 'player') : (tabToRestore<Tab>(campaign.id, ['player', 'scene', 'pack', 'magic']) ?? 'player')));
+  useEffect(() => {
+    if (!view) tabRestored(campaign.id);
+  }, [view, campaign.id]);
+  useEffect(() => {
+    if (!view) noteTab(campaign.id, tab);
+  }, [view, campaign.id, tab]);
   const phone = usePhone();
   const messaging = useMessaging();
   const waiting = messaging && messaging.user.roles[campaign.id] !== 'gm' ? messaging.unread : 0;
@@ -121,6 +133,8 @@ export function PlayerScreen({
   const [logOpen, setLogOpen] = useState(false);
   const logOpener = useRef<HTMLElement | null>(null);
   const select = (next: PlayerTab) => {
+    // The Pack tab, tapped on the stash's screen, returns to the pack (K11).
+    if (next === 'pack') setStashOpen(false);
     if (next !== 'log') return setTab(next);
     logOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setLogOpen(true);
@@ -139,12 +153,22 @@ export function PlayerScreen({
   const logVersion = useLogVersion();
   // On a landscape tablet the Pack tab uses the right-hand column too (Add item opens there).
   const [packSide, setPackSide] = useState<HTMLElement | null>(null);
+  // The party stash's own screen on the Pack tab (K11, pk-4): the bar names it and its way back returns to the pack. Held
+  // for the character it was opened from, so a change of character shows that character's pack (review of #66, nit 2).
+  const [stashFor, setStashFor] = useState<string | null>(null);
+  const stashOpen = stashFor === character.id;
+  const setStashOpen = useCallback((open: boolean) => setStashFor(open ? character.id : null), [character.id]);
+  useEffect(() => {
+    if (tab !== 'pack') setStashOpen(false);
+  }, [tab, setStashOpen]);
   // Where the full sheet's parts go in the two columns (dec-13 C1; player/PlayerSheetParts.tsx).
   const [savesSlot, setSavesSlot] = useState<HTMLElement | null>(null);
   const [levelSlot, setLevelSlot] = useState<HTMLElement | null>(null);
   const [detailsSlot, setDetailsSlot] = useState<HTMLElement | null>(null);
   const [topSlot, setTopSlot] = useState<HTMLElement | null>(null);
   const [moreSlot, setMoreSlot] = useState<HTMLElement | null>(null);
+  const [traitsSlot, setTraitsSlot] = useState<HTMLElement | null>(null);
+  const toastMove = useToast();
   // The notices box's place (row C1): the right column's top beside, under the head's line in one column.
   const [noticesSlot, setNoticesSlot] = useState<HTMLElement | null>(null);
   // The screen's one loading state (dec-13 C11): where each read the Player tab is drawn from stands. Until the first
@@ -238,11 +262,20 @@ export function PlayerScreen({
   // On a phone the campaign's name sits beside ≡, which opens the drawer, and Log is a tab (slice E).
   // Beside ≡ the character's name on Player, "<name>’s pack" on Pack, the campaign's on Scene (Design on #549, mockup 17).
   // On Player, in two columns, the bar reads the name, "the" kindred and the title (dec-13 C2, frame P1).
-  const topRow = (playerTitle: string) => (
+  const topRow = (playerTitle: string) => {
+    const title = tab === 'scene' ? (phone ? undefined : '') : tab === 'pack' ? `${character.name}’s pack` : playerTitle;
+    // The GM's view (page 32, M3c, M3j): "‹ Players" at the left (in ≡'s place on a phone), the same title, and the
+    // GM's own Log, ✉ and Reference; the band sits under the row (its host's BelowTopRowProvider).
+    if (view) return <TopRow back="Players" named onBack={onBack} menuLabel="Character options" title={title ?? ''} logTab standard />;
     // Creation's standard (plan m5b-players-screens-standard A1): the title centred, ⋯ a sheet; the same bar on every tab
     // so it never jumps between them.
-    <TopRow campaign={{ db, campaign }} onBack={onBack} menuLabel="Character options" drawer={campaign.name} title={tab === 'scene' ? (phone ? undefined : '') : tab === 'pack' ? `${character.name}’s pack` : playerTitle} logTab standard />
-  );
+    // On the stash's screen (K11, PK4): the bar reads "Party stash"; on a tablet its way back returns to the pack (a
+    // phone keeps ≡, and the Pack tab returns to it).
+    if (tab === 'pack' && stashOpen) {
+      return <TopRow {...(phone ? { campaign: { db, campaign }, onBack } : { back: `${character.name}’s pack`, onBack: () => setStashOpen(false) })} menuLabel="Character options" drawer={campaign.name} title="Party stash" logTab standard />;
+    }
+    return <TopRow campaign={{ db, campaign }} onBack={onBack} menuLabel="Character options" drawer={campaign.name} title={title} logTab standard />;
+  };
 
   if (companyOpen) {
     return (
@@ -300,10 +333,12 @@ export function PlayerScreen({
   const kindred = kindredAndTitle(figures.shownRace, title);
   const cardWords = figures.className ? '' : cardLine(fieldDefs, character.fields, character.level, traitLookup(traitListsOf(setting?.all ?? [])));
   const headLine = wide ? cardWords : kindred || cardWords;
+  // In the GM's view the Scene is its player's (C15f, pg32-5): whose group, requests and Rest it shows.
+  const scenePlayer = view ? (character.ownerUserId ?? user.id) : undefined;
   const top = topRow(wide && current === 'player' ? nameKindredTitle(character.name, figures.shownRace, title) : character.name);
 
-  // The traits pinned to At hand (dec-13 C8, pin-2; frame P1): they leave Traits and join At hand, each thing once.
-  const traitsPinned = !!play && pinnedTraits(traitsWithUses(figures, character.level, traitPowers), play.pins).pinned.length > 0;
+  // The right column's list, Abilities and traits (row P3; page 28): the pinned ones first, in the player's order, then
+  // the unpinned traits with uses. Nothing pinned joins At hand any more (euf-3).
   const traitsProps = play && {
     db,
     user,
@@ -315,6 +350,27 @@ export function PlayerScreen({
     more: traitPowers,
   };
 
+  // The pins for the hosted sheet (row P3; pg28-3, pg28-7): the pinned names leave the foot's rows' lines, and a pinned
+  // one's own pop-up (its entry) ends with Move up and Move down.
+  const sheetPins: SheetPins | undefined = play
+    ? {
+        names: play.pins.filter((p) => p.kind === 'trait').map((p) => p.key),
+        star: (name) => <EntryPinStar db={db} user={user} character={character} name={name} pins={play.pins} onChanged={() => setPlayVersion((v) => v + 1)} />,
+        moves: (name, names) => {
+          const live = pinnedNames(play.pins, [...names, ...traitsWithUses(figures, character.level, traitPowers).map((a) => a.name)]);
+          return (
+            <PinMoves
+              name={name}
+              live={live}
+              onMove={(from, to) =>
+                void movePinTo(db, user, character, play.pins, live, from, to).then((result) => (result.ok ? setPlayVersion((v) => v + 1) : toastMove({ text: result.message, error: true })))
+              }
+            />
+          );
+        },
+      }
+    : undefined;
+
   // The right column (dec-13 C1, ps-2): the sheet's scores, saves (beside only), movement and load; the traits with
   // uses; the sheet's skills and languages; then the rest of the sheet's rows, on a phone too (tfr-5).
   const rightColumn = (
@@ -322,7 +378,7 @@ export function PlayerScreen({
       {/* Beside, the notices box at the top, over Scores (frame M1a). */}
       {wide && <div className="player__notices" ref={setNoticesSlot} />}
       <div className="player__slot" ref={setTopSlot} />
-      {traitsProps && <PlayerTraits {...traitsProps} />}
+      <div className="player__slot" ref={setTraitsSlot} />
       <div className="player__slot" ref={setMoreSlot} />
     </>
   );
@@ -405,7 +461,6 @@ export function PlayerScreen({
               weaponLine={weaponLine}
               weaponBreakdown={weaponParts}
               weaponRolls={weaponRollsOf}
-              extra={traitsProps && traitsPinned ? <PlayerTraits {...traitsProps} place="atHand" /> : null}
               onRead={onPackRead}
             />
             <div className="player__slot" ref={setLevelSlot} />
@@ -422,7 +477,9 @@ export function PlayerScreen({
               onSaved={onSheetSaved}
               beside={wide}
               onPhase={setSheetPhase}
-              slots={{ saves: savesSlot, level: levelSlot, details: detailsSlot, top: topSlot, more: moreSlot, notices: noticesSlot }}
+              slots={{ saves: savesSlot, level: levelSlot, details: detailsSlot, top: topSlot, traits: traitsSlot, more: moreSlot, notices: noticesSlot }}
+              traits={traitsProps ? (pinnable) => <PlayerTraits {...traitsProps} pinnable={pinnable} /> : undefined}
+              pins={sheetPins}
             />
           </TabPopUps>
           </div>
@@ -433,21 +490,26 @@ export function PlayerScreen({
           // The players' live table view (B18, M5 gate): the time band, the prompt slot (the rest prompt, a request, a
           // message from the GM: the silent card, B3; No light; the weather), the marching order as tiles with Rest
           // under it (their own group's after a split), then the place; then its few recent log lines.
+          // In the GM's view (C15f, pg32-5; M3i) it is the player's Scene: their group, their requests, their Rest.
           <>
             <SceneTime
               db={db}
               user={user}
               campaign={campaign}
+              player={scenePlayer}
               tableView={{
                 prompts: [
-                  <PlayerRequests key="requests" db={db} user={user} campaign={campaign} setting={setting} />,
+                  <PlayerRequests key="requests" db={db} user={user} campaign={campaign} setting={setting} player={scenePlayer} />,
                   <MessageCard key="message" />,
                   <Darkness key="dark" db={db} campaignId={character.campaignId} characterId={character.id} setting={setting} light={lightView} refresh={logVersion} />,
                 ],
-                body: (restButton, dark) => <PartyGroups db={db} user={user} campaign={campaign} restButton={restButton} dark={dark} actor={actorFacts} />,
+                light: lightView,
+                body: (restButton, dark) => <PartyGroups db={db} user={user} campaign={campaign} restButton={restButton} dark={dark} actor={actorFacts} player={scenePlayer} />,
               }}
             />
-            <LogView db={db} user={user} campaignId={character.campaignId} recent={RECENT_LINES} />
+            {/* In the GM's view of a player's Scene, no Recently lines: they would be his own log (⚑ 52, ruled 2026-11-24).
+                The view of his own character keeps them, as his own Scene does. */}
+            {!view?.player && <LogView db={db} user={user} campaignId={character.campaignId} recent={RECENT_LINES} />}
           </>
         ) : (
           <PackScreen
@@ -457,6 +519,8 @@ export function PlayerScreen({
             carrierId={character.id}
             light={lightView}
             inBar
+            stashOpen={stashOpen}
+            onStash={setStashOpen}
             onChanged={onDataChange}
             side={wide ? packSide : null}
             weaponLine={weaponLine}

@@ -4,7 +4,7 @@
 // charge, a light's Light or Put out, use one up (Fire, Drink, Eat, Use), or for a weapon with nothing to count Wield while
 // it isn't in hand and Attack once it is (ruling m5b-at-hand-actions-2026-11-08, ah-1 and ah-2). A weapon with modes
 // (ah-3, ah-4) carries its mode button (Quiver, Pouch, Grip, Stance) beside the action; its sheets are AtHandSheets.tsx.
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
@@ -28,6 +28,7 @@ import { Icon } from '../ui/icons.tsx';
 import { PinnedMark, PinnedName, WarningLine } from '../ui/parts.tsx';
 import { ItemSheet, useItemSheetState } from './ItemSheet.tsx';
 import { ItemAction } from './ItemAction.tsx';
+import { usePlayerView } from './playerView.ts';
 import { RollFigures, RollLines } from './WeaponInHand.tsx';
 import { registry } from './services.ts';
 import { chargeWords, type Run } from './packHelpers.ts';
@@ -59,6 +60,7 @@ export function ItemRow({
   rechargeDefault,
   onNote,
   secret,
+  gmFacts = [],
   packShortName,
   sourceTitles = {},
   problem,
@@ -74,6 +76,8 @@ export function ItemRow({
   weaponNotes = [],
   attackRange = null,
   tiny = false,
+  note = null,
+  end = null,
   lightAction = null,
   attackRules = [],
   inflicts = [],
@@ -101,6 +105,10 @@ export function ItemRow({
   lightAction?: { label: 'Light' | 'Put out'; run: () => void } | null;
   /** In the Pack's Tiny things section (SC-5-2): weightless, it shows no weight, like other weightless rows. */
   tiny?: boolean;
+  /** A line of its own under the row's line: on the stash's screen, who put it in and when (K11, pk-4). */
+  note?: string | null;
+  /** What ends the row in place of its chevron (the stash's Take, K12); the row's body still opens the item's sheet. */
+  end?: ReactNode;
   /** At hand (sq-4, 2026-11-04): the weapon figure's parts, opened from the figure's row on the item's sheet. */
   weaponRows?: { label: string; value: string }[];
   /** At hand, a weapon (as-1): its rolls for the Attack sheet, to hit first (weaponRolls). */
@@ -136,6 +144,8 @@ export function ItemRow({
   chargeRules: ChargeRules;
   /** The GM's hidden charge total for this line, if any. */
   secret: { total: number | null; spent: boolean } | null;
+  /** In the GM's view as the player: the weapon's hidden figures, for the sheet's GM line (pg32-4). */
+  gmFacts?: readonly string[];
   /** The short name of the setting rules it came from, for the page reference. */
   packShortName: string | null;
   /** That pack's book titles by code (07 meta.sourceTitles): the page reference names the book, never its code. */
@@ -172,7 +182,9 @@ export function ItemRow({
   run: Run;
 }) {
   const marker = markerOf(line, rules);
-  const gmHere = isGm(user, campaign.id);
+  // In the GM's view as the player the row is the player's: no hidden count (pg32-3, pg32-4).
+  const view = usePlayerView();
+  const gmHere = isGm(user, campaign.id) && view === null;
   const charged = chargesOf(line, chargeRules, rechargeDefault);
   const chargeText = !charged ? '' : chargeWords(line, gmHere ? secret : null);
   const waiting = line.approval === 'pending';
@@ -361,6 +373,7 @@ export function ItemRow({
           chargeRules={chargeRules}
           rechargeDefault={rechargeDefault}
           secret={secret}
+          gmFacts={gmFacts}
           packShortName={packShortName}
           sourceTitles={sourceTitles}
           problem={problem}
@@ -418,60 +431,61 @@ export function ItemRow({
           </span>
         )
       )}
+      {note && <span className="auth__meta pack__sub">{note}</span>}
       {weaponNotes.map((n) => (
         // A magic weapon's notes (mw-1): each on its own line under the figure, never in it.
         <span key={n} className="auth__meta pack__sub">
           {n}
         </span>
       ))}
-      {!action && !light && !verb && !attack && !wield && (
+      {!action && !light && !verb && !attack && !wield && !end && (
         <span className="pack__chevron" aria-hidden="true">
           <Icon name="chevron" size={20} />
         </span>
       )}
     </button>
   );
-  const buttons = (
-    <>
-      {action && (
-        <ItemAction
-          word="Use"
-          wordAsButton="Use a charge"
-          hidden={`of ${line.name}`}
-          stacked={stack}
-          onClick={() =>
-            // Never a disabled button: an item a choice removes (bq3-17 (6)), or with nothing left, says why instead.
-            busy
-              ? undefined
-              : offReason
-                ? onNote(offReason)
-                : !canUse
-                  ? onNote(`${line.name} has no charges left.`)
-                  : void run(async () => {
-                      const used = await runCommand(registry, db, user, useCharge, { line: ref, hidden: line.chargesHidden });
-                      // With none left, nothing happens, and now the holder knows (ruled 2026-10-24).
-                      if (used.ok && line.chargesHidden && !gmHere && (await seemsSpent(db, line.id))) onNote(`Nothing happens. ${line.name} seems spent.`);
-                      return used;
-                    })
-          }
-        />
-      )}
-      {light && <ItemAction word={light.label} hidden={line.name} stacked={stack} onClick={() => (busy ? undefined : light.run())} />}
-      {verb && <ItemAction word={verb} hidden={line.name} stacked={stack} onClick={() => void spendOne(verb)} />}
-      {modes && (attack || wield) && (
-        // The mode button (ah-3, ah-4; md-1): the pack's word, beside the action; it opens the mode sheet.
-        <ItemAction word={MODE_BUTTON_WORDS[modes.modes.button]} hidden={`of ${line.name}`} stacked={stack} opensSheet onClick={() => setSheet('modes')} />
-      )}
-      {wield && (
-        // Wield (ah-2): a pinned weapon not in hand; once in hand the row shows Attack.
-        <ItemAction word="Wield" hidden={line.name} stacked={stack} onClick={() => void wieldIt()} />
-      )}
-      {attack && (
-        // Attack (ah-1): until M6 wires the attack, it opens the Attack sheet; never disabled (a spent mode explains).
-        <ItemAction word="Attack" hidden={`with ${line.name}`} stacked={stack} opensSheet onClick={onAttack} />
-      )}
-    </>
-  );
+  // The row's buttons, built once; how many there are sets the row's layout below.
+  const buttons = [
+    action && (
+      <ItemAction
+        key="use"
+        word="Use"
+        wordAsButton="Use a charge"
+        hidden={`of ${line.name}`}
+        stacked={stack}
+        onClick={() =>
+          // Never a disabled button: an item a choice removes (bq3-17 (6)), or with nothing left, says why instead.
+          busy
+            ? undefined
+            : offReason
+              ? onNote(offReason)
+              : !canUse
+                ? onNote(`${line.name} has no charges left.`)
+                : void run(async () => {
+                    const used = await runCommand(registry, db, user, useCharge, { line: ref, hidden: line.chargesHidden });
+                    // With none left, nothing happens, and now the holder knows (ruled 2026-10-24).
+                    if (used.ok && line.chargesHidden && !gmHere && (await seemsSpent(db, line.id))) onNote(`Nothing happens. ${line.name} seems spent.`);
+                    return used;
+                  })
+        }
+      />
+    ),
+    light && <ItemAction key="light" word={light.label} hidden={line.name} stacked={stack} onClick={() => (busy ? undefined : light.run())} />,
+    verb && <ItemAction key="verb" word={verb} hidden={line.name} stacked={stack} onClick={() => void spendOne(verb)} />,
+    modes && (attack || wield) && (
+      // The mode button (ah-3, ah-4; md-1): the pack's word, beside the action; it opens the mode sheet.
+      <ItemAction key="mode" word={MODE_BUTTON_WORDS[modes.modes.button]} hidden={`of ${line.name}`} stacked={stack} opensSheet onClick={() => setSheet('modes')} />
+    ),
+    wield && (
+      // Wield (ah-2): a pinned weapon not in hand; once in hand the row shows Attack.
+      <ItemAction key="wield" word="Wield" hidden={line.name} stacked={stack} onClick={() => void wieldIt()} />
+    ),
+    attack && (
+      // Attack (ah-1): until M6 wires the attack, it opens the Attack sheet; never disabled (a spent mode explains).
+      <ItemAction key="attack" word="Attack" hidden={`with ${line.name}`} stacked={stack} opensSheet onClick={onAttack} />
+    ),
+  ].filter(Boolean);
 
   return (
     <li className={inHand ? 'pack__item weapon-in-hand' : 'pack__item'}>
@@ -485,9 +499,12 @@ export function ItemRow({
           <RollLines rolls={weaponRolls} />
         </>
       ) : (
-        <div className="pack__row">
+        // Two buttons or more (dec-14 row 6, frame 38-6): on a phone the words take the row's full width and the
+        // buttons sit under them, at the right (`.pack__row--two-buttons`, PackScreen.css); a tablet keeps them beside.
+        <div className={buttons.length >= 2 ? 'pack__row pack__row--two-buttons' : 'pack__row'}>
           {main}
           {buttons}
+          {end}
         </div>
       )}
       {blocked.sheet}

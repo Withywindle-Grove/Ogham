@@ -8,7 +8,7 @@
 import { defineCommand, fromError, fromWrite, isGm, ok, type CommandResult, type CurrentUser } from '../../core/commands.ts';
 import type { Json } from '../../core/database.types.ts';
 import type { Db } from '../../core/supabase.ts';
-import { loadGroupPlaces, toPlace, type GroupPlace, type Place } from './placePlay.ts';
+import { loadGroupPlaces, readsAs, toPlace, type GroupPlace, type Place } from './placePlay.ts';
 import { withEntry, type TownPlace } from './town.ts';
 
 const gmOnly = (user: CurrentUser, target: { campaignId: string }) => isGm(user, target.campaignId);
@@ -78,8 +78,8 @@ export interface SceneTown {
 }
 
 /** For each of the reader's groups at a settlement place with something shown; null if it couldn't be loaded. */
-export async function loadSceneTowns(db: Db, campaignId: string): Promise<Map<number, SceneTown> | null> {
-  const { data, error } = await db.rpc('scene_town', { campaign: campaignId });
+export async function loadSceneTowns(db: Db, campaignId: string, asPlayer?: string): Promise<Map<number, SceneTown> | null> {
+  const { data, error } = await db.rpc('scene_town', readsAs(campaignId, asPlayer));
   if (error) return null;
   const out = new Map<number, SceneTown>();
   for (const row of data ?? []) {

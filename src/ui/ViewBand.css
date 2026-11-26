@@ -1,0 +1,42 @@
+/* The View band (page 32, pg32-2, pg32-8): the eye in the info colour, then the name line in ink and the logged line,
+   quiet, under it. Two lines at most on every width: each line stays on one line and is cut with "…" on screen (the
+   whole words are the band's name). The info edge at the left, as the mockup draws it. */
+.view-band {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: var(--line-control) solid var(--control);
+  border-left: var(--space-1) solid var(--info);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.view-band__eye {
+  display: flex;
+  color: var(--info);
+}
+
+.view-band__words {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.view-band__name,
+.view-band__logged {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.view-band__name {
+  font-weight: var(--weight-bold);
+}
+
+.view-band__logged {
+  font-size: var(--text-meta);
+  color: var(--muted);
+}

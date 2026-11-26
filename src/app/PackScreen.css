@@ -204,6 +204,21 @@
   gap: var(--gap);
 }
 
+/* Variant: two buttons under the words (dec-14 row 6, frame 38-6; ruled "3 every size pack included"): on a phone a
+   row with two buttons or more gives its words the full width and sets the buttons under them, at the right, at every
+   text size, on the Player tab's At hand and the Pack tab alike. A tablet keeps them beside the words. */
+@media (max-width: 599px) {
+  .pack__row--two-buttons {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    padding-bottom: var(--gap);
+  }
+
+  .pack__row--two-buttons > .pack__row-main {
+    flex-basis: 100%;
+  }
+}
+
 .pack__row-main {
   flex: 1;
   display: grid;
@@ -529,7 +544,7 @@
   border-top: var(--divider);
 }
 
-/* Landscape tablet (ruled 2026-10-24): a list at least a third wide on the left, never an empty right side. */
+/* Landscape tablet (ruled 2026-10-24): a list about a third (06, landscape rule) on the left, never an empty right side. */
 .pack__summary,
 .pack__list {
   display: flex;
@@ -799,7 +814,8 @@
   margin: 0;
 }
 
-.at-hand-popup .list-row--icon .list-row__title {
+.at-hand-popup .list-row--icon .list-row__title,
+.pack__sheet .list-row--icon .list-row__title {
   font-weight: 400;
 }
 
@@ -822,3 +838,127 @@
   margin: 0;
   font-weight: 700;
 }
+
+/* The Pack's "Party stash" row (K11; mockup pack/08 PK1, PK6): a leading icon, the name over what is in it, the
+   chevron; under the coin line, with the rule above it as the coin line has. */
+.pack__stash-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  min-block-size: calc(var(--tap) + var(--space-2));
+  padding: var(--space-1) 0;
+  border: none;
+  border-block-start: var(--divider);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.pack__stash-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--muted);
+}
+
+.pack__stash-words {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.pack__stash-name {
+  font-weight: var(--weight-book-name);
+}
+
+.pack__stash-row .pack__chevron {
+  grid-column: auto;
+  grid-row: auto;
+  flex: none;
+  justify-content: center;
+  inline-size: var(--tap);
+}
+
+/* The party stash's own screen (K11; PK4, PK7b, PK9b): the three facts as labelled lines, the label in the book's
+   label colour; the taker's room and the recent lines beside the lists on a tablet, under them on a phone. */
+.stash__facts {
+  margin-block-end: var(--space-2);
+}
+
+.stash__fact {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.stash__fact-label {
+  color: var(--book-label);
+}
+
+.stash__offline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: var(--line-hair) solid var(--warning);
+  border-radius: var(--radius);
+  font-weight: var(--weight-bold);
+}
+
+.stash__empty {
+  margin-block: var(--space-3);
+}
+
+.stash__beside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+}
+
+.stash__head {
+  margin: 0 0 var(--space-2);
+  color: var(--accent);
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+}
+
+.stash__takers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.stash__recent-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stash__recent-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-1);
+  border-block-end: var(--line-hair) dotted var(--rule);
+}
+
+.stash__recent-words {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.stash__undo {
+  flex: none;
+  min-block-size: var(--tap);
+  min-inline-size: var(--tap);
+}
+

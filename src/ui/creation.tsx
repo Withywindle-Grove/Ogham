@@ -935,7 +935,13 @@ export function EntryPanel({
   backTo,
   action,
   backIcon,
+  headAction,
 }: {
+  /**
+   * A button beside ✕ in the sheet's head (the Player tab's Pin star on an ability's or trait's entry, row P4 of plan
+   * test-feedback-2026-11-19; euf-2, page 26's fix 1). Only as a sheet.
+   */
+  headAction?: ReactNode;
   /**
    * An entry read in play with its own act at the foot, plain (the **act** variant; mockup magic/04, a spell's rules
    * with Cast): the foot's one button, in place of the way back (the sheet's ✕ closes it). Not with `onPick`.
@@ -1134,7 +1140,7 @@ export function EntryPanel({
   );
   if (asSheet) {
     return (
-      <Dialog label={name} meta={book ? undefined : meta} bookHeading={book} preview={preview} onClose={onClose}>
+      <Dialog label={name} meta={book ? undefined : meta} bookHeading={book} preview={preview} onClose={onClose} {...(headAction ? { headAction } : {})}>
         {body}
       </Dialog>
     );

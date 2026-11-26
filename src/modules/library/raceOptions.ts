@@ -19,9 +19,6 @@ interface Entry {
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 
-/** The fields a race's `byOption` reads its own way (07, cs-5); any other field is merged (bq2-1). */
-export const RACE_OPTION_FIELDS = ['npcOnlyClasses', 'classMaxLevels', 'abilities'] as const;
-
 /** Abilities added by name: the race's own first, then any it doesn't have. */
 const addAbilities = (own: unknown, more: unknown[]): unknown[] => {
   const list = Array.isArray(own) ? own : [];

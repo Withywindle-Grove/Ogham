@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: the Scene’s buttons that still want an icon ruled (2026-11-14)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* this page's own rules: the layout of the list only. Type, the book format, the stacked button and the corners come from ../shared/book.css. */
+  .ic21 { width:1040px; }
+  .ir { display:grid; grid-template-columns:250px 150px 150px minmax(0,1fr); gap:var(--space-2) var(--space-4); align-items:center; padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .ir.hd { font-size:14px; color:var(--muted); padding-top:0; }
+  .ir .what small { display:block; font-size:14px; color:var(--muted); }
+  .ir .cell { display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .ir .cell code { font-size:14px; color:var(--muted); text-align:center; overflow-wrap:anywhere; }
+  .ir .why { font-size:14px; color:var(--muted); }
+  .grp21 { font-size:14px; color:var(--muted); margin:var(--space-4) 0 0; }
+  .grp21:first-child { margin-top:0; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+const stk = (words, k) => `<span class="btn stk" role="button">${gi(k, 24)}<span>${words}</span></span>`;
+const cell = (words, k) => (k ? `<span class="cell">${stk(words, k)}<code>${k}</code></span>` : '<span class="cell"></span>');
+const row = (words, where, pick, other, why) => `<div class="ir"><span class="what"><b>${words}</b><small>${where}</small></span>${cell(words, pick)}${cell(words, other)}<span class="why">${why}</span></div>`;
+const head = `<div class="ir hd"><span>The button, and where it stands</span><span style="text-align:center">Ruled</span><span></span><span>Why</span></div>`;
+const NONE = [
+  ['Start', 'The band, before a session (16 T3a): it was worded “Start session”', 'campfire', '', 'Ruled: the campfire, and the one word “Start”.'],
+  ['Resume', 'The band, after a pause (16 T3b, T8c): it was “Resume session”', 'campfire', '', 'The same picture; the word “Resume” is the lead’s, on Francis’s pattern.'],
+  ['Depart', 'The band, in town (16 T4, T11; 19 TW1): it was “Start expedition”', 'journey', '', 'Ruled: a figure on a winding road (ic-4); the word was first “Journey”, then “Depart” (ic-5).'],
+  ['Answer', 'The “Rest is due” card (16, 18): it carried the moon', 'scroll-quill', '', 'Ruled: the scroll and quill everywhere, as on the Player screen (ic-3).'],
+  ['Light', 'The players’ “No light” card and the Light sheet (18): it was “Light a torch”', 'torch', '', 'Ruled: the word “Light”, as ic-3.'],
+];
+const UNDRAWN = [
+  ['Saved orders', 'The marching order (as built; on no December frame)', 'scroll-unfurled', '', 'Ruled: an unrolled scroll.'],
+  ['Split party', 'The marching order (as built; on no December frame): it was “Split the party”', 'split-arrows', '', 'Ruled: the two parting arrows, and the words “Split party”.'],
+  ['Change', 'In the opened picture’s foot (19 TW13): it was “Change picture” on the row', 'easel', '', 'Ruled with the picture piece: the row loses its two buttons; a tap on the picture opens it, and the actions are in the pop-up’s foot.'],
+  ['Take it off', 'In the opened picture’s foot (19 TW13)', 'cancel', '', 'As above; with Undo in the toast.'],
+];
+const body = `<p class="grp21"><b>On the Scene’s frames</b>, now redrawn with these.</p>${head}${NONE.map((r) => row(...r)).join('')}
+  <p class="grp21"><b>The marching order’s two (on no December frame), and the picture piece’s two (frame TW13 on page 19).</b></p>${head}${UNDRAWN.map((r) => row(...r)).join('')}`;
+const frame = `<div style="width:1074px"><p class="cap">SI1. <b>Ruled by Francis, 2026-11-14 (ic-4): “Start session icon is good but can it “Start” / Start expedition icon good but call it “Journey” / Split the party - use split arrows- call it “Split Party” / Change picture and take it off - not sure I’d use these vs clicking on the picture itself”, then “Yes to all. We may rework this image later but for the fifth it’s fine”.</b> The candidates not chosen are out of the folder. <b>The Scene’s buttons that still wanted an icon ruled</b> (the whole-Scene plan’s row S17; ic-1: every button carries an icon). <b>The list was the remainder: six buttons, and with them two words and one icon set right on frames already approved (“Answer”, “Light”).</b> <b>Left out, because Francis has approved each on a frame with its icon:</b> on page 16 (st-8, ap-11, ap-17): Next turn, “Advance time” in town (it was “Next part of day”; ic-5), Next day, Move on, Set place, the sheets’ Start, Set the date, Enter, “+ Reminder”, the three hours, the waiting cards’ Start, Dismiss, “Who is awake…”, “Answer…”, “Enter…”, Done, Make camp, Quick camp, “Use safe paths”, “Ask for escape rolls”, Heal, Full rest, “Start downtime”, “Not yet”, “Bring back”, Rename and Change sigil; on page 18 (ap-10): the ways’ Row, Swim, Walk and Climb, Cancel, “Try again”, “Got it”, Answer, the Activities’ book mark; on page 19 (ap-8, ap-12, ap-13, ap-14): Rename, “Hide all”, “+ Piece”, “+ Picture”, Reset, Knowledge, Rules, “Price…”, Buy, Order, “Buy it”, “Leave it”, “Take it”, “Not now”, “Spend”, “Send to the GM”, “Send price”, Character, Party, “Got it”, “Try again”; and Cast, Prepare, Heal and Undo by ic-2. The map’s tools (zoom, find the party, the eye) are icons already, the app’s own. <b>Each row:</b> the button as the stacked button it would be, with its ruled icon; all from game-icons.net’s official repository (CC BY 3.0), credited with their authors in <code>icons/CREDITS.md</code>; none drawn here; medieval or fantasy in kind but for the two plain signs named as such. Pages 16, 18 and 19 are redrawn with these.</p><div class="pcard ic21 bit">${body}</div></div>`;
+const head2 = `<div class="ir hd"><span>The button, and where it stands</span><span style="text-align:center">My pick</span><span style="text-align:center">The other</span><span>Why</span></div>`;
+const WAIT = [
+  ['Hit', 'A due check’s row in “Waiting for you”: the GM rolled at the table and the check came up', 'bullseye', '', 'An arrow in the centre of a target: the roll found its mark. No blade and no cross in it, so it is neither “Start” nor “Dismiss”.'],
+  ['Miss', 'Beside “Hit”, where the check’s card shows both', 'shield-bounces', 'broken-arrow', 'Arrows glancing off a shield: nothing got through. Told from “Hit” by its outline, a shield against a round target, not by a colour. The other, a snapped arrow, says “failed” more plainly but is thin at this size and shares the arrow with “Hit”.'],
+  ['Check again', 'A check’s row: roll it again later', 'rolling-dice-cup', '', 'Dice spilling from a cup. It is not the pair of dice “Enter roll…” carries, nor the turning arrows of “Try again”. It says “roll”; the word carries “again”.'],
+  ['Recharge', 'The row of a thing with charges that has come due', 'crystal-wand', 'crystal-shine', 'A wand with a crystal head: the thing that holds charges. The other, a gem in its glow, suits a ring or a staff as well but may read as treasure.'],
+  ['Enter roll…', 'A row that asks for a roll made at the table', 'rolling-dices', '', 'No candidate needed: it takes the rolling dice that “Enter…” already carries on page 16 (T2).'],
+];
+const body2 = `<p class="grp21"><b>On “Waiting for you”, as the build has them</b> (on no December frame; words only until ruled).</p>${head2}${WAIT.map((r) => row(...r)).join('')}`;
+const frame2 = `<div style="width:1074px"><p class="cap">SI2. <b>New, a proposal, not ruled; shared stylesheet.</b> <b>Four buttons of “Waiting for you” that the build found without an icon</b> (the lead’s word, 2026-11-14; ic-1: every button carries an icon): “Hit”, “Miss”, “Check again” and “Recharge”; and “Enter roll…”, which needs none picked. <b>Each row:</b> the button as the stacked button it would be, with my pick first and a second candidate only where I am unsure (“Miss”, “Recharge”). “Hit” and “Miss” differ by shape, never by colour. All from game-icons.net’s official repository (CC BY 3.0), credited with their authors in <code>icons/CREDITS.md</code>; none drawn here; all medieval or fantasy in kind, none a plain sign. Where each button stands is the lead’s account of the build, not read from a frame.</p><div class="pcard ic21 bit">${body2}</div></div>`;
+mount(`
+  <h1>The Scene’s buttons that still want an icon ruled</h1>
+  <p class="note">For the lead (2026-11-14), to put to Francis: one frame, light and dark; and a second, SI2, added the same day: a proposal. Names are the set’s own file names.</p>
+  <div class="wall">${frame}</div>
+  <h1>Four more, from the build of “Waiting for you” (a proposal)</h1>
+  <div class="wall">${frame2}</div>
+  <h1>Three things found while making the list (all settled by ic-4 or tidied)</h1>
+  <p class="note"><b>1.</b> “Answer” carries two icons on approved frames: the moon (<code>night-sleep</code>) on the Scene’s “Rest is due” card (16, 18: it answers the rest question) and, by ic-3, the scroll and quill on the Player screen. <b>2.</b> Page 18’s “No light” card still reads “Light a torch”; ic-3 ruled the word “Light” for the Player screen’s button of the same act. <b>3.</b> Page 19’s closing note still calls “+ Piece”, “+ Picture” and Reset “proposed, not ruled”, though the frames that carry them are approved. The first two are ruled by ic-4 and redrawn; the third is corrected on page 19.</p>
+  <h1>Self-review</h1>
+  <p class="note"><b>The stylesheet.</b> This page links the one shared mockup stylesheet and its type pass and restates none of their rules; its own rules lay out the list. <b>Checked.</b> Measured with <code>shared/measure.cjs</code> before it was shown. <b>SI2:</b> its six icons were looked at together at the button’s size before they were chosen; no two share an outline with each other or with “Start” (crossed swords), “Dismiss” (the cross), “Try again” (turning arrows) or “Enter…” (two dice). <b>How the list was made:</b> every button in the pages’ own source was read (pages 16, 18, 19 and their shared helpers), not the built app; a button that exists only in the app and on no frame may be missing (“Saved orders” and “Split the party” are here on the lead’s word).</p>
+`);
+for (const c of document.querySelectorAll('.wall .cap')) if (/^SI1\./.test(c.textContent)) c.insertAdjacentHTML('beforeend', ' <b>Ruled 2026-11-14 (ic-4; one word changed by ic-5: “Depart”); shared stylesheet.</b>');
+applyBook();
+</script>
+</body>
+</html>

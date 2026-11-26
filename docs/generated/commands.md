@@ -32,6 +32,7 @@ Every change goes through one of these commands, which checks `can(user, command
 | `character.create` | simple | Player A: a player can create a character<br>Player A: a player can create a companion<br>GM: the GM can create a monster | Player A: a player can't create a monster<br>Outsider: an outsider can't create a character |
 | `character.delete` | simple | Player A: a player can delete their own waiting character<br>GM: the GM can delete a sent-back character<br>GM: the GM can delete an archived character permanently<br>Player A: a player can delete their own archived character permanently | Player B: a player can't delete another player's waiting character<br>Player A: a player can't delete their approved character outright<br>GM: the GM can't delete an approved character that isn't archived<br>Player B: a player can't delete another player's archived character |
 | `character.edit` | simple | Player A: a player can edit their own character<br>GM: the GM can edit any character<br>GM: the GM changes a player's Max HP<br>Player A: a player sets Max HP on their own character before it is approved<br>Player A: a player spends expertise points on their own character before it is approved<br>Player A: a player adds an expertise point on their own approved character<br>GM: the GM moves expertise points on a player's character | Player A: a player can't edit another player's character<br>Outsider: an outsider can't edit a character<br>Player A: a player can't change Max HP on their own approved character (it goes to the GM as a request)<br>Player A: a player can't spend expertise points on another player's character |
+| `character.movePin` | verbose | Player A: a player can move a pin of their own character<br>GM: the GM can move a pin on any character | Player B: a player can't move a pin on someone else's character<br>Outsider: an outsider can't move a pin on a character |
 | `character.pin` | simple | Player A: a player can pin a spell of their own character to At hand<br>Player A: a player can pin a trait of their own character to At hand<br>GM: the GM can pin for any character | Player B: a player can't pin anything for someone else's character<br>Outsider: an outsider can't pin for a character |
 | `character.prepare` | simple | Player A: a player can prepare spells for their own character<br>GM: the GM can prepare any character's spells | Player B: a player can't prepare spells for someone else's character |
 | `character.reassign` | simple | GM: the GM can give a character to a player<br>GM: the GM can take a player's character back | Player A: a player can't give their own character away<br>Player B: a player can't take another player's character<br>GM: not even the GM can give a character to someone outside the campaign |
@@ -84,12 +85,14 @@ Every change goes through one of these commands, which checks `can(user, command
 | `find.undo` | simple | GM: the GM can undo a send | Player A: a player can't undo a send<br>Outsider: an outsider can't undo a send |
 | `homebrew.delete` | simple | GM: the GM can delete an entry from the campaign's homebrew | Player A: a player can't delete an entry from the campaign's homebrew |
 | `homebrew.save` | simple | GM: the GM can save an entry to the campaign's homebrew | Player A: a player can't save an entry to the campaign's homebrew |
+| `hook.seen` | verbose | Player A: a player marks a call to the party as seen<br>Player A: a player marks a call to their own character as seen | Player B: a player can't mark a call to another player's character as seen<br>GM: the GM can't mark a call as seen<br>Outsider: an outsider can't mark a call as seen |
 | `hook.send` | simple | GM: the GM can send a call to adventure to the party<br>GM: the GM can send a call to adventure to one character | Player A: a player can't send a call to adventure<br>Outsider: an outsider can't send a call to adventure |
 | `inventory.add` | simple | Player A: a player can add an item to their own character<br>GM: the GM can add an item to anyone's character<br>Player B: any player can put an item in the Party stash | Player A: a player can't add an item to someone else's character<br>Outsider: an outsider can't put anything in the Party stash<br>Player A: a player can't add items to their archived character |
 | `inventory.approve` | simple | GM: the GM can approve a player's one-off | Player B: a player can't approve someone else's item |
 | `inventory.atHand` | verbose | Player A: a player can hide their own item from At hand | Player B: a player can't hide someone else's item from At hand<br>Player A: nothing in the Party stash is in At hand to hide |
 | `inventory.carryingTreasure` | simple | GM: the GM can switch Carrying treasure on for a character | Player A: a player can't switch Carrying treasure for their own character<br>Outsider: an outsider can't switch Carrying treasure<br>GM: the GM can't switch Carrying treasure on the Party stash |
 | `inventory.decline` | simple | GM: the GM can decline a player's one-off | Player B: a player can't decline someone else's item |
+| `inventory.editLook` | simple | GM: the GM can change what players see of an item | Player A: a player can't change what players see of an item, even their own |
 | `inventory.empty` | simple | Player A: a player empties a container they carry into the Party stash | Player A: a player can't empty another player's container |
 | `inventory.equip` | simple | Player A: a player can equip their own items<br>GM: the GM can equip anyone’s items | Player B: a player can't equip someone else's items |
 | `inventory.equipAnyway` | simple | Player A: a player can put on their own item despite a warning (logged as an override) | Player A: a player can't put on someone else's item |
@@ -104,12 +107,14 @@ Every change goes through one of these commands, which checks `can(user, command
 | `inventory.setBaseArmour` | simple | Player A: a player can choose the base armour of their own magic armour<br>GM: the GM can change the base armour after it was chosen | Player A: a player can't change the base armour once it's chosen<br>Player B: a player can't choose the base armour of someone else's armour |
 | `inventory.setCharges` | simple | Player A: a player can set the visible charges of their own item, from the roll<br>GM: the GM can set hidden charges | Player A: a player can't set hidden charges, even on their own item |
 | `inventory.setQty` | verbose | Player A: a player can change how many of their own items they have | Player B: a player can't change how many items someone else has |
+| `inventory.tell` | simple | GM: the GM can tell the players what is hidden on an item | Player A: a player can't tell a hidden fact, even on their own item<br>Player B: a player can't tell a hidden fact on someone else's item |
 | `inventory.useCharge` | simple | Player A: a player can use a charge of their own item, hidden or not | Player B: a player can't use a charge of someone else's item |
 | `invite.create` | simple | GM: the GM can create an invite | Player A: a player can't create an invite |
 | `invite.redeem` | simple | Newcomer: a newcomer with a valid code can join | — |
 | `invite.revoke` | simple | GM: the GM can revoke an invite | Player A: a player can't revoke an invite |
 | `item.setMode` | simple | Player A: a player can choose their own weapon's mode (Quiver, Grip…)<br>GM: the GM can choose the mode of anyone's weapon | Player B: a player can't choose the mode of someone else's weapon<br>Outsider: an outsider can't choose a weapon's mode<br>Player A: a mode belongs to a character’s weapon: nothing in the Party stash has one |
 | `item.use` | simple | Player A: a player can use one of their own items up (Drink, Fire, Eat, Use)<br>GM: the GM can use up an item on anyone's character | Player B: a player can't use up someone else's items |
+| `library.addPicture` | none | GM: you can keep a map's picture with your own pack | Player A: you can't keep a picture with someone else's pack |
 | `library.copyHomebrew` | none | GM: the GM can copy the campaign's homebrew to their Rules library | Outsider: an outsider can't copy a campaign's homebrew |
 | `library.delete` | simple | GM: you can delete your own setting rules, even ones a campaign uses (each campaign logs it) | Player A: you can't delete someone else's setting rules |
 | `library.editEntry` | none | GM: you can edit an entry of your own pack (Edit pack) | Player A: you can't edit an entry of someone else's pack |
@@ -124,7 +129,7 @@ Every change goes through one of these commands, which checks `can(user, command
 | `marching.savePreset` | verbose | Player A: a player can save the marching order as a preset | Player B: a player can't save a preset when players can't reorder it |
 | `marching.set` | simple | Player A: a player can move the marching order<br>GM: the GM can move the marching order<br>Player B: a player can still move it in a campaign locked before the lock went<br>GM: the GM can move it in a campaign locked before the lock went<br>GM: the GM can move it when players can't reorder it | Outsider: an outsider can't move the marching order<br>Player A: a player can't move it when players can't reorder it<br>Player B: a player can't move it when players can't reorder it, locked or not |
 | `marching.usePreset` | simple | Player B: a player can use a saved preset | Outsider: an outsider can't use a preset |
-| `member.setActiveCharacter` | simple | Player A: a player can make their own character active | Player A: a player can't make someone else's character active<br>Outsider: an outsider can't pick an active character<br>Player A: a player can't make their waiting character active |
+| `member.setActiveCharacter` | simple | Player A: a player can make their own character active | Player A: a player can't make someone else's character active<br>Outsider: an outsider can't pick an active character<br>GM: the GM can't make a player's character that player's active one<br>Player A: a player can't make their waiting character active |
 | `message.read` | verbose | Player A: the recipient can read a message | Player B: a player it wasn't written to can't read it |
 | `message.send` | simple | GM: the GM can write to a character<br>Player A: a player can write to the GM as their own character | Player B: a player can't write as another player's character<br>Outsider: an outsider can't write to anyone |
 | `note.add` | simple | Player A: a player can write a note | Outsider: an outsider can't write a note |
@@ -147,7 +152,9 @@ Every change goes through one of these commands, which checks `can(user, command
 | `place.setPicture` | verbose | GM: the GM can take a place's picture off | Player A: a player can't change a place's picture |
 | `place.setSafety` | verbose | GM: the GM can mark a place safe | Player A: a player can't mark a place hostile |
 | `place.shareMap` | verbose | GM: the GM can share a map with the players | Player A: a player can't share a map<br>Outsider: an outsider can't share a map |
+| `place.showItemTruth` | simple | GM: the GM can show a magic item's truth | Player A: a player can't show a magic item's truth<br>Outsider: an outsider can't show a magic item's truth |
 | `place.showPiece` | verbose | GM: the GM can show players one piece | Player B: a player can't show a piece |
+| `placeKnowledge.eye` | simple | GM: the GM can share a section of a place's knowledge with a group | Player A: a player can't share a section of a place's knowledge<br>Outsider: an outsider can't share a section of a place's knowledge |
 | `placeRule.eye` | simple | GM: the GM can open or close a place's rule to players | Player A: a player can't open a place's rule<br>Outsider: an outsider can't open a place's rule |
 | `placeRule.inForce` | simple | GM: the GM can switch a place's own check off | Player B: a player can't switch a place's own check |
 | `profile.rename` | none | Player A: a person can change their own display name | Player A: a person can't change someone else's display name |
@@ -200,9 +207,11 @@ Every change goes through one of these commands, which checks `can(user, command
 | `time.set` | simple | GM: the GM can correct the time | Player A: a player can't correct the time |
 | `time.start` | simple | GM: the GM can set the start time while the clock has not moved | Player A: a player can't set the start time |
 | `town.activeNight` | simple | GM: the GM can switch Active tonight on | Player A: a player can't switch Active tonight on |
+| `town.hidePiece` | verbose | GM: the GM can hide a piece of a place in town | Player B: a player can't hide a piece of a place in town |
 | `town.openPlace` | verbose | GM: the GM can close a place in town | Player A: a player can't close a place in town |
 | `town.outDay` | simple | GM: the GM can switch Out and about today on | Player A: a player can't switch Out and about today on<br>Outsider: an outsider can't switch Out and about today on |
 | `town.reset` | simple | GM: the GM can reset the town switches at the morning | Player A: a player can't reset the town switches |
+| `town.showPiece` | verbose | GM: the GM can show players a piece of a place in town | Player A: a player can't show a piece of a place in town |
 | `town.showPlace` | verbose | GM: the GM can show players a place in town | Player A: a player can't show a place in town |
 | `town.stay` | simple | Player A: a player can pick a lodging the GM shows for their own character | Player B: a player can't pick a lodging for another player's character<br>GM: the GM can't pick a lodging for a player's character |
 | `travel.dayStart` | simple | GM: the GM can start the day's budget | Player A: a player can't start the day's budget |

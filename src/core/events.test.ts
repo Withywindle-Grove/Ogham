@@ -95,8 +95,16 @@ describe('log lines in plain words', () => {
     expect(say(event('character.castSpell', { ...play, before: { spells_cast: { '2:fog-ring': 1 } }, after: { spells_cast: { '2:fog-ring': 2 } } }))).toBe('Priya cast a level 2 spell for Wren.');
     expect(sayS(event('character.uncastSpell', { ...play, before: { spells_cast: { '1:mire-lamp': 1 } }, after: { spells_cast: {} } }))).toBe('Priya took back a cast of Mire lamp for Wren.');
     expect(sayS(event('character.pin', { ...play, before: { pins: [] }, after: { pins: [{ kind: 'spell', key: 'mire-lamp' }] } }))).toBe('Priya pinned Mire lamp to At hand for Wren.');
-    expect(say(event('character.pin', { ...play, before: { pins: [] }, after: { pins: [{ kind: 'trait', key: 'night-eyes' }] } }))).toBe('Priya pinned a trait to At hand for Wren.');
-    expect(say(event('character.pin', { ...play, before: { pins: [{ kind: 'trait', key: 'night-eyes' }] }, after: { pins: [] } }))).toBe("Priya unpinned a trait from Wren's At hand.");
+    // An ability or a trait is pinned to the Player tab's list, not At hand (euf-2, euf-3), and its key is its name.
+    expect(say(event('character.pin', { ...play, before: { pins: [] }, after: { pins: [{ kind: 'trait', key: 'Night eyes' }] } }))).toBe('Priya pinned Night eyes for Wren.');
+    expect(say(event('character.pin', { ...play, before: { pins: [{ kind: 'trait', key: 'Night eyes' }] }, after: { pins: [] } }))).toBe('Priya unpinned Night eyes for Wren.');
+    // A move in the player's order (euf-4; its own command, the detailed log) names the pin that was moved, and which
+    // way, the review's finding 1 on #23: never a neighbour it passed.
+    const three = [{ kind: 'trait', key: 'Night eyes' }, { kind: 'trait', key: 'Fen sight' }, { kind: 'trait', key: 'Horn charge' }];
+    expect(say(event('character.movePin', { ...play, before: { pins: three }, after: { pins: [three[2], three[0], three[1]] } }))).toBe("Priya moved Horn charge up in Wren's pins.");
+    expect(say(event('character.movePin', { ...play, before: { pins: three }, after: { pins: [three[1], three[2], three[0]] } }))).toBe("Priya moved Night eyes down in Wren's pins.");
+    // Moved by one place it and its neighbour swap, and the lists can't say which was moved: both are named.
+    expect(say(event('character.movePin', { ...play, before: { pins: three }, after: { pins: [three[0], three[2], three[1]] } }))).toBe("Priya swapped Horn charge and Fen sight in Wren's pins.");
     expect(say(event('character.setSpells', { ...play, before: { prepared: [] }, after: { prepared: [{ spell: 'a', level: 1 }] } }))).toBe("Priya changed Wren's spells.");
   });
 
@@ -722,6 +730,13 @@ describe('places and messages in plain words (M5 step 11)', () => {
       'Priya showed the party “An archway to the east”.',
     );
     expect(say(event('place.hidePiece', { targetTable: 'piece_shows', targetId: 'show-2', before: { shown: true }, after: { shown: false } }))).toBe('Priya hid “An archway to the east” from Group 2.');
+    // A piece of a place in town (W4c): its words when the line made the show; otherwise what it is.
+    expect(say(event('town.showPiece', { targetTable: 'town_piece_shows', targetId: 'town-show-1', before: null, after: { piece_id: 'piece-arch', group_number: 2, shown: true } }))).toBe(
+      'Priya showed Group 2 “An archway to the east”.',
+    );
+    expect(say(event('town.hidePiece', { targetTable: 'town_piece_shows', targetId: 'town-show-1', before: { shown: true }, after: { shown: false } }))).toBe(
+      'Priya hid a piece of a place in town from the party.',
+    );
     const all = 'request-hide-all';
     expect(
       say(
@@ -845,5 +860,104 @@ describe('purse lines', () => {
     expect(read([line('purse.remove', 'user-priya', 'purse-wren', 30, 20, 'req-r1')])).toBe('Your GM took 10 herons from Wren');
     expect(read([line('purse.add', 'user-priya', 'purse-stash', 0, 20, 'req-r2')])).toBe('Your GM put 20 herons in the stash');
     expect(read([line('purse.remove', 'user-priya', 'purse-stash', 20, 10, 'req-r3')])).toBe('Your GM took 10 herons from the stash');
+  });
+});
+
+describe('a told fact, by reader (K22b; K22h picture 6, K22c picture 4)', () => {
+  // The GM is Priya; Sam reads as a player. Wren holds the Bronze ring (line-ring); the Hooded lantern is in the stash.
+  const withRing = (me: string): LogNames => ({
+    ...names,
+    me,
+    gms: new Set(['user-priya']),
+    items: new Map([...names.items, ['line-ring', 'Bronze ring']]),
+    itemPlaces: new Map([
+      ['line-ring', { actor_id: 'actor-wren', location_id: null, container_line_id: null }],
+      ['line-lantern', { actor_id: null, location_id: 'place-stash', container_line_id: null }],
+    ]),
+  });
+  const gm = withRing('user-priya');
+  const sam = withRing('user-sam');
+  const ring = { targetTable: 'inventory_lines', targetId: 'line-ring' };
+  const FACE = { slot: 'worn' };
+  const tell = (before: Record<string, unknown>, after: Record<string, unknown>) => event('inventory.tell', { ...ring, before, after });
+  const read = (who: LogNames, e: LogEvent) => describeEntry(groupEntries([e])[0]!, who);
+
+  // Purpose: a tell reads "You told Wren …" to the GM and "Wren learned …" to the players, naming the fact (k22-7);
+  // "That it's magic" told with it (pick 6) is not said twice.
+  it('the curse and the bonus: "You told Wren …" for the GM, "Wren learned …" for the players', () => {
+    const cursed = tell({ revealed_fields: [], item_data: FACE }, { revealed_fields: ['magic', 'cursed'], item_data: { ...FACE, cursed: true } });
+    expect(read(gm, cursed)).toBe('You told Wren the Bronze ring is cursed.');
+    expect(read(sam, cursed)).toBe('Wren learned the Bronze ring is cursed.');
+    const bonus = tell(
+      { revealed_fields: ['magic', 'cursed'], item_data: { ...FACE, cursed: true } },
+      { revealed_fields: ['magic', 'cursed', 'bonus'], item_data: { ...FACE, cursed: true, bonus: '+1 to saves' } },
+    );
+    expect(read(gm, bonus)).toBe('You told Wren the Bronze ring gives +1 to saves.');
+    expect(read(sam, bonus)).toBe('Wren learned the Bronze ring gives +1 to saves.');
+    const magic = tell({ revealed_fields: [], item_data: FACE }, { revealed_fields: ['magic'], item_data: FACE });
+    expect(read(sam, magic)).toBe('Wren learned the Bronze ring is magic.');
+  });
+
+  // Purpose: the true name's line: the GM "showed the players", every player "learned the … true name".
+  it('the true name', () => {
+    const named = tell({ revealed_fields: ['magic', 'cursed'], name: 'Bronze ring', identified: false }, { revealed_fields: ['magic', 'cursed', 'name'], name: 'Ring of the Drowned Bell', identified: true });
+    expect(read(gm, named)).toBe('You showed the players the Bronze ring’s true name: Ring of the Drowned Bell.');
+    expect(read(sam, named)).toBe('Wren learned the Bronze ring’s true name: Ring of the Drowned Bell.');
+  });
+
+  // Purpose: "Tell them everything" is one line: the GM's "everything about", the players' what it is, all at once.
+  it('everything at once', () => {
+    const all = tell(
+      { revealed_fields: [], name: 'Bronze ring', identified: false, item_data: FACE },
+      { revealed_fields: ['magic', 'name', 'bonus', 'cursed'], name: 'Ring of the Drowned Bell', identified: true, item_data: { ...FACE, cursed: true, bonus: '+1 to saves' } },
+    );
+    expect(read(gm, all)).toBe('You told Wren everything about the Ring of the Drowned Bell.');
+    expect(read(sam, all)).toBe('Wren learned what the Bronze ring is: the Ring of the Drowned Bell, magic and cursed, +1 to saves.');
+  });
+
+  // Purpose: an item in the Party stash has no holder: the lines say "the party" (K22f picture 3).
+  it('in the Party stash: "the party"', () => {
+    const charges = event('inventory.tell', {
+      targetTable: 'inventory_lines',
+      targetId: 'line-lantern',
+      before: { revealed_fields: [], charges_hidden: true, charges_left: null },
+      after: { revealed_fields: ['charges'], charges_hidden: false, charges_left: 999 },
+    });
+    expect(read(gm, charges)).toBe('You told the party the Hooded lantern has 999 charges left.');
+    expect(read(sam, charges)).toBe('The party learned the Hooded lantern has 999 charges left.');
+  });
+
+  // Purpose: the GM's Undo line (the players never read it, k22-10): "You undid a reveal: … is hidden again."
+  it('the GM’s Undo of a tell', () => {
+    const undo = event('event.undo', { ...ring, revertsEventId: 'event-told', before: { revealed_fields: ['magic', 'cursed'], item_data: { ...FACE, cursed: true } }, after: { revealed_fields: [], item_data: FACE } });
+    expect(read(gm, undo)).toBe('You undid a reveal: that the Bronze ring is cursed is hidden again.');
+  });
+
+  // Purpose (review of #40, finding 7): the Undo of that Undo tells the curse again, and its line (the GM's) says so.
+  it('the GM’s Undo of the Undo: told again', () => {
+    const redo = event('event.undo', { ...ring, revertsEventId: 'event-undo', before: { revealed_fields: [], item_data: FACE }, after: { revealed_fields: ['magic', 'cursed'], item_data: { ...FACE, cursed: true } } });
+    expect(read(gm, redo)).toBe('You undid an Undo: that the Bronze ring is cursed is told again.');
+  });
+
+  // Purpose: the look edit is the GM's line alone (pick 3): "You changed what players see of Wren’s Bronze ring."
+  it('a look edit', () => {
+    const edit = event('inventory.editLook', { ...ring, before: { appears_as: 'Bronze ring', noticed: '' }, after: { appears_as: 'Green ring', noticed: 'Cold.', name: 'Green ring' } });
+    expect(read(gm, { ...edit, before: { ...edit.before, name: 'Bronze ring' } })).toBe('You changed what players see of Wren’s Bronze ring.');
+  });
+});
+
+// #77 ⚑ 1 (Francis, 24 Nov): a deleted player's kept lines read "A former player …". Only "Got it" is told apart: the
+// database writes it only for a signed-in player, so an empty author there means the account is gone.
+describe('a deleted player’s Got it line', () => {
+  const seen = (extra: Partial<LogEvent>) => event('hook.seen', { level: 'verbose', targetTable: 'calls_seen', targetId: null, after: { send_id: 'send-1' }, ...extra });
+
+  // Purpose: once a player's account is deleted (the line's author emptied), their Got it line reads "A former player marked a call as seen."
+  it('reads “A former player” once the account is gone', () => {
+    expect(say(seen({ actorUserId: null }))).toBe('A former player marked a call as seen.');
+  });
+
+  // Purpose: a Got it line whose author is still there but whose name the log hasn't loaded reads as today, "Someone marked a call as seen."
+  it('a name not loaded still reads “Someone”', () => {
+    expect(say(seen({ actorUserId: 'user-not-loaded' }))).toBe('Someone marked a call as seen.');
   });
 });

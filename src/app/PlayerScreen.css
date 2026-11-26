@@ -35,8 +35,9 @@
   grid-column: 1;
   position: sticky;
   top: calc(var(--top-row-h, 0px) + var(--pad));
-  /* Room for the divider handle's tap zone (lr-4), which straddles this edge, so it never covers a tab. */
-  padding-right: calc(var(--tap) / 2);
+  /* Room for the divider handle's tap zone (lr-4), which straddles this edge, and 8 px more so it sits clear of the
+     tabs (plan dec-14 row 1, frame 38-1). */
+  padding-right: calc(var(--tap) / 2 + var(--space-2));
 }
 
 .player--solo > .player__pane {
@@ -342,12 +343,24 @@
 
 /* Tile label, plain (dec-13 C15, frame P1; 06's Vitals tile): on the Player screen the tiles' labels (armour class and
    attack, scores, saves) are whole words in plain case, muted, in the book's text face; creation's small-capitals
-   label stays creation's own. The hit points box keeps its small-capitals label (P1). */
+   label stays creation's own. */
 .player .book-type :is(.stat-row, .score-row, .save-tiles) .stat-tile__label {
   font-family: var(--font-book-text);
   font-weight: var(--weight-book-text);
   font-variant: normal;
   letter-spacing: 0;
+}
+
+/* "Hit points" in the headings' hand (page 38, fix 9): on the Player screen the hit points box's label takes the
+   section headings' look (`.sheet__label` as the tab sets it, below): the heading face, every letter a small capital,
+   at the label's size. `HpBox.css` is unchanged, so the box elsewhere keeps its small spaced-out label. */
+.player .player__pane--play .hp-box > .stat-tile__label {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-label);
+  font-variant: small-caps;
+  letter-spacing: normal;
+  text-transform: lowercase;
 }
 
 .vitals .stat-tile__caption {
@@ -402,6 +415,21 @@
 
 .player :is(.player__pane--play, .player__right) .sheet > .sheet__section:has(> .row-list) + .sheet__section:has(> .row-list) > .row-list {
   border-block-start: none;
+}
+
+/* A heading row with its ⓘ at the right (the right column's "Abilities and traits", while one is pinned): the ⓘ sits
+   8 px above the first pinned box, the section's 4 px gap and 4 more (page 38, fix 2). */
+.player :is(.player__pane--play, .player__right) .sheet__section > .rule-heading:has(> .info-button) {
+  margin-block-end: var(--space-1);
+}
+
+/* "Abilities and traits" over a plain row (page 38, fix 4): the heading takes At hand's double rule and the first row
+   starts 8 px below it, its Use no longer on the rule. Only where a row comes first: with pinned boxes first the
+   heading stays as 38-2 draws it (the ⓘ, no rule). Scores, Saves and Movement keep bare headings; `.row-list` itself
+   is unchanged. */
+.player :is(.player__pane--play, .player__right) .sheet__section[aria-label='Abilities and traits'] > .sheet__label + .row-list {
+  border-block-start: var(--divider);
+  padding-block-start: var(--space-2);
 }
 
 .play-block {

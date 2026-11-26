@@ -134,6 +134,10 @@ describe('marching order', () => {
     const card = await screen.findByRole('dialog', { name: 'Wren' });
     const keep = within(card).getByRole('switch', { name: 'Keep lit' });
     expect(keep.getAttribute('aria-checked')).toBe('false');
+    // As it was before page 35 (lt-9): its name, ⓘ and the switch, not At hand's row.
+    const keepLit = keep.closest('.keep-lit')!;
+    expect([...keepLit.children].map((c) => c.getAttribute('aria-label') ?? c.textContent)).toEqual(['Keep lit', 'About Keep lit', 'Keep lit']);
+    expect(keepLit.closest('.light-block__keep')).toBeNull();
     await user.click(keep);
     await waitFor(() => expect(world.tables.character_lights.find((l) => l.actor_id === t.wren)?.keep_lit).toBe(true));
     expect(await screen.findByText('Rushlight will be kept lit')).toBeTruthy();
