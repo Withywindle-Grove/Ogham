@@ -31,7 +31,7 @@ async function openStash(page: Page, query: string) {
   await page.goto(`/layout.html?as=player&${query}`);
   await page.getByRole('button', { name: /The Drowned Marches/ }).click();
   await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Pack' }).click();
-  await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’s pack' })).toBeAttached();
+  await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’ pack' })).toBeAttached();
   await page.getByRole('button', { name: /^Party stash/ }).click();
   await expect(page.getByRole('heading', { name: 'Loose' })).toBeVisible();
 }

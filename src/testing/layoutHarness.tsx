@@ -1680,6 +1680,36 @@ if (new URLSearchParams(window.location.search).get('viewPack') === '1') {
   Object.assign(world.tables.inventory_lines.find((l) => l.id === 'line-wand')!, { charges_hidden: true, charges_used: 1 });
   world.tables.inventory_line_secrets.push({ id: 'line-wand', campaign_id: campaign, charges_total: 999, spent: false });
 }
+// K22's screens (page 33; batch K2), only with ?k22=1: on Wren, the Bronze ring (the Ring of the Drowned Bell, stored
+// unidentified as its face, K22a) and the Hooded lantern with nine hidden facts, a long true name and 999 charges.
+if (new URLSearchParams(window.location.search).get('k22') === '1') {
+  const rules = world.tables.library_entries.find((e) => e.id === 'entry-river-rules')!.data as Record<string, unknown>;
+  rules.itemCategories = [
+    { id: 'ring', name: 'Rings', singular: 'Ring', unidentified: true },
+    { id: 'lantern', name: 'Lanterns', singular: 'Lantern', unidentified: true },
+  ];
+  const ring = {
+    id: 'drowned-bell', name: 'Ring of the Drowned Bell', category: 'ring', slot: 'ring', looks: 'A plain band of old bronze.', appearsAs: 'Bronze ring', noticed: 'Cold to the touch, even by the fire.',
+    bonus: '+1 to saves', cursed: true, description: 'Cast from the bronze of a sunken bell. Its wearer is steadier against harm, and cannot take it off within sight of the sea.', source: 'p. 14', gmOnly: ['bonus'],
+  };
+  const lantern = {
+    id: 'nine-tides', name: 'The Old Lantern of the Drowned and of the Nine Tides', category: 'lantern', looks: 'A hooded lantern of green glass, with a ring for the hand.', appearsAs: 'Hooded lantern',
+    noticed: 'Cold to the hand, and no smell of oil. The glass is sea-green and thick as a bottle’s foot; held to the ear it hums, low, like a shell.',
+    bonus: '+1 to saves against fear', cursed: true, properties: ['Burns without oil', 'Shows what lies under water within ten paces', 'The drowned can see its bearer from as far'],
+    fields: { 'Maker’s mark': 'Three waves under a bell' }, description: 'Lit, it burns no oil and shows whatever lies under water within ten paces.', source: 'p. 22', gmOnly: ['bonus', 'fields.Maker’s mark'],
+  };
+  for (const item of [ring, lantern]) world.tables.library_entries.push({ id: `entry-${item.id}`, pack_id: 'pack-river', kind: 'item', pack_entry_id: item.id, name: item.name, data: item });
+  const face = (item: typeof ring | typeof lantern) => ({
+    category: item.category, library_entry_id: `entry-${item.id}`, source_pack_id: 'pack-river', source_entry_id: item.id, identified: false, appears_as: item.appearsAs, noticed: item.noticed, revealed_fields: [], version: 1,
+    item_data: { id: item.id, category: item.category, looks: item.looks, ...('slot' in item ? { slot: item.slot } : {}) },
+  });
+  line('line-bronze-ring', wren, 'Bronze ring', face(ring));
+  line('line-hooded-lantern', wren, 'Hooded lantern', { ...face(lantern), charges_hidden: true });
+  // With &k22charges=unset its hidden count was never rolled (Home Two's audit of #50, findings 4 and 5).
+  const unset = new URLSearchParams(window.location.search).get('k22charges') === 'unset';
+  world.tables.inventory_line_secrets.push({ id: 'line-hooded-lantern', campaign_id: campaign, charges_total: unset ? null : 999, spent: false });
+}
+
 // The Scene in the GM's view as the player (page 32, M3i; C15f), only with ?viewScene=1: Sam's request waiting on the
 // GM ("Search the hold"), so the view's prompt slot shows it with its Cancel. Use with &placePage=spot&ways=1 for M3i's
 // place and ways.

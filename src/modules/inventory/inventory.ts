@@ -756,11 +756,17 @@ const seenVersion = (line: { version?: number }) => (line.version !== undefined 
  */
 export const tellItem = defineCommand({
   name: 'inventory.tell',
-  target: (input: { line: LineRef; fact: FactId | 'everything' }) => input.line.carrier,
+  // `fact`: one fact, "everything", or a list of facts told as one act (the Reveal pop-up's "Tell them everything" when
+  // a hidden count was never set: every fact but that one, review of #50).
+  target: (input: { line: LineRef; fact: FactId | 'everything' | FactId[] }) => input.line.carrier,
   allowed: (user, carrier) => isGm(user, carrier.campaignId),
   run: async (db, _user, input): Promise<CommandResult<InventoryLine>> => {
-    const { error } = await db.rpc('tell_item', { line: input.line.id, facts: [input.fact], ...seenVersion(input.line) });
-    return error ? fromError(error) : lineNow(db, input.line.id);
+    const facts = Array.isArray(input.fact) ? input.fact : [input.fact];
+    const { error } = await db.rpc('tell_item', { line: input.line.id, facts, ...seenVersion(input.line) });
+    // A refusal the database raised carries a code and its own words; no code: no answer came back (offline, a network
+    // error), so the message is empty and the pop-up says "Try again" (review of #50).
+    if (error) return error.code ? fromError(error) : failed('');
+    return lineNow(db, input.line.id);
   },
 });
 
