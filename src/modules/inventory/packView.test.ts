@@ -250,7 +250,7 @@ describe('At hand (ruled 2026-10-23)', () => {
 
 describe('a name’s possessive (Home Two’s audit of #50, finding 7; Francis, 26 Nov)', () => {
   // Purpose: a name takes ’s, and a name that ends in s takes the mark alone, so it never reads "Wardens’s".
-  it.fails('adds ’s, and after a final s only ’', () => {
+  it('adds ’s, and after a final s only ’', () => {
     expect(possessive('Wren')).toBe('Wren’s');
     expect(possessive('Wren of the Lantern Wardens')).toBe('Wren of the Lantern Wardens’');
     expect(possessive('the Reed Boots')).toBe('the Reed Boots’');

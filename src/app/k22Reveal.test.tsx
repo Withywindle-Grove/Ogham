@@ -502,7 +502,7 @@ describe('A name that ends in s takes the mark alone (Home Two’s audit of #50,
 
   // Purpose: wherever K22 builds a possessive, under the pop-up's title and in its toasts, a name ending in s reads
   // "Wardens’", never "Wardens’s".
-  it.fails('"in Wren of the Lantern Wardens’ pack", and the toasts likewise', () => {
+  it('"in Wren of the Lantern Wardens’ pack", and the toasts likewise', () => {
     expect(whereOf(holder)).toBe('in Wren of the Lantern Wardens’ pack');
     expect(whereOf({ ...holder, name: 'Wren' })).toBe('in Wren’s pack');
     const name = { id: 'name' as const, label: 'Its true name', detail: 'Ring of the Drowned Bell' };
