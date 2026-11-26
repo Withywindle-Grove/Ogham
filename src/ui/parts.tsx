@@ -904,7 +904,8 @@ export function Toast({
   onUndo?: () => void;
   /**
    * The action variant (M5 step 7): one tap that does the obvious next thing instead of Undo, named for it ("Light
-   * another", "Refill (2 left)"). A toast has Undo or an action, never both.
+   * another", "Refill (2 left)"). With `onUndo` too it is the **action and Undo** variant (K7, frame PK10b, ap-7): the
+   * action first, then Undo at the right ("Spend 4 herons" · Undo, after a purchase).
    */
   action?: { label: string; run: () => void };
   onDone: () => void;
@@ -919,6 +920,11 @@ export function Toast({
   return (
     <div className="toast" role={error ? 'alert' : 'status'}>
       <span className="toast__text">{text}</span>
+      {onUndo && action && (
+        <button type="button" className="toast__undo toast__action" onClick={action.run}>
+          {action.label}
+        </button>
+      )}
       {onUndo ? (
         <button type="button" className="toast__undo" onClick={onUndo}>
           Undo

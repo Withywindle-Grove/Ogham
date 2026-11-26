@@ -91,6 +91,7 @@ export function PurseSheet({
   denominations,
   coins,
   gm = false,
+  spend,
   onClose,
   onChanged,
 }: {
@@ -104,13 +105,15 @@ export function PurseSheet({
   coins: Coins;
   /** The GM's sheet (K15): "Give coin…" and "Take coin…" in place of Spend… and Give to…. */
   gm?: boolean;
+  /** Opened from a purchase's toast (K7, PK10b): straight on Spend with this amount typed in; nothing goes until its accent. */
+  spend?: Coins;
   onClose: () => void;
   /** Coin moved (or a move was undone): read the purse again. */
   onChanged: () => void;
 }) {
   const id = useId();
-  const [page, setPage] = useState<Page>('coin');
-  const [typed, setTyped] = useState<Record<string, string>>({});
+  const [page, setPage] = useState<Page>(spend ? 'spend' : 'coin');
+  const [typed, setTyped] = useState<Record<string, string>>(() => (spend ? Object.fromEntries(Object.entries(spend).map(([key, n]) => [key, String(n)])) : {}));
   const [whatFor, setWhatFor] = useState('');
   const [to, setTo] = useState<string | null>(null);
   const [refusal, setRefusal] = useState<{ key: string; text: string } | null>(null);

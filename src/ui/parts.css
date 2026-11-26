@@ -738,6 +738,11 @@
   cursor: pointer;
 }
 
+/* The action and Undo variant (K7, PK10b): the action first, at the start of its line, Undo at the right. */
+.toast__action {
+  margin-inline-start: 0;
+}
+
 .toast__bar {
   position: absolute;
   inset-inline: 0;

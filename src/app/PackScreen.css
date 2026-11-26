@@ -838,3 +838,9 @@
   margin: 0;
   font-weight: 700;
 }
+
+/* Bought / No cost, the two-sided switch (K7, PK10b): as wide as its two sides, at the start, never stretched. */
+.add-item__form > .button-row--switch {
+  align-self: flex-start;
+  justify-self: start;
+}

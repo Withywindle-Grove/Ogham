@@ -479,6 +479,11 @@ if (coinFlag) {
         ];
   const coins = coinFlag === 'messy' ? { moon: 2, heron: 999, reed: 120, penny: 7, token: 3 } : { crown: 12, heron: 30 };
   world.tables.purses.push({ id: 'purse-wren', campaign_id: campaign, actor_id: wren, location_id: null, coins, version: 1 });
+  // Add item and after a purchase (K7, PK10b): a thing priced in the setting's coins, so "Spend 4 herons" can be drawn.
+  world.tables.library_entries.push({ id: 'entry-storm-lantern', pack_id: 'pack-river', kind: 'item', pack_entry_id: 'storm-lantern', name: 'Storm lantern', data: { id: 'storm-lantern', name: 'Storm lantern', category: 'gear', weightCoin: 30, value: { heron: 4 } } });
+  // ...and Wren's reed arrows from the setting's list, so more bought join them and the toast has Undo beside Spend.
+  world.tables.library_entries.push({ id: 'entry-reed-arrows', pack_id: 'pack-river', kind: 'item', pack_entry_id: 'reed-arrows', name: 'Reed arrows', data: { id: 'reed-arrows', name: 'Reed arrows', category: 'gear', weightCoin: 1, stack: 20, value: { bit: 1 } } });
+  Object.assign(world.tables.inventory_lines.find((l) => l.id === 'line-arrows')!, { library_entry_id: 'entry-reed-arrows', source_pack_id: 'pack-river', source_entry_id: 'reed-arrows' });
 }
 void ash;
 // A light (M5 step 7, invented): River Rules' rushlight, used up when it burns out, and four of them in Wren's pack,

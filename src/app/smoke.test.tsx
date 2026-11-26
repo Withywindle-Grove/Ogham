@@ -5283,8 +5283,9 @@ describe('the Pack tab (M4 step 4)', () => {
     expect((screen.getByLabelText('Cost') as HTMLInputElement).value).toBe('1 gp');
     await user.click(screen.getByRole('button', { name: 'Add to Wren’s pack' }));
 
-    // The purse note shows where the screen lands, back on the Pack (until purses arrive in M7).
-    expect(await screen.findByText('Cost noted; purses arrive later.')).toBeTruthy();
+    // Back on the Pack, the toast says the cost is not spent yet (K7, PK10b); the old purse note is gone.
+    expect(await screen.findByText('Wren added Coil of rope. Its cost, 1 gp, is not spent yet.')).toBeTruthy();
+    expect(screen.queryByText(/purses arrive later/)).toBeNull();
     const carried = within(await screen.findByRole('region', { name: 'Carried' }));
     expect(carried.getByRole('button', { name: /Coil of rope.*50 coins/ })).toBeTruthy();
     expect(screen.getByText('50 of 1,000 coins')).toBeTruthy();

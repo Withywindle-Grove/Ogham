@@ -145,7 +145,7 @@ const shownToast = () =>
   });
 
 describe('Add item, one thing (PK10b)', () => {
-  it.fails('asks how Wren gets it with the two-sided switch, and puts the cost, in the setting’s coin words, above Where it goes and the button', async () => {
+  it('asks how Wren gets it with the two-sided switch, and puts the cost, in the setting’s coin words, above Where it goes and the button', async () => {
     await shopWorld();
     const user = await openPack();
     await user.click(screen.getByRole('button', { name: 'Add item' }));
@@ -166,7 +166,7 @@ describe('Add item, one thing (PK10b)', () => {
     expect(cost.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it.fails('the cost follows how many: three torches at 2 bits each cost 6 bits', async () => {
+  it('the cost follows how many: three torches at 2 bits each cost 6 bits', async () => {
     await shopWorld();
     const user = await openPack();
     await pick(user, 'torch', /Reed torch/);
@@ -178,7 +178,7 @@ describe('Add item, one thing (PK10b)', () => {
 });
 
 describe('after a purchase (PK10b; tn-1)', () => {
-  it.fails('the toast says the cost is not spent yet and offers "Spend 4 herons"; nothing is charged by itself; the old line is gone', async () => {
+  it('the toast says the cost is not spent yet and offers "Spend 4 herons"; nothing is charged by itself; the old line is gone', async () => {
     await shopWorld();
     const user = await openPack();
     await pick(user, 'lantern', /Storm lantern/);
@@ -191,7 +191,7 @@ describe('after a purchase (PK10b; tn-1)', () => {
     expect(spends()).toHaveLength(0);
   });
 
-  it.fails('"Spend 4 herons" opens the Spend sheet with the amount filled in; the coin goes only on its accent', async () => {
+  it('"Spend 4 herons" opens the Spend sheet with the amount filled in; the coin goes only on its accent', async () => {
     await shopWorld();
     const user = await openPack();
     await pick(user, 'lantern', /Storm lantern/);
@@ -207,7 +207,7 @@ describe('after a purchase (PK10b; tn-1)', () => {
     expect(spends()).toHaveLength(1);
   });
 
-  it.fails('a cost typed in two of the setting’s coins fills both boxes', async () => {
+  it('a cost typed in two of the setting’s coins fills both boxes', async () => {
     await shopWorld();
     const user = await openPack();
     await pick(user, 'lantern', /Storm lantern/);
@@ -221,7 +221,7 @@ describe('after a purchase (PK10b; tn-1)', () => {
     expect((within(sheet).getByRole('textbox', { name: 'Herons' }) as HTMLInputElement).value).toBe('2');
   });
 
-  it.fails('with No cost the toast is the plain one: what was added, no Spend', async () => {
+  it('with No cost the toast is the plain one: what was added, no Spend', async () => {
     await shopWorld();
     const user = await openPack();
     await pick(user, 'lantern', /Storm lantern/);
@@ -231,7 +231,7 @@ describe('after a purchase (PK10b; tn-1)', () => {
     expect(within(toast()!).queryByRole('button', { name: /^Spend/ })).toBeNull();
   });
 
-  it.fails('a cost the setting’s coins can’t read is said in the toast, with no Spend', async () => {
+  it('a cost the setting’s coins can’t read is said in the toast, with no Spend', async () => {
     await shopWorld();
     const user = await openPack();
     await pick(user, 'lantern', /Storm lantern/);
@@ -243,7 +243,7 @@ describe('after a purchase (PK10b; tn-1)', () => {
     expect(within(toast()!).queryByRole('button', { name: /^Spend/ })).toBeNull();
   });
 
-  it.fails('added onto a stack already carried: Undo takes the added count back off, with Spend beside it', async () => {
+  it('added onto a stack already carried: Undo takes the added count back off, with Spend beside it', async () => {
     await shopWorld(undefined, 2);
     const user = await openPack();
     await pick(user, 'torch', /Reed torch/);
@@ -259,13 +259,13 @@ describe('after a purchase (PK10b; tn-1)', () => {
     expect(purse()).toEqual({ crown: 12, heron: 30, bit: 4 });
   });
 
-  it.fails('the log’s line for a purchase says what was paid, and no longer says purses arrive later', async () => {
+  it('the log’s line for a purchase says what was paid, and no longer says purses arrive later', async () => {
     await shopWorld();
     const user = await openPack();
     await pick(user, 'lantern', /Storm lantern/);
     await user.click(screen.getByRole('button', { name: 'Add to Wren’s pack' }));
     await waitFor(() => expect(world.tables.inventory_lines).toHaveLength(1));
-    await user.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Log' }));
+    await user.click(screen.getByRole('button', { name: 'Log' }));
     expect(await screen.findByText('You bought Storm lantern for Wren (4 herons).')).toBeTruthy();
     expect(screen.queryByText(/purses arrive later/)).toBeNull();
   });

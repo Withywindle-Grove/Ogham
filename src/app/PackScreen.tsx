@@ -21,7 +21,7 @@ import {
   type InventoryLine,
   type NamedCarrier,
 } from '../modules/inventory/inventory.ts';
-import { atHandAction, atHandLines, isContainer, isSeparate } from '../modules/inventory/packView.ts';
+import { atHandAction, atHandLines, countWords, isContainer, isSeparate } from '../modules/inventory/packView.ts';
 import { AddItem } from './AddItem.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { forgetCampaignSetting, loadCampaignSetting, type CampaignSetting } from './campaignSetting.ts';
@@ -41,7 +41,8 @@ import { BookType, FoldedGroup } from '../ui/creation.tsx';
 import { foldSummary, itemCount } from './packHelpers.ts';
 import { CoinLine, PackFoot, WaitingCard } from './PackParts.tsx';
 import { PurseSheet } from './PurseSheet.tsx';
-import { coinLine, denominationsOf } from '../modules/inventory/coinWords.ts';
+import { coinLine, denominationsOf, readCost } from '../modules/inventory/coinWords.ts';
+import { purchaseToast } from './purchaseToast.ts';
 import { loadPurse, type Coins } from '../modules/inventory/purse.ts';
 import type { CharacterLightView } from './LightSection.tsx';
 import { registry } from './services.ts';
@@ -149,6 +150,8 @@ export function PackScreen({
   const [showing, setShowing] = useState<string | null>(carrierId);
   // The coin's sheets (K10), opened from the coin line.
   const [coinOpen, setCoinOpen] = useState(false);
+  // Opened from a purchase's toast (K7): Spend with the cost filled in.
+  const [spendFor, setSpendFor] = useState<Coins | null>(null);
   // The character's purse (K9, K15): read for its own player and for the GM; null until read, or when nothing came back.
   const [read, setRead] = useState<{ of: string; coins: Coins } | null>(null);
   const [purseVersion, setPurseVersion] = useState(0);
@@ -262,6 +265,17 @@ export function PackScreen({
 
   async function undoTreasure() {
     const eventId = await latestChange(db, campaign.id, setCarryingTreasure.name, user.id);
+    const undone = eventId ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
+    const again = await load();
+    if (again) setLoaded(again);
+    onChanged?.();
+    if (!undone) show({ text: 'Nothing to undo.', error: true });
+    else if (!undone.ok) show({ text: undone.message, error: true });
+  }
+
+  /** Undo from the toast after Add item (K7): the generic Undo of the newest add, as the log's (a joined add today). */
+  async function undoAdd() {
+    const eventId = await latestChange(db, campaign.id, 'inventory.add', user.id);
     const undone = eventId ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
     const again = await load();
     if (again) setLoaded(again);
@@ -411,16 +425,34 @@ export function PackScreen({
         containers={linesOf(adding).filter(isContainer)}
         lines={linesOf(adding)}
         onBack={() => setAdding(null)}
-        onAdded={async (bought, added) => {
+        onAdded={async (bought, added, made) => {
           forgetCampaignSetting(campaign.id);
           const fresh = await load();
           if (fresh) setLoaded(fresh);
           onChanged?.();
           setAdding(null);
           setOpen(null);
-          // Where the screen lands after Add (until purses arrive in M7).
-          if (bought) setNote('Cost noted; purses arrive later.');
           toTop();
+          // After Add (K7, PK10b; tn-1): what was added, and a purchase's cost not spent yet with "Spend N", which opens
+          // Spend filled in; nothing is charged by itself. Undo where the generic Undo can take it back (a joined add).
+          if (added && made && added.approval !== 'pending') {
+            const coinNames = denominationsOf(loaded.setting.rulesSets);
+            const cost = bought ? made.cost : '';
+            show(
+              purchaseToast({
+                who: adding.actorId ? adding.name : null,
+                what: countWords(added, made.qty),
+                cost,
+                denominations: coinNames,
+                coins: purse && cost ? readCost(coinNames, cost) : null,
+                onSpend: (coins) => {
+                  setSpendFor(coins);
+                  setCoinOpen(true);
+                },
+                onUndo: made.joined ? () => void undoAdd() : undefined,
+              }),
+            );
+          }
           // A player's one-off waits for the GM, and says so where the screen lands.
           if (added?.approval === 'pending') setNote('Sent to the GM for approval.');
           // Handed out by the GM with charges not set yet: ask for them now.
@@ -483,7 +515,12 @@ export function PackScreen({
               denominations={denominations}
               coins={purse}
               gm={coinAsGm}
-              onClose={() => setCoinOpen(false)}
+              key={spendFor ? 'spend' : 'coin'}
+              spend={spendFor ?? undefined}
+              onClose={() => {
+                setCoinOpen(false);
+                setSpendFor(null);
+              }}
               onChanged={() => {
                 setPurseVersion((v) => v + 1);
                 onChanged?.();
