@@ -5413,6 +5413,7 @@ export type Database = {
           elsewhere: boolean
           group_number: number
           route_id: string
+          to_area_name: string
           to_name: string
           to_number: string
           to_place_id: string

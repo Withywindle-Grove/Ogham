@@ -128,7 +128,7 @@ describe("a link's obstacle never reaches a player (mc-28a, dp-5; plan P14, rows
     // The player in the group: one way, its four fields, and none of the obstacle.
     const rows = await ways(world.playerA);
     expect(rows.map((r) => r.route_id)).toEqual([routeId]);
-    expect(Object.keys(rows[0]!).sort()).toEqual(['elsewhere', 'group_number', 'route_id', 'to_name', 'to_number', 'to_place_id', 'ways']);
+    expect(Object.keys(rows[0]!).sort()).toEqual(['elsewhere', 'group_number', 'route_id', 'to_area_name', 'to_name', 'to_number', 'to_place_id', 'ways']);
     expect(rows[0]!.ways).toEqual([{ by: 'row', name: 'Rowing', value: 2, unit: 'turn' }]);
     expect(rows[0]).toMatchObject({ to_place_id: null, to_name: null });
     const raw = JSON.stringify(rows) + JSON.stringify(await loadWaysOn(asDb(world.playerA), campaign));

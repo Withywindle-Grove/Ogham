@@ -3981,7 +3981,9 @@ export function createFakeDb(): FakeWorld {
     // Since sf-9 (…_sf_9_ways_on_number_elsewhere.sql; sf-19): `to_number`, the far place's map number (its location's
     // `key`, when text), only for a place explored or whose container (`parentId`) the group knows: one of its visits
     // stood at that container or inside it, at any depth, shown or not; with no container, at a place that has none
-    // either. Else `elsewhere` is true and no number is sent.
+    // either. Else `elsewhere` is true and no number is sent. And `to_area_name` (#122's ⚑ 1), only when not elsewhere:
+    // the players' name of that container, the `players_name` of the campaign's place made from it, else the pack's
+    // `playerView.name` when text; never the container's own name, and null when it was given neither.
     campaign_ways_on: ({ campaign }) => {
       if (!isMemberOf(campaign)) return { data: [], error: null };
       withGroupRows();
@@ -4040,7 +4042,15 @@ export function createFakeDb(): FakeWorld {
               ));
           const farKey = (farLocation?.data as Row | undefined)?.key;
           const number = known && typeof farKey === 'string' ? farKey.trim().slice(0, 200) || null : null;
-          rows.push({ group_number: group, route_id: r.id, to_place_id: far?.id ?? null, to_name: far ? far.players_name || far.name : null, ways, to_number: number, elsewhere: !known });
+          // #122's ⚑ 1: the Area's players' name, only one given for players, only when the way does not lead elsewhere.
+          const areaPlace = tables.places.find((a) => a.campaign_id === campaign && a.pack_id === here.pack_id && a.pack_entry_id === farContainer && !a.undone);
+          const areaEntry = tables.library_entries.find((e) => e.pack_id === here.pack_id && e.kind === 'location' && e.pack_entry_id === farContainer);
+          const packAreaName = ((areaEntry?.data as Row | undefined)?.playerView as Row | undefined)?.name;
+          const areaName =
+            known && farContainer !== ''
+              ? (typeof areaPlace?.players_name === 'string' && areaPlace.players_name) || (typeof packAreaName === 'string' && packAreaName.trim().slice(0, 200)) || null
+              : null;
+          rows.push({ group_number: group, route_id: r.id, to_place_id: far?.id ?? null, to_name: far ? far.players_name || far.name : null, ways, to_number: number, elsewhere: !known, to_area_name: areaName });
         }
       }
       rows.sort((a, b) => Number(a.group_number) - Number(b.group_number) || String(a.route_id).localeCompare(String(b.route_id)));

@@ -183,13 +183,13 @@ describe('the ways on', () => {
     const rows = (await world.db.rpc('campaign_ways_on', { campaign })).data as Record<string, unknown>[];
     expect(rows.map((r) => r.route_id).sort()).toEqual([open, drop].sort());
     expect(rows.every((r) => r.group_number === 1 && r.to_place_id === null && r.to_name === null)).toBe(true);
-    expect(Object.keys(rows[0]!).sort()).toEqual(['elsewhere', 'group_number', 'route_id', 'to_name', 'to_number', 'to_place_id', 'ways']);
+    expect(Object.keys(rows[0]!).sort()).toEqual(['elsewhere', 'group_number', 'route_id', 'to_area_name', 'to_name', 'to_number', 'to_place_id', 'ways']);
     // How each way is travelled and how long it takes (mc-28a): the four fields, trimmed, in the pack's order; a bad
     // value or unit and a way named twice left out; a barrier's note and approval never sent.
     const rowing = [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }, { by: 'swim', name: 'swim', value: 3, unit: 'turn' }];
-    expect(await loadWaysOn(asDb(world), campaign)).toContainEqual({ groupNumber: 1, routeId: open, to: null, number: null, elsewhere: false, ways: rowing });
+    expect(await loadWaysOn(asDb(world), campaign)).toContainEqual({ groupNumber: 1, routeId: open, to: null, number: null, elsewhere: false, areaName: null, ways: rowing });
     // A route that gives one amount has one way with no id or name.
-    expect(await loadWaysOn(asDb(world), campaign)).toContainEqual({ groupNumber: 1, routeId: drop, to: null, number: null, elsewhere: false, ways: [{ by: '', name: '', value: 1, unit: 'turn' }] });
+    expect(await loadWaysOn(asDb(world), campaign)).toContainEqual({ groupNumber: 1, routeId: drop, to: null, number: null, elsewhere: false, areaName: null, ways: [{ by: '', name: '', value: 1, unit: 'turn' }] });
     const sent = JSON.stringify(rows);
     for (const word of ['mt-', 'rope', 'needsApproval', 'note', 'fly', 'crawl', 'fortnight', 'Rowing again', 'Floods', 'secret', 'islet']) expect(sent, word).not.toContain(word);
     // A route is no player's by a direct read, nor in the campaign's library.
@@ -275,6 +275,8 @@ describe('the ways on', () => {
 
 const HARBOUR = 'The Gull Harbour';
 const STRAND = 'The Kelp Strand';
+// The name the pack gives the strand for players (`playerView.name`); the harbour is given none.
+const STRAND_FOR_PLAYERS = 'The pale shore';
 /** Names and ids of the harbour adventure that no way on may carry before its place is explored, or ever (an Area's). */
 const HARBOUR_NEVER = ['gh-', HARBOUR, STRAND, 'The sea cave', 'The mole', 'A stone mole', 'The tally shed', 'The mud flat', 'The chain gate', 'The shingle landing', 'The marram dunes', 'The shed cellar', 'The far moor', 'parentId'];
 
@@ -298,7 +300,7 @@ function twoAreas() {
   attach(world, campaign, 'pack-gull');
   const location = (id: string, data: Record<string, unknown>) => addEntry(world, 'pack-gull', 'location', id, data);
   location('gh-harbour', { name: HARBOUR, type: 'area' });
-  location('gh-strand', { name: STRAND, type: 'area' });
+  location('gh-strand', { name: STRAND, type: 'area', playerView: { name: ` ${STRAND_FOR_PLAYERS} ` } });
   location('gh-cave', { name: 'The sea cave', parentId: 'gh-harbour', key: '5' });
   location('gh-mole', { name: 'The mole', parentId: 'gh-harbour', key: ' 3 ', playerView: { name: 'A stone mole' } });
   location('gh-shed', { name: 'The tally shed', parentId: 'gh-harbour', key: '4' });
@@ -345,14 +347,16 @@ function twoAreas() {
     visit(`visit-${placeId}-${minute}`, 1, placeId, true);
     visit(`visit-cave-${minute}`, 1, 'place-cave');
   };
-  type Sent = { group_number: number; route_id: string; to_place_id: string | null; to_name: string | null; to_number: string | null; elsewhere: boolean; ways: unknown };
+  type Sent = { group_number: number; route_id: string; to_place_id: string | null; to_name: string | null; to_number: string | null; elsewhere: boolean; to_area_name: string | null; ways: unknown };
   const sent = async () => ((await world.db.rpc('campaign_ways_on', { campaign })).data ?? []) as Sent[];
   /** What a row says of its far end, by the route it is for. */
   const farOf = async (routeId: string, group = 1) => {
     const row = (await sent()).find((r) => r.route_id === routeId && r.group_number === group);
     return row ? { place: row.to_place_id, name: row.to_name, number: row.to_number, elsewhere: row.elsewhere } : null;
   };
-  return { world, gm, player, other, stranger, campaign, ash, to, visit, show, beenAt, sent, farOf };
+  /** The Area's name a row carries, by the route it is for (#122's ⚑ 1); undefined when no row is sent for it. */
+  const areaOf = async (routeId: string, group = 1) => (await sent()).find((r) => r.route_id === routeId && r.group_number === group)?.to_area_name;
+  return { world, gm, player, other, stranger, campaign, ash, to, visit, show, beenAt, sent, farOf, areaOf, placeRow };
 }
 
 describe("a way's map number, and Elsewhere (sf-9, sf-19)", () => {
@@ -379,10 +383,10 @@ describe("a way's map number, and Elsewhere (sf-9, sf-19)", () => {
     expect(await farOf(to.landing)).toEqual(ELSEWHERE);
     expect(await farOf(to.dunes)).toEqual(ELSEWHERE);
     const landing = (await sent()).find((r) => r.route_id === to.landing)!;
-    expect(landing).toEqual({ group_number: 1, route_id: to.landing, to_place_id: null, to_name: null, to_number: null, elsewhere: true, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] });
+    expect(landing).toEqual({ group_number: 1, route_id: to.landing, to_place_id: null, to_name: null, to_number: null, elsewhere: true, to_area_name: null, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] });
     // The app's reader says the same in its own shape.
-    expect(await loadWaysOn(asDb(world), campaign)).toContainEqual({ groupNumber: 1, routeId: to.landing, to: null, number: null, elsewhere: true, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] });
-    expect(await loadWaysOn(asDb(world), campaign)).toContainEqual({ groupNumber: 1, routeId: to.shed, to: null, number: '4', elsewhere: false, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] });
+    expect(await loadWaysOn(asDb(world), campaign)).toContainEqual({ groupNumber: 1, routeId: to.landing, to: null, number: null, elsewhere: true, areaName: null, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] });
+    expect(await loadWaysOn(asDb(world), campaign)).toContainEqual({ groupNumber: 1, routeId: to.shed, to: null, number: '4', elsewhere: false, areaName: null, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] });
   });
 
   // Purpose: sf-19, "Once they have been there": after a visit to one place of an Area, with nothing of it shown, that
@@ -464,10 +468,80 @@ describe("a way's map number, and Elsewhere (sf-9, sf-19)", () => {
     expect(await farOf(to.nowhere)).toEqual(ELSEWHERE);
   });
 
+  // Purpose: #122's ⚑ 1, "Send a visited Area's name": a way into a second Area the group knows (a visit, shown or
+  // not) comes with that Area's players' name, trimmed, so its rows can stand under it; until the visit, and for a
+  // group that has not made it, the name is nowhere in the answer; an undone visit takes it back.
+  it('a way into a second Area the group has been to comes with that Area’s players’ name, and not before', async () => {
+    const { world, gm, player, other, campaign, ash, to, beenAt, visit, show, sent, areaOf } = twoAreas();
+    world.signInAs(player);
+    expect(await areaOf(to.landing)).toBeNull();
+    expect(JSON.stringify(await sent())).not.toContain(STRAND_FOR_PLAYERS);
+    // Ash's group stands at the cave too, shown it, and never goes to the strand.
+    world.tables.party_groups.push({ id: 'group-2', campaign_id: campaign, number: 2 });
+    world.tables.party_group_members.find((m) => m.actor_id === ash)!.group_number = 2;
+    visit('visit-cave-2', 2, 'place-cave');
+    show('visit-cave-2', 2, 'place-cave');
+    beenAt('place-dunes');
+    expect(await areaOf(to.landing)).toBe(STRAND_FOR_PLAYERS);
+    expect(await areaOf(to.dunes)).toBe(STRAND_FOR_PLAYERS);
+    expect((await loadWaysOn(asDb(world), campaign))?.find((w) => w.routeId === to.landing)).toEqual({ groupNumber: 1, routeId: to.landing, to: null, number: '0', elsewhere: false, areaName: STRAND_FOR_PLAYERS, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] });
+    // The strand's own name (the GM's) is still nowhere.
+    expect(JSON.stringify(await sent())).not.toContain(STRAND);
+    world.signInAs(other);
+    expect((await sent()).length).toBeGreaterThan(0);
+    expect(await areaOf(to.landing, 2)).toBeNull();
+    expect(JSON.stringify(await sent()) + JSON.stringify(await loadWaysOn(asDb(world), campaign))).not.toContain(STRAND_FOR_PLAYERS);
+    // The GM reads every group's rows: the name on group 1's rows only.
+    world.signInAs(gm);
+    expect((await sent()).filter((r) => r.to_area_name !== null).map((r) => r.group_number)).toEqual([1, 1]);
+    world.signInAs(player);
+    world.tables.group_places.find((v) => v.place_id === 'place-dunes')!.undone = true;
+    expect(await areaOf(to.landing)).toBeNull();
+    expect(JSON.stringify(await sent())).not.toContain(STRAND_FOR_PLAYERS);
+  });
+
+  // Purpose: only a name given for players is ever sent. An Area with no players' name sends none, known or not (its
+  // own name never stands in); the Area the group stands in is named by the same rule; the campaign's place made from
+  // an Area gives its players' name before the pack's; a `playerView.name` that is not text, or blank, is no name; a
+  // place in no Area has no Area's name.
+  it('an Area with no players’ name sends no name, never its own; the campaign’s place’s players’ name comes first', async () => {
+    const { world, player, to, beenAt, sent, areaOf, placeRow } = twoAreas();
+    world.signInAs(player);
+    // The harbour, where the group stands, was given no players' name: its rows carry none.
+    expect(await areaOf(to.shed)).toBeNull();
+    expect(await areaOf(to.mole)).toBeNull();
+    const harbour = world.tables.library_entries.find((e) => e.pack_entry_id === 'gh-harbour')!;
+    harbour.data = { ...(harbour.data as Record<string, unknown>), playerView: { name: 'The old port' } };
+    expect(await areaOf(to.shed)).toBe('The old port');
+    for (const notAName of [7, '   ', null]) {
+      harbour.data = { ...(harbour.data as Record<string, unknown>), playerView: { name: notAName } };
+      expect(await areaOf(to.shed)).toBeNull();
+    }
+    // A place of the campaign made from the harbour: its players' name, when it has one; not when undone.
+    placeRow('place-harbour', 'gh-harbour', HARBOUR);
+    expect(await areaOf(to.shed)).toBeNull();
+    const harbourPlace = world.tables.places.find((p) => p.id === 'place-harbour')!;
+    harbourPlace.players_name = 'The drowned port';
+    harbour.data = { ...(harbour.data as Record<string, unknown>), playerView: { name: 'The old port' } };
+    expect(await areaOf(to.shed)).toBe('The drowned port');
+    harbourPlace.undone = true;
+    expect(await areaOf(to.shed)).toBe('The old port');
+    // A room's rows stand under the place it is in, once the group has stood there; a place in no Area under none.
+    expect(await areaOf(to.cellar)).toBeNull();
+    const shed = world.tables.library_entries.find((e) => e.pack_entry_id === 'gh-shed')!;
+    shed.data = { ...(shed.data as Record<string, unknown>), playerView: { name: 'A tarred shed' } };
+    expect(await areaOf(to.cellar)).toBeNull();
+    beenAt('place-shed');
+    expect(await areaOf(to.cellar)).toBe('A tarred shed');
+    beenAt('place-moor');
+    expect(await areaOf(to.moor)).toBeNull();
+    expect(JSON.stringify(await sent())).not.toContain(HARBOUR);
+  });
+
   // Purpose: hidden means hidden: no answer, the player's, the other player's or the GM's, carries a pack id, the
-  // name of a place not explored, or an Area's name, before or after the group gets to know the second Area; someone
-  // outside the campaign gets nothing.
-  it('no answer carries a pack id, an unexplored place’s name or an Area’s name; a stranger gets nothing', async () => {
+  // name of a place not explored, or an Area's own name, before or after the group gets to know the second Area;
+  // someone outside the campaign gets nothing.
+  it('no answer carries a pack id, an unexplored place’s name or an Area’s own name; a stranger gets nothing', async () => {
     const { world, gm, player, other, stranger, campaign, beenAt, sent } = twoAreas();
     const check = async () => {
       for (const person of [player, other, gm]) {
@@ -487,15 +561,19 @@ describe("a way's map number, and Elsewhere (sf-9, sf-19)", () => {
   });
 
   // Purpose: a number that is not text (the GM's Move on shows none either) is not sent; and the app's reader keeps
-  // no number that arrives under "elsewhere", and reads an answer from before sf-9 as no number, not elsewhere.
-  it('a number that is not text is not sent; the reader drops a number under elsewhere', async () => {
+  // no number and no Area's name that arrives under "elsewhere", and reads an answer from before sf-9 as no number,
+  // not elsewhere, no Area's name.
+  it('a number that is not text is not sent; the reader drops a number and an Area’s name under elsewhere', async () => {
     const { world, player, campaign, to, farOf } = twoAreas();
     world.signInAs(player);
     const shed = world.tables.library_entries.find((e) => e.pack_entry_id === 'gh-shed')!;
     shed.data = { ...(shed.data as Record<string, unknown>), key: 4 };
     expect(await farOf(to.shed)).toEqual({ place: null, name: null, number: null, elsewhere: false });
     const answer = (rows: unknown[]) => loadWaysOn({ rpc: async () => ({ data: rows, error: null }) } as unknown as Db, campaign);
-    expect(await answer([{ group_number: 1, route_id: 'r1', to_place_id: null, to_name: null, ways: [], to_number: '9', elsewhere: true }])).toEqual([{ groupNumber: 1, routeId: 'r1', to: null, number: null, elsewhere: true, ways: [] }]);
-    expect(await answer([{ group_number: 1, route_id: 'r1', to_place_id: null, to_name: null, ways: [] }])).toEqual([{ groupNumber: 1, routeId: 'r1', to: null, number: null, elsewhere: false, ways: [] }]);
+    expect(await answer([{ group_number: 1, route_id: 'r1', to_place_id: null, to_name: null, ways: [], to_number: '9', elsewhere: true, to_area_name: 'The pale shore' }])).toEqual([{ groupNumber: 1, routeId: 'r1', to: null, number: null, elsewhere: true, areaName: null, ways: [] }]);
+    expect(await answer([{ group_number: 1, route_id: 'r1', to_place_id: null, to_name: null, ways: [] }])).toEqual([{ groupNumber: 1, routeId: 'r1', to: null, number: null, elsewhere: false, areaName: null, ways: [] }]);
+    // An Area's name that is not text, or blank, reads as none; one that is text is kept, trimmed.
+    expect(await answer([{ group_number: 1, route_id: 'r1', to_place_id: null, to_name: null, ways: [], to_number: '9', elsewhere: false, to_area_name: 7 }])).toEqual([{ groupNumber: 1, routeId: 'r1', to: null, number: '9', elsewhere: false, areaName: null, ways: [] }]);
+    expect(await answer([{ group_number: 1, route_id: 'r1', to_place_id: null, to_name: null, ways: [], to_number: '9', elsewhere: false, to_area_name: ' The pale shore ' }])).toEqual([{ groupNumber: 1, routeId: 'r1', to: null, number: '9', elsewhere: false, areaName: 'The pale shore', ways: [] }]);
   });
 });

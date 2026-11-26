@@ -1,13 +1,17 @@
 -- "Where to?": the map number of a place not explored, and "Elsewhere" (Scene feedback sf-9, its read; ⚑ 6, Francis
 -- "Yes, both", 2026-11-26; sf-19, "Once they have been there"; design/rulings/scene-feedback-2026-11-25.md, "What
 -- reaches a player's device"; 03-roles-permissions.md, The ways on; plan docs/plans/dec-scene-feedback.md, batch C1).
--- Hard rule 5.
+-- Hard rule 5. And the Area's name of a way into an Area the group knows (#122's ⚑ 1, Francis "Send a visited Area's
+-- name", 2026-11-26): changed in place before this file was applied anywhere.
 --
--- public.campaign_ways_on answers with two more facts a way:
+-- public.campaign_ways_on answers with three more facts a way:
 --   * to_number: the far place's map number, as the pack writes it (its location's `key`), sent only when the far
 --     place is explored or sits in a place the group knows; else null. Null too where the place has no number.
 --   * elsewhere: true when the far place is neither explored nor in a place the group knows: the way leads out of
 --     the Areas the group knows. Such a row carries no number, no place, no name, and never the Area's name.
+--   * to_area_name: for a way that does not lead elsewhere, the players' name of the place the far place sits in (its
+--     Area), where one was given: the name for players of the campaign's place made from it, else the pack's
+--     (`playerView.name`). Never the Area's own name (the GM's): an Area with no players' name sends none.
 -- "A place the group knows" (sf-19): the group has been at a place inside it (a visit not undone, of an expedition
 -- not undone), whether or not anything was shown there. Nothing else of the answer changes: which rows are sent, the
 -- far end's place and players' name, and each way's by, name, value and unit are as they were.
@@ -28,7 +32,7 @@ drop function public.campaign_ways_on(uuid);
 --   fields has it read from there: the whole entry is read, and anything but false counts as hidden); a route that
 --   ends here unless its `oneWay` is plainly false or absent; type, notes; anything of `travel` but each way's by,
 --   name, value and unit; the pack's ids of the route, of either place and of any place they sit in; the name of a
---   place not yet explored; the name of any Area.
+--   place not yet explored; an Area's own name; the players' name of an Area the group does not know.
 --   ways: how the way is travelled and how long it takes (mc-28a; private.route_ways), an array, empty when the
 --   route gives no time.
 --   route_id is the library row's id (stable across pack updates while the route stays in the file).
@@ -50,6 +54,12 @@ drop function public.campaign_ways_on(uuid);
 --   itself or at a place inside it, at any depth (private.place_chain). A far place with no container (the top of
 --   the pack) counts as known only when the group has stood at a place that has none either: from inside an Area,
 --   a way to a place in no Area leads out of the Areas the group knows.
+--   to_area_name (#122's ⚑ 1), under (1) and (2) only, never under (3): the players' name of the far place's
+--   container, the same place whose visit makes the way known. It is the `players_name` of the campaign's place made
+--   from that container when it has one, else the pack entry's `playerView.name` when it is text (trimmed, at most
+--   200 characters), read from the part of the entry every reader reads. Null when neither is given (never the
+--   entry's own name, never its id), and null for a far place with no container. The Area the group stands in is
+--   named by the same rule; the players' place card (public.place_card_for_players) names it as before.
 --   And no far end is named until something of the place the group is standing in has been shown to it (mc-28b,
 --   Francis "a", 2026-11-12), on this visit or an earlier one (mc-28c: what has been revealed stays known): the same
 --   test as for the far end. Until then NO row is sent for that group (mc-28b: "until the GM shows a piece of the
@@ -57,12 +67,22 @@ drop function public.campaign_ways_on(uuid);
 --   still say how many there are, and a known far end would say where the group has come to before the GM does).
 --   Coming back to a place it knows, the group has its ways at once.
 create function public.campaign_ways_on(campaign uuid)
-returns table (group_number integer, route_id uuid, to_place_id uuid, to_name text, ways jsonb, to_number text, elsewhere boolean)
+returns table (group_number integer, route_id uuid, to_place_id uuid, to_name text, ways jsonb, to_number text, elsewhere boolean, to_area_name text)
 language sql stable security definer set search_path = '' as $$
   select g.number, r.id, far.id, case when far.id is not null then coalesce(nullif(far.players_name, ''), far.name) end,
     private.route_ways(w.whole -> 'travel'),
     case when reach.known then far_in.number end,
-    not reach.known
+    not reach.known,
+    -- The Area's players' name (#122's ⚑ 1): only for a way that does not lead elsewhere, and only a name given for
+    -- players; never the Area's own name.
+    case when reach.known and far_in.container <> '' then coalesce(
+      (select nullif(a.players_name, '') from public.places a
+       where a.campaign_id = g.campaign_id and a.pack_id = here.pack_id and a.pack_entry_id = far_in.container and not a.undone),
+      (select case when jsonb_typeof(ae.data #> '{playerView,name}') = 'string'
+         then nullif(left(btrim(ae.data #>> '{playerView,name}', E' \t\n\r'), 200), '') end
+       from public.library_entries ae
+       where ae.pack_id = here.pack_id and ae.kind = 'location' and ae.pack_entry_id = far_in.container)
+    ) end
   from public.party_groups g
   cross join lateral private.current_group_place(g.campaign_id, g.number) gp
   join public.places here on here.id = gp.place_id and not here.undone and here.pack_entry_id is not null

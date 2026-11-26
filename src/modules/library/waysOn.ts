@@ -7,7 +7,8 @@
 // Since sf-9 (Scene feedback ⚑ 6 and sf-19, ruled 2026-11-26; 03, The ways on): a way also comes with the far place's
 // map number, for a place explored or in an Area the group knows (one it has been at a place of), and with whether it
 // leads out of the Areas the group knows ("Elsewhere"). Under "Elsewhere" the database sends no number, no name and no
-// Area's name.
+// Area's name. A way into an Area the group knows also comes with that Area's players' name, where the Area was given
+// one (#122's ⚑ 1, Francis "Send a visited Area's name", 2026-11-26); never the Area's own name.
 import type { Db } from '../../core/supabase.ts';
 import { ROUTE_UNITS, type RouteWay } from './routes.ts';
 
@@ -26,6 +27,12 @@ export interface WayOn {
   number: string | null;
   /** The way leads out of the Areas the group knows ("Elsewhere"): nothing of the far place or its Area is sent. */
   elsewhere: boolean;
+  /**
+   * The players' name of the Area the far place sits in, for a way into an Area the group knows, when that Area was
+   * given one; null when it has none (its own name is never sent), when the far place sits in no Area, and always
+   * under `elsewhere`.
+   */
+  areaName: string | null;
   /**
    * How it is travelled and how long it takes, in the pack's order ("Rowing, 1 turn"); a route that gives one amount
    * has one way with no id or name; empty when the route gives no time.
@@ -58,9 +65,10 @@ export async function loadWaysOn(db: Db, campaignId: string): Promise<WayOn[] | 
     const name = row.to_name as string | null;
     // Read by type, not trusted: a database still on the read before sf-9 sends neither, which reads as no number and
     // not elsewhere, as its rows were drawn before.
-    const sent = row as { to_number?: unknown; elsewhere?: unknown };
+    const sent = row as { to_number?: unknown; elsewhere?: unknown; to_area_name?: unknown };
     const elsewhere = sent.elsewhere === true;
     const number = !elsewhere && typeof sent.to_number === 'string' && sent.to_number.trim() ? sent.to_number.trim() : null;
-    return { groupNumber: row.group_number, routeId: row.route_id, to: placeId && name ? { placeId, name } : null, number, elsewhere, ways: readWays(row.ways) };
+    const areaName = !elsewhere && typeof sent.to_area_name === 'string' && sent.to_area_name.trim() ? sent.to_area_name.trim() : null;
+    return { groupNumber: row.group_number, routeId: row.route_id, to: placeId && name ? { placeId, name } : null, number, elsewhere, areaName, ways: readWays(row.ways) };
   });
 }
