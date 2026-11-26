@@ -5712,7 +5712,7 @@ describe('the Pack tab (M4 step 4)', () => {
   // Purpose: when the pack can't be read again while the stash's screen is open (a reload that fails), the screen goes
   // back to the pack, so the bar never reads "Party stash" over something that isn't the stash (automatic review of #66,
   // nit 2, picked by Francis 2026-11-26).
-  it.fails('a failed read while the stash is open goes back to the pack: the bar no longer reads "Party stash" (K11)', async () => {
+  it('a failed read while the stash is open goes back to the pack: the bar no longer reads "Party stash" (K11)', async () => {
     const { line } = packWorld('coin');
     line(null, 'Silver ewer', { weight_coin: 30 });
     const user = openApp();

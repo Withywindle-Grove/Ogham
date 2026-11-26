@@ -240,6 +240,13 @@ export function PackScreen({
   const rank = carried.mode === 'armour' ? (carried.carriesTreasure ? 1 : 0) : carried.mode === 'none' ? 0 : carried.over ? ladder.length : ladder.findIndex((t) => t.label === tier);
   // Only the player whose pack it is sees the banner (the log line is for everyone).
   const own = main?.ownerUserId === user.id;
+  // The stash's screen is drawn only on its own player's pack with the stash read (below). Read, and it can't be (a
+  // failed read, the stash or the character gone), the screen that holds it open is told, so its bar stops saying
+  // "Party stash" over the pack (review of #66, nit 2).
+  const stashDrawable = !!(mine && stash && own);
+  useEffect(() => {
+    if (view === 'pack' && stashShown && loaded !== null && !stashDrawable) setStash(false);
+  }, [view, stashShown, loaded, stashDrawable, setStash]);
   // The coin line is its own player's (K9; hard rule 5) and the GM's, who reads every purse (K15, PC7): a player's
   // Pack asks for no other purse, and the database's read rule sends nothing of another living character's.
   const coinAsGm = isGm(user, campaign.id) && mine?.ownerUserId !== user.id;

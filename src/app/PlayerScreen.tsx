@@ -153,11 +153,14 @@ export function PlayerScreen({
   const logVersion = useLogVersion();
   // On a landscape tablet the Pack tab uses the right-hand column too (Add item opens there).
   const [packSide, setPackSide] = useState<HTMLElement | null>(null);
-  // The party stash's own screen on the Pack tab (K11, pk-4): the bar names it and its way back returns to the pack.
-  const [stashOpen, setStashOpen] = useState(false);
+  // The party stash's own screen on the Pack tab (K11, pk-4): the bar names it and its way back returns to the pack. Held
+  // for the character it was opened from, so a change of character shows that character's pack (review of #66, nit 2).
+  const [stashFor, setStashFor] = useState<string | null>(null);
+  const stashOpen = stashFor === character.id;
+  const setStashOpen = useCallback((open: boolean) => setStashFor(open ? character.id : null), [character.id]);
   useEffect(() => {
     if (tab !== 'pack') setStashOpen(false);
-  }, [tab]);
+  }, [tab, setStashOpen]);
   // Where the full sheet's parts go in the two columns (dec-13 C1; player/PlayerSheetParts.tsx).
   const [savesSlot, setSavesSlot] = useState<HTMLElement | null>(null);
   const [levelSlot, setLevelSlot] = useState<HTMLElement | null>(null);
