@@ -979,8 +979,15 @@
   font-weight: var(--weight-book-descriptor);
   font-size: var(--text-14);
   font-variant: normal;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-label);
   text-transform: none;
+}
+
+/* A group's head (PK1, PK4): 32 px at least, so its first row stands clear of it ("Heads 32 px, rest as built",
+   Francis, 26 Nov 2026, ⚑ 20). */
+.pack-dress .pack__group-head {
+  align-items: center;
+  min-block-size: var(--space-6);
 }
 
 /* A row (PK1): 52 px at least, 4 px above and below; the name in the book's bold at 20 px, a stack's count beside it
@@ -989,6 +996,16 @@
   align-content: center;
   min-height: calc(var(--tap) + var(--space-2));
   padding: var(--space-1) 0;
+}
+
+/* A row with no line under its name (PK1's "Bog sling"): the name centred in its row. The chevron keeps to the name's
+   line, so the two empty lines it spans on a longer row add no space under the name. */
+.pack-dress .pack__row-main:not(:has(.pack__sub)) {
+  align-items: center;
+}
+
+.pack-dress .pack__row-main:not(:has(.pack__sub)) .pack__chevron {
+  grid-row: 1;
 }
 
 .pack-dress .pack__name {
