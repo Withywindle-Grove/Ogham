@@ -5,15 +5,14 @@
 // else secondary; View and Dismiss are small secondary buttons; Which watch? is chips ("1st · Reed, Moss").
 // Start in M5b (ruled 2026-11-03): the row's full text and the stat blocks it names, read-only; M6 turns it into a
 // fight. Built from the scene card's parts and the Dialog; one style of its own (the small View stays its own width).
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { shownWords } from '../core/storedWords.ts';
 import { cardWords, rowOfHit, type EncounterCard } from '../modules/expedition/encounterPlay.ts';
 import { missingWords } from '../modules/expedition/rowLinks.ts';
 import { rowCountShown, type ReadTable, type TableRow } from '../modules/expedition/tables.ts';
 import { Dialog } from '../ui/Dialog.tsx';
 import type { StatBlockShown } from '../modules/library/statBlockLayout.ts';
-import { StatBlock, StatLine, STAT_BLOCK_NAME } from './StatBlock.tsx';
-import './RulesBrowser.css';
+import { BookDetailRow, countedName, type BookDetail } from './BookDetail.tsx';
 import { Chip, StackedButton, StackedGroup } from '../ui/parts.tsx';
 import './SceneExplore.css';
 import { useWaitingAccentItem, useWaitingSource, type WaitingSourceItem } from './sceneWaiting.tsx';
@@ -146,16 +145,10 @@ export function EncounterWaitingSource({
   accent = false,
   lead = [],
 }: EncounterWaitingProps) {
-  const [open, setOpen] = useState<{ card: EncounterCard; started: boolean; viewing?: StatBlockRef & { count: string | null } } | null>(null);
+  const [open, setOpen] = useState<{ card: EncounterCard; started: boolean } | null>(null);
   const accentItem = useWaitingAccentItem();
-  // What was rolled, tapped (06-03): a row naming one creature the packs have opens its stat block at once, "Back to
-  // the encounter" then showing the rest (the row's words, its note, how many, the check's modifiers); any other row
-  // opens the encounter's details, its creatures listed. Nothing is started.
-  const view = (card: EncounterCard) => {
-    const found = rowOfHit(card.hit, tables);
-    const known = found ? creatureLines(found.row, statBlock).flatMap((b) => (b.missing === undefined ? [b] : [])) : [];
-    setOpen({ card, started: false, ...(known.length === 1 ? { viewing: known[0]! } : {}) });
-  };
+  // What was rolled, tapped (06-03): the encounter's details, each creature a detail row (sf-6a). Nothing is started.
+  const view = (card: EncounterCard) => setOpen({ card, started: false });
   const start = async (card: EncounterCard) => {
     if (await onStart(card)) setOpen({ card, started: true });
   };
@@ -191,7 +184,7 @@ export function EncounterWaitingSource({
   return (
     <>
       {drawn}
-      {open && <EncounterDetails card={open.card} started={open.started} viewing={open.viewing} tables={tables} statBlock={statBlock} when={when} onClose={() => setOpen(null)} />}
+      {open && <EncounterDetails card={open.card} started={open.started} tables={tables} statBlock={statBlock} when={when} onClose={() => setOpen(null)} />}
     </>
   );
 }
@@ -229,7 +222,6 @@ export function creatureLines(row: TableRow, statBlock: (id: string) => StatBloc
 export function EncounterDetails({
   card,
   started,
-  viewing: openOn = null,
   tables,
   statBlock,
   when,
@@ -238,8 +230,6 @@ export function EncounterDetails({
   card: EncounterCard;
   /** Opened by Start (the card is started) rather than View (nothing changed). */
   started: boolean;
-  /** Opened on one creature's stat block (the waiting card's link, 06-03); Back shows the encounter. */
-  viewing?: (StatBlockRef & { count: string | null }) | null;
   tables: ReadonlyMap<string, ReadTable>;
   statBlock: (id: string) => StatBlockRef | null;
   when: (atSeconds: number) => string | null;
@@ -250,49 +240,18 @@ export function EncounterDetails({
   // The row's stat block, then each creature it lists (pf-2, December 5b) with its count; one the packs don't have
   // is left out here and named under "Not in your packs".
   const blocks = found ? creatureLines(found.row, statBlock) : [];
-  const [viewing, setViewing] = useState<(StatBlockRef & { count: string | null }) | null>(openOn);
-  // Focus follows the view (#642 review): back from a stat block, focus returns to the View that opened it (or, opened
-  // on a creature from the waiting card's link, to that creature's View in the list).
-  const viewButtons = useRef<(HTMLButtonElement | null)[]>([]);
-  const lastViewed = useRef<number | null>(openOn ? blocks.findIndex((b) => b.missing === undefined && b.name === openOn.name) : null);
-  useEffect(() => {
-    if (viewing || lastViewed.current === null) return;
-    viewButtons.current[lastViewed.current]?.focus();
-    lastViewed.current = null;
-  }, [viewing]);
-  // Opened on a creature (the waiting card's link): its name takes the focus, after the pop-up's own first-control
-  // focus (this part's effect runs after the Dialog's), as when View opens it inside the details.
-  const blockHost = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (openOn) blockHost.current?.querySelector<HTMLElement>('h3')?.focus();
-  }, [openOn]);
   // What the list names in its place isn't said again in the row's own "Not in your packs" line.
   const inList = new Set(blocks.flatMap((b) => (b.missing !== undefined ? [b.missing] : [])));
   const missingElse = (found?.row.missing ?? []).filter((ref) => !inList.has(ref));
   const facts = [when(hit.atSeconds), card.encounter.watch ? `Awake: ${shownWatch(card.encounter.watch)}` : null, found ? `${found.table.name}, ${hit.roll}` : null].filter(Boolean).join(', ');
   return (
     <Dialog label={started ? `Started: ${hit.name}` : `Encounter waiting: ${hit.name}`} onClose={onClose}>
-      {viewing ? (
-        <div ref={blockHost} className="encounter-details__block">
-          <StatBlockInFull block={viewing} onBack={() => setViewing(null)} />
-        </div>
-      ) : (
-        <>
       {facts && <p className="scene-card__note">{facts}</p>}
       <p className="scene-card__chance">{hit.rowText ?? 'No row picked yet. Open the encounter tables from the hit to pick one, or say what happens.'}</p>
       {found && rowCountShown(found.row) && <p className="scene-card__note">{`How many: ${found.row.count}`}</p>}
       {found?.row.note && <p className="scene-card__note">{found.row.note}</p>}
       {missingElse.length > 0 && <p className="scene-card__note">{missingWords(missingElse)}</p>}
-      <CreatureList
-        blocks={blocks}
-        buttonRef={(i, el) => {
-          viewButtons.current[i] = el;
-        }}
-        onView={(block, i) => {
-          lastViewed.current = i;
-          setViewing(block);
-        }}
-      />
+      <CreatureRows blocks={blocks} />
       {hit.modifiers.length > 0 && (
         <ul className="scene-card__modifiers" aria-label="Modifiers">
           {hit.modifiers.map((m, i) => (
@@ -301,80 +260,35 @@ export function EncounterDetails({
         </ul>
       )}
       {started && <p className="scene-card__note">Run it at the table. Fights come in a later update.</p>}
-        </>
-      )}
     </Dialog>
   );
 }
 
-/**
- * The creatures a row names, in the card's details (December 5b, 5c frame 3): each one's name and count, its
- * description, its stat line (the layout's first group run on), and View under it; one the packs don't have says so
- * in its place. Nothing when there are none.
- */
-export function CreatureList({
-  blocks,
-  onView,
-  buttonRef,
-}: {
-  blocks: CreatureLine[];
-  onView: (block: StatBlockRef & { count: string | null }, index: number) => void;
-  /** Each View, so focus can come back to it. */
-  buttonRef?: (index: number, el: HTMLButtonElement | null) => void;
-}) {
-  if (blocks.length === 0) return null;
-  return (
-    <ul className="scene-card__lines" aria-label="Stat blocks">
-      {blocks.map((block, i) =>
-        block.missing !== undefined ? (
-          <li key={i} className="scene-card__line">
-            <span className="scene-card__note">{`${missingWords([block.missing])}${block.count ? `, ${block.count}` : ''}`}</span>
-          </li>
-        ) : (
-          <li key={i} className="scene-card__line">
-            <span className="scene-card__name">{block.count ? `${block.name}, ${block.count}` : block.name}</span>
-            {block.description && <span className="scene-card__note">{block.description}</span>}
-            {block.full && <StatLine figures={block.full.shown.line} />}
-            {block.full && (
-              <button
-                type="button"
-                ref={(el) => buttonRef?.(i, el)}
-                className="button-secondary button-secondary--small scene-card__view"
-                aria-label={`View ${block.name}`}
-                onClick={() => onView(block, i)}
-              >
-                View
-              </button>
-            )}
-          </li>
-        ),
-      )}
-    </ul>
-  );
-}
+/** A creature's detail row (sf-6a): its stat block in full, or, from an older caller with none, its description. */
+export const creatureDetail = (block: StatBlockRef & { count: string | null }): BookDetail => ({
+  name: block.name,
+  count: block.count,
+  shown: block.full?.shown ?? { notes: block.description ? [block.description] : [], descriptor: null, groups: [], abilities: [], rest: [], line: [] },
+  source: block.full?.source ?? null,
+});
 
 /**
- * One stat block in full (December 5c), read-only: its name, how many, then the stat block part (laid out as its pack
- * says, pf-13, as the Rules browser shows it), and the foot's Back. The GM's alone (only the GM's console opens it).
+ * The creatures a row names, in the card's details (sf-6a; page 44, EN1 B): each one a detail row, its tap the one
+ * pop-up; one the packs don't have says so in its place, by name. Nothing when there are none.
  */
-export function StatBlockInFull({ block, onBack, focusOnOpen = true }: { block: StatBlockRef & { count: string | null }; onBack: () => void; focusOnOpen?: boolean }) {
-  // Its name takes the focus on opening (as the Rules browser's entry does), which also brings it into view.
-  const heading = useRef<HTMLHeadingElement>(null);
-  useEffect(() => {
-    if (focusOnOpen) heading.current?.focus();
-  }, [focusOnOpen]);
+export function CreatureRows({ blocks }: { blocks: CreatureLine[] }) {
+  if (blocks.length === 0) return null;
   return (
-    <article className="rules-browser__article" aria-label={block.name}>
-      <h3 ref={heading} tabIndex={-1} className={`rules-browser__name ${STAT_BLOCK_NAME}`}>
-        {block.name}
-      </h3>
-      {block.count && <p className="auth__meta">{`How many: ${block.count}`}</p>}
-      {block.full && <StatBlock shown={block.full.shown} source={block.full.source} />}
-      <div className="sheet-foot">
-        <button type="button" className="button-secondary" onClick={onBack}>
-          ‹ Back to the encounter
-        </button>
-      </div>
-    </article>
+    <ul className="book-detail__list" aria-label="Stat blocks">
+      {blocks.map((block, i) => (
+        <li key={i}>
+          {block.missing !== undefined ? (
+            <span className="book-detail__missing">{countedName(missingWords([block.missing]), block.count)}</span>
+          ) : (
+            <BookDetailRow detail={creatureDetail(block)} />
+          )}
+        </li>
+      ))}
+    </ul>
   );
 }
