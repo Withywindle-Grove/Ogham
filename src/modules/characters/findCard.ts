@@ -1,7 +1,7 @@
 // The find card's words and shape (K18a of docs/plans/dec-6-the-whole-pack-tab.md; page 45, p45-5 to p45-8, p45-15,
 // p45-22, p45-25; ⚑ F3 and F8 built to their leans). Data and logic only: the card itself is K18b. It reads K20a's
 // entries (`findsSince`); the words for coin and for a day come in from the caller, so no new link between modules.
-import type { FindEntry, FindWho } from './findsSeen.ts';
+import { findsCount, type FindEntry, type FindWho } from './findsSeen.ts';
 
 /** ⚑ F3's lean: a find is "just now" for under an hour, read when the card is drawn (no ticking clock). */
 export const JUST_NOW_MS = 60 * 60 * 1000;
@@ -65,7 +65,7 @@ export function findCard(entries: readonly FindEntry[], w: FindCardWords): FindC
   // never moves a line (p45-25); N and a counting head follow what is left (⚑ F8's lean), so N can reach 1 or 0.
   const counted = all.length >= 5;
   const shown = counted ? all.slice(0, 3) : all;
-  const live = all.filter((e) => e.takenBack === null).length;
+  const live = findsCount(all);
   const head = all.every((e) => e.kind === 'coin')
     ? 'New in your coin'
     : !counted || live === 0

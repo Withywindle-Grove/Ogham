@@ -9,7 +9,7 @@ import { describeEntry, groupEntries, loadLog, loadLogNames, type LogEvent } fro
 import { undoChange } from '../../core/undo.ts';
 import { createFakeDb, type FakeWorld } from '../../testing/fakeDb.ts';
 import { toCharacterRef, type CharacterRef } from './commands.ts';
-import { findsSince, loadFindsSeen, markFindsSeen, type FindEntry, type ThingFind } from './findsSeen.ts';
+import { findsCount, findsSince, loadFindsSeen, markFindsSeen, type FindEntry, type ThingFind } from './findsSeen.ts';
 
 type Row = Record<string, unknown>;
 const registry = createAppRegistry();
@@ -457,5 +457,47 @@ describe('what is new, read from the log (K20a)', () => {
       lines: [{ id: 'line-ring', actorId: wren.id, name: 'Bronze ring', qty: 1 }],
     });
     expect(things(found).map((e) => e.name)).toEqual(['Bronze ring']);
+  });
+});
+
+// The count on the Pack's icon, and the failed tap's words (K19a; pk-5, p45-10, p45-17, p45-24). Invented things only.
+describe('the count, and the failed tap’s words (K19a)', () => {
+  const at = '2026-11-26T09:00:00.000Z';
+  const thingOf = (name: string, o: Partial<ThingFind> = {}): FindEntry => ({ kind: 'thing', lineId: `line-${name}`, name, arrived: 1, now: null, who: { kind: 'gm' }, at, takenBack: null, ...o });
+  const coinOf = (): FindEntry => ({ kind: 'coin', purseId: 'purse-wren', coins: { heron: 240, reed: 3 }, who: { kind: 'gm' }, at, takenBack: null });
+
+  // Purpose: with nothing new the count is 0, so no badge is drawn.
+  it('is 0 with nothing new', () => {
+    expect(findsCount([])).toBe(0);
+  });
+
+  // Purpose: one thing counts as 1.
+  it('counts one thing as 1', () => {
+    expect(findsCount([thingOf('Bronze ring')])).toBe(1);
+  });
+
+  // Purpose: a stack counts as one thing, however many arrived or it now holds.
+  it('counts a stack as one', () => {
+    expect(findsCount([thingOf('River pearls', { arrived: 12, now: 20 })])).toBe(1);
+  });
+
+  // Purpose: coin and things together: all the coin is one, each thing one.
+  it('counts coin as one beside the things', () => {
+    expect(findsCount([coinOf(), thingOf('Bronze ring'), thingOf('Moon opals', { arrived: 3 })])).toBe(3);
+  });
+
+  // Purpose: a find taken back is not counted, and when every find is taken back the count is 0.
+  it('leaves out a find taken back', () => {
+    const back = { byGm: true, at };
+    expect(findsCount([thingOf('Bronze ring', { takenBack: back }), thingOf('Silver key'), coinOf()])).toBe(2);
+    expect(findsCount([thingOf('Bronze ring', { takenBack: back })])).toBe(0);
+  });
+
+  // Purpose: a tap the server answers without a time says "Couldn't mark these as seen." and no more (p45-24).
+  it('says "Couldn’t mark these as seen." when the mark comes back empty', async () => {
+    vi.spyOn(world.db, 'rpc').mockResolvedValueOnce({ data: null, error: null } as never);
+    const done = await mark(sam, wren);
+    expect(done).toMatchObject({ ok: false, reason: 'failed', message: "Couldn't mark these as seen." });
+    vi.restoreAllMocks();
   });
 });

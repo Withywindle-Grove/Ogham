@@ -29,7 +29,7 @@ export const markFindsSeen = defineCommand({
   run: async (db, _user, input): Promise<CommandResult<string>> => {
     const { data, error } = await db.rpc('mark_finds_seen', { character: input.character.id });
     if (error) return fromError(error);
-    return typeof data === 'string' ? ok(data) : failed("Couldn't mark them seen. Try again.");
+    return typeof data === 'string' ? ok(data) : failed("Couldn't mark these as seen.");
   },
 });
 
@@ -229,6 +229,14 @@ export function findsSince(source: FindsSource): FindEntry[] {
   }
   entries.push(...things.values(), ...(coin ? [coin] : []));
   return entries.sort((x, y) => y.seq - x.seq).map((e) => e.entry);
+}
+
+/**
+ * The count on the Pack's icon (K19a; pk-5, p45-10): things, not units (a stack is one, all the coin is one), and a
+ * find taken back is not counted. None is 0, so no badge is drawn; "99+" past 99 is the nav's own (`SectionNav`).
+ */
+export function findsCount(entries: readonly FindEntry[]): number {
+  return entries.filter((e) => e.takenBack === null).length;
 }
 
 /** The character's mark, as its player or the GM reads it; null when there is none (or it can't be read). */
