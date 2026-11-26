@@ -215,6 +215,18 @@ describe('the GM’s place page', () => {
     expect(within(await screen.findByRole('region', { name: 'Waiting for you' })).getByText('Nothing waits.')).toBeTruthy();
   });
 
+  // Purpose (Q1, F1 a): where a place's spots include Locations, those come after the other kinds (still by the key), the
+  // unnumbered Location first, then by number, so Spots here can't go back to the key's order for Locations.
+  it('Spots here lists its Locations in map-number order after the other kinds', async () => {
+    const MUD = { id: 'mud-flat', name: 'The mud flat', type: 'area', parentId: 'drowned-harbour', identity: 'Grey mud to the knee.' };
+    const SLUICE = { id: 'sluice', key: '10', name: 'The sluice', type: 'area', parentId: 'drowned-harbour', identity: 'A gate the sea forgot.' };
+    for (const data of [SLUICE, MUD]) world.tables.library_entries.push({ id: `entry-${data.id}`, pack_id: 'pack-reed', kind: 'location', pack_entry_id: data.id, name: data.name, data });
+    const { trip, row } = await at('harbour');
+    page(trip, row);
+    const spots = await screen.findByRole('region', { name: 'Locations' });
+    await within(spots).findByText('10. The sluice');
+    expect([...spots.querySelectorAll('.place-page__spot-name')].map((n) => n.textContent)).toEqual(['1. The jetty', '2. The wreck', 'The mud flat', '10. The sluice']);
+  });
   it('at a spot: a Region in the trail is plain words that move nobody; no spots list; Nothing waits; the own check with its toggle', async () => {
     const { trip, row } = await at('jetty');
     const { onChanged, container } = page(trip, row);
@@ -495,7 +507,7 @@ describe('the GM’s place page', () => {
 
 describe('the book’s text for the GM (gt-1; page 15, home B)', () => {
   // Purpose: a place whose book gives the GM text of its own shows it as one folded row under its description, "From
-  // the book, for the GM" with the book's first line and the crossed eye (never sent); a tap opens it in place with its
+  // the book, for the GM" with the book's first line and no crossed eye (F17, Q6); a tap opens it in place with its
   // list and boxed aside, and folds it again.
   it('folded to the first line under the description; a tap opens it in place with its list and box', async () => {
     const user = userEvent.setup();
@@ -504,7 +516,10 @@ describe('the book’s text for the GM (gt-1; page 15, home B)', () => {
     const fold = await screen.findByRole('button', { name: /From the book, for the GM/ });
     expect(fold.getAttribute('aria-expanded')).toBe('false');
     expect(within(fold).getByText('The ferrymen moor here and nowhere else, and they notice who does not…')).toBeTruthy();
-    expect(within(fold).getByRole('img', { name: 'Only for you: never sent' })).toBeTruthy();
+    // F17 (Q6): the row carries no eye and no "never sent" name; the heading's own words say whose it is.
+    expect(within(fold).queryByRole('img')).toBeNull();
+    expect(within(fold).queryByLabelText(/never sent/)).toBeNull();
+    expect(fold.querySelector('.book-text__chevron')).toBeTruthy();
     // Under the head (no line under the name since B3), before Knowledge and Rules.
     const name = screen.getByRole('heading', { name: '1. The jetty', level: 2 });
     const knowledge = screen.getByRole('button', { name: 'Knowledge' });
@@ -938,8 +953,8 @@ describe('the trail and reading ahead (B2)', () => {
 
   // Purpose (p2p-8; LA2): a tap on the Area in the trail opens the Locations panel, the Area's name over its title; the
   // Area's own row comes first, then the party's own row, marked "The party is here." and not a tap, then every other
-  // Location in key order with its one line. The Region stays plain words. Nothing moves the party.
-  it('a tap on the Area opens its Locations: the Area, the party’s row with no tap, then each Location by key; nobody moves', async () => {
+  // Location in map-number order (Q1) with its one line. The Region stays plain words. Nothing moves the party.
+  it('a tap on the Area opens its Locations: the Area, the party’s row with no tap, then each Location by map number; nobody moves', async () => {
     const user = userEvent.setup();
     const { trip, row } = await partyAt(ANCHORAGE);
     const visits = world.tables.group_places.length;
@@ -966,6 +981,22 @@ describe('the trail and reading ahead (B2)', () => {
     expect(onChanged).not.toHaveBeenCalled();
     await user.click(within(panel).getByRole('button', { name: /Close/ }));
     expect(screen.queryByRole('dialog', { name: 'The Drowned Cove: Locations' })).toBeNull();
+  });
+
+  // Purpose (Q1, F1 a, ruled 2026-11-25): in the Locations panel a Location with no map number comes before the numbered
+  // ones, and "10" after "9", so the list can't go back to the key's order (numbered first, the unnumbered last).
+  it('the Locations panel lists the unnumbered Locations first, then by number', async () => {
+    const SHOAL = { id: 'shoal', name: 'The Shoal', type: 'area', parentId: 'drowned-cove', identity: 'Sand under a hand of water.' };
+    const SLUICE = { id: 'sluice', key: '10', name: 'The Sluice', type: 'area', parentId: 'drowned-cove', identity: 'A gate the sea forgot.' };
+    for (const data of [SLUICE, SHOAL]) world.tables.library_entries.push({ id: `entry-${data.id}`, pack_id: 'pack-reed', kind: 'location', pack_entry_id: data.id, name: data.name, data });
+    const user = userEvent.setup();
+    const { trip, row } = await partyAt(ANCHORAGE);
+    page(trip, row);
+    await user.click(await within(await screen.findByRole('navigation', { name: 'Where it sits' })).findByRole('button', { name: 'The Drowned Cove' }));
+    const panel = await screen.findByRole('dialog', { name: 'The Drowned Cove: Locations' });
+    await within(panel).findByText(LONG_LINE);
+    const titles = [...panel.querySelectorAll('.list-row__title')].map((t) => t.textContent);
+    expect(titles).toEqual(['The Drowned Cove', 'The Anchorage', 'The Shoal', '1. The Jetty', '3. The Breakwater', LONG, '10. The Sluice']);
   });
 
   // Purpose (p2p-9; LA3): a Location opened from the panel is read ahead: the card is its own (its name, its pieces in

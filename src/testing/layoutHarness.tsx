@@ -1243,8 +1243,10 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //               to the players (S13; the players' map, P5; see below).
 //   &picture=1 with spots or spot: the place has a picture (TW13: the picture row, a tap opening it); with &ways=… too,
 //               shown to the players (the Location's card's small picture button, ppf-6 c).
+//   &ids=1  with spot: the jetty's pieces name the pack's entries by id (Q7: the GM's small line names them).
 //   &mapTitle=long  with &map: the map's title long (the card's title on its own line above the tools).
 //   &session=running|paused  the band's session states (S9; see below).
+//   &check=none  the harbour without its own encounter check (the facts row's one fact, Light; see the harbour).
 //   &strip=long  the harbour's own procedure of seven long-named steps (S7; see the harbour).
 //   &strip=words  the harbour's own procedure of seven steps, one named in two words and one in a single 14-letter word
 //                (scene-test-small-fixes: a label wraps between words only; see the harbour).
@@ -1304,8 +1306,11 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     hazards: [{ name: 'The bar’s mud', appearance: 'The bar’s mud takes a boot to the knee.', trigger: 'a save, or stuck' }],
     facts: [{ lead: 'Tides', text: 'Two a day; the bar dries at low water.' }],
     gm: { sections: [{ heading: 'The Tidewife', text: 'She keeps her word to the letter, and expects the same.' }], notes: 'The Tidewife keeps her word to the letter.' },
-    // The pack's own sentence for its check (p2p-14; B3), shown on the place page's check card.
-    encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' },
+    // The pack's own sentence for its check (p2p-14; B3), shown on the place page's check card. &check=none: the harbour
+    // has no check of its own, so the Scene's facts row draws Light alone (Q4's one fact; the review of #110).
+    ...(new URLSearchParams(window.location.search).get('check') === 'none'
+      ? {}
+      : { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' } }),
     rules: [{ id: 'falling-in', name: 'Falling into the harbour', button: { icon: 'water-splash', words: 'Someone fell in' }, text: 'A character in the harbour’s water is cold at once.' }],
     tableIds: ['tide-left', 'on-the-water'],
     // &strip=long (plan dec-9-the-whole-scene S7; page 02, S5): the harbour's own procedure, seven steps with long
@@ -1366,6 +1371,26 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
         ]
       : []),
   ].map((s) => ({ ...s, type: p2pKinds ? 'area' : 'site', parentId: 'drowned-harbour' }));
+  // &ids=1 with spot (plan dec-scene-quickfix Q7): the jetty's pieces name the pack's entries by id (an item beside a
+  // value, an item alone with a long name, a creature with a count and a note, a character, and an id no pack has), so
+  // the GM's small line can be seen naming them. Invented.
+  if (new URLSearchParams(window.location.search).get('ids') === '1') {
+    Object.assign(spots[0]!, {
+      treasure: [
+        { text: 'A green copper chest, wedged under the planks.', value: { herons: 40 }, itemId: 'reed-silver-arrows' },
+        { text: 'A long oilcloth bundle lashed to a pile.', itemId: 'reed-lantern-pole' },
+        { text: 'A pouch of something that clinks.', value: { sp: 3 }, itemId: 'reed-no-such-thing' },
+      ],
+      contents: [{ statBlockId: 'reed-bog-lurker', count: 6, note: 'asleep under the planks', appearance: 'Six humps in the mud, breathing.' }],
+      playerView: { ...spots[0]!.playerView, people: [{ description: 'A ferryman mends a net on the end post.', npcId: 'reed-npc-oswy' }] },
+    });
+    for (const [kind, id, name] of [
+      ['item', 'reed-silver-arrows', 'Silver-tipped arrows'],
+      ['item', 'reed-lantern-pole', 'Lantern Warden’s hooked pole of the drowned customs house, with its spare wick'],
+      ['statBlock', 'reed-bog-lurker', 'Bog lurker'],
+      ['npc', 'reed-npc-oswy', 'Oswy the ferryman'],
+    ] as const) world.tables.library_entries.push({ id: `entry-${id}`, pack_id: 'pack-reed', kind, pack_entry_id: id, name, data: { id, name } });
+  }
   // ?placePage=wreck (B15, page 30): the wreck's hoard in the book's words, its things with their counts (b15f-1), and a
   // magic item's truth (b15f-2 to b15f-4: a name, what it does, what the senses tell; no source). Invented.
   if (placePageFlag === 'wreck') {
@@ -1681,6 +1706,36 @@ if (new URLSearchParams(window.location.search).get('viewPack') === '1') {
   Object.assign(world.tables.inventory_lines.find((l) => l.id === 'line-wand')!, { charges_hidden: true, charges_used: 1 });
   world.tables.inventory_line_secrets.push({ id: 'line-wand', campaign_id: campaign, charges_total: 999, spent: false });
 }
+// K22's screens (page 33; batch K2), only with ?k22=1: on Wren, the Bronze ring (the Ring of the Drowned Bell, stored
+// unidentified as its face, K22a) and the Hooded lantern with nine hidden facts, a long true name and 999 charges.
+if (new URLSearchParams(window.location.search).get('k22') === '1') {
+  const rules = world.tables.library_entries.find((e) => e.id === 'entry-river-rules')!.data as Record<string, unknown>;
+  rules.itemCategories = [
+    { id: 'ring', name: 'Rings', singular: 'Ring', unidentified: true },
+    { id: 'lantern', name: 'Lanterns', singular: 'Lantern', unidentified: true },
+  ];
+  const ring = {
+    id: 'drowned-bell', name: 'Ring of the Drowned Bell', category: 'ring', slot: 'ring', looks: 'A plain band of old bronze.', appearsAs: 'Bronze ring', noticed: 'Cold to the touch, even by the fire.',
+    bonus: '+1 to saves', cursed: true, description: 'Cast from the bronze of a sunken bell. Its wearer is steadier against harm, and cannot take it off within sight of the sea.', source: 'p. 14', gmOnly: ['bonus'],
+  };
+  const lantern = {
+    id: 'nine-tides', name: 'The Old Lantern of the Drowned and of the Nine Tides', category: 'lantern', looks: 'A hooded lantern of green glass, with a ring for the hand.', appearsAs: 'Hooded lantern',
+    noticed: 'Cold to the hand, and no smell of oil. The glass is sea-green and thick as a bottle’s foot; held to the ear it hums, low, like a shell.',
+    bonus: '+1 to saves against fear', cursed: true, properties: ['Burns without oil', 'Shows what lies under water within ten paces', 'The drowned can see its bearer from as far'],
+    fields: { 'Maker’s mark': 'Three waves under a bell' }, description: 'Lit, it burns no oil and shows whatever lies under water within ten paces.', source: 'p. 22', gmOnly: ['bonus', 'fields.Maker’s mark'],
+  };
+  for (const item of [ring, lantern]) world.tables.library_entries.push({ id: `entry-${item.id}`, pack_id: 'pack-river', kind: 'item', pack_entry_id: item.id, name: item.name, data: item });
+  const face = (item: typeof ring | typeof lantern) => ({
+    category: item.category, library_entry_id: `entry-${item.id}`, source_pack_id: 'pack-river', source_entry_id: item.id, identified: false, appears_as: item.appearsAs, noticed: item.noticed, revealed_fields: [], version: 1,
+    item_data: { id: item.id, category: item.category, looks: item.looks, ...('slot' in item ? { slot: item.slot } : {}) },
+  });
+  line('line-bronze-ring', wren, 'Bronze ring', face(ring));
+  line('line-hooded-lantern', wren, 'Hooded lantern', { ...face(lantern), charges_hidden: true });
+  // With &k22charges=unset its hidden count was never rolled (Home Two's audit of #50, findings 4 and 5).
+  const unset = new URLSearchParams(window.location.search).get('k22charges') === 'unset';
+  world.tables.inventory_line_secrets.push({ id: 'line-hooded-lantern', campaign_id: campaign, charges_total: unset ? null : 999, spent: false });
+}
+
 // The Scene in the GM's view as the player (page 32, M3i; C15f), only with ?viewScene=1: Sam's request waiting on the
 // GM ("Search the hold"), so the view's prompt slot shows it with its Cancel. Use with &placePage=spot&ways=1 for M3i's
 // place and ways.

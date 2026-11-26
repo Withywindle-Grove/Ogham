@@ -159,6 +159,21 @@ describe('the Pack on the standard (plan m5b-players-screens-standard C)', () =>
     expect(screen.getByRole('heading', { name: 'Wren’s pack' }).className).toBe('visually-hidden');
   });
 
+  // A name ending in "s" takes a bare apostrophe in the Pack's heading, its region's name and the bar: "Wardens’ pack",
+  // never "Wardens’s pack" (Home One audit of #50 round 3, finding 1).
+  it('a name ending in "s" reads "Wren of the Lantern Wardens’ pack" in the heading, the region and the bar', async () => {
+    fenWorld([{ name: 'Coil of rope' }]);
+    world.tables.actors.find((a) => a.id === wren)!.name = 'Wren of the Lantern Wardens';
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
+    await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
+    const words = 'Wren of the Lantern Wardens’ pack';
+    expect(await screen.findByRole('heading', { name: words })).toBeTruthy();
+    expect(screen.getByRole('region', { name: words })).toBeTruthy();
+    expect(document.querySelector('.top-row__title')!.textContent).toBe(words);
+  });
+
   it('puts the load line and its bar first, before any group', async () => {
     fenWorld([{ name: 'Coil of rope' }]);
     await openPack();

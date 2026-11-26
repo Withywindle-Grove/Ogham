@@ -174,10 +174,10 @@ const BOOK_TEXT_HEADING = 'From the book, for the GM';
 
 /**
  * The book's own text for the GM about a place (gt-1; mockup december/15 BT1, home B): one row under the place's
- * description, "From the book, for the GM", folded to the book's first line, marked with the crossed eye (the GM's
- * alone, never sent: the shape and its spoken name, no switch) and the chevron (down folded, up open); a tap opens the
- * whole text in place, drawn by the shared rule-text part (its lists and boxed asides, nothing trimmed, mc-34), and
- * folds it again. Starts folded on every place.
+ * description, "From the book, for the GM", folded to the book's first line, with the chevron at the right (down
+ * folded, up open); no crossed eye (Francis, F17, 2026-11-25: the heading's own words say whose it is); a tap opens the
+ * whole text in place, drawn by the shared rule-text part (its lists and boxed asides, nothing trimmed, mc-34; F18:
+ * the section stays whole), and folds it again. Starts folded on every place.
  */
 export function BookTextFold({ text }: { text: PlaceBookText }) {
   const [open, setOpen] = useState(false);
@@ -189,13 +189,8 @@ export function BookTextFold({ text }: { text: PlaceBookText }) {
           <span className="book-text__heading">{BOOK_TEXT_HEADING}</span>
           {!open && text.firstLine && <span className="book-text__first">{text.firstLine}</span>}
         </span>
-        <span className="book-text__marks">
-          <span className="book-text__eye" role="img" aria-label="Only for you: never sent">
-            <Icon name="eye-off" size={24} />
-          </span>
-          <span className={`book-text__chevron${open ? ' book-text__chevron--open' : ''}`} aria-hidden="true">
-            <Icon name="chevron" size={20} />
-          </span>
+        <span className={`book-text__chevron${open ? ' book-text__chevron--open' : ''}`} aria-hidden="true">
+          <Icon name="chevron" size={20} />
         </span>
       </button>
       {open && (

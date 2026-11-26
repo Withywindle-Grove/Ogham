@@ -26,6 +26,9 @@
 import { Fragment, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { loadPackPlaceEntry, loadPackPlaces, loadPackTables, loadStatBlockName } from '../modules/expedition/placePlay.ts';
 import type { PackPlaceEntry } from '../modules/expedition/placeFromPack.ts';
+import { idsInFacts, namedFacts, pieceNamesFrom, type PieceNames } from '../modules/expedition/pieceNames.ts';
+import { useLogUserId, useLogVersion } from './campaignLog.tsx';
+import { loadCampaignPacksAndEntries } from './campaignSetting.ts';
 import { hasPlaceFacts, leadWords, readPlaceFacts } from '../modules/expedition/placeFacts.ts';
 import type { ReadTable } from '../modules/expedition/tables.ts';
 import { NoteLines, PlaceFactLines, PlaceFactsBody, PlaceIdentity, PlaceTable } from './PlaceFacts.tsx';
@@ -101,6 +104,7 @@ export function PlaceCard({ db, user, campaign, group, groupLabel, row, checks, 
   const [hereOpen, setHereOpen] = useState(false);
   const place = row?.place ?? null;
   const pieces = row?.pieces ?? [];
+  const names = usePieceNames(db, campaign.id, pieces, place?.pack?.packId ?? null);
   const who = groupLabel ?? 'the party';
   // A place from a pack (pull request 2): the pack's places, for its words, its parent and the places under it.
   const [packPlaces, setPackPlaces] = useState<readonly PackPlace[] | null>(null);
@@ -234,7 +238,7 @@ export function PlaceCard({ db, user, campaign, group, groupLabel, row, checks, 
           {pieces.length > 0 && (
             <ul className="place-card__piece-list">
               {pieces.map((piece) => (
-                <PieceRow key={piece.id} piece={piece} onToggle={() => void togglePiece(piece)} onEdit={() => setEditing(piece)} />
+                <PieceRow key={piece.id} piece={piece} names={names} onToggle={() => void togglePiece(piece)} onEdit={() => setEditing(piece)} />
               ))}
             </ul>
           )}
@@ -596,23 +600,66 @@ export function EyeButton({ shown, show, hide, onToggle }: { shown: boolean; sho
   );
 }
 
+const NO_NAMES: PieceNames = { byId: new Map(), packId: null };
+
+/**
+ * The names of the pack entries the pieces' GM facts name (Q7, F20 c), read on the GM's device as the hoard sheet reads
+ * the campaign's entries (`loadCampaignPacksAndEntries`: the kept copy, else the device's store, so offline too), the
+ * place's own pack (`packId`; null: made by hand) first. Read again when the ids change, and when the log ticks (a change
+ * to the setting rules forgets the kept copy first). While they load, a pack-made place leaves its ids out.
+ */
+export function usePieceNames(db: Db, campaignId: string, pieces: readonly Piece[], packId: string | null): PieceNames {
+  const userId = useLogUserId();
+  const version = useLogVersion();
+  const ids = pieces.flatMap((p) => idsInFacts(p.gm).map((w) => `${w.kind}/${w.id}`)).sort().join(' ');
+  const key = `${packId ?? ''}|${version}|${ids}`;
+  const [found, setFound] = useState<{ key: string; names: PieceNames } | null>(null);
+  useEffect(() => {
+    if (!ids) return;
+    let live = true;
+    void loadCampaignPacksAndEntries(db, userId, campaignId).then(
+      (rows) =>
+        live &&
+        setFound({
+          key,
+          names: pieceNamesFrom(
+            rows?.entries ?? [],
+            (rows?.packs ?? []).map((p) => p.packId),
+            pieces.map((p) => p.gm),
+            packId,
+          ),
+        }),
+    );
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the key names the pack, the log's tick and every id the pieces name
+  }, [db, userId, campaignId, key]);
+  if (found?.key === key) return found.names;
+  // Still loading, or nothing named: the names known so far (none while the first read runs).
+  return found && found.names.packId === packId ? found.names : { byId: NO_NAMES.byId, packId };
+}
+
 /**
  * The GM's alone fact of a piece, as its own small line on the place page (page 11): "Value stays yours (40 herons).";
- * '' when it keeps none.
+ * '' when it keeps none. A pack's id in it is named as a person would (Q7): "Value stays yours (Item: Silver-tipped
+ * arrows)."; an id `names` doesn't know stays as stored on a hand-made place and is left out on a pack-made one.
  */
-export function gmFactLine(piece: Piece): string {
-  if (piece.kind === 'treasure' && piece.gm.value) return `Value stays yours (${piece.gm.value}).`;
-  if (piece.kind === 'hazard' && piece.gm.trigger) return `Look only; trigger stays yours (${piece.gm.trigger}).`;
-  if (piece.kind === 'person' && piece.gm.statLine) return `The stat line never shows (${piece.gm.statLine}).`;
+export function gmFactLine(piece: Piece, names: PieceNames = NO_NAMES): string {
+  const gm = namedFacts(piece.gm, names);
+  if (piece.kind === 'treasure' && gm.value) return `Value stays yours (${gm.value}).`;
+  if (piece.kind === 'hazard' && gm.trigger) return `Look only; trigger stays yours (${gm.trigger}).`;
+  if (piece.kind === 'person' && gm.statLine) return `The stat line never shows (${gm.statLine}).`;
   return '';
 }
 
-/** What a piece is, and the GM-only facts it keeps (never shown): "Treasure · value stays yours (40 gp)". */
-function kindLine(piece: Piece): string {
+/** What a piece is, and the GM-only facts it keeps (never shown), named as `gmFactLine` names them: "Treasure, value stays yours (40 gp)". */
+export function kindLine(piece: Piece, names: PieceNames = NO_NAMES): string {
   const kind = PIECE_KIND_WORDS[piece.kind];
-  if (piece.kind === 'treasure' && piece.gm.value) return `${kind}, value stays yours (${piece.gm.value})`;
-  if (piece.kind === 'hazard' && piece.gm.trigger) return `${kind}, look only; trigger stays yours (${piece.gm.trigger})`;
-  if (piece.kind === 'person' && piece.gm.statLine) return `${kind}, the stat line never shows (${piece.gm.statLine})`;
+  const gm = namedFacts(piece.gm, names);
+  if (piece.kind === 'treasure' && gm.value) return `${kind}, value stays yours (${gm.value})`;
+  if (piece.kind === 'hazard' && gm.trigger) return `${kind}, look only; trigger stays yours (${gm.trigger})`;
+  if (piece.kind === 'person' && gm.statLine) return `${kind}, the stat line never shows (${gm.statLine})`;
   return kind;
 }
 
@@ -652,12 +699,15 @@ export function PieceRow({
   named = [],
   onOpen,
   note,
+  names = NO_NAMES,
 }: {
   piece: Piece;
   onToggle: () => void;
   onEdit: () => void;
   page?: boolean;
   named?: readonly string[];
+  /** The pack entries' names for the GM's small line (Q7): `usePieceNames`. */
+  names?: PieceNames;
   /** B15 (pg30-1): a hoard's piece opens its hoard on a tap, a small arrow before its eye saying so. */
   onOpen?: () => void;
   /** B15 (HM1, PK5b): the line under a hoard's piece, saying where it went. */
@@ -668,7 +718,7 @@ export function PieceRow({
     // pack leads with its own word starts with it in bold; the description has none, and its words that name another
     // piece (`named`: the other pieces' own words) are bold and underlined. Then the GM's alone fact in the small line,
     // and the bare eye at the right.
-    const fact = gmFactLine(piece);
+    const fact = gmFactLine(piece, names);
     const parts = piece.kind === 'description' ? namedParts(piece.text, named) : [{ text: piece.text, named: false }];
     return (
       <li className="place-page__piece">
@@ -707,7 +757,7 @@ export function PieceRow({
           )}
           {piece.text}
         </span>
-        <span className="place-card__piece-kind">{kindLine(piece)}</span>
+        <span className="place-card__piece-kind">{kindLine(piece, names)}</span>
       </button>
       {/* The eye with its word (2c): Shown or Hidden beside the icon, never the icon alone. */}
       <button

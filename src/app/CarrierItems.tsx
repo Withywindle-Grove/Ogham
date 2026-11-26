@@ -298,6 +298,17 @@ export function CarrierItems({
     const option = light.options.find((o) => o.line.id === l.id);
     return option ? { label: 'Light' as const, run: () => void light.lightIt(option) } : null;
   };
+  /** A category's singular name (⚑ 4; as the database's private.category_singular): the highest rules set's `singular`, else its name, else the id tidied. */
+  const singularOf = (category: string) => {
+    for (const rules of [...(setting?.rulesSets ?? [])].reverse()) {
+      const cats: unknown[] = Array.isArray(rules.itemCategories) ? rules.itemCategories : [];
+      const cat = cats.find((c): c is Record<string, unknown> => !!c && typeof c === 'object' && (c as Record<string, unknown>).id === category);
+      const said = [cat?.singular, cat?.name].find((w): w is string => typeof w === 'string' && w.trim() !== '');
+      if (said) return said.trim();
+    }
+    const tidy = category.replace(/[-_]+/g, ' ').trim();
+    return tidy ? `${tidy.charAt(0).toUpperCase()}${tidy.slice(1)}` : 'Item';
+  };
   const firstOther = groups.findIndex((g) => 'other' in g && g.other);
   // Empty (words batch 1, ruled 2026-10-26): the pack invites the first item (Add item sits above); the stash says what it's for.
   if (groups.length === 0)
@@ -386,7 +397,8 @@ export function CarrierItems({
                   const range = atHand && weapon !== null ? attackRange(item, state?.engaged ? state.mode : null) : null;
                   const bearing = atHand ? attackRules(inMode, state?.engaged ? state.mode : null, [ruleNotes.get(line.id), problems.get(line.id)]) : [];
                   const inflicts = atHand && weapon !== null ? inflictedBy(item, state?.engaged ? state.stack : null, conditions) : [];
-                  const gmMagic = gmInView ? weaponMagic({ name: line.name, data: item, category: line.category }, setting?.rulesSets ?? [], true, stack ? drawnAmmunition(setting, stack, stackEntry) : null) : null;
+                  // The hidden figures read what was told (K22e): a told bonus is the player's, so no longer the GM's line.
+                  const gmMagic = gmInView ? weaponMagic({ name: line.name, data: item, category: line.category, told: line.revealedFields ?? [] }, setting?.rulesSets ?? [], true, stack ? drawnAmmunition(setting, stack, stackEntry) : null) : null;
                   // What the player's own copies already show is no secret (audit fix 6): the weapon's line, the drawn stack's.
                   const seen = [{ name: line.name, details: line.details }, ...(stack ? [{ name: stack.name, details: lineInPlay(setting, stack).details }] : [])];
                   const gmFacts = gmMagic
@@ -426,6 +438,7 @@ export function CarrierItems({
                     onNote={onNote}
                     secret={hidden.get(line.id) ?? null}
                     gmFacts={gmFacts}
+                    categorySingular={singularOf(line.category)}
                     problem={problems.get(line.id) ?? null}
                     castingNote={castingNotes.get(line.id) ?? null}
                     blockedEquip={offReason ?? (equipContext ? (equipBlocks(equipContext.character, asItem(line, equipContext), equipContext.weaponRules ?? null)[0] ?? null) : null)}

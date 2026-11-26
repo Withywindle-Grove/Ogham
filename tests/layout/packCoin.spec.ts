@@ -20,7 +20,7 @@ async function openPack(page: Page, coin: '1' | 'messy' = '1') {
   await page.goto(`/layout.html?as=player&coin=${coin}`);
   await page.getByRole('button', { name: /The Drowned Marches/ }).click();
   await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Pack' }).click();
-  await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’s pack' })).toBeAttached();
+  await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’ pack' })).toBeAttached();
 }
 
 /** The GM opens Wren's pack from the Players page (the "Pack" button on her row; PC7). */
@@ -29,7 +29,7 @@ async function openPackAsGm(page: Page) {
   await page.getByRole('button', { name: /The Drowned Marches/ }).click();
   await page.getByRole('navigation', { name: 'Campaign sections' }).getByRole('button', { name: /^Players/ }).click();
   await page.getByRole('button', { name: "Open Wren of the Lantern Wardens's pack" }).click();
-  await expect(page.getByRole('region', { name: 'Wren of the Lantern Wardens’s pack' })).toBeAttached();
+  await expect(page.getByRole('region', { name: 'Wren of the Lantern Wardens’ pack' })).toBeAttached();
 }
 
 const coinLine = (page: Page) => page.getByRole('button', { name: /^Coin: / });

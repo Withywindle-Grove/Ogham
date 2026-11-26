@@ -274,6 +274,7 @@ const farNameOf = (read: MoveOnRead, id: string): string => read.farEnds.get(id)
  * every link to it is hidden; the first obstacle met on its ways as the row's warning.
  */
 export function destinationsOf(read: MoveOnRead): DestinationOf[] {
+  // shortcut: every far end is sorted as a Location (FarEnd has no kind), so a link to a numbered room would sort too; carry the kind when links reach rooms (the dungeon sitting).
   const order: string[] = [];
   for (const w of read.ways) if (!order.includes(w.farEnd)) order.push(w.farEnd);
   return byMapNumber(order, (id) => read.farEnds.get(id)?.number).map((id) => {
