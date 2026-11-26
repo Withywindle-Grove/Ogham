@@ -420,6 +420,15 @@ describe('what is new, read from the log (K20a)', () => {
     expect(await newForWren()).toEqual([]);
   });
 
+  // Purpose (review fix 1, the merge road): nor is it hers once Moss's whole stack is merged into a stack she carries.
+  it.fails("a GM join onto another's stack is not hers once that stack merges into hers", async () => {
+    kit(wren.id, 'River pearls', 6, 'entry-pearl');
+    const mossPearls = kit(moss.id, 'River pearls', 4, 'entry-pearl');
+    await mustOk(as(gm, 'inventory.add').rpc('join_added_line' as never, { campaign, actor: moss.id, location: null, container: null, entry: 'entry-pearl', how_many: 2, made_id: crypto.randomUUID(), how_got: 'given', cost: '', note: '' } as never) as unknown as Promise<{ error: unknown }>);
+    expect((await intoStack(gm, mossPearls, 6)).data).toBe('line-river-pearls-' + wren.id);
+    expect(await newForWren()).toEqual([]);
+  });
+
   // Purpose (review fix 2): in one request that uses up one line and raises another, the find on the used-up line is
   // not carried onto the raised line unless they are the same thing (its name or its library entry).
   it('a line used up beside an unrelated raised line carries no find onto it', () => {
