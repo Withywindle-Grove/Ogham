@@ -1228,9 +1228,9 @@ function CreateCharacterSteps({
     if (languagesField && !laterPlanned.includes('languages') && text(values[languagesField.key])) {
       parts.push({ id: 'languages', title: guideTitle(rs, 'languages', 'Languages'), note: 'given', lines: [listedLine('', languagesField, values[languagesField.key], text(values[languagesField.key]))] });
     }
-    // Every exception called out before sending (final drafts D, mockup creation/final/07): last, with the sign.
+    // Every exception called out before sending (final drafts D): first, above the step cards, with the sign (clo-1, 22-G2).
     const exceptions = exceptionsPart(creationShown(setting, creation));
-    if (exceptions) parts.push(exceptions);
+    if (exceptions) parts.unshift(exceptions);
     return {
       parts,
       toFinish: putOffs.map((id) => ({ id, name: lists.find((l) => l.id === id)?.name ?? (id === 'expertise' && planned.expertise ? planned.expertise.rule.name : toFinishName(id)) })),
