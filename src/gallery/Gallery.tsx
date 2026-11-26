@@ -280,14 +280,17 @@ export function Gallery() {
       Add to {destinations.find((d) => d.id === picked)?.name ?? 'pack'}
     </button>
   );
-  const review = (layout: 'auto' | 'phone' = 'auto') => (
+  // Sent back (clo-2, 22-G5): the GM's note and the foot, "1 part marked", Back and Send; else a draft never sent (no
+  // note), its action top right on a tablet and in the sticky bar on a phone.
+  const review = (layout: 'auto' | 'phone' = 'auto', sentBack = true) => (
     <ReviewScreen
       layout={layout}
       heading="Wren, Lantern Warden" // words: names
-      note={<PinnedNote from="Priya (GM)" title="Your GM asks for a change" by="Priya, your GM, today">Please roll HP again; 9 is above the dice for level 1.</PinnedNote>}
+      note={sentBack ? <PinnedNote from="Priya (GM)" title="Your GM asks for a change" by="Priya, your GM, today">Please roll HP again; 9 is above the dice for level 1.</PinnedNote> : undefined}
+      onBack={sentBack ? () => undefined : undefined}
       sections={[
         { id: 'scores', title: 'Scores', lines: [{ text: 'STR 13, INT 9, WIS 16 (rolled 14), DEX 11, CON 12, CHA 8' }, { text: 'WIS 16', mark: 'override', why: 'traded 2 STR, as the setting allows' }] },
-        { id: 'hp', title: 'Hit points', flagged: true, lines: [{ text: 'HP 9', mark: 'broken', why: 'above 1d6' }] },
+        { id: 'hp', title: 'Hit points', flagged: sentBack, lines: [{ text: 'HP 9', mark: 'broken', why: 'above 1d6' }] },
         { id: 'gear', title: 'Gear', lines: [{ text: "Delver's kit, Lantern, Short bow and 20 arrows" }] },
         { id: 'money', title: 'Starting money', lines: [{ text: '11 rolled, 14 gp spent: 3 gp over.' }, { text: 'over by 3 gp, gold starts at 0 if the GM approves', mark: 'broken' }] },
       ]}
@@ -672,11 +675,11 @@ export function Gallery() {
         <Specimen name="Pinned note (a working panel; stays until the character is resent)">
           <PinnedNote from="Priya (GM)">Your HP is above the dice. Roll 1d6 again and enter what you rolled.</PinnedNote>
         </Specimen>
-        <Specimen name="Review screen: sent back, a flagged section, an override and broken rules (the action top right on a tablet)">
+        <Specimen name="Review screen: sent back, a flagged section, an override and broken rules; the foot, 1 part marked, Back and Send (clo-2)">
           {review()}
         </Specimen>
-        <Specimen name="Review screen, phone version: the action in the sticky bottom bar">
-          <div className="gallery__phone-frame">{review('phone')}</div>
+        <Specimen name="Review screen, phone version: a draft never sent, the action in the sticky bottom bar">
+          <div className="gallery__phone-frame">{review('phone', false)}</div>
         </Specimen>
         <Specimen name="Rules for this campaign: topic groups with count lines, source tags, rows that don't fit as a list">
           <RulesForThisCampaign groups={groups} onChange={setRule} open={rulesOpen} onOpen={setRulesOpen} />

@@ -83,6 +83,38 @@ div.review__section:not(.review__section--flagged) {
   color: var(--muted);
 }
 
+/* The sent-back foot (clo-2, 22-G5): under a rule, "1 part marked", then Back and Send at the right, each at its own
+   width, as the creation review's foot draws them (the accent not full width on a phone; ft-1). */
+.review__foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-block-start: var(--space-4);
+  border-block-start: var(--line-hair) solid var(--rule);
+}
+
+.review__foot-state {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.review__foot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  /* The plain button (48 px) and the accent (56 px) share one line through their middles, as the creation review's. */
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Past `.auth .button-primary`, the full-width accent of the screens it sits in. */
+.review .review__foot-actions > button {
+  flex: none;
+  align-self: center;
+  width: auto;
+}
+
 .campaign-rules {
   display: flex;
   flex-direction: column;

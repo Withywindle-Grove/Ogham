@@ -49,7 +49,8 @@ export interface ReviewSection {
 /**
  * The review screen (B18): one screen for the first submission, a sent-back character and the GM's review card.
  * Sections in reading order, each opening its step; overrides and broken rules marked with words and a shape;
- * flagged sections marked. The main action stays enabled; what's still needed is explained on tap.
+ * flagged sections marked. The main action stays enabled; what's still needed is explained on tap. Sent back, its own
+ * foot (clo-2, 22-G5; `onBack`): the count of marked parts, Back and the action.
  */
 export function ReviewScreen({
   heading,
@@ -60,10 +61,16 @@ export function ReviewScreen({
   onOpenStep,
   onAction,
   onExplain,
+  onBack,
   layout = 'auto',
 }: {
   /** "phone" shows the phone version at any width (the gallery). */
   layout?: 'auto' | 'phone';
+  /**
+   * The sent-back foot (clo-2, frame 22-G5): given, the action sits in a foot at the end at every width, under a rule:
+   * how many parts the GM ticked ("1 part marked", none when none are), then Back (plain) and the action (accent).
+   */
+  onBack?: () => void;
   heading: string;
   sections: ReviewSection[];
   note?: ReactNode;
@@ -80,11 +87,12 @@ export function ReviewScreen({
       {action}
     </button>
   );
+  const marked = sections.filter((s) => s.flagged).length;
   return (
     <section className={`review${layout === 'phone' ? ' review--phone' : ''}`} aria-label={heading}>
       <div className="review__head">
         <h2 className="review__heading">{heading}</h2>
-        {main && <div className="top-action">{main}</div>}
+        {main && !onBack && <div className="top-action">{main}</div>}
       </div>
       {note}
       {sections.map((s) => {
@@ -120,7 +128,17 @@ export function ReviewScreen({
         </Box>
         );
       })}
-      {main && (
+      {onBack ? (
+        <div className="review__foot">
+          {marked > 0 && <p className="review__foot-state">{`${marked} ${marked === 1 ? 'part' : 'parts'} marked`}</p>}
+          <div className="review__foot-actions">
+            <button type="button" className="button-secondary" onClick={onBack}>
+              Back
+            </button>
+            {main}
+          </div>
+        </div>
+      ) : main && (
         <div className="bottom-action">
           <ActionBar phone={layout === 'phone'}>{main}</ActionBar>
         </div>
