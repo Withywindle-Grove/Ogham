@@ -202,3 +202,24 @@ button.table-rows__row {
   font-size: var(--text-16);
   line-height: var(--line-body);
 }
+
+/* "Roll…"'s pop-up (sf-5; page 44, EN2, EN7 E): a table taller than the screen keeps its title, X, roll row and the
+   table's head; only the rows scroll. Each box between the pop-up and the rows may shrink, so the pop-up stops at the
+   screen's height and the rows take what is left. */
+.roll-pop,
+.roll-pop > .book-type--host,
+.roll-pop .book-tap-table {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+}
+
+.roll-pop {
+  gap: var(--gap);
+}
+
+.roll-pop .table-sheet__rows {
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}

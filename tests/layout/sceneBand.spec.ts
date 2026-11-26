@@ -8,7 +8,7 @@
 //   * controls side by side in the band share one height, 52 px (p2p-16; page 23, frame LA1): the icon buttons, Next
 //     turn (or Start, Resume) and the menu button; the same in town and downtime (`?town=town|downtime`: Advance time
 //     or Next day, Depart, the menu button); the check names the controls that must really sit side by side;
-//   * the top folds (p2p-20; page 24, TF1, TF1b): the fold mark at the band's far right (a phone: the heading's right)
+//   * the top folds (p2p-20; page 24, TF1, TF1b): the fold mark before the menu button (Q3; a phone: the heading's right)
 //     hides the facts, the strip and the tables row, keeps the band and Waiting for you, and a due fact as one line;
 //   * nothing scrolls sideways, every tap is 44 px, and axe finds no serious problem, in light and dark.
 import { expect, test, type Page } from '@playwright/test';
@@ -31,8 +31,9 @@ const BAND_CONTROL = 52;
  * in one row when they overlap top to bottom. Each row gives its controls' names and their heights, to the pixel.
  */
 async function bandRows(page: Page) {
-  return page.locator('.scene-band__actions').evaluate((actions) => {
-    const controls = [...actions.querySelectorAll<HTMLElement>('button')]
+  // The menu button stands outside the actions' box beside the fold mark (Q3), so both boxes are read.
+  return page.locator('.scene-band').first().evaluate((band) => {
+    const controls = [...band.querySelectorAll<HTMLElement>('.scene-band__actions button, .scene-band__menu button')]
       .map((el) => ({ name: el.getAttribute('aria-label') ?? el.textContent ?? '', box: el.getBoundingClientRect() }))
       .filter((c) => c.box.width > 0)
       .sort((a, b) => a.box.top - b.box.top);
@@ -197,8 +198,8 @@ for (const size of [
         expect(await accessibilityProblems(page)).toEqual([]);
       });
 
-      // Purpose (p2p-20; page 24, TF1 and TF1b, approved 2026-11-18 with the fix): the fold mark is a plain framed 52 px
-      // square at the band's far right, 8 px after the menu button (on a phone at the heading's right); a tap folds away
+      // Purpose (p2p-20; page 24, TF1 and TF1b, approved 2026-11-18 with the fix; Q3, F3 a): the fold mark is a plain
+      // framed 52 px square, 8 px before the menu button, which is the band's last (on a phone at the heading's right); a tap folds away
       // the facts, the strip and the encounter tables' row and keeps the band whole (the heading, Next turn, the icon
       // buttons); a fact that needs the GM (here the dark Light) stays as one line in the band under the date; "Waiting
       // for you" never folds; a second tap brings the top back.
@@ -221,13 +222,15 @@ for (const size of [
         const [mark, menu, heading, whole] = await Promise.all([fold.boundingBox(), page.getByRole('button', { name: 'Time options' }).boundingBox(), band.getByRole('heading').boundingBox(), band.boundingBox()]);
         await page.screenshot({ path: `test-results/layout-screens/scene-band-fold-open-${size.width}-${scheme}.png` });
         expect([Math.round(mark!.width), Math.round(mark!.height)]).toEqual([BAND_CONTROL, BAND_CONTROL]);
-        // At the band's far right, on either size.
-        expect(Math.abs(mark!.x + mark!.width - (whole!.x + whole!.width))).toBeLessThan(2);
         if (size.name === 'tablet') {
-          // After the menu button, 8 px from it, one top (one height in a row, p2p-16).
-          expect(Math.round(mark!.x - (menu!.x + menu!.width))).toBe(8);
+          // Q3 (F3 a): before the menu button, 8 px from it, one top (one height in a row, p2p-16); the menu is at the
+          // band's far right.
+          expect(Math.round(menu!.x - (mark!.x + mark!.width))).toBe(8);
           expect(Math.round(mark!.y)).toBe(Math.round(menu!.y));
+          expect(Math.abs(menu!.x + menu!.width - (whole!.x + whole!.width))).toBeLessThan(2);
         } else {
+          // At the band's far right.
+          expect(Math.abs(mark!.x + mark!.width - (whole!.x + whole!.width))).toBeLessThan(2);
           // TF1b: at the heading's right, on its row, over the menu button's column.
           expect(mark!.y).toBeLessThan(heading!.y + heading!.height);
           expect(mark!.y + mark!.height).toBeGreaterThan(heading!.y);

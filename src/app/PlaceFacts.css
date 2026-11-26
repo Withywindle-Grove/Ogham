@@ -96,8 +96,8 @@
 }
 
 /* The book's text for the GM (gt-1; mockup december/15 BT1, home B): a row between dotted rules under the place's
-   description, its heading bold and the book's first line quiet on one line under it; the crossed eye and the chevron
-   at the right; the whole row is the tap. Opened, the text follows under the row, closed by a dotted rule. */
+   description, its heading bold and the book's first line quiet on one line under it; the chevron at the right (no
+   crossed eye since F17, 2026-11-25); the whole row is the tap. Opened, the text follows under the row, closed by a dotted rule. */
 .book-text {
   margin-block-start: var(--space-3);
   border-block: var(--row-rule);
@@ -139,18 +139,6 @@
   line-height: var(--line-body);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.book-text__marks {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.book-text__eye {
-  display: inline-flex;
-  justify-content: center;
-  inline-size: var(--tap);
 }
 
 .book-text__chevron {

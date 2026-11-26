@@ -339,9 +339,10 @@
 
 /* lv-1's section shows the trait step's "What you rolled" field, which the app sizes from SignIn.css and
    Characters.css; the gallery loads neither (loading them would move other sections' pictures). The same rules,
-   for this one section only, and for the Weather sheet's number box (S10) likewise. */
+   for this one section only, and for the Weather sheet's number box (S10) and "Roll…"'s "Go to number" (sf-5) likewise. */
 #level-names .field__input,
-#weather-sheet .field__input {
+#weather-sheet .field__input,
+.roll-pop .field__input {
   width: 100%;
   min-height: var(--tap-step);
   padding: 0 var(--pad);
@@ -352,6 +353,18 @@
 }
 
 #level-names .field__input--short,
-#weather-sheet .field__input--short {
+#weather-sheet .field__input--short,
+.roll-pop .field__input--short {
   max-width: 8em;
+}
+
+/* The stock toggle's specimen rows (TC9): the thing's name, its toggle at the right, a stock table row's height. */
+.stock-toggle-specimen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  inline-size: 100%;
+  max-inline-size: calc(var(--tap) * 8);
+  min-block-size: calc(var(--tap) + var(--space-2));
 }

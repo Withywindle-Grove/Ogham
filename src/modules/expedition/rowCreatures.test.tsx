@@ -51,7 +51,7 @@ describe('several creatures on one row (pf-2)', () => {
       hit: { id: 'h1', campaignId: 'c', expeditionId: 'e', checkKey: 'mode:wander', name: 'Harbour at night', source: 'mode', outcome: 'hit', atSeconds: 0, modifiers: [], note: null, tableId: 'harbour-night', roll, rowText, revealed: false, secret: true, version: 1 },
     };
     render(<EncounterDetails card={card} started={false} tables={tables} statBlock={statBlock} when={() => null} onClose={() => undefined} />);
-    return within(screen.getByRole('list', { name: 'Stat blocks' })).getAllByRole('listitem').map((li) => li.querySelector('.scene-card__name')?.textContent);
+    return within(screen.getByRole('list', { name: 'Stat blocks' })).getAllByRole('listitem').map((li) => li.querySelector('.book-detail__name')?.textContent);
   };
 
   // Purpose (review of #640): a row of plain ids lists each creature with no count of its own, and the group's count
@@ -93,8 +93,8 @@ describe('several creatures on one row (pf-2)', () => {
     expect(creatureLines(rows[2]!, statBlock).map((b) => [b.missing ?? b.name, b.count])).toEqual([['Eel mother', '1'], ['Bog lurker', '1d3'], ['fen-rules:salt-hag', '1d3']]);
   });
 
-  // Purpose: View on a waiting card lists every creature of the row with its count and description, and no "How
-  // many" line when every creature has its own count.
+  // Purpose: the waiting card's details list every creature of the row as a detail row with its count ("×1", sf-6a; a dice count after a comma, ruled 2026-11-26),
+  // and no "How many" line when every creature has its own count.
   it('lists each creature with its count on the waiting card', () => {
     const tables = withRowLinks(new Map([['harbour-night', harbour]]), sources);
     const card: EncounterCard = {
@@ -103,7 +103,7 @@ describe('several creatures on one row (pf-2)', () => {
     };
     render(<EncounterDetails card={card} started={false} tables={tables} statBlock={statBlock} when={() => null} onClose={() => undefined} />);
     const list = within(screen.getByRole('list', { name: 'Stat blocks' }));
-    expect(list.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Drowned acolyte, 1A hunched figure in a reed cloak.', 'Bog lurker, 1d4']);
+    expect(list.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Drowned acolyte ×1', 'Bog lurker, 1d4']);
     expect(screen.queryByText(/How many/)).toBeNull();
   });
 });

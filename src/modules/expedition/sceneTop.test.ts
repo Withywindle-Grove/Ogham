@@ -312,16 +312,28 @@ describe('the Depart sheet of p2p-5 (plan scene-point-to-point B7; page 24, DP1)
     expect(departMethodOf([], { picked: null, placed: true, last: null, inSettlement: false })).toBeNull();
   });
 
-  // Purpose: Where? lists only Locations, each under its Area's name, in the pack's own order; a Location inside a
-  // Location stays in its Area's group; an Area, a Region, a hex or a room is never a row.
+  // Purpose: Where? lists only Locations, each under its Area's name, the groups in the pack's own order; a Location
+  // inside a Location stays in its Area's group (in the Locations' order, Q1: no number first); an Area, a Region, a hex
+  // or a room is never a row.
   it('groups Locations under their Area, in the pack tree order', () => {
     const groups = departLocationGroups([isle, harbour, anchorage, jetty, steps, room, beach, landing, hex]);
     expect(groups.map((g) => [g.name, g.locations.map((p) => p.name)])).toEqual([
-      ['The Drowned Harbour', ['The Anchorage', 'The Jetty', 'The Jetty Steps']],
+      ['The Drowned Harbour', ['The Anchorage', 'The Jetty Steps', 'The Jetty']],
       ['The Shingle Beach', ['The Landing']],
     ]);
     expect(departAreaName([isle, harbour, jetty, steps], steps)).toBe('The Drowned Harbour');
     expect(departAreaName([isle, harbour, room], room)).toBeNull();
+  });
+
+  // Purpose (Q1, F1 a): a group's Locations have the ones with no map number first, in the pack's order, then by number
+  // as numbers (0 before 1, 2 before 10); a Location inside a numbered Location takes its own number's place.
+  it("orders each group's Locations by map number, those with none first", () => {
+    const shed = place('shed', 'The Shed', 'area', 'harbour', { key: '10' });
+    const wreck = place('wreck', 'The Wreck', 'area', 'harbour', { key: '2' });
+    const zero = place('zero', 'The Breakwater', 'area', 'harbour', { key: '0' });
+    const inner = place('inner', 'The Inner Steps', 'area', 'jetty', { key: '3' });
+    const groups = departLocationGroups([isle, harbour, shed, jetty, inner, wreck, anchorage, steps, zero]);
+    expect(groups.map((g) => g.locations.map((p) => p.name))).toEqual([['The Anchorage', 'The Jetty Steps', 'The Breakwater', 'The Jetty', 'The Wreck', 'The Inner Steps', 'The Shed']]);
   });
 
   // Purpose: a Location with no Area above it heads its group with the nearest place above it, else the pack's name;
