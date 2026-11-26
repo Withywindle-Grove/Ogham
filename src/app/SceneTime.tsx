@@ -2131,7 +2131,7 @@ export function SceneTime({
   }
 
   const cardShown = todayTags ? card.filter((l) => !l.key.startsWith('weather:')) : card;
-  const cardRoll: CardRoll = { openKey: rollingKey, tables, describe: describeRow };
+  const cardRoll: CardRoll = { openKey: rollingKey, onClose: () => setRollingKey(null), tables, describe: describeRow };
   const cardActions = {
     onHit: (line: CardLine) => void record(line, 'hit'),
     onMiss: (line: CardLine) => void record(line, 'miss'),
@@ -2142,7 +2142,7 @@ export function SceneTime({
     // The weather line opens the Weather sheet (S10), whose table's row the GM taps to enter today's weather.
     onRoll: (line: CardLine) => (line.key.startsWith('weather:') ? setWeatherOpen(true) : setRollFor(line)),
     onCheckAgain: (line: CardLine) => setCard((c) => checkAgain(c, line.key)),
-    // A roll on its table (B9; WY1b): Enter roll… opens the table in the card; a tap on its row is the answer.
+    // A roll on its table (B9; sf-5, page 44 EN2): Roll… opens the table's pop-up; a tap on its row is the answer.
     onRollCheck: (line: CardLine) => setRollingKey(line.key),
     onRollRow: (line: CardLine, tap: TableTap) => void rollRow(line, tap),
   };
