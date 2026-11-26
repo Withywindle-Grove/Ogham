@@ -6,15 +6,18 @@
 //   Purpose (hidden means hidden, hard rule 5):
 //   1. A player reads the words the GM confirmed and when, and no other column: the answer has three columns.
 //   2. A player cannot read the check's result, its row text or its roll through the reveal: not by a direct read of
-//      the reveal's table or of the check's, and not by the log. The players' line holds neither the words nor the
-//      hit; the GM's line is the GM's alone.
+//      the reveal's table or of the check's, and not by the log. The players' line holds the words they were shown
+//      and nothing of the check (sf-20): every log row a player may read is searched. The GM's line is the GM's alone.
 //   3. A reveal does not set the result's `revealed`: at the next Downtime the result's own lines open as before
 //      (sf-22), and the reveal's GM line and row still don't.
-//   4. A reveal taken back is no longer in a player's answer; the row stays, marked.
+//   4. A reveal taken back is no longer in a player's answer; the row stays, marked. The players' line of the showing
+//      keeps the words they were shown; the take-back's line holds none.
 //   5. A player of another campaign, and someone in none, get nothing.
 //   6. A player cannot write a reveal: not through the functions, not through the table. Nor does the GM through the table.
 //   7. One reveal stands for a hit: the same request sent twice makes one; other words are refused until it is taken back.
 //   8. The log's Undo is refused on a reveal's line (taking back is its own command), and changes nothing.
+//   9. A reveal whose check result was undone since is no longer in a player's answer (Francis, 2026-11-26: "They
+//      disappear"); the players' log keeps its line, and still nothing of the check.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../src/app/commandRegistry.ts';
 import { runCommand, type CurrentUser } from '../../src/core/commands.ts';
@@ -129,11 +132,15 @@ describe('what a reveal stores, and what players read (sf-7a)', () => {
     expect(must(await world.playerA.db.from('check_results').select('row_text, roll, table_id').eq('id', hit.id))).toEqual([]);
     expect(await loadCheckResults(asDb(world.playerA), campaignId)).toEqual([]);
 
-    // By the log: one line of the reveal, which says only that words were shown and which reveal.
+    // By the log: one line of the reveal, which holds the words they were shown and which reveal, and no more (sf-20).
     const mine = await revealLines(world.playerA, campaignId);
-    expect(mine).toEqual([{ type: 'check.showWords', audience: 'all', after: { shown: true }, target_id: reveal.id }]);
+    expect(mine).toEqual([{ type: 'check.showWords', audience: 'all', after: { shown: true, words: WORDS }, target_id: reveal.id }]);
+    // Every log row a player may read, searched: the words are on that one line and no other, and nothing of the check
+    // (the hit, the row as written, the table, the creature, the stat line, the check's name) is on any.
+    const rows = must(await world.playerA.db.from('events').select('*').eq('campaign_id', campaignId)) as Record<string, unknown>[];
+    expect(rows.filter((row) => JSON.stringify(row).includes(WORDS)).map((row) => [row.target_table, row.target_id, row.audience])).toEqual([['check_reveals', reveal.id, 'all']]);
     const everything = await everyLine(world.playerA, campaignId);
-    for (const hidden of [hit.id, ROW, 'bog-things', 'Bog lurkers', 'HP 9', record.name, WORDS]) expect(everything).not.toContain(hidden);
+    for (const hidden of [hit.id, ROW, 'bog-things', 'Bog lurkers', 'HP 9', record.name]) expect(everything).not.toContain(hidden);
     // The check's own lines are still not theirs.
     expect(must(await world.playerA.db.from('events').select('id').eq('campaign_id', campaignId).eq('target_table', 'check_results'))).toEqual([]);
 
@@ -177,12 +184,14 @@ describe('what a reveal stores, and what players read (sf-7a)', () => {
     expect(must(await world.playerA.db.rpc('revealed_words', { campaign: campaignId }))).toEqual([]);
     // Nothing erased (hard rule 4): the row is marked.
     expect(must(await world.admin.from('check_reveals').select('words, taken_back').eq('id', reveal.id))).toEqual([{ words: WORDS, taken_back: true }]);
-    // The player's log says a reveal was taken back, and still holds no words; the GM's keeps them.
+    // The player's log keeps the words they were shown (sf-20) and says a reveal was taken back, in a line with no
+    // words; still nothing of the check on any line they read. The GM's lines keep the words too.
     expect((await revealLines(world.playerA, campaignId)).map((l) => [l.type, l.after])).toEqual([
-      ['check.showWords', { shown: true }],
+      ['check.showWords', { shown: true, words: WORDS }],
       ['check.takeBackWords', { shown: false }],
     ]);
-    expect(await everyLine(world.playerA, campaignId)).not.toContain(WORDS);
+    const everything = await everyLine(world.playerA, campaignId);
+    for (const hidden of [hit.id, ROW, 'bog-things', 'Bog lurkers', 'HP 9', record.name]) expect(everything).not.toContain(hidden);
     expect((await revealLines(world.gm, campaignId)).filter((l) => l.audience === 'gm').map((l) => l.after.words)).toEqual([WORDS, WORDS]);
 
     // A second take-back changes nothing and writes no line.
@@ -260,5 +269,22 @@ describe('what a reveal stores, and what players read (sf-7a)', () => {
     }
     expect(must(await world.admin.from('check_reveals').select('taken_back').eq('id', reveal.id))).toEqual([{ taken_back: false }]);
     expect((await loadRevealedWords(asDb(world.playerA), campaignId))!.map((r) => r.words)).toEqual([WORDS]);
+  });
+
+  it("a reveal whose check result was undone since is not in a player's answer; their log keeps its line", async () => {
+    const campaignId = await freshTable();
+    const hit = await freshHit(campaignId);
+    const reveal = await ok(as(world.gm, showCheckWords, { campaignId, resultId: hit.id, words: WORDS }));
+    expect(await loadRevealedWords(asDb(world.playerA), campaignId)).toHaveLength(1);
+
+    // The result marked undone, as the log's Undo of the check leaves it (m5-reminders.test.ts proves that Undo).
+    expect(must(await world.admin.from('check_results').update({ undone: true }).eq('id', hit.id).select('undone'))).toEqual([{ undone: true }]);
+    expect(must(await world.playerA.db.rpc('revealed_words', { campaign: campaignId }))).toEqual([]);
+    expect(await loadRevealedWords(asDb(world.playerB), campaignId)).toEqual([]);
+    // The reveal's row stays as it was (nothing erased), and the players' log keeps the line of what they were shown.
+    expect(must(await world.admin.from('check_reveals').select('words, taken_back').eq('id', reveal.id))).toEqual([{ words: WORDS, taken_back: false }]);
+    expect((await revealLines(world.playerA, campaignId)).map((l) => [l.type, l.after])).toEqual([['check.showWords', { shown: true, words: WORDS }]]);
+    const everything = await everyLine(world.playerA, campaignId);
+    for (const hidden of [hit.id, ROW, 'bog-things', 'Bog lurkers', 'HP 9', record.name]) expect(everything).not.toContain(hidden);
   });
 });

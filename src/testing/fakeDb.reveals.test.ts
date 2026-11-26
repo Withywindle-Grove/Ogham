@@ -25,12 +25,15 @@ let campaign: string;
 let hit: string;
 let db: Db;
 
-/** One command's request, tagged as the app tags it (its own request id, or the one given to repeat a request). */
-const send = async (name: string, args: Row, type: string, requestId: string = crypto.randomUUID()) => {
-  const tag = encodeEventTag({ type, level: 'simple', requestId });
+/**
+ * One command's request, tagged as the app tags it: its own request id (or the one given, to repeat a request) and
+ * which of the command's requests it is (`part`; a command's first is 0).
+ */
+const send = async (name: string, args: Row, type: string, requestId: string = crypto.randomUUID(), part: number = 0) => {
+  const tag = encodeEventTag({ type, level: 'simple', requestId, part });
   return (await world.db.rpc(name as never, args as never).setHeader('x-grimoire-command', tag)) as unknown as Answer;
 };
-const show = (words: string, requestId?: string) => send('show_check_words', { result: hit, words }, 'check.showWords', requestId);
+const show = (words: string, requestId?: string, part?: number) => send('show_check_words', { result: hit, words }, 'check.showWords', requestId, part);
 const takeBack = (reveal: unknown) => send('take_back_check_words', { reveal }, 'check.takeBackWords');
 /** The log as the signed-in person reads it, in the app's words, newest first. */
 const logLines = async (me: string) => {
@@ -83,8 +86,9 @@ describe('what a reveal stores, and what players read (sf-7a)', () => {
     expect(await logLines(sam)).toContain(`Priya showed the players “${WORDS}”.`);
     const mine = await everyLine();
     for (const hidden of [hit, ROW, 'bog-things', 'Bog lurkers', 'HP 9', 'Listen for bog lurkers']) expect(mine).not.toContain(hidden);
-    // The line itself holds no words: they come from the read, so they go when the reveal is taken back.
-    expect(mine).not.toContain(WORDS);
+    // The one line a player reads holds the words they were shown, and nothing else (sf-20).
+    const lines = (await world.db.from('events').select('*').eq('campaign_id', campaign).eq('target_table', 'check_reveals')).data as Row[];
+    expect(lines.map((l) => [l.audience, l.after])).toEqual([['all', { shown: true, words: WORDS }]]);
 
     world.signInAs(gm);
     expect(await logLines(gm)).toContain(`You showed the players “${WORDS}” (${ROW}).`);
@@ -92,8 +96,9 @@ describe('what a reveal stores, and what players read (sf-7a)', () => {
     expect(await loadCheckReveals(db, campaign)).toMatchObject([{ checkResultId: hit, words: WORDS, takenBack: false }]);
   });
 
-  // Purpose: taking a reveal back takes the words away from players everywhere they read them: the read and the log.
-  it("a reveal taken back is no longer in a player's answer, nor in their log's words", async () => {
+  // Purpose: taking a reveal back takes the words out of what players are sent now (the read); their log still says
+  // what they were shown (sf-20: the line carries the words), and that it was taken back.
+  it("a reveal taken back is no longer in a player's answer; their log keeps the words they were shown", async () => {
     const shown = await show(WORDS);
     const back = await takeBack(shown.data!.id);
     expect(back.data).toMatchObject({ id: shown.data!.id, taken_back: true });
@@ -107,8 +112,15 @@ describe('what a reveal stores, and what players read (sf-7a)', () => {
     expect(await loadRevealedWords(db, campaign)).toEqual([]);
     const said = await logLines(sam);
     expect(said).toContain('Priya took back what the players were shown.');
-    expect(said).toContain('Priya showed the players some words, since taken back.');
-    expect(await everyLine()).not.toContain(WORDS);
+    expect(said).toContain(`Priya showed the players “${WORDS}”.`);
+    // The line of the showing keeps its words; the take-back's line holds none, and neither holds anything of the check.
+    const kept = (await world.db.from('events').select('*').eq('campaign_id', campaign).eq('target_table', 'check_reveals').order('seq')).data as Row[];
+    expect(kept.map((l) => [l.type, l.audience, l.after])).toEqual([
+      ['check.showWords', 'all', { shown: true, words: WORDS }],
+      ['check.takeBackWords', 'all', { shown: false }],
+    ]);
+    const mine = await everyLine();
+    for (const hidden of [hit, ROW, 'bog-things', 'Bog lurkers', 'HP 9', 'Listen for bog lurkers']) expect(mine).not.toContain(hidden);
 
     // The GM's log keeps what was shown and taken back.
     world.signInAs(gm);
@@ -157,12 +169,36 @@ describe('what a reveal stores, and what players read (sf-7a)', () => {
     expect((await loadRevealedWords(db, campaign))!.map((r) => r.words)).toEqual(['Shapes in the reeds.']);
   });
 
-  // Purpose: a check the GM undid has no card left to take a reveal back from, so its words must go with it.
-  it("a reveal of a check result that was undone is not in a player's answer", async () => {
+  // Purpose: a repeat is the same request and the same part, as the database tells one (private.made_by_request); the
+  // same request id with another part is a request of its own, so the stand-in must not answer it with the first's reveal.
+  it('the same request with another part is not a repeat', async () => {
+    const request = crypto.randomUUID();
+    const first = await show(WORDS, request, 0);
+    await takeBack(first.data!.id);
+    // The same request and part again (an answer lost on the way): what the first made, as it is now, and no new line.
+    const lines = world.tables.events.length;
+    expect((await show(WORDS, request, 0)).data).toMatchObject({ id: first.data!.id, taken_back: true });
+    expect(world.tables.events).toHaveLength(lines);
+    // Another part of that request: nothing stands for the hit, so it makes a new reveal, with its own two lines.
+    const second = await show(WORDS, request, 1);
+    expect(second.data).toMatchObject({ words: WORDS, taken_back: false });
+    expect(second.data!.id).not.toBe(first.data!.id);
+    expect(world.tables.events.filter((e) => e.type === 'check.showWords').map((e) => [e.target_id, e.request_part])).toEqual([
+      [first.data!.id, 0],
+      [first.data!.id, 0],
+      [second.data!.id, 1],
+      [second.data!.id, 1],
+    ]);
+  });
+
+  // Purpose: a check the GM undid has no card left to take a reveal back from, so its words leave the players' answer
+  // (Francis, 2026-11-26: "They disappear"); their log keeps its line.
+  it("a reveal of a check result that was undone is not in a player's answer; their log keeps its line", async () => {
     await show(WORDS);
     world.tables.check_results.find((r) => r.id === hit)!.undone = true;
     world.signInAs(sam);
     expect(await loadRevealedWords(db, campaign)).toEqual([]);
+    expect(await logLines(sam)).toContain(`Priya showed the players “${WORDS}”.`);
   });
 
   // Purpose: the log offers no Undo on these lines (the database would refuse it): taking back is its own command.

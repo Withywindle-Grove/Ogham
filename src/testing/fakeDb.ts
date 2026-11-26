@@ -1081,22 +1081,28 @@ export function createFakeDb(): FakeWorld {
     log('group_places', null, structuredClone(made), tag);
     return made;
   };
-  /** Like the database (sf-7a, sf-20): a reveal's two lines of one request, the GM's own and the players', written directly. */
+  /**
+   * Like the database (sf-7a, sf-20): a reveal's two lines of one request, the GM's own and the players', written
+   * directly. Each keeps which of the command's requests wrote it (`request_part`), as the database's lines do.
+   */
   const revealLines = (reveal: Row, type: string, forGm: Row, forPlayers: Row, tag: Tag) => {
     const requestId = tag?.requestId ?? crypto.randomUUID();
     for (const [audience, after] of [['gm', forGm], ['all', forPlayers]] as const) {
       nextSeq();
       const event: Row = {
         id: `event-${seq}`, seq, campaign_id: reveal.campaign_id, type, level: 'simple', actor_user_id: me(), target_table: 'check_reveals', target_id: reveal.id,
-        before: null, after, fiat: false, reason: null, reverts_event_id: null, audience, owner_user_id: null, reveal_at: 'now', request_id: requestId, created_at: new Date().toISOString(),
+        before: null, after, fiat: false, reason: null, reverts_event_id: null, audience, owner_user_id: null, reveal_at: 'now', request_id: requestId, request_part: tag?.part ?? null, created_at: new Date().toISOString(),
       };
       tables.events.push(event);
       for (const watcher of watchers) if (watcher.campaignId === reveal.campaign_id && mayRead(event, watcher.me)) queueMicrotask(watcher.onNew);
     }
   };
   const repeated = (tag: Tag, id: unknown) => !!tag?.requestId && tables.events.some((e) => e.request_id === tag.requestId && e.target_id === id);
+  // Like private.made_by_request, for a line that keeps its request's part (a reveal's, sf-7a): a repeat is the same
+  // request and the same part, and a request that names no part matches none. The log's other lines here keep no part.
+  const samePart = (e: Row, tag: Tag) => !('request_part' in e) || (tag?.part !== undefined && e.request_part === tag.part);
   const madeBy = (table: string, tag: Tag) =>
-    tag?.requestId ? tables.events.find((e) => e.request_id === tag.requestId && e.target_table === table && e.before === null && e.actor_user_id === me()) : undefined;
+    tag?.requestId ? tables.events.find((e) => e.request_id === tag.requestId && e.target_table === table && e.before === null && e.actor_user_id === me() && samePart(e, tag)) : undefined;
   const isStale = (row: Row, seen: unknown) => seen !== undefined && seen !== null && row.version !== seen;
   const staleResult: Result = { data: null, error: { message: STALE, code: STALE_CODE } };
   const plain = (message: string): Result => ({ data: null, error: { message } });
@@ -3299,8 +3305,8 @@ export function createFakeDb(): FakeWorld {
     },
     // A reveal's words (sf-7a), like supabase/migrations/20261126200000_sf_7a_reveal_words.sql: the GM shows the players
     // words for a hit, and takes them back. One reveal stands for a hit at a time; the result itself stays unrevealed.
-    // Each writes two lines itself (the table has no log trigger): the GM's with the words and the row, the players'
-    // with neither.
+    // Each writes two lines itself (the table has no log trigger): the GM's with the words, the hit and the row, the
+    // players' with the words they were shown and nothing of the check (sf-20).
     show_check_words: ({ result, words }, tag) => {
       const made = madeBy('check_reveals', tag);
       if (made) {
@@ -3319,7 +3325,7 @@ export function createFakeDb(): FakeWorld {
       const now = new Date(Date.now() + nextId).toISOString();
       const row: Row = { id: newId('reveal'), campaign_id: hit.campaign_id, check_result_id: hit.id, words: said, shown_at: now, taken_back: false, created_at: now, updated_at: now };
       tables.check_reveals.push(row);
-      revealLines(row, 'check.showWords', { words: said, check_result_id: hit.id, ...(hit.row_text ? { row: hit.row_text } : {}) }, { shown: true }, tag);
+      revealLines(row, 'check.showWords', { words: said, check_result_id: hit.id, ...(hit.row_text ? { row: hit.row_text } : {}) }, { shown: true, words: said }, tag);
       return copy(row);
     },
     take_back_check_words: ({ reveal }, tag) => {
@@ -6027,12 +6033,12 @@ function snapshotLogged(tables: FakeWorld['tables']) {
 }
 
 /** The command's tag from the request header, decoded like the database does. */
-function readTag(headers: Headers): { type: string; level: string; requestId: string; fiat?: boolean; reason?: string | null } | null {
+function readTag(headers: Headers): { type: string; level: string; requestId: string; part?: number; fiat?: boolean; reason?: string | null } | null {
   const value = headers.get('x-grimoire-command');
   if (!value) return null;
   try {
     const bytes = Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
-    const parsed = JSON.parse(new TextDecoder().decode(bytes)) as { type: string; level: string; requestId: string; fiat?: boolean; reason?: string | null; whatFor?: unknown };
+    const parsed = JSON.parse(new TextDecoder().decode(bytes)) as { type: string; level: string; requestId: string; part?: number; fiat?: boolean; reason?: string | null; whatFor?: unknown };
     // Like the database: a purse line's own words come from the function, never from the header (dec-6b review).
     delete parsed.whatFor;
     return parsed;

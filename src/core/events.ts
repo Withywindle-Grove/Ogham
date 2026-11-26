@@ -82,11 +82,6 @@ export interface LogNames {
   groupPlaces?: Map<string, string>;
   /** Messages from the GM the reader may read, by id: the text (M5 step 11). */
   messages?: Map<string, string>;
-  /**
-   * The words the GM showed the players for a hit, by the reveal's id (sf-7a), as the reader may read them: the ones
-   * that stand. One taken back has none, so a player's line no longer says the words.
-   */
-  reveals?: Map<string, string>;
   /** A place's pieces by id: their text (M5b g2; the GM's alone). */
   pieces?: Map<string, string>;
   /** Which piece and group each Show row is for (M5b g2; the GM's alone). */
@@ -217,7 +212,7 @@ export async function loadTargetLog(db: Db, campaignId: string, targetTable: str
 
 /** Names of the people, characters, companies and fields the reader can see in this campaign. */
 export async function loadLogNames(db: Db, campaignId: string, me: string): Promise<LogNames> {
-  const [members, actors, companies, fields, packs, items, places, lights, statuses, rests, placeNames, groupPlaces, messages, pieces, pieceShows, safeEnds, sheetChanges, purses, partyMoves, goneLines, expeditionEvents, reveals] = await Promise.all([
+  const [members, actors, companies, fields, packs, items, places, lights, statuses, rests, placeNames, groupPlaces, messages, pieces, pieceShows, safeEnds, sheetChanges, purses, partyMoves, goneLines, expeditionEvents] = await Promise.all([
     db.from('members').select('user_id, base_role, profiles!members_user_id_fkey(display_name)').eq('campaign_id', campaignId),
     db.from('actors').select('id, name').eq('campaign_id', campaignId),
     db.from('companies').select('id, name').eq('campaign_id', campaignId),
@@ -245,8 +240,6 @@ export async function loadLogNames(db: Db, campaignId: string, me: string): Prom
     // The expeditions' changes the reader may see, for which were undone: an End that was undone isn't the one the
     // GM answered In a safe place? for.
     db.from('events').select('reverts_event_id').eq('campaign_id', campaignId).eq('target_table', 'expeditions'),
-    // sf-7a: the words of the reveals that stand (the database's answer for any member: id, words, when; nothing else).
-    db.rpc('revealed_words', { campaign: campaignId }),
   ]);
   const characters = new Map((actors.data ?? []).map((a) => [a.id, a.name]));
   const lines = itemLinesWithGone(items.data ?? [], goneLines.data ?? []);
@@ -278,7 +271,6 @@ export async function loadLogNames(db: Db, campaignId: string, me: string): Prom
     sheetChanges: new Map((sheetChanges.data ?? []).map((c) => [c.id, { actorId: c.actor_id, label: c.label, to: c.to_value }])),
     purses: new Map((purses.data ?? []).map((p) => [p.id, { actorId: p.actor_id }])),
     partyMoves: new Map((partyMoves.data ?? []).map((m) => [m.clock_event_id, { turns: m.turns, to: m.to_name || null, from: m.from_name || null }])),
-    reveals: new Map((reveals.data ?? []).map((r) => [r.id, r.words])),
   };
 }
 
@@ -1296,17 +1288,15 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
     }
     case 'check.reveal':
       return by('showed the players a check result');
-    // Words shown for a hit (sf-7a, sf-20). The GM's own line, which only the GM's log holds, carries the words and
-    // the row as it was (the row names its table). A player's line carries neither: its words come from the reveals
-    // the reader may read, so one taken back says no words and nothing of the check. Words of the builder's, for Francis.
+    // Words shown for a hit (sf-7a, sf-20). Both lines carry the words. The GM's own line, which only the GM's log
+    // holds, names the hit too, and the row as it was (the row names its table); the players' line carries the words
+    // they were shown and nothing of the check, and keeps them after a take-back. Words kept by Francis, 2026-11-26.
     case 'check.showWords': {
-      const gmLine = entry.events.find((e) => typeof e.after?.words === 'string')?.after;
-      if (gmLine) {
-        const row = typeof gmLine.row === 'string' && gmLine.row.trim() ? ` (${gmLine.row.trim()})` : '';
-        return by(`showed the players “${String(gmLine.words)}”${row}`);
-      }
-      const words = names.reveals?.get(main.targetId ?? '');
-      return words ? by(`showed the players “${words}”`) : by('showed the players some words, since taken back');
+      const lines = entry.events.map((e) => e.after).filter((after) => typeof after?.words === 'string');
+      const line = lines.find((after) => after?.check_result_id !== undefined) ?? lines[0];
+      if (!line) return by('showed the players some words');
+      const row = typeof line.row === 'string' && line.row.trim() ? ` (${line.row.trim()})` : '';
+      return by(`showed the players “${String(line.words)}”${row}`);
     }
     case 'check.takeBackWords': {
       const gmLine = entry.events.find((e) => typeof e.after?.words === 'string')?.after;

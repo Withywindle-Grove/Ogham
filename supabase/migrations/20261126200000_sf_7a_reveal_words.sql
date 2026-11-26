@@ -20,9 +20,9 @@
 --      trigger's line carries the whole row, the hit's id with it):
 --        the GM's line (audience 'gm'): the words, the hit, and the row as it was then, which names its table
 --        (check.setRoll keeps "<table>: <row>");
---        the players' line (audience 'all'): that words were shown or taken back, and the reveal's id. No words and
---        nothing of the check: a reader's device puts the words in from public.revealed_words, so a reveal taken back
---        is gone from a player's log too, with no change to the log's read rule.
+--        the players' line (audience 'all'): the words they were shown and the reveal's id, and nothing of the check
+--        (no hit, table, row, roll, stat line or count). A take-back's line says only that words were taken back; the
+--        line of the showing keeps its words, as any log line does (hard rule 4).
 --      Neither line can be undone from the log (the table is not in public.undoable_tables): taking a reveal back is
 --      its own command.
 
@@ -127,10 +127,11 @@ begin
   values (hit.campaign_id, 'check.showWords', 'simple', who, 'check_reveals', found.id,
     jsonb_strip_nulls(jsonb_build_object('words', found.words, 'check_result_id', hit.id, 'row', hit.row_text)),
     'gm', request, part);
-  -- The players' line (sf-20): that words were shown, and which reveal. No words here and nothing of the check: the
-  -- reader's device puts the words in from public.revealed_words while the reveal stands.
+  -- The players' line (sf-20): the words they were shown, and which reveal. Nothing of the check: no hit, table, row,
+  -- roll, stat line or count.
   insert into public.events (campaign_id, type, level, actor_user_id, target_table, target_id, after, audience, request_id, request_part)
-  values (hit.campaign_id, 'check.showWords', 'simple', who, 'check_reveals', found.id, jsonb_build_object('shown', true), 'all', request, part);
+  values (hit.campaign_id, 'check.showWords', 'simple', who, 'check_reveals', found.id,
+    jsonb_build_object('shown', true, 'words', found.words), 'all', request, part);
   return found;
 end;
 $$;
@@ -170,7 +171,8 @@ begin
   end;
   request := coalesce(request, gen_random_uuid());
 
-  -- The GM's line keeps the words that were taken back; the players' line says only that a reveal was taken back.
+  -- The GM's line keeps the words that were taken back; the players' line says only that a reveal was taken back
+  -- (the line of the showing, written before, keeps the words they were shown).
   -- Both are written as lines of their own (no `before`), so the log offers no Undo on them: showing again is the way back.
   insert into public.events (campaign_id, type, level, actor_user_id, target_table, target_id, after, audience, request_id, request_part)
   values (found.campaign_id, 'check.takeBackWords', 'simple', who, 'check_reveals', found.id,
