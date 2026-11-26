@@ -495,7 +495,7 @@ describe('the GM’s place page', () => {
 
 describe('the book’s text for the GM (gt-1; page 15, home B)', () => {
   // Purpose: a place whose book gives the GM text of its own shows it as one folded row under its description, "From
-  // the book, for the GM" with the book's first line and the crossed eye (never sent); a tap opens it in place with its
+  // the book, for the GM" with the book's first line and no crossed eye (F17, Q6); a tap opens it in place with its
   // list and boxed aside, and folds it again.
   it('folded to the first line under the description; a tap opens it in place with its list and box', async () => {
     const user = userEvent.setup();
@@ -504,7 +504,10 @@ describe('the book’s text for the GM (gt-1; page 15, home B)', () => {
     const fold = await screen.findByRole('button', { name: /From the book, for the GM/ });
     expect(fold.getAttribute('aria-expanded')).toBe('false');
     expect(within(fold).getByText('The ferrymen moor here and nowhere else, and they notice who does not…')).toBeTruthy();
-    expect(within(fold).getByRole('img', { name: 'Only for you: never sent' })).toBeTruthy();
+    // F17 (Q6): the row carries no eye and no "never sent" name; the heading's own words say whose it is.
+    expect(within(fold).queryByRole('img')).toBeNull();
+    expect(within(fold).queryByLabelText(/never sent/)).toBeNull();
+    expect(fold.querySelector('.book-text__chevron')).toBeTruthy();
     // Under the head (no line under the name since B3), before Knowledge and Rules.
     const name = screen.getByRole('heading', { name: '1. The jetty', level: 2 });
     const knowledge = screen.getByRole('button', { name: 'Knowledge' });
