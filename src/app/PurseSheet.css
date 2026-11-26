@@ -66,11 +66,14 @@
   margin-block-start: var(--space-3);
 }
 
-/* Its words keep the amount on one line (the lead, 2026-11-14): the stacked button's cap is lifted to the sheet's
-   width, so the line wraps only where it can't fit at all; at least two taps wide (88 px, ms-1). */
+/* Its words stay on one line where they fit and wrap inside the button where they don't (⚑ 8 of #66, ruled 2026-11-26:
+   "Let it wrap"; it replaces the lead's one-line rule of 2026-11-14): the stacked button's cap is lifted to the sheet's
+   width, and a name too long for it breaks inside the button rather than running past it. The stash's Take sheet uses
+   the same accent (K12). At least two taps wide (88 px, ms-1). */
 .purse-sheet__go.stacked-button {
   min-inline-size: calc(var(--tap) * 2);
   max-inline-size: 100%;
   padding-inline: var(--space-3);
-  overflow-wrap: normal;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }

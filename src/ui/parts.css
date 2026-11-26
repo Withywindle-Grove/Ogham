@@ -724,6 +724,17 @@
   flex: 1 1 auto;
 }
 
+/* The warning variant (K12, PK4b): its own line under the words; on the ink toast the sign and words take the toast's
+   colour, the shape and the bold carrying the warning. */
+.toast__warning {
+  display: block;
+  margin-block-start: var(--space-1);
+}
+
+.toast__warning .warning-line {
+  color: inherit;
+}
+
 .toast__undo {
   margin-inline-start: auto;
   text-align: end; /* a label too long for one line wraps with its lines at the right */
@@ -736,6 +747,13 @@
   text-decoration: underline;
   text-underline-offset: var(--space-1);
   cursor: pointer;
+}
+
+/* The icon Undo variant (K12, ⚑ 6 of #66): the small stacked button at the right, the arrow above the word; a light
+   button on the ink toast, its own colours, no underline (fl-1). It clears the draining bar under it. */
+.toast__undo-icon {
+  margin-inline-start: auto;
+  margin-block-end: var(--space-1);
 }
 
 .toast__bar {
@@ -1465,6 +1483,20 @@ details[open] > summary > .disclosure::before {
 
 .toast-host > .toast {
   pointer-events: auto;
+}
+
+/* Over a pop-up that asks for it, on a phone (K22d, pick 10; ToastHost.tsx): just above the sheet's top edge, over the
+   dimmed page, and never off the screen's top. */
+.toast-host.toast-host--lifted {
+  inset-block-end: min(calc(100dvh - var(--toast-lift-top) + var(--space-2)), calc(100dvh - var(--toast-height) - var(--gutter)));
+}
+
+/* That sheet leaves the toast's room at its top (ToastHost sets `--toast-above-height` once a toast shows over it), so a
+   sheet at full height never pushes the toast over its title or ✕ (Home Two's audit of #50, finding 1). */
+@media (max-width: 699px) {
+  .dialog.dialog--sheet:has([data-toast-above]) {
+    max-height: min(90dvh, calc(100dvh - var(--toast-above-height, 0px) - var(--gutter) - var(--space-2)));
+  }
 }
 
 /* A derived status (B25): its symbol and its words, tappable for why. */

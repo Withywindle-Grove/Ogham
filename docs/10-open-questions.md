@@ -10,7 +10,7 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 
 **The Scene, point to point** (`design/rulings/scene-point-to-point-2026-11-18.md`)
 - ⚑ **A control's edge on a pop-up in dark is 2.97 to 1, under the 3 to 1 floor** (the critique's finding 24 on page 44, measured 2026-11-25 and again 2026-11-26). It is the tokens' own pair (Control on the pop-up's ground), used across the app: a new value is a change to `06`'s tokens. Not changed on page 44, and left for later by Francis with the page's approval (2026-11-26).
-- ⚑ **A place's own section of Knowledge: how far does its share go?** (hidden data; found 2026-11-26 while writing `plans/dec-scene-feedback.md`, its ⚑ 3). Page 44's frame KN1 says of a Location's own section "A share reaches the party at 2. The Wreck only." The app as built and ruled (the p4 sitting: `knowledge_for_players`) sends a Location's own shared section to the group at the other places of its Area too. Either the line's words change (to "at every place in <Area>", as his "Whole Area"), or the read is narrowed. Until ruled, sf-13 builds the Area's sections and leaves a place's own section as built.
+- ⚑ **A words sweep for "piece"** (scope check; Francis, 2026-11-26, sf-24: "I don't like the term 'pieces', minimize its use"). DT1 is done in its build. Every other place the app shows the word "piece" to a person (a place's pieces, "+ Piece", "Add a piece", "Edit piece", "Remove this piece", the log's lines, the pop-ups) is listed by the builder of the sweep, with a better word each, and comes to him before any screen changes. Nothing else is changed now. `design/rulings/scene-feedback-2026-11-25.md`, sf-24 and sf-27.
 
 **The Pack tab's finds** (page 45, approved 2026-11-26 in two sittings: `design/rulings/page-45-find-flow-2026-11-26.md`. F1, F2 and F7 are ruled: p45-21 to p45-23. The rest are not asked yet and stay ⚑ with the designer's lean; none holds a piece back: plan `plans/dec-6-the-whole-pack-tab.md`, "The find flow")
 - ⚑ F3 **"Just now": when it becomes "today".** Lean: under an hour, read when the card is drawn, with no ticking clock; then K14's words.
@@ -102,3 +102,6 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 - A status that changes saves (a blessing's +1 for some turns), a save set by hand, and creation's review: each stays as built until it has its own frame. The fight's save prompt is ◈ CS-3, above.
 - The shapes of the two pack-format flags (G-220, G-221) and a condition's short word (G-222): designed with the Pack Creator (`11`); the plan's row 8 is held until then.
 - At the 5 December session: look at the 12 px line at the real table, at arm's length on a tablet lying flat. Nothing to build.
+
+**Wide PC screens** (2026-11-26, clo-21, `design/rulings/dec-creation-leftovers-2026-11-21.md`)
+- ⚑ Creation's two-column steps and review stretch to 1,440 px (`--page-max-wide`), then stay centred; text in a column stops at `--reading-width`. Do other screens (the Player tab, the GM's screens, the Scene) take the same cap? For a later design sitting. (`plans/creation-leftovers-2026-11-21.md`)

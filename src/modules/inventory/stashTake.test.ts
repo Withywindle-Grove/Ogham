@@ -1,5 +1,5 @@
 // Take from the party stash and its Undo (K28, pk-3; hard rule 4), run through the app's registry on the stand-in
-// database, and Take's toast. Invented names, items and tiers only.
+// database, and Take's words (K12). Invented names, items and tiers only.
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../app/commandRegistry.ts';
 import { runCommand, type Command, type CurrentUser } from '../../core/commands.ts';
@@ -8,7 +8,7 @@ import { undoChange } from '../../core/undo.ts';
 import { createFakeDb, type FakeWorld } from '../../testing/fakeDb.ts';
 import type { CarriedLoad } from './encumbrance.ts';
 import { moveItem, removeItem, type CarrierRef } from './inventory.ts';
-import { loadTierWords, takeToastText } from './stashTake.ts';
+import { asksHowMany, readTake, takeLabel, takeLoadWords, takeRefusal, takeToast } from './stashTake.ts';
 
 type Row = Record<string, unknown>;
 const registry = createAppRegistry();
@@ -108,22 +108,57 @@ describe('an item that left play (hard rule 4)', () => {
   });
 });
 
-describe('Take’s toast (pk-3)', () => {
+describe('Take’s words (K12, frame PK4b)', () => {
   const tier = (label: string) => ({ label, max: 100, effect: '' });
-  const coinLoad = (over: boolean, label: string | null): CarriedLoad => ({ mode: 'coin', load: 60, capacity: 100, tier: label ? tier(label) : null, over, overMax: 'Can’t move' });
+  const coinLoad = (load: number, over: boolean): CarriedLoad => ({ mode: 'coin', load, capacity: 1200, tier: over ? null : tier('Light'), over, overMax: 'Can’t move' });
+  const torch = { name: 'Torch', details: { unitName: 'torch', pluralName: 'torches' } };
 
-  // Purpose: the toast says what was taken, in the item's own words, and the taker's load tier after it.
-  it('reads "Took <thing>. Load: <tier>."', () => {
-    const torch = { name: 'Torch', details: { unitName: 'torch', pluralName: 'torches' } };
-    expect(takeToastText(torch, 2, coinLoad(false, 'Burdened'))).toBe('Took 2 torches. Load: Burdened.');
-    expect(takeToastText({ name: 'Hooded lantern', details: {} }, 1, coinLoad(false, 'Light'))).toBe('Took Hooded lantern. Load: Light.');
-    expect(takeToastText({ name: 'Reed rope', details: {} }, 3, { mode: 'slot', load: 9, capacity: 12, tier: tier('Laden'), over: false, overMax: '' })).toBe('Took Reed rope ×3. Load: Laden.');
+  // Purpose: the toast says who took what, in the log line's words, and the taker's load after it, by coins or by slots.
+  it('reads "<Taker> took <thing>. Load N of M coins’ weight."', () => {
+    expect(takeToast('Wren', { name: 'Silver ewer', details: {} }, 1, coinLoad(413, false))).toEqual({ text: 'Wren took Silver ewer. Load 413 of 1,200 coins’ weight.', warning: null });
+    expect(takeToast('Wren', torch, 2, coinLoad(60, false)).text).toBe('Wren took 2 torches. Load 60 of 1,200 coins’ weight.');
+    expect(takeToast('Wren', { name: 'Reed rope', details: {} }, 3, { mode: 'slot', load: 9, capacity: 12, tier: tier('Laden'), over: false, overMax: '' }).text).toBe('Wren took Reed rope ×3. Load 9 of 12 slots.');
   });
 
-  // Purpose: past the most, the toast names the setting's words for it; with no tiers counted, it says what was taken alone.
-  it('names the setting’s words past the most, and nothing where no load is counted', () => {
-    expect(takeToastText({ name: 'Iron pot', details: {} }, 1, coinLoad(true, null))).toBe('Took Iron pot. Load: Can’t move.');
-    expect(takeToastText({ name: 'Iron pot', details: {} }, 1, { mode: 'none' })).toBe('Took Iron pot.');
-    expect(loadTierWords({ mode: 'none' })).toBeNull();
+  // Purpose: one thing taken reads by the pack's own name, never its piece's word ("Wren took Torch.", not "torch";
+  // ⚑ 5 ruled A, 24 Nov); more than one keeps the count words.
+  it('names one thing by the pack’s own name', () => {
+    expect(takeToast('Wren', torch, 1, { mode: 'none' }).text).toBe('Wren took Torch.');
+    expect(takeToast('Wren', { name: 'reed whistle', details: {} }, 1, { mode: 'none' }).text).toBe('Wren took Reed whistle.');
+  });
+
+  // Purpose: a taker put over the limit is told in the toast, on a warning line of its own, and the take is not stopped.
+  it('warns past the limit, and says the thing alone where no load is counted', () => {
+    expect(takeToast('Wren', { name: 'Reed chest', details: {} }, 1, coinLoad(1263, true))).toEqual({ text: 'Wren took Reed chest.', warning: 'Over the limit: 1,263 of 1,200.' });
+    expect(takeToast('Wren', { name: 'Iron pot', details: {} }, 1, { mode: 'none' })).toEqual({ text: 'Wren took Iron pot.', warning: null });
+    expect(takeLoadWords({ mode: 'none' })).toBeNull();
+  });
+
+  // Purpose: a stack's accent names the amount typed, and plain "Take" until a count it can take is typed.
+  it('names the amount on the stack sheet’s accent', () => {
+    expect(takeLabel(torch, '2', 6)).toBe('Take 2 torches');
+    expect(takeLabel(torch, '1', 6)).toBe('Take 1 torch');
+    expect(takeLabel({ name: 'reed', details: {} }, '1', 6)).toBe('Take Reed ×1');
+    expect(takeLabel(torch, '', 6)).toBe('Take');
+    expect(takeLabel(torch, '7', 6)).toBe('Take');
+    expect(takeLabel({ name: 'Bead', details: {} }, '999', 999)).toBe('Take Bead ×999');
+  });
+
+  // Purpose: more than the stash has, 0, or something not a count is refused in words under the row, never guessed.
+  it('refuses too many, 0 and words, and takes a whole count from 1 to what the stash has', () => {
+    expect(takeRefusal('7', 6)).toBe('The stash has 6.');
+    expect(takeRefusal('1000', 999)).toBe('The stash has 999.');
+    expect(takeRefusal('0', 6)).toBe('Say how many: a whole number, 1 or more.');
+    expect(takeRefusal('two', 6)).toBe('Say how many: a whole number, 1 or more.');
+    expect(takeRefusal('', 6)).toBe('Say how many: a whole number, 1 or more.');
+    expect(takeRefusal(' 6 ', 6)).toBeNull();
+    expect(readTake('6', 6)).toBe(6);
+    expect(readTake('2.5', 6)).toBeNull();
+  });
+
+  // Purpose: a single thing is taken at once; only a row holding more than one asks how many (pk-3).
+  it('asks how many only of a row holding more than one', () => {
+    expect(asksHowMany({ qty: 1 })).toBe(false);
+    expect(asksHowMany({ qty: 6 })).toBe(true);
   });
 });

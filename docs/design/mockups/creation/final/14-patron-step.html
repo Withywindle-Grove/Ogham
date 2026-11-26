@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Creation: the Patron step (2026-11-12)</title>
+<link rel="stylesheet" href="final.css">
+<style>
+  .rev .card h3 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; margin:0; }
+  .rev .head { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); }
+  .rev .line { padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); display:flex; justify-content:space-between; align-items:center; gap:var(--space-3); }
+  .rev .line:last-child { border-bottom:0; }
+  .prow { display:grid; grid-template-columns:44px minmax(0,1fr) auto; gap:var(--space-2); align-items:center; }
+  .prow .i { width:44px; height:44px; display:flex; align-items:center; justify-content:center; color:var(--info, var(--muted)); }
+  .prow .text small { display:block; }
+  .fold { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); min-height:44px; margin:var(--space-3) 0 var(--space-2); font-weight:700; }
+  .steps { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:var(--space-3); width:740px; }
+  .steps .card { margin:0; }
+  .steps ol { margin:var(--space-2) 0 0; padding-left:var(--space-5); }
+  .steps li { padding:2px 0; }
+  .steps li.new { font-weight:700; }
+  .popup { position:absolute; left:var(--space-3); right:var(--space-3); top:38%; background:var(--sheet); border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); }
+  .foot .btn { white-space:nowrap; flex:none; }
+  .foot .say:empty { display:none; }
+  .rev + .foot { justify-content:flex-end; }
+  .popup h3 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; margin:0 0 var(--space-2); }
+</style>
+</head>
+<body>
+<script src="final.js"></script>
+<script>
+// a patron's row: the ⓘ opens its entry (as built, #636); Pick picks
+const prow = (name, sub, state = 'pick', extra = '') => {
+  const btn = state === 'accent' ? '<span class="btn accent">Pick</span>' : state === 'picked' ? '<span class="btn">Picked ✓</span>' : '<span class="btn">Pick</span>';
+  return `<div class="card${state === 'picked' ? ' picked' : ''}"><div class="prow"><span class="i" role="button" aria-label="About ${name}">${I.info}</span><div class="text">${name}<small>${sub}</small>${extra}</div>${btn}</div></div>`;
+};
+const fold = (n, open) => `<div class="fold" role="button" aria-expanded="${open}"><span>${n} more need${n === 1 ? 's' : ''} the GM’s approval</span><span class="btn sq" aria-hidden="true">${open ? I.minus : I.plus}</span></div>`;
+const needs = `<small>${warn('Needs the GM’s special approval')}</small>`;
+const head = `<p class="meta">Step 4 of 10</p><p class="do">Your patron sets or narrows your alignment.</p>`;
+const keeper = (s) => prow('The Lantern Keeper', 'Light in the dark water. Reed or Lantern followers', s);
+const heron = (s) => prow('Old Heron', 'Patience, and the long wait', s);
+const mire = (s) => prow('The Mire Mother', 'What the bog takes, it keeps. Mire followers', s, needs);
+
+const opens = phone(`
+  ${bar('Patron')}
+  <div class="inner">
+    ${head}
+    ${keeper('accent')}
+    ${heron('pick')}
+    ${fold(1, false)}
+    ${foot('No patron yet', true, 'plain')}
+  </div>`, '1. The Patron step as it opens, straight after Class: its own page, its own place in the count. The patrons open to this character are rows with Pick; the ⓘ on a row opens the patron’s entry (frame 6). The ones that need the GM’s approval are folded under one line, closed. One sentence under the count, because it carries a consequence. Nothing is picked, so the first Pick carries the accent and Next is plain (the Class step’s rule).');
+
+const opened = phone(`
+  ${bar('Patron')}
+  <div class="inner">
+    ${head}
+    ${keeper('accent')}
+    ${heron('pick')}
+    ${fold(1, true)}
+    ${mire('pick')}
+    ${foot('No patron yet', true, 'plain')}
+  </div>`, '2. The fold opened: the same row, with the warning sign and the words. It can be picked like any other; the GM decides on the review.');
+
+const picked = phone(`
+  ${bar('Patron')}
+  <div class="inner">
+    ${head}
+    ${keeper('picked')}
+    ${heron('pick')}
+    ${fold(1, false)}
+    <div class="toast"><span>The Lantern Keeper picked</span><span class="btn small">Undo</span></div>
+    ${foot('The Lantern Keeper picked')}
+  </div>`, '3. A patron picked: the row reads Picked ✓ on the wash, the toast offers Undo, and Next takes the accent. Picking another row moves the pick; there is one patron.');
+
+const pickedNeeds = phone(`
+  ${bar('Patron')}
+  <div class="inner">
+    ${head}
+    ${keeper('pick')}
+    ${heron('pick')}
+    ${fold(1, true)}
+    ${mire('picked')}
+    ${foot('The Mire Mother picked. Your GM decides on the review')}
+  </div>`, '4. A patron that needs approval, picked (the built section’s content, #636): the fold stays open while its row is the pick, and the foot says what follows.');
+
+const none = phone(`
+  ${bar('Patron')}
+  <div class="inner" style="min-height:520px">
+    ${head}
+    ${keeper('accent')}
+    ${heron('pick')}
+    ${fold(1, false)}
+    ${foot('No patron yet', true, 'plain')}
+  </div>
+  <div class="dim"></div>
+  <div class="popup" role="dialog" aria-label="Pick a patron first"><h3>Pick a patron first</h3><p style="margin:0 0 var(--space-3)">A Marsh Chaplain follows a patron. Pick one to go on, or go back and choose another class.</p><div style="display:flex;gap:var(--space-2);justify-content:flex-end"><span class="btn">Back to Class</span><span class="btn accent">Choose a patron</span></div></div>`,
+  '5. Next with none picked: Next is never disabled. It stays tappable and a pop-up says why the step cannot be passed and what to do. Two ways out: stay and choose, or go back to Class.');
+
+const entry = phone(`
+  ${bar('Patron')}
+  <div class="inner" style="min-height:820px">
+    ${head}
+    ${keeper('pick')}
+    ${heron('pick')}
+  </div>
+  ${sheet('The Lantern Keeper', `
+    <p class="meta" style="margin:0 0 var(--space-2)">River Rules, p. 52</p>
+    <p style="margin:0 0 var(--space-2)">The Lantern Keeper walks the dark water with a light for anyone lost on it. Its chaplains keep the marsh lamps and turn no traveller away.</p>
+    <div class="list">
+      ${kvRow('Followers', 'Reed or Lantern')}
+      ${kvRow('Holy symbol', 'A tin lantern on a cord')}
+      ${kvRow('Holy garb', 'A grey hood')}
+      ${kvRow('Prayer', 'Keep the lamp lit')}
+      ${kvRow('Strictures', 'Never leave a flame to die untended')}
+      ${kvRow('Mark', 'Your eyes catch the lamplight')}
+    </div>
+    <span class="btn accent wide" style="margin-top:var(--space-3)">Pick The Lantern Keeper</span>
+  `)}`, '6. The ⓘ on a row: the patron’s entry as a sheet over the dimmed page, the pattern of a class’s entry: source page, the book’s blurb, then the rows the built sheet section already shows (followers, holy symbol, holy garb, prayer, strictures, mark), and Pick at the foot with the accent. Drawn from the app’s entry pattern and the built sheet section; the Builder’s picture of the built entry may differ in its rows.');
+
+const states = phone(`
+  ${bar('Patron')}
+  <div class="inner">
+    ${head}
+    ${prow('The Keeper of the Nine Drowned Bells below the Old Lantern', 'A very long name wraps inside its row and never pushes Pick off', 'pick')}
+    ${prow('Ox', 'One word', 'pick')}
+    <p class="meta" style="margin:var(--space-3) 0 0"><b>No patron open without approval:</b> the fold is replaced by its rows, each with the warning sign, under the line “Every patron here needs the GM’s approval.”</p>
+    <p class="meta" style="margin:var(--space-2) 0 0"><b>Many patrons:</b> past twelve, a find field sits above the list.</p>
+    <p class="meta" style="margin:var(--space-2) 0 0"><b>Offline:</b> the step works as every creation step does; the pick is kept on this device.</p>
+    <p class="meta" style="margin:var(--space-2) 0 0"><b>Class changed later:</b> the patron is cleared with the class, said in the toast (“Class changed. Your patron was cleared.”, with Undo).</p>
+    ${foot('No patron yet', true, 'plain')}
+  </div>`, '7. Messy data and the other states: a very long name, a one-word name; no free patron, many patrons, offline and a later change of class in words.');
+
+const stepList = (title, sub, items, total) => `<div class="card"><div class="text" style="font-weight:700">${title}</div><div class="meta">${sub}</div><ol start="3">${items.map(([n, isNew]) => `<li${isNew ? ' class="new"' : ''}>${n}</li>`).join('')}</ol><div class="meta" style="margin-top:var(--space-2)">${total}</div></div>`;
+const steps = `<div><p class="cap" style="width:740px">8. Where the step is, and where it is not. The count on every step follows: with the Patron step there is one more step in all; without it, nothing marks its absence. No empty step, no “not for your class” page.</p><div class="steps">
+  ${stepList('Marsh Chaplain, rule on', 'A class that takes a patron; the campaign has the optional rule on.', [['Class', false], ['Patron', true], ['Adjust scores', false]], 'Class is “Step 3 of 10”; Patron “Step 4 of 10”.')}
+  ${stepList('Reed Witch, rule on', 'A class with no patron.', [['Class', false], ['Adjust scores', false]], 'Class is “Step 3 of 9”; Adjust scores “Step 4 of 9”.')}
+  ${stepList('Marsh Chaplain, rule off', 'The campaign has the optional rule off.', [['Class', false], ['Adjust scores', false]], 'Class is “Step 3 of 9”; no patron anywhere, the review and the sheet included.')}
+</div></div>`;
+
+const reviewOwn = phone(`
+  ${bar('Oswin Adderbald')}
+  <div class="inner rev">
+    <div class="meta">Step 10 of 10, Review</div>
+    <div class="card">
+      <h3>Kindred and class</h3>
+      <div class="line"><span>Kindred: Human</span><span class="btn small">Change</span></div>
+      <div class="line"><span>Class: Marsh Chaplain, level 1</span><span class="btn small">Change</span></div>
+    </div>
+    <div class="card">
+      <div class="head"><h3>Patron</h3><span class="btn small">Change</span></div>
+      <div class="line"><span>The Mire Mother</span></div>
+    </div>
+    <div class="card">
+      <div class="head"><h3>Who they are</h3><span class="btn small">Change</span></div>
+      <div class="line"><span>Oswin Adderbald</span></div>
+      <div class="line"><span>6 hit points</span></div>
+      <div class="line"><span>Alignment: Mire</span></div>
+    </div>
+    <div class="card"><div>${warn('1 thing needs the GM’s special approval')}</div><div class="line" style="margin-top:var(--space-2)"><span>The Mire Mother<br><span class="meta">Her followers are few: the GM decides</span></span></div></div>
+  </div>
+  ${foot('', true, 'accent', 'Send to the GM').replace('class="foot"', 'class="foot" style="margin:0;padding:var(--space-3);flex-wrap:nowrap"')}`,
+  '9 (A). The review with a card of its own for the Patron step, as the lead asked: “Who they are” no longer carries the patron; the Patron card has its Change, which goes back to the Patron step and returns here. The special-approval card is unchanged.');
+
+const reviewLine = phone(`
+  ${bar('Oswin Adderbald')}
+  <div class="inner rev">
+    <div class="meta">Step 10 of 10, Review</div>
+    <div class="card">
+      <h3>Kindred, class and patron</h3>
+      <div class="line"><span>Kindred: Human</span><span class="btn small">Change</span></div>
+      <div class="line"><span>Class: Marsh Chaplain, level 1</span><span class="btn small">Change</span></div>
+      <div class="line"><span>Patron: The Mire Mother</span><span class="btn small">Change</span></div>
+    </div>
+    <div class="card">
+      <div class="head"><h3>Who they are</h3><span class="btn small">Change</span></div>
+      <div class="line"><span>Oswin Adderbald</span></div>
+      <div class="line"><span>6 hit points</span></div>
+      <div class="line"><span>Alignment: Mire</span></div>
+    </div>
+    <div class="card"><div>${warn('1 thing needs the GM’s special approval')}</div><div class="line" style="margin-top:var(--space-2)"><span>The Mire Mother<br><span class="meta">Her followers are few: the GM decides</span></span></div></div>
+  </div>
+  ${foot('', true, 'accent', 'Send to the GM').replace('class="foot"', 'class="foot" style="margin:0;padding:var(--space-3);flex-wrap:nowrap"')}`,
+  '9 (B, my pick). The patron as a third line in the first card, with its own Change: that card already holds two steps, a line and a Change each, and the patron hangs on the class above it. One card fewer on a long review. For a class with no patron, or with the rule off, the line is simply absent and the card’s heading is “Kindred and class” as today.');
+
+const tab = tablet(`
+  ${bar('Patron')}
+  <div class="cols">
+    <div>
+      ${head}
+      ${prow('The Lantern Keeper', 'Light in the dark water. Reed or Lantern followers. Open on the right', 'pick').replace('class="card"', 'class="card open"')}
+      ${heron('pick')}
+      ${fold(1, true)}
+      ${mire('pick')}
+    </div>
+    <div class="panel">
+      <h2>The Lantern Keeper</h2>
+      <p class="meta">River Rules, p. 52</p>
+      <p>The Lantern Keeper walks the dark water with a light for anyone lost on it. Its chaplains keep the marsh lamps and turn no traveller away.</p>
+      <div class="list">
+        ${kvRow('Followers', 'Reed or Lantern')}
+        ${kvRow('Holy symbol', 'A tin lantern on a cord')}
+        ${kvRow('Holy garb', 'A grey hood')}
+        ${kvRow('Prayer', 'Keep the lamp lit')}
+        ${kvRow('Strictures', 'Never leave a flame to die untended')}
+        ${kvRow('Mark', 'Your eyes catch the lamplight')}
+      </div>
+      <span class="btn accent wide" style="margin-top:var(--space-3)">Pick The Lantern Keeper</span>
+    </div>
+  </div>
+  ${foot('No patron yet', true, 'plain').replace('class="foot"', 'class="foot" style="margin:0;padding:var(--space-3);flex-wrap:nowrap"')}`, '10. The tablet: the list at the left, the open patron’s entry at the right, as the Class step does it. The open row is marked by its border and the words. The entry’s Pick carries the accent while nothing is picked; Next is plain.');
+
+mount(`
+  <h1>Creation: the Patron step</h1>
+  <p class="note">Francis, 2026-11-12: choosing a patron is a creation step of its own, straight after Class, shown only for a class that takes a patron and only when the campaign has the optional rule switched on. Today it is built as a section inside “Who they are” (#636), whose content he approved; this page moves that content to its own step, in the approved creation pages’ style. Patrons are invented, as in the built pictures. A proposal from the Design Studio, not ruled.</p>
+  <h1>Phone: the step</h1>
+  <div class="wall">${opens}${opened}${picked}${pickedNeeds}</div>
+  <div class="wall">${none}${entry}${states}</div>
+  <h1>Where the step is not</h1>
+  <div class="wall">${steps}</div>
+  <h1>The review</h1>
+  <div class="wall">${reviewOwn}${reviewLine}</div>
+  <h1>Tablet</h1>
+  <div class="wall">${tab}</div>
+  <h1>Questions for Francis (drafts for the lead’s list)</h1>
+  <p class="note"><b>1. On the review: a card of its own for the patron (A), or a third line in the first card (B)?</b> <i>My pick: B.</i> That card already holds two steps with a Change each, the patron depends on the class above it, and the review is one card shorter.</p>
+  <p class="note"><b>2. Next with no patron picked explains in a pop-up; the step cannot be skipped.</b> If a pack lets a class go without a patron, that is a row of its own in the list (“No patron”), not a skipped step. <i>My pick: as drawn.</i></p>
+  <p class="note"><b>3. The ⓘ on the row opens the entry; the name is not a tap.</b> The Class step’s approved draft has the name as the tap and no ⓘ; the built Patron section has the ⓘ. Drawn as built. <i>My pick: the ⓘ, and the Class and Kindred steps should follow it, so one pattern; that is a change to an approved page, so it is yours to send up or not.</i></p>
+  <p class="note"><b>4. One line under the count: “Your patron sets or narrows your alignment.”</b> Kept because it is a consequence. The built line’s first half (“Choose the patron your chaplain follows”) is dropped as an explainer. <i>My pick: as drawn.</i></p>
+  <p class="note"><b>5. Changing class later clears the patron, with Undo.</b> Said in words in frame 7, not drawn. <i>My pick: clear it and say so.</i></p>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked.</b> Nielsen’s ten: the step says where it is in the count and what the pick does; one pattern with the Class step (rows, Pick, the entry, the foot); a pick is undone from its toast; Next explains instead of refusing silently; the approval sign is a shape and words, never colour alone. States: as it opens, the fold closed and opened, picked, picked with approval needed, none picked, the entry, messy names; no free patron, many patrons, offline and a later change of class in words. Targets: rows 44 px or more, the ⓘ in a 44 px box, the fold’s whole line the target, 8 px between. One accent a screen (the first Pick, then Next; in the pop-up, “Choose a patron”). No disabled button. Undo over confirm: the pick acts at once with Undo; the pop-up is an explanation, not a confirm. No die is named on these screens. Light and dark side by side; tokens and parts from the creation final drafts.</p>
+  <p class="note"><b>Not checked, or uncertain.</b> The entry’s rows are taken from the built sheet section, not from the built entry sheet, which I have not seen. The step numbers are examples: I have not checked the pack’s real step list, only that Class is step 3 in the approved drafts. Whether a patron can narrow alignment to a choice of two that is then made on “Who they are” is assumed from the built line. Contrast is from token values, not measured. The Larger text size and the sheet’s height with a long entry are not drawn. The tablet is drawn at the drafts’ 740 px, not the iPad’s landscape width. Build cost is the Builder’s to size: the content exists; the work is a new step in the flow, the count, and the review’s line.</p>
+`);
+</script>
+</body>
+</html>

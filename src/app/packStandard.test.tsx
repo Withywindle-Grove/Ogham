@@ -143,11 +143,12 @@ describe('the Pack on the standard (plan m5b-players-screens-standard C)', () =>
     await user.click(screen.getByRole('button', { name: 'Close' }));
     await user.click(screen.getByRole('button', { name: /waiting for the GM/ }));
     await user.click(screen.getByRole('button', { name: 'Close' }));
-    await user.click(screen.getByText('Party stash', { selector: '.creation-fold__label' }));
-    await screen.findByRole('button', { name: /^Silver ewer/ });
     await user.click(screen.getByRole('button', { name: /^Coil of rope/ }));
     await user.click(screen.getByRole('button', { name: 'Drop' }));
     await screen.findByText('Dropped Coil of rope');
+    // The stash's own screen (K11), opened from its row on the Pack.
+    await user.click(screen.getByRole('button', { name: /^Party stash/ }));
+    await screen.findByRole('button', { name: /^Silver ewer/ });
     expect([...marks!.found]).toEqual([]);
   });
 
@@ -156,6 +157,21 @@ describe('the Pack on the standard (plan m5b-players-screens-standard C)', () =>
     await openPack();
     expect(document.querySelector('.top-row__title')!.textContent).toBe('Wren’s pack');
     expect(screen.getByRole('heading', { name: 'Wren’s pack' }).className).toBe('visually-hidden');
+  });
+
+  // A name ending in "s" takes a bare apostrophe in the Pack's heading, its region's name and the bar: "Wardens’ pack",
+  // never "Wardens’s pack" (Home One audit of #50 round 3, finding 1).
+  it('a name ending in "s" reads "Wren of the Lantern Wardens’ pack" in the heading, the region and the bar', async () => {
+    fenWorld([{ name: 'Coil of rope' }]);
+    world.tables.actors.find((a) => a.id === wren)!.name = 'Wren of the Lantern Wardens';
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
+    await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
+    const words = 'Wren of the Lantern Wardens’ pack';
+    expect(await screen.findByRole('heading', { name: words })).toBeTruthy();
+    expect(screen.getByRole('region', { name: words })).toBeTruthy();
+    expect(document.querySelector('.top-row__title')!.textContent).toBe(words);
   });
 
   it('puts the load line and its bar first, before any group', async () => {

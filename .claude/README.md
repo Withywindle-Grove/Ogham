@@ -27,7 +27,7 @@ Agents live in `.claude/agents/` (`claude --agent driver`, `claude --agent build
 Where this section differs from the rules above or in `CLAUDE.md`, those rules win. Load the named skill before doing the work it covers; where two could apply, use the one named here. Say which skill you used in one line. If a skill named here isn't available in the session, say so and continue without it (several are installed only on Francis's PC, not in cloud sessions).
 
 **Plan**
-- `grill-me`: in a design sitting with Francis, before anything non-trivial is planned; interview him in rounds until nothing is assumed. Builders working from an approved plan do not grill him.
+- `grill-me`: **at the start of every design and planning sitting with Francis**, before anything non-trivial is drawn or planned; interview him in rounds until nothing is assumed, then draw or write the plan. Builders working from an approved plan do not grill him. (Francis, 2026-11-26: "use grill-me in design and planning sessions moving forward"; it had been in this list since 21 Nov and never used.)
 - `product-management:write-spec`: turn a settled plan into a spec.
 - `engineering:system-design`: new services, data models, API boundaries.
 - `engineering:architecture`: when choosing between technologies; record it as an ADR.

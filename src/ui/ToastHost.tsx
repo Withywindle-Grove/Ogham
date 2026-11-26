@@ -1,6 +1,7 @@
 // The app's one toast (docs/06 "Toasts with Undo"; ruled 2026-10-25): one at a time, above the tab bar, 6 seconds
 // with a draining bar and Undo. Any screen shows one through useToast(); a new toast replaces the one showing.
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { SHEET_PHONE } from './Dialog.tsx';
 import { Toast } from './parts.tsx';
 
 export interface ToastRequest {
@@ -11,6 +12,10 @@ export interface ToastRequest {
   action?: { label: string; run: () => void };
   /** Something went wrong or can't be done (A11: messages are pop-ups, not boxes in the page). */
   error?: boolean;
+  /** A warning of its own under the words, with the warning sign: the taker put over the limit (K12, PK4b). */
+  warning?: string;
+  /** The **icon Undo** variant: Undo as a small stacked button, the turned-back arrow above the word (the stash's Take, ⚑ 6). */
+  undoIcon?: boolean;
 }
 
 type Show = (toast: ToastRequest) => void;
@@ -117,6 +122,34 @@ export function ToastHost({ children }: { children: ReactNode }) {
     show(toast);
   }, [show]);
   const done = useCallback(() => setCurrent(null), []);
+  // Over an open pop-up that asks for it (the Reveal pop-up, K22d; pick 10; "What players see"): on a phone, where that
+  // pop-up is the sheet from the foot, the toast sits just above the sheet's top edge, so it never covers a row or the
+  // foot. The sheet gives up the toast's height at its top (`--toast-above-height`, parts.css), so a sheet at full height
+  // never pushes the toast over its title or ✕ (Home Two's audit of #50, finding 1); it keeps that room until it closes,
+  // so it doesn't jump back when the toast goes. Elsewhere, and on a tablet, the screen's foot.
+  const host = useRef<HTMLDivElement>(null);
+  const [lift, setLift] = useState<{ top: number; height: number } | null>(null);
+  useLayoutEffect(() => {
+    if (!current) return;
+    const place = () => {
+      const open = document.querySelectorAll<HTMLElement>('[role="dialog"][aria-modal="true"]');
+      const card = open[open.length - 1];
+      const above = card && window.innerWidth < SHEET_PHONE && card.classList.contains('dialog--sheet') && card.querySelector('[data-toast-above]');
+      const height = above ? (host.current?.firstElementChild?.getBoundingClientRect().height ?? 0) : 0;
+      if (above) card.style.setProperty('--toast-above-height', `${Math.ceil(height)}px`);
+      // offsetTop, not the box: it leaves out the sheet's rising transform while it opens; read after the room is made.
+      const next = above ? { top: card.offsetTop, height } : null;
+      setLift((was) => (was?.top === next?.top && was?.height === next?.height ? was : next));
+    };
+    place();
+    const watch = typeof MutationObserver !== 'undefined' ? new MutationObserver(place) : null;
+    watch?.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('resize', place);
+    return () => {
+      watch?.disconnect();
+      window.removeEventListener('resize', place);
+    };
+  }, [current]);
   const swap = useMemo<Swap>(
     () => ({
       show,
@@ -135,11 +168,17 @@ export function ToastHost({ children }: { children: ReactNode }) {
         <ToastShowing.Provider value={current !== null}>{children}</ToastShowing.Provider>
       </ToastSwap.Provider>
       {current && (
-        <div className="toast-host">
+        <div
+          ref={host}
+          className={`toast-host${lift ? ' toast-host--lifted' : ''}`}
+          style={lift ? ({ '--toast-lift-top': `${lift.top}px`, '--toast-height': `${lift.height}px` } as CSSProperties) : undefined}
+        >
           <Toast
             key={current.id}
             text={current.text}
+            warning={current.warning}
             error={current.error}
+            undoIcon={current.undoIcon}
             onDone={done}
             onUndo={
               current.onUndo
