@@ -127,11 +127,13 @@ export function findsSince(source: FindsSource): FindEntry[] {
   const undoOf = new Map<string, LogEvent>();
   const mergedInto = new Map<string, string>();
   const goneCopy = new Map<string, Row>();
-  // When each line was moved onto her from elsewhere: a join made before such a move was onto someone else's stack.
+  // When each line was moved onto her from elsewhere, or went (merged into a stack) from someone else: a join made
+  // before then was onto someone else's stack.
   const movedOn = new Map<string, number>();
   for (const e of source.events) {
     if (e.revertsEventId) undoOf.set(e.revertsEventId, e);
-    if (e.targetTable === 'inventory_lines' && e.targetId && e.before && row(e.after).actor_id === me && row(e.before).actor_id !== me) movedOn.set(e.targetId, Math.max(e.seq, movedOn.get(e.targetId) ?? -Infinity));
+    const onto = e.after === null || row(e.after).actor_id === me;
+    if (e.targetTable === 'inventory_lines' && e.targetId && e.before && onto && row(e.before).actor_id !== me) movedOn.set(e.targetId, Math.max(e.seq, movedOn.get(e.targetId) ?? -Infinity));
   }
   for (const group of byRequest.values()) {
     const items = group.filter((e) => e.targetTable === 'inventory_lines' && e.targetId);

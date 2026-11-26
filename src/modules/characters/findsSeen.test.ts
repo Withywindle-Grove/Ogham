@@ -421,7 +421,7 @@ describe('what is new, read from the log (K20a)', () => {
   });
 
   // Purpose (review fix 1, the merge road): nor is it hers once Moss's whole stack is merged into a stack she carries.
-  it.fails("a GM join onto another's stack is not hers once that stack merges into hers", async () => {
+  it("a GM join onto another's stack is not hers once that stack merges into hers", async () => {
     kit(wren.id, 'River pearls', 6, 'entry-pearl');
     const mossPearls = kit(moss.id, 'River pearls', 4, 'entry-pearl');
     await mustOk(as(gm, 'inventory.add').rpc('join_added_line' as never, { campaign, actor: moss.id, location: null, container: null, entry: 'entry-pearl', how_many: 2, made_id: crypto.randomUUID(), how_got: 'given', cost: '', note: '' } as never) as unknown as Promise<{ error: unknown }>);
