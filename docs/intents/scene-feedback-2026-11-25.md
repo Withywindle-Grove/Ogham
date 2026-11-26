@@ -1,6 +1,6 @@
 # Intent: Scene feedback, 25 November 2026
 
-Author: Francis · Date: 2026-11-25 · Status: draft (collected, 27 items)
+Author: Francis · Date: 2026-11-25 · Status: planned (27 items; ruled 25 and 26 November; page 44 approved 2026-11-26, "Approve with picks"; the build plan is `docs/plans/dec-scene-feedback.md`)
 
 Francis's notes on the Scene screens (the GM's Scene and the players' Scene), sent one at a time on 2026-11-25. Numbered F1, F2, … in the order he sent them. His words are quoted as he sent them. Nothing is decided here; the driver processes the items after the collection ends. Pictures go in `docs/intents/scene-feedback-2026-11-25/` and are linked from their items.
 
@@ -330,10 +330,21 @@ Picture: one screenshot, not committed: it shows a private pack's rule text (har
 Reads as: two parts. (a) Pack and app text never names a GM or a person; this rule starts "One turn …". (b) Bring the rule's links up to F26 (c): the second area's place 0, not places 1 to 4, links to the first area's 10 and 11. Both look like work for the pack tools; (a) may also call for a check in the pack checker.
 
 ## Problem
-To be filled in by the driver when it processes the items.
+In his first run of point-to-point play (two Areas of one adventure), the GM could not run a scene from the Scene alone.
+- **An encounter is spread over three places:** the check's card, a second card, and two pop-ups. One of them cannot be closed without an answer. What was revealed never shows on the players' Scene.
+- **The facts needed to run a place are not at hand:** a creature's or a character's stat line, an item's rule, the Area's knowledge. Some show as machine IDs.
+- **Found things cannot be handed over** unless the pack writes them as a hoard.
+- **Lists are hard to read:** places in no order, no map numbers on the ways, two Areas mixed with the same numbers, no way back in the Depart list.
+- **Several parts are not at the project's standard:** tiles to the left, pop-ups with empty space, the tables' pages, the "Edit piece" form, an eye that reveals nothing.
 
 ## Outcome
-To be filled in by the driver.
+At the dress rehearsal of 5 December the GM runs point-to-point play in the two Areas from the Scene:
+- one encounter is one card, from the roll to "Done", and a revealed result shows to the players;
+- a creature, a named character or an item named at a place or in an encounter is one tap from where the GM reads it;
+- any found thing goes to a character or to the party stash in two taps;
+- every list of places is in map-number order, shows the numbers, and names the Area where two mix;
+- the players' Scene folds, has "Rules" under the place, and names a place not explored "N. Unexplored".
+Each item's track (ruled, design, bug, pack, later) and the eleven questions Francis answered are in the ruling file. He approved page 44's frames on 26 November ("Approve with picks"); the build plan names each row's frame.
 
 ## Touches
 The Scene screens (GM and players), `06-screens-and-design.md`, `05-features.md`.
@@ -351,7 +362,7 @@ The settlement area (see F1 (d)). He wants a design session on it later.
 
 ## Open questions
 - Clarifying questions to Francis (F2, F8, F12, F18) were answered at the end of the collection; each answer is under its item. F11's question was answered by his follow-up note.
-- Questions he asked for the driver: F1 (does Depart open on the last adventure?), F13 (c) (can the pack builder split a map from its key?), F20 (d) (a plan for sharing out found treasure before 5 December?).
+- Questions he asked for the driver, answered 2026-11-25 (the ruling file has each): F1, no: Depart lists the Locations of every attached pack. F13 (c), yes: the pack tools can give a picture with the key's names painted out; showing the full map later as a second step is question ⚑ 11. F20 (d), yes: every Treasure piece opens the find sheet (proposal sf-8).
 
-## Links (filled in later)
-Ruling: — · Plan: — · Pull request: — · Status report: —
+## Links
+Ruling: [`../design/rulings/scene-feedback-2026-11-25.md`](../design/rulings/scene-feedback-2026-11-25.md) (the eleven questions and the critique's findings ruled 2026-11-26; ⚑ 9 ruled the same day, "Home Two's fix") · Mockups: [`../design/mockups/december/44-scene-feedback-of-25-november.html`](../design/mockups/december/44-scene-feedback-of-25-november.html) (approved by Francis 2026-11-26, "Approve with picks") · Plan: [`../plans/dec-scene-feedback.md`](../plans/dec-scene-feedback.md) · Pull request: #102, "Design: Scene feedback of 25 Nov" · Status report: —
