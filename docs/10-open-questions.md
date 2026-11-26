@@ -37,7 +37,7 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 **Deliberately open (◈)**
 - ◈ CS-3 save modifiers in a fight's save prompt are tentative; review after the first table test. (The tiles and the sheet were ruled on 2026-11-25: 05, "Save bonuses in the number".)
 - ◈ The full sheet's compact grid (B20) is approved for now and may iterate.
-- ◈ The toast's 8 seconds may shorten after use.
+- ◈ The toast's seconds may change again after use (8, then 6 on 2026-11-10, then 5 with a pause on 2026-11-25, tr-2).
 - ⚑ The dark warning colour against the Copper accent: moved to #F2D46B (2026-10-25); the gallery confirms the pair.
 - ◈ Idea: 'Nemeton' or 'the grove' as the name of each campaign's home space; 'airneán' as a possible name for a session. Not decided.
 - ◈ Treasure splitting with no company (companies switched off, or none founded): revisit after use.
