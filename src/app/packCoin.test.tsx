@@ -447,3 +447,143 @@ describe('hidden means hidden, and coin weighs nothing', () => {
     expect(screen.getByRole('region', { name: 'Wren’s pack' }).querySelector('.pack__load > .auth__meta')!.textContent).toMatch(/^50 of 1,200 coins/);
   });
 });
+
+/** Sam opens Wren's Pack, then the Party stash's own screen (K11) from its row. */
+async function openStashCoin(): Promise<User> {
+  const user = await openPack();
+  await user.click(await screen.findByRole('button', { name: /^Party stash/ }));
+  await screen.findByRole('region', { name: 'Party stash' });
+  return user;
+}
+
+/** A silver ewer in the stash, so its lists show. */
+function ewerInStash() {
+  const coil = world.tables.inventory_lines.find((l) => l.id === 'line-coil')!;
+  world.tables.inventory_lines.push({ ...coil, id: 'line-ewer', actor_id: null, location_id: world.tables.purses.find((p) => p.location_id !== null)!.location_id, name: 'Silver ewer', weight_coin: 30 });
+}
+
+const stashPurse = () => world.tables.purses.find((p) => p.location_id !== null)!.coins as Record<string, number>;
+
+describe('coin in the stash (K13, PC6, PC6b, PK4)', () => {
+  // Purpose: the stash's coin is the same row as a character's coin line, first above the stash's lists, with the
+  // amounts and a chevron and no button of its own; nought coins read "No coin".
+  it('is the coin row first above the lists: the amounts, a chevron, no button on it; "No coin" with none', async () => {
+    await coinWorld({ stash: { bit: 12, heron: 40 } });
+    ewerInStash();
+    await openStashCoin();
+    const line = await coinRow();
+    expect(line.textContent).toBe('40 herons, 12 bits');
+    const stash = screen.getByRole('region', { name: 'Party stash' });
+    expect(line.compareDocumentPosition(stash.querySelector('.pack__group')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(stash.querySelector('.stash__facts')!.compareDocumentPosition(line) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(line.querySelectorAll('button')).toHaveLength(0);
+    expect(line.querySelector('svg')).toBeTruthy();
+    cleanup();
+    world.tables.purses.find((p) => p.location_id !== null)!.coins = {};
+    await openStashCoin();
+    expect((await coinRow()).textContent).toBe('No coin');
+  });
+
+  // Purpose: its sheet is "Party stash's coin": every coin the setting names, nought as 0, then one row, Take….
+  it('opens "Party stash’s coin": every coin the setting names, a 0 shown as 0, and one row Take…, no accent', async () => {
+    await coinWorld({ stash: { heron: 40, bit: 12 } });
+    const user = await openStashCoin();
+    await user.click(await coinRow());
+    expect(within(sheet()).getByRole('heading', { name: 'Party stash’s coin' })).toBeTruthy();
+    expect([...sheet().querySelectorAll('.book-line')].map((l) => l.textContent)).toEqual(['Crowns 0', 'Herons 40', 'Bits 12']);
+    expect([...sheet().querySelectorAll('.list-row')].map((r) => r.textContent)).toEqual(['Take…']);
+    expect(sheet().querySelector('.button-primary')).toBeNull();
+  });
+
+  // Purpose: Take coin says what the stash has under each coin, names the amount on its one accent, moves the coin into
+  // the taker's own purse through purse.take (one log line), says it in the log line's words, and Undo puts it back.
+  it('takes: "The stash has 40.", "Take 10 herons", the toast in the log line’s words, one log line, and Undo puts it back', async () => {
+    await coinWorld({ wren: { heron: 3 }, stash: { heron: 40, bit: 12 } });
+    const user = await openStashCoin();
+    await user.click(await coinRow());
+    await user.click(within(sheet()).getByRole('button', { name: 'Take…' }));
+    expect(within(sheet()).getByRole('heading', { name: 'Take coin' })).toBeTruthy();
+    expect(within(sheet()).getByRole('button', { name: '‹ Party stash’s coin' })).toBeTruthy();
+    expect(within(sheet()).getByText('The stash has 40.')).toBeTruthy();
+    expect(within(sheet()).getByText('The stash has 0.')).toBeTruthy();
+    await user.type(within(sheet()).getByRole('textbox', { name: 'Herons' }), '10');
+    const before = purseEvents().length;
+    await user.click(within(sheet()).getByRole('button', { name: 'Take 10 herons' }));
+    expect(await screen.findByText('Wren took 10 herons from the stash')).toBeTruthy();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(stashPurse()).toEqual({ heron: 30, bit: 12 });
+    expect(purseOf(wren)).toEqual({ heron: 13 });
+    // One take, logged on both purses under one request (the stash's and Wren's).
+    const taken = purseEvents().slice(before);
+    expect(taken.map((e) => e.type)).toEqual(['purse.take', 'purse.take']);
+    expect(taken[0]!.request_id).toBeTruthy();
+    expect(new Set(taken.map((e) => e.request_id)).size).toBe(1);
+    await waitFor(async () => expect((await coinRow()).textContent).toBe('30 herons, 12 bits'));
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(stashPurse()).toEqual({ heron: 40, bit: 12 }));
+    expect(purseOf(wren)).toEqual({ heron: 3 });
+    await waitFor(async () => expect((await coinRow()).textContent).toBe('40 herons, 12 bits'));
+  });
+
+  // Purpose: more than the stash holds is refused in words under that coin's row, with the warning sign; the button
+  // stays a button and nothing moves.
+  it('refuses more than the stash has: "The stash has 40 herons." under the row, the button still a button, nothing moved', async () => {
+    await coinWorld({ stash: { heron: 40 } });
+    const user = await openStashCoin();
+    await user.click(await coinRow());
+    await user.click(within(sheet()).getByRole('button', { name: 'Take…' }));
+    await user.type(within(sheet()).getByRole('textbox', { name: 'Herons' }), '55');
+    const button = within(sheet()).getByRole('button', { name: 'Take 55 herons' });
+    await user.click(button);
+    const refusal = within(sheet()).getByRole('alert');
+    expect(refusal.textContent).toBe('The stash has 40 herons.');
+    expect(refusal.querySelector('.warning-sign')).toBeTruthy();
+    expect(button.hasAttribute('disabled')).toBe(false);
+    expect(stashPurse()).toEqual({ heron: 40 });
+  });
+
+  // Purpose: offline, a tap on the stash coin's Take… opens the blocked-action pop-up (BlockedSheet) saying why it waits,
+  // not a toast; the coin sheet stays open under it and nothing moves (⚑ 7, re-ruled "A" 25 Nov).
+  it('offline, Take… opens the blocked-action pop-up, not a toast; nothing moves (⚑ 7 A)', async () => {
+    await coinWorld({ stash: { heron: 40 } });
+    const user = await openStashCoin();
+    await coinRow();
+    const offline = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    try {
+      window.dispatchEvent(new Event('offline'));
+      await user.click(await coinRow());
+      await user.click(within(sheet()).getByRole('button', { name: 'Take…' }));
+      const why = within(await screen.findByRole('dialog', { name: 'You’re offline' }));
+      expect(why.getByText('Taking from the stash needs the party’s latest, so it waits until you’re back.')).toBeTruthy();
+      expect(document.querySelector('.toast')).toBeNull();
+      expect(screen.getByRole('dialog', { name: 'Party stash’s coin' })).toBeTruthy();
+      expect(stashPurse()).toEqual({ heron: 40 });
+    } finally {
+      offline.mockRestore();
+    }
+  });
+
+  // Purpose: offline (the network dropped while the Take coin sheet was open), its accent stays a button and a tap opens
+  // the same blocked-action pop-up as Take…, not a toast; the sheet stays open under it and no coin moves (Home Two's
+  // audit of #66, finding 1, picked by Francis 2026-11-26).
+  it('offline, the Take coin sheet’s accent opens the blocked-action pop-up, not a toast; nothing moves (⚑ 7 A)', async () => {
+    await coinWorld({ wren: { heron: 3 }, stash: { heron: 40 } });
+    const user = await openStashCoin();
+    await user.click(await coinRow());
+    await user.click(within(sheet()).getByRole('button', { name: 'Take…' }));
+    await user.type(within(sheet()).getByRole('textbox', { name: 'Herons' }), '10');
+    const offline = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    try {
+      window.dispatchEvent(new Event('offline'));
+      await user.click(screen.getByRole('button', { name: 'Take 10 herons' }));
+      const why = within(await screen.findByRole('dialog', { name: 'You’re offline' }));
+      expect(why.getByText('Taking from the stash needs the party’s latest, so it waits until you’re back.')).toBeTruthy();
+      expect(document.querySelector('.toast')).toBeNull();
+      expect(screen.getByRole('dialog', { name: 'Take coin' })).toBeTruthy();
+      expect(stashPurse()).toEqual({ heron: 40 });
+      expect(purseOf(wren)).toEqual({ heron: 3 });
+    } finally {
+      offline.mockRestore();
+    }
+  });
+});

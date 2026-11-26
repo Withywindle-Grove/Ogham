@@ -4,7 +4,7 @@
 // charge, a light's Light or Put out, use one up (Fire, Drink, Eat, Use), or for a weapon with nothing to count Wield while
 // it isn't in hand and Attack once it is (ruling m5b-at-hand-actions-2026-11-08, ah-1 and ah-2). A weapon with modes
 // (ah-3, ah-4) carries its mode button (Quiver, Pouch, Grip, Stance) beside the action; its sheets are AtHandSheets.tsx.
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
@@ -77,6 +77,8 @@ export function ItemRow({
   weaponNotes = [],
   attackRange = null,
   tiny = false,
+  note = null,
+  end = null,
   lightAction = null,
   attackRules = [],
   inflicts = [],
@@ -104,6 +106,10 @@ export function ItemRow({
   lightAction?: { label: 'Light' | 'Put out'; run: () => void } | null;
   /** In the Pack's Tiny things section (SC-5-2): weightless, it shows no weight, like other weightless rows. */
   tiny?: boolean;
+  /** A line of its own under the row's line: on the stash's screen, who put it in and when (K11, pk-4). */
+  note?: string | null;
+  /** What ends the row in place of its chevron (the stash's Take, K12); the row's body still opens the item's sheet. */
+  end?: ReactNode;
   /** At hand (sq-4, 2026-11-04): the weapon figure's parts, opened from the figure's row on the item's sheet. */
   weaponRows?: { label: string; value: string }[];
   /** At hand, a weapon (as-1): its rolls for the Attack sheet, to hit first (weaponRolls). */
@@ -430,13 +436,14 @@ export function ItemRow({
           </span>
         )
       )}
+      {note && <span className="auth__meta pack__sub">{note}</span>}
       {weaponNotes.map((n) => (
         // A magic weapon's notes (mw-1): each on its own line under the figure, never in it.
         <span key={n} className="auth__meta pack__sub">
           {n}
         </span>
       ))}
-      {!action && !light && !verb && !attack && !wield && (
+      {!action && !light && !verb && !attack && !wield && !end && (
         <span className="pack__chevron" aria-hidden="true">
           <Icon name="chevron" size={20} />
         </span>
@@ -502,6 +509,7 @@ export function ItemRow({
         <div className={buttons.length >= 2 ? 'pack__row pack__row--two-buttons' : 'pack__row'}>
           {main}
           {buttons}
+          {end}
         </div>
       )}
       {blocked.sheet}

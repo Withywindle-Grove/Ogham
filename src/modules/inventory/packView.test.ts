@@ -115,13 +115,14 @@ describe('the Pack screen’s groups (05: by where things are carried)', () => {
     expect(groupPack([line('Rope'), mule, cart], 'coin', rules).map((g) => g.title)).toEqual(['Carried', 'vehicle']);
   });
 
-  it('the Party stash has only its containers: loose things in one plain list first, then "In the …" per container (N18)', () => {
+  // Purpose: the stash's own screen heads its loose things "Loose" (pk-4, frame PK4), then one "In the …" per container.
+  it('the Party stash has only its containers: loose things first under "Loose", then "In the …" per container (N18, PK4)', () => {
     const mule = { ...line('Mule'), category: 'animal' };
     const listed = combineEncumbrance([{ ...rules, separateCategories: ['animal'] }]);
     const stash = [...lines.map((l) => ({ ...l, equipped: false })), mule];
     for (const mode of ['coin', 'armour', 'slot', 'none'] as const) {
       expect(groupPack(stash, mode, listed, (id) => id, { stash: true }).map((g) => [g.title, g.collapsible ?? false, g.other ?? false, g.lines.map((l) => l.name)])).toEqual([
-        ['', false, false, ['Mule', 'Quilted coat', 'Rope', 'Sack', 'Satchel']],
+        ['Loose', false, false, ['Mule', 'Quilted coat', 'Rope', 'Sack', 'Satchel']],
         ['In the Sack', false, false, ['Pearls']],
         ['In the Satchel', false, false, ['Chalk']],
       ]);

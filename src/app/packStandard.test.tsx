@@ -143,11 +143,12 @@ describe('the Pack on the standard (plan m5b-players-screens-standard C)', () =>
     await user.click(screen.getByRole('button', { name: 'Close' }));
     await user.click(screen.getByRole('button', { name: /waiting for the GM/ }));
     await user.click(screen.getByRole('button', { name: 'Close' }));
-    await user.click(screen.getByText('Party stash', { selector: '.creation-fold__label' }));
-    await screen.findByRole('button', { name: /^Silver ewer/ });
     await user.click(screen.getByRole('button', { name: /^Coil of rope/ }));
     await user.click(screen.getByRole('button', { name: 'Drop' }));
     await screen.findByText('Dropped Coil of rope');
+    // The stash's own screen (K11), opened from its row on the Pack.
+    await user.click(screen.getByRole('button', { name: /^Party stash/ }));
+    await screen.findByRole('button', { name: /^Silver ewer/ });
     expect([...marks!.found]).toEqual([]);
   });
 
