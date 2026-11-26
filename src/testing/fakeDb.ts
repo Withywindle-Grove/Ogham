@@ -2411,8 +2411,13 @@ export function createFakeDb(): FakeWorld {
       }
       const answer = decided === 'in' && price ? { kind: 'buy', result: 'inStock', price, note: '' } : decided === 'out' ? { kind: 'buy', result: 'notHere', price: '', note: '' } : null;
       stockAnswer = answer ? { campaign: String(campaign), actor: String(actor), item, answer } : null;
+      // Review fix, round 2 (…_dec16_tc12_ask_prompt_server_price.sql): the prompt stored, and so logged, is the buy
+      // prompt's own fields as sent with the server's price: the entry's (waiting or not), '' with no thing named.
+      const winner = item ? winningItem(campaign, item) : undefined;
+      const stored: Row = Object.fromEntries(Object.entries(asked).filter(([key]) => ['serviceId', 'shop', 'itemId', 'item'].includes(key)));
+      stored.price = winner ? priceWords(visiblePart(wholeEntry(winner)).value) : '';
       try {
-        return groupRpcs.send_request!({ campaign, actor, kind: 'buy', body: words, cost_text: '', prompt: asked }, tag);
+        return groupRpcs.send_request!({ campaign, actor, kind: 'buy', body: words, cost_text: '', prompt: stored }, tag);
       } finally {
         stockAnswer = null;
       }

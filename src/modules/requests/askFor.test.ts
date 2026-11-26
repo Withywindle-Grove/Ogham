@@ -9,7 +9,8 @@
 //   * the answer is one log line, the player's, saying what was answered;
 //   * a player can't ask as another player's character;
 //   * a shop not shown, closed, or not in the town the group is in answers nothing at once (review fix, hard rule 5);
-//   * the price said is the entry's, never the device's prompt (review fix);
+//   * the price said is the entry's, never the device's prompt (review fix); the request stored and its log line carry
+//     the server's price, never the device's (review fix, round 2);
 //   * a thing not for sale is never answered at once, Not here included (review fix: as stock_answer_for).
 import { describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../app/commandRegistry.ts';
@@ -191,6 +192,26 @@ describe('Ask for… answered at once (TC12)', () => {
     const said = describeEntry({ main, events: [main] }, { me: w.playerId, people: none, characters: new Map([[w.character.id, 'Wren']]), companies: none, fields: none, packs: none, items: none, places: none });
     expect(said).toContain('In stock: 2 herons');
     expect(said).not.toContain('0 herons');
+  });
+
+  // Purpose (review fix, round 2; …_dec16_tc12_ask_prompt_server_price.sql): the request stored, and its log line, carry
+  // no device price: an answered ask and a waiting one store the entry's price, Something not listed… stores none, and
+  // any other field the device adds is not kept.
+  it('the stored request and its log line carry the server\'s price, never the device\'s', async () => {
+    const w = setup();
+    await set(w, 'lamp-oil', 'in');
+    const forged = { ...prompt('lamp-oil', 'lamp-oil', '0 herons'), cost: '0 herons', value: { herons: 0 } } as BuyPrompt;
+    const answered = await ask(w, forged);
+    const waiting = await ask(w, prompt('spyglass', 'spyglass', '0 herons'));
+    const other = await ask(w, prompt(null, 'A brass bell', '0 herons'));
+    expect([answered.status, waiting.status, other.status]).toEqual(['answered', 'waiting', 'waiting']);
+    const stored = (id: string) => w.fake.tables.requests.find((r) => r.id === id)!.prompt;
+    expect(stored(answered.id)).toEqual({ serviceId: SHOP, shop: 'The Chandler', itemId: 'lamp-oil', item: 'lamp-oil', price: '2 herons' });
+    expect((stored(waiting.id) as Record<string, unknown>).price).toBe('2 herons');
+    expect((stored(other.id) as Record<string, unknown>).price).toBe('');
+    const lines = w.fake.tables.events.filter((e) => e.type === 'town.askFor');
+    expect(lines).toHaveLength(3);
+    expect(JSON.stringify([w.fake.tables.requests, lines])).not.toContain('0 herons');
   });
 
   // Purpose (review fix, as stock_answer_for): a thing not for sale is never answered at once, not even Not here from
