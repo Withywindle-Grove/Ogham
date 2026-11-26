@@ -146,7 +146,9 @@ export function RevealPopup({
           <p className="auth__meta reveal-popup__where" data-toast-above>
             {shownName(line.name)}, {where}
           </p>
-          <ul className="reveal-popup__list" aria-label="What is hidden">
+          {/* Focusable by itself (Home Two's audit of #50, finding 2): with everything told it holds no button, and a long
+              list must still scroll from the keyboard (axe's scrollable-region-focusable). */}
+          <ul className="reveal-popup__list" aria-label="What is hidden" tabIndex={0}>
             {listed.map((fact) => {
               const told = !hiddenNow.has(fact.id);
               const notYet = !told && countNotSet(fact, secret);

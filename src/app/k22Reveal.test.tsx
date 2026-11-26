@@ -347,7 +347,7 @@ describe('K22d: the Reveal pop-up', () => {
 
   // Purpose: with everything told, the list holds no button, so it takes focus itself and keeps its name, and a
   // keyboard can still scroll a long one (Home Two's audit of #50, finding 2; axe's scrollable-region-focusable).
-  it.fails('with everything told, the list can still be reached from the keyboard, by its name', async () => {
+  it('with everything told, the list can still be reached from the keyboard, by its name', async () => {
     const user = await openInView();
     const popup = await openReveal(user);
     await user.click(popup.getByRole('button', { name: 'Tell them everything' }));

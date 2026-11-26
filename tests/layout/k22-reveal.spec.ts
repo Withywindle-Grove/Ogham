@@ -126,7 +126,7 @@ for (const size of [
       expect(await accessibilityProblems(page)).toEqual([]);
     });
 
-    test.fails(`with everything told, the list still takes focus and axe finds nothing (${size.name}, ${scheme})`, async ({ page }) => {
+    test(`with everything told, the list still takes focus and axe finds nothing (${size.name}, ${scheme})`, async ({ page }) => {
       await openInView(page, size.width, size.height, scheme);
       await page.getByRole('button', { name: /^Hooded lantern/ }).click();
       await page.getByRole('region', { name: 'Hooded lantern' }).getByRole('button', { name: 'Reveal…' }).click();
