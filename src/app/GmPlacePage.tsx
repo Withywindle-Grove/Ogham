@@ -47,7 +47,7 @@ import { knowledgeSourceLine, readPlaceFacts, type PlaceFacts } from '../modules
 import type { PackPlaceEntry } from '../modules/expedition/placeFromPack.ts';
 import { isSettlement, loadPackPlaceEntry, loadPackPlaces, loadPackTables, loadPlaceLines, shownCount, type GroupPlace, type Piece, type Place } from '../modules/expedition/placePlay.ts';
 import { checkChanceWords, checkWhenWords, loadPlaceChain, placeRulesOf, type ChainEntry, type PlayersRule } from '../modules/expedition/placeRules.ts';
-import { ancestorsOf, childrenOf, keyedName, placeOf, type PackPlace } from '../modules/expedition/placeTree.ts';
+import { ancestorsOf, childrenOf, isLocation, keyedName, placeOf, type PackPlace } from '../modules/expedition/placeTree.ts';
 import { chanceWords } from '../modules/expedition/play.ts';
 import { loadReadAhead, type ReadAhead } from '../modules/expedition/readAhead.ts';
 import type { ReadTable } from '../modules/expedition/tables.ts';
@@ -116,7 +116,7 @@ export function numberedName(key: string | null, name: string): string {
 }
 
 /**
- * The spots in the order of the map's key ("1", "2", … "10"), those without a key after them in the pack's order:
+ * The spots that are not Locations (`spotsOf`) in the order of the map's key ("1", "2", … "10"), those without a key after them in the pack's order:
  * the pack's rows come back in no set order, and the key is the order the GM reads the map in.
  */
 export function byKey<T extends { key: string | null }>(places: readonly T[]): T[] {
@@ -124,6 +124,16 @@ export function byKey<T extends { key: string | null }>(places: readonly T[]): T
     .map((p, at) => ({ p, at }))
     .sort((a, b) => (a.p.key && b.p.key ? a.p.key.localeCompare(b.p.key, undefined, { numeric: true }) : a.p.key ? -1 : b.p.key ? 1 : 0) || a.at - b.at)
     .map(({ p }) => p);
+}
+
+/**
+ * A place's own places as the GM's lists show them: the Locations (and hexes) in `childrenOf`'s order, by map number
+ * (Q1, F1 a, ruled 2026-11-25); the other kinds first and still by the key, as before (Q1: rooms are unchanged).
+ */
+function spotsOf(places: readonly PackPlace[], of: PackPlace): PackPlace[] {
+  const inside = childrenOf(places, of);
+  const numbered = (p: PackPlace) => isLocation(p) || !!p.hex;
+  return [...byKey(inside.filter((p) => !numbered(p))), ...inside.filter(numbered)];
 }
 
 const NO_FACTS: PlaceFacts = { identity: '', facts: [], sections: [], tableIds: [], watch: null, text: null };
@@ -165,7 +175,7 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
     };
   }, [db, campaign.id, fromPack]);
   const current = place?.pack && packPlaces ? (placeOf(packPlaces, place.pack.packId, place.pack.entryId) ?? null) : null;
-  const spots = current && packPlaces ? byKey(childrenOf(packPlaces, current)) : [];
+  const spots = current && packPlaces ? spotsOf(packPlaces, current) : [];
 
   // The trail's Locations panel, and the place read ahead (B2; p2p-8, p2p-9). Reading ahead holds while the party stays
   // where it was when the GM opened it: the party moving (here or on another device) brings the page back to the party.
@@ -783,7 +793,7 @@ export function LocationsPanel({
   onRead: (place: PackPlace) => void;
   onClose: () => void;
 }) {
-  const inIt = byKey(childrenOf(places, of));
+  const inIt = spotsOf(places, of);
   const here = inIt.find((p) => samePlace(p, partyAt));
   const row = (p: PackPlace) => <ListRow key={p.entryId} title={numberedName(p.key, p.name)} sub={lines?.get(p.entryId)} onOpen={() => onRead(p)} />;
   return (

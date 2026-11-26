@@ -11,13 +11,12 @@ import { useState } from 'react';
 import { cardView, checkedWords, modifierWords, type CardLine } from '../modules/expedition/card.ts';
 import { elapsedSteps } from '../modules/expedition/clock.ts';
 import { chanceWords } from '../modules/expedition/play.ts';
-import { pickColumns, rowLabel, rowLeadsTo, rowText, tableLookup, type ReadTable, type TableRow } from '../modules/expedition/tables.ts';
-import { BookTapTable, BookType } from '../ui/creation.tsx';
+import type { ReadTable, TableRow } from '../modules/expedition/tables.ts';
 import { Dialog } from '../ui/Dialog.tsx';
-import { DiceWords, RollRow, dieOf } from '../ui/dice.tsx';
+import { DiceWords } from '../ui/dice.tsx';
 import type { SetIconName } from '../ui/iconSet.ts';
 import { StackedButton, StepSymbol } from '../ui/parts.tsx';
-import { tapOf, type TableTap } from './EncounterTables.tsx';
+import { TableRollPopUp, type TableTap } from './EncounterTables.tsx';
 import './SceneExplore.css';
 
 /** What the GM did with one of a line's count. */
@@ -33,18 +32,20 @@ export interface CardActions {
   /** "Check again" on a check already run this period: it becomes a check with Hit / Miss. */
   onCheckAgain: (line: CardLine) => void;
   /**
-   * Enter roll… on a check that is a roll on its table (p2p-19, B9; page 24, WY1b): its table opens in its card. Without
-   * it (or with no table to open, `CardRoll`), Enter roll… takes the hit's way, the tables full screen.
+   * Roll… on a check that is a roll on its table (p2p-19, B9; sf-5, page 44 EN2): its table opens in a pop-up. Without
+   * it (or with no table to open, `CardRoll`), Roll… takes the hit's way, the tables full screen.
    */
   onRollCheck?: (line: CardLine) => void;
-  /** The GM tapped the rolled row in that card: the check's result, recorded by the caller (its hit and its row). */
+  /** The GM tapped the rolled row in that pop-up: the check's result, recorded by the caller (its hit and its row). */
   onRollRow?: (line: CardLine, tap: TableTap) => void;
 }
 
-/** What the card needs to open a check's table in place (page 24, WY1b). */
+/** What the card needs to open a check's table in its pop-up (sf-5; page 44, EN2). */
 export interface CardRoll {
-  /** The line whose table is open in its card; null when none is. */
+  /** The line whose table's pop-up is open; null when none is. */
   openKey: string | null;
+  /** The pop-up's X: nothing recorded, and the check waits on its card. */
+  onClose: () => void;
   /** The setting's tables, by id. */
   tables: ReadonlyMap<string, ReadTable>;
   /** A row's one-line description (its note, or its stat block's). */
@@ -53,7 +54,7 @@ export interface CardRoll {
 
 /**
  * A check that is a roll on its table (p2p-19; `rollsItsTable` in placeRules.ts, as a card line has it): a check with no
- * chance, not ruled out, whose hit names a table. It has nothing to hit or miss and no modifier: one Enter roll….
+ * chance, not ruled out, whose hit names a table. It has nothing to hit or miss and no modifier: one Roll….
  */
 export function rollsTable(line: CardLine): boolean {
   return line.decision === 'check' && !!line.check && line.check.always && !line.check.ruledOut && line.check.hit.tables.length > 0;
@@ -77,12 +78,13 @@ export function checkWords(line: CardLine): string {
 
 /**
  * A line's first answer, which is its row's one button in "Waiting for you" and, while it is open, the page's accent
- * (S8b): Hit on a check, Check again, Recharge, Enter roll… on a roll with a table, else Done. Each with its icon
+ * (S8b): Hit on a check, Check again, Recharge, Roll… on a roll on its table, Enter roll… on a step's roll with a table,
+ * else Done. Each with its icon
  * (S17): ic-6's bullseye, dice cup and crystal wand (page 21, SI2); the rolling dice and the tick as page 16 draws them (T2).
  */
 export function firstAnswer(line: CardLine): { id: 'hit' | 'rollCheck' | 'again' | 'recharge' | 'roll' | 'done'; label: string; icon: SetIconName } {
-  // A check that is a roll on its table (p2p-19; page 24, WY1b): Enter roll…, with the rolling dice.
-  if (rollsTable(line)) return { id: 'rollCheck', label: 'Enter roll…', icon: ANSWER_ICON.roll };
+  // A check that is a roll on its table (p2p-19; sf-5, page 44 EN1 A, finding 7): Roll…, with the rolling dice.
+  if (rollsTable(line)) return { id: 'rollCheck', label: 'Roll…', icon: ANSWER_ICON.roll };
   if (line.decision === 'check') return { id: 'hit', label: 'Hit', icon: ANSWER_ICON.hit };
   if (line.decision === 'again') return { id: 'again', label: 'Check again', icon: ANSWER_ICON.again };
   if (line.decision === 'recharge') return { id: 'recharge', label: 'Recharge', icon: ANSWER_ICON.recharge };
@@ -111,7 +113,7 @@ export function ReminderCard({
   roll = null,
   ...actions
 }: CardActions & {
-  /** The tables a check that is a roll on its table opens in place (WY1b); null: Enter roll… takes the hit's way. */
+  /** The tables a check that is a roll on its table opens in its pop-up (EN2); null: Roll… takes the hit's way. */
   roll?: CardRoll | null;
   /**
    * One line of the card as an item of "Waiting for you" (S8b): its `accent` (the open item's first answer is the
@@ -250,17 +252,15 @@ export function ReminderCard({
 }
 
 /**
- * A check that is a roll on its table (p2p-19, B9; page 24, WY1b): the pack's own sentence with its die, and one stacked
- * button, Enter roll…, with the rolling dice; no Hit, no Miss, no ±1 and no Modifier. Enter roll… opens the table in
- * the card, in the shared tapped-table form ("Roll d20, then tap the row.", the die over its column), with no title of
- * its own (the fix Francis accepted: the card's title says it); a tap on the rolled row is the answer. Where the card
- * has no tables to open (`roll` null, or the table isn't in the setting), Enter roll… takes the hit's way, the tables
+ * A check that is a roll on its table (p2p-19, B9; sf-5, page 44 EN1 A and EN2): the pack's own sentence with its die,
+ * and one stacked button, Roll…, with the rolling dice; no Hit, no Miss, no ±1 and no Modifier. Roll… opens the table in
+ * its pop-up (`TableRollPopUp`), over the card; a tap on the rolled row is the answer, and the X records nothing. Where
+ * the card has no tables to open (`roll` null, or the table isn't in the setting), Roll… takes the hit's way, the tables
  * full screen.
  */
 function RollOnTable({ line, accent, roll, onOpen, onHit, onRow }: { line: CardLine; accent: boolean; roll: CardRoll | null; onOpen: () => void; onHit: () => void; onRow: (tap: TableTap) => void }) {
   const tableId = line.check?.hit.tables[0] ?? null;
   const table = roll && tableId ? (roll.tables.get(tableId) ?? null) : null;
-  const open = !!table && roll?.openKey === line.key;
   return (
     <>
       {line.note && (
@@ -268,52 +268,11 @@ function RollOnTable({ line, accent, roll, onOpen, onHit, onRow }: { line: CardL
           <DiceWords>{line.note}</DiceWords>
         </p>
       )}
-      {open && table ? (
-        <InPlaceTable table={table} tables={roll!.tables} label={line.name} describe={roll!.describe} onRow={onRow} />
-      ) : (
-        <div className="scene-card__buttons scene-card__answers" role="group" aria-label={`Answer, ${line.name}`}>
-          <StackedButton icon={ANSWER_ICON.roll} label="Enter roll…" variant={accent ? 'primary' : 'secondary'} aria-label={`Enter roll, ${line.name}`} onClick={table ? onOpen : onHit} />
-        </div>
-      )}
+      <div className="scene-card__buttons scene-card__answers" role="group" aria-label={`Answer, ${line.name}`}>
+        <StackedButton icon={ANSWER_ICON.roll} label="Roll…" variant={accent ? 'primary' : 'secondary'} aria-label={`Roll, ${line.name}`} onClick={table ? onOpen : onHit} />
+      </div>
+      {table && roll?.openKey === line.key && <TableRollPopUp title={line.name} table={table} tables={roll.tables} describe={roll.describe} onRow={onRow} onClose={roll.onClose} />}
     </>
-  );
-}
-
-/**
- * The table of a roll, opened in its card: the Roll row, then the rows in the book's tapped-table form, no title bar. The
- * die is over the picked column's own name ("Encounter" only when the table has none); a row that leads to another
- * table says so in its line ("opens Harbour beasts ›"), as the full screen's rows do (#1086's review, findings 2 and 3).
- */
-function InPlaceTable({ table, tables, label, describe, onRow }: { table: ReadTable; tables: ReadonlyMap<string, ReadTable>; label: string; describe: (row: TableRow) => string | null; onRow: (tap: TableTap) => void }) {
-  const column = pickColumns(table)[0] ?? table.columns[0] ?? null;
-  const known = tableLookup(tables.keys());
-  const leadsTo = (row: TableRow) => {
-    const id = rowLeadsTo(table, row, column, known);
-    return id ? (tables.get(id)?.name ?? id) : null;
-  };
-  const lineOf = (row: TableRow) => {
-    const next = leadsTo(row);
-    return [next ? `opens ${next} ›` : null, describe(row)].filter(Boolean).join(' ') || null;
-  };
-  return (
-    <div className="scene-card__roll">
-      <RollRow die={table.die ? dieOf(table.die) : null}>{table.die ? `Roll ${table.die}, then tap the row.` : 'Roll, then tap the row.'}</RollRow>
-      <BookType>
-        <BookTapTable
-          die={table.die ?? ''}
-          column={column ?? 'Encounter'}
-          label={label}
-          rows={table.rows.map((row, index) => ({
-            key: String(index),
-            range: rowLabel(row),
-            name: rowText(table, row, column),
-            ...(lineOf(row) ? { line: lineOf(row)! } : {}),
-            picked: false,
-            onPick: () => onRow(tapOf(table, [table.name], row, column)),
-          }))}
-        />
-      </BookType>
-    </div>
   );
 }
 

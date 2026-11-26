@@ -805,18 +805,19 @@ if (townFlag === 'town' || townFlag === 'downtime') {
   world.tables.campaign_clocks.find((c) => c.campaign_id === quay)!.seconds = (24 + 14) * HOUR;
   sessionUnderWay(quay);
   // The Depart sheet's Where? with Locations (plan scene-point-to-point B7; page 24, DP1), only with ?places=isle: an
-  // adventure pack of two Areas and their Locations, one name long enough to wrap. Names are invented.
+  // adventure pack of two Areas and their Locations, one name long enough to wrap. Names are invented. The Harbour's
+  // Locations are out of order in the pack, with a 0 and a 10, so the list's own order shows (Q1, F1 a).
   if (new URLSearchParams(window.location.search).get('places') === 'isle') {
     world.tables.packs.push({ id: 'pack-isle', owner_user_id: gm, campaign_id: null, name: 'Saltwick Isle', version: '1', kind: 'adventure', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-18T12:00:00Z' });
     world.tables.campaign_packs.push({ id: 'link-isle', campaign_id: quay, pack_id: 'pack-isle', pack_name: 'Saltwick Isle', option_choices: {}, overrides: {}, priority: 2 });
     const isle = [
       { id: 'i01-isle', name: 'Saltwick Island', type: 'region', parentId: null },
       { id: 'i02-harbour', name: 'The Drowned Harbour', type: 'site', parentId: 'i01-isle' },
-      { id: 'i03-anchorage', name: 'The Anchorage', type: 'area', parentId: 'i02-harbour' },
-      { id: 'i04-jetty', name: 'The Jetty', type: 'area', parentId: 'i02-harbour', key: '1' },
+      { id: 'i07-shed', name: 'The Customs Shed of the Old Lantern Wardens, Long Since Flooded', type: 'area', parentId: 'i02-harbour', key: '10' },
       { id: 'i05-wreck', name: 'The Wreck', type: 'area', parentId: 'i02-harbour', key: '2' },
-      { id: 'i06-breakwater', name: 'The Breakwater', type: 'area', parentId: 'i02-harbour', key: '3' },
-      { id: 'i07-shed', name: 'The Customs Shed of the Old Lantern Wardens, Long Since Flooded', type: 'area', parentId: 'i02-harbour', key: '4' },
+      { id: 'i03-anchorage', name: 'The Anchorage', type: 'area', parentId: 'i02-harbour' },
+      { id: 'i06-breakwater', name: 'The Breakwater', type: 'area', parentId: 'i02-harbour', key: '0' },
+      { id: 'i04-jetty', name: 'The Jetty', type: 'area', parentId: 'i02-harbour', key: '1' },
       { id: 'i08-beach', name: 'The Shingle Beach', type: 'site', parentId: 'i01-isle' },
       { id: 'i09-landing', name: 'The Landing', type: 'area', parentId: 'i08-beach' },
       { id: 'i10-stack', name: 'The Sea Stack', type: 'area', parentId: 'i08-beach', key: '1' },
