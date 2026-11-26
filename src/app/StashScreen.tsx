@@ -91,7 +91,7 @@ function TakeSheet({ line, onClose, onTake }: { line: InventoryLine; onClose: ()
         )}
       </div>
       <div className="dialog__actions purse-sheet__foot">
-        <StackedButton variant="primary" icon="grab" label={takeLabel(line, typed, line.qty)} className="purse-sheet__go stash__take-go" onClick={take} />
+        <StackedButton variant="primary" icon="grab" label={takeLabel(line, typed, line.qty)} className="purse-sheet__go" onClick={take} />
       </div>
       {blocked.sheet}
     </Dialog>

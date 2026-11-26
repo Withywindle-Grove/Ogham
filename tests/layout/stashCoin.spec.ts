@@ -162,7 +162,7 @@ for (const size of SIZES) {
       // Purpose: with two long-named coins typed at once, the accent's label wraps inside the button and stays inside it,
       // at every size: the shared Coin sheet's accent wraps when it doesn't fit on one line, as K12's Take does (⚑ 8 of
       // #66, ruled 2026-11-26: "Let it wrap").
-      it.fails('stash-coin-two-long: the accent naming two long coins stays inside its button', async ({ page }) => {
+      it('stash-coin-two-long: the accent naming two long coins stays inside its button', async ({ page }) => {
         await openStash(page, 'stash=1&coin=messy');
         await openTake(page);
         const sheet = page.getByRole('dialog');
