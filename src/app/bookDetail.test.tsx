@@ -76,6 +76,14 @@ describe('the detail pop-up (sf-6a)', () => {
     expect(within(popUp).getByText('How many: 2')).toBeTruthy();
   });
 
+  // Purpose (finding 12): "p." never parts from its page, and a die keeps its average on its line ("2d8 (9)").
+  it('keeps "p." with its page and a die with its average', () => {
+    render(<BookDetailPopUp detail={{ ...lurker, shown: layOutStatBlock({ name: 'Bog lurker', hp: '2d8', hpAverage: 9 }, null) }} onClose={() => undefined} />);
+    const popUp = screen.getByRole('dialog', { name: 'Bog lurker' });
+    expect(popUp.querySelector('.source-line')!.textContent).toBe('From your setting: Fen Rules, p.\u00a031');
+    expect(popUp.querySelector('.stat-block__die')!.textContent).toBe('2d8 (9)');
+  });
+
   // Purpose (EN3 B): a named character shows their own words, then the block they use under its name.
   it('a named character shows their words, then the block they use under its name', () => {
     render(<BookDetailPopUp detail={harl({ name: 'Ferryman', shown: lurker.shown })} onClose={() => undefined} />);

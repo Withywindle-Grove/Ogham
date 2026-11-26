@@ -39,6 +39,13 @@ for (const size of [
           // (within half a line: a die's glyph can stand a little taller than the words)
           labelsLate: pairs.filter((p) => p.querySelector('.stat-block__label')!.getBoundingClientRect().top - p.getBoundingClientRect().top > 8).map((p) => p.textContent),
           shortWrapped: pairs.filter((p) => p.matches('.stat-block__pair--short') && lines(p) > 1).map((p) => p.textContent),
+          // A pair is one box: it never starts at the end of one line and runs on into the next. One that wraps inside
+          // itself (a long attacks line) starts a line of its own, at the stat line's left edge.
+          split: pairs.filter((p) => p.getClientRects().length > 1).map((p) => p.textContent),
+          longNotOwnLine: pairs
+            .filter((p) => lines(p) > 1 && Math.abs(p.getBoundingClientRect().left - p.closest('.stat-line')!.getBoundingClientRect().left) > 1)
+            .map((p) => p.textContent),
+          wrappedLong: pairs.filter((p) => lines(p) > 1).length,
           diceSplit: rows.flatMap((row) => [...row.querySelectorAll('.stat-block__die')]).filter((d) => d.getClientRects().length > 1).map((d) => d.textContent),
         };
       });
@@ -48,6 +55,9 @@ for (const size of [
       expect(found.labelsLate).toEqual([]);
       expect(found.shortWrapped).toEqual([]);
       expect(found.diceSplit).toEqual([]);
+      expect(found.split).toEqual([]);
+      expect(found.longNotOwnLine).toEqual([]);
+      if (size.name === 'phone') expect(found.wrappedLong).toBeGreaterThan(0);
     });
 
     test('a long name wraps in the pop-up’s head beside the X', async ({ page }) => {

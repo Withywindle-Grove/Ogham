@@ -1411,8 +1411,8 @@ details[open] > summary > .disclosure::before {
   font-size: var(--text-14);
 }
 
-/* A sheet's foot with its one way back at the right (the stat block's "‹ Back to the encounter", approved 2026-11-12;
-   the same look as the entry panel's foot). */
+/* A sheet's foot with its one way back at the right (approved 2026-11-12 for the stat block's way back, gone since
+   sf-6a; the same look as the entry panel's foot). */
 .sheet-foot {
   display: flex;
   justify-content: flex-end;

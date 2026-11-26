@@ -16,8 +16,9 @@ import './StatBlock.css';
 /** The class a stat block's name takes (Bitter at 700), wherever its heading is. */
 export const STAT_BLOCK_NAME = 'stat-block__name';
 
-// "1d6", "2d8", "d20", and "2 in 6": a die the app draws gets its glyph before it; one it has none for (d3) none.
-const DIE = /(\b\d*d(\d+)\b|\b\d+ in (\d+)\b)/g;
+// "1d6", "2d8", "d20", and "2 in 6": a die the app draws gets its glyph before it; one it has none for (d3) none. An
+// average after it ("2d8 (9)") stays with it on its line (finding 12, page 44).
+const DIE = /(\b\d*d(\d+)\b(?: \(\d+\))?|\b\d+ in (\d+)\b)/g;
 
 /**
  * Words with a die's glyph before each die they name, at text size. A local helper for the stat block: the shared one

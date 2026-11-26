@@ -251,6 +251,13 @@ describe('Encounter waiting (M5b step 2)', () => {
     await user.click(within(head as HTMLElement).getByRole('button', { name: 'Close' }));
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Bog lurker' })).toBeNull());
     await waitFor(() => expect(document.activeElement).toBe(view.getByRole('button', { name: 'Bog lurker: read it' })));
+    // Escape closes only the detail pop-up: the encounter's details stay open, and focus is back on the row.
+    await user.click(view.getByRole('button', { name: 'Bog lurker: read it' }));
+    await screen.findByRole('dialog', { name: 'Bog lurker' });
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Bog lurker' })).toBeNull());
+    expect(screen.getByRole('dialog', { name: 'Encounter waiting: Wandering things' })).toBeTruthy();
+    await waitFor(() => expect(document.activeElement).toBe(view.getByRole('button', { name: 'Bog lurker: read it' })));
     expect(world.tables.waiting_encounters[0]).toMatchObject({ state: 'waiting' });
   });
 

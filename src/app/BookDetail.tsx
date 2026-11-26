@@ -74,6 +74,8 @@ export function BookDetailRow({ detail, short }: { detail: BookDetail; short?: s
  */
 export function BookDetailPopUp({ detail, onClose, preview = false }: { detail: BookDetail; onClose: () => void; preview?: boolean }) {
   const { shown, uses } = detail;
+  // "p." never parts from its page (finding 12).
+  const source = detail.source?.replace(/\bp\. /g, 'p.\u00a0') ?? null;
   // A character's descriptor stands over their words (EN3 B, D); a creature's under its description (A).
   const character = uses !== undefined;
   return (
@@ -83,7 +85,7 @@ export function BookDetailPopUp({ detail, onClose, preview = false }: { detail: 
           <div className="book-detail__body">
             {detail.count && <p className="book-detail__quiet">{`How many: ${detail.count}`}</p>}
             {character && shown.descriptor && <p className="stat-block stat-block__descriptor">{shown.descriptor}</p>}
-            <StatBlock shown={character ? { ...shown, descriptor: null } : shown} source={uses === undefined ? detail.source : null} />
+            <StatBlock shown={character ? { ...shown, descriptor: null } : shown} source={uses === undefined ? source : null} />
             {uses && (
               <>
                 <h3 className="book-detail__uses">{uses.name}</h3>
@@ -91,7 +93,7 @@ export function BookDetailPopUp({ detail, onClose, preview = false }: { detail: 
               </>
             )}
             {uses === null && <p className="book-detail__quiet">{NO_STAT_LINE}</p>}
-            {character && detail.source && <SourceLine>{detail.source}</SourceLine>}
+            {character && source && <SourceLine>{source}</SourceLine>}
           </div>
         </Dialog>
       </CentredPopUpScope.Provider>

@@ -19,9 +19,35 @@
   cursor: pointer;
 }
 
-.book-detail + .book-detail,
-li + li > .book-detail {
+.book-detail + .book-detail {
   border-block-start: 0;
+}
+
+/* A list of them (the encounter's creatures): the rules are the items', so a line with no row (one the packs don't
+   have) sits between the same rules. */
+.book-detail__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.book-detail__list > li {
+  border-block-end: var(--row-rule);
+}
+
+.book-detail__list > li:first-child {
+  border-block-start: var(--row-rule);
+}
+
+.book-detail__list .book-detail {
+  border: 0;
+}
+
+.book-detail__missing {
+  display: block;
+  padding: var(--space-2) 0;
+  color: var(--muted);
+  font-size: var(--text-14);
 }
 
 .book-detail__text {

@@ -279,11 +279,11 @@ export const creatureDetail = (block: StatBlockRef & { count: string | null }): 
 export function CreatureRows({ blocks }: { blocks: CreatureLine[] }) {
   if (blocks.length === 0) return null;
   return (
-    <ul className="scene-card__lines" aria-label="Stat blocks">
+    <ul className="book-detail__list" aria-label="Stat blocks">
       {blocks.map((block, i) => (
-        <li key={i} className="scene-card__line">
+        <li key={i}>
           {block.missing !== undefined ? (
-            <span className="scene-card__note">{`${missingWords([block.missing])}${block.count ? `, ${block.count}` : ''}`}</span>
+            <span className="book-detail__missing">{`${missingWords([block.missing])}${block.count ? `, ${block.count}` : ''}`}</span>
           ) : (
             <BookDetailRow detail={creatureDetail(block)} />
           )}
