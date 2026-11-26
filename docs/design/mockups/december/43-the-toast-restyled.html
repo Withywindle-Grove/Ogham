@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>December: page 43, the toast restyled: A today, B rounded glass, C a pill in glass, D rounded and solid, with the duration panel (43A to 43G ruled by Francis, 25 November: D, 5 seconds, a pause) and 43H, the frames the ruling owes (the redrawn pictures approved by Francis, 25 November; 43H1, 43H3 and 43H4 redrawn to his picks of 26 November)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="december.css">
+<style>
+  /* This page's own rules. Everything here is a token value from docs/06: corners 4 (--radius), 8 (--radius-card),
+     20 (--radius-sheet) and 999 (--radius-pill); spacing 4/8/12/16/24/32; type 14 and 16; the tap 44.
+     Two values are new and are named as tokens in the proposal: the blur (--toast-blur) and the glass tint
+     (--toast-glass). The toast classes are prefixed tz- so they never touch final.css's own .toast.
+     The map is December's stand-in drawing, with its own greys (december.js). */
+  .lbl { font-size:14px; color:var(--muted); margin:var(--space-3) 0 var(--space-2); }
+  .lbl b { color:var(--ink); }
+  .fr43 { margin:0 0 var(--space-5); }
+  .fr43 > .cap { max-width:900px; font-size:16px; color:var(--ink); }
+  .note { max-width:900px; }
+  .note.big { font-size:16px; color:var(--ink); }
+  .flag { display:inline-block; border:1.5px dashed var(--warn); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; font-size:14px; }
+  ol.crit { font-size:16px; max-width:900px; padding-left:var(--space-5); }
+  ol.crit li { margin-bottom:var(--space-2); }
+  table.sc { border-collapse:collapse; font-size:14px; margin:var(--space-2) 0 var(--space-4); color:var(--ink); max-width:900px; }
+  table.sc td, table.sc th { border:1px solid var(--rule); padding:var(--space-1) var(--space-2); text-align:left; vertical-align:top; }
+
+  /* ---- the device frames: a tablet (740 px, standing in for 820) and a phone (343 inside a 375 px screen) ----
+     Each is a fixed height so the toast can sit where the app puts it: above the tab bar, over the gutter. */
+  .fr43 .tablet, .fr43 .phone { height:520px; }
+  .fr43 .phone { height:560px; }
+  .zscr { position:absolute; inset:0; overflow:hidden; }
+  .zscr .zpad { padding:var(--space-3); }
+  /* the tab bar: plain blocks, as the mockup rules ask */
+  .ztabs { position:absolute; left:0; right:0; bottom:0; height:62px; display:flex; border-top:1px solid var(--rule); background:var(--page); }
+  .ztabs span { flex:1; display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--muted); }
+  .ztabs span.on { color:var(--ink); font-weight:700; }
+  /* the toast host: above the tab bar, 12 px over it, the page gutter at its sides, centred */
+  .tzhost { position:absolute; left:16px; right:16px; bottom:74px; display:flex; justify-content:center; }
+
+  /* ---- the toast itself ---- */
+  .tz { position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-2) var(--space-3); width:100%; max-width:572px; box-sizing:border-box; padding:var(--space-2) var(--space-2) var(--space-2) var(--space-4); overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,.25); }
+  .tz .zt { flex:1 1 auto; min-width:0; overflow-wrap:anywhere; }
+  .tz .zu { margin-left:auto; text-align:right; min-height:44px; padding:0 var(--space-3); font-weight:700; text-decoration:underline; text-underline-offset:4px; display:inline-flex; align-items:center; justify-content:flex-end; }
+  .tz .zbar { position:absolute; left:0; right:0; bottom:0; height:4px; transform-origin:left; }
+  /* A: as built today. --radius-card, solid --ink on --page, the bar at 50% */
+  .tz.a { border-radius:8px; background:var(--ink); color:var(--page); }
+  .tz.a .zbar { background:var(--page); opacity:.5; }
+  /* D: the same, rounded (--radius-sheet) */
+  .tz.d { border-radius:20px; background:var(--ink); color:var(--page); }
+  .tz.d .zbar { background:var(--page); opacity:.65; }
+  /* B: rounded and frosted. --toast-glass (the ink at 82%) with --toast-blur behind it */
+  .tz.b { border-radius:20px; background:var(--toast-glass); color:var(--page); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
+  .tz.b .zbar { background:var(--page); opacity:.65; }
+  /* C: a pill, frosted. Room at both ends so no word sits in the curve; the bar inset and rounded, so the corner
+     radius does not cut it to a chord */
+  .tz.c { border-radius:999px; background:var(--toast-glass); color:var(--page); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); padding-left:var(--space-5); padding-right:var(--space-4); }
+  .tz.c .zbar { left:24px; right:24px; bottom:4px; border-radius:999px; background:var(--page); opacity:.65; }
+  .tz.c.two { border-radius:20px; } /* drawn only where a caption says so */
+  /* where blur is not supported, or transparency is unwanted: the solid toast */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .tz.b, .tz.c { background:var(--ink); }
+  }
+  @media (prefers-reduced-transparency: reduce) { .tz.b, .tz.c { background:var(--ink); -webkit-backdrop-filter:none; backdrop-filter:none; } }
+  /* the glass tint, per theme: the ink at 82%. Named --toast-glass in the proposal. */
+  .light { --toast-glass:rgb(25 23 20 / 82%); }
+  .dark  { --toast-glass:rgb(241 234 220 / 82%); }
+  /* the drained states of the duration panel */
+  .tz .zbar.p67 { transform:scaleX(.67); }
+  .tz .zbar.p60 { transform:scaleX(.60); }
+  .tz .zbar.p50 { transform:scaleX(.50); }
+  .tz.noglass { background:var(--ink); -webkit-backdrop-filter:none; backdrop-filter:none; }
+
+  /* the busy page behind: the map, then a long list */
+  .zscr .mapbody { height:176px; overflow:hidden; }
+  .zscr .mapbody svg { width:100%; height:auto; }
+  .zglist { border-top:1px solid var(--rule); margin-top:var(--space-3); }
+  .zgrow { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); min-height:52px; padding:var(--space-2) 0; border-bottom:1px solid var(--rule); }
+  .zgrow .zn { min-width:0; overflow-wrap:anywhere; }
+  .zgrow .zq { color:var(--muted); font-size:14px; flex:none; }
+  .zph { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; line-height:1.2; margin:0 0 var(--space-2); }
+  .zplain p { margin:0 0 var(--space-3); }
+  .zplain .zempty { color:var(--muted); font-size:16px; }
+  .zfour { display:flex; flex-wrap:wrap; gap:var(--space-4); align-items:flex-start; }
+  .zdur { display:grid; gap:var(--space-3); max-width:572px; }
+
+  /* ---- 43H: the ruled dress (D), with what the ruling of 25 November adds ----
+     .h is D with: the toast as wide as its words (as the app draws it: 43A to 43G stretched it to the full width),
+     the bar inset to the words' edge (--space-4), lifted --space-1 and rounded (--radius-pill), at --toast-bar-ink (65%). */
+  .tz.h { width:auto; max-width:min(100%, 572px); min-height:60px; } /* tr-11: every toast at least the height of one with Undo (8 + 44 + 8) */
+  .phone .tz.h { width:100%; } /* tr-12: under 600 px the toast fills the width between the margins */
+  .tz.h { min-width:calc(44px * 5); } /* tr-17: no toast narrower than five tap targets (220 px), so a words-only toast's bar is long enough to read as a countdown */
+  /* tr-18: on a phone, the page colour under the toast. A band the whole width of the screen, from where the toast's
+     bottom corners begin (--radius-sheet above its foot) down to the tab bar, behind the toast: the row behind no
+     longer shows cut in the gap. 11 px, not 12, only because this page's tab bar is drawn 1 px taller than its 62. */
+  .phone .tzhost:has(> .tz.h)::before { content:''; position:absolute; left:-16px; right:-16px; bottom:-11px; height:calc(11px + 20px); background:var(--page); }
+  .tz.h .zbar { left:var(--space-4); right:var(--space-4); bottom:var(--space-1); border-radius:999px; }
+  /* from tablet width the words take what is left beside the button; a button wider than half the toast still drops under */
+  .tz.h.wide .zt { flex:1 1 50%; }
+  .tz.h.wide .zu { flex:0 1 auto; }
+  /* the error mark: the Note part's danger shape, before the words, level with their first line, in the words' colour */
+  /* tr-9: the mark is the ✕ on a disc (a badge, not a close). The bare ✕ is kept for 43H2's record only */
+  .tz.h .zt.err { position:relative; padding-left:calc(20px + var(--space-2)); }
+  .tz.h .zx { position:absolute; left:0; top:2px; width:20px; height:20px; border-radius:999px; background:var(--page); color:var(--ink); font-size:14px; font-weight:700; line-height:20px; text-align:center; }
+  .tz.h .zt.err.bare { padding-left:var(--space-5); }
+  .tz.h .zx.bare { top:0; width:auto; height:auto; border-radius:0; background:none; color:inherit; font-size:16px; line-height:inherit; }
+  /* tr-10: reduced motion: the bar holds still and fades over the toast's whole time, 65% to nothing */
+  .tz.h .zbar.f50 { opacity:.32; }
+  .tz.h .zbar.f20 { opacity:.13; }
+  .tz.h.gone { opacity:.35; } /* the "not followed" way in 43H2 */
+  .zstates { display:grid; gap:var(--space-3); max-width:572px; justify-items:start; }
+  .zstates .tz { width:fit-content; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script>
+/* ---------------- the toast, in its four dresses ---------------- */
+// text: the words; kind: 'undo' | 'error' | 'plain'; o.bar: the bar's drained fraction class
+const tzBar = (cls = '') => `<span class="zbar ${cls}" aria-hidden="true"></span>`;
+const tz = (opt, words, kind = 'undo', o = {}) =>
+  `<div class="tz ${opt}${o.two ? ' two' : ''}${o.noglass ? ' noglass' : ''}" role="${kind === 'error' ? 'alert' : 'status'}">` +
+  `<span class="zt">${words}</span>` +
+  (kind === 'undo' ? '<span class="zu" role="button">Undo</span>' : '') +
+  (o.nobar ? '' : tzBar(o.bar || '')) + '</div>';
+
+const UNDO = 'Dropped 3 torches';
+const LONG = 'Gave the hooded lantern and 2 flasks of oil to Fenna of the Long Causeway';
+const ERR  = 'Not saved: you are offline. It goes to the table when you are back.';
+
+/* ---------------- what sits behind: a busy page and a plain one ---------------- */
+const GEAR = [['Hooded lantern', '1'], ['Flask of oil', '3'], ['Coil of tarred rope', '1'], ['Iron spikes', '12'],
+  ['Salt pork, a day', '6'], ['Chalk, a stub', '2'], ['Fenna’s sealed letter', '1'], ['Crowbar', '1'],
+  ['Pole, a long one', '1'], ['Waxed cloth', '2'], ['Tinder box', '1'], ['Bog lurker’s tooth', '1']];
+const glist = GEAR.map(([n, q]) => `<div class="zgrow"><span class="zn">${n}</span><span class="zq">${q}</span></div>`).join('');
+const busy = (tabs, toast) => `<div class="zscr"><div class="zpad"><h3 class="zph">The Drowned Harbour · turn 14</h3>
+  <div class="mapbody">${mapPic(false)}</div>
+  <div class="zglist">${glist}</div></div>${tabs}</div><div class="tzhost">${toast}</div>`;
+const plain = (tabs, toast) => `<div class="zscr"><div class="zpad zplain"><h3 class="zph">Charter</h3>
+  <p>Five shares, one each. The party fund takes a tenth of every haul before the split.</p>
+  <p class="zempty">Nothing is waiting on a vote.</p></div>${tabs}</div><div class="tzhost">${toast}</div>`;
+const TABS = `<div class="ztabs"><span class="on">Pack</span><span>Scene</span><span>Party</span><span>Log</span></div>`;
+const dev = (w, kindOfPage, toast, cap) => {
+  const inner = (kindOfPage === 'busy' ? busy : plain)(TABS, toast);
+  return w === 'phone' ? phone(inner, cap) : tablet(inner, cap);
+};
+
+/* ---------------- one option's frame: five devices ---------------- */
+const OPTNAME = {
+  a: 'A · today, as built',
+  b: 'B · rounded, frosted glass',
+  c: 'C · a pill, frosted glass',
+  d: 'D · rounded, solid',
+};
+const frame = (opt) => `<div class="zfour">
+  ${dev('tablet', 'busy', tz(opt, UNDO), `${OPTNAME[opt]} — a tablet, over the map and the long list. The toast with <b>Undo</b>.`)}
+  ${dev('tablet', 'plain', tz(opt, LONG, 'undo', opt === 'c' ? { two: false } : {}), `${OPTNAME[opt]} — a tablet, over a plain page. The <b>long toast</b>: the words keep the width and Undo drops to its own line, at the right.`)}
+  ${dev('phone', 'busy', tz(opt, ERR, 'error'), `${OPTNAME[opt]} — a phone (375 px), over the map and the list. The <b>error</b> toast: nothing but its words marks it as one (the ruling of 13 November).`)}
+  ${dev('phone', 'plain', tz(opt, LONG), `${OPTNAME[opt]} — a phone, over a plain page. The long toast wraps to three lines; Undo stays a 44 px target at the right.`)}
+  ${dev('phone', 'busy', tz(opt, UNDO), `${OPTNAME[opt]} — a phone, over the map. The short toast stays on one line.`)}
+</div>`;
+
+/* ---------------- E: the four side by side, same toast, same page ---------------- */
+const compare = `<div class="zfour">
+  ${dev('tablet', 'busy', tz('a', UNDO), '<b>A · today.</b> 8 px corners, solid; the bar at half strength.')}
+  ${dev('tablet', 'busy', tz('b', UNDO), '<b>B · rounded, frosted.</b> 20 px corners, the glass tint over a blur.')}
+  ${dev('tablet', 'busy', tz('c', UNDO), '<b>C · a pill, frosted.</b> Room at both ends; the bar inset and rounded.')}
+  ${dev('tablet', 'busy', tz('d', UNDO), '<b>D · rounded, solid.</b> B’s shape with today’s solid back.')}
+</div>`;
+
+/* ---------------- F: the fallback where blur is not supported ---------------- */
+const fallback = `<div class="zfour">
+  ${dev('tablet', 'busy', tz('b', UNDO), '<b>B with blur.</b> What a browser that has <code>backdrop-filter</code> draws.')}
+  ${dev('tablet', 'busy', tz('b', UNDO, 'undo', { noglass: true }), '<b>B without it.</b> The fallback: the same shape, the solid back, nothing else changed. Also what “Reduce transparency” gets.')}
+</div>`;
+
+/* ---------------- G: the duration panel ---------------- */
+const durRow = (secs, frac, words) => `<div><p class="lbl" style="margin-top:0"><b>${secs}</b> ${words}</p>${tz('b', UNDO, 'undo', { bar: frac })}</div>`;
+const duration = `<div class="zdur">
+  ${durRow('6 seconds (today)', 'p67', '— two seconds in, two thirds of the bar is left. Ruled mm-6 on 10 November, down from 8.')}
+  ${durRow('5 seconds', 'p60', '— two seconds in, three fifths left. One second less to read and reach.')}
+  ${durRow('4 seconds', 'p50', '— two seconds in, half gone. The bar now reads as hurrying.')}
+</div>`;
+
+/* ---------------- H: the ruled dress with the error mark, the words beside Undo, the inset bar ---------------- */
+// o.wide: tablet width (the button beside the words); o.action: a named action instead of Undo; o.bare: the mark not followed (43H2 only)
+const tzh = (words, kind = 'undo', o = {}) =>
+  `<div class="tz d h${o.wide ? ' wide' : ''}${o.bare ? ' gone' : ''}" role="${kind === 'error' ? 'alert' : 'status'}">` +
+  `<span class="zt${kind === 'error' ? ' err' + (o.bare ? ' bare' : '') : ''}">` +
+  (kind === 'error' ? `<span class="zx${o.bare ? ' bare' : ''}" aria-hidden="true">✕</span>` : '') + `${words}</span>` +
+  (kind === 'undo' ? `<span class="zu" role="button">${o.action || 'Undo'}</span>` : '') +
+  tzBar(o.bar || '') + '</div>';
+const ERR1 = 'Couldn’t mark it seen. Try again.';
+const ERR2 = 'Couldn’t swap your patron’s garb. Check your connection and try again.';
+const ERR5 = ERR2 + ' Patron: the Reed Mother. Your leaning is now Lantern, and her garb waits in your pack until it can be swapped.';
+const PLAYAS = 'Play as Mirelda Ashgrove-Thistlewaite of the drowned causeway';
+const JOINED = 'Mirelda Ashgrove-Thistlewaite of the drowned causeway has joined the party.';
+const hMark = `<div class="zfour">
+  ${dev('tablet', 'busy', tzh(ERR1, 'error', { wide: true }), '<b>H1 · a tablet, a one-line error.</b> The ✕ on its disc before the words. The toast is as wide as its words and 60 px tall, the height of one with Undo. It stays 5 seconds.')}
+  ${dev('tablet', 'plain', tzh(ERR5, 'error', { wide: true }), '<b>H1 · a tablet, a long error</b> (the garb swap’s, gs-5a, with its patron line). The disc stays level with the first line; the words hang clear of it. Three lines here: 6 seconds.')}
+  ${dev('phone', 'busy', tzh(ERR1, 'error'), '<b>H1 · a phone (375 px), one line.</b> The toast fills the width between the margins, and <b>the page colour runs under it</b> to the tab bar: no list row shows at its sides, or cut in the gap below. 5 seconds.')}
+  ${dev('phone', 'plain', tzh(ERR2, 'error'), '<b>H1 · a phone, three lines.</b> One line over two: 6 seconds.')}
+  ${dev('phone', 'plain', tzh(ERR5, 'error'), '<b>H1 · a phone, the long one.</b> Messy data: the longest error the app has. Six lines, and still <b>6 seconds</b>: the top. A finger held on it stops the timer.')}
+</div>`;
+const hWays = `<div class="zstates">
+  <div><p class="lbl" style="margin-top:0"><b>2 · the ✕ on a disc: ruled.</b> Reads as a badge, not as the ✕ that closes a sheet. One new small shape. Drawn in H1.</p>${tzh(ERR1, 'error')}</div>
+  <div><p class="lbl"><b>1 · the bare ✕: not followed</b> (drawn faint, for the record). On a short toast it read as “close”, and a tap on it does nothing.</p>${tzh(ERR1, 'error', { bare: true })}</div>
+  <div><p class="lbl"><b>For comparison:</b> an ordinary toast in the same dress, the same height. Nothing but the mark and the words tells them apart; no colour is used.</p>${tzh(UNDO)}</div>
+</div>`;
+const hBeside = `<div class="zfour">
+  ${dev('tablet', 'plain', tzh(LONG, 'undo', { wide: true }), '<b>H3 · a tablet, the long toast.</b> The words wrap <b>beside</b> Undo; Undo keeps its place at the right, centred on the words. (43D drew it dropped to its own line.)')}
+  ${dev('tablet', 'busy', tzh(UNDO, 'undo', { wide: true }), '<b>H3 · a tablet, the short toast.</b> One line, as wide as its words, 60 px tall.')}
+  ${dev('tablet', 'plain', tzh(JOINED, 'undo', { wide: true, action: PLAYAS }), '<b>H3 · a tablet, no room.</b> Messy data: a button longer than half the toast still drops under the words, at the right (tw-1, 13 November, unchanged).')}
+  ${dev('phone', 'plain', tzh(LONG), '<b>H3 · a phone (375 px).</b> The toast fills the width between the margins. The wrap is unchanged from tw-1: the words keep the width, Undo under them at the right.')}
+  ${dev('phone', 'busy', tzh(UNDO), '<b>H3 · a phone, the short toast.</b> One line, the full width, Undo at the right. The page colour runs under it, so the row behind is not cut in the gap over the tab bar.')}
+</div>`;
+const hBar = `<div class="zstates">
+  <div><p class="lbl" style="margin-top:0"><b>Running, two seconds into five.</b> The bar starts at the words’ left edge, sits 4 px up and has round ends, so the corner never cuts it. 65% strength in both themes.</p>${tzh(UNDO, 'undo', { bar: 'p60' })}</div>
+  <div><p class="lbl"><b>Held</b> (a finger, a pointer or keyboard focus on the toast). The bar stops where it is and nothing else changes: no word, no new mark. It goes on from the same place after. Accepted as drawn.</p>${tzh(UNDO, 'undo', { bar: 'p60' })}</div>
+  <div><p class="lbl"><b>Reduced motion, at the start.</b> The bar is whole and never moves. It fades over the toast’s whole time, from 65% to nothing, so time is seen running out from the first second.</p>${tzh(UNDO)}</div>
+  <div><p class="lbl"><b>Reduced motion, half-way</b> (2½ seconds into five). The bar is whole, at half its strength.</p>${tzh(UNDO, 'undo', { bar: 'f50' })}</div>
+  <div><p class="lbl"><b>Reduced motion, the last second.</b> Nearly gone; then the toast goes. Held, the fade stops where it is, as the drain does.</p>${tzh(UNDO, 'undo', { bar: 'f20' })}</div>
+  <div><p class="lbl"><b>A toast with words only</b> (“Saved”). The same 60 px tall, and <b>at least 220 px wide</b> (five tap targets, about the width of “Dropped 3 torches”), so its bar is long enough to read as a countdown.</p>${tzh('Saved', 'plain')}</div>
+  <div><p class="lbl"><b>The same, two seconds into five.</b> As first drawn it was 69 px wide, with a 37 px bar that read as a mark under the word, not as time running out.</p>${tzh('Saved', 'plain', { bar: 'p60' })}</div>
+</div>`;
+
+mount(`
+  <h1>Page 43. The toast restyled</h1>
+  <p class="note big"><b>Ruled, 25 November: 43A to 43G.</b> Francis, on Home Two’s <code>impeccable critique</code> of this page (25 November, 29/40, which chose D): “Approve with those recommendations.” <b>D</b> (rounded, solid, no glass); <b>5 seconds</b>, only with a <b>pause</b> under a finger, a pointer or keyboard focus; the error toast gains the <b>✕</b>; with reduced motion the bar stays still and fades at the end; on a tablet the long toast’s words wrap beside Undo; the bar at 65%, inset and rounded; a new toast still replaces the one showing. The ruling: <code>docs/design/rulings/toast-restyle-2026-11-25.md</code>. <b>43H, at the foot, is approved 2026-11-25 with its fixes drawn</b> (tr-8 to tr-14). B, C, F and the glass tokens are not followed. <b>26 November</b> (tr-15 to tr-18): an error stays 6 seconds at the most; its lines are counted once; no toast is narrower than 220 px; on a phone the page colour runs under the toast. 43H1, 43H3 and 43H4 are redrawn to those picks. <b>26 November, later</b> (tr-19 to tr-22): <b>the six redrawn pictures are approved by Francis</b>, and an error toast says what failed and what to do in <b>at most about 20 words</b>.</p>
+  <p class="note"><b>As first put to him, 25 November.</b> For his question of today: “How easy is it to change the toast? I don’t think it looks good and its duration is too long. I’m thinking rounded edges and partially opaque frosted glass.” Four dresses are drawn, each over a <b>busy</b> page (the map and a long list) and a <b>plain</b> one, at tablet width and at 375 px, light and dark, with the <b>Undo</b> toast, a <b>long</b> one whose Undo wraps, and an <b>error</b> toast. Then the duration panel, the fallback where blur is not drawn, and the measured contrast of every one. The <code>impeccable critique</code> of this page is run by the PC session and its findings go in beside these frames; <b>pick findings by number</b> once they are there. Names, numbers and words are invented.</p>
+  <p class="note"><b>What is not up for change here:</b> one toast at a time, above the tab bar; the words (past tense, what moved, then one action); the draining bar; Undo as the toast’s own, with the same Undo in the log. The dress and the seconds are what this page asks about.</p>
+
+  <h1>43A. Today, as built</h1>
+  <p class="cap">8 px corners (<code>--radius-card</code>), the solid ink back with page-coloured words, the pop-up shadow, the bar at half strength, Undo as underlined bold words. Unchanged from <code>src/ui/parts.css</code>.</p>
+  <div class="wall fr43 shot" data-k="a">${frame('a')}</div>
+
+  <h1>43B. Rounded, frosted glass</h1>
+  <p class="cap">20 px corners (<code>--radius-sheet</code>, the sheet’s corner, so no new corner token) and the <b>glass</b>: the ink tint at 82% (<code>--toast-glass</code>) over a blur of what lies behind (<code>--toast-blur</code>). The bar goes up to 65% strength (<code>--toast-bar-ink</code>) so it keeps its 3:1 on glass. Nothing else changes.</p>
+  <div class="wall fr43 shot" data-k="b">${frame('b')}</div>
+
+  <h1>43C. A pill, frosted glass</h1>
+  <p class="cap">The same glass with <code>--radius-pill</code>. Two changes it forces: room at both ends (<code>--space-5</code> at the left) so no word sits in the curve, and the bar inset and rounded, since a full-width bar is cut to a chord by the corner. Watch the long toast: a pill with three lines is a wide blob, not a pill.</p>
+  <div class="wall fr43 shot" data-k="c">${frame('c')}</div>
+
+  <h1>43D. Rounded, solid</h1>
+  <p class="cap">B’s shape with today’s solid back, for comparison: how much of “it looks better” is the corner and how much is the glass.</p>
+  <div class="wall fr43 shot" data-k="d">${frame('d')}</div>
+
+  <h1>43E. The four, one under the other</h1>
+  <p class="cap">The same toast on the same page, the four dresses one under the other, for a straight comparison. (They stack rather than sit in a row: a tablet frame is 740 px and the two themes are drawn side by side.)</p>
+  <div class="wall fr43 shot" data-k="e">${compare}</div>
+
+  <h1>43F. Where blur is not drawn</h1>
+  <p class="cap">Browser support: <code>backdrop-filter</code> is drawn by Chrome and Edge (76 and up), by Firefox (103 and up) and by Safari and WebKit — prefixed as <code>-webkit-backdrop-filter</code> since Safari 9, unprefixed from Safari 18. Our layout checks run WebKit, so the rule must carry <b>both</b> spellings, prefixed first. Where neither is drawn, and where the reader has asked for less transparency, the toast falls back to the solid back and keeps its new corner. An iPad or a phone in Low Power Mode still draws it; a very old Android browser may not.</p>
+  <div class="wall fr43 shot" data-k="f">${fallback}</div>
+
+  <h1>43G. How long it stays</h1>
+  <p class="cap">Today: 6 seconds, app-wide (<code>--toast-time</code> and <code>TOAST_SECONDS</code>; ruled mm-6 on 10 November, down from 8, “to start with”). The same toast in B’s dress, its bar two seconds in at each length, so the drain can be judged rather than imagined. (Zoom in and the bar’s ends are cut by the 20 px corner: critique 6.)</p>
+  <div class="wall fr43 shot" data-k="g">${duration}</div>
+  <table class="sc">
+  <tr><th></th><th>6 s (today)</th><th>5 s</th><th>4 s</th></tr>
+  <tr><td>Time to notice it, then read “Dropped 3 torches” (7 syllables, about 1.3 s read, about 0.6 s to notice)</td><td>4.1 s left to reach Undo</td><td>3.1 s left</td><td>2.1 s left</td></tr>
+  <tr><td>The long toast (three lines on a phone, about 4.2 s read)</td><td>1.2 s left</td><td>0.2 s left</td><td><b>gone while reading</b></td></tr>
+  <tr><td>Reaching Undo with a tablet flat on the table, hand off it</td><td>comfortable</td><td>comfortable for a short toast</td><td>hurried</td></tr>
+  <tr><td>A screen reader hearing the words, then finding Undo</td><td>tight already</td><td>too tight</td><td>no</td></tr>
+  <tr><td>How it feels at the table (the calm screen)</td><td>it lingers; two toasts in a row read as clutter</td><td>a beat quicker, still readable</td><td>flickery</td></tr>
+  </table>
+  <p class="note big"><b>Does it pause? No.</b> Read in the code today (<code>src/ui/parts.tsx</code>, <code>Toast</code>): one <code>window.setTimeout(onDone, seconds * 1000)</code> set when the toast appears, cleared only when it unmounts. There is <b>no pause on hover, on focus or on touch</b>, and none when the tab is hidden; the bar is a pure CSS animation with no pause either. Two more things found while reading: (1) a new toast <b>replaces</b> the one showing (<code>ToastHost</code>), so a second action cuts the first Undo window short; (2) with reduced motion the bar’s animation is switched off but the timer is not, so a reader who has asked for less motion gets <b>no visible countdown at all</b> — the toast simply goes. Neither is a dress question; both belong with the seconds.</p>
+  <p class="note big"><b>My recommendation: 5 seconds, and a pause.</b> Shorten to 5 s <i>together with</i> pausing the timer while a pointer is over the toast, while the Undo has keyboard focus, and while a finger is on it, resuming when it leaves. On WCAG 2.2.1 (Timing Adjustable): a 6 s or 5 s window to reach Undo is a time limit, and we pass it only because the <b>same Undo is in the log</b> with the same rules, so nothing is lost when the toast goes — that is the load-bearing fact, and it is why the seconds are a comfort question, not a correctness one. Pausing on hover and focus is the cheap half of the standard and removes the only real risk, a reader mid-sentence. 4 s I would not do: the long toast is gone before it is read. <b>Cost, honestly:</b> the dress is CSS only (about a quarter turn, plus the gallery pictures that hold a toast); the pause is app code in one component with two tests, about half a turn; the seconds alone are a one-line change plus the specs and one test.</p>
+
+  <h1>Contrast, measured</h1>
+  <p class="note">Computed from the token values in <code>docs/06</code> against each option’s <b>worst-case</b> backdrop, with the glass composited at 82%. The text is the page colour on the light theme’s toast and the page colour on the dark theme’s (the toast inverts with the theme, as built).</p>
+  <table class="sc">
+  <tr><th>Option</th><th>Light: worst case</th><th>Dark: worst case</th><th>Bar against the toast (3:1 floor)</th></tr>
+  <tr><td>A · today, solid</td><td><b>17.11:1</b> (no backdrop shows through)</td><td><b>15.87:1</b></td><td>5.11:1 light, <b>3.41:1</b> dark</td></tr>
+  <tr><td>B and C · glass at 82%</td><td><b>9.76:1</b> over white (the sheet); 9.88 over the page, 10.20 over the map’s sand, 12.88 over its sea</td><td><b>10.83:1</b> over the dark page; 11.05 over the dark sheet, 13.83 over the map’s sea, 16.02 over its sand</td><td>at half strength, <b>3.80:1</b> light and <b>3.07:1</b> dark — too near the floor, so the bar goes to 65%: <b>5.20:1</b> light, <b>4.65:1</b> dark</td></tr>
+  <tr><td>D · rounded, solid</td><td>17.11:1</td><td>15.87:1</td><td>as B, at 65%</td></tr>
+  <tr><td>At 80% tint, if a softer glass is wanted</td><td>9.13:1</td><td>10.28:1</td><td>unchanged</td></tr>
+  <tr><td>At 85% tint</td><td>10.84:1</td><td>11.55:1</td><td>unchanged</td></tr>
+  </table>
+  <p class="note"><b>Caveat on the figures.</b> A blur averages what is behind it, so the real composite over the map lies between these flat extremes; the numbers above <b>bound</b> it from both ends, taking the lightest and darkest flat colour the app or a picture can put behind a toast. The floor for body text is 4.5:1; the worst case here is better than twice that. <b>Colour carries nothing on its own</b> on this page: the error toast differs from the others by its words alone (ruled 13 November), and the glass tint is not a signal — so no greyscale strip is needed, but <span class="flag">⚑ 4</span> asks whether the error should gain the ✕ mark.</p>
+
+  <h1>New tokens this asks for</h1>
+  <table class="sc">
+  <tr><th>Token</th><th>What it is</th><th>Used by</th></tr>
+  <tr><td><code>--toast-blur</code></td><td>How far the backdrop is blurred behind the toast. One value, both themes.</td><td>B, C</td></tr>
+  <tr><td><code>--toast-glass</code></td><td>The toast’s tint: the ink at 82% in light, the ink (the cream) at 82% in dark. One token a theme, as every colour token is.</td><td>B, C</td></tr>
+  <tr><td><code>--toast-bar-ink</code></td><td>The draining bar’s strength, raised from half so it keeps 3:1 over glass.</td><td>B, C, D</td></tr>
+  <tr><td><code>--toast-time</code> (exists)</td><td>The seconds. Changes value only, if 5 s is ruled.</td><td>all</td></tr>
+  <tr><td>No new corner token</td><td>B and D take <code>--radius-sheet</code>, C takes <code>--radius-pill</code>; both are in docs/06 already.</td><td>B, C, D</td></tr>
+  </table>
+
+  <h1>Critique</h1>
+  <p class="note"><b>Left for the PC session:</b> <code>impeccable critique</code> on this page, its findings numbered here, and Francis picks by number. My own short list is below so nothing waits on it.</p>
+  <ol class="crit">
+  <li><b>C’s pill breaks on a long toast.</b> Three lines in a 999 px corner is a blob with the words crowded into a lens. Drawn as it really falls. Fix: the pill only while the toast is one line, 20 px corners when it wraps (two shapes for one part), or no pill. <span class="flag">⚑ 2</span></li>
+  <li><b>The glass shows the list scrolling under it.</b> Over the long list the tint moves while the page moves, which is the opposite of a calm screen; the solid A and D are dead still. Judge it on the real screen before ruling B or C.</li>
+  <li><b>The pill eats width.</b> Room at both ends plus the inset bar costs about 24 px of line, so the long toast wraps a line earlier on a phone. Visible in 43C’s fourth frame.</li>
+  <li><b>Nothing marks an error but the words.</b> With a frosted toast the words are the only difference between “Dropped 3 torches” and a failure. <span class="flag">⚑ 4</span></li>
+  <li><b>The bar’s ends vanish into a 20 px corner.</b> In B and D the draining bar runs edge to edge and the corner curve cuts its last few pixels, so the bar looks to start and end short of the toast. Visible zoomed in 43G. Fix: inset and round the bar as C already does, in every rounded dress — then one bar rule serves B, C and D.</li>
+  <li><b>The shadow is doing two jobs.</b> On glass the pop-up shadow is what separates the toast from the page; without it the frosted toast over the plain page nearly vanishes. Kept as built on all four.</li>
+  </ol>
+
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked, in the markup and on the drawn page.</b> Tokens only: corners 8, 20 and 999, spacing 4 to 24, type 16 with the captions at 14, nothing under 14. Undo is a 44 px target with the toast’s own padding keeping it 8 px clear of the words; on a phone it wraps to its own line at the right and keeps its height. One accent button a screen: a toast has none, so none of these frames adds one. No disabled button. Undo over confirm: unchanged, this is the Undo. Both themes, side by side, cloned from the same markup. Both widths: a tablet at 740 px standing in for 820, and a phone at 375 px (343 inside). Messy data: a 62-character sentence and a long person’s name wrapping to three lines, “3” and “12” in the list behind, a one-line toast and a three-line one in the same dress. Every state the toast has: with Undo, without (the error), long, over a busy page, over a plain page, mid-drain (43G), and the no-blur fallback (43F). Contrast computed for every combination above, both themes.</p>
+  <p class="note"><b>Not checked, honestly.</b> Blur is drawn here by the browser that took the pictures (Chrome); <b>I could not render these frames in WebKit</b> — no WebKit is installed in this container — so Safari’s blur strength and its behaviour over a scrolling list are unverified, and the layout check’s own pictures may differ by a shade. Loading and offline states of the page behind are not drawn (the toast does not change with them). Larger text. Motion: the drain is drawn still, at a fraction, not animated. A real pack’s picture behind the glass (December’s stand-in map is used, with its own greys). The 5-second feel can only be judged in the app. <b>Cost:</b> B or D is CSS and one token pair; C adds a second shape rule for a wrapped toast; the pause is app code with tests.</p>
+
+  <h1>43H. What the ruling owes a picture <span class="flag">approved 2026-11-25</span> <span class="flag">H1, H3 and H4 redrawn to Francis’s picks of 26 Nov</span> <span class="flag">redrawn pictures approved by Francis, 26 Nov</span></h1>
+  <p class="note big"><b>Redrawn pictures approved by Francis, 26 Nov.</b> Home Two ran <code>impeccable critique</code> on the six redrawn pictures (43H1, 43H3 and 43H4, light and dark): <b>34/40</b>, its text a comment on pull request #103. Francis: <b>“Approve”</b>, of the six as drawn: <b>b</b>, the 220 px least width; <b>c</b>, the phone’s band; the 6-second top with the hold under a finger. On its finding 1 he ruled a <b>word limit</b>: an error toast says what failed and what to do in at most about 20 words, and anything more belongs on the screen it describes. The garb swap’s error becomes “Couldn’t swap your patron’s garb. Check your connection and try again. Her garb is in your pack.” Findings 2 to 4 are the builder’s. The ruling: tr-19 to tr-22; the table of findings is near the foot. <b>Nothing is redrawn for it:</b> the six-line error in 43H1 keeps its words as approved, and now shows what the limit is for.</p>
+  <p class="note big"><b>Redrawn to Francis’s picks of 26 November.</b> Home Two re-checked the approved 43H (35/40). Of its three points he picked <b>b</b> (a toast with words only gets a minimum width) and <b>c</b> (on a phone the row behind must not show as a cut sliver under the toast), not a (timing by the words). The same day he answered the plan’s ⚑ 9, “Cap at 6s. A user should be able to tap and hold to stop the timer.”, and ⚑ 10, “Yes, count once.” <b>43H1, 43H3 and 43H4 are redrawn</b> to them (tr-15 to tr-18); 43H2 is as approved on 25 November. He approved the frames on 25 November and these picks on 26 November, and the picks are his approval of the two fixes. <b>How c is done is the designer’s choice</b>, drawn here for his eye: a band of the page colour behind the toast. The table of picks is near the foot.</p>
+  <p class="note big"><b>Approved, 25 November.</b> Francis, on Home Two’s <code>impeccable critique</code> of 43H (32/40, below): “Approve with those recommendations.” The frames below are <b>redrawn to them</b>: the error’s mark is the <b>✕ on a disc</b>; every toast is at least <b>60 px</b> tall; on a <b>phone</b> (under 600 px) the toast fills the width between the margins, and on a tablet it stays as wide as its words; with <b>reduced motion</b> the bar fades over the toast’s whole time; an <b>error stays longer</b>, 5 seconds plus 1 for each line over two. The keyboard hold looking like a running toast is accepted as drawn. The ruling: <code>docs/design/rulings/toast-restyle-2026-11-25.md</code>, tr-8 to tr-14. <b>The redrawn pictures are approved too, 25 November:</b> shown the eight, Francis said “Approved both 3 and 95”.</p>
+  <p class="note"><b>As first drawn, 25 November, after the first ruling.</b> Dress D as ruled, with the four things the ruling changed that no frame above shows: the error’s <b>✕</b>, the long toast’s words <b>beside Undo</b> on a tablet, the bar <b>inset and rounded</b>, and the <b>reduced-motion</b> end. Light and dark, a tablet and 375 px. The error words are the app’s own (“Couldn’t mark it seen. Try again.” and the garb swap’s, gs-5a), in the voice guide’s pattern: what happened, then what to do.</p>
+
+  <h1>43H1. The error mark</h1>
+  <p class="cap">The ✕ is the danger shape the Note part already uses (06: “every semantic colour carries a shape”), here on a small disc so it reads as a badge. It sits before the words, level with their first line, and is <b>not a button</b>. It is in the toast’s own two colours, not the danger red: the toast is ink in light and cream in dark, and the danger token measures 2.19:1 and 2.03:1 on those, under the 3:1 floor. So the shape and the words carry it, and colour carries nothing. A screen reader hears <b>“Problem”</b> first, then the words, as it does for a Note.</p>
+  <div class="wall fr43 shot" data-k="h1">${hMark}</div>
+  <table class="sc">
+  <tr><th>How long an error toast stays</th><th>Lines, as it is drawn</th><th>Seconds</th></tr>
+  <tr><td>“Couldn’t mark it seen. Try again.”</td><td>1</td><td>5</td></tr>
+  <tr><td>Any error of two lines (none is drawn)</td><td>2</td><td>5</td></tr>
+  <tr><td>The garb swap’s, on a phone, without its patron line</td><td>3</td><td>6</td></tr>
+  <tr><td>The garb swap’s long one, on a tablet</td><td>3</td><td>6</td></tr>
+  <tr><td>The same, on a phone</td><td>6</td><td><b>6</b>, the top (it was 9 before 26 November)</td></tr>
+  <tr><td>Any error longer still</td><td>7 or more</td><td>6</td></tr>
+  </table>
+  <p class="note"><b>The rule, since 26 November:</b> 5 seconds, plus 1 second when its words take more than two lines, and <b>never more than 6</b> (Francis: “Cap at 6s. A user should be able to tap and hold to stop the timer.”). So an error stays 5 seconds, or 6 from three lines up. The lines are <b>counted once</b>, when the toast appears (“Yes, count once.”): turning the tablet while it shows changes nothing. Only an error toast: every other toast stays 5 seconds whatever its length. It pauses under a finger, a pointer or keyboard focus like every toast, and <b>a finger held on it pauses it on a tablet and on a phone</b>, not only a mouse resting over it: that hold is how a long error is read to its end. It does <b>not</b> stay until it is tapped away, and it has no close button. The bar drains, or fades, over the toast’s own time. (As approved on 25 November the rule had no top: 1 second for each line over two, so 9 for the six-line one.)</p>
+  <p class="note"><b>The word limit, since 26 November (tr-19, tr-20):</b> an error toast says what failed and what to do in at most about 20 words; anything more belongs on the screen it describes. The garb swap’s error loses its patron line and becomes 17 words: “Couldn’t swap your patron’s garb. Check your connection and try again. Her garb is in your pack.” Put into this page’s phone toast in Chrome, those words take <b>three lines</b>, so 6 seconds; they are not drawn, and are approved from the built screen. Twenty plain words take four lines there, so “about 20” reaches a fourth line at the top of its range. <b>The six-line error above stays as drawn and approved:</b> it is the case the limit prevents, and the nearest picture of an error under Larger text.</p>
+
+  <h1>43H2. The mark, two ways</h1>
+  <p class="cap"><b>Ruled: 2, the disc.</b> The bare ✕ is also the app’s close mark (top right of every sheet), and at the left of a short toast it read as “close” (critique 3). Kept here for the record.</p>
+  <div class="wall fr43 shot" data-k="h2">${hWays}</div>
+
+  <h1>43H3. The words beside Undo</h1>
+  <p class="cap">From tablet width (600 px), the toast is as wide as its words, and the words take the room that is left and wrap beside the button. Under 600 px the toast fills the width between the margins and wraps as before (tw-1). A button longer than half the toast still drops under, at any width. <b>On a phone the page colour runs under the toast</b> (26 November): a band the whole width of the screen, from where the toast’s bottom corners begin (20 px above its foot) down to the tab bar, behind the toast. Over the plain page it cannot be seen; over the list it takes the place of the cut row.</p>
+  <div class="wall fr43 shot" data-k="h3">${hBeside}</div>
+
+  <h1>43H4. The bar, held, and with reduced motion</h1>
+  <p class="cap">Redrawn 26 November for the last two: <b>no toast is narrower than 220 px</b> (five tap targets), so “Saved” has a bar that can be seen to drain. On a phone every toast already fills the width, so this shows from tablet width only.</p>
+  <div class="wall fr43 shot" data-k="h4">${hBar}</div>
+
+  <h1>43H: the critique, and what was ruled on it</h1>
+  <p class="note"><b><code>impeccable critique</code>, run by Home Two on the PC, 25 November: 32/40</b> (visibility 3, language 4, control 3, consistency 3, error prevention 3, recognition 4, efficiency 3, minimalism 4, error recovery 2, help 3), on the eight 43H pictures as first drawn. Its full text is on pull request #95. Francis: “Approve with those recommendations.”</p>
+  <table class="sc">
+  <tr><th>#</th><th>Finding</th><th>Ruled</th></tr>
+  <tr><td>1</td><td><b>High.</b> A long error is gone before it is read: five lines on a phone want 8 to 9 seconds, and an error’s words are not in the log.</td><td>An error stays 5 s plus 1 s for each line over two. Not “until tapped”. Table under 43H1. <b>26 November:</b> 6 s at the most; a held finger does the rest.</td></tr>
+  <tr><td>2</td><td><b>Medium.</b> Under reduced motion there is no countdown for four seconds.</td><td>The bar fades over the whole time. Redrawn, 43H4.</td></tr>
+  <tr><td>3</td><td><b>Medium.</b> The bare ✕ at the left of a pill reads as “close”.</td><td>The ✕ on a disc. Redrawn, 43H1 and 43H2.</td></tr>
+  <tr><td>4</td><td><b>Medium.</b> A one-line toast with no button is a 40 px pill with the bar close under its words.</td><td>Every toast at least 60 px. Redrawn, 43H1 and 43H4.</td></tr>
+  <tr><td>5</td><td><b>Low.</b> “Held” looks the same as “running”.</td><td>Accepted as drawn. Looked at again only if the build shows focus with no ring.</td></tr>
+  <tr><td>6</td><td><b>Low.</b> On a phone a narrow toast sits over the last list row, the row showing at both sides.</td><td>On a phone the toast fills the width; on a tablet, as wide as its words. Redrawn, 43H1 and 43H3. <b>26 November:</b> and the page colour under it.</td></tr>
+  <tr><td>7</td><td><b>Low.</b> The long Undo toast on a tablet is right.</td><td>No change.</td></tr>
+  </table>
+
+  <h1>43H: the re-check, and Francis’s picks of 26 November</h1>
+  <p class="note"><b>Home Two re-checked the redrawn 43H: 35/40</b> (it was 32). Its text is not in the repository: the three points are as the driver relayed them, and only the words in quotes are Francis’s own.</p>
+  <table class="sc">
+  <tr><th></th><th>Point</th><th>Francis, 26 November</th><th>Drawn</th></tr>
+  <tr><td>a</td><td>Time an error by its words, not by its lines.</td><td><b>Not picked.</b> The seconds stay by lines.</td><td>nothing</td></tr>
+  <tr><td>b</td><td>A toast with words only (“Saved”) is so narrow that its bar does not read as a countdown.</td><td><b>Picked.</b> A minimum width, about that of “Dropped 3 torches”. Drawn as 220 px, five tap targets, on every toast: only a words-only one is short enough to meet it (tr-17).</td><td>43H4, the last two</td></tr>
+  <tr><td>c</td><td>On a phone the row behind shows as a cut sliver in the gap under the toast.</td><td><b>Picked.</b> It must not. Drawn as the page colour in a band behind the toast, the screen’s whole width, from where the bottom corners begin down to the tab bar (tr-18). The way is the designer’s.</td><td>43H1 and 43H3, the phones over the list</td></tr>
+  <tr><td style="white-space:nowrap">⚑ 9</td><td>A top to an error’s seconds?</td><td>“Cap at 6s. A user should be able to tap and hold to stop the timer.” (tr-15)</td><td>The table under 43H1; 43H1’s captions</td></tr>
+  <tr><td style="white-space:nowrap">⚑ 10</td><td>Are an error’s lines counted once, when it appears?</td><td>“Yes, count once.” (tr-16)</td><td>nothing to see</td></tr>
+  </table>
+  <p class="note"><b>Why a band for c, and not the two other ways.</b> The toast’s <b>shadow</b> cannot cover the row: it is a soft quarter-strength black, the words show through it in light, and in dark it does not show at all. <b>Closing the gap</b>, the toast sitting on the tab bar, still leaves the row in the two bottom corners and crowds the bar. A <b>fade</b> to the page colour would be the app’s first gradient. The band is one flat rectangle in a colour the page already has; its top edge is hidden behind the toast, so nothing looks sliced. <b>The gap</b> is 12 px (<code>--space-3</code>) in the app and on this page; the re-check called it 8, and the critique of 26 November corrects that to 12 (its finding 5).</p>
+
+  <h1>43H: the critique of the redrawn frames, and what was ruled (26 November)</h1>
+  <p class="note"><b><code>impeccable critique</code>, run by Home Two on the PC, 26 November: 34/40</b>, down from 35 (visibility 3, language 4, control 3, consistency 4, error prevention 4, recognition 4, efficiency 3, minimalism 4, error recovery 2, help 3), on the six redrawn pictures. Its text is a comment on pull request #103. It found <b>b</b> met (“Saved” 220 px wide, its bar 188 px, reads as time running out in both themes) and <b>c</b> met (the band hides the cut row, one flat shape, the tab bar’s rule still showing). Error recovery went from 3 to 2 for the 6-second top. Francis’s words, as the driver relayed them, are the two in quotes: “Word limit” and “Approve”.</p>
+  <table class="sc">
+  <tr><th>#</th><th>Finding</th><th>Ruled, 26 November</th></tr>
+  <tr><td>1</td><td><b>High.</b> At 6 seconds the six-line error is not read in full: 32 words want 8 to 10 seconds, and nothing on the toast says that holding stops it. The first sentence, the part to act on, is read in time.</td><td><b>“Word limit”</b>: its first fix, picked. An error toast says what failed and what to do in at most about 20 words; anything more belongs on the screen it describes (tr-19). The garb swap’s error is cut to 17 (tr-20). Not picked: a “Hold to keep” hint; reopening the cap.</td></tr>
+  <tr><td>2</td><td><b>Medium, for the builder.</b> The hold has three traps: a finger held on Undo and lifted is a tap on Undo; a long press on the words can select them or open the phone’s menu; a finger that slides off must end the hold.</td><td>A builder’s note (tr-22). The hold is on the toast’s body only; the words there cannot be selected and open no menu; the hold ends when the finger lifts, is cancelled or leaves. A WebKit test of all three. Nothing redrawn.</td></tr>
+  <tr><td>3</td><td><b>Low.</b> The band’s edges are not drawn where they would show: over a picture that runs to the screen’s edges; and the cases with no band (no bar under the toast, over a sheet).</td><td>Judged from the built screens (tr-22): the builder’s pictures show those cases. No redraw.</td></tr>
+  <tr><td>4</td><td><b>Low.</b> On a tablet the row still shows beside a narrow toast. Not picked; the toast is clearly on top.</td><td>Accepted as drawn; judged from the built screens (tr-22).</td></tr>
+  <tr><td>5</td><td><b>Info.</b> The gap under the toast is 12 px, not the 8 the re-check called it.</td><td>12 px (<code>--space-3</code>), as this page and the app have it.</td></tr>
+  </table>
+  <p class="note"><b>The critique did not check:</b> motion (nothing moves here), a real phone’s long press, Larger text (more lines in the same 6 seconds, which makes finding 1 worse), WebKit.</p>
+
+  <h1>43H: self-review and ⚑</h1>
+  <p class="note"><b>Checked, on the frames redrawn 26 November.</b> Tokens only: the band is <code>--page</code>, as tall as <code>--space-3</code> plus <code>--radius-sheet</code>; the width is <code>--tap</code> five times. Contrast: nothing new carries meaning, and the band is the page on the page; the toast’s own figures are unchanged. Measured on the drawn page: “Saved” 220 by 60 px with a 188 px bar (it was 69 px with a 37 px bar); “Dropped 3 torches” 233 px, unchanged; every phone toast still 309 px, margin to margin; the tab bar’s top rule still shows under the band. States: over the busy list and over the plain page, light and dark, one line, three lines, six lines, with Undo and without. Messy data: the six-line error under the 6-second top. Heuristics: a bar that can be seen to drain (visibility of status); no cut row beside the toast (minimalism); the hold is the way to read a long error, and nothing on the toast says so (help: see below).</p>
+  <p class="note"><b>Not checked, honestly.</b> When this was written no <code>impeccable critique</code> had been run on these redrawn frames; Home Two ran one later on 26 November (34/40, the table above), and Francis approved the six pictures. <b>The 6-second top undoes most of the first critique’s finding 1:</b> the six-line error is about 35 words, 8 to 9 seconds to read, and now goes at 6 unless it is held; a held toast looks like a running one (tr-14), so nothing tells a player that holding stops it. That is his ruling, written down here so the build’s tablet test looks at it. <b>The band is not drawn</b> over a picture that runs to the screen’s edges (its top edge would show in the 16 px at each side of the toast), over an open sheet or pop-up (whose back is not the page colour), on a tablet (not picked: a narrow toast there still has the row at its sides and under it), or with a phone’s action bar. <b>The band belongs to the bar the toast sits over:</b> on a screen with no bar under the toast it would hang there as a strip with the page showing again below it, so there it is left out; the builder reports which bars a toast can sit over on a phone. <b>Costs build time:</b> about a quarter turn for the band and the width together. Drawn in Chrome only; nothing moves.</p>
+  <p class="note"><b>Checked, on the page as redrawn 25 November.</b> Tokens only (corner 20, the pill for the bar’s ends and the disc, spacing 4 to 24, type 16, the mark 14 on a 20 px disc, nothing under 14). Contrast: words 17.11:1 light, 15.87:1 dark; the ✕ on its disc is the same pair turned round, so the same figures; the disc against the toast likewise. The bar at 65%, 7.77:1 light and 5.55:1 dark against the solid toast; fading, it passes under 3:1 on its way out, as a fade must (under reduced motion that is from about the half-way point: the bar is a second sign beside the words, never the only one). No colour carries anything here, so no greyscale strip. Every toast is 60 px or taller; Undo and the named action stay 44 px tall with the gap’s 12 px from the words; the disc is not a target. 375 px and a tablet, both themes. Messy data: a one-line, a three-line and a six-line error; a 73-character toast; a 60-character button; “Saved”. States: with Undo, with an action, with neither, error, short, long, running, held, reduced motion at the start, half-way and near the end. Heuristics: the mark matches the Note’s shape and spoken word (consistency); a long error has time to be read (error recovery); nothing is disabled; no accent button is added.</p>
+  <p class="note"><b>Not checked, honestly (25 November).</b> The redrawn frames have had no second <code>impeccable critique</code>; they are drawn to the first one’s findings. Drawn in Chrome only (no WebKit here). Nothing moves on this page: the drain, the hold and the fade are drawn still. Larger text. An error toast with a button (the app has none today). Whether a finger resting on a toast feels like a hold or an accident can only be judged on a tablet. <b>Costs build time:</b> the error’s seconds depend on how many lines its words take on that screen, so the toast must measure itself when it appears.</p>
+  <ol class="crit">
+  <li><span class="flag">H1, answered</span> <b>Which mark?</b> The ✕ on a disc.</li>
+  <li><span class="flag">H2, answered</span> <b>The reduced-motion fade:</b> over the whole time, not the last second.</li>
+  <li><span class="flag">H3, answered</span> <b>What a screen reader hears:</b> “Problem” first, then the words.</li>
+  <li><span class="flag">H4, answered</span> <b>The width:</b> as wide as its words on a tablet; the full width between the margins on a phone (under 600 px).</li>
+  <li><span class="flag">H5, answered</span> <b>The one-line pill:</b> gone. Every toast is at least 60 px tall, the height of one with Undo.</li>
+  </ol>
+
+  <h1>⚑ For Francis <span class="flag">all eight answered, 25 November</span></h1>
+  <p class="note">1: <b>D</b>. 2 and 3: fall away (no pill, no glass). 4: <b>yes, the ✕</b> (43H1). 5: <b>5 seconds</b>. 6: <b>yes, the pause</b>, and the 5 seconds only with it. 7: the bar <b>stays still and fades</b> (43H4; over the whole time, ruled later the same day), not stepped. 8: <b>left as it is</b>: a new toast replaces the one showing; the log keeps the Undo. As first put:</p>
+  <ol class="crit">
+  <li><span class="flag">⚑ 1</span> <b>Which dress?</b> A (leave it), B (rounded, frosted), C (a pill, frosted) or D (rounded, solid).</li>
+  <li><span class="flag">⚑ 2</span> If C: does the pill keep its corner when the toast wraps, or become B’s corner on a second line?</li>
+  <li><span class="flag">⚑ 3</span> <b>How opaque?</b> The glass is drawn at 82%. 80% and 85% are measured above; 85% is nearly solid, 80% shows the most of what is behind.</li>
+  <li><span class="flag">⚑ 4</span> Should an error toast carry the ✕ mark, against the 13 November ruling that only its words mark it?</li>
+  <li><span class="flag">⚑ 5</span> <b>How long?</b> 6 s (today), 5 s (my recommendation) or 4 s.</li>
+  <li><span class="flag">⚑ 6</span> <b>The pause.</b> Pause the timer on hover, on keyboard focus and under a finger? Recommended with any shortening.</li>
+  <li><span class="flag">⚑ 7</span> With reduced motion there is no countdown at all today. Give it a stepped bar, or leave it?</li>
+  <li><span class="flag">⚑ 8</span> A second action replaces the first toast and cuts its Undo short. Leave it (the log still has the Undo), or hold the second until the first has had its seconds?</li>
+  </ol>
+`);
+</script>
+</body>
+</html>
