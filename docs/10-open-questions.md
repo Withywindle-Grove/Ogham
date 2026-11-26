@@ -9,12 +9,16 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 5. ⚑ Inscription-style display face for the wordmark and loading screen (yes or no).
 
 **The Scene, point to point** (`design/rulings/scene-point-to-point-2026-11-18.md`)
+- ⚑ **Details at hand: option a or option b** (Scene feedback ⚑ 9, Francis, 2026-11-26: "Mock it up"; `design/rulings/scene-feedback-2026-11-25.md`). Page 44, frames DT1 and DT2, draw both: a, a stat line's figures in "From the book, for the GM" and the name on the piece; b, the figures on the piece only, the fold pointing there. He picks from the drawing. sf-6's part on a place's card waits for it.
+- ⚑ **Knowledge: where the eye sits** (the critique's finding 4, 2026-11-26). He ruled the reach ("Whole Area"). Drawn on the driver's reading: each section keeps its own eye, on its heading once unfolded (frame KN1). His to confirm when he approves the frame.
+- ⚑ **A control's edge on a pop-up in dark is 2.97 to 1, under the 3 to 1 floor** (the critique's finding 24 on page 44, measured 2026-11-25 and again 2026-11-26). It is the tokens' own pair (Control on the pop-up's ground), used across the app: a new value is a change to `06`'s tokens. Not changed on page 44.
 
 **Later**
 - ⚑ **Laptops, widescreen** (2026-11-24, `01` Devices): laptops are the second device, for downtime; how windows scale past the tablet's landscape layout (1024 px and up, `06`) needs a short design session before anything in `06` changes.
 - **After 5 December: text shown on hover, for a PC** (euf-8, Francis, 2026-11-19: "we'll want to support pc more in the future but not prior to dec 5"). A player asked for an ability's description on hover; on a tablet a tap on the name opens it.
 - **After 5 December: players arrange the sections of their own screen, saved to their view** (euf-9, 2026-11-19). "Arrange this screen" was removed on 2026-10-26; its command and log lines are kept (05). Until then the pins and their order are the player's way to arrange the Player tab.
 - **After 5 December: the players' map's locate tool** (the post-5-December list, 2026-11-24): the players' map card opens fitted whole with no locate; a locate button on it needs a design (P5, `plans/dec-9-the-players-scene.md`; 09, 24 Nov).
+- **After 5 December: the GM shows players the full map too, as a second step** (Scene feedback ⚑ 11, Francis, 2026-11-26: "Yes, after Dec 5"; his F13 c). For 5 December a pack may give players a picture with the key's names painted out. After it: a second eye on the map, so the GM can reveal the full map as well. **The pack format must change for it, for the Pack Creator:** a map that has a players' version can then be revealed itself (`07`). Needs a frame first (sf-17, `design/rulings/scene-feedback-2026-11-25.md`).
 - **After 5 December: a trait that is a table** (2026-11-24): shown as the book's table until a design is ruled.
 - **After 5 December: a hand-added map inherited by the place's areas?** (2026-11-24): for 5 December only the pack's maps flow down the place tree (#51).
 - **After 5 December: the players' map and What we know in the GM's view of another player's Scene, as that player reads them** (Francis, 2026-11-24: "Agree"; #85 leaves them out). Needs a migration (an "as this player" form of the reads) and a plan.
