@@ -46,6 +46,13 @@ describe('the GM facts, named', () => {
     expect(namedFacts(facts('', 'no-such-beast ×3 (hungry)'), names).statLine).toBe('×3 (hungry)');
   });
 
+  // Purpose: a stat line the GM typed by hand that starts with a lower-case word ("asleep", "wolves ×3") keeps its
+  // words when no pack knows that word (review of #109, finding 1).
+  it.fails("keeps a GM's typed stat line that no pack knows", () => {
+    expect(namedFacts(facts('', 'asleep'), names).statLine).toBe('asleep');
+    expect(namedFacts(facts('', 'wolves ×3'), names).statLine).toBe('wolves ×3');
+  });
+
   // Purpose: words a GM typed by hand, and a hazard's trigger, are never changed.
   it('keeps typed words as they are', () => {
     const typed = facts('A heavy purse', 'Hits hard', 'a save, or stuck');
