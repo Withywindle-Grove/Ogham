@@ -6,7 +6,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Hoard, HoardRow } from '../modules/expedition/hoard.ts';
 import type { Piece } from '../modules/expedition/placePlay.ts';
 import { PieceRow } from './PlaceCard.tsx';
-import { HoardSheetView, hoardLine, sendListWords, SendSheet, truthToastWords } from './HoardSheet.tsx';
+import { oneThing } from '../modules/expedition/hoard.ts';
+import { HoardSheetView, hoardLine, sendListWords, SendSheet, sentPieceWords, sheetHoard, takenBackWords, truthToastWords } from './HoardSheet.tsx';
 
 afterEach(cleanup);
 
@@ -110,5 +111,54 @@ describe("the hoard's piece on the GM's card (HM1)", () => {
     const words = document.querySelector('.place-page__piece-words') as HTMLElement;
     expect(words.hasAttribute('aria-label')).toBe(false);
     expect(screen.getByRole('button', { name: 'Strongbox. 240 herons and a hooded lantern.' })).toBe(words);
+  });
+});
+
+describe("a Treasure piece's find sheet (sf-8; page 44, TR1)", () => {
+  // Purpose: one thing is a single thing row of one; several rows, a count over 1, or coin make a count.
+  it('tells one thing from a count', () => {
+    expect(oneThing({ rows: [thing(4, 'Bronze ring')] })).toEqual(thing(4, 'Bronze ring'));
+    expect(oneThing({ rows: [thing(4, 'Lamp oil', 8)] })).toBeNull();
+    expect(oneThing({ rows: [coin] })).toBeNull();
+    expect(oneThing({ rows: ROWS })).toBeNull();
+    expect(oneThing({ rows: [] })).toBeNull();
+  });
+
+  // Purpose: the sheet is headed by the hoard's name, else the piece's lead word, else its one row's words; under it
+  // the hoard's words, else the piece's, never the head said twice.
+  it("heads the sheet by the hoard's name, the piece's lead or its one thing", () => {
+    expect(sheetHoard(HOARD, { text: HOARD.words!, lead: 'Strongbox' })).toEqual(HOARD);
+    const ring = { name: null, words: null, rows: [thing(4, 'Bronze ring')] };
+    expect(sheetHoard(ring, { text: 'Bronze ring', lead: '' })).toMatchObject({ name: 'Bronze ring', words: null });
+    expect(sheetHoard(ring, { text: 'A plain band of old bronze.', lead: 'Bronze ring' })).toMatchObject({ name: 'Bronze ring', words: 'A plain band of old bronze.' });
+    expect(sheetHoard({ name: null, words: null, rows: [thing(5, 'Lamp oil', 8)] }, { text: 'Lamp oil' })).toMatchObject({ name: 'Lamp oil ×8', words: 'Lamp oil' });
+  });
+
+  // Purpose: a sent piece's line and "Take it back"'s toast name where it went, a character or the party stash.
+  it("words a sent piece's line and Take it back's toast", () => {
+    expect(sentPieceWords('wren', nameOf)).toBe('Sent to Wren.');
+    expect(sentPieceWords(null, nameOf)).toBe('In the party stash.');
+    expect(takenBackWords('wren', nameOf, [thing(4, 'Bronze ring')])).toBe('Taken back from Wren: bronze ring.');
+    expect(takenBackWords(null, nameOf, [thing(4, 'Lamp oil', 8)])).toBe('Taken back from the party stash: 8 lamp oil.');
+  });
+
+  // Purpose: the arrow is a 44 px pointer target that opens the sheet as the words do, left out of the keyboard's and
+  // a screen reader's way (the words' button already says it), and a piece's GM line still shows beside it.
+  it("the arrow opens what the words open, and the piece's value line stays", async () => {
+    const onOpen = vi.fn();
+    const piece: Piece = { id: 'p-ring', kind: 'treasure', text: 'Bronze ring', shown: false, shownAt: null, gm: { value: '40 herons', trigger: '', statLine: '' }, version: 1 };
+    render(
+      <ul>
+        <PieceRow page piece={piece} onToggle={() => undefined} onEdit={() => undefined} onOpen={onOpen} />
+      </ul>,
+    );
+    const arrow = document.querySelector('.place-page__opens') as HTMLButtonElement;
+    expect(arrow.tagName).toBe('BUTTON');
+    expect(arrow.getAttribute('aria-hidden')).toBe('true');
+    expect(arrow.tabIndex).toBe(-1);
+    await userEvent.click(arrow);
+    await userEvent.click(screen.getByRole('button', { name: /^Bronze ring/ }));
+    expect(onOpen).toHaveBeenCalledTimes(2);
+    expect(screen.getByText('Value stays yours (40 herons).')).toBeTruthy();
   });
 });

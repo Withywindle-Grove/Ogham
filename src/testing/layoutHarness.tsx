@@ -1260,6 +1260,8 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //                closed, for HM3's tap).
 //   &b15=shown   with wreck: sent, and the GM's eye on the lantern's piece has named Wren's lantern (HM3's card; with
 //                ?as=player, HM4: Wren's Pack and the item's sheet read "Lantern of the Drowned").
+//   &sf8=1|sent  with wreck (sf-8, page 44, TR1 and TR2): also a Bronze ring, one thing with its own words, and a
+//                Crate of lamp oil ×8, a count; `sent`: the ring sent to Wren (TR1's sent piece).
 const placePageFlag = new URLSearchParams(window.location.search).get('placePage');
 // The jetty's own book text for the GM (gt-1, page 15 BT1; the whole Scene's S14): paragraphs, a list, a boxed aside.
 const JETTY_BOOK_TEXT = {
@@ -1420,6 +1422,12 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     // The setting's herons, so the hoard's coin is a row like any other (pf-6) that can be sent.
     const rules = world.tables.library_entries.find((e) => e.id === 'entry-river-rules')!.data as Record<string, unknown>;
     if (!Array.isArray(rules.currency)) rules.currency = [{ key: 'heron', label: 'herons', valueInBase: 1 }];
+    // &sf8 (page 44, TR1): one thing with its own words, and a count. Invented.
+    if (new URLSearchParams(window.location.search).get('sf8')) {
+      const wreckData = spots[1] as unknown as { hoards: unknown[]; treasure: unknown[] };
+      wreckData.hoards.push({ name: 'Bronze ring', text: 'A plain band of old bronze, on a hook by the cabin door.' }, { name: 'Crate', text: 'Eight flasks of lamp oil, dry.' });
+      wreckData.treasure.push({ text: 'Bronze ring', hoard: 'Bronze ring' }, { text: 'Lamp oil', qty: 8, hoard: 'Crate' });
+    }
   }
   for (const data of [island, harbour, ...spots]) world.tables.library_entries.push({ id: `entry-reed-${data.id}`, pack_id: 'pack-reed', kind: 'location', pack_entry_id: data.id, name: data.name, data });
   for (const t of [
@@ -1575,6 +1583,14 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
         const truth = row.pieces.find((p) => p.kind === 'other' && p.lead === 'Lantern of the Drowned')!;
         await runCommand(registry, world.db, asGm, showItemTruth, { campaignId: campaign, row, piece: truth, lines: [String(lantern.id)] });
       }
+    }
+    // &sf8=sent (page 44, TR1): the Bronze ring sent to Wren.
+    if (new URLSearchParams(window.location.search).get('sf8') === 'sent' && row?.place) {
+      const { hoardRows } = await import('../modules/expedition/hoard.ts');
+      const { giveFind, sendOf } = await import('../modules/expedition/findSend.ts');
+      const ring = hoardRows(row.pieces.find((p) => p.lead === 'Bronze ring')!, wreck, [], new Set());
+      const send = sendOf(ring.rows, new Map());
+      await runCommand(registry, world.db, asGm, giveFind, { campaignId: campaign, to: wren, placeId: row.place.id, things: send.things, coins: send.coins, rows: send.rows });
     }
   }
   // &ways=1|none|messy with spot (plan dec-9-the-players-scene P2; PL1, PL9, PL10): the jetty's ways on, and one of its

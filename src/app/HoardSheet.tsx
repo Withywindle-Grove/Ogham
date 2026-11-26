@@ -11,12 +11,13 @@ import { loadCommandLog, type LogEvent } from '../core/events.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import { giveFind, NOT_NAMED_WORDS, rowKey, sendOf, sentRows, undoFind } from '../modules/expedition/findSend.ts';
-import { hoardRows, magicPieceOf, namedThings, thingWords, type Hoard, type HoardRow } from '../modules/expedition/hoard.ts';
+import { hoardRows, magicPieceOf, namedThings, oneThing, thingWords, type Hoard, type HoardRow } from '../modules/expedition/hoard.ts';
 import { heldLinesOf, loadHolders, loadRevealed, showItemTruth } from '../modules/expedition/itemTruth.ts';
 import type { GroupPlace, Piece } from '../modules/expedition/placePlay.ts';
 import { denominationsOf, type Denomination } from '../modules/inventory/coinWords.ts';
 import { loadCarriers, type NamedCarrier } from '../modules/inventory/inventory.ts';
 import { loadCampaignEntries } from '../modules/library/campaignPacks.ts';
+import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { Icon } from '../ui/icons.tsx';
 import { ListRow, RowList, StackedButton } from '../ui/parts.tsx';
@@ -43,6 +44,25 @@ export function hoardLine(rows: readonly HoardRow[], sent: ReadonlyMap<string, {
 }
 
 const lowerFirst = (text: string): string => (text ? text[0]!.toLowerCase() + text.slice(1) : text);
+
+/**
+ * The find sheet's head and line for a Treasure piece (sf-8; page 44, TR1): over the sheet the hoard's name, else the
+ * piece's own lead word, else its one row's words ("Bronze ring"); under it the hoard's words, else the piece's words,
+ * left out where they only say the head again. Pure.
+ */
+export function sheetHoard(hoard: Hoard, piece: Pick<Piece, 'text' | 'lead'>): Hoard {
+  const only = hoard.rows.length === 1 ? hoard.rows[0]! : null;
+  const name = hoard.name ?? (piece.lead?.trim() || (only ? (only.kind === 'thing' ? thingWords(only) : only.text) : null));
+  const words = hoard.words ?? (piece.text.trim() || null);
+  return { ...hoard, name, words: words === name ? null : words };
+}
+
+/** A sent piece's line in its sheet (sf-8, TR1): "Sent to Wren." or "In the party stash.". */
+export const sentPieceWords = (to: string | null, nameOf: (id: string) => string): string => `${sentWords(to, nameOf)}.`;
+
+/** "Take it back"'s toast (sf-8, TR1): "Taken back from Wren: bronze ring.", or "from the party stash". */
+export const takenBackWords = (to: string | null, nameOf: (id: string) => string, rows: readonly HoardRow[]): string =>
+  `Taken back from ${to === null ? 'the party stash' : nameOf(to)}: ${sendListWords(rows)}.`;
 
 /** What a send carries, said once (PK5, PK5b's toast): "240 herons, 2 moon opals, hooded lantern". */
 export function sendListWords(rows: readonly HoardRow[]): string {
@@ -105,6 +125,7 @@ export function useHoards({
   onChanged: () => void;
 }) {
   const show = useToast();
+  const blocked = useBlockedSheet();
   const [setting, setSetting] = useState<Setting | null>(null);
   const [events, setEvents] = useState<LogEvent[]>([]);
   const [tick, setTick] = useState(0);
@@ -155,11 +176,11 @@ export function useHoards({
     onChanged();
   };
 
-  /** The hoard behind a piece with its own words (HM1): null for every other piece. */
+  /** What a Treasure piece hands out (HM1; sf-8: every Treasure piece, a single thing too): null with nothing to send. */
   const hoardOf = (piece: Piece): Hoard | null => {
     if (!place || !setting) return null;
     const hoard = hoardRows(piece, place, setting.coins, setting.items);
-    return hoard.words !== null ? hoard : null;
+    return hoard.rows.length > 0 ? hoard : null;
   };
 
   /** The line under a hoard's piece (HM1, HM3, HM5). */
@@ -213,6 +234,20 @@ export function useHoards({
     });
   }
 
+  /**
+   * "Take it back" on a sent piece's sheet (sf-8, TR1): the send's own Undo, once, at once, with a toast; the sheet stays,
+   * offering where to send it again. Refused (the thing was used or passed on): the blocked-action pop-up says why.
+   */
+  async function takeBack(went: { to: string | null; eventId: string }, rows: readonly HoardRow[]) {
+    if (busy) return;
+    setBusy(true);
+    const undone = await runCommand(registry, db, user, undoFind, { campaignId: campaign.id, eventId: went.eventId });
+    setBusy(false);
+    if (!undone.ok) return blocked.explain("Can't take it back", undone.message);
+    refresh();
+    show({ text: takenBackWords(went.to, nameOf, rows) });
+  }
+
   /** A magic item's piece, its eye tapped while hidden (HM3): shown, and the item named wherever it is held. */
   const isMagic = (piece: Piece): boolean => !!place && magicPieceOf(piece, place) !== null;
   async function showTruth(piece: Piece) {
@@ -247,14 +282,34 @@ export function useHoards({
     });
   }
 
-  const hoard = open ? hoardOf(open.piece) : null;
+  const found = open ? hoardOf(open.piece) : null;
+  const hoard = open && found ? sheetHoard(found, open.piece) : null;
   const unsent = hoard ? hoard.rows.filter((r) => !sent.has(rowKey(r))) : [];
+  const single = hoard ? oneThing(hoard) : null;
+  const singleWent = single ? (sent.get(rowKey(single)) ?? null) : null;
+  // Over the sheet the Location's numbered name, on a phone too (page 44, TR2 B to D).
+  const over = placeName || undefined;
   const sheets =
     open && hoard ? (
-      open.step === 'hoard' ? (
+      open.step === 'hoard' && single ? (
+        <FoundThingSheet
+          hoard={hoard}
+          over={over}
+          side={!phone}
+          went={singleWent ? sentPieceWords(singleWent.to, nameOf) : null}
+          onCharacter={() => setOpen({ ...open, step: 'who', rows: [single] })}
+          onStash={() => void send(null, [single])}
+          onTakeBack={() => singleWent && void takeBack(singleWent, [single])}
+          onEdit={() => {
+            setOpen(null);
+            onEdit(open.piece);
+          }}
+          onClose={close}
+        />
+      ) : open.step === 'hoard' ? (
         <HoardSheetView
           hoard={hoard}
-          over={phone ? undefined : placeName}
+          over={over}
           side={!phone}
           sent={sent}
           nameOf={nameOf}
@@ -282,12 +337,13 @@ export function useHoards({
       ) : open.step === 'send' ? (
         <SendSheet side={!phone} back={hoard.name ?? ''} words={sendListWords(open.rows)} onBack={() => setOpen({ ...open, step: 'hoard', rows: [] })} onCharacter={() => setOpen({ ...open, step: 'who' })} onStash={() => void send(null, open.rows)} onClose={close} />
       ) : (
-        <WhichCharacter side={!phone} characters={(setting?.carriers ?? []).filter((c) => c.actorId !== null)} onBack={() => setOpen({ ...open, step: 'send' })} onPick={(id) => void send(id, open.rows)} onClose={close} />
+        // Back to where "To a character" was tapped: the one thing's sheet, else the Send step.
+        <WhichCharacter side={!phone} characters={(setting?.carriers ?? []).filter((c) => c.actorId !== null)} onBack={() => setOpen({ ...open, step: single ? 'hoard' : 'send' })} onPick={(id) => void send(id, open.rows)} onClose={close} />
       )
     ) : null;
 
   return {
-    /** Whether a tap on this piece's words opens its hoard (pg30-1) rather than editing it. */
+    /** Whether a tap on this piece's words or its arrow opens its find sheet (pg30-1; sf-8: every Treasure piece with something to send). */
     opens: (piece: Piece) => hoardOf(piece) !== null,
     open: (piece: Piece) => {
       setFocusRow(null);
@@ -297,7 +353,12 @@ export function useHoards({
     isMagic,
     showTruth,
     // On a phone the Sheet variant, rising from the foot (HM5, pg30-5); on a tablet each passes `side`, the standing panel.
-    sheets: sheets && <SheetScope.Provider value>{sheets}</SheetScope.Provider>,
+    sheets: (
+      <>
+        {sheets && <SheetScope.Provider value>{sheets}</SheetScope.Provider>}
+        {blocked.sheet}
+      </>
+    ),
   };
 }
 
@@ -312,9 +373,9 @@ export function SentLine({ text, tick }: { text: string; tick: boolean }) {
 }
 
 /**
- * The hoard's sheet (HM2; HM5 B and C): over its name the Location's on a tablet, the book's line once, then one row a thing with
- * its count (coin a row like any other), a sent row saying where it went; "Send all" (the sheet's one accent) while
- * anything is left; "Edit the piece's words" last.
+ * The hoard's sheet, a count's find sheet (HM2; HM5 B and C; page 44, TR1 and TR2 C): over its name the Location's, the
+ * book's line once, then one row a thing with its count (coin a row like any other), a sent row saying where it went;
+ * "Edit the piece's words"; then, while anything is left, "Send all" (the sheet's one accent) at the foot's right.
  */
 export function HoardSheetView({
   hoard,
@@ -368,13 +429,69 @@ export function HoardSheetView({
             );
           })}
         </RowList>
+        <RowList label="The piece">
+          <EditWordsRow onEdit={onEdit} />
+        </RowList>
+        {/* "Send all" at the foot's right, under the edit row (page 44, TR1, finding 16). */}
         {onSendAll && (
-          <div className="hoard-sheet__foot">
+          <div className="dialog__actions">
             <StackedButton icon="open-palm" label="Send all" variant="primary" onClick={onSendAll} />
           </div>
         )}
-        <RowList label="The piece">
-          <ListRow title="Edit the piece's words" onOpen={onEdit} />
+      </div>
+    </Dialog>
+  );
+}
+
+/** "Edit the piece's words", each find sheet's last row (page 44, TR1): the quill before the words. */
+function EditWordsRow({ onEdit }: { onEdit: () => void }) {
+  return <ListRow lead={<Icon name="quill-ink" size={24} />} title="Edit the piece's words" onOpen={onEdit} />;
+}
+
+/**
+ * The find sheet of a Treasure piece that is one thing (sf-8; page 44, TR1 and TR2 B, D): the piece's words, then where
+ * it goes, "To a character" (which one) and "To the party stash" (at once). Once sent (`went`: "Sent to Wren."): where
+ * it went, and "Take it back", which acts at once and so has no arrow. "Edit the piece's words" last.
+ */
+export function FoundThingSheet({
+  hoard,
+  over,
+  went,
+  onCharacter,
+  onStash,
+  onTakeBack,
+  onEdit,
+  onClose,
+  side = false,
+  preview = false,
+}: {
+  hoard: Hoard;
+  over?: string;
+  /** Where it went, in words, once sent; null while it waits to be sent. */
+  went: string | null;
+  onCharacter: () => void;
+  onStash: () => void;
+  onTakeBack: () => void;
+  onEdit: () => void;
+  onClose: () => void;
+  side?: boolean;
+  preview?: boolean;
+}) {
+  return (
+    <Dialog label={hoard.name ?? 'Treasure'} over={over} side={side} onClose={onClose} preview={preview}>
+      <div className="hoard-sheet">
+        {hoard.words && <p className="hoard-sheet__words">{hoard.words}</p>}
+        {went !== null && <SentLine text={went} tick />}
+        <RowList label={went === null ? 'Where it goes' : 'Where it went'} dotted>
+          {went === null ? (
+            <>
+              <ListRow lead={<Icon name="open-palm" size={24} />} title="To a character" onOpen={onCharacter} />
+              <ListRow lead={<Icon name="swap-bag" size={24} />} title="To the party stash" onOpen={onStash} />
+            </>
+          ) : (
+            <ListRow lead={<Icon name="anticlockwise-rotation" size={24} />} title="Take it back" chevron={false} onOpen={onTakeBack} />
+          )}
+          <EditWordsRow onEdit={onEdit} />
         </RowList>
       </div>
     </Dialog>

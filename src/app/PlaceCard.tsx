@@ -617,19 +617,11 @@ export function usePieceNames(db: Db, campaignId: string, pieces: readonly Piece
   useEffect(() => {
     if (!ids) return;
     let live = true;
-    void loadCampaignPacksAndEntries(db, userId, campaignId).then(
-      (rows) =>
-        live &&
-        setFound({
-          key,
-          names: pieceNamesFrom(
-            rows?.entries ?? [],
-            (rows?.packs ?? []).map((p) => p.packId),
-            pieces.map((p) => p.gm),
-            packId,
-          ),
-        }),
-    );
+    const settle = (rows: Awaited<ReturnType<typeof loadCampaignPacksAndEntries>>) =>
+      live && setFound({ key, names: pieceNamesFrom(rows?.entries ?? [], (rows?.packs ?? []).map((p) => p.packId), pieces.map((p) => p.gm), packId) });
+    // A read that fails settles as one that found nothing (#109's review): no unhandled rejection, and the line reads
+    // as with no names, the unknown ids left out on a pack-made place.
+    void loadCampaignPacksAndEntries(db, userId, campaignId).then(settle, () => settle(null));
     return () => {
       live = false;
     };
@@ -708,7 +700,7 @@ export function PieceRow({
   named?: readonly string[];
   /** The pack entries' names for the GM's small line (Q7): `usePieceNames`. */
   names?: PieceNames;
-  /** B15 (pg30-1): a hoard's piece opens its hoard on a tap, a small arrow before its eye saying so. */
+  /** B15 (pg30-1); sf-8: a Treasure piece opens its find sheet from its words and from the arrow before its eye. */
   onOpen?: () => void;
   /** B15 (HM1, PK5b): the line under a hoard's piece, saying where it went. */
   note?: ReactNode;
@@ -733,13 +725,15 @@ export function PieceRow({
               <Fragment key={i}>{part.named ? <strong className="place-page__named">{part.text}</strong> : part.text}</Fragment>
             ))}
           </span>
-          {fact && !onOpen && <span className="place-page__fact">{fact}</span>}
+          {fact && <span className="place-page__fact">{fact}</span>}
           {note}
         </button>
+        {/* sf-8 (page 44, TR1): the arrow opens the find sheet too, a 44 px target of its own 8 px from the eye. The
+            words' button already says it to a screen reader and the keyboard, so the arrow is a pointer's alone. */}
         {onOpen && (
-          <span className="place-page__opens" aria-hidden="true">
+          <button type="button" className="place-page__opens" aria-hidden="true" tabIndex={-1} onClick={onOpen}>
             <Icon name="chevron" size={20} />
-          </span>
+          </button>
         )}
         <EyeButton shown={piece.shown} show="Show players" hide="Hide from players" onToggle={onToggle} />
       </li>
