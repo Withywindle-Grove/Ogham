@@ -79,6 +79,7 @@ export interface FindLine {
   actorId: string | null;
   name: string;
   qty: number;
+  libraryEntryId?: string | null;
 }
 
 export interface FindsSource {
@@ -138,8 +139,11 @@ export function findsSince(source: FindsSource): FindEntry[] {
     for (const e of items) {
       if (e.after !== null || !e.before) continue;
       goneCopy.set(e.targetId!, e.before);
-      // A whole line merged onto a same-name stack (Q2): the find lives on in that stack.
-      if (raised && !e.revertsEventId) mergedInto.set(e.targetId!, raised.targetId!);
+      // A whole line merged onto a same-name stack (Q2): the find lives on in that stack, if it is the same thing.
+      // The raised line's log copy holds only its count, so it is matched as the device holds it.
+      const onto = raised ? lineOf.get(raised.targetId!) : undefined;
+      const same = onto && (e.before.name === onto.name || (e.before.library_entry_id != null && e.before.library_entry_id === onto.libraryEntryId));
+      if (same && !e.revertsEventId) mergedInto.set(e.targetId!, raised!.targetId!);
     }
   }
 

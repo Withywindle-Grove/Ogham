@@ -422,7 +422,7 @@ describe('what is new, read from the log (K20a)', () => {
 
   // Purpose (review fix 2): in one request that uses up one line and raises another, the find on the used-up line is
   // not carried onto the raised line unless they are the same thing (its name or its library entry).
-  it.fails('a line used up beside an unrelated raised line carries no find onto it', () => {
+  it('a line used up beside an unrelated raised line carries no find onto it', () => {
     const ev = (n: number, over: Partial<LogEvent>): LogEvent => ({
       id: `e${n}`, seq: n, type: 'find.give', level: 'simple', actorUserId: gm.id, targetTable: 'inventory_lines', targetId: null, before: null, after: null,
       fiat: false, reason: null, revertsEventId: null, requestId: 'r1', createdAt: `2026-11-26T09:0${n}:00Z`, ...over,
