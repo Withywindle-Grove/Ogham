@@ -24,7 +24,7 @@ import { latestChange, undoChange } from '../core/undo.ts';
 import { amountWords, coinLine, type Denomination } from '../modules/inventory/coinWords.ts';
 import type { NamedCarrier } from '../modules/inventory/inventory.ts';
 import { addCoin, AMOUNT, giveCoin, removeCoin, spendCoin, takeCoin, type CoinNames, type Coins } from '../modules/inventory/purse.ts';
-import { TAKE_OFFLINE, TAKE_OFFLINE_TITLE, TAKE_OFFLINE_WHY } from '../modules/inventory/stashTake.ts';
+import { TAKE_OFFLINE_TITLE, TAKE_OFFLINE_WHY } from '../modules/inventory/stashTake.ts';
 import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import { useOnline } from '../ui/creation.tsx';
 import { Dialog } from '../ui/Dialog.tsx';
@@ -131,7 +131,8 @@ export function PurseSheet({
   const [busy, setBusy] = useState(false);
   const show = useToast();
   const online = useOnline();
-  // Offline, the stash coin's Take… opens the blocked-action pop-up over this sheet (⚑ 7, re-ruled "A" 25 Nov).
+  // Offline, the stash coin's Take… opens the blocked-action pop-up over this sheet (⚑ 7, re-ruled "A" 25 Nov), and so
+  // does Take coin's accent when the network drops while it is open (Home Two's audit of #66, finding 1, 26 Nov).
   const blocked = useBlockedSheet();
   const rows = purseRows(denominations, coins);
   const name = carrier.name;
@@ -178,6 +179,8 @@ export function PurseSheet({
 
   async function confirm() {
     if (busy) return;
+    // Offline, nothing is read or written: the pop-up says why it waits, before any refusal.
+    if (page === 'take' && !online) return blocked.explain(TAKE_OFFLINE_TITLE, TAKE_OFFLINE_WHY);
     setRefusal(null);
     const first = rows[0]?.coin.key ?? '';
     if ('bad' in read) return setRefusal({ key: read.bad, text: AMOUNT });
@@ -190,7 +193,6 @@ export function PurseSheet({
       if (n > row.has) return setRefusal({ key: row.coin.key, text: `${holder} has ${amountWords(row.coin, row.has) ?? `${count(row.has)} ${row.coin.label}`}.` });
     }
     if (page === 'give' && !chosen) return show({ text: 'Choose who gets it.' });
-    if (page === 'take' && !online) return show({ text: TAKE_OFFLINE });
     setBusy(true);
     const names = namesOf(rows);
     const done =
@@ -318,6 +320,7 @@ export function PurseSheet({
           onClick={() => void confirm()}
         />
       </div>
+      {blocked.sheet}
     </Dialog>
   );
 }

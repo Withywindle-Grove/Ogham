@@ -565,7 +565,7 @@ describe('coin in the stash (K13, PC6, PC6b, PK4)', () => {
   // Purpose: offline (the network dropped while the Take coin sheet was open), its accent stays a button and a tap opens
   // the same blocked-action pop-up as Take…, not a toast; the sheet stays open under it and no coin moves (Home Two's
   // audit of #66, finding 1, picked by Francis 2026-11-26).
-  it.fails('offline, the Take coin sheet’s accent opens the blocked-action pop-up, not a toast; nothing moves (⚑ 7 A)', async () => {
+  it('offline, the Take coin sheet’s accent opens the blocked-action pop-up, not a toast; nothing moves (⚑ 7 A)', async () => {
     await coinWorld({ wren: { heron: 3 }, stash: { heron: 40 } });
     const user = await openStashCoin();
     await user.click(await coinRow());

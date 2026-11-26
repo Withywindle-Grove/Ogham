@@ -5835,7 +5835,7 @@ describe('the Pack tab (M4 step 4)', () => {
   // Purpose: offline (the network dropped while the sheet was open), the Take sheet's accent stays a button and a tap
   // opens the same blocked-action pop-up as a row's Take, not a toast; the sheet stays open under it and nothing is
   // written (review of #66, nit 3; Home Two's audit, finding 1, picked by Francis 2026-11-26).
-  it.fails('offline, the Take sheet’s accent opens the blocked-action pop-up, not a toast; nothing moves (K12, ⚑ 7 A)', async () => {
+  it('offline, the Take sheet’s accent opens the blocked-action pop-up, not a toast; nothing moves (K12, ⚑ 7 A)', async () => {
     const { wren, line } = packWorld('coin');
     line(null, 'Torches', { qty: 6, stack: 10, weight_coin: 10, item_data: { unitName: 'torch', pluralName: 'torches' } });
     const user = openApp();

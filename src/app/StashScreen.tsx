@@ -10,7 +10,8 @@
 // on the tap (the screen that owns the pack writes it and shows the toast, with Undo and the taker's load); a stack
 // opens the sheet "Take": the thing, what the stash has, a box, and one accent naming the amount; a refusal is words
 // under the row and the button stays a button. Offline, Take stays a button and a tap opens the blocked-action pop-up
-// saying why it waits (⚑ 7, re-ruled "A" 25 Nov: `BlockedSheet`, not PK7b's box on a phone).
+// saying why it waits (⚑ 7, re-ruled "A" 25 Nov: `BlockedSheet`, not PK7b's box on a phone); so does the Take sheet's
+// accent when the network drops while it is open (26 Nov).
 import { useEffect, useId, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { loadCampaignSettings } from '../core/campaignCommands.ts';
@@ -22,7 +23,7 @@ import { loadClockNow } from '../modules/expedition/lightPlay.ts';
 import type { InventoryLine, NamedCarrier } from '../modules/inventory/inventory.ts';
 import { loadStashHistory, whoWords, type StashHistory, type StashMove } from '../modules/inventory/stashHistory.ts';
 import { shownName } from '../modules/inventory/packView.ts';
-import { asksHowMany, readTake, TAKE_OFFLINE, TAKE_OFFLINE_TITLE, TAKE_OFFLINE_WHY, takeLabel, takeRefusal } from '../modules/inventory/stashTake.ts';
+import { asksHowMany, readTake, TAKE_OFFLINE_TITLE, TAKE_OFFLINE_WHY, takeLabel, takeRefusal } from '../modules/inventory/stashTake.ts';
 import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import { Dialog } from '../ui/Dialog.tsx';
 import { Chip, StackedButton, WarningLine, WarningSign } from '../ui/parts.tsx';
@@ -48,11 +49,12 @@ function TakeSheet({ line, onClose, onTake }: { line: InventoryLine; onClose: ()
   const [typed, setTyped] = useState('');
   const [refusal, setRefusal] = useState<string | null>(null);
   const online = useOnline();
-  const show = useToast();
+  // Offline (the network dropped while the sheet was open) the accent stays a button and opens the same blocked-action
+  // pop-up as a row's Take, over this sheet; nothing is written (Home Two's audit of #66, finding 1, 26 Nov).
+  const blocked = useBlockedSheet();
   const name = shownName(line.name);
   function take() {
-    // Offline the accent stays a button and says why it waits; nothing is written (as the Coin sheet's, PurseSheet).
-    if (!online) return show({ text: TAKE_OFFLINE });
+    if (!online) return blocked.explain(TAKE_OFFLINE_TITLE, TAKE_OFFLINE_WHY);
     const n = readTake(typed, line.qty);
     if (n === null) return setRefusal(takeRefusal(typed, line.qty));
     onTake(n);
@@ -91,6 +93,7 @@ function TakeSheet({ line, onClose, onTake }: { line: InventoryLine; onClose: ()
       <div className="dialog__actions purse-sheet__foot">
         <StackedButton variant="primary" icon="grab" label={takeLabel(line, typed, line.qty)} className="purse-sheet__go stash__take-go" onClick={take} />
       </div>
+      {blocked.sheet}
     </Dialog>
   );
 }

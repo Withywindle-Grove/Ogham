@@ -117,7 +117,7 @@ for (const size of SIZES) {
           },
         },
       ];
-      it.fails('stash-take-sheet-offline: the open sheet’s accent opens the blocked-action pop-up, not a toast', async ({ page }) => {
+      it('stash-take-sheet-offline: the open sheet’s accent opens the blocked-action pop-up, not a toast', async ({ page }) => {
         await openStash(page);
         await page.getByRole('button', { name: `Take ${BEADS}` }).click();
         const sheet = page.getByRole('dialog', { name: 'Take' });

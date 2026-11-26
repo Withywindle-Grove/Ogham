@@ -172,7 +172,7 @@ for (const size of SIZES) {
         expect(await go.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
       });
 
-      it.fails('stash-coin-take-offline: the open Take coin sheet’s accent opens the blocked-action pop-up, not a toast', async ({ page }) => {
+      it('stash-coin-take-offline: the open Take coin sheet’s accent opens the blocked-action pop-up, not a toast', async ({ page }) => {
         await openStash(page, 'stash=1&coin=1');
         await openTake(page);
         const sheet = page.getByRole('dialog', { name: 'Take coin' });
