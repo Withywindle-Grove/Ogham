@@ -7,7 +7,8 @@
 //      the warning sign, and the toast in the log line's words with Undo.
 //   4. Messy coin (long names, 999) wraps without sideways scrolling; offline, Take… stays a row and opens the
 //      blocked-action pop-up (⚑ 7, re-ruled "A" 25 Nov).
-//   5. (fixme, ⚑ 8 of #66) Two long-named coins at once: the accent's label stays inside its button.
+//   5. Two long-named coins at once: the accent's label wraps inside its button and stays inside it (⚑ 8 of #66, ruled
+//      2026-11-26, "Let it wrap").
 //   6. Offline with Take coin already open (the network dropped while it was open), a tap on its accent opens the same
 //      blocked-action pop-up as Take…, not a toast: beside the accent on a tablet, from the foot on a phone, the sheet
 //      still open under it (Home Two's audit of #66, finding 1, picked by Francis 2026-11-26).
@@ -158,10 +159,10 @@ for (const size of SIZES) {
           },
         },
       ];
-      // Purpose: with two long-named coins typed at once, the accent's label stays inside the button at 375 px. Known to
-      // fail: the shared Coin sheet keeps its amount on one line (the lead's rule, 2026-11-14), so it runs past the
-      // edge; ⚑ 8 of #66 asks whether to let it wrap (as K12's Take does), shorten it, or leave it.
-      test.fixme('stash-coin-two-long: the accent naming two long coins stays inside its button', async ({ page }) => {
+      // Purpose: with two long-named coins typed at once, the accent's label wraps inside the button and stays inside it,
+      // at every size: the shared Coin sheet's accent wraps when it doesn't fit on one line, as K12's Take does (⚑ 8 of
+      // #66, ruled 2026-11-26: "Let it wrap").
+      it.fails('stash-coin-two-long: the accent naming two long coins stays inside its button', async ({ page }) => {
         await openStash(page, 'stash=1&coin=messy');
         await openTake(page);
         const sheet = page.getByRole('dialog');
@@ -170,6 +171,12 @@ for (const size of SIZES) {
         const go = sheet.locator('.purse-sheet__go');
         await expect(go).toBeVisible();
         expect(await go.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+        // The button itself stays inside the sheet.
+        const card = (await sheet.boundingBox())!;
+        const box = (await go.boundingBox())!;
+        expect(box.x + box.width).toBeLessThanOrEqual(card.x + card.width + 0.5);
+        await page.screenshot({ path: `test-results/layout-screens/stash-coin-two-long-${size.width}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
       });
 
       it('stash-coin-take-offline: the open Take coin sheet’s accent opens the blocked-action pop-up, not a toast', async ({ page }) => {
