@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>December: page 46, a new caster's first spells are ready at once (drawn 2026-11-26; not approved; Home Two's impeccable critique has not run on this page)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* This page's own rules: layout, and the parts the Magic tab and Prepare are drawn from. Every value is a token from
+     docs/06: spacing 4/8/12/16/24/32, type 14/16/20, the tap 44, corners 4 (--radius) and 20 (--radius-sheet).
+     Type, the stacked button and the small-capitals label come from ../shared/book.css and are not restated.
+     Nothing here is a new component: the tab is page 32's M3h (the Magic tab approved 2026-11-10, magic/04), Prepare is
+     the built screen (tests/layout/gallery-baselines/*-prepare.png). Only words change. */
+  .fr46 { margin:0 0 var(--space-5); }
+  .fr46 > .cap { max-width:900px; font-size:16px; color:var(--ink); }
+  .note { max-width:900px; }
+  .note.big { font-size:16px; color:var(--ink); }
+  .flag { display:inline-block; border:1.5px dashed var(--warn); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; font-size:14px; }
+  table.sc { border-collapse:collapse; font-size:14px; margin:var(--space-2) 0 var(--space-4); color:var(--ink); max-width:900px; }
+  table.sc td, table.sc th { border:1px solid var(--rule); padding:var(--space-1) var(--space-2); text-align:left; vertical-align:top; }
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .lbl b { color:var(--ink); }
+  /* the tablet at 1180 px, cut short: only the top of the tab is this page's subject */
+  .dev.w1180 { width:1180px; min-height:520px; }
+  .dev.w1180 .page { padding:var(--space-4); }
+  /* the player's own top row (page 32's .vtop, with the menu in place of the way back) */
+  .vtop { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:var(--space-2); min-height:52px; padding:0 var(--space-2); border-bottom:1px solid var(--rule); }
+  .vtop .vtt { font-weight:700; font-size:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:520px; text-align:center; }
+  .vtop .rt { display:flex; justify-content:flex-end; }
+  /* the tab's rows (page 32's .footrow and .irow), Prepare's row with the spell book before its word (ic-2, as built) */
+  .footrow { display:grid; grid-template-columns:20px minmax(0,1fr) 20px; gap:var(--space-3); align-items:center; min-height:56px; border-bottom:1px dotted var(--rule); }
+  .footrow b { font-size:20px; }
+  .footrow small { display:block; font-size:14px; color:var(--muted); }
+  .footrow .ld { display:flex; }
+  .irow { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2); align-items:center; min-height:56px; border-bottom:1px dotted var(--rule); padding:var(--space-1) 0; }
+  .irow small { display:block; font-size:14px; color:var(--muted); }
+  .irow > span:first-child { min-width:0; overflow-wrap:anywhere; }
+  .levl { font-size:14px; color:var(--muted); margin:0; }
+  .phone .tabbar.five { grid-template-columns:repeat(5,1fr); }
+  .tabbar span { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; align-self:stretch; }
+  .phone .inner { min-height:300px; }
+  /* Prepare, as built: a whole screen with its bar (the title, ✕), the first line, a level a section, a stepper a spell, the foot */
+  .pbar { display:grid; grid-template-columns:minmax(0,1fr) 44px; align-items:center; min-height:52px; padding:0 var(--space-2) 0 var(--space-4); border-bottom:1px solid var(--rule); }
+  .pbar b { font-size:20px; }
+  .prep { padding:var(--space-4); max-width:600px; box-sizing:border-box; }
+  .phone .prep { padding:var(--space-3); }
+  .prep .pfor, .prep .pfoot { font-size:14px; color:var(--muted); margin:0 0 var(--space-3); }
+  .prep .pfoot { margin:var(--space-3) 0 0; }
+  .prep .plev { font-size:14px; color:var(--muted); margin:var(--space-3) 0 0; padding-bottom:var(--space-1); border-bottom:1px solid var(--rule); }
+  .prow { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-3); align-items:center; min-height:64px; border-bottom:1px solid var(--rule); padding:var(--space-2) 0; box-sizing:border-box; }
+  .prow .nm { font-size:20px; line-height:1.3; min-width:0; overflow-wrap:anywhere; }
+  .prow .nm small { display:block; font-size:14px; color:var(--muted); }
+  .stp { display:inline-flex; align-items:center; gap:var(--space-2); }
+  .stp .n { min-width:32px; text-align:center; font-size:20px; font-weight:700; font-variant-numeric:lining-nums tabular-nums; }
+  .dev.w1180.full { grid-template-columns:1fr; }
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+// In a function of its own, so its names never meet the shared scripts' (final.js has its own tablet and frame).
+(() => {
+// Invented names and numbers only. Sam plays Wren, a book caster approved today, with 2 spells a day at level 1.
+const LONGC = 'Mistress Hollowell Ashgrove-Fenwick of the Seven Lantern Warden Lodges';
+const LONGS = 'The long lantern of the drowned abbey that burns beneath the black water';
+const go = svg(SY.right, 20);
+const stk = (words, k, label) => `<span class="btn stk" role="button" aria-label="${label}">${gi(k, 24)}<span>${words}</span></span>`;
+
+// ---- the frames around the tab: page 32's, with the player's own bar ----
+const rail = `<div class="rail">${[['crown', 'Player'], ['fire', 'Scene'], ['sack', 'Pack'], ['moon', 'Magic']].map(([k, l]) => `<span class="ri${l === 'Magic' ? ' on' : ''}" role="button" aria-label="${l}">${k === 'moon' ? gi('moon', 24) : sym(k, 24)}</span>`).join('')}</div>`;
+const top = (title) => `<div class="vtop"><span class="ico" role="button" aria-label="Menu">${sym('menu', 24)}</span><span class="vtt">${title}</span><span class="rt">${ico('note', 'Log')}${ico('mail', 'Messages')}${ico('book', 'Reference')}<span class="ico" role="button" aria-label="More">${I.more}</span></span></div>`;
+const tabs = `<div class="tabbar five">${['Player', 'Scene', 'Pack', 'Magic', 'Log'].map((t) => `<span${t === 'Magic' ? ' class="on"' : ''} role="button">${t}</span>`).join('')}</div>`;
+const tablet = (inner, label) => `<div><p class="lbl"><b>Tablet, 1180 px.</b> ${label}</p><div class="dev w1180">${rail}<div class="main">${top('Wren')}<div class="page"><div class="cols2" style="margin-top:0"><div>${inner}</div><div></div></div></div></div></div></div>`;
+const ph = (inner, label, title = 'Wren') => `<div><p class="lbl" style="width:343px"><b>Phone, 375 px</b> (drawn 343 inside). ${label}</p><div class="phone">${phoneBar(title)}<div class="inner">${inner}</div>${tabs}</div></div>`;
+
+// ---- the Magic tab (page 32 M3h; magic/04), spells only, as the first cut builds it ----
+const prepareRow = (sub) => `<div class="footrow" role="button" aria-label="Prepare. ${sub}"><span class="ld">${gi('spell-book', 20)}</span><span><b>Prepare</b><small>${sub}</small></span>${go}</div>`;
+const spell = (name, line, o = {}) => `<div class="irow"><span role="button" aria-label="${name}, ${line}"><b>${o.cast ? `<s>${name}</s>` : name}</b>${o.dots ? ` <span class="meta">${o.dots}</span>` : ''}<small>${line}</small></span>${o.cast ? '' : stk('Cast', 'magic-palm', `Cast ${name}`)}</div>`;
+const nothing = (sub) => `<div class="irow"><span><b>Nothing ready</b><small>${sub}</small></span></div>`;
+const magic = (sub, body) => `${prepareRow(sub)}<div class="sclab">Spells</div>${body}`;
+const lev = (words) => `<p class="levl">${words}</p>`;
+
+const AT_ONCE = 'Ready at once';
+const NEXT_REST = 'For your next rest';
+const tabNew = magic(AT_ONCE, nothing('Choose in Prepare. Your first spells are ready at once.'));
+const tabChosen = magic(AT_ONCE, `${lev('Level 1, 2 a day')}${spell('Mire lamp', '6 turns, 30 paces. A light')}${spell('Thorn dart', 'Instant, 60 paces')}`);
+const tabCast = magic(NEXT_REST, `${lev('Level 1, 2 a day')}${spell('Thorn dart', 'Instant, 60 paces')}${spell('Mire lamp', 'Cast', { cast: true })}`);
+const tabRested = magic(NEXT_REST, `${lev('Level 1, 2 a day')}${spell('Mire lamp', '6 turns, 30 paces. A light')}${spell('Thorn dart', 'Instant, 60 paces')}`);
+const tabRestedNone = magic(NEXT_REST, nothing('You haven’t chosen since your last rest. Choose in Prepare; they’re ready after you rest.'));
+
+// ---- Prepare, as built (a whole screen: its bar, the first line, a stepper a spell, the foot) ----
+const stepper = (name, n) => `<span class="stp" role="group" aria-label="${name}"><span class="btn sq" role="button" aria-label="One fewer ${name}">−</span><span class="n">${n}</span><span class="btn sq" role="button" aria-label="One more ${name}">+</span></span>`;
+const prow = (name, line, n) => `<div class="prow"><span class="nm" role="button" aria-label="${name}, ${line}">${name}<small>${line}</small></span>${stepper(name, n)}</div>`;
+const pbar = `<div class="pbar"><b>Prepare</b><span class="ico" role="button" aria-label="Close">${I.close}</span></div>`;
+const firstLine = (who) => `${who}’s first spells. What you choose is ready at once, until the first cast or rest.`;
+const prepWren = `<div class="prep"><p class="pfor">${firstLine('Wren')}</p><p class="plev">Level 1, 2 a day. 1 chosen</p>${prow('Mire lamp', '6 turns, 30 paces', 1)}${prow('Thorn dart', 'Instant, 60 paces', 0)}${prow('Mend lantern', 'Instant, touch', 0)}<p class="pfoot">Ready as you choose. 1 slot still empty</p></div>`;
+const prepMessy = `<div class="prep"><p class="pfor">${firstLine(LONGC)}</p><p class="plev">Level 1, 9 a day. 9 chosen</p>${prow('Mire lamp', '6 turns, 30 paces', 9)}${prow(LONGS, '1 night, 50 paces', 0)}<p class="plev">Level 2, 2 a day. None chosen</p><p class="pfor" style="margin:var(--space-1) 0 0">Nothing to choose at level 2.</p><p class="pfoot">Ready as you choose</p></div>`;
+const tabletPrep = (inner, label) => `<div><p class="lbl"><b>Tablet, 1180 px.</b> ${label}</p><div class="dev w1180 full"><div class="main">${pbar}${inner}</div></div></div>`;
+const phPrep = (inner, label) => `<div><p class="lbl" style="width:343px"><b>Phone, 375 px</b> (drawn 343 inside). ${label}</p><div class="phone">${pbar}${inner}</div></div>`;
+
+const frame = (id, cap, inner) => `<div class="fr46" id="f${id}"><p class="cap">${cap}</p><div class="wall">${inner}</div></div>`;
+
+mount(`
+  <h1>Page 46: a new caster’s first spells are ready at once</h1>
+  <p class="note big"><b>Not approved. Home Two’s <code>impeccable critique</code> has not run on this page</b> (the skill is on the PC only); its findings go beside these frames before Francis approves them, and he picks by number. Drawn 26 November 2026 for his ruling of the same day: “a small fix for magic after character creation any [spellcaster] should be assumed to be rested for their initial spells. I want them to walk into the adventure with spells prepared to cast.” Asked how, he chose <b>“Pick once, ready”</b>: until a new caster’s first rest, what they choose in Prepare is ready at once. Ruling: <code>docs/design/rulings/dec-first-spells-ready-2026-11-26.md</code> (fsr-1 to fsr-3, and its ⚑). Plan: <code>docs/plans/dec-first-spells-ready.md</code>.</p>
+  <p class="note"><b>What is new is words only.</b> No new part, button or colour: the tab is the Magic tab approved 2026-11-10 (magic/04), in the dress page 32 draws it in (M3h, approved 2026-11-21); Prepare is the screen as built (dec-8 C; frame magic/06). Three lines change while the caster’s first spells are open, and “Same as yesterday” is not offered (there is no yesterday). Invented names and figures. Each frame is a tablet at 1180 px, cut short under the tab’s rows, and a phone at 375 px; light on the left, dark on the right.</p>
+
+  <h1>46A. A new caster, before choosing</h1>
+  ${frame('46A', '<b>46A. Wren was approved today and has chosen nothing.</b> Today this tab reads “Prepare, For your next rest” and “Nothing ready. You haven’t chosen since your last rest. Choose in Prepare; they’re ready after you rest.”, which sends a new caster into the first room with nothing to cast. <b>Now:</b> Prepare’s second line is “Ready at once”, and the empty row says where to go and what happens: “Choose in Prepare. Your first spells are ready at once.” The app still picks nothing (mp-3).', `${tablet(tabNew, 'Before choosing.')}${ph(tabNew, 'Before choosing.')}`)}
+
+  <h1>46B. Prepare, while the first spells are open</h1>
+  ${frame('46B', '<b>46B. Prepare in that state, one tap in.</b> The first line says whose spells, that a choice is ready at once, and when that ends: “Wren’s first spells. What you choose is ready at once, until the first cast or rest.” (today: “For Wren’s next rest. Nothing is ready today.”). The foot reads <b>“Ready as you choose. 1 slot still empty”</b> (today: “Saved as you go. 1 slot still empty”). No “Same as yesterday” row. The steppers, the level line, the full level’s pop-up and a spell’s rules on a tap of its name are as built. No accent: nothing is asked. <span class="flag">⚑ 4</span> “until the first cast or rest” is drawn to the lean; if the first rest alone ends it, the line ends “until the first rest.” <b>The second phone:</b> messy data: a long name (said once), a long spell, 0 and 9, a level with nothing to choose, no slot empty.', `${tabletPrep(prepWren, 'Prepare, a whole screen with its bar, as built; one of 2 chosen.')}${phPrep(prepWren, 'The same.')}${phPrep(prepMessy, 'Messy data.')}`)}
+
+  <h1>46C. Right after choosing</h1>
+  ${frame('46C', '<b>46C. Both slots chosen, Prepare closed: the spells are ready, each with Cast.</b> Nothing waits for a rest. Prepare’s second line still reads “Ready at once”: Wren may change her mind until she casts or rests. No toast: Prepare saves each step as it is made, as today. <b>The second phone</b> <span class="flag">⚑ 4, the lean</span>: <b>after her first Cast</b> the first spells are closed. The tab is the ordinary tab from here: “For your next rest”, the cast spell crossed out and saying “Cast” at the foot of its level (mm-1). Undo of that cast (the toast’s or the log’s) opens them again.', `${tablet(tabChosen, 'After choosing.')}${ph(tabChosen, 'After choosing.')}${ph(tabCast, 'After the first Cast (⚑ 4, the lean).')}`)}
+
+  <h1>46D. After the first rest</h1>
+  ${frame('46D', '<b>46D. After Wren’s first rest: the ordinary words, for good.</b> “Prepare, For your next rest”; what she chooses now is ready at her next rest (mp-2). Her spells are back, with no casts. <b>The second phone:</b> a caster who chose nothing before that first rest reads today’s empty row, unchanged: “You haven’t chosen since your last rest. Choose in Prepare; they’re ready after you rest.”', `${tablet(tabRested, 'After the first rest.')}${ph(tabRested, 'After the first rest.')}${ph(tabRestedNone, 'Rested, nothing chosen.')}`)}
+
+  <h1>The words</h1>
+  <table class="sc">
+    <tr><th>Where</th><th>Today, and after the first spells close</th><th>While the first spells are open</th></tr>
+    <tr><td>Magic tab, Prepare’s second line</td><td>For your next rest</td><td><b>Ready at once</b></td></tr>
+    <tr><td>Magic tab, “Nothing ready”, its line</td><td>You haven’t chosen since your last rest. Choose in Prepare; they’re ready after you rest.</td><td><b>Choose in Prepare. Your first spells are ready at once.</b></td></tr>
+    <tr><td>Prepare, the first line</td><td>For Wren’s next rest. Nothing is ready today.</td><td><b>Wren’s first spells. What you choose is ready at once, until the first cast or rest.</b></td></tr>
+    <tr><td>Prepare, the foot</td><td>Saved as you go. 1 slot still empty</td><td><b>Ready as you choose. 1 slot still empty</b> (none empty: “Ready as you choose”)</td></tr>
+    <tr><td>Prepare, “Same as yesterday”</td><td>Offered when something is ready</td><td>Not offered</td></tr>
+    <tr><td>Prepare, − on a spell not chosen (pop-up)</td><td>Wren hasn’t chosen Thorn dart for the next rest, so there’s none to take out.</td><td>Wren hasn’t chosen Thorn dart, so there’s none to take out.</td></tr>
+    <tr><td>The log’s line for a choice</td><td>Sam chose 2 spells for Wren’s next rest</td><td>Sam chose 2 spells for Wren, ready at once</td></tr>
+  </table>
+
+  <h1>States</h1>
+  <table class="sc">
+    <tr><th>State</th><th>What shows</th></tr>
+    <tr><td>Empty</td><td>46A. An empty spell book keeps its own note in Prepare (“No spells in your book yet. Your GM adds one when you learn it.”), unchanged.</td></tr>
+    <tr><td>Partial</td><td>46B: one of 2 chosen, “1 slot still empty”; the tab would list that one spell with Cast.</td></tr>
+    <tr><td>Overflow</td><td>46B, the second phone: the long name wraps in the first line; the long spell wraps beside its stepper; 9 and 0.</td></tr>
+    <tr><td>Loading</td><td>As today: the tab draws from what the device holds; the words follow the caster’s state once read. Not drawn.</td></tr>
+    <tr><td>Error</td><td>As today: a refused save puts the steppers back to what is saved and shows the error toast. Not drawn.</td></tr>
+    <tr><td>Offline</td><td>As today: the app’s Offline mark; a choice is kept and sent. Which of the two it becomes is decided when it is sent. Not drawn.</td></tr>
+    <tr><td>Two devices</td><td>A cast on one device closes the first spells on the other at its next read; the words change with it. Not drawn.</td></tr>
+  </table>
+
+  <h1>⚑ For Francis, each with a lean</h1>
+  <p class="note big"><span class="flag">⚑ 1</span> <b>“Not rested yet” belongs to the character, or to the campaign’s first expedition?</b> Lean: <b>the character</b>, from approval to its own first rest. A replacement who joins in session 6 walks in prepared too.</p>
+  <p class="note big"><span class="flag">⚑ 2</span> <b>If the GM sets a new caster’s spells by hand before play, does that close the first spells?</b> Lean: <b>yes.</b> The GM has said what is ready; the player’s later change waits for a rest, as mp-4 has it. (No screen calls the GM’s set by hand today; only the rest does.)</p>
+  <p class="note big"><span class="flag">⚑ 3</span> <b>A caster made again after an archive?</b> Lean: <b>a new character gets it</b>, whoever made it and whatever came before; <b>an archived character the GM restores keeps its own state</b> (rested stays rested).</p>
+  <p class="note big"><span class="flag">⚑ 4</span> <b>Does the first Cast close them too?</b> Lean: <b>yes</b> (46C, the second phone). Without it, a new caster could cast, swap the spent spell for a fresh one in Prepare, and cast again, all through the first expedition: in the first cut the only rest is the one at End expedition.</p>
+  <p class="note big"><span class="flag">⚑ 5</span> <b>Casters already made.</b> Lean: one with <b>nothing ready</b> gets the first spells (and one whose choice is waiting for a rest has it made ready by the update); one with spells ready is treated as rested.</p>
+  <p class="note big"><span class="flag">⚑ 6</span> <b>The words</b> in the table above: “Ready at once”, “Your first spells”, “Ready as you choose”.</p>
+
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked, by script on this page (both themes, every frame).</b> Nothing under 14 px inside a frame. Every button is at least 44 px each way: the stepper’s − and + 44 by 44 with 8 px between them and the number; Cast 88 by 56; Prepare’s row and each spell row 56 px or more; the bar’s icons 44; the tab bar’s tabs 62 high. <b>One accent a screen:</b> none on these screens (Cast is the plain stacked button; Prepare asks nothing), as approved. <b>No disabled button:</b> − at 0 and + on a full level stay tappable and answer with their pop-ups, as built. <b>Undo over confirm:</b> nothing asks first; a cast keeps its Undo. <b>Colour alone:</b> nothing here is told apart by colour; a cast spell is crossed out and says “Cast”. No greyscale strip is owed.</p>
+  <p class="note"><b>Measured</b> (WCAG ratio from the tokens): the muted lines on the page (the tab’s second lines, the level line, Prepare’s first line and foot), light 6.8, dark 8.3; ink on the page, light 17.1, dark 15.9; the tab bar’s words, ink on its ground, light 17.9, dark 14.4. Between two Cast buttons one above the other, 11 px.</p>
+  <p class="note"><b>Heuristics.</b> Status: the tab says before the tap whether a choice is ready at once or waits. Match: “first spells” is creation’s own name for them. Control: a choice can be changed until a cast or a rest; a cast has Undo. Consistency: the same row, the same sheet, one changed line each. Error prevention: the first line says when the open choosing ends, before it ends. Recognition: nothing to remember; the row’s second line carries the state. Minimal: no new element. Help: none needed beyond the lines.</p>
+  <p class="note"><b>Not checked, honestly.</b> Home Two’s <code>impeccable critique</code>. Larger text. WebKit (drawn in Chrome only). The frame around the tab on a tablet is page 32’s with a plain bar for the player; the player’s own bar was not redrawn from a built picture. Prepare on a tablet is drawn as a whole screen with a bar from the code’s description and the gallery’s pictures of its inside, not from a picture of the built screen at 1180 px. The Magic tab’s other lists (glamours, a blessing) are left out, as in the first cut. The moment the words flip on a second device is described, not drawn.</p>
+`);
+for (const el of document.querySelectorAll('.phone')) el.classList.add('bit');
+for (const el of document.querySelectorAll('.tabbar span')) el.dataset.sc = '';
+applyBook();
+})();
+</script>
+</body>
+</html>

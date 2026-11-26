@@ -10,6 +10,14 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 
 **The Scene, point to point** (`design/rulings/scene-point-to-point-2026-11-18.md`)
 
+**A new caster's first spells** (`design/rulings/dec-first-spells-ready-2026-11-26.md`; page 46; each with a lean there)
+- ⚑ 1 "Not rested yet": the character's own first rest, or the campaign's first expedition? Lean: the character.
+- ⚑ 2 Does the GM setting a new caster's spells by hand close the first spells? Lean: yes.
+- ⚑ 3 A caster made again after an archive. Lean: a new character gets them; a restored one keeps its state.
+- ⚑ 4 Does the first Cast close them too? Lean: yes (else a spent spell can be swapped for a fresh one all through the first expedition).
+- ⚑ 5 Casters already made. Lean: one with nothing ready gets them, a waiting choice is made ready by the update (it rewrites stored rows, removes nothing: his yes in plain words first); one with spells ready counts as rested.
+- ⚑ 6 The words: "Ready at once", "Your first spells", "Ready as you choose".
+
 **Later**
 - ⚑ **Laptops, widescreen** (2026-11-24, `01` Devices): laptops are the second device, for downtime; how windows scale past the tablet's landscape layout (1024 px and up, `06`) needs a short design session before anything in `06` changes.
 - **After 5 December: text shown on hover, for a PC** (euf-8, Francis, 2026-11-19: "we'll want to support pc more in the future but not prior to dec 5"). A player asked for an ability's description on hover; on a tablet a tap on the name opens it.
