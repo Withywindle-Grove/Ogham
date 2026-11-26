@@ -12,7 +12,7 @@ import { toSeconds, type TimeUnits } from './clock.ts';
 import { POINT_TO_POINT_UNIT, type Check } from './modes.ts';
 import { obstacleExtraWords, obstacleNameOf, obstacleRowWords, takesWords, thenWords, throughCheckOf, wayTimeWords, type MoveCheck } from './moveOn.ts';
 import { loadPlaceChain, loadRuleSwitches, placeCheckOf, wayOutHere, type ChainEntry, type RuleSwitch } from './placeRules.ts';
-import { keyedName } from './placeTree.ts';
+import { byMapNumber, keyedName } from './placeTree.ts';
 
 /** What the players know of a far end (MoveOnParts' `ShownToPlayers`, the same three). */
 export type ShownToPlayers = 'shown' | 'unshown' | 'hidden';
@@ -269,13 +269,14 @@ const throughNameOf = (read: MoveOnRead, through: string | null): string | null 
 const farNameOf = (read: MoveOnRead, id: string): string => read.farEnds.get(id)?.name ?? id;
 
 /**
- * The GM's destinations, one row a place, in the pack's order of its links: every way of every link to it as a button;
- * "Hidden from players" only when every link to it is hidden; the first obstacle met on its ways as the row's warning.
+ * The GM's destinations, one row a place, in the Locations' order (`byMapNumber`, Q1: no map number first, in the pack's
+ * order of its links, then by number): every way of every link to it as a button; "Hidden from players" only when
+ * every link to it is hidden; the first obstacle met on its ways as the row's warning.
  */
 export function destinationsOf(read: MoveOnRead): DestinationOf[] {
   const order: string[] = [];
   for (const w of read.ways) if (!order.includes(w.farEnd)) order.push(w.farEnd);
-  return order.map((id) => {
+  return byMapNumber(order, (id) => read.farEnds.get(id)?.number).map((id) => {
     const links = read.ways.filter((w) => w.farEnd === id);
     const far = read.farEnds.get(id);
     const met = links.find((l) => l.barrier)?.barrier ?? null;
