@@ -2097,7 +2097,7 @@ export function SceneTime({
    * A check that is a roll on its table (p2p-19, B9; page 24, WY1b): the GM tapped the rolled row in its card. Today's two
    * commands, as a hit and its tapped row are recorded from the tables full screen: the check's result (check.record,
    * a hit: with no chance the table is always rolled) and the row read (check.setRoll). No new command. The toast never
-   * says "a hit" (p2p-19: there is no hit or miss): "Rolled: 14–15, A seal, curious", as a tapped row says it. Its Undo
+   * says "a hit" (p2p-19: there is no hit or miss): "14–15: A seal, curious", as a tapped row says it. Its Undo
    * takes back both, the row first.
    */
   async function rollRow(line: CardLine, tap: TableTap) {
@@ -2122,7 +2122,7 @@ export function SceneTime({
         setTablesOpen(null);
       };
       show({
-        text: `${saved ? `Rolled: ${tap.roll}, ${tap.words}` : `${line.name}: the row wasn't saved`}${(saved ?? result).revealed ? ', players see it' : ''}`,
+        text: `${saved ? `${tap.roll}: ${tap.words}` : `${line.name}: the row wasn't saved`}${(saved ?? result).revealed ? ', players see it' : ''}`,
         onUndo: () => void (saved ? undoLatest('check.setRoll', () => void undoLatest(command.name, restore)) : undoLatest(command.name, restore)),
       });
     } finally {

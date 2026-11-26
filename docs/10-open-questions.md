@@ -22,6 +22,7 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 - **To check, the reading of p45-23:** with a find card and a call both due, the find card shows and the call waits for "Got it".
 - **Not yet seen by him:** FD11 as redrawn to his fixes, and the new frames FD3c and FD11b, all drawn after his "Approve" (`design/mockups/index.md`, page 45, pictures 45-22 to 45-24).
 - **Owed, the words sweep:** a find's log line drops its article ("Your GM gave Wren Bronze ring."); p45-18, `plans/app-sweep.md` Q-11. Not built with K18 to K21.
+- **To draw, the step's own roll** (sf-5 ⚑ 1, ruled 2026-11-26 "change it later"): a procedure step that rolls a table, and the weather table's pick, keep their typed "Enter roll…" (`TableRoll`) for now; a new row, drawn first by the designer, may make them "Roll…" with the tapped pop-up.
 
 **Later**
 - ⚑ **Laptops, widescreen** (2026-11-24, `01` Devices): laptops are the second device, for downtime; how windows scale past the tablet's landscape layout (1024 px and up, `06`) needs a short design session before anything in `06` changes.

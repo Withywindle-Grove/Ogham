@@ -138,10 +138,10 @@ export function StatBlockSpecimens({ Specimen }: { Specimen: (props: { name: str
       <Specimen name="1. A detail row's pop-up, a creature (EN3 A): the name as the head with the X on its line, no title line; how many, the description, the descriptor in small capitals, the figures in the pack's groups with a rule between, the abilities, the source">
         <BookDetailPopUp detail={creatureDetail(ref(lurker, FEN, '2'))} onClose={() => undefined} preview />
       </Specimen>
-      <Specimen name="3. The encounter's creatures as detail rows (EN1 B): the whole row the tap, between dotted rules, the name with its count, its stat line, the arrow; one not in the packs says so">
-        <CreatureRows blocks={[ref(lurker, FEN, '2'), ref(hag, FEN, '1'), { missing: 'fen-rules:salt-hag', count: '1' }]} />
+      <Specimen name="3. The encounter's creatures as detail rows (EN1 B): the whole row the tap, between dotted rules, the name with its count (a dice count after a comma), its stat line, the arrow; one not in the packs says so">
+        <CreatureRows blocks={[ref(lurker, FEN, '2'), ref(hag, FEN, '1d4'), { missing: 'fen-rules:salt-hag', count: '1' }]} />
       </Specimen>
-      <Specimen name="3. Detail rows (EN1 D; DT1): a named character with their kind and the line they use; an item's rule; the short row; no stat block in the packs; a very long name; a count of 999">
+      <Specimen name="3. Detail rows (EN1 D; DT1): a named character with their kind and the line they use; an item's rule; the short row; no stat block in the packs (the name alone); a very long name; a count of 999">
         <BookDetailRow detail={harl} />
         <BookDetailRow detail={oil} />
         <BookDetailRow detail={harl} short="Same stat line as the Ferryman." />

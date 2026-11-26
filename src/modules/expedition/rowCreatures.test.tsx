@@ -93,7 +93,7 @@ describe('several creatures on one row (pf-2)', () => {
     expect(creatureLines(rows[2]!, statBlock).map((b) => [b.missing ?? b.name, b.count])).toEqual([['Eel mother', '1'], ['Bog lurker', '1d3'], ['fen-rules:salt-hag', '1d3']]);
   });
 
-  // Purpose: the waiting card's details list every creature of the row as a detail row with its count ("×1", sf-6a),
+  // Purpose: the waiting card's details list every creature of the row as a detail row with its count ("×1", sf-6a; a dice count after a comma, ruled 2026-11-26),
   // and no "How many" line when every creature has its own count.
   it('lists each creature with its count on the waiting card', () => {
     const tables = withRowLinks(new Map([['harbour-night', harbour]]), sources);
@@ -103,7 +103,7 @@ describe('several creatures on one row (pf-2)', () => {
     };
     render(<EncounterDetails card={card} started={false} tables={tables} statBlock={statBlock} when={() => null} onClose={() => undefined} />);
     const list = within(screen.getByRole('list', { name: 'Stat blocks' }));
-    expect(list.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Drowned acolyte ×1', 'Bog lurker ×1d4']);
+    expect(list.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Drowned acolyte ×1', 'Bog lurker, 1d4']);
     expect(screen.queryByText(/How many/)).toBeNull();
   });
 });

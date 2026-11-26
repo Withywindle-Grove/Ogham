@@ -179,7 +179,8 @@ describe('the feeders of Waiting for you (S8b)', () => {
   // pack's sentence and one Roll…, the accent, with no Hit, no Miss, no ±1 and no Modifier. Roll… opens the table in a
   // pop-up titled with the table's name ("Roll d20, then tap the row."); a tap on the rolled row records the check's
   // result and the row through today's two commands and closes the pop-up, and the toast names the row's range and
-  // never says "a hit". Its Undo takes both back and the check waits again.
+  // never says "a hit": "11–20: Gulls, …", the range, a colon and the row's words, no "Rolled:" (finding 7's form,
+  // ruled 2026-11-26). Its Undo takes both back and the check waits again.
   it('a roll on its table: Roll… opens the table in a pop-up; a tapped row is the answer', async () => {
     const t = await table({ rollOnTable: true });
     scene(t);
@@ -199,7 +200,7 @@ describe('the feeders of Waiting for you (S8b)', () => {
     await waitFor(() => expect(world.tables.events.some((e) => e.type === 'check.setRoll')).toBe(true));
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Encounters in the harbour' })).toBeNull());
     expect(world.tables.events.filter((e) => e.type === 'check.record')).toHaveLength(1);
-    const toast = await screen.findByText(/^Rolled: 11–20, Gulls, mobbing the boat/);
+    const toast = await screen.findByText(/^11–20: Gulls, mobbing the boat/);
     expect(toast.textContent).not.toMatch(/hit/i);
     const result = within(await panel().findByRole('region', { name: 'Encounters in the harbour' }));
     expect(result.getByText(/Rolled: .*Gulls, mobbing the boat/)).toBeTruthy();

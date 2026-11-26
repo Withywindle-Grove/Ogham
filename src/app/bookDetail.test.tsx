@@ -10,7 +10,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import { layOutStatBlock } from '../modules/library/statBlockLayout.ts';
-import { BookDetailPopUp, BookDetailRow, NO_STAT_LINE, type BookDetail } from './BookDetail.tsx';
+import { BookDetailPopUp, BookDetailRow, countedName, NO_STAT_LINE, type BookDetail } from './BookDetail.tsx';
 import { CreatureRows } from './EncounterWaiting.tsx';
 
 afterEach(cleanup);
@@ -38,6 +38,18 @@ describe('the detail row (sf-6a)', () => {
     expect(screen.getAllByRole('button')).toHaveLength(1);
     expect(row.textContent).toBe('Bog lurker ×2Armour 7 Attacks Bite (1d6)');
     expect(row.querySelector('.stat-line')).not.toBeNull();
+  });
+
+  // Purpose (Francis, 2026-11-26, PR #111): a dice count follows the name after a comma, with no "×" ("Bog lurker,
+  // 1d4"); a fixed count keeps "×" ("Bog lurker ×2").
+  it('a dice count reads "<name>, 1d4"; a fixed count keeps "×"', () => {
+    expect(countedName('Bog lurker', '1d4')).toBe('Bog lurker, 1d4');
+    expect(countedName('Bog lurker', '2d6')).toBe('Bog lurker, 2d6');
+    expect(countedName('Bog lurker', '2')).toBe('Bog lurker ×2');
+    expect(countedName('Bog lurker', '999')).toBe('Bog lurker ×999');
+    expect(countedName('Bog lurker', null)).toBe('Bog lurker');
+    render(<BookDetailRow detail={{ ...lurker, count: '1d4' }} />);
+    expect(screen.getByRole('button', { name: 'Bog lurker: read it' }).textContent).toBe('Bog lurker, 1d4Armour 7 Attacks Bite (1d6)');
   });
 
   // Purpose: the short row is the name and one quiet line, with no stat line (finding 9).
@@ -95,10 +107,13 @@ describe('the detail pop-up (sf-6a)', () => {
     expect(within(popUp).getByText('From your adventure: Saltwick Island, p. 13')).toBeTruthy();
   });
 
-  // Purpose (EN3 D): a character with no stat block in the packs shows its one line, in the row and in the pop-up.
-  it('a character with no stat block shows its one line', () => {
+  // Purpose (EN3 D; Francis, 2026-11-26, PR #111): a character with no stat block in the packs shows the name alone on
+  // the row, with no quiet line; the pop-up shows the one line that says why.
+  it('a character with no stat block: the name alone on the row, its one line in the pop-up', () => {
     render(<BookDetailRow detail={harl(null)} />);
-    expect(screen.getByRole('button', { name: 'Old Harl: read it' }).textContent).toBe(`Old Harl, a ferryman${NO_STAT_LINE}`);
+    const row = screen.getByRole('button', { name: 'Old Harl: read it' });
+    expect(row.textContent).toBe('Old Harl, a ferryman');
+    expect(row.querySelector('.stat-line')).toBeNull();
     cleanup();
     render(<BookDetailPopUp detail={harl(null)} onClose={() => undefined} />);
     const popUp = screen.getByRole('dialog', { name: 'Old Harl' });
