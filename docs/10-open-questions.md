@@ -10,16 +10,16 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 
 **The Scene, point to point** (`design/rulings/scene-point-to-point-2026-11-18.md`)
 
-**The Pack tab's finds** (page 45, approved 2026-11-26 with picks: `design/rulings/page-45-find-flow-2026-11-26.md`. Francis asked for these to be written as ⚑ with the designer's lean and left unruled; plan `plans/dec-6-the-whole-pack-tab.md`, "The find flow", says which of them a row waits for)
-- ⚑ F1 **What counts as "New".** PK2 lists a gift from another character beside the GM's finds. Not said: the GM's "Give coin…", another character's coin, a thing the GM adds from the character's own Add item. Lean: anything another person puts in the pack or the purse; never the player's own act (Add item, Take, Buy it, a kit at creation). As built, "New" reads a row's age against the mark, so with no mark a whole pack is new: the build reads the send's or the gift's log line instead.
-- ⚑ F2 **A find that joins a stack she already carries.** Lean: the card names what arrived and says the stack's new count; the tag sits on the whole stack; it counts as one.
+**The Pack tab's finds** (page 45, approved 2026-11-26 in two sittings: `design/rulings/page-45-find-flow-2026-11-26.md`. F1, F2 and F7 are ruled: p45-21 to p45-23. The rest are not asked yet and stay ⚑ with the designer's lean; none holds a piece back: plan `plans/dec-6-the-whole-pack-tab.md`, "The find flow")
 - ⚑ F3 **"Just now": when it becomes "today".** Lean: under an hour, read when the card is drawn, with no ticking clock; then K14's words.
 - ⚑ F4 **A player with two characters: does the card name the character?** Lean: no. The card and the count belong to the character whose tabs are open, and the screen's title names it.
 - ⚑ F5 **The GM's view of a player's Pack** (page 32). Lean: the tags and the count show; no card, since "Got it" is the player's alone.
 - ⚑ F6 **A card's lines as taps,** beyond "and N more". Lean: not taps for now.
-- ⚑ F7 **The find card's turn in the Scene's prompt slot** (new with p45-3): where it stands among rest, light and the calls, and whether the Scene on a tablet follows the slot or the right column (p45-2). Lean: after rest and light and before a call, sharing the calls' one-card place; the slot at every width.
-- ⚑ F8 **The GM's Undo as the player meets it** (page 45's FD11, drawn at his ask): is she told? Lean: no toast; the card changes and the Log keeps the line.
-- **Owed, his look:** the pictures redrawn to his picks, and FD11, which is new (`design/mockups/index.md`, page 45). Until then FD11 is not approved.
+- ⚑ F8 **The GM's Undo as the player meets it: what is left of it.** That she is told, and where, is ruled (p45-25, p45-26, p45-28). Not asked: a toast as well; what the head and the line said once read when nothing new is left; a thing taken back that was under "and N more"; the words for coin and for a name that starts with "The". Lean: no toast; the head and the line said once stay as they were, and a head that counts follows the count; "and N more" counts one fewer and no line is added; coin takes no "the" ("Your GM took back 240 herons.") and a name that starts with "The" takes no second one.
+- ⚑ F9 **A second find onto the same stack before Got it** (new with p45-22). Lean: one line a stack, the arrivals added together and the count as it now is ("River pearls ×5, now 11"), at the newest one's place and time; it counts as one.
+- **Not asked under p45-21:** a thing another person's tap makes by another road (an activity's yield the GM resolves; a hoard shared out, K17). Until he is asked, only the four roads p45-21 names count as "New".
+- **To check, the reading of p45-23:** with a find card and a call both due, the find card shows and the call waits for "Got it".
+- **Not yet seen by him:** FD11 as redrawn to his fixes, and the new frames FD3c and FD11b, all drawn after his "Approve" (`design/mockups/index.md`, page 45, pictures 45-22 to 45-24).
 - **Owed, the words sweep:** a find's log line drops its article ("Your GM gave Wren Bronze ring."); p45-18, `plans/app-sweep.md` Q-11. Not built with K18 to K21.
 
 **Later**
