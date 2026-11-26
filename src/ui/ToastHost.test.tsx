@@ -129,6 +129,24 @@ describe('the toast over an open pop-up', () => {
     expect(host().classList.contains('toast-host--lifted')).toBe(false);
   });
 
+  // Purpose: on a phone, a sheet that asks for the toast above gives up the toast's own height at its top while the
+  // toast shows, so a long list can never push the sheet up under the toast and its title and ✕ out of sight (Home
+  // Two's audit of #50, finding 1).
+  it.fails('on a phone the sheet that asks for it leaves the toast’s height free at its top', () => {
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(375);
+    const real = HTMLElement.prototype.getBoundingClientRect;
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      return this.classList.contains('toast') ? ({ x: 0, y: 0, top: 0, left: 0, width: 343, height: 140, right: 343, bottom: 140, toJSON: () => ({}) } as DOMRect) : real.call(this);
+    });
+    render(
+      <ToastHost>
+        <Sheet asks />
+        <NoticeToast message="Told Wren of the Lantern Wardens everything about The Old Lantern of the Drowned and of the Nine Tides." />
+      </ToastHost>,
+    );
+    expect(screen.getByRole('dialog').style.getPropertyValue('--toast-above-height')).toBe('140px');
+  });
+
   it('on a tablet it stays at the screen’s foot', () => {
     vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(1180);
     render(

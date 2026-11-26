@@ -12,7 +12,7 @@ import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import { hiddenFacts, type HiddenFact } from '../modules/inventory/hiddenFacts.ts';
 import { tellItem, type InventoryLine, type NamedCarrier } from '../modules/inventory/inventory.ts';
-import { shownName, withThe } from '../modules/inventory/packView.ts';
+import { possessive, shownName, withThe } from '../modules/inventory/packView.ts';
 import type { ResolvedEntry } from '../modules/library/stack.ts';
 import { CentredPopUpScope, Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { Icon } from '../ui/icons.tsx';
@@ -40,6 +40,9 @@ export const countNotSet = (fact: HiddenFact, secret: { total: number | null } |
 /** Who a tell tells, in the toast's words: the holder's name, or "the party" for the stash (K22f, 3). */
 const whoOf = (carrier: NamedCarrier) => (carrier.locationId !== null ? 'the party' : carrier.name);
 
+/** Where the item is, under the pop-up's title: "in Wren’s pack", or "in the Party stash". */
+export const whereOf = (carrier: NamedCarrier) => (carrier.locationId !== null ? 'in the Party stash' : `in ${possessive(carrier.name)} pack`);
+
 /** The toast after a tell (pick 10; K22e, K22f): "Told Wren: the Bronze ring is cursed.", the true name's (pg30-5), everything's. */
 export function toldWords(fact: HiddenFact | 'everything' | 'all but charges', line: Pick<InventoryLine, 'name'>, carrier: NamedCarrier, trueName: string): string {
   const who = whoOf(carrier);
@@ -47,28 +50,29 @@ export function toldWords(fact: HiddenFact | 'everything' | 'all but charges', l
   if (fact === 'everything') return `Told ${who} everything about ${withThe(trueName || item)}.`;
   if (fact === 'all but charges') return `Told ${who} everything about ${withThe(trueName || item)} but its charges.`;
   if (fact.id === 'name') {
-    const whose = carrier.locationId !== null ? `The party’s ${item}` : `${carrier.name}’s ${item}`;
+    const whose = carrier.locationId !== null ? `The party’s ${item}` : `${possessive(carrier.name)} ${item}`;
     return `Shown to the players: ${fact.detail}. ${whose} now carries its name.`;
   }
+  const the = withThe(item);
   const said =
     fact.id === 'magic'
-      ? ' is magic'
+      ? `${the} is magic`
       : fact.id === 'cursed'
-        ? ' is cursed'
+        ? `${the} is cursed`
         : fact.id === 'bonus'
           ? /^[+−-]\d+$/.test(fact.detail)
-            ? ` has a bonus of ${fact.detail}`
+            ? `${the} has a bonus of ${fact.detail}`
             : fact.detail
-              ? ` gives ${fact.detail}`
-              : ' has a bonus'
+              ? `${the} gives ${fact.detail}`
+              : `${the} has a bonus`
           : fact.id === 'charges'
             ? fact.detail
-              ? ` has ${fact.detail.replace(/ left$/, '')} charges left`
-              : '’s charges'
+              ? `${the} has ${fact.detail.replace(/ left$/, '')} charges left`
+              : `${possessive(the)} charges`
             : fact.id.startsWith('power:')
-              ? ` has a power${fact.detail ? `: ${fact.detail}` : ''}`
-              : `’s ${fact.label}${fact.detail ? `: ${fact.detail}` : ''}`;
-  return `Told ${who}: ${withThe(item)}${said}.`;
+              ? `${the} has a power${fact.detail ? `: ${fact.detail}` : ''}`
+              : `${possessive(the)} ${fact.label}${fact.detail ? `: ${fact.detail}` : ''}`;
+  return `Told ${who}: ${said}.`;
 }
 
 export function RevealPopup({
@@ -104,7 +108,7 @@ export function RevealPopup({
   const left = listed.filter((f) => hiddenNow.has(f.id));
   const tellable = left.filter((f) => !countNotSet(f, secret));
   const waiting = left.length > tellable.length;
-  const where = carrier.locationId !== null ? 'in the Party stash' : `in ${carrier.name}’s pack`;
+  const where = whereOf(carrier);
 
   function tell(fact: HiddenFact | 'everything') {
     if (busy) return;

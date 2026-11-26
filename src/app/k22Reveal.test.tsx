@@ -29,17 +29,21 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { runCommand } from '../core/commands.ts';
 import { forgetFileLinks } from '../core/files.ts';
+import type { HiddenFact } from '../modules/inventory/hiddenFacts.ts';
 import { tellItem } from '../modules/inventory/inventory.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { Root } from './App.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
 import { registry } from './services.ts';
-import { toldWords } from './RevealPopup.tsx';
+import { toldWords, whereOf } from './RevealPopup.tsx';
 
 vi.mock('./services.ts', async () => {
   const { createAppRegistry } = await import('./commandRegistry.ts');
   return { db: null, missingSettings: [], registry: createAppRegistry() };
 });
+
+/** The blocked-action pop-up's words for a count never set (Home Two's audit of #50, findings 4 and 5). */
+const CHARGES_WHY = 'Its count isn’t rolled yet. Roll it on your own Pack, under Players › Inventory › Whose pack: open this item there and roll under Charges. Then tell them.';
 
 let world: FakeWorld;
 let gm: string;
@@ -251,6 +255,16 @@ describe('K22c: "Edit what players see…" and its form', () => {
     expect(screen.queryByText(/Changed what players see/)).toBeNull();
     expect(world.tables.events.filter((e) => e.type === 'inventory.editLook')).toHaveLength(0);
   });
+
+  // Purpose: a toast still up when the form opens sits above the form on a phone, as over the Reveal pop-up, so it
+  // never lands on a field (Home Two's audit of #50, finding 3).
+  it.fails('the form asks the toast to sit above it', async () => {
+    const user = await openInView();
+    await user.click(await screen.findByRole('button', { name: /^Bronze ring/ }));
+    await user.click(screen.getByRole('button', { name: 'Edit what players see…' }));
+    const form = await screen.findByRole('dialog', { name: 'What players see' });
+    expect(form.querySelector('[data-toast-above]')).not.toBeNull();
+  });
 });
 
 describe('K22d: the Reveal pop-up', () => {
@@ -329,6 +343,34 @@ describe('K22d: the Reveal pop-up', () => {
     await user.click(popup.getByRole('button', { name: 'Tell Its true name: Ring of the Drowned Bell' }));
     expect(await popup.findByText(/Its setting rules are gone, so its name can't be told\./)).toBeTruthy();
     expect(popup.queryByText(/Try again/)).toBeNull();
+  });
+
+  // Purpose: with everything told, the list holds no button, so it takes focus itself and keeps its name, and a
+  // keyboard can still scroll a long one (Home Two's audit of #50, finding 2; axe's scrollable-region-focusable).
+  it.fails('with everything told, the list can still be reached from the keyboard, by its name', async () => {
+    const user = await openInView();
+    const popup = await openReveal(user);
+    await user.click(popup.getByRole('button', { name: 'Tell them everything' }));
+    expect(await popup.findByText('Nothing is left hidden.')).toBeTruthy();
+    const list = popup.getByRole('list', { name: 'What is hidden' });
+    expect(list.tabIndex).toBe(0);
+  });
+
+  // Purpose: a count never set can't be told yet, but its row stays tappable (CLAUDE.md: a blocked action stays
+  // tappable and explains why): a tap says why and where the count is set, and the Reveal pop-up stays under it
+  // (Home Two's audit of #50, findings 4 and 5; Francis, 26 Nov).
+  it.fails('"Its charges / Not set yet" is a tap that says where to set the count, and tells nothing', async () => {
+    Object.assign(ring(), { charges_hidden: true });
+    const user = await openInView();
+    const popup = await openReveal(user);
+    await user.click(popup.getByRole('button', { name: 'Its charges: Not set yet' }));
+    const why = within(await screen.findByRole('dialog', { name: 'Set its charges first' }));
+    expect(why.getByText(CHARGES_WHY)).toBeTruthy();
+    await user.click(why.getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Set its charges first' })).toBeNull());
+    expect(screen.getByRole('dialog', { name: 'Reveal' })).toBeTruthy();
+    expect(popup.getByRole('button', { name: 'Tell them everything' })).toBeTruthy();
+    expect(ring().revealed_fields ?? []).toEqual([]);
   });
 
   it('opened again after the curse was told, only what is still hidden is listed', async () => {
@@ -452,6 +494,23 @@ describe("K22e: the player's side, and the GM's line as facts are told", () => {
     const sheet = screen.getByRole('region', { name: 'Ring of the Drowned Bell' });
     expect(within(sheet).getByText('Players see: Bronze ring')).toBeTruthy();
     expect(sheet.textContent).not.toContain('What you notice');
+  });
+});
+
+describe('A name that ends in s takes the mark alone (Home Two’s audit of #50, finding 7)', () => {
+  const holder = { campaignId: 'c', actorId: 'a', locationId: null, ownerUserId: 'u', archived: false, name: 'Wren of the Lantern Wardens' };
+
+  // Purpose: wherever K22 builds a possessive, under the pop-up's title and in its toasts, a name ending in s reads
+  // "Wardens’", never "Wardens’s".
+  it.fails('"in Wren of the Lantern Wardens’ pack", and the toasts likewise', () => {
+    expect(whereOf(holder)).toBe('in Wren of the Lantern Wardens’ pack');
+    expect(whereOf({ ...holder, name: 'Wren' })).toBe('in Wren’s pack');
+    const name = { id: 'name' as const, label: 'Its true name', detail: 'Ring of the Drowned Bell' };
+    expect(toldWords(name, { name: 'Bronze ring' }, holder, '')).toBe('Shown to the players: Ring of the Drowned Bell. Wren of the Lantern Wardens’ Bronze ring now carries its name.');
+    const mark = { id: 'fields.Maker’s mark', label: 'Maker’s mark', detail: 'Three waves' } as HiddenFact;
+    expect(toldWords(mark, { name: 'Reed boots' }, { ...holder, name: 'Wren' }, '')).toBe('Told Wren: the Reed boots’ Maker’s mark: Three waves.');
+    const charges = { id: 'charges' as const, label: 'Its charges', detail: '' };
+    expect(toldWords(charges, { name: 'Bronze ring' }, { ...holder, name: 'Wren' }, '')).toBe('Told Wren: the Bronze ring’s charges.');
   });
 });
 

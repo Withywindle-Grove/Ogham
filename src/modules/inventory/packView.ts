@@ -163,6 +163,9 @@ export function shownName(name: string): string {
 /** "the " and an item's name, in a sentence's words ("the Bronze ring"); a name that starts with "The" keeps its own ("The Old Lantern"). */
 export const withThe = (name: string) => (/^the\s/i.test(name) ? name : `the ${name}`);
 
+/** A name's possessive, in a sentence's words: "Wren’s pack" (Home Two's audit, finding 7). */
+export const possessive = (name: string) => `${name}’s`;
+
 /**
  * Some of a stack in words (words batch 1, ruled 2026-10-26): the pack's `unitName` for one and `pluralName` for
  * more ("1 torch", "3 torches"); without them, the item's name, with "×N" for more than one ("Torch ×3").

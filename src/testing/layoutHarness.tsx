@@ -1694,7 +1694,9 @@ if (new URLSearchParams(window.location.search).get('k22') === '1') {
   });
   line('line-bronze-ring', wren, 'Bronze ring', face(ring));
   line('line-hooded-lantern', wren, 'Hooded lantern', { ...face(lantern), charges_hidden: true });
-  world.tables.inventory_line_secrets.push({ id: 'line-hooded-lantern', campaign_id: campaign, charges_total: 999, spent: false });
+  // With &k22charges=unset its hidden count was never rolled (Home Two's audit of #50, findings 4 and 5).
+  const unset = new URLSearchParams(window.location.search).get('k22charges') === 'unset';
+  world.tables.inventory_line_secrets.push({ id: 'line-hooded-lantern', campaign_id: campaign, charges_total: unset ? null : 999, spent: false });
 }
 
 // The Scene in the GM's view as the player (page 32, M3i; C15f), only with ?viewScene=1: Sam's request waiting on the

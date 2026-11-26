@@ -10,13 +10,19 @@
 //      tablet, and above the sheet's top edge on a phone.
 //   3. Nine facts: the list scrolls, the title and "Tell them everything" stay on screen.
 //   4. Sam's sheet of the ring: its face, its look and "What you notice", laid out as cleanly.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+//   5. Home Two's audit of #50 (Francis's picks, 26 Nov): on a phone the toast after "Tell them everything" on nine facts
+//      sits above the sheet, never over its title or ✕ (finding 1); with everything told the list still takes focus
+//      and axe finds nothing (finding 2); a toast still up when "What players see" opens sits above that form, not on
+//      its fields (finding 3); "Its charges / Not set yet" is a tap that opens the blocked-action pop-up in its own
+//      form, whole on screen, and its ✕ closes it alone (findings 4 and 5).
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
-async function openInView(page: Page, width: number, height: number, scheme: 'light' | 'dark') {
+async function openInView(page: Page, width: number, height: number, scheme: 'light' | 'dark', extra = '') {
   await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
   await page.setViewportSize({ width, height });
-  await page.goto('/layout.html?as=gm&k22=1');
+  await page.goto(`/layout.html?as=gm&k22=1${extra}`);
   await page.getByRole('button', { name: /The Drowned Marches/ }).click();
   await page.getByRole('navigation', { name: 'Campaign sections' }).getByRole('button', { name: /^Players/ }).click();
   await page.getByRole('button', { name: "Open Wren of the Lantern Wardens's pack" }).click();
@@ -120,6 +126,43 @@ for (const size of [
       expect(await accessibilityProblems(page)).toEqual([]);
     });
 
+    test.fails(`with everything told, the list still takes focus and axe finds nothing (${size.name}, ${scheme})`, async ({ page }) => {
+      await openInView(page, size.width, size.height, scheme);
+      await page.getByRole('button', { name: /^Hooded lantern/ }).click();
+      await page.getByRole('region', { name: 'Hooded lantern' }).getByRole('button', { name: 'Reveal…' }).click();
+      const popup = page.getByRole('dialog', { name: 'Reveal' });
+      await popup.getByRole('button', { name: 'Tell them everything' }).click();
+      await expect(popup.getByText('Nothing is left hidden.')).toBeVisible();
+      const list = popup.getByRole('list', { name: 'What is hidden' });
+      await expect(list).toHaveAttribute('tabindex', '0');
+      await list.focus();
+      await expect(list).toBeFocused();
+      expect(await accessibilityProblems(page)).toEqual([]);
+    });
+
+    test.fails(`"Its charges / Not set yet" opens the blocked-action pop-up in its own form (${size.name}, ${scheme})`, async ({ page }) => {
+      await openInView(page, size.width, size.height, scheme, '&k22charges=unset');
+      await page.getByRole('button', { name: /^Hooded lantern/ }).click();
+      await page.getByRole('region', { name: 'Hooded lantern' }).getByRole('button', { name: 'Reveal…' }).click();
+      const popup = page.getByRole('dialog', { name: 'Reveal' });
+      const row = popup.getByRole('button', { name: 'Its charges: Not set yet' });
+      await expect(row).toBeVisible();
+      expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(56);
+      await row.click();
+      const why = page.getByRole('dialog', { name: 'Set its charges first' });
+      await expect(why).toContainText('Players › Inventory › Whose pack');
+      await expectSheetForm(why, size.width, size.height);
+      const box = (await why.boundingBox())!;
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.y + box.height).toBeLessThanOrEqual(size.height + 0.5);
+      await page.screenshot({ path: `test-results/layout-screens/k22-charges-unset-${size.width}-${scheme}.png` });
+      expect(await layoutProblems(page)).toEqual([]);
+      expect(await accessibilityProblems(page)).toEqual([]);
+      await why.getByRole('button', { name: 'Close' }).click();
+      await expect(why).toHaveCount(0);
+      await expect(popup).toBeVisible();
+    });
+
     test(`Sam's sheet of the untold ring (${size.name}, ${scheme})`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
       await page.setViewportSize({ width: size.width, height: size.height });
@@ -136,4 +179,43 @@ for (const size of [
       expect(await accessibilityProblems(page)).toEqual([]);
     });
   }
+}
+
+// On a phone only: the two places a toast met a phone sheet in Home Two's audit of #50 (findings 1 and 3).
+for (const scheme of ['light', 'dark'] as const) {
+  test.fails(`the toast after "Tell them everything" on nine facts sits above the sheet, clear of its title and ✕ (phone, ${scheme})`, async ({ page }) => {
+    await openInView(page, 375, 812, scheme);
+    await page.getByRole('button', { name: /^Hooded lantern/ }).click();
+    await page.getByRole('region', { name: 'Hooded lantern' }).getByRole('button', { name: 'Reveal…' }).click();
+    const popup = page.getByRole('dialog', { name: 'Reveal' });
+    await popup.getByRole('button', { name: 'Tell them everything' }).click();
+    const toast = page.locator('.toast-host .toast');
+    await expect(toast).toContainText('everything about The Old Lantern of the Drowned and of the Nine Tides');
+    await expect(popup.getByText('Nothing is left hidden.')).toBeVisible();
+    const toastBox = (await toast.boundingBox())!;
+    expect(toastBox.y).toBeGreaterThanOrEqual(0);
+    expect(toastBox.y + toastBox.height).toBeLessThanOrEqual((await popup.boundingBox())!.y + 0.5);
+    for (const part of [popup.getByRole('heading', { name: 'Reveal' }), popup.getByRole('button', { name: 'Close' })]) expect(overlaps(toastBox, (await part.boundingBox())!)).toBe(false);
+    await page.screenshot({ path: `test-results/layout-screens/k22-reveal-nine-told-375-${scheme}.png` });
+    expect(await layoutProblems(page)).toEqual([]);
+  });
+
+  test.fails(`a toast still up when "What players see" opens sits above the form, off its fields (phone, ${scheme})`, async ({ page }) => {
+    await openInView(page, 375, 812, scheme);
+    await page.getByRole('button', { name: /^Bronze ring/ }).click();
+    const sheet = page.getByRole('region', { name: 'Bronze ring' });
+    await sheet.getByRole('button', { name: 'Reveal…' }).click();
+    const popup = page.getByRole('dialog', { name: 'Reveal' });
+    await popup.getByRole('button', { name: 'Tell That it’s cursed' }).click();
+    const toast = page.locator('.toast-host .toast');
+    await expect(toast).toContainText('the Bronze ring is cursed');
+    await popup.getByRole('button', { name: 'Close' }).click();
+    await sheet.getByRole('button', { name: 'Edit what players see…' }).click();
+    const form = page.getByRole('dialog', { name: 'What players see' });
+    await expect(form).toBeVisible();
+    await expect(toast).toBeVisible();
+    const toastBox = (await toast.boundingBox())!;
+    expect(toastBox.y + toastBox.height).toBeLessThanOrEqual((await form.boundingBox())!.y + 0.5);
+    await page.screenshot({ path: `test-results/layout-screens/k22-form-toast-375-${scheme}.png` });
+  });
 }
