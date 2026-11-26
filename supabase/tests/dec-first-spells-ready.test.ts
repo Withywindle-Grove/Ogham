@@ -58,10 +58,10 @@ describe('rested_once', () => {
 
   it('2. set_spells marks the character rested, on a row already there and on a new one', async () => {
     await fresh(world.wrenId);
-    must(await setSpells(world.gm, world.wrenId, lamp));
+    expect((await setSpells(world.gm, world.wrenId, lamp)).error).toBeNull();
     expect(await restedOf(world.wrenId)).toBe(true);
     must(await world.admin.from('character_play').delete().eq('actor_id', world.wrenId).select('actor_id'));
-    must(await setSpells(world.gm, world.wrenId, []));
+    expect((await setSpells(world.gm, world.wrenId, [])).error).toBeNull();
     expect(await restedOf(world.wrenId)).toBe(true);
   });
 
@@ -83,11 +83,11 @@ describe('Undo from the log', () => {
   it("5. Undo of the rest's line puts rested_once back to not rested", async () => {
     await fresh(world.wrenId, false);
     const requestId = crypto.randomUUID();
-    must(await setSpells(world.gm, world.wrenId, lamp, requestId));
+    expect((await setSpells(world.gm, world.wrenId, lamp, requestId)).error).toBeNull();
     const line = await lineOf(requestId);
     expect(line.before).toMatchObject({ rested_once: false });
     expect(line.after).toMatchObject({ rested_once: true });
-    must(await world.gm.db.rpc('undo_request', { event_id: line.id }));
+    expect((await world.gm.db.rpc('undo_request', { event_id: line.id })).error).toBeNull();
     expect(must(await world.admin.from('character_play').select('rested_once, prepared').eq('actor_id', world.wrenId).single())).toEqual({ rested_once: false, prepared: [] });
   });
 
@@ -96,10 +96,10 @@ describe('Undo from the log', () => {
     // written before the column did.
     await fresh(world.wrenId, true);
     const requestId = crypto.randomUUID();
-    must(await setSpells(world.gm, world.wrenId, lamp, requestId));
+    expect((await setSpells(world.gm, world.wrenId, lamp, requestId)).error).toBeNull();
     const line = await lineOf(requestId);
     expect(line.before ?? {}).not.toHaveProperty('rested_once');
-    must(await world.gm.db.rpc('undo_request', { event_id: line.id }));
+    expect((await world.gm.db.rpc('undo_request', { event_id: line.id })).error).toBeNull();
     expect(must(await world.admin.from('character_play').select('rested_once, prepared').eq('actor_id', world.wrenId).single())).toEqual({ rested_once: true, prepared: [] });
   });
 });
