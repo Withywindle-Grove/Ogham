@@ -1356,6 +1356,54 @@ export type Database = {
           },
         ]
       }
+      check_reveals: {
+        Row: {
+          campaign_id: string
+          check_result_id: string
+          created_at: string
+          id: string
+          shown_at: string
+          taken_back: boolean
+          updated_at: string
+          words: string
+        }
+        Insert: {
+          campaign_id: string
+          check_result_id: string
+          created_at?: string
+          id?: string
+          shown_at?: string
+          taken_back?: boolean
+          updated_at?: string
+          words: string
+        }
+        Update: {
+          campaign_id?: string
+          check_result_id?: string
+          created_at?: string
+          id?: string
+          shown_at?: string
+          taken_back?: boolean
+          updated_at?: string
+          words?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "check_reveals_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "check_reveals_check_result_id_fkey"
+            columns: ["check_result_id"]
+            isOneToOne: false
+            referencedRelation: "check_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           campaign_id: string
@@ -6793,6 +6841,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      revealed_words: {
+        Args: { campaign: string }
+        Returns: {
+          id: string
+          shown_at: string
+          words: string
+        }[]
+      }
       save_marching_preset: {
         Args: {
           campaign: string
@@ -7483,6 +7539,25 @@ export type Database = {
           item_id: string
         }[]
       }
+      show_check_words: {
+        Args: { result: string; words: string }
+        Returns: {
+          campaign_id: string
+          check_result_id: string
+          created_at: string
+          id: string
+          shown_at: string
+          taken_back: boolean
+          updated_at: string
+          words: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "check_reveals"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       show_item_truth: {
         Args: { lines: string[]; piece: string; visit: string }
         Returns: number
@@ -7764,6 +7839,25 @@ export type Database = {
           to: "table_pins"
           isOneToOne: false
           isSetofReturn: true
+        }
+      }
+      take_back_check_words: {
+        Args: { reveal: string }
+        Returns: {
+          campaign_id: string
+          check_result_id: string
+          created_at: string
+          id: string
+          shown_at: string
+          taken_back: boolean
+          updated_at: string
+          words: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "check_reveals"
+          isOneToOne: true
+          isSetofReturn: false
         }
       }
       take_back_sheet_change: {

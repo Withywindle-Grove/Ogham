@@ -54,6 +54,8 @@ Every change goes through one of these commands, which checks `can(user, command
 | `check.record` | simple | GM: the GM can record a check as a hit or a miss | Player A: a player can't record a check |
 | `check.reveal` | simple | GM: the GM can reveal a secret check result to the players | Player B: a player can't reveal a check result |
 | `check.setRoll` | simple | GM: the GM can enter what a hit's table roll read | Player A: a player can't enter what a hit's table roll read |
+| `check.showWords` | simple | GM: the GM can show the players words for a hit | Player A: a player can't show the players words for a hit<br>Outsider: an outsider can't show a campaign's players words for a hit |
+| `check.takeBackWords` | simple | GM: the GM can take back words shown to the players | Player B: a player can't take back words shown to the players<br>Outsider: an outsider can't take back words shown to a campaign's players |
 | `company.answer` | simple | Player A: a player answers their own character's invitation | Player B: a player can't answer someone else's invitation |
 | `company.ask` | simple | Player A: a player asks for their own character to join a company | Player B: a player can't ask for someone else's character |
 | `company.cancel` | simple | GM: the GM takes back an invitation | Player A: a player can't take back someone else's invitation |

@@ -9,7 +9,7 @@ import type { Db } from '../../src/core/supabase.ts';
 import { toCharacterRef, type CharacterRef } from '../../src/modules/characters/commands.ts';
 import { setHp } from '../../src/modules/characters/hp.ts';
 import { toClock, toExpedition, toSession } from '../../src/modules/expedition/play.ts';
-import { toCheckResult, toReminder } from '../../src/modules/expedition/reminderPlay.ts';
+import { toCheckResult, toCheckReveal, toReminder } from '../../src/modules/expedition/reminderPlay.ts';
 import { toTablePin } from '../../src/modules/expedition/tablePins.ts';
 import { toWaitingEncounter } from '../../src/modules/expedition/encounterPlay.ts';
 import { forceMarch, toGroupLost, toTravelGroup } from '../../src/modules/expedition/travelPlay.ts';
@@ -208,6 +208,13 @@ beforeAll(async () => {
             .select()
             .single(),
         ),
+      );
+    },
+    async freshReveal(campaignId) {
+      // Words standing for a fresh hit (sf-7a), written with the secret key as the hit is: no device writes this table.
+      const hit = await this.freshCheckResult(campaignId);
+      return toCheckReveal(
+        must(await world.admin.from('check_reveals').insert({ campaign_id: campaignId, check_result_id: hit.id, words: 'Two pale shapes rise from the reeds.' }).select().single()),
       );
     },
     async freshExpedition(campaignId, ended = false) {
