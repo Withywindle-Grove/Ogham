@@ -1,6 +1,6 @@
 # Intent: Scene feedback, 25 November 2026
 
-Author: Francis · Date: 2026-11-25 · Status: in design (collected, 27 items; proposals and questions in the ruling file)
+Author: Francis · Date: 2026-11-25 · Status: planned (27 items; ruled 25 and 26 November; page 44 approved 2026-11-26, "Approve with picks"; the build plan is `docs/plans/dec-scene-feedback.md`)
 
 Francis's notes on the Scene screens (the GM's Scene and the players' Scene), sent one at a time on 2026-11-25. Numbered F1, F2, … in the order he sent them. His words are quoted as he sent them. Nothing is decided here; the driver processes the items after the collection ends. Pictures go in `docs/intents/scene-feedback-2026-11-25/` and are linked from their items.
 
@@ -344,7 +344,7 @@ At the dress rehearsal of 5 December the GM runs point-to-point play in the two 
 - any found thing goes to a character or to the party stash in two taps;
 - every list of places is in map-number order, shows the numbers, and names the Area where two mix;
 - the players' Scene folds, has "Rules" under the place, and names a place not explored "N. Unexplored".
-Each item's track (ruled, design, bug, pack, later) and the eleven questions for Francis are in the ruling file. Nothing visible is built before he approves its frame on page 44.
+Each item's track (ruled, design, bug, pack, later) and the eleven questions Francis answered are in the ruling file. He approved page 44's frames on 26 November ("Approve with picks"); the build plan names each row's frame.
 
 ## Touches
 The Scene screens (GM and players), `06-screens-and-design.md`, `05-features.md`.
@@ -365,4 +365,4 @@ The settlement area (see F1 (d)). He wants a design session on it later.
 - Questions he asked for the driver, answered 2026-11-25 (the ruling file has each): F1, no: Depart lists the Locations of every attached pack. F13 (c), yes: the pack tools can give a picture with the key's names painted out; showing the full map later as a second step is question ⚑ 11. F20 (d), yes: every Treasure piece opens the find sheet (proposal sf-8).
 
 ## Links
-Ruling: [`../design/rulings/scene-feedback-2026-11-25.md`](../design/rulings/scene-feedback-2026-11-25.md) (the eleven questions and the critique's findings ruled 2026-11-26; one pick still open, ⚑ 9) · Mockups: [`../design/mockups/december/44-scene-feedback-of-25-november.html`](../design/mockups/december/44-scene-feedback-of-25-november.html) (redrawn to the rulings of 26 November, not approved) · Plan: — · Pull request: the draft "Design: Scene feedback of 25 Nov (rulings to confirm, mockups)" · Status report: —
+Ruling: [`../design/rulings/scene-feedback-2026-11-25.md`](../design/rulings/scene-feedback-2026-11-25.md) (the eleven questions and the critique's findings ruled 2026-11-26; ⚑ 9 ruled the same day, "Home Two's fix") · Mockups: [`../design/mockups/december/44-scene-feedback-of-25-november.html`](../design/mockups/december/44-scene-feedback-of-25-november.html) (approved by Francis 2026-11-26, "Approve with picks") · Plan: [`../plans/dec-scene-feedback.md`](../plans/dec-scene-feedback.md) · Pull request: #102, "Design: Scene feedback of 25 Nov" · Status report: —
