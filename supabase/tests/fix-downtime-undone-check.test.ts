@@ -65,14 +65,14 @@ afterAll(async () => {
 }, 60_000);
 
 describe('going into Downtime with an undone secret check result', () => {
-  it.fails('goes into Downtime without an error, and the undone result stays unrevealed', async () => {
+  it('goes into Downtime without an error, and the undone result stays unrevealed', async () => {
     const { campaignId, undone, started } = await downtimeWithAnUndoneResult();
     expect(started).toMatchObject({ ok: true });
     expect(must(await world.admin.from('campaigns').select('mode').eq('id', campaignId).single())).toEqual({ mode: 'downtime' });
     expect(await revealedOf(undone.id)).toEqual({ revealed: false, undone: true });
   });
 
-  it.fails('a live secret result in the same campaign is revealed as before, and players read it', async () => {
+  it('a live secret result in the same campaign is revealed as before, and players read it', async () => {
     const { campaignId, live } = await downtimeWithAnUndoneResult();
     expect(await revealedOf(live.id)).toEqual({ revealed: true, undone: false });
     expect((await loadCheckResults(asDb(world.playerA), campaignId))!.map((r) => r.name)).toEqual(['Listen for reed wraiths']);
