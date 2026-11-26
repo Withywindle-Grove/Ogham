@@ -5709,6 +5709,62 @@ describe('the Pack tab (M4 step 4)', () => {
     expect(stash.getByRole('heading', { name: 'Old Sedge’s room' })).toBeTruthy();
   });
 
+  // Purpose: when the pack can't be read again while the stash's screen is open (a reload that fails), the screen goes
+  // back to the pack, so the bar never reads "Party stash" over something that isn't the stash (automatic review of #66,
+  // nit 2, picked by Francis 2026-11-26).
+  it.fails('a failed read while the stash is open goes back to the pack: the bar no longer reads "Party stash" (K11)', async () => {
+    const { line } = packWorld('coin');
+    line(null, 'Silver ewer', { weight_coin: 30 });
+    const user = openApp();
+    await openPack(user);
+    await openStash(user);
+    expect(document.querySelector('.top-row__title')!.textContent).toBe('Party stash');
+    const from = world.db.from.bind(world.db);
+    // The stash's place can't be read: the pack's read fails as a whole.
+    const failed = () => Promise.resolve({ data: null, error: { message: 'Failed to fetch' } });
+    const failing = () => {
+      const query: Record<string, unknown> = { then: (ok: (v: unknown) => unknown, bad: (e: unknown) => unknown) => failed().then(ok, bad), maybeSingle: failed, single: failed };
+      for (const step of ['eq', 'neq', 'in', 'order']) query[step] = () => query;
+      return query;
+    };
+    vi.spyOn(world.db, 'from').mockImplementation(((table: string) => {
+      const query = from(table as never) as unknown as { select: (c: string) => unknown };
+      if (table === 'locations') query.select = failing;
+      return query;
+    }) as typeof world.db.from);
+    try {
+      // Coming back to the app reads everything again.
+      window.dispatchEvent(new Event('focus'));
+      expect(await screen.findByText('Couldn’t open the pack. Check your connection and try again.')).toBeTruthy();
+      await waitFor(() => expect(document.querySelector('.top-row__title')?.textContent).toBe('Wren’s pack'));
+      expect(screen.queryByRole('region', { name: 'Party stash' })).toBeNull();
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
+  // Purpose: a switch of character while the stash's screen is open lands on the other character's pack, its bar naming
+  // that pack, never "Party stash" (automatic review of #66, nit 2, picked by Francis 2026-11-26).
+  it('a switch of character while the stash is open lands on that character’s pack, not the stash (K11)', async () => {
+    const { sam, campaign, line } = packWorld('coin');
+    const sedge = world.addCharacter(campaign, 'Old Sedge', { ownerId: sam });
+    world.addMember(campaign, sam, 'player', sedge);
+    line(null, 'Silver ewer', { weight_coin: 30 });
+    const user = openApp();
+    const rows = await screen.findAllByRole('button', { name: /The Ash Barrows/ });
+    await user.click(rows.find((b) => b.textContent?.includes('Wren')) ?? rows[0]!);
+    await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
+    expect(await screen.findByRole('heading', { name: 'Wren’s pack' })).toBeTruthy();
+    await openStash(user);
+    expect(document.querySelector('.top-row__title')!.textContent).toBe('Party stash');
+    await openYourCharacters(user);
+    await user.click(await screen.findByRole('button', { name: 'Open Old Sedge' }));
+    await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
+    expect(await screen.findByRole('heading', { name: 'Old Sedge’s pack' })).toBeTruthy();
+    expect(document.querySelector('.top-row__title')!.textContent).toBe('Old Sedge’s pack');
+    expect(screen.queryByRole('region', { name: 'Party stash' })).toBeNull();
+  });
+
   // Purpose: a single thing in the stash is taken on the tap of its Take, loose into the taker's pack (pk-2, pk-3); the
   // toast says it in the log line's words with the taker's load, and its Undo puts the thing back in the stash (PK4b).
   it('Take on a single thing: at once, loose to the taker, the toast naming the load, and Undo (K12, PK4b)', async () => {
