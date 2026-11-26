@@ -163,7 +163,7 @@ describe("a player's Where to? on the Scene (P2)", () => {
   });
 });
 
-const WAYS: WayOn[] = [{ groupNumber: 1, routeId: 'r1', to: { placeId: 'p-wreck', name: 'The wreck' }, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] }];
+const WAYS: WayOn[] = [{ groupNumber: 1, routeId: 'r1', to: { placeId: 'p-wreck', name: 'The wreck' }, number: null, elsewhere: false, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] }];
 const readOf = (over: Partial<WaysRead>): WaysRead => ({ ways: WAYS, failed: false, retry: () => undefined, ...over });
 
 describe("a player's Where to?, its read's states (P13; PL9)", () => {

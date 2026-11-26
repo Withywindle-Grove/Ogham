@@ -5410,9 +5410,11 @@ export type Database = {
       campaign_ways_on: {
         Args: { campaign: string }
         Returns: {
+          elsewhere: boolean
           group_number: number
           route_id: string
           to_name: string
+          to_number: string
           to_place_id: string
           ways: Json
         }[]

@@ -3978,6 +3978,10 @@ export function createFakeDb(): FakeWorld {
     // hidden route (anything but a plain false or absent `hidden`, read on the whole entry); the far end's place and
     // players' name only once a piece of it has been shown to the group, else null; no pack ids. And no row at all
     // for a group until a piece of the place it is at now has been shown to it (mc-28b), on any visit (mc-28c).
+    // Since sf-9 (…_sf_9_ways_on_number_elsewhere.sql; sf-19): `to_number`, the far place's map number (its location's
+    // `key`, when text), only for a place explored or whose container (`parentId`) the group knows: one of its visits
+    // stood at that container or inside it, at any depth, shown or not; with no container, at a place that has none
+    // either. Else `elsewhere` is true and no number is sent.
     campaign_ways_on: ({ campaign }) => {
       if (!isMemberOf(campaign)) return { data: [], error: null };
       withGroupRows();
@@ -4016,7 +4020,27 @@ export function createFakeDb(): FakeWorld {
           // mc-28a: how the way is travelled and how long it takes, the four fields alone. The route's reader also
           // keeps a way's `icon` (pf-25), which the database does not send, so it is left behind here.
           const ways = routeWays(whole.travel).map(({ by, name, value, unit }) => ({ by, name, value, unit }));
-          rows.push({ group_number: group, route_id: r.id, to_place_id: far?.id ?? null, to_name: far ? far.players_name || far.name : null, ways });
+          // sf-9, sf-19: the far place as the pack has it, read here and never sent as written.
+          const farLocation = tables.library_entries.find((e) => e.pack_id === here.pack_id && e.kind === 'location' && e.pack_entry_id === farEntry);
+          const containerOf = (entry: Row) => end((entry.data as Row | undefined)?.parentId);
+          const farContainer = farLocation ? containerOf(farLocation) : '';
+          const beenAt = (placeId: unknown) =>
+            tables.group_places.some(
+              (v) => v.campaign_id === campaign && v.place_id === placeId && Number(v.group_number) === group && !v.undone && tables.expeditions.some((x) => x.id === v.expedition_id && !x.undone),
+            );
+          const known =
+            !!far ||
+            (!!farLocation &&
+              tables.places.some(
+                (q) =>
+                  q.campaign_id === campaign && q.pack_id === here.pack_id && q.pack_entry_id && !q.undone && beenAt(q.id) &&
+                  fakeChain(q.pack_id, q.pack_entry_id).some((c, depth) =>
+                    farContainer === '' ? depth === 0 && containerOf(c) === '' : farContainer === c.pack_entry_id || farContainer === containerOf(c),
+                  ),
+              ));
+          const farKey = (farLocation?.data as Row | undefined)?.key;
+          const number = known && typeof farKey === 'string' ? farKey.trim().slice(0, 200) || null : null;
+          rows.push({ group_number: group, route_id: r.id, to_place_id: far?.id ?? null, to_name: far ? far.players_name || far.name : null, ways, to_number: number, elsewhere: !known });
         }
       }
       rows.sort((a, b) => Number(a.group_number) - Number(b.group_number) || String(a.route_id).localeCompare(String(b.route_id)));

@@ -12,7 +12,7 @@ import type { Mode } from './modes.ts';
 import { playersDestinationsOf, stepNowOf, unexploredTitle, WHERE_TO_WORDS, wayTapWords } from './playersWays.ts';
 
 const way = (by: string, name: string, value: number, unit = 'turn') => ({ by, name, value, unit });
-const link = (routeId: string, to: { placeId: string; name: string } | null, ways: WayOn['ways'], groupNumber = 1): WayOn => ({ groupNumber, routeId, to, ways });
+const link = (routeId: string, to: { placeId: string; name: string } | null, ways: WayOn['ways'], groupNumber = 1): WayOn => ({ groupNumber, routeId, to, number: null, elsewhere: false, ways });
 const WRECK = { placeId: 'place-wreck', name: 'The Wreck' };
 const STAIR = { placeId: 'place-stair', name: '10 The Stair' };
 const SHED = { placeId: 'place-shed', name: '2 The Shed' };
