@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Creation, the style sweep: batch D, Who they are, Details (2026-11-12)</title>
+<link rel="stylesheet" href="final.css">
+<link rel="stylesheet" href="sweep.css">
+<style>
+  .sheetup { max-height:none; }
+  .tablet.wide { width:1024px; }
+  .lbl { font-size:14px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; margin:var(--space-3) 0 var(--space-1); }
+  h3.sec { font-size:16px; font-weight:700; margin:var(--space-4) 0 var(--space-2); font-family:inherit; }
+  .bit h3.sec { font-family:"T Bitter", Georgia, serif; font-weight:800; font-size:18px; color:color-mix(in srgb, var(--lbl) 55%, var(--ink)); }
+  .tabs { display:flex; gap:var(--space-2); margin:var(--space-3) 0; flex-wrap:wrap; }
+  .tabs .btn.on { background:var(--wash); border-color:var(--accent); }
+  .sw2 { display:inline-flex; flex-wrap:wrap; gap:3px; padding:3px; border:1.5px solid var(--control); border-radius:24px; background:var(--sheet); margin:var(--space-3) 0; }
+  .sw2 > span { min-height:38px; padding:0 var(--space-4); border-radius:20px; display:inline-flex; align-items:center; }
+  .sw2 > span.on { background:var(--wash); font-weight:700; box-shadow:inset 0 0 0 2px var(--accent), 0 0 var(--space-2) 1px color-mix(in srgb, var(--glow) 60%, transparent); }
+  .rolled { display:flex; gap:var(--space-2); align-items:center; margin-bottom:var(--space-2); }
+  .rolled .field { width:88px; flex:none; }
+  .nrow { display:flex; align-items:center; gap:var(--space-3); min-height:44px; padding:var(--space-1) var(--space-3); border:1.5px solid var(--control); border-radius:4px; margin-bottom:var(--space-1); }
+  .nrow .n { width:3.4em; color:var(--muted); flex:none; }
+  .nrow.on { background:var(--wash); border-color:var(--accent); }
+  .nrow .ck { margin-left:auto; }
+  /* the tapped table in the book's style */
+  .tt { border:1px solid var(--rule); font-family:"T Bitter", Georgia, serif; }
+  .tt .tbar { font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:16px; letter-spacing:.06em; text-transform:uppercase; text-align:center; background:var(--accent); color:var(--on-accent); padding:var(--space-1) var(--space-3); }
+  .tt .th, .tt .tr { display:grid; grid-template-columns:4.6em minmax(0,1fr) 24px; gap:var(--space-2); align-items:center; padding:0 var(--space-3); }
+  .tt .th { min-height:36px; border-bottom:2px solid var(--ink); font-weight:700; font-size:14px; }
+  .tt .th span { display:inline-flex; align-items:center; gap:2px; }
+  .tt .tr { min-height:44px; border-bottom:1px solid var(--rule); }
+  .tt .tr:nth-of-type(even) { background:color-mix(in srgb, var(--ink) 7%, transparent); }
+  .tt .tr.on { background:var(--wash); box-shadow:inset 0 0 0 2px var(--accent); font-weight:700; }
+  .tt .tr .n { color:var(--muted); }
+  .drow { display:flex; justify-content:space-between; align-items:center; gap:var(--space-2); padding:var(--space-2) 0; border-bottom:1px dotted var(--rule); }
+  .drow small { display:block; font-size:14px; color:var(--muted); }
+  .unit { color:var(--muted); margin-left:var(--space-2); }
+  .hpcard { margin-bottom:var(--space-2); }
+  .avgline svg, .drow small svg { vertical-align:-3px; margin-right:1px; }
+  .stepper .num { width:auto; min-width:72px; padding:0 var(--space-2); box-sizing:border-box; }
+</style>
+</head>
+<body>
+<script src="final.js"></script>
+<script src="sweep.js"></script>
+<script>
+const fld = (v, empty) => `<span class="field${empty ? ' empty' : ''}">${v}</span>`;
+const rollName = `<span class="btn" style="margin-top:var(--space-2)">${die(20, 20)}Roll for a name</span>`;
+const hpRow = (old, two) => (two ? roll(8, old ? 'Roll 2d8 for hit points and enter it. Grit 13 adds 1 a die.' : 'Roll 2d8 for hit points and enter it.') : roll(4, old ? 'Roll 1d4 for hit points and enter it. Grit 13 adds 1.' : 'Roll 1d4 for hit points and enter it.'));
+const hp = (v, line, avg, old, two) => `${hpRow(old, two)}${stepper(v, avg)}<div class="avgline">${line}</div>`;
+const derivedOf = (s) => `<div class="drow" role="button" aria-expanded="false"><span><b>Derived values</b><small>1 figure</small></span>${s ? foldMark(false) : `<span class="btn sq" aria-hidden="true">${I.plus}</span>`}</div>`;
+const derived = derivedOf(true);
+const liege = (sw) => `<h3 class="sec">Liege</h3>${roll(8, sw ? 'Roll d8, then tap the row. It sets your alignment.' : 'Roll d8 for the house your knight serves, then tap the row; it sets your alignment.')}<p class="meta" style="margin:0 0 var(--space-2)">The noble house your knight serves: roll or choose.</p>
+  ${sw ? irow('House Marrow', 'Reed, 1 to 4 on the ' + die(8, 16) + 'd8') : irowOld('House Marrow', 'Reed, 1–4 on the d8')}
+  ${sw ? irow('House Saltreach', 'Lantern, 5 to 7 on the ' + die(8, 16) + 'd8', 'picked') : irowOld('House Saltreach', 'Lantern, 5–7 on the d8')}
+  ${sw ? irow('House Lanternfall-under-the-Weir of the Nine Drowned Bells', 'Mire, 8 on the ' + die(8, 16) + 'd8') : irowOld('House Lanternfall-under-the-Weir of the Nine Drowned Bells', 'Mire, 8 on the d8')}`;
+// ---- Who they are, redrawn from the built step (the Builder's picture and answers, 2026-11-12) ----
+const D_CHK = 'Checked against the built screen’s picture (creation-as-built on the pictures branch).';
+const lvlFixed = `<div class="lbl">Starting level</div><div>You start at level 2.</div><div class="avgline">The level set for this campaign.</div>`;
+const lvlAsk = (sw) => `<div class="lbl">Starting level</div><div>${stepper(1)}</div><div class="avgline">The party’s lowest is level 1. Propose another and your GM decides.</div>`;
+const alignRows = (sw, picked) => [['Lantern', 'Stands by the law and the lamp'], ['Reed', 'Goes with the water'], ['Mire', 'Owes nothing to anyone']].map(([n, s], i) => (sw ? irow(n, s, picked === i ? 'picked' : 'pick') : irowOld(n, s))).join('');
+const alignBlock = (sw, picked) => `<div class="lbl">Alignment</div><p style="margin:0 0 var(--space-1)">The side your character leans to when the lamps go out.</p><p class="meta" style="margin:0 0 var(--space-2)">Only you and your GM see it.</p>${alignRows(sw, picked)}`;
+const portrait = `<div style="border:1.5px dashed var(--control);border-radius:4px;min-height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);margin:var(--space-2) 0" role="button">Add a portrait (optional)</div>`;
+const story = (sw) => `${sw ? '<h3 class="sec">Who they are</h3>' : '<h2 style="margin-top:var(--space-3)">Who they are</h2>'}<div class="lbl" style="margin-top:0">Motto</div>${fld('&nbsp;', true)}<div class="lbl">Backstory (optional)</div><span class="field empty" style="min-height:110px;display:block">&nbsp;</span>`;
+const derived8 = (sw) => `<div class="drow" role="button" aria-expanded="false"><span><b>Derived values</b><small>${sw ? '8 figures' : '8 figures the rules work out'}</small></span>${sw ? foldMark(false) : `<span class="btn sq" aria-hidden="true">${I.plus}</span>`}</div>`;
+const hpW = (sw) => `${sw ? '<h3 class="sec">Hit points</h3>' : '<h3 class="sec">Hit points</h3>'}${roll(4, sw ? 'Roll 2d4 for hit points and enter it.' : 'Roll 2d4 for hit points and enter it.')}${stepper(5, true)}<div class="avgline">${sw ? 'Average. +2 for Grit 13 (1 a die): 7 hit points' : 'Average value, replace with your roll'}</div>`;
+const whoA = (sw, lvl) => `<div class="lbl">Name</div>${fld('Type a name, or roll for one', true)}${rollName}${lvl}${hpW(sw)}`;
+const whoB = (sw) => `${alignBlock(sw)}${portrait}${story(sw)}${derived8(sw)}`;
+const whoW = (sw, lvl = lvlFixed) => `${bar('Who they are')}<div class="inner"><p class="meta">Step 6 of 12</p><p class="do">A name the table will remember.</p>${sw ? helpGap : helpBtn()}${whoA(sw, lvl)}${whoB(sw)}${foot('Name and alignment missing')}</div>`;
+const d1 = frame('D1. Who they are, on a phone, <b>redrawn from the built step</b>, for the example witch. <b>Left: as built, today’s type. Right: swept, the build’s parts in the build’s order:</b> the step’s one sentence, as built (“A name the table will remember.”; ruled 2026-11-12: it stays); “Help me choose” with its gap; <b>Name</b>, its field and “Roll for a name” with its die; <b>Starting level</b>: this campaign is set to a fixed level, so there is no stepper: “You start at level 2.” and under it “The level set for this campaign.” (the other setting is frame D7); <b>Hit points</b>: the roll row (two dice at level 2), the stepper and the sum in words; <b>Alignment</b>: the pack’s line, then “Only you and your GM see it.”, then a row a choice with the ⓘ and Pick (the label is the pack’s own word for this field: the built picture’s pack calls it “Leaning”; ours says “Alignment”, as the patron’s line and the review do); <b>“Add a portrait (optional)”</b>, a dashed box, as built; then, as built, <b>a second heading, “Who they are”</b>, over the Motto field and the Backstory (optional) field; “Derived values” folded, with the chevron and its count. The foot: what is missing in words, Back, and Next with the accent. <b>To weigh:</b> the build’s inner heading repeats the step’s title; it is drawn as built. <b>Not in the built picture:</b> the level-2 sum in the hit points’ line (the picture is a level-1 start).',
+  [col('As built, today’s type', whoW(false)), col('Swept', whoW(true), 'bit')], 720, D_CHK);
+const d7 = frame('D7. Starting level, the other setting: where the campaign lets a player propose a level, the step shows a stepper and the build’s line, “The party’s lowest is level 1. Propose another and your GM decides.” Drawn as the head of the same step.',
+  [col('Swept: the player proposes', `${bar('Who they are')}<div class="inner"><p class="meta">Step 6 of 12</p><p class="do">A name the table will remember.</p>${helpGap}<div class="lbl">Name</div>${fld('Type a name, or roll for one', true)}${rollName}${lvlAsk(true)}<h3 class="sec">Hit points</h3>${roll(4, 'Roll 1d4 for hit points and enter it.')}${stepper(2, true)}<div class="avgline">Average. +1 for Grit 13: 3 hit points</div></div>`, 'bit')], 343, D_CHK);
+const d8 = frame('D8. A class with a liege (another character: a Marsh folk Heron Knight, level 2, eleven steps): the liege is a pick that rolls and sets the alignment, so it stands where the Alignment rows do. The roll row is cut to the act and its consequence, the pack’s line stays, ranges are written “1 to 4”, the die has its glyph. <b>From the gallery’s parts, not a whole built screen:</b> the rest of the step is as frame D1 and is not repeated.',
+  [col('Swept: a knight’s liege', `${bar('Who they are')}<div class="inner"><p class="meta">Step 6 of 11</p>${liege(true)}</div>`, 'bit')], 343, BUILT);
+// ---- the name table ----
+const names = ['Alder', 'Brannoc', 'Caradoc', 'Dunstan', 'Eiros', 'Fflam', 'Gwydion-of-the-long-reed-and-the-drowned-causeway', 'Hale'];
+const ntOld = `${bar('Who they are')}<div class="inner" style="min-height:900px"></div>${sheet('Stone kin names', `${roll(20, 'Roll d20 twice: a first name, then a family name.')}<div class="tabs"><span class="btn on">First names</span><span class="btn">Family names</span></div><div class="lbl" style="margin-top:0">What you rolled</div><div class="rolled">${fld('', true)}<span class="btn">Show</span></div>${names.map((n, i) => `<div class="nrow${i === 2 ? ' on' : ''}"><span class="n">${i + 1}</span>${n}${i === 2 ? '<span class="ck">✓</span>' : ''}</div>`).join('')}<div class="meta" style="margin-top:var(--space-2)">Optional, from Homebrew. Picked: Caradoc, family name still to roll.</div><span class="btn accent wide" style="margin-top:var(--space-3)">Use this name</span>`)}`;
+const ntNew = `${bar('Who they are')}<div class="inner" style="min-height:900px"></div>${sheet('Stone kin names', `${roll(20, 'Roll d20 twice: a first name, then a family name.')}<span class="sw2" role="group" aria-label="Which part"><span class="on" role="button" aria-pressed="true">First names</span><span role="button" aria-pressed="false">Family names</span></span><div class="lbl" style="margin-top:0">What you rolled</div><div class="rolled">${fld('', true)}<span class="btn">Show</span></div><div class="tt"><div class="tbar">First names</div><div class="th"><span>${die(20, 16)}d20</span><span>Name</span><span></span></div>${names.map((n, i) => `<div class="tr${i === 2 ? ' on' : ''}" role="button"><span class="n">${i + 1}</span><span>${n}</span><span>${i === 2 ? '✓' : ''}</span></div>`).join('')}</div><div class="meta" style="margin-top:var(--space-2)">12 more rows. <a style="text-decoration:underline">Show all 20</a></div><div class="meta" style="margin-top:var(--space-1)">Caradoc picked; family name still to roll. From Homebrew.</div><div class="efoot"><span class="btn accent">Use this name</span></div>`)}`;
+const d2 = frame('D2. “Roll for a name” opens the pack’s name table. <b>Left: as built, today’s type:</b> the roll row, a tab a part, “What you rolled” with Show (it jumps to the row), each row a bordered button, the state line, a full-width “Use this name”. <b>Right: swept:</b> the parts are the two-sided switch (wash, edge, bold, no tick: ds-1d; with four parts it has four sides); <b>the table takes the book’s style</b> (a filled title bar naming the part, a head row with the die over a strong rule, banded rows) and each row is still a 44 px tap; the picked row has the wash, the accent edge, bold and a tick, so it is told from a band by more than tone; “Use this name” at the right. A very long name wraps in its row. <i>To weigh:</i> the built table shows all its rows (ruled for long tables, “no folds”); I drew eight and “Show all 20” only to keep the picture short: the build’s full list stands.',
+  [col('As built, today’s type', ntOld), col('Swept', ntNew, 'bit')], 720, BUILT);
+// ---- hit points, states ----
+const d3 = frame('D3. Hit points, the states, swept (ruled 2026-11-12): the roll row says only the roll; what the score adds or takes off is said once, in the sum under the stepper, in the untouched state too. Untouched at the average; a roll with a bonus; a roll of 1 with a penalty, never below 1; <b>a level-2 character</b> (two dice in one row, the modifier once a die, said in the sum); 999 with its warning. The line under the stepper is the sum in words, kept: it is the result, not an explanation.',
+  [col('Swept', `<div class="inner"><div class="card hpcard">${hp(2, 'Average. +1 for Grit 13: 3 hit points', true)}</div><div class="card hpcard">${hp(3, '3 rolled, +1 for Grit 13: 4 hit points')}</div><div class="card hpcard">${roll(4, 'Roll 1d4 for hit points and enter it.')}${stepper(1)}<div class="avgline">1 rolled, −2 for Grit 5: 1 hit point, never below 1</div></div><div class="card hpcard">${roll(8, 'Roll 2d8 for hit points and enter it.')}${stepper(9)}<div class="avgline">9 rolled, +2 for Grit 13 (1 a die): 11 hit points</div></div><div class="card hpcard">${roll(4, 'Roll 1d4 for hit points and enter it.')}${stepper(999)}<div>${warn('999 is above what 1d4 can roll. Roll again, or send it and the GM decides.')}</div></div></div>`, 'bit')], 343, BUILT);
+// ---- Details, redrawn from the built step ----
+const num = (label, v, unit, line) => `<div class="lbl">${label}</div><div class="avgline" style="margin:0 0 var(--space-1)">${line}</div><div>${stepper(v, true)}<span class="unit">${unit}</span></div>`;
+const avg = (sw, d, dice, unit) => (sw ? 'Average. ' + die(d, 16) + dice : 'Average value, replace with your roll. ' + dice + ', ' + unit);
+const moreRow = (sw) => `<div class="drow" role="button" aria-expanded="false"><span><b>6 more tables</b><small>Optional, from Homebrew: Smell, Habit, Fear, Hope, Scar, Walk</small></span>${sw ? foldMark(false) : `<span class="btn sq" aria-hidden="true">${I.plus}</span>`}</div>`;
+const look = (name, sub, btn = 'Open') => `<div class="drow"><span><b>${name}</b><small>${sub}</small></span><span class="btn">${btn}</span></div>`;
+const detA = (sw) => `<h3 class="sec" style="margin-top:var(--space-2)">Body</h3>${roll(6, 'Roll for each at the table, or type them.')}
+  ${num('Age', 110, 'years', avg(sw, 6, '3d6 × 10', 'years'))}
+  ${num('Height', '4 ft 4 in', '', sw ? 'Average. 4 ft + ' + die(6, 16) + '1d6 in' : 'Average value, replace with your roll. 4 ft + 1d6, inches')}
+  ${num('Weight', 165, 'lb', avg(sw, 10, '3d10 + 150', 'pounds'))}`;
+const detB = (sw) => `<h3 class="sec">Looks and manner</h3>${roll(12, 'Roll d12 for each, then tap the row. Or type your own.')}
+  ${look('Face', 'Stone kin, ' + (sw ? die(12, 16) : '') + 'd12. Not rolled yet')}
+  ${look('Typed: Hums while thinking', 'Manner. Optional, from Homebrew', 'Change')}
+  ${look('Voice', 'Optional, from Homebrew, ' + (sw ? die(12, 16) : '') + 'd12. Not rolled yet')}
+  ${moreRow(sw)}
+  ${sw ? roll(4, 'Roll d4, then tap the row.') : roll(4, 'Roll d4 for lichen at level 1, then tap the row.')}
+  ${sw ? look('Lichen', 'Stone kin, ' + die(4, 16) + 'd4 at level 1. Not rolled yet') : `<div class="drow"><span><b>Lichen</b><small>—</small></span><span class="btn">${die(4, 16)}Roll d4 at level 1</span></div>`}`;
+const detFootOld = `<div class="foot" style="flex-wrap:wrap"><span class="btn">Skip, leave blank</span><span class="say">4 of 14 filled</span><span class="btn">Back</span><span class="btn accent">Next</span></div>`;
+const det = (sw) => `${bar('Details')}<div class="inner"><p class="meta">Step 11 of 12</p><p class="do">${sw ? 'None of these change the rules.' : 'Roll on any of these, or leave them blank. You can fill them in later from your sheet.'}</p>${sw ? helpGap : helpBtn()}${detA(sw)}${detB(sw)}${sw ? foot('4 of 14 filled') : detFootOld}</div>`;
+const d4 = frame('D4. Details, on a phone, <b>redrawn from the built step</b>. <b>Left: as built, today’s type. Right: swept:</b> the count as built (“Step 11 of 12”); the one sentence as ruled (“None of these change the rules.”; the build has two sentences); <b>“Help me choose”, as built</b>, with its gap; the small-capitals labels in Alegreya Sans SC; under an untouched field the line is “Average” with the dice and their glyph, the figure muted until the player enters their own; a unit said once, beside the stepper; “Looks and manner” as rows with Open; “6 more tables” unfolds with the chevron; <b>a roll made at a level</b>, as built: its roll row cut to the act (“Roll d4, then tap the row.”), since the row under it names the thing, its die and the level (“Lichen: Stone kin, d4 at level 1. Not rolled yet”), with Open like the rows above it (the build has a button reading “Roll d4 at level 1” and a dash for the empty value). The foot is the state, Back and Next: “Skip, leave blank” goes, as ruled (it only moved on, as Next does), and there is no “Decide later” (nothing here is required). <b>Not in the built picture:</b> the typed answer, the homebrew tables and their fold, which are from the gallery’s parts; a second roll for a character starting at level 2.',
+  [col('As built, today’s type', det(false)), col('Swept', det(true), 'bit')], 720, D_CHK);
+// ---- iPad ----
+const tab = (title, count, line, left, right, say, cap) => `<div><p class="cap" style="max-width:1024px">${cap}</p><div class="tablet wide bit">${bar(title)}<div style="padding:var(--space-3) var(--space-3) 0"><p class="meta">${count}</p><p class="do">${line}</p>${helpGap}</div><div class="cols" style="padding-top:0"><div>${left}</div><div>${right}</div></div>${foot(say).replace('class="foot"', 'class="foot" style="margin:0;padding:var(--space-3);flex-wrap:nowrap"')}</div><p class="from">Its rows checked against the built phone picture; no built tablet picture of this step has been sent, and the two columns are mine.</p></div>`;
+const d5 = tab('Who they are', 'Step 6 of 12', 'A name the table will remember.', whoA(true, lvlFixed), whoB(true), 'Name and alignment missing', 'D5. Who they are at the iPad’s width, swept (the witch of frame D1): the count, the line and “Help me choose” across the width, as on Class; then two columns: the name, the starting level and hit points at the left; the alignment, the portrait, the motto and backstory and the derived values at the right.');
+const d6 = tab('Details', 'Step 11 of 12', 'None of these change the rules.', detA(true), detB(true).replace('<h3 class="sec">', '<h3 class="sec" style="margin-top:var(--space-2)">'), '4 of 14 filled', 'D6. Details at the iPad’s width, swept: the count, the line and “Help me choose” across the width; the body’s figures at the left; looks and manner, and the roll made at a level, at the right.');
+
+mount(`
+  <h1>Creation, the style sweep: batch D</h1>
+  <p class="note"><b>Redrawn 2026-11-12 from the Builder’s pictures of the built steps</b> (Who they are, Details) and the Builder’s answers of the same day: the build’s parts, order, states and words, in our type and the ruled economies of words. What is still from the gallery’s parts or a mockup is said on its frame.</p>
+  <p class="note">Who they are (the name and its table, a pick that sets the outlook, hit points) and Details, in the type pair and today’s standards, with the rulings of batches A to C applied. The phone frames are drawn from the built gallery’s pictures of these parts; the iPad frames are my layout. Names, words and numbers are invented. A proposal from the Design Studio, not ruled.</p>
+  <p class="note"><b>The example character</b> (one through every batch, ruled 2026-11-12): a Stone kin Reed Witch starting at level 2, with no patron. Her twelve steps: 1 How to build, 2 Scores, 3 Kindred, 4 Class, 5 Adjust scores (optional), 6 Who they are, 7 Magic, 8 Languages, 9 Weapon skills, 10 Gear, 11 Details (optional), 12 Review. The count shows no total until the class is picked (“Step 4”, then “Step 5 of 12”). Two frames need another character and say so: the Patron step (a Marsh folk Marsh Chaplain, thirteen steps) and a liege (a Marsh folk Heron Knight, who casts no spells: eleven steps). Messy-data values (a score of 0, 999 coins) are for the frame they are on.</p>
+  <h1>Who they are</h1>
+  <div class="wall">${d1}</div>
+  <div class="wall">${d2}</div>
+  <div class="wall">${d3}</div>
+  <div class="wall">${d5}</div>
+  <h1>Details</h1>
+  <div class="wall">${d4}</div>
+  <div class="wall">${d6}</div>
+  <h1>Who they are: the other starting-level setting; a liege</h1>
+  <div class="wall">${d7}${d8}</div>
+  <h1>Questions for Francis (drafts for the lead’s list)</h1>
+  <p class="note"><b>1. A roll table that is tapped takes the book’s table style, each row still a tap.</b> D2. The picked row: wash, accent edge, bold, a tick. <i>My pick: as drawn.</i></p>
+  <p class="note"><b>2. A table’s parts are the two-sided switch, not tab buttons.</b> <i>My pick: the switch</i>, the same part as Notes’; four parts make four sides and wrap to two rows on a phone.</p>
+  <p class="note"><b>3. “Skip, leave blank” on Details: removed, ruled 2026-11-12.</b></p>
+  <p class="note"><b>4. “Use this name” is a normal button at the right, not full width.</b> <i>My pick: as drawn (ds-10).</i></p>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked.</b> Each step beside its built form. One accent a screen (Next; “Use this name” in the sheet). No disabled button. Steppers, rows, ⓘ and the switch’s sides at 44 px or close (the switch’s sides are 38 px high inside a 44 px track, as on Notes). The warning is a sign and words. Die glyphs wherever a die is named or rolled. The picked row is told from a band by edge, weight and a tick. Messy data: a very long name in the table and on a pick row, 999 hit points, a penalty that would go below 1. Light and dark side by side.</p>
+  <p class="note"><b>Not checked, or uncertain.</b> D1, D4 and D7 are checked against the built phone pictures in dark; no built tablet or light picture of these steps has been sent (D5 and D6’s columns are mine). D2 (the name table), D3 (hit points’ states) and D8 (a liege) are from the gallery’s parts, not seen in place. Contrast by measurement; Larger text.</p>
+`);
+applyPair();
+</script>
+</body>
+</html>
