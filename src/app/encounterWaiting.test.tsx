@@ -13,7 +13,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { forgetFileLinks } from '../core/files.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { Root } from './App.tsx';
-import { EncounterWaitingSource, StatBlockInFull, watchChipWords } from './EncounterWaiting.tsx';
+import { EncounterWaitingSource, watchChipWords } from './EncounterWaiting.tsx';
+import { BookDetailPopUp } from './BookDetail.tsx';
 import type { EncounterCard } from '../modules/expedition/encounterPlay.ts';
 import { forgetCampaignSetting } from './campaignSetting.ts';
 import { typePlace } from '../testing/pickPlace.ts';
@@ -151,10 +152,10 @@ describe('Encounter waiting (M5b step 2)', () => {
     expect(world.tables.waiting_encounters[0]).toMatchObject({ state: 'waiting', undone: false });
   });
 
-  // Purpose (S8b; T2 and 06-03, the lead's ruling): the card has no View button; what was rolled is a link that opens
-  // its creature's stat block in the encounter's pop-up without starting anything, the row's own words and note one
-  // "Back to the encounter" away; Start, Dismiss are stacked buttons with their icons.
-  it('opens the creature from the card’s link without starting anything, and has no View button', async () => {
+  // Purpose (S8b; T2 and 06-03; sf-6a, F6 a): the card has no View button; what was rolled is a link that opens the
+  // encounter's pop-up without starting anything, its creature a detail row, and no "Back to the encounter" anywhere;
+  // Start, Dismiss are stacked buttons with their icons.
+  it('opens the encounter from the card’s link without starting anything, and has no View button', async () => {
     const { gm, campaign } = table();
     withSetting(campaign, gm);
     const user = await openScene(gm, true);
@@ -167,10 +168,9 @@ describe('Encounter waiting (M5b step 2)', () => {
     }
     await user.click(card.getByRole('button', { name: 'Shallow things: Bog lurkers, 1d4' }));
     const view = within(await screen.findByRole('dialog', { name: 'Encounter waiting: Wandering things' }));
-    expect(view.getByRole('article', { name: 'Bog lurker' })).toBeTruthy();
-    expect(world.tables.waiting_encounters[0]).toMatchObject({ state: 'waiting' });
-    await user.click(view.getByRole('button', { name: '‹ Back to the encounter' }));
     expect(view.getByText('They wait under the reeds.')).toBeTruthy();
+    expect(view.getByRole('button', { name: 'Bog lurker: read it' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Back to the encounter/ })).toBeNull();
     expect(world.tables.waiting_encounters[0]).toMatchObject({ state: 'waiting' });
   });
 
@@ -200,11 +200,9 @@ describe('Encounter waiting (M5b step 2)', () => {
     await hitAndRoll(user);
     const card = within(await screen.findByRole('region', { name: /^Encounter waiting, Wandering things/ }));
 
-    // S8b (06-03): what was rolled is the link in place of View; a row naming one creature opens its stat block first,
-    // and Back to the encounter shows the rest.
+    // S8b (06-03): what was rolled is the link in place of View; it opens the encounter's details (sf-6a).
     await user.click(card.getByRole('button', { name: 'Shallow things: Bog lurkers, 1d4' }));
     const view = within(await screen.findByRole('dialog', { name: 'Encounter waiting: Wandering things' }));
-    await user.click(view.getByRole('button', { name: '‹ Back to the encounter' }));
     expect(view.getByText('Shallow things: Bog lurkers, 1d4')).toBeTruthy();
     expect(view.getByText('They wait under the reeds.')).toBeTruthy();
     await user.click(view.getByRole('button', { name: 'Close' }));
@@ -214,8 +212,7 @@ describe('Encounter waiting (M5b step 2)', () => {
     const started = within(await screen.findByRole('dialog', { name: 'Started: Wandering things' }));
     expect(started.getByText('Shallow things: Bog lurkers, 1d4')).toBeTruthy();
     expect(started.getByText('How many: 1d4')).toBeTruthy();
-    expect(started.getByText('Bog lurker')).toBeTruthy();
-    expect(started.getByText('A slow grey thing that smells of peat.')).toBeTruthy();
+    expect(started.getByRole('button', { name: 'Bog lurker: read it' })).toBeTruthy();
     // Read-only: nothing to tap but Close (the fight arrives with M6).
     expect(started.getAllByRole('button').map((b) => b.getAttribute('aria-label') ?? b.textContent)).toEqual(expect.arrayContaining(['Close']));
     expect(world.tables.waiting_encounters[0]).toMatchObject({ state: 'started' });
@@ -225,49 +222,46 @@ describe('Encounter waiting (M5b step 2)', () => {
     await waitFor(() => expect(waitingCards()).toHaveLength(1));
   });
 
-  // Purpose (December 5c): View on a creature in the card's details opens its stat block in full, laid out as the Rules
-  // browser lays it out, with its source line; Back returns to the encounter; nothing changes.
-  it('opens a creature’s stat block in full from the card’s details, and Back returns', async () => {
+  // Purpose (sf-6a; EN3, F5 c): the creature's detail row in the card's details is one button, "<name>: read it"; its
+  // tap opens one pop-up headed by the creature's name with the X on that line and no title line over it, showing the
+  // stat block in full as the Rules browser lays it out, with its source; closing it gives the focus back to the row,
+  // and nothing changes.
+  it('opens a creature’s pop-up from its detail row, and closing returns focus to the row', async () => {
     const { gm, campaign } = table();
     withSetting(campaign, gm);
     const user = await openScene(gm, true);
     await hitAndRoll(user);
     const card = within(await screen.findByRole('region', { name: /^Encounter waiting, Wandering things/ }));
-    // S8b (06-03): the link on what was rolled opens its one creature's stat block in the same pop-up, nothing started.
     await user.click(card.getByRole('button', { name: 'Shallow things: Bog lurkers, 1d4' }));
     const view = within(await screen.findByRole('dialog', { name: 'Encounter waiting: Wandering things' }));
-    const block = within(view.getByRole('article', { name: 'Bog lurker' }));
-    // The block's name takes the focus on opening; Back returns it to the View that opened it (#642 review).
-    await waitFor(() => expect(document.activeElement).toBe(block.getByRole('heading', { name: 'Bog lurker' })));
+    const row = view.getByRole('button', { name: 'Bog lurker: read it' });
+    // The whole row is the one button: its name and stat line are inside it.
+    expect(row.textContent).toBe('Bog lurkerArmour 7 Attacks Bite (1d6)');
+    await user.click(row);
+    const popUp = await screen.findByRole('dialog', { name: 'Bog lurker' });
+    const head = popUp.querySelector('.dialog__head')!;
+    expect([...popUp.querySelectorAll('h2')].map((h) => h.textContent)).toEqual(['Bog lurker']);
+    expect(within(head as HTMLElement).getByRole('heading', { name: 'Bog lurker' })).toBeTruthy();
+    expect(within(head as HTMLElement).getByRole('button', { name: 'Close' })).toBeTruthy();
+    const block = within(popUp);
     expect(block.getByText('A slow grey thing that smells of peat.')).toBeTruthy();
-    expect(block.getByText('3')).toBeTruthy();
     expect(block.getByText('From your setting: Fen Rules, p. 12')).toBeTruthy();
-    // The figures as compact pairs (December 5c): each label in the label style, its value at once after it.
-    expect([...block.getByRole('heading').parentElement!.querySelectorAll('.stat-block__label')].map((l) => l.textContent)).toEqual(['Armour', 'Attacks']);
-    await user.click(block.getByRole('button', { name: '‹ Back to the encounter' }));
-    expect(view.getByText('Shallow things: Bog lurkers, 1d4')).toBeTruthy();
-    await waitFor(() => expect(document.activeElement).toBe(view.getByRole('button', { name: 'View Bog lurker' })));
-    // A creature's View in the details (the way to each stat block when a row lists two or more): it opens the block,
-    // its name takes the focus, and Back gives the focus back to that View (#642 review).
-    await user.click(view.getByRole('button', { name: 'View Bog lurker' }));
-    const again = within(view.getByRole('article', { name: 'Bog lurker' }));
-    await waitFor(() => expect(document.activeElement).toBe(again.getByRole('heading', { name: 'Bog lurker' })));
-    expect(again.getByText('A slow grey thing that smells of peat.')).toBeTruthy();
-    await user.click(again.getByRole('button', { name: '‹ Back to the encounter' }));
-    expect(view.getByText('Shallow things: Bog lurkers, 1d4')).toBeTruthy();
-    await waitFor(() => expect(document.activeElement).toBe(view.getByRole('button', { name: 'View Bog lurker' })));
+    expect([...popUp.querySelectorAll('.stat-block__label')].map((l) => l.textContent)).toEqual(['Armour', 'Attacks']);
+    expect(block.queryByRole('button', { name: /Back to the encounter/ })).toBeNull();
+    await user.click(within(head as HTMLElement).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Bog lurker' })).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(view.getByRole('button', { name: 'Bog lurker: read it' })));
     expect(world.tables.waiting_encounters[0]).toMatchObject({ state: 'waiting' });
   });
 
-  // Purpose (#642 review): a stat block with no notes, no lines and no source still shows its name, how many and Back,
-  // with no empty list.
-  it('a bare stat block shows its name, how many and Back, and nothing empty', () => {
-    render(<StatBlockInFull block={{ name: 'Reed wisp', description: null, count: '2', full: { shown: layOutStatBlock({ name: 'Reed wisp' }, null), source: null } }} onBack={() => undefined} />);
-    const block = within(screen.getByRole('article', { name: 'Reed wisp' }));
-    expect(block.getByRole('heading', { name: 'Reed wisp' })).toBeTruthy();
-    expect(block.getByText('How many: 2')).toBeTruthy();
-    expect(block.getByRole('button', { name: '‹ Back to the encounter' })).toBeTruthy();
-    expect(block.queryByRole('list')).toBeNull();
+  // Purpose (#642 review): a stat block with no notes, no lines and no source still shows its name and how many in its
+  // pop-up, with nothing drawn empty.
+  it('a bare stat block shows its name and how many, and nothing empty', () => {
+    render(<BookDetailPopUp detail={{ name: 'Reed wisp', count: '2', shown: layOutStatBlock({ name: 'Reed wisp' }, null), source: null }} onClose={() => undefined} />);
+    const popUp = within(screen.getByRole('dialog', { name: 'Reed wisp' }));
+    expect(popUp.getByRole('heading', { name: 'Reed wisp' })).toBeTruthy();
+    expect(popUp.getByText('How many: 2')).toBeTruthy();
+    expect(popUp.queryByRole('list')).toBeNull();
     expect(document.querySelector('.stat-block__descriptor, .stat-block__rule, .stat-block__ability, .stat-block__line')).toBeNull();
   });
 
@@ -286,28 +280,14 @@ describe('Encounter waiting (M5b step 2)', () => {
       },
       { descriptor: ['Size', 'Wits'], groups: [[['Armour', 'hp'], ['Attacks']], [['Met']]], hide: [] },
     );
-    render(<StatBlockInFull block={{ name: 'Reed hag', description: null, count: null, full: { shown, source: 'From your setting: Fen Rules, p. 31' } }} onBack={() => undefined} />);
-    const block = screen.getByRole('article', { name: 'Reed hag' });
+    render(<BookDetailPopUp detail={{ name: 'Reed hag', shown, source: 'From your setting: Fen Rules, p. 31' }} onClose={() => undefined} />);
+    const block = screen.getByRole('dialog', { name: 'Reed hag' });
     expect(within(block).getByText('Medium fey, cunning')).toBeTruthy();
     expect([...block.querySelectorAll('.stat-block__line')].map((l) => l.textContent)).toEqual(['Armour 5 Hit points 5d8 (22)', 'Attacks 2 claws (1d4) or a hex (1d3)', 'Met 1']);
     expect(block.querySelectorAll('.stat-block__rule')).toHaveLength(1);
     expect([...block.querySelectorAll('.stat-block__ability')].map((p) => p.textContent)).toEqual(['Reed walk: Steps from one reed bed to another, once a day.']);
     expect([...block.querySelectorAll('[data-die]')].map((d) => d.getAttribute('data-die'))).toEqual(['8', '4']);
     expect(within(block).getByText('From your setting: Fen Rules, p. 31')).toBeTruthy();
-  });
-
-  // Purpose (December 5c, frame 3): in the card's details, each creature's stat line sits under its name and
-  // description, with View under it.
-  it('shows each creature’s stat line under its name in the details, View under it', async () => {
-    const { gm, campaign } = table();
-    withSetting(campaign, gm);
-    const user = await openScene(gm, true);
-    await hitAndRoll(user);
-    // S8b: the card's link opens the creature first; Back to the encounter shows the details' list.
-    await user.click(within(await screen.findByRole('region', { name: /^Encounter waiting, Wandering things/ })).getByRole('button', { name: 'Shallow things: Bog lurkers, 1d4' }));
-    await user.click(within(await screen.findByRole('dialog', { name: 'Encounter waiting: Wandering things' })).getByRole('button', { name: '‹ Back to the encounter' }));
-    const item = within(within(await screen.findByRole('dialog', { name: 'Encounter waiting: Wandering things' })).getByRole('list', { name: 'Stat blocks' })).getByRole('listitem');
-    expect(item.textContent).toBe('Bog lurkerA slow grey thing that smells of peat.Armour 7 Attacks Bite (1d6)View');
   });
 
   it('a miss queues nothing; undoing the hit takes its card away', async () => {

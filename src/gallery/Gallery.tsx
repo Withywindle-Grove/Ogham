@@ -882,7 +882,7 @@ export function Gallery() {
       </Section>
 
       {/* Last, so the sections above keep their approved pictures (December 5c, the stat block); new pictures. */}
-      <Section id="stat-block" title="The stat block: View, the Rules browser, the waiting card's stat lines, messy data">
+      <Section id="stat-block" title="The stat block: the detail row and its one pop-up, the Rules browser, messy data">
         <StatBlockSpecimens Specimen={Specimen} />
       </Section>
 

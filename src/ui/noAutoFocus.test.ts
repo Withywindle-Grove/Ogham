@@ -37,9 +37,6 @@ const FOCUS_CALLS: Record<string, number> = {
   '/src/app/LibraryScreen.tsx': 1,
   // Go to number (M5b step g3): the row found, a button, never a field.
   '/src/app/EncounterTables.tsx': 1,
-  // A stat block in full (December 5c, #642 review): its heading on open, the View button that opened it on Back; and
-  // (S8b) the heading again when the waiting card's link opens the pop-up on the creature. Never a field.
-  '/src/app/EncounterWaiting.tsx': 3,
   '/src/app/NewCampaign.tsx': 1,
   '/src/app/RulesBrowser.tsx': 1,
   '/src/app/RulesForCampaign.tsx': 1,

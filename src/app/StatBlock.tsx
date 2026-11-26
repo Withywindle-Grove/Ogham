@@ -1,11 +1,11 @@
 // The stat block (December 5c; mockup docs/design/mockups/december/06-stat-block, frames 1 to 6): one part, drawn once,
-// used by View on the waiting encounter (StatBlockInFull) and by the Rules browser for a stat block. In order: the
+// used by the detail row's pop-up (BookDetail.tsx) and by the Rules browser for a stat block. In order: the
 // description, the descriptor line in small capitals, the figures as compact pairs (each label, in the book-label
 // colour at the regular weight, cr-c2, followed at once by its value; several to a line) in the groups the pack
 // declares (pf-13) with a dotted rule between, the abilities as paragraphs with a bold lead-in, anything else the block
 // holds as lines, and the source line. The name is the caller's heading, with `STAT_BLOCK_NAME`. Book text in its own
 // faces (Bitter; the descriptor in Alegreya Sans SC), never the app's body token. The stat line (`StatLine`) is the
-// waiting card's run-on line of the first group. A die named in a value carries its glyph (ds-3).
+// detail row's run-on line of the first group. A die named in a value carries its glyph (ds-3).
 import type { ReactNode } from 'react';
 import type { Figure, StatBlockShown } from '../modules/library/statBlockLayout.ts';
 import { DieGlyph, isDieSize } from '../ui/dice.tsx';
@@ -52,16 +52,16 @@ function Pair({ figure }: { figure: Figure }) {
   );
 }
 
-function PairLine({ figures, className }: { figures: Figure[]; className: string }) {
+function PairLine({ figures, className, Tag = 'p' }: { figures: Figure[]; className: string; Tag?: 'p' | 'span' }) {
   return (
-    <p className={className}>
+    <Tag className={className}>
       {figures.map((figure, i) => (
         <span key={`${figure.label}-${i}`}>
           {i > 0 && ' '}
           <Pair figure={figure} />
         </span>
       ))}
-    </p>
+    </Tag>
   );
 }
 
@@ -100,8 +100,8 @@ export function StatBlock({ shown, source }: { shown: StatBlockShown; source: st
   );
 }
 
-/** The waiting card's stat line: the figures run on as one wrapping line at the small size (frame 3). */
+/** The detail row's stat line (BookDetail.tsx): the figures run on as one wrapping line at the small size; a span, inside the row's button. */
 export function StatLine({ figures }: { figures: Figure[] }) {
   if (figures.length === 0) return null;
-  return <PairLine figures={figures} className="stat-block stat-line" />;
+  return <PairLine figures={figures} className="stat-block stat-line" Tag="span" />;
 }

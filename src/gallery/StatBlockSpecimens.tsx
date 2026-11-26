@@ -1,10 +1,11 @@
 // The stat block (December 5c; mockup docs/design/mockups/december/06-stat-block, frames 1 to 6): one part, drawn once,
-// for View on the waiting encounter and the Rules browser; the waiting card's stat lines; messy data; a pack with no
-// layout. Invented creatures and numbers only; the phone width is the gallery's own 375 px run. Frame 2 (the Rules
+// for the detail row's pop-up and the Rules browser; the detail rows and their one pop-up (sf-6a; page 44, EN1, EN3);
+// messy data; a pack with no layout. Invented creatures and numbers only; the phone width is the gallery's own 375 px run. Frame 2 (the Rules
 // browser) is the same part inside the browser's list and search, whose field styles the gallery doesn't load: it is the
 // layout screen gm-rules-browser instead.
 import type { ReactElement, ReactNode } from 'react';
-import { CreatureList, StatBlockInFull, type StatBlockRef } from '../app/EncounterWaiting.tsx';
+import { BookDetailPopUp, BookDetailRow, type BookDetail } from '../app/BookDetail.tsx';
+import { CreatureRows, creatureDetail, type StatBlockRef } from '../app/EncounterWaiting.tsx';
 import { StatBlock } from '../app/StatBlock.tsx';
 import { layOutStatBlock, type StatBlockLayout } from '../modules/library/statBlockLayout.ts';
 
@@ -83,14 +84,78 @@ const ref = (data: Record<string, unknown> & { name: string; description?: strin
   full: { shown: layOutStatBlock(data, layout), source: 'From your setting: Fen Rules, p. 31' },
 });
 
+const ferryman = { name: 'Ferryman', fields: { Level: '1', Armour: '9', Attacks: 'Boat hook (+0, 1d6)', Speed: '40', Morale: '7' } };
+const ONE_GROUP: StatBlockLayout = { descriptor: ['Kind'], groups: [[['Level', 'Armour', 'hp', 'Attacks', 'Speed', 'Morale']]], hide: [] };
+
+/** A named character (EN3 B): their own words, then the block they use. */
+const harl: BookDetail = {
+  name: 'Old Harl', // words: names
+  kind: 'a ferryman',
+  shown: layOutStatBlock(
+    {
+      name: 'Old Harl', // words: names
+      description: 'Works the ferry at the jetty and knows who tied up this week. He will not cross after dark.',
+      fields: { Kind: 'A ferryman, wary' },
+      abilities: [{ name: 'Wants', note: 'his fare, and no trouble with the wardens.' }],
+    },
+    ONE_GROUP,
+  ),
+  source: 'From your adventure: Saltwick Island, p. 13',
+  uses: { name: 'Ferryman', shown: layOutStatBlock({ ...ferryman, hp: '1d6', hpAverage: 3 }, ONE_GROUP) },
+};
+
+/** An item (EN3 C): how many, then its rule. */
+const oil: BookDetail = {
+  name: 'Lamp oil',
+  count: '8',
+  rule: 'One flask fills a lantern once. Thrown and lit, it burns where it lands.',
+  shown: layOutStatBlock(
+    {
+      name: 'Lamp oil',
+      description: 'A clay flask, stoppered with wax.',
+      abilities: [
+        { name: 'In a lantern', note: 'one flask fills a lantern once.' },
+        { name: 'Thrown', note: 'lit and thrown, it burns where it lands.' },
+      ],
+    },
+    null,
+  ),
+  source: 'From your setting: Fen Rules, p. 12',
+};
+
+/** Messy (EN3 D): a very long name, and no stat block in the packs. */
+const warden: BookDetail = {
+  name: 'The Old Ferrywarden of the Nine Drowned Tides and the Long Sedge Causeway', // words: names
+  kind: 'a warden, old',
+  shown: layOutStatBlock({ name: 'Warden', description: 'Keeps the customs shed and its ledgers.', fields: { Kind: 'A warden, old' } }, ONE_GROUP),
+  source: 'From your adventure: Saltwick Island',
+  uses: null,
+};
+
 export function StatBlockSpecimens({ Specimen }: { Specimen: (props: { name: string; children: ReactNode }) => ReactElement }) {
   return (
     <>
-      <Specimen name="1. View from the waiting encounter: the name, the descriptor in small capitals, the figures in the pack's groups with a rule between, the abilities, the source, Back in the foot">
-        <StatBlockInFull block={ref(lurker, FEN)} onBack={() => undefined} focusOnOpen={false} />
+      <Specimen name="1. A detail row's pop-up, a creature (EN3 A): the name as the head with the X on its line, no title line; how many, the description, the descriptor in small capitals, the figures in the pack's groups with a rule between, the abilities, the source">
+        <BookDetailPopUp detail={creatureDetail(ref(lurker, FEN, '2'))} onClose={() => undefined} preview />
       </Specimen>
-      <Specimen name="3. The waiting card's creatures: each one's stat line (the first group, run on, small) with View under it; one not in the packs says so">
-        <CreatureList blocks={[ref(lurker, FEN, '2d4'), ref(hag, FEN, '1'), { missing: 'fen-rules:salt-hag', count: '1' }]} onView={() => undefined} />
+      <Specimen name="3. The encounter's creatures as detail rows (EN1 B): the whole row the tap, between dotted rules, the name with its count, its stat line, the arrow; one not in the packs says so">
+        <CreatureRows blocks={[ref(lurker, FEN, '2'), ref(hag, FEN, '1'), { missing: 'fen-rules:salt-hag', count: '1' }]} />
+      </Specimen>
+      <Specimen name="3. Detail rows (EN1 D; DT1): a named character with their kind and the line they use; an item's rule; the short row; no stat block in the packs; a very long name; a count of 999">
+        <BookDetailRow detail={harl} />
+        <BookDetailRow detail={oil} />
+        <BookDetailRow detail={harl} short="Same stat line as the Ferryman." />
+        <BookDetailRow detail={warden} />
+        <BookDetailRow detail={creatureDetail(ref(titan, FEN, '999'))} />
+      </Specimen>
+      <Specimen name="3. The pop-up, a named character (EN3 B): their kind, their words, then the block they use under its name">
+        <BookDetailPopUp detail={harl} onClose={() => undefined} preview />
+      </Specimen>
+      <Specimen name="3. The pop-up, an item (EN3 C): how many, then its rule">
+        <BookDetailPopUp detail={oil} onClose={() => undefined} preview />
+      </Specimen>
+      <Specimen name="3. The pop-up, messy (EN3 D): a very long name wraps under the X's line; no stat block in the packs">
+        <BookDetailPopUp detail={warden} onClose={() => undefined} preview />
       </Specimen>
       <Specimen name="4. Messy: three figures only (one short line, nothing drawn empty)">
         <StatBlock shown={layOutStatBlock({ name: 'Reed wisp', fields: { Armour: '9', 'Hit points': '1', Speed: '10' } }, { descriptor: [], groups: [[['Armour', 'Hit points', 'Speed']]], hide: [] })} source={null} />
@@ -104,8 +169,8 @@ export function StatBlockSpecimens({ Specimen }: { Specimen: (props: { name: str
       <Specimen name="6. A pack that declares no layout: one compact group in the pack's own order, no descriptor, no rule">
         <StatBlock shown={layOutStatBlock(lurker, null)} source={null} />
       </Specimen>
-      <Specimen name="6. A pack with no layout on the waiting card: the stat line is the first six figures">
-        <CreatureList blocks={[ref(lurker, null, '2d4')]} onView={() => undefined} />
+      <Specimen name="6. A pack with no layout in a detail row: the stat line is the first six figures">
+        <CreatureRows blocks={[ref(lurker, null, '2d4')]} />
       </Specimen>
     </>
   );
