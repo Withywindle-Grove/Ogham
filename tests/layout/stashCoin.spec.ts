@@ -8,10 +8,18 @@
 //   4. Messy coin (long names, 999) wraps without sideways scrolling; offline, Take… stays a row and opens the
 //      blocked-action pop-up (⚑ 7, re-ruled "A" 25 Nov).
 //   5. (fixme, ⚑ 8 of #66) Two long-named coins at once: the accent's label stays inside its button.
+//   6. Offline with Take coin already open (the network dropped while it was open), a tap on its accent opens the same
+//      blocked-action pop-up as Take…, not a toast: beside the accent on a tablet, from the foot on a phone, the sheet
+//      still open under it (Home Two's audit of #66, finding 1, picked by Francis 2026-11-26).
 //   Every scene: no sideways scrolling, every target at least 44 px, readable text, no serious accessibility problem.
 // The pictures it saves (deviceScaleFactor 2) are the as-built pictures beside PC6, PC6b and PK4 in the pull request.
 import { expect, test, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
+
+// Playwright spells an expected failure `test.fail(title, body)`; the fix-branch guard reads `.fails` (bq-6). So a test
+// written before its fix goes through `it`: `it.fails` is Playwright's expected failure, and `it` alone a plain test.
+type Body = (args: { page: Page }) => Promise<void>;
+const it = Object.assign((title: string, body: Body) => test(title, body), { fails: (title: string, body: Body) => test.fail(title, body) });
 
 const SIZES = [
   { name: 'phone', width: 375, height: 812 },
@@ -162,6 +170,37 @@ for (const size of SIZES) {
         const go = sheet.locator('.purse-sheet__go');
         await expect(go).toBeVisible();
         expect(await go.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+      });
+
+      it.fails('stash-coin-take-offline: the open Take coin sheet’s accent opens the blocked-action pop-up, not a toast', async ({ page }) => {
+        await openStash(page, 'stash=1&coin=1');
+        await openTake(page);
+        const sheet = page.getByRole('dialog', { name: 'Take coin' });
+        await sheet.getByRole('textbox', { name: 'Herons' }).fill('10');
+        await page.context().setOffline(true);
+        await expect(page.getByText('As it was when you were last online.')).toBeVisible();
+        const go = sheet.getByRole('button', { name: 'Take 10 herons' });
+        await go.click();
+        const why = page.getByRole('dialog', { name: 'You’re offline' });
+        await expect(why).toContainText('Taking from the stash needs the party’s latest, so it waits until you’re back.');
+        await expect(why).toHaveClass(/dialog--sheet/);
+        await expect(page.locator('.toast')).toHaveCount(0);
+        await expect(sheet).toBeAttached();
+        await expect(stashCoin(page)).toHaveText('40 herons, 12 bits');
+        // The phone's sheet slides up (200 ms): measured once it has come to rest.
+        await why.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+        const card = (await why.boundingBox())!;
+        if (size.width >= 700) {
+          // Beside the accent it came from (below it, else above), never over it.
+          await expect(why).toHaveClass(/dialog--anchored/);
+          const button = (await go.boundingBox())!;
+          expect(card.y >= button.y + button.height - 0.5 || card.y + card.height <= button.y + 0.5).toBe(true);
+        } else {
+          expect(card.y + card.height).toBeCloseTo(size.height, 0);
+        }
+        await page.screenshot({ path: `test-results/layout-screens/stash-coin-take-offline-${size.width}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
       });
 
       for (const scene of scenes) {

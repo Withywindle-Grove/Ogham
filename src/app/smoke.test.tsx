@@ -5832,9 +5832,10 @@ describe('the Pack tab (M4 step 4)', () => {
     await waitFor(() => expect(world.tables.inventory_lines.find((l) => l.name === 'Silver ewer')).toMatchObject({ actor_id: null, location_id: `location-stash-${campaign}` }));
   });
 
-  // Purpose: offline, the Take sheet's accent stays a button and a tap says why it waits; nothing is written (review of
-  // #66, nit 3, as the Coin sheet's).
-  it('offline, the Take sheet’s accent explains and nothing moves (K12)', async () => {
+  // Purpose: offline (the network dropped while the sheet was open), the Take sheet's accent stays a button and a tap
+  // opens the same blocked-action pop-up as a row's Take, not a toast; the sheet stays open under it and nothing is
+  // written (review of #66, nit 3; Home Two's audit, finding 1, picked by Francis 2026-11-26).
+  it.fails('offline, the Take sheet’s accent opens the blocked-action pop-up, not a toast; nothing moves (K12, ⚑ 7 A)', async () => {
     const { wren, line } = packWorld('coin');
     line(null, 'Torches', { qty: 6, stack: 10, weight_coin: 10, item_data: { unitName: 'torch', pluralName: 'torches' } });
     const user = openApp();
@@ -5847,7 +5848,10 @@ describe('the Pack tab (M4 step 4)', () => {
     try {
       window.dispatchEvent(new Event('offline'));
       await user.click(sheet.getByRole('button', { name: 'Take 2 torches' }));
-      expect(await screen.findByText('You’re offline. Taking from the stash needs the party’s latest, so it waits until you’re back.')).toBeTruthy();
+      const why = within(await screen.findByRole('dialog', { name: 'You’re offline' }));
+      expect(why.getByText('Taking from the stash needs the party’s latest, so it waits until you’re back.')).toBeTruthy();
+      expect(document.querySelector('.toast')).toBeNull();
+      expect(screen.getByRole('dialog', { name: 'Take' })).toBeTruthy();
       expect(world.tables.inventory_lines.filter((l) => l.actor_id === wren)).toEqual([]);
       expect(world.tables.inventory_lines.find((l) => l.id === 'line-torches')).toMatchObject({ qty: 6 });
     } finally {

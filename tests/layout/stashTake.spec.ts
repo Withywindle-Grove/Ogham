@@ -8,9 +8,17 @@
 //   3. Offline, Take stays a button and a tap opens the blocked-action pop-up saying why it waits: under the button on
 //      a tablet, from the foot on a phone (⚑ 7, re-ruled "A" 25 Nov).
 //   4. The over-limit toast carries its warning on a line of its own under the words, with the warning sign, and Undo.
+//   5. Offline with a stack's Take sheet already open (the network dropped while it was open), a tap on its accent opens
+//      the same blocked-action pop-up as a row's Take, not a toast: beside the accent on a tablet, from the foot on a
+//      phone, the Take sheet still open under it (Home Two's audit of #66, finding 1, picked by Francis 2026-11-26).
 // The pictures it saves (deviceScaleFactor 2) are the as-built pictures beside PK4b and PK7b in the pull request.
 import { expect, test, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
+
+// Playwright spells an expected failure `test.fail(title, body)`; the fix-branch guard reads `.fails` (bq-6). So a test
+// written before its fix goes through `it`: `it.fails` is Playwright's expected failure, and `it` alone a plain test.
+type Body = (args: { page: Page }) => Promise<void>;
+const it = Object.assign((title: string, body: Body) => test(title, body), { fails: (title: string, body: Body) => test.fail(title, body) });
 
 const SIZES = [
   { name: 'phone', width: 375, height: 812 },
@@ -109,6 +117,36 @@ for (const size of SIZES) {
           },
         },
       ];
+      it.fails('stash-take-sheet-offline: the open sheet’s accent opens the blocked-action pop-up, not a toast', async ({ page }) => {
+        await openStash(page);
+        await page.getByRole('button', { name: `Take ${BEADS}` }).click();
+        const sheet = page.getByRole('dialog', { name: 'Take' });
+        await sheet.getByRole('textbox', { name: BEADS }).fill('2');
+        await page.context().setOffline(true);
+        await expect(page.getByText('As it was when you were last online.')).toBeVisible();
+        const go = sheet.getByRole('button', { name: `Take ${BEADS} ×2` });
+        await go.click();
+        const why = page.getByRole('dialog', { name: 'You’re offline' });
+        await expect(why).toContainText('Taking from the stash needs the party’s latest, so it waits until you’re back.');
+        await expect(why).toHaveClass(/dialog--sheet/);
+        await expect(page.locator('.toast')).toHaveCount(0);
+        await expect(sheet).toBeAttached();
+        // The phone's sheet slides up (200 ms): measured once it has come to rest.
+        await why.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+        const card = (await why.boundingBox())!;
+        if (size.width >= 700) {
+          // Beside the accent it came from (below it, else above), never over it.
+          await expect(why).toHaveClass(/dialog--anchored/);
+          const button = (await go.boundingBox())!;
+          expect(card.y >= button.y + button.height - 0.5 || card.y + card.height <= button.y + 0.5).toBe(true);
+        } else {
+          expect(card.y + card.height).toBeCloseTo(size.height, 0);
+        }
+        await page.screenshot({ path: `test-results/layout-screens/stash-take-sheet-offline-${size.width}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+      });
+
       for (const scene of scenes) {
         test(`${scene.name}: no sideways scrolling, taps at least 44px, readable text, accessible`, async ({ page }) => {
           await openStash(page);

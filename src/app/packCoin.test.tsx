@@ -561,4 +561,28 @@ describe('coin in the stash (K13, PC6, PC6b, PK4)', () => {
       offline.mockRestore();
     }
   });
+
+  // Purpose: offline (the network dropped while the Take coin sheet was open), its accent stays a button and a tap opens
+  // the same blocked-action pop-up as Take…, not a toast; the sheet stays open under it and no coin moves (Home Two's
+  // audit of #66, finding 1, picked by Francis 2026-11-26).
+  it.fails('offline, the Take coin sheet’s accent opens the blocked-action pop-up, not a toast; nothing moves (⚑ 7 A)', async () => {
+    await coinWorld({ wren: { heron: 3 }, stash: { heron: 40 } });
+    const user = await openStashCoin();
+    await user.click(await coinRow());
+    await user.click(within(sheet()).getByRole('button', { name: 'Take…' }));
+    await user.type(within(sheet()).getByRole('textbox', { name: 'Herons' }), '10');
+    const offline = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    try {
+      window.dispatchEvent(new Event('offline'));
+      await user.click(screen.getByRole('button', { name: 'Take 10 herons' }));
+      const why = within(await screen.findByRole('dialog', { name: 'You’re offline' }));
+      expect(why.getByText('Taking from the stash needs the party’s latest, so it waits until you’re back.')).toBeTruthy();
+      expect(document.querySelector('.toast')).toBeNull();
+      expect(screen.getByRole('dialog', { name: 'Take coin' })).toBeTruthy();
+      expect(stashPurse()).toEqual({ heron: 40 });
+      expect(purseOf(wren)).toEqual({ heron: 3 });
+    } finally {
+      offline.mockRestore();
+    }
+  });
 });
