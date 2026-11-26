@@ -7,7 +7,10 @@
 //   * a later flip in the stock table does not unsend the answer;
 //   * a day before the newest stocked day is never answered at once (a device can't name a past day);
 //   * the answer is one log line, the player's, saying what was answered;
-//   * a player can't ask as another player's character.
+//   * a player can't ask as another player's character;
+//   * a shop not shown, closed, or not in the town the group is in answers nothing at once (review fix, hard rule 5);
+//   * the price said is the entry's, never the device's prompt (review fix);
+//   * a thing not for sale is never answered at once, Not here included (review fix: as stock_answer_for).
 import { describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../app/commandRegistry.ts';
 import { runCommand } from '../../core/commands.ts';
@@ -19,6 +22,11 @@ import { askFor, type BuyPrompt } from './townRequests.ts';
 
 const registry = createAppRegistry();
 const SHOP = 'tc12-chandler';
+// Review fix, round 1: shops the group can't use here. Shown but closed; listed but hidden; shown and open in a town the
+// group has left.
+const CLOSED = 'tc12-net-loft';
+const HIDDEN = 'tc12-back-room';
+const ELSEWHERE = 'tc12-far-stall';
 
 function setup() {
   const fake = createFakeDb();
@@ -31,12 +39,28 @@ function setup() {
   fake.addMember(camp, otherPlayerId, 'player');
   fake.tables.packs.push({ id: 'pack-fen', kind: 'setting', owner_user_id: gmId, campaign_id: null });
   fake.tables.campaign_packs.push({ id: 'cp-fen', campaign_id: camp, pack_id: 'pack-fen', priority: 0 });
-  const item = (id: string, data: Record<string, unknown>) => ({ id: `entry-${id}`, pack_id: 'pack-fen', kind: 'item', pack_entry_id: id, name: id, data: { category: 'gear', ...data } });
+  const item = (id: string, data: Record<string, unknown>) => ({ id: `entry-${id}`, pack_id: 'pack-fen', kind: 'item', pack_entry_id: id, name: id, data: { category: 'gear', value: { herons: 2 }, ...data } });
   fake.tables.library_entries.push(
     item('lamp-oil', { availability: { chance: '3-in-6' } }),
     item('rope', { availability: { chance: '3-in-6' } }),
     item('eel-trap', { availability: { chance: 'always' } }),
     item('spyglass', { availability: { chance: '1-in-6' } }),
+    item('reed-charm', { availability: { chance: 'always' }, forSale: false }),
+  );
+  // The group's town: an expedition under way, its visit to Reedmouth Quay (Safe), with the Chandler shown and open.
+  // An earlier visit, moved on from, was to Saltmarsh Cross, where the far stall is shown and open.
+  const shop = (name: string, shown: boolean, open: boolean) => ({ name, kind: 'shop', shown, open });
+  fake.tables.expeditions.push({ id: 'trip', campaign_id: camp, ended_at: null, undone: false, created_at: '2026-11-01T10:00:00Z' });
+  fake.tables.places.push(
+    {
+      id: 'quay', campaign_id: camp, name: 'Reedmouth Quay', description: '', version: 1, undone: false, safety: 'safe', settlement: null,
+      town: { [`service:${SHOP}`]: shop('The Chandler', true, true), [`service:${CLOSED}`]: shop('The Net Loft', true, false), [`service:${HIDDEN}`]: shop('The Back Room', false, true) },
+    },
+    { id: 'cross', campaign_id: camp, name: 'Saltmarsh Cross', description: '', version: 1, undone: false, safety: 'safe', settlement: null, town: { [`service:${ELSEWHERE}`]: shop('The Far Stall', true, true) } },
+  );
+  fake.tables.group_places.push(
+    { id: 'visit-cross', campaign_id: camp, expedition_id: 'trip', group_number: 1, place_id: 'cross', shown: false, moved_on: true, undone: false, created_at: '2026-11-01T11:00:00Z' },
+    { id: 'visit-quay', campaign_id: camp, expedition_id: 'trip', group_number: 1, place_id: 'quay', shown: false, moved_on: false, undone: false, created_at: '2026-11-01T12:00:00Z' },
   );
   const db = fake.db as unknown as Db;
   const gm = { id: gmId, roles: { [camp]: 'gm' as const } };
@@ -46,11 +70,11 @@ function setup() {
   return { fake, db, gm, player, other, gmId, playerId, otherPlayerId, camp, character };
 }
 
-const prompt = (itemId: string | null, item = itemId ?? 'A bell', price = '2 herons'): BuyPrompt => ({ serviceId: SHOP, shop: 'The Chandler', itemId, item, price });
+const prompt = (itemId: string | null, item = itemId ?? 'A bell', price = '2 herons', serviceId = SHOP): BuyPrompt => ({ serviceId, shop: 'The Chandler', itemId, item, price });
 
-async function set(w: ReturnType<typeof setup>, itemId: string, answer: 'in' | 'out', day = 1) {
+async function set(w: ReturnType<typeof setup>, itemId: string, answer: 'in' | 'out', day = 1, serviceId = SHOP) {
   w.fake.signInAs(w.gmId);
-  expect(await runCommand(registry, w.db, w.gm, setStock, { campaignId: w.camp, serviceId: SHOP, itemId, day, answer })).toMatchObject({ ok: true });
+  expect(await runCommand(registry, w.db, w.gm, setStock, { campaignId: w.camp, serviceId, itemId, day, answer })).toMatchObject({ ok: true });
 }
 
 async function ask(w: ReturnType<typeof setup>, p: BuyPrompt, day = 1) {
@@ -93,8 +117,13 @@ describe('Ask for… answered at once (TC12)', () => {
     expect((await ask(w, prompt('spyglass'))).status).toBe('waiting');
     expect((await ask(w, prompt('no-such-thing'))).status).toBe('waiting');
     expect((await ask(w, prompt(null, 'A brass bell', ''))).status).toBe('waiting');
-    // In stock but with no price to say: the GM prices it.
-    expect((await ask(w, prompt('lamp-oil', 'lamp-oil', ''))).status).toBe('waiting');
+  });
+
+  // Purpose: an in-stock thing whose entry says no price waits for the GM, who prices it.
+  it.fails('an in-stock thing with no price on its entry waits for the GM', async () => {
+    const w = setup();
+    w.fake.tables.library_entries.push({ id: 'entry-bell', pack_id: 'pack-fen', kind: 'item', pack_entry_id: 'brass-bell', name: 'brass-bell', data: { category: 'gear', availability: { chance: 'always' } } });
+    expect((await ask(w, prompt('brass-bell'))).status).toBe('waiting');
   });
 
   // Purpose (tn-8): a later flip in the stock table does not unsend an answer already given.
@@ -130,6 +159,47 @@ describe('Ask for… answered at once (TC12)', () => {
     const said = describeEntry({ main, events: [main] }, { me: w.playerId, people: none, characters: new Map([[w.character.id, 'Wren']]), companies: none, fields: none, packs: none, items: none, places: none });
     expect(said).toContain('Not here');
     expect(said).toContain('Wren');
+  });
+
+  // Purpose (review fix, hard rule 5): a shop not shown, closed, or not in this town answers nothing at once: a forged
+  // shop key never reads back the GM's answers (in or out) nor whether a thing is decided there.
+  it.fails('a shop not shown, closed, or not in this town answers nothing at once', async () => {
+    const w = setup();
+    for (const shop of [HIDDEN, CLOSED, ELSEWHERE]) {
+      await set(w, 'rope', 'out', 1, shop);
+      await set(w, 'lamp-oil', 'in', 1, shop);
+      for (const thing of ['rope', 'lamp-oil', 'eel-trap']) {
+        const r = await ask(w, prompt(thing, thing, '2 herons', shop));
+        expect([shop, thing, r.status, r.answer]).toEqual([shop, thing, 'waiting', null]);
+      }
+    }
+    // The shop the group can use still answers at once.
+    expect((await ask(w, prompt('eel-trap'))).status).toBe('answered');
+  });
+
+  // Purpose (review fix): the price said is the entry's, never the device's: a tampered prompt price reaches neither
+  // the answer nor the log line.
+  it.fails("a tampered prompt price doesn't reach the answer or the log", async () => {
+    const w = setup();
+    await set(w, 'lamp-oil', 'in');
+    const r = await ask(w, prompt('lamp-oil', 'lamp-oil', '0 herons'));
+    expect(r.answer).toEqual({ kind: 'buy', result: 'inStock', price: '2 herons', note: '' });
+    const line = w.fake.tables.events.find((e) => e.type === 'town.askFor')!;
+    const after = line.after as Record<string, unknown>;
+    const main: LogEvent = { id: 'e1', seq: 1, type: 'town.askFor', level: 'simple', actorUserId: w.playerId, targetTable: 'requests', targetId: String(after.id), before: null, after, fiat: false, reason: null, revertsEventId: null, requestId: null, createdAt: '' };
+    const none = new Map<string, string>();
+    const said = describeEntry({ main, events: [main] }, { me: w.playerId, people: none, characters: new Map([[w.character.id, 'Wren']]), companies: none, fields: none, packs: none, items: none, places: none });
+    expect(said).toContain('In stock: 2 herons');
+    expect(said).not.toContain('0 herons');
+  });
+
+  // Purpose (review fix, as stock_answer_for): a thing not for sale is never answered at once, not even Not here from
+  // a stored out.
+  it.fails('a thing not for sale is never answered at once', async () => {
+    const w = setup();
+    w.fake.tables.shop_stock.push({ id: 'stock-charm', campaign_id: w.camp, service_id: SHOP, item_id: 'reed-charm', day: 1, answer: 'out', undone: false });
+    const r = await ask(w, prompt('reed-charm'));
+    expect([r.status, r.answer]).toEqual(['waiting', null]);
   });
 
   // Purpose: a player can't ask as another player's character (the command and the database both refuse).

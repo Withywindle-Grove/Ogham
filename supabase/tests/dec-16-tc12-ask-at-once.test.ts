@@ -10,12 +10,18 @@
 //     no other stock line that is out or undecided;
 //   * forged ids are refused: another player's character, a character of another campaign, a campaign the asker is
 //     not in; another campaign's shop answers never answer here; a past day is never answered at once;
-//   * the transaction setting the function uses can't be set by a player to answer their own send_request.
+//   * the transaction setting the function uses can't be set by a player to answer their own send_request;
+//   * review fix, round 1 (migration 20261126100000_dec16_tc12_ask_only_offered_shop.sql): a shop not shown, closed,
+//     or not in the town the group is in answers nothing at once; the price said is the entry's, never the prompt's.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../src/app/commandRegistry.ts';
 import { runCommand, type CurrentUser } from '../../src/core/commands.ts';
 import { loadCurrentUser } from '../../src/core/currentUser.ts';
 import type { Db } from '../../src/core/supabase.ts';
+import { setPlaceSafety } from '../../src/modules/expedition/placeSafety.ts';
+import { loadGroupPlaces, setPlace } from '../../src/modules/expedition/placePlay.ts';
+import { startExpedition } from '../../src/modules/expedition/play.ts';
+import { openTownPlace, showTownPlace } from '../../src/modules/expedition/townPlaces.ts';
 import { attachPack } from '../../src/modules/library/campaignPacks.ts';
 import { importPack } from '../../src/modules/library/library.ts';
 import { readPackJson } from '../../src/modules/library/packFile.ts';
@@ -33,6 +39,11 @@ async function as<I, T, O>(person: Person, command: Parameters<typeof runCommand
 }
 
 const SHOP = 'tc12-chandler';
+// Review fix, round 1: shops the group can't use where it is. Shown but closed; listed but hidden; shown and open in the
+// town the group has left.
+const CLOSED = 'tc12-net-loft';
+const HIDDEN = 'tc12-back-room';
+const ELSEWHERE = 'tc12-far-stall';
 // Thing ids no other test uses.
 const OIL = 'tc12-lamp-oil';
 const ROPE = 'tc12-rope';
@@ -51,11 +62,31 @@ async function makePack(person: Person, name: string, items: Record<string, unkn
 
 beforeAll(async () => {
   world = await buildWorld();
-  const chance = (id: string, c: string) => ({ id, name: id, category: 'gear', availability: { chance: c } });
+  const chance = (id: string, c: string) => ({ id, name: id, category: 'gear', value: { herons: 2 }, availability: { chance: c } });
   const packId = await makePack(world.gm, 'TC12 fen goods', [chance(OIL, '3-in-6'), chance(ROPE, '3-in-6'), chance(TRAP, 'always'), chance(GLASS, '1-in-6'), chance(HOOK, '2-in-6')]);
   await as(world.gm, attachPack, { campaignId: world.campaignId, packId });
   const otherPackId = await makePack(world.gm, 'TC12 barrow goods', [chance(FAR, '3-in-6')]);
   await as(world.gm, attachPack, { campaignId: world.otherCampaignId, packId: otherPackId });
+  // The group's town: an expedition starts at Saltmarsh Cross (Safe), where the far stall is shown and open; the group
+  // moves on to Reedmouth Quay (Safe), where the Chandler is shown and open, the net loft shown but closed, and the back
+  // room listed but hidden.
+  const campaignId = world.campaignId;
+  const done = async <T>(r: Promise<{ ok: true; value: T } | { ok: false; message: string }>) => {
+    const x = await r;
+    if (!x.ok) throw new Error(x.message);
+    return x.value;
+  };
+  const trip = await done(as(world.gm, startExpedition, { campaignId, mode: 'dungeon', place: 'Saltmarsh Cross' }));
+  const here = async () => (await loadGroupPlaces(asDb(world.gm), campaignId, trip.id))!.get(1)!.place!;
+  const shop = (id: string, name: string) => ({ key: `service:${id}`, name, group: 'shop' as const });
+  await done(as(world.gm, setPlaceSafety, { campaignId, place: await here(), safety: 'safe' }));
+  await done(as(world.gm, showTownPlace, { campaignId, place: await here(), entry: shop(ELSEWHERE, 'The Far Stall'), shown: true }));
+  await done(as(world.gm, setPlace, { campaignId, group: 1, name: 'Reedmouth Quay' }));
+  await done(as(world.gm, setPlaceSafety, { campaignId, place: await here(), safety: 'safe' }));
+  await done(as(world.gm, showTownPlace, { campaignId, place: await here(), entry: shop(SHOP, 'The Chandler'), shown: true }));
+  await done(as(world.gm, showTownPlace, { campaignId, place: await here(), entry: shop(CLOSED, 'The Net Loft'), shown: true }));
+  await done(as(world.gm, openTownPlace, { campaignId, place: await here(), entry: shop(CLOSED, 'The Net Loft'), open: false }));
+  await done(as(world.gm, showTownPlace, { campaignId, place: await here(), entry: shop(HIDDEN, 'The Back Room'), shown: false }));
 }, 300_000);
 
 afterAll(async () => {
@@ -65,7 +96,7 @@ afterAll(async () => {
 
 const wren = () => ({ id: world.wrenId, campaignId: world.campaignId, ownerUserId: world.playerA.id });
 const prompt = (itemId: string | null, price = '2 herons', serviceId = SHOP): BuyPrompt => ({ serviceId, shop: 'The Chandler', itemId, item: itemId ?? 'A brass bell', price });
-const set = (itemId: string, answer: 'in' | 'out', day = 1, campaignId = world.campaignId) => as(world.gm, setStock, { campaignId, serviceId: SHOP, itemId, day, answer });
+const set = (itemId: string, answer: 'in' | 'out', day = 1, campaignId = world.campaignId, serviceId = SHOP) => as(world.gm, setStock, { campaignId, serviceId, itemId, day, answer });
 async function ask(p: BuyPrompt, day = 1) {
   const done = await as(world.playerA, askFor, { character: wren(), text: `${p.item}, The Chandler`, day, prompt: p });
   if (!done.ok) throw new Error(done.message);
@@ -84,13 +115,42 @@ describe('answered at once from the day\'s stock (tn-7)', () => {
   });
 
   // Purpose: with no stored answer an "always" thing is answered from its default; a chance thing, an unlisted thing,
-  // Something not listed… and an in thing with no price to say wait for the GM.
+  // and Something not listed… wait for the GM. (An in thing's price is now its entry's: the price test below.)
   it('the default decides; the undecided and the unlisted wait', async () => {
     expect((await ask(prompt(TRAP))).status).toBe('answered');
     expect((await ask(prompt(GLASS))).status).toBe('waiting');
     expect((await ask(prompt('tc12-no-such-thing'))).status).toBe('waiting');
     expect((await ask(prompt(null, ''))).status).toBe('waiting');
-    expect((await ask(prompt(OIL, ''))).status).toBe('waiting');
+  });
+
+  // Purpose (review fix): the price said is the entry's, never the device's: a tampered prompt price reaches neither
+  // the answer nor the log line; with no device price at all the entry's price is still said.
+  it.fails("a tampered prompt price doesn't reach the answer or the log", async () => {
+    expect(await set(OIL, 'in')).toMatchObject({ ok: true });
+    const tampered = await ask(prompt(OIL, '0 herons'));
+    expect(tampered.answer).toEqual({ kind: 'buy', result: 'inStock', price: '2 herons', note: '' });
+    const line = must(await world.playerA.db.from('events').select('after').eq('campaign_id', world.campaignId).eq('target_id', tampered.id).eq('type', 'town.askFor'));
+    expect(JSON.stringify(line)).not.toContain('"price":"0 herons"');
+    expect((line[0]!.after as { answer: { price: string } }).answer.price).toBe('2 herons');
+    const unpriced = await ask(prompt(OIL, ''));
+    expect([unpriced.status, unpriced.answer]).toEqual(['answered', { kind: 'buy', result: 'inStock', price: '2 herons', note: '' }]);
+  });
+});
+
+describe('only a shop offered where the group is (review fix, hard rule 5)', () => {
+  // Purpose: a shop not shown, closed, or not in the town the group is in answers nothing at once: a forged shop key
+  // never reads back the GM's answers (in or out) nor whether a thing is decided there.
+  it.fails('a shop not shown, closed, or not in this town answers nothing at once', async () => {
+    for (const shop of [HIDDEN, CLOSED, ELSEWHERE]) {
+      expect(await set(ROPE, 'out', 1, world.campaignId, shop)).toMatchObject({ ok: true });
+      expect(await set(OIL, 'in', 1, world.campaignId, shop)).toMatchObject({ ok: true });
+      for (const thing of [ROPE, OIL, TRAP]) {
+        const asked = await ask(prompt(thing, '2 herons', shop));
+        expect([shop, thing, asked.status, asked.answer]).toEqual([shop, thing, 'waiting', null]);
+      }
+    }
+    // The shop the group can use still answers at once.
+    expect((await ask(prompt(TRAP))).status).toBe('answered');
   });
 });
 
