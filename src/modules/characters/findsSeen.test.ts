@@ -412,7 +412,7 @@ describe('what is new, read from the log (K20a)', () => {
 
   // Purpose (review fix 1): the GM's find onto Moss's stack stays Moss's, even once that stack is moved onto Wren by a
   // move that is not an arrival (here the GM's own move; her own Take reads the same): it is not new for her.
-  it.fails("a GM join onto another's stack is not hers once that stack moves onto her", async () => {
+  it("a GM join onto another's stack is not hers once that stack moves onto her", async () => {
     const mossPearls = kit(moss.id, 'River pearls', 6, 'entry-pearl');
     await mustOk(as(gm, 'inventory.add').rpc('join_added_line' as never, { campaign, actor: moss.id, location: null, container: null, entry: 'entry-pearl', how_many: 2, made_id: crypto.randomUUID(), how_got: 'given', cost: '', note: '' } as never) as unknown as Promise<{ error: unknown }>);
     await mustOk(as(gm, 'inventory.move').from('inventory_lines').update({ actor_id: wren.id }).eq('id', mossPearls).select('id'));

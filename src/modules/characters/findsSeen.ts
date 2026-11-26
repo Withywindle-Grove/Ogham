@@ -126,7 +126,12 @@ export function findsSince(source: FindsSource): FindEntry[] {
   const undoOf = new Map<string, LogEvent>();
   const mergedInto = new Map<string, string>();
   const goneCopy = new Map<string, Row>();
-  for (const e of source.events) if (e.revertsEventId) undoOf.set(e.revertsEventId, e);
+  // When each line was moved onto her from elsewhere: a join made before such a move was onto someone else's stack.
+  const movedOn = new Map<string, number>();
+  for (const e of source.events) {
+    if (e.revertsEventId) undoOf.set(e.revertsEventId, e);
+    if (e.targetTable === 'inventory_lines' && e.targetId && e.before && row(e.after).actor_id === me && row(e.before).actor_id !== me) movedOn.set(e.targetId, Math.max(e.seq, movedOn.get(e.targetId) ?? -Infinity));
+  }
   for (const group of byRequest.values()) {
     const items = group.filter((e) => e.targetTable === 'inventory_lines' && e.targetId);
     const raised = items.find((e) => (qtyOf(e.after) ?? 0) > (qtyOf(e.before) ?? Infinity));
@@ -215,8 +220,8 @@ export function findsSince(source: FindsSource): FindEntry[] {
     }
     const lineId = resolve(a.lineId);
     const line = lineOf.get(lineId);
-    // A join's line holds only a count: it is hers only if the stack is on her now (taken back or not).
-    if (a.joined && line?.actorId !== me) continue;
+    // A join's line holds only a count: it is hers only if the stack is on her now and was then (taken back or not).
+    if (a.joined && (line?.actorId !== me || (movedOn.get(lineId) ?? -Infinity) > a.seq || (movedOn.get(a.lineId) ?? -Infinity) > a.seq)) continue;
     if (takenBack) {
       const name = line?.name ?? String((goneCopy.get(lineId) ?? goneCopy.get(a.lineId))?.name ?? '');
       entries.push({ entry: { kind: 'thing', lineId: line ? lineId : null, name, arrived: a.arrived, now: null, who: a.who, at: a.at, takenBack }, seq: a.seq });
