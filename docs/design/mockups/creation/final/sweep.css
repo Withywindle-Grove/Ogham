@@ -1,0 +1,79 @@
+/* Shared by the pages of creation's style sweep (batches B to H; batch A, page 16, carries its own copy). The type pair, the book format in an entry, the book's table. */
+  @font-face { font-family:"Atkinson Hyperlegible"; src:url(../../december/fonts/atkinson-hyperlegible-latin-400-normal.woff2); font-weight:400; }
+  @font-face { font-family:"Atkinson Hyperlegible"; src:url(../../december/fonts/atkinson-hyperlegible-latin-700-normal.woff2); font-weight:700; }
+  @font-face { font-family:"EB Garamond"; src:url(../../december/fonts/eb-garamond-latin-600-normal.woff2); font-weight:400 800; }
+  @font-face { font-family:"T Bitter"; src:url(../../december/fonts/Bitter-wght.ttf); font-weight:100 900; font-style:normal; }
+  @font-face { font-family:"T Bitter"; src:url(../../december/fonts/Bitter-Italic-wght.ttf); font-weight:100 900; font-style:italic; }
+  @font-face { font-family:"T Alegreya Sans SC"; src:url(../../december/fonts/AlegreyaSansSC-Bold.ttf); font-weight:400 900; }
+  .lab { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); font-family:"Atkinson Hyperlegible", Arial, sans-serif; }
+  .trio { display:flex; gap:var(--space-4); align-items:flex-start; flex-wrap:wrap; }
+  .dark { --lbl:var(--accent); } .light { --lbl:#B5482C; }
+  /* the book format in an entry */
+  .bk { font-family:"T Bitter", Georgia, serif; font-size:16px; line-height:1.45; }
+  .bk p { margin:0 0 var(--space-2); }
+  .bk .dsc { font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:15px; letter-spacing:.06em; color:var(--muted); }
+  .bk .ln { margin:0 0 var(--space-1); }
+  .bk .lb { color:var(--lbl); margin-right:var(--space-2); }
+  .bk .ln svg { vertical-align:-3px; margin-right:2px; }
+  .bk h4 { font-family:"T Bitter", Georgia, serif; font-weight:800; font-size:18px; line-height:1.2; color:color-mix(in srgb, var(--lbl) 55%, var(--ink)); margin:var(--space-3) 0 var(--space-1); }
+  .bk .source { font-size:14px; color:var(--muted); margin-top:var(--space-3); }
+  .bk table { border-collapse:collapse; width:100%; margin:var(--space-2) 0; }
+  .bk caption { font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:16px; letter-spacing:.06em; text-transform:uppercase; background:var(--accent); color:var(--on-accent); padding:var(--space-1) var(--space-3); }
+  .bk th, .bk td { text-align:left; padding:var(--space-1) var(--space-3); border-bottom:1px solid var(--rule); }
+  .bk th { border-bottom:2px solid var(--ink); font-size:14px; }
+  .bk tr:nth-child(even) td { background:color-mix(in srgb, var(--ink) 7%, transparent); }
+  .ehead { font-family:"T Bitter", Georgia, serif; font-weight:900; font-size:22px; line-height:1.15; letter-spacing:.02em; text-transform:uppercase; color:var(--lbl); }
+  .efoot { display:flex; justify-content:flex-end; gap:var(--space-2); margin-top:var(--space-3); }
+  .popup { position:absolute; left:var(--space-3); right:var(--space-3); top:34%; background:var(--sheet); border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); }
+  .popup h3 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; margin:0 0 var(--space-2); }
+  .prow { display:grid; grid-template-columns:44px minmax(0,1fr) auto; gap:var(--space-2); align-items:center; }
+  .prow .i { width:44px; height:44px; display:flex; align-items:center; justify-content:center; color:var(--info); }
+  .prow .text small { display:block; font-size:14px; color:var(--muted); }
+  .foot .btn { white-space:nowrap; flex:none; }
+  .from { font-size:14px; color:var(--muted); font-style:italic; margin:var(--space-1) 0 0; font-family:"Atkinson Hyperlegible", Arial, sans-serif; }
+
+.tagp { display:inline-block; border:1.5px solid var(--ink); border-radius:4px; padding:0 var(--space-1); font-size:14px; font-weight:700; line-height:1.3; margin-left:var(--space-1); }
+.srow { display:grid; grid-template-columns:44px minmax(0,1fr) auto; column-gap:var(--space-1); align-items:center; }
+.srow .i { width:44px; height:44px; display:flex; align-items:center; justify-content:center; color:var(--info); }
+.srow b { font-weight:700; }
+.snote { font-size:14px; color:var(--muted); margin-top:var(--space-1); }
+.adj { display:flex; align-items:center; gap:var(--space-2); }
+.adj .v { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:24px; min-width:32px; text-align:right; }
+.card.primec { border:2px solid var(--ink); }
+.prow .text small { display:block; font-size:14px; color:var(--muted); }
+.under { font-size:14px; color:var(--muted); margin-top:var(--space-1); }
+.helpgap { margin-bottom:var(--space-3); }
+.fold { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); min-height:44px; margin:var(--space-3) 0 var(--space-2); font-weight:700; }
+.sheetup .head .title { text-wrap:balance; }
+.lad { display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:var(--space-3); row-gap:var(--space-1); margin:0 0 var(--space-1) var(--space-4); }
+.lad > div { display:contents; }
+.lad .later > * { color:var(--muted); }
+.lad .later .lb { color:var(--muted); }
+.lad .st { font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:14px; letter-spacing:.06em; margin-left:var(--space-3); white-space:nowrap; }
+.ccard h3 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; margin:0 0 var(--space-1); }
+.under svg { vertical-align:-3px; margin-right:1px; }
+.lad1 { margin:0 0 var(--space-1) var(--space-4); }
+.lad1 .lb { display:flex; justify-content:space-between; align-items:baseline; gap:var(--space-2); margin-right:0; }
+.lad1 > div { margin-bottom:var(--space-1); }
+.lad1 .later, .lad1 .later .lb { color:var(--muted); }
+.lad1 .st { font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:14px; letter-spacing:.06em; white-space:nowrap; }
+.fmark { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; flex:none; }
+.fmark.open svg { transform:rotate(180deg); }
+  /* the tapped table in the book's style */
+  .tt { border:1px solid var(--rule); font-family:"T Bitter", Georgia, serif; }
+  .tt .tbar { font-family:"T Alegreya Sans SC", sans-serif; font-weight:700; font-size:16px; letter-spacing:.06em; text-transform:uppercase; text-align:center; background:var(--accent); color:var(--on-accent); padding:var(--space-1) var(--space-3); }
+  .tt .th, .tt .tr { display:grid; grid-template-columns:4.6em minmax(0,1fr) 24px; gap:var(--space-2); align-items:center; padding:0 var(--space-3); }
+  .tt .th { min-height:36px; border-bottom:2px solid var(--ink); font-weight:700; font-size:14px; }
+  .tt .th span { display:inline-flex; align-items:center; gap:2px; }
+  .tt .tr { min-height:44px; border-bottom:1px solid var(--rule); }
+  .tt .tr:nth-of-type(even) { background:color-mix(in srgb, var(--ink) 7%, transparent); }
+  .tt .tr.on { background:var(--wash); box-shadow:inset 0 0 0 2px var(--accent); font-weight:700; }
+  .tt .tr .n { color:var(--muted); }
+.tt .tr small { display:block; font-size:14px; color:var(--muted); font-weight:400; }
+.tt .tr.shut { color:var(--muted); }
+h3.sec { font-size:16px; font-weight:700; margin:var(--space-4) 0 var(--space-2); font-family:inherit; }
+.bit h3.sec { font-family:"T Bitter", Georgia, serif; font-weight:800; font-size:18px; color:color-mix(in srgb, var(--lbl) 55%, var(--ink)); }
+.tablet.wide { width:1024px; }
+.giv { font-size:14px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); padding:0 var(--space-2); }
+.tt .tr { padding-top:var(--space-2); padding-bottom:var(--space-2); line-height:1.3; }
+.bk p svg { vertical-align:-3px; margin-right:1px; }
