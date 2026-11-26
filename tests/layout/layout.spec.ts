@@ -634,9 +634,9 @@ const SCENES: Scene[] = [
     },
   },
   {
-    // The GM's place page's pieces with Edit piece open (M5b g2, B1; g2b, gp-1; dec-7 5b, page 11 frame 7): each row's
-    // text is its own 44 px button beside the bare eye (ds-2: no word), the two never overlapping; the form filled in,
-    // with Save and Remove this piece.
+    // The GM's place page's pieces with Edit piece open (M5b g2, B1; dec-7 5b, page 11 frame 7; sf-16, page 44 EP1):
+    // each row's arrow opens Edit piece, a 44 px button beside the bare eye (ds-2: no word), the two never overlapping;
+    // the form filled in, with Save and Remove this piece.
     name: 'gm-place-edit-piece',
     open: async (page) => {
       await page.goto('/layout.html?as=gm');

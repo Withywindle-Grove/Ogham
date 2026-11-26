@@ -680,8 +680,28 @@ export function namedParts(text: string, names: readonly string[]): { text: stri
 }
 
 /**
- * One piece (B1): its text and kind, and the 44 × 44 eye button that shows it to the group in focus. The text is the
- * tap target for Edit piece (g2b, gp-1: the whole row but the eye; no pencil, the text is the thing).
+ * sf-16 (page 44, EP1 E): what the X dropped from Edit piece, by piece, kept only between the toast's Undo and the form
+ * it opens again; and each piece row's own way to open its form, so that Undo can open it (the form's parent holds
+ * which piece is open, and the row's `onEdit` is how it is asked).
+ */
+const droppedWords = new Map<string, { kind: PieceKind; text: string }>();
+const pieceOpeners = new Map<string, () => void>();
+
+/** The toast's Undo after "Changes dropped.": Edit piece opens again with the words as typed. False if the row has gone. */
+export function reopenWithWords(pieceId: string, words: { kind: PieceKind; text: string }): boolean {
+  const open = pieceOpeners.get(pieceId);
+  if (!open) return false;
+  droppedWords.set(pieceId, words);
+  open();
+  return true;
+}
+
+/**
+ * One piece (B1): its text and kind, and the 44 × 44 eye button that shows it to the group in focus. On today's card
+ * (a town) the text is the tap target for Edit piece (g2b, gp-1). On the place page (`page`; sf-16, page 44, ⚑ 7
+ * "Behind the arrow"): a tap on the words never opens the form; every piece has an arrow before its eye; a Treasure
+ * piece's words and arrow open its find sheet (`onOpen`), any other piece's words open nothing and its arrow opens
+ * Edit piece at once.
  */
 export function PieceRow({
   piece,
@@ -705,6 +725,14 @@ export function PieceRow({
   /** B15 (HM1, PK5b): the line under a hoard's piece, saying where it went. */
   note?: ReactNode;
 }) {
+  // The row's way to open its form, for "Changes dropped."'s Undo (sf-16).
+  useEffect(() => {
+    if (!page) return;
+    pieceOpeners.set(piece.id, onEdit);
+    return () => {
+      if (pieceOpeners.get(piece.id) === onEdit) pieceOpeners.delete(piece.id);
+    };
+  }, [page, piece.id, onEdit]);
   if (page) {
     // The Location's card (p2p-10; page 23, LA1, approved 2026-11-18): in the book's format, no kind word. A piece the
     // pack leads with its own word starts with it in bold; the description has none, and its words that name another
@@ -712,26 +740,41 @@ export function PieceRow({
     // and the bare eye at the right.
     const fact = gmFactLine(piece, names);
     const parts = piece.kind === 'description' ? namedParts(piece.text, named) : [{ text: piece.text, named: false }];
+    const words = (
+      <>
+        <span className="place-page__piece-text">
+          {piece.lead && (
+            <>
+              <strong>{leadWords(piece.lead)}</strong>{' '}
+            </>
+          )}
+          {parts.map((part, i) => (
+            <Fragment key={i}>{part.named ? <strong className="place-page__named">{part.text}</strong> : part.text}</Fragment>
+          ))}
+        </span>
+        {fact && <span className="place-page__fact">{fact}</span>}
+        {note}
+      </>
+    );
     return (
       <li className="place-page__piece">
-        <button type="button" className="place-page__piece-words" aria-label={onOpen ? undefined : `Edit piece: ${piece.text}`} aria-haspopup={onOpen ? 'dialog' : undefined} onClick={onOpen ?? onEdit}>
-          <span className="place-page__piece-text">
-            {piece.lead && (
-              <>
-                <strong>{leadWords(piece.lead)}</strong>{' '}
-              </>
-            )}
-            {parts.map((part, i) => (
-              <Fragment key={i}>{part.named ? <strong className="place-page__named">{part.text}</strong> : part.text}</Fragment>
-            ))}
-          </span>
-          {fact && <span className="place-page__fact">{fact}</span>}
-          {note}
-        </button>
-        {/* sf-8 (page 44, TR1): the arrow opens the find sheet too, a 44 px target of its own 8 px from the eye. The
-            words' button already says it to a screen reader and the keyboard, so the arrow is a pointer's alone. */}
-        {onOpen && (
+        {onOpen ? (
+          <button type="button" className="place-page__piece-words" aria-haspopup="dialog" onClick={onOpen}>
+            {words}
+          </button>
+        ) : (
+          // sf-16: a stray tap on the words does nothing.
+          <div className="place-page__piece-words place-page__piece-words--still">{words}</div>
+        )}
+        {/* sf-8, sf-16 (page 44, TR1, EP1): every piece's arrow, a 44 px target of its own 8 px from the eye. A Treasure
+            piece's opens its find sheet, as its words' button (which already says it to a screen reader and the
+            keyboard, so that arrow is a pointer's alone); any other piece's opens Edit piece and is its one button. */}
+        {onOpen ? (
           <button type="button" className="place-page__opens" aria-hidden="true" tabIndex={-1} onClick={onOpen}>
+            <Icon name="chevron" size={20} />
+          </button>
+        ) : (
+          <button type="button" className="place-page__opens" aria-label={`Edit piece: ${piece.text}`} aria-haspopup="dialog" onClick={onEdit}>
             <Icon name="chevron" size={20} />
           </button>
         )}
@@ -827,6 +870,7 @@ export function AddPiece({
       setOpen(false);
     }
   };
+  if (page && editing) return <EditPiece editing={editing} who={who} onSave={onAdd} onRemove={onRemove} onClose={close} />;
   if (page) {
     return (
       <div className="place-page__form" role="group" aria-label={editing ? 'Edit piece' : '+ Piece'}>
@@ -910,6 +954,133 @@ export function AddPiece({
         )}
       </div>
     </div>
+  );
+}
+
+/** A field that grows to its words, so a long text is never cut (EP1 C; as `WhatPlayersSee`'s). */
+const grow = (el: HTMLTextAreaElement | null) => {
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
+};
+
+/**
+ * Edit piece on the place page (sf-16; page 44, EP1, approved 2026-11-26): the standard pop-up. The words first, in a
+ * box that grows with them; "Kind" as one row whose seven kinds unfold in place under it, the picked one ticked, a tap
+ * picking and folding them again (no icon, no second view); "Remove this piece" a quiet row; "Save" alone in the foot,
+ * the accent. The X (or Escape, or a tap outside) with something changed closes it and says "Changes dropped." with
+ * Undo, which opens it again with the words as typed; with nothing changed it only closes.
+ */
+function EditPiece({
+  editing,
+  who,
+  onSave,
+  onRemove,
+  onClose,
+}: {
+  editing: Piece;
+  who?: string;
+  onSave: (kind: PieceKind, text: string) => Promise<boolean>;
+  onRemove?: () => void;
+  onClose: () => void;
+}) {
+  const id = useId();
+  const show = useToast();
+  // The words the X dropped, if this is the Undo opening it again; read once, as it opens.
+  const [kept] = useState(() => droppedWords.get(editing.id));
+  const [kind, setKind] = useState<PieceKind>(kept?.kind ?? editing.kind);
+  const [text, setText] = useState(kept?.text ?? editing.text);
+  const [kinds, setKinds] = useState(false);
+  useEffect(() => {
+    droppedWords.delete(editing.id);
+  }, [editing.id]);
+  const drop = () => {
+    onClose();
+    if (kind === editing.kind && text === editing.text) return;
+    const words = { kind, text };
+    show({ text: 'Changes dropped.', onUndo: () => void reopenWithWords(editing.id, words) });
+  };
+  return (
+    <Dialog label="Edit piece" onClose={drop}>
+      <form
+        className="edit-piece"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void onSave(kind, text);
+        }}
+      >
+        <div className="field">
+          <label className="label" htmlFor={id}>
+            What players will see
+          </label>
+          <textarea
+            id={id}
+            ref={grow}
+            className="field__input field__textarea edit-piece__words"
+            rows={3}
+            maxLength={PIECE_TEXT_MAX}
+            value={text}
+            onChange={(event) => {
+              // One line, as the piece is: Enter saves, as in the field it was.
+              setText(event.target.value.replace(/\n/g, ' '));
+              grow(event.target);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                event.currentTarget.form?.requestSubmit();
+              }
+            }}
+          />
+        </div>
+        {editing.shown && <p className="place-page__hint">{`Shown to ${who ?? 'the party'} now, players see the change as you save it.`}</p>}
+        <div className="field">
+          <span className="label" id={`${id}-kind`}>
+            Kind
+          </span>
+          <div className={`edit-piece__kinds${kinds ? ' edit-piece__kinds--open' : ''}`}>
+            <button type="button" className="edit-piece__kind" aria-expanded={kinds} aria-labelledby={`${id}-kind ${id}-picked`} onClick={() => setKinds(!kinds)}>
+              <span id={`${id}-picked`}>{PIECE_KIND_WORDS[kind]}</span>
+              <span className={`edit-piece__mark${kinds ? ' edit-piece__mark--open' : ''}`} aria-hidden="true">
+                <Icon name="chevron" size={20} />
+              </span>
+            </button>
+            {kinds && (
+              <div className="edit-piece__list" role="group" aria-labelledby={`${id}-kind`}>
+                {PIECE_KINDS.map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    className={`edit-piece__option${k === kind ? ' edit-piece__option--picked' : ''}`}
+                    aria-pressed={k === kind}
+                    onClick={() => {
+                      setKind(k);
+                      setKinds(false);
+                    }}
+                  >
+                    <span className="edit-piece__tick" aria-hidden="true">
+                      {k === kind && <Icon name="tick" size={20} />}
+                    </span>
+                    {PIECE_KIND_WORDS[k]}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        {onRemove && (
+          <button type="button" className="edit-piece__remove" onClick={onRemove}>
+            <Icon name="cancel" size={24} />
+            Remove this piece
+          </button>
+        )}
+        <div className="dialog__actions">
+          <button type="submit" className="button-primary">
+            Save
+          </button>
+        </div>
+      </form>
+    </Dialog>
   );
 }
 

@@ -21,7 +21,7 @@ async function openCard(page: Page, scheme: 'light' | 'dark', sf8: '1' | 'sent')
   await page.goto(`/layout.html?as=gm&placePage=wreck&session=running&sf8=${sf8}`);
   await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
   await expect(page.locator('.place-page__name')).toBeVisible();
-  await expect(ring(page).locator('.place-page__opens')).toBeVisible();
+  await expect(ring(page).locator('button.place-page__piece-words')).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
 }
 

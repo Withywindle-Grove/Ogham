@@ -62,8 +62,8 @@ async function page() {
       </SceneWaitingProvider>
     </ToastHost>,
   );
-  // The piece opens once the setting is read: its arrow is drawn.
-  await waitFor(() => expect(piece('Bronze ring').querySelector('.place-page__opens')).not.toBeNull());
+  // The piece opens once the setting is read: its words are a button (every piece has its arrow, sf-16).
+  await waitFor(() => expect(piece('Bronze ring').querySelector('button.place-page__piece-words')).not.toBeNull());
 }
 
 /** A piece's row on the card, by the words it starts with. */
