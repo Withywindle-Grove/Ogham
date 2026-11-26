@@ -5,14 +5,15 @@
 //   2. The ring with a long hidden curse opens the player's sheet plus the GM's line, at body size (16 px), with the
 //      closed eye, and "Reveal…" above Give to…, at least 44 px high. No sideways scrolling, no text under 14 px, no
 //      small targets, no serious accessibility problem.
-//   3. "Reveal…" opens the GM's own sheet for the ring over it (⚑ 40), titled "Your sheet: Mooring ring" (audit fix 5),
-//      with its "Hidden from players" group, in its own form (a pop-up opened from inside a sheet is not itself a
-//      sheet: CLAUDE.md), whole on screen, and that pop-up lays out as cleanly; its ✕ closes it alone.
+//   3. "Reveal…" opens the Reveal pop-up over it (k22-8, replacing ⚑ 40's reading and audit fix 5's own sheet), in
+//      its own form (CLAUDE.md): the Sheet K22i draws, whole on screen, and that pop-up lays out as cleanly (its own
+//      checks: k22-reveal.spec.ts); its ✕ closes it alone.
 //   4. The cursed sword (M3g2) names only what Sam can't see (audit fix 6): Sam's copy shows its "Magic bonus -1", so
 //      the line reads "Only you see this: cursed.", under the sword's details (audit fix 7), with "Reveal…" (its curse
 //      is a hidden field).
-//   5. After the ✕ on "Your sheet: Mooring ring" (a tap) or Escape (a keyboard), focus is back on "Reveal…" in the
-//      player's sheet, as it goes back to the opener after the other pop-ups (audit fix 3a; Francis's A, 24 Nov).
+//   5. After the ✕ on the Reveal pop-up (a tap) or Escape (a keyboard), focus is back on "Reveal…" in the player's
+//      sheet, as it goes back to the opener after the other pop-ups (audit fix 3a; Francis's A, 24 Nov; the Dialog's
+//      shared rule, #90).
 import { expect, type Page } from '@playwright/test';
 import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
@@ -41,7 +42,7 @@ for (const size of [
       await page.getByRole('button', { name: /^Mooring ring/ }).click();
       const sheet = page.getByRole('region', { name: 'Mooring ring' });
       const line = sheet.locator('.gm-line');
-      await expect(line).toContainText('Only you see this: Whoever wears it');
+      await expect(line).toContainText('Only you see this: cursed, Whoever wears it');
       expect(await line.evaluate((el) => getComputedStyle(el).fontSize)).toBe('16px');
       await expect(line.locator('svg')).toHaveCount(1);
       // Under the item's figures, after its details (M3g2; audit fix 7).
@@ -56,11 +57,10 @@ for (const size of [
       expect(await layoutProblems(page)).toEqual([]);
       expect(await accessibilityProblems(page)).toEqual([]);
 
-      // Reveal… opens the GM's own sheet for the ring, as built, in its own form: not a sheet, whole on screen.
+      // Reveal… opens the Reveal pop-up for the ring, in its own form, whole on screen.
       await reveal.click();
-      await expect(page.getByRole('group', { name: 'Hidden from players' })).toBeVisible();
-      const inner = page.getByRole('dialog', { name: 'Your sheet: Mooring ring' });
-      await expect(inner).not.toHaveClass(/dialog--sheet/);
+      const inner = page.getByRole('dialog', { name: 'Reveal' });
+      await expect(inner.getByRole('button', { name: /^Tell Curse/ })).toBeVisible();
       const box = (await inner.boundingBox())!;
       expect(box.x).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(size.width);
@@ -73,11 +73,11 @@ for (const size of [
       await expect(page.getByRole('dialog', { name: 'Mooring ring' })).toBeVisible();
     });
 
-    test(`after Your sheet: Mooring ring closes, focus is back on Reveal… (${size.name}, ${scheme})`, async ({ page }) => {
+    test(`after the Reveal pop-up closes, focus is back on Reveal… (${size.name}, ${scheme})`, async ({ page }) => {
       await openPack(page, size.width, size.height, scheme);
       await page.getByRole('button', { name: /^Mooring ring/ }).click();
       const reveal = page.getByRole('region', { name: 'Mooring ring' }).getByRole('button', { name: 'Reveal…' });
-      const inner = page.getByRole('dialog', { name: 'Your sheet: Mooring ring' });
+      const inner = page.getByRole('dialog', { name: 'Reveal' });
       // A tap on Reveal…, then on the ✕.
       await reveal.click();
       await inner.getByRole('button', { name: 'Close' }).click();

@@ -61,6 +61,7 @@ export function ItemRow({
   onNote,
   secret,
   gmFacts = [],
+  categorySingular,
   packShortName,
   sourceTitles = {},
   problem,
@@ -146,6 +147,8 @@ export function ItemRow({
   secret: { total: number | null; spent: boolean } | null;
   /** In the GM's view as the player: the weapon's hidden figures, for the sheet's GM line (pg32-4). */
   gmFacts?: readonly string[];
+  /** The item's category's singular name, for "What players see" (K22c). */
+  categorySingular?: string;
   /** The short name of the setting rules it came from, for the page reference. */
   packShortName: string | null;
   /** That pack's book titles by code (07 meta.sourceTitles): the page reference names the book, never its code. */
@@ -374,6 +377,7 @@ export function ItemRow({
           rechargeDefault={rechargeDefault}
           secret={secret}
           gmFacts={gmFacts}
+          categorySingular={categorySingular}
           packShortName={packShortName}
           sourceTitles={sourceTitles}
           problem={problem}
@@ -395,7 +399,8 @@ export function ItemRow({
   // weapon in hand, as its block (dec-13 C14).
   const nameWords = (
     <>
-      {shownName(line.name)}
+      {/* The row reads the face (K22e); the GM's own Pack outside the view, the true name (⚑ 10, the driver's call). */}
+      {shownName(gmHere && line.identified === false && entry ? entry.name : line.name)}
       {stackable(line) && <span className="pack__qty"> ×{line.qty}</span>}
     </>
   );
