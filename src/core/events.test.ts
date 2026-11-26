@@ -97,6 +97,10 @@ describe('log lines in plain words', () => {
     );
     expect(say(event('character.chooseSpells', { ...play, before: null, after: { prepared: [{ spell: 'a', level: 1 }], chosen: null } }))).toBe('Priya chose 1 spell for Wren, ready at once.');
     expect(say(event('character.chooseSpells', { ...play, before: null, after: { prepared: [], chosen: null } }))).toBe("Priya cleared Wren's spells chosen for the next rest.");
+    // Taking out the last ready spell while they are open empties the list: the line says so, never "chose 0 spells".
+    expect(say(event('character.chooseSpells', { ...play, before: { prepared: [{ spell: 'a', level: 1 }] }, after: { prepared: [] } }))).toBe(
+      'Priya left Wren with no spells ready.',
+    );
     expect(say(event('character.sameAsYesterday', { ...play, before: { chosen: null }, after: { chosen: [] } }))).toBe("Priya chose the same spells as yesterday for Wren's next rest.");
     expect(sayS(event('character.castSpell', { ...play, before: { spells_cast: {} }, after: { spells_cast: { '1:mire-lamp': 1 } } }))).toBe('Priya cast Mire lamp for Wren.');
     expect(say(event('character.castSpell', { ...play, before: { spells_cast: { '2:fog-ring': 1 } }, after: { spells_cast: { '2:fog-ring': 2 } } }))).toBe('Priya cast a level 2 spell for Wren.');

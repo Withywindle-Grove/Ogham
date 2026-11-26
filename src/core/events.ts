@@ -1654,6 +1654,8 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       // and an empty one there is a clear that made the row, not a choice.
       if (Array.isArray(after.prepared) && (Array.isArray(before.prepared) || after.prepared.length > 0)) {
         const ready = after.prepared.length;
+        // The last ready spell taken out while open empties the list: never "chose 0 spells".
+        if (ready === 0) return by(`left ${character()} with no spells ready`);
         return by(`chose ${ready === 1 ? '1 spell' : `${ready} spells`} for ${character()}, ready at once`);
       }
       // Chosen for the next rest (mp-2; dec-8 piece A): never what is ready today.
