@@ -614,6 +614,8 @@ describe('the Pack tab in its approved dress (K29)', () => {
     await user.click(screen.getByRole('button', { name: /Coil of reed rope/ }));
     const thing = within(sheet()).getByRole('heading', { name: 'Coil of reed rope' });
     expect(thing.classList.contains('book-heading')).toBe(true);
+    // The frame's look (PK8: no grey panel, 16 px rows) is marked on the Pack's thing sheet only (finding 1).
+    expect(sheet().querySelector('.pack__sheet--thing')).not.toBeNull();
     expect(thing.closest('.book-type')).not.toBeNull();
     await user.click(within(sheet()).getByRole('button', { name: /^Close/ }));
     await user.click(await coinRow());
@@ -632,5 +634,57 @@ describe('the Pack tab in its approved dress (K29)', () => {
     expect(stash.closest('.pack-dress')).not.toBeNull();
     await user.click(await coinRow());
     expect(within(sheet()).getByRole('heading', { name: 'Party stash’s coin' }).closest('.book-type')).not.toBeNull();
+  });
+});
+
+describe('the Pack tab’s dress on a landscape tablet (K29’s review, finding 6)', () => {
+  /** A window 1024 px wide, so the Pack puts its summary, Add item and the stash's room in the side column. */
+  beforeEach(() => {
+    window.matchMedia = ((query: string) => {
+      const min = /min-width:\s*(\d+)px/.exec(query);
+      const max = /max-width:\s*(\d+)px/.exec(query);
+      const matches = (!min || 1024 >= Number(min[1])) && (!max || 1024 <= Number(max[1])) && Boolean(min || max);
+      return { matches, media: query, onchange: null, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false };
+    }) as typeof window.matchMedia;
+  });
+  afterEach(() => {
+    delete (window as { matchMedia?: unknown }).matchMedia;
+  });
+
+  const dressed = (el: Element | null) => {
+    expect(el).not.toBeNull();
+    expect(el!.closest('.book-type')).not.toBeNull();
+    expect(el!.closest('.pack-dress')).not.toBeNull();
+  };
+
+  // Purpose: what the Pack places in the tablet's side column (the summary with the load, Add item, the stash's room)
+  // is drawn in the book's type and the dress, though it sits outside the tab's page; an action's sheet (Take), placed
+  // over the whole page, is drawn in the book's type (the dress's class does not reach a pop-up: the Pack's sizes are
+  // for its lists, and a thing's own sheet is marked by `PackDressScope`).
+  it('puts the side column’s summary, Add item and the stash’s room, and the Take sheet, in the book’s type and the dress', async () => {
+    await coinWorld({ wren: { crown: 12 } });
+    const coil = world.tables.inventory_lines.find((l) => l.id === 'line-coil')!;
+    const stashId = world.tables.purses.find((p) => p.location_id !== null)!.location_id;
+    world.tables.inventory_lines.push({ ...coil, id: 'line-reeds', actor_id: null, location_id: stashId, name: 'Bundle of reeds', weight_coin: 1, qty: 5, stack: 10 });
+    const user = await openPack();
+    const pack = screen.getByRole('region', { name: 'Wren’s pack' });
+    // The summary is beside the pack, not in it.
+    const load = document.querySelector('.pack__load');
+    expect(pack.contains(load)).toBe(false);
+    dressed(load);
+    // Add item opens in the side column.
+    await user.click(within(pack).getByRole('button', { name: /^Add item/ }));
+    await waitFor(() => expect(document.querySelector('.pack__load')).toBeNull());
+    dressed(screen.getByRole('searchbox'));
+    // The stash's screen: the taker's room in the side column, and a stack's Take sheet.
+    cleanup();
+    const again = await openPack();
+    await again.click(await screen.findByRole('button', { name: /^Party stash/ }));
+    const stash = await screen.findByRole('region', { name: 'Party stash' });
+    const room = screen.getByRole('region', { name: 'Wren’s room' });
+    expect(stash.contains(room)).toBe(false);
+    dressed(room);
+    await again.click(within(stash).getByRole('button', { name: 'Take Bundle of reeds' }));
+    expect((await screen.findByRole('dialog', { name: 'Take' })).closest('.book-type')).not.toBeNull();
   });
 });

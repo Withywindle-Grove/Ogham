@@ -37,6 +37,7 @@ import { checkEquip, EquipWarningCard, type EquipCheck } from './EquipWarning.ts
 import { countWords, shownName } from '../modules/inventory/packView.ts';
 import { cameBackText, latestChange, undoChange, type CameBack } from '../core/undo.ts';
 import { MoveSheet, type Placement } from './ItemMoves.tsx';
+import { PackDressScope } from './PackParts.tsx';
 import { BookTypeScope, Dialog } from '../ui/Dialog.tsx';
 import { Breakdown, ListRow, PinStar, RowList, WarningSign } from '../ui/parts.tsx';
 import { RollPrompt } from '../ui/RollPrompt.tsx';
@@ -210,6 +211,7 @@ export function ItemSheet(props: ItemSheetProps) {
   } = props;
   const id = useId();
   const inBook = useContext(BookTypeScope);
+  const dressed = useContext(PackDressScope);
   const blocked = useBlockedSheet();
   const { figure, setFigure, recharging, setRecharging, alsoHomebrew, setAlsoHomebrew, moving, setMoving, emptying, setEmptying, warned, setWarned, emptyTo, setEmptyTo, rechargeBy, setRechargeBy } = state;
   // The GM's view as the player (pg32-3, pg32-4; M3g, M3g2): the sheet is the player's, with no GM tool and no hidden
@@ -406,9 +408,9 @@ export function ItemSheet(props: ItemSheetProps) {
 
   return (
     // In the book's type (the Pack tab, K29; the Player tab) a thing's sheet takes its name as the entry's heading (PK8,
-    // psw-4).
+    // psw-4). Only in the Pack's dress does it lose its panel and take 16 px rows (PK8; the Player tab keeps pq-1's).
     <Dialog label={title} onClose={onClose} headAction={star} preview={preview} bookHeading={inBook}>
-      <div id={id} className="pack__sheet pack__sheet--thing" role="region" aria-label={title}>
+      <div id={id} className={`pack__sheet${dressed ? ' pack__sheet--thing' : ''}`} role="region" aria-label={title}>
         {problem && (
           <p className="pack__problem" role="note">
             <WarningSign /> {problem}

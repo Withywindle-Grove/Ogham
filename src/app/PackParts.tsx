@@ -1,7 +1,7 @@
 // The Pack's small pieces on creation's standard (plan m5b-players-screens-standard C; mockup players/01), built once
 // here so the Pack and the gallery draw the same thing: the card for the items waiting for the GM, the coin line,
 // and the foot.
-import type { ReactNode } from 'react';
+import { createContext, type ReactNode } from 'react';
 import { BookType } from '../ui/creation.tsx';
 import { Icon } from '../ui/icons.tsx';
 import { BookToasts } from '../ui/ToastHost.tsx';
@@ -20,13 +20,22 @@ import './PackScreen.css';
  */
 export function PackDress({ children }: { children: ReactNode }) {
   return (
-    <BookType>
-      <BookToasts>
-        <div className="pack-dress">{children}</div>
-      </BookToasts>
-    </BookType>
+    <PackDressScope.Provider value>
+      <BookType>
+        <BookToasts>
+          <div className="pack-dress">{children}</div>
+        </BookToasts>
+      </BookType>
+    </PackDressScope.Provider>
   );
 }
+
+/**
+ * Inside the Pack's dress (K29's review, finding 1): `ItemSheet` reads it, so a thing's sheet opened from the Pack tab
+ * (placed outside the tab's page) takes the frame's look (PK8: no grey panel, 16 px rows), while the same sheet on the
+ * Player tab keeps its own (pq-1, as built).
+ */
+export const PackDressScope = createContext(false);
 
 /**
  * The items waiting for the GM (ruled 2026-10-24: not in the pack, counting for nothing until approved): a card with

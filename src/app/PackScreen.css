@@ -1018,15 +1018,16 @@
 }
 
 /* A thing's sheet and Add item (PK8, PK10b): their rows and fields on the pop-up's own ground, as the frames draw them,
-   not on a panel of their own. A thing's sheet is placed outside the tab's page, so it is read by the book's type. */
+   not on a panel of their own. A thing's sheet is placed outside the tab's page, so `ItemSheet` marks it
+   `pack__sheet--thing` only inside the Pack's dress (`PackDressScope`); the Player tab's sheet keeps its panel. */
 .pack-dress .pack__sheet,
-.book-type .pack__sheet--thing {
+.pack__sheet--thing {
   padding: 0;
   background: none;
 }
 
 /* A thing's sheet (PK8): its action rows' words at the body's 16 px, as the frame draws "Give to…", not a list row's
    20 px in the book's type. */
-.book-type .pack__sheet--thing .list-row:not(.list-row--figure, .list-row--label) .list-row__title {
+.pack__sheet--thing .list-row:not(.list-row--figure, .list-row--label) .list-row__title {
   font-size: var(--text-16);
 }
