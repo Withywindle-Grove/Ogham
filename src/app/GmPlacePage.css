@@ -539,8 +539,9 @@
 }
 
 /* The toast rises above Move on's bar, never over it (the #785 review): the bar's height (its button and padding)
-   added to the toast's own offset above the tab bar. */
-body:has(.place-page__bar) .toast-host {
+   added to the toast's own offset above the tab bar. Not while it stands above a sheet that asks for it (a find sheet,
+   Edit piece: `data-toast-above`, ToastHost's lifted toast), which this rule would otherwise outrank. */
+body:has(.place-page__bar) .toast-host:not(.toast-host--lifted) {
   inset-block-end: calc(var(--tab-bar) + var(--tap-step) + var(--space-4) + var(--line-hair) + var(--space-3) + env(safe-area-inset-bottom, 0px));
 }
 

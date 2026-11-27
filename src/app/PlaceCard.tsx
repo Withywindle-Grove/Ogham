@@ -994,6 +994,7 @@ function EditPiece({
         <Dialog label="Edit piece" onClose={drop}>
           <form
             className="edit-piece"
+            data-toast-above
             onSubmit={(event) => {
               event.preventDefault();
               void onSave(kind, text);

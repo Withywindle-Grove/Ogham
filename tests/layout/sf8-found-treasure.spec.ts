@@ -6,8 +6,12 @@
 //   B. A tap on the Bronze ring (one thing) opens its sheet: its words, "To a character", "To the party stash", the edit row.
 //   C. A tap on the Crate (a count) opens its sheet with "Send all" at the foot's right, under the edit row.
 //   D. Once the ring is sent, its sheet says where it went and in which turn, with "Take it back".
+//   E. At 375 px, after "Take it back", the toast stands above the sheet: it covers neither "To a character" nor "To the
+//      party stash" (Home One's audit of #120, finding 1; the sheet asks for it, `data-toast-above`).
+//   F. At 375 px, after an empty Save in Edit piece, the toast covers neither "Remove this piece" nor "Kind".
+//   G. At 375 px with no sheet open, the toast still stands above Move on's bar, not over it.
 // Each: nothing scrolls sideways, no tap target under 44 px, no text under 14 px (layoutProblems).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { layoutProblems } from './checks.ts';
 
 const SIZES = [
@@ -93,3 +97,73 @@ for (const size of SIZES) {
     });
   }
 }
+
+/**
+ * Waits for a rising sheet to stand still (not the toast's own animations: its countdown ends it), then says which of
+ * the targets the toast's box overlaps.
+ */
+async function covered(page: Page, targets: Record<string, Locator>) {
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => {
+          const on = (a.effect as KeyframeEffect | null)?.target;
+          return a.effect?.getTiming().iterations !== Infinity && !(on instanceof Element && on.closest('.toast-host'));
+        })
+        .map((a) => a.finished.catch(() => undefined)),
+    ),
+  );
+  const t = (await page.locator('.toast-host > .toast').boundingBox())!;
+  const hit: string[] = [];
+  for (const [name, target] of Object.entries(targets)) {
+    const b = (await target.boundingBox())!;
+    if (t.x < b.x + b.width && b.x < t.x + t.width && t.y < b.y + b.height && b.y < t.y + t.height) hit.push(name);
+  }
+  return { hit, toast: t };
+}
+
+test.describe('sf-8 (phone, 375 px, light): the toast over a sheet', () => {
+  test.use({ viewport: { width: 375, height: 812 } });
+
+  // Purpose: E, after "Take it back" the toast stands above the find sheet, covering neither of its next two rows.
+  test('E: after Take it back, the toast covers neither To a character nor To the party stash', async ({ page }) => {
+    await openCard(page, 'light', 'sent');
+    await ring(page).locator('.place-page__piece-words').click();
+    const sheet = page.getByRole('dialog');
+    await sheet.getByRole('button', { name: 'Take it back' }).click();
+    await expect(page.locator('.toast-host > .toast')).toContainText('Taken back from');
+    const character = sheet.getByRole('button', { name: 'To a character' });
+    await expect(character).toBeVisible();
+    const { hit } = await covered(page, { 'To a character': character, 'To the party stash': sheet.getByRole('button', { name: 'To the party stash' }) });
+    expect(hit).toEqual([]);
+  });
+
+  // Purpose: F, after an empty Save in Edit piece the toast stands above the sheet, covering neither "Remove this piece"
+  // nor "Kind".
+  test('F: after an empty Save, the toast covers neither Remove this piece nor Kind', async ({ page }) => {
+    await openCard(page, 'light', '1');
+    await ring(page).locator('.place-page__piece-words').click();
+    await page.getByRole('dialog').getByRole('button', { name: "Edit the piece's words" }).click();
+    const form = page.getByRole('dialog', { name: 'Edit piece' });
+    await form.getByLabel('What players will see').fill('');
+    await form.getByRole('button', { name: 'Save' }).click();
+    await expect(page.locator('.toast-host > .toast')).toBeVisible();
+    const remove = form.getByRole('button', { name: 'Remove this piece' });
+    await expect(remove).toBeVisible();
+    const { hit } = await covered(page, { 'Remove this piece': remove, Kind: form.getByRole('button', { name: /^Kind/ }) });
+    expect(hit).toEqual([]);
+  });
+
+  // Purpose: G, with no sheet open the toast still rises above Move on's bar (the #785 review), not over it.
+  test('G: with no sheet open, the toast stands above Move on', async ({ page }) => {
+    await openCard(page, 'light', '1');
+    await ring(page).getByRole('button', { name: 'Show players' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    const bar = page.locator('.place-page__bar');
+    await expect(page.locator('.toast-host > .toast')).toBeVisible();
+    const { hit, toast } = await covered(page, { 'Move on': bar });
+    expect(hit).toEqual([]);
+    expect(toast.y + toast.height).toBeLessThanOrEqual((await bar.boundingBox())!.y);
+  });
+});

@@ -426,7 +426,7 @@ export function HoardSheetView({
   }, []);
   return (
     <Dialog label={hoard.name ?? 'Treasure'} over={over} side={side} onClose={onClose} preview={preview}>
-      <div className="hoard-sheet" ref={body}>
+      <div className="hoard-sheet" ref={body} data-toast-above>
         {hoard.words && <p className="hoard-sheet__words">{hoard.words}</p>}
         <RowList label="Things in it" dotted>
           {hoard.rows.map((r) => {
@@ -491,7 +491,7 @@ export function FoundThingSheet({
 }) {
   return (
     <Dialog label={hoard.name ?? 'Treasure'} over={over} side={side} onClose={onClose} preview={preview}>
-      <div className="hoard-sheet">
+      <div className="hoard-sheet" data-toast-above>
         {hoard.words && <p className="hoard-sheet__words">{hoard.words}</p>}
         {went !== null && <SentLine text={went} tick />}
         <RowList label={went === null ? 'Where it goes' : 'Where it went'} dotted>
