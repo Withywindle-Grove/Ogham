@@ -20,7 +20,8 @@
 //                                                (without it: the commits between BASE and HEAD that aren't merges).
 // The list's location can be overridden with GRIMOIRE_DENYLIST=<path>. For --pr the list itself can come in
 // GRIMOIRE_NAMES (the repository secret PRIVATE_NAMES: the private lists, one name per line); with
-// GRIMOIRE_NAMES_REQUIRED=true a missing list fails the scan instead of passing it unscanned.
+// GRIMOIRE_NAMES_REQUIRED=true a missing list fails the scan instead of passing it unscanned; without it, a missing
+// list passes with a warning (on GitHub, GITHUB_ACTIONS=true, a warning on the run's summary page).
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
@@ -308,10 +309,15 @@ function runPullRequest(argv) {
       );
       return 1;
     }
-    console.log(
-      'Not scanned for private names: no list here (a pull request from a fork or from Dependabot gets no secrets).\n' +
-        'Before merging a pull request from outside, scan it where the private list is.',
-    );
+    // It still passes, but says so where a person will see it (check 7, docs/specs/hard-rule-and-size-checks.md): on
+    // GitHub a warning annotation, which shows on the run's summary page; elsewhere a framed warning in the output.
+    const why = 'There is no private list here (a pull request from a fork or from Dependabot gets no secrets), so nothing was checked.';
+    const todo = 'Before merging a pull request from outside, scan it where the private list is.';
+    if (process.env.GITHUB_ACTIONS === 'true') console.log(`::warning title=Not scanned for private names::${why} ${todo}`);
+    else {
+      const rule = '!'.repeat(72);
+      console.warn(`\n${rule}\nWARNING: not scanned for private names.\n${why}\n${todo}\n${rule}\n`);
+    }
     return 0;
   }
 
