@@ -38,6 +38,8 @@ export interface CardActions {
   onRollCheck?: (line: CardLine) => void;
   /** The GM tapped the rolled row in that pop-up: the check's result, recorded by the caller (its hit and its row). */
   onRollRow?: (line: CardLine, tap: TableTap) => void;
+  /** "Dismiss" on a check that is a roll on its table (sf-4; page 44, EN1 A and F): the line goes, Undo brings it back. */
+  onDismissCheck?: (line: CardLine) => void;
 }
 
 /** What the card needs to open a check's table in its pop-up (sf-5; page 44, EN2). */
@@ -166,6 +168,7 @@ export function ReminderCard({
                 onOpen={() => (actions.onRollCheck ? actions.onRollCheck(line) : actions.onHit(line))}
                 onHit={() => actions.onHit(line)}
                 onRow={(tap) => (actions.onRollRow ? actions.onRollRow(line, tap) : actions.onHit(line))}
+                onDismiss={actions.onDismissCheck ? () => actions.onDismissCheck!(line) : undefined}
               />
             ) : (
               <>
@@ -253,12 +256,28 @@ export function ReminderCard({
 
 /**
  * A check that is a roll on its table (p2p-19, B9; sf-5, page 44 EN1 A and EN2): the pack's own sentence with its die,
- * and one stacked button, Roll…, with the rolling dice; no Hit, no Miss, no ±1 and no Modifier. Roll… opens the table in
+ * and one stacked button, Roll…, with the rolling dice, then Dismiss (sf-4, EN1 A); no Hit, no Miss, no ±1 and no Modifier. Roll… opens the table in
  * its pop-up (`TableRollPopUp`), over the card; a tap on the rolled row is the answer, and the X records nothing. Where
  * the card has no tables to open (`roll` null, or the table isn't in the setting), Roll… takes the hit's way, the tables
  * full screen.
  */
-function RollOnTable({ line, accent, roll, onOpen, onHit, onRow }: { line: CardLine; accent: boolean; roll: CardRoll | null; onOpen: () => void; onHit: () => void; onRow: (tap: TableTap) => void }) {
+function RollOnTable({
+  line,
+  accent,
+  roll,
+  onOpen,
+  onHit,
+  onRow,
+  onDismiss,
+}: {
+  line: CardLine;
+  accent: boolean;
+  roll: CardRoll | null;
+  onOpen: () => void;
+  onHit: () => void;
+  onRow: (tap: TableTap) => void;
+  onDismiss?: () => void;
+}) {
   const tableId = line.check?.hit.tables[0] ?? null;
   const table = roll && tableId ? (roll.tables.get(tableId) ?? null) : null;
   return (
@@ -270,6 +289,7 @@ function RollOnTable({ line, accent, roll, onOpen, onHit, onRow }: { line: CardL
       )}
       <div className="scene-card__buttons scene-card__answers" role="group" aria-label={`Answer, ${line.name}`}>
         <StackedButton icon={ANSWER_ICON.roll} label="Roll…" variant={accent ? 'primary' : 'secondary'} aria-label={`Roll, ${line.name}`} onClick={table ? onOpen : onHit} />
+        {onDismiss && <StackedButton icon="cancel" label="Dismiss" aria-label={`Dismiss, ${line.name}`} onClick={onDismiss} />}
       </div>
       {table && roll?.openKey === line.key && <TableRollPopUp title={line.name} table={table} tables={roll.tables} describe={roll.describe} onRow={onRow} onClose={roll.onClose} />}
     </>

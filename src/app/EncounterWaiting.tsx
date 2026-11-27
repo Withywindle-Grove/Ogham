@@ -1,18 +1,20 @@
-// Encounter waiting cards on the GM console (M5b step 2; docs/05 "Encounter waiting", ruled 2026-10-30, D11 and S2-4;
-// docs/06 Components "Encounter waiting card"). One card per hit of an encounter check, newest first; nothing when
-// none wait. Each card: Start, View (its details, no change) and Dismiss (Undo from the toast). Fewer links (fl-2,
-// 2026-11-03): Start is the accent when the console shows no other (`accent`; only the first card's, one per screen),
-// else secondary; View and Dismiss are small secondary buttons; Which watch? is chips ("1st · Reed, Moss").
-// Start in M5b (ruled 2026-11-03): the row's full text and the stat blocks it names, read-only; M6 turns it into a
-// fight. Built from the scene card's parts and the Dialog; one style of its own (the small View stays its own width).
+// The encounter's one card on the GM console (M5b step 2; docs/05 "Encounter waiting", ruled 2026-10-30, D11 and
+// S2-4; docs/06 Components "Encounter waiting card"). One card per hit of an encounter check, newest first; nothing when
+// none wait. One encounter, one card (sf-4; page 44, EN1 B to D and EN4 C, approved 2026-11-26): the heading "An
+// encounter", the row's words at body size, a detail row for each creature it names (sf-6a), one quiet line naming the
+// table and the row's range with "Change…" (it opens "Roll…"'s pop-up with that row ticked, sf-5), then "Reveal…",
+// "Message…" and "Done", on one row. No "Start" until fights are built; "Done" closes the card (⚑ 2, ruled 26 Nov).
+// "Who is awake…" stays where a camp's night hit asks which watch. Built from the scene card's parts, the detail row,
+// the stacked buttons and the roll's pop-up.
 import { useState } from 'react';
 import { shownWords } from '../core/storedWords.ts';
 import { cardWords, rowOfHit, type EncounterCard } from '../modules/expedition/encounterPlay.ts';
 import { missingWords } from '../modules/expedition/rowLinks.ts';
-import { rowCountShown, type ReadTable, type TableRow } from '../modules/expedition/tables.ts';
+import { rowCountShown, rowLabel, type ReadTable, type TableRow } from '../modules/expedition/tables.ts';
 import { Dialog } from '../ui/Dialog.tsx';
 import type { StatBlockShown } from '../modules/library/statBlockLayout.ts';
 import { BookDetailRow, countedName, type BookDetail } from './BookDetail.tsx';
+import { TableRollPopUp, type TableTap } from './EncounterTables.tsx';
 import { Chip, StackedButton, StackedGroup } from '../ui/parts.tsx';
 import './SceneExplore.css';
 import { useWaitingAccentItem, useWaitingSource, type WaitingSourceItem } from './sceneWaiting.tsx';
@@ -31,18 +33,27 @@ export interface EncounterWaitingProps {
   tables: ReadonlyMap<string, ReadTable>;
   /** A stat block's name and one-line description, by its id in the setting rules. */
   statBlock: (id: string) => StatBlockRef | null;
-  /** When the hit fell, in words ("Turn 12"). */
-  when: (atSeconds: number) => string | null;
-  /** Resolves true when the card was started (its details then open). */
-  onStart: (card: EncounterCard) => Promise<boolean>;
-  onDismiss: (card: EncounterCard) => void;
+  /** A row's one-line description in the roll's pop-up (its note, or its stat block's). */
+  describe?: (row: TableRow) => string | null;
+  /** Done (⚑ 2): the card closes. */
+  onDone: (card: EncounterCard) => void;
+  /** "Change…" (sf-4, sf-5): another row tapped in the table's pop-up; the caller records it (check.setRoll). */
+  onChange?: (card: EncounterCard, tap: TableTap) => void;
+  /** "Reveal…". */
+  onReveal?: (card: EncounterCard) => void;
+  /** "Message…": the row's words into a new message (absent where messages can't be sent). */
+  onMessage?: (card: EncounterCard, words: string) => void;
+  /** A card with no row picked yet: the way to its tables, where the caller has one for this hit. */
+  rollFor?: (card: EncounterCard) => (() => void) | null;
+  /** The check's own words for a hit (its `onHit.note`), where the caller knows them: the body of a card with no row. */
+  noteFor?: (card: EncounterCard) => string | null;
   /**
    * Which watch? (M5b step 4, D18): for a night hit in camp, the watches to pick from ("2nd watch · Reed, Moss"); null
    * or empty for any other hit (no question).
    */
   watchChoices?: (card: EncounterCard) => string[] | null;
   onWatch?: (card: EncounterCard, watch: string) => void;
-  /** No other accent shows on the console: the first card's Start is the screen's accent (fl-2). */
+  /** No other accent shows on the console: the first card's Done is the screen's accent (fl-2). */
   accent?: boolean;
   /** Items that stand before the cards, in the same source (the hit just rolled, S8b): their order kept. */
   lead?: readonly WaitingSourceItem[];
@@ -51,54 +62,101 @@ export interface EncounterWaitingProps {
 const CardsUnread = () => <p className="scene-card__note">Couldn't load the waiting encounters. They'll show when the connection is back.</p>;
 
 /**
- * One encounter waiting, whole, as page 16's T2 draws it (S8b): "An encounter waits"; its line, the check and when,
- * then what was rolled as a link that opens the encounter's pop-up without starting anything (06-03; the lead's ruling
- * for S8b: the View button goes); who was awake; and its answers as stacked buttons with their icons (stk-1): Start
- * (the page's accent when `accent`), Dismiss, and "Who is awake…" where the hit fell in a camp's night (its watches,
- * as chips, in a sheet).
+ * The row's own words, as the card's body reads them (finding 14: at body size, under the heading): the words the
+ * tapped row recorded after its tables' names ("Shallow things: Bog lurkers, 1d4" reads "Bog lurkers, 1d4"); the whole
+ * line where its table can't be found.
  */
-function EncounterWaitingCard({
+export function rowWordsOf(rowText: string, table: ReadTable | null): string {
+  if (!table) return rowText;
+  const lead = `${table.name}: `;
+  const at = rowText.indexOf(lead);
+  return at >= 0 ? rowText.slice(at + lead.length) : rowText;
+}
+
+/** What the card's picked line says (sf-4, EN1 B): the table and the row's range, "Encounters in the harbour, 15–16." */
+export const pickedWords = (table: ReadTable, roll: string): string => `${table.name}, ${roll}.`;
+
+/**
+ * The encounter's one card, whole (sf-4; page 44, EN1 B and D, EN4 C): "An encounter"; the row's words; its count and
+ * note; each creature a detail row (sf-6a); the picked line with "Change…"; then "Reveal…", "Message…" and "Done"
+ * (the page's accent when `accent`), which keep their places. With no row picked yet it reads the check's own words
+ * for a hit, or says no row is picked, with "Roll…" where the hit's tables can open. A camp's night hit keeps "Who is awake…" (its watches, as chips, in a sheet).
+ */
+function EncounterOneCard({
   card,
-  when,
+  tables,
+  statBlock,
   accent,
   watchChoices,
   onWatch,
-  onStart,
-  onView,
-  onDismiss,
+  onChange,
+  onReveal,
+  onMessage,
+  onRoll,
+  onDone,
+  note,
 }: {
   card: EncounterCard;
-  when: (atSeconds: number) => string | null;
+  tables: ReadonlyMap<string, ReadTable>;
+  statBlock: (id: string) => StatBlockRef | null;
   accent: boolean;
   watchChoices?: (card: EncounterCard) => string[] | null;
   onWatch?: (card: EncounterCard, watch: string) => void;
-  onStart: () => void;
-  /** What was rolled, tapped: the encounter's pop-up, nothing started. */
-  onView: () => void;
-  onDismiss: () => void;
+  /** "Change…" tapped: the table's pop-up opens with this row ticked. */
+  onChange: (() => void) | null;
+  onReveal?: () => void;
+  onMessage?: (words: string) => void;
+  onRoll: (() => void) | null;
+  onDone: () => void;
+  /** The check's own words for its hit, which stand in for a row not picked (as the hit's card had them). */
+  note: string | null;
 }) {
   const [asking, setAsking] = useState(false);
+  const { hit } = card;
   const watches = !card.encounter.watch ? (watchChoices?.(card) ?? []) : [];
-  const said = [card.hit.name, when(card.hit.atSeconds)].filter(Boolean).join(', ');
+  const found = rowOfHit(hit, tables);
+  const words = hit.rowText ? rowWordsOf(hit.rowText, found?.table ?? null) : null;
+  const blocks = found ? creatureLines(found.row, statBlock) : [];
+  // What the list names in its place isn't said again in the row's own "Not in your packs" line.
+  const inList = new Set(blocks.flatMap((b) => (b.missing !== undefined ? [b.missing] : [])));
+  const missingElse = (found?.row.missing ?? []).filter((ref) => !inList.has(ref));
   return (
     <section className="scene-card waiting-encounter" aria-label={cardWords(card)}>
-      <h3 className="waiting-encounter__title">An encounter waits</h3>
-      <p className="waiting-encounter__line">
-        {`${said}. `}
-        {/* With no row picked yet there is nothing to open: plain words (the lead, #859). */}
-        {card.hit.rowText ? (
-          <button type="button" className="button-quiet waiting-encounter__link" aria-haspopup="dialog" onClick={onView}>
-            {card.hit.rowText}
-          </button>
-        ) : (
-          'No row picked yet.'
-        )}
-      </p>
+      <h3 className="waiting-encounter__title">An encounter</h3>
+      <p className="waiting-encounter__line">{words ?? note ?? 'No row picked yet.'}</p>
+      {found && rowCountShown(found.row) && <p className="scene-card__note">{`How many: ${found.row.count}`}</p>}
+      {found?.row.note && <p className="scene-card__note">{found.row.note}</p>}
+      {missingElse.length > 0 && <p className="scene-card__note">{missingWords(missingElse)}</p>}
       {card.encounter.watch && <p className="scene-card__note">{`Awake: ${shownWatch(card.encounter.watch)}`}</p>}
+      <CreatureRows blocks={blocks} />
+      {found && hit.roll ? (
+        <div className="waiting-encounter__picked">
+          <p className="scene-card__note">{pickedWords(found.table, hit.roll)}</p>
+          {onChange && (
+            <button type="button" className="button-secondary" aria-haspopup="dialog" aria-label={`Change…, ${found.table.name}`} onClick={onChange}>
+              Change…
+            </button>
+          )}
+        </div>
+      ) : (
+        !words &&
+        onRoll && (
+          <div className="waiting-encounter__picked">
+            <button type="button" className="button-secondary" aria-haspopup="dialog" onClick={onRoll}>
+              Roll…
+            </button>
+          </div>
+        )
+      )}
+      {watches.length > 0 && (
+        <button type="button" className="button-secondary waiting-encounter__awake" aria-haspopup="dialog" onClick={() => setAsking(true)}>
+          Who is awake…
+        </button>
+      )}
       <StackedGroup>
-        <StackedButton icon="crossed-swords" label="Start" variant={accent ? 'primary' : 'secondary'} onClick={onStart} />
-        <StackedButton icon="cancel" label="Dismiss" onClick={onDismiss} />
-        {watches.length > 0 && <StackedButton icon="awareness" label="Who is awake…" onClick={() => setAsking(true)} />}
+        {onReveal && <StackedButton icon="eye" label="Reveal…" aria-haspopup="dialog" onClick={onReveal} />}
+        {onMessage && <StackedButton icon="messages" label="Message…" aria-haspopup="dialog" onClick={() => onMessage(words ?? hit.name)} />}
+        <StackedButton icon="check-mark" label="Done" variant={accent ? 'primary' : 'secondary'} onClick={onDone} />
       </StackedGroup>
       {asking && watches.length > 0 && (
         <Dialog label="Who is awake?" onClose={() => setAsking(false)}>
@@ -126,65 +184,83 @@ function EncounterWaitingCard({
 
 /**
  * The encounters waiting as a source of "Waiting for you" (S8a; sceneWaiting.tsx): each one an item, marked by the
- * encounter's crossed swords and named by its row (or, with none, the check), whose row's button is Start and whose
- * open card is the card above, whole. The open one's Start is the page's accent when `accent` says the waiting panel
- * holds it (accentOwner) and the panel's open item is this one. Where no panel shows (a town) they stand where the
- * strip draws this, as before; without a provider (the gallery, a test) the first card's Start is the accent when
+ * encounter's crossed swords and named by its row (or, with none, the check), whose row's button is Done and whose
+ * open card is the one card above, whole. The open one's Done is the page's accent when `accent` says the waiting
+ * panel holds it (accentOwner) and the panel's open item is this one. Where no panel shows (a town) they stand where
+ * the strip draws this, as before; without a provider (the gallery, a test) the first card's Done is the accent when
  * `accent` asks (fl-2). Encounters that couldn't be read are one item saying so, so the panel never says "Nothing
- * waits." over a failed read (#857's review).
+ * waits." over a failed read (#857's review). "Change…" opens the table's pop-up (sf-5) with the picked row ticked
+ * and the focus on it; a tap on a row is the answer, the X changes nothing.
  */
 export function EncounterWaitingSource({
   cards,
   tables,
   statBlock,
-  when,
-  onStart,
-  onDismiss,
+  describe = () => null,
+  onDone,
+  onChange,
+  onReveal,
+  onMessage,
+  rollFor,
+  noteFor,
   watchChoices,
   onWatch,
   accent = false,
   lead = [],
 }: EncounterWaitingProps) {
-  const [open, setOpen] = useState<{ card: EncounterCard; started: boolean } | null>(null);
+  const [changing, setChanging] = useState<EncounterCard | null>(null);
   const accentItem = useWaitingAccentItem();
-  // What was rolled, tapped (06-03): the encounter's details, each creature a detail row (sf-6a). Nothing is started.
-  const view = (card: EncounterCard) => setOpen({ card, started: false });
-  const start = async (card: EncounterCard) => {
-    if (await onStart(card)) setOpen({ card, started: true });
-  };
   const unread: WaitingSourceItem[] = cards === null ? [{ id: 'encounter:unread', kind: 'encounter', title: "Couldn't load the waiting encounters", actions: [], card: <CardsUnread /> }] : [];
   const items: WaitingSourceItem[] = [...lead, ...unread, ...(cards ?? []).map((card, n): WaitingSourceItem => {
     const id = `encounter:${card.encounter.id}`;
+    const table = card.hit.tableId ? (tables.get(card.hit.tableId) ?? null) : null;
     return {
       id,
       kind: 'encounter',
       // Named by what was rolled; with no row picked yet, "An encounter: <the check>", never the check's own name alone
       // (its line on the card may wait beside it under that name).
-      title: card.hit.rowText ?? `An encounter: ${card.hit.name}`,
-      actions: [
-        { id: 'start', label: 'Start', icon: 'crossed-swords' },
-        { id: 'dismiss', label: 'Dismiss', icon: 'cancel' },
-      ],
-      onAction: (action) => (action === 'start' ? void start(card) : action === 'dismiss' ? onDismiss(card) : undefined),
+      title: card.hit.rowText ? rowWordsOf(card.hit.rowText, table) : `An encounter: ${card.hit.name}`,
+      actions: [{ id: 'done', label: 'Done', icon: 'check-mark' }],
+      onAction: (action) => (action === 'done' ? onDone(card) : undefined),
       card: (
-        <EncounterWaitingCard
+        <EncounterOneCard
           card={card}
-          when={when}
+          tables={tables}
+          statBlock={statBlock}
           accent={accent && (accentItem === undefined ? n === 0 : accentItem === id)}
           watchChoices={watchChoices}
           onWatch={onWatch}
-          onStart={() => void start(card)}
-          onView={() => view(card)}
-          onDismiss={() => onDismiss(card)}
+          onChange={onChange && table ? () => setChanging(card) : null}
+          onReveal={onReveal ? () => onReveal(card) : undefined}
+          onMessage={onMessage ? (words) => onMessage(card, words) : undefined}
+          onRoll={rollFor?.(card) ?? null}
+          onDone={() => onDone(card)}
+          note={noteFor?.(card) ?? null}
         />
       ),
     };
   })];
   const drawn = useWaitingSource('encounters', items);
+  const changingTable = changing?.hit.tableId ? (tables.get(changing.hit.tableId) ?? null) : null;
+  const picked = changingTable && changing?.hit.roll ? changingTable.rows.findIndex((r) => rowLabel(r) === changing.hit.roll) : -1;
   return (
     <>
       {drawn}
-      {open && <EncounterDetails card={open.card} started={open.started} tables={tables} statBlock={statBlock} when={when} onClose={() => setOpen(null)} />}
+      {changing && changingTable && onChange && (
+        <TableRollPopUp
+          title={changingTable.name}
+          table={changingTable}
+          tables={tables}
+          describe={describe}
+          picked={picked >= 0 ? picked : null}
+          onRow={(tap) => {
+            setChanging(null);
+            // The row already picked, tapped again: nothing changes.
+            if (tap.table.id !== changing.hit.tableId || tap.roll !== changing.hit.roll) onChange(changing, tap);
+          }}
+          onClose={() => setChanging(null)}
+        />
+      )}
     </>
   );
 }
@@ -216,52 +292,6 @@ export function creatureLines(row: TableRow, statBlock: (id: string) => StatBloc
     return block ? [{ ...block, count: c.count }] : c.statBlockId ? [] : [{ missing: c.ref, count: c.count }];
   });
   return [...(own ? [{ ...own, count: null }] : []), ...listed];
-}
-
-/** The card's details: the row's full text, its note and count, the stat blocks it names, and the check's modifiers. */
-export function EncounterDetails({
-  card,
-  started,
-  tables,
-  statBlock,
-  when,
-  onClose,
-}: {
-  card: EncounterCard;
-  /** Opened by Start (the card is started) rather than View (nothing changed). */
-  started: boolean;
-  tables: ReadonlyMap<string, ReadTable>;
-  statBlock: (id: string) => StatBlockRef | null;
-  when: (atSeconds: number) => string | null;
-  onClose: () => void;
-}) {
-  const { hit } = card;
-  const found = rowOfHit(hit, tables);
-  // The row's stat block, then each creature it lists (pf-2, December 5b) with its count; one the packs don't have
-  // is left out here and named under "Not in your packs".
-  const blocks = found ? creatureLines(found.row, statBlock) : [];
-  // What the list names in its place isn't said again in the row's own "Not in your packs" line.
-  const inList = new Set(blocks.flatMap((b) => (b.missing !== undefined ? [b.missing] : [])));
-  const missingElse = (found?.row.missing ?? []).filter((ref) => !inList.has(ref));
-  const facts = [when(hit.atSeconds), card.encounter.watch ? `Awake: ${shownWatch(card.encounter.watch)}` : null, found ? `${found.table.name}, ${hit.roll}` : null].filter(Boolean).join(', ');
-  return (
-    <Dialog label={started ? `Started: ${hit.name}` : `Encounter waiting: ${hit.name}`} onClose={onClose}>
-      {facts && <p className="scene-card__note">{facts}</p>}
-      <p className="scene-card__chance">{hit.rowText ?? 'No row picked yet. Open the encounter tables from the hit to pick one, or say what happens.'}</p>
-      {found && rowCountShown(found.row) && <p className="scene-card__note">{`How many: ${found.row.count}`}</p>}
-      {found?.row.note && <p className="scene-card__note">{found.row.note}</p>}
-      {missingElse.length > 0 && <p className="scene-card__note">{missingWords(missingElse)}</p>}
-      <CreatureRows blocks={blocks} />
-      {hit.modifiers.length > 0 && (
-        <ul className="scene-card__modifiers" aria-label="Modifiers">
-          {hit.modifiers.map((m, i) => (
-            <li key={i}>{m.add ? `${m.label} ${m.add > 0 ? '+' : ''}${m.add}` : m.label}</li>
-          ))}
-        </ul>
-      )}
-      {started && <p className="scene-card__note">Run it at the table. Fights come in a later update.</p>}
-    </Dialog>
-  );
 }
 
 /** A creature's detail row (sf-6a): its stat block in full, or, from an older caller with none, its description. */

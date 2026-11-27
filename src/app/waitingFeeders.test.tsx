@@ -7,7 +7,7 @@
 //   * a light that simply burns out with the move is not an item: the step's toast says so, and the log keeps its line;
 //   * the rest due is an item "Rest is due" whose Answer… carries the scroll and quill (ic-4) and opens the rest panel
 //     as a sheet; no rest panel stands in the page;
-//   * a hit is an item, its hit panel whole when open, and its Done the page's one accent;
+//   * an encounter check's hit is one item, the encounter's one card (sf-4), its Done the page's one accent;
 //   * the open item's first answer is the one accent (a check's Hit);
 //   * a check with a table and no chance is a roll on its table: one Roll…, the table opened in its pop-up, a tapped
 //     row its answer that closes the pop-up, a toast with the row's range that never says "a hit", Undo of both, and the
@@ -160,19 +160,21 @@ describe('the feeders of Waiting for you (S8b)', () => {
     expect(document.querySelector('.rest-panel')!.closest('[role="dialog"]')).toBeTruthy();
   });
 
-  // Purpose: a hit is an item, its hit panel whole when open, with the check's note, and its Done the one accent.
-  it('puts a hit in the panel, its Done the one accent', async () => {
+  // Purpose (sf-4, F5 a): an encounter check's hit is one item, the encounter's one card, with the check's note for
+  // its words and its Done the one accent; the hit's own card is not a second item. Done closes it.
+  it('puts a hit in the panel as the encounter’s one card, its Done the one accent', async () => {
     const t = await table();
     scene(t);
     const user = userEvent.setup();
     await nextTurn(user, 2);
     await user.click(within(await panel().findByRole('region', { name: 'Due' })).getByRole('button', { name: 'Hit, Wandering things' }));
-    const hit = within(await panel().findByRole('region', { name: 'Wandering things: hit' }));
+    const hit = within(await panel().findByRole('region', { name: /^Encounter waiting, Wandering things/ }));
+    expect(screen.queryByRole('region', { name: 'Wandering things: hit' })).toBeNull();
     expect(hit.getByText('Something stirs in the reeds.')).toBeTruthy();
     expect(hit.getByRole('button', { name: 'Done' }).className).toContain('button-primary');
     expect(document.querySelectorAll('.button-primary')).toHaveLength(1);
     await user.click(hit.getByRole('button', { name: 'Done' }));
-    await waitFor(() => expect(screen.queryByRole('region', { name: 'Wandering things: hit' })).toBeNull());
+    await waitFor(() => expect(screen.queryByRole('region', { name: /^Encounter waiting, / })).toBeNull());
   });
 
   // Purpose (B9; p2p-19; sf-5, page 44 EN2): a check with a table and no chance is a roll on the table: its card has the
@@ -202,8 +204,10 @@ describe('the feeders of Waiting for you (S8b)', () => {
     expect(world.tables.events.filter((e) => e.type === 'check.record')).toHaveLength(1);
     const toast = await screen.findByText(/^11–20: Gulls, mobbing the boat/);
     expect(toast.textContent).not.toMatch(/hit/i);
-    const result = within(await panel().findByRole('region', { name: 'Encounters in the harbour' }));
-    expect(result.getByText(/Rolled: .*Gulls, mobbing the boat/)).toBeTruthy();
+    // One encounter, one card (sf-4): the row's words, and the picked line with the table and the row's range.
+    const result = within(await panel().findByRole('region', { name: /^Encounter waiting, Encounters in the harbour/ }));
+    expect(result.getByText('Gulls, mobbing the boat')).toBeTruthy();
+    expect(result.getByText('Encounters in the harbour, 11–20.')).toBeTruthy();
     expect(screen.queryByText(/: hit$/)).toBeNull();
     await user.click((await screen.findAllByRole('button', { name: 'Undo' })).at(-1)!);
     await waitFor(() => expect(world.tables.events.filter((e) => e.type === 'event.undo').length).toBeGreaterThanOrEqual(2));
@@ -265,7 +269,8 @@ describe('the feeders of Waiting for you (S8b)', () => {
     pop = within(await screen.findByRole('dialog', { name: 'Encounters in the harbour' }));
     await user.click(pop.getByRole('radio', { name: /Gulls, mobbing the boat/ }));
     expect(screen.queryByRole('dialog', { name: 'Encounters in the harbour' })).toBeNull();
-    expect(await screen.findByText('The check could not be saved.')).toBeTruthy();
+    // The toast names the row that wasn't saved (the pop-up has closed, so the GM can't see it any more).
+    expect(await screen.findByText("11–20: Gulls, mobbing the boat wasn't saved. The check could not be saved.")).toBeTruthy();
     expect(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' })).toBeTruthy();
     held.mockRestore();
   });
@@ -286,6 +291,79 @@ describe('the feeders of Waiting for you (S8b)', () => {
     await nextTurn(user, 2);
     expect(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' })).toBeTruthy();
     expect(screen.queryByText('Roll d20, then tap the row.')).toBeNull();
+  });
+
+  // Purpose (sf-4; page 44, EN1 A and F): a due roll on its table has "Roll…", the accent, and "Dismiss" beside it;
+  // "Dismiss" takes the card away at once with nothing recorded, and the toast's Undo brings it back.
+  it('a due check: Dismiss takes it away and Undo brings it back', async () => {
+    const t = await table({ rollOnTable: true });
+    scene(t);
+    const user = userEvent.setup();
+    await nextTurn(user, 2);
+    const due = within(await panel().findByRole('region', { name: 'Due' }));
+    expect(due.getByRole('button', { name: 'Roll, Encounters in the harbour' }).className).toContain('button-primary');
+    const dismiss = due.getByRole('button', { name: 'Dismiss, Encounters in the harbour' });
+    expect(dismiss.className).toContain('button-secondary');
+    expect(dismiss.querySelector('path')!.getAttribute('d')).toBe(ICON_SET.cancel.d);
+    await user.click(dismiss);
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Roll, Encounters in the harbour' })).toBeNull());
+    expect(world.tables.events.some((e) => e.type === 'check.record' || e.type === 'check.setRoll')).toBe(false);
+    const toast = (await screen.findByText('Encounter check dismissed.')).closest('.toast') as HTMLElement;
+    await user.click(within(toast).getByRole('button', { name: 'Undo' }));
+    expect(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' })).toBeTruthy();
+  });
+
+  // Purpose (sf-4, sf-5; page 44, EN1 B, EN2 B; #111's finding 1 and review): on the one card, "Change…" opens the
+  // table's pop-up with the row picked before ticked and holding the focus; a tap on another row changes the result
+  // through check.setRoll alone (no second check.record), the toast names the new row's range, and its Undo puts the
+  // first row back. The X changes nothing.
+  it('Change… opens the table with the row ticked; another row changes the result, with Undo', async () => {
+    const t = await table({ rollOnTable: true });
+    scene(t);
+    const user = userEvent.setup();
+    await nextTurn(user, 2);
+    await user.click(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' }));
+    await user.click(within(await screen.findByRole('dialog', { name: 'Encounters in the harbour' })).getByRole('radio', { name: /Gulls, mobbing the boat/ }));
+    const card = within(await panel().findByRole('region', { name: /^Encounter waiting, .*Gulls, mobbing the boat$/ }));
+    expect(card.getByRole('heading', { name: 'An encounter' })).toBeTruthy();
+    expect(card.queryByRole('button', { name: 'Start' })).toBeNull();
+    // The X: nothing changes.
+    await user.click(card.getByRole('button', { name: 'Change…, Encounters in the harbour' }));
+    let pop = within(await screen.findByRole('dialog', { name: 'Encounters in the harbour' }));
+    const ticked = pop.getByRole('radio', { name: /Gulls, mobbing the boat/ });
+    expect(ticked.getAttribute('aria-checked')).toBe('true');
+    await waitFor(() => expect(document.activeElement).toBe(ticked));
+    await user.click(pop.getByRole('button', { name: 'Close' }));
+    expect(world.tables.events.filter((e) => e.type === 'check.setRoll')).toHaveLength(1);
+    // Another row: check.setRoll alone.
+    await user.click(card.getByRole('button', { name: 'Change…, Encounters in the harbour' }));
+    pop = within(await screen.findByRole('dialog', { name: 'Encounters in the harbour' }));
+    await user.click(pop.getByRole('radio', { name: /Nothing stirs/ }));
+    await waitFor(() => expect(world.tables.events.filter((e) => e.type === 'check.setRoll')).toHaveLength(2));
+    expect(world.tables.events.filter((e) => e.type === 'check.record')).toHaveLength(1);
+    expect(world.tables.check_results.find((r) => !r.undone)).toMatchObject({ roll: '1–10', row_text: 'Encounters in the harbour: Nothing stirs' });
+    const toast = (await screen.findByText('1–10: Nothing stirs')).closest('.toast') as HTMLElement;
+    expect(await panel().findByText('Encounters in the harbour, 1–10.')).toBeTruthy();
+    await user.click(within(toast).getByRole('button', { name: 'Undo' }));
+    expect(await panel().findByText('Encounters in the harbour, 11–20.')).toBeTruthy();
+  });
+
+  // Purpose (sf-4, ⚑ 2 ruled: "Done" closes the card): Done takes the one card away, logged, and its Undo brings it
+  // back.
+  it('Done closes the one card, and Undo brings it back', async () => {
+    const t = await table({ rollOnTable: true });
+    scene(t);
+    const user = userEvent.setup();
+    await nextTurn(user, 2);
+    await user.click(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' }));
+    await user.click(within(await screen.findByRole('dialog', { name: 'Encounters in the harbour' })).getByRole('radio', { name: /Gulls, mobbing the boat/ }));
+    const card = within(await panel().findByRole('region', { name: /^Encounter waiting, / }));
+    await user.click(card.getByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(screen.queryByRole('region', { name: /^Encounter waiting, / })).toBeNull());
+    expect(world.tables.waiting_encounters[0]).toMatchObject({ state: 'started' });
+    const toast = (await screen.findByText('Encounter closed.')).closest('.toast') as HTMLElement;
+    await user.click(within(toast).getByRole('button', { name: 'Undo' }));
+    expect(await panel().findByRole('region', { name: /^Encounter waiting, / })).toBeTruthy();
   });
 
   // Purpose: where no panel shows (a town keeps today's screen until 5t), the strip draws today's card, as before.

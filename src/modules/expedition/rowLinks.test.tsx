@@ -4,7 +4,7 @@
 // packs don't have is shown with the row's own words, "Not in your packs", and never fails. Invented packs only.
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { EncounterDetails } from '../../app/EncounterWaiting.tsx';
+import { EncounterWaitingSource } from '../../app/EncounterWaiting.tsx';
 import type { EncounterCard } from './encounterPlay.ts';
 import { TableRows } from '../../app/EncounterTables.tsx';
 import { packRefId } from '../library/packMeta.ts';
@@ -121,16 +121,16 @@ describe('a row whose link the packs don’t have, in the table and on the waiti
     expect(screen.getByText(missingWords(['fen-rules:salt-hag', 'brine-rules:hag-moods']))).toBeTruthy();
   });
 
-  // Purpose: View on a waiting card whose row names a creature and a table the packs don't have shows the row's own
-  // words and "Not in your packs: …", and nothing fails.
+  // Purpose: a waiting card whose row names a creature and a table the packs don't have shows the row's own words
+  // (after its table's name, sf-4) and "Not in your packs: …", and nothing fails.
   it('shows the row’s own words and "Not in your packs"', () => {
     const tables = withRowLinks(new Map([['harbour-night', harbour]]), sources);
     const card: EncounterCard = {
       encounter: { id: 'w1', campaignId: 'c', expeditionId: 'e', checkResultId: 'h1', watch: null, state: 'waiting', createdAt: '2026-11-11T20:00:00Z', version: 1 },
       hit: { id: 'h1', campaignId: 'c', expeditionId: 'e', checkKey: 'mode:wander', name: 'Harbour at night', source: 'mode', outcome: 'hit', atSeconds: 0, modifiers: [], note: null, tableId: 'harbour-night', roll: '4', rowText: 'Harbour by night: Salt hag', revealed: false, secret: true, version: 1 },
     };
-    render(<EncounterDetails card={card} started={false} tables={tables} statBlock={() => null} when={() => null} onClose={() => undefined} />);
-    expect(screen.getByText('Harbour by night: Salt hag')).toBeTruthy();
+    render(<EncounterWaitingSource cards={[card]} tables={tables} statBlock={() => null} onDone={() => undefined} />);
+    expect(screen.getByText('Salt hag')).toBeTruthy();
     expect(screen.getByText('Not in your packs: Salt hag (fen-rules), Hag moods (brine-rules)')).toBeTruthy();
   });
 });

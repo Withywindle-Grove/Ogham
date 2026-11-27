@@ -62,7 +62,7 @@ import {
 import { dueOnJump } from '../modules/expedition/schedule.ts';
 import { readTable, type ReadTable, type TableRow } from '../modules/expedition/tables.ts';
 import { loadTablePins, pinTable, readTableByHand, unpinTable, type TablePin } from '../modules/expedition/tablePins.ts';
-import { dismissEncounter, hitQueuesEncounter, setEncounterWatch, loadWaitingEncounters, queueEncounter, startEncounter, type EncounterCard } from '../modules/expedition/encounterPlay.ts';
+import { hitQueuesEncounter, setEncounterWatch, loadWaitingEncounters, queueEncounter, startEncounter, type EncounterCard } from '../modules/expedition/encounterPlay.ts';
 import { sceneCandidatesOf, whichTables } from '../modules/expedition/tableList.ts';
 import { recharge } from '../modules/inventory/charges.ts';
 import {
@@ -765,8 +765,11 @@ export function SceneTime({
     setAsking('season');
   };
 
-  /** Runs a command once at a time (a second tap while one is saving does nothing); reloads after. */
-  async function act<I, T, O>(command: Command<I, T, O>, input: I): Promise<O | null> {
+  /**
+   * Runs a command once at a time (a second tap while one is saving does nothing); reloads after. `failed` words the
+   * error toast from the command's own message (a tap that closed its pop-up names what wasn't saved).
+   */
+  async function act<I, T, O>(command: Command<I, T, O>, input: I, failed?: (message: string) => string): Promise<O | null> {
     if (busy.current) return null;
     busy.current = true;
     const result = await runCommand(registry, db, user, command, input);
@@ -774,7 +777,7 @@ export function SceneTime({
     setVersion((v) => v + 1);
     logChanged();
     if (!result.ok) {
-      show({ text: result.message, error: true });
+      show({ text: failed ? failed(result.message) : result.message, error: true });
       return null;
     }
     return result.value;
@@ -1225,19 +1228,54 @@ export function SceneTime({
     show({ text: `Showed the players ${hit.line.name}`, onUndo: () => void undoLatest('check.reveal', () => setHit((h) => (h ? { ...h, result: { ...h.result, revealed: false, version: h.result.version + 1 } } : h))) });
   }
 
-  /** Start (M5b: marks it started and opens the row's text; M6 makes it a fight). Undo from the toast puts it back. */
-  async function startWaiting(card: EncounterCard): Promise<boolean> {
-    const started = await act(startEncounter, { campaignId: campaign.id, encounter: card.encounter });
-    if (!started) return false;
-    show({ text: `Started: ${card.hit.name}`, onUndo: () => void undoLatest('encounter.start') });
-    return true;
+  /**
+   * Done on the encounter's one card (sf-4; ⚑ 2, ruled 26 Nov: no Start until fights are built, Done closes the card):
+   * the card is marked played (encounter.start, the command M6 turns into a fight), so it leaves the queue. Logged; Undo
+   * from the toast puts it back.
+   */
+  async function doneWaiting(card: EncounterCard) {
+    const done = await act(startEncounter, { campaignId: campaign.id, encounter: card.encounter });
+    if (!done) return;
+    if (hit?.result.id === card.hit.id) setHit(null);
+    show({ text: 'Encounter closed.', onUndo: () => void undoLatest('encounter.start') });
   }
 
-  /** Dismiss: the card goes at once; Undo brings it back. */
-  async function dismissWaiting(card: EncounterCard) {
-    const done = await act(dismissEncounter, { campaignId: campaign.id, encounter: card.encounter });
-    if (!done) return;
-    show({ text: `Dismissed: ${card.hit.name}`, onUndo: () => void undoLatest('encounter.dismiss') });
+  /**
+   * "Change…" on the encounter's card (sf-4, sf-5; page 44, EN2 B): another row tapped in the table's pop-up. Only the
+   * row read changes (check.setRoll alone, #111's review); the toast names the row's range, with Undo.
+   */
+  async function changeRoll(card: EncounterCard, tap: TableTap) {
+    const saved = await act(setCheckRoll, { campaignId: campaign.id, result: card.hit, tableId: tap.table.id, roll: tap.roll, rowText: tap.rowText });
+    if (!saved) return;
+    const before = card.hit;
+    setHit((h) => (h && h.result.id === saved.id ? { ...h, result: saved } : h));
+    show({
+      text: `${tap.roll}: ${tap.words}`,
+      onUndo: () => void undoLatest('check.setRoll', () => setHit((h) => (h && h.result.id === before.id ? { ...h, result: { ...before, version: saved.version + 1 } } : h))),
+    });
+  }
+
+  /**
+   * "Reveal…" on the encounter's card. Until "Reveal to players" is built (sf-4's second part), today's one-tap reveal
+   * (ruled 2026-10-29), logged, with Undo.
+   */
+  async function revealWaiting(card: EncounterCard) {
+    // Shown already: said as the hit's card said it, nothing sent again.
+    if (card.hit.revealed) return show({ text: 'Players see this result.' });
+    const shown = await act(revealCheck, { campaignId: campaign.id, result: card.hit });
+    if (!shown) return;
+    setHit((h) => (h && h.result.id === shown.id ? { ...h, result: shown } : h));
+    show({ text: `Showed the players ${card.hit.name}`, onUndo: () => void undoLatest('check.reveal') });
+  }
+
+  /**
+   * "Dismiss" on a due check that is a roll on its table (sf-4; page 44, EN1 A and F): the line leaves the card at once,
+   * as a card line's Done does; Undo brings it back.
+   */
+  function dismissCheck(line: CardLine) {
+    setCard((c) => takeOne(c, line.key));
+    const encounter = line.check ? hitQueuesEncounter(line.check, reminders) : false;
+    show({ text: encounter ? 'Encounter check dismissed.' : `${line.name}: dismissed.`, onUndo: () => setCard((c) => mergeCard(c, [{ ...line, count: 1 }])) });
   }
 
   async function rechargeNow(line: CardLine, item: RechargeItem, amount: number, roll?: string) {
@@ -2103,14 +2141,25 @@ export function SceneTime({
   async function rollRow(line: CardLine, tap: TableTap) {
     if (!line.check || rollingRow.current) return;
     rollingRow.current = true;
-    // The pop-up closes on the tap, before the commands are saved (sf-5: the tap is the answer, at once).
+    // The pop-up closes on the tap, before the commands are saved (sf-5: the tap is the answer, at once). So a tap that
+    // isn't saved says which row it was, and the check stays on its card for Roll… again.
     setRollingKey(null);
+    const unsaved = (why: string) => `${tap.roll}: ${tap.words} wasn't saved. ${why}`;
+    if (busy.current) {
+      rollingRow.current = false;
+      show({ text: unsaved('Another change was still saving. Tap Roll… to try again.'), error: true });
+      return;
+    }
     try {
       const command = line.check.now ? recordCheckNow : line.check.again ? recordCheckAgain : recordCheck;
-      const result = await act(command, {
-        campaignId: campaign.id,
-        record: { checkKey: line.key, name: line.name, source: line.check.source, outcome: 'hit', modifiers: line.check.modifiers, note: null, secret: line.check.secret },
-      });
+      const result = await act(
+        command,
+        {
+          campaignId: campaign.id,
+          record: { checkKey: line.key, name: line.name, source: line.check.source, outcome: 'hit', modifiers: line.check.modifiers, note: null, secret: line.check.secret },
+        },
+        unsaved,
+      );
       if (!result) return;
       if (hitQueuesEncounter(line.check, reminders)) await act(queueEncounter, { campaignId: campaign.id, result });
       const saved = await act(setCheckRoll, { campaignId: campaign.id, result, tableId: tap.table.id, roll: tap.roll, rowText: tap.rowText });
@@ -2146,6 +2195,7 @@ export function SceneTime({
     // A roll on its table (B9; sf-5, page 44 EN2): Roll… opens the table's pop-up; a tap on its row is the answer.
     onRollCheck: (line: CardLine) => setRollingKey(line.key),
     onRollRow: (line: CardLine, tap: TableTap) => void rollRow(line, tap),
+    onDismissCheck: dismissCheck,
   };
   // With the panel, a burnt-out light is the toast's, not the card's (#859's review): neither "All done" nor the strip's
   // "nothing due" counts it.
@@ -2230,9 +2280,13 @@ export function SceneTime({
       })
     : [];
   const restSheetFlow = waitingOn && restSheet !== null ? (restViews.find((f) => f.group === restSheet) ?? null) : null;
-  // The hit: today's hit panel, whole, as the first encounter item (it is what the check just brought).
+  // The hit: today's hit panel, whole, as the first encounter item (it is what the check just brought). One encounter,
+  // one card (sf-4; page 44, F5 a): a hit that queued an encounter has that encounter's card alone, which carries
+  // "Reveal…" and "Message…"; the hit's own item (and, where no panel shows, its card) stands only for a hit that queues
+  // none.
+  const hitAlone = gm && hit !== null && !(hit.line.check && hitQueuesEncounter(hit.line.check, reminders));
   const hitItems: WaitingSourceItem[] =
-    gm && hit
+    hitAlone && hit
       ? [
           {
             id: `hit:${hit.result.id}`,
@@ -2661,7 +2715,7 @@ export function SceneTime({
               )}
             </Dialog>
           )}
-          {gm && hit && !waitingOn && (
+          {hitAlone && hit && !waitingOn && (
             <HitPanel
               line={hit.line}
               rowText={hit.result.rowText}
@@ -2682,9 +2736,14 @@ export function SceneTime({
                 cards={waiting}
                 tables={tables}
                 statBlock={statBlockRef}
-                when={(at) => (perStep ? `${stepWord.charAt(0).toUpperCase()}${stepWord.slice(1)} ${elapsedSteps(at, expedition.startedAt, perStep)}` : null)}
-                onStart={startWaiting}
-                onDismiss={(card) => void dismissWaiting(card)}
+                describe={describeRow}
+                onDone={(card) => void doneWaiting(card)}
+                onChange={(card, tap) => void changeRoll(card, tap)}
+                onReveal={(card) => void revealWaiting(card)}
+                onMessage={messaging ? (_card, words) => messaging.open({ kind: 'new', text: words }) : undefined}
+                // A hit with no row picked yet opens its tables again, as the hit's own card did (B2).
+                rollFor={(card) => (hit?.result.id === card.hit.id && tables.size > 0 ? () => setTablesOpen('hit') : null)}
+                noteFor={(card) => (hit?.result.id === card.hit.id ? (hit.line.check?.hit.note ?? null) : null)}
                 watchChoices={watchChoicesFor}
                 onWatch={(card, watch) => void setWatch(card, watch)}
                 // The first action of "Waiting for you" is the accent while a session runs (st-2, W1; accentOwner).

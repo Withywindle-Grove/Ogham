@@ -249,18 +249,19 @@ describe('the reminder card (M5 step 6)', () => {
     await user.click(shallows.getByRole('button', { name: /Bog lurkers/ }));
     await waitFor(() => expect(world.tables.check_results[0]).toMatchObject({ table_id: 'shallows', roll: '1–3', row_text: 'Shallow things: Bog lurkers, 1d4' }));
     expect(await screen.findByText('Rolled: 1–3, Bog lurkers, 1d4')).toBeTruthy();
-    // Back to the list, then back to the console with the hit still open.
+    // Back to the list, then back to the console: one encounter, one card (sf-4, F5 a), the hit's own item gone.
     await user.click(shallows.getByRole('button', { name: 'Back' }));
     await user.click(within(await screen.findByRole('dialog', { name: 'Wandering things, Hit' })).getByRole('button', { name: 'Close' }));
-    const hit = within(await screen.findByRole('region', { name: 'Wandering things: hit' }));
-    expect(hit.getByRole('status').textContent).toBe('Rolled: Shallow things: Bog lurkers, 1d4');
-    // A secret result: the GM can show it to the players now (ruled 2026-10-29), with Undo.
-    await user.click(hit.getByRole('button', { name: 'Reveal to players' }));
+    const card = within(await screen.findByRole('region', { name: 'Encounter waiting, Wandering things, Shallow things: Bog lurkers, 1d4' }));
+    expect(screen.queryByRole('region', { name: 'Wandering things: hit' })).toBeNull();
+    expect(card.getByText('Bog lurkers, 1d4')).toBeTruthy();
+    // A secret result: the GM can show it to the players now (ruled 2026-10-29), with Undo ("Reveal…"; its preview,
+    // "Reveal to players", is sf-4's second part).
+    await user.click(card.getByRole('button', { name: 'Reveal…' }));
     expect(await screen.findByText('Showed the players Wandering things')).toBeTruthy();
     expect(world.tables.check_results[0]).toMatchObject({ revealed: true, revealed_by_hand: true });
-    expect(hit.getByText('Players see this result.')).toBeTruthy();
-    await user.click(hit.getByRole('button', { name: 'Done' }));
-    expect(screen.queryByRole('region', { name: 'Wandering things: hit' })).toBeNull();
+    await user.click(card.getByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(screen.queryByRole('region', { name: /^Encounter waiting, / })).toBeNull());
   });
 
   it("Explore's row names the likely table; opened without a hit, a tapped row is recorded rolled by hand, and Undo takes it back", async () => {

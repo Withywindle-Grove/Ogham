@@ -1,6 +1,7 @@
 // The wilderness parts in the component gallery (M5b gate, plan m5b-5 build order 2; docs/06 Components): the ones
-// drawn from what they're given, with invented data and no database. Encounter waiting cards (no row yet, a camp
-// night's Which watch? as chips, the watch answered; Start the accent, View and Dismiss small, fl-2), the camp's
+// drawn from what they're given, with invented data and no database. Encounter waiting cards, the one card a hit
+// (sf-4; page 44, EN1 B: the row's words, a creature's detail row, the picked line with Change…, Reveal…, Message… and
+// Done the accent; a camp night's Who is awake…, the watch answered; no row yet), the camp's
 // Watches step by watch (fl-3: boxes with names as chips, + Add, a full watch, Split evenly, a caster on watch) and the
 // Open card (What we know's, and the location view's on a phone: bq-4). The budget
 // card, the Lost card, the camp card and What we know read the database, so their pictures are the layout scenes'
@@ -12,8 +13,21 @@ import type { CampInfo } from '../app/campView.ts';
 import '../app/CampCard.css';
 import { OpenCard } from '../ui/parts.tsx';
 import type { EncounterCard } from '../modules/expedition/encounterPlay.ts';
+import { readTable } from '../modules/expedition/tables.ts';
 
-const hit = (id: string, name: string, rowText: string | null, atSeconds: number): EncounterCard['hit'] => ({
+const HARBOUR = readTable('harbour', 'Encounters in the harbour', {
+  die: 'd20',
+  rows: [
+    { min: 1, max: 8, result: 'Nothing stirs.' },
+    { min: 9, max: 14, result: 'A Lantern Warden, alone, with a shuttered lantern and a long story about the causeway and the nine drowned steps' },
+    { min: 15, max: 16, result: 'Two bog lurkers rise from the weed and reach for the oars.', statBlockIds: [{ statBlockId: 'bog-lurker', count: 2 }] },
+    { min: 17, max: 20, result: 'Night prowlers circle the camp.' },
+  ],
+})!;
+const TABLES = new Map([[HARBOUR.id, HARBOUR]]);
+const LURKER = { name: 'Bog lurker', description: 'A grey shape under the duckweed. Drags its prey under and holds it there.' };
+
+const hit = (id: string, name: string, rowText: string | null, atSeconds: number, roll: string | null = null): EncounterCard['hit'] => ({
   id,
   campaignId: 'gallery',
   expeditionId: 'gallery-trek',
@@ -24,8 +38,8 @@ const hit = (id: string, name: string, rowText: string | null, atSeconds: number
   atSeconds,
   modifiers: [],
   note: null,
-  tableId: null,
-  roll: null,
+  tableId: roll ? 'harbour' : null,
+  roll,
   rowText,
   revealed: false,
   secret: true,
@@ -38,8 +52,9 @@ const card = (id: string, h: EncounterCard['hit'], watch: string | null): Encoun
 });
 
 const CARDS: EncounterCard[] = [
-  card('night', hit('night', 'Night prowlers', 'Bog lurkers (1d4)', 79200), null),
-  card('awake', hit('awake', 'Night prowlers, Group 2', 'A Lantern Warden, alone, with a shuttered lantern and a long story about the causeway', 82800), '2nd watch, Reed, Moss'), // words: names
+  card('lurkers', hit('lurkers', 'Encounters in the harbour', 'Encounters in the harbour: Two bog lurkers rise from the weed and reach for the oars.', 79200, '15–16'), null),
+  card('night', hit('night', 'Night prowlers', 'Encounters in the harbour: Night prowlers circle the camp.', 79200, '17–20'), null),
+  card('awake', hit('awake', 'Night prowlers, Group 2', 'Encounters in the harbour: A Lantern Warden, alone, with a shuttered lantern and a long story about the causeway and the nine drowned steps', 82800, '9–14'), '2nd watch, Reed, Moss'), // words: names
   card('road', hit('road', 'Prowlers', null, 36000), null),
 ];
 
@@ -59,14 +74,15 @@ export function WildernessSpecimens({ Specimen }: { Specimen: (props: { name: st
   const [watches, setWatches] = useState<string[][]>([['reed'], ['moss', 'wick', 'fern']]);
   return (
     <>
-      <Specimen name="Encounter waiting cards (GM), as page 16's T2 draws them (S8b): An encounter waits, what was rolled a link to the encounter, Start (the accent, no other here) and Dismiss stacked; a camp night's hit has Who is awake…; answered, it reads Awake; a hit with no row picked yet">
+      <Specimen name="Encounter waiting cards (GM), one encounter one card (sf-4; page 44, EN1 B): An encounter, the row's words, a creature's detail row, the picked line with Change…, then Reveal…, Message… and Done (the accent, no other here); a camp night's hit has Who is awake…; answered, it reads Awake; a long row; a hit with no row picked yet">
         <EncounterWaitingSource
           cards={cards}
-          tables={new Map()}
-          statBlock={() => null}
-          when={(at) => `Day 1, ${String(Math.floor(at / 3600) % 24).padStart(2, '0')}:00`}
-          onStart={async () => false}
-          onDismiss={(c) => setCards((all) => all.filter((x) => x.encounter.id !== c.encounter.id))}
+          tables={TABLES}
+          statBlock={(id) => (id === 'bog-lurker' ? LURKER : null)}
+          onDone={(c) => setCards((all) => all.filter((x) => x.encounter.id !== c.encounter.id))}
+          onChange={(c, tap) => setCards((all) => all.map((x) => (x.encounter.id === c.encounter.id ? { ...x, hit: { ...x.hit, roll: tap.roll, rowText: tap.rowText } } : x)))}
+          onReveal={() => undefined}
+          onMessage={() => undefined}
           watchChoices={(c) => (c.encounter.id === 'night' ? ['1st watch, Reed of the Long Sedge Causeway and the Nine Drowned Steps', '2nd watch, Moss, Wick'] : null)} // words: names
           accent
           onWatch={(c, w) => setCards((all) => all.map((x) => (x.encounter.id === c.encounter.id ? { ...x, encounter: { ...x.encounter, watch: w } } : x)))}

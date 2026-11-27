@@ -1644,7 +1644,8 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     }
   }
   // &waiting=4|6: encounters waiting in "Waiting for you" (S8a; page 16, T2 and T6b): four (the first whole, three rows),
-  // or six (the first whole, two rows, "3 more"); the second with a long name.
+  // or six (the first whole, two rows, "3 more"); the second with a long name. Each read the table's one row, so the
+  // one card (sf-4) has its picked line and "Change…".
   const waitingFlag = Number(new URLSearchParams(window.location.search).get('waiting') ?? 0);
   const names = ['Bog lurkers', 'The Long-Drowned Customs Officers of the Lantern Coast and their Hounds', 'Reed wraiths', 'Eel-wives', 'A ferryman with no boat', 'Gulls, a great many'];
   if (started.data && waitingFlag > 0) {
@@ -1652,7 +1653,7 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
       const check = `check-reed-${i}`;
       world.tables.check_results.push({
         id: check, campaign_id: campaign, expedition_id: started.data.id, check_key: `place:drowned-harbour:${i}`, name: 'Encounter check', source: 'place', outcome: 'hit', at_seconds: 0, modifiers: [], note: null,
-        table_id: 'on-the-water', roll: '3', row_text: name, secret: true, revealed: false, revealed_by_hand: false, created_by: gm, undone: false, version: 1, created_at: `2026-11-14T10:0${i}:00Z`,
+        table_id: 'on-the-water', roll: '1–8', row_text: name, secret: true, revealed: false, revealed_by_hand: false, created_by: gm, undone: false, version: 1, created_at: `2026-11-14T10:0${i}:00Z`,
       });
       world.tables.waiting_encounters.push({ id: `waiting-reed-${i}`, campaign_id: campaign, expedition_id: started.data.id, check_result_id: check, watch: null, state: 'waiting', started_at: null, dismissed_at: null, created_by: gm, undone: false, version: 1, created_at: `2026-11-14T10:0${i}:00Z` });
     }

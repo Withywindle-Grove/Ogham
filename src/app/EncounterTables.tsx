@@ -343,14 +343,27 @@ export function TableRollPopUp({
     setFound(index);
     setGoing((n) => n + 1);
   };
-  useEffect(() => {
-    if (found === null) return;
+  // A row to the top of the rows' own scroll, its tap taking the focus (a button, never a field).
+  const toTop = (index: number) => {
     const rows = body.current?.querySelector<HTMLElement>('.table-sheet__rows');
-    const row = rows?.children[found] as HTMLElement | undefined;
+    const row = rows?.children[index] as HTMLElement | undefined;
     if (!rows || !row) return;
     rows.scrollTop += row.getBoundingClientRect().top - rows.getBoundingClientRect().top;
     (row.matches('[role="radio"]') ? row : row.querySelector<HTMLElement>('[role="radio"]'))?.focus({ preventScroll: true });
+  };
+  useEffect(() => {
+    if (found !== null) toTop(found);
   }, [found, going]);
+  // Opened from "Change…" (sf-4; #111's finding 1): the row picked before is in view and has the focus, after the
+  // pop-up's own first focus (its effect runs after this one's, so this waits a tick).
+  const ticked = useRef(picked);
+  const loaded = table !== null;
+  useEffect(() => {
+    const at = ticked.current;
+    if (!loaded || at === null) return;
+    const timer = setTimeout(() => toTop(at));
+    return () => clearTimeout(timer);
+  }, [loaded]);
   return (
     <SheetScope.Provider value>
       <CentredPopUpScope.Provider value>

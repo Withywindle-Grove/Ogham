@@ -6,7 +6,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { TableRows, type TableTap } from '../../app/EncounterTables.tsx';
-import { creatureLines, EncounterDetails } from '../../app/EncounterWaiting.tsx';
+import { creatureLines, EncounterWaitingSource } from '../../app/EncounterWaiting.tsx';
 import type { EncounterCard } from './encounterPlay.ts';
 import { withRowLinks, type LinkSources } from './rowLinks.ts';
 import { readTable, rowCountShown, type ReadTable } from './tables.ts';
@@ -50,7 +50,7 @@ describe('several creatures on one row (pf-2)', () => {
       encounter: { id: 'w1', campaignId: 'c', expeditionId: 'e', checkResultId: 'h1', watch: null, state: 'waiting', createdAt: '2026-11-11T20:00:00Z', version: 1 },
       hit: { id: 'h1', campaignId: 'c', expeditionId: 'e', checkKey: 'mode:wander', name: 'Harbour at night', source: 'mode', outcome: 'hit', atSeconds: 0, modifiers: [], note: null, tableId: 'harbour-night', roll, rowText, revealed: false, secret: true, version: 1 },
     };
-    render(<EncounterDetails card={card} started={false} tables={tables} statBlock={statBlock} when={() => null} onClose={() => undefined} />);
+    render(<EncounterWaitingSource cards={[card]} tables={tables} statBlock={statBlock} onDone={() => undefined} />);
     return within(screen.getByRole('list', { name: 'Stat blocks' })).getAllByRole('listitem').map((li) => li.querySelector('.book-detail__name')?.textContent);
   };
 
@@ -101,7 +101,7 @@ describe('several creatures on one row (pf-2)', () => {
       encounter: { id: 'w1', campaignId: 'c', expeditionId: 'e', checkResultId: 'h1', watch: null, state: 'waiting', createdAt: '2026-11-11T20:00:00Z', version: 1 },
       hit: { id: 'h1', campaignId: 'c', expeditionId: 'e', checkKey: 'mode:wander', name: 'Harbour at night', source: 'mode', outcome: 'hit', atSeconds: 0, modifiers: [], note: null, tableId: 'harbour-night', roll: '1', rowText: 'Harbour by night: The acolyte and her lurkers', revealed: false, secret: true, version: 1 },
     };
-    render(<EncounterDetails card={card} started={false} tables={tables} statBlock={statBlock} when={() => null} onClose={() => undefined} />);
+    render(<EncounterWaitingSource cards={[card]} tables={tables} statBlock={statBlock} onDone={() => undefined} />);
     const list = within(screen.getByRole('list', { name: 'Stat blocks' }));
     expect(list.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Drowned acolyte ×1', 'Bog lurker, 1d4']);
     expect(screen.queryByText(/How many/)).toBeNull();
