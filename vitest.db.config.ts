@@ -5,7 +5,7 @@
 import { defineConfig, loadEnv } from 'vite';
 
 // SUPABASE_TEST_DB_URL: the test project's database address, for the one test that runs SQL itself
-// (float-columns.test.ts); empty in CI, where that test uses the local Supabase.
+// (float-columns.test.ts) when VITE_SUPABASE_URL is the test project; empty in CI, where that test uses the local Supabase.
 const KEYS = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_SECRET_KEY', 'SUPABASE_TEST_DB_URL'] as const;
 
 export default defineConfig(() => {

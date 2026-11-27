@@ -9,6 +9,6 @@ const CLI = resolve('node_modules/supabase/dist/supabase.js');
 /** @param {string[]} target `['--local']` or `['--db-url', url]` @param {string} sql one statement @returns {string} */
 export function runSql(target, sql) {
   const done = spawnSync(process.execPath, [CLI, 'db', 'query', '--agent', 'no', '-o', 'json', ...target, sql], { encoding: 'utf8' });
-  if (done.status !== 0) throw new Error(`The database query failed: ${done.stderr || done.stdout}`);
+  if (done.status !== 0) throw new Error(`The database query failed: ${done.stderr || done.stdout || done.error?.message || `the Supabase CLI ended with no message (status ${done.status})`}`);
   return done.stdout;
 }

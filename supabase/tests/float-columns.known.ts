@@ -3,10 +3,6 @@
 // A real future need goes here with its reason, in a reviewed change. Empty when the check was switched on
 // (2026-11-27): the migrations had no `real`, `double precision` or `numeric` column.
 
-export interface KnownFloatColumn {
-  /** `schema.table.column` */
-  column: string;
-  reason: string;
-}
+import type { KnownFloatColumn } from './floatProblems.ts';
 
 export const KNOWN_FLOAT_COLUMNS: KnownFloatColumn[] = [];

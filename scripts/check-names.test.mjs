@@ -97,6 +97,35 @@ describe('the real-names scan as a Claude Code hook (--hook)', () => {
   });
 });
 
+describe('the real-names scan without its private list, outside a pull request', () => {
+  const script = fileURLToPath(new URL('./check-names.mjs', import.meta.url));
+  const runScan = (args) =>
+    spawnSync(process.execPath, [script, ...args], {
+      cwd: tmpdir(),
+      encoding: 'utf8',
+      env: withoutGitVariables(process.env, { GRIMOIRE_DENYLIST: join(tmpdir(), 'no-such-denylist-here.txt'), GITHUB_ACTIONS: '' }),
+    });
+
+  // Purpose: `npm run names:check` (--all), a scan someone runs on purpose, passes without the list but says, in a
+  // framed warning, that nothing was checked, so it never looks like a clean scan (check 7, review of #138).
+  it('npm run names:check warns that nothing was checked', () => {
+    const result = runScan(['--all']);
+    expect(result.status).toBe(0);
+    expect(result.stderr).toContain('WARNING: not scanned for private names');
+    expect(result.stderr).toContain('no file at GRIMOIRE_DENYLIST');
+    expect(result.stderr).not.toContain('GRIMOIRE_NAMES empty');
+  });
+
+  // Purpose: the commit hooks stay quiet without the list (a cloud session never has one), and still pass.
+  it('the commit hooks pass quietly', () => {
+    for (const args of [[], ['--message', join(tmpdir(), 'no-such-message.txt')]]) {
+      const result = runScan(args);
+      expect(result.status).toBe(0);
+      expect(result.stdout + result.stderr).toBe('');
+    }
+  });
+});
+
 describe("the real-names scan of a pull request (--pr), the GitHub check's scan", () => {
   const names = ['Gloomwater Codex', 'GWC'];
   const script = fileURLToPath(new URL('./check-names.mjs', import.meta.url));
@@ -427,7 +456,10 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
       const result = scan(dir);
       expect(result.status).toBe(0);
       expect(result.stderr).toContain('WARNING: not scanned for private names');
-      expect(result.stderr).toContain('Before merging a pull request from outside, scan it where the private list is.');
+      expect(result.stderr).toContain('Before merging a pull request from outside, scan it where the private list is: node scripts/check-names.mjs --pr origin/main --show');
+      // On your own machine the cause is a missing file, so it says where it looked (a path, never a name), not secrets.
+      expect(result.stderr).toContain(`no file at GRIMOIRE_DENYLIST (${join(dir, 'no-list.txt')})`);
+      expect(result.stderr).not.toContain('Dependabot');
       // Not a GitHub annotation: that only means something on GitHub.
       expect(result.stdout + result.stderr).not.toContain('::warning');
     } finally {
@@ -442,7 +474,7 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
     try {
       const result = scan(dir, { GITHUB_ACTIONS: 'true', GRIMOIRE_NAMES_REQUIRED: 'false' });
       expect(result.status).toBe(0);
-      expect(result.stdout).toMatch(/^::warning title=Not scanned for private names::.*scan it where the private list is\.$/m);
+      expect(result.stdout).toMatch(/^::warning title=Not scanned for private names::.*Dependabot.*scan it where the private list is: node scripts\/check-names\.mjs --pr origin\/main --show$/m);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
