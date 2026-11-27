@@ -88,7 +88,7 @@ Ruled 2026-11-27 (lp-9, `design/rulings/process-loop-2026-11-27.md`). The source
 
 ## Automated checks
 
-"On" is checked today. "To add" is a ticket; none needs a new package unless the row says so. Each "to add" will show old code that does not comply. That list goes to Francis before any refactor. For a lint rule, old cases are recorded as known and only new ones fail (ESLint's own `--suppress-all`, which writes `eslint-suppressions.json`). A compiler flag has no such list: it is switched on only when the code passes it, so each flag is a ticket that fixes its cases first.
+"On" is checked today. "To add" is a ticket; the first loop builds the hard-rule and size-and-speed rows, and the type-aware lint, compiler-flag and `exhaustive-deps` rows wait for a second loop after 5 December (atc-2, `design/rulings/process-checks-loop-1-2026-11-27.md`); none needs a new package unless the row says so. Each "to add" will show old code that does not comply. That list goes to Francis before any refactor. For a lint rule, old cases are recorded as known and only new ones fail (ESLint's own `--suppress-all`, which writes `eslint-suppressions.json`). A compiler flag has no such list: it is switched on only when the code passes it, so each flag is a ticket that fixes its cases first.
 
 | Check | Covers | State |
 |---|---|---|
