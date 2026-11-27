@@ -33,7 +33,15 @@ async function bought(page: Page) {
   await expect(page.locator('.toast__text')).toHaveText('Wren of the Lantern Wardens added Storm lantern. Its cost, 4 herons, is not spent yet.');
 }
 
-const shot = (page: Page, name: string, width: number, scheme: string) => page.screenshot({ path: `test-results/layout-screens/k7-${name}-${width}-${scheme}.png` });
+/** A built picture, once the book's faces have loaded and a sheet has finished sliding in (the toast's bar runs on). */
+async function shot(page: Page, name: string, width: number, scheme: string) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    const settling = document.getAnimations().filter((a) => !(a.effect instanceof KeyframeEffect && a.effect.target instanceof Element && a.effect.target.closest('.toast')));
+    await Promise.all(settling.map((a) => a.finished.catch(() => undefined)));
+  });
+  await page.screenshot({ path: `test-results/layout-screens/k7-${name}-${width}-${scheme}.png` });
+}
 
 for (const size of SIZES) {
   for (const scheme of ['light', 'dark'] as const) {
@@ -82,6 +90,7 @@ for (const size of SIZES) {
         await expect(sheet.getByLabel('What for')).toHaveValue('Storm lantern');
         await expect(sheet.locator('.button-primary')).toHaveCount(1);
         await expect(sheet.getByRole('button', { name: 'Spend 4 herons' })).toBeVisible();
+        await sheet.getByLabel('What for').scrollIntoViewIfNeeded();
         await shot(page, 'spend', size.width, scheme);
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
