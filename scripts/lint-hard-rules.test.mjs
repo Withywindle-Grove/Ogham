@@ -61,6 +61,18 @@ describe('check 4: no disabled attribute (hard rule 10)', () => {
     expect(await lint(code, 'src/ui/PlantedLantern.tsx')).toEqual([DISABLED_MESSAGE]);
   });
 
+  // `disabled` set from a value fails too, not only the bare attribute.
+  it('fails a planted component with disabled set from a value', async () => {
+    const code = 'export function LanternButton({ x }: { x: boolean }) {\n  return <button disabled={x}>Light</button>;\n}\n';
+    expect(await lint(code, 'src/ui/PlantedLantern.tsx')).toEqual([DISABLED_MESSAGE]);
+  });
+
+  // Clean code passes: a control with other attributes gives no error, so the rule fires on `disabled` alone.
+  it('passes a planted component whose button has other attributes only', async () => {
+    const code = 'export function LanternButton() {\n  return <button type="button" aria-label="Light">Light</button>;\n}\n';
+    expect(await lint(code, 'src/ui/PlantedLantern.tsx')).toEqual([]);
+  });
+
   // A test file may render a disabled control (for example to prove a screen never shows one), so it is not checked.
   it('leaves test files alone', async () => {
     const code = 'export function LanternButton() {\n  return <button disabled>Light the lantern</button>;\n}\n';
@@ -69,6 +81,8 @@ describe('check 4: no disabled attribute (hard rule 10)', () => {
 
   // An old case recorded in the suppressions file passes; once it is fixed, the check fails until its record is pruned.
   it('passes a recorded old case, and fails when the case is fixed but its record stays', () => {
+    // Runs the real `eslint .` command (slower than 300 ms, cs-34): the suppressions file is read only by the command,
+    // not by the ESLint class that the other tests use.
     const dir = mkdtempSync(join(tmpdir(), 'tome-lint-'));
     try {
       mkdirSync(join(dir, 'src', 'ui'), { recursive: true });
@@ -96,13 +110,16 @@ describe('check 4: no disabled attribute (hard rule 10)', () => {
 // N lines of plain code, every one counted (blank lines and comments count too).
 const linesOf = (n) => Array.from({ length: n }, (_, i) => (i % 3 === 2 ? '' : `export const lantern${i} = ${i};`)).join('\n');
 
+const longFile = (n) =>
+  `This file has ${n} lines; a source file stays at 400 or fewer (cs-10). Find the second module in it and move that to its own file.`;
+
 describe('check 8: no source file over 400 lines (cs-10)', () => {
-  // A source file of 401 lines fails lint and says how long it is; one of 400 passes.
+  // A source file of 401 lines fails lint, saying how long it is, the rule and the fix; one of 400 passes, also with a
+  // newline at its end (the empty line after it is not counted).
   it('fails a planted source file of 401 lines and passes one of 400', async () => {
-    expect(await lint(linesOf(401), 'src/core/plantedLantern.ts')).toEqual([
-      'File has too many lines (401). Maximum allowed is 400.',
-    ]);
+    expect(await lint(linesOf(401), 'src/core/plantedLantern.ts')).toEqual([longFile(401)]);
     expect(await lint(linesOf(400), 'src/core/plantedLantern.ts')).toEqual([]);
+    expect(await lint(`${linesOf(400)}\n`, 'src/core/plantedLantern.ts')).toEqual([]);
   });
 
   // Blank lines and comments count like any other line.
@@ -110,9 +127,7 @@ describe('check 8: no source file over 400 lines (cs-10)', () => {
     const notes = Array.from({ length: 200 }, () => '// a note about the lantern');
     const blanks = Array.from({ length: 200 }, () => '');
     const code = [...notes, ...blanks, 'export const lit = true;'].join('\n');
-    expect(await lint(code, 'src/ui/PlantedLantern.tsx')).toEqual([
-      'File has too many lines (401). Maximum allowed is 400.',
-    ]);
+    expect(await lint(code, 'src/ui/PlantedLantern.tsx')).toEqual([longFile(401)]);
   });
 
   // Test files and the generated database types are long by nature, so they are not checked.
@@ -120,10 +135,19 @@ describe('check 8: no source file over 400 lines (cs-10)', () => {
     expect(await lint(linesOf(401), 'src/ui/PlantedLantern.test.tsx')).toEqual([]);
     expect(await lint(linesOf(401), 'src/core/plantedLantern.test.ts')).toEqual([]);
     expect(await lint(linesOf(401), 'src/core/database.types.ts')).toEqual([]);
+    expect(await lint(linesOf(401), 'scripts/plantedLantern.test.mjs')).toEqual([]);
   });
 
-  // A known long file recorded in the suppressions file stays quiet, even after it grows.
-  it('passes a recorded long file, also when it grows', () => {
+  // The repository's scripts are checked too: a long script fails like a long source file.
+  it('fails a planted script of 401 lines', async () => {
+    expect(await lint(linesOf(401), 'scripts/plantedLantern.mjs')).toEqual([longFile(401)]);
+  });
+
+  // A known long file recorded in the suppressions file stays quiet, even after it grows; once it is cut to 400 lines,
+  // the check fails until its record is pruned; and without the record, the long file fails.
+  it('passes a recorded long file, also when it grows, and fails when it is fixed or not recorded', () => {
+    // Runs the real `eslint .` command (slower than 300 ms, cs-34): the suppressions file is read only by the command,
+    // not by the ESLint class that the other tests use.
     const dir = mkdtempSync(join(tmpdir(), 'tome-lint-'));
     try {
       mkdirSync(join(dir, 'src', 'core'), { recursive: true });
@@ -131,7 +155,7 @@ describe('check 8: no source file over 400 lines (cs-10)', () => {
       writeFileSync(join(dir, 'eslint.config.js'), `export { default } from '${config}';\n`);
       const planted = join(dir, 'src', 'core', 'plantedLantern.ts');
       writeFileSync(planted, `${linesOf(450)}\n`);
-      const known = { 'src/core/plantedLantern.ts': { 'max-lines': { count: 1 } } };
+      const known = { 'src/core/plantedLantern.ts': { 'tome/max-lines': { count: 1 } } };
       writeFileSync(join(dir, 'eslint-suppressions.json'), JSON.stringify(known));
       const eslintCli = join(repo, 'node_modules', 'eslint', 'bin', 'eslint.js');
       const run = () => spawnSync(process.execPath, [eslintCli, '.'], { cwd: dir, encoding: 'utf8' });
@@ -140,6 +164,18 @@ describe('check 8: no source file over 400 lines (cs-10)', () => {
 
       writeFileSync(planted, `${linesOf(900)}\n`);
       expect(run().status).toBe(0);
+
+      writeFileSync(planted, `${linesOf(400)}\n`);
+      const stale = run();
+      expect(stale.status).not.toBe(0);
+      expect(stale.stdout + stale.stderr).toContain('There are suppressions left that do not occur anymore');
+
+      writeFileSync(planted, `${linesOf(450)}\n`);
+      writeFileSync(join(dir, 'eslint-suppressions.json'), '{}');
+      const unrecorded = run();
+      expect(unrecorded.status).not.toBe(0);
+      expect(unrecorded.stdout).toContain('This file has 450 lines');
+      expect(unrecorded.stdout).toContain('tome/max-lines');
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

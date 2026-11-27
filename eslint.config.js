@@ -1,4 +1,5 @@
-// ESLint: flags common mistakes and React hook misuse. Recommended rules only.
+// ESLint: flags common mistakes and React hook misuse (the recommended rules), plus the project's hard-rule and size
+// checks (docs/specs/hard-rule-and-size-checks.md).
 // Runs as part of `npm run check` (see docs/testing.md).
 import js from '@eslint/js';
 import globals from 'globals';
@@ -8,6 +9,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 
 // The project's own lint rules, kept here (no package). Each has its own name, so ESLint's suppressions file
 // (eslint-suppressions.json, the known old breaks; docs/testing.md) counts each rule's cases on their own.
+const MAX_LINES = 400;
 const tome = {
   rules: {
     // Hard rule 10: never a disabled button. A blocked action stays tappable and explains why in a pop-up.
@@ -24,12 +26,30 @@ const tome = {
         };
       },
     },
+    // cs-10: a source file stays at 400 lines or fewer. Counts as ESLint's own `max-lines` does with every line counted
+    // (blank lines and comments too), the empty line after the last newline left out; reported once, at line 401.
+    'max-lines': {
+      meta: { type: 'suggestion', schema: [] },
+      create(context) {
+        return {
+          Program() {
+            const lines = context.sourceCode.lines;
+            const count = lines.length > 0 && lines[lines.length - 1] === '' ? lines.length - 1 : lines.length;
+            if (count <= MAX_LINES) return;
+            context.report({
+              loc: { start: { line: MAX_LINES + 1, column: 0 }, end: { line: count, column: lines[count - 1].length } },
+              message: `This file has ${count} lines; a source file stays at ${MAX_LINES} or fewer (cs-10). Find the second module in it and move that to its own file.`,
+            });
+          },
+        };
+      },
+    },
   },
 };
 
-// Hard rule 6, the other direction: core has no single public entry, so these core files are it. They are the 17
-// that modules imported when the check was switched on (27 Nov 2026). A module that needs another core file adds it
-// here, in a reviewed change (docs/specs/hard-rule-and-size-checks.md, check 1).
+// Hard rule 6, the other direction: core has no single public entry, so these core files are it, the ones modules
+// use. A module that needs another core file adds it here, in a reviewed change
+// (docs/specs/hard-rule-and-size-checks.md, check 1).
 const ALLOWED_CORE_FILES = [
   'alignments.ts',
   'campaignCommands.ts',
@@ -50,7 +70,9 @@ const ALLOWED_CORE_FILES = [
   'useWords.ts',
 ];
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-// A relative import that reaches into a `core` folder and does not name exactly one listed file.
+// A relative import that reaches into a `core` folder and does not name exactly one listed file. It matches a folder
+// named `core` anywhere in the path, not only src/core; none other exists, and if one did the error would be a false
+// failure (the safe way), so the pattern stays simple.
 const UNLISTED_CORE_FILE = `^(\\.\\.?/)+(.*/)?core/(?!(${ALLOWED_CORE_FILES.map(escapeRegex).join('|')})$)`;
 
 export default defineConfig([
@@ -117,10 +139,20 @@ export default defineConfig([
   },
   {
     // cs-10: a source file stays at 400 lines or fewer, counting every line (blank lines and comments too). Tests and
-    // the generated database types are not checked. The old long files are known in eslint-suppressions.json; a known
-    // file that grows stays quiet (the record covers the file, not its size).
+    // the generated database types are not checked; stylesheets are not either (lint does not read CSS without a new
+    // package). The old long files are known in eslint-suppressions.json; a known file that grows stays quiet (the
+    // record covers the file, not its size).
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['**/*.test.{ts,tsx}', 'src/core/database.types.ts'],
-    rules: { 'max-lines': ['error', { max: 400, skipBlankLines: false, skipComments: false }] },
+    plugins: { tome },
+    rules: { 'tome/max-lines': 'error' },
+  },
+  {
+    // cs-10 for the repository's scripts too: an agent reads them whole like any source file. Their tests are not
+    // checked.
+    files: ['scripts/**/*.{js,mjs}'],
+    ignores: ['**/*.test.mjs'],
+    plugins: { tome },
+    rules: { 'tome/max-lines': 'error' },
   },
 ]);

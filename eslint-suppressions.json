@@ -1,411 +1,446 @@
 {
+  "scripts/check-names.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "scripts/guard-tests.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "scripts/pack-additions.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "scripts/pack-creation.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "scripts/pack-exploration.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "scripts/pack-format.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "scripts/seed-test-campaigns.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
   "src/app/AddItem.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/CallsToAdventure.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/CampCard.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/CarrierItems.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/CharacterSheet.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/Characters.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/EncounterTables.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/EntryEditor.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/FinishCreation.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/GmCampaign.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/GmPlacePage.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/GmReference.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/GuidedCreation.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/HoardSheet.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/ItemRow.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/ItemSheet.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/KindredTables.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/LibraryScreen.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/LightSection.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/LoadSummary.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/LogView.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/MarchingOrder.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/Messages.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/NewCampaign.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/PackScreen.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/PartyGroups.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/PlaceCard.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/PlaceMap.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/PlayerScreen.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/RequestCard.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/RulesBrowser.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/RulesForCampaign.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/SceneBand.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/SceneTime.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/SettingRules.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/SettingRulesPack.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/SheetEdit.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/StartingGear.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/Statuses.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/TownActions.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/TravelCard.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/WaitingForYou.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/WeatherCard.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/campaignSetting.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/core/events.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/gallery/Gallery.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/characters/commands.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/characters/creationSteps.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/characters/fields.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/characters/firstSpells.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/characters/kindredTables.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/characters/patrons.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/characters/play.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/characters/startingGear.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/characters/traitLists.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/characters/whoTheyAre.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/expedition/lightPlay.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/expedition/modes.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/expedition/placePlay.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/expedition/placeRules.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/expedition/play.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/expedition/procedure.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/expedition/sceneTop.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/expedition/statusPlay.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/fight/engine.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/inventory/encumbrance.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/inventory/inventory.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/library/campaignPacks.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/library/editor.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/library/expression.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/library/fills.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/modules/library/packFile.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/testing/fakeDb.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/testing/layoutHarness.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/testing/permissionCases.ts": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/ui/Dialog.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/ui/MapParts.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/ui/MoveOnParts.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/ui/creation.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/ui/icons.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/ui/parts.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   },
   "src/ui/ruleRows.tsx": {
-    "max-lines": {
+    "tome/max-lines": {
       "count": 1
     }
   }
