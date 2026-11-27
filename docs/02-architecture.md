@@ -18,6 +18,43 @@ The core is small, and five foundations make later modules plug in without rewor
 
 Keep dependencies few. Ask before adding any library not listed here.
 
+## Packages
+
+Every package in `package.json`, by name, one per line (hard rule 9). A test (`src/ui/packageList.test.ts`, inside `npm run check`) fails when this list and `package.json` differ: app packages are its `dependencies`, dev-only packages its `devDependencies`. Versions are not compared. A new package is added here in the same pull request, after Francis's yes.
+
+### App packages
+
+- `@fontsource/alegreya-sans-sc`
+- `@fontsource/atkinson-hyperlegible`
+- `@fontsource/bitter`
+- `@fontsource/caveat`
+- `@fontsource/eb-garamond`
+- `@supabase/supabase-js`
+- `dexie`
+- `react`
+- `react-dom`
+
+### Dev-only packages
+
+- `@axe-core/playwright`
+- `@eslint/js`
+- `@playwright/test`
+- `@testing-library/react`
+- `@testing-library/user-event`
+- `@types/react`
+- `@types/react-dom`
+- `@vitejs/plugin-react`
+- `eslint`
+- `eslint-plugin-react-hooks`
+- `globals`
+- `jsdom`
+- `supabase`
+- `typescript`
+- `typescript-eslint`
+- `vite`
+- `vite-plugin-pwa`
+- `vitest`
+
 ## Foundation 1 — Everything is an event
 
 Every change is an **event**: `{ id, campaignId, actorUserId, type, targetTable, targetId, before, after, createdAt, fiat?, revertsEventId?, revealAt? }` (`revealAt`: `now` | `downtime`, see `04-data-model.md`).
