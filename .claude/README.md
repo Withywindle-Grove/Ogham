@@ -36,7 +36,7 @@ Where this section differs from the rules above or in `CLAUDE.md`, those rules w
 | 4 | Build: the driver orchestrates; a fresh `builder` per ticket | `implement-spec`, `tdd` | Opus, medium |
 | 5 | Review, per ticket | `code-review` (the project's copy) | Opus, high |
 | 6 | Retro, per spec | `retro`, `writing-for-agents` | Opus, high |
-| 7 | Every third loop: an architecture pass; it reports only | `improve-codebase-architecture`, `codebase-design`, `domain-modeling`, `grilling` | ⚑ lp-5 |
+| 7 | Every third loop: an architecture pass; it reports only | `improve-codebase-architecture`, `codebase-design`, `domain-modeling`, `grilling` | Fable, high |
 
 - Francis sits three times per loop: after step 1 (mockup and rulings), after step 3 (the spec's plain-language part and the ticket list), after step 5 (the built screen, the review, the retro findings).
 - `implement-spec` asks for as many workers as possible at once. Here the seat limits above win: at most three builders, one heavy job at a time. A ticket is a row: one check run per batch, a fresh worker per ticket and per fix round.

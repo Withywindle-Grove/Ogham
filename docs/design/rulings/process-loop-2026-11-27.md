@@ -15,7 +15,7 @@ Francis ruled in chat with a cloud session on 27 November. His words are in quot
 | lp-2 | **The project plan is reviewed on 6 December** | "The larger project plan is reviewed on Dec 6" |
 | lp-3 | **The skills of the loop** (table below). Eleven of Matt Pocock's skills are copied into `.claude/skills/` (MIT licence, commit `6f7f783`); its setup, triage, wayfinder and router skills are not installed. No other skill is added | "I want to use the correct skills with no extra ones that use excess tokens"; "A" (copy into the repository) |
 | lp-4 | **The spec is a file; the tickets are GitHub issues.** `docs/specs/<name>.md` is reviewed as a diff and versioned with the code. Each ticket is an issue; the pull request closes it. `docs/agents/issue-tracker.md` holds the conventions | "Agree on the split" |
-| lp-5 | **Models.** Steps 1 to 4 on Opus, medium. Steps 5 and 6 on Opus, high. ⚑ Step 7 on Fable, high is Claude's recommendation (the same model as `project-review`); it raises spend, so it waits for Francis's yes | "All of 1-4 do in opus medium effort"; "5-7 should use opus at high level effort (or fable you tell me)" |
+| lp-5 | **Models.** Steps 1 to 4 on Opus, medium. Steps 5 and 6 on Opus, high. Step 7 on Fable, high (the same model as `project-review`) | "All of 1-4 do in opus medium effort"; "5-7 should use opus at high level effort (or fable you tell me)"; then, asked for step 7 on Fable, high: "Yes" |
 | lp-6 | **Context limits.** A worker and a ticket stay near 150,000 tokens. The driver hands over at 250,000, to a cleared session | "each ticket should try to stay near 150k context maximum"; "Agreed. Handover to a cleared session" |
 | lp-7 | **Three sittings per loop.** A: after design, the mockup and the rulings. B: after the tickets, the plain-language part of the spec and the ticket list. C: after review, the built screen beside the mockup, the review result and the retro findings. The technical parts of a spec and the ticket sizes are Claude's (technical ownership). The standing yes for a green, reviewed, data-only pull request holds | "Agree on ... sittings A, B, C" |
 | lp-8 | **Every third loop, an architecture pass** (`improve-codebase-architecture`). It reports only; a refactor starts on Francis's yes | "Every three completed loops use improve code base architecture to clean things up" |
@@ -37,7 +37,7 @@ Francis ruled in chat with a cloud session on 27 November. His words are in quot
 | 4 | Build | `implement-spec`, each ticket by a fresh `builder` with `tdd` | Opus, medium |
 | 5 | Review, per ticket | `code-review` (the project's copy: standards and spec) | Opus, high |
 | 6 | Retro, per spec | `retro`, with `writing-for-agents` | Opus, high |
-| 7 | Every third loop | `improve-codebase-architecture`, with `codebase-design`, `domain-modeling`, `grilling` | ⚑ lp-5 |
+| 7 | Every third loop | `improve-codebase-architecture`, with `codebase-design`, `domain-modeling`, `grilling` | Fable, high |
 
 What holds through the loop: the hard rules, mockups first, the migration rules, the guard hooks, at most three builders at once and one heavy job at a time, one check run per batch (a ticket is a row), a fresh worker per ticket and per fix round.
 
@@ -56,5 +56,5 @@ What holds through the loop: the hard rules, mockups first, the migration rules,
 
 ## Open
 
-- ⚑ lp-5: step 7 on Fable, high.
-- lp-15: the steps for each account, once Francis has tried them.
+- Nothing waits for a ruling.
+- lp-15: Francis switches the plugins off at his PC on 28 November; the session he asks gives him the steps then.
