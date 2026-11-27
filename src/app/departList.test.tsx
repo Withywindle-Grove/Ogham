@@ -8,16 +8,21 @@
 //   * a pack's count is its places to pick, not its Region and Areas;
 //   * a search for "1" lists 1, 10 and 11 with their Areas and no Other…; a search past 50 finds counts every match;
 //     nothing found says so and offers Other…;
-//   * reopened, the list opens the Area of the place already ticked;
-//   * a tap on a place picks it at once.
+//   * reopened, the list opens the Area of the place already ticked, else the Area last played, never both, and the
+//     ticked row is scrolled into view (the audit's finding 1);
+//   * a tap on a place picks it at once;
+//   * Other… with no name typed: Set place stays a button and says why, and picks nothing (the audit's finding 3).
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Place } from '../modules/expedition/placePlay.ts';
 import type { PackPlace } from '../modules/expedition/placeTree.ts';
-import { LocationsPickerBody, type PickedPlace } from './PlacePicker.tsx';
+import { LocationsPickerBody, PlacePickerBody, type PickedPlace } from './PlacePicker.tsx';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 const place = (packId: string, packName: string) => (entryId: string, name: string, type: string, parentId: string | null, extra: Partial<PackPlace> = {}): PackPlace => ({
   packId,
@@ -193,12 +198,67 @@ describe('the list reopened (sf-2; the review of #124)', () => {
     expect(group('The Drowned Harbour').getByRole('button', { name: 'Show The Drowned Harbour' })).toBeTruthy();
   });
 
-  // Purpose: a place ticked from a pack's tree opens the pack and its Area, so the tick shows.
-  it("opens the pack and the Area of a pack's ticked place", () => {
+  // Purpose (the audit's finding 1): a place ticked from a pack's tree opens the pack and its Area only, not the Area
+  // last played as well (06: "else"), and its row is scrolled into view.
+  it("opens only the pack and the Area of a pack's ticked place, its row in view", () => {
+    const seen = scrolled();
     const ford = MARCHES.find((p) => p.entryId === 'ford')!;
     show([...ISLE, ...MARCHES], [visited(at('jetty'))], ford);
-    expect(group('Moss Landing').getByRole('button', { name: 'The Ford', pressed: true })).toBeTruthy();
-    expect(group('The Drowned Harbour').getByRole('button', { name: 'Fold The Drowned Harbour' })).toBeTruthy();
+    const row = group('Moss Landing').getByRole('button', { name: 'The Ford', pressed: true });
+    expect(group('The Drowned Harbour').getByRole('button', { name: 'Show The Drowned Harbour' }).getAttribute('aria-expanded')).toBe('false');
+    expect(screen.getAllByRole('button', { name: /^Fold / }).map((b) => b.getAttribute('aria-label'))).toEqual(['Fold The Reed Marches', 'Fold Moss Landing']);
+    expect(seen).toEqual([row]);
+  });
+
+  // Purpose (the audit's finding 1): a ticked Location's row is scrolled into view, not Recently visited's copy of it.
+  it("scrolls a ticked Location's row into view", () => {
+    const seen = scrolled();
+    show(ISLE, [visited(at('wrack'))], at('wrack'));
+    expect(seen).toEqual([group('The Shingle Beach').getByRole('button', { name: '1. The Wrack Line', pressed: true })]);
+  });
+
+  // Purpose (the audit's finding 1): a place ticked past the first 40 rows of its Area is listed, to be seen.
+  it('lists a ticked place past the first 40 rows of its Area', () => {
+    const seen = scrolled();
+    const last = MARCHES.find((p) => p.entryId === 'thorn-204')!;
+    show(MARCHES, [], last);
+    const row = group('Thornwater').getByRole('button', { name: `${last.key}. Thorn hex 204`, pressed: true });
+    expect(seen).toEqual([row]);
+  });
+});
+
+/** Records the elements scrolled into view (jsdom has no scrolling of its own). */
+function scrolled(): Element[] {
+  const seen: Element[] = [];
+  Element.prototype.scrollIntoView = vi.fn(function (this: Element) {
+    seen.push(this);
+  });
+  return seen;
+}
+
+describe("Other… with no name typed (the audit's finding 3; hard rule 7)", () => {
+  // Purpose: with no name typed, Set place stays a button and a tap says why in a pop-up, and nothing is picked.
+  it('says why and picks nothing', async () => {
+    const picked = show(ISLE);
+    await userEvent.click(screen.getByRole('button', { name: 'Other… a place that isn’t listed' }));
+    await userEvent.type(screen.getByRole('textbox', { name: "A place that isn't listed" }), '   ');
+    await userEvent.click(screen.getByRole('button', { name: 'Set place' }));
+    const why = screen.getByRole('dialog', { name: "Can't set the place" });
+    expect(within(why).getByText('Type a name first.')).toBeTruthy();
+    expect(picked).toEqual([]);
+    await userEvent.click(within(why).getByRole('button', { name: /Close/ }));
+    expect(screen.queryByRole('dialog', { name: "Can't set the place" })).toBeNull();
+    expect(screen.getByRole('textbox', { name: "A place that isn't listed" })).toBeTruthy();
+  });
+
+  // Purpose: where the caller allows it (Where now?), an empty name still moves on, unnamed, with no pop-up.
+  it('moves on, unnamed, where that is allowed', async () => {
+    const picked: PickedPlace[] = [];
+    render(<PlacePickerBody places={[]} recent={[]} current={null} allowUnnamed onPick={(p) => picked.push(p)} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Other… a place that isn’t listed' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Move on, unnamed' }));
+    expect(picked).toEqual([{ kind: 'unnamed' }]);
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });
 

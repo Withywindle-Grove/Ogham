@@ -19,12 +19,13 @@
 // Undo (no accent button: every row is the action). The pack's places are a few fields of each entry, loaded once
 // per campaign (never their GM side here; the GM's device alone reads them); the tree renders only what's unfolded,
 // so about 900 places stay light on a phone. States: loading, no packs with places, nothing found, offline.
-import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Db } from '../core/supabase.ts';
 import { loadPackPlaces, type Place } from '../modules/expedition/placePlay.ts';
 import { PLACE_NAME_MAX } from '../modules/expedition/play.ts';
 import { byMapNumber, childrenOf, countUnder, holdersOfLocations, isLocation, keyedName, nearHere, packsWithPlaces, parentOf, pickablePlaces, placeOf, rootsOf, searchPlaces, wordsFor, type PackPlace } from '../modules/expedition/placeTree.ts';
 import { departAreaOf, departLocationGroups, departOpenGroup } from '../modules/expedition/sceneTop.ts';
+import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import { Dialog } from '../ui/Dialog.tsx';
 import { Icon } from '../ui/icons.tsx';
 import { Note, SkeletonRows } from '../ui/parts.tsx';
@@ -205,6 +206,13 @@ function OtherPlace({ initial, allowUnnamed, onPick, onBack }: { initial: string
   const [other, setOther] = useState(initial);
   const field = useId();
   const name = other.trim();
+  // With no name typed (and no "Move on, unnamed"), Set place stays a button and says why (hard rule 7; the audit's finding 3).
+  const blocked = useBlockedSheet();
+  const set = () => {
+    if (name) onPick({ kind: 'other', name });
+    else if (allowUnnamed) onPick({ kind: 'unnamed' });
+    else blocked.explain("Can't set the place", 'Type a name first.');
+  };
   return (
     <div className="place-pick">
       <label className="field" htmlFor={field}>
@@ -212,13 +220,14 @@ function OtherPlace({ initial, allowUnnamed, onPick, onBack }: { initial: string
         <input id={field} className="field__input place-pick__field" aria-label="A place that isn't listed" value={other} maxLength={PLACE_NAME_MAX} autoComplete="off" onChange={(e) => setOther(e.target.value)} />
       </label>
       <div className="place-pick__actions">
-        <button type="button" className="button-primary" onClick={() => (name ? onPick({ kind: 'other', name }) : allowUnnamed ? onPick({ kind: 'unnamed' }) : undefined)}>
+        <button type="button" className="button-primary" onClick={set}>
           {name ? 'Set place' : allowUnnamed ? 'Move on, unnamed' : 'Set place'}
         </button>
         <button type="button" className="button-secondary" onClick={onBack}>
           Back to the list
         </button>
       </div>
+      {blocked.sheet}
     </div>
   );
 }
@@ -298,25 +307,37 @@ export function LocationsPickerBody({
   const pickable = useMemo(() => pickablePlaces(places, holders), [places, holders]);
   const [open, setOpen] = useState<Set<string>>(() => {
     if (initialOpen) return new Set(initialOpen);
-    // The ticked place's Area, else the Area last played (`departOpenGroup`); a place ticked in a pack's tree opens
-    // the pack and the groups above it, so the tick shows (the review of #124).
-    const last = departOpenGroup(groups, places, recent, picked);
-    const start = new Set(last ? [`area:${last}`] : []);
-    if (picked && !isLocation(picked)) {
-      start.add(`pack:${picked.packId}`);
-      const seen = new Set<PackPlace>();
-      for (let up = parentOf(places, picked); up && !seen.has(up); up = parentOf(places, up)) {
-        seen.add(up);
-        start.add(`${up.packId}:${up.entryId}`);
-      }
+    // The ticked place's Area, else the Area last played (`departOpenGroup`; 06 "else"): a place ticked in a pack's
+    // tree opens the pack and the groups above it alone, so the tick shows (the review of #124; the audit's finding 1).
+    if (!picked || isLocation(picked)) {
+      const last = departOpenGroup(groups, places, recent, picked);
+      return new Set(last ? [`area:${last}`] : []);
+    }
+    const start = new Set<string>([`pack:${picked.packId}`]);
+    const seen = new Set<PackPlace>();
+    for (let up = parentOf(places, picked); up && !seen.has(up); up = parentOf(places, up)) {
+      seen.add(up);
+      start.add(`${up.packId}:${up.entryId}`);
     }
     return start;
   });
-  const [more, setMore] = useState<Set<string>>(() => new Set());
+  // A place ticked past a level's first rows shows that level whole, so its row is there to see (the audit's finding 1).
+  const [more, setMore] = useState<Set<string>>(() => {
+    if (initialOpen || !picked || isLocation(picked)) return new Set();
+    const up = parentOf(places, picked);
+    return new Set([up ? `${up.packId}:${up.entryId}` : `pack:${picked.packId}`]);
+  });
   const [query, setQuery] = useState(initialQuery);
   const [other, setOther] = useState<string | null>(null);
   const field = useId();
   const q = query.trim();
+  // Reopened, the ticked row in its group or pack's tree (not Recently visited's) is scrolled into view, the least
+  // scroll that shows it (06: "the ticked row is in view"; the audit's finding 1). Once, as the list opens.
+  const list = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const ticked = [...(list.current?.querySelectorAll<HTMLElement>('.depart-pick__row[aria-pressed="true"]') ?? [])].find((el) => !el.closest('[aria-label="Recently visited"]'));
+    ticked?.scrollIntoView?.({ block: 'nearest' });
+  }, []);
   // Every place found, so the count is right past the rows listed (the review of #124).
   const found = useMemo(() => (q ? searchPlaces(pickable, q, Infinity) : []), [pickable, q]);
   const results = found.slice(0, FOUND_ROWS);
@@ -403,7 +424,7 @@ export function LocationsPickerBody({
   });
 
   return (
-    <div className="depart-pick">
+    <div className="depart-pick" ref={list}>
       <label className="field" htmlFor={field}>
         <span className="label">Search places by name or map number</span>
         <input id={field} className="field__input place-pick__field" aria-label="Search places by name or map number" value={query} autoComplete="off" onChange={(e) => setQuery(e.target.value)} />

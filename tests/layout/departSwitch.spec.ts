@@ -148,3 +148,69 @@ for (const width of [375, 1024] as const) {
     });
   }
 }
+
+// The Depart list reopened, and Other… with no name (sf-2; the audit's findings 1 and 3). On a phone's and a tablet's
+// own height, so a row low in the list is off screen unless it is brought into view. What it checks, in plain words:
+//   * reopened after a pack's place is picked, the list opens that place's pack and Area only (not the Area last
+//     played as well: 06 "else"), and the ticked row is on screen;
+//   * Other… with no name typed: Set place stays a button and a tap says why in a pop-up; closing it leaves the typed-
+//     name step and the list open, and nothing picked; axe finds no serious problem.
+for (const [width, height] of [[375, 667], [1024, 768]] as const) {
+  for (const scheme of ['light', 'dark'] as const) {
+    test.describe(`the Depart list reopened (${width} px, ${scheme})`, () => {
+      test.use({ viewport: { width, height }, colorScheme: scheme, reducedMotion: 'reduce' });
+
+      // Purpose (the audit's finding 1): reopened, only the ticked place's pack and Area are open, its row on screen.
+      test("a pack's place, ticked and in view", async ({ page }) => {
+        const picker = await openDepartWhere(page, 'marches');
+        await picker.getByRole('button', { name: 'Show The Reed Marches' }).click();
+        await picker.getByRole('button', { name: 'Show Moss Landing' }).click();
+        await picker.getByRole('button', { name: 'The Ford', exact: true }).click();
+        const sheet = page.getByRole('dialog', { name: /Depart$/ });
+        await sheet.getByRole('button', { name: 'Where?: The Ford' }).click();
+        const again = page.getByRole('dialog', { name: /Where\?$/ });
+        await again.getByRole('textbox', { name: 'Search places by name or map number' }).waitFor();
+        await expect(again.getByRole('button', { name: 'Show The Drowned Harbour', exact: true })).toBeVisible();
+        await expect(again.locator('.depart-pick__fold[aria-expanded="true"]')).toHaveCount(2);
+        await expect(again.getByRole('region', { name: 'Moss Landing', exact: true }).getByRole('button', { name: 'The Ford', pressed: true })).toBeInViewport();
+        await page.screenshot({ path: `test-results/layout-screens/depart-list-reopened-${width}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+
+        // A place low in a long Area (Thornwater's 45th, past its first 40 rows): listed, ticked and brought on screen.
+        await again.getByRole('textbox', { name: 'Search places by name or map number' }).fill('reach 45');
+        await again.getByRole('button', { name: '1044. Thornwater reach 45' }).click();
+        await sheet.getByRole('button', { name: 'Where?: 1044. Thornwater reach 45' }).click();
+        const third = page.getByRole('dialog', { name: /Where\?$/ });
+        await third.getByRole('textbox', { name: 'Search places by name or map number' }).waitFor();
+        await expect(third.getByRole('button', { name: 'Show The Drowned Harbour', exact: true })).toBeVisible();
+        await expect(third.getByRole('button', { name: /^Show \d+ more/ })).toHaveCount(0);
+        await expect(third.getByRole('region', { name: 'Thornwater', exact: true }).getByRole('button', { name: '1044. Thornwater reach 45', pressed: true })).toBeInViewport();
+        await page.screenshot({ path: `test-results/layout-screens/depart-list-reopened-long-${width}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+      });
+
+      // Purpose (the audit's finding 3; hard rule 7): with no name typed, Set place says why and picks nothing.
+      test('Set place with no name says why', async ({ page }) => {
+        const picker = await openDepartWhere(page, 'isle');
+        await picker.getByRole('button', { name: /^Other… a place/ }).click();
+        await picker.getByRole('button', { name: 'Set place' }).click();
+        const why = page.getByRole('dialog', { name: "Can't set the place" });
+        await expect(why).toBeVisible();
+        await expect(why.getByText('Type a name first.')).toBeVisible();
+        await page.screenshot({ path: `test-results/layout-screens/depart-other-empty-${width}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+        await page.keyboard.press('Escape');
+        await expect(why).toHaveCount(0);
+        await expect(picker.getByRole('textbox', { name: "A place that isn't listed" })).toBeVisible();
+        await picker.getByRole('button', { name: 'Set place' }).click();
+        await why.getByRole('button', { name: /Close/ }).click();
+        await expect(why).toHaveCount(0);
+        await expect(picker.getByRole('textbox', { name: "A place that isn't listed" })).toBeVisible();
+        await picker.getByRole('button', { name: 'Back to the list' }).click();
+        await picker.getByRole('button', { name: 'Close' }).click();
+        await expect(page.getByRole('dialog', { name: /Depart$/ }).getByRole('button', { name: 'Where?: Pick a Location' })).toBeVisible();
+      });
+    });
+  }
+}
