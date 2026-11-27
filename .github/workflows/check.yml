@@ -319,6 +319,17 @@ jobs:
       matrix:
         shard: [1, 2, 3]
     steps:
+      # retro-3 (2026-11-27): on GitHub's fresh machines 6 of 196 shards failed to bind 54322 ("address already in
+      # use") seconds after `supabase start` had pulled its images, though nothing listened there a moment before.
+      # 54322 sits inside Linux's range for outgoing connections' own ports (32768-60999), so most likely one of the
+      # many downloads (npm ci, the image pulls) was given 54322 as its local port. Reserving the Supabase ports
+      # keeps outgoing connections off them; it only affects connections opened afterwards, so it runs first.
+      # GitHub's machines only: the PC's kernel settings are not the workflow's to change.
+      - name: Keep the Supabase ports out of the outgoing range
+        if: runner.environment == 'github-hosted'
+        run: |
+          echo "Outgoing port range: $(cat /proc/sys/net/ipv4/ip_local_port_range)"
+          sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329 || echo "::warning::Couldn't reserve ports 54320-54329."
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
@@ -329,23 +340,44 @@ jobs:
       # logs, the mail catcher and the pooler aren't needed by the tests; auth, the API, storage (portraits,
       # sigils), realtime and the database stay. It applies every migration in supabase/migrations.
       # Its closing table of addresses and keys (stdout) is dropped to keep the log clean; progress and
-      # errors (stderr) still show.
+      # errors (stderr) are printed after each try.
       # On the self-hosted runner (docs/plans/ci-self-hosted-runner.md) the machine is reused, so a run that crashed
-      # can leave a Supabase behind on the fixed ports: stop it first. Harmless on GitHub's fresh machines.
+      # can leave a Supabase behind on the fixed ports: stop it first.
       # Docker can hold a port for a moment after the containers go (seen on the PC: "54322 address already in use"),
-      # so remove any leftover Supabase container and wait up to a minute for the database port to come free.
+      # so remove any leftover Supabase container and wait up to a minute for the database port to come free. The
+      # wait looks at every socket on 54322, not only listening ones (an outgoing connection's port blocks it too),
+      # and after a minute it says what holds the port and goes on to the start, whose retries decide.
       - name: Stop a Supabase a crashed run left behind
         run: |
           npx supabase stop --no-backup || true
           docker ps -aq --filter name=supabase_ | xargs -r docker rm -f > /dev/null || true
           for i in $(seq 1 30); do
-            if ! (ss -ltn 2>/dev/null || true) | grep -q ':54322 '; then exit 0; fi
+            if [ -z "$(ss -Htan 'sport = :54322' 2>/dev/null || true)" ]; then exit 0; fi
             sleep 2
           done
-          echo "::error::Port 54322 is still in use after a minute; something outside Supabase holds it."
-          exit 1
+          echo "::warning::Port 54322 is still held after a minute; what holds it:"
+          (sudo -n ss -tanp 'sport = :54322' 2>/dev/null || ss -tan 'sport = :54322') || true
+      # A start that fails only because 54322 is taken is tried again, up to three times in all, printing what held
+      # the port each time; any other failure (a migration that doesn't apply, say) fails at once. The images are
+      # pulled by then, so a retry costs seconds, and only on a failure.
       - name: Start a local Supabase
-        run: npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta > /dev/null
+        run: |
+          err="$RUNNER_TEMP/supabase-start.err"
+          for attempt in 1 2 3; do
+            if npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta > /dev/null 2> "$err"; then
+              cat "$err" >&2
+              exit 0
+            fi
+            cat "$err" >&2
+            if ! grep -q 'address already in use' "$err"; then exit 1; fi
+            echo "::warning::Supabase couldn't bind its port (try $attempt of 3). What held 54322:"
+            (sudo -n ss -tanp 'sport = :54322' 2>/dev/null || ss -tan 'sport = :54322') || true
+            docker ps -a || true
+            npx supabase stop --no-backup || true
+            sleep 5
+          done
+          echo "::error::Supabase couldn't bind its port after three tries; the lines above show what held 54322."
+          exit 1
       - name: Point the tests at it
         run: |
           status=$(npx supabase status -o env)
