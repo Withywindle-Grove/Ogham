@@ -143,8 +143,8 @@ describe('every worked-out figure has its breakdown (ct3-9, 2026-11-03)', () => 
     // Purpose: each movement figure says the speed it starts from and the sum that gives it; a sum that leaves a
     // fraction (20 / 3) says "(rounded down)", as the tablet's Movement breakdown does (07 Formulas, 05), and one
     // that comes out whole (20 × 3) doesn't.
-    expect(explainFigure('movement', input, ctx)).toEqual(["Speed 20: Stone kin's own."]);
-    expect(explainFigure('movement.exploration', input, ctx)).toEqual(["Speed 20: Stone kin's own.", 'Exploring: speed × 3 = 60.']);
+    expect(explainFigure('movement', input, ctx)).toEqual(["Speed 20: Stone kin’s own."]);
+    expect(explainFigure('movement.exploration', input, ctx)).toEqual(["Speed 20: Stone kin’s own.", 'Exploring: speed × 3 = 60.']);
     expect(explainFigure('movement.combat', input, ctx)[1]).toBe('In a fight: speed / 3 = 6 ft per round (rounded down).');
   });
 

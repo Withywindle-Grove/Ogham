@@ -7,6 +7,7 @@
 import { classAlignmentLimit, type AlignmentLimit } from '../library/classLimits.ts';
 import type { SpecialApproval } from './creationSteps.ts';
 import { alignmentRequirement } from './whoTheyAre.ts';
+import { possessive } from '../../core/nameWords.ts';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
@@ -389,7 +390,7 @@ export const garbItemIds = (patron: Patron, spellLevel: number): string[] => gar
 export const garbWordsById = (patron: Patron, spellLevel: number): Map<string, string> => new Map(garbReached(patron, spellLevel).flatMap((tier) => tier.itemIds.map((id) => [id, tier.text || id] as const)));
 
 /** The line a step shows for a garb item no attached pack has on this device: named, never dropped silently. */
-export const garbMissingLine = (patronName: string, words: string): string => `${patronName}'s garb “${words}” isn't in the setting rules this device can read, so it isn't in your pack. Ask your GM to add it.`;
+export const garbMissingLine = (patronName: string, words: string): string => `${possessive(patronName)} garb “${words}” isn't in the setting rules this device can read, so it isn't in your pack. Ask your GM to add it.`;
 
 /** The marks reached at this spell level: one sheet line each. Dice or modifiers in a mark's words are played by hand. */
 export const marksReached = (patron: Patron, spellLevel: number): PatronMark[] => patron.marks.filter((mark) => mark.atSpellLevel <= spellLevel);

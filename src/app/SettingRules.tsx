@@ -40,6 +40,7 @@ import { SettingRulesPack, type LayoutOffer, type Layouts, type PackNeeds } from
 import './SettingRules.css';
 import { useLogVersion } from './campaignLog.tsx';
 import { ErrorToast, NoticeToast } from '../ui/ToastHost.tsx';
+import { possessive } from '../core/nameWords.ts';
 
 // GM: Campaign → Setting rules. The packs this campaign uses (newest on top, one SettingRulesPack each: its
 // optional rules, updating from a newer file, removing it from the campaign); adding more from your library or by
@@ -188,8 +189,8 @@ export function SettingRules({
     setProblem(null);
     setNotice(
       result.value === 0
-        ? `Nothing to add: the campaign already has every field in ${layoutFor.name}'s sheet layout.`
-        : `${result.value === 1 ? 'One field was' : `${result.value} fields were`} added from ${layoutFor.name}'s sheet layout.`,
+        ? `Nothing to add: the campaign already has every field in ${possessive(layoutFor.name)} sheet layout.`
+        : `${result.value === 1 ? 'One field was' : `${result.value} fields were`} added from ${possessive(layoutFor.name)} sheet layout.`,
     );
     setFieldsVersion((v) => v + 1);
     onFieldsChanged?.();
@@ -379,7 +380,7 @@ export function SettingRules({
       ) : afterEdit.exception ? (
         <>
           <p>
-            An exception uses {afterEdit.exception.name}’s version of <strong>{afterEdit.name}</strong>. Use your edit instead?
+            An exception uses {possessive(afterEdit.exception.name)} version of <strong>{afterEdit.name}</strong>. Use your edit instead?
           </p>
           <div className="setting-rules__actions">
             <button

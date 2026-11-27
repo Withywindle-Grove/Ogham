@@ -45,10 +45,10 @@ const say = (...events: LogEvent[]) => describeEntry(groupEntries(events)[0]!, n
 describe('log lines in plain words', () => {
   it('HP changes say the new value and the old one, and "You" for the person reading', () => {
     expect(say(event('character.setHp', { actorUserId: 'user-sam', before: { hp_current: 11 }, after: { hp_current: 9 } }))).toBe(
-      "You set Wren's HP to 9 (was 11).",
+      "You set Wren’s HP to 9 (was 11).",
     );
     expect(say(event('character.setHp', { before: { hp_current: null }, after: { hp_current: 13 } }))).toBe(
-      "Priya set Wren's HP to 13 (was full).",
+      "Priya set Wren’s HP to 13 (was full).",
     );
   });
 
@@ -75,9 +75,9 @@ describe('log lines in plain words', () => {
 
   it('an AC set by hand says the number, and clearing it says what it was (ruled 2026-10-29)', () => {
     const play = { targetTable: 'character_play' };
-    expect(say(event('character.setAc', { ...play, before: { ac_override: null }, after: { ac_override: -2 } }))).toBe("Priya set Wren's AC to −2 by hand.");
-    expect(say(event('character.setAc', { ...play, before: { ac_override: 14 }, after: { ac_override: null } }))).toBe("Priya cleared Wren's AC set by hand (was 14).");
-    expect(say(event('character.setAc', { ...play, before: null, after: { ac_override: 0 } }))).toBe("Priya set Wren's AC to 0 by hand.");
+    expect(say(event('character.setAc', { ...play, before: { ac_override: null }, after: { ac_override: -2 } }))).toBe("Priya set Wren’s AC to −2 by hand.");
+    expect(say(event('character.setAc', { ...play, before: { ac_override: 14 }, after: { ac_override: null } }))).toBe("Priya cleared Wren’s AC set by hand (was 14).");
+    expect(say(event('character.setAc', { ...play, before: null, after: { ac_override: 0 } }))).toBe("Priya set Wren’s AC to 0 by hand.");
   });
 
   // Purpose: the magic state's log lines (dec-8 piece A) say what was chosen for the next rest, which spell was cast or
@@ -87,21 +87,21 @@ describe('log lines in plain words', () => {
     const withSpells: LogNames = { ...names, spells: new Map([['mire-lamp', 'Mire lamp']]) };
     const sayS = (...events: LogEvent[]) => describeEntry(groupEntries(events)[0]!, withSpells);
     expect(say(event('character.chooseSpells', { ...play, before: { chosen: null }, after: { chosen: [{ spell: 'a', level: 1 }, { spell: 'b', level: 1 }] } }))).toBe(
-      "Priya chose 2 spells for Wren's next rest.",
+      "Priya chose 2 spells for Wren’s next rest.",
     );
-    expect(say(event('character.chooseSpells', { ...play, before: { chosen: [] }, after: { chosen: null } }))).toBe("Priya cleared Wren's spells chosen for the next rest.");
+    expect(say(event('character.chooseSpells', { ...play, before: { chosen: [] }, after: { chosen: null } }))).toBe("Priya cleared Wren’s spells chosen for the next rest.");
     // The log says which it was (fsr-10): a choice made while the first spells are open became ready, and says so;
     // on a new row too; a clear that made the row is still a clear.
     expect(say(event('character.chooseSpells', { ...play, before: { prepared: [] }, after: { prepared: [{ spell: 'a', level: 1 }, { spell: 'b', level: 1 }] } }))).toBe(
       'Priya chose 2 spells for Wren, ready at once.',
     );
     expect(say(event('character.chooseSpells', { ...play, before: null, after: { prepared: [{ spell: 'a', level: 1 }], chosen: null } }))).toBe('Priya chose 1 spell for Wren, ready at once.');
-    expect(say(event('character.chooseSpells', { ...play, before: null, after: { prepared: [], chosen: null } }))).toBe("Priya cleared Wren's spells chosen for the next rest.");
+    expect(say(event('character.chooseSpells', { ...play, before: null, after: { prepared: [], chosen: null } }))).toBe("Priya cleared Wren’s spells chosen for the next rest.");
     // Taking out the last ready spell while they are open empties the list: the line says so, never "chose 0 spells".
     expect(say(event('character.chooseSpells', { ...play, before: { prepared: [{ spell: 'a', level: 1 }] }, after: { prepared: [] } }))).toBe(
       'Priya left Wren with no spells ready.',
     );
-    expect(say(event('character.sameAsYesterday', { ...play, before: { chosen: null }, after: { chosen: [] } }))).toBe("Priya chose the same spells as yesterday for Wren's next rest.");
+    expect(say(event('character.sameAsYesterday', { ...play, before: { chosen: null }, after: { chosen: [] } }))).toBe("Priya chose the same spells as yesterday for Wren’s next rest.");
     expect(sayS(event('character.castSpell', { ...play, before: { spells_cast: {} }, after: { spells_cast: { '1:mire-lamp': 1 } } }))).toBe('Priya cast Mire lamp for Wren.');
     expect(say(event('character.castSpell', { ...play, before: { spells_cast: { '2:fog-ring': 1 } }, after: { spells_cast: { '2:fog-ring': 2 } } }))).toBe('Priya cast a level 2 spell for Wren.');
     expect(sayS(event('character.uncastSpell', { ...play, before: { spells_cast: { '1:mire-lamp': 1 } }, after: { spells_cast: {} } }))).toBe('Priya took back a cast of Mire lamp for Wren.');
@@ -112,19 +112,19 @@ describe('log lines in plain words', () => {
     // A move in the player's order (euf-4; its own command, the detailed log) names the pin that was moved, and which
     // way, the review's finding 1 on #23: never a neighbour it passed.
     const three = [{ kind: 'trait', key: 'Night eyes' }, { kind: 'trait', key: 'Fen sight' }, { kind: 'trait', key: 'Horn charge' }];
-    expect(say(event('character.movePin', { ...play, before: { pins: three }, after: { pins: [three[2], three[0], three[1]] } }))).toBe("Priya moved Horn charge up in Wren's pins.");
-    expect(say(event('character.movePin', { ...play, before: { pins: three }, after: { pins: [three[1], three[2], three[0]] } }))).toBe("Priya moved Night eyes down in Wren's pins.");
+    expect(say(event('character.movePin', { ...play, before: { pins: three }, after: { pins: [three[2], three[0], three[1]] } }))).toBe("Priya moved Horn charge up in Wren’s pins.");
+    expect(say(event('character.movePin', { ...play, before: { pins: three }, after: { pins: [three[1], three[2], three[0]] } }))).toBe("Priya moved Night eyes down in Wren’s pins.");
     // Moved by one place it and its neighbour swap, and the lists can't say which was moved: both are named.
-    expect(say(event('character.movePin', { ...play, before: { pins: three }, after: { pins: [three[0], three[2], three[1]] } }))).toBe("Priya swapped Horn charge and Fen sight in Wren's pins.");
-    expect(say(event('character.setSpells', { ...play, before: { prepared: [] }, after: { prepared: [{ spell: 'a', level: 1 }] } }))).toBe("Priya changed Wren's spells.");
+    expect(say(event('character.movePin', { ...play, before: { pins: three }, after: { pins: [three[0], three[2], three[1]] } }))).toBe("Priya swapped Horn charge and Fen sight in Wren’s pins.");
+    expect(say(event('character.setSpells', { ...play, before: { prepared: [] }, after: { prepared: [{ spell: 'a', level: 1 }] } }))).toBe("Priya changed Wren’s spells.");
   });
 
   it('an undo says what was put back', () => {
     expect(say(event('event.undo', { actorUserId: 'user-sam', before: { hp_current: 10 }, after: { hp_current: 11 }, revertsEventId: 'event-x' }))).toBe(
-      "You undid a change to Wren's HP (back to 11).",
+      "You undid a change to Wren’s HP (back to 11).",
     );
     expect(say(event('event.undo', { before: { approval: 'approved' }, after: { approval: 'pending' }, revertsEventId: 'event-y' }))).toBe(
-      "Priya undid a change to Wren's approval.",
+      "Priya undid a change to Wren’s approval.",
     );
     expect(say(event('event.undo', { targetTable: 'campaigns', before: { name: 'B' }, after: { name: 'A' }, revertsEventId: 'event-z' }))).toBe(
       'Priya undid a change to the campaign.',
@@ -142,7 +142,7 @@ describe('log lines in plain words', () => {
   it('a name ending in s takes just an apostrophe', () => {
     const wardens = { ...names, characters: new Map([['actor-wren', 'Wren of the Wardens']]) };
     const line = groupEntries([event('character.setHp', { before: { hp_current: 2 }, after: { hp_current: 1 } })])[0]!;
-    expect(describeEntry(line, wardens)).toBe("Priya set Wren of the Wardens' HP to 1 (was 2).");
+    expect(describeEntry(line, wardens)).toBe("Priya set Wren of the Wardens’ HP to 1 (was 2).");
   });
 
   it('approving, sending back and editing a character', () => {
@@ -153,21 +153,21 @@ describe('log lines in plain words', () => {
       'Priya sent Wren back.',
     );
     expect(say(event('character.edit', { actorUserId: 'user-jo', targetId: 'actor-ash', before: { notes: '', level: 2 }, after: { notes: 'Hi', level: 3 } }))).toBe(
-      "Jo edited Ash's level and notes.",
+      "Jo edited Ash’s level and notes.",
     );
   });
 
   // M5b step 0c: an alignment change is its own row (the character's line still), the spell book, and Ask the GM to allow it.
   it('words an alignment change and a spell book set', () => {
     expect(say(event('character.edit', { actorUserId: 'user-jo', targetTable: 'character_alignments', targetId: 'actor-ash', before: { alignment: 'Reed' }, after: { alignment: 'Mire' } }))).toBe(
-      "Jo edited Ash's alignment.",
+      "Jo edited Ash’s alignment.",
     );
-    expect(say(event('creation.spellBook.set', { actorUserId: 'user-jo', targetId: 'actor-ash', before: { spell_book: [] }, after: { spell_book: ['glimmer'] } }))).toBe("Jo set Ash's spell book.");
+    expect(say(event('creation.spellBook.set', { actorUserId: 'user-jo', targetId: 'actor-ash', before: { spell_book: [] }, after: { spell_book: ['glimmer'] } }))).toBe("Jo set Ash’s spell book.");
   });
 
   // G-208: a change to the expertise points names them in the log, not a bare "edited".
   it('words an expertise change', () => {
-    expect(say(event('character.edit', { actorUserId: 'user-jo', targetId: 'actor-ash', before: { expertise: {} }, after: { expertise: { 'work-locks': 1 } } }))).toBe("Jo edited Ash's expertise.");
+    expect(say(event('character.edit', { actorUserId: 'user-jo', targetId: 'actor-ash', before: { expertise: {} }, after: { expertise: { 'work-locks': 1 } } }))).toBe("Jo edited Ash’s expertise.");
   });
 
   it("uses the name kept in a deleted or renamed thing's record", () => {
@@ -375,7 +375,7 @@ describe('inventory lines in the log (M4)', () => {
   });
 
   it('says what was used up, counted, equipped and moved, by the item’s name', () => {
-    expect(line('inventory.remove', { before: { name: 'Hooded lantern', qty: 1, actor_id: 'actor-wren', location_id: null }, after: null })).toBe("Priya dropped Hooded lantern from Wren's pack.");
+    expect(line('inventory.remove', { before: { name: 'Hooded lantern', qty: 1, actor_id: 'actor-wren', location_id: null }, after: null })).toBe("Priya dropped Hooded lantern from Wren’s pack.");
     expect(line('inventory.remove', { before: { qty: 6 }, after: { qty: 4 } })).toBe('Priya dropped 2 of Hooded lantern (4 left).');
     expect(line('inventory.setQty', { level: 'verbose', before: { qty: 3 }, after: { qty: 2 } })).toBe('Priya set Hooded lantern to 2 (was 3).');
     expect(line('inventory.equip', { before: { equipped: false }, after: { equipped: true } })).toBe('Priya equipped Hooded lantern.');
@@ -404,29 +404,29 @@ describe('lights in the log (M5 step 7)', () => {
   const lit = { targetTable: 'character_lights', targetId: 'light-wren' };
 
   it('lighting, putting out, Keep lit and Refill name the light with its character', () => {
-    expect(sayL(event('light.light', { ...lit, actorUserId: 'user-sam', before: { lit_at: null }, after: { lit_at: 0 } }))).toBe("You lit Wren's rushlight.");
-    expect(sayL(event('light.douse', { ...lit, before: { lit_at: 0 }, after: { lit_at: null, left_seconds: 600 } }))).toBe("Priya put out Wren's rushlight.");
-    expect(sayL(event('light.keepLit', { ...lit, before: { keep_lit: false }, after: { keep_lit: true } }))).toBe("Priya switched Keep lit on for Wren's rushlight.");
-    expect(sayL(event('light.refill', { targetTable: 'character_lights', targetId: 'light-ash', before: { lit_at: null }, after: { lit_at: 2400 } }))).toBe("Priya refilled Ash's reed lamp.");
+    expect(sayL(event('light.light', { ...lit, actorUserId: 'user-sam', before: { lit_at: null }, after: { lit_at: 0 } }))).toBe("You lit Wren’s rushlight.");
+    expect(sayL(event('light.douse', { ...lit, before: { lit_at: 0 }, after: { lit_at: null, left_seconds: 600 } }))).toBe("Priya put out Wren’s rushlight.");
+    expect(sayL(event('light.keepLit', { ...lit, before: { keep_lit: false }, after: { keep_lit: true } }))).toBe("Priya switched Keep lit on for Wren’s rushlight.");
+    expect(sayL(event('light.refill', { targetTable: 'character_lights', targetId: 'light-ash', before: { lit_at: null }, after: { lit_at: 2400 } }))).toBe("Priya refilled Ash’s reed lamp.");
   });
 
   it("a burnout in the Simple log (the routine Next turn that caused it isn't shown) says what burnt out", () => {
     const requestId = 'request-burn';
     const used = event('light.burnOut', { targetTable: 'inventory_lines', targetId: 'line-rush', requestId, before: { qty: 2 }, after: { qty: 1 } });
     const out = event('light.burnOut', { ...lit, requestId, before: { lit_at: 0, out_at: null }, after: { lit_at: null, out_at: 3600 } });
-    expect(sayL(used, out)).toBe("Wren's rushlight burnt out.");
+    expect(sayL(used, out)).toBe("Wren’s rushlight burnt out.");
     const relit = event('light.burnOut', { targetTable: 'character_lights', targetId: 'light-ash', requestId, before: { lit_at: 0 }, after: { lit_at: 2400 } });
-    expect(sayL(used, out, relit)).toBe("Wren's rushlight burnt out. Keep lit lit another: Ash's reed lamp.");
+    expect(sayL(used, out, relit)).toBe("Wren’s rushlight burnt out. Keep lit lit another: Ash’s reed lamp.");
   });
 
   it('a time move that burnt lights out joins them to its own line: "Ran out with the clock: …" (05, Set time…)', () => {
     const requestId = 'request-set';
     const clock = event('time.set', { targetTable: 'campaign_clocks', targetId: 'clock-1', requestId, before: { seconds: 0 }, after: { seconds: 4200 } });
     const out = event('light.burnOut', { ...lit, requestId, before: { lit_at: 0, out_at: null }, after: { lit_at: null, out_at: 3600 } });
-    expect(sayL(clock, out)).toBe("Priya set the clock on 1 hour 10 minutes (a correction). Ran out with the clock: Wren's rushlight.");
+    expect(sayL(clock, out)).toBe("Priya set the clock on 1 hour 10 minutes (a correction). Ran out with the clock: Wren’s rushlight.");
     const turn = event('time.advance', { targetTable: 'campaign_clocks', targetId: 'clock-1', requestId: 'request-turn', before: { seconds: 3000 }, after: { seconds: 3600 } });
     const outToo = event('light.burnOut', { ...lit, requestId: 'request-turn', before: { lit_at: 0, out_at: null }, after: { lit_at: null, out_at: 3600 } });
-    expect(sayL(turn, outToo)).toBe("Priya moved the clock on 10 minutes. Ran out with the clock: Wren's rushlight.");
+    expect(sayL(turn, outToo)).toBe("Priya moved the clock on 10 minutes. Ran out with the clock: Wren’s rushlight.");
     expect(sayL(event('time.advance', { targetTable: 'campaign_clocks', targetId: 'clock-1', before: { seconds: 0 }, after: { seconds: 600 } }))).toBe('Priya moved the clock on 10 minutes.');
   });
 
@@ -521,7 +521,7 @@ describe('party groups in the log (M5 step 8, DG14)', () => {
   });
 
   it('the move that leaves one group says the party is together again', () => {
-    // Wren joined Ash's group 2, the only one left, so the database put everyone back in the party.
+    // Wren joined Ash’s group 2, the only one left, so the database put everyone back in the party.
     expect(say(member('actor-wren', 1, 2, 'r-last'), member('actor-wren', 2, 1, 'r-last'), member('actor-ash', 2, 1, 'r-last'))).toBe(
       'Priya put Wren with the others: the party is together again.',
     );
@@ -793,8 +793,8 @@ describe('sheet changes in plain words (plan m5b-sheet-revised B)', () => {
 
   // Purpose: asking reads as the player asking the GM, with both figures.
   it('sheet.requestChange says who asked the GM for what, from and to', () => {
-    expect(say(change('sheet.requestChange', null, asked))).toBe("You asked the GM to change Wren's Muscle from 16 to 17.");
-    expect(say(change('sheet.requestChange', null, { ...asked, field: 'hpMax', label: 'Max HP', from_value: 6, to_value: 8 }, { actorUserId: 'user-jo' }))).toBe("Jo asked the GM to change Wren's Max HP from 6 to 8.");
+    expect(say(change('sheet.requestChange', null, asked))).toBe("You asked the GM to change Wren’s Muscle from 16 to 17.");
+    expect(say(change('sheet.requestChange', null, { ...asked, field: 'hpMax', label: 'Max HP', from_value: 6, to_value: 8 }, { actorUserId: 'user-jo' }))).toBe("Jo asked the GM to change Wren’s Max HP from 6 to 8.");
   });
 
   // Purpose: a new ask for a figure that already waits takes the old one back in the same request; the line is the ask.
@@ -802,17 +802,17 @@ describe('sheet changes in plain words (plan m5b-sheet-revised B)', () => {
     const request = 'request-again';
     const withdrawn = change('sheet.requestChange', { status: 'waiting' }, { status: 'withdrawn' }, { requestId: request });
     const again = change('sheet.requestChange', null, { ...asked, to_value: 18 }, { targetId: 'change-2', requestId: request });
-    expect(say(withdrawn, again)).toBe("You asked the GM to change Wren's Muscle from 16 to 18.");
+    expect(say(withdrawn, again)).toBe("You asked the GM to change Wren’s Muscle from 16 to 18.");
   });
 
   // Purpose: taking back, approving and refusing each read as the act, with the figure and (for a refusal) the reason.
   it('take back, approve and refuse name the figure; a refusal keeps the reason', () => {
-    expect(say(change('sheet.takeBackChange', { status: 'waiting' }, { ...asked, status: 'withdrawn' }))).toBe("You took back the change to Wren's Muscle.");
-    expect(say(change('sheet.approveChange', { status: 'waiting' }, { ...asked, status: 'approved' }, { actorUserId: 'user-priya' }))).toBe("Priya approved Wren's Muscle 17.");
+    expect(say(change('sheet.takeBackChange', { status: 'waiting' }, { ...asked, status: 'withdrawn' }))).toBe("You took back the change to Wren’s Muscle.");
+    expect(say(change('sheet.approveChange', { status: 'waiting' }, { ...asked, status: 'approved' }, { actorUserId: 'user-priya' }))).toBe("Priya approved Wren’s Muscle 17.");
     expect(say(change('sheet.refuseChange', { status: 'waiting' }, { ...asked, status: 'refused', reason: 'Not yet, you have not levelled.' }, { actorUserId: 'user-priya' }))).toBe(
-      "Priya refused Wren's Muscle 17: “Not yet, you have not levelled.”.",
+      "Priya refused Wren’s Muscle 17: “Not yet, you have not levelled.”.",
     );
-    expect(say(change('sheet.refuseChange', { status: 'waiting' }, { ...asked, status: 'refused' }, { actorUserId: 'user-priya' }))).toBe("Priya refused Wren's Muscle 17.");
+    expect(say(change('sheet.refuseChange', { status: 'waiting' }, { ...asked, status: 'refused' }, { actorUserId: 'user-priya' }))).toBe("Priya refused Wren’s Muscle 17.");
   });
 
   // Purpose: the database logs only the columns an update changes, so an answer's event carries the status and no
@@ -820,7 +820,7 @@ describe('sheet changes in plain words (plan m5b-sheet-revised B)', () => {
   it('an answer logged as the database logs it (changed columns only) still names the figure', () => {
     const answered = change('sheet.approveChange', { status: 'waiting' }, { status: 'approved' }, { actorUserId: 'user-priya' });
     const withChanges: LogNames = { ...names, sheetChanges: new Map([['change-1', { actorId: 'actor-wren', label: 'Muscle', to: 17 }]]) };
-    expect(describeEntry(groupEntries([answered])[0]!, withChanges)).toBe("Priya approved Wren's Muscle 17.");
+    expect(describeEntry(groupEntries([answered])[0]!, withChanges)).toBe("Priya approved Wren’s Muscle 17.");
   });
 });
 
@@ -849,7 +849,7 @@ describe('purse lines', () => {
     const from = line('purse.take', 'user-priya', 'purse-wren', 30, 20, 'req-gm-move', 'with:actor-moss');
     const to = line('purse.take', 'user-priya', 'purse-moss', 0, 10, 'req-gm-move', 'with:actor-wren');
     expect(read([from, to])).toBe('Your GM moved 10 herons from Wren to Moss.');
-    // Wren's player reads only Wren's side, Moss's player only Moss's: the same line.
+    // Wren’s player reads only Wren’s side, Moss's player only Moss's: the same line.
     expect(read([from], { purses: new Map([['purse-wren', { actorId: 'actor-wren' }]]) })).toBe('Your GM moved 10 herons from Wren to Moss.');
     expect(read([to], { purses: new Map([['purse-moss', { actorId: 'actor-moss' }]]) })).toBe('Your GM moved 10 herons from Wren to Moss.');
   });

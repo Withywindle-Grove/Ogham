@@ -45,8 +45,8 @@ describe("Prepare's words", () => {
   });
 
   it("names whose next rest it is, with the apostrophe alone after a name ending in s", () => {
-    expect(forLine('Wren', 'Nothing is ready today.')).toBe("For Wren's next rest. Nothing is ready today.");
-    expect(forLine('Wren of the Lantern Wardens', 'Nothing is ready today.')).toBe("For Wren of the Lantern Wardens' next rest. Nothing is ready today.");
+    expect(forLine('Wren', 'Nothing is ready today.')).toBe("For Wren’s next rest. Nothing is ready today.");
+    expect(forLine('Wren of the Lantern Wardens', 'Nothing is ready today.')).toBe("For Wren of the Lantern Wardens’ next rest. Nothing is ready today.");
   });
 });
 

@@ -8,6 +8,7 @@ import { rollDie, type RollSides } from '../library/rolls.ts';
 import { hpModifierOf } from './guidance.ts';
 import { skillOdds } from './skillOdds.ts';
 import { columnKinds, modifierCells, signedNumber, type ColumnKind } from './modifierColumns.ts';
+import { possessive } from '../../core/nameWords.ts';
 
 type Value = Filled[string];
 
@@ -293,7 +294,7 @@ export function explainFigure(name: string, input: Explaining, ctx: FigureContex
   } else if (head === 'movement') {
     const speed = num(input.filled['movement.speed']);
     const raceSpeed = num(input.race?.speed);
-    const speedLine = speed === null ? '' : raceSpeed !== null ? `Speed ${speed}: ${input.raceName ?? 'your race'}'s own.` : `Speed ${speed}: the base speed for everyone in your setting.`;
+    const speedLine = speed === null ? '' : raceSpeed !== null ? `Speed ${speed}: ${possessive(input.raceName ?? 'your race')} own.` : `Speed ${speed}: the base speed for everyone in your setting.`;
     const movement = isRecord(rules.movement) ? rules.movement : {};
     const formula = key ? movement[key] : undefined;
     const words = typeof formula === 'string' ? formula : isRecord(formula) && typeof formula.formula === 'string' ? formula.formula : '';

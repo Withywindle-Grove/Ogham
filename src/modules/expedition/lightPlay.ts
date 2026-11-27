@@ -10,6 +10,7 @@ import type { Db } from '../../core/supabase.ts';
 import type { InventoryLine } from '../inventory/inventory.ts';
 import { unitName, type TimeUnits } from './clock.ts';
 import { leftIn, lightNow, readLightType, type Lit, type LightType } from './light.ts';
+import { possessive } from '../../core/nameWords.ts';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const numOrNull = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) ? value : null);
@@ -71,7 +72,7 @@ export async function loadLights(db: Db, campaignId: string): Promise<CharacterL
 /** "Ash's torch" ("Wren of the Wardens' lantern"): a light named with its character, for the card and the log. */
 export function lightOfWords(who: string, light: string): string {
   const owner = who.trim() || 'Someone';
-  return `${owner.endsWith('s') ? `${owner}'` : `${owner}'s`} ${light.trim().toLowerCase() || 'light'}`;
+  return `${possessive(owner)} ${light.trim().toLowerCase() || 'light'}`;
 }
 
 /**

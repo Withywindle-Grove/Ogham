@@ -19,6 +19,7 @@ import type { characterFigures } from './fromSetting.ts';
 import { classListOf, patronInSetting } from './patronGarb.ts';
 import { registry } from './services.ts';
 import { spellFacts } from './spellFacts.ts';
+import { possessive } from '../core/nameWords.ts';
 
 type Figures = ReturnType<typeof characterFigures>;
 
@@ -44,7 +45,7 @@ export function fullLevelWhy(name: string, l: Pick<PrepareLevel, 'level' | 'slot
  * The first line (mp-2): what this screen chooses, and what stays ready today. "For Wren's next rest. …"; a name that
  * ends in s takes the apostrophe alone ("For Wren of the Lantern Wardens' next rest"), as the log and lights write it.
  */
-export const forLine = (who: string, ready: string) => `For ${who.endsWith('s') ? `${who}'` : `${who}'s`} next rest. ${ready}`;
+export const forLine = (who: string, ready: string) => `For ${possessive(who)} next rest. ${ready}`;
 
 /** The foot (mockup magic/06): "Saved as you go. 1 slot still empty", or "Saved as you go" with none empty. */
 export const footLine = (empty: number) => (empty === 0 ? 'Saved as you go' : `Saved as you go. ${empty === 1 ? '1 slot' : `${empty} slots`} still empty`);

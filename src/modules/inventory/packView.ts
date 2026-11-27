@@ -54,7 +54,7 @@ export function groupPack(
 
   const groups: PackGroup[] = [
     { key: 'worn', title: 'Worn and in hand', lines: lines.filter((l) => l.equipped) },
-    ...containers.map((c) => ({ key: c.id, title: `In the ${c.name}`, note, lines: inside(c).filter(keep) })),
+    ...containers.map((c) => ({ key: c.id, title: `In ${withThe(c.name)}`, note, lines: inside(c).filter(keep) })),
     { key: 'carried', title: 'Carried', lines: loose.filter(keep) },
   ];
   if (armour) {
@@ -79,7 +79,7 @@ function stashGroups(all: InventoryLine[], byName: (a: InventoryLine, b: Invento
   const ids = new Set(all.map((l) => l.id));
   const groups: PackGroup[] = [
     { key: 'loose', title: 'Loose', lines: all.filter((l) => l.containerLineId === null || !ids.has(l.containerLineId)) },
-    ...all.filter(isContainer).map((c) => ({ key: c.id, title: `In the ${c.name}`, lines: all.filter((l) => l.containerLineId === c.id) })),
+    ...all.filter(isContainer).map((c) => ({ key: c.id, title: `In ${withThe(c.name)}`, lines: all.filter((l) => l.containerLineId === c.id) })),
   ];
   return groups.filter((g) => g.lines.length > 0).map((g) => ({ ...g, lines: [...g.lines].sort(byName) }));
 }
@@ -160,11 +160,9 @@ export function shownName(name: string): string {
   return first ? first.charAt(0).toLocaleUpperCase() + first.slice(1) : name;
 }
 
-/** "the " and an item's name, in a sentence's words ("the Bronze ring"); a name that starts with "The" keeps its own ("The Old Lantern"). */
-export const withThe = (name: string) => (/^the\s/i.test(name) ? name : `the ${name}`);
-
-/** A name's possessive, in a sentence's words: "Wren’s pack", and after a final s the mark alone, "the Lantern Wardens’ pack" (Home Two's audit of #50, finding 7). */
-export const possessive = (name: string) => (/s$/i.test(name) ? `${name}’` : `${name}’s`);
+// A name's "the" and possessive (words rule 13) live in core so the log writes them the same way.
+import { possessive, withThe, withTheStart } from '../../core/nameWords.ts';
+export { possessive, withThe, withTheStart };
 
 /**
  * Some of a stack in words (words batch 1, ruled 2026-10-26): the pack's `unitName` for one and `pluralName` for

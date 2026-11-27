@@ -6,6 +6,7 @@
 import type { InventoryLine } from './inventory.ts';
 import { countWords } from './packView.ts';
 import type { UseVerb } from '../../core/useWords.ts';
+import { withThe } from '../../core/nameWords.ts';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const text = (value: unknown) => (typeof value === 'string' && value.trim() ? value.trim() : null);
@@ -222,7 +223,7 @@ const doing: Record<ModeButton, string> = { quiver: 'fires', pouch: 'slings', gr
  */
 export function modeIntro(button: ModeButton, weaponName: string): string | null {
   if (button === 'quiver' || button === 'pouch') return null;
-  return button === 'grip' ? `How the ${weaponName} is held.` : `How the ${weaponName} is used.`;
+  return button === 'grip' ? `How ${withThe(weaponName)} is held.` : `How ${withThe(weaponName)} is used.`;
 }
 
 /**
@@ -247,8 +248,8 @@ export function spentWords(state: ModeState, weaponName: string): { title: strin
   const word = MODE_BUTTON_WORDS[state.modes.button];
   const verb = doing[state.modes.button];
   const open = `Open the ${word.toLowerCase()}`;
-  if (state.why === 'empty') return { title: emptyWords(state.modes), why: `Add some to the pack, then choose what the ${weaponName} ${verb}.`, open };
-  const why = state.mode ? `${state.mode.name} used up. Choose what the ${weaponName} ${verb} next.` : `Choose what the ${weaponName} ${verb}.`;
+  if (state.why === 'empty') return { title: emptyWords(state.modes), why: `Add some to the pack, then choose what ${withThe(weaponName)} ${verb}.`, open };
+  const why = state.mode ? `${state.mode.name} used up. Choose what ${withThe(weaponName)} ${verb} next.` : `Choose what ${withThe(weaponName)} ${verb}.`;
   return { title: 'Nothing chosen', why, open };
 }
 

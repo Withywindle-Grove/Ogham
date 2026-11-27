@@ -885,7 +885,7 @@ describe("the GM answers a sheet change", () => {
     await user.click(card.getByRole("button", { name: "Approve" }));
     await waitFor(() => expect(fieldsOf(ids.wren).MUS).toBe(14));
     expect(
-      await screen.findByText("Approved: Wren's Muscle is 14."),
+      await screen.findByText("Approved: Wren’s Muscle is 14."),
     ).toBeTruthy();
     expect(world.tables.sheet_changes[0]!.status).toBe("approved");
     expect(
@@ -1121,7 +1121,7 @@ describe("the GM answers a sheet change", () => {
     expect(screen.queryByText(/Waiting for your GM:/)).toBeNull();
     // Saved, back on Players (as the player's Edit comes back to Your characters); Wren's sheet shows the new score.
     await user.click(
-      await screen.findByRole("button", { name: "View Wren's sheet" }),
+      await screen.findByRole("button", { name: "View Wren’s sheet" }),
     );
     expect(
       await screen.findByRole("button", { name: /^Muscle 14/ }),

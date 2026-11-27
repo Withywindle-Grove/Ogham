@@ -11,6 +11,7 @@ import { TRAVEL_PLACE_WORDS } from './travelWords.ts';
 import { isJoin } from './undo.ts';
 import { oneUpVerb, usedWords } from './useWords.ts';
 import { ENCUMBRANCE_WORDS, isEncumbranceMode } from './campaignSettings.ts';
+import { possessive, withThe } from './nameWords.ts';
 
 export interface LogEvent {
   id: string;
@@ -437,8 +438,6 @@ const changedWords = (values: Record<string, unknown>) =>
     .filter(([key]) => key in values)
     .map(([, word]) => word);
 
-/** "Wren's", but "Wren of the Wardens'". */
-const possessive = (name: string) => (name.endsWith('s') ? `${name}'` : `${name}'s`);
 
 /** The review note an approval writes when it allowed exceptions (final drafts D): "Allowed: Croak and Starting coin 190". */
 export const ALLOWED_PREFIX = 'Allowed: ';
@@ -508,13 +507,13 @@ function factPhrase(fact: string, details: Record<string, unknown>, beforeDetail
 
 /** What a reader learns of a fact undone, for the GM's Undo line ("that the Bronze ring is cursed", "its true name"). */
 function hiddenAgainPhrase(fact: string, item: string): string {
-  if (fact === 'magic' || fact === 'cursed') return `that the ${item} is ${fact}`;
-  if (fact === 'name') return `the ${item}’s true name`;
-  if (fact === 'bonus') return `the ${item}’s bonus`;
-  if (fact === 'charges') return `the ${item}’s charges`;
-  if (fact.startsWith('power:')) return `a power of the ${item}`;
-  if (fact.startsWith('fields.')) return `the ${item}’s ${fact.slice(7)}`;
-  return `what was told about the ${item}`;
+  if (fact === 'magic' || fact === 'cursed') return `that ${withThe(item)} is ${fact}`;
+  if (fact === 'name') return `${possessive(withThe(item))} true name`;
+  if (fact === 'bonus') return `${possessive(withThe(item))} bonus`;
+  if (fact === 'charges') return `${possessive(withThe(item))} charges`;
+  if (fact.startsWith('power:')) return `a power of ${withThe(item)}`;
+  if (fact.startsWith('fields.')) return `${possessive(withThe(item))} ${fact.slice(7)}`;
+  return `what was told about ${withThe(item)}`;
 }
 
 /**
@@ -650,7 +649,7 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
     return many ? `${n} ${many}` : `${name} ×${n}`;
   };
   const carrier = (row: Record<string, unknown>) =>
-    row.location_id ? `the ${named(names.places, row.location_id, 'Party stash')}` : named(names.characters, row.actor_id, 'a character');
+    row.location_id ? withThe(named(names.places, row.location_id, 'Party stash')) : named(names.characters, row.actor_id, 'a character');
   // Where a line was or is: "Wren's pack", or "the Party stash".
   const packOf = (row: Record<string, unknown>) => (row.location_id ? carrier(row) : `${possessive(carrier(row))} pack`);
   const backWith = (row: Record<string, unknown>) => (row.location_id ? `back in ${carrier(row)}` : `back with ${carrier(row)}`);
@@ -822,11 +821,11 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
         const said = real.length > 0 ? real : facts;
         // The name it goes by while the fact is hidden (its face, if its name is what comes and goes).
         const shown = String((again.length > 0 ? before.name : after.name) ?? '') || item();
-        const what = said.length === 1 ? hiddenAgainPhrase(said[0]!, shown) : `what was told about the ${shown}`;
+        const what = said.length === 1 ? hiddenAgainPhrase(said[0]!, shown) : `what was told about ${withThe(shown)}`;
         return again.length > 0 ? by(`undid an Undo: ${what} is told again`) : by(`undid a reveal: ${what} is hidden again`);
       }
       if (main.targetTable === 'inventory_lines' && ('appears_as' in after || 'noticed' in after) && main.before !== null) {
-        return by(`undid a change to what players see of the ${String(after.name ?? '') || item()}`);
+        return by(`undid a change to what players see of ${withThe(String(after.name ?? '') || item())}`);
       }
       // A drop or a gift outside the party undone (ruled 2026-10-25): the item is back where it was.
       if (main.targetTable === 'inventory_lines' && main.before === null) {
@@ -1010,23 +1009,23 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       const now = String(after.name ?? '') || item();
       const gmReads = names.gms?.has(names.me) === true;
       if (said.length > 1) {
-        if (gmReads) return by(`told ${holder} everything about the ${now}`);
+        if (gmReads) return by(`told ${holder} everything about ${withThe(now)}`);
         const traits = listWords(['magic', 'cursed'].filter((f) => facts.includes(f)));
         const bonus = facts.includes('bonus') ? bonusPhrase(details) : null;
         const parts = [
-          facts.includes('name') ? `the ${now}` : '',
+          facts.includes('name') ? withThe(now) : '',
           facts.includes('magic') || facts.includes('cursed') ? traits : '',
           bonus ? ('gives' in bonus ? bonus.gives : bonus.bare) : '',
           ...newPowers(beforeDetails, details),
         ].filter(Boolean);
-        return `${Holder} learned what the ${was} is: ${parts.join(', ')}.`;
+        return `${Holder} learned what ${withThe(was)} is: ${parts.join(', ')}.`;
       }
       const fact = said[0] ?? 'magic';
       if (fact === 'name') {
-        return gmReads ? by(`showed the players the ${was}’s true name: ${now}`) : `${Holder} learned the ${was}’s true name: ${now}.`;
+        return gmReads ? by(`showed the players ${possessive(withThe(was))} true name: ${now}`) : `${Holder} learned ${possessive(withThe(was))} true name: ${now}.`;
       }
       const phrase = factPhrase(fact, details, beforeDetails, after.charges_left);
-      return gmReads ? by(`told ${holder} the ${was}${phrase}`) : `${Holder} learned the ${was}${phrase}.`;
+      return gmReads ? by(`told ${holder} ${withThe(was)}${phrase}`) : `${Holder} learned ${withThe(was)}${phrase}.`;
     }
     case 'inventory.editLook': {
       // K22c picture 4: the GM's alone (pick 3; the database keeps the line from players).
@@ -1185,7 +1184,7 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
     case 'rest.applied':
       return restRecord() ?? 'A rest was applied.';
     case 'rest.call':
-      return by(`called a rest for ${named(names.characters, String(entry.events.find((e) => e.targetTable === 'character_rests')?.after?.called_by ?? ''), 'the group')}'s group`);
+      return by(`called a rest for ${possessive(named(names.characters, String(entry.events.find((e) => e.targetTable === 'character_rests')?.after?.called_by ?? ''), 'the group'))} group`);
     case 'rest.answer': {
       const whose = entry.events.filter((e) => e.targetTable === 'character_rests').map((e) => (typeof e.targetId === 'string' ? names.rests?.get(e.targetId) : undefined) || 'someone');
       const list = whose.join(', ') || 'someone';
@@ -1433,7 +1432,7 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       const place = typeof row.place_name === 'string' && row.place_name ? row.place_name : 'a place';
       const on = row.value === true;
       if (main.type === 'placeRule.eye') return by(on ? `opened ${rule} of ${place} to players` : `closed ${rule} of ${place} to players`);
-      return by(on ? `put ${place}'s ${rule} back in force` : `switched off ${place}'s ${rule}: the setting's check applies there`);
+      return by(on ? `put ${possessive(place)} ${rule} back in force` : `switched off ${possessive(place)} ${rule}: the setting's check applies there`);
     }
     // A section of a place's Knowledge shared with a group, or taken back (P4, p4s-2): the GM's line alone; the section's
     // heading and the place by the pack's words (kept on the share's row).
@@ -1442,7 +1441,7 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       const heading = typeof row.heading === 'string' && row.heading.trim() ? `“${row.heading.trim()}”` : 'a section';
       const place = typeof row.place_name === 'string' && row.place_name ? row.place_name : 'a place';
       const group = typeof row.group_number === 'number' && row.group_number !== 1 ? groupName(row.group_number) : 'the party';
-      return by(row.shared === true ? `shared ${heading} of ${place}'s knowledge with ${group}` : `took back ${heading} of ${place}'s knowledge from ${group}`);
+      return by(row.shared === true ? `shared ${heading} of ${possessive(place)} knowledge with ${group}` : `took back ${heading} of ${possessive(place)} knowledge from ${group}`);
     }
     case 'place.edit': {
       const id = entry.events.find((e) => e.targetTable === 'places' || e.targetTable === 'place_notes')?.targetId;
@@ -1519,7 +1518,7 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       const spent = Number(run.spent ?? 0);
       if (spent > 0) parts.push(`${spent} ${unitWord()}`);
       const qty = Number(run.yield_qty ?? 0);
-      if (qty > 0) parts.push(`${qty} ${String(run.yield_name ?? 'items')} → ${named(names.characters, run.finder_id, 'the finder')}'s pack`);
+      if (qty > 0) parts.push(`${qty} ${String(run.yield_name ?? 'items')} → ${possessive(named(names.characters, run.finder_id, 'the finder'))} pack`);
       return by(`did ${parts.join(', ')}`);
     }
     case 'travel.lost.set':

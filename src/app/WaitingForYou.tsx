@@ -41,6 +41,7 @@ import { isSetIconName } from '../ui/iconSet.ts';
 import { StackedButton } from '../ui/parts.tsx';
 import type { WaitingKind, WaitingRow } from '../modules/expedition/waitingModel.ts';
 import { CardHost, SceneWaitingProvider, useHasWaitingProvider, useWaitingPanel, useWaitingSource, useWaitingState, type WaitingSourceItem } from './sceneWaiting.tsx';
+import { possessive } from '../core/nameWords.ts';
 
 /**
  * What waits for the GM in this list, by kind (for the Players tab's name and glow): one-offs to approve, worn
@@ -345,7 +346,7 @@ function PlayersWaiting({ db, user, campaign, onChanged, quiet = false }: Waitin
       <WaitingPanel quiet={quiet} loading={loading} />
       {cards}
       {lost && <LostBelowDialog table={lost.table} who={lost.who} onClose={() => setLost(null)} />}
-      {tableOpen && <TableDialog table={tableOpen.table} title={tableOpen.table.name} intro={`For ${tableOpen.who}'s secret activity. Roll on the pack's table; tell them what comes of it.`} onClose={() => setTableOpen(null)} />}
+      {tableOpen && <TableDialog table={tableOpen.table} title={tableOpen.table.name} intro={`For ${possessive(tableOpen.who)} secret activity. Roll on the pack's table; tell them what comes of it.`} onClose={() => setTableOpen(null)} />}
     </>
   );
 }

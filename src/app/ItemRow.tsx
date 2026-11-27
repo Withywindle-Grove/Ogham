@@ -33,6 +33,7 @@ import { RollFigures, RollLines } from './WeaponInHand.tsx';
 import { registry } from './services.ts';
 import { chargeWords, type Run } from './packHelpers.ts';
 import './PackScreen.css';
+import { possessive } from '../core/nameWords.ts';
 
 export function ItemRow({
   db,
@@ -329,7 +330,7 @@ export function ItemRow({
     if (!picked) return;
     // None of its stack in the pack: nothing to choose; the tap says so (never a disabled row).
     if (drawnLines(picked, modeView.modes, lines, carrier.actorId).length === 0 && picked.draws) {
-      return blocked.explain(`No ${picked.name}`, `There are no ${picked.name} in ${carrier.name}’s pack. Add some to the pack first.`);
+      return blocked.explain(`No ${picked.name}`, `There are no ${picked.name} in ${possessive(carrier.name)} pack. Add some to the pack first.`);
     }
     setSheet(null);
     if (modeView.chosen && modeView.mode?.id === modeId) return;

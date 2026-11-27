@@ -163,8 +163,8 @@ describe('hit points in place', () => {
   it("names who may change another player's character", () => {
     const sam: CurrentUser = { id: 'sam', roles: { ash: 'player' } } as CurrentUser;
     const bram = { id: 'bram', campaignId: 'ash', ownerType: 'user', ownerUserId: 'tam', approval: 'approved', archived: false, name: 'Bram' } as MyCharacter;
-    expect(whoMayChange(sam, bram, "Bram's hit points")).toBe("Only Bram's player and the GM can change Bram's hit points.");
-    expect(whoMayChange(sam, bram, "Bram's portrait")).toBe("Only Bram's player and the GM can change Bram's portrait.");
+    expect(whoMayChange(sam, bram, "Bram’s hit points")).toBe("Only Bram’s player and the GM can change Bram’s hit points.");
+    expect(whoMayChange(sam, bram, "Bram’s portrait")).toBe("Only Bram’s player and the GM can change Bram’s portrait.");
   });
 
   it('tapping the figure opens the small Sheet to type a value', async () => {
@@ -214,7 +214,7 @@ describe('the avatar', () => {
     const sheet = within(await screen.findByRole('dialog', { name: 'Portrait' }));
     await user.upload(sheet.getByLabelText('Add a portrait (optional)'), new File(['a picture'], 'wren.png', { type: 'image/png' }));
     await user.click(await sheet.findByRole('button', { name: 'Save portrait' }));
-    expect(await screen.findByText("Wren's portrait was saved.")).toBeTruthy();
+    expect(await screen.findByText("Wren’s portrait was saved.")).toBeTruthy();
     expect(world.tables.actors.find((a) => a.id === wren)?.portrait_asset_id).toBeTruthy();
   });
 

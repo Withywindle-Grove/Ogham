@@ -134,8 +134,8 @@ describe('a light now', () => {
   });
 
   it('names a light with its character, for the card and the log', () => {
-    expect(lightOfWords('Ash', 'Rushlight')).toBe("Ash's rushlight");
-    expect(lightOfWords('Wren of the Wardens', 'Reed lamp')).toBe("Wren of the Wardens' reed lamp");
+    expect(lightOfWords('Ash', 'Rushlight')).toBe("Ash’s rushlight");
+    expect(lightOfWords('Wren of the Wardens', 'Reed lamp')).toBe("Wren of the Wardens’ reed lamp");
   });
 });
 

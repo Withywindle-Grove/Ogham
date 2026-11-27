@@ -289,7 +289,7 @@ describe('Activity buttons (M5b step 3)', () => {
     await user.type(sheet.getByRole('textbox', { name: 'Rolled' }), '9');
     await user.click(sheet.getByRole('button', { name: 'It worked' }));
 
-    const text = "Gather reeds, 2 points, 3 Reed bundle → Reed the Ferrywarden's pack";
+    const text = "Gather reeds, 2 points, 3 Reed bundle → Reed the Ferrywarden’s pack";
     const toast = (await screen.findByText(text)).closest('.toast') as HTMLElement;
     expect(rpc).toHaveBeenCalledTimes(1);
     expect(rpc).toHaveBeenCalledWith(
@@ -336,7 +336,7 @@ describe('Activity buttons (M5b step 3)', () => {
     const sheet = within(await screen.findByRole('dialog', { name: 'Dig roots' }));
     expect(sheet.getByRole('group', { name: 'How many Ration day (Fen rations (1 week))?' })).toBeTruthy();
     await user.click(sheet.getByRole('button', { name: 'Done' }));
-    expect(await screen.findByText("Dig roots, 2 points, 3 Ration day (Fen rations (1 week)) → Reed the Ferrywarden's pack")).toBeTruthy();
+    expect(await screen.findByText("Dig roots, 2 points, 3 Ration day (Fen rations (1 week)) → Reed the Ferrywarden’s pack")).toBeTruthy();
     expect(rpc).toHaveBeenCalledWith('apply_activity', expect.objectContaining({ activity_id: 'dig-roots', yield_entry: 'entry-week-rations', yield_name: 'Ration day', yield_qty: 3 }));
   });
 
@@ -349,7 +349,7 @@ describe('Activity buttons (M5b step 3)', () => {
     const sheet = within(await screen.findByRole('dialog', { name: 'Cut withies' }));
     expect(sheet.getByRole('group', { name: 'How many Withy sheaf (5)?' })).toBeTruthy();
     await user.click(sheet.getByRole('button', { name: 'Done' }));
-    expect(await screen.findByText("Cut withies, 2 points, 2 Withy sheaf (5) → Reed the Ferrywarden's pack")).toBeTruthy();
+    expect(await screen.findByText("Cut withies, 2 points, 2 Withy sheaf (5) → Reed the Ferrywarden’s pack")).toBeTruthy();
     expect(rpc).toHaveBeenCalledWith('apply_activity', expect.objectContaining({ activity_id: 'cut-withies', yield_name: 'Withy', yield_qty: 10 }));
   });
 

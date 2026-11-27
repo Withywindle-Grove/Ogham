@@ -263,7 +263,7 @@ describe("the weather prompt in the GM's view as the player (C15c)", () => {
     render(<Root db={world.db} />);
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await user.click(within(await screen.findByRole('navigation', { name: 'Campaign sections' })).getByRole('button', { name: /^Players/ }));
-    await user.click(await screen.findByRole('button', { name: "View Wren's sheet" }));
+    await user.click(await screen.findByRole('button', { name: "View Wren’s sheet" }));
     await user.click(await screen.findByRole('button', { name: '1 notice, open them' }));
     const notices = within(await screen.findByRole('dialog', { name: 'Notices' }));
     const before = world.tables.events.length;

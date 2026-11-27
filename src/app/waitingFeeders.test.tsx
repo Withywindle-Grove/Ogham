@@ -132,7 +132,7 @@ describe('the feeders of Waiting for you (S8b)', () => {
     scene(t);
     const user = userEvent.setup();
     await nextTurn(user, 2);
-    expect(await screen.findByText(/^Turn 2\. Wren's rushlight burnt out\.$/)).toBeTruthy();
+    expect(await screen.findByText(/^Turn 2\. Wren’s rushlight burnt out\.$/)).toBeTruthy();
     expect(waitingTitles().some((title) => /burnt out/.test(title))).toBe(false);
     // One log line: the burnout is one logged change (its rows, the light and the rushlight spent, share one request).
     expect(new Set(world.tables.events.filter((e) => e.type === 'light.burnOut' && e.level === 'simple').map((e) => e.request_id))).toHaveProperty('size', 1);

@@ -83,6 +83,7 @@ import { SceneMoveProvider } from './sceneMove.tsx';
 import { SceneWaitingProvider, useWaitingState } from './sceneWaiting.tsx';
 import { SceneTime } from './SceneTime.tsx';
 import { BookType } from '../ui/creation.tsx';
+import { possessive } from '../core/nameWords.ts';
 
 /** A tab of the GM's view as the player (page 32): what a row's View sheet, Pack, Magic or Scene opens. */
 type ViewTab = Exclude<PlayerTab, 'log'>;
@@ -250,12 +251,12 @@ export function GmCampaign({
         </span>
         {open ? (
           <span className="gm__character-actions">
-            {door('player', 'View sheet', `View ${character.name}'s sheet`)}
-            {door('pack', 'Pack', `Open ${character.name}'s pack`)}
-            {hasMagicTab(character) && door('magic', 'Magic', `Open ${character.name}'s magic`)}
+            {door('player', 'View sheet', `View ${possessive(character.name)} sheet`)}
+            {door('pack', 'Pack', `Open ${possessive(character.name)} pack`)}
+            {hasMagicTab(character) && door('magic', 'Magic', `Open ${possessive(character.name)} magic`)}
             {/* At 375 px ⋯ never sits alone on a line: it stays beside the last door (pg32-1). */}
             <span className="gm__last-door">
-              {door('scene', 'Scene', `Open ${character.name}'s scene`)}
+              {door('scene', 'Scene', `Open ${possessive(character.name)} scene`)}
               <MoreMenu label={`More for ${character.name}`}>
                 <MenuItems>
                   <MenuItem icon="quill-ink" onClick={() => setEditFor(character.id)}>
@@ -273,7 +274,7 @@ export function GmCampaign({
           </span>
         ) : (
           <span className="gm__character-actions">
-            <button type="button" className="button-secondary button-secondary--small" aria-label={`View ${character.name}'s sheet`} onClick={() => setSheetFor(character.id)}>
+            <button type="button" className="button-secondary button-secondary--small" aria-label={`View ${possessive(character.name)} sheet`} onClick={() => setSheetFor(character.id)}>
               View sheet
             </button>
             {character.approval !== 'pending' && <RemoveCharacter db={db} user={user} character={character} campaignName={campaign.name} onDone={done} />}
@@ -781,7 +782,7 @@ function CharacterView({
   useEffect(() => {
     if (!owner.moved) return;
     // Given away while open (pg32-7a): "Wren is now Robin's."; given back to the GM, page 13's words.
-    show({ text: owner.player === null ? `${shownName} is yours again.` : `${shownName} is now ${owner.player}’s.` });
+    show({ text: owner.player === null ? `${shownName} is yours again.` : `${shownName} is now ${possessive(owner.player)}.` });
     // Only when the owner changes, not when the name reads again.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [owner]);
@@ -823,7 +824,7 @@ function CharacterView({
             {character === 'error' ? (
               <div className="gm__view-error">
                 <p className="form-error" role="alert">
-                  Couldn’t load {shownName}’s sheet.
+                  Couldn’t load {possessive(shownName)} sheet.
                 </p>
                 <button
                   type="button"

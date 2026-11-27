@@ -11,6 +11,7 @@ import { Dialog } from '../ui/Dialog.tsx';
 import { ActionBar, DestinationList, HowMany, type Destination } from '../ui/parts.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import { rememberPlace, startingPlace } from './lastPlace.ts';
+import { withTheStart } from '../core/nameWords.ts';
 
 /** Where the item goes. */
 export type Placement =
@@ -106,7 +107,7 @@ export function MoveSheet({
   function confirm() {
     if (action === 'drop') return onConfirm(qty, null);
     if (!chosen) return setWhy('Choose where it goes.');
-    if (chosen.blocked) return setWhy(chosen.blocked === 'Full' ? `The ${chosen.name} is full.` : chosen.blocked);
+    if (chosen.blocked) return setWhy(chosen.blocked === 'Full' ? `${withTheStart(chosen.name)} is full.` : chosen.blocked);
     if (chosen.id !== OTHER) rememberPlace(action, line.category, chosen.id);
     if (chosen.id === OTHER) {
       if (!otherName.trim()) return setWhy('Say who or what gets it.');

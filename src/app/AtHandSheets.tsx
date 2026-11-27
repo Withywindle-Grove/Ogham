@@ -28,6 +28,7 @@ import {
 import type { InventoryLine } from '../modules/inventory/inventory.ts';
 import { leftWords, lightState, secondsLeft } from '../modules/expedition/lightPlay.ts';
 import type { CharacterLightView } from './LightSection.tsx';
+import { withThe } from '../core/nameWords.ts';
 
 /** What the Attack view holds: the weapon's rolls and what bears on them (ah-1, as-1 … as-3). */
 export interface AttackViewProps {
@@ -219,7 +220,7 @@ export function ModeSheet({
         {shown.length === 0 ? (
           <p>{noneCarriedWords(modes.button)}</p>
         ) : (
-          <div role="group" aria-label={`${MODE_BUTTON_WORDS[modes.button]} of the ${weaponName}`}>
+          <div role="group" aria-label={`${MODE_BUTTON_WORDS[modes.button]} of ${withThe(weaponName)}`}>
             {shown.map((m) => (
               <PickRow key={m.id} name={m.name} blurb={modeBlurb(m, modes, lines, actorId, weaponDamage)} picked={state.engaged && state.mode?.id === m.id} plain={plain} onPick={() => onPick(m.id)} />
             ))}
