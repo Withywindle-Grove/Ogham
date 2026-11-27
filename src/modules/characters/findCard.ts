@@ -63,7 +63,8 @@ export function findCard(entries: readonly FindEntry[], w: FindCardWords): FindC
   // p45-6: coin first, then the newest first (the sort is stable).
   const all = [...entries].sort((a, b) => (a.kind === 'coin' ? 0 : 1) - (b.kind === 'coin' ? 0 : 1));
   // p45-5: up to four lines; from five, three and "and N more". Judged on every entry, taken back or not, so an Undo
-  // never moves a line (p45-25); N and a counting head follow what is left (F8, ruled 2026-11-26), so N can reach 1 or 0.
+  // never moves a line (p45-25); N and a counting head follow what is left (the plan's F8 row), so N can reach 1 or 0
+  // (F8's ruling of 2026-11-26 does not say whether N may read 1 against p45-5: still asked).
   const counted = all.length >= 5;
   const shown = counted ? all.slice(0, 3) : all;
   const live = findsCount(all);
