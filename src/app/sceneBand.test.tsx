@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Fact } from '../modules/expedition/sceneTop.ts';
 import { ICON_SET } from '../ui/iconSet.ts';
-import { BandTool, BandTools, dueWords, FactsRow, isDue, NextTurnButton, SceneBand, SessionButton } from './SceneBand.tsx';
+import { BandTool, BandTools, dueWords, FactsRow, isDue, lastLineShifts, NextTurnButton, SceneBand, SessionButton } from './SceneBand.tsx';
 import { RestRule } from './RestPrompt.tsx';
 import { useSceneTopOpen } from './sceneTopOpen.ts';
 
@@ -130,6 +130,77 @@ describe('the facts row (S4)', () => {
   it('draws nothing with no facts', () => {
     const { container } = render(<FactsRow facts={[]} onOpen={() => undefined} />);
     expect(container.innerHTML).toBe('');
+  });
+
+  // Purpose (Q4): during an expedition one, two or three facts take the centred variant; four facts, and the row
+  // between expeditions (already centred), do not.
+  it('names the few-facts variant for one to three facts during an expedition only', () => {
+    const facts = (n: number) => (['weather', 'light', 'rest', 'check'] as const).slice(0, n).map((id) => fact({ id, label: id, value: 'Fair' }));
+    for (const n of [1, 2, 3]) {
+      const { container, unmount } = render(<FactsRow facts={facts(n)} onOpen={() => undefined} />);
+      expect(container.querySelector('.scene-facts')!.className).toContain('scene-facts--few');
+      unmount();
+    }
+    const four = render(<FactsRow facts={facts(4)} onOpen={() => undefined} />);
+    expect(four.container.querySelector('.scene-facts')!.className).not.toContain('scene-facts--few');
+    four.unmount();
+    const between = render(<FactsRow facts={facts(2)} onOpen={() => undefined} centred />);
+    expect(between.container.querySelector('.scene-facts')!.className).toBe('scene-facts scene-facts--centred');
+  });
+
+  // Purpose (Q4, the review of #110): when a fact comes or goes, the row still watches every tile it now holds (not a
+  // tile that has gone), so a later text-size change re-counts the tracks and no tile is placed past the row's end.
+  it('watches the tiles it holds after a fact comes or goes', () => {
+    // Every live observer and what it watches (a tile's own value line has observers too; only the row's counts).
+    const live = new Set<Set<Element>>();
+    class FakeObserver {
+      private mine = new Set<Element>();
+      observe(el: Element) {
+        this.mine.add(el);
+        live.add(this.mine);
+      }
+      disconnect() {
+        live.delete(this.mine);
+      }
+      unobserve() {}
+    }
+    vi.stubGlobal('ResizeObserver', FakeObserver);
+    try {
+      const two = [fact({ id: 'weather', label: 'Weather', value: 'Fair' }), fact({ id: 'light', label: 'Light', value: 'No light' })];
+      const { container, rerender } = render(<FactsRow facts={two} onOpen={() => undefined} />);
+      rerender(<FactsRow facts={[fact({ id: 'light', label: 'Light', value: 'No light' }), fact({ id: 'rest', label: 'Rest', value: 'Fair' })]} onOpen={() => undefined} />);
+      const row = container.querySelector('.scene-facts')!;
+      const rowWatch = [...live].find((watched) => watched.has(row));
+      expect(rowWatch).toBeTruthy();
+      expect(row.children).toHaveLength(2);
+      for (const tile of row.children) expect(rowWatch!.has(tile)).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
+describe('the last line of a few facts (Q4)', () => {
+  // Purpose: in a row of four tracks, one, two and three tiles move half the free tracks each, so their middle is the
+  // row's middle; four move nothing.
+  it('centres a short line in four tracks', () => {
+    expect(lastLineShifts(1, 4)).toEqual([1.5]);
+    expect(lastLineShifts(2, 4)).toEqual([1, 1]);
+    expect(lastLineShifts(3, 4)).toEqual([0.5, 0.5, 0.5]);
+    expect(lastLineShifts(4, 4)).toEqual([0, 0, 0, 0]);
+  });
+
+  // Purpose: where the column fits fewer across, only the last line that is not full moves; a full line stays.
+  it('moves only the last line that is not full', () => {
+    expect(lastLineShifts(2, 3)).toEqual([0.5, 0.5]);
+    expect(lastLineShifts(3, 3)).toEqual([0, 0, 0]);
+    expect(lastLineShifts(3, 2)).toEqual([0, 0, 0.5]);
+    expect(lastLineShifts(1, 1)).toEqual([0]);
+  });
+
+  // Purpose: where the browser gives no tracks (no layout), nothing moves.
+  it('moves nothing with no tracks', () => {
+    expect(lastLineShifts(2, 0)).toEqual([0, 0]);
   });
 });
 
@@ -299,6 +370,39 @@ describe("the top's fold (p2p-20; page 24, TF1, TF1b)", () => {
   it('draws no fold mark without a fold', () => {
     render(band(null));
     expect(screen.queryByRole('button', { name: /the top/ })).toBeNull();
+  });
+
+  // Purpose (Q3, F3 a): with the fold mark, the band's buttons come in the order the eye and the Tab key meet them:
+  // Next turn, the fold mark, then the menu button last.
+  it('puts the menu button last, after the fold mark', () => {
+    render(
+      <SceneBand
+        over="Session 1. Saltwick Island."
+        heading="The Anchorage, turn 1"
+        date={{ icon: 'sprout', words: '14 Reedmonth', light: null }}
+        actions={<NextTurnButton label="Next turn" accent={false} onTap={() => undefined} />}
+        menu={<button type="button">Time options</button>}
+        fold={{ open: true, onToggle: () => undefined, due: [] }}
+      />,
+    );
+    const names = [...document.querySelectorAll('.scene-band button')].map((b) => b.getAttribute('aria-label') ?? b.textContent);
+    expect(names).toEqual(['Next turn', 'Fold the top away', 'Time options']);
+  });
+
+  // Purpose (Q3): with no fold mark (between expeditions, the players' band) the menu button stays where it was, the
+  // last of the actions.
+  it('keeps the menu in the actions without a fold', () => {
+    render(
+      <SceneBand
+        over="Session 1. Saltwick Island."
+        heading="The Reedmouth Quay"
+        date={{ icon: 'sprout', words: '14 Reedmonth', light: null }}
+        actions={<NextTurnButton label="Advance time" accent={false} onTap={() => undefined} />}
+        menu={<button type="button">Time options</button>}
+      />,
+    );
+    expect(document.querySelector('.scene-band__actions')!.lastElementChild!.textContent).toBe('Time options');
+    expect(document.querySelector('.scene-band__menu')).toBeNull();
   });
 
   // The GM's band as SceneTime wires it (B12b): the fold read from and kept on the device.

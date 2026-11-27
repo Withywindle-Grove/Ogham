@@ -5286,6 +5286,47 @@ export type Database = {
         Args: { actor: string; ask: boolean; company: string }
         Returns: string
       }
+      ask_for_thing: {
+        Args: {
+          actor: string
+          body: string
+          campaign: string
+          on_day: number
+          prompt?: Json
+        }
+        Returns: {
+          actor_id: string | null
+          answer: Json | null
+          answer_kind: string
+          answered_at: string | null
+          answered_by: string | null
+          campaign_id: string
+          cost_text: string
+          created_at: string
+          created_by: string | null
+          direction: string
+          entry: Json | null
+          expedition_id: string | null
+          group_number: number | null
+          id: string
+          kind: string
+          prompt: Json
+          replied_at: string | null
+          reply: string | null
+          requester_id: string | null
+          status: string
+          text: string
+          undone: boolean
+          updated_at: string
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       ask_requests: {
         Args: {
           body?: string

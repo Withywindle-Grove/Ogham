@@ -209,6 +209,7 @@ Every change goes through one of these commands, which checks `can(user, command
 | `time.set` | simple | GM: the GM can correct the time | Player A: a player can't correct the time |
 | `time.start` | simple | GM: the GM can set the start time while the clock has not moved | Player A: a player can't set the start time |
 | `town.activeNight` | simple | GM: the GM can switch Active tonight on | Player A: a player can't switch Active tonight on |
+| `town.askFor` | simple | Player A: a player can ask for a thing for their own character | Player B: a player can't ask for a thing for another player's character<br>GM: the GM can't ask for a thing as a player's character<br>Outsider: an outsider can't ask for a thing |
 | `town.hidePiece` | verbose | GM: the GM can hide a piece of a place in town | Player B: a player can't hide a piece of a place in town |
 | `town.openPlace` | verbose | GM: the GM can close a place in town | Player A: a player can't close a place in town |
 | `town.outDay` | simple | GM: the GM can switch Out and about today on | Player A: a player can't switch Out and about today on<br>Outsider: an outsider can't switch Out and about today on |

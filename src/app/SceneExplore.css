@@ -51,11 +51,6 @@
   min-width: 0;
 }
 
-/* A stat block's small View (December 5c) keeps its own width in the column. */
-.scene-card__view {
-  align-self: flex-start;
-}
-
 .scene-card__head {
   display: flex;
   align-items: center;

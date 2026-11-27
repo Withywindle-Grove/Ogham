@@ -1,11 +1,11 @@
 // The stat block (December 5c; mockup docs/design/mockups/december/06-stat-block, frames 1 to 6): one part, drawn once,
-// used by View on the waiting encounter (StatBlockInFull) and by the Rules browser for a stat block. In order: the
+// used by the detail row's pop-up (BookDetail.tsx) and by the Rules browser for a stat block. In order: the
 // description, the descriptor line in small capitals, the figures as compact pairs (each label, in the book-label
 // colour at the regular weight, cr-c2, followed at once by its value; several to a line) in the groups the pack
 // declares (pf-13) with a dotted rule between, the abilities as paragraphs with a bold lead-in, anything else the block
 // holds as lines, and the source line. The name is the caller's heading, with `STAT_BLOCK_NAME`. Book text in its own
 // faces (Bitter; the descriptor in Alegreya Sans SC), never the app's body token. The stat line (`StatLine`) is the
-// waiting card's run-on line of the first group. A die named in a value carries its glyph (ds-3).
+// detail row's run-on line of the first group. A die named in a value carries its glyph (ds-3).
 import type { ReactNode } from 'react';
 import type { Figure, StatBlockShown } from '../modules/library/statBlockLayout.ts';
 import { DieGlyph, isDieSize } from '../ui/dice.tsx';
@@ -16,8 +16,9 @@ import './StatBlock.css';
 /** The class a stat block's name takes (Bitter at 700), wherever its heading is. */
 export const STAT_BLOCK_NAME = 'stat-block__name';
 
-// "1d6", "2d8", "d20", and "2 in 6": a die the app draws gets its glyph before it; one it has none for (d3) none.
-const DIE = /(\b\d*d(\d+)\b|\b\d+ in (\d+)\b)/g;
+// "1d6", "2d8", "d20", and "2 in 6": a die the app draws gets its glyph before it; one it has none for (d3) none. Either
+// way an average after it ("2d8 (9)", "1d3 (2)") stays with it on its line (finding 12, page 44; #111's review).
+const DIE = /(\b\d*d(\d+)\b(?: \(\d+\))?|\b\d+ in (\d+)\b)/g;
 
 /**
  * Words with a die's glyph before each die they name, at text size. A local helper for the stat block: the shared one
@@ -28,11 +29,10 @@ export function WordsWithDice({ text }: { text: string }) {
   let at = 0;
   for (const match of text.matchAll(DIE)) {
     const size = Number(match[2] ?? match[3]);
-    if (!isDieSize(size)) continue;
     if (match.index > at) out.push(text.slice(at, match.index));
     out.push(
       <span key={match.index} className="stat-block__die">
-        <DieGlyph die={size} size={16} />
+        {isDieSize(size) && <DieGlyph die={size} size={16} />}
         {match[0]}
       </span>,
     );
@@ -52,16 +52,16 @@ function Pair({ figure }: { figure: Figure }) {
   );
 }
 
-function PairLine({ figures, className }: { figures: Figure[]; className: string }) {
+function PairLine({ figures, className, Tag = 'p' }: { figures: Figure[]; className: string; Tag?: 'p' | 'span' }) {
   return (
-    <p className={className}>
+    <Tag className={className}>
       {figures.map((figure, i) => (
         <span key={`${figure.label}-${i}`}>
           {i > 0 && ' '}
           <Pair figure={figure} />
         </span>
       ))}
-    </p>
+    </Tag>
   );
 }
 
@@ -100,8 +100,8 @@ export function StatBlock({ shown, source }: { shown: StatBlockShown; source: st
   );
 }
 
-/** The waiting card's stat line: the figures run on as one wrapping line at the small size (frame 3). */
+/** The detail row's stat line (BookDetail.tsx): the figures run on as one wrapping line at the small size; a span, inside the row's button. */
 export function StatLine({ figures }: { figures: Figure[] }) {
   if (figures.length === 0) return null;
-  return <PairLine figures={figures} className="stat-block stat-line" />;
+  return <PairLine figures={figures} className="stat-block stat-line" Tag="span" />;
 }

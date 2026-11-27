@@ -167,16 +167,23 @@
 }
 
 /* The menu button beside them takes the same height (LA1); its look stays MoreMenu's. */
-.scene-band__actions .more-menu__button {
+.scene-band__actions .more-menu__button,
+.scene-band__menu .more-menu__button {
   width: var(--band-control);
   height: var(--band-control);
 }
 
-/* The fold mark (p2p-20; TF1 with Francis's fix): a framed square of the band's height at its far right, after the
-   menu button, 8 px from it (the band's own gap is 16, so the mark steps back one 8 px step). */
-.scene-band__fold {
+/* The fold mark (p2p-20; TF1 with Francis's fix): a framed square of the band's height, after Next turn, 8 px from
+   it (the band's own gap is 16, so the mark steps back one 8 px step). Q3 (F3 a): the menu button comes after it, the
+   band's last, 8 px from it the same way. */
+.scene-band__fold,
+.scene-band__menu {
   flex: none;
   margin-inline-start: calc(var(--space-2) - var(--space-4));
+}
+
+.scene-band__menu {
+  display: flex;
 }
 
 /* With the mark as the band's third part, the actions keep to the right beside it (the free space goes before them). */
@@ -302,10 +309,22 @@
 
 /* The fold on a phone (p2p-20; page 24, TF1b): the fold mark stands at the heading's right, in the band's last column
    (over the menu button); the heading keeps the rest of its row. Folded, the due lines come under the date (and under
-   the light's own line, S16), before the resumed line and the icon buttons, which move down one row. */
+   the light's own line, S16), before the resumed line and the icon buttons, which move down one row. Q3: with the fold
+   the menu button stands outside the actions' box, so it takes that last column itself, in the date's row, the last
+   button of its line as before. */
 @media (max-width: 599px) {
+  .scene-band:has(.scene-band__fold) {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
   .scene-band:has(.scene-band__fold) .scene-band__heading {
     grid-column: 1 / -2;
+  }
+
+  .scene-band__menu {
+    grid-column: -2 / -1;
+    grid-row: 2;
+    margin-inline-start: 0;
   }
 
   .scene-band__fold {
@@ -353,6 +372,16 @@
 .scene-facts--centred {
   grid-template-columns: repeat(auto-fit, min(100%, var(--fact-tile)));
   justify-content: center;
+}
+
+/* During an expedition, fewer than four (Q4; F7 a, F11 a): the same tracks as with four, each tile as wide as it is
+   then; the last line that is not full moves to the row's middle by `--fact-shift` tracks (`lastLineShifts`). A
+   percentage here is of the tile's own track, so a move of one track is the track and the gap. Not on a phone (⚑ 1). */
+@media (min-width: 600px) {
+  .scene-facts--few > .scene-fact {
+    position: relative;
+    inset-inline-start: calc(var(--fact-shift, 0) * (100% + var(--space-3)));
+  }
 }
 
 @media (max-width: 599px) {
