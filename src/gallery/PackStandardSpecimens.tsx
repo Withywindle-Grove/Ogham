@@ -1,6 +1,6 @@
 // The Pack on creation's standard in the component gallery (plan m5b-players-screens-standard C; mockup players/01):
 // the load line first, a group with its count, rows with their chevron (a pinned one with its star, one not allowed),
-// an At hand row with its action, Gear and the Party stash as fold rows, the waiting card, the foot, and an item's
+// the Party stash's row under the load (K11), an At hand row with its action, Gear as a fold row, the waiting card, the foot, and an item's
 // sheet drawn in the page. Invented rules and names only (hard rule 2); no database (nothing here saves).
 import type { ReactElement, ReactNode } from 'react';
 import type { CurrentUser } from '../core/commands.ts';
@@ -9,7 +9,8 @@ import type { OpenCampaign } from '../app/Campaigns.tsx';
 import { ItemRow } from '../app/ItemRow.tsx';
 import { ItemSheet, useItemSheetState } from '../app/ItemSheet.tsx';
 import { LoadSummary } from '../app/LoadSummary.tsx';
-import { PackFoot, WaitingCard } from '../app/PackParts.tsx';
+import { PackDress, PackFoot, StashRow, WaitingCard } from '../app/PackParts.tsx';
+import { thingCount } from '../app/stashWords.ts';
 import { foldSummary, itemCount } from '../app/packHelpers.ts';
 import '../app/PackScreen.css';
 import { carriedLoad, combineEncumbrance, toLoadLine } from '../modules/inventory/encumbrance.ts';
@@ -166,48 +167,47 @@ export function PackStandardSpecimens({ Specimen }: { Specimen: (props: { name: 
   const load = carriedLoad(all.map(toLoadLine), RULES, 'coin');
   return (
     <>
-      <Specimen name="The Pack: the load line first, At hand (pinned items with an action: Light, Fire, Drink, Attack), Worn and in hand with its count (a row not allowed, a long name), Gear and the Party stash as fold rows, the waiting card, the foot with Add item">
-        <section className="pack" aria-label="Wren’s pack, in the gallery">
-          <div className="pack__summary">
-            <LoadSummary load={load} rules={RULES} from={['Fen rules']} />
-          </div>
-          <div className="pack__list">
-            <section className="pack__group pack__group--at-hand" aria-label="At hand">
-              <div className="pack__group-head">
-                <h2 className="pack__group-title">At hand</h2>
-                <span className="auth__meta">{itemCount(PINNED.length)}</span>
-              </div>
-              <ul className="pack__rows">
-                <Row item={PINNED[0]!} atHand light="Light" lines={all} />
-                <Row item={PINNED[1]!} atHand lines={all} />
-                <Row item={PINNED[2]!} atHand lines={all} />
-                <Row item={PINNED[3]!} atHand lines={all} />
-              </ul>
-            </section>
-            <section className="pack__group" aria-label="Worn and in hand">
-              <div className="pack__group-head">
-                <h2 className="pack__group-title">Worn and in hand</h2>
-                <span className="auth__meta">{itemCount(WORN.length)}</span>
-              </div>
-              <ul className="pack__rows">
-                <Row item={WORN[0]!} problem="Bog mages can’t wear chain." />
-                <Row item={WORN[1]!} />
-              </ul>
-            </section>
-            <section className="pack__group" aria-label="Gear">
-              <FoldedGroup label="Gear" note={foldSummary(GEAR)} detail="Not counted for speed">
-                {null}
-              </FoldedGroup>
-            </section>
-            <WaitingCard names={['Silver knife', 'Strange key']} onOpen={() => undefined} />
-            <section className="pack__stash" aria-label="Party stash, in the gallery">
-              <FoldedGroup label="Party stash" note={foldSummary(STASH)}>
-                {null}
-              </FoldedGroup>
-            </section>
-            <PackFoot count={20} onAdd={() => undefined} />
-          </div>
-        </section>
+      <Specimen name="The Pack: the load line first, At hand (pinned items with an action: Light, Fire, Drink, Attack), Worn and in hand with its count (a row not allowed, a long name), Gear as a fold row, the Party stash's row under the load (K11), the waiting card, the foot with Add item">
+        {/* In the Pack tab's dress (K29), as the tab draws it. */}
+        <PackDress>
+          <section className="pack" aria-label="Wren’s pack, in the gallery">
+            <div className="pack__summary">
+              <LoadSummary load={load} rules={RULES} from={['Fen rules']} />
+              <StashRow name="Party stash" note={thingCount(STASH.length)} onOpen={() => undefined} />
+            </div>
+            <div className="pack__list">
+              <section className="pack__group pack__group--at-hand" aria-label="At hand">
+                <div className="pack__group-head">
+                  <h2 className="pack__group-title">At hand</h2>
+                  <span className="auth__meta">{itemCount(PINNED.length)}</span>
+                </div>
+                <ul className="pack__rows">
+                  <Row item={PINNED[0]!} atHand light="Light" lines={all} />
+                  <Row item={PINNED[1]!} atHand lines={all} />
+                  <Row item={PINNED[2]!} atHand lines={all} />
+                  <Row item={PINNED[3]!} atHand lines={all} />
+                </ul>
+              </section>
+              <section className="pack__group" aria-label="Worn and in hand">
+                <div className="pack__group-head">
+                  <h2 className="pack__group-title">Worn and in hand</h2>
+                  <span className="auth__meta">{itemCount(WORN.length)}</span>
+                </div>
+                <ul className="pack__rows">
+                  <Row item={WORN[0]!} problem="Bog mages can’t wear chain." />
+                  <Row item={WORN[1]!} />
+                </ul>
+              </section>
+              <section className="pack__group" aria-label="Gear">
+                <FoldedGroup label="Gear" note={foldSummary(GEAR)} detail="Not counted for speed">
+                  {null}
+                </FoldedGroup>
+              </section>
+              <WaitingCard names={['Silver knife', 'Strange key']} onOpen={() => undefined} />
+              <PackFoot count={20} onAdd={() => undefined} />
+            </div>
+          </section>
+        </PackDress>
       </Specimen>
       <Specimen name="At hand on the Player screen: a row carries its action where a command exists (Use a charge, Put out); its body opens the item's sheet">
         <section className="pack pack--at-hand" aria-label="At hand, in the gallery">
@@ -218,10 +218,14 @@ export function PackStandardSpecimens({ Specimen }: { Specimen: (props: { name: 
         </section>
       </Specimen>
       <Specimen name="An item's sheet: the description, the actions as rows (a chevron where one asks more), Drop last and set apart; the star beside ✕ pins it">
-        <SheetPicture item={line('Lantern', { weightCoin: 30, notes: 'Bullseye lantern, a 30 ft beam. Three flasks of oil left.', details: { slot: 'hand' } })} />
+        <PackDress>
+            <SheetPicture item={line('Lantern', { weightCoin: 30, notes: 'Bullseye lantern, a 30 ft beam. Three flasks of oil left.', details: { slot: 'hand' } })} />
+        </PackDress>
       </Specimen>
       <Specimen name="An item's sheet, pinned: the star filled and washed, Unpin for a screen reader">
-        <SheetPicture item={line('Coil of rope', { pinned: true, qty: 2, stack: 5 })} />
+        <PackDress>
+            <SheetPicture item={line('Coil of rope', { pinned: true, qty: 2, stack: 5 })} />
+        </PackDress>
       </Specimen>
     </>
   );

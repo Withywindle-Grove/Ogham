@@ -4,7 +4,7 @@ import { limitedAbilities, powersWithUses, preparedByLevel, preparedProblem, rea
 // Invented content only (hard rule 2).
 describe('what a character has prepared and spent (Player screen redesign, ruled 2026-10-26)', () => {
   it('reads the stored row, dropping anything malformed; nothing stored reads as empty', () => {
-    expect(readPlay(null)).toEqual({ pins: [], prepared: [], usesSpent: {}, acOverride: null, formId: null, chosen: null, spellsCast: {} });
+    expect(readPlay(null)).toEqual({ pins: [], prepared: [], usesSpent: {}, acOverride: null, formId: null, chosen: null, spellsCast: {}, restedOnce: false });
     expect(
       readPlay({
         prepared: [{ spell: 'glimmer', level: 1 }, { spell: 3, level: 1 }, { spell: 'mist', level: 1.5 }],
@@ -12,13 +12,18 @@ describe('what a character has prepared and spent (Player screen redesign, ruled
         ac_override: 7,
         form_id: 'dusk-phase',
       }),
-    ).toEqual({ pins: [], prepared: [{ spell: 'glimmer', level: 1 }], usesSpent: { 'Ember ward': 2 }, acOverride: 7, formId: 'dusk-phase', chosen: null, spellsCast: {} });
+    ).toEqual({ pins: [], prepared: [{ spell: 'glimmer', level: 1 }], usesSpent: { 'Ember ward': 2 }, acOverride: 7, formId: 'dusk-phase', chosen: null, spellsCast: {}, restedOnce: true });
     // The class form (eq-8): blank or odd reads as not switched.
     expect(readPlay({ form_id: ' ' }).formId).toBeNull();
     expect(readPlay({ form_id: 4 }).formId).toBeNull();
     // An AC set by hand that isn't a whole number reads as not set.
     expect(readPlay({ ac_override: 7.5 }).acOverride).toBeNull();
     expect(readPlay({ ac_override: -3 }).acOverride).toBe(-3);
+    // Rested once (fsr-4): only a row that says false, or no row at all, reads as not rested; a row read without the
+    // column counts as rested, as every row made before it did (fsr-13).
+    expect(readPlay({ rested_once: false }).restedOnce).toBe(false);
+    expect(readPlay({ rested_once: true }).restedOnce).toBe(true);
+    expect(readPlay({}).restedOnce).toBe(true);
   });
 
   it('slots come from the class progression; the class list by spell level', () => {

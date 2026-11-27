@@ -9,8 +9,9 @@
 //     as a sheet; no rest panel stands in the page;
 //   * a hit is an item, its hit panel whole when open, and its Done the page's one accent;
 //   * the open item's first answer is the one accent (a check's Hit);
-//   * a check with a table and no chance is a roll on its table: one Enter roll…, the table opened in its card, a tapped
-//     row its answer, a toast that never says "a hit", Undo of both (B9; page 24, WY1b);
+//   * a check with a table and no chance is a roll on its table: one Roll…, the table opened in its pop-up, a tapped
+//     row its answer that closes the pop-up, a toast with the row's range that never says "a hit", Undo of both, and the
+//     X that records nothing (B9; sf-5, page 44 EN2);
 //   * where no panel shows (a town), the strip draws today's card and rest panel, as before.
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -174,12 +175,13 @@ describe('the feeders of Waiting for you (S8b)', () => {
     await waitFor(() => expect(screen.queryByRole('region', { name: 'Wandering things: hit' })).toBeNull());
   });
 
-  // Purpose (B9; p2p-19, page 24 WY1b): a check with a table and no chance is a roll on the table: its card has the
-  // pack's sentence and one Enter roll…, the accent, with no Hit, no Miss, no ±1 and no Modifier. Enter roll… opens the
-  // table in the card ("Roll d20, then tap the row."), with no title of its own; a tap on the rolled row records the
-  // check's result and the row through today's two commands, and the toast never says "a hit". Its Undo takes both back
-  // and the check waits again.
-  it('a roll on its table: Enter roll… opens the table in the card; a tapped row is the answer', async () => {
+  // Purpose (B9; p2p-19; sf-5, page 44 EN2): a check with a table and no chance is a roll on the table: its card has the
+  // pack's sentence and one Roll…, the accent, with no Hit, no Miss, no ±1 and no Modifier. Roll… opens the table in a
+  // pop-up titled with the table's name ("Roll d20, then tap the row."); a tap on the rolled row records the check's
+  // result and the row through today's two commands and closes the pop-up, and the toast names the row's range and
+  // never says "a hit": "11–20: Gulls, …", the range, a colon and the row's words, no "Rolled:" (finding 7's form,
+  // ruled 2026-11-26). Its Undo takes both back and the check waits again.
+  it('a roll on its table: Roll… opens the table in a pop-up; a tapped row is the answer', async () => {
     const t = await table({ rollOnTable: true });
     scene(t);
     const user = userEvent.setup();
@@ -187,41 +189,102 @@ describe('the feeders of Waiting for you (S8b)', () => {
     const due = within(await panel().findByRole('region', { name: 'Due' }));
     // The pack's sentence, its die drawn as the die (DiceWords).
     await waitFor(() => expect(document.querySelector('.waiting-card .scene-card__note')?.textContent).toContain('for an encounter each turn on the water.'));
-    const enter = due.getByRole('button', { name: 'Enter roll, Encounters in the harbour' });
+    const enter = due.getByRole('button', { name: 'Roll, Encounters in the harbour' });
     expect(enter.className).toContain('button-primary');
     for (const name of [/^Hit/, /^Miss/, /face/, /Modifier/]) expect(due.queryByRole('button', { name })).toBeNull();
     expect(due.queryByText('Roll the table')).toBeNull();
     await user.click(enter);
-    expect(await due.findByText('Roll d20, then tap the row.')).toBeTruthy();
-    expect(document.querySelector('.scene-card__roll .book-tap-head__title, .scene-card__roll h3, .scene-card__roll h4')).toBeNull();
-    await user.click(due.getByRole('radio', { name: /Gulls, mobbing the boat/ }));
+    const pop = within(await screen.findByRole('dialog', { name: 'Encounters in the harbour' }));
+    expect(pop.getByText('Roll d20, then tap the row.')).toBeTruthy();
+    await user.click(pop.getByRole('radio', { name: /Gulls, mobbing the boat/ }));
     await waitFor(() => expect(world.tables.events.some((e) => e.type === 'check.setRoll')).toBe(true));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Encounters in the harbour' })).toBeNull());
     expect(world.tables.events.filter((e) => e.type === 'check.record')).toHaveLength(1);
-    const toast = await screen.findByText(/^Rolled: 11–20, Gulls, mobbing the boat/);
+    const toast = await screen.findByText(/^11–20: Gulls, mobbing the boat/);
     expect(toast.textContent).not.toMatch(/hit/i);
     const result = within(await panel().findByRole('region', { name: 'Encounters in the harbour' }));
     expect(result.getByText(/Rolled: .*Gulls, mobbing the boat/)).toBeTruthy();
     expect(screen.queryByText(/: hit$/)).toBeNull();
     await user.click((await screen.findAllByRole('button', { name: 'Undo' })).at(-1)!);
     await waitFor(() => expect(world.tables.events.filter((e) => e.type === 'event.undo').length).toBeGreaterThanOrEqual(2));
-    expect(await panel().findByRole('button', { name: 'Enter roll, Encounters in the harbour' })).toBeTruthy();
+    expect(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' })).toBeTruthy();
   });
 
-  // Purpose (#1086's review, finding 1): a check's table opened in its card closes when its line leaves the card
-  // unanswered (here the move is undone), so the next time that check comes due its card opens on Enter roll… again,
-  // not straight onto the table (the line's key is the same each period).
-  it('a roll on its table left unanswered: its next card opens on Enter roll… again', async () => {
+  // Purpose (sf-5, page 44 EN2; of-19): the pop-up's X closes it with nothing recorded, and the check still waits on its
+  // card with Roll….
+  it('a roll on its table: the X records nothing and the check waits', async () => {
     const t = await table({ rollOnTable: true });
     scene(t);
     const user = userEvent.setup();
     await nextTurn(user, 2);
-    await user.click(await panel().findByRole('button', { name: 'Enter roll, Encounters in the harbour' }));
+    await user.click(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' }));
+    const pop = await screen.findByRole('dialog', { name: 'Encounters in the harbour' });
+    await user.click(within(pop).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Encounters in the harbour' })).toBeNull());
+    expect(world.tables.events.some((e) => e.type === 'check.record' || e.type === 'check.setRoll')).toBe(false);
+    expect(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' })).toBeTruthy();
+  });
+
+  // Purpose (#111's review, finding 2): a tapped row closes the pop-up on the tap, before its commands are saved, and
+  // it stays closed when check.record saves nothing.
+  it('a roll on its table: the pop-up closes on the tap, before the commands finish, and when nothing is saved', async () => {
+    const t = await table({ rollOnTable: true });
+    scene(t);
+    const user = userEvent.setup();
+    await nextTurn(user, 2);
+    const real = world.db.rpc.bind(world.db) as (name: string, args: unknown) => { setHeader(name: string, value: string): unknown; then: PromiseLike<unknown>['then'] };
+    let release = () => {};
+    const gate = new Promise<void>((done) => (release = done));
+    let fail = false;
+    const held = vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: unknown) => {
+      if (name !== 'record_check') return real(name, args);
+      const call = real(name, args);
+      const answer = fail ? Promise.resolve({ data: null, error: { message: 'The check could not be saved.' } }) : gate.then(() => call);
+      const wrapped = {
+        setHeader(header: string, value: string) {
+          call.setHeader(header, value);
+          return wrapped;
+        },
+        then: (onDone?: (value: unknown) => unknown, onFail?: (reason: unknown) => unknown) => answer.then(onDone, onFail),
+      };
+      return wrapped;
+    }) as never);
+    await user.click(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' }));
+    let pop = within(await screen.findByRole('dialog', { name: 'Encounters in the harbour' }));
+    await user.click(pop.getByRole('radio', { name: /Gulls, mobbing the boat/ }));
+    expect(screen.queryByRole('dialog', { name: 'Encounters in the harbour' })).toBeNull();
+    expect(world.tables.events.some((e) => e.type === 'check.record' || e.type === 'check.setRoll')).toBe(false);
+    release();
+    await waitFor(() => expect(world.tables.events.some((e) => e.type === 'check.setRoll')).toBe(true));
+    expect(await screen.findByText(/^11–20: Gulls, mobbing the boat/)).toBeTruthy();
+    // Undone, the check waits again; this time check.record saves nothing, and the pop-up still closes on the tap.
+    await user.click((await screen.findAllByRole('button', { name: 'Undo' })).at(-1)!);
+    await waitFor(() => expect(world.tables.events.filter((e) => e.type === 'event.undo').length).toBeGreaterThanOrEqual(2));
+    fail = true;
+    await user.click(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' }));
+    pop = within(await screen.findByRole('dialog', { name: 'Encounters in the harbour' }));
+    await user.click(pop.getByRole('radio', { name: /Gulls, mobbing the boat/ }));
+    expect(screen.queryByRole('dialog', { name: 'Encounters in the harbour' })).toBeNull();
+    expect(await screen.findByText('The check could not be saved.')).toBeTruthy();
+    expect(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' })).toBeTruthy();
+    held.mockRestore();
+  });
+
+  // Purpose (#1086's review, finding 1): a check's table opened in its pop-up closes when its line leaves the card
+  // unanswered (here the move is undone), so the next time that check comes due its card opens on Roll… again, not
+  // straight onto the table (the line's key is the same each period).
+  it('a roll on its table left unanswered: its next card opens on Roll… again', async () => {
+    const t = await table({ rollOnTable: true });
+    scene(t);
+    const user = userEvent.setup();
+    await nextTurn(user, 2);
+    await user.click(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' }));
     expect(await screen.findByText('Roll d20, then tap the row.')).toBeTruthy();
     await user.click((await screen.findAllByRole('button', { name: 'Undo' })).at(-1)!);
     await screen.findByRole('heading', { name: /turn 1$/ });
     await waitFor(() => expect(screen.queryByText('Roll d20, then tap the row.')).toBeNull());
     await nextTurn(user, 2);
-    expect(await panel().findByRole('button', { name: 'Enter roll, Encounters in the harbour' })).toBeTruthy();
+    expect(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' })).toBeTruthy();
     expect(screen.queryByText('Roll d20, then tap the row.')).toBeNull();
   });
 

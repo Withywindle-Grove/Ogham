@@ -10,6 +10,7 @@ import { plainLinks } from '../modules/library/linkMarks.ts';
 import { PATRON_GM_FIELDS, PLAYER_FACING, playerFacingEntry, type EntryKind, type PatchTargets } from '../modules/library/packFile.ts';
 import { routeWays } from '../modules/library/routes.ts';
 import { stockDefault } from '../modules/requests/shopStock.ts';
+import { hiddenFacts } from '../modules/inventory/hiddenFacts.ts';
 
 type Row = Record<string, unknown>;
 
@@ -278,6 +279,8 @@ export function createFakeDb(): FakeWorld {
     const actor = row.actor_id ? tables.actors.find((a) => a.id === row.actor_id) : undefined;
     return actor && (actor.owner_type ?? 'user') === 'user' && typeof actor.owner_user_id === 'string' ? actor.owner_user_id : null;
   };
+  // TC12: the answer ask_for_thing gives the request it is making (the database's `grimoire.stock_answer`).
+  let stockAnswer: { campaign: string; actor: string; item: string; answer: Row } | null = null;
   const log: EventLog = (table, before, after, tag, reverting) => {
     const row = after ?? before!;
     // Like the database: a library entry is logged only in the campaign whose own homebrew holds it.
@@ -1083,6 +1086,8 @@ export function createFakeDb(): FakeWorld {
   const isStale = (row: Row, seen: unknown) => seen !== undefined && seen !== null && row.version !== seen;
   const staleResult: Result = { data: null, error: { message: STALE, code: STALE_CODE } };
   const plain = (message: string): Result => ({ data: null, error: { message } });
+  /** A refusal a function raised, as Postgres reports one: its words and the code `raise exception` gives (P0001). */
+  const raised = (message: string): Result => ({ data: null, error: { message, code: 'P0001' } });
   const copy = (row: Row | undefined): Result => ({ data: row ? { ...row } : null, error: null });
   const moveClock = (campaign: unknown, seen: unknown, tag: Tag, to: (seconds: number) => number, rest: unknown = null): Result => {
     if (!isGmOf(campaign)) return refused("You don't have permission to do that.");
@@ -2158,6 +2163,11 @@ export function createFakeDb(): FakeWorld {
         if (!entry || !String(asked.key ?? '').startsWith('lodging:') || entry.shown !== true || entry.open !== true) return plain('That lodging isn\'t offered here.');
         Object.assign(row, { status: 'answered', answer: { kind: 'stay', listed: true }, answered_at: new Date().toISOString() });
       }
+      // TC12 (…_dec16_tc12_ask_answered_at_once.sql): ask_for_thing's answer, like the database's transaction setting
+      // read by private.request_stock_answer: only for this very ask (its campaign, character and thing).
+      if (stockAnswer && kind === 'buy' && stockAnswer.campaign === campaign && stockAnswer.actor === actor && String(asked.itemId ?? '') === stockAnswer.item) {
+        Object.assign(row, { status: 'answered', answer: stockAnswer.answer, answered_at: new Date().toISOString() });
+      }
       tables.requests.push(row);
       log('requests', null, structuredClone(row), tag);
       return copy(row);
@@ -2371,6 +2381,50 @@ export function createFakeDb(): FakeWorld {
         .sort();
       return { data: ids.map((item_id) => ({ item_id })), error: null };
     },
+    // Ask for… answered at once (TC12), like supabase/migrations/20261125180000_dec16_tc12_ask_answered_at_once.sql and
+    // its review fixes (20261126100000_dec16_tc12_ask_only_offered_shop.sql): only at a shop offered where the asker's
+    // group is (its town's list has it shown and open; a pack's shop also its place live, one level under that town),
+    // what the day's stock says of the thing (as private.stock_answer_for: the winning entry for sale, a stored answer,
+    // else the default for a setting's shop; a pack's shop its stored answers alone), never a day before the newest day
+    // with a live row; "in" with the entry's own price (never the device's), or "out", makes the request already
+    // answered; else it waits for the GM as send_request's does.
+    ask_for_thing: ({ campaign, actor, body, on_day, prompt }, tag) => {
+      const made = madeBy('requests', tag);
+      if (made) return copy(tables.requests.find((r) => r.id === made.target_id));
+      if (!isMemberOf(campaign)) return refused("You don't have permission to do that.");
+      const words = typeof body === 'string' ? body.trim() : '';
+      if (!words) return plain('Write what you want to do.');
+      if (typeof on_day !== 'number' || !Number.isInteger(on_day) || on_day < 1) return plain("That day isn't on the campaign's clock.");
+      const asked = (prompt && typeof prompt === 'object' && !Array.isArray(prompt) ? prompt : {}) as Row;
+      const service = typeof asked.serviceId === 'string' ? asked.serviceId : '';
+      const item = typeof asked.itemId === 'string' ? asked.itemId : '';
+      const liveDays = tables.shop_stock.filter((r) => r.campaign_id === campaign && !r.undone).map((r) => Number(r.day));
+      let decided: 'in' | 'out' | null = null;
+      let price = '';
+      if (service && item && shopOfferedTo(campaign, actor, service) && !(liveDays.length > 0 && on_day < Math.max(...liveDays))) {
+        const winner = winningItem(campaign, item);
+        const whole = winner ? wholeEntry(winner) : null;
+        if (whole && entryForSale(whole)) {
+          const stored = tables.shop_stock.find((r) => r.campaign_id === campaign && r.service_id === service && r.item_id === item && r.day === on_day && !r.undone)?.answer;
+          const said = service.startsWith('place:') ? stored : (stored ?? stockDefault(whole.availability, null));
+          decided = said === 'in' || said === 'out' ? said : null;
+          // The price said is the entry's readable value, in priceText's words (private.stock_price_for).
+          if (decided === 'in') price = priceWords(visiblePart(whole).value);
+        }
+      }
+      const answer = decided === 'in' && price ? { kind: 'buy', result: 'inStock', price, note: '' } : decided === 'out' ? { kind: 'buy', result: 'notHere', price: '', note: '' } : null;
+      stockAnswer = answer ? { campaign: String(campaign), actor: String(actor), item, answer } : null;
+      // Review fix, round 2 (…_dec16_tc12_ask_prompt_server_price.sql): the prompt stored, and so logged, is the buy
+      // prompt's own fields as sent with the server's price: the entry's (waiting or not), '' with no thing named.
+      const winner = item ? winningItem(campaign, item) : undefined;
+      const stored: Row = Object.fromEntries(Object.entries(asked).filter(([key]) => ['serviceId', 'shop', 'itemId', 'item'].includes(key)));
+      stored.price = winner ? priceWords(visiblePart(wholeEntry(winner)).value) : '';
+      try {
+        return groupRpcs.send_request!({ campaign, actor, kind: 'buy', body: words, cost_text: '', prompt: stored }, tag);
+      } finally {
+        stockAnswer = null;
+      }
+    },
     // A rumour given (dec-12 piece E), like supabase/migrations/20261114220000_dec_12e_rumours.sql: the GM gives the row
     // of a rumours table of an attached adventure whose range is row_min to row_max; only its words are copied (never
     // its truth or note), as a send of kind 'rumour'; one live give of a row to each hearer.
@@ -2569,6 +2623,59 @@ export function createFakeDb(): FakeWorld {
       return { data: numbers.map((n) => ({ group_number: n, meets: numbers[0] })), error: null };
     },
   };
+  // TC12's review fix (private.shop_offered_to): a shop offered where the asker's group is: its town's list has it
+  // (`service:<id>`, or a pack shop's own `place:<entry id>` key) shown and open, and a pack shop's place is live, one
+  // level under that town.
+  function shopOfferedTo(campaign: unknown, actor: unknown, service: string): boolean {
+    if (service.length < 1 || service.length > 200) return false;
+    const town = townPlaceOf(campaign, groupNumberOf(actor));
+    if (!town) return false;
+    const packShop = service.startsWith('place:');
+    const entry = ((town.town ?? {}) as Record<string, { shown?: unknown; open?: unknown } | undefined>)[packShop ? service : `service:${service}`];
+    if (!entry || entry.shown !== true || entry.open !== true) return false;
+    return (
+      !packShop ||
+      tables.places.some((p) => p.campaign_id === campaign && !p.undone && p.pack_id === town.pack_id && p.pack_parent_id === town.pack_entry_id && p.pack_entry_id === service.slice(6))
+    );
+  }
+  // The item's winning version in the campaign (as private.items_open_in orders them), its whole entry (the GM-only
+  // part merged over the readable part), whether a shop sells it (private.for_sale), its readable part
+  // (private.visible_part) and a value's words (private.price_words, the device's priceText).
+  function winningItem(campaign: unknown, item: string): Row | undefined {
+    const attached = tables.campaign_packs.filter((cp) => cp.campaign_id === campaign);
+    const rank = (e: Row): [number, number, number, string] => {
+      const cp = attached.find((c) => c.pack_id === e.pack_id)!;
+      const overrides = (tables.campaign_pack_secrets.find((x) => x.id === cp.id)?.overrides ?? {}) as Row;
+      const homebrew = tables.packs.find((p) => p.id === e.pack_id)?.kind === 'homebrew';
+      return [Object.hasOwn(overrides, `item:${String(e.pack_entry_id)}`) ? 1 : 0, homebrew ? 1 : 0, Number(cp.priority ?? 0), String(e.pack_id)];
+    };
+    let best: Row | undefined;
+    for (const e of tables.library_entries.filter((x) => x.kind === 'item' && x.pack_entry_id === item && attached.some((cp) => cp.pack_id === x.pack_id))) {
+      if (!best) {
+        best = e;
+        continue;
+      }
+      const [a, b] = [rank(e), rank(best)];
+      const better = a[0] - b[0] || a[1] - b[1] || a[2] - b[2] || (a[3] < b[3] ? 1 : a[3] > b[3] ? -1 : 0);
+      if (better > 0) best = e;
+    }
+    return best;
+  }
+  const wholeEntry = (e: Row): Row => ({ ...((e.data ?? {}) as Row), ...((tables.library_entry_secrets.find((x) => x.id === e.id)?.data ?? {}) as Row) });
+  const entryForSale = (whole: Row): boolean => (typeof whole.forSale === 'boolean' ? whole.forSale : !/(^|-)magic(-|$)/.test(typeof whole.category === 'string' ? whole.category : ''));
+  const visiblePart = (whole: Row): Row => {
+    if (!Array.isArray(whole.gmOnly)) return whole;
+    const out: Row = { ...whole };
+    for (const key of [...whole.gmOnly, 'gmOnly']) if (typeof key === 'string') delete out[key];
+    return out;
+  };
+  const priceWords = (value: unknown): string =>
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? Object.entries(value as Row)
+          .filter(([, amount]) => typeof amount === 'number')
+          .map(([coin, amount]) => `${String(amount)} ${coin}`)
+          .join(' ')
+      : '';
   // A group's town (M5b step 6e): its current visit's place in the newest expedition, when marked Safe or Hostile.
   function townPlaceOf(campaign: unknown, group: number): Row | undefined {
     const newest = tables.expeditions
@@ -2942,6 +3049,81 @@ export function createFakeDb(): FakeWorld {
         fuel_item: trimmed(args.fuel_item), out_at: null, keep_lit: row.type_id === type ? row.keep_lit : false,
       }, tag);
       return copy(row);
+    },
+  };
+  // Like the database (…_k22_tell.sql; K2 brings it, as the stub here promised): the GM's tell and his edit of what
+  // players see. The fact list is the app's own (hiddenFacts, the database's twin); the told facts come from the entry.
+  const entryOfLine = (l: Row): Row | undefined =>
+    tables.library_entries.find((e) => e.kind === 'item' && e.pack_id === l.source_pack_id && e.pack_entry_id === l.source_entry_id);
+  const singularOf = (campaign: unknown, category: string): string => {
+    const packs = tables.campaign_packs.filter((cp) => cp.campaign_id === campaign).sort((a, b) => Number(b.priority ?? 0) - Number(a.priority ?? 0));
+    for (const cp of packs) {
+      for (const r of tables.library_entries.filter((e) => e.kind === 'rulesSet' && e.pack_id === cp.pack_id)) {
+        const cats = (r.data as Row).itemCategories;
+        const c = Array.isArray(cats) ? (cats as Row[]).find((x) => x?.id === category) : undefined;
+        const said = String(c?.singular ?? '').trim() || String(c?.name ?? '').trim();
+        if (said) return said;
+      }
+    }
+    const tidy = category.replace(/[-_]+/g, ' ').trim();
+    return tidy ? `${tidy.charAt(0).toUpperCase()}${tidy.slice(1)}` : 'Item';
+  };
+  const k22Rpcs: Record<string, (args: Row, tag: Tag) => Result> = {
+    tell_item: (args, tag) => {
+      const l = tables.inventory_lines.find((x) => x.id === args.line);
+      if (!l || !isGmOf(l.campaign_id)) return refused("You don't have permission to do that.");
+      if (isStale(l, args.seen_version)) return staleResult;
+      const entry = entryOfLine(l);
+      const whole = entry ? { ...(entry.data as Row), ...((tables.library_entry_secrets.find((s) => s.id === entry.id)?.data as Row | undefined) ?? {}) } : null;
+      const facts = (line: Row) =>
+        hiddenFacts(
+          { identified: line.identified !== false, revealedFields: (line.revealed_fields as string[] | undefined) ?? [], details: (line.item_data as Row) ?? {}, chargesHidden: line.charges_hidden === true, category: String(line.category) },
+          whole,
+        ).map((f) => f.id as string);
+      const hidden = facts(l);
+      const asked = Array.isArray(args.facts) ? (args.facts as string[]) : [];
+      let told = asked.includes('everything') ? hidden : hidden.filter((h) => asked.includes(h));
+      if (told.length === 0) return { data: 0, error: null };
+      if (hidden.includes('magic') && !told.includes('magic')) told = ['magic', ...told];
+      const data: Row = { ...((l.item_data as Row) ?? {}) };
+      const patch: Row = {};
+      if (told.includes('name')) {
+        if (!entry) return raised("Its setting rules are gone, so its name can't be told.");
+        Object.assign(patch, { name: entry.name, identified: true });
+      }
+      if (told.includes('bonus') && whole) {
+        if ('bonus' in whole) data.bonus = whole.bonus;
+        for (const block of ['weapon', 'armour']) {
+          const part = whole[block] as Row | undefined;
+          const picked = part ? Object.fromEntries(['magicBonus', 'bonusVs'].filter((k) => k in part).map((k) => [k, part[k]])) : {};
+          if (Object.keys(picked).length > 0) data[block] = { ...((data[block] as Row) ?? {}), ...picked };
+        }
+      }
+      if (told.includes('cursed') && whole && 'cursed' in whole) data.cursed = whole.cursed;
+      if (told.some((t) => t.startsWith('power:')) && whole && Array.isArray(whole.properties)) {
+        const own = Array.isArray(data.properties) ? (data.properties as unknown[]).map((p) => JSON.stringify(p)) : [];
+        data.properties = (whole.properties as unknown[]).filter((p, i) => told.includes(`power:${i}`) || own.includes(JSON.stringify(p)));
+      }
+      for (const t of told.filter((x) => x.startsWith('fields.'))) data.fields = { ...((data.fields as Row) ?? {}), [t.slice(7)]: (whole?.fields as Row)[t.slice(7)] };
+      if (told.includes('charges')) {
+        const total = tables.inventory_line_secrets.find((s) => s.id === l.id)?.charges_total;
+        if (total === null || total === undefined) return raised('Set its charges first, then tell them.');
+        Object.assign(patch, { charges_hidden: false, charges_left: Math.max(0, Number(total) - Number(l.charges_used ?? 0)), spent_shown: false });
+      }
+      const revealed = [...((l.revealed_fields as string[] | undefined) ?? []), ...told.filter((t) => !((l.revealed_fields as string[] | undefined) ?? []).includes(t))];
+      const after = { ...l, ...patch, item_data: data, revealed_fields: revealed };
+      if (facts(after).length === 0 && whole) for (const key of ['description', 'source']) if (key in whole) data[key] = whole[key];
+      changeRow('inventory_lines', l, { ...patch, item_data: data, revealed_fields: revealed }, tag);
+      return { data: told.length, error: null };
+    },
+    edit_item_look: (args, tag) => {
+      const l = tables.inventory_lines.find((x) => x.id === args.line);
+      if (!l || !isGmOf(l.campaign_id)) return refused("You don't have permission to do that.");
+      if (isStale(l, args.seen_version)) return staleResult;
+      const appears = String(args.appears_as ?? '').trim().slice(0, 200);
+      const noticed = String(args.noticed ?? '').trim().slice(0, 2000);
+      changeRow('inventory_lines', l, { appears_as: appears, noticed, ...(l.identified === false ? { name: appears || singularOf(l.campaign_id, String(l.category)) } : {}) }, tag);
+      return { data: null, error: null };
     },
   };
   // Like the database (supabase/migrations/…_m5b_weather_roll.sql): today's weather. The weather tables the campaign's
@@ -4253,10 +4435,6 @@ export function createFakeDb(): FakeWorld {
   const rpcs: Record<string, (args: Row) => Result> = {
     ...companyRpcs,
     ...ruleRpcs,
-    // K22b's tell (public.tell_item) isn't modelled here: it tells nothing (0), so the old per-field Reveal writes the
-    // field as before. The real tell is tested on the database (supabase/tests/k22-reveal-hidden.test.ts); K2's screens
-    // bring a fuller fake with them.
-    tell_item: () => ({ data: 0, error: null }),
     // Like the database (ruled 2026-10-29, A4): the GM gets every exception; a player only those for player-facing
     // entries (the fake doesn't model which items a player may read).
     campaign_exceptions: ({ campaign }) => {
@@ -4576,7 +4754,7 @@ export function createFakeDb(): FakeWorld {
     const query = db.from('character_play');
     if (tag) query.headers.set('x-grimoire-command', tag);
     const saved = (await query
-      .upsert({ actor_id: actor.id, campaign_id: actor.campaign_id, prepared: args.new_ready, chosen: args.new_chosen ?? null, spells_cast: kept })
+      .upsert({ actor_id: actor.id, campaign_id: actor.campaign_id, prepared: args.new_ready, chosen: args.new_chosen ?? null, spells_cast: kept, rested_once: true })
       .select('actor_id')) as Result;
     return saved.error ? saved : { data: null, error: null };
   }
@@ -4675,6 +4853,7 @@ export function createFakeDb(): FakeWorld {
             if (name === 'set_spells') return setSpellsRpc(args, tag);
             if (name in clockRpcs) return clockRpcs[name]!(args, readTag(headers));
             if (name in lightRpcs) return lightRpcs[name]!(args, readTag(headers));
+            if (name in k22Rpcs) return k22Rpcs[name]!(args, readTag(headers));
             if (name in joinRpcs) return joinRpcs[name]!(args, readTag(headers));
             if (name in weatherRpcs) return weatherRpcs[name]!(args, readTag(headers));
             if (name in marchingRpcs) return marchingRpcs[name]!(args, readTag(headers));
@@ -5046,7 +5225,8 @@ class Query implements PromiseLike<Result> {
       if (!this.inserted.every((row) => this.mayArrange(row))) this.inserted = [];
     } else if (this.table === 'character_play') {
       // Like the access rules: the owner or the GM, for an approved character.
-      this.inserted = list.map((row) => ({ prepared: [], uses_spent: {}, ac_override: null, form_id: null, form_name: null, pins: [], ...row }));
+      // A row made from now on starts not rested (rested_once's default, fsr-4).
+      this.inserted = list.map((row) => ({ prepared: [], uses_spent: {}, ac_override: null, form_id: null, form_name: null, pins: [], rested_once: false, ...row }));
       if (!this.inserted.every((row) => this.mayPlay(row))) this.inserted = [];
     } else if (this.table === 'carrier_loads') {
       this.inserted = list.map((row) => ({ updated_at: new Date().toISOString(), ...row }));

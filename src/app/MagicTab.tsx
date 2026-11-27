@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { MyCharacter } from '../core/myCharacters.ts';
 import type { Db } from '../core/supabase.ts';
-import { castSpell, uncastSpell } from '../modules/characters/magicState.ts';
-import { magicTabLevels, type MagicTabRow } from '../modules/characters/magicView.ts';
+import { castSpell, firstSpellsOpen, uncastSpell } from '../modules/characters/magicState.ts';
+import { magicTabLevels, prepareView, type MagicTabRow } from '../modules/characters/magicView.ts';
 import { slotsOf, type CharacterPlay } from '../modules/characters/playState.ts';
 import { BookType, EntryPanel } from '../ui/creation.tsx';
 import { Icon } from '../ui/icons.tsx';
@@ -12,7 +12,7 @@ import { RuleText } from '../ui/RuleText.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import type { CampaignSetting } from './campaignSetting.ts';
 import type { characterFigures } from './fromSetting.ts';
-import { PrepareScreen } from './PrepareScreen.tsx';
+import { prepareSource, PrepareScreen, slotsToFill } from './PrepareScreen.tsx';
 import { registry } from './services.ts';
 import { spellFacts } from './spellFacts.ts';
 
@@ -20,6 +20,22 @@ type Figures = ReturnType<typeof characterFigures>;
 
 /** "Nothing ready"'s line for a caster who hasn't chosen (mockup magic/04; B's Departure 2, back with C and D). */
 export const NOTHING_CHOSEN = "You haven't chosen since your last rest. Choose in Prepare; they're ready after you rest.";
+
+/** "Nothing ready"'s line while the first spells are open (fsr-10; page 46, 46A). */
+export const CHOOSE_AT_ONCE = 'Choose in Prepare. What you choose is ready at once.';
+
+/** Prepare's second line on the tab (frame 04): "For your next rest", the closed state's. */
+export const FOR_NEXT_REST = 'For your next rest';
+
+/**
+ * Prepare's second line while the first spells are open (fsr-9; 46A, 46C): "Ready at once", with the slots a choice
+ * could still fill: "Ready at once. 1 slot empty", "Ready at once. 2 slots empty".
+ */
+export const readyAtOnceLine = (empty: number) => (empty === 0 ? 'Ready at once' : `Ready at once. ${empty === 1 ? '1 slot' : `${empty} slots`} empty`);
+
+/** The sentence the toast gains on the cast that closes the first spells (fsr-8; 46C): "Mire lamp cast. From now, …". */
+export const castToastText = (name: string, closesFirstSpells: boolean) =>
+  closesFirstSpells ? `${name} cast. From now, what you choose is ready after you rest.` : `${name} cast`;
 
 /**
  * Whether a character gets the Magic tab in the first cut (dec-8 B; mp-20): a caster with spell slots, or anything
@@ -63,6 +79,13 @@ export function MagicTab({
   // A spell's facts as the class reads them, shared with Prepare (`spellFacts`: the list's own range or duration, its
   // level words, lv-1; a spell whose pack is gone named as the log names it).
   const facts = spellFacts(setting, figures, character);
+  // The first spells open (fsr-1): Prepare's row counts the slots a choice could fill, as Prepare's foot does (fsr-9).
+  const atOnce = firstSpellsOpen(play);
+  const prepareLine = (() => {
+    if (!atOnce) return FOR_NEXT_REST;
+    const source = prepareSource(setting, figures, character);
+    return readyAtOnceLine(slotsToFill(prepareView(play, slots, source.candidates, facts.packSpells, { wholeList: source.wholeList })));
+  })();
   const levels = magicTabLevels(play, slots, facts.packSpells);
   const choiceOf = (row: MagicTabRow) => facts.choiceOf(row.spell, row.level, row.inPack);
   const headingsOf = (row: MagicTabRow) => facts.headingsOf(choiceOf(row));
@@ -81,11 +104,13 @@ export function MagicTab({
 
   async function cast(row: MagicTabRow) {
     const name = choiceOf(row).name;
+    // The cast that closes the first spells says so, once (fsr-8): read before it, as the tab last read the play row.
+    const closes = atOnce;
     setOpen(null);
     const result = await runCommand(registry, db, user, castSpell, { character, spell: row.spell, level: row.level, name });
     if (!result.ok) return toast({ text: result.message, error: true });
     onChanged();
-    toast({ text: `${name} cast`, onUndo: () => void uncast(row, name) });
+    toast({ text: castToastText(name, closes), onUndo: () => void uncast(row, name) });
   }
 
   const readyRow = (row: MagicTabRow): ReadySpellRow => {
@@ -106,7 +131,7 @@ export function MagicTab({
           // Prepare is a row, first, since it opens a screen (mockup magic/04): the spell book before its word, the
           // chevron kept (ic-2). It opens Prepare, choosing for the next rest (piece C), and says so (frame 04).
           <RowList>
-            <ListRow lead={<Icon name="spell-book" size={20} />} title="Prepare" sub="For your next rest" onOpen={() => setPreparing(true)} />
+            <ListRow lead={<Icon name="spell-book" size={20} />} title="Prepare" sub={prepareLine} onOpen={() => setPreparing(true)} />
           </RowList>
         )}
         <section className="play-block" aria-labelledby="magic-spells">
@@ -117,7 +142,7 @@ export function MagicTab({
             <RowList>
               {/* Frame 04's sentence, back now Prepare (C) and the rest (D) make it true; only while nothing is chosen, so
                   its first half holds (a choice waiting for the rest says "Nothing ready" alone). */}
-              <ListRow title="Nothing ready" {...(caster && !(play.chosen?.length) ? { sub: NOTHING_CHOSEN } : {})} />
+              <ListRow title="Nothing ready" {...(caster && atOnce ? { sub: CHOOSE_AT_ONCE } : caster && !(play.chosen?.length) ? { sub: NOTHING_CHOSEN } : {})} />
             </RowList>
           ) : (
             levels.map((l) => {

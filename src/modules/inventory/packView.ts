@@ -72,13 +72,13 @@ export function groupPack(
 
 /**
  * The Party stash (ruled 2026-10-28, N18): nothing in it is worn or carried, so it has no Worn, Carried, Gear or
- * Other groups. Its loose things come first as one plain list (no heading), then one "In the …" group per
- * container in it.
+ * Other groups. Its loose things come first under "Loose" (pk-4, frame PK4 of pack/08), then one "In the …" group
+ * per container in it.
  */
 function stashGroups(all: InventoryLine[], byName: (a: InventoryLine, b: InventoryLine) => number): PackGroup[] {
   const ids = new Set(all.map((l) => l.id));
   const groups: PackGroup[] = [
-    { key: 'loose', title: '', lines: all.filter((l) => l.containerLineId === null || !ids.has(l.containerLineId)) },
+    { key: 'loose', title: 'Loose', lines: all.filter((l) => l.containerLineId === null || !ids.has(l.containerLineId)) },
     ...all.filter(isContainer).map((c) => ({ key: c.id, title: `In the ${c.name}`, lines: all.filter((l) => l.containerLineId === c.id) })),
   ];
   return groups.filter((g) => g.lines.length > 0).map((g) => ({ ...g, lines: [...g.lines].sort(byName) }));
@@ -159,6 +159,12 @@ export function shownName(name: string): string {
   const first = name.trimStart();
   return first ? first.charAt(0).toLocaleUpperCase() + first.slice(1) : name;
 }
+
+/** "the " and an item's name, in a sentence's words ("the Bronze ring"); a name that starts with "The" keeps its own ("The Old Lantern"). */
+export const withThe = (name: string) => (/^the\s/i.test(name) ? name : `the ${name}`);
+
+/** A name's possessive, in a sentence's words: "Wren’s pack", and after a final s the mark alone, "the Lantern Wardens’ pack" (Home Two's audit of #50, finding 7). */
+export const possessive = (name: string) => (/s$/i.test(name) ? `${name}’` : `${name}’s`);
 
 /**
  * Some of a stack in words (words batch 1, ruled 2026-10-26): the pack's `unitName` for one and `pluralName` for

@@ -2097,12 +2097,14 @@ export function SceneTime({
    * A check that is a roll on its table (p2p-19, B9; page 24, WY1b): the GM tapped the rolled row in its card. Today's two
    * commands, as a hit and its tapped row are recorded from the tables full screen: the check's result (check.record,
    * a hit: with no chance the table is always rolled) and the row read (check.setRoll). No new command. The toast never
-   * says "a hit" (p2p-19: there is no hit or miss): "Rolled: 14–15, A seal, curious", as a tapped row says it. Its Undo
+   * says "a hit" (p2p-19: there is no hit or miss): "14–15: A seal, curious", as a tapped row says it. Its Undo
    * takes back both, the row first.
    */
   async function rollRow(line: CardLine, tap: TableTap) {
     if (!line.check || rollingRow.current) return;
     rollingRow.current = true;
+    // The pop-up closes on the tap, before the commands are saved (sf-5: the tap is the answer, at once).
+    setRollingKey(null);
     try {
       const command = line.check.now ? recordCheckNow : line.check.again ? recordCheckAgain : recordCheck;
       const result = await act(command, {
@@ -2112,7 +2114,6 @@ export function SceneTime({
       if (!result) return;
       if (hitQueuesEncounter(line.check, reminders)) await act(queueEncounter, { campaignId: campaign.id, result });
       const saved = await act(setCheckRoll, { campaignId: campaign.id, result, tableId: tap.table.id, roll: tap.roll, rowText: tap.rowText });
-      setRollingKey(null);
       setCard((c) => takeOne(c, line.key));
       setRecorded((m) => new Map(m).set(line.key, saved ? `Rolled: ${tap.rowText}` : 'Rolled'));
       setHit({ line, result: saved ?? result });
@@ -2122,7 +2123,7 @@ export function SceneTime({
         setTablesOpen(null);
       };
       show({
-        text: `${saved ? `Rolled: ${tap.roll}, ${tap.words}` : `${line.name}: the row wasn't saved`}${(saved ?? result).revealed ? ', players see it' : ''}`,
+        text: `${saved ? `${tap.roll}: ${tap.words}` : `${line.name}: the row wasn't saved`}${(saved ?? result).revealed ? ', players see it' : ''}`,
         onUndo: () => void (saved ? undoLatest('check.setRoll', () => void undoLatest(command.name, restore)) : undoLatest(command.name, restore)),
       });
     } finally {
@@ -2131,7 +2132,7 @@ export function SceneTime({
   }
 
   const cardShown = todayTags ? card.filter((l) => !l.key.startsWith('weather:')) : card;
-  const cardRoll: CardRoll = { openKey: rollingKey, tables, describe: describeRow };
+  const cardRoll: CardRoll = { openKey: rollingKey, onClose: () => setRollingKey(null), tables, describe: describeRow };
   const cardActions = {
     onHit: (line: CardLine) => void record(line, 'hit'),
     onMiss: (line: CardLine) => void record(line, 'miss'),
@@ -2142,7 +2143,7 @@ export function SceneTime({
     // The weather line opens the Weather sheet (S10), whose table's row the GM taps to enter today's weather.
     onRoll: (line: CardLine) => (line.key.startsWith('weather:') ? setWeatherOpen(true) : setRollFor(line)),
     onCheckAgain: (line: CardLine) => setCard((c) => checkAgain(c, line.key)),
-    // A roll on its table (B9; WY1b): Enter roll… opens the table in the card; a tap on its row is the answer.
+    // A roll on its table (B9; sf-5, page 44 EN2): Roll… opens the table's pop-up; a tap on its row is the answer.
     onRollCheck: (line: CardLine) => setRollingKey(line.key),
     onRollRow: (line: CardLine, tap: TableTap) => void rollRow(line, tap),
   };

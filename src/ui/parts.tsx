@@ -1,6 +1,6 @@
 // Small shared parts from the component inventory (docs/06 "Components"; conventions ruled 2026-10-25). Each is
 // built once here and composed by screens; the gallery (gallery.html) shows every one in every state.
-import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import './parts.css';
 import { hasStepIcon, Icon, StepIcon, type IconName } from './icons.tsx';
@@ -255,6 +255,46 @@ export function Switch(
         </span>
       </span>
     </button>
+  );
+}
+
+/** The three positions of the stock toggle: in stock, not in stock, or not decided today ("?"). */
+export type StockToggleState = 'in' | 'out' | 'undecided';
+
+/**
+ * The three-position toggle (tn-4; page 19 frame TW8f, approved in the stock table, ap-13; town row TC9, carried from
+ * the stack's W9a): a thing's "Stocked?" for the day. The knob rests in the middle with "?" until flipped; at the left
+ * with the cross (not in stock); at the right with the tick, the wash and the accent edge (in stock): a mark for each,
+ * never colour alone. The left half always means out, the right half always means in; a tap on the side it is already
+ * on does nothing; it is not dragged. Back to "?" only by Undo in the toast after a flip, or by the table's Reset
+ * (TW8f). Each half is a 44 px target with 8 px between them, over the Switch's own 52 by 28 track and knob (one look).
+ * Spoken as a group of two choices, not a switch: "<thing>, stocked today: not decided", then "Not in stock" and "In
+ * stock"; one tab stop, the arrow keys moving between the halves without choosing. It writes nothing itself: the
+ * caller's `onChange` does.
+ */
+export function StockToggle({ thing, state, onChange }: { thing: string; state: StockToggleState; onChange: (answer: 'in' | 'out') => void }) {
+  const pick = (answer: 'in' | 'out') => {
+    if (state !== answer) onChange(answer);
+  };
+  // The radio group's keys: one stop in the tab order (the chosen half, else the left one); the arrow keys move between
+  // the halves without choosing (a choice writes the day's stock); Space or Enter chooses.
+  const outHalf = useRef<HTMLButtonElement>(null);
+  const inHalf = useRef<HTMLButtonElement>(null);
+  const move = (event: KeyboardEvent<HTMLSpanElement>) => {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    event.preventDefault();
+    (document.activeElement === inHalf.current ? outHalf : inHalf).current?.focus();
+  };
+  return (
+    <span className="stock-toggle" data-state={state} role="radiogroup" aria-label={`${thing}, stocked today${state === 'undecided' ? ': not decided' : ''}`} onKeyDown={move}>
+      <button ref={outHalf} type="button" role="radio" aria-checked={state === 'out'} tabIndex={state === 'in' ? -1 : 0} aria-label="Not in stock" className="stock-toggle__half stock-toggle__half--out" onClick={() => pick('out')} />
+      <span className="switch__track" aria-hidden="true">
+        <span className="switch__thumb" data-mark={state === 'undecided' ? 'undecided' : state === 'in' ? 'tick' : 'cross'}>
+          {state === 'undecided' ? '?' : <Icon name={state === 'in' ? 'tick' : 'cross'} size={14} />}
+        </span>
+      </span>
+      <button ref={inHalf} type="button" role="radio" aria-checked={state === 'in'} tabIndex={state === 'in' ? 0 : -1} aria-label="In stock" className="stock-toggle__half stock-toggle__half--in" onClick={() => pick('in')} />
+    </span>
   );
 }
 
@@ -899,8 +939,17 @@ export function Toast({
   onDone,
   seconds = TOAST_SECONDS,
   error = false,
+  warning,
+  undoIcon = false,
 }: {
   text: string;
+  /**
+   * The **icon Undo** variant (K12, the lead's ruling on ⚑ 6 of #66, 24 Nov): Undo as a small stacked button, the set's
+   * turned-back arrow (ic-2) above the word, never underlined (fl-1). The stash's Take uses it.
+   */
+  undoIcon?: boolean;
+  /** The **warning** variant (K12, PK4b): a line of its own under the words, the warning sign first ("Over the limit: …"). */
+  warning?: string;
   onUndo?: () => void;
   /**
    * The action variant (M5 step 7): one tap that does the obvious next thing instead of Undo, named for it ("Light
@@ -919,13 +968,22 @@ export function Toast({
   }, [onDone, seconds]);
   return (
     <div className="toast" role={error ? 'alert' : 'status'}>
-      <span className="toast__text">{text}</span>
+      <span className="toast__text">
+        {text}
+        {warning && (
+          <span className="toast__warning">
+            <WarningLine>{warning}</WarningLine>
+          </span>
+        )}
+      </span>
       {onUndo && action && (
         <button type="button" className="toast__undo toast__action" onClick={action.run}>
           {action.label}
         </button>
       )}
-      {onUndo ? (
+      {onUndo && undoIcon ? (
+        <StackedButton icon="anticlockwise-rotation" label="Undo" className="toast__undo-icon" onClick={onUndo} />
+      ) : onUndo ? (
         <button type="button" className="toast__undo" onClick={onUndo}>
           Undo
         </button>

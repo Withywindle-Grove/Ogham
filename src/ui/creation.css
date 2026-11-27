@@ -2107,6 +2107,16 @@ body:has(.creation-step__bar--app) .top-row {
   min-inline-size: 0;
 }
 
+/* A row found by "Go to number" (page 44, EN7 F; N2): a rule at its leading edge and its range in bold; no wash, which
+   stays the picked row's. */
+.book-tap-table__cell--found {
+  box-shadow: inset var(--space-1) 0 0 var(--ink);
+}
+
+.book-tap-table__cell--found .option-row__range {
+  font-weight: 700;
+}
+
 .book-tap-table__open {
   flex: none;
   min-inline-size: var(--tap);

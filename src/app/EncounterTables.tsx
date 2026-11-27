@@ -13,12 +13,15 @@
 //     opened there is for reading (nothing is recorded).
 //   * TableRoll: a typed roll reads the row, for the tables that aren't encounter tables (a procedure step's roll,
 //     the weather, an escape roll).
-import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
+//   * TableRollPopUp: "Roll…" on a check that is a roll on its table (sf-5; page 44, EN2, EN4 B, EN7 D to F): the table in
+//     a pop-up, a tap on a row the answer; opened again from "Change…" with the picked row ticked.
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { tableTag, tablesRowWords, type TableListRow } from '../modules/expedition/tableList.ts';
 import { missingWords } from '../modules/expedition/rowLinks.ts';
 import { linkedTables, pickColumns, resultWords, rowCountShown, rowFor, rowLabel, rowLeadsTo, rowNextChoices, rowText, tableLookup, type ReadTable, type RowReading, type TableRow, type TerrainKey } from '../modules/expedition/tables.ts';
-import { Dialog } from '../ui/Dialog.tsx';
-import { DiceWords } from '../ui/dice.tsx';
+import { BookTapTable, BookType, CreationLoading } from '../ui/creation.tsx';
+import { CentredPopUpScope, Dialog, SheetScope } from '../ui/Dialog.tsx';
+import { DiceWords, RollRow, dieOf } from '../ui/dice.tsx';
 import { Chip } from '../ui/parts.tsx';
 import './SceneExplore.css';
 import './EncounterTables.css';
@@ -163,24 +166,11 @@ export function TableRows({
   switchTable?: { choices: { id: string; name: string }[]; onPick: (id: string) => void };
   onTap?: (tap: TableTap, column: string | null) => void;
 }) {
-  const goId = useId();
   const columns = pickColumns(table);
   const [column, setColumn] = useState<string | null>(columns.length ? (startColumn && columns.includes(startColumn) ? startColumn : columns[0]!) : (table.columns[0] ?? null));
-  const [goTo, setGoTo] = useState('');
-  const [goProblem, setGoProblem] = useState<string | null>(null);
   const rowRefs = useRef(new Map<number, HTMLElement>());
   // Go to number on long tables, when a number can find a row (a lookup's rows by key alone have none).
-  const long = table.rows.length > 20 && table.rows.some((r) => r.min !== null || r.key !== null);
-
-  function go(event: FormEvent) {
-    event.preventDefault();
-    const reading = rowFor(table, goTo, column);
-    if (!reading.ok) return setGoProblem(reading.message);
-    setGoProblem(null);
-    const el = rowRefs.current.get(reading.index);
-    el?.scrollIntoView?.({ block: 'center' });
-    el?.focus({ preventScroll: true });
-  }
+  const long = table.rows.length > 20 && findsByNumber(table);
 
   const lead = [context, table.description].filter(Boolean).join(', ');
   return (
@@ -206,31 +196,15 @@ export function TableRows({
         </div>
       )}
       {long && (
-        <form className="table-rows__go" onSubmit={go}>
-          <label className="label" htmlFor={goId}>
-            Go to number
-          </label>
-          <div className="table-roll__row">
-            <input
-              id={goId}
-              className="field__input field__input--short"
-              type="text"
-              inputMode={table.composite ? 'text' : 'numeric'}
-              autoComplete="off"
-              maxLength={7}
-              value={goTo}
-              onChange={(event) => setGoTo(event.target.value)}
-            />
-            <button type="submit" className="button-secondary">
-              Go
-            </button>
-          </div>
-          {goProblem && (
-            <p className="form-error" role="alert">
-              {goProblem}
-            </p>
-          )}
-        </form>
+        <GoToNumber
+          table={table}
+          column={column}
+          onFound={(index) => {
+            const el = rowRefs.current.get(index);
+            el?.scrollIntoView?.({ block: 'center' });
+            el?.focus({ preventScroll: true });
+          }}
+        />
       )}
       <ol className="table-rows__list" aria-label={trail.join(' › ')}>
         {table.rows.map((row, index) => {
@@ -276,6 +250,138 @@ export function TableRows({
         })}
       </ol>
     </div>
+  );
+}
+
+/** A number can find a row of this table (a lookup's rows by key alone have none). */
+function findsByNumber(table: ReadTable): boolean {
+  return table.rows.some((r) => r.min !== null || r.key !== null);
+}
+
+/** Go to number (the tables' screen's form): a number typed finds its row; one that fits no row says why. */
+function GoToNumber({ table, column, onFound }: { table: ReadTable; column: string | null; onFound: (index: number) => void }) {
+  const goId = useId();
+  const [goTo, setGoTo] = useState('');
+  const [goProblem, setGoProblem] = useState<string | null>(null);
+  function go(event: FormEvent) {
+    event.preventDefault();
+    const reading = rowFor(table, goTo, column);
+    if (!reading.ok) return setGoProblem(reading.message);
+    setGoProblem(null);
+    onFound(reading.index);
+  }
+  return (
+    <form className="table-rows__go" onSubmit={go}>
+      <label className="label" htmlFor={goId}>
+        Go to number
+      </label>
+      <div className="table-roll__row">
+        <input
+          id={goId}
+          className="field__input field__input--short"
+          type="text"
+          inputMode={table.composite ? 'text' : 'numeric'}
+          autoComplete="off"
+          maxLength={7}
+          value={goTo}
+          onChange={(event) => setGoTo(event.target.value)}
+        />
+        <button type="submit" className="button-secondary">
+          Go
+        </button>
+      </div>
+      {goProblem && (
+        <p className="form-error" role="alert">
+          {goProblem}
+        </p>
+      )}
+    </form>
+  );
+}
+
+/**
+ * "Roll…"'s pop-up (sf-5; page 44, EN2, EN4 B, EN7 D to F, approved 2026-11-26): the table's name and the X, "Roll d20,
+ * then tap the row.", and the table in the book's tapped form. A tap on a row is the answer (`onRow`, once); the X
+ * records nothing. `picked` (from "Change…") ticks the row picked before. A table with more numbers than 20 (a d100), or
+ * more than 20 rows, has "Go to number": the row found comes to the top of the rows, marked by a rule (N2), not picked.
+ * `table` null: still loading, nothing for 300 ms, then a line and skeleton rows. Centred on a tablet, fitted to its
+ * table up to 720 px; a sheet from the foot on a phone; a tall table keeps its head and roll row while the rows scroll.
+ */
+export function TableRollPopUp({
+  title,
+  table,
+  tables,
+  describe,
+  picked = null,
+  onRow,
+  onClose,
+}: {
+  title: string;
+  table: ReadTable | null;
+  tables: ReadonlyMap<string, ReadTable>;
+  describe: (row: TableRow) => string | null;
+  /** The row picked before (its index), ticked: opened from "Change…". */
+  picked?: number | null;
+  onRow: (tap: TableTap) => void;
+  onClose: () => void;
+}) {
+  const [found, setFound] = useState<number | null>(null);
+  const body = useRef<HTMLDivElement>(null);
+  const column = table ? (pickColumns(table)[0] ?? table.columns[0] ?? null) : null;
+  const known = tableLookup(tables.keys());
+  const lineOf = (row: TableRow) => {
+    const id = table ? rowLeadsTo(table, row, column, known) : null;
+    const next = id ? (tables.get(id)?.name ?? id) : null;
+    return [next ? `opens ${next} ›` : null, describe(row)].filter(Boolean).join(' ') || null;
+  };
+  const die = table?.die ? dieOf(table.die) : null;
+  const goes = !!table && findsByNumber(table) && (table.rows.length > 20 || (die ?? 0) > 20);
+  // The row found comes first in the rows' own scroll, and takes focus so Enter taps it. After the render that marks it
+  // (its row is drawn anew inside the found cell); each Go brings it up again, the same row too.
+  const [going, setGoing] = useState(0);
+  const bringUp = (index: number) => {
+    setFound(index);
+    setGoing((n) => n + 1);
+  };
+  useEffect(() => {
+    if (found === null) return;
+    const rows = body.current?.querySelector<HTMLElement>('.table-sheet__rows');
+    const row = rows?.children[found] as HTMLElement | undefined;
+    if (!rows || !row) return;
+    rows.scrollTop += row.getBoundingClientRect().top - rows.getBoundingClientRect().top;
+    (row.matches('[role="radio"]') ? row : row.querySelector<HTMLElement>('[role="radio"]'))?.focus({ preventScroll: true });
+  }, [found, going]);
+  return (
+    <SheetScope.Provider value>
+      <CentredPopUpScope.Provider value>
+        <Dialog label={table?.name ?? title} onClose={onClose}>
+          {table ? (
+            <div ref={body} className="roll-pop">
+              <RollRow die={die}>{table.die ? `Roll ${table.die}, then tap the row.` : 'Roll, then tap the row.'}</RollRow>
+              {goes && <GoToNumber table={table} column={column} onFound={bringUp} />}
+              <BookType>
+                <BookTapTable
+                  die={table.die ?? ''}
+                  column={column ?? 'Encounter'}
+                  label={table.name}
+                  rows={table.rows.map((row, index) => ({
+                    key: String(index),
+                    range: rowLabel(row),
+                    name: rowText(table, row, column),
+                    ...(lineOf(row) ? { line: lineOf(row)! } : {}),
+                    picked: index === picked,
+                    found: index === found,
+                    onPick: () => onRow(tapOf(table, [table.name], row, column)),
+                  }))}
+                />
+              </BookType>
+            </div>
+          ) : (
+            <CreationLoading line="Loading the table…" />
+          )}
+        </Dialog>
+      </CentredPopUpScope.Provider>
+    </SheetScope.Provider>
   );
 }
 

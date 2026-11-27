@@ -844,3 +844,213 @@
   align-self: flex-start;
   justify-self: start;
 }
+
+/* The Pack's "Party stash" row (K11; mockup pack/08 PK1, PK6): a leading icon, the name over what is in it, the
+   chevron; under the coin line, with the rule above it as the coin line has. */
+.pack__stash-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  min-block-size: calc(var(--tap) + var(--space-2));
+  padding: var(--space-1) 0;
+  border: none;
+  border-block-start: var(--divider);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.pack__stash-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--muted);
+}
+
+.pack__stash-words {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.pack__stash-name {
+  font-weight: var(--weight-book-name);
+}
+
+.pack__stash-row .pack__chevron {
+  grid-column: auto;
+  grid-row: auto;
+  flex: none;
+  justify-content: center;
+  inline-size: var(--tap);
+}
+
+/* The party stash's own screen (K11; PK4, PK7b, PK9b): the three facts as labelled lines, the label in the book's
+   label colour; the taker's room and the recent lines beside the lists on a tablet, under them on a phone. */
+.stash__facts {
+  margin-block-end: var(--space-2);
+}
+
+.stash__fact {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.stash__fact-label {
+  color: var(--book-label);
+}
+
+.stash__offline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: var(--line-hair) solid var(--warning);
+  border-radius: var(--radius);
+  font-weight: var(--weight-bold);
+}
+
+.stash__empty {
+  margin-block: var(--space-3);
+}
+
+.stash__beside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+}
+
+/* "Wren's room", "Recently" (PK4): the book's sub-heading, its weight and colour (K29). */
+.stash__head {
+  margin: 0 0 var(--space-2);
+  color: var(--book-subhead);
+  font-size: var(--text-20);
+  font-weight: var(--weight-book-subhead);
+  line-height: var(--line-heading);
+}
+
+.stash__takers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.stash__recent-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stash__recent-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-1);
+  border-block-end: var(--line-hair) dotted var(--rule);
+}
+
+.stash__recent-words {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.stash__undo {
+  flex: none;
+  min-block-size: var(--tap);
+  min-inline-size: var(--tap);
+}
+
+
+/* The Pack tab's dress (K29; frames PK1 to PK13 of pack/08, approved 2026-11-14): `PackDress` wraps the tab in the
+   book's type, and this class scopes the tab's own sizes and gaps to the frames, so At hand on the Player tab (P1)
+   keeps its own. The wrapper adds no box. */
+.pack-dress {
+  display: contents;
+}
+
+/* A group's head (PK1, PK6): its name in the book's small capitals at 14 px, muted, as sentence case (the face draws
+   the capitals); its count beside it as built. */
+.pack-dress .pack__group-title {
+  font-family: var(--font-book-descriptor);
+  font-weight: var(--weight-book-descriptor);
+  font-size: var(--text-14);
+  font-variant: normal;
+  letter-spacing: var(--tracking-label);
+  text-transform: none;
+}
+
+/* A group's head (PK1, PK4): 32 px at least, so its first row stands clear of it ("Heads 32 px, rest as built",
+   Francis, 26 Nov 2026, ⚑ 20). */
+.pack-dress .pack__group-head {
+  align-items: center;
+  min-block-size: var(--space-6);
+}
+
+/* A row (PK1): 52 px at least, 4 px above and below; the name in the book's bold at 20 px, a stack's count beside it
+   at 14 px, plain. */
+.pack-dress .pack__row-main {
+  align-content: center;
+  min-height: calc(var(--tap) + var(--space-2));
+  padding: var(--space-1) 0;
+}
+
+/* A row with no line under its name (PK1's "Bog sling"): the name centred in its row. The chevron keeps to the name's
+   line, so the two empty lines it spans on a longer row add no space under the name. */
+.pack-dress .pack__row-main:not(:has(.pack__sub)) {
+  align-items: center;
+}
+
+.pack-dress .pack__row-main:not(:has(.pack__sub)) .pack__chevron {
+  grid-row: 1;
+}
+
+.pack-dress .pack__name {
+  font-weight: var(--weight-book-name);
+  line-height: var(--line-heading);
+}
+
+.pack-dress .pack__qty {
+  font-size: var(--text-14);
+  font-weight: var(--weight-book-text);
+}
+
+/* The load's state (PK1): upright, in the book's bold. Its size stays the app's 20 (the frame draws 22: ⚑ 20). */
+.pack-dress .pack__tier {
+  font-style: normal;
+  font-weight: var(--weight-book-name);
+}
+
+/* The card of things waiting for the GM (PK1): on the surface colour. */
+.pack-dress .pack__waiting {
+  background: var(--surface);
+}
+
+/* The foot (PK1): 12 px under its double rule. */
+.pack-dress .pack__foot {
+  padding-block-start: var(--space-3);
+}
+
+/* A thing's sheet and Add item (PK8, PK10b): their rows and fields on the pop-up's own ground, as the frames draw them,
+   not on a panel of their own. A thing's sheet is placed outside the tab's page, so `ItemSheet` marks it
+   `pack__sheet--thing` only inside the Pack's dress (`PackDressScope`); the Player tab's sheet keeps its panel. */
+.pack-dress .pack__sheet,
+.pack__sheet--thing {
+  padding: 0;
+  background: none;
+}
+
+/* A thing's sheet (PK8): its action rows' words at the body's 16 px, as the frame draws "Give to…", not a list row's
+   20 px in the book's type. */
+.pack__sheet--thing .list-row:not(.list-row--figure, .list-row--label) .list-row__title {
+  font-size: var(--text-16);
+}

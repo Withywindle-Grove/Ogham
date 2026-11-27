@@ -1579,6 +1579,15 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       const cost = typeof made.cost_text === 'string' && made.cost_text ? `, ${made.cost_text}` : '';
       return by(`${String(made.text ?? 'chose a lodging').replace(/^Staying at/, 'chose to stay at')} for ${named(names.characters, made.actor_id, 'a character')}${cost}`);
     }
+    // TC12 (tn-7, tn-8): Ask for…, answered at once from the day's stock, or sent on to the GM when not decided.
+    case 'town.askFor': {
+      const made = entry.events.find((e) => e.targetTable === 'requests' && e.before === null)?.after ?? after;
+      const answer = made.answer && typeof made.answer === 'object' ? (made.answer as Record<string, unknown>) : {};
+      const whose = named(names.characters, made.actor_id, 'a character');
+      const asked = `asked for ${whose}: “${String(made.text ?? '')}”`;
+      if (made.status === 'answered' && answer.kind === 'buy') return by(`${asked}, ${answer.result === 'inStock' ? `In stock: ${String(answer.price ?? '')}` : 'Not here'} (today's stock)`);
+      return by(`${asked}, sent to the GM`);
+    }
     case 'request.reply': {
       const reply = entry.events.find((e) => e.targetTable === 'requests' && e.before && e.after)?.after ?? after;
       const answer = reply.answer && typeof reply.answer === 'object' ? (reply.answer as Record<string, unknown>) : {};
@@ -1649,6 +1658,15 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       return by(`prepared ${count === 1 ? '1 spell' : `${count} spells`} for ${character()}`);
     }
     case 'character.chooseSpells': {
+      // While the first spells are open the choice is ready at once (fsr-1, fsr-10): the line names it, and says so.
+      // A change keeps only what changed, so `prepared` is there only when it did; a new row (no before) carries it whole,
+      // and an empty one there is a clear that made the row, not a choice.
+      if (Array.isArray(after.prepared) && (Array.isArray(before.prepared) || after.prepared.length > 0)) {
+        const ready = after.prepared.length;
+        // The last ready spell taken out while open empties the list: never "chose 0 spells".
+        if (ready === 0) return by(`left ${character()} with no spells ready`);
+        return by(`chose ${ready === 1 ? '1 spell' : `${ready} spells`} for ${character()}, ready at once`);
+      }
       // Chosen for the next rest (mp-2; dec-8 piece A): never what is ready today.
       if (!Array.isArray(after.chosen)) return by(`cleared ${possessive(character())} spells chosen for the next rest`);
       const count = after.chosen.length;

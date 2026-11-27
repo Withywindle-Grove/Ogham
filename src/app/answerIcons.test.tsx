@@ -76,23 +76,23 @@ describe('the answers’ icons (S17)', () => {
     expect(ANSWER_ICON.miss).toBe('shield-bounces');
   });
 
-  // Purpose (B9; p2p-19, page 24 WY1b): a check with a table and no chance is a roll on the table: its first answer is
-  // Enter roll… with the rolling dice, never Hit; with a chance, or with no table, it stays Hit. Its card draws one
-  // Enter roll… and no Hit, Miss or faces; with no tables to open in the card, Enter roll… takes the hit's way.
-  it('gives a roll on its table Enter roll…, and no Hit or Miss in its card', () => {
+  // Purpose (B9; p2p-19; sf-5, page 44 EN1 A, finding 7): a check with a table and no chance is a roll on the table: its
+  // first answer is Roll… with the rolling dice, never Hit; with a chance, or with no table, it stays Hit. Its card draws
+  // one Roll… and no Hit, Miss or faces; with no tables to open, Roll… takes the hit's way.
+  it('gives a roll on its table Roll…, and no Hit or Miss in its card', () => {
     const rolls = { ...check!, hit: { ...check!.hit, tables: ['harbour-encounters'], noteOnly: false } };
-    expect(firstAnswer(line('check', { check: rolls }))).toEqual({ id: 'rollCheck', label: 'Enter roll…', icon: 'rolling-dices' });
+    expect(firstAnswer(line('check', { check: rolls }))).toEqual({ id: 'rollCheck', label: 'Roll…', icon: 'rolling-dices' });
     expect(firstAnswer(line('check', { check: { ...rolls, always: false, chance: { die: 'd6', on: [1] } } })).id).toBe('hit');
     const a = card(line('check', { check: rolls, name: 'Encounters in the harbour' }));
-    const enter = screen.getByRole('button', { name: 'Enter roll, Encounters in the harbour' });
-    stacked(enter, 'rolling-dices', 'Enter roll…');
+    const enter = screen.getByRole('button', { name: 'Roll, Encounters in the harbour' });
+    stacked(enter, 'rolling-dices', 'Roll…');
     expect(enter.className).toContain('button-primary');
     for (const name of [/^Hit/, /^Miss/, /face/, /Modifier/]) expect(screen.queryByRole('button', { name })).toBeNull();
     fireEvent.click(enter);
     expect(a.onHit).toHaveBeenCalledOnce();
   });
 
-  // Purpose (#1086's review, findings 2 and 3): a check's table opened in its card names its die's column by the
+  // Purpose (#1086's review, findings 2 and 3): a check's table opened in its pop-up names its die's column by the
   // table's own column ("Encounter" only when it has none), and a row that leads to another table says so in its line
   // ("opens Harbour beasts ›"), as the full screen's rows do.
   it('opens the check’s table with its own column’s name and each row’s next table', () => {
@@ -109,7 +109,7 @@ describe('the answers’ icons (S17)', () => {
     const tables = new Map([harbour, beasts, plain].map((t) => [t.id, t]));
     const rolls = (id: string) => line('check', { check: { ...check!, hit: { ...check!.hit, tables: [id], noteOnly: false } }, name: 'Encounters in the harbour' });
     const open = (l: CardLine) =>
-      render(<ReminderCard title={null} card={[l]} stepSeconds={null} startedAt={null} stepWord="turn" pace="turn" single={{ accent: true, clearable: false }} roll={{ openKey: l.key, tables, describe: () => null }} {...actions()} />);
+      render(<ReminderCard title={null} card={[l]} stepSeconds={null} startedAt={null} stepWord="turn" pace="turn" single={{ accent: true, clearable: false }} roll={{ openKey: l.key, onClose: () => undefined, tables, describe: () => null }} {...actions()} />);
     open(rolls('harbour-encounters'));
     expect(document.querySelector('.book-tap-head__row')!.textContent).toContain('By day');
     expect(document.querySelector('.book-tap-head__row')!.textContent).not.toContain('Encounter');

@@ -1572,6 +1572,11 @@ export interface BookTapRow {
    */
   times?: number;
   onPutBack?: () => void;
+  /**
+   * Found by "Go to number" (page 44, EN7 F; N2): a rule at its leading edge and its range in bold, never the picked
+   * row's wash or tick, so it is not taken for an answer. A picked row is drawn as picked.
+   */
+  found?: boolean;
 }
 
 /**
@@ -1616,9 +1621,10 @@ export function BookTapCell({ row, rangeWidth, multiple }: { row: BookTapRow; ra
   const spoken = times > 1 ? [`${range} ${row.name}, picked ${timesInWords(times)}`, row.line].filter(Boolean).join(', ') : undefined;
   const option = <OptionRow compact range={range} rangeWidth={rangeWidth} name={row.name} summary={row.line ?? ''} notAllowed={row.warn} notAllowedLabel="" selected={row.picked} checks={Math.max(times, 1)} label={spoken} multiple={multiple} onPick={row.onPick} />;
   const less = times >= 1 && row.onPutBack;
-  if (!row.onOpen && !less) return option;
+  const found = row.found && !row.picked;
+  if (!row.onOpen && !less && !found) return option;
   return (
-    <div className="book-tap-table__cell">
+    <div className={found ? 'book-tap-table__cell book-tap-table__cell--found' : 'book-tap-table__cell'}>
       {option}
       {less && (
         <button type="button" className="button-secondary pick-row__less" aria-label={`Put back one ${row.range ? `${range}: ` : ''}${row.name}`} onClick={row.onPutBack}>

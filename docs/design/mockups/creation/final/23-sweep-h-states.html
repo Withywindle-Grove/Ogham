@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Creation, the style sweep: batch H, the states (2026-11-12)</title>
+<link rel="stylesheet" href="final.css">
+<link rel="stylesheet" href="sweep.css">
+<style>
+  .sk { height:64px; border:1.5px solid var(--rule); border-radius:4px; background:var(--surface); margin-bottom:var(--space-2); }
+  .popup { position:absolute; left:var(--space-3); right:var(--space-3); top:34%; background:var(--sheet); border:1.5px solid var(--control); border-radius:4px; padding:var(--space-3); }
+  .popup h3 { font-family:"EB Garamond", Georgia, serif; font-weight:600; font-size:20px; margin:0 0 var(--space-2); }
+  .unit { color:var(--muted); margin-left:var(--space-2); }
+  .waittag { display:inline-block; border:1.5px solid var(--ink); border-radius:4px; padding:0 var(--space-1); font-size:14px; font-weight:700; margin-right:var(--space-1); }
+  .foot .btn { white-space:nowrap; flex:none; }
+</style>
+</head>
+<body>
+<script src="final.js"></script>
+<script src="sweep.js"></script>
+<script>
+const x = `<span class="btn sq" role="button" aria-label="Close" style="border:0;background:transparent;margin:calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) 0 0">${I.close}</span>`;
+const pop = (title, words, buttons = '') => `<div class="dim"></div><div class="popup" role="dialog" aria-label="${title}"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-2)"><h3>${title}</h3>${buttons ? '' : x}</div><p style="margin:0">${words}</p>${buttons ? `<div class="efoot">${buttons}</div>` : ''}</div>`;
+const classRows = `${irow('Lantern Warden', 'Might, ' + die(8, 16) + 'd8, +5% experience', 'accent')}${irow('Reed Witch', 'Wits, ' + die(4, 16) + 'd4, +5% experience')}`;
+// loading
+const loadOld = `${bar('Class')}<div class="inner"><p class="meta">Step 4</p><p class="do">Your trade as an adventurer. Tap a name to read about it, then Pick.</p><p class="meta">Loading the setting’s classes…</p><div class="sk"></div><div class="sk"></div><div class="sk"></div>${foot('Loading', true, 'plain')}</div>`;
+const loadNew = `${bar('Class')}<div class="inner"><p class="meta">Step 4</p><p class="do">Your trade as an adventurer.</p><p class="meta" role="status">Loading the classes</p><div class="sk"></div><div class="sk"></div><div class="sk"></div>${foot('', true, 'plain')}</div>`;
+const h1 = frame('H1. Loading. <b>Left: the approved mockup. Right: swept:</b> the bar, the count and the step’s line are there at once; under them one quiet line and three still bars where the rows will be (no spinner; still under reduced motion). “Loading” is said once, over the bars, not again in the foot. Back and Next stay tappable: Next during loading says “Still loading the classes.” in a pop-up.',
+  [col('The approved mockup', loadOld), col('Swept', loadNew, 'bit')], 720);
+// offline
+const offline = `${bar('Class')}<div class="inner"><p class="meta">Step 4</p><p class="do">Your trade as an adventurer.</p>${helpGap}${classRows}${foot('<span class="waittag">Waiting</span>Kept on this device until you’re back', true, 'plain')}</div>`;
+const h2 = frame('H2. Offline, swept: the step works as every step does; picks are kept on this device. The foot carries the “Waiting” tag (the app’s offline mark, a boxed word) and says where the picks are. Only sending the review needs the connection, and says so there. The approved mockup’s foot read “Offline. Next waits for the connection”; by the spec Next does not wait on an ordinary step, so I changed the words. <b>For the Builder:</b> which is true in the build.',
+  [col('Swept', offline, 'bit')], 343);
+// nothing to choose
+const nothing = `${bar('Magic')}<div class="inner"><p class="meta">Step 7 of 12</p><p class="do">Lantern Wardens cast no spells and have no knack to roll.</p>${foot('Nothing to choose here')}</div>`;
+const h3 = frame('H3. A step with nothing to choose, swept (another character: a Stone kin Lantern Warden): one line saying why, and the foot’s “Nothing to choose here” with Next carrying the accent. The approved mockup said “Nothing to choose here.” in the line and “Nothing to do here” in the foot: said once now. <b>For the Builder:</b> the spec says a step the setting skips does not appear; can this state arise in the build, or is such a step left out of the count?',
+  [col('Swept', nothing, 'bit')], 343);
+// over the most
+const over = `${bar('Gear')}<div class="inner"><p class="meta">Step 10 of 12</p><p class="do">What you carry into your first adventure.</p><h3 class="sec" style="margin-top:var(--space-2)">Starting coin</h3>${roll(6, 'Roll 3d6 × 10, then enter it.')}<div>${stepper(190)}<span class="unit">silver</span></div><div>${warn('190 is above what 3d6 × 10 can roll. Roll again, or send it and the GM decides.')}</div>${foot('', true, 'plain')}</div>`;
+const h4 = frame('H4. A value over what the dice can roll, swept: the warning line under the stepper, with its sign and bold words, says what is wrong and the two ways on; nothing is blocked, and the GM sees it on the review. The approved mockup repeated it in the foot (“Coin is over the dice’s most”): said once now, where the value is. The same line serves a score and hit points (batches B and D).',
+  [col('Swept', over, 'bit')], 343);
+// something missing
+const missBack = `${bar('Class')}<div class="inner" style="min-height:520px"><p class="meta">Step 4</p>${classRows}${foot('Nothing picked yet', true, 'plain')}</div>`;
+const miss1 = `${missBack}${pop('Pick a class first', 'Every character has a class.')}`;
+const miss2 = `${bar('Patron')}<div class="inner" style="min-height:520px"><p class="meta">Step 5 of 13</p>${irow('The Lantern Keeper', 'Light in the dark water. Reed or Lantern followers', 'accent')}${footL('No patron yet', 'plain')}</div>${pop('Pick a patron first', 'A Marsh Chaplain follows a patron.', '<span class="btn">Back to Class</span><span class="btn accent">Choose a patron</span>')}`;
+const miss3 = `${bar('Weapon skills')}<div class="inner" style="min-height:520px"><p class="meta">Step 9 of 12</p><h3 class="sec">Pick 2</h3>${irow('Spear', 'Close or thrown. Also the long spear', 'picked')}${irow('Sling', 'Range. Stones are free', 'picked')}${footL('2 of 2 picked')}</div>${pop('2 of 2 picked', 'Take one off to pick another.')}`;
+const h5 = frame('H5. A tap that cannot do what was asked: never a greyed button, always a pop-up that says why. <b>Left: Next with nothing picked:</b> a title that says what to do and one line of why; an X, no button (batch A). <b>Middle: the Patron step’s</b> (a Marsh Chaplain’s, another character): two buttons that do different things, so they stay, the accent outermost, and no X beside them (two ways out, each with its own meaning). <b>Right: a third pick when two are allowed:</b> the count as the title, what to do in one line, an X. The lines are cut to one short sentence each (the approved Patron pop-up read “Pick one to go on, or go back and choose another class.”: its two buttons say that).',
+  [col('Swept: nothing picked', miss1, 'bit'), col('Swept: the Patron step', miss2, 'bit'), col('Swept: one too many', miss3, 'bit')], 1100);
+// start over
+const startOver = `${bar('Oswin Adderbald')}<div class="inner" style="min-height:560px"><p class="meta">Step 12 of 12, Review</p></div>${pop('Start over?', 'Everything you chose for Oswin Adderbald goes, and creation begins again at step 1. Nothing has been sent to your GM yet.', '<span class="btn">Keep going</span><span class="btn">Start over</span>')}`;
+const h6 = frame('H6. The one confirm in creation, swept, as built (the Builder’s reading, 2026-11-12): the small “Start over” in the review’s foot, for a draft never sent, opens a dialog: “Start over?”, what goes and where creation begins again, and that nothing has been sent; two buttons at the right, “Keep going” and “Start over” outermost, both plain (ruled 2026-11-12: an act that destroys the draft does not take the accent; the build makes it the primary button; the words are the build’s); no X on a two-answer dialog. It cannot be undone, so a dialog is right. After it: the toast “Started over: creation begins again at step 1.”',
+  [col('Swept', startOver, 'bit')], 343);
+
+mount(`
+  <h1>Creation, the style sweep: batch H, the states</h1>
+  <p class="note">Loading, offline, a step with nothing to choose, a value over the dice’s most, a tap that cannot do what was asked, and the one confirm, in the type pair and today’s standards, with the rulings of batches A to G applied. <b>All from the approved mockups (creation/final 08 and 14) and the spec:</b> none is in the built pictures I have. Coming back to a kept character is batch C’s frame C6. Names, words and numbers are invented. A proposal from the Design Studio, not ruled.</p>
+  <p class="note"><b>The example character</b> (one through every batch): a Stone kin Reed Witch starting at level 2, twelve steps. Three frames here are another character and say so (a Lantern Warden; a Marsh Chaplain).</p>
+  <h1>Loading; offline</h1>
+  <div class="wall">${h1}${h2}</div>
+  <h1>Nothing to choose; a value over the most</h1>
+  <div class="wall">${h3}${h4}</div>
+  <h1>A tap that cannot do what was asked; the one confirm</h1>
+  <div class="wall">${h5}</div>
+  <div class="wall">${h6}</div>
+  <h1>Questions (drafts for the lead’s list)</h1>
+  <p class="note"><b>For the Builder. 1.</b> Offline on a step: does Next wait, or do picks carry on, kept on the device? <b>2.</b> Can a step with nothing to choose arise, or is it left out? </p>
+  <p class="note"><b>4. Words changed from the approved mockups:</b> the offline foot; “Nothing to choose here” once; the over-the-most warning once; the pop-ups’ lines cut to one sentence. <i>My picks, as drawn.</i> The Patron pop-up’s title and buttons are the approved ones.</p>
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked.</b> Nothing said twice on any frame (each state said once, where it applies). Every way out counted: a pop-up has an X or buttons, never both. No fold on these frames. No disabled button anywhere. One accent a screen at most; none on a destructive answer. The warning and the “Waiting” tag are a shape and words. Loading is still. Light and dark side by side. The level-2 case does not arise on these frames. iPad forms are not drawn: each state is the same parts in the two-column step of the earlier batches.</p>
+  <p class="note"><b>Not checked, or uncertain.</b> None of these against a built screen. An error other than a failed send (batch G) is not drawn: a step that fails to load its rows would say so in the bars’ place with “Try again” (words not ruled). Contrast by measurement; Larger text.</p>
+`);
+applyPair();
+</script>
+</body>
+</html>

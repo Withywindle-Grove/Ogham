@@ -3,13 +3,13 @@
 // rows (a chevron where one asks more), Drop last and set apart (no confirm, Undo in the toast), and the star beside ✕
 // that pins the item to the top. Give to…, Put in… and Drop on a stack open the MoveSheet (ItemMoves.tsx). After an
 // action the item closes and the screen goes back to the top of the Pack (ruled 2026-10-24).
-import { useId, useState, type ReactNode } from 'react';
+import { useContext, useId, useState, type ReactNode } from 'react';
 import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { diceRange, recordRoll } from '../core/rolls.ts';
-import { chargesOf, recharge, revealCharges, seemsSpent, setCharges, useCharge, type ChargeRules } from '../modules/inventory/charges.ts';
+import { chargesOf, recharge, seemsSpent, setCharges, useCharge, type ChargeRules } from '../modules/inventory/charges.ts';
 import type { EncumbranceRules } from '../modules/inventory/encumbrance.ts';
 import {
   emptyContainer,
@@ -23,7 +23,6 @@ import {
   hideFromAtHand,
   pinItem,
   removeItem,
-  revealItemField,
   setItemQty,
   type InventoryLine,
   type NamedCarrier,
@@ -38,7 +37,8 @@ import { checkEquip, EquipWarningCard, type EquipCheck } from './EquipWarning.ts
 import { countWords, shownName } from '../modules/inventory/packView.ts';
 import { cameBackText, latestChange, undoChange, type CameBack } from '../core/undo.ts';
 import { MoveSheet, type Placement } from './ItemMoves.tsx';
-import { Dialog, SheetScope } from '../ui/Dialog.tsx';
+import { PackDressScope } from './PackParts.tsx';
+import { BookTypeScope, Dialog } from '../ui/Dialog.tsx';
 import { Breakdown, ListRow, PinStar, RowList, WarningSign } from '../ui/parts.tsx';
 import { RollPrompt } from '../ui/RollPrompt.tsx';
 import { RollCard } from '../ui/dice.tsx';
@@ -52,7 +52,9 @@ import './RulesBrowser.css';
 import { useToast } from '../ui/ToastHost.tsx';
 import { GmLine } from '../ui/GmLine.tsx';
 import type { Line } from '../modules/library/describe.ts';
-import { PlayerViewContext, usePlayerView } from './playerView.ts';
+import { usePlayerView } from './playerView.ts';
+import { factsOf, RevealPopup } from './RevealPopup.tsx';
+import { WhatPlayersSee } from './WhatPlayersSee.tsx';
 
 /**
  * The sheet's own state (which pop-up is open, what's typed). It lives with the item's row, not the sheet, so it
@@ -94,25 +96,26 @@ export function gmLineWords(hidden: readonly Line[], charges: { total: number | 
 }
 
 /**
- * "Reveal…" in the view (⚑ 40, ruled 2026-11-21): the GM's own item sheet for the item, as built, with its own state,
- * over the player's sheet under its own title, "Your sheet: Mooring ring", so the one in front is plain; its ✕ closes
- * it alone (audit fix 5, 2026-11-24: a title of its own, the smaller change than replacing the player's sheet).
+ * The hidden facts as the GM's line words them (K22e; K22a, K22g): the true name, the bonus, each power, "cursed", each
+ * hidden field; "That it's magic" left out, and the charges said by their count.
  */
-function GmItemSheet(props: ItemSheetProps) {
-  const state = useItemSheetState(props.line);
-  // Opened from inside the item's sheet: its own form, not the outer sheet's (CLAUDE.md; checked by gm-view-pack.spec.ts).
-  return (
-    <SheetScope.Provider value={false}>
-      <PlayerViewContext.Provider value={null}>
-        <ItemSheet {...props} state={state} atHand={null} title={`Your sheet: ${shownName(props.line.name)}`} />
-      </PlayerViewContext.Provider>
-    </SheetScope.Provider>
-  );
+function factLines(facts: ReturnType<typeof factsOf>): Line[] {
+  return facts.flatMap((f) => (f.id === 'magic' || f.id === 'charges' ? [] : f.id === 'cursed' ? [{ label: 'Cursed', value: 'Yes' }] : [{ label: f.label, value: f.detail || undefined }]));
 }
 
+/** What the facts already told read as, one plain line under the name (pick 11): "Magic.", "Magic, cursed.", "Cursed.". */
+export function toldTraits(line: Pick<InventoryLine, 'revealedFields' | 'details'>): string | null {
+  const told = line.revealedFields ?? [];
+  const traits = [told.includes('magic') ? 'magic' : '', told.includes('cursed') && line.details.cursed === true ? 'cursed' : ''].filter(Boolean).join(', ');
+  return traits ? `${traits.charAt(0).toUpperCase()}${traits.slice(1)}.` : null;
+}
+
+/** The gmOnly keys a fact speaks for (K22b's list): the GM's line says them as facts, not again as hidden fields. */
+const FACT_KEYS = new Set(['name', 'bonus', 'cursed', 'properties', 'fields', 'weapon', 'armour']);
+
 interface ItemSheetProps {
-  /** The sheet's title, when not the item's name ("Your sheet: Mooring ring", the GM's own sheet over the view's). */
-  title?: string;
+  /** The item's category's singular name (k22-3, ⚑ 4): what an emptied "Appears as" reads as. */
+  categorySingular?: string;
   /**
    * The GM's view as the player (pg32-4): the weapon's figures hidden from its player, in the GM's words, for the GM's
    * line ("Old bronze sword, magic −1"). From `CarrierItems`; empty outside the view.
@@ -204,21 +207,24 @@ export function ItemSheet(props: ItemSheetProps) {
     preview = false,
     atHand = null,
     gmFacts = [],
-    title,
+    categorySingular = '',
   } = props;
   const id = useId();
+  const inBook = useContext(BookTypeScope);
+  const dressed = useContext(PackDressScope);
   const blocked = useBlockedSheet();
   const { figure, setFigure, recharging, setRecharging, alsoHomebrew, setAlsoHomebrew, moving, setMoving, emptying, setEmptying, warned, setWarned, emptyTo, setEmptyTo, rechargeBy, setRechargeBy } = state;
   // The GM's view as the player (pg32-3, pg32-4; M3g, M3g2): the sheet is the player's, with no GM tool and no hidden
-  // figure, plus the GM's line and "Reveal…" on an item with something hidden. "Reveal…" opens the GM's own sheet, as
-  // built (⚑ 40, ruled 2026-11-21), where "Reveal the count" and "Hidden from players" sit.
+  // figure, plus the GM's line. "Reveal…" opens the Reveal pop-up (k22-8, replacing ⚑ 40's reading for G3), in the view
+  // and out of it; "Edit what players see…" its form, on an unidentified item (K22c).
   const view = usePlayerView();
   const gmTruth = isGm(user, campaign.id);
   const gmHere = gmTruth && view === null;
   const [revealing, setRevealing] = useState(false);
-  // Focus goes back to Reveal… as the GM's sheet closes (audit fix 3a): the Dialog's own rule now.
-  const openReveal = () => setRevealing(true);
-  const closeReveal = () => setRevealing(false);
+  const [editingLook, setEditingLook] = useState(false);
+  const unidentified = line.identified === false;
+  // The GM's own sheet outside the view reads the true name, "Players see: …" under it (K22g, 4; ⚑ 10, the driver's call).
+  const title = shownName(gmHere && unidentified && entry ? entry.name : line.name);
   const charged = chargesOf(line, chargeRules, rechargeDefault);
   const chargeText = !charged ? '' : chargeWords(line, gmHere ? secret : null);
   const waiting = line.approval === 'pending';
@@ -232,23 +238,38 @@ export function ItemSheet(props: ItemSheetProps) {
   const inside = isContainer(line) ? lines.filter((l) => l.containerLineId === line.id) : [];
   const toast = useToast();
   const hasCount = line.chargesLeft !== null || secret?.total != null;
-  const left = secret?.total != null ? Math.max(0, secret.total - line.chargesUsed) : null;
   const amount = amountText(line, mode, rules, lines);
   // The version this copy shows: a change made from it is refused if someone changed the item since.
   const ref = { id: line.id, carrier, version: line.version };
-  // What the line says about its item, in the same plain words as the setting rules browser.
-  const shown = describeEntry({ kind: 'item', packEntryId: line.sourceEntryId ?? line.id, name: line.name, data: line.details }, () => undefined);
+  // What the line says about its item, in the same plain words as the setting rules browser. A face's look (`looks`, ⚑ 5)
+  // is its own line, and a told curse reads in the traits line (pick 11), so neither is a detail row too.
+  const traits = toldTraits(line);
+  const looks = typeof line.details.looks === 'string' && line.details.looks.trim() ? line.details.looks.trim() : null;
+  const curseTold = (line.revealedFields ?? []).includes('cursed');
+  const detailData = Object.fromEntries(Object.entries(line.details).filter(([key]) => key !== 'looks' && !(key === 'cursed' && curseTold)));
+  const shown = describeEntry({ kind: 'item', packEntryId: line.sourceEntryId ?? line.id, name: line.name, data: detailData }, () => undefined);
+  // Once everything is told the item's own description stands where its look stood (pick 11, his fix).
+  const lookLines = looks && typeof line.details.description !== 'string' ? [looks] : [];
   const lineNotes = line.notes && !shown.notes.includes(line.notes) ? [line.notes] : [];
-  // For the GM: the entry's hidden fields this line doesn't show yet, each with Reveal (in the view, behind "Reveal…").
+  // "What you notice" (k22-7): on the player's sheet until the true name is told; an empty one shows no line (k22-3).
+  const notice = unidentified && !gmHere && line.noticed?.trim() ? line.noticed.trim() : null;
+  // For the GM: the entry's hidden fields this line doesn't show yet (outside the view, the "Hidden from players" group's
+  // lines, pick 13), and the facts still hidden (K22b's list) for the GM's line and "Reveal…".
   const gm = gmHere;
   const unrevealed = gmTruth && entry && Array.isArray(entry.data.gmOnly) ? entry.data.gmOnly.map(String).filter((key) => key in entry.data && !(key in line.details)) : [];
-  const hiddenNames = gm ? unrevealed : [];
-  const hiddenLines = entry ? describeEntry({ ...entry, data: { ...Object.fromEntries(unrevealed.map((key) => [key, entry.data[key]])) } }, () => undefined, { gm: true }).lines : [];
-  const gmLine = view && gmTruth ? gmLineWords(hiddenLines, line.chargesHidden && secret ? { ...secret, used: line.chargesUsed } : null, gmFacts) : null;
-  // "Reveal…" above the player's own rows (M3g): only where the GM's own sheet has something to reveal, a hidden field or
-  // a hidden count (the driver's call under ⚑ 40); a weapon whose only hidden thing is its figure keeps the line alone.
-  const revealable = unrevealed.length > 0 || (line.chargesHidden && secret?.total != null);
-  const revealRow = gmLine && revealable && <ListRow icon={<Icon name="eye" size={24} />} title="Reveal…" onOpen={() => (busy ? undefined : openReveal())} />;
+  const hiddenOf = (keys: string[]) => (entry && keys.length > 0 ? describeEntry({ ...entry, data: Object.fromEntries(keys.map((key) => [key, entry.data[key]])) }, () => undefined, { gm: true }).lines : []);
+  const hiddenLines = gm ? hiddenOf(unrevealed) : [];
+  const facts = gmTruth ? factsOf(line, entry, secret) : [];
+  // The GM's line shrinks to what is still hidden (K22g 1 to 3): the facts, then any other hidden field (his notes).
+  const gmLine = view && gmTruth ? gmLineWords([...factLines(facts), ...hiddenOf(unrevealed.filter((key) => !FACT_KEYS.has(key)))], line.chargesHidden && secret ? { ...secret, used: line.chargesUsed } : null, gmFacts) : null;
+  // "Reveal…" above the player's own rows (M3g), on every item with a fact still hidden (k22-8; pg32-4: none, no row);
+  // "Edit what players see…" under it while the item is unidentified (pick 1). Both the GM's alone.
+  const revealRow = gmTruth && (facts.length > 0 || unidentified) && (
+    <>
+      {facts.length > 0 && <ListRow icon={<Icon name="eye" size={24} />} title="Reveal…" onOpen={() => (busy ? undefined : setRevealing(true))} />}
+      {unidentified && <ListRow icon={<Icon name="quill-ink" size={24} />} title="Edit what players see…" onOpen={() => (busy ? undefined : setEditingLook(true))} />}
+    </>
+  );
   const oneOff = line.libraryEntryId === null && line.sourcePackId === null;
   /**
    * Runs a change that makes something leave your view, then the toast (B23; words batch 1): Undo is the log's
@@ -386,16 +407,25 @@ export function ItemSheet(props: ItemSheetProps) {
   }
 
   return (
-    <Dialog label={title ?? shownName(line.name)} onClose={onClose} headAction={star} preview={preview}>
-      <div id={id} className="pack__sheet" role="region" aria-label={shownName(line.name)}>
+    // In the book's type (the Pack tab, K29; the Player tab) a thing's sheet takes its name as the entry's heading (PK8,
+    // psw-4). Only in the Pack's dress does it lose its panel and take 16 px rows (PK8; the Player tab keeps pq-1's).
+    <Dialog label={title} onClose={onClose} headAction={star} preview={preview} bookHeading={inBook}>
+      <div id={id} className={`pack__sheet${dressed ? ' pack__sheet--thing' : ''}`} role="region" aria-label={title}>
         {problem && (
           <p className="pack__problem" role="note">
             <WarningSign /> {problem}
           </p>
         )}
-        {[...shown.notes, ...lineNotes].map((note) => (
+        {gmHere && unidentified && entry && <p className="auth__meta">Players see: {shownName(line.name)}</p>}
+        {traits && <p className="pack__traits">{traits}</p>}
+        {[...lookLines, ...shown.notes, ...lineNotes].map((note) => (
           <p key={note}>{note}</p>
         ))}
+        {notice && (
+          <p>
+            <span className="pack__notice">What you notice.</span> {notice}
+          </p>
+        )}
         {amount && amount !== '—' && <p>{mode === 'slot' ? 'Takes' : 'Weight'}: {amount}{stackable(line) && mode !== 'armour' ? ` for ${line.qty}` : ''}.</p>}
         {shown.lines.length > 0 && <Lines lines={shown.lines} kv />}
         {/* The GM's line under the item's figures, after its details (M3g2; audit fix 7, 2026-11-24). */}
@@ -458,15 +488,10 @@ export function ItemSheet(props: ItemSheetProps) {
               // Recharge is a button that opens a prompt (ruled 2026-10-24); where the item can't be recharged,
               // the GM still can, by fiat, from a quiet "Recharge (fiat)".
               <div className="pack__actions">
+                {/* The count is told from "Reveal…"'s pop-up, "Its charges" (k22-8). */}
                 <button type="button" className={charged.rechargeable ? 'button-secondary' : 'button-secondary button-secondary--small'} aria-busy={busy} onClick={() => setRecharging(true)}>
                   {charged.rechargeable ? 'Recharge' : 'Recharge (fiat)'}
                 </button>
-                {line.chargesHidden && left !== null && (
-                  // The GM's Reveal: the holder sees the count from now on, like visible charges.
-                  <button type="button" className="button-secondary button-secondary--small" aria-busy={busy} onClick={() => void run(() => runCommand(registry, db, user, revealCharges, { line: ref, left }), true)}>
-                    Reveal the count
-                  </button>
-                )}
               </div>
             )}
             {recharging && (
@@ -514,27 +539,18 @@ export function ItemSheet(props: ItemSheetProps) {
             )}
           </div>
         )}
-        {hiddenNames.length > 0 && (
+        {hiddenLines.length > 0 && (
+          // Outside the view the group keeps its lines; its buttons are "Reveal…"'s pop-up now (pick 13, k22-8).
           <div className="pack__hidden" role="group" aria-label="Hidden from players">
             <span className="label">Hidden from players</span>
             <Lines lines={hiddenLines} kv />
-            <div className="pack__actions">
-              {hiddenNames.map((key, index) => (
-                <button
-                  key={key}
-                  type="button"
-                  className="button-secondary"
-                  aria-busy={busy}
-                  onClick={() => void run(() => runCommand(registry, db, user, revealItemField, { line: ref, field: key, value: entry!.data[key] }), true)}
-                >
-                  Reveal {hiddenLines[index]?.label ?? key}
-                </button>
-              ))}
-            </div>
           </div>
         )}
         {revealRow && (!may || waiting) && <RowList label="Item actions">{revealRow}</RowList>}
-        {revealing && <GmItemSheet {...props} onClose={closeReveal} />}
+        {revealing && <RevealPopup line={line} entry={entry} secret={secret} carrier={carrier} db={db} user={user} campaign={campaign} run={run} busy={busy} onClose={() => setRevealing(false)} />}
+        {editingLook && (
+          <WhatPlayersSee line={line} carrier={carrier} singular={categorySingular} db={db} user={user} campaign={campaign} run={run} busy={busy} onClose={() => setEditingLook(false)} />
+        )}
         {waiting && (
           // A player's one-off waits for the GM (ruled 2026-10-23): it counts for nothing until approved.
           <div className="pack__actions" role="group" aria-label="Waiting for the GM">

@@ -84,22 +84,38 @@ export function placeOf(places: readonly PackPlace[], packId: string, entryId: s
   return places.find((p) => p.packId === packId && p.entryId === entryId);
 }
 
-/** The children of a place (its own places), in the pack's order; hexes by map number (the mockup: what the map prints). */
+/**
+ * The order of a list of Locations (F1 a, ruled 2026-11-25; plan dec-scene-quickfix Q1): those with no map number
+ * first, in the order given (the pack's); then by number, as numbers ("0", "1", "2" … "9", "10"; "4a" after "4" and
+ * before "5"); two with one number keep the order given. One helper for every list of Locations.
+ */
+export function byMapNumber<T>(list: readonly T[], numberOf: (item: T) => string | null | undefined): T[] {
+  const number = (item: T) => (numberOf(item) ?? '').trim();
+  const unnumbered = list.filter((item) => !number(item));
+  const numbered = list.filter((item) => number(item)).sort((a, b) => number(a).localeCompare(number(b), undefined, { numeric: true }));
+  return [...unnumbered, ...numbered];
+}
+
+/** The children of a place (its own places), in `treeOrder`. */
 export function childrenOf(places: readonly PackPlace[], parent: PackPlace | null, packId?: string): PackPlace[] {
   const found = places.filter((p) => (parent ? p.packId === parent.packId && p.parentId === parent.entryId : p.parentId === null && (!packId || p.packId === packId)));
-  return sortHexes(found);
+  return treeOrder(found);
 }
 
 /** The roots of a pack: its places with no parent, or whose parent isn't in the pack (a drop-in place). */
 export function rootsOf(places: readonly PackPlace[], packId: string): PackPlace[] {
   const ids = new Set(places.filter((p) => p.packId === packId).map((p) => p.entryId));
-  return sortHexes(places.filter((p) => p.packId === packId && (p.parentId === null || !ids.has(p.parentId))));
+  return treeOrder(places.filter((p) => p.packId === packId && (p.parentId === null || !ids.has(p.parentId))));
 }
 
-function sortHexes(list: PackPlace[]): PackPlace[] {
+/**
+ * One level of a pack's tree: other kinds first in the pack's order (rooms, floors, buildings, Areas: until their own
+ * sittings), then the Locations by `byMapNumber` (Q1), then hexes by map number (the mockup: what the map prints).
+ */
+function treeOrder(list: PackPlace[]): PackPlace[] {
   const hexes = list.filter((p) => p.hex).sort((a, b) => String(a.key ?? a.hex).localeCompare(String(b.key ?? b.hex), undefined, { numeric: true }));
-  const rest = list.filter((p) => !p.hex);
-  return [...rest, ...hexes];
+  const rest = list.filter((p) => !p.hex && !isLocation(p));
+  return [...rest, ...byMapNumber(list.filter(isLocation), (p) => p.key), ...hexes];
 }
 
 /** The parent of a place, or null. */

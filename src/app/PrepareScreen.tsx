@@ -2,7 +2,7 @@ import { useRef, useState, type ReactNode } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { MyCharacter } from '../core/myCharacters.ts';
 import type { Db } from '../core/supabase.ts';
-import { chooseSpells, nextReady, sameAsYesterday } from '../modules/characters/magicState.ts';
+import { chooseSpells, firstSpellsOpen, nextReady, sameAsYesterday } from '../modules/characters/magicState.ts';
 import { chooseOneFewer, chooseOneMore, prepareView, type PrepareLevel, type PrepareStep, type PrepareView, type SpellCount } from '../modules/characters/magicView.ts';
 import { withSwaps } from '../modules/characters/patrons.ts';
 import { loadCharacterPlay, preparedProblem, slotsOf, spellListOf, type CharacterPlay, type PreparedSpell } from '../modules/characters/playState.ts';
@@ -49,6 +49,50 @@ export const forLine = (who: string, ready: string) => `For ${who.endsWith('s') 
 /** The foot (mockup magic/06): "Saved as you go. 1 slot still empty", or "Saved as you go" with none empty. */
 export const footLine = (empty: number) => (empty === 0 ? 'Saved as you go' : `Saved as you go. ${empty === 1 ? '1 slot' : `${empty} slots`} still empty`);
 
+/** The first line while the first spells are open (fsr-10; page 46, 46B): the condition first, "your", never a name. */
+export const OPEN_LINE = 'Until your first cast or rest, what you choose is ready at once.';
+
+/**
+ * The foot while the first spells are open (fsr-9; 46B): an empty slot is said before the cast. "Ready as you choose.
+ * 1 slot still empty: fill it before you cast." / "… 2 slots still empty: fill them before you cast." / none empty:
+ * "Ready as you choose".
+ */
+export const openFootLine = (empty: number) =>
+  empty === 0 ? 'Ready as you choose' : `Ready as you choose. ${empty === 1 ? '1 slot still empty: fill it' : `${empty} slots still empty: fill them`} before you cast.`;
+
+/**
+ * The slots a tap in Prepare could fill (fix 3, fsr-9): only a level with a stepper to tap, so not one with nothing to
+ * choose, nor an empty book's. The one count Prepare's foot and the Magic tab's Prepare row both say.
+ */
+export function slotsToFill(view: Pick<PrepareView, 'levels'>): number {
+  return view.levels.filter((l) => l.steps.length > 0).reduce((sum, l) => sum + l.empty, 0);
+}
+
+/**
+ * What Prepare chooses from, and how (dec-8 C; December 1a): the class's list with the patron's swaps, a book
+ * caster's narrowed to the book, and whether the whole list shows folded. Shared with the Magic tab, so its Prepare
+ * row counts the same empty slots as Prepare's foot (fsr-9).
+ */
+export function prepareSource(setting: CampaignSetting, figures: Figures, character: MyCharacter) {
+  const facts = spellFacts(setting, figures, character);
+  const casting = figures.klass?.spellcasting && typeof figures.klass.spellcasting === 'object' ? (figures.klass.spellcasting as Record<string, unknown>) : null;
+  const book = casting?.type === 'book';
+  // The class's list with the patron's swaps (December 1a; pt-5): a swapped-in spell is chosen as the class's own, at
+  // the swap's level; one no attached pack has in play is skipped (the class's spell stays).
+  const swapped = withSwaps(
+    spellListOf(figures.klass, setting.all.filter((e) => e.kind === 'spellList')),
+    patronInSetting(setting, character.creation),
+    character.classRef ?? '',
+    (id) => entriesInPlay(setting.all).some((e) => e.kind === 'spell' && e.packEntryId === id),
+    classListOf(setting),
+  );
+  // A book caster chooses from the book (the class list's spells that are in it, at their level); any other caster
+  // from the whole list, and a prayer caster's rest is folded (mp-1).
+  const inBook = new Set(spellBookOf(character.spellBook));
+  const candidates = book ? new Map([...swapped.list].map(([level, ids]) => [level, ids.filter((id) => inBook.has(id))])) : swapped.list;
+  return { facts, swapped, candidates, emptyBook: book && inBook.size === 0, wholeList: casting?.type === 'divine' };
+}
+
 /**
  * An empty spell book (frame 06's own note, word for word; the lead, 2026-11-14). The note stands alone: no level line
  * under it and no "1 slot still empty" at the foot (Francis's fix 3, 2026-11-18).
@@ -66,7 +110,8 @@ export const nothingToChoose = (level: number) => `Nothing to choose at level ${
  * chosen" / "Wren hasn't chosen Thorn dart for the next rest, so there's none to take out."
  */
 export const noneChosenTitle = (spell: string) => `${spell} isn't chosen`;
-export const noneChosenWhy = (who: string, spell: string) => `${who} hasn't chosen ${spell} for the next rest, so there's none to take out.`;
+export const noneChosenWhy = (who: string, spell: string, open = false) =>
+  open ? `${who} hasn't chosen ${spell}, so there's none to take out.` : `${who} hasn't chosen ${spell} for the next rest, so there's none to take out.`;
 
 /** Same as yesterday's refusal when yesterday's set no longer fits (the lead's answer 2, 2026-11-14). */
 export const YESTERDAY_NO_LONGER_FITS = "Yesterday's spells no longer fit your slots. Choose again.";
@@ -109,24 +154,11 @@ export function PrepareScreen({
   const saved = useRef<PreparedSpell[] | null>(play.chosen);
   const newest = useRef(0);
   const slots = slotsOf(figures.filled);
-  const facts = spellFacts(setting, figures, character);
-  const casting = figures.klass?.spellcasting && typeof figures.klass.spellcasting === 'object' ? (figures.klass.spellcasting as Record<string, unknown>) : null;
-  const book = casting?.type === 'book';
-  // The class's list with the patron's swaps (December 1a; pt-5): a swapped-in spell is chosen as the class's own, at
-  // the swap's level; one no attached pack has in play is skipped (the class's spell stays).
-  const swapped = withSwaps(
-    spellListOf(figures.klass, setting.all.filter((e) => e.kind === 'spellList')),
-    patronInSetting(setting, character.creation),
-    character.classRef ?? '',
-    (id) => entriesInPlay(setting.all).some((e) => e.kind === 'spell' && e.packEntryId === id),
-    classListOf(setting),
-  );
-  // A book caster chooses from the book (the class list's spells that are in it, at their level); any other caster
-  // from the whole list, and a prayer caster's rest is folded (mp-1).
-  const inBook = new Set(spellBookOf(character.spellBook));
-  const candidates = book ? new Map([...swapped.list].map(([level, ids]) => [level, ids.filter((id) => inBook.has(id))])) : swapped.list;
+  const { facts, swapped, candidates, emptyBook, wholeList } = prepareSource(setting, figures, character);
+  // The first spells open (fsr-1): a choice is ready at once, and the words say so.
+  const atOnce = firstSpellsOpen(play);
   const state = { prepared: play.prepared, chosen };
-  const view = prepareView(state, slots, candidates, facts.packSpells, { wholeList: casting?.type === 'divine' });
+  const view = prepareView(state, slots, candidates, facts.packSpells, { wholeList });
   const choiceOf = (spell: string, level: number, inPack = true) => facts.choiceOf(spell, level, inPack);
   const nameOf = (spell: string, level: number, inPack = facts.packSpells.has(spell)) => {
     const name = choiceOf(spell, level, inPack).name;
@@ -167,7 +199,7 @@ export function PrepareScreen({
   function fewer(step: PrepareStep, l: PrepareLevel) {
     if (!step.mayRemove) {
       const name = nameOf(step.spell, l.level, step.inPack);
-      return blocked.explain(noneChosenTitle(name), noneChosenWhy(who, name));
+      return blocked.explain(noneChosenTitle(name), noneChosenWhy(who, name, atOnce));
     }
     void save(chooseOneFewer(nextReady(state), step.spell, l.level));
   }
@@ -194,7 +226,8 @@ export function PrepareScreen({
       nameOf={nameOf}
       lineOf={(spell, level, inPack) => facts.lineOf(choiceOf(spell, level, inPack))}
       levelTitle={facts.levelTitle}
-      emptyBook={book && inBook.size === 0}
+      emptyBook={emptyBook}
+      firstSpellsOpen={atOnce}
       onMore={more}
       onFewer={fewer}
       onPick={() => void pickYesterday()}
@@ -233,6 +266,7 @@ export function PrepareSheet({
   lineOf,
   levelTitle,
   emptyBook,
+  firstSpellsOpen: open = false,
   onMore,
   onFewer,
   onPick,
@@ -254,6 +288,11 @@ export function PrepareSheet({
    * its level under the note.
    */
   emptyBook: boolean;
+  /**
+   * The first spells are open (fsr-1; page 46, 46B): the first line and the foot say a choice is ready at once, and
+   * Same as yesterday is not offered (there is no yesterday).
+   */
+  firstSpellsOpen?: boolean;
   onMore: (step: PrepareStep, l: PrepareLevel) => void;
   onFewer: (step: PrepareStep, l: PrepareLevel) => void;
   onPick: () => void;
@@ -297,8 +336,8 @@ export function PrepareSheet({
       <Dialog label="Prepare" onClose={onClose} full preview={preview}>
         <div className="prepare">
           {/* Chosen and ready told apart in words (mp-2): what this screen chooses, and what stays ready today. */}
-          <p className="prepare__for">{forLine(who, ready)}</p>
-          {view.sameAsYesterday.offers && (
+          <p className="prepare__for">{open ? OPEN_LINE : forLine(who, ready)}</p>
+          {view.sameAsYesterday.offers && !open && (
             <RowList>
               <ListRow title="Same as yesterday" sub={counted(view.sameAsYesterday.would)} action="Pick" actionLabel="Pick the same as yesterday" onAction={onPick} />
             </RowList>
@@ -325,7 +364,7 @@ export function PrepareSheet({
           })}
           {/* The foot counts the slots a tap here could fill: not those of a level with nothing to choose, so "Nothing
               to choose at level 2." is never followed by "2 slots still empty", nor an empty book's (fix 3). */}
-          <p className="prepare__foot">{footLine(choosable.reduce((sum, l) => sum + l.empty, 0))}</p>
+          <p className="prepare__foot">{(open ? openFootLine : footLine)(slotsToFill(view))}</p>
         </div>
         {children}
       </Dialog>

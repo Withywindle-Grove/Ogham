@@ -278,13 +278,15 @@
   transition: inset-inline-start var(--press-flash);
 }
 
-.switch[aria-checked='true'] .switch__track {
+.switch[aria-checked='true'] .switch__track,
+.stock-toggle[data-state='in'] .switch__track {
   border: var(--line-selected) solid var(--selected-edge);
   background: var(--selected);
   box-shadow: 0 0 var(--space-2) var(--line-hair) color-mix(in srgb, var(--light-glow) 60%, transparent);
 }
 
-.switch[aria-checked='true'] .switch__thumb {
+.switch[aria-checked='true'] .switch__thumb,
+.stock-toggle[data-state='in'] .switch__thumb {
   inset-inline-start: calc(100% - var(--space-5) + var(--line-selected) - var(--line-hair));
   border-color: var(--selected-edge);
   background: var(--sheet);
@@ -295,6 +297,49 @@
   flex: none;
   justify-content: center;
   min-inline-size: var(--tap);
+}
+
+/* The three-position stock toggle (tn-4, TW8f; town row TC9): two 44 px halves with 8 px between them, and the Switch's
+   own track and knob (`.switch__track`, `.switch__thumb`, one look) centred under them. Out is the Switch's off (the knob
+   at the left, the cross), in its on (the rules above: the knob at the right, the tick, the Selected wash, edge and
+   glow); this adds only the centring, the knob in the middle with "?", and the layering (the track under the halves, so
+   a half's focus ring is never painted over). */
+.stock-toggle {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  gap: var(--space-2);
+  align-items: center;
+  isolation: isolate;
+}
+
+.stock-toggle__half {
+  inline-size: var(--tap);
+  block-size: var(--tap);
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.stock-toggle .switch__track {
+  position: absolute;
+  z-index: -1;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.stock-toggle .switch__thumb {
+  font-size: var(--text-14);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stock-toggle[data-state='undecided'] .switch__thumb {
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /* The eye (ds-2): a bare 44 px target, no box and no word; the open or closed eye is the state. */
@@ -724,6 +769,17 @@
   flex: 1 1 auto;
 }
 
+/* The warning variant (K12, PK4b): its own line under the words; on the ink toast the sign and words take the toast's
+   colour, the shape and the bold carrying the warning. */
+.toast__warning {
+  display: block;
+  margin-block-start: var(--space-1);
+}
+
+.toast__warning .warning-line {
+  color: inherit;
+}
+
 .toast__undo {
   margin-inline-start: auto;
   text-align: end; /* a label too long for one line wraps with its lines at the right */
@@ -741,6 +797,13 @@
 /* The action and Undo variant (K7, PK10b): the action first, at the start of its line, Undo at the right. */
 .toast__action {
   margin-inline-start: 0;
+}
+
+/* The icon Undo variant (K12, ⚑ 6 of #66): the small stacked button at the right, the arrow above the word; a light
+   button on the ink toast, its own colours, no underline (fl-1). It clears the draining bar under it. */
+.toast__undo-icon {
+  margin-inline-start: auto;
+  margin-block-end: var(--space-1);
 }
 
 .toast__bar {
@@ -1416,8 +1479,8 @@ details[open] > summary > .disclosure::before {
   font-size: var(--text-14);
 }
 
-/* A sheet's foot with its one way back at the right (the stat block's "‹ Back to the encounter", approved 2026-11-12;
-   the same look as the entry panel's foot). */
+/* A sheet's foot with its one way back at the right (approved 2026-11-12 for the stat block's way back, gone since
+   sf-6a; the same look as the entry panel's foot). */
 .sheet-foot {
   display: flex;
   justify-content: flex-end;
@@ -1470,6 +1533,20 @@ details[open] > summary > .disclosure::before {
 
 .toast-host > .toast {
   pointer-events: auto;
+}
+
+/* Over a pop-up that asks for it, on a phone (K22d, pick 10; ToastHost.tsx): just above the sheet's top edge, over the
+   dimmed page, and never off the screen's top. */
+.toast-host.toast-host--lifted {
+  inset-block-end: min(calc(100dvh - var(--toast-lift-top) + var(--space-2)), calc(100dvh - var(--toast-height) - var(--gutter)));
+}
+
+/* That sheet leaves the toast's room at its top (ToastHost sets `--toast-above-height` once a toast shows over it), so a
+   sheet at full height never pushes the toast over its title or ✕ (Home Two's audit of #50, finding 1). */
+@media (max-width: 699px) {
+  .dialog.dialog--sheet:has([data-toast-above]) {
+    max-height: min(90dvh, calc(100dvh - var(--toast-above-height, 0px) - var(--gutter) - var(--space-2)));
+  }
 }
 
 /* A derived status (B25): its symbol and its words, tappable for why. */

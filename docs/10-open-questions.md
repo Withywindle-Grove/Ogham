@@ -9,12 +9,27 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 5. ⚑ Inscription-style display face for the wordmark and loading screen (yes or no).
 
 **The Scene, point to point** (`design/rulings/scene-point-to-point-2026-11-18.md`)
+- ⚑ **A control's edge on a pop-up in dark is 2.97 to 1, under the 3 to 1 floor** (the critique's finding 24 on page 44, measured 2026-11-25 and again 2026-11-26). It is the tokens' own pair (Control on the pop-up's ground), used across the app: a new value is a change to `06`'s tokens. Not changed on page 44, and left for later by Francis with the page's approval (2026-11-26).
+- ⚑ **A words sweep for "piece"** (scope check; Francis, 2026-11-26, sf-24: "I don't like the term 'pieces', minimize its use"). DT1 is done in its build. Every other place the app shows the word "piece" to a person (a place's pieces, "+ Piece", "Add a piece", "Edit piece", "Remove this piece", the log's lines, the pop-ups) is listed by the builder of the sweep, with a better word each, and comes to him before any screen changes. Nothing else is changed now. `design/rulings/scene-feedback-2026-11-25.md`, sf-24 and sf-27.
+
+**The Pack tab's finds** (page 45, approved 2026-11-26 in two sittings: `design/rulings/page-45-find-flow-2026-11-26.md`. F1, F2 and F7 are ruled: p45-21 to p45-23. The rest are not asked yet and stay ⚑ with the designer's lean; none holds a piece back: plan `plans/dec-6-the-whole-pack-tab.md`, "The find flow")
+- ⚑ F3 **"Just now": when it becomes "today".** Lean: under an hour, read when the card is drawn, with no ticking clock; then K14's words.
+- ⚑ F4 **A player with two characters: does the card name the character?** Lean: no. The card and the count belong to the character whose tabs are open, and the screen's title names it.
+- ⚑ F5 **The GM's view of a player's Pack** (page 32). Lean: the tags and the count show; no card, since "Got it" is the player's alone.
+- ⚑ F6 **A card's lines as taps,** beyond "and N more". Lean: not taps for now.
+- ⚑ F9 **A second find onto the same stack before Got it** (new with p45-22). Lean: one line a stack, the arrivals added together and the count as it now is ("River pearls ×5, now 11"), at the newest one's place and time; it counts as one.
+- **Not asked under p45-21:** a thing another person's tap makes by another road (an activity's yield the GM resolves; a hoard shared out, K17). Until he is asked, only the four roads p45-21 names count as "New".
+- **To check, the reading of p45-23:** with a find card and a call both due, the find card shows and the call waits for "Got it".
+- **Not yet seen by him:** FD11 as redrawn to his fixes, and the new frames FD3c and FD11b, all drawn after his "Approve" (`design/mockups/index.md`, page 45, pictures 45-22 to 45-24).
+- **Owed, the words sweep:** a find's log line drops its article ("Your GM gave Wren Bronze ring."); p45-18, `plans/app-sweep.md` Q-11. Not built with K18 to K21.
+- **To draw, the step's own roll** (sf-5 ⚑ 1, ruled 2026-11-26 "change it later"): a procedure step that rolls a table, and the weather table's pick, keep their typed "Enter roll…" (`TableRoll`) for now; a new row, drawn first by the designer, may make them "Roll…" with the tapped pop-up.
 
 **Later**
 - ⚑ **Laptops, widescreen** (2026-11-24, `01` Devices): laptops are the second device, for downtime; how windows scale past the tablet's landscape layout (1024 px and up, `06`) needs a short design session before anything in `06` changes.
 - **After 5 December: text shown on hover, for a PC** (euf-8, Francis, 2026-11-19: "we'll want to support pc more in the future but not prior to dec 5"). A player asked for an ability's description on hover; on a tablet a tap on the name opens it.
 - **After 5 December: players arrange the sections of their own screen, saved to their view** (euf-9, 2026-11-19). "Arrange this screen" was removed on 2026-10-26; its command and log lines are kept (05). Until then the pins and their order are the player's way to arrange the Player tab.
 - **After 5 December: the players' map's locate tool** (the post-5-December list, 2026-11-24): the players' map card opens fitted whole with no locate; a locate button on it needs a design (P5, `plans/dec-9-the-players-scene.md`; 09, 24 Nov).
+- **After 5 December: the GM shows players the full map too, as a second step** (Scene feedback ⚑ 11, Francis, 2026-11-26: "Yes, after Dec 5"; his F13 c). For 5 December a pack may give players a picture with the key's names painted out. After it: a second eye on the map, so the GM can reveal the full map as well. **The pack format must change for it, for the Pack Creator:** a map that has a players' version can then be revealed itself (`07`). Needs a frame first (sf-17, `design/rulings/scene-feedback-2026-11-25.md`).
 - **After 5 December: a trait that is a table** (2026-11-24): shown as the book's table until a design is ruled.
 - **After 5 December: a hand-added map inherited by the place's areas?** (2026-11-24): for 5 December only the pack's maps flow down the place tree (#51).
 - **After 5 December: the players' map and What we know in the GM's view of another player's Scene, as that player reads them** (Francis, 2026-11-24: "Agree"; #85 leaves them out). Needs a migration (an "as this player" form of the reads) and a plan.
@@ -87,3 +102,6 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 - A status that changes saves (a blessing's +1 for some turns), a save set by hand, and creation's review: each stays as built until it has its own frame. The fight's save prompt is ◈ CS-3, above.
 - The shapes of the two pack-format flags (G-220, G-221) and a condition's short word (G-222): designed with the Pack Creator (`11`); the plan's row 8 is held until then.
 - At the 5 December session: look at the 12 px line at the real table, at arm's length on a tablet lying flat. Nothing to build.
+
+**Wide PC screens** (2026-11-26, clo-21, `design/rulings/dec-creation-leftovers-2026-11-21.md`)
+- ⚑ Creation's two-column steps and review stretch to 1,440 px (`--page-max-wide`), then stay centred; text in a column stops at `--reading-width`. Do other screens (the Player tab, the GM's screens, the Scene) take the same cap? For a later design sitting. (`plans/creation-leftovers-2026-11-21.md`)

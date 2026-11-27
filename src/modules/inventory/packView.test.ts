@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { combineEncumbrance } from './encumbrance.ts';
 import type { InventoryLine } from './inventory.ts';
-import { amountText, atHandAction, atHandLines, oneUpVerb, countWords, groupPack, markerOf, roomLeft, shownName, stackable, wornText } from './packView.ts';
+import { amountText, atHandAction, atHandLines, oneUpVerb, countWords, groupPack, markerOf, possessive, roomLeft, shownName, stackable, wornText } from './packView.ts';
 
 // Invented items only (hard rule 2).
 let next = 0;
@@ -115,13 +115,14 @@ describe('the Pack screen’s groups (05: by where things are carried)', () => {
     expect(groupPack([line('Rope'), mule, cart], 'coin', rules).map((g) => g.title)).toEqual(['Carried', 'vehicle']);
   });
 
-  it('the Party stash has only its containers: loose things in one plain list first, then "In the …" per container (N18)', () => {
+  // Purpose: the stash's own screen heads its loose things "Loose" (pk-4, frame PK4), then one "In the …" per container.
+  it('the Party stash has only its containers: loose things first under "Loose", then "In the …" per container (N18, PK4)', () => {
     const mule = { ...line('Mule'), category: 'animal' };
     const listed = combineEncumbrance([{ ...rules, separateCategories: ['animal'] }]);
     const stash = [...lines.map((l) => ({ ...l, equipped: false })), mule];
     for (const mode of ['coin', 'armour', 'slot', 'none'] as const) {
       expect(groupPack(stash, mode, listed, (id) => id, { stash: true }).map((g) => [g.title, g.collapsible ?? false, g.other ?? false, g.lines.map((l) => l.name)])).toEqual([
-        ['', false, false, ['Mule', 'Quilted coat', 'Rope', 'Sack', 'Satchel']],
+        ['Loose', false, false, ['Mule', 'Quilted coat', 'Rope', 'Sack', 'Satchel']],
         ['In the Sack', false, false, ['Pearls']],
         ['In the Satchel', false, false, ['Chalk']],
       ]);
@@ -245,5 +246,15 @@ describe('At hand (ruled 2026-10-23)', () => {
     // A weapon worn (a blade on the worn slot) is ready too: Attack, since Wield would have nothing to do.
     expect(atHandAction(line('Spur blade', { category: 'weapon', equipped: true, details: { slot: 'worn' } }), charges)).toBe('Attack');
     expect(atHandAction(line('Coil of rope'), charges)).toBeNull();
+  });
+});
+
+describe('a name’s possessive (Home Two’s audit of #50, finding 7; Francis, 26 Nov)', () => {
+  // Purpose: a name takes ’s, and a name that ends in s takes the mark alone, so it never reads "Wardens’s".
+  it('adds ’s, and after a final s only ’', () => {
+    expect(possessive('Wren')).toBe('Wren’s');
+    expect(possessive('Wren of the Lantern Wardens')).toBe('Wren of the Lantern Wardens’');
+    expect(possessive('the Reed Boots')).toBe('the Reed Boots’');
+    expect(possessive('MOSS')).toBe('MOSS’');
   });
 });

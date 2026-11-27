@@ -97,7 +97,16 @@ export function purseResult(error: { code?: string; message: string; details?: s
  * only for its own player's character (piece c, K9); the rule is the guard either way.
  */
 export async function loadPurse(db: Db, campaignId: string, actorId: string): Promise<Coins | null> {
-  const { data, error } = await db.from('purses').select('coins').eq('campaign_id', campaignId).eq('actor_id', actorId).maybeSingle();
+  return wholeCoins(await db.from('purses').select('coins').eq('campaign_id', campaignId).eq('actor_id', actorId).maybeSingle());
+}
+
+/** The Party stash's coin (K13, pu-3): every member may read it (the read rule); null when nothing came back. */
+export async function loadStashCoin(db: Db, campaignId: string, locationId: string): Promise<Coins | null> {
+  return wholeCoins(await db.from('purses').select('coins').eq('campaign_id', campaignId).eq('location_id', locationId).maybeSingle());
+}
+
+/** A purse row's coins as whole numbers of 1 or more (anything else left out); null for no row or an error. */
+function wholeCoins({ data, error }: { data: { coins: Json } | null; error: unknown }): Coins | null {
   if (error || !data) return null;
   const coins = data.coins;
   if (typeof coins !== 'object' || coins === null || Array.isArray(coins)) return {};

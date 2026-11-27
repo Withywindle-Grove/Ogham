@@ -1,0 +1,126 @@
+/* The Reveal pop-up (K22d; page 33, K22d to K22f, K22i, K22j): one row per hidden fact, the closed eye, the fact and
+   what it is under it, "Tell" at the right; a told row the open eye, a tick and "Told". A list too long scrolls between
+   the title and the foot, which stay in view. */
+.reveal-popup__where {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.reveal-popup__list {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reveal-popup__list > li {
+  border-block-end: var(--line-hair) solid var(--rule);
+}
+
+.reveal-popup__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--space-3);
+  inline-size: 100%;
+  min-block-size: var(--tap-hp);
+  padding: var(--space-1) 0;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+}
+
+button.reveal-popup__row {
+  cursor: pointer;
+}
+
+.reveal-popup__eye {
+  display: flex;
+  color: var(--muted);
+}
+
+.reveal-popup__fact {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.reveal-popup__label {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-16);
+}
+
+.reveal-popup__detail {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+/* "Tell": drawn as the small plain button (06, Button), the row itself being what is pressed. */
+.reveal-popup__tell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--tap);
+  min-inline-size: var(--tap);
+  padding: 0 var(--space-3);
+  border: var(--line-control) solid var(--control);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  font-size: var(--text-16);
+}
+
+.reveal-popup__told {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+}
+
+.reveal-popup__error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--weight-bold);
+}
+
+/* On a tablet the toast sits at the screen's foot, over the dimmed page (pick 10): the pop-up keeps clear of it. */
+@media (min-width: 700px) {
+  .dialog__backdrop:has(.reveal-popup__list) {
+    /* The toast's place (`.toast-host`, 74 px up) and a toast of two lines with Undo under them. */
+    --toast-room: calc(var(--tab-bar) + var(--space-3) + var(--space-8) * 2 + var(--space-5));
+    padding-block-end: var(--toast-room);
+  }
+
+  .dialog__backdrop:has(.reveal-popup__list) > .dialog {
+    max-block-size: calc(100dvh - var(--gutter) - var(--toast-room));
+  }
+}
+
+/* "What players see" (K22c; frames K22b, K22c): the two fields, each growing to its words so nothing is cut. */
+.what-players-see {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.what-players-see__field {
+  resize: none;
+  overflow: hidden;
+}
+
+/* The player's item sheet (K22e; frames K22h, K22i 5 and 6): the told facts as one plain line under the name, and
+   "What you notice" as a labelled line in the book's red (page 30's HM4). */
+.pack__traits {
+  font-weight: var(--weight-bold);
+}
+
+.pack__notice {
+  color: var(--book-label);
+}

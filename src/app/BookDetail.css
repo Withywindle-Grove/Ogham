@@ -1,0 +1,96 @@
+/* The detail row and its pop-up (BookDetail.tsx; page 44, EN1, EN3, EN4). Tokens only. No box: a dotted rule above
+   and below (finding 13); rows of one list touch, sharing one rule. */
+.book-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--space-2) 0;
+  border: 0;
+  border-block: var(--row-rule);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-book-text);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  text-align: start;
+  cursor: pointer;
+}
+
+.book-detail + .book-detail {
+  border-block-start: 0;
+}
+
+/* A list of them (the encounter's creatures): the rules are the items', so a line with no row (one the packs don't
+   have) sits between the same rules. */
+.book-detail__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.book-detail__list > li {
+  border-block-end: var(--row-rule);
+}
+
+.book-detail__list > li:first-child {
+  border-block-start: var(--row-rule);
+}
+
+.book-detail__list .book-detail {
+  border: 0;
+}
+
+.book-detail__missing {
+  display: block;
+  padding: var(--space-2) 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.book-detail__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.book-detail__name {
+  font-weight: var(--weight-book-name);
+}
+
+.book-detail__quiet {
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.book-detail__rule {
+  font-size: var(--text-14);
+}
+
+.book-detail__body > p {
+  margin: 0;
+}
+
+/* A stat line breaks only between a label and the next; a die keeps its number (finding 12). */
+.book-detail .stat-block__pair {
+  display: inline-block;
+  max-width: 100%;
+}
+
+.book-detail__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* The block a named character uses, under its own name (EN3 B). */
+.book-detail__uses {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-book-text);
+  font-weight: var(--weight-book-name);
+  font-size: var(--text-20);
+  color: var(--book-label);
+}
