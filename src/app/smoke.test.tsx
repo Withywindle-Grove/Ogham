@@ -5496,6 +5496,33 @@ describe('the Pack tab (M4 step 4)', () => {
     await waitFor(() => expect(world.tables.inventory_lines.some((l) => l.name === 'Pebble')).toBe(false));
   });
 
+  // Purpose: a container whose name starts with "The" is not called "the The …" on its Empty sheet (withThe, #50).
+  it('Empty… on "The Old Satchel" is titled "Empty The Old Satchel"', async () => {
+    const { wren, line } = packWorld('coin');
+    line(wren, 'The Old Satchel', { id: 'line-old-satchel', item_data: { container: { capacityCoin: 100 } } });
+    line(wren, 'Pebble', { container_line_id: 'line-old-satchel' });
+    const user = openApp();
+    await openPack(user);
+    await user.click(screen.getByRole('button', { name: /^The Old Satchel/ }));
+    await user.click(screen.getByRole('button', { name: 'Empty…' }));
+    const dialog = screen.getByRole('dialog', { name: /^Empty / });
+    expect(dialog.getAttribute('aria-label')).toBe('Empty The Old Satchel');
+  });
+
+  // Purpose: the Empty sheet's drop question does not say "the The …" for a container whose name starts with "The" (withThe, #143 review).
+  it('Drop all… on "The Old Satchel" asks "Drop everything in The Old Satchel?"', async () => {
+    const { wren, line } = packWorld('coin');
+    line(wren, 'The Old Satchel', { id: 'line-old-satchel', item_data: { container: { capacityCoin: 100 } } });
+    line(wren, 'Pebble', { container_line_id: 'line-old-satchel' });
+    const user = openApp();
+    await openPack(user);
+    await user.click(screen.getByRole('button', { name: /^The Old Satchel/ }));
+    await user.click(screen.getByRole('button', { name: 'Empty…' }));
+    const dialog = within(screen.getByRole('dialog', { name: 'Empty The Old Satchel' }));
+    await user.click(dialog.getByRole('button', { name: 'Drop all…' }));
+    expect(dialog.getByText('Drop everything in The Old Satchel?')).toBeTruthy();
+  });
+
   it('animals and vehicles sit in "Other", outside the load', async () => {
     const { wren, line } = packWorld('coin');
     line(wren, 'Mule', { category: 'animal', weight_coin: 900, item_data: { animal: { capacityCoin: 3000 } } });

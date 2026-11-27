@@ -8,7 +8,7 @@ import type { Db } from '../core/supabase.ts';
 import type { ChargeRules } from '../modules/inventory/charges.ts';
 import type { EncumbranceRules } from '../modules/inventory/encumbrance.ts';
 import { mayChangeCarrier, type InventoryLine, type NamedCarrier } from '../modules/inventory/inventory.ts';
-import { groupPack, packGroupsWithTiny } from '../modules/inventory/packView.ts';
+import { groupPack, packGroupsWithTiny, withThe } from '../modules/inventory/packView.ts';
 import type { CampaignPack } from '../modules/library/campaignPacks.ts';
 import type { ResolvedEntry } from '../modules/library/stack.ts';
 import type { OpenCampaign } from './Campaigns.tsx';
@@ -276,7 +276,7 @@ export function CarrierItems({
   const ruleNotes = new Map(
     lines.flatMap((l) => {
       const rule = equipContext?.weaponRules ? allowedByRule(equipContext.character, asItem(l, equipContext), equipContext.weaponRules) : null;
-      return rule ? [[l.id, `By the ${rule.category} rule`] as const] : [];
+      return rule ? [[l.id, `By ${withThe(rule.category)} rule`] as const] : [];
     }),
   );
   // Gear that stops casting says so on its row (words batch 1, ruled 2026-10-26).

@@ -27,7 +27,7 @@ import {
   type InventoryLine,
   type NamedCarrier,
 } from '../modules/inventory/inventory.ts';
-import { amountText, EQUIP_SLOTS, isContainer, isWornSlot, showsAtHandByItself, stackable } from '../modules/inventory/packView.ts';
+import { amountText, EQUIP_SLOTS, isContainer, isWornSlot, showsAtHandByItself, stackable, withThe } from '../modules/inventory/packView.ts';
 import { describeEntry, sourceLine } from '../modules/library/describe.ts';
 import { saveHomebrewEntry } from '../modules/library/homebrew.ts';
 import type { SourceTitles } from '../modules/library/sourceTitles.ts';
@@ -694,11 +694,11 @@ export function ItemSheet(props: ItemSheetProps) {
               />
             )}
             {emptying && (
-              <Dialog label={`Empty the ${line.name}`} onClose={() => setEmptying(null)}>
+              <Dialog label={`Empty ${withThe(line.name)}`} onClose={() => setEmptying(null)}>
                 <p>{inside.length === 1 ? '1 item inside.' : `${inside.length} items inside.`}</p>
                 {emptying === 'drop' ? (
                   <div className="pack__actions">
-                    <p>Drop everything in the {line.name}?</p>
+                    <p>Drop everything in {withThe(line.name)}?</p>
                     <button
                       type="button"
                       className="button-secondary"

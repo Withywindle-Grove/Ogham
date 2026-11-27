@@ -688,3 +688,41 @@ describe('the Pack tab’s dress on a landscape tablet (K29’s review, finding 
     expect((await screen.findByRole('dialog', { name: 'Take' })).closest('.book-type')).not.toBeNull();
   });
 });
+
+describe('a name ending in s takes the mark alone (Home Two audit of #50, finding 7; #108 audit, finding 6)', () => {
+  // Purpose: a character whose name ends in s gets the mark alone on the coin's sheet and on its way back from Spend.
+  it.fails('reads "Lantern Wardens’ coin" on the coin’s sheet and "‹ Lantern Wardens’ coin" on Spend', async () => {
+    await coinWorld({ wren: { heron: 3 } });
+    world.tables.actors.find((a) => a.id === wren)!.name = 'Lantern Wardens';
+    const user = await openPack('Lantern Wardens');
+    await user.click(await coinRow());
+    const title = within(sheet()).getByRole('heading', { name: /coin$/ });
+    expect(title.textContent).toBe('Lantern Wardens’ coin');
+    await user.click(within(sheet()).getByRole('button', { name: 'Spend…' }));
+    const back = within(sheet()).getByRole('button', { name: /^‹ / });
+    expect(back.textContent).toBe('‹ Lantern Wardens’ coin');
+  });
+
+  // Purpose: a character whose name ends in s gets the mark alone on the Add item sheet's button.
+  it.fails('reads "Add to Lantern Wardens’ pack" on the Add item sheet', async () => {
+    await coinWorld();
+    world.tables.actors.find((a) => a.id === wren)!.name = 'Lantern Wardens';
+    const user = await openPack('Lantern Wardens');
+    await user.click(screen.getByRole('button', { name: 'Add item' }));
+    await user.type(await screen.findByLabelText('Search items'), 'Reed whistle');
+    await user.click(screen.getByRole('button', { name: /^Not listed\?/ }));
+    const add = await screen.findByRole('button', { name: /^Add to / });
+    expect(add.textContent).toBe('Add to Lantern Wardens’ pack');
+  });
+
+  // Purpose: a character whose name ends in s gets the mark alone on the Party stash's way back to the pack.
+  it('the Party stash’s way back reads "Lantern Wardens’ pack"', async () => {
+    await coinWorld();
+    world.tables.actors.find((a) => a.id === wren)!.name = 'Lantern Wardens';
+    const user = await openPack('Lantern Wardens');
+    await user.click(await screen.findByRole('button', { name: /^Party stash/ }));
+    await screen.findByRole('region', { name: 'Party stash' });
+    const back = screen.getByRole('button', { name: /^Back to / });
+    expect(back.getAttribute('aria-label') ?? back.textContent).toBe('Back to Lantern Wardens’ pack');
+  });
+});

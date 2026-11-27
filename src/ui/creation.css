@@ -230,6 +230,18 @@ body:has(.creation-step__bar--app) .top-row {
   margin-block-end: calc(-1 * var(--space-2));
 }
 
+/* A skipped step reached by Back (23-H3; L5, approved by Francis 2026-11-27 with two fixes): its line in ink at body
+   size, and "Nothing to choose here" at the left of Back and Next on their line, a phone too. The hint takes what the
+   pair leaves (no basis of its own), wrapping its words there rather than dropping to a line of its own. */
+.creation-step--skipped .guided-instruction {
+  color: var(--ink);
+  font-size: var(--text-body);
+}
+
+.creation-step--skipped .creation-step__foot:not(.creation-step__foot--stacked):not(.creation-step__foot--extra) .creation-step__hint {
+  flex: 1 1 0;
+}
+
 /* Decide later takes the pair's height, so the three read as one line (X1). */
 .creation-step__later {
   align-self: stretch;
