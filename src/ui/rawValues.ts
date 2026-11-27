@@ -173,11 +173,11 @@ const namesColour = (text: string) => (text.toLowerCase().match(/[a-z][a-z-]*/g)
 const kebab = (name: string) => (name.startsWith('--') ? name : name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`));
 
 // Spacing, size, type and colour properties, as CSS writes them: a bare number on one of these is React's pixels
-// (or, for line-height and font-weight, a unitless value that has a token).
+// (or, for line-height, font-weight and stroke-width, a unitless value that has a token).
 const MEASURED =
   /^(margin|padding|gap|row-gap|column-gap|inset|top|right|bottom|left|(margin|padding|inset|scroll-padding|scroll-margin)(-[a-z-]+)?|(min-|max-)?(width|height|inline-size|block-size)|flex-basis|font-size|font-weight|line-height|letter-spacing|word-spacing|text-indent|border-radius|border(-[a-z-]+)?-(width|radius)|outline-(width|offset)|stroke-width|color|background(-color)?|fill|stroke|[a-z-]+-color)$/;
 // Properties React writes without a unit, so a bare number on them is not pixels.
-const UNITLESS = new Set(['line-height', 'font-weight']);
+const UNITLESS = new Set(['line-height', 'font-weight', 'stroke-width', 'border-image-width']);
 
 /** True when one side of the value (a ternary's or a fallback's) is a plain number other than 0. */
 function bareNumber(value: string): boolean {

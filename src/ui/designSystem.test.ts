@@ -133,10 +133,12 @@ describe('tokens only in inline styles', () => {
     expect(literals('`12px ${gap')).toEqual(['12px ']);
   });
 
-  // Purpose: React writes line height and font weight without a unit, so the message doesn't call their number pixels.
-  it('a bare line height is reported as a bare number, not pixels', () => {
-    expect(inlineProblems({ '/src/app/Bog.tsx': '<i style={{ lineHeight: 1.5, gap: 4 }} />' }, [])).toEqual([
+  // Purpose: React writes line height, font weight and stroke width without a unit, so the message doesn't call their
+  // number pixels.
+  it('a bare line height or stroke width is reported as a bare number, not pixels', () => {
+    expect(inlineProblems({ '/src/app/Bog.tsx': '<i style={{ lineHeight: 1.5, strokeWidth: 2, gap: 4 }} />' }, [])).toEqual([
       '/src/app/Bog.tsx:1 line-height: 1.5 is a bare number; use a token (hard rule 7)',
+      '/src/app/Bog.tsx:1 stroke-width: 2 is a bare number; use a token (hard rule 7)',
       '/src/app/Bog.tsx:1 gap: 4 is a bare number (pixels); use a token (hard rule 7)',
     ]);
   });
