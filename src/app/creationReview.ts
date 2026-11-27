@@ -59,7 +59,7 @@ export function scoresLine(creation: unknown, label: (key: string) => string): s
 }
 
 /**
- * The review's last card (final drafts D, mockup creation/final/07): every exception the GM must approve specially,
+ * The review's first card, above the step cards (clo-1, frame 22-G2): every exception the GM must approve specially,
  * under "1 thing needs the GM's special approval" with the sign; each its name over the pack's reason. Null with none.
  */
 export function exceptionsPart(creation: unknown): { id: string; title: string; warn: true; lines: ReviewLine[] } | null {

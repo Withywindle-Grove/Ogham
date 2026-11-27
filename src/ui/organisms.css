@@ -50,6 +50,25 @@ div.review__section:not(.review__section--flagged) {
   cursor: auto;
 }
 
+/* Sent back (clo-2, 22-G5): a card that is read, its Change the one tap; a quiet edge, as the frame draws it. */
+.review__section--change,
+div.review__section--change:not(.review__section--flagged) {
+  border-color: var(--rule);
+  cursor: auto;
+}
+
+.review__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.review__change {
+  flex: none;
+  white-space: nowrap;
+}
+
 .review__section--flagged {
   border-color: var(--warning);
   box-shadow: inset 0 0 0 var(--line-control) var(--warning);
@@ -81,6 +100,39 @@ div.review__section:not(.review__section--flagged) {
 
 .review__why {
   color: var(--muted);
+}
+
+/* The sent-back foot (clo-2, 22-G5): under a rule, "1 part marked", then Back and Send at the right, each at its own
+   width, as the creation review's foot draws them (the accent not full width on a phone; ft-1). */
+.review__foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-block-start: var(--space-4);
+  border-block-start: var(--line-hair) solid var(--rule);
+}
+
+.review__foot-state {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+}
+
+.review__foot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  /* One height for the pair (22-G5): Back stretches to the accent's, as the creation steps' Back beside Next. */
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+/* Past `.auth .button-primary`, the full-width accent of the screens it sits in, and the plain button's own
+   `align-self: flex-start`, so Back takes the accent's height. */
+.review .review__foot-actions > button {
+  flex: none;
+  align-self: stretch;
+  width: auto;
 }
 
 .campaign-rules {
