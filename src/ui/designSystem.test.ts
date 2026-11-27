@@ -2,7 +2,8 @@
 // pair has enough contrast in both themes, no stylesheet uses raw spacing, type or colour values, and the app's own
 // text follows the words guide. The browser checks (targets, text sizes, screenshots) are in tests/layout.
 import { describe, expect, it } from 'vitest';
-import { rawValues } from './rawValues.ts';
+import { KNOWN_INLINE_BREAKS } from './inlineStyles.known.ts';
+import { inlineProblems, inlineRawValues, literals, rawValues } from './rawValues.ts';
 import { wordProblems } from './words.ts';
 
 // The files are listed by Vite and read from disk (CSS read through Vite comes back empty in tests). Node's file
@@ -78,6 +79,87 @@ describe('tokens only', () => {
   it('the checker finds raw values and leaves tokens, 0, sizes and borders alone', () => {
     const css = '.a {\n  padding: 6px 0;\n  font-size: 13px;\n  color: #ff0000;\n  margin: var(--space-2);\n  width: 320px;\n  border: 1px solid var(--rule);\n  gap: 0;\n}';
     expect(rawValues(css).map((v) => v.kind)).toEqual(['spacing', 'type', 'colour']);
+  });
+});
+
+// Check 5 (hard rule 7; docs/specs/hard-rule-and-size-checks.md): the same rule for inline `style` values in the app's
+// components. Planted sources use invented names only.
+describe('tokens only in inline styles', () => {
+  const found = (source: string) => inlineRawValues(source).map((v) => `${v.line} ${v.property}: ${v.kind}`);
+
+  // Purpose: a length written with a unit in an inline style fails, naming its line, property and kind.
+  it('a px or rem length fails', () => {
+    expect(found('<p className="bog" style={{ padding: \'12px\' }}>\n  <i style={{ marginTop: "1.5rem" }} />\n</p>')).toEqual(['1 padding: length', '2 margin-top: length']);
+  });
+
+  // Purpose: a colour written as a literal fails, whether hex, rgb or a named colour, on its own or inside a ternary.
+  it('a hex, rgb or named colour fails', () => {
+    const source = "<b style={{ color: '#7a1f1f', background: lit ? 'rgb(10, 20, 30)' : 'var(--surface)' }} />\n<s style={{ borderColor: 'SlateGray' }} />";
+    expect(found(source)).toEqual(['1 color: colour', '1 background: colour', '2 border-color: colour']);
+  });
+
+  // Purpose: a bare number on a spacing, size or type property is a pixel value React writes for you, so it fails too.
+  it('a bare number on padding, width or font size fails', () => {
+    const source = '<u style={{ padding: 12, width: wide ? 320 : -4, fontSize: (18) }} />';
+    expect(found(source)).toEqual(['1 padding: bare number', '1 width: bare number', '1 font-size: bare number']);
+  });
+
+  // Purpose: what the rule allows passes: tokens, a calc() of tokens, 0, percentages, bare numbers on properties that
+  // aren't spacing, size, type or colour, and values only known at run time (a measured position, a data fraction).
+  it('a token, a calc of tokens, 0, a percentage and a bare number on flex, order, opacity or z-index pass', () => {
+    const source = [
+      "<a style={{ padding: 'var(--space-2) var(--space-3)', marginLeft: `calc(var(--space-5) * ${depth})`, gap: 'calc(var(--space-1) + var(--space-2))' }} />",
+      "<a style={{ margin: 0, top: '0', inset: '0px', inlineSize: '56%', width: `${share * 100}%`, color: 'var(--ink)', background: 'transparent' }} />",
+      "<a style={{ flex: 1, order: 2, opacity: 0.5, zIndex: 3, animationName: 'tan-fade', fontFamily: 'Lantern Sans' }} />",
+      "<a style={shown ? ({ top: spot.top, '--lift-top': `${lift.top}px`, transform: `translateY(${by}px)`, ...rest } as Place) : undefined} />",
+    ].join('\n');
+    expect(found(source)).toEqual([]);
+  });
+
+  // Purpose: a bare number on a weight, radius, border, outline or stroke property fails too: each has a token.
+  it('a bare number on font weight, border radius, border width, outline or stroke width fails', () => {
+    const source = '<u style={{ fontWeight: 700, borderRadius: 8, borderTopWidth: 2, outlineOffset: 2, strokeWidth: 2 }} />';
+    expect(found(source)).toEqual(['1 font-weight: bare number', '1 border-radius: bare number', '1 border-top-width: bare number', '1 outline-offset: bare number', '1 stroke-width: bare number']);
+  });
+
+  // Purpose: a comment line in a style object doesn't hide the member after it (it would pass silently otherwise).
+  it('a comment before a member does not hide its bare number', () => {
+    const source = '<u\n  style={{\n    // the gutter\n    padding: 12,\n    /* a note */ margin: 4,\n  }}\n/>';
+    expect(found(source)).toEqual(['4 padding: bare number', '5 margin: bare number']);
+  });
+
+  // Purpose: a template with a `${` that never closes ends the scan instead of hanging the test run.
+  it('an unclosed template part ends instead of looping', () => {
+    expect(literals('`12px ${gap')).toEqual(['12px ']);
+  });
+
+  // Purpose: React writes line height, font weight and stroke width without a unit, so the message doesn't call their
+  // number pixels.
+  it('a bare line height or stroke width is reported as a bare number, not pixels', () => {
+    expect(inlineProblems({ '/src/app/Bog.tsx': '<i style={{ lineHeight: 1.5, strokeWidth: 2, gap: 4 }} />' }, [])).toEqual([
+      '/src/app/Bog.tsx:1 line-height: 1.5 is a bare number; use a token (hard rule 7)',
+      '/src/app/Bog.tsx:1 stroke-width: 2 is a bare number; use a token (hard rule 7)',
+      '/src/app/Bog.tsx:1 gap: 4 is a bare number (pixels); use a token (hard rule 7)',
+    ]);
+  });
+
+  // Purpose: the known list only gets shorter: a listed break passes, a new one fails, and a fixed one still listed fails.
+  it('a break on the known list passes; a new break, or a listed one that no longer breaks, fails', () => {
+    const breaks = { '/src/app/Bog.tsx': "<i style={{ padding: '4px', color: 'red' }} />", '/src/app/Lurker.tsx': "<i style={{ gap: 'var(--space-1)' }} />" };
+    const known = [
+      { file: '/src/app/Bog.tsx', property: 'padding', reason: 'a planted old case' },
+      { file: '/src/app/Lurker.tsx', property: 'gap', reason: 'fixed since' },
+    ];
+    expect(inlineProblems(breaks, known)).toEqual([
+      "/src/app/Bog.tsx:1 color: 'red' is a raw colour; use a token (hard rule 7)",
+      '/src/app/Lurker.tsx gap is on the known list (src/ui/inlineStyles.known.ts) but no longer breaks: take it off the list',
+    ]);
+  });
+
+  // Purpose: the real components pass: every inline raw value is on the known list, and every listed one still breaks.
+  it("the app's components write no raw value in an inline style outside the known list", () => {
+    const components = Object.fromEntries(Object.entries(screens).filter(([path]) => !path.startsWith('/src/gallery/')));
+    expect(inlineProblems(components, KNOWN_INLINE_BREAKS)).toEqual([]);
   });
 });
 

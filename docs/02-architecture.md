@@ -7,16 +7,53 @@ The core is small, and five foundations make later modules plug in without rewor
 | Layer | Choice | Why |
 |---|---|---|
 | Language | TypeScript (strict), 6.0 for now | Catches mistakes early; good for a novice with Claude's help. Stays on 6.0 until typescript-eslint supports TypeScript 7 |
-| UI | React + Vite | Widely documented, fast dev loop |
+| UI | React + Vite (`react`, `react-dom`, `@vitejs/plugin-react`, and the types `@types/react`, `@types/react-dom`; Francis said yes to the last four, 2026-11-27) | Widely documented, fast dev loop |
 | App type | Progressive Web App (vite-plugin-pwa) | One codebase for tablet, phone, PC; installable; offline cache |
 | Styling | Plain CSS with design tokens (CSS variables) | No framework to learn; easy theming (Folio, light and dark) |
 | Fonts | Fontsource packages, bundled for offline use, latin and latin-ext only, only the weights used: `@fontsource/eb-garamond`, `@fontsource/atkinson-hyperlegible`, `@fontsource/caveat`, and for book text in the stat block (December 5c; Francis said yes, 2026-11-12) `@fontsource/bitter` (400, 700; 800 and 900 for the book format's entry name and sub-headings, dec-10 S3, ruled by the lead 2026-11-13) and `@fontsource/alegreya-sans-sc` (700) | All SIL Open Font License; no font fetched from the internet |
 | Local data | IndexedDB via Dexie (`dexie`, in use from the pack cache, perf fix 2(b), 2026-11-07) | Offline reading, queued edits |
 | Server | Supabase: Postgres, Auth (email 6-digit code), Realtime, Storage | Free tier fits one group; real row-level security. Auth emails sent through Resend from a custom domain (custom SMTP); required because new free Supabase projects can't edit email templates or email non-team addresses on the built-in sender. Sending domain: a subdomain of withywindlegrove.com (e.g. mail.). The app talks to it through `@supabase/supabase-js`; the Supabase CLI (dev only) keeps database changes as migration files in `supabase/migrations/`. |
-| Tests | Vitest (logic), Testing Library (`@testing-library/react`, `@testing-library/user-event`) with jsdom for click-through smoke tests of the screens (dev only), ESLint (typescript-eslint, React hook rules), Playwright (`@playwright/test`, dev only, from M1 step C6: layout checks in a real browser at phone and tablet widths, against the stand-in database) with axe (`@axe-core/playwright`, dev only: accessibility checks in the same run); `npm run check` runs type-check, lint, tests and build, locally and on GitHub on every push | Keep core rules tested; catch breakage early (see `testing.md`) |
+| Tests | Vitest (logic), Testing Library (`@testing-library/react`, `@testing-library/user-event`) with jsdom for click-through smoke tests of the screens (dev only), ESLint (`eslint`, `@eslint/js`, `typescript-eslint`, `eslint-plugin-react-hooks` for the React hook rules, `globals`; Francis said yes to `@eslint/js`, `eslint-plugin-react-hooks` and `globals`, 2026-11-27), Playwright (`@playwright/test`, dev only, from M1 step C6: layout checks in a real browser at phone and tablet widths, against the stand-in database) with axe (`@axe-core/playwright`, dev only: accessibility checks in the same run); `npm run check` runs type-check, lint, tests and build, locally and on GitHub on every push | Keep core rules tested; catch breakage early (see `testing.md`) |
 | Hosting | Vercel (free Hobby plan) | Free for personal use; deployed by the GitHub check with Vercel's CLI (the free plan can't connect to an organization's private repo), production after checks pass on main, a preview per pull request |
 
 Keep dependencies few. Ask before adding any library not listed here.
+
+## Packages
+
+Every package in `package.json`, by name, one per line (hard rule 9). A test (`src/ui/packageList.test.ts`, inside `npm run check`) fails when this list and `package.json` differ: app packages are its `dependencies`, dev-only packages its `devDependencies`. Versions are not compared. A new package is added here in the same pull request, after Francis's yes.
+
+### App packages
+
+- `@fontsource/alegreya-sans-sc`
+- `@fontsource/atkinson-hyperlegible`
+- `@fontsource/bitter`
+- `@fontsource/caveat`
+- `@fontsource/eb-garamond`
+- `@supabase/supabase-js`
+- `dexie`
+- `react`
+- `react-dom`
+
+### Dev-only packages
+
+- `@axe-core/playwright`
+- `@eslint/js`
+- `@playwright/test`
+- `@testing-library/react`
+- `@testing-library/user-event`
+- `@types/react`
+- `@types/react-dom`
+- `@vitejs/plugin-react`
+- `eslint`
+- `eslint-plugin-react-hooks`
+- `globals`
+- `jsdom`
+- `supabase`
+- `typescript`
+- `typescript-eslint`
+- `vite`
+- `vite-plugin-pwa`
+- `vitest`
 
 ## Foundation 1 — Everything is an event
 
