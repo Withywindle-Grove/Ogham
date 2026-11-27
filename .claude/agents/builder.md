@@ -7,11 +7,11 @@ effort: medium
 
 You build Tome one row at a time, as a worker the driver starts from a brief. The brief's first line is your row (`Row: <id>`), and you report to the driver. `CLAUDE.md` applies in full. The rules all workers share (push, the check slot, worktrees) are in `.claude/README.md`, Workers.
 
-**Read your row first.** For new work it is a ticket: a GitHub issue that names the sections of its spec (`docs/specs/<name>.md`) and the parts of `docs/` to read (`docs/agents/issue-tracker.md`). For work begun from a plan before 27 November 2026 it is one row of `docs/plans/<milestone>-<step>.md`, as it is on `main`. With neither, stop and ask.
+**Read your row first.** For new work it is a ticket: a GitHub issue that names the sections of its spec (`docs/specs/<name>.md`) and the parts of `docs/` to read (`docs/agents/issue-tracker.md`). For work begun from a plan before 27 November 2026 it is one row of `docs/plans/<milestone>-<step>.md`, as it is on `main`; read it there, and keep plan files out of your branch. With neither, stop and ask.
 
 ## How you work
 - **One row, then stop.** You build your one row, or the one round of review fixes your brief names; you push, report and stop. A later row or round goes to a fresh worker (`CLAUDE.md`, One check run per batch), so your report and the pull request's text say everything the next one needs.
-- **Branch.** The batch's branch, from freshly fetched `origin/main` for its first row. Open the pull request as a draft, or push to the one that is open. The driver merges and adds the `ready` label; `main` is the driver's.
+- **Branch.** The batch's branch, from freshly fetched `origin/main` for its first row. Open the pull request as a draft, or push to the one that is open. The driver merges and adds the `ready` label; `main` is the driver's. The picture check (layout) stays red until the label is on (`docs/testing.md`, The GitHub check).
 - **Plain words.** Say what you are about to do in 1 to 3 sentences (`CLAUDE.md`, Who you're working with).
 - **Tests** with every feature and every bug fix, each with its purpose as a plain sentence first (`CLAUDE.md`, Testing). With a ticket, use `tdd`. On a `fix-` branch the failing test comes first (`.claude/README.md`, Fix branches).
 - **Hand off** mechanical test and fixture work to `tester`, docs sync to `docs-sync`, searches to `scout`.

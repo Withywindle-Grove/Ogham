@@ -22,7 +22,6 @@ Agent-facing files use the terms of the [Dictionary of AI Coding](https://github
 | spec, ticket | [spec](https://github.com/mattpocock/dictionary-of-ai-coding#spec), [ticket](https://github.com/mattpocock/dictionary-of-ai-coding#ticket) |
 | `npm run check`, the layout job, the hooks | [automated check](https://github.com/mattpocock/dictionary-of-ai-coding#automated-check) |
 | the `reviewer`'s review | [automated review](https://github.com/mattpocock/dictionary-of-ai-coding#automated-review) |
-| a sitting with Francis | [human review](https://github.com/mattpocock/dictionary-of-ai-coding#human-review) |
 | driver, brief, row, batch, plan, hook, worktree | no dictionary term: the project's words. A **brief** is the file a worker reads first; a **row** is one ticket, or one row of a plan |
 
 ## Roles and models
@@ -32,7 +31,7 @@ Claude may change the roles, models and batching below under Technical ownership
 | Agent | Model, effort | Does |
 |---|---|---|
 | `driver` | Opus, medium | The one session Francis talks to. Orders the work, briefs and starts workers, looks at pictures, merges |
-| `designer` | Fable, medium | A short design sitting that ends in a ruling file. As a studio worker started from a brief (Opus), it draws mockups |
+| `designer` | Fable, medium | A short design sitting that ends in a ruling file, only for the cases in `designer.md`, Two ways you run. The loop's ordinary sitting (step 1) runs on Opus, medium. As a studio worker started from a brief (Opus), it draws mockups |
 | `project-review` | Fable, high | Reviews how we build, the architecture as built, and the pack pipeline; after each milestone gate and on demand. Reports in `docs/health/project-review-<date>.md` |
 | `builder` | Opus, medium | Builds one row, as a worker. Fable only on Francis's yes each time (`builder.md`, Escalating to Fable) |
 | `reviewer` | Opus, high | Read-only review against `REVIEW.md` |
@@ -61,7 +60,7 @@ Mechanical work goes to Sonnet or Haiku workers: merges, conflicts, watching CI,
 
 **On Francis's PC**
 - At most four local sessions at once: the driver, two builders on the same screen (rows that share no file), one reviewer on demand. Cloud builders are outside the four.
-- **Home One** (the PC session) is a fourth builder seat, one batch at a time, through its own builder subagent from the driver's brief. It runs the PC checks: audits, TEST runs, WebKit layout.
+- **Home One** (the PC session) is a fourth builder seat, one batch at a time, through its own builder subagent from the driver's brief (sent in full with `send_message`; it reports by the bridge). It runs the PC checks: audits, TEST runs, WebKit layout.
 - A push to the main database goes to a PC session in manual mode, with Francis's Allow each time.
 - Two checks may run at once while free memory is 12 GB or more; one below 10 GB. The second runs only with three test workers, only with 13 GB free at its start, and is dropped below 9 GB. A layout run counts as a heavy job (ln-1, `docs/design/rulings/dec-pack-town-players-2026-11-14.md`).
 
@@ -75,7 +74,7 @@ The batching rule (one check run per batch, a fresh worker per row and per fix r
 - **Context.** A worker and its ticket are sized to stay near 150,000 tokens (`docs/agents/issue-tracker.md`). No hook counts a worker. A worker past the limit finishes its task and keeps its replies lean (Short conversations).
 - **Push.** A branch with no pull request yet is pushed each time its check passes (a branch push alone starts no CI run). Once the pull request is open: one push per row, and one per round of review fixes.
 - **Builders do not wait for CI.** A builder pushes, reports and stops. A Sonnet or Haiku worker watches CI and fetches the pictures. If something fails, the driver starts a fresh worker with the findings.
-- **The check slot.** In a cloud container a worker runs the full check through `scripts/check-slot.sh <command>` (one full check at a time), and only the tests it touches while it works.
+- **The check slot.** In a cloud container a worker runs the full check through `scripts/check-slot.sh <command>`, and only the tests it touches while it works. One slot, unless `OGHAM_CHECK_SLOTS` says more; each run's time is logged to `/tmp/ogham-check-times.log`. A second slot is a trial: time it, and keep it only if it gains time.
 - **The commit hook is the check.** Where the hooks are on (an absolute `core.hooksPath`), a worker commits through `scripts/check-slot.sh git commit …` and does not run the full check by hand first. Where they are off, it runs `scripts/check-slot.sh npm run check` before each commit.
 - **Docs only.** A change of docs or mockups only runs `npm run docs:check`, not the full check.
 - **Worktrees.** In a cloud clone with linked worktrees, `npm run hooks:install` is not run (its relative path does not reach a linked worktree). After `cp -al …/node_modules`, check the link named in `CLAUDE.md`, Things Claude gets wrong.
@@ -165,7 +164,7 @@ Used on drawings (mockup pages) and as reports on built screens; never handed to
 
 - **A fresh driver each morning, and when its conversation passes about 250,000 tokens.** At the limit the driver writes its handoff and hands over on its own, without asking.
 - **The handoff artifact** is one file the driver writes itself and overwrites each time: `handover-driver.md` in the project's memory folder. A driver starts from it, never from history, and never resumes yesterday's conversation.
-- **The fresh context may come from `/clear`** in the same session, after the handoff is pushed with every running worker's ID, row, brief and branch. `/clear` keeps the session's trust card, pull request subscriptions, workers and container; a new session has none of them.
+- **The fresh context may come from `/clear`** in the same session, after the handoff is pushed with every running worker's ID, row, brief and branch. `/clear` keeps the session's trust card, pull request subscriptions, workers and container; a new session has none of them. Home Two may `/clear` likewise, restarting from the prompt the driver gives Francis.
 - **A worker started from a brief** (builder, reviewer, tester, docs-sync, pack worker, cloud seats included) finishes its task past the limit. It does not stop, hand over or start a fresh session for it.
 - The hook `scripts/context-warn.mjs` warns any session past the limit. Only the driver, or another session Francis talks to directly, hands over.
 

@@ -76,7 +76,7 @@ Francis sits three times: after design, after the tickets, after review. In this
 
 ## Timeline
 
-Milestones and dates are in `08-roadmap.md` and on Francis's Google Calendar. Dates are a forecast. If asked about the schedule, check the calendar; do not assume. The project plan is reviewed on 6 December 2026.
+Milestones and dates are in `08-roadmap.md` and on Francis's Google Calendar. Dates are a forecast: hours vary week to week, and the weekly check-in moves a date only with his approval. If asked about the schedule, check the calendar; do not assume. The project plan is reviewed on 6 December 2026.
 
 ## Keeping the repository current
 
