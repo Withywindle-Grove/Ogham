@@ -88,7 +88,7 @@ Five existing seams, and no new one:
 ### Known breaks (atc-3)
 
 - **Lint rules:** the suppressions file holds the known breaks. The check fails when a suppression is no longer needed (ESLint's default), so a fix must also prune the file. The file is written once per rule, when that rule is switched on.
-- **Test-based checks (3, 5, 6):** each test has a known list beside it. Each entry names the file or column and the reason. The test fails on a new break, and also on a known entry that no longer breaks (so the list only gets shorter).
+- **Test-based checks (5, 6):** each test has a known list beside it. Check 3 has none (see "Check 3: packages equal the list in 02": an unnamed package goes to Francis, not to a list). Each entry names the file or column and the reason. The test fails on a new break, and also on a known entry that no longer breaks (so the list only gets shorter).
 - **No known list for checks 7 and 9:** they do not fail.
 
 ### Check 1: modules reach core only through the allowed list
