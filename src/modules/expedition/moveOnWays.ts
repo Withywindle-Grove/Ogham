@@ -3,16 +3,16 @@
 // them (readRoute: a one-way link counts only from its start; a hidden one is marked), what the players know of each
 // far end, each way's time in the campaign's turns, and the refusal while the party is split. The GM's alone: a
 // player's device never reads a route (routes.ts); players read their narrow `campaign_ways_on` (waysOn.ts).
-// No screen here: MoveOnSheet (src/ui/MoveOnParts.tsx) draws what this gives, through src/app/MoveOn.tsx.
+// No screen here: moveOnRows.ts turns this read into the rows MoveOnSheet (src/ui/MoveOnParts.tsx) draws, through
+// src/app/MoveOn.tsx.
 
 import type { Db } from '../../core/supabase.ts';
 import { withHiddenFields } from '../library/library.ts';
 import { readBarrier, readRoute, type Barrier, type Route, type RouteWay } from '../library/routes.ts';
+import { loadWaysOn } from '../library/waysOn.ts';
 import { toSeconds, type TimeUnits } from './clock.ts';
-import { POINT_TO_POINT_UNIT, type Check } from './modes.ts';
-import { obstacleExtraWords, obstacleNameOf, obstacleRowWords, takesWords, thenWords, throughCheckOf, wayTimeWords, type MoveCheck } from './moveOn.ts';
-import { loadPlaceChain, loadRuleSwitches, placeCheckOf, wayOutHere, type ChainEntry, type RuleSwitch } from './placeRules.ts';
-import { byMapNumber, keyedName } from './placeTree.ts';
+import { POINT_TO_POINT_UNIT } from './modes.ts';
+import { loadPlaceChain, loadRuleSwitches, wayOutHere, type ChainEntry, type RuleSwitch } from './placeRules.ts';
 
 /** What the players know of a far end (MoveOnParts' `ShownToPlayers`, the same three). */
 export type ShownToPlayers = 'shown' | 'unshown' | 'hidden';
@@ -114,6 +114,20 @@ export interface FarEnd {
   placeId: string | null;
   /** A piece of it has been shown to a group in this campaign. */
   shown: boolean;
+  /**
+   * The place it sits in (the pack's `parentId`), for the GM's heading over its rows (WT1 A): its id and its name in
+   * the pack; null when it sits in none. Read from the entry as every reader reads it.
+   */
+  area: { entryId: string; name: string } | null;
+}
+
+/**
+ * What the players of the group here read on a far end's row, from their own read (`campaign_ways_on`, sf-9): its map
+ * number as sent, and whether it stands under "Elsewhere". Only for a far end they have not explored.
+ */
+export interface PlayersRead {
+  number: string | null;
+  elsewhere: boolean;
 }
 
 /** What the GM's Move on needs, read for the place the party is in. */
@@ -129,6 +143,16 @@ export interface MoveOnRead {
   switches: RuleSwitch[];
   /** The pack marks the place the party is at a way out (`wayOutHere`): Move on's list ends with "End expedition" (B10). */
   wayOut: boolean;
+  /** The pack's id of the place the party's place sits in (its `parentId`): its Area's rows come first (WT1 A). */
+  hereArea: string | null;
+  /**
+   * What the players of the party's group read of each far end not explored, by the far end's pack id, from their own
+   * read (sf-9); a far end missing here (nothing of this place shown to them yet, or the read failed) is said by its
+   * number alone (`playersLineOf`).
+   */
+  players: Map<string, PlayersRead>;
+  /** The players' own read failed (cs-22): their lines fall back to the far end's number, and Move on says so. */
+  playersUnread: boolean;
 }
 
 const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
@@ -189,7 +213,9 @@ export async function loadMoveOn(db: Db, campaignId: string, expeditionId: strin
     db.from('library_entries').select('data').eq('pack_id', packId).eq('kind', 'location').eq('pack_entry_id', hereEntry).maybeSingle(),
   ]);
   if (routeRows.error || hereRow.error) return null;
-  const wayOut = wayOutHere([{ data: (hereRow.data?.data ?? {}) as Record<string, unknown> }]);
+  const hereData = (hereRow.data?.data ?? {}) as Record<string, unknown>;
+  const wayOut = wayOutHere([{ data: hereData }]);
+  const hereArea = text(hereData.parentId) || null;
   const whole = await withHiddenFields(
     db,
     [packId],
@@ -204,6 +230,8 @@ export async function loadMoveOn(db: Db, campaignId: string, expeditionId: strin
   const farIds = [...new Set(ways.map((w) => w.farEnd))];
 
   const farEnds = new Map<string, FarEnd>();
+  const players = new Map<string, PlayersRead>();
+  let playersUnread = false;
   if (farIds.length > 0) {
     const [entries, places] = await Promise.all([
       db.from('library_entries').select('pack_entry_id, name, data').eq('pack_id', packId).eq('kind', 'location').in('pack_entry_id', farIds),
@@ -219,116 +247,44 @@ export async function loadMoveOn(db: Db, campaignId: string, expeditionId: strin
     // The GM's row says "Shown" when that is so for any group here now.
     const hereGroups = [...groupsHere].filter((g) => shown.has(`${herePlaceId}:${g}`));
     const farShown = (placeId: string) => hereGroups.some((g) => shown.has(`${placeId}:${g}`));
+    // The places the far ends sit in, for the GM's headings (WT1 A): their names in the pack.
+    const parentOf = new Map<string, string | null>();
+    for (const id of farIds) {
+      const data = ((entries.data ?? []).find((e) => String(e.pack_entry_id) === id)?.data ?? {}) as Record<string, unknown>;
+      parentOf.set(id, text(data.parentId) || null);
+    }
+    const parentIds = [...new Set([...parentOf.values()].filter((p): p is string => p !== null))];
+    const [parents, waysOn] = await Promise.all([
+      parentIds.length > 0 ? db.from('library_entries').select('pack_entry_id, name').eq('pack_id', packId).eq('kind', 'location').in('pack_entry_id', parentIds) : Promise.resolve({ data: [], error: null }),
+      loadWaysOn(db, campaignId),
+    ]);
+    if (parents.error) return null;
+    playersUnread = waysOn === null;
+    const parentName = new Map((parents.data ?? []).map((p) => [String(p.pack_entry_id), text(p.name)]));
     for (const id of farIds) {
       const entry = (entries.data ?? []).find((e) => String(e.pack_entry_id) === id);
       const data = (entry?.data ?? {}) as Record<string, unknown>;
       const placeId = placeOf.get(id) ?? null;
-      farEnds.set(id, { entryId: id, name: text(entry?.name) || id, number: text(data.key) || null, placeId, shown: placeId !== null && farShown(placeId) });
+      const parent = parentOf.get(id) ?? null;
+      // A parent the pack doesn't name (not found, or no name) gives no heading: never its raw id.
+      const parentTitle = parent ? parentName.get(parent) : undefined;
+      const area = parent && parentTitle ? { entryId: parent, name: parentTitle } : null;
+      farEnds.set(id, { entryId: id, name: text(entry?.name) || id, number: text(data.key) || null, placeId, shown: placeId !== null && farShown(placeId), area });
+    }
+    // What the party's group reads of each far end (sf-9), from the players' own read, which the GM may call too: the
+    // first group here that has a row for it (a split party can't move on anyway: `moveBlocked`). Its rows name the
+    // library's row of a route, the GM's ways its pack id.
+    const routeOfRow = new Map(whole.map((r) => [r.id, r.entryId]));
+    const farOfRoute = new Map(ways.map((w) => [w.route.id, w.farEnd]));
+    for (const link of [...(waysOn ?? [])].sort((a, b) => a.groupNumber - b.groupNumber)) {
+      if (!groupsHere.has(link.groupNumber) || link.to) continue;
+      const far = farOfRoute.get(routeOfRow.get(link.routeId) ?? '');
+      if (far && !players.has(far)) players.set(far, { number: link.number, elsewhere: link.elsewhere });
     }
   }
   const throughIds = [...new Set(ways.flatMap((w) => (w.barrier?.through ? [w.barrier.through] : [])))];
   const [switches, ...chains] = await Promise.all([loadRuleSwitches(db, campaignId), ...throughIds.map((id) => loadPlaceChain(db, packId, id))]);
   if (!switches || chains.some((c) => c === null)) return null;
   const throughs = new Map(throughIds.map((id, i) => [id, chains[i] as ChainEntry[]]));
-  return { here: { placeId: String(herePlace.data.id), packId, entryId: hereEntry, name: text(herePlace.data.name) }, ways, farEnds, groups: Math.max(1, groups.size), throughs, switches, wayOut };
-}
-
-// ---- What the sheet shows, from the read (MoveOnSheet's props, built as the gallery builds them) ----
-
-/** A way's button on a destination's row. */
-export interface WayChoiceOf {
-  key: string;
-  word: string;
-  time: string;
-  /** The way's short id on the link ("row"; empty for a link that gives one amount), read for its picture (pf-25). */
-  by: string;
-  /** The icon the pack names for the way (pf-25); absent when it names none. */
-  icon?: string;
-}
-
-/** A destination on the GM's Move on list (MoveOnParts' `GmDestination`). */
-export interface DestinationOf {
-  id: string;
-  number: string | null;
-  name: string;
-  shown: ShownToPlayers;
-  obstacle: string | null;
-  ways: WayChoiceOf[];
-}
-
-/**
- * A way's word on its button: the way's name as the pack writes it (4a, departure 4); a link that gives one amount and
- * names no way says Move, the sheet's own word for going.
- */
-export const wayWordOf = (way: Pick<RouteWay, 'name'>): string => way.name || 'Move';
-
-/** The name of the place a crossing passes, from the read; null without one. */
-const throughNameOf = (read: MoveOnRead, through: string | null): string | null => (through ? (read.throughs.get(through)?.[0]?.name ?? null) : null);
-
-/** The far end's name, from the read (the id when the pack has no such place). */
-const farNameOf = (read: MoveOnRead, id: string): string => read.farEnds.get(id)?.name ?? id;
-
-/**
- * The GM's destinations, one row a place, in the Locations' order (`byMapNumber`, Q1: no map number first, in the pack's
- * order of its links, then by number): every way of every link to it as a button; "Hidden from players" only when
- * every link to it is hidden; the first obstacle met on its ways as the row's warning.
- */
-export function destinationsOf(read: MoveOnRead): DestinationOf[] {
-  // shortcut: every far end is sorted as a Location (FarEnd has no kind), so a link to a numbered room would sort too; carry the kind when links reach rooms (the dungeon sitting).
-  const order: string[] = [];
-  for (const w of read.ways) if (!order.includes(w.farEnd)) order.push(w.farEnd);
-  return byMapNumber(order, (id) => read.farEnds.get(id)?.number).map((id) => {
-    const links = read.ways.filter((w) => w.farEnd === id);
-    const far = read.farEnds.get(id);
-    const met = links.find((l) => l.barrier)?.barrier ?? null;
-    return {
-      id,
-      number: far?.number ?? null,
-      name: farNameOf(read, id),
-      shown: shownOf(links.every((l) => l.route.hidden), far?.shown ?? false),
-      obstacle: met ? obstacleRowWords(met, obstacleNameOf(met, throughNameOf(read, met.through))) : null,
-      ways: links.flatMap((l) => l.route.ways.map((way) => ({ key: wayKeyOf(l.route.id, way), word: wayWordOf(way), time: wayTimeWords(way), by: way.by, ...(way.icon ? { icon: way.icon } : {}) }))),
-    };
-  });
-}
-
-/** The link and the way a button names; null when the read has no such way. */
-export function wayOf(read: MoveOnRead, destinationId: string, key: string): { link: WayFromHere; way: RouteWay } | null {
-  for (const link of read.ways) {
-    if (link.farEnd !== destinationId) continue;
-    const way = link.route.ways.find((w) => wayKeyOf(link.route.id, w) === key);
-    if (way) return { link, way };
-  }
-  return null;
-}
-
-/**
- * The check of the place a crossing passes, when that place has its own (`throughCheckOf`): its words for the Then
- * line and the check itself for the move's encounter check; null otherwise.
- */
-export function throughOf(read: MoveOnRead, through: string | null): { words: { placeName: string; chance: Check['chance'] }; check: Check } | null {
-  const chain = through ? read.throughs.get(through) : undefined;
-  if (!through || !chain) return null;
-  const words = throughCheckOf(chain, read.here.packId, through, read.switches);
-  const found = placeCheckOf(chain, read.switches);
-  return words && found ? { words, check: found.check } : null;
-}
-
-/**
- * What one way's step says (MoveOnParts' `WayMove`), as frames 12 and 13 have it, redrawn by page 24's WY1a (B9): the
- * title is the way's word and where to, "Row to 1. The Jetty" (the title says where, so there is no Where line).
- */
-export function wayMoveOf(read: MoveOnRead, destinationId: string, key: string, check: MoveCheck | null) {
-  const found = wayOf(read, destinationId, key);
-  const to = keyedName(read.farEnds.get(destinationId)?.number, farNameOf(read, destinationId));
-  if (!found) return { title: `To ${to}`, takes: '', then: null, obstacle: null };
-  const { link, way } = found;
-  const barrier = link.barrier;
-  const throughName = throughNameOf(read, barrier?.through ?? null);
-  return {
-    title: `${wayWordOf(way)} to ${to}`,
-    takes: takesWords(way, barrier),
-    then: thenWords(check, throughOf(read, barrier?.through ?? null)?.words ?? null),
-    obstacle: barrier ? { name: obstacleNameOf(barrier, throughName), extra: obstacleExtraWords(barrier), note: barrier.note, needsApproval: barrier.needsApproval } : null,
-  };
+  return { here: { placeId: String(herePlace.data.id), packId, entryId: hereEntry, name: text(herePlace.data.name) }, ways, farEnds, groups: Math.max(1, groups.size), throughs, switches, wayOut, hereArea, players, playersUnread };
 }

@@ -14,7 +14,10 @@
 //   6. On a phone (375 px) the sheet is at the bottom, the screen's width, as before.
 //   7. On a screen outside the tab's scope (the Pack tab) a Sheet is still placed beside the button that opened it.
 //   8. In dark mode a pop-up is centred and fitted the same way.
+//   9. The players' travel pop-up on the Scene (sf-15; page 44, PU1): centred on a tablet, a sheet from the foot on a
+//      phone (sf-28); a long name wraps, 999 turns fits, "Got it" is plain; light and dark.
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openPlayer(page: Page, width: number, height: number, p1 = '1') {
   await page.setViewportSize({ width, height });
@@ -264,3 +267,68 @@ test('Max hit points (no most recorded) keeps its own width under 440, centred',
   expect(max.width, 'Max hit points no wider than its content').toBeLessThan(440);
   await page.screenshot({ path: 'test-results/layout-screens/fb7-max-hit-points-1180.png' });
 });
+
+// The players' travel pop-up on the Scene (sf-15; page 44, PU1 B, C and E; sf-28), on the layout page's invented
+// harbour with messy data (&ways=messy): a long far end's name and a way of 999 turns.
+async function openWays(page: Page, width: number, height: number) {
+  await page.setViewportSize({ width, height });
+  await page.goto('/layout.html?as=player&placePage=spot&session=running&ways=messy');
+  await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Scene' }).click();
+  await expect(page.getByRole('heading', { name: 'Marching order' })).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+}
+const LONG_PLACE = '4. The water stair under the customs house, by the tarred door';
+
+for (const scheme of ['light', 'dark'] as const) {
+  test.describe(`the players' travel pop-up (${scheme})`, () => {
+    test.use({ colorScheme: scheme, reducedMotion: 'reduce' });
+
+    // Purpose (sf-15, PU1 B and C): on a tablet a tap on a way opens its pop-up in the middle of the screen, titled with
+    // the way and the place; a long name wraps inside it, "Takes" stands before 999 turns, and "Got it" sits at the
+    // foot's right, plain, and closes it.
+    test('on a tablet: centred, a long name wraps, 999 turns fits, a plain Got it', async ({ page }) => {
+      await openWays(page, 1180, 820);
+      await page.getByRole('button', { name: `Climbing, 999 turns, to ${LONG_PLACE}` }).click();
+      const dialog = page.getByRole('dialog', { name: `Climbing to ${LONG_PLACE}` });
+      const b = await expectCentred(dialog, 'the travel pop-up');
+      const title = await dialog.locator('.dialog__title').boundingBox();
+      expect(title!.x + title!.width, 'the title inside the card').toBeLessThanOrEqual(b.right + 0.5);
+      const lineHeight = await dialog.locator('.dialog__title').evaluate((el) => parseFloat(getComputedStyle(el).lineHeight));
+      expect(title!.height, 'the long title wraps').toBeGreaterThan(lineHeight * 1.5);
+      await expect(dialog.locator('.move-summary dt')).toHaveText('Takes');
+      await expect(dialog.locator('.move-summary dd')).toHaveText('999 turns.');
+      const takes = await dialog.locator('.move-summary dd').boundingBox();
+      expect(takes!.x + takes!.width).toBeLessThanOrEqual(b.right + 0.5);
+      const gotIt = dialog.getByRole('button', { name: 'Got it' });
+      await expect(gotIt).toHaveClass(/button-secondary/);
+      const g = (await gotIt.boundingBox())!;
+      expect(g.height).toBeGreaterThanOrEqual(44);
+      expect(b.right - (g.x + g.width), 'Got it at the right').toBeLessThan(40);
+      await page.screenshot({ path: `test-results/layout-screens/players-travel-1180-${scheme}.png` });
+      expect(await layoutProblems(page)).toEqual([]);
+      expect(await accessibilityProblems(page)).toEqual([]);
+      await gotIt.click();
+      await expect(dialog).toHaveCount(0);
+    });
+
+    // Purpose (sf-15, PU1 E; sf-28): on a phone the same pop-up is a sheet from the foot, the screen's width, its long
+    // title wrapping inside it, and nothing scrolls sideways.
+    test('on a phone: a sheet from the foot', async ({ page }) => {
+      await openWays(page, 375, 812);
+      const button = page.getByRole('button', { name: `Climbing, 999 turns, to ${LONG_PLACE}` });
+      await button.scrollIntoViewIfNeeded();
+      await button.click();
+      const dialog = page.getByRole('dialog', { name: `Climbing to ${LONG_PLACE}` });
+      const b = await boxOf(dialog);
+      expect(b.left).toBeCloseTo(0, 0);
+      expect(b.width).toBeCloseTo(375, 0);
+      expect(b.bottom).toBeCloseTo(812, 0);
+      const title = await dialog.locator('.dialog__title').boundingBox();
+      expect(title!.x + title!.width).toBeLessThanOrEqual(375);
+      await page.screenshot({ path: `test-results/layout-screens/players-travel-375-${scheme}.png` });
+      expect(await layoutProblems(page)).toEqual([]);
+      expect(await accessibilityProblems(page)).toEqual([]);
+    });
+  });
+}

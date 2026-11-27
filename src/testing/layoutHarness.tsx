@@ -1652,17 +1652,26 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
   // pieces shown, so a player has them (mc-28b). `1`: the wreck (row, swim) and the breakwater (row), both visited and
   // shown before; the customs shed by walking, never shown ("Not yet explored."); the sea cave by a hidden way (sent to
   // nobody). `none`: no ways at all (d5-1: "Where to?" is left out). `messy`: the customs shed named at length and shown,
-  // climbing 999 turns and swimming 12.
+  // climbing 999 turns and swimming 12. `areas` (sf-9; WT1 B): as `1`, and a way rowing to the landing on the Shingle
+  // Beach, an Area nobody has been to, so it reads "Elsewhere" with no number.
   const waysFlag = placePageFlag === 'spot' ? new URLSearchParams(window.location.search).get('ways') : null;
   if (waysFlag) {
     const route = (id: string, to: string, travel: unknown, hidden = false) =>
       world.tables.library_entries.push({ id: `entry-reed-${id}`, pack_id: 'pack-reed', kind: 'route', pack_entry_id: id, name: id, data: { id, from: 'the-jetty', to, travel, hidden } });
-    if (waysFlag === '1' || waysFlag === 'messy') {
+    if (waysFlag === '1' || waysFlag === 'messy' || waysFlag === 'areas') {
       route('jetty-wreck', 'the-wreck', [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }, { by: 'swim', name: 'Swimming', value: 3, unit: 'turn' }]);
       route('jetty-breakwater', 'the-breakwater', [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }]);
       route('jetty-cave', 'sea-cave', [{ by: 'row', name: 'Rowing', value: 2, unit: 'turn' }], true);
     }
-    if (waysFlag === '1') route('jetty-shed', 'customs-shed', [{ by: 'walk', name: 'Walking', value: 2, unit: 'turn' }]);
+    if (waysFlag === '1' || waysFlag === 'areas') route('jetty-shed', 'customs-shed', [{ by: 'walk', name: 'Walking', value: 2, unit: 'turn' }]);
+    if (waysFlag === 'areas') {
+      for (const data of [
+        { id: 'shingle-beach', name: 'The Shingle Beach', type: 'site', parentId: 'saltwick-island' },
+        { id: 'the-landing', key: '0', name: 'The landing', type: 'area', parentId: 'shingle-beach', identity: 'Shingle and a capstan.' },
+      ])
+        world.tables.library_entries.push({ id: `entry-reed-${data.id}`, pack_id: 'pack-reed', kind: 'location', pack_entry_id: data.id, name: data.name, data });
+      route('jetty-landing', 'the-landing', [{ by: 'row', name: 'Rowing', value: 4, unit: 'turn' }]);
+    }
     if (waysFlag === 'messy') route('jetty-shed', 'customs-shed', [{ by: 'climb', name: 'Climbing', value: 999, unit: 'turn' }, { by: 'swim', name: 'Swimming', value: 12, unit: 'turn' }]);
     if (waysFlag === 'messy') {
       const shed = world.tables.library_entries.find((e) => e.id === 'entry-reed-customs-shed');

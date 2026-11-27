@@ -4,9 +4,10 @@
 // that fall due in the move reach the card and the move's encounter check follows it. Mounted by the redesigned
 // place page (5b), whose Move on opens it; no screen mounts it before then (po-2: each thing once, in its final place).
 // The split party's pop-up (pt-f3 point 3) is the caller's to draw (`onBlocked`): it has no approved picture yet.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Db } from '../core/supabase.ts';
-import { destinationsOf, loadMoveOn, moveBlocked, throughOf, wayMoveOf, wayOf, type MoveOnRead } from '../modules/expedition/moveOnWays.ts';
+import { destinationsOf, throughOf, wayMoveOf, wayOf } from '../modules/expedition/moveOnRows.ts';
+import { loadMoveOn, moveBlocked, type MoveOnRead } from '../modules/expedition/moveOnWays.ts';
 import { inSentence } from '../modules/expedition/moveOn.ts';
 import { MoveOnSheet } from '../ui/MoveOnParts.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
@@ -14,6 +15,11 @@ import { useSceneMoveCheck, useSceneMover } from './sceneMove.tsx';
 
 /** Why Move on can't read its ways (a toast; the sheet then closes). */
 export const MOVE_ON_UNREAD = "Couldn't read the ways on from here. Check your connection and try again.";
+/**
+ * The players' own read failed (cs-22): the sheet stays open, and each "Players read" line goes by the far end's map
+ * number, as they would read it in a known Area (`playersLineOf`).
+ */
+export const MOVE_ON_PLAYERS_UNREAD = "Couldn't check what the players read. Those lines go by map number.";
 /** No time strip is listening (Move on outside Scene). */
 export const MOVE_ON_NO_STRIP = 'Move on works on Scene, beside the time strip.';
 
@@ -62,6 +68,14 @@ export function MoveOnWiring({
     show({ text: MOVE_ON_UNREAD, error: true });
     onClose();
   }, [read, show, onClose]);
+  const playersUnread = read !== null && read !== 'unread' && read.playersUnread;
+  // Once per opening of the sheet: a later re-read that finds the same failure does not say it again.
+  const saidUnread = useRef(false);
+  useEffect(() => {
+    if (!playersUnread || saidUnread.current) return;
+    saidUnread.current = true;
+    show({ text: MOVE_ON_PLAYERS_UNREAD, error: true });
+  }, [playersUnread, show]);
   if (read === null || read === 'unread') return null;
 
   /**

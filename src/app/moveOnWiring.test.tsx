@@ -16,6 +16,7 @@
 //     mark there is no such row (B10).
 //   - A check that is a roll on its table: the step's Then line names the table, never the check's id (B9).
 //   - Without the strip listening, Move on says where it works and moves nothing.
+//   - When the players' own read fails, the sheet stays open and a toast says their lines go by map number (cs-22).
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
@@ -26,7 +27,7 @@ import { SPLIT_PARTY_WORDS } from '../modules/expedition/moveOnWays.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { ToastHost } from '../ui/ToastHost.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
-import { MOVE_ON_NO_STRIP, MoveOnWiring } from './MoveOn.tsx';
+import { MOVE_ON_NO_STRIP, MOVE_ON_PLAYERS_UNREAD, MoveOnWiring } from './MoveOn.tsx';
 import { SceneMoveProvider } from './sceneMove.tsx';
 import { SceneTime } from './SceneTime.tsx';
 
@@ -146,7 +147,8 @@ describe('Move on, wired to the time strip', () => {
     const user = userEvent.setup();
     const list = within(await sheet());
     // Nothing of either far end has been shown to the players yet.
-    expect(list.getAllByText('Not yet shown: players see “not yet explored”.')).toHaveLength(2);
+    // Each has the closed eye and what its players read (sf-9, WT1 A).
+    expect(list.getAllByRole('img', { name: 'Not shown yet. Players read:' })).toHaveLength(2);
     await user.click(await list.findByRole('button', { name: 'Move, 2 turns, to 3. The Sea Cave' }));
     const shown = await sheet();
     const step = within(shown);
@@ -296,5 +298,46 @@ describe('Move on, wired to the time strip', () => {
     await user.click(within(await sheet()).getByRole('button', { name: 'Move' }));
     expect(await screen.findByText(MOVE_ON_NO_STRIP)).toBeTruthy();
     expect(moves(t)).toHaveLength(0);
+  }, 30000);
+
+  it('says when the players’ read failed, and keeps the sheet open', async () => {
+    const t = await table();
+    const real = world.db.rpc.bind(world.db);
+    vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: never) => (name === 'campaign_ways_on' ? Promise.resolve({ data: null, error: { message: 'offline' } }) : real(name as never, args))) as never);
+    render(<Page t={t} />);
+    expect(await screen.findByText(MOVE_ON_PLAYERS_UNREAD)).toBeTruthy();
+    expect(within(await sheet()).getByRole('button', { name: 'Rowing, 1 turn, to 2. The Islet' })).toBeTruthy();
+  }, 30000);
+
+  // Purpose: a re-read of the ways (the log changed) that again finds the players' read failed must not stack a second copy of the same toast on the one the sheet already showed.
+  it('says the players’ read failed once per opening, not again on each re-read', async () => {
+    const t = await table();
+    const real = world.db.rpc.bind(world.db);
+    let failing = true;
+    vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: never) => (name === 'campaign_ways_on' && failing ? Promise.resolve({ data: null, error: { message: 'offline' } }) : real(name as never, args))) as never);
+    function Rereads() {
+      const [version, setVersion] = useState(1);
+      return (
+        <ToastHost>
+          <SceneMoveProvider>
+            <button onClick={() => setVersion((v) => v + 1)}>Re-read</button>
+            <MoveOnWiring db={world.db as unknown as Db} campaignId={t.campaign} expeditionId={t.expedition} version={version} onClose={() => undefined} onElsewhere={() => undefined} onBlocked={() => undefined} />
+          </SceneMoveProvider>
+        </ToastHost>
+      );
+    }
+    render(<Rereads />);
+    const user = userEvent.setup();
+    const first = await screen.findByText(MOVE_ON_PLAYERS_UNREAD);
+    failing = false;
+    await user.click(screen.getByRole('button', { name: 'Re-read' }));
+    await waitFor(() => expect(world.db.rpc).toHaveBeenCalledTimes(2));
+    failing = true;
+    await user.click(screen.getByRole('button', { name: 'Re-read' }));
+    await waitFor(() => expect(world.db.rpc).toHaveBeenCalledTimes(3));
+    await new Promise((r) => setTimeout(r, 200));
+    // The host shows one toast at a time and draws each new one as a new element: the first still standing means no second was shown.
+    expect(first.isConnected).toBe(true);
+    expect(screen.getByText(MOVE_ON_PLAYERS_UNREAD)).toBe(first);
   }, 30000);
 });

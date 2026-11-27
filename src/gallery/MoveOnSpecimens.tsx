@@ -32,10 +32,12 @@ import {
 import { chainOf, placeCheckOf, type ChainEntry } from '../modules/expedition/placeRules.ts';
 import { keyedName } from '../modules/expedition/placeTree.ts';
 import { Dialog } from '../ui/Dialog.tsx';
-import { DestinationRow, MoveOnSheet, NotYetExplored, ProposalSheet, ProposalsWaiting, WhereTo, type GmDestination, type RowProposal, type WayMove } from '../ui/MoveOnParts.tsx';
+import { AreaRows, DestinationRow, MoveOnSheet, ProposalSheet, ProposalsWaiting, TravelPopUp, WayLine, WhereTo, type GmDestination, type RowProposal, type WayMove } from '../ui/MoveOnParts.tsx';
 import { ListRow, RowList } from '../ui/parts.tsx';
 import { EndExpeditionRow, RefreshFailedRow, WhereToLine } from '../ui/WhereToParts.tsx';
-import { WHERE_TO_WORDS } from '../modules/expedition/playersWays.ts';
+import { playersDestinationsOf, WHERE_TO_WORDS, wayTapWords, type PlayersDestination } from '../modules/expedition/playersWays.ts';
+import { PLAYERS_READ_WORDS } from '../modules/expedition/moveOnRows.ts';
+import type { WayOn } from '../modules/library/waysOn.ts';
 
 type SpecimenPart = (props: { name: string; children: ReactNode }) => ReactElement;
 
@@ -66,19 +68,28 @@ interface Spot {
   name: string;
   shown: GmDestination['shown'];
   ways: Way[];
+  /** The place it sits in, by its name (sf-9; WT1 A: the GM's heading where the list mixes Areas). */
+  area?: string;
+  /** Not shown yet: what its players read on their row (WT1 A). */
+  players?: string;
 }
 
-const SPOTS: Spot[] = [
-  { id: 'wreck', number: '2', name: 'The wreck', shown: 'shown', ways: [{ key: 'row', word: 'Rowing', value: 1, unit: 'turn' }, { key: 'swim', word: 'Swimming', value: 3, unit: 'turn' }] },
-  { id: 'breakwater', number: '3', name: 'The breakwater', shown: 'shown', ways: [{ key: 'row', word: 'Rowing', value: 1, unit: 'turn' }] },
-  { id: 'shed', number: '4', name: 'The customs shed', shown: 'unshown', ways: [{ key: 'piles', word: 'Along the piles', value: 2, unit: 'turn', barrier: WEED }] },
-  { id: 'cave', number: '5', name: 'The sea cave', shown: 'hidden', ways: [{ key: 'row', word: 'Rowing', value: 2, unit: 'turn', barrier: GAP }] },
+const IN_HARBOUR = 'The Drowned Harbour'; // words: names
+const HARBOUR_SPOTS: Spot[] = [
+  { id: 'wreck', number: '2', name: 'The wreck', shown: 'shown', area: IN_HARBOUR, ways: [{ key: 'row', word: 'Rowing', value: 1, unit: 'turn' }, { key: 'swim', word: 'Swimming', value: 3, unit: 'turn' }] },
+  { id: 'breakwater', number: '3', name: 'The breakwater', shown: 'shown', area: IN_HARBOUR, ways: [{ key: 'row', word: 'Rowing', value: 1, unit: 'turn' }] },
+  { id: 'shed', number: '4', name: 'The customs shed', shown: 'unshown', area: IN_HARBOUR, players: `4. ${PLAYERS_READ_WORDS.unexplored}`, ways: [{ key: 'piles', word: 'Along the piles', value: 2, unit: 'turn', barrier: WEED }] },
+  { id: 'cave', number: '5', name: 'The sea cave', shown: 'hidden', area: IN_HARBOUR, ways: [{ key: 'row', word: 'Rowing', value: 2, unit: 'turn', barrier: GAP }] },
 ];
+// WT1 A: a way into a second Area the players don't know yet, under its own heading for the GM.
+const LANDING: Spot = { id: 'landing', number: '0', name: 'The landing', shown: 'unshown', area: 'The Shingle Beach', players: PLAYERS_READ_WORDS.elsewhere, ways: [{ key: 'row', word: 'Rowing', value: 1, unit: 'turn' }] }; // words: names
+const SPOTS: Spot[] = [...HARBOUR_SPOTS, LANDING];
 const LONG: Spot = {
   id: 'stair',
   number: '6',
   name: 'The Long Stair of the Drowned Customs House', // words: names
   shown: 'shown',
+  area: IN_HARBOUR,
   ways: [
     { key: 'climb', word: 'Climbing', value: 999, unit: 'turn' },
     { key: 'row', word: 'Rowing', value: 1, unit: 'turn' },
@@ -88,9 +99,13 @@ const LONG: Spot = {
 
 // A specimen's way is keyed by its short id ("row"), which is also what its picture is read from (B16; pf-25).
 const choices = (spot: Spot) => spot.ways.map((w) => ({ key: w.key, word: w.word, time: wayTimeWords(w), by: w.key }));
-const gmDestination = (spot: Spot): GmDestination => {
-  const met = spot.ways.find((w) => w.barrier)?.barrier;
-  return { id: spot.id, number: spot.number, name: spot.name, shown: spot.shown, obstacle: met ? obstacleRowWords(met, nameOf(met)) : null, ways: choices(spot) };
+/** The GM's rows as `destinationsOf` gives them: a heading only where the spots sit in more than one place (WT1 A). */
+const gmDestinations = (spots: Spot[]): GmDestination[] => {
+  const mixed = new Set(spots.map((s) => s.area)).size > 1;
+  return spots.map((spot) => {
+    const met = spot.ways.find((w) => w.barrier)?.barrier;
+    return { id: spot.id, number: spot.number, name: spot.name, shown: spot.shown, players: spot.players ?? null, area: mixed ? (spot.area ?? null) : null, obstacle: met ? obstacleRowWords(met, nameOf(met)) : null, ways: choices(spot) };
+  });
 };
 
 /** What one way's move does, in the sheet's words, as a screen would build it from the pure helpers. */
@@ -114,7 +129,7 @@ function GmSheet({ opening, spots = SPOTS, preview = true, wayOut = false, onClo
   return (
     <MoveOnSheet
       here="the jetty"
-      destinations={spots.map(gmDestination)}
+      destinations={gmDestinations(spots)}
       moveOf={(id, key) => moveOf(spots, id, key)}
       onMove={nothing}
       onAnswer={nothing}
@@ -127,36 +142,54 @@ function GmSheet({ opening, spots = SPOTS, preview = true, wayOut = false, onClo
   );
 }
 
-/** A player's Where to? list, the given proposal standing. */
-function PlayersRows({ proposal, spots }: { proposal?: { spot: string; way: string; by: string } | null; spots: (Spot & { unexplored?: boolean })[] }) {
+/** A player's Where to? list, as `playersDestinationsOf` gives it, the given proposal standing. */
+function PlayersRows({ proposal, rows }: { proposal?: { spot: string; way: string; by: string } | null; rows: PlayersDestination[] }) {
   const [mine, setMine] = useState(proposal ?? null);
   return (
-    <WhereTo empty={spots.length === 0}>
-      {spots.map((s) => {
-        const standing: RowProposal | null = mine && mine.spot === s.id ? (mine.by === 'you' ? { wayKey: mine.way, by: 'you', onCancel: () => setMine(null) } : { wayKey: mine.way, by: mine.by }) : null;
-        return (
-          <DestinationRow
-            key={s.id}
-            number={s.unexplored ? null : s.number}
-            name={s.name}
-            sub={s.unexplored ? <NotYetExplored /> : undefined}
-            ways={choices(s)}
-            onWay={(key) => setMine({ spot: s.id, way: key, by: 'you' })}
-            proposal={standing}
-          />
-        );
-      })}
+    <WhereTo empty={rows.length === 0}>
+      <AreaRows rows={rows} level={4}>
+        {(d) => {
+          const standing: RowProposal | null = mine && mine.spot === d.id ? (mine.by === 'you' ? { wayKey: mine.way, by: 'you', onCancel: () => setMine(null) } : { wayKey: mine.way, by: mine.by }) : null;
+          return <DestinationRow key={d.id} number={d.number} name={d.name} sub={d.wayLine ? <WayLine>{d.wayLine}</WayLine> : undefined} ways={d.ways} onWay={(key) => setMine({ spot: d.id, way: key, by: 'you' })} proposal={standing} />;
+        }}
+      </AreaRows>
     </WhereTo>
   );
 }
 
-// The players see no hidden way, and a far end they haven't found as "Not yet explored" under the way's own name.
-const PLAYERS_SPOTS = [SPOTS[0]!, SPOTS[1]!, { ...SPOTS[2]!, name: 'Along the piles', unexplored: true }];
+// The players' rows, built from their read as a screen builds them (sf-9; WT1 B and C). An invented harbour.
+const travel = (key: string, word: string, value: number) => ({ by: key, name: word, value, unit: 'turn' });
+const wayOn = (routeId: string, to: WayOn['to'], number: string | null, ways: WayOn['ways'], areaName: string | null, elsewhere = false): WayOn => ({ groupNumber: 1, routeId, to, number, elsewhere, areaName, ways });
+const ROW = travel('row', 'Rowing', 1);
+const SWIM = travel('swim', 'Swimming', 3);
+// WT1 B: the ways lead into the harbour and into an Area the group doesn't know yet ("Elsewhere"); the hidden way isn't sent.
+const PLAYERS_TWO_AREAS = playersDestinationsOf(
+  [
+    wayOn('r-wreck', { placeId: 'wreck', name: 'The wreck' }, '2', [ROW, SWIM], IN_HARBOUR),
+    wayOn('r-breakwater', { placeId: 'breakwater', name: 'The breakwater' }, '3', [ROW], IN_HARBOUR),
+    wayOn('r-shed', null, '4', [ROW, SWIM], IN_HARBOUR),
+    wayOn('r-gate', null, '10', [ROW], IN_HARBOUR),
+    wayOn('r-landing', null, null, [ROW], null, true),
+  ],
+  1,
+);
+// WT1 C: one Area, so no heading; the last place has no map number.
+const PLAYERS_ONE_AREA = playersDestinationsOf(
+  [
+    wayOn('r-jetty', { placeId: 'jetty', name: 'The jetty' }, '1', [ROW, SWIM], IN_HARBOUR),
+    wayOn('r-two', null, '2', [ROW], IN_HARBOUR),
+    wayOn('r-three', null, '3', [travel('walk', 'Walking', 2)], IN_HARBOUR),
+    wayOn('r-steps', null, null, [travel('walk', 'Walking', 2)], IN_HARBOUR),
+  ],
+  1,
+);
+/** One explored spot as a player's row, under no heading. */
+const asPlayers = (spot: Spot): PlayersDestination => ({ id: spot.id, name: spot.name, number: spot.number, explored: true, wayLine: null, area: null, ways: choices(spot) });
 
 export function MoveOnSpecimens({ Specimen }: { Specimen: SpecimenPart }) {
   return (
     <>
-      <Specimen name="Move on (the GM): one row a destination, its ways as stacked buttons at the right; Somewhere else… last; no foot line">
+      <Specimen name="Move on (the GM, WT1 A): one row a destination, its ways as stacked buttons at the right; two Areas, each its heading; the closed eye and what players read; Somewhere else… last; no foot line">
         <GmSheet />
       </Specimen>
       <Specimen name="Move on (the GM) at a Location the pack marks a way out (page 24, WY1d): End expedition, with the door, last">
@@ -181,13 +214,22 @@ export function MoveOnSpecimens({ Specimen }: { Specimen: SpecimenPart }) {
       <Specimen name="A proposed way with no obstacle: Do they go? Yes the accent; 2 of 3">
         <ProposalSheet id="p-ash" askedBy="Ash" move={moveOf(SPOTS, 'wreck', 'row')} count="2 of 3" onAnswer={nothing} onNotNow={nothing} onClose={nothing} preview />
       </Specimen>
-      <Specimen name="Where to? (players): plain rows, a far end not yet explored; a tap proposes (here, this page only)">
-        <PlayersRows spots={PLAYERS_SPOTS} />
+      <Specimen name="Where to? (players, WT1 B): two Areas, each its heading, Elsewhere last; N. Unexplored and Unexplored, the way under it; a tap proposes (here, this page only)">
+        <PlayersRows rows={PLAYERS_TWO_AREAS} />
+      </Specimen>
+      <Specimen name="Where to? (players, WT1 C): one Area, no heading; a place with no map number reads Unexplored">
+        <PlayersRows rows={PLAYERS_ONE_AREA} />
+      </Specimen>
+      <Specimen name="A player's tap on a way (PU1 B, sf-15): the way and the place as the row names them, Takes labelled, the sentence, a plain Got it; under Elsewhere, an unexplored place">
+        {[PLAYERS_TWO_AREAS.find((d) => d.number === '4')!, PLAYERS_TWO_AREAS.at(-1)!].map((d) => {
+          const words = wayTapWords(d, d.ways[0]!);
+          return <TravelPopUp key={d.id} title={words.title} time={words.time} words={words.words} onClose={nothing} preview />;
+        })}
       </Specimen>
       <Specimen name="Where to? (players): proposed by you, with Cancel; proposed by another in the group; a long name with three ways">
-        <PlayersRows spots={[SPOTS[0]!]} proposal={{ spot: 'wreck', way: 'row', by: 'you' }} />
-        <PlayersRows spots={[SPOTS[1]!]} proposal={{ spot: 'breakwater', way: 'row', by: 'Wren' }} />
-        <PlayersRows spots={[LONG]} />
+        <PlayersRows rows={[asPlayers(SPOTS[0]!)]} proposal={{ spot: 'wreck', way: 'row', by: 'you' }} />
+        <PlayersRows rows={[asPlayers(SPOTS[1]!)]} proposal={{ spot: 'breakwater', way: 'row', by: 'Wren' }} />
+        <PlayersRows rows={[asPlayers(LONG)]} />
       </Specimen>
       {/* A player's Where to? on the Scene (plan dec-9-the-players-scene P2; page 18, PL2 and PL9; d5-2). */}
       <Specimen name="Where to? (players, PL2): before anything of the place is shown, one quiet line and no ways">
@@ -308,7 +350,7 @@ function QueuePage() {
 }
 
 /**
- * The layout page's Moving on (`?moveOn=gm`, `way`, `obstacle`, `obstacle-plain`, `proposal`, `proposal-plain`,
+ * The layout page's Moving on (`?moveOn=gm`, `way`, `way-long`, `obstacle`, `obstacle-plain`, `proposal`, `proposal-plain`,
  * `players`, `players-other`, `queue`): each part over or on a plain page, for the layout checks and the pictures
  * of the built parts.
  */
@@ -319,11 +361,12 @@ export function MoveOnLayoutPage({ state }: { state: string }) {
     return (
       <main className="gallery__move-page">
         <h1>The jetty</h1>
-        <PlayersRows spots={[...PLAYERS_SPOTS, LONG]} proposal={{ spot: 'wreck', way: 'row', by }} />
+        <PlayersRows rows={[...PLAYERS_TWO_AREAS.slice(0, -1), { ...asPlayers(LONG), area: IN_HARBOUR }, ...PLAYERS_TWO_AREAS.slice(-1)]} proposal={{ spot: 'wreck', way: 'row', by }} />
       </main>
     );
   }
-  const opening = state === 'way' ? { id: 'wreck', key: 'row' } : state === 'obstacle' ? { id: 'cave', key: 'row' } : state === 'obstacle-plain' ? { id: 'shed', key: 'piles' } : undefined;
+  // `way-long` (sf-15; PU1 C): a long name that wraps in the step's title, and 999 turns.
+  const opening = state === 'way' ? { id: 'wreck', key: 'row' } : state === 'way-long' ? { id: 'stair', key: 'climb' } : state === 'obstacle' ? { id: 'cave', key: 'row' } : state === 'obstacle-plain' ? { id: 'shed', key: 'piles' } : undefined;
   return (
     <main className="gallery__move-page">
       <h1>The jetty</h1>
@@ -332,7 +375,7 @@ export function MoveOnLayoutPage({ state }: { state: string }) {
       ) : state === 'proposal-plain' ? (
         <ProposalSheet id="p-ash" askedBy="Ash" move={moveOf(SPOTS, 'wreck', 'row')} count="2 of 3" onAnswer={nothing} onNotNow={nothing} onClose={nothing} />
       ) : (
-        <GmSheet opening={opening} spots={[...SPOTS, LONG]} preview={false} wayOut={state === 'way-out'} />
+        <GmSheet opening={opening} spots={[...HARBOUR_SPOTS, LONG, LANDING]} preview={false} wayOut={state === 'way-out'} />
       )}
     </main>
   );
