@@ -367,6 +367,17 @@ describe('the Depart sheet of p2p-5 (plan scene-point-to-point B7; page 24, DP1)
     expect(departOpenGroup([], all, [visit(jetty)])).toBeNull();
   });
 
+  // Purpose (the review of #124): reopened with a Location ticked, its Area opens, not the Area last played; a
+  // ticked place no group lists leaves the Area last played open.
+  it("opens the ticked Location's Area first", () => {
+    const all = [isle, harbour, anchorage, jetty, beach, landing, room, lone];
+    const groups = departLocationGroups(all);
+    const visit = (p: PackPlace) => ({ pack: { packId: p.packId, entryId: p.entryId, type: p.type, parentId: p.parentId ?? '', key: p.key ?? '' } });
+    expect(departOpenGroup(groups, all, [visit(jetty)], landing)).toBe('pack-isle:beach');
+    expect(departOpenGroup(groups, all, [visit(landing)], room)).toBe('pack-isle:beach');
+    expect(departOpenGroup(groups, all, [visit(landing)], null)).toBe('pack-isle:beach');
+  });
+
   // Purpose (sf-2; DP3 B): a row's Area at its right is its Area, else the place above it, else the pack's name.
   it("names a row's Area, else the place above, else the pack", () => {
     const all = [isle, harbour, jetty, steps, hex, lone];

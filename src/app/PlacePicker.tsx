@@ -23,7 +23,7 @@ import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import type { Db } from '../core/supabase.ts';
 import { loadPackPlaces, type Place } from '../modules/expedition/placePlay.ts';
 import { PLACE_NAME_MAX } from '../modules/expedition/play.ts';
-import { byMapNumber, childrenOf, countUnder, holdersOfLocations, isLocation, keyedName, nearHere, packsWithPlaces, pickablePlaces, placeOf, rootsOf, searchPlaces, wordsFor, type PackPlace } from '../modules/expedition/placeTree.ts';
+import { byMapNumber, childrenOf, countUnder, holdersOfLocations, isLocation, keyedName, nearHere, packsWithPlaces, parentOf, pickablePlaces, placeOf, rootsOf, searchPlaces, wordsFor, type PackPlace } from '../modules/expedition/placeTree.ts';
 import { departAreaOf, departLocationGroups, departOpenGroup } from '../modules/expedition/sceneTop.ts';
 import { Dialog } from '../ui/Dialog.tsx';
 import { Icon } from '../ui/icons.tsx';
@@ -255,10 +255,18 @@ function FoldMark({ open, name, onToggle }: { open: boolean; name: string; onTog
   );
 }
 
-/** Step in for a pack's tree (N4): a group 16 px a level; a place 24 px more than its group (40 px from the pack's edge). */
+/**
+ * Step in for a pack's tree (N4; DP3 D, DP3b B): a group 16 px a level; a place's words 24 px past its group's edge (40
+ * px from the pack's edge under one of its Areas). A row's words stand after its tick column (24 px and the 8 px gap),
+ * so the row itself steps in that much less (the review of #124), never less than none.
+ */
 const stepIn = (px: string) => ({ paddingLeft: px });
 const groupIndent = (depth: number) => stepIn(`calc(var(--space-4) * ${depth})`);
-const rowIndent = (depth: number) => (depth <= 1 ? groupIndent(depth) : stepIn(`calc(var(--space-4) * ${depth - 1} + var(--space-5))`));
+const wordsAt = (depth: number) => `calc(var(--space-4) * ${depth - 1} + var(--space-5))`;
+const wordsIndent = (depth: number) => stepIn(wordsAt(depth));
+const rowIndent = (depth: number) => stepIn(`max(0px, ${wordsAt(depth)} - var(--space-5) - var(--space-2))`);
+/** The search lists at most this many rows; its count is every place it found. */
+const FOUND_ROWS = 50;
 
 /**
  * The Depart sheet's Where? as one view (sf-2; page 44, DP3 and DP3b, approved 2026-11-26; ⚑ 10, N4): the search and
@@ -290,19 +298,36 @@ export function LocationsPickerBody({
   const pickable = useMemo(() => pickablePlaces(places, holders), [places, holders]);
   const [open, setOpen] = useState<Set<string>>(() => {
     if (initialOpen) return new Set(initialOpen);
-    const last = departOpenGroup(groups, places, recent);
-    return new Set(last ? [`area:${last}`] : []);
+    // The ticked place's Area, else the Area last played (`departOpenGroup`); a place ticked in a pack's tree opens
+    // the pack and the groups above it, so the tick shows (the review of #124).
+    const last = departOpenGroup(groups, places, recent, picked);
+    const start = new Set(last ? [`area:${last}`] : []);
+    if (picked && !isLocation(picked)) {
+      start.add(`pack:${picked.packId}`);
+      const seen = new Set<PackPlace>();
+      for (let up = parentOf(places, picked); up && !seen.has(up); up = parentOf(places, up)) {
+        seen.add(up);
+        start.add(`${up.packId}:${up.entryId}`);
+      }
+    }
+    return start;
   });
   const [more, setMore] = useState<Set<string>>(() => new Set());
   const [query, setQuery] = useState(initialQuery);
   const [other, setOther] = useState<string | null>(null);
   const field = useId();
   const q = query.trim();
-  const results = useMemo(() => (q ? searchPlaces(pickable, q) : []), [pickable, q]);
-  // From your packs: the packs with a place to pick that the groups don't list (a Region of hexes, a dungeon's rooms).
+  // Every place found, so the count is right past the rows listed (the review of #124).
+  const found = useMemo(() => (q ? searchPlaces(pickable, q, Infinity) : []), [pickable, q]);
+  const results = found.slice(0, FOUND_ROWS);
+  // From your packs: the packs with a place to pick that the groups don't list (a Region of hexes, a dungeon's rooms);
+  // each one's count is its places that hold no others, never its Region and Areas (DP3 A, D: "212 places").
   const packs = useMemo(() => {
     const others = new Set(pickable.filter((p) => !isLocation(p)).map((p) => p.packId));
-    return packsWithPlaces(places).filter((pack) => others.has(pack.packId));
+    const leaves = (packId: string) => pickable.filter((p) => p.packId === packId && countUnder(places, p) === 0).length;
+    return packsWithPlaces(places)
+      .filter((pack) => others.has(pack.packId))
+      .map((pack) => ({ ...pack, count: leaves(pack.packId) }));
   }, [places, pickable]);
   const toggle = (set: Set<string>, key: string, into: (next: Set<string>) => void) => {
     const next = new Set(set);
@@ -348,7 +373,7 @@ export function LocationsPickerBody({
           );
         })}
         {all.length > shown.length && (
-          <button type="button" className="button-secondary button-secondary--small place-pick__more depart-pick__more" style={rowIndent(depth)} onClick={() => toggle(more, key, setMore)}>
+          <button type="button" className="button-secondary button-secondary--small place-pick__more depart-pick__more" style={wordsIndent(depth)} onClick={() => toggle(more, key, setMore)}>
             {`Show ${all.length - shown.length} more${all.every((p) => p.hex) ? ' hexes, by map number' : ''}`}
           </button>
         )}
@@ -386,9 +411,8 @@ export function LocationsPickerBody({
       {q ? (
         results.length > 0 ? (
           <section className="depart-pick__group" aria-label="Places found">
-            <p className="auth__meta depart-pick__found">{`${placesCount(results.length)}.`}</p>
+            <p className="auth__meta depart-pick__found">{`${placesCount(found.length)}.`}</p>
             {results.map((p) => packRow(p, departAreaOf(places, p)))}
-            {otherButton(`Other… use “${q}” as a new place`)}
           </section>
         ) : (
           <>

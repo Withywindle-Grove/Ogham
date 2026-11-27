@@ -5,7 +5,10 @@
 //   * every count reads "N places" ("1 place"), and a group folds and unfolds by its chevron;
 //   * a pack unfolds where it stands, its Areas inside it, and there is no "Back"; a pack of 205 hexes in one Area
 //     unfolds to its Areas, never to its 200-odd rows;
-//   * a search for "1" lists 1, 10 and 11 with their Areas; nothing found says so and offers Other…;
+//   * a pack's count is its places to pick, not its Region and Areas;
+//   * a search for "1" lists 1, 10 and 11 with their Areas and no Other…; a search past 50 finds counts every match;
+//     nothing found says so and offers Other…;
+//   * reopened, the list opens the Area of the place already ticked;
 //   * a tap on a place picks it at once.
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -66,9 +69,9 @@ const MARCHES: PackPlace[] = [
 const visited = (from: PackPlace): Place => ({ id: `place-${from.entryId}`, campaignId: 'c1', name: from.name, description: '', notes: null, version: 1, notesVersion: 1, pack: { packId: from.packId, entryId: from.entryId, type: from.type, parentId: from.parentId ?? '', key: from.key ?? '' }, playersName: '', regionId: '', terrainId: '' });
 const at = (entryId: string) => ISLE.find((p) => p.entryId === entryId)!;
 
-function show(places: PackPlace[], recent: Place[] = []) {
+function show(places: PackPlace[], recent: Place[] = [], ticked: PackPlace | null = null) {
   const picked: PickedPlace[] = [];
-  render(<LocationsPickerBody places={places} recent={recent} picked={null} onPick={(p) => picked.push(p)} />);
+  render(<LocationsPickerBody places={places} recent={recent} picked={ticked} onPick={(p) => picked.push(p)} />);
   return picked;
 }
 const group = (name: string) => within(screen.getByRole('region', { name }));
@@ -133,10 +136,11 @@ describe("the Depart list's packs (sf-2, N4)", () => {
     expect(rows('Moss Landing')).toEqual(['The Ford', '1. The Drowned Jetty', '2. The Reeve’s Post']);
   });
 
-  // Purpose: a pack of 200-odd places unfolds to its Areas, never to its 200-odd rows.
-  it('unfolds a pack of 216 places to its three Areas', async () => {
+  // Purpose (DP3 A, D; the review of #124): a pack's count is the places in it to pick (3 + 4 + 205), not its Region
+  // and Areas, and it unfolds to its Areas, never to its 200-odd rows.
+  it('counts a pack of 212 places and unfolds it to its three Areas', async () => {
     show(MARCHES.concat(ISLE));
-    expect(group('From your packs').getByText('216 places')).toBeTruthy();
+    expect(group('From your packs').getByText('212 places')).toBeTruthy();
     await userEvent.click(screen.getByRole('button', { name: 'Show The Reed Marches' }));
     expect(screen.queryAllByRole('button', { name: /hex/ })).toHaveLength(0);
     expect(['Moss Landing', 'The Bog Road', 'Thornwater'].map((name) => screen.getByRole('button', { name: `Show ${name}` }))).toHaveLength(3);
@@ -156,8 +160,18 @@ describe("the Depart list's search (sf-2; DP3 B, E)", () => {
       '10. The Sea GateThe Drowned Harbour',
       '11. The Outer MoleThe Drowned Harbour',
     ]);
-    // The groups give way to the finds.
+    // The groups give way to the finds; Other… is only for nothing found (DP3 B, E; the review of #124).
     expect(screen.queryByRole('region', { name: 'The Drowned Harbour' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Other…/ })).toBeNull();
+  });
+
+  // Purpose (the review of #124): a search that finds more than the 50 rows it lists counts every place it found.
+  it('counts every place found past the 50 it lists', async () => {
+    show(MARCHES);
+    await userEvent.type(screen.getByRole('textbox', { name: 'Search places by name or map number' }), 'thorn hex');
+    const found = group('Places found');
+    expect(found.getByText('205 places.')).toBeTruthy();
+    expect(found.getAllByRole('button', { pressed: false })).toHaveLength(50);
   });
 
   // Purpose (DP3 E): nothing found says so in one line and offers Other… with the words typed, which takes them.
@@ -168,6 +182,23 @@ describe("the Depart list's search (sf-2; DP3 B, E)", () => {
     await userEvent.click(screen.getByRole('button', { name: 'Other… use “quay” as a new place' }));
     await userEvent.click(screen.getByRole('button', { name: 'Set place' }));
     expect(picked).toEqual([{ kind: 'other', name: 'quay' }]);
+  });
+});
+
+describe('the list reopened (sf-2; the review of #124)', () => {
+  // Purpose: reopened with a place already ticked, the list opens that place's Area, not the Area last played.
+  it("opens the ticked place's Area", () => {
+    show(ISLE, [visited(at('jetty'))], at('wrack'));
+    expect(group('The Shingle Beach').getByRole('button', { name: '1. The Wrack Line', pressed: true })).toBeTruthy();
+    expect(group('The Drowned Harbour').getByRole('button', { name: 'Show The Drowned Harbour' })).toBeTruthy();
+  });
+
+  // Purpose: a place ticked from a pack's tree opens the pack and its Area, so the tick shows.
+  it("opens the pack and the Area of a pack's ticked place", () => {
+    const ford = MARCHES.find((p) => p.entryId === 'ford')!;
+    show([...ISLE, ...MARCHES], [visited(at('jetty'))], ford);
+    expect(group('Moss Landing').getByRole('button', { name: 'The Ford', pressed: true })).toBeTruthy();
+    expect(group('The Drowned Harbour').getByRole('button', { name: 'Fold The Drowned Harbour' })).toBeTruthy();
   });
 });
 

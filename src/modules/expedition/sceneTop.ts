@@ -458,16 +458,19 @@ export function departAreaOf(places: readonly PackPlace[], place: PackPlace): st
 
 /**
  * The group of the Depart list that starts open (sf-2, ⚑ 10 ruled 2026-11-26: "The Area last played"): the Area of
- * the newest of the campaign's places (`recent`, newest first) that a pack's Location or Area gives, where it heads a
- * group; else the first group; null with no group. The others start folded.
+ * the place already ticked (`picked`), where a group lists it (the review of #124: reopened, the tick shows); else the
+ * Area of the newest of the campaign's places (`recent`, newest first) that a pack's Location or Area gives, where it
+ * heads a group; else the first group; null with no group. The others start folded.
  */
-export function departOpenGroup(groups: readonly LocationGroup[], places: readonly PackPlace[], recent: readonly Pick<Place, 'pack'>[]): string | null {
+export function departOpenGroup(groups: readonly LocationGroup[], places: readonly PackPlace[], recent: readonly Pick<Place, 'pack'>[], picked: PackPlace | null = null): string | null {
   const keys = new Set(groups.map((g) => g.key));
+  // A Location opens its Area's group; an Area stood at before (from before p2p-2) opens its own.
+  const keyOf = (at: PackPlace) => (isLocation(at) ? groupKeyOf(at, areaOf(places, at)) : `${at.packId}:${at.entryId}`);
+  if (picked && isLocation(picked) && keys.has(keyOf(picked))) return keyOf(picked);
   for (const visit of recent) {
     const at = visit.pack ? places.find((p) => p.packId === visit.pack!.packId && p.entryId === visit.pack!.entryId) : undefined;
     if (!at) continue;
-    // A Location opens its Area's group; an Area stood at before (from before p2p-2) opens its own.
-    const key = isLocation(at) ? groupKeyOf(at, areaOf(places, at)) : `${at.packId}:${at.entryId}`;
+    const key = keyOf(at);
     if (keys.has(key)) return key;
   }
   return groups[0]?.key ?? null;

@@ -62,7 +62,8 @@ for (const width of [375, 834] as const) {
 // the layout page's quay with `?places=marches`: the isle's two Areas, an Area with a long name and thirteen places,
 // and a region pack with no Location. What it checks, in plain words:
 //   * a long Area name wraps inside the list, and its thirteen places come in number order, none first;
-//   * a pack unfolds where it stands: its Areas 16 px in from the pack's edge, their places further in (40 px);
+//   * a pack unfolds where it stands: its Areas 16 px in from the pack's edge, their places' words 40 px in; its count
+//     is its places to pick;
 //   * every row and every fold mark is a 44 px tap; nothing scrolls sideways and axe finds no serious problem, at 375
 //     px and on a tablet (1024 px), in light and dark.
 for (const width of [375, 1024] as const) {
@@ -107,9 +108,12 @@ for (const width of [375, 1024] as const) {
         const edge = (await packs.locator('.depart-pick__pack').boundingBox())!.x;
         const moss = picker.getByRole('region', { name: 'Moss Landing', exact: true });
         expect(Math.round((await moss.locator('.depart-pick__area').boundingBox())!.x - edge)).toBe(16);
-        const ticks = moss.locator('.depart-pick__tick');
-        await expect(ticks).toHaveCount(3);
-        for (const tick of await ticks.all()) expect(Math.round((await tick.boundingBox())!.x - edge)).toBe(40);
+        // The words, not the empty tick column before them (the review of #124).
+        const placeWords = moss.locator('.depart-pick__words');
+        await expect(placeWords).toHaveCount(3);
+        for (const words of await placeWords.all()) expect(Math.round((await words.boundingBox())!.x - edge)).toBe(40);
+        // The pack's count is its places to pick, 4 + 3 + 45, not its Region and Areas (DP3 A, D).
+        await expect(packs.getByText('52 places', { exact: true })).toBeVisible();
         await expect(moss.locator('.depart-pick__words')).toHaveText(['The Ford', '1. The Drowned Jetty', '2. The Reeve’s Post']);
         await expect(picker.getByRole('region', { name: 'Thornwater' }).getByText('45 places')).toBeVisible();
         await expect(picker.getByRole('button', { name: /Back/ })).toHaveCount(0);
