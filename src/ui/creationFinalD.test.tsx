@@ -10,6 +10,8 @@
 //   Sent back with one part ticked, the review shows that card with the warning sign and its line, the foot reads
 //   "1 part marked" with Back and "Send to the GM" and no "Start over"; with none ticked, no card is marked; "Your GM
 //   asks for a change" and the author line stay (clo-2, frame 22-G5).
+//   Sent back, a marked card and an unmarked card each keep their own "Change", which opens that part's step; the card
+//   itself is not a button, so no button sits inside another.
 import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -142,7 +144,7 @@ describe('when picks were kept (final drafts F)', () => {
   });
 });
 
-const sentBack = (sections: ReviewSection[], onBack: () => void, onAction: () => void) => (
+const sentBack = (sections: ReviewSection[], onBack: () => void, onAction: () => void, onOpenStep: (id: string) => void = () => {}) => (
   <ReviewScreen
     heading="Oswin Adderbald"
     note={
@@ -152,7 +154,7 @@ const sentBack = (sections: ReviewSection[], onBack: () => void, onAction: () =>
     }
     sections={sections}
     action="Send to the GM"
-    onOpenStep={() => {}}
+    onOpenStep={onOpenStep}
     onAction={onAction}
     onBack={onBack}
   />
@@ -197,5 +199,25 @@ describe('the sent-back review (clo-2, frame 22-G5)', () => {
     expect(container.querySelectorAll('.review__section--flagged')).toHaveLength(0);
     expect(container.querySelector('.review__foot-state')).toBeNull();
     expect(screen.getByRole('complementary', { name: 'Note from your GM' }).textContent).toContain('Maren, your GM, today');
+  });
+
+  // Purpose: sent back, a marked card and an unmarked card each keep their own "Change", which opens that part's step;
+  // the card itself is not a button, so no button sits inside another.
+  it('gives each card, marked or not, its own Change that opens its step; the cards are not buttons', async () => {
+    const onOpenStep = vi.fn();
+    const parts: ReviewSection[] = [
+      { id: 'who', title: 'Kindred and class', lines: [{ text: 'Kindred: Stone kin' }] },
+      { id: 'languages', title: 'Languages', flagged: true, lines: [{ text: 'Marsh-common, Stone-speech, Croak' }] },
+    ];
+    const { container } = render(sentBack(parts, () => {}, () => {}, onOpenStep));
+    expect(container.querySelectorAll('button.review__section')).toHaveLength(0);
+    expect(container.querySelectorAll('.review__section button')).toHaveLength(2);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Change Languages' }));
+    expect(onOpenStep).toHaveBeenLastCalledWith('languages');
+    await user.click(screen.getByRole('button', { name: 'Change Kindred and class' }));
+    expect(onOpenStep).toHaveBeenLastCalledWith('who');
+    expect(onOpenStep).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole('button', { name: 'Change Languages' }).textContent).toBe('Change');
   });
 });

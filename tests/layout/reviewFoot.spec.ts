@@ -13,7 +13,9 @@ import { test } from '../fails.ts';
 // The first test keeps the specimen's one-line hint; the second sets a two-line one.
 // The third, the sent-back review's foot (clo-2, frame 22-G5), on the harness's Moss (two parts ticked) at 375 px and
 // the iPad: under a rule, "2 parts marked", then Back and "Send to the GM" in one row at the right, each at its own
-// width, Send last; one Send on the screen, no Start over; Back goes to Your characters.
+// width, Send last, one height for the pair; one Send on the screen, no Start over; Back goes to Your characters.
+// The same screen's cards (22-G5): each keeps a "Change" at least 44 px tall, and no card holds a control inside a
+// control (the card is not a button); the GM's note shows its author line.
 
 test("the review's foot with a one-line hint: no band, Send at the right at its own width, the quiet pair in one row (375 px and the iPad)", async ({ page }) => {
   type Box = { left: number; right: number; top: number; bottom: number; width: number; height: number };
@@ -113,7 +115,7 @@ test("the review's foot with a two-line hint: no band, Send at the right at its 
   }
 });
 
-test("the sent-back review's foot: the count, then Back and Send to the GM at the right, no Start over; Back goes to Your characters (375 px and the iPad)", async ({ page }) => {
+test("the sent-back review: the count, then Back and Send to the GM at the right at one height, no Start over; each card's Change 44 px, nothing nested; Back goes to Your characters (375 px and the iPad)", async ({ page }) => {
   for (const size of [
     { name: 'phone', width: 375, height: 812 },
     { name: 'iPad', width: 820, height: 1180 },
@@ -148,6 +150,23 @@ test("the sent-back review's foot: the count, then Back and Send to the GM at th
     expect(Math.abs(m.foot.right - send!.right), `Send at the right (${at})`).toBeLessThanOrEqual(1);
     expect(back!.left - m.foot.left, `the pair at the right, not stretched (${at})`).toBeGreaterThan(40);
     for (const b of [back!, send!]) expect(b.height, `44 px targets (${at})`).toBeGreaterThanOrEqual(44);
+    expect(Math.abs(back!.height - send!.height), `Back and Send one height (${at})`).toBeLessThan(1);
+    const cards = await page.evaluate(() =>
+      [...document.querySelectorAll('.review__section')].map((card) => ({
+        title: card.querySelector('.review__title')?.textContent ?? '',
+        card: card.tagName,
+        changes: [...card.querySelectorAll('button')].map((b) => ({ text: (b.textContent ?? '').trim(), height: b.getBoundingClientRect().height })),
+        nested: card.querySelectorAll('button button, a button, button a, [role="button"] button').length,
+      })),
+    );
+    expect(cards.length, at).toBeGreaterThan(1);
+    for (const c of cards) {
+      expect(c.card, `${c.title}: the card is not a button (${at})`).not.toBe('BUTTON');
+      expect(c.changes.map((b) => b.text), `${c.title}: its own Change (${at})`).toEqual(['Change']);
+      expect(c.changes[0]!.height, `${c.title}: Change is a 44 px target (${at})`).toBeGreaterThanOrEqual(44);
+      expect(c.nested, `${c.title}: no control inside a control (${at})`).toBe(0);
+    }
+    await expect(page.getByRole('complementary', { name: 'Note from your GM' }), `the author line (${at})`).toContainText('Priya, your GM, today');
     await expect(page.getByRole('button', { name: 'Send to the GM' }), `one Send (${at})`).toHaveCount(1);
     await expect(page.getByRole('button', { name: 'Start over' }), at).toHaveCount(0);
     await page.locator('.review__foot').getByRole('button', { name: 'Back' }).click();

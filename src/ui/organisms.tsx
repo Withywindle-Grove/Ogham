@@ -50,7 +50,8 @@ export interface ReviewSection {
  * The review screen (B18): one screen for the first submission, a sent-back character and the GM's review card.
  * Sections in reading order, each opening its step; overrides and broken rules marked with words and a shape;
  * flagged sections marked. The main action stays enabled; what's still needed is explained on tap. Sent back, its own
- * foot (clo-2, 22-G5; `onBack`): the count of marked parts, Back and the action.
+ * foot (clo-2, 22-G5; `onBack`): the count of marked parts, Back and the action; each card then keeps its own Change
+ * (the card itself is read, not a button: one tab stop per card).
  */
 export function ReviewScreen({
   heading,
@@ -69,6 +70,7 @@ export function ReviewScreen({
   /**
    * The sent-back foot (clo-2, frame 22-G5): given, the action sits in a foot at the end at every width, under a rule:
    * how many parts the GM ticked ("1 part marked", none when none are), then Back (plain) and the action (accent).
+   * Each card carries a small Change at its title's right, which opens its step (`onOpenStep`).
    */
   onBack?: () => void;
   heading: string;
@@ -96,10 +98,25 @@ export function ReviewScreen({
       </div>
       {note}
       {sections.map((s) => {
-        const Box = onOpenStep ? 'button' : 'div';
+        // Sent back (clo-2, 22-G5): each card keeps its Change, the one tap that opens its step; the card is read.
+        const change = !!onBack && onOpenStep;
+        const Box = onOpenStep && !change ? 'button' : 'div';
         return (
-        <Box key={s.id} {...(onOpenStep ? { type: 'button' as const, onClick: () => onOpenStep(s.id) } : {})} className={`review__section${s.flagged ? ' review__section--flagged' : ''}`}>
-          <span className="review__title">{s.title}</span>
+        <Box
+          key={s.id}
+          {...(onOpenStep && !change ? { type: 'button' as const, onClick: () => onOpenStep(s.id) } : {})}
+          className={`review__section${change ? ' review__section--change' : ''}${s.flagged ? ' review__section--flagged' : ''}`}
+        >
+          {change ? (
+            <span className="review__section-head">
+              <span className="review__title">{s.title}</span>
+              <button type="button" className="button-secondary button-secondary--small review__change" aria-label={`Change ${s.title}`} onClick={() => change(s.id)}>
+                Change
+              </button>
+            </span>
+          ) : (
+            <span className="review__title">{s.title}</span>
+          )}
           {s.flagged && (
             <span className="review__flag">
               <WarningSign /> Your GM asks for a change
