@@ -97,7 +97,7 @@ Where this section differs from the rules above or in `CLAUDE.md`, those rules w
 | 7 | Every third loop: an architecture pass; it reports only | `improve-codebase-architecture`, `codebase-design`, `domain-modeling`, `grilling` | Fable, high |
 
 - Francis sits three times per loop: A, after step 1 (the mockup and the rulings); B, after step 3 (the spec's plain-language part and the ticket list); C, after step 5 (the built screen, the review, the retro findings).
-- Francis starts steps 2, 3, 4, 6 and 7 himself. An agent cannot start those five skills (`.claude/skills/README.md`, Who starts a skill).- `implement-spec` asks for as many workers as possible. The limits under Seats win.
+- Francis starts steps 2, 3, 4, 6 and 7 himself. An agent does not start those five skills (`.claude/skills/README.md`, Who starts a skill). The driver tells him which command to type, at the moment each step is ready (`driver.md`, The loop).- `implement-spec` asks for as many workers as possible. The limits under Seats win.
 - Step 5 keeps the Bugs and Rules passes of `REVIEW.md`: the project's `code-review` runs them with its standards pass, through the `reviewer` agent.
 
 **Other skills still used**

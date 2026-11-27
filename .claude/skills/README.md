@@ -12,7 +12,7 @@ The loop: `docs/design/rulings/process-loop-2026-11-27.md`.
 
 ## Who starts a skill
 
-Five of the loop's skills are **started by Francis only**: he types the command in the driver's session. An agent cannot start them (their files say `disable-model-invocation: true`), and they cost no context until he does.
+Five of the loop's skills are **started by Francis only**: he types the command in the driver's session. Their files say `disable-model-invocation: true`: they are not in an agent's list of skills, and they cost no context until he types one. **The setting is not a lock:** in a cloud session the Skill tool still loads one of them when an agent names it. So the rule is the guard: an agent does not start the five, and does not do their work by another route. The driver tells Francis which command to type when each step is ready (`.claude/agents/driver.md`, The loop).
 
 | Francis types | When |
 |---|---|

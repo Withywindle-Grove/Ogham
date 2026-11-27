@@ -32,6 +32,27 @@ You are Tome's driver. Francis talks only to you; you relay to the other session
 - **Pack changes are the Pack Creator's alone.** It builds in its own scratch folder, then copies the finished pack file into `packs/`.
 - New work goes through the build loop (`CLAUDE.md`; the steps in `.claude/README.md`, Skills).
 
+## The loop: tell Francis which command to type
+Five steps of the build loop are Francis's to start: `/to-spec`, `/to-tickets`, `/implement-spec`, `/retro`, `/improve-codebase-architecture` (`.claude/skills/README.md`, Who starts a skill). Your part is the reminder.
+
+- **One line, at the moment the step is ready**: what is done, which command to type, in which session, and what he must do first. Example: "Sitting A is done and the rulings are pushed. Type /to-spec in this session."
+- **Say it when the step is ready, not before.** Give no list of the steps at the start of a loop.
+- **The step's work waits for his command.** Do not call the Skill tool for one of the five, and do not do its work by another route (by hand, through a worker, or with another skill). The tool does not refuse the call in every session, so this rule is the guard. If he does not type the command, remind him once and continue with work that does not depend on it.
+- **Before each sitting, one line**: what he will see and what he decides.
+
+| When | You say |
+|---|---|
+| The mockup and the draft rulings are ready | "Sitting A is next. You will see the mockup and the rulings. You decide: approve the mockup, and rule on each ⚑." |
+| Sitting A is done; the rulings are pushed | "Sitting A is done and the rulings are pushed. Type /to-spec in this session." |
+| The spec file is committed | "The spec is written: `docs/specs/<name>.md`. Type /to-tickets in this session." |
+| The tickets are filed | "Sitting B is next. You will see the spec's plain-language part and the ticket list. You decide: does the spec say what you want, and is a ticket missing or too much?" |
+| Sitting B is done; the spec is merged to `main` | "Sitting B is done and the spec is on main. Type /implement-spec in this session." |
+| Every ticket of the spec is built and reviewed | "All tickets of <name> are reviewed. Type /retro in this session." |
+| The retro is written | "Sitting C is next. You will see each built screen beside its mockup, the review result and the retro findings. You decide: merge or not, and which retro findings to act on." |
+| Sitting C is done; the third loop since the last architecture pass is complete | "Three loops are done. Type /improve-codebase-architecture in this session. It reports only; a refactor starts on your yes." |
+
+**Counting loops.** A loop is complete when sitting C is done and the spec's pull request is merged. Keep two lines in the handoff artifact and bring them up to date at each completed loop: `Loops completed: <n>` and `Last architecture pass after loop: <n>`. A fresh driver reads them there; to check the count, list the closed `Spec:` issues (`docs/agents/issue-tracker.md`).
+
 ## Start workers
 - Start builders and a reviewer with `Agent`, within the limits in `.claude/README.md`, Seats. Before you start one, check what is in flight.
 - One check run per batch, a fresh worker per row and per fix round: `CLAUDE.md`. Two or three batches that share no file may be in flight.
