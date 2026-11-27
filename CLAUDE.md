@@ -46,15 +46,25 @@ The why and the date of each rule are in `docs/09-decisions-log.md` (search `[pr
 
 ## Hard rules
 
-1. **No LLM in the app.** Nothing in core may call an AI service. The R4 table assistant hooks in through the command layer later.
-2. **Rules-agnostic and IP-clean.** No game-system names, rules text, tables, stat blocks or numbers in code, seeds or tests. Use invented examples ("Bog lurker", "Lantern Warden"). Content packs are private user data; never commit them (`packs/` is gitignored).
-3. **Everything through commands.** UI never writes to the database directly. Every command checks `can(user, command, target)` and writes an event.
-4. **Everything logged, nothing erased.** Rollback creates a reversing event. Log levels: `simple` or `verbose`. Eight exceptions, the log keeping a copy in each: a never-approved character (deleted by its owner or the GM); an archived character (by its owner or the GM, after a clear confirm); items leaving play (dropped, used up or burnt out, given outside the party, a one-off the GM declines); undoing a partial give (what's left merges back into its stack); undoing an action that created an item nobody has touched; the buyer's own Undo of "Buy it", likewise; a picture slot whose upload failed and was tied to nothing; a whole line merged onto a same-name stack in the same place. **The list is closed:** a new kind of deletion needs a design ruling first. Full wording and dates: `docs/09-decisions-log.md`, Standing rulings, "Deletion exceptions".
-5. **Hidden means hidden.** Other players' purses, monster HP and GM-only notes must never be sent to a client that can't see them. Enforce with Supabase row-level security, not just the UI. One named exception (`09-decisions-log.md`, Standing rulings): a Down or dead character's pack and purse open to the other players (every take logged), enforced by row-level security on the character's state and closing again if the character recovers; and a hireling's pack is always open to their employer.
-6. **Modules don't touch core internals.** Use the registry (`02-architecture.md`). Core never imports a module.
-7. **Calm UI.** Spacing, type and colour come only from the tokens in `06-screens-and-design.md` (no raw values). Body 16, nothing under 14 (one named exception: a save tile's at-times line is 12 px, `--text-save-line`, ruled by Francis 2026-11-25; nothing else under 14), tap targets ≥44px with 8px between, one accent button per screen, never a disabled button, light and dark mode. Colour may carry a distinction by itself only where its mockup shows it with the hue taken away and Francis has approved it; text contrast floors still hold. **Undo over confirm:** reversible actions happen at once with an Undo toast; dialogs only for irreversible or high-cost actions.
+Reworded 2026-11-27 (lp-11); the numbers 1 to 9 are unchanged, and code and tests cite them.
+
+1. **No AI in the app.** Core never calls an AI service.
+2. **No game IP.** No system names, rules text, tables, stat blocks or numbers in code, seeds or tests. Invented examples only ("Bog lurker", "Lantern Warden"). Never commit `packs/`.
+3. **Commands only.** The UI never writes to the database. Each command checks `can(user, command, target)` and writes an event.
+4. **Nothing erased.** An undo is a reversing event. The deletion exceptions are a closed list (`docs/09-decisions-log.md`, Standing rulings, "Deletion exceptions"); a new one needs a design ruling.
+5. **Hidden means hidden.** Row-level security enforces it, not the UI. The named exceptions are in `docs/09-decisions-log.md`, Standing rulings.
+6. **Core never imports a module.** Modules use the registry (`02-architecture.md`).
+7. **Tokens only.** No raw spacing, type or colour values. Sizes, tap targets, contrast, the one accent button, and light and dark mode: `06-screens-and-design.md`, "Accessibility and calm" and "Design tokens".
 8. **Integers** for money, quantities, weights and slots.
-9. **Few dependencies.** Only those listed in `02-architecture.md` without asking.
+9. **No new dependency without a yes.** Those listed in `02-architecture.md` are allowed.
+10. **Undo over confirm.** A dialog only for an irreversible or high-cost action. Never a disabled button. (Part of rule 7 until 2026-11-27; older files cite it as rule 7.)
+
+## Agent skills
+
+The build loop and its skills: `docs/design/rulings/process-loop-2026-11-27.md`; the skills are in `.claude/skills/` (`README.md` there).
+
+- **Issue tracker.** A spec is a file in `docs/specs/`; a ticket is a GitHub issue. See `docs/agents/issue-tracker.md`.
+- **Domain docs.** The domain is in `docs/04-data-model.md`; decisions are lines in `docs/09-decisions-log.md`, not ADR files. See `docs/agents/domain.md`.
 
 ## Stack
 
