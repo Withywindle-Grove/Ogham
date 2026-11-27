@@ -1,6 +1,6 @@
 # Plan dec-scene-feedback: the Scene feedback of 25 November (page 44)
 
-**Status (2026-11-26, evening): every ⚑ below is answered except the plan's item 9 (which rows wait for which), which is the driver's. Francis's answers are sf-19 to sf-28 in the ruling's "Ruled 2026-11-26 (evening)"; the rows below say where they change what is built. Ready for the waves.**
+**Status (2026-11-27: see "Answered 27 November" below). Status (2026-11-26, evening): every ⚑ below is answered except the plan's item 9 (which rows wait for which), which is the driver's. Francis's answers are sf-19 to sf-28 in the ruling's "Ruled 2026-11-26 (evening)"; the rows below say where they change what is built. Ready for the waves.**
 
 Written by the designer on 2026-11-26. Its ruling: [`../design/rulings/scene-feedback-2026-11-25.md`](../design/rulings/scene-feedback-2026-11-25.md) (Francis's 27 notes; his rulings of 25 and 26 November; his approval of 26 November, "Approve with picks"). Its page: `docs/design/mockups/december/44-scene-feedback-of-25-november.html`, frames 44-1 to 44-21, pictures `docs/design/mockups/december/png/44-*`.
 
@@ -219,6 +219,20 @@ Each answer is an id in the ruling, [`../design/rulings/scene-feedback-2026-11-2
 9. **The rows with builders since 25 November** (sf-1, the band's order, sf-12, F17) touch `SceneBand.tsx`, `PlacePicker.tsx` and `PlaceFacts.tsx`. A3, A4, C2 and B2 start from a `main` that has them, or the driver says which waits. **The driver's; not asked of Francis.**
 10. **Not drawn, so not built by this plan:** **answered, sf-27, "Unbuilt, drawn after 5 Dec".** "Take it back" refused, in the why-blocked pop-up; a wrong "Nothing stirs"; a row that names three or more creatures; "+ Piece" titled "Add a piece" (which joins the "piece" words sweep). They go to the designer turn after 5 December.
 11. **On a phone the pop-ups are drawn as sheets from the foot:** **answered, sf-28, "Keep the built form".** Sheets from the foot on a phone, centred cards on a tablet, as the built pop-up does.
+
+## Answered 27 November
+
+Ruled in `../design/rulings/scene-sitting-2026-11-27.md` (ss-1 to ss-9).
+
+| ⚑ | Answer | Id |
+|---|---|---|
+| #126's card (EN1) | Approved from pictures | ss-1 |
+| W2 ⚑ 3, an offline reveal (against sf-25) | Refuse with a toast until M9; a departure from sf-25 until then; G-227 | ss-4 |
+| W3 ⚑ 4, when a reveal stops | "Done" and "End expedition" end it (built); current expedition only waits for a migration and a Fable sitting; G-226 | ss-2 |
+| W3 ⚑ 5, a split party | Whole table for now; the group's own scope goes with ss-2's migration; G-226 | ss-3 |
+| "Where to?" (WT1) and Move on (PU1 A) on #122 | Approved; the pack's way word on buttons; clock icon on "Takes"; no-number place first | ss-5, ss-6, ss-7 |
+| Two toasts no mockup draws | Accepted | ss-8 |
+| #147 ⚑ 1, possessives that are not names | A later sweep | ss-9 |
 
 ## Departures
 
