@@ -36,7 +36,7 @@ import { AreaRows, DestinationRow, MoveOnSheet, ProposalSheet, ProposalsWaiting,
 import { ListRow, RowList } from '../ui/parts.tsx';
 import { EndExpeditionRow, RefreshFailedRow, WhereToLine } from '../ui/WhereToParts.tsx';
 import { playersDestinationsOf, WHERE_TO_WORDS, type PlayersDestination } from '../modules/expedition/playersWays.ts';
-import { PLAYERS_READ_WORDS } from '../modules/expedition/moveOnWays.ts';
+import { PLAYERS_READ_WORDS } from '../modules/expedition/moveOnRows.ts';
 import type { WayOn } from '../modules/library/waysOn.ts';
 
 type SpecimenPart = (props: { name: string; children: ReactNode }) => ReactElement;

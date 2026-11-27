@@ -13,7 +13,7 @@
 // - `MoveOnSheet`: the GM's own Move on, the list then one way (frames 11 under the rulings, 12, 13).
 // - `ProposalSheet`: a proposed way, the same sheet with who asked and the count beside the ✕ (F2, F2b; mc-42a).
 import { Fragment, useId, useState, type ReactNode } from 'react';
-import { PLAYERS_READ_WORDS } from '../modules/expedition/moveOnWays.ts';
+import { PLAYERS_READ_WORDS } from '../modules/expedition/moveOnRows.ts';
 import { keyedName } from '../modules/expedition/placeTree.ts';
 import { Dialog } from './Dialog.tsx';
 import { DiceWords } from './dice.tsx';

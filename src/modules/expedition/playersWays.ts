@@ -8,7 +8,8 @@ import type { WayOn } from '../library/waysOn.ts';
 import { isPartOfDay, type TimeUnits } from './clock.ts';
 import type { Mode } from './modes.ts';
 import { inSentence, wayTimeWords } from './moveOn.ts';
-import { areaSections, wayKeyOf, wayWordOf } from './moveOnWays.ts';
+import { areaSections, wayWordOf } from './moveOnRows.ts';
+import { wayKeyOf } from './moveOnWays.ts';
 import { byMapNumber } from './placeTree.ts';
 import { expeditionLine, stepOfLine, type Expedition } from './play.ts';
 

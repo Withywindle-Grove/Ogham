@@ -7,7 +7,8 @@ import { createFakeDb } from '../../testing/fakeDb.ts';
 import type { Barrier, Route } from '../library/routes.ts';
 import { timeUnits } from './clock.ts';
 import { FALLBACK_MODES, pointToPoint } from './modes.ts';
-import { areaSections, destinationsOf, loadMoveOn, PLAYERS_READ_WORDS, moveBlocked, moveTime, shownOf, SPLIT_PARTY_WORDS, stepUnitHere, stepUnitOfWays, wayMoveOf, waysFrom, type MoveOnRead } from './moveOnWays.ts';
+import { areaSections, destinationsOf, PLAYERS_READ_WORDS, wayMoveOf } from './moveOnRows.ts';
+import { loadMoveOn, moveBlocked, moveTime, shownOf, SPLIT_PARTY_WORDS, stepUnitHere, stepUnitOfWays, waysFrom, type MoveOnRead } from './moveOnWays.ts';
 
 const route = (id: string, from: string, to: string, extra: Partial<Route> = {}): Route => ({ id, from, to, hidden: false, oneWay: false, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }], ...extra });
 const plain = (r: Route) => ({ route: r, barrier: null as Barrier | null });

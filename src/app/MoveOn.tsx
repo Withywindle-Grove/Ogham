@@ -6,7 +6,8 @@
 // The split party's pop-up (pt-f3 point 3) is the caller's to draw (`onBlocked`): it has no approved picture yet.
 import { useEffect, useState } from 'react';
 import type { Db } from '../core/supabase.ts';
-import { destinationsOf, loadMoveOn, moveBlocked, throughOf, wayMoveOf, wayOf, type MoveOnRead } from '../modules/expedition/moveOnWays.ts';
+import { destinationsOf, throughOf, wayMoveOf, wayOf } from '../modules/expedition/moveOnRows.ts';
+import { loadMoveOn, moveBlocked, type MoveOnRead } from '../modules/expedition/moveOnWays.ts';
 import { inSentence } from '../modules/expedition/moveOn.ts';
 import { MoveOnSheet } from '../ui/MoveOnParts.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
