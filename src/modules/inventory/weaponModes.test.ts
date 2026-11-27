@@ -117,12 +117,12 @@ describe('weapon modes (G-211)', () => {
     const spent = modeState(modes, 'ember', [reed, bone], 'actor-wren');
     expect(spent).toMatchObject({ chosen: true, engaged: false, why: 'spent', left: 0, stack: null });
     expect(modeLine(spent)).toBe('Quiver: nothing chosen');
-    expect(spentWords(spent, 'reed bow')).toEqual({ title: 'Nothing chosen', why: 'Ember arrows used up. Choose what the reed bow fires next.', open: 'Open the quiver' });
+    expect(spentWords(spent, 'reed bow')).toEqual({ title: 'Nothing chosen', why: 'Ember arrows used up. Choose what the reed bow fires next.', open: 'Quiver' });
     // No stack at all in the pack: the first kind's own noun.
     const empty = modeState(modes, null, [], 'actor-wren');
     expect(empty).toMatchObject({ mode: null, engaged: false, why: 'empty' });
     expect(modeLine(empty)).toBe('Quiver: no reed arrows in the pack');
-    expect(spentWords(empty, 'reed bow')).toEqual({ title: 'No reed arrows in the pack', why: 'Add some to the pack, then choose what the reed bow fires.', open: 'Open the quiver' });
+    expect(spentWords(empty, 'reed bow')).toEqual({ title: 'No reed arrows in the pack', why: 'Add some to the pack, then choose what the reed bow fires.', open: 'Quiver' });
     // A choice the pack no longer lists counts as fresh.
     expect(modeState(modes, 'gone', [bone], 'actor-wren')).toMatchObject({ chosen: false, mode: modes.list[1] });
     const spearModes = weaponModesOf(EEL_SPEAR)!;
@@ -136,6 +136,21 @@ describe('weapon modes (G-211)', () => {
     expect(modeState(sling, null, [line('Stones', { sourceEntryId: 'stones', qty: 9 })], 'actor-wren')).toMatchObject({ engaged: true, left: 9 });
     expect(modeVerb('quiver')).toBe('Fire');
     expect(modeVerb('grip')).toBe('Use');
+  });
+
+  // Purpose: ic-3 (2026-11-14, "Open the quiver, just use quiver"): a blocked Attack's button says the mode button's own
+  // word, the same word for a stack used up and for none in the pack, for each of the four mode buttons.
+  it("a blocked Attack's button says the mode button's own word: Quiver, Pouch, Grip, Stance", () => {
+    const expected = { quiver: 'Quiver', pouch: 'Pouch', grip: 'Grip', stance: 'Stance' } as const;
+    for (const [button, word] of Object.entries(expected)) {
+      const modes = weaponModesOf({ weapon: { modes: { button, list: [{ id: 'pebbles', name: 'Marsh pebbles', draws: { itemId: 'marsh-pebbles' } }] } } })!;
+      const usedUp = modeState(modes, 'pebbles', [], 'actor-wren');
+      expect(usedUp.why).toBe('spent');
+      expect(spentWords(usedUp, 'fen sling').open).toBe(word);
+      const noneInPack = modeState(modes, null, [], 'actor-wren');
+      expect(noneInPack.why).toBe('empty');
+      expect(spentWords(noneInPack, 'fen sling').open).toBe(word);
+    }
   });
 
   // Purpose: the mode sheet's rows say how many of what each mode draws the pack holds ("4 in the pack", the row's name
