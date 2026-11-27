@@ -13,3 +13,6 @@ export const withTheStart = (name: string) => {
   const words = withThe(name);
   return words.charAt(0).toLocaleUpperCase() + words.slice(1);
 };
+
+/** A name after a determiner ("Each", "No", "All"): its own "The" dropped, "Each Drowned Crown" (never "Each the Drowned Crown"). */
+export const withoutThe = (name: string) => name.replace(/^the\s+/i, '');

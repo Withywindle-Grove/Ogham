@@ -65,6 +65,14 @@ describe("the line under a hoard's piece (HM1, HM3, HM5)", () => {
     expect(truthToastWords('Crown of Reeds', 'The Drowned Crown', ['Wren'])).toBe(`${shown} The Drowned Crown Wren holds now carries its name.`);
     expect(truthToastWords('Crown of Reeds', 'The Drowned Crown', [''])).toBe(`${shown} The Drowned Crown now carries its name.`);
   });
+
+  // Purpose (words rule 13): sent to several holders, "Each" takes the thing's bare name, never "Each the Drowned
+  // Crown sent"; a plain thing reads as before.
+  it("words the eye's toast for a thing sent to several holders", () => {
+    const shown = 'Shown to the players: Crown of Reeds.';
+    expect(truthToastWords('Crown of Reeds', 'The Drowned Crown', ['Wren', null])).toBe(`${shown} Each Drowned Crown sent now carries its name.`);
+    expect(truthToastWords('Crown of Reeds', 'Hooded lantern', ['Wren', 'Ash'])).toBe(`${shown} Each hooded lantern sent now carries its name.`);
+  });
 });
 
 describe("the hoard's sheet (HM2, HM5)", () => {
