@@ -57,7 +57,8 @@ export type P1Head =
   | 'several'
   | 'burnt'
   | 'burntnone'
-  | 'longlight';
+  | 'longlight'
+  | 'armour';
 
 export async function addP1Character(
   world: FakeWorld,
@@ -65,7 +66,8 @@ export async function addP1Character(
 ): Promise<string> {
   const campaign = world.addCampaign(P1_CAMPAIGN, gm);
   // The load tracked in coins (dec-13 C10), by the fixture's own tiers, so Movement shows its load card as P1 draws it.
-  Object.assign(world.tables.campaigns.find((c) => c.id === campaign)!, { settings: { encumbrance: { mode: 'coin' } } });
+  // `armour`: the load by armour worn and treasure carried (pss-12), by invented armour rules below.
+  Object.assign(world.tables.campaigns.find((c) => c.id === campaign)!, { settings: { encumbrance: { mode: head === 'armour' ? 'armour' : 'coin' } } });
   // The fixture pack, as the ?full=1 page loads it.
   world.tables.packs.push({ id: 'pack-p1-fen', owner_user_id: gm, campaign_id: null, name: 'Fen sample', version: '0.1', kind: 'setting', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-15T12:00:00Z', extra_meta: { shortName: 'Fen sample' } });
   const entry = (packId: string, kind: string, data: Record<string, unknown>) =>
@@ -107,7 +109,25 @@ export async function addP1Character(
     const movement = rec(data.movement);
     return {
       ...data,
-      encumbrance: { ...encumbrance, coin: { ...rec(encumbrance.coin), tiers: tiers(rec(encumbrance.coin).tiers) }, slot: { ...rec(encumbrance.slot), tiers: tiers(rec(encumbrance.slot).tiers) } },
+      encumbrance: {
+        ...encumbrance,
+        coin: { ...rec(encumbrance.coin), tiers: tiers(rec(encumbrance.coin).tiers) },
+        slot: { ...rec(encumbrance.slot), tiers: tiers(rec(encumbrance.slot).tiers) },
+        // For `armour` (pss-12): movement by the armour worn, slower with treasure; the waxed coat is light. Invented.
+        ...(head === 'armour'
+          ? {
+              armour: {
+                maxLoadCoin: 1600,
+                movement: [
+                  { armour: 'none', withoutTreasure: '120 paces', withTreasure: '90 paces' },
+                  { armour: 'light', withoutTreasure: '90 paces', withTreasure: '60 paces' },
+                  { armour: 'heavy', withoutTreasure: '60 paces', withTreasure: '30 paces' },
+                ],
+                armourTypes: { light: 'light', heavy: 'heavy' },
+              },
+            }
+          : {}),
+      },
       movement: { ...movement, combat: { ...rec(movement.combat), unit: 'paces' } },
     };
   };
@@ -211,6 +231,8 @@ export async function addP1Character(
   if (head !== 'burntnone' && head !== 'bare') line('line-p1-lantern', lanternName, { category: 'light', weight_coin: 40, item_data: { lightTypeId: 'storm-lantern' } });
   line('line-p1-oil', 'Lamp oil', { weight_coin: 10, qty: head === 'longlight' ? 999 : 3, stack: head === 'longlight' ? 999 : 10, source_pack_id: 'pack-p1-lantern', source_entry_id: 'lamp-oil' });
   if (torches) line('line-p1-torches', 'Reed torch', { category: 'light', weight_coin: 10, qty: 4, stack: 10, item_data: { lightTypeId: 'reed-torch' } });
+  // Treasure carried in armour mode (pss-12): a pouch of pearls, so the load card says "Carrying treasure". Invented.
+  if (head === 'armour') line('line-p1-pearls', 'Pouch of river pearls', { category: 'gear', weight_coin: 120, item_data: { treasure: true } });
   // Over the most (dec-13 C10's messy data): 999 bundles of reeds, a coin's weight each.
   if (head === 'heavy') line('line-p1-reeds', 'Bundle of reeds', { weight_coin: 1, qty: 999, stack: 999 });
   // At hand's stacked buttons (dec-13 C6; frames P1, P2): a bow with its quiver (Quiver beside Wield, its line naming
