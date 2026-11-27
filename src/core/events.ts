@@ -901,7 +901,7 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       const what = counted(item(), joined ? Number(after.qty) - Number(before.qty) : after.qty);
       if (added.how_got === 'bought') {
         const cost = String(added.cost ?? '').trim();
-        return `${by(`bought ${what} for ${carrier(added)}${cost ? ` (${cost})` : ''}`)} Cost noted; purses arrive later.`;
+        return by(`bought ${what} for ${carrier(added)}${cost ? ` (${cost})` : ''}`);
       }
       // Given by the GM (2026-10-23), with the GM's note; a player's other choice is No cost.
       if (added.how_got === 'given') {
@@ -1288,6 +1288,20 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
     }
     case 'check.reveal':
       return by('showed the players a check result');
+    // Words shown for a hit (sf-7a, sf-20). Both lines carry the words. The GM's own line, which only the GM's log
+    // holds, names the hit too, and the row as it was (the row names its table); the players' line carries the words
+    // they were shown and nothing of the check, and keeps them after a take-back. Words kept by Francis, 2026-11-26.
+    case 'check.showWords': {
+      const lines = entry.events.map((e) => e.after).filter((after) => typeof after?.words === 'string');
+      const line = lines.find((after) => after?.check_result_id !== undefined) ?? lines[0];
+      if (!line) return by('showed the players some words');
+      const row = typeof line.row === 'string' && line.row.trim() ? ` (${line.row.trim()})` : '';
+      return by(`showed the players “${String(line.words)}”${row}`);
+    }
+    case 'check.takeBackWords': {
+      const gmLine = entry.events.find((e) => typeof e.after?.words === 'string')?.after;
+      return gmLine ? by(`took back what the players were shown: “${String(gmLine.words)}”`) : by('took back what the players were shown');
+    }
     // Places (M5 step 11, DG9): the GM's lines alone (players learn a place on Scene once it's shown).
     case 'place.set': {
       const made = entry.events.find((e) => e.targetTable === 'group_places' && e.before === null)?.after ?? {};

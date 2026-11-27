@@ -1228,9 +1228,9 @@ function CreateCharacterSteps({
     if (languagesField && !laterPlanned.includes('languages') && text(values[languagesField.key])) {
       parts.push({ id: 'languages', title: guideTitle(rs, 'languages', 'Languages'), note: 'given', lines: [listedLine('', languagesField, values[languagesField.key], text(values[languagesField.key]))] });
     }
-    // Every exception called out before sending (final drafts D, mockup creation/final/07): last, with the sign.
+    // Every exception called out before sending (final drafts D): first, above the step cards, with the sign (clo-1, 22-G2).
     const exceptions = exceptionsPart(creationShown(setting, creation));
-    if (exceptions) parts.push(exceptions);
+    if (exceptions) parts.unshift(exceptions);
     return {
       parts,
       toFinish: putOffs.map((id) => ({ id, name: lists.find((l) => l.id === id)?.name ?? (id === 'expertise' && planned.expertise ? planned.expertise.rule.name : toFinishName(id)) })),
@@ -2628,6 +2628,7 @@ export function PlayerCampaign({
           character={sentBack}
           fieldDefs={fieldDefsFor(sentBack)}
           off={offFor(sentBack)}
+          onBack={() => setReviewing(null)}
           onChanged={() => reload()}
           onSent={(sent) => {
             // The player lands on the campaign (their active character's screen, if any) with the toast (A6).
@@ -2842,11 +2843,14 @@ function CharacterReview({
   off,
   onChanged,
   onSent,
+  onBack,
 }: {
   db: Db;
   user: CurrentUser;
   character: MyCharacter;
   fieldDefs: FieldDefinition[];
+  /** Sent back, the foot's Back (clo-2, 22-G5): as the top row's back, to Your characters. */
+  onBack?: () => void;
   /** The fields left out of `fieldDefs` for this character (an option off, of-9; not for their class, cs-3): their values are kept. */
   off?: ReadonlySet<string>;
   /** The character changed in place (the shopping): load it again. */
@@ -3070,7 +3074,7 @@ function CharacterReview({
           draft ? (
             <p className="guided-instruction">Check each part, then send them to your GM.</p>
           ) : (
-            // Sent back (cs-53, 22-G5's words on today's screen): "Your GM asks for a change", with the sign.
+            // Sent back (clo-2, frame 22-G5; supersedes cs-53): "Your GM asks for a change", with the sign.
             // The author line (22-G5): "Maren, your GM, today"; a GM who never chose a name is "Your GM" (nm-1).
             <PinnedNote
               from="your GM"
@@ -3087,6 +3091,8 @@ function CharacterReview({
         onOpenStep={openStep}
         onAction={() => void send()}
         onExplain={() => setAsking(todo)}
+        // Sent back (clo-2, 22-G5): the foot, "1 part marked", Back and Send to the GM; no Start over here.
+        onBack={draft ? undefined : onBack}
       />
       </BookType>
       {editing && (

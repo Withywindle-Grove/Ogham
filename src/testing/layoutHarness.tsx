@@ -138,6 +138,10 @@ logged(2, 'character.edit', sam, 'simple', { notes: '' }, { notes: 'Owes the lam
 logged(3, 'character.setHp', sam, 'verbose', { hp_current: 14 }, { hp_current: 11 }, 5);
 logged(5, 'character.edit', gm, 'simple', { notes: '' }, { notes: 'Bitten by a bog lurker' }, 3);
 Object.assign(world.tables.events.at(-1)!, { fiat: true, reason: 'Failed the marsh crossing' });
+// Moss's send back, so the GM's note shows its author line ("Priya, your GM, today"; 22-G5): written as the page
+// opens, so "today" holds even just after midnight.
+logged(6, 'character.review', gm, 'simple', { approval: 'pending' }, { approval: 'rejected', review_note: 'Please roll hit points again, and say where Moss learned the ferry songs.', review_sections: ['hp', 'story'] }, 0);
+world.tables.events.at(-1)!.target_id = moss;
 
 // A note about Wren, and one added to the approval line.
 const note = (id: string, by: string, text: string, extra: Record<string, unknown>) => {
@@ -490,6 +494,11 @@ if (coinFlag) {
     const stashCoins = coinFlag === 'messy' ? { moon: 1, heron: 999, token: 12 } : { heron: 40, bit: 12 };
     world.tables.purses.push({ id: 'purse-stash', campaign_id: campaign, actor_id: null, location_id: `location-stash-${campaign}`, coins: stashCoins, version: 1 });
   }
+  // Add item and after a purchase (K7, PK10b): a thing priced in the setting's coins, so "Spend 4 herons" can be drawn.
+  world.tables.library_entries.push({ id: 'entry-storm-lantern', pack_id: 'pack-river', kind: 'item', pack_entry_id: 'storm-lantern', name: 'Storm lantern', data: { id: 'storm-lantern', name: 'Storm lantern', category: 'gear', weightCoin: 30, value: { heron: 4 } } });
+  // ...and Wren's reed arrows from the setting's list, so more bought join them and the toast has Undo beside Spend.
+  world.tables.library_entries.push({ id: 'entry-reed-arrows', pack_id: 'pack-river', kind: 'item', pack_entry_id: 'reed-arrows', name: 'Reed arrows', data: { id: 'reed-arrows', name: 'Reed arrows', category: 'gear', weightCoin: 1, stack: 20, value: { bit: 1 } } });
+  Object.assign(world.tables.inventory_lines.find((l) => l.id === 'line-arrows')!, { library_entry_id: 'entry-reed-arrows', source_pack_id: 'pack-river', source_entry_id: 'reed-arrows' });
 }
 void ash;
 // A light (M5 step 7, invented): River Rules' rushlight, used up when it burns out, and four of them in Wren's pack,

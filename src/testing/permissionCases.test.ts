@@ -239,6 +239,7 @@ const world: CaseWorld = {
   freshFind: async () => 'event-find',
   freshCamp: async () => ({ campId: 'camp-fresh', lineId: 'line-fresh' }),
   freshLost: async () => ({ id: 'lost-fresh', campaignId: 'campaign-1', expeditionId: 'expedition-1', group: 1, sinceDay: 0, foundDay: null, attempts: 0, roll: null, rollBy: null, note: '', version: 1 }),
+  freshReveal: async (id) => ({ id: 'reveal-fresh', campaignId: id, checkResultId: 'check-fresh', words: 'Two pale shapes rise from the reeds.', shownAt: '2026-11-26T19:00:00Z', takenBack: false }),
   freshCheckResult: async (id) => ({
     id: 'check-fresh',
     campaignId: id,

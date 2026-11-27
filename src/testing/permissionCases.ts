@@ -83,7 +83,7 @@ import {
   type Expedition,
   type Session,
 } from '../modules/expedition/play.ts';
-import { addReminder, editReminder, recordCheck, recordCheckAgain, recordCheckNow, revealCheck, setCheckRoll, type CheckResult, type Reminder, type ReminderFields } from '../modules/expedition/reminderPlay.ts';
+import { addReminder, editReminder, recordCheck, recordCheckAgain, recordCheckNow, revealCheck, setCheckRoll, showCheckWords, takeBackCheckWords, type CheckResult, type CheckReveal, type Reminder, type ReminderFields } from '../modules/expedition/reminderPlay.ts';
 import { douseLight, keepLightLit, lightLight, refillLight, type LightOption } from '../modules/expedition/lightPlay.ts';
 import { pinTable, readTableByHand, unpinTable, type TablePin } from '../modules/expedition/tablePins.ts';
 import { dismissEncounter, queueEncounter, setEncounterWatch, startEncounter, type WaitingEncounter } from '../modules/expedition/encounterPlay.ts';
@@ -236,6 +236,8 @@ export interface CaseWorld {
   onAdventure(campaignId: string): Promise<void>;
   /** A check the GM recorded in the campaign: a hit, so the roll can be entered. */
   freshCheckResult(campaignId: string): Promise<CheckResult>;
+  /** Words the GM is showing the players for a fresh hit in the campaign (sf-7a): a reveal that stands. */
+  freshReveal(campaignId: string): Promise<CheckReveal>;
   /** A fresh campaign of the GM's whose setting rules (its homebrew) hold the table "bog-things" (M5b step g3). */
   freshTableCampaign(): Promise<string>;
   /** A pin on "bog-things" in the campaign, made for this session (M5b step g3). */
@@ -883,6 +885,20 @@ export const permissionCases: PermissionCase[] = [
   }, true),
   rule("a player can't reveal a check result", 'playerB', revealCheck, async (w) => ({ campaignId: w.campaignId, result: await w.freshCheckResult(w.campaignId) }), false),
   rule("a player can't enter what a hit's table roll read", 'playerA', setCheckRoll, async (w) => ({ campaignId: w.campaignId, result: await w.freshCheckResult(w.campaignId), tableId: 'bog-things', roll: '2', rowText: 'Bog things: Bog lurkers' }), false),
+  // What a reveal stores (sf-7a; 03, A revealed encounter result): showing the players words for a hit, and taking
+  // them back, are the GM's alone. (The plan also names a spectator: the app has no such role.)
+  rule('the GM can show the players words for a hit', 'gm', showCheckWords, async (w) => {
+    const campaignId = await w.freshCampaign(false);
+    return { campaignId, resultId: (await w.freshCheckResult(campaignId)).id, words: 'Two pale shapes rise from the reeds.' };
+  }, true),
+  rule("a player can't show the players words for a hit", 'playerA', showCheckWords, async (w) => ({ campaignId: w.campaignId, resultId: (await w.freshCheckResult(w.campaignId)).id, words: 'Two pale shapes rise from the reeds.' }), false),
+  rule("an outsider can't show a campaign's players words for a hit", 'outsider', showCheckWords, async (w) => ({ campaignId: w.campaignId, resultId: (await w.freshCheckResult(w.campaignId)).id, words: 'Two pale shapes rise from the reeds.' }), false),
+  rule('the GM can take back words shown to the players', 'gm', takeBackCheckWords, async (w) => {
+    const campaignId = await w.freshCampaign(false);
+    return { campaignId, revealId: (await w.freshReveal(campaignId)).id };
+  }, true),
+  rule("a player can't take back words shown to the players", 'playerB', takeBackCheckWords, async (w) => ({ campaignId: w.campaignId, revealId: (await w.freshReveal(w.campaignId)).id }), false),
+  rule("an outsider can't take back words shown to a campaign's players", 'outsider', takeBackCheckWords, async (w) => ({ campaignId: w.campaignId, revealId: (await w.freshReveal(w.campaignId)).id }), false),
   // Encounter tables, full screen (M5b step g3; 03: tables, pins and reads are the GM's alone).
   rule('the GM can pin a table for this session', 'gm', pinTable, async (w) => ({ campaignId: await w.freshTableCampaign(), tableId: 'bog-things' }), true),
   rule("a player can't pin a table", 'playerA', pinTable, (w) => ({ campaignId: w.campaignId, tableId: 'bog-things' }), false),

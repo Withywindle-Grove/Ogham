@@ -6,9 +6,37 @@ Claude Code reads this file at the start of every session. It's the rulebook for
 
 A rules-agnostic web app (PWA) that tracks character and party progression for a tabletop RPG group (OSR style): characters, XP, purses, party fund, inventory and encumbrance, expeditions (time, light, marching order), combat, votes, charter, titles, log, and basic hirelings/holdings. Tablet first, PC widescreen second, phone supported, optional shared table view. **Prime directive:** limit paperwork and distraction so the group plays and talks, not stares at tablets or spends too much time reviewing rules. Fewer taps, calm screens, easily accessible text at a glance.
 
-## Read before working
+## Index: read before working
 
-All specs live in `docs/`. They are the **single source of truth**: `01-product-brief.md` vision, principles, R1 scope · `02-architecture.md` stack and the five foundations (must follow) · `03-roles-permissions.md` who can do what · `04-data-model.md` entities and fields · `05-features.md` how each R1 feature behaves · `06-screens-and-design.md` layouts, look, tap budgets · `07-content-packs.md` pack format and IP rules · `08-roadmap.md` milestones and timeline · `09-decisions-log.md` rulings so far · `10-open-questions.md` things still to decide (⚑) · `11-modelling-gaps.md` the rules and data shapes from real sources that the app or the pack format can't yet express · `testing.md` testing rules, how to run the checks, manual checklist per milestone · `design/r1/` the R1 design of record (approved screens; see its `README.md`). Where it and the written docs differ, the docs win. Read the docs relevant to the current task before writing code. If code and docs disagree, stop and ask which is right.
+The specs in `docs/` are the **single source of truth**. Read the section the task needs, not the file: several are too large to read whole (marked ▲). If code and docs disagree, stop and ask which is right.
+
+| File | Holds |
+|---|---|
+| `docs/01-product-brief.md` | vision, principles, R1 scope |
+| `docs/02-architecture.md` | stack, the five foundations (must follow), allowed dependencies |
+| `docs/03-roles-permissions.md` | who can do what |
+| `docs/04-data-model.md` | entities and fields; the domain's words |
+| `docs/05-features.md` ▲ | how each R1 feature behaves |
+| `docs/06-screens-and-design.md` ▲ | layouts, tokens, components, words and voice, tap budgets |
+| `docs/07-content-packs.md` ▲ | pack format and IP rules |
+| `docs/08-roadmap.md` | milestones, timeline, the scope-check format |
+| `docs/09-decisions-log.md` ▲ | rulings; "Standing rulings" at the top are those in force; search by tag |
+| `docs/10-open-questions.md` | things still to decide (⚑) |
+| `docs/11-modelling-gaps.md` | rules and data shapes the app or the pack format cannot yet express |
+| `docs/12-coding-standards.md` | the judgement rules a reviewer checks code against; the automated checks |
+| `docs/testing.md` ▲ | testing rules, how to run the checks, hooks, CI, the manual checklist per milestone |
+| `docs/design/r1/` | the R1 design of record (see its `README.md`); where it and the written docs differ, the docs win |
+| `docs/design/rulings/` | one file per sitting of rulings; `process-loop-2026-11-27.md` is the build loop |
+| `docs/design/mockups/` | approved mockups (`index.md`) |
+| `docs/specs/` | one spec per loop (from 2026-11-27); `docs/plans/` holds the plans of earlier work |
+| `docs/agents/` | where tickets live (`issue-tracker.md`) and where the domain lives (`domain.md`) |
+| `docs/generated/` | command and visibility references; never edited by hand |
+| `REVIEW.md` | what a review checks, and what counts as Important |
+| `.claude/README.md` | the build loop, roles, models, seats, budget; read at the start of a session |
+| `.claude/skills/README.md` | the project's skills and who starts each |
+| `.claude/agents/` | one file per agent |
+| `skills/` | the pack converter and pack skills (private packs stay in `packs/`, never committed) |
+| `CHANGELOG.md` | what changed, in words a player can read |
 
 ## Who you're working with
 
@@ -36,8 +64,8 @@ The why and the date of each rule are in `docs/09-decisions-log.md` (search `[pr
 - **One check run per batch; a fresh worker per row.** Rows of one plan that touch the same files share one pull request: at most three rows, one review, one layout check, the title naming every row. Batches that share no file run side by side, two or three in flight. Each row, and each round of review fixes, goes to a fresh short-lived worker that commits to the batch's branch; no worker is resumed. The first row's worker opens the batch's pull request as a draft; later rows' workers push to the same branch. No `ready` label at opening: the driver adds it after the local review and the fixes (`.claude/README.md`, Saving CI minutes).
 - **Database changes.** Every migration runs on the test project first (`npm run db:push:test`, then `npm run test:db`). Never edit a migration applied anywhere (test or main): fix forward with a new one. One that drops, renames or deletes data needs Francis's explicit OK first, with what it removes said in plain words. Before a push to the main project, take or confirm a backup (`docs/testing.md`, Backups).
 - **Milestones.** When a gate passes: the fresh-session review and the security advisor (`docs/testing.md`); tag the gate commit (`m1`, `m2`, …) and push the tag; a `CHANGELOG.md` entry (newest first, plain language a player could read); then, before the next milestone, the code health check (`docs/testing.md`), its report shown to Francis.
-- **The artifact chain.** `docs/intents/` (what Francis wants, his words) → `docs/design/rulings/` → `docs/plans/<milestone>-<step>.md` (plan, ⚑ list, estimate) → the pull request, reviewed against `REVIEW.md`. Each stage starts from the file the last one committed. The pull request's text carries the status and the builder's departures (no status file; a plan's Departures section is history). The design agent updates specs itself.
-- **Mockups first.** Nothing a person can see is built without a mockup Francis has approved; a ruling in words is not an approval of a screen. Before a new mockup page goes to him, the designer runs `impeccable critique` on it and puts the findings beside the drawing; he picks findings by number. Every plan piece names its mockup's file and approval date, or says "none: data and logic only"; with neither, a visible piece is not handed to a builder, or is built to its data, rules and tests and stops before the screen. A piece already built is approved from pictures of the real screen. A plan is merged to `main` before a builder branches from it. A visible piece shows its built screen beside the approved picture in its pull request's text.
+- **The build loop** (2026-11-27, `docs/design/rulings/process-loop-2026-11-27.md`; the steps, skills and models are in `.claude/README.md`). `docs/intents/` (what Francis wants, his words) → a design sitting, `docs/design/rulings/` and mockups → a spec, `docs/specs/<name>.md` → tickets, GitHub issues, each sized for one fresh worker → the pull request, reviewed against `REVIEW.md` and `docs/12-coding-standards.md` → a retro. Each stage starts from what the last one committed. Francis sits three times: after design, after the tickets, after review. The pull request's text carries the status and the builder's departures (no status file). Work begun from a `docs/plans/` file before 2026-11-27 finishes from that plan. The design agent updates specs itself.
+- **Mockups first.** Nothing a person can see is built without a mockup Francis has approved; a ruling in words is not an approval of a screen. Before a new mockup page goes to him, the designer runs `impeccable critique` on it and puts the findings beside the drawing; he picks findings by number. Every ticket (and every plan piece of earlier work) names its mockup's file and approval date, or says "none: data and logic only"; with neither, a visible piece is not handed to a builder, or is built to its data, rules and tests and stops before the screen. A piece already built is approved from pictures of the real screen. A spec (or, for earlier work, a plan) is merged to `main` before a builder branches from it. A visible piece shows its built screen beside the approved picture in its pull request's text.
 - **Scope checks.** Never add a feature or change approved behaviour or screens on your own: write a scope check (format in `docs/08-roadmap.md`, "Scope checks"), stop, and wait for Francis's ruling. Design changes go to a `designer` session.
 - **Technical ownership.** Claude owns technical decisions: clean-up, efficiency, refactoring, tests and tooling, and agent orchestration (roles, models, briefs, batching, worker counts in `.claude/README.md`). The test: no player or GM can see the change, and no stored data changes. Decide, do it, and log it in 09 with the reason. Still Francis's: anything that raises spend or the session or memory limits, a new dependency (hard rule 9), a migration that drops or renames data, the hard rules, and anything visible (scope checks, mockups first).
 - **Account switch.** Two Claude accounts drive Tome in turn, never at the same time, by usage left. Each has the same set-up: a Claude Code project with Ogham and the private notes repository, the same cloud environment, and the PC's Remote Control sessions (switched with `/login` while idle, then restarted). The handover stays where it is, in the notes repository, so it carries over; at a switch it names the account taking over. Both accounts' usage is read at the Thursday reset.
@@ -46,15 +74,25 @@ The why and the date of each rule are in `docs/09-decisions-log.md` (search `[pr
 
 ## Hard rules
 
-1. **No LLM in the app.** Nothing in core may call an AI service. The R4 table assistant hooks in through the command layer later.
-2. **Rules-agnostic and IP-clean.** No game-system names, rules text, tables, stat blocks or numbers in code, seeds or tests. Use invented examples ("Bog lurker", "Lantern Warden"). Content packs are private user data; never commit them (`packs/` is gitignored).
-3. **Everything through commands.** UI never writes to the database directly. Every command checks `can(user, command, target)` and writes an event.
-4. **Everything logged, nothing erased.** Rollback creates a reversing event. Log levels: `simple` or `verbose`. Eight exceptions, the log keeping a copy in each: a never-approved character (deleted by its owner or the GM); an archived character (by its owner or the GM, after a clear confirm); items leaving play (dropped, used up or burnt out, given outside the party, a one-off the GM declines); undoing a partial give (what's left merges back into its stack); undoing an action that created an item nobody has touched; the buyer's own Undo of "Buy it", likewise; a picture slot whose upload failed and was tied to nothing; a whole line merged onto a same-name stack in the same place. **The list is closed:** a new kind of deletion needs a design ruling first. Full wording and dates: `docs/09-decisions-log.md`, Standing rulings, "Deletion exceptions".
-5. **Hidden means hidden.** Other players' purses, monster HP and GM-only notes must never be sent to a client that can't see them. Enforce with Supabase row-level security, not just the UI. One named exception (`09-decisions-log.md`, Standing rulings): a Down or dead character's pack and purse open to the other players (every take logged), enforced by row-level security on the character's state and closing again if the character recovers; and a hireling's pack is always open to their employer.
-6. **Modules don't touch core internals.** Use the registry (`02-architecture.md`). Core never imports a module.
-7. **Calm UI.** Spacing, type and colour come only from the tokens in `06-screens-and-design.md` (no raw values). Body 16, nothing under 14 (one named exception: a save tile's at-times line is 12 px, `--text-save-line`, ruled by Francis 2026-11-25; nothing else under 14), tap targets ≥44px with 8px between, one accent button per screen, never a disabled button, light and dark mode. Colour may carry a distinction by itself only where its mockup shows it with the hue taken away and Francis has approved it; text contrast floors still hold. **Undo over confirm:** reversible actions happen at once with an Undo toast; dialogs only for irreversible or high-cost actions.
+Reworded 2026-11-27 (lp-11); the numbers 1 to 9 are unchanged, and code and tests cite them.
+
+1. **No AI in the app.** Core never calls an AI service.
+2. **No game IP.** No system names, rules text, tables, stat blocks or numbers in code, seeds or tests. Invented examples only ("Bog lurker", "Lantern Warden"). Never commit `packs/`.
+3. **Commands only.** The UI never writes to the database. Each command checks `can(user, command, target)` and writes an event.
+4. **Nothing erased.** An undo is a reversing event. The deletion exceptions are a closed list (`docs/09-decisions-log.md`, Standing rulings, "Deletion exceptions"); a new one needs a design ruling.
+5. **Hidden means hidden.** Row-level security enforces it, not the UI. The named exceptions are in `docs/09-decisions-log.md`, Standing rulings.
+6. **Core never imports a module.** Modules use the registry (`02-architecture.md`).
+7. **Tokens only.** No raw spacing, type or colour values. Sizes, tap targets, contrast, the one accent button, and light and dark mode: `06-screens-and-design.md`, "Accessibility and calm" and "Design tokens".
 8. **Integers** for money, quantities, weights and slots.
-9. **Few dependencies.** Only those listed in `02-architecture.md` without asking.
+9. **No new dependency without a yes.** Those listed in `02-architecture.md` are allowed.
+10. **Undo over confirm.** A dialog only for an irreversible or high-cost action. Never a disabled button. (Part of rule 7 until 2026-11-27; older files cite it as rule 7.)
+
+## Agent skills
+
+The build loop and its skills: `docs/design/rulings/process-loop-2026-11-27.md`; the skills are in `.claude/skills/` (`README.md` there).
+
+- **Issue tracker.** A spec is a file in `docs/specs/`; a ticket is a GitHub issue. See `docs/agents/issue-tracker.md`.
+- **Domain docs.** The domain is in `docs/04-data-model.md`; decisions are lines in `docs/09-decisions-log.md`, not ADR files. See `docs/agents/domain.md`.
 
 ## Stack
 

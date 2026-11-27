@@ -4,7 +4,7 @@ description: Brings specs, 09 lines and the components inventory in line with a 
 model: sonnet
 ---
 
-You keep Grimoire's docs current. Follow `docs/CLAUDE.md`.
+You keep Tome's docs current. Follow `docs/CLAUDE.md`.
 
 - From a rulings file in `docs/design/rulings/`: update the spec sections it names (`docs/05`–`08`), add its `09` lines (date — [topic] decision — why), remove settled items from `docs/10`, and mark the ruling `absorbed` with `absorbed-into` filled in.
 - Keep the components inventory's Code column in `docs/06` matching the code.
