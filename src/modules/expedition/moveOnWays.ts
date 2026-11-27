@@ -8,6 +8,7 @@
 import type { Db } from '../../core/supabase.ts';
 import { withHiddenFields } from '../library/library.ts';
 import { readBarrier, readRoute, type Barrier, type Route, type RouteWay } from '../library/routes.ts';
+import { loadWaysOn } from '../library/waysOn.ts';
 import { toSeconds, type TimeUnits } from './clock.ts';
 import { POINT_TO_POINT_UNIT, type Check } from './modes.ts';
 import { obstacleExtraWords, obstacleNameOf, obstacleRowWords, takesWords, thenWords, throughCheckOf, wayTimeWords, type MoveCheck } from './moveOn.ts';
@@ -114,6 +115,20 @@ export interface FarEnd {
   placeId: string | null;
   /** A piece of it has been shown to a group in this campaign. */
   shown: boolean;
+  /**
+   * The place it sits in (the pack's `parentId`), for the GM's heading over its rows (WT1 A): its id and its name in
+   * the pack; null when it sits in none. Read from the entry as every reader reads it.
+   */
+  area: { entryId: string; name: string } | null;
+}
+
+/**
+ * What the players of the group here read on a far end's row, from their own read (`campaign_ways_on`, sf-9): its map
+ * number as sent, and whether it stands under "Elsewhere". Only for a far end they have not explored.
+ */
+export interface PlayersRead {
+  number: string | null;
+  elsewhere: boolean;
 }
 
 /** What the GM's Move on needs, read for the place the party is in. */
@@ -129,6 +144,14 @@ export interface MoveOnRead {
   switches: RuleSwitch[];
   /** The pack marks the place the party is at a way out (`wayOutHere`): Move on's list ends with "End expedition" (B10). */
   wayOut: boolean;
+  /** The pack's id of the place the party's place sits in (its `parentId`): its Area's rows come first (WT1 A). */
+  hereArea: string | null;
+  /**
+   * What the players of the party's group read of each far end not explored, by the far end's pack id, from their own
+   * read (sf-9); a far end missing here (nothing of this place shown to them yet, or the read failed) is said by its
+   * number alone (`playersLineOf`).
+   */
+  players: Map<string, PlayersRead>;
 }
 
 const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
@@ -189,7 +212,9 @@ export async function loadMoveOn(db: Db, campaignId: string, expeditionId: strin
     db.from('library_entries').select('data').eq('pack_id', packId).eq('kind', 'location').eq('pack_entry_id', hereEntry).maybeSingle(),
   ]);
   if (routeRows.error || hereRow.error) return null;
-  const wayOut = wayOutHere([{ data: (hereRow.data?.data ?? {}) as Record<string, unknown> }]);
+  const hereData = (hereRow.data?.data ?? {}) as Record<string, unknown>;
+  const wayOut = wayOutHere([{ data: hereData }]);
+  const hereArea = text(hereData.parentId) || null;
   const whole = await withHiddenFields(
     db,
     [packId],
@@ -204,6 +229,7 @@ export async function loadMoveOn(db: Db, campaignId: string, expeditionId: strin
   const farIds = [...new Set(ways.map((w) => w.farEnd))];
 
   const farEnds = new Map<string, FarEnd>();
+  const players = new Map<string, PlayersRead>();
   if (farIds.length > 0) {
     const [entries, places] = await Promise.all([
       db.from('library_entries').select('pack_entry_id, name, data').eq('pack_id', packId).eq('kind', 'location').in('pack_entry_id', farIds),
@@ -219,18 +245,43 @@ export async function loadMoveOn(db: Db, campaignId: string, expeditionId: strin
     // The GM's row says "Shown" when that is so for any group here now.
     const hereGroups = [...groupsHere].filter((g) => shown.has(`${herePlaceId}:${g}`));
     const farShown = (placeId: string) => hereGroups.some((g) => shown.has(`${placeId}:${g}`));
+    // The places the far ends sit in, for the GM's headings (WT1 A): their names in the pack.
+    const parentOf = new Map<string, string | null>();
+    for (const id of farIds) {
+      const data = ((entries.data ?? []).find((e) => String(e.pack_entry_id) === id)?.data ?? {}) as Record<string, unknown>;
+      parentOf.set(id, text(data.parentId) || null);
+    }
+    const parentIds = [...new Set([...parentOf.values()].filter((p): p is string => p !== null))];
+    const [parents, waysOn] = await Promise.all([
+      parentIds.length > 0 ? db.from('library_entries').select('pack_entry_id, name').eq('pack_id', packId).eq('kind', 'location').in('pack_entry_id', parentIds) : Promise.resolve({ data: [], error: null }),
+      loadWaysOn(db, campaignId),
+    ]);
+    if (parents.error) return null;
+    const parentName = new Map((parents.data ?? []).map((p) => [String(p.pack_entry_id), text(p.name)]));
     for (const id of farIds) {
       const entry = (entries.data ?? []).find((e) => String(e.pack_entry_id) === id);
       const data = (entry?.data ?? {}) as Record<string, unknown>;
       const placeId = placeOf.get(id) ?? null;
-      farEnds.set(id, { entryId: id, name: text(entry?.name) || id, number: text(data.key) || null, placeId, shown: placeId !== null && farShown(placeId) });
+      const parent = parentOf.get(id) ?? null;
+      const area = parent ? { entryId: parent, name: parentName.get(parent) || parent } : null;
+      farEnds.set(id, { entryId: id, name: text(entry?.name) || id, number: text(data.key) || null, placeId, shown: placeId !== null && farShown(placeId), area });
+    }
+    // What the party's group reads of each far end (sf-9), from the players' own read, which the GM may call too: the
+    // first group here that has a row for it (a split party can't move on anyway: `moveBlocked`). Its rows name the
+    // library's row of a route, the GM's ways its pack id.
+    const routeOfRow = new Map(whole.map((r) => [r.id, r.entryId]));
+    const farOfRoute = new Map(ways.map((w) => [w.route.id, w.farEnd]));
+    for (const link of [...(waysOn ?? [])].sort((a, b) => a.groupNumber - b.groupNumber)) {
+      if (!groupsHere.has(link.groupNumber) || link.to) continue;
+      const far = farOfRoute.get(routeOfRow.get(link.routeId) ?? '');
+      if (far && !players.has(far)) players.set(far, { number: link.number, elsewhere: link.elsewhere });
     }
   }
   const throughIds = [...new Set(ways.flatMap((w) => (w.barrier?.through ? [w.barrier.through] : [])))];
   const [switches, ...chains] = await Promise.all([loadRuleSwitches(db, campaignId), ...throughIds.map((id) => loadPlaceChain(db, packId, id))]);
   if (!switches || chains.some((c) => c === null)) return null;
   const throughs = new Map(throughIds.map((id, i) => [id, chains[i] as ChainEntry[]]));
-  return { here: { placeId: String(herePlace.data.id), packId, entryId: hereEntry, name: text(herePlace.data.name) }, ways, farEnds, groups: Math.max(1, groups.size), throughs, switches, wayOut };
+  return { here: { placeId: String(herePlace.data.id), packId, entryId: hereEntry, name: text(herePlace.data.name) }, ways, farEnds, groups: Math.max(1, groups.size), throughs, switches, wayOut, hereArea, players };
 }
 
 // ---- What the sheet shows, from the read (MoveOnSheet's props, built as the gallery builds them) ----
@@ -252,8 +303,54 @@ export interface DestinationOf {
   number: string | null;
   name: string;
   shown: ShownToPlayers;
+  /** For a far end not shown yet: what its players read on their row ("4. Unexplored"); null otherwise (`playersLineOf`). */
+  players: string | null;
+  /** The heading it stands under (WT1 A): the place it sits in, by its name; null when the list has one Area only. */
+  area: string | null;
   obstacle: string | null;
   ways: WayChoiceOf[];
+}
+
+/** One heading's rows (WT1): its key, the heading (null where the list has one section only), its rows in order. */
+export interface AreaSection<T> {
+  key: string | null;
+  heading: string | null;
+  rows: T[];
+}
+
+/**
+ * Rows grouped under their Areas (WT1, ⚑ 8: "where two Areas mix, each Area's name stands over its rows"), their order
+ * within each kept: rows of no Area first, then `first` (the Area the party stands in), the others in the order their
+ * first row comes, `last` ("Elsewhere") last. One section only: it has no heading (WT1 C). Rows of no Area have none.
+ */
+export function areaSections<T>(rows: readonly T[], keyOf: (row: T) => string | null, order: { first?: string | null; last?: string } = {}): AreaSection<T>[] {
+  const groups = new Map<string | null, T[]>();
+  for (const row of rows) {
+    const key = keyOf(row);
+    groups.set(key, [...(groups.get(key) ?? []), row]);
+  }
+  const rank = (key: string | null) => (key === null ? 0 : key === order.first ? 1 : key === order.last ? 3 : 2);
+  const keys = [...groups.keys()].sort((a, b) => rank(a) - rank(b));
+  return keys.map((key) => ({ key, heading: keys.length > 1 ? key : null, rows: groups.get(key)! }));
+}
+
+/** The GM's line under a far end not shown (WT1 A, finding 21): what its players read, after the closed eye. */
+export const PLAYERS_READ_WORDS = {
+  unexplored: 'Unexplored',
+  elsewhere: 'Unexplored, under “Elsewhere”',
+  /** The closed eye's spoken name, before what they read, so the line is heard "Not shown yet. Players read: 4. Unexplored". */
+  eye: 'Not shown yet. Players read:',
+} as const;
+
+/**
+ * What the players read on a far end's row not yet shown (WT1 A): "4. Unexplored", "Unexplored" where it has no number,
+ * "Unexplored, under “Elsewhere”" where it leads out of the Areas they know; from their own read where it has the row,
+ * else by the far end's number alone (no ways reach them yet, or their read failed).
+ */
+export function playersLineOf(read: Pick<MoveOnRead, 'players' | 'farEnds'>, farEnd: string): string {
+  const theirs = read.players.get(farEnd);
+  if (theirs?.elsewhere) return PLAYERS_READ_WORDS.elsewhere;
+  return keyedName(theirs ? theirs.number : read.farEnds.get(farEnd)?.number, PLAYERS_READ_WORDS.unexplored);
 }
 
 /**
@@ -271,9 +368,17 @@ const farNameOf = (read: MoveOnRead, id: string): string => read.farEnds.get(id)
 /**
  * The GM's destinations, one row a place, in the Locations' order (`byMapNumber`, Q1: no map number first, in the pack's
  * order of its links, then by number): every way of every link to it as a button; "Hidden from players" only when
- * every link to it is hidden; the first obstacle met on its ways as the row's warning.
+ * every link to it is hidden; under one not shown, what its players read; the first obstacle met on its ways as the
+ * row's warning. Where the far ends sit in more than one place, the rows stand under their names (WT1 A,
+ * `areaSections`): the party's own Area first.
  */
 export function destinationsOf(read: MoveOnRead): DestinationOf[] {
+  const rows = numberedDestinationsOf(read);
+  const sections = areaSections(rows, (row) => read.farEnds.get(row.id)?.area?.entryId ?? null, { first: read.hereArea });
+  return sections.flatMap((section) => section.rows.map((row) => ({ ...row, area: section.heading === null ? null : (read.farEnds.get(row.id)?.area?.name ?? null) })));
+}
+
+function numberedDestinationsOf(read: MoveOnRead): DestinationOf[] {
   // shortcut: every far end is sorted as a Location (FarEnd has no kind), so a link to a numbered room would sort too; carry the kind when links reach rooms (the dungeon sitting).
   const order: string[] = [];
   for (const w of read.ways) if (!order.includes(w.farEnd)) order.push(w.farEnd);
@@ -281,11 +386,14 @@ export function destinationsOf(read: MoveOnRead): DestinationOf[] {
     const links = read.ways.filter((w) => w.farEnd === id);
     const far = read.farEnds.get(id);
     const met = links.find((l) => l.barrier)?.barrier ?? null;
+    const shown = shownOf(links.every((l) => l.route.hidden), far?.shown ?? false);
     return {
       id,
       number: far?.number ?? null,
       name: farNameOf(read, id),
-      shown: shownOf(links.every((l) => l.route.hidden), far?.shown ?? false),
+      shown,
+      players: shown === 'unshown' ? playersLineOf(read, id) : null,
+      area: null,
       obstacle: met ? obstacleRowWords(met, obstacleNameOf(met, throughNameOf(read, met.through))) : null,
       ways: links.flatMap((l) => l.route.ways.map((way) => ({ key: wayKeyOf(l.route.id, way), word: wayWordOf(way), time: wayTimeWords(way), by: way.by, ...(way.icon ? { icon: way.icon } : {}) }))),
     };

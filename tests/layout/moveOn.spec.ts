@@ -53,6 +53,26 @@ for (const size of [
         expect(await accessibilityProblems(page)).toEqual([]);
       });
 
+      // Purpose (sf-9; WT1 A): where the ways lead into two Areas, each Area's name stands over its rows, inside the
+      // list, the party's own first; under a place not shown the closed eye and what the players read stay on one row's
+      // width; the checks pass.
+      test('the GM’s rows under their Areas, the closed eye and what players read', async ({ page }) => {
+        await page.goto('/layout.html?moveOn=gm');
+        const dialog = page.getByRole('dialog', { name: 'Move on: From the jetty, where to?' });
+        await dialog.waitFor();
+        expect(await dialog.locator('.move-sheet__area').allTextContents()).toEqual(['The Drowned Harbour', 'The Shingle Beach']);
+        const [beach, landing] = await Promise.all([box(dialog.getByRole('heading', { name: 'The Shingle Beach' })), box(dialog.getByRole('group', { name: '0. The landing' }))]);
+        expect(beach.y + beach.height).toBeLessThanOrEqual(landing.y + 1);
+        const shed = dialog.getByRole('group', { name: '4. The customs shed' });
+        await expect(shed.getByRole('img', { name: 'Not shown yet. Players read:' })).toBeVisible();
+        await expect(shed.getByText('4. Unexplored')).toBeVisible();
+        await expect(dialog.getByRole('group', { name: '0. The landing' }).getByText('Unexplored, under “Elsewhere”')).toBeVisible();
+        const [line, row] = await Promise.all([box(shed.locator('.destination-row__sub--unshown')), box(shed)]);
+        expect(line.x + line.width).toBeLessThanOrEqual(row.x + row.width);
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+      });
+
       // Purpose (B9, B10; page 24, WY1a and WY1d): the list has no foot line; at a Location the pack marks a way out it
       // ends with End expedition, after Somewhere else…, as wide as the list and a 44 px target; a way's step has no Where
       // line and no line about the log, its foot the Back button alone.

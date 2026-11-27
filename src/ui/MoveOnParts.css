@@ -74,6 +74,23 @@
   gap: var(--space-2);
 }
 
+/* An Area's name over its rows where a list mixes Areas (sf-9; WT1, ⚑ 8): small capitals, as a card's labels. */
+.move-sheet__area {
+  margin: var(--space-2) 0 0;
+  color: var(--muted);
+  font-family: var(--font-heading);
+  font-weight: var(--weight-heading);
+  font-size: var(--text-14);
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}
+
+.move-sheet__area:first-child {
+  margin-top: 0;
+}
+
 .destination-row {
   container-type: inline-size;
   border: var(--line-hair) solid var(--control);
@@ -127,10 +144,17 @@
   font-size: var(--text-14);
 }
 
-.destination-row__sub--hidden {
+.destination-row__sub--hidden,
+.destination-row__sub--unshown {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
+}
+
+/* The closed eye before what the players read (sf-9; WT1 A): the eye-shut of ds-2, "hidden from the players". */
+.destination-row__eye {
+  display: inline-flex;
+  flex: none;
 }
 
 /* The buttons at the right of the row, side by side, 8 apart, every one the size of the row's widest (equal grid

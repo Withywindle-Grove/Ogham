@@ -5,7 +5,9 @@
 //   * before anything of the place is shown: "Where to?" says there is nothing to choose from yet, and no way, no far
 //     end's name and no hidden way is on the page (hard rule 5);
 //   * once the GM shows a piece: a row a destination, its ways as buttons with their times; a far end the group hasn't
-//     been shown reads "Not yet explored."; the GM's hidden way is nowhere;
+//     been shown reads "Unexplored", its way under it ("Walking."); the GM's hidden way is nowhere;
+//   * with map numbers and Areas (sf-9; WT1 B): "2. The wreck", "4. Unexplored", the harbour's rows under its players'
+//     name and a way into an Area the group hasn't been to under "Elsewhere", with no number and no name;
 //   * a tap on a way's button opens a pop-up that says the GM moves the party, and writes nothing;
 //   * a shown place the read gives no ways for has no "Where to?" at all (d5-1);
 //   * the GM's Scene has no players' Where to?;
@@ -46,7 +48,7 @@ const CAVE = { id: 'sea-cave', name: 'The sea cave', type: 'area' };
  * the customs shed (walking) and, by a hidden way, to the sea cave. The group has been to the wreck and was shown a
  * piece of it; now it is at the jetty, nothing of it shown yet. `routes: false`: a pack with no links at all.
  */
-async function harbour({ routes = true } = {}) {
+async function harbour({ routes = true, areas = false } = {}) {
   const gm = world.addPerson('priya@lantern.example', 'Priya');
   const sam = world.addPerson('sam@lantern.example', 'Sam');
   const campaign = world.addCampaign('The Ash Barrows', gm);
@@ -55,13 +57,25 @@ async function harbour({ routes = true } = {}) {
   const users = { gm: { id: gm, roles: { [campaign]: 'gm' } } as CurrentUser, sam: { id: sam, roles: { [campaign]: 'player' } } as CurrentUser };
   world.tables.packs.push({ id: PACK, owner_user_id: gm, campaign_id: null, name: 'Harbour', version: '0.1', kind: 'adventure', format_version: 2, source: '', notes: '', updated_at: '2026-11-20T12:00:00Z', extra_meta: {} });
   world.tables.campaign_packs.push({ id: 'link-harbour', campaign_id: campaign, pack_id: PACK, pack_name: 'Harbour', option_choices: {}, overrides: {}, priority: 1 });
-  for (const data of [JETTY, WRECK, SHED, CAVE]) world.tables.library_entries.push({ id: `entry-${data.id}`, pack_id: PACK, kind: 'location', pack_entry_id: data.id, name: data.name, data });
+  // areas: the harbour is an Area with a players' name, its places numbered; the landing on the shingle, another Area
+  // nobody has been to, is reached by rowing (sf-9; WT1 B). The Areas are typed "area", the type the read names an
+  // Area by on a visit alone (20261126230000_sf_9_ways_on_number_elsewhere.sql; reported on #122: 07 types an Area
+  // `site`, p2p-1).
+  const inHarbour = (data: Record<string, unknown>, key: string) => (areas ? { ...data, key, parentId: 'harbour' } : data);
+  const places: Record<string, unknown>[] = [inHarbour(JETTY, '1'), inHarbour(WRECK, '2'), inHarbour(SHED, '4'), inHarbour(CAVE, '5')];
+  if (areas) {
+    places.push({ id: 'harbour', name: 'The Drowned Harbour', type: 'area', playerView: { name: 'The Drowned Harbour' } });
+    places.push({ id: 'shingle', name: 'The Shingle Beach', type: 'area', playerView: { name: 'The Shingle Beach' } });
+    places.push({ id: 'the-landing', name: 'The landing', type: 'area', key: '0', parentId: 'shingle' });
+  }
+  for (const data of places) world.tables.library_entries.push({ id: `entry-${String(data.id)}`, pack_id: PACK, kind: 'location', pack_entry_id: String(data.id), name: String(data.name), data });
   const route = (id: string, to: string, travel: unknown, hidden = false) =>
     world.tables.library_entries.push({ id: `entry-${id}`, pack_id: PACK, kind: 'route', pack_entry_id: id, name: id, data: { id, from: 'the-jetty', to, travel, hidden } });
   if (routes) {
     route('to-wreck', 'the-wreck', [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }, { by: 'swim', name: 'Swimming', value: 3, unit: 'turn' }]);
     route('to-shed', 'customs-shed', [{ by: 'walk', name: 'Walking', value: 2, unit: 'turn' }]);
     route('to-cave', 'sea-cave', [{ by: 'climb', name: 'Clambering', value: 7, unit: 'turn' }], true);
+    if (areas) route('to-landing', 'the-landing', [{ by: 'row', name: 'Rowing', value: 4, unit: 'turn' }]);
   }
   world.signInAs(gm);
   const started = (await world.db.rpc('start_expedition' as never, { campaign, mode_id: 'dungeon' } as never)) as unknown as { data: { id: string } | null };
@@ -107,8 +121,8 @@ describe("a player's Where to? on the Scene (P2)", () => {
     expect(container.textContent).not.toMatch(/Rowing|Swimming|Walking|Clambering|wreck|customs|sea cave/i);
   });
 
-  // Purpose (mc-28, mc-28a, mc-36; PL1; P14): once a piece is shown, a row a destination with its ways and times; the
-  // far end not shown reads "Not yet explored." and is not named; the hidden way is nowhere on the page.
+  // Purpose (mc-28, mc-28a, mc-36; PL1; P14; sf-9, N3): once a piece is shown, a row a destination with its ways and
+  // times; the far end not shown reads "Unexplored", its way under it, and is not named; the hidden way is nowhere.
   it('lists a row a destination once a piece is shown, never the hidden way', async () => {
     const t = await harbour();
     await t.showFirst();
@@ -118,10 +132,29 @@ describe("a player's Where to? on the Scene (P2)", () => {
     const wreck = within(where).getByRole('group', { name: 'The wreck' });
     expect(within(wreck).getByRole('button', { name: 'Rowing, 1 turn, to The wreck' })).toBeTruthy();
     expect(within(wreck).getByRole('button', { name: 'Swimming, 3 turns, to The wreck' })).toBeTruthy();
-    const unexplored = within(where).getByRole('group', { name: 'Walking' });
-    expect(within(unexplored).getByText('Not yet explored.')).toBeTruthy();
-    expect(within(unexplored).getByRole('button', { name: 'Walking, 2 turns, to Walking' })).toBeTruthy();
-    expect(container.textContent).not.toMatch(/customs|sea cave|Clambering|7 turns/i);
+    const unexplored = within(where).getByRole('group', { name: 'Unexplored' });
+    expect(within(unexplored).getByText('Walking.')).toBeTruthy();
+    expect(within(unexplored).getByRole('button', { name: 'Walking, 2 turns, to Unexplored' })).toBeTruthy();
+    expect(container.textContent).not.toMatch(/customs|sea cave|Clambering|7 turns|Not yet explored/i);
+    // One Area, or none: no heading over the rows (WT1 C).
+    expect(within(where).queryAllByRole('heading', { level: 4 })).toEqual([]);
+  });
+
+  // Purpose (sf-9, F22, ⚑ 6, ⚑ 8, sf-19; WT1 B; hard rule 5): every row with its map number in number order; the
+  // harbour's rows under its players' name, a way into an Area the group has never been to under "Elsewhere" with no
+  // number; no name of a place not explored, and not the other Area's, reaches the page.
+  it('numbers the rows and heads them by Area, Elsewhere with no number', async () => {
+    const t = await harbour({ areas: true });
+    await t.showFirst();
+    const { container } = open(t, 'sam');
+    const left = await leftColumn(container);
+    const where = await waitFor(() => within(left).getByRole('region', { name: 'Where to?' }));
+    await waitFor(() => expect(within(where).getAllByRole('heading', { level: 4 }).map((h) => h.textContent)).toEqual(['The Drowned Harbour', 'Elsewhere']));
+    const order = [...where.querySelectorAll('.move-sheet__area, .destination-row')].map((el) => (el.classList.contains('move-sheet__area') ? `# ${el.textContent}` : el.getAttribute('aria-label')));
+    expect(order).toEqual(['# The Drowned Harbour', '2. The wreck', '4. Unexplored', '# Elsewhere', 'Unexplored']);
+    expect(within(within(where).getByRole('group', { name: '4. Unexplored' })).getByText('Walking.')).toBeTruthy();
+    expect(within(where).getByRole('button', { name: 'Rowing, 4 turns, to Unexplored' })).toBeTruthy();
+    expect(container.textContent).not.toMatch(/customs|sea cave|landing|Shingle|\b0\. /i);
   });
 
   // Purpose (pw-1; PL4c; hard rule 3): a tap on a way's button is never a dead end and never a move: a pop-up says

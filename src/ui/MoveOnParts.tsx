@@ -8,10 +8,12 @@
 //   its time; every one a list's size (mc-36a).
 // - `DestinationRow`: one destination, its ways as way buttons at the right; for the GM and players alike (mc-36,
 //   mc-36a). On a narrow row (a phone) the buttons take a line under the name, sharing its width (frame H4, phone).
+// - `AreaRows`: rows under their Areas' names where a list mixes Areas, "Elsewhere" for players (sf-9; WT1).
 // - `ObstacleBlock`: "Obstacle: <name>", on a slightly different tone (mc-41, mc-41a), the extra time and the book's note.
 // - `MoveOnSheet`: the GM's own Move on, the list then one way (frames 11 under the rulings, 12, 13).
 // - `ProposalSheet`: a proposed way, the same sheet with who asked and the count beside the ✕ (F2, F2b; mc-42a).
-import { useId, useState, type ReactNode } from 'react';
+import { Fragment, useId, useState, type ReactNode } from 'react';
+import { PLAYERS_READ_WORDS } from '../modules/expedition/moveOnWays.ts';
 import { keyedName } from '../modules/expedition/placeTree.ts';
 import { Dialog } from './Dialog.tsx';
 import { DiceWords } from './dice.tsx';
@@ -136,19 +138,27 @@ export function DestinationRow({
 export type ShownToPlayers = 'shown' | 'unshown' | 'hidden';
 
 /**
- * The GM's lines under a destination's name (frame 11): what the players see of it, and a way's obstacle as a warning
- * line (`obstacleRowWords`). The crossed eye marks a way the GM keeps hidden (ds-2: the GM's alone).
+ * The GM's lines under a destination's name (frame 11; sf-9, WT1 A, finding 21): for a place not shown yet, the closed
+ * eye and what the players read on their row ("4. Unexplored"; `players`, from `playersLineOf`), its spoken name "Not
+ * shown yet. Players read: …"; a place shown has no line. The crossed eye marks a way the GM keeps hidden (ds-2: the
+ * GM's alone). A way's obstacle as a warning line (`obstacleRowWords`).
  */
-export function GmDestinationLines({ shown, obstacle }: { shown: ShownToPlayers; obstacle?: string | null }) {
+export function GmDestinationLines({ shown, players, obstacle }: { shown: ShownToPlayers; players?: string | null; obstacle?: string | null }) {
   return (
     <>
-      {shown === 'hidden' ? (
+      {shown === 'hidden' && (
         <span className="destination-row__sub destination-row__sub--hidden">
           <Icon name="eye-off" size={16} />
           Hidden from players
         </span>
-      ) : (
-        <span className="destination-row__sub">{shown === 'shown' ? 'Shown to the players.' : 'Not yet shown: players see “not yet explored”.'}</span>
+      )}
+      {shown === 'unshown' && players && (
+        <span className="destination-row__sub destination-row__sub--unshown">
+          <span className="destination-row__eye" role="img" aria-label={PLAYERS_READ_WORDS.eye}>
+            <Icon name="eye-shut" size={16} />
+          </span>
+          {players}
+        </span>
       )}
       {obstacle && (
         <span className="destination-row__sub">
@@ -159,9 +169,31 @@ export function GmDestinationLines({ shown, obstacle }: { shown: ShownToPlayers;
   );
 }
 
-/** A player's line under a destination they have not found yet (mc-28): "Not yet explored." */
-export function NotYetExplored() {
-  return <span className="destination-row__sub">Not yet explored.</span>;
+/**
+ * A player's line under a place not explored (sf-9, N3; WT1 B, C): its way in words ("Rowing or swimming."), under
+ * "4. Unexplored" or "Unexplored", so the row says no less than it did.
+ */
+export function WayLine({ children }: { children: ReactNode }) {
+  return <span className="destination-row__sub">{children}</span>;
+}
+
+/**
+ * Rows under their Areas' headings (WT1, ⚑ 8): the rows in the order given, an Area's name (or "Elsewhere") over each
+ * run of rows that carry it, in small capitals; rows with no `area` under none (one Area only: WT1 C). `level`: the
+ * heading's level under its list's own heading (4 under "Where to?", 3 in the Move on sheet).
+ */
+export function AreaRows<T extends { id: string; area?: string | null }>({ rows, level, children }: { rows: readonly T[]; level: 3 | 4; children: (row: T) => ReactNode }) {
+  const Heading = level === 3 ? 'h3' : 'h4';
+  return (
+    <>
+      {rows.map((row, i) => (
+        <Fragment key={row.id}>
+          {row.area && row.area !== rows[i - 1]?.area && <Heading className="move-sheet__area">{row.area}</Heading>}
+          {children(row)}
+        </Fragment>
+      ))}
+    </>
+  );
 }
 
 /** An obstacle on a way, as the GM's sheet shows it (mc-41, mc-41a): its name, its extra time and the book's note. */
@@ -273,6 +305,10 @@ export interface GmDestination {
   number?: string | null;
   name: string;
   shown: ShownToPlayers;
+  /** Not shown yet: what its players read on their row ("4. Unexplored"; `playersLineOf`). */
+  players?: string | null;
+  /** The heading it stands under where the list mixes Areas (WT1 A; `destinationsOf`); none with one Area. */
+  area?: string | null;
   /** The warning on its row when one of its ways meets an obstacle (`obstacleRowWords`). */
   obstacle?: string | null;
   ways: WayChoice[];
@@ -340,9 +376,9 @@ export function MoveOnSheet({
     <Dialog key="list" label={`From ${here}, where to?`} over="Move on" onClose={onClose} preview={preview} wide>
       {destinations.length === 0 && <p className="move-sheet__none">No ways on from here in your packs. Somewhere else… takes the party anywhere.</p>}
       <div className="move-sheet__rows">
-        {destinations.map((d) => (
-          <DestinationRow key={d.id} number={d.number} name={d.name} sub={<GmDestinationLines shown={d.shown} obstacle={d.obstacle} />} ways={d.ways} onWay={(key) => setStep({ id: d.id, key })} />
-        ))}
+        <AreaRows rows={destinations} level={3}>
+          {(d) => <DestinationRow key={d.id} number={d.number} name={d.name} sub={<GmDestinationLines shown={d.shown} players={d.players} obstacle={d.obstacle} />} ways={d.ways} onWay={(key) => setStep({ id: d.id, key })} />}
+        </AreaRows>
       </div>
       <div className="move-sheet__elsewhere">
         <ListRow title="Somewhere else…" onOpen={onElsewhere} />

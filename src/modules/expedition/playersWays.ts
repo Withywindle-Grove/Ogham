@@ -8,7 +8,8 @@ import type { WayOn } from '../library/waysOn.ts';
 import { isPartOfDay, type TimeUnits } from './clock.ts';
 import type { Mode } from './modes.ts';
 import { inSentence, wayTimeWords } from './moveOn.ts';
-import { wayKeyOf, wayWordOf } from './moveOnWays.ts';
+import { areaSections, wayKeyOf, wayWordOf } from './moveOnWays.ts';
+import { byMapNumber } from './placeTree.ts';
 import { expeditionLine, stepOfLine, type Expedition } from './play.ts';
 
 /** One way's button on a player's row (`WayChoice` in src/ui/MoveOnParts.tsx). No icon: the read sends none (pf-25). */
@@ -24,10 +25,20 @@ export interface PlayersWay {
 export interface PlayersDestination {
   /** The far end's place in this campaign; for a far end not yet explored, the route's row id (nothing names it). */
   id: string;
-  /** Its players' name; for a far end not yet explored, the words the row is titled by (`unexploredTitle`). */
+  /** Its players' name; for a far end not yet explored, "Unexplored" (sf-9, N3: the number stands before it). */
   name: string;
-  /** False: the far end hasn't been shown to the group ("Not yet explored."). */
+  /** Its map number as the read sends it ("4"): drawn before the name, "4. Unexplored"; null without one. */
+  number: string | null;
+  /** False: the far end hasn't been shown to the group ("N. Unexplored", the way under it). */
   explored: boolean;
+  /** Under a far end not yet explored, its way as words ("Rowing or swimming."); null for an explored one. */
+  wayLine: string | null;
+  /**
+   * The heading the row stands under (WT1, ⚑ 8): its Area's players' name, or "Elsewhere"; null when the list has one
+   * Area only (no heading, WT1 C), and for rows whose Area was given no players' name (#122's ⚑ 3, as built: they
+   * stand first, under no heading).
+   */
+  area: string | null;
   ways: PlayersWay[];
 }
 
@@ -37,40 +48,49 @@ function orWords(words: readonly string[]): string {
 }
 
 /**
- * The title of a row whose far end has not been explored: nothing names that place to a player, so the row is called
- * by its way's own name (dec-7 plan, Departures 11: "the way's own name with 'Not yet explored.'"), several joined
- * ("Rowing or swimming"); a link that names no way: "Another way". (⚑: the frame's "Along the piles" is a name the pack
- * format has no field for.)
+ * The line under a row not yet explored (sf-9, N3; WT1 B and C): its way's own name as a sentence, several joined
+ * ("Rowing or swimming."), so the row says no less than the old title did; a link that names no way: "Another way.".
  */
-export function unexploredTitle(ways: readonly Pick<RouteWay, 'name'>[]): string {
+export function unexploredWayLine(ways: readonly Pick<RouteWay, 'name'>[]): string {
   const names = [...new Set(ways.map((w) => w.name.trim()).filter(Boolean))];
-  return names.length > 0 ? orWords(names) : 'Another way';
+  return `${names.length > 0 ? orWords(names) : 'Another way'}.`;
 }
 
 const buttonOf = (routeId: string, way: RouteWay): PlayersWay => ({ key: wayKeyOf(routeId, way), word: wayWordOf(way), time: wayTimeWords(way), by: way.by });
 
+/** A section's key: "Elsewhere" never shares one with an Area that happens to have that name. */
+const ELSEWHERE_KEY = '\u0000elsewhere';
+
 /**
- * The rows of a group's Where to? (mc-36: one row a destination): every way leading to one shown place is a button on
- * its row, the place's rows in the order of their names (a number in a name in its own order, "2" before "10"); a far
- * end not yet explored can't be told from another, so each such link is a row of its own, after the named ones. A link
- * that gives no time has no button, and a row with none is left out: there is nothing to choose on it.
+ * The rows of a group's Where to? (mc-36: one row a destination; sf-9, WT1): every way leading to one explored place is
+ * a button on its row; a far end not yet explored can't be told from another, so each such link is a row of its own,
+ * "N. Unexplored" or "Unexplored" with its way under it. Rows in number order, no number first, then 0, 1, 2 … 10, 11
+ * (`byMapNumber`; unnumbered ones named first, by name, then those not explored). Where the ways lead into more than
+ * one Area, each row carries its heading (`area`): the Areas in the order their first row comes, "Elsewhere" last; a
+ * row whose Area has no players' name first, under none. A link that gives no time has no button, and a row with none
+ * is left out: there is nothing to choose on it.
  */
 export function playersDestinationsOf(ways: readonly WayOn[], group: number): PlayersDestination[] {
-  const known = new Map<string, PlayersDestination>();
-  const unexplored: PlayersDestination[] = [];
+  const known = new Map<string, PlayersDestination & { key: string | null }>();
+  const unexplored: (PlayersDestination & { key: string | null })[] = [];
   for (const link of ways) {
     if (link.groupNumber !== group || link.ways.length === 0) continue;
     const buttons = link.ways.map((way) => buttonOf(link.routeId, way));
+    const key = link.elsewhere ? ELSEWHERE_KEY : link.areaName;
     if (link.to) {
       const row = known.get(link.to.placeId);
       if (row) row.ways.push(...buttons.filter((b) => !row.ways.some((w) => w.key === b.key)));
-      else known.set(link.to.placeId, { id: link.to.placeId, name: link.to.name, explored: true, ways: buttons });
+      else known.set(link.to.placeId, { id: link.to.placeId, name: link.to.name, number: link.number, explored: true, wayLine: null, area: null, key, ways: buttons });
     } else {
-      unexplored.push({ id: link.routeId, name: unexploredTitle(link.ways), explored: false, ways: buttons });
+      unexplored.push({ id: link.routeId, name: WHERE_TO_WORDS.unexplored, number: link.number, explored: false, wayLine: unexploredWayLine(link.ways), area: null, key, ways: buttons });
     }
   }
   const byName = [...known.values()].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
-  return [...byName, ...unexplored];
+  const sorted = byMapNumber([...byName, ...unexplored], (row) => row.number);
+  const sections = areaSections(sorted, (row) => row.key, { last: ELSEWHERE_KEY });
+  return sections.flatMap((section) =>
+    section.rows.map((row): PlayersDestination => ({ id: row.id, name: row.name, number: row.number, explored: row.explored, wayLine: row.wayLine, ways: row.ways, area: section.heading === null ? null : section.key === ELSEWHERE_KEY ? WHERE_TO_WORDS.elsewhere : section.key })),
+  );
 }
 
 /**
@@ -90,6 +110,10 @@ export function wayTapWords(destination: Pick<PlayersDestination, 'name' | 'expl
 export const WHERE_TO_WORDS = {
   /** PL2: before anything of the place is shown to the group (mc-28b, mc-50). */
   noneYet: 'None to choose from yet. They show here once your GM has shown you something of this place.',
+  /** sf-9 (F13 b, N3; WT1): a row whose far end is not explored, after its map number where it has one. */
+  unexplored: 'Unexplored',
+  /** sf-9 (⚑ 6, sf-19; WT1 B): the heading over the ways into an Area the group does not know. */
+  elsewhere: 'Elsewhere',
   /** PL4c: what a tap on a way's button says, for first play. */
   gmMoves: 'Your GM moves the party. Say where you want to go.',
   /** d5-2, p2p-flag4: the "End expedition" row's pop-up (the driver's wording). */

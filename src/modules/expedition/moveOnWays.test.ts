@@ -7,7 +7,7 @@ import { createFakeDb } from '../../testing/fakeDb.ts';
 import type { Barrier, Route } from '../library/routes.ts';
 import { timeUnits } from './clock.ts';
 import { FALLBACK_MODES, pointToPoint } from './modes.ts';
-import { destinationsOf, loadMoveOn, moveBlocked, moveTime, shownOf, SPLIT_PARTY_WORDS, stepUnitHere, stepUnitOfWays, wayMoveOf, waysFrom, type MoveOnRead } from './moveOnWays.ts';
+import { areaSections, destinationsOf, loadMoveOn, PLAYERS_READ_WORDS, moveBlocked, moveTime, shownOf, SPLIT_PARTY_WORDS, stepUnitHere, stepUnitOfWays, wayMoveOf, waysFrom, type MoveOnRead } from './moveOnWays.ts';
 
 const route = (id: string, from: string, to: string, extra: Partial<Route> = {}): Route => ({ id, from, to, hidden: false, oneWay: false, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }], ...extra });
 const plain = (r: Route) => ({ route: r, barrier: null as Barrier | null });
@@ -104,6 +104,28 @@ describe('a way’s time in the campaign’s turns', () => {
   it('refuses no time and part of a turn', () => {
     expect(moveTime({ value: 0, unit: 'turn' }, 0, units)).toEqual({ refusal: expect.stringMatching(/at least 1 turn/) });
     expect(moveTime({ value: 3, unit: 'round' }, 0, units)).toEqual({ refusal: expect.stringMatching(/whole number of turns/) });
+  });
+});
+
+describe('rows under their Areas (sf-9; WT1)', () => {
+  // Purpose (⚑ 8; WT1): rows of no Area first, then the first-named Area, the others in the order their first row comes,
+  // the last-named last; each section keeps its rows' order; one section only has no heading.
+  it('orders the sections and heads them only where there are two or more', () => {
+    const rows = [
+      { id: 'a', k: 'beach' },
+      { id: 'b', k: null },
+      { id: 'c', k: 'out' },
+      { id: 'd', k: 'harbour' },
+      { id: 'e', k: 'beach' },
+    ];
+    const sections = areaSections(rows, (r) => r.k, { first: 'harbour', last: 'out' });
+    expect(sections.map((s) => [s.heading, s.rows.map((r) => r.id).join('')])).toEqual([
+      [null, 'b'],
+      ['harbour', 'd'],
+      ['beach', 'ae'],
+      ['out', 'c'],
+    ]);
+    expect(areaSections([{ k: 'harbour' }, { k: 'harbour' }], (r) => r.k).map((s) => s.heading)).toEqual([null]);
   });
 });
 
@@ -269,6 +291,53 @@ describe('the GM’s read', () => {
     const read = (await loadMoveOn(t.world.db as unknown as Db, t.campaign, t.expedition)) as MoveOnRead;
     expect(read.groups).toBe(2);
     expect(moveBlocked(read.groups)).toBe(SPLIT_PARTY_WORDS);
+  });
+
+  // Purpose (sf-9, F22, finding 21; WT1 A): under a place not shown, the GM's row says what the party's players read,
+  // from their own read: "3. Unexplored" in a pack with no Areas; nothing under a place shown or a hidden way.
+  it('says under a place not shown what its players read', async () => {
+    const t = await mere();
+    const rows = destinationsOf((await loadMoveOn(t.world.db as unknown as Db, t.campaign, t.expedition)) as MoveOnRead);
+    expect(rows.map((r) => [r.name, r.players, r.area])).toEqual([
+      ['The Islet', null, null],
+      ['The Sea Cave', '3. Unexplored', null],
+      ['The Tower', null, null],
+    ]);
+  });
+
+  // Purpose (sf-9; WT1 A, ⚑ 8, sf-19): where the ways lead into two Areas, the GM's rows stand under each Area's name,
+  // the party's own first; a place in an Area the players have not been to reads "Unexplored, under “Elsewhere”", one
+  // in theirs "4. Unexplored".
+  it('heads the GM’s rows by Area, the party’s first, and says Elsewhere where the players read it', async () => {
+    const t = await mere();
+    const entries = t.world.tables.library_entries;
+    const setParent = (id: string, parentId: string) => {
+      const e = entries.find((x) => x.kind === 'location' && x.pack_entry_id === id)!;
+      e.data = { ...(e.data as Record<string, unknown>), parentId };
+    };
+    entries.push({ id: 'entry-location-beach', pack_id: 'pack-mere', kind: 'location', pack_entry_id: 'beach', name: 'The Shingle Beach', data: { id: 'beach', name: 'The Shingle Beach', type: 'site' } });
+    entries.push({ id: 'entry-location-harbour', pack_id: 'pack-mere', kind: 'location', pack_entry_id: 'harbour', name: 'The Drowned Harbour', data: { id: 'harbour', name: 'The Drowned Harbour', type: 'site' } });
+    entries.push({ id: 'entry-route-jetty-weir', pack_id: 'pack-mere', kind: 'route', pack_entry_id: 'jetty-weir', name: 'jetty-weir', data: { id: 'jetty-weir', from: 'jetty', to: 'weir', travel: [{ by: 'walk', name: 'Walking', value: 2, unit: 'turn' }] } });
+    for (const id of ['jetty', 'islet', 'weir', 'tower']) setParent(id, 'harbour');
+    setParent('cave', 'beach');
+    const read = (await loadMoveOn(t.world.db as unknown as Db, t.campaign, t.expedition)) as MoveOnRead;
+    expect(read.hereArea).toBe('harbour');
+    expect(destinationsOf(read).map((r) => [r.area, r.number, r.name, r.players])).toEqual([
+      ['The Drowned Harbour', '2', 'The Islet', null],
+      ['The Drowned Harbour', '4', 'The Weir', '4. Unexplored'],
+      ['The Drowned Harbour', '5', 'The Tower', null],
+      ['The Shingle Beach', '3', 'The Sea Cave', PLAYERS_READ_WORDS.elsewhere],
+    ]);
+    expect(PLAYERS_READ_WORDS.elsewhere).toBe('Unexplored, under “Elsewhere”');
+    expect(PLAYERS_READ_WORDS.eye).toBe('Not shown yet. Players read:');
+  });
+
+  // Purpose: while the players have no ways (nothing of here shown yet), the GM's line says the far end by its number,
+  // as they will read it in a known Area, and never fails the read.
+  it('says a far end by its number while the players have no ways yet', async () => {
+    const t = await mere({ jettyShown: false });
+    const rows = destinationsOf((await loadMoveOn(t.world.db as unknown as Db, t.campaign, t.expedition)) as MoveOnRead);
+    expect(rows.map((r) => r.players)).toEqual(['2. Unexplored', '3. Unexplored', null]);
   });
 
   // Purpose: a player's device gets no ways from this read: routes are the GM's (pt-f3), so the far ends and the
