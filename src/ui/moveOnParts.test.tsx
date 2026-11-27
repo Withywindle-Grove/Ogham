@@ -247,6 +247,7 @@ describe('the GM’s own Move on (frames 11, 12, 13)', () => {
     const dialog = screen.getByRole('dialog', { name: 'Move on: Rowing to 2. The wreck' });
     expect(within(dialog).queryByText('Where')).toBeNull();
     expect(within(dialog).getByText('Takes')).toBeTruthy();
+    expect(dialog.querySelector('.move-summary dt svg circle')).not.toBeNull();
     expect(within(dialog).queryByText('Do they get through?')).toBeNull();
     expect(dialog.textContent).not.toMatch(/in the log|Undo/);
     const move = within(dialog).getByRole('button', { name: 'Move' });
@@ -498,6 +499,7 @@ describe('the players’ travel pop-up (sf-15; page 44, PU1 B)', () => {
     const dialog = screen.getByRole('dialog', { name: 'Row to 2. Unexplored' });
     expect([...dialog.querySelectorAll('.move-summary dt')].map((d) => d.textContent)).toEqual(['Takes']);
     expect(dialog.querySelector('.move-summary dd')!.textContent).toBe('1 turn.');
+    expect(dialog.querySelector('.move-summary dt svg circle')).not.toBeNull();
     expect(within(dialog).getByText('Your GM moves the party. Say where you want to go.')).toBeTruthy();
     const gotIt = within(dialog).getByRole('button', { name: 'Got it' });
     expect(gotIt.className).toContain('button-secondary');

@@ -250,7 +250,7 @@ function MoveSummary({ move, askedBy }: { move: WayMove; askedBy?: string }) {
   return (
     <dl className="move-summary">
       {askedBy && line('players', 'Asked by', `${askedBy}.`)}
-      {line('hourglass', 'Takes', move.takes)}
+      {line('clock', 'Takes', move.takes)}
       {move.then && line('encounter-check', 'Then', <DiceWords>{move.then}</DiceWords>)}
     </dl>
   );
