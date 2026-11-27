@@ -144,7 +144,7 @@ export const patronsOffered = (setting: CampaignSetting, classId: string, alignm
 export const patronStepShown = (setting: CampaignSetting, classId: string, alignmentNames: readonly string[] = []): boolean => patronsOffered(setting, classId, alignmentNames).some((o) => o.fit !== 'closed');
 
 /** "A Marsh Chaplain follows a patron." (14-05): the class's own name, with a or an. */
-const aClass = (name: string) => `${/^[aeiou]/i.test(name.trim()) ? 'An' : 'A'} ${name.trim()}`;
+export const aClass = (name: string) => `${/^[aeiou]/i.test(name.trim()) ? 'An' : 'A'} ${name.trim()}`;
 
 /**
  * Whether the Adjust scores step counts for this choice (cr-3): the rule as data, and a trade the class and the scores
