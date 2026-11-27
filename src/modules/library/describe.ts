@@ -6,6 +6,7 @@ import { packAndPage, titledSource, type SourceTitles } from './sourceTitles.ts'
 import { workOut } from './formula.ts';
 import type { PackEntry } from './packFile.ts';
 import { isRuleTextBlocks, readRuleText, ruleTextWords } from './ruleText.ts';
+import { availabilityEntryLines } from '../requests/shopStock.ts';
 
 export interface Line {
   label: string;
@@ -142,6 +143,12 @@ function linesOf(record: Record<string, unknown>, ctx: Ctx, depth: number, hidde
     if (depth === 0 && SKIP.has(key)) continue;
     if (key === 'gmOnly') {
       if (gm && Array.isArray(value)) lines.push({ label: labelOf(key), value: value.map((k) => labelOf(String(k))).join(', ') });
+      continue;
+    }
+    // An item's availability (TC11; tn-5, tn-6; page 19 TW8b, ap-13): its "Rarity" and "Sold in" lines, never the chance
+    // (the chance is the GM's stock table's, never the entry's).
+    if (depth === 0 && key === 'availability' && isRecord(value)) {
+      lines.push(...availabilityEntryLines(value));
       continue;
     }
     // Free-form fields ("AC", "Move"…) keep the labels the pack gave them, at the same level as the rest.

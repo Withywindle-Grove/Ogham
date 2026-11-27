@@ -131,7 +131,7 @@ import { readMessages, sendMessages } from '../modules/messages/messages.ts';
 import { markFindsSeen } from '../modules/characters/findsSeen.ts';
 import { answerRequest, askRequests, enterRequest, sendRequest, withdrawRequest, type Request } from '../modules/requests/requests.ts';
 import { approveSheetChange, HP_MAX_FIELD, refuseSheetChange, requestSheetChange, takeBackSheetChange, type SheetChange } from '../modules/characters/sheetChanges.ts';
-import { chooseStay, replyRequest, undoBuy } from '../modules/requests/townRequests.ts';
+import { askFor, chooseStay, replyRequest, undoBuy } from '../modules/requests/townRequests.ts';
 import { setSpellBook } from '../modules/characters/spellBook.ts';
 import { giveFind, undoFind } from '../modules/expedition/findSend.ts';
 import { showItemTruth } from '../modules/expedition/itemTruth.ts';
@@ -727,6 +727,9 @@ export const permissionCases: PermissionCase[] = [
   rule("a player can't choose spells for someone else's character", 'playerB', chooseSpells, (w) => ({ character: w.wren, chosen: [{ spell: 'mire-lamp', level: 1 }], slots: [1] }), false),
   rule("the GM can choose any character's spells", 'gm', chooseSpells, (w) => ({ character: w.ash, chosen: [{ spell: crypto.randomUUID(), level: 1 }], slots: [1] }), true),
   rule("an outsider can't choose a character's spells", 'outsider', chooseSpells, (w) => ({ character: w.wren, chosen: null, slots: [1] }), false),
+  // The first spells (FS1, fsr-1): while never rested and nothing cast, the choice writes what is ready; who may is the same.
+  rule("a player can choose their own unrested character's first spells", 'playerA', chooseSpells, (w) => ({ character: w.wren, chosen: [{ spell: crypto.randomUUID(), level: 1 }], slots: [1] }), true),
+  rule("another player can't choose an unrested character's first spells", 'playerB', chooseSpells, (w) => ({ character: w.wren, chosen: [{ spell: crypto.randomUUID(), level: 1 }], slots: [1] }), false),
   rule('a player can pick the same spells as yesterday for their own character', 'playerA', sameAsYesterday, async (w) => (await w.freshReadySpell('wren'), { character: w.wren }), true),
   rule("a player can't pick the same spells as yesterday for someone else's character", 'playerB', sameAsYesterday, (w) => ({ character: w.wren }), false),
   rule('a player can cast a ready spell of their own character', 'playerA', castSpell, async (w) => ({ character: w.wren, ...(await w.freshReadySpell('wren')) }), true),
@@ -1502,6 +1505,11 @@ export const permissionCases: PermissionCase[] = [
     const inn = await w.freshInn();
     return { character: w.wren, stay: { listed: true, key: inn.key, name: inn.name, rate: '2 sp a night', at: 0, town: inn.town } };
   }, false),
+  // TC12 (tn-7, tn-8): Ask for…, answered at once from the day's stock when decided: a player's own character only.
+  rule('a player can ask for a thing for their own character', 'playerA', askFor, (w) => ({ character: w.wren, text: 'Lamp oil, The Chandler', day: 1, prompt: { serviceId: 'tc12-chandler', shop: 'The Chandler', itemId: 'tc12-lamp-oil', item: 'Lamp oil', price: '2 herons' } }), true),
+  rule("a player can't ask for a thing for another player's character", 'playerB', askFor, (w) => ({ character: w.wren, text: 'Lamp oil, The Chandler', day: 1, prompt: { serviceId: 'tc12-chandler', shop: 'The Chandler', itemId: 'tc12-lamp-oil', item: 'Lamp oil', price: '2 herons' } }), false),
+  rule("the GM can't ask for a thing as a player's character", 'gm', askFor, (w) => ({ character: w.wren, text: 'Lamp oil, The Chandler', day: 1, prompt: { serviceId: 'tc12-chandler', shop: 'The Chandler', itemId: 'tc12-lamp-oil', item: 'Lamp oil', price: '2 herons' } }), false),
+  rule("an outsider can't ask for a thing", 'outsider', askFor, (w) => ({ character: w.wren, text: 'Lamp oil, The Chandler', day: 1, prompt: { serviceId: 'tc12-chandler', shop: 'The Chandler', itemId: 'tc12-lamp-oil', item: 'Lamp oil', price: '2 herons' } }), false),
   rule('the GM can answer a request', 'gm', answerRequest, async (w) => ({ request: await w.freshRequest(), answer: { kind: 'yesNo' as const, yes: true, turns: 0, note: '' } }), true),
   rule("a player can't answer their own request", 'playerA', answerRequest, async (w) => ({ request: await w.freshRequest(), answer: { kind: 'yesNo' as const, yes: true, turns: 0, note: '' } }), false),
   // M5b step 3: the GM's Yes to a secret activity takes its cost off the group's day; a player can't answer.

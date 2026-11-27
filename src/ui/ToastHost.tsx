@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { SHEET_PHONE } from './Dialog.tsx';
 import { Toast } from './parts.tsx';
+import './bookFaces.css';
 
 export interface ToastRequest {
   text: string;
@@ -16,6 +17,8 @@ export interface ToastRequest {
   warning?: string;
   /** The **icon Undo** variant: Undo as a small stacked button, the turned-back arrow above the word (the stash's Take, ⚑ 6). */
   undoIcon?: boolean;
+  /** Drawn in the book's faces (`.book-faces`): set for every toast shown from inside `BookToasts` (the Pack tab, K29). */
+  book?: boolean;
 }
 
 type Show = (toast: ToastRequest) => void;
@@ -39,6 +42,16 @@ const ToastSwap = createContext<Swap>({ show: () => 0, take: () => undefined, re
 /** Shows a toast: past tense, what moved ("Dropped 3 torches"), and Undo where it can be undone. */
 export function useToast(): Show {
   return useContext(ToastContext);
+}
+
+/**
+ * Every toast shown from inside it is drawn in the book's faces (the Pack tab's dress, K29; frame PK4b draws its toasts
+ * in the book's text face). It changes faces only: the toast's words, Undo and timing stay the app's.
+ */
+export function BookToasts({ children }: { children: ReactNode }) {
+  const show = useContext(ToastContext);
+  const inBook = useCallback<Show>((toast) => show({ ...toast, book: true }), [show]);
+  return <ToastContext.Provider value={inBook}>{children}</ToastContext.Provider>;
 }
 
 /** Whether a toast is on screen now: a notice that waits its turn (the new version's, AppUpdate.tsx) never covers one. */
@@ -170,7 +183,7 @@ export function ToastHost({ children }: { children: ReactNode }) {
       {current && (
         <div
           ref={host}
-          className={`toast-host${lift ? ' toast-host--lifted' : ''}`}
+          className={`toast-host${lift ? ' toast-host--lifted' : ''}${current.book ? ' book-faces' : ''}`}
           style={lift ? ({ '--toast-lift-top': `${lift.top}px`, '--toast-height': `${lift.height}px` } as CSSProperties) : undefined}
         >
           <Toast

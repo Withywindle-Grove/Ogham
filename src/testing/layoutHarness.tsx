@@ -384,7 +384,7 @@ world.tables.library_entries.push(
       },
     },
   },
-  { id: 'entry-eel-trap', pack_id: 'pack-river', kind: 'item', pack_entry_id: 'eel-trap', name: 'Eel trap', data: { id: 'eel-trap', name: 'Eel trap', category: 'gear', weightCoin: 40, value: { sp: 5 }, notes: 'Wicker, smells of river.' } },
+  { id: 'entry-eel-trap', pack_id: 'pack-river', kind: 'item', pack_entry_id: 'eel-trap', name: 'Eel trap', data: { id: 'eel-trap', name: 'Eel trap', category: 'gear', weightCoin: 40, value: { sp: 5 }, notes: 'Wicker, smells of river.', availability: { rarity: 'Uncommon', where: ['Village', 'Town'], note: 'Waterside settlements only.', chance: '3-in-6' } } },
 );
 // Alignment on Who they are (cr-12), only with ?alignments=1: the campaign keeps an Alignment field and River rules
 // names the alignments, each with a one-line blurb for its row and a longer note for its entry (invented).

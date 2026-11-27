@@ -88,7 +88,7 @@ for (const size of [
   });
 }
 
-test('off the Player screen the rows keep the book’s regular weight: the Pack tab, and the full sheet’s own page', async ({ page }) => {
+test('the Pack tab’s row names are in the book’s bold, as page 08 draws them; the full sheet’s own page keeps the regular weight', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await openPlayer(page);
   // The full sheet's own page (from the menu): its bar keeps the page's heading, and its skill rows stay regular.
@@ -99,13 +99,14 @@ test('off the Player screen the rows keep the book’s regular weight: the Pack 
   await expect(page.locator('.sheet__pane-title')).toHaveCount(0);
   const onPage = await nameWeight(skills.locator('.list-row').filter({ hasText: /^Hark/ }));
   expect(onPage.weight).toBe(onPage.regular);
-  // The Pack tab's At hand.
+  // The Pack tab's At hand: bold, as page 08 draws it (PK1, PK6; "Bold, as drawn", Francis, 26 Nov 2026, K29).
   await page.getByRole('button', { name: /^Back to / }).first().click();
   await expect(page.getByRole('region', { name: 'Vitals' })).toBeVisible();
   await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Pack' }).click();
   const knife = page.locator('.pack__item').filter({ hasText: /^Eel knife/ }).first();
   const onPack = await nameWeight(knife);
-  expect(onPack.weight).toBe(onPack.regular);
+  expect(onPack.bold).toBe('700');
+  expect(onPack.weight).toBe(onPack.bold);
 });
 
 // tf-A5 (the test feedback of 19 Nov 2026, item 11): the experience bar is the experience over the next level's figure,

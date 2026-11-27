@@ -206,4 +206,20 @@ describe('the Player tab’s At hand pop-up (C2: tfh-1 to tfh-5)', () => {
     // In hand on the Pack tab it still has no star (06, Item sheet): only the Player tab's pop-up gives it one.
     expect(within(spear).queryByRole('button', { name: /^(Pin to top|Unpin)$/ })).toBeNull();
   });
+
+  // Purpose (K29's review, finding 1): the Pack tab's dress stops at the Pack tab. On the Player tab the full sheet of a
+  // thing waiting for the GM keeps its grey panel and its 20 px rows (pq-1, as built): it is not marked as the dressed
+  // thing's sheet, and no part of it sits in the Pack's dress.
+  it('keeps the Player tab’s full sheet of a thing waiting for the GM out of the Pack’s dress', async () => {
+    const { user } = await brannoch(() => {
+      Object.assign(world.tables.inventory_lines.find((l) => l.id === 'line-p1-knife')!, { approval: 'pending' });
+    });
+    await user.click(within(await screen.findByRole('region', { name: 'At hand' })).getByRole('button', { name: /^Eel knife/ }));
+    const knife = await screen.findByRole('dialog', { name: 'Eel knife' });
+    expect(knife.querySelector('.at-hand-popup')).toBeNull();
+    const panel = knife.querySelector('.pack__sheet')!;
+    expect(panel).not.toBeNull();
+    expect(panel.classList.contains('pack__sheet--thing')).toBe(false);
+    expect(knife.closest('.pack-dress')).toBeNull();
+  });
 });
