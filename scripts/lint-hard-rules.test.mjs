@@ -181,3 +181,61 @@ describe('check 8: no source file over 400 lines (cs-10)', () => {
     }
   });
 });
+
+const AI_PACKAGE = (name) =>
+  `No AI service in the app (hard rule 1): '${name}' is an AI service's client package. The list is AI_SERVICES in eslint.config.js.`;
+const AI_HOST = (host) =>
+  `No AI service in the app (hard rule 1): this names ${host}, an AI service's API host. The list is AI_SERVICES in eslint.config.js.`;
+
+describe('check 2: no AI service in the app (hard rule 1)', () => {
+  // A file in the app that imports a listed AI package by name, or a package under a listed scope, fails lint with the
+  // message, and so does a sub-path of a listed package.
+  it('fails a planted file importing a listed package, a scoped one and a sub-path, with the message', async () => {
+    const code = [
+      "import Lantern from 'openai';",
+      "import { Wick } from '@anthropic-ai/sdk';",
+      "import { Ember } from 'langchain/chains';",
+      'export const lit = [Lantern, Wick, Ember];',
+    ].join('\n');
+    expect(await lint(code, 'src/core/plantedLantern.ts')).toEqual([
+      AI_PACKAGE('openai'),
+      AI_PACKAGE('@anthropic-ai/sdk'),
+      AI_PACKAGE('langchain/chains'),
+    ]);
+  });
+
+  // Re-exports and dynamic imports reach the package too, so they fail like a plain import.
+  it('fails a re-export and a dynamic import of a listed package', async () => {
+    const code = "export { Wick } from '@mistralai/mistralai';\nexport const later = () => import('ollama');\n";
+    expect(await lint(code, 'src/modules/bogwatch/plantedLantern.ts')).toEqual([
+      AI_PACKAGE('@mistralai/mistralai'),
+      AI_PACKAGE('ollama'),
+    ]);
+  });
+
+  // A listed API host in a string, or in a template literal, fails lint, whatever its letter case.
+  it('fails a listed API host in a string and in a template literal', async () => {
+    const code =
+      "export const a = 'https://API.openai.com/v1/lantern';\nexport const b = (p: string) => `https://api.anthropic.com/${p}`;\n";
+    expect(await lint(code, 'src/app/plantedLantern.ts')).toEqual([AI_HOST('api.openai.com'), AI_HOST('api.anthropic.com')]);
+  });
+
+  // Clean code passes: a package or a string that only looks alike (a longer name, a word inside a sentence) is fine.
+  it('passes a planted file with look-alike names', async () => {
+    const code = [
+      "import { createClient } from '@supabase/supabase-js';",
+      "export const words = 'The lantern warden is not an openai-like oracle.';",
+      "export const pkg = 'openai-lantern';",
+      'export const c = createClient;',
+    ].join('\n');
+    expect(await lint(code, 'src/core/plantedLantern.ts')).toEqual([]);
+  });
+
+  // Scripts and tests outside the app's source are not checked: a script may name a service (this test file does).
+  it('leaves scripts and tests outside the app source alone', async () => {
+    const code = "import Lantern from 'openai';\nexport const host = 'https://api.openai.com';\nexport const l = Lantern;\n";
+    expect(await lint(code, 'scripts/plantedLantern.mjs')).toEqual([]);
+    expect(await lint(code, 'scripts/plantedLantern.test.mjs')).toEqual([]);
+    expect(await lint(code, 'tests/layout/plantedLantern.spec.ts')).toEqual([]);
+  });
+});

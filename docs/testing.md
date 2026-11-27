@@ -17,7 +17,7 @@ How we keep things from breaking as the app grows. Automated checks catch most m
 |---|---|
 | `npm run check` | Type check, lint, tests, the docs check and build, in order; stops at the first failure. Run before every commit. |
 | `npm run typecheck` | TypeScript type-check (strict) |
-| `npm run lint` | ESLint: common mistakes, React hook rules, and the hard-rule lint checks (modules import only the allowed core files, hard rule 6; no `disabled` attribute on a control, hard rule 10; no source file over 400 lines, cs-10), old cases known in `eslint-suppressions.json` (below) |
+| `npm run lint` | ESLint: common mistakes, React hook rules, and the hard-rule lint checks (no AI service package or API host in the app, hard rule 1; modules import only the allowed core files, hard rule 6; no `disabled` attribute on a control, hard rule 10; no source file over 400 lines, cs-10), old cases known in `eslint-suppressions.json` (below) |
 | `npm test` | Vitest: all automated tests, once |
 | `npm run build` | Production build, as Vercel does it |
 | `npm run test:db` | Database access-rule tests, against the **test** project locally, or a throwaway local Supabase on GitHub (not part of `check`; see below) |

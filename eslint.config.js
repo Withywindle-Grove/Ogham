@@ -7,11 +7,85 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
+// Hard rule 1: no AI service in the app. Each known AI service's client packages (by exact name, or every package under
+// a scope) and API hosts. To ban a new service, add it here: this list is the one place the check reads
+// (docs/specs/hard-rule-and-size-checks.md, check 2).
+const AI_SERVICES = [
+  { service: 'OpenAI', packages: ['openai'], scopes: ['@openai'], hosts: ['api.openai.com'] },
+  { service: 'Anthropic', packages: [], scopes: ['@anthropic-ai'], hosts: ['api.anthropic.com'] },
+  {
+    service: 'Google generative AI',
+    packages: ['@google/generative-ai', '@google/genai', '@google-cloud/vertexai'],
+    scopes: ['@google-ai'],
+    hosts: ['generativelanguage.googleapis.com', 'aiplatform.googleapis.com'],
+  },
+  { service: 'Mistral', packages: [], scopes: ['@mistralai'], hosts: ['api.mistral.ai'] },
+  { service: 'Cohere', packages: ['cohere-ai'], scopes: ['@cohere-ai'], hosts: ['api.cohere.ai', 'api.cohere.com'] },
+  { service: 'Groq', packages: ['groq-sdk'], scopes: [], hosts: ['api.groq.com'] },
+  { service: 'Together', packages: ['together-ai'], scopes: [], hosts: ['api.together.xyz', 'api.together.ai'] },
+  { service: 'Replicate', packages: ['replicate'], scopes: [], hosts: ['api.replicate.com'] },
+  {
+    service: 'Hugging Face inference',
+    packages: [],
+    scopes: ['@huggingface'],
+    hosts: ['api-inference.huggingface.co', 'router.huggingface.co'],
+  },
+  { service: 'Ollama', packages: ['ollama'], scopes: [], hosts: ['localhost:11434', '127.0.0.1:11434', 'ollama.com'] },
+  { service: 'LangChain', packages: ['langchain'], scopes: ['@langchain'], hosts: ['api.smith.langchain.com'] },
+  { service: 'Vercel AI SDK', packages: ['ai'], scopes: ['@ai-sdk'], hosts: ['ai-gateway.vercel.sh'] },
+];
+const AI_PACKAGES = AI_SERVICES.flatMap((s) => s.packages);
+const AI_SCOPES = AI_SERVICES.flatMap((s) => s.scopes);
+const AI_HOSTS = AI_SERVICES.flatMap((s) => s.hosts);
+// A listed package by its exact name or a sub-path of it ('openai', 'openai/resources'), or any package under a listed
+// scope ('@anthropic-ai/sdk'); a longer name that only starts alike ('openai-lantern') is not one.
+const isAiPackage = (source) =>
+  AI_PACKAGES.some((name) => source === name || source.startsWith(`${name}/`)) ||
+  AI_SCOPES.some((scope) => source.startsWith(`${scope}/`));
+const AI_LIST_NOTE = 'The list is AI_SERVICES in eslint.config.js.';
+
 // The project's own lint rules, kept here (no package). Each has its own name, so ESLint's suppressions file
 // (eslint-suppressions.json, the known old breaks; docs/testing.md) counts each rule's cases on their own.
 const MAX_LINES = 400;
 const tome = {
   rules: {
+    // Hard rule 1: no AI service's client package imported (also re-exported, or imported later), and no AI service's
+    // API host named in a string or a template literal.
+    'no-ai-service': {
+      meta: { type: 'problem', schema: [] },
+      create(context) {
+        const checkSource = (source) => {
+          if (source && source.type === 'Literal' && typeof source.value === 'string' && isAiPackage(source.value)) {
+            context.report({
+              node: source,
+              message: `No AI service in the app (hard rule 1): '${source.value}' is an AI service's client package. ${AI_LIST_NOTE}`,
+            });
+          }
+        };
+        const checkText = (node, text) => {
+          const lower = text.toLowerCase();
+          const host = AI_HOSTS.find((h) => lower.includes(h));
+          if (host) {
+            context.report({
+              node,
+              message: `No AI service in the app (hard rule 1): this names ${host}, an AI service's API host. ${AI_LIST_NOTE}`,
+            });
+          }
+        };
+        return {
+          ImportDeclaration: (node) => checkSource(node.source),
+          ExportNamedDeclaration: (node) => checkSource(node.source),
+          ExportAllDeclaration: (node) => checkSource(node.source),
+          ImportExpression: (node) => checkSource(node.source),
+          Literal(node) {
+            if (typeof node.value === 'string') checkText(node, node.value);
+          },
+          TemplateElement(node) {
+            checkText(node, node.value.cooked ?? node.value.raw);
+          },
+        };
+      },
+    },
     // Hard rule 10: never a disabled button. A blocked action stays tappable and explains why in a pop-up.
     'no-disabled': {
       meta: { type: 'problem', schema: [] },
@@ -129,6 +203,13 @@ export default defineConfig([
         },
       ],
     },
+  },
+  {
+    // Hard rule 1: no AI service in the app's own code (its tests included). The repository's scripts and the CI
+    // workflows are not the app, so they are not checked.
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: { tome },
+    rules: { 'tome/no-ai-service': 'error' },
   },
   {
     // Hard rule 10: no `disabled` attribute on a control in the app's components (tests may render one to check it).
