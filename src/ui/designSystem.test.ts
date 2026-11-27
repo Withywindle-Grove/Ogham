@@ -98,6 +98,27 @@ describe('tokens only in inline styles', () => {
     expect(found(source)).toEqual(['1 color: colour', '1 background: colour', '2 border-color: colour']);
   });
 
+  // Purpose: a colour word in a value that isn't a colour (an animation's name, a picture's file name) passes, while a
+  // colour name on a colour property or a custom property, and a hex, rgb or hsl value on any property, still fail.
+  it('a colour name counts only on a colour property; hex, rgb and hsl count everywhere', () => {
+    const source = [
+      "<a style={{ animationName: 'tan', backgroundImage: 'url(snow.png)', background: 'url(snow.png) no-repeat', gridArea: 'red', fontFamily: 'Plum Serif' }} />",
+      "<a style={{ outline: 'thin solid red', borderTop: 'solid navy', fill: 'olive', '--edge': 'teal' }} />",
+      "<a style={{ boxShadow: 'inset 0 0 0 #123456', '--glow': 'hsl(10 20% 30%)', filter: 'drop-shadow(rgb(1 2 3))' }} />",
+    ].join('\n');
+    expect(found(source)).toEqual([
+      '2 outline: colour', '2 border-top: colour', '2 fill: colour', '2 --edge: colour',
+      '3 box-shadow: colour', '3 --glow: colour', '3 filter: colour',
+    ]);
+  });
+
+  // Purpose: a unit length fails on a size or border property too (the spec's check 5 names any length with a unit),
+  // unlike the stylesheet scan, which leaves sizes and borders alone.
+  it('a unit length on width, height or border fails', () => {
+    const source = "<u style={{ width: '320px', maxHeight: '12rem', border: '1px solid var(--rule)' }} />";
+    expect(found(source)).toEqual(['1 width: length', '1 max-height: length', '1 border: length']);
+  });
+
   // Purpose: a bare number on a spacing, size or type property is a pixel value React writes for you, so it fails too.
   it('a bare number on padding, width or font size fails', () => {
     const source = '<u style={{ padding: 12, width: wide ? 320 : -4, fontSize: (18) }} />';

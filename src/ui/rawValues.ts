@@ -53,6 +53,11 @@ export function rawValues(css: string): RawValue[] {
 // or a named colour), or a bare number on a spacing, size, type or colour property. A token, a calc() of tokens, 0, a
 // percentage, a bare number on any other property (flex, order, opacity, z-index) and a value computed at run time
 // (`${measured}px`, a variable) are fine. Style objects built outside the attribute are not read.
+// A colour NAME counts only on a colour property (COLOURED) or a custom property, and never inside url(…), so
+// `animationName: 'tan'` or `backgroundImage: 'url(snow.png)'` pass; hex, rgb() and hsl() count on every property.
+// Unlike the stylesheet scan, a unit length counts on every property, sizes and borders included: the spec's check 5
+// names any "number with a length unit" and a bare number on a size property as raw, and an inline width or border
+// that is fixed in the source has a token just as one in a stylesheet does (docs/09, 2026-11-27).
 
 export interface InlineRawValue {
   line: number;
@@ -176,6 +181,9 @@ const kebab = (name: string) => (name.startsWith('--') ? name : name.replace(/[A
 // (or, for line-height, font-weight and stroke-width, a unitless value that has a token).
 const MEASURED =
   /^(margin|padding|gap|row-gap|column-gap|inset|top|right|bottom|left|(margin|padding|inset|scroll-padding|scroll-margin)(-[a-z-]+)?|(min-|max-)?(width|height|inline-size|block-size)|flex-basis|font-size|font-weight|line-height|letter-spacing|word-spacing|text-indent|border-radius|border(-[a-z-]+)?-(width|radius)|outline-(width|offset)|stroke-width|color|background(-color)?|fill|stroke|[a-z-]+-color)$/;
+// Properties whose value can be a colour, so a colour name on them is a raw colour (shorthands included).
+const COLOURED =
+  /^(color|background|fill|stroke|outline|border(-(top|right|bottom|left|block|inline)(-(start|end))?)?|column-rule|text-decoration|text-emphasis|[a-z-]+-color)$/;
 // Properties React writes without a unit, so a bare number on them is not pixels.
 const UNITLESS = new Set(['line-height', 'font-weight', 'stroke-width', 'border-image-width']);
 
@@ -190,7 +198,8 @@ function bareNumber(value: string): boolean {
 function rawKind(property: string, value: string): InlineRawValue['kind'] | null {
   const texts = literals(value).map((t) => t.replace(/var\([^)]*\)/g, ''));
   if (texts.some((t) => LENGTH.test(t))) return 'length';
-  if (texts.some((t) => COLOUR_VALUE.test(t) || namesColour(t))) return 'colour';
+  const names = COLOURED.test(property) || property.startsWith('--');
+  if (texts.some((t) => COLOUR_VALUE.test(t) || (names && namesColour(t.replace(/url\([^)]*\)/g, ''))))) return 'colour';
   if (MEASURED.test(property) && bareNumber(value)) return 'bare number';
   return null;
 }
