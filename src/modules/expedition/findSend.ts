@@ -7,7 +7,8 @@
 // while nothing it made has changed since, with the knowledge of an item it taught (uf-2). No screen: the sheets are K16c.
 import { defineCommand, fromError, isGm, isMember, ok, failed, type CommandResult } from '../../core/commands.ts';
 import type { Json } from '../../core/database.types.ts';
-import type { LogEvent } from '../../core/events.ts';
+import { loadTargetLog, type LogEvent } from '../../core/events.ts';
+import type { Db } from '../../core/supabase.ts';
 import type { Coins, HoardRow } from './hoard.ts';
 
 /** One thing to send: an item of the setting rules by its library entry, or a one-off by its words. */
@@ -141,7 +142,7 @@ function findOf(event: LogEvent): { to: string | null; placeId: string | null; r
  * a send named, to whom (`to` null: the party stash) and by which line. The latest send of a row wins; a send that was
  * undone (any of its lines reversed) and another place's send mark nothing.
  */
-export function sentRows(events: readonly LogEvent[], placeId: string): Map<string, { to: string | null; eventId: string }> {
+export function sentRows(events: readonly LogEvent[], placeId: string): Map<string, { to: string | null; eventId: string; seq: number }> {
   const reverted = new Set(events.map((e) => e.revertsEventId).filter((id): id is string => !!id));
   const sends = new Map<string, LogEvent[]>();
   for (const e of events) {
@@ -149,19 +150,34 @@ export function sentRows(events: readonly LogEvent[], placeId: string): Map<stri
     const key = e.requestId ?? e.id;
     sends.set(key, [...(sends.get(key) ?? []), e]);
   }
-  const out = new Map<string, { to: string | null; eventId: string }>();
+  const out = new Map<string, { to: string | null; eventId: string; seq: number }>();
   const ordered = [...sends.values()].map((lines) => [...lines].sort((a, b) => a.seq - b.seq)).sort((a, b) => a[0]!.seq - b[0]!.seq);
   for (const lines of ordered) {
     if (lines.some((e) => reverted.has(e.id))) continue;
     // The place and the rows are on the send's GM-only line (rp-4): the GM reads them; a player's lines name neither.
     const find = lines.map(findOf).find((f) => f !== null && f.placeId !== null);
     if (!find || find.placeId !== placeId) continue;
-    for (const row of find.rows) out.set(row, { to: find.to, eventId: lines[0]!.id });
+    for (const row of find.rows) out.set(row, { to: find.to, eventId: lines[0]!.id, seq: lines[0]!.seq });
   }
   return out;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * The campaign clock now and its changes in the log (sf-8, TR1: when a find was sent, "Sent to Wren, turn 3."): the
+ * send stores no game time, so the clock at a send is read from the clock's own changes around it (`secondsAt`). Null
+ * when either can't be read.
+ */
+export async function loadClockChanges(db: Db, campaignId: string): Promise<{ seconds: number; changes: LogEvent[] } | null> {
+  const clock = await db.from('campaign_clocks').select('id, seconds').eq('campaign_id', campaignId).maybeSingle();
+  if (clock.error || !clock.data) return null;
+  const row = clock.data as { id: string; seconds: number };
+  const log = await loadTargetLog(db, campaignId, 'campaign_clocks', row.id);
+  if (!log) return null;
+  const changes = log.flatMap((entry) => entry.events).filter((e) => e.targetTable === 'campaign_clocks' && e.targetId === row.id);
+  return { seconds: Number(row.seconds), changes: [...new Map(changes.map((e) => [e.id, e])).values()].sort((a, b) => a.seq - b.seq) };
+}
 
 /**
  * The coin a find put in a purse (K21, PK3), from the find's log lines this reader may read: the `find.give` line on
