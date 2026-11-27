@@ -356,7 +356,19 @@ function twoAreas() {
   };
   /** The Area's name a row carries, by the route it is for (#122's ⚑ 1); undefined when no row is sent for it. */
   const areaOf = async (routeId: string, group = 1) => (await sent()).find((r) => r.route_id === routeId && r.group_number === group)?.to_area_name;
-  return { world, gm, player, other, stranger, campaign, ash, to, visit, show, beenAt, sent, farOf, areaOf, placeRow };
+  /** The pack files these fields of a location among its GM-only fields: kept apart, as the database's split does. */
+  const hide = (entryId: string, ...fields: string[]) => {
+    const entry = world.tables.library_entries.find((e) => e.pack_entry_id === entryId)!;
+    const data = { ...(entry.data as Record<string, unknown>) };
+    const hidden: Record<string, unknown> = { gmOnly: fields };
+    for (const field of fields) {
+      if (field in data) hidden[field] = data[field];
+      delete data[field];
+    }
+    entry.data = data;
+    world.tables.library_entry_secrets.push({ id: entry.id, pack_id: entry.pack_id, data: hidden });
+  };
+  return { world, gm, player, other, stranger, campaign, ash, to, visit, show, beenAt, sent, farOf, areaOf, placeRow, hide };
 }
 
 describe("a way's map number, and Elsewhere (sf-9, sf-19)", () => {
@@ -526,16 +538,89 @@ describe("a way's map number, and Elsewhere (sf-9, sf-19)", () => {
     expect(await areaOf(to.shed)).toBe('The drowned port');
     harbourPlace.undone = true;
     expect(await areaOf(to.shed)).toBe('The old port');
-    // A room's rows stand under the place it is in, once the group has stood there; a place in no Area under none.
-    expect(await areaOf(to.cellar)).toBeNull();
-    const shed = world.tables.library_entries.find((e) => e.pack_entry_id === 'gh-shed')!;
-    shed.data = { ...(shed.data as Record<string, unknown>), playerView: { name: 'A tarred shed' } };
-    expect(await areaOf(to.cellar)).toBeNull();
-    beenAt('place-shed');
-    expect(await areaOf(to.cellar)).toBe('A tarred shed');
+    // A place in no Area stands under none. (A room's rows, and the place it is in: the next test.)
     beenAt('place-moor');
     expect(await areaOf(to.moor)).toBeNull();
     expect(JSON.stringify(await sent())).not.toContain(HARBOUR);
+  });
+
+  // Purpose: the review of #122, finding 1: ⚑ 1 sends an Area's name, and the place a room is in (a cellar's shed) is
+  // no Area. Its players' name is a place's name: never sent on a visit alone, only once the group has explored that
+  // place (a piece of it shown), the far end's own test; a show taken back takes it back. And a container whose
+  // `type` the pack files among its GM-only fields is not plainly an Area: it is named by the same narrower test.
+  it('the place a room is in is named only once the group has explored it; a visit alone names an Area only', async () => {
+    const { world, player, to, beenAt, show, sent, farOf, areaOf, hide } = twoAreas();
+    world.signInAs(player);
+    const shed = world.tables.library_entries.find((e) => e.pack_entry_id === 'gh-shed')!;
+    shed.data = { ...(shed.data as Record<string, unknown>), type: 'site', playerView: { name: 'A tarred shed' } };
+    world.tables.places.find((p) => p.id === 'place-shed')!.players_name = 'A tarred shed';
+    expect(await areaOf(to.cellar)).toBeNull();
+    // The group has stood in the shed, shown nothing of it: the cellar has its number, and the shed's name stays unsent.
+    beenAt('place-shed');
+    expect(await farOf(to.cellar)).toEqual({ place: null, name: null, number: '4a', elsewhere: false });
+    expect(await areaOf(to.cellar)).toBeNull();
+    expect(JSON.stringify(await sent())).not.toContain('A tarred shed');
+    // Shown a piece of the shed, the group has explored it: now its players' name stands over the cellar's row.
+    const visit = world.tables.group_places.find((v) => v.place_id === 'place-shed')!;
+    show(String(visit.id), 1, 'place-shed');
+    expect(await areaOf(to.cellar)).toBe('A tarred shed');
+    world.tables.piece_shows.find((sh) => sh.group_place_id === visit.id)!.shown = false;
+    expect(await areaOf(to.cellar)).toBeNull();
+    // The strand is an Area: named on a visit. With its `type` filed among the GM-only fields, it is not.
+    beenAt('place-dunes');
+    expect(await areaOf(to.landing)).toBe(STRAND_FOR_PLAYERS);
+    hide('gh-strand', 'type');
+    expect(await farOf(to.landing)).toEqual({ place: null, name: null, number: '0', elsewhere: false });
+    expect(await areaOf(to.landing)).toBeNull();
+    expect(JSON.stringify(await sent())).not.toContain(STRAND_FOR_PLAYERS);
+  });
+
+  // Purpose: the review of #122, finding 2: a pack that files a place's `parentId` among its GM-only fields hides
+  // where that place sits, so the read cannot say its Area is known: the way leads elsewhere, with no number and no
+  // Area's name, even when the places the group has stood at hide theirs the same way. A visited place that hides
+  // where it sits does not count as standing in no Area either. An explored place stays explored (its place and
+  // name, as before sf-9), without its number.
+  it('a place whose `parentId` the pack files among its GM-only fields leads elsewhere, with no number', async () => {
+    const { world, player, to, beenAt, show, sent, farOf, areaOf, hide } = twoAreas();
+    const ELSEWHERE = { place: null, name: null, number: null, elsewhere: true };
+    world.signInAs(player);
+    beenAt('place-dunes');
+    expect(await farOf(to.landing)).toEqual({ place: null, name: null, number: '0', elsewhere: false });
+    // The strand's two places hide where they sit; the group has stood at one of them.
+    hide('gh-dunes', 'parentId');
+    hide('gh-landing', 'parentId');
+    expect(await farOf(to.landing)).toEqual(ELSEWHERE);
+    expect(await farOf(to.dunes)).toEqual(ELSEWHERE);
+    expect(await areaOf(to.landing)).toBeNull();
+    expect(JSON.stringify(await sent())).not.toMatch(/"to_number":"(0|7)"/);
+    expect(JSON.stringify(await sent())).not.toContain(STRAND_FOR_PLAYERS);
+    // The moor sits in no Area. The dunes only look as if they did not: standing there earns nothing for the moor.
+    expect(await farOf(to.moor)).toEqual(ELSEWHERE);
+    // The harbour's places, which hide nothing, are as before.
+    expect(await farOf(to.shed)).toEqual({ place: null, name: null, number: '4', elsewhere: false });
+    // An explored place that hides where it sits: its place and players' name as before, and no number.
+    beenAt('place-mole');
+    show(String(world.tables.group_places.find((v) => v.place_id === 'place-mole')!.id), 1, 'place-mole');
+    expect(await farOf(to.mole)).toEqual({ place: 'place-mole', name: 'A stone mole', number: '3', elsewhere: false });
+    hide('gh-mole', 'parentId');
+    expect(await farOf(to.mole)).toEqual({ place: 'place-mole', name: 'A stone mole', number: null, elsewhere: false });
+    expect(await areaOf(to.mole)).toBeNull();
+    // A list of GM-only fields that names `parentId` on a place that has none hides nothing: the moor, once earned.
+    hide('gh-moor', 'parentId');
+    beenAt('place-moor');
+    expect(await farOf(to.moor)).toEqual({ place: null, name: null, number: '12', elsewhere: false });
+  });
+
+  // Purpose: the review of #122, finding 5: a players' name of the campaign's place that is only blanks is no name: it
+  // is not sent, and the pack's name for players stands in; a name with blanks around it is sent trimmed.
+  it('a blank players’ name on the campaign’s place is no name: the pack’s stands in', async () => {
+    const { world, player, to, beenAt, areaOf, placeRow } = twoAreas();
+    world.signInAs(player);
+    beenAt('place-dunes');
+    placeRow('place-strand', 'gh-strand', STRAND, ' \t ');
+    expect(await areaOf(to.landing)).toBe(STRAND_FOR_PLAYERS);
+    world.tables.places.find((p) => p.id === 'place-strand')!.players_name = '  The white strand ';
+    expect(await areaOf(to.landing)).toBe('The white strand');
   });
 
   // Purpose: hidden means hidden: no answer, the player's, the other player's or the GM's, carries a pack id, the

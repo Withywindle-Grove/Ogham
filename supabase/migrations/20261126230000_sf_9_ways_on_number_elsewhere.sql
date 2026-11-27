@@ -2,7 +2,8 @@
 -- "Yes, both", 2026-11-26; sf-19, "Once they have been there"; design/rulings/scene-feedback-2026-11-25.md, "What
 -- reaches a player's device"; 03-roles-permissions.md, The ways on; plan docs/plans/dec-scene-feedback.md, batch C1).
 -- Hard rule 5. And the Area's name of a way into an Area the group knows (#122's ⚑ 1, Francis "Send a visited Area's
--- name", 2026-11-26): changed in place before this file was applied anywhere.
+-- name", 2026-11-26): changed in place before this file was applied anywhere. And again after the local review of
+-- #122 (2026-11-27, five findings, each settled on the side that sends less), still before it was applied anywhere.
 --
 -- public.campaign_ways_on answers with three more facts a way:
 --   * to_number: the far place's map number, as the pack writes it (its location's `key`), sent only when the far
@@ -11,7 +12,9 @@
 --     the Areas the group knows. Such a row carries no number, no place, no name, and never the Area's name.
 --   * to_area_name: for a way that does not lead elsewhere, the players' name of the place the far place sits in (its
 --     Area), where one was given: the name for players of the campaign's place made from it, else the pack's
---     (`playerView.name`). Never the Area's own name (the GM's): an Area with no players' name sends none.
+--     (`playerView.name`). Never the Area's own name (the GM's): an Area with no players' name sends none. Only an
+--     Area (the pack's `type` "area") is named on a visit alone; any other place a far place sits in (the shed a
+--     cellar is in) is a place, named only once the group has explored it.
 -- "A place the group knows" (sf-19): the group has been at a place inside it (a visit not undone, of an expedition
 -- not undone), whether or not anything was shown there. Nothing else of the answer changes: which rows are sent, the
 -- far end's place and players' name, and each way's by, name, value and unit are as they were.
@@ -54,12 +57,22 @@ drop function public.campaign_ways_on(uuid);
 --   itself or at a place inside it, at any depth (private.place_chain). A far place with no container (the top of
 --   the pack) counts as known only when the group has stood at a place that has none either: from inside an Area,
 --   a way to a place in no Area leads out of the Areas the group knows.
+--   A pack that files a place's `parentId` among its GM-only fields hides where that place sits (the review of #122,
+--   finding 2): the read cannot say its Area is known, so the way to it is (3), no number and no Area's name, unless
+--   the place is explored, when it keeps its place and name (as before sf-9) and still has no number. A visited place
+--   that hides its own `parentId` does not count as a place with no container.
 --   to_area_name (#122's ⚑ 1), under (1) and (2) only, never under (3): the players' name of the far place's
 --   container, the same place whose visit makes the way known. It is the `players_name` of the campaign's place made
---   from that container when it has one, else the pack entry's `playerView.name` when it is text (trimmed, at most
---   200 characters), read from the part of the entry every reader reads. Null when neither is given (never the
---   entry's own name, never its id), and null for a far place with no container. The Area the group stands in is
---   named by the same rule; the players' place card (public.place_card_for_players) names it as before.
+--   from that container when it has one (trimmed; only blanks is none), else the pack entry's `playerView.name` when
+--   it is text (trimmed, at most 200 characters), read from the part of the entry every reader reads. Null when
+--   neither is given (never the entry's own name, never its id), and null for a far place with no container. The
+--   Area the group stands in is named by the same rule; the players' place card (public.place_card_for_players)
+--   names it as before.
+--   Which container is named (the review of #122, finding 1; ⚑ 1 is "a visited Area's name", an Area's only): one
+--   that is an Area, its `type` plainly "area" in the part of the entry every reader reads (a pack that files `type`
+--   among its GM-only fields has no Area here), on the visit that makes the way known; any other container (a place
+--   with rooms) only when the group has itself explored it, a piece of it shown on some visit, the far end's own
+--   test: a place's name is never sent before the place is explored.
 --   And no far end is named until something of the place the group is standing in has been shown to it (mc-28b,
 --   Francis "a", 2026-11-12), on this visit or an earlier one (mc-28c: what has been revealed stays known): the same
 --   test as for the far end. Until then NO row is sent for that group (mc-28b: "until the GM shows a piece of the
@@ -71,12 +84,12 @@ returns table (group_number integer, route_id uuid, to_place_id uuid, to_name te
 language sql stable security definer set search_path = '' as $$
   select g.number, r.id, far.id, case when far.id is not null then coalesce(nullif(far.players_name, ''), far.name) end,
     private.route_ways(w.whole -> 'travel'),
-    case when reach.known then far_in.number end,
+    case when reach.known and not far_in.container_hidden then far_in.number end,
     not reach.known,
-    -- The Area's players' name (#122's ⚑ 1): only for a way that does not lead elsewhere, and only a name given for
-    -- players; never the Area's own name.
-    case when reach.known and far_in.container <> '' then coalesce(
-      (select nullif(a.players_name, '') from public.places a
+    -- The Area's players' name (#122's ⚑ 1): only for a way that does not lead elsewhere, only for an Area or a place
+    -- the group has explored (far_area), and only a name given for players; never the Area's own name.
+    case when reach.known and far_in.container <> '' and far_area.nameable then coalesce(
+      (select nullif(btrim(a.players_name, E' \t\n\r'), '') from public.places a
        where a.campaign_id = g.campaign_id and a.pack_id = here.pack_id and a.pack_entry_id = far_in.container and not a.undone),
       (select case when jsonb_typeof(ae.data #> '{playerView,name}') = 'string'
          then nullif(left(btrim(ae.data #>> '{playerView,name}', E' \t\n\r'), 200), '') end
@@ -120,16 +133,21 @@ language sql stable security definer set search_path = '' as $$
   -- The far place as the pack has it (sf-9): its map number and the place it sits in. Read here, never sent as
   -- written; one row at most (pack, kind and entry id are unique together).
   left join public.library_entries fe on fe.pack_id = here.pack_id and fe.kind = 'location' and fe.pack_entry_id = f.far_entry
+  -- Its GM-only part, read for one thing only: whether the pack hides where the place sits (one row at most).
+  left join public.library_entry_secrets fes on fes.id = fe.id
   cross join lateral (
     select
       case when jsonb_typeof(fe.data -> 'key') = 'string' then nullif(left(btrim(fe.data ->> 'key', E' \t\n\r'), 200), '') end as number,
-      case when jsonb_typeof(fe.data -> 'parentId') = 'string' then btrim(fe.data ->> 'parentId', E' \t\n\r') else '' end as container
+      case when coalesce(fes.data ? 'parentId', false) then ''
+        when jsonb_typeof(fe.data -> 'parentId') = 'string' then btrim(fe.data ->> 'parentId', E' \t\n\r') else '' end as container,
+      coalesce(fes.data ? 'parentId', false) as container_hidden
   ) far_in
   -- Whether the group knows the far place or where it sits (sf-19): explored, or one of its visits stood at the far
   -- place's container or inside it; with no container, at a place that has none either.
   cross join lateral (
     select far.id is not null or (
       fe.id is not null
+      and not far_in.container_hidden
       and exists (
         select 1
         from public.places q
@@ -146,11 +164,29 @@ language sql stable security definer set search_path = '' as $$
           )
           and case
             when far_in.container = '' then c.depth = 0 and up.container = ''
+              and not exists (select 1 from public.library_entry_secrets cs where cs.id = (c.entry).id and cs.data ? 'parentId')
             else far_in.container in ((c.entry).pack_entry_id, up.container)
           end
       )
     ) as known
   ) reach
+  -- Whether the far place's container may be named to this group: it is an Area as the pack has it, or a place the
+  -- group has itself explored (a piece of it shown on some visit: the far end's own test above).
+  cross join lateral (
+    select exists (
+      select 1 from public.library_entries ae
+      where ae.pack_id = here.pack_id and ae.kind = 'location' and ae.pack_entry_id = far_in.container
+        and jsonb_typeof(ae.data -> 'type') = 'string' and btrim(ae.data ->> 'type', E' \t\n\r') = 'area'
+    ) or exists (
+      select 1
+      from public.places a
+      join public.group_places v on v.campaign_id = g.campaign_id and v.place_id = a.id and v.group_number = g.number and not v.undone
+      join public.expeditions x on x.id = v.expedition_id and not x.undone
+      join public.piece_shows s on s.group_place_id = v.id and s.shown and not s.undone
+      join public.place_pieces pc on pc.id = s.piece_id and not pc.undone
+      where a.campaign_id = g.campaign_id and a.pack_id = here.pack_id and a.pack_entry_id = far_in.container and not a.undone
+    ) as nameable
+  ) far_area
   where g.campaign_id = campaign
     and (private.is_gm(campaign) or private.in_my_group(campaign, g.number))
     -- mc-28b: no ways at all until something of this place has been shown to the group.
