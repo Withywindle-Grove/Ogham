@@ -486,6 +486,28 @@
   scrollbar-color: transparent transparent;
 }
 
+/* The left column says more lies beyond (plan dec-14 row 5, frame 38-5): a 32 px fade on an edge only while something
+   is cut there (`useCutEdges` in PlayerScreen.tsx sets the two classes). A mask, not a layer over the column: it draws
+   nothing, so it never catches a tap, and what fades shows the page behind it. Only the mask's alpha counts, so the
+   opaque stop is any opaque token (Ink) and the faded edge is transparent. */
+.player--wide > .player__pane--cut-above {
+  --cut-above: transparent;
+}
+
+.player--wide > .player__pane--cut-below {
+  --cut-below: transparent;
+}
+
+.player--wide > :is(.player__pane--cut-above, .player__pane--cut-below) {
+  mask-image: linear-gradient(
+    to bottom,
+    var(--cut-above, var(--ink)),
+    var(--ink) var(--space-6),
+    var(--ink) calc(100% - var(--space-6)),
+    var(--cut-below, var(--ink))
+  );
+}
+
 /* A browser without `scrollbar-color` (Safari before it, older Chromium) draws the bar from these: a transparent thumb
    and track, at the bar's own width, so nothing moves. */
 @supports not (scrollbar-color: transparent transparent) {

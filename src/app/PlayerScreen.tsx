@@ -77,6 +77,47 @@ function TabPopUps({ children }: { children: ReactNode }) {
   );
 }
 
+/** Where a scrolling column has something cut from view: above (it is scrolled) and below (more lies beyond). */
+type CutEdges = { above: boolean; below: boolean };
+const NOTHING_CUT: CutEdges = { above: false, below: false };
+
+/**
+ * The left column's cut edges (plan dec-14 row 5, frame 38-5): measured again as it scrolls, as it changes size, and as
+ * its parts change (the first open, a row added), once a frame at most. A column that doesn't scroll has none.
+ */
+function useCutEdges(column: HTMLElement | null): CutEdges {
+  const [cut, setCut] = useState<CutEdges>(NOTHING_CUT);
+  useEffect(() => {
+    if (!column) return;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      // A pixel's leeway each way: a zoomed screen scrolls by fractions of one.
+      const above = column.scrollTop > 1;
+      const below = column.scrollHeight - column.clientHeight - column.scrollTop > 1;
+      setCut((was) => (was.above === above && was.below === below ? was : { above, below }));
+    };
+    const soon = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+    soon();
+    column.addEventListener('scroll', soon, { passive: true });
+    // Not in every runner (the unit tests' page has none); the scroll and the changed parts still measure it.
+    const resized = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(soon) : null;
+    resized?.observe(column);
+    const changed = new MutationObserver(soon);
+    changed.observe(column, { childList: true, subtree: true, characterData: true, attributes: true });
+    void document.fonts?.ready.then(soon);
+    return () => {
+      cancelAnimationFrame(frame);
+      column.removeEventListener('scroll', soon);
+      resized?.disconnect();
+      changed.disconnect();
+    };
+  }, [column]);
+  return column ? cut : NOTHING_CUT;
+}
+
 export function PlayerScreen({
   db,
   user,
@@ -182,6 +223,10 @@ export function PlayerScreen({
   const [opened, setOpened] = useState(false);
   const [readAgain, setReadAgain] = useState(0);
   const onPackRead = useCallback(() => setPackRead(true), []);
+  // The left column, where it scrolls by itself (a landscape tablet, the Player tab): a fade on an edge only while
+  // something is cut there (plan dec-14 row 5, frame 38-5).
+  const [playColumn, setPlayColumn] = useState<HTMLElement | null>(null);
+  const cut = useCutEdges(playColumn);
 
   useEffect(() => {
     let current = true;
@@ -407,7 +452,14 @@ export function PlayerScreen({
       {/* Every pop-up on Player and Pack is a Sheet (plan m5b-players-screens-standard A4); Scene keeps its own until
           the sweep. */}
       <SheetScope.Provider value={tab !== 'scene'}>
-      <div className={current === 'player' ? 'player__pane player__pane--play' : 'player__pane'}>
+      <div
+        ref={wide && current === 'player' ? setPlayColumn : undefined}
+        className={
+          current === 'player'
+            ? `player__pane player__pane--play${cut.above ? ' player__pane--cut-above' : ''}${cut.below ? ' player__pane--cut-below' : ''}`
+            : 'player__pane'
+        }
+      >
         <RetiredBanner db={db} user={user} campaign={campaign} />
         {current === 'player' ? (
           // The left column (dec-13 C1, ps-2): the head, hit points, armour class and attack, At hand (the weapon in
