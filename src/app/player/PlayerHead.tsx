@@ -87,9 +87,28 @@ export function PlayerHead({
     <div className={fixed ? 'player-head player-head--fixed' : 'player-head'}>
       <PortraitTap db={db} user={user} character={character} onSaved={onPortraitSaved} size="head" />
       <div className="player-head__side">
-        {/* The name is the bar's title (here for screen readers only). */}
-        <h1 className="visually-hidden">{character.name}</h1>
-        {line && <p className="player-head__line">{line}</p>}
+        {notices && !phone ? (
+          // A tablet held upright (dec-14 row 3, frame 38-3; ruled 2026-11-24, 2 and 8): while the bar's title is cut
+          // the name leaves the bar and leads the head's line, whole and wrapping, before "the" kindred and the title
+          // (PlayerScreen.css), so it shows once. A short name stays the bar's, as frame P2 draws it.
+          <div className="player-head__words">
+            <h1 className="player-head__name">{character.name}</h1>
+            {line && (
+              <>
+                <span className="player-head__sep" aria-hidden="true">
+                  {line.startsWith('the ') ? ' ' : ', '}
+                </span>
+                <p className="player-head__line">{line}</p>
+              </>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* The name is the bar's title (here for screen readers only). */}
+            <h1 className="visually-hidden">{character.name}</h1>
+            {line && <p className="player-head__line">{line}</p>}
+          </>
+        )}
         {notices ?? rings}
       </div>
       {notices && <div className="player-head__rings">{rings}</div>}

@@ -177,6 +177,36 @@
   overflow-wrap: anywhere;
 }
 
+/* A tablet held upright (dec-14 row 3, frame 38-3; ruled 2026-11-24, 2 and 8): the head's words are one paragraph, the
+   name, then "the" kindred and the title. The name is drawn only while the bar's title is cut ("…"); then the bar's
+   title leaves (hidden, keeping its box so the bar stays steady and its width can still be read) and the name shows
+   once, whole, wrapping. Otherwise the name is for screen readers only and the line reads as frame P2 draws it. */
+.player-head__words {
+  font-size: var(--text-20);
+  font-weight: var(--weight-heading);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.player-head__words > * {
+  display: inline;
+  margin: 0;
+  font: inherit;
+}
+
+.player:not(:has(.top-row__title--cut)) :is(.player-head__name, .player-head__sep) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.player:has(.player-head__name) .top-row__title--cut {
+  visibility: hidden;
+}
+
 /* The aligned top (dec-13 C2, moved from C3; ls-1; P1's note; M1a): in two columns the notices box (64 px) and the
    right column's Scores heading under it, with its rule line, are as tall as the head beside them (96 px), the
    heading's words at its foot, and the scores follow it by the left column's own gap (the pane's 24 px), so the first

@@ -100,6 +100,29 @@ export function TopRow({
     const at = document.activeElement;
     if (at === null || at === document.body) heading.current?.focus({ preventScroll: true });
   }, [named]);
+  // Whether the standard bar's title is cut, ending in "…" (dec-14 row 3, ruled 2026-11-24, 2 and 8): a screen whose
+  // head can carry the name (the Player tab on a tablet held upright, PlayerScreen.css) then takes it out of the bar,
+  // so the name shows once. Measured, not guessed: the span keeps its box while hidden, so the reading stays steady.
+  // Not in the GM's view (`named`), whose title takes the focus as the view opens.
+  const shownTitle = standard ? (title ?? (withDrawer ? drawer : undefined)) : undefined;
+  const [cut, setCut] = useState(false);
+  useEffect(() => {
+    const el = heading.current;
+    if (!el || named || !shownTitle) {
+      setCut(false);
+      return;
+    }
+    let current = true;
+    const measure = () => current && setCut(el.scrollWidth > el.clientWidth + 1);
+    measure();
+    void document.fonts?.ready.then(measure);
+    const watch = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null;
+    watch?.observe(el);
+    return () => {
+      current = false;
+      watch?.disconnect();
+    };
+  }, [named, shownTitle]);
   // Its height, for what sticks below it (the landscape tabs, Add item's search). It grows with the text size.
   useEffect(() => {
     const el = row.current;
@@ -125,7 +148,7 @@ export function TopRow({
     ) : null;
     return (
       <div ref={row} className="top-row top-row--standard">
-        <div className={`top-row__lead${named && !withDrawer && !campaign ? ' top-row__lead--named' : ''}`}>
+        <div className={`top-row__lead${named && !withDrawer && !campaign ? ' top-row__lead--named' : ''}${campaign && !withDrawer ? ' top-row__lead--worded' : ''}`}>
           {withDrawer ? (
             <DrawerStart title={title ?? drawer} drawerTitle={drawer} onYourCampaigns={onBack} bare />
           ) : campaign ? (
@@ -142,9 +165,9 @@ export function TopRow({
             </button>
           )}
         </div>
-        {(title ?? (withDrawer ? drawer : undefined)) ? (
-          <span ref={heading} className="top-row__title top-row__title--centred" {...(named ? { tabIndex: -1 } : {})}>
-            {title ?? drawer}
+        {shownTitle ? (
+          <span ref={heading} className={`top-row__title top-row__title--centred${cut ? ' top-row__title--cut' : ''}`} {...(named ? { tabIndex: -1 } : {})}>
+            {shownTitle}
           </span>
         ) : (
           <span />
