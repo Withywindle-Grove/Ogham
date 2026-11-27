@@ -163,6 +163,15 @@ export function hoardRows(piece: { kind: string; text: string; lead?: string | n
 export const thingWords = (row: Pick<ThingRow, 'text' | 'qty'>): string => (row.qty > 1 ? `${row.text} ×${row.qty}` : row.text);
 
 /**
+ * The one thing a Treasure piece hands out (sf-8; page 44, TR1 "One thing"): a hoard of a single thing row, one of it.
+ * Null for a count: several rows, a thing with a count over 1, or coin. Pure.
+ */
+export function oneThing(hoard: Pick<Hoard, 'rows'>): ThingRow | null {
+  const [only, ...more] = hoard.rows;
+  return only && more.length === 0 && only.kind === 'thing' && only.qty === 1 ? only : null;
+}
+
+/**
  * The thing a magic item's piece tells the truth of (B15, p2p-29): the piece is led by the item's real name, and the
  * place's treasure entry whose `magicItem` has that name is the thing (`entry`, its place in the treasure list, as a
  * hoard row's). Null for any other piece, or when no entry has that name. Pure; never throws.

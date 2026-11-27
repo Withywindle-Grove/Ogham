@@ -67,7 +67,7 @@ import { KnowledgeSheet, useKnowledgeSharing } from './KnowledgeSheet.tsx';
 import type { TurnClock } from '../modules/expedition/placeKnowledge.ts';
 import { MoveOnWiring } from './MoveOn.tsx';
 import { useHoards } from './HoardSheet.tsx';
-import { AddPiece, NotesFold, PictureSection, PieceRow, usePieceNames } from './PlaceCard.tsx';
+import { AddPiece, NotesFold, PictureSection, PieceRow, usePieceNames, type DroppedWords } from './PlaceCard.tsx';
 import { BookTextFold, PlaceTable } from './PlaceFacts.tsx';
 import { PlacePicker } from './PlacePicker.tsx';
 import { PlaceRuleButtons, PlaceRulesSheet, useStandInCheck } from './PlaceRules.tsx';
@@ -310,8 +310,31 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
 
   const actions = usePlaceActions({ db, user, campaign, group, groupLabel, row, regionalTables, packPlaces, onChanged });
   const { editing, setEditing, who } = actions;
+  // sf-16 (page 44, EP1 E): the words "Changes dropped." left, for its Undo to open that piece's form with them again.
+  // Every other way in (the arrow, a find sheet's edit row) opens the form from the piece's own words.
+  const [kept, setKept] = useState<(DroppedWords & { pieceId: string }) | null>(null);
+  const editPiece = (piece: Piece) => {
+    setKept(null);
+    setEditing(piece);
+  };
+  // Read by the Undo when it is tapped, not when the toast was shown (set below, once the find sheets are known).
+  const now = useRef({ busy: editing !== null, pieces });
+  /**
+   * "Changes dropped."'s Undo: the piece's form again, as typed. A form or find sheet open by then stays as it is (a
+   * form keeps its words); a piece gone, nothing.
+   */
+  const reopen = (pieceId: string, words: DroppedWords) => {
+    if (now.current.busy) return;
+    const piece = now.current.pieces.find((p) => p.id === pieceId);
+    if (!piece) return;
+    setKept({ ...words, pieceId });
+    setEditing(piece);
+  };
   // B15 (page 30): a hoard's piece opens its hoard; a magic item's eye also names the item wherever it is held.
-  const hoards = useHoards({ db, user, campaign, row, place: readEntry?.data ?? null, placeName: place ? numberedName(current?.key ?? null, place.name) : '', phone, onEdit: setEditing, onChanged });
+  const hoards = useHoards({ db, user, campaign, row, place: readEntry?.data ?? null, placeName: place ? numberedName(current?.key ?? null, place.name) : '', phone, turns, onEdit: editPiece, onChanged });
+  useEffect(() => {
+    now.current = { busy: editing !== null || hoards.isOpen, pieces };
+  });
 
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   // The eye on each section of the Knowledge sheet (P4, p4s-2): shared with this group. Reading ahead, it works on the
@@ -330,7 +353,8 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
   // "Waiting for you" has an answer, its first then the accent (W1; S8). An open item with no answer (a player's item)
   // gives none, so Move on holds it then (the model's rule 6).
   const waitingAccent = useWaitingAccentItem();
-  const moveOnAccent = accentOwner({ running: !paused, page: true, waiting: waitingAccent !== null && waitingAccent !== undefined }) === 'move';
+  // While a find sheet or Edit piece is open, its own button is the accent and Move on is plain (page 44, TR1's note).
+  const moveOnAccent = accentOwner({ running: !paused, page: true, waiting: waitingAccent !== null && waitingAccent !== undefined }) === 'move' && !editing && !hoards.isOpen;
 
   const total = pieces.length + (picture ? 1 : 0);
   const shownTotal = shownCount(pieces) + (picture?.shown ? 1 : 0);
@@ -557,7 +581,7 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
               names={names}
               named={named}
               onToggle={() => void (!piece.shown && hoards.isMagic(piece) ? hoards.showTruth(piece) : actions.togglePiece(piece))}
-              onEdit={() => setEditing(piece)}
+              onEdit={() => editPiece(piece)}
               onOpen={hoards.opens(piece) ? () => hoards.open(piece) : undefined}
               note={hoards.noteOf(piece)}
             />
@@ -576,6 +600,8 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
             who={who}
             onAdd={(kind, text) => actions.edit(editing, kind, text)}
             onRemove={() => void actions.remove(editing)}
+            kept={kept?.pieceId === editing.id ? kept : undefined}
+            onReopen={(words) => reopen(editing.id, words)}
             onClose={() => setEditing(null)}
           />
         ) : (

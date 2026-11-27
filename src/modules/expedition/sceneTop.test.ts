@@ -10,7 +10,9 @@ import {
   checkSheetLines,
   dateWords,
   departAreaName,
+  departAreaOf,
   departLocationGroups,
+  departOpenGroup,
   departMethodOf,
   departModeOf,
   departSheetModeOf,
@@ -350,6 +352,38 @@ describe('the Depart sheet of p2p-5 (plan scene-point-to-point B7; page 24, DP1)
     const b = place('b', 'Loop B', 'site', 'a');
     // The loop's places are no pack's roots, so the walk never reaches them; the rest still lists, and nothing hangs.
     expect(departLocationGroups([a, b, anchorage]).flatMap((g) => g.locations.map((p) => p.name))).toEqual(['The Anchorage']);
+  });
+
+  // Purpose (sf-2, ⚑ 10): the group that starts open is the Area of the newest place played that a group lists (a
+  // Location's Area, or an Area stood at before p2p-2), skipping a typed place or one no group lists; else the first.
+  it('opens the Area last played, else the first', () => {
+    const all = [isle, harbour, anchorage, jetty, beach, landing, room, lone];
+    const groups = departLocationGroups(all);
+    const visit = (p: PackPlace | null) => ({ pack: p ? { packId: p.packId, entryId: p.entryId, type: p.type, parentId: p.parentId ?? '', key: p.key ?? '' } : null });
+    expect(departOpenGroup(groups, all, [visit(null), visit(room), visit(landing), visit(jetty)])).toBe('pack-isle:beach');
+    expect(departOpenGroup(groups, all, [visit(harbour)])).toBe('pack-isle:harbour');
+    expect(departOpenGroup(groups, all, [visit(lone)])).toBe('pack:pack-isle');
+    expect(departOpenGroup(groups, all, [])).toBe('pack-isle:harbour');
+    expect(departOpenGroup([], all, [visit(jetty)])).toBeNull();
+  });
+
+  // Purpose (the review of #124): reopened with a Location ticked, its Area opens, not the Area last played; a
+  // ticked place no group lists leaves the Area last played open.
+  it("opens the ticked Location's Area first", () => {
+    const all = [isle, harbour, anchorage, jetty, beach, landing, room, lone];
+    const groups = departLocationGroups(all);
+    const visit = (p: PackPlace) => ({ pack: { packId: p.packId, entryId: p.entryId, type: p.type, parentId: p.parentId ?? '', key: p.key ?? '' } });
+    expect(departOpenGroup(groups, all, [visit(jetty)], landing)).toBe('pack-isle:beach');
+    expect(departOpenGroup(groups, all, [visit(landing)], room)).toBe('pack-isle:beach');
+    expect(departOpenGroup(groups, all, [visit(landing)], null)).toBe('pack-isle:beach');
+  });
+
+  // Purpose (sf-2; DP3 B): a row's Area at its right is its Area, else the place above it, else the pack's name.
+  it("names a row's Area, else the place above, else the pack", () => {
+    const all = [isle, harbour, jetty, steps, hex, lone];
+    expect(departAreaOf(all, steps)).toBe('The Drowned Harbour');
+    expect(departAreaOf(all, hex)).toBe('Saltwick Island');
+    expect(departAreaOf(all, lone)).toBe('Saltwick Isle');
   });
 });
 
