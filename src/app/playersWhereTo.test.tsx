@@ -58,14 +58,13 @@ async function harbour({ routes = true, areas = false } = {}) {
   world.tables.packs.push({ id: PACK, owner_user_id: gm, campaign_id: null, name: 'Harbour', version: '0.1', kind: 'adventure', format_version: 2, source: '', notes: '', updated_at: '2026-11-20T12:00:00Z', extra_meta: {} });
   world.tables.campaign_packs.push({ id: 'link-harbour', campaign_id: campaign, pack_id: PACK, pack_name: 'Harbour', option_choices: {}, overrides: {}, priority: 1 });
   // areas: the harbour is an Area with a players' name, its places numbered; the landing on the shingle, another Area
-  // nobody has been to, is reached by rowing (sf-9; WT1 B). The Areas are typed "area", the type the read names an
-  // Area by on a visit alone (20261126230000_sf_9_ways_on_number_elsewhere.sql; reported on #122: 07 types an Area
-  // `site`, p2p-1).
+  // nobody has been to, is reached by rowing (sf-9; WT1 B). The Areas are typed "site" and their places "area", as a
+  // pack types them (p2p-1): the read names a `site` on a visit alone (20261127140000_sf_9_ways_on_area_is_site.sql).
   const inHarbour = (data: Record<string, unknown>, key: string) => (areas ? { ...data, key, parentId: 'harbour' } : data);
   const places: Record<string, unknown>[] = [inHarbour(JETTY, '1'), inHarbour(WRECK, '2'), inHarbour(SHED, '4'), inHarbour(CAVE, '5')];
   if (areas) {
-    places.push({ id: 'harbour', name: 'The Drowned Harbour', type: 'area', playerView: { name: 'The Drowned Harbour' } });
-    places.push({ id: 'shingle', name: 'The Shingle Beach', type: 'area', playerView: { name: 'The Shingle Beach' } });
+    places.push({ id: 'harbour', name: 'The Drowned Harbour', type: 'site', playerView: { name: 'The Drowned Harbour' } });
+    places.push({ id: 'shingle', name: 'The Shingle Beach', type: 'site', playerView: { name: 'The Shingle Beach' } });
     places.push({ id: 'the-landing', name: 'The landing', type: 'area', key: '0', parentId: 'shingle' });
   }
   for (const data of places) world.tables.library_entries.push({ id: `entry-${String(data.id)}`, pack_id: PACK, kind: 'location', pack_entry_id: String(data.id), name: String(data.name), data });

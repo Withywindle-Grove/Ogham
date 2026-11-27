@@ -299,8 +299,8 @@ function twoAreas() {
   addPack(world, 'pack-gull', gm, 'Gull Harbour');
   attach(world, campaign, 'pack-gull');
   const location = (id: string, data: Record<string, unknown>) => addEntry(world, 'pack-gull', 'location', id, data);
-  location('gh-harbour', { name: HARBOUR, type: 'area' });
-  location('gh-strand', { name: STRAND, type: 'area', playerView: { name: ` ${STRAND_FOR_PLAYERS} ` } });
+  location('gh-harbour', { name: HARBOUR, type: 'site' });
+  location('gh-strand', { name: STRAND, type: 'site', playerView: { name: ` ${STRAND_FOR_PLAYERS} ` } });
   location('gh-cave', { name: 'The sea cave', parentId: 'gh-harbour', key: '5' });
   location('gh-mole', { name: 'The mole', parentId: 'gh-harbour', key: ' 3 ', playerView: { name: 'A stone mole' } });
   location('gh-shed', { name: 'The tally shed', parentId: 'gh-harbour', key: '4' });
@@ -552,7 +552,7 @@ describe("a way's map number, and Elsewhere (sf-9, sf-19)", () => {
     const { world, player, to, beenAt, show, sent, farOf, areaOf, hide } = twoAreas();
     world.signInAs(player);
     const shed = world.tables.library_entries.find((e) => e.pack_entry_id === 'gh-shed')!;
-    shed.data = { ...(shed.data as Record<string, unknown>), type: 'site', playerView: { name: 'A tarred shed' } };
+    shed.data = { ...(shed.data as Record<string, unknown>), type: 'area', playerView: { name: 'A tarred shed' } };
     world.tables.places.find((p) => p.id === 'place-shed')!.players_name = 'A tarred shed';
     expect(await areaOf(to.cellar)).toBeNull();
     // The group has stood in the shed, shown nothing of it: the cellar has its number, and the shed's name stays unsent.

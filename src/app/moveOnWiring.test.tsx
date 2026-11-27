@@ -146,7 +146,8 @@ describe('Move on, wired to the time strip', () => {
     const user = userEvent.setup();
     const list = within(await sheet());
     // Nothing of either far end has been shown to the players yet.
-    expect(list.getAllByText('Not yet shown: players see “not yet explored”.')).toHaveLength(2);
+    // Each has the closed eye and what its players read (sf-9, WT1 A).
+    expect(list.getAllByRole('img', { name: 'Not shown yet. Players read:' })).toHaveLength(2);
     await user.click(await list.findByRole('button', { name: 'Move, 2 turns, to 3. The Sea Cave' }));
     const shown = await sheet();
     const step = within(shown);

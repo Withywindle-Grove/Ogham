@@ -4156,7 +4156,8 @@ export function createFakeDb(): FakeWorld {
     // the players' name of that container, the `players_name` of the campaign's place made from it, else the pack's
     // `playerView.name` when text; never the container's own name, and null when it was given neither.
     // Since the review of #122: the container is named only when it is an Area (its `type`, as every reader reads it,
-    // is plainly "area") or the group has itself explored it (a piece of it shown): a visit alone names an Area only.
+    // is plainly "site": an Area is the pack's `site`, p2p-1; …_sf_9_ways_on_area_is_site.sql) or the group has itself
+    // explored it (a piece of it shown): a visit alone names an Area only, never a Location (the pack's "area").
     // A far place whose `parentId` the pack files among its GM-only fields leads elsewhere unless explored, and has no
     // number either way; a visited place that hides its own does not count as standing in no Area. A players' name
     // that is only blanks is no name.
@@ -4228,7 +4229,7 @@ export function createFakeDb(): FakeWorld {
           const areaEntry = tables.library_entries.find((e) => e.pack_id === here.pack_id && e.kind === 'location' && e.pack_entry_id === farContainer);
           const packAreaName = ((areaEntry?.data as Row | undefined)?.playerView as Row | undefined)?.name;
           const areaType = (areaEntry?.data as Row | undefined)?.type;
-          const nameable = (typeof areaType === 'string' && areaType.trim() === 'area') || (!!areaPlace && shownToGroup(areaPlace.id));
+          const nameable = (typeof areaType === 'string' && areaType.trim() === 'site') || (!!areaPlace && shownToGroup(areaPlace.id));
           const areaName =
             known && farContainer !== '' && nameable
               ? (typeof areaPlace?.players_name === 'string' && areaPlace.players_name.trim()) || (typeof packAreaName === 'string' && packAreaName.trim().slice(0, 200)) || null

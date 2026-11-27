@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MoveOnLayoutPage } from '../gallery/MoveOnSpecimens.tsx';
 import { ICON_SET } from './iconSet.ts';
 import { StepIcon } from './icons.tsx';
-import { DestinationRow, MoveOnSheet, ObstacleBlock, ProposalSheet, WhereTo, type WayMove } from './MoveOnParts.tsx';
+import { DestinationRow, MoveOnSheet, ObstacleBlock, ProposalSheet, WhereTo, type GmDestination, type WayMove } from './MoveOnParts.tsx';
 
 afterEach(cleanup);
 
@@ -417,7 +417,8 @@ describe('the rulings of 2026-11-13 on the layout page', () => {
 });
 
 describe('the GM’s rows and the players’ headings (sf-9; page 44, WT1)', () => {
-  const destinations = [
+  // Typed as the sheet takes them: a row's Area may be null (a row under no heading), which no row of this list is.
+  const destinations: GmDestination[] = [
     { id: 'wreck', number: '2', name: 'The wreck', shown: 'shown' as const, area: 'The Drowned Harbour', ways: WAYS },
     { id: 'shed', number: '4', name: 'The customs shed', shown: 'unshown' as const, players: '4. Unexplored', area: 'The Drowned Harbour', ways: WAYS },
     { id: 'landing', number: '0', name: 'The landing', shown: 'unshown' as const, players: 'Unexplored, under “Elsewhere”', area: 'The Shingle Beach', ways: WAYS },

@@ -5,6 +5,8 @@
 // docs/plans/dec-scene-feedback.md, batch C1): a way's map number and "Elsewhere", in the last group of tests; and
 // the players' name of an Area the group knows (#122's ⚑ 1, Francis "Send a visited Area's name", 2026-11-26). The
 // last four tests are the local review's findings on #122 (2026-11-27), each settled on the side that sends less.
+// Since 20261127140000_sf_9_ways_on_area_is_site.sql the harbour's pack is typed as a pack types it (p2p-1): its two
+// Areas are `site`, their places `area`; the read's own tests for that are in sf-9-ways-on-area-is-site.test.ts.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../src/app/commandRegistry.ts';
 import { runCommand, type CurrentUser } from '../../src/core/commands.ts';
@@ -431,8 +433,8 @@ const STRAND_PLACE_NAME = 'The white strand';
 // A place with a room in it (the review of #122, finding 1): the wreck is no Area, and the hold sits in it.
 const WRECK_PLAYERS_NAME = 'A broken hull';
 // The places whose `parentId` a test files among the GM-only fields, as the pack writes them.
-const DUNES_ENTRY = { id: 'gh-dunes', name: 'The marram dunes', type: 'site', parentId: 'gh-strand', key: '7', playerView: { text: 'Grass hisses on the ridge.' } };
-const MOLE_ENTRY = { id: 'gh-mole', name: MOLE_GM_NAME, type: 'site', parentId: 'gh-harbour', key: ' 3 ', playerView: { name: MOLE_PLAYERS_NAME, text: 'Weed-slick stones run out to sea.' } };
+const DUNES_ENTRY = { id: 'gh-dunes', name: 'The marram dunes', type: 'area', parentId: 'gh-strand', key: '7', playerView: { text: 'Grass hisses on the ridge.' } };
+const MOLE_ENTRY = { id: 'gh-mole', name: MOLE_GM_NAME, type: 'area', parentId: 'gh-harbour', key: ' 3 ', playerView: { name: MOLE_PLAYERS_NAME, text: 'Weed-slick stones run out to sea.' } };
 // An adventure of two Areas (frame WT1 of page 44). From 5, the sea cave, in the harbour: ways to three more places
 // of the harbour (3, 4 and one with no map number), a hidden way to a fourth (10), and ways to two places of the
 // strand (0, and 7 by a two-way link written from its far end). And from 3, the mole: a way to the hold (8a), a room
@@ -441,18 +443,18 @@ const harbourPack = () =>
   pack({
     meta: { name: 'Gull Harbour', version: '0.1', kind: 'adventure' },
     locations: [
-      { id: 'gh-harbour', name: HARBOUR_AREA, type: 'area' },
-      { id: 'gh-strand', name: STRAND_AREA, type: 'area', playerView: { name: STRAND_PLAYERS_NAME } },
-      { id: 'gh-cave', name: 'The sea cave', type: 'site', parentId: 'gh-harbour', key: '5', playerView: { text: 'Green water breathes in the dark.' } },
+      { id: 'gh-harbour', name: HARBOUR_AREA, type: 'site' },
+      { id: 'gh-strand', name: STRAND_AREA, type: 'site', playerView: { name: STRAND_PLAYERS_NAME } },
+      { id: 'gh-cave', name: 'The sea cave', type: 'area', parentId: 'gh-harbour', key: '5', playerView: { text: 'Green water breathes in the dark.' } },
       MOLE_ENTRY,
-      { id: 'gh-shed', name: 'The tally shed', type: 'site', parentId: 'gh-harbour', key: '4' },
-      { id: 'gh-flat', name: 'The mud flat', type: 'site', parentId: 'gh-harbour' },
-      { id: 'gh-gate', name: 'The chain gate', type: 'site', parentId: 'gh-harbour', key: '10' },
-      { id: 'gh-landing', name: 'The shingle landing', type: 'site', parentId: 'gh-strand', key: '0' },
+      { id: 'gh-shed', name: 'The tally shed', type: 'area', parentId: 'gh-harbour', key: '4' },
+      { id: 'gh-flat', name: 'The mud flat', type: 'area', parentId: 'gh-harbour' },
+      { id: 'gh-gate', name: 'The chain gate', type: 'area', parentId: 'gh-harbour', key: '10' },
+      { id: 'gh-landing', name: 'The shingle landing', type: 'area', parentId: 'gh-strand', key: '0' },
       DUNES_ENTRY,
-      { id: 'gh-wreck', name: 'The salt wreck', type: 'site', parentId: 'gh-harbour', key: '8', playerView: { name: WRECK_PLAYERS_NAME, text: 'Ribs of black oak stand in the sand.' } },
+      { id: 'gh-wreck', name: 'The salt wreck', type: 'area', parentId: 'gh-harbour', key: '8', playerView: { name: WRECK_PLAYERS_NAME, text: 'Ribs of black oak stand in the sand.' } },
       { id: 'gh-hold', name: 'The wreck hold', type: 'room', parentId: 'gh-wreck', key: '8a' },
-      { id: 'gh-light', name: 'The far light', type: 'site', key: '12' },
+      { id: 'gh-light', name: 'The far light', type: 'area', key: '12' },
     ],
     routes: [
       { id: 'gh-route-cave-mole', from: 'gh-cave', to: 'gh-mole', type: 'river', hidden: false, oneWay: false, travel: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] },
@@ -652,10 +654,10 @@ describe('a way’s map number, and "Elsewhere" (sf-9, sf-19)', () => {
   it('a pack that files a place’s `key` among its GM-only fields sends no number for it', async () => {
     // Purpose: the number is read from the part of the entry players' reads may use; when in doubt it is not sent.
     const shed = await rowIdOf(harbour, 'location', 'gh-shed');
-    must(await world.gm.db.from('library_entries').update({ data: { id: 'gh-shed', name: 'The tally shed', type: 'site', parentId: 'gh-harbour', key: '4', gmOnly: ['key'] } }).eq('id', shed).select('id'));
+    must(await world.gm.db.from('library_entries').update({ data: { id: 'gh-shed', name: 'The tally shed', type: 'area', parentId: 'gh-harbour', key: '4', gmOnly: ['key'] } }).eq('id', shed).select('id'));
     expect(await farOf(world.playerA, route.shed, mine)).toEqual(unexplored(null));
     // A number that is not text is not a map number (the GM's Move on shows none for it either).
-    must(await world.gm.db.from('library_entries').update({ data: { id: 'gh-shed', name: 'The tally shed', type: 'site', parentId: 'gh-harbour', key: 4 } }).eq('id', shed).select('id'));
+    must(await world.gm.db.from('library_entries').update({ data: { id: 'gh-shed', name: 'The tally shed', type: 'area', parentId: 'gh-harbour', key: 4 } }).eq('id', shed).select('id'));
     expect(await farOf(world.playerA, route.shed, mine)).toEqual(unexplored(null));
   });
 
@@ -664,11 +666,11 @@ describe('a way’s map number, and "Elsewhere" (sf-9, sf-19)', () => {
     // its rows carry it, for both groups, which both stand in it; a players' name that is not text is no name.
     const area = await rowIdOf(harbour, 'location', 'gh-harbour');
     expect(await areaOf(world.playerA, route.shed, mine)).toBeNull();
-    must(await world.gm.db.from('library_entries').update({ data: { id: 'gh-harbour', name: HARBOUR_AREA, type: 'area', playerView: { name: '  The old port ' } } }).eq('id', area).select('id'));
+    must(await world.gm.db.from('library_entries').update({ data: { id: 'gh-harbour', name: HARBOUR_AREA, type: 'site', playerView: { name: '  The old port ' } } }).eq('id', area).select('id'));
     expect(await areaOf(world.playerA, route.shed, mine)).toBe('The old port');
     expect(await areaOf(world.playerB, route.shed, theirs)).toBe('The old port');
     expect(await sentTo(world.playerA)).not.toContain(HARBOUR_AREA);
-    must(await world.gm.db.from('library_entries').update({ data: { id: 'gh-harbour', name: HARBOUR_AREA, type: 'area', playerView: { name: 7 } } }).eq('id', area).select('id'));
+    must(await world.gm.db.from('library_entries').update({ data: { id: 'gh-harbour', name: HARBOUR_AREA, type: 'site', playerView: { name: 7 } } }).eq('id', area).select('id'));
     expect(await areaOf(world.playerA, route.shed, mine)).toBeNull();
   });
 
