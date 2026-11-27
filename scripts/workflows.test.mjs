@@ -37,6 +37,21 @@ describe('workflow files', () => {
     if (text.includes('--json-schema')) expect(text).toContain('structured_output')
   })
 
+  // retro-3 (2026-11-27): 6 of 196 database shards on GitHub's machines failed to bind 54322, most likely because an
+  // outgoing download had been given it as its own port. The shards reserve the Supabase ports before anything
+  // downloads, and retry the start only when the port is what failed.
+  it("check.yml's database shards reserve the Supabase ports before any download, and retry only a held port", () => {
+    const text = readFileSync(join(dir, 'check.yml'), 'utf8')
+    const job = text.slice(text.indexOf('  database-shard:'), text.indexOf('\n  database:'))
+    const reserve = job.indexOf('net.ipv4.ip_local_reserved_ports=54320-54329')
+    expect(reserve).toBeGreaterThan(-1)
+    expect(reserve).toBeLessThan(job.indexOf('actions/checkout'))
+    expect(job).toContain("if: runner.environment == 'github-hosted'")
+    expect(job).toContain("ss -Htan 'sport = :54322'")
+    expect(job).toContain("grep -q 'address already in use'")
+    expect(job).toContain('for attempt in 1 2 3')
+  })
+
   it('review.yml posts the plain-text result read from the execution file', () => {
     const text = readFileSync(join(dir, 'review.yml'), 'utf8')
     expect(text).not.toContain('--json-schema')
