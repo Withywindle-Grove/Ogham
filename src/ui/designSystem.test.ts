@@ -3,7 +3,7 @@
 // text follows the words guide. The browser checks (targets, text sizes, screenshots) are in tests/layout.
 import { describe, expect, it } from 'vitest';
 import { KNOWN_INLINE_BREAKS } from './inlineStyles.known.ts';
-import { inlineProblems, inlineRawValues, rawValues } from './rawValues.ts';
+import { inlineProblems, inlineRawValues, literals, rawValues } from './rawValues.ts';
 import { wordProblems } from './words.ts';
 
 // The files are listed by Vite and read from disk (CSS read through Vite comes back empty in tests). Node's file
@@ -114,6 +114,31 @@ describe('tokens only in inline styles', () => {
       "<a style={shown ? ({ top: spot.top, '--lift-top': `${lift.top}px`, transform: `translateY(${by}px)`, ...rest } as Place) : undefined} />",
     ].join('\n');
     expect(found(source)).toEqual([]);
+  });
+
+  // Purpose: a bare number on a weight, radius, border, outline or stroke property fails too: each has a token.
+  it('a bare number on font weight, border radius, border width, outline or stroke width fails', () => {
+    const source = '<u style={{ fontWeight: 700, borderRadius: 8, borderTopWidth: 2, outlineOffset: 2, strokeWidth: 2 }} />';
+    expect(found(source)).toEqual(['1 font-weight: bare number', '1 border-radius: bare number', '1 border-top-width: bare number', '1 outline-offset: bare number', '1 stroke-width: bare number']);
+  });
+
+  // Purpose: a comment line in a style object doesn't hide the member after it (it would pass silently otherwise).
+  it('a comment before a member does not hide its bare number', () => {
+    const source = '<u\n  style={{\n    // the gutter\n    padding: 12,\n    /* a note */ margin: 4,\n  }}\n/>';
+    expect(found(source)).toEqual(['4 padding: bare number', '5 margin: bare number']);
+  });
+
+  // Purpose: a template with a `${` that never closes ends the scan instead of hanging the test run.
+  it('an unclosed template part ends instead of looping', () => {
+    expect(literals('`12px ${gap')).toEqual(['12px ']);
+  });
+
+  // Purpose: React writes line height and font weight without a unit, so the message doesn't call their number pixels.
+  it('a bare line height is reported as a bare number, not pixels', () => {
+    expect(inlineProblems({ '/src/app/Bog.tsx': '<i style={{ lineHeight: 1.5, gap: 4 }} />' }, [])).toEqual([
+      '/src/app/Bog.tsx:1 line-height: 1.5 is a bare number; use a token (hard rule 7)',
+      '/src/app/Bog.tsx:1 gap: 4 is a bare number (pixels); use a token (hard rule 7)',
+    ]);
   });
 
   // Purpose: the known list only gets shorter: a listed break passes, a new one fails, and a fixed one still listed fails.

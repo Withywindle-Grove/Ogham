@@ -7,7 +7,7 @@ import { packageProblems } from './packageList.ts';
 const fs = (await import(/* @vite-ignore */ ['node', 'fs'].join(':'))) as { readFileSync: (path: string, encoding: 'utf8') => string };
 
 const doc = (app: string[], dev: string[]) =>
-  ['# 02', '', '## Stack', '', 'Prose naming `left-out-pkg` is not the list.', '', '## Packages', '', '### App packages', '', ...app.map((p) => `- \`${p}\``), '', '### Dev-only packages', '', ...dev.map((p) => `- \`${p}\``), '', '## Foundation 1', '', '- `not-a-package`'].join('\n');
+  ['# 02', '', '## Stack', '', '- `left-out-pkg` (a bullet before the list)', '', '## Packages', '', '### App packages', '', ...app.map((p) => `- \`${p}\``), '', '### Dev-only packages', '', ...dev.map((p) => `- \`${p}\``), '', '## Foundation 1', '', '- `not-a-package`'].join('\n');
 
 describe('packages equal the list in 02 (hard rule 9)', () => {
   // Purpose: a package someone installs without adding it to 02's list fails, and the message names it and the side.
@@ -22,16 +22,29 @@ describe('packages equal the list in 02 (hard rule 9)', () => {
     expect(problems).toEqual(['`mire-lint` is in the list in docs/02-architecture.md (Dev-only packages) but missing from package.json (devDependencies)']);
   });
 
-  // Purpose: an app package listed as dev-only (or the other way round) is a difference too.
-  it('a package on the wrong side of the list fails on both sides', () => {
+  // Purpose: an app package listed as dev-only (or the other way round) fails with one message saying to move it.
+  it('a package on the wrong side of the list fails once, saying where it is listed and where it is installed', () => {
     const problems = packageProblems(doc([], ['lantern-kit']), { dependencies: { 'lantern-kit': '^1.0.0' }, devDependencies: {} });
+    expect(problems).toEqual(['`lantern-kit` is listed in docs/02-architecture.md (Dev-only packages) but installed in package.json (dependencies): move it to one side']);
+  });
+
+  // Purpose: a package in a group the list doesn't cover (optional, peer or bundled) fails instead of passing unseen.
+  it('an optional, peer or bundled package fails, naming the group', () => {
+    const problems = packageProblems(doc(['lantern-kit'], []), {
+      dependencies: { 'lantern-kit': '^1.0.0' },
+      optionalDependencies: { 'mire-glow': '^1.0.0' },
+      peerDependencies: { 'warden-core': '*' },
+      bundleDependencies: ['lantern-kit'],
+    });
     expect(problems).toEqual([
-      '`lantern-kit` is in package.json (dependencies) but missing from the list in docs/02-architecture.md (App packages)',
-      '`lantern-kit` is in the list in docs/02-architecture.md (Dev-only packages) but missing from package.json (devDependencies)',
+      'package.json has optionalDependencies (mire-glow): the list in docs/02-architecture.md has app and dev-only packages only',
+      'package.json has peerDependencies (warden-core): the list in docs/02-architecture.md has app and dev-only packages only',
+      'package.json has bundleDependencies (lantern-kit): the list in docs/02-architecture.md has app and dev-only packages only',
     ]);
   });
 
-  // Purpose: only the name is compared, so a version bump never needs a docs change; names in other sections don't count.
+  // Purpose: only the name is compared, so a version bump never needs a docs change; bullets in the sections before and
+  // after the list don't count.
   it('versions are not compared, and only the Packages section is read', () => {
     const problems = packageProblems(doc(['@grove/lantern-kit'], ['bog-tester']), { dependencies: { '@grove/lantern-kit': '^9.9.9' }, devDependencies: { 'bog-tester': '0.0.1' } });
     expect(problems).toEqual([]);
@@ -44,7 +57,7 @@ describe('packages equal the list in 02 (hard rule 9)', () => {
 
   // Purpose: the real repository passes: what is installed is exactly what 02 lists.
   it('the real package.json matches the list in docs/02-architecture.md', () => {
-    const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8')) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
+    const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8')) as Parameters<typeof packageProblems>[1];
     expect(packageProblems(fs.readFileSync('./docs/02-architecture.md', 'utf8'), pkg)).toEqual([]);
   });
 });

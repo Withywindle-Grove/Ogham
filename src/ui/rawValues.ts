@@ -125,7 +125,7 @@ function topLevel(text: string, separator: RegExp): [number, number][] {
 }
 
 /** The static text of each string and template literal in an expression; a template's `${…}` parts are left out. */
-function literals(expr: string): string[] {
+export function literals(expr: string): string[] {
   const out: string[] = [];
   for (let i = 0; i < expr.length; i += 1) {
     const ch = expr[i]!;
@@ -137,8 +137,11 @@ function literals(expr: string): string[] {
       const end = templateEnd(expr, i);
       let text = '';
       for (let j = i + 1; j < end; j += 1) {
-        if (expr[j] === '$' && expr[j + 1] === '{') j = closing(expr, j + 1);
-        else text += expr[j];
+        if (expr[j] === '$' && expr[j + 1] === '{') {
+          const c = closing(expr, j + 1);
+          if (c < 0) break; // an unclosed `${`: stop here rather than loop for ever
+          j = c;
+        } else text += expr[j];
       }
       out.push(text);
       i = end;
@@ -169,9 +172,12 @@ const namesColour = (text: string) => (text.toLowerCase().match(/[a-z][a-z-]*/g)
 
 const kebab = (name: string) => (name.startsWith('--') ? name : name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`));
 
-// Spacing, size, type and colour properties, as CSS writes them: a bare number on one of these is React's pixels.
+// Spacing, size, type and colour properties, as CSS writes them: a bare number on one of these is React's pixels
+// (or, for line-height and font-weight, a unitless value that has a token).
 const MEASURED =
-  /^(margin|padding|gap|row-gap|column-gap|inset|top|right|bottom|left|(margin|padding|inset|scroll-padding|scroll-margin)(-[a-z-]+)?|(min-|max-)?(width|height|inline-size|block-size)|flex-basis|font-size|line-height|letter-spacing|color|background(-color)?|fill|stroke|[a-z-]+-color)$/;
+  /^(margin|padding|gap|row-gap|column-gap|inset|top|right|bottom|left|(margin|padding|inset|scroll-padding|scroll-margin)(-[a-z-]+)?|(min-|max-)?(width|height|inline-size|block-size)|flex-basis|font-size|font-weight|line-height|letter-spacing|word-spacing|text-indent|border-radius|border(-[a-z-]+)?-(width|radius)|outline-(width|offset)|stroke-width|color|background(-color)?|fill|stroke|[a-z-]+-color)$/;
+// Properties React writes without a unit, so a bare number on them is not pixels.
+const UNITLESS = new Set(['line-height', 'font-weight']);
 
 /** True when one side of the value (a ternary's or a fallback's) is a plain number other than 0. */
 function bareNumber(value: string): boolean {
@@ -189,6 +195,28 @@ function rawKind(property: string, value: string): InlineRawValue['kind'] | null
   return null;
 }
 
+/** A style object's text with its comments blanked (same length, newlines kept), skipping strings and templates, so a
+ * comment line never becomes part of the next member's name. */
+function withoutComments(src: string): string {
+  let out = '';
+  for (let i = 0; i < src.length; i += 1) {
+    const ch = src[i]!;
+    let end = i;
+    if (ch === "'" || ch === '"') end = stringEnd(src, i);
+    else if (ch === '`') end = templateEnd(src, i);
+    else if (ch === '/' && (src[i + 1] === '/' || src[i + 1] === '*')) {
+      const stop = src[i + 1] === '/' ? src.indexOf('\n', i) : src.indexOf('*/', i + 2) + 2;
+      end = (stop < i + 2 ? src.length : stop) - 1;
+      out += src.slice(i, end + 1).replace(/[^\n]/g, ' ');
+      i = end;
+      continue;
+    }
+    out += src.slice(i, end + 1);
+    i = end;
+  }
+  return out;
+}
+
 export function inlineRawValues(source: string): InlineRawValue[] {
   const found: InlineRawValue[] = [];
   const lineAt = (index: number) => source.slice(0, index).split('\n').length;
@@ -201,7 +229,7 @@ export function inlineRawValues(source: string): InlineRawValue[] {
       if (source[i] !== '{') continue;
       const close = closing(source, i);
       if (close < 0) break;
-      const body = source.slice(i + 1, close);
+      const body = withoutComments(source.slice(i + 1, close)); // same length, so line numbers hold
       for (const [from, to] of topLevel(body, /^,/)) {
         const member = body.slice(from, to);
         const colon = topLevel(member, /^:/);
@@ -225,12 +253,13 @@ export interface KnownInlineBreak {
 }
 
 const KIND_WORDS: Record<InlineRawValue['kind'], string> = { length: 'a raw length', colour: 'a raw colour', 'bare number': 'a bare number (pixels)' };
+const words = (b: InlineRawValue) => (b.kind === 'bare number' && UNITLESS.has(b.property) ? 'a bare number' : KIND_WORDS[b.kind]);
 
 /** Every inline raw value in `sources` (path to source) not on the known list, and every known entry that no longer breaks. */
 export function inlineProblems(sources: Record<string, string>, known: KnownInlineBreak[]): string[] {
   const isKnown = (file: string, property: string) => known.some((k) => k.file === file && k.property === property);
   const breaks = Object.entries(sources).flatMap(([file, source]) => inlineRawValues(source).map((v) => ({ file, ...v })));
-  const fresh = breaks.filter((b) => !isKnown(b.file, b.property)).map((b) => `${b.file}:${b.line} ${b.property}: ${b.value} is ${KIND_WORDS[b.kind]}; use a token (hard rule 7)`);
+  const fresh = breaks.filter((b) => !isKnown(b.file, b.property)).map((b) => `${b.file}:${b.line} ${b.property}: ${b.value} is ${words(b)}; use a token (hard rule 7)`);
   const stale = known
     .filter((k) => !breaks.some((b) => b.file === k.file && b.property === k.property))
     .map((k) => `${k.file} ${k.property} is on the known list (src/ui/inlineStyles.known.ts) but no longer breaks: take it off the list`);
