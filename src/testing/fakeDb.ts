@@ -4821,7 +4821,7 @@ export function createFakeDb(): FakeWorld {
     const query = db.from('character_play');
     if (tag) query.headers.set('x-grimoire-command', tag);
     const saved = (await query
-      .upsert({ actor_id: actor.id, campaign_id: actor.campaign_id, prepared: args.new_ready, chosen: args.new_chosen ?? null, spells_cast: kept })
+      .upsert({ actor_id: actor.id, campaign_id: actor.campaign_id, prepared: args.new_ready, chosen: args.new_chosen ?? null, spells_cast: kept, rested_once: true })
       .select('actor_id')) as Result;
     return saved.error ? saved : { data: null, error: null };
   }
@@ -5292,7 +5292,8 @@ class Query implements PromiseLike<Result> {
       if (!this.inserted.every((row) => this.mayArrange(row))) this.inserted = [];
     } else if (this.table === 'character_play') {
       // Like the access rules: the owner or the GM, for an approved character.
-      this.inserted = list.map((row) => ({ prepared: [], uses_spent: {}, ac_override: null, form_id: null, form_name: null, pins: [], ...row }));
+      // A row made from now on starts not rested (rested_once's default, fsr-4).
+      this.inserted = list.map((row) => ({ prepared: [], uses_spent: {}, ac_override: null, form_id: null, form_name: null, pins: [], rested_once: false, ...row }));
       if (!this.inserted.every((row) => this.mayPlay(row))) this.inserted = [];
     } else if (this.table === 'carrier_loads') {
       this.inserted = list.map((row) => ({ updated_at: new Date().toISOString(), ...row }));

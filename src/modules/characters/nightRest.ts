@@ -38,7 +38,10 @@ export interface SpellsBack {
 
 /** What Apply rest changes. */
 export interface RestApplied {
-  /** Each caster on ✓ whose spells change (one with nothing ready, chosen or cast is left out: nothing to log). */
+  /**
+   * Each caster on ✓ whose spells change, and each on ✓ resting for the first time (fsr-5: that rest closes the first
+   * spells). One who has rested before with nothing ready, chosen or cast is left out: nothing to log.
+   */
   spells: SpellsBack[];
   /**
    * The abilities whose uses come back, by character (the full rest's `refills`): `per: rest` for those on ✓ only;
@@ -63,7 +66,8 @@ export function restApply(characters: readonly RestCharacter[], marks: RestMarks
     const on = row !== undefined && marks[c.id] !== false;
     if (row?.caster && on) {
       const after = afterRest(c.play);
-      const changes = c.play.chosen !== null || Object.keys(c.play.spellsCast).length > 0;
+      // A caster's first rest is always written (fsr-5): it closes the first spells, changes or not.
+      const changes = c.play.chosen !== null || Object.keys(c.play.spellsCast).length > 0 || c.play.restedOnce === false;
       if (changes) spells.push({ characterId: c.id, ready: after.prepared });
     }
     const names = c.powers.filter((p) => (perOf(p.refill) === 'rest' && on) || (perOf(p.refill) === 'day' && newDay)).map((p) => p.name);

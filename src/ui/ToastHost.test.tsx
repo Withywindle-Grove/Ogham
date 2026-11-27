@@ -3,7 +3,7 @@
 // (announced at once), a confirmation as a plain one; neither leaves anything in the page itself.
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ErrorToast, NoticeToast, SAVED_DELAY_MS, ToastHost, useSavedToast } from './ToastHost.tsx';
+import { BookToasts, ErrorToast, NoticeToast, SAVED_DELAY_MS, ToastHost, useSavedToast } from './ToastHost.tsx';
 
 afterEach(cleanup);
 
@@ -156,5 +156,27 @@ describe('the toast over an open pop-up', () => {
       </ToastHost>,
     );
     expect(host().classList.contains('toast-host--lifted')).toBe(false);
+  });
+});
+
+// The Pack tab's dress (K29; frame PK4b draws its toasts in the book's text face).
+describe('toasts in the book’s faces', () => {
+  it('a toast shown from inside BookToasts is drawn in the book’s faces; one shown from elsewhere keeps the app’s', () => {
+    // Purpose: the Pack tab's toasts take the book's faces as its screens do, while every other screen's toast is unchanged.
+    render(
+      <ToastHost>
+        <BookToasts>
+          <NoticeToast message="Wren took the silver ewer." />
+        </BookToasts>
+      </ToastHost>,
+    );
+    expect(screen.getByRole('status').closest('.book-faces')).not.toBeNull();
+    cleanup();
+    render(
+      <ToastHost>
+        <NoticeToast message="Moved Oath." />
+      </ToastHost>,
+    );
+    expect(screen.getByRole('status').closest('.book-faces')).toBeNull();
   });
 });

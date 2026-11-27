@@ -1672,6 +1672,15 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       return by(`prepared ${count === 1 ? '1 spell' : `${count} spells`} for ${character()}`);
     }
     case 'character.chooseSpells': {
+      // While the first spells are open the choice is ready at once (fsr-1, fsr-10): the line names it, and says so.
+      // A change keeps only what changed, so `prepared` is there only when it did; a new row (no before) carries it whole,
+      // and an empty one there is a clear that made the row, not a choice.
+      if (Array.isArray(after.prepared) && (Array.isArray(before.prepared) || after.prepared.length > 0)) {
+        const ready = after.prepared.length;
+        // The last ready spell taken out while open empties the list: never "chose 0 spells".
+        if (ready === 0) return by(`left ${character()} with no spells ready`);
+        return by(`chose ${ready === 1 ? '1 spell' : `${ready} spells`} for ${character()}, ready at once`);
+      }
       // Chosen for the next rest (mp-2; dec-8 piece A): never what is ready today.
       if (!Array.isArray(after.chosen)) return by(`cleared ${possessive(character())} spells chosen for the next rest`);
       const count = after.chosen.length;

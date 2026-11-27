@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { countedNames, footLine, forLine, fullLevelWhy, levelLine, noneChosenTitle, noneChosenWhy, nothingToChoose } from './PrepareScreen.tsx';
+import { prepareView } from '../modules/characters/magicView.ts';
+import { CHOOSE_AT_ONCE, castToastText, readyAtOnceLine } from './MagicTab.tsx';
+import { countedNames, footLine, forLine, fullLevelWhy, levelLine, noneChosenTitle, noneChosenWhy, nothingToChoose, OPEN_LINE, openFootLine, slotsToFill } from './PrepareScreen.tsx';
 
 // Prepare's words (dec-8 C; mockup magic/06). Purposes, in plain words:
 //   * a counted list reads "Mire lamp ×2, Reed whisper", in the order given, with no "×1";
@@ -45,5 +47,41 @@ describe("Prepare's words", () => {
   it("names whose next rest it is, with the apostrophe alone after a name ending in s", () => {
     expect(forLine('Wren', 'Nothing is ready today.')).toBe("For Wren's next rest. Nothing is ready today.");
     expect(forLine('Wren of the Lantern Wardens', 'Nothing is ready today.')).toBe("For Wren of the Lantern Wardens' next rest. Nothing is ready today.");
+  });
+});
+
+// The first spells' words (fsr-8 to fsr-10; page 46). Purposes, in plain words:
+//   * while open, Prepare's first line and foot, the tab's Prepare line, the empty row's line and the closing cast's
+//     toast read as page 46 has them; none has a middle dot, and the new lines never name the character;
+//   * − on a spell not chosen drops "for the next rest" while open, and keeps it once closed;
+//   * the one count of empty slots, shared by the tab's line and Prepare's foot, leaves out a level with nothing to
+//     choose and an empty book's.
+describe("the first spells' words", () => {
+  it('reads as page 46 has them, with no middle dot and no name', () => {
+    expect(OPEN_LINE).toBe('Until your first cast or rest, what you choose is ready at once.');
+    expect([openFootLine(0), openFootLine(1), openFootLine(2)]).toEqual([
+      'Ready as you choose',
+      'Ready as you choose. 1 slot still empty: fill it before you cast.',
+      'Ready as you choose. 2 slots still empty: fill them before you cast.',
+    ]);
+    expect([readyAtOnceLine(0), readyAtOnceLine(1), readyAtOnceLine(2)]).toEqual(['Ready at once', 'Ready at once. 1 slot empty', 'Ready at once. 2 slots empty']);
+    expect(CHOOSE_AT_ONCE).toBe('Choose in Prepare. What you choose is ready at once.');
+    expect(castToastText('Mire lamp', true)).toBe('Mire lamp cast. From now, what you choose is ready after you rest.');
+    expect(castToastText('Mire lamp', false)).toBe('Mire lamp cast');
+    const all = [OPEN_LINE, openFootLine(0), openFootLine(1), openFootLine(2), readyAtOnceLine(0), readyAtOnceLine(2), CHOOSE_AT_ONCE, castToastText('Mire lamp', true)];
+    expect(all.filter((line) => line.includes('·'))).toEqual([]);
+    expect(all.filter((line) => line.includes('Wren'))).toEqual([]);
+  });
+
+  it("drops \"for the next rest\" from −'s line while open", () => {
+    expect(noneChosenWhy('Wren', 'Thorn dart', true)).toBe("Wren hasn't chosen Thorn dart, so there's none to take out.");
+    expect(noneChosenWhy('Wren', 'Thorn dart', false)).toBe("Wren hasn't chosen Thorn dart for the next rest, so there's none to take out.");
+  });
+
+  it('counts the empty slots a choice could fill, not those of a level with nothing to choose', () => {
+    const levels = new Map([[1, ['lamp']], [2, []]]);
+    expect(slotsToFill(prepareView({ prepared: [], chosen: null }, [2, 1], levels))).toBe(2);
+    expect(slotsToFill(prepareView({ prepared: [{ spell: 'lamp', level: 1 }], chosen: null }, [2, 1], levels))).toBe(1);
+    expect(slotsToFill(prepareView({ prepared: [], chosen: null }, [1], new Map([[1, []]])))).toBe(0);
   });
 });
