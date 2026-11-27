@@ -4,7 +4,7 @@ One page of the rules in force for the driver, each with its source. Compiled 19
 
 ## Starting and handing over
 - Start from `handover-driver.md` in the memory folder, never from history; never resume yesterday's conversation. (driver.md, Start; README rvw-5)
-- A fresh driver each morning and when the conversation passes about 400,000 tokens (was 250,000; Francis, 21 Nov). **At the limit the driver writes the handover and hands over on its own, without asking.** (driver.md; README rvw-5; Francis, 19 Nov)
+- A fresh driver each morning and when the conversation passes about 250,000 tokens (lp-6, Francis, 27 Nov; was 400,000). **At the limit the driver writes the handover and hands over on its own, without asking.** (driver.md; README rvw-5; Francis, 19 Nov)
 - **A fresh context may come from `/clear` instead of a new session**, once the handover is written and pushed. The handover names every running worker (ID, row, brief, branch or PR), so the cleared driver can pick up their reports. `/clear` keeps the session's trust card, PR subscriptions, running workers and container; a new session has none of them. Home Two may `/clear` likewise, restarting from the prompt the driver gives Francis. (Francis, 24 Nov: "Yes write clear in")
 - Workers started from a brief finish their task past the limit; only the driver hands over. (README rvw-5)
 - Re-create the hourly check at the start: "what are the builders working on and what is our bottleneck?" (Francis; memory, handover)
