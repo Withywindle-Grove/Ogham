@@ -26,6 +26,7 @@ Each cell lists the rules that let a signed-in person do that to a row (the rule
 | `character_rests` | read like the character | — | the owner or the GM | — |
 | `character_statuses` | read like the character | the owner or the GM | the owner or the GM, again | — |
 | `check_results` | the GM reads, members once revealed | the GM records one | the GM changes one | — |
+| `check_reveals` | the GM reads | — | — | — |
 | `companies` | members read | GM creates | GM updates | GM deletes empty |
 | `company_invitations` | campaign members read | — | — | — |
 | `events` | read what you may see | — | — | — |
