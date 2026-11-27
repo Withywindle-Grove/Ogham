@@ -84,7 +84,8 @@ describe('"Sent to <Name>", read from the log', () => {
   });
 
   // Purpose: each row a send names reads as sent to its character (or the stash), for this place only; a later send of
-  // the same row wins; a send that was undone, and another place's send, mark nothing.
+  // the same row wins; a send that was undone, and another place's send, mark nothing. Each carries its place in the log
+  // (`seq`), for the turn it was sent in (sf-8, TR1).
   it('marks each row sent, by place, the latest send winning and an undone send left out', () => {
     const events = [
       event('e1', 'r1', { find: { to: 'wren', placeId: 'stair', rows: ['0:coin', '2:thing'] } }),
@@ -96,9 +97,9 @@ describe('"Sent to <Name>", read from the log', () => {
       event('e7', 'r7', { find: { to: 'wren', placeId: 'stair' } }, { type: 'purse.add' }),
     ];
     expect(Object.fromEntries(sentRows(events, 'stair'))).toEqual({
-      '0:coin': { to: 'wren', eventId: 'e1' },
-      '2:thing': { to: 'ash', eventId: 'e3' },
-      '3:thing': { to: null, eventId: 'e2' },
+      '0:coin': { to: 'wren', eventId: 'e1', seq: 1 },
+      '2:thing': { to: 'ash', eventId: 'e3', seq: 3 },
+      '3:thing': { to: null, eventId: 'e2', seq: 2 },
     });
     expect(sentRows([], 'stair').size).toBe(0);
   });

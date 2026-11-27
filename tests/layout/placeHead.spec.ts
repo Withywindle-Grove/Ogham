@@ -175,7 +175,8 @@ for (const size of [
       await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
       await expect(page.getByRole('heading', { name: '1. The jetty' })).toBeVisible();
       const card = page.locator('.place-page__card');
-      const description = card.getByRole('button', { name: 'Edit piece: Black piles, a mooring ring, weed to the waterline.' });
+      // sf-16: the description's words, beside the arrow that opens Edit piece (the words open nothing).
+      const description = card.locator('.place-page__piece').filter({ has: page.getByRole('button', { name: 'Edit piece: Black piles, a mooring ring, weed to the waterline.' }) }).locator('.place-page__piece-words');
       await expect(description).toBeVisible();
       // LA1's state: the description and one more piece shown.
       for (const words of ['Black piles, a mooring ring, weed to the waterline.', 'Green copper; the fourth ring along is new iron, set this month.']) {
@@ -188,7 +189,7 @@ for (const size of [
       await expect(card.getByText(/Players see|Rename for players|Calls to adventure/)).toHaveCount(0);
       await expect(card.getByText(/^(Description|Exit|Other|Treasure)\.$/)).toHaveCount(0);
       // The description first, its named words bold and underlined.
-      await expect(card.locator('.place-page__pieces .place-page__piece-words').first()).toHaveAttribute('aria-label', 'Edit piece: Black piles, a mooring ring, weed to the waterline.');
+      await expect(card.locator('.place-page__pieces .place-page__opens').first()).toHaveAttribute('aria-label', 'Edit piece: Black piles, a mooring ring, weed to the waterline.');
       const marked = description.locator('.place-page__named');
       await expect(marked).toHaveText(['mooring ring', 'weed']);
       const look = await marked.first().evaluate((el) => ({ weight: Number(getComputedStyle(el).fontWeight), line: getComputedStyle(el).textDecorationLine }));

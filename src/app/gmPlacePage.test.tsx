@@ -52,6 +52,8 @@ let world: FakeWorld;
 let gmId: string;
 let campaign: string;
 const gm = (): CurrentUser => ({ id: gmId, roles: { [campaign]: 'gm' } }) as CurrentUser;
+/** A piece's words, from its arrow ("Edit piece: …"; sf-16, the words open nothing). */
+const wordsOf = (arrow: HTMLElement): HTMLElement => arrow.closest('li')!.querySelector('.place-page__piece-words') as HTMLElement;
 
 const HARBOUR = {
   id: 'drowned-harbour',
@@ -260,14 +262,15 @@ describe('the GM’s place page', () => {
     const user = userEvent.setup();
     const { trip, row } = await at('jetty');
     const view = page(trip, row);
-    const description = await screen.findByRole('button', { name: `Edit piece: ${JETTY_SAYS}` });
+    // sf-16: each piece's words, beside the arrow that opens Edit piece (the words open nothing).
+    const description = wordsOf(await screen.findByRole('button', { name: `Edit piece: ${JETTY_SAYS}` }));
     // The whole description reads as the pack wrote it; "Mooring ring" and both "ladder"s are marked.
     expect(description.textContent).toBe(JETTY_SAYS);
     expect([...description.querySelectorAll('strong.place-page__named')].map((n) => n.textContent)).toEqual(['Mooring ring', 'ladder', 'ladder']);
-    const ring = screen.getByRole('button', { name: 'Edit piece: Green copper; the fourth is new iron.' });
+    const ring = wordsOf(screen.getByRole('button', { name: 'Edit piece: Green copper; the fourth is new iron.' }));
     expect(ring.querySelector('strong')?.textContent).toBe('Mooring ring.');
     expect(ring.querySelector('.place-page__named')).toBeNull();
-    const exit = screen.getByRole('button', { name: 'Edit piece: A plank walk to the wreck.' });
+    const exit = wordsOf(screen.getByRole('button', { name: 'Edit piece: A plank walk to the wreck.' }));
     expect(exit.textContent).toBe('A plank walk to the wreck.');
     // No kind word, no "Pieces" heading, no "Players see", no Rename.
     for (const kind of ['Description.', 'Other.', 'Exit.']) expect(screen.queryByText(kind)).toBeNull();
@@ -276,7 +279,7 @@ describe('the GM’s place page', () => {
     expect(screen.queryByRole('button', { name: 'Rename for players' })).toBeNull();
     expect(screen.queryByText(/The name goes out with the first piece you show/)).toBeNull();
     // The description is the first row, the others in the pack's order.
-    const rows = [...document.querySelectorAll('.place-page__pieces .place-page__piece-words')].map((b) => b.getAttribute('aria-label'));
+    const rows = [...document.querySelectorAll('.place-page__pieces .place-page__opens')].map((b) => b.getAttribute('aria-label'));
     expect(rows).toEqual([`Edit piece: ${JETTY_SAYS}`, 'Edit piece: Green copper; the fourth is new iron.', 'Edit piece: It goes down to a tarred skiff.', 'Edit piece: A plank walk to the wreck.']);
     // The count at the foot, beside "+ Piece", after the last piece.
     const foot = document.querySelector('.place-page__foot') as HTMLElement;
@@ -330,7 +333,7 @@ describe('the GM’s place page', () => {
     const late = { ...row, pieces: [...row.pieces.filter((p) => p.kind !== 'description'), ...row.pieces.filter((p) => p.kind === 'description')] };
     page(trip, late);
     await screen.findByRole('button', { name: `Edit piece: ${JETTY_SAYS}` });
-    const first = document.querySelector('.place-page__pieces .place-page__piece-words');
+    const first = document.querySelector('.place-page__pieces .place-page__opens');
     expect(first?.getAttribute('aria-label')).toBe(`Edit piece: ${JETTY_SAYS}`);
   });
 
@@ -1014,7 +1017,7 @@ describe('the trail and reading ahead (B2)', () => {
     expect(within(card).getByRole('status').textContent).toBe('Reading ahead. The party is at The Anchorage.');
     expect(within(card).getByRole('button', { name: 'Back to the party' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Move on' })).toBeNull();
-    const description = await within(card).findByRole('button', { name: `Edit piece: ${BREAKWATER_SAYS}` });
+    const description = wordsOf(await within(card).findByRole('button', { name: `Edit piece: ${BREAKWATER_SAYS}` }));
     expect([...description.querySelectorAll('.place-page__named')].map((n) => n.textContent)).toEqual(['gap']);
     expect(within(card).getAllByRole('button', { name: 'Show players' })).toHaveLength(2);
     expect(within(card).queryByRole('button', { name: 'Hide from players' })).toBeNull();

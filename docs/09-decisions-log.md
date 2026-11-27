@@ -1748,6 +1748,7 @@ Older entries: `09a-decisions-archive.md`
 - 2026-11-27 — [tech] Playwright runs use at most `--workers=2` — three container restarts on 26–27 Nov with load about 9 on 4 cores; technical ownership (driver)
 - 2026-11-27 — [process] Home One (the PC session) is a fourth builder seat, one batch at a time: it starts a short-lived builder subagent from the driver's brief and reports to the driver; it also runs the PC checks (built-screen audits, TEST pushes and `test:db`, WebKit layout runs) — "Agree get home one building" (Francis)
 - 2026-11-26 — [process] Pushes to the MAIN database go to one PC session in manual mode (wintermute-zazzy-matsumoto, 26–27 Nov), each with Francis's own Allow there; every other PC check goes to Home One — "Zazzy Matsumoto is in manual mode so use it for pushes. Every other pc check can go to home one" (Francis); Home One's auto mode had refused a MAIN backup
+- 2026-11-27 — [ui] #120: the find sheet and the Edit piece sheet ask for the toast above them (data-toast-above), so a toast never covers the sheet's next button — driver, inside the approved drawing; listed for Francis
 
 `09` lines (added 2026-11-26, night; #118, sf-7a's two ⚑, answered by Francis at the driver's pop-up):
 
