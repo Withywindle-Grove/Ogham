@@ -229,7 +229,7 @@ describe('the panel (S8a; T2, T6b)', () => {
   it('never says "Nothing waits." while the encounters could not be read', async () => {
     render(
       <SceneWaitingProvider>
-        <EncounterWaitingSource cards={null} tables={new Map()} statBlock={() => null} when={() => null} onStart={async () => false} onDismiss={() => undefined} />
+        <EncounterWaitingSource cards={null} tables={new Map()} statBlock={() => null} onDone={() => undefined} />
         <Panel />
       </SceneWaitingProvider>,
     );
@@ -246,13 +246,13 @@ describe('the encounters as a source, and the one accent (st-2, mc-27)', () => {
     encounter: { id, campaignId: 'c', expeditionId: 'e', checkResultId: id, watch: null, state: 'waiting', createdAt: '2026-11-03T20:00:00Z', version: 1 },
     hit: hit(id, name),
   });
-  const source = (onStart = vi.fn(async () => false)) => (
-    <EncounterWaitingSource cards={[card('a', 'Night prowlers'), card('b', 'Reed wraiths')]} tables={new Map()} statBlock={() => null} when={() => null} onStart={onStart} onDismiss={() => undefined} accent />
+  const source = (onDone = vi.fn()) => (
+    <EncounterWaitingSource cards={[card('a', 'Night prowlers'), card('b', 'Reed wraiths')]} tables={new Map()} statBlock={() => null} onDone={onDone} accent />
   );
 
   // Purpose: the open item's first action is the page's one accent; a row's button never is; tapping another row moves
   // the accent with it.
-  it('gives the accent to the open encounter’s Start alone, and moves it with the open one', async () => {
+  it('gives the accent to the open encounter’s Done alone, and moves it with the open one', async () => {
     const user = userEvent.setup();
     render(
       <SceneWaitingProvider>
@@ -261,34 +261,35 @@ describe('the encounters as a source, and the one accent (st-2, mc-27)', () => {
       </SceneWaitingProvider>,
     );
     const open = within(await screen.findByRole('region', { name: /^Encounter waiting, Night prowlers/ }));
-    expect(open.getByRole('button', { name: 'Start' }).className).toBe('button-primary stacked-button');
-    expect(panel().getByRole('button', { name: 'Start, Reed wraiths' }).className).toBe('button-secondary stacked-button');
+    expect(open.getByRole('button', { name: 'Done' }).className).toBe('button-primary stacked-button');
+    expect(panel().getByRole('button', { name: 'Done, Reed wraiths' }).className).toBe('button-secondary stacked-button');
     expect(document.querySelectorAll('.button-primary')).toHaveLength(1);
     await user.click(panel().getByRole('button', { name: 'Open: Reed wraiths' }));
     const second = within(await screen.findByRole('region', { name: /^Encounter waiting, Reed wraiths/ }));
-    expect(second.getByRole('button', { name: 'Start' }).className).toBe('button-primary stacked-button');
+    expect(second.getByRole('button', { name: 'Done' }).className).toBe('button-primary stacked-button');
     expect(document.querySelectorAll('.button-primary')).toHaveLength(1);
     // The first is a row now: its card is not on the page.
     expect(screen.queryByRole('region', { name: /^Encounter waiting, Night prowlers/ })).toBeNull();
   });
 
-  // Purpose: a row's one button answers through its source: an encounter's Start on its row starts that encounter.
-  it('starts an encounter from its row', async () => {
+  // Purpose: a row's one button answers through its source: an encounter's Done on its row closes that encounter
+  // (sf-4: no Start until fights are built).
+  it('closes an encounter from its row', async () => {
     const user = userEvent.setup();
-    const onStart = vi.fn(async () => false);
+    const onDone = vi.fn();
     render(
       <SceneWaitingProvider>
-        {source(onStart)}
+        {source(onDone)}
         <Panel />
       </SceneWaitingProvider>,
     );
-    await user.click(await panel().findByRole('button', { name: 'Start, Reed wraiths' }));
-    expect(onStart).toHaveBeenCalledOnce();
-    expect((onStart.mock.calls[0] as unknown as [EncounterCard])[0].hit.name).toBe('Reed wraiths');
+    await user.click(await panel().findByRole('button', { name: 'Done, Reed wraiths' }));
+    expect(onDone).toHaveBeenCalledOnce();
+    expect((onDone.mock.calls[0] as unknown as [EncounterCard])[0].hit.name).toBe('Reed wraiths');
   });
 
   // Purpose: with no panel (a town keeps today's screen), every waiting card stands where the strip draws them, the
-  // first's Start the accent, as before.
+  // first's Done the accent, as before.
   it('stands where the strip draws it while no panel shows', async () => {
     render(
       <SceneWaitingProvider>
@@ -297,6 +298,6 @@ describe('the encounters as a source, and the one accent (st-2, mc-27)', () => {
     );
     const strip = within(screen.getByRole('region', { name: 'The strip' }));
     await waitFor(() => expect(strip.getAllByRole('region', { name: /^Encounter waiting, / })).toHaveLength(2));
-    expect(strip.getAllByRole('button', { name: 'Start' }).map((b) => b.className)).toEqual(['button-primary stacked-button', 'button-secondary stacked-button']);
+    expect(strip.getAllByRole('button', { name: 'Done' }).map((b) => b.className)).toEqual(['button-primary stacked-button', 'button-secondary stacked-button']);
   });
 });

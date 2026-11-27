@@ -8,7 +8,7 @@
 //     ("Abbey › Mortal"), the current terrain's when the row splits by terrain (ga-2), the others as chips at the
 //     top for the GM to pick instead; Go to number on long tables; column chips only when the table has columns, the route's
 //     column picked to start. No Enter roll anywhere; the app never rolls.
-//   * EncounterTablesRow: Explore's one row, "Encounter tables · Abbey likely · 1 pinned ›".
+//   * (EncounterTablesRow, Explore's one row, is gone: sf-3, ⚑ 4; the ⋯ menu's "Encounter tables" opens the screens.)
 //   * TablesLibrary: "Table library ›", the table library full screen, the only place the pin button shows (prep); a table
 //     opened there is for reading (nothing is recorded).
 //   * TableRoll: a typed roll reads the row, for the tables that aren't encounter tables (a procedure step's roll,
@@ -16,7 +16,7 @@
 //   * TableRollPopUp: "Roll…" on a check that is a roll on its table (sf-5; page 44, EN2, EN4 B, EN7 D to F): the table in
 //     a pop-up, a tap on a row the answer; opened again from "Change…" with the picked row ticked.
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { tableTag, tablesRowWords, type TableListRow } from '../modules/expedition/tableList.ts';
+import { tableTag, type TableListRow } from '../modules/expedition/tableList.ts';
 import { missingWords } from '../modules/expedition/rowLinks.ts';
 import { linkedTables, pickColumns, resultWords, rowCountShown, rowFor, rowLabel, rowLeadsTo, rowNextChoices, rowText, tableLookup, type ReadTable, type RowReading, type TableRow, type TerrainKey } from '../modules/expedition/tables.ts';
 import { BookTapTable, BookType, CreationLoading } from '../ui/creation.tsx';
@@ -343,14 +343,27 @@ export function TableRollPopUp({
     setFound(index);
     setGoing((n) => n + 1);
   };
-  useEffect(() => {
-    if (found === null) return;
+  // A row to the top of the rows' own scroll, its tap taking the focus (a button, never a field).
+  const toTop = (index: number) => {
     const rows = body.current?.querySelector<HTMLElement>('.table-sheet__rows');
-    const row = rows?.children[found] as HTMLElement | undefined;
+    const row = rows?.children[index] as HTMLElement | undefined;
     if (!rows || !row) return;
     rows.scrollTop += row.getBoundingClientRect().top - rows.getBoundingClientRect().top;
     (row.matches('[role="radio"]') ? row : row.querySelector<HTMLElement>('[role="radio"]'))?.focus({ preventScroll: true });
+  };
+  useEffect(() => {
+    if (found !== null) toTop(found);
   }, [found, going]);
+  // Opened from "Change…" (sf-4; #111's finding 1): the row picked before is in view and has the focus, after the
+  // pop-up's own first focus (its effect runs after this one's, so this waits a tick).
+  const ticked = useRef(picked);
+  const loaded = table !== null;
+  useEffect(() => {
+    const at = ticked.current;
+    if (!loaded || at === null) return;
+    const timer = setTimeout(() => toTop(at));
+    return () => clearTimeout(timer);
+  }, [loaded]);
   return (
     <SheetScope.Provider value>
       <CentredPopUpScope.Provider value>
@@ -502,23 +515,6 @@ export function EncounterTables({
       )}
       {library}
     </Dialog>
-  );
-}
-
-/** Explore's row: "Encounter tables · Abbey likely · 1 pinned ›"; with no tables, says so. */
-export function EncounterTablesRow({ likely, pins, none, onOpen }: { likely: string | null; pins: number; none: boolean; onOpen: () => void }) {
-  if (none) return <p className="encounter-row__none">No encounter tables in this setting</p>;
-  const words = tablesRowWords(likely, pins);
-  return (
-    <button type="button" className="encounter-row" onClick={onOpen}>
-      <span className="encounter-row__text">
-        <span className="encounter-row__name">Encounter tables</span>
-        {words && <span className="encounter-row__tag">{`, ${words}`}</span>}
-      </span>
-      <span className="encounter-row__chev" aria-hidden="true">
-        ›
-      </span>
-    </button>
   );
 }
 

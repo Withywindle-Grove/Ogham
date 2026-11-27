@@ -518,7 +518,7 @@ describe('Leave the dungeon, three cases (st-4, st-9)', () => {
 });
 
 describe("the band's menu (S3)", () => {
-  // Purpose: on an expedition by the day the menu holds Travelling in darkness as a toggle, then Advance by…,
+  // Purpose: on an expedition by the day the menu holds Encounter tables first (sf-3, ⚑ 4), then Travelling in darkness as a toggle, then Advance by…,
   // Reminders, End expedition and End session, each with its icon; Make camp, Quick camp and Encounter check are not in it.
   it('lists what the band does not hold, each with its icon', async () => {
     const t = table({ quick: true });
@@ -527,7 +527,8 @@ describe("the band's menu (S3)", () => {
     await screen.findByRole('group', { name: 'Quick actions' });
     const panel = await openMenu(user);
     expect(within(panel).getByRole('switch', { name: /Travelling in darkness/ }).getAttribute('aria-checked')).toBe('false');
-    expect(menuWords(panel)).toEqual(['Travelling in darkness', 'Advance by…', 'Reminders', 'End expedition', 'End session']);
+    // "Encounter tables" first during an expedition (sf-3, ⚑ 4; page 44, EN7 A).
+    expect(menuWords(panel)).toEqual(['Encounter tables', 'Travelling in darkness', 'Advance by…', 'Reminders', 'End expedition', 'End session']);
     for (const b of panel.querySelectorAll('button')) expect(b.querySelector('svg')).toBeTruthy();
   });
 

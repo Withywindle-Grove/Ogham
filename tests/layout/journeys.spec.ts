@@ -293,8 +293,10 @@ for (const size of [
       hit.expectWithin({ taps: 4, screens: 0 });
       await page.getByRole('dialog', { name: 'Mortal' }).getByRole('button', { name: 'Back' }).click();
       await page.getByRole('dialog', { name: 'Wandering check, Hit' }).getByRole('button', { name: 'Close' }).click();
-      // Since S8b a non-open item is a row: the encounter waits as the panel's row, the hit panel being the open item.
-      await expect(page.getByRole('region', { name: 'Waiting for you' }).getByRole('button', { name: /^Open: Mortal: Pilgrims lost/ })).toBeVisible();
+      // Since sf-4 one encounter is one card: the panel's open card is "An encounter", reading the picked row's words.
+      const waiting = page.getByRole('region', { name: 'Waiting for you' });
+      await expect(waiting.getByRole('heading', { name: 'An encounter' })).toBeVisible();
+      await expect(waiting.locator('.waiting-encounter__line')).toHaveText(/Pilgrims lost/);
     });
 
     // M7 journeys (ruled 2026-10-29, E47; 06, Key journeys).

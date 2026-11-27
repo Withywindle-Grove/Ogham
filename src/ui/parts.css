@@ -2060,6 +2060,14 @@ details[open] > summary > .disclosure::before {
   width: auto;
 }
 
+/* Variant Pressed (sf-4; page 44, EN1 C): an act that stands ("Revealed"), washed and edged as a pressed chip. */
+.stacked-button[aria-pressed='true'] {
+  border-color: var(--selected-edge);
+  box-shadow: inset 0 0 0 calc(var(--line-selected) - var(--line-control)) var(--selected-edge);
+  background: var(--selected);
+  color: var(--ink);
+}
+
 /* Variant Group (stk-2, `StackedGroup`): stacked buttons that sit together (a row's answers, a foot's buttons) share
    the widest one's width, side by side in code order: a grid of equal shares sized to its widest button, the 8 px gap
    between taps. In a sheet's foot it stacks as one column when it doesn't fit (`stackFeet`, Dialog.tsx; Dialog.css),

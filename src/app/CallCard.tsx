@@ -8,9 +8,12 @@
 // state said once, the words under "Got it" on a phone, and the lighter edge in dark (CallCard.css). Then Home Two's
 // re-audit findings 1 (b) to 4 (24 Nov): the card reads heading, "Got it", words; on a phone the heading has the full
 // width; the slot keeps one live region whose text changes with each new card; aria-controls only while open.
-import { useEffect, useId, useRef, useState } from 'react';
-import { Icon } from '../ui/icons.tsx';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { Icon, type IconName } from '../ui/icons.tsx';
+import type { SetIconName } from '../ui/iconSet.ts';
+import type { RevealedWords } from '../modules/expedition/reminderPlay.ts';
 import { StackedButton } from '../ui/parts.tsx';
+import { ENCOUNTER_MARK } from './encounterMark.ts';
 import { callHeading, type CallSend, type CallsInSlot } from '../modules/library/callCards.ts';
 import '../ui/bookFaces.css';
 import './CallCard.css';
@@ -23,29 +26,51 @@ export function CallCard({ send, count = null, onGotIt, id }: { send: CallSend; 
   const heading = callHeading(send);
   // A rumour never pays (p7-5; 40A): its send's pays is empty, and the card says nothing of it.
   const pays = send.kind === 'hook' ? send.pays.trim() : '';
-  // The order read is heading, "Got it", words, at every width (re-audit finding 1, option b), so a screen reader meets
-  // the heading first and once. CallCard.css puts "Got it" back where 40A draws it on a tablet, and floats it under the
-  // full-width heading on a phone (finding 2).
   return (
-    <div id={id} className={`call-card book-faces${onGotIt ? '' : ' call-card--reopened'}`} data-prompt-id={onGotIt ? `call-${send.id}` : undefined}>
+    <CardFrame id={id} className={`call-card book-faces${onGotIt ? '' : ' call-card--reopened'}`} promptId={onGotIt ? `call-${send.id}` : undefined} mark={MARK[send.kind]} heading={heading} onGotIt={onGotIt}>
+      <p className="call-card__words">{send.body}</p>
+      {pays && (
+        <p className="call-card__words call-card__pays">
+          <span className="book-label">Pays</span>
+          {pays}
+        </p>
+      )}
+      {count && <p className="call-card__count">{count}</p>}
+    </CardFrame>
+  );
+}
+
+/**
+ * The card's frame, shared by the call card (40A) and its encounter variant (EN5): the mark, then the heading, "Got it"
+ * and the text. The order read is heading, "Got it", words, at every width (re-audit finding 1, option b), so a screen
+ * reader meets the heading first and once. CallCard.css puts "Got it" back where 40A draws it on a tablet, and floats it
+ * under the full-width heading on a phone (finding 2).
+ */
+function CardFrame({ id, className, promptId, mark, heading, onGotIt, children }: { id?: string; className: string; promptId?: string; mark: IconName | SetIconName; heading: string; onGotIt?: () => void; children: ReactNode }) {
+  return (
+    <div id={id} className={className} data-prompt-id={promptId}>
       <span className="call-card__mark">
-        <Icon name={MARK[send.kind]} size={28} />
+        <Icon name={mark} size={28} />
       </span>
       <div className="call-card__body">
         <h3 className="call-card__heading">{heading}</h3>
         {onGotIt && <StackedButton icon="check-mark" label="Got it" aria-label={`Got it: ${heading}`} className="call-card__got-it" onClick={onGotIt} />}
-        <div className="call-card__text">
-          <p className="call-card__words">{send.body}</p>
-          {pays && (
-            <p className="call-card__words call-card__pays">
-              <span className="book-label">Pays</span>
-              {pays}
-            </p>
-          )}
-          {count && <p className="call-card__count">{count}</p>}
-        </div>
+        <div className="call-card__text">{children}</div>
       </div>
     </div>
+  );
+}
+
+/**
+ * The revealed result on the players' Scene (sf-7b; page 44's EN5, approved 2026-11-26): the call card's encounter
+ * variant, in the prompt slot. The crossed swords, "An encounter", the words the GM sent (A1's `revealed_words`: the
+ * words and nothing of the check) and a plain "Got it", which puts the card away on this device (sf-23).
+ */
+export function RevealedCard({ reveal, onGotIt }: { reveal: RevealedWords; onGotIt: () => void }) {
+  return (
+    <CardFrame className="call-card call-card--encounter book-faces" promptId={`reveal-${reveal.id}`} mark={ENCOUNTER_MARK} heading="An encounter" onGotIt={onGotIt}>
+      <p className="call-card__words">{reveal.words}</p>
+    </CardFrame>
   );
 }
 

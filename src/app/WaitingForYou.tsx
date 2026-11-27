@@ -37,6 +37,7 @@ import { tradeViewOf } from './townTrade.ts';
 import type { TradeView } from './TownRequestCards.tsx';
 import { useErrorToast } from '../ui/ToastHost.tsx';
 import { Icon, StepIcon } from '../ui/icons.tsx';
+import { ENCOUNTER_MARK } from './encounterMark.ts';
 import { isSetIconName } from '../ui/iconSet.ts';
 import { StackedButton } from '../ui/parts.tsx';
 import type { WaitingKind, WaitingRow } from '../modules/expedition/waitingModel.ts';
@@ -351,10 +352,12 @@ function PlayersWaiting({ db, user, campaign, onChanged, quiet = false }: Waitin
   );
 }
 
-/** Each kind's mark at a row's left (the step symbols' line icons, as the facts above use them). */
-const MARK: Record<WaitingKind, string> = {
+/**
+ * Each kind's mark at a row's left (the step symbols' line icons, as the facts above use them); an encounter's is the
+ * set's crossed swords (sf-3; page 44, EN1 and PS2 B), drawn by `KindMark`.
+ */
+const MARK: Record<Exclude<WaitingKind, 'encounter'>, string> = {
   expeditionEnd: 'camp',
-  encounter: 'encounter',
   rest: 'rest',
   weather: 'weather',
   reminder: 'time',
@@ -362,6 +365,11 @@ const MARK: Record<WaitingKind, string> = {
   playerItem: 'note',
   way: 'travel',
 };
+
+/** A kind's mark, open (28) or on its row (24). */
+function KindMark({ kind, size }: { kind: WaitingKind; size: number }) {
+  return kind === 'encounter' ? <Icon name={ENCOUNTER_MARK} size={size} /> : <StepIcon name={MARK[kind]} size={size} />;
+}
 
 /**
  * The panel (S8; page 16, T2, T6b, T8b): the heading and its count ("1 of 4", wy-1), the open item whole, the others
@@ -387,7 +395,7 @@ export function WaitingPanel({ quiet = false, loading = false }: { quiet?: boole
         'card' in entry ? (
           <div key={entry.card.id} className="waiting-open" data-kind={entry.card.kind} data-title={entry.card.title}>
             <span className="waiting-open__mark" aria-hidden="true">
-              <StepIcon name={MARK[entry.card.kind]} size={28} />
+              <KindMark kind={entry.card.kind} size={28} />
             </span>
             <CardHost id={entry.card.id} />
           </div>
@@ -418,7 +426,7 @@ function WaitingRowLine({ row, onOpen, onAct }: { row: WaitingRow; onOpen: () =>
   return (
     <div className="waiting-row" data-kind={row.kind}>
       <span className="waiting-row__mark" aria-hidden="true">
-        <StepIcon name={MARK[row.kind]} size={24} />
+        <KindMark kind={row.kind} size={24} />
       </span>
       <button type="button" className="waiting-row__open" aria-label={`Open: ${row.title}`} onClick={onOpen}>
         <span className="waiting-row__title">{row.title}</span>

@@ -298,11 +298,14 @@ const SCENES: Scene[] = [
       await page.getByRole('dialog', { name: 'Modifier for Wandering check' }).getByRole('button', { name: '+1 face' }).click();
       await expect(due.getByText('Roll 1d6, on 1–2')).toBeVisible();
       await due.getByRole('button', { name: 'Hit, Wandering check' }).click();
-      await expect(page.getByRole('region', { name: 'Wandering check: hit' })).toBeVisible();
+      // Since sf-4 the hit is the encounter's one card (no table here, so no row picked yet), its answers below.
+      const card = page.getByRole('region', { name: 'Waiting for you' }).getByRole('region', { name: 'Encounter waiting, Wandering check, no row yet' });
+      await expect(card.getByRole('heading', { name: 'An encounter' })).toBeVisible();
+      await expect(card.getByRole('button', { name: 'Done' })).toBeVisible();
     },
   },
   {
-    // Encounter tables, full screen (M5b step g3, B2): Which table? from Explore's row, every table listed.
+    // Encounter tables, full screen (M5b step g3, B2): Which table? from the ⋯ menu (sf-3), every table listed.
     name: 'gm-which-table',
     open: async (page) => {
       await page.goto('/layout.html?as=gm&tables=1');
@@ -310,7 +313,9 @@ const SCENES: Scene[] = [
       await page.getByRole('button', { name: 'Start session' }).click(); // S9: Next turn needs a session running
       await page.getByRole('button', { name: 'Depart' }).click();
       await departStart(page);
-      await page.getByRole('button', { name: /^Encounter tables/ }).click();
+      // The ⋯ menu's first item during an expedition (sf-3, ⚑ 4; page 44, EN7 A).
+      await page.getByRole('button', { name: 'Time options' }).click();
+      await page.getByRole('button', { name: 'Encounter tables' }).click();
       await page.getByRole('button', { name: /^All 3 tables/ }).click();
       await expect(page.getByRole('dialog', { name: 'Encounter tables' })).toBeVisible();
     },
@@ -325,7 +330,9 @@ const SCENES: Scene[] = [
       await page.getByRole('button', { name: 'Start session' }).click(); // S9: Next turn needs a session running
       await page.getByRole('button', { name: 'Depart' }).click();
       await departStart(page);
-      await page.getByRole('button', { name: /^Encounter tables/ }).click();
+      // The ⋯ menu's first item during an expedition (sf-3, ⚑ 4; page 44, EN7 A).
+      await page.getByRole('button', { name: 'Time options' }).click();
+      await page.getByRole('button', { name: 'Encounter tables' }).click();
       await page.getByRole('button', { name: /^All 3 tables/ }).click();
       await page.getByRole('button', { name: /^The drowned sluices/ }).click();
       const go = page.getByLabel('Go to number');
@@ -347,7 +354,9 @@ const SCENES: Scene[] = [
       await page.getByRole('button', { name: 'Start session' }).click(); // S9: Next turn needs a session running
       await page.getByRole('button', { name: 'Depart' }).click();
       await departStart(page);
-      await page.getByRole('button', { name: /^Encounter tables/ }).click();
+      // The ⋯ menu's first item during an expedition (sf-3, ⚑ 4; page 44, EN7 A).
+      await page.getByRole('button', { name: 'Time options' }).click();
+      await page.getByRole('button', { name: 'Encounter tables' }).click();
       await page.getByRole('button', { name: /^All 3 tables/ }).click();
       await page.getByRole('button', { name: /^Wilderness of the fen/ }).click();
       await expect(page.getByRole('group', { name: 'Column' })).toBeVisible();
@@ -355,7 +364,8 @@ const SCENES: Scene[] = [
   },
   {
     // Encounter waiting (M5b step 2): two cards on the GM console, newest first, one with a long row (messy data),
-    // one with no row yet; Start, View and Dismiss on each.
+    // one with no row yet; since sf-4 the newest is the encounter's one card (Reveal…, Message…, Done), the older a row
+    // with its Done.
     name: 'gm-encounter-waiting',
     open: async (page) => {
       await page.goto('/layout.html?as=gm&tables=1');
@@ -374,18 +384,21 @@ const SCENES: Scene[] = [
           await page.getByRole('dialog', { name: 'Mortal' }).getByRole('button', { name: 'Back' }).click();
         }
         await which.getByRole('button', { name: 'Close' }).click();
-        await page.getByRole('region', { name: 'Wandering check: hit' }).getByRole('button', { name: 'Done' }).click();
+        // Since sf-4 the hit has no card of its own to close: it is the encounter's one card, which stays waiting.
       }
       // Since S8b a non-open item is a row: two encounters wait as the open card and one row; the panel counts every item
       // (the two encounters and the GM's reminder), so a lost encounter would change it.
       const panel = page.getByRole('region', { name: 'Waiting for you' });
       await expect(panel.getByRole('region', { name: /^Encounter waiting, / })).toHaveCount(1);
-      await expect(panel.getByRole('button', { name: /^Start, / })).toHaveCount(1);
+      // The newest (no row yet) is the open card; the older, with the long row, is a row whose button is Done (sf-4).
+      await expect(panel.getByRole('region', { name: 'Encounter waiting, Wandering check, no row yet' })).toHaveCount(1);
+      await expect(panel.getByRole('button', { name: /^Done, Pilgrims lost on the causeway/ })).toHaveCount(1);
       await expect(panel.locator('.waiting-card__count')).toHaveText('1 of 3');
     },
   },
   {
-    // An Encounter waiting card started: the row's full text and its stat block, read-only (M5b; the fight is M6).
+    // An encounter's card with its row picked: the row's full text and its count, read-only (M5b; the fight is M6). Since
+    // sf-4 there is no Start: the one card in Waiting for you shows the row whole, with Change… and its answers.
     name: 'gm-encounter-started',
     open: async (page) => {
       await page.goto('/layout.html?as=gm&tables=1');
@@ -400,9 +413,13 @@ const SCENES: Scene[] = [
       await page.getByRole('dialog', { name: 'Mortal' }).getByRole('button', { name: /Pilgrims lost/ }).click();
       await page.getByRole('dialog', { name: 'Mortal' }).getByRole('button', { name: 'Back' }).click();
       await page.getByRole('dialog', { name: 'Wandering check, Hit' }).getByRole('button', { name: 'Close' }).click();
-      // Since S8b a non-open item is a row: the encounter's row carries its own Start (no extra tap).
-      await page.getByRole('region', { name: 'Waiting for you' }).getByRole('button', { name: /^Start, Mortal: Pilgrims lost/ }).click();
-      await expect(page.getByRole('dialog', { name: 'Started: Wandering check' })).toBeVisible();
+      // The panel's open card is the encounter (as in the hit's journey), reading the picked row whole.
+      const card = page.getByRole('region', { name: 'Waiting for you' }).getByRole('region', { name: /^Encounter waiting, Wandering check, Mortal: Pilgrims lost/ });
+      await expect(card.getByRole('heading', { name: 'An encounter' })).toBeVisible();
+      await expect(card.locator('.waiting-encounter__line')).toHaveText(/^Pilgrims lost on the causeway with a lame mule/);
+      await expect(card.getByText('How many: 999')).toBeVisible();
+      await expect(card.getByRole('button', { name: /^Change…/ })).toBeVisible();
+      await expect(card.getByRole('button', { name: 'Done' })).toBeVisible();
     },
   },
   {

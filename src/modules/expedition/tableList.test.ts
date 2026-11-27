@@ -10,7 +10,7 @@
 import { describe, expect, it } from 'vitest';
 import { checkPrompt, type TableCandidate } from './checks.ts';
 import { readCheck, readExploration, type Terrain } from './modes.ts';
-import { tablesRowWords, tableTag, whichTables } from './tableList.ts';
+import { tableTag, whichTables } from './tableList.ts';
 import * as tableListModule from './tableList.ts';
 import { placeCheckOf } from './placeRules.ts';
 import { readTable } from './tables.ts';
@@ -47,13 +47,6 @@ describe('Which table? (B2)', () => {
   it("a special season's swap is named by the season", () => {
     const { rows } = whichTables({ pins: [], candidates: [cand('mist-things', 'season', 'mistwane')], known, seasonName: (id) => (id === 'mistwane' ? 'Mistwane' : id) });
     expect(tableTag(rows[0]!, 'd6')).toBe('likely, Mistwane, d6');
-  });
-
-  it("Explore's row reads the likely table and the pins", () => {
-    expect(tablesRowWords('Abbey', 1)).toBe('Abbey likely, 1 pinned');
-    expect(tablesRowWords(null, 2)).toBe('2 pinned');
-    expect(tablesRowWords('Marsh', 0)).toBe('Marsh likely');
-    expect(tablesRowWords(null, 0)).toBe('');
   });
 });
 

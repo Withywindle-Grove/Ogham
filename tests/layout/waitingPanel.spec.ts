@@ -4,7 +4,10 @@
 //   * four waiting: the first whole, three one-line rows, the count "1 of 4"; six: the first whole, two rows and "3 more",
 //     "1 of 6";
 //   * a row's title stays on one line, cut short with an ellipsis rather than wrapping or running past the row;
-//   * the open encounter's Start is the page's one accent; Move on is plain;
+//   * the open encounter's Done is the page's one accent; Move on is plain;
+//   * the encounter's one card (sf-4; page 44, EN1 B, EN4 C): its three answers on one row, each at least 88 px wide,
+//     at 375 px too (a card too narrow for that, the 680 px right column, stands them one under another); "Change…" opens the table's pop-up (a sheet from the foot on a phone, centred elsewhere) with the
+//     picked row ticked, no accent in it, and no layout or contrast problem;
 //   * nothing waiting: "Nothing waits." (on a tablet, at a spot and at a place that holds spots; a phone leaves the
 //     empty panel out);
 //   * nothing scrolls sideways, every tap is 44 px, and axe finds no serious problem, in light and dark, at 375, 680,
@@ -47,7 +50,7 @@ for (const size of [
       test.use({ viewport: { width: size.width, height: size.height }, colorScheme: scheme });
 
       // Purpose (T2): four waiting draw the first whole and three one-line rows, "1 of 4"; a long title stays on one
-      // line; the open one's Start is the one accent.
+      // line; the open one's Done is the one accent.
       test('four waiting', async ({ page }) => {
         await openScene(page, 4);
         const box = panel(page);
@@ -55,7 +58,7 @@ for (const size of [
         await expect(box.locator('.waiting-open')).toHaveCount(1);
         await expect(box.locator('.waiting-row')).toHaveCount(3);
         await expect(box.getByRole('region', { name: /^Encounter waiting, / })).toHaveCount(1);
-        await expect(box.getByRole('region', { name: /^Encounter waiting, / }).getByRole('button', { name: 'Start' })).toHaveClass(/button-primary/);
+        await expect(box.getByRole('region', { name: /^Encounter waiting, / }).getByRole('button', { name: 'Done' })).toHaveClass(/button-primary/);
         await expect(accents(page)).toHaveCount(1);
         await expect(page.getByRole('button', { name: 'Move on' })).toHaveClass(/button-secondary/);
         // Each row's title on one line, never past its row.
@@ -86,9 +89,10 @@ for (const size of [
         await expect(accents(page)).toHaveCount(1);
       });
 
-      // Purpose (S8b; T2, T8b): a mix of kinds: an encounter whole, redrawn to T2 (its title, its line with what was
-      // rolled as a link, Start and Dismiss stacked with their icons, Start the one accent), then the check the band's
-      // Encounter check put on the card as a row with its Hit; no card outside the panel.
+      // Purpose (S8b; T2, T8b; sf-4, EN1 B and EN4 C): a mix of kinds: an encounter whole, as its one card ("An
+      // encounter", its words, the picked line with Change…, then Reveal…, Message… and Done on one row, each at least
+      // 88 px wide, Done the one accent; no Start), then the check the band's Encounter check put on the card as a row
+      // with its Hit; no card outside the panel. Change… opens the table's pop-up with the row ticked.
       test('a mix of kinds (T2)', async ({ page }) => {
         await openScene(page, 2);
         await page.getByRole('group', { name: 'Quick actions' }).getByRole('button', { name: 'Encounter check' }).click();
@@ -96,18 +100,75 @@ for (const size of [
         await expect(box.getByRole('button', { name: /^Hit, Encounter check, now/ })).toBeVisible();
         await expect(box.locator('.waiting-card__count')).toHaveText('1 of 3');
         const open = box.getByRole('region', { name: /^Encounter waiting, / });
-        await expect(open.getByRole('heading', { name: 'An encounter waits' })).toBeVisible();
-        await expect(open.getByRole('button', { name: 'Start' })).toHaveClass(/button-primary/);
+        await expect(open.getByRole('heading', { name: 'An encounter' })).toBeVisible();
+        await expect(open.getByRole('button', { name: 'Done' })).toHaveClass(/button-primary/);
+        await expect(open.getByRole('button', { name: 'Start' })).toHaveCount(0);
         await expect(open.getByRole('button', { name: 'View' })).toHaveCount(0);
         await expect(accents(page)).toHaveCount(1);
         await expect(page.locator('section[aria-label="Due"]')).toHaveCount(0);
+        // The three answers on one row, each at least the stacked button's 88 px, wherever the card has the room (a phone
+        // too); in a narrower card (the right column at 680 px) one under another, each the card's width.
+        const answers = await open.locator('.stacked-group > .stacked-button').evaluateAll((els) => els.map((el) => el.getBoundingClientRect()).map((r) => ({ top: Math.round(r.top), width: r.width })));
+        const cardWidth = (await open.boundingBox())!.width;
+        expect(answers.length).toBe(3);
+        for (const a of answers) expect(a.width).toBeGreaterThanOrEqual(88);
+        if (cardWidth >= 280) expect(answers.map((a) => a.top)).toEqual(Array(answers.length).fill(answers[0]!.top));
+        else for (const a of answers) expect(Math.abs(a.width - cardWidth)).toBeLessThanOrEqual(1);
+        if (size.width === 375) expect(cardWidth).toBeGreaterThanOrEqual(280);
         await shoot(page, `waiting-mix-${size.width}-${scheme}`);
+        await box.screenshot({ path: `test-results/layout-screens/waiting-encounter-card-${size.width}-${scheme}.png` });
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
-        // The link on what was rolled opens the encounter's pop-up, nothing started (06-03).
-        await open.locator('.waiting-encounter__link').click();
-        await expect(page.getByRole('dialog', { name: /^Encounter waiting: / })).toBeVisible();
-        if (scheme === 'light') await page.screenshot({ path: `test-results/layout-screens/waiting-popup-${size.width}.png` });
+        // Change… opens the table's pop-up, the row picked before ticked: a sheet from the foot on a phone, centred
+        // elsewhere, with no accent of its own.
+        await open.getByRole('button', { name: /^Change…/ }).click();
+        const pop = page.getByRole('dialog', { name: 'On the water' });
+        await expect(pop).toBeVisible();
+        await expect(pop.getByRole('radio', { name: /Bog lurkers/ })).toHaveAttribute('aria-checked', 'true');
+        await expect(pop.locator('.button-primary')).toHaveCount(0);
+        // Where it settles, once its slide in has ended.
+        const where = () => pop.boundingBox().then((b) => (size.name === 'phone' ? Math.abs(b!.y + b!.height - size.height) : Math.abs(b!.x + b!.width / 2 - size.width / 2)));
+        await expect.poll(where).toBeLessThanOrEqual(2);
+        if (scheme === 'light') await page.screenshot({ path: `test-results/layout-screens/waiting-change-${size.width}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page, '[role="dialog"]')).toEqual([]);
+      });
+
+      // Purpose (sf-4; page 44, EN6 A, F; EN1 C): "Reveal…" opens "Reveal to players", a sheet from the foot on a phone
+      // and centred elsewhere, its "Show players" the screen's one accent while it is open (Done drawn plain), with no
+      // layout or contrast problem; after "Show players" the three answers keep their places ("Reveal…" now the pressed
+      // "Revealed", each still at least 88 px, on one row where the card has the room) and the line quoting the words
+      // fits the card.
+      test('reveal to players, then Revealed', async ({ page }) => {
+        await openScene(page, 2);
+        const open = panel(page).getByRole('region', { name: /^Encounter waiting, / });
+        const places = () => open.locator('.stacked-group > .stacked-button').evaluateAll((els) => els.map((el) => el.getBoundingClientRect()).map((r) => ({ left: Math.round(r.left), width: Math.round(r.width) })));
+        const before = await places();
+        await open.getByRole('button', { name: 'Reveal…' }).click();
+        const pop = page.getByRole('dialog', { name: 'An encounter: Reveal to players' });
+        await expect(pop).toBeVisible();
+        await expect(accents(page)).toHaveCount(1);
+        await expect(pop.getByRole('button', { name: 'Show players' })).toHaveClass(/button-primary/);
+        // The card's Done is drawn plain behind it, once its colour has faded over (the buttons' transition).
+        await expect(open.getByRole('button', { name: 'Done' })).toHaveClass(/button-secondary/);
+        const fill = (name: string) => open.getByRole('button', { name }).evaluate((el) => getComputedStyle(el).backgroundColor);
+        await expect.poll(async () => (await fill('Done')) === (await fill('Message…'))).toBe(true);
+        const where = () => pop.boundingBox().then((b) => (size.name === 'phone' ? Math.abs(b!.y + b!.height - size.height) : Math.abs(b!.x + b!.width / 2 - size.width / 2)));
+        await expect.poll(where).toBeLessThanOrEqual(2);
+        if (scheme === 'light') await page.screenshot({ path: `test-results/layout-screens/sf4-reveal-popup-${size.width}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page, '[role="dialog"]')).toEqual([]);
+        await pop.getByRole('button', { name: 'Show players' }).click();
+        const revealed = open.getByRole('button', { name: 'Revealed: take it back' });
+        await expect(revealed).toHaveAttribute('aria-pressed', 'true');
+        await expect(open.locator('.waiting-encounter__shown')).toContainText('Players see:');
+        // The buttons may move down the card (the line stands over them), never across, and keep their widths.
+        expect(await places()).toEqual(before);
+        for (const b of before) expect(b.width).toBeGreaterThanOrEqual(88);
+        await expect(accents(page)).toHaveCount(1);
+        await open.scrollIntoViewIfNeeded();
+        await open.screenshot({ path: `test-results/layout-screens/sf4-revealed-${size.width}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
       });
 

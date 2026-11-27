@@ -382,7 +382,7 @@ it('a 3-day trek: weather, a lost check, a forage and a camp, each step checked'
   // queued is opened from its row; "Who is awake…" (T2) opens its watches.
   await user.click((await openDue(user, 'Prowlers')).getByRole('button', { name: 'Hit, Prowlers' }));
   await readRow('Prowlers', 'check:mode:fen-prowl');
-  await openWaiting(user, 'Fen prowlers: Bog lurkers (1d4)');
+  await openWaiting(user, 'Bog lurkers (1d4)');
   const waiting = within(await screen.findByRole('region', { name: 'Encounter waiting, Prowlers, Fen prowlers: Bog lurkers (1d4)' }));
   await user.click(waiting.getByRole('button', { name: 'Who is awake…' }));
   expect(within(screen.getByRole('group', { name: 'Which watch?' })).getAllByRole('button').map((b) => b.textContent)).toEqual(['1st: Reed', '2nd: Moss']);
@@ -399,7 +399,7 @@ it('a 3-day trek: weather, a lost check, a forage and a camp, each step checked'
   await readRow('Prowlers, now', 'now:check:mode:fen-prowl');
   // The newer encounter first among the encounters (newest first), opened from its row; its watches asked the same way.
   // Both are named by their row; the older one is still open, so the newer one is the row of that name.
-  await user.click(within(screen.getByRole('region', { name: 'Waiting for you' })).getByRole('button', { name: 'Open: Fen prowlers: Bog lurkers (1d4)' }));
+  await user.click(within(screen.getByRole('region', { name: 'Waiting for you' })).getByRole('button', { name: 'Open: Bog lurkers (1d4)' }));
   const nowCard = within(await screen.findByRole('region', { name: 'Encounter waiting, Prowlers, now, Fen prowlers: Bog lurkers (1d4)' }));
   await user.click(nowCard.getByRole('button', { name: 'Who is awake…' }));
   await user.click(within(screen.getByRole('group', { name: 'Which watch?' })).getByRole('button', { name: '1st: Reed' }));

@@ -15,8 +15,7 @@
   border-bottom: var(--row-rule);
 }
 
-.table-item__open,
-.encounter-row {
+.table-item__open {
   display: flex;
   flex: 1;
   align-items: center;
@@ -32,15 +31,13 @@
   cursor: pointer;
 }
 
-.table-item__text,
-.encounter-row__text {
+.table-item__text {
   flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
-.table-item__name,
-.encounter-row__name {
+.table-item__name {
   font-family: var(--font-heading);
   font-size: var(--text-20);
   font-weight: var(--weight-heading);
@@ -48,7 +45,6 @@
 }
 
 .table-item__tag,
-.encounter-row__tag,
 .table-rows__tag {
   color: var(--muted);
   font-size: var(--text-14);
@@ -62,8 +58,7 @@
   line-height: var(--line-body);
 }
 
-.table-item__chev,
-.encounter-row__chev {
+.table-item__chev {
   flex: none;
   color: var(--muted);
   font-size: var(--text-24);
@@ -93,23 +88,6 @@
   align-self: flex-start;
   min-height: var(--tap);
   margin-top: var(--space-2);
-}
-
-.encounter-row {
-  width: 100%;
-  border-top: var(--line-hair) solid var(--rule);
-  padding: var(--space-2) 0;
-}
-
-.encounter-row__name {
-  font-size: var(--text-16);
-}
-
-.encounter-row__none {
-  margin: 0;
-  padding: var(--space-2) 0;
-  color: var(--muted);
-  font-size: var(--text-14);
 }
 
 .table-rows {

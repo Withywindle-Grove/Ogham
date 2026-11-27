@@ -118,8 +118,3 @@ export function sceneCandidatesOf({
 export function tableTag(row: TableListRow, die: string | null): string {
   return [row.pinned ? 'pinned' : null, row.likely ? 'likely' : null, row.why, die].filter(Boolean).join(', ');
 }
-
-/** Explore's row: "Abbey likely · 1 pinned"; "" when there's neither. */
-export function tablesRowWords(likelyName: string | null, pins: number): string {
-  return [likelyName ? `${likelyName} likely` : null, pins > 0 ? `${pins} pinned` : null].filter(Boolean).join(', ');
-}

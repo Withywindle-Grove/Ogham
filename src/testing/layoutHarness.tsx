@@ -1363,10 +1363,13 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     facts: [{ lead: 'Tides', text: 'Two a day; the bar dries at low water.' }],
     gm: { sections: [{ heading: 'The Tidewife', text: 'She keeps her word to the letter, and expects the same.' }], notes: 'The Tidewife keeps her word to the letter.' },
     // The pack's own sentence for its check (p2p-14; B3), shown on the place page's check card. &check=none: the harbour
-    // has no check of its own, so the Scene's facts row draws Light alone (Q4's one fact; the review of #110).
+    // has no check of its own, so the Scene's facts row draws Light alone (Q4's one fact; the review of #110). &check=roll:
+    // its check is a roll on its table, "On the water" (p2p-19), so a due check is EN1 A's card (sf-4; #126's review, 3).
     ...(new URLSearchParams(window.location.search).get('check') === 'none'
       ? {}
-      : { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' } }),
+      : new URLSearchParams(window.location.search).get('check') === 'roll'
+        ? { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, onHit: { tableId: 'on-the-water' }, note: 'Roll d8 for an encounter each time the party rows to a new Location.' } }
+        : { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' } }),
     rules: [{ id: 'falling-in', name: 'Falling into the harbour', button: { icon: 'water-splash', words: 'Someone fell in' }, text: 'A character in the harbour’s water is cold at once.' }],
     tableIds: ['tide-left', 'on-the-water'],
     // &strip=long (plan dec-9-the-whole-scene S7; page 02, S5): the harbour's own procedure, seven steps with long
@@ -1723,7 +1726,8 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     }
   }
   // &waiting=4|6: encounters waiting in "Waiting for you" (S8a; page 16, T2 and T6b): four (the first whole, three rows),
-  // or six (the first whole, two rows, "3 more"); the second with a long name.
+  // or six (the first whole, two rows, "3 more"); the second with a long name. Each read the table's one row, so the
+  // one card (sf-4) has its picked line and "Change…".
   const waitingFlag = Number(new URLSearchParams(window.location.search).get('waiting') ?? 0);
   const names = ['Bog lurkers', 'The Long-Drowned Customs Officers of the Lantern Coast and their Hounds', 'Reed wraiths', 'Eel-wives', 'A ferryman with no boat', 'Gulls, a great many'];
   if (started.data && waitingFlag > 0) {
@@ -1731,10 +1735,24 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
       const check = `check-reed-${i}`;
       world.tables.check_results.push({
         id: check, campaign_id: campaign, expedition_id: started.data.id, check_key: `place:drowned-harbour:${i}`, name: 'Encounter check', source: 'place', outcome: 'hit', at_seconds: 0, modifiers: [], note: null,
-        table_id: 'on-the-water', roll: '3', row_text: name, secret: true, revealed: false, revealed_by_hand: false, created_by: gm, undone: false, version: 1, created_at: `2026-11-14T10:0${i}:00Z`,
+        table_id: 'on-the-water', roll: '1–8', row_text: name, secret: true, revealed: false, revealed_by_hand: false, created_by: gm, undone: false, version: 1, created_at: `2026-11-14T10:0${i}:00Z`,
       });
       world.tables.waiting_encounters.push({ id: `waiting-reed-${i}`, campaign_id: campaign, expedition_id: started.data.id, check_result_id: check, watch: null, state: 'waiting', started_at: null, dismissed_at: null, created_by: gm, undone: false, version: 1, created_at: `2026-11-14T10:0${i}:00Z` });
     }
+  }
+  // &revealed=1|long: a hit whose words the GM showed the players (sf-7b; EN5), so the player's slot holds the revealed
+  // card: EN5's words, or a reveal of forty-odd words that wraps.
+  const revealedFlag = new URLSearchParams(window.location.search).get('revealed');
+  if (started.data && (revealedFlag === '1' || revealedFlag === 'long')) {
+    const words =
+      revealedFlag === 'long'
+        ? 'Two grey shapes rise from the weed and reach for the oars; behind them, further out where the water turns black, a third waits under the surface, and the gulls that mobbed the boat all morning have gone quiet and flown inland over the drowned customs house.'
+        : 'Two grey shapes rise from the weed and reach for the oars.';
+    world.tables.check_results.push({
+      id: 'check-reed-revealed', campaign_id: campaign, expedition_id: started.data.id, check_key: 'place:drowned-harbour:revealed', name: 'Encounter check', source: 'place', outcome: 'hit', at_seconds: 0, modifiers: [], note: null,
+      table_id: 'on-the-water', roll: '1–8', row_text: 'Bog lurkers', secret: true, revealed: false, revealed_by_hand: false, created_by: gm, undone: false, version: 1, created_at: '2026-11-14T11:00:00Z',
+    });
+    world.tables.check_reveals.push({ id: 'reveal-reed', campaign_id: campaign, check_result_id: 'check-reed-revealed', words, shown_at: '2026-11-14T11:01:00Z', taken_back: false, created_at: '2026-11-14T11:01:00Z', updated_at: '2026-11-14T11:01:00Z' });
   }
 }
 

@@ -9,7 +9,7 @@
 //   Gate check: players see results only at Downtime: not in the table, not in the log, until the campaign goes
 //   into Downtime; then they're revealed. A GM-only reminder never reaches a player; a public one shows in their
 //   reference list.
-//   A setting's encounter check: Explore's one row "Encounter tables · <likely> likely" (B2) opens the same screens;
+//   A setting's encounter check: the ⋯ menu's "Encounter tables" (sf-3, ⚑ 4; B2's row is gone) opens the same screens;
 //   a row tapped there is recorded "rolled by hand". Table library › opens the table library full screen (no Enter roll).
 //   The hour track shows the turns of the hour. A timed recharge comes due in Downtime with its one-tap Recharge.
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
@@ -212,7 +212,8 @@ describe('the reminder card (M5 step 6)', () => {
     await startExpedition(user);
     await screen.findByRole('heading', { name: 'The Mustering Field, turn 1' });
     await user.click(screen.getByRole('button', { name: 'Next turn' }));
-    await screen.findByText('Next turn, nothing due');
+    // A turn with nothing due says so in its toast (sf-3, ⚑ 4).
+    await screen.findByText('Turn 2, nothing due.');
     await user.click(screen.getByRole('button', { name: 'Next turn' }));
     const due = within(await screen.findByRole('region', { name: 'Due' }));
     expect(due.getByText('Roll 1d6, on 1')).toBeTruthy();
@@ -249,29 +250,32 @@ describe('the reminder card (M5 step 6)', () => {
     await user.click(shallows.getByRole('button', { name: /Bog lurkers/ }));
     await waitFor(() => expect(world.tables.check_results[0]).toMatchObject({ table_id: 'shallows', roll: '1–3', row_text: 'Shallow things: Bog lurkers, 1d4' }));
     expect(await screen.findByText('Rolled: 1–3, Bog lurkers, 1d4')).toBeTruthy();
-    // Back to the list, then back to the console with the hit still open.
+    // Back to the list, then back to the console: one encounter, one card (sf-4, F5 a), the hit's own item gone.
     await user.click(shallows.getByRole('button', { name: 'Back' }));
     await user.click(within(await screen.findByRole('dialog', { name: 'Wandering things, Hit' })).getByRole('button', { name: 'Close' }));
-    const hit = within(await screen.findByRole('region', { name: 'Wandering things: hit' }));
-    expect(hit.getByRole('status').textContent).toBe('Rolled: Shallow things: Bog lurkers, 1d4');
-    // A secret result: the GM can show it to the players now (ruled 2026-10-29), with Undo.
-    await user.click(hit.getByRole('button', { name: 'Reveal to players' }));
-    expect(await screen.findByText('Showed the players Wandering things')).toBeTruthy();
-    expect(world.tables.check_results[0]).toMatchObject({ revealed: true, revealed_by_hand: true });
-    expect(hit.getByText('Players see this result.')).toBeTruthy();
-    await user.click(hit.getByRole('button', { name: 'Done' }));
+    const card = within(await screen.findByRole('region', { name: 'Encounter waiting, Wandering things, Shallow things: Bog lurkers, 1d4' }));
     expect(screen.queryByRole('region', { name: 'Wandering things: hit' })).toBeNull();
+    expect(card.getByText('Bog lurkers, 1d4')).toBeTruthy();
+    // A secret result: the GM shows the players the words in "Reveal to players" (sf-4, EN6), and nothing of the check:
+    // the result itself stays unrevealed (sf-7a; its own lines open at the next Downtime, sf-22).
+    await user.click(card.getByRole('button', { name: 'Reveal…' }));
+    await user.click(within(await screen.findByRole('dialog', { name: 'An encounter: Reveal to players' })).getByRole('button', { name: 'Show players' }));
+    expect(await screen.findByText('Shown to the players.')).toBeTruthy();
+    expect(world.tables.check_reveals[0]).toMatchObject({ words: 'Bog lurkers, 1d4', taken_back: false });
+    expect(world.tables.check_results[0]).toMatchObject({ revealed: false });
+    await user.click(card.getByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(screen.queryByRole('region', { name: /^Encounter waiting, / })).toBeNull());
   });
 
-  it("Explore's row names the likely table; opened without a hit, a tapped row is recorded rolled by hand, and Undo takes it back", async () => {
+  it("the ⋯ menu's Encounter tables opens the tables; opened without a hit, a tapped row is recorded rolled by hand, and Undo takes it back", async () => {
     const { gm, campaign } = table();
     withSetting(campaign, gm);
     const user = await openScene(gm, true);
     await startExpedition(user);
-    // One row, replacing "current table · Roll" (B2).
-    const row = await screen.findByRole('button', { name: /^Encounter tables/ });
-    expect(row.textContent).toBe('Encounter tables, Shallow things likely›');
-    await user.click(row);
+    // No row on the Scene (sf-3, ⚑ 4): the ⋯ menu's first item opens the tables (page 44, EN7 A).
+    expect(screen.queryByRole('button', { name: /^Encounter tables/ })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Time options' }));
+    await user.click(await screen.findByRole('button', { name: 'Encounter tables' }));
     const which = within(await screen.findByRole('dialog', { name: 'Encounter tables' }));
     await user.click(which.getByRole('button', { name: /^Deep things/ }));
     const deeps = within(await screen.findByRole('dialog', { name: 'Deep things' }));
@@ -287,17 +291,17 @@ describe('the reminder card (M5 step 6)', () => {
     await waitFor(() => expect(deeps.getByRole('button', { name: /Lantern eels/ }).getAttribute('aria-current')).toBeNull());
   });
 
-  // Purpose: during an expedition the band has one way to the tables (Encounter tables ›), and the library with its
-  // pins is still reachable from that screen's foot: every table by name with a pin button; one opened is for reading.
+  // Purpose: during an expedition there is one way to the tables (the ⋯ menu's Encounter tables, sf-3), and the library
+  // with its pins is still reachable from that screen's foot: every table by name with a pin button; one opened is for reading.
   it('Table library › opens the table library full screen: every table by name with a pin button; one opened is for reading', async () => {
     const { gm, campaign } = table();
     withSetting(campaign, gm);
     const user = await openScene(gm, true);
     await startExpedition(user);
-    // One way to the tables in the band (the approval's fix 3): the Encounter tables row; the library is at its foot.
-    const row = await screen.findByRole('button', { name: /^Encounter tables/ });
+    // One way to the tables (the approval's fix 3; sf-3, ⚑ 4): the ⋯ menu's Encounter tables; the library is at its foot.
     expect(screen.queryByRole('button', { name: 'Table library ›' })).toBeNull();
-    await user.click(row);
+    await user.click(await screen.findByRole('button', { name: 'Time options' }));
+    await user.click(await screen.findByRole('button', { name: 'Encounter tables' }));
     await user.click(within(await screen.findByRole('dialog', { name: 'Encounter tables' })).getByRole('button', { name: 'Table library ›' }));
     const library = within(await screen.findByRole('dialog', { name: 'Table library' }));
     expect(library.getByText('2 in this setting')).toBeTruthy();

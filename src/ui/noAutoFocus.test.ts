@@ -57,8 +57,9 @@ const FOCUS_CALLS: Record<string, number> = {
   // The Light pop-up's pick step (P10 audit 2–3): the first light's button as the pick opens, and Light again on Back;
   // both buttons.
   '/src/app/LightSection.tsx': 2,
-  // Back to the Scene's Light fact once a light is lit (P10 audit 1): the fact, a button, never a field.
-  '/src/app/SceneTime.tsx': 1,
+  // Back to the Scene's Light fact once a light is lit (P10 audit 1): the fact, a button, never a field. And after
+  // "Got it" puts a players' revealed card away (sf-7b): the next revealed card's "Got it", a button, never a field.
+  '/src/app/SceneTime.tsx': 2,
   // After a send that leaves things (Francis picked A, 24 Nov), the hoard's first row not sent, a button, never a field.
   // (Back to the hoard's piece as its sheet closes is the Dialog's own rule now.)
   '/src/app/HoardSheet.tsx': 1,

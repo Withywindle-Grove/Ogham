@@ -50,19 +50,23 @@ import {
   editReminder,
   loadRecharging,
   loadCheckResults,
+  loadCheckReveals,
   loadReminders,
   recordCheck,
   recordCheckAgain,
   recordCheckNow,
   revealCheck,
   setCheckRoll,
+  showCheckWords,
+  takeBackCheckWords,
   type CheckResult,
+  type CheckReveal,
   type Reminder,
 } from '../modules/expedition/reminderPlay.ts';
 import { dueOnJump } from '../modules/expedition/schedule.ts';
 import { readTable, type ReadTable, type TableRow } from '../modules/expedition/tables.ts';
 import { loadTablePins, pinTable, readTableByHand, unpinTable, type TablePin } from '../modules/expedition/tablePins.ts';
-import { dismissEncounter, hitQueuesEncounter, setEncounterWatch, loadWaitingEncounters, queueEncounter, startEncounter, type EncounterCard } from '../modules/expedition/encounterPlay.ts';
+import { hitQueuesEncounter, setEncounterWatch, loadWaitingEncounters, queueEncounter, startEncounter, type EncounterCard } from '../modules/expedition/encounterPlay.ts';
 import { sceneCandidatesOf, whichTables } from '../modules/expedition/tableList.ts';
 import { recharge } from '../modules/inventory/charges.ts';
 import {
@@ -119,7 +123,8 @@ import { answerOf, answerRest, callRest, flipped, forcedRestGroups, forcedWithou
 import type { Marcher } from '../modules/expedition/marchingPlay.ts';
 import { RestPanel, RestPrompt, RestRule, type RestLine } from './RestPrompt.tsx';
 import { PromptSlot } from './PromptSlot.tsx';
-import { CallsInPromptSlot } from './CallCard.tsx';
+import { CallsInPromptSlot, RevealedCard } from './CallCard.tsx';
+import { useRevealedWords } from './useRevealedWords.ts';
 import { usePlayerCalls } from './usePlayerCalls.ts';
 import { darkMode, inDarkness } from '../modules/expedition/darkness.ts';
 import { loadTownSwitches, resetTownSwitches, setActiveNight, setOutDay } from '../modules/expedition/townPlay.ts';
@@ -131,6 +136,7 @@ import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { BookFaces } from '../ui/BookFaces.tsx';
 import { DiceWords } from '../ui/dice.tsx';
 import { bandHeading, checkFact, checkSheetLines, checkRule, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, lightSheetLines, NO_LIGHT_WORDS, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, restSheetLines, seasonIconOf, settingRule, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
+import { ENCOUNTER_MARK } from './encounterMark.ts';
 import { BandTool, BandTools, DepartButton, FactSheet, FactsRow, NextTurnButton, SceneBand, SessionButton, type DateLine } from './SceneBand.tsx';
 import { useSceneTopOpen } from './sceneTopOpen.ts';
 import { loadWayOut } from '../modules/expedition/dungeonWayOut.ts';
@@ -164,10 +170,11 @@ import { sourceLine } from '../modules/library/describe.ts';
 import { layOutStatBlock } from '../modules/library/statBlockLayout.ts';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { SetDateSheet, startWords, WhichSeason } from './CalendarStart.tsx';
-import { EncounterTables, EncounterTablesRow, TableRoll, TablesLibrary, type TableTap } from './EncounterTables.tsx';
+import { EncounterTables, TableRoll, TablesLibrary, type TableTap } from './EncounterTables.tsx';
 import { EncounterWaitingSource, shownWatch } from './EncounterWaiting.tsx';
+import { REVEAL_BUSY, REVEAL_FAILED } from './RevealToPlayers.tsx';
 import { accentOwner, useAccentHeld, useStripPaused, useWaitingAccentItem, useWaitingPanelOn, useWaitingState, WaitingSource, type WaitingSourceItem } from './sceneWaiting.tsx';
-import { firstAnswer, HitPanel, hitTitle, ReminderCard, rollsTable, type CardRoll } from './ReminderCard.tsx';
+import { firstAnswer, HitPanel, hitTitle, ReminderCard, rollsTable, rollTitle, type CardRoll } from './ReminderCard.tsx';
 import { HourTrack, ProcedureList, ProcedureStrip } from './SceneProcedure.tsx';
 import { GmReminders, PlayerReference } from './SceneReminders.tsx';
 import { registry } from './services.ts';
@@ -403,6 +410,19 @@ export function SceneTime({
   // The calls to adventure and rumours sent to this player (P7; page 40): read again with the log, last in the slot;
   // read only while the players' slot is drawn (its table view, once the time has loaded).
   const playerCalls = usePlayerCalls(db, user, campaign.id, !gm && !compact && !!tableView && scene !== null && scene !== 'error', logVersion + version);
+  // The encounter results the GM revealed (sf-7b; EN5): the words alone, a card each in the slot until "Got it" puts it
+  // away on this device (sf-23); read, like the calls, only while the players' slot is drawn.
+  const revealed = useRevealedWords(db, campaign.id, !gm && !compact && !!tableView && scene !== null && scene !== 'error', logVersion + version);
+  const revealedGotIt = (id: string) => {
+    revealed.gotIt(id);
+    // The button goes with its card: focus moves to the next revealed card's "Got it", if one stands and the player
+    // hasn't moved on elsewhere meanwhile.
+    setTimeout(() => {
+      const active = document.activeElement;
+      if (active && active !== document.body) return;
+      document.querySelector<HTMLElement>('.prompt-slot [data-prompt-id^="reveal-"] .call-card__got-it')?.focus();
+    }, 0);
+  };
 
   const underWay = scene !== null && scene !== 'error' && scene.expedition !== null;
   const expeditionId = scene !== null && scene !== 'error' ? (scene.expedition?.id ?? null) : null;
@@ -593,6 +613,19 @@ export function SceneTime({
       current = false;
     };
   }, [db, gm, compact, campaign.id, expeditionId, logVersion, version]);
+  // The reveals that stand (sf-4, A1's check_reveals, the GM's alone): which encounter card's "Reveal…" is the pressed
+  // "Revealed", and the words its line quotes. Matched to a card by its hit, so a reveal from another expedition is
+  // never one of this expedition's cards.
+  const [reveals, setReveals] = useState<CheckReveal[]>([]);
+  useEffect(() => {
+    if (!gm || compact || !expeditionId) return;
+    let current = true;
+    void loadCheckReveals(db, campaign.id).then((found) => current && found && setReveals(found));
+    return () => {
+      current = false;
+    };
+  }, [db, gm, compact, campaign.id, expeditionId, logVersion, version]);
+  const revealOf = (card: EncounterCard): CheckReveal | null => reveals.find((r) => r.checkResultId === card.hit.id && !r.takenBack) ?? null;
   // Camp (M5b step 4, D20): the camps Next day hasn't applied yet; it applies them with the move (the GM's). With the
   // travel rows they also say which groups forced the march today and are in camp tonight: their rest is due in camp's
   // Sleep step (ruled 2026-11-03, SC-4-3 A). Everyone reads them (a player: their own group's, row-level security).
@@ -765,8 +798,11 @@ export function SceneTime({
     setAsking('season');
   };
 
-  /** Runs a command once at a time (a second tap while one is saving does nothing); reloads after. */
-  async function act<I, T, O>(command: Command<I, T, O>, input: I): Promise<O | null> {
+  /**
+   * Runs a command once at a time (a second tap while one is saving does nothing); reloads after. `failed` words the
+   * error toast from the command's own message (a tap that closed its pop-up names what wasn't saved).
+   */
+  async function act<I, T, O>(command: Command<I, T, O>, input: I, failed?: (message: string) => string): Promise<O | null> {
     if (busy.current) return null;
     busy.current = true;
     const result = await runCommand(registry, db, user, command, input);
@@ -774,7 +810,7 @@ export function SceneTime({
     setVersion((v) => v + 1);
     logChanged();
     if (!result.ok) {
-      show({ text: result.message, error: true });
+      show({ text: failed ? failed(result.message) : result.message, error: true });
       return null;
     }
     return result.value;
@@ -1067,6 +1103,11 @@ export function SceneTime({
     // the log keeps its line ("Torch burnt out."). Without the panel (a town) it stays a line on the card, as before.
     const ended = panelOn && gm && !compact ? fresh.filter((l) => l.key.startsWith('light-out:')).map((l) => `${l.name}.`) : [];
     const said = (text: string) => [season ? `${season}. ${text}` : text, ...ended].join(' ');
+    // sf-3, ⚑ 4 (page 44, PS2 C): no "<title>, nothing due" line stands on the Scene during an expedition, so the
+    // step's toast says it, where the step brought nothing and nothing else waits on the card (the line's own rule).
+    const countsHere = (lines: CardLine[]) => (panelOn && gm ? lines.filter((l) => !l.key.startsWith('light-out:')) : lines);
+    const nothingDue = countsHere(fresh).length === 0 && countsHere(card).length === 0;
+    const quiet = (text: string) => (nothingDue ? `${text.replace(/\.$/, '')}, nothing due.` : text);
     // The compact strip (DG2) has no card of its own: a toast says what came due, with Undo for the move.
     if (compact) {
       const due = fresh.filter((l) => l.decision !== 'info').length;
@@ -1075,11 +1116,11 @@ export function SceneTime({
       // One toast a group, as when each group's travel card started its own day (the last one stays up).
       // Next turn's Undo is in the toast (mc-57; the band has no Undo button, st-1): on the last day's toast, else on
       // one that names the step reached; a Move on's names where the party moved ("Moved to The jetty.").
-      dayWords.forEach((text, i) => show(i === dayWords.length - 1 ? { text: said(text), onUndo: undo } : { text }));
-      if (dayWords.length === 0 && moving) show({ text: said(`${title}.`), onUndo: undo });
+      dayWords.forEach((text, i) => show(i === dayWords.length - 1 ? { text: said(quiet(text)), onUndo: undo } : { text }));
+      if (dayWords.length === 0 && moving) show({ text: said(quiet(`${title}.`)), onUndo: undo });
       else if (dayWords.length === 0 && mode) {
         const reached = stepOfLine(expeditionLine(mode, expedition, result.to, units), mode.name);
-        show({ text: said(`${reached.charAt(0).toUpperCase()}${reached.slice(1)}.`), onUndo: undo });
+        show({ text: said(quiet(`${reached.charAt(0).toUpperCase()}${reached.slice(1)}.`)), onUndo: undo });
       }
     }
     return true;
@@ -1225,19 +1266,92 @@ export function SceneTime({
     show({ text: `Showed the players ${hit.line.name}`, onUndo: () => void undoLatest('check.reveal', () => setHit((h) => (h ? { ...h, result: { ...h.result, revealed: false, version: h.result.version + 1 } } : h))) });
   }
 
-  /** Start (M5b: marks it started and opens the row's text; M6 makes it a fight). Undo from the toast puts it back. */
-  async function startWaiting(card: EncounterCard): Promise<boolean> {
-    const started = await act(startEncounter, { campaignId: campaign.id, encounter: card.encounter });
-    if (!started) return false;
-    show({ text: `Started: ${card.hit.name}`, onUndo: () => void undoLatest('encounter.start') });
+  /**
+   * Done on the encounter's one card (sf-4; ⚑ 2, ruled 26 Nov: no Start until fights are built, Done closes the card):
+   * the card is marked played (encounter.start, the command M6 turns into a fight), so it leaves the queue. Logged; Undo
+   * from the toast puts it back. A reveal that stands for the card is taken back too, by the same take-back as the
+   * "Revealed" tap ("GM's Done ends it", Scene sitting, 27 Nov), so none is left that the GM can no longer reach; the
+   * toast's Undo brings back both the card and the reveal, with the same words.
+   */
+  async function doneWaiting(card: EncounterCard) {
+    const shown = revealOf(card);
+    const done = await act(startEncounter, { campaignId: campaign.id, encounter: card.encounter });
+    if (!done) return;
+    if (hit?.result.id === card.hit.id) setHit(null);
+    const taken = shown && (await takeBackNow(shown)) ? [shown] : [];
+    show({
+      text: taken.length > 0 ? 'Encounter closed. Taken back from the players.' : 'Encounter closed.',
+      onUndo: () => void undoLatest('encounter.start', taken.length > 0 ? () => void showAgain(taken) : undefined),
+    });
+  }
+
+  /**
+   * "Change…" on the encounter's card (sf-4, sf-5; page 44, EN2 B): another row tapped in the table's pop-up. Only the
+   * row read changes (check.setRoll alone, #111's review); the toast names the row's range, with Undo. A reveal that
+   * stands is left as it is (the players' screens change only by the GM's tap), and the toast says so (#126's review, 9).
+   */
+  async function changeRoll(card: EncounterCard, tap: TableTap) {
+    const shown = revealOf(card);
+    const saved = await act(setCheckRoll, { campaignId: campaign.id, result: card.hit, tableId: tap.table.id, roll: tap.roll, rowText: tap.rowText });
+    if (!saved) return;
+    const before = card.hit;
+    setHit((h) => (h && h.result.id === saved.id ? { ...h, result: saved } : h));
+    show({
+      text: `${tap.roll}: ${tap.words}${shown ? '. Players still see the earlier words.' : ''}`,
+      onUndo: () => void undoLatest('check.setRoll', () => setHit((h) => (h && h.result.id === before.id ? { ...h, result: { ...before, version: saved.version + 1 } } : h))),
+    });
+  }
+
+  /**
+   * "Show players" in "Reveal to players" (sf-4; page 44, EN6 C): the words the GM confirmed, and nothing of the check,
+   * go to the players (check.showWords, sf-7a); the card's "Reveal…" becomes the pressed "Revealed". Undo from the toast
+   * takes the reveal back. A send that fails has sent nothing: N5's toast, no Undo, the card as before. Tapped while
+   * another change is saving, it says so (the pop-up has closed, so never silently).
+   */
+  async function showWaiting(card: EncounterCard, words: string): Promise<boolean> {
+    if (busy.current) {
+      show({ text: REVEAL_BUSY, error: true });
+      return false;
+    }
+    const made = await act(showCheckWords, { campaignId: campaign.id, resultId: card.hit.id, words }, () => REVEAL_FAILED);
+    if (!made) return false;
+    setReveals((was) => [made, ...was.filter((r) => r.id !== made.id)]);
+    show({ text: 'Shown to the players.', onUndo: () => void takeBack(made, false) });
     return true;
   }
 
-  /** Dismiss: the card goes at once; Undo brings it back. */
-  async function dismissWaiting(card: EncounterCard) {
-    const done = await act(dismissEncounter, { campaignId: campaign.id, encounter: card.encounter });
-    if (!done) return;
-    show({ text: `Dismissed: ${card.hit.name}`, onUndo: () => void undoLatest('encounter.dismiss') });
+  /**
+   * A tap on the pressed "Revealed" (sf-4; EN1 C), or the toast's Undo after "Show players": the reveal is taken back
+   * (check.takeBackWords); players stop reading its words. From "Revealed", the toast's Undo shows the same words again.
+   */
+  async function takeBack(reveal: CheckReveal, offerUndo = true) {
+    if (!(await takeBackNow(reveal)) || !offerUndo) return;
+    show({ text: 'Taken back from the players.', onUndo: () => void showAgain([reveal]) });
+  }
+
+  /** One reveal taken back (check.takeBackWords), with no toast of its own; true when it was. */
+  async function takeBackNow(reveal: CheckReveal): Promise<boolean> {
+    const done = await act(takeBackCheckWords, { campaignId: campaign.id, revealId: reveal.id });
+    if (done) setReveals((was) => was.filter((r) => r.id !== reveal.id));
+    return !!done;
+  }
+
+  /** The Undo of a take-back: each reveal's words shown again (check.showWords), one after the other. */
+  async function showAgain(taken: readonly CheckReveal[]) {
+    for (const reveal of taken) {
+      const made = await act(showCheckWords, { campaignId: campaign.id, resultId: reveal.checkResultId, words: reveal.words }, () => REVEAL_FAILED);
+      if (made) setReveals((was) => [made, ...was.filter((r) => r.id !== made.id)]);
+    }
+  }
+
+  /**
+   * "Dismiss" on a due check that is a roll on its table (sf-4; page 44, EN1 A and F): the line leaves the card at once,
+   * as a card line's Done does; Undo brings it back.
+   */
+  function dismissCheck(line: CardLine) {
+    setCard((c) => takeOne(c, line.key));
+    const encounter = line.check ? hitQueuesEncounter(line.check, reminders) : false;
+    show({ text: encounter ? 'Encounter check dismissed.' : `${line.name}: dismissed.`, onUndo: () => setCard((c) => mergeCard(c, [{ ...line, count: 1 }])) });
   }
 
   async function rechargeNow(line: CardLine, item: RechargeItem, amount: number, roll?: string) {
@@ -1539,7 +1653,6 @@ export function SceneTime({
   const hitList = hit?.line.check
     ? whichTables({ pins: pinIds, candidates: hit.line.check.hit.candidates, rest: sceneCandidates.map((c) => c.tableId), known: knownTable, seasonName })
     : exploreList;
-  const likelyId = exploreList.rows.find((r) => r.likely)?.tableId ?? null;
   const engine = running();
   const pips = engine ? hourTrackNow(engine, gm ? 'gm' : 'player') : null;
   // The strip: the procedure in force (S7, mc-54): the place's, else the mode's (not the app's plain fallback modes),
@@ -1566,15 +1679,29 @@ export function SceneTime({
 
   /** End expedition itself (⋯, or the leave sheet's End without rolls): the end, and its toast with Undo (S19, T11). */
   async function endWithToast(): Promise<boolean> {
-    const done = await endNow();
-    if (done) endToast.current = toasts.show({ text: `Expedition ended. ${tookWords(done)}`, onUndo: () => void undoLatest('expedition.end', () => setEnded(null)) });
-    return !!done;
+    const ending = await endNow();
+    if (ending) endToast.current = toasts.show({ text: `Expedition ended. ${tookWords(ending.done)}`, onUndo: () => void undoLatest('expedition.end', unEnd(ending.taken)) });
+    return !!ending;
   }
 
-  async function endNow(): Promise<Expedition | null> {
+  /** What End's Undo does once the end is undone: the summary goes, and the reveals End took back are shown again. */
+  const unEnd = (taken: readonly CheckReveal[]) => () => {
+    setEnded(null);
+    if (taken.length > 0) void showAgain(taken);
+  };
+
+  /**
+   * The expedition ends; then every reveal still standing is taken back, each by the take-back command ("End expedition
+   * ends it", Scene sitting, 27 Nov), so nothing carries into the next expedition. Read afresh, so a reveal from another
+   * GM device counts too. Gives back the ended expedition and the reveals taken back (for End's Undo).
+   */
+  async function endNow(): Promise<{ done: Expedition; taken: CheckReveal[] } | null> {
     if (!expedition) return null;
     const done = await act(endExpedition, { campaignId: campaign.id, expedition });
     if (!done) return null;
+    const standing = (await loadCheckReveals(db, campaign.id)) ?? reveals;
+    const taken: CheckReveal[] = [];
+    for (const reveal of standing) if (await takeBackNow(reveal)) taken.push(reveal);
     setEnded(done);
     // In a safe place? is the summary's first line, unanswered: no downtime offer until a Yes.
     setNotYet(false);
@@ -1591,7 +1718,7 @@ export function SceneTime({
     setEndedQuiet(true);
     setHit(null);
     setNotes('');
-    return done;
+    return { done, taken };
   }
 
   /** Use safe paths (of-5, sq-2): logged once per expedition, with Undo; the pack's note shows either way. */
@@ -1627,9 +1754,10 @@ export function SceneTime({
   /** The party leaves: the expedition ends (as End expedition does), its toast with Undo (T6b, case a). */
   async function leaveNow() {
     const where = startPlace?.name ?? null;
-    if (!(await endNow())) return;
+    const ending = await endNow();
+    if (!ending) return;
     // Tracked like End's toast: Start downtime takes it down, so its Undo can't un-end the expedition during downtime.
-    endToast.current = toasts.show({ text: where ? `The party left ${where}.` : 'The party left the dungeon.', onUndo: () => void undoLatest('expedition.end', () => setEnded(null)) });
+    endToast.current = toasts.show({ text: where ? `The party left ${where}.` : 'The party left the dungeon.', onUndo: () => void undoLatest('expedition.end', unEnd(ending.taken)) });
   }
 
   /** The tent (S2): Make camp's sheet where the setting has Quick camp; else it makes camp at once, with Undo. */
@@ -1718,6 +1846,13 @@ export function SceneTime({
   const menu = gm && (
     <MoreMenu label="Time options">
       <MenuItems>
+        {/* sf-3, ⚑ 4 (page 44, EN7 A): during an expedition the way to the tables is the menu's first item; no row for
+            them stands on the Scene. The screen says so where the setting has none. */}
+        {expedition && (
+          <MenuItem icon={ENCOUNTER_MARK} onClick={() => setTablesOpen('explore')}>
+            Encounter tables
+          </MenuItem>
+        )}
         {expedition && mode?.pace === 'day' && (
           <Switch
             label={
@@ -2070,7 +2205,7 @@ export function SceneTime({
       {sessionNow === 'running' && expedition && mode && (
         <BandTools>
           {campRule && <BandTool label="Make camp" icon={<UiIcon name="camping-tent" size={24} />} onTap={() => !bandHeld && campTap()} />}
-          <BandTool label="Encounter check" icon={<StepIcon name="encounter" size={24} />} onTap={() => !bandHeld && checkNowNow()} />
+          <BandTool label="Encounter check" icon={<UiIcon name={ENCOUNTER_MARK} size={24} />} onTap={() => !bandHeld && checkNowNow()} />
           {/* No Leave in point to point (p2p-22, B10): leaving is Move on's "End expedition" at a way out. */}
           {exitRule && !isPointToPoint(mode) && <BandTool label="Leave the dungeon" icon={<UiIcon name="exit-door" size={24} />} onTap={() => !bandHeld && void leaveTap()} />}
         </BandTools>
@@ -2103,14 +2238,25 @@ export function SceneTime({
   async function rollRow(line: CardLine, tap: TableTap) {
     if (!line.check || rollingRow.current) return;
     rollingRow.current = true;
-    // The pop-up closes on the tap, before the commands are saved (sf-5: the tap is the answer, at once).
+    // The pop-up closes on the tap, before the commands are saved (sf-5: the tap is the answer, at once). So a tap that
+    // isn't saved says which row it was, and the check stays on its card for Roll… again.
     setRollingKey(null);
+    const unsaved = (why: string) => `${tap.roll}: ${tap.words} wasn't saved. ${why}`;
+    if (busy.current) {
+      rollingRow.current = false;
+      show({ text: unsaved('Another change was still saving. Tap Roll… to try again.'), error: true });
+      return;
+    }
     try {
       const command = line.check.now ? recordCheckNow : line.check.again ? recordCheckAgain : recordCheck;
-      const result = await act(command, {
-        campaignId: campaign.id,
-        record: { checkKey: line.key, name: line.name, source: line.check.source, outcome: 'hit', modifiers: line.check.modifiers, note: null, secret: line.check.secret },
-      });
+      const result = await act(
+        command,
+        {
+          campaignId: campaign.id,
+          record: { checkKey: line.key, name: line.name, source: line.check.source, outcome: 'hit', modifiers: line.check.modifiers, note: null, secret: line.check.secret },
+        },
+        unsaved,
+      );
       if (!result) return;
       if (hitQueuesEncounter(line.check, reminders)) await act(queueEncounter, { campaignId: campaign.id, result });
       const saved = await act(setCheckRoll, { campaignId: campaign.id, result, tableId: tap.table.id, roll: tap.roll, rowText: tap.rowText });
@@ -2146,6 +2292,7 @@ export function SceneTime({
     // A roll on its table (B9; sf-5, page 44 EN2): Roll… opens the table's pop-up; a tap on its row is the answer.
     onRollCheck: (line: CardLine) => setRollingKey(line.key),
     onRollRow: (line: CardLine, tap: TableTap) => void rollRow(line, tap),
+    onDismissCheck: dismissCheck,
   };
   // With the panel, a burnt-out light is the toast's, not the card's (#859's review): neither "All done" nor the strip's
   // "nothing due" counts it.
@@ -2182,9 +2329,10 @@ export function SceneTime({
           };
           return {
             id,
-            // The weather's roll, named as T2 draws it; its Enter… opens the Weather sheet (S10, T6).
-            kind: weatherLine ? 'weather' : 'reminder',
-            title: weatherLine ? 'Weather: to roll' : `${line.name}${line.count > 1 ? ` ×${line.count}` : ''}`,
+            // The weather's roll, named as T2 draws it; its Enter… opens the Weather sheet (S10, T6). A check that rolls its
+            // table is one encounter's card (sf-4; page 44, EN1 A): the crossed swords, named by its table.
+            kind: weatherLine ? 'weather' : rollsTable(line) ? 'encounter' : 'reminder',
+            title: weatherLine ? 'Weather: to roll' : rollsTable(line) ? rollTitle(line, tables) : `${line.name}${line.count > 1 ? ` ×${line.count}` : ''}`,
             // Every answer with its icon (S17): Enter… and Enter roll… the rolling dice, Done the tick (page 16, T2); Hit,
             // Check again and Recharge ic-6's (page 21, SI2).
             actions: [weatherLine ? { id: 'roll', label: 'Enter…', icon: 'rolling-dices' } : { id: first.id, label: first.label, icon: first.icon }],
@@ -2230,9 +2378,13 @@ export function SceneTime({
       })
     : [];
   const restSheetFlow = waitingOn && restSheet !== null ? (restViews.find((f) => f.group === restSheet) ?? null) : null;
-  // The hit: today's hit panel, whole, as the first encounter item (it is what the check just brought).
+  // The hit: today's hit panel, whole, as the first encounter item (it is what the check just brought). One encounter,
+  // one card (sf-4; page 44, F5 a): a hit that queued an encounter has that encounter's card alone, which carries
+  // "Reveal…" and "Message…"; the hit's own item (and, where no panel shows, its card) stands only for a hit that queues
+  // none.
+  const hitAlone = gm && hit !== null && !(hit.line.check && hitQueuesEncounter(hit.line.check, reminders));
   const hitItems: WaitingSourceItem[] =
-    gm && hit
+    hitAlone && hit
       ? [
           {
             id: `hit:${hit.result.id}`,
@@ -2560,6 +2712,10 @@ export function SceneTime({
                   />
                 ))}
                 {tableView?.prompts}
+                {/* sf-7b (EN5): a revealed encounter result, under the top; the slot's own order puts a new one on top. */}
+                {revealed.cards.map((reveal) => (
+                  <RevealedCard key={`reveal-${reveal.id}`} reveal={reveal} onGotIt={() => revealedGotIt(reveal.id)} />
+                ))}
                 {/* The players' weather card stays in their slot (the page under the top is page 18's plan); folded, its
                     icon by the date went with the old head (S15): the Weather fact says the weather and opens its sheet. */}
                 <WeatherCard
@@ -2579,9 +2735,10 @@ export function SceneTime({
           {/* The hour track went with the strip (S7, S15, S18: page 16 draws no pips, for the GM or for players). */}
           {gm && notes && <p className="time-strip__notes">{notes}</p>}
 
-          {/* With "Waiting for you" on the page its lines are items there (S8b); only the strip's quiet "<title>,
-              nothing due" stays here. Without it (a town), today's card. */}
-          {gm && (!waitingOn || cardItemsShown.length === 0) && (
+          {/* With "Waiting for you" on the page its lines are items there (S8b). Without it (a town), today's card.
+              During an expedition the strip's quiet "<title>, nothing due" is gone (sf-3, ⚑ 4: page 44, PS2 C): the
+              step's toast says it. Between expeditions it stays. */}
+          {gm && (expedition ? !waitingOn && cardItemsShown.length > 0 : !waitingOn || cardItemsShown.length === 0) && (
             <ReminderCard
               // "nothing due" only when the last advance brought nothing; a card emptied by the GM just collapses. With the
               // panel, a burnt-out light (the toast's) counts as nothing here.
@@ -2661,7 +2818,7 @@ export function SceneTime({
               )}
             </Dialog>
           )}
-          {gm && hit && !waitingOn && (
+          {hitAlone && hit && !waitingOn && (
             <HitPanel
               line={hit.line}
               rowText={hit.result.rowText}
@@ -2682,9 +2839,19 @@ export function SceneTime({
                 cards={waiting}
                 tables={tables}
                 statBlock={statBlockRef}
-                when={(at) => (perStep ? `${stepWord.charAt(0).toUpperCase()}${stepWord.slice(1)} ${elapsedSteps(at, expedition.startedAt, perStep)}` : null)}
-                onStart={startWaiting}
-                onDismiss={(card) => void dismissWaiting(card)}
+                describe={describeRow}
+                onDone={(card) => void doneWaiting(card)}
+                onChange={(card, tap) => void changeRoll(card, tap)}
+                onShow={showWaiting}
+                shownFor={(card) => revealOf(card)?.words ?? null}
+                onTakeBack={(card) => {
+                  const standing = revealOf(card);
+                  if (standing) void takeBack(standing);
+                }}
+                onMessage={messaging ? (_card, words) => messaging.open({ kind: 'new', text: words }) : undefined}
+                // A hit with no row picked yet opens its tables again, as the hit's own card did (B2).
+                rollFor={(card) => (hit?.result.id === card.hit.id && tables.size > 0 ? () => setTablesOpen('hit') : null)}
+                noteFor={(card) => (hit?.result.id === card.hit.id ? (hit.line.check?.hit.note ?? null) : null)}
                 watchChoices={watchChoicesFor}
                 onWatch={(card, watch) => void setWatch(card, watch)}
                 // The first action of "Waiting for you" is the accent while a session runs (st-2, W1; accentOwner).
@@ -2692,16 +2859,9 @@ export function SceneTime({
                 lead={waitingOn ? hitItems : []}
               />
           )}
-          {gm && expedition && topShown && (
-            <EncounterTablesRow
-              likely={likelyId ? (tables.get(likelyId)?.name ?? null) : null}
-              pins={exploreList.rows.filter((r) => r.pinned).length}
-              none={tables.size === 0}
-              onOpen={() => setTablesOpen('explore')}
-            />
-          )}
-          {/* One way to the tables in the band (the approval's fix 3, 2026-11-18): during an expedition the Encounter
-              tables row, with the library ("Table library ›", the pins) at the foot of its screen; without one, the library. */}
+          {/* One way to the tables (the approval's fix 3, 2026-11-18; sf-3, ⚑ 4): during an expedition the ⋯ menu's
+              "Encounter tables", with the library ("Table library ›", the pins) at the foot of its screen; without one,
+              the library. */}
           {gm && !expedition && tablesLibrary}
           {gm && tablesOpen && (
             <EncounterTables

@@ -198,12 +198,12 @@ describe('the time strip (M5 step 5)', () => {
     await user.click(screen.getByRole('button', { name: 'Next turn' }));
     expect(await screen.findByRole('heading', { name: 'The Mustering Field, turn 2' })).toBeTruthy();
     expect(clock().seconds).toBe(600);
-    // Nothing falls due in a fallback mode: one quiet line says so.
-    expect(screen.getByText('Next turn, nothing due')).toBeTruthy();
+    // Nothing falls due in a fallback mode: the step's toast says so; no line stands on the Scene (sf-3, ⚑ 4).
+    expect(screen.queryByText('Next turn, nothing due')).toBeNull();
     expect(loggedTypes()).toEqual(['time.advance']);
 
     // The strip has no Undo of its own (st-1): the toast of the step reached carries it.
-    await user.click(await toastUndo('Turn 2.'));
+    await user.click(await toastUndo('Turn 2, nothing due.'));
     expect(await screen.findByRole('heading', { name: 'The Mustering Field, turn 1' })).toBeTruthy();
     expect(clock().seconds).toBe(0);
     expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
@@ -674,9 +674,10 @@ it('after End expedition, and after a town Next turn, the card shows no "nothing
   await user.click(screen.getByRole('button', { name: 'Start session' }));
   await startExpedition(user);
   await screen.findByRole('heading', { name: 'The Mustering Field, turn 1' });
-  // The first turn brings nothing, so the card says "Next turn, nothing due".
+  // The first turn brings nothing: its toast says so, and no line stands on the Scene (sf-3, ⚑ 4).
   await user.click(screen.getByRole('button', { name: 'Next turn' }));
-  expect(await screen.findByText('Next turn, nothing due')).toBeTruthy();
+  expect(await screen.findByText('Turn 2, nothing due.')).toBeTruthy();
+  expect(screen.queryByText(/, nothing due$/)).toBeNull();
   await user.click(screen.getByRole('button', { name: 'Time options' }));
   await user.click(screen.getByRole('button', { name: 'End expedition' }));
   const summary = await screen.findByText('Expedition ended');
@@ -734,18 +735,19 @@ it("after End expedition and its Undo, the card shows no 'nothing due' line", as
   await waitFor(() => expect(screen.queryByText(/, nothing due$/)).toBeNull());
 });
 
-// Purpose: once a new expedition starts after an end, nothing is ended any more, so before its first advance the card
-// reads as on main: after a last turn that brought nothing, "<title>, nothing due" (#836 second review).
-it("after End expedition after a turn that brought nothing, a new expedition before its first advance shows '<title>, nothing due' as on main", async () => {
+// Purpose: once a new expedition starts after an end, before its first advance the Scene shows no "<title>, nothing
+// due" line about the last expedition's turn (#836 second review; since sf-3, ⚑ 4, no such line stands during an
+// expedition at all).
+it("after End expedition after a turn that brought nothing, a new expedition before its first advance shows no '<title>, nothing due' line", async () => {
   const { gm, clock } = table();
   const user = await openGmScene(gm);
   await user.click(screen.getByRole('button', { name: 'Start session' }));
   await startExpedition(user);
   await screen.findByRole('heading', { name: 'The Mustering Field, turn 1' });
-  // Nothing falls due in a fallback mode: the card says so.
+  // Nothing falls due in a fallback mode: the step's toast says so (sf-3, ⚑ 4: no line stands on the Scene).
   await user.click(screen.getByRole('button', { name: 'Next turn' }));
   await waitFor(() => expect(clock().seconds).toBe(600));
-  expect(await screen.findByText('Next turn, nothing due')).toBeTruthy();
+  expect(await screen.findByText('Turn 2, nothing due.')).toBeTruthy();
   await user.click(screen.getByRole('button', { name: 'Time options' }));
   await user.click(screen.getByRole('button', { name: 'End expedition' }));
   const summary = await screen.findByText('Expedition ended');
@@ -753,12 +755,13 @@ it("after End expedition after a turn that brought nothing, a new expedition bef
   // A new expedition, before its first advance.
   await startExpedition(user);
   expect(await screen.findByRole('heading', { name: 'The Mustering Field, turn 1' })).toBeTruthy();
-  expect(await screen.findByText('Next turn, nothing due')).toBeTruthy();
+  // During an expedition no "<title>, nothing due" line stands on the Scene (sf-3, ⚑ 4; it was on main before).
+  expect(screen.queryByText(/, nothing due$/)).toBeNull();
 });
 
-// Purpose: after End expedition, a town Next turn, then a new expedition, the card reads as on main before the new
-// expedition's first advance: the town step left no last lines, so "<title>, nothing due" (#836 third review).
-it("after End expedition, a town Next turn, then a new expedition, the card shows '<title>, nothing due' as on main", async () => {
+// Purpose: after End expedition, a town Next turn, then a new expedition, before the new expedition's first advance
+// the Scene shows no "<title>, nothing due" line (#836 third review; sf-3, ⚑ 4: none stands during an expedition).
+it("after End expedition, a town Next turn, then a new expedition, the Scene shows no '<title>, nothing due' line", async () => {
   const { gm, campaign, clock } = table();
   // Invented setting rules: a creeping turn mode whose wandering check falls every 2 turns.
   world.tables.packs.push({ id: 'pack-fen', owner_user_id: gm, campaign_id: null, name: 'Fen Rules', version: '1', kind: 'setting', format_version: 2, source: '', notes: '', updated_at: '2026-10-18T12:00:00Z' });
@@ -804,7 +807,8 @@ it("after End expedition, a town Next turn, then a new expedition, the card show
   // A new expedition, before its first advance.
   await startExpedition(user);
   expect(await screen.findByRole('heading', { name: 'The Mustering Field, turn 1' })).toBeTruthy();
-  expect(await screen.findByText('Next turn, nothing due')).toBeTruthy();
+  // During an expedition no "<title>, nothing due" line stands on the Scene (sf-3, ⚑ 4; it was on main before).
+  expect(screen.queryByText(/, nothing due$/)).toBeNull();
 });
 
 // Still-works guards for #836 (they pass before and after it): End expedition changes nothing on the card but the
@@ -837,38 +841,39 @@ it('after End expedition with a GM line on the card, the card heading still read
   expect(due().getByRole('heading', { name: 'Due now' })).toBeTruthy();
 });
 
-// Purpose: after Undo of End expedition, following a turn that brought nothing, the expedition is no longer ended, so
-// the card reads "<title>, nothing due" as before the end.
-it("after Undo of End expedition after a turn that brought nothing, the card reads '<title>, nothing due' as before", async () => {
+// Purpose: after Undo of End expedition, following a turn that brought nothing, the expedition is back in play and the
+// Scene shows no "<title>, nothing due" line, as during any expedition (sf-3, ⚑ 4).
+it("after Undo of End expedition after a turn that brought nothing, the Scene shows no '<title>, nothing due' line", async () => {
   const { gm, clock } = table();
   const user = await openGmScene(gm);
   await user.click(screen.getByRole('button', { name: 'Start session' }));
   await startExpedition(user);
   await screen.findByRole('heading', { name: 'The Mustering Field, turn 1' });
-  // Nothing falls due in a fallback mode: the card says so.
+  // Nothing falls due in a fallback mode: the step's toast says so (sf-3, ⚑ 4: no line stands on the Scene).
   await user.click(screen.getByRole('button', { name: 'Next turn' }));
   await waitFor(() => expect(clock().seconds).toBe(600));
-  expect(await screen.findByText('Next turn, nothing due')).toBeTruthy();
+  expect(await screen.findByText('Turn 2, nothing due.')).toBeTruthy();
   await user.click(screen.getByRole('button', { name: 'Time options' }));
   await user.click(screen.getByRole('button', { name: 'End expedition' }));
   const summary = await screen.findByText('Expedition ended');
   await user.click(within(summary.closest<HTMLElement>('.end-card')!).getByRole('button', { name: 'Undo ending the expedition' }));
   expect(await screen.findByRole('heading', { name: 'The Mustering Field, turn 2' })).toBeTruthy();
-  expect(await screen.findByText('Next turn, nothing due')).toBeTruthy();
+  // During an expedition no "<title>, nothing due" line stands on the Scene (sf-3, ⚑ 4; it was on main before).
+  expect(screen.queryByText(/, nothing due$/)).toBeNull();
 });
 
-// Purpose: End expedition undone another way (the log's Undo) after a turn that brought nothing puts the card back as
-// before: "<title>, nothing due".
-it('End expedition undone from the log after a turn that brought nothing: the card reads as before', async () => {
+// Purpose: End expedition undone another way (the log's Undo) after a turn that brought nothing puts the expedition
+// back in play, with no "<title>, nothing due" line on the Scene, as during any expedition (sf-3, ⚑ 4).
+it('End expedition undone from the log after a turn that brought nothing: no nothing-due line, as before the end', async () => {
   const { gm, campaign, clock } = table();
   const user = await openGmScene(gm);
   await user.click(screen.getByRole('button', { name: 'Start session' }));
   await startExpedition(user);
   await screen.findByRole('heading', { name: 'The Mustering Field, turn 1' });
-  // A turn that brings nothing.
+  // A turn that brings nothing: its toast says so (sf-3, ⚑ 4).
   await user.click(screen.getByRole('button', { name: 'Next turn' }));
   await waitFor(() => expect(clock().seconds).toBe(600));
-  expect(await screen.findByText('Next turn, nothing due')).toBeTruthy();
+  expect(await screen.findByText('Turn 2, nothing due.')).toBeTruthy();
   await user.click(screen.getByRole('button', { name: 'Time options' }));
   await user.click(screen.getByRole('button', { name: 'End expedition' }));
   await screen.findByText('Expedition ended');
@@ -877,7 +882,8 @@ it('End expedition undone from the log after a turn that brought nothing: the ca
   const done = await runCommand(createAppRegistry(), world.db, { id: gm, roles: { [campaign]: 'gm' } } as CurrentUser, undoChange, { campaignId: campaign, eventId: end.id as string, authorUserId: gm });
   expect(done.ok).toBe(true);
   expect(await screen.findByRole('heading', { name: 'The Mustering Field, turn 2' }, { timeout: 3000 })).toBeTruthy();
-  expect(await screen.findByText('Next turn, nothing due')).toBeTruthy();
+  // During an expedition no "<title>, nothing due" line stands on the Scene (sf-3, ⚑ 4; it was on main before).
+  expect(screen.queryByText(/, nothing due$/)).toBeNull();
 });
 
 // Purpose: after a last turn that brought lines, a new expedition before its first advance shows no "nothing due"

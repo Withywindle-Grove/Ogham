@@ -143,8 +143,9 @@
   white-space: nowrap;
 }
 
-/* An encounter, open (S8b; T2's first card): "An encounter waits", its line with what was rolled as a link, its
-   answers as stacked buttons. Where no panel shows (a town) it keeps the strip's card rule above it. */
+/* An encounter, open: the one card (sf-4; page 44, EN1 B to D, EN4 C): "An encounter", the row's words at body size,
+   its detail rows, the picked line with "Change…", then its three answers on one row. Where no panel shows (a town)
+   it keeps the strip's card rule above it. */
 .waiting-encounter__title {
   margin: 0;
   font-family: var(--font-heading);
@@ -160,16 +161,74 @@
   overflow-wrap: anywhere;
 }
 
-/* A 44 px tap, its words underlined in the line's flow. */
-.waiting-encounter__link {
-  display: inline-flex;
+/* The card measures its own width, so its answers can stand one under another where three can't share a row (a
+   tablet's narrow right column). */
+.waiting-encounter {
+  container: encounter-card / inline-size;
+}
+
+/* Three stacked buttons of 88 px and their two gaps: narrower than that, one under another, each the card's width. */
+@container encounter-card (max-width: 280px) {
+  .waiting-encounter > .stacked-group {
+    display: grid;
+    grid-auto-flow: row;
+  }
+}
+
+/* What was picked, a quiet line, with "Change…" at its end (EN1 B). */
+.waiting-encounter__picked {
+  display: flex;
   align-items: center;
-  min-height: var(--tap);
-  padding: 0;
-  font: inherit;
-  text-align: left;
-  text-decoration: underline;
-  text-underline-offset: var(--space-1);
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.waiting-encounter__picked > .scene-card__note {
+  flex: 1;
+  min-width: 0;
+}
+
+.waiting-encounter__picked > button,
+.waiting-encounter__awake {
+  flex: none;
+}
+
+/* In a narrow panel (a phone, EN4 C; a tablet's right column) the encounter's card has no box of its own inside
+   "Waiting for you": its mark stands beside its heading and its words take the whole width, so its three answers keep
+   one row where the panel has the room. The panel measures itself only while an encounter is open. */
+.waiting-card:has(> .waiting-open[data-kind='encounter']) {
+  container: waiting-panel / inline-size;
+}
+
+@container waiting-panel (max-width: 440px) {
+  .waiting-open[data-kind='encounter'] {
+    position: relative;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .waiting-open[data-kind='encounter'] > .waiting-open__mark {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+  }
+
+  .waiting-open[data-kind='encounter'] .waiting-encounter__title {
+    display: flex;
+    align-items: center;
+    min-height: calc(var(--space-5) + var(--space-1));
+    padding-inline-start: calc(var(--space-5) + var(--space-1) + var(--space-3));
+  }
+}
+
+/* On a phone the three answers take a third of the card each (EN4 C). */
+@media (max-width: 599px) {
+  .waiting-encounter > .stacked-group {
+    display: grid;
+  }
 }
 
 /* The rest, open (S8b; T2's item): its title, how many have answered, and Answer…, which opens the rest panel as a
