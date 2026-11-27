@@ -14,6 +14,7 @@ import type { CampaignSetting } from './campaignSetting.ts';
 import type { characterFigures } from './fromSetting.ts';
 import { prepareSource, PrepareScreen, slotsToFill } from './PrepareScreen.tsx';
 import { registry } from './services.ts';
+import { EntryPinStar } from './player/PlayerTraits.tsx';
 import { spellFacts } from './spellFacts.ts';
 
 type Figures = ReturnType<typeof characterFigures>;
@@ -168,8 +169,10 @@ export function MagicTab({
           // The spell opened (mockup magic/04, the rules frame; mm-12): in the book's format, its head as the book
           // writes a spell's (Level, Range, Duration as labelled lines), then its whole description set out as the
           // pack gives it (`RuleText`), then its page; Cast at its foot while a casting is left. The sheet's ✕ closes it.
+          // The Pin star beside ✕, as on every other sheet (pss-6; any spell in the book, psb-4): the trait sheet's own.
           <EntryPanel
             name={choiceOf(shown).name}
+            headAction={<EntryPinStar db={db} user={user} character={character} name={choiceOf(shown).name} kind="spell" pinKey={shown.spell} pins={play.pins} onChanged={onChanged} />}
             headings={headingsOf(shown).filter((h) => h.label !== 'Rules')}
             extra={description.length > 0 ? <RuleText blocks={description} /> : undefined}
             source={described?.source ?? ''}
