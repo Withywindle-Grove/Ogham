@@ -138,6 +138,10 @@ logged(2, 'character.edit', sam, 'simple', { notes: '' }, { notes: 'Owes the lam
 logged(3, 'character.setHp', sam, 'verbose', { hp_current: 14 }, { hp_current: 11 }, 5);
 logged(5, 'character.edit', gm, 'simple', { notes: '' }, { notes: 'Bitten by a bog lurker' }, 3);
 Object.assign(world.tables.events.at(-1)!, { fiat: true, reason: 'Failed the marsh crossing' });
+// Moss's send back, so the GM's note shows its author line ("Priya, your GM, today"; 22-G5): written as the page
+// opens, so "today" holds even just after midnight.
+logged(6, 'character.review', gm, 'simple', { approval: 'pending' }, { approval: 'rejected', review_note: 'Please roll hit points again, and say where Moss learned the ferry songs.', review_sections: ['hp', 'story'] }, 0);
+world.tables.events.at(-1)!.target_id = moss;
 
 // A note about Wren, and one added to the approval line.
 const note = (id: string, by: string, text: string, extra: Record<string, unknown>) => {
@@ -490,6 +494,11 @@ if (coinFlag) {
     const stashCoins = coinFlag === 'messy' ? { moon: 1, heron: 999, token: 12 } : { heron: 40, bit: 12 };
     world.tables.purses.push({ id: 'purse-stash', campaign_id: campaign, actor_id: null, location_id: `location-stash-${campaign}`, coins: stashCoins, version: 1 });
   }
+  // Add item and after a purchase (K7, PK10b): a thing priced in the setting's coins, so "Spend 4 herons" can be drawn.
+  world.tables.library_entries.push({ id: 'entry-storm-lantern', pack_id: 'pack-river', kind: 'item', pack_entry_id: 'storm-lantern', name: 'Storm lantern', data: { id: 'storm-lantern', name: 'Storm lantern', category: 'gear', weightCoin: 30, value: { heron: 4 } } });
+  // ...and Wren's reed arrows from the setting's list, so more bought join them and the toast has Undo beside Spend.
+  world.tables.library_entries.push({ id: 'entry-reed-arrows', pack_id: 'pack-river', kind: 'item', pack_entry_id: 'reed-arrows', name: 'Reed arrows', data: { id: 'reed-arrows', name: 'Reed arrows', category: 'gear', weightCoin: 1, stack: 20, value: { bit: 1 } } });
+  Object.assign(world.tables.inventory_lines.find((l) => l.id === 'line-arrows')!, { library_entry_id: 'entry-reed-arrows', source_pack_id: 'pack-river', source_entry_id: 'reed-arrows' });
 }
 void ash;
 // A light (M5 step 7, invented): River Rules' rushlight, used up when it burns out, and four of them in Wren's pack,
@@ -807,7 +816,8 @@ if (townFlag === 'town' || townFlag === 'downtime') {
   // The Depart sheet's Where? with Locations (plan scene-point-to-point B7; page 24, DP1), only with ?places=isle: an
   // adventure pack of two Areas and their Locations, one name long enough to wrap. Names are invented. The Harbour's
   // Locations are out of order in the pack, with a 0 and a 10, so the list's own order shows (Q1, F1 a).
-  if (new URLSearchParams(window.location.search).get('places') === 'isle') {
+  const placesFlag = new URLSearchParams(window.location.search).get('places');
+  if (placesFlag === 'isle' || placesFlag === 'marches') {
     world.tables.packs.push({ id: 'pack-isle', owner_user_id: gm, campaign_id: null, name: 'Saltwick Isle', version: '1', kind: 'adventure', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-18T12:00:00Z' });
     world.tables.campaign_packs.push({ id: 'link-isle', campaign_id: quay, pack_id: 'pack-isle', pack_name: 'Saltwick Isle', option_choices: {}, overrides: {}, priority: 2 });
     const isle = [
@@ -823,6 +833,37 @@ if (townFlag === 'town' || townFlag === 'downtime') {
       { id: 'i10-stack', name: 'The Sea Stack', type: 'area', parentId: 'i08-beach', key: '1' },
     ];
     for (const data of isle) world.tables.library_entries.push({ id: `entry-${data.id}`, pack_id: 'pack-isle', kind: 'location', pack_entry_id: data.id, name: data.name, data });
+  }
+  // The Depart list as one view (sf-2; page 44, DP3), only with ?places=marches: the isle above, a second adventure of
+  // one Area with a long name and thirteen Locations (one with no number, then 0 to 11), and a region pack with no
+  // Location, whose one Region holds three Areas of buildings and hexes. Names are invented.
+  if (placesFlag === 'marches') {
+    world.tables.packs.push({ id: 'pack-outer-bar', owner_user_id: gm, campaign_id: null, name: 'The Outer Bar', version: '1', kind: 'adventure', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-26T12:00:00Z' });
+    world.tables.campaign_packs.push({ id: 'link-outer-bar', campaign_id: quay, pack_id: 'pack-outer-bar', pack_name: 'The Outer Bar', option_choices: {}, overrides: {}, priority: 3 });
+    const barNames = ['The Anchorage', 'The Jetty', 'The Wreck', 'The Breakwater', 'The Customs Shed', 'The Sea Cave', 'The Sluice', 'The Net Loft', 'The Chain Tower', 'The Salt Pans', 'The Sea Gate', 'The Outer Mole'];
+    const bar = [
+      { id: 'o01-bar', name: 'The Drowned Harbour and the Wrecks of the Outer Bar', type: 'site', parentId: null },
+      // Out of order in the pack, so the list's own order shows.
+      ...barNames.map((name, n) => ({ id: `o-${n}`, name, type: 'area', parentId: 'o01-bar', key: String(n) })).reverse(),
+      { id: 'o-none', name: 'The Old Mooring', type: 'area', parentId: 'o01-bar' },
+    ];
+    for (const data of bar) world.tables.library_entries.push({ id: `entry-${data.id}`, pack_id: 'pack-outer-bar', kind: 'location', pack_entry_id: data.id, name: data.name, data });
+    world.tables.packs.push({ id: 'pack-reed', owner_user_id: gm, campaign_id: null, name: 'The Reed Marches', version: '1', kind: 'setting', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-26T12:00:00Z' });
+    world.tables.campaign_packs.push({ id: 'link-reed', campaign_id: quay, pack_id: 'pack-reed', pack_name: 'The Reed Marches', option_choices: {}, overrides: {}, priority: 4 });
+    const reed = [
+      { id: 'r01-marches', name: 'The Reed Marches', type: 'region', parentId: null },
+      { id: 'r02-moss', name: 'Moss Landing', type: 'site', parentId: 'r01-marches' },
+      { id: 'r03-post', name: 'The Reeve’s Post', type: 'building', parentId: 'r02-moss', key: '2' },
+      { id: 'r04-ford', name: 'The Ford', type: 'building', parentId: 'r02-moss' },
+      { id: 'r05-jetty', name: 'The Drowned Jetty', type: 'building', parentId: 'r02-moss', key: '1' },
+      { id: 'r06-road', name: 'The Bog Road', type: 'site', parentId: 'r01-marches' },
+      ...[1, 2, 3, 4].map((n) => ({ id: `r-road-${n}`, name: `Causeway ${n}`, type: 'area', parentId: 'r06-road', key: `070${n}`, hex: `070${n}` })),
+      { id: 'r07-thorn', name: 'Thornwater', type: 'site', parentId: 'r01-marches' },
+      ...Array.from({ length: 45 }, (_, n) => ({ id: `r-thorn-${n}`, name: `Thornwater reach ${n + 1}`, type: 'area', parentId: 'r07-thorn', key: String(1000 + n), hex: String(1000 + n) })),
+    ];
+    for (const data of reed) world.tables.library_entries.push({ id: `entry-${data.id}`, pack_id: 'pack-reed', kind: 'location', pack_entry_id: data.id, name: data.name, data });
+    // The party stood at the isle's Wreck before: Recently visited, and the Area last played (⚑ 10).
+    world.tables.places.push({ id: 'place-quay-wreck', campaign_id: quay, name: 'The Wreck', description: '', pack_id: 'pack-isle', pack_entry_id: 'i05-wreck', pack_type: 'area', pack_parent_id: 'i02-harbour', pack_key: '2', version: 1, undone: false, created_by: gm, created_at: '2026-11-25T12:00:00Z', updated_at: '2026-11-25T12:00:00Z' });
   }
 }
 
@@ -1261,6 +1302,8 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //                closed, for HM3's tap).
 //   &b15=shown   with wreck: sent, and the GM's eye on the lantern's piece has named Wren's lantern (HM3's card; with
 //                ?as=player, HM4: Wren's Pack and the item's sheet read "Lantern of the Drowned").
+//   &sf8=1|sent  with wreck (sf-8, page 44, TR1 and TR2): also a Bronze ring, one thing with its own words, and a
+//                Crate of lamp oil ×8, a count; `sent`: the ring sent to Wren (TR1's sent piece).
 const placePageFlag = new URLSearchParams(window.location.search).get('placePage');
 // The jetty's own book text for the GM (gt-1, page 15 BT1; the whole Scene's S14): paragraphs, a list, a boxed aside.
 const JETTY_BOOK_TEXT = {
@@ -1421,6 +1464,12 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     // The setting's herons, so the hoard's coin is a row like any other (pf-6) that can be sent.
     const rules = world.tables.library_entries.find((e) => e.id === 'entry-river-rules')!.data as Record<string, unknown>;
     if (!Array.isArray(rules.currency)) rules.currency = [{ key: 'heron', label: 'herons', valueInBase: 1 }];
+    // &sf8 (page 44, TR1): one thing with its own words, and a count. Invented.
+    if (new URLSearchParams(window.location.search).get('sf8')) {
+      const wreckData = spots[1] as unknown as { hoards: unknown[]; treasure: unknown[] };
+      wreckData.hoards.push({ name: 'Bronze ring', text: 'A plain band of old bronze, on a hook by the cabin door.' }, { name: 'Crate', text: 'Eight flasks of lamp oil, dry.' });
+      wreckData.treasure.push({ text: 'Bronze ring', hoard: 'Bronze ring' }, { text: 'Lamp oil', qty: 8, hoard: 'Crate' });
+    }
   }
   for (const data of [island, harbour, ...spots]) world.tables.library_entries.push({ id: `entry-reed-${data.id}`, pack_id: 'pack-reed', kind: 'location', pack_entry_id: data.id, name: data.name, data });
   for (const t of [
@@ -1576,6 +1625,14 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
         const truth = row.pieces.find((p) => p.kind === 'other' && p.lead === 'Lantern of the Drowned')!;
         await runCommand(registry, world.db, asGm, showItemTruth, { campaignId: campaign, row, piece: truth, lines: [String(lantern.id)] });
       }
+    }
+    // &sf8=sent (page 44, TR1): the Bronze ring sent to Wren.
+    if (new URLSearchParams(window.location.search).get('sf8') === 'sent' && row?.place) {
+      const { hoardRows } = await import('../modules/expedition/hoard.ts');
+      const { giveFind, sendOf } = await import('../modules/expedition/findSend.ts');
+      const ring = hoardRows(row.pieces.find((p) => p.lead === 'Bronze ring')!, wreck, [], new Set());
+      const send = sendOf(ring.rows, new Map());
+      await runCommand(registry, world.db, asGm, giveFind, { campaignId: campaign, to: wren, placeId: row.place.id, things: send.things, coins: send.coins, rows: send.rows });
     }
   }
   // &ways=1|none|messy with spot (plan dec-9-the-players-scene P2; PL1, PL9, PL10): the jetty's ways on, and one of its

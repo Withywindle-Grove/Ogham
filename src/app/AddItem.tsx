@@ -28,7 +28,8 @@ import type { CastingStop } from '../modules/inventory/equipWarnings.ts';
 import { useErrorToast, useToast } from '../ui/ToastHost.tsx';
 import { isWornSlot, roomLeft } from '../modules/inventory/packView.ts';
 import { entriesInPlay } from '../modules/library/optionGate.ts';
-import { DestinationList, StockRow, type Destination } from '../ui/parts.tsx';
+import { ButtonRow, DestinationList, StockRow, type Destination } from '../ui/parts.tsx';
+import { denominationsOf, priceWords } from '../modules/inventory/coinWords.ts';
 import { Icon } from '../ui/icons.tsx';
 import { rememberPlace, startingPlace } from './lastPlace.ts';
 import { ItemEntry } from './ItemEntry.tsx';
@@ -111,8 +112,12 @@ export function AddItem({
   mode: EncumbranceMode;
   containers: InventoryLine[];
   onBack: () => void;
-  /** Added; `bought` says whether to show the purse note where the screen lands (until M7). */
-  onAdded: (bought: boolean, added?: InventoryLine) => void;
+  /**
+   * Added; `bought` says it was a player's purchase. `made` (a player's add, K7): how many things it added, the cost as
+   * written, and whether it joined a stack already carried (then the generic Undo can take it back off).
+   */
+  /** `stopped`: put on at once and it stops casting (B25), its toast words and the Undo that takes it off. */
+  onAdded: (bought: boolean, added?: InventoryLine, made?: { qty: number; cost: string; joined: boolean; stopped?: { short: string; undo: () => void } }) => void;
   /** The creation variant: the Gear step's shop. */
   shop?: ShopMode;
 }) {
@@ -128,6 +133,8 @@ export function AddItem({
   const [qty, setQty] = useState(1);
   const [howGot, setHowGot] = useState<HowGot>(gm ? 'given' : 'bought');
   const [cost, setCost] = useState('');
+  // The cost follows how many until the player writes their own (K7).
+  const [costWritten, setCostWritten] = useState(false);
   const [note, setNote] = useState('');
   const [place, setPlace] = useState<string>('carried');
   // Magic armour whose base is picked when it's found (ruled 2026-10-29): asked once, here; optional.
@@ -138,6 +145,8 @@ export function AddItem({
   const [warned, setWarned] = useState<{ check: EquipCheck; item: ItemCopy } | null>(null);
   const toast = useToast();
   const bySlots = mode === 'slot';
+  // The setting's coins: a price reads in its words, "4 herons" (pu-10, psw-5).
+  const denominations = denominationsOf(setting.rulesSets);
 
   // Players see what's for sale; the GM decides that per item ("For sale in shops", ruled 2026-10-23).
   // The shop (creation) offers what's for sale at a price. Only items that exist under the campaign's options (of-3).
@@ -152,6 +161,7 @@ export function AddItem({
   const slot = picked && typeof picked.data.slot === 'string' ? picked.data.slot : '';
   const choosing = picked !== null || oneOff !== null;
   const forWhom = carrier.actorId ? `${carrier.name}’s pack` : 'the Party stash';
+  const howWords = `How ${carrier.actorId ? `does ${carrier.name} get it` : 'is it got'}?`;
   const bundle = picked ? bundleOf(picked) : 1;
   const bases = picked ? baseArmourChoices(picked.data.armour) : null;
   const itemName = (id: string) => setting.items.find((e) => e.packEntryId === id)?.name ?? id;
@@ -181,9 +191,16 @@ export function AddItem({
     setPicked(entry);
     setBaseArmour(null);
     setOneOff(null);
-    setCost(priceText(entry.data.value));
+    setCost(priceWords(denominations, entry.data.value, qty));
+    setCostWritten(false);
     setPlace(startPlace(copyOf(entry).category, typeof entry.data.slot === 'string' ? entry.data.slot : ''));
     setProblem(null);
+  }
+
+  /** How many, and the cost with it while the player hasn't written their own (each coin times how many). */
+  function count(n: number) {
+    setQty(n);
+    if (picked && !costWritten && !shop) setCost(priceWords(denominations, picked.data.value, n));
   }
 
   async function add(event: FormEvent) {
@@ -265,11 +282,14 @@ export function AddItem({
       return;
     }
     // On straight away and it stops casting (B25): the toast says so; Undo takes it off.
-    if (place === 'equipped' && stop) {
-      const line = { id: added.value.id, carrier };
-      toast({ text: stop.short, onUndo: () => void runCommand(registry, db, user, equipItem, { line, equipped: false }) });
-    }
-    onAdded(!gm && howGot === 'bought', added.value);
+    const line = { id: added.value.id, carrier };
+    const stopped = place === 'equipped' && stop ? { short: stop.short, undo: () => void runCommand(registry, db, user, equipItem, { line, equipped: false }) } : undefined;
+    // The GM's add and the creation shop have no purchase toast, so the stop's toast is its own; on the Pack a player's
+    // purchase toast is led by it (review of #108, 1).
+    if (stopped && (gm || shop)) toast({ text: stopped.short, onUndo: stopped.undo });
+    // A player's add says what it made (K7): how many things, the cost as written, and whether it joined a stack.
+    const bought = !gm && howGot === 'bought';
+    onAdded(bought, added.value, gm ? undefined : { qty: qty * bundle, cost: bought ? cost : '', joined: lines.some((l) => l.id === added.value.id), stopped });
   }
 
   /** The shop's Add on a single item: bought at once, carried (how many is asked only for a stackable one). */
@@ -322,7 +342,7 @@ export function AddItem({
         <button type="button" className="pack__row-main" onClick={() => pick(entry)}>
           <span className="pack__name">{entry.name}</span>{' '}
           {amount && <span className="auth__meta pack__sub">{amount}</span>}{' '}
-          <span className="pack__amount">{priceText(entry.data.value)}</span>
+          <span className="pack__amount">{priceWords(denominations, entry.data.value)}</span>
         </button>
       </li>
     );
@@ -471,12 +491,12 @@ export function AddItem({
             </p>
           )}
           <p className="pack__count">
-            <button type="button" className="button-quiet" aria-label="One fewer" onClick={() => (qty <= 1 ? blocked.explain("Can't go lower", 'One is the fewest you can add.') : setQty(qty - 1))}>
+            <button type="button" className="button-quiet" aria-label="One fewer" onClick={() => (qty <= 1 ? blocked.explain("Can't go lower", 'One is the fewest you can add.') : count(qty - 1))}>
               −
             </button>
             <span>{qty}</span>
             {blocked.sheet}
-            <button type="button" className="button-quiet" aria-label="One more" onClick={() => setQty(qty + 1)}>
+            <button type="button" className="button-quiet" aria-label="One more" onClick={() => count(qty + 1)}>
               +
             </button>
           </p>
@@ -487,15 +507,38 @@ export function AddItem({
             </>
           )}
           {!gm && !shop && (
-            <div className="pack__actions pack__actions--row" role="group" aria-label="How do you get it?">
-              <span className="label">How {carrier.actorId ? `does ${carrier.name} get it` : 'is it got'}?</span>
-              <button type="button" className="button-secondary" aria-pressed={howGot === 'bought'} onClick={() => setHowGot('bought')}>
-                Bought
-              </button>
-              <button type="button" className="button-secondary" aria-pressed={howGot === 'found'} onClick={() => setHowGot('found')}>
-                No cost
-              </button>
-            </div>
+            <>
+              {/* "Bought / No cost" as the two-sided switch (ds-1d, psw-5; frame PK10b). */}
+              <span className="label" aria-hidden="true">{howWords}</span>
+              <ButtonRow
+                sides
+                label={howWords}
+                options={[
+                  { value: 'bought', label: 'Bought' },
+                  { value: 'found', label: 'No cost' },
+                ]}
+                value={howGot === 'bought' ? 'bought' : 'found'}
+                onChange={setHowGot}
+              />
+              {/* The cost above its button (psw-5), in the pack's coin words; it is not spent by itself (tn-1). */}
+              {howGot === 'bought' && (
+                <div className="field">
+                  <label className="label" htmlFor={`${searchId}-cost`}>
+                    Cost
+                  </label>
+                  <input
+                    id={`${searchId}-cost`}
+                    className="field__input field__input--short"
+                    value={cost}
+                    maxLength={60}
+                    onChange={(event) => {
+                      setCost(event.target.value);
+                      setCostWritten(true);
+                    }}
+                  />
+                </div>
+              )}
+            </>
           )}
           {/* Where it goes: the shared destination list (B19, ruled 2026-10-25), long names never breaking a row. */}
           {/* "Where it goes" (ruled 2026-10-26); the main button names the place ("Add to" and its name). */}
@@ -533,22 +576,13 @@ export function AddItem({
                   ? `Add to ${forWhom}`
                   : `Add to ${containers.find((c) => c.id === place)?.name ?? forWhom}`}
           </button>
-          {shop ? null : gm ? (
+          {!shop && gm && (
             <div className="field">
               <label className="label" htmlFor={`${searchId}-note`}>
                 Note (optional)
               </label>
               <input id={`${searchId}-note`} className="field__input" maxLength={200} value={note} onChange={(event) => setNote(event.target.value)} />
             </div>
-          ) : (
-            howGot === 'bought' && (
-              <div className="field">
-                <label className="label" htmlFor={`${searchId}-cost`}>
-                  Cost
-                </label>
-                <input id={`${searchId}-cost`} className="field__input field__input--short" value={cost} maxLength={60} onChange={(event) => setCost(event.target.value)} />
-              </div>
-            )
           )}
         </form>
       )}

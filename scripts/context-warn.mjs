@@ -13,8 +13,8 @@
 import { closeSync, fstatSync, openSync, readSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
-/** Past this many tokens of history, the session is warned (400,000 since 21 Nov; was 250,000, then 150,000, rvw-5). */
-export const LIMIT = 400_000;
+/** Past this many tokens of history, the session is warned (250,000 since 27 Nov, lp-6; was 400,000 from 21 Nov; before that 250,000, then 150,000, rvw-5). */
+export const LIMIT = 250_000;
 
 /** How much of the end of the record is read, in bytes: enough to reach the last reply past a few large tool results. */
 export const TAIL_BYTES = 4_000_000;

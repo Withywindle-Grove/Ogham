@@ -31,12 +31,6 @@
   overflow-wrap: break-word;
 }
 
-/* "Send all" at the right under the rows (HM2, PK5). */
-.hoard-sheet__foot {
-  display: flex;
-  justify-content: flex-end;
-}
-
 /* PK5's two equal answers, full width, one under the other. */
 .hoard-sheet__answers {
   display: flex;

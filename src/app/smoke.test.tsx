@@ -386,17 +386,17 @@ describe("the GM's Campaign screen", () => {
     await signIn(user, 'wren@lantern.example');
     expect(await screen.findByText('Player, Hollis (sent back)')).toBeTruthy();
     await user.click(screen.getByRole('button', { name: /The Ash Barrows/ }));
-    // B18: the card opens full screen on the review, the GM's note pinned; a section opens its step.
+    // B18: the card opens full screen on the review, the GM's note pinned; a section's Change opens its step (22-G5).
     await user.click(await screen.findByRole('button', { name: 'Open Hollis' }));
     expect(within(screen.getByRole('complementary', { name: 'Note from your GM' })).getByText('Pick a river-town name.')).toBeTruthy();
-    await user.click(screen.getByRole('button', { name: /^Who they are/ }));
+    await user.click(screen.getByRole('button', { name: /^Change Who they are/ }));
     const name = within(screen.getByRole('dialog')).getByLabelText('Name');
     await user.clear(name);
     await user.type(name, 'Hollis of Reedmouth');
     await stepLevelTo(user, 1);
     await user.click(screen.getByRole('button', { name: 'Done' }));
     // The ticked section is marked; until it changes, Resend explains (and could resend anyway).
-    expect(screen.getByRole('button', { name: /^Backstory.*Your GM asks for a change/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Change Backstory' }).closest('.review__section--flagged')?.textContent).toMatch(/^Backstory.*Your GM asks for a change/);
     // cs-53 (22-G5's words on today's screen): the GM's note is headed "Your GM asks for a change", with the sign.
     expect(screen.getByRole('complementary', { name: 'Note from your GM' }).querySelector('.pinned-note__from')?.textContent).toBe(' Your GM asks for a change');
     await user.click(screen.getAllByRole('button', { name: 'Send to the GM' })[0]!);
@@ -1174,7 +1174,7 @@ describe('invites', () => {
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await user.click(await screen.findByRole('button', { name: 'Open Reed' }));
     // The first tap, straight away: the shopping, never "can't be changed here".
-    await user.click(await screen.findByRole('button', { name: /^Gear/ }));
+    await user.click(await screen.findByRole('button', { name: 'Change Gear' }));
     await waitFor(() => expect(coin()).toBe('8 rolled'));
     expect(screen.queryByText(/can't be changed here/)).toBeNull();
     await user.click(screen.getByRole('button', { name: 'Open The shop' }));
@@ -5367,8 +5367,9 @@ describe('the Pack tab (M4 step 4)', () => {
     expect((screen.getByLabelText('Cost') as HTMLInputElement).value).toBe('1 gp');
     await user.click(screen.getByRole('button', { name: 'Add to Wren’s pack' }));
 
-    // The purse note shows where the screen lands, back on the Pack (until purses arrive in M7).
-    expect(await screen.findByText('Cost noted; purses arrive later.')).toBeTruthy();
+    // Back on the Pack, the toast says the cost is not spent yet (K7, PK10b); the old purse note is gone.
+    expect(await screen.findByText('Wren added Coil of rope. Its cost, 1 gp, is not spent yet.')).toBeTruthy();
+    expect(screen.queryByText(/purses arrive later/)).toBeNull();
     const carried = within(await screen.findByRole('region', { name: 'Carried' }));
     expect(carried.getByRole('button', { name: /Coil of rope.*50 coins/ })).toBeTruthy();
     expect(screen.getByText('50 of 1,000 coins')).toBeTruthy();

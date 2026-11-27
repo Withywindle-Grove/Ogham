@@ -22,7 +22,7 @@ import {
   type InventoryLine,
   type NamedCarrier,
 } from '../modules/inventory/inventory.ts';
-import { atHandAction, atHandLines, isContainer, isSeparate, possessive } from '../modules/inventory/packView.ts';
+import { atHandAction, atHandLines, countWords, isContainer, isSeparate, possessive } from '../modules/inventory/packView.ts';
 import { AddItem } from './AddItem.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { forgetCampaignSetting, loadCampaignSetting, type CampaignSetting } from './campaignSetting.ts';
@@ -45,7 +45,8 @@ import { StashScreen } from './StashScreen.tsx';
 import { takeToast } from '../modules/inventory/stashTake.ts';
 import { thingCount } from './stashWords.ts';
 import { PurseSheet } from './PurseSheet.tsx';
-import { coinLine, denominationsOf } from '../modules/inventory/coinWords.ts';
+import { coinLine, denominationsOf, readCost } from '../modules/inventory/coinWords.ts';
+import { purchaseToast } from './purchaseToast.ts';
 import { loadPurse, loadStashCoin, type Coins } from '../modules/inventory/purse.ts';
 import type { CharacterLightView } from './LightSection.tsx';
 import { registry } from './services.ts';
@@ -177,6 +178,8 @@ function PackTab({
   const [showing, setShowing] = useState<string | null>(carrierId);
   // The coin's sheets (K10), opened from the coin line.
   const [coinOpen, setCoinOpen] = useState(false);
+  // Opened from a purchase's toast (K7): Spend with the cost filled in.
+  const [spendFor, setSpendFor] = useState<{ coins: Coins; whatFor: string } | null>(null);
   // The character's purse (K9, K15): read for its own player and for the GM; null until read, or when nothing came back.
   const [read, setRead] = useState<{ of: string; coins: Coins } | null>(null);
   const [purseVersion, setPurseVersion] = useState(0);
@@ -329,6 +332,17 @@ function PackTab({
     else if (!undone.ok) show({ text: undone.message, error: true });
   }
 
+  /** Undo from the toast after Add item (K7): the generic Undo of the newest add, as the log's (a joined add today). */
+  async function undoAdd() {
+    const eventId = await latestChange(db, campaign.id, 'inventory.add', user.id);
+    const undone = eventId ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
+    const again = await load();
+    if (again) setLoaded(again);
+    onChanged?.();
+    if (!undone) show({ text: 'Nothing to undo.', error: true });
+    else if (!undone.ok) show({ text: undone.message, error: true });
+  }
+
   /** Back to the top of the Pack: after an action on an item, or adding one (ruled 2026-10-24). */
   const toTop = () => window.scrollTo?.({ top: 0 });
   // Add item takes the screen (not beside the pack): it opens at its top, with "‹ Pack" and its search in view,
@@ -470,16 +484,38 @@ function PackTab({
         containers={linesOf(adding).filter(isContainer)}
         lines={linesOf(adding)}
         onBack={() => setAdding(null)}
-        onAdded={async (bought, added) => {
+        onAdded={async (bought, added, made) => {
           forgetCampaignSetting(campaign.id);
           const fresh = await load();
           if (fresh) setLoaded(fresh);
           onChanged?.();
           setAdding(null);
           setOpen(null);
-          // Where the screen lands after Add (until purses arrive in M7).
-          if (bought) setNote('Cost noted; purses arrive later.');
           toTop();
+          // After Add (K7, PK10b; tn-1): what was added, and a purchase's cost not spent yet with "Spend N", which opens
+          // Spend filled in; nothing is charged by itself. Undo where the generic Undo can take it back (a joined add).
+          // Put on at once and it stops casting (B25): the stop's words lead, and its Undo takes it off.
+          if (added && made && added.approval !== 'pending') {
+            const coinNames = denominationsOf(loaded.setting.rulesSets);
+            const cost = bought ? made.cost : '';
+            const what = countWords(added, made.qty);
+            show(
+              purchaseToast({
+                who: adding.actorId ? adding.name : null,
+                what,
+                cost,
+                denominations: coinNames,
+                coins: purse && cost ? readCost(coinNames, cost) : null,
+                // What for is the thing's name (Francis, 26 Nov, ⚑ 3 on #108).
+                onSpend: (coins) => {
+                  setSpendFor({ coins, whatFor: what });
+                  setCoinOpen(true);
+                },
+                onUndo: made.stopped?.undo ?? (made.joined ? () => void undoAdd() : undefined),
+                stopped: made.stopped?.short,
+              }),
+            );
+          } else if (made?.stopped) show({ text: made.stopped.short, onUndo: made.stopped.undo });
           // A player's one-off waits for the GM, and says so where the screen lands.
           if (added?.approval === 'pending') setNote('Sent to the GM for approval.');
           // Handed out by the GM with charges not set yet: ask for them now.
@@ -554,7 +590,12 @@ function PackTab({
               denominations={denominations}
               coins={purse}
               gm={coinAsGm}
-              onClose={() => setCoinOpen(false)}
+              key={spendFor ? 'spend' : 'coin'}
+              spend={spendFor ?? undefined}
+              onClose={() => {
+                setCoinOpen(false);
+                setSpendFor(null);
+              }}
               onChanged={() => {
                 setPurseVersion((v) => v + 1);
                 onChanged?.();

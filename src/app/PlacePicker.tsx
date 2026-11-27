@@ -12,18 +12,20 @@
 // Locations is never a row to pick. In the tree its row opens or folds its places, as its square button does; the
 // search, Near here and Recently visited leave it out. Everything else is as before: a pack with no Locations, typed
 // names, Other…, unnamed and places made by hand (`holdersOfLocations`, placeTree.ts). The Depart sheet's Where?
-// (p2p-5; page 24, DP1; plan scene-point-to-point B7) lists Locations, grouped under their Area, where packs give any,
-// with Other… under them for everything else, as ⚑ 6 keeps it (`LocationsPickerBody`; `PlacePicker`'s `locations`).
+// (p2p-5; plan scene-point-to-point B7) lists Locations, grouped under their Area, where packs give any; since sf-2
+// (page 44, DP3, DP3b) as one view with the search, Recently visited, folding Areas, the packs with other places and
+// Other… (`LocationsPickerBody`; `PlacePicker`'s `locations`); where none does, today's picker (⚑ 6).
 // A tap on a place's name picks it at once: the caller closes the picker, moves the party and shows the toast with
 // Undo (no accent button: every row is the action). The pack's places are a few fields of each entry, loaded once
 // per campaign (never their GM side here; the GM's device alone reads them); the tree renders only what's unfolded,
 // so about 900 places stay light on a phone. States: loading, no packs with places, nothing found, offline.
-import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Db } from '../core/supabase.ts';
 import { loadPackPlaces, type Place } from '../modules/expedition/placePlay.ts';
 import { PLACE_NAME_MAX } from '../modules/expedition/play.ts';
-import { childrenOf, countUnder, holdersOfLocations, keyedName, nearHere, packsWithPlaces, pickablePlaces, placeOf, rootsOf, searchPlaces, wordsFor, type PackPlace } from '../modules/expedition/placeTree.ts';
-import { departLocationGroups, type LocationGroup } from '../modules/expedition/sceneTop.ts';
+import { byMapNumber, childrenOf, countUnder, holdersOfLocations, isLocation, keyedName, nearHere, packsWithPlaces, parentOf, pickablePlaces, placeOf, rootsOf, searchPlaces, wordsFor, type PackPlace } from '../modules/expedition/placeTree.ts';
+import { departAreaOf, departLocationGroups, departOpenGroup } from '../modules/expedition/sceneTop.ts';
+import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import { Dialog } from '../ui/Dialog.tsx';
 import { Icon } from '../ui/icons.tsx';
 import { Note, SkeletonRows } from '../ui/parts.tsx';
@@ -123,25 +125,7 @@ export function PlacePickerBody({ places, recent, current, offline = false, allo
     );
   };
 
-  if (other !== null) {
-    const name = other.trim();
-    return (
-      <div className="place-pick">
-        <label className="field" htmlFor={`${field}-other`}>
-          <span className="label">A place that isn't listed</span>
-          <input id={`${field}-other`} className="field__input place-pick__field" aria-label="A place that isn't listed" value={other} maxLength={PLACE_NAME_MAX} autoComplete="off" onChange={(e) => setOther(e.target.value)} />
-        </label>
-        <div className="place-pick__actions">
-          <button type="button" className="button-primary" onClick={() => (name ? onPick({ kind: 'other', name }) : allowUnnamed ? onPick({ kind: 'unnamed' }) : undefined)}>
-            {name ? 'Set place' : allowUnnamed ? 'Move on, unnamed' : 'Set place'}
-          </button>
-          <button type="button" className="button-secondary" onClick={() => setOther(null)}>
-            Back to the list
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (other !== null) return <OtherPlace initial={other} allowUnnamed={allowUnnamed} onPick={onPick} onBack={() => setOther(null)} />;
 
   const otherRow = (words: string) => (
     <button type="button" className="button-secondary place-pick__row" onClick={() => setOther(q)}>
@@ -217,6 +201,37 @@ export function PlacePickerBody({ places, recent, current, offline = false, allo
   );
 }
 
+/** Other…: a typed name, Set place (or Move on, unnamed where allowed), and the way back to the list. */
+function OtherPlace({ initial, allowUnnamed, onPick, onBack }: { initial: string; allowUnnamed: boolean; onPick: (picked: PickedPlace) => void; onBack: () => void }) {
+  const [other, setOther] = useState(initial);
+  const field = useId();
+  const name = other.trim();
+  // With no name typed (and no "Move on, unnamed"), Set place stays a button and says why (hard rule 7; the audit's finding 3).
+  const blocked = useBlockedSheet();
+  const set = () => {
+    if (name) onPick({ kind: 'other', name });
+    else if (allowUnnamed) onPick({ kind: 'unnamed' });
+    else blocked.explain("Can't set the place", 'Type a name first.');
+  };
+  return (
+    <div className="place-pick">
+      <label className="field" htmlFor={field}>
+        <span className="label">A place that isn't listed</span>
+        <input id={field} className="field__input place-pick__field" aria-label="A place that isn't listed" value={other} maxLength={PLACE_NAME_MAX} autoComplete="off" onChange={(e) => setOther(e.target.value)} />
+      </label>
+      <div className="place-pick__actions">
+        <button type="button" className="button-primary" onClick={set}>
+          {name ? 'Set place' : allowUnnamed ? 'Move on, unnamed' : 'Set place'}
+        </button>
+        <button type="button" className="button-secondary" onClick={onBack}>
+          Back to the list
+        </button>
+      </div>
+      {blocked.sheet}
+    </div>
+  );
+}
+
 /**
  * One place's row: its words as the button (the action), "✓ here now" on the current place, an optional fold button.
  * `expanded` is given only for a place that holds Locations, whose tap opens or folds its places (p2p-2). Such a row
@@ -235,31 +250,228 @@ function PlaceRow({ words, here = false, indent = 0, extra = null, expanded, onP
   );
 }
 
-/**
- * The Depart sheet's Where? (p2p-2, p2p-5; page 24, DP1, approved 2026-11-18): only Locations, each group headed by
- * its Area's name (`departLocationGroups`); a Location's row is the pick, its key before its name ("1. The Jetty"), the
- * picked one ticked. No search and no recent places (DP1 draws none); `PlacePicker` adds Other… under the groups,
- * which opens today's picker (⚑ 6).
- */
-export function LocationsPickerBody({ groups, picked, onPick }: { groups: readonly LocationGroup[]; picked: PackPlace | null; onPick: (place: PackPlace) => void }) {
+/** "1 place", "7 places" (finding 11: one word for the count, lower case). */
+function placesCount(n: number): string {
+  return n === 1 ? '1 place' : `${n} places`;
+}
+
+/** The fold mark (finding 5): the chevron in its square, down while folded and up while open. */
+function FoldMark({ open, name, onToggle }: { open: boolean; name: string; onToggle: () => void }) {
   return (
-    <div className="depart-pick">
-      {groups.map((group) => (
-        <section key={group.key} className="depart-pick__group" aria-label={group.name}>
-          <h3 className="label depart-pick__area">{group.name}</h3>
-          {group.locations.map((place) => {
-            const on = picked !== null && picked.packId === place.packId && picked.entryId === place.entryId;
+    <button type="button" className={`button-secondary place-pick__fold depart-pick__fold${open ? ' depart-pick__fold--open' : ''}`} aria-expanded={open} aria-label={`${open ? 'Fold' : 'Show'} ${name}`} onClick={onToggle}>
+      <Icon name="chevron" size={20} />
+    </button>
+  );
+}
+
+/**
+ * Step in for a pack's tree (N4; DP3 D, DP3b B): a group 16 px a level; a place's words 24 px past its group's edge (40
+ * px from the pack's edge under one of its Areas). A row's words stand after its tick column (24 px and the 8 px gap),
+ * so the row itself steps in that much less (the review of #124), never less than none.
+ */
+const stepIn = (px: string) => ({ paddingLeft: px });
+const groupIndent = (depth: number) => stepIn(`calc(var(--space-4) * ${depth})`);
+const wordsAt = (depth: number) => `calc(var(--space-4) * ${depth - 1} + var(--space-5))`;
+const wordsIndent = (depth: number) => stepIn(wordsAt(depth));
+const rowIndent = (depth: number) => stepIn(`max(0px, ${wordsAt(depth)} - var(--space-5) - var(--space-2))`);
+/** The search lists at most this many rows; its count is every place it found. */
+const FOUND_ROWS = 50;
+
+/**
+ * The Depart sheet's Where? as one view (sf-2; page 44, DP3 and DP3b, approved 2026-11-26; ⚑ 10, N4): the search and
+ * Recently visited over the groups; each Area of the packs' Locations a group that folds by the chevron, the Area last
+ * played open and the others folded (`departOpenGroup`); then From your packs, the packs with places to pick beside
+ * those Locations, each unfolding in place (its Areas as groups stepped in 16 px, their places stepped in again, in
+ * number order with their numbers); then Other…. No second view, so no "Back". A row is the pick, at once; the picked
+ * one ticked. A search names each row's Area at its right (`departAreaOf`).
+ */
+export function LocationsPickerBody({
+  places,
+  recent,
+  picked,
+  initialOpen,
+  initialQuery = '',
+  onPick,
+}: {
+  places: readonly PackPlace[];
+  /** The campaign's places, newest first (Recently visited; the Area last played). */
+  recent: readonly Place[];
+  picked: PackPlace | null;
+  /** What starts unfolded ("area:<key>", "pack:<packId>", "<packId>:<entryId>"); else the Area last played. */
+  initialOpen?: readonly string[];
+  initialQuery?: string;
+  onPick: (picked: PickedPlace) => void;
+}) {
+  const groups = useMemo(() => departLocationGroups(places), [places]);
+  const holders = useMemo(() => holdersOfLocations(places), [places]);
+  const pickable = useMemo(() => pickablePlaces(places, holders), [places, holders]);
+  const [open, setOpen] = useState<Set<string>>(() => {
+    if (initialOpen) return new Set(initialOpen);
+    // The ticked place's Area, else the Area last played (`departOpenGroup`; 06 "else"): a place ticked in a pack's
+    // tree opens the pack and the groups above it alone, so the tick shows (the review of #124; the audit's finding 1).
+    if (!picked || isLocation(picked)) {
+      const last = departOpenGroup(groups, places, recent, picked);
+      return new Set(last ? [`area:${last}`] : []);
+    }
+    const start = new Set<string>([`pack:${picked.packId}`]);
+    const seen = new Set<PackPlace>();
+    for (let up = parentOf(places, picked); up && !seen.has(up); up = parentOf(places, up)) {
+      seen.add(up);
+      start.add(`${up.packId}:${up.entryId}`);
+    }
+    return start;
+  });
+  // A place ticked past a level's first rows shows that level whole, so its row is there to see (the audit's finding 1).
+  const [more, setMore] = useState<Set<string>>(() => {
+    if (initialOpen || !picked || isLocation(picked)) return new Set();
+    const up = parentOf(places, picked);
+    return new Set([up ? `${up.packId}:${up.entryId}` : `pack:${picked.packId}`]);
+  });
+  const [query, setQuery] = useState(initialQuery);
+  const [other, setOther] = useState<string | null>(null);
+  const field = useId();
+  const q = query.trim();
+  // Reopened, the ticked row in its group or pack's tree (not Recently visited's) is scrolled into view, the least
+  // scroll that shows it (06: "the ticked row is in view"; the audit's finding 1). Once, as the list opens.
+  const list = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const ticked = [...(list.current?.querySelectorAll<HTMLElement>('.depart-pick__row[aria-pressed="true"]') ?? [])].find((el) => !el.closest('[aria-label="Recently visited"]'));
+    ticked?.scrollIntoView?.({ block: 'nearest' });
+  }, []);
+  // Every place found, so the count is right past the rows listed (the review of #124).
+  const found = useMemo(() => (q ? searchPlaces(pickable, q, Infinity) : []), [pickable, q]);
+  const results = found.slice(0, FOUND_ROWS);
+  // From your packs: the packs with a place to pick that the groups don't list (a Region of hexes, a dungeon's rooms);
+  // each one's count is its places that hold no others, never its Region and Areas (DP3 A, D: "212 places").
+  const packs = useMemo(() => {
+    const others = new Set(pickable.filter((p) => !isLocation(p)).map((p) => p.packId));
+    const leaves = (packId: string) => pickable.filter((p) => p.packId === packId && countUnder(places, p) === 0).length;
+    return packsWithPlaces(places)
+      .filter((pack) => others.has(pack.packId))
+      .map((pack) => ({ ...pack, count: leaves(pack.packId) }));
+  }, [places, pickable]);
+  const toggle = (set: Set<string>, key: string, into: (next: Set<string>) => void) => {
+    const next = new Set(set);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    into(next);
+  };
+  const isPicked = (p: PackPlace) => picked !== null && picked.packId === p.packId && picked.entryId === p.entryId;
+  const row = (key: string, words: string, on: boolean, pick: () => void, area: string | null = null, indent?: { paddingLeft: string }) => (
+    <button key={key} type="button" className="depart-pick__row" style={indent} aria-pressed={on} onClick={pick}>
+      <span className="depart-pick__tick" aria-hidden="true">
+        {on && <Icon name="tick" size={20} />}
+      </span>
+      <span className="depart-pick__words">{words}</span>
+      {area && <span className="auth__meta depart-pick__where">{area}</span>}
+    </button>
+  );
+  const packRow = (p: PackPlace, area: string | null, indent?: { paddingLeft: string }, key = `${p.packId}:${p.entryId}`) => row(key, keyedName(p.key, p.name), isPicked(p), () => onPick({ kind: 'pack', place: p }), area, indent);
+  const head = (name: string, count: number, key: string, kind: 'area' | 'pack', indent?: { paddingLeft: string }) => (
+    <div className={`depart-pick__head depart-pick__head--${kind}`} style={indent}>
+      {kind === 'pack' ? <span className="depart-pick__pack">{name}</span> : <h3 className="label depart-pick__area">{name}</h3>}
+      <span className="auth__meta depart-pick__count">{placesCount(count)}</span>
+      <FoldMark open={open.has(key)} name={name} onToggle={() => toggle(open, key, setOpen)} />
+    </div>
+  );
+  // A pack's tree, one level at a time: a place with places under it is a group that folds; any other is a row.
+  const level = (packId: string, parent: PackPlace | null, depth: number): ReactNode => {
+    // Every level in number order, with the numbers (F2): no number first, then 0, 1, 2 … 10 (`byMapNumber`, Q1).
+    const all = byMapNumber(parent ? childrenOf(places, parent) : rootsOf(places, packId), (p) => p.key);
+    const key = parent ? `${parent.packId}:${parent.entryId}` : `pack:${packId}`;
+    const shown = more.has(key) ? all : all.slice(0, PAGE);
+    return (
+      <>
+        {shown.map((p) => {
+          const under = countUnder(places, p);
+          const at = `${p.packId}:${p.entryId}`;
+          if (under === 0) return packRow(p, null, rowIndent(depth));
+          return (
+            <section key={at} className="depart-pick__group" aria-label={p.name}>
+              {head(p.name, under, at, 'area', groupIndent(depth))}
+              {open.has(at) && level(packId, p, depth + 1)}
+            </section>
+          );
+        })}
+        {all.length > shown.length && (
+          <button type="button" className="button-secondary button-secondary--small place-pick__more depart-pick__more" style={wordsIndent(depth)} onClick={() => toggle(more, key, setMore)}>
+            {`Show ${all.length - shown.length} more${all.every((p) => p.hex) ? ' hexes, by map number' : ''}`}
+          </button>
+        )}
+      </>
+    );
+  };
+  // A pack whose one root holds all its places unfolds straight to that root's places (the pack is that place).
+  const packLevel = (packId: string): ReactNode => {
+    const roots = rootsOf(places, packId);
+    const only = roots.length === 1 ? roots[0] : undefined;
+    return only && countUnder(places, only) > 0 ? level(packId, only, 1) : level(packId, null, 1);
+  };
+
+  if (other !== null) return <OtherPlace initial={other} allowUnnamed={false} onPick={onPick} onBack={() => setOther(null)} />;
+
+  const otherButton = (words: string) => (
+    <button type="button" className="button-secondary place-pick__row depart-pick__other" onClick={() => setOther(q)}>
+      {words}
+    </button>
+  );
+  // Recently visited: the campaign's places, newest first; never an Area or a Region that holds Locations (p2p-2).
+  const recentRows = recent.flatMap((p) => {
+    const from = p.pack ? placeOf(places, p.pack.packId, p.pack.entryId) : undefined;
+    if (from && holders.has(from)) return [];
+    if (from) return [packRow(from, departAreaOf(places, from), undefined, p.id)];
+    return [row(p.id, p.name, false, () => onPick({ kind: 'place', place: p }), p.pack ? null : 'typed')];
+  });
+
+  return (
+    <div className="depart-pick" ref={list}>
+      <label className="field" htmlFor={field}>
+        <span className="label">Search places by name or map number</span>
+        <input id={field} className="field__input place-pick__field" aria-label="Search places by name or map number" value={query} autoComplete="off" onChange={(e) => setQuery(e.target.value)} />
+      </label>
+      {q ? (
+        results.length > 0 ? (
+          <section className="depart-pick__group" aria-label="Places found">
+            <p className="auth__meta depart-pick__found">{`${placesCount(found.length)}.`}</p>
+            {results.map((p) => packRow(p, departAreaOf(places, p)))}
+          </section>
+        ) : (
+          <>
+            <p className="depart-pick__found">{`No place matches “${q}”.`}</p>
+            {otherButton(`Other… use “${q}” as a new place`)}
+          </>
+        )
+      ) : (
+        <>
+          {recentRows.length > 0 && (
+            <section className="depart-pick__group" aria-label="Recently visited">
+              <h3 className="label">Recently visited</h3>
+              {recentRows}
+            </section>
+          )}
+          {groups.map((group) => {
+            const key = `area:${group.key}`;
             return (
-              <button key={`${place.packId}:${place.entryId}`} type="button" className="depart-pick__row" aria-pressed={on} onClick={() => onPick(place)}>
-                <span className="depart-pick__tick" aria-hidden="true">
-                  {on && <Icon name="tick" size={20} />}
-                </span>
-                <span className="depart-pick__words">{keyedName(place.key, place.name)}</span>
-              </button>
+              <section key={key} className="depart-pick__group" aria-label={group.name}>
+                {head(group.name, group.locations.length, key, 'area')}
+                {open.has(key) && group.locations.map((p) => packRow(p, null))}
+              </section>
             );
           })}
-        </section>
-      ))}
+          {packs.length > 0 && (
+            <section className="depart-pick__group" aria-label="From your packs">
+              <h3 className="label">From your packs</h3>
+              {packs.map((pack) => (
+                <div key={pack.packId} className="depart-pick__group">
+                  {head(pack.name, pack.count, `pack:${pack.packId}`, 'pack')}
+                  {open.has(`pack:${pack.packId}`) && packLevel(pack.packId)}
+                </div>
+              ))}
+            </section>
+          )}
+          {otherButton('Other… a place that isn’t listed')}
+        </>
+      )}
     </div>
   );
 }
@@ -267,8 +479,8 @@ export function LocationsPickerBody({ groups, picked, onPick }: { groups: readon
 /**
  * The picker as a pop-up (a Wide Dialog: a centred card on a tablet, the whole screen on a phone), loading the
  * attached packs' places once per campaign. `title`: "Where are we?" (Start, Set place), "Where now?" or "Move where?".
- * `locations` (the Depart sheet's Where?, p2p-5): where an attached pack gives Locations, those grouped under their
- * Area (`LocationsPickerBody`), then Other…, which opens today's picker; where none does, today's picker (⚑ 6).
+ * `locations` (the Depart sheet's Where?, p2p-5, sf-2): where an attached pack gives Locations, the Depart list
+ * (`LocationsPickerBody`); where none does, today's picker (⚑ 6).
  */
 export function PlacePicker({
   db,
@@ -306,23 +518,16 @@ export function PlacePicker({
       live = false;
     };
   }, [db, campaignId]);
-  const groups = useMemo(() => (locations && places && places !== 'error' ? departLocationGroups(places) : []), [locations, places]);
-  // Other… under the Locations opens today's picker (the plan's ⚑ 6, ruled 2026-11-18: typed names, Other…, unnamed and
-  // places made by hand keep working, and so do the places of packs with no Locations; the review of #1037).
-  const [everyPlace, setEveryPlace] = useState(false);
+  // Depart's one view where an attached pack gives Locations; else today's picker (⚑ 6).
+  const hasLocations = useMemo(() => locations && places !== null && places !== 'error' && departLocationGroups(places).length > 0, [locations, places]);
   const loading = locations && places === null && !offline;
   return (
     <Dialog label={title} over={over} onClose={onClose} wide>
       {loading ? (
         // Depart's list waits for the packs' places, so no row of today's picker can be tapped before it shows.
         <SkeletonRows rows={2} label="Loading your packs' places" />
-      ) : groups.length > 0 && !everyPlace ? (
-        <>
-          <LocationsPickerBody groups={groups} picked={picked} onPick={(place) => onPick({ kind: 'pack', place })} />
-          <button type="button" className="button-secondary place-pick__row depart-pick__other" onClick={() => setEveryPlace(true)}>
-            Other…
-          </button>
-        </>
+      ) : hasLocations && places !== null && places !== 'error' ? (
+        <LocationsPickerBody places={places} recent={recent} picked={picked} onPick={onPick} />
       ) : (
         <PlacePickerBody places={places} recent={recent} current={current} offline={offline && places === null} allowUnnamed={allowUnnamed} onPick={onPick} />
       )}

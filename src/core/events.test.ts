@@ -317,9 +317,11 @@ describe('log lines in plain words', () => {
 describe('inventory lines in the log (M4)', () => {
   const line = (type: string, extra: Partial<LogEvent>) => describeEntry(groupEntries([event(type, { targetTable: 'inventory_lines', targetId: 'line-lantern', ...extra })])[0]!, names);
 
-  it('says what was got, for whom, and how; a purchase notes its cost until purses arrive', () => {
-    expect(line('inventory.add', { after: { name: 'Hooded lantern', qty: 1, how_got: 'bought', cost: '10 gp', actor_id: 'actor-wren', location_id: null } })).toBe(
-      'Priya bought Hooded lantern for Wren (10 gp). Cost noted; purses arrive later.',
+  // K7: the purchase's line says what was paid, and no longer "Cost noted; purses arrive later." (purses exist; the
+  // toast offers Spend).
+  it('says what was got, for whom, and how; a purchase notes its cost', () => {
+    expect(line('inventory.add', { after: { name: 'Hooded lantern', qty: 1, how_got: 'bought', cost: '10 herons', actor_id: 'actor-wren', location_id: null } })).toBe(
+      'Priya bought Hooded lantern for Wren (10 herons).',
     );
     expect(line('inventory.add', { after: { name: 'Rope', qty: 2, how_got: 'found', approval: 'approved', actor_id: null, location_id: 'place-stash' } })).toBe('Priya added Rope ×2 to the Party stash (no cost).');
     expect(line('inventory.add', { after: { name: 'Glow wand', qty: 1, how_got: 'given', notes: 'From the drowned shrine', actor_id: 'actor-wren', location_id: null } })).toBe('Priya gave Wren Glow wand: From the drowned shrine.');
