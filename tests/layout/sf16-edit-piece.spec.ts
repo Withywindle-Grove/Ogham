@@ -5,6 +5,7 @@
 //   A. The Mast's arrow (a piece with nothing to send) opens Edit piece at once; "Save" stands alone at the foot's right.
 //   B. Opened from the Bronze ring's sheet, "Kind" unfolds its seven kinds in place, each a 44 px row, inside the form.
 //   C. A long text grows the box: nothing scrolls inside the field.
+//   D. On a phone the form is a sheet from the foot; on a tablet a centred card (sf-28).
 // Each: nothing scrolls sideways, no tap target under 44 px, no text under 14 px (layoutProblems).
 import { expect, test, type Page } from '@playwright/test';
 import { layoutProblems } from './checks.ts';
@@ -90,6 +91,27 @@ for (const size of SIZES) {
         expect(cut).toBeLessThanOrEqual(1);
         expect(await layoutProblems(page)).toEqual([]);
         await shot(page, 'long', size.width, scheme);
+      });
+
+      // Purpose: D (sf-28; EP1 D), on a phone the form is a sheet from the foot, the screen's full width, its foot on the
+      // screen's; on a tablet a centred card, in the middle of the screen (the local review of #120, finding 2).
+      test('D: a sheet from the foot on a phone, a centred card on a tablet', async ({ page }) => {
+        await openCard(page, scheme);
+        await page.getByRole('button', { name: /^Edit piece: Gulls quarrel on it/ }).click();
+        // A sheet from the foot rises into place: measured once it stands.
+        await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => undefined))));
+        const box = (await form(page).boundingBox())!;
+        if (size.width < 700) {
+          await expect(form(page)).toHaveClass(/\bdialog--sheet\b/);
+          expect(Math.abs(box.y + box.height - size.height)).toBeLessThanOrEqual(1);
+          expect(box.x).toBeLessThanOrEqual(1);
+          expect(Math.abs(box.width - size.width)).toBeLessThanOrEqual(1);
+        } else {
+          await expect(form(page)).toHaveClass(/\bdialog--centred\b/);
+          expect(Math.abs(box.x + box.width / 2 - size.width / 2)).toBeLessThanOrEqual(2);
+          expect(Math.abs(box.y + box.height / 2 - size.height / 2)).toBeLessThanOrEqual(2);
+        }
+        expect(await layoutProblems(page)).toEqual([]);
       });
     });
   }

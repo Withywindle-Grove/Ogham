@@ -19,7 +19,6 @@ import { denominationsOf, type Denomination } from '../modules/inventory/coinWor
 import { loadCarriers, type NamedCarrier } from '../modules/inventory/inventory.ts';
 import { secondsAt } from '../modules/inventory/stashHistory.ts';
 import { loadCampaignEntries } from '../modules/library/campaignPacks.ts';
-import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { Icon } from '../ui/icons.tsx';
 import { ListRow, RowList, StackedButton } from '../ui/parts.tsx';
@@ -133,7 +132,6 @@ export function useHoards({
   onChanged: () => void;
 }) {
   const show = useToast();
-  const blocked = useBlockedSheet();
   const [setting, setSetting] = useState<Setting | null>(null);
   const [events, setEvents] = useState<LogEvent[]>([]);
   const [clock, setClock] = useState<Awaited<ReturnType<typeof loadClockChanges>>>(null);
@@ -253,14 +251,15 @@ export function useHoards({
 
   /**
    * "Take it back" on a sent piece's sheet (sf-8, TR1): the send's own Undo, once, at once, with a toast; the sheet stays,
-   * offering where to send it again. Refused (the thing was used or passed on): the blocked-action pop-up says why.
+   * offering where to send it again. Refused (the thing was used or passed on): the error toast with the reason, as every
+   * refused command on this page says it (sf-27: the refusal pop-up is drawn after 5 Dec).
    */
   async function takeBack(went: { to: string | null; eventId: string }, rows: readonly HoardRow[]) {
     if (busy) return;
     setBusy(true);
     const undone = await runCommand(registry, db, user, undoFind, { campaignId: campaign.id, eventId: went.eventId });
     setBusy(false);
-    if (!undone.ok) return blocked.explain("Can't take it back", undone.message);
+    if (!undone.ok) return show({ text: undone.message, error: true });
     refresh();
     show({ text: takenBackWords(went.to, nameOf, rows) });
   }
@@ -367,15 +366,12 @@ export function useHoards({
       setOpen({ piece, step: 'hoard', rows: [] });
     },
     noteOf,
+    /** Whether a find sheet is open, its own button the accent (Move on plain behind it; page 44, TR1). */
+    isOpen: sheets !== null,
     isMagic,
     showTruth,
     // On a phone the Sheet variant, rising from the foot (HM5, pg30-5); on a tablet each passes `side`, the standing panel.
-    sheets: (
-      <>
-        {sheets && <SheetScope.Provider value>{sheets}</SheetScope.Provider>}
-        {blocked.sheet}
-      </>
-    ),
+    sheets: sheets && <SheetScope.Provider value>{sheets}</SheetScope.Provider>,
   };
 }
 
@@ -445,8 +441,7 @@ export function HoardSheetView({
               />
             );
           })}
-        </RowList>
-        <RowList label="The piece">
+          {/* The edit row in the rows' own list, so one list and one rule (page 44, TR1). */}
           <EditWordsRow onEdit={onEdit} />
         </RowList>
         {/* "Send all" at the foot's right, under the edit row (page 44, TR1, finding 16). */}

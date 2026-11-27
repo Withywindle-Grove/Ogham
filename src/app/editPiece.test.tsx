@@ -188,6 +188,40 @@ describe('Edit piece behind the arrow (sf-16)', () => {
     expect(field().value).toBe(SAYS);
   });
 
+  // Purpose: "Changes dropped."'s Undo, tapped while another piece's form is open, leaves that form open with the words
+  // typed in it: nothing typed is lost (the local review of #120, finding 6).
+  it("the Undo with another piece's form open keeps that form's words", async () => {
+    await page();
+    await userEvent.click(within(piece(SAYS)).getByRole('button', { name: `Edit piece: ${SAYS}` }));
+    await userEvent.type(field(), ' And gulls.');
+    await userEvent.click(within(form()).getByRole('button', { name: /Close/ }));
+    await screen.findByText('Changes dropped.');
+    await userEvent.click(within(piece('Bronze ring')).getByRole('button', { name: /^Bronze ring/ }));
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: "Edit the piece's words" }));
+    await userEvent.clear(field());
+    await userEvent.type(field(), 'A green bronze ring');
+    await userEvent.click(screen.getByRole('button', { name: 'Undo', hidden: true }));
+    expect(field().value).toBe('A green bronze ring');
+    expect(within(form()).getByRole('button', { name: 'Kind Treasure' })).toBeTruthy();
+  });
+
+  // Purpose: while Edit piece or a find sheet is open, its own button is the accent and Move on is plain; closed, Move on
+  // is the accent again (page 44, TR1's note; the local review of #120, finding 3).
+  it('Move on is plain while Edit piece or a find sheet is open', async () => {
+    await page();
+    const moveOn = () => document.querySelector<HTMLElement>('.place-page__move')!;
+    expect(moveOn().className).toContain('button-primary');
+    await userEvent.click(within(piece(SAYS)).getByRole('button', { name: `Edit piece: ${SAYS}` }));
+    expect(moveOn().className).toContain('button-secondary');
+    expect(document.querySelectorAll('.button-primary, .stacked-button--primary')).toHaveLength(1);
+    await userEvent.click(within(form()).getByRole('button', { name: /Close/ }));
+    expect(moveOn().className).toContain('button-primary');
+    await userEvent.click(within(piece('Bronze ring')).getByRole('button', { name: /^Bronze ring/ }));
+    expect(moveOn().className).toContain('button-secondary');
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Close/ }));
+    expect(moveOn().className).toContain('button-primary');
+  });
+
   // Purpose: the X with nothing changed only closes: no toast.
   it('the X with nothing changed only closes', async () => {
     await page();

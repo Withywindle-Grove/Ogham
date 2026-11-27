@@ -5,7 +5,7 @@
 //   * one thing: its words, then "To a character" and "To the party stash", at once; "Edit the piece's words" last;
 //   * a count: a row a thing, the edit row, then "Send all" at the foot, the sheet's one accent, sending every row left;
 //   * a sent piece's sheet says where it went, with "Take it back" (no arrow), which runs the send's Undo once with a
-//     toast; refused, the blocked-action pop-up says why;
+//     toast; refused, the error toast gives the reason;
 //   * a magic item goes under its plain name.
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -151,8 +151,9 @@ describe('found treasure (sf-8)', () => {
     expect(await within(sheet()).findByText('In the party stash, turn 3.')).toBeTruthy();
   });
 
-  // Purpose: when the send can't be undone (the thing has changed since), the blocked-action pop-up says why.
-  it('Take it back refused: the blocked-action pop-up says why', async () => {
+  // Purpose: when the send can't be undone (the thing has changed since), the error toast gives the reason, as every
+  // refused command on this page does, and no pop-up opens (sf-27: the refusal pop-up is drawn after 5 Dec).
+  it('Take it back refused: the error toast gives the reason, no pop-up', async () => {
     await page();
     await userEvent.click(within(piece('Bronze ring')).getByRole('button', { name: /^Bronze ring/ }));
     await userEvent.click(within(sheet()).getByRole('button', { name: 'To the party stash' }));
@@ -161,8 +162,8 @@ describe('found treasure (sf-8)', () => {
     await waitFor(() => expect(within(piece('Bronze ring')).getByText('In the party stash')).toBeTruthy());
     await userEvent.click(within(piece('Bronze ring')).getByRole('button', { name: /^Bronze ring/ }));
     await userEvent.click(within(sheet()).getByRole('button', { name: 'Take it back' }));
-    const why = await screen.findByRole('dialog', { name: "Can't take it back" });
-    expect(within(why).getByText("That's changed since. Undo the later change first.")).toBeTruthy();
+    expect(await screen.findByText("That's changed since. Undo the later change first.")).toBeTruthy();
+    expect(screen.queryByRole('dialog', { name: "Can't take it back" })).toBeNull();
   });
 
   // Purpose: a count's sheet lists a row a thing, then the edit row, then "Send all" at the foot, the sheet's one
@@ -174,6 +175,9 @@ describe('found treasure (sf-8)', () => {
     const edit = within(sheet()).getByRole('button', { name: "Edit the piece's words" });
     expect(within(sheet()).getByText('Lamp oil ×8')).toBeTruthy();
     expect(edit.compareDocumentPosition(all) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // One list: the edit row stands in the rows' own list, so no second rule (TR1; the local review of #120, finding 4).
+    expect(sheet().querySelectorAll('.row-list')).toHaveLength(1);
+    expect(edit.closest('.row-list')).toBe(within(sheet()).getByText('Lamp oil ×8').closest('.row-list'));
     expect(all.closest('.dialog__actions')).not.toBeNull();
     expect(sheet().querySelectorAll('.stacked-button--primary, .button-primary')).toHaveLength(1);
     await userEvent.click(all);
