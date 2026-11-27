@@ -268,7 +268,6 @@ function git(args) {
   return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 }
 
-/** The denylist: GRIMOIRE_DENYLIST, then this copy's packs/, then the main checkout's packs/ (helper worktrees have none). */
 /** The scan of a pull request, run by hand where the private list is. */
 const PR_SCAN_COMMAND = 'node scripts/check-names.mjs --pr origin/main --show';
 
@@ -285,6 +284,7 @@ function warnNoList(todo, { readsNamesVariable = false } = {}) {
   console.warn(`\n${rule}\nWARNING: not scanned for private names.\n${why}\n${todo}\n${rule}\n`);
 }
 
+/** The denylist: GRIMOIRE_DENYLIST, then this copy's packs/, then the main checkout's packs/ (helper worktrees have none). */
 function findDenylist() {
   if (process.env.GRIMOIRE_DENYLIST) return existsSync(process.env.GRIMOIRE_DENYLIST) ? process.env.GRIMOIRE_DENYLIST : null;
   const candidates = [];
