@@ -43,7 +43,7 @@ Mechanical work goes to Sonnet or Haiku workers: merges, conflicts, watching CI,
 
 ## Review before a merge
 
-- The driver runs the `reviewer` once on each code pull request before it merges. Docs-only and scripts-only pull requests are skipped. A pull request with a migration or access rules is always reviewed.
+- The driver runs the `reviewer` once on each code pull request before it merges: once per batch, after the batch's last row (lc-2). Docs-only and scripts-only pull requests are skipped. A pull request with a migration or access rules is always reviewed.
 - The findings go in one comment on the pull request. The pull request's text says "Reviewed: local reviewer, N findings, fixed / not". For a pull request that draws a screen, the comment names the mockup or ruling it was compared against.
 - The reviewer reports first. Auto-merge is set only after its comment is on the pull request.
 - A fresh worker fixes the findings (`CLAUDE.md`, One check run per batch).
@@ -91,7 +91,7 @@ Where this section differs from the rules above or in `CLAUDE.md`, those rules w
 | 2 | Spec, a file in `docs/specs/` | `to-spec` | Opus, medium |
 | 3 | Tickets, GitHub issues, each sized for one fresh worker | `to-tickets` | Opus, medium |
 | 4 | Build: the driver orchestrates; a fresh `builder` per ticket | `implement-spec`, `tdd` | Opus, medium |
-| 5 | Review, per ticket | `code-review` (the project's copy) | Opus, high |
+| 5 | Review, per batch | `code-review` (the project's copy) | Opus, high |
 | 6 | Retro, per spec | `retro`, `writing-for-agents` | Opus, high |
 | 7 | Every third loop: an architecture pass; it reports only | `improve-codebase-architecture`, `codebase-design`, `domain-modeling`, `grilling` | Fable, high |
 
