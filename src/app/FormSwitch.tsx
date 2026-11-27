@@ -14,6 +14,7 @@ import { Chip } from '../ui/parts.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import { asItem, loadEquipContext } from './EquipWarning.tsx';
 import { registry } from './services.ts';
+import { possessive } from '../core/nameWords.ts';
 
 /** What the switch to a form takes off: each worn or held line the form can't use, with the reason. */
 export async function gearOffIn(db: Db, user: CurrentUser, character: { id: string; campaignId: string }, formId: string): Promise<{ id: string; name: string; version: number; why: string }[]> {
@@ -63,7 +64,7 @@ export function FormSwitch({
       return;
     }
     if (!canSwitch) {
-      toast({ text: `Only ${character.name}'s player or the GM can switch the form.`, error: true });
+      toast({ text: `Only ${possessive(character.name)} player or the GM can switch the form.`, error: true });
       return;
     }
     if (busy) return;

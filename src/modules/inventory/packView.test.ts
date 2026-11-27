@@ -93,6 +93,14 @@ describe('the Pack screen’s groups (05: by where things are carried)', () => {
     expect(groupPack(lines, 'coin', rules)[1]!.note).toBe('holds things; doesn’t add capacity');
   });
 
+  // Purpose: a container whose name starts with "The" heads its group "In The Old Satchel", never "In the The …"
+  // (words rule 13).
+  it('a container named "The Old Satchel" heads its group "In The Old Satchel"', () => {
+    const old = line('The Old Satchel', { details: { container: { capacityCoin: 100 } } });
+    const groups = groupPack([old, line('Chalk', { containerLineId: old.id })], 'coin', rules);
+    expect(groups.map((g) => g.title)).toContain('In The Old Satchel');
+  });
+
   it('armour mode: treasure stays where it is, marked counted; ordinary gear goes in a collapsed Gear group', () => {
     const groups = groupPack(lines, 'armour', rules);
     expect(groups.map((g) => [g.title, g.collapsible ?? false, g.lines.map((l) => l.name)])).toEqual([

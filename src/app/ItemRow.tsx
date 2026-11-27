@@ -17,7 +17,7 @@ import type { AttackRoll } from '../modules/characters/play.ts';
 import { checkEquip } from './EquipWarning.tsx';
 import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import { AtHandFacts, AttackSheet, AttackView, chargeFact, ModeSheet, SpentSheet, type AtHandFact } from './AtHandSheets.tsx';
-import { amountText, atHandAction, isWeapon, markerOf, shownName, stackable, wornText, type UseVerb } from '../modules/inventory/packView.ts';
+import { amountText, atHandAction, isWeapon, markerOf, shownName, stackable, withThe, wornText, type UseVerb } from '../modules/inventory/packView.ts';
 import { usedWords } from '../core/useWords.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import { useToast } from '../ui/ToastHost.tsx';
@@ -33,6 +33,7 @@ import { RollFigures, RollLines } from './WeaponInHand.tsx';
 import { registry } from './services.ts';
 import { chargeWords, type Run } from './packHelpers.ts';
 import './PackScreen.css';
+import { possessive } from '../core/nameWords.ts';
 
 export function ItemRow({
   db,
@@ -275,7 +276,7 @@ export function ItemRow({
    */
   async function wieldIt() {
     if (busy) return;
-    const cantWield = () => blocked.explain(`Can't wield the ${line.name}`, blockedEquip ?? offReason ?? '');
+    const cantWield = () => blocked.explain(`Can't wield ${withThe(line.name)}`, blockedEquip ?? offReason ?? '');
     // An item that is off keeps its own pop-up and line.
     if (offReason) return cantWield();
     if (!carrier.actorId) return blockedEquip ? cantWield() : undefined;
@@ -329,7 +330,7 @@ export function ItemRow({
     if (!picked) return;
     // None of its stack in the pack: nothing to choose; the tap says so (never a disabled row).
     if (drawnLines(picked, modeView.modes, lines, carrier.actorId).length === 0 && picked.draws) {
-      return blocked.explain(`No ${picked.name}`, `There are no ${picked.name} in ${carrier.name}’s pack. Add some to the pack first.`);
+      return blocked.explain(`No ${picked.name}`, `There are no ${picked.name} in ${possessive(carrier.name)} pack. Add some to the pack first.`);
     }
     setSheet(null);
     if (modeView.chosen && modeView.mode?.id === modeId) return;

@@ -196,7 +196,7 @@ it('a 3-day trek: weather, a lost check, a forage and a camp, each step checked'
   };
   await user.click(await quick('Make camp'));
   await toast('Camp made');
-  await waitFor(() => expect(recent()).toMatch(/Sam did Cut reeds \(Reed\), 2 points, \d Reed bundle → Reed's pack\./));
+  await waitFor(() => expect(recent()).toMatch(/Sam did Cut reeds \(Reed\), 2 points, \d Reed bundle → Reed’s pack\./));
   await waitFor(() => expect(recent()).toMatch(/Sam undid an activity\./));
   await waitFor(() => expect(live(world.tables.camps)).toHaveLength(1));
   expect(live(world.tables.camps)[0]).toMatchObject({ day: 0, group_number: 1, applied_at: null });

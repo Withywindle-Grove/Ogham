@@ -13,6 +13,7 @@ import { useToast } from '../ui/ToastHost.tsx';
 import { Portrait, PortraitPicker, type PortraitChoice, type Size as PortraitSize } from './Portrait.tsx';
 import { registry } from './services.ts';
 import { whoMayChange } from './whoMayChange.ts';
+import { possessive } from '../core/nameWords.ts';
 
 /** Applies a portrait choice to a saved character. Returns a plain-words problem, or null when it worked. */
 export async function applyPortrait(db: Db, user: CurrentUser, character: CharacterRef, choice: PortraitChoice): Promise<string | null> {
@@ -49,27 +50,27 @@ export function PortraitTap({
   const has = character.portraitAssetId !== null;
 
   function tap() {
-    if (!may) return blocked.explain('Portrait', whoMayChange(user, character, `${character.name}'s portrait`));
+    if (!may) return blocked.explain('Portrait', whoMayChange(user, character, `${possessive(character.name)} portrait`));
     setChoice(null);
     setOpen(true);
   }
 
   async function save() {
     // The busy guard (as the quick portrait's, #561): a second tap while it saves waits, and says so.
-    if (saving) return blocked.explain('Still saving', `${character.name}'s portrait is still saving. It closes when it's done.`);
+    if (saving) return blocked.explain('Still saving', `${possessive(character.name)} portrait is still saving. It closes when it's done.`);
     if (choice === null) return setOpen(false);
     setSaving(true);
     const problem = await applyPortrait(db, user, character, choice);
     setSaving(false);
     if (problem) return toast({ text: problem, error: true });
     setOpen(false);
-    toast({ text: choice === 'remove' ? `${character.name}'s portrait was removed.` : `${character.name}'s portrait was saved.` });
+    toast({ text: choice === 'remove' ? `${possessive(character.name)} portrait was removed.` : `${possessive(character.name)} portrait was saved.` });
     onSaved?.();
   }
 
   return (
     <>
-      <button type="button" className="portrait-tap" aria-label={has ? `Change ${character.name}'s portrait` : `Add a portrait for ${character.name}`} onClick={tap}>
+      <button type="button" className="portrait-tap" aria-label={has ? `Change ${possessive(character.name)} portrait` : `Add a portrait for ${character.name}`} onClick={tap}>
         <Portrait db={db} campaignId={character.campaignId} assetId={character.portraitAssetId} name={character.name} size={size} />
       </button>
       {blocked.sheet}

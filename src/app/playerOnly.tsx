@@ -9,6 +9,7 @@
 import { useState, type ReactNode } from 'react';
 import { BlockedSheet } from '../ui/BlockedSheet.tsx';
 import { usePlayerView, type WaitingTarget } from './playerView.ts';
+import { possessive } from '../core/nameWords.ts';
 
 export type PlayerOnlyAct = 'askChange' | 'sendRequest' | 'takeBackRequest' | 'chooseCharacter' | 'takeBackChange' | 'answerOffer' | 'stayHere' | 'undoPurchase';
 
@@ -19,7 +20,7 @@ export type PlayerOnlyPlace = 'Waiting for you' | 'Waiting for approval';
 export function playerOnlyWords(act: PlayerOnlyAct, player: string, character: string): { title: string; why: string; goTo: PlayerOnlyPlace | null } {
   switch (act) {
     case 'askChange':
-      return { title: `Only ${player} can ask for a change`, why: `A change ${player} asks for comes to you to approve. To change ${character}’s sheet yourself, use Edit in ⋯ on Players.`, goTo: null };
+      return { title: `Only ${player} can ask for a change`, why: `A change ${player} asks for comes to you to approve. To change ${possessive(character)} sheet yourself, use Edit in ⋯ on Players.`, goTo: null };
     case 'sendRequest':
       return { title: `Only ${player} can send this request`, why: `A request goes from ${player} to you. When ${player} sends it, it waits for you in Waiting for you.`, goTo: 'Waiting for you' };
     case 'takeBackRequest':
@@ -33,7 +34,7 @@ export function playerOnlyWords(act: PlayerOnlyAct, player: string, character: s
     case 'stayHere':
       return { title: `Only ${player} can choose where ${character} stays`, why: `${player} picks a lodging on their own screen.`, goTo: null };
     case 'undoPurchase':
-      return { title: `Only ${player} can undo this purchase`, why: `The purchase was ${player}’s, so its Undo is too.`, goTo: null };
+      return { title: `Only ${player} can undo this purchase`, why: `The purchase was ${possessive(player)}, so its Undo is too.`, goTo: null };
   }
 }
 

@@ -13,6 +13,7 @@ import { registry } from './services.ts';
 import './CompaniesEditor.css';
 import { useLogVersion } from './campaignLog.tsx';
 import { ErrorToast, NoticeToast } from '../ui/ToastHost.tsx';
+import { possessive } from '../core/nameWords.ts';
 
 type Placed = { player: Player; character: PlayerCharacter };
 
@@ -66,7 +67,7 @@ export function CompaniesEditor({ db, user, campaign }: { db: Db; user: CurrentU
 
   const move = (character: PlayerCharacter, companyId: string | null) => {
     // The busy guard covers buttons only: a choice made while the last one saves waits, and says so (review, #561).
-    if (busy) return blocked.explain('Still saving', `The last change is still saving. Choose ${character.name}'s company again in a moment.`);
+    if (busy) return blocked.explain('Still saving', `The last change is still saving. Choose ${possessive(character.name)} company again in a moment.`);
     const name = Array.isArray(companies) ? companies.find((c) => c.id === companyId)?.name : undefined;
     void run(
       () => runCommand(registry, db, user, assignCompany, { character, companyId }),

@@ -76,7 +76,7 @@ for (const size of [
           }
         }
         // Wren's lit rushlight: the ring and halo on her circle, and the line naming the light lit.
-        await expect(page.getByText(/^One light lit: Wren of the Lantern Wardens’s rushlight, /)).toBeVisible();
+        await expect(page.getByText(/^One light lit: Wren of the Lantern Wardens’ rushlight, /)).toBeVisible();
         await expect(page.locator('.party-circle--lit .party-circle__halo')).toHaveCount(1);
         await expect(page.locator('.party-circle--lit .party-circle__arc')).toHaveCount(1);
         expect(await layoutProblems(page)).toEqual([]);

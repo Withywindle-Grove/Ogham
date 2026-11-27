@@ -1,6 +1,7 @@
 // The marching order's circles, worked out (S12 of the whole-Scene plan; mc-5, mo-1; pictures R1 and page 16 T10).
 // Pure: no database and no drawing. PartyCircle.tsx draws one circle; MarchingOrder.tsx sets them in ranks.
 import { namesWords } from '../core/marchingRows.ts';
+import { possessive } from '../core/nameWords.ts';
 
 const firstLetter = (word: string) => word.charAt(0).toUpperCase();
 
@@ -45,6 +46,6 @@ const COUNT_WORDS =['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven',
 export function litSummary(lit: readonly { who: string; light: string; words: string }[]): string | null {
   if (lit.length === 0) return null;
   const count = COUNT_WORDS[lit.length] ?? String(lit.length);
-  const each = lit.map((l) => `${l.who}’s ${l.light.charAt(0).toLowerCase()}${l.light.slice(1)}, ${l.words.replace(/ left$/, '')}`);
+  const each = lit.map((l) => `${possessive(l.who)} ${l.light.charAt(0).toLowerCase()}${l.light.slice(1)}, ${l.words.replace(/ left$/, '')}`);
   return `${count} light${lit.length === 1 ? '' : 's'} lit: ${each.join('; ')}.`;
 }

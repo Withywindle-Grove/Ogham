@@ -42,6 +42,7 @@ import { RuleText } from '../ui/RuleText.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import { registry } from './services.ts';
 import './PlaceRules.css';
+import { possessive } from '../core/nameWords.ts';
 
 /**
  * One rule opened (mc-49a): its name, the place it belongs to, its words. Nothing on it runs anything. `line` stands in
@@ -348,7 +349,7 @@ export function useStandInCheck({
     reread();
     if (!result.ok) return show({ text: result.message, error: true });
     show({
-      text: on ? `${standIn.owner.name}'s ${checkWords(standIn.name)} is in force again.` : `${standIn.owner.name}'s ${checkWords(standIn.name)} is off. ${capital(setting)} applies here.`,
+      text: on ? `${possessive(standIn.owner.name)} ${checkWords(standIn.name)} is in force again.` : `${possessive(standIn.owner.name)} ${checkWords(standIn.name)} is off. ${capital(setting)} applies here.`,
       onUndo: () => void undoLatest(setCheckInForce.name),
     });
   }
@@ -361,7 +362,7 @@ export function StandInSentence({ standIn, setting }: { standIn: { owner: { name
   return (
     <p className="place-rules__sentence">
       {standIn.inForce ? (
-        `${standIn.owner.name}'s own rule. It stands in for ${setting} while the party is here.`
+        `${possessive(standIn.owner.name)} own rule. It stands in for ${setting} while the party is here.`
       ) : (
         <>
           <strong>Not in force.</strong>

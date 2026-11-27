@@ -293,10 +293,10 @@ describe('Leave the dungeon', () => {
     const ashs = waiting.getByText('Ash, escape roll').closest('li') as HTMLElement;
     expect(within(ashs).queryByText(/shares this result/)).toBeNull();
     await user.click(within(ashs).getByRole('button', { name: 'Enter for Ash' }));
-    const form = within(within(ashs).getByRole('article', { name: "Leave the dungeon: Ash's escape roll" }));
+    const form = within(within(ashs).getByRole('article', { name: "Leave the dungeon: Ash’s escape roll" }));
     await user.type(form.getByLabelText('What did Ash roll?'), '12');
     await user.click(form.getByRole('button', { name: 'Enter roll' }));
-    expect(await screen.findByText("Entered Ash's roll")).toBeTruthy();
+    expect(await screen.findByText("Entered Ash’s roll")).toBeTruthy();
     const entered = t.requests().find((r) => r.requester_id === t.jo)!;
     expect(entered.entry).toEqual({ roll: 12, on: [] });
     expect(world.tables.events.filter((e) => e.type === 'request.enter').map((e) => e.actor_user_id)).toEqual([t.gm]);

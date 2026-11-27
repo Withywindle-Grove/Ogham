@@ -94,7 +94,9 @@ afterEach(() => {
 
 type User = ReturnType<typeof userEvent.setup>;
 const actor = (id: string) => world.tables.actors.find((a) => a.id === id)!;
-const rowOf = (name: string) => screen.getByRole('button', { name: `View ${name}'s sheet` }).closest('li') as HTMLElement;
+/** Each row's name as its View sheet button writes it (words rule 13), spelt out here rather than by the helper under test. */
+const SHEET_OF: Record<string, string> = { Wren: 'Wren’s', Tam: 'Tam’s', Moss: 'Moss’', Ash: 'Ash’s' };
+const rowOf = (name: string) => screen.getByRole('button', { name: `View ${SHEET_OF[name]} sheet` }).closest('li') as HTMLElement;
 /** A row's buttons, ⋯ as "⋯". */
 const buttonsOf = (row: HTMLElement) => within(row).getAllByRole('button').map((b) => (b.getAttribute('aria-label')?.startsWith('More for') ? '⋯' : b.textContent));
 const band = () => screen.getByRole('note');
@@ -124,7 +126,7 @@ async function openPlayers(): Promise<User> {
   await user.click(await screen.findByRole('button', { name: /The Reed Marches/ }));
   await user.click(within(await screen.findByRole('navigation', { name: 'Campaign sections' })).getByRole('button', { name: /^Players/ }));
   // The Magic door waits for the setting and the prepared spells.
-  await screen.findByRole('button', { name: "Open Wren's magic" });
+  await screen.findByRole('button', { name: "Open Wren’s magic" });
   return user;
 }
 
@@ -184,12 +186,12 @@ describe('the Players row (C15a; M3a, M3b)', () => {
     const user = await openPlayers();
     const archived = (await screen.findByRole('heading', { name: 'Archived characters' })).parentElement as HTMLElement;
     expect(within(archived).getAllByRole('button').map((b) => b.textContent)).toEqual(['Restore', 'Delete permanently…']);
-    expect(screen.queryByRole('button', { name: "View Hollis's sheet" })).toBeNull();
+    expect(screen.queryByRole('button', { name: "View Hollis’ sheet" })).toBeNull();
     const approval = screen.getByRole('heading', { name: 'Waiting for approval' }).parentElement as HTMLElement;
     expect(within(approval).getByText('New character waiting: Hollis')).toBeTruthy();
     expect(within(rowOf('Moss')).getByText('Moss (sent back)')).toBeTruthy();
     expect(buttonsOf(rowOf('Moss'))).toEqual(['View sheet', 'Delete…']);
-    await user.click(screen.getByRole('button', { name: "View Moss's sheet" }));
+    await user.click(screen.getByRole('button', { name: "View Moss’ sheet" }));
     // The full sheet's page, not the view: no band.
     await screen.findByRole('button', { name: 'Back to Players' });
     expect(screen.queryByRole('note')).toBeNull();
@@ -200,16 +202,28 @@ describe('the Players row (C15a; M3a, M3b)', () => {
     const user = await openPlayers();
     expect(buttonsOf(rowOf('Ash'))).toEqual(['View sheet', 'Pack', 'Scene', '⋯']);
     expect(within(rowOf('Ash')).getByText('Yours')).toBeTruthy();
-    await user.click(screen.getByRole('button', { name: "View Ash's sheet" }));
+    await user.click(screen.getByRole('button', { name: "View Ash’s sheet" }));
     await waitFor(() => expect(band().getAttribute('aria-label')).toBe('Your view of Ash'));
     expect(band().textContent).toBe('Your view of Ash');
+  });
+
+  // Purpose: a character whose name ends in s takes the mark alone on the row's doors (words rule 13), on an open row
+  // and on a sent-back one's View sheet.
+  it('a name ending in s reads "View Lantern Wardens’ sheet", "Open Lantern Wardens’ pack" and "… scene"', async () => {
+    Object.assign(actor(tam), { name: 'Lantern Wardens' });
+    world.addCharacter(campaign, 'Moss', { ownerId: sam, approval: 'rejected' });
+    await openPlayers();
+    const row = screen.getByRole('button', { name: 'More for Lantern Wardens' }).closest('li') as HTMLElement;
+    const labels = within(row).getAllByRole('button').map((b) => b.getAttribute('aria-label'));
+    expect(labels.slice(0, 3)).toEqual(['View Lantern Wardens’ sheet', 'Open Lantern Wardens’ pack', 'Open Lantern Wardens’ scene']);
+    expect(screen.getByRole('button', { name: 'View Moss’ sheet' })).toBeTruthy();
   });
 });
 
 describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
   it("View sheet opens Wren's Player tab with Sam's band; Pack, Magic and Scene open on theirs; ‹ Players comes back", async () => {
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: "View Wren's sheet" }));
+    await user.click(screen.getByRole('button', { name: "View Wren’s sheet" }));
     await screen.findByRole('region', { name: 'Vitals' });
     expect(band().getAttribute('aria-label')).toBe('Sam’s view of Wren. What you do here is logged as yours.');
     expect(band().textContent).toBe('Sam’s view of WrenWhat you do here is logged as yours.');
@@ -225,9 +239,9 @@ describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
     await screen.findByRole('button', { name: 'Invite a player' });
 
     for (const [door, tab] of [
-      ["Open Wren's pack", 'Pack'],
-      ["Open Wren's magic", 'Magic'],
-      ["Open Wren's scene", 'Scene'],
+      ["Open Wren’s pack", 'Pack'],
+      ["Open Wren’s magic", 'Magic'],
+      ["Open Wren’s scene", 'Scene'],
     ] as const) {
       await user.click(await screen.findByRole('button', { name: door }));
       const opened = within(await screen.findByRole('navigation', { name: 'Main' }));
@@ -240,7 +254,7 @@ describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
 
   it('given to Robin while open, the band follows with a toast; removed while open, a toast and back to Players', async () => {
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: "View Wren's sheet" }));
+    await user.click(screen.getByRole('button', { name: "View Wren’s sheet" }));
     await screen.findByRole('region', { name: 'Vitals' });
     const gmUser = { id: gm, roles: { [campaign]: 'gm' as const } };
     const robin = world.tables.members.find((m) => m.campaign_id === campaign && m.active_actor_id === tam)!.user_id as string;
@@ -260,7 +274,7 @@ describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
   it("the GM's own characters failing to read while the players read doesn't close the view on Ash", async () => {
     world.addCharacter(campaign, 'Ash');
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: "View Ash's sheet" }));
+    await user.click(screen.getByRole('button', { name: "View Ash’s sheet" }));
     await waitFor(() => expect(band().getAttribute('aria-label')).toBe('Your view of Ash'));
     const reads = gmReadsFail();
     // A logged change elsewhere reads the Players list again; the GM's own characters can't be read this time.
@@ -275,7 +289,7 @@ describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
   it("the view opened before it can tell whose Wren is shows no toast on the first answer", async () => {
     const reads = gmReadsFail();
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: "View Wren's sheet" }));
+    await user.click(screen.getByRole('button', { name: "View Wren’s sheet" }));
     await screen.findByRole('region', { name: 'Vitals' });
     // The GM's own characters read again: now it can tell Wren is Sam's, which is no change of owner.
     reads.on = false;
@@ -291,7 +305,7 @@ describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
     // The character can't be read (its row hidden from the read, as a failed connection would leave it).
     const kept = world.tables.actors;
     world.tables.actors = kept.filter((a) => a.id !== wren);
-    await user.click(screen.getByRole('button', { name: "View Wren's sheet" }));
+    await user.click(screen.getByRole('button', { name: "View Wren’s sheet" }));
     expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Couldn’t load Wren’s sheet.');
     expect(band().getAttribute('aria-label')).toMatch(/^Sam’s view of Wren\./);
     world.tables.actors = kept;
@@ -305,7 +319,7 @@ describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
 
   it("opening the view changes neither the GM's own section to come back to nor a player's tab", async () => {
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: "Open Wren's pack" }));
+    await user.click(screen.getByRole('button', { name: "Open Wren’s pack" }));
     await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Magic' }));
     keepPlaceForReload();
     expect(JSON.parse(sessionStorage.getItem('grimoire.placeOnReload') ?? 'null')).toMatchObject({ tab: 'players' });
@@ -314,7 +328,7 @@ describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
   it('on a phone the tab bar is the player’s, five for a caster and four without Magic, and Log opens the GM’s log', async () => {
     windowOf(375);
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: "View Wren's sheet" }));
+    await user.click(screen.getByRole('button', { name: "View Wren’s sheet" }));
     const nav = within(await screen.findByRole('navigation', { name: 'Main' }));
     await waitFor(() => expect(nav.getAllByRole('button').map((b) => b.textContent)).toEqual(['Player', 'Scene', 'Pack', 'Magic', 'Log']));
     // "‹ Players" in ≡'s place.
@@ -324,7 +338,7 @@ describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
     cleanup();
 
     const again = await openPlayers();
-    await again.click(screen.getByRole('button', { name: "View Tam's sheet" }));
+    await again.click(screen.getByRole('button', { name: "View Tam’s sheet" }));
     const bar = within(await screen.findByRole('navigation', { name: 'Main' }));
     await waitFor(() => expect(bar.getAllByRole('button').map((b) => b.textContent)).toEqual(['Player', 'Scene', 'Pack', 'Log']));
   });
@@ -333,11 +347,11 @@ describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
 describe('keyboard focus in the view (audit fix 3)', () => {
   it("a door on the Players row puts focus on the view's heading, the character's name", async () => {
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: "Open Wren's pack" }));
+    await user.click(screen.getByRole('button', { name: "Open Wren’s pack" }));
     await waitFor(() => expect(document.activeElement?.textContent).toBe('Wren’s pack'));
     expect(document.activeElement?.classList.contains('top-row__title')).toBe(true);
     await user.click(screen.getByRole('button', { name: '‹ Players' }));
-    await user.click(await screen.findByRole('button', { name: "View Wren's sheet" }));
+    await user.click(await screen.findByRole('button', { name: "View Wren’s sheet" }));
     await waitFor(() => expect(document.activeElement?.textContent).toBe('Wren'));
     expect(document.activeElement?.classList.contains('top-row__title')).toBe(true);
   });
@@ -359,10 +373,10 @@ describe("the view's Scene (⚑ 52)", () => {
   it("leaves out the Recently log lines in the view of a player's Scene; the view of the GM's own character keeps them", async () => {
     world.addCharacter(campaign, 'Ash');
     const user = await openPlayers();
-    await user.click(screen.getByRole('button', { name: "Open Ash's scene" }));
+    await user.click(screen.getByRole('button', { name: "Open Ash’s scene" }));
     expect(await screen.findByRole('region', { name: 'Recently' })).toBeTruthy();
     await user.click(screen.getByRole('button', { name: '‹ Players' }));
-    await user.click(await screen.findByRole('button', { name: "Open Wren's scene" }));
+    await user.click(await screen.findByRole('button', { name: "Open Wren’s scene" }));
     const nav = within(await screen.findByRole('navigation', { name: 'Main' }));
     await waitFor(() => expect(nav.getByRole('button', { name: 'Scene' }).getAttribute('aria-current')).toBe('page'));
     await waitFor(() => expect(band().getAttribute('aria-label')).toMatch(/^Sam’s view of Wren\./));

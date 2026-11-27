@@ -4,10 +4,11 @@
 // name line is cut with "…" on screen and read whole by a screen reader (the band's name).
 import { Icon } from './icons.tsx';
 import './ViewBand.css';
+import { possessive } from '../core/nameWords.ts';
 
 /** The band's words: the name line, and the logged line (none on the GM's own character). */
 export function viewBandWords(player: string | null, character: string): { name: string; logged: string | null } {
-  return player === null ? { name: `Your view of ${character}`, logged: null } : { name: `${player}’s view of ${character}`, logged: 'What you do here is logged as yours.' };
+  return player === null ? { name: `Your view of ${character}`, logged: null } : { name: `${possessive(player)} view of ${character}`, logged: 'What you do here is logged as yours.' };
 }
 
 export function ViewBand({ player, character }: { player: string | null; character: string }) {

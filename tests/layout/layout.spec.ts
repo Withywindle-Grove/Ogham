@@ -211,7 +211,7 @@ const SCENES: Scene[] = [
       await page.getByLabel('Search items').fill('eel');
       await page.getByRole('button', { name: /Eel trap/ }).click();
       await page.getByRole('button', { name: 'Bought' }).click();
-      await expect(page.getByRole('button', { name: 'Add to Wren of the Lantern Wardens’s pack' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Add to Wren of the Lantern Wardens’ pack' })).toBeVisible();
     },
   },
   {
@@ -500,7 +500,7 @@ const SCENES: Scene[] = [
       await expect(gmTab(page, 'Scene')).toHaveAttribute('aria-current', 'page');
       await page.getByRole('button', { name: 'Split party' }).click();
       const dialog = page.getByRole('dialog', { name: 'Split the party' });
-      await dialog.getByRole('group', { name: "Wren of the Lantern Wardens's group" }).getByRole('button', { name: 'New group' }).click();
+      await dialog.getByRole('group', { name: "Wren of the Lantern Wardens’ group" }).getByRole('button', { name: 'New group' }).click();
       await expect(page.getByText('Wren of the Lantern Wardens is in Group 2')).toBeVisible();
       await dialog.getByRole('button', { name: 'Done' }).click();
       await expect(page.getByRole('group', { name: 'Group in focus' })).toBeVisible();
@@ -854,7 +854,7 @@ const SCENES: Scene[] = [
       await campaignRow(page).click();
       await page.getByRole('button', { name: 'Log', exact: true }).click();
       await page.getByLabel('Verbose: every change, like each HP tick').check();
-      await expect(page.getByText("You set Wren of the Lantern Wardens' HP to 11 (was 14).")).toBeVisible();
+      await expect(page.getByText("You set Wren of the Lantern Wardens’ HP to 11 (was 14).")).toBeVisible();
     },
   },
   {

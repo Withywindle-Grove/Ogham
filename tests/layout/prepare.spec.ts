@@ -19,7 +19,7 @@ async function openPrepare(page: Page, theme: 'light' | 'dark') {
   await page.getByRole('button', { name: 'Magic', exact: true }).click();
   await page.getByRole('button', { name: 'Prepare, For your next rest' }).click();
   const prepare = page.getByRole('dialog', { name: 'Prepare' });
-  await expect(prepare.getByText(/^For Wren of the Lantern Wardens' next rest\./)).toBeVisible();
+  await expect(prepare.getByText(/^For Wren of the Lantern Wardens’ next rest\./)).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
   return prepare;
 }

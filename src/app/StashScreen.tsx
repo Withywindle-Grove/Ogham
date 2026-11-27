@@ -37,6 +37,7 @@ import type { CampaignSetting } from './campaignSetting.ts';
 import { registry } from './services.ts';
 import './PackScreen.css';
 import './PurseSheet.css';
+import { possessive } from '../core/nameWords.ts';
 
 /** How many of the stash's recent lines show (PK4 draws three, PK9b four). */
 const RECENT = 4;
@@ -255,8 +256,8 @@ export function StashScreen({
         </div>
       )}
       {taker && (
-        <section className="stash__room" aria-label={`${taker.name}’s room`}>
-          <h2 className="stash__head">{`${taker.name}’s room`}</h2>
+        <section className="stash__room" aria-label={`${possessive(taker.name)} room`}>
+          <h2 className="stash__head">{`${possessive(taker.name)} room`}</h2>
           {room}
         </section>
       )}

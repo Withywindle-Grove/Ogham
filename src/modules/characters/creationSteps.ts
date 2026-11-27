@@ -7,6 +7,7 @@ import { raceClassLimit } from '../library/classLimits.ts';
 import { classLevelCap, raceAsPlayed, replacesKindredTraits, type CreationEntry, type CreationMethod } from './creation.ts';
 import { abilitiesByKind, languageNamer, type AdjustmentRule, type ScoresRule } from './creationRules.ts';
 import { columnKinds, modifierCells, signedNumber } from './modifierColumns.ts';
+import { possessive, withThe } from '../../core/nameWords.ts';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
@@ -278,7 +279,7 @@ export function closedClassNote(klass: CreationEntry, picked: CreationEntry | nu
   const race = raceAsPlayed(picked, klass);
   const limit = raceClassLimit(race?.data, klass.packEntryId);
   if (!race || limit.open) return '';
-  const rule = limit.closedBy === 'npc-only' ? `${race.name} take ${klass.name} only as the GM’s characters` : `${race.name}’s list of classes leaves out ${klass.name}`;
+  const rule = limit.closedBy === 'npc-only' ? `${race.name} take ${klass.name} only as the GM’s characters` : `${possessive(race.name)} list of classes leaves out ${klass.name}`;
   return `${rule}${source ? ` (${source})` : ''}. ${ASK_GM_NOTE}`;
 }
 
@@ -541,7 +542,7 @@ export function adjustLead(rule: AdjustmentRule, klass: CreationEntry, rulesSets
   const note = several ? text(fromRules(rulesSets, 'primeRequisiteNote')) || ruleLine : '';
   const sentence = (s: string) => (s && !/[.!?]$/.test(s) ? `${s}.` : s);
   const rest = [
-    `, the ${klass.name}’s main ${several ? 'scores' : 'score'}.`,
+    `, ${possessive(withThe(klass.name))} main ${several ? 'scores' : 'score'}.`,
     sentence(note),
     `Lower another score by ${rule.lowerBy} to raise ${several ? 'a prime' : 'your prime'} by ${rule.raiseBy}.`,
     `Nothing may go under ${rule.floor}.`,
