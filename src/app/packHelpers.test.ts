@@ -38,4 +38,20 @@ describe('the tier words of a load', () => {
     expect(tierWords({ mode: 'armour', load: 0, capacity: null, carriesTreasure: false, movement: '25', over: false, overMax: '' })).toBe('Move 25');
     expect(tierWords({ mode: 'armour', load: 0, capacity: null, carriesTreasure: false, movement: null, over: false, overMax: '' })).toBe('');
   });
+
+  // Where the speed tile says the speed (pss-12), armour mode's top line drops "Move N" and names the burden by
+  // whether treasure is carried; over the limit it still says so.
+  it('drops the move in armour mode where the speed is said once', () => {
+    const armour = { mode: 'armour' as const, load: 0, capacity: 1600, carriesTreasure: false, movement: '25', over: false, overMax: '' };
+    expect(tierWords(armour, { speedOnce: true })).toBe('Not carrying treasure');
+    expect(tierWords({ ...armour, carriesTreasure: true, load: 120 }, { speedOnce: true })).toBe('Carrying treasure');
+    expect(tierWords({ ...armour, movement: null }, { speedOnce: true })).toBe('Not carrying treasure');
+    expect(tierWords({ ...armour, carriesTreasure: true, load: 1700, over: true }, { speedOnce: true })).toBe('Over the limit');
+  });
+
+  // Coin and slot modes give their tier label whether or not the speed is said once.
+  it('keeps the tier label in coin and slot modes where the speed is said once', () => {
+    expect(tierWords({ mode: 'coin', load: 3, capacity: 10, tier: { label: 'Laden', max: 5, effect: '' }, over: false, overMax: '' }, { speedOnce: true })).toBe('Laden');
+    expect(tierWords({ mode: 'slot', load: 12, capacity: 10, tier: null, over: true, overMax: 'Stuck fast' }, { speedOnce: true })).toBe('Stuck fast');
+  });
 });

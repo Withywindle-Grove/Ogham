@@ -193,3 +193,31 @@ describe('the load bar, variant "speed said once" (the Player screen)', () => {
     expect(container.querySelector('.pack__tier')?.getAttribute('aria-label')).toBeNull();
   });
 });
+
+describe('armour mode beside the speed tile (pss-12)', () => {
+  const top = (container: HTMLElement) => container.querySelector('.pack__tier')?.textContent;
+
+  // Purpose: beside the speed tile, armour mode's top line says whether treasure is carried, with no "Move N", and the
+  // words are not said a second time under the bar.
+  it('drops the move from the top line and says the treasure words once', () => {
+    const { container } = render(<LoadSummary load={loadOf(true)} rules={treasureRules} from={[]} speedOnce levelsPopUp />);
+    expect(top(container)).toBe('Carrying treasure');
+    expect(container.textContent).not.toMatch(/Move/);
+    expect(screen.getAllByText('Carrying treasure')).toHaveLength(1);
+    expect(screen.getByText('Treasure 4 of 500 coins’ weight')).toBeTruthy();
+  });
+
+  // Purpose: the top line stays the tap that opens the burden's levels.
+  it('opens the burden pop-up from the top line', async () => {
+    render(<LoadSummary load={loadOf(false)} rules={treasureRules} from={[]} speedOnce levelsPopUp />);
+    await userEvent.click(screen.getByRole('button', { name: 'Not carrying treasure' }));
+    expect(screen.getByRole('dialog')).toBeTruthy();
+  });
+
+  // Purpose: where no speed tile shows (the Pack, the full sheet), armour mode keeps "Move N" and its two lines.
+  it('keeps the move and the treasure line without the speed tile', () => {
+    const { container } = render(<LoadSummary load={loadOf(true)} rules={treasureRules} from={[]} levelsPopUp />);
+    expect(top(container)).toBe('Move 70 ft');
+    expect(screen.getByText('Carrying treasure')).toBeTruthy();
+  });
+});
