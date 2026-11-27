@@ -168,13 +168,37 @@
   min-inline-size: 0;
 }
 
-/* "the Hornkin, Shieldbearer" (frame P2): the name stays in the bar. */
-.player-head__line {
+/* "the Hornkin, Shieldbearer" (frame P2): the name stays in the bar. A tablet held upright (dec-14 row 3, frame 38-3;
+   ruled 2026-11-24, 2 and 8): the head's words are one paragraph, the name, then "the" kindred and the title. */
+.player-head__line,
+.player-head__words {
   margin: 0;
   font-size: var(--text-20);
   font-weight: var(--weight-heading);
-  line-height: 1.2;
+  line-height: var(--line-heading);
   overflow-wrap: anywhere;
+}
+
+.player-head__words > * {
+  display: inline;
+  margin: 0;
+  font: inherit;
+}
+
+/* The name (and what joins it to the line) carry `.visually-hidden` (App.css), for screen readers only, and are drawn
+   only while the head is shown and the bar's title is cut ("…"). This undoes the recipe for an inline box (width,
+   height and overflow don't apply to one). Then the bar's title leaves (hidden, keeping its box so the bar stays
+   steady and its width can still be read) and the name shows once, whole, wrapping. While the head is hidden (the
+   screen opening, or a first open that failed) the bar keeps the name. */
+.player:has(.top-row__title--cut) .player-head__words > .visually-hidden {
+  position: static;
+  margin: 0;
+  clip: auto;
+  white-space: normal;
+}
+
+.player:has(.player__opened:not([hidden]) .player-head__name) .top-row__title--cut {
+  visibility: hidden;
 }
 
 /* The aligned top (dec-13 C2, moved from C3; ls-1; P1's note; M1a): in two columns the notices box (64 px) and the
