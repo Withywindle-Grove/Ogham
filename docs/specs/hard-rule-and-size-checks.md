@@ -1,5 +1,5 @@
 ---
-status: draft (sitting B next)
+status: approved at sitting B, 2026-11-27 (tickets #131 to #139)
 loop: 1
 rulings: docs/design/rulings/process-checks-loop-1-2026-11-27.md (atc-1 to atc-4)
 mockup: none: data and logic only (no screen changes; no stored data changes)
