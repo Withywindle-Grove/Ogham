@@ -27,6 +27,8 @@
 //  16. Finding 2: the read of what is new asks for purse lines of the character's own purse only, never the campaign's.
 //  17. Finding 2: on a character the reader may not mark (the GM's own), nothing past the character is read: no mark,
 //      no log lines.
+//      The Pack's own read (`readPackFinds`) asks it so: as the GM on his own character, the mark, the log, the
+//      members and the purse are never asked for.
 //  18. Finding 3: the Pack starts its read of what is new beside its own reads, not after the inventory has come.
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -37,6 +39,7 @@ import { addItem, moveItem } from '../modules/inventory/inventory.ts';
 import { giveFind, sendOf, undoFind } from '../modules/expedition/findSend.ts';
 import type { HoardRow } from '../modules/expedition/hoard.ts';
 import { loadFindsRead } from '../modules/characters/findsSeen.ts';
+import { readPackFinds } from './packFinds.ts';
 import { addCoin } from '../modules/inventory/purse.ts';
 import { Root } from './App.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
@@ -442,6 +445,20 @@ describe('The local review of #158', () => {
     const read = await loadFindsRead(world.db, campaign, gmOwn, () => false);
     expect(read).toBeNull();
     expect(tables).toEqual(['actors']);
+  });
+
+  it('the Pack’s read reads nothing past the GM’s own character', async () => {
+    await findsWorld();
+    const gmOwn = world.addCharacter(campaign, 'Lantern Warden', { ownerId: gm });
+    world.signInAs(gm);
+    const tables: string[] = [];
+    const from = world.db.from.bind(world.db);
+    vi.spyOn(world.db, 'from').mockImplementation(((table: string) => {
+      tables.push(table);
+      return from(table as never);
+    }) as never);
+    expect(await readPackFinds(world.db, asGm(), campaign, gmOwn)).toBeNull();
+    for (const table of ['events', 'finds_seen', 'members', 'purses']) expect(tables).not.toContain(table);
   });
 
   it('starts the read of what is new beside the Pack’s own reads', async () => {
