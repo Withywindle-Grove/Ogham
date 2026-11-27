@@ -16,6 +16,13 @@
 //   7. Offline, a tap on "Got it" writes nothing and shows the box under the card (FD9).
 //   8. "and N more" brings the new rows into view and clears nothing (p45-16, p45-9).
 //   9. A find onto a stack she carries: the card says "River pearls ×2, now 8" and the whole stack carries the tag (p45-22).
+// K21b, coin on the card (FD4, FD4b, FD5b; FD11b's drawing fix 2):
+//  10. Coin alone heads "New in your coin", "Got it" beside its line, and the coin line carries "New" (FD4, FD4b A).
+//  11. Two coins in one send, one at its cap, are one line that wraps beside "Got it", which keeps its width; nothing is
+//      cut at 375 px (FD4b B).
+//  12. A hoard's coin and things: one card, the giver said once, the coin first with "In your coin.", then the things;
+//      the coin line and each thing's row carry "New" (FD5b).
+//  13. The GM takes back a card's one thing: the card keeps "From your GM, just now." under its head (FD11b B, fix 2).
 import { expect, test, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
@@ -139,6 +146,60 @@ for (const size of SIZES) {
       await page.screenshot({ path: `test-results/layout-screens/k20b-stack-${size.width}.png`, fullPage: true });
       expect(await layoutProblems(page)).toEqual([]);
       expect(await accessibilityProblems(page)).toEqual([]);
+    });
+
+    // Purpose 10.
+    test('coin alone heads “New in your coin”, and the coin line carries the tag', async ({ page }) => {
+      await openPack(page, 'coin');
+      await expect(card(page).getByRole('heading', { name: 'New in your coin' })).toBeVisible();
+      await expect(card(page).locator('.find-card__name')).toHaveText(['240 herons']);
+      await expect(card(page).getByText('In your coin.')).toHaveCount(0);
+      await expect(page.getByRole('button', { name: /^Coin: .*, new$/ })).toBeVisible();
+      await expect(page.locator('.pack__item .pack__new')).toHaveCount(0);
+      const line = (await card(page).locator('.find-card__line').boundingBox())!;
+      const got = (await gotIt(page).boundingBox())!;
+      expect(got.x).toBeGreaterThanOrEqual(line.x + line.width);
+      await page.screenshot({ path: `test-results/layout-screens/k21b-coin-${size.width}.png`, fullPage: true });
+      expect(await layoutProblems(page)).toEqual([]);
+      expect(await accessibilityProblems(page)).toEqual([]);
+    });
+
+    // Purpose 11.
+    test('two coins at the cap are one line that wraps beside “Got it”', async ({ page }) => {
+      await openPack(page, 'coin');
+      const plain = (await gotIt(page).boundingBox())!;
+      await openPack(page, 'cap');
+      await expect(card(page).locator('.find-card__name')).toHaveText(['3 crowns, 999,999,969 herons']);
+      const got = (await gotIt(page).boundingBox())!;
+      expect(Math.abs(got.width - plain.width)).toBeLessThan(1);
+      const line = (await card(page).locator('.find-card__line').boundingBox())!;
+      expect(got.x).toBeGreaterThanOrEqual(line.x + line.width);
+      await page.screenshot({ path: `test-results/layout-screens/k21b-cap-${size.width}.png`, fullPage: true });
+      expect(await layoutProblems(page)).toEqual([]);
+    });
+
+    // Purpose 12.
+    test('a hoard’s coin comes first with “In your coin.”, the giver said once', async ({ page }) => {
+      await openPack(page, 'hoard');
+      await expect(card(page).getByRole('heading', { name: 'New in your pack' })).toBeVisible();
+      await expect(card(page).locator('.find-card__once')).toHaveText('From your GM, just now.');
+      await expect(card(page).locator('.find-card__name')).toHaveText(['240 herons', /^(Moon opals ×2|Boat hooks ×4|Hooded lantern)$/, /./, /./]);
+      await expect(card(page).locator('.find-card__line').first().locator('.find-card__quiet')).toHaveText('In your coin.');
+      await expect(page.getByRole('button', { name: /^Coin: .*, new$/ })).toBeVisible();
+      for (const name of ['Moon opals', 'Boat hooks', 'Hooded lantern']) await expect(row(page, name).locator('.pack__new')).toBeVisible();
+      await page.screenshot({ path: `test-results/layout-screens/k21b-hoard-${size.width}.png`, fullPage: true });
+      expect(await layoutProblems(page)).toEqual([]);
+      expect(await accessibilityProblems(page)).toEqual([]);
+    });
+
+    // Purpose 13.
+    test('the GM takes back the card’s one thing: its giver and time stay under the head', async ({ page }) => {
+      await openPack(page, '1');
+      expect(await page.evaluate(() => (window as unknown as { __gmUndoesFind: () => Promise<string> }).__gmUndoesFind())).toBe('ok');
+      await expect(card(page).getByText('Your GM took back the Bronze ring.')).toBeVisible();
+      await expect(card(page).locator('.find-card__quiet:visible')).toHaveText(['From your GM, just now.']);
+      await page.screenshot({ path: `test-results/layout-screens/k21b-one-taken-back-${size.width}.png`, fullPage: true });
+      expect(await layoutProblems(page)).toEqual([]);
     });
 
     // Purpose 8.

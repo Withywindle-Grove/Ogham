@@ -13,13 +13,19 @@
 //   8. The GM's Undo before Got it: the row goes, the card stays with the quiet line, and "Got it" clears it (p45-25).
 //   9. Coin the GM gives puts the tag on the coin line.
 //  10. Hidden means hidden: another player's Pack, and the GM's own view of her Pack, draw no card and no tag.
+// K21b, coin on the card (FD4, FD4b, FD5b, FD5c; PK3, PK5):
+//  11. Coin alone heads the card "New in your coin": the amount on its line, and no "In your coin." beside it.
+//  12. Two coins in one send are one line, in the setting's order, as the coin line writes them.
+//  13. A hoard's coin and things: the coin first, with "In your coin.", then the things; a coin the book prints oddly
+//      reaches the card in the setting's words, and neither the book's printed words nor the pack's note reach it.
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { runCommand } from '../core/commands.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { addItem, moveItem } from '../modules/inventory/inventory.ts';
-import { giveFind, undoFind } from '../modules/expedition/findSend.ts';
+import { giveFind, sendOf, undoFind } from '../modules/expedition/findSend.ts';
+import type { HoardRow } from '../modules/expedition/hoard.ts';
 import { addCoin } from '../modules/inventory/purse.ts';
 import { Root } from './App.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
@@ -280,5 +286,54 @@ describe('New on the Pack tab (K20b)', () => {
     expect(card()).toBeNull();
     expect(tags()).toEqual([]);
     void moss;
+  });
+});
+
+describe('Coin on the card (K21b)', () => {
+  const cardText = () => card()?.textContent ?? '';
+
+  it('coin alone heads the card "New in your coin"', async () => {
+    await findsWorld();
+    world.signInAs(gm);
+    expect((await runCommand(registry, world.db, asGm(), addCoin, { to: wrenCarrier(), coins: { heron: 240 } })).ok).toBe(true);
+    world.signInAs(sam);
+    await openPack();
+    expect(await screen.findByRole('heading', { name: 'New in your coin' })).toBeTruthy();
+    const line = card()!.querySelector('.find-card__line')!;
+    expect(line.querySelector('.find-card__name')?.textContent).toBe('240 herons');
+    expect(line.querySelector('.find-card__quiet')?.textContent).toBe('From your GM, just now.');
+    expect(cardText()).not.toContain('In your coin.');
+  });
+
+  it('two coins in one send are one line, in the setting’s order', async () => {
+    await findsWorld();
+    world.signInAs(gm);
+    const sent = await runCommand(registry, world.db, asGm(), giveFind, { campaignId: campaign, to: wren, placeId: 'place-stair', things: [], coins: { bit: 4, heron: 40 }, rows: [] });
+    expect(sent.ok).toBe(true);
+    world.signInAs(sam);
+    await openPack();
+    expect(await screen.findByRole('heading', { name: 'New in your coin' })).toBeTruthy();
+    expect([...card()!.querySelectorAll('.find-card__name')].map((n) => n.textContent)).toEqual(['40 herons, 4 bits']);
+  });
+
+  it('a hoard’s oddly printed coin comes first, in the setting’s words, with no printed words and no note', async () => {
+    await findsWorld();
+    // The sea chest's rows as the GM's hoard sheet reads them (FD5 B): the coin row keeps the book's words and the note.
+    const rows: HoardRow[] = [
+      { kind: 'coin', entry: 0, text: '200 hn.', amounts: [{ key: 'heron', amount: 200, words: '200 herons' }], coins: { heron: 200 }, readAs: { printed: '200 hn.', note: 'Printed “hn.” in the book: read as 200 herons.' }, notCoins: [] },
+      { kind: 'thing', entry: 1, text: 'Brass spyglass', itemId: null, worth: null, qty: 1, magic: null, noticed: null },
+    ];
+    const what = sendOf(rows, new Map());
+    world.signInAs(gm);
+    const sent = await runCommand(registry, world.db, asGm(), giveFind, { campaignId: campaign, to: wren, placeId: 'place-stair', ...what });
+    expect(sent.ok).toBe(true);
+    world.signInAs(sam);
+    await openPack();
+    expect(await screen.findByRole('heading', { name: 'New in your pack' })).toBeTruthy();
+    expect(card()!.querySelector('.find-card__once')?.textContent).toBe('From your GM, just now.');
+    const lines = [...card()!.querySelectorAll('.find-card__line')].map((l) => [l.querySelector('.find-card__name')?.textContent, l.querySelector('.find-card__quiet')?.textContent ?? null]);
+    expect(lines).toEqual([['200 herons', 'In your coin.'], ['Brass spyglass', null]]);
+    expect(cardText()).not.toContain('hn.');
+    expect(cardText()).not.toContain('Printed');
   });
 });

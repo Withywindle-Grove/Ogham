@@ -52,6 +52,10 @@ export function FindCard({
     words,
   )!;
   const one = card.lines.length === 1 && card.more === 0 && before.more === 0;
+  // FD11b's drawing fix 2: a card of one thing taken back says its giver and time once under the head. On a card of one
+  // thing that line stands at the top of the column beside "Got it", over the hidden former line (its name, then its
+  // giver and time), so the card's height and "Got it"'s place hold: the two lines trade places, the same two sizes.
+  const heldOne = one && card.once !== null && card.lines[0]!.kind === 'back' ? card.lines[0]! : null;
   const gotIt = <StackedButton icon="check-mark" label="Got it" aria-label={`Got it: ${card.head}`} className="find-card__got-it" onClick={onGotIt} />;
   const lines = (
     <ul className="find-card__lines">
@@ -73,7 +77,23 @@ export function FindCard({
   );
   const body: ReactNode = one ? (
     <div className="find-card__one">
-      {lines}
+      {heldOne?.kind === 'back' ? (
+        <div className="find-card__held">
+          <div className="find-card__ghost" aria-hidden="true">
+            <FindLineWords line={before.lines[0]!} />
+          </div>
+          <div>
+            <p className="find-card__quiet">{card.once}</p>
+            <ul className="find-card__lines">
+              <li className="find-card__line find-card__line--back">
+                <p className="find-card__back">{heldOne.words}</p>
+              </li>
+            </ul>
+          </div>
+        </div>
+      ) : (
+        lines
+      )}
       {gotIt}
     </div>
   ) : (
@@ -98,7 +118,7 @@ export function FindCard({
         <h3 id={headId} className="find-card__head">
           {card.head}
         </h3>
-        {card.once && <p className="find-card__quiet find-card__once">{card.once}</p>}
+        {card.once && !heldOne && <p className="find-card__quiet find-card__once">{card.once}</p>}
         {body}
       </section>
       {offlineBox && (

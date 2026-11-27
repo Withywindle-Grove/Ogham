@@ -108,6 +108,19 @@
   margin-block-end: 0;
 }
 
+/* FD11b's fix 2: a one-thing card taken back. Its giver and time, then the quiet line, over the hidden former line (the
+   name, then the giver and time) in one cell, so the column is never shorter than it was and "Got it" keeps its place. */
+.find-card__held {
+  display: grid;
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.find-card__held > * {
+  grid-area: 1 / 1;
+  min-inline-size: 0;
+}
+
 /* The secondary button sets its own align-self (flex-start): here it is centred on the line, as FD3c C and FD4b B draw. */
 .find-card__one > .find-card__got-it {
   flex: none;

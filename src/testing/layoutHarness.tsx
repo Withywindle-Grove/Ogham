@@ -28,7 +28,10 @@
 //   &lights=several    two reed lamps beside Wren's rushlights (the pick "Which light?")
 //   &finds=1    new until Got it (K20b): the GM has just sent a Bronze ring to Wren (his send, K16b); `two` two pearls
 //               onto her six as well (his Add item, which joins the stack); `many` six things (the card's "and N
-//               more"); `long` one long name; `none` nothing yet. The page then offers `window.__findArrives(name)` and
+//               more"); `long` one long name; `none` nothing yet; with &coin=1 (K21b), `coin` 240 herons alone (FD4),
+//               `cap` 3 crowns and 999,999,969 herons in one send, her herons at their cap (FD4b B), `hoard` 240
+//               herons, two moon opals, four boat hooks and a hooded lantern in one send (FD5b). The page then offers
+//               `window.__findArrives(name)` and
 //               `window.__gmUndoesFind()`, the GM's send and its Undo while the page is open
 //   ?placeCard=1 the players' place card (P4): the Location's card and the Area's in the page's two columns; `bare` the
 //               Area never shown, `messy` long names and 999; `gm` the GM's Knowledge sheet with its eyes
@@ -537,7 +540,18 @@ if (findsFlag) {
         : findsFlag === 'none'
           ? []
           : ['Bronze ring'];
-  for (const name of names) await give(name);
+  // Coin in a send (K21b): the GM's send of a hoard's coin, alone or with things (FD4, FD4b B, FD5b).
+  const coinSends: Record<string, { things: { name: string; qty: number }[]; coins: Record<string, number> }> = {
+    coin: { things: [], coins: { heron: 240 } },
+    cap: { things: [], coins: { crown: 3, heron: 999_999_969 } }, // her 30 herons and these: the purse's cap
+    hoard: { things: [{ name: 'Moon opals', qty: 2 }, { name: 'Boat hooks', qty: 4 }, { name: 'Hooded lantern', qty: 1 }], coins: { heron: 240 } },
+  };
+  const coinSend = coinSends[findsFlag];
+  if (coinSend) {
+    world.signInAs(gm);
+    const done = await runCommand(registry, world.db, asGm, giveFind, { campaignId: campaign, to: wren, placeId: 'place-drowned-shrine', ...coinSend, rows: [] });
+    if (done.ok) sent.push(done.value.eventId);
+  } else for (const name of names) await give(name);
   if (findsFlag === 'two') {
     // Her pearls from the setting's list, so more of them join the stack (Q2).
     world.tables.library_entries.push({ id: 'entry-river-pearls', pack_id: 'pack-river', kind: 'item', pack_entry_id: 'river-pearls', name: 'River pearls', data: { id: 'river-pearls', name: 'River pearls', category: 'gem', stack: 50 } });

@@ -4,7 +4,8 @@
 //   * at 375 px nothing on the messy cards is cut or runs past the card;
 //   * a one-thing card's "Got it" stands beside its line, and keeps its width while a long coin wraps beside it;
 //   * when the GM takes a find back, the card is the same height and "Got it" in the same place as before (p45-25),
-//     both where the line was one row and where it carried its own giver and time.
+//     both where the line was one row and where it carried its own giver and time, and on a card of one thing, which
+//     keeps its giver and time under the head once its thing is taken back (FD11b's drawing fix 2).
 // The whole gallery's layout and accessibility checks are gallery.spec.ts's. K20b adds tests/layout/findCard.spec.ts
 // for the card on the Pack tab.
 import { expect, test, type Page } from '@playwright/test';
@@ -24,6 +25,11 @@ const BEFORE_AFTER = [
   ['Two finds, before the GM’s Undo (FD11 A)', 'One taken back of two (FD11 B, p45-25): its line quiet in its place; the card’s height holds'],
   ['Two finds, before the GM’s Undo (FD11 A)', 'Both taken back (FD11 C, F8): the card stays until “Got it”'],
   ['Two givers, before the GM’s Undo: each line says its own', 'Two givers, the ring taken back: its quiet line keeps the room its giver’s line took'],
+] as const;
+// FD11b's drawing fix 2: a card of one thing keeps its giver and time under the head once its thing is taken back.
+const ONE_BEFORE_AFTER = [
+  ['One thing (FD1, p45-14): “Got it” beside its line', 'One thing, taken back (FD11b B, fix 2): its giver and time under the head'],
+  ['Coin alone (FD4b A): “New in your coin”', 'Coin alone, taken back (F8): no “the”; its giver and time under the head'],
 ] as const;
 
 for (const size of [
@@ -99,6 +105,24 @@ for (const size of [
           expect(Math.abs(b.height - a.height), `${after}: height`).toBeLessThan(1);
           expect(Math.abs(b.gotTop - a.gotTop), `${after}: "Got it" top`).toBeLessThan(1);
           expect(Math.abs(b.gotLeft - a.gotLeft), `${after}: "Got it" left`).toBeLessThan(1);
+        }
+      });
+
+      // Purpose (FD11b's drawing fix 2): a card of one thing taken back keeps its giver and time, and holds its height and
+      // "Got it"'s place where the quiet words fit one row (a tablet). At 375 px they wrap to two rows beside "Got it",
+      // as FD11b B draws them, so the card grows by that one row and no more (the PR's ⚑, with K18b's ⚑ 1).
+      test('a card of one thing taken back keeps its giver and time, and its height where its words fit', async ({ page }) => {
+        for (const [before, taken] of ONE_BEFORE_AFTER) {
+          const after = card(page, taken);
+          await expect(after.locator('.find-card__quiet:visible')).toHaveText(['From your GM, just now.']);
+          const a = await box(page, before);
+          const b = await box(page, taken);
+          const row = await after.locator('.find-card__back').evaluate((el) => parseFloat(getComputedStyle(el).lineHeight));
+          const grown = size.width >= 1024 ? 1 : row + 1;
+          expect(b.height - a.height, `${taken}: height`).toBeLessThan(grown);
+          expect(b.height - a.height, `${taken}: height`).toBeGreaterThan(-1);
+          expect(Math.abs(b.gotLeft - a.gotLeft), `${taken}: "Got it" left`).toBeLessThan(1);
+          expect(Math.abs(b.gotTop - a.gotTop), `${taken}: "Got it" top`).toBeLessThan(grown / 2 + 0.5);
         }
       });
     });

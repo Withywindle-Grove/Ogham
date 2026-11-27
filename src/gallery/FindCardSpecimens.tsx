@@ -56,6 +56,9 @@ export function FindCardSpecimens({ Specimen }: { Specimen: (props: { name: stri
   return (
     <>
       <Specimen name="One thing (FD1, p45-14): “Got it” beside its line">{card([RING])}</Specimen>
+      <Specimen name="One thing, taken back (FD11b B, fix 2): its giver and time under the head">
+        {card([back(RING)])}
+      </Specimen>
       <Specimen name="Four, each with its own giver (FD3b B, p45-5): all listed, the plain head">
         {card([RING, OPALS, thing('Hooded lantern', { at: '2026-12-06T19:56:00.000Z' }), KEY_FROM_TAM])}
       </Specimen>
@@ -69,6 +72,15 @@ export function FindCardSpecimens({ Specimen }: { Specimen: (props: { name: stri
       </Specimen>
       <Specimen name="A hoard, said once (FD5c A, p45-7): one giver and time under the head; coin first">
         {card([coin({ herons: 240 }), thing('Moon opals', { arrived: 2 }), thing('Boat hooks', { arrived: 4 }), thing('Hooded lantern')])}
+      </Specimen>
+      <Specimen name="Coin and things, givers differ (FD5c B): coin first, “In your coin.” after its own giver">
+        {card([coin({ herons: 240 }), thing('Moon opals', { arrived: 2 }), KEY_FROM_TAM])}
+      </Specimen>
+      <Specimen name="An oddly printed coin, as the player reads it (FD5c C): the setting’s words, no note">
+        {card([coin({ herons: 200 }), thing('Brass spyglass')])}
+      </Specimen>
+      <Specimen name="Coin alone, taken back (F8): no “the”; its giver and time under the head">
+        {card([coin({ herons: 240 }, { takenBack: BACK })])}
       </Specimen>
       <Specimen name="Offline, after a tap on “Got it” (FD9, p45-12): the box under the card">{card([RING], true)}</Specimen>
       <Specimen name="Onto a stack (FD3c A, p45-22): what arrived in bold, the new count plain">
