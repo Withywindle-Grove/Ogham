@@ -3362,11 +3362,12 @@ function skippedWhy(step: string, className: string): string {
 
 /**
  * A step skipped (it had nothing to show), reached by Back (final drafts F): its line says why (`skippedWhy`, clo-5) and
- * "Nothing to choose here" is said once, in the foot, as 23-H3 draws it (no "Skipped" row: L5 ⚑ 1, Francis 2026-11-27).
+ * "Nothing to choose here" is said once, in the foot, as 23-H3 draws it (no "Skipped" row: L5 ⚑ 1, Francis 2026-11-27);
+ * the shell's `skipped` sets the line in ink at body size and the hint beside Back and Next (L5's two fixes, 2026-11-27).
  */
 export function SkippedStep({ title, counter, why, onBack, onNext }: { title: string; counter?: { at: number; of: number | null }; why: string; onBack: () => void; onNext: () => void }) {
   return (
-    <CreationStep title={title} counter={counter} why={why} help={null} onBack={onBack} hint="Nothing to choose here" onNext={onNext}>
+    <CreationStep title={title} counter={counter} why={why} help={null} onBack={onBack} hint="Nothing to choose here" onNext={onNext} skipped>
       {null}
     </CreationStep>
   );

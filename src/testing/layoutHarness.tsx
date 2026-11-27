@@ -933,6 +933,19 @@ if (new URLSearchParams(window.location.search).get('gear') === '1') {
     );
 }
 
+// A skipped First spells (L5, 23-H3), only with ?gear=1&skipped=1: in The Fen Muster the Marsh Chaplain is renamed
+// with a long name ("Warden of the Seventeen Drowned Lanterns") and given one prayer when its spells come at level 2,
+// with the pack's spells and spell lists, so a level-2 character has First spells and, lowered to level 1 on Who they
+// are, reaches it by Back with nothing to choose (as firstSpells.test.tsx's walk).
+if (new URLSearchParams(window.location.search).get('gear') === '1' && new URLSearchParams(window.location.search).get('skipped') === '1') {
+  const chaplain = world.tables.library_entries.find((e) => e.id === 'entry-gear-class-marsh-chaplain')!;
+  const data = chaplain.data as Record<string, unknown> & { spellcasting: Record<string, unknown> };
+  chaplain.name = 'Warden of the Seventeen Drowned Lanterns';
+  chaplain.data = { ...data, name: chaplain.name, spellcasting: { ...data.spellcasting, firstSpells: { given: ['lantern-blessing'] } } };
+  for (const [list, kind] of [['spellLists', 'spellList'], ['spells', 'spell']] as const)
+    for (const found of fenPack[list] ?? []) world.tables.library_entries.push({ id: `entry-gear-${kind}-${String(found.id)}`, pack_id: 'pack-fen-gear', kind, pack_entry_id: String(found.id), name: String(found.name ?? found.id), data: found });
+}
+
 // Every step of guided creation on the invented fixture pack (row test-creation-world), only with ?creation=full: "The
 // Fen Census", which Jo (?as=new) has joined with no character yet. The whole fixture pack (its spells, tables, trait
 // lists, hooks and layout too) with creation-full.fixture.json laid over it (a patron, and a table of odds and ends
