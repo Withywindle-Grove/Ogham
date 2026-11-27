@@ -20,7 +20,8 @@
 //                                                (without it: the commits between BASE and HEAD that aren't merges).
 // The list's location can be overridden with GRIMOIRE_DENYLIST=<path>. For --pr the list itself can come in
 // GRIMOIRE_NAMES (the repository secret PRIVATE_NAMES: the private lists, one name per line); with
-// GRIMOIRE_NAMES_REQUIRED=true a missing list fails the scan instead of passing it unscanned.
+// GRIMOIRE_NAMES_REQUIRED=true a missing list fails the scan instead of passing it unscanned; without it, a missing
+// list passes with a warning (on GitHub, GITHUB_ACTIONS=true, a warning on the run's summary page).
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
@@ -267,6 +268,22 @@ function git(args) {
   return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 }
 
+/** The scan of a pull request, run by hand where the private list is. */
+const PR_SCAN_COMMAND = 'node scripts/check-names.mjs --pr origin/main --show';
+
+/**
+ * The framed warning for a scan run by hand with no list (check 7): it stands out from the lines around it, and says
+ * where the list was looked for (paths only, never a name) and what to do.
+ */
+function warnNoList(todo, { readsNamesVariable = false } = {}) {
+  const where = process.env.GRIMOIRE_DENYLIST
+    ? `no file at GRIMOIRE_DENYLIST (${process.env.GRIMOIRE_DENYLIST})`
+    : 'no file at packs/_design/denylist.txt (in this checkout or the main one), GRIMOIRE_DENYLIST unset';
+  const why = `There is no private list here (${where}${readsNamesVariable ? ', and GRIMOIRE_NAMES empty' : ''}), so nothing was checked.`;
+  const rule = '!'.repeat(72);
+  console.warn(`\n${rule}\nWARNING: not scanned for private names.\n${why}\n${todo}\n${rule}\n`);
+}
+
 /** The denylist: GRIMOIRE_DENYLIST, then this copy's packs/, then the main checkout's packs/ (helper worktrees have none). */
 function findDenylist() {
   if (process.env.GRIMOIRE_DENYLIST) return existsSync(process.env.GRIMOIRE_DENYLIST) ? process.env.GRIMOIRE_DENYLIST : null;
@@ -308,10 +325,13 @@ function runPullRequest(argv) {
       );
       return 1;
     }
-    console.log(
-      'Not scanned for private names: no list here (a pull request from a fork or from Dependabot gets no secrets).\n' +
-        'Before merging a pull request from outside, scan it where the private list is.',
-    );
+    // It still passes, but says so where a person will see it (check 7, docs/specs/hard-rule-and-size-checks.md): on
+    // GitHub a warning annotation, which shows on the run's summary page; elsewhere a framed warning in the output.
+    const todo = `Before merging a pull request from outside, scan it where the private list is: ${PR_SCAN_COMMAND}`;
+    if (process.env.GITHUB_ACTIONS === 'true') {
+      const why = 'There is no private list here (a pull request from a fork or from Dependabot gets no secrets), so nothing was checked.';
+      console.log(`::warning title=Not scanned for private names::${why} ${todo}`);
+    } else warnNoList(todo, { readsNamesVariable: true });
     return 0;
   }
 
@@ -404,9 +424,13 @@ function runPullRequestSafely(argv) {
 
 function main(argv) {
   const listPath = findDenylist();
-  if (!listPath) return 0; // No private list here: nothing to check against.
-  const names = parseDenylist(readFileSync(listPath, 'utf8'));
-  if (names.length === 0) return 0;
+  const names = listPath ? parseDenylist(readFileSync(listPath, 'utf8')) : [];
+  if (names.length === 0) {
+    // No private list here: nothing to check against. `npm run names:check` (--all), run on purpose, says so; the
+    // commit hooks stay quiet, since a cloud session never has the list (docs/09-decisions-log.md, check 7).
+    if (argv[0] === '--all') warnNoList('Scan where the private list is: npm run names:check');
+    return 0;
+  }
 
   /** Each source: a label for the message, and its text (or null to skip it). */
   const sources = [];

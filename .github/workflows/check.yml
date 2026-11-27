@@ -132,7 +132,8 @@ jobs:
       # then removed is still public), new files' names, its commit messages, title, text and branch name. The list
       # is the repository secret PRIVATE_NAMES. The log is public, so the scan says the file and line, never the
       # name. A hit fails this job, and with it check, database and layout. Our own pull requests must have the list
-      # (a missing secret fails); a fork's or Dependabot's gets no secrets and passes unscanned, with a note.
+      # (a missing secret fails); a fork's or Dependabot's gets no secrets and passes unscanned, with a warning on the
+      # run's summary page.
       # GitHub lists a pull request's first 250 commits only, so a longer one fails instead of being part-scanned.
       - name: Private-names scan
         if: github.event_name == 'pull_request'

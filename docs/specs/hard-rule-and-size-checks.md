@@ -150,7 +150,7 @@ Five existing seams, and no new one:
 ### Check 9: the slow-test report
 
 - The runner's slow-test threshold is set to 300 ms.
-- At the end of the full check, a short summary lists each unit test over 300 ms with its time, slowest first, and the count.
+- At the end of the full check, a short summary gives the count of unit tests over 300 ms. It lists the slowest 20, slowest first, with their times. `--all` lists every one.
 - It never fails the check.
 
 ### Where each check runs (atc-4)

@@ -97,6 +97,35 @@ describe('the real-names scan as a Claude Code hook (--hook)', () => {
   });
 });
 
+describe('the real-names scan without its private list, outside a pull request', () => {
+  const script = fileURLToPath(new URL('./check-names.mjs', import.meta.url));
+  const runScan = (args) =>
+    spawnSync(process.execPath, [script, ...args], {
+      cwd: tmpdir(),
+      encoding: 'utf8',
+      env: withoutGitVariables(process.env, { GRIMOIRE_DENYLIST: join(tmpdir(), 'no-such-denylist-here.txt'), GITHUB_ACTIONS: '' }),
+    });
+
+  // Purpose: `npm run names:check` (--all), a scan someone runs on purpose, passes without the list but says, in a
+  // framed warning, that nothing was checked, so it never looks like a clean scan (check 7, review of #138).
+  it('npm run names:check warns that nothing was checked', () => {
+    const result = runScan(['--all']);
+    expect(result.status).toBe(0);
+    expect(result.stderr).toContain('WARNING: not scanned for private names');
+    expect(result.stderr).toContain('no file at GRIMOIRE_DENYLIST');
+    expect(result.stderr).not.toContain('GRIMOIRE_NAMES empty');
+  });
+
+  // Purpose: the commit hooks stay quiet without the list (a cloud session never has one), and still pass.
+  it('the commit hooks pass quietly', () => {
+    for (const args of [[], ['--message', join(tmpdir(), 'no-such-message.txt')]]) {
+      const result = runScan(args);
+      expect(result.status).toBe(0);
+      expect(result.stdout + result.stderr).toBe('');
+    }
+  });
+});
+
 describe("the real-names scan of a pull request (--pr), the GitHub check's scan", () => {
   const names = ['Gloomwater Codex', 'GWC'];
   const script = fileURLToPath(new URL('./check-names.mjs', import.meta.url));
@@ -198,7 +227,7 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
     spawnSync(process.execPath, [script, '--pr', 'main', 'HEAD', ...args], {
       cwd: dir,
       encoding: 'utf8',
-      env: withoutGitVariables(process.env, { GRIMOIRE_DENYLIST: join(dir, 'no-list.txt'), GRIMOIRE_NAMES: '', GRIMOIRE_NAMES_REQUIRED: '', PR_TITLE: '', PR_BODY: '', PR_BRANCH: '', ...env }),
+      env: withoutGitVariables(process.env, { GRIMOIRE_DENYLIST: join(dir, 'no-list.txt'), GRIMOIRE_NAMES: '', GRIMOIRE_NAMES_REQUIRED: '', GITHUB_ACTIONS: '', PR_TITLE: '', PR_BODY: '', PR_BRANCH: '', ...env }),
     });
   const list = '# invented\nGloomwater Codex\nGWC\n';
 
@@ -405,15 +434,60 @@ describe("the real-names scan of a pull request (--pr), the GitHub check's scan"
     }
   });
 
-  it('passes with a note when there is no list (a fork, Dependabot), and fails when the list is required', () => {
+  // Check 7 (docs/specs/hard-rule-and-size-checks.md): a scan without its list says so where a person will see it.
+  // Purpose: with the list, the scan runs as before and prints no warning about a missing list.
+  it('scans as before, with no warning, when the list is there', () => {
+    const dir = repoWith({ 'docs/new.md': 'a clean line\n' });
+    try {
+      const result = scan(dir, { GRIMOIRE_NAMES: list, GITHUB_ACTIONS: 'true' });
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain('No private name in what this pull request adds');
+      expect(result.stdout + result.stderr).not.toContain('WARNING');
+      expect(result.stdout).not.toContain('::warning');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  // Purpose: run by hand without the list, the scan passes but prints a warning that stands out from the lines around it.
+  it('passes without the list on your own machine, with a warning that stands out', () => {
     const dir = repoWith({ 'docs/new.md': 'the Gloomwater Codex\n' });
     try {
-      const unscanned = scan(dir);
-      expect(unscanned.status).toBe(0);
-      expect(unscanned.stdout).toContain('Not scanned for private names');
-      const required = scan(dir, { GRIMOIRE_NAMES_REQUIRED: 'true' });
+      const result = scan(dir);
+      expect(result.status).toBe(0);
+      expect(result.stderr).toContain('WARNING: not scanned for private names');
+      expect(result.stderr).toContain('Before merging a pull request from outside, scan it where the private list is: node scripts/check-names.mjs --pr origin/main --show');
+      // On your own machine the cause is a missing file, so it says where it looked (a path, never a name), not secrets.
+      expect(result.stderr).toContain(`no file at GRIMOIRE_DENYLIST (${join(dir, 'no-list.txt')})`);
+      expect(result.stderr).not.toContain('Dependabot');
+      // Not a GitHub annotation: that only means something on GitHub.
+      expect(result.stdout + result.stderr).not.toContain('::warning');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  // Purpose: on GitHub without the list and without the required flag (a fork, Dependabot), the scan passes and puts a
+  // warning on the run's summary page (a ::warning annotation), so whoever merges sees it was not scanned.
+  it("passes without the list on a Dependabot or fork pull request, with a warning on the run's summary page", () => {
+    const dir = repoWith({ 'docs/new.md': 'the Gloomwater Codex\n' });
+    try {
+      const result = scan(dir, { GITHUB_ACTIONS: 'true', GRIMOIRE_NAMES_REQUIRED: 'false' });
+      expect(result.status).toBe(0);
+      expect(result.stdout).toMatch(/^::warning title=Not scanned for private names::.*Dependabot.*scan it where the private list is: node scripts\/check-names\.mjs --pr origin\/main --show$/m);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  // Purpose: on our own pull requests the list is required, so a missing one still fails the scan, as before.
+  it('fails without the list when the list is required', () => {
+    const dir = repoWith({ 'docs/new.md': 'the Gloomwater Codex\n' });
+    try {
+      const required = scan(dir, { GRIMOIRE_NAMES_REQUIRED: 'true', GITHUB_ACTIONS: 'true' });
       expect(required.status).toBe(1);
       expect(required.stderr).toContain('PRIVATE_NAMES is missing or empty');
+      expect(required.stdout).not.toContain('::warning');
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

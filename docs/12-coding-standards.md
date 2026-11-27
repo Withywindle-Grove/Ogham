@@ -108,10 +108,10 @@ Ruled 2026-11-27 (lp-9, `design/rulings/process-loop-2026-11-27.md`). The source
 | `package.json` dependencies equal the list in `02` | Hard rule 9 | On (`src/ui/packageList.test.ts`, inside `npm run check`). Names only, not versions; the list is `02`, "Packages" |
 | No `disabled` attribute on a control | Hard rule 10 | On (`eslint.config.js`, the project's own rule `tome/no-disabled`; in `npm run check`). App components (`src/**/*.tsx`), tests excluded |
 | Tokens only in inline styles in screens | Hard rule 7 | On (`src/ui/designSystem.test.ts`, inside `npm run check`). Reads every `style={…}` in the app's components, tests and the gallery excluded; old cases go on `src/ui/inlineStyles.known.ts` (none when switched on) |
-| No float column for money, quantities, weights or slots | Hard rule 8 | To add (a test over the generated types) |
+| No decimal or float column (`real`, `double precision`, `numeric`) in any table or view | Hard rule 8 | On (`supabase/tests/float-columns.test.ts`, in the database job; known list beside it, empty) |
 | A new source file over 400 lines | cs-10 | On (`eslint.config.js`, the project's own rule `tome/max-lines` at 400, every line counted; in `npm run check`). App source (`src/**/*.{ts,tsx}`) and scripts (`scripts/**/*.{js,mjs}`); test files and the generated database types excluded; stylesheets are not checked (lint does not read CSS without a new package). The old long files are known in `eslint-suppressions.json`; a known file that grows stays quiet |
-| A unit test over 300 ms | cs-34 | To add: the runner reports it already; make the report part of the check's output |
-| The name scan says so when its private list is absent | Hard rule 2 | To add. It is silent on GitHub today |
+| A unit test over 300 ms | cs-34 | On (reported, never a failure: `slowTestThreshold` 300 in `vite.config.ts`, and the reporter `scripts/slow-tests.mjs`, beside Vitest's own, saves each test's time; the last step of `npm run check`, after the build, prints the count and the slowest 20, and `node scripts/slow-tests.mjs --all` lists them all) |
+| The name scan says so when its private list is absent | Hard rule 2 | On (`scripts/check-names.mjs --pr`, where the scan already runs: the changes job, or by hand). Without its list it still passes, with a warning: on GitHub (a fork or Dependabot) a warning on the run's summary page, elsewhere a framed WARNING in the output; with `GRIMOIRE_NAMES_REQUIRED=true` (our own pull requests) a missing list fails, as before |
 
 ## Speed of the checks
 

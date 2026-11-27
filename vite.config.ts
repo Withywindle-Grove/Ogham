@@ -1,5 +1,5 @@
-/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
+import { configDefaults } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { BRAND } from './src/brand.ts';
@@ -63,5 +63,11 @@ export default defineConfig({
     // (a whole character creation, the damage pad) ran out at 5 s while the browser jobs shared the machine. A slow
     // machine, not a fault; a test that truly hangs still fails.
     testTimeout: 15_000,
+    // cs-34 (check 9): a unit test over 300 ms is slow. The runner marks it; our reporter saves every test's time,
+    // and the last step of `npm run check` prints the slow ones (scripts/slow-tests.mjs). It never fails the check.
+    slowTestThreshold: 300,
+    // Vitest's own reporters kept (in an agent session the short one; on GitHub also the annotations of a failing
+    // test), with ours added.
+    reporters: [...configDefaults.reporters, './scripts/slow-tests.mjs'],
   },
 });

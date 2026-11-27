@@ -176,7 +176,7 @@ Used on drawings (mockup pages) and as reports on built screens; never handed to
 - Fable only as the advisor and through the `designer` and `project-review` agents (and loop step 7). A Fable session starts with the question and the files, not with history.
 - Francis watches Settings → Usage weekly: Fable stays under 35% of the week; past that, the rest of the week's design runs on Opus. **This rule is off until 2026-12-01** (a larger plan for November); design sittings stay on Fable until then.
 - If the plan drops to a smaller one: `designer` switches to `model: opus`, effort high; Fable only for one or two approved decisions a month on credits.
-- The CI review, triage and CHANGELOG draft run on the repository secret `ANTHROPIC_API_KEY`, with a monthly spend cap set in the Anthropic console. The cap is reached; access returns on 2026-12-01. Check that the review job is green again that day. Until then the local review is the only review.
+- The CI review, triage and CHANGELOG draft run on the repository secret `ANTHROPIC_API_KEY`, with a monthly spend cap set in the Anthropic console. When the cap is reached, the review job goes quiet and the local review is the only review.
 
 ## Gate workflow
 
