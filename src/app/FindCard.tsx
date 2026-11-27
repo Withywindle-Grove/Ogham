@@ -17,7 +17,9 @@ export const FIND_CARD_OFFLINE = 'You’re offline. Got it waits until you’re 
 
 /**
  * The card, inside its own status region (so its arrival and a line turning quiet are read out), with FD9's offline box
- * under it in the same region. Nothing when there are no entries. A host that must keep one live region of its own
+ * under it in the same region. With no entries the region is still drawn, empty and without room, so the first find
+ * is a change inside a region the screen reader already watches (as the call card's slot does), not a region arriving
+ * with its text already in it; with `live={false}`, nothing. A host that must keep one live region of its own
  * across cards (the Scene's prompt slot, as the call card does) passes `live={false}` and wraps it in its region.
  */
 export function FindCard({
@@ -42,7 +44,7 @@ export function FindCard({
 }) {
   const headId = useId();
   const card = findCard(entries, words);
-  if (!card) return null;
+  if (!card) return live ? <div className="find-card-live" role="status" /> : null;
   // p45-25: a line that turns quiet keeps the room its find took. The card as it was before any Undo (the same entries,
   // none taken back) is drawn under each quiet line, hidden, so the line is never shorter than it was; the same for the
   // "and N more" row when the last things under it are taken back. K18a's order never depends on an Undo, so line i

@@ -19,8 +19,15 @@
 //  13. A hoard's coin and things: the coin first, with "In your coin.", then the things; a coin the book prints oddly
 //      reaches the card in the setting's words, and neither the book's printed words nor the pack's note reach it.
 //  14. Hidden means hidden: the coin the GM sends or gives Wren reaches no other player. Tess's device, reading what is
-//      new for her own Moss, is sent no line with Wren's amounts (the read asks for the campaign's log lines and the
-//      read rule leaves out another character's purse lines), and her Pack draws no card.
+//      new for her own Moss, is sent no line with Wren's amounts (the read asks for Moss's own purse lines only, and
+//      the read rule would leave out another character's besides), and her Pack draws no card.
+// The local review of #158 (comment 7229639840):
+//  15. Finding 1: the Pack keeps the card's live region, empty and without room, before the first find, and the card
+//      arrives inside that same region (so a screen reader reads its arrival out).
+//  16. Finding 2: the read of what is new asks for purse lines of the character's own purse only, never the campaign's.
+//  17. Finding 2: on a character the reader may not mark (the GM's own), nothing past the character is read: no mark,
+//      no log lines.
+//  18. Finding 3: the Pack starts its read of what is new beside its own reads, not after the inventory has come.
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -359,5 +366,106 @@ describe('Coin on the card (K21b)', () => {
     expect(sent).not.toContain('4321');
     expect(sent).not.toContain('777');
     expect(read!.purseId).not.toBe(world.tables.purses.find((p) => p.actor_id === wren)?.id);
+  });
+});
+
+describe('The local review of #158', () => {
+  /** Every events query the device asks, as the filters it put on it. */
+  function eventQueries() {
+    const asked: string[][] = [];
+    const from = world.db.from.bind(world.db);
+    vi.spyOn(world.db, 'from').mockImplementation(((table: string) => {
+      const query = from(table as never) as unknown as Record<string, (...a: unknown[]) => unknown>;
+      if (table !== 'events') return query;
+      const filters: string[] = [];
+      asked.push(filters);
+      for (const name of ['eq', 'in', 'gt']) {
+        const own = query[name]!.bind(query);
+        query[name] = (column: unknown, value: unknown) => {
+          filters.push(`${name} ${String(column)} ${Array.isArray(value) ? value.join(',') : String(value)}`);
+          return own(column, value);
+        };
+      }
+      return query;
+    }) as never);
+    return asked;
+  }
+
+  it('keeps the empty live region before the first find, and the card arrives inside it', async () => {
+    await findsWorld();
+    await openPack();
+    const region = await waitFor(() => {
+      const found = document.querySelector('.pack__summary > .find-card-live');
+      expect(found).toBeTruthy();
+      return found!;
+    });
+    expect(region.getAttribute('role')).toBe('status');
+    expect(region.childElementCount).toBe(0);
+    expect(card()).toBeNull();
+    // A find arrives while the Pack is open: the GM's Undo of nothing, so a reload, as a later find's would be.
+    const [ring] = await send('Bronze ring');
+    world.signInAs(gm);
+    expect((await runCommand(registry, world.db, asGm(), undoFind, { campaignId: campaign, eventId: ring! })).ok).toBe(true);
+    world.signInAs(sam);
+    await waitFor(() => expect(card()).toBeTruthy());
+    expect(card()!.closest('.find-card-live')).toBe(region);
+  });
+
+  it('asks for the purse lines of the character’s own purse only', async () => {
+    await findsWorld();
+    world.signInAs(gm);
+    expect((await runCommand(registry, world.db, asGm(), addCoin, { to: wrenCarrier(), coins: { bit: 777 } })).ok).toBe(true);
+    world.signInAs(tess);
+    const asked = eventQueries();
+    const read = await loadFindsRead(world.db, campaign, moss);
+    expect(read).not.toBeNull();
+    const mossPurse = String(world.tables.purses.find((p) => p.actor_id === moss)?.id);
+    const purseQueries = asked.filter((q) => q.some((f) => f.includes('purses')));
+    expect(purseQueries.length).toBeGreaterThan(0);
+    for (const q of purseQueries) {
+      expect(q).toContain('eq target_table purses');
+      expect(q).toContain(`eq target_id ${mossPurse}`);
+    }
+    expect(asked.every((q) => q.some((f) => f.startsWith('eq campaign_id')))).toBe(true);
+  });
+
+  it('reads nothing past the character when the reader may not mark it', async () => {
+    await findsWorld();
+    const gmOwn = world.addCharacter(campaign, 'Lantern Warden', { ownerId: gm });
+    world.signInAs(gm);
+    const tables: string[] = [];
+    const from = world.db.from.bind(world.db);
+    vi.spyOn(world.db, 'from').mockImplementation(((table: string) => {
+      tables.push(table);
+      return from(table as never);
+    }) as never);
+    const read = await loadFindsRead(world.db, campaign, gmOwn, () => false);
+    expect(read).toBeNull();
+    expect(tables).toEqual(['actors']);
+  });
+
+  it('starts the read of what is new beside the Pack’s own reads', async () => {
+    await findsWorld();
+    await send('Bronze ring');
+    // Hold the Pack's inventory read until the read of what is new has asked for the mark.
+    let release = () => {};
+    const held = new Promise<void>((done) => (release = done));
+    const asked: string[] = [];
+    const from = world.db.from.bind(world.db);
+    vi.spyOn(world.db, 'from').mockImplementation(((table: string) => {
+      asked.push(table);
+      const query = from(table as never) as unknown as PromiseLike<unknown> & { then: PromiseLike<unknown>['then'] };
+      if (table !== 'inventory_lines') return query;
+      const then = query.then.bind(query);
+      query.then = ((done: never, fail: never) => held.then(() => then(done, fail))) as never;
+      return query;
+    }) as never);
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
+    await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
+    await waitFor(() => expect(asked).toContain('finds_seen'));
+    release();
+    expect(await screen.findByRole('heading', { name: 'New in your pack' })).toBeTruthy();
   });
 });

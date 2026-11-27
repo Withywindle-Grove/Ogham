@@ -278,26 +278,44 @@ const textOf = (v: unknown) => (typeof v === 'string' ? v : null);
 /**
  * K20b's read of what is new, for one character: the character, its mark, the log's own read of the inventory's,
  * purses' and clock's lines since the mark (under the log's read rule: a line another player may not read never comes),
- * the campaign's GMs and the character's purse. Nothing new is read or allowed. Null on error.
+ * the campaign's GMs and the character's purse. A purse's lines are asked for this character's own purse only (K21b's
+ * hidden-data cell: another character's amounts are never asked for, the read rule aside). `may` is who the read is
+ * for (`markFindsSeen.allowed`): when it says no, nothing past the character is read. Nothing new is read or allowed.
+ * Null on error, or when `may` says no.
  */
-export async function loadFindsRead(db: Db, campaignId: string, characterId: string): Promise<FindsRead | null> {
+export async function loadFindsRead(
+  db: Db,
+  campaignId: string,
+  characterId: string,
+  may: (character: CharacterRef) => boolean = () => true,
+): Promise<FindsRead | null> {
   const actor = await db.from('actors').select('id, campaign_id, owner_type, owner_user_id, approval, status').eq('id', characterId).maybeSingle();
   if (actor.error || !actor.data) return null;
+  const character = toCharacterRef(actor.data);
+  if (!may(character)) return null;
   const seenAt = await loadFindsSeen(db, characterId);
   const [members, purse] = await Promise.all([
     db.from('members').select('user_id, base_role').eq('campaign_id', campaignId),
     db.from('purses').select('id').eq('campaign_id', campaignId).eq('actor_id', characterId).maybeSingle(),
   ]);
   if (members.error) return null;
-  const rows: unknown[] = [];
-  for (let from = 0; ; from += FIND_PAGE) {
-    const query = db.from('events').select(FIND_EVENT_COLUMNS).eq('campaign_id', campaignId).in('target_table', ['inventory_lines', 'purses', 'campaign_clocks']);
-    const page = await (seenAt ? query.gt('created_at', seenAt) : query).order('seq', { ascending: true }).range(from, from + FIND_PAGE - 1);
-    if (page.error || !page.data) return null;
-    rows.push(...page.data);
-    if (page.data.length < FIND_PAGE) break;
-  }
-  const read = rows.map((row): LogEvent => {
+  const purseId = purse.error ? null : textOf(purse.data?.id);
+  // Two reads, a page at a time: the inventory's and the clock's lines, and the lines of this character's own purse.
+  const pages = async (narrow: (query: ReturnType<typeof eventsSince>) => ReturnType<typeof eventsSince>): Promise<unknown[] | null> => {
+    const rows: unknown[] = [];
+    for (let from = 0; ; from += FIND_PAGE) {
+      const page = await narrow(eventsSince(db, campaignId, seenAt)).order('seq', { ascending: true }).range(from, from + FIND_PAGE - 1);
+      if (page.error || !page.data) return null;
+      rows.push(...page.data);
+      if (page.data.length < FIND_PAGE) return rows;
+    }
+  };
+  const [lines, coin] = await Promise.all([
+    pages((q) => q.in('target_table', ['inventory_lines', 'campaign_clocks'])),
+    purseId ? pages((q) => q.eq('target_table', 'purses').eq('target_id', purseId)) : Promise.resolve([]),
+  ]);
+  if (!lines || !coin) return null;
+  const read = [...lines, ...coin].map((row): LogEvent => {
     const r = row as Record<string, unknown>;
     return {
       id: String(r.id),
@@ -316,12 +334,19 @@ export async function loadFindsRead(db: Db, campaignId: string, characterId: str
       createdAt: String(r.created_at),
     };
   });
+  read.sort((a, b) => a.seq - b.seq);
   return {
-    character: toCharacterRef(actor.data),
+    character,
     seenAt,
     events: read.filter((e) => e.targetTable !== 'campaign_clocks'),
     clocks: read.filter((e) => e.targetTable === 'campaign_clocks'),
     gmUserIds: new Set((members.data ?? []).flatMap((m) => (m.base_role === 'gm' && typeof m.user_id === 'string' ? [m.user_id] : []))),
-    purseId: purse.error ? null : textOf(purse.data?.id),
+    purseId,
   };
+}
+
+/** The campaign's log lines since the mark (all of them with no mark), as K20b reads them. */
+function eventsSince(db: Db, campaignId: string, seenAt: string | null) {
+  const query = db.from('events').select(FIND_EVENT_COLUMNS).eq('campaign_id', campaignId);
+  return seenAt ? query.gt('created_at', seenAt) : query;
 }

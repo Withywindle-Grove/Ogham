@@ -33,10 +33,30 @@ const draw = (entries: FindEntry[], extra: { offlineBox?: boolean; onGotIt?: () 
   render(<FindCard entries={entries} words={words} onGotIt={extra.onGotIt ?? none} onMore={extra.onMore ?? none} offlineBox={extra.offlineBox} />);
 
 describe('the find card (K18b)', () => {
-  // Purpose: with nothing new the part draws nothing at all.
-  it('draws nothing for no finds', () => {
+  // Purpose: with nothing new the part draws only its live region, empty, so the first find is a change inside a region
+  // the screen reader already watches (local review of #158, finding 1); a host keeping its own region gets nothing.
+  it('draws only its empty live region for no finds, and nothing when the host keeps the region', () => {
     const { container } = draw([]);
-    expect(container.innerHTML).toBe('');
+    expect(container.innerHTML).toBe('<div class="find-card-live" role="status"></div>');
+    cleanup();
+    const hosted = render(<FindCard entries={[]} words={words} onGotIt={none} onMore={none} live={false} />);
+    expect(hosted.container.innerHTML).toBe('');
+  });
+
+  // Purpose: the card's first find arrives inside the region that was already there, not in a new one.
+  it('draws the first find inside the region that was already there', () => {
+    const { container, rerender } = draw([]);
+    const region = container.querySelector('.find-card-live');
+    rerender(<FindCard entries={[thing('Moon opal')]} words={words} onGotIt={none} onMore={none} />);
+    expect(container.querySelector('.find-card')?.closest('.find-card-live')).toBe(region);
+  });
+
+  // Purpose: every font weight in the card's stylesheet is a token (hard rule 7; local review of #158, finding 5).
+  it('writes its font weights as tokens only', async () => {
+    const fs = (await import(/* @vite-ignore */ ['node', 'fs'].join(':'))) as { readFileSync: (path: string, encoding: 'utf8') => string };
+    const weights = [...fs.readFileSync('./src/app/FindCard.css', 'utf8').matchAll(/font-weight:\s*([^;]+);/g)].map((m) => m[1]!.trim());
+    expect(weights.length).toBeGreaterThan(0);
+    expect(weights.filter((w) => !/^var\(--weight-[a-z-]+\)$/.test(w))).toEqual([]);
   });
 
   // Purpose: one thing reads as FD1 draws it: the head, the thing's name, who and when under it, and "Got it" beside

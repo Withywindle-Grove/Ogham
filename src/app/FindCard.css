@@ -12,6 +12,13 @@
   inline-size: 100%;
 }
 
+/* With no finds the region stays in the page, empty (local review of #158, finding 1), out of its column's flow so the
+   column leaves no gap for it and it takes no room (as the call card's empty slot does). */
+.find-card-live:empty {
+  position: absolute;
+  inline-size: auto;
+}
+
 .find-card {
   border: var(--line-selected) solid var(--ink);
   border-radius: var(--radius-card);
@@ -74,7 +81,7 @@
 }
 
 .find-card__now {
-  font-weight: normal;
+  font-weight: var(--weight-book-text);
 }
 
 .find-card__quiet {

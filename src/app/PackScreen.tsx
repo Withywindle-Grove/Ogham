@@ -51,13 +51,8 @@ import { loadPurse, loadStashCoin, type Coins } from '../modules/inventory/purse
 import type { CharacterLightView } from './LightSection.tsx';
 import { registry } from './services.ts';
 import { usePlayerView } from './playerView.ts';
-import { loadCampaignSettings } from '../core/campaignCommands.ts';
-import type { CharacterRef } from '../modules/characters/commands.ts';
-import { findsSince, loadFindsRead, markFindsSeen, type FindEntry } from '../modules/characters/findsSeen.ts';
-import { readClock } from '../modules/expedition/clock.ts';
-import { loadClockNow } from '../modules/expedition/lightPlay.ts';
-import { campaignUnits } from '../modules/expedition/play.ts';
-import { secondsAt, whenWords } from '../modules/inventory/stashHistory.ts';
+import { markFindsSeen, type FindEntry } from '../modules/characters/findsSeen.ts';
+import { anchorIn, FINDS_NOT_MARKED, packFindsOf, readPackFinds, type PackFinds } from './packFinds.ts';
 import { FindCard } from './FindCard.tsx';
 
 // Kept here too, for the screens that already import it from the Pack (AddItem, WaitingForYou).
@@ -78,74 +73,8 @@ interface Loaded {
   finds: PackFinds | null;
 }
 
-/** "Got it" did not reach the server (p45-17, p45-24): what failed, and no more. */
-export const FINDS_NOT_MARKED = 'Couldn’t mark these as seen.';
-
-/** What is new on a character's Pack (K20b; K20a's `findsSince`), for its own player. */
-export interface PackFinds {
-  character: CharacterRef;
-  /** K20a's entries, newest first; empty once "Got it" is written. */
-  entries: FindEntry[];
-  /** An arrival's time in the stash's words ("today", "day 3"; with no campaign clock, the date). */
-  when: (at: string) => string;
-}
-
-/**
- * What is new on a character's Pack for its own player (K20b), from K20a's reading of the log (`loadFindsRead`,
- * `findsSince`); null for anyone else (the GM, his own character and his view as the player too: ⚑ F5's lean) or when
- * it can't be read. Shared with K18c, K18d and K19b, which need the same entries.
- */
-export async function loadPackFinds(
-  db: Db,
-  user: CurrentUser,
-  campaignId: string,
-  characterId: string,
-  lines: readonly InventoryLine[],
-  rulesSets: readonly Record<string, unknown>[],
-): Promise<PackFinds | null> {
-  const [read, clock, settings] = await Promise.all([loadFindsRead(db, campaignId, characterId), loadClockNow(db, campaignId), loadCampaignSettings(db, campaignId)]);
-  if (!read || !markFindsSeen.allowed(user, read.character)) return null;
-  const entries = findsSince({
-    character: { id: read.character.id, ownerUserId: read.character.ownerUserId, purseId: read.purseId },
-    gmUserIds: read.gmUserIds,
-    events: read.events,
-    lines,
-    seenAt: read.seenAt,
-  });
-  // The day an arrival came, as the stash's history says it (K14): by the campaign's clock where it has one.
-  const seqAt = new Map(read.events.map((e) => [e.createdAt, e.seq] as const));
-  const units = campaignUnits(settings, rulesSets);
-  const when = (at: string) => {
-    const today = new Date(at).toDateString() === new Date().toDateString();
-    const seq = seqAt.get(at);
-    const seconds = clock === null || seq === undefined ? null : secondsAt({ seq }, read.clocks, clock);
-    if (clock === null || seconds === null) return whenWords({ day: null, date: at, today });
-    const day = readClock(seconds, units).day;
-    return whenWords({ day, date: at, today: day === readClock(clock, units).day });
-  };
-  return { character: read.character, entries, when };
-}
-
 /** An entry as the scroll hold tells one card from the next: what it is, and whether it was taken back. */
 const findKey = (e: FindEntry) => `${e.kind === 'thing' ? e.lineId : e.purseId}:${e.kind === 'thing' ? e.arrived : JSON.stringify(e.coins)}:${e.takenBack ? 1 : 0}`;
-
-/**
- * The row the reader's eye is on: the list row or group heading nearest the middle of the screen, and where it is now.
- * A new row is never chosen, since the GM's Undo may take it away.
- */
-function anchorIn(list: HTMLElement | null): { el: Element; top: number; atTop: boolean } | null {
-  if (!list || typeof window === 'undefined') return null;
-  const eye = window.innerHeight / 2;
-  let best: { el: Element; top: number; off: number } | null = null;
-  for (const el of list.querySelectorAll('.pack__group-head, .pack__rows > li')) {
-    if (el.querySelector('.pack__new')) continue;
-    const box = el.getBoundingClientRect();
-    if (box.bottom <= 0 || box.top >= window.innerHeight) continue;
-    const off = box.top <= eye && box.bottom >= eye ? 0 : Math.min(Math.abs(box.top - eye), Math.abs(box.bottom - eye));
-    if (!best || off < best.off) best = { el, top: box.top, off };
-  }
-  return best && { el: best.el, top: best.top, atTop: window.scrollY <= 0 };
-}
 
 /** No tiny categories (a setting that marks none): only items marked `unencumbering` themselves are tiny. */
 const NO_TINY: ReadonlySet<string> = new Set();
@@ -275,17 +204,23 @@ function PackTab({
   const findsOf = view === 'pack' && carrierId !== null && playerView === null ? carrierId : null;
 
   const load = useCallback(async () => {
-    const [inventory, carriers, setting, settings, hidden, treasure] = await Promise.all([
+    const [inventory, carriers, setting, settings, hidden, treasure, findsRead] = await Promise.all([
       loadInventory(db, campaign.id),
       loadCarriers(db, campaign.id),
       loadCampaignSetting(db, user.id, campaign.id),
       loadInventorySettings(db, campaign.id),
       loadHiddenCharges(db, campaign.id),
       loadTreasureSwitches(db, campaign.id),
+      // A failed read of what is new is no card, never a failed Pack.
+      findsOf ? readPackFinds(db, user, campaign.id, findsOf).catch(() => null) : null,
     ]);
     if (!inventory || !carriers || !setting || !settings) return null;
-    // A failed read of what is new is no card, never a failed Pack.
-    const finds = findsOf ? await loadPackFinds(db, user, campaign.id, findsOf, inventory.lines, setting.rulesSets).catch(() => null) : null;
+    let finds: PackFinds | null;
+    try {
+      finds = findsRead && packFindsOf(findsRead, inventory.lines, setting.rulesSets);
+    } catch {
+      finds = null;
+    }
     return { lines: inventory.lines, carriers, setting, mode: settings.mode, rechargeDefault: settings.rechargeDefault, hidden, treasure: treasure ?? new Map(), finds };
   }, [db, user, campaign.id, findsOf]);
 
@@ -679,7 +614,9 @@ function PackTab({
   const arrived = finds ? finds.entries.filter((e) => e.takenBack === null) : [];
   const newLines = arrived.flatMap((e) => (e.kind === 'thing' && e.lineId ? [e.lineId] : []));
   const coinNew = arrived.some((e) => e.kind === 'coin');
-  const findCard = finds && finds.entries.length > 0 && (
+  // Drawn whenever this Pack can show finds, even with none: its live region is then in the page, empty and without
+  // room, before the first find, so the card's arrival is read out (local review of #158, finding 1).
+  const findCard = finds && (
     <FindCard
       entries={finds.entries}
       words={{
