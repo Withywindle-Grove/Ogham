@@ -849,7 +849,7 @@ describe('purse lines', () => {
     const from = line('purse.take', 'user-priya', 'purse-wren', 30, 20, 'req-gm-move', 'with:actor-moss');
     const to = line('purse.take', 'user-priya', 'purse-moss', 0, 10, 'req-gm-move', 'with:actor-wren');
     expect(read([from, to])).toBe('Your GM moved 10 herons from Wren to Moss.');
-    // Wren’s player reads only Wren’s side, Moss's player only Moss's: the same line.
+    // Wren’s player reads only Wren’s side, Moss’s player only Moss’s: the same line.
     expect(read([from], { purses: new Map([['purse-wren', { actorId: 'actor-wren' }]]) })).toBe('Your GM moved 10 herons from Wren to Moss.');
     expect(read([to], { purses: new Map([['purse-moss', { actorId: 'actor-moss' }]]) })).toBe('Your GM moved 10 herons from Wren to Moss.');
   });

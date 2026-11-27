@@ -7,6 +7,7 @@
 // and the toast with Undo. Everything here is the GM's: nothing of a hoard's rows or a thing's worth reaches a player.
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
+import { withTheStart } from '../core/nameWords.ts';
 import { loadCommandLog, type LogEvent } from '../core/events.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
@@ -88,8 +89,8 @@ export function truthToastWords(name: string, thing: string, holders: readonly (
   if (holders.length === 0) return first;
   if (holders.length > 1) return `${first} Each ${plain} sent now carries its name.`;
   const holder = holders[0];
-  if (holder === null) return `${first} The ${plain} in the party stash now carries its name.`;
-  return holder ? `${first} The ${plain} ${holder} holds now carries its name.` : `${first} The ${plain} now carries its name.`;
+  if (holder === null) return `${first} ${withTheStart(plain)} in the party stash now carries its name.`;
+  return holder ? `${first} ${withTheStart(plain)} ${holder} holds now carries its name.` : `${first} ${withTheStart(plain)} now carries its name.`;
 }
 
 interface Setting {

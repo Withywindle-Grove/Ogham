@@ -34,7 +34,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { forgetFileLinks } from '../core/files.ts';
 import { runCommand } from '../core/commands.ts';
 import { whoseIs, type Player } from '../core/gmCampaign.ts';
-import { possessive } from '../core/nameWords.ts';
 import { archiveCharacter, reassignCharacter, toCharacterRef } from '../modules/characters/commands.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { viewBandWords } from '../ui/ViewBand.tsx';
@@ -95,7 +94,9 @@ afterEach(() => {
 
 type User = ReturnType<typeof userEvent.setup>;
 const actor = (id: string) => world.tables.actors.find((a) => a.id === id)!;
-const rowOf = (name: string) => screen.getByRole('button', { name: `View ${possessive(name)} sheet` }).closest('li') as HTMLElement;
+/** Each row's name as its View sheet button writes it (words rule 13), spelt out here rather than by the helper under test. */
+const SHEET_OF: Record<string, string> = { Wren: 'Wren’s', Tam: 'Tam’s', Moss: 'Moss’', Ash: 'Ash’s' };
+const rowOf = (name: string) => screen.getByRole('button', { name: `View ${SHEET_OF[name]} sheet` }).closest('li') as HTMLElement;
 /** A row's buttons, ⋯ as "⋯". */
 const buttonsOf = (row: HTMLElement) => within(row).getAllByRole('button').map((b) => (b.getAttribute('aria-label')?.startsWith('More for') ? '⋯' : b.textContent));
 const band = () => screen.getByRole('note');

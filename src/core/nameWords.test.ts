@@ -23,6 +23,6 @@ describe('a name in a sentence (words rule 13)', () => {
   it('at a sentence’s start: "The Sack", "The Old Satchel"', () => {
     expect(withTheStart('Sack')).toBe('The Sack');
     expect(withTheStart('The Old Satchel')).toBe('The Old Satchel');
-    expect(withTheStart('the reed basket')).toBe('the reed basket'.replace(/^t/, 'T'));
+    expect(withTheStart('the reed basket')).toBe('The reed basket');
   });
 });

@@ -438,7 +438,6 @@ const changedWords = (values: Record<string, unknown>) =>
     .filter(([key]) => key in values)
     .map(([, word]) => word);
 
-
 /** The review note an approval writes when it allowed exceptions (final drafts D): "Allowed: Croak and Starting coin 190". */
 export const ALLOWED_PREFIX = 'Allowed: ';
 

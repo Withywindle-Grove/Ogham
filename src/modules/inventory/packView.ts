@@ -7,6 +7,9 @@ import { chargesOf, type ChargeRules } from './charges.ts';
 import { bagFill, carriedLoad, fillWords, isTreasure, toLoadLine, type CarriedLoad, type EncumbranceRules } from './encumbrance.ts';
 import type { InventoryLine } from './inventory.ts';
 import { isAmmunition, oneUpVerb, type UseVerb } from '../../core/useWords.ts';
+// A name's "the" and possessive (words rule 13) live in core so the log writes them the same way.
+import { possessive, withThe } from '../../core/nameWords.ts';
+export { possessive, withThe };
 
 export interface PackGroup {
   key: string;
@@ -159,10 +162,6 @@ export function shownName(name: string): string {
   const first = name.trimStart();
   return first ? first.charAt(0).toLocaleUpperCase() + first.slice(1) : name;
 }
-
-// A name's "the" and possessive (words rule 13) live in core so the log writes them the same way.
-import { possessive, withThe, withTheStart } from '../../core/nameWords.ts';
-export { possessive, withThe, withTheStart };
 
 /**
  * Some of a stack in words (words batch 1, ruled 2026-10-26): the pack's `unitName` for one and `pluralName` for
