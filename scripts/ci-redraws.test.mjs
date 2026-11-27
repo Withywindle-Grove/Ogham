@@ -158,6 +158,41 @@ describe('the verdict', () => {
     expect(result.problems[0]).toMatch(/^shard 2: no report/);
   });
 
+  it.fails('accepts a picture that changed size and timed out retaking, but still refuses a bare timeout or a -previous.png', () => {
+    // Purpose: a picture whose size changed makes Playwright retake it until its timeout (#122, run 46057493958, the
+    // tablet move-on-parts pictures); that timeout is not movement, so the redraw is accepted. A timeout with no size
+    // change, or a size change with a -previous.png (two takes that differed), still refuses as "never held still".
+    const name = 'phone-light-atoms.png';
+    const sizeLine = 'Expected an image 992px by 7709px, received 992px by 9710px. 340626 pixels (ratio 0.04 of all image pixels) are different.';
+    const timedOutTake = (lines, options) => {
+      const attempt = differing([name], options);
+      attempt.errors = [
+        {
+          message: `\x1b[2mexpect(\x1b[22m\x1b[31mlocator\x1b[39m\x1b[2m).\x1b[22mtoHaveScreenshot\x1b[2m(\x1b[22m\x1b[32mexpected\x1b[39m\x1b[2m)\x1b[22m failed\n\n    Locator: locator('.gallery__section').nth(31)\n    Timeout: 5000ms\n      Timeout 5000ms exceeded.\n\n      Snapshot: ${name}\n\n    Call log:\n      - Expect "soft toHaveScreenshot(${name})" locator('.gallery__section').nth(31) with timeout 5000ms\n${lines.map((line) => `      - ${line}\n`).join('')}      - Timeout 5000ms exceeded.\n`,
+        },
+      ];
+      return attempt;
+    };
+    const both = (lines, options = {}) => ({
+      title: COMPARISON,
+      file: 'gallery.spec.ts',
+      status: 'unexpected',
+      results: [timedOutTake(lines, options), timedOutTake(lines, { ...options, retry: 1 })],
+    });
+    const resized = judge([{ shard: 1, report: report(both([sizeLine, 'waiting 100ms before taking screenshot'])) }], announced);
+    expect(resized.verdict).toBe('accept');
+    expect(resized.redraws.map((r) => r.name)).toEqual([name]);
+    expect(resized.redraws[0].attachment).toContain('-retry1/phone-light-atoms-actual.png');
+    const bare = judge([{ shard: 1, report: report(both(['waiting for element to be stable'])) }], announced);
+    expect(bare.verdict).toBe('refuse');
+    expect(bare.problems.join('\n')).toContain('never held still');
+    const sameSize = 'Expected an image 992px by 7709px, received 992px by 7709px. 120 pixels (ratio 0.01 of all image pixels) are different.';
+    expect(judge([{ shard: 1, report: report(both([sameSize])) }], announced).verdict).toBe('refuse');
+    const moved = judge([{ shard: 1, report: report(both([sizeLine], { previous: true })) }], announced);
+    expect(moved.verdict).toBe('refuse');
+    expect(moved.problems.join('\n')).toContain('never held still');
+  });
+
   it('reports an announced picture that did not change, and still accepts the ones that did', () => {
     const result = judge([{ shard: 1, report: report(failedComparison(['phone-light-atoms.png'])) }], announced);
     expect(result.verdict).toBe('accept');
