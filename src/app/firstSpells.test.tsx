@@ -209,6 +209,43 @@ describe('First spells (cr-13)', () => {
     }
   });
 
+  it('a skipped First spells reached by Back says why: a level lowered on Who they are leaves the class no spells', async () => {
+    // Purpose: L5 (clo-5, clo-17): the steps were set at level 2; lowered to 1, First spells has nothing, Next passes it,
+    // and Back onto it shows the app's line naming the class in the singular, with "Nothing to choose here" once.
+    fenWorld();
+    // The chaplain given one prayer when the spells come (level 2), so a level-2 chaplain has the step.
+    const chaplain = world.tables.library_entries.find((e) => e.pack_entry_id === 'marsh-chaplain')!;
+    const casting = (chaplain.data as { spellcasting: Record<string, unknown> }).spellcasting;
+    chaplain.data = { ...(chaplain.data as Record<string, unknown>), spellcasting: { ...casting, firstSpells: { given: ['lantern-blessing'] } } };
+    const user = openApp();
+    await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
+    await user.click(await screen.findByRole('button', { name: 'Create your character' }));
+    await user.click(await screen.findByRole('button', { name: /^Guided/ }));
+    await screen.findByRole('heading', { name: /^Scores/ });
+    await next(user);
+    await pick(user, 'Bog folk');
+    await next(user);
+    await pick(user, 'Marsh Chaplain');
+    await next(user);
+    if (heading() === 'Adjust scores') await next(user);
+    await screen.findByRole('heading', { name: 'Who they are' });
+    await user.type(screen.getByLabelText('Name'), 'Tam');
+    await user.click(screen.getByRole('button', { name: 'More starting level' }));
+    await next(user);
+    await screen.findByRole('heading', { name: 'First spells' });
+    await user.click(screen.getByRole('button', { name: 'Back to the step before' }));
+    await screen.findByRole('heading', { name: 'Who they are' });
+    await user.click(screen.getByRole('button', { name: 'Less starting level' }));
+    await next(user);
+    await screen.findByRole('heading', { name: 'Gear' });
+    await user.click(screen.getByRole('button', { name: 'Back to the step before' }));
+    await screen.findByRole('heading', { name: 'First spells' });
+    expect(document.querySelector('.creation-step__why')?.textContent).toContain('A Marsh Chaplain has no spells to pick.');
+    expect(hint()).toBe('Nothing to choose here');
+    expect(screen.getAllByText(/Nothing to choose here/)).toHaveLength(1);
+    expect(screen.queryByText('Skipped')).toBeNull();
+  });
+
   it('Decide later writes what is picked so far and puts First spells on the To finish list', async () => {
     fenWorld();
     const user = openApp();
