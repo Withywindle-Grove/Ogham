@@ -386,6 +386,57 @@ describe('the feeders of Waiting for you (S8b)', () => {
     expect(await panel().findByRole('region', { name: /^Encounter waiting, / })).toBeTruthy();
   });
 
+  /** A rolled hit whose words the GM has shown the players: the card and its standing reveal. */
+  async function revealedHit(user: ReturnType<typeof userEvent.setup>) {
+    await nextTurn(user, 2);
+    await user.click(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' }));
+    await user.click(within(await screen.findByRole('dialog', { name: 'Encounters in the harbour' })).getByRole('radio', { name: /Gulls, mobbing the boat/ }));
+    const card = within(await panel().findByRole('region', { name: /^Encounter waiting, / }));
+    await user.click(card.getByRole('button', { name: 'Reveal…' }));
+    await user.click(within(await screen.findByRole('dialog', { name: 'An encounter: Reveal to players' })).getByRole('button', { name: 'Show players' }));
+    expect(await card.findByRole('button', { name: 'Revealed: take it back' })).toBeTruthy();
+    expect(world.tables.check_reveals.filter((r) => !r.taken_back)).toHaveLength(1);
+    return card;
+  }
+
+  // Purpose (Scene sitting, 27 Nov, "GM's Done ends it"): Done on a card whose words are revealed takes the reveal back
+  // too, by the take-back command the "Revealed" tap uses, so no reveal is left standing that the GM can no longer reach;
+  // Done's Undo brings back both the card and the reveal, with the same words.
+  it('Done on a revealed card takes the reveal back too, and Undo brings back both', async () => {
+    const t = await table({ rollOnTable: true });
+    scene(t);
+    const user = userEvent.setup();
+    const card = await revealedHit(user);
+    await user.click(card.getByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(screen.queryByRole('region', { name: /^Encounter waiting, / })).toBeNull());
+    await waitFor(() => expect(world.tables.check_reveals.filter((r) => !r.taken_back)).toHaveLength(0));
+    expect(world.tables.events.filter((e) => e.type === 'check.takeBackWords' && e.audience === 'gm')).toHaveLength(1);
+    expect(world.tables.waiting_encounters[0]).toMatchObject({ state: 'started' });
+    const toast = (await screen.findByText('Encounter closed. Taken back from the players.')).closest('.toast') as HTMLElement;
+    await user.click(within(toast).getByRole('button', { name: 'Undo' }));
+    const back = within(await panel().findByRole('region', { name: /^Encounter waiting, / }));
+    expect(await back.findByRole('button', { name: 'Revealed: take it back' })).toBeTruthy();
+    expect(world.tables.check_reveals.filter((r) => !r.taken_back)).toMatchObject([{ words: 'Gulls, mobbing the boat' }]);
+  });
+
+  // Purpose (Scene sitting, 27 Nov, "End expedition ends it"): ending the expedition takes back every reveal still
+  // standing, each by the take-back command, so nothing carries into the next expedition; End's Undo shows them again.
+  it('End expedition takes back every standing reveal, and Undo shows them again', async () => {
+    const t = await table({ rollOnTable: true });
+    scene(t);
+    const user = userEvent.setup();
+    await revealedHit(user);
+    await user.click(screen.getByRole('button', { name: 'Time options' }));
+    await user.click(within(document.querySelector('.more-menu__panel') as HTMLElement).getByRole('button', { name: 'End expedition' }));
+    await screen.findByRole('region', { name: 'Expedition ended' });
+    await waitFor(() => expect(world.tables.check_reveals.filter((r) => !r.taken_back)).toHaveLength(0));
+    expect(world.tables.events.filter((e) => e.type === 'check.takeBackWords' && e.audience === 'gm')).toHaveLength(1);
+    const toast = (await screen.findByText(/^Expedition ended\./)).closest('.toast') as HTMLElement;
+    await user.click(within(toast).getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(world.tables.check_reveals.filter((r) => !r.taken_back)).toMatchObject([{ words: 'Gulls, mobbing the boat' }]));
+    expect(world.tables.expeditions.at(-1)).toMatchObject({ ended_at: null });
+  });
+
   // Purpose: where no panel shows (a town keeps today's screen until 5t), the strip draws today's card, as before.
   it('draws today’s card in the strip where no panel shows', async () => {
     const t = await table();

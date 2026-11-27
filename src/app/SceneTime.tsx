@@ -1269,13 +1269,20 @@ export function SceneTime({
   /**
    * Done on the encounter's one card (sf-4; ⚑ 2, ruled 26 Nov: no Start until fights are built, Done closes the card):
    * the card is marked played (encounter.start, the command M6 turns into a fight), so it leaves the queue. Logged; Undo
-   * from the toast puts it back.
+   * from the toast puts it back. A reveal that stands for the card is taken back too, by the same take-back as the
+   * "Revealed" tap ("GM's Done ends it", Scene sitting, 27 Nov), so none is left that the GM can no longer reach; the
+   * toast's Undo brings back both the card and the reveal, with the same words.
    */
   async function doneWaiting(card: EncounterCard) {
+    const shown = revealOf(card);
     const done = await act(startEncounter, { campaignId: campaign.id, encounter: card.encounter });
     if (!done) return;
     if (hit?.result.id === card.hit.id) setHit(null);
-    show({ text: 'Encounter closed.', onUndo: () => void undoLatest('encounter.start') });
+    const taken = shown && (await takeBackNow(shown)) ? [shown] : [];
+    show({
+      text: taken.length > 0 ? 'Encounter closed. Taken back from the players.' : 'Encounter closed.',
+      onUndo: () => void undoLatest('encounter.start', taken.length > 0 ? () => void showAgain(taken) : undefined),
+    });
   }
 
   /**
@@ -1318,17 +1325,23 @@ export function SceneTime({
    * (check.takeBackWords); players stop reading its words. From "Revealed", the toast's Undo shows the same words again.
    */
   async function takeBack(reveal: CheckReveal, offerUndo = true) {
+    if (!(await takeBackNow(reveal)) || !offerUndo) return;
+    show({ text: 'Taken back from the players.', onUndo: () => void showAgain([reveal]) });
+  }
+
+  /** One reveal taken back (check.takeBackWords), with no toast of its own; true when it was. */
+  async function takeBackNow(reveal: CheckReveal): Promise<boolean> {
     const done = await act(takeBackCheckWords, { campaignId: campaign.id, revealId: reveal.id });
-    if (!done) return;
-    setReveals((was) => was.filter((r) => r.id !== reveal.id));
-    if (!offerUndo) return;
-    show({
-      text: 'Taken back from the players.',
-      onUndo: () =>
-        void act(showCheckWords, { campaignId: campaign.id, resultId: reveal.checkResultId, words: reveal.words }, () => REVEAL_FAILED).then(
-          (made) => made && setReveals((was) => [made, ...was.filter((r) => r.id !== made.id)]),
-        ),
-    });
+    if (done) setReveals((was) => was.filter((r) => r.id !== reveal.id));
+    return !!done;
+  }
+
+  /** The Undo of a take-back: each reveal's words shown again (check.showWords), one after the other. */
+  async function showAgain(taken: readonly CheckReveal[]) {
+    for (const reveal of taken) {
+      const made = await act(showCheckWords, { campaignId: campaign.id, resultId: reveal.checkResultId, words: reveal.words }, () => REVEAL_FAILED);
+      if (made) setReveals((was) => [made, ...was.filter((r) => r.id !== made.id)]);
+    }
   }
 
   /**
@@ -1666,15 +1679,29 @@ export function SceneTime({
 
   /** End expedition itself (⋯, or the leave sheet's End without rolls): the end, and its toast with Undo (S19, T11). */
   async function endWithToast(): Promise<boolean> {
-    const done = await endNow();
-    if (done) endToast.current = toasts.show({ text: `Expedition ended. ${tookWords(done)}`, onUndo: () => void undoLatest('expedition.end', () => setEnded(null)) });
-    return !!done;
+    const ending = await endNow();
+    if (ending) endToast.current = toasts.show({ text: `Expedition ended. ${tookWords(ending.done)}`, onUndo: () => void undoLatest('expedition.end', unEnd(ending.taken)) });
+    return !!ending;
   }
 
-  async function endNow(): Promise<Expedition | null> {
+  /** What End's Undo does once the end is undone: the summary goes, and the reveals End took back are shown again. */
+  const unEnd = (taken: readonly CheckReveal[]) => () => {
+    setEnded(null);
+    if (taken.length > 0) void showAgain(taken);
+  };
+
+  /**
+   * The expedition ends; then every reveal still standing is taken back, each by the take-back command ("End expedition
+   * ends it", Scene sitting, 27 Nov), so nothing carries into the next expedition. Read afresh, so a reveal from another
+   * GM device counts too. Gives back the ended expedition and the reveals taken back (for End's Undo).
+   */
+  async function endNow(): Promise<{ done: Expedition; taken: CheckReveal[] } | null> {
     if (!expedition) return null;
     const done = await act(endExpedition, { campaignId: campaign.id, expedition });
     if (!done) return null;
+    const standing = (await loadCheckReveals(db, campaign.id)) ?? reveals;
+    const taken: CheckReveal[] = [];
+    for (const reveal of standing) if (await takeBackNow(reveal)) taken.push(reveal);
     setEnded(done);
     // In a safe place? is the summary's first line, unanswered: no downtime offer until a Yes.
     setNotYet(false);
@@ -1691,7 +1718,7 @@ export function SceneTime({
     setEndedQuiet(true);
     setHit(null);
     setNotes('');
-    return done;
+    return { done, taken };
   }
 
   /** Use safe paths (of-5, sq-2): logged once per expedition, with Undo; the pack's note shows either way. */
@@ -1727,9 +1754,10 @@ export function SceneTime({
   /** The party leaves: the expedition ends (as End expedition does), its toast with Undo (T6b, case a). */
   async function leaveNow() {
     const where = startPlace?.name ?? null;
-    if (!(await endNow())) return;
+    const ending = await endNow();
+    if (!ending) return;
     // Tracked like End's toast: Start downtime takes it down, so its Undo can't un-end the expedition during downtime.
-    endToast.current = toasts.show({ text: where ? `The party left ${where}.` : 'The party left the dungeon.', onUndo: () => void undoLatest('expedition.end', () => setEnded(null)) });
+    endToast.current = toasts.show({ text: where ? `The party left ${where}.` : 'The party left the dungeon.', onUndo: () => void undoLatest('expedition.end', unEnd(ending.taken)) });
   }
 
   /** The tent (S2): Make camp's sheet where the setting has Quick camp; else it makes camp at once, with Undo. */
