@@ -116,6 +116,7 @@
   --text-48: calc(48px * var(--text-scale, 1));
   --line-body: 1.5;
   --line-heading: 1.2;
+  --tracking-label: 0.04em; /* a small-capitals label's letter spacing: the Pack's group heads (PK1, ⚑ 20) */
   --reading-width: 65ch;
 
   /* Older names, kept pointing at the scale until every screen uses the scale's names. */

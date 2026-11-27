@@ -30,6 +30,7 @@ import { Chip, StackedButton, WarningLine, WarningSign } from '../ui/parts.tsx';
 import { useOnline } from '../ui/creation.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import { itemCount } from './packHelpers.ts';
+import { PackDress } from './PackParts.tsx';
 import { factWords, putInWords, recentWhen, recentWords, thingCount, thingWords } from './stashWords.ts';
 import type { OpenCampaign } from './Campaigns.tsx';
 import type { CampaignSetting } from './campaignSetting.ts';
@@ -309,7 +310,7 @@ export function StashScreen({
         <span className="auth__meta">{itemCount(lines.length)}</span>
         <StackedButton icon="open-chest" label="Put in" onClick={onPutIn} />
       </div>
-      {side ? createPortal(beside, side) : beside}
+      {side ? createPortal(<PackDress>{beside}</PackDress>, side) : beside}
       {asking && (
         <TakeSheet
           line={asking}

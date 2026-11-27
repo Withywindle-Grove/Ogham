@@ -3,7 +3,7 @@
 // rows (a chevron where one asks more), Drop last and set apart (no confirm, Undo in the toast), and the star beside ✕
 // that pins the item to the top. Give to…, Put in… and Drop on a stack open the MoveSheet (ItemMoves.tsx). After an
 // action the item closes and the screen goes back to the top of the Pack (ruled 2026-10-24).
-import { useId, useState, type ReactNode } from 'react';
+import { useContext, useId, useState, type ReactNode } from 'react';
 import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
@@ -37,7 +37,8 @@ import { checkEquip, EquipWarningCard, type EquipCheck } from './EquipWarning.ts
 import { countWords, shownName } from '../modules/inventory/packView.ts';
 import { cameBackText, latestChange, undoChange, type CameBack } from '../core/undo.ts';
 import { MoveSheet, type Placement } from './ItemMoves.tsx';
-import { Dialog } from '../ui/Dialog.tsx';
+import { PackDressScope } from './PackParts.tsx';
+import { BookTypeScope, Dialog } from '../ui/Dialog.tsx';
 import { Breakdown, ListRow, PinStar, RowList, WarningSign } from '../ui/parts.tsx';
 import { RollPrompt } from '../ui/RollPrompt.tsx';
 import { RollCard } from '../ui/dice.tsx';
@@ -209,6 +210,8 @@ export function ItemSheet(props: ItemSheetProps) {
     categorySingular = '',
   } = props;
   const id = useId();
+  const inBook = useContext(BookTypeScope);
+  const dressed = useContext(PackDressScope);
   const blocked = useBlockedSheet();
   const { figure, setFigure, recharging, setRecharging, alsoHomebrew, setAlsoHomebrew, moving, setMoving, emptying, setEmptying, warned, setWarned, emptyTo, setEmptyTo, rechargeBy, setRechargeBy } = state;
   // The GM's view as the player (pg32-3, pg32-4; M3g, M3g2): the sheet is the player's, with no GM tool and no hidden
@@ -404,8 +407,10 @@ export function ItemSheet(props: ItemSheetProps) {
   }
 
   return (
-    <Dialog label={title} onClose={onClose} headAction={star} preview={preview}>
-      <div id={id} className="pack__sheet" role="region" aria-label={title}>
+    // In the book's type (the Pack tab, K29; the Player tab) a thing's sheet takes its name as the entry's heading (PK8,
+    // psw-4). Only in the Pack's dress does it lose its panel and take 16 px rows (PK8; the Player tab keeps pq-1's).
+    <Dialog label={title} onClose={onClose} headAction={star} preview={preview} bookHeading={inBook}>
+      <div id={id} className={`pack__sheet${dressed ? ' pack__sheet--thing' : ''}`} role="region" aria-label={title}>
         {problem && (
           <p className="pack__problem" role="note">
             <WarningSign /> {problem}
