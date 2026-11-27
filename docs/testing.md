@@ -18,7 +18,7 @@ How we keep things from breaking as the app grows. Automated checks catch most m
 | `npm run check` | Type check, lint, tests, the docs check and build, in order; stops at the first failure. Run before every commit. |
 | `npm run typecheck` | TypeScript type-check (strict) |
 | `npm run lint` | ESLint: common mistakes and React hook rules |
-| `npm test` | Vitest: all automated tests, once. Among them the scan tests: tokens only in stylesheets (`src/ui/designSystem.test.ts`), and the packages in `package.json` equal the list in `02-architecture.md`, "Packages" (`src/ui/packageList.test.ts`, hard rule 9) |
+| `npm test` | Vitest: all automated tests, once. Among them the scan tests: tokens only in stylesheets and in inline `style` values (`src/ui/designSystem.test.ts`, hard rule 7; old inline cases on `src/ui/inlineStyles.known.ts`), and the packages in `package.json` equal the list in `02-architecture.md`, "Packages" (`src/ui/packageList.test.ts`, hard rule 9) |
 | `npm run build` | Production build, as Vercel does it |
 | `npm run test:db` | Database access-rule tests, against the **test** project locally, or a throwaway local Supabase on GitHub (not part of `check`; see below) |
 | `npm run test:layout` | Layout checks in a real browser at phone and tablet widths (not part of `check`; see below) |
