@@ -158,7 +158,7 @@ describe('the verdict', () => {
     expect(result.problems[0]).toMatch(/^shard 2: no report/);
   });
 
-  it.fails('accepts a picture that changed size and timed out retaking, but still refuses a bare timeout or a -previous.png', () => {
+  it('accepts a picture that changed size and timed out retaking, but still refuses a bare timeout or a -previous.png', () => {
     // Purpose: a picture whose size changed makes Playwright retake it until its timeout (#122, run 46057493958, the
     // tablet move-on-parts pictures); that timeout is not movement, so the redraw is accepted. A timeout with no size
     // change, or a size change with a -previous.png (two takes that differed), still refuses as "never held still".
