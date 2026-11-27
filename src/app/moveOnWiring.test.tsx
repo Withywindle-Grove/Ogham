@@ -308,4 +308,36 @@ describe('Move on, wired to the time strip', () => {
     expect(await screen.findByText(MOVE_ON_PLAYERS_UNREAD)).toBeTruthy();
     expect(within(await sheet()).getByRole('button', { name: 'Rowing, 1 turn, to 2. The Islet' })).toBeTruthy();
   }, 30000);
+
+  // Purpose: a re-read of the ways (the log changed) that again finds the players' read failed must not stack a second copy of the same toast on the one the sheet already showed.
+  it('says the players’ read failed once per opening, not again on each re-read', async () => {
+    const t = await table();
+    const real = world.db.rpc.bind(world.db);
+    let failing = true;
+    vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: never) => (name === 'campaign_ways_on' && failing ? Promise.resolve({ data: null, error: { message: 'offline' } }) : real(name as never, args))) as never);
+    function Rereads() {
+      const [version, setVersion] = useState(1);
+      return (
+        <ToastHost>
+          <SceneMoveProvider>
+            <button onClick={() => setVersion((v) => v + 1)}>Re-read</button>
+            <MoveOnWiring db={world.db as unknown as Db} campaignId={t.campaign} expeditionId={t.expedition} version={version} onClose={() => undefined} onElsewhere={() => undefined} onBlocked={() => undefined} />
+          </SceneMoveProvider>
+        </ToastHost>
+      );
+    }
+    render(<Rereads />);
+    const user = userEvent.setup();
+    const first = await screen.findByText(MOVE_ON_PLAYERS_UNREAD);
+    failing = false;
+    await user.click(screen.getByRole('button', { name: 'Re-read' }));
+    await waitFor(() => expect(world.db.rpc).toHaveBeenCalledTimes(2));
+    failing = true;
+    await user.click(screen.getByRole('button', { name: 'Re-read' }));
+    await waitFor(() => expect(world.db.rpc).toHaveBeenCalledTimes(3));
+    await new Promise((r) => setTimeout(r, 200));
+    // The host shows one toast at a time and draws each new one as a new element: the first still standing means no second was shown.
+    expect(first.isConnected).toBe(true);
+    expect(screen.getByText(MOVE_ON_PLAYERS_UNREAD)).toBe(first);
+  }, 30000);
 });

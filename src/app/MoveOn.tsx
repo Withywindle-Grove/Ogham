@@ -4,7 +4,7 @@
 // that fall due in the move reach the card and the move's encounter check follows it. Mounted by the redesigned
 // place page (5b), whose Move on opens it; no screen mounts it before then (po-2: each thing once, in its final place).
 // The split party's pop-up (pt-f3 point 3) is the caller's to draw (`onBlocked`): it has no approved picture yet.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Db } from '../core/supabase.ts';
 import { destinationsOf, throughOf, wayMoveOf, wayOf } from '../modules/expedition/moveOnRows.ts';
 import { loadMoveOn, moveBlocked, type MoveOnRead } from '../modules/expedition/moveOnWays.ts';
@@ -69,8 +69,12 @@ export function MoveOnWiring({
     onClose();
   }, [read, show, onClose]);
   const playersUnread = read !== null && read !== 'unread' && read.playersUnread;
+  // Once per opening of the sheet: a later re-read that finds the same failure does not say it again.
+  const saidUnread = useRef(false);
   useEffect(() => {
-    if (playersUnread) show({ text: MOVE_ON_PLAYERS_UNREAD, error: true });
+    if (!playersUnread || saidUnread.current) return;
+    saidUnread.current = true;
+    show({ text: MOVE_ON_PLAYERS_UNREAD, error: true });
   }, [playersUnread, show]);
   if (read === null || read === 'unread') return null;
 
