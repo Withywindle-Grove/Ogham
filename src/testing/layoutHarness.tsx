@@ -1307,10 +1307,13 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     facts: [{ lead: 'Tides', text: 'Two a day; the bar dries at low water.' }],
     gm: { sections: [{ heading: 'The Tidewife', text: 'She keeps her word to the letter, and expects the same.' }], notes: 'The Tidewife keeps her word to the letter.' },
     // The pack's own sentence for its check (p2p-14; B3), shown on the place page's check card. &check=none: the harbour
-    // has no check of its own, so the Scene's facts row draws Light alone (Q4's one fact; the review of #110).
+    // has no check of its own, so the Scene's facts row draws Light alone (Q4's one fact; the review of #110). &check=roll:
+    // its check is a roll on its table, "On the water" (p2p-19), so a due check is EN1 A's card (sf-4; #126's review, 3).
     ...(new URLSearchParams(window.location.search).get('check') === 'none'
       ? {}
-      : { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' } }),
+      : new URLSearchParams(window.location.search).get('check') === 'roll'
+        ? { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, onHit: { tableId: 'on-the-water' }, note: 'Roll d8 for an encounter each time the party rows to a new Location.' } }
+        : { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' } }),
     rules: [{ id: 'falling-in', name: 'Falling into the harbour', button: { icon: 'water-splash', words: 'Someone fell in' }, text: 'A character in the harbour’s water is cold at once.' }],
     tableIds: ['tide-left', 'on-the-water'],
     // &strip=long (plan dec-9-the-whole-scene S7; page 02, S5): the harbour's own procedure, seven steps with long

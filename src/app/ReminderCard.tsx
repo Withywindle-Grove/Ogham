@@ -69,6 +69,11 @@ export function hitTitle(line: CardLine): string {
 
 const times = (count: number) => (count > 1 ? ` ×${count}` : '');
 
+/** A check that rolls its table, as one encounter's card (sf-4; page 44, EN1 A): titled by the table's name, else its own. */
+export function rollTitle(line: CardLine, tables: ReadonlyMap<string, ReadTable> | undefined): string {
+  return `${tables?.get(line.check?.hit.tables[0] ?? '')?.name ?? line.name}${times(line.count)}`;
+}
+
 /** "Roll 1d6 · on 1–2", "Roll the table", "Not this time", or the GM's call. */
 export function checkWords(line: CardLine): string {
   const check = line.check;
@@ -81,8 +86,7 @@ export function checkWords(line: CardLine): string {
 /**
  * A line's first answer, which is its row's one button in "Waiting for you" and, while it is open, the page's accent
  * (S8b): Hit on a check, Check again, Recharge, Roll… on a roll on its table, Enter roll… on a step's roll with a table,
- * else Done. Each with its icon
- * (S17): ic-6's bullseye, dice cup and crystal wand (page 21, SI2); the rolling dice and the tick as page 16 draws them (T2).
+ * else Done. Each with its icon (S17): ic-6's (page 21, SI2); the rolling dice and the tick as page 16 draws them (T2).
  */
 export function firstAnswer(line: CardLine): { id: 'hit' | 'rollCheck' | 'again' | 'recharge' | 'roll' | 'done'; label: string; icon: SetIconName } {
   // A check that is a roll on its table (p2p-19; sf-5, page 44 EN1 A, finding 7): Roll…, with the rolling dice.
@@ -135,6 +139,7 @@ export function ReminderCard({
 }) {
   const [all, setAll] = useState(false);
   const [modifying, setModifying] = useState<CardLine | null>(null);
+  const { onDismissCheck } = actions;
   if (card.length === 0) {
     return title ? (
       <p className="scene-card__empty" role="status">
@@ -149,17 +154,23 @@ export function ReminderCard({
   const nextWords = (line: CardLine) =>
     line.nextAt !== null && stepSeconds && startedAt !== null ? `next at ${stepWord} ${elapsedSteps(line.nextAt, startedAt, stepSeconds)}` : null;
 
+  // In "Waiting for you" a check that rolls its table is one encounter's card (EN1 A): the panel's crossed swords and the
+  // table's name as its heading, no "Due now" and no line head.
+  const encounter = single && card.length === 1 && rollsTable(card[0]!) ? rollTitle(card[0]!, roll?.tables) : null;
+
   return (
     <section className="scene-card" aria-label="Due">
       {/* B8 (M5 gate): what an advance brought due is due now, on the turn being played (never "Due · Next turn"). */}
-      <h3 className="label scene-card__title">{title ? 'Due now' : 'Due'}</h3>
+      <h3 className={encounter ? 'waiting-encounter__title' : 'label scene-card__title'}>{encounter ?? (title ? 'Due now' : 'Due')}</h3>
       <ul className="scene-card__lines">
         {lines.map((line) => (
           <li key={line.key} className="scene-card__line">
-            <div className="scene-card__head">
-              <StepSymbol symbol={line.icon} label={line.icon} small />
-              <span className="scene-card__name">{`${line.name}${times(line.count)}`}</span>
-            </div>
+            {!encounter && (
+              <div className="scene-card__head">
+                <StepSymbol symbol={line.icon} label={line.icon} small />
+                <span className="scene-card__name">{`${line.name}${times(line.count)}`}</span>
+              </div>
+            )}
             {rollsTable(line) ? (
               <RollOnTable
                 line={line}
@@ -168,7 +179,7 @@ export function ReminderCard({
                 onOpen={() => (actions.onRollCheck ? actions.onRollCheck(line) : actions.onHit(line))}
                 onHit={() => actions.onHit(line)}
                 onRow={(tap) => (actions.onRollRow ? actions.onRollRow(line, tap) : actions.onHit(line))}
-                onDismiss={actions.onDismissCheck ? () => actions.onDismissCheck!(line) : undefined}
+                onDismiss={onDismissCheck ? () => onDismissCheck(line) : undefined}
               />
             ) : (
               <>
@@ -255,11 +266,9 @@ export function ReminderCard({
 }
 
 /**
- * A check that is a roll on its table (p2p-19, B9; sf-5, page 44 EN1 A and EN2): the pack's own sentence with its die,
- * and one stacked button, Roll…, with the rolling dice, then Dismiss (sf-4, EN1 A); no Hit, no Miss, no ±1 and no Modifier. Roll… opens the table in
- * its pop-up (`TableRollPopUp`), over the card; a tap on the rolled row is the answer, and the X records nothing. Where
- * the card has no tables to open (`roll` null, or the table isn't in the setting), Roll… takes the hit's way, the tables
- * full screen.
+ * A check that is a roll on its table (p2p-19, B9; sf-5, sf-4, page 44 EN1 A and EN2): the pack's sentence with its die,
+ * Roll… (the rolling dice) and Dismiss; no Hit, Miss, ±1 or Modifier. Roll… opens the table's pop-up (`TableRollPopUp`);
+ * a tap on the rolled row is the answer, the X records nothing. With no table to open, Roll… takes the hit's way.
  */
 function RollOnTable({
   line,

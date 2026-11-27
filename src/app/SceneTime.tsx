@@ -136,7 +136,8 @@ import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { BookFaces } from '../ui/BookFaces.tsx';
 import { DiceWords } from '../ui/dice.tsx';
 import { bandHeading, checkFact, checkSheetLines, checkRule, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, lightSheetLines, NO_LIGHT_WORDS, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, restSheetLines, seasonIconOf, settingRule, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
-import { BandTool, BandTools, DepartButton, ENCOUNTER_MARK, FactSheet, FactsRow, NextTurnButton, SceneBand, SessionButton, type DateLine } from './SceneBand.tsx';
+import { ENCOUNTER_MARK } from './encounterMark.ts';
+import { BandTool, BandTools, DepartButton, FactSheet, FactsRow, NextTurnButton, SceneBand, SessionButton, type DateLine } from './SceneBand.tsx';
 import { useSceneTopOpen } from './sceneTopOpen.ts';
 import { loadWayOut } from '../modules/expedition/dungeonWayOut.ts';
 import { applyNightRest, loadRestCharacters, NightRestSheet, REST_READ_FAILED, restListed, type Rester } from './NightRest.tsx';
@@ -171,9 +172,9 @@ import type { OpenCampaign } from './Campaigns.tsx';
 import { SetDateSheet, startWords, WhichSeason } from './CalendarStart.tsx';
 import { EncounterTables, TableRoll, TablesLibrary, type TableTap } from './EncounterTables.tsx';
 import { EncounterWaitingSource, shownWatch } from './EncounterWaiting.tsx';
-import { REVEAL_FAILED } from './RevealToPlayers.tsx';
+import { REVEAL_BUSY, REVEAL_FAILED } from './RevealToPlayers.tsx';
 import { accentOwner, useAccentHeld, useStripPaused, useWaitingAccentItem, useWaitingPanelOn, useWaitingState, WaitingSource, type WaitingSourceItem } from './sceneWaiting.tsx';
-import { firstAnswer, HitPanel, hitTitle, ReminderCard, rollsTable, type CardRoll } from './ReminderCard.tsx';
+import { firstAnswer, HitPanel, hitTitle, ReminderCard, rollsTable, rollTitle, type CardRoll } from './ReminderCard.tsx';
 import { HourTrack, ProcedureList, ProcedureStrip } from './SceneProcedure.tsx';
 import { GmReminders, PlayerReference } from './SceneReminders.tsx';
 import { registry } from './services.ts';
@@ -1279,15 +1280,17 @@ export function SceneTime({
 
   /**
    * "Change…" on the encounter's card (sf-4, sf-5; page 44, EN2 B): another row tapped in the table's pop-up. Only the
-   * row read changes (check.setRoll alone, #111's review); the toast names the row's range, with Undo.
+   * row read changes (check.setRoll alone, #111's review); the toast names the row's range, with Undo. A reveal that
+   * stands is left as it is (the players' screens change only by the GM's tap), and the toast says so (#126's review, 9).
    */
   async function changeRoll(card: EncounterCard, tap: TableTap) {
+    const shown = revealOf(card);
     const saved = await act(setCheckRoll, { campaignId: campaign.id, result: card.hit, tableId: tap.table.id, roll: tap.roll, rowText: tap.rowText });
     if (!saved) return;
     const before = card.hit;
     setHit((h) => (h && h.result.id === saved.id ? { ...h, result: saved } : h));
     show({
-      text: `${tap.roll}: ${tap.words}`,
+      text: `${tap.roll}: ${tap.words}${shown ? '. Players still see the earlier words.' : ''}`,
       onUndo: () => void undoLatest('check.setRoll', () => setHit((h) => (h && h.result.id === before.id ? { ...h, result: { ...before, version: saved.version + 1 } } : h))),
     });
   }
@@ -1295,9 +1298,14 @@ export function SceneTime({
   /**
    * "Show players" in "Reveal to players" (sf-4; page 44, EN6 C): the words the GM confirmed, and nothing of the check,
    * go to the players (check.showWords, sf-7a); the card's "Reveal…" becomes the pressed "Revealed". Undo from the toast
-   * takes the reveal back. A send that fails has sent nothing: N5's toast, no Undo, the card as before.
+   * takes the reveal back. A send that fails has sent nothing: N5's toast, no Undo, the card as before. Tapped while
+   * another change is saving, it says so (the pop-up has closed, so never silently).
    */
   async function showWaiting(card: EncounterCard, words: string): Promise<boolean> {
+    if (busy.current) {
+      show({ text: REVEAL_BUSY, error: true });
+      return false;
+    }
     const made = await act(showCheckWords, { campaignId: campaign.id, resultId: card.hit.id, words }, () => REVEAL_FAILED);
     if (!made) return false;
     setReveals((was) => [made, ...was.filter((r) => r.id !== made.id)]);
@@ -2293,9 +2301,10 @@ export function SceneTime({
           };
           return {
             id,
-            // The weather's roll, named as T2 draws it; its Enter… opens the Weather sheet (S10, T6).
-            kind: weatherLine ? 'weather' : 'reminder',
-            title: weatherLine ? 'Weather: to roll' : `${line.name}${line.count > 1 ? ` ×${line.count}` : ''}`,
+            // The weather's roll, named as T2 draws it; its Enter… opens the Weather sheet (S10, T6). A check that rolls its
+            // table is one encounter's card (sf-4; page 44, EN1 A): the crossed swords, named by its table.
+            kind: weatherLine ? 'weather' : rollsTable(line) ? 'encounter' : 'reminder',
+            title: weatherLine ? 'Weather: to roll' : rollsTable(line) ? rollTitle(line, tables) : `${line.name}${line.count > 1 ? ` ×${line.count}` : ''}`,
             // Every answer with its icon (S17): Enter… and Enter roll… the rolling dice, Done the tick (page 16, T2); Hit,
             // Check again and Recharge ic-6's (page 21, SI2).
             actions: [weatherLine ? { id: 'roll', label: 'Enter…', icon: 'rolling-dices' } : { id: first.id, label: first.label, icon: first.icon }],

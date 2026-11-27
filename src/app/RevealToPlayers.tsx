@@ -15,6 +15,9 @@ export const REVEAL_WORDS_MAX = 2000;
 /** A send that fails (N5; page 44, EN7 C): nothing reached a player, and the way to try again. */
 export const REVEAL_FAILED = "Couldn't show the players. Nothing was sent. Tap Reveal… to try again.";
 
+/** "Show players" while another change is still saving: nothing was sent, and the GM's words wait for the next try. */
+export const REVEAL_BUSY = 'Another change was still saving. Tap Reveal… to try again.';
+
 /** The box's height in lines: three at least, growing with the words (EN6 D: a row of forty words grows the box). */
 export const revealRows = (words: string): number => Math.max(3, Math.min(12, Math.ceil(words.length / 40) + 1));
 

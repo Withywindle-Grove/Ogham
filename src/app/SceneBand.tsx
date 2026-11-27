@@ -26,6 +26,7 @@ import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode }
 import type { RuleBlock } from '../modules/expedition/placeRules.ts';
 import type { Fact, FactLine } from '../modules/expedition/sceneTop.ts';
 import type { SetIconName } from '../ui/iconSet.ts';
+import { ENCOUNTER_MARK } from './encounterMark.ts';
 import { BookFacesScope, Dialog } from '../ui/Dialog.tsx';
 import { DiceWords, DieGlyph, dieOf } from '../ui/dice.tsx';
 import { Icon, StepIcon } from '../ui/icons.tsx';
@@ -236,12 +237,6 @@ export function SessionButton({ resume, accent, onTap }: { resume: boolean; acce
     </button>
   );
 }
-
-/**
- * The encounter's one mark (sf-3, ⚑ 1; page 44, EN1 and PS2 B, approved 2026-11-26): the icon set's crossed swords, on
- * the band's Encounter check button, on the Facts row's Encounter check tile and on the players' revealed card.
- */
-export const ENCOUNTER_MARK: SetIconName = 'crossed-swords';
 
 /** Each fact's line icon; the Encounter check's is the set's crossed swords (`ENCOUNTER_MARK`). */
 const FACT_ICON: Record<Exclude<Fact['id'], 'check'>, string> = { weather: 'weather', light: 'light', rest: 'rest', part: 'time' };

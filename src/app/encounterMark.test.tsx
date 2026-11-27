@@ -3,7 +3,7 @@
 // mark, and the two encounter rows gone from the Scene. Clicked through like a person would, against the stand-in
 // database. Invented rules only.
 //   The crossed swords from the icon set are the encounter's mark on the band's button, on the Facts row's tile and on
-//   the players' revealed card: one icon, named once.
+//   the players' revealed card: one icon, named once; the GM's encounter card and its rows in "Waiting for you" too.
 //   During an expedition no encounter row stands on the Scene: no "Encounter tables ›" row, and no "<title>, nothing
 //   due" line; the step's toast says "nothing due" instead.
 //   "Encounter tables" is the first item of the band's ⋯ menu during an expedition, and opens the tables.
@@ -18,7 +18,10 @@ import { ICON_SET } from '../ui/iconSet.ts';
 import { Root } from './App.tsx';
 import { RevealedCard } from './CallCard.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
-import { ENCOUNTER_MARK, FactsRow } from './SceneBand.tsx';
+import { ENCOUNTER_MARK } from './encounterMark.ts';
+import { FactsRow } from './SceneBand.tsx';
+import { WaitingPanel } from './WaitingForYou.tsx';
+import { SceneWaitingProvider, useWaitingPanel, WaitingSource, type WaitingSourceItem } from './sceneWaiting.tsx';
 
 vi.mock('./services.ts', async () => {
   const { createAppRegistry } = await import('./commandRegistry.ts');
@@ -105,6 +108,29 @@ describe('the encounter mark (⚑ 1)', () => {
     const user = await openScene(gm);
     await startExpedition(user);
     expect(pathOf(await screen.findByRole('button', { name: 'Encounter check' }))).toBe(swords);
+  });
+});
+
+describe("the encounter mark in 'Waiting for you' (sf-3; EN1, PS2 B)", () => {
+  // Purpose: the GM's open encounter card and an encounter's one-line row in "Waiting for you" draw the same crossed
+  // swords as the band and the tile, while another kind keeps its own step icon.
+  it('draws the crossed swords on the open encounter card and on its rows, and not on a rest', async () => {
+    const swords = ICON_SET['crossed-swords'].d;
+    const item = (id: string, kind: WaitingSourceItem['kind'], title: string): WaitingSourceItem => ({ id, kind, title, actions: [{ id: 'done', label: 'Done' }], card: <section aria-label={title} /> });
+    function Panel() {
+      return useWaitingPanel()?.hosting ? <WaitingPanel /> : null;
+    }
+    render(
+      <SceneWaitingProvider>
+        <WaitingSource sourceKey="strip" items={[item('encounter:1', 'encounter', 'An encounter'), item('encounter:2', 'encounter', 'Reed wraiths')]} />
+        <WaitingSource sourceKey="later" items={[item('rest:1', 'rest', 'Rest is due')]} />
+        <Panel />
+      </SceneWaitingProvider>,
+    );
+    await waitFor(() => expect(document.querySelector('.waiting-open[data-kind="encounter"]')).not.toBeNull());
+    expect(pathOf(document.querySelector('.waiting-open[data-kind="encounter"] .waiting-open__mark'))).toBe(swords);
+    expect(pathOf(document.querySelector('.waiting-row[data-kind="encounter"] .waiting-row__mark'))).toBe(swords);
+    expect(pathOf(document.querySelector('.waiting-row[data-kind="rest"] .waiting-row__mark'))).not.toBe(swords);
   });
 });
 

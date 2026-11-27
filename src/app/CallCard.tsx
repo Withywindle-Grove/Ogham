@@ -13,7 +13,7 @@ import { Icon, type IconName } from '../ui/icons.tsx';
 import type { SetIconName } from '../ui/iconSet.ts';
 import type { RevealedWords } from '../modules/expedition/reminderPlay.ts';
 import { StackedButton } from '../ui/parts.tsx';
-import { ENCOUNTER_MARK } from './SceneBand.tsx';
+import { ENCOUNTER_MARK } from './encounterMark.ts';
 import { callHeading, type CallSend, type CallsInSlot } from '../modules/library/callCards.ts';
 import '../ui/bookFaces.css';
 import './CallCard.css';

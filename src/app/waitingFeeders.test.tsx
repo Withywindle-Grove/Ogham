@@ -42,7 +42,7 @@ afterEach(() => cleanup());
 const TURN = 600;
 
 /** A creeping mode whose check comes due every turn and whose party rests a turn in every three; Wren's rushlight lit with one turn left. */
-async function table({ rollOnTable = false }: { rollOnTable?: boolean } = {}) {
+async function table({ rollOnTable = false, checkName = 'Encounters in the harbour' }: { rollOnTable?: boolean; checkName?: string } = {}) {
   const gm = world.addPerson('priya@lantern.example', 'Priya');
   const sam = world.addPerson('sam@lantern.example', 'Sam');
   const campaign = world.addCampaign('The Ash Barrows', gm);
@@ -62,7 +62,7 @@ async function table({ rollOnTable = false }: { rollOnTable?: boolean } = {}) {
           // B9 (p2p-19): with `rollOnTable`, a check with a table and no chance, a roll on the table.
           checks: [
             rollOnTable
-              ? { id: 'wander', name: 'Encounters in the harbour', every: { value: 1, unit: 'turn' }, note: 'Roll d20 for an encounter each turn on the water.', onHit: { tableId: 'harbour-encounters' } }
+              ? { id: 'wander', name: checkName, every: { value: 1, unit: 'turn' }, note: 'Roll d20 for an encounter each turn on the water.', onHit: { tableId: 'harbour-encounters' } }
               : { id: 'wander', name: 'Wandering things', every: { value: 1, unit: 'turn' }, chance: { die: 'd6', on: [1] }, onHit: { note: 'Something stirs in the reeds.' } },
           ],
           movement: {},
@@ -212,6 +212,26 @@ describe('the feeders of Waiting for you (S8b)', () => {
     await user.click((await screen.findAllByRole('button', { name: 'Undo' })).at(-1)!);
     await waitFor(() => expect(world.tables.events.filter((e) => e.type === 'event.undo').length).toBeGreaterThanOrEqual(2));
     expect(await panel().findByRole('button', { name: 'Roll, Encounters in the harbour' })).toBeTruthy();
+  });
+
+  // Purpose (sf-4; page 44, EN1 A; #126's review, finding 3): a due check that rolls its table is one encounter's card:
+  // the crossed swords, the table's name as its title and heading (not the check's name, no "Due now"), Roll… and
+  // Dismiss.
+  it("a due roll on its table is titled by the table's name, under the crossed swords", async () => {
+    const t = await table({ rollOnTable: true, checkName: 'Wandering things' });
+    scene(t);
+    const user = userEvent.setup();
+    await nextTurn(user, 2);
+    const due = within(await panel().findByRole('region', { name: 'Due' }));
+    const open = document.querySelector('.waiting-open') as HTMLElement;
+    expect(open.dataset.kind).toBe('encounter');
+    expect(open.dataset.title).toBe('Encounters in the harbour');
+    expect(open.querySelector('.waiting-open__mark svg.icon--filled path')?.getAttribute('d')).toBe(ICON_SET['crossed-swords'].d);
+    expect(due.getByRole('heading', { name: 'Encounters in the harbour' })).toBeTruthy();
+    expect(due.queryByText('Due now')).toBeNull();
+    expect(due.queryByText('Wandering things')).toBeNull();
+    expect(due.getByRole('button', { name: 'Roll, Wandering things' })).toBeTruthy();
+    expect(due.getByRole('button', { name: 'Dismiss, Wandering things' })).toBeTruthy();
   });
 
   // Purpose (sf-5, page 44 EN2; of-19): the pop-up's X closes it with nothing recorded, and the check still waits on its

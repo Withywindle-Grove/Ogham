@@ -286,6 +286,47 @@ describe('Encounter waiting (M5b step 2)', () => {
       spy.mockRestore();
       expect((await openReveal(user)).getByRole('textbox', { name: 'What players will see' })).toHaveProperty('value', 'Grey shapes');
     });
+
+    // Purpose (finding 9 of #126's review): "Change…" on a revealed card leaves the players' words as they are (only the
+    // GM's tap changes their screen), and the change's toast says the players still see the earlier words.
+    it('Change… on a revealed card keeps the reveal and says the players still see the earlier words', async () => {
+      const { gm, campaign } = table();
+      withSetting(campaign, gm);
+      const user = await openScene(gm, true);
+      await hitAndRoll(user);
+      await user.click((await openReveal(user)).getByRole('button', { name: 'Show players' }));
+      await card().findByRole('button', { name: 'Revealed: take it back' });
+      await user.click(card().getByRole('button', { name: 'Change…, Shallow things' }));
+      await user.click(within(await screen.findByRole('dialog', { name: 'Shallow things' })).getByRole('radio', { name: /Reed wraith/ }));
+      expect(await screen.findByText(/^4–6: .*Reed wraith.*\. Players still see the earlier words\.$/)).toBeTruthy();
+      expect(world.tables.check_reveals).toHaveLength(1);
+      expect(world.tables.check_reveals[0]).toMatchObject({ words: 'Bog lurkers, 1d4', taken_back: false });
+    });
+
+    // Purpose (finding 4 of #126's review): "Show players" tapped while another change is still saving sends nothing and
+    // says so in a toast (the pop-up has closed, so the tap is never dropped silently); the GM's words wait for the next try.
+    it('Show players while another change is saving says so, and keeps the words', async () => {
+      const { gm, campaign } = table();
+      withSetting(campaign, gm);
+      const user = await openScene(gm, true);
+      await hitAndRoll(user);
+      const real = world.db.rpc.bind(world.db);
+      let release: () => void = () => undefined;
+      const held = new Promise<void>((done) => (release = done));
+      const spy = vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: Record<string, unknown>) =>
+        name === 'show_check_words' ? held.then(() => real(name as never, args as never)) : real(name as never, args as never)) as never);
+      await user.click((await openReveal(user)).getByRole('button', { name: 'Show players' }));
+      const again = await openReveal(user);
+      await user.clear(again.getByRole('textbox', { name: 'What players will see' }));
+      await user.type(again.getByRole('textbox', { name: 'What players will see' }), 'Grey shapes');
+      await user.click(again.getByRole('button', { name: 'Show players' }));
+      expect(await screen.findByText('Another change was still saving. Tap Reveal… to try again.')).toBeTruthy();
+      expect((await openReveal(user)).getByRole('textbox', { name: 'What players will see' })).toHaveProperty('value', 'Grey shapes');
+      release();
+      await screen.findByText('Shown to the players.');
+      expect(world.tables.check_reveals).toHaveLength(1);
+      spy.mockRestore();
+    });
   });
 
   // Purpose (sf-4; ⚑ 2): Message… puts the row's words, and nothing of the check, into a new message.

@@ -151,7 +151,7 @@ function EncounterOneCard({
         <div className="waiting-encounter__picked">
           <p className="scene-card__note">{pickedWords(found.table, hit.roll)}</p>
           {onChange && (
-            <button type="button" className="button-secondary" aria-haspopup="dialog" aria-label={`Change…, ${found.table.name}`} onClick={onChange}>
+            <button type="button" className="button-secondary button-secondary--small" aria-haspopup="dialog" aria-label={`Change…, ${found.table.name}`} onClick={onChange}>
               Change…
             </button>
           )}
