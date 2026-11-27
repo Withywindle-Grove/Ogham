@@ -63,5 +63,9 @@ export default defineConfig({
     // (a whole character creation, the damage pad) ran out at 5 s while the browser jobs shared the machine. A slow
     // machine, not a fault; a test that truly hangs still fails.
     testTimeout: 15_000,
+    // cs-34 (check 9): a unit test over 300 ms is slow. The runner marks it; our reporter saves every test's time,
+    // and the last step of `npm run check` prints the slow ones (scripts/slow-tests.mjs). It never fails the check.
+    slowTestThreshold: 300,
+    reporters: ['default', './scripts/slow-tests.mjs'],
   },
 });

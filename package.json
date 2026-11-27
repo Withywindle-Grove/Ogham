@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "check": "npm run typecheck && npm run lint && npm test && npm run docs:check && node scripts/check-function-lineage.mjs && npm run build",
+    "check": "npm run typecheck && npm run lint && npm test && npm run docs:check && node scripts/check-function-lineage.mjs && npm run build && node scripts/slow-tests.mjs",
     "test:db": "vitest run --config vitest.db.config.ts",
     "db:push": "supabase db push --linked",
     "db:push:test": "node scripts/db-push-test.mjs",
