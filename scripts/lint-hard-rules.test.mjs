@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ESLint } from 'eslint';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -182,10 +182,11 @@ describe('check 8: no source file over 400 lines (cs-10)', () => {
   });
 });
 
+const AI_FIX =
+  'Remove it; the app never calls an AI service. If it is not one, ask Francis before changing AI_SERVICES in eslint.config.js.';
 const AI_PACKAGE = (name) =>
-  `No AI service in the app (hard rule 1): '${name}' is an AI service's client package. The list is AI_SERVICES in eslint.config.js.`;
-const AI_HOST = (host) =>
-  `No AI service in the app (hard rule 1): this names ${host}, an AI service's API host. The list is AI_SERVICES in eslint.config.js.`;
+  `No AI service in the app (hard rule 1): '${name}' is an AI service's client package. ${AI_FIX}`;
+const AI_HOST = (host) => `No AI service in the app (hard rule 1): this names ${host}, an AI service's API host. ${AI_FIX}`;
 
 describe('check 2: no AI service in the app (hard rule 1)', () => {
   // A file in the app that imports a listed AI package by name, or a package under a listed scope, fails lint with the
@@ -213,6 +214,18 @@ describe('check 2: no AI service in the app (hard rule 1)', () => {
     ]);
   });
 
+  // The app's own test files are app source too: a test inside src that imports a listed package fails.
+  it('fails a test file inside the app source that imports a listed package', async () => {
+    const code = "import { Wick } from '@azure/openai';\nexport const w = Wick;\n";
+    expect(await lint(code, 'src/core/plantedLantern.test.ts')).toEqual([AI_PACKAGE('@azure/openai')]);
+  });
+
+  // A host under a listed domain fails too: each Azure OpenAI resource has its own name before openai.azure.com.
+  it('fails a sub-domain of a listed host', async () => {
+    const code = "export const a = 'https://lantern-warden.openai.azure.com/openai';\n";
+    expect(await lint(code, 'src/app/plantedLantern.ts')).toEqual([AI_HOST('openai.azure.com')]);
+  });
+
   // A listed API host in a string, or in a template literal, fails lint, whatever its letter case.
   it('fails a listed API host in a string and in a template literal', async () => {
     const code =
@@ -220,13 +233,16 @@ describe('check 2: no AI service in the app (hard rule 1)', () => {
     expect(await lint(code, 'src/app/plantedLantern.ts')).toEqual([AI_HOST('api.openai.com'), AI_HOST('api.anthropic.com')]);
   });
 
-  // Clean code passes: a package or a string that only looks alike (a longer name, a word inside a sentence) is fine.
+  // Clean code passes: a package or a string that only looks alike (a longer name, a word inside a sentence) is fine;
+  // a listed package counts by its exact name, so 'openai-lantern' and 'ai-lantern' are not 'openai' and 'ai'.
   it('passes a planted file with look-alike names', async () => {
     const code = [
       "import { createClient } from '@supabase/supabase-js';",
+      "import { glow } from 'openai-lantern';",
+      "import { flicker } from 'ai-lantern';",
       "export const words = 'The lantern warden is not an openai-like oracle.';",
       "export const pkg = 'openai-lantern';",
-      'export const c = createClient;',
+      'export const c = [createClient, glow, flicker];',
     ].join('\n');
     expect(await lint(code, 'src/core/plantedLantern.ts')).toEqual([]);
   });
@@ -237,5 +253,16 @@ describe('check 2: no AI service in the app (hard rule 1)', () => {
     expect(await lint(code, 'scripts/plantedLantern.mjs')).toEqual([]);
     expect(await lint(code, 'scripts/plantedLantern.test.mjs')).toEqual([]);
     expect(await lint(code, 'tests/layout/plantedLantern.spec.ts')).toEqual([]);
+  });
+
+  // An AI break is never recorded as a known old case: a suppress run on a branch with one would hide it, so any
+  // tome/no-ai-service record in the suppressions file fails here, and the break goes to Francis.
+  it('has no AI break recorded in the suppressions file', () => {
+    const known = JSON.parse(readFileSync(join(repo, 'eslint-suppressions.json'), 'utf8'));
+    const recorded = Object.keys(known).filter((file) => 'tome/no-ai-service' in known[file]);
+    expect(
+      recorded,
+      'A hard rule 1 break goes to Francis, never to eslint-suppressions.json: remove the AI service, or ask him.',
+    ).toEqual([]);
   });
 });
