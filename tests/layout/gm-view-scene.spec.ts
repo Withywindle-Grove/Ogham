@@ -29,7 +29,7 @@ async function openScene(page: Page, width: number, height: number, scheme: 'lig
   await setUp(page, width, height, scheme, '/layout.html?as=gm&placePage=spot&ways=1&activities=1&viewScene=1');
   await page.getByRole('button', { name: /The Drowned Marches/ }).click();
   await page.getByRole('navigation', { name: 'Campaign sections' }).getByRole('button', { name: /^Players/ }).click();
-  await page.getByRole('button', { name: `Open ${WREN}'s scene` }).click();
+  await page.getByRole('button', { name: `Open ${WREN}’ scene` }).click();
   await expect(page.getByRole('note')).toHaveAttribute('aria-label', /^Sam’s view of /);
   await expect(page.getByRole('article', { name: 'Sent to the GM' })).toBeVisible();
   await page.evaluate(() => document.fonts.ready);

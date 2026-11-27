@@ -13,6 +13,7 @@
 import { packAndPage } from '../modules/library/sourceTitles.ts';
 import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
+import { withThe } from '../core/nameWords.ts';
 import { draftRollLabel, recordRoll } from '../core/rolls.ts';
 import type { Db } from '../core/supabase.ts';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
@@ -962,7 +963,7 @@ export function StartingGear({
     const backpack = backpackOf(pieces);
     const price = kitPrice(kit.data, coins, unit);
     const rolls = kitRolls(kit.data, ctx).filter((r) => !r.choice);
-    const notes = pieces.filter((p) => p.why).map((p) => `${p.name} goes ${backpack ? `in the ${backpack.toLowerCase()}` : 'in the pack'}: ${p.why}`);
+    const notes = pieces.filter((p) => p.why).map((p) => `${p.name} goes ${backpack ? `in ${withThe(backpack.toLowerCase())}` : 'in the pack'}: ${p.why}`);
     const weight = weightWords(pieces.map((p) => ({ weightCoin: copyOf(p.item).weightCoin, slots: copyOf(p.item).slots, qty: p.qty })), mode);
     const headings = [
       ...(blurbOf(kit.data) ? [{ label: 'About', text: blurbOf(kit.data) }] : []),

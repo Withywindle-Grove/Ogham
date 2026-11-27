@@ -459,7 +459,7 @@ describe('what the patron applies (pt-6, "done properly")', () => {
     fenWorld({ missing: true });
     const user = openApp();
     await toGear(user);
-    expect(await screen.findByText('The Still Heron\'s garb “A reed-grey stole” isn\'t in the setting rules this device can read, so it isn\'t in your pack. Ask your GM to add it.')).toBeTruthy();
+    expect(await screen.findByText('The Still Heron’s garb “A reed-grey stole” isn\'t in the setting rules this device can read, so it isn\'t in your pack. Ask your GM to add it.')).toBeTruthy();
     const made = world.tables.actors.find((a) => a.name === 'Tam of the Reeds')!;
     await waitFor(() => expect(((made.creation as Record<string, unknown>).patronGarb as { items: string[] })?.items).toEqual(['ex-garb-heron-0']));
     expect(world.tables.inventory_lines.filter((l) => l.actor_id === made.id).map((l) => l.name)).toContain('Reed-grey stole');

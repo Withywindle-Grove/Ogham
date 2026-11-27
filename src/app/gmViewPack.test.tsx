@@ -122,7 +122,7 @@ async function openWrensPack(): Promise<User> {
   render(<Root db={world.db} />);
   await user.click(await screen.findByRole('button', { name: /The Reed Marches/ }));
   await user.click(within(await screen.findByRole('navigation', { name: 'Campaign sections' })).getByRole('button', { name: /^Players/ }));
-  await user.click(await screen.findByRole('button', { name: "Open Wren's pack" }));
+  await user.click(await screen.findByRole('button', { name: "Open Wren’s pack" }));
   await waitFor(() => expect(screen.getByRole('note').getAttribute('aria-label')).toBe('Sam’s view of Wren. What you do here is logged as yours.'));
   return user;
 }

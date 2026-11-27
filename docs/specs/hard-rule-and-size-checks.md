@@ -33,7 +33,7 @@ The nine checks:
 | 4 | Hard rule 10: never a disabled button | A control in the app has a `disabled` attribute |
 | 5 | Hard rule 7: tokens only | An inline style in a component sets a raw spacing, type or colour value |
 | 6 | Hard rule 8: integers | A database column has a decimal or floating-point number type |
-| 7 | Hard rule 2: the name scan | (Not a failure.) The name scan warns clearly when it has no private list |
+| 7 | Hard rule 2: the name scan | (Not a failure.) The name scan warns clearly when it has no private list: on the pull-request scan (`--pr`) and as a GitHub `::warning`; the commit hook stays quiet (lc-1) |
 | 8 | cs-10: a new source file over 400 lines | A source file has more than 400 lines |
 | 9 | cs-34: a unit test over 300 ms | (Not a failure.) The check's output lists every unit test over 300 ms |
 
@@ -65,7 +65,7 @@ The nine checks:
 24. As a builder, I want a database test failure when my migration adds a decimal column, so that I use an integer before the migration reaches the main project.
 25. As a builder, I want a check failure that names the package and which side it is missing from, so that I know whether to ask for a yes or to remove the package.
 26. As a builder, I want the check to fail when I fix a known break but leave its record, so that the record stays true.
-27. As a builder working locally, I want a clear warning when the name scan has no private list, so that I know my commit was not scanned.
+27. As a builder, I want a clear warning when the name scan has no private list, so that I know the pull request was not scanned. The commit hook stays quiet without the list: the PC has it, the cloud never does (lc-1).
 28. As the driver, I want the name scan's warning on Dependabot pull requests, so that I scan them where the list is before I merge.
 29. As the driver, I want each check to run inside the full check and the database job, so that CI needs no new job and no new minutes.
 30. As a reviewer, I want the hard rules checked by machine, so that I spend my review on the judgement rules.
@@ -138,7 +138,7 @@ Five existing seams, and no new one:
 ### Check 7: the name scan says so
 
 - On a pull request from this repository on GitHub, the scan already fails when the private list is missing. That stays.
-- Locally and on Dependabot, it passes and prints one plain line. Decision: make it a warning that stands out in the check's output, and on GitHub a warning on the run's summary page. It still passes.
+- Without the list, on Dependabot and locally, it passes. Decision (lc-1, `docs/design/rulings/process-loop-1-sitting-c-2026-11-27.md`): the warning shows on the pull-request scan (`--pr`) and, on GitHub, as a `::warning` annotation on the run's summary page. The commit hook stays quiet without the list. It still passes.
 
 ### Check 8: no source file over 400 lines
 

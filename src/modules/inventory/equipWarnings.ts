@@ -3,6 +3,7 @@
 // don't block: the player does it anyway (logged), takes the hook's one-tap offer (swap, or stow the other item),
 // or keeps things as they are. A hook that can't run is skipped and the GM is told. Armour or a weapon the class
 // can't use is blocked instead (equipBlocks; ruled 2026-10-25, A10). Pure.
+import { withThe, withTheStart } from '../../core/nameWords.ts';
 import { namesIn, parseExpression, testHolds, type Value } from '../library/expression.ts';
 import { isAmmunition } from '../../core/useWords.ts';
 
@@ -142,12 +143,12 @@ export function weaponRuleVerdict(rules: Value, cls: Value, item: Value): { rule
   const category = noteOf(cls.weaponProficiencyCategory);
   const note = rule.note ? ` ${rule.note}` : '';
   if (classId && rule.exceptClasses.includes(classId)) {
-    return { rule, allowed: false, why: `The ${rule.category} rule doesn't apply to ${className}: its own list decides.${note}` };
+    return { rule, allowed: false, why: `${withTheStart(rule.category)} rule doesn't apply to ${className}: its own list decides.${note}` };
   }
   const who = rule.classCategories.length > 0 ? `${listWords(rule.classCategories)} classes` : 'no class';
-  if (category && rule.classCategories.includes(category)) return { rule, allowed: true, why: `Allowed by the ${rule.category} rule (${who}).${note}` };
+  if (category && rule.classCategories.includes(category)) return { rule, allowed: true, why: `Allowed by ${withThe(rule.category)} rule (${who}).${note}` };
   const own = category ? `${className} is ${category}` : `${className} has no combat category, so its own list decides`;
-  return { rule, allowed: false, why: `The ${rule.category} rule allows ${who}; ${own}.${note}` };
+  return { rule, allowed: false, why: `${withTheStart(rule.category)} rule allows ${who}; ${own}.${note}` };
 }
 
 const listWords = (words: string[]) => (words.length <= 1 ? (words[0] ?? '') : `${words.slice(0, -1).join(', ')} and ${words.at(-1)!}`);

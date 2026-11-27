@@ -113,7 +113,7 @@ describe('the camp card (M5b step 4)', () => {
     await userEvent.click(within(sheet).getByRole('button', { name: 'More bundles of Bog-wood bundle' }));
     await userEvent.click(within(sheet).getByRole('button', { name: 'Put on the fire' }));
     expect(rpc).toHaveBeenCalledWith('add_camp_fuel', { camp: 'camp-1', actor: 'reed', line: 'wood', qty: 2, seconds_each: 7200 });
-    expect(await screen.findByText('2 bundles on the fire, from Reed the Ferrywarden\'s pack')).toBeTruthy();
+    expect(await screen.findByText('2 bundles on the fire, from Reed the Ferrywarden’s pack')).toBeTruthy();
   });
 
   it('suggests a portion from the pot first; a character who ate reads what they ate', async () => {
@@ -202,7 +202,7 @@ describe('the camp card at night (M5b step 4, part 2)', () => {
     showNight();
     expect(screen.getByText('Reed the Ferrywarden, Hard')).toBeTruthy();
     expect(screen.getByText('Roll WIS, −1 Hard')).toBeTruthy();
-    await userEvent.type(screen.getByRole('textbox', { name: "Reed the Ferrywarden's roll" }), '5');
+    await userEvent.type(screen.getByRole('textbox', { name: "Reed the Ferrywarden’s roll" }), '5');
     await userEvent.click(screen.getByRole('button', { name: 'Slept well' }));
     expect(rpc).toHaveBeenCalledWith('camp_sleep', { camp: 'camp-1', actor: 'reed', difficulty: undefined, roll: '5', outcome: 'good' });
   });
@@ -223,7 +223,7 @@ describe('the camp card at night (M5b step 4, part 2)', () => {
     expect(rpc).not.toHaveBeenCalled();
     cleanup();
     showNight([], gmUser);
-    await userEvent.click(within(screen.getByRole('group', { name: "How hard is Moss of the Bog Lights's sleep?" })).getByRole('button', { name: 'Easy' }));
+    await userEvent.click(within(screen.getByRole('group', { name: "How hard is Moss of the Bog Lights’ sleep?" })).getByRole('button', { name: 'Easy' }));
     expect(rpc).toHaveBeenCalledWith('camp_sleep', { camp: 'camp-1', actor: 'moss', difficulty: 'easy', roll: undefined, outcome: undefined });
   });
 });

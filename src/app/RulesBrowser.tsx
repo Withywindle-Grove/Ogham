@@ -18,6 +18,7 @@ import './RulesBrowser.css';
 import { ErrorToast } from '../ui/ToastHost.tsx';
 import { asOfWords, campaignEntriesInPlay, loadCampaignPacksAndEntries } from './campaignSetting.ts';
 import { useLogUserId } from './campaignLog.tsx';
+import { withThe, withTheStart } from '../core/nameWords.ts';
 
 export type BrowsedEntry = PackEntry & { packId?: string };
 type Shown = BrowsedEntry & { alsoIn: string[]; preferred: boolean };
@@ -294,7 +295,7 @@ function EntryDetail({
           ? homebrewHere && entry.alsoIn.length > 0
             ? `${capital(KIND_WORDS[entry.kind][0])}, Your version (${packName(shown.packId)})`
             : [capital(KIND_WORDS[entry.kind][0]), from].filter(Boolean).join(', ')
-          : `The ${packName(shown.packId)} version, not used`}
+          : `${withTheStart(packName(shown.packId))} version, not used`}
       </p>
 
       {entry.alsoIn.length > 0 && (
@@ -304,14 +305,14 @@ function EntryDetail({
               ? entry.preferred
                 ? `Also in ${entry.alsoIn.map(packName).join(', ')}. ${packName(entry.packId)} wins for this one, by your choice.`
                 : `Also in ${entry.alsoIn.map(packName).join(', ')}. ${packName(entry.packId)} wins: it's higher in the stack.`
-              : `The ${packName(entry.packId)} version is the one used.`}
+              : `${withTheStart(packName(entry.packId))} version is the one used.`}
           </p>
           <div className="rules-browser__version-actions">
             {[entry.packId, ...entry.alsoIn]
               .filter((packId) => packId !== shown.packId)
               .map((packId) => (
                 <button key={packId} type="button" className="button-secondary button-secondary--small" onClick={() => setReading(packId === entry.packId ? undefined : packId)}>
-                  {packId === entry.packId ? 'Back to the one used' : `See the ${packName(packId)} version`}
+                  {packId === entry.packId ? 'Back to the one used' : `See ${withThe(packName(packId))} version`}
                 </button>
               ))}
             {gm && onPrefer && !winning && (
@@ -349,7 +350,7 @@ function EntryDetail({
           <div className="rules-browser__versions" role="group" aria-label={`Delete ${shown.name} from the homebrew`}>
             <p>
               Delete <strong>{shown.name}</strong> from this campaign’s homebrew?
-              {otherVersion ? ` The ${packName(otherVersion)} version applies again.` : ''} The log keeps a copy.
+              {otherVersion ? ` ${withTheStart(packName(otherVersion))} version applies again.` : ''} The log keeps a copy.
             </p>
             <div className="rules-browser__version-actions">
               <button type="button" className="button-secondary" aria-busy={busy} onClick={() => void remove()}>

@@ -32,6 +32,7 @@ import { DestinationList, ListRow, RowList, StackedButton, WarningLine } from '.
 import { useToast } from '../ui/ToastHost.tsx';
 import { registry } from './services.ts';
 import './PurseSheet.css';
+import { possessive } from '../core/nameWords.ts';
 
 /** One coin's row in a sheet: the setting's coin (or a key it doesn't list, as written) and how many are held. */
 export interface PurseRow {
@@ -231,7 +232,7 @@ export function PurseSheet({
 
   if (page === 'coin') {
     return (
-      <Dialog label={`${name}’s coin`} onClose={onClose}>
+      <Dialog label={`${possessive(name)} coin`} onClose={onClose}>
         <div className="purse-sheet__amounts">
           {rows.map(({ coin, has }) => (
             <p key={coin.key} className="book-line">
@@ -266,7 +267,7 @@ export function PurseSheet({
   return (
     <Dialog label={page === 'add' ? 'Give coin' : page === 'remove' || page === 'take' ? 'Take coin' : page === 'spend' ? 'Spend' : 'Give to'} onClose={onClose}>
       <button type="button" className="button-quiet purse-sheet__back" onClick={() => go('coin')}>
-        ‹ {name}’s coin
+        ‹ {possessive(name)} coin
       </button>
       <div className="purse-sheet__rows" role="group" aria-label="How much">
         {rows.map(({ coin, has }) => {

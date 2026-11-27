@@ -10,6 +10,7 @@ import { optionOn, type Activity, type Chance, type Mode, type Terrain } from '.
 import { bestChance, facesWords, partyReach, type PartyMember } from './partyModifiers.ts';
 import { piecesOf } from '../characters/startingGear.ts';
 import type { Yields } from './wildPack.ts';
+import { possessive } from '../../core/nameWords.ts';
 
 export interface ActivityContext {
   terrain?: Terrain | null;
@@ -312,7 +313,7 @@ export function finderOf(activity: Pick<Activity, 'bestOf'>, actors: readonly st
 }
 
 /** The yield's toast words (05 Activities): "3 Firewood bundles → Tam's pack". */
-export const yieldLine = (qty: number, itemName: string, finder: string) => `${qty} ${itemName} → ${finder}'s pack`;
+export const yieldLine = (qty: number, itemName: string, finder: string) => `${qty} ${itemName} → ${possessive(finder)} pack`;
 
 /**
  * How many single pieces a yield puts in the finder's pack (G-108): a count of `units` as it is, a count of whole

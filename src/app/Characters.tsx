@@ -103,6 +103,7 @@ import { loadInventory, type InventoryLine } from '../modules/inventory/inventor
 import { reviewDetails } from './reviewDetails.ts';
 import { fromGmWords, givenToMe } from '../modules/characters/giving.ts';
 import { FIXABLE, isReviewStep, reviewSections, SHOPPING, stepTitle, stillToDo, type ReviewStep, type StillToDo } from './reviewSections.ts';
+import { possessive } from '../core/nameWords.ts';
 
 /** The spells step's name (cs-2): Magic for glamours, runes and knacks, else the pack's, else "First spells". */
 const spellsTitle = (rulesSets: readonly Record<string, unknown>[], plan: FirstSpellsPlan | null) => spellsStepTitle(plan, guideTitle(rulesSets, 'spells', STEP_TITLES.spells));
@@ -3299,7 +3300,7 @@ function QuickPortrait({
   children: ReactNode;
 }) {
   const id = `quick-portrait-${character.id}`;
-  const PICTURE_WAITS = `${character.name}'s last picture is still saving. Pick this one again in a moment.`;
+  const PICTURE_WAITS = `${possessive(character.name)} last picture is still saving. Pick this one again in a moment.`;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const blocked = useBlockedSheet();
@@ -3314,7 +3315,7 @@ function QuickPortrait({
       const image = await shrinkImage(file);
       const problem = await applyPortrait(db, user, character, { blob: image, previewUrl: '' });
       if (problem) setError(problem);
-      else onDone(`${character.name}'s portrait was saved.`);
+      else onDone(`${possessive(character.name)} portrait was saved.`);
     } catch (thrown) {
       setError(thrown instanceof PhotoError ? thrown.message : "Couldn't read that picture. Try a JPEG or PNG.");
     } finally {
@@ -3326,7 +3327,7 @@ function QuickPortrait({
     <span className="quick-portrait">
       <label htmlFor={id} className="quick-portrait__label" title={busy ? 'Uploading…' : undefined}>
         {children}
-        <span className="visually-hidden">{busy ? 'Uploading…' : character.portraitAssetId ? `Change ${character.name}'s portrait` : `Add a portrait for ${character.name}`}</span>
+        <span className="visually-hidden">{busy ? 'Uploading…' : character.portraitAssetId ? `Change ${possessive(character.name)} portrait` : `Add a portrait for ${character.name}`}</span>
       </label>
       <input
         id={id}

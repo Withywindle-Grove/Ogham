@@ -28,7 +28,7 @@ async function openPackAsGm(page: Page) {
   await page.goto('/layout.html?as=gm&coin=1');
   await page.getByRole('button', { name: /The Drowned Marches/ }).click();
   await page.getByRole('navigation', { name: 'Campaign sections' }).getByRole('button', { name: /^Players/ }).click();
-  await page.getByRole('button', { name: "Open Wren of the Lantern Wardens's pack" }).click();
+  await page.getByRole('button', { name: "Open Wren of the Lantern Wardens’ pack" }).click();
   await expect(page.getByRole('region', { name: 'Wren of the Lantern Wardens’ pack' })).toBeAttached();
 }
 
@@ -44,7 +44,7 @@ for (const size of SIZES) {
         name: 'pack-coin-sheet',
         open: async (page) => {
           await coinLine(page).click();
-          await expect(page.getByRole('dialog', { name: 'Wren of the Lantern Wardens’s coin' })).toBeVisible();
+          await expect(page.getByRole('dialog', { name: 'Wren of the Lantern Wardens’ coin' })).toBeVisible();
         },
       },
       {
@@ -133,7 +133,7 @@ for (const size of [{ name: 'gm-phone', width: 375, height: 812 }, { name: 'gm-i
         name: 'pack-coin-gm-sheet',
         open: async (page) => {
           await coinLine(page).click();
-          await expect(page.getByRole('dialog', { name: 'Wren of the Lantern Wardens’s coin' })).toBeVisible();
+          await expect(page.getByRole('dialog', { name: 'Wren of the Lantern Wardens’ coin' })).toBeVisible();
           await expect(page.getByRole('button', { name: 'Take coin…' })).toBeVisible();
         },
       },

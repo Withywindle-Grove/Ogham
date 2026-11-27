@@ -3,6 +3,7 @@
 // is K18b. It reads K20a's entries (`findsSince`); the words for coin and for a day come in from the caller, so no new
 // link between modules.
 import { findsCount, type FindEntry, type FindWho } from './findsSeen.ts';
+import { withThe } from '../../core/nameWords.ts';
 
 /** ⚑ F3's lean: a find is "just now" for under an hour, read when the card is drawn (no ticking clock). */
 export const JUST_NOW_MS = 60 * 60 * 1000;
@@ -52,7 +53,7 @@ function whoWords(who: FindWho, when: string, many: boolean, w: FindCardWords): 
  */
 function backWords(e: FindEntry, w: FindCardWords): string {
   const name = nameOf(e, w);
-  const what = e.kind === 'coin' || /^the\s/i.test(name) ? name : `the ${name}`;
+  const what = e.kind === 'coin' ? name : withThe(name);
   const by = e.takenBack!.byGm ? 'Your GM' : giverOf(e.who, w);
   return by ? `${by} took back ${what}.` : `Taken back: ${what}.`;
 }

@@ -37,7 +37,7 @@ describe('Movement (sr-1)', () => {
     expect(m.rows[0]!.lines[0]).toBe('Speed 20: from Laden (your load).');
     expect(m.rows[1]!.lines).toEqual(['Speed 20: from Laden (your load).', 'Exploring: speed × 3 = 60.']);
     // With no load tracked, the kindred's own speed.
-    expect(movementOf({ rulesSets, race: { speed: 30 }, raceName: 'Bog folk', filled: {}, load: null, fields: [] }).rows[0]!.lines[0]).toBe("Speed 30: Bog folk's own.");
+    expect(movementOf({ rulesSets, race: { speed: 30 }, raceName: 'Bog folk', filled: {}, load: null, fields: [] }).rows[0]!.lines[0]).toBe("Speed 30: Bog folk’s own.");
     // Over the most they can carry: the setting's words.
     expect(movementOf({ rulesSets, race: null, raceName: null, filled: {}, load: { speed: null, why: "Can't move" }, fields: [] }).rows[0]!.value).toBe("Can't move");
   });

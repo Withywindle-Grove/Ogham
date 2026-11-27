@@ -163,7 +163,7 @@ async function openInView(): Promise<User> {
   render(<Root db={world.db} />);
   await user.click(await screen.findByRole('button', { name: /The Reed Marches/ }));
   await user.click(within(await screen.findByRole('navigation', { name: 'Campaign sections' })).getByRole('button', { name: /^Players/ }));
-  await user.click(await screen.findByRole('button', { name: "Open Wren's pack" }));
+  await user.click(await screen.findByRole('button', { name: "Open Wren’s pack" }));
   await screen.findByRole('note');
   return user;
 }

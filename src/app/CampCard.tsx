@@ -27,6 +27,7 @@ import type { CampInfo } from './campView.ts';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { registry } from './services.ts';
 import './CampCard.css';
+import { possessive } from '../core/nameWords.ts';
 
 export interface CampMember {
   id: string;
@@ -244,7 +245,7 @@ export function CampCard({ db, user, campaign, groupLabel, info, camp, entries, 
             flags={campFlags(entries)}
             forcedMarch={forcedMarch}
             onSleep={(m, change) =>
-              void write(campSleep, { campId: camp.id, actor: actorOf(m), ...change }, change.difficulty ? `${m.name}'s sleep: ${info.camp.sleep?.difficulties.find((d) => d.id === change.difficulty)?.name ?? change.difficulty}` : `${m.name} slept ${change.outcome === 'good' ? 'well' : 'badly'}`)
+              void write(campSleep, { campId: camp.id, actor: actorOf(m), ...change }, change.difficulty ? `${possessive(m.name)} sleep: ${info.camp.sleep?.difficulties.find((d) => d.id === change.difficulty)?.name ?? change.difficulty}` : `${m.name} slept ${change.outcome === 'good' ? 'well' : 'badly'}`)
             }
             onHeal={(healed, amount) => void healAll(healed, amount)}
             onCondition={(marked, conditionId) => void markAll(marked, conditionId)}
@@ -312,7 +313,7 @@ export function CampCard({ db, user, campaign, groupLabel, info, camp, entries, 
           carried={carried}
           onClose={() => setSheet(null)}
           onPut={(m, line, qty) =>
-            void write(addCampFuel, { campId: camp.id, actor: actorOf(m), lineId: line.id, qty, secondsEach: info.fire?.secondsEach ?? 0 }, `${qty} ${qty === 1 ? 'bundle' : 'bundles'} on the fire, from ${m.name}'s pack`)
+            void write(addCampFuel, { campId: camp.id, actor: actorOf(m), lineId: line.id, qty, secondsEach: info.fire?.secondsEach ?? 0 }, `${qty} ${qty === 1 ? 'bundle' : 'bundles'} on the fire, from ${possessive(m.name)} pack`)
           }
         />
       )}
@@ -423,7 +424,7 @@ function CookSheet({ mine, carried, cooking, loading, onClose, onCook }: {
         {loading ? (
           <SkeletonRows rows={2} label="Loading the packs" />
         ) : food.length === 0 ? (
-          <p className="camp__note">{`Nothing to cook in ${cook?.name ?? 'your'}'s pack.`}</p>
+          <p className="camp__note">{`Nothing to cook in ${cook ? possessive(cook.name) : 'your'} pack.`}</p>
         ) : (
           food.map((l) => (
             <div key={l.id} className="camp__row">

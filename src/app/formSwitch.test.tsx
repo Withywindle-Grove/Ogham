@@ -116,7 +116,7 @@ describe('the class form switch (eq-8)', () => {
     render(<Root db={world.db} />);
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await user.click(within(await screen.findByRole('navigation', { name: 'Campaign sections' })).getByRole('button', { name: /^Players/ }));
-    await user.click(await screen.findByRole('button', { name: "View Wren's sheet" }));
+    await user.click(await screen.findByRole('button', { name: "View Wren’s sheet" }));
     const form = within(await screen.findByRole('group', { name: 'Form' }));
     await user.click(form.getByRole('button', { name: 'Dawn phase ✓' }));
     expect(await screen.findByText('Wren is already in Dawn phase.')).toBeTruthy();

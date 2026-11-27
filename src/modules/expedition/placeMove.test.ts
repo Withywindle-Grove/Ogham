@@ -126,7 +126,7 @@ describe('Move on: the place and the clock in one request', () => {
       ['status.timerEnd', 'character_statuses', 'simple'],
     ]);
     const lines = await logLines(t, t.gm);
-    expect(lines.filter((line) => line.includes('moved the party'))).toEqual(["You moved the party to The Moth Gallery: Rowing, 3 turns. Ran out with the clock: Wren's rushlight, Glowing on Wren."]);
+    expect(lines.filter((line) => line.includes('moved the party'))).toEqual(["You moved the party to The Moth Gallery: Rowing, 3 turns. Ran out with the clock: Wren’s rushlight, Glowing on Wren."]);
   });
 
   // Purpose: the clock's side effects are Advance by…'s own: the same lights burn out, the same line leaves play and
@@ -229,7 +229,7 @@ describe('Move on: who may, and what stays hidden', () => {
   it("a player's line for a place not shown to them: the party moved on, with no place and no way", async () => {
     await runCommand(registry, t.world.db, t.gm, moveOn, rowing(t, 3));
     const lines = await logLines(t, t.sam);
-    expect(lines.filter((line) => line.startsWith('The party moved'))).toEqual(["The party moved on: 3 turns. Ran out with the clock: Wren's rushlight, Glowing on Wren."]);
+    expect(lines.filter((line) => line.startsWith('The party moved'))).toEqual(["The party moved on: 3 turns. Ran out with the clock: Wren’s rushlight, Glowing on Wren."]);
     const all = lines.join('\n');
     expect(all).not.toContain('moved the clock on');
     expect(all).not.toContain('Rowing');
@@ -250,11 +250,11 @@ describe('Move on: who may, and what stays hidden', () => {
     await runCommand(registry, t.world.db, t.gm, moveOn, rowing(t, 3));
     await showSomethingHere(t, 'Moths cover the walls.');
     const lines = await logLines(t, t.sam);
-    expect(lines.filter((line) => line.startsWith('The party moved'))).toEqual(["The party moved to A hall of moths: 3 turns. Ran out with the clock: Wren's rushlight, Glowing on Wren."]);
+    expect(lines.filter((line) => line.startsWith('The party moved'))).toEqual(["The party moved to A hall of moths: 3 turns. Ran out with the clock: Wren’s rushlight, Glowing on Wren."]);
     expect(lines.join('\n')).not.toContain('Moth Gallery');
     expect(lines.join('\n')).not.toContain('Rowing');
     // The GM's own line is as it was: the place's own name and the way.
-    expect((await logLines(t, t.gm)).filter((line) => line.includes('moved the party'))).toEqual(["You moved the party to The Moth Gallery: Rowing, 3 turns. Ran out with the clock: Wren's rushlight, Glowing on Wren."]);
+    expect((await logLines(t, t.gm)).filter((line) => line.includes('moved the party'))).toEqual(["You moved the party to The Moth Gallery: Rowing, 3 turns. Ran out with the clock: Wren’s rushlight, Glowing on Wren."]);
   });
 });
 

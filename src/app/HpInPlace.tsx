@@ -15,6 +15,7 @@ import { HpBox } from '../ui/HpBox.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
 import { registry } from './services.ts';
 import { whoMayChange } from './whoMayChange.ts';
+import { possessive } from '../core/nameWords.ts';
 
 export type HpCharacter = CharacterRef & { name: string; hpCurrent: number | null; hpMax: number | null };
 
@@ -105,7 +106,7 @@ export function HpInPlace({
     });
   }
   function step(by: 1 | -1) {
-    if (!mayChange) return blocked.explain(by < 0 ? 'Take damage' : 'Heal', whoMayChange(user, character, `${character.name}'s hit points`));
+    if (!mayChange) return blocked.explain(by < 0 ? 'Take damage' : 'Heal', whoMayChange(user, character, `${possessive(character.name)} hit points`));
     const current = shownRef.current;
     if (current === null) return;
     const next = stepHp(current, max, by);
@@ -171,7 +172,7 @@ export function HpInPlace({
 
   // The figure's tap: a small Sheet to type a value, after sending any burst still waiting.
   const openType = async () => {
-    if (!mayChange) return blocked.explain('Hit points', whoMayChange(user, character, `${character.name}'s hit points`));
+    if (!mayChange) return blocked.explain('Hit points', whoMayChange(user, character, `${possessive(character.name)} hit points`));
     if (busy) return;
     await flush();
     setTyped(shownRef.current === null ? '' : String(shownRef.current));

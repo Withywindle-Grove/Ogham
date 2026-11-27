@@ -20,7 +20,7 @@ async function openPlayers(page: Page, width: number, height: number, scheme: 'l
   await page.goto('/layout.html?as=gm&magic=1&view=long&give=1');
   await page.getByRole('button', { name: /The Drowned Marches/ }).click();
   await page.getByRole('navigation', { name: 'Campaign sections' }).getByRole('button', { name: /^Players/ }).click();
-  await expect(page.getByRole('button', { name: 'Open Wren of the Lantern Wardens\'s magic' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Open Wren of the Lantern Wardens’ magic' })).toBeVisible();
 }
 
 const rowOf = (page: Page, name: string) => page.locator('li.gm__character-row').filter({ has: page.getByRole('button', { name: `More for ${name}` }) });

@@ -312,7 +312,7 @@ async function openAsGm(): Promise<User> {
   render(<Root db={world.db} />);
   await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
   await user.click(within(await screen.findByRole('navigation', { name: 'Campaign sections' })).getByRole('button', { name: /^Players/ }));
-  await user.click(await screen.findByRole('button', { name: "Open Wren's pack" }));
+  await user.click(await screen.findByRole('button', { name: "Open Wren’s pack" }));
   expect(await screen.findByRole('region', { name: 'Wren’s pack' })).toBeTruthy();
   return user;
 }
@@ -691,7 +691,7 @@ describe('the Pack tab’s dress on a landscape tablet (K29’s review, finding 
 
 describe('a name ending in s takes the mark alone (Home Two audit of #50, finding 7; #108 audit, finding 6)', () => {
   // Purpose: a character whose name ends in s gets the mark alone on the coin's sheet and on its way back from Spend.
-  it.fails('reads "Lantern Wardens’ coin" on the coin’s sheet and "‹ Lantern Wardens’ coin" on Spend', async () => {
+  it('reads "Lantern Wardens’ coin" on the coin’s sheet and "‹ Lantern Wardens’ coin" on Spend', async () => {
     await coinWorld({ wren: { heron: 3 } });
     world.tables.actors.find((a) => a.id === wren)!.name = 'Lantern Wardens';
     const user = await openPack('Lantern Wardens');
@@ -704,7 +704,7 @@ describe('a name ending in s takes the mark alone (Home Two audit of #50, findin
   });
 
   // Purpose: a character whose name ends in s gets the mark alone on the Add item sheet's button.
-  it.fails('reads "Add to Lantern Wardens’ pack" on the Add item sheet', async () => {
+  it('reads "Add to Lantern Wardens’ pack" on the Add item sheet', async () => {
     await coinWorld();
     world.tables.actors.find((a) => a.id === wren)!.name = 'Lantern Wardens';
     const user = await openPack('Lantern Wardens');
@@ -724,5 +724,17 @@ describe('a name ending in s takes the mark alone (Home Two audit of #50, findin
     await screen.findByRole('region', { name: 'Party stash' });
     const back = screen.getByRole('button', { name: /^Back to / });
     expect(back.getAttribute('aria-label') ?? back.textContent).toBe('Back to Lantern Wardens’ pack');
+  });
+
+  // Purpose: a character whose name ends in s gets the mark alone on the stash's room for the taker, its region and
+  // its heading.
+  it('the Party stash’s room reads "Lantern Wardens’ room"', async () => {
+    await coinWorld();
+    world.tables.actors.find((a) => a.id === wren)!.name = 'Lantern Wardens';
+    const user = await openPack('Lantern Wardens');
+    await user.click(await screen.findByRole('button', { name: /^Party stash/ }));
+    await screen.findByRole('region', { name: 'Party stash' });
+    const room = screen.getByRole('region', { name: 'Lantern Wardens’ room' });
+    expect(within(room).getByRole('heading', { name: 'Lantern Wardens’ room' })).toBeTruthy();
   });
 });

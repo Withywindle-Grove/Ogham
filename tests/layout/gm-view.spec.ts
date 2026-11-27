@@ -40,7 +40,7 @@ for (const size of [
 ] as const) {
   for (const scheme of ['light', 'dark'] as const) {
     test(`the view: the band and the way back on Player, Pack and Magic (${size.name}, ${scheme})`, async ({ page }) => {
-      await openView(page, size.width, size.height, scheme, "View Wren of the Lantern Wardens's sheet");
+      await openView(page, size.width, size.height, scheme, "View Wren of the Lantern Wardens’ sheet");
       await expect(page.getByRole('region', { name: 'Vitals' })).toBeVisible();
       await expect(band(page)).toHaveAttribute('aria-label', 'Sam’s view of Wren of the Lantern Wardens. What you do here is logged as yours.');
       await oneLine(band(page).locator('.view-band__name'));
@@ -67,7 +67,7 @@ for (const size of [
     });
 
     test(`the band with long names: two lines at most, the name cut, read whole (${size.name}, ${scheme})`, async ({ page }) => {
-      await openView(page, size.width, size.height, scheme, `Open ${LONG_C}'s pack`);
+      await openView(page, size.width, size.height, scheme, `Open ${LONG_C}’s pack`);
       await expect(band(page)).toHaveAttribute('aria-label', `${LONG_P}’s view of ${LONG_C}. What you do here is logged as yours.`);
       const name = band(page).locator('.view-band__name');
       await oneLine(name);
@@ -86,7 +86,7 @@ for (const size of [
     });
 
     test(`the GM's own character: one line, "Your view of Ash" (${size.name}, ${scheme})`, async ({ page }) => {
-      await openView(page, size.width, size.height, scheme, "View Ash's sheet");
+      await openView(page, size.width, size.height, scheme, "View Ash’s sheet");
       await expect(band(page)).toHaveAttribute('aria-label', 'Your view of Ash');
       await expect(band(page).locator('.view-band__logged')).toHaveCount(0);
       await oneLine(band(page).locator('.view-band__name'));

@@ -33,6 +33,7 @@ import { denominationsOf, priceWords } from '../modules/inventory/coinWords.ts';
 import { Icon } from '../ui/icons.tsx';
 import { rememberPlace, startingPlace } from './lastPlace.ts';
 import { ItemEntry } from './ItemEntry.tsx';
+import { possessive } from '../core/nameWords.ts';
 
 const whole = (value: unknown) => (typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : null);
 
@@ -160,7 +161,7 @@ export function AddItem({
     .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
   const slot = picked && typeof picked.data.slot === 'string' ? picked.data.slot : '';
   const choosing = picked !== null || oneOff !== null;
-  const forWhom = carrier.actorId ? `${carrier.name}’s pack` : 'the Party stash';
+  const forWhom = carrier.actorId ? `${possessive(carrier.name)} pack` : 'the Party stash';
   const howWords = `How ${carrier.actorId ? `does ${carrier.name} get it` : 'is it got'}?`;
   const bundle = picked ? bundleOf(picked) : 1;
   const bases = picked ? baseArmourChoices(picked.data.armour) : null;
