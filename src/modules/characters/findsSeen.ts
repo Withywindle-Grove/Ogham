@@ -8,7 +8,7 @@
 import { defineCommand, fromError, isGm, isMember, ok, failed, type CommandResult, type CurrentUser } from '../../core/commands.ts';
 import type { LogEvent } from '../../core/events.ts';
 import type { Db } from '../../core/supabase.ts';
-import type { CharacterRef } from './commands.ts';
+import { toCharacterRef, type CharacterRef } from './commands.ts';
 
 /**
  * Got it: the character's own player marks its finds as seen, now (the server's time). Allowed only for the
@@ -255,4 +255,73 @@ export async function loadFindsSeen(db: Db,characterId: string): Promise<string 
   const { data, error } = await db.from('finds_seen').select('seen_at').eq('actor_id', characterId).maybeSingle();
   if (error || !data) return null;
   return typeof data.seen_at === 'string' ? data.seen_at : null;
+}
+
+/** What the device reads to say what is new for a character (K20b): everything `findsSince` takes but the lines. */
+export interface FindsRead {
+  character: CharacterRef;
+  seenAt: string | null;
+  /** The inventory's and the purses' log lines since the mark (both levels), oldest first. */
+  events: LogEvent[];
+  /** The clock's log lines since the mark, for the day an arrival came (`secondsAt`). */
+  clocks: LogEvent[];
+  gmUserIds: ReadonlySet<string>;
+  purseId: string | null;
+}
+
+const FIND_EVENT_COLUMNS = 'id, seq, type, level, actor_user_id, target_table, target_id, before, after, fiat, reason, reverts_event_id, request_id, created_at';
+/** The database sends at most 1,000 rows a request: the lines come a page at a time, so the newest are never cut off. */
+const FIND_PAGE = 1000;
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+const textOf = (v: unknown) => (typeof v === 'string' ? v : null);
+
+/**
+ * K20b's read of what is new, for one character: the character, its mark, the log's own read of the inventory's,
+ * purses' and clock's lines since the mark (under the log's read rule: a line another player may not read never comes),
+ * the campaign's GMs and the character's purse. Nothing new is read or allowed. Null on error.
+ */
+export async function loadFindsRead(db: Db, campaignId: string, characterId: string): Promise<FindsRead | null> {
+  const actor = await db.from('actors').select('id, campaign_id, owner_type, owner_user_id, approval, status').eq('id', characterId).maybeSingle();
+  if (actor.error || !actor.data) return null;
+  const seenAt = await loadFindsSeen(db, characterId);
+  const [members, purse] = await Promise.all([
+    db.from('members').select('user_id, base_role').eq('campaign_id', campaignId),
+    db.from('purses').select('id').eq('campaign_id', campaignId).eq('actor_id', characterId).maybeSingle(),
+  ]);
+  if (members.error) return null;
+  const rows: unknown[] = [];
+  for (let from = 0; ; from += FIND_PAGE) {
+    const query = db.from('events').select(FIND_EVENT_COLUMNS).eq('campaign_id', campaignId).in('target_table', ['inventory_lines', 'purses', 'campaign_clocks']);
+    const page = await (seenAt ? query.gt('created_at', seenAt) : query).order('seq', { ascending: true }).range(from, from + FIND_PAGE - 1);
+    if (page.error || !page.data) return null;
+    rows.push(...page.data);
+    if (page.data.length < FIND_PAGE) break;
+  }
+  const read = rows.map((row): LogEvent => {
+    const r = row as Record<string, unknown>;
+    return {
+      id: String(r.id),
+      seq: Number(r.seq),
+      type: String(r.type),
+      level: r.level === 'verbose' ? 'verbose' : 'simple',
+      actorUserId: textOf(r.actor_user_id),
+      targetTable: String(r.target_table),
+      targetId: textOf(r.target_id),
+      before: isRecord(r.before) ? r.before : null,
+      after: isRecord(r.after) ? r.after : null,
+      fiat: r.fiat === true,
+      reason: textOf(r.reason),
+      revertsEventId: textOf(r.reverts_event_id),
+      requestId: textOf(r.request_id),
+      createdAt: String(r.created_at),
+    };
+  });
+  return {
+    character: toCharacterRef(actor.data),
+    seenAt,
+    events: read.filter((e) => e.targetTable !== 'campaign_clocks'),
+    clocks: read.filter((e) => e.targetTable === 'campaign_clocks'),
+    gmUserIds: new Set((members.data ?? []).flatMap((m) => (m.base_role === 'gm' && typeof m.user_id === 'string' ? [m.user_id] : []))),
+    purseId: purse.error ? null : textOf(purse.data?.id),
+  };
 }
