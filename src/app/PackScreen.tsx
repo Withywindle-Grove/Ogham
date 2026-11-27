@@ -22,7 +22,7 @@ import {
   type InventoryLine,
   type NamedCarrier,
 } from '../modules/inventory/inventory.ts';
-import { atHandAction, atHandLines, countWords, isContainer, isSeparate, possessive } from '../modules/inventory/packView.ts';
+import { atHandAction, atHandLines, countWords, inWeaponBlock, isContainer, isSeparate, possessive } from '../modules/inventory/packView.ts';
 import { AddItem } from './AddItem.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { forgetCampaignSetting, loadCampaignSetting, type CampaignSetting } from './campaignSetting.ts';
@@ -390,9 +390,9 @@ function PackTab({
     // The lit line keeps its place in At hand's order (a row stays when it has Use a charge); when it isn't At hand
     // itself (not pinned, not in hand, or hidden) it's added last, for its sheet only, and never draws a row.
     const pins = ready ? atHandLines(linesOf(ready.mine), ready.loaded.setting.charges) : [];
-    // The weapon in hand (dec-13 C14, frame P1): each weapon whose At hand action is Attack leaves At hand's rows for its
-    // own block, above At hand.
-    const inHand = ready ? pins.filter((l) => atHandAction(l, ready.loaded.setting.charges, ready.loaded.rechargeDefault) === 'Attack') : [];
+    // The weapon in hand (dec-13 C14, frame P5b): each weapon in hand, no cap (pib-2), leaves At hand's rows for its own
+    // block, above At hand; a weapon worn ready stays a row with Attack (pib-1).
+    const inHand = ready ? pins.filter((l) => inWeaponBlock(l, ready.loaded.setting.charges, ready.loaded.rechargeDefault)) : [];
     const rest = pins.filter((l) => !inHand.includes(l));
     // Against every At hand line, the weapon in hand's too: a lit line drawn as the block already has its sheet there,
     // so At hand never adds a second one for it (dec-13 C6).

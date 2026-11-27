@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { combineEncumbrance } from './encumbrance.ts';
 import type { InventoryLine } from './inventory.ts';
-import { amountText, atHandAction, atHandLines, oneUpVerb, countWords, groupPack, markerOf, possessive, roomLeft, shownName, stackable, wornText } from './packView.ts';
+import { amountText, atHandAction, atHandLines, inWeaponBlock, oneUpVerb, countWords, groupPack, markerOf, possessive, roomLeft, shownName, stackable, wornText } from './packView.ts';
 
 // Invented items only (hard rule 2).
 let next = 0;
@@ -254,6 +254,34 @@ describe('At hand (ruled 2026-10-23)', () => {
     // A weapon worn (a blade on the worn slot) is ready too: Attack, since Wield would have nothing to do.
     expect(atHandAction(line('Spur blade', { category: 'weapon', equipped: true, details: { slot: 'worn' } }), charges)).toBe('Attack');
     expect(atHandAction(line('Coil of rope'), charges)).toBeNull();
+  });
+});
+
+describe('the weapon block takes what is in hand (pib-1, pib-2; frame P5b)', () => {
+  const charges = { dice: {}, rechargeable: false, hidden: false };
+  const blade = (name: string, extra: Partial<InventoryLine> = {}) => line(name, { category: 'weapon', details: { slot: 'hand', weapon: { damage: '1d6' } }, ...extra });
+
+  // Purpose: every weapon in hand gets a block, with no cap; three in hand are three blocks (pib-2).
+  it('takes every weapon in hand, three of three', () => {
+    const lines = [blade('Reed spear', { equipped: true }), blade('Eel knife', { equipped: true }), blade('Bone club', { equipped: true })];
+    expect(lines.filter((l) => inWeaponBlock(l, charges)).map((l) => l.name)).toEqual(['Reed spear', 'Eel knife', 'Bone club']);
+  });
+
+  // Purpose: a weapon worn ready (horns on the worn slot) is never a block, though its action is Attack (pib-1); a
+  // pinned weapon not equipped is never a block (its action is Wield).
+  it('leaves out a weapon worn ready and a pinned weapon not in hand', () => {
+    const horns = blade('Bog-ox horns', { equipped: true, pinned: true, details: { slot: 'worn', weapon: { damage: '1d6' } } });
+    const knife = blade('Eel knife', { pinned: true });
+    expect(atHandAction(horns, charges)).toBe('Attack');
+    expect(inWeaponBlock(horns, charges)).toBe(false);
+    expect(inWeaponBlock(knife, charges)).toBe(false);
+    expect(inWeaponBlock(blade('Reed spear', { equipped: true }), charges)).toBe(true);
+  });
+
+  // Purpose: only a weapon whose action is Attack: a wand in hand with charges, or a lantern in hand, is no block.
+  it('leaves out what is in hand but is no weapon to attack with', () => {
+    expect(inWeaponBlock(line('Heron wand', { equipped: true, details: { slot: 'hand', charges: { initial: 3 } }, chargesLeft: 3 }), charges)).toBe(false);
+    expect(inWeaponBlock(line('Rushlight', { equipped: true, details: { slot: 'hand', lightTypeId: 'rush' } }), charges)).toBe(false);
   });
 });
 
