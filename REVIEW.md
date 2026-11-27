@@ -2,6 +2,8 @@
 
 Read by the `reviewer` agent (`.claude/agents/reviewer.md`) and by the automatic review in CI (P3, `docs/plans/process-sdlc-1.md`). Ruled 2026-11-01. The specs in `docs/` are the source of truth; read only the sections the diff touches. Review is read-only and comments only. **Who runs it (ruled 2026-11-10):** the driver runs the `reviewer` once on each code pull request before it merges (docs-only and scripts-only pull requests are skipped; a migration or access rules are always reviewed); its findings are one comment on the pull request and a line in the pull request's text ("Reviewed: local reviewer, N findings, fixed / not"). For a pull request that draws a screen, the comment names the mockup or ruling its design pass compared against, since such a pull request may merge before Design's look (`docs/testing.md`, The component gallery).
 
+Since 2026-11-27 the loop's review (`code-review`, step 5) also reads `docs/12-coding-standards.md`: cite its rules by id (`cs-7`); they are judgement calls, and nits unless "What Important means here" applies.
+
 ## Passes
 Run three passes and tag each finding with its pass:
 
