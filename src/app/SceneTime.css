@@ -149,8 +149,10 @@
   }
 }
 
-/* Depart's Where? list (B7; DP1): each Area's name as a small-capitals heading, then its Locations, one row each, a
-   44 px tap with a dotted rule under it; the picked one ticked and bold. */
+/* Depart's Where? list as one view (sf-2; page 44, DP3, DP3b): the search, Recently visited, each Area a group that
+   folds (its name in small capitals, "N places", the chevron in its square, a rule under the head), From your packs
+   (a pack's name bold, unfolding in place, stepped in by the rows' own padding, N4), then Other…. Each place one row,
+   a 44 px tap with a dotted rule under it; the picked one ticked and bold. */
 .depart-pick {
   display: flex;
   flex-direction: column;
@@ -158,15 +160,94 @@
   min-width: 0;
 }
 
-/* Other… under the Locations (⚑ 6; the review of #1037): today's picker, for a typed name or another pack's place. */
+/* Other…, as wide as its words (DP3 A, E). */
 .depart-pick__other {
-  margin-top: var(--space-4);
+  flex: none;
+  align-self: flex-start;
 }
 
 .depart-pick__group {
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+.depart-pick__group > .label,
+.depart-pick__found {
+  margin: 0;
+}
+
+.depart-pick__group > .depart-pick__found {
+  margin-bottom: var(--space-1);
+}
+
+.depart-pick__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-step);
+  padding-block: var(--space-1);
+  border-bottom: var(--line-hair) solid var(--ink);
+}
+
+.depart-pick__group .depart-pick__group .depart-pick__head--area {
+  border-bottom: var(--row-rule);
+}
+
+.depart-pick__area,
+.depart-pick__pack {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.depart-pick__pack {
+  font-size: var(--text-16);
+  font-weight: var(--weight-bold);
+}
+
+.depart-pick__count {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* The chevron: down while folded, up while open (finding 5). */
+.depart-pick__fold .icon {
+  transform: rotate(90deg);
+}
+
+.depart-pick__fold--open .icon {
+  transform: rotate(-90deg);
+}
+
+.depart-pick__more {
+  align-self: flex-start;
+  margin-block: var(--space-2);
+}
+
+/* A row's Area at its right (a search, Recently visited); on a phone under the name (DP3b A). */
+.depart-pick__where {
+  flex: none;
+  max-width: 50%;
+  margin-left: auto;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 599px) {
+  .depart-pick__row:has(.depart-pick__where) {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .depart-pick__where {
+    flex-basis: 100%;
+    max-width: none;
+    margin-left: 0;
+    padding-left: calc(var(--space-5) + var(--space-2));
+    text-align: left;
+  }
 }
 
 .depart-pick__row {

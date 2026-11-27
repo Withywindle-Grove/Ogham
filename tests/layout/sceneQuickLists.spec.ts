@@ -19,14 +19,16 @@ for (const [width, height] of [[375, 812], [1180, 820]] as const) {
         await page.getByRole('button', { name: 'Depart' }).click();
         await page.getByRole('dialog', { name: /Depart$/ }).getByRole('button', { name: 'Where?: Pick a Location' }).click();
         const picker = page.getByRole('dialog', { name: /Where\?$/ });
-        await expect(picker.getByRole('region', { name: 'The Drowned Harbour' }).getByRole('button')).toHaveText([
+        await expect(picker.getByRole('region', { name: 'The Drowned Harbour' }).locator('.depart-pick__row')).toHaveText([
           'The Anchorage',
           '0. The Breakwater',
           '1. The Jetty',
           '2. The Wreck',
           '10. The Customs Shed of the Old Lantern Wardens, Long Since Flooded',
         ]);
-        await expect(picker.getByRole('region', { name: 'The Shingle Beach' }).getByRole('button')).toHaveText(['The Landing', '1. The Sea Stack']);
+        // The Shingle Beach starts folded (sf-2, ⚑ 10): unfolded, its own order too.
+        await picker.getByRole('button', { name: 'Show The Shingle Beach' }).click();
+        await expect(picker.getByRole('region', { name: 'The Shingle Beach' }).locator('.depart-pick__row')).toHaveText(['The Landing', '1. The Sea Stack']);
         for (const row of await picker.getByRole('region').getByRole('button').all()) expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(44);
         await page.screenshot({ path: `test-results/layout-screens/scene-quick-lists-depart-${width}-${scheme}.png` });
         expect(await layoutProblems(page)).toEqual([]);

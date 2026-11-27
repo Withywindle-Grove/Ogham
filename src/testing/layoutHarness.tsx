@@ -816,7 +816,8 @@ if (townFlag === 'town' || townFlag === 'downtime') {
   // The Depart sheet's Where? with Locations (plan scene-point-to-point B7; page 24, DP1), only with ?places=isle: an
   // adventure pack of two Areas and their Locations, one name long enough to wrap. Names are invented. The Harbour's
   // Locations are out of order in the pack, with a 0 and a 10, so the list's own order shows (Q1, F1 a).
-  if (new URLSearchParams(window.location.search).get('places') === 'isle') {
+  const placesFlag = new URLSearchParams(window.location.search).get('places');
+  if (placesFlag === 'isle' || placesFlag === 'marches') {
     world.tables.packs.push({ id: 'pack-isle', owner_user_id: gm, campaign_id: null, name: 'Saltwick Isle', version: '1', kind: 'adventure', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-18T12:00:00Z' });
     world.tables.campaign_packs.push({ id: 'link-isle', campaign_id: quay, pack_id: 'pack-isle', pack_name: 'Saltwick Isle', option_choices: {}, overrides: {}, priority: 2 });
     const isle = [
@@ -832,6 +833,37 @@ if (townFlag === 'town' || townFlag === 'downtime') {
       { id: 'i10-stack', name: 'The Sea Stack', type: 'area', parentId: 'i08-beach', key: '1' },
     ];
     for (const data of isle) world.tables.library_entries.push({ id: `entry-${data.id}`, pack_id: 'pack-isle', kind: 'location', pack_entry_id: data.id, name: data.name, data });
+  }
+  // The Depart list as one view (sf-2; page 44, DP3), only with ?places=marches: the isle above, a second adventure of
+  // one Area with a long name and thirteen Locations (one with no number, then 0 to 11), and a region pack with no
+  // Location, whose one Region holds three Areas of buildings and hexes. Names are invented.
+  if (placesFlag === 'marches') {
+    world.tables.packs.push({ id: 'pack-outer-bar', owner_user_id: gm, campaign_id: null, name: 'The Outer Bar', version: '1', kind: 'adventure', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-26T12:00:00Z' });
+    world.tables.campaign_packs.push({ id: 'link-outer-bar', campaign_id: quay, pack_id: 'pack-outer-bar', pack_name: 'The Outer Bar', option_choices: {}, overrides: {}, priority: 3 });
+    const barNames = ['The Anchorage', 'The Jetty', 'The Wreck', 'The Breakwater', 'The Customs Shed', 'The Sea Cave', 'The Sluice', 'The Net Loft', 'The Chain Tower', 'The Salt Pans', 'The Sea Gate', 'The Outer Mole'];
+    const bar = [
+      { id: 'o01-bar', name: 'The Drowned Harbour and the Wrecks of the Outer Bar', type: 'site', parentId: null },
+      // Out of order in the pack, so the list's own order shows.
+      ...barNames.map((name, n) => ({ id: `o-${n}`, name, type: 'area', parentId: 'o01-bar', key: String(n) })).reverse(),
+      { id: 'o-none', name: 'The Old Mooring', type: 'area', parentId: 'o01-bar' },
+    ];
+    for (const data of bar) world.tables.library_entries.push({ id: `entry-${data.id}`, pack_id: 'pack-outer-bar', kind: 'location', pack_entry_id: data.id, name: data.name, data });
+    world.tables.packs.push({ id: 'pack-reed', owner_user_id: gm, campaign_id: null, name: 'The Reed Marches', version: '1', kind: 'setting', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-26T12:00:00Z' });
+    world.tables.campaign_packs.push({ id: 'link-reed', campaign_id: quay, pack_id: 'pack-reed', pack_name: 'The Reed Marches', option_choices: {}, overrides: {}, priority: 4 });
+    const reed = [
+      { id: 'r01-marches', name: 'The Reed Marches', type: 'region', parentId: null },
+      { id: 'r02-moss', name: 'Moss Landing', type: 'site', parentId: 'r01-marches' },
+      { id: 'r03-post', name: 'The Reeve’s Post', type: 'building', parentId: 'r02-moss', key: '2' },
+      { id: 'r04-ford', name: 'The Ford', type: 'building', parentId: 'r02-moss' },
+      { id: 'r05-jetty', name: 'The Drowned Jetty', type: 'building', parentId: 'r02-moss', key: '1' },
+      { id: 'r06-road', name: 'The Bog Road', type: 'site', parentId: 'r01-marches' },
+      ...[1, 2, 3, 4].map((n) => ({ id: `r-road-${n}`, name: `Causeway ${n}`, type: 'area', parentId: 'r06-road', key: `070${n}`, hex: `070${n}` })),
+      { id: 'r07-thorn', name: 'Thornwater', type: 'site', parentId: 'r01-marches' },
+      ...Array.from({ length: 45 }, (_, n) => ({ id: `r-thorn-${n}`, name: `Thornwater reach ${n + 1}`, type: 'area', parentId: 'r07-thorn', key: String(1000 + n), hex: String(1000 + n) })),
+    ];
+    for (const data of reed) world.tables.library_entries.push({ id: `entry-${data.id}`, pack_id: 'pack-reed', kind: 'location', pack_entry_id: data.id, name: data.name, data });
+    // The party stood at the isle's Wreck before: Recently visited, and the Area last played (⚑ 10).
+    world.tables.places.push({ id: 'place-quay-wreck', campaign_id: quay, name: 'The Wreck', description: '', pack_id: 'pack-isle', pack_entry_id: 'i05-wreck', pack_type: 'area', pack_parent_id: 'i02-harbour', pack_key: '2', version: 1, undone: false, created_by: gm, created_at: '2026-11-25T12:00:00Z', updated_at: '2026-11-25T12:00:00Z' });
   }
 }
 
@@ -931,6 +963,19 @@ if (new URLSearchParams(window.location.search).get('gear') === '1') {
     .forEach((f, order) =>
       world.tables.field_definitions.push({ id: `field-gear-${f.key}`, campaign_id: muster, applies_to: 'pc', key: f.key, label: f.label, type: f.type, choices: f.choices ?? [], field_group: f.group ?? '', sort_order: order, show_on_card: false, hidden: false, fill: f.fill ?? null, required: false, created_at: '2026-11-20T12:00:00Z' }),
     );
+}
+
+// A skipped First spells (L5, 23-H3), only with ?gear=1&skipped=1: in The Fen Muster the Marsh Chaplain is renamed
+// with a long name ("Warden of the Seventeen Drowned Lanterns") and given one prayer when its spells come at level 2,
+// with the pack's spells and spell lists, so a level-2 character has First spells and, lowered to level 1 on Who they
+// are, reaches it by Back with nothing to choose (as firstSpells.test.tsx's walk).
+if (new URLSearchParams(window.location.search).get('gear') === '1' && new URLSearchParams(window.location.search).get('skipped') === '1') {
+  const chaplain = world.tables.library_entries.find((e) => e.id === 'entry-gear-class-marsh-chaplain')!;
+  const data = chaplain.data as Record<string, unknown> & { spellcasting: Record<string, unknown> };
+  chaplain.name = 'Warden of the Seventeen Drowned Lanterns';
+  chaplain.data = { ...data, name: chaplain.name, spellcasting: { ...data.spellcasting, firstSpells: { given: ['lantern-blessing'] } } };
+  for (const [list, kind] of [['spellLists', 'spellList'], ['spells', 'spell']] as const)
+    for (const found of fenPack[list] ?? []) world.tables.library_entries.push({ id: `entry-gear-${kind}-${String(found.id)}`, pack_id: 'pack-fen-gear', kind, pack_entry_id: String(found.id), name: String(found.name ?? found.id), data: found });
 }
 
 // Every step of guided creation on the invented fixture pack (row test-creation-world), only with ?creation=full: "The

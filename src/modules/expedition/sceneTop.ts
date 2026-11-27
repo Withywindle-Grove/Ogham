@@ -430,7 +430,7 @@ export function departLocationGroups(places: readonly PackPlace[]): LocationGrou
       seen.add(place);
       if (isLocation(place)) {
         const area = areaOf(places, place);
-        const key = area ? `${area.packId}:${area.entryId}` : `pack:${place.packId}`;
+        const key = groupKeyOf(place, area);
         const group = groups.get(key) ?? { key, name: area?.name ?? place.packName, locations: [] };
         group.locations.push(place);
         groups.set(key, group);
@@ -441,4 +441,37 @@ export function departLocationGroups(places: readonly PackPlace[]): LocationGrou
   for (const pack of packsWithPlaces(places)) walk(rootsOf(places, pack.packId));
   // Within a group, the Locations' own order (Q1): a Location under another one joins its Area's group in that order too.
   return [...groups.values()].map((group) => ({ ...group, locations: byMapNumber(group.locations, (p) => p.key) }));
+}
+
+/** A group's key (`LocationGroup.key`): its Area's, else the pack's. */
+function groupKeyOf(place: PackPlace, area: PackPlace | null): string {
+  return area ? `${area.packId}:${area.entryId}` : `pack:${place.packId}`;
+}
+
+/**
+ * The words at a row's right in the Depart list (sf-2; page 44, DP3 B): the place's Area (the nearest `site` above
+ * it), else the nearest place above it, else its pack's name.
+ */
+export function departAreaOf(places: readonly PackPlace[], place: PackPlace): string {
+  return areaOf(places, place)?.name ?? place.packName;
+}
+
+/**
+ * The group of the Depart list that starts open (sf-2, ⚑ 10 ruled 2026-11-26: "The Area last played"): the Area of
+ * the place already ticked (`picked`), where a group lists it (the review of #124: reopened, the tick shows); else the
+ * Area of the newest of the campaign's places (`recent`, newest first) that a pack's Location or Area gives, where it
+ * heads a group; else the first group; null with no group. The others start folded.
+ */
+export function departOpenGroup(groups: readonly LocationGroup[], places: readonly PackPlace[], recent: readonly Pick<Place, 'pack'>[], picked: PackPlace | null = null): string | null {
+  const keys = new Set(groups.map((g) => g.key));
+  // A Location opens its Area's group; an Area stood at before (from before p2p-2) opens its own.
+  const keyOf = (at: PackPlace) => (isLocation(at) ? groupKeyOf(at, areaOf(places, at)) : `${at.packId}:${at.entryId}`);
+  if (picked && isLocation(picked) && keys.has(keyOf(picked))) return keyOf(picked);
+  for (const visit of recent) {
+    const at = visit.pack ? places.find((p) => p.packId === visit.pack!.packId && p.entryId === visit.pack!.entryId) : undefined;
+    if (!at) continue;
+    const key = keyOf(at);
+    if (keys.has(key)) return key;
+  }
+  return groups[0]?.key ?? null;
 }

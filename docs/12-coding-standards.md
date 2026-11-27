@@ -103,13 +103,13 @@ Ruled 2026-11-27 (lp-9, `design/rulings/process-loop-2026-11-27.md`). The source
 | `noImplicitOverride`, `verbatimModuleSyntax`, `erasableSyntaxOnly` | cs-12 to cs-17 | To add. Expected cost: small (6 classes; no enums) |
 | `exactOptionalPropertyTypes`, `noPropertyAccessFromIndexSignature` | cs-12, cs-13 | To add after a trial. Expected cost: large, in the generated database types (1,656 optional properties) |
 | Hooks rule `exhaustive-deps` from warning to error | cs-26 | To add |
-| `modules` reach `core` only through its public entry | Hard rule 6, the other direction | To add (`no-restricted-imports`) |
+| `modules` reach `core` only through its public entry | Hard rule 6, the other direction | On (`eslint.config.js`, `no-restricted-imports` on `src/modules`, tests included; in `npm run check`). The public entry is the allowed list `ALLOWED_CORE_FILES` there; a new one is added in a reviewed change |
 | No AI service package or host in the app | Hard rule 1 | To add (a banned-import list) |
-| `package.json` dependencies equal the list in `02` | Hard rule 9 | To add (a script in the check) |
-| No `disabled` attribute on a control | Hard rule 10 | To add (`no-restricted-syntax`) |
-| Tokens only in inline styles in screens | Hard rule 7 | To add (extend the token test) |
+| `package.json` dependencies equal the list in `02` | Hard rule 9 | On (`src/ui/packageList.test.ts`, inside `npm run check`). Names only, not versions; the list is `02`, "Packages" |
+| No `disabled` attribute on a control | Hard rule 10 | On (`eslint.config.js`, the project's own rule `tome/no-disabled`; in `npm run check`). App components (`src/**/*.tsx`), tests excluded |
+| Tokens only in inline styles in screens | Hard rule 7 | On (`src/ui/designSystem.test.ts`, inside `npm run check`). Reads every `style={…}` in the app's components, tests and the gallery excluded; old cases go on `src/ui/inlineStyles.known.ts` (none when switched on) |
 | No float column for money, quantities, weights or slots | Hard rule 8 | To add (a test over the generated types) |
-| A new source file over 400 lines | cs-10 | To add (`max-lines`, old files recorded as known) |
+| A new source file over 400 lines | cs-10 | On (`eslint.config.js`, the project's own rule `tome/max-lines` at 400, every line counted; in `npm run check`). App source (`src/**/*.{ts,tsx}`) and scripts (`scripts/**/*.{js,mjs}`); test files and the generated database types excluded; stylesheets are not checked (lint does not read CSS without a new package). The old long files are known in `eslint-suppressions.json`; a known file that grows stays quiet |
 | A unit test over 300 ms | cs-34 | To add: the runner reports it already; make the report part of the check's output |
 | The name scan says so when its private list is absent | Hard rule 2 | To add. It is silent on GitHub today |
 
