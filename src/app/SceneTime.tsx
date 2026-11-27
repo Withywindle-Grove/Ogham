@@ -123,7 +123,8 @@ import { answerOf, answerRest, callRest, flipped, forcedRestGroups, forcedWithou
 import type { Marcher } from '../modules/expedition/marchingPlay.ts';
 import { RestPanel, RestPrompt, RestRule, type RestLine } from './RestPrompt.tsx';
 import { PromptSlot } from './PromptSlot.tsx';
-import { CallsInPromptSlot } from './CallCard.tsx';
+import { CallsInPromptSlot, RevealedCard } from './CallCard.tsx';
+import { useRevealedWords } from './useRevealedWords.ts';
 import { usePlayerCalls } from './usePlayerCalls.ts';
 import { darkMode, inDarkness } from '../modules/expedition/darkness.ts';
 import { loadTownSwitches, resetTownSwitches, setActiveNight, setOutDay } from '../modules/expedition/townPlay.ts';
@@ -408,6 +409,19 @@ export function SceneTime({
   // The calls to adventure and rumours sent to this player (P7; page 40): read again with the log, last in the slot;
   // read only while the players' slot is drawn (its table view, once the time has loaded).
   const playerCalls = usePlayerCalls(db, user, campaign.id, !gm && !compact && !!tableView && scene !== null && scene !== 'error', logVersion + version);
+  // The encounter results the GM revealed (sf-7b; EN5): the words alone, a card each in the slot until "Got it" puts it
+  // away on this device (sf-23); read, like the calls, only while the players' slot is drawn.
+  const revealed = useRevealedWords(db, campaign.id, !gm && !compact && !!tableView && scene !== null && scene !== 'error', logVersion + version);
+  const revealedGotIt = (id: string) => {
+    revealed.gotIt(id);
+    // The button goes with its card: focus moves to the next revealed card's "Got it", if one stands and the player
+    // hasn't moved on elsewhere meanwhile.
+    setTimeout(() => {
+      const active = document.activeElement;
+      if (active && active !== document.body) return;
+      document.querySelector<HTMLElement>('.prompt-slot [data-prompt-id^="reveal-"] .call-card__got-it')?.focus();
+    }, 0);
+  };
 
   const underWay = scene !== null && scene !== 'error' && scene.expedition !== null;
   const expeditionId = scene !== null && scene !== 'error' ? (scene.expedition?.id ?? null) : null;
@@ -2650,6 +2664,10 @@ export function SceneTime({
                   />
                 ))}
                 {tableView?.prompts}
+                {/* sf-7b (EN5): a revealed encounter result, under the top; the slot's own order puts a new one on top. */}
+                {revealed.cards.map((reveal) => (
+                  <RevealedCard key={`reveal-${reveal.id}`} reveal={reveal} onGotIt={() => revealedGotIt(reveal.id)} />
+                ))}
                 {/* The players' weather card stays in their slot (the page under the top is page 18's plan); folded, its
                     icon by the date went with the old head (S15): the Weather fact says the weather and opens its sheet. */}
                 <WeatherCard

@@ -1658,6 +1658,20 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
       world.tables.waiting_encounters.push({ id: `waiting-reed-${i}`, campaign_id: campaign, expedition_id: started.data.id, check_result_id: check, watch: null, state: 'waiting', started_at: null, dismissed_at: null, created_by: gm, undone: false, version: 1, created_at: `2026-11-14T10:0${i}:00Z` });
     }
   }
+  // &revealed=1|long: a hit whose words the GM showed the players (sf-7b; EN5), so the player's slot holds the revealed
+  // card: EN5's words, or a reveal of forty-odd words that wraps.
+  const revealedFlag = new URLSearchParams(window.location.search).get('revealed');
+  if (started.data && (revealedFlag === '1' || revealedFlag === 'long')) {
+    const words =
+      revealedFlag === 'long'
+        ? 'Two grey shapes rise from the weed and reach for the oars; behind them, further out where the water turns black, a third waits under the surface, and the gulls that mobbed the boat all morning have gone quiet and flown inland over the drowned customs house.'
+        : 'Two grey shapes rise from the weed and reach for the oars.';
+    world.tables.check_results.push({
+      id: 'check-reed-revealed', campaign_id: campaign, expedition_id: started.data.id, check_key: 'place:drowned-harbour:revealed', name: 'Encounter check', source: 'place', outcome: 'hit', at_seconds: 0, modifiers: [], note: null,
+      table_id: 'on-the-water', roll: '1–8', row_text: 'Bog lurkers', secret: true, revealed: false, revealed_by_hand: false, created_by: gm, undone: false, version: 1, created_at: '2026-11-14T11:00:00Z',
+    });
+    world.tables.check_reveals.push({ id: 'reveal-reed', campaign_id: campaign, check_result_id: 'check-reed-revealed', words, shown_at: '2026-11-14T11:01:00Z', taken_back: false, created_at: '2026-11-14T11:01:00Z', updated_at: '2026-11-14T11:01:00Z' });
+  }
 }
 
 const people: Record<string, string> = { gm, player: sam, new: jo };

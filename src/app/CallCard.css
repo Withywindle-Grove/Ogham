@@ -164,3 +164,44 @@
 .call-fold__chevron--open {
   transform: rotate(-90deg);
 }
+
+/* The encounter variant (sf-7b; page 44's EN5): the revealed result on the players' Scene. As EN5 draws it, "An
+   encounter" is the card's plain bold heading at body size, the mark and "Got it" stand centred beside the heading and
+   the words, and on a phone too the words keep their column beside "Got it" (EN5 B), rather than running on under it. */
+.call-card--encounter {
+  align-items: center;
+}
+
+/* The heading and the words stay together, centred beside "Got it" when it is the taller: the spare height goes to the
+   rows above and below them. */
+.call-card--encounter .call-card__body {
+  grid-template-rows: 1fr auto auto 1fr;
+  grid-template-areas:
+    '. got-it'
+    'heading got-it'
+    'text got-it'
+    '. got-it';
+}
+
+.call-card--encounter .call-card__got-it {
+  align-self: center;
+}
+
+.call-card--encounter .call-card__heading {
+  margin: 0;
+  font-weight: var(--weight-book-name);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+  color: var(--ink);
+}
+
+@media (max-width: 599px) {
+  .call-card--encounter .call-card__body {
+    display: grid;
+  }
+
+  .call-card--encounter .call-card__got-it {
+    float: none;
+    margin: 0;
+  }
+}
