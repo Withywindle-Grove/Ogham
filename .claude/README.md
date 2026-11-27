@@ -43,10 +43,10 @@ Mechanical work goes to Sonnet or Haiku workers: merges, conflicts, watching CI,
 
 ## Review before a merge
 
-- The driver runs the `reviewer` once on each code pull request before it merges: once per batch, after the batch's last row (lc-2). Docs-only and scripts-only pull requests are skipped. A pull request with a migration or access rules is always reviewed.
+- The driver runs the `reviewer` once on each code pull request before it merges. A spec's pull request is reviewed once, on the whole integration branch, after its last ticket merges (ib-1). A plan batch is reviewed once, after its last row (lc-2). Docs-only and scripts-only pull requests are skipped. A pull request with a migration or access rules is always reviewed.
 - The findings go in one comment on the pull request. The pull request's text says "Reviewed: local reviewer, N findings, fixed / not". For a pull request that draws a screen, the comment names the mockup or ruling it was compared against.
 - The reviewer reports first. Auto-merge is set only after its comment is on the pull request.
-- A fresh worker fixes the findings (`CLAUDE.md`, One check run per batch).
+- One fresh worker fixes the findings (`CLAUDE.md`, One integration branch per spec; Plan batches).
 - The CI review runs the same file when its API credit allows. It does not replace the local review.
 
 ## Seats
@@ -68,11 +68,11 @@ Mechanical work goes to Sonnet or Haiku workers: merges, conflicts, watching CI,
 
 ## Workers
 
-The batching rule (one check run per batch, a fresh worker per row and per fix round, who opens the draft) is in `CLAUDE.md`. A ticket is a row.
+The branch rule (one integration branch per spec, a fresh worker per ticket and per fix round, who opens the pull request) is in `CLAUDE.md`; plan work keeps its batches (Plan batches there). A ticket is a row.
 
 - **Brief.** Every worker starts from a brief in a file (`driver.md`, Brief every worker). It keeps its own files in the scratch subfolder its brief names.
 - **Context.** A worker and its ticket are sized to stay near 150,000 tokens (`docs/agents/issue-tracker.md`). No hook counts a worker. A worker past the limit finishes its task and keeps its replies lean (Short conversations).
-- **Push.** A branch with no pull request yet is pushed each time its check passes (a branch push alone starts no CI run). Once the pull request is open: one push per row, and one per round of review fixes.
+- **Push.** A branch with no pull request is pushed each time its check passes (a branch push alone starts no CI run); a ticket's builder opens none. Plan work, once its pull request is open: one push per row, and one per round of review fixes. On a spec's pull request the driver's merges and the fix round are the pushes.
 - **Builders do not wait for CI.** A builder pushes, reports and stops. A Sonnet or Haiku worker watches CI and fetches the pictures. If something fails, the driver starts a fresh worker with the findings.
 - **The check slot.** In a cloud container a worker runs the full check through `scripts/check-slot.sh <command>`, and only the tests it touches while it works; before it queues for the full check it runs `npm run check:quick` (types, lint and related tests on its changes, a few minutes, outside the slot; `docs/testing.md`, The quick check). One slot, unless `OGHAM_CHECK_SLOTS` says more; each run's time is logged to `/tmp/ogham-check-times.log`. A second slot is a trial: time it, and keep it only if it gains time.
 - **The commit hook is the check.** A worker commits through `scripts/check-slot.sh git commit …` and does not run the full check by hand first. The slot refuses a commit when the hooks are off in its worktree, and says to run `npm run hooks:install`.
@@ -91,7 +91,7 @@ Where this section differs from the rules above or in `CLAUDE.md`, those rules w
 | 2 | Spec, a file in `docs/specs/` | `to-spec` | Opus, medium |
 | 3 | Tickets, GitHub issues, each sized for one fresh worker | `to-tickets` | Opus, medium |
 | 4 | Build: the driver orchestrates; a fresh `builder` per ticket | `implement-spec`, `tdd` | Opus, medium |
-| 5 | Review, per batch | `code-review` (the project's copy) | Opus, high |
+| 5 | Review, once per spec | `code-review` (the project's copy) | Opus, high |
 | 6 | Retro, per spec | `retro`, `writing-for-agents` | Opus, high |
 | 7 | Every third loop: an architecture pass; it reports only | `improve-codebase-architecture`, `codebase-design`, `domain-modeling`, `grilling` | Fable, high |
 
@@ -192,7 +192,7 @@ During a gate, Claude Code collects Francis's feedback without acting on it unti
 
 When each check runs (by day, on a merge, at night) is in `CLAUDE.md`, Checks, and `docs/testing.md`, The GitHub check. The push rule is under Workers.
 
-- **The layout job runs only on a pull request labelled `ready`.** The driver adds the label after the local review and its fixes, so the layout checks run once per batch. After adding it, re-run the labelled run, not the push run. Before adding it, check the gallery line (`docs/testing.md`, Announced redraws). Docs-only pull requests never get the label.
+- **The layout job runs only on a pull request labelled `ready`.** The driver adds the label after the local review and its fixes, so the layout checks run once per spec (once per batch for plan work). After adding it, re-run the labelled run, not the push run. Before adding it, check the gallery line (`docs/testing.md`, Announced redraws). Docs-only pull requests never get the label.
 - **No updating for its own sake.** A pull request merely behind `main` is not updated; one that conflicts merges `main` in (`CLAUDE.md`, Things Claude gets wrong).
 - **Main's pictures sooner than the night run:** `gh workflow run check.yml --ref main`.
 - **Re-run only a machine fault.** A real failure goes to a fresh worker.
@@ -207,9 +207,9 @@ On a branch named `fix-…`, the first commit adds the failing test marked `it.f
 
 ## Measuring
 
-- **Every worker's brief starts with `Row: <id>`** (a batch: `Row: <id> + <id>`; for a ticket, its issue number). The same line is in the worker's prompt itself: the usage report reads the prompt, not the brief file. The pull request's title carries it, every row of a batch named.
+- **Every worker's brief starts with `Row: <id>`** (a plan batch: `Row: <id> + <id>`; for a ticket, its issue number). The same line is in the worker's prompt itself: the usage report reads the prompt, not the brief file. A spec's pull request title names every ticket (`Spec: <name> (Rows: #a, #b, …)`); a plan batch's title names every row.
 - The driver runs the usage report (`npm run usage:report`) at each Thursday reset, so a row's cost can be read.
-- **⚑ raised** in a step, which only the builder knows, goes in the pull request's text.
+- **⚑ raised** in a step, which only the builder knows, goes in the ticket's `pr-text.md`, then in the spec's pull request text (plan work: the pull request's text).
 - **First-pass merge** (did a code pull request merge on its first push?) is counted by Project Review from GitHub's Check runs at each gate and reported in `docs/health/project-review-<date>.md`. Francis reads both; a falling first-pass rate or a rising ⚑ count means the specs need work before the builder does.
 
 ## Work begun from a plan
