@@ -10,12 +10,14 @@ import { runCommand, type CurrentUser } from '../core/commands.ts';
 import { loadCommandLog, type LogEvent } from '../core/events.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
-import { giveFind, NOT_NAMED_WORDS, rowKey, sendOf, sentRows, undoFind } from '../modules/expedition/findSend.ts';
+import { giveFind, loadClockChanges, NOT_NAMED_WORDS, rowKey, sendOf, sentRows, undoFind } from '../modules/expedition/findSend.ts';
 import { hoardRows, magicPieceOf, namedThings, oneThing, thingWords, type Hoard, type HoardRow } from '../modules/expedition/hoard.ts';
 import { heldLinesOf, loadHolders, loadRevealed, showItemTruth } from '../modules/expedition/itemTruth.ts';
+import { sharedStep, type TurnClock } from '../modules/expedition/placeKnowledge.ts';
 import type { GroupPlace, Piece } from '../modules/expedition/placePlay.ts';
 import { denominationsOf, type Denomination } from '../modules/inventory/coinWords.ts';
 import { loadCarriers, type NamedCarrier } from '../modules/inventory/inventory.ts';
+import { secondsAt } from '../modules/inventory/stashHistory.ts';
 import { loadCampaignEntries } from '../modules/library/campaignPacks.ts';
 import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import { Dialog, SheetScope } from '../ui/Dialog.tsx';
@@ -57,8 +59,11 @@ export function sheetHoard(hoard: Hoard, piece: Pick<Piece, 'text' | 'lead'>): H
   return { ...hoard, name, words: words === name ? null : words };
 }
 
-/** A sent piece's line in its sheet (sf-8, TR1): "Sent to Wren." or "In the party stash.". */
-export const sentPieceWords = (to: string | null, nameOf: (id: string) => string): string => `${sentWords(to, nameOf)}.`;
+/**
+ * A sent piece's line in its sheet (sf-8, TR1): "Sent to Wren, turn 3." or "In the party stash, turn 3.", the turn in
+ * the strip's own step words when the send was in the expedition under way; else "Sent to Wren.".
+ */
+export const sentPieceWords = (to: string | null, nameOf: (id: string) => string, step: string | null = null): string => `${sentWords(to, nameOf)}${step ? `, ${step}` : ''}.`;
 
 /** "Take it back"'s toast (sf-8, TR1): "Taken back from Wren: bronze ring.", or "from the party stash". */
 export const takenBackWords = (to: string | null, nameOf: (id: string) => string, rows: readonly HoardRow[]): string =>
@@ -109,6 +114,7 @@ export function useHoards({
   place,
   placeName,
   phone = false,
+  turns = null,
   onEdit,
   onChanged,
 }: {
@@ -121,6 +127,8 @@ export function useHoards({
   placeName: string;
   /** A phone: the sheets rise from the foot (HM5); on a tablet they stand at the right (HM2, pg30-5). */
   phone?: boolean;
+  /** The expedition's step on the clock, for "Sent to Wren, turn 3." (TR1); null: the line names no turn. */
+  turns?: TurnClock | null;
   onEdit: (piece: Piece) => void;
   onChanged: () => void;
 }) {
@@ -128,6 +136,7 @@ export function useHoards({
   const blocked = useBlockedSheet();
   const [setting, setSetting] = useState<Setting | null>(null);
   const [events, setEvents] = useState<LogEvent[]>([]);
+  const [clock, setClock] = useState<Awaited<ReturnType<typeof loadClockChanges>>>(null);
   const [tick, setTick] = useState(0);
   const [open, setOpen] = useState<Open>(null);
   const [busy, setBusy] = useState(false);
@@ -164,12 +173,20 @@ export function useHoards({
     if (!hasTreasure) return;
     let live = true;
     void loadCommandLog(db, campaign.id, giveFind.name).then((found) => live && found && setEvents(found));
+    // The clock's changes, for the turn each send was made in (TR1). Unread, the line names no turn.
+    void loadClockChanges(db, campaign.id).then((found) => live && setClock(found), () => live && setClock(null));
     return () => {
       live = false;
     };
   }, [db, campaign.id, hasTreasure, tick, row]);
 
-  const sent = useMemo(() => (placeId ? sentRows(events, placeId) : new Map<string, { to: string | null; eventId: string }>()), [events, placeId]);
+  const sent = useMemo(() => (placeId ? sentRows(events, placeId) : new Map<string, { to: string | null; eventId: string; seq: number }>()), [events, placeId]);
+  /** The turn a send was made in ("turn 3"), counted in the expedition under way; null when it can't be said. */
+  const sentStep = (seq: number): string | null => {
+    if (!clock) return null;
+    const seconds = secondsAt({ seq }, clock.changes, clock.seconds);
+    return seconds === null ? null : sharedStep(seconds, turns);
+  };
   const nameOf = useCallback((id: string) => setting?.carriers.find((c) => c.actorId === id)?.name ?? 'someone', [setting]);
   const refresh = () => {
     setTick((t) => t + 1);
@@ -296,7 +313,7 @@ export function useHoards({
           hoard={hoard}
           over={over}
           side={!phone}
-          went={singleWent ? sentPieceWords(singleWent.to, nameOf) : null}
+          went={singleWent ? sentPieceWords(singleWent.to, nameOf, sentStep(singleWent.seq)) : null}
           onCharacter={() => setOpen({ ...open, step: 'who', rows: [single] })}
           onStash={() => void send(null, [single])}
           onTakeBack={() => singleWent && void takeBack(singleWent, [single])}

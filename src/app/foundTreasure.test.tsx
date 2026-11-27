@@ -11,6 +11,8 @@ import { cleanup, render, screen, waitFor, within } from '@testing-library/react
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
+import type { TurnClock } from '../modules/expedition/placeKnowledge.ts';
+import { advanceTime } from '../modules/expedition/play.ts';
 import { forgetPackPlaces, loadGroupPlaces, setPlace, type GroupPlace } from '../modules/expedition/placePlay.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { ToastHost } from '../ui/ToastHost.tsx';
@@ -53,12 +55,20 @@ async function atShed(): Promise<{ trip: string; row: GroupPlace }> {
   return { trip, row: (await loadGroupPlaces(world.db, campaign, trip))!.get(1)! };
 }
 
-async function page() {
+/** The expedition's step for the "turn N" words: a turn of ten minutes, the expedition started at the clock's 0. */
+const TURNS: TurnClock = { startedAt: 0, step: { value: 1, unit: 'turn' }, units: { turn: 600, hour: 3600, day: 86400 } };
+
+async function page(turns: TurnClock | null = null) {
   const { trip, row } = await atShed();
+  await drawn(trip, row, turns);
+}
+
+/** The page drawn (again) for a trip already set up. */
+async function drawn(trip: string, row: GroupPlace, turns: TurnClock | null) {
   render(
     <ToastHost>
       <SceneWaitingProvider>
-        <GmPlacePage db={world.db} user={gm()} campaign={{ id: campaign, name: 'The Ash Barrows', role: 'gm', line: null }} expeditionId={trip} group={1} groupLabel={null} row={row} checks={[]} recent={[]} onChanged={() => undefined} />
+        <GmPlacePage db={world.db} user={gm()} campaign={{ id: campaign, name: 'The Ash Barrows', role: 'gm', line: null }} expeditionId={trip} group={1} groupLabel={null} row={row} checks={[]} recent={[]} turns={turns} onChanged={() => undefined} />
       </SceneWaitingProvider>
     </ToastHost>,
   );
@@ -117,6 +127,28 @@ describe('found treasure (sf-8)', () => {
     expect(world.tables.inventory_lines).toHaveLength(0);
     expect(world.tables.events.filter((e) => e.reverts_event_id).length).toBeGreaterThan(0);
     await waitFor(() => expect(within(sheet()).getByRole('button', { name: 'To the party stash' })).toBeTruthy());
+  });
+
+  // Purpose (TR1): in an expedition under way, a sent piece's sheet names the turn it was sent in, "turn 3".
+  it('a sent piece names the turn it was sent in', async () => {
+    // Twenty minutes in: the third turn of ten minutes.
+    world.tables.campaign_clocks.find((c) => c.campaign_id === campaign)!.seconds = 1200;
+    await page(TURNS);
+    await userEvent.click(within(piece('Bronze ring')).getByRole('button', { name: /^Bronze ring/ }));
+    await userEvent.click(within(sheet()).getByRole('button', { name: 'To the party stash' }));
+    await screen.findByText('Put in the party stash: bronze ring.');
+    await waitFor(() => expect(within(piece('Bronze ring')).getByText('In the party stash')).toBeTruthy());
+    // The clock moves on two turns after the send: the line still names the turn it was sent in, read from the clock's
+    // own changes in the log.
+    const clock = world.tables.campaign_clocks.find((c) => c.campaign_id === campaign)!;
+    const moved = await runCommand(registry, world.db, gm(), advanceTime, { campaignId: campaign, clock: { id: String(clock.id), campaignId: campaign, seconds: 1200, version: Number(clock.version) }, seconds: 1200 });
+    expect(moved.ok).toBe(true);
+    // Drawn afresh, so the clock is read again (now 2400, with its change in the log).
+    const trip = String(world.tables.expeditions[0]!.id);
+    cleanup();
+    await drawn(trip, (await loadGroupPlaces(world.db, campaign, trip))!.get(1)!, TURNS);
+    await userEvent.click(within(piece('Bronze ring')).getByRole('button', { name: /^Bronze ring/ }));
+    expect(await within(sheet()).findByText('In the party stash, turn 3.')).toBeTruthy();
   });
 
   // Purpose: when the send can't be undone (the thing has changed since), the blocked-action pop-up says why.

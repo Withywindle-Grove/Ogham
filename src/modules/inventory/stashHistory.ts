@@ -180,8 +180,11 @@ function splitBefore(move: LogEvent, lines: readonly LogEvent[]): boolean {
   return !!made && ((made.requestId !== null && made.requestId === move.requestId) || move.seq === made.seq + 1);
 }
 
-/** The clock's seconds when an event happened: the latest clock change before it, else the first one after it (its before), else now. */
-function secondsAt(e: LogEvent, clocks: readonly LogEvent[], now: number): number | null {
+/**
+ * The clock's seconds when an event happened: the latest clock change before it, else the first one after it (its
+ * before), else now. Also the found treasure's "Sent to Wren, turn 3." (sf-8, `HoardSheet.tsx`).
+ */
+export function secondsAt(e: Pick<LogEvent, 'seq'>, clocks: readonly LogEvent[], now: number): number | null {
   const prior = [...clocks].reverse().find((c) => c.seq < e.seq && isRecord(c.after) && typeof c.after.seconds === 'number');
   if (prior) return prior.after!.seconds as number;
   const later = clocks.find((c) => c.seq > e.seq && isRecord(c.before) && typeof c.before.seconds === 'number');

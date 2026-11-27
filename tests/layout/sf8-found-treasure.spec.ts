@@ -5,7 +5,7 @@
 //   A. The Bronze ring's arrow and eye are each 44 px and 8 px apart.
 //   B. A tap on the Bronze ring (one thing) opens its sheet: its words, "To a character", "To the party stash", the edit row.
 //   C. A tap on the Crate (a count) opens its sheet with "Send all" at the foot's right, under the edit row.
-//   D. Once the ring is sent, its sheet says where it went, with "Take it back".
+//   D. Once the ring is sent, its sheet says where it went and in which turn, with "Take it back".
 // Each: nothing scrolls sideways, no tap target under 44 px, no text under 14 px (layoutProblems).
 import { expect, test, type Page } from '@playwright/test';
 import { layoutProblems } from './checks.ts';
@@ -84,7 +84,7 @@ for (const size of SIZES) {
         await expect(ring(page).getByText(/Sent to Wren/)).toBeVisible();
         await ring(page).locator('.place-page__piece-words').click();
         const sheet = page.getByRole('dialog');
-        await expect(sheet.getByText('Sent to Wren of the Lantern Wardens.')).toBeVisible();
+        await expect(sheet.getByText('Sent to Wren of the Lantern Wardens, turn 1.')).toBeVisible();
         await expect(sheet.getByRole('button', { name: 'Take it back' })).toBeVisible();
         await expect(sheet.getByRole('button', { name: 'To a character' })).toHaveCount(0);
         expect(await layoutProblems(page)).toEqual([]);

@@ -134,10 +134,13 @@ describe("a Treasure piece's find sheet (sf-8; page 44, TR1)", () => {
     expect(sheetHoard({ name: null, words: null, rows: [thing(5, 'Lamp oil', 8)] }, { text: 'Lamp oil' })).toMatchObject({ name: 'Lamp oil ×8', words: 'Lamp oil' });
   });
 
-  // Purpose: a sent piece's line and "Take it back"'s toast name where it went, a character or the party stash.
+  // Purpose: a sent piece's line and "Take it back"'s toast name where it went, a character or the party stash; the
+  // line names the turn of the send when it is known (TR1, "Sent to Wren, turn 3.").
   it("words a sent piece's line and Take it back's toast", () => {
     expect(sentPieceWords('wren', nameOf)).toBe('Sent to Wren.');
     expect(sentPieceWords(null, nameOf)).toBe('In the party stash.');
+    expect(sentPieceWords('wren', nameOf, 'turn 3')).toBe('Sent to Wren, turn 3.');
+    expect(sentPieceWords(null, nameOf, 'turn 3')).toBe('In the party stash, turn 3.');
     expect(takenBackWords('wren', nameOf, [thing(4, 'Bronze ring')])).toBe('Taken back from Wren: bronze ring.');
     expect(takenBackWords(null, nameOf, [thing(4, 'Lamp oil', 8)])).toBe('Taken back from the party stash: 8 lamp oil.');
   });

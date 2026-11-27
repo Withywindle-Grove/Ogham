@@ -311,7 +311,7 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
   const actions = usePlaceActions({ db, user, campaign, group, groupLabel, row, regionalTables, packPlaces, onChanged });
   const { editing, setEditing, who } = actions;
   // B15 (page 30): a hoard's piece opens its hoard; a magic item's eye also names the item wherever it is held.
-  const hoards = useHoards({ db, user, campaign, row, place: readEntry?.data ?? null, placeName: place ? numberedName(current?.key ?? null, place.name) : '', phone, onEdit: setEditing, onChanged });
+  const hoards = useHoards({ db, user, campaign, row, place: readEntry?.data ?? null, placeName: place ? numberedName(current?.key ?? null, place.name) : '', phone, turns, onEdit: setEditing, onChanged });
 
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   // The eye on each section of the Knowledge sheet (P4, p4s-2): shared with this group. Reading ahead, it works on the
