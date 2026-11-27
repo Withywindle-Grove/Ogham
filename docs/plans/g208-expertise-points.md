@@ -2,7 +2,7 @@
 
 Written by the designer on 2026-11-20 from the ruling [`g208-expertise-points-2026-11-20.md`](../design/rulings/g208-expertise-points-2026-11-20.md) (ex-1 to ex-7), for Francis's words of 2026-11-20 in the driver's chat ("we need to model this as it's an optional rule for character creation"; "if we can build it in for dec 5 i want it"). Row: `G-208`.
 
-**Status, 2026-11-20: ruled, every frame approved, ready to hand out.** ⚑ 1 and ⚑ 2 answered yes the same day (ex-8, ex-9): "yes to both flags, and let's start with the next free builder lane".
+**Status, 2026-11-27: built (E1–E4) and live** (checked on the live app and the main database, `09` 2026-11-27). **2026-11-20: ruled, every frame approved, ready to hand out.** ⚑ 1 and ⚑ 2 answered yes the same day (ex-8, ex-9): "yes to both flags, and let's start with the next free builder lane".
 
 Pictures of record: frames X1 to X7 of `docs/design/mockups/december/29-g208-expertise-points.html` on the branch `design-g208-mockup` (on `design-tf-player-mockups`); the pictures are on `main` in `docs/design/mockups/december/png/29-X…`. **All seven approved by Francis on 2026-11-20** ("Otherwise approve"), with his one fix drawn in: the foot's Decide later, Back and Next on one line (ex-4).
 
