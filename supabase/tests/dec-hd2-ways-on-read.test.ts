@@ -1,13 +1,19 @@
 // A reveal belongs to its campaign (hd-2), and players read the ways on (mc-28; December step 4, piece e).
 // Migration 20261111190000_dec_hd2_ways_on_read.sql; plan docs/plans/dec-hd2-ways-on-read.md. CI's local database
 // (or the TEST project); invented content. Each test's purpose is its first comment line.
+// Since sf-9 (Scene feedback ⚑ 6 and sf-19; migration 20261126230000_sf_9_ways_on_number_elsewhere.sql; plan
+// docs/plans/dec-scene-feedback.md, batch C1): a way's map number and "Elsewhere", in the last group of tests; and
+// the players' name of an Area the group knows (#122's ⚑ 1, Francis "Send a visited Area's name", 2026-11-26). The
+// last four tests are the local review's findings on #122 (2026-11-27), each settled on the side that sends less.
+// Since 20261127140000_sf_9_ways_on_area_is_site.sql the harbour's pack is typed as a pack types it (p2p-1): its two
+// Areas are `site`, their places `area`; the read's own tests for that are in sf-9-ways-on-area-is-site.test.ts.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../src/app/commandRegistry.ts';
 import { runCommand, type CurrentUser } from '../../src/core/commands.ts';
 import { loadCurrentUser } from '../../src/core/currentUser.ts';
 import type { Db } from '../../src/core/supabase.ts';
 import { placeFromPack, type PackPlaceEntry } from '../../src/modules/expedition/placeFromPack.ts';
-import { loadGroupPlaces, setPlace, showPiece } from '../../src/modules/expedition/placePlay.ts';
+import { editPlace, loadGroupPlaces, setPlace, showPiece } from '../../src/modules/expedition/placePlay.ts';
 import { chooseGroup } from '../../src/modules/expedition/groupPlay.ts';
 import { startExpedition } from '../../src/modules/expedition/play.ts';
 import { attachPack, loadCampaignEntries, loadCampaignPacks, preferEntry } from '../../src/modules/library/campaignPacks.ts';
@@ -100,7 +106,7 @@ const directItems = async (person: Person, packId: string) =>
 const directKinds = async (person: Person, packId: string) =>
   [...new Set(must(await person.db.from('library_entries').select('kind').eq('pack_id', packId)).map((row) => row.kind as string))].sort();
 const ways = async (person: Person, campaign = campaignA) =>
-  must(await person.db.rpc('campaign_ways_on', { campaign })) as { group_number: number; route_id: string; to_place_id: string | null; to_name: string | null; ways: unknown }[];
+  must(await person.db.rpc('campaign_ways_on', { campaign })) as { group_number: number; route_id: string; to_place_id: string | null; to_name: string | null; to_number: string | null; elsewhere: boolean; to_area_name: string | null; ways: unknown }[];
 const rowIdOf = async (packId: string, kind: string, entryId: string) =>
   must(await world.admin.from('library_entries').select('id').eq('pack_id', packId).eq('kind', kind).eq('pack_entry_id', entryId).single()).id as string;
 const locationOf = async (entryId: string): Promise<PackPlaceEntry> => {
@@ -320,7 +326,9 @@ describe('players read the ways on (mc-28)', () => {
     // The hidden route to the sluice is absent; so is the one-way climb that only leads here.
     expect(rows.map((r) => r.route_id).sort()).toEqual([toIslet, toVault].sort());
     expect(rows.every((r) => r.group_number === 1 && r.to_place_id === null && r.to_name === null)).toBe(true);
-    expect(Object.keys(rows[0]!).sort()).toEqual(['group_number', 'route_id', 'to_name', 'to_place_id', 'ways']);
+    expect(Object.keys(rows[0]!).sort()).toEqual(['elsewhere', 'group_number', 'route_id', 'to_area_name', 'to_name', 'to_number', 'to_place_id', 'ways']);
+    // sf-9: this pack's places sit in no Area and have no map number: no number, nothing leads elsewhere, no Area's name.
+    expect(rows.every((r) => r.to_number === null && r.elsewhere === false && r.to_area_name === null)).toBe(true);
     // By, name, value and unit alone, trimmed, in the pack's order; a name left out reads as its id; the bad value,
     // the bad unit and the second "row" are left out.
     expect(rows.find((r) => r.route_id === toIslet)!.ways).toEqual([
@@ -411,5 +419,360 @@ describe('players read the ways on (mc-28)', () => {
     expect((await ways(world.playerA)).map((r) => r.route_id)).not.toContain(vaultRoute);
     must(await world.gm.db.from('library_entries').update({ data: { from: 'mt-jetty', to: 'mt-vault', type: 'stairs', hidden: 'no', oneWay: true } }).eq('id', vaultRoute).select('id'));
     expect((await ways(world.playerA)).map((r) => r.route_id)).not.toContain(vaultRoute);
+  });
+});
+
+const HARBOUR_AREA = 'The Gull Harbour';
+const STRAND_AREA = 'The Kelp Strand';
+// The name the pack gives the strand for players; the harbour is given none.
+const STRAND_PLAYERS_NAME = 'The pale shore';
+const MOLE_GM_NAME = 'The mole';
+const MOLE_PLAYERS_NAME = 'A stone mole';
+// The name the GM gives the strand for players on the campaign's place made from it: it comes before the pack's.
+const STRAND_PLACE_NAME = 'The white strand';
+// A place with a room in it (the review of #122, finding 1): the wreck is no Area, and the hold sits in it.
+const WRECK_PLAYERS_NAME = 'A broken hull';
+// The places whose `parentId` a test files among the GM-only fields, as the pack writes them.
+const DUNES_ENTRY = { id: 'gh-dunes', name: 'The marram dunes', type: 'area', parentId: 'gh-strand', key: '7', playerView: { text: 'Grass hisses on the ridge.' } };
+const MOLE_ENTRY = { id: 'gh-mole', name: MOLE_GM_NAME, type: 'area', parentId: 'gh-harbour', key: ' 3 ', playerView: { name: MOLE_PLAYERS_NAME, text: 'Weed-slick stones run out to sea.' } };
+// An adventure of two Areas (frame WT1 of page 44). From 5, the sea cave, in the harbour: ways to three more places
+// of the harbour (3, 4 and one with no map number), a hidden way to a fourth (10), and ways to two places of the
+// strand (0, and 7 by a two-way link written from its far end). And from 3, the mole: a way to the hold (8a), a room
+// of the wreck (8), which is a place of the harbour and no Area; and a way to the light (12), which sits in no Area.
+const harbourPack = () =>
+  pack({
+    meta: { name: 'Gull Harbour', version: '0.1', kind: 'adventure' },
+    locations: [
+      { id: 'gh-harbour', name: HARBOUR_AREA, type: 'site' },
+      { id: 'gh-strand', name: STRAND_AREA, type: 'site', playerView: { name: STRAND_PLAYERS_NAME } },
+      { id: 'gh-cave', name: 'The sea cave', type: 'area', parentId: 'gh-harbour', key: '5', playerView: { text: 'Green water breathes in the dark.' } },
+      MOLE_ENTRY,
+      { id: 'gh-shed', name: 'The tally shed', type: 'area', parentId: 'gh-harbour', key: '4' },
+      { id: 'gh-flat', name: 'The mud flat', type: 'area', parentId: 'gh-harbour' },
+      { id: 'gh-gate', name: 'The chain gate', type: 'area', parentId: 'gh-harbour', key: '10' },
+      { id: 'gh-landing', name: 'The shingle landing', type: 'area', parentId: 'gh-strand', key: '0' },
+      DUNES_ENTRY,
+      { id: 'gh-wreck', name: 'The salt wreck', type: 'area', parentId: 'gh-harbour', key: '8', playerView: { name: WRECK_PLAYERS_NAME, text: 'Ribs of black oak stand in the sand.' } },
+      { id: 'gh-hold', name: 'The wreck hold', type: 'room', parentId: 'gh-wreck', key: '8a' },
+      { id: 'gh-light', name: 'The far light', type: 'area', key: '12' },
+    ],
+    routes: [
+      { id: 'gh-route-cave-mole', from: 'gh-cave', to: 'gh-mole', type: 'river', hidden: false, oneWay: false, travel: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] },
+      { id: 'gh-route-cave-shed', from: 'gh-cave', to: 'gh-shed', type: 'river', hidden: false, oneWay: false, travel: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] },
+      { id: 'gh-route-cave-flat', from: 'gh-cave', to: 'gh-flat', type: 'other', hidden: false, oneWay: false, travel: [{ by: 'walk', name: 'Walking', value: 2, unit: 'turn' }] },
+      { id: 'gh-route-cave-gate', from: 'gh-cave', to: 'gh-gate', type: 'secret', hidden: true, oneWay: false, travel: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] },
+      { id: 'gh-route-cave-landing', from: 'gh-cave', to: 'gh-landing', type: 'river', hidden: false, oneWay: false, travel: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] },
+      { id: 'gh-route-dunes-cave', from: 'gh-dunes', to: 'gh-cave', type: 'river', hidden: false, oneWay: false, travel: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] },
+      { id: 'gh-route-mole-hold', from: 'gh-mole', to: 'gh-hold', type: 'river', hidden: false, oneWay: false, travel: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] },
+      { id: 'gh-route-mole-light', from: 'gh-mole', to: 'gh-light', type: 'river', hidden: false, oneWay: false, travel: [{ by: 'row', name: 'Rowing', value: 3, unit: 'turn' }] },
+    ],
+  });
+/**
+ * Words no way on may carry about the harbour: the pack's ids, either Area's own name (the GM's), a route's type, and
+ * the names of the places nobody explores in these tests. (The cave's and the mole's names, and the strand's players'
+ * name, are checked where they may not be read.)
+ */
+const HARBOUR_NEVER_SENT = ['gh-', HARBOUR_AREA, STRAND_AREA, MOLE_GM_NAME, 'The tally shed', 'The mud flat', 'The chain gate', 'The shingle landing', 'The marram dunes', 'The salt wreck', 'The wreck hold', 'The far light', 'parentId', 'river', 'secret', 'hidden'];
+
+describe('a way’s map number, and "Elsewhere" (sf-9, sf-19)', () => {
+  let harbour = '';
+  let tripId = '';
+  let caveId = '';
+  let moleId = '';
+  let dunesId = '';
+  // Player A's character is in `mine`; player B's in a group of its own, `theirs`.
+  let mine = 0;
+  let theirs = 0;
+  const route: Record<'mole' | 'shed' | 'flat' | 'gate' | 'landing' | 'dunes', string> = { mole: '', shed: '', flat: '', gate: '', landing: '', dunes: '' };
+  // The two ways that leave the mole (the review's cases).
+  let holdRoute = '';
+  let lightRoute = '';
+  const groupOf = async (actorId: string) =>
+    Number(must(await world.admin.from('party_group_members').select('group_number').eq('campaign_id', campaignA).eq('actor_id', actorId).single()).group_number);
+  const harbourPlaceRow = async (entryId: string) => {
+    const entry = ((await loadCampaignEntries(asDb(world.gm), campaignA)) ?? []).find((e) => e.kind === 'location' && e.packId === harbour && e.packEntryId === entryId);
+    if (!entry) throw new Error(`no location ${entryId}`);
+    return ok(as(world.gm, placeFromPack, { campaignId: campaignA, entry }));
+  };
+  const harbourPlace = async (entryId: string) => (await harbourPlaceRow(entryId)).id;
+  /** The GM writes a location of the harbour pack again, as the pack's file would (a `gmOnly` list is split off by the database). */
+  const writeLocation = async (data: { id: string } & Record<string, unknown>) =>
+    must(await world.gm.db.from('library_entries').update({ data }).eq('id', await rowIdOf(harbour, 'location', data.id)).select('id'));
+  const goTo = (group: number, placeId: string) => ok(as(world.gm, setPlace, { campaignId: campaignA, group, name: '', placeId }));
+  const showFirstPiece = async (group: number) => {
+    const visit = (await loadGroupPlaces(asDb(world.gm), campaignA, tripId))!.get(group)!;
+    await ok(as(world.gm, showPiece, { campaignId: campaignA, row: visit, piece: visit.pieces[0]! }));
+  };
+  /** What a reader's rows say of one route's far end, for one group; null when no row is sent for it. */
+  const farOf = async (person: Person, routeId: string, group: number) => {
+    const row = (await ways(person)).find((r) => r.route_id === routeId && r.group_number === group);
+    return row ? { place: row.to_place_id, name: row.to_name, number: row.to_number, elsewhere: row.elsewhere } : null;
+  };
+  const unexplored = (number: string | null) => ({ place: null, name: null, number, elsewhere: false });
+  const ELSEWHERE = { place: null, name: null, number: null, elsewhere: true };
+  /** The Area's name a reader's row carries for one route, for one group (#122's ⚑ 1); undefined when no row is sent. */
+  const areaOf = async (person: Person, routeId: string, group: number) => (await ways(person)).find((r) => r.route_id === routeId && r.group_number === group)?.to_area_name;
+  /** The raw answer and the app's reading of it, as text, to search for words that may not be there. */
+  const sentTo = async (person: Person) => JSON.stringify(await ways(person)) + JSON.stringify(await loadWaysOn(asDb(person), campaignA));
+
+  beforeAll(async () => {
+    harbour = await ok(as(world.gm, importPack, { pack: harbourPack() }));
+    await ok(as(world.gm, attachPack, { campaignId: campaignA, packId: harbour }));
+    for (const key of Object.keys(route) as (keyof typeof route)[]) {
+      route[key] = await rowIdOf(harbour, 'route', key === 'dunes' ? 'gh-route-dunes-cave' : `gh-route-cave-${key}`);
+    }
+    holdRoute = await rowIdOf(harbour, 'route', 'gh-route-mole-hold');
+    lightRoute = await rowIdOf(harbour, 'route', 'gh-route-mole-light');
+    caveId = await harbourPlace('gh-cave');
+    moleId = await harbourPlace('gh-mole');
+    dunesId = await harbourPlace('gh-dunes');
+    // Player A's group stands at the sea cave: moved there in the expedition the tests above left under way, or
+    // starting there in one of its own when this group of tests runs alone.
+    mine = await groupOf(world.wrenId);
+    const running = must(await world.admin.from('expeditions').select('id').eq('campaign_id', campaignA).is('ended_at', null).eq('undone', false));
+    if (running[0]) {
+      tripId = running[0].id as string;
+      await goTo(mine, caveId);
+    } else {
+      tripId = (await ok(as(world.gm, startExpedition, { campaignId: campaignA, mode: 'dungeon', placeId: caveId }))).id;
+    }
+    // Player B's character in a group of its own (the tests above may have moved it there already).
+    if ((await groupOf(world.ashId)) === mine) {
+      await ok(as(world.playerB, chooseGroup, { character: { id: world.ashId, campaignId: campaignA, ownerUserId: world.playerB.id }, group: null }));
+    }
+    theirs = await groupOf(world.ashId);
+    expect(theirs).not.toBe(mine);
+    // Player A's group is shown the cave; no map is shown to anyone in this world.
+    await showFirstPiece(mine);
+  }, 300_000);
+
+  it('an unexplored place in an Area the group knows comes with its map number and no name, with no map shown', async () => {
+    // Purpose: read rule (2): the number is sent for a place not yet explored when the group knows its Area (it
+    // stands in it), whether or not the Area's map is shown; a place with no map number comes with none; rule (4):
+    // the hidden way is still absent.
+    const rows = (await ways(world.playerA)).filter((r) => r.group_number === mine);
+    expect(rows.map((r) => r.route_id).sort()).toEqual([route.mole, route.shed, route.flat, route.landing, route.dunes].sort());
+    expect(Object.keys(rows[0]!).sort()).toEqual(['elsewhere', 'group_number', 'route_id', 'to_area_name', 'to_name', 'to_number', 'to_place_id', 'ways']);
+    expect(await farOf(world.playerA, route.shed, mine)).toEqual(unexplored('4'));
+    // Trimmed; and the mole has a place in the campaign, but nothing of it was shown: no place, no name.
+    expect(await farOf(world.playerA, route.mole, mine)).toEqual(unexplored('3'));
+    expect(await farOf(world.playerA, route.flat, mine)).toEqual(unexplored(null));
+    expect(await farOf(world.playerA, route.gate, mine)).toBeNull();
+    // No map reaches this player: the number does not wait for one.
+    expect(must(await world.playerA.db.rpc('map_for_players', { campaign: campaignA }))).toEqual([]);
+    const raw = await sentTo(world.playerA);
+    for (const word of [...HARBOUR_NEVER_SENT, MOLE_PLAYERS_NAME, STRAND_PLAYERS_NAME, moleId, dunesId]) expect(raw, word).not.toContain(word);
+    // #122's ⚑ 1: the harbour, where the group stands, was given no players' name, so no row carries an Area's name
+    // (its own name is in the list above); the players' place card still names the Area they stand in, as before.
+    expect(rows.every((r) => r.to_area_name === null)).toBe(true);
+    const card = must(await world.playerA.db.rpc('place_card_for_players', { campaign: campaignA })) as { group_number: number; kind: string; name: string | null }[];
+    expect(card.filter((r) => r.group_number === mine && r.kind === 'area').map((r) => r.name)).toEqual([HARBOUR_AREA]);
+    // The app's reader says the same in its own shape.
+    expect(await loadWaysOn(asDb(world.playerA), campaignA)).toContainEqual({ groupNumber: mine, routeId: route.shed, to: null, number: '4', elsewhere: false, areaName: null, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] });
+  });
+
+  it('an unexplored place in an Area the group has not been to comes with no number and no name, only that it leads elsewhere', async () => {
+    // Purpose: read rule (3): before any visit, the ways into the second Area carry the elsewhere mark and nothing of
+    // the place or its Area. The number is absent from the answer itself: the whole row is checked, field by field.
+    expect(await farOf(world.playerA, route.landing, mine)).toEqual(ELSEWHERE);
+    expect(await farOf(world.playerA, route.dunes, mine)).toEqual(ELSEWHERE);
+    const rows = (await ways(world.playerA)).filter((r) => r.elsewhere);
+    expect(rows.map((r) => r.route_id).sort()).toEqual([route.landing, route.dunes].sort());
+    for (const row of rows) {
+      expect(row).toEqual({ group_number: mine, route_id: row.route_id, to_place_id: null, to_name: null, to_number: null, elsewhere: true, to_area_name: null, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] });
+    }
+    // The strand's numbers (0 and 7) are nowhere in the answer; nor is its players' name, nor its own (#122's ⚑ 1).
+    expect(JSON.stringify(await ways(world.playerA))).not.toMatch(/"to_number":"(0|7)"/);
+    const raw = await sentTo(world.playerA);
+    for (const word of [STRAND_PLAYERS_NAME, STRAND_AREA]) expect(raw, word).not.toContain(word);
+    expect(await loadWaysOn(asDb(world.playerA), campaignA)).toContainEqual({ groupNumber: mine, routeId: route.landing, to: null, number: null, elsewhere: true, areaName: null, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] });
+  });
+
+  it('the GM gets the same narrow rows, and someone outside the campaign gets nothing', async () => {
+    // Purpose: the function is narrow for everyone: the GM's own answer carries no name, pack id or Area's name
+    // either; a player of another campaign, who is no member of this one, gets no row.
+    const raw = await sentTo(world.gm);
+    for (const word of [...HARBOUR_NEVER_SENT, MOLE_PLAYERS_NAME, STRAND_PLAYERS_NAME]) expect(raw, word).not.toContain(word);
+    expect((await ways(world.gm)).filter((r) => r.group_number === mine && r.elsewhere).map((r) => r.route_id).sort()).toEqual([route.landing, route.dunes].sort());
+    expect(await ways(world.outsider)).toEqual([]);
+    expect(await loadWaysOn(asDb(world.outsider), campaignA)).toEqual([]);
+  });
+
+  it('once the group has been at a place of that Area, with nothing of it shown, its places come with their numbers and the Area’s players’ name; another group’s player gets none it has not earned', async () => {
+    // Purpose: sf-19, "Once they have been there": a visit earns the Area for the group that made it, shown or not,
+    // and for no other group. Player B's group stands at the cave too, shown it, and never goes to the strand.
+    // #122's ⚑ 1, "Send a visited Area's name": with the visit come the strand's players' name on its rows, for the
+    // group that made it only; the strand's own name and the harbour's reach nobody.
+    await goTo(theirs, caveId);
+    await showFirstPiece(theirs);
+    await goTo(mine, dunesId);
+    // At the dunes, shown nothing: no way at all, as before (mc-28b).
+    expect((await ways(world.playerA)).filter((r) => r.group_number === mine)).toEqual([]);
+    await goTo(mine, caveId);
+    // Player A: both places of the strand come with their numbers; the dunes were visited, not shown: still no name.
+    expect(await farOf(world.playerA, route.landing, mine)).toEqual(unexplored('0'));
+    expect(await farOf(world.playerA, route.dunes, mine)).toEqual(unexplored('7'));
+    expect((await ways(world.playerA)).some((r) => r.elsewhere)).toBe(false);
+    // The strand's rows stand under its players' name; the harbour's rows, as before, under none.
+    expect(await areaOf(world.playerA, route.landing, mine)).toBe(STRAND_PLAYERS_NAME);
+    expect(await areaOf(world.playerA, route.dunes, mine)).toBe(STRAND_PLAYERS_NAME);
+    expect(await areaOf(world.playerA, route.shed, mine)).toBeNull();
+    expect((await loadWaysOn(asDb(world.playerA), campaignA))?.find((w) => w.routeId === route.landing && w.groupNumber === mine)).toEqual({ groupNumber: mine, routeId: route.landing, to: null, number: '0', elsewhere: false, areaName: STRAND_PLAYERS_NAME, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] });
+    // The GM reads both groups' rows: the name is on the rows of the group that earned it, and on no other.
+    expect((await ways(world.gm)).filter((r) => r.to_area_name !== null).map((r) => [r.group_number, r.route_id]).sort()).toEqual([[mine, route.landing], [mine, route.dunes]].sort());
+    // Player B: the harbour's numbers, and the strand still elsewhere, with no number and no name.
+    const theirRows = await ways(world.playerB);
+    expect(theirRows.length).toBeGreaterThan(0);
+    expect(theirRows.every((r) => r.group_number === theirs)).toBe(true);
+    expect(await farOf(world.playerB, route.shed, theirs)).toEqual(unexplored('4'));
+    expect(await farOf(world.playerB, route.landing, theirs)).toEqual(ELSEWHERE);
+    expect(await farOf(world.playerB, route.dunes, theirs)).toEqual(ELSEWHERE);
+    expect(JSON.stringify(theirRows)).not.toMatch(/"to_number":"(0|7)"/);
+    expect(theirRows.every((r) => r.to_area_name === null)).toBe(true);
+    expect(await sentTo(world.playerB)).not.toContain(STRAND_PLAYERS_NAME);
+    // Knowing the Area sends its places' numbers and its players' name, never its own name or theirs, to either player.
+    for (const person of [world.playerA, world.playerB]) {
+      const raw = await sentTo(person);
+      for (const word of [...HARBOUR_NEVER_SENT, MOLE_PLAYERS_NAME]) expect(raw, word).not.toContain(word);
+    }
+  });
+
+  it('an explored place comes with its number beside its players’ name, and only for the group it was shown to', async () => {
+    // Purpose: read rule (1): explored, the far place has its place, its players' name and its number; the GM's name
+    // for it is never sent; the other group, which was not shown it, has the number alone.
+    await goTo(mine, moleId);
+    await showFirstPiece(mine);
+    // From the mole, the way back to the cave, which the group knows: its name and its number.
+    expect(await farOf(world.playerA, route.mole, mine)).toEqual({ place: caveId, name: 'The sea cave', number: '5', elsewhere: false });
+    await goTo(mine, caveId);
+    expect(await farOf(world.playerA, route.mole, mine)).toEqual({ place: moleId, name: MOLE_PLAYERS_NAME, number: '3', elsewhere: false });
+    expect(await sentTo(world.playerA)).not.toContain(MOLE_GM_NAME);
+    expect(await farOf(world.playerB, route.mole, theirs)).toEqual(unexplored('3'));
+    expect(await sentTo(world.playerB)).not.toContain(MOLE_PLAYERS_NAME);
+  });
+
+  it('a pack that files a place’s `key` among its GM-only fields sends no number for it', async () => {
+    // Purpose: the number is read from the part of the entry players' reads may use; when in doubt it is not sent.
+    const shed = await rowIdOf(harbour, 'location', 'gh-shed');
+    must(await world.gm.db.from('library_entries').update({ data: { id: 'gh-shed', name: 'The tally shed', type: 'area', parentId: 'gh-harbour', key: '4', gmOnly: ['key'] } }).eq('id', shed).select('id'));
+    expect(await farOf(world.playerA, route.shed, mine)).toEqual(unexplored(null));
+    // A number that is not text is not a map number (the GM's Move on shows none for it either).
+    must(await world.gm.db.from('library_entries').update({ data: { id: 'gh-shed', name: 'The tally shed', type: 'area', parentId: 'gh-harbour', key: 4 } }).eq('id', shed).select('id'));
+    expect(await farOf(world.playerA, route.shed, mine)).toEqual(unexplored(null));
+  });
+
+  it('the Area the group stands in is named by the same rule: its players’ name once it is given one, never its own', async () => {
+    // Purpose: #122's ⚑ 1: only a name given for players is sent. The harbour had none (the first test); given one,
+    // its rows carry it, for both groups, which both stand in it; a players' name that is not text is no name.
+    const area = await rowIdOf(harbour, 'location', 'gh-harbour');
+    expect(await areaOf(world.playerA, route.shed, mine)).toBeNull();
+    must(await world.gm.db.from('library_entries').update({ data: { id: 'gh-harbour', name: HARBOUR_AREA, type: 'site', playerView: { name: '  The old port ' } } }).eq('id', area).select('id'));
+    expect(await areaOf(world.playerA, route.shed, mine)).toBe('The old port');
+    expect(await areaOf(world.playerB, route.shed, theirs)).toBe('The old port');
+    expect(await sentTo(world.playerA)).not.toContain(HARBOUR_AREA);
+    must(await world.gm.db.from('library_entries').update({ data: { id: 'gh-harbour', name: HARBOUR_AREA, type: 'site', playerView: { name: 7 } } }).eq('id', area).select('id'));
+    expect(await areaOf(world.playerA, route.shed, mine)).toBeNull();
+  });
+
+  it('the campaign’s place made from an Area gives its own players’ name: absent before the visit, and before the pack’s after it', async () => {
+    // Purpose: the review of #122, finding 3: the players' name the GM gives the campaign's place made from an Area
+    // is sent in place of the pack's `playerView.name`, and by the same rule: to a group that has been in that Area,
+    // never to one that has not. Player A's group has been to the strand; player B's goes there in this test.
+    const strand = await harbourPlaceRow('gh-strand');
+    await ok(as(world.gm, editPlace, { campaignId: campaignA, place: strand, playersName: STRAND_PLACE_NAME }));
+    // Player B's group, before its visit: the strand is elsewhere, and neither of its names for players is anywhere.
+    expect(await farOf(world.playerB, route.landing, theirs)).toEqual(ELSEWHERE);
+    expect(await areaOf(world.playerB, route.landing, theirs)).toBeNull();
+    const before = await sentTo(world.playerB);
+    for (const word of [STRAND_PLACE_NAME, STRAND_PLAYERS_NAME, STRAND_AREA]) expect(before, word).not.toContain(word);
+    // Player A's group, which has been there: the place's name, not the pack's.
+    expect(await areaOf(world.playerA, route.landing, mine)).toBe(STRAND_PLACE_NAME);
+    expect(await areaOf(world.playerA, route.dunes, mine)).toBe(STRAND_PLACE_NAME);
+    expect(await sentTo(world.playerA)).not.toContain(STRAND_PLAYERS_NAME);
+    // Player B's group goes to the dunes, shown nothing, and comes back: the same for it now.
+    await goTo(theirs, dunesId);
+    await goTo(theirs, caveId);
+    expect(await farOf(world.playerB, route.landing, theirs)).toEqual(unexplored('0'));
+    expect(await areaOf(world.playerB, route.landing, theirs)).toBe(STRAND_PLACE_NAME);
+    const after = await sentTo(world.playerB);
+    for (const word of [STRAND_PLAYERS_NAME, STRAND_AREA]) expect(after, word).not.toContain(word);
+  });
+
+  it('the place a room is in is named only once the group has explored it, not on a visit alone', async () => {
+    // Purpose: the review of #122, finding 1: ⚑ 1 sends a visited Area's name, and the place a room is in (the hold's
+    // wreck) is no Area: its players' name is a place's name, never sent before the place is explored. A visit to
+    // the wreck with nothing shown earns the hold's number and no name; a piece of the wreck shown earns the name.
+    const wreckId = await harbourPlace('gh-wreck');
+    // From the mole, which the group knows: the hold is a room of a place the group has not entered.
+    await goTo(mine, moleId);
+    expect(await farOf(world.playerA, holdRoute, mine)).toEqual(ELSEWHERE);
+    expect(await areaOf(world.playerA, holdRoute, mine)).toBeNull();
+    await goTo(mine, wreckId);
+    await goTo(mine, moleId);
+    expect(await farOf(world.playerA, holdRoute, mine)).toEqual(unexplored('8a'));
+    expect(await areaOf(world.playerA, holdRoute, mine)).toBeNull();
+    for (const person of [world.playerA, world.gm]) expect(await sentTo(person)).not.toContain(WRECK_PLAYERS_NAME);
+    // Shown a piece of the wreck, the group has explored it: its players' name stands over the hold's row.
+    await goTo(mine, wreckId);
+    await showFirstPiece(mine);
+    await goTo(mine, moleId);
+    expect(await farOf(world.playerA, holdRoute, mine)).toEqual(unexplored('8a'));
+    expect(await areaOf(world.playerA, holdRoute, mine)).toBe(WRECK_PLAYERS_NAME);
+    const raw = await sentTo(world.playerA);
+    for (const word of HARBOUR_NEVER_SENT) expect(raw, word).not.toContain(word);
+    await goTo(mine, caveId);
+    // The other group was shown nothing of the wreck: its name is nowhere in what it is sent.
+    expect(await sentTo(world.playerB)).not.toContain(WRECK_PLAYERS_NAME);
+  });
+
+  it('a pack that files a place’s `parentId` among its GM-only fields has the way to it lead elsewhere, with no number', async () => {
+    // Purpose: the review of #122, finding 2: where a place sits is read from the part of the entry players' reads
+    // may use. A pack that hides it gives the read no Area to know: the way leads elsewhere, with no number and no
+    // Area's name, even though the group has stood at that very place; standing there no longer says the group has
+    // been in the strand, nor in no Area at all. An explored place keeps its place and name, without its number.
+    expect(await farOf(world.playerA, route.dunes, mine)).toEqual(unexplored('7'));
+    await writeLocation({ ...DUNES_ENTRY, gmOnly: ['parentId'] });
+    expect(await farOf(world.playerA, route.dunes, mine)).toEqual(ELSEWHERE);
+    expect(await farOf(world.playerA, route.landing, mine)).toEqual(ELSEWHERE);
+    expect(await areaOf(world.playerA, route.dunes, mine)).toBeNull();
+    const hidden = await sentTo(world.playerA);
+    expect(JSON.stringify(await ways(world.playerA))).not.toMatch(/"to_number":"(0|7)"/);
+    for (const word of [STRAND_PLACE_NAME, STRAND_PLAYERS_NAME, STRAND_AREA, 'gh-']) expect(hidden, word).not.toContain(word);
+    // The light sits in no Area; the dunes only look as if they did not: having stood there earns nothing for it.
+    await goTo(mine, moleId);
+    expect(await farOf(world.playerA, lightRoute, mine)).toEqual(ELSEWHERE);
+    expect(JSON.stringify(await ways(world.playerA))).not.toContain('"to_number":"12"');
+    await goTo(mine, caveId);
+    // Written again with nothing hidden, the dunes are as before.
+    await writeLocation(DUNES_ENTRY);
+    expect(await farOf(world.playerA, route.dunes, mine)).toEqual(unexplored('7'));
+    expect(await farOf(world.playerA, route.landing, mine)).toEqual(unexplored('0'));
+    // The mole is explored: with where it sits hidden, its place and players' name as before sf-9, and no number.
+    expect(await farOf(world.playerA, route.mole, mine)).toEqual({ place: moleId, name: MOLE_PLAYERS_NAME, number: '3', elsewhere: false });
+    await writeLocation({ ...MOLE_ENTRY, gmOnly: ['parentId'] });
+    expect(await farOf(world.playerA, route.mole, mine)).toEqual({ place: moleId, name: MOLE_PLAYERS_NAME, number: null, elsewhere: false });
+    expect(await areaOf(world.playerA, route.mole, mine)).toBeNull();
+    await writeLocation(MOLE_ENTRY);
+    expect(await farOf(world.playerA, route.mole, mine)).toEqual({ place: moleId, name: MOLE_PLAYERS_NAME, number: '3', elsewhere: false });
+  });
+
+  it('undoing the visit takes the numbers and the Area’s name back: "Elsewhere" again, for that group only', async () => {
+    // Purpose: the review of #122, finding 4: what a visit earned goes with the visit. With player A's group's visit
+    // to the dunes undone, the strand's ways read as before it: no number, no Area's name, only that they lead
+    // elsewhere. Player B's group, whose own visit stands, keeps what it earned.
+    expect(await farOf(world.playerA, route.landing, mine)).toEqual(unexplored('0'));
+    expect(await areaOf(world.playerA, route.landing, mine)).toBe(STRAND_PLACE_NAME);
+    const undone = must(await world.admin.from('group_places').update({ undone: true }).eq('campaign_id', campaignA).eq('group_number', mine).eq('place_id', dunesId).select('id'));
+    expect(undone.length).toBeGreaterThan(0);
+    expect(await farOf(world.playerA, route.landing, mine)).toEqual(ELSEWHERE);
+    expect(await farOf(world.playerA, route.dunes, mine)).toEqual(ELSEWHERE);
+    expect(await areaOf(world.playerA, route.landing, mine)).toBeNull();
+    expect(JSON.stringify(await ways(world.playerA))).not.toMatch(/"to_number":"(0|7)"/);
+    const raw = await sentTo(world.playerA);
+    for (const word of [STRAND_PLACE_NAME, STRAND_PLAYERS_NAME, STRAND_AREA]) expect(raw, word).not.toContain(word);
+    expect(await farOf(world.playerB, route.landing, theirs)).toEqual(unexplored('0'));
+    expect(await areaOf(world.playerB, route.landing, theirs)).toBe(STRAND_PLACE_NAME);
+    // The GM's rows say the same of each group.
+    expect((await ways(world.gm)).filter((r) => r.to_area_name === STRAND_PLACE_NAME).map((r) => r.group_number)).toEqual([theirs, theirs]);
   });
 });

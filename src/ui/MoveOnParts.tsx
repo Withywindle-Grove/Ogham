@@ -8,12 +8,16 @@
 //   its time; every one a list's size (mc-36a).
 // - `DestinationRow`: one destination, its ways as way buttons at the right; for the GM and players alike (mc-36,
 //   mc-36a). On a narrow row (a phone) the buttons take a line under the name, sharing its width (frame H4, phone).
+// - `AreaRows`: rows under their Areas' names where a list mixes Areas, "Elsewhere" for players (sf-9; WT1).
 // - `ObstacleBlock`: "Obstacle: <name>", on a slightly different tone (mc-41, mc-41a), the extra time and the book's note.
-// - `MoveOnSheet`: the GM's own Move on, the list then one way (frames 11 under the rulings, 12, 13).
+// - `MoveOnSheet`: the GM's own Move on, the list then one way (frames 11 under the rulings, 12, 13; the way's step
+//   redrawn by page 44, PU1 A, sf-15).
 // - `ProposalSheet`: a proposed way, the same sheet with who asked and the count beside the ✕ (F2, F2b; mc-42a).
-import { useId, useState, type ReactNode } from 'react';
+// - `TravelPopUp`: a player's tap on a way (PL4c, redrawn by page 44, PU1 B, sf-15).
+import { Fragment, useId, useState, type ReactNode } from 'react';
+import { PLAYERS_READ_WORDS } from '../modules/expedition/moveOnRows.ts';
 import { keyedName } from '../modules/expedition/placeTree.ts';
-import { Dialog } from './Dialog.tsx';
+import { CentredPopUpScope, Dialog, SheetScope } from './Dialog.tsx';
 import { DiceWords } from './dice.tsx';
 import { WAY_MARK, wayIconOf } from './iconSet.ts';
 import { Icon, StepIcon } from './icons.tsx';
@@ -89,7 +93,7 @@ export function DestinationRow({
   /** The spot's number on the map's key ("2"), as the key writes it; none for a place without one. */
   number?: string | null;
   name: string;
-  /** Under the name: the GM's lines (`GmDestinationLines`) or a player's "Not yet explored." */
+  /** Under the name: the GM's lines (`GmDestinationLines`) or a player's ways (`WayLine`). */
   sub?: ReactNode;
   ways: WayChoice[];
   onWay: (key: string) => void;
@@ -136,19 +140,27 @@ export function DestinationRow({
 export type ShownToPlayers = 'shown' | 'unshown' | 'hidden';
 
 /**
- * The GM's lines under a destination's name (frame 11): what the players see of it, and a way's obstacle as a warning
- * line (`obstacleRowWords`). The crossed eye marks a way the GM keeps hidden (ds-2: the GM's alone).
+ * The GM's lines under a destination's name (frame 11; sf-9, WT1 A, finding 21): for a place not shown yet, the closed
+ * eye and what the players read on their row ("4. Unexplored"; `players`, from `playersLineOf`), its spoken name "Not
+ * shown yet. Players read: …"; a place shown has no line. The crossed eye marks a way the GM keeps hidden (ds-2: the
+ * GM's alone). A way's obstacle as a warning line (`obstacleRowWords`).
  */
-export function GmDestinationLines({ shown, obstacle }: { shown: ShownToPlayers; obstacle?: string | null }) {
+export function GmDestinationLines({ shown, players, obstacle }: { shown: ShownToPlayers; players?: string | null; obstacle?: string | null }) {
   return (
     <>
-      {shown === 'hidden' ? (
+      {shown === 'hidden' && (
         <span className="destination-row__sub destination-row__sub--hidden">
           <Icon name="eye-off" size={16} />
           Hidden from players
         </span>
-      ) : (
-        <span className="destination-row__sub">{shown === 'shown' ? 'Shown to the players.' : 'Not yet shown: players see “not yet explored”.'}</span>
+      )}
+      {shown === 'unshown' && players && (
+        <span className="destination-row__sub destination-row__sub--unshown">
+          <span className="destination-row__eye" role="img" aria-label={PLAYERS_READ_WORDS.eye}>
+            <Icon name="eye-shut" size={16} />
+          </span>
+          {players}
+        </span>
       )}
       {obstacle && (
         <span className="destination-row__sub">
@@ -159,9 +171,31 @@ export function GmDestinationLines({ shown, obstacle }: { shown: ShownToPlayers;
   );
 }
 
-/** A player's line under a destination they have not found yet (mc-28): "Not yet explored." */
-export function NotYetExplored() {
-  return <span className="destination-row__sub">Not yet explored.</span>;
+/**
+ * A player's line under a place not explored (sf-9, N3; WT1 B, C): its way in words ("Rowing or swimming."), under
+ * "4. Unexplored" or "Unexplored", so the row says no less than it did.
+ */
+export function WayLine({ children }: { children: ReactNode }) {
+  return <span className="destination-row__sub">{children}</span>;
+}
+
+/**
+ * Rows under their Areas' headings (WT1, ⚑ 8): the rows in the order given, an Area's name (or "Elsewhere") over each
+ * run of rows that carry it, in small capitals; rows with no `area` under none (one Area only: WT1 C). `level`: the
+ * heading's level under its list's own heading (4 under "Where to?", 3 in the Move on sheet).
+ */
+export function AreaRows<T extends { id: string; area?: string | null }>({ rows, level, children }: { rows: readonly T[]; level: 3 | 4; children: (row: T) => ReactNode }) {
+  const Heading = level === 3 ? 'h3' : 'h4';
+  return (
+    <>
+      {rows.map((row, i) => (
+        <Fragment key={row.id}>
+          {row.area && row.area !== rows[i - 1]?.area && <Heading className="move-sheet__area">{row.area}</Heading>}
+          {children(row)}
+        </Fragment>
+      ))}
+    </>
+  );
 }
 
 /** An obstacle on a way, as the GM's sheet shows it (mc-41, mc-41a): its name, its extra time and the book's note. */
@@ -216,26 +250,18 @@ function MoveSummary({ move, askedBy }: { move: WayMove; askedBy?: string }) {
   return (
     <dl className="move-summary">
       {askedBy && line('players', 'Asked by', `${askedBy}.`)}
-      {line('hourglass', 'Takes', move.takes)}
+      {line('clock', 'Takes', move.takes)}
       {move.then && line('encounter-check', 'Then', <DiceWords>{move.then}</DiceWords>)}
     </dl>
   );
 }
 
 /**
- * The answer at the sheet's foot of its body. A way whose obstacle the GM decides: "Do they get through?", Yes and No
- * equal and plain (frame 13, F2). A proposed way with none: "Do they go?", Yes the accent (F2b). The GM's own way with
- * none: Move, the accent (frame 12).
+ * The question at the foot of the sheet's body. A way whose obstacle the GM decides: "Do they get through?", Yes and No
+ * equal and plain (frame 13, F2). A proposed way with none: "Do they go?", Yes the accent (F2b). (The GM's own way with
+ * none asks nothing: Move is in its foot, PU1 A.)
  */
-function Answer({ move, proposal, onMove, onAnswer }: { move: WayMove; proposal: boolean; onMove: () => void; onAnswer: (yes: boolean) => void }) {
-  const decide = move.obstacle?.needsApproval === true;
-  if (!decide && !proposal) {
-    return (
-      <button type="button" className="button-primary move-sheet__move" onClick={onMove}>
-        Move
-      </button>
-    );
-  }
+function Answer({ decide, onAnswer }: { decide: boolean; onAnswer: (yes: boolean) => void }) {
   return (
     <div className="move-sheet__ask">
       <p className="move-sheet__question">{decide ? 'Do they get through?' : 'Do they go?'}</p>
@@ -252,17 +278,34 @@ function Answer({ move, proposal, onMove, onAnswer }: { move: WayMove; proposal:
 }
 
 /**
- * A way's sheet body: the obstacle first, then the short lines, then the answer; the foot holds its button alone (Back,
- * or Not now). No line explains what the log keeps (p2p-17: "no explaining lines"; page 24, WY1a).
+ * A way's sheet body: the obstacle first, then the short lines, then the question where there is one. No line explains
+ * what the log keeps (p2p-17: "no explaining lines"; page 24, WY1a). The GM's own step (`onBack`; page 44, PU1 A,
+ * sf-15): one foot row, the standard pop-up's, Back at the left and, where the GM decides nothing, Move (the accent,
+ * with the footprints) at the right. A proposal's: Not now alone in its foot (`foot`).
  */
-function WayBody({ move, askedBy, onMove, onAnswer, foot }: { move: WayMove; askedBy?: string; onMove: () => void; onAnswer: (yes: boolean) => void; foot: ReactNode }) {
-  const proposal = askedBy !== undefined;
+function WayBody({ move, askedBy, onMove, onAnswer, onBack, foot }: { move: WayMove; askedBy?: string; onMove: () => void; onAnswer: (yes: boolean) => void; onBack?: () => void; foot?: ReactNode }) {
+  const decide = move.obstacle?.needsApproval === true;
+  const plain = askedBy === undefined && !decide;
   return (
     <>
       {move.obstacle && <ObstacleBlock obstacle={move.obstacle} />}
       <MoveSummary move={move} askedBy={askedBy} />
-      <Answer move={move} proposal={proposal} onMove={onMove} onAnswer={onAnswer} />
-      <div className="move-sheet__foot">{foot}</div>
+      {!plain && <Answer decide={decide} onAnswer={onAnswer} />}
+      {onBack ? (
+        <div className="dialog__actions move-sheet__split">
+          <button type="button" className="button-secondary" onClick={onBack}>
+            Back
+          </button>
+          {plain && (
+            <button type="button" className="button-primary" onClick={onMove}>
+              <StepIcon name="travel" size={20} />
+              Move
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="move-sheet__foot">{foot}</div>
+      )}
     </>
   );
 }
@@ -273,6 +316,10 @@ export interface GmDestination {
   number?: string | null;
   name: string;
   shown: ShownToPlayers;
+  /** Not shown yet: what its players read on their row ("4. Unexplored"; `playersLineOf`). */
+  players?: string | null;
+  /** The heading it stands under where the list mixes Areas (WT1 A; `destinationsOf`); none with one Area. */
+  area?: string | null;
   /** The warning on its row when one of its ways meets an obstacle (`obstacleRowWords`). */
   obstacle?: string | null;
   ways: WayChoice[];
@@ -321,28 +368,24 @@ export function MoveOnSheet({
     const move = moveOf(step.id, step.key);
     return (
       // A key per step: the list and each way's step are separate pop-ups to the Dialog, so its focus and Tab trap
-      // start again on each (review of #755: focus fell to the page).
-      <Dialog key={`${step.id}:${step.key}`} label={move.title} over="Move on" onClose={onClose} preview={preview} wide>
-        <WayBody
-          move={move}
-          onMove={() => onMove(step.id, step.key)}
-          onAnswer={(yes) => onAnswer(step.id, step.key, yes)}
-          foot={
-            <button type="button" className="button-secondary button-secondary--small" onClick={() => setStep(null)}>
-              Back
-            </button>
-          }
-        />
-      </Dialog>
+      // start again on each (review of #755: focus fell to the page). The step is the standard pop-up, as tall as its
+      // words (PU1 A, sf-15): centred on a tablet, a sheet from the foot on a phone (sf-28), never the wide one.
+      <SheetScope.Provider key={`${step.id}:${step.key}`} value>
+        <CentredPopUpScope.Provider value>
+          <Dialog label={move.title} over="Move on" onClose={onClose} preview={preview}>
+            <WayBody move={move} onMove={() => onMove(step.id, step.key)} onAnswer={(yes) => onAnswer(step.id, step.key, yes)} onBack={() => setStep(null)} />
+          </Dialog>
+        </CentredPopUpScope.Provider>
+      </SheetScope.Provider>
     );
   }
   return (
     <Dialog key="list" label={`From ${here}, where to?`} over="Move on" onClose={onClose} preview={preview} wide>
       {destinations.length === 0 && <p className="move-sheet__none">No ways on from here in your packs. Somewhere else… takes the party anywhere.</p>}
       <div className="move-sheet__rows">
-        {destinations.map((d) => (
-          <DestinationRow key={d.id} number={d.number} name={d.name} sub={<GmDestinationLines shown={d.shown} obstacle={d.obstacle} />} ways={d.ways} onWay={(key) => setStep({ id: d.id, key })} />
-        ))}
+        <AreaRows rows={destinations} level={3}>
+          {(d) => <DestinationRow key={d.id} number={d.number} name={d.name} sub={<GmDestinationLines shown={d.shown} players={d.players} obstacle={d.obstacle} />} ways={d.ways} onWay={(key) => setStep({ id: d.id, key })} />}
+        </AreaRows>
       </div>
       <div className="move-sheet__elsewhere">
         <ListRow title="Somewhere else…" onOpen={onElsewhere} />
@@ -396,6 +439,25 @@ export function ProposalSheet({
         }
       />
     </Dialog>
+  );
+}
+
+/**
+ * A player's tap on a way (PL4c, redrawn by page 44, PU1 B and E; sf-15, finding 23): the title says the way and the
+ * place as the row names it (`wayTapWords`), then "Takes 1 turn." labelled as the GM's line is, the built sentence, and
+ * a plain "Got it" at the foot's right (a pop-up to read), so it no longer ends in a sentence with only the ✕. Centred on
+ * a tablet, a sheet from the foot on a phone (sf-28). Nothing is proposed (pw-1).
+ */
+export function TravelPopUp({ title, time, words, onClose, preview = false }: { title: string; time: string; words: string; onClose: () => void; preview?: boolean }) {
+  return (
+    <SheetScope.Provider value>
+      <CentredPopUpScope.Provider value>
+        <Dialog label={title} onClose={onClose} preview={preview} reading plainTitle>
+          <MoveSummary move={{ title, takes: time }} />
+          <p className="travel-pop__words">{words}</p>
+        </Dialog>
+      </CentredPopUpScope.Provider>
+    </SheetScope.Provider>
   );
 }
 

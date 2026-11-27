@@ -2,8 +2,11 @@
 // mockups, PL1, PL2, PL4c, PL5, PL10), in a real browser on the layout page's invented harbour (?placePage=spot&ways=…).
 // What it checks, in plain words:
 //   * once a piece of the jetty is shown (&ways=1): "Where to?" in the place's card at the left, a row a destination,
-//     each way a button with its picture, word and time, at least 44 px; the far end not shown reads "Not yet
-//     explored."; the hidden way to the sea cave is nowhere; a tap opens the pop-up that says the GM moves the party;
+//     each with its map number, each way a button with its picture, word and time, at least 44 px; the far end not
+//     shown reads "4. Unexplored", its way under it (sf-9); the hidden way to the sea cave is nowhere; a tap opens the
+//     pop-up that says the GM moves the party;
+//   * a way into an Area nobody has been to (&ways=areas; sf-9, WT1 B): "Elsewhere" over its row, which reads
+//     "Unexplored" with no number, after the harbour's rows; the headings stay inside the list;
 //   * before anything is shown: "Where to?" says there is nothing to choose from yet, and no way is on the page;
 //   * shown with no ways (&ways=none): no "Where to?" at all (d5-1);
 //   * messy data (&ways=messy): a long far end's name and 999 turns keep inside the row at 375 px;
@@ -12,7 +15,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
-async function openScene(page: Page, ways: '1' | 'none' | 'messy' | null) {
+async function openScene(page: Page, ways: '1' | 'none' | 'messy' | 'areas' | null) {
   await page.goto(`/layout.html?as=player&placePage=spot&session=running${ways ? `&ways=${ways}` : ''}`);
   await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
   await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Scene' }).click();
@@ -32,9 +35,9 @@ for (const width of [375, 834, 1024] as const) {
         await openScene(page, '1');
         const where = left(page).getByRole('region', { name: 'Where to?' });
         await expect(where).toBeVisible();
-        const wreck = where.getByRole('group', { name: 'The wreck' });
-        await expect(wreck.getByRole('button', { name: 'Swimming, 3 turns, to The wreck' })).toBeVisible();
-        await expect(where.getByRole('group', { name: 'Walking' }).getByText('Not yet explored.')).toBeVisible();
+        const wreck = where.getByRole('group', { name: '2. The wreck' });
+        await expect(wreck.getByRole('button', { name: 'Swimming, 3 turns, to 2. The wreck' })).toBeVisible();
+        await expect(where.getByRole('group', { name: '4. Unexplored' }).getByText('Walking.')).toBeVisible();
         await expect(page.locator('body')).not.toContainText(/sea cave|customs shed/i);
         for (const button of await where.locator('.way-button').all()) expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
         // The rows stand inside the place's card.
@@ -43,10 +46,31 @@ for (const width of [375, 834, 1024] as const) {
         await page.screenshot({ path: `test-results/layout-screens/players-where-to-${width}-${scheme}.png`, fullPage: true });
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
-        await wreck.getByRole('button', { name: 'Rowing, 1 turn, to The wreck' }).click();
-        const popup = page.getByRole('dialog', { name: 'To the wreck, rowing' });
+        await wreck.getByRole('button', { name: 'Rowing, 1 turn, to 2. The wreck' }).click();
+        const popup = page.getByRole('dialog', { name: 'Rowing to 2. The wreck' });
         await expect(popup.getByText('Your GM moves the party. Say where you want to go.')).toBeVisible();
         await page.screenshot({ path: `test-results/layout-screens/players-where-to-tap-${width}-${scheme}.png` });
+        expect(await accessibilityProblems(page)).toEqual([]);
+      });
+
+      // Purpose (sf-9; WT1 B, PS1, PS3 C): a way into an Area nobody has been to stands under "Elsewhere", last, its row
+      // "Unexplored" with no number and its way under it; nothing of that Area or its place is on the page; the rows
+      // keep their number order; the heading is inside the list and the page passes the checks.
+      test('a way that leads elsewhere', async ({ page }) => {
+        await openScene(page, 'areas');
+        const where = left(page).getByRole('region', { name: 'Where to?' });
+        const heading = where.getByRole('heading', { name: 'Elsewhere', level: 4 });
+        await expect(heading).toBeVisible();
+        const labels = await where.locator('.destination-row').evaluateAll((rows) => rows.map((r) => r.getAttribute('aria-label')));
+        expect(labels).toEqual(['2. The wreck', '3. The breakwater', '4. Unexplored', 'Unexplored']);
+        const out = where.locator('.destination-row').last();
+        await expect(out.getByText('Rowing.')).toBeVisible();
+        const [h, row, list] = await Promise.all([heading.boundingBox(), out.boundingBox(), where.boundingBox()]);
+        expect(h!.y + h!.height).toBeLessThanOrEqual(row!.y + 1);
+        expect(h!.x).toBeGreaterThanOrEqual(list!.x - 1);
+        await expect(page.locator('body')).not.toContainText(/landing|shingle|sea cave/i);
+        await page.screenshot({ path: `test-results/layout-screens/players-where-to-areas-${width}-${scheme}.png`, fullPage: true });
+        expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
       });
 
@@ -77,8 +101,8 @@ test.describe('a player’s Where to? with messy data (375 px)', () => {
   // Purpose (PL10; P13): a far end named at length wraps inside its row and 999 turns keeps its button's shape.
   test('a long name and 999 turns stay inside the row', async ({ page }) => {
     await openScene(page, 'messy');
-    const row = left(page).getByRole('group', { name: 'The water stair under the customs house, by the tarred door' });
-    await expect(row.getByRole('button', { name: 'Climbing, 999 turns, to The water stair under the customs house, by the tarred door' })).toBeVisible();
+    const row = left(page).getByRole('group', { name: '4. The water stair under the customs house, by the tarred door' });
+    await expect(row.getByRole('button', { name: 'Climbing, 999 turns, to 4. The water stair under the customs house, by the tarred door' })).toBeVisible();
     const [rowBox, buttons] = await Promise.all([row.boundingBox(), row.locator('.way-button').all()]);
     for (const b of buttons) {
       const box = (await b.boundingBox())!;

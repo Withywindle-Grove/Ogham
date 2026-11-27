@@ -4149,6 +4149,18 @@ export function createFakeDb(): FakeWorld {
     // hidden route (anything but a plain false or absent `hidden`, read on the whole entry); the far end's place and
     // players' name only once a piece of it has been shown to the group, else null; no pack ids. And no row at all
     // for a group until a piece of the place it is at now has been shown to it (mc-28b), on any visit (mc-28c).
+    // Since sf-9 (…_sf_9_ways_on_number_elsewhere.sql; sf-19): `to_number`, the far place's map number (its location's
+    // `key`, when text), only for a place explored or whose container (`parentId`) the group knows: one of its visits
+    // stood at that container or inside it, at any depth, shown or not; with no container, at a place that has none
+    // either. Else `elsewhere` is true and no number is sent. And `to_area_name` (#122's ⚑ 1), only when not elsewhere:
+    // the players' name of that container, the `players_name` of the campaign's place made from it, else the pack's
+    // `playerView.name` when text; never the container's own name, and null when it was given neither.
+    // Since the review of #122: the container is named only when it is an Area (its `type`, as every reader reads it,
+    // is plainly "site": an Area is the pack's `site`, p2p-1; …_sf_9_ways_on_area_is_site.sql) or the group has itself
+    // explored it (a piece of it shown): a visit alone names an Area only, never a Location (the pack's "area").
+    // A far place whose `parentId` the pack files among its GM-only fields leads elsewhere unless explored, and has no
+    // number either way; a visited place that hides its own does not count as standing in no Area. A players' name
+    // that is only blanks is no name.
     campaign_ways_on: ({ campaign }) => {
       if (!isMemberOf(campaign)) return { data: [], error: null };
       withGroupRows();
@@ -4187,7 +4199,42 @@ export function createFakeDb(): FakeWorld {
           // mc-28a: how the way is travelled and how long it takes, the four fields alone. The route's reader also
           // keeps a way's `icon` (pf-25), which the database does not send, so it is left behind here.
           const ways = routeWays(whole.travel).map(({ by, name, value, unit }) => ({ by, name, value, unit }));
-          rows.push({ group_number: group, route_id: r.id, to_place_id: far?.id ?? null, to_name: far ? far.players_name || far.name : null, ways });
+          // sf-9, sf-19: the far place as the pack has it, read here and never sent as written.
+          const farLocation = tables.library_entries.find((e) => e.pack_id === here.pack_id && e.kind === 'location' && e.pack_entry_id === farEntry);
+          const containerOf = (entry: Row) => end((entry.data as Row | undefined)?.parentId);
+          // Whether the pack hides where an entry sits: its GM-only part holds `parentId`.
+          const hidesContainer = (entry: Row | undefined) => !!entry && 'parentId' in ((tables.library_entry_secrets.find((x) => x.id === entry.id)?.data ?? {}) as Row);
+          const farHidden = hidesContainer(farLocation);
+          const farContainer = farLocation && !farHidden ? containerOf(farLocation) : '';
+          const beenAt = (placeId: unknown) =>
+            tables.group_places.some(
+              (v) => v.campaign_id === campaign && v.place_id === placeId && Number(v.group_number) === group && !v.undone && tables.expeditions.some((x) => x.id === v.expedition_id && !x.undone),
+            );
+          const known =
+            !!far ||
+            (!!farLocation &&
+              !farHidden &&
+              tables.places.some(
+                (q) =>
+                  q.campaign_id === campaign && q.pack_id === here.pack_id && q.pack_entry_id && !q.undone && beenAt(q.id) &&
+                  fakeChain(q.pack_id, q.pack_entry_id).some((c, depth) =>
+                    farContainer === '' ? depth === 0 && containerOf(c) === '' && !hidesContainer(c) : farContainer === c.pack_entry_id || farContainer === containerOf(c),
+                  ),
+              ));
+          const farKey = (farLocation?.data as Row | undefined)?.key;
+          const number = known && !farHidden && typeof farKey === 'string' ? farKey.trim().slice(0, 200) || null : null;
+          // #122's ⚑ 1: the Area's players' name, only one given for players, only when the way does not lead elsewhere,
+          // and only for an Area or a place the group has itself explored.
+          const areaPlace = tables.places.find((a) => a.campaign_id === campaign && a.pack_id === here.pack_id && a.pack_entry_id === farContainer && !a.undone);
+          const areaEntry = tables.library_entries.find((e) => e.pack_id === here.pack_id && e.kind === 'location' && e.pack_entry_id === farContainer);
+          const packAreaName = ((areaEntry?.data as Row | undefined)?.playerView as Row | undefined)?.name;
+          const areaType = (areaEntry?.data as Row | undefined)?.type;
+          const nameable = (typeof areaType === 'string' && areaType.trim() === 'site') || (!!areaPlace && shownToGroup(areaPlace.id));
+          const areaName =
+            known && farContainer !== '' && nameable
+              ? (typeof areaPlace?.players_name === 'string' && areaPlace.players_name.trim()) || (typeof packAreaName === 'string' && packAreaName.trim().slice(0, 200)) || null
+              : null;
+          rows.push({ group_number: group, route_id: r.id, to_place_id: far?.id ?? null, to_name: far ? far.players_name || far.name : null, ways, to_number: number, elsewhere: !known, to_area_name: areaName });
         }
       }
       rows.sort((a, b) => Number(a.group_number) - Number(b.group_number) || String(a.route_id).localeCompare(String(b.route_id)));

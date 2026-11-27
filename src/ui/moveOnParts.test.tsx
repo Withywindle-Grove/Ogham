@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MoveOnLayoutPage } from '../gallery/MoveOnSpecimens.tsx';
 import { ICON_SET } from './iconSet.ts';
 import { StepIcon } from './icons.tsx';
-import { DestinationRow, MoveOnSheet, ObstacleBlock, ProposalSheet, WhereTo, type WayMove } from './MoveOnParts.tsx';
+import { DestinationRow, MoveOnSheet, ObstacleBlock, ProposalSheet, TravelPopUp, WhereTo, type GmDestination, type WayMove } from './MoveOnParts.tsx';
 
 afterEach(cleanup);
 
@@ -206,7 +206,7 @@ describe('the obstacle block (mc-41, mc-41a)', () => {
 describe('the GM’s own Move on (frames 11, 12, 13)', () => {
   const destinations = [
     { id: 'wreck', number: '2', name: 'The wreck', shown: 'shown' as const, ways: WAYS },
-    { id: 'shed', number: '4', name: 'The customs shed', shown: 'unshown' as const, ways: [{ key: 'piles', word: 'Along the piles', time: '2 turns' }] },
+    { id: 'shed', number: '4', name: 'The customs shed', shown: 'unshown' as const, players: '4. Unexplored', ways: [{ key: 'piles', word: 'Along the piles', time: '2 turns' }] },
     { id: 'cave', number: '5', name: 'The sea cave', shown: 'hidden' as const, obstacle: 'An obstacle, the breakwater’s gap: 2 turns more; you decide.', ways: [{ key: 'row', word: 'Rowing', time: '2 turns' }] },
   ];
   const sheet = (more: Partial<Parameters<typeof MoveOnSheet>[0]> = {}) => (
@@ -228,8 +228,6 @@ describe('the GM’s own Move on (frames 11, 12, 13)', () => {
   it('lists the destinations, what players know and the obstacle, with no foot line', () => {
     render(sheet());
     const dialog = screen.getByRole('dialog', { name: 'Move on: From the jetty, where to?' });
-    expect(within(dialog).getByText('Shown to the players.')).toBeTruthy();
-    expect(within(dialog).getByText('Not yet shown: players see “not yet explored”.')).toBeTruthy();
     expect(within(dialog).getByText('Hidden from players')).toBeTruthy();
     expect(within(dialog).getByText('An obstacle, the breakwater’s gap: 2 turns more; you decide.')).toBeTruthy();
     expect(within(dialog).getByRole('button', { name: 'Somewhere else…' })).toBeTruthy();
@@ -249,6 +247,7 @@ describe('the GM’s own Move on (frames 11, 12, 13)', () => {
     const dialog = screen.getByRole('dialog', { name: 'Move on: Rowing to 2. The wreck' });
     expect(within(dialog).queryByText('Where')).toBeNull();
     expect(within(dialog).getByText('Takes')).toBeTruthy();
+    expect(dialog.querySelector('.move-summary dt svg circle')).not.toBeNull();
     expect(within(dialog).queryByText('Do they get through?')).toBeNull();
     expect(dialog.textContent).not.toMatch(/in the log|Undo/);
     const move = within(dialog).getByRole('button', { name: 'Move' });
@@ -257,6 +256,28 @@ describe('the GM’s own Move on (frames 11, 12, 13)', () => {
     expect(onMove).toHaveBeenCalledWith('wreck', 'row');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Back' }));
     expect(screen.getByRole('dialog', { name: 'Move on: From the jetty, where to?' })).toBeTruthy();
+  });
+
+  // Purpose (sf-15; page 44, PU1 A): a plain way's step is the standard pop-up, not the wide one, with one foot row:
+  // Back at the left, then Move (the accent, with the footprints) at the right; nothing else stands in its foot.
+  it('a plain way’s step: one foot row, Back at the left and Move at the right (PU1 A)', async () => {
+    render(sheet());
+    await userEvent.click(screen.getByRole('button', { name: 'Rowing, 1 turn, to 2. The wreck' }));
+    const dialog = screen.getByRole('dialog', { name: 'Move on: Rowing to 2. The wreck' });
+    expect(dialog.className).not.toContain('dialog--wide');
+    const foot = dialog.querySelector('.move-sheet__split')!;
+    expect(foot.classList.contains('dialog__actions')).toBe(true);
+    expect([...foot.querySelectorAll('button')].map((b) => b.textContent)).toEqual(['Back', 'Move']);
+    expect(foot.querySelector('.button-primary')!.querySelector('svg')).toBeTruthy();
+    expect(dialog.querySelectorAll('.button-primary')).toHaveLength(1);
+  });
+
+  // Purpose (sf-15): with an obstacle the GM decides, Back still stands at the foot's left, alone; Yes and No stay above.
+  it('a way the GM decides: Back alone at the foot’s left (PU1 A)', async () => {
+    render(sheet());
+    await userEvent.click(screen.getByRole('button', { name: 'Rowing, 2 turns, to 5. The sea cave' }));
+    const dialog = screen.getByRole('dialog', { name: 'Move on: Rowing to 5. The sea cave' });
+    expect([...dialog.querySelectorAll('.move-sheet__split button')].map((b) => b.textContent)).toEqual(['Back']);
   });
 
   // Purpose (frame 13): a way with an obstacle the GM decides says the obstacle first, then asks "Do they get through?"
@@ -415,6 +436,78 @@ describe('the rulings of 2026-11-13 on the layout page', () => {
     render(<MoveOnLayoutPage state="players-other" />);
     expect(screen.getByText('Proposed by Wren.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
+  });
+});
+
+describe('the GM’s rows and the players’ headings (sf-9; page 44, WT1)', () => {
+  // Typed as the sheet takes them: a row's Area may be null (a row under no heading), which no row of this list is.
+  const destinations: GmDestination[] = [
+    { id: 'wreck', number: '2', name: 'The wreck', shown: 'shown' as const, area: 'The Drowned Harbour', ways: WAYS },
+    { id: 'shed', number: '4', name: 'The customs shed', shown: 'unshown' as const, players: '4. Unexplored', area: 'The Drowned Harbour', ways: WAYS },
+    { id: 'landing', number: '0', name: 'The landing', shown: 'unshown' as const, players: 'Unexplored, under “Elsewhere”', area: 'The Shingle Beach', ways: WAYS },
+  ];
+  const sheet = (rows = destinations) => <MoveOnSheet here="the cave" destinations={rows} moveOf={() => PLAIN} onMove={() => undefined} onAnswer={() => undefined} onElsewhere={() => undefined} onClose={() => undefined} />;
+
+  // Purpose (sf-9, F22, finding 21; WT1 A): on the GM's row for a place not shown, the closed eye and what the players
+  // read, said aloud as "Not shown yet. Players read: …"; a place shown has no line under its name.
+  it('puts the closed eye and what players read under a place not shown, and nothing under one shown', () => {
+    render(sheet());
+    const shed = screen.getByRole('group', { name: '4. The customs shed' });
+    const line = shed.querySelector('.destination-row__sub--unshown')!;
+    expect(line.textContent).toBe('4. Unexplored');
+    expect(within(shed).getByRole('img', { name: 'Not shown yet. Players read:' }).querySelector('svg')).toBeTruthy();
+    expect(within(screen.getByRole('group', { name: '0. The landing' })).getByText('Unexplored, under “Elsewhere”')).toBeTruthy();
+    expect(screen.getByRole('group', { name: '2. The wreck' }).querySelector('.destination-row__sub')).toBeNull();
+    expect(screen.queryByText(/Shown to the players|not yet explored/)).toBeNull();
+  });
+
+  // Purpose (⚑ 8; WT1 A): where the rows mix Areas, each Area's name stands once over its own rows, in order.
+  it('stands each Area’s name over its rows, once', () => {
+    render(sheet());
+    const dialog = screen.getByRole('dialog', { name: 'Move on: From the cave, where to?' });
+    const order = [...dialog.querySelectorAll('.move-sheet__area, .destination-row')].map((el) => (el.classList.contains('move-sheet__area') ? `# ${el.textContent}` : el.getAttribute('aria-label')));
+    expect(order).toEqual(['# The Drowned Harbour', '2. The wreck', '4. The customs shed', '# The Shingle Beach', '0. The landing']);
+    expect(within(dialog).getByRole('heading', { name: 'The Shingle Beach', level: 3 })).toBeTruthy();
+  });
+
+  // Purpose (WT1 C): rows with no Area to name stand under no heading.
+  it('draws no heading where the rows carry none', () => {
+    render(sheet(destinations.map((d) => ({ ...d, area: null }))));
+    expect(document.querySelector('.move-sheet__area')).toBeNull();
+  });
+
+  // Purpose (sf-9; WT1 B): the players' list as the layout page draws it: "The Drowned Harbour" over its rows, then
+  // "Elsewhere" over a row with no number; "4. Unexplored" with its way under it; the headings under "Where to?".
+  it('draws the players’ rows under their headings, Elsewhere last', () => {
+    render(<MoveOnLayoutPage state="players" />);
+    const where = screen.getByRole('region', { name: 'Where to?' });
+    expect(within(where).getAllByRole('heading', { level: 4 }).map((h) => h.textContent)).toEqual(['The Drowned Harbour', 'Elsewhere']);
+    const four = within(where).getByRole('group', { name: '4. Unexplored' });
+    expect(within(four).getByText('Rowing or swimming.')).toBeTruthy();
+    const rows = [...where.querySelectorAll('.destination-row')];
+    expect(rows[rows.length - 1]!.getAttribute('aria-label')).toBe('Unexplored');
+    expect(within(rows[rows.length - 1] as HTMLElement).getByText('Rowing.')).toBeTruthy();
+  });
+});
+
+describe('the players’ travel pop-up (sf-15; page 44, PU1 B)', () => {
+  // Purpose: the pop-up is titled with the way and the place, says "Takes" before the time as the GM's line does, then
+  // the built sentence, and ends in a plain "Got it" that closes it; there is no accent.
+  it('titles, labels the time, and ends in a plain Got it', async () => {
+    const onClose = vi.fn();
+    render(<TravelPopUp title="Row to 2. Unexplored" time="1 turn." words="Your GM moves the party. Say where you want to go." onClose={onClose} />);
+    const dialog = screen.getByRole('dialog', { name: 'Row to 2. Unexplored' });
+    expect([...dialog.querySelectorAll('.move-summary dt')].map((d) => d.textContent)).toEqual(['Takes']);
+    expect(dialog.querySelector('.move-summary dd')!.textContent).toBe('1 turn.');
+    expect(dialog.querySelector('.move-summary dt svg circle')).not.toBeNull();
+    expect(within(dialog).getByText('Your GM moves the party. Say where you want to go.')).toBeTruthy();
+    const gotIt = within(dialog).getByRole('button', { name: 'Got it' });
+    expect(gotIt.className).toContain('button-secondary');
+    expect(dialog.querySelector('.button-primary')).toBeNull();
+    // Its title is the plain one, never the book's red heading.
+    expect(dialog.querySelector('.dialog__title--plain')).toBeTruthy();
+    await userEvent.click(gotIt);
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });
 

@@ -72,6 +72,8 @@ export type IconName =
   | 'star'
   | 'star-filled'
   // Check for a new version, at the ⋯ menu's foot (F55, au-1): a circling arrow.
+  // The Move on sheet's Takes line (PU1, Francis 2026-11-27: the clock, not the hourglass): a clock face.
+  | 'clock'
   | 'refresh';
 
 const PATHS: Record<IconName, ReactNode> = {
@@ -304,6 +306,12 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3" />
       <path d="M19.5 3.5v4.5H15" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 7.5V12l3 2" />
     </>
   ),
 };

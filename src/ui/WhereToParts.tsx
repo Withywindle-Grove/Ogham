@@ -1,6 +1,6 @@
 // A player's Where to?: the parts that stand beside its destination rows (plan dec-9-the-players-scene, row P2;
 // page 18 of the December mockups, PL2 and PL9, approved 2026-11-14, ap-10; d5-2). The rows themselves and the list's
-// heading are MoveOnParts' (`WhereTo`, `DestinationRow`, `NotYetExplored`). Callbacks and props only.
+// heading are MoveOnParts' (`WhereTo`, `DestinationRow`, `WayLine`, `AreaRows`). Callbacks and props only.
 //
 // - `WhereToLine`: one quiet line under the heading in place of rows (PL2: none to choose from yet).
 // - `RefreshFailedRow`: a read that failed, said in a row of its own above the list it kept (PL9), the warning sign, the
