@@ -40,6 +40,8 @@ Where this section differs from the rules above or in `CLAUDE.md`, those rules w
 
 - Francis sits three times per loop: after step 1 (mockup and rulings), after step 3 (the spec's plain-language part and the ticket list), after step 5 (the built screen, the review, the retro findings).
 - `implement-spec` asks for as many workers as possible at once. Here the seat limits above win: at most three builders, one heavy job at a time. A ticket is a row: one check run per batch, a fresh worker per ticket and per fix round.
+- Francis starts steps 2, 3, 4, 6 and 7 himself, by typing the skill's command in the driver's session (`/to-spec`, `/to-tickets`, `/implement-spec`, `/retro`, `/improve-codebase-architecture`); an agent cannot start those five (`.claude/skills/README.md`).
+- Step 5 keeps the bug and hard-rule passes of `REVIEW.md`: the project's `code-review` runs them with its standards pass, through the `reviewer` agent.
 - Tracker and domain conventions: `docs/agents/`.
 
 **Other skills still used**

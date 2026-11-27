@@ -14,6 +14,8 @@ The tickets are not a list of steps. They are a **task graph** with blocking rel
 
 Start every subagent with a fresh context window.
 
+**In this repo (local change):** an implementer subagent is the `builder` agent, never a general agent (a general agent runs on a smaller model here). At most three builders run at once and one full check at a time (`.claude/README.md`); "maximum concurrency" below means up to that limit. Mechanical work (merges, exploration) may use a general agent.
+
 Communication to and from subagents should be sparse. Communicate primarily through **context pointers**: to the spec, tickets, research notes, and previous commits. Don't duplicate information already available via pointers.
 
 **Implementer subagents** should be run in the background where possible for maximum concurrency.

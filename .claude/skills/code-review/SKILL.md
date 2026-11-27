@@ -57,6 +57,8 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 
 ### 4. Spawn both sub-agents in parallel
 
+**In this repo (local change):** spawn each sub-agent as the `reviewer` agent, never as a general agent (a general agent runs on a smaller model here). The Standards sub-agent also runs passes 1 (Bugs) and 2 (Rules) of `REVIEW.md`, and reports them under `## Bugs and rules` before `## Standards`; the word limit below does not apply to that part. The Spec sub-agent is pass 3 of `REVIEW.md`, with the spec in place of the plan.
+
 Issue both sub-agent calls together, in the foreground, and aggregate the reports they return.
 
 **Standards sub-agent prompt** should include:

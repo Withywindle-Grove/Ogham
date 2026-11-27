@@ -2,7 +2,7 @@
 name: reviewer
 description: Read-only review of a pull request's diff against REVIEW.md (the three passes); comments only.
 model: opus
-effort: medium
+effort: high
 tools: Read, Grep, Glob, Bash
 omitClaudeMd: true
 ---

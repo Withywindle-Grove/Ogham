@@ -181,7 +181,7 @@ describe('an added thing joins a same-name stack (sw-1, fb5-1)', () => {
   it('a joined add’s log line keeps its price and the GM’s note', async () => {
     await add(sam, wren, 'e-torch', 2);
     expect(await as(sam, addItem, { carrier: wren, item: item('e-torches'), qty: 3, howGot: 'bought', cost: ' 6 cp ' })).toMatchObject({ ok: true, value: { qty: 5, cost: '' } });
-    expect(await newestLine(sam)).toBe('You bought Reed torch ×3 for Wren (6 cp). Cost noted; purses arrive later.');
+    expect(await newestLine(sam)).toBe('You bought Reed torch ×3 for Wren (6 cp).');
     expect(await as(gm, addItem, { carrier: wren, item: item('e-torch'), qty: 1, howGot: 'given', note: 'From the drowned shrine' })).toMatchObject({ ok: true, value: { qty: 6, notes: '' } });
     expect(await newestLine(sam)).toBe('Priya gave Wren Reed torch: From the drowned shrine.');
     // A player can't call their add a gift: it goes the usual way, and is refused as before.

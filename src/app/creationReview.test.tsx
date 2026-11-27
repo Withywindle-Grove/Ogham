@@ -88,8 +88,8 @@ const tams = () => world.tables.actors.filter((a) => String(a.name).startsWith('
 const tam = () => tams()[0]!;
 const toasts = async (text: string) => expect((await screen.findAllByText(text)).length).toBeGreaterThan(0);
 
-/** Scores, Kindred (bog folk), the warden, Who they are (Tam, leaning Reed), Gear (100), Languages (Reedspeak), backgrounds (later or picked): the review. */
-async function toReview(user: User, { background = 'pick' as 'pick' | 'later', kit = false, money = true, hp = false } = {}) {
+/** Scores, Kindred (bog folk), the warden (or klass), Who they are (Tam, leaning Reed or lean), Gear (100), Languages (Reedspeak), backgrounds (later or picked): the review. */
+async function toReview(user: User, { background = 'pick' as 'pick' | 'later', kit = false, money = true, hp = false, klass = 'Lantern Warden', lean = 'Reed' } = {}) {
   await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
   await user.click(await screen.findByRole('button', { name: 'Create your character' }));
   await user.click(await screen.findByRole('button', { name: /^Guided/ }));
@@ -97,7 +97,7 @@ async function toReview(user: User, { background = 'pick' as 'pick' | 'later', k
   await next(user);
   await pick(user, 'Bog folk');
   await next(user);
-  await pick(user, 'Lantern Warden');
+  await pick(user, klass);
   await next(user);
   if (heading() === 'Adjust scores') await next(user);
   await screen.findByRole('heading', { name: 'Who they are' });
@@ -107,7 +107,7 @@ async function toReview(user: User, { background = 'pick' as 'pick' | 'later', k
     await user.clear(screen.getByRole('textbox', { name: 'Hit points' }));
     await user.type(screen.getByRole('textbox', { name: 'Hit points' }), '5');
   }
-  await pick(user, 'Reed');
+  await pick(user, lean);
   await next(user);
   await screen.findByRole('heading', { name: 'Gear' });
   if (money) {
@@ -597,6 +597,31 @@ describe('the creation review (cr-18)', () => {
     // The ▲ line, and only for the coat (the spear and the lantern aren't named).
     expect(section('Gear').querySelector('.creation-review__warn .warning-sign')).not.toBeNull();
     expect([...section('Gear').querySelectorAll('.creation-review__warn')].map((p) => p.textContent)).toEqual(["Waxed coat: a Lantern Warden can't wear it; carried"]);
+  });
+
+  // Purpose (clo-1, frame 22-G2): a character with one pick needing the GM's special approval shows that card first on
+  // the review, above the first step's card, with its words and the pick over its requirement; with none, no card.
+  it('the special-approval card comes first, above the step cards; with none, there is no card (clo-1)', async () => {
+    fenWorld();
+    const user = openApp();
+    // The fixture's Mire Stalker is usually Reed or Mire (a soft limit): Lantern needs the GM's special approval.
+    await toReview(user, { klass: 'Mire Stalker', lean: 'Lantern' });
+    const titles = sections().filter((t) => !t.startsWith('To finish'));
+    expect(titles[0]).toBe("1 thing needs the GM's special approval");
+    expect(titles[1]).toBe('Kindred and class');
+    expect(titles.filter((t) => t.includes('special approval'))).toHaveLength(1);
+    const card = section("1 thing needs the GM's special approval");
+    expect(within(card).getByText('Lantern')).toBeTruthy();
+    expect(within(card).getByText('A mire stalker is usually Reed or Mire')).toBeTruthy();
+    cleanup();
+    world = createFakeDb();
+    forgetCampaignSetting();
+    sessionStorage.clear();
+    window.history.replaceState(null, '', '/');
+    fenWorld();
+    await toReview(openApp());
+    expect(sections().some((t) => t.includes('special approval'))).toBe(false);
+    expect(sections()[0]).toBe('Kindred and class');
   });
   it('Save and leave keeps the draft; it reopens on the review from Your characters; Send then lands on a failing step with its message', async () => {
     fenWorld();

@@ -37,7 +37,7 @@ Ruled 2026-11-27 (lp-9, `design/rulings/process-loop-2026-11-27.md`). The source
 |---|---|---|
 | cs-12 | **A state that cannot happen cannot be written.** Use a union with a tag, not a set of optional fields and booleans that only make sense in some combinations | The compiler then finds every place a new state must be handled |
 | cs-13 | **Check data where it enters, once.** Data from the database, the network, storage, a pack file or the URL is checked and given its type at the edge. Past the edge, code trusts the type | A check in the middle means the type before it was a lie |
-| cs-14 | **No `as` cast and no `!` to silence the compiler.** Narrow with a check, or fix the type. `as const` and `satisfies` are fine. A cast that must stay has a comment that says why it is true | A cast turns a compile error into a fault at the table. The code has about 960 casts and 990 `!` outside tests today |
+| cs-14 | **No `as` cast and no `!` to silence the compiler.** Narrow with a check, or fix the type. `as const` and `satisfies` are fine. A cast that must stay has a comment that says why it is true | A cast turns a compile error into a fault at the table. A search finds about 960 casts outside tests and about 990 `!` in all today |
 | cs-15 | **A `switch` or `if` chain over a union handles every member**, with no `default` that swallows a new one | A new member must fail the build, not fall through |
 | cs-16 | **A domain value has a domain type.** An id of one kind is not passed where another kind is wanted; an amount is an integer (hard rule 8) | Two strings in the wrong order compile (Fowler: Primitive Obsession) |
 | cs-17 | **No `any`, no `@ts-ignore`.** `unknown` and a check. `@ts-expect-error` only in a test that proves a type error, with a reason | The code has almost none today; keep it so |
@@ -46,7 +46,7 @@ Ruled 2026-11-27 (lp-9, `design/rulings/process-loop-2026-11-27.md`). The source
 
 | Id | Rule | Why |
 |---|---|---|
-| cs-18 | **A name says what the thing is or does, in the domain's words** (`docs/04`, the glossary). If no honest name comes, the design is unclear | A reader, human or agent, finds code by its name (Fowler: Mysterious Name) |
+| cs-18 | **A name says what the thing is or does, in the domain's words** (`docs/04`, the glossary). If no honest name comes, the design is unclear | A reader, human or agent, finds code by its name (Fowler: Mysterious Name; McConnell on names) |
 | cs-19 | **A comment says what the code cannot:** why, a limit, a ruling's id. It does not repeat the code, and it does not tell the history; history is in git and `09` | A comment that repeats the code goes stale and is then wrong |
 | cs-20 | **A test's purpose is one plain sentence, written first** (`docs/testing.md`) | It is what the reviewer checks the test against |
 
@@ -88,7 +88,7 @@ Ruled 2026-11-27 (lp-9, `design/rulings/process-loop-2026-11-27.md`). The source
 
 ## Automated checks
 
-"On" is checked today. "To add" is a ticket; none needs a new package unless the row says so. Each "to add" will show old code that does not comply. That list goes to Francis before any refactor; the plan is to record old cases as known and fail only on new ones.
+"On" is checked today. "To add" is a ticket; none needs a new package unless the row says so. Each "to add" will show old code that does not comply. That list goes to Francis before any refactor. For a lint rule, old cases are recorded as known and only new ones fail (ESLint's own `--suppress-all`, which writes `eslint-suppressions.json`). A compiler flag has no such list: it is switched on only when the code passes it, so each flag is a ticket that fixes its cases first.
 
 | Check | Covers | State |
 |---|---|---|
@@ -125,6 +125,6 @@ Today, from the repository's own notes, not measured for this file: the full che
 
 Books: John Ousterhout, *A Philosophy of Software Design*; Martin Fowler, *Refactoring* (2nd edition); Andrew Hunt and David Thomas, *The Pragmatic Programmer*; Steve McConnell, *Code Complete*; Michael Feathers, *Working Effectively with Legacy Code*.
 
-Documentation, read 2026-11-27 from each project's own source for the installed version: typescript-eslint 8.71.2 (shared configurations, typed linting, the rules named above); TypeScript (the tsconfig reference); Vitest 5.0.5 (improving performance); React (Rules of React); eslint-plugin-react-hooks 7.1.1; ESLint 10.13.0 (`no-restricted-imports`); Supabase (testing row-level security; row-level security performance); Claude Code (best practices; memory).
+Documentation, read 2026-11-27 from each project's own source for the installed version: typescript-eslint 8.71.2 (shared configurations, typed linting, the rules named above); TypeScript (the tsconfig reference); Vitest 5.0.5 (improving performance); React (Rules of React); eslint-plugin-react-hooks 7.1.1; ESLint 10.13.0 (`no-restricted-imports`, bulk suppressions); Supabase (testing row-level security; row-level security performance); Claude Code (best practices; memory).
 
 Not verified: the live documentation sites could not be reached from the session that wrote this file, so the text was read from each project's source repository. No lint run and no test run was made; every count above is a search count, and every cost is an estimate.
