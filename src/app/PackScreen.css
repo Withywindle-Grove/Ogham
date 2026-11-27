@@ -920,11 +920,13 @@
   margin-block-start: var(--space-4);
 }
 
+/* "Wren's room", "Recently" (PK4): the book's sub-heading, its weight and colour (K29). */
 .stash__head {
   margin: 0 0 var(--space-2);
-  color: var(--accent);
+  color: var(--book-subhead);
   font-size: var(--text-20);
-  font-weight: var(--weight-heading);
+  font-weight: var(--weight-book-subhead);
+  line-height: var(--line-heading);
 }
 
 .stash__takers {
@@ -962,3 +964,87 @@
   min-inline-size: var(--tap);
 }
 
+
+/* The Pack tab's dress (K29; frames PK1 to PK13 of pack/08, approved 2026-11-14): `PackDress` wraps the tab in the
+   book's type, and this class scopes the tab's own sizes and gaps to the frames, so At hand on the Player tab (P1)
+   keeps its own. The wrapper adds no box. */
+.pack-dress {
+  display: contents;
+}
+
+/* A group's head (PK1, PK6): its name in the book's small capitals at 14 px, muted, as sentence case (the face draws
+   the capitals); its count beside it as built. */
+.pack-dress .pack__group-title {
+  font-family: var(--font-book-descriptor);
+  font-weight: var(--weight-book-descriptor);
+  font-size: var(--text-14);
+  font-variant: normal;
+  letter-spacing: var(--tracking-label);
+  text-transform: none;
+}
+
+/* A group's head (PK1, PK4): 32 px at least, so its first row stands clear of it ("Heads 32 px, rest as built",
+   Francis, 26 Nov 2026, ⚑ 20). */
+.pack-dress .pack__group-head {
+  align-items: center;
+  min-block-size: var(--space-6);
+}
+
+/* A row (PK1): 52 px at least, 4 px above and below; the name in the book's bold at 20 px, a stack's count beside it
+   at 14 px, plain. */
+.pack-dress .pack__row-main {
+  align-content: center;
+  min-height: calc(var(--tap) + var(--space-2));
+  padding: var(--space-1) 0;
+}
+
+/* A row with no line under its name (PK1's "Bog sling"): the name centred in its row. The chevron keeps to the name's
+   line, so the two empty lines it spans on a longer row add no space under the name. */
+.pack-dress .pack__row-main:not(:has(.pack__sub)) {
+  align-items: center;
+}
+
+.pack-dress .pack__row-main:not(:has(.pack__sub)) .pack__chevron {
+  grid-row: 1;
+}
+
+.pack-dress .pack__name {
+  font-weight: var(--weight-book-name);
+  line-height: var(--line-heading);
+}
+
+.pack-dress .pack__qty {
+  font-size: var(--text-14);
+  font-weight: var(--weight-book-text);
+}
+
+/* The load's state (PK1): upright, in the book's bold. Its size stays the app's 20 (the frame draws 22: ⚑ 20). */
+.pack-dress .pack__tier {
+  font-style: normal;
+  font-weight: var(--weight-book-name);
+}
+
+/* The card of things waiting for the GM (PK1): on the surface colour. */
+.pack-dress .pack__waiting {
+  background: var(--surface);
+}
+
+/* The foot (PK1): 12 px under its double rule. */
+.pack-dress .pack__foot {
+  padding-block-start: var(--space-3);
+}
+
+/* A thing's sheet and Add item (PK8, PK10b): their rows and fields on the pop-up's own ground, as the frames draw them,
+   not on a panel of their own. A thing's sheet is placed outside the tab's page, so `ItemSheet` marks it
+   `pack__sheet--thing` only inside the Pack's dress (`PackDressScope`); the Player tab's sheet keeps its panel. */
+.pack-dress .pack__sheet,
+.pack__sheet--thing {
+  padding: 0;
+  background: none;
+}
+
+/* A thing's sheet (PK8): its action rows' words at the body's 16 px, as the frame draws "Give to…", not a list row's
+   20 px in the book's type. */
+.pack__sheet--thing .list-row:not(.list-row--figure, .list-row--label) .list-row__title {
+  font-size: var(--text-16);
+}

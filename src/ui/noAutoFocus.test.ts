@@ -51,8 +51,9 @@ const FOCUS_CALLS: Record<string, number> = {
   // ⋯ back to its button as its small panel closes on Escape: a button (the Sheet's is the Dialog's own rule now). And
   // (audit fix 3c on #85) the panel's first item when ⋯ is opened from the keyboard: a menu button or link, never a field.
   '/src/ui/MoreMenu.tsx': 2,
-  // Help me choose (final drafts A6): the ✕ on open, the button on close; both buttons.
-  '/src/ui/parts.tsx': 1,
+  // Help me choose (final drafts A6): the ✕ on open, the button on close; both buttons. And the stock toggle's arrow
+  // keys (TC9): from one half to the other, both buttons, only on a key press, never on open.
+  '/src/ui/parts.tsx': 2,
   // The Light pop-up's pick step (P10 audit 2–3): the first light's button as the pick opens, and Light again on Back;
   // both buttons.
   '/src/app/LightSection.tsx': 2,

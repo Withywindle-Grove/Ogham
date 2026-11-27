@@ -5,9 +5,13 @@
 // folded under the + square); then messy data: a count of 9 with 0 beside it, a level with nothing to choose (it says
 // "Nothing to choose at level 2."), and an empty book (its note alone: no level line, no slot counted at the foot).
 // The fold's square, the level's line and the empty book are Francis's three fixes of 2026-11-18.
+// Last, the first spells open (FS1; page 46, 46A and 46B, approved 2026-11-26): Prepare one of 2 chosen with the long
+// spell and a slot empty, and the Magic tab's Prepare row and empty row in that state.
 import type { ReactElement, ReactNode } from 'react';
+import { CHOOSE_AT_ONCE, readyAtOnceLine } from '../app/MagicTab.tsx';
 import { PrepareSheet } from '../app/PrepareScreen.tsx';
 import { prepareView } from '../modules/characters/magicView.ts';
+import { Icon } from '../ui/icons.tsx';
 import { ListRow, RowList, Stepper } from '../ui/parts.tsx';
 
 const LONG = 'The long lantern of the drowned abbey that burns beneath the black water';
@@ -44,9 +48,11 @@ const PRAYER = prepareView({ prepared: [], chosen: [at('hands', 1), at('hands', 
 // Messy: nine slots at level 1, all on one spell (9, and 0 beside it); an empty level 2.
 const MESSY = prepareView({ prepared: [], chosen: Array.from({ length: 9 }, () => at('lamp', 1)) }, [9, 2], new Map([[1, ['lamp', 'long']], [2, []]]));
 const EMPTY = prepareView({ prepared: [], chosen: null }, [1], new Map([[1, []]]));
+// Page 46, 46B: the first spells open, one of 2 chosen (ready at once), the long spell beside it, a slot empty.
+const OPEN = prepareView({ prepared: [at('lamp', 1)], chosen: null }, [2], new Map([[1, ['lamp', 'dart', 'long']]]));
 
-const sheet = (who: string, view: ReturnType<typeof prepareView>, emptyBook = false) => (
-  <PrepareSheet who={who} view={view} nameOf={nameOf} lineOf={lineOf} levelTitle={levelTitle} emptyBook={emptyBook} onMore={nothing} onFewer={nothing} onPick={nothing} onOpen={nothing} onClose={nothing} preview />
+const sheet = (who: string, view: ReturnType<typeof prepareView>, emptyBook = false, firstSpellsOpen = false) => (
+  <PrepareSheet who={who} view={view} nameOf={nameOf} lineOf={lineOf} levelTitle={levelTitle} emptyBook={emptyBook} firstSpellsOpen={firstSpellsOpen} onMore={nothing} onFewer={nothing} onPick={nothing} onOpen={nothing} onClose={nothing} preview />
 );
 
 export function PrepareSpecimens({ Specimen }: { Specimen: (props: { name: string; children: ReactNode }) => ReactElement }) {
@@ -68,6 +74,17 @@ export function PrepareSpecimens({ Specimen }: { Specimen: (props: { name: strin
       <Specimen name="Prepare, messy data: 9 a day all on one spell, 0 beside it, a level with nothing to choose; an empty spell book">
         {sheet(HOLLOWELL, MESSY)}
         {sheet('Wren', EMPTY, true)}
+      </Specimen>
+      <Specimen name="Prepare, the first spells open (page 46, 46B): the first line, one of 2 chosen and ready at once, the long name wrapping, the foot with a slot still empty; no Same as yesterday">
+        {sheet('Wren', OPEN, false, true)}
+      </Specimen>
+      <Specimen name="The Magic tab's rows, the first spells open (page 46, 46A): Prepare, Ready at once. 2 slots empty; Nothing ready with its line">
+        <RowList>
+          <ListRow lead={<Icon name="spell-book" size={20} />} title="Prepare" sub={readyAtOnceLine(2)} onOpen={nothing} />
+        </RowList>
+        <RowList>
+          <ListRow title="Nothing ready" sub={CHOOSE_AT_ONCE} />
+        </RowList>
       </Specimen>
     </>
   );

@@ -284,7 +284,7 @@ export interface RestRow {
 /** One character as the rest prompt reads them. */
 export interface RestCharacter {
   id: string;
-  play: Pick<CharacterPlay, 'prepared' | 'chosen' | 'spellsCast' | 'usesSpent'>;
+  play: Pick<CharacterPlay, 'prepared' | 'chosen' | 'spellsCast' | 'usesSpent'> & Partial<Pick<CharacterPlay, 'restedOnce'>>;
   /** Its spell slots a level (`slotsOf`). */
   slots: readonly number[];
   /** Its limited-use powers (the class's and kindred's `limitedAbilities`, and any trait's). */

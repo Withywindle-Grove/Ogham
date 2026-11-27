@@ -18,7 +18,7 @@ const NAMES = new Map([
 const at = (spell: string, level: number) => ({ spell, level });
 const nothing = () => {};
 
-function draw(who: string, view: ReturnType<typeof prepareView>, emptyBook = false) {
+function draw(who: string, view: ReturnType<typeof prepareView>, emptyBook = false, firstSpellsOpen = false) {
   render(
     <PrepareSheet
       who={who}
@@ -27,6 +27,7 @@ function draw(who: string, view: ReturnType<typeof prepareView>, emptyBook = fal
       lineOf={() => ''}
       levelTitle={(level) => `Level ${level}`}
       emptyBook={emptyBook}
+      firstSpellsOpen={firstSpellsOpen}
       onMore={nothing}
       onFewer={nothing}
       onPick={nothing}
@@ -111,5 +112,43 @@ describe('Prepare as drawn: the three fixes of 2026-11-18', () => {
     expect(full.getByText('Nothing to choose at level 2.')).toBeTruthy();
     expect(full.getByText('Saved as you go')).toBeTruthy();
     expect(full.queryByText(/still empty/)).toBeNull();
+  });
+});
+
+describe('Prepare while the first spells are open (fsr-9, fsr-10; page 46, 46B)', () => {
+  const levels = new Map([[1, ['lamp', 'ward']], [2, []]]);
+
+  // Purpose: the first line says a choice is ready at once, in "your" words, and the foot counts the slots still empty
+  // with what to do before a cast: 2, 1 and none; a level with nothing to choose isn't counted.
+  it('says the first line and the foot for 2, 1 and no slots empty', () => {
+    const two = draw('Wren', prepareView({ prepared: [], chosen: null }, [2, 1], levels), false, true);
+    expect(two.getByText('Until your first cast or rest, what you choose is ready at once.')).toBeTruthy();
+    expect(two.queryByText(/next rest/)).toBeNull();
+    expect(two.getByText('Ready as you choose. 2 slots still empty: fill them before you cast.')).toBeTruthy();
+    cleanup();
+    const one = draw('Wren', prepareView({ prepared: [at('lamp', 1)], chosen: null }, [2, 1], levels), false, true);
+    expect(one.getByText('Ready as you choose. 1 slot still empty: fill it before you cast.')).toBeTruthy();
+    cleanup();
+    const none = draw('Wren', prepareView({ prepared: [at('lamp', 1), at('ward', 1)], chosen: null }, [2, 1], levels), false, true);
+    expect(none.getByText('Ready as you choose')).toBeTruthy();
+    expect(none.queryByText(/still empty/)).toBeNull();
+  });
+
+  // Purpose: no "Same as yesterday" while open, even with spells ready (there is no yesterday); closed, it is offered.
+  it('offers no Same as yesterday while open, even with spells ready', () => {
+    const view = prepareView({ prepared: [at('lamp', 1)], chosen: null }, [2], new Map([[1, ['lamp', 'ward']]]));
+    expect(view.sameAsYesterday.offers).toBe(true);
+    const open = draw('Wren', view, false, true);
+    expect(open.queryByText('Same as yesterday')).toBeNull();
+    cleanup();
+    const closed = draw('Wren', view);
+    expect(closed.getByText('Same as yesterday')).toBeTruthy();
+  });
+
+  // Purpose: an empty book while open counts no slot, as when closed: the foot says "Ready as you choose" alone.
+  it('an empty book counts no slot while open', () => {
+    const prepare = draw('Wren', prepareView({ prepared: [], chosen: null }, [1], new Map([[1, []]])), true, true);
+    expect(prepare.getByText('Ready as you choose')).toBeTruthy();
+    expect(prepare.queryByText(/still empty/)).toBeNull();
   });
 });

@@ -4,7 +4,14 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { runCommand, type CurrentUser } from '../core/commands.ts';
+import { undoChange } from '../core/undo.ts';
+import { chooseSpells, firstSpellsOpen } from '../modules/characters/magicState.ts';
+import type { CharacterRef } from '../modules/characters/commands.ts';
 import type { RestRow } from '../modules/characters/magicView.ts';
+import { loadCharacterPlay } from '../modules/characters/playState.ts';
+import { createFakeDb } from '../testing/fakeDb.ts';
+import { createAppRegistry } from './commandRegistry.ts';
 import { ICON_SET } from '../ui/iconSet.ts';
 import { applyNightRest, NightRestSheet, type Rester } from './NightRest.tsx';
 
@@ -92,5 +99,65 @@ describe("A night's rest (the GM's rest prompt)", () => {
     await user.click(within(sheet).getByRole('button', { name: 'Close' }));
     expect(onClose).toHaveBeenCalled();
     expect(onApply).not.toHaveBeenCalled();
+  });
+});
+
+describe("A night's rest closes the first spells (fsr-5)", () => {
+  const registry = createAppRegistry();
+  const lamp = [{ spell: 'mire-lamp', level: 1 }];
+  const fog = [{ spell: 'fog-ring', level: 1 }];
+  function table() {
+    const world = createFakeDb();
+    const gm = world.addPerson('priya@lantern.example', 'Priya');
+    const sam = world.addPerson('sam@lantern.example', 'Sam');
+    const campaign = world.addCampaign('The Ash Barrows', gm);
+    world.addMember(campaign, sam, 'player');
+    const wren: CharacterRef = { id: world.addCharacter(campaign, 'Wren', { ownerId: sam, approval: 'approved' }), campaignId: campaign, ownerType: 'user', ownerUserId: sam, approval: 'approved', archived: false };
+    const as = (id: string): CurrentUser => {
+      world.signInAs(id);
+      return { id, roles: { [campaign]: id === gm ? 'gm' : 'player' } };
+    };
+    const play = async () => (await loadCharacterPlay(world.db, wren.id))!;
+    const rest = async () =>
+      applyNightRest({
+        resters: [{ ref: wren, name: 'Wren', rest: { id: wren.id, slots: [1], powers: [], play: await play() } }],
+        marks: { [wren.id]: true },
+        act: async (command, input) => {
+          const done = await runCommand(registry, world.db, as(gm), command, input);
+          return done.ok ? done.value : null;
+        },
+        fullRest: async () => true,
+      });
+    const undoRest = () => {
+      const line = world.tables.events.find((e) => e.type === 'character.setSpells')!;
+      return runCommand(registry, world.db, as(gm), undoChange, { campaignId: campaign, eventId: String(line.id), authorUserId: gm });
+    };
+    const choose = (chosen: typeof lamp) => runCommand(registry, world.db, as(sam), chooseSpells, { character: wren, chosen, slots: [1] });
+    return { world, play, rest, undoRest, choose };
+  }
+
+  // Purpose: after Apply rest a new caster is marked rested, so a choice waits for the next rest; Undo of the rest's
+  // line from the log brings the first spells back, and the next choice is ready at once.
+  it('Apply rest marks a new caster rested; Undo of its line from the log opens the first spells again', async () => {
+    const { play, rest, undoRest, choose } = table();
+    await choose(lamp);
+    expect(await play()).toMatchObject({ prepared: lamp, chosen: null, restedOnce: false });
+    expect(await rest()).toEqual({ done: true, notBack: [] });
+    expect(await play()).toMatchObject({ prepared: lamp, restedOnce: true });
+    expect(firstSpellsOpen(await play())).toBe(false);
+    expect(await undoRest()).toMatchObject({ ok: true });
+    expect(firstSpellsOpen(await play())).toBe(true);
+    await choose(fog);
+    expect(await play()).toMatchObject({ prepared: fog, chosen: null });
+  });
+
+  // Purpose (honest note, not a ruling): a caster with no play row at all whose first rest makes the row keeps that
+  // rest, as any Undo of a row's making is refused; nothing ready is lost, and a choice then waits for the next rest.
+  it("a first rest that made the caster's row can't be undone, as any row's making can't", async () => {
+    const { play, rest, undoRest } = table();
+    expect(firstSpellsOpen(await play())).toBe(true);
+    await rest();
+    expect(await play()).toMatchObject({ prepared: [], restedOnce: true });
+    expect(await undoRest()).toMatchObject({ ok: false, message: "Making or deleting things can't be undone." });
   });
 });

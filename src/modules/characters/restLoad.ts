@@ -21,7 +21,7 @@ export async function loadRestActors(db: Db, ids: readonly string[]): Promise<Re
   if (ids.length === 0) return [];
   const [actors, plays] = await Promise.all([
     db.from('actors').select('id, campaign_id, owner_type, owner_user_id, approval, status, name, level, classes, race_ref, fields, creation').in('id', [...ids]),
-    db.from('character_play').select('actor_id, prepared, uses_spent, ac_override, form_id, chosen, spells_cast').in('actor_id', [...ids]),
+    db.from('character_play').select('actor_id, prepared, uses_spent, ac_override, form_id, chosen, spells_cast, rested_once').in('actor_id', [...ids]),
   ]);
   if (actors.error || plays.error) return null;
   const rows = (actors.data ?? []) as Record<string, unknown>[];

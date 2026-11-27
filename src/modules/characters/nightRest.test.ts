@@ -47,6 +47,16 @@ describe('the rest prompt (piece D; mp-5)', () => {
     expect(restApply([fresh], { fresh: true }, true).spells).toEqual([]);
   });
 
+  // Purpose (fsr-5): a caster's first rest on ✓ is written even with nothing chosen and nothing cast, so it closes the
+  // first spells; on ✕ it is not, and they stay open.
+  it("a caster's first rest on ✓ is written even with nothing to change; on ✕ it is not", () => {
+    const fen = character('fen', { prepared: p('reed-whisper', 1), restedOnce: false }, [], [1]);
+    expect(restApply([fen], { fen: true }, true).spells).toEqual([{ characterId: 'fen', ready: p('reed-whisper', 1) }]);
+    expect(restApply([fen], { fen: false }, true).spells).toEqual([]);
+    const empty = character('moss', { restedOnce: false }, [], [1]);
+    expect(restApply([empty], { moss: true }, true).spells).toEqual([{ characterId: 'moss', ready: [] }]);
+  });
+
   // Purpose: rest uses come back only for those on ✓; day uses for everyone at a full rest (the new day); fight and
   // week uses never at a rest.
   it('uses come back by `per`: rest for ✓, day for everyone, others never', () => {
