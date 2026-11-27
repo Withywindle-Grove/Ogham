@@ -302,7 +302,7 @@ const SCENES: Scene[] = [
     },
   },
   {
-    // Encounter tables, full screen (M5b step g3, B2): Which table? from Explore's row, every table listed.
+    // Encounter tables, full screen (M5b step g3, B2): Which table? from the ⋯ menu (sf-3), every table listed.
     name: 'gm-which-table',
     open: async (page) => {
       await page.goto('/layout.html?as=gm&tables=1');
@@ -310,7 +310,9 @@ const SCENES: Scene[] = [
       await page.getByRole('button', { name: 'Start session' }).click(); // S9: Next turn needs a session running
       await page.getByRole('button', { name: 'Depart' }).click();
       await departStart(page);
-      await page.getByRole('button', { name: /^Encounter tables/ }).click();
+      // The ⋯ menu's first item during an expedition (sf-3, ⚑ 4; page 44, EN7 A).
+      await page.getByRole('button', { name: 'Time options' }).click();
+      await page.getByRole('button', { name: 'Encounter tables' }).click();
       await page.getByRole('button', { name: /^All 3 tables/ }).click();
       await expect(page.getByRole('dialog', { name: 'Encounter tables' })).toBeVisible();
     },
@@ -325,7 +327,9 @@ const SCENES: Scene[] = [
       await page.getByRole('button', { name: 'Start session' }).click(); // S9: Next turn needs a session running
       await page.getByRole('button', { name: 'Depart' }).click();
       await departStart(page);
-      await page.getByRole('button', { name: /^Encounter tables/ }).click();
+      // The ⋯ menu's first item during an expedition (sf-3, ⚑ 4; page 44, EN7 A).
+      await page.getByRole('button', { name: 'Time options' }).click();
+      await page.getByRole('button', { name: 'Encounter tables' }).click();
       await page.getByRole('button', { name: /^All 3 tables/ }).click();
       await page.getByRole('button', { name: /^The drowned sluices/ }).click();
       const go = page.getByLabel('Go to number');
@@ -347,7 +351,9 @@ const SCENES: Scene[] = [
       await page.getByRole('button', { name: 'Start session' }).click(); // S9: Next turn needs a session running
       await page.getByRole('button', { name: 'Depart' }).click();
       await departStart(page);
-      await page.getByRole('button', { name: /^Encounter tables/ }).click();
+      // The ⋯ menu's first item during an expedition (sf-3, ⚑ 4; page 44, EN7 A).
+      await page.getByRole('button', { name: 'Time options' }).click();
+      await page.getByRole('button', { name: 'Encounter tables' }).click();
       await page.getByRole('button', { name: /^All 3 tables/ }).click();
       await page.getByRole('button', { name: /^Wilderness of the fen/ }).click();
       await expect(page.getByRole('group', { name: 'Column' })).toBeVisible();

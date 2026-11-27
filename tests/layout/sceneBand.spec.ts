@@ -200,9 +200,9 @@ for (const size of [
 
       // Purpose (p2p-20; page 24, TF1 and TF1b, approved 2026-11-18 with the fix; Q3, F3 a): the fold mark is a plain
       // framed 52 px square, 8 px before the menu button, which is the band's last (on a phone at the heading's right); a tap folds away
-      // the facts, the strip and the encounter tables' row and keeps the band whole (the heading, Next turn, the icon
-      // buttons); a fact that needs the GM (here the dark Light) stays as one line in the band under the date; "Waiting
-      // for you" never folds; a second tap brings the top back.
+      // the facts and the strip and keeps the band whole (the heading, Next turn, the icon buttons); a fact that needs
+      // the GM (here the dark Light) stays as one line in the band under the date; "Waiting for you" never folds; a
+      // second tap brings the top back. No encounter tables' row stands on the Scene, open or folded (sf-3, ⚑ 4).
       test('the top folds', async ({ page }) => {
         await page.goto('/layout.html?as=gm&placePage=spot&session=running&waiting=4');
         await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
@@ -212,7 +212,7 @@ for (const size of [
         const waiting = page.getByRole('region', { name: 'Waiting for you' });
         await expect(facts).toBeVisible();
         await expect(strip).toBeVisible();
-        await expect(tablesRow).toHaveCount(1);
+        await expect(tablesRow).toHaveCount(0);
         await expect(waiting).toBeVisible();
         const fold = page.getByRole('button', { name: 'Fold the top away' });
         await expect(fold).toHaveAttribute('aria-expanded', 'true');
@@ -266,8 +266,49 @@ for (const size of [
         await show.click();
         await expect(facts).toBeVisible();
         await expect(strip).toBeVisible();
-        await expect(tablesRow).toHaveCount(1);
+        await expect(tablesRow).toHaveCount(0);
         await expect(band.locator('.scene-band__due')).toHaveCount(0);
+      });
+
+      // Purpose (sf-3, ⚑ 4; page 44, PS2 C, approved 2026-11-26): the GM's top folded shows nothing between the band and
+      // the page, also after a turn that brought nothing (no "<title>, nothing due" line: the toast says it, and no
+      // encounter tables' row); "Encounter tables" is the ⋯ menu's first item and opens the tables.
+      test('folded, nothing between the band and the page', async ({ page }) => {
+        await page.goto('/layout.html?as=gm&placePage=spot&session=running&waiting=4');
+        await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
+        await page.getByRole('button', { name: 'Fold the top away' }).click();
+        await page.getByRole('button', { name: 'Next turn' }).click();
+        await expect(page.locator('.toast').filter({ hasText: /, nothing due\./ })).toHaveCount(1);
+        await expect(page.getByText(/, nothing due$/)).toHaveCount(0);
+        const between = await page.evaluate(() => {
+          const band = document.querySelector('.scene-band')!;
+          const placePage = document.querySelector('.place-page')!;
+          const column = band.getBoundingClientRect();
+          const [top, bottom] = [column.bottom, placePage.getBoundingClientRect().top];
+          // The Scene's own column (the navigation beside it is not between them).
+          return Array.from((band.closest('.gm__main') ?? document.body).querySelectorAll('*'))
+            .filter((el) => !el.contains(band) && !el.contains(placePage) && !band.contains(el) && !placePage.contains(el) && !el.closest('.toast, .toasts'))
+            .filter((el) => {
+              const r = el.getBoundingClientRect();
+              // In the band's column (the side navigation stands beside it), between its foot and the page's top.
+              const inColumn = r.right > column.left + 1 && r.left < column.right - 1;
+              return inColumn && r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden' && r.bottom > top + 1 && r.top < bottom - 1;
+            })
+            .map((el) => `${el.tagName.toLowerCase()}.${el.className}`);
+        });
+        expect(between).toEqual([]);
+        await page.screenshot({ path: `test-results/layout-screens/scene-band-folded-nothing-between-${size.width}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+
+        await page.getByRole('button', { name: 'Time options' }).click();
+        const first = page.locator('.more-menu__item').first();
+        await expect(first).toHaveText('Encounter tables');
+        await expect(first.locator('svg')).toHaveCount(1);
+        await page.screenshot({ path: `test-results/layout-screens/scene-band-menu-tables-${size.width}-${scheme}.png` });
+        expect(await accessibilityProblems(page)).toEqual([]);
+        await first.click();
+        await expect(page.getByRole('dialog', { name: 'Encounter tables' })).toBeVisible();
       });
 
       // Purpose (p2p-16; page 23 LA1, on S5's band): in town (Advance time, Depart, the menu button) and in downtime

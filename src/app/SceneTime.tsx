@@ -136,7 +136,7 @@ import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { BookFaces } from '../ui/BookFaces.tsx';
 import { DiceWords } from '../ui/dice.tsx';
 import { bandHeading, checkFact, checkSheetLines, checkRule, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, lightSheetLines, NO_LIGHT_WORDS, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, restSheetLines, seasonIconOf, settingRule, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
-import { BandTool, BandTools, DepartButton, FactSheet, FactsRow, NextTurnButton, SceneBand, SessionButton, type DateLine } from './SceneBand.tsx';
+import { BandTool, BandTools, DepartButton, ENCOUNTER_MARK, FactSheet, FactsRow, NextTurnButton, SceneBand, SessionButton, type DateLine } from './SceneBand.tsx';
 import { useSceneTopOpen } from './sceneTopOpen.ts';
 import { loadWayOut } from '../modules/expedition/dungeonWayOut.ts';
 import { applyNightRest, loadRestCharacters, NightRestSheet, REST_READ_FAILED, restListed, type Rester } from './NightRest.tsx';
@@ -169,7 +169,7 @@ import { sourceLine } from '../modules/library/describe.ts';
 import { layOutStatBlock } from '../modules/library/statBlockLayout.ts';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { SetDateSheet, startWords, WhichSeason } from './CalendarStart.tsx';
-import { EncounterTables, EncounterTablesRow, TableRoll, TablesLibrary, type TableTap } from './EncounterTables.tsx';
+import { EncounterTables, TableRoll, TablesLibrary, type TableTap } from './EncounterTables.tsx';
 import { EncounterWaitingSource, shownWatch } from './EncounterWaiting.tsx';
 import { REVEAL_FAILED } from './RevealToPlayers.tsx';
 import { accentOwner, useAccentHeld, useStripPaused, useWaitingAccentItem, useWaitingPanelOn, useWaitingState, WaitingSource, type WaitingSourceItem } from './sceneWaiting.tsx';
@@ -1102,6 +1102,11 @@ export function SceneTime({
     // the log keeps its line ("Torch burnt out."). Without the panel (a town) it stays a line on the card, as before.
     const ended = panelOn && gm && !compact ? fresh.filter((l) => l.key.startsWith('light-out:')).map((l) => `${l.name}.`) : [];
     const said = (text: string) => [season ? `${season}. ${text}` : text, ...ended].join(' ');
+    // sf-3, ⚑ 4 (page 44, PS2 C): no "<title>, nothing due" line stands on the Scene during an expedition, so the
+    // step's toast says it, where the step brought nothing and nothing else waits on the card (the line's own rule).
+    const countsHere = (lines: CardLine[]) => (panelOn && gm ? lines.filter((l) => !l.key.startsWith('light-out:')) : lines);
+    const nothingDue = countsHere(fresh).length === 0 && countsHere(card).length === 0;
+    const quiet = (text: string) => (nothingDue ? `${text.replace(/\.$/, '')}, nothing due.` : text);
     // The compact strip (DG2) has no card of its own: a toast says what came due, with Undo for the move.
     if (compact) {
       const due = fresh.filter((l) => l.decision !== 'info').length;
@@ -1110,11 +1115,11 @@ export function SceneTime({
       // One toast a group, as when each group's travel card started its own day (the last one stays up).
       // Next turn's Undo is in the toast (mc-57; the band has no Undo button, st-1): on the last day's toast, else on
       // one that names the step reached; a Move on's names where the party moved ("Moved to The jetty.").
-      dayWords.forEach((text, i) => show(i === dayWords.length - 1 ? { text: said(text), onUndo: undo } : { text }));
-      if (dayWords.length === 0 && moving) show({ text: said(`${title}.`), onUndo: undo });
+      dayWords.forEach((text, i) => show(i === dayWords.length - 1 ? { text: said(quiet(text)), onUndo: undo } : { text }));
+      if (dayWords.length === 0 && moving) show({ text: said(quiet(`${title}.`)), onUndo: undo });
       else if (dayWords.length === 0 && mode) {
         const reached = stepOfLine(expeditionLine(mode, expedition, result.to, units), mode.name);
-        show({ text: said(`${reached.charAt(0).toUpperCase()}${reached.slice(1)}.`), onUndo: undo });
+        show({ text: said(quiet(`${reached.charAt(0).toUpperCase()}${reached.slice(1)}.`)), onUndo: undo });
       }
     }
     return true;
@@ -1627,7 +1632,6 @@ export function SceneTime({
   const hitList = hit?.line.check
     ? whichTables({ pins: pinIds, candidates: hit.line.check.hit.candidates, rest: sceneCandidates.map((c) => c.tableId), known: knownTable, seasonName })
     : exploreList;
-  const likelyId = exploreList.rows.find((r) => r.likely)?.tableId ?? null;
   const engine = running();
   const pips = engine ? hourTrackNow(engine, gm ? 'gm' : 'player') : null;
   // The strip: the procedure in force (S7, mc-54): the place's, else the mode's (not the app's plain fallback modes),
@@ -1806,6 +1810,13 @@ export function SceneTime({
   const menu = gm && (
     <MoreMenu label="Time options">
       <MenuItems>
+        {/* sf-3, ⚑ 4 (page 44, EN7 A): during an expedition the way to the tables is the menu's first item; no row for
+            them stands on the Scene. The screen says so where the setting has none. */}
+        {expedition && (
+          <MenuItem icon={ENCOUNTER_MARK} onClick={() => setTablesOpen('explore')}>
+            Encounter tables
+          </MenuItem>
+        )}
         {expedition && mode?.pace === 'day' && (
           <Switch
             label={
@@ -2158,7 +2169,7 @@ export function SceneTime({
       {sessionNow === 'running' && expedition && mode && (
         <BandTools>
           {campRule && <BandTool label="Make camp" icon={<UiIcon name="camping-tent" size={24} />} onTap={() => !bandHeld && campTap()} />}
-          <BandTool label="Encounter check" icon={<StepIcon name="encounter" size={24} />} onTap={() => !bandHeld && checkNowNow()} />
+          <BandTool label="Encounter check" icon={<UiIcon name={ENCOUNTER_MARK} size={24} />} onTap={() => !bandHeld && checkNowNow()} />
           {/* No Leave in point to point (p2p-22, B10): leaving is Move on's "End expedition" at a way out. */}
           {exitRule && !isPointToPoint(mode) && <BandTool label="Leave the dungeon" icon={<UiIcon name="exit-door" size={24} />} onTap={() => !bandHeld && void leaveTap()} />}
         </BandTools>
@@ -2687,9 +2698,10 @@ export function SceneTime({
           {/* The hour track went with the strip (S7, S15, S18: page 16 draws no pips, for the GM or for players). */}
           {gm && notes && <p className="time-strip__notes">{notes}</p>}
 
-          {/* With "Waiting for you" on the page its lines are items there (S8b); only the strip's quiet "<title>,
-              nothing due" stays here. Without it (a town), today's card. */}
-          {gm && (!waitingOn || cardItemsShown.length === 0) && (
+          {/* With "Waiting for you" on the page its lines are items there (S8b). Without it (a town), today's card.
+              During an expedition the strip's quiet "<title>, nothing due" is gone (sf-3, ⚑ 4: page 44, PS2 C): the
+              step's toast says it. Between expeditions it stays. */}
+          {gm && (expedition ? !waitingOn && cardItemsShown.length > 0 : !waitingOn || cardItemsShown.length === 0) && (
             <ReminderCard
               // "nothing due" only when the last advance brought nothing; a card emptied by the GM just collapses. With the
               // panel, a burnt-out light (the toast's) counts as nothing here.
@@ -2810,16 +2822,9 @@ export function SceneTime({
                 lead={waitingOn ? hitItems : []}
               />
           )}
-          {gm && expedition && topShown && (
-            <EncounterTablesRow
-              likely={likelyId ? (tables.get(likelyId)?.name ?? null) : null}
-              pins={exploreList.rows.filter((r) => r.pinned).length}
-              none={tables.size === 0}
-              onOpen={() => setTablesOpen('explore')}
-            />
-          )}
-          {/* One way to the tables in the band (the approval's fix 3, 2026-11-18): during an expedition the Encounter
-              tables row, with the library ("Table library ›", the pins) at the foot of its screen; without one, the library. */}
+          {/* One way to the tables (the approval's fix 3, 2026-11-18; sf-3, ⚑ 4): during an expedition the ⋯ menu's
+              "Encounter tables", with the library ("Table library ›", the pins) at the foot of its screen; without one,
+              the library. */}
           {gm && !expedition && tablesLibrary}
           {gm && tablesOpen && (
             <EncounterTables

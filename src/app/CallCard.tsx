@@ -13,6 +13,7 @@ import { Icon, type IconName } from '../ui/icons.tsx';
 import type { SetIconName } from '../ui/iconSet.ts';
 import type { RevealedWords } from '../modules/expedition/reminderPlay.ts';
 import { StackedButton } from '../ui/parts.tsx';
+import { ENCOUNTER_MARK } from './SceneBand.tsx';
 import { callHeading, type CallSend, type CallsInSlot } from '../modules/library/callCards.ts';
 import '../ui/bookFaces.css';
 import './CallCard.css';
@@ -67,7 +68,7 @@ function CardFrame({ id, className, promptId, mark, heading, onGotIt, children }
  */
 export function RevealedCard({ reveal, onGotIt }: { reveal: RevealedWords; onGotIt: () => void }) {
   return (
-    <CardFrame className="call-card call-card--encounter book-faces" promptId={`reveal-${reveal.id}`} mark="crossed-swords" heading="An encounter" onGotIt={onGotIt}>
+    <CardFrame className="call-card call-card--encounter book-faces" promptId={`reveal-${reveal.id}`} mark={ENCOUNTER_MARK} heading="An encounter" onGotIt={onGotIt}>
       <p className="call-card__words">{reveal.words}</p>
     </CardFrame>
   );

@@ -163,9 +163,9 @@ describe("the town's top (S5, T4)", () => {
     expect(words.queryByRole('textbox')).toBeNull();
   });
 
-  // Purpose: the mode's own advance words stay for the Due line: an expedition in the town mode still says
-  // "Next part of day, nothing due" after its step.
-  it('an expedition in the town mode keeps "Next part of day" and its Due line', async () => {
+  // Purpose: an expedition in the town mode keeps the mode's own step, "Next part of day"; a step that brings nothing
+  // says so in its toast (sf-3, ⚑ 4: no "<title>, nothing due" line stands during an expedition).
+  it('an expedition in the town mode keeps "Next part of day"; its toast says nothing is due', async () => {
     const { gm } = table();
     const user = await openGm(gm);
     await user.click((await departModes(user)).getByRole('button', { name: 'Market town' }));
@@ -173,7 +173,9 @@ describe("the town's top (S5, T4)", () => {
     await screen.findByRole('heading', { name: 'The Mustering Field, morning' });
     expect(world.tables.expeditions.at(-1)!.mode).toBe('quay');
     await user.click(band().getByRole('button', { name: 'Next part of day' }));
-    expect(await screen.findByText('Next part of day, nothing due')).toBeTruthy();
+    // During an expedition the toast says "nothing due"; no line stands on the Scene (sf-3, ⚑ 4).
+    await waitFor(() => expect(Array.from(document.querySelectorAll('.toast')).some((t) => /, nothing due\./.test(t.textContent ?? ''))).toBe(true));
+    expect(screen.queryByText('Next part of day, nothing due')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Advance time' })).toBeNull();
   });
 });

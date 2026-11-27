@@ -95,6 +95,13 @@ async function openScene(who: string, gm = true) {
   return user;
 }
 
+/** "Encounter tables", the band's ⋯ menu's first item during an expedition (sf-3, ⚑ 4; page 44, EN7 A). */
+async function openTables(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole('button', { name: 'Time options' }));
+  await user.click(await screen.findByRole('button', { name: 'Encounter tables' }));
+  return within(await screen.findByRole('dialog', { name: 'Encounter tables' }));
+}
+
 const toastUndo = async (text: string) => within((await screen.findByText(text)).closest('.toast') as HTMLElement).getByRole('button', { name: 'Undo' });
 
 /** Starts an expedition and takes the turns up to the wandering check, then taps Hit. */
@@ -213,8 +220,7 @@ describe('Encounter tables, full screen (B2)', () => {
     const { gm } = table();
     const user = await openScene(gm);
     await startExpedition(user);
-    await user.click(await screen.findByRole('button', { name: /^Encounter tables,/ }));
-    const which = within(await screen.findByRole('dialog', { name: 'Encounter tables' }));
+    const which = await openTables(user);
     await user.click(which.getByRole('button', { name: /^All 4 tables/ }));
     await user.click(which.getByRole('button', { name: /^Roll call/ }));
     const long = within(await screen.findByRole('dialog', { name: 'Roll call of the drowned' }));
@@ -249,7 +255,10 @@ describe('Encounter tables, full screen (B2)', () => {
     const which = await hitOnTurn3(user);
     expect(names(which)[0]).toBe('Roll call of the drowned, pinned, d30›');
     await user.click(which.getByRole('button', { name: 'Close' }));
-    expect((await screen.findByRole('button', { name: /^Encounter tables,/ })).textContent).toBe('Encounter tables, Abbey likely, 1 pinned›');
+    // Opened from the ⋯ menu (sf-3, ⚑ 4) the pinned table leads the list too.
+    const pinnedList = await openTables(user);
+    expect(names(pinnedList)[0]).toBe('Roll call of the drowned, pinned, d30›');
+    await user.click(pinnedList.getByRole('button', { name: 'Close' }));
 
     // End session: the pin ends with it (nothing is removed; it just no longer counts).
     await user.click(screen.getByRole('button', { name: 'Time options' }));
@@ -260,11 +269,12 @@ describe('Encounter tables, full screen (B2)', () => {
     // The next session starts with none.
     await user.click(screen.getByRole('button', { name: 'Resume session' }));
     await screen.findByText('Started session 2');
-    await waitFor(() => expect(screen.getByRole('button', { name: /^Encounter tables,/ }).textContent).toBe('Encounter tables, Abbey likely›'));
-    // During an expedition the band has one way to the tables, the row; the library sits at the foot of its screen.
+    // During an expedition the one way to the tables is the ⋯ menu's "Encounter tables" (sf-3, ⚑ 4); the library sits
+    // at the foot of its screen. The new session's list has no pin.
     expect(screen.queryByRole('button', { name: 'Table library ›' })).toBeNull();
-    await user.click(screen.getByRole('button', { name: /^Encounter tables,/ }));
-    await user.click(within(await screen.findByRole('dialog', { name: 'Encounter tables' })).getByRole('button', { name: 'Table library ›' }));
+    const fresh = await openTables(user);
+    expect(names(fresh).some((n) => n.includes('pinned'))).toBe(false);
+    await user.click(fresh.getByRole('button', { name: 'Table library ›' }));
     expect(within(await screen.findByRole('dialog', { name: 'Table library' })).getByRole('button', { name: 'Pin Roll call of the drowned' })).toBeTruthy();
   });
 

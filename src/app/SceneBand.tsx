@@ -48,7 +48,7 @@ export interface DateLine {
 
 /**
  * The top's fold (p2p-20; page 24, TF1 and TF1b, approved 2026-11-18 with the fix: a framed square like the band's
- * other buttons, keeping − and +). The caller hides what folds (the facts, the strip, the encounter tables' row); the
+ * other buttons, keeping − and +). The caller hides what folds (the facts and the strip); the
  * band itself never folds. `due`: the facts that still show, one line each, while folded.
  */
 export interface TopFold {
@@ -237,7 +237,14 @@ export function SessionButton({ resume, accent, onTap }: { resume: boolean; acce
   );
 }
 
-const FACT_ICON: Record<Fact['id'], string> = { weather: 'weather', light: 'light', rest: 'rest', check: 'encounter', part: 'time' };
+/**
+ * The encounter's one mark (sf-3, ⚑ 1; page 44, EN1 and PS2 B, approved 2026-11-26): the icon set's crossed swords, on
+ * the band's Encounter check button, on the Facts row's Encounter check tile and on the players' revealed card.
+ */
+export const ENCOUNTER_MARK: SetIconName = 'crossed-swords';
+
+/** Each fact's line icon; the Encounter check's is the set's crossed swords (`ENCOUNTER_MARK`). */
+const FACT_ICON: Record<Exclude<Fact['id'], 'check'>, string> = { weather: 'weather', light: 'light', rest: 'rest', part: 'time' };
 
 /** A fact's whole words, as its tile's accessible name: the tile may cut its value and small line (tv-1), this never does. */
 export function factName(fact: Fact): string {
@@ -288,7 +295,7 @@ function FactTile({ fact, onOpen, shift = 0 }: { fact: Fact; onOpen: () => void;
       onClick={onOpen}
     >
       <span className="scene-fact__icon">
-        <StepIcon name={FACT_ICON[fact.id]} size={24} />
+        {fact.id === 'check' ? <Icon name={ENCOUNTER_MARK} size={24} /> : <StepIcon name={FACT_ICON[fact.id]} size={24} />}
       </span>
       <span className="scene-fact__label label">{fact.label}</span>
       <span className="scene-fact__value">
