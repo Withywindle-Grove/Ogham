@@ -73,7 +73,8 @@ for (const size of SIZES) {
     await expect(dialog).toBeVisible();
     for (const name of ['Pin to top', 'Close']) {
       const box = (await dialog.getByRole('button', { name }).boundingBox())!;
-      expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44);
+      // WebKit can measure a 44 px target at 43.99997 (sub-pixel), so the same 0.5 px allowance as this file's other measures.
+      expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44 - 0.5);
     }
     await fits(page, dialog);
   });
