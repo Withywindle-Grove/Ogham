@@ -204,6 +204,18 @@ describe('the Players row (C15a; M3a, M3b)', () => {
     await waitFor(() => expect(band().getAttribute('aria-label')).toBe('Your view of Ash'));
     expect(band().textContent).toBe('Your view of Ash');
   });
+
+  // Purpose: a character whose name ends in s takes the mark alone on the row's doors (words rule 13), on an open row
+  // and on a sent-back one's View sheet.
+  it.fails('a name ending in s reads "View Lantern Wardens’ sheet", "Open Lantern Wardens’ pack" and "… scene"', async () => {
+    Object.assign(actor(tam), { name: 'Lantern Wardens' });
+    world.addCharacter(campaign, 'Moss', { ownerId: sam, approval: 'rejected' });
+    await openPlayers();
+    const row = screen.getByRole('button', { name: 'More for Lantern Wardens' }).closest('li') as HTMLElement;
+    const labels = within(row).getAllByRole('button').map((b) => b.getAttribute('aria-label'));
+    expect(labels.slice(0, 3)).toEqual(['View Lantern Wardens’ sheet', 'Open Lantern Wardens’ pack', 'Open Lantern Wardens’ scene']);
+    expect(screen.getByRole('button', { name: 'View Moss’ sheet' })).toBeTruthy();
+  });
 });
 
 describe('the view (C15b; M3c, M3d, M3j, M3k)', () => {
