@@ -26,31 +26,29 @@ Agents live in `.claude/agents/` (`claude --agent driver`, `claude --agent build
 
 Where this section differs from the rules above or in `CLAUDE.md`, those rules win. Load the named skill before doing the work it covers; where two could apply, use the one named here. Say which skill you used in one line. If a skill named here isn't available in the session, say so and continue without it (several are installed only on Francis's PC, not in cloud sessions).
 
-**Plan**
-- `grill-me`: **at the start of every design and planning sitting with Francis**, before anything non-trivial is drawn or planned; interview him in rounds until nothing is assumed, then draw or write the plan. Builders working from an approved plan do not grill him. (Francis, 2026-11-26: "use grill-me in design and planning sessions moving forward"; it had been in this list since 21 Nov and never used.)
-- `product-management:write-spec`: turn a settled plan into a spec.
+**The build loop** (Francis, 2026-11-27; `docs/design/rulings/process-loop-2026-11-27.md`). The project's skills are in `.claude/skills/`.
+
+| Step | What | Skill | Model |
+|---|---|---|---|
+| 1 | Design sitting with Francis | `grill-me` at the start of every sitting, until nothing is assumed; then `impeccable` and `hallmark` as below | Opus, medium |
+| 2 | Spec, a file in `docs/specs/` | `to-spec` | Opus, medium |
+| 3 | Tickets, GitHub issues, each sized for one fresh worker of about 150,000 tokens | `to-tickets` | Opus, medium |
+| 4 | Build: the driver orchestrates; a fresh `builder` per ticket | `implement-spec`, `tdd` | Opus, medium |
+| 5 | Review, per ticket | `code-review` (the project's copy) | Opus, high |
+| 6 | Retro, per spec | `retro`, `writing-for-agents` | Opus, high |
+| 7 | Every third loop: an architecture pass; it reports only | `improve-codebase-architecture`, `codebase-design`, `domain-modeling`, `grilling` | ⚑ lp-5 |
+
+- Francis sits three times per loop: after step 1 (mockup and rulings), after step 3 (the spec's plain-language part and the ticket list), after step 5 (the built screen, the review, the retro findings).
+- `implement-spec` asks for as many workers as possible at once. Here the seat limits above win: at most three builders, one heavy job at a time. A ticket is a row: one check run per batch, a fresh worker per ticket and per fix round.
+- Tracker and domain conventions: `docs/agents/`.
+
+**Other skills still used**
 - `engineering:system-design`: new services, data models, API boundaries.
-- `engineering:architecture`: when choosing between technologies; record it as an ADR.
-
-**Build**
-- `ponytail`: on every coding task: the smallest change that fully delivers the plan's row. End with what you skipped and any risk.
-- `engineering:testing-strategy`: when Francis asks what to test or how.
 - `superpowers:verification-before-completion`: before a worker reports "done" or "passed": say what was run and what was not.
-
-**Fix**
-- `engineering:debug`: any bug not obvious in one read. Reproduce before proposing a cause.
-- `superpowers:systematic-debugging`: instead, where `engineering:debug` isn't available (cloud sessions).
-- `superpowers:test-driven-development`: on `fix-` branches, within the tests-first rule (Fix branches, below; P5, bq-6).
-
-**Review**
-- `ponytail-review`: the default for reviewing a change.
-- `engineering:code-review`: instead, when the change touches auth, user input, secrets or performance-critical paths.
-- `ponytail-audit`: whole-repo review, or "what can I delete".
-- `engineering:tech-debt`: only when Francis asks for a prioritised debt backlog.
-
-**Ship**
+- `superpowers:systematic-debugging`: any bug not obvious in one read. Reproduce before proposing a cause. (`engineering:debug` on the PC.)
+- On `fix-` branches `tdd` works within the tests-first rule (Fix branches, below; P5, bq-6).
+- `ponytail-audit`: whole-repo review, or "what can I delete", only when Francis asks.
 - `engineering:deploy-checklist`: before any release with migrations or feature flags.
-- `engineering:documentation`: READMEs, runbooks, API docs.
 
 **UI** (mockups first and the design tokens still rule)
 - `frontend-design`: the default for building new UI; `uiux` if it isn't available.
@@ -92,17 +90,18 @@ Used on drawings (mockup pages) and as reports on built screens; never handed to
 **Rules**
 - A review or audit Francis asks for himself reports only: change nothing until he picks findings by number. The local reviewer before a merge is unchanged: the driver has a fresh worker fix its findings (Roles and models, above).
 - `hallmark` and `impeccable` are condensed ports without their tooling. Never claim a linter or detector ran.
-- Of the Superpowers plugin (obra/superpowers), only the three skills named above are used (Francis, 2026-11-22). The rest of it (its brainstorming, plan-writing, subagent and worktree workflows) is not: the project's own chain, driver and briefs stand.
+- Of the Superpowers plugin (obra/superpowers), only the two skills named above are used (was three; 2026-11-27, lp-3). The rest of it (its brainstorming, plan-writing, subagent and worktree workflows) is not.
 - Do not use Adobe or marketing skills in this project unless Francis names one.
 
-**Not used in this project** (Francis, 2026-11-22)
+**Not used in this project** (Francis, 2026-11-22; changed 2026-11-27, lp-3, lp-13)
 
 | Skill set | Why not |
 |---|---|
 | GIA Chief of Staff | reads the inbox, not the project |
 | unslop | about 12,000 tokens, and its own style rules on pull request texts and docs |
 | UI/UX Pro Max (`uipro init` is not run in this repo) | chooses colours and fonts, against hard rule 7 and mockups first |
-| Matt Pocock's skills (its setup step and its spec, ticket and triage commands are never run here) | a second spec-and-ticket process across the artifact chain |
+| The rest of Matt Pocock's skills (its setup, triage, wayfinder and router skills, and every skill not in the loop's table) | eleven are the loop; the others would be a second way to do the same step |
+| `ponytail`, `ponytail-review`, `engineering:code-review`, `product-management:write-spec`, `superpowers:test-driven-development` | replaced by the loop's skills; "the smallest change that delivers the ticket" is a line of the standards file |
 
 ## How the driver runs the work (rvw-9, rvw-13, rvw-14, rvw-16, rvw-17)
 
@@ -111,7 +110,7 @@ Used on drawings (mockup pages) and as reports on built screens; never handed to
 - **Decisions once a day** (rvw-13): the driver settles anything reversible inside an approved mockup and lists it for Francis afterwards; everything else comes to him in one sitting.
 - **Pictures once per whole screen** (rvw-14), not per row, unless a row departs from its mockup.
 - **Whole, once** (po-4, 2026-11-14, `docs/design/rulings/dec-scene-whole-2026-11-14.md`): a piece of a screen that has an approved redesign is not put to Francis, and does not merge, until that screen matches its approved drawing, unless he says otherwise. Before any piece on Scene, the Player screen, Pack or the town is handed to a builder, its plan covers the whole screen's drawing; a part of the drawing with no plan row stops the hand-out.
-- **No new process rules until 5 December** (rvw-16): a failure is fixed by checking an existing rule.
+- **The build loop replaces rvw-16** (Francis, 2026-11-27, lp-1): new work goes through the loop above; work in flight on 27 November finishes under the rules it started with.
 
 ## Short conversations (rvw-5)
 
