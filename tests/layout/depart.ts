@@ -19,3 +19,15 @@ export async function departStart(page: Page, where: string = ANY_PLACE): Promis
   }
   await sheet.getByRole('button', { name: 'Start' }).click();
 }
+
+/** Opens the Depart sheet's Where? list on the layout page's quay with `places` (`isle`, `marches`); gives the list. */
+export async function openDepartWhere(page: Page, places: string) {
+  await page.goto(`/layout.html?as=gm&town=town&places=${places}`);
+  await page.getByRole('button', { name: /The Reedmouth Quay/ }).click();
+  await page.getByRole('button', { name: 'Depart' }).click();
+  await page.getByRole('dialog', { name: /Depart$/ }).getByRole('button', { name: 'Where?: Pick a Location' }).click();
+  const picker = page.getByRole('dialog', { name: /Where\?$/ });
+  await picker.getByRole('textbox', { name: 'Search places by name or map number' }).waitFor();
+  await page.evaluate(() => document.fonts.ready);
+  return picker;
+}

@@ -10,6 +10,7 @@
 import { expect } from '@playwright/test';
 import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
+import { openDepartWhere } from './depart.ts';
 
 for (const width of [375, 834] as const) {
   for (const scheme of ['light', 'dark'] as const) {
@@ -52,6 +53,93 @@ for (const width of [375, 834] as const) {
         await page.screenshot({ path: `test-results/layout-screens/depart-method-${width}-${scheme}.png` });
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
+      });
+    });
+  }
+}
+
+// The Depart list as one view (sf-2; plan dec-scene-feedback C2; page 44, DP3 and DP3b, approved 2026-11-26; N4). On
+// the layout page's quay with `?places=marches`: the isle's two Areas, an Area with a long name and thirteen places,
+// and a region pack with no Location. What it checks, in plain words:
+//   * a long Area name wraps inside the list, and its thirteen places come in number order, none first;
+//   * a pack unfolds where it stands: its Areas 16 px in from the pack's edge, their places further in (40 px);
+//   * every row and every fold mark is a 44 px tap; nothing scrolls sideways and axe finds no serious problem, at 375
+//     px and on a tablet (1024 px), in light and dark.
+for (const width of [375, 1024] as const) {
+  for (const scheme of ['light', 'dark'] as const) {
+    test.describe(`the Depart list (${width} px, ${scheme})`, () => {
+      test.use({ viewport: { width, height: 1400 }, colorScheme: scheme, reducedMotion: 'reduce' });
+
+      // Purpose (sf-2; DP3 A, C, D; DP3b): as it opens, a long Area's thirteen places in order, and a pack unfolded in place.
+      test('the groups, a long Area and a pack unfolded in place', async ({ page }) => {
+        test.setTimeout(90_000); // three pictures and three axe runs
+        const picker = await openDepartWhere(page, 'marches');
+        // As it opens: Recently visited names the Wreck's Area; that Area, the one last played, open; the others folded.
+        await expect(picker.getByRole('region', { name: 'Recently visited' }).locator('.depart-pick__row')).toHaveText(['2. The WreckThe Drowned Harbour']);
+        await expect(picker.getByRole('button', { name: 'Fold The Drowned Harbour', exact: true })).toBeVisible();
+        await expect(picker.getByRole('button', { name: 'Show The Shingle Beach', exact: true })).toBeVisible();
+        await expect(picker.getByRole('button', { name: 'Show The Drowned Harbour and the Wrecks of the Outer Bar', exact: true })).toBeVisible();
+        await page.screenshot({ path: `test-results/layout-screens/depart-list-${width}-${scheme}.png`, fullPage: true });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+
+        // C: the long name wraps inside the list; thirteen places in number order, the one with no number first.
+        const long = 'The Drowned Harbour and the Wrecks of the Outer Bar';
+        await picker.getByRole('button', { name: 'Fold The Drowned Harbour', exact: true }).click();
+        await picker.getByRole('button', { name: `Show ${long}`, exact: true }).click();
+        const area = picker.getByRole('region', { name: long, exact: true });
+        const words = ['The Old Mooring', ...['The Anchorage', 'The Jetty', 'The Wreck', 'The Breakwater', 'The Customs Shed', 'The Sea Cave', 'The Sluice', 'The Net Loft', 'The Chain Tower', 'The Salt Pans', 'The Sea Gate', 'The Outer Mole'].map((name, n) => `${n}. ${name}`)];
+        await expect(area.locator('.depart-pick__words')).toHaveText(words);
+        const heading = area.getByRole('heading', { name: long });
+        const lineHeight = await heading.evaluate((el) => parseFloat(getComputedStyle(el).lineHeight) || parseFloat(getComputedStyle(el).fontSize) * 1.2);
+        if (width === 375) expect((await heading.boundingBox())!.height).toBeGreaterThan(lineHeight * 1.5);
+        const box = (await picker.boundingBox())!;
+        const head = (await area.locator('.depart-pick__head').boundingBox())!;
+        expect(head.x + head.width).toBeLessThanOrEqual(box.x + box.width + 1);
+        await page.screenshot({ path: `test-results/layout-screens/depart-list-long-${width}-${scheme}.png`, fullPage: true });
+        expect(await layoutProblems(page)).toEqual([]);
+
+        // D: a pack unfolded in place; its Areas 16 px in from its edge, their places 24 px more (40 px).
+        await picker.getByRole('button', { name: `Fold ${long}`, exact: true }).click();
+        await picker.getByRole('button', { name: 'Show The Reed Marches' }).click();
+        await picker.getByRole('button', { name: 'Show Moss Landing' }).click();
+        const packs = picker.getByRole('region', { name: 'From your packs' });
+        const edge = (await packs.locator('.depart-pick__pack').boundingBox())!.x;
+        const moss = picker.getByRole('region', { name: 'Moss Landing', exact: true });
+        expect(Math.round((await moss.locator('.depart-pick__area').boundingBox())!.x - edge)).toBe(16);
+        const ticks = moss.locator('.depart-pick__tick');
+        await expect(ticks).toHaveCount(3);
+        for (const tick of await ticks.all()) expect(Math.round((await tick.boundingBox())!.x - edge)).toBe(40);
+        await expect(moss.locator('.depart-pick__words')).toHaveText(['The Ford', '1. The Drowned Jetty', '2. The Reeve’s Post']);
+        await expect(picker.getByRole('region', { name: 'Thornwater' }).getByText('45 places')).toBeVisible();
+        await expect(picker.getByRole('button', { name: /Back/ })).toHaveCount(0);
+        for (const tap of await picker.locator('.depart-pick__row, .depart-pick__fold').all()) expect((await tap.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+        await page.screenshot({ path: `test-results/layout-screens/depart-list-pack-${width}-${scheme}.png`, fullPage: true });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+      });
+
+      // Purpose (sf-2; DP3 B, E): a search names each row's Area at its right (under the name on a phone); nothing found
+      // says so and offers Other….
+      test('a search, and nothing found', async ({ page }) => {
+        const picker = await openDepartWhere(page, 'isle');
+        const search = picker.getByRole('textbox', { name: 'Search places by name or map number' });
+        await search.fill('1');
+        const found = picker.getByRole('region', { name: 'Places found' });
+        await expect(found.locator('.depart-pick__where')).toHaveText(['The Drowned Harbour', 'The Shingle Beach', 'The Drowned Harbour']);
+        const row = (await found.locator('.depart-pick__row').first().boundingBox())!;
+        const where = (await found.locator('.depart-pick__where').first().boundingBox())!;
+        // At the row's right on a tablet; under the name on a phone.
+        if (width === 375) expect(where.y).toBeGreaterThan(row.y + 16);
+        else expect(Math.abs(where.x + where.width - (row.x + row.width))).toBeLessThanOrEqual(1);
+        await page.screenshot({ path: `test-results/layout-screens/depart-list-search-${width}-${scheme}.png`, fullPage: true });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+        await search.fill('quay');
+        await expect(picker.getByText('No place matches “quay”.')).toBeVisible();
+        await expect(picker.getByRole('button', { name: 'Other… use “quay” as a new place' })).toBeVisible();
+        await page.screenshot({ path: `test-results/layout-screens/depart-list-none-${width}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
       });
     });
   }

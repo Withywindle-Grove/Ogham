@@ -82,9 +82,10 @@ for (const width of [375, 680, 834, 1024] as const) {
         expect(await layoutProblems(page)).toEqual([]);
       });
 
-      // Purpose (B7, p2p-5; page 24, DP1 and DP1b): the Depart sheet asks Where? first, with only Locations under their
-      // Area in its list (a long name wrapping, every row a 44 px tap, no search, Other… under them); a picked Location shows
-      // its Area under its name and fills in Point to point; Start is the sheet's one accent.
+      // Purpose (B7, p2p-5; page 24, DP1 and DP1b; sf-2, page 44, DP3): the Depart sheet asks Where? first, with only
+      // Locations under their Area in its list (the first Area open and the other folded, a long name wrapping, every row
+      // a 44 px tap, the search over them, Other… under them); a picked Location shows its Area under its name and fills in
+      // Point to point; Start is the sheet's one accent.
       test('the Depart sheet, Where? and its Locations', async ({ page }) => {
         test.setTimeout(90_000); // three pictures and three axe runs; a phone run under load outgrew 30 s
         await page.goto('/layout.html?as=gm&town=town&places=isle');
@@ -97,11 +98,12 @@ for (const width of [375, 680, 834, 1024] as const) {
         expect(await accessibilityProblems(page)).toEqual([]);
         await sheet.getByRole('button', { name: 'Where?: Pick a Location' }).click();
         const picker = page.getByRole('dialog', { name: /Where\?$/ });
-        await expect(picker.getByRole('region', { name: 'The Drowned Harbour' }).getByRole('button')).toHaveCount(5);
-        await expect(picker.getByRole('region', { name: 'The Shingle Beach' }).getByRole('button')).toHaveText(['The Landing', '1. The Sea Stack']);
-        await expect(picker.getByRole('textbox')).toHaveCount(0);
+        await expect(picker.getByRole('region', { name: 'The Drowned Harbour' }).locator('.depart-pick__row')).toHaveCount(5);
+        await picker.getByRole('button', { name: 'Show The Shingle Beach' }).click();
+        await expect(picker.getByRole('region', { name: 'The Shingle Beach' }).locator('.depart-pick__row')).toHaveText(['The Landing', '1. The Sea Stack']);
+        await expect(picker.getByRole('textbox', { name: 'Search places by name or map number' })).toBeVisible();
         // Other… under the Locations, for everything else (⚑ 6).
-        await expect(picker.getByRole('button', { name: 'Other…' })).toBeVisible();
+        await expect(picker.getByRole('button', { name: 'Other… a place that isn’t listed' })).toBeVisible();
         for (const row of await picker.getByRole('button', { name: /^(The|\d)/ }).all()) expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(44);
         await page.screenshot({ path: `test-results/layout-screens/scene-sheets-depart-where-${width}-${scheme}.png` });
         expect(await layoutProblems(page)).toEqual([]);
