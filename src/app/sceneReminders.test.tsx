@@ -255,11 +255,13 @@ describe('the reminder card (M5 step 6)', () => {
     const card = within(await screen.findByRole('region', { name: 'Encounter waiting, Wandering things, Shallow things: Bog lurkers, 1d4' }));
     expect(screen.queryByRole('region', { name: 'Wandering things: hit' })).toBeNull();
     expect(card.getByText('Bog lurkers, 1d4')).toBeTruthy();
-    // A secret result: the GM can show it to the players now (ruled 2026-10-29), with Undo ("Reveal…"; its preview,
-    // "Reveal to players", is sf-4's second part).
+    // A secret result: the GM shows the players the words in "Reveal to players" (sf-4, EN6), and nothing of the check:
+    // the result itself stays unrevealed (sf-7a; its own lines open at the next Downtime, sf-22).
     await user.click(card.getByRole('button', { name: 'Reveal…' }));
-    expect(await screen.findByText('Showed the players Wandering things')).toBeTruthy();
-    expect(world.tables.check_results[0]).toMatchObject({ revealed: true, revealed_by_hand: true });
+    await user.click(within(await screen.findByRole('dialog', { name: 'An encounter: Reveal to players' })).getByRole('button', { name: 'Show players' }));
+    expect(await screen.findByText('Shown to the players.')).toBeTruthy();
+    expect(world.tables.check_reveals[0]).toMatchObject({ words: 'Bog lurkers, 1d4', taken_back: false });
+    expect(world.tables.check_results[0]).toMatchObject({ revealed: false });
     await user.click(card.getByRole('button', { name: 'Done' }));
     await waitFor(() => expect(screen.queryByRole('region', { name: /^Encounter waiting, / })).toBeNull());
   });

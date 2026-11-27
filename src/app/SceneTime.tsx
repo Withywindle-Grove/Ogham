@@ -50,13 +50,17 @@ import {
   editReminder,
   loadRecharging,
   loadCheckResults,
+  loadCheckReveals,
   loadReminders,
   recordCheck,
   recordCheckAgain,
   recordCheckNow,
   revealCheck,
   setCheckRoll,
+  showCheckWords,
+  takeBackCheckWords,
   type CheckResult,
+  type CheckReveal,
   type Reminder,
 } from '../modules/expedition/reminderPlay.ts';
 import { dueOnJump } from '../modules/expedition/schedule.ts';
@@ -166,6 +170,7 @@ import type { OpenCampaign } from './Campaigns.tsx';
 import { SetDateSheet, startWords, WhichSeason } from './CalendarStart.tsx';
 import { EncounterTables, EncounterTablesRow, TableRoll, TablesLibrary, type TableTap } from './EncounterTables.tsx';
 import { EncounterWaitingSource, shownWatch } from './EncounterWaiting.tsx';
+import { REVEAL_FAILED } from './RevealToPlayers.tsx';
 import { accentOwner, useAccentHeld, useStripPaused, useWaitingAccentItem, useWaitingPanelOn, useWaitingState, WaitingSource, type WaitingSourceItem } from './sceneWaiting.tsx';
 import { firstAnswer, HitPanel, hitTitle, ReminderCard, rollsTable, type CardRoll } from './ReminderCard.tsx';
 import { HourTrack, ProcedureList, ProcedureStrip } from './SceneProcedure.tsx';
@@ -593,6 +598,19 @@ export function SceneTime({
       current = false;
     };
   }, [db, gm, compact, campaign.id, expeditionId, logVersion, version]);
+  // The reveals that stand (sf-4, A1's check_reveals, the GM's alone): which encounter card's "Reveal…" is the pressed
+  // "Revealed", and the words its line quotes. Matched to a card by its hit, so a reveal from another expedition is
+  // never one of this expedition's cards.
+  const [reveals, setReveals] = useState<CheckReveal[]>([]);
+  useEffect(() => {
+    if (!gm || compact || !expeditionId) return;
+    let current = true;
+    void loadCheckReveals(db, campaign.id).then((found) => current && found && setReveals(found));
+    return () => {
+      current = false;
+    };
+  }, [db, gm, compact, campaign.id, expeditionId, logVersion, version]);
+  const revealOf = (card: EncounterCard): CheckReveal | null => reveals.find((r) => r.checkResultId === card.hit.id && !r.takenBack) ?? null;
   // Camp (M5b step 4, D20): the camps Next day hasn't applied yet; it applies them with the move (the GM's). With the
   // travel rows they also say which groups forced the march today and are in camp tonight: their rest is due in camp's
   // Sleep step (ruled 2026-11-03, SC-4-3 A). Everyone reads them (a player: their own group's, row-level security).
@@ -1256,16 +1274,34 @@ export function SceneTime({
   }
 
   /**
-   * "Reveal…" on the encounter's card. Until "Reveal to players" is built (sf-4's second part), today's one-tap reveal
-   * (ruled 2026-10-29), logged, with Undo.
+   * "Show players" in "Reveal to players" (sf-4; page 44, EN6 C): the words the GM confirmed, and nothing of the check,
+   * go to the players (check.showWords, sf-7a); the card's "Reveal…" becomes the pressed "Revealed". Undo from the toast
+   * takes the reveal back. A send that fails has sent nothing: N5's toast, no Undo, the card as before.
    */
-  async function revealWaiting(card: EncounterCard) {
-    // Shown already: said as the hit's card said it, nothing sent again.
-    if (card.hit.revealed) return show({ text: 'Players see this result.' });
-    const shown = await act(revealCheck, { campaignId: campaign.id, result: card.hit });
-    if (!shown) return;
-    setHit((h) => (h && h.result.id === shown.id ? { ...h, result: shown } : h));
-    show({ text: `Showed the players ${card.hit.name}`, onUndo: () => void undoLatest('check.reveal') });
+  async function showWaiting(card: EncounterCard, words: string): Promise<boolean> {
+    const made = await act(showCheckWords, { campaignId: campaign.id, resultId: card.hit.id, words }, () => REVEAL_FAILED);
+    if (!made) return false;
+    setReveals((was) => [made, ...was.filter((r) => r.id !== made.id)]);
+    show({ text: 'Shown to the players.', onUndo: () => void takeBack(made, false) });
+    return true;
+  }
+
+  /**
+   * A tap on the pressed "Revealed" (sf-4; EN1 C), or the toast's Undo after "Show players": the reveal is taken back
+   * (check.takeBackWords); players stop reading its words. From "Revealed", the toast's Undo shows the same words again.
+   */
+  async function takeBack(reveal: CheckReveal, offerUndo = true) {
+    const done = await act(takeBackCheckWords, { campaignId: campaign.id, revealId: reveal.id });
+    if (!done) return;
+    setReveals((was) => was.filter((r) => r.id !== reveal.id));
+    if (!offerUndo) return;
+    show({
+      text: 'Taken back from the players.',
+      onUndo: () =>
+        void act(showCheckWords, { campaignId: campaign.id, resultId: reveal.checkResultId, words: reveal.words }, () => REVEAL_FAILED).then(
+          (made) => made && setReveals((was) => [made, ...was.filter((r) => r.id !== made.id)]),
+        ),
+    });
   }
 
   /**
@@ -2739,7 +2775,12 @@ export function SceneTime({
                 describe={describeRow}
                 onDone={(card) => void doneWaiting(card)}
                 onChange={(card, tap) => void changeRoll(card, tap)}
-                onReveal={(card) => void revealWaiting(card)}
+                onShow={showWaiting}
+                shownFor={(card) => revealOf(card)?.words ?? null}
+                onTakeBack={(card) => {
+                  const standing = revealOf(card);
+                  if (standing) void takeBack(standing);
+                }}
                 onMessage={messaging ? (_card, words) => messaging.open({ kind: 'new', text: words }) : undefined}
                 // A hit with no row picked yet opens its tables again, as the hit's own card did (B2).
                 rollFor={(card) => (hit?.result.id === card.hit.id && tables.size > 0 ? () => setTablesOpen('hit') : null)}

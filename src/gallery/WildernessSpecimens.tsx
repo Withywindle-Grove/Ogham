@@ -71,17 +71,30 @@ const NIGHT_INFO = { night: { watchMinutes: 120, minutes: 600, watches: 5, start
 
 export function WildernessSpecimens({ Specimen }: { Specimen: (props: { name: string; children: ReactNode }) => ReactElement }) {
   const [cards, setCards] = useState(CARDS);
+  // One card's words stand (sf-4, EN1 C): its "Revealed" is pressed and its line quotes them; a tap takes them back.
+  const [shown, setShown] = useState<ReadonlyMap<string, string>>(new Map([['awake', 'A lone figure with a shuttered lantern waits on the causeway.']]));
   const [watches, setWatches] = useState<string[][]>([['reed'], ['moss', 'wick', 'fern']]);
   return (
     <>
-      <Specimen name="Encounter waiting cards (GM), one encounter one card (sf-4; page 44, EN1 B): An encounter, the row's words, a creature's detail row, the picked line with Change…, then Reveal…, Message… and Done (the accent, no other here); a camp night's hit has Who is awake…; answered, it reads Awake; a long row; a hit with no row picked yet">
+      <Specimen name="Encounter waiting cards (GM), one encounter one card (sf-4; page 44, EN1 B): An encounter, the row's words, a creature's detail row, the picked line with Change…, then Reveal…, Message… and Done (the accent, no other here); a card whose words stand, its pressed “Revealed” under the line “Players see: …” (EN1 C); a camp night's hit has Who is awake…; answered, it reads Awake; a long row; a hit with no row picked yet">
         <EncounterWaitingSource
           cards={cards}
           tables={TABLES}
           statBlock={(id) => (id === 'bog-lurker' ? LURKER : null)}
           onDone={(c) => setCards((all) => all.filter((x) => x.encounter.id !== c.encounter.id))}
           onChange={(c, tap) => setCards((all) => all.map((x) => (x.encounter.id === c.encounter.id ? { ...x, hit: { ...x.hit, roll: tap.roll, rowText: tap.rowText } } : x)))}
-          onReveal={() => undefined}
+          onShow={(c, words) => {
+            setShown((was) => new Map(was).set(c.hit.id, words));
+            return Promise.resolve(true);
+          }}
+          shownFor={(c) => shown.get(c.hit.id) ?? null}
+          onTakeBack={(c) =>
+            setShown((was) => {
+              const next = new Map(was);
+              next.delete(c.hit.id);
+              return next;
+            })
+          }
           onMessage={() => undefined}
           watchChoices={(c) => (c.encounter.id === 'night' ? ['1st watch, Reed of the Long Sedge Causeway and the Nine Drowned Steps', '2nd watch, Moss, Wick'] : null)} // words: names
           accent

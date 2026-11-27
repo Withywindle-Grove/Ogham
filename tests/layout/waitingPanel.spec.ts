@@ -134,6 +134,44 @@ for (const size of [
         expect(await accessibilityProblems(page, '[role="dialog"]')).toEqual([]);
       });
 
+      // Purpose (sf-4; page 44, EN6 A, F; EN1 C): "Reveal…" opens "Reveal to players", a sheet from the foot on a phone
+      // and centred elsewhere, its "Show players" the screen's one accent while it is open (Done drawn plain), with no
+      // layout or contrast problem; after "Show players" the three answers keep their places ("Reveal…" now the pressed
+      // "Revealed", each still at least 88 px, on one row where the card has the room) and the line quoting the words
+      // fits the card.
+      test('reveal to players, then Revealed', async ({ page }) => {
+        await openScene(page, 2);
+        const open = panel(page).getByRole('region', { name: /^Encounter waiting, / });
+        const places = () => open.locator('.stacked-group > .stacked-button').evaluateAll((els) => els.map((el) => el.getBoundingClientRect()).map((r) => ({ left: Math.round(r.left), width: Math.round(r.width) })));
+        const before = await places();
+        await open.getByRole('button', { name: 'Reveal…' }).click();
+        const pop = page.getByRole('dialog', { name: 'An encounter: Reveal to players' });
+        await expect(pop).toBeVisible();
+        await expect(accents(page)).toHaveCount(1);
+        await expect(pop.getByRole('button', { name: 'Show players' })).toHaveClass(/button-primary/);
+        // The card's Done is drawn plain behind it, once its colour has faded over (the buttons' transition).
+        await expect(open.getByRole('button', { name: 'Done' })).toHaveClass(/button-secondary/);
+        const fill = (name: string) => open.getByRole('button', { name }).evaluate((el) => getComputedStyle(el).backgroundColor);
+        await expect.poll(async () => (await fill('Done')) === (await fill('Message…'))).toBe(true);
+        const where = () => pop.boundingBox().then((b) => (size.name === 'phone' ? Math.abs(b!.y + b!.height - size.height) : Math.abs(b!.x + b!.width / 2 - size.width / 2)));
+        await expect.poll(where).toBeLessThanOrEqual(2);
+        if (scheme === 'light') await page.screenshot({ path: `test-results/layout-screens/sf4-reveal-popup-${size.width}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page, '[role="dialog"]')).toEqual([]);
+        await pop.getByRole('button', { name: 'Show players' }).click();
+        const revealed = open.getByRole('button', { name: 'Revealed: take it back' });
+        await expect(revealed).toHaveAttribute('aria-pressed', 'true');
+        await expect(open.locator('.waiting-encounter__shown')).toContainText('Players see:');
+        // The buttons may move down the card (the line stands over them), never across, and keep their widths.
+        expect(await places()).toEqual(before);
+        for (const b of before) expect(b.width).toBeGreaterThanOrEqual(88);
+        await expect(accents(page)).toHaveCount(1);
+        await open.scrollIntoViewIfNeeded();
+        await open.screenshot({ path: `test-results/layout-screens/sf4-revealed-${size.width}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+      });
+
       // Purpose: nothing waiting reads "Nothing waits." on a tablet; a phone leaves the empty panel out (page 11, 4b).
       test('nothing waits', async ({ page }) => {
         await openScene(page, 0);

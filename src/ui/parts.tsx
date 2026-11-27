@@ -1782,6 +1782,7 @@ export function StackedButton({
   'aria-label': ariaLabel,
   'aria-haspopup': hasPopup,
   submit = false,
+  pressed,
 }: {
   /**
    * An icon from the set, or one of the app's line icons where an approved frame draws one (Hide all's closed eye, B3);
@@ -1797,10 +1798,15 @@ export function StackedButton({
   'aria-haspopup'?: 'dialog';
   /** The form's own button (a sheet's Enter): it submits the form it sits in. */
   submit?: boolean;
+  /**
+   * Variant "Pressed" (sf-4; page 44, EN1 C): a button whose act stands, washed and edged as a pressed chip; a tap undoes
+   * it (the encounter's "Revealed"). Left out on a button that is not a toggle.
+   */
+  pressed?: boolean;
 }) {
   const classes = [variant === 'primary' ? 'button-primary' : 'button-secondary', 'stacked-button', className].filter(Boolean).join(' ');
   return (
-    <button type={submit ? 'submit' : 'button'} className={classes} aria-label={ariaLabel} aria-haspopup={hasPopup} onClick={onClick}>
+    <button type={submit ? 'submit' : 'button'} className={classes} aria-label={ariaLabel} aria-haspopup={hasPopup} aria-pressed={pressed} onClick={onClick}>
       <Icon name={icon ?? GENERIC_MARK} size={24} />
       <span>{label}</span>
     </button>

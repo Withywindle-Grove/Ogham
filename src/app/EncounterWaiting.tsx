@@ -4,6 +4,8 @@
 // encounter", the row's words at body size, a detail row for each creature it names (sf-6a), one quiet line naming the
 // table and the row's range with "Change…" (it opens "Roll…"'s pop-up with that row ticked, sf-5), then "Reveal…",
 // "Message…" and "Done", on one row. No "Start" until fights are built; "Done" closes the card (⚑ 2, ruled 26 Nov).
+// "Reveal…" opens "Reveal to players" (EN6); once the words are shown it is the pressed "Revealed" in the same place,
+// a tap taking them back, and a line quotes what the players see (EN1 C).
 // "Who is awake…" stays where a camp's night hit asks which watch. Built from the scene card's parts, the detail row,
 // the stacked buttons and the roll's pop-up.
 import { useState } from 'react';
@@ -15,7 +17,9 @@ import { Dialog } from '../ui/Dialog.tsx';
 import type { StatBlockShown } from '../modules/library/statBlockLayout.ts';
 import { BookDetailRow, countedName, type BookDetail } from './BookDetail.tsx';
 import { TableRollPopUp, type TableTap } from './EncounterTables.tsx';
+import { Icon } from '../ui/icons.tsx';
 import { Chip, StackedButton, StackedGroup } from '../ui/parts.tsx';
+import { RevealToPlayers } from './RevealToPlayers.tsx';
 import './SceneExplore.css';
 import { useWaitingAccentItem, useWaitingSource, type WaitingSourceItem } from './sceneWaiting.tsx';
 
@@ -39,8 +43,16 @@ export interface EncounterWaitingProps {
   onDone: (card: EncounterCard) => void;
   /** "Change…" (sf-4, sf-5): another row tapped in the table's pop-up; the caller records it (check.setRoll). */
   onChange?: (card: EncounterCard, tap: TableTap) => void;
-  /** "Reveal…". */
-  onReveal?: (card: EncounterCard) => void;
+  /**
+   * "Show players" in "Reveal to players" (sf-4; EN6): the words the GM confirmed, sent for this card's hit (A1's
+   * check.showWords). Resolves true once sent; false leaves the card as before (N5), the words kept for the next try.
+   * Without it there is no "Reveal…".
+   */
+  onShow?: (card: EncounterCard, words: string) => Promise<boolean>;
+  /** The words the players see for this card's hit, while a reveal stands (A1's check reveals); null when none does. */
+  shownFor?: (card: EncounterCard) => string | null;
+  /** A tap on the pressed "Revealed" (EN1 C): the reveal is taken back (A1's check.takeBackWords). */
+  onTakeBack?: (card: EncounterCard) => void;
   /** "Message…": the row's words into a new message (absent where messages can't be sent). */
   onMessage?: (card: EncounterCard, words: string) => void;
   /** A card with no row picked yet: the way to its tables, where the caller has one for this hit. */
@@ -91,6 +103,8 @@ function EncounterOneCard({
   onWatch,
   onChange,
   onReveal,
+  shown,
+  onTakeBack,
   onMessage,
   onRoll,
   onDone,
@@ -104,7 +118,11 @@ function EncounterOneCard({
   onWatch?: (card: EncounterCard, watch: string) => void;
   /** "Change…" tapped: the table's pop-up opens with this row ticked. */
   onChange: (() => void) | null;
+  /** "Reveal…" tapped: "Reveal to players" opens. */
   onReveal?: () => void;
+  /** The words the players see while a reveal stands: "Reveal…" is the pressed "Revealed", a line quotes them. */
+  shown: string | null;
+  onTakeBack?: () => void;
   onMessage?: (words: string) => void;
   onRoll: (() => void) | null;
   onDone: () => void;
@@ -153,8 +171,20 @@ function EncounterOneCard({
           Who is awake…
         </button>
       )}
+      {shown !== null && (
+        <p className="waiting-encounter__shown">
+          <Icon name="eye" size={20} />
+          <span>{`Players see: “${shown}”`}</span>
+        </p>
+      )}
       <StackedGroup>
-        {onReveal && <StackedButton icon="eye" label="Reveal…" aria-haspopup="dialog" onClick={onReveal} />}
+        {/* After "Show players" no button has moved (EN1 C): "Reveal…" is the pressed "Revealed", and a tap takes the
+            reveal back. */}
+        {shown !== null && onTakeBack ? (
+          <StackedButton icon="eye" label="Revealed" pressed aria-label="Revealed: take it back" onClick={onTakeBack} />
+        ) : (
+          onReveal && <StackedButton icon="eye" label="Reveal…" aria-haspopup="dialog" onClick={onReveal} />
+        )}
         {onMessage && <StackedButton icon="messages" label="Message…" aria-haspopup="dialog" onClick={() => onMessage(words ?? hit.name)} />}
         <StackedButton icon="check-mark" label="Done" variant={accent ? 'primary' : 'secondary'} onClick={onDone} />
       </StackedGroup>
@@ -199,7 +229,9 @@ export function EncounterWaitingSource({
   describe = () => null,
   onDone,
   onChange,
-  onReveal,
+  onShow,
+  shownFor,
+  onTakeBack,
   onMessage,
   rollFor,
   noteFor,
@@ -209,6 +241,10 @@ export function EncounterWaitingSource({
   lead = [],
 }: EncounterWaitingProps) {
   const [changing, setChanging] = useState<EncounterCard | null>(null);
+  // "Reveal to players" open for a card, with the words its box starts from; a send that failed keeps the GM's words
+  // for the next "Reveal…" (N5), by the card's hit.
+  const [revealing, setRevealing] = useState<{ card: EncounterCard; start: string } | null>(null);
+  const [drafts, setDrafts] = useState<ReadonlyMap<string, string>>(new Map());
   const accentItem = useWaitingAccentItem();
   const unread: WaitingSourceItem[] = cards === null ? [{ id: 'encounter:unread', kind: 'encounter', title: "Couldn't load the waiting encounters", actions: [], card: <CardsUnread /> }] : [];
   const items: WaitingSourceItem[] = [...lead, ...unread, ...(cards ?? []).map((card, n): WaitingSourceItem => {
@@ -227,11 +263,14 @@ export function EncounterWaitingSource({
           card={card}
           tables={tables}
           statBlock={statBlock}
-          accent={accent && (accentItem === undefined ? n === 0 : accentItem === id)}
+          // While "Reveal to players" is open, its "Show players" is the screen's one accent and Done is drawn plain.
+          accent={accent && revealing === null && (accentItem === undefined ? n === 0 : accentItem === id)}
           watchChoices={watchChoices}
           onWatch={onWatch}
           onChange={onChange && table ? () => setChanging(card) : null}
-          onReveal={onReveal ? () => onReveal(card) : undefined}
+          onReveal={onShow ? () => setRevealing({ card, start: drafts.get(card.hit.id) ?? startWords(card, tables, noteFor?.(card) ?? null) }) : undefined}
+          shown={shownFor?.(card) ?? null}
+          onTakeBack={onTakeBack ? () => onTakeBack(card) : undefined}
           onMessage={onMessage ? (words) => onMessage(card, words) : undefined}
           onRoll={rollFor?.(card) ?? null}
           onDone={() => onDone(card)}
@@ -261,8 +300,35 @@ export function EncounterWaitingSource({
           onClose={() => setChanging(null)}
         />
       )}
+      {revealing && onShow && (
+        <RevealToPlayers
+          start={revealing.start}
+          onClose={() => setRevealing(null)}
+          onShow={(words) => {
+            const { card } = revealing;
+            setRevealing(null);
+            void onShow(card, words).then((sent) =>
+              setDrafts((was) => {
+                const next = new Map(was);
+                if (sent) next.delete(card.hit.id);
+                else next.set(card.hit.id, words);
+                return next;
+              }),
+            );
+          }}
+        />
+      )}
     </>
   );
+}
+
+/**
+ * What "Reveal to players"'s box starts from (sf-4; EN6 A): the row's words as the card shows them; with no row picked,
+ * the check's own words for a hit where the card shows them; else nothing, for the GM to write.
+ */
+export function startWords(card: EncounterCard, tables: ReadonlyMap<string, ReadTable>, note: string | null): string {
+  const found = rowOfHit(card.hit, tables);
+  return card.hit.rowText ? rowWordsOf(card.hit.rowText, found?.table ?? null) : (note ?? '');
 }
 
 /**

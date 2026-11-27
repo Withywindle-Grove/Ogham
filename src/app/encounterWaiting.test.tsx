@@ -163,6 +163,131 @@ describe('Encounter waiting (M5b step 2)', () => {
     expect(world.tables.waiting_encounters[0]).toMatchObject({ state: 'waiting', undone: false });
   });
 
+  describe('Reveal to players (sf-4; page 44, EN6, EN1 C, EN7 C)', () => {
+    const card = () => within(screen.getByRole('region', { name: /^Encounter waiting, Wandering things/ }));
+    const answers = () => [...document.querySelectorAll('.waiting-encounter .stacked-group > button')].map((b) => b.textContent);
+    async function openReveal(user: ReturnType<typeof userEvent.setup>) {
+      await user.click(card().getByRole('button', { name: 'Reveal…' }));
+      return within(await screen.findByRole('dialog', { name: 'An encounter: Reveal to players' }));
+    }
+
+    // Purpose (EN6 A; finding 1, "Preview, then send"): "Reveal…" opens the words as the row has them, in a box the GM
+    // may change, under "An encounter", with the line saying what goes; nothing reaches the players on "Reveal…", and
+    // while the pop-up is open its "Show players" is the screen's one accent (the card's Done drawn plain).
+    it('Reveal… opens the row’s words and sends nothing; Show players is the one accent while it is open', async () => {
+      const { gm, campaign } = table();
+      withSetting(campaign, gm);
+      const user = await openScene(gm, true);
+      await hitAndRoll(user);
+      const pop = await openReveal(user);
+      expect(pop.getByText('An encounter')).toBeTruthy();
+      expect(pop.getByRole('textbox', { name: 'What players will see' })).toHaveProperty('value', 'Bog lurkers, 1d4');
+      expect(pop.getByText('Players get these words and nothing else.')).toBeTruthy();
+      expect(world.tables.check_reveals).toHaveLength(0);
+      expect(document.querySelectorAll('.button-primary')).toHaveLength(1);
+      expect(pop.getByRole('button', { name: 'Show players' }).className).toContain('button-primary');
+      // The X sends nothing, and Done is the accent again.
+      await user.click(pop.getByRole('button', { name: 'Close' }));
+      await waitFor(() => expect(screen.queryByRole('dialog', { name: 'An encounter: Reveal to players' })).toBeNull());
+      expect(world.tables.check_reveals).toHaveLength(0);
+      expect(card().getByRole('button', { name: 'Done' }).className).toContain('button-primary');
+    });
+
+    // Purpose (EN6 B, C; EN1 C; sf-7a's hidden data): "Show players" sends only the words in the box, cut by the GM,
+    // and nothing of the check (the result stays unrevealed); after it no button has moved: "Reveal…" is the pressed
+    // "Revealed" and a line quotes what the players see. The toast's Undo takes the reveal back.
+    it('Show players sends only the words in the box; Reveal… becomes the pressed Revealed in its place; Undo takes it back', async () => {
+      const { gm, campaign } = table();
+      withSetting(campaign, gm);
+      const user = await openScene(gm, true);
+      await hitAndRoll(user);
+      const pop = await openReveal(user);
+      const box = pop.getByRole('textbox', { name: 'What players will see' });
+      await user.clear(box);
+      await user.type(box, 'Grey shapes in the reeds');
+      await user.click(pop.getByRole('button', { name: 'Show players' }));
+      await screen.findByText('Shown to the players.');
+      expect(world.tables.check_reveals).toHaveLength(1);
+      expect(world.tables.check_reveals[0]).toMatchObject({ words: 'Grey shapes in the reeds', taken_back: false });
+      expect(world.tables.check_results[0]).toMatchObject({ revealed: false });
+      const revealed = await card().findByRole('button', { name: 'Revealed: take it back' });
+      expect(revealed.getAttribute('aria-pressed')).toBe('true');
+      expect(revealed.textContent).toBe('Revealed');
+      expect(answers()).toEqual(['Revealed', 'Message…', 'Done']);
+      expect(card().getByText('Players see: “Grey shapes in the reeds”')).toBeTruthy();
+      expect(card().getByRole('button', { name: 'Done' }).className).toContain('button-primary');
+
+      await user.click(await toastUndo('Shown to the players.'));
+      await waitFor(() => expect(world.tables.check_reveals[0]).toMatchObject({ taken_back: true }));
+      expect(await card().findByRole('button', { name: 'Reveal…' })).toBeTruthy();
+      expect(card().queryByText(/^Players see:/)).toBeNull();
+    });
+
+    // Purpose (EN1 C): a tap on the pressed "Revealed" takes the reveal back at once (players stop reading the words),
+    // and the toast's Undo shows the same words again.
+    it('a tap on Revealed takes the reveal back; Undo shows the same words again', async () => {
+      const { gm, campaign } = table();
+      withSetting(campaign, gm);
+      const user = await openScene(gm, true);
+      await hitAndRoll(user);
+      await user.click((await openReveal(user)).getByRole('button', { name: 'Show players' }));
+      await user.click(await card().findByRole('button', { name: 'Revealed: take it back' }));
+      await screen.findByText('Taken back from the players.');
+      expect(world.tables.check_reveals[0]).toMatchObject({ taken_back: true });
+      expect(await card().findByRole('button', { name: 'Reveal…' })).toBeTruthy();
+      expect(answers()).toEqual(['Reveal…', 'Message…', 'Done']);
+
+      await user.click(await toastUndo('Taken back from the players.'));
+      await waitFor(() => expect(world.tables.check_reveals.filter((r) => !r.taken_back)).toHaveLength(1));
+      expect(world.tables.check_reveals.find((r) => !r.taken_back)).toMatchObject({ words: 'Bog lurkers, 1d4' });
+      expect(await card().findByRole('button', { name: 'Revealed: take it back' })).toBeTruthy();
+    });
+
+    // Purpose (EN6 E; hard rule 10, never a disabled button): with nothing written "Show players" stays a button; a tap
+    // sends nothing and the line says why; the pop-up stays open.
+    it('Show players with nothing written sends nothing and says why', async () => {
+      const { gm, campaign } = table();
+      withSetting(campaign, gm);
+      const user = await openScene(gm, true);
+      await hitAndRoll(user);
+      const pop = await openReveal(user);
+      const box = pop.getByRole('textbox', { name: 'What players will see' });
+      await user.clear(box);
+      await user.type(box, '   ');
+      const go = pop.getByRole('button', { name: 'Show players' });
+      expect(go.hasAttribute('disabled')).toBe(false);
+      await user.click(go);
+      expect(pop.getByRole('alert').textContent).toContain('Write what the players will see.');
+      expect(world.tables.check_reveals).toHaveLength(0);
+      expect(screen.getByRole('dialog', { name: 'An encounter: Reveal to players' })).toBeTruthy();
+    });
+
+    // Purpose (N5; EN7 C): a send the server refuses, or that drops mid-way, has sent nothing: N5's words in a toast
+    // with no Undo, the card as before ("Reveal…", not pressed, no line); "Reveal…" opens the GM's words again.
+    it('a send that fails says so with no Undo, leaves Reveal… unpressed, and keeps the words for the next try', async () => {
+      const { gm, campaign } = table();
+      withSetting(campaign, gm);
+      const user = await openScene(gm, true);
+      await hitAndRoll(user);
+      const pop = await openReveal(user);
+      const box = pop.getByRole('textbox', { name: 'What players will see' });
+      await user.clear(box);
+      await user.type(box, 'Grey shapes');
+      const real = world.db.rpc.bind(world.db);
+      const spy = vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: Record<string, unknown>) =>
+        name === 'show_check_words' ? Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }) : real(name as never, args as never)) as never);
+      await user.click(pop.getByRole('button', { name: 'Show players' }));
+      const toast = (await screen.findByText("Couldn't show the players. Nothing was sent. Tap Reveal… to try again.")).closest('.toast') as HTMLElement;
+      expect(within(toast).queryByRole('button', { name: 'Undo' })).toBeNull();
+      expect(world.tables.check_reveals).toHaveLength(0);
+      const reveal = card().getByRole('button', { name: 'Reveal…' });
+      expect(reveal.hasAttribute('aria-pressed')).toBe(false);
+      expect(card().queryByText(/^Players see:/)).toBeNull();
+      spy.mockRestore();
+      expect((await openReveal(user)).getByRole('textbox', { name: 'What players will see' })).toHaveProperty('value', 'Grey shapes');
+    });
+  });
+
   // Purpose (sf-4; ⚑ 2): Message… puts the row's words, and nothing of the check, into a new message.
   it('Message… opens a new message with the row’s words', async () => {
     const { gm, campaign } = table();

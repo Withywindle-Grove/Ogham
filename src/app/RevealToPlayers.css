@@ -1,0 +1,50 @@
+/* "Reveal to players" (sf-4; page 44, EN6): the label in bold, the box the pop-up's width, growing with the words, the
+   why-line when nothing is written, one quiet line, then "Show players" (the pop-up's one accent) at the foot's right. */
+.reveal-words {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.reveal-words__label {
+  font-weight: 700;
+}
+
+.reveal-words__box {
+  inline-size: 100%;
+  resize: vertical;
+}
+
+.reveal-words__why {
+  margin: 0;
+}
+
+.reveal-words__goes {
+  margin: 0;
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+  color: var(--muted);
+}
+
+/* The eye before the word, as EN6 draws it. */
+.reveal-words__show {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+}
+
+/* The line over the encounter card's answers once the words stand (EN1 C): the open eye, then what the players see. */
+.waiting-encounter__shown {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  margin: 0;
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
+}
+
+.waiting-encounter__shown > svg {
+  flex: none;
+}
