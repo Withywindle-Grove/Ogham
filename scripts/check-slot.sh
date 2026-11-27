@@ -12,6 +12,23 @@ LOG=$TMPD/ogham-check-times.log
 SLOTS=("$TMPD/ogham-check.lock" "$TMPD/ogham-check-2.lock")
 [ "${OGHAM_CHECK_SLOTS:-1}" = "1" ] && SLOTS=("$TMPD/ogham-check.lock")
 
+# A node_modules copied with `cp -al` can hold a link back to itself (node_modules/node_modules), which breaks the UI
+# tests locally. Only a symlink is removed, never a real folder (docs/09-decisions-log.md, [process], 27 Nov).
+if [ -L node_modules/node_modules ]; then
+  rm node_modules/node_modules && echo "$(date -u +%T) removed link node_modules/node_modules $PWD" >>"$LOG"
+fi
+
+# A commit runs the check only through the pre-commit hook: with the hooks off it would run none, so refuse it.
+if [ "$1" = "git" ] && [ "$2" = "commit" ]; then
+  hooks=$(git rev-parse --git-path hooks 2>/dev/null)
+  if [ -z "$(git config core.hooksPath)" ] || [ ! -f "$hooks/pre-commit" ]; then
+    echo "check-slot: the git hooks are off in this worktree, so this commit would run no check."
+    echo "The rule: npm run check passes before every commit (CLAUDE.md, Testing; docs/testing.md, Git hooks)."
+    echo "Turn them on with: npm run hooks:install"
+    exit 1
+  fi
+fi
+
 run() { # $1 = the slot; runs the rest, logs it, exits with its code
   local s=$1
   shift
