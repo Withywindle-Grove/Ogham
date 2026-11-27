@@ -1,7 +1,7 @@
 ---
-status: pending
+status: absorbed
 milestone: December first play (how the work is run from 27 November)
-absorbed-into: CLAUDE.md (hard rules, Agent skills), .claude/README.md (Skills), .claude/skills/, docs/agents/, docs/12-coding-standards.md (lp-9; its "to add" checks are tickets), REVIEW.md; still to do: the consolidation of CLAUDE.md and .claude/ (lp-10), scripts/context-warn.mjs (lp-6), the agent files' models (lp-5)
+absorbed-into: CLAUDE.md (hard rules, the index, the build loop, Agent skills), .claude/README.md, .claude/agents/ (lp-5, lp-10; the driver's reminders for the loop), .claude/briefs/builder-brief.md, .claude/skills/, docs/agents/, docs/12-coding-standards.md (lp-9; its "to add" checks are tickets), REVIEW.md, scripts/context-warn.mjs (lp-6), project-instructions.md; not in the repository: lp-15 (Francis switches the plugins off on each account)
 supersedes: rvw-16 (no new process rules until 5 December); "Matt Pocock's skills are not used" and "only three Superpowers skills" (2026-11-22); `docs/plans/` as the plan stage of the artifact chain, for new work; `ponytail`, `ponytail-review`, `engineering:code-review`, `product-management:write-spec` and `superpowers:test-driven-development` in the Skills list (2026-11-21); the driver's 400,000-token limit (2026-11-21)
 ---
 
