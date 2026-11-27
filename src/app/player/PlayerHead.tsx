@@ -23,7 +23,12 @@ export function kindredAndTitle(kindred: string | null | undefined, title: strin
 export function nameKindredTitle(name: string, kindred: string | null | undefined, title: string | null | undefined): string {
   const words = kindredAndTitle(kindred, title);
   if (!words) return name;
-  return words.startsWith('the ') ? `${name} ${words}` : `${name}, ${words}`;
+  return `${name}${nameSeparator(words)}${words}`;
+}
+
+/** What joins the name to the words after it: a space before "the" kindred, a comma before a title alone. */
+function nameSeparator(words: string): string {
+  return words.startsWith('the ') ? ' ' : ', ';
 }
 
 /**
@@ -92,11 +97,11 @@ export function PlayerHead({
           // the name leaves the bar and leads the head's line, whole and wrapping, before "the" kindred and the title
           // (PlayerScreen.css), so it shows once. A short name stays the bar's, as frame P2 draws it.
           <div className="player-head__words">
-            <h1 className="player-head__name">{character.name}</h1>
+            <h1 className="player-head__name visually-hidden">{character.name}</h1>
             {line && (
               <>
-                <span className="player-head__sep" aria-hidden="true">
-                  {line.startsWith('the ') ? ' ' : ', '}
+                <span className="player-head__sep visually-hidden" aria-hidden="true">
+                  {nameSeparator(line)}
                 </span>
                 <p className="player-head__line">{line}</p>
               </>
