@@ -273,7 +273,7 @@ export function PlayerScreen({
     // On the stash's screen (K11, PK4): the bar reads "Party stash"; on a tablet its way back returns to the pack (a
     // phone keeps ≡, and the Pack tab returns to it).
     if (tab === 'pack' && stashOpen) {
-      return <TopRow {...(phone ? { campaign: { db, campaign }, onBack } : { back: `${character.name}’s pack`, onBack: () => setStashOpen(false) })} menuLabel="Character options" drawer={campaign.name} title="Party stash" logTab standard />;
+      return <TopRow {...(phone ? { campaign: { db, campaign }, onBack } : { back: `${possessive(character.name)} pack`, onBack: () => setStashOpen(false) })} menuLabel="Character options" drawer={campaign.name} title="Party stash" logTab standard />;
     }
     return <TopRow campaign={{ db, campaign }} onBack={onBack} menuLabel="Character options" drawer={campaign.name} title={title} logTab standard />;
   };

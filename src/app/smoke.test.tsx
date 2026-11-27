@@ -5497,7 +5497,7 @@ describe('the Pack tab (M4 step 4)', () => {
   });
 
   // Purpose: a container whose name starts with "The" is not called "the The …" on its Empty sheet (withThe, #50).
-  it.fails('Empty… on "The Old Satchel" is titled "Empty The Old Satchel"', async () => {
+  it('Empty… on "The Old Satchel" is titled "Empty The Old Satchel"', async () => {
     const { wren, line } = packWorld('coin');
     line(wren, 'The Old Satchel', { id: 'line-old-satchel', item_data: { container: { capacityCoin: 100 } } });
     line(wren, 'Pebble', { container_line_id: 'line-old-satchel' });

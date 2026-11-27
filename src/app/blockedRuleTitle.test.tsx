@@ -140,7 +140,7 @@ describe("a class that can't use a thing: the pop-up says the rule once (tfw-4, 
 
 describe('a name that starts with "The" keeps its own (withThe, #50)', () => {
   // Purpose: an item whose name starts with "The" is not called "the The …" in the pop-up of an item that is off.
-  it.fails('an off item named "The Marsh bow" pops up "Can\'t wield The Marsh bow"', async () => {
+  it('an off item named "The Marsh bow" pops up "Can\'t wield The Marsh bow"', async () => {
     const powder = { id: 'fen-powder', kind: 'option', name: 'Powder age', default: 'none', choices: [{ id: 'none', name: 'No guns' }, { id: 'wheel', name: 'Wheel guns' }] };
     const bowEntry = { id: 'marsh-bow', kind: 'item', name: 'The Marsh bow', category: 'weapon', slot: 'hand', weaponTags: ['Missile'], weapon: { damage: '1d6' }, option: 'fen-powder=wheel' };
     wardenWorld({ mode: 'any' }, { more: [powder, bowEntry] });
@@ -155,7 +155,7 @@ describe('a name that starts with "The" keeps its own (withThe, #50)', () => {
   });
 
   // Purpose: a weapon rule whose name starts with "The" is not called "the The … rule" on the row it allows.
-  it.fails('a weapon allowed by "The Reed-tube" rule reads "By The Reed-tube rule"', async () => {
+  it('a weapon allowed by "The Reed-tube" rule reads "By The Reed-tube rule"', async () => {
     const reedTubes = { id: 'fen-rules', kind: 'rulesSet', name: 'Fen rules', weaponRules: [{ category: 'The Reed-tube', classCategories: ['martial'] }] };
     wardenWorld({ mode: 'list', ids: ['knife'] }, { more: [reedTubes], bow: { weaponTags: ['The Reed-tube', 'Missile'] }, warden: { weaponProficiencyCategory: 'martial' } });
     const user = userEvent.setup();

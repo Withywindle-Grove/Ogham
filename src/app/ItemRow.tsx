@@ -17,7 +17,7 @@ import type { AttackRoll } from '../modules/characters/play.ts';
 import { checkEquip } from './EquipWarning.tsx';
 import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import { AtHandFacts, AttackSheet, AttackView, chargeFact, ModeSheet, SpentSheet, type AtHandFact } from './AtHandSheets.tsx';
-import { amountText, atHandAction, isWeapon, markerOf, shownName, stackable, wornText, type UseVerb } from '../modules/inventory/packView.ts';
+import { amountText, atHandAction, isWeapon, markerOf, shownName, stackable, withThe, wornText, type UseVerb } from '../modules/inventory/packView.ts';
 import { usedWords } from '../core/useWords.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import { useToast } from '../ui/ToastHost.tsx';
@@ -275,7 +275,7 @@ export function ItemRow({
    */
   async function wieldIt() {
     if (busy) return;
-    const cantWield = () => blocked.explain(`Can't wield the ${line.name}`, blockedEquip ?? offReason ?? '');
+    const cantWield = () => blocked.explain(`Can't wield ${withThe(line.name)}`, blockedEquip ?? offReason ?? '');
     // An item that is off keeps its own pop-up and line.
     if (offReason) return cantWield();
     if (!carrier.actorId) return blockedEquip ? cantWield() : undefined;

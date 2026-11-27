@@ -716,7 +716,7 @@ describe('a name ending in s takes the mark alone (Home Two audit of #50, findin
   });
 
   // Purpose: a character whose name ends in s gets the mark alone on the Party stash's way back to the pack.
-  it.fails('the Party stash’s way back reads "Lantern Wardens’ pack"', async () => {
+  it('the Party stash’s way back reads "Lantern Wardens’ pack"', async () => {
     await coinWorld();
     world.tables.actors.find((a) => a.id === wren)!.name = 'Lantern Wardens';
     const user = await openPack('Lantern Wardens');
