@@ -17,7 +17,7 @@ How we keep things from breaking as the app grows. Automated checks catch most m
 |---|---|
 | `npm run check` | Type check, lint, tests, the docs check and build, in order; stops at the first failure. Run before every commit. |
 | `npm run typecheck` | TypeScript type-check (strict) |
-| `npm run lint` | ESLint: common mistakes and React hook rules |
+| `npm run lint` | ESLint: common mistakes, React hook rules, and the hard-rule lint checks (modules import only the allowed core files, hard rule 6; no `disabled` attribute on a control, hard rule 10; no source file over 400 lines, cs-10), old cases known in `eslint-suppressions.json` (below) |
 | `npm test` | Vitest: all automated tests, once. Among them the scan tests: tokens only in stylesheets and in inline `style` values (`src/ui/designSystem.test.ts`, hard rule 7; old inline cases on `src/ui/inlineStyles.known.ts`), and the packages in `package.json` equal the list in `02-architecture.md`, "Packages" (`src/ui/packageList.test.ts`, hard rule 9) |
 | `npm run build` | Production build, as Vercel does it |
 | `npm run test:db` | Database access-rule tests, against the **test** project locally, or a throwaway local Supabase on GitHub (not part of `check`; see below) |
@@ -33,6 +33,8 @@ How we keep things from breaking as the app grows. Automated checks catch most m
 | `npm run docs:check` | The docs drift check on its own (see Docs checks) |
 
 A pass ends with the build's "✓ built" line and no errors above it. A failure prints what broke and stops there; the parts after it don't run.
+
+**Known old lint breaks** (atc-3): `eslint-suppressions.json`, at the top of the repo, written by ESLint itself (`npx eslint . --suppress-rule <rule>` when that rule is switched on, so only its cases are recorded), lists the old cases per file and rule; lint passes them and fails any new one. It can only get shorter: once you fix a known case, lint fails with "There are suppressions left that do not occur anymore" until you run `npx eslint . --prune-suppressions` and commit the smaller file with the fix. Never add to it by hand, or with `--suppress-all` or `--suppress-rule` after a rule is on: a new case is fixed, not recorded.
 
 **A full regression run** (on demand, ruled 2026-11-09) runs every check on GitHub, whatever changed: **Actions** → **Check** → **Run workflow** → the branch (main by default) → **Run workflow**, or `gh workflow run check.yml --ref main`. What it covers and who hears about it: The GitHub check.
 
