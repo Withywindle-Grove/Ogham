@@ -109,7 +109,7 @@ Ruled 2026-11-27 (lp-9, `design/rulings/process-loop-2026-11-27.md`). The source
 | No `disabled` attribute on a control | Hard rule 10 | On (`eslint.config.js`, the project's own rule `tome/no-disabled`; in `npm run check`). App components (`src/**/*.tsx`), tests excluded. No old cases when it was switched on (27 Nov), so `eslint-suppressions.json` holds none for it |
 | Tokens only in inline styles in screens | Hard rule 7 | To add (extend the token test) |
 | No float column for money, quantities, weights or slots | Hard rule 8 | To add (a test over the generated types) |
-| A new source file over 400 lines | cs-10 | To add (`max-lines`, old files recorded as known) |
+| A new source file over 400 lines | cs-10 | On (`eslint.config.js`, `max-lines` at 400, every line counted; in `npm run check`). App source (`src/**/*.{ts,tsx}`); test files and the generated database types excluded. The 82 files over 400 lines when it was switched on (27 Nov) are known in `eslint-suppressions.json`; a known file that grows stays quiet |
 | A unit test over 300 ms | cs-34 | To add: the runner reports it already; make the report part of the check's output |
 | The name scan says so when its private list is absent | Hard rule 2 | To add. It is silent on GitHub today |
 

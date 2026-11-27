@@ -115,4 +115,12 @@ export default defineConfig([
     plugins: { tome },
     rules: { 'tome/no-disabled': 'error' },
   },
+  {
+    // cs-10: a source file stays at 400 lines or fewer, counting every line (blank lines and comments too). Tests and
+    // the generated database types are not checked. The old long files are known in eslint-suppressions.json; a known
+    // file that grows stays quiet (the record covers the file, not its size).
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['**/*.test.{ts,tsx}', 'src/core/database.types.ts'],
+    rules: { 'max-lines': ['error', { max: 400, skipBlankLines: false, skipComments: false }] },
+  },
 ]);
