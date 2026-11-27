@@ -13,7 +13,7 @@ flowchart TD
   design --> ruling["Ruling file, mockups, 09 lines, a prompt"]
   ruling --> paste[Francis pastes the prompt into Claude Code]
   francis1 --> docs
-  paste --> docs["Claude Code updates the specs and 09<br>in the same commit as the code"]
+  paste --> docs["09 in the same commit as the code;<br>the design agent brings the specs in line (lc-3)"]
   docs --> cc
   pr --> yes{Francis says yes?}
   yes -- no --> cc
