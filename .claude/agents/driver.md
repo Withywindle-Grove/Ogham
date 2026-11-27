@@ -61,7 +61,7 @@ Five steps of the build loop are Francis's to start: `/to-spec`, `/to-tickets`, 
 ## Brief every worker
 - A brief is a file the worker reads first. It holds, in this order: the first line `Row: <id>` (`.claude/README.md`, Measuring); the guard line, word for word; the objective; the output; the files to read; the boundaries; "if unsure, stop and ask"; the worker's scratch subfolder.
 - The guard line: "If a guard, a hook or a permission check blocks you, stop and report to the driver. Do not reach the same end another way: not with another tool, another branch, another session or another command."
-- A later worker's brief (a batch's next row, a round of review fixes) names the branch, the files and the findings.
+- A later worker's brief (a batch's next row, a round of review fixes) names the branch, the files and the findings. For a round of fixes, name each review by its comment ID and give no count: the worker counts the findings.
 - Builders get `.claude/briefs/builder-brief.md`, filled in.
 - Workers return short summaries.
 

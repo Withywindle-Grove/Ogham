@@ -106,6 +106,7 @@ Some rules are enforced by hooks, because written instructions alone aren't foll
 - **Screenshots** of every screen at every width land in `test-results/layout-screens/` (not committed). Open them to see each layout; they aren't compared pixel by pixel, which breaks across machines.
 - **A new screen adds a scene** to the list in the test file.
 - First time on a computer: `npx playwright install webkit` downloads the browser (about 100–150 MB, in your user folder).
+- **In a cloud container** (Chromium, no WebKit): `npx playwright test -c playwright.chromium.config.ts <specs> --workers=2`, through `scripts/check-slot.sh`. The same checks in another browser: a filter before CI, never the final word. A WebKit-only failure (a 0.5 px rounding, a Safari font) shows only on CI or the PC (retro of loop 1, 2026-11-27).
 - **One spec file also runs in Chromium** (ruled 2026-11-25; not built: plan `dec-15-save-bonus`, row 4): the save tile's 80 px check, `tests/layout/saveBonusTile.spec.ts`, and no other. It means a second browser download (about 150 MB) on the runner and in CI and about a minute a run; no new package.
 
 ## The component gallery
