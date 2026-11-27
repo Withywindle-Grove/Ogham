@@ -32,10 +32,10 @@ import {
 import { chainOf, placeCheckOf, type ChainEntry } from '../modules/expedition/placeRules.ts';
 import { keyedName } from '../modules/expedition/placeTree.ts';
 import { Dialog } from '../ui/Dialog.tsx';
-import { AreaRows, DestinationRow, MoveOnSheet, ProposalSheet, ProposalsWaiting, WayLine, WhereTo, type GmDestination, type RowProposal, type WayMove } from '../ui/MoveOnParts.tsx';
+import { AreaRows, DestinationRow, MoveOnSheet, ProposalSheet, ProposalsWaiting, TravelPopUp, WayLine, WhereTo, type GmDestination, type RowProposal, type WayMove } from '../ui/MoveOnParts.tsx';
 import { ListRow, RowList } from '../ui/parts.tsx';
 import { EndExpeditionRow, RefreshFailedRow, WhereToLine } from '../ui/WhereToParts.tsx';
-import { playersDestinationsOf, WHERE_TO_WORDS, type PlayersDestination } from '../modules/expedition/playersWays.ts';
+import { playersDestinationsOf, WHERE_TO_WORDS, wayTapWords, type PlayersDestination } from '../modules/expedition/playersWays.ts';
 import { PLAYERS_READ_WORDS } from '../modules/expedition/moveOnRows.ts';
 import type { WayOn } from '../modules/library/waysOn.ts';
 
@@ -220,6 +220,12 @@ export function MoveOnSpecimens({ Specimen }: { Specimen: SpecimenPart }) {
       <Specimen name="Where to? (players, WT1 C): one Area, no heading; a place with no map number reads Unexplored">
         <PlayersRows rows={PLAYERS_ONE_AREA} />
       </Specimen>
+      <Specimen name="A player's tap on a way (PU1 B, sf-15): the way and the place as the row names them, Takes labelled, the sentence, a plain Got it; under Elsewhere, an unexplored place">
+        {[PLAYERS_TWO_AREAS.find((d) => d.number === '4')!, PLAYERS_TWO_AREAS.at(-1)!].map((d) => {
+          const words = wayTapWords(d, d.ways[0]!);
+          return <TravelPopUp key={d.id} title={words.title} time={words.time} words={words.words} onClose={nothing} preview />;
+        })}
+      </Specimen>
       <Specimen name="Where to? (players): proposed by you, with Cancel; proposed by another in the group; a long name with three ways">
         <PlayersRows rows={[asPlayers(SPOTS[0]!)]} proposal={{ spot: 'wreck', way: 'row', by: 'you' }} />
         <PlayersRows rows={[asPlayers(SPOTS[1]!)]} proposal={{ spot: 'breakwater', way: 'row', by: 'Wren' }} />
@@ -344,7 +350,7 @@ function QueuePage() {
 }
 
 /**
- * The layout page's Moving on (`?moveOn=gm`, `way`, `obstacle`, `obstacle-plain`, `proposal`, `proposal-plain`,
+ * The layout page's Moving on (`?moveOn=gm`, `way`, `way-long`, `obstacle`, `obstacle-plain`, `proposal`, `proposal-plain`,
  * `players`, `players-other`, `queue`): each part over or on a plain page, for the layout checks and the pictures
  * of the built parts.
  */
@@ -359,7 +365,8 @@ export function MoveOnLayoutPage({ state }: { state: string }) {
       </main>
     );
   }
-  const opening = state === 'way' ? { id: 'wreck', key: 'row' } : state === 'obstacle' ? { id: 'cave', key: 'row' } : state === 'obstacle-plain' ? { id: 'shed', key: 'piles' } : undefined;
+  // `way-long` (sf-15; PU1 C): a long name that wraps in the step's title, and 999 turns.
+  const opening = state === 'way' ? { id: 'wreck', key: 'row' } : state === 'way-long' ? { id: 'stair', key: 'climb' } : state === 'obstacle' ? { id: 'cave', key: 'row' } : state === 'obstacle-plain' ? { id: 'shed', key: 'piles' } : undefined;
   return (
     <main className="gallery__move-page">
       <h1>The jetty</h1>

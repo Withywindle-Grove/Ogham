@@ -144,9 +144,24 @@ describe("a player's Where to? rows", () => {
 });
 
 describe("a player's Where to? words", () => {
-  it("titles a tap's pop-up with where and how, and says the GM moves the party (PL4c)", () => {
-    expect(wayTapWords({ name: 'The Wreck', explored: true }, { word: 'Rowing', time: '1 turn' })).toEqual({ title: 'To the Wreck, rowing', time: '1 turn.', words: 'Your GM moves the party. Say where you want to go.' });
-    expect(wayTapWords({ name: 'Unexplored', explored: false }, { word: 'Walking', time: '2 turns' }).title).toBe('Walking');
+  // Purpose (sf-15; page 44, PU1 B): the travel pop-up's title says the way and the place as the row names it, its
+  // time is the words after "Takes", and it says the GM moves the party.
+  it("titles a tap's pop-up with the way and the place, as the row names it (PU1 B)", () => {
+    expect(wayTapWords({ name: 'The Wreck', number: '2', explored: true }, { word: 'Row', time: '1 turn' })).toEqual({ title: 'Row to 2. The Wreck', time: '1 turn.', words: 'Your GM moves the party. Say where you want to go.' });
+    expect(wayTapWords({ name: 'The Wreck', number: null, explored: true }, { word: 'Row', time: '1 turn' }).title).toBe('Row to The Wreck');
+    expect(wayTapWords({ name: 'Unexplored', number: '2', explored: false }, { word: 'Row', time: '1 turn' }).title).toBe('Row to 2. Unexplored');
+    expect(wayTapWords({ name: 'Swimming', number: '999', explored: true }, { word: 'Swim', time: '999 turns' }).time).toBe('999 turns.');
+  });
+
+  // Purpose (sf-15, hidden data): a place with no number not yet explored (every row under "Elsewhere") is titled
+  // "an unexplored place": the title names nothing the row does not.
+  it('titles a way to an unexplored place with no number "an unexplored place"', () => {
+    expect(wayTapWords({ name: 'Unexplored', number: null, explored: false, area: null }, { word: 'Row', time: '1 turn' }).title).toBe('Row to an unexplored place');
+    const rows = playersDestinationsOf([link('r-shed', null, [way('row', 'Row', 1)], 1, at('2', 'The Harbour')), link('r-far', null, [way('row', 'Row', 1)], 1, at(null, null, true))], 1);
+    const elsewhere = rows.find((r) => r.area === WHERE_TO_WORDS.elsewhere)!;
+    expect(wayTapWords(elsewhere, elsewhere.ways[0]!).title).toBe('Row to an unexplored place');
+    // Under "Elsewhere" no number is shown, so none is said, even if one were ever given.
+    expect(wayTapWords({ ...elsewhere, number: '7' }, elsewhere.ways[0]!).title).toBe('Row to an unexplored place');
   });
 
   it('says when a kept list was read, where the count is known (PL9)', () => {

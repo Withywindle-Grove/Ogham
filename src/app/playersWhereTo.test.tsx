@@ -156,8 +156,9 @@ describe("a player's Where to? on the Scene (P2)", () => {
     expect(container.textContent).not.toMatch(/customs|sea cave|landing|Shingle|\b0\. /i);
   });
 
-  // Purpose (pw-1; PL4c; hard rule 3): a tap on a way's button is never a dead end and never a move: a pop-up says
-  // where and how, and that the GM moves the party; nothing is written.
+  // Purpose (pw-1; PL4c, redrawn by PU1 B, sf-15; hard rule 3): a tap on a way's button is never a dead end and never
+  // a move: a pop-up titled with the way and the place says how long ("Takes"), that the GM moves the party, and ends
+  // in "Got it"; nothing is written.
   it('opens a pop-up on a tap that says the GM moves the party, and writes nothing', async () => {
     const t = await harbour();
     await t.showFirst();
@@ -166,8 +167,10 @@ describe("a player's Where to? on the Scene (P2)", () => {
     const button = await waitFor(() => within(left).getByRole('button', { name: 'Rowing, 1 turn, to The wreck' }));
     const events = world.tables.events.length;
     fireEvent.click(button);
-    const popup = screen.getByRole('dialog', { name: 'To the wreck, rowing' });
+    const popup = screen.getByRole('dialog', { name: 'Rowing to The wreck' });
+    expect(within(popup).getByText('Takes')).toBeTruthy();
     expect(within(popup).getByText('1 turn.')).toBeTruthy();
+    expect(within(popup).getByRole('button', { name: 'Got it' })).toBeTruthy();
     expect(within(popup).getByText('Your GM moves the party. Say where you want to go.')).toBeTruthy();
     expect(world.tables.events.length).toBe(events);
   });

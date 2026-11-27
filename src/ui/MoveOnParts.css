@@ -248,10 +248,6 @@
   overflow-wrap: anywhere;
 }
 
-.move-sheet__move {
-  align-self: stretch;
-}
-
 .move-sheet__question {
   margin: var(--space-2) 0;
   font-family: var(--font-heading);
@@ -286,6 +282,17 @@
 
 .move-sheet__foot > button {
   margin-inline-start: auto;
+}
+
+/* The GM's way step's one foot row (page 44, PU1 A; sf-15): the standard pop-up's foot, Back at the left as the safe way
+   out, Move (the accent) at the right; Back alone where the GM answers above. */
+.dialog__actions.move-sheet__split {
+  justify-content: space-between;
+}
+
+/* A player's travel pop-up (PU1 B): the built sentence under "Takes". */
+.travel-pop__words {
+  margin: 0;
 }
 
 .move-sheet__count {

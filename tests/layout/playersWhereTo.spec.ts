@@ -47,7 +47,7 @@ for (const width of [375, 834, 1024] as const) {
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
         await wreck.getByRole('button', { name: 'Rowing, 1 turn, to 2. The wreck' }).click();
-        const popup = page.getByRole('dialog', { name: 'To the wreck, rowing' });
+        const popup = page.getByRole('dialog', { name: 'Rowing to 2. The wreck' });
         await expect(popup.getByText('Your GM moves the party. Say where you want to go.')).toBeVisible();
         await page.screenshot({ path: `test-results/layout-screens/players-where-to-tap-${width}-${scheme}.png` });
         expect(await accessibilityProblems(page)).toEqual([]);

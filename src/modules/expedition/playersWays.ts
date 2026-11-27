@@ -7,10 +7,10 @@ import type { RouteWay } from '../library/routes.ts';
 import type { WayOn } from '../library/waysOn.ts';
 import { isPartOfDay, type TimeUnits } from './clock.ts';
 import type { Mode } from './modes.ts';
-import { inSentence, wayTimeWords } from './moveOn.ts';
+import { wayTimeWords } from './moveOn.ts';
 import { areaSections, wayWordOf } from './moveOnRows.ts';
 import { wayKeyOf } from './moveOnWays.ts';
-import { byMapNumber } from './placeTree.ts';
+import { byMapNumber, keyedName } from './placeTree.ts';
 import { expeditionLine, stepOfLine, type Expedition } from './play.ts';
 
 /** One way's button on a player's row (`WayChoice` in src/ui/MoveOnParts.tsx). No icon: the read sends none (pf-25). */
@@ -95,13 +95,18 @@ export function playersDestinationsOf(ways: readonly WayOn[], group: number): Pl
 }
 
 /**
- * The pop-up of a tap on a way's button (PL4c; pw-1: proposing waits until after 5 December): its title, "To the wreck,
- * rowing", or the way's word alone where the far end isn't explored (nothing names it); the way's time; and who moves
- * the party.
+ * The pop-up of a tap on a way's button (PL4c, redrawn by sf-15, page 44 PU1 B; pw-1: proposing waits until after
+ * 5 December): its title, the way and the place as the row names it ("Row to 2. The wreck", "Row to 2. Unexplored"), or
+ * "Row to an unexplored place" for a place not explored with no number to say (every row under "Elsewhere"), so the
+ * title names nothing the row does not; the way's time, the words after "Takes"; and who moves the party.
  */
-export function wayTapWords(destination: Pick<PlayersDestination, 'name' | 'explored'>, way: Pick<PlayersWay, 'word' | 'time'>): { title: string; time: string; words: string } {
+export function wayTapWords(
+  destination: Pick<PlayersDestination, 'name' | 'explored' | 'number'> & { area?: string | null },
+  way: Pick<PlayersWay, 'word' | 'time'>,
+): { title: string; time: string; words: string } {
+  const unnamed = !destination.explored && (!destination.number || destination.area === WHERE_TO_WORDS.elsewhere);
   return {
-    title: destination.explored ? `To ${inSentence(destination.name)}, ${way.word.toLowerCase()}` : way.word,
+    title: `${way.word} to ${unnamed ? WHERE_TO_WORDS.anUnexplored : keyedName(destination.number, destination.name)}`,
     time: `${way.time}.`,
     words: WHERE_TO_WORDS.gmMoves,
   };
@@ -115,6 +120,8 @@ export const WHERE_TO_WORDS = {
   unexplored: 'Unexplored',
   /** sf-9 (⚑ 6, sf-19; WT1 B): the heading over the ways into an Area the group does not know. */
   elsewhere: 'Elsewhere',
+  /** sf-15 (PU1 B): a travel pop-up's place where the row has no number to say ("Row to an unexplored place"). */
+  anUnexplored: 'an unexplored place',
   /** PL4c: what a tap on a way's button says, for first play. */
   gmMoves: 'Your GM moves the party. Say where you want to go.',
   /** d5-2, p2p-flag4: the "End expedition" row's pop-up (the driver's wording). */

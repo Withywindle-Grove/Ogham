@@ -1,9 +1,11 @@
 // Moving on, as parts (December dec-7 piece 4a; mc-36, mc-36a, mc-41, mc-41a, mc-42, mc-42a), in a real browser on the
-// layout page (`?moveOn=gm`, `way`, `obstacle`, `obstacle-plain`, `proposal`, `proposal-plain`, `players`,
+// layout page (`?moveOn=gm`, `way`, `way-long`, `obstacle`, `obstacle-plain`, `proposal`, `proposal-plain`, `players`,
 // `players-other`, `queue`, `way-out`). What it checks, in plain words:
 //   * every way button is at least 44 px each way, the buttons of a row 8 px apart and all one size (width and height);
 //   * on a tablet a row's buttons sit at the right of its name, on one line; on a phone they take a line under it;
 //   * Yes and No sit side by side, equal; the obstacle block comes before the sheet's short lines;
+//   * a way's step (sf-15, PU1) is centred on a tablet and a sheet from the foot on a phone, Back at its foot's left and
+//     Move at its right; a long name wraps and 999 turns fits;
 //   * the list has no foot line, and at a way out it ends with End expedition, a full-width 44 px row (B9, B10);
 //   * nothing scrolls sideways and axe finds no serious problem, in light and dark, on every state of the page.
 import { expect, test, type Locator, type Page } from '@playwright/test';
@@ -14,6 +16,9 @@ const box = async (l: Locator) => {
   if (!b) throw new Error('not drawn');
   return b;
 };
+
+/** The pop-up at rest: a way's step is a sheet that slides up on a phone (200 ms), measured once it has stopped. */
+const settled = (dialog: Locator) => dialog.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
 
 /** Every way button in a row: 44 px or more, one size, 8 apart, on one line. */
 async function rowButtons(page: Page, rowName: string) {
@@ -75,7 +80,7 @@ for (const size of [
 
       // Purpose (B9, B10; page 24, WY1a and WY1d): the list has no foot line; at a Location the pack marks a way out it
       // ends with End expedition, after Somewhere else…, as wide as the list and a 44 px target; a way's step has no Where
-      // line and no line about the log, its foot the Back button alone.
+      // line and no line about the log, its one foot row Back then Move (PU1 A).
       test('no foot line; End expedition at a way out', async ({ page }) => {
         await page.goto('/layout.html?moveOn=way-out');
         const dialog = page.getByRole('dialog', { name: 'Move on: From the jetty, where to?' });
@@ -89,8 +94,54 @@ for (const size of [
         await page.goto('/layout.html?moveOn=way');
         const step = page.getByRole('dialog', { name: 'Move on: Rowing to 2. The wreck' });
         await step.getByRole('button', { name: 'Move' }).waitFor();
-        expect(await step.locator('.move-sheet__foot').innerText()).toBe('Back');
+        expect(await step.locator('.move-sheet__split button').allInnerTexts()).toEqual(['Back', 'Move']);
         expect(await step.locator('.move-summary dt').allInnerTexts()).toEqual(['Takes', 'Then']);
+      });
+
+      // Purpose (sf-15; page 44, PU1 A and D; sf-28): a plain way's step is the standard pop-up, as tall as its words:
+      // centred on a tablet, a sheet from the foot on a phone, the screen's width; one foot row, Back at its left edge
+      // and Move (the accent) at its right, level, each a 44 px target; the checks pass.
+      test('a way’s step: centred, or a sheet from the foot; Back left and Move right', async ({ page }) => {
+        await page.goto('/layout.html?moveOn=way');
+        const step = page.getByRole('dialog', { name: 'Move on: Rowing to 2. The wreck' });
+        await step.getByRole('button', { name: 'Move' }).waitFor();
+        await settled(step);
+        await expect(step).not.toHaveClass(/dialog--wide/);
+        const card = await box(step);
+        if (size.name === 'tablet') {
+          expect(Math.abs(card.x + card.width / 2 - size.width / 2)).toBeLessThanOrEqual(1);
+          expect(Math.abs(card.y + card.height / 2 - size.height / 2)).toBeLessThanOrEqual(1);
+          expect(card.width).toBeLessThan(size.width / 2);
+        } else {
+          expect(Math.abs(card.y + card.height - size.height)).toBeLessThanOrEqual(1);
+          expect(Math.abs(card.width - size.width)).toBeLessThanOrEqual(1);
+        }
+        const [foot, back, move] = await Promise.all([box(step.locator('.move-sheet__split')), box(step.getByRole('button', { name: 'Back' })), box(step.getByRole('button', { name: 'Move' }))]);
+        expect(Math.abs(back.x - foot.x)).toBeLessThanOrEqual(1);
+        expect(Math.abs(move.x + move.width - (foot.x + foot.width))).toBeLessThanOrEqual(1);
+        expect(Math.abs(back.y + back.height / 2 - (move.y + move.height / 2))).toBeLessThanOrEqual(1);
+        expect(Math.min(back.height, move.height)).toBeGreaterThanOrEqual(44);
+        await page.screenshot({ path: `test-results/layout-screens/move-on-step-${size.name}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+      });
+
+      // Purpose (sf-15; PU1 C): a long name wraps inside the step's title and 999 turns fits its line; the foot stays
+      // one row; nothing scrolls sideways.
+      test('a way’s step with a long name and 999 turns', async ({ page }) => {
+        await page.goto('/layout.html?moveOn=way-long');
+        const step = page.getByRole('dialog', { name: 'Move on: Climbing to 6. The Long Stair of the Drowned Customs House' });
+        await step.getByRole('button', { name: 'Move' }).waitFor();
+        await settled(step);
+        const [card, title, takes] = await Promise.all([box(step), box(step.locator('.dialog__title')), box(step.locator('.move-summary dd').first())]);
+        expect(title.x + title.width).toBeLessThanOrEqual(card.x + card.width);
+        expect(takes.x + takes.width).toBeLessThanOrEqual(card.x + card.width);
+        await expect(step.locator('.move-summary dd').first()).toContainText('999 turns');
+        const [back, move] = await Promise.all([box(step.getByRole('button', { name: 'Back' })), box(step.getByRole('button', { name: 'Move' }))]);
+        expect(Math.abs(back.y + back.height / 2 - (move.y + move.height / 2))).toBeLessThanOrEqual(1);
+        await page.screenshot({ path: `test-results/layout-screens/move-on-step-long-${size.name}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
       });
 
       // Purpose: a way with an obstacle shows the obstacle block before the short lines, then Yes and No side by side,
@@ -98,6 +149,8 @@ for (const size of [
       test('a way with an obstacle: the block first, Yes and No equal', async ({ page }) => {
         await page.goto('/layout.html?moveOn=obstacle');
         const dialog = page.getByRole('dialog', { name: 'Move on: Rowing to 5. The sea cave' });
+        await dialog.getByRole('button', { name: 'Yes' }).waitFor();
+        await settled(dialog);
         const [block, lines, yes, no] = await Promise.all([box(dialog.locator('.obstacle-block')), box(dialog.locator('.move-summary')), box(dialog.getByRole('button', { name: 'Yes' })), box(dialog.getByRole('button', { name: 'No' }))]);
         expect(lines.y).toBeGreaterThan(block.y + block.height - 1);
         expect(Math.abs(yes.width - no.width)).toBeLessThan(1);

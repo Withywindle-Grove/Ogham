@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MoveOnLayoutPage } from '../gallery/MoveOnSpecimens.tsx';
 import { ICON_SET } from './iconSet.ts';
 import { StepIcon } from './icons.tsx';
-import { DestinationRow, MoveOnSheet, ObstacleBlock, ProposalSheet, WhereTo, type GmDestination, type WayMove } from './MoveOnParts.tsx';
+import { DestinationRow, MoveOnSheet, ObstacleBlock, ProposalSheet, TravelPopUp, WhereTo, type GmDestination, type WayMove } from './MoveOnParts.tsx';
 
 afterEach(cleanup);
 
@@ -257,6 +257,28 @@ describe('the GM’s own Move on (frames 11, 12, 13)', () => {
     expect(screen.getByRole('dialog', { name: 'Move on: From the jetty, where to?' })).toBeTruthy();
   });
 
+  // Purpose (sf-15; page 44, PU1 A): a plain way's step is the standard pop-up, not the wide one, with one foot row:
+  // Back at the left, then Move (the accent, with the footprints) at the right; nothing else stands in its foot.
+  it('a plain way’s step: one foot row, Back at the left and Move at the right (PU1 A)', async () => {
+    render(sheet());
+    await userEvent.click(screen.getByRole('button', { name: 'Rowing, 1 turn, to 2. The wreck' }));
+    const dialog = screen.getByRole('dialog', { name: 'Move on: Rowing to 2. The wreck' });
+    expect(dialog.className).not.toContain('dialog--wide');
+    const foot = dialog.querySelector('.move-sheet__split')!;
+    expect(foot.classList.contains('dialog__actions')).toBe(true);
+    expect([...foot.querySelectorAll('button')].map((b) => b.textContent)).toEqual(['Back', 'Move']);
+    expect(foot.querySelector('.button-primary')!.querySelector('svg')).toBeTruthy();
+    expect(dialog.querySelectorAll('.button-primary')).toHaveLength(1);
+  });
+
+  // Purpose (sf-15): with an obstacle the GM decides, Back still stands at the foot's left, alone; Yes and No stay above.
+  it('a way the GM decides: Back alone at the foot’s left (PU1 A)', async () => {
+    render(sheet());
+    await userEvent.click(screen.getByRole('button', { name: 'Rowing, 2 turns, to 5. The sea cave' }));
+    const dialog = screen.getByRole('dialog', { name: 'Move on: Rowing to 5. The sea cave' });
+    expect([...dialog.querySelectorAll('.move-sheet__split button')].map((b) => b.textContent)).toEqual(['Back']);
+  });
+
   // Purpose (frame 13): a way with an obstacle the GM decides says the obstacle first, then asks "Do they get through?"
   // with Yes and No equal and plain (no accent); no line explains the log (p2p-17) or No's time.
   it('a way with an obstacle: the obstacle first, then Yes and No, plain', async () => {
@@ -464,6 +486,26 @@ describe('the GM’s rows and the players’ headings (sf-9; page 44, WT1)', () 
     const rows = [...where.querySelectorAll('.destination-row')];
     expect(rows[rows.length - 1]!.getAttribute('aria-label')).toBe('Unexplored');
     expect(within(rows[rows.length - 1] as HTMLElement).getByText('Rowing.')).toBeTruthy();
+  });
+});
+
+describe('the players’ travel pop-up (sf-15; page 44, PU1 B)', () => {
+  // Purpose: the pop-up is titled with the way and the place, says "Takes" before the time as the GM's line does, then
+  // the built sentence, and ends in a plain "Got it" that closes it; there is no accent.
+  it('titles, labels the time, and ends in a plain Got it', async () => {
+    const onClose = vi.fn();
+    render(<TravelPopUp title="Row to 2. Unexplored" time="1 turn." words="Your GM moves the party. Say where you want to go." onClose={onClose} />);
+    const dialog = screen.getByRole('dialog', { name: 'Row to 2. Unexplored' });
+    expect([...dialog.querySelectorAll('.move-summary dt')].map((d) => d.textContent)).toEqual(['Takes']);
+    expect(dialog.querySelector('.move-summary dd')!.textContent).toBe('1 turn.');
+    expect(within(dialog).getByText('Your GM moves the party. Say where you want to go.')).toBeTruthy();
+    const gotIt = within(dialog).getByRole('button', { name: 'Got it' });
+    expect(gotIt.className).toContain('button-secondary');
+    expect(dialog.querySelector('.button-primary')).toBeNull();
+    // Its title is the plain one, never the book's red heading.
+    expect(dialog.querySelector('.dialog__title--plain')).toBeTruthy();
+    await userEvent.click(gotIt);
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });
 

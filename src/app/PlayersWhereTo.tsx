@@ -13,7 +13,7 @@ import type { Db } from '../core/supabase.ts';
 import { loadWaysOn, type WayOn } from '../modules/library/waysOn.ts';
 import { playersDestinationsOf, WHERE_TO_WORDS, wayTapWords, type PlayersDestination, type PlayersWay } from '../modules/expedition/playersWays.ts';
 import { Dialog } from '../ui/Dialog.tsx';
-import { AreaRows, DestinationRow, WayLine, WhereTo } from '../ui/MoveOnParts.tsx';
+import { AreaRows, DestinationRow, TravelPopUp, WayLine, WhereTo } from '../ui/MoveOnParts.tsx';
 import { SkeletonRows } from '../ui/parts.tsx';
 import { EndExpeditionRow, RefreshFailedRow, WhereToLine } from '../ui/WhereToParts.tsx';
 import { useLogVersion } from './campaignLog.tsx';
@@ -65,7 +65,8 @@ type Open = { destination: PlayersDestination; way: PlayersWay } | 'end' | null;
 /**
  * A group's Where to? in its place's card, once something of the place is shown (PL1): a row a destination, its ways as
  * stacked buttons (the picture for the way's `by`, its word, its time); every row with its map number, in number order;
- * a far end not yet explored reads "N. Unexplored" or "Unexplored", its way under it; where the ways lead into more
+ * a far end not yet explored reads "N. Unexplored" or "Unexplored", its way under it; a tap on a way opens its travel
+ * pop-up (`TravelPopUp`; page 44, PU1 B, sf-15); where the ways lead into more
  * than one Area, each Area's name, or "Elsewhere", over its rows (sf-9; page 44, WT1 B and C, PS1, PS3 C). At a Location marked a way out (`wayOut`), "End expedition" is the last row (d5-2). With no way to show
  * and no such row, nothing at all: "Where to?" is left out (d5-1). While the first read is out, still bars under the
  * heading; a failed read keeps the last list, with a row that says so and Try again (PL9). `step` is the mode's count
@@ -108,12 +109,7 @@ export function PlayersWhereTo({ read, group, step, wayOut = false }: { read: Wa
         </AreaRows>
         {wayOut && <EndExpeditionRow onOpen={() => setOpen('end')} />}
       </WhereTo>
-      {tapped && (
-        <Dialog label={tapped.title} onClose={() => setOpen(null)}>
-          <p>{tapped.time}</p>
-          <p>{tapped.words}</p>
-        </Dialog>
-      )}
+      {tapped && <TravelPopUp title={tapped.title} time={tapped.time} words={tapped.words} onClose={() => setOpen(null)} />}
       {open === 'end' && (
         <Dialog label={WHERE_TO_WORDS.endTitle} onClose={() => setOpen(null)}>
           <p>{WHERE_TO_WORDS.gmEnds}</p>
