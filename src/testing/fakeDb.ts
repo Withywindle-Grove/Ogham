@@ -95,7 +95,8 @@ export interface FakeWorld {
     | 'hook_sends'
     | 'finds_seen'
     | 'calls_seen'
-    | 'shop_stock',
+    | 'shop_stock'
+    | 'check_reveals',
     Row[]
   >;
   /** Stored files by path (<campaign id>/<asset id>). */
@@ -225,6 +226,8 @@ export function createFakeDb(): FakeWorld {
     calls_seen: [],
     // A shop's stock for the day (W12): written only by set_shop_stock and reset_shop_stock.
     shop_stock: [],
+    // A reveal of a hit's words (sf-7a): written only by show_check_words and take_back_check_words.
+    check_reveals: [],
   };
   const files = new Map<string, Blob>();
 
@@ -1080,9 +1083,28 @@ export function createFakeDb(): FakeWorld {
     log('group_places', null, structuredClone(made), tag);
     return made;
   };
+  /**
+   * Like the database (sf-7a, sf-20): a reveal's two lines of one request, the GM's own and the players', written
+   * directly. Each keeps which of the command's requests wrote it (`request_part`), as the database's lines do.
+   */
+  const revealLines = (reveal: Row, type: string, forGm: Row, forPlayers: Row, tag: Tag) => {
+    const requestId = tag?.requestId ?? crypto.randomUUID();
+    for (const [audience, after] of [['gm', forGm], ['all', forPlayers]] as const) {
+      nextSeq();
+      const event: Row = {
+        id: `event-${seq}`, seq, campaign_id: reveal.campaign_id, type, level: 'simple', actor_user_id: me(), target_table: 'check_reveals', target_id: reveal.id,
+        before: null, after, fiat: false, reason: null, reverts_event_id: null, audience, owner_user_id: null, reveal_at: 'now', request_id: requestId, request_part: tag?.part ?? null, created_at: new Date().toISOString(),
+      };
+      tables.events.push(event);
+      for (const watcher of watchers) if (watcher.campaignId === reveal.campaign_id && mayRead(event, watcher.me)) queueMicrotask(watcher.onNew);
+    }
+  };
   const repeated = (tag: Tag, id: unknown) => !!tag?.requestId && tables.events.some((e) => e.request_id === tag.requestId && e.target_id === id);
+  // Like private.made_by_request, for a line that keeps its request's part (a reveal's, sf-7a): a repeat is the same
+  // request and the same part, and a request that names no part matches none. The log's other lines here keep no part.
+  const samePart = (e: Row, tag: Tag) => !('request_part' in e) || (tag?.part !== undefined && e.request_part === tag.part);
   const madeBy = (table: string, tag: Tag) =>
-    tag?.requestId ? tables.events.find((e) => e.request_id === tag.requestId && e.target_table === table && e.before === null && e.actor_user_id === me()) : undefined;
+    tag?.requestId ? tables.events.find((e) => e.request_id === tag.requestId && e.target_table === table && e.before === null && e.actor_user_id === me() && samePart(e, tag)) : undefined;
   const isStale = (row: Row, seen: unknown) => seen !== undefined && seen !== null && row.version !== seen;
   const staleResult: Result = { data: null, error: { message: STALE, code: STALE_CODE } };
   const plain = (message: string): Result => ({ data: null, error: { message } });
@@ -3385,6 +3407,51 @@ export function createFakeDb(): FakeWorld {
       changeRow('check_results', row, { table_id: trimmed(table_id), roll: trimmed(roll), row_text: trimmed(row_text) }, tag);
       return copy(row);
     },
+    // A reveal's words (sf-7a), like supabase/migrations/20261126200000_sf_7a_reveal_words.sql: the GM shows the players
+    // words for a hit, and takes them back. One reveal stands for a hit at a time; the result itself stays unrevealed.
+    // Each writes two lines itself (the table has no log trigger): the GM's with the words, the hit and the row, the
+    // players' with the words they were shown and nothing of the check (sf-20).
+    show_check_words: ({ result, words }, tag) => {
+      const made = madeBy('check_reveals', tag);
+      if (made) {
+        const was = tables.check_reveals.find((r) => r.id === made.target_id);
+        return was && isGmOf(was.campaign_id) ? copy(was) : refused("You don't have permission to do that.");
+      }
+      const hit = tables.check_results.find((r) => r.id === result);
+      if (!hit || !isGmOf(hit.campaign_id)) return refused("You don't have permission to do that.");
+      if (hit.undone) return plain('That result was undone.');
+      if (hit.outcome !== 'hit') return plain('Only a hit has something to show.');
+      const said = typeof words === 'string' ? words.trim() : '';
+      if (!said) return plain('Write what the players see first.');
+      if (said.length > 2000) return plain("That's too long to show. Keep it under 2,000 characters.");
+      const standing = tables.check_reveals.find((r) => r.check_result_id === hit.id && !r.taken_back);
+      if (standing) return standing.words === said ? copy(standing) : plain('The players were shown other words for this. Take those back first.');
+      const now = new Date(Date.now() + nextId).toISOString();
+      const row: Row = { id: newId('reveal'), campaign_id: hit.campaign_id, check_result_id: hit.id, words: said, shown_at: now, taken_back: false, created_at: now, updated_at: now };
+      tables.check_reveals.push(row);
+      revealLines(row, 'check.showWords', { words: said, check_result_id: hit.id, ...(hit.row_text ? { row: hit.row_text } : {}) }, { shown: true, words: said }, tag);
+      return copy(row);
+    },
+    take_back_check_words: ({ reveal }, tag) => {
+      const row = tables.check_reveals.find((r) => r.id === reveal);
+      if (!row || !isGmOf(row.campaign_id)) return refused("You don't have permission to do that.");
+      if (row.taken_back) return copy(row);
+      row.taken_back = true;
+      row.updated_at = new Date().toISOString();
+      revealLines(row, 'check.takeBackWords', { words: row.words, check_result_id: row.check_result_id, taken_back: true }, { shown: false }, tag);
+      return copy(row);
+    },
+    // Like public.revealed_words: for a member, the reveals that stand (not taken back, their check result not undone),
+    // newest first, as three columns and no other. Someone outside the campaign gets nothing.
+    revealed_words: ({ campaign }) => ({
+      data: isMemberOf(campaign)
+        ? tables.check_reveals
+            .filter((r) => r.campaign_id === campaign && !r.taken_back && tables.check_results.some((c) => c.id === r.check_result_id && !c.undone))
+            .sort((x, y) => String(y.shown_at).localeCompare(String(x.shown_at)))
+            .map((r) => ({ id: r.id, words: r.words, shown_at: r.shown_at }))
+        : [],
+      error: null,
+    }),
     // Like the database (M5b step g3): the pins in play now are those made since the last session ended.
     table_pins_now: ({ campaign }) => {
       if (!isGmOf(campaign)) return { data: [], error: null };
@@ -5248,7 +5315,7 @@ class Query implements PromiseLike<Result> {
         created_at: new Date(Date.UTC(2026, 9, 19) + createdOrder++).toISOString(),
         ...row,
       }));
-    } else if (this.table === 'purses' || this.table === 'finds_seen' || this.table === 'calls_seen') {
+    } else if (this.table === 'purses' || this.table === 'finds_seen' || this.table === 'calls_seen' || this.table === 'check_reveals') {
       // Like the database: the purse row is made with its character or stash, and a seen mark by mark_finds_seen
       // (K20), never by a device (refused in runQuery).
       this.inserted = [];
@@ -5469,7 +5536,8 @@ class Query implements PromiseLike<Result> {
       return { data: null, error: { message: 'permission denied for table purses', code: '42501' } };
     }
     // Like the database (K20): a seen mark has no write grant; only mark_finds_seen writes it.
-    if ((this.table === 'finds_seen' || this.table === 'calls_seen') && (this.inserted || this.patch || this.deleting)) {
+    // A reveal's words (sf-7a) likewise: only show_check_words and take_back_check_words write it.
+    if ((this.table === 'finds_seen' || this.table === 'calls_seen' || this.table === 'check_reveals') && (this.inserted || this.patch || this.deleting)) {
       return { data: null, error: { message: `permission denied for table ${this.table}`, code: '42501' } };
     }
     if (this.inserted && this.duplicate) {
@@ -5781,6 +5849,8 @@ class Query implements PromiseLike<Result> {
     // Like the access rules (M5 step 6): members read the public reminders and the revealed check results only.
     if (this.table === 'reminders') rows = rows.filter((row) => this.isGm(row.campaign_id) || (this.isMember(row.campaign_id) && row.is_public === true && !row.undone));
     if (this.table === 'check_results') rows = rows.filter((row) => this.isGm(row.campaign_id) || (this.isMember(row.campaign_id) && row.revealed === true && !row.undone));
+    // Like the access rules (sf-7a): the GM alone reads a reveal's row (it names the hit); players' words come from revealed_words.
+    if (this.table === 'check_reveals') rows = rows.filter((row) => this.isGm(row.campaign_id));
     // Like the access rules (M5b): every member reads today's weather.
     if (this.table === 'weather_rolls') rows = rows.filter((row) => this.isMember(row.campaign_id));
     // Like the access rules (M5 step 8): members read the marching order; changes go through its functions only.
@@ -6068,12 +6138,12 @@ function snapshotLogged(tables: FakeWorld['tables']) {
 }
 
 /** The command's tag from the request header, decoded like the database does. */
-function readTag(headers: Headers): { type: string; level: string; requestId: string; fiat?: boolean; reason?: string | null } | null {
+function readTag(headers: Headers): { type: string; level: string; requestId: string; part?: number; fiat?: boolean; reason?: string | null } | null {
   const value = headers.get('x-grimoire-command');
   if (!value) return null;
   try {
     const bytes = Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
-    const parsed = JSON.parse(new TextDecoder().decode(bytes)) as { type: string; level: string; requestId: string; fiat?: boolean; reason?: string | null; whatFor?: unknown };
+    const parsed = JSON.parse(new TextDecoder().decode(bytes)) as { type: string; level: string; requestId: string; part?: number; fiat?: boolean; reason?: string | null; whatFor?: unknown };
     // Like the database: a purse line's own words come from the function, never from the header (dec-6b review).
     delete parsed.whatFor;
     return parsed;

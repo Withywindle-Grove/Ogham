@@ -118,6 +118,52 @@ export async function loadRevealedResults(db: Db, campaignId: string): Promise<C
   return (results ?? []).filter((r) => r.expeditionId === id);
 }
 
+/**
+ * A reveal of a hit, as the GM reads it (sf-7a; the table `check_reveals` is the GM's alone): the hit it belongs to, the
+ * words the GM confirmed, when, and whether it was taken back. Nothing of the check is kept on it.
+ */
+export interface CheckReveal {
+  id: string;
+  campaignId: string;
+  checkResultId: string;
+  words: string;
+  shownAt: string;
+  takenBack: boolean;
+}
+
+export function toCheckReveal(row: Record<string, unknown>): CheckReveal {
+  return {
+    id: String(row.id),
+    campaignId: String(row.campaign_id),
+    checkResultId: String(row.check_result_id),
+    words: String(row.words ?? ''),
+    shownAt: String(row.shown_at ?? ''),
+    takenBack: row.taken_back === true,
+  };
+}
+
+/** What a player's device is sent of a reveal (sf-7a): the reveal's own id, the words and when. Nothing of the check. */
+export interface RevealedWords {
+  id: string;
+  words: string;
+  shownAt: string;
+}
+
+/** The GM's reveals that stand (not taken back), newest first. A player reads none of these rows. Null if unreadable. */
+export async function loadCheckReveals(db: Db, campaignId: string): Promise<CheckReveal[] | null> {
+  const { data, error } = await db.from('check_reveals').select('*').eq('campaign_id', campaignId).eq('taken_back', false).order('shown_at', { ascending: false });
+  return error ? null : ((data ?? []) as Record<string, unknown>[]).map(toCheckReveal);
+}
+
+/**
+ * The words the GM showed that still stand, newest first, as any member of the campaign reads them (the database's
+ * `revealed_words`: three columns and no other). One taken back is not in it. Null if unreadable.
+ */
+export async function loadRevealedWords(db: Db, campaignId: string): Promise<RevealedWords[] | null> {
+  const { data, error } = await db.rpc('revealed_words', { campaign: campaignId });
+  return error ? null : (data ?? []).map((row) => ({ id: row.id, words: row.words, shownAt: row.shown_at }));
+}
+
 /** Every item line that recharges on a timer (the GM reads them all): its id, name and its own `recharge`. */
 export async function loadRecharging(db: Db, campaignId: string): Promise<{ lineId: string; name: string; recharge: unknown; line: Record<string, unknown> }[]> {
   const { data, error } = await db.from('inventory_lines').select('*').eq('campaign_id', campaignId);
@@ -275,7 +321,26 @@ export const revealCheck = defineCommand({
   run: (db, _user, input) => rpcRow(db.rpc('reveal_check', { result: input.result.id, seen_version: input.result.version }), toCheckResult),
 });
 
-export const REMINDER_COMMANDS = [addReminder, editReminder, recordCheck, recordCheckAgain, recordCheckNow, setCheckRoll, revealCheck] as const;
+/**
+ * "Show players" (sf-7a; the critique's finding 1 on page 44): the GM shows the players these words for a hit, and
+ * nothing else of it. The result itself stays unrevealed (its own lines open at the next Downtime, sf-22).
+ */
+export const showCheckWords = defineCommand({
+  name: 'check.showWords',
+  target: (input: { campaignId: string; resultId: string; words: string }) => ({ campaignId: input.campaignId }),
+  allowed: gmOnly,
+  run: (db, _user, input) => rpcRow(db.rpc('show_check_words', { result: input.resultId, words: input.words }), toCheckReveal),
+});
+
+/** The GM takes a reveal back (sf-7a): players stop reading its words. The row stays, marked. */
+export const takeBackCheckWords = defineCommand({
+  name: 'check.takeBackWords',
+  target: (input: { campaignId: string; revealId: string }) => ({ campaignId: input.campaignId }),
+  allowed: gmOnly,
+  run: (db, _user, input) => rpcRow(db.rpc('take_back_check_words', { reveal: input.revealId }), toCheckReveal),
+});
+
+export const REMINDER_COMMANDS = [addReminder, editReminder, recordCheck, recordCheckAgain, recordCheckNow, setCheckRoll, revealCheck, showCheckWords, takeBackCheckWords] as const;
 
 /** A unit's one name, from either form ("turns" or "turn", "watches" or "watch"), as it was written otherwise. */
 export function unitOne(unit: string): string {
