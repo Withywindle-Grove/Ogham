@@ -1,7 +1,7 @@
 ---
-status: draft for sitting B
+status: approved at sitting B, 2026-11-27 (tickets #162 to #171)
 loop: 2
-rulings: docs/design/rulings/player-sitting-sheet-2026-11-27.md (pss-1 to pss-17; "For the spec (loop 2)"); ic-3 (docs/design/rulings/dec-night-2026-11-14.md)
+rulings: docs/design/rulings/player-sitting-sheet-2026-11-27.md (pss-1 to pss-17; "For the spec (loop 2)"); docs/design/rulings/player-sitting-b-2026-11-27.md (psb-1 to psb-8); ic-3 (docs/design/rulings/dec-night-2026-11-14.md)
 mockups: december/14 frames P3 and P5b (approved 2026-11-27); page 28 frame M4g (approved 2026-11-20); three frames owed (38-3 at 375 px, the icon page, the light block with Use)
 ---
 
@@ -32,9 +32,9 @@ The Player tab does what the sitting ruled:
 | # | Piece | What the player sees | Frame | Ruling |
 |---|---|---|---|---|
 | 1 | Details | Each entry name is a tap that opens its entry. The backstory has the label "Backstory". With nothing written, there is no Details part at all. One line for each thing, in the sheet's order | P3, "opened" and "almost nothing" panels; approved 2026-11-27 | pss-1, pss-9 |
-| 2 | The pinned spell | A pinned spell is a block in At hand, like the weapon in hand's: the star and its name, its state ("Memorized, 1 of 2 left"), its roll, its range, and Cast | M4g, left panel and right panel; approved 2026-11-20 | pss-5, euf-6, pin-1, pg28-2 |
-| 3 | The Pin star on a spell's sheet | A spell's sheet on the Magic tab has the Pin star beside ✕, as every other sheet has | None: approved from a picture of the built sheet | pss-6 |
-| 4 | Down | At the rules' `death.at`, a Status ring "Down" shows among the character's other statuses in the head | None: approved from a picture of the built screen | pss-7 |
+| 2 | The pinned spell | A pinned spell (any spell in the book) is a block in At hand, like the weapon in hand's: the star and its name, its state ("Memorized, 1 of 2 left"), its roll, its range, and Cast | M4g, left panel and right panel; approved 2026-11-20 | pss-5, psb-4, psb-5, euf-6, pin-1, pg28-2 |
+| 3 | The Pin star on a spell's sheet | A spell's sheet on the Magic tab has the Pin star beside ✕, as every other sheet has (any spell in the book) | None: approved from a picture of the built sheet | pss-6 |
+| 4 | Down | At the rules' `death.at`, a Status ring "Down" shows among the character's other statuses in the head | None: approved from a picture of the built screen | pss-7, psb-1 to psb-3 |
 | 5 | Weapon blocks | A weapon block only for what is in hand (two at most). Every other ready weapon is an At hand row with Wield | P5b; approved 2026-11-27 | pss-8 |
 | 6 | Armour mode's load card | No "Move N" on its top line. The speed is said once, in the speed tile | None: approved from a picture of the built card | pss-12 |
 | 7 | A long name on a phone | A cut name leaves the bar and leads the head's line, as on an upright tablet | **Owed**: 38-3 at 375 px, light and dark | pss-14 |
@@ -60,7 +60,7 @@ Pictures owed with this work, nothing new to build: "none left" on a trait as bu
 
 **The pinned spell (pieces 2 and 3)**
 
-10. As a caster, I want a Pin star beside ✕ on a spell's sheet on the Magic tab, so that I can pin a spell I cast often.
+10. As a caster, I want a Pin star beside ✕ on any spell's sheet on the Magic tab, ready or not, so that I can pin a spell I cast often (psb-4).
 11. As a caster, I want the toast "<name> pinned to the top" with Undo, so that I can take back a pin I did not mean.
 12. As a caster, I want a pinned spell to show in At hand as a block, so that I can cast it from the Player tab.
 13. As a caster, I want the block to show the star and the spell's name, so that I see it is pinned.
@@ -73,7 +73,7 @@ Pictures owed with this work, nothing new to build: "none left" on a trait as bu
 20. As a caster with two pinned spells, I want the two blocks one after the other, so that At hand stays in order.
 21. As a caster, I want the pinned things At hand to come first in At hand and take no drag handle, so that At hand keeps its own order (pg28-2).
 22. As a caster, I want to tap the block's name to open the spell's sheet, with the star filled, so that I can unpin it there.
-23. As a caster, I want a pinned spell that I no longer have ready to leave At hand by itself, so that I never see a spell I cannot cast.
+23. As a caster, I want a pinned spell that is in my book but not ready today to keep its block, saying "Not memorized" (or the setting's own word), with Cast saying in a pop-up why it cannot be cast today, so that my pin is kept (psb-5). A pin whose spell has left the book is ignored, as `livePins` does.
 24. As a caster on a phone, I want the block to fit at 375 px, so that I can cast from a phone too.
 25. As a GM viewing a player, I want the pinned spell block to show as the player sees it, so that I see what they see.
 
@@ -140,17 +140,17 @@ Pictures owed with this work, nothing new to build: "none left" on a trait as bu
 
 **Pieces 2 and 3, the pinned spell**
 - The Magic tab's spell sheet passes `PinStar` as its `headAction`, as the trait sheet does. Its toast and Undo are the shared Pin star's.
-- At hand reads pins only through `livePins`. A spell pin is live while the spell is still ready for the character (memorized or prepared). A pin whose spell is gone stays stored and is ignored, as today.
+- Any spell in the book can be pinned, ready or not (psb-4). At hand reads pins only through `livePins`. A spell pin is live while the spell is in the character's book. A pin whose spell has left the book stays stored and is ignored, as today. A pin is kept when the spell is not ready today.
 - At hand order (pg28-2, M4g): the weapon in hand's block stays above At hand, outside it; inside At hand, the pinned spells come first, as blocks, then the items (pinned first, as today), then the light.
 - A pinned spell's block is a named variant of the weapon in hand's block (the Components inventory, "Weapon in hand"), not a copy. The block shows: the small filled star and the name (a tap that opens the spell's sheet); the state line; the roll line when the spell has one; the range line when it has one; Cast at the right.
-- The state line uses the Magic tab's own count of castings ("Memorized, 1 of 2 left"). The words for "Memorized" come from where the Magic tab gets them, not a new string.
-- Cast runs the same command, the same toast (`castToastText`) and the same Undo as the Magic tab. With no casting left, Cast stays tappable and opens a pop-up that says why (hard rule 10).
-- A spell prepared at more than one level: the block shows one block for the spell, and Cast spends from the level the Magic tab would spend first. ⚑ for sitting B if the Magic tab has no such rule (see Further Notes).
-- On the Player tab, the pinned spell shows once (At hand). The Magic tab keeps listing it, its sheet's star filled.
+- The state line uses the Magic tab's own count of castings ("Memorized, 1 of 2 left"). A spell in the book but not ready today says "Not memorized", or the setting's own word (psb-5). The words come from where the Magic tab gets them, not a new string.
+- Cast runs the same command, the same toast (`castToastText`) and the same Undo as the Magic tab. With no casting left, or the spell not ready today, Cast stays tappable and opens a pop-up that says why (hard rule 10, psb-5).
+- A spell ready at more than one level: one block for the spell; Cast spends as the Magic tab's Cast would (psb-6).
+- On the Player tab, the pinned spell shows once (At hand). The Magic tab keeps listing it, its sheet's star filled (psb-7).
 
 **Piece 4, Down**
 - A pure function gives the head's status list: the character's statuses, plus "Down" when `downAtOf(rulesSets)` is not null and hit points are at or below it. The head's ring part draws that list. Down is not stored: it is worked out each time.
-- The Down ring is a Status ring with no end (a dashed track, no arc), in the harm tone. Its symbol, its place among the rings, and what its tap opens are read in Further Notes for sitting B.
+- The Down ring is a Status ring with no end (a dashed track, no arc), in the harm tone (psb-1). It is first among the rings and shows only while the character is Down (psb-2). Its tap opens the death panel (psb-3). Its symbol is one of the 25 approved; if none fits, the builder stops and Francis selects one (no first-letter fallback).
 - The existing "Down" toast (`burstWords`) stays.
 
 **Piece 5, weapon blocks**
@@ -188,7 +188,7 @@ Three test points, all in use today (Francis, 2026-11-27: "Yes"):
 
 - A good test checks what a player sees or what a function returns, never how a component is built inside.
 - Each test's purpose is written first, as a plain sentence.
-- New layout fixtures go in the layout harness as `p1` flags: a caster with pinned spells (one with a long name, one with none left, one with no roll), a character at `death.at`, a character with several ready weapons, a lit lantern with charges at hand.
+- New layout fixtures go in the layout harness as `p1` flags: a caster with pinned spells (one with a long name, one with none left, one with no roll, one in the book but not ready), a character at `death.at`, a character with several ready weapons, a lit lantern with charges at hand.
 - The examples are invented ("Marsh light", "Hush", "Bog folk"): no game IP (hard rule 2).
 - Database tests: none needed (no migration, no read rule). The pin and cast commands keep their existing permission cases.
 
@@ -204,15 +204,18 @@ Three test points, all in use today (Francis, 2026-11-27: "Yes"):
 
 ## Further Notes
 
-**Readings for sitting B** (the spec reads these one way; Francis confirms or changes them):
+**Ruled at sitting B** (`docs/design/rulings/player-sitting-b-2026-11-27.md`; Francis, 2026-11-27):
 
-1. **The Down ring's look.** Read: the harm tone, no end (a dashed track); its symbol one of the 25 approved if one fits, else its first letter, as the Status ring part does for any status with no icon. Approved from a picture anyway (pss-7).
-2. **The Down ring's place.** Read: first among the rings, so it is always in view.
-3. **The Down ring's tap.** Read: it opens the death panel, as tapping a Down character does (05, "Tapping a Down character opens the death panel").
-4. **Which spells take the star.** Read: a spell ready for the character (one the Magic tab lists with Cast). A spell that is only in the book takes no star.
-5. **A spell ready at two levels.** Read: one block; Cast spends as the Magic tab's Cast on that spell would.
-6. **The Magic tab after a pin.** Read: it keeps listing the spell (it is that tab's list; "shows once" is the Player tab's rule).
-7. **The full sheet with nothing written.** Read: it keeps "Nothing written yet." (P3 is the Player tab only).
+| Id | Ruled |
+|---|---|
+| psb-1 | The Down ring: harm tone, dashed track (no end); its symbol one of the 25 approved. None fits: the builder stops and Francis selects one |
+| psb-2 | First among the rings; shown only while Down |
+| psb-3 | Its tap opens the death panel |
+| psb-4 | Any spell in the book takes the star, not only ready ones |
+| psb-5 | A pinned spell not ready today keeps its block: "Not memorized" (or the setting's word); Cast says why in a pop-up; the pin is kept |
+| psb-6 | A spell ready at two levels: one block; Cast spends as the Magic tab's Cast would |
+| psb-7 | The Magic tab keeps listing a pinned spell, the star filled |
+| psb-8 | The full sheet with nothing in Details keeps "Nothing written yet." |
 
 **Pictures owed** (no new code): "none left" on a trait (pss-2) goes with piece 2's pull request (At hand); P5's middle column and the spent mode (pss-3) and P5b's open parts (pss-4) go with piece 5's pull request (P5b).
 
