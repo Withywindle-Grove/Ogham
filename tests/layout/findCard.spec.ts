@@ -7,8 +7,9 @@
 //      serious accessibility problem, in light and dark.
 //   2. A long name wraps and its "New" stays on the name's last line, never alone on a line of its own.
 //   3. "Got it" takes away the card and every tag at once, with no toast; the rows stay.
-//   4. A find that arrives while she is reading the list (its card growing above, its new row coming in at the head of
-//      its group) does not move the row under her eye, the one in the middle of the screen (p45-19).
+//   4. A card that arrives (or grows) while she is reading the list, its new row coming in at the head of its group,
+//      does not move the row under her eye, the one in the middle of the screen (p45-19); at the very top of the page
+//      the card comes in where she sees it (FD10b).
 //   5. The GM's Undo before Got it: the row and its tag go, the card stays with the quiet line, and "Got it" stays
 //      where it was (p45-25).
 //   6. A sheet open about the thing the GM takes back closes by itself; a sheet about another thing stays (p45-26).
@@ -185,8 +186,10 @@ test.describe('phone, 375 px', () => {
   });
 
   // Purpose 4.
-  test('a find that arrives while she reads the list does not move the row under her eye', async ({ page }) => {
-    await openPack(page, '1');
+  test('a card that arrives while she reads the list does not move the row under her eye', async ({ page }) => {
+    // No card yet.
+    await openPack(page, 'none');
+    await expect(page.locator('.find-card')).toHaveCount(0);
     const chalk = row(page, 'Chalk');
     // The row under her eye: in the middle of the screen, the list scrolled down to it.
     await chalk.evaluate((el) => el.scrollIntoView({ block: 'center' }));
@@ -195,7 +198,22 @@ test.describe('phone, 375 px', () => {
     await page.evaluate(() => (window as unknown as { __findArrives: (n: string) => Promise<void> }).__findArrives('Moon opals'));
     await expect(card(page).getByText('Moon opals')).toBeAttached();
     await expect(row(page, 'Moon opals')).toBeAttached();
+    // Within a pixel: the page scrolls by whole pixels, the rows sit on fractions.
     const after = (await chalk.boundingBox())!;
-    expect(Math.round(after.y)).toBe(Math.round(before.y));
+    expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
+    // And a second find, growing the card: still in place.
+    await page.evaluate(() => (window as unknown as { __findArrives: (n: string) => Promise<void> }).__findArrives('Eel trap'));
+    await expect(row(page, 'Eel trap')).toBeAttached();
+    expect(Math.abs((await chalk.boundingBox())!.y - before.y)).toBeLessThanOrEqual(1);
+  });
+
+  // Purpose 4, at the top: the card comes in where she sees it, and the page is not scrolled away from it (FD10b).
+  test('at the top of the page, a card that arrives is in view', async ({ page }) => {
+    await openPack(page, 'none');
+    await expect(page.locator('.find-card')).toHaveCount(0);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    await page.evaluate(() => (window as unknown as { __findArrives: (n: string) => Promise<void> }).__findArrives('Moon opals'));
+    await expect(card(page)).toBeInViewport();
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
   });
 });

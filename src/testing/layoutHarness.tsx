@@ -28,7 +28,7 @@
 //   &lights=several    two reed lamps beside Wren's rushlights (the pick "Which light?")
 //   &finds=1    new until Got it (K20b): the GM has just sent a Bronze ring to Wren (his send, K16b); `two` two pearls
 //               onto her six as well (his Add item, which joins the stack); `many` six things (the card's "and N
-//               more"); `long` one long name. The page then offers `window.__findArrives(name)` and
+//               more"); `long` one long name; `none` nothing yet. The page then offers `window.__findArrives(name)` and
 //               `window.__gmUndoesFind()`, the GM's send and its Undo while the page is open
 //   ?placeCard=1 the players' place card (P4): the Location's card and the Area's in the page's two columns; `bare` the
 //               Area never shown, `messy` long names and 999; `gm` the GM's Knowledge sheet with its eyes
@@ -534,7 +534,9 @@ if (findsFlag) {
       ? ['Silver key', 'Boat hooks', 'Hooded lantern', 'Moon opals', 'Bronze ring', 'Eel trap']
       : findsFlag === 'long'
         ? ['The Old Lantern of the Drowned and of the Nine Tides']
-        : ['Bronze ring'];
+        : findsFlag === 'none'
+          ? []
+          : ['Bronze ring'];
   for (const name of names) await give(name);
   if (findsFlag === 'two') {
     // Her pearls from the setting's list, so more of them join the stack (Q2).

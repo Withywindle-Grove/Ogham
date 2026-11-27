@@ -133,7 +133,7 @@ const findKey = (e: FindEntry) => `${e.kind === 'thing' ? e.lineId : e.purseId}:
  * The row the reader's eye is on: the list row or group heading nearest the middle of the screen, and where it is now.
  * A new row is never chosen, since the GM's Undo may take it away.
  */
-function anchorIn(list: HTMLElement | null): { el: Element; top: number } | null {
+function anchorIn(list: HTMLElement | null): { el: Element; top: number; atTop: boolean } | null {
   if (!list || typeof window === 'undefined') return null;
   const eye = window.innerHeight / 2;
   let best: { el: Element; top: number; off: number } | null = null;
@@ -144,7 +144,7 @@ function anchorIn(list: HTMLElement | null): { el: Element; top: number } | null
     const off = box.top <= eye && box.bottom >= eye ? 0 : Math.min(Math.abs(box.top - eye), Math.abs(box.bottom - eye));
     if (!best || off < best.off) best = { el, top: box.top, off };
   }
-  return best && { el: best.el, top: best.top };
+  return best && { el: best.el, top: best.top, atTop: window.scrollY <= 0 };
 }
 
 /** No tiny categories (a setting that marks none): only items marked `unencumbering` themselves are tiny. */
@@ -417,14 +417,15 @@ function PackTab({
   const openGone = open !== null && !!loaded && loaded !== 'error' && !loaded.lines.some((l) => l.id === open);
   if (openGone) setOpen(null);
   // The scroll position holds when the card arrives, grows or shrinks, and when a new row comes in or goes (p45-19):
-  // the row under the reader's eye stays where it was. The browser's own anchoring (where it has it) may have done it
+  // the row under the reader's eye stays where it was, unless she is at the very top of the page. The browser's own anchoring (where it has it) may have done it
   // already; this moves only what is left.
   const listRef = useRef<HTMLDivElement | null>(null);
-  const anchor = useRef<{ el: Element; top: number } | null>(null);
+  const anchor = useRef<{ el: Element; top: number; atTop: boolean } | null>(null);
   const findsKey = loaded && loaded !== 'error' && loaded.finds ? loaded.finds.entries.map(findKey).join('|') : '';
   useLayoutEffect(() => {
     const was = anchor.current;
-    if (!was || !was.el.isConnected) return;
+    // At the very top of the page the card comes in where she sees it, pushing the page down (FD10b B to C).
+    if (!was || was.atTop || !was.el.isConnected) return;
     const moved = was.el.getBoundingClientRect().top - was.top;
     if (moved !== 0) window.scrollBy?.(0, moved);
   }, [findsKey]);
