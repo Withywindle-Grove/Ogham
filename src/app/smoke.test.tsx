@@ -5510,7 +5510,7 @@ describe('the Pack tab (M4 step 4)', () => {
   });
 
   // Purpose: the Empty sheet's drop question does not say "the The …" for a container whose name starts with "The" (withThe, #143 review).
-  it.fails('Drop all… on "The Old Satchel" asks "Drop everything in The Old Satchel?"', async () => {
+  it('Drop all… on "The Old Satchel" asks "Drop everything in The Old Satchel?"', async () => {
     const { wren, line } = packWorld('coin');
     line(wren, 'The Old Satchel', { id: 'line-old-satchel', item_data: { container: { capacityCoin: 100 } } });
     line(wren, 'Pebble', { container_line_id: 'line-old-satchel' });

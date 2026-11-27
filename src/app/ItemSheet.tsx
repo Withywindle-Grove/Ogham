@@ -698,7 +698,7 @@ export function ItemSheet(props: ItemSheetProps) {
                 <p>{inside.length === 1 ? '1 item inside.' : `${inside.length} items inside.`}</p>
                 {emptying === 'drop' ? (
                   <div className="pack__actions">
-                    <p>Drop everything in the {line.name}?</p>
+                    <p>Drop everything in {withThe(line.name)}?</p>
                     <button
                       type="button"
                       className="button-secondary"
