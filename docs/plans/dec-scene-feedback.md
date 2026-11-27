@@ -227,9 +227,9 @@ Ruled in `../design/rulings/scene-sitting-2026-11-27.md` (ss-1 to ss-9).
 | ⚑ | Answer | Id |
 |---|---|---|
 | #126's card (EN1) | Approved from pictures | ss-1 |
-| W2 ⚑ 3, an offline reveal (against sf-25) | Refuse with a toast until M9; a departure from sf-25 until then; G-225 | ss-4 |
-| W3 ⚑ 4, when a reveal stops | "Done" and "End expedition" end it (built); current expedition only waits for a migration and a Fable sitting; G-224 | ss-2 |
-| W3 ⚑ 5, a split party | Whole table for now; the group's own scope goes with ss-2's migration; G-224 | ss-3 |
+| W2 ⚑ 3, an offline reveal (against sf-25) | Refuse with a toast until M9; a departure from sf-25 until then; G-227 | ss-4 |
+| W3 ⚑ 4, when a reveal stops | "Done" and "End expedition" end it (built); current expedition only waits for a migration and a Fable sitting; G-226 | ss-2 |
+| W3 ⚑ 5, a split party | Whole table for now; the group's own scope goes with ss-2's migration; G-226 | ss-3 |
 | "Where to?" (WT1) and Move on (PU1 A) on #122 | Approved; the pack's way word on buttons; clock icon on "Takes"; no-number place first | ss-5, ss-6, ss-7 |
 | Two toasts no mockup draws | Accepted | ss-8 |
 | #147 ⚑ 1, possessives that are not names | A later sweep | ss-9 |
