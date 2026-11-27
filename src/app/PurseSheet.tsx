@@ -117,8 +117,11 @@ export function PurseSheet({
   coins: Coins;
   /** The GM's sheet (K15): "Give coin…" and "Take coin…" in place of Spend… and Give to…. */
   gm?: boolean;
-  /** Opened from a purchase's toast (K7, PK10b): straight on Spend with this amount typed in; nothing goes until its accent. */
-  spend?: Coins;
+  /**
+   * Opened from a purchase's toast (K7, PK10b): straight on Spend with this amount typed in and What for filled with the
+   * thing's name (⚑ 3, 26 Nov); nothing goes until its accent.
+   */
+  spend?: { coins: Coins; whatFor: string };
   /** On the stash's coin (K13): the player's character the coin is taken for ("You are taking for"). */
   taker?: NamedCarrier | null;
   onClose: () => void;
@@ -127,8 +130,8 @@ export function PurseSheet({
 }) {
   const id = useId();
   const [page, setPage] = useState<Page>(spend ? 'spend' : 'coin');
-  const [typed, setTyped] = useState<Record<string, string>>(() => (spend ? Object.fromEntries(Object.entries(spend).map(([key, n]) => [key, String(n)])) : {}));
-  const [whatFor, setWhatFor] = useState('');
+  const [typed, setTyped] = useState<Record<string, string>>(() => (spend ? Object.fromEntries(Object.entries(spend.coins).map(([key, n]) => [key, String(n)])) : {}));
+  const [whatFor, setWhatFor] = useState(spend?.whatFor ?? '');
   const [to, setTo] = useState<string | null>(null);
   const [refusal, setRefusal] = useState<{ key: string; text: string } | null>(null);
   const [busy, setBusy] = useState(false);

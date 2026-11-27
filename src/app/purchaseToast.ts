@@ -26,10 +26,13 @@ export function purchaseToast(input: {
   coins: Record<string, number> | null;
   onSpend: (coins: Record<string, number>) => void;
   onUndo?: () => void;
+  /** Put on at once and it stops casting (B25): its words lead the toast ("Bog plate stops divine casting."). */
+  stopped?: string;
 }): ToastRequest {
   const { coins, onSpend } = input;
+  const added = addedWords(input.who, input.what, input.cost);
   return {
-    text: addedWords(input.who, input.what, input.cost),
+    text: input.stopped ? `${input.stopped}. ${added}` : added,
     ...(input.cost.trim() && coins ? { action: { label: `Spend ${coinLine(input.denominations, coins)}`, run: () => onSpend(coins) } } : {}),
     ...(input.onUndo ? { onUndo: input.onUndo } : {}),
   };

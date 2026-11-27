@@ -179,7 +179,7 @@ function PackTab({
   // The coin's sheets (K10), opened from the coin line.
   const [coinOpen, setCoinOpen] = useState(false);
   // Opened from a purchase's toast (K7): Spend with the cost filled in.
-  const [spendFor, setSpendFor] = useState<Coins | null>(null);
+  const [spendFor, setSpendFor] = useState<{ coins: Coins; whatFor: string } | null>(null);
   // The character's purse (K9, K15): read for its own player and for the GM; null until read, or when nothing came back.
   const [read, setRead] = useState<{ of: string; coins: Coins } | null>(null);
   const [purseVersion, setPurseVersion] = useState(0);
@@ -494,24 +494,28 @@ function PackTab({
           toTop();
           // After Add (K7, PK10b; tn-1): what was added, and a purchase's cost not spent yet with "Spend N", which opens
           // Spend filled in; nothing is charged by itself. Undo where the generic Undo can take it back (a joined add).
+          // Put on at once and it stops casting (B25): the stop's words lead, and its Undo takes it off.
           if (added && made && added.approval !== 'pending') {
             const coinNames = denominationsOf(loaded.setting.rulesSets);
             const cost = bought ? made.cost : '';
+            const what = countWords(added, made.qty);
             show(
               purchaseToast({
                 who: adding.actorId ? adding.name : null,
-                what: countWords(added, made.qty),
+                what,
                 cost,
                 denominations: coinNames,
                 coins: purse && cost ? readCost(coinNames, cost) : null,
+                // What for is the thing's name (Francis, 26 Nov, ⚑ 3 on #108).
                 onSpend: (coins) => {
-                  setSpendFor(coins);
+                  setSpendFor({ coins, whatFor: what });
                   setCoinOpen(true);
                 },
-                onUndo: made.joined ? () => void undoAdd() : undefined,
+                onUndo: made.stopped?.undo ?? (made.joined ? () => void undoAdd() : undefined),
+                stopped: made.stopped?.short,
               }),
             );
-          }
+          } else if (made?.stopped) show({ text: made.stopped.short, onUndo: made.stopped.undo });
           // A player's one-off waits for the GM, and says so where the screen lands.
           if (added?.approval === 'pending') setNote('Sent to the GM for approval.');
           // Handed out by the GM with charges not set yet: ask for them now.

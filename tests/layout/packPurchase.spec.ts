@@ -20,7 +20,7 @@ async function openAddItem(page: Page, scheme: 'light' | 'dark') {
   await page.goto('/layout.html?as=player&coin=1');
   await page.getByRole('button', { name: /The Drowned Marches/ }).click();
   await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Pack' }).click();
-  await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’s pack' })).toBeAttached();
+  await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’ pack' })).toBeAttached();
   await page.getByRole('button', { name: 'Add item' }).first().click();
   await page.getByLabel('Search items').fill('storm');
   await page.getByRole('button', { name: /Storm lantern/ }).click();
@@ -78,6 +78,8 @@ for (const size of SIZES) {
         const sheet = page.getByRole('dialog', { name: 'Spend' });
         await expect(sheet).toBeVisible();
         await expect(sheet.getByRole('textbox', { name: 'Herons' })).toHaveValue('4');
+        // What for is the thing's name (Francis, 26 Nov, ⚑ 3 on #108).
+        await expect(sheet.getByLabel('What for')).toHaveValue('Storm lantern');
         await expect(sheet.locator('.button-primary')).toHaveCount(1);
         await expect(sheet.getByRole('button', { name: 'Spend 4 herons' })).toBeVisible();
         await shot(page, 'spend', size.width, scheme);
@@ -98,7 +100,7 @@ for (const size of SIZES) {
         await page.goto('/layout.html?as=player&coin=1');
         await page.getByRole('button', { name: /The Drowned Marches/ }).click();
         await page.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Pack' }).click();
-        await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’s pack' })).toBeAttached();
+        await expect(page.getByRole('heading', { name: 'Wren of the Lantern Wardens’ pack' })).toBeAttached();
         await page.getByRole('button', { name: 'Add item' }).first().click();
         await page.getByLabel('Search items').fill('reed arrows');
         await page.getByRole('region', { name: 'Add an item' }).getByRole('button', { name: /Reed arrows/ }).click();

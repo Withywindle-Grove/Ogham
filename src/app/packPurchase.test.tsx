@@ -14,6 +14,10 @@
 //   7. The cost follows how many: three at 2 bits each cost 6 bits.
 //   8. Added onto a stack already carried, Undo in the toast takes the added count back off, with Spend beside it.
 //   9. The log's line for a purchase says what was paid and no longer says "Cost noted; purses arrive later.".
+//  10. Spend's "What for" comes filled with the thing's name (Francis, 26 Nov, ⚑ 3 on #108), so the log line says what
+//      the coin was for: "Wren spent 4 herons: Storm lantern".
+//  11. Bought straight onto Equipped by a caster it stops (B25): the one toast still says casting stopped, with that
+//      Undo (take it off) and Spend beside it; the purchase toast does not replace the warning (review of #108, 1).
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -202,9 +206,12 @@ describe('after a purchase (PK10b; tn-1)', () => {
     expect((within(sheet).getByRole('textbox', { name: 'Herons' }) as HTMLInputElement).value).toBe('4');
     expect((within(sheet).getByRole('textbox', { name: 'Crowns' }) as HTMLInputElement).value).toBe('');
     expect(purse()).toEqual({ crown: 12, heron: 30, bit: 4 });
+    // What for is the thing's name (⚑ 3, 26 Nov), and the log line says it.
+    expect((within(sheet).getByLabelText('What for') as HTMLInputElement).value).toBe('Storm lantern');
     await user.click(within(sheet).getByRole('button', { name: 'Spend 4 herons' }));
     await waitFor(() => expect(purse()).toEqual({ crown: 12, heron: 26, bit: 4 }));
     expect(spends()).toHaveLength(1);
+    expect(await screen.findByText('Wren spent 4 herons: Storm lantern')).toBeTruthy();
   });
 
   it('a cost typed in two of the setting’s coins fills both boxes', async () => {
@@ -268,5 +275,30 @@ describe('after a purchase (PK10b; tn-1)', () => {
     await user.click(screen.getByRole('button', { name: 'Log' }));
     expect(await screen.findByText('You bought Storm lantern for Wren (4 herons).')).toBeTruthy();
     expect(screen.queryByText(/purses arrive later/)).toBeNull();
+  });
+
+  it('bought straight onto Equipped by a caster it stops: the toast still says casting stopped, with its Undo and Spend', async () => {
+    await shopWorld();
+    world.tables.library_entries.push(
+      {
+        id: 'entry-ember-keeper',
+        pack_id: 'pack-fen',
+        kind: 'class',
+        pack_entry_id: 'ember-keeper',
+        name: 'Ember Keeper',
+        data: { id: 'ember-keeper', name: 'Ember Keeper', armourAllowed: { types: 'any', shields: true }, spellcasting: { castingType: 'divine', blockedBy: { armour: ['heavy'], shields: true }, statusName: "Can't kindle" } },
+      },
+      { id: 'entry-plate', pack_id: 'pack-fen', kind: 'item', pack_entry_id: 'bog-plate', name: 'Bog plate', data: { id: 'bog-plate', name: 'Bog plate', category: 'armour', slot: 'armour', armourType: 'heavy', weightCoin: 500, value: { heron: 9 } } },
+    );
+    Object.assign(world.tables.actors.find((a) => a.id === wren)!, { classes: [{ classRef: 'ember-keeper', level: 1, xp: 0 }] });
+    const user = await openPack();
+    await pick(user, 'plate', /Bog plate/);
+    await user.click(screen.getByRole('radio', { name: /^Worn/ }));
+    await user.click(screen.getByRole('button', { name: 'Add and wear it' }));
+    await waitFor(() => expect(world.tables.inventory_lines[0]).toMatchObject({ name: 'Bog plate', equipped: true }));
+    await waitFor(() => expect(toast()?.querySelector('.toast__text')?.textContent).toBe('Bog plate stops divine casting. Wren added Bog plate. Its cost, 9 herons, is not spent yet.'));
+    expect(within(toast()!).getAllByRole('button').map((b) => b.textContent)).toEqual(['Spend 9 herons', 'Undo']);
+    await user.click(within(toast()!).getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(world.tables.inventory_lines[0]).toMatchObject({ equipped: false }));
   });
 });

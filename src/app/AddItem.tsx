@@ -116,7 +116,8 @@ export function AddItem({
    * Added; `bought` says it was a player's purchase. `made` (a player's add, K7): how many things it added, the cost as
    * written, and whether it joined a stack already carried (then the generic Undo can take it back off).
    */
-  onAdded: (bought: boolean, added?: InventoryLine, made?: { qty: number; cost: string; joined: boolean }) => void;
+  /** `stopped`: put on at once and it stops casting (B25), its toast words and the Undo that takes it off. */
+  onAdded: (bought: boolean, added?: InventoryLine, made?: { qty: number; cost: string; joined: boolean; stopped?: { short: string; undo: () => void } }) => void;
   /** The creation variant: the Gear step's shop. */
   shop?: ShopMode;
 }) {
@@ -281,13 +282,13 @@ export function AddItem({
       return;
     }
     // On straight away and it stops casting (B25): the toast says so; Undo takes it off.
-    if (place === 'equipped' && stop) {
-      const line = { id: added.value.id, carrier };
-      toast({ text: stop.short, onUndo: () => void runCommand(registry, db, user, equipItem, { line, equipped: false }) });
-    }
+    const line = { id: added.value.id, carrier };
+    const stopped = place === 'equipped' && stop ? { short: stop.short, undo: () => void runCommand(registry, db, user, equipItem, { line, equipped: false }) } : undefined;
+    // The GM's add has no purchase toast, so the stop's toast is its own; a player's is led by it (review of #108, 1).
+    if (stopped && gm) toast({ text: stopped.short, onUndo: stopped.undo });
     // A player's add says what it made (K7): how many things, the cost as written, and whether it joined a stack.
     const bought = !gm && howGot === 'bought';
-    onAdded(bought, added.value, gm ? undefined : { qty: qty * bundle, cost: bought ? cost : '', joined: lines.some((l) => l.id === added.value.id) });
+    onAdded(bought, added.value, gm ? undefined : { qty: qty * bundle, cost: bought ? cost : '', joined: lines.some((l) => l.id === added.value.id), stopped });
   }
 
   /** The shop's Add on a single item: bought at once, carried (how many is asked only for a stackable one). */
