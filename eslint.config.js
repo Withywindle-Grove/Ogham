@@ -139,6 +139,7 @@ const ALLOWED_CORE_FILES = [
   'events.ts',
   'files.ts',
   'marchingRows.ts',
+  'nameWords.ts',
   'partyGroups.ts',
   'storedWords.ts',
   'supabase.ts',

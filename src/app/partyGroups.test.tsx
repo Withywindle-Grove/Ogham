@@ -90,7 +90,7 @@ describe('party groups on Scene', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Split the party' });
     // Sam picks for Wren and Bree; Ash and Moss (Jo's) only say where they are.
     expect(within(dialog).queryByRole('group', { name: "Ash's group" })).toBeNull();
-    const wrens = within(dialog).getByRole('group', { name: "Wren's group" });
+    const wrens = within(dialog).getByRole('group', { name: "Wren’s group" });
     expect(within(wrens).getByRole('button', { name: '✓ Group 1' }).getAttribute('aria-pressed')).toBe('true');
     await user.click(within(wrens).getByRole('button', { name: 'New group' }));
     expect(await screen.findByText('Wren is in Group 2')).toBeTruthy();

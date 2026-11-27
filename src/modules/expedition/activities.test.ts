@@ -99,6 +99,6 @@ describe('cost, roll and finder (S4-8, D3)', () => {
   });
 
   it('the yield line names how many, the item and whose pack', () => {
-    expect(yieldLine(3, 'Reed bundles', 'Tam')).toBe("3 Reed bundles → Tam's pack");
+    expect(yieldLine(3, 'Reed bundles', 'Tam')).toBe("3 Reed bundles → Tam’s pack");
   });
 });

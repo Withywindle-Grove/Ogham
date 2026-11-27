@@ -5,6 +5,7 @@
 import { evaluate, parseExpression } from '../library/expression.ts';
 import { ownSpeed, showFilled, wasRoundedDown, wholeDown, type Filled } from '../library/fills.ts';
 import { plainName } from './explain.ts';
+import { possessive } from '../../core/nameWords.ts';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
@@ -66,7 +67,7 @@ export function movementOf(input: {
   const own = ownSpeed(input.rulesSets, input.race);
   const speed = input.load ? input.load.speed : own;
   const raceSpeed = typeof input.race?.speed === 'number';
-  const why = input.load ? `from ${input.load.why}` : own === null ? '' : raceSpeed ? `${input.raceName ?? 'your race'}'s own` : 'the base speed for everyone in your setting';
+  const why = input.load ? `from ${input.load.why}` : own === null ? '' : raceSpeed ? `${possessive(input.raceName ?? 'your race')} own` : 'the base speed for everyone in your setting';
   // Each mode the rules set works out from the speed.
   // A figure is shown whole, rounded down (hard rule 8: never more movement than the rule gives); a pack that rounds
   // in its own formula (`ceil(speed / 3)`) is already whole, so its rounding wins.

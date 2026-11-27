@@ -1591,7 +1591,7 @@ describe('invites', () => {
     await user.click(await screen.findByRole('button', { name: 'Prepare, For your next rest' }));
 
     const prepare = within(await screen.findByRole('dialog', { name: 'Prepare' }));
-    expect(prepare.getByText("For Wren's next rest. Ready today stays as it is: Mire lamp, Reed whisper.")).toBeTruthy();
+    expect(prepare.getByText("For Wren’s next rest. Ready today stays as it is: Mire lamp, Reed whisper.")).toBeTruthy();
     // Nothing chosen anew: the steppers show today's ready set.
     const one = within(prepare.getByRole('region', { name: 'Level 1' }));
     expect(one.getByText('Level 1, 2 a day. 1 chosen')).toBeTruthy();
@@ -2761,7 +2761,7 @@ describe('portraits', () => {
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await openYourCharacters(user);
     await user.upload(await screen.findByLabelText('Add a portrait for Wren'), photo());
-    expect(await screen.findByText("Wren's portrait was saved.")).toBeTruthy();
+    expect(await screen.findByText("Wren’s portrait was saved.")).toBeTruthy();
     expect(world.tables.actors.find((a) => a.id === wren)?.portrait_asset_id).toBeTruthy();
   });
 
@@ -2779,8 +2779,8 @@ describe('portraits', () => {
     fireEvent.change(input, { target: { files: [photo()] } });
     fireEvent.change(input, { target: { files: [photo()] } });
     const sheet = await screen.findByRole('dialog', { name: 'Still saving' });
-    expect(sheet.textContent).toContain("Wren's last picture is still saving. Pick this one again in a moment.");
-    expect(await screen.findByText("Wren's portrait was saved.")).toBeTruthy();
+    expect(sheet.textContent).toContain("Wren’s last picture is still saving. Pick this one again in a moment.");
+    expect(await screen.findByText("Wren’s portrait was saved.")).toBeTruthy();
     expect(world.tables.assets.length).toBe(1);
   });
 });
@@ -3009,7 +3009,7 @@ describe('companies', () => {
     fireEvent.change(select, { target: { value: company } });
     fireEvent.change(screen.getByLabelText('Company for Hollis'), { target: { value: company } });
     const sheet = await screen.findByRole('dialog', { name: 'Still saving' });
-    expect(sheet.textContent).toContain("The last change is still saving. Choose Hollis's company again in a moment.");
+    expect(sheet.textContent).toContain("The last change is still saving. Choose Hollis’ company again in a moment.");
     expect(await screen.findByText('Wren is now in The Sluice Gate Company.')).toBeTruthy();
     expect(screen.queryByText('Hollis is now in The Sluice Gate Company.')).toBeNull();
   });
@@ -3406,7 +3406,7 @@ describe('the log', () => {
     await user.click(screen.getByRole('button', { name: 'Log' }));
     expect(await screen.findByText('The log is blank. What happens at the table is kept here.')).toBeTruthy();
     await user.click(screen.getByLabelText('Verbose: every change, like each HP tick'));
-    expect(await screen.findByText("You set Wren's HP to 10 (was 11).")).toBeTruthy();
+    expect(await screen.findByText("You set Wren’s HP to 10 (was 11).")).toBeTruthy();
   });
 
   it("the GM's Log section shows the invite they made; a player's log never does", async () => {
@@ -3459,16 +3459,16 @@ describe('undo', () => {
 
     await tab(user, 'Log');
     await user.click(await screen.findByLabelText('Verbose: every change, like each HP tick'));
-    await openLine(user, "You set Wren's HP to 10 (was 11).");
-    await user.click(await screen.findByRole('button', { name: "Undo: You set Wren's HP to 10 (was 11)." }));
+    await openLine(user, "You set Wren’s HP to 10 (was 11).");
+    await user.click(await screen.findByRole('button', { name: "Undo: You set Wren’s HP to 10 (was 11)." }));
     expect(await screen.findByText('Undone.')).toBeTruthy();
     expect(hpOf(wren)).toBe(11);
-    expect(await screen.findByText("You undid a change to Wren's HP (back to 11).")).toBeTruthy();
+    expect(await screen.findByText("You undid a change to Wren’s HP (back to 11).")).toBeTruthy();
     // The original line stays, marked undone, with no Undo left on it.
-    expect(screen.getByText("You set Wren's HP to 10 (was 11).")).toBeTruthy();
-    await openLine(user, "You set Wren's HP to 10 (was 11).");
-    expect(await screen.findByRole('button', { name: "Add a note to: You set Wren's HP to 10 (was 11)." })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: "Undo: You set Wren's HP to 10 (was 11)." })).toBeNull();
+    expect(screen.getByText("You set Wren’s HP to 10 (was 11).")).toBeTruthy();
+    await openLine(user, "You set Wren’s HP to 10 (was 11).");
+    expect(await screen.findByRole('button', { name: "Add a note to: You set Wren’s HP to 10 (was 11)." })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: "Undo: You set Wren’s HP to 10 (was 11)." })).toBeNull();
 
     await tab(user, 'Player');
     // The log stays open over the Player screen, which shows the undone HP straight away.
@@ -3507,8 +3507,8 @@ describe('undo', () => {
 
     await tab(user, 'Log');
     await user.click(await screen.findByLabelText('Verbose: every change, like each HP tick'));
-    await openLine(user, "You set Wren's HP to 10 (was 11).");
-    await user.click(await screen.findByRole('button', { name: "Undo: You set Wren's HP to 10 (was 11)." }));
+    await openLine(user, "You set Wren’s HP to 10 (was 11).");
+    await user.click(await screen.findByRole('button', { name: "Undo: You set Wren’s HP to 10 (was 11)." }));
     expect((await screen.findByRole('alert')).textContent).toBe("That's changed since. Undo the later change first.");
     expect(hpOf(wren)).toBe(9);
   });
@@ -3531,8 +3531,8 @@ describe('undo', () => {
     await gmUser.click(screen.getByRole('button', { name: 'Create company' }));
     await screen.findByText('The Reed Cutters was created.');
     await gmUser.click(screen.getByRole('button', { name: 'Log' }));
-    await openLine(gmUser, "You edited Wren's backstory.");
-    expect(await screen.findByRole('button', { name: "Undo: You edited Wren's backstory." })).toBeTruthy();
+    await openLine(gmUser, "You edited Wren’s backstory.");
+    expect(await screen.findByRole('button', { name: "Undo: You edited Wren’s backstory." })).toBeTruthy();
     await openLine(gmUser, 'You made the company The Reed Cutters.');
     expect(await screen.findByRole('button', { name: 'Add a note to: You made the company The Reed Cutters.' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Undo: You made the company The Reed Cutters.' })).toBeNull();
@@ -3544,9 +3544,9 @@ describe('undo', () => {
     const user = openApp();
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await tab(user, 'Log');
-    expect(await screen.findByText("Priya edited Wren's backstory.")).toBeTruthy();
-    await openLine(user, "Priya edited Wren's backstory.");
-    expect(await screen.findByRole('button', { name: "Add a note to: Priya edited Wren's backstory." })).toBeTruthy();
+    expect(await screen.findByText("Priya edited Wren’s backstory.")).toBeTruthy();
+    await openLine(user, "Priya edited Wren’s backstory.");
+    expect(await screen.findByRole('button', { name: "Add a note to: Priya edited Wren’s backstory." })).toBeTruthy();
     expect(screen.queryByRole('button', { name: /^Undo/ })).toBeNull();
     expect(world.tables.actors.find((a) => a.id === wren)?.backstory).toBe('Owes the ferryman');
   });
@@ -3628,9 +3628,9 @@ describe('notes', () => {
     await screen.findByText('Saved.');
     // Saved from the form, it comes back to Players (pg32-1: Edit in the row's ⋯, as the player's Edit).
     await gmUser.click(await screen.findByRole('button', { name: 'Log' }));
-    await openLine(gmUser, "You edited Wren's backstory.");
-    await gmUser.click(await screen.findByRole('button', { name: "Add a note to: You edited Wren's backstory." }));
-    await gmUser.type(screen.getByLabelText("Note on: You edited Wren's backstory."), 'Caught in the marsh.');
+    await openLine(gmUser, "You edited Wren’s backstory.");
+    await gmUser.click(await screen.findByRole('button', { name: "Add a note to: You edited Wren’s backstory." }));
+    await gmUser.type(screen.getByLabelText("Note on: You edited Wren’s backstory."), 'Caught in the marsh.');
     await gmUser.click(screen.getByRole('button', { name: 'Add note' }));
     expect(await screen.findByText('Note added.')).toBeTruthy();
     expect(await screen.findByText('Caught in the marsh.')).toBeTruthy();
@@ -3678,11 +3678,11 @@ describe('fiat', () => {
     const user = openApp();
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await user.click(screen.getByRole('button', { name: 'Log' }));
-    expect(await screen.findByText("Priya edited Wren's backstory.")).toBeTruthy();
+    expect(await screen.findByText("Priya edited Wren’s backstory.")).toBeTruthy();
     expect(document.querySelector('.log__fiat')?.textContent).toBe(',  Fiat');
     expect(screen.getByText('Reason: Failed the marsh crossing')).toBeTruthy();
-    await openLine(user, "Priya edited Wren's backstory.");
-    await screen.findByRole('button', { name: "Add a note to: Priya edited Wren's backstory." });
+    await openLine(user, "Priya edited Wren’s backstory.");
+    await screen.findByRole('button', { name: "Add a note to: Priya edited Wren’s backstory." });
     expect(screen.queryByRole('button', { name: /^Undo/ })).toBeNull();
 
     // The player's own edit is no ruling: no reason box.
@@ -4083,7 +4083,7 @@ describe('Campaign → Setting rules', () => {
     expect(offer.getByText('Luck')).toBeTruthy();
     expect(offer.getByText(/already here/)).toBeTruthy();
     await user.click(offer.getByRole('button', { name: 'Use this sheet layout' }));
-    expect(await screen.findByText("One field was added from River Rules's sheet layout.")).toBeTruthy();
+    expect(await screen.findByText("One field was added from River Rules’ sheet layout.")).toBeTruthy();
     expect(world.tables.field_definitions.map((f) => f.label)).toEqual(['Grit', 'Luck']);
     expect(world.tables.events.filter((e) => e.type === 'field.useLayout')).toHaveLength(1);
     expect(screen.getByRole('button', { name: 'Sheet layout…' })).toBeTruthy();
@@ -4726,7 +4726,7 @@ describe('stacking setting rules', () => {
     await user.click(panel.getByRole('button', { name: 'Use this sheet layout' }));
     const offer = within(await panel.findByRole('group', { name: 'Sheet layout of Fen Rules' }));
     await user.click(offer.getByRole('button', { name: 'Use this sheet layout' }));
-    expect(await screen.findByText("One field was added from Fen Rules's sheet layout.")).toBeTruthy();
+    expect(await screen.findByText("One field was added from Fen Rules’ sheet layout.")).toBeTruthy();
     expect(world.tables.field_definitions.map((f) => f.label)).toEqual(['Grit', 'Luck']);
     expect(await panel.findByText('Luck')).toBeTruthy();
 
@@ -5421,8 +5421,8 @@ describe('the Pack tab (M4 step 4)', () => {
     await waitFor(() => expect(world.tables.inventory_lines).toEqual([]));
 
     await user.click(screen.getByRole('button', { name: 'Log' }));
-    await openLine(user, "You dropped Torch ×6 from Wren's pack.");
-    await user.click(await screen.findByRole('button', { name: "Undo: You dropped Torch ×6 from Wren's pack." }));
+    await openLine(user, "You dropped Torch ×6 from Wren’s pack.");
+    await user.click(await screen.findByRole('button', { name: "Undo: You dropped Torch ×6 from Wren’s pack." }));
     expect(await screen.findByText('You undid a drop: Torch ×6 is back with Wren.')).toBeTruthy();
     expect(world.tables.inventory_lines).toMatchObject([{ name: 'Torch', qty: 6, actor_id: wren }]);
   });
@@ -6206,7 +6206,7 @@ describe('the Pack tab (M4 step 4)', () => {
     const gmUser = openApp();
     await gmUser.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
     await gmPlayers(gmUser);
-    await gmUser.click(await screen.findByRole('button', { name: "Open Wren's pack" }));
+    await gmUser.click(await screen.findByRole('button', { name: "Open Wren’s pack" }));
     await gmUser.click(await screen.findByRole('button', { name: 'Add item' }));
     await gmUser.type(screen.getByLabelText('Search items'), 'glow');
     await gmUser.click(screen.getByRole('button', { name: /^Glow wand/ }));

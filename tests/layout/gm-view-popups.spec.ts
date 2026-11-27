@@ -22,7 +22,7 @@ async function openView(page: Page, width: number, height: number, scheme: 'ligh
   await page.goto('/layout.html?as=gm&p1=finish');
   await page.getByRole('button', { name: /The Storm Lantern Road/ }).click();
   await page.getByRole('navigation', { name: 'Campaign sections' }).getByRole('button', { name: /^Players/ }).click();
-  await page.getByRole('button', { name: "View Brannoch Fenward's sheet" }).click();
+  await page.getByRole('button', { name: "View Brannoch Fenward’s sheet" }).click();
   await expect(page.getByRole('region', { name: 'Vitals' })).toBeVisible();
   await expect(page.getByRole('note')).toHaveAttribute('aria-label', /^Sam’s view of /);
   await page.evaluate(() => document.fonts.ready);

@@ -18,6 +18,7 @@ import { Dialog } from '../ui/Dialog.tsx';
 import { Chip, Note, RemoveChip, Stepper, TickConfirm } from '../ui/parts.tsx';
 import type { CampInfo } from './campView.ts';
 import type { CampMember } from './CampCard.tsx';
+import { possessive } from '../core/nameWords.ts';
 
 const hoursWords = (minutes: number) => (minutes % 60 === 0 ? `${minutes / 60} ${minutes === 60 ? 'hour' : 'hours'}` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`);
 
@@ -203,7 +204,7 @@ export function SleepStep({ info, step, gm, members, mine, entries, carried, fir
               <p className="camp__who">{`${m.name}${s?.difficulty ? `, ${s.difficulty.name}${s.overridden ? ' (changed by the GM)' : ''}` : rules ? ', the GM decides' : ''}`}</p>
               {s && s.reasons.length > 0 && <p className="camp__note">{s.reasons.join(', ')}</p>}
               {gm && rules && (
-                <div className="camp__chips" role="group" aria-label={`How hard is ${m.name}'s sleep?`}>
+                <div className="camp__chips" role="group" aria-label={`How hard is ${possessive(m.name)} sleep?`}>
                   {rules.difficulties.map((d) => (
                     <Chip key={d.id} pressed={s?.difficulty?.id === d.id} onClick={() => onSleep(m, { difficulty: d.id })}>
                       {`${s?.difficulty?.id === d.id ? '✓ ' : ''}${d.name}`}
@@ -219,7 +220,7 @@ export function SleepStep({ info, step, gm, members, mine, entries, carried, fir
                 <>
                   <p className="camp__note">{`${ability ? `Roll ${ability}` : 'Roll to sleep'}${mods ? `, ${mods}` : ''}`}</p>
                   <div className="camp__buttons">
-                    <input className="travel__roll-input" inputMode="numeric" aria-label={`${m.name}'s roll`} value={rolls[m.id] ?? ''} onChange={(e) => setRolls({ ...rolls, [m.id]: e.target.value })} />
+                    <input className="travel__roll-input" inputMode="numeric" aria-label={`${possessive(m.name)} roll`} value={rolls[m.id] ?? ''} onChange={(e) => setRolls({ ...rolls, [m.id]: e.target.value })} />
                     <button type="button" className="button-secondary" onClick={() => onSleep(m, { roll: rolls[m.id], outcome: 'good' })}>
                       Slept well
                     </button>

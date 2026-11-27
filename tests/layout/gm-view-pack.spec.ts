@@ -24,7 +24,7 @@ async function openPack(page: Page, width: number, height: number, scheme: 'ligh
   await page.goto('/layout.html?as=gm&viewPack=1');
   await page.getByRole('button', { name: /The Drowned Marches/ }).click();
   await page.getByRole('navigation', { name: 'Campaign sections' }).getByRole('button', { name: /^Players/ }).click();
-  await page.getByRole('button', { name: "Open Wren of the Lantern Wardens's pack" }).click();
+  await page.getByRole('button', { name: "Open Wren of the Lantern Wardens’ pack" }).click();
   await expect(page.getByRole('note')).toBeVisible();
 }
 

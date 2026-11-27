@@ -60,6 +60,7 @@ import { stepNowOf } from '../modules/expedition/playersWays.ts';
 import { PlayersAreaCard, PlayersLocationCard, usePlayersPlaceCards } from './PlayersPlaceCard.tsx';
 import type { TurnClock } from '../modules/expedition/placeKnowledge.ts';
 import './PartyGroups.css';
+import { possessive } from '../core/nameWords.ts';
 
 /** The players' map, not read: the GM's view as another player has no read naming that player yet (read, none shared). */
 
@@ -721,7 +722,7 @@ function SplitDialog({
             <li key={m.id} className="groups__who">
               <span className="groups__name">{m.name}</span>
               {mayMove(m) ? (
-                <div className="groups__choices" role="group" aria-label={`${m.name}'s group`}>
+                <div className="groups__choices" role="group" aria-label={`${possessive(m.name)} group`}>
                   {groups.map((g) => (
                     <Chip key={g.number} pressed={g.number === at} onClick={() => onChoose(m, g.number)}>
                       {`${g.number === at ? '✓ ' : ''}${groupName(g.number)}`}

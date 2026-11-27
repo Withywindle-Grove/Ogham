@@ -3,6 +3,8 @@
 // everything else goes into the first one (the backpack), or is carried when the kit and pack have none. Anything
 // the class can't use goes into the backpack instead, and the card says why. Pure: the class check is passed in.
 
+import { withThe } from '../../core/nameWords.ts';
+
 export type KitPlace = 'worn' | 'hand' | 'carried' | 'container';
 
 /** One kit line to place: its item data (slot, hands, container) and how many. */
@@ -68,7 +70,7 @@ export function kitGroups<T>(placed: readonly PlacedPiece<T>[], backpack: string
   const groups = [
     { name: 'Worn and held', pieces: placed.filter((p) => p.place === 'worn' || p.place === 'hand') },
     { name: 'Carried', pieces: placed.filter((p) => p.place === 'carried') },
-    { name: `In the ${(backpack ?? 'backpack').toLowerCase()}`, pieces: placed.filter((p) => p.place === 'container') },
+    { name: `In ${withThe((backpack ?? 'backpack').toLowerCase())}`, pieces: placed.filter((p) => p.place === 'container') },
   ];
   return groups.filter((g) => g.pieces.length > 0);
 }

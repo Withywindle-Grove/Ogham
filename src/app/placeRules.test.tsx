@@ -130,7 +130,7 @@ describe("the GM's Rules sheet (01-04, 02-23)", () => {
     const sheet = within(await screen.findByRole('dialog', { name: 'Rules' }));
     const toggle = await sheet.findByRole('switch', { name: /Encounters on the water/ });
     expect(toggle.getAttribute('aria-checked')).toBe('true');
-    expect(sheet.getByText('The Drowned Harbour’s own rule. It stands in for the setting’s Wandering encounters while the party is here.'.replace(/’/g, "'"))).toBeTruthy();
+    expect(sheet.getByText('The Drowned Harbour’s own rule. It stands in for the setting\'s Wandering encounters while the party is here.')).toBeTruthy();
     expect(sheet.getByText("This place's other rules")).toBeTruthy();
     expect(sheet.getByRole('button', { name: 'Close to players: Falling into the harbour' }).getAttribute('aria-pressed')).toBe('true');
     expect(sheet.getByRole('button', { name: 'The GM’s alone: What the Tidewife’s bargain costs'.replace('GM’s', "GM's") }).getAttribute('aria-pressed')).toBe('false');
@@ -150,7 +150,7 @@ describe("the GM's Rules sheet (01-04, 02-23)", () => {
     const sheet = within(await screen.findByRole('dialog', { name: 'Rules' }));
     await userEvent.click(await sheet.findByRole('switch', { name: /Encounters on the water/ }));
     // The pack's own name for its check keeps its capital (review of a5e54923).
-    expect(await screen.findByText("The Drowned Harbour's Encounters on the water is off. The setting's Wandering encounters applies here.")).toBeTruthy();
+    expect(await screen.findByText("The Drowned Harbour’s Encounters on the water is off. The setting's Wandering encounters applies here.")).toBeTruthy();
     await waitFor(() => expect(sheet.getByRole('switch', { name: /Encounters on the water/ }).getAttribute('aria-checked')).toBe('false'));
     expect(sheet.getByText('Not in force.')).toBeTruthy();
     expect(world.tables.events.filter((e) => e.type === 'placeRule.inForce')).toHaveLength(1);

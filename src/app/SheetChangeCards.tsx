@@ -10,6 +10,7 @@ import { approveSheetChange, changeWords, refuseSheetChange, type SheetChange } 
 import { useToast } from '../ui/ToastHost.tsx';
 import { registry } from './services.ts';
 import { whenWords } from './SheetParts.tsx';
+import { possessive } from '../core/nameWords.ts';
 
 /** One change waiting: the character's and player's names come from the Players list. */
 export interface WaitingChange {
@@ -33,7 +34,7 @@ export function SheetChangeCard({ db, user, waiting, onAnswered }: { db: Db; use
     const result = await runCommand(registry, db, user, approveSheetChange, { change });
     setBusy(false);
     if (!result.ok) return setError(result.message);
-    toast({ text: `Approved: ${character}'s ${change.label} is ${change.to}.` });
+    toast({ text: `Approved: ${possessive(character)} ${change.label} is ${change.to}.` });
     onAnswered();
   }
 
@@ -45,7 +46,7 @@ export function SheetChangeCard({ db, user, waiting, onAnswered }: { db: Db; use
     const result = await runCommand(registry, db, user, refuseSheetChange, { change, reason });
     setBusy(false);
     if (!result.ok) return setError(result.message);
-    toast({ text: `Refused: ${character}'s ${change.label} stays ${change.from ?? 'as it was'}.` });
+    toast({ text: `Refused: ${possessive(character)} ${change.label} stays ${change.from ?? 'as it was'}.` });
     onAnswered();
   }
 

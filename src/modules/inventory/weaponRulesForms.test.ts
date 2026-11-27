@@ -56,6 +56,16 @@ describe('weapon rules by combat category (eq-7, mb-4)', () => {
     expect(equipBlocks({ class: witch }, thunderTube)).toEqual(["Bog witch can't use Reed thunder-tube."]);
     expect(weaponRuleVerdict(null, witch, thunderTube)).toBeNull();
   });
+
+  // Purpose: a rule whose name starts with "The" keeps its own article in every reason (words rule 13): "Allowed by
+  // The Reed-tube rule", "The Reed-tube rule allows …", never "the The …".
+  it('a rule named "The Reed-tube" is never "the The Reed-tube rule"', () => {
+    const reedTube = { ...thunderTube, weaponTags: ['The Reed-tube'] };
+    const theRules: Value = [{ category: 'The Reed-tube', classCategories: ['martial'], exceptClasses: ['bog-knight'] }];
+    expect(weaponRuleVerdict(theRules, warden, reedTube)?.why).toBe('Allowed by The Reed-tube rule (martial classes).');
+    expect(weaponRuleVerdict(theRules, witch, reedTube)?.why).toBe('The Reed-tube rule allows martial classes; Bog witch is gentle.');
+    expect(weaponRuleVerdict(theRules, knight, reedTube)?.why).toBe("The Reed-tube rule doesn't apply to Bog knight: its own list decides.");
+  });
 });
 
 const phaseClass: Value = {

@@ -87,7 +87,7 @@ async function inGmView(): Promise<User> {
   render(<Root db={world.db} />);
   await user.click(await screen.findByRole('button', { name: new RegExp(P1_CAMPAIGN) }));
   await user.click(within(await screen.findByRole('navigation', { name: 'Campaign sections' })).getByRole('button', { name: /^Players/ }));
-  await user.click(await screen.findByRole('button', { name: `View ${P1_CHARACTER}'s sheet` }));
+  await user.click(await screen.findByRole('button', { name: `View ${P1_CHARACTER}’s sheet` }));
   await screen.findByRole('region', { name: 'Vitals' });
   await waitFor(() => expect(screen.getByRole('note').getAttribute('aria-label')).toMatch(/^Sam’s view of /));
   return user;
@@ -257,7 +257,7 @@ describe('the GM’s Cast in the view (C15c; M3h)', () => {
     render(<Root db={world.db} />);
     await user.click(await screen.findByRole('button', { name: /The Reed Marches/ }));
     await user.click(within(await screen.findByRole('navigation', { name: 'Campaign sections' })).getByRole('button', { name: /^Players/ }));
-    await user.click(await screen.findByRole('button', { name: "Open Wren's magic" }));
+    await user.click(await screen.findByRole('button', { name: "Open Wren’s magic" }));
     const before = world.tables.events.length;
     await user.click(await screen.findByRole('button', { name: 'Cast Mire lamp' }));
     await waitFor(() => expect(world.tables.character_play[0]!.spells_cast).toEqual({ '1:mire-lamp': 1 }));
@@ -337,7 +337,7 @@ describe('“Go to Waiting for you” lands once (the review of #36)', () => {
       await screen.findByRole('button', { name: 'Invite a player' });
       await waitFor(() => expect(scrolled.filter((el) => el.id === 'gm-waiting-approval')).toHaveLength(1));
       // Into the view again and back: no second scroll.
-      await user.click(screen.getByRole('button', { name: `View ${P1_CHARACTER}'s sheet` }));
+      await user.click(screen.getByRole('button', { name: `View ${P1_CHARACTER}’s sheet` }));
       await screen.findByRole('region', { name: 'Vitals' });
       await user.click(screen.getByRole('button', { name: '‹ Players' }));
       await screen.findByRole('button', { name: 'Invite a player' });

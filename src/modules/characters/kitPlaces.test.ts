@@ -64,4 +64,11 @@ describe('placing a kit', () => {
     ]);
     expect(kitGroups(placeKit([piece('Reed lamp')], anything), null).map((g) => g.name)).toEqual(['Carried']);
   });
+
+  // Purpose (words rule 13, Francis, 26 Nov): a backpack whose name starts with "The" keeps its own article in the
+  // heading, never "In the the old satchel".
+  it('names a "The …" backpack without doubling its article', () => {
+    const placed = placeKit([piece('Reed lamp'), piece('The Old Satchel', { container: {} })], anything);
+    expect(kitGroups(placed, 'The Old Satchel').map((g) => g.name)).toEqual(['Carried', 'In the old satchel']);
+  });
 });

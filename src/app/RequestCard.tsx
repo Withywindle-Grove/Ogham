@@ -56,6 +56,7 @@ import { loadInventory } from '../modules/inventory/inventory.ts';
 import type { CampaignSetting } from './campaignSetting.ts';
 import { copyOf, oneOffCopy } from './AddItem.tsx';
 import './RequestCard.css';
+import { possessive } from '../core/nameWords.ts';
 
 // The player's side ------------------------------------------------------------------------------------------------
 
@@ -195,7 +196,7 @@ function EscapeRollCard({ request, onEnter, forName }: { request: Request; onEnt
   const [text, setText] = useState(entry ? String(entry.roll) : '');
   const [changing, setChanging] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
-  const whose = forName ? `${forName}'s` : request.requesterId === null ? "the party's" : 'your';
+  const whose = forName ? possessive(forName) : request.requesterId === null ? "the party's" : 'your';
 
   if (!prompt) {
     return (
@@ -309,7 +310,7 @@ export function GmRequestCard({
       return false;
     }
     setEntering(false);
-    show({ text: `Entered ${who === 'The party' ? "the party's" : `${who}'s`} roll` });
+    show({ text: `Entered ${who === 'The party' ? "the party's" : possessive(who)} roll` });
     onChanged();
     return true;
   }
@@ -365,7 +366,7 @@ export function GmRequestCard({
         const undone = eventId ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
         if (!undone) show({ text: 'Nothing to undo.', error: true });
         else if (!undone.ok) show({ text: undone.message, error: true });
-        else show({ text: `Put ${who}'s request back` });
+        else show({ text: `Put ${possessive(who)} request back` });
         onChanged();
       },
     });
@@ -380,7 +381,7 @@ export function GmRequestCard({
       <li className="pack__item request request--gm">
         <p className="pack__name">{`${who}, escape roll`}</p>
         {prompt && <p className="auth__meta">{escapeRollWords(prompt)}</p>}
-        <p className="request__text">{entry && total ? `Rolled ${entry.roll}${total.parts.map((p) => ` ${p}`).join('')} = ${total.total}` : `Waiting for ${who === 'The party' ? "the party's" : `${who}'s`} roll`}</p>
+        <p className="request__text">{entry && total ? `Rolled ${entry.roll}${total.parts.map((p) => ` ${p}`).join('')} = ${total.total}` : `Waiting for ${who === 'The party' ? "the party's" : possessive(who)} roll`}</p>
         {hirelings.length > 0 && <p className="auth__meta">{`${hirelings.join(', ')} ${hirelings.length === 1 ? 'leaves' : 'leave'} with ${who} and ${hirelings.length === 1 ? 'shares' : 'share'} this result.`}</p>}
         {!entry && !entering && (
           <button type="button" className="button-secondary button-secondary--small" onClick={() => setEntering(true)}>
