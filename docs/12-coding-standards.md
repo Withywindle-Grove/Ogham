@@ -108,7 +108,7 @@ Ruled 2026-11-27 (lp-9, `design/rulings/process-loop-2026-11-27.md`). The source
 | `package.json` dependencies equal the list in `02` | Hard rule 9 | To add (a script in the check) |
 | No `disabled` attribute on a control | Hard rule 10 | To add (`no-restricted-syntax`) |
 | Tokens only in inline styles in screens | Hard rule 7 | To add (extend the token test) |
-| No float column for money, quantities, weights or slots | Hard rule 8 | To add (a test over the generated types) |
+| No decimal or float column (`real`, `double precision`, `numeric`) in any table or view | Hard rule 8 | On (`supabase/tests/float-columns.test.ts`, in the database job; known list beside it, empty) |
 | A new source file over 400 lines | cs-10 | To add (`max-lines`, old files recorded as known) |
 | A unit test over 300 ms | cs-34 | To add: the runner reports it already; make the report part of the check's output |
 | The name scan says so when its private list is absent | Hard rule 2 | To add. It is silent on GitHub today |

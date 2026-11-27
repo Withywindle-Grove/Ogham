@@ -3,7 +3,7 @@
 // so tests never touch real data.
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const MAIN_PROJECT_REF = 'nplkqwzjdprpgpklatji';
+export const MAIN_PROJECT_REF = 'nplkqwzjdprpgpklatji';
 
 export interface TestProject {
   url: string;

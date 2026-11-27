@@ -149,6 +149,7 @@ Access-rule tests ("a player can't read another player's purse") have to run aga
 - **Safety catch:** the tests and `db:push:test` refuse to run if their settings point at the main project.
 - **TEST ahead of open pull requests** (db-1, 2026-11-11, `design/rulings/m5b-morning-rulings-2026-11-11.md`): `db:push:test` accepts migrations TEST already holds from other open pull requests, so a branch can push its own while another's waits unmerged; each TEST turn is still checked with Francis first (until 5 December the driver runs the sessions itself, db-s1 to db-s6, widened on 2026-11-19 to any migration after Francis's one-word "push").
 - **Order for any database change:** write the migration → `npm run db:push:test` → `npm run test:db` → when it passes, `npm run db:push` (main project) → `npm run db:types` → commit.
+- **The float check** (`supabase/tests/float-columns.test.ts`, hard rule 8, check 6): no column of a table or view in `public` or a schema the migrations create has type `real`, `double precision` or `numeric`. It reads the information schema through the Supabase CLI (`supabase db query`): `--local` in CI, `SUPABASE_TEST_DB_URL` from `.env.test` locally. A planted table with such columns is made and dropped inside the test. Old columns go in `float-columns.known.ts` beside it, each with its reason; the list only shrinks (a fixed column still listed fails). It was empty when the check was switched on.
 - The main project is linked once with `npx supabase link` (on Windows PowerShell, type `npx.cmd`). The CLI's login token and link details stay on your PC, outside Git.
 
 ### Seeded test campaigns (`npm run seed:test`)
@@ -169,7 +170,7 @@ Builds, on the **test** project only, "Seed · <setting> · defaults" and "Seed 
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | main | `.env` (git-ignored) and Vercel | Safe to reach the browser; the access rules protect the data |
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | test | `.env.test` (git-ignored) and GitHub secrets | |
 | `SUPABASE_SECRET_KEY` | test | `.env.test` and GitHub secrets | Full access, for setting up test data only |
-| `SUPABASE_TEST_DB_URL` | test | `.env.test` only | Contains the test database password |
+| `SUPABASE_TEST_DB_URL` | test | `.env.test` only | Contains the test database password; also read by the float check (`npm run test:db`) |
 | main database password | main | your password manager; typed into `supabase link` | Never saved in a file |
 | **main secret key** | main | **nowhere** in this project | Never in Git, Vercel, GitHub, `.env` files or chat |
 
