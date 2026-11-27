@@ -6,6 +6,27 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
+// The project's own lint rules, kept here (no package). Each has its own name, so ESLint's suppressions file
+// (eslint-suppressions.json, the known old breaks; docs/testing.md) counts each rule's cases on their own.
+const tome = {
+  rules: {
+    // Hard rule 10: never a disabled button. A blocked action stays tappable and explains why in a pop-up.
+    'no-disabled': {
+      meta: { type: 'problem', schema: [] },
+      create(context) {
+        return {
+          'JSXAttribute[name.name="disabled"]'(node) {
+            context.report({
+              node,
+              message: 'Never a disabled button (hard rule 10): keep it tappable and explain why in a pop-up.',
+            });
+          },
+        };
+      },
+    },
+  },
+};
+
 export default defineConfig([
   // .claude holds helper agents' copies of the repo (git worktrees); they aren't part of this one.
   globalIgnores(['dist', 'dev-dist', '.claude']),
@@ -42,5 +63,12 @@ export default defineConfig([
         { patterns: [{ group: ['**/modules/**'], message: 'Core never imports a module (hard rule 6). Use the registry.' }] },
       ],
     },
+  },
+  {
+    // Hard rule 10: no `disabled` attribute on a control in the app's components (tests may render one to check it).
+    files: ['src/**/*.tsx'],
+    ignores: ['**/*.test.tsx'],
+    plugins: { tome },
+    rules: { 'tome/no-disabled': 'error' },
   },
 ]);
