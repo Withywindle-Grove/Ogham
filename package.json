@@ -16,6 +16,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "check": "npm run typecheck && npm run lint && npm test && npm run docs:check && node scripts/check-function-lineage.mjs && npm run build && node scripts/slow-tests.mjs",
+    "check:quick": "node scripts/check-quick.mjs",
     "test:db": "vitest run --config vitest.db.config.ts",
     "db:push": "supabase db push --linked",
     "db:push:test": "node scripts/db-push-test.mjs",
@@ -25,7 +26,7 @@
     "db:backup": "node scripts/db-backup.mjs",
     "pack:check": "node scripts/check-pack.mjs",
     "names:check": "node scripts/check-names.mjs --all",
-    "hooks:install": "git config core.hooksPath .githooks",
+    "hooks:install": "node scripts/hooks-install.mjs",
     "docs:gen": "node scripts/docs-gen.mjs",
     "docs:check": "node scripts/docs-check.mjs",
     "usage:report": "node scripts/usage-report.mjs"

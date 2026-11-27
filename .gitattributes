@@ -2,3 +2,5 @@
 .githooks/* text eol=lf
 # Vitest writes snapshots with LF; keep them LF on Windows so npm run check leaves a clean tree.
 *.snap text eol=lf
+# The decisions log takes lines from both sides when two branches append at its end (docs/testing.md, Git hooks).
+docs/09-decisions-log.md merge=union

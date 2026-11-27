@@ -74,10 +74,10 @@ The batching rule (one check run per batch, a fresh worker per row and per fix r
 - **Context.** A worker and its ticket are sized to stay near 150,000 tokens (`docs/agents/issue-tracker.md`). No hook counts a worker. A worker past the limit finishes its task and keeps its replies lean (Short conversations).
 - **Push.** A branch with no pull request yet is pushed each time its check passes (a branch push alone starts no CI run). Once the pull request is open: one push per row, and one per round of review fixes.
 - **Builders do not wait for CI.** A builder pushes, reports and stops. A Sonnet or Haiku worker watches CI and fetches the pictures. If something fails, the driver starts a fresh worker with the findings.
-- **The check slot.** In a cloud container a worker runs the full check through `scripts/check-slot.sh <command>`, and only the tests it touches while it works. One slot, unless `OGHAM_CHECK_SLOTS` says more; each run's time is logged to `/tmp/ogham-check-times.log`. A second slot is a trial: time it, and keep it only if it gains time.
-- **The commit hook is the check.** Where the hooks are on (an absolute `core.hooksPath`), a worker commits through `scripts/check-slot.sh git commit …` and does not run the full check by hand first. Where they are off, it runs `scripts/check-slot.sh npm run check` before each commit.
+- **The check slot.** In a cloud container a worker runs the full check through `scripts/check-slot.sh <command>`, and only the tests it touches while it works; before it queues for the full check it runs `npm run check:quick` (types, lint and related tests on its changes, a few minutes, outside the slot; `docs/testing.md`, The quick check). One slot, unless `OGHAM_CHECK_SLOTS` says more; each run's time is logged to `/tmp/ogham-check-times.log`. A second slot is a trial: time it, and keep it only if it gains time.
+- **The commit hook is the check.** A worker commits through `scripts/check-slot.sh git commit …` and does not run the full check by hand first. The slot refuses a commit when the hooks are off in its worktree, and says to run `npm run hooks:install`.
 - **Docs only.** A change of docs or mockups only runs `npm run docs:check`, not the full check.
-- **Worktrees.** In a cloud clone with linked worktrees, `npm run hooks:install` is not run (its relative path does not reach a linked worktree). After `cp -al …/node_modules`, check the link named in `CLAUDE.md`, Things Claude gets wrong.
+- **Worktrees.** In a new worktree, cloud ones included, a worker runs `npm run hooks:install` once: it turns the hooks on in that worktree only (`docs/testing.md`, Git hooks). The check slot removes a `node_modules/node_modules` link left by `cp -al` before it runs.
 
 ## Skills
 
