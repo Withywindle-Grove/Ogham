@@ -321,3 +321,120 @@
 .place-card__remove {
   margin-inline-start: auto;
 }
+
+/* Edit piece on the place page (sf-16; page 44, EP1): the standard pop-up, the words first in a box that grows with
+   them, "Kind" as one row whose kinds unfold in place, a quiet "Remove this piece" row, "Save" alone in the foot. */
+.edit-piece {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* The words at body size, as EP1 draws them (the shared field is item size), growing with them, never dragged. */
+.edit-piece .field__input.edit-piece__words {
+  overflow: hidden;
+  padding: var(--gap) var(--pad);
+  font-size: var(--text-body);
+  line-height: var(--line-body);
+  resize: none;
+}
+
+/* The Kind row and, open, its kinds under it in the same box (EP1 B): no icon, the chevron down folded, up open. */
+.edit-piece__kinds {
+  border: var(--line-hair) solid var(--muted);
+  border-radius: var(--radius);
+  background: var(--sheet);
+}
+
+.edit-piece__kind {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-block-size: var(--tap-step);
+  padding: 0 var(--space-1) 0 var(--pad);
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-body);
+  text-align: start;
+  cursor: pointer;
+}
+
+.edit-piece__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--tap);
+  block-size: var(--tap);
+}
+
+.edit-piece__mark .icon {
+  transform: rotate(90deg);
+}
+
+.edit-piece__mark--open .icon {
+  transform: rotate(-90deg);
+}
+
+.edit-piece__list {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--pad) var(--space-1);
+  border-block-start: var(--line-hair) solid var(--muted);
+}
+
+.edit-piece__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--tap);
+  padding: 0;
+  border: 0;
+  border-block-end: var(--line-hair) dotted var(--rule);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-body);
+  text-align: start;
+  cursor: pointer;
+}
+
+.edit-piece__option:last-child {
+  border-block-end: 0;
+}
+
+.edit-piece__option--picked {
+  font-weight: var(--weight-bold);
+}
+
+.edit-piece__tick {
+  display: inline-flex;
+  flex: none;
+  inline-size: var(--space-5);
+}
+
+/* "Remove this piece": a quiet row under Kind (EP1, finding 22), the cross in a circle before its words. */
+.edit-piece__remove {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: flex-start;
+  min-block-size: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+
+/* sf-16: a piece's words that open nothing (any piece but a Treasure one with something to send). */
+.place-page__piece-words.place-page__piece-words--still {
+  cursor: default;
+}
