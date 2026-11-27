@@ -1664,13 +1664,15 @@ function CreateCharacterSteps({
         />
       );
     }
-    // A step with nothing to show (no money roll after all): straight on; reached by Back, it says why (final drafts F).
+    // A step with nothing to show now (the steps were set when the draft was made; a level changed on Who they are since
+    // can leave the class nothing there): straight on; reached by Back, its line says why (clo-5, final drafts F).
     if (later.back) {
       return (
         <SkippedStep
           key={`${later.at}-${step ?? ''}`}
           title={guideTitle(setting.rulesSets, (step ?? 'details') as GuideStep, toFinishName(step ?? ''))}
           counter={shellAt}
+          why={skippedWhy(step ?? '', chosen?.klass.name ?? '')}
           classWord={guideTitle(setting.rulesSets, 'class', STEP_TITLES.class)}
           onBack={() => back()}
           onNext={() => advance()}
@@ -3350,12 +3352,28 @@ function QuickPortrait({
 }
 
 /**
- * A step skipped (it had nothing to show), reached by Back (final drafts F): "Nothing to choose here" said once, in the
- * foot (cs-51, 23-H3; #794's review), and the row saying it is skipped and when it comes back.
+ * A skipped step's why-line (clo-5, clo-17; 23-H3): made by the app from the class's name as the pack gives it, in the
+ * singular, and what the step offers; no pack field of its own. Only the steps whose own check is the class's at this
+ * level (First spells, Weapon skills, Expertise) have one. Any other step, or no class name, keeps an empty line.
  */
-export function SkippedStep({ title, counter, classWord, onBack, onNext }: { title: string; counter?: { at: number; of: number | null }; classWord: string; onBack: () => void; onNext: () => void }) {
+export function skippedWhy(step: string, className: string): string {
+  const name = className.trim();
+  if (!name) return '';
+  const who = `${/^[aeiou]/i.test(name) ? 'An' : 'A'} ${name}`;
+  if (step === 'spells') return `${who} has no spells to pick.`;
+  if (step === 'weaponSkills') return `${who} has no weapon skills to pick.`;
+  if (step === 'expertise') return `${who} has no skill points to spend.`;
+  return '';
+}
+
+/**
+ * A step skipped (it had nothing to show), reached by Back (final drafts F): its line says why (`skippedWhy`, clo-5),
+ * "Nothing to choose here" said once, in the foot (23-H3; #794's review), and the row saying it is skipped and when it
+ * comes back.
+ */
+export function SkippedStep({ title, counter, why, classWord, onBack, onNext }: { title: string; counter?: { at: number; of: number | null }; why: string; classWord: string; onBack: () => void; onNext: () => void }) {
   return (
-    <CreationStep title={title} counter={counter} why="" help={null} onBack={onBack} hint="Nothing to choose here" onNext={onNext}>
+    <CreationStep title={title} counter={counter} why={why} help={null} onBack={onBack} hint="Nothing to choose here" onNext={onNext}>
       <div className="pick-row pick-row--picked pick-row--given">
         <span className="pick-row__body">
           <span className="pick-row__name">Skipped</span>
