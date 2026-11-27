@@ -81,3 +81,40 @@ export function coinLine(denominations: readonly Denomination[], purse: unknown)
   }
   return parts.length > 0 ? parts.join(', ') : NO_COIN;
 }
+
+/**
+ * A price as a pack writes it ({ "heron": 4 }) in the setting's coin words, as the coin line says them ("4 herons"),
+ * `times` over (how many are bought: each amount times that, hard rule 8); '' when it names no coin (K7, psw-5).
+ */
+export function priceWords(denominations: readonly Denomination[], value: unknown, times = 1): string {
+  if (!isRecord(value) || !whole(times)) return '';
+  const scaled: Record<string, number> = {};
+  for (const [key, amount] of Object.entries(value)) if (whole(amount)) scaled[key] = amount * times;
+  const line = coinLine(denominations, scaled);
+  return line === NO_COIN ? '' : line;
+}
+
+/**
+ * A cost written in the setting's coin words read back as coins (K7: what "Spend N" fills in): "4 herons", "1 crown, 2
+ * herons", "1,000 bits and 3 herons". Each part is a whole number and one of the setting's coins by its key, label,
+ * unitName or pluralName (any case). Null when any part isn't, or nothing above 0 is named: then nothing is filled in.
+ */
+export function readCost(denominations: readonly Denomination[], text: string): Record<string, number> | null {
+  const parts = text
+    .replace(/(\d),(?=\d{3}(?!\d))/g, '$1')
+    .split(/,|\band\b/i)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length === 0) return null;
+  const coins: Record<string, number> = {};
+  for (const part of parts) {
+    const found = /^(\d+)\s*(.+?)\.?$/.exec(part);
+    if (!found) return null;
+    const said = found[2]!.trim().toLowerCase();
+    const coin = denominations.find((c) => [c.key, c.label, c.unitName, c.pluralName].some((n) => n !== undefined && n.toLowerCase() === said));
+    if (!coin) return null;
+    coins[coin.key] = (coins[coin.key] ?? 0) + Number(found[1]);
+  }
+  for (const key of Object.keys(coins)) if (coins[key] === 0) delete coins[key];
+  return Object.keys(coins).length > 0 ? coins : null;
+}
