@@ -16,6 +16,42 @@ async function lint(code, filePath) {
   return result.messages.filter((m) => m.severity === 2).map((m) => m.message);
 }
 
+const CORE_LIST_MESSAGE =
+  'Modules use only the allowed core files (hard rule 6). To use another core file, add it to ALLOWED_CORE_FILES in eslint.config.js in a reviewed change.';
+
+describe('check 1: modules use only the allowed core files (hard rule 6)', () => {
+  // A module that imports a core file not on the allowed list fails lint, and the message says how to add one.
+  it('fails a planted module importing an unlisted core file, with the message', async () => {
+    const code = "import { brewLantern } from '../../core/lanternBrewery.ts';\nexport const lit = brewLantern;\n";
+    expect(await lint(code, 'src/modules/bogwatch/plantedLantern.ts')).toEqual([expect.stringContaining(CORE_LIST_MESSAGE)]);
+  });
+
+  // The same holds when the import leaves out the file's ending, or reaches into a folder inside core.
+  it('fails an unlisted core file written without its ending or inside a folder', async () => {
+    const code =
+      "import { a } from '../../core/lanternBrewery';\nimport { b } from '../../core/deep/commands.ts';\nexport const c = [a, b];\n";
+    expect(await lint(code, 'src/modules/bogwatch/plantedLantern.ts')).toEqual([
+      expect.stringContaining(CORE_LIST_MESSAGE),
+      expect.stringContaining(CORE_LIST_MESSAGE),
+    ]);
+  });
+
+  // A module that imports listed core files (values and types alike) passes.
+  it('passes a planted module importing listed core files', async () => {
+    const code =
+      "import { runCommand } from '../../core/commands.ts';\nimport type { Json } from '../../core/database.types.ts';\nexport const run: (j: Json) => unknown = runCommand as never;\n";
+    expect(await lint(code, 'src/modules/bogwatch/plantedLantern.ts')).toEqual([]);
+  });
+
+  // The other direction is unchanged: core still may not import a module.
+  it('still fails core importing a module', async () => {
+    const code = "import { lantern } from '../modules/bogwatch/lantern.ts';\nexport const l = lantern;\n";
+    expect(await lint(code, 'src/core/plantedLantern.ts')).toEqual([
+      expect.stringContaining('Core never imports a module (hard rule 6). Use the registry.'),
+    ]);
+  });
+});
+
 const DISABLED_MESSAGE = 'Never a disabled button (hard rule 10): keep it tappable and explain why in a pop-up.';
 
 describe('check 4: no disabled attribute (hard rule 10)', () => {

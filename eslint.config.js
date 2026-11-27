@@ -27,6 +27,32 @@ const tome = {
   },
 };
 
+// Hard rule 6, the other direction: core has no single public entry, so these core files are it. They are the 17
+// that modules imported when the check was switched on (27 Nov 2026). A module that needs another core file adds it
+// here, in a reviewed change (docs/specs/hard-rule-and-size-checks.md, check 1).
+const ALLOWED_CORE_FILES = [
+  'alignments.ts',
+  'campaignCommands.ts',
+  'campaignSettings.ts',
+  'commands.ts',
+  'currentUser.ts',
+  'database.types.ts',
+  'eventTags.ts',
+  'events.ts',
+  'files.ts',
+  'marchingRows.ts',
+  'partyGroups.ts',
+  'storedWords.ts',
+  'supabase.ts',
+  'timeWords.ts',
+  'travelWords.ts',
+  'undo.ts',
+  'useWords.ts',
+];
+const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// A relative import that reaches into a `core` folder and does not name exactly one listed file.
+const UNLISTED_CORE_FILE = `^(\\.\\.?/)+(.*/)?core/(?!(${ALLOWED_CORE_FILES.map(escapeRegex).join('|')})$)`;
+
 export default defineConfig([
   // .claude holds helper agents' copies of the repo (git worktrees); they aren't part of this one.
   globalIgnores(['dist', 'dev-dist', '.claude']),
@@ -61,6 +87,24 @@ export default defineConfig([
       'no-restricted-imports': [
         'error',
         { patterns: [{ group: ['**/modules/**'], message: 'Core never imports a module (hard rule 6). Use the registry.' }] },
+      ],
+    },
+  },
+  {
+    // Hard rule 6, the other direction: a module reaches core only through the allowed list above.
+    files: ['src/modules/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: UNLISTED_CORE_FILE,
+              message:
+                'Modules use only the allowed core files (hard rule 6). To use another core file, add it to ALLOWED_CORE_FILES in eslint.config.js in a reviewed change.',
+            },
+          ],
+        },
       ],
     },
   },
