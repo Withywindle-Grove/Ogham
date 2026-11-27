@@ -1820,6 +1820,48 @@ export type Database = {
           },
         ]
       }
+      finds_seen: {
+        Row: {
+          actor_id: string
+          campaign_id: string
+          created_at: string
+          id: string
+          seen_at: string
+          updated_at: string
+        }
+        Insert: {
+          actor_id: string
+          campaign_id: string
+          created_at?: string
+          id?: string
+          seen_at?: string
+          updated_at?: string
+        }
+        Update: {
+          actor_id?: string
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          seen_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finds_seen_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: true
+            referencedRelation: "actors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finds_seen_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gm_messages: {
         Row: {
           body: string
@@ -2081,48 +2123,6 @@ export type Database = {
           },
         ]
       }
-      finds_seen: {
-        Row: {
-          actor_id: string
-          campaign_id: string
-          created_at: string
-          id: string
-          seen_at: string
-          updated_at: string
-        }
-        Insert: {
-          actor_id: string
-          campaign_id: string
-          created_at?: string
-          id?: string
-          seen_at?: string
-          updated_at?: string
-        }
-        Update: {
-          actor_id?: string
-          campaign_id?: string
-          created_at?: string
-          id?: string
-          seen_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "finds_seen_actor_id_fkey"
-            columns: ["actor_id"]
-            isOneToOne: true
-            referencedRelation: "actors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "finds_seen_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "campaigns"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       hook_sends: {
         Row: {
           actor_id: string | null
@@ -2277,8 +2277,8 @@ export type Database = {
           mode_id: string | null
           name: string
           needs_fuel: boolean
-          noticed: string
           notes: string
+          noticed: string
           per_units: number
           pinned: boolean
           qty: number
@@ -2320,8 +2320,8 @@ export type Database = {
           mode_id?: string | null
           name: string
           needs_fuel?: boolean
-          noticed?: string
           notes?: string
+          noticed?: string
           per_units?: number
           pinned?: boolean
           qty?: number
@@ -2363,8 +2363,8 @@ export type Database = {
           mode_id?: string | null
           name?: string
           needs_fuel?: boolean
-          noticed?: string
           notes?: string
+          noticed?: string
           per_units?: number
           pinned?: boolean
           qty?: number
@@ -4396,19 +4396,19 @@ export type Database = {
       town_piece_resets: {
         Row: {
           campaign_id: string
-          group_place_id: string
+          group_number: number
           id: string
           reset_at: string
         }
         Insert: {
           campaign_id: string
-          group_place_id: string
+          group_number: number
           id?: string
           reset_at?: string
         }
         Update: {
           campaign_id?: string
-          group_place_id?: string
+          group_number?: number
           id?: string
           reset_at?: string
         }
@@ -4418,13 +4418,6 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "campaigns"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "town_piece_resets_group_place_id_fkey"
-            columns: ["group_place_id"]
-            isOneToOne: false
-            referencedRelation: "group_places"
             referencedColumns: ["id"]
           },
         ]
@@ -5285,10 +5278,6 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      ask_or_invite: {
-        Args: { actor: string; ask: boolean; company: string }
-        Returns: string
-      }
       ask_for_thing: {
         Args: {
           actor: string
@@ -5329,6 +5318,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      ask_or_invite: {
+        Args: { actor: string; ask: boolean; company: string }
+        Returns: string
       }
       ask_requests: {
         Args: {
@@ -6055,22 +6048,22 @@ export type Database = {
           to_actor?: string
         }
         Returns: {
-            actor_id: string | null
-            body: string
-            campaign_id: string
-            clock_seconds: number
-            created_at: string
-            created_by: string | null
-            hook_key: string
-            id: string
-            kind: string
-            name: string
-            pack_id: string
-            pays: string
-            player_user_id: string | null
-            undone: boolean
-            updated_at: string
-            version: number
+          actor_id: string | null
+          body: string
+          campaign_id: string
+          clock_seconds: number
+          created_at: string
+          created_by: string | null
+          hook_key: string
+          id: string
+          kind: string
+          name: string
+          pack_id: string
+          pays: string
+          player_user_id: string | null
+          undone: boolean
+          updated_at: string
+          version: number
         }
         SetofOptions: {
           from: "*"
@@ -6344,6 +6337,8 @@ export type Database = {
           title: string
         }[]
       }
+      mark_call_seen: { Args: { send: string }; Returns: string }
+      mark_finds_seen: { Args: { character: string }; Returns: string }
       move_between_places: {
         Args: {
           by_seconds: number
@@ -6556,8 +6551,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      mark_call_seen: { Args: { send: string }; Returns: string }
-      mark_finds_seen: { Args: { character: string }; Returns: string }
       read_messages: { Args: { message_ids: string[] }; Returns: number }
       read_table_by_hand: {
         Args: {
@@ -6793,10 +6786,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      reset_shop_stock: {
-        Args: { campaign: string; items: string[]; on_day: number; service: string }
-        Returns: number
-      }
       request_sheet_change: {
         Args: { actor: string; field: string; label: string; to_value: number }
         Returns: {
@@ -6824,6 +6813,15 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      reset_shop_stock: {
+        Args: {
+          campaign: string
+          items: string[]
+          on_day: number
+          service: string
+        }
+        Returns: number
       }
       resolve_lost: {
         Args: {
@@ -7317,6 +7315,39 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      set_knowledge_share: {
+        Args: {
+          campaign: string
+          entry_id: string
+          group_no: number
+          pack: string
+          section_at: number
+          share: boolean
+        }
+        Returns: {
+          body: Json | null
+          campaign_id: string
+          created_at: string
+          created_by: string | null
+          entry_id: string
+          group_number: number
+          heading: string
+          id: string
+          pack_id: string
+          place_name: string
+          section_at: number
+          shared: boolean
+          shared_clock: number
+          undone: boolean
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "knowledge_shares"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       set_lost: {
         Args: { campaign: string; day: number; group_no: number; note?: string }
         Returns: {
@@ -7392,39 +7423,6 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "place_pieces"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      set_knowledge_share: {
-        Args: {
-          campaign: string
-          entry_id: string
-          group_no: number
-          pack: string
-          section_at: number
-          share: boolean
-        }
-        Returns: {
-          body: Json | null
-          campaign_id: string
-          created_at: string
-          created_by: string | null
-          entry_id: string
-          group_number: number
-          heading: string
-          id: string
-          pack_id: string
-          place_name: string
-          section_at: number
-          shared: boolean
-          shared_clock: number
-          undone: boolean
-          updated_at: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "knowledge_shares"
           isOneToOne: true
           isSetofReturn: false
         }
