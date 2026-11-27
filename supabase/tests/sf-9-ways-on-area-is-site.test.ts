@@ -92,9 +92,9 @@ describe('the name sent on a visit alone is an Area’s, the pack’s `site`, ne
   const ways = async (person: Person) => must(await person.db.rpc('campaign_ways_on', { campaign })) as WayRow[];
   /** The raw answer and the app's reading of it, as text, to search for words that may not be there. */
   const sentTo = async (person: Person) => JSON.stringify(await ways(person)) + JSON.stringify(await loadWaysOn(asDb(person), campaign));
-  /** One route's row for player A's group, as a reader gets it, without the route's own id and its ways. */
-  const rowOf = async (person: Person, routeId: string) => {
-    const row = (await ways(person)).find((r) => r.route_id === routeId && r.group_number === mine);
+  /** One route's row for a group (player A's unless named), as a reader gets it, without the route's own id and its ways. */
+  const rowOf = async (person: Person, routeId: string, group = mine) => {
+    const row = (await ways(person)).find((r) => r.route_id === routeId && r.group_number === group);
     return row ? { place: row.to_place_id, name: row.to_name, number: row.to_number, elsewhere: row.elsewhere, area: row.to_area_name } : null;
   };
   const unexplored = (number: string, area: string | null) => ({ place: null, name: null, number, elsewhere: false, area });
@@ -107,9 +107,9 @@ describe('the name sent on a visit alone is an Area’s, the pack’s `site`, ne
   };
   const groupOf = async (actorId: string) =>
     Number(must(await world.admin.from('party_group_members').select('group_number').eq('campaign_id', campaign).eq('actor_id', actorId).single()).group_number);
-  const goTo = (placeId: string) => ok(as(world.gm, setPlace, { campaignId: campaign, group: mine, name: '', placeId }));
-  const showFirstPiece = async () => {
-    const visit = (await loadGroupPlaces(asDb(world.gm), campaign, tripId))!.get(mine)!;
+  const goTo = (placeId: string, group = mine) => ok(as(world.gm, setPlace, { campaignId: campaign, group, name: '', placeId }));
+  const showFirstPiece = async (group = mine) => {
+    const visit = (await loadGroupPlaces(asDb(world.gm), campaign, tripId))!.get(group)!;
     await ok(as(world.gm, showPiece, { campaignId: campaign, row: visit, piece: visit.pieces[0]! }));
   };
 
@@ -124,7 +124,7 @@ describe('the name sent on a visit alone is an Area’s, the pack’s `site`, ne
     hutsId = await placeOf('hw-huts');
     tripId = (await ok(as(world.gm, startExpedition, { campaignId: campaign, mode: 'dungeon', placeId: sluiceId }))).id;
     mine = await groupOf(world.wrenId);
-    // Player B's character in a group of its own, which goes nowhere in these tests.
+    // Player B's character in a group of its own, which stays at the sluice (from the second test on).
     if ((await groupOf(world.ashId)) === mine) {
       await ok(as(world.playerB, chooseGroup, { character: { id: world.ashId, campaignId: campaign, ownerUserId: world.playerB.id }, group: null }));
     }
@@ -168,14 +168,24 @@ describe('the name sent on a visit alone is an Area’s, the pack’s `site`, ne
     expect((await loadWaysOn(asDb(world.playerA), campaign))?.find((w) => w.routeId === route.loft && w.groupNumber === mine)).toEqual({ groupNumber: mine, routeId: route.loft, to: null, number: '2a', elsewhere: false, areaName: null, ways: [{ by: 'row', name: 'Rowing', value: 1, unit: 'turn' }] });
   });
 
-  it('the GM’s answer is as narrow, and a group that made no visit gets none of it', async () => {
+  it('the GM’s answer is as narrow, and a group that never went to the fen reads its ways as Elsewhere', async () => {
     // Purpose: the function sends the GM the same rows, with no Location's name and no Area's own name either; and
-    // what player A's group earned by its visits reaches no other group's player.
+    // what a group knows is its own: player B's group, at the same sluice and shown it, but never at the fen, gets the
+    // fen's ways as leading elsewhere (no number, no place, no name, no Area's name), though player A's group knows them.
     const raw = await sentTo(world.gm);
     for (const word of [...NEVER_SENT, MILL_PLAYERS_NAME]) expect(raw, word).not.toContain(word);
+    const theirGroup = await groupOf(world.ashId);
+    await goTo(sluiceId, theirGroup);
+    await showFirstPiece(theirGroup);
+    const elsewhere = { place: null, name: null, number: null, elsewhere: true, area: null };
+    expect(await rowOf(world.playerB, route.huts, theirGroup)).toEqual(elsewhere);
+    expect(await rowOf(world.playerB, route.stakes, theirGroup)).toEqual(elsewhere);
+    // The same ways, for player A's group: still known, still under the fen's players' name.
+    expect(await rowOf(world.playerA, route.stakes)).toEqual(unexplored('7', FEN_PLAYERS_NAME));
     const theirs = await sentTo(world.playerB);
-    for (const word of [...NEVER_SENT, MILL_PLAYERS_NAME, FEN_PLAYERS_NAME]) expect(theirs, word).not.toContain(word);
-    expect((await ways(world.playerB)).every((r) => r.group_number !== mine)).toBe(true);
+    for (const word of [...NEVER_SENT, MILL_PLAYERS_NAME, FEN_PLAYERS_NAME, millId, hutsId]) expect(theirs, word).not.toContain(word);
+    expect(JSON.stringify(await ways(world.playerB))).not.toMatch(/"to_number":"[67]"/);
+    expect((await ways(world.playerB)).every((r) => r.group_number === theirGroup)).toBe(true);
     expect(await ways(world.outsider)).toEqual([]);
   });
 
