@@ -137,3 +137,33 @@ describe("a class that can't use a thing: the pop-up says the rule once (tfw-4, 
     expect(screen.queryByRole('dialog', { name: "Can't use Bog-iron coat" })).toBeNull();
   });
 });
+
+describe('a name that starts with "The" keeps its own (withThe, #50)', () => {
+  // Purpose: an item whose name starts with "The" is not called "the The …" in the pop-up of an item that is off.
+  it.fails('an off item named "The Marsh bow" pops up "Can\'t wield The Marsh bow"', async () => {
+    const powder = { id: 'fen-powder', kind: 'option', name: 'Powder age', default: 'none', choices: [{ id: 'none', name: 'No guns' }, { id: 'wheel', name: 'Wheel guns' }] };
+    const bowEntry = { id: 'marsh-bow', kind: 'item', name: 'The Marsh bow', category: 'weapon', slot: 'hand', weaponTags: ['Missile'], weapon: { damage: '1d6' }, option: 'fen-powder=wheel' };
+    wardenWorld({ mode: 'any' }, { more: [powder, bowEntry] });
+    world.tables.inventory_lines[0]!.name = 'The Marsh bow';
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
+    const atHand = within(await screen.findByRole('region', { name: 'At hand' }));
+    await user.click(await atHand.findByRole('button', { name: 'Wield The Marsh bow' }));
+    const popup = await screen.findByRole('dialog', { name: /wield/ });
+    expect(popup.getAttribute('aria-label') ?? popup.querySelector('h2')?.textContent).toBe("Can't wield The Marsh bow");
+  });
+
+  // Purpose: a weapon rule whose name starts with "The" is not called "the The … rule" on the row it allows.
+  it.fails('a weapon allowed by "The Reed-tube" rule reads "By The Reed-tube rule"', async () => {
+    const reedTubes = { id: 'fen-rules', kind: 'rulesSet', name: 'Fen rules', weaponRules: [{ category: 'The Reed-tube', classCategories: ['martial'] }] };
+    wardenWorld({ mode: 'list', ids: ['knife'] }, { more: [reedTubes], bow: { weaponTags: ['The Reed-tube', 'Missile'] }, warden: { weaponProficiencyCategory: 'martial' } });
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
+    const atHand = await screen.findByRole('region', { name: 'At hand' });
+    await within(atHand).findByRole('button', { name: 'Wield Marsh bow' });
+    await within(atHand).findByText(/Reed-tube rule/);
+    expect(atHand.textContent).toContain('By The Reed-tube rule');
+  });
+});
