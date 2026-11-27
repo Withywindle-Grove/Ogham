@@ -1,66 +1,122 @@
 # .claude/ — agents, roles, budget
 
-Moved out of `CLAUDE.md` on 2026-11-01 (P6: CLAUDE.md stays under a page). `CLAUDE.md` still holds the rules that apply to every session; this file holds who runs what, on which model, and how the budget is watched. How the project is run since 2026-11-17: `docs/design/rulings/process-after-review-2026-11-17.md` (rvw-3 to rvw-18).
+`CLAUDE.md` holds the rules of every session. This file holds who runs what, on which model, how workers are run, and how the budget is watched. Each rule has one home; the other files link to it. The date and the reason of a rule are in `docs/09-decisions-log.md` (search `[process]`) and in `docs/design/rulings/process-*.md`.
+
+| For | Read |
+|---|---|
+| the driver's own rules | `.claude/agents/driver.md` |
+| a builder's own rules, and its brief | `.claude/agents/builder.md`, `.claude/briefs/builder-brief.md` |
+| what a review checks | `REVIEW.md`, `docs/12-coding-standards.md` |
+| who starts each skill | `.claude/skills/README.md` |
+| specs and tickets | `docs/agents/issue-tracker.md` |
+
+## Terms
+
+Agent-facing files use the terms of the [Dictionary of AI Coding](https://github.com/mattpocock/dictionary-of-ai-coding). The project's own words stay where the dictionary has none.
+
+| Here | Dictionary term |
+|---|---|
+| worker | a [subagent](https://github.com/mattpocock/dictionary-of-ai-coding#subagent) of the driver's session; in the two exceptions under Seats, a separate [session](https://github.com/mattpocock/dictionary-of-ai-coding#session) |
+| handoff, `handover-driver.md` | [handoff](https://github.com/mattpocock/dictionary-of-ai-coding#handoff), [handoff artifact](https://github.com/mattpocock/dictionary-of-ai-coding#handoff-artifact) |
+| `/clear` | [clearing](https://github.com/mattpocock/dictionary-of-ai-coding#clearing) |
+| spec, ticket | [spec](https://github.com/mattpocock/dictionary-of-ai-coding#spec), [ticket](https://github.com/mattpocock/dictionary-of-ai-coding#ticket) |
+| `npm run check`, the layout job, the hooks | [automated check](https://github.com/mattpocock/dictionary-of-ai-coding#automated-check) |
+| the `reviewer`'s review | [automated review](https://github.com/mattpocock/dictionary-of-ai-coding#automated-review) |
+| a sitting with Francis | [human review](https://github.com/mattpocock/dictionary-of-ai-coding#human-review) |
+| driver, brief, row, batch, plan, hook, worktree | no dictionary term: the project's words. A **brief** is the file a worker reads first; a **row** is one ticket, or one row of a plan |
 
 ## Roles and models
 
-Claude may change the roles, models and batching below under Technical ownership (`CLAUDE.md`), but not in a way that raises spend or the session or memory limits.
+Claude may change the roles, models and batching below under Technical ownership (`CLAUDE.md`), but not in a way that raises spend or the session or memory limits. Agents live in `.claude/agents/` (`claude --agent driver`). Fable is the advisor of every session (`advisorModel` in `.claude/settings.json`); workers inherit it, and an agent file cannot set it.
 
-Agents live in `.claude/agents/` (`claude --agent driver`, `claude --agent builder`).
-- **The driver, Opus, medium, advisor Fable** (`driver`, rvw-3; Francis, 2026-11-24): the one session Francis talks to. It orders the work, writes each worker's brief, starts builders and a reviewer as short-lived workers, looks at pictures, and merges. Details in `.claude/agents/driver.md`.
-- **Fable, medium** (`designer`, rvw-4; medium from 2026-11-24): only a short design sitting that ends in a ruling file: a question that touches the data model, permissions or hidden data; a screen with no approved mockup; anything that failed twice on Opus. The driver stops and says so when it meets one. A `designer` the driver starts from a brief (Opus) draws mockups as a studio worker.
-- **Fable, high** (`project-review`, ruled 2026-11-10): reviews how we build, the app's architecture as built against as specified, and the pack pipeline, for cost, efficiency, efficacy and quality, after each milestone gate and on demand. It reports first and makes small technical fixes only on Francis's yes; on packs it advises, and the Pack Creator decides or sends the question to Design. Reports in `docs/health/project-review-<date>.md`.
-- **Opus, medium, advisor Fable** (`builder`; Francis, 2026-11-24): build steps, as short-lived workers of the driver. **A fresh worker per row and per fix round** (Francis, 2026-11-22): one builder builds one row and stops; each row of a batch, and each round of review fixes, is done by a fresh short-lived worker that commits to the batch's branch; a worker is never resumed for a later round (Saving CI minutes, below). **Fable, high, only on Francis’s yes each time** (rvw-18): the steps listed in `.claude/agents/builder.md`, Escalating to Fable.
-- **Opus, medium** (`reviewer`, read-only): against `REVIEW.md`. **Each code pull request gets one local review before it merges (ruled 2026-11-10):** the driver runs the `reviewer` once on it; docs-only and scripts-only pull requests are skipped; a pull request with a migration or access rules is always reviewed. The findings go in one comment on the pull request, and the pull request's text says "Reviewed: local reviewer, N findings, fixed / not"; for a pull request that draws a screen the comment names the mockup or ruling it was compared against. The CI review (P3) runs the same file when its API credit allows; it is not a substitute. **The order (restated 2026-11-13, rv-1):** the reviewer reports first; auto-merge is set only after its comment is on the pull request. Until 2026-12-01 the CI review is at its cap and the local review is the only one. One cloud seat may stay for first reviews (rvw-11).
-- **Opus, high** (`pack-reviewer`, read-only): an independent re-check of each pack review or build against the books, the private pack and the app, run in a fresh session; it reads the pack session's note last (ruled 2026-11-03, `docs/plans/pack-review-method.md`).
-- **Sonnet** (`tester`, `docs-sync`, `pack-tools`): tests, fixtures, docs sync, 09 lines, pack scripts, changelog, inventory Code column. Merges, conflicts and watching CI also go to Sonnet or Haiku workers (rvw-10).
-- **Haiku** (`scout`): searches, "where is X", log reading.
-- **Seats in a cloud driver session: at most three builders at once; reviewers don't count** (was four, Francis, 2026-11-24: "Four builders max if reviewers use less"; lowered 2026-11-25, technical ownership: two container restarts came with four builders and parallel checks on a 4-core, 15 GB machine). **One heavy job (a full check or a layout run) at a time** in a cloud container. No two workers touch the same file or branch, and no two do the same task; before starting one the driver checks what is in flight. Builders push as they go and run the full check in the check slot, `scripts/check-slot.sh <command>` (one full check at a time; a commit through it when the hook is on, the hook being the check; a docs- or mockup-only change runs only `npm run docs:check`; 09, 24 Nov). **Playwright runs use at most `--workers=2`** (technical ownership, 2026-11-27: three container restarts on 26–27 Nov with load about 9 on 4 cores). Builders are subagents of the driver's session by default (below). The four below still hold for sessions on Francis's PC.
-- **At most four local sessions at once** (rvw-10; cloud builders are outside the four, Francis, 2026-11-19): the driver, two builders on the same screen (rows that share no file), one reviewer on demand. **Cloud builders: subagents of the driver's own cloud session by default** (Francis, 2026-11-27: "Agree, go with subagents here"; before that, no restrictions, 2026-11-19, ending rvw-11). A separate cloud session is the exception: extra machine power for one whole batch that shares no file with the work in the driver's session, only when the check queue is long; it works from the driver's brief, reports in its pull request's text and pushes nothing after `ready`. The other rules hold (one check run per batch, batches that share no file, the brief with the guard line). **Home One** (the PC session) is a fourth builder seat, one batch at a time, through its own short-lived builder subagent from the driver's brief, and runs the PC checks (audits, TEST runs, WebKit layout); MAIN-database pushes go to a PC session in manual mode, with Francis's Allow each time (Francis, 2026-11-27: "Agree get home one building"; 2026-11-26: "Zazzy Matsumoto is in manual mode so use it for pushes. Every other pc check can go to home one").
-- **The exception to rvw-10** (Francis, 2026-11-17): the day before the reset the driver reads the week's meter with Francis. If usage will be left, it may add seats only for data-and-logic rows of the next screen, tests and owed look-back reviews, the checks for rvw-6 and rvw-7, and clean-up that touches no file a live row holds; never a second screen's visible rows, never more seats than the PC's memory allows.
-- **Two checks at once (ln-1, 2026-11-14; placed here 2026-11-18, Francis):** two checks may run at once while free memory is 12 GB or more; one below 10 GB. The second runs only with three test workers, only with 13 GB free at its start, and is dropped below 9 GB; a layout run counts as a heavy thing. Ruling: `docs/design/rulings/dec-pack-town-players-2026-11-14.md`.
+| Agent | Model, effort | Does |
+|---|---|---|
+| `driver` | Opus, medium | The one session Francis talks to. Orders the work, briefs and starts workers, looks at pictures, merges |
+| `designer` | Fable, medium | A short design sitting that ends in a ruling file. As a studio worker started from a brief (Opus), it draws mockups |
+| `project-review` | Fable, high | Reviews how we build, the architecture as built, and the pack pipeline; after each milestone gate and on demand. Reports in `docs/health/project-review-<date>.md` |
+| `builder` | Opus, medium | Builds one row, as a worker. Fable only on Francis's yes each time (`builder.md`, Escalating to Fable) |
+| `reviewer` | Opus, high | Read-only review against `REVIEW.md` |
+| `pack-reviewer` | Opus, high | Read-only: an independent re-check of each pack review or build against the books, the private pack and the app, in a fresh session; it reads the pack session's note last (`docs/plans/pack-review-method.md`) |
+| `tester`, `docs-sync`, `pack-tools` | Sonnet | Tests, fixtures, docs sync, `09` lines, pack scripts, changelog, the inventory's Code column |
+| `scout` | Haiku | Searches, "where is X", log reading |
 
-- **The advisor** (Francis, 2026-11-24): Fable is the advisor for every session in this project (`advisorModel` in `.claude/settings.json`); workers inherit it. The agent files can't set an advisor.
+Mechanical work goes to Sonnet or Haiku workers: merges, conflicts, watching CI, moving pictures, look-ups, small fixes. Building and hard fixes keep the stronger model.
 
-## Skills (Francis, 2026-11-21)
+## Review before a merge
 
-Where this section differs from the rules above or in `CLAUDE.md`, those rules win. Load the named skill before doing the work it covers; where two could apply, use the one named here. Say which skill you used in one line. If a skill named here isn't available in the session, say so and continue without it (several are installed only on Francis's PC, not in cloud sessions).
+- The driver runs the `reviewer` once on each code pull request before it merges. Docs-only and scripts-only pull requests are skipped. A pull request with a migration or access rules is always reviewed.
+- The findings go in one comment on the pull request. The pull request's text says "Reviewed: local reviewer, N findings, fixed / not". For a pull request that draws a screen, the comment names the mockup or ruling it was compared against.
+- The reviewer reports first. Auto-merge is set only after its comment is on the pull request.
+- A fresh worker fixes the findings (`CLAUDE.md`, One check run per batch).
+- The CI review runs the same file when its API credit allows. It does not replace the local review.
 
-**The build loop** (Francis, 2026-11-27; `docs/design/rulings/process-loop-2026-11-27.md`). The project's skills are in `.claude/skills/`.
+## Seats
+
+**In a cloud driver session**
+- At most three builders at once. Reviewers do not count.
+- One heavy job (a full check or a layout run) at a time.
+- Playwright runs use at most `--workers=2`.
+- Each worker has its own file, branch and task. Before the driver starts one, it checks what is in flight.
+- Builders are subagents of the driver's own session. A separate cloud session is the exception: extra machine power for one whole batch that shares no file with the work in the driver's session, only when the check queue is long. It works from the driver's brief, reports in its pull request's text and pushes nothing after `ready`.
+
+**On Francis's PC**
+- At most four local sessions at once: the driver, two builders on the same screen (rows that share no file), one reviewer on demand. Cloud builders are outside the four.
+- **Home One** (the PC session) is a fourth builder seat, one batch at a time, through its own builder subagent from the driver's brief. It runs the PC checks: audits, TEST runs, WebKit layout.
+- A push to the main database goes to a PC session in manual mode, with Francis's Allow each time.
+- Two checks may run at once while free memory is 12 GB or more; one below 10 GB. The second runs only with three test workers, only with 13 GB free at its start, and is dropped below 9 GB. A layout run counts as a heavy job (ln-1, `docs/design/rulings/dec-pack-town-players-2026-11-14.md`).
+
+**The day before the weekly reset** the driver reads the week's meter with Francis. If usage will be left, it may add seats only for: data-and-logic rows of the next screen; tests and owed look-back reviews; the checks for rvw-6 and rvw-7; clean-up that touches no file a live row holds. Never a second screen's visible rows; never more seats than the PC's memory allows.
+
+## Workers
+
+The batching rule (one check run per batch, a fresh worker per row and per fix round, who opens the draft) is in `CLAUDE.md`. A ticket is a row.
+
+- **Brief.** Every worker starts from a brief in a file (`driver.md`, Brief every worker). It keeps its own files in the scratch subfolder its brief names.
+- **Context.** A worker and its ticket are sized to stay near 150,000 tokens (`docs/agents/issue-tracker.md`). No hook counts a worker. A worker past the limit finishes its task and keeps its replies lean (Short conversations).
+- **Push.** A branch with no pull request yet is pushed each time its check passes (a branch push alone starts no CI run). Once the pull request is open: one push per row, and one per round of review fixes.
+- **Builders do not wait for CI.** A builder pushes, reports and stops. A Sonnet or Haiku worker watches CI and fetches the pictures. If something fails, the driver starts a fresh worker with the findings.
+- **The check slot.** In a cloud container a worker runs the full check through `scripts/check-slot.sh <command>` (one full check at a time), and only the tests it touches while it works.
+- **The commit hook is the check.** Where the hooks are on (an absolute `core.hooksPath`), a worker commits through `scripts/check-slot.sh git commit …` and does not run the full check by hand first. Where they are off, it runs `scripts/check-slot.sh npm run check` before each commit.
+- **Docs only.** A change of docs or mockups only runs `npm run docs:check`, not the full check.
+- **Worktrees.** In a cloud clone with linked worktrees, `npm run hooks:install` is not run (its relative path does not reach a linked worktree). After `cp -al …/node_modules`, check the link named in `CLAUDE.md`, Things Claude gets wrong.
+
+## Skills
+
+Where this section differs from the rules above or in `CLAUDE.md`, those rules win. Load the named skill before the work it covers; where two could apply, use the one named here. Say which skill you used in one line. If a named skill is not available in the session, say so and continue without it (several are installed only on Francis's PC).
+
+**The build loop** (`docs/design/rulings/process-loop-2026-11-27.md`). The project's skills are in `.claude/skills/`.
 
 | Step | What | Skill | Model |
 |---|---|---|---|
 | 1 | Design sitting with Francis | `grill-me` at the start of every sitting, until nothing is assumed; then `impeccable` and `hallmark` as below | Opus, medium |
 | 2 | Spec, a file in `docs/specs/` | `to-spec` | Opus, medium |
-| 3 | Tickets, GitHub issues, each sized for one fresh worker of about 150,000 tokens | `to-tickets` | Opus, medium |
+| 3 | Tickets, GitHub issues, each sized for one fresh worker | `to-tickets` | Opus, medium |
 | 4 | Build: the driver orchestrates; a fresh `builder` per ticket | `implement-spec`, `tdd` | Opus, medium |
 | 5 | Review, per ticket | `code-review` (the project's copy) | Opus, high |
 | 6 | Retro, per spec | `retro`, `writing-for-agents` | Opus, high |
 | 7 | Every third loop: an architecture pass; it reports only | `improve-codebase-architecture`, `codebase-design`, `domain-modeling`, `grilling` | Fable, high |
 
-- Francis sits three times per loop: after step 1 (mockup and rulings), after step 3 (the spec's plain-language part and the ticket list), after step 5 (the built screen, the review, the retro findings).
-- `implement-spec` asks for as many workers as possible at once. Here the seat limits above win: at most three builders, one heavy job at a time. A ticket is a row: one check run per batch, a fresh worker per ticket and per fix round.
-- Francis starts steps 2, 3, 4, 6 and 7 himself, by typing the skill's command in the driver's session (`/to-spec`, `/to-tickets`, `/implement-spec`, `/retro`, `/improve-codebase-architecture`); an agent cannot start those five (`.claude/skills/README.md`).
-- Step 5 keeps the bug and hard-rule passes of `REVIEW.md`: the project's `code-review` runs them with its standards pass, through the `reviewer` agent.
-- Tracker and domain conventions: `docs/agents/`.
+- Francis sits three times per loop: A, after step 1 (the mockup and the rulings); B, after step 3 (the spec's plain-language part and the ticket list); C, after step 5 (the built screen, the review, the retro findings).
+- Francis starts steps 2, 3, 4, 6 and 7 himself. An agent cannot start those five skills (`.claude/skills/README.md`, Who starts a skill).- `implement-spec` asks for as many workers as possible. The limits under Seats win.
+- Step 5 keeps the Bugs and Rules passes of `REVIEW.md`: the project's `code-review` runs them with its standards pass, through the `reviewer` agent.
 
 **Other skills still used**
 - `engineering:system-design`: new services, data models, API boundaries.
 - `superpowers:verification-before-completion`: before a worker reports "done" or "passed": say what was run and what was not.
 - `superpowers:systematic-debugging`: any bug not obvious in one read. Reproduce before proposing a cause. (`engineering:debug` on the PC.)
-- On `fix-` branches `tdd` works within the tests-first rule (Fix branches, below; P5, bq-6).
+- On `fix-` branches `tdd` works within the tests-first rule (Fix branches, below).
 - `ponytail-audit`: whole-repo review, or "what can I delete", only when Francis asks.
 - `engineering:deploy-checklist`: before any release with migrations or feature flags.
 
 **UI** (mockups first and the design tokens still rule)
-- `frontend-design`: the default for building new UI; `uiux` if it isn't available.
+- `frontend-design`: the default for building new UI; `uiux` if it is not available.
 - `design:accessibility-review`: before a UI ships.
 - `design:ux-copy`: labels, errors, empty states (within the words and voice guide in 06).
-- `impeccable`: only when Francis names it or one of its commands (When to name them, below), with one standing use: the designer runs `impeccable critique` on each new mockup page before it goes to him (2026-11-24).
+- `impeccable`: only when Francis names it or one of its commands, with one standing use: the designer runs `impeccable critique` on each new mockup page before it goes to him.
 - `hallmark`: only when Francis names it.
 - `design:design-critique`: only when he asks for a critique without naming `impeccable`.
 
-**When Francis names `impeccable` and `hallmark`** (Francis, 2026-11-23)
+**When Francis names `impeccable` and `hallmark`**
 
 Used on drawings (mockup pages) and as reports on built screens; never handed to a builder. A report changes nothing until he picks findings by number.
 
@@ -84,18 +140,18 @@ Used on drawings (mockup pages) and as reports on built screens; never handed to
 | puts a new mockup page to him for approval | for a whole new screen, `hallmark` (`critique` already ran: the designer's findings sit beside the drawing) |
 | tells him a screen is ready to retest, or a gate is near | `audit` |
 | hears him say a screen is busy, misaligned or easy to miss | the matching command from the table above |
-| brings a plan with undrawn states | `harden` |
+| brings a plan or a spec with undrawn states | `harden` |
 
 **Data**
 - `data:sql-queries` for SQL; `dataviz` before any chart.
 
 **Rules**
-- A review or audit Francis asks for himself reports only: change nothing until he picks findings by number. The local reviewer before a merge is unchanged: the driver has a fresh worker fix its findings (Roles and models, above).
+- A review or audit Francis asks for himself reports only: change nothing until he picks findings by number. The local review before a merge is a different thing (Review before a merge).
 - `hallmark` and `impeccable` are condensed ports without their tooling. Never claim a linter or detector ran.
-- Of the Superpowers plugin (obra/superpowers), only the two skills named above are used (was three; 2026-11-27, lp-3). The rest of it (its brainstorming, plan-writing, subagent and worktree workflows) is not.
-- Do not use Adobe or marketing skills in this project unless Francis names one.
+- Of the Superpowers plugin (obra/superpowers), only the two skills named above are used. Its brainstorming, plan-writing, subagent and worktree workflows are not.
+- Adobe and marketing skills: only when Francis names one.
 
-**Not used in this project** (Francis, 2026-11-22; changed 2026-11-27, lp-3, lp-13)
+**Not used in this project**
 
 | Skill set | Why not |
 |---|---|
@@ -105,63 +161,65 @@ Used on drawings (mockup pages) and as reports on built screens; never handed to
 | The rest of Matt Pocock's skills (its setup, triage, wayfinder and router skills, and every skill not in the loop's table) | eleven are the loop; the others would be a second way to do the same step |
 | `ponytail`, `ponytail-review`, `engineering:code-review`, `product-management:write-spec`, `superpowers:test-driven-development` | replaced by the loop's skills; "the smallest change that delivers the ticket" is a line of the standards file |
 
-## How the driver runs the work (rvw-9, rvw-13, rvw-14, rvw-16, rvw-17)
+## Short conversations
 
-- **Unsaved work first** (rvw-17): right after `main` is green the driver commits and pushes, as drafts, the work in the eleven folders the review listed; only then is a local session archived.
-- **One screen at a time, to live** (rvw-9): no new screen is opened while one is held. The order: `main` green; the unsaved work saved; the waiting pull requests merged or closed; the Scene stack to live; the Player screen; the Pack's first-night seven; the town's buying path (the last two swapped by Francis, 2026-11-19: "town is easier to run on paper than pack").
-- **Decisions once a day** (rvw-13): the driver settles anything reversible inside an approved mockup and lists it for Francis afterwards; everything else comes to him in one sitting.
-- **Pictures once per whole screen** (rvw-14), not per row, unless a row departs from its mockup.
-- **Whole, once** (po-4, 2026-11-14, `docs/design/rulings/dec-scene-whole-2026-11-14.md`): a piece of a screen that has an approved redesign is not put to Francis, and does not merge, until that screen matches its approved drawing, unless he says otherwise. Before any piece on Scene, the Player screen, Pack or the town is handed to a builder, its plan covers the whole screen's drawing; a part of the drawing with no plan row stops the hand-out.
-- **The build loop replaces rvw-16** (Francis, 2026-11-27, lp-1): new work goes through the loop above; work in flight on 27 November finishes under the rules it started with.
-
-## Short conversations (rvw-5)
-
-- A fresh driver each morning, and whenever its conversation passes about 250,000 tokens (lp-6, Francis, 27 Nov: "Handover to a cleared session"; was 400,000 from 21 Nov). A worker and its ticket are sized to stay near 150,000 (`docs/agents/issue-tracker.md`); no hook counts a worker. At the limit the driver writes its handover and hands over on its own, without asking (Francis, 2026-11-19). The fresh context may come from `/clear` in the same session, after the handover is pushed with every running worker's ID, row, brief and branch; it keeps the session's trust card, PR subscriptions, workers and container (Francis, 2026-11-24).
-- A worker started from a brief (builder, reviewer, tester, docs-sync, pack worker, cloud seats included) finishes its task past the limit and never stops, hands over or starts a fresh session for it; it just keeps its replies lean.
-- It starts from one handover file it writes itself and overwrites each time: `handover-driver.md` in the project's memory folder.
-- The hook `scripts/context-warn.mjs` warns any session past that size; only the driver (or another session Francis talks to directly) hands over. Never resume yesterday's conversation.
+- **A fresh driver each morning, and when its conversation passes about 250,000 tokens.** At the limit the driver writes its handoff and hands over on its own, without asking.
+- **The handoff artifact** is one file the driver writes itself and overwrites each time: `handover-driver.md` in the project's memory folder. A driver starts from it, never from history, and never resumes yesterday's conversation.
+- **The fresh context may come from `/clear`** in the same session, after the handoff is pushed with every running worker's ID, row, brief and branch. `/clear` keeps the session's trust card, pull request subscriptions, workers and container; a new session has none of them.
+- **A worker started from a brief** (builder, reviewer, tester, docs-sync, pack worker, cloud seats included) finishes its task past the limit. It does not stop, hand over or start a fresh session for it.
+- The hook `scripts/context-warn.mjs` warns any session past the limit. Only the driver, or another session Francis talks to directly, hands over.
 
 ## Budget rules
 
 - Fresh session per topic; `/compact` before a long build step; point to files, never paste whole docs into prompts.
 - Read the spec section you need, not the file (specs are large); the scout fetches line ranges.
 - Subagents return summaries; never ask them to paste logs or files back.
-- Fable only as the advisor and through the `designer` and `project-review` agents (Francis, 2026-11-24); Fable sessions start with the question and the files, not with history.
-- Francis watches Settings → Usage weekly: Fable stays under 35% of the week; past that, the rest of the week's design runs on Opus.
-- **November 2026 (Francis, 2026-11-01): a larger plan for the month.** The 35% rule is off until it ends; design sittings stay on Fable. The weekly rule returns on 2026-12-01 unless Francis says otherwise.
+- Fable only as the advisor and through the `designer` and `project-review` agents (and loop step 7). A Fable session starts with the question and the files, not with history.
+- Francis watches Settings → Usage weekly: Fable stays under 35% of the week; past that, the rest of the week's design runs on Opus. **This rule is off until 2026-12-01** (a larger plan for November); design sittings stay on Fable until then.
 - If the plan drops to a smaller one: `designer` switches to `model: opus`, effort high; Fable only for one or two approved decisions a month on credits.
-- The CI review, triage and CHANGELOG draft (P3, P8) run on the repository secret `ANTHROPIC_API_KEY`, with a [amount removed] monthly spend cap set in the Anthropic console (ruled 2026-11-01). The cap was reached in November 2026 and stays as it is until access returns on 2026-12-01 (Francis: "A", 2026-11-13); check that the review job is green again that day.
+- The CI review, triage and CHANGELOG draft run on the repository secret `ANTHROPIC_API_KEY`, with a monthly spend cap set in the Anthropic console. The cap is reached; access returns on 2026-12-01. Check that the review job is green again that day. Until then the local review is the only review.
 
-## Gate workflow (standing rule, 2026-10-25)
+## Gate workflow
 
 During a gate, Claude Code collects Francis's feedback without acting on it until the gate is finished or he explicitly says to act on an item, then hands over one grouped list (ruled · needs a ruling · technical) for the designer. Meanwhile it may plan the next milestone (plan plus ⚑ list) and build engine-only pieces (no UI, no migrations) on a separate branch, merged only after the gate passes and its fixes are in. Gate work always comes before the next milestone's work.
 
-## Shared files (ruled 2026-11-05; cut 2026-11-17, rvw-12)
+## Shared files
 
-**The gate list's numbered lines** (`docs/testing.md`) are edited only by the designer. A pull request's manual checks and its status go in the pull request's own text. **The board** (`docs/status/board.md`), the per-pull-request status files (`docs/status/`) and the per-branch test lists (`docs/testing/`) are history since 2026-11-17. **Pictures:** what waits for Design before merge and what is reviewed just after is in `docs/testing.md` (The component gallery). CI's database job runs in three shards (technical, 2026-11-05).
+- **The gate list's numbered lines** (`docs/testing.md`) are edited only by the designer. A pull request's manual checks and its status go in the pull request's own text.
+- The board (`docs/status/board.md`), the status files (`docs/status/`) and the per-branch test lists (`docs/testing/`) are not used: read them as history only.
+- **Pictures:** what waits for Design before merge and what is reviewed just after is in `docs/testing.md` (The component gallery).
 
-## Saving CI minutes (Francis, 2026-11-05)
+## Saving CI minutes
 
-- **Push once.** A worker pushes once, when its row is done and `npm run check` passes locally, not after each commit; a round of review fixes is one more push.
-- **Full checks by day again; the night run stays** (Francis, 2026-11-13, `cq-3` to `cq-3d` in `docs/design/rulings/process-ci-by-day-2026-11-13.md`): since rvw-6 (2026-11-17) the full checks run by day again on pull requests; the night run at 07:00 UTC on main still runs everything. Details: `docs/testing.md`, The GitHub check.
-- **Main's pictures once a night** (Francis, 2026-11-19: "a nightly picture check sounds best can you implement that?"): a merge to main runs check and database only; its layout job is green with a note, going live waits for check and database, and the night run checks main's pictures. A red night run is fixed first thing. To check main's pictures sooner: `gh workflow run check.yml --ref main`.
-- **One check run per row batch** (Francis, 2026-11-19): rows of one plan that touch the same files travel as one row batch, one pull request; the rule is in `CLAUDE.md` ("One check run per batch"). Not the same as cq-2's merge batch below.
-- **A fresh worker per row and per fix round** (Francis, 2026-11-22: "Yes to 'fresh worker'"). One pull request and one check run per batch stay; one builder per batch goes. Each row of a batch, and each round of review fixes, is done by a fresh short-lived worker that commits to the batch's branch; a worker is never resumed for a later round. The driver's brief for a later worker names the branch, the files and the findings. **A batch's pull request is opened as a draft by the worker of its first row; later rows' workers push to the same branch; the layout checks still run once, when the driver adds `ready`** (Francis, 2026-11-22: "Your suggestion"). Why: measured that day, workers were 82.5% of a driver session's usage, and replies carrying 200,000 tokens or more of history were 66% of it; long-lived builders resumed for fixes were the cost.
-- **The layout job runs only on a pull request labelled `ready`** (the driver adds the label when the step is finished). Docs-only pull requests never get the label: they run the docs and name checks only.
-- **No updating for its own sake.** A pull request that is merely behind main is not updated; it is updated only when it conflicts, or just before its merge.
-- **Builders don't wait for CI** (Francis, 2026-11-05): a builder pushes once, reports and stops; the driver's Sonnet or Haiku worker watches CI, fetches the pictures, and if something fails the driver starts a fresh worker with the findings (never a resumed one; 2026-11-22).
-- **Mechanical work runs on Sonnet** (same day): merge conflicts, moving pictures, read-only look-ups and small fixes; real building and tricky fixes keep the stronger model.
-- **Trial:** a local layout run before the push, to catch unannounced picture changes without a CI round (local renders differ slightly: a filter, not the final pictures); first on sheet order 4.
-- **Dependabot's pull requests** get the `ready` label by hand, from the driver, when they are ready to merge (Francis, 2026-11-05): no picture check on each of its pushes.
+When each check runs (by day, on a merge, at night) is in `CLAUDE.md`, Checks, and `docs/testing.md`, The GitHub check. The push rule is under Workers.
+
+- **The layout job runs only on a pull request labelled `ready`.** The driver adds the label after the local review and its fixes, so the layout checks run once per batch. After adding it, re-run the labelled run, not the push run. Before adding it, check the gallery line (`docs/testing.md`, Announced redraws). Docs-only pull requests never get the label.
+- **No updating for its own sake.** A pull request merely behind `main` is not updated; one that conflicts merges `main` in (`CLAUDE.md`, Things Claude gets wrong).
+- **Main's pictures sooner than the night run:** `gh workflow run check.yml --ref main`.
+- **Re-run only a machine fault.** A real failure goes to a fresh worker.
+- **Trial:** a local layout run before the push, to catch unannounced picture changes without a CI round (local renders differ slightly: a filter, not the final pictures).
+- **Dependabot's pull requests** get the `ready` label by hand, from the driver, when they are ready to merge.
 - **Design batches its docs:** one docs pull request per sitting of rulings.
-- **Small reviewed fixes may merge as one merge batch** (cq-2, Francis, 2026-11-13, `docs/design/rulings/process-ci-queue-2026-11-13.md`): each keeps its own local review first; a batch branch from main merges them in order, with one check and one merge commit; a real fault drops the culprit's merge and re-runs the batch once. A large piece travels alone.
+- **Small reviewed fixes may merge as one merge batch** (cq-2, `docs/design/rulings/process-ci-queue-2026-11-13.md`): each keeps its own local review first; a batch branch from `main` merges them in order, with one check and one merge commit; a real fault drops the culprit's merge and re-runs the batch once. A large piece travels alone. A merge batch is not a row batch.
 
-## Fix branches: tests first (P5, bq-6, 2026-11-03)
+## Fix branches: tests first
 
 On a branch named `fix-…`, the first commit adds the failing test marked `it.fails` / `test.fails` (the check passes because it fails); the fix commit removes `.fails` and changes nothing else in that test, which must now pass. The history proves the test failed first; nothing is bypassed. The test guard hook (`scripts/guard-tests.mjs`, `docs/testing.md`) allows only those two edits to test files on a fix branch and says how when it blocks one.
 
-## Measuring (P7, rvw-15)
+## Measuring
 
-- **Every worker's brief starts with `Row: <id>`** (a batch: `Row: <id> + <id>`), and the pull request's title carries it, every row of a batch named. The same `Row: <id>` line also goes in the worker's prompt itself (2026-11-22): the usage report reads the prompt, not the brief file. The usage report (`npm run usage:report`) is run at each Thursday reset, so a row's cost can be read.
-- **⚑ raised** this step, which only the builder knows, goes in the pull request's text.
-- **First-pass merge** (did a code pull request merge on its first push?) is counted by Project Review from GitHub's Check runs at each gate and reported in `docs/health/project-review-<date>.md` (ruled 2026-11-10). Francis reads both; a falling first-pass rate or a rising ⚑ count means the plans or the specs need work before the builder does.
+- **Every worker's brief starts with `Row: <id>`** (a batch: `Row: <id> + <id>`; for a ticket, its issue number). The same line is in the worker's prompt itself: the usage report reads the prompt, not the brief file. The pull request's title carries it, every row of a batch named.
+- The driver runs the usage report (`npm run usage:report`) at each Thursday reset, so a row's cost can be read.
+- **⚑ raised** in a step, which only the builder knows, goes in the pull request's text.
+- **First-pass merge** (did a code pull request merge on its first push?) is counted by Project Review from GitHub's Check runs at each gate and reported in `docs/health/project-review-<date>.md`. Francis reads both; a falling first-pass rate or a rising ⚑ count means the specs need work before the builder does.
+
+## Work begun from a plan
+
+Work begun from a `docs/plans/` file before 27 November 2026 finishes from that plan. New work has a spec and tickets.
+
+| For that work | Rule |
+|---|---|
+| What a builder reads first | the plan file, as it is on `main`; its row is one row of the plan |
+| What a review compares the diff with | the plan, and the departures in the pull request's own text. A plan's own Departures section is history |
+| Mockups first | each plan piece names its mockup's file and approval date, or says "none: data and logic only" (`CLAUDE.md`) |
+| A new plan | none is written. New work goes through the loop |
