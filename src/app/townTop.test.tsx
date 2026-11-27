@@ -296,10 +296,11 @@ describe("the Depart sheet's Where?: Locations only (p2p-2, p2p-5; page 24, DP1)
     for (const data of places) world.tables.library_entries.push({ id: `entry-${data.id}`, pack_id: 'pack-isle', kind: 'location', pack_entry_id: data.id, name: data.name, data });
   }
 
-  // Purpose (B7): Where? lists the Locations, each under its Area's name, with no Area or Region as a row and no search
-  // or recent places; then Other…, which opens today's picker (⚑ 6, ruled "as today"): a typed name, and the places of
-  // a pack with no Locations (a hex), still work, and a typed place keeps today's start for the method.
-  it('lists Locations under their Area, then Other… for everything else', async () => {
+  // Purpose (B7, sf-2): Where? lists the Locations, each under its Area's name, the first Area open (no place played
+  // yet) and the others folded, with no Area or Region as a row; the search stands over them; a pack with no Locations
+  // (a hex) unfolds in place under From your packs; Other… takes a typed name, and a typed place keeps today's start
+  // for the method (⚑ 6).
+  it('lists Locations under their Area, the packs with other places, then Other…', async () => {
     const { gm, campaign } = table();
     withLocations(campaign, gm);
     world.tables.packs.push({ id: 'pack-wilds', owner_user_id: gm, campaign_id: null, name: 'Fen Wilds', version: '1', kind: 'adventure', format_version: 2, source: '', notes: '', updated_at: '2026-11-18T12:00:00Z' });
@@ -310,15 +311,15 @@ describe("the Depart sheet's Where?: Locations only (p2p-2, p2p-5; page 24, DP1)
     await user.click(sheet.getByRole('button', { name: 'Where?: Pick a Location' }));
     const picker = within(await screen.findByRole('dialog', { name: /Where\?$/ }));
     const harbour = within(await picker.findByRole('region', { name: 'The Drowned Harbour' }));
-    expect(harbour.getAllByRole('button').map((b) => b.textContent)).toEqual(['The Anchorage', '1. The Jetty', '2. The Wreck']);
-    expect(within(picker.getByRole('region', { name: 'The Shingle Beach' })).getAllByRole('button').map((b) => b.textContent)).toEqual(['The Landing']);
-    expect(picker.queryByRole('button', { name: /^(Saltwick Island|The Drowned Harbour|The Shingle Beach|Oath Isle)/ })).toBeNull();
-    expect(picker.queryByRole('textbox')).toBeNull();
-    await user.click(picker.getByRole('button', { name: 'Other…' }));
-    // Today's picker: its search, the other pack's hex, and its own Other… for a typed name.
-    expect(await picker.findByRole('textbox', { name: 'Search places by name or map number' })).toBeTruthy();
+    expect(harbour.getAllByRole('button', { pressed: false }).map((b) => b.textContent)).toEqual(['The Anchorage', '1. The Jetty', '2. The Wreck']);
+    const beach = within(picker.getByRole('region', { name: 'The Shingle Beach' }));
+    expect(beach.queryAllByRole('button', { pressed: false })).toEqual([]);
+    await user.click(beach.getByRole('button', { name: 'Show The Shingle Beach' }));
+    expect(beach.getAllByRole('button', { pressed: false }).map((b) => b.textContent)).toEqual(['The Landing']);
+    expect(picker.queryByRole('button', { name: /^(Saltwick Island|The Drowned Harbour|The Shingle Beach)$/ })).toBeNull();
+    expect(picker.getByRole('textbox', { name: 'Search places by name or map number' })).toBeTruthy();
     await user.click(picker.getByRole('button', { name: 'Show Fen Wilds' }));
-    expect(picker.getByRole('button', { name: /^Oath Isle \(Hex\)/ })).toBeTruthy();
+    expect(picker.getByRole('button', { name: '0412. Oath Isle' })).toBeTruthy();
     await user.click(picker.getByRole('button', { name: /^Other… a place/ }));
     await user.type(picker.getByRole('textbox', { name: "A place that isn't listed" }), 'Bog Ford');
     await user.click(picker.getByRole('button', { name: 'Set place' }));
@@ -326,15 +327,24 @@ describe("the Depart sheet's Where?: Locations only (p2p-2, p2p-5; page 24, DP1)
     expect(chosen(within(sheet.getByRole('group', { name: 'Exploration method' })))).toEqual(['Market town']);
   });
 
-  // Purpose (B7): nothing else stands among the Locations: the list's own rows are its Locations and Other….
-  it('has no row but its Locations and Other…', async () => {
+  // Purpose (B7, sf-2): nothing else stands among the Locations: the list's own buttons are the Areas' folds, the open
+  // Area's Locations and Other….
+  it('has no row but its Locations, their folds and Other…', async () => {
     const { gm, campaign } = table();
     withLocations(campaign, gm);
     const user = await openGm(gm);
     await user.click((await openDepart(user)).getByRole('button', { name: 'Where?: Pick a Location' }));
     const picker = within(await screen.findByRole('dialog', { name: /Where\?$/ }));
     await picker.findByRole('region', { name: 'The Drowned Harbour' });
-    expect(picker.getAllByRole('button').map((b) => b.textContent)).toEqual(['✕', 'The Anchorage', '1. The Jetty', '2. The Wreck', 'The Landing', 'Other…']);
+    expect(picker.getAllByRole('button').map((b) => b.getAttribute('aria-label') ?? b.textContent)).toEqual([
+      'Close',
+      'Fold The Drowned Harbour',
+      'The Anchorage',
+      '1. The Jetty',
+      '2. The Wreck',
+      'Show The Shingle Beach',
+      'Other… a place that isn’t listed',
+    ]);
   });
 
   // Purpose (B7): a picked Location fills in Where? (its name, its Area under it) and the method from the place (Point
@@ -373,7 +383,8 @@ describe("the Depart sheet's Where?: Locations only (p2p-2, p2p-5; page 24, DP1)
     await user.click(how.getByRole('button', { name: 'Under the quay' }));
     expect(chosen(how)).toEqual(['Under the quay']);
     await user.click(sheet.getByRole('button', { name: 'Where?: Pick a Location' }));
-    await user.click(await screen.findByRole('button', { name: 'The Landing' }));
+    await user.click(await screen.findByRole('button', { name: 'Show The Shingle Beach' }));
+    await user.click(screen.getByRole('button', { name: 'The Landing' }));
     await sheet.findByRole('button', { name: 'Where?: The Landing, The Shingle Beach' });
     expect(chosen(how)).toEqual(['Point to point']);
   });

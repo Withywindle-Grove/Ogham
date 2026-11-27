@@ -22,6 +22,7 @@ import { pathToFileURL } from 'node:url';
  * check. scripts/docs-only.test.mjs scans src/, scripts/, supabase/ and tests/ and fails when a new one isn't listed here.
  */
 export const CODE_READ_DOCS = [
+  'docs/02-architecture.md', // its Packages list is compared with package.json (src/ui/packageList.test.ts, hard rule 9)
   'docs/07-content-packs.md', // bundled into the app (Convert with AI) and read by a test
   'docs/plans/m5b-0c-creation-options.md', // the creation-options tests read its table
   'docs/plans/options-audit-2026-11-03.md', // the options-audit test reads it

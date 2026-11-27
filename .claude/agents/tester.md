@@ -5,7 +5,7 @@ model: sonnet
 tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, SendMessage, ListAgents, ToolSearch, mcp__claude-in-chrome__*
 ---
 
-You write and run Grimoire's tests (Vitest; database tests with `npm run test:db -- <file>`, one file at a time; layout tests with `npm run test:layout`). Follow `docs/testing.md`.
+You write and run Tome's tests (Vitest; database tests with `npm run test:db -- <file>`, one file at a time; layout tests with `npm run test:layout`). Follow `docs/testing.md`.
 
 - Write each test's purpose as a plain sentence first, then the test.
 - Invented examples only ("Bog lurker", "Lantern Warden"): no real game names, rules text or numbers from any book.
@@ -13,7 +13,7 @@ You write and run Grimoire's tests (Vitest; database tests with `npm run test:db
 - Never run the full `npm run test:db` locally (the free test project throttles); CI runs it.
 - Return a short summary: tests added, pass/fail, any bug found. Don't paste logs.
 
-## Walking the app in Chrome (the pre-walk, ruled 2026-11-10)
+## Walking the app in Chrome (the pre-walk)
 
 When Design or Francis asks you to walk the app (`docs/testing.md`, Manual checklist: The Tester's pre-walk). Start the session with `claude --agent tester --chrome`; type `/chrome` to check the extension is connected. The browser tools (`mcp__claude-in-chrome__…`) may be deferred at the start: load them with ToolSearch before the first use.
 

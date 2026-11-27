@@ -34,7 +34,7 @@ import {
   type FieldValue,
 } from '../modules/characters/fields.ts';
 import { RetiredBanner } from './Retired.tsx';
-import { GuidedCreation, guidedStepCount, optionOn, type GuidedChoice, type GuidedStep } from './GuidedCreation.tsx';
+import { aClass, GuidedCreation, guidedStepCount, optionOn, type GuidedChoice, type GuidedStep } from './GuidedCreation.tsx';
 import { loadCampaignSetting, type CampaignSetting } from './campaignSetting.ts';
 import { characterAcBonuses, creationAcLines, creationAcParts, creationExplainer, scoresOf, settingFills, withCreationAc } from './fromSetting.ts';
 import { draftRollLabel, recordRoll } from '../core/rolls.ts';
@@ -1228,9 +1228,9 @@ function CreateCharacterSteps({
     if (languagesField && !laterPlanned.includes('languages') && text(values[languagesField.key])) {
       parts.push({ id: 'languages', title: guideTitle(rs, 'languages', 'Languages'), note: 'given', lines: [listedLine('', languagesField, values[languagesField.key], text(values[languagesField.key]))] });
     }
-    // Every exception called out before sending (final drafts D, mockup creation/final/07): last, with the sign.
+    // Every exception called out before sending (final drafts D): first, above the step cards, with the sign (clo-1, 22-G2).
     const exceptions = exceptionsPart(creationShown(setting, creation));
-    if (exceptions) parts.push(exceptions);
+    if (exceptions) parts.unshift(exceptions);
     return {
       parts,
       toFinish: putOffs.map((id) => ({ id, name: lists.find((l) => l.id === id)?.name ?? (id === 'expertise' && planned.expertise ? planned.expertise.rule.name : toFinishName(id)) })),
@@ -1413,7 +1413,7 @@ function CreateCharacterSteps({
           counter={shellAt}
           why={guide.why}
           help={guide.help ?? null}
-          onBack={(creation) => (later.at > 0 ? setLater({ ...later, creation, at: later.at - 1 }) : back(creation))}
+          onBack={(creation) => (later.at > 0 ? setLater({ ...later, creation, at: later.at - 1, back: true }) : back(creation))}
           onDone={(creation) => advance(creation)}
           // Next's take undone after the walk went on (cs-42): keep the record it saved, and read the review again.
           onUndone={(creation) => {
@@ -1664,14 +1664,15 @@ function CreateCharacterSteps({
         />
       );
     }
-    // A step with nothing to show (no money roll after all): straight on; reached by Back, it says why (final drafts F).
+    // A step with nothing to show now (the steps were set when the draft was made; a level changed on Who they are since
+    // can leave the class nothing there): straight on; reached by Back, its line says why (clo-5, final drafts F).
     if (later.back) {
       return (
         <SkippedStep
           key={`${later.at}-${step ?? ''}`}
           title={guideTitle(setting.rulesSets, (step ?? 'details') as GuideStep, toFinishName(step ?? ''))}
           counter={shellAt}
-          classWord={guideTitle(setting.rulesSets, 'class', STEP_TITLES.class)}
+          why={skippedWhy(step ?? '', chosen?.klass.name ?? '')}
           onBack={() => back()}
           onNext={() => advance()}
         />
@@ -2628,6 +2629,7 @@ export function PlayerCampaign({
           character={sentBack}
           fieldDefs={fieldDefsFor(sentBack)}
           off={offFor(sentBack)}
+          onBack={() => setReviewing(null)}
           onChanged={() => reload()}
           onSent={(sent) => {
             // The player lands on the campaign (their active character's screen, if any) with the toast (A6).
@@ -2842,11 +2844,14 @@ function CharacterReview({
   off,
   onChanged,
   onSent,
+  onBack,
 }: {
   db: Db;
   user: CurrentUser;
   character: MyCharacter;
   fieldDefs: FieldDefinition[];
+  /** Sent back, the foot's Back (clo-2, 22-G5): as the top row's back, to Your characters. */
+  onBack?: () => void;
   /** The fields left out of `fieldDefs` for this character (an option off, of-9; not for their class, cs-3): their values are kept. */
   off?: ReadonlySet<string>;
   /** The character changed in place (the shopping): load it again. */
@@ -3070,7 +3075,7 @@ function CharacterReview({
           draft ? (
             <p className="guided-instruction">Check each part, then send them to your GM.</p>
           ) : (
-            // Sent back (cs-53, 22-G5's words on today's screen): "Your GM asks for a change", with the sign.
+            // Sent back (clo-2, frame 22-G5; supersedes cs-53): "Your GM asks for a change", with the sign.
             // The author line (22-G5): "Maren, your GM, today"; a GM who never chose a name is "Your GM" (nm-1).
             <PinnedNote
               from="your GM"
@@ -3087,6 +3092,8 @@ function CharacterReview({
         onOpenStep={openStep}
         onAction={() => void send()}
         onExplain={() => setAsking(todo)}
+        // Sent back (clo-2, 22-G5): the foot, "1 part marked", Back and Send to the GM; no Start over here.
+        onBack={draft ? undefined : onBack}
       />
       </BookType>
       {editing && (
@@ -3344,18 +3351,24 @@ function QuickPortrait({
 }
 
 /**
- * A step skipped (it had nothing to show), reached by Back (final drafts F): "Nothing to choose here" said once, in the
- * foot (cs-51, 23-H3; #794's review), and the row saying it is skipped and when it comes back.
+ * A skipped step's why-line (clo-5, clo-17; 23-H3): made by the app from the class's name as the pack gives it, in the
+ * singular; no pack field of its own. Only First spells has one (the plan's and clo-17's form); any other step, or no
+ * class name, keeps an empty line (L5 ⚑ 2, Francis 2026-11-27: no sentence for Languages, Details or traits until after
+ * 5 December).
  */
-export function SkippedStep({ title, counter, classWord, onBack, onNext }: { title: string; counter?: { at: number; of: number | null }; classWord: string; onBack: () => void; onNext: () => void }) {
+function skippedWhy(step: string, className: string): string {
+  return step === 'spells' && className.trim() ? `${aClass(className)} has no spells to pick.` : '';
+}
+
+/**
+ * A step skipped (it had nothing to show), reached by Back (final drafts F): its line says why (`skippedWhy`, clo-5) and
+ * "Nothing to choose here" is said once, in the foot, as 23-H3 draws it (no "Skipped" row: L5 ⚑ 1, Francis 2026-11-27);
+ * the shell's `skipped` sets the line in ink at body size and the hint beside Back and Next (L5's two fixes, 2026-11-27).
+ */
+export function SkippedStep({ title, counter, why, onBack, onNext }: { title: string; counter?: { at: number; of: number | null }; why: string; onBack: () => void; onNext: () => void }) {
   return (
-    <CreationStep title={title} counter={counter} why="" help={null} onBack={onBack} hint="Nothing to choose here" onNext={onNext}>
-      <div className="pick-row pick-row--picked pick-row--given">
-        <span className="pick-row__body">
-          <span className="pick-row__name">Skipped</span>
-          <span className="pick-row__blurb">{`This step comes back if you change your ${classWord.toLowerCase()}.`}</span>
-        </span>
-      </div>
+    <CreationStep title={title} counter={counter} why={why} help={null} onBack={onBack} hint="Nothing to choose here" onNext={onNext} skipped>
+      {null}
     </CreationStep>
   );
 }

@@ -174,6 +174,7 @@ export function CreationStep({
   unchanged = false,
   waitsOnline = false,
   roll,
+  skipped = false,
 }: {
   title: string;
   /** "Step N of M"; left out where the step opens on its own (the review's Gear, m5b-0c slice 5; the To finish card). */
@@ -237,6 +238,11 @@ export function CreationStep({
    * the sign says so, and Next is plain and repeats it when tapped (never disabled). Steps kept on the device leave it out.
    */
   waitsOnline?: boolean;
+  /**
+   * A step skipped (nothing to choose now) and reached by Back (23-H3; L5, approved by Francis 2026-11-27 with two fixes):
+   * its line in ink at body size, and the hint at the left of Back and Next on one row, a phone too (`creation-step--skipped`).
+   */
+  skipped?: boolean;
 }) {
   const id = useId();
   const hostLeave = useContext(LeaveContext);
@@ -293,7 +299,7 @@ export function CreationStep({
 
   return (
     // data-creation marks character creation on screen (after-test A12): the app holds a new version until it's closed.
-    <section className={`creation-step${panel ? ' creation-step--split' : wide ? ' creation-step--wide' : ''}`} aria-labelledby={`${id}-title`} data-creation={leave ? 'open' : undefined}>
+    <section className={`creation-step${panel ? ' creation-step--split' : wide ? ' creation-step--wide' : ''}${skipped ? ' creation-step--skipped' : ''}`} aria-labelledby={`${id}-title`} data-creation={leave ? 'open' : undefined}>
       {leave ? (
         // Creation's app bar (final drafts A1): ← Back at the left (on the first step it leaves, as the foot's Leave
         // does), the title centred, ⋯ at the right holding Leave; the counter under the bar. No ‹ or ›.
@@ -363,7 +369,8 @@ export function CreationStep({
         {panel && <div className="creation-step__side">{panel}</div>}
       </div>
       {/* The foot (ex-4, ex-9; G-208, Francis 2026-11-20): what is left on its own line, then Decide later, Back and
-          Next on one line, never staggered. The review's stacked foot keeps its own (cs-36). A foot with an extra
+          Next on one line, never staggered; a skipped step's hint sits at the left of that line (23-H3, L5). The review's
+          stacked foot keeps its own (cs-36). A foot with an extra
           button (the New campaign steps) keeps the older order: the extra, the hint, then Back and Next (ex-9 rules on
           creation steps only; #1093 review, 3). */}
       <div className={`creation-step__foot${footQuiet ? ' creation-step__foot--stacked' : ''}${footExtra ? ' creation-step__foot--extra' : ''}`}>

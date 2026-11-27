@@ -901,7 +901,7 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       const what = counted(item(), joined ? Number(after.qty) - Number(before.qty) : after.qty);
       if (added.how_got === 'bought') {
         const cost = String(added.cost ?? '').trim();
-        return `${by(`bought ${what} for ${carrier(added)}${cost ? ` (${cost})` : ''}`)} Cost noted; purses arrive later.`;
+        return by(`bought ${what} for ${carrier(added)}${cost ? ` (${cost})` : ''}`);
       }
       // Given by the GM (2026-10-23), with the GM's note; a player's other choice is No cost.
       if (added.how_got === 'given') {

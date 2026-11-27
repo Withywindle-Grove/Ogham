@@ -1,0 +1,452 @@
+{
+  "scripts/check-names.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "scripts/guard-tests.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "scripts/pack-additions.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "scripts/pack-creation.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "scripts/pack-exploration.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "scripts/pack-format.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "scripts/seed-test-campaigns.mjs": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/AddItem.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/CallsToAdventure.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/CampCard.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/CarrierItems.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/CharacterSheet.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/Characters.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/EncounterTables.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/EntryEditor.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/FinishCreation.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/GmCampaign.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/GmPlacePage.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/GmReference.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/GuidedCreation.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/HoardSheet.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/ItemRow.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/ItemSheet.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/KindredTables.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/LibraryScreen.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/LightSection.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/LoadSummary.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/LogView.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/MarchingOrder.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/Messages.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/NewCampaign.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/PackScreen.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/PartyGroups.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/PlaceCard.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/PlaceMap.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/PlacePicker.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/PlayerScreen.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/RequestCard.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/RulesBrowser.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/RulesForCampaign.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/SceneBand.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/SceneTime.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/SettingRules.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/SettingRulesPack.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/SheetEdit.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/StartingGear.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/Statuses.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/TownActions.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/TravelCard.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/WaitingForYou.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/WeatherCard.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/campaignSetting.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/core/events.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/gallery/Gallery.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/characters/commands.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/characters/creationSteps.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/characters/fields.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/characters/firstSpells.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/characters/kindredTables.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/characters/patrons.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/characters/play.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/characters/startingGear.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/characters/traitLists.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/characters/whoTheyAre.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/expedition/lightPlay.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/expedition/modes.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/expedition/placePlay.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/expedition/placeRules.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/expedition/play.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/expedition/procedure.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/expedition/sceneTop.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/expedition/statusPlay.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/fight/engine.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/inventory/encumbrance.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/inventory/inventory.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/library/campaignPacks.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/library/editor.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/library/expression.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/library/fills.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/modules/library/packFile.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/testing/fakeDb.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/testing/layoutHarness.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/testing/permissionCases.ts": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/ui/Dialog.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/ui/MapParts.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/ui/MoveOnParts.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/ui/creation.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/ui/icons.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/ui/parts.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/ui/ruleRows.tsx": {
+    "tome/max-lines": {
+      "count": 1
+    }
+  }
+}
