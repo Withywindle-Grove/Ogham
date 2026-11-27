@@ -89,7 +89,8 @@ for (const size of SIZES) {
         await page.evaluate(() => document.fonts.ready);
         expect(await layoutProblems(page)).toEqual([]);
         await shot(page, 'hm4-pack', size.width, scheme);
-        await page.getByText(NAME).first().click();
+        // The row in the list (the find card, first on a phone since K20b, names it too, and its lines are not taps).
+        await page.locator('.pack__list').getByText(NAME).first().click();
         await expect(page.getByText(/burns no oil/).first()).toBeVisible();
         expect(await layoutProblems(page)).toEqual([]);
         await shot(page, 'hm4-sheet', size.width, scheme);

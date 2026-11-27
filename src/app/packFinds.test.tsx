@@ -18,6 +18,9 @@
 //  12. Two coins in one send are one line, in the setting's order, as the coin line writes them.
 //  13. A hoard's coin and things: the coin first, with "In your coin.", then the things; a coin the book prints oddly
 //      reaches the card in the setting's words, and neither the book's printed words nor the pack's note reach it.
+//  14. Hidden means hidden: the coin the GM sends or gives Wren reaches no other player. Tess's device, reading what is
+//      new for her own Moss, is sent no line with Wren's amounts (the read asks for the campaign's log lines and the
+//      read rule leaves out another character's purse lines), and her Pack draws no card.
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -26,6 +29,7 @@ import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { addItem, moveItem } from '../modules/inventory/inventory.ts';
 import { giveFind, sendOf, undoFind } from '../modules/expedition/findSend.ts';
 import type { HoardRow } from '../modules/expedition/hoard.ts';
+import { loadFindsRead } from '../modules/characters/findsSeen.ts';
 import { addCoin } from '../modules/inventory/purse.ts';
 import { Root } from './App.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
@@ -335,5 +339,25 @@ describe('Coin on the card (K21b)', () => {
     expect(lines).toEqual([['200 herons', 'In your coin.'], ['Brass spyglass', null]]);
     expect(cardText()).not.toContain('hn.');
     expect(cardText()).not.toContain('Printed');
+  });
+
+  it('the coin the GM sends or gives Wren reaches no other player', async () => {
+    await findsWorld();
+    world.signInAs(gm);
+    expect((await runCommand(registry, world.db, asGm(), giveFind, { campaignId: campaign, to: wren, placeId: 'place-stair', things: [], coins: { heron: 4321 }, rows: [] })).ok).toBe(true);
+    expect((await runCommand(registry, world.db, asGm(), addCoin, { to: wrenCarrier(), coins: { bit: 777 } })).ok).toBe(true);
+    // Wren's own player is sent both amounts.
+    world.signInAs(sam);
+    const hers = JSON.stringify((await loadFindsRead(world.db, campaign, wren))!.events);
+    expect(hers).toContain('4321');
+    expect(hers).toContain('777');
+    // Tess, reading what is new for her own Moss, is sent neither.
+    world.signInAs(tess);
+    const read = await loadFindsRead(world.db, campaign, moss);
+    expect(read).not.toBeNull();
+    const sent = JSON.stringify(read!.events);
+    expect(sent).not.toContain('4321');
+    expect(sent).not.toContain('777');
+    expect(read!.purseId).not.toBe(world.tables.purses.find((p) => p.actor_id === wren)?.id);
   });
 });

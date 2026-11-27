@@ -195,9 +195,22 @@ for (const size of SIZES) {
     // Purpose 13.
     test('the GM takes back the card’s one thing: its giver and time stay under the head', async ({ page }) => {
       await openPack(page, '1');
+      const cardBefore = (await card(page).boundingBox())!;
+      const gotBefore = (await gotIt(page).boundingBox())!;
       expect(await page.evaluate(() => (window as unknown as { __gmUndoesFind: () => Promise<string> }).__gmUndoesFind())).toBe('ok');
       await expect(card(page).getByText('Your GM took back the Bronze ring.')).toBeVisible();
       await expect(card(page).locator('.find-card__quiet:visible')).toHaveText(['From your GM, just now.']);
+      // Where the quiet words fit one row beside "Got it" (the tablet) the card keeps its height and "Got it" its place;
+      // where they wrap to two (375 px, as FD11b B draws) it grows by that one row and no more (the PR's ⚑ 3).
+      const cardAfter = (await card(page).boundingBox())!;
+      const gotAfter = (await gotIt(page).boundingBox())!;
+      const rows = await card(page).locator('.find-card__back').evaluate((el) => Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)));
+      const row = await card(page).locator('.find-card__back').evaluate((el) => parseFloat(getComputedStyle(el).lineHeight));
+      const grown = rows > 1 ? row + 1 : 1;
+      expect(cardAfter.height - cardBefore.height).toBeLessThan(grown);
+      expect(cardAfter.height - cardBefore.height).toBeGreaterThan(-1);
+      expect(Math.abs(gotAfter.y - cardAfter.y - (gotBefore.y - cardBefore.y))).toBeLessThan(grown / 2 + 0.5);
+      if (size.name === 'tablet') expect(rows).toBe(1);
       await page.screenshot({ path: `test-results/layout-screens/k21b-one-taken-back-${size.width}.png`, fullPage: true });
       expect(await layoutProblems(page)).toEqual([]);
     });
