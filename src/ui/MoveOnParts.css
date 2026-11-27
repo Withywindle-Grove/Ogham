@@ -82,7 +82,7 @@
   font-weight: var(--weight-heading);
   font-size: var(--text-14);
   font-variant: small-caps;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-label);
   line-height: var(--line-heading);
   overflow-wrap: anywhere;
 }
@@ -286,8 +286,10 @@
 
 /* The GM's way step's one foot row (page 44, PU1 A; sf-15): the standard pop-up's foot, Back at the left as the safe way
    out, Move (the accent) at the right; Back alone where the GM answers above. */
+/* Back and Move one height, as PU1 A and D draw them (review nit 1): the plain button stretched to the accent's. */
 .dialog__actions.move-sheet__split {
   justify-content: space-between;
+  align-items: stretch;
 }
 
 /* A player's travel pop-up (PU1 B): the built sentence under "Takes". */

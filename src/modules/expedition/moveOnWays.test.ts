@@ -1,7 +1,7 @@
 // Move on's wiring, its data and rules (piece 5b-0; dec-4 pieces b and d; pt-f2, pt-f3): the ways from here, what
 // players know of each far end, each way's time in turns, the split party's refusal, and the GM's read through the
 // stand-in database. Invented places, links and people only.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Db } from '../../core/supabase.ts';
 import { createFakeDb } from '../../testing/fakeDb.ts';
 import type { Barrier, Route } from '../library/routes.ts';
@@ -333,12 +333,35 @@ describe('the GM’s read', () => {
     expect(PLAYERS_READ_WORDS.eye).toBe('Not shown yet. Players read:');
   });
 
+  // Purpose (review nit 4): a far end whose parent the pack doesn't have gets no Area heading, never the parent's raw id.
+  it('gives no heading for a parent the pack does not have', async () => {
+    const t = await mere();
+    const cave = t.world.tables.library_entries.find((x) => x.kind === 'location' && x.pack_entry_id === 'cave')!;
+    cave.data = { ...(cave.data as Record<string, unknown>), parentId: 'gone-area' };
+    const rows = destinationsOf((await loadMoveOn(t.world.db as unknown as Db, t.campaign, t.expedition)) as MoveOnRead);
+    expect(rows.find((r) => r.name === 'The Sea Cave')?.area).toBeNull();
+    expect(JSON.stringify(rows)).not.toContain('gone-area');
+  });
+
+  // Purpose (cs-22): when the players' own read fails, the GM's read still comes back, says that read failed, and its
+  // lines go by the far end's number.
+  it('says when the players’ read failed, and goes by the number', async () => {
+    const t = await mere();
+    const db = t.world.db as unknown as Db;
+    const real = db.rpc.bind(db);
+    vi.spyOn(db, 'rpc').mockImplementation(((name: string, args: never) => (name === 'campaign_ways_on' ? Promise.resolve({ data: null, error: { message: 'offline' } }) : real(name as never, args))) as never);
+    const read = (await loadMoveOn(db, t.campaign, t.expedition)) as MoveOnRead;
+    expect(read.playersUnread).toBe(true);
+    expect(destinationsOf(read).map((r) => r.players)).toEqual([null, '3. Unexplored', null]);
+  });
+
   // Purpose: while the players have no ways (nothing of here shown yet), the GM's line says the far end by its number,
   // as they will read it in a known Area, and never fails the read.
   it('says a far end by its number while the players have no ways yet', async () => {
     const t = await mere({ jettyShown: false });
-    const rows = destinationsOf((await loadMoveOn(t.world.db as unknown as Db, t.campaign, t.expedition)) as MoveOnRead);
-    expect(rows.map((r) => r.players)).toEqual(['2. Unexplored', '3. Unexplored', null]);
+    const read = (await loadMoveOn(t.world.db as unknown as Db, t.campaign, t.expedition)) as MoveOnRead;
+    expect(read.playersUnread).toBe(false);
+    expect(destinationsOf(read).map((r) => r.players)).toEqual(['2. Unexplored', '3. Unexplored', null]);
   });
 
   // Purpose: a player's device gets no ways from this read: routes are the GM's (pt-f3), so the far ends and the

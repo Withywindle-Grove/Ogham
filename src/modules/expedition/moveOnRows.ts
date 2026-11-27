@@ -54,8 +54,8 @@ export function areaSections<T>(rows: readonly T[], keyOf: (row: T) => string | 
     groups.set(key, [...(groups.get(key) ?? []), row]);
   }
   const rank = (key: string | null) => (key === null ? 0 : key === order.first ? 1 : key === order.last ? 3 : 2);
-  const keys = [...groups.keys()].sort((a, b) => rank(a) - rank(b));
-  return keys.map((key) => ({ key, heading: keys.length > 1 ? key : null, rows: groups.get(key)! }));
+  const sections = [...groups.entries()].sort(([a], [b]) => rank(a) - rank(b));
+  return sections.map(([key, rows]) => ({ key, heading: sections.length > 1 ? key : null, rows }));
 }
 
 /** The GM's line under a far end not shown (WT1 A, finding 21): what its players read, after the closed eye. */

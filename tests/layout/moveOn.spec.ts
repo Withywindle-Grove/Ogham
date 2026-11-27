@@ -74,6 +74,7 @@ for (const size of [
         await expect(dialog.getByRole('group', { name: '0. The landing' }).getByText('Unexplored, under “Elsewhere”')).toBeVisible();
         const [line, row] = await Promise.all([box(shed.locator('.destination-row__sub--unshown')), box(shed)]);
         expect(line.x + line.width).toBeLessThanOrEqual(row.x + row.width);
+        await page.screenshot({ path: `test-results/layout-screens/move-on-areas-${size.name}-${scheme}.png` });
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
       });
@@ -100,7 +101,7 @@ for (const size of [
 
       // Purpose (sf-15; page 44, PU1 A and D; sf-28): a plain way's step is the standard pop-up, as tall as its words:
       // centred on a tablet, a sheet from the foot on a phone, the screen's width; one foot row, Back at its left edge
-      // and Move (the accent) at its right, level, each a 44 px target; the checks pass.
+      // and Move (the accent) at its right, level, one height (review nit 1), each a 44 px target; the checks pass.
       test('a way’s step: centred, or a sheet from the foot; Back left and Move right', async ({ page }) => {
         await page.goto('/layout.html?moveOn=way');
         const step = page.getByRole('dialog', { name: 'Move on: Rowing to 2. The wreck' });
@@ -121,6 +122,7 @@ for (const size of [
         expect(Math.abs(move.x + move.width - (foot.x + foot.width))).toBeLessThanOrEqual(1);
         expect(Math.abs(back.y + back.height / 2 - (move.y + move.height / 2))).toBeLessThanOrEqual(1);
         expect(Math.min(back.height, move.height)).toBeGreaterThanOrEqual(44);
+        expect(Math.abs(back.height - move.height)).toBeLessThanOrEqual(1);
         await page.screenshot({ path: `test-results/layout-screens/move-on-step-${size.name}-${scheme}.png` });
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
@@ -139,6 +141,7 @@ for (const size of [
         await expect(step.locator('.move-summary dd').first()).toContainText('999 turns');
         const [back, move] = await Promise.all([box(step.getByRole('button', { name: 'Back' })), box(step.getByRole('button', { name: 'Move' }))]);
         expect(Math.abs(back.y + back.height / 2 - (move.y + move.height / 2))).toBeLessThanOrEqual(1);
+        expect(Math.abs(back.height - move.height)).toBeLessThanOrEqual(1);
         await page.screenshot({ path: `test-results/layout-screens/move-on-step-long-${size.name}-${scheme}.png` });
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);

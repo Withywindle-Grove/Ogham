@@ -93,7 +93,7 @@ export function DestinationRow({
   /** The spot's number on the map's key ("2"), as the key writes it; none for a place without one. */
   number?: string | null;
   name: string;
-  /** Under the name: the GM's lines (`GmDestinationLines`) or a player's "Not yet explored." */
+  /** Under the name: the GM's lines (`GmDestinationLines`) or a player's ways (`WayLine`). */
   sub?: ReactNode;
   ways: WayChoice[];
   onWay: (key: string) => void;
@@ -293,7 +293,7 @@ function WayBody({ move, askedBy, onMove, onAnswer, onBack, foot }: { move: WayM
       {!plain && <Answer decide={decide} onAnswer={onAnswer} />}
       {onBack ? (
         <div className="dialog__actions move-sheet__split">
-          <button type="button" className="button-secondary button-secondary--small" onClick={onBack}>
+          <button type="button" className="button-secondary" onClick={onBack}>
             Back
           </button>
           {plain && (

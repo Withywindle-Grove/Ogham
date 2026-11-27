@@ -15,6 +15,11 @@ import { useSceneMoveCheck, useSceneMover } from './sceneMove.tsx';
 
 /** Why Move on can't read its ways (a toast; the sheet then closes). */
 export const MOVE_ON_UNREAD = "Couldn't read the ways on from here. Check your connection and try again.";
+/**
+ * The players' own read failed (cs-22): the sheet stays open, and each "Players read" line goes by the far end's map
+ * number, as they would read it in a known Area (`playersLineOf`).
+ */
+export const MOVE_ON_PLAYERS_UNREAD = "Couldn't check what the players read. Those lines go by map number.";
 /** No time strip is listening (Move on outside Scene). */
 export const MOVE_ON_NO_STRIP = 'Move on works on Scene, beside the time strip.';
 
@@ -63,6 +68,10 @@ export function MoveOnWiring({
     show({ text: MOVE_ON_UNREAD, error: true });
     onClose();
   }, [read, show, onClose]);
+  const playersUnread = read !== null && read !== 'unread' && read.playersUnread;
+  useEffect(() => {
+    if (playersUnread) show({ text: MOVE_ON_PLAYERS_UNREAD, error: true });
+  }, [playersUnread, show]);
   if (read === null || read === 'unread') return null;
 
   /**

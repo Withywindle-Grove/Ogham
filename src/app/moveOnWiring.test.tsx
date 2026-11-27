@@ -16,6 +16,7 @@
 //     mark there is no such row (B10).
 //   - A check that is a roll on its table: the step's Then line names the table, never the check's id (B9).
 //   - Without the strip listening, Move on says where it works and moves nothing.
+//   - When the players' own read fails, the sheet stays open and a toast says their lines go by map number (cs-22).
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
@@ -26,7 +27,7 @@ import { SPLIT_PARTY_WORDS } from '../modules/expedition/moveOnWays.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { ToastHost } from '../ui/ToastHost.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
-import { MOVE_ON_NO_STRIP, MoveOnWiring } from './MoveOn.tsx';
+import { MOVE_ON_NO_STRIP, MOVE_ON_PLAYERS_UNREAD, MoveOnWiring } from './MoveOn.tsx';
 import { SceneMoveProvider } from './sceneMove.tsx';
 import { SceneTime } from './SceneTime.tsx';
 
@@ -297,5 +298,14 @@ describe('Move on, wired to the time strip', () => {
     await user.click(within(await sheet()).getByRole('button', { name: 'Move' }));
     expect(await screen.findByText(MOVE_ON_NO_STRIP)).toBeTruthy();
     expect(moves(t)).toHaveLength(0);
+  }, 30000);
+
+  it('says when the players’ read failed, and keeps the sheet open', async () => {
+    const t = await table();
+    const real = world.db.rpc.bind(world.db);
+    vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: never) => (name === 'campaign_ways_on' ? Promise.resolve({ data: null, error: { message: 'offline' } }) : real(name as never, args))) as never);
+    render(<Page t={t} />);
+    expect(await screen.findByText(MOVE_ON_PLAYERS_UNREAD)).toBeTruthy();
+    expect(within(await sheet()).getByRole('button', { name: 'Rowing, 1 turn, to 2. The Islet' })).toBeTruthy();
   }, 30000);
 });

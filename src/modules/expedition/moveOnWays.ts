@@ -151,6 +151,8 @@ export interface MoveOnRead {
    * number alone (`playersLineOf`).
    */
   players: Map<string, PlayersRead>;
+  /** The players' own read failed (cs-22): their lines fall back to the far end's number, and Move on says so. */
+  playersUnread: boolean;
 }
 
 const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
@@ -229,6 +231,7 @@ export async function loadMoveOn(db: Db, campaignId: string, expeditionId: strin
 
   const farEnds = new Map<string, FarEnd>();
   const players = new Map<string, PlayersRead>();
+  let playersUnread = false;
   if (farIds.length > 0) {
     const [entries, places] = await Promise.all([
       db.from('library_entries').select('pack_entry_id, name, data').eq('pack_id', packId).eq('kind', 'location').in('pack_entry_id', farIds),
@@ -256,13 +259,16 @@ export async function loadMoveOn(db: Db, campaignId: string, expeditionId: strin
       loadWaysOn(db, campaignId),
     ]);
     if (parents.error) return null;
+    playersUnread = waysOn === null;
     const parentName = new Map((parents.data ?? []).map((p) => [String(p.pack_entry_id), text(p.name)]));
     for (const id of farIds) {
       const entry = (entries.data ?? []).find((e) => String(e.pack_entry_id) === id);
       const data = (entry?.data ?? {}) as Record<string, unknown>;
       const placeId = placeOf.get(id) ?? null;
       const parent = parentOf.get(id) ?? null;
-      const area = parent ? { entryId: parent, name: parentName.get(parent) || parent } : null;
+      // A parent the pack doesn't name (not found, or no name) gives no heading: never its raw id.
+      const parentTitle = parent ? parentName.get(parent) : undefined;
+      const area = parent && parentTitle ? { entryId: parent, name: parentTitle } : null;
       farEnds.set(id, { entryId: id, name: text(entry?.name) || id, number: text(data.key) || null, placeId, shown: placeId !== null && farShown(placeId), area });
     }
     // What the party's group reads of each far end (sf-9), from the players' own read, which the GM may call too: the
@@ -280,5 +286,5 @@ export async function loadMoveOn(db: Db, campaignId: string, expeditionId: strin
   const [switches, ...chains] = await Promise.all([loadRuleSwitches(db, campaignId), ...throughIds.map((id) => loadPlaceChain(db, packId, id))]);
   if (!switches || chains.some((c) => c === null)) return null;
   const throughs = new Map(throughIds.map((id, i) => [id, chains[i] as ChainEntry[]]));
-  return { here: { placeId: String(herePlace.data.id), packId, entryId: hereEntry, name: text(herePlace.data.name) }, ways, farEnds, groups: Math.max(1, groups.size), throughs, switches, wayOut, hereArea, players };
+  return { here: { placeId: String(herePlace.data.id), packId, entryId: hereEntry, name: text(herePlace.data.name) }, ways, farEnds, groups: Math.max(1, groups.size), throughs, switches, wayOut, hereArea, players, playersUnread };
 }
