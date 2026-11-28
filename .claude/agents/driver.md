@@ -79,8 +79,8 @@ Five steps of the build loop are Francis's to start: `/to-spec`, `/to-tickets`, 
 ## Database
 The migration rules are in `CLAUDE.md`, Database changes. **Until 5 December 2026** (`docs/design/rulings/process-db-sessions-until-dec-5-2026-11-12.md`) you run the database session for any migration, by one route:
 - Home One takes the backup and the dry run, and nothing more. The dry run lists only the file you announced.
-- The main push goes to the standing push session (`docs/09-decisions-log.md`, 2026-11-26 [process]), with Francis's own Allow there. Send it only after his one-word "push" in the chat, for that push.
-- The advisors run after the push.
+- The main push goes to the standing push session on Francis's PC, "wintermute-zazzy-matsumoto" (`docs/09-decisions-log.md`, 2026-11-26 [process]; it pushed loop 3's migrations to main on 28 Nov), with Francis's own Allow there. Send it only after his one-word "push" in the chat, for that push. If the push session can't run it, Francis runs it himself.
+- The push session runs the advisors after the push.
 - Stop and say so if the backup fails, the dry run or the advisors show something you did not announce, or a builder is part-way to the test project.
 
 From 5 December Francis runs the main push himself.
