@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Db } from '../core/supabase.ts';
 import { idsInFacts, linesAtHand, type GmFacts, type HandLine, type LinesAtHand, type NamedKind, type PieceRef } from '../modules/expedition/pieceNames.ts';
+import { hoardRows } from '../modules/expedition/hoard.ts';
 import type { Piece } from '../modules/expedition/placePlay.ts';
 import { sourceLine } from '../modules/library/describe.ts';
 import { layOutStatBlock, type StatBlockLayout } from '../modules/library/statBlockLayout.ts';
@@ -119,7 +120,21 @@ export function cardLinesAtHand(pieces: readonly Piece[], place: AtHandPlace | n
   };
 
   const fromPack = place !== null;
-  const refs = pieces.map((p) => pieceRefsOf(p.gm, fromPack, (ref) => byRef(ref) !== null));
+  // A Treasure piece also names its hoard's things (`hoardRows`, as its find sheet reads them; 44-5 B: the Crate
+  // carries "Lamp oil ×8"), each once, with the hoard's count.
+  const items = new Set(read.entries.filter((e) => e.kind === 'item').map((e) => e.packEntryId));
+  const hoardRefs = (p: Piece): PieceRef[] =>
+    place
+      ? hoardRows(p, place.data, [], items).rows.flatMap((r) => {
+          const id = r.kind === 'thing' ? (r.itemId ?? r.unknownItemId ?? null) : null;
+          return id && r.kind === 'thing' ? [{ ref: `item/${id}`, count: r.qty > 1 ? String(r.qty) : null }] : [];
+        })
+      : [];
+  const refs = pieces.map((p) => {
+    const own = pieceRefsOf(p.gm, fromPack, (ref) => byRef(ref) !== null);
+    const more = hoardRefs(p).filter((h) => !own.some((o) => o.ref === h.ref));
+    return [...own.map((o) => ({ ...o, count: o.count ?? hoardRefs(p).find((h) => h.ref === o.ref)?.count ?? null })), ...more];
+  });
   const wanted = [...refs.flat().map((r) => r.ref), ...(place ? placeRefsOf(place, read) : [])];
   const lines = [...new Set(wanted)].flatMap((ref) => lineOf(ref) ?? []);
   // A line the pieces name but no pack has stays off `lines`: piece A then says "Not in your packs" on its piece.

@@ -1424,6 +1424,7 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //                crab ×4 on their pieces, the lamp oil's crate, an Eel no piece shows and Old Harl, who lives here on the
 //                Ferryman's block (the fold's short row); `own`: Old Harl with a block of his own; `messy`: a long name,
 //                ×999 and a creature no attached pack has. The crate is shown (its label "Only you see these details.").
+//                With &sf8 too, the Crate's lamp oil ×8 and the Bronze ring are the pack's items, on their hoards' pieces.
 const placePageFlag = new URLSearchParams(window.location.search).get('placePage');
 // The jetty's own book text for the GM (gt-1, page 15 BT1; the whole Scene's S14): paragraphs, a list, a boxed aside.
 const JETTY_BOOK_TEXT = {
@@ -1632,7 +1633,14 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
         ],
         gm: { text: { blocks: [{ p: 'A cog on her side on the bar, decks awash. Three ferrymen sleep under the sailcloth by day and strip her by night. Old Harl comes for them at dusk.' }, { p: 'Below. The hold is flooded to the knee. Four mud crabs have the run of it.' }] } },
       });
-      (spots[1] as unknown as { treasure: unknown[] }).treasure.push({ text: 'Eight flasks of lamp oil, dry, in a crate.', itemId: 'reed-lamp-oil' });
+      // With &sf8 (44-5 B, 44-7): the Crate's lamp oil and the Bronze ring are the pack's items, carried on their hoard's
+      // pieces; without it, a crate of its own.
+      const treasure = (spots[1] as unknown as { treasure: Record<string, unknown>[] }).treasure;
+      const sf8Oil = treasure.find((t) => t.hoard === 'Crate');
+      if (sf8Oil) {
+        sf8Oil.itemId = 'reed-lamp-oil';
+        treasure.find((t) => t.hoard === 'Bronze ring')!.itemId = 'reed-bronze-ring';
+      } else treasure.push({ text: 'Eight flasks of lamp oil, dry, in a crate.', itemId: 'reed-lamp-oil' });
       const level = (l: string, a: string, hp: string, attacks: string, speed: string, morale: string) => ({ fields: { Level: l, Armour: a, Attacks: attacks, Speed: speed, Morale: morale }, hp, hpAverage: 3 });
       for (const [kind, id, name, data] of [
         ['statBlock', 'reed-ferryman', messy ? longFerry : 'Ferryman', level('1', '9', '1d6', 'Boat hook (+0, 1d6)', '40', '7')],
@@ -1640,6 +1648,7 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
         ['statBlock', 'reed-eel', 'Eel', level('2', '7', '2d8', 'Bite (+1, 1d6)', '30', '8')],
         ['statBlock', 'reed-old-harl-stats', 'Old Harl', level('2', '8', '2d6', 'Boat hook (+1, 1d6)', '40', '9')],
         ['item', 'reed-lamp-oil', 'Lamp oil', { description: 'One flask fills a lantern once. Thrown and lit, it burns where it lands.' }],
+        ['item', 'reed-bronze-ring', 'Bronze ring', { description: 'A plain band of old bronze.' }],
         ['npc', 'reed-old-harl', 'Old Harl', { role: 'a ferryman', locationId: 'the-wreck', statBlockId: details === 'own' ? 'reed-old-harl-stats' : 'reed-ferryman', playerView: { description: 'Works the ferry at the jetty.' } }],
       ] as const)
         world.tables.library_entries.push({ id: `entry-${id}`, pack_id: 'pack-reed', kind, pack_entry_id: id, name, data: { id, name, ...data } });

@@ -650,11 +650,12 @@ export function gmFactLine(piece: Piece, names: PieceNames = NO_NAMES): string {
 
 /**
  * The small line beside a piece's detail rows (sf-6b): only what the rows don't say. A treasure keeps its value without
- * the thing its row names ("Value stays yours (40 gp)."); a person's stat line is the row itself; anything else as
- * `gmFactLine`.
+ * the thing its row names ("Value stays yours (40 gp)."); a person's stat line is the row itself, unless it carries a
+ * creature's note, kept as before; anything else as `gmFactLine`.
  */
 function factBesideRows(piece: Piece, names: PieceNames): string {
-  if (piece.kind === 'person') return '';
+  // A creature's note ("asleep") is not on its row: the line that carries it stays, so the note is never lost.
+  if (piece.kind === 'person') return /\(.+\)$/.test(piece.gm.statLine.trim()) ? gmFactLine(piece, names) : '';
   if (piece.kind !== 'treasure') return gmFactLine(piece, names);
   const value = piece.gm.value.replace(/(^|, )Item: \S+$/, '').trim();
   return value ? `Value stays yours (${namedFacts({ ...piece.gm, value }, names).value}).` : '';

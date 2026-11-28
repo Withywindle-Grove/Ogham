@@ -117,6 +117,18 @@ describe('3, 4. where each line stands on the Wreck', () => {
   });
 });
 
+describe("3b. a hoard's things (44-5 B: the Crate carries Lamp oil ×8)", () => {
+  // Purpose: a hoard's piece, led by the hoard's name, carries its things' rows with their counts, so they don't fall
+  // to the fold.
+  it("puts a hoard's things on the hoard's piece, with their counts", () => {
+    const crate = { ...piece('treasure', 'Eight flasks of lamp oil, dry.', {}), lead: 'Crate' };
+    const place = { packId: PACK, entryId: 'the-wreck', data: { hoards: [{ name: 'Crate', text: 'Eight flasks of lamp oil, dry.' }], treasure: [{ text: 'Lamp oil', qty: 8, hoard: 'Crate', itemId: 'reed-lamp-oil' }] } };
+    const atHand = cardLinesAtHand([crate], place, read);
+    expect(atHand.pieces[0]!.map((r) => [r.form, r.form === 'missing' ? r.words : r.name, r.count])).toEqual([['full', 'Lamp oil', '8']]);
+    expect(atHand.fold.items).toEqual([]);
+  });
+});
+
 describe('5. the edges', () => {
   // Purpose: on a pack-made place, a creature the packs lack says so on its piece, never its id.
   it("says a missing creature isn't in your packs", () => {

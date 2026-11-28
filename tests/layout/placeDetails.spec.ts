@@ -7,6 +7,7 @@
 //   DT1 A, DT2 A. The fold opened: the book's words, then "Stat lines" with the Eel and Old Harl's short row ("Same stat
 //        line as the Ferryman."), then the quiet line; no eye on it.
 //   DT1 C, DT2 C. Old Harl with a block of his own keeps his own line.
+//   44-5 B, 44-7. With &sf8, the hoards: the Crate carries "Lamp oil ×8", the Bronze ring its row; no "Items" in the fold.
 //   Messy: a long name, ×999 and a creature no pack has ("Not in your packs: a creature ×2"), with nothing cut.
 // Each: nothing scrolls sideways, no tap target under 44 px, no text under 14 px, and axe finds no serious problem.
 import { expect, test, type Page } from '@playwright/test';
@@ -80,6 +81,19 @@ for (const size of SIZES) {
         await expect(page.getByText('Same stat line as the Ferryman.')).toHaveCount(0);
         await harl.scrollIntoViewIfNeeded();
         await shot(page, 'own', size.width, scheme);
+      });
+
+      // Purpose: 44-5 B and 44-7, a hoard's things on the hoard's piece: the Crate carries "Lamp oil ×8", the Bronze
+      // ring its own row, and the fold has no "Items" group left.
+      test("a hoard's things stand on the hoard's piece", async ({ page }) => {
+        await open(page, scheme, '1&sf8=1');
+        await expect(page.getByRole('button', { name: 'Lamp oil: read it' })).toContainText('Lamp oil ×8');
+        await expect(page.getByRole('button', { name: 'Bronze ring: read it' })).toBeVisible();
+        await foldRow(page).click();
+        await expect(page.getByRole('region', { name: 'From the book, for the GM' }).getByRole('heading', { name: 'Items' })).toHaveCount(0);
+        expect(await layoutProblems(page)).toEqual([]);
+        await page.getByRole('button', { name: 'Lamp oil: read it' }).scrollIntoViewIfNeeded();
+        await shot(page, 'hoards', size.width, scheme);
       });
     });
   }

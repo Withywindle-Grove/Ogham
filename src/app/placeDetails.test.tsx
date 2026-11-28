@@ -56,6 +56,13 @@ describe('1. the label under a piece (l4-2)', () => {
     expect(screen.getByText('Value stays yours (40 gp).')).toBeTruthy();
   });
 
+  // Purpose: a creature's note ("asleep") is kept: a piece whose stored line carries one keeps its small line, so the
+  // note is never lost from the card.
+  it("keeps the small line where it carries a creature's note", () => {
+    draw(piece('person', 'Three men sleep under a sailcloth.', { statLine: 'reed-ferryman ×3 (asleep)' }, false), [full(ferryman, '3')]);
+    expect(screen.getByText(/stat line never shows .*\(asleep\)/)).toBeTruthy();
+  });
+
   // Purpose: a piece with no row is drawn as before: no label, its small line as it was.
   it('leaves a piece with no row as before', () => {
     draw(piece('hazard', 'A loose plank.', { trigger: 'Step on it' }, false), []);
