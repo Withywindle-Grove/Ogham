@@ -1,5 +1,5 @@
 ---
-status: draft for sitting B
+status: approved at sitting B, 2026-11-28; tickets #222-#225 (parent #221); rulings sb5-1 to sb5-7 (docs/design/rulings/town-ask-buy-b-2026-11-28.md)
 loop: 5a
 rulings: docs/design/rulings/loop5-town-2026-11-28.md (l5-1, l5-4; its "To check" and "Technical, for the spec"); the row's own rulings stand as written: ap-14, tn-4, tn-7, tn-8 (2026-11-14), tn-1, ap-8, ap-12 (2026-11-14), bu-1, bu-2a, bu-2b (2026-11-14, 2026-11-15), ap-7 (2026-11-14), #108's three ⚑ (2026-11-26), p45-21 (2026-11-26), the toast's tr-1 to tr-16 (2026-11-25 and 2026-11-26; not the town's tr-1 of 2026-11-14)
 intents: none; the row comes from the town's rulings of 2026-11-14 (page 19) and the plan below
@@ -111,7 +111,7 @@ A and B go one after the other (same module), C after B (same card file). D runs
 **Piece A: Ask for… (tn-7, tn-8; TC12 built)**
 - The player's Ask for… for a thing at a shop calls `town.askFor` with the character, the words, the campaign day as the clock counts it (`readClock(...).day`, as `stock.set` does) and the buy prompt, instead of `request.send`. Something not listed… goes the same way; the database leaves it for the GM.
 - An ask the database answers at once arrives as an answered request: the player's answer card shows it as it shows any answer. The GM gets no card; the log has the line.
-- An ask that waits keeps today's toast and its Undo (the player's withdraw). An ask answered at once: see ⚑ B6.
+- An ask that waits keeps today's toast and its Undo (the player's withdraw). An ask answered at once raises no toast and no Undo: the answer card is the news (sb5-6; tn-8).
 - The GM's view as the player keeps its player-only pop-up on Ask for… (C15d).
 
 **Piece B: the GM's ask card (ap-14, tn-4, TW8g, TW4c)**
@@ -120,20 +120,20 @@ A and B go one after the other (same module), C after B (same card file). D runs
 - The right half: the request is answered "In stock" at the pack's price (`request.answer`, result in stock), and the day's stock is set in for that thing at that shop (`stock.set`, the same record the stock table flips). The left half: "Not here", and the stock set out.
 - The order of the two writes, technical: the stock first, then the answer. A failed stock write sends nothing and leaves the card on "?"; a failed answer after a good stock write leaves the card on "?" with an error toast, and a second flip writes the same stock again and the answer. A thing with no pack id (Something not listed…) or an ask with no shop has no stock record: the flip answers only.
 - The toast: today's words ("Wren: a coil of rope, 1 heron"; "Not here: told Wren") with Undo. Undo takes back the answer and, where one was written, the stock line, through the log's built Undo of each, newest first; the request returns to Waiting for you ("Put Wren's request back"). Once the player has replied, the answer's Undo is refused in plain words, as built.
-- A thing on "?" with no price to say: ⚑ B1.
-- "Price…" opens TW4c's pop-up (heading "<who> asks for: <thing>", the close ✕, "The pack's price: <price>" where there is one, "Your price, in words", "Send price" as the pop-up's accent). An empty field keeps its built line asking for the price, beside the field. Send price answers with the GM's price and writes no stock line. The built card draws Price… inline; TW4c draws a pop-up: ⚑ B3.
-- "A note for them": TW8g draws none; the built card has one: ⚑ B2.
+- A thing on "?" with no price to say (Something not listed…, or the pack gives none): the right half opens Price…'s pop-up, and Send price answers and sets the day's stock in (sb5-1).
+- "Price…" opens TW4c's pop-up (heading "<who> asks for: <thing>", the close ✕, "The pack's price: <price>" where there is one, "Your price, in words", "Send price" as the pop-up's accent). An empty field keeps its built line asking for the price, beside the field. Send price answers with the GM's price and writes no stock line. Price… is the pop-up TW4c draws, not the built card's inline field (sb5-3).
+- No "A note for them": as TW8g draws; the built card's field goes (sb5-2).
 - The card takes no accent (ap-14): "Move on" keeps it. No Hit, no Miss, no roll button (tn-4).
-- Two asks waiting for the same thing at the same shop: ⚑ B4.
+- Two asks waiting for the same thing at the same shop: each card answers its own asker; the other stays on "?" (sb5-4).
 - 06's Components row "Buy request" says what the card is; its Code column is brought up to the built card in the same pull request.
 
 **Piece C: Buy it's toast (tn-1, ap-7, bu-1, p45-21)**
 - Buy it is `request.reply` as built: the thing joins the pack as bought, as a line of its own, its price as text. Nothing is charged.
 - The toast is the built `purchaseToast`, the Pack's, never a copy, with the Toast's named variant Action and Undo (06). Its words are TW4a's: "<who> bought <thing>. Its cost, <price>, is not spent yet." The built words say "added"; the part learns the verb "bought" for this caller, the Pack's own words unchanged.
 - "Spend <amount>" shows only when the price reads as the setting's coins (`readCost`) and the amount is more than 0; otherwise the toast says the cost and offers no Spend (#108 ⚑ 2).
-- "Spend <amount>" opens the purse's Spend sheet (`PurseSheet` in its spend form, PK10b) with the amount and "What for" filled with the thing's name as the toast says it (#108 ⚑ 3). Where it opens: ⚑ B5.
+- "Spend <amount>" opens the purse's Spend sheet (`PurseSheet` in its spend form, PK10b) with the amount and "What for" filled with the thing's name as the toast says it (#108 ⚑ 3). It opens over the Scene, where the player is (sb5-5).
 - The toast's Undo is the buyer's own `request.undoBuy` (bu-1), as built: it takes the bought line back out while untouched, refused in plain words after (bu-2a, bu-2b). A spend made from the toast is a line of its own, undone on its own.
-- The player's answer card with Buy it and Leave it: TW4a step 3 draws it differently from the built card: ⚑ B7.
+- The player's answer card is built as TW4a step 3 draws it (sb5-7): "For you", "In stock: <thing>", the price and the place ("1 heron. At 3 The Reed Market."), Buy it as the accent, and Leave it; the built card's "The GM says" and the ask in quotes go. 06's Components row "Buy request" says so.
 - The toast's dress is page 43's (tr-1 to tr-16): nothing new to build.
 - Buy it writes no "New": the find card, the tag and the Pack's count read others' acts only (p45-21), and the buyer's own reply is not one. The test proves it; nothing new to build.
 
@@ -177,17 +177,17 @@ The two seams Francis approved (28 Nov, "Yes, two seams"). There is no database 
 
 ## Further Notes
 
-**⚑ for sitting B.** Each is a gap between an approved frame and the app as built, or a case no frame draws. The lean is the designer's; Francis rules.
+**Ruled at sitting B (2026-11-28, `docs/design/rulings/town-ask-buy-b-2026-11-28.md`, sb5-1 to sb5-7).** The spec and its four tickets, #222 to #225 (parent #221), were approved ("Yes"). Each ruling was the lean.
 
-| ⚑ | Piece | The question | Lean |
+| ⚑ | Piece | Ruling | Francis |
 |---|---|---|---|
-| B1 | B | A thing with no price to say (Something not listed…, or the pack gives none) flipped right: Buy it needs a price (the database refuses a reply without one; TC12 leaves such a thing for the GM for the same reason). A: the right half opens Price…'s pop-up, and Send price answers and sets the stock in. B: it answers "In stock" with no price, and the player gets no Buy it | A |
-| B2 | B | "A note for them": the built card has the field; TW8g draws none. A: as drawn, no note. B: keep it, in Price…'s pop-up | A |
-| B3 | B | Price…: the built card opens a field inline; TW4c draws a pop-up. A: as drawn, the pop-up. B: keep it inline | A |
-| B4 | B | Two asks waiting for the same thing at the same shop: TW8g's toggle always rests on "?". A: each card answers its own asker; the other stays on "?". B: a flip answers every ask waiting for that thing there today | A |
-| B5 | C | Where "Spend N" opens the Spend sheet: the Buy toast shows on the Scene, and the sheet lives on the Pack. A: over the Scene, where the player is. B: the Pack opens with the sheet | A |
-| B6 | A | The toast after an ask answered at once: A: no toast, the answer card is the news, and no Undo (tn-8: an answer given is not unsent). B: "Sent to the GM"'s toast as today, its Undo withdrawing the answered ask | A |
-| B7 | C | The player's answer card: the built one reads "The GM says", the answer, the ask in quotes, Buy it and Leave it as secondary buttons; TW4a step 3 draws "For you", "In stock: a coil of rope", "1 heron. At 3 The Reed Market." and Buy it as the accent. A: as drawn. B: as built; TW4a's card later | A |
+| B1 (sb5-1) | B | A: a thing with no price to say, flipped right, opens Price…'s pop-up; Send price answers and sets the stock in | "A" |
+| B2 (sb5-2) | B | A: no "A note for them", as TW8g draws | "A" |
+| B3 (sb5-3) | B | A: Price… opens TW4c's pop-up | "A" |
+| B4 (sb5-4) | B | A: each card answers its own asker; the other stays on "?" | "A" |
+| B5 (sb5-5) | C | A: "Spend N" opens the Spend sheet over the Scene | "A" |
+| B6 (sb5-6) | A | A: an ask answered at once raises no toast and no Undo; the answer card is the news | "A" |
+| B7 (sb5-7) | C | A: the player's answer card as TW4a step 3 draws it: "For you", "In stock: <thing>", price and place, Buy it as the accent | "A" |
 
 **To check, not to ask** (from the rulings file).
 - TC12's migration (`20261125180000_dec16_tc12_ask_answered_at_once.sql`) on the main database: the driver confirms it before TC13 ships. Piece A calls it.
