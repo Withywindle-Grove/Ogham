@@ -320,6 +320,23 @@ describe('the parts', () => {
     expect(screen.getByRole('button', { name: 'Scene, 100 waiting' }).querySelector('.section-nav__badge')?.textContent).toBe('99+');
   });
 
+  // Purpose (K19b, p45-10, FD7): the Pack's tab carries what is new as its badge, on the tablet's tabs and the phone's
+  // alike: no mark at 0, 1, 12 and 99 as they are, "99+" from 100, and read aloud "Pack, 12 new".
+  it("the Pack's count: none at 0, 1, 12, 99, then 99+, read as “Pack, 12 new”, on both bars", () => {
+    for (const tabs of [(n: number) => playerTabs(false, n), (n: number) => phoneTabs(0, false, n), (n: number) => playerTabs(true, n), (n: number) => phoneTabs(0, true, n)]) {
+      const { rerender, unmount } = render(<SectionNav label="Main" tabs={tabs(0)} current="player" onSelect={() => undefined} />);
+      expect(screen.getByRole('button', { name: 'Pack' }).querySelector('.section-nav__badge')).toBeNull();
+      for (const [n, shown] of [[1, '1'], [12, '12'], [99, '99'], [100, '99+']] as const) {
+        rerender(<SectionNav label="Main" tabs={tabs(n)} current="player" onSelect={() => undefined} />);
+        expect(screen.getByRole('button', { name: `Pack, ${n} new` }).querySelector('.section-nav__badge')?.textContent).toBe(shown);
+      }
+      unmount();
+    }
+    // Left out, the count is none: the tabs are as they were.
+    expect(playerTabs(false)).toEqual(TABS);
+    expect(phoneTabs(0).find((t) => t.id === 'pack')?.badge ?? 0).toBe(0);
+  });
+
   // Purpose: a player with no characters gets a Your characters group with only the way to the list; an empty group
   // (no GM items) is left out; the foot names the person.
   it('a player with no characters: Your characters holds only the list; empty groups are left out', () => {

@@ -1,6 +1,7 @@
 // What is new on a character's Pack (K20b of docs/plans/dec-6-the-whole-pack-tab.md; page 45, approved 2026-11-26), read
 // for the Pack tab and shared with K18c, K18d and K19b, which need the same entries; and the scroll hold's anchor row.
 // Moved out of PackScreen.tsx (local review of #158, finding 4), unchanged but for the read's two halves (finding 3).
+import { useEffect, useState } from 'react';
 import { loadCampaignSettings } from '../core/campaignCommands.ts';
 import type { CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
@@ -9,8 +10,10 @@ import { findsSince, loadFindsRead, markFindsSeen, type FindEntry, type FindsRea
 import { readClock } from '../modules/expedition/clock.ts';
 import { loadClockNow } from '../modules/expedition/lightPlay.ts';
 import { campaignUnits } from '../modules/expedition/play.ts';
-import type { InventoryLine } from '../modules/inventory/inventory.ts';
+import { loadInventory, type InventoryLine } from '../modules/inventory/inventory.ts';
 import { secondsAt, whenWords } from '../modules/inventory/stashHistory.ts';
+import { useLogVersion } from './campaignLog.tsx';
+import { loadCampaignSetting } from './campaignSetting.ts';
 
 /** "Got it" did not reach the server (p45-17, p45-24): what failed, and no more. */
 export const FINDS_NOT_MARKED = 'Couldn’t mark these as seen.';
@@ -79,6 +82,34 @@ export async function loadPackFinds(
 ): Promise<PackFinds | null> {
   const read = await readPackFinds(db, user, campaignId, characterId);
   return read && packFindsOf(read, lines, rulesSets);
+}
+
+/**
+ * The Player screen's one read of what is new for its character (K19b; K18c draws its card from the same read): K20a's
+ * entries, read beside the inventory and the rules, and again at each log version, so a find sent while the screen is
+ * open and "Got it" on any tab both reach it. `characterId` null reads nothing (the GM's view as the player, #158 ⚑ 4);
+ * for anyone but the character's own player `readPackFinds` reads nothing past the character. Null until read, for
+ * anyone else, and on a failed read (no count, never a failed screen).
+ */
+export function usePackFinds(db: Db, user: CurrentUser, campaignId: string, characterId: string | null): PackFinds | null {
+  const logVersion = useLogVersion();
+  const [finds, setFinds] = useState<PackFinds | null>(null);
+  useEffect(() => {
+    let current = true;
+    const read = async () => {
+      if (!characterId) return null;
+      const [found, inventory, setting] = await Promise.all([readPackFinds(db, user, campaignId, characterId), loadInventory(db, campaignId), loadCampaignSetting(db, user.id, campaignId)]);
+      return found && inventory && setting ? packFindsOf(found, inventory.lines, setting.rulesSets) : null;
+    };
+    read().then(
+      (next) => current && setFinds(next),
+      () => current && setFinds(null),
+    );
+    return () => {
+      current = false;
+    };
+  }, [db, user, campaignId, characterId, logVersion]);
+  return characterId ? finds : null;
 }
 
 /**

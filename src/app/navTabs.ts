@@ -14,19 +14,28 @@ export const TABS: NavTab<PlayerTab>[] = [
   { id: 'pack', name: 'Pack', icon: 'sack' },
 ];
 
-/** The player's sections on a tablet: Player, Scene, Pack, and Magic for a character with spells (mp-20). */
-export const playerTabs = (magic: boolean): NavTab<PlayerTab>[] => (magic ? [...TABS, MAGIC_TAB] : TABS);
+/**
+ * The Pack's tab, with what is new for the character as its badge (K19b, p45-10; page 45's FD7): none at 0, "99+" past
+ * 99 (the nav's own), read aloud "Pack, 12 new". Only the character's own player is given a count (#158 ⚑ 4).
+ */
+const packTab = (packNew: number): NavTab<PlayerTab> => (packNew > 0 ? { ...TABS[2]!, badge: packNew, badgeLabel: 'new' } : TABS[2]!);
+
+/** The player's sections on a tablet: Player, Scene, Pack (with its count), and Magic for a character with spells (mp-20). */
+export const playerTabs = (magic: boolean, packNew = 0): NavTab<PlayerTab>[] => {
+  const tabs = packNew > 0 ? [TABS[0]!, TABS[1]!, packTab(packNew)] : TABS;
+  return magic ? [...tabs, MAGIC_TAB] : tabs;
+};
 
 /**
  * The phone's tab bar (final drafts A11, slice E; mockup creation/17): Player, Scene, Pack and Log, with Francis's
  * icons (a crown, a campfire, a tied sack, an open book); a character with spells has Magic before Log (mm-2). Scene's badge counts what waits there that the app knows
- * of: the GM's unread messages (their card is on Scene). A tablet keeps its three sections and the top row's Log.
+ * of: the GM's unread messages (their card is on Scene); Pack's, what is new for the character (K19b). A tablet keeps its three sections and the top row's Log.
  */
-export function phoneTabs(waiting: number, magic = false): NavTab<PlayerTab>[] {
+export function phoneTabs(waiting: number, magic = false, packNew = 0): NavTab<PlayerTab>[] {
   return [
     { id: 'player', name: 'Player', icon: 'crown' },
     { id: 'scene', name: 'Scene', icon: 'scene', badge: waiting, badgeLabel: waiting === 1 ? 'message waiting' : 'messages waiting' },
-    { id: 'pack', name: 'Pack', icon: 'sack' },
+    packTab(packNew),
     // A caster's bar is five (mm-2): Magic before Log. Five is the limit; a sixth tab needs a new answer first.
     ...(magic ? [MAGIC_TAB] : []),
     { id: 'log', name: 'Log', icon: 'open-book' },
