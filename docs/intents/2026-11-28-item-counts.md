@@ -11,7 +11,7 @@ Found while bringing a setting pack up to date: a bottle with three portions is 
 An item names what its count counts (portions, doses, arrows), and the screen uses that word. The GM can reveal one item's hidden count.
 
 ## Touches
-Data model (04), pack format for items (07), the item screens and words (06), features (05). Gap rows G-233 and G-234 in `docs/11-modelling-gaps.md`.
+Data model (04), pack format for items (07), the item screens and words (06), features (05). Gap rows G-233 and G-234 in `docs/11-modelling-gaps.md`. G-234 (the GM reveals one item's count) is already built: the item's "Reveal…" pop-up has a charges row (K22, k22-8); only the unit word (G-233) is new.
 
 ## Constraints
 - Mockups first (CLAUDE.md): nothing visible is built before he approves a picture.
