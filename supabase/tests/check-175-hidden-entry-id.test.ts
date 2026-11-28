@@ -9,7 +9,8 @@
 // - The id reaches both players, the one who holds the item and the one who does not, in exactly the five reads the
 //   ruling names: the line (source_entry_id and the face's item_data.id), the party's library (packEntryId and data.id),
 //   the events (an add's after, and the copy kept in a remove's before when the line leaves play) and the log.
-// - The id hints at nothing: no word of the item's true name is in it.
+// - The fixture's id hints at nothing (no word of the item's true name is in it), so the reads test a well-formed pack;
+//   the real guard is pack:check's rule.
 // - What the ruling does not open stays closed: the face reads "Dented lantern", unidentified; a plain select on
 //   library_entries and library_entry_secrets, and a pack update's line, give a player nothing of the id.
 // Control: the GM reads the id on the line and in the library.
@@ -89,7 +90,8 @@ beforeAll(async () => {
   held = await ok(as(world.gm, addItem, { carrier: wren(), item, qty: 1, howGot: 'found' }));
   // A second lantern leaves play, so the log keeps a copy of its line.
   const dropped = await ok(as(world.gm, addItem, { carrier: wren(), item, qty: 1, howGot: 'found' }));
-  if (dropped.id !== held.id) await ok(as(world.playerA, removeItem, { line: { id: dropped.id, carrier: wren() }, qty: 1, of: 1 }));
+  if (dropped.id === held.id) throw new Error('The second lantern stacked onto the first line, so no line can leave play.');
+  await ok(as(world.playerA, removeItem, { line: { id: dropped.id, carrier: wren() }, qty: 1, of: 1 }));
   // A pack update that changes the lantern writes the update's line in the campaign's log.
   await ok(as(world.gm, updatePack, { packId, ownerUserId: world.gm.id, pack: packFile('2', 40) }));
 }, 300_000);
@@ -107,7 +109,7 @@ describe('#175: an unidentified item’s pack entry id reaches players and hints
     expect(library.some((e) => e.packEntryId === ENTRY_ID)).toBe(true);
   });
 
-  it('the id hints at nothing: no word of the item’s true name is in it', () => {
+  it('the fixture’s id hints at nothing, so the reads below test a well-formed pack (the guard is pack:check)', () => {
     const id = ENTRY_ID.toLowerCase();
     const words = LANTERN.name.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((word) => word.length >= 3);
     expect(words.length).toBeGreaterThan(0);
@@ -121,14 +123,14 @@ describe('#175: an unidentified item’s pack entry id reaches players and hints
     }
   });
 
-  // The five reads below are the ones this test found on 27 Nov; under l5-6 each is where the id is meant to be, for
-  // both players. A test here turning red means the id has gone from a place the app may rely on (stacking, knowledge).
+  // Under l5-6 each of the five reads below is where the id is meant to be, for both players. A test here turning red means the id has gone from a place the app may rely on (stacking, knowledge).
 
   // private.copy_item_details() sets source_entry_id from the entry for every line, unidentified or not.
   it('inventory_lines: the line’s source_entry_id is the id', async () => {
     for (const { who, person } of players()) {
-      const line = must(await person.db.from('inventory_lines').select('source_entry_id').eq('id', held.id).single());
+      const line = must(await person.db.from('inventory_lines').select('*').eq('id', held.id).single());
       expect(line.source_entry_id, who).toBe(ENTRY_ID);
+      expect(leaks(line).sort(), who).toEqual(['$.item_data.id', '$.source_entry_id']);
     }
   });
 
