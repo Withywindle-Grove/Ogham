@@ -1285,6 +1285,9 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
   }
 }
 
+// ?p1=icons: the shared character with Fire, Eat, Drink and Stance at hand (p47-2's icons; tests/layout/player-icons.spec.ts).
+if (p1Flag === 'icons') await (await import('./layoutP1Character.ts')).addP1Character(world, { gm, sam, fenPack, head: 'icons' });
+
 // The GM's place page (dec-7 piece 5b, page 11), only with ?placePage=…: an invented adventure, "The Reed Marches",
 // with a harbour that holds five spots, its own check (in place of the setting's) and a rule with an icon button, made
 // through the app's own commands as the GM before the screens start.

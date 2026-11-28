@@ -2,14 +2,16 @@
 // The Player screen's stacked buttons on At hand's rows (plan dec-13 C6, first half; sb-2, md-1, ic-3; frames P1, P2 of
 // december/14, approved 2026-11-14; icons page 20, frame IC1). Invented rules and names only (hard rule 2). Purposes:
 //   On the Player screen, At hand's Wield, the mode button beside it, a charged thing's Use and a draught's Drink are
-//   stacked buttons: the ruled icon above the word (Wield the sword hilt, Quiver the quiver, Use the pointing hand), a
-//   word with no ruled icon (Drink) carrying the set's generic mark; each still named in full for a screen reader.
+//   stacked buttons: the ruled icon above the word (Wield the sword hilt, Quiver the quiver, Use the pointing hand, Drink
+//   the round flask, p47-2); each still named in full for a screen reader.
+//   Fire, Eat and Stance carry the icons Francis picked on frame 47-2 (p47-2): the striking arrows, the bread and the
+//   pikeman, so no button on At hand's rows is left with the generic mark.
 //   A charged thing's stacked button says "Use", as frame P1 draws, and still spends a charge.
 //   The stacked Wield still puts the weapon in hand, logged, with Undo.
 //   The weapon in hand's block (C14) carries Attack as a stacked button with the raised sword, and a weapon with modes its
 //   mode button stacked beside it (C6's second half), Attack still opening the Attack sheet.
 //   The Pack tab's own At hand group keeps its small word buttons ("Use a charge"): its stacked buttons wait for a frame.
-//   Each word maps to its ruled icon, and a word without one to the generic mark.
+//   Each word maps to its ruled icon (Fire, Drink, Eat and Stance too, p47-2), and a word without one to the generic mark.
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -107,11 +109,26 @@ describe('At hand’s stacked buttons on the Player screen (dec-13 C6, first hal
     drawsIcon(wield, 'sword-hilt');
     drawsIcon(quiver, 'quiver');
     drawsIcon(use, 'pointing');
-    // Drink has no ruled icon: the generic mark (a line icon, not one of the set's filled pictures).
-    expect(Object.values(ICON_SET).some((i) => i.d === iconPath(drink))).toBe(false);
-    expect(drink.querySelector('svg')).not.toBeNull();
+    drawsIcon(drink, 'round-bottom-flask');
     // The mode button opens its sheet.
     expect(quiver.getAttribute('aria-haspopup')).toBe('dialog');
+  });
+
+  it('draws Fire, Eat and Stance with the icons picked on frame 47-2 (p47-2)', async () => {
+    marshWorld([
+      { name: 'Reed arrows', extra: { category: 'ammunition', qty: 18, stack: 20, weight_coin: 1 } },
+      { name: 'Trail bread', extra: { category: 'food', qty: 5, stack: 5, weight_coin: 1 } },
+      { name: 'Heron pike', extra: { item_data: { slot: 'hand', hands: 2, weapon: { damage: '1d8', modes: { button: 'stance', list: [{ id: 'set', name: 'Set' }, { id: 'swing', name: 'Swing' }] } } } } },
+    ]);
+    await openPlayer();
+    const fire = await atHand().findByRole('button', { name: /^Fire / });
+    const eat = atHand().getByRole('button', { name: /^Eat / });
+    const stance = atHand().getByRole('button', { name: /^Stance / });
+    for (const b of [fire, eat, stance]) expect(b.classList.contains('stacked-button')).toBe(true);
+    expect([fire, eat, stance].map((b) => b.textContent)).toEqual(['Fire', 'Eat', 'Stance']);
+    drawsIcon(fire, 'striking-arrows');
+    drawsIcon(eat, 'bread');
+    drawsIcon(stance, 'pikeman');
   });
 
   it('a stacked Use still spends a charge', async () => {
@@ -168,6 +185,8 @@ describe('At hand’s stacked buttons on the Player screen (dec-13 C6, first hal
 describe('the buttons’ icons (ic-3)', () => {
   it('maps each ruled word to its icon, and a word with none to the generic mark', () => {
     expect(ACTION_ICONS).toMatchObject({ Wield: 'sword-hilt', Grip: 'fist', Quiver: 'quiver', Pouch: 'swap-bag', Use: 'pointing', Light: 'torch', 'Put out': 'smoking-finger', Refill: 'jug' });
-    for (const word of ['Fire', 'Drink', 'Eat', 'Stance']) expect(actionIcon(word)).toBeNull();
+    // Frame 47-2's picks (p47-2, Francis 2026-11-28: "Fire 1, Drink 3, Eat 1, Stance 1").
+    expect(['Fire', 'Drink', 'Eat', 'Stance'].map(actionIcon)).toEqual(['striking-arrows', 'round-bottom-flask', 'bread', 'pikeman']);
+    expect(actionIcon('Sing')).toBeNull();
   });
 });

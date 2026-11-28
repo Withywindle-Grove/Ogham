@@ -38,6 +38,8 @@ const TURN = 600;
  * `arms`, several ready weapons (frame P5b; pib-1, pib-2): three in hand (the spear, the knife and a long-named axe with
  * its Grip: three blocks), bog-ox horns worn and pinned (an At hand row with Attack and Stance) and a heron bow pinned
  * with its quiver (a row with Wield and Quiver).
+ * `icons`, frame 47-2's four icons (p47-2): Reed arrows, Trail bread and a Moss draught pinned (Fire, Eat, Drink) and the
+ * bog-ox horns worn and pinned (Attack and Stance).
  * `details`, Details as frame P3 draws it (pib-3): a long motto, a Background from the kindred's list (the field the
  * others leave out) and a long backstory, so Kindred, Class, the alignment and the Background each carry an entry tap.
  * `1`, the four of P1. */
@@ -54,6 +56,7 @@ export type P1Head =
   | 'modes'
   | 'weapon'
   | 'arms'
+  | 'icons'
   | 'bare'
   | 'packless'
   | 'skills'
@@ -267,6 +270,15 @@ export async function addP1Character(
     line('line-p1-horns', 'Bog-ox horns', { category: 'weapon', weight_coin: 0, equipped: true, pinned: true, item_data: { slot: 'worn', weapon: { damage: '1d6', modes: modes('stance', [{ id: 'gore', name: 'Gore' }, { id: 'butt', name: 'Butt', damage: '1d4' }]) } } });
     line('line-p1-bow', 'Heron bow', { category: 'weapon', weight_coin: 30, pinned: true, item_data: { slot: 'hand', hands: 2, weapon: { damage: '1d6', modes: modes('quiver', [{ id: 'reed', name: 'Reed arrows', draws: { itemId: 'reed-arrows' } }, { id: 'bone', name: 'Bone arrows', draws: { itemId: 'bone-arrows' } }]) } } });
     line('line-p1-arrows', 'Reed arrows', { category: 'ammunition', weight_coin: 1, qty: 18, stack: 20, source_entry_id: 'reed-arrows' });
+  }
+
+  // The four icons of frame 47-2 (p47-2): arrows to Fire, bread to Eat, a draught to Drink, all pinned, and the horns
+  // worn ready with their Stance beside Attack. Invented.
+  if (head === 'icons') {
+    line('line-p1-arrows', 'Reed arrows', { category: 'ammunition', weight_coin: 1, qty: 18, stack: 20, pinned: true });
+    line('line-p1-bread', 'Trail bread', { category: 'food', weight_coin: 1, qty: 5, stack: 5, pinned: true });
+    line('line-p1-draught', 'Moss draught', { category: 'draught', weight_coin: 1, qty: 2, stack: 5, pinned: true });
+    line('line-p1-horns', 'Bog-ox horns', { category: 'weapon', weight_coin: 0, equipped: true, pinned: true, item_data: { slot: 'worn', weapon: { damage: '1d6', modes: { button: 'stance', list: [{ id: 'gore', name: 'Gore' }, { id: 'butt', name: 'Butt', damage: '1d4' }] } } } });
   }
 
   // Lit through the stand-in database, then two turns burn: 4 of 6 left.

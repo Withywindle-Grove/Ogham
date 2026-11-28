@@ -96,7 +96,7 @@ const BOW_STATE = stateOf(BOW_LINE, null);
 const SPENT_STATE = stateOf(BOW_LINE, 'ember');
 const EMPTY_STATE = stateOf(BOW_LINE, null, [BOW_LINE]);
 // The Player screen's rows (dec-13 C6): the bow and spear at hand, not in hand (Quiver, Grip beside Wield); a wand with
-// charges (Use); a draught to use one up (Drink, the generic mark until an icon is ruled).
+// charges (Use); a draught to use one up (Drink, the round flask, p47-2).
 const BOW_AT_HAND = { ...BOW_LINE, id: 'gallery-at-hand-bow-pinned', equipped: false };
 const SPEAR_AT_HAND = { ...SPEAR_LINE, id: 'gallery-at-hand-spear-pinned', equipped: false };
 const WAND_LINE = line('Heron wand', { category: 'wand', details: { charges: { initial: '2d4' } }, chargesLeft: 5 });
@@ -284,7 +284,7 @@ export function AtHandSpecimens({ Specimen }: { Specimen: (props: { name: string
       <Specimen name="A blocked Attack: the mode's stack is spent; why, and Quiver (ic-3)">
         <SpentSheet preview weaponName="Reed bow" state={SPENT_STATE} onOpenModes={() => undefined} onClose={() => undefined} />
       </Specimen>
-      <Specimen name="At hand rows on the Player screen (dec-13 C6; frames P1, P2): stacked buttons with their icons, one size at the right; the weapon in hand's block (C14) with Quiver beside Attack on their own line; Quiver and Grip beside Wield, Use on a wand, Drink with the generic mark, a long name">
+      <Specimen name="At hand rows on the Player screen (dec-13 C6; frames P1, P2): stacked buttons with their icons, one size at the right; the weapon in hand's block (C14) with Quiver beside Attack on their own line; Quiver and Grip beside Wield, Use on a wand, Drink with the round flask, a long name">
         <section className="pack pack--in-hand" aria-label="The weapon in hand on the Player screen, in the gallery">
           <ul className="pack__rows">
             <Row item={BOW_LINE} figure="+0, 1d6" state={BOW_STATE} stacked inHand rolls={BOW_ROLLS} />

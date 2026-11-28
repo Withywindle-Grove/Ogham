@@ -8,7 +8,8 @@ import { StackedButton } from '../ui/parts.tsx';
 
 /**
  * Each button's icon (ic-3, ruled by Francis 2026-11-14, page 20 frame IC1; Attack's raised sword, `sword-brandish`,
- * as frame P1 draws it). A word not here (Fire, Drink, Eat, Stance) has no ruled icon yet and carries the set's generic mark (sb-2).
+ * as frame P1 draws it); Fire, Drink, Eat and Stance as Francis picked them on frame 47-2 (p47-2, 2026-11-28). A word
+ * not here has no ruled icon yet and carries the set's generic mark (sb-2).
  */
 export const ACTION_ICONS: Readonly<Record<string, SetIconName>> = {
   Wield: 'sword-hilt',
@@ -20,6 +21,10 @@ export const ACTION_ICONS: Readonly<Record<string, SetIconName>> = {
   'Put out': 'smoking-finger',
   Refill: 'jug',
   Attack: 'sword-brandish',
+  Fire: 'striking-arrows',
+  Drink: 'round-bottom-flask',
+  Eat: 'bread',
+  Stance: 'pikeman',
 };
 
 /** The ruled icon for a button's word, or null for the generic mark. */
