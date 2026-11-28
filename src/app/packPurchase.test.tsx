@@ -16,6 +16,7 @@
 //   9. The log's line for a purchase says what was paid and no longer says "Cost noted; purses arrive later.".
 //  10. Spend's "What for" comes filled with the thing's name (Francis, 26 Nov, ⚑ 3 on #108), so the log line says what
 //      the coin was for: "Wren spent 4 herons: Storm lantern".
+//   3a. The Spend sheet opens from the toast though the player has since gone to another tab (the Scene).
 //  11. Bought straight onto Equipped by a caster it stops (B25): the one toast still says casting stopped, with that
 //      Undo (take it off) and Spend beside it; the purchase toast does not replace the warning (review of #108, 1).
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
@@ -212,6 +213,24 @@ describe('after a purchase (PK10b; tn-1)', () => {
     await waitFor(() => expect(purse()).toEqual({ crown: 12, heron: 26, bit: 4 }));
     expect(spends()).toHaveLength(1);
     expect(await screen.findByText('Wren spent 4 herons: Storm lantern')).toBeTruthy();
+  });
+
+  // Purpose: the toast's Spend opens the Spend sheet wherever the player is: bought on the Pack, then the Scene tab with the toast still up, then Spend, and the sheet opens with the amount and What for filled in.
+  it('"Spend 4 herons" opens the sheet filled in after the player has gone to the Scene tab', async () => {
+    await shopWorld();
+    const user = await openPack();
+    await pick(user, 'lantern', /Storm lantern/);
+    await user.click(screen.getByRole('button', { name: 'Add to Wren’s pack' }));
+    await shownToast();
+    await user.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Scene' }));
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Wren’s pack' })).toBeNull());
+    await user.click(within(await shownToast()).getByRole('button', { name: 'Spend 4 herons' }));
+    const sheet = await screen.findByRole('dialog');
+    expect(within(sheet).getByRole('heading', { name: 'Spend' })).toBeTruthy();
+    expect((within(sheet).getByRole('textbox', { name: 'Herons' }) as HTMLInputElement).value).toBe('4');
+    expect((within(sheet).getByLabelText('What for') as HTMLInputElement).value).toBe('Storm lantern');
+    await user.click(within(sheet).getByRole('button', { name: 'Spend 4 herons' }));
+    await waitFor(() => expect(purse()).toEqual({ crown: 12, heron: 26, bit: 4 }));
   });
 
   it('a cost typed in two of the setting’s coins fills both boxes', async () => {

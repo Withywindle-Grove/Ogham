@@ -1,7 +1,7 @@
 // The town screen's pure part (M5b step 6c; ST3; 07 Settlements, st-2, and Downtime's lodgings and lifestyles).
 // Invented rules only.
 import { describe, expect, it } from 'vitest';
-import { entryOf, playerWords, rateWords, readTown, readTownState, shownWords, thingsToDoOf, townPlacesOf, withEntry } from './town.ts';
+import { entryOf, playerWords, rateWords, readTown, readTownState, shownWords, thingsToDoOf, townPlaceName, townPlacesOf, withEntry } from './town.ts';
 
 const base = {
   settlement: {
@@ -147,5 +147,19 @@ describe("town entries' options and a rules overlay's lists (fix-town-options-an
     const town = readWith([base, overlay], {})!;
     expect(town.services.map((s) => s.name)).toEqual(['Stall A, rebuilt', 'Stall B', 'Stall C']);
     expect(town.lodgings.map((l) => `${l.name}: ${l.rate}`)).toEqual(['The Lantern Rest: 3 sp a night', 'The Net Loft: 1 sp a night']);
+  });
+});
+
+describe("a place in town as an ask names it (townPlaceName; TC13 piece B)", () => {
+  // Purpose: a shop with a map number reads it first, with the place page's full stop ("3. The Reed Market"), and a name that already starts with it isn't doubled.
+  it('with a map number: "3. The Reed Market"', () => {
+    expect(townPlaceName({ name: 'The Reed Market', mapNumber: '3' })).toBe('3. The Reed Market');
+    expect(townPlaceName({ name: '3 The Reed Market', mapNumber: '3' })).toBe('3. The Reed Market');
+  });
+
+  // Purpose: a shop with no map number, as every service is today, keeps its plain name.
+  it('with none: the plain name', () => {
+    expect(townPlaceName({ name: 'The Reed Market' })).toBe('The Reed Market');
+    expect(townPlaceName({ name: 'The Reed Market', mapNumber: null })).toBe('The Reed Market');
   });
 });

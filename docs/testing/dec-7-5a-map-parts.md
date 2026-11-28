@@ -12,7 +12,7 @@ Start the app with `npm run dev` (it starts a local server and prints a web addr
 6. On a PC: the mouse wheel zooms about the pointer; + and − zoom; the arrow keys move; 0 is Fit; Escape closes. Ctrl with + still zooms the whole browser page (the map leaves it alone).
 7. On an iPad: pinch to zoom, drag with one finger.
 8. Open `layout.html?mapParts=loading&open=1`: the pop-up shows a still grey block and "The picture is on its way.", with no zoom buttons.
-9. Open `layout.html?mapParts=failed&open=1`: "▲ The map's picture didn't load.", Try again (centred), and "Everything else about the place still works: the locations are in the list."; no zoom buttons.
+9. Open `layout.html?mapParts=failed&open=1`: "▲ The map’s picture couldn’t load.", Try again (centred), and "Everything else about the place still works: the locations are in the list."; no zoom buttons.
 10. On a phone (375 wide), repeat 1, 4 and 5: the card's title is a step smaller, and the pop-up fills the whole screen.
 11. Switch the device to dark mode and look again at 1, 4, 8 and 9: everything readable, the picture itself unchanged.
 12. Open `gallery.html` and go to the last section, "The map: its card and its pop-up": three card specimens (titled, a long title cut short, no title and no eye; loading and failed) and the pop-up fitted, loading and failed, in place.

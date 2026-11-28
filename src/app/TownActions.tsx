@@ -2,7 +2,9 @@
 // st-3; 06 "Town on Scene" and Components "Buy request", "Sale offer", "Lodging picker", "Town activities",
 // "Overnight summary"). Under the places in town the GM shows (TownLine), for the player's own character:
 //   Ask for… (ST5): a shop the GM shows, then an item from the town's list (the setting's items for sale) or
-//   Something not listed…; it goes to the GM as a request.
+//   Something not listed…; it goes through the at-once answer (town.askFor, TC12; tn-7, tn-8; TC13 piece A): where the
+//   day's stock has decided the thing, the answer card shows it straight away, with no toast (sb5-6) and no GM card;
+//   else it waits for the GM, with today's toast and Undo (the player's withdraw).
 //   Sell… (ST6): an item from the character's pack (how many, for a stack), and the buyer (a shop the GM shows that
 //   buys, or someone by name); the GM makes an offer.
 //   Where you stay (ST7, dt-11): the lodgings the GM shows, open, with their rates (picked at once, Undo on the
@@ -15,14 +17,14 @@ import { useEffect, useId, useState } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
-import type { TimeUnits } from '../modules/expedition/clock.ts';
+import { readClock, type TimeUnits } from '../modules/expedition/clock.ts';
 import type { Activity } from '../modules/expedition/modes.ts';
-import { shownInPlay, townPlacesOf, type TownRules } from '../modules/expedition/town.ts';
+import { shownInPlay, townPlaceName, townPlacesOf, type TownRules } from '../modules/expedition/town.ts';
 import type { SceneTown } from '../modules/expedition/townPlaces.ts';
 import { loadInventory, type InventoryLine } from '../modules/inventory/inventory.ts';
 import { entriesInPlay } from '../modules/library/optionGate.ts';
-import { loadRequests, sendRequest, type Request } from '../modules/requests/requests.ts';
-import { chooseStay, currentStay, loadStatusChanges, morningOf, overnightLines, stayFor, type StatusChange } from '../modules/requests/townRequests.ts';
+import { loadRequests, sendRequest, withdrawRequest, type Request } from '../modules/requests/requests.ts';
+import { askFor, chooseStay, currentStay, type BuyPrompt, loadStatusChanges, morningOf, overnightLines, stayFor, type StatusChange } from '../modules/requests/townRequests.ts';
 import { Dialog } from '../ui/Dialog.tsx';
 import { HowMany, OptionRow } from '../ui/parts.tsx';
 import { useToast } from '../ui/ToastHost.tsx';
@@ -88,7 +90,7 @@ export function TownActions(props: TownActionsProps) {
   const stay = currentStay(requests, character.id, town.name);
   const asking = { id: character.id, campaignId: campaign.id, ownerUserId: user.id };
 
-  async function send(kind: 'buy' | 'sell' | 'lodging' | 'askGm', text: string, prompt: Record<string, unknown>, costText = '') {
+  async function send(kind: 'sell' | 'lodging' | 'askGm', text: string, prompt: Record<string, unknown>, costText = '') {
     if (playerOnly.blocked('sendRequest')) return false;
     const done = await runCommand(registry, db, user, sendRequest, { character: asking, kind, text, costText, prompt });
     setVersion((v) => v + 1);
@@ -104,6 +106,39 @@ export function TownActions(props: TownActionsProps) {
         const undone = eventId ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
         if (!undone) show({ text: 'Nothing to undo.', error: true });
         else if (!undone.ok) show({ text: undone.message, error: true });
+        setVersion((v) => v + 1);
+      },
+    });
+    return true;
+  }
+
+  /**
+   * Ask for… (TC13 piece A): through town.askFor, with the campaign day as the clock counts it (as stock.set's). An ask
+   * answered at once raises no toast: its answer card is the news (sb5-6; tn-8, an answer given is not unsent). An ask
+   * that waits keeps "Sent to the GM" and Undo, the player's withdraw of that very request (town.askFor itself is not
+   * undoable). A failed ask sends nothing and keeps the dialog open.
+   */
+  async function askForThing(text: string, prompt: BuyPrompt) {
+    if (playerOnly.blocked('sendRequest')) return false;
+    // Ask for… shows only with the setting's shops, which come with its units; without them there is no day to name.
+    if (!props.units) {
+      show({ text: "Couldn't read the campaign's clock. Nothing was sent. Try again.", error: true });
+      return false;
+    }
+    const done = await runCommand(registry, db, user, askFor, { character: asking, text, day: readClock(props.now, props.units).day, prompt });
+    setVersion((v) => v + 1);
+    if (!done.ok) {
+      show({ text: done.message, error: true });
+      return false;
+    }
+    setOpen(null);
+    if (done.value.status !== 'waiting') return true;
+    const request = done.value;
+    show({
+      text: 'Sent to the GM',
+      onUndo: async () => {
+        const gone = await runCommand(registry, db, user, withdrawRequest, { request });
+        if (!gone.ok) show({ text: gone.message, error: true });
         setVersion((v) => v + 1);
       },
     });
@@ -148,7 +183,7 @@ export function TownActions(props: TownActionsProps) {
           Things to do
         </button>
       </div>
-      {open === 'ask' && <AskFor shops={shops} setting={props.setting} onSend={send} onClose={() => setOpen(null)} />}
+      {open === 'ask' && <AskFor shops={shops} setting={props.setting} onAsk={askForThing} onClose={() => setOpen(null)} />}
       {open === 'sell' && <SellItem db={db} campaignId={campaign.id} characterId={character.id} buyers={buyers} onSend={send} onClose={() => setOpen(null)} />}
       {open === 'stay' && (
         <WhereYouStay
@@ -166,7 +201,7 @@ export function TownActions(props: TownActionsProps) {
   );
 }
 
-type Send = (kind: 'buy' | 'sell' | 'lodging' | 'askGm', text: string, prompt: Record<string, unknown>, costText?: string) => Promise<boolean>;
+type Send = (kind: 'sell' | 'lodging' | 'askGm', text: string, prompt: Record<string, unknown>, costText?: string) => Promise<boolean>;
 
 function SomethingField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   const id = useId();
@@ -189,7 +224,7 @@ function Problem({ text }: { text: string | null }) {
 }
 
 /** Ask for… (ST5): the shop, then an item from the town's list or Something not listed…. */
-function AskFor({ shops, setting, onSend, onClose }: { shops: ReturnType<typeof shownServices>; setting: CampaignSetting | null; onSend: Send; onClose: () => void }) {
+function AskFor({ shops, setting, onAsk, onClose }: { shops: ReturnType<typeof shownServices>; setting: CampaignSetting | null; onAsk: (text: string, prompt: BuyPrompt) => Promise<boolean>; onClose: () => void }) {
   const findId = useId();
   const [shop, setShop] = useState(shops.length === 1 ? shops[0]!.key : null);
   const [find, setFind] = useState('');
@@ -245,7 +280,9 @@ function AskFor({ shops, setting, onSend, onClose }: { shops: ReturnType<typeof 
             if (!name) return setProblem(other !== null ? 'Say what you’re after.' : 'Pick an item, or Something not listed….');
             setProblem(null);
             const price = other === null && picked ? priceText(picked.data.value) : '';
-            void onSend('buy', `${name}, ${chosen.name}`, { serviceId: chosen.service.id, shop: chosen.name, itemId: other === null ? (picked?.packEntryId ?? null) : null, item: name, price });
+            // The shop by its numbered name where it has a map number, its plain name where not (townPlaceName).
+            const shop = townPlaceName(chosen);
+            void onAsk(`${name}, ${shop}`, { serviceId: chosen.service.id, shop, itemId: other === null ? (picked?.packEntryId ?? null) : null, item: name, price });
           }}
         >
           Send to the GM

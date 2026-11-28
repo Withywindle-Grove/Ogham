@@ -13,7 +13,7 @@
 // screen until 5t), a source draws all its cards where it stands, as before.
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { openAfterAnswer, waitingItems, waitingView, type WaitingAction, type WaitingItem, type WaitingKind, type WaitingSources, type WaitingView } from '../modules/expedition/waitingModel.ts';
+import { openAfterAnswer, waitingItems, waitingView, type WaitingAction, type WaitingItem, type WaitingKind, type WaitingMark, type WaitingSources, type WaitingView } from '../modules/expedition/waitingModel.ts';
 
 /** One thing a source has waiting: the model's input, its kind, its whole card, and what its answers do. */
 export interface WaitingSourceItem {
@@ -22,6 +22,8 @@ export interface WaitingSourceItem {
   kind: WaitingKind;
   title: string;
   words?: string;
+  /** Its own mark in place of its kind's (a buy request's bag). */
+  mark?: WaitingMark;
   /** Its answers; the first is the row's one button and, when it is open, the page's accent. */
   actions: readonly WaitingAction[];
   /** The whole card, drawn when the item is open (the source's own card, with its own buttons). */
@@ -111,7 +113,7 @@ function noteFocus(containers: (HTMLElement | null)[]): void {
 /** What a source registered, as the model takes it. */
 function sourcesOf(registered: ReadonlyMap<string, Registered[]>): WaitingSources {
   const all = [...registered.values()].flat();
-  const of = (kind: WaitingKind) => all.filter((i) => i.kind === kind).map(({ id, title, words, actions }) => ({ id, title, ...(words !== undefined ? { words } : {}), actions }));
+  const of = (kind: WaitingKind) => all.filter((i) => i.kind === kind).map(({ id, title, words, actions, mark }) => ({ id, title, ...(words !== undefined ? { words } : {}), ...(mark !== undefined ? { mark } : {}), actions }));
   return {
     expeditionEnd: of('expeditionEnd'),
     encounters: of('encounter'),
@@ -220,7 +222,7 @@ function sameItems(a: Registered[] | undefined, b: Registered[]): boolean {
   if (!a || a.length !== b.length) return false;
   return a.every((x, i) => {
     const y = b[i]!;
-    return x.id === y.id && x.kind === y.kind && x.title === y.title && x.words === y.words && JSON.stringify(x.actions) === JSON.stringify(y.actions);
+    return x.id === y.id && x.kind === y.kind && x.title === y.title && x.words === y.words && x.mark === y.mark && JSON.stringify(x.actions) === JSON.stringify(y.actions);
   });
 }
 
@@ -248,7 +250,7 @@ export function useWaitingSource(key: string, items: readonly WaitingSourceItem[
   const shared = useContext(WaitingContext);
   const register = shared?.register;
   const unregister = shared?.unregister;
-  const list: Registered[] = items.map(({ id, kind, title, words, actions }) => ({ id, kind, title, ...(words !== undefined ? { words } : {}), actions }));
+  const list: Registered[] = items.map(({ id, kind, title, words, actions, mark }) => ({ id, kind, title, ...(words !== undefined ? { words } : {}), ...(mark !== undefined ? { mark } : {}), actions }));
   const handlers = new Map(items.flatMap((i) => (i.onAction ? [[i.id, i.onAction] as const] : [])));
   useEffect(() => {
     register?.(key, list, handlers);

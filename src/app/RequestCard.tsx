@@ -11,7 +11,7 @@
 //   roll with its modifiers and sources, the result, the table, what it yields) with Hit / Miss, the GM's own roll on
 //   the pack's chance, recorded as the GM's secret check (GM-only until Downtime; never in the request); then Yes
 //   (the cost comes off the group's budget, one Undo puts both back) or No, with a note.
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
@@ -20,6 +20,9 @@ import { depthWords } from '../modules/expedition/dungeonExit.ts';
 import { recordCheck } from '../modules/expedition/reminderPlay.ts';
 import type { ReadTable } from '../modules/expedition/tables.ts';
 import { unitFor } from '../modules/expedition/travel.ts';
+import { readClock, type TimeUnits } from '../modules/expedition/clock.ts';
+import { loadClockNow } from '../modules/expedition/lightPlay.ts';
+import { setStock } from '../modules/requests/shopStock.ts';
 import type { SecretView } from './secretActivity.ts';
 import {
   answerWords,
@@ -52,7 +55,11 @@ import { registry } from './services.ts';
 import { useSticky } from './stickyState.ts';
 import { GmBuyCard, GmSellCard, GmStayCard, GmTownActivityCard, PricedAnswerCard, waitsForReply, type TradeView } from './TownRequestCards.tsx';
 import { replyRequest, undoBuy, readBuyPrompt, readSellPrompt, readStayPrompt, readTownActivityPrompt } from '../modules/requests/townRequests.ts';
-import { loadInventory } from '../modules/inventory/inventory.ts';
+import { loadCarriers, loadInventory } from '../modules/inventory/inventory.ts';
+import { denominationsOf, readCost } from '../modules/inventory/coinWords.ts';
+import { loadPurse } from '../modules/inventory/purse.ts';
+import { purchaseToast } from './purchaseToast.ts';
+import { useSpendSheet } from './spendSheet.tsx';
 import type { CampaignSetting } from './campaignSetting.ts';
 import { copyOf, oneOffCopy } from './AddItem.tsx';
 import './RequestCard.css';
@@ -70,6 +77,9 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
   const [seen, setSeen] = useSticky<string[]>(`${user.id}:${campaign.id}:requests:seen`, []);
   // In the GM's view as the player, the player's own answers and Cancel open a pop-up instead (pg32-5, pg32-6).
   const playerOnly = usePlayerOnly();
+  // "Spend N" from Buy it's toast (TC13 piece C, sb5-5): the purse's Spend sheet, filled in (PK10b), hosted above the
+  // tabs so it opens wherever the player is when they tap it (spendSheet.tsx).
+  const spendSheet = useSpendSheet(db, user);
 
   useEffect(() => {
     let current = true;
@@ -95,8 +105,9 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
    */
   async function reply(request: Request, accept: boolean) {
     if (playerOnly.blocked('answerOffer')) return;
-    const carrier = request.actorId ? { campaignId: campaign.id, actorId: request.actorId, locationId: null, ownerUserId: user.id, archived: false } : null;
-    if (!carrier) return;
+    const actorId = request.actorId;
+    if (!actorId) return;
+    const carrier = { campaignId: campaign.id, actorId, locationId: null, ownerUserId: user.id, archived: false };
     let input: Parameters<typeof replyRequest.run>[2] = { request, accept };
     const price = request.answer && 'price' in request.answer ? request.answer.price : '';
     if (accept && request.kind === 'buy') {
@@ -113,20 +124,39 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
     const done = await run(replyRequest, input);
     if (!done) return;
     setSeen((s) => [...s, request.id]);
-    const words = request.kind === 'sell' ? (accept ? `Sold for ${price}` : 'Declined the offer') : accept ? `Bought for ${price}: it's in your pack` : 'Left it';
     if (accept && request.kind === 'buy') {
+      // TC13 piece C (tn-1, TW4a, PK10b): the Pack's purchase toast, "Wren bought a coil of rope. Its cost, 1 heron, is
+      // not spent yet.", nothing charged; "Spend 1 heron" where the price reads as the setting's coins, above 0, and
+      // the character has a purse: it opens the Spend sheet over the Scene, the amount and What for filled in (sb5-5).
       // bu-1: the buyer's own Undo takes the bought item out while nobody has touched it; refused in plain words after.
-      return show({
-        text: words,
-        onUndo: async () => {
-          if (playerOnly.blocked('undoPurchase')) return;
-          const undone = await run(undoBuy, { request });
-          if (!undone) return;
-          setSeen((s) => s.filter((id) => id !== request.id));
-          setVersion((v) => v + 1);
-        },
-      });
+      const what = readBuyPrompt(request.prompt)?.item ?? request.text;
+      const denominations = setting ? denominationsOf(setting.rulesSets) : [];
+      const coins = readCost(denominations, price);
+      const [carriers, purse] = await Promise.all([loadCarriers(db, campaign.id), coins ? loadPurse(db, campaign.id, actorId) : null]);
+      const buyer = carriers?.find((c) => c.actorId === actorId) ?? null;
+      return show(
+        purchaseToast({
+          who: buyer?.name ?? 'You',
+          verb: 'bought',
+          what,
+          cost: price,
+          denominations,
+          coins: buyer && purse ? coins : null,
+          onSpend: (spend) =>
+            buyer &&
+            purse &&
+            spendSheet.open({ carrier: buyer, recipients: (carriers ?? []).filter((c) => c !== buyer), denominations, coins: purse, spend: { coins: spend, whatFor: what }, onChanged: () => setVersion((v) => v + 1) }),
+          onUndo: async () => {
+            if (playerOnly.blocked('undoPurchase')) return;
+            const undone = await run(undoBuy, { request });
+            if (!undone) return;
+            setSeen((s) => s.filter((id) => id !== request.id));
+            setVersion((v) => v + 1);
+          },
+        }),
+      );
     }
+    const words = request.kind === 'sell' ? (accept ? `Sold for ${price}` : 'Declined the offer') : accept ? `Bought for ${price}: it's in your pack` : 'Left it';
     show({
       text: words,
       onUndo: async () => {
@@ -140,11 +170,15 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
     });
   }
 
-  if (!requests) return null;
+  // Drawn whatever the cards (outside a host only: PlayerScreen draws it above the tabs): once bought, the answer card
+  // has gone, and the sheet stays open.
+  if (!requests) return spendSheet.sheet;
   // A listed lodging is answered at once (no GM): nothing to show for it here; Where you stay shows it.
   const shown = mine(requests, player).filter((r) => !(r.kind === 'lodging' && r.answer?.kind === 'stay')).filter((r) => r.status === 'waiting' || waitsForReply(r) || !seen.includes(r.id));
-  if (shown.length === 0) return null;
+  if (shown.length === 0) return spendSheet.sheet;
   return (
+    <>
+    {spendSheet.sheet}
     <section className="requests" aria-label="Your requests" data-prompt-id={shown.map((r) => `${r.id}:${r.status}`).join(' ')}>
       {playerOnly.sheet}
       {shown.map((request) =>
@@ -181,6 +215,7 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
         ),
       )}
     </section>
+    </>
   );
 }
 
@@ -270,6 +305,7 @@ export function GmRequestCard({
   budget,
   onTable,
   trade = null,
+  units = null,
 }: {
   db: Db;
   user: CurrentUser;
@@ -292,16 +328,28 @@ export function GmRequestCard({
   budget?: { name: string; unit: string } | null;
   /** Open a table the GM wants to roll on (a secret activity's). */
   onTable?: (table: ReadTable) => void;
-  /** A buy or sell request's view from the pack (M5b step 6e): the availability chance, the sale rule's suggestion. */
+  /** A buy or sell request's view from the pack (M5b step 6e): the thing's chance, the sale rule's suggestion. */
   trade?: TradeView | null;
+  /** The campaign's time units: a buy request's flip names the campaign day (readClock's), as stock.set does. */
+  units?: TimeUnits | null;
 }) {
   const show = useToast();
+  // The stock lines a buy request's flips wrote since its last good answer, oldest first: a flip whose answer then
+  // failed leaves its line here, and the good answer's Undo takes every one back, newest first (a retry the other way
+  // writes a second line; undoing only that one would leave the first one's stock).
+  const stockLines = useRef<string[]>([]);
   const noteId = useId();
   const [note, setNote] = useState('');
   const [out, setOut] = useState(true);
   const [busy, setBusy] = useState(false);
   // C7 (M5 gate): "Enter for <name>", for a player without a device; the entry is logged as the GM's.
   const [entering, setEntering] = useState(false);
+
+  /** The log's own Undo of this GM's newest event of a command; null when there is none to undo. */
+  async function undoLatest(command: string) {
+    const eventId = await latestChange(db, campaign.id, command, user.id);
+    return eventId ? runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
+  }
 
   async function enterFor(entry: EscapeEntry) {
     const result = await runCommand(registry, db, user, enterRequest, { request, entry });
@@ -338,8 +386,7 @@ export function GmRequestCard({
     show({
       text: `${outcome === 'hit' ? 'Hit' : 'Miss'} recorded for ${secret.activity.name}`,
       onUndo: async () => {
-        const eventId = await latestChange(db, campaign.id, 'check.record', user.id);
-        const undone = eventId ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
+        const undone = await undoLatest('check.record');
         if (!undone) show({ text: 'Nothing to undo.', error: true });
         else if (!undone.ok) show({ text: undone.message, error: true });
         else setRolled(null);
@@ -362,8 +409,7 @@ export function GmRequestCard({
     show({
       text: words,
       onUndo: async () => {
-        const eventId = await latestChange(db, campaign.id, 'request.answer', user.id);
-        const undone = eventId ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
+        const undone = await undoLatest(answerRequest.name);
         if (!undone) show({ text: 'Nothing to undo.', error: true });
         else if (!undone.ok) show({ text: undone.message, error: true });
         else show({ text: `Put ${possessive(who)} request back` });
@@ -371,6 +417,63 @@ export function GmRequestCard({
       },
     });
     onChanged();
+  }
+
+  /**
+   * A buy request's answer (TC13 piece B; ap-14, tn-4, tn-7; docs/specs/town-ask-buy.md, "Piece B"): a flip of the
+   * toggle writes the day's stock for the thing at that shop first (stock.set, the record the stock table flips), then
+   * the answer (request.answer); Price…'s Send price writes the answer alone. A failed stock write sends nothing; a
+   * failed answer after a good stock write leaves the card on "?" with an error toast, and a second flip writes the same
+   * stock again (no new line) and the answer. A thing with no pack id (Something not listed…) or an ask with no shop
+   * has no stock record: the flip answers only. The toast's Undo takes back the answer, then every stock line this
+   * card's flips wrote since its last good answer (a retry the other way writes a second), newest first, each by the
+   * log's own Undo; refused in plain words once the player has replied.
+   */
+  async function answerBuy(result: 'inStock' | 'notHere' | 'price', price: string, stock: 'in' | 'out' | null): Promise<boolean> {
+    if (busy) return false;
+    const prompt = readBuyPrompt(request.prompt);
+    const item = prompt?.item ?? request.text;
+    setBusy(true);
+    const done = await (async () => {
+      if (stock && prompt?.serviceId && prompt.itemId) {
+        const seconds = units ? await loadClockNow(db, campaign.id) : null;
+        if (!units || seconds === null) return "Couldn't read the campaign's clock. Nothing was sent. Try again.";
+        const before = await latestChange(db, campaign.id, setStock.name, user.id);
+        const set = await runCommand(registry, db, user, setStock, { campaignId: campaign.id, serviceId: prompt.serviceId, itemId: prompt.itemId, day: readClock(seconds, units).day, answer: stock });
+        if (!set.ok) return set.message;
+        // A stock line made by this flip (none when the day's answer was already this one: nothing changed to undo).
+        const after = await latestChange(db, campaign.id, setStock.name, user.id);
+        if (after && after !== before) stockLines.current = [...stockLines.current, after];
+      }
+      const answered = await runCommand(registry, db, user, answerRequest, { request, answer: { kind: 'buy', result, price, note: '' } });
+      return answered.ok ? null : answered.message;
+    })();
+    setBusy(false);
+    if (done !== null) {
+      show({ text: done, error: true });
+      return false;
+    }
+    const wrote = stockLines.current;
+    stockLines.current = [];
+    show({
+      text: result === 'notHere' ? `Not here: told ${who}` : `${who}: ${item}, ${price}`,
+      onUndo: async () => {
+        const undone = await undoLatest(answerRequest.name);
+        // Then the stock lines, newest first; the first refusal stops the rest and is said.
+        let back: Awaited<ReturnType<typeof undoLatest>> = null;
+        for (const eventId of undone?.ok ? [...wrote].reverse() : []) {
+          back = await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id });
+          if (!back.ok) break;
+        }
+        if (!undone) show({ text: 'Nothing to undo.', error: true });
+        else if (!undone.ok) show({ text: undone.message, error: true });
+        else if (back && !back.ok) show({ text: back.message, error: true });
+        else show({ text: `Put ${possessive(who)} request back` });
+        onChanged();
+      },
+    });
+    onChanged();
+    return true;
   }
 
   if (request.kind === 'escapeRoll') {
@@ -423,7 +526,7 @@ export function GmRequestCard({
 
   // M5b step 6e: buying, selling, Somewhere else… and town activities.
   const townAnswer = (given: Answer, words: string, costText?: string) => void answer(given, words, undefined, costText);
-  if (request.kind === 'buy' && readBuyPrompt(request.prompt)) return <GmBuyCard request={request} who={who} trade={trade} onAnswer={townAnswer} />;
+  if (request.kind === 'buy' && readBuyPrompt(request.prompt)) return <GmBuyCard request={request} who={who} trade={trade} onAnswer={{ flip: (stock, price) => answerBuy(stock === 'in' ? 'inStock' : 'notHere', price, stock), price: (price) => answerBuy('price', price, null) }} />;
   if (request.kind === 'sell' && readSellPrompt(request.prompt)) return <GmSellCard request={request} who={who} trade={trade} onAnswer={townAnswer} />;
   if (request.kind === 'lodging' && readStayPrompt(request.prompt)) return <GmStayCard request={request} who={who} onAnswer={townAnswer} />;
   if (request.kind === 'askGm' && readTownActivityPrompt(request.prompt)) return <GmTownActivityCard request={request} who={who} onAnswer={townAnswer} />;

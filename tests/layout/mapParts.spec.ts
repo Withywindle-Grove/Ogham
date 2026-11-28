@@ -107,7 +107,7 @@ for (const size of [
         await expect(page.getByRole('group', { name: 'Zoom' })).toHaveCount(0);
         expect(await layoutProblems(page)).toEqual([]);
         await page.goto('/layout.html?mapParts=failed&open=1');
-        await expect(page.getByRole('dialog').getByText('The map’s picture didn’t load.')).toBeVisible();
+        await expect(page.getByRole('dialog').getByText('The map’s picture couldn’t load.')).toBeVisible();
         await expect(page.getByRole('dialog').getByRole('button', { name: 'Try again' })).toBeVisible();
         await expect(page.getByRole('group', { name: 'Zoom' })).toHaveCount(0);
         expect(await layoutProblems(page)).toEqual([]);

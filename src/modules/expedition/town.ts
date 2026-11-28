@@ -8,6 +8,7 @@
 //   activity). M8b adds named shops, temples, people and rumours from adventures.
 
 import { optionGate, type Choices } from '../library/optionGate.ts';
+import { keyedName } from './placeTree.ts';
 
 export type ServiceKind = 'buy' | 'sell' | 'identify' | 'store' | 'loan' | 'other';
 const SERVICE_KINDS: readonly ServiceKind[] = ['buy', 'sell', 'identify', 'store', 'loan', 'other'];
@@ -60,6 +61,16 @@ export interface TownPlace {
   note: string;
   /** A lodging's inn, as the pack's location id (pf-5); '' or left out when the pack names none. */
   placeId?: string;
+}
+
+/**
+ * A place in town as an ask names it (TC13 piece B, "At 3. The Reed Market."): its map number first, by the place
+ * page's rule (`keyedName`, p2p-3), where it has one; its plain name where not. No place in town carries a map number
+ * today (a service is `{ id, name, kind, rate?, note }`, 07 st-2, and public.scene_town reads none), so a shop reads by
+ * its plain name until the data gives it one.
+ */
+export function townPlaceName(place: { name: string; mapNumber?: string | null }): string {
+  return keyedName(place.mapNumber, place.name);
 }
 
 /** What the GM has set for a place in town (places.town); a place nobody touched is hidden and open. */

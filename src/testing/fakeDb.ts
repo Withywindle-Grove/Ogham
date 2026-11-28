@@ -771,6 +771,17 @@ export function createFakeDb(): FakeWorld {
       if (!row || Object.keys(after).some((key) => JSON.stringify(row[key]) !== JSON.stringify(after[key]))) {
         return refused("That's changed since. Undo the later change first.");
       }
+      // A request's answer goes back only while nothing later stands on it, such as the player's reply (TC13 piece B:
+      // the GM's Undo refused once the player replied). Modelled on the later-change rule of private.undo_check_made
+      // (20261124140000_account_deletion_keeps_calls.sql), which the database applies to made rows only; for a
+      // change, private.undo_check_change (20261029170000_m5_clock.sql) compares the changed fields. No supabase/tests
+      // case yet shows the real database refusing the answer's Undo after a reply (loop 5a's review, standards 5).
+      if (
+        change.target_table === 'requests' &&
+        tables.events.some((l) => l.target_table === 'requests' && l.target_id === change.target_id && Number(l.seq) > Number(change.seq) && !l.reverts_event_id && (!change.request_id || l.request_id !== change.request_id) && !tables.events.some((r) => r.reverts_event_id === l.id))
+      ) {
+        return refused("That's changed since. Undo the later change first.");
+      }
       // A whole line moved: what's left of it comes back (5b).
       if (picked.type === UNDOABLE_SPLIT && change.target_table === 'inventory_lines' && !('qty' in after)) {
         const left = givenLeft(change);

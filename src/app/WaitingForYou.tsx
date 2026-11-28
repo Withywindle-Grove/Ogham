@@ -34,13 +34,17 @@ import { GmBasePickCard, GmRequestCard, LostBelowDialog, TableDialog } from './R
 import { baseArmourChoices } from '../modules/characters/play.ts';
 import { waitingForBase } from './pickBase.ts';
 import { tradeViewOf } from './townTrade.ts';
+import { readBuyPrompt } from '../modules/requests/townRequests.ts';
+import { loadCampaignSettings } from '../core/campaignCommands.ts';
+import { campaignUnits } from '../modules/expedition/play.ts';
+import type { TimeUnits } from '../modules/expedition/clock.ts';
 import type { TradeView } from './TownRequestCards.tsx';
 import { useErrorToast } from '../ui/ToastHost.tsx';
-import { Icon, StepIcon } from '../ui/icons.tsx';
+import { Icon, StepIcon, type IconName } from '../ui/icons.tsx';
 import { ENCOUNTER_MARK } from './encounterMark.ts';
 import { isSetIconName } from '../ui/iconSet.ts';
 import { StackedButton } from '../ui/parts.tsx';
-import type { WaitingKind, WaitingRow } from '../modules/expedition/waitingModel.ts';
+import type { WaitingKind, WaitingMark, WaitingRow } from '../modules/expedition/waitingModel.ts';
 import { CardHost, SceneWaitingProvider, useHasWaitingProvider, useWaitingPanel, useWaitingSource, useWaitingState, type WaitingSourceItem } from './sceneWaiting.tsx';
 import { possessive } from '../core/nameWords.ts';
 
@@ -111,6 +115,8 @@ function PlayersWaiting({ db, user, campaign, onChanged, quiet = false }: Waitin
     budget: { name: string; unit: string } | null;
     /** Buy and sell requests' views from the pack (M5b step 6e), by request id. */
     trades: Map<string, TradeView>;
+    /** The campaign's time units, with a buy request waiting: its flip names the campaign day (TC13 piece B). */
+    units: TimeUnits | null;
   } | null>(null);
   // A failed escape roll just sent: the pack's table to roll on (held here, since the card leaves the list on Send).
   const [lost, setLost] = useState<{ table: ReadTable; who: string } | null>(null);
@@ -164,7 +170,9 @@ function PlayersWaiting({ db, user, campaign, onChanged, quiet = false }: Waitin
       const view = setting ? tradeViewOf(r, setting) : null;
       return view ? [[r.id, view] as const] : [];
     }));
-    return { list, names, doomTable, hirelings, secrets: secret.views, budget: secret.budget, trades };
+    const settings = setting && list.some((r) => r.kind === 'buy') ? await loadCampaignSettings(db, campaign.id) : null;
+    const units = setting && settings ? campaignUnits(settings, setting.rulesSets) : null;
+    return { list, names, doomTable, hirelings, secrets: secret.views, budget: secret.budget, trades, units };
   }, [db, user.id, campaign.id]);
 
   useEffect(() => {
@@ -313,10 +321,13 @@ function PlayersWaiting({ db, user, campaign, onChanged, quiet = false }: Waitin
         })),
         ...requests.list.map((request): WaitingSourceItem => {
           const who = request.actorId ? (requests.names.get(request.actorId) ?? 'A character') : 'The party';
+          // A buy request (TC13 piece B, TW8g): the bag's mark and the card's own heading.
+          const buying = request.kind === 'buy' ? readBuyPrompt(request.prompt) : null;
           return {
             id: `request:${request.id}`,
             kind: 'playerItem',
-            title: request.kind === 'escapeRoll' ? `${who}, escape roll` : request.text ? `${who} asks: ${request.text}` : `${who} asks`,
+            ...(buying ? { mark: 'bag' as const } : {}),
+            title: buying ? `${who} asks for: ${buying.item}` : request.kind === 'escapeRoll' ? `${who}, escape roll` : request.text ? `${who} asks: ${request.text}` : `${who} asks`,
             actions: [],
             card: (
               <ul className="pack__rows">
@@ -332,6 +343,7 @@ function PlayersWaiting({ db, user, campaign, onChanged, quiet = false }: Waitin
               acting={request.kind === 'secretActivity' ? (readSecretActivityPrompt(request.prompt)?.actorIds ?? []).map((id) => requests.names.get(id) ?? 'A character') : undefined}
               budget={requests.budget}
               trade={requests.trades.get(request.id) ?? null}
+              units={requests.units}
               onChanged={() => void requestsChanged()}
               onLost={(table) => setLost({ table, who })}
               onTable={(table) => setTableOpen({ table, who })}
@@ -366,8 +378,12 @@ const MARK: Record<Exclude<WaitingKind, 'encounter'>, string> = {
   way: 'travel',
 };
 
-/** A kind's mark, open (28) or on its row (24). */
-function KindMark({ kind, size }: { kind: WaitingKind; size: number }) {
+/** An item's own mark, as the app's icons draw it: a buy request's bag is the Pack's tied sack (TW8g). */
+const OWN_MARK: Record<WaitingMark, IconName> = { bag: 'sack' };
+
+/** A kind's mark, or the item's own, open (28) or on its row (24). */
+function KindMark({ kind, mark = null, size }: { kind: WaitingKind; mark?: WaitingMark | null; size: number }) {
+  if (mark) return <Icon name={OWN_MARK[mark]} size={size} />;
   return kind === 'encounter' ? <Icon name={ENCOUNTER_MARK} size={size} /> : <StepIcon name={MARK[kind]} size={size} />;
 }
 
@@ -393,9 +409,9 @@ export function WaitingPanel({ quiet = false, loading = false }: { quiet?: boole
       {view.empty && !loading && <p className="waiting-card__none">Nothing waits.</p>}
       {view.entries.map((entry) =>
         'card' in entry ? (
-          <div key={entry.card.id} className="waiting-open" data-kind={entry.card.kind} data-title={entry.card.title}>
+          <div key={entry.card.id} className="waiting-open" data-kind={entry.card.kind} data-mark={entry.card.mark} data-title={entry.card.title}>
             <span className="waiting-open__mark" aria-hidden="true">
-              <KindMark kind={entry.card.kind} size={28} />
+              <KindMark kind={entry.card.kind} mark={entry.card.mark} size={28} />
             </span>
             <CardHost id={entry.card.id} />
           </div>
@@ -426,7 +442,7 @@ function WaitingRowLine({ row, onOpen, onAct }: { row: WaitingRow; onOpen: () =>
   return (
     <div className="waiting-row" data-kind={row.kind}>
       <span className="waiting-row__mark" aria-hidden="true">
-        <KindMark kind={row.kind} size={24} />
+        <KindMark kind={row.kind} mark={row.mark} size={24} />
       </span>
       <button type="button" className="waiting-row__open" aria-label={`Open: ${row.title}`} onClick={onOpen}>
         <span className="waiting-row__title">{row.title}</span>
