@@ -258,7 +258,7 @@ describe('At hand weapon actions (ah-1 … ah-4)', () => {
     await user.click(attack);
     const blocked = within(await screen.findByRole('dialog', { name: 'Nothing chosen' }));
     expect(blocked.getByText('Bone-tipped arrows used up. Choose what the Reed bow fires next.')).toBeTruthy();
-    await user.click(blocked.getByRole('button', { name: 'Open the quiver' }));
+    await user.click(blocked.getByRole('button', { name: 'Quiver' }));
     expect(await screen.findByRole('dialog', { name: 'Quiver' })).toBeTruthy();
     await user.click(screen.getByRole('button', { name: 'Close' }));
     await user.click(screen.getByRole('button', { name: 'Undo' }));
@@ -290,7 +290,7 @@ describe('At hand weapon actions (ah-1 … ah-4)', () => {
     expect(row(/^Reed bow/).textContent).toContain('Quiver: no reed arrows in the pack');
     await user.click(atHand().getByRole('button', { name: 'Attack with Reed bow' }));
     const sheet = within(await screen.findByRole('dialog', { name: 'No reed arrows in the pack' }));
-    expect(sheet.getByRole('button', { name: 'Open the quiver' })).toBeTruthy();
+    expect(sheet.getByRole('button', { name: 'Quiver' })).toBeTruthy();
   });
 
   it('the Attack sheet names what the attack inflicts, with the condition’s brief effect', async () => {

@@ -245,9 +245,9 @@ const lowerFirst = (s: string) => (s.length > 1 && s.charAt(1) === s.charAt(1).t
  * A chosen stack now gone is used up; the first mode with none in the pack never was there.
  */
 export function spentWords(state: ModeState, weaponName: string): { title: string; why: string; open: string } {
-  const word = MODE_BUTTON_WORDS[state.modes.button];
+  // ic-3 (2026-11-14, "Open the quiver, just use quiver"): the button says the mode button's own word.
+  const open = MODE_BUTTON_WORDS[state.modes.button];
   const verb = doing[state.modes.button];
-  const open = `Open the ${word.toLowerCase()}`;
   if (state.why === 'empty') return { title: emptyWords(state.modes), why: `Add some to the pack, then choose what ${withThe(weaponName)} ${verb}.`, open };
   const why = state.mode ? `${state.mode.name} used up. Choose what ${withThe(weaponName)} ${verb} next.` : `Choose what ${withThe(weaponName)} ${verb}.`;
   return { title: 'Nothing chosen', why, open };

@@ -1,7 +1,7 @@
 ---
 status: approved at sitting B, 2026-11-27 (tickets #162 to #171)
 loop: 2
-rulings: docs/design/rulings/player-sitting-sheet-2026-11-27.md (pss-1 to pss-17; "For the spec (loop 2)"); docs/design/rulings/player-sitting-b-2026-11-27.md (psb-1 to psb-8); ic-3 (docs/design/rulings/dec-night-2026-11-14.md)
+rulings: docs/design/rulings/player-sitting-sheet-2026-11-27.md (pss-1 to pss-17; "For the spec (loop 2)"); docs/design/rulings/player-sitting-b-2026-11-27.md (psb-1 to psb-8); ic-3 (docs/design/rulings/dec-night-2026-11-14.md); docs/design/rulings/player-sitting-build-2026-11-27.md (pib-1 to pib-3)
 mockups: december/14 frames P3 and P5b (approved 2026-11-27); page 28 frame M4g (approved 2026-11-20); three frames owed (38-3 at 375 px, the icon page, the light block with Use)
 ---
 
@@ -31,11 +31,11 @@ The Player tab does what the sitting ruled:
 
 | # | Piece | What the player sees | Frame | Ruling |
 |---|---|---|---|---|
-| 1 | Details | Each entry name is a tap that opens its entry. The backstory has the label "Backstory". With nothing written, there is no Details part at all. One line for each thing, in the sheet's order | P3, "opened" and "almost nothing" panels; approved 2026-11-27 | pss-1, pss-9 |
+| 1 | Details | New lines Kindred, Class, Alignment and Background: each its name as a tap to its entry, then the entry's own short line. The backstory has the label "Backstory". With almost nothing chosen, the Kindred line alone keeps the Details part; with nothing, no part at all. One line for each thing, in the sheet's order | P3, "opened" and "almost nothing" panels; approved 2026-11-27 | pss-1, pss-9, pib-3 |
 | 2 | The pinned spell | A pinned spell (any spell in the book) is a block in At hand, like the weapon in hand's: the star and its name, its state ("Memorized, 1 of 2 left"), its roll, its range, and Cast | M4g, left panel and right panel; approved 2026-11-20 | pss-5, psb-4, psb-5, euf-6, pin-1, pg28-2 |
 | 3 | The Pin star on a spell's sheet | A spell's sheet on the Magic tab has the Pin star beside ✕, as every other sheet has (any spell in the book) | None: approved from a picture of the built sheet | pss-6 |
 | 4 | Down | At the rules' `death.at`, a Status ring "Down" shows among the character's other statuses in the head | None: approved from a picture of the built screen | pss-7, psb-1 to psb-3 |
-| 5 | Weapon blocks | A weapon block only for what is in hand (two at most). Every other ready weapon is an At hand row with Wield | P5b; approved 2026-11-27 | pss-8 |
+| 5 | Weapon blocks | A weapon block for every weapon in hand, no cap. A weapon worn ready is an At hand row with Attack; every other ready weapon is a row with Wield | P5b; approved 2026-11-27 | pss-8, pib-1, pib-2 |
 | 6 | Armour mode's load card | No "Move N" on its top line. The speed is said once, in the speed tile | None: approved from a picture of the built card | pss-12 |
 | 7 | A long name on a phone | A cut name leaves the bar and leads the head's line, as on an upright tablet | Frame 47-1, `december/47-player-sitting-frames.html`, approved 2026-11-28 (47-1 A1: the bar's middle stays empty; #169) | pss-14, p47-1 |
 | 8 | Icons | Fire, Drink, Eat and Stance each get an icon | Frame 47-2, same page, approved 2026-11-28: Fire striking-arrows, Drink round-bottom-flask, Eat bread, Stance pikeman (#170) | pss-10, p47-2 |
@@ -48,12 +48,12 @@ Pictures owed with this work, nothing new to build: "none left" on a trait as bu
 
 **Details (piece 1)**
 
-1. As a player, I want to tap my kindred's name in Details, so that I can read what my kindred does without leaving the Player tab.
+1. As a player, I want my kindred's name in Details to be a tap, followed by the entry's own short line, so that I can read what my kindred does without leaving the Player tab (pib-3).
 2. As a player, I want to tap my class's name in Details, so that I can read my class's entry at the table.
 3. As a player, I want to tap my alignment and my background, so that I can read their entries the same way.
 4. As a player, I want a name with no entry in the pack to stay plain words, so that I never tap something that opens nothing.
 5. As a player, I want my backstory to carry the label "Backstory", so that I know what the paragraph is.
-6. As a player with nothing written in Details, I want no Details part at all, so that the tab shows no empty heading.
+6. As a player with nothing written in Details, I want no Details part at all, so that the tab shows no empty heading; with almost nothing chosen, the Kindred line alone keeps the part (pib-3).
 7. As a player, I want each detail on its own line, in the sheet's order, so that I find them where the full sheet puts them.
 8. As a player, I want Details to stay folded or open as I left it on this device, so that the tab does not change under me.
 9. As a player with a screen reader, I want each entry tap to say "<name>: open its entry", so that I know what it does.
@@ -89,10 +89,10 @@ Pictures owed with this work, nothing new to build: "none left" on a trait as bu
 **Weapon blocks (piece 5)**
 
 32. As a fighter, I want a weapon block only for what is in my hands, so that the blocks mean "what I fight with".
-33. As a fighter with a weapon in each hand, I want two blocks at most, so that At hand stays on the screen.
-34. As a fighter, I want every other ready weapon as an At hand row with Wield, so that I can take it in hand with one tap.
+33. As a fighter with a weapon in each hand, I want a block for each, with no cap, so that everything in my hands is at the top (pib-2).
+34. As a fighter, I want every other ready weapon as an At hand row with Wield, so that I can take it in hand with one tap; a weapon worn ready (natural horns) is a row with Attack (pib-1).
 35. As a fighter, I want a ready weapon's row to keep its mode button (for example Quiver), so that I can choose what it shoots before I wield it.
-36. As a fighter with six ready weapons, I want one block and five rows, so that the tab is calm.
+36. As a fighter with six ready weapons, one in hand, I want one block and five rows, so that the tab is calm.
 37. As a fighter with nothing in hand, I want no weapon block, so that the tab shows nothing empty.
 
 **Armour mode's load card (piece 6)**
@@ -136,7 +136,8 @@ Pictures owed with this work, nothing new to build: "none left" on a trait as bu
 - The Player tab's Details reuses the full sheet's entry taps (`TapValue`, opening `EntryPanel`) for kindred, class, alignment and background. A value is a tap only when the pack has an entry for it.
 - The backstory gets the label "Backstory" in the ledger's label column.
 - With no detail and no backstory, the Player tab draws no Details part: no heading, no chevron. The full sheet keeps "Nothing written yet." (P3 covers the Player tab only).
-- `detailsItems()` stays the one place that decides which lines show. It returns, for each line, whether its value has an entry.
+- Built as P3 draws it (pib-3): new lines Kindred, Class, Alignment and Background, each its name as a tap followed by the entry's own short line; then Motto, Looks, Manner, Trinket and the labelled Backstory. With almost nothing chosen, the Kindred line alone keeps the Details part.
+- `detailsItems()` stays the one place that decides which lines show. It returns, for each line, whether its value has an entry and the entry's short line.
 
 **Pieces 2 and 3, the pinned spell**
 - The Magic tab's spell sheet passes `PinStar` as its `headAction`, as the trait sheet does. Its toast and Undo are the shared Pin star's.
@@ -154,8 +155,8 @@ Pictures owed with this work, nothing new to build: "none left" on a trait as bu
 - The existing "Down" toast (`burstWords`) stays.
 
 **Piece 5, weapon blocks**
-- `atHandAction()` gives Attack only to a weapon in hand. A weapon worn ready gets Wield.
-- The weapon block takes only the lines in hand, at most two. Every other ready weapon is an At hand row (`ItemRow`) with Wield and its mode button.
+- `atHandAction()` gives Attack to a weapon in hand and to a weapon worn ready (pib-1); any other ready weapon gets Wield.
+- The weapon block takes every line in hand, with no cap (pib-2). Every other ready weapon, worn ready included, is an At hand row (`ItemRow`) with its action and its mode button.
 
 **Piece 6, armour mode's load card**
 - Where the speed tile shows (`speedOnce`), armour mode's top line says the burden's name without "Move N", as slot bands do (of-6). Where no speed tile shows, the words stay as today.

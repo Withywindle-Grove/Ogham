@@ -261,13 +261,35 @@ export type SheetPins = {
   star: (name: string) => ReactNode;
 };
 
+/** A Details line's entry (frame P3, pib-3): its name, the tap's words; the entry's own short line; what opens it. */
+export type DetailEntry = {
+  name: string;
+  line: string;
+  /** A background's rolled spell, said after its name (bq3-18). */
+  rolled?: string;
+  open: () => void;
+};
+
+/** One Details line: its label, its value, and its entry when the value is from a pack list that has one. */
+export type DetailRow = {
+  key: string;
+  label: string;
+  value: ReactNode;
+  entry?: DetailEntry;
+};
+
 /**
  * Details' lines, in the sheet's order (the kindred's tables, then the layout's fields), and the backstory; then the
  * GM's hidden fields as their own group, drawn under their "Hidden fields" heading (empty for anyone but the GM: the
  * sheet reads them only with showHidden; the review of #910).
  */
 export type SheetDetails = {
-  rows: { key: string; label: string; value: ReactNode }[];
+  /** The layout's own fields, in the sheet's order; a value from a pack list carries its entry (pib-3). */
+  rows: DetailRow[];
+  /** Who they are (frame P3, pib-3): the kindred, the class and the alignment, each with its entry where the pack has one. */
+  who?: DetailRow[];
+  /** The results of the kindred's Details tables (cs-1): Looks, Manner, Trinket. */
+  tables?: DetailRow[];
   story: string;
   hidden?: {
     label: string;
@@ -2419,6 +2441,65 @@ function SheetView({
     );
   };
 
+  // The Player tab's Details (frame P3, pib-3): a value from a pack list carries its entry (its name as the tap, then
+  // the entry's own short line); who they are (the kindred, the class, the alignment) are lines of their own. The full
+  // sheet's Details is as it was (psb-8).
+  const detailEntry = (found: ValueEntry, name = found.name): DetailEntry => ({
+    name,
+    line: typeof found.lead === "string" ? found.lead : "",
+    ...(found.rolled ? { rolled: found.rolled } : {}),
+    open: () => setEntry(found),
+  });
+  const playerDetailRows = detailFieldRows.map((r): DetailRow => {
+    const value = commas(r.value);
+    const field = fieldDefs.find((f) => f.key === r.key);
+    const entries =
+      value !== "—" && field && entryCtx && !explained[`figure:${r.key}`]
+        ? fieldEntries(entryCtx, field, values[field.key], fieldDefs)
+        : [];
+    const found = entries[0];
+    // One pick: the entry's own name; several (a list rolled more than once): the words as the sheet writes them.
+    const name = entries.length === 1 && found ? found.name : value;
+    return found
+      ? { key: r.key, label: r.label, value: name, entry: detailEntry(found, name) }
+      : { key: r.key, label: r.label, value: cellValue(r.key, r.label, value) };
+  });
+  const whoLine = (
+    key: string,
+    label: string,
+    name: string,
+    found: ValueEntry | null | undefined,
+  ): DetailRow[] =>
+    !name || name === "—"
+      ? []
+      : [
+          found
+            ? { key, label, value: found.name, entry: detailEntry(found) }
+            : { key, label, value: name },
+        ];
+  const whoRows: DetailRow[] = [
+    ...whoLine(
+      "who:kindred",
+      stepTitle(rulesSets, "race", STEP_TITLES.race),
+      race?.name ?? raceShown ?? "",
+      race,
+    ),
+    ...whoLine(
+      "who:class",
+      stepTitle(rulesSets, "class", STEP_TITLES.class),
+      klass?.name ?? className ?? "",
+      klass,
+    ),
+    ...(alignmentField
+      ? whoLine(
+          "who:alignment",
+          alignmentField.label,
+          alignmentValue,
+          alignmentEntry,
+        )
+      : []),
+  ];
+
   // Hosted (dec-13 C1): the same blocks, placed by the Player screen; the sheets they open stay here.
   const body = hosted ? (
     hosted({
@@ -2429,7 +2510,9 @@ function SheetView({
       languages: languagesBlock,
       skills: skillsBlock,
       details: {
-        rows: [...detailRows, ...ledgerRows(detailFieldRows)],
+        rows: playerDetailRows,
+        who: whoRows,
+        tables: detailRows,
         story: character.backstory ?? "",
         hidden:
           hiddenSection && hiddenSection.rows.length > 0

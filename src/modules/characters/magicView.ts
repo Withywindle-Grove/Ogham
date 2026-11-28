@@ -5,11 +5,12 @@
 // the pop-up's text are the screens'. Built on piece A's state (magicState.ts: readySpells, nextReady, afterRest),
 // never a second copy of it.
 //   magicTabLevels    the Magic tab's ready spells, by level (piece B)
+//   pinnedSpellBlocks the Player tab's pinned spells At hand, one block each (Player sitting piece 2)
 //   prepareView       Prepare: each level's slots and steppers, Same as yesterday, chosen and ready kept apart (piece C)
 //   restRows          the GM's rest prompt: who is listed and what a tick does (piece D)
 //   refillUses        the uses a rest or the new day gives back, by `uses.per` (piece D)
 import { afterRest, castKey, nextReady, readySpells } from './magicState.ts';
-import { preparedProblem, type CharacterPlay, type PreparedSpell } from './playState.ts';
+import { livePins, preparedProblem, type CharacterPlay, type Pin, type PreparedSpell } from './playState.ts';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The Magic tab (piece B; mm-1, mp-20)
@@ -69,6 +70,42 @@ export function magicTabLevels(play: Pick<CharacterPlay, 'prepared' | 'spellsCas
     levels.set(r.level, [...(levels.get(r.level) ?? []), row]);
   }
   return [...levels].sort(([a], [b]) => a - b).map(([level, rows]) => ({ level, slots: slots[level - 1] ?? 0, rows }));
+}
+
+/**
+ * One pinned spell's block At hand (Player sitting piece 2; frame M4g): the spell, and its castings today. A spell in
+ * the book but not ready today keeps its block, with no castings and no level (psb-5); the caller reads the book's.
+ */
+export type PinnedSpellBlock =
+  | { spell: string; ready: false }
+  | {
+      spell: string;
+      ready: true;
+      /** Castings today, every level together (psb-6: one block for the spell). */
+      times: number;
+      left: number;
+      /** The lowest level it is ready at, for its name and facts. */
+      level: number;
+      /** The level Cast spends: the lowest with a casting left, as the Magic tab's first row for it; null with none. */
+      castLevel: number | null;
+    };
+
+/**
+ * The pinned spells At hand, in the pins' order (pss-5, psb-5, psb-6). Pins are read through `livePins`: a spell pin is
+ * live while the spell is ready today or `inBook` says the caster has it; a pin whose spell has left the book is
+ * ignored, and stays stored. A spell ready at two levels is one block counting both.
+ */
+export function pinnedSpellBlocks(pins: readonly Pin[], play: Pick<CharacterPlay, 'prepared' | 'spellsCast'>, inBook: (spell: string) => boolean): PinnedSpellBlock[] {
+  const ready = readySpells(play);
+  const live = livePins(pins, { spell: (key) => inBook(key) || ready.some((r) => r.spell === key), trait: () => false });
+  return live.map(({ key }): PinnedSpellBlock => {
+    const rows = ready.filter((r) => r.spell === key);
+    const first = rows[0];
+    if (!first) return { spell: key, ready: false };
+    const times = rows.reduce((n, r) => n + r.times, 0);
+    const left = rows.reduce((n, r) => n + r.times - r.cast, 0);
+    return { spell: key, ready: true, level: first.level, times, left, castLevel: rows.find((r) => r.times > r.cast)?.level ?? null };
+  });
 }
 
 // ---------------------------------------------------------------------------------------------------------------

@@ -214,11 +214,4 @@ On a branch named `fix-…`, the first commit adds the failing test marked `it.f
 
 ## Work begun from a plan
 
-Work begun from a `docs/plans/` file before 27 November 2026 finishes from that plan. New work has a spec and tickets.
-
-| For that work | Rule |
-|---|---|
-| What a builder reads first | the plan file, as it is on `main`; its row is one row of the plan |
-| What a review compares the diff with | the plan, and the departures in the pull request's own text. A plan's own Departures section is history |
-| Mockups first | each plan piece names its mockup's file and approval date, or says "none: data and logic only" (`CLAUDE.md`) |
-| A new plan | none is written. New work goes through the loop |
+None from 28 November 2026: a plan's unbuilt rows enter a loop (`CLAUDE.md`, The build loop); their approved mockups and rulings carry into sitting A. Work already merged from a plan is unaffected.

@@ -25,7 +25,7 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 
 **Later**
 - ⚑ **Laptops, widescreen** (2026-11-24, `01` Devices): laptops are the second device, for downtime; how windows scale past the tablet's landscape layout (1024 px and up, `06`) needs a short design session before anything in `06` changes.
-- ⚑ **Virtual-tabletop map files (.uvtt, .dd2vtt, .df2vtt)** (Francis, 2026-11-28, `intents/2026-11-28-vtt-maps.md`, G-235): Release: Francis to choose (R1 before table test 1, or R2/R3). Also open: picture only or walls and doors too; import, export or both.
+- ◈ **Virtual-tabletop map files (.uvtt, .dd2vtt, .df2vtt)** (Francis, 2026-11-28, `intents/2026-11-28-vtt-maps.md`, G-235): Release: parked, deliberately left open (Francis, 28 Nov: ".vtt is in parking lot until we need it"). Also open: picture only or walls and doors too; import, export or both.
 - **After 5 December: text shown on hover, for a PC** (euf-8, Francis, 2026-11-19: "we'll want to support pc more in the future but not prior to dec 5"). A player asked for an ability's description on hover; on a tablet a tap on the name opens it.
 - **After 5 December: players arrange the sections of their own screen, saved to their view** (euf-9, 2026-11-19). "Arrange this screen" was removed on 2026-10-26; its command and log lines are kept (05). Until then the pins and their order are the player's way to arrange the Player tab.
 - **After 5 December: the players' map's locate tool** (the post-5-December list, 2026-11-24): the players' map card opens fitted whole with no locate; a locate button on it needs a design (P5, `plans/dec-9-the-players-scene.md`; 09, 24 Nov).
