@@ -15,41 +15,16 @@
 //     the weather, an escape roll).
 //   * TableRollPopUp: "Roll…" on a check that is a roll on its table (sf-5; page 44, EN2, EN4 B, EN7 D to F): the table in
 //     a pop-up, a tap on a row the answer; opened again from "Change…" with the picked row ticked.
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from "react";
-import {
-  tableTag,
-  type TableListRow,
-} from "../modules/expedition/tableList.ts";
-import { missingWords } from "../modules/expedition/rowLinks.ts";
-import {
-  linkedTables,
-  pickColumns,
-  resultWords,
-  rowCountShown,
-  rowFor,
-  rowLabel,
-  rowLeadsTo,
-  rowNextChoices,
-  rowText,
-  tableLookup,
-  type ReadTable,
-  type RowReading,
-  type TableRow,
-  type TerrainKey,
-} from "../modules/expedition/tables.ts";
-import { BookTapTable, BookType, CreationLoading } from "../ui/creation.tsx";
-import { CentredPopUpScope, Dialog, SheetScope } from "../ui/Dialog.tsx";
-import { DiceWords, RollRow, dieOf } from "../ui/dice.tsx";
-import { Chip } from "../ui/parts.tsx";
-import "./SceneExplore.css";
-import "./EncounterTables.css";
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { tableTag, type TableListRow } from '../modules/expedition/tableList.ts';
+import { missingWords } from '../modules/expedition/rowLinks.ts';
+import { linkedTables, pickColumns, resultWords, rowCountShown, rowFor, rowLabel, rowLeadsTo, rowNextChoices, rowText, tableLookup, type ReadTable, type RowReading, type TableRow, type TerrainKey } from '../modules/expedition/tables.ts';
+import { BookTapTable, BookType, CreationLoading } from '../ui/creation.tsx';
+import { CentredPopUpScope, Dialog, SheetScope } from '../ui/Dialog.tsx';
+import { DiceWords, RollRow, dieOf } from '../ui/dice.tsx';
+import { Chip } from '../ui/parts.tsx';
+import './SceneExplore.css';
+import './EncounterTables.css';
 
 /** Type the roll, read the row. Says plainly when the roll doesn't fit the table. */
 export function TableRoll({
@@ -62,7 +37,7 @@ export function TableRoll({
   onRead: (reading: Extract<RowReading, { ok: true }>, typed: string) => void;
 }) {
   const id = useId();
-  const [typed, setTyped] = useState("");
+  const [typed, setTyped] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
   const [shown, setShown] = useState<string | null>(null);
 
@@ -74,28 +49,21 @@ export function TableRoll({
       return setProblem(reading.message);
     }
     setProblem(null);
-    setShown(
-      resultWords(
-        reading.result,
-        rowCountShown(reading.row) ? reading.count : null,
-      ),
-    );
+    setShown(resultWords(reading.result, rowCountShown(reading.row) ? reading.count : null));
     onRead(reading, typed.trim());
   }
 
   return (
     <form className="table-roll" onSubmit={submit}>
       <label className="label" htmlFor={id}>
-        {table.die
-          ? `${table.name} (${table.die}): enter the roll`
-          : `${table.name}: enter the roll`}
+        {table.die ? `${table.name} (${table.die}): enter the roll` : `${table.name}: enter the roll`}
       </label>
       <div className="table-roll__row">
         <input
           id={id}
           className="field__input field__input--short"
           type="text"
-          inputMode={table.composite ? "text" : "numeric"}
+          inputMode={table.composite ? 'text' : 'numeric'}
           autoComplete="off"
           maxLength={7}
           value={typed}
@@ -120,17 +88,7 @@ export function TableRoll({
 }
 
 /** One table in a list: name · tag, its description under it, › at the end; the whole row is the target. */
-export function TableListItem({
-  table,
-  tag,
-  onOpen,
-  pin,
-}: {
-  table: ReadTable;
-  tag: string;
-  onOpen: () => void;
-  pin?: { on: boolean; onToggle: () => void };
-}) {
+export function TableListItem({ table, tag, onOpen, pin }: { table: ReadTable; tag: string; onOpen: () => void; pin?: { on: boolean; onToggle: () => void } }) {
   return (
     <div className="table-item">
       <button type="button" className="table-item__open" onClick={onOpen}>
@@ -139,29 +97,19 @@ export function TableListItem({
           {/* A die named in the tag takes its glyph (ds-3, the #785 review): ", ⬡ d6". */}
           {tag && (
             <span className="table-item__tag">
-              {", "}
+              {', '}
               <DiceWords>{tag}</DiceWords>
             </span>
           )}
-          {table.description && (
-            <span className="table-item__desc">{table.description}</span>
-          )}
+          {table.description && <span className="table-item__desc">{table.description}</span>}
         </span>
         <span className="table-item__chev" aria-hidden="true">
           ›
         </span>
       </button>
       {pin && (
-        <button
-          type="button"
-          className={
-            pin.on ? "table-item__pin table-item__pin--on" : "table-item__pin"
-          }
-          aria-pressed={pin.on}
-          aria-label={pin.on ? `Unpin ${table.name}` : `Pin ${table.name}`}
-          onClick={pin.onToggle}
-        >
-          {pin.on ? "Pinned" : "Pin"}
+        <button type="button" className={pin.on ? 'table-item__pin table-item__pin--on' : 'table-item__pin'} aria-pressed={pin.on} aria-label={pin.on ? `Unpin ${table.name}` : `Pin ${table.name}`} onClick={pin.onToggle}>
+          {pin.on ? 'Pinned' : 'Pin'}
         </button>
       )}
     </div>
@@ -185,24 +133,9 @@ export interface TableTap {
  * the group's (pf-2), and "Abbey › Mortal: Pilgrims · 1d6". One rule for every tapped table: the full screen's rows and
  * a check's table opened in its card (B9; page 24, WY1b).
  */
-export function tapOf(
-  table: ReadTable,
-  trail: readonly string[],
-  row: TableRow,
-  column: string | null,
-): TableTap {
-  const words = resultWords(
-    rowText(table, row, column),
-    rowCountShown(row) ? row.count : null,
-  );
-  return {
-    table,
-    trail: [...trail],
-    row,
-    roll: rowLabel(row) || "—",
-    words,
-    rowText: `${trail.join(" › ")}: ${words}`,
-  };
+export function tapOf(table: ReadTable, trail: readonly string[], row: TableRow, column: string | null): TableTap {
+  const words = resultWords(rowText(table, row, column), rowCountShown(row) ? row.count : null);
+  return { table, trail: [...trail], row, roll: rowLabel(row) || '—', words, rowText: `${trail.join(' › ')}: ${words}` };
 }
 
 /**
@@ -210,7 +143,7 @@ export function tapOf(
  * the weed"), never "Rolled:" and never a number nobody entered; a row with no range says its words alone.
  */
 export function tapToast(tap: TableTap): string {
-  return tap.roll && tap.roll !== "—" ? `${tap.roll}: ${tap.words}` : tap.words;
+  return tap.roll && tap.roll !== '—' ? `${tap.roll}: ${tap.words}` : tap.words;
 }
 
 /**
@@ -243,63 +176,39 @@ export function TableRows({
   /** The name of the table a row leads to, if any. */
   leadsTo: (row: TableRow, column: string | null) => string | null;
   /** A row that splits by terrain opened this table (ga-2): the tables it may open, this one pressed; a tap opens another. */
-  switchTable?: {
-    choices: { id: string; name: string }[];
-    onPick: (id: string) => void;
-  };
+  switchTable?: { choices: { id: string; name: string }[]; onPick: (id: string) => void };
   onTap?: (tap: TableTap, column: string | null) => void;
   /** The book's tapped table (sf-14): the encounter tables' pages, whose rows are taps. */
   book?: boolean;
 }) {
   const columns = pickColumns(table);
-  const [column, setColumn] = useState<string | null>(
-    columns.length
-      ? startColumn && columns.includes(startColumn)
-        ? startColumn
-        : columns[0]!
-      : (table.columns[0] ?? null),
-  );
+  const [column, setColumn] = useState<string | null>(columns.length ? (startColumn && columns.includes(startColumn) ? startColumn : columns[0]!) : (table.columns[0] ?? null));
   const rowRefs = useRef(new Map<number, HTMLElement>());
   const bookRows = useRef<HTMLDivElement>(null);
-  const [found, setFound] = useState<{ index: number; go: number } | null>(
-    null,
-  );
+  const [found, setFound] = useState<{ index: number; go: number } | null>(null);
   const die = table.die ? dieOf(table.die) : null;
   const inBook = book && !!onTap;
   // Go to number on long tables, when a number can find a row (a lookup's rows by key alone have none); in the book's
   // table as the pop-up has it: more than 20 rows, or more than 20 numbers (sf-5's ⚑ 2).
-  const long =
-    findsByNumber(table) &&
-    (table.rows.length > 20 || (inBook && (die ?? 0) > 20));
+  const long = findsByNumber(table) && (table.rows.length > 20 || (inBook && (die ?? 0) > 20));
   // The row found (N2) is marked, brought into view and given the focus, so Enter taps it; each Go brings it up again.
   useEffect(() => {
     if (!found) return;
-    const cell = bookRows.current?.querySelector(".table-sheet__rows")
-      ?.children[found.index] as HTMLElement | undefined;
-    const radio = cell?.matches('[role="radio"]')
-      ? cell
-      : cell?.querySelector<HTMLElement>('[role="radio"]');
-    radio?.scrollIntoView?.({ block: "center" });
+    const cell = bookRows.current?.querySelector('.table-sheet__rows')?.children[found.index] as HTMLElement | undefined;
+    const radio = cell?.matches('[role="radio"]') ? cell : cell?.querySelector<HTMLElement>('[role="radio"]');
+    radio?.scrollIntoView?.({ block: 'center' });
     radio?.focus({ preventScroll: true });
   }, [found]);
 
-  const lead = [context, table.description].filter(Boolean).join(", ");
+  const lead = [context, table.description].filter(Boolean).join(', ');
   return (
     <div className="table-rows">
       {lead && <p className="table-rows__lead">{lead}</p>}
       {table.note && <p className="table-rows__lead">{table.note}</p>}
       {switchTable && switchTable.choices.length > 1 && (
-        <div
-          className="table-rows__chips"
-          role="group"
-          aria-label="Table by terrain"
-        >
+        <div className="table-rows__chips" role="group" aria-label="Table by terrain">
           {switchTable.choices.map((c) => (
-            <Chip
-              key={c.id}
-              pressed={c.id === table.id}
-              onClick={() => c.id !== table.id && switchTable.onPick(c.id)}
-            >
+            <Chip key={c.id} pressed={c.id === table.id} onClick={() => c.id !== table.id && switchTable.onPick(c.id)}>
               {c.name}
             </Chip>
           ))}
@@ -319,39 +228,26 @@ export function TableRows({
           table={table}
           column={column}
           onFound={(index) => {
-            if (inBook)
-              return setFound((f) => ({ index, go: (f?.go ?? 0) + 1 }));
+            if (inBook) return setFound((f) => ({ index, go: (f?.go ?? 0) + 1 }));
             const el = rowRefs.current.get(index);
-            el?.scrollIntoView?.({ block: "center" });
+            el?.scrollIntoView?.({ block: 'center' });
             el?.focus({ preventScroll: true });
           }}
         />
       )}
       {inBook ? (
         <div ref={bookRows} className="table-rows__book">
-          <RollRow die={die}>
-            {table.die
-              ? `Roll ${table.die}, then tap the row.`
-              : "Roll, then tap the row."}
-          </RollRow>
+          <RollRow die={die}>{table.die ? `Roll ${table.die}, then tap the row.` : 'Roll, then tap the row.'}</RollRow>
           <BookType>
             <BookTapTable
               title={table.name}
-              die={table.die ?? ""}
-              column={column ?? "Encounter"}
-              label={trail.join(" › ")}
+              die={table.die ?? ''}
+              column={column ?? 'Encounter'}
+              label={trail.join(' › ')}
               rows={table.rows.map((row, index) => {
                 const tap = tapOf(table, trail, row, column);
                 const next = leadsTo(row, column);
-                const line = [
-                  next ? `opens ${next} ›` : null,
-                  describe(row),
-                  row.missing && row.missing.length > 0
-                    ? missingWords(row.missing)
-                    : null,
-                ]
-                  .filter(Boolean)
-                  .join(" ");
+                const line = [next ? `opens ${next} ›` : null, describe(row), row.missing && row.missing.length > 0 ? missingWords(row.missing) : null].filter(Boolean).join(' ');
                 return {
                   key: String(index),
                   range: rowLabel(row),
@@ -366,72 +262,49 @@ export function TableRows({
           </BookType>
         </div>
       ) : (
-        <ol className="table-rows__list" aria-label={trail.join(" › ")}>
-          {table.rows.map((row, index) => {
-            const result = rowText(table, row, column);
-            const next = leadsTo(row, column);
-            const desc = describe(row);
-            const tag = [
-              rowCountShown(row) ? row.count : null,
-              next ? `opens ${next} ›` : null,
-              index === lit ? "rolled" : null,
-            ]
-              .filter(Boolean)
-              .join(", ");
-            const body = (
-              <>
-                <span
-                  className={
-                    row.label
-                      ? "table-rows__range table-rows__range--key"
-                      : "table-rows__range"
-                  }
+      <ol className="table-rows__list" aria-label={trail.join(' › ')}>
+        {table.rows.map((row, index) => {
+          const result = rowText(table, row, column);
+          const next = leadsTo(row, column);
+          const desc = describe(row);
+          const tag = [rowCountShown(row) ? row.count : null, next ? `opens ${next} ›` : null, index === lit ? 'rolled' : null].filter(Boolean).join(', ');
+          const body = (
+            <>
+              <span className={row.label ? 'table-rows__range table-rows__range--key' : 'table-rows__range'}>{rowLabel(row)}</span>
+              <span className="table-rows__text">
+                <span className="table-rows__result">{result}</span>
+                {tag && <span className="table-rows__tag">{`, ${tag}`}</span>}
+                {desc && <span className="table-rows__desc">{desc}</span>}
+                {row.missing && row.missing.length > 0 && <span className="table-rows__desc">{missingWords(row.missing)}</span>}
+              </span>
+            </>
+          );
+          const className = index === lit ? 'table-rows__row table-rows__row--lit' : 'table-rows__row';
+          const keep = (el: HTMLElement | null) => {
+            if (el) rowRefs.current.set(index, el);
+            else rowRefs.current.delete(index);
+          };
+          return (
+            <li key={index}>
+              {onTap ? (
+                <button
+                  ref={keep}
+                  type="button"
+                  className={className}
+                  aria-current={index === lit ? 'true' : undefined}
+                  onClick={() => onTap(tapOf(table, trail, row, column), column)}
                 >
-                  {rowLabel(row)}
-                </span>
-                <span className="table-rows__text">
-                  <span className="table-rows__result">{result}</span>
-                  {tag && <span className="table-rows__tag">{`, ${tag}`}</span>}
-                  {desc && <span className="table-rows__desc">{desc}</span>}
-                  {row.missing && row.missing.length > 0 && (
-                    <span className="table-rows__desc">
-                      {missingWords(row.missing)}
-                    </span>
-                  )}
-                </span>
-              </>
-            );
-            const className =
-              index === lit
-                ? "table-rows__row table-rows__row--lit"
-                : "table-rows__row";
-            const keep = (el: HTMLElement | null) => {
-              if (el) rowRefs.current.set(index, el);
-              else rowRefs.current.delete(index);
-            };
-            return (
-              <li key={index}>
-                {onTap ? (
-                  <button
-                    ref={keep}
-                    type="button"
-                    className={className}
-                    aria-current={index === lit ? "true" : undefined}
-                    onClick={() =>
-                      onTap(tapOf(table, trail, row, column), column)
-                    }
-                  >
-                    {body}
-                  </button>
-                ) : (
-                  <div ref={keep} className={className} tabIndex={-1}>
-                    {body}
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ol>
+                  {body}
+                </button>
+              ) : (
+                <div ref={keep} className={className} tabIndex={-1}>
+                  {body}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ol>
       )}
     </div>
   );
@@ -443,17 +316,9 @@ function findsByNumber(table: ReadTable): boolean {
 }
 
 /** Go to number (the tables' screen's form): a number typed finds its row; one that fits no row says why. */
-function GoToNumber({
-  table,
-  column,
-  onFound,
-}: {
-  table: ReadTable;
-  column: string | null;
-  onFound: (index: number) => void;
-}) {
+function GoToNumber({ table, column, onFound }: { table: ReadTable; column: string | null; onFound: (index: number) => void }) {
   const goId = useId();
-  const [goTo, setGoTo] = useState("");
+  const [goTo, setGoTo] = useState('');
   const [goProblem, setGoProblem] = useState<string | null>(null);
   function go(event: FormEvent) {
     event.preventDefault();
@@ -472,7 +337,7 @@ function GoToNumber({
           id={goId}
           className="field__input field__input--short"
           type="text"
-          inputMode={table.composite ? "text" : "numeric"}
+          inputMode={table.composite ? 'text' : 'numeric'}
           autoComplete="off"
           maxLength={7}
           value={goTo}
@@ -519,24 +384,15 @@ export function TableRollPopUp({
 }) {
   const [found, setFound] = useState<number | null>(null);
   const body = useRef<HTMLDivElement>(null);
-  const column = table
-    ? (pickColumns(table)[0] ?? table.columns[0] ?? null)
-    : null;
+  const column = table ? (pickColumns(table)[0] ?? table.columns[0] ?? null) : null;
   const known = tableLookup(tables.keys());
   const lineOf = (row: TableRow) => {
     const id = table ? rowLeadsTo(table, row, column, known) : null;
     const next = id ? (tables.get(id)?.name ?? id) : null;
-    return (
-      [next ? `opens ${next} ›` : null, describe(row)]
-        .filter(Boolean)
-        .join(" ") || null
-    );
+    return [next ? `opens ${next} ›` : null, describe(row)].filter(Boolean).join(' ') || null;
   };
   const die = table?.die ? dieOf(table.die) : null;
-  const goes =
-    !!table &&
-    findsByNumber(table) &&
-    (table.rows.length > 20 || (die ?? 0) > 20);
+  const goes = !!table && findsByNumber(table) && (table.rows.length > 20 || (die ?? 0) > 20);
   // The row found comes first in the rows' own scroll, and takes focus so Enter taps it. After the render that marks it
   // (its row is drawn anew inside the found cell); each Go brings it up again, the same row too.
   const [going, setGoing] = useState(0);
@@ -546,15 +402,11 @@ export function TableRollPopUp({
   };
   // A row to the top of the rows' own scroll, its tap taking the focus (a button, never a field).
   const toTop = (index: number) => {
-    const rows = body.current?.querySelector<HTMLElement>(".table-sheet__rows");
+    const rows = body.current?.querySelector<HTMLElement>('.table-sheet__rows');
     const row = rows?.children[index] as HTMLElement | undefined;
     if (!rows || !row) return;
-    rows.scrollTop +=
-      row.getBoundingClientRect().top - rows.getBoundingClientRect().top;
-    (row.matches('[role="radio"]')
-      ? row
-      : row.querySelector<HTMLElement>('[role="radio"]')
-    )?.focus({ preventScroll: true });
+    rows.scrollTop += row.getBoundingClientRect().top - rows.getBoundingClientRect().top;
+    (row.matches('[role="radio"]') ? row : row.querySelector<HTMLElement>('[role="radio"]'))?.focus({ preventScroll: true });
   };
   useEffect(() => {
     if (found !== null) toTop(found);
@@ -575,18 +427,12 @@ export function TableRollPopUp({
         <Dialog label={table?.name ?? title} onClose={onClose}>
           {table ? (
             <div ref={body} className="roll-pop">
-              <RollRow die={die}>
-                {table.die
-                  ? `Roll ${table.die}, then tap the row.`
-                  : "Roll, then tap the row."}
-              </RollRow>
-              {goes && (
-                <GoToNumber table={table} column={column} onFound={bringUp} />
-              )}
+              <RollRow die={die}>{table.die ? `Roll ${table.die}, then tap the row.` : 'Roll, then tap the row.'}</RollRow>
+              {goes && <GoToNumber table={table} column={column} onFound={bringUp} />}
               <BookType>
                 <BookTapTable
-                  die={table.die ?? ""}
-                  column={column ?? "Encounter"}
+                  die={table.die ?? ''}
+                  column={column ?? 'Encounter'}
                   label={table.name}
                   rows={table.rows.map((row, index) => ({
                     key: String(index),
@@ -595,8 +441,7 @@ export function TableRollPopUp({
                     ...(lineOf(row) ? { line: lineOf(row)! } : {}),
                     picked: index === picked,
                     found: index === found,
-                    onPick: () =>
-                      onRow(tapOf(table, [table.name], row, column)),
+                    onPick: () => onRow(tapOf(table, [table.name], row, column)),
                   }))}
                 />
               </BookType>
@@ -652,14 +497,11 @@ export function EncounterTables({
   // Each table opened, with the tables the row that opened it could have opened (ga-2; empty unless it splits by terrain).
   const [steps, setSteps] = useState<{ id: string; choices: string[] }[]>([]);
   const path = steps.map((s) => s.id);
-  const setPath = (ids: string[]) =>
-    setSteps(ids.map((id) => ({ id, choices: [] })));
+  const setPath = (ids: string[]) => setSteps(ids.map((id) => ({ id, choices: [] })));
   const [all, setAll] = useState(false);
   const [lit, setLit] = useState<Map<string, number>>(new Map());
   const known = tableLookup(tables.keys());
-  const table = path.length
-    ? (tables.get(path[path.length - 1]!) ?? null)
-    : null;
+  const table = path.length ? (tables.get(path[path.length - 1]!) ?? null) : null;
   const trail = path.map((id) => tables.get(id)?.name ?? id);
   const leadsTo = (from: ReadTable) => (row: TableRow, col: string | null) => {
     const id = rowLeadsTo(from, row, col, known, terrain);
@@ -669,15 +511,9 @@ export function EncounterTables({
   const step = steps[steps.length - 1];
 
   if (table) {
-    const key = path.join("/");
+    const key = path.join('/');
     return (
-      <Dialog
-        key={key}
-        full
-        label={trail.join(" › ")}
-        onBack={back}
-        onClose={onClose}
-      >
+      <Dialog key={key} full label={trail.join(' › ')} onBack={back} onClose={onClose}>
         <TableRows
           book
           table={table}
@@ -690,15 +526,8 @@ export function EncounterTables({
           switchTable={
             step && step.choices.length > 1
               ? {
-                  choices: step.choices.map((id) => ({
-                    id,
-                    name: tables.get(id)?.name ?? id,
-                  })),
-                  onPick: (id) =>
-                    setSteps((p) => [
-                      ...p.slice(0, -1),
-                      { id, choices: step.choices },
-                    ]),
+                  choices: step.choices.map((id) => ({ id, name: tables.get(id)?.name ?? id })),
+                  onPick: (id) => setSteps((p) => [...p.slice(0, -1), { id, choices: step.choices }]),
                 }
               : undefined
           }
@@ -713,11 +542,8 @@ export function EncounterTables({
               }),
             );
             const next = rowLeadsTo(table, tap.row, col, known, terrain);
-            const choices = rowNextChoices(tap.row, terrain, known).filter(
-              (id) => !path.includes(id),
-            );
-            if (next && !path.includes(next))
-              setSteps((p) => [...p, { id: next, choices }]);
+            const choices = rowNextChoices(tap.row, terrain, known).filter((id) => !path.includes(id));
+            if (next && !path.includes(next)) setSteps((p) => [...p, { id: next, choices }]);
           }}
         />
       </Dialog>
@@ -725,50 +551,24 @@ export function EncounterTables({
   }
 
   const listed = new Set(list.map((r) => r.tableId));
-  const others = [...tables.values()]
-    .filter((t) => !listed.has(t.id))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const others = [...tables.values()].filter((t) => !listed.has(t.id)).sort((a, b) => a.name.localeCompare(b.name));
   return (
     <Dialog key="list" full label={title} meta={meta} onClose={onClose}>
       {tables.size === 0 ? (
-        <p className="table-rows__lead">
-          No encounter tables in this setting. A pack with tables adds them
-          here.
-        </p>
+        <p className="table-rows__lead">No encounter tables in this setting. A pack with tables adds them here.</p>
       ) : (
         <div className="table-list">
           {list.map((row) => {
             const t = tables.get(row.tableId)!;
-            return (
-              <TableListItem
-                key={row.tableId}
-                table={t}
-                tag={tableTag(row, t.die)}
-                onOpen={() => setPath([row.tableId])}
-              />
-            );
+            return <TableListItem key={row.tableId} table={t} tag={tableTag(row, t.die)} onOpen={() => setPath([row.tableId])} />;
           })}
-          {all &&
-            others.map((t) => (
-              <TableListItem
-                key={t.id}
-                table={t}
-                tag={t.die ?? ""}
-                onOpen={() => setPath([t.id])}
-              />
-            ))}
+          {all && others.map((t) => <TableListItem key={t.id} table={t} tag={t.die ?? ''} onOpen={() => setPath([t.id])} />)}
           {!all && others.length > 0 && (
-            <button
-              type="button"
-              className="button-quiet table-list__all"
-              onClick={() => setAll(true)}
-            >
+            <button type="button" className="button-quiet table-list__all" onClick={() => setAll(true)}>
               {`All ${tables.size} tables ›`}
             </button>
           )}
-          {missing.length > 0 && (
-            <p className="table-rows__lead">{`Not in your setting rules: ${missing.join(", ")}. Read ${missing.length === 1 ? "it" : "them"} from your book.`}</p>
-          )}
+          {missing.length > 0 && <p className="table-rows__lead">{`Not in your setting rules: ${missing.join(', ')}. Read ${missing.length === 1 ? 'it' : 'them'} from your book.`}</p>}
         </div>
       )}
       {library}
@@ -797,19 +597,13 @@ export function TablesLibrary({
   terrain?: TerrainKey | null;
 }) {
   const [open, setOpen] = useState(false);
-  const [find, setFind] = useState("");
+  const [find, setFind] = useState('');
   const [path, setPath] = useState<string[]>([]);
   const findId = useId();
   const known = tableLookup(tables.keys());
-  const list = [...tables.values()].sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
-  const shown = list.filter((t) =>
-    t.name.toLowerCase().includes(find.trim().toLowerCase()),
-  );
-  const table = path.length
-    ? (tables.get(path[path.length - 1]!) ?? null)
-    : null;
+  const list = [...tables.values()].sort((a, b) => a.name.localeCompare(b.name));
+  const shown = list.filter((t) => t.name.toLowerCase().includes(find.trim().toLowerCase()));
+  const table = path.length ? (tables.get(path[path.length - 1]!) ?? null) : null;
   const trail = path.map((id) => tables.get(id)?.name ?? id);
   const close = () => {
     setOpen(false);
@@ -817,22 +611,11 @@ export function TablesLibrary({
   };
   return (
     <>
-      <button
-        type="button"
-        className="button-quiet tables-link"
-        onClick={() => setOpen(true)}
-      >
+      <button type="button" className="button-quiet tables-link" onClick={() => setOpen(true)}>
         Table library ›
       </button>
       {open && table && (
-        <Dialog
-          key={path.join("/")}
-          full
-          label={trail.join(" › ")}
-          meta={table.die ? `Roll ${table.die}` : undefined}
-          onBack={() => setPath((p) => p.slice(0, -1))}
-          onClose={close}
-        >
+        <Dialog key={path.join('/')} full label={trail.join(' › ')} meta={table.die ? `Roll ${table.die}` : undefined} onBack={() => setPath((p) => p.slice(0, -1))} onClose={close}>
           <TableRows
             table={table}
             trail={trail}
@@ -848,66 +631,31 @@ export function TablesLibrary({
             {linkedTables(table, known, terrain)
               .filter((id) => !path.includes(id))
               .map((id) => (
-                <TableListItem
-                  key={id}
-                  table={tables.get(id)!}
-                  tag={tables.get(id)!.die ?? ""}
-                  onOpen={() => setPath((p) => [...p, id])}
-                />
+                <TableListItem key={id} table={tables.get(id)!} tag={tables.get(id)!.die ?? ''} onOpen={() => setPath((p) => [...p, id])} />
               ))}
           </div>
         </Dialog>
       )}
       {open && !table && (
-        <Dialog
-          key="library"
-          full
-          label="Table library"
-          meta={
-            list.length === 1
-              ? "1 in this setting"
-              : `${list.length} in this setting`
-          }
-          onClose={close}
-        >
+        <Dialog key="library" full label="Table library" meta={list.length === 1 ? '1 in this setting' : `${list.length} in this setting`} onClose={close}>
           {list.length === 0 ? (
-            <p className="table-rows__lead">
-              No tables in your setting rules yet. A pack with tables adds them
-              here.
-            </p>
+            <p className="table-rows__lead">No tables in your setting rules yet. A pack with tables adds them here.</p>
           ) : (
             <div className="table-list">
               {list.length > 8 && (
                 <label className="field" htmlFor={findId}>
                   <span className="label">Find a table</span>
-                  <input
-                    id={findId}
-                    className="field__input"
-                    type="search"
-                    value={find}
-                    onChange={(e) => setFind(e.target.value)}
-                  />
+                  <input id={findId} className="field__input" type="search" value={find} onChange={(e) => setFind(e.target.value)} />
                 </label>
               )}
-              {shown.length === 0 && (
-                <p className="table-rows__lead">{`No table's name has "${find.trim()}" in it.`}</p>
-              )}
+              {shown.length === 0 && <p className="table-rows__lead">{`No table's name has "${find.trim()}" in it.`}</p>}
               {shown.map((t) => (
                 <TableListItem
                   key={t.id}
                   table={t}
-                  tag={[t.die, pinned?.has(t.id) ? "pinned" : null]
-                    .filter(Boolean)
-                    .join(", ")}
+                  tag={[t.die, pinned?.has(t.id) ? 'pinned' : null].filter(Boolean).join(', ')}
                   onOpen={() => setPath([t.id])}
-                  pin={
-                    pinned && onPin
-                      ? {
-                          on: pinned.has(t.id),
-                          onToggle: () => onPin(t.id, !pinned.has(t.id)),
-                        }
-                      : undefined
-                  }
+                  pin={pinned && onPin ? { on: pinned.has(t.id), onToggle: () => onPin(t.id, !pinned.has(t.id)) } : undefined}
                 />
               ))}
             </div>
