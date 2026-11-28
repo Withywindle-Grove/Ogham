@@ -5,7 +5,7 @@ Read by the loop's skills (`to-spec`, `to-tickets`, `implement-spec`, `code-revi
 ## The split
 
 - **A spec is a file:** `docs/specs/<name>.md`, committed on the spec's branch. Francis reads its plain-language part at sitting B.
-- **A ticket is a GitHub issue** in `Withywindle-Grove/Ogham`. The pull request closes it.
+- **A ticket is a GitHub issue** in `Withywindle-Grove/Ogham`. Its merge into the spec's integration branch closes it (Close, below).
 
 ## When a skill says "publish to the issue tracker"
 

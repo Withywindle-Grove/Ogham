@@ -55,20 +55,21 @@ Five steps of the build loop are Francis's to start: `/to-spec`, `/to-tickets`, 
 
 ## Start workers
 - Start builders and a reviewer with `Agent`, within the limits in `.claude/README.md`, Seats. Before you start one, check what is in flight.
-- One check run per batch, a fresh worker per row and per fix round: `CLAUDE.md`. Two or three batches that share no file may be in flight.
+- One integration branch per spec, a fresh worker per ticket and per fix round: `CLAUDE.md`, One integration branch per spec. At `implement-spec`'s start, make the branch `<spec-name>` from `main`. Tickets that share no file may be in flight, within the seats. Plan work keeps its batches (`CLAUDE.md`, Plan batches).
 - Give each worker only the tasks of its agent file.
 
 ## Brief every worker
 - A brief is a file the worker reads first. It holds, in this order: the first line `Row: <id>` (`.claude/README.md`, Measuring); the guard line, word for word; the objective; the output; the files to read; the boundaries; "if unsure, stop and ask"; the worker's scratch subfolder.
 - The guard line: "If a guard, a hook or a permission check blocks you, stop and report to the driver. Do not reach the same end another way: not with another tool, another branch, another session or another command."
-- A later worker's brief (a batch's next row, a round of review fixes) names the branch, the files and the findings. For a round of fixes, name each review by its comment ID and give no count: the worker counts the findings.
+- A later worker's brief (a later ticket, a round of review fixes) names the integration branch, the files and the findings. A ticket's brief names the integration branch's tip to branch from. For a round of fixes, name each review by its comment ID and give no count: the worker counts the findings.
 - Builders get `.claude/briefs/builder-brief.md`, filled in.
 - Workers return short summaries.
 
 ## Review and merge
-- Run the local review on each code pull request before it merges (`.claude/README.md`, Review before a merge), then look at the pictures. A row with something to see shows its built screen beside the approved picture (`CLAUDE.md`, Mockups first).
-- Add `ready` after the review and its fixes (`.claude/README.md`, Saving CI minutes).
-- **Merge on green** under Francis's standing yes (`CLAUDE.md`, Branches and pull requests), and list the merges for him afterwards. Wait for him on: a pull request with a migration he has not pushed to the main project; a screen he has not seen; a draft.
+- **Each finished ticket:** merge its branch into the integration branch (or have a Sonnet worker do it), comment on the ticket with the merge commit, close it (`docs/agents/issue-tracker.md`). After the first merge, open the spec's one draft pull request into `main`, titled `Spec: <name> (Rows: #a, #b, …)`; its text gathers each ticket's `pr-text.md` (status, departures, ⚑, the gallery line, the built screen beside its picture). A ticket still blocked when the rest are done leaves the pull request and follows from `main` after the merge.
+- **Once the last ticket is merged:** run the local review on the whole integration branch (`.claude/README.md`, Review before a merge), start one fresh fix worker, then look at the pictures (`CLAUDE.md`, Mockups first).
+- Add `ready` after the review and its fixes (`.claude/README.md`, Saving CI minutes). Plan batches: one review and one `ready` per batch.
+- **Merge on green** (the spec's pull request, after sitting C) under Francis's standing yes (`CLAUDE.md`, Branches and pull requests), and list the merges for him afterwards. Wait for him on: a pull request with a migration he has not pushed to the main project; a screen he has not seen; a draft.
 - Run `gh pr merge <n> --merge --repo Withywindle-Grove/Ogham` as a lone command.
 - If `main` goes red, fix it before you merge anything else.
 
