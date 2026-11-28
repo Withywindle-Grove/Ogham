@@ -1049,13 +1049,78 @@ describe("Details on the Player screen (dec-13 C4: ps-3, frame P1)", () => {
     const labels = [
       ...details.querySelectorAll(".book-line > .book-label"),
     ].map((l) => l.textContent);
-    expect(labels).toEqual(["Motto", "Affiliation"]);
+    expect(labels).toEqual([
+      "Motto",
+      "Affiliation",
+      "Kindred",
+      "Class",
+      "Backstory",
+    ]);
     expect(within(details).getByText(/Ask the water first\./)).toBeTruthy();
     expect(
       within(details).getByText(/until the lanterns went out/),
     ).toBeTruthy();
     const languages = screen.getAllByRole("region", { name: "Languages" })[0]!;
     expect(within(languages).getByText("Reads.")).toBeTruthy();
+  });
+
+  it("adds Kindred, Class and the alignment as P3 draws them, each name a tap to its entry, after the player's words (pib-3)", async () => {
+    // Purpose: the sheet hands Details who the character is, in the pack's words (its word for kindred, its alignment
+    // field's label), each name opening its entry and followed by the entry's own short line; the backstory is
+    // labelled. Invented pack: "Bog folk", "Lantern Warden", "Lantern".
+    const { wren, campaign } = fenWorld();
+    // The layout's Background, fed by the kindred's list (the fixture's `from`), which fenWorld leaves out.
+    world.tables.field_definitions.push({
+      id: "field-background",
+      campaign_id: campaign,
+      applies_to: "pc",
+      key: "background",
+      label: "Background",
+      type: "text",
+      choices: [],
+      field_group: "Who they are",
+      sort_order: 90,
+      show_on_card: false,
+      hidden: false,
+      fill: null,
+      required: false,
+      from_list: null,
+      created_at: "2026-10-18T12:00:00Z",
+    });
+    const actor = world.tables.actors.find((a) => a.id === wren)!;
+    Object.assign(actor, {
+      fields: {
+        ...(actor.fields as Record<string, unknown>),
+        motto: "Ask the water first.",
+        alignment: "Lantern",
+        background: "eel-catcher",
+      },
+      backstory: "Wren cut reeds on the Ash Barrows.",
+    });
+    const user = userEvent.setup();
+    render(<Root db={world.db} />);
+    await openPlayer(user);
+    const details = await screen.findByRole("region", { name: "Details" });
+    await user.click(within(details).getByRole("button", { name: "Details" }));
+    await waitFor(() =>
+      expect(details.querySelector(".book-line")).not.toBeNull(),
+    );
+    const lines = [...details.querySelectorAll(".book-line")].map(
+      (l) => l.textContent,
+    );
+    expect(lines).toEqual([
+      "Motto Ask the water first.",
+      "Kindred Bog folk. Short, damp and hard to drown.",
+      "Class Lantern Warden. Keeps the light alive and the dark at bay.",
+      "Leaning Lantern. Keeps the lights lit for everyone.",
+      "Background Eel catcher. Knows the channels and their moods.",
+      "Backstory Wren cut reeds on the Ash Barrows.",
+    ]);
+    await opensSheet(
+      user,
+      within(details).getByRole("button", { name: "Bog folk: open its entry" }),
+      "Bog folk",
+    );
   });
 
   it("is open again when the Player tab is opened again after Details was left open (euf-1, P1)", async () => {

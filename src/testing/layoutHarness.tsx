@@ -1262,7 +1262,7 @@ if (callsFlag === '1' || callsFlag === 'many' || callsFlag === 'long') {
 // (plan light-tap, page 35); ?p1=armour: the load in armour mode, carrying treasure (pss-12).
 // ?p1=spells: a caster with pinned spells At hand (Player sitting piece 2; frame M4g).
 const p1Flag = new URLSearchParams(window.location.search).get('p1');
-if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noline' || p1Flag === 'classless' || p1Flag === 'heavy' || p1Flag === 'modes' || p1Flag === 'weapon' || p1Flag === 'arms' || p1Flag === 'bare' || p1Flag === 'packless' || p1Flag === 'skills' || p1Flag === 'finish' || p1Flag === 'pins' || p1Flag === 'unlit' || p1Flag === 'several' || p1Flag === 'burnt' || p1Flag === 'burntnone' || p1Flag === 'longlight' || p1Flag === 'armour' ||
+if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noline' || p1Flag === 'classless' || p1Flag === 'heavy' || p1Flag === 'modes' || p1Flag === 'weapon' || p1Flag === 'arms' || p1Flag === 'bare' || p1Flag === 'packless' || p1Flag === 'skills' || p1Flag === 'finish' || p1Flag === 'pins' || p1Flag === 'unlit' || p1Flag === 'several' || p1Flag === 'burnt' || p1Flag === 'burntnone' || p1Flag === 'longlight' || p1Flag === 'armour' || p1Flag === 'details' ||
   p1Flag === 'spells'
 ) {
   const { addP1Character } = await import('./layoutP1Character.ts');

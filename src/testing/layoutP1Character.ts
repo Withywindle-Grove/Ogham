@@ -41,6 +41,8 @@ const TURN = 600;
  * `spells`, a caster with pinned spells (Player sitting piece 2; frame M4g): Marsh light ready twice, one cast, with a
  * roll and a range; a long-named spell with none left; Hush with no roll and no range; Reed whisper in the book but not
  * ready today; and a pin whose spell has left the book (ignored). Invented spells and figures.
+ * `details`, Details as frame P3 draws it (pib-3): a long motto, a Background from the kindred's list (the field the
+ * others leave out) and a long backstory, so Kindred, Class, the alignment and the Background each carry an entry tap.
  * `1`, the four of P1. */
 /** The long-named pinned spell (`spells`, frame M4g's right panel). */
 export const P1_LONG_SPELL = 'The Lady of the Lanterns’ light on drowned stone';
@@ -68,6 +70,7 @@ export type P1Head =
   | 'burntnone'
   | 'longlight'
   | 'armour'
+  | 'details'
   | 'spells';
 
 export async function addP1Character(
@@ -191,7 +194,7 @@ export async function addP1Character(
   // The sheet's fields, from the fixture's template (as ?full=1).
   type Field = { key: string; label: string; type: string; group?: string; fill?: string; choices?: string[]; required?: boolean; from?: string };
   ((fenPack.fieldTemplates?.[0]?.fields ?? []) as Field[])
-    .filter((f) => f.key !== 'hp' && !f.from)
+    .filter((f) => f.key !== 'hp' && (!f.from || (head === 'details' && f.key === 'background')))
     .forEach((f, order) => {
       const type = f.type === 'list' && !f.choices?.length ? 'text' : f.type;
       // The speed's field is named "Speed", as frame P1 names it ("Speed, 40 paces in a fight").
@@ -208,6 +211,14 @@ export async function addP1Character(
     classes: head === 'classless' ? [] : [{ classRef: 'lantern-warden', level: 3, xp: 3400 }],
     ...(head === 'spells' ? { spell_book: ['marsh-light', 'lady-lanterns', 'hush', 'reed-whisper'] } : {}),
   });
+  // Details as P3 draws it (pib-3), its messy data: long words, and a Background with an entry. Invented.
+  if (head === 'details') {
+    const actor = world.tables.actors.find((a) => a.id === brannoch)!;
+    Object.assign(actor, {
+      fields: { ...(actor.fields as Record<string, unknown>), motto: 'Keep the beacon burning on the causeway, whatever the fen sends up out of the dark water, and never ask its name.', background: 'eel-catcher' },
+      backstory: 'Brannoch kept the Seven Drowned Cairns beacon for nine winters, until the winter the oil boats did not come up the channel. He has not said what he found at the last cairn, and he has not been back. He took the Beacon Keepers’ coin because it was going the other way.',
+    });
+  }
   world.addMember(campaign, sam, 'player', brannoch);
   // A score sent to the GM and waiting (the sheet's waiting-change line, drawn on the Player screen since C1; dec-13 C11).
   // Two notices for the notices box (row C1): the languages put off for later ("To finish") and the change below.
