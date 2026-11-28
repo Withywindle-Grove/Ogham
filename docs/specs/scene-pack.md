@@ -229,7 +229,7 @@ Every row is visible and has an approved frame. None changes what is stored or w
 - The toast is the shared toast in the ruled dress (tr-1, tr-11, tr-12): it goes by itself, with no Undo. It raises no card, no count and no tag.
 - The GM's own screen raises none (the GM's send has its own toast, with Undo, as built). Only a GM's send counts: a player's "Put in" raises none.
 - A long name and ×999 wrap and are never cut.
-- Sitting B (sb4-1 to sb4-3): no toast for a send made while the app was closed or offline; the toast waits until a toast still showing its Undo goes; the GM's Undo of a send goes to the Log only, with no toast.
+- Sitting B (sb4-1 to sb4-3): no toast for a send made while the app was closed or offline; the toast replaces any toast showing, as tr-7 rules (the player's Undo stays in the Log); the GM's Undo of a send goes to the Log only, with no toast.
 
 **Piece G: the Scene's slot (K18d, built)**
 - As its `pr-text.md` says: K18b's card in the calls' one place in the prompt slot (`CallsInPromptSlot` gains a `find`), one live region, focus to the waiting call's "Got it", no calls group around a find card alone, "Got it" writing the mark once with no toast. The card is for the player's own active character among the Scene's marchers. The GM's view and another player's Scene draw none.
@@ -299,7 +299,7 @@ The three seams Francis approved (28 Nov, "Yes"). There is no database seam: no 
 | ⚑ | Row | Ruling | Francis |
 |---|---|---|---|
 | B1 (sb4-1) | K18e | A: no toast for a stash send made while the player's app was closed or offline; the stash's row and the Log say it (Piece F) | "A" |
-| B2 (sb4-2) | K18e | A: the stash toast waits until a toast still showing its Undo goes (Piece F) | "A" |
+| B2 (sb4-2) | K18e | A (re-asked): the stash toast replaces the one showing, as tr-7 rules; the Undo stays in the Log (Piece F) | "A" |
 | B3 (sb4-3) | K18e | A: the GM's Undo of a stash send goes to the Log only, no toast (Piece F) | "A" |
 | B4 (sb4-4) | sf-6b | A: a shown person piece's "Carries" line goes under "Only you see these details." (l4-2 over page 50) (Piece B) | "A" |
 | B5 (sb4-5) | sf-10 | A: only one of the pair shows at half the row's width, at the leading edge (Piece I) | "A" |
