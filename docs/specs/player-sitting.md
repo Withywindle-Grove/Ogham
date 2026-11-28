@@ -37,9 +37,9 @@ The Player tab does what the sitting ruled:
 | 4 | Down | At the rules' `death.at`, a Status ring "Down" shows among the character's other statuses in the head | None: approved from a picture of the built screen | pss-7, psb-1 to psb-3 |
 | 5 | Weapon blocks | A weapon block for every weapon in hand, no cap. A weapon worn ready is an At hand row with Attack; every other ready weapon is a row with Wield | P5b; approved 2026-11-27 | pss-8, pib-1, pib-2 |
 | 6 | Armour mode's load card | No "Move N" on its top line. The speed is said once, in the speed tile | None: approved from a picture of the built card | pss-12 |
-| 7 | A long name on a phone | A cut name leaves the bar and leads the head's line, as on an upright tablet | **Owed**: 38-3 at 375 px, light and dark | pss-14 |
-| 8 | Icons | Fire, Drink, Eat and Stance each get an icon | **Owed**: the icon page; Francis picks | pss-10 |
-| 9 | A lit light with charges | One row: the light's ring, with Use on it. No second item row | **Owed**: the light block with a Use button | pss-17 |
+| 7 | A long name on a phone | A cut name leaves the bar and leads the head's line, as on an upright tablet | Frame 47-1, `december/47-player-sitting-frames.html`, approved 2026-11-28 (47-1 A1: the bar's middle stays empty; #169) | pss-14, p47-1 |
+| 8 | Icons | Fire, Drink, Eat and Stance each get an icon | Frame 47-2, same page, approved 2026-11-28: Fire striking-arrows, Drink round-bottom-flask, Eat bread, Stance pikeman (#170) | pss-10, p47-2 |
+| 9 | A lit light with charges | One row: the light's ring, with Use on it. No second item row | Frame 47-3, same page, approved 2026-11-28: C2 (Use on the light's row only while lit; otherwise the item's own row with Use, as built), D1 (charges at the end of the light's line, in words); check that Use a charge on this row has Undo (#171) | pss-17, p47-3 to p47-5 |
 | 10 | "Quiver" | A blocked Attack's button says the mode's own word: "Quiver", "Pouch", "Grip", "Stance" | None: words only | ic-3 |
 
 Pictures owed with this work, nothing new to build: "none left" on a trait as built (pss-2); P5's middle column and the spent mode (pss-3); P5b's open parts (pss-4). They go in the pull request of the piece that touches the same screen part (see Further Notes).
@@ -161,13 +161,13 @@ Pictures owed with this work, nothing new to build: "none left" on a trait as bu
 **Piece 6, armour mode's load card**
 - Where the speed tile shows (`speedOnce`), armour mode's top line says the burden's name without "Move N", as slot bands do (of-6). Where no speed tile shows, the words stay as today.
 
-**Piece 7, a long name on a phone (blocked by its frame)**
+**Piece 7, a long name on a phone (frame 47-1 approved 2026-11-28, A1; p47-1)**
 - The upright tablet's rule (`PlayerHead`'s head name, the bar's cut title hidden) extends to a phone. Build to the approved 38-3 at 375 px.
 
-**Piece 8, icons (blocked by the icon page)**
+**Piece 8, icons (frame 47-2 approved 2026-11-28: striking-arrows, round-bottom-flask, bread, pikeman; p47-2)**
 - The four icons join `ACTION_ICONS`. Each is one of the app's icon set, as Francis picks.
 
-**Piece 9, a lit light with charges (blocked by its frame)**
+**Piece 9, a lit light with charges (frame 47-3 approved 2026-11-28, C2, D1, finding 9: check that Use a charge on this row has Undo; p47-3 to p47-5)**
 - When the lit light's item is itself At hand and has charges, the item's own row is not drawn. The light's row (`LightInAtHand`) carries Use beside its ring. Use runs the existing charge command. Build to the approved frame.
 
 **Piece 10, "Quiver"**

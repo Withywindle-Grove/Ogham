@@ -133,6 +133,9 @@ describe('fewer links (fl-1): no action is drawn as underlined text', () => {
       // The players' card (P4; page 24, PL1b, approved 2026-11-18): the same mark, only once the piece it names is shown.
       // Not a control: a paragraph's words.
       ['.players-place__named', "a description's word naming a shown piece, bold and underlined (p2p-24, PL1b)"],
+      // p45-16 (2026-11-26; page 45, FD3 and FD3b, approved 2026-11-26): the find card's "and N more" goes somewhere
+      // (the Pack at the new rows), underlined as a link is, with the row's chevron (fl-1 allows text that goes somewhere).
+      ['.find-card__more-words', "the find card's “and N more”, opening the Pack at the new rows (p45-16, FD3b)"],
     ]);
     const underlined = css.flatMap(([path, text]) =>
       [...text.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*)\}/g)]

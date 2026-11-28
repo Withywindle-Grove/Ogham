@@ -31,6 +31,11 @@
   overflow-wrap: break-word;
 }
 
+/* A thing's name on the hoard's sheet, in the book's bold (FD5, TR2; ⚑ 5 of #158, B, 28 Nov); the edit row stays plain. */
+.hoard-sheet__name {
+  font-weight: var(--weight-book-name);
+}
+
 /* PK5's two equal answers, full width, one under the other. */
 .hoard-sheet__answers {
   display: flex;

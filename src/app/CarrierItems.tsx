@@ -136,6 +136,14 @@ function GroupNote({ title, note }: { title: string; note: string }) {
   );
 }
 
+/** A group's lines with the new ones first, newest first (K20b; FD3: "new rows first under Carried"), then the rest as they were. */
+export function newFirst<T extends { id: string }>(lines: readonly T[], newLines: readonly string[]): T[] {
+  if (newLines.length === 0) return [...lines];
+  const rank = new Map(newLines.map((id, i) => [id, i] as const));
+  const fresh = lines.filter((l) => rank.has(l.id)).sort((a, b) => rank.get(a.id)! - rank.get(b.id)!);
+  return [...fresh, ...lines.filter((l) => !rank.has(l.id))];
+}
+
 export function CarrierItems({
   db,
   user,
@@ -174,7 +182,13 @@ export function CarrierItems({
   tinyCategories,
   rowNote,
   rowEnd,
+  newLines = [],
 }: {
+  /**
+   * New until Got it (K20b; FD3, FD8b, p45-6, p45-11): the new lines' ids, newest first. Each carries the "New" tag
+   * wherever it lies, and stands first in its group in this order; the rest keep the list's own order.
+   */
+  newLines?: readonly string[];
   /**
    * The tiny item categories (`CampaignSetting.tinyCategories`): given, the tiny things leave their groups for a folded
    * "Tiny things" section before Other (SC-5-2), as on the sheet's Pack load. Left out (At hand, the stash, waiting): no split.
@@ -252,8 +266,9 @@ export function CarrierItems({
         ? packGroupsWithTiny(allLines, mode, rules, tinyCategories, categoryName)
         : groupPack(allLines, mode, rules, categoryName, { stash: carrier.locationId !== null })
       )
-        .map((g) => ({ ...g, lines: g.lines.filter((l) => shown.has(l.id)) }))
+        .map((g) => ({ ...g, lines: newFirst(g.lines.filter((l) => shown.has(l.id)), newLines) }))
         .filter((g) => g.lines.length > 0);
+  const isNew = new Set(newLines);
   // The Tiny things section starts collapsed, then stays as it was left on this device (like the other folds).
   const [tinySaved, setTinyOpen] = useFoldOpen('tiny');
   const tinyOpen = tinySaved ?? false;
@@ -458,6 +473,7 @@ export function CarrierItems({
                     inflicts={inflicts}
                     modeView={state}
                     tiny={tiny}
+                    isNew={isNew.has(line.id)}
                     note={rowNote?.(line) ?? null}
                     end={rowEnd?.(line) ?? null}
                   />

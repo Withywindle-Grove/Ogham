@@ -134,6 +134,20 @@ describe('findCard', () => {
     expect(names(c)).toEqual(['Your GM took back the Moon opals ×2.', 'Your GM took back the Bronze ring.']);
   });
 
+  // Purpose: a card of one thing keeps its giver and time, said once under the head, once that thing is taken back
+  // (FD11b's drawing fix 2, approved 2026-11-26), and a live card of one thing still says them on its line.
+  it('one thing taken back keeps its giver and time under the head', () => {
+    expect(findCard([thing('Bronze ring', { takenBack: back })], words)).toEqual({
+      head: 'New in your pack', once: 'From your GM, just now.', more: 0,
+      lines: [{ kind: 'back', words: 'Your GM took back the Bronze ring.', entry: expect.anything() }],
+    });
+    const tam = { kind: 'character', characterId: 'tam' } as const;
+    expect(findCard([thing('Silver key', { who: tam, at: '2026-12-04T11:00:00.000Z', takenBack: { byGm: false, at: NOW } })], words)!.once).toBe('Tam gave it to you, day 3.');
+    expect(findCard([thing('Moon opals', { arrived: 2, who: tam, takenBack: back })], words)!.once).toBe('Tam gave them to you, just now.');
+    expect(findCard([coin({ takenBack: back })], words)).toMatchObject({ head: 'New in your coin', once: 'From your GM, just now.' });
+    expect(findCard([thing('Bronze ring')], words)!.once).toBeNull();
+  });
+
   // Purpose: coin and a name starting with "The" take no "the"; a giver's own Undo names the giver (F8, ruled 2026-11-26).
   it('taken-back words', () => {
     const c = findCard([

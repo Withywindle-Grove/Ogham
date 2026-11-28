@@ -1,0 +1,179 @@
+/* The find card (K18b; page 45's card, shared/book.css's .cardb as PK2 drew it, with page 45's own additions). Tokens only.
+   The box: the book's card, a 2 px ink edge in light and in dark alike (page 45 draws the ink edge in its dark frames;
+   the call card's lighter dark edge is that card's own audit finding), the card's radius, the sheet behind it.
+   The head: the book's sub-heading. A line: the name in the book's bold, a stack's new count in the plain weight, who
+   and when in the quiet 14 px line under it. A quiet line (p45-25): 16 px, the plain weight, the quiet colour, standing
+   over the hidden line it replaced so it never takes less room. "and N more": a 44 px row, underlined, with the row's
+   chevron, 8 px above the foot. "Got it": the stacked button, at the foot on the right, or beside a one-thing card's line
+   (p45-14), keeping its width while the words wrap beside it. */
+
+/* The card takes its column's width, whatever its host's alignment (a column that shrinks its children to fit). */
+.find-card-live {
+  inline-size: 100%;
+}
+
+/* With no finds the region stays in the page, empty (local review of #158, finding 1), out of its column's flow so the
+   column leaves no gap for it and it takes no room (as the call card's empty slot does). */
+.find-card-live:empty {
+  position: absolute;
+  inline-size: auto;
+}
+
+.find-card {
+  border: var(--line-selected) solid var(--ink);
+  border-radius: var(--radius-card);
+  background: var(--sheet);
+  color: var(--ink);
+  padding: var(--space-3);
+  font-family: var(--font-book-text);
+  font-size: var(--text-16);
+  line-height: var(--line-body);
+}
+
+/* FD9's box under the card: the same box, 8 px below it. */
+.find-card--box {
+  margin-block-start: var(--space-2);
+}
+
+.find-card__head {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-book-text);
+  font-weight: var(--weight-book-subhead);
+  font-size: var(--text-20);
+  line-height: var(--line-heading);
+  color: var(--book-subhead);
+  overflow-wrap: anywhere;
+}
+
+.find-card__lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.find-card__line {
+  margin-block-end: var(--space-2);
+}
+
+/* A quiet line and the hidden line under it share one cell: the taller one sets the height. */
+.find-card__line--back {
+  display: grid;
+}
+
+.find-card__line--back > * {
+  grid-area: 1 / 1;
+  min-inline-size: 0;
+}
+
+.find-card__ghost {
+  visibility: hidden;
+}
+
+.find-card__what,
+.find-card__back,
+.find-card__words {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.find-card__name {
+  font-weight: var(--weight-book-name);
+}
+
+.find-card__now {
+  font-weight: var(--weight-book-text);
+}
+
+.find-card__quiet {
+  margin: 0;
+  font-size: var(--text-14);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.find-card__once {
+  margin-block-end: var(--space-2);
+}
+
+.find-card__back {
+  color: var(--muted);
+}
+
+/* p45-14: a one-thing card's "Got it" beside its line, centred on it; the line takes the rest of the width. */
+.find-card__one {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.find-card__one > .find-card__lines {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.find-card__one .find-card__line {
+  margin-block-end: 0;
+}
+
+/* FD11b's fix 2: a one-thing card taken back. Its giver and time, then the quiet line, over the hidden former line (the
+   name, then the giver and time) in one cell, so the column is never shorter than it was and "Got it" keeps its place. */
+.find-card__held {
+  display: grid;
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.find-card__held > * {
+  grid-area: 1 / 1;
+  min-inline-size: 0;
+}
+
+/* The secondary button sets its own align-self (flex-start): here it is centred on the line, as FD3c C and FD4b B draw. */
+.find-card__one > .find-card__got-it {
+  flex: none;
+  align-self: center;
+}
+
+/* p45-16: "and N more", a row the card's width, 44 px tall. */
+.find-card__more {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-block-size: var(--tap);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: var(--weight-book-name);
+  text-align: start;
+  cursor: pointer;
+}
+
+.find-card__more-words {
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+  overflow-wrap: anywhere;
+}
+
+.find-card__chevron {
+  display: inline-flex;
+  flex: none;
+  inline-size: var(--tap);
+  block-size: var(--tap);
+  align-items: center;
+  justify-content: center;
+}
+
+.find-card__foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-block-start: var(--space-1);
+}
+
+.find-card__more + .find-card__foot {
+  margin-block-start: var(--space-2);
+}
