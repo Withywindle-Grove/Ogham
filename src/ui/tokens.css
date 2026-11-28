@@ -138,6 +138,8 @@
      On the Player tab a pop-up fits its content between the two. */
   --popup-width-min: 440px;
   --popup-width-max: 720px;
+  /* An encounter table's page (sf-14; page 44, ET1): its tapped table, capped so a row's range and words stay close. */
+  --tapped-table-max: 640px;
 
   /* Tap targets */
   --tap: 44px;

@@ -372,7 +372,7 @@ it('a 3-day trek: weather, a lost check, a forage and a camp, each step checked'
   const readRow = async (name: string, key: string) => {
     const pick = within(await screen.findByRole('dialog', { name: /^Prowlers.*, Hit$/ }));
     await user.click(pick.getByRole('button', { name: /^Fen prowlers/ }));
-    await user.click(within(await screen.findByRole('dialog', { name: 'Fen prowlers' })).getByRole('button', { name: /Bog lurkers/ }));
+    await user.click(within(await screen.findByRole('dialog', { name: 'Fen prowlers' })).getByRole('radio', { name: /Bog lurkers/ }));
     await waitFor(() => expect(live(world.tables.check_results).at(-1)).toMatchObject({ name, check_key: key, outcome: 'hit', row_text: 'Fen prowlers: Bog lurkers (1d4)' }));
     // Escape closes the tables (the same before and after the full screen's ✕, PR #326).
     for (let i = 0; i < 3 && screen.queryByRole('dialog'); i++) await user.keyboard('{Escape}');
