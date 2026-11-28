@@ -342,8 +342,9 @@ export function CharacterStatuses({
     // the same way (it has no tap of its own until M6).
     const listed = headStatusList(mine, hp?.current ?? null, hp?.downAt ?? null);
     const down = listed[0]?.kind === 'down';
+    const others = listed.flatMap((r) => (r.kind === 'status' ? [r.status] : []));
     const leading = (down ? 1 : 0) + (extra ? 1 : 0);
-    const count = mine.length + leading;
+    const count = others.length + leading;
     if (count === 0 && !addButton) return null;
     const shown = count <= HEAD_RINGS ? count : Math.min(inView, count);
     // One or two: the name and time in words beside the ring (P2); three or more: the ring alone (P1).
@@ -354,7 +355,7 @@ export function CharacterStatuses({
           <StatusRingRow>
             {down && downRing(layout)}
             {extraOf(layout)}
-            {mine.slice(0, Math.max(0, shown - leading)).map((s) => ringOf(s, layout))}
+            {others.slice(0, Math.max(0, shown - leading)).map((s) => ringOf(s, layout))}
             {count > shown && <StatusRingMore count={count - shown} onOpen={() => setAll(true)} />}
           </StatusRingRow>
         )}

@@ -148,7 +148,7 @@ export function StatusRingTap({
 
 /**
  * A status as its tile: the ring, the name, the time left in words; the whole tile is the tap. `label` is what a
- * screen reader hears ("Blessed, 3 turns left. Details"). Variant **still** (no `onOpen`; "Down" in the head until M6
+ * screen reader hears ("Blessed, 3 turns left. Details"). Variant **static** (no `onOpen`; "Down" in the head until M6
  * builds the death panel, ruled 2026-11-28): the same tile drawn as a status, not a button, read aloud as `label`.
  */
 export function StatusRing({ words, label, onOpen, layout = 'tile', ...look }: RingLook & { words: string; label: string; onOpen?: () => void; layout?: RingLayout }) {
@@ -182,7 +182,7 @@ export function StatusRing({ words, label, onOpen, layout = 'tile', ...look }: R
   );
   if (!onOpen) {
     return (
-      <span className={`${className} status-ring--still`} role="img" aria-label={label}>
+      <span className={`${className} status-ring--static`} role="img" aria-label={label}>
         {inside}
       </span>
     );

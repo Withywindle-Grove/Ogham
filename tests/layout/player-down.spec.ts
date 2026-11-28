@@ -7,7 +7,8 @@
 //   2. Down counts among the rings in view and the "+N": ten in all, four in view and "+6" on a tablet, three and "+7"
 //      on a phone; the "+N" sheet still holds the nine statuses (Down has no sheet of its own to open there).
 //   3. Nothing under the hit points bar says Down.
-//   4. The shared checks: no sideways scroll, 44 px targets, nothing under 14 px, axe on the head.
+//   4. Down with no other status (`&down=alone`): the word "Down" beside its ring, inside the screen.
+//   5. The shared checks: no sideways scroll, 44 px targets, nothing under 14 px, axe on the head.
 import { expect, test, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
@@ -17,8 +18,8 @@ const SIZES = [
 ] as const;
 const SCHEMES = ['light', 'dark'] as const;
 
-async function openDown(page: Page) {
-  await page.goto('/layout.html?as=player&p1=messy&down=1');
+async function openDown(page: Page, down: '1' | 'alone' = '1') {
+  await page.goto(`/layout.html?as=player&p1=messy&down=${down}`);
   await page.getByRole('button', { name: /The Storm Lantern Road/ }).click();
   await expect(page.locator('.player-head .status-ring').first()).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
@@ -69,6 +70,25 @@ for (const scheme of SCHEMES) {
         await more.click();
         const sheet = page.getByRole('dialog', { name: 'Statuses' });
         await expect(sheet.locator('.status-ring')).toHaveCount(9);
+      });
+
+      test(`Down alone: the word beside its ring, no "+N" (${size.name}, ${scheme})`, async ({ page }) => {
+        await page.setViewportSize({ width: size.width, height: size.height });
+        await openDown(page, 'alone');
+        const rings = page.locator('.player-head .status-ring-row > .status-ring');
+        await expect(rings).toHaveCount(1);
+        const down = rings.first();
+        await expect(down).toHaveAttribute('aria-label', 'Down');
+        const word = down.locator('.status-ring__name');
+        await expect(word).toHaveText('Down');
+        await expect(word).toBeVisible();
+        const mark = (await down.locator('.status-ring__mark').boundingBox())!;
+        const words = (await word.boundingBox())!;
+        expect(words.x).toBeGreaterThanOrEqual(mark.x + mark.width);
+        expect(words.x + words.width).toBeLessThanOrEqual(size.width);
+        await expect(page.locator('.player-head .status-ring-more')).toHaveCount(0);
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page, '.player-head')).toEqual([]);
       });
     }
   });

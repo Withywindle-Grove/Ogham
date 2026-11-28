@@ -112,8 +112,8 @@
   overflow-wrap: anywhere;
 }
 
-/* Variant still: a status with no tap ("Down" until M6 builds the death panel, ruled 2026-11-28): no pointer. */
-.status-ring--still {
+/* Variant static: a status with no tap ("Down" until M6 builds the death panel, ruled 2026-11-28): no pointer. */
+.status-ring--static {
   cursor: default;
 }
 
