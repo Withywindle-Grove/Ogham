@@ -50,7 +50,7 @@
 </style>
 </head>
 <body>
-<p style="margin:1rem;padding:.75rem 1rem;border:1px solid currentColor"><strong>Drawn 2026-11-28 for loop 5's sitting A. Not approved yet.</strong> Row TC8 of <code>docs/plans/dec-16-town-carry.md</code> (with W7c of <code>dec-3-the-whole-town.md</code>): a place's picture whose file does not arrive. The words are ruled (2026-11-25, ⚑ 5): one line, "The picture couldn't load. Try again.", for the failed file and for today's "couldn't be opened". This page is the frame that ruling asked for. Ruling file: <code>docs/design/rulings/loop5-town-2026-11-28.md</code> (⚑ T4, ⚑ T5).</p>
+<p style="margin:1rem;padding:.75rem 1rem;border:1px solid currentColor"><strong>Drawn 2026-11-28 for loop 5's sitting A. Approved 2026-11-28, with finding 1.</strong> Row TC8 of <code>docs/plans/dec-16-town-carry.md</code> (with W7c of <code>dec-3-the-whole-town.md</code>): a place's picture whose file does not arrive. The words are ruled (2026-11-25, ⚑ 5): one line, "The picture couldn't load. Try again.", for the failed file and for today's "couldn't be opened". This page is the frame that ruling asked for. Ruling file: <code>docs/design/rulings/loop5-town-2026-11-28.md</code> (l5-4, l5-5).</p>
 <script src="../creation/final/final.js"></script>
 <script src="../scene/scene.js"></script>
 <script src="december.js"></script>
@@ -97,6 +97,7 @@ const k3 = frame('52-3', `<b>52-3. The players' card</b> (page 24's PL1b): the p
 
 mount(`
   <h1>Page 52: a picture that fails to load</h1>
+  <p class="note"><b>Approved 2026-11-28, with finding 1</b> (l5-4): the map's failed line says “The map's picture couldn't load.”, so a failed picture is said one way. 52-3 A: a player gets the same line and Try again (l5-5). Findings 2 to 5: none to act on. Nothing redrawn: no frame draws the map's line.</p>
   <p class="note"><b>Drawn 2026-11-28 for loop 5's sitting A</b> (driver's brief, row loop5-sitting-a). The frame TC8 waits for (2026-11-25, ⚑ 5: “one small frame: the row, the pop-up, the players' card; light and dark”). <b>What it replaces:</b> today a failed link reads “The picture couldn't be opened. Check your connection.” with no way to ask again, and a file that fails after its link shows the browser's broken mark. Both become the one line and Try again. The pattern is the map's failed picture as built (the warning sign, the line, a plain Try again), so a failed picture looks one way in the app.</p>
   <h1>52-1. The picture row on the GM's card</h1>
   ${k1}
@@ -117,7 +118,7 @@ mount(`
   <table class="sc">
     <tr><th>Heuristic</th><th>0 to 4</th><th>Why</th></tr>
     <tr><td>Visibility of system status</td><td>3</td><td>The line says what failed; “asking again” shows only the still block, with no words (finding 3).</td></tr>
-    <tr><td>Match to the user's language</td><td>3</td><td>Ruled words; the map says “didn't load” where this says “couldn't load” (finding 1).</td></tr>
+    <tr><td>Match to the user's language</td><td>3</td><td>Ruled words; the map's line says it in other words today; it becomes “couldn't load” too (finding 1, picked).</td></tr>
     <tr><td>User control and freedom</td><td>4</td><td>Try again, Change and Take it off all stay; nothing traps.</td></tr>
     <tr><td>Consistency</td><td>3</td><td>The map's pattern reused; the GM's row stops opening its pop-up while failed (finding 2).</td></tr>
     <tr><td>Error prevention</td><td>3</td><td>The eye stays live on a failed row; a GM could show a picture they cannot see (finding 4).</td></tr>
@@ -129,7 +130,7 @@ mount(`
     <tr><th>Total</th><th>33 of 40</th><th></th></tr>
   </table>
   <ol class="crit">
-    <li><b>Two failed pictures, two sets of words.</b> The map (built) says “The map's picture didn't load.”; this says “The picture couldn't load.” (ruled). Fix: the map's line becomes “The map's picture couldn't load.” in the same row, so the app says it one way. (<code>clarify</code>)</li>
+    <li><b>Two failed pictures, two sets of words.</b> The map (built) words its failed line apart from this one, “The picture couldn't load.” (ruled). Fix: the map's line becomes “The map's picture couldn't load.” in the same row, so the app says it one way. (<code>clarify</code>) <b>Picked, 2026-11-28 (l5-4).</b></li>
     <li><b>52-1: the row stops being a tap while it fails.</b> Today the row opens the picture's pop-up. A failed row opening a pop-up of the same failure is a wasted tap, so Try again is the only tap; but the GM who wants Change or Take it off must Try again first or wait. Kept as drawn; noted. (<code>layout</code>)</li>
     <li><b>“Asking again” has no words for sight.</b> The still block is how the card loads everywhere today, so it is consistent; a screen reader hears “loading”. No change proposed. (<code>harden</code>)</li>
     <li><b>The eye on a failed row stays live.</b> The GM can show a picture they cannot see at that moment. It is the GM's own picture, already chosen; the players' devices read it on their own. No change proposed. (<code>harden</code>)</li>
