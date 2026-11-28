@@ -16,6 +16,7 @@ import { CompanyPage } from './CompanyPage.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { LogSheet, useLogVersion } from './campaignLog.tsx';
 import { usePhone } from './useWide.ts';
+import { useCutEdges } from './useCutEdges.ts';
 import { phoneTabs, playerTabs, type PlayerTab } from './navTabs.ts';
 import { noteTab, tabRestored, tabToRestore } from './placeOnReload.ts';
 import { hasSpells, MagicTab } from './MagicTab.tsx';
@@ -182,6 +183,10 @@ export function PlayerScreen({
   const [opened, setOpened] = useState(false);
   const [readAgain, setReadAgain] = useState(0);
   const onPackRead = useCallback(() => setPackRead(true), []);
+  // The left column, where it scrolls by itself (a landscape tablet, the Player tab): a fade on an edge only while
+  // something is cut there (plan dec-14 row 5, frame 38-5).
+  const [playColumn, setPlayColumn] = useState<HTMLElement | null>(null);
+  const cut = useCutEdges(playColumn);
 
   useEffect(() => {
     let current = true;
@@ -407,7 +412,14 @@ export function PlayerScreen({
       {/* Every pop-up on Player and Pack is a Sheet (plan m5b-players-screens-standard A4); Scene keeps its own until
           the sweep. */}
       <SheetScope.Provider value={tab !== 'scene'}>
-      <div className={current === 'player' ? 'player__pane player__pane--play' : 'player__pane'}>
+      <div
+        ref={wide && current === 'player' ? setPlayColumn : undefined}
+        className={
+          current === 'player'
+            ? `player__pane player__pane--play${cut.above ? ' player__pane--cut-above' : ''}${cut.below ? ' player__pane--cut-below' : ''}`
+            : 'player__pane'
+        }
+      >
         <RetiredBanner db={db} user={user} campaign={campaign} />
         {current === 'player' ? (
           // The left column (dec-13 C1, ps-2): the head, hit points, armour class and attack, At hand (the weapon in
