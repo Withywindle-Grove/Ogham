@@ -59,17 +59,20 @@ for (const size of [
     test.describe(`the GM's small line names things (${size.name}, ${scheme})`, () => {
       test.use({ viewport: { width: size.width, height: size.height }, colorScheme: scheme });
 
-      // Purpose: an item beside a value, an item alone, a creature with its count and note and a character read by
-      // name; an unknown id is left out; a long name wraps whole; no id is on the page; the page passes the checks.
+      // Purpose: an item beside a value, an item alone, a creature with its count and a character read by name, each
+      // on its own detail row since sf-6b (#205), a value kept in the small line; an unknown id says it isn't in your
+      // packs; a long name wraps whole; no id is on the page; the page passes the checks.
       test('names, never ids', async ({ page }) => {
         await page.goto('/layout.html?as=gm&placePage=spot&ids=1');
         await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
-        await expect(page.getByText('Value stays yours (40 herons, Item: Silver-tipped arrows).')).toBeVisible();
-        const long = page.getByText(/^Value stays yours \(Item: Lantern Warden’s hooked pole of the drowned customs house, with its spare wick\)\.$/);
+        await expect(page.getByText('Value stays yours (40 herons).')).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Silver-tipped arrows: read it' })).toBeVisible();
+        const long = page.locator('.book-detail__name', { hasText: /^Lantern Warden’s hooked pole of the drowned customs house, with its spare wick$/ });
         await expect(long).toBeVisible();
-        await expect(page.getByText('The stat line never shows (Bog lurker ×6 (asleep under the planks)).')).toBeVisible();
-        await expect(page.getByText('The stat line never shows (NPC: Oswy the ferryman).')).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Bog lurker: read it' })).toContainText('Bog lurker ×6');
+        await expect(page.getByRole('button', { name: 'Oswy the ferryman: read it' })).toBeVisible();
         await expect(page.getByText('Value stays yours (3 sp).')).toBeVisible();
+        await expect(page.getByText('Not in your packs: a thing')).toBeVisible();
         expect(await page.locator('body').innerText()).not.toMatch(IDS);
         // The long name wraps, never cut: its box shows all of it.
         expect(await long.evaluate((el) => el.scrollWidth <= el.clientWidth && getComputedStyle(el).textOverflow !== 'ellipsis')).toBe(true);

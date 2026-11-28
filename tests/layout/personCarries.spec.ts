@@ -2,8 +2,8 @@
 // the layout page's wreck with Mother Sedge on it (`layout.html?as=gm&placePage=wreck&carries=…`; src/testing/
 // layoutHarness.tsx), in a real browser at 1024 px and 375 px, light and dark. Test pictures under
 // test-results/layout-screens/carries-*.png, to be set beside page 50's frames. Purposes, in plain words:
-//   50-1, 50-2 A. Her piece says "Only you see this." and "Carries: warden’s lantern, iron key."; after her stat line on
-//        a tablet, above it on a phone (finding 5).
+//   50-1, 50-2 A. Her piece says "Only you see this." and "Carries: warden’s lantern, iron key."; after her row on a
+//        tablet, in her row under her name on a phone (finding 5; her row is sf-6b's detail row, #205).
 //   50-1, 50-2 B. Her words open her sheet: the place over her name, "Carries", a row a thing with its note, the edit
 //        row; no "Send all" and no accent (finding 1).
 //   50-2 C. A thing's row opens its sheet: To a character, To the party stash, no edit row.
@@ -31,9 +31,6 @@ async function open(page: Page, scheme: 'light' | 'dark', carries: string) {
   await page.evaluate(() => document.fonts.ready);
 }
 
-/** Her piece's lines in order, as drawn: her words, the label, her stat line and her Carries line. */
-const linesOf = (page: Page) =>
-  page.locator('.place-page__piece').filter({ has: page.locator('.person-carries') }).locator('.place-page__piece-words > span').allTextContents();
 
 async function shot(page: Page, frame: string, width: number, scheme: string) {
   // A phone's sheet rises from the foot: the picture waits until it has.
@@ -84,9 +81,16 @@ for (const size of SIZES) {
       // Purpose: 50-1 and 50-2 A, her piece with the label and the Carries line, placed by the device (finding 5).
       test('her piece says what she carries, placed for the device', async ({ page }) => {
         await open(page, scheme, '1');
-        const lines = await linesOf(page);
         const carries = 'Carries: warden’s lantern, iron key.';
-        expect(lines.slice(1)).toEqual(size.name === 'phone' ? ['Only you see this.', carries, 'The stat line never shows (NPC: Mother Sedge).'] : ['Only you see this.', 'The stat line never shows (NPC: Mother Sedge).', carries]);
+        // Since sf-6b (#205) her stat line is her own detail row under her piece: the label stays in her piece's words,
+        // and her Carries line sits in her row under her name on a phone, as its own line after her row on a tablet.
+        await expect(page.locator('.place-page__piece', { hasText: SEDGE }).getByText('Only you see this.')).toBeVisible();
+        const row = page.getByRole('button', { name: 'Mother Sedge: read it' });
+        if (size.name === 'phone') await expect(row).toContainText(carries);
+        else {
+          await expect(row).not.toContainText('Carries');
+          await expect(page.locator('.place-page__detail--line')).toHaveText(carries);
+        }
         await page.locator('.person-carries').evaluate((el) => el.scrollIntoView({ block: 'center' }));
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);

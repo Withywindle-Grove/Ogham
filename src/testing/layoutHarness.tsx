@@ -1420,6 +1420,10 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //                send, 50-2 D); `all`: the lantern to Wren and the key to the party stash (50-4 B, D); `before`: the
 //                lantern sent to Wren at the jetty, before the party came here (50-3 A); `messy`: a long-named lantern,
 //                oil flask ×999, the iron key and one thing no attached pack has (50-4 A, C).
+//   &details=1|own|messy  with wreck (spec scene-pack, piece B, #205; page 44, DT1, DT2): the Ferryman ×3 and the Mud
+//                crab ×4 on their pieces, the lamp oil's crate, an Eel no piece shows and Old Harl, who lives here on the
+//                Ferryman's block (the fold's short row); `own`: Old Harl with a block of his own; `messy`: a long name,
+//                ×999 and a creature no attached pack has. The crate is shown (its label "Only you see these details.").
 const placePageFlag = new URLSearchParams(window.location.search).get('placePage');
 // The jetty's own book text for the GM (gt-1, page 15 BT1; the whole Scene's S14): paragraphs, a list, a boxed aside.
 const JETTY_BOOK_TEXT = {
@@ -1612,6 +1616,34 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
       wreckData.hoards.push({ name: 'Bronze ring', text: 'A plain band of old bronze, on a hook by the cabin door.' }, { name: 'Crate', text: 'Eight flasks of lamp oil, dry.' });
       wreckData.treasure.push({ text: 'Bronze ring', hoard: 'Bronze ring' }, { text: 'Lamp oil', qty: 8, hoard: 'Crate' });
     }
+    // &details (spec scene-pack, piece B, #205; page 44, DT1, DT2): pieces that name creatures and a thing, a creature
+    // no piece shows, Old Harl who lives here on the Ferryman's block (`own`: a block of his own), the book's text.
+    // `messy`: long names, ×999 and a creature no attached pack has. Invented.
+    const details = new URLSearchParams(window.location.search).get('details');
+    if (details) {
+      const messy = details === 'messy';
+      const longFerry = 'Ferryman of the Nine Drowned Tides and the Long Sedge Causeway';
+      Object.assign(spots[1]!, {
+        contents: [
+          { statBlockId: 'reed-ferryman', count: messy ? 999 : 3, appearance: 'Three men sleep under the sailcloth, a boat hook beside them.' },
+          { statBlockId: 'reed-mud-crab', count: 4, appearance: 'Black water to the knee. Something moves in it.' },
+          { statBlockId: 'reed-eel', count: 1 },
+          ...(messy ? [{ statBlockId: 'reed-no-such-beast', count: 2, appearance: 'Something big turns over in the silt.' }] : []),
+        ],
+        gm: { text: { blocks: [{ p: 'A cog on her side on the bar, decks awash. Three ferrymen sleep under the sailcloth by day and strip her by night. Old Harl comes for them at dusk.' }, { p: 'Below. The hold is flooded to the knee. Four mud crabs have the run of it.' }] } },
+      });
+      (spots[1] as unknown as { treasure: unknown[] }).treasure.push({ text: 'Eight flasks of lamp oil, dry, in a crate.', itemId: 'reed-lamp-oil' });
+      const level = (l: string, a: string, hp: string, attacks: string, speed: string, morale: string) => ({ fields: { Level: l, Armour: a, Attacks: attacks, Speed: speed, Morale: morale }, hp, hpAverage: 3 });
+      for (const [kind, id, name, data] of [
+        ['statBlock', 'reed-ferryman', messy ? longFerry : 'Ferryman', level('1', '9', '1d6', 'Boat hook (+0, 1d6)', '40', '7')],
+        ['statBlock', 'reed-mud-crab', 'Mud crab', level('1', '8', '1d8', 'Pinch (+0, 1d4)', '20', '6')],
+        ['statBlock', 'reed-eel', 'Eel', level('2', '7', '2d8', 'Bite (+1, 1d6)', '30', '8')],
+        ['statBlock', 'reed-old-harl-stats', 'Old Harl', level('2', '8', '2d6', 'Boat hook (+1, 1d6)', '40', '9')],
+        ['item', 'reed-lamp-oil', 'Lamp oil', { description: 'One flask fills a lantern once. Thrown and lit, it burns where it lands.' }],
+        ['npc', 'reed-old-harl', 'Old Harl', { role: 'a ferryman', locationId: 'the-wreck', statBlockId: details === 'own' ? 'reed-old-harl-stats' : 'reed-ferryman', playerView: { description: 'Works the ferry at the jetty.' } }],
+      ] as const)
+        world.tables.library_entries.push({ id: `entry-${id}`, pack_id: 'pack-reed', kind, pack_entry_id: id, name, data: { id, name, ...data } });
+    }
   }
   for (const data of [island, harbour, ...spots]) world.tables.library_entries.push({ id: `entry-reed-${data.id}`, pack_id: 'pack-reed', kind: 'location', pack_entry_id: data.id, name: data.name, data });
   for (const t of [
@@ -1760,6 +1792,10 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     // HM1: the description shown, every other piece hidden.
     const description = row?.pieces.find((p) => p.kind === 'description');
     if (row && description) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row, piece: description });
+    // &details (#205): the crate shown too, so its label reads "Only you see these details." (l4-2).
+    const crate = new URLSearchParams(window.location.search).get('details') ? row?.pieces.find((p) => p.text.startsWith('Eight flasks')) : null;
+    const shownRow = crate ? (await loadGroupPlaces(world.db, campaign, started.data.id))?.get(1) : null;
+    if (shownRow && crate) await runCommand(registry, world.db, asGm, showPiece, { campaignId: campaign, row: shownRow, piece: crate });
     if ((b15 === 'sent' || b15 === 'shown') && row?.place) {
       const { hoardRows } = await import('../modules/expedition/hoard.ts');
       const { giveFind, sendOf } = await import('../modules/expedition/findSend.ts');
