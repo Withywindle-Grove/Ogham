@@ -2,9 +2,9 @@
 // tier words at the top of the Pack.
 import { describe, expect, it } from 'vitest';
 import type { InventoryLine } from '../modules/inventory/inventory.ts';
-import { chargeWords, tierWords } from './packHelpers.ts';
+import { chargeFact, chargeWords, tierWords } from './packHelpers.ts';
 
-const line = (over: Partial<InventoryLine>) => ({ chargesHidden: false, chargesLeft: null, chargesUsed: 0, spentShown: false, ...over }) as InventoryLine;
+const line = (over: Partial<InventoryLine>) => ({ details: {}, chargesHidden: false, chargesLeft: null, chargesUsed: 0, spentShown: false, ...over }) as InventoryLine;
 
 describe('what a row says about charges', () => {
   it('gives the count of visible charges, or that they are not set yet', () => {
@@ -23,6 +23,56 @@ describe('what a row says about charges', () => {
   it('never hints at a hidden count to the holder', () => {
     expect(chargeWords(line({ chargesHidden: true }), null)).toBe('Charges: ?');
     expect(chargeWords(line({ chargesHidden: true, spentShown: true }), null)).toBe('Spent');
+  });
+});
+
+describe('a count in its unit (G-233, page 49)', () => {
+  const unit = (charges: Record<string, unknown>, over: Partial<InventoryLine> = {}) => line({ details: { charges }, ...over });
+  const rum = (over: Partial<InventoryLine>) => unit({ initial: 3, unit: 'portion' }, over);
+
+  // Purpose: the row names the unit, with the full count when the pack gives it as a whole number ("2 of 3 portions").
+  it('says "2 of 3 portions", "Portions not set" and "0 left, spent"', () => {
+    expect(chargeWords(rum({ chargesLeft: 2 }), null)).toBe('2 of 3 portions');
+    expect(chargeWords(rum({ chargesLeft: 1 }), null)).toBe('1 of 3 portions');
+    expect(chargeWords(rum({}), null)).toBe('Portions not set');
+    expect(chargeWords(rum({ chargesLeft: 0 }), null)).toBe('0 left, spent');
+    expect(chargeWords(unit({ initial: 999, unit: 'dose' }, { chargesLeft: 999 }), null)).toBe('999 of 999 doses');
+  });
+
+  // Purpose: a full count of 1 reads "1 dose left", never "1 of 1 dose" (finding 3).
+  it('says "1 dose left" for a full count of 1', () => {
+    expect(chargeWords(unit({ initial: 1, unit: 'dose' }, { chargesLeft: 1 }), null)).toBe('1 dose left');
+  });
+
+  // Purpose: rolled charges (dice) or a count past the full one (a recharge) read "N <units> left".
+  it('says "N portions left" when the full count is dice or has been passed', () => {
+    expect(chargeWords(unit({ initial: '2d4', unit: 'portion' }, { chargesLeft: 5 }), null)).toBe('5 portions left');
+    expect(chargeWords(unit({ initial: '2d4', unit: 'portion' }, { chargesLeft: 1 }), null)).toBe('1 portion left');
+    expect(chargeWords(rum({ chargesLeft: 4 }), null)).toBe('4 portions left');
+  });
+
+  // Purpose: with no unit, "charges", as today; a wand with a whole-number full count reads "3 of 5 charges" (page 49).
+  it('keeps "charges" with no unit', () => {
+    expect(chargeWords(unit({ initial: 5 }, { chargesLeft: 3 }), null)).toBe('3 of 5 charges');
+    expect(chargeWords(unit({ initial: '2d4' }, { chargesLeft: 3 }), null)).toBe('3 charges left');
+  });
+
+  // Purpose: a hidden count names its unit to the holder ("Portions: ?") and to the GM ("Portions not set (hidden)").
+  it('names the unit of a hidden count', () => {
+    expect(chargeWords(rum({ chargesHidden: true }), null)).toBe('Portions: ?');
+    expect(chargeWords(rum({ chargesHidden: true }), { total: null, spent: false })).toBe('Portions not set (hidden)');
+    expect(chargeWords(rum({ chargesHidden: true, chargesUsed: 1 }), { total: 3, spent: false })).toBe('2 left (hidden)');
+  });
+
+  // Purpose: the labelled fact takes the plural as its label and the count without the unit as its value (frame 49-2).
+  it('gives the labelled fact "Portions: 2 of 3 left", "?", "Not set"', () => {
+    expect(chargeFact(rum({ chargesLeft: 2 }), null)).toEqual({ label: 'Portions', value: '2 of 3 left' });
+    expect(chargeFact(rum({ chargesHidden: true }), null)).toEqual({ label: 'Portions', value: '?' });
+    expect(chargeFact(rum({}), null)).toEqual({ label: 'Portions', value: 'Not set' });
+    expect(chargeFact(rum({ chargesHidden: true }), { total: null, spent: false })).toEqual({ label: 'Portions', value: 'Not set (hidden)' });
+    expect(chargeFact(rum({ chargesLeft: 0 }), null)).toEqual({ label: 'Portions', value: '0 left, spent' });
+    expect(chargeFact(unit({ initial: 1, unit: 'dose' }, { chargesLeft: 1 }), null)).toEqual({ label: 'Doses', value: '1 left' });
+    expect(chargeFact(unit({ initial: '2d4' }, { chargesLeft: 5 }), null)).toEqual({ label: 'Charges', value: '5 left' });
   });
 });
 

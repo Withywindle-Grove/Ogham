@@ -6,6 +6,8 @@ import type { PackPlace } from './placeTree.ts';
 import {
   bandHeading,
   checkFact,
+  noneCheckFact,
+  noneSheetLines,
   checkRule,
   checkSheetLines,
   dateWords,
@@ -164,6 +166,19 @@ describe('the facts (S4)', () => {
     const chance = { die: 'd6', on: [1] };
     expect(checkFact({ name: null, eachMove: true, every: null, chance, fallbackUnit: 'turn' })).toMatchObject({ label: 'Encounter check', value: 'On every move', sub: '1 in 6', die: 'd6', state: 'quiet' });
     expect(checkFact({ name: 'Wandering things', eachMove: false, every: { value: 2, unit: 'turns' }, chance: null, fallbackUnit: 'turn' })).toMatchObject({ label: 'Wandering things', value: 'Every 2 turns', sub: null, die: null });
+  });
+
+  // Purpose (G-27, dg-3, dg-17 finding 1): at a place whose "none" is in force the tile reads "None here" with the
+  // small line "Its own rule.": no die, and no place name, so a long name is never cut at 375 px.
+  it('states a place with no encounters', () => {
+    expect(noneCheckFact()).toMatchObject({ id: 'check', label: 'Encounter check', value: 'None here', sub: 'Its own rule.', die: null, state: 'quiet', warn: false });
+  });
+
+  // Purpose (G-27 piece B): a player's tap on that tile reads the GM's words, with the place as the player knows it
+  // (its whole name, which the tile leaves out): "None here. Worn steps' own rule."
+  it('says whose rule it is in the pop-up, by the name the player knows', () => {
+    expect(noneSheetLines('Worn steps')).toEqual([{ label: 'None here.', words: 'Worn steps’ own rule.' }]);
+    expect(noneSheetLines('The Quay')).toEqual([{ label: 'None here.', words: 'The Quay’s own rule.' }]);
   });
 });
 

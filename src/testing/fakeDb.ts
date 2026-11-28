@@ -1912,10 +1912,14 @@ export function createFakeDb(): FakeWorld {
         const owner = chain.find((e) => (e.data as Row).encounterCheck && typeof (e.data as Row).encounterCheck === 'object');
         if (!owner || !tables.campaign_packs.some((cp) => cp.campaign_id === campaign && cp.pack_id === place.pack_id)) return [];
         const check = (owner.data as Row).encounterCheck as Row;
-        if (check.replacesScheduled !== true) return [];
+        // G-27 piece B (dg-3; mirrors 20261128141000_dec5_b_none_for_players.sql): a "none" that is `true` stands in,
+        // marked `none`; a `none` that isn't is no check at all.
+        const none = check.none === true;
+        if ('none' in check && !none) return [];
+        if (!none && check.replacesScheduled !== true) return [];
         const off = tables.place_rule_switches.some((s) => s.campaign_id === campaign && s.pack_id === place.pack_id && s.entry_id === owner.pack_entry_id && s.rule_id === 'encounterCheck' && s.which === 'inForce' && !s.undone && s.value === false);
         if (off) return [];
-        const checked = Object.fromEntries(['when', 'every', 'chance'].filter((k) => check[k] !== undefined && check[k] !== null).map((k) => [k, check[k]]));
+        const checked = none ? { none: true } : Object.fromEntries(['when', 'every', 'chance'].filter((k) => check[k] !== undefined && check[k] !== null).map((k) => [k, check[k]]));
         const own = String(place.players_name || place.name);
         return [{ group_number: group, place_name: chain[0] === owner ? own : fakeShownPlaceName(campaign, group, place.pack_id, owner, own), checked }];
       });
@@ -3131,6 +3135,14 @@ export function createFakeDb(): FakeWorld {
         const total = tables.inventory_line_secrets.find((s) => s.id === l.id)?.charges_total;
         if (total === null || total === undefined) return raised('Set its charges first, then tell them.');
         Object.assign(patch, { charges_hidden: false, charges_left: Math.max(0, Number(total) - Number(l.charges_used ?? 0)), spent_shown: false });
+      }
+      // dec5-gaps D (…_dec5_d_face_unit.sql, dg-7): a tell of the charges, or of the true name while the line's copy
+      // keeps its charges, brings the count's unit back from the entry.
+      const wholeCharges = whole?.charges;
+      const ownCharges = data.charges && typeof data.charges === 'object' ? (data.charges as Row) : undefined;
+      if (wholeCharges && typeof wholeCharges === 'object' && (told.includes('charges') || (told.includes('name') && ownCharges))) {
+        const unit = Object.fromEntries(['unit', 'units'].filter((k) => (wholeCharges as Row)[k] != null).map((k) => [k, (wholeCharges as Row)[k]]));
+        if (Object.keys(unit).length > 0) data.charges = { ...(ownCharges ?? {}), ...unit };
       }
       const revealed = [...((l.revealed_fields as string[] | undefined) ?? []), ...told.filter((t) => !((l.revealed_fields as string[] | undefined) ?? []).includes(t))];
       const after = { ...l, ...patch, item_data: data, revealed_fields: revealed };
@@ -4367,7 +4379,8 @@ export function createFakeDb(): FakeWorld {
       if (!Number.isInteger(n) || Number(n) < 0 || Number(n) > 999_999_999) return plain('Say how many: a whole number, 0 or more.');
       if (Number(n) > 0) wanted[key] = Number(n);
     }
-    if (!Array.isArray(rows) || rows.length > 25 || rows.some((r) => typeof r !== 'string' || !/^\d{1,4}:(thing|coin)$/.test(r))) return plain('Send at most 25 rows of a hoard at once.');
+    // A hoard's row keys, or a person's held keys (dec5-gaps E; mirrors 20261128160000_dec5_e_held_send.sql).
+    if (!Array.isArray(rows) || rows.length > 25 || rows.some((r) => typeof r !== 'string' || !/^(\d{1,4}:(thing|coin)|held:[a-z0-9][a-z0-9_.-]{0,79}:[a-z0-9][a-z0-9_.-]{0,79})$/.test(r))) return plain('Send at most 25 rows of a hoard at once.');
     for (const t of things) {
       const qty = t?.qty;
       if (!Number.isInteger(qty) || Number(qty) < 1 || Number(qty) > 100000) return plain('How many must be a whole number, 1 or more.');

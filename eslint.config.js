@@ -132,6 +132,7 @@ const ALLOWED_CORE_FILES = [
   'alignments.ts',
   'campaignCommands.ts',
   'campaignSettings.ts',
+  'chargeUnit.ts',
   'commands.ts',
   'currentUser.ts',
   'database.types.ts',

@@ -1343,11 +1343,13 @@ if (callsFlag === '1' || callsFlag === 'many' || callsFlag === 'long') {
 // ?p1=spells: a caster with pinned spells At hand (Player sitting piece 2; frame M4g).
 // ?p1=icons: Fire, Eat, Drink and Stance at hand (p47-2's icons; tests/layout/player-icons.spec.ts).
 // ?p1=lituse|lituselong: a lit lantern with charges pinned At hand, one row with Use (piece 9; frame 47-3).
+// ?p1=units|unitsmessy: counts that name their unit, pinned At hand (G-233, page 49 frame 49-1).
 const p1Flag = new URLSearchParams(window.location.search).get('p1');
 if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noline' || p1Flag === 'classless' || p1Flag === 'heavy' || p1Flag === 'modes' || p1Flag === 'weapon' || p1Flag === 'arms' || p1Flag === 'bare' || p1Flag === 'packless' || p1Flag === 'skills' || p1Flag === 'finish' || p1Flag === 'pins' || p1Flag === 'unlit' || p1Flag === 'several' || p1Flag === 'burnt' || p1Flag === 'burntnone' || p1Flag === 'longlight' || p1Flag === 'armour' || p1Flag === 'details' ||
   p1Flag === 'spells' ||
   p1Flag === 'icons' ||
-  p1Flag === 'lituse' || p1Flag === 'lituselong'
+  p1Flag === 'lituse' || p1Flag === 'lituselong' ||
+  p1Flag === 'units' || p1Flag === 'unitsmessy'
 ) {
   const { addP1Character } = await import('./layoutP1Character.ts');
   const p1Id = await addP1Character(world, { gm, sam, fenPack, head: p1Flag === '1' ? 'four' : p1Flag });
@@ -1413,6 +1415,11 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //                ?as=player, HM4: Wren's Pack and the item's sheet read "Lantern of the Drowned").
 //   &sf8=1|sent  with wreck (sf-8, page 44, TR1 and TR2): also a Bronze ring, one thing with its own words, and a
 //                Crate of lamp oil ×8, a count; `sent`: the ring sent to Wren (TR1's sent piece).
+//   &carries=1|sent|all|before|messy  with wreck (dec5-gaps F, #192; page 50): Mother Sedge on the wreck, carrying a
+//                Warden's lantern and an iron key (`1`, 50-1); `sent`: the lantern sent to Wren (50-1's sheet after a
+//                send, 50-2 D); `all`: the lantern to Wren and the key to the party stash (50-4 B, D); `before`: the
+//                lantern sent to Wren at the jetty, before the party came here (50-3 A); `messy`: a long-named lantern,
+//                oil flask ×999, the iron key and one thing no attached pack has (50-4 A, C).
 const placePageFlag = new URLSearchParams(window.location.search).get('placePage');
 // The jetty's own book text for the GM (gt-1, page 15 BT1; the whole Scene's S14): paragraphs, a list, a boxed aside.
 const JETTY_BOOK_TEXT = {
@@ -1461,11 +1468,14 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     // The pack's own sentence for its check (p2p-14; B3), shown on the place page's check card. &check=none: the harbour
     // has no check of its own, so the Scene's facts row draws Light alone (Q4's one fact; the review of #110). &check=roll:
     // its check is a roll on its table, "On the water" (p2p-19), so a due check is EN1 A's card (sf-4; #126's review, 3).
+    // &check=quiet (G-27; page 48): the harbour says "none", so the spot inside it has no encounters ("None here").
     ...(new URLSearchParams(window.location.search).get('check') === 'none'
       ? {}
-      : new URLSearchParams(window.location.search).get('check') === 'roll'
-        ? { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, onHit: { tableId: 'on-the-water' }, note: 'Roll d8 for an encounter each time the party rows to a new Location.' } }
-        : { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' } }),
+      : new URLSearchParams(window.location.search).get('check') === 'quiet'
+        ? { encounterCheck: { none: true, note: 'The harbour watch keeps the quay quiet.' } }
+        : new URLSearchParams(window.location.search).get('check') === 'roll'
+          ? { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, onHit: { tableId: 'on-the-water' }, note: 'Roll d8 for an encounter each time the party rows to a new Location.' } }
+          : { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' } }),
     rules: [{ id: 'falling-in', name: 'Falling into the harbour', button: { icon: 'water-splash', words: 'Someone fell in' }, text: 'A character in the harbour’s water is cold at once.' }],
     tableIds: ['tide-left', 'on-the-water'],
     // &strip=long (plan dec-9-the-whole-scene S7; page 02, S5): the harbour's own procedure, seven steps with long
@@ -1576,6 +1586,26 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     // The setting's herons, so the hoard's coin is a row like any other (pf-6) that can be sent.
     const rules = world.tables.library_entries.find((e) => e.id === 'entry-river-rules')!.data as Record<string, unknown>;
     if (!Array.isArray(rules.currency)) rules.currency = [{ key: 'heron', label: 'herons', valueInBase: 1 }];
+    // &carries (page 50): Mother Sedge on the wreck, and what she carries. Invented.
+    const carries = new URLSearchParams(window.location.search).get('carries');
+    if (carries) {
+      const wreckView = (spots[1] as unknown as { playerView: Record<string, unknown> }).playerView;
+      wreckView.people = [{ npcId: 'reed-mother-sedge', description: 'A tall woman in a salt-stiff coat, a lantern on a pole at her side.' }];
+      const messy = carries === 'messy';
+      const holds = [
+        { itemId: 'reed-wardens-lantern', note: messy ? 'Carried on a pole; it never goes out' : 'A lantern on a pole' },
+        ...(messy ? [{ itemId: 'reed-oil-flask', qty: 999, note: 'In a crate under the desk' }] : []),
+        { itemId: 'reed-iron-key', note: 'On a cord at her neck' },
+        ...(messy ? [{ itemId: 'reed-moon-bell' }] : []),
+      ];
+      for (const [kind, id, name, data] of [
+        ['npc', 'reed-mother-sedge', 'Mother Sedge', { id: 'reed-mother-sedge', name: 'Mother Sedge', holds }],
+        ['item', 'reed-wardens-lantern', messy ? 'The Hooded Lantern of the Nine Drowned Wardens of Saltwick Quay' : 'Warden’s lantern', {}],
+        ['item', 'reed-iron-key', 'Iron key', {}],
+        ['item', 'reed-oil-flask', 'Oil flask', {}],
+      ] as const)
+        world.tables.library_entries.push({ id: `entry-${id}`, pack_id: 'pack-reed', kind, pack_entry_id: id, name, data: { ...data } });
+    }
     // &sf8 (page 44, TR1): one thing with its own words, and a count. Invented.
     if (new URLSearchParams(window.location.search).get('sf8')) {
       const wreckData = spots[1] as unknown as { hoards: unknown[]; treasure: unknown[] };
@@ -1713,6 +1743,17 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
   if (placePageFlag === 'wreck' && started.data) {
     // B15's pictures (page 30): the party at the wreck; &b15=sent or shown, the hoard sent to Wren, then the lantern named.
     const wreck = spots[1]!;
+    // &carries (page 50): her things sent before the party reached the wreck, at the jetty (`before`), or here (below).
+    const carries = new URLSearchParams(window.location.search).get('carries');
+    const { giveFind: giveHeld, heldKey } = await import('../modules/expedition/findSend.ts');
+    const sendHeld = async (placeId: string, to: string | null, item: string) =>
+      runCommand(registry, world.db, asGm, giveHeld, { campaignId: campaign, to, placeId, things: [{ libraryEntryId: `entry-${item}`, qty: 1 }], coins: {}, rows: [heldKey('reed-mother-sedge', item)!] });
+    if (carries === 'before') {
+      const jetty = spots[0]!;
+      await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: jetty.id, name: jetty.name, data: jetty } });
+      const atJetty = (await loadGroupPlaces(world.db, campaign, started.data.id))?.get(1);
+      if (atJetty?.place) await sendHeld(atJetty.place.id, wren, 'reed-wardens-lantern');
+    }
     await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: wreck.id, name: wreck.name, data: wreck } });
     const b15 = new URLSearchParams(window.location.search).get('b15');
     const row = (await loadGroupPlaces(world.db, campaign, started.data.id))?.get(1);
@@ -1738,6 +1779,8 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
         await runCommand(registry, world.db, asGm, showItemTruth, { campaignId: campaign, row, piece: truth, lines: [String(lantern.id)] });
       }
     }
+    if ((carries === 'sent' || carries === 'all') && row?.place) await sendHeld(row.place.id, wren, 'reed-wardens-lantern');
+    if (carries === 'all' && row?.place) await sendHeld(row.place.id, null, 'reed-iron-key');
     // &sf8=sent (page 44, TR1): the Bronze ring sent to Wren.
     if (new URLSearchParams(window.location.search).get('sf8') === 'sent' && row?.place) {
       const { hoardRows } = await import('../modules/expedition/hoard.ts');

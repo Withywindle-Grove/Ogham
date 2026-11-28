@@ -26,7 +26,7 @@ import { weaponModeDrawsNotes } from './pack-weapon-modes.mjs';
 import { monsterOverlayLibrary } from './pack-monster-overlay.mjs';
 import { requiredIds, todayShapeLibraryNotes } from './pack-today-shapes.mjs';
 import { statBlockLayoutFindings } from './pack-stat-block-layout.mjs';
-import { ruledFieldFindings } from './pack-ruled-fields.mjs';
+import { holdsRefNotes, ruledFieldFindings } from './pack-ruled-fields.mjs';
 import { procedureErrors } from './pack-procedure.mjs';
 import { ruleTextErrors } from './pack-rule-text.mjs';
 import { rollsErrors } from './pack-rolls.mjs';
@@ -220,6 +220,10 @@ const libraryErrors = [];
 // Weapon modes' draws.itemId against the items of every file given (G-211): notes, the exit code stays.
 const drawNotes = weaponModeDrawsNotes(packs);
 if (drawNotes.length > 0) console.log(`\nWeapon mode notes (${drawNotes.length}):\n${drawNotes.map((n) => `  - ${n}`).join('\n')}`);
+// A person's holds naming another file given here by its meta id, checked against its items (G-228, #192): warnings,
+// the exit code stays.
+const heldNotes = holdsRefNotes(packs);
+if (heldNotes.length > 0) console.log(`\nWhat people carry (${heldNotes.length}):\n${heldNotes.map((n) => `  - Warning: ${n}`).join('\n')}`);
 if (packs.length > 1) {
   // Same-named options across packs without a ruleKey (07, ruleKey; ruled 2026-11-02). A warning: the exit code stays.
   // A class's raceMaxLevels against every pack's races (pg-2): notes the files alone couldn't show (a race in another

@@ -79,7 +79,9 @@ export function LogView({
         ([page, found, foundNotes, foundParty, setting]) => {
           if (!current) return;
           // Spells by their pack id (dec-8 B): a cast's line names the spell ("cast Mire lamp for Wren"), from the setting the reader's device has.
-          setNames({ ...found, coinAmount: coinAmountIn(denominationsOf(setting?.rulesSets ?? [])), spells: new Map((setting?.all ?? []).filter((e) => e.kind === 'spell').map((e) => [e.packEntryId, e.name])) });
+          // A pack's people by their pack id (dec5-gaps E, dg-16): a held send's GM line names whose it was; only the GM's read has them.
+          const byKind = (kind: string) => new Map((setting?.all ?? []).filter((e) => e.kind === kind).map((e) => [e.packEntryId, e.name]));
+          setNames({ ...found, coinAmount: coinAmountIn(denominationsOf(setting?.rulesSets ?? [])), spells: byKind('spell'), heldPeople: byKind('npc') });
           setNotes(foundNotes ?? []);
           setParty(foundParty ?? []);
           if (!page) return setEvents('error');

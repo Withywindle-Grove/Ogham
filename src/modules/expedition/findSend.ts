@@ -17,6 +17,29 @@ export type FindThing = { libraryEntryId: string; qty: number } | { name: string
 /** A hoard row's key in the log ("2:thing", "0:coin"): where it sits in the place's treasure list, and which row. */
 export const rowKey = (row: Pick<HoardRow, 'entry' | 'kind'>): string => `${row.entry}:${row.kind}`;
 
+/** A pack id, as a held key may carry it (the database's check, 20261128160000_dec5_e_held_send.sql). */
+const PACK_ID = /^[a-z0-9][a-z0-9_.-]{0,79}$/;
+
+/**
+ * A held thing's key in the log (dec5-gaps E, #189; dg-12): "held:<the person's pack id>:<the item's id>", the person
+ * as a piece names her ("NPC: <id>") and the item's bare id (a `holds` line's `itemRef` loses its pack, as a shop's
+ * stock line does). Pack ids, not row ids, so what she gave stays given after her pack is updated or imported again.
+ * Null when either id isn't a pack id (the server would refuse the send).
+ */
+export function heldKey(personId: string, item: string): string | null {
+  const at = item.indexOf(':');
+  const bare = (at < 0 ? item : item.slice(at + 1)).trim();
+  const person = personId.trim();
+  return PACK_ID.test(person) && PACK_ID.test(bare) ? `held:${person}:${bare}` : null;
+}
+
+/** The person and the item a held key names; null for a hoard row's key or anything else. */
+export function heldOfKey(key: string): { personId: string; itemId: string } | null {
+  const parts = key.split(':');
+  if (parts.length !== 3 || parts[0] !== 'held' || !PACK_ID.test(parts[1]!) || !PACK_ID.test(parts[2]!)) return null;
+  return { personId: parts[1]!, itemId: parts[2]! };
+}
+
 /**
  * What the chosen rows send: each thing row a thing (a known item by its library entry, from `libraryIds`, the pack's
  * item id to the campaign's library entry id; else a one-off by its words, never dropped), every coin row's coins added
@@ -143,6 +166,31 @@ function findOf(event: LogEvent): { to: string | null; placeId: string | null; r
  * undone (any of its lines reversed) and another place's send mark nothing.
  */
 export function sentRows(events: readonly LogEvent[], placeId: string): Map<string, { to: string | null; eventId: string; seq: number }> {
+  const out = new Map<string, { to: string | null; eventId: string; seq: number }>();
+  for (const send of liveSends(events)) {
+    if (send.placeId !== placeId) continue;
+    // A held thing's key is the person's, not this place's hoard (sentHeld reads those).
+    for (const row of send.rows) if (!heldOfKey(row)) out.set(row, { to: send.to, eventId: send.eventId, seq: send.seq });
+  }
+  return out;
+}
+
+/**
+ * The held things the GM's sends gave away (dec5-gaps E, #189; dg-12's technical pick: read from the log, no record
+ * per person), by held key (`heldKey`), at every place: to whom (`to` null: the party stash), at which place, and by
+ * which send (its first line, for Take it back, find.undo). The latest send of a key wins; a send that was undone
+ * marks nothing. Only the GM's log has the keys (on the send's GM-only line), so a player's log gives none.
+ */
+export function sentHeld(events: readonly LogEvent[]): Map<string, { to: string | null; placeId: string; eventId: string; seq: number }> {
+  const out = new Map<string, { to: string | null; placeId: string; eventId: string; seq: number }>();
+  for (const send of liveSends(events)) {
+    for (const row of send.rows) if (heldOfKey(row)) out.set(row, { to: send.to, placeId: send.placeId, eventId: send.eventId, seq: send.seq });
+  }
+  return out;
+}
+
+/** The sends the GM reads the place of, oldest first, leaving out any that was undone (any of its lines reversed). */
+function liveSends(events: readonly LogEvent[]): { to: string | null; placeId: string; rows: string[]; eventId: string; seq: number }[] {
   const reverted = new Set(events.map((e) => e.revertsEventId).filter((id): id is string => !!id));
   const sends = new Map<string, LogEvent[]>();
   for (const e of events) {
@@ -150,14 +198,14 @@ export function sentRows(events: readonly LogEvent[], placeId: string): Map<stri
     const key = e.requestId ?? e.id;
     sends.set(key, [...(sends.get(key) ?? []), e]);
   }
-  const out = new Map<string, { to: string | null; eventId: string; seq: number }>();
   const ordered = [...sends.values()].map((lines) => [...lines].sort((a, b) => a.seq - b.seq)).sort((a, b) => a[0]!.seq - b[0]!.seq);
+  const out: { to: string | null; placeId: string; rows: string[]; eventId: string; seq: number }[] = [];
   for (const lines of ordered) {
     if (lines.some((e) => reverted.has(e.id))) continue;
     // The place and the rows are on the send's GM-only line (rp-4): the GM reads them; a player's lines name neither.
     const find = lines.map(findOf).find((f) => f !== null && f.placeId !== null);
-    if (!find || find.placeId !== placeId) continue;
-    for (const row of find.rows) out.set(row, { to: find.to, eventId: lines[0]!.id, seq: lines[0]!.seq });
+    if (!find || find.placeId === null) continue;
+    out.push({ to: find.to, placeId: find.placeId, rows: find.rows, eventId: lines[0]!.id, seq: lines[0]!.seq });
   }
   return out;
 }
@@ -177,6 +225,19 @@ export async function loadClockChanges(db: Db, campaignId: string): Promise<{ se
   if (!log) return null;
   const changes = log.flatMap((entry) => entry.events).filter((e) => e.targetTable === 'campaign_clocks' && e.targetId === row.id);
   return { seconds: Number(row.seconds), changes: [...new Map(changes.map((e) => [e.id, e])).values()].sort((a, b) => a.seq - b.seq) };
+}
+
+/**
+ * The places sends were made at, by their row id (dec5-gaps F, #192: "Sent before: …, at 4. The Customs Shed."): each
+ * place's name and the pack entry it was made from, for its map key. Places the reader can't read are left out; null
+ * when the read failed (the caller keeps what it read before).
+ */
+export async function loadSentPlaces(db: Db, ids: readonly string[]): Promise<Map<string, { name: string; packId: string | null; entryId: string | null }> | null> {
+  if (ids.length === 0) return new Map();
+  const { data, error } = await db.from('places').select('id, name, pack_id, pack_entry_id').in('id', [...ids]);
+  if (error || !data) return null;
+  // The columns selected above, as the places table types them (the stand-in database's rows are untyped).
+  return new Map((data as { id: string; name: string; pack_id: string | null; pack_entry_id: string | null }[]).map((p) => [p.id, { name: p.name, packId: p.pack_id, entryId: p.pack_entry_id }]));
 }
 
 /**

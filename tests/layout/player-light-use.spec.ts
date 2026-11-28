@@ -57,7 +57,7 @@ for (const size of SIZES) {
 
       test('a lit lantern with charges: one row, Use at its right, the charges at the end of its line', async ({ page }, info) => {
         const { atHand, light } = await openPlayer(page, 'lituse');
-        await expect(light.locator('.light-block__words')).toHaveText('Lit, 4 turns left. 3 refills left. 2 charges left');
+        await expect(light.locator('.light-block__words')).toHaveText('Lit, 4 turns left. 3 refills left. 2 of 3 charges');
         await oneRowWithUse(page, atHand, light, 'Storm lantern');
         await atHand.screenshot({ path: info.outputPath(`light-use-${size.width}-${scheme}.png`) });
       });

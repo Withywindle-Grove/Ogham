@@ -10,6 +10,7 @@ import { timeWords } from './timeWords.ts';
 import { TRAVEL_PLACE_WORDS } from './travelWords.ts';
 import { isJoin } from './undo.ts';
 import { oneUpVerb, usedWords } from './useWords.ts';
+import { aUnit, chargeUnitOf, countOf } from './chargeUnit.ts';
 import { ENCUMBRANCE_WORDS, isEncumbranceMode } from './campaignSettings.ts';
 import { possessive, withThe } from './nameWords.ts';
 
@@ -104,6 +105,11 @@ export interface LogNames {
   coinAmount?: (key: string, n: number) => string;
   /** The campaign's GMs by user id (December step 6b): the GM's coin moves read as the GM's, never a character's. */
   gms?: Set<string>;
+  /**
+   * A pack's people by their pack id (dec5-gaps E, #189; dg-16), from the GM's own library read (a person is the GM's
+   * alone, 07 §5): a held send's GM line names whose it was. A player's device has none, and never reads that line.
+   */
+  heldPeople?: Map<string, string>;
   /**
    * Moves between linked places (Move on, December step 4), by the id of the move's clock change: its turns and the
    * names of the place arrived at and the place left, as the reader may have them (public.party_moves: a player gets
@@ -353,21 +359,32 @@ const MAIN_TABLES = ['activity_runs', 'messages', 'gm_messages', 'message_recipi
  * Ids only, never names nor an amount: the reason reaches every reader of the line, and each reader's own names say
  * the place and hoard only where they were shown them. Empty when no event carries it.
  */
-function findOf(entry: LogEntry): { to: string | null; placeId: string | null; hoardId: string | null; coin: boolean } {
+type FindReason = { to: string | null; placeId: string | null; hoardId: string | null; coin: boolean; heldFrom: string[] };
+
+function findOf(entry: LogEntry): FindReason {
   // K16b (rp-4, the lead on #828): the party's lines carry no place; the GM's own line of the send does. The reader
   // takes the line that names the place when it can read one (the GM), else the first find it reads.
   const found = entry.events.map((e) => findIn(e)).filter((f) => f !== null);
-  return found.find((f) => f.placeId !== null) ?? found[0] ?? { to: null, placeId: null, hoardId: null, coin: false };
+  return found.find((f) => f.placeId !== null) ?? found[0] ?? { to: null, placeId: null, hoardId: null, coin: false, heldFrom: [] };
 }
 
-function findIn(e: LogEvent): { to: string | null; placeId: string | null; hoardId: string | null; coin: boolean } | null {
+// A held thing's key (dec5-gaps E, #189), as src/modules/expedition/findSend.ts writes it (core imports no module):
+// "held:<the person's pack id>:<the item's id>". Only the send's GM-only line carries one.
+const HELD_KEY = /^held:([a-z0-9][a-z0-9_.-]{0,79}):[a-z0-9][a-z0-9_.-]{0,79}$/;
+
+function findIn(e: LogEvent): FindReason | null {
   if (!e.reason?.startsWith('{')) return null;
   try {
     const parsed = JSON.parse(e.reason) as { find?: Record<string, unknown> };
     const find = parsed.find;
     if (!find || typeof find !== 'object') return null;
     const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
-    return { to: typeof find.to === 'string' ? find.to : null, placeId: text(find.placeId), hoardId: text(find.hoardId), coin: find.coin === true };
+    const rows = Array.isArray(find.rows) ? find.rows.filter((r): r is string => typeof r === 'string') : [];
+    // Whose held things went: every row a held key, the people it names (a send of a hoard's rows names none).
+    const held = rows.map((r) => HELD_KEY.exec(r)?.[1] ?? null);
+    const people = held.filter((p): p is string => p !== null);
+    const heldFrom = rows.length > 0 && people.length === rows.length ? [...new Set(people)] : [];
+    return { to: typeof find.to === 'string' ? find.to : null, placeId: text(find.placeId), hoardId: text(find.hoardId), coin: find.coin === true, heldFrom };
   } catch {
     return null; // Not a find's reason.
   }
@@ -495,7 +512,9 @@ function factPhrase(fact: string, details: Record<string, unknown>, beforeDetail
     const power = newPowers(beforeDetails, details)[0];
     return power ? ` has a power: ${power}` : ' has a power';
   }
-  if (fact === 'charges') return typeof charges === 'number' ? ` has ${charges} ${charges === 1 ? 'charge' : 'charges'} left` : '’s charges';
+  // In the unit the line's copy names ("has 2 portions left"; G-233).
+  const unit = chargeUnitOf(details);
+  if (fact === 'charges') return typeof charges === 'number' ? ` has ${countOf(charges, unit)} left` : `’s ${unit.many}`;
   if (fact.startsWith('fields.')) {
     const label = fact.slice(7);
     const value = isObj(details.fields) ? details.fields[label] : undefined;
@@ -505,11 +524,11 @@ function factPhrase(fact: string, details: Record<string, unknown>, beforeDetail
 }
 
 /** What a reader learns of a fact undone, for the GM's Undo line ("that the Bronze ring is cursed", "its true name"). */
-function hiddenAgainPhrase(fact: string, item: string): string {
+function hiddenAgainPhrase(fact: string, item: string, details: Record<string, unknown>): string {
   if (fact === 'magic' || fact === 'cursed') return `that ${withThe(item)} is ${fact}`;
   if (fact === 'name') return `${possessive(withThe(item))} true name`;
   if (fact === 'bonus') return `${possessive(withThe(item))} bonus`;
-  if (fact === 'charges') return `${possessive(withThe(item))} charges`;
+  if (fact === 'charges') return `${possessive(withThe(item))} ${chargeUnitOf(details).many}`;
   if (fact.startsWith('power:')) return `a power of ${withThe(item)}`;
   if (fact.startsWith('fields.')) return `${possessive(withThe(item))} ${fact.slice(7)}`;
   return `what was told about ${withThe(item)}`;
@@ -749,9 +768,20 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
     // reader who reads the purse's change (its line is the receiver's player's and the GM's); everyone else reads "coin".
     case 'find.give': {
       const find = findOf(entry);
-      const things = entry.events
-        .filter((e) => e.targetTable === 'inventory_lines' && e.before === null && e.after)
-        .map((e) => pieces(item(e.after!, e.targetId), e.after!.item_data, e.after!.qty));
+      const made = entry.events.filter((e) => e.targetTable === 'inventory_lines' && e.before === null && e.after);
+      const things = made.map((e) => pieces(item(e.after!, e.targetId), e.after!.item_data, e.after!.qty));
+      // A held thing sent (dec5-gaps E, #189; dg-16), on the GM's log only (its key is on the GM-only line): "You gave
+      // Wren the iron key (Mother Sedge's)." One thing, from one person whose name the GM's library has; anything else
+      // reads as every send does.
+      const person = find.heldFrom.length === 1 ? names.heldPeople?.get(find.heldFrom[0]!) : undefined;
+      if (person && made.length === 1 && !find.coin) {
+        const qty = made[0]!.after!.qty;
+        const what = typeof qty === 'number' && qty > 1 ? things[0]! : `the ${things[0]!}`;
+        const giver = who === 'You' ? 'You' : 'Your GM';
+        return find.to === null
+          ? `${giver} put ${what} (${possessive(person)}) in the party stash.`
+          : `${giver} gave ${named(names.characters, find.to, 'a character')} ${what} (${possessive(person)}).`;
+      }
       const money = purseLines.some((e) => coinChange(e).length > 0) ? coinAmount() : find.coin ? 'coin' : null;
       const list = [...things, ...(money ? [money] : [])].join(', ') || 'something';
       // Where (the lead, 2026-11-14): named only for a reader whose group has been shown the place (names.placeNames
@@ -820,7 +850,7 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
         const said = real.length > 0 ? real : facts;
         // The name it goes by while the fact is hidden (its face, if its name is what comes and goes).
         const shown = String((again.length > 0 ? before.name : after.name) ?? '') || item();
-        const what = said.length === 1 ? hiddenAgainPhrase(said[0]!, shown) : `what was told about ${withThe(shown)}`;
+        const what = said.length === 1 ? hiddenAgainPhrase(said[0]!, shown, isObj(after.item_data) ? after.item_data : isObj(before.item_data) ? before.item_data : {}) : `what was told about ${withThe(shown)}`;
         return again.length > 0 ? by(`undid an Undo: ${what} is told again`) : by(`undid a reveal: ${what} is hidden again`);
       }
       if (main.targetTable === 'inventory_lines' && ('appears_as' in after || 'noticed' in after) && main.before !== null) {
@@ -958,15 +988,19 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       // The roll behind it, when there was one: "2d10 → 13".
       const roll = (row: Record<string, unknown>) => (typeof row.last_roll === 'string' && row.last_roll ? `: ${row.last_roll}` : '');
       const secret = entry.events.find((e) => e.targetTable === 'inventory_line_secrets' && e.after);
-      if (secret?.after) return by(`set the hidden charges of ${item({}, secret.targetId)} to ${String(secret.after.charges_total)}${roll(secret.after)}`);
-      return 'charges_left' in after ? by(`set the charges of ${item()} to ${String(after.charges_left)}${roll(after)}`) : by(`set the charges of ${item()}`);
+      // The count's unit, as the reader's copy of the line names it ("set the portions of Rum bottle to 3"; G-233).
+      const units = chargeUnitOf(names.itemKinds?.get(String(secret?.targetId ?? main.targetId))?.details).many;
+      if (secret?.after) return by(`set the hidden ${units} of ${item({}, secret.targetId)} to ${String(secret.after.charges_total)}${roll(secret.after)}`);
+      return 'charges_left' in after ? by(`set the ${units} of ${item()} to ${String(after.charges_left)}${roll(after)}`) : by(`set the ${units} of ${item()}`);
     }
     case 'inventory.useCharge': {
       const left = 'charges_left' in after ? ` (${String(after.charges_left)} left)` : '';
+      // "used a portion of Rum bottle" (G-233): the unit the reader's copy of the line names, else "a charge".
+      const unit = chargeUnitOf(names.itemKinds?.get(String(main.targetId))?.details);
       // Used with none left: nothing happens, and now the holder knows (ruled 2026-10-24).
       if (after.spent_shown === true) return `${by(`used ${item()}`)} Nothing happens: it seems spent.`;
-      const spent = entry.events.some((e) => e.targetTable === 'inventory_line_secrets' && e.after?.spent === true) ? ' No charges left.' : '';
-      return `${by(`used a charge of ${item()}${left}`)}${spent}`;
+      const spent = entry.events.some((e) => e.targetTable === 'inventory_line_secrets' && e.after?.spent === true) ? ` No ${unit.many} left.` : '';
+      return `${by(`used ${aUnit(unit.one)} of ${item()}${left}`)}${spent}`;
     }
     case 'inventory.recharge': {
       const changed = entry.events.find((e) => e.after && typeof e.after.last_roll === 'string');
@@ -975,7 +1009,7 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
     case 'inventory.revealSpent':
       return by(`showed that ${item()} is spent`);
     case 'inventory.revealCharges':
-      return by(`showed how many charges ${item()} has left (${String(after.charges_left ?? '?')})`);
+      return by(`showed how many ${chargeUnitOf(names.itemKinds?.get(String(main.targetId))?.details).many} ${item()} has left (${String(after.charges_left ?? '?')})`);
     case 'load.tier':
       return `${character()} is now ${String(after.tier ?? '')}.`;
     case 'inventory.giveAway': {

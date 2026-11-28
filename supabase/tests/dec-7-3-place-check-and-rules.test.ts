@@ -159,7 +159,7 @@ describe("a place's rules and its check, as a player reads them", () => {
     expect(must(await world.playerA.db.from('place_rule_switches').select('id'))).toEqual([]);
 
     // The check in force: on every move, 1 in 6.
-    expect(await loadPlayersCheck(asDb(world.playerA), campaignId)).toEqual([{ group: 1, placeName: '1 The jetty', eachMove: true, every: null, chance: { die: 'd6', on: [1] } }]);
+    expect(await loadPlayersCheck(asDb(world.playerA), campaignId)).toEqual([{ group: 1, placeName: '1 The jetty', eachMove: true, every: null, chance: { die: 'd6', on: [1] }, none: false }]);
 
     // The GM closes a rule: gone from the player's read at once; Undo brings it back.
     await ok(as(world.gm, setRuleEye, { campaignId, packId, entryId: 'drowned-harbour', ruleId: 'rowing', open: false }));

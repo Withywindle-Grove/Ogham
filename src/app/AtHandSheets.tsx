@@ -157,15 +157,6 @@ export function lightFactsOf(view: CharacterLightView | null, lineId: string): A
 }
 
 /**
- * A thing's charges as the fact "Charges" holds them: the row's words (packHelpers' `chargeWords`) without the word the
- * label already says ("3 charges left" → "3 left"; "Charges: ?" → "?"; "Charges not set" → "Not set").
- */
-export function chargeFact(words: string): string {
-  const value = words.replace(/^Charges:? /, '').replace(/ charges? left/, ' left');
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-/**
  * What a thing At hand does now (tfh-3; page M2, frame M2n): its uses or its light left, each a labelled line, at the
  * top of its short pop-up. Nothing when it has none. No pack facts (slot, value, weight).
  */

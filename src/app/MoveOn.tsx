@@ -6,7 +6,7 @@
 // The split party's pop-up (pt-f3 point 3) is the caller's to draw (`onBlocked`): it has no approved picture yet.
 import { useEffect, useRef, useState } from 'react';
 import type { Db } from '../core/supabase.ts';
-import { destinationsOf, throughOf, wayMoveOf, wayOf } from '../modules/expedition/moveOnRows.ts';
+import { destinationsOf, intoNoneOf, throughOf, wayMoveOf, wayOf } from '../modules/expedition/moveOnRows.ts';
 import { loadMoveOn, moveBlocked, type MoveOnRead } from '../modules/expedition/moveOnWays.ts';
 import { inSentence } from '../modules/expedition/moveOn.ts';
 import { MoveOnSheet } from '../ui/MoveOnParts.tsx';
@@ -104,6 +104,7 @@ export function MoveOnWiring({
       extraTurns: link.barrier?.extraTurns ?? 0,
       way: way.by ? { by: way.by, name: way.name } : null,
       throughCheck: throughOf(read, link.barrier?.through ?? null)?.check ?? null,
+      intoNone: intoNoneOf(read, destinationId),
     });
     if (sent) onMoved?.();
   }

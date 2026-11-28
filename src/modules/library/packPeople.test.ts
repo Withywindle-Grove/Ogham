@@ -43,6 +43,16 @@ describe('importing a pack’s people', () => {
     expect(PACK_PARTS.npcs).toBe('npc');
   });
 
+  // Purpose (dec5-gaps F, #192; dg-10): what a person carries, `holds`, is kept on her entry as written, every line
+  // with its itemId or itemRef, qty and note, so the GM's device reads it from her GM-only entry.
+  it('keeps a person’s holds as written', () => {
+    const holds = [{ itemId: 'bh-wardens-lantern', note: 'A lantern on a pole' }, { itemRef: 'river-rules:oil-flask', qty: 999, note: 'In a crate' }];
+    const read = readPackJson(JSON.stringify(pack([{ ...WARDEN, holds }])));
+    if (!read.ok) throw new Error(read.message);
+    expect((read.pack.entries.find((e) => e.kind === 'npc')?.data as { holds?: unknown }).holds).toEqual(holds);
+    expect(read.pack.warnings.join(' ')).not.toContain('holds');
+  });
+
   // Purpose: a person with no id is skipped and said, like any other entry; one with no name is named by their id.
   it('skips a person with no id and names a nameless one by their id', () => {
     const read = readPackJson(JSON.stringify(pack([{ name: 'Nobody' }, { id: 'bh-npc-mute' }])));

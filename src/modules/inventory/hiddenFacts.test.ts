@@ -74,6 +74,14 @@ describe('the facts still hidden on an item', () => {
     ]);
   });
 
+  // Purpose: a hidden count whose line names a unit is listed in it, "Its portions" (G-233, page 49 frame 49-3).
+  it('names the unit of a hidden count, "Its portions"', () => {
+    const rum = { charges: { initial: 3, unit: 'portion' } };
+    expect(hiddenFacts({ identified: true, revealedFields: [], details: rum, chargesHidden: true, category: 'gear' }, rum, 'Rum bottle')).toEqual([
+      { id: 'charges', label: 'Its portions', detail: '' },
+    ]);
+  });
+
   // Purpose: a fact told is no longer listed: the curse on the line, "magic" in what was told, the name once identified.
   it('leaves out what was told', () => {
     const told = face({ details: { slot: 'worn', cursed: true }, revealedFields: ['magic', 'cursed'] });

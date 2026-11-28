@@ -22,6 +22,7 @@ import {
   checkWhenWords,
   checkNameOf,
   noCampHere,
+  noEncountersWords,
   placeCheckOf,
   placeRulesOf,
   readPlaceRules,
@@ -177,6 +178,60 @@ describe("a place's own check (rg-4, pf-12b, rg-5)", () => {
     expect(at({ tableId: 'harbour-encounters', chance: { die: 'd6', on: [1] } })).toBe(false);
     expect(at({})).toBe(false);
     expect(at({ tableId: 'harbour-encounters', byTerrain: true })).toBe(false);
+  });
+
+  // Purpose (G-27, dg-1, dg-2, dg-17 finding 6): a pack's "none" is a check that stands in for the setting's and never
+  // comes due. It sits in the chain where a check sits: the nearest place decides, so it covers the places inside it,
+  // a place inside with its own check decides for itself, and a "none" place inside a place whose check says
+  // `replacesScheduled` is silent. The GM's switch puts the setting's check back. A `none` that isn't `true` is no check.
+  describe('a place with no encounters ("none", G-27)', () => {
+    const quay = entry('the-quay', '1. The Quay', { parentId: 'drowned-harbour', encounterCheck: { none: true, note: 'The harbour watch keeps the quay quiet.' } });
+    const stall = entry('fish-stall', 'Fish stall', { parentId: 'the-quay' });
+    const cave = entry('sea-cave', '3. The Sea Cave', { parentId: 'the-quay', encounterCheck: { when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1, 2] } } });
+    const NONE = [...ALL, quay, stall, cave];
+
+    it('stands in, in force, with the pack’s sentence, and is named "No encounters here"', () => {
+      const found = placeCheckOf(chainOf(NONE, 'pack-reed', 'the-quay'), [])!;
+      expect([found.owner.entryId, found.none, found.replaces, found.inForce, found.eachMove]).toEqual(['the-quay', true, true, true, false]);
+      expect([found.name, found.sentence]).toEqual(['No encounters here', 'The harbour watch keeps the quay quiet.']);
+      expect([found.check.chance, found.check.onHit.tableId]).toEqual([null, null]);
+    });
+
+    it('covers the places inside it, and the GM’s switch takes it out of force', () => {
+      const chain = chainOf(NONE, 'pack-reed', 'fish-stall');
+      expect(placeCheckOf(chain, [])?.none).toBe(true);
+      const off = placeCheckOf(chain, [sw('the-quay', 'encounterCheck', 'inForce', false)])!;
+      expect([off.none, off.inForce]).toEqual([true, false]);
+    });
+
+    it('is silent inside a place whose check says replacesScheduled (finding 6: the nearer decides)', () => {
+      const found = placeCheckOf(chainOf(NONE, 'pack-reed', 'the-quay'), []);
+      expect(chainOf(NONE, 'pack-reed', 'the-quay').map((e) => e.entryId)).toContain('drowned-harbour');
+      expect([found?.owner.entryId, found?.none]).toEqual(['the-quay', true]);
+    });
+
+    it('lets a place inside with its own check decide for itself', () => {
+      const found = placeCheckOf(chainOf(NONE, 'pack-reed', 'sea-cave'), [])!;
+      expect([found.owner.entryId, found.none, found.inForce]).toEqual(['sea-cave', false, true]);
+      expect(found.check.chance).toEqual({ die: 'd6', on: [1, 2] });
+    });
+
+    // Purpose (dg-3, dg-17 findings 2 and 4): the card reads "No encounters here." with the pack's sentence and whose
+    // rule it is only; with no sentence, whose rule it is alone; switched off, "Encounters as usual here." and that the
+    // setting's check applies again.
+    it('is said on its card: on, with the pack’s sentence and whose rule it is; off, encounters as usual', () => {
+      const on = placeCheckOf(chainOf(NONE, 'pack-reed', 'the-quay'), [])!;
+      expect(noEncountersWords(on, "the setting's Wandering encounters")).toEqual({ title: 'No encounters here.', line: 'The harbour watch keeps the quay quiet. 1. The Quay’s own rule.' });
+      const bare = placeCheckOf([entry('the-docks', 'The Docks', { encounterCheck: { none: true } })], [])!;
+      expect(noEncountersWords(bare, "the setting's encounter check").line).toBe('The Docks’ own rule.');
+      const off = placeCheckOf(chainOf(NONE, 'pack-reed', 'the-quay'), [sw('the-quay', 'encounterCheck', 'inForce', false)])!;
+      expect(noEncountersWords(off, "the setting's Wandering encounters")).toEqual({ title: 'Encounters as usual here.', line: "The setting's Wandering encounters applies here again, until you switch this back." });
+    });
+
+    it('is no check at all when `none` isn’t true', () => {
+      for (const none of ['yes', false, 1]) expect(placeCheckOf([entry('x', 'X', { encounterCheck: { none } })], [])).toBeNull();
+      expect(placeCheckOf([entry('x', 'X', { encounterCheck: { none: true } })], [])?.sentence).toBe('');
+    });
   });
 
   it('is said as when it is rolled and its chance (mc-39b)', () => {
