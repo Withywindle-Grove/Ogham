@@ -957,11 +957,14 @@ describe("Buy it's toast (TC13 piece C)", () => {
     const carrier = { campaignId: campaign, actorId: wren, locationId: null, ownerUserId: sam, archived: false };
     expect((await runCommand(registry, world.db, asRue, replyRequest, { request, accept: true, buy: { carrier, item: { name: 'Coil of rope' } as never, cost: '1 heron' } })).ok).toBe(false);
     expect((await runCommand(registry, world.db, asRue, replyRequest, { request, accept: false })).ok).toBe(false);
-    // Wren's player answers; Rue's Undo of Wren's purchase is refused all the same.
+    // Wren's player buys the rope; Rue's Undo of that purchase is refused, and the rope stays.
+    const { oneOffCopy } = await import('./AddItem.tsx');
     world.signInAs(sam);
-    expect((await runCommand(registry, world.db, { id: sam, roles: { [campaign]: 'player' } }, replyRequest, { request, accept: false })).ok).toBe(true);
+    expect((await runCommand(registry, world.db, { id: sam, roles: { [campaign]: 'player' } }, replyRequest, { request, accept: true, buy: { carrier, item: oneOffCopy('Coil of rope'), cost: '1 heron' } })).ok).toBe(true);
+    expect(rope()).toMatchObject({ actor_id: wren, how_got: 'bought' });
     world.signInAs(rue);
     expect((await runCommand(registry, world.db, asRue, undoBuy, { request })).ok).toBe(false);
+    expect(rope()).toBeTruthy();
     expect((await runCommand(registry, world.db, asRue, spendCoin, { from: wrenRef, coins: { heron: 1 }, whatFor: 'Coil of rope' })).ok).toBe(false);
     expect(purse()).toEqual({ heron: 1000 });
     expect(events('purse.spend')).toHaveLength(0);
@@ -974,6 +977,7 @@ describe("Buy it's toast (TC13 piece C)", () => {
     const user = await sceneOf(sam);
     await user.click(within(await screen.findByRole('article', { name: "The GM's answer" })).getByRole('button', { name: 'Buy it' }));
     await waitFor(() => expect(rope()).toBeTruthy());
+    expect(document.querySelector('.find-card')?.textContent ?? '').toBe('');
     const nav = within(screen.getByRole('navigation', { name: 'Main' }));
     await user.click(nav.getByRole('button', { name: 'Pack' }));
     await screen.findByText('Coil of rope');
