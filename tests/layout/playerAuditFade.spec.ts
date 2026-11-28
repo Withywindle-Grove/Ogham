@@ -10,6 +10,7 @@
 //   5e. In dark the fades behave the same, and the faded foot shows the dark page through it.
 //   5f. In one column (a tablet held upright, a phone at 375 px) there is no fade.
 //   5g. The fade never catches a tap: a button half in the faded foot is still what a tap there lands on.
+//   5h. Scrolled to the end, when the column's contents grow with nothing scrolled (a picture loading), the foot fades.
 import { expect, test, type Page } from '@playwright/test';
 import { layoutProblems } from './checks.ts';
 
@@ -90,13 +91,28 @@ test.describe('the left column, sideways', () => {
     await expect.poll(() => fades(page)).toEqual({ above: false, below: true, mask: 'gradient' });
   });
 
+  test('5h. scrolled to the end, when a part grows and nothing scrolls, the foot fades again', async ({ page }) => {
+    await open(page);
+    await scrollTo(page, 1);
+    await expect.poll(() => fades(page)).toEqual({ above: true, below: false, mask: 'gradient' });
+    // At hand grows from a rule in the page's head, as a picture loading would: the column's own box and the markup
+    // inside it stay the same, so only watching the parts' sizes sees it. The parts sit in wrappers with no box of
+    // their own (`display: contents`: `.player__opened`, the book-type host), which the watch looks through.
+    await page.evaluate(() => {
+      const grow = document.createElement('style');
+      grow.textContent = '.player__pane--play .pack--at-hand { min-height: 600px; }';
+      document.head.append(grow);
+    });
+    await expect.poll(() => fades(page)).toEqual({ above: true, below: true, mask: 'gradient' });
+  });
+
   test('5g. the fade never catches a tap: a button in the faded foot is what a tap there lands on', async ({ page }) => {
     const column = await open(page);
     await expect.poll(() => fades(page)).toEqual({ above: false, below: true, mask: 'gradient' });
     // The page scrolled so the column stands in its stuck place, its foot on screen (at the page's top its foot sits
     // below the screen's edge until the page scrolls). Then a button's middle brought into the faded band (16 px above
     // the column's foot), and what a tap there meets.
-    await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     const hit = await column.evaluate((el, fade) => {
       const foot = el.getBoundingClientRect().bottom;
       if (foot > innerHeight) return { found: false, landsOnIt: false, inFade: false };
@@ -124,7 +140,18 @@ test.describe('the left column, sideways, dark', () => {
     await scrollTo(page, 1);
     await expect.poll(() => fades(page)).toEqual({ above: true, below: false, mask: 'gradient' });
     // The fade shows what is behind the column: the page, dark, not a light band.
-    const behind = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    // The body's colour is the dark page token, as the browser resolves it (a probe painted with `var(--page)`), and
+    // not transparent, so the faded edge shows that colour.
+    const { behind, page: pageColour } = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.style.backgroundColor = 'var(--page)';
+      document.body.append(probe);
+      const resolved = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return { behind: getComputedStyle(document.body).backgroundColor, page: resolved };
+    });
+    expect(pageColour).not.toBe('rgba(0, 0, 0, 0)');
+    expect(behind).toBe(pageColour);
     expect(behind).not.toBe('rgb(250, 250, 247)');
     expect(await layoutProblems(page)).toEqual([]);
   });
