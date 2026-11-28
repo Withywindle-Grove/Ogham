@@ -58,6 +58,7 @@ Five steps of the build loop are Francis's to start: `/to-spec`, `/to-tickets`, 
 - Start builders and a reviewer with `Agent`, within the limits in `.claude/README.md`, Seats. Before you start one, check what is in flight.
 - One integration branch per spec, a fresh worker per ticket and per fix round: `CLAUDE.md`, One integration branch per spec. At `implement-spec`'s start, make the branch `<spec-name>` from `main`. Tickets that share no file may be in flight, within the seats. No new plan batch (`CLAUDE.md`, Plan batches).
 - Give each worker only the tasks of its agent file.
+- A ticket with a migration goes to Home One, which can run the test project. With no free seat there, the cloud builder takes it and stops before the database step.
 
 ## Brief every worker
 - A brief is a file the worker reads first. It holds, in this order: the first line `Row: <id>` (`.claude/README.md`, Measuring); the guard line, word for word; the objective; the output; the files to read; the boundaries; "if unsure, stop and ask"; the worker's scratch subfolder.
@@ -69,15 +70,17 @@ Five steps of the build loop are Francis's to start: `/to-spec`, `/to-tickets`, 
 ## Review and merge
 - **Each finished ticket:** merge its branch into the integration branch (or have a Sonnet worker do it), comment on the ticket with the merge commit, close it (`docs/agents/issue-tracker.md`). After the first merge, open the spec's one draft pull request into `main`, titled `Spec: <name> (Rows: #a, #b, …)`; its text gathers each ticket's `pr-text.md` (status, departures, ⚑, the gallery line, the built screen beside its picture). A ticket still blocked when the rest are done leaves the pull request and follows from `main` after the merge.
 - **Once the last ticket is merged:** run the local review on the whole integration branch (`.claude/README.md`, Review before a merge), start one fresh fix worker, then look at the pictures (`CLAUDE.md`, Mockups first).
+- **Pictures for sitting C** come from the labelled run's `layout-screens-<n>` artifacts (`gh run download <run> --name layout-screens-<n>`). Render locally only a screen no layout spec draws.
 - Add `ready` after the review and its fixes (`.claude/README.md`, Saving CI minutes). Plan batches: one review and one `ready` per batch.
 - **Merge on green** (the spec's pull request, after sitting C) under Francis's standing yes (`CLAUDE.md`, Branches and pull requests), and list the merges for him afterwards. Wait for him on: a pull request with a migration he has not pushed to the main project; a screen he has not seen; a draft.
 - Run `gh pr merge <n> --merge --repo Withywindle-Grove/Ogham` as a lone command.
 - If `main` goes red, fix it before you merge anything else.
 
 ## Database
-The migration rules are in `CLAUDE.md`, Database changes. **Until 5 December 2026** (`docs/design/rulings/process-db-sessions-until-dec-5-2026-11-12.md`) you run the whole database session yourself, for any migration:
-- A backup first. The dry run lists only the file you announced. The advisors after.
-- You push to the main project only after Francis's one-word "push" in the chat, for that push. If Claude Code's own check refuses the push, Francis runs it himself.
+The migration rules are in `CLAUDE.md`, Database changes. **Until 5 December 2026** (`docs/design/rulings/process-db-sessions-until-dec-5-2026-11-12.md`) you run the database session for any migration, by one route:
+- Home One takes the backup and the dry run, and nothing more. The dry run lists only the file you announced.
+- The main push goes to the standing push session on Francis's PC, "wintermute-zazzy-matsumoto" (`docs/09-decisions-log.md`, 2026-11-26 [process]; it pushed loop 3's migrations to main on 28 Nov), with Francis's own Allow there. Send it only after his one-word "push" in the chat, for that push. If the push session can't run it, Francis runs it himself.
+- The push session runs the advisors after the push.
 - Stop and say so if the backup fails, the dry run or the advisors show something you did not announce, or a builder is part-way to the test project.
 
 From 5 December Francis runs the main push himself.

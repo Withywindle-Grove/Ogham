@@ -99,7 +99,7 @@ Ruled 2026-11-27 (lp-9, `design/rulings/process-loop-2026-11-27.md`). The source
 | Every command has a permission case; logged commands match the table | Hard rule 3 | On |
 | Access rules from each role | Hard rule 5, cs-28 | On (`supabase/tests`) |
 | Migration lineage; applied migrations not edited; a `fix-` branch's tests | cs-31 | On (scripts and hooks) |
-| Type-aware lint: `strictTypeChecked`, plus `no-unsafe-type-assertion` and `switch-exhaustiveness-check` | cs-14, cs-15, cs-17, cs-22 | To add. It is in the installed package. Lint will then take about as long as a type check. Pin the package version: this rule set may change in a minor release |
+| Type-aware lint: `strictTypeChecked`, plus `no-unsafe-type-assertion` and `switch-exhaustiveness-check` | cs-14, cs-15, cs-17, cs-22 | In part. On: `no-floating-promises` and `no-misused-promises` (cs-22; `eslint.config.js`, with `projectService`; retro of loop 3, 2026-11-28). Their 63 old cases are known in `eslint-suppressions.json`. Lint took about 1.75 times as long. To add: the rest of `strictTypeChecked` and the two named rules. They are in the installed package. Pin the package version first: this rule set may change in a minor release |
 | `noImplicitOverride`, `verbatimModuleSyntax`, `erasableSyntaxOnly` | cs-12 to cs-17 | To add. Expected cost: small (6 classes; no enums) |
 | `exactOptionalPropertyTypes`, `noPropertyAccessFromIndexSignature` | cs-12, cs-13 | To add after a trial. Expected cost: large, in the generated database types (1,656 optional properties) |
 | Hooks rule `exhaustive-deps` from warning to error | cs-26 | To add |
