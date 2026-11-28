@@ -374,3 +374,84 @@ test.describe('a fact value in a narrow tile (1024 px)', () => {
     await expect.poll(measure).toMatchObject({ lines: 1, inside: true, smaller: true, cut: true });
   });
 });
+
+/** The band's marks' short words (sf-18; page 44, PS2 D), by the mark's whole name. */
+const MARK_WORDS: Record<string, string> = { 'Make camp': 'Camp', 'Encounter check': 'Encounter', 'Leave the dungeon': 'Leave' };
+
+// sf-18 (page 44, PS2 C and D, EN1, approved 2026-11-26): the band's words from 1180 px, and the chevron after its rule.
+for (const size of [
+  { width: 1180, height: 820, words: true },
+  { width: 1179, height: 820, words: false },
+  { width: 375, height: 812, words: false },
+] as const) {
+  for (const scheme of ['light', 'dark'] as const) {
+    test.describe(`the band's words (${size.width} px, ${scheme})`, () => {
+      test.use({ viewport: { width: size.width, height: size.height }, colorScheme: scheme });
+
+      // Purpose (sf-18): from 1180 px each of the band's marks has its word under it ("Camp", "Encounter", "Leave"), the
+      // marks at one width, and the place's name with its turn stays on one line beside them; at 1179 px and on a phone
+      // the marks stand alone, 52 px squares. Nothing scrolls sideways, and axe finds no serious problem.
+      test('the marks and their words', async ({ page }) => {
+        await page.goto('/layout.html?as=gm&placePage=spot&session=running&waiting=4&daylight=1&marks=all');
+        await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
+        const buttons = page.getByRole('group', { name: 'Quick actions' }).getByRole('button');
+        // The setting's rules arrive after the band: wait for all three marks.
+        await expect(buttons).toHaveCount(Object.keys(MARK_WORDS).length);
+        const marks = await buttons.evaluateAll((els) =>
+          els.map((el) => {
+            const word = el.querySelector<HTMLElement>('.scene-band__tool-word');
+            const shown = word !== null && word.getBoundingClientRect().height > 0;
+            const box = el.getBoundingClientRect();
+            const icon = el.querySelector('svg')!.getBoundingClientRect();
+            return {
+              name: el.getAttribute('aria-label')!,
+              word: shown ? word.textContent : null,
+              under: shown ? word.getBoundingClientRect().top >= icon.bottom - 1 : null,
+              oneLine: shown ? Math.round(word.getBoundingClientRect().height / parseFloat(getComputedStyle(word).lineHeight)) === 1 : null,
+              width: Math.round(box.width),
+              height: Math.round(box.height),
+            };
+          }),
+        );
+        expect(marks.map((m) => m.name)).toEqual(Object.keys(MARK_WORDS));
+        for (const mark of marks) {
+          if (size.words) {
+            expect(mark).toMatchObject({ word: MARK_WORDS[mark.name], under: true, oneLine: true });
+            expect(mark.width).toBe(marks[0]!.width);
+            expect(mark.width).toBeGreaterThanOrEqual(88);
+          } else expect(mark).toMatchObject({ word: null, width: 52, height: 52 });
+        }
+        if (size.words) {
+          // The place's name with its turn on one line, beside the marks (it ends before the first of them).
+          const heading = page.locator('.scene-band__heading');
+          const fit = await heading.evaluate((el) => ({ lines: Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)), right: el.getBoundingClientRect().right }));
+          expect(fit.lines).toBe(1);
+          const first = (await buttons.first().boundingBox())!;
+          expect(fit.right).toBeLessThanOrEqual(first.x);
+        }
+        await page.screenshot({ path: `test-results/layout-screens/scene-band-words-${size.width}-${scheme}.png` });
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+      });
+
+      // Purpose (sf-18; PS2 C, EN1): on a tablet the fold mark stands after a thin rule, 8 px from Next turn and 8 px from
+      // the mark, the menu button last; on a phone the mark stands alone at the heading's right, with no rule.
+      test('the fold mark after its rule', async ({ page }) => {
+        await page.goto('/layout.html?as=gm&placePage=spot&session=running&waiting=4&daylight=1&marks=all');
+        await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
+        const fold = page.getByRole('button', { name: 'Fold the top away' });
+        await expect(fold).toBeVisible();
+        const rule = page.locator('.scene-band__rule');
+        if (size.width < 600) {
+          await expect(rule).toBeHidden();
+          return;
+        }
+        const [next, line, mark] = await Promise.all([page.getByRole('button', { name: 'Next turn' }).boundingBox(), rule.boundingBox(), fold.boundingBox()]);
+        expect(Math.round(line!.x - (next!.x + next!.width))).toBe(8);
+        expect(Math.round(mark!.x - (line!.x + line!.width))).toBe(8);
+        expect(Math.round(line!.height)).toBe(BAND_CONTROL);
+        expect(Math.round(line!.y)).toBe(Math.round(mark!.y));
+      });
+    });
+  }
+}

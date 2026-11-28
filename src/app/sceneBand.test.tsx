@@ -5,11 +5,15 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Fact } from '../modules/expedition/sceneTop.ts';
 import { ICON_SET } from '../ui/iconSet.ts';
-import { BandTool, BandTools, dueWords, FactsRow, isDue, lastLineShifts, NextTurnButton, SceneBand, SessionButton } from './SceneBand.tsx';
+import { BandTool, BandTools, dueWords, FactsRow, FoldButton, isDue, lastLineShifts, NextTurnButton, SceneBand, SessionButton } from './SceneBand.tsx';
 import { RestRule } from './RestPrompt.tsx';
 import { useSceneTopOpen } from './sceneTopOpen.ts';
 
 afterEach(cleanup);
+
+/** The chevron's two strokes (a 24 px line icon): its point up, and its point down. */
+const CHEVRON_UP = 'M6 15l6-6 6 6';
+const CHEVRON_DOWN = 'M6 9l6 6 6-6';
 
 const fact = (f: Partial<Fact> & Pick<Fact, 'id' | 'label' | 'value'>): Fact => ({ sub: null, state: 'quiet', warn: false, die: null, ...f });
 
@@ -205,8 +209,9 @@ describe('the last line of a few facts (Q4)', () => {
 });
 
 describe("the band's icon buttons (S2)", () => {
-  // Purpose: an icon button shows its icon alone, is named by its words, is never the accent, and runs on a tap.
-  it('is icon only, named by its words, plain, and tappable', () => {
+  // Purpose: an icon button is named by its whole words, is never the accent, and runs on a tap; its one short word
+  // ("Camp", sf-18) is in it for the width that shows it (from 1180 px, checked in tests/layout/sceneBand.spec.ts).
+  it('is named by its words, plain, and tappable, with its short word', () => {
     const onTap = vi.fn();
     render(
       <BandTools>
@@ -214,7 +219,7 @@ describe("the band's icon buttons (S2)", () => {
       </BandTools>,
     );
     const button = screen.getByRole('button', { name: 'Make camp' });
-    expect(button.textContent).toBe('');
+    expect(button.textContent).toBe('Camp');
     expect(button.className).toContain('button-secondary');
     fireEvent.click(button);
     expect(onTap).toHaveBeenCalledTimes(1);
@@ -225,6 +230,24 @@ describe("the band's icon buttons (S2)", () => {
   it('draws nothing with no buttons', () => {
     const { container } = render(<BandTools>{false}{null}</BandTools>);
     expect(container.innerHTML).toBe('');
+  });
+
+  // Purpose (sf-18; page 44, PS2 D): the three marks' words are "Camp", "Encounter" and "Leave", each inside the name
+  // the button is read aloud by, so a voice user can say what they see.
+  it('gives the three marks their short words, each part of the name', () => {
+    render(
+      <BandTools>
+        <BandTool label="Make camp" icon={<svg />} onTap={() => undefined} />
+        <BandTool label="Encounter check" icon={<svg />} onTap={() => undefined} />
+        <BandTool label="Leave the dungeon" icon={<svg />} onTap={() => undefined} />
+      </BandTools>,
+    );
+    const buttons = screen.getAllByRole('button');
+    expect(buttons.map((b) => [b.getAttribute('aria-label'), b.textContent])).toEqual([
+      ['Make camp', 'Camp'],
+      ['Encounter check', 'Encounter'],
+      ['Leave the dungeon', 'Leave'],
+    ]);
   });
 });
 
@@ -309,22 +332,22 @@ describe("the top's fold (p2p-20; page 24, TF1, TF1b)", () => {
     fact({ id: 'rest', label: 'Rest', value: 'In 5 turns' }),
   ];
 
-  // Purpose: the fold mark is a plain framed button showing − while the top is open and + while folded, says which in
-  // its name and its expanded state, and a tap folds or opens the top.
-  it('shows − open and + folded, and a tap toggles it', () => {
+  // Purpose (sf-18; page 44, PS2 A and C, EN1): the fold mark is a plain framed button with a chevron pointing up while
+  // the top is open and down while folded, says which in its name and its expanded state, and a tap folds or opens the top.
+  it('points up open and down folded, and a tap toggles it', () => {
     const onToggle = vi.fn();
     const { rerender } = render(band({ open: true, onToggle, due: facts }));
     const open = screen.getByRole('button', { name: 'Fold the top away' });
     expect(open.getAttribute('aria-expanded')).toBe('true');
     expect(open.className).toContain('button-secondary');
     expect(open.className).not.toContain('button-primary');
-    expect(open.querySelector('path')!.getAttribute('d')).toBe('M5 12h14');
+    expect(open.querySelector('path')!.getAttribute('d')).toBe(CHEVRON_UP);
     fireEvent.click(open);
     expect(onToggle).toHaveBeenCalledTimes(1);
     rerender(band({ open: false, onToggle, due: facts }));
     const folded = screen.getByRole('button', { name: 'Show the top' });
     expect(folded.getAttribute('aria-expanded')).toBe('false');
-    expect(folded.querySelector('path')!.getAttribute('d')).toBe('M5 12h14M12 5v14');
+    expect(folded.querySelector('path')!.getAttribute('d')).toBe(CHEVRON_DOWN);
   });
 
   // Purpose: folded, each fact that needs the GM still shows as one small line in the band, the dark Light with its
@@ -370,6 +393,18 @@ describe("the top's fold (p2p-20; page 24, TF1, TF1b)", () => {
   it('draws no fold mark without a fold', () => {
     render(band(null));
     expect(screen.queryByRole('button', { name: /the top/ })).toBeNull();
+  });
+
+  // Purpose (sf-18, for sf-11): the fold mark stands on its own as a part, so the players' top can use the same one:
+  // the same chevron, name and expanded state, and its tap.
+  it('is a part of its own, the same mark outside the band', () => {
+    const onToggle = vi.fn();
+    render(<FoldButton open={false} onToggle={onToggle} />);
+    const mark = screen.getByRole('button', { name: 'Show the top' });
+    expect(mark.getAttribute('aria-expanded')).toBe('false');
+    expect(mark.querySelector('path')!.getAttribute('d')).toBe(CHEVRON_DOWN);
+    fireEvent.click(mark);
+    expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
   // Purpose (Q3, F3 a): with the fold mark, the band's buttons come in the order the eye and the Tab key meet them:

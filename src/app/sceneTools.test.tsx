@@ -193,17 +193,18 @@ const openMenu = async (user: ReturnType<typeof userEvent.setup>) => {
 const menuWords = (panel: HTMLElement) => [...panel.querySelectorAll('button')].map((b) => (b.querySelector('.more-menu__words > span:first-child')?.textContent ?? b.textContent ?? '').trim());
 
 describe("the band's icon buttons (S2)", () => {
-  // Purpose: in a dungeon whose setting has a camp rule and the leaving rule, the band shows all three, icon only,
-  // each named by its words, none the accent.
-  it('shows Make camp, Encounter check and Leave the dungeon in a turn mode, icon only and never the accent', async () => {
+  // Purpose: in a dungeon whose setting has a camp rule and the leaving rule, the band shows all three, each with its
+  // icon and named by its words, none the accent; each holds only its short word (shown from 1180 px wide, sf-18).
+  it('shows Make camp, Encounter check and Leave the dungeon in a turn mode, with their short words and never the accent', async () => {
     const t = table();
     await underWay(t.gm, t.campaign);
     await openGm(t.gm);
     await waitFor(() => expect(toolNames()).toEqual(['Make camp', 'Encounter check', 'Leave the dungeon']));
+    const words = { 'Make camp': 'Camp', 'Encounter check': 'Encounter', 'Leave the dungeon': 'Leave' } as Record<string, string>;
     for (const b of within(tools()!).getAllByRole('button')) {
       expect(b.className).toContain('button-secondary');
       expect(b.className).not.toContain('button-primary');
-      expect(b.textContent).toBe('');
+      expect(b.textContent).toBe(words[b.getAttribute('aria-label')!]);
       expect(b.querySelector('svg')).toBeTruthy();
       expect(b.hasAttribute('disabled')).toBe(false);
     }

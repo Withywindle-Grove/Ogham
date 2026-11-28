@@ -68,6 +68,9 @@ export type IconName =
   | 'gear'
   // A row that opens something (plan m5b-players-screens-standard A2): a chevron at its right edge, in place of "›".
   | 'chevron'
+  // The Scene's top folds (sf-18; page 44, PS2 A and C, EN1): the chevron points up while open and down while folded.
+  | 'chevron-up'
+  | 'chevron-down'
   // An item's sheet pins it to the top with a star (plan m5b-players-screens-standard C): empty, then filled.
   | 'star'
   | 'star-filled'
@@ -250,6 +253,8 @@ const PATHS: Record<IconName, ReactNode> = {
   // ← Back (final drafts A1): a shaft and its head.
   back: <path d="M19 12H6M11 6l-6 6 6 6" />,
   chevron: <path d="M9 6l6 6-6 6" />,
+  'chevron-up': <path d="M6 15l6-6 6 6" />,
+  'chevron-down': <path d="M6 9l6 6 6-6" />,
   // Player (slice E): a crown, three points over its band.
   crown: (
     <>

@@ -1704,8 +1704,15 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
   // rolled yet, so the Weather fact is due ("To roll") and the folded band shows its one line.
   if (outdoors && daylightRules && new URLSearchParams(window.location.search).get('weather') === 'due')
     (daylightRules.data as Record<string, unknown>).weather = { tables: { any: 'fen-sky' } };
+  // &marks=all with &daylight=1 (sf-18; page 44, PS2 D): the setting's own turn mode with a camp, and the leaving rule, so the band holds
+  // all three marks (Make camp, Encounter check, Leave the dungeon) and their words from 1180 px can be measured.
+  if (!outdoors && daylightRules && new URLSearchParams(window.location.search).get('marks') === 'all')
+    Object.assign(daylightRules.data as Record<string, unknown>, {
+      exploration: { modes: [{ id: 'dungeon', name: 'Down the wells', step: { value: 1, unit: 'turn' }, procedure: [], checks: [], camp: { procedure: [] } }] },
+      dungeonExit: { safePaths: 'Back the way the party came, one turn a level.' },
+    });
   const modeId = outdoors ? 'fen-walk' : 'dungeon';
-  const started = (await world.db.rpc('start_expedition' as never, { campaign, mode_id: modeId } as never)) as unknown as { data: { id: string } | null };
+  const started =(await world.db.rpc('start_expedition' as never, { campaign, mode_id: modeId } as never)) as unknown as { data: { id: string } | null };
   if (placePageFlag === 'hand') await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: 'Fenwick Hole', placeId: null, packEntry: null });
   if (placePageFlag === 'wreck' && started.data) {
     // B15's pictures (page 30): the party at the wreck; &b15=sent or shown, the hoard sent to Wren, then the lantern named.

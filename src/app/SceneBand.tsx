@@ -5,9 +5,10 @@
 //     date line (the season's icon, the date in small capitals, the light left; itself the tap while the date is
 //     unset, st-2), an optional quiet line under it ("Resumed: …"), then `actions` (S2's icon buttons and Next turn,
 //     or Start / Resume session) and `menu` (⋯, S3's) at its right. On a phone the actions drop under the date.
-//     `fold` (p2p-20; page 24, TF1, TF1b): the fold mark, a framed square with − open and + folded, between Next turn
-//     and the menu button, the menu last (F3 a, Francis 2026-11-25; plan dec-scene-quickfix Q3; on a phone at the
-//     heading's right, as TF1b); folded, each due fact is one small line under the date.
+//     `fold` (p2p-20; page 24, TF1, TF1b): the fold mark (`FoldButton`; sf-18, page 44, PS2 and EN1: the chevron, up
+//     open and down folded), after a thin rule beside Next turn, then the menu button last (F3 a, Francis 2026-11-25;
+//     plan dec-scene-quickfix Q3; on a phone at the heading's right, as TF1b); folded, each due fact is one small line
+//     under the date.
 //   NextTurnButton: the hourglass and the mode's one unit ("Next turn"; mc-57).
 //   SessionButton: Start or Resume (the session) in Next turn's place, with the campfire (ic-4, S17).
 //   FactsRow: Weather, Light, Rest, Encounter check (S4), four across, two by two on a phone; during an expedition
@@ -48,8 +49,8 @@ export interface DateLine {
 }
 
 /**
- * The top's fold (p2p-20; page 24, TF1 and TF1b, approved 2026-11-18 with the fix: a framed square like the band's
- * other buttons, keeping − and +). The caller hides what folds (the facts and the strip); the
+ * The top's fold (p2p-20; page 24, TF1 and TF1b, approved 2026-11-18: a framed square like the band's other buttons;
+ * its mark the chevron since sf-18, page 44). The caller hides what folds (the facts and the strip); the
  * band itself never folds. `due`: the facts that still show, one line each, while folded.
  */
 export interface TopFold {
@@ -138,20 +139,26 @@ export function SceneBand({
       </div>
       {/* Q3 (F3 a): with the fold mark, the menu stands after it, the band's last button, in the eye's order and the
           Tab key's. */}
-      {fold && (
-        <button
-          type="button"
-          className="button-secondary scene-band__fold"
-          aria-expanded={fold.open}
-          aria-label={fold.open ? 'Fold the top away' : 'Show the top'}
-          title={fold.open ? 'Fold the top away' : 'Show the top'}
-          onClick={fold.onToggle}
-        >
-          <Icon name={fold.open ? 'minus' : 'plus'} size={24} />
-        </button>
-      )}
+      {/* sf-18 (PS2 C, EN1): a thin rule sets the fold mark apart from the band's actions. */}
+      {fold && <span className="scene-band__rule" aria-hidden="true" />}
+      {fold && <FoldButton open={fold.open} onToggle={fold.onToggle} />}
       {fold && menu && <div className="scene-band__menu">{menu}</div>}
     </div>
+  );
+}
+
+/**
+ * The top's fold mark (p2p-20; sf-18, page 44, PS2 A, C and D, EN1, approved 2026-11-26): a framed square of the band's
+ * height with the chevron, pointing up while the top is open and down while folded, named for what a tap does, with
+ * its expanded state. A part of its own: the GM's band draws it after its thin rule, and the players' top (sf-11)
+ * draws the same one.
+ */
+export function FoldButton({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  const name = open ? 'Fold the top away' : 'Show the top';
+  return (
+    <button type="button" className="button-secondary scene-band__fold" aria-expanded={open} aria-label={name} title={name} onClick={onToggle}>
+      <Icon name={open ? 'chevron-up' : 'chevron-down'} size={24} />
+    </button>
   );
 }
 
@@ -197,14 +204,23 @@ export function DepartButton({ label, accent, onTap }: { label: string; accent: 
 }
 
 /**
- * The band's icon buttons (S2, st-4; page 16, T6b): Make camp, Encounter check, Leave the dungeon. The icon alone, read
- * aloud by its words; 44 px; never the accent. `BandTools` holds them left of Next turn on a tablet and on a row of
- * their own under the date on a phone (T8a). A blocked one stays tappable and says why (the caller's tap).
+ * The band's marks' short words (sf-18; page 44, PS2 D), by the mark's whole name: each is part of that name, so the
+ * button read aloud by the name holds the word it shows.
  */
-export function BandTool({ label, icon, onTap }: { label: string; icon: ReactNode; onTap: () => void }) {
+const BAND_WORDS: Readonly<Record<string, string>> = { 'Make camp': 'Camp', 'Encounter check': 'Encounter', 'Leave the dungeon': 'Leave' };
+
+/**
+ * The band's icon buttons (S2, st-4; page 16, T6b): Make camp, Encounter check, Leave the dungeon. Read aloud by their
+ * words; 52 px squares; never the accent. From the band's words line (1180 px wide, sf-18; `SceneBand.css`) each shows
+ * its short word under its mark ("Camp", "Encounter", "Leave"), as the stacked button; narrower, the mark alone.
+ * `BandTools` holds them left of Next turn on a tablet and on a row of their own under the date on a phone (T8a). A
+ * blocked one stays tappable and says why (the caller's tap).
+ */
+export function BandTool({ label, icon, onTap, word = BAND_WORDS[label] }: { label: string; icon: ReactNode; onTap: () => void; word?: string }) {
   return (
     <button type="button" className="button-secondary scene-band__tool" aria-label={label} title={label} onClick={onTap}>
       {icon}
+      {word && <span className="scene-band__tool-word">{word}</span>}
     </button>
   );
 }

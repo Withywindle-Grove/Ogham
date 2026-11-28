@@ -52,7 +52,8 @@ for (const size of [
           expect(Math.abs(menu!.x + menu!.width - (whole!.x + whole!.width))).toBeLessThan(2);
           if (size.name === 'tablet') {
             expect(Math.round(menu!.x - (mark!.x + mark!.width))).toBe(8);
-            expect(Math.round(mark!.x - (next!.x + next!.width))).toBe(8);
+            // sf-18 (PS2 C, EN1): Next turn, 8 px, the thin rule (1 px), 8 px, the fold mark.
+            expect(Math.round(mark!.x - (next!.x + next!.width))).toBe(8 + 1 + 8);
             expect(Math.round(mark!.y)).toBe(Math.round(menu!.y));
             expect(Math.round(next!.y)).toBe(Math.round(menu!.y));
           } else {

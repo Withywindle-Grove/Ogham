@@ -186,6 +186,49 @@
   display: flex;
 }
 
+/* sf-18 (page 44, PS2 C, EN1): a thin rule sets the fold mark apart from the actions, 8 px from Next turn and 8 px
+   from the mark (the band's gap of 16 stepped back one 8 px step on each side), the band's controls' height. */
+.scene-band__rule {
+  flex: none;
+  align-self: flex-start;
+  inline-size: var(--line-hair);
+  block-size: var(--band-control);
+  margin-inline-start: calc(var(--space-2) - var(--space-4));
+  background: var(--rule);
+}
+
+/* A mark's short word (sf-18) shows only from the band's words line, below. */
+.scene-band__tool-word {
+  display: none;
+}
+
+/* The band's words line (sf-18; page 44, PS2 D; ◈ widescreen stays open in 10): from 1180 px wide each mark has its
+   word under it, as the stacked button (its icon over a 14 px word on one line, at least two taps wide), the three at
+   one width (as the stacked button's Group); narrower, the marks stand alone. 1180 px is written here only: every
+   rule that hangs on the line sits in this one block. */
+@media (min-width: 1180px) {
+  .scene-band__tools {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+  }
+
+  .scene-band__tool {
+    flex-direction: column;
+    inline-size: auto;
+    min-inline-size: calc(var(--tap) * 2);
+    block-size: auto;
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--text-14);
+    line-height: var(--line-heading);
+    white-space: nowrap;
+  }
+
+  .scene-band__tool-word {
+    display: block;
+  }
+}
+
 /* With the mark as the band's third part, the actions keep to the right beside it (the free space goes before them). */
 .scene-band:has(.scene-band__fold) .scene-band__actions {
   margin-inline-start: auto;
@@ -325,6 +368,11 @@
     grid-column: -2 / -1;
     grid-row: 2;
     margin-inline-start: 0;
+  }
+
+  /* The mark stands alone at the heading's right (TF1b): no rule beside it. */
+  .scene-band__rule {
+    display: none;
   }
 
   .scene-band__fold {
