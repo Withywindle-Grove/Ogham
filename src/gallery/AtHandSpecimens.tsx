@@ -281,7 +281,7 @@ export function AtHandSpecimens({ Specimen }: { Specimen: (props: { name: string
       <Specimen name="The Grip sheet: a weapon with modes and no stack, melee or thrown">
         <ModeSheet preview weaponName="Eel spear" state={stateOf(SPEAR_LINE, null)} lines={ALL} actorId={DORN.actorId} weaponDamage="1d6" onPick={() => undefined} onClose={() => undefined} />
       </Specimen>
-      <Specimen name="A blocked Attack: the mode's stack is spent; why, and Open the quiver">
+      <Specimen name="A blocked Attack: the mode's stack is spent; why, and Quiver (ic-3)">
         <SpentSheet preview weaponName="Reed bow" state={SPENT_STATE} onOpenModes={() => undefined} onClose={() => undefined} />
       </Specimen>
       <Specimen name="At hand rows on the Player screen (dec-13 C6; frames P1, P2): stacked buttons with their icons, one size at the right; the weapon in hand's block (C14) with Quiver beside Attack on their own line; Quiver and Grip beside Wield, Use on a wand, Drink with the generic mark, a long name">
