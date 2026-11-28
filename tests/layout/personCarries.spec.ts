@@ -47,6 +47,35 @@ async function shot(page: Page, frame: string, width: number, scheme: string) {
   await page.screenshot({ path: `test-results/layout-screens/carries-${frame}-${width}-${scheme}.png` });
 }
 
+// Purpose: 50-1's toast at 375 px, with Larger text too: a send from her sheet (the long lantern to Wren) shows its toast
+// above the sheet without covering the sheet's title or its ✕, and the sheet with its rows stays whole.
+for (const scheme of ['light', 'dark'] as const) {
+  for (const larger of [false, true]) {
+    test(`a send's toast stands clear of her sheet (375 px, ${scheme}${larger ? ', Larger text' : ''})`, async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 812 });
+      if (larger) await page.addInitScript(() => localStorage.setItem('grimoire.textSize', 'larger'));
+      await open(page, scheme, 'messy');
+      await page.getByRole('button', { name: SEDGE }).click();
+      const lantern = 'The Hooded Lantern of the Nine Drowned Wardens of Saltwick Quay';
+      await page.getByRole('dialog', { name: /Mother Sedge$/ }).getByText(lantern).click();
+      await page.getByRole('dialog', { name: new RegExp(`${lantern}$`) }).getByText('To a character').click();
+      await page.getByRole('dialog', { name: 'Send to' }).getByText(WREN).click();
+      const toast = page.locator('.toast').filter({ hasText: `${lantern} sent to ${WREN}.` });
+      await expect(toast).toBeVisible();
+      const sheet = page.getByRole('dialog', { name: /Mother Sedge$/ });
+      await expect(sheet.getByText(`Sent to ${WREN}.`)).toBeVisible();
+      // The toast's box ends above the sheet's title and its ✕.
+      const toastBox = (await toast.boundingBox())!;
+      for (const part of [sheet.getByRole('heading', { name: 'Mother Sedge' }), sheet.getByRole('button', { name: 'Close' })]) {
+        const box = (await part.boundingBox())!;
+        expect(toastBox.y + toastBox.height <= box.y || box.y + box.height <= toastBox.y).toBe(true);
+      }
+      expect(await layoutProblems(page)).toEqual([]);
+      await shot(page, `toast${larger ? '-larger' : ''}`, 375, scheme);
+    });
+  }
+}
+
 for (const size of SIZES) {
   for (const scheme of ['light', 'dark'] as const) {
     test.describe(`what a person carries (${size.name}, ${size.width} px, ${scheme})`, () => {
