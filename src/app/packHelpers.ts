@@ -28,10 +28,14 @@ export function foldSummary(lines: readonly InventoryLine[]): string {
  */
 export type Run = <T>(write: () => Promise<{ ok: true; value: T } | { ok: false; message: string; reason?: string }>, close?: boolean) => Promise<boolean>;
 
-/** The tier label, or the over-max words, of a load ("" when there's nothing to say). */
-export function tierWords(load: CarriedLoad): string {
+/**
+ * The tier label, or the over-max words, of a load ("" when there's nothing to say). Armour mode says its move; where a
+ * speed tile says the speed (`speedOnce`, pss-12), it says whether treasure is carried instead, so the speed is said once.
+ */
+export function tierWords(load: CarriedLoad, { speedOnce = false }: { speedOnce?: boolean } = {}): string {
   if (load.mode === 'none') return '';
   if (load.over) return load.overMax || 'Over the limit';
+  if (load.mode === 'armour' && speedOnce) return load.carriesTreasure ? 'Carrying treasure' : 'Not carrying treasure';
   if (load.mode === 'armour') return load.movement ? `Move ${load.movement}` : '';
   return load.tier?.label ?? '';
 }

@@ -5,6 +5,7 @@ import type { Db } from '../core/supabase.ts';
 import { attackFigures } from '../modules/characters/sheetCombat.ts';
 import { cardLine, shortLabel, type FieldDefinition } from '../modules/characters/fields.ts';
 import { downAtOf } from '../modules/characters/hp.ts';
+import { useShownHp } from './HpInPlace.tsx';
 import { combatFields, skillsOf } from '../modules/characters/play.ts';
 import { CentredPopUpScope, SheetScope } from '../ui/Dialog.tsx';
 import { limitedAbilities, loadCharacterPlay, pinnedNames, powersWithUses, type CharacterPlay, type LimitedAbility } from '../modules/characters/playState.ts';
@@ -282,6 +283,9 @@ export function PlayerScreen({
     }
     return <TopRow campaign={{ db, campaign }} onBack={onBack} menuLabel="Character options" drawer={campaign.name} title={title} logTab standard />;
   };
+  // The figure the hit points box shows, as it moves (a tap counts at once, before the burst is sent): one copy, kept
+  // here and handed to the box (PlayerVitals), so the head's Down ring follows it (pss-7).
+  const hpShown = useShownHp(character);
 
   if (companyOpen) {
     return (
@@ -339,6 +343,8 @@ export function PlayerScreen({
   const kindred = kindredAndTitle(figures.shownRace, title);
   const cardWords = figures.className ? '' : cardLine(fieldDefs, character.fields, character.level, traitLookup(traitListsOf(setting?.all ?? [])));
   const headLine = wide ? cardWords : kindred || cardWords;
+  // The HP at which the rules set marks a character Down (07 `death.at`): the vitals' toast and the head's ring (pss-7).
+  const downAt = downAtOf(setting?.rulesSets ?? []);
   // In the GM's view the Scene is its player's (C15f, pg32-5): whose group, requests and Rest it shows.
   const scenePlayer = view ? (character.ownerUserId ?? user.id) : undefined;
   const top = topRow(wide && current === 'player' ? nameKindredTitle(character.name, figures.shownRace, title) : character.name);
@@ -447,6 +453,8 @@ export function PlayerScreen({
               onPortraitSaved={onDataChange}
               onOpenLog={() => select('log')}
               notices={wide ? undefined : <div className="player-head__notices" ref={setNoticesSlot} />}
+              hp={hpShown[0]}
+              downAt={downAt}
             />
             <PlayerVitals
               db={db}
@@ -457,7 +465,8 @@ export function PlayerScreen({
               attack={attack}
               worn={worn}
               acOverride={play?.acOverride ?? null}
-              downAt={downAtOf(setting?.rulesSets ?? [])}
+              downAt={downAt}
+              hpShown={hpShown}
               onSaved={onHpChange}
               onMaxSaved={onDataChange}
               onAcSaved={() => setPlayVersion((v) => v + 1)}
@@ -474,6 +483,7 @@ export function PlayerScreen({
               weaponLine={weaponLine}
               weaponBreakdown={weaponParts}
               weaponRolls={weaponRollsOf}
+              spells={play && setting ? { setting, figures, character, play, onChanged: () => setPlayVersion((v) => v + 1) } : null}
               onRead={onPackRead}
             />
             <div className="player__slot" ref={setLevelSlot} />

@@ -168,8 +168,8 @@
   min-inline-size: 0;
 }
 
-/* "the Hornkin, Shieldbearer" (frame P2): the name stays in the bar. A tablet held upright (dec-14 row 3, frame 38-3;
-   ruled 2026-11-24, 2 and 8): the head's words are one paragraph, the name, then "the" kindred and the title. */
+/* "the Hornkin, Shieldbearer" (frame P2): the name stays in the bar. In one column, a tablet held upright (dec-14 row 3,
+   frame 38-3; ruled 2026-11-24, 2 and 8) or a phone (frame 47-1, p47-1): the head's words are one paragraph, the name, then "the" kindred and the title. */
 .player-head__line,
 .player-head__words {
   margin: 0;

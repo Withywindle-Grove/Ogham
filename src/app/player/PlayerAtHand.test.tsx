@@ -236,21 +236,72 @@ describe('the light in At hand (dec-13 C9)', () => {
     expect(within(sheet).getByRole('button', { name: 'Unpin' })).toBeTruthy();
   });
 
-  // Purpose (the second review of the Player stack): a burning light that is At hand itself (pinned) and has another
-  // action (here charges) keeps its At hand row with that action (Use a charge), in its own place in At hand's order
-  // (after the pinned Eel knife), only without a light button of its own.
-  it('keeps the row of a pinned lit light that has charges, in its place, with Use a charge and no light button', async () => {
+  // Purpose (Player sitting piece 9, frame 47-3, pss-17): a burning light that is At hand itself (pinned) and has charges
+  // shows once: the light's row, its ring with Use beside it, the charges at the end of its line (D1); no item row of
+  // its own, and the light still comes after At hand's own rows (the pinned Eel knife; pss-16).
+  it('draws a pinned lit light with charges as one row: the ring, its line with the charges, and Use', async () => {
     const { atHand } = await brannoch((lines) => {
       const lantern = lineOf(lines, 'line-p1-lantern');
       lantern.pinned = true;
       lantern.item_data = { lightTypeId: 'storm-lantern', charges: { initial: 3 } };
       lantern.charges_left = 2;
     });
-    const order = (el: Element) => [...atHand.querySelectorAll('*')].indexOf(el);
+    expect(within(atHand).getAllByText('Storm lantern')).toHaveLength(1);
     const use = within(atHand).getByRole('button', { name: 'Use a charge of Storm lantern' });
+    const light = use.closest('.light-block')!;
+    expect(light).not.toBeNull();
+    expect(within(light as HTMLElement).getByRole('button', { name: 'Put out Storm lantern' })).toBeTruthy();
+    expect(within(light as HTMLElement).getByText('Lit, 4 turns left. 3 refills left. 2 charges left')).toBeTruthy();
+    const order = (el: Element) => [...atHand.querySelectorAll('*')].indexOf(el);
     expect(order(within(atHand).getAllByRole('button', { name: /^Eel knife/ })[0]!)).toBeLessThan(order(use));
-    // The light's rows still show the lantern lit: its ring is the only Put out.
+    // Its ring is the only Put out, and there's one Use.
     expect(within(atHand).getAllByRole('button', { name: /^(Put out|Light) / }).map((b) => b.className)).toEqual(['status-ring-tap']);
+    expect(within(atHand).getAllByRole('button', { name: /^Use a charge/ })).toHaveLength(1);
+  });
+
+  // Purpose (piece 9; finding 9, ruled "A"): Use on the light's row spends a charge with its toast and Undo; with none
+  // left it stays a button and says why.
+  it("spends a charge from the light's row, with Undo", async () => {
+    const { user, atHand } = await brannoch((lines) => {
+      const lantern = lineOf(lines, 'line-p1-lantern');
+      lantern.pinned = true;
+      lantern.item_data = { lightTypeId: 'storm-lantern', charges: { initial: 3 } };
+      lantern.charges_left = 1;
+    });
+    const lantern = () => lineOf(world.tables.inventory_lines, 'line-p1-lantern');
+    await user.click(within(atHand).getByRole('button', { name: 'Use a charge of Storm lantern' }));
+    await waitFor(() => expect(lantern().charges_left).toBe(0));
+    expect(await screen.findByText('Used a charge of Storm lantern.')).toBeTruthy();
+    expect(await within(atHand).findByText('Lit, 4 turns left. 3 refills left. 0 left, spent')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(lantern().charges_left).toBe(1));
+  });
+
+  it("with no charge left, Use on the light's row stays a button and says why", async () => {
+    const { user, atHand } = await brannoch((lines) => {
+      const lantern = lineOf(lines, 'line-p1-lantern');
+      lantern.pinned = true;
+      lantern.item_data = { lightTypeId: 'storm-lantern', charges: { initial: 3 } };
+      lantern.charges_left = 0;
+    });
+    await user.click(within(atHand).getByRole('button', { name: 'Use a charge of Storm lantern' }));
+    expect(await screen.findByText('Storm lantern has no charges left.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
+  });
+
+  // Purpose (C2): put out, the light's row carries no Use, and the lantern keeps its own row with Use, as built.
+  it('gives Use back to the item row once the light is put out', async () => {
+    const { user, atHand } = await brannoch((lines) => {
+      const lantern = lineOf(lines, 'line-p1-lantern');
+      lantern.pinned = true;
+      lantern.item_data = { lightTypeId: 'storm-lantern', charges: { initial: 3 } };
+      lantern.charges_left = 2;
+    });
+    await user.click(within(atHand).getByRole('button', { name: 'Put out Storm lantern' }));
+    await within(atHand).findByRole('button', { name: /^Light / });
+    const use = within(atHand).getByRole('button', { name: 'Use a charge of Storm lantern' });
+    expect(use.closest('.light-block')).toBeNull();
+    expect(use.closest('.pack__item')).not.toBeNull();
   });
 
   // Purpose (round 2 of the review): a lit lantern with charges that is not At hand (not pinned, not in hand) draws no

@@ -3,7 +3,7 @@ import { runCommand, type CommandResult, type CurrentUser } from '../../core/com
 import type { MyCharacter } from '../../core/myCharacters.ts';
 import type { Db } from '../../core/supabase.ts';
 import { movePin, pinToAtHand } from '../../modules/characters/pins.ts';
-import { PIN_LIMIT, PIN_LIMIT_WORDS, pinnedNames, pinnedTraits, traitsWithUsesOf, useAbility, type CharacterPlay, type LimitedAbility, type Pin } from '../../modules/characters/playState.ts';
+import { PIN_LIMIT, PIN_LIMIT_WORDS, pinnedNames, pinnedTraits, traitsWithUsesOf, useAbility, type CharacterPlay, type LimitedAbility, type Pin, type PinKind } from '../../modules/characters/playState.ts';
 import { useBlockedSheet } from '../../ui/BlockedSheet.tsx';
 import { Dialog } from '../../ui/Dialog.tsx';
 import { ListRow, PinnedBox, PinnedName, PinStar, RowList, SourceLine, UseDots, UsePips } from '../../ui/parts.tsx';
@@ -51,16 +51,36 @@ export function PinMoves({ name, live, onMove }: { name: string; live: readonly 
 /**
  * The **Pin star** on an ability's or a trait's entry, beside its ✕ (row P4 of plans/test-feedback-2026-11-19; euf-2;
  * page 26's fix 1, drawn on page 28's frame M4e): pin or unpin at once, Undo in the toast (06: undo over confirm), the
- * entry staying open. At 24 pins it stays a button and says why (pg28-5).
+ * entry staying open. At 24 pins it stays a button and says why (pg28-5). A spell's sheet on the Magic tab carries it
+ * too (pss-6, psb-4; ticket #164): `kind` spell, `pinKey` the spell's id, `name` the words its toast says.
  */
-export function EntryPinStar({ db, user, character, name, pins, onChanged }: { db: Db; user: CurrentUser; character: MyCharacter; name: string; pins: readonly Pin[]; onChanged: () => void }) {
+export function EntryPinStar({
+  db,
+  user,
+  character,
+  name,
+  kind = 'trait',
+  pinKey = name,
+  pins,
+  onChanged,
+}: {
+  db: Db;
+  user: CurrentUser;
+  character: MyCharacter;
+  name: string;
+  /** What is pinned: a trait (keyed by its name, the default) or a spell (keyed by its id). */
+  kind?: PinKind;
+  pinKey?: string;
+  pins: readonly Pin[];
+  onChanged: () => void;
+}) {
   const toast = useToast();
   const blocked = useBlockedSheet();
-  const pinned = pins.some((p) => p.kind === 'trait' && p.key === name);
+  const pinned = pins.some((p) => p.kind === kind && p.key === pinKey);
   async function pin(next: boolean, undo = false, at?: number) {
     if (next && !undo && pins.length >= PIN_LIMIT) return blocked.explain(`Can't pin ${name}`, PIN_LIMIT_WORDS);
-    const was = pins.findIndex((p) => p.kind === 'trait' && p.key === name);
-    const result = await runCommand(registry, db, user, pinToAtHand, { character, kind: 'trait', key: name, pinned: next, ...(at === undefined ? {} : { at }) });
+    const was = pins.findIndex((p) => p.kind === kind && p.key === pinKey);
+    const result = await runCommand(registry, db, user, pinToAtHand, { character, kind, key: pinKey, pinned: next, ...(at === undefined ? {} : { at }) });
     if (!result.ok) return toast({ text: result.message, error: true });
     onChanged();
     if (!undo) toast({ text: next ? `${name} pinned to the top` : `${name} unpinned`, onUndo: () => void pin(!next, true, !next && was >= 0 ? was : undefined) });

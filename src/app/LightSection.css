@@ -10,6 +10,12 @@
   min-block-size: calc(var(--space-7) + var(--space-2));
 }
 
+/* Lit, with its own item At hand and charged (Player sitting piece 9, frame 47-3): Use at the row's right, centred
+   beside the name and its line as the ring is (a secondary button's own `align-self` would put it at the top). */
+.light-block__row > .pack__use {
+  align-self: center;
+}
+
 /* Beside the ring: the name, then "Lit, 4 turns left. 3 refills left". */
 .light-block__body {
   display: flex;

@@ -19,6 +19,14 @@ import { possessive } from '../core/nameWords.ts';
 
 export type HpCharacter = CharacterRef & { name: string; hpCurrent: number | null; hpMax: number | null };
 
+/** The figure the HP box shows and its setter: one copy, kept by whoever else reads it (the head's Down ring, pss-7). */
+export type ShownHp = readonly [number | null, (hp: number | null) => void];
+
+/** The HP box's figure, from the character's hit points until a tap or a read moves it. */
+export function useShownHp(character: Pick<HpCharacter, 'hpCurrent' | 'hpMax'>): ShownHp {
+  return useState<number | null>(() => shownHp(character.hpCurrent, character.hpMax));
+}
+
 export function HpInPlace({
   db,
   user,
@@ -26,6 +34,7 @@ export function HpInPlace({
   downAt,
   onSaved,
   onMaxSaved,
+  shown,
 }: {
   db: Db;
   user: CurrentUser;
@@ -33,11 +42,17 @@ export function HpInPlace({
   /** The HP at which the rules set marks a character Down (`downAtOf`); null: the toast never says Down. */
   downAt: number | null;
   onSaved?: () => void;
+  /**
+   * The figure the box shows, when another part reads it too (the Player screen's head, for its Down ring): the box
+   * moves it (a tap, a burst, an Undo, a read) and the caller keeps the one copy. Without it the box keeps its own.
+   */
+  shown?: ShownHp;
   /** The most hit points were set ("Set max", N24), so the character is read again. */
   onMaxSaved?: () => void;
 }) {
   const toast = useToast();
-  const [hp, setHpShown] = useState<number | null>(() => shownHp(character.hpCurrent, character.hpMax));
+  const own = useShownHp(character);
+  const [hp, setHpShown] = shown ?? own;
   const [open, setOpen] = useState<'type' | 'max' | null>(null);
   const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(false);

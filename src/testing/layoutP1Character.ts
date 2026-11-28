@@ -35,7 +35,21 @@ const TURN = 600;
  * it (35B); `several`, nothing lit and two lights to light, the lantern and reed torches (35E2, 1); `burnt`, the lantern
  * burnt out with its oil and the torches (Refill and Light another, 35E2, 3); `burntnone`, a reed torch burnt out and no
  * light left in the pack (35E2, 4); `longlight`, the lantern named at length with 999 turns and 999 refills (35D).
+ * `arms`, several ready weapons (frame P5b; pib-1, pib-2): three in hand (the spear, the knife and a long-named axe with
+ * its Grip: three blocks), bog-ox horns worn and pinned (an At hand row with Attack and Stance) and a heron bow pinned
+ * with its quiver (a row with Wield and Quiver).
+ * `icons`, frame 47-2's four icons (p47-2): Reed arrows, Trail bread and a Moss draught pinned (Fire, Eat, Drink) and the
+ * bog-ox horns worn and pinned (Attack and Stance).
+ * `spells`, a caster with pinned spells (Player sitting piece 2; frame M4g): Marsh light ready twice, one cast, with a
+ * roll and a range; a long-named spell with none left; Hush with no roll and no range; Reed whisper in the book but not
+ * ready today; and a pin whose spell has left the book (ignored). Invented spells and figures.
+ * `details`, Details as frame P3 draws it (pib-3): a long motto, a Background from the kindred's list (the field the
+ * others leave out) and a long backstory, so Kindred, Class, the alignment and the Background each carry an entry tap.
+ * `lituse`, the lantern pinned with 2 charges, lit: one row, its ring with Use (Player sitting piece 9, frame 47-3);
+ * `lituselong`, the same named at length with 999 turns, 999 refills and 999 charges (47-3's messy data).
  * `1`, the four of P1. */
+/** The long-named pinned spell (`spells`, frame M4g's right panel). */
+export const P1_LONG_SPELL = 'The Lady of the Lanterns’ light on drowned stone';
 export const P1_LONG_NAME = 'Brannoch Fenward of the Seven Drowned Cairns, called the Unbowed';
 /** The long-named light (`longlight`, 35D's messy data). */
 export const P1_LONG_LIGHT = 'Hooded lantern of the drowned bell';
@@ -48,6 +62,8 @@ export type P1Head =
   | 'heavy'
   | 'modes'
   | 'weapon'
+  | 'arms'
+  | 'icons'
   | 'bare'
   | 'packless'
   | 'skills'
@@ -57,7 +73,12 @@ export type P1Head =
   | 'several'
   | 'burnt'
   | 'burntnone'
-  | 'longlight';
+  | 'longlight'
+  | 'armour'
+  | 'details'
+  | 'spells'
+  | 'lituse'
+  | 'lituselong';
 
 export async function addP1Character(
   world: FakeWorld,
@@ -65,7 +86,8 @@ export async function addP1Character(
 ): Promise<string> {
   const campaign = world.addCampaign(P1_CAMPAIGN, gm);
   // The load tracked in coins (dec-13 C10), by the fixture's own tiers, so Movement shows its load card as P1 draws it.
-  Object.assign(world.tables.campaigns.find((c) => c.id === campaign)!, { settings: { encumbrance: { mode: 'coin' } } });
+  // `armour`: the load by armour worn and treasure carried (pss-12), by invented armour rules below.
+  Object.assign(world.tables.campaigns.find((c) => c.id === campaign)!, { settings: { encumbrance: { mode: head === 'armour' ? 'armour' : 'coin' } } });
   // The fixture pack, as the ?full=1 page loads it.
   world.tables.packs.push({ id: 'pack-p1-fen', owner_user_id: gm, campaign_id: null, name: 'Fen sample', version: '0.1', kind: 'setting', format_version: 2, source: 'Invented for layout checks', notes: '', updated_at: '2026-11-15T12:00:00Z', extra_meta: { shortName: 'Fen sample' } });
   const entry = (packId: string, kind: string, data: Record<string, unknown>) =>
@@ -86,8 +108,10 @@ export async function addP1Character(
             // at 3) is a target number, which a rules set with no AC style reads as a bonus ("d20 +20"). Francis's fix
             // 0 of 19 Nov 2026: the sample, not the rule. Invented: +0 at level 1, +1 from level 3.
             const attack = typeof row.level === 'number' && row.level >= 3 ? 1 : 0;
-            return { ...row, attack, saves: { ...saves, ...Object.fromEntries(Object.entries(MORE_SAVES).map(([k, d]) => [k, mire + d])) } };
+            return { ...row, attack, ...(head === 'spells' ? { spellSlots: [5] } : {}), saves: { ...saves, ...Object.fromEntries(Object.entries(MORE_SAVES).map(([k, d]) => [k, mire + d])) } };
           }),
+          // For `spells`, a book caster (Player sitting piece 2). Invented.
+          ...(head === 'spells' ? { spellcasting: { listId: 'p1-warden-spells', type: 'book', castingType: 'divine', maxSpellLevel: 2, fromLevel: 1, recover: 'rest', firstSpells: { given: [] } } } : {}),
           // For `pins`, a second trait with uses, left unpinned, so a plain row follows the pinned boxes under "Abilities
           // and traits" (plan dec-14, fix 4's "not drawn together" case). Invented.
           ...(head === 'pins' && Array.isArray(data.abilities)
@@ -107,7 +131,25 @@ export async function addP1Character(
     const movement = rec(data.movement);
     return {
       ...data,
-      encumbrance: { ...encumbrance, coin: { ...rec(encumbrance.coin), tiers: tiers(rec(encumbrance.coin).tiers) }, slot: { ...rec(encumbrance.slot), tiers: tiers(rec(encumbrance.slot).tiers) } },
+      encumbrance: {
+        ...encumbrance,
+        coin: { ...rec(encumbrance.coin), tiers: tiers(rec(encumbrance.coin).tiers) },
+        slot: { ...rec(encumbrance.slot), tiers: tiers(rec(encumbrance.slot).tiers) },
+        // For `armour` (pss-12): movement by the armour worn, slower with treasure; the waxed coat is light. Invented.
+        ...(head === 'armour'
+          ? {
+              armour: {
+                maxLoadCoin: 1600,
+                movement: [
+                  { armour: 'none', withoutTreasure: '120 paces', withTreasure: '90 paces' },
+                  { armour: 'light', withoutTreasure: '90 paces', withTreasure: '60 paces' },
+                  { armour: 'heavy', withoutTreasure: '60 paces', withTreasure: '30 paces' },
+                ],
+                armourTypes: { light: 'light', heavy: 'heavy' },
+              },
+            }
+          : {}),
+      },
       movement: { ...movement, combat: { ...rec(movement.combat), unit: 'paces' } },
     };
   };
@@ -145,12 +187,21 @@ export async function addP1Character(
     { id: 'watchful', name: 'Watchful', icon: 'eye-half', tone: 'neutral', notes: 'Hard to surprise.' },
   ];
   for (const c of conditions) entry('pack-p1-lantern', 'condition', c);
+  // For `spells` (Player sitting piece 2; frame M4g): the Warden's spells, invented, and the slots filled at level up.
+  if (head === 'spells') {
+    entry('pack-p1-lantern', 'spell', { id: 'marsh-light', name: 'Marsh light', range: '30 paces', duration: { roll: 'd6+2', unit: 'turn' }, notes: 'A pale light hangs over still water.' });
+    entry('pack-p1-lantern', 'spell', { id: 'lady-lanterns', name: P1_LONG_SPELL, range: '30 paces', duration: { roll: 'd6+2', unit: 'turn' }, notes: 'The drowned stones glow as lanterns do.' });
+    entry('pack-p1-lantern', 'spell', { id: 'hush', name: 'Hush', duration: 'instant', notes: 'One voice falls silent.' });
+    entry('pack-p1-lantern', 'spell', { id: 'reed-whisper', name: 'Reed whisper', range: '60 paces', duration: '1 turn', notes: 'The reeds carry a word.' });
+    entry('pack-p1-lantern', 'spellList', { id: 'p1-warden-spells', name: 'Warden spells', levels: [{ level: 1, spells: ['marsh-light', 'lady-lanterns', 'hush', 'reed-whisper'] }] });
+    entry('pack-p1-lantern', 'hook', { id: 'p1-fill-slots', kind: 'fill', when: 'levelUp', from: 'classProgression', target: ['spellSlots'] });
+  }
   world.tables.campaign_packs.push({ id: 'campaign-pack-p1-lantern', campaign_id: campaign, pack_id: 'pack-p1-lantern', option_choices: {}, overrides: {}, priority: 2 });
 
   // The sheet's fields, from the fixture's template (as ?full=1).
   type Field = { key: string; label: string; type: string; group?: string; fill?: string; choices?: string[]; required?: boolean; from?: string };
   ((fenPack.fieldTemplates?.[0]?.fields ?? []) as Field[])
-    .filter((f) => f.key !== 'hp' && !f.from)
+    .filter((f) => f.key !== 'hp' && (!f.from || (head === 'details' && f.key === 'background')))
     .forEach((f, order) => {
       const type = f.type === 'list' && !f.choices?.length ? 'text' : f.type;
       // The speed's field is named "Speed", as frame P1 names it ("Speed, 40 paces in a fight").
@@ -165,7 +216,16 @@ export async function addP1Character(
     race_ref: 'bog-folk',
     fields: { MUS: 15, NIM: 12, GRT: 13, WIT: 10, LORE: 9, CHARM: 11, alignment: 'Lantern', languages: 'Reedish, Common', motto: 'The beacon before the bed.' },
     classes: head === 'classless' ? [] : [{ classRef: 'lantern-warden', level: 3, xp: 3400 }],
+    ...(head === 'spells' ? { spell_book: ['marsh-light', 'lady-lanterns', 'hush', 'reed-whisper'] } : {}),
   });
+  // Details as P3 draws it (pib-3), its messy data: long words, and a Background with an entry. Invented.
+  if (head === 'details') {
+    const actor = world.tables.actors.find((a) => a.id === brannoch)!;
+    Object.assign(actor, {
+      fields: { ...(actor.fields as Record<string, unknown>), motto: 'Keep the beacon burning on the causeway, whatever the fen sends up out of the dark water, and never ask its name.', background: 'eel-catcher' },
+      backstory: 'Brannoch kept the Seven Drowned Cairns beacon for nine winters, until the winter the oil boats did not come up the channel. He has not said what he found at the last cairn, and he has not been back. He took the Beacon Keepers’ coin because it was going the other way.',
+    });
+  }
   world.addMember(campaign, sam, 'player', brannoch);
   // A score sent to the GM and waiting (the sheet's waiting-change line, drawn on the Player screen since C1; dec-13 C11).
   // Two notices for the notices box (row C1): the languages put off for later ("To finish") and the change below.
@@ -185,6 +245,15 @@ export async function addP1Character(
     form_id: null,
     version: 1,
     ...(head === 'pins' ? { pins: [{ kind: 'trait', key: 'Oath of light' }, { kind: 'trait', key: 'Steady flame' }] } : {}),
+    // `spells`: Marsh light ready twice, one cast; the long-named spell ready twice, both cast; Hush once; Reed whisper
+    // only in the book; a pin whose spell is gone (ignored).
+    ...(head === 'spells'
+      ? {
+          prepared: [{ spell: 'marsh-light', level: 1 }, { spell: 'marsh-light', level: 1 }, { spell: 'lady-lanterns', level: 1 }, { spell: 'lady-lanterns', level: 1 }, { spell: 'hush', level: 1 }],
+          spells_cast: { '1:marsh-light': 1, '1:lady-lanterns': 2 },
+          pins: [{ kind: 'spell', key: 'marsh-light' }, { kind: 'spell', key: 'gone-spell' }, { kind: 'spell', key: 'lady-lanterns' }, { kind: 'spell', key: 'hush' }, { kind: 'spell', key: 'reed-whisper' }],
+        }
+      : {}),
   });
 
   // The pack: the coat worn, the spear in hand, the knife pinned, the lantern and its oil.
@@ -205,12 +274,18 @@ export async function addP1Character(
     const hooked = { weapon: { damage: '2d4', qualities: ['Melee', 'Missile'], modes: { button: 'grip', list: [{ id: 'one-hand', name: 'One hand' }, { id: 'two-hands', name: 'Two hands', damage: '1d10' }] } } };
     line('line-p1-spear', 'Hooked eel-spear of the Seven Drowned Cairns', { category: 'weapon', weight_coin: 40, equipped: true, item_data: hooked });
   } else line('line-p1-spear', 'Reed spear', { category: 'weapon', weight_coin: 30, equipped: head !== 'bare', item_data: item('reed-spear'), source_pack_id: 'pack-p1-fen', source_entry_id: 'reed-spear' });
-  line('line-p1-knife', 'Eel knife', { category: 'weapon', weight_coin: 10, pinned: head !== 'bare', item_data: item('eel-knife'), source_pack_id: 'pack-p1-fen', source_entry_id: 'eel-knife' });
-  const lanternName = head === 'longlight' ? P1_LONG_LIGHT : 'Storm lantern';
+  line('line-p1-knife', 'Eel knife', { category: 'weapon', weight_coin: 10, pinned: head !== 'bare', equipped: head === 'arms', item_data: item('eel-knife'), source_pack_id: 'pack-p1-fen', source_entry_id: 'eel-knife' });
+  // The long-named light (35D), and 47-3's with its charges.
+  const longLight = head === 'longlight' || head === 'lituselong';
+  const lanternName = longLight ? P1_LONG_LIGHT : 'Storm lantern';
+  // A lit light with charges, pinned to At hand (piece 9, frame 47-3).
+  const charged = head === 'lituse' || head === 'lituselong' ? { pinned: true, item_data: { lightTypeId: 'storm-lantern', charges: { initial: 3 } }, charges_left: head === 'lituse' ? 2 : 999 } : {};
   // `bare` carries no light: a light not burning now sits in At hand too (lt-4), and bare has nothing at hand.
-  if (head !== 'burntnone' && head !== 'bare') line('line-p1-lantern', lanternName, { category: 'light', weight_coin: 40, item_data: { lightTypeId: 'storm-lantern' } });
-  line('line-p1-oil', 'Lamp oil', { weight_coin: 10, qty: head === 'longlight' ? 999 : 3, stack: head === 'longlight' ? 999 : 10, source_pack_id: 'pack-p1-lantern', source_entry_id: 'lamp-oil' });
+  if (head !== 'burntnone' && head !== 'bare') line('line-p1-lantern', lanternName, { category: 'light', weight_coin: 40, item_data: { lightTypeId: 'storm-lantern' }, ...charged });
+  line('line-p1-oil', 'Lamp oil', { weight_coin: 10, qty: longLight ? 999 : 3, stack: longLight ? 999 : 10, source_pack_id: 'pack-p1-lantern', source_entry_id: 'lamp-oil' });
   if (torches) line('line-p1-torches', 'Reed torch', { category: 'light', weight_coin: 10, qty: 4, stack: 10, item_data: { lightTypeId: 'reed-torch' } });
+  // Treasure carried in armour mode (pss-12): a pouch of pearls, so the load card says "Carrying treasure". Invented.
+  if (head === 'armour') line('line-p1-pearls', 'Pouch of river pearls', { category: 'gear', weight_coin: 120, item_data: { treasure: true } });
   // Over the most (dec-13 C10's messy data): 999 bundles of reeds, a coin's weight each.
   if (head === 'heavy') line('line-p1-reeds', 'Bundle of reeds', { weight_coin: 1, qty: 999, stack: 999 });
   // At hand's stacked buttons (dec-13 C6; frames P1, P2): a bow with its quiver (Quiver beside Wield, its line naming
@@ -222,11 +297,29 @@ export async function addP1Character(
     line('line-p1-axe', 'Hand axe of the Seven Cairns, twice reforged', { category: 'weapon', weight_coin: 30, pinned: true, item_data: { slot: 'hand', weapon: { damage: '1d6', modes: modes('grip', [{ id: 'one', name: 'One hand' }, { id: 'two', name: 'Two hands', damage: '1d8' }]) } } });
     line('line-p1-wand', 'Heron wand', { category: 'wand', weight_coin: 1, pinned: true, item_data: { charges: { initial: '2d4' } }, charges_left: 5 });
   }
+  // Several ready weapons (frame P5b; pib-1, pib-2): a third in hand with a long name and its Grip, horns worn ready and
+  // pinned (Attack and Stance, a row), a bow pinned with its quiver (Wield and Quiver, a row). Invented.
+  if (head === 'arms') {
+    const modes = (button: string, list: Record<string, unknown>[]) => ({ button, list });
+    line('line-p1-axe', 'Hand axe of the Seven Cairns, twice reforged', { category: 'weapon', weight_coin: 30, equipped: true, item_data: { slot: 'hand', weapon: { damage: '1d6', modes: modes('grip', [{ id: 'one', name: 'One hand' }, { id: 'two', name: 'Two hands', damage: '1d8' }]) } } });
+    line('line-p1-horns', 'Bog-ox horns', { category: 'weapon', weight_coin: 0, equipped: true, pinned: true, item_data: { slot: 'worn', weapon: { damage: '1d6', modes: modes('stance', [{ id: 'gore', name: 'Gore' }, { id: 'butt', name: 'Butt', damage: '1d4' }]) } } });
+    line('line-p1-bow', 'Heron bow', { category: 'weapon', weight_coin: 30, pinned: true, item_data: { slot: 'hand', hands: 2, weapon: { damage: '1d6', modes: modes('quiver', [{ id: 'reed', name: 'Reed arrows', draws: { itemId: 'reed-arrows' } }, { id: 'bone', name: 'Bone arrows', draws: { itemId: 'bone-arrows' } }]) } } });
+    line('line-p1-arrows', 'Reed arrows', { category: 'ammunition', weight_coin: 1, qty: 18, stack: 20, source_entry_id: 'reed-arrows' });
+  }
+
+  // The four icons of frame 47-2 (p47-2): arrows to Fire, bread to Eat, a draught to Drink, all pinned, and the horns
+  // worn ready with their Stance beside Attack. Invented.
+  if (head === 'icons') {
+    line('line-p1-arrows', 'Reed arrows', { category: 'ammunition', weight_coin: 1, qty: 18, stack: 20, pinned: true });
+    line('line-p1-bread', 'Trail bread', { category: 'food', weight_coin: 1, qty: 5, stack: 5, pinned: true });
+    line('line-p1-draught', 'Moss draught', { category: 'draught', weight_coin: 1, qty: 2, stack: 5, pinned: true });
+    line('line-p1-horns', 'Bog-ox horns', { category: 'weapon', weight_coin: 0, equipped: true, pinned: true, item_data: { slot: 'worn', weapon: { damage: '1d6', modes: { button: 'stance', list: [{ id: 'gore', name: 'Gore' }, { id: 'butt', name: 'Butt', damage: '1d4' }] } } } });
+  }
 
   // Lit through the stand-in database, then two turns burn: 4 of 6 left.
   world.signInAs(sam);
   // The long-named light burns 1001 turns, so 999 are left (35D).
-  const burn = (head === 'longlight' ? 1001 : 6) * TURN;
+  const burn = (longLight ? 1001 : 6) * TURN;
   if (head !== 'bare' && head !== 'packless' && head !== 'several' && head !== 'burntnone')
     await world.db.rpc('light_light' as never, { actor: brannoch, line: 'line-p1-lantern', light_type: 'storm-lantern', light_name: lanternName, burn_seconds: burn, warn_seconds: TURN, consumed: false, fuel_item: 'lamp-oil' } as never);
   world.tables.campaign_clocks.find((c) => c.campaign_id === campaign)!.seconds = 2 * TURN;
