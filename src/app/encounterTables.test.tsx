@@ -150,19 +150,18 @@ describe('Encounter tables, full screen (B2)', () => {
     const which = await hitOnTurn3(user);
     await user.click(which.getByRole('button', { name: /^Abbey/ }));
     const abbey = within(await screen.findByRole('dialog', { name: 'Abbey' }));
-    expect(abbey.getByText('Roll d6')).toBeTruthy();
-    await user.click(abbey.getByRole('button', { name: /Reed cutters/ }));
+    expect(abbey.getByText('Roll d6, then tap the row.')).toBeTruthy();
+    await user.click(abbey.getByRole('radio', { name: /Reed cutters/ }));
     await waitFor(() => expect(world.tables.check_results[0]).toMatchObject({ table_id: 'abbey', roll: '2–3', row_text: 'Abbey: Reed cutters, 2d4' }));
     const setRoll = world.tables.events.filter((e) => e.type === 'check.setRoll');
     expect(setRoll.map((e) => e.level)).toEqual(['simple']);
-    const row = abbey.getByRole('button', { name: /Reed cutters/ });
-    expect(row.getAttribute('aria-current')).toBe('true');
-    expect(row.textContent).toContain('rolled');
+    // The tapped row is washed and ticked (sf-14): a checked radio.
+    expect(abbey.getByRole('radio', { name: /Reed cutters/ }).getAttribute('aria-checked')).toBe('true');
     await user.click(await toastUndo('Rolled: 2–3, Reed cutters, 2d4'));
     await waitFor(() => expect(world.tables.check_results[0]).toMatchObject({ table_id: null, roll: null, row_text: null }));
-    await waitFor(() => expect(abbey.getByRole('button', { name: /Reed cutters/ }).getAttribute('aria-current')).toBeNull());
+    await waitFor(() => expect(abbey.getByRole('radio', { name: /Reed cutters/ }).getAttribute('aria-checked')).toBe('false'));
     // The result itself stays (a hit), only the row came off; another tap records again.
-    await user.click(abbey.getByRole('button', { name: /Bog lurker/ }));
+    await user.click(abbey.getByRole('radio', { name: /Bog lurker/ }));
     await waitFor(() => expect(world.tables.check_results[0]).toMatchObject({ roll: '6', row_text: 'Abbey: Bog lurker, 1' }));
   });
 
@@ -172,9 +171,9 @@ describe('Encounter tables, full screen (B2)', () => {
     const which = await hitOnTurn3(user);
     await user.click(which.getByRole('button', { name: /^Abbey/ }));
     const abbey = within(await screen.findByRole('dialog', { name: 'Abbey' }));
-    expect(abbey.getByRole('button', { name: /Drowned acolytes/ }).textContent).toBe('1Drowned acolytes, 1d4Bloated dead in robes; slow, silent, afraid of fire.');
-    expect(abbey.getByRole('button', { name: /Mortal/ }).textContent).toBe('4–5Mortal, opens Mortal ›People of the marsh: pilgrims, smugglers, a patrol.');
-    expect(abbey.getByRole('button', { name: /Bog lurker/ }).textContent).toBe('6Bog lurker, 1');
+    expect(abbey.getByRole('radio', { name: /Drowned acolytes/ }).textContent).toBe('1 Drowned acolytes, 1d4Bloated dead in robes; slow, silent, afraid of fire.');
+    expect(abbey.getByRole('radio', { name: /Mortal/ }).textContent).toBe('4 to 5 Mortalopens Mortal › People of the marsh: pilgrims, smugglers, a patrol.');
+    expect(abbey.getByRole('radio', { name: /Bog lurker/ }).textContent).toBe('6 Bog lurker, 1');
   });
 
   it('a nested row opens its table, the header reads "Abbey › Mortal", and its tap is the result', async () => {
@@ -183,15 +182,15 @@ describe('Encounter tables, full screen (B2)', () => {
     const which = await hitOnTurn3(user);
     await user.click(which.getByRole('button', { name: /^Abbey/ }));
     const abbey = within(await screen.findByRole('dialog', { name: 'Abbey' }));
-    await user.click(abbey.getByRole('button', { name: /Mortal/ }));
+    await user.click(abbey.getByRole('radio', { name: /Mortal/ }));
     const mortal = within(await screen.findByRole('dialog', { name: 'Abbey › Mortal' }));
     expect(mortal.getByRole('heading', { name: 'Abbey › Mortal' })).toBeTruthy();
-    await user.click(mortal.getByRole('button', { name: /Pilgrims/ }));
+    await user.click(mortal.getByRole('radio', { name: /Pilgrims/ }));
     await waitFor(() => expect(world.tables.check_results[0]).toMatchObject({ table_id: 'abbey-Mortal', roll: '1–2', row_text: 'Abbey › Mortal: Pilgrims, 1d6' }));
     // Back goes up one level, to the Abbey with its row still lit.
     await user.click(mortal.getByRole('button', { name: 'Back' }));
     const again = within(await screen.findByRole('dialog', { name: 'Abbey' }));
-    expect(again.getByRole('button', { name: /Mortal/ }).getAttribute('aria-current')).toBe('true');
+    expect(again.getByRole('radio', { name: /Mortal/ }).getAttribute('aria-checked')).toBe('true');
   });
 
   it("column chips appear only for a table with columns, and start on the route's column", async () => {
@@ -210,9 +209,9 @@ describe('Encounter tables, full screen (B2)', () => {
       ['Road', 'true'],
       ['River', 'false'],
     ]);
-    expect(wild.getByRole('button', { name: /Patrol/ })).toBeTruthy();
+    expect(wild.getByRole('radio', { name: /Patrol/ })).toBeTruthy();
     await user.click(chips.getByRole('button', { name: 'River' }));
-    await user.click(wild.getByRole('button', { name: /Otters/ }));
+    await user.click(wild.getByRole('radio', { name: /Otters/ }));
     await waitFor(() => expect(world.tables.check_results[0]).toMatchObject({ table_id: 'wild-day', row_text: 'Wilderness, by day: Otters' }));
   });
 
@@ -230,7 +229,7 @@ describe('Encounter tables, full screen (B2)', () => {
     await user.clear(long.getByLabelText('Go to number'));
     await user.type(long.getByLabelText('Go to number'), '17');
     await user.click(long.getByRole('button', { name: 'Go' }));
-    expect(document.activeElement?.textContent).toBe('17Drowned soul 17');
+    expect(document.activeElement?.textContent).toBe('17 Drowned soul 17');
     expect(world.tables.table_reads).toEqual([]);
     // A short table has none.
     await user.click(long.getByRole('button', { name: 'Back' }));

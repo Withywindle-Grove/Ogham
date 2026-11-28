@@ -201,3 +201,12 @@ button.table-rows__row {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
+/* An encounter table's page (sf-14; page 44, ET1): the roll row over the book's tapped table, capped at 640 px. */
+.table-rows__book {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  max-inline-size: var(--tapped-table-max);
+  min-width: 0;
+}

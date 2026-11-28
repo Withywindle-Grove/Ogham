@@ -52,7 +52,7 @@ describe("a row's next table by terrain (ga-2)", () => {
     const user = userEvent.setup();
     const onTap = open({ id: 'lantern-town', classId: 'settled' });
     await user.click(screen.getByRole('button', { name: /Folk met/ }));
-    await user.click(screen.getByRole('button', { name: /Townsfolk, opens Town folk ›/ }));
+    await user.click(screen.getByRole('radio', { name: /Townsfolk.*opens Town folk ›/ }));
     expect(onTap).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('dialog', { name: 'Folk met › Town folk' })).toBeTruthy();
   });
@@ -62,7 +62,7 @@ describe("a row's next table by terrain (ga-2)", () => {
     const user = userEvent.setup();
     open({ id: 'mire', classId: 'wild' });
     await user.click(screen.getByRole('button', { name: /Folk met/ }));
-    await user.click(screen.getByRole('button', { name: /Townsfolk, opens Farm folk ›/ }));
+    await user.click(screen.getByRole('radio', { name: /Townsfolk.*opens Farm folk ›/ }));
     expect(screen.getByRole('dialog', { name: 'Folk met › Farm folk' })).toBeTruthy();
   });
 
@@ -71,12 +71,12 @@ describe("a row's next table by terrain (ga-2)", () => {
     const user = userEvent.setup();
     open(null);
     await user.click(screen.getByRole('button', { name: /Folk met/ }));
-    await user.click(screen.getByRole('button', { name: /Townsfolk/ }));
+    await user.click(screen.getByRole('radio', { name: /Townsfolk/ }));
     const chips = screen.getByRole('group', { name: 'Table by terrain' });
     expect(within(chips).getByRole('button', { name: 'Farm folk' }).getAttribute('aria-pressed')).toBe('true');
     await user.click(within(chips).getByRole('button', { name: 'Town folk' }));
     expect(screen.getByRole('dialog', { name: 'Folk met › Town folk' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /Lamplighters/ })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: /Lamplighters/ })).toBeTruthy();
     // Back goes to the table the row was in, not to the other choice.
     await user.click(screen.getByRole('button', { name: /Back/ }));
     expect(screen.getByRole('dialog', { name: 'Folk met' })).toBeTruthy();

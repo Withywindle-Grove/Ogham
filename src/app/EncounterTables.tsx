@@ -138,7 +138,19 @@ export function tapOf(table: ReadTable, trail: readonly string[], row: TableRow,
   return { table, trail: [...trail], row, roll: rowLabel(row) || '—', words, rowText: `${trail.join(' › ')}: ${words}` };
 }
 
-/** The table, full screen's body: chips, Go to number, then the rows; a tap on a row is the result (with onTap). */
+/**
+ * A tapped row's toast (sf-14, sf-5's form): the row's range, a colon and its words ("15–16: Two bog lurkers rise from
+ * the weed"), never "Rolled:" and never a number nobody entered; a row with no range says its words alone.
+ */
+export function tapToast(tap: TableTap): string {
+  return tap.roll && tap.roll !== '—' ? `${tap.roll}: ${tap.words}` : tap.words;
+}
+
+/**
+ * The table, full screen's body: chips, Go to number, then the rows; a tap on a row is the result (with onTap). With
+ * `book` (the encounter tables' pages, sf-14; page 44, ET1): the roll row and the book's tapped table, the tapped row
+ * washed and ticked, "Go to number" as the pop-up has it (sf-5's ⚑ 2; N2), capped at 640 px.
+ */
 export function TableRows({
   table,
   trail,
@@ -149,6 +161,7 @@ export function TableRows({
   leadsTo,
   switchTable,
   onTap,
+  book = false,
 }: {
   table: ReadTable;
   trail: string[];
@@ -165,12 +178,27 @@ export function TableRows({
   /** A row that splits by terrain opened this table (ga-2): the tables it may open, this one pressed; a tap opens another. */
   switchTable?: { choices: { id: string; name: string }[]; onPick: (id: string) => void };
   onTap?: (tap: TableTap, column: string | null) => void;
+  /** The book's tapped table (sf-14): the encounter tables' pages, whose rows are taps. */
+  book?: boolean;
 }) {
   const columns = pickColumns(table);
   const [column, setColumn] = useState<string | null>(columns.length ? (startColumn && columns.includes(startColumn) ? startColumn : columns[0]!) : (table.columns[0] ?? null));
   const rowRefs = useRef(new Map<number, HTMLElement>());
-  // Go to number on long tables, when a number can find a row (a lookup's rows by key alone have none).
-  const long = table.rows.length > 20 && findsByNumber(table);
+  const bookRows = useRef<HTMLDivElement>(null);
+  const [found, setFound] = useState<{ index: number; go: number } | null>(null);
+  const die = table.die ? dieOf(table.die) : null;
+  const inBook = book && !!onTap;
+  // Go to number on long tables, when a number can find a row (a lookup's rows by key alone have none); in the book's
+  // table as the pop-up has it: more than 20 rows, or more than 20 numbers (sf-5's ⚑ 2).
+  const long = findsByNumber(table) && (table.rows.length > 20 || (inBook && (die ?? 0) > 20));
+  // The row found (N2) is marked, brought into view and given the focus, so Enter taps it; each Go brings it up again.
+  useEffect(() => {
+    if (!found) return;
+    const cell = bookRows.current?.querySelector('.table-sheet__rows')?.children[found.index] as HTMLElement | undefined;
+    const radio = cell?.matches('[role="radio"]') ? cell : cell?.querySelector<HTMLElement>('[role="radio"]');
+    radio?.scrollIntoView?.({ block: 'center' });
+    radio?.focus({ preventScroll: true });
+  }, [found]);
 
   const lead = [context, table.description].filter(Boolean).join(', ');
   return (
@@ -200,12 +228,40 @@ export function TableRows({
           table={table}
           column={column}
           onFound={(index) => {
+            if (inBook) return setFound((f) => ({ index, go: (f?.go ?? 0) + 1 }));
             const el = rowRefs.current.get(index);
             el?.scrollIntoView?.({ block: 'center' });
             el?.focus({ preventScroll: true });
           }}
         />
       )}
+      {inBook ? (
+        <div ref={bookRows} className="table-rows__book">
+          <RollRow die={die}>{table.die ? `Roll ${table.die}, then tap the row.` : 'Roll, then tap the row.'}</RollRow>
+          <BookType>
+            <BookTapTable
+              title={table.name}
+              die={table.die ?? ''}
+              column={column ?? 'Encounter'}
+              label={trail.join(' › ')}
+              rows={table.rows.map((row, index) => {
+                const tap = tapOf(table, trail, row, column);
+                const next = leadsTo(row, column);
+                const line = [next ? `opens ${next} ›` : null, describe(row), row.missing && row.missing.length > 0 ? missingWords(row.missing) : null].filter(Boolean).join(' ');
+                return {
+                  key: String(index),
+                  range: rowLabel(row),
+                  name: tap.words,
+                  ...(line ? { line } : {}),
+                  picked: index === lit,
+                  found: index === found?.index,
+                  onPick: () => onTap!(tap, column),
+                };
+              })}
+            />
+          </BookType>
+        </div>
+      ) : (
       <ol className="table-rows__list" aria-label={trail.join(' › ')}>
         {table.rows.map((row, index) => {
           const result = rowText(table, row, column);
@@ -249,6 +305,7 @@ export function TableRows({
           );
         })}
       </ol>
+      )}
     </div>
   );
 }
@@ -456,8 +513,9 @@ export function EncounterTables({
   if (table) {
     const key = path.join('/');
     return (
-      <Dialog key={key} full label={trail.join(' › ')} meta={table.die ? `Roll ${table.die}` : undefined} onBack={back} onClose={onClose}>
+      <Dialog key={key} full label={trail.join(' › ')} onBack={back} onClose={onClose}>
         <TableRows
+          book
           table={table}
           trail={trail}
           context={context}
