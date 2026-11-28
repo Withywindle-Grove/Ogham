@@ -315,7 +315,7 @@ function MapWait({ load, onRetry, failedNote }: { load: 'loading' | 'failed'; on
   return (
     <div className="map-wait" role="alert">
       <p className="map-wait__line">
-        <WarningLine>The map’s picture didn’t load.</WarningLine>
+        <WarningLine>The map’s picture couldn’t load.</WarningLine>
       </p>
       <button type="button" className="button-secondary" onClick={onRetry}>
         Try again
