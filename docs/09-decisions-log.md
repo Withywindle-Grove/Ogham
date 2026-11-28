@@ -55,6 +55,9 @@ The rulings still in force, in one place (superseded ones left out; the full his
 
 Older entries: `09a-decisions-archive.md`
 
+## 2026-11-28
+- 2026-11-28 — [words] The pinned spell's block in At hand says the Magic tab's words: "Ready, 1 of 2 left" while ready today, "Not ready today" when not; "Memorized" and "Not memorized" go from the block (#168 ⚑ 1, #174-c6b) — Francis: "6b"; one set of words for one fact across the two screens
+
 ## 2026-11-07
 - 2026-11-07 — [packs] A creation-slot table may carry `forRaces: [raceIds]` (G-203, a): it is offered to that kindred after its own `tables` (both show, the bound one "Optional, from <pack>"; Design, same day) and displaces the unbound slot tables (ct-5) for the slots it fills; a table bound to other kindreds isn't offered; an unknown race id is a `pack:check` note (07, Table uses registry) — Francis's homebrew tables pack gives kindreds their own names and details from an overlay
 

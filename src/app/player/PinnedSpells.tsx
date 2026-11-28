@@ -24,11 +24,11 @@ export interface PinnedSpellsInput {
 }
 
 /**
- * A pinned spell's state line (frame M4g; psb-5): "Memorized, 1 of 2 left" while ready today, every level together
- * (psb-6), "Memorized, 0 of 2 left" with none left; "Not memorized" for a spell in the book not ready today. The pack
- * format has no word of its own for it yet (⚑ in #168's report), so these are the frame's words.
+ * A pinned spell's state line (frame M4g; psb-5): "Ready, 1 of 2 left" while ready today, every level together
+ * (psb-6), "Ready, 0 of 2 left" with none left; "Not ready today" for a spell in the book not ready today. The Magic tab's
+ * words (ruled 2026-11-28, "6b"): its "N of M left" count (ReadySpellRow) and its "ready today".
  */
-const pinnedSpellState = (block: PinnedSpellBlock) => (block.ready ? `Memorized, ${block.left} of ${block.times} left` : 'Not memorized');
+const pinnedSpellState = (block: PinnedSpellBlock) => (block.ready ? `Ready, ${block.left} of ${block.times} left` : 'Not ready today');
 
 /** Why Cast can't cast (hard rule 10, psb-5): the blocked-action pop-up's line. */
 function cantCastWords(block: PinnedSpellBlock, name: string, choosesAtOnce: boolean): string {

@@ -298,7 +298,7 @@ describe('the pinned spells At hand (Player sitting piece 2; pss-5, psb-5, psb-6
     ]);
   });
 
-  // Purpose: with every casting spent the block stays, with none left and no level to spend ("Memorized, 0 of 2 left").
+  // Purpose: with every casting spent the block stays, with none left and no level to spend ("Ready, 0 of 2 left").
   it('none left: the block stays, nothing to spend', () => {
     const play = { prepared: p('marsh-light', 1, 2), spellsCast: { [castKey(1, 'marsh-light')]: 2 } };
     expect(pinnedSpellBlocks([pin('marsh-light')], play, book())).toEqual([{ spell: 'marsh-light', ready: true, level: 1, times: 2, left: 0, castLevel: null }]);

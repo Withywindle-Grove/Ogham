@@ -5,11 +5,11 @@
 // and a pin whose spell has left the book. Invented names only (hard rule 2). Purposes:
 //   The pinned spells come first in At hand, one block each in the pins' order, then the items, then the light; the
 //   weapon in hand's block stays above At hand; a pin whose spell has left the book shows nothing.
-//   A block reads the star and the name, the state ("Memorized, 1 of 2 left"), the roll ("d6 +2 turns") and the range
+//   A block reads the star and the name, the state ("Ready, 1 of 2 left"), the roll ("d6 +2 turns") and the range
 //   ("30 paces range"), with Cast; a spell with no roll and no range has neither line.
 //   Cast spends a casting with the Magic tab's toast and Undo, and the state follows; Undo gives it back.
 //   With no casting left, Cast stays a button and opens a pop-up that says why; nothing is spent.
-//   A spell in the book but not ready today keeps its block, "Not memorized", and Cast says why in a pop-up.
+//   A spell in the book but not ready today keeps its block, "Not ready today", and Cast says why in a pop-up.
 //   The name opens the spell's sheet, its Pin star filled.
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -83,11 +83,11 @@ describe('the pinned spell At hand (Player sitting piece 2)', () => {
     await caster();
     const marsh = block('Marsh light');
     expect(within(marsh).getByRole('button', { name: /^Marsh light, pinned/ })).toBeTruthy();
-    expect(marsh.textContent).toContain('Memorized, 1 of 2 left');
+    expect(marsh.textContent).toContain('Ready, 1 of 2 left');
     expect(lines(marsh)).toEqual(['d6 +2 turns', '30 paces range']);
     expect(within(marsh).getByRole('button', { name: 'Cast Marsh light' })).toBeTruthy();
     const hush = block('Hush');
-    expect(hush.textContent).toContain('Memorized, 1 of 1 left');
+    expect(hush.textContent).toContain('Ready, 1 of 1 left');
     expect(lines(hush)).toEqual([]);
   });
 
@@ -96,26 +96,26 @@ describe('the pinned spell At hand (Player sitting piece 2)', () => {
     await user.click(within(block('Marsh light')).getByRole('button', { name: 'Cast Marsh light' }));
     const toast = await screen.findByText('Marsh light cast');
     expect(cast()['1:marsh-light']).toBe(2);
-    await waitFor(() => expect(block('Marsh light').textContent).toContain('Memorized, 0 of 2 left'));
+    await waitFor(() => expect(block('Marsh light').textContent).toContain('Ready, 0 of 2 left'));
     await user.click(within(toast.closest('[role="status"]') ?? document.body).getByRole('button', { name: /Undo/ }));
     await waitFor(() => expect(cast()['1:marsh-light']).toBe(1));
-    await waitFor(() => expect(block('Marsh light').textContent).toContain('Memorized, 1 of 2 left'));
+    await waitFor(() => expect(block('Marsh light').textContent).toContain('Ready, 1 of 2 left'));
   });
 
   it('with none left, Cast stays a button and says why; nothing is spent', async () => {
     const { user } = await caster();
     const long = block(/^The Lady of the Lanterns/);
-    expect(long.textContent).toContain('Memorized, 0 of 2 left');
+    expect(long.textContent).toContain('Ready, 0 of 2 left');
     await user.click(within(long).getByRole('button', { name: `Cast ${P1_LONG_SPELL}` }));
     const why = await screen.findByRole('dialog', { name: `Can't cast ${P1_LONG_SPELL}` });
     expect(why.textContent).toMatch(/no castings of it left today/i);
     expect(cast()['1:lady-lanterns']).toBe(2);
   });
 
-  it('keeps a spell in the book but not ready: "Not memorized", and Cast says why', async () => {
+  it('keeps a spell in the book but not ready: "Not ready today", and Cast says why', async () => {
     const { user } = await caster();
     const reed = block('Reed whisper');
-    expect(reed.textContent).toContain('Not memorized');
+    expect(reed.textContent).toContain('Not ready today');
     expect(lines(reed)).toEqual(['60 paces range']);
     await user.click(within(reed).getByRole('button', { name: 'Cast Reed whisper' }));
     const why = await screen.findByRole('dialog', { name: "Can't cast Reed whisper" });
