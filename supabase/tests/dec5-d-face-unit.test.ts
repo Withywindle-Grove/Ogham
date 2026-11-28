@@ -111,8 +111,8 @@ describe('dec5-gaps D: an unidentified face carries no unit', () => {
 
   it('after the charges are told (the name still untold), the holder reads the unit', async () => {
     const flask = await add();
-    expect(await lineRow(world.playerA, flask.id)).toMatchObject({ charges_hidden: true });
     await ok(as(world.gm, setCharges, { line: refOf(flask), value: 3, hidden: true }));
+    expect(await lineRow(world.playerA, flask.id)).toMatchObject({ charges_hidden: true });
     await ok(as(world.gm, tellItem, { line: refOf(flask), fact: 'charges' }));
     const line = await lineRow(world.playerA, flask.id);
     expect(line).toMatchObject({ identified: false, name: 'Grey flask', charges_hidden: false, charges_left: 3 });
