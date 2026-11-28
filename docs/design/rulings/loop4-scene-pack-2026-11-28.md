@@ -1,13 +1,13 @@
 ---
 status: pending
 milestone: December first play (loop 4: the Scene's remaining rows and the Pack's remaining find-flow rows, through the build loop)
-absorbed-into: none yet (sitting A not held; `docs/specs/<loop 4>.md` comes from `/to-spec` after it)
+absorbed-into: none yet (sitting A held 2026-11-28; `docs/specs/<loop 4>.md` comes from `/to-spec` after it)
 supersedes: none. The rows leave `docs/plans/dec-scene-feedback.md` and `docs/plans/dec-6-the-whole-pack-tab.md` for the loop; the rulings they cite stand as written
 ---
 
-# Loop 4, sitting A: the Scene's and the Pack's remaining rows (draft, 2026-11-28)
+# Loop 4, sitting A: the Scene's and the Pack's remaining rows (ruled 2026-11-28)
 
-Francis, 28 November 2026: "No, we use the loop, include the optional scene rows", then "we are using the loop moving forward including town. Loop is not optional." So these rows move from their plans into loop 4, and the town becomes loop 5. Prepared by the designer for sitting A; **nothing here is decided**: each ⚑ has options and a lean.
+Francis, 28 November 2026: "No, we use the loop, include the optional scene rows", then "we are using the loop moving forward including town. Loop is not optional." So these rows move from their plans into loop 4, and the town becomes loop 5. Prepared by the designer for sitting A; Francis held sitting A the same day, one question at a time, and ruled every ⚑ (below) and approved page 51.
 
 ## The rows
 
@@ -26,19 +26,20 @@ Built status from a read-only check of `main` on 28 Nov (the driver's).
 | K18e | The party stash's quieter toast | FD2 (45-4), FD2b (45-5), approved 2026-11-26 | p45-1, ap-6 | Not started | Yes |
 | K18d | The find card in the Scene's prompt slot | FD1c C (45-3), approved 2026-11-26 | p45-3, p45-23 (⚑ F7) | **Build in flight** on `dec6-fd-scene-slot` (plan batch FD); it joins loop 4 as it stands (Francis, "Loop is not optional") | Yes; the order is ruled in words (see "To check") |
 
-New page: `design/mockups/december/51-the-find-card-on-the-player-tab.html` (frames 51-1, 51-2; pictures `december/png/51-*`). Not approved.
+New page: `design/mockups/december/51-the-find-card-on-the-player-tab.html` (frames 51-1, 51-2; pictures `december/png/51-*`). **Approved 2026-11-28 (51-1 A, 51-2 A)**: l4-6.
 
-## ⚑ For sitting A (one at a time)
+## Ruled at sitting A, 28 November 2026
 
-| ⚑ | Row | Question | Options | Lean |
+Francis, one at a time ("One at a time"). The lean was his pick in all five.
+
+| Id | ⚑ | Row | Ruling | His words |
 |---|---|---|---|---|
-| L1 | all | Order and cut line before 5 Dec, now that the town is loop 5 | A: loop 4 before loop 5; inside it sf-6b, sf-13, K18c, K19b, K18e (and K18d, in flight) first, then sf-10, sf-11, sf-18, sf-14. B: loop 5 (town) before loop 4's optional rows. C: Francis's own order | **A**: his 28 Nov order kept the town as the first cut; sf-14 then sf-18 are the next cut if time runs short |
-| L2 | sf-6b | The label under a **shown** piece's GM-only row (the fix of 26 Nov; "the driver settles the exact words" was never done) | A: "Only you see what it really is." (the plan's example). B: "Only you see the line below." C: "Only you see these details." | **C**: true for a creature's stat line and an item's rule alike; A suggests a disguise. Under a hidden piece "Only you see this." stays |
-| L3 | K18c, K19b | F3, F4, F6, F9 (page 45, never asked): "just now" under an hour; the card never names the character; the lines are not taps; a second find onto one stack is one line. All four are built to their leans (#158, FA) | A: confirm all four as built. B: take them one by one | **A**: built, seen in #158's pictures, nothing on the night hangs on them |
-| L4 | K18c | Page 51-1: on a phone with a long name, the card above the head or under it | A: above (FD1c B as drawn). B: under the head, over hit points | **A**: one place on every tab; the name is back on top after "Got it" |
-| L5 | K18c | Page 51-2: on a tablet, the card or the notices box first at the top of the right column | A: the card first (p45-2's words). B: the box first | **A**: p45-2 wanted one place on every tab; the box moves down only while a card waits |
-
-Critique of page 51: the designer's own review against the ten heuristics, five numbered findings, on the page (the `impeccable` skill is not installed in the session that drew it).
+| l4-1 | L1 | all | A: loop 4 before loop 5. Inside it, the needed rows first (sf-6b, sf-13, K18c, K19b, K18e; K18d is in flight), then sf-10, sf-11, sf-18, sf-14. If time runs short, cut sf-14 first, then sf-18 | "Yes" |
+| l4-2 | L2 | sf-6b | C: under a **shown** piece's GM-only row, "Only you see these details."; under a hidden piece, "Only you see this." stays | "C" |
+| l4-3 | L3 | K18c, K19b | A: F3, F4, F6, F9 stand as built: "just now" under an hour; the card never names the character; a card's lines are not taps; a second find onto one stack is one line | "Yes" |
+| l4-4 | L4 | K18c | A (51-1): on a phone, the find card sits above the head, as FD1c B drew it | "A" |
+| l4-5 | L5 | K18c | A (51-2): on a tablet, the card comes first in the right column, then the notices box | "A" |
+| l4-6 | page 51 | K18c | Approved: 51-1 A, 51-2 A. The critique's findings: none to act on | "Approve" |
 
 ## Settled since, recorded here
 
@@ -59,4 +60,4 @@ Critique of page 51: the designer's own review against the ten heuristics, five 
 - K18c and K19b share `PlayerScreen.tsx` with loop 2 (the Player sitting) and the notices slot (`player__notices`).
 - sf-14 reuses the tapped-table part that sf-5 built for the roll pop-up; a variant, if needed, is named in `06`.
 
-Docs to update after sitting A: `05` and `06` (Find card, the Player tab's right column; the place card), `09` (one line per ruling), `10` (F3, F4, F6, F9 out if confirmed), the spec from `/to-spec`.
+Docs to update after sitting A: `05` and `06` (Find card, the Player tab's right column; the place card): the spec's job; `09` and `10` done 2026-11-28; then the spec from `/to-spec`.
