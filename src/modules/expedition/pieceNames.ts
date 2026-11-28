@@ -89,3 +89,85 @@ export function pieceNamesFrom(entries: readonly NamedEntry[], packOrder: readon
   }
   return { byId, packId };
 }
+
+/**
+ * A stat line or an item's line a place's card can print (sf-6b): an entry the place's book or a piece names, by
+ * `<kind>/<id>` (`ref`), with its name (never its id) and its detail as the card draws it (null: not in your packs).
+ * `line` is the identical line it prints, which decides "the same line a second time": a creature's or an item's own
+ * ref; a named character with a stat block of their own, their own ref; one who uses a creature's block, that block's.
+ */
+export interface HandLine<D> {
+  ref: string;
+  kind: NamedKind;
+  name: string;
+  line: string;
+  detail: D | null;
+}
+/** What a piece names: an entry's `<kind>/<id>`, and its count on that piece ("3", "1d4"; none for a thing). */
+export interface PieceRef {
+  ref: string;
+  count?: string | null;
+}
+/**
+ * One detail row on the card. `full`: the line itself. `short`: the line stands elsewhere on the card, so the row is the
+ * name and one quiet line (`words`). `missing`: the packs lack it, said by name.
+ */
+export type HandRow<D> =
+  | { form: 'full'; kind: NamedKind; name: string; count: string | null; detail: D }
+  | { form: 'short'; kind: NamedKind; name: string; count: string | null; detail: D; words: string }
+  | { form: 'missing'; kind: NamedKind; count: string | null; words: string };
+/** Where each line stands: each piece's rows, in the pieces' order, and the rows left for "From the book, for the GM". */
+export interface LinesAtHand<D> {
+  pieces: HandRow<D>[][];
+  fold: { statLines: HandRow<D>[]; items: HandRow<D>[] };
+}
+
+/** What a ref no line names reads as, so its id is never shown. */
+const UNNAMED: Record<NamedKind, string> = { statBlock: 'a creature', npc: 'a character', item: 'a thing' };
+
+/**
+ * Where each stat line and item line stands on one place's card (sf-6b; ⚑ 9, "Home Two's fix"; spec scene-pack,
+ * piece A). A line a piece names stands on that piece, in full; a line no piece names, in the fold, in full; the same
+ * identical line a second time anywhere on the card (the pieces in order, then the fold) is the short row, "Same stat
+ * line as the Ferryman.". So nothing is printed twice and no row is dropped: every line given stands at least once.
+ * Pure: the card draws what it returns (piece B).
+ */
+export function linesAtHand<D>(pieces: readonly (readonly PieceRef[])[], lines: readonly HandLine<D>[]): LinesAtHand<D> {
+  const byRef = new Map(lines.map((l) => [l.ref, l]));
+  // The first row to print each identical line, by the line's key.
+  const printed = new Map<string, HandLine<D>>();
+  const row = (line: HandLine<D>, count: string | null): HandRow<D> => {
+    if (line.detail === null) return { form: 'missing', kind: line.kind, count, words: `Not in your packs: ${line.name}` };
+    const first = printed.get(line.line);
+    if (!first) {
+      printed.set(line.line, line);
+      return { form: 'full', kind: line.kind, name: line.name, count, detail: line.detail };
+    }
+    return { form: 'short', kind: line.kind, name: line.name, count, detail: line.detail, words: sameLineWords(first) };
+  };
+  const named = new Set<string>();
+  const onPieces = pieces.map((refs) =>
+    refs.map((r): HandRow<D> => {
+      named.add(r.ref);
+      const line = byRef.get(r.ref);
+      if (line) return row(line, r.count ?? null);
+      const given = r.ref.split('/')[0] as NamedKind;
+      const kind = given in UNNAMED ? given : 'statBlock';
+      return { form: 'missing', kind, count: r.count ?? null, words: `Not in your packs: ${UNNAMED[kind]}` };
+    }),
+  );
+  const fold: LinesAtHand<D>['fold'] = { statLines: [], items: [] };
+  for (const line of lines) {
+    if (named.has(line.ref)) continue;
+    named.add(line.ref);
+    (line.kind === 'item' ? fold.items : fold.statLines).push(row(line, null));
+  }
+  return { pieces: onPieces, fold };
+}
+
+/**
+ * The short row's quiet line, after the row that prints the line first: "Same stat line as the Ferryman." (sf-24); a
+ * named character goes by name alone ("Same stat line as Old Harl."), and an item reads "Same item as the Bronze ring.".
+ */
+const sameLineWords = (first: { kind: NamedKind; name: string }): string =>
+  first.kind === 'item' ? `Same item as the ${first.name}.` : `Same stat line as ${first.kind === 'npc' ? '' : 'the '}${first.name}.`;
