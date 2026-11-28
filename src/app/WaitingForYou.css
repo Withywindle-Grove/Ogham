@@ -255,3 +255,27 @@
   font-size: var(--text-16);
   line-height: var(--line-body);
 }
+
+/* The ask card open (TC13 piece B, frame TW8g): one box, the card's own drawn inside it with no second rule. In a narrow
+   panel (a phone) its mark sits in the box's corner and its words start beside it, so "Price…", "Stocked?" and the
+   toggle keep one line across the box's whole width, Larger text too. */
+.waiting-card:has(> .waiting-open[data-mark='bag']) {
+  container: waiting-panel / inline-size;
+}
+
+@container waiting-panel (max-width: 440px) {
+  .waiting-open[data-mark='bag'] {
+    position: relative;
+    display: block;
+  }
+
+  .waiting-open[data-mark='bag'] > .waiting-open__mark {
+    position: absolute;
+    inset-block-start: var(--space-3);
+    inset-inline-start: var(--space-3);
+  }
+
+  .waiting-open[data-mark='bag'] .request--ask > :is(.pack__name, .request__text) {
+    padding-inline-start: calc(var(--space-5) + var(--space-1) + var(--space-3));
+  }
+}

@@ -771,6 +771,14 @@ export function createFakeDb(): FakeWorld {
       if (!row || Object.keys(after).some((key) => JSON.stringify(row[key]) !== JSON.stringify(after[key]))) {
         return refused("That's changed since. Undo the later change first.");
       }
+      // Like the database's later-change check (private.undo_check): a request's answer goes back only while nothing
+      // later stands on it, such as the player's reply (TC13 piece B: the GM's Undo refused once the player replied).
+      if (
+        change.target_table === 'requests' &&
+        tables.events.some((l) => l.target_table === 'requests' && l.target_id === change.target_id && Number(l.seq) > Number(change.seq) && !l.reverts_event_id && (!change.request_id || l.request_id !== change.request_id) && !tables.events.some((r) => r.reverts_event_id === l.id))
+      ) {
+        return refused("That's changed since. Undo the later change first.");
+      }
       // A whole line moved: what's left of it comes back (5b).
       if (picked.type === UNDOABLE_SPLIT && change.target_table === 'inventory_lines' && !('qty' in after)) {
         const left = givenLeft(change);

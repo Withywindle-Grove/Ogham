@@ -1833,6 +1833,26 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
       world.tables.waiting_encounters.push({ id: `waiting-reed-${i}`, campaign_id: campaign, expedition_id: started.data.id, check_result_id: check, watch: null, state: 'waiting', started_at: null, dismissed_at: null, created_by: gm, undone: false, version: 1, created_at: `2026-11-14T10:0${i}:00Z` });
     }
   }
+  // &asks=1|long (TC13 piece B; TW8g): Wren's asks waiting for the GM in "Waiting for you", each on "?": the eel trap
+  // with its chance (3-in-6), a reed rope that reads "Always", and a spyglass not on the list (no chance); `long` adds a
+  // thing named at length, not listed either. Names and prices are invented.
+  const asksFlag = new URLSearchParams(window.location.search).get('asks');
+  if (started.data && (asksFlag === '1' || asksFlag === 'long')) {
+    world.tables.library_entries.push({ id: 'entry-reed-rope', pack_id: 'pack-river', kind: 'item', pack_entry_id: 'reed-rope', name: 'Reed rope', data: { id: 'reed-rope', name: 'Reed rope', category: 'gear', weightCoin: 10, value: { heron: 1 }, availability: { chance: 'always' } } });
+    const asks: [string, string | null, string][] = [
+      ['Eel trap', 'eel-trap', '5 herons'],
+      ['Reed rope', 'reed-rope', '1 heron'],
+      ['A spyglass', null, ''],
+      ...(asksFlag === 'long' ? ([['A bundle of tallow candles wrapped in oilcloth for the Lantern Warden', null, '']] as [string, string | null, string][]) : []),
+    ];
+    for (const [i, [item, itemId, price]] of asks.entries()) {
+      world.tables.requests.push({
+        id: `ask-${i}`, campaign_id: campaign, expedition_id: started.data.id, group_number: 1, requester_id: sam, actor_id: wren, kind: 'buy', direction: 'playerAsks',
+        text: `${item}, 3 The Reed Market`, cost_text: '', prompt: { serviceId: 'reed-market', shop: '3 The Reed Market', itemId, item, price }, entry: null, status: 'waiting',
+        answer_kind: 'hitMissChoice', answer: null, answered_at: null, reply: null, undone: false, version: 1, created_by: sam, created_at: `2026-11-14T11:0${9 - i}:00Z`,
+      });
+    }
+  }
   // &revealed=1|long: a hit whose words the GM showed the players (sf-7b; EN5), so the player's slot holds the revealed
   // card: EN5's words, or a reveal of forty-odd words that wraps.
   const revealedFlag = new URLSearchParams(window.location.search).get('revealed');

@@ -11,7 +11,7 @@
 //   roll with its modifiers and sources, the result, the table, what it yields) with Hit / Miss, the GM's own roll on
 //   the pack's chance, recorded as the GM's secret check (GM-only until Downtime; never in the request); then Yes
 //   (the cost comes off the group's budget, one Undo puts both back) or No, with a note.
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
@@ -20,6 +20,9 @@ import { depthWords } from '../modules/expedition/dungeonExit.ts';
 import { recordCheck } from '../modules/expedition/reminderPlay.ts';
 import type { ReadTable } from '../modules/expedition/tables.ts';
 import { unitFor } from '../modules/expedition/travel.ts';
+import { readClock, type TimeUnits } from '../modules/expedition/clock.ts';
+import { loadClockNow } from '../modules/expedition/lightPlay.ts';
+import { setStock } from '../modules/requests/shopStock.ts';
 import type { SecretView } from './secretActivity.ts';
 import {
   answerWords,
@@ -270,6 +273,7 @@ export function GmRequestCard({
   budget,
   onTable,
   trade = null,
+  units = null,
 }: {
   db: Db;
   user: CurrentUser;
@@ -292,10 +296,14 @@ export function GmRequestCard({
   budget?: { name: string; unit: string } | null;
   /** Open a table the GM wants to roll on (a secret activity's). */
   onTable?: (table: ReadTable) => void;
-  /** A buy or sell request's view from the pack (M5b step 6e): the availability chance, the sale rule's suggestion. */
+  /** A buy or sell request's view from the pack (M5b step 6e): the thing's chance, the sale rule's suggestion. */
   trade?: TradeView | null;
+  /** The campaign's time units: a buy request's flip names the campaign day (readClock's), as stock.set does. */
+  units?: TimeUnits | null;
 }) {
   const show = useToast();
+  // A buy request's stock line written by a flip whose answer then failed: the retry's Undo takes it back too.
+  const stockLine = useRef<string | null>(null);
   const noteId = useId();
   const [note, setNote] = useState('');
   const [out, setOut] = useState(true);
@@ -373,6 +381,58 @@ export function GmRequestCard({
     onChanged();
   }
 
+  /**
+   * A buy request's answer (TC13 piece B; ap-14, tn-4, tn-7; docs/specs/town-ask-buy.md, "Piece B"): a flip of the
+   * toggle writes the day's stock for the thing at that shop first (stock.set, the record the stock table flips), then
+   * the answer (request.answer); Price…'s Send price writes the answer alone. A failed stock write sends nothing; a
+   * failed answer after a good stock write leaves the card on "?" with an error toast, and a second flip writes the same
+   * stock again (no new line) and the answer. A thing with no pack id (Something not listed…) or an ask with no shop
+   * has no stock record: the flip answers only. The toast's Undo takes back the answer, then the stock line this card
+   * wrote, newest first, each by the log's own Undo; refused in plain words once the player has replied.
+   */
+  async function answerBuy(result: 'inStock' | 'notHere' | 'price', price: string, stock: 'in' | 'out' | null): Promise<boolean> {
+    if (busy) return false;
+    const prompt = readBuyPrompt(request.prompt);
+    const item = prompt?.item ?? request.text;
+    setBusy(true);
+    const done = await (async () => {
+      if (stock && prompt?.serviceId && prompt.itemId) {
+        const seconds = units ? await loadClockNow(db, campaign.id) : null;
+        if (!units || seconds === null) return "Couldn't read the campaign's clock. Nothing was sent. Try again.";
+        const before = await latestChange(db, campaign.id, setStock.name, user.id);
+        const set = await runCommand(registry, db, user, setStock, { campaignId: campaign.id, serviceId: prompt.serviceId, itemId: prompt.itemId, day: readClock(seconds, units).day, answer: stock });
+        if (!set.ok) return set.message;
+        // A stock line made by this flip (none when the day's answer was already this one: nothing changed to undo).
+        const after = await latestChange(db, campaign.id, setStock.name, user.id);
+        if (after && after !== before) stockLine.current = after;
+      }
+      const answered = await runCommand(registry, db, user, answerRequest, { request, answer: { kind: 'buy', result, price, note: '' } });
+      return answered.ok ? null : answered.message;
+    })();
+    setBusy(false);
+    if (done !== null) {
+      show({ text: done, error: true });
+      return false;
+    }
+    const wrote = stockLine.current;
+    stockLine.current = null;
+    show({
+      text: result === 'notHere' ? `Not here: told ${who}` : `${who}: ${item}, ${price}`,
+      onUndo: async () => {
+        const eventId = await latestChange(db, campaign.id, answerRequest.name, user.id);
+        const undone = eventId ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
+        const back = undone?.ok && wrote ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId: wrote, authorUserId: user.id }) : null;
+        if (!undone) show({ text: 'Nothing to undo.', error: true });
+        else if (!undone.ok) show({ text: undone.message, error: true });
+        else if (back && !back.ok) show({ text: back.message, error: true });
+        else show({ text: `Put ${possessive(who)} request back` });
+        onChanged();
+      },
+    });
+    onChanged();
+    return true;
+  }
+
   if (request.kind === 'escapeRoll') {
     const prompt = readEscapePrompt(request.prompt);
     const entry = readEscapeEntry(request.entry);
@@ -423,7 +483,7 @@ export function GmRequestCard({
 
   // M5b step 6e: buying, selling, Somewhere else… and town activities.
   const townAnswer = (given: Answer, words: string, costText?: string) => void answer(given, words, undefined, costText);
-  if (request.kind === 'buy' && readBuyPrompt(request.prompt)) return <GmBuyCard request={request} who={who} trade={trade} onAnswer={townAnswer} />;
+  if (request.kind === 'buy' && readBuyPrompt(request.prompt)) return <GmBuyCard request={request} who={who} trade={trade} onAnswer={{ flip: (stock, price) => answerBuy(stock === 'in' ? 'inStock' : 'notHere', price, stock), price: (price) => answerBuy('price', price, null) }} />;
   if (request.kind === 'sell' && readSellPrompt(request.prompt)) return <GmSellCard request={request} who={who} trade={trade} onAnswer={townAnswer} />;
   if (request.kind === 'lodging' && readStayPrompt(request.prompt)) return <GmStayCard request={request} who={who} onAnswer={townAnswer} />;
   if (request.kind === 'askGm' && readTownActivityPrompt(request.prompt)) return <GmTownActivityCard request={request} who={who} onAnswer={townAnswer} />;

@@ -54,3 +54,47 @@
   flex-wrap: wrap;
   gap: var(--space-2);
 }
+
+/* The GM's ask card (TC13 piece B; ap-14, frame TW8g): the chance as the stock table writes it, the die's glyph before
+   its figure; then Price…, "Stocked?" and the toggle, right-justified on one line (at 375 px too), the toggle last. */
+.stock-chance {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  white-space: nowrap;
+}
+
+.request__stocked {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: flex-end;
+  margin-block-start: var(--space-2);
+}
+
+.request__stocked-label {
+  font-size: var(--text-body);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* Price…'s Send price, at the pop-up's foot, right-justified (TW4c). */
+.request__send {
+  justify-content: flex-end;
+}
+
+/* Inside "Waiting for you" the ask card is the open item's box itself (TW8g): no second rule or wash. */
+.waiting-open .request--ask {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.request--ask .pack__name {
+  margin: 0;
+  font-weight: var(--weight-book-name);
+  line-height: var(--line-heading);
+  overflow-wrap: anywhere;
+}

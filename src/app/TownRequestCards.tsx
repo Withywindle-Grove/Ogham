@@ -1,8 +1,9 @@
 // The Request card's town kinds (M5b step 6e; ruled 2026-10-30, ST5–ST8; dt-11, st-3; 06 Components "Buy request",
 // "Sale offer", "Lodging picker", "Request card"). The GM's side sits in Waiting for you; the player's priced answer
 // on their Scene, beside the other answers (PlayerRequests).
-//   Buy request (GM): what's asked for, at which shop, the pack's price; with an availability chance, Hit / Miss
-//   first (the pack's chance by town size, the GM's own roll), then In stock (the pack's price) · Price… · Not here.
+//   Buy request (GM; TC13 piece B, ap-14, frame TW8g): who asks for what, at which place, and the thing's chance as
+//   the stock table writes it; Price… (TW4c's pop-up), "Stocked?" and the three-position toggle on "?": a flip
+//   answers In stock or Not here at once and sets the day's stock (the caller, RequestCard's GmRequestCard).
 //   Sale offer (GM): the item, how many and the buyer, the price the pack's sale rule suggests, and Offer
 //   (changeable).
 //   Somewhere else… (GM): Yes with what it costs, in words, or Not available.
@@ -10,15 +11,14 @@
 import { useId, useState } from 'react';
 import type { Answer, Request } from '../modules/requests/requests.ts';
 import { readBuyPrompt, readSellPrompt, readStayPrompt, readTownActivityPrompt } from '../modules/requests/townRequests.ts';
-import { Chip } from '../ui/parts.tsx';
+import { DieGlyph, isDieSize } from '../ui/dice.tsx';
+import { Dialog } from '../ui/Dialog.tsx';
+import { StackedButton, StockToggle } from '../ui/parts.tsx';
 
 /** What the GM's device reads from the pack for a buy or sell request (WaitingForYou, from the campaign's setting). */
 export interface TradeView {
-  /** The pack's chance by town size, in words ("Hamlet 0% · Small town 100%"); '' without one. */
+  /** Buying: the thing's own chance as its availability writes it ("4-in-6", "always"); '' without one (TW8g). */
   chance: string;
-  chanceNote: string;
-  /** The item's own availability, as the pack says it ("towns and cities"). */
-  itemAvailability: string;
   /** Selling: the suggested price in words, and the share it came from. */
   suggested: string | null;
   share: number | null;
@@ -38,88 +38,107 @@ function NoteField({ value, onChange }: { value: string; onChange: (v: string) =
   );
 }
 
-/** Ask for… on the GM's side (ST5). */
-export function GmBuyCard({ request, who, trade, onAnswer }: { request: Request; who: string; trade: TradeView | null; onAnswer: Answering }) {
-  const prompt = readBuyPrompt(request.prompt);
+/** How a buy request is answered (TC13 piece B): the toggle's flip ('in' or 'out'), or Price…'s price. */
+export type BuyAnswering = {
+  /** A flip of the toggle: right is In stock at `price` (the pack's, or the GM's from the pop-up), left is Not here. */
+  flip: (answer: 'in' | 'out', price: string) => Promise<boolean>;
+  /** Send price from Price…: the GM's own price, with no stock line. */
+  price: (price: string) => Promise<boolean>;
+};
+
+/**
+ * A thing's chance as the stock table writes it (TW8g, TW8j): the die's glyph and "x-in-y", or "Always"; null with no
+ * chance. A chance of another shape keeps the pack's words, with no glyph.
+ */
+export function StockChance({ chance }: { chance: string }) {
+  const words = chance.trim();
+  if (!words) return null;
+  if (words.toLowerCase() === 'always') return <span className="stock-chance">Always</span>;
+  const sides = Number(/^\d+\s*-?\s*in\s*-?\s*(\d+)$/i.exec(words)?.[1]);
+  return (
+    <span className="stock-chance">
+      {isDieSize(sides) && <DieGlyph die={sides} size={16} />}
+      {words}
+    </span>
+  );
+}
+
+/**
+ * Price… (TW4c, sb5-3): the pop-up with the pack's price as a line, "Your price, in words" and Send price, the
+ * pop-up's accent. An empty field keeps its line asking for the price, beside the field.
+ */
+function PricePopUp({ heading, packPrice, onSend, onClose }: { heading: string; packPrice: string; onSend: (price: string) => Promise<boolean>; onClose: () => void }) {
   const priceId = useId();
-  const [note, setNote] = useState('');
-  const [rolled, setRolled] = useState<'hit' | 'miss' | null>(null);
-  const [pricing, setPricing] = useState(false);
   const [price, setPrice] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
+  return (
+    <Dialog label={heading} onClose={onClose}>
+      {packPrice && <p className="auth__meta">{`The pack's price: ${packPrice}`}</p>}
+      <div className="field">
+        <label className="label" htmlFor={priceId}>
+          Your price, in words
+        </label>
+        <input id={priceId} className="field__input field__input--short" autoComplete="off" value={price} onChange={(e) => setPrice(e.target.value)} />
+        {problem && (
+          <p className="form-error" role="alert">
+            {problem}
+          </p>
+        )}
+      </div>
+      <div className="pack__actions request__send">
+        <StackedButton
+          icon="two-coins"
+          label="Send price"
+          variant="primary"
+          onClick={() => {
+            if (!price.trim()) return setProblem('Type the price, such as "12 gp".');
+            setProblem(null);
+            void onSend(price.trim()).then((sent) => sent && onClose());
+          }}
+        />
+      </div>
+    </Dialog>
+  );
+}
+
+/**
+ * Ask for… on the GM's side (ST5; TC13 piece B: ap-14, tn-4, tn-7, frame TW8g): "<who> asks for: <thing>", "At
+ * <place>." and the thing's chance as the stock table writes it; then, right-justified on one line, Price…, "Stocked?"
+ * and the built StockToggle, last, resting on "?" (the card shows only for a thing still on "?" or not listed). A flip
+ * answers at once (the caller writes the day's stock, then the answer); a right flip with no price to say opens
+ * Price… first (sb5-1). No note (sb5-2), no Hit or Miss (tn-4), and no accent: Move on keeps it (ap-14).
+ */
+export function GmBuyCard({ request, who, trade, onAnswer }: { request: Request; who: string; trade: TradeView | null; onAnswer: BuyAnswering }) {
+  const prompt = readBuyPrompt(request.prompt);
   const item = prompt?.item ?? request.text;
   const packPrice = prompt?.price ?? '';
-  const chance = trade?.chance ?? '';
-  // With a chance to roll, the GM's Hit or Miss comes first (ST5); without one, the answers straight away.
-  const answers = !chance || rolled !== null;
-  const send = (result: 'inStock' | 'notHere' | 'price', priced: string) =>
-    onAnswer({ kind: 'buy', result, price: priced, note: note.trim() }, result === 'notHere' ? `Not here: told ${who}` : `${who}: ${item}, ${priced}`);
+  const heading = `${who} asks for: ${item}`;
+  // Price…'s pop-up: 'price' from its button (no stock line), 'in' from a right flip with no price to say (sb5-1).
+  const [pricing, setPricing] = useState<'price' | 'in' | null>(null);
+  const flip = (answer: 'in' | 'out') => {
+    if (answer === 'in' && !packPrice) return setPricing('in');
+    void onAnswer.flip(answer, answer === 'in' ? packPrice : '');
+  };
   return (
-    <li className="pack__item request request--gm">
-      <p className="pack__name">{`${who} asks for ${item}${prompt?.shop ? `, ${prompt.shop}` : ''}`}</p>
-      <p className="auth__meta">{packPrice ? `The pack's price: ${packPrice}` : prompt?.itemId ? 'The pack gives no price for it.' : 'Not on the town’s list.'}</p>
-      {trade?.itemAvailability && <p className="request__text">{`Where it's sold: ${trade.itemAvailability}`}</p>}
-      {chance && (
-        <>
-          <p className="request__text">{`Chance it's here: ${chance}`}</p>
-          {trade?.chanceNote && <p className="request__note">{trade.chanceNote}</p>}
-          <div className="request__chips" role="group" aria-label="Your roll">
-            <Chip pressed={rolled === 'hit'} onClick={() => setRolled('hit')}>
-              {rolled === 'hit' ? '✓ Hit' : 'Hit'}
-            </Chip>
-            <Chip pressed={rolled === 'miss'} onClick={() => setRolled('miss')}>
-              {rolled === 'miss' ? '✓ Miss' : 'Miss'}
-            </Chip>
-          </div>
-        </>
-      )}
-      {answers && (
-        <>
-          <NoteField value={note} onChange={setNote} />
-          {pricing && (
-            <div className="field">
-              <label className="label" htmlFor={priceId}>
-                Your price, in words
-              </label>
-              <input id={priceId} className="field__input field__input--short" autoComplete="off" value={price} onChange={(e) => setPrice(e.target.value)} />
-            </div>
-          )}
-          {problem && (
-            <p className="form-error" role="alert">
-              {problem}
-            </p>
-          )}
-          <div className="pack__actions">
-            {pricing ? (
-              <button
-                type="button"
-                className="button-secondary"
-                onClick={() => {
-                  if (!price.trim()) return setProblem('Type the price, such as "12 gp".');
-                  setProblem(null);
-                  send('price', price.trim());
-                }}
-              >
-                Send price
-              </button>
-            ) : (
-              <>
-                {rolled !== 'miss' && packPrice && (
-                  <button type="button" className="button-secondary" onClick={() => send('inStock', packPrice)}>
-                    In stock
-                  </button>
-                )}
-                <button type="button" className={rolled === 'miss' || !packPrice ? 'button-secondary' : 'button-secondary button-secondary--small'} onClick={() => setPricing(true)}>
-                  Price…
-                </button>
-              </>
-            )}
-            <button type="button" className="button-secondary button-secondary--small" onClick={() => send('notHere', '')}>
-              Not here
-            </button>
-          </div>
-        </>
-      )}
+    <li className="pack__item request request--gm request--ask">
+      <p className="pack__name">{heading}</p>
+      <p className="request__text">
+        {prompt?.shop && `At ${prompt.shop}.`}
+        {trade?.chance && (
+          <>
+            {prompt?.shop && ' '}
+            <StockChance chance={trade.chance} />
+          </>
+        )}
+      </p>
+      <div className="request__stocked">
+        <StackedButton icon="two-coins" label="Price…" aria-haspopup="dialog" onClick={() => setPricing('price')} />
+        <span className="request__stocked-label" aria-hidden="true">
+          Stocked?
+        </span>
+        <StockToggle thing={item} state="undecided" onChange={flip} />
+      </div>
+      {pricing && <PricePopUp heading={heading} packPrice={packPrice} onSend={(price) => (pricing === 'in' ? onAnswer.flip('in', price) : onAnswer.price(price))} onClose={() => setPricing(null)} />}
     </li>
   );
 }

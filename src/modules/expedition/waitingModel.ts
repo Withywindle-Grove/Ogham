@@ -51,7 +51,12 @@ export interface WaitingInput {
   words?: string;
   /** Its answers; the first is the row's one button and, when open, the page's accent. */
   actions: readonly WaitingAction[];
+  /** Its own mark in place of its kind's ('bag': a buy request, TC13 piece B, frame TW8g). */
+  mark?: WaitingMark;
 }
+
+/** The marks an item may carry in place of its kind's. */
+export type WaitingMark = 'bag';
 
 /** An effect that has just ended (a light out, a condition gone): an item only when the pack says something must then be decided. */
 export interface EndedEffect extends WaitingInput {
@@ -82,7 +87,7 @@ export interface WaitingItem extends WaitingInput {
  * An effect that simply ended is not an item (st-1).
  */
 export function waitingItems(sources: WaitingSources): WaitingItem[] {
-  const of = (kind: WaitingKind, list: readonly WaitingInput[] | undefined): WaitingItem[] => (list ?? []).map(({ id, title, words, actions }) => ({ id, title, ...(words !== undefined ? { words } : {}), actions, kind }));
+  const of = (kind: WaitingKind, list: readonly WaitingInput[] | undefined): WaitingItem[] => (list ?? []).map(({ id, title, words, actions, mark }) => ({ id, title, ...(words !== undefined ? { words } : {}), ...(mark !== undefined ? { mark } : {}), actions, kind }));
   const items = [
     ...of('expeditionEnd', sources.expeditionEnd),
     ...of('encounter', sources.encounters),
@@ -133,6 +138,8 @@ export interface WaitingRow {
   id: string;
   kind: WaitingKind;
   title: string;
+  /** Its own mark, in place of its kind's; absent for the kind's. */
+  mark?: WaitingMark;
   /** The row's one button: the item's first answer; null when it has none. */
   button: WaitingAction | null;
   /** Its place among all that wait, from 1 (what the count reads when it is opened). */
@@ -175,7 +182,7 @@ export function waitingView(items: readonly WaitingItem[], openId: string | null
   const open = found < 0 ? 0 : found;
   const openItem = items[open]!;
   const drawn = windowFor(items.length, open);
-  const rowOf = (item: WaitingItem, index: number): WaitingRow => ({ id: item.id, kind: item.kind, title: item.title, button: item.actions[0] ?? null, number: index + 1 });
+  const rowOf = (item: WaitingItem, index: number): WaitingRow => ({ id: item.id, kind: item.kind, title: item.title, ...(item.mark !== undefined ? { mark: item.mark } : {}), button: item.actions[0] ?? null, number: index + 1 });
   const entries: WaitingEntry[] = drawn.map((index) => {
     const item = items[index]!;
     const row = rowOf(item, index);

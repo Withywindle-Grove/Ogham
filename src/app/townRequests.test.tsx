@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // M5b step 6e: buying, selling, lodging, town activities and the overnight card (docs/plans/m5b-6-settlements.md
 // "Step 6e"; ST5–ST9; dt-11, st-3), on the stand-in database. Invented names and rules only.
-//   An Ask for… the GM answers Hit then In stock reaches the player with the pack's price, and Buy it brings the item
+//   An Ask for… the GM flips In stock reaches the player with the pack's price, and Buy it brings the item
 //   into the pack as bought. A Sell… offer the player declines changes nothing. A lodging pick logs its cost. A town
 //   activity reaches the GM with its rule. The overnight card arrives once per morning with last night's lodging.
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
@@ -14,6 +14,8 @@ import { Root } from './App.tsx';
 import { forgetCampaignSetting } from './campaignSetting.ts';
 import { openDepart, startExpedition } from '../testing/depart.ts';
 import { PlayerViewContext } from './playerView.ts';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { Icon } from '../ui/icons.tsx';
 
 vi.mock('./services.ts', async () => {
   const { createAppRegistry } = await import('./commandRegistry.ts');
@@ -140,8 +142,8 @@ async function pick(user: User, dialog: string, row: string) {
 }
 
 describe('town requests (M5b step 6e)', () => {
-  // Purpose: an Ask for… with Hit then In stock reaches the player with the pack price, and Buy it puts it in the pack as bought.
-  it('buys a lantern: the GM rolls Hit, says In stock: and the player buys it', async () => {
+  // Purpose: an Ask for… the GM flips In stock reaches the player with the pack price, and Buy it puts it in the pack as bought.
+  it('buys a lantern: the GM flips it In stock and the player buys it', async () => {
     const { gm, sam, wren } = table();
     await townReady(gm);
     let player = await playerTown(sam);
@@ -154,14 +156,11 @@ describe('town requests (M5b step 6e)', () => {
     cleanup();
     const user = await openAs(gm, 'Players');
     const list = await waiting();
-    expect(list.getByText('Wren asks for Hooded lantern, The Tinker’s Stall')).toBeTruthy();
-    expect(list.getByText("The pack's price: 4 gp")).toBeTruthy();
-    expect(list.getByText("Where it's sold: towns only")).toBeTruthy();
-    expect(list.getByText("Chance it's here: Hamlet 10%, Market town 60%")).toBeTruthy();
-    // Hit / Miss first; then the answers.
-    expect(list.queryByRole('button', { name: 'In stock' })).toBeNull();
-    await user.click(list.getByRole('button', { name: 'Hit' }));
-    await user.click(list.getByRole('button', { name: 'In stock' }));
+    expect(list.getByText('Wren asks for: Hooded lantern')).toBeTruthy();
+    expect(list.getByText('At The Tinker’s Stall.')).toBeTruthy();
+    // TC13 piece B: the toggle answers; no Hit or Miss first.
+    expect(list.queryByRole('button', { name: 'Hit' })).toBeNull();
+    await user.click(list.getByRole('radio', { name: 'In stock' }));
     await screen.findByText('Wren: Hooded lantern, 4 gp');
 
     player = await playerTown(sam);
@@ -187,8 +186,7 @@ describe('town requests (M5b step 6e)', () => {
     cleanup();
     const user = await openAs(gm, 'Players');
     const list = await waiting();
-    await user.click(list.getByRole('button', { name: 'Hit' }));
-    await user.click(list.getByRole('button', { name: 'In stock' }));
+    await user.click(list.getByRole('radio', { name: 'In stock' }));
     await screen.findByText('Wren: Hooded lantern, 4 gp');
     player = await playerTown(sam);
     const answer = await screen.findByRole('article', { name: "The GM's answer" });
@@ -455,7 +453,7 @@ describe('Ask for… answered at once (TC13 piece A)', () => {
     expect(events('request.send')).toHaveLength(0);
     cleanup();
     await openAs(gm, 'Players');
-    expect((await waiting()).getByText('Wren asks for A brass bell, The Tinker’s Stall')).toBeTruthy();
+    expect((await waiting()).getByText('Wren asks for: A brass bell')).toBeTruthy();
   });
 
   // Purpose: a failed Ask for… sends nothing: no request, no log line, an error toast, and the dialog stays open to try again.
@@ -477,6 +475,262 @@ describe('Ask for… answered at once (TC13 piece A)', () => {
     expect(screen.getByRole('dialog', { name: 'Ask for…' })).toBeTruthy();
     expect({ events: world.tables.events.length, requests: world.tables.requests.length }).toEqual(before);
     spy.mockRestore();
+  });
+});
+
+// The GM's ask card with the toggle (TC13 piece B; docs/specs/town-ask-buy.md, "Piece B: the GM's ask card"; ap-14,
+// tn-4, tn-7, sb5-1 to sb5-4; frames TW8g and TW4c), on the stand-in database. Purposes, in plain words:
+//   * the card shows "<who> asks for: <thing>", the place and the thing's chance as the stock table writes it, then
+//     Price…, "Stocked?" and the toggle on "?"; no Hit, no Miss, no note, and no accent;
+//   * a flip right answers "In stock" at the pack's price and sets the day's stock in, so a second ask that day is
+//     answered at once with no card; a flip left answers "Not here" and sets it out, likewise;
+//   * Something not listed… flipped right opens Price… (no price to say), and Send price answers with no stock line;
+//   * Price… shows the pack's price, refuses an empty price in words, and Send price answers with the GM's price and
+//     writes no stock line;
+//   * Undo after a flip puts the request back on "?" and the stock back to undecided; refused in plain words once the
+//     player has replied;
+//   * a failed flip leaves the card on "?" with an error toast; a retry after a failed answer answers, and its Undo
+//     still takes the stock back;
+//   * two asks for the same thing: each card answers its own asker, the other stays on "?";
+//   * a player's flip (stock.set) and a player's Send price (request.answer) are refused.
+describe("the GM's ask card with the toggle (TC13 piece B)", () => {
+  /** A coil of rope at the stall, with a chance of 4-in-6: on "?" each day until the GM answers. */
+  function rope() {
+    world.tables.library_entries.push({ id: 'entry-rope', pack_id: 'pack-quay', kind: 'item', pack_entry_id: 'coil-of-rope', name: 'Coil of rope', data: { id: 'coil-of-rope', name: 'Coil of rope', category: 'gear', value: { sp: 1 }, weightCoin: 10, availability: { chance: '4-in-6' } } });
+  }
+
+  async function askFor(player: User, find: string, thing: string) {
+    await player.click(actions().getByRole('button', { name: 'Ask for…' }));
+    await player.type(within(screen.getByRole('dialog', { name: 'Ask for…' })).getByRole('textbox', { name: 'Find an item' }), find);
+    await pick(player, 'Ask for…', thing);
+    await player.click(within(screen.getByRole('dialog', { name: 'Ask for…' })).getByRole('button', { name: 'Send to the GM' }));
+  }
+
+  /** Wren's player asks for the rope (it waits), then the GM opens Players. */
+  async function ropeAsked() {
+    const { gm, sam, campaign, wren } = table();
+    rope();
+    await townReady(gm);
+    const player = await playerTown(sam);
+    await askFor(player, 'rope', 'Coil of rope');
+    await screen.findByText('Sent to the GM');
+    cleanup();
+    const user = await openAs(gm, 'Players');
+    const list = await waiting();
+    await list.findByText('Wren asks for: Coil of rope');
+    return { gm, sam, campaign, wren, user, list };
+  }
+
+  const ropeStock = () => world.tables.shop_stock.filter((r) => r.item_id === 'coil-of-rope' && !r.undone);
+  const ropeRequests = () => world.tables.requests.filter((r) => r.kind === 'buy' && (r.prompt as { itemId?: string }).itemId === 'coil-of-rope');
+
+  // Purpose: the card is TW8g's: the heading, the place with the die's glyph and "4-in-6", Price…, "Stocked?" and the toggle on "?"; no Hit, Miss, note or accent.
+  it('shows the ask as TW8g draws it, the toggle on "?"', async () => {
+    const { list } = await ropeAsked();
+    const card = list.getByText('Wren asks for: Coil of rope').closest('li')!;
+    expect(within(card).getByText(/^At The Tinker’s Stall\./)).toBeTruthy();
+    expect(within(card).getByText('4-in-6')).toBeTruthy();
+    expect(card.querySelector('.die-glyph[data-die="6"]')).not.toBeNull();
+    expect(within(card).getByRole('button', { name: 'Price…' })).toBeTruthy();
+    expect(within(card).getByText('Stocked?')).toBeTruthy();
+    expect(within(card).getByRole('radiogroup', { name: 'Coil of rope, stocked today: not decided' })).toBeTruthy();
+    for (const gone of ['Hit', 'Miss', 'In stock', 'Not here']) expect(within(card).queryByRole('button', { name: gone })).toBeNull();
+    expect(within(card).queryByRole('textbox')).toBeNull();
+    expect(card.querySelector('.button-primary')).toBeNull();
+    // The card's mark is the bag (the Pack's sack), not the note.
+    expect(list.getByText('Wren asks for: Coil of rope').closest('.waiting-open')?.querySelector('.waiting-open__mark svg')?.innerHTML).toBe(renderToStaticMarkup(<Icon name="sack" size={28} />).replace(/^<svg[^>]*>|<\/svg>$/g, ''));
+  });
+
+  // Purpose: a thing with no chance shows its place only, never an empty chance.
+  it('a thing with no chance shows its place only', async () => {
+    const { gm, sam } = table();
+    await townReady(gm);
+    const player = await playerTown(sam);
+    await askFor(player, 'lantern', 'Hooded lantern');
+    await screen.findByText('Sent to the GM');
+    cleanup();
+    await openAs(gm, 'Players');
+    const card = (await waiting()).getByText('Wren asks for: Hooded lantern').closest('li')!;
+    expect(within(card).getByText('At The Tinker’s Stall.').textContent).toBe('At The Tinker’s Stall.');
+    expect(card.querySelector('.die-glyph')).toBeNull();
+  });
+
+  // Purpose: a flip right answers In stock at the pack's price and sets the day's stock in, stock first; a second ask that day is answered at once with no card.
+  it('a flip right answers In stock and sets the stock in; the next ask is answered at once', async () => {
+    const { sam, user, list } = await ropeAsked();
+    await user.click(list.getByRole('radio', { name: 'In stock' }));
+    await screen.findByText('Wren: Coil of rope, 1 sp');
+    expect(ropeStock()).toMatchObject([{ service_id: 'buy-gear', day: 1, answer: 'in' }]);
+    expect(ropeRequests()[0]).toMatchObject({ status: 'answered', answer: { kind: 'buy', result: 'inStock', price: '1 sp', note: '' } });
+    const order = world.tables.events.filter((e) => e.type === 'stock.set' || e.type === 'request.answer').map((e) => e.type);
+    expect(order).toEqual(['stock.set', 'request.answer']);
+    await waitFor(() => expect(screen.queryByText('Wren asks for: Coil of rope')).toBeNull());
+
+    const player = await playerTown(sam);
+    await askFor(player, 'rope', 'Coil of rope');
+    await waitFor(() => expect(ropeRequests()).toHaveLength(2));
+    expect(ropeRequests()[1]).toMatchObject({ status: 'answered', answer: { result: 'inStock', price: '1 sp' } });
+  });
+
+  // Purpose: a flip left answers Not here and sets the stock out; a second ask that day is answered Not here at once.
+  it('a flip left answers Not here and sets the stock out; the next ask is Not here at once', async () => {
+    const { sam, user, list } = await ropeAsked();
+    await user.click(list.getByRole('radio', { name: 'Not in stock' }));
+    await screen.findByText('Not here: told Wren');
+    expect(ropeStock()).toMatchObject([{ answer: 'out' }]);
+    expect(ropeRequests()[0]).toMatchObject({ status: 'answered', answer: { result: 'notHere', price: '' } });
+    const player = await playerTown(sam);
+    await askFor(player, 'rope', 'Coil of rope');
+    await waitFor(() => expect(ropeRequests()).toHaveLength(2));
+    expect(ropeRequests()[1]).toMatchObject({ status: 'answered', answer: { result: 'notHere' } });
+  });
+
+  // Purpose: Something not listed… has no price to say: a flip right opens Price… (sb5-1), and Send price answers In stock with the GM's price and writes no stock line.
+  it('Something not listed… flipped right opens Price…; Send price answers with no stock line', async () => {
+    const { gm, sam } = table();
+    await townReady(gm);
+    const player = await playerTown(sam);
+    await player.click(actions().getByRole('button', { name: 'Ask for…' }));
+    await pick(player, 'Ask for…', 'Something not listed…');
+    await player.type(within(screen.getByRole('dialog', { name: 'Ask for…' })).getByRole('textbox', { name: "What you're after" }), 'A brass bell');
+    await player.click(within(screen.getByRole('dialog', { name: 'Ask for…' })).getByRole('button', { name: 'Send to the GM' }));
+    await screen.findByText('Sent to the GM');
+    cleanup();
+    const user = await openAs(gm, 'Players');
+    const list = await waiting();
+    await user.click(await list.findByRole('radio', { name: 'In stock' }));
+    const pop = await screen.findByRole('dialog', { name: 'Wren asks for: A brass bell' });
+    expect(within(pop).queryByText(/The pack's price/)).toBeNull();
+    await user.type(within(pop).getByRole('textbox', { name: 'Your price, in words' }), '3 sp');
+    await user.click(within(pop).getByRole('button', { name: 'Send price' }));
+    await screen.findByText('Wren: A brass bell, 3 sp');
+    expect(world.tables.requests.find((r) => r.kind === 'buy')).toMatchObject({ status: 'answered', answer: { result: 'inStock', price: '3 sp' } });
+    expect(events('stock.set')).toHaveLength(0);
+    expect(world.tables.shop_stock.filter((r) => r.id !== 'stock-lantern-day1')).toEqual([]);
+  });
+
+  // Purpose: Price… shows the pack's price; Send price empty asks for the price beside the field; Send price answers with the GM's price and writes no stock line.
+  it('Price… opens the pop-up; an empty price is refused in words; Send price writes no stock', async () => {
+    const { user, list } = await ropeAsked();
+    await user.click(list.getByRole('button', { name: 'Price…' }));
+    const pop = await screen.findByRole('dialog', { name: 'Wren asks for: Coil of rope' });
+    expect(within(pop).getByText("The pack's price: 1 sp")).toBeTruthy();
+    await user.click(within(pop).getByRole('button', { name: 'Send price' }));
+    expect(within(pop).getByRole('alert').textContent).toBe('Type the price, such as "12 gp".');
+    expect(ropeRequests()[0]!.status).toBe('waiting');
+    await user.type(within(pop).getByRole('textbox', { name: 'Your price, in words' }), '2 sp');
+    await user.click(within(pop).getByRole('button', { name: 'Send price' }));
+    await screen.findByText('Wren: Coil of rope, 2 sp');
+    expect(ropeRequests()[0]).toMatchObject({ status: 'answered', answer: { result: 'price', price: '2 sp' } });
+    expect(ropeStock()).toEqual([]);
+    expect(screen.queryByRole('dialog', { name: 'Wren asks for: Coil of rope' })).toBeNull();
+  });
+
+  // Purpose: the flip's Undo takes back the answer and the stock line, newest first: the request waits again on "?" and the stock reads undecided.
+  it('Undo after a flip puts the request back and the stock undecided', async () => {
+    const { user, list } = await ropeAsked();
+    await user.click(list.getByRole('radio', { name: 'In stock' }));
+    const toast = (await screen.findByText('Wren: Coil of rope, 1 sp')).closest('.toast') as HTMLElement;
+    await user.click(within(toast).getByRole('button', { name: 'Undo' }));
+    await screen.findByText('Put Wren’s request back');
+    expect(ropeRequests()[0]!.status).toBe('waiting');
+    expect(ropeStock()).toEqual([]);
+    const card = (await (await waiting()).findByText('Wren asks for: Coil of rope')).closest('li')!;
+    expect(within(card).getByRole('radiogroup', { name: 'Coil of rope, stocked today: not decided' })).toBeTruthy();
+  });
+
+  // Purpose: once the player has replied, the GM's Undo is refused in plain words, and both the answer and the stock stay.
+  it("Undo after the player bought is refused in plain words", async () => {
+    const { gm, sam, campaign, user, list } = await ropeAsked();
+    await user.click(list.getByRole('radio', { name: 'In stock' }));
+    const toast = (await screen.findByText('Wren: Coil of rope, 1 sp')).closest('.toast') as HTMLElement;
+    // The player replies meanwhile, Buy it (the reply, through the player's own command).
+    const { runCommand } = await import('../core/commands.ts');
+    const { replyRequest } = await import('../modules/requests/townRequests.ts');
+    const { loadRequests } = await import('../modules/requests/requests.ts');
+    const { registry } = await import('./services.ts');
+    world.signInAs(sam);
+    const asked = (await loadRequests(world.db, campaign))!.find((r) => r.kind === 'buy')!;
+    expect((await runCommand(registry, world.db, { id: sam, roles: { [campaign]: 'player' } }, replyRequest, { request: asked, accept: true })).ok).toBe(true);
+    world.signInAs(gm);
+    await user.click(within(toast).getByRole('button', { name: 'Undo' }));
+    await screen.findByText("That's changed since. Undo the later change first.");
+    expect(ropeRequests()[0]).toMatchObject({ status: 'answered', reply: 'accept' });
+    expect(ropeStock()).toMatchObject([{ answer: 'in' }]);
+  });
+
+  // Purpose: a failed stock write sends nothing and leaves the card on "?" with an error toast.
+  it('a failed flip leaves the card on "?" with an error toast and sends nothing', async () => {
+    const { user, list } = await ropeAsked();
+    const real = world.db.rpc.bind(world.db);
+    const spy = vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: Record<string, unknown>) =>
+      name === 'set_shop_stock' ? Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }) : real(name as never, args as never)) as never);
+    await user.click(list.getByRole('radio', { name: 'In stock' }));
+    await waitFor(() => expect(document.querySelector('.toast')).not.toBeNull());
+    expect(ropeRequests()[0]!.status).toBe('waiting');
+    expect(events('request.answer')).toHaveLength(0);
+    expect(list.getByRole('radiogroup', { name: 'Coil of rope, stocked today: not decided' })).toBeTruthy();
+    spy.mockRestore();
+  });
+
+  // Purpose: a failed answer after a good stock write leaves the card on "?"; a second flip answers, and its Undo takes back the stock line the first wrote.
+  it('a failed answer keeps the card; the retry answers and its Undo takes the stock back too', async () => {
+    const { user, list } = await ropeAsked();
+    const real = world.db.rpc.bind(world.db);
+    let fail = true;
+    const spy = vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: Record<string, unknown>) =>
+      name === 'answer_request' && fail ? Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }) : real(name as never, args as never)) as never);
+    await user.click(list.getByRole('radio', { name: 'In stock' }));
+    await waitFor(() => expect(document.querySelector('.toast')).not.toBeNull());
+    expect(ropeStock()).toMatchObject([{ answer: 'in' }]);
+    expect(ropeRequests()[0]!.status).toBe('waiting');
+    fail = false;
+    await user.click(list.getByRole('radio', { name: 'In stock' }));
+    const toast = (await screen.findByText('Wren: Coil of rope, 1 sp')).closest('.toast') as HTMLElement;
+    expect(events('stock.set')).toHaveLength(1);
+    await user.click(within(toast).getByRole('button', { name: 'Undo' }));
+    await screen.findByText('Put Wren’s request back');
+    expect(ropeStock()).toEqual([]);
+    spy.mockRestore();
+  });
+
+  // Purpose: two asks for the same thing: the flip answers its own asker only; the other card stays on "?" (sb5-4).
+  it('two asks for the rope: each card answers its own asker', async () => {
+    const { gm, sam } = table();
+    rope();
+    await townReady(gm);
+    const player = await playerTown(sam);
+    await askFor(player, 'rope', 'Coil of rope');
+    await screen.findByText('Sent to the GM');
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Ask for…' })).toBeNull());
+    await askFor(player, 'rope', 'Coil of rope');
+    await waitFor(() => expect(ropeRequests()).toHaveLength(2));
+    cleanup();
+    const user = await openAs(gm, 'Players');
+    const list = await waiting();
+    await user.click((await list.findAllByRole('radio', { name: 'In stock' }))[0]!);
+    await screen.findByText('Wren: Coil of rope, 1 sp');
+    await waitFor(() => expect(ropeRequests().map((r) => r.status).sort()).toEqual(['answered', 'waiting']));
+    expect(await list.findByRole('radiogroup', { name: 'Coil of rope, stocked today: not decided' })).toBeTruthy();
+  });
+
+  // Purpose: only the GM answers: a player's flip (stock.set) and a player's Send price (request.answer) are refused.
+  it("a player's flip and a player's Send price are refused", async () => {
+    const { runCommand } = await import('../core/commands.ts');
+    const { setStock } = await import('../modules/requests/shopStock.ts');
+    const { answerRequest, loadRequests } = await import('../modules/requests/requests.ts');
+    const { registry } = await import('./services.ts');
+    const { sam, campaign } = await ropeAsked();
+    cleanup();
+    world.signInAs(sam);
+    const asPlayer = { id: sam, roles: { [campaign]: 'player' as const } };
+    const flip = await runCommand(registry, world.db, asPlayer, setStock, { campaignId: campaign, serviceId: 'buy-gear', itemId: 'coil-of-rope', day: 1, answer: 'in' });
+    expect(flip.ok).toBe(false);
+    const request = (await loadRequests(world.db, campaign))!.find((r) => r.kind === 'buy')!;
+    const priced = await runCommand(registry, world.db, asPlayer, answerRequest, { request, answer: { kind: 'buy', result: 'price', price: '1 sp', note: '' } });
+    expect(priced.ok).toBe(false);
+    expect(ropeStock()).toEqual([]);
+    expect(ropeRequests()[0]!.status).toBe('waiting');
   });
 });
 
