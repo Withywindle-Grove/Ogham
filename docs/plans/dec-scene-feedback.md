@@ -1,5 +1,7 @@
 # Plan dec-scene-feedback: the Scene feedback of 25 November (page 44)
 
+> 28 Nov 2026: the unbuilt rows move to loop 4 (the Scene's remaining rows); the loop is not optional (`docs/09-decisions-log.md`, `[process]`).
+
 **Status (2026-11-27: see "Answered 27 November" below). Status (2026-11-26, evening): every ⚑ below is answered except the plan's item 9 (which rows wait for which), which is the driver's. Francis's answers are sf-19 to sf-28 in the ruling's "Ruled 2026-11-26 (evening)"; the rows below say where they change what is built. Ready for the waves.**
 
 Written by the designer on 2026-11-26. Its ruling: [`../design/rulings/scene-feedback-2026-11-25.md`](../design/rulings/scene-feedback-2026-11-25.md) (Francis's 27 notes; his rulings of 25 and 26 November; his approval of 26 November, "Approve with picks"). Its page: `docs/design/mockups/december/44-scene-feedback-of-25-november.html`, frames 44-1 to 44-21, pictures `docs/design/mockups/december/png/44-*`.
