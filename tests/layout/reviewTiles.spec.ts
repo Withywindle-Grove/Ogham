@@ -1,7 +1,8 @@
 // The review's figures in the book's type at a phone's width (cs-40a, Francis 2026-11-13). Purpose: at 375 px, on the
 // gallery's messy data (a long armour name, "unarmoured", "Nimbleness +0"), no line of a tile breaks inside a word, and
 // a label stays on one line with its figure, now that the figures go two across under 600 px.
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../fails.ts';
 
 test.use({ viewport: { width: 375, height: 812 } });
 

@@ -5,7 +5,8 @@
 // screen here, so the shared character itself (and every other row's pictures) stays as it is.
 // Purposes: the trait's sheet has the pin star beside ✕, a 44 px target; pinned, the trait is a block in the list,
 // its name led by the star, and not in At hand; nothing spills sideways at 375 px; its Use is a 44 px target.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 const SIZES = [
   { name: 'tablet', width: 1180, height: 820 },

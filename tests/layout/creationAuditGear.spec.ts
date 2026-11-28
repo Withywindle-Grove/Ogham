@@ -6,7 +6,8 @@
 //      nothing is under 14 px, and it passes the accessibility check.
 //   2. Beside Undo last a quiet line, 14 px, names what it takes back, "Last bought: Reed rope"; a long name wraps there,
 //      beside the button, with no sideways scroll.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 /** Guided creation in The Fen Muster to the Gear step, the coin left at its average. */

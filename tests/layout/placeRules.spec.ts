@@ -8,7 +8,8 @@
 //   * two buttons at once sit in a row that wraps, 8 px apart;
 //   * the splash (pf-12e's icon button, dec-7 piece 2) is the icon alone, square, as tall as a one-line words button,
 //     and wrapped words keep the same air above and below.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 const campaignRow = (page: Page) => page.getByRole('button', { name: /The Drowned Marches/ });
 

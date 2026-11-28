@@ -11,7 +11,8 @@
 //   * the top folds (p2p-20; page 24, TF1, TF1b): the fold mark before the menu button (Q3; a phone: the heading's right)
 //     hides the facts, the strip and the tables row, keeps the band and Waiting for you, and a due fact as one line;
 //   * nothing scrolls sideways, every tap is 44 px, and axe finds no serious problem, in light and dark.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openScene(page: Page, session: '' | 'running' | 'paused') {

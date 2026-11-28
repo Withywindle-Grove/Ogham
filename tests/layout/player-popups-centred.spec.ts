@@ -16,7 +16,8 @@
 //   8. In dark mode a pop-up is centred and fitted the same way.
 //   9. The players' travel pop-up on the Scene (sf-15; page 44, PU1): centred on a tablet, a sheet from the foot on a
 //      phone (sf-28); a long name wraps, 999 turns fits, "Got it" is plain; light and dark.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openPlayer(page: Page, width: number, height: number, p1 = '1') {

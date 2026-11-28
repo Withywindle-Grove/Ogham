@@ -11,7 +11,8 @@
 //   F. At 375 px, after an empty Save in Edit piece, the toast covers neither "Remove this piece" nor "Kind".
 //   G. At 375 px with no sheet open, the toast still stands above Move on's bar, not over it.
 // Each: nothing scrolls sideways, no tap target under 44 px, no text under 14 px (layoutProblems).
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 
 const SIZES = [

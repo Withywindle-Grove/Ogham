@@ -4,7 +4,8 @@
 // remove the fixme and fill in the steps.
 //   A tap is any click or selection the person makes; typing isn't counted.
 //   A screen change is the page's main heading (h1) changing; a sheet or dialog over the page isn't one.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { departStart } from './depart.ts';
 
 interface Budget {

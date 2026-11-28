@@ -6,7 +6,8 @@
 //     easel) and Take it off (the cross) as stacked buttons at the right;
 //   * nothing scrolls sideways, every tap is 44 px, and axe finds no serious problem, in light and dark, at 375, 680,
 //     834 and 1024 px.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openSpot(page: Page) {

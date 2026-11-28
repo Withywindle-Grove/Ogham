@@ -18,7 +18,8 @@
 //   * nothing scrolls sideways, every tap is 44 px, and axe finds no serious problem;
 //   * the Location's card below the head, redrawn by B3 (its own block at the foot of this file);
 //   * the trail's Locations panel and reading ahead, B2 (the last block).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openPlace(page: Page, name: '' | 'long' | 'word', menu: 'folded' | 'open' = 'folded') {

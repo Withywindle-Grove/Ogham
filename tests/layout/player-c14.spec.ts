@@ -6,7 +6,8 @@
 //   Attack are 44 px targets at least.
 //   With two buttons (Grip and Attack) they take their own line under the name, at the block's right, 8 px apart (P1).
 //   Everything stays inside the block and the page never scrolls sideways, at 375 px (a phone) and 1024 px (a tablet).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 const SIZES = [
   { name: 'phone', width: 375, height: 812 },

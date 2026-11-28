@@ -8,7 +8,8 @@
 //   3. At the Larger text size the three still share that row, the buttons still 44 px and 8 px apart.
 //   4. Nothing runs past the screen, and it passes the accessibility check.
 // The picture of the whole screen is kept with the test's output (the PR's built pictures). Every name is invented.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const h1 = (page: Page) => page.getByRole('heading', { level: 1 }).first();

@@ -8,7 +8,8 @@
 //   * "Got it" puts the card away, and it stays away when the page opens again on this device;
 //   * no text under 14 px, every tap 44 px, axe finds no serious problem, at 375 and 1024 px, light and dark.
 // Each test saves its pictures (the built screen beside EN5 in the pull request).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openScene(page: Page, flag: '1' | 'long' = '1') {

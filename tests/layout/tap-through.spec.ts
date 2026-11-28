@@ -7,7 +7,8 @@
 //      bug: the pop-up went on the finger's press and the same tap's click landed on the button beneath) and by mouse
 //      (which already behaved, and must keep doing so).
 //   2. A drag that starts inside the pop-up and ends on the dimmed page leaves it open.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 // Playwright spells an expected failure `test.fail(title, body)`; the fix-branch guard reads `.fails` (bq-6). So the
 // touch tests go through `it`: `it.fails` is Playwright's expected failure, and `it` alone is a plain test.

@@ -7,7 +7,8 @@
 //      the lantern is a new line, so Spend alone): its words wrap inside it, its buttons stay on the screen and 44 px.
 //   3. The Spend sheet opened from the toast, with 4 in the Herons box and one accent "Spend 4 herons".
 // Each: nothing scrolls sideways, no tap target under 44 px, no text under 14 px, no serious accessibility problem.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const SIZES = [

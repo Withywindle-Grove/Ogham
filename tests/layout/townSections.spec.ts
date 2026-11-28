@@ -13,7 +13,8 @@
 //   * nothing scrolls sideways and axe finds no serious problem in About the town, at 375 and 1024 px, light and dark.
 // It saves a picture of About the town, every section opened, in test-results/layout-screens (CI keeps them as the
 // layout-screens artifact) for a person to set against page 22; not compared pixel by pixel.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const box = async (l: Locator) => {

@@ -6,7 +6,8 @@
 //   At 1180 px the rows that follow Skills stand without the "Full character sheet" heading and without Edit: short
 //   rows (name, a line, a chevron) inside the right column, each a 44 px target with 8 px between, nothing past the column.
 //   At 375 px the same rows stand where the one "Full character sheet" row was, inside the screen, no sideways scroll.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function open(page: Page, width: number, height: number) {

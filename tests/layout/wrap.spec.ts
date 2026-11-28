@@ -3,7 +3,8 @@
 // a word squeezed to a letter a line, text past the screen's side and text cut by a box that hides overflow
 // (`wrapProblems`), beside the usual `layoutProblems`. Catches, with where each was noted, in
 // docs/status/2026-11-09-m5b-wrap-guards.md.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 import { wrapProblems } from './wrapChecks.ts';
 

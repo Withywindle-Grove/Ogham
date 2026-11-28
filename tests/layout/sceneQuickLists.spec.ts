@@ -4,7 +4,8 @@
 //     order, then by number as numbers ("0." before "1.", "2." before "10."), though the pack lists them out of order;
 //   * only the order changes: nothing scrolls sideways, every row is a 44 px tap, and axe finds no serious problem,
 //     at 375 and 1180 px, in light and dark. Each test saves its picture.
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 for (const [width, height] of [[375, 812], [1180, 820]] as const) {

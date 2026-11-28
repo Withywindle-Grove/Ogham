@@ -9,7 +9,8 @@
 //   Left open, it is open when the page is opened again on this device (euf-1, P1).
 //   Literacy is not a Details line (it is the line under Languages).
 //   "Nothing written yet." is at least 14 px (the review of #910).
-import { expect, test, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
+import { test } from "../fails.ts";
 import { accessibilityProblems, layoutProblems } from "./checks.ts";
 
 const SIZES = [

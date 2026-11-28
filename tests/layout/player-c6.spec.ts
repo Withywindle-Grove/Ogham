@@ -14,7 +14,8 @@
 //   right, inside the card, at 1180 and 375 px.
 //   The weapon in hand's block (C14; ?p1=weapon) carries Grip and Attack as stacked buttons: one size, 44 by 88 px at
 //   least, 8 px apart, on their own line under the name at the block's right, inside the block (second half).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const SIZES = [

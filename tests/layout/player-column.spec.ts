@@ -1,7 +1,8 @@
 // The Player screen's left column with the menu open on an iPad in landscape (the third creation test, ct3-7): the
 // column (vitals, at hand, saves) shrinks to make room for the open menu, and nothing in it is cut off or runs
 // under the full sheet beside it.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 const LANDSCAPE = [
   { name: 'ipad-landscape', width: 1024, height: 768 },

@@ -8,7 +8,8 @@
 //      the burden.
 //   2. In creation's Gear step (?gear=1, a kit taken), the same tap opens the same pop-up in the same form, and the
 //      step under it doesn't move; Escape closes it and focus is back on the burden.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 /** Where a part of the page sits, rounded: the page under the pop-up must keep it. */

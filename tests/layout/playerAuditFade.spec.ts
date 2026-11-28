@@ -11,7 +11,8 @@
 //   5f. In one column (a tablet held upright, a phone at 375 px) there is no fade.
 //   5g. The fade never catches a tap: a button half in the faded foot is still what a tap there lands on.
 //   5h. Scrolled to the end, when the column's contents grow with nothing scrolled (a picture loading), the foot fades.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 
 const SIDEWAYS = { width: 1180, height: 820 };

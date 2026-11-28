@@ -4,7 +4,8 @@
 //   kept, raw or percent-encoded) and sign-in finishes to Your campaigns; a wrong code stays filled in, with a clear
 //   error beside it.
 // Against the stand-in database of the layout checks (layout.html, signed out), whose accepted code is FAKE_EMAIL_CODE.
-import { expect, test, type Browser, type Page } from '@playwright/test';
+import { expect, type Browser, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 // The stand-in's accepted code (FAKE_EMAIL_CODE in src/testing/fakeDb.ts), copied: the spec stays clear of app modules.
 const FAKE_EMAIL_CODE = '246810';
 

@@ -5,7 +5,8 @@
 //      a row is one height, and nothing runs off a 375 px phone or a tablet, in light and dark.
 //   2. A score with a change waiting for the GM (Muscle 15 → 16, `p1=bare`) keeps its "+2" under it, and its tile says
 //      nothing of the change, at 375 px in light and dark.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 
 const SIZES = [

@@ -10,7 +10,8 @@
 //      figure fits.
 //   1a. The table's title band is left-aligned, as M2h draws it (Francis's fix of 2026-11-20).
 //   3. On the Pack tab the same tap opens the same pop-up, and the Pack under it does not move.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openPlayer(page: Page, width: number, height: number, scheme: 'light' | 'dark', p1 = '1') {

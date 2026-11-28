@@ -10,7 +10,8 @@
 //   4. The languages' words are regular, not bold; the full sheet's own page keeps them bold.
 //   5. On a 375 px phone the speed card and the load card sit side by side (M1f), with no sideways scroll, and with 999
 //      bundles of reeds ("Can't move") too.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 import { openFullSheetFromMenu } from './fullSheetMenu.ts';
 

@@ -23,7 +23,8 @@
 //  12. A hoard's coin and things: one card, the giver said once, the coin first with "In your coin.", then the things;
 //      the coin line and each thing's row carry "New" (FD5b).
 //  13. The GM takes back a card's one thing: the card keeps "From your GM, just now." under its head (FD11b B, fix 2).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const SIZES = [

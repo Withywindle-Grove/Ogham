@@ -13,7 +13,8 @@
 //   1e. The phone's tab bar (375 px) and a phone on its side (the short 600 to 1023 px bar) keep their tabs touching,
 //       unchanged, and neither scrolls sideways.
 //   1f. The keyboard's focus ring still goes round the grip, not the whole tall tap zone.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 
 const SIDEWAYS = { width: 1180, height: 820 };

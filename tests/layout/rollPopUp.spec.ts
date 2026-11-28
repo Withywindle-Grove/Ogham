@@ -7,7 +7,8 @@
 //   On a d100 table, "Go to number" brings the row found to the top of the rows with a rule at its leading edge and
 //   its range in bold, and no wash.
 //   Loading shows its skeleton only after 300 ms.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const open = async (page: Page, theme: string, button: string) => {

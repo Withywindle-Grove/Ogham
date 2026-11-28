@@ -7,7 +7,8 @@
 //   plain row like the topic groups above (Francis's fix 1, 2026-11-20): no box, its chevron and words where theirs
 //   are, the same dotted rule under it.
 //   A tap opens one card with every pack's choices, still inside the screen; axe finds no serious problem either way.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const LONG = /^Initiative ties between two lantern wardens on the same count, /;

@@ -12,7 +12,8 @@
 //   * messy data (&ways=messy): a long far end's name and 999 turns keep inside the row at 375 px;
 //   * nothing scrolls sideways, every tap is 44 px, no text is under 14 px, and axe finds no serious problem, at 375,
 //     834 and 1024 px, in light and dark. Each test saves its picture.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openScene(page: Page, ways: '1' | 'none' | 'messy' | 'areas' | null) {

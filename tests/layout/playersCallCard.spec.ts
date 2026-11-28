@@ -8,7 +8,8 @@
 //   * the card reads heading, Got it, words; on a phone the heading has the full width above Got it (re-audit 1, 2);
 //   * nothing scrolls sideways, no text is under 14 px, every tap is 44 px, axe finds no serious problem, at 375 and
 //     834 px, in light and dark. Each test saves its pictures (the phone and dark ones are owed to Francis, p7-8).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openScene(page: Page) {

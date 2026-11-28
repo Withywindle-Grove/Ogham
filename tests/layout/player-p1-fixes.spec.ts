@@ -14,7 +14,8 @@
 //   6. Off the Player screen the same rows keep the book's regular weight: the Pack tab's At hand, and the full sheet's
 //      own page (opened from the menu's "Full character sheet"; the tab's row is gone, tfr-5), whose bar keeps its page
 //      heading.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 import { openFullSheetFromMenu } from './fullSheetMenu.ts';
 

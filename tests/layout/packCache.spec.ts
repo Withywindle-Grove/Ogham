@@ -2,7 +2,8 @@
 // 5): opening a campaign writes the setting rules to IndexedDB; they're still there after a reload; signing out empties
 // the store. The unit tests cover the cache's rules with an in-memory store; this is the one check that the real store
 // reads and writes. Against the stand-in database (layout.html), as every layout check.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 /** How many pack copies the device holds, and whether it belongs to someone (−1: no store yet). */
 async function storeState(page: Page): Promise<{ packs: number; owned: boolean }> {

@@ -9,7 +9,8 @@
 //   The Attack tile's line reads "Melee +2, Missile +1": each kind with its capital, as the setting gives it (tfw-7;
 //   on a phone, stacked a part a line, as every tile's line is when it doesn't fit).
 //   No sideways scroll at 375 px, no serious accessibility problem, in light and dark.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const SIZES = [

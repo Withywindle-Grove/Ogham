@@ -8,7 +8,8 @@
 //   * the loading and failed frames show their words and no tools;
 //   * the map wanted (5m-2; `wanted`, `sending`, `long`): one row, its title and file, + Map a 44 px target;
 //   * nothing scrolls sideways and axe finds no serious problem, in light and dark.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openPopup(page: Page) {
@@ -33,7 +34,6 @@ for (const size of [
         await page.goto('/layout.html?mapParts=1');
         const picture = page.getByRole('button', { name: /show the map whole/ });
         await expect(page.locator('img.map-picture__img[data-ready]')).toHaveCount(1);
-        await page.evaluate(() => document.fonts.ready);
         const tools = page.locator('.map-tools');
         const [p, t] = await Promise.all([picture.boundingBox(), tools.boundingBox()]);
         if (!p || !t) throw new Error('not drawn');
@@ -148,7 +148,6 @@ for (const size of [
           await page.goto(`/layout.html?mapParts=${state}`);
           const row = page.locator('.map-wanted');
           await expect(row).toBeVisible();
-          await page.evaluate(() => document.fonts.ready);
           await expect(row.locator('.map-wanted__file')).toHaveCount(0);
           const title = row.locator('.map-wanted__title');
           const lines = await title.evaluate((el) => Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)));
@@ -211,7 +210,6 @@ for (const size of [
       if (size.url.includes('as=gm')) await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
       const card = page.locator('.map-card').first();
       await expect(card.locator('.map-tools')).toBeVisible();
-      await page.evaluate(() => document.fonts.ready);
       await expect(card.locator('.map-tools--title-above')).toHaveCount(size.above ? 1 : 0);
       const m = await titleRow(card);
       expect(m.text).toBe('The Drowned Harbour and the Saltwick Breakwater at the turn of the tide');
@@ -233,7 +231,6 @@ for (const size of [
       if (size.url.includes('as=gm')) await page.getByRole('button', { name: /The Drowned Marches of the Lantern Coast/ }).click();
       const card = page.locator('.map-card').first();
       await expect(card.locator('.map-tools')).toBeVisible();
-      await page.evaluate(() => document.fonts.ready);
       const m = await titleRow(card);
       if (m.above) expect(m.whole).toBe(true);
       else expect(m.titleWidth).toBeGreaterThanOrEqual(m.twoWords - 1);

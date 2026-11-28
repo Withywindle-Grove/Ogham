@@ -8,7 +8,8 @@
 //     Move at its right; a long name wraps and 999 turns fits;
 //   * the list has no foot line, and at a way out it ends with End expedition, a full-width 44 px row (B9, B10);
 //   * nothing scrolls sideways and axe finds no serious problem, in light and dark, on every state of the page.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const box = async (l: Locator) => {

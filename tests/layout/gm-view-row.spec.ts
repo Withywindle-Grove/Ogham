@@ -9,7 +9,8 @@
 //      player… opens its sheet, which keeps its own form.
 //   4. The page has no sideways scrolling, no text under 14 px, no small targets and no serious accessibility problem,
 //      closed, with ⋯ open, and with the Remove panel open.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const LONG = 'Ashwin Thistlewood of the Long Stair, called the Lantern-Bearer';

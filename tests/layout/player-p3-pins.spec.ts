@@ -11,7 +11,8 @@
 //   6. Held, a pinned one lifts and a dashed box shows where it will land (the landing box, frame M4e).
 //   7. Row P4: an ability's entry, opened from the foot's Abilities row, carries the Pin star beside ✕, a 44 px target.
 //   8. A pinned one moves by keyboard: its hidden slider, focused, takes the arrow keys (the review's finding 2 on #23).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 
 const SIZES = [

@@ -7,7 +7,8 @@
 //   3. A group's head ("Carried") is 32 px tall at least, so its first row stands clear of it ("Heads 32 px, rest as
 //      built", Francis, 26 Nov 2026, ⚑ 20).
 // At a phone's 375 px and a tablet held sideways, 1180 px.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 async function openPack(page: Page) {
   await page.goto('/layout.html?as=player&stash=1');

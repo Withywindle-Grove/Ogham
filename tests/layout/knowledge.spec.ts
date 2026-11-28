@@ -5,7 +5,8 @@
 //   * a tap opens a section in place, a second leaves the first open, and the first line goes once it's open;
 //   * on a phone the sheet is the whole screen's width; nothing scrolls sideways and axe finds no serious problem, in
 //     light and dark, folded, opened, with a lone section and with nothing written.
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 for (const size of [

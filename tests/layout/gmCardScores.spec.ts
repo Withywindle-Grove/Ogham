@@ -5,7 +5,8 @@
 //   "Changed" mark, even on the two the kindred moved, and the line under them reads "All six: the average, not
 //   rolled", the review's own words; nothing runs past the screen, nothing is under 14 px, and it passes the
 //   accessibility check.
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 for (const size of [

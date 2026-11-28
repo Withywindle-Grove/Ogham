@@ -9,7 +9,8 @@
 //   right column's alone, Level and Details the left's (dec-13 C1, ps-2), there's no second sheet column, and the
 //   right column's sections come in ps-2's order. Details is named as P1 draws it (dec-13 C4).
 // Written without being run in this session (no browser there); CI's layout job runs it.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 async function openFullCharacter(page: Page) {
   await page.goto('/layout.html?as=player&full=1');

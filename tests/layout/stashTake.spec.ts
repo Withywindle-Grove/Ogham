@@ -12,7 +12,8 @@
 //      the same blocked-action pop-up as a row's Take, not a toast: beside the accent on a tablet, from the foot on a
 //      phone, the Take sheet still open under it (Home Two's audit of #66, finding 1, picked by Francis 2026-11-26).
 // The pictures it saves (deviceScaleFactor 2) are the as-built pictures beside PK4b and PK7b in the pull request.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 // Playwright spells an expected failure `test.fail(title, body)`; the fix-branch guard reads `.fails` (bq-6). So a test

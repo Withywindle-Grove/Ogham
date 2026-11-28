@@ -13,7 +13,8 @@
 //   At Larger text, "Put out" stays under the ring, inside its target.
 //   No sideways scroll anywhere. At 1180, At hand's column width is measured and noted (the ruling's third note: drawn
 //   at about 440).
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 const SIZES = [
   { name: 'phone', width: 375, height: 812 },
