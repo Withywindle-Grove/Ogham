@@ -274,6 +274,22 @@ describe('Move on, wired to the time strip', () => {
     expect(list.queryByRole('button', { name: 'End expedition' })).toBeNull();
   }, 30000);
 
+  // Purpose (G-27, dg-2, dg-4): at a place whose pack says "none" nothing comes due: Move on's step has no Then check
+  // line, and the move puts no encounter check on the card (the setting's Lurkers would be on it, as the first test shows).
+  it('at a place with no encounters: no Then check line, and no check after the move', async () => {
+    const t = await table();
+    const jetty = world.tables.library_entries.find((e) => e.pack_entry_id === 'jetty')!;
+    jetty.data = { ...(jetty.data as Record<string, unknown>), encounterCheck: { none: true, note: 'The harbour watch keeps the jetty quiet.' } };
+    render(<Page t={t} />);
+    const user = userEvent.setup();
+    await user.click(await within(await sheet()).findByRole('button', { name: 'Rowing, 1 turn, to 2. The Islet' }));
+    const shown = await screen.findByRole('dialog', { name: 'Move on: Rowing to 2. The Islet' });
+    expect(shown.textContent).not.toMatch(/Then|Lurkers/);
+    await user.click(within(shown).getByRole('button', { name: 'Move' }));
+    await waitFor(() => expect(moves(t)).toHaveLength(1));
+    expect(screen.queryByRole('button', { name: /Lurkers, now/ })).toBeNull();
+  }, 30000);
+
   // Purpose (B9; p2p-18, p2p-19, page 24 WY1a): a place's check with a table and no chance, standing in for the mode's,
   // is named by its table and is a roll on it: the step is titled with the way and where to, has no Where line and no
   // line about the log, and its Then line reads "a roll on Encounters in the harbour.", never the check's id.

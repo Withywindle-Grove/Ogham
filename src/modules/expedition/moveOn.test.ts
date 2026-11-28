@@ -88,6 +88,18 @@ describe('the check a move asks for', () => {
     expect(thenWords(null)).toBeNull();
   });
 
+  // Purpose (G-27, dg-4): at a place whose "none" is in force nothing comes due, so a move asks for no check and the
+  // Then line has no check line; switched off, the setting's check is back. A crossing through a "none" place lends no
+  // chance.
+  it('is none at a place whose "none" is in force; switched off, the setting’s', () => {
+    const quay = entry('quay', '1. The Quay', { encounterCheck: { none: true, note: 'The harbour watch keeps the quay quiet.' } });
+    expect(moveCheckOf(placeCheckOf([quay], []), setting)).toBeNull();
+    expect(thenWords(moveCheckOf(placeCheckOf([quay], []), setting))).toBeNull();
+    const quayOff = { packId: 'pack-reed', entryId: 'quay', ruleId: 'encounterCheck', which: 'inForce' as const, value: false };
+    expect(moveCheckOf(placeCheckOf([quay], [quayOff]), setting)).toEqual(setting);
+    expect(throughCheckOf([quay], 'pack-reed', 'quay', [])).toBeNull();
+  });
+
   // Purpose (B9; p2p-19, page 24 WY1a): a place's check with a table and no chance is a roll on that table, so the Move
   // sheet's last line reads "a roll on Encounters in the harbour." by the table's own name; a check with a chance, or
   // a table the caller can't name, keeps today's words.

@@ -53,6 +53,11 @@ export interface Situation {
    * mode's encounter checks and the GM's encounter-check reminders, but the clock never raises it (a move does).
    */
   locationCheckOnMove?: boolean;
+  /**
+   * A location's "none" in force (G-27, dg-2): it stands in for the mode's encounter checks and sets the GM's
+   * encounter-check reminders aside, but never comes due. Check now still rolls the mode's checks (the GM asked).
+   */
+  locationNone?: boolean;
   /** "Use my check here instead": the GM's reminders keep running and the location's check is set aside. */
   useMineHere?: boolean;
   /** The encounter table the GM picked for now: it beats the place's, the terrain's and the check's (engine ruling 3). */
@@ -274,10 +279,13 @@ export function weatherNow(expedition: Expedition): WeatherNow | null {
   };
 }
 
-/** The checks to run: the mode's, with a location's own check standing in for its encounter checks. */
-function checksInPlay(expedition: Expedition, icons: Map<string, Icon>): { checks: { check: Check; icon: Icon; source: 'mode' | 'location' }[]; located: boolean } {
+/**
+ * The checks to run: the mode's, with a location's own check (or its "none", G-27) standing in for its encounter checks.
+ * `byHand` is Check now: a "none" doesn't stand in for it (dg-2).
+ */
+function checksInPlay(expedition: Expedition, icons: Map<string, Icon>, byHand = false): { checks: { check: Check; icon: Icon; source: 'mode' | 'location' }[]; located: boolean } {
   const sit = expedition.situation ?? {};
-  const located = !!sit.locationCheck && !sit.useMineHere;
+  const located = (!!sit.locationCheck || (sit.locationNone === true && !byHand)) && !sit.useMineHere;
   // A check with onlyWithOption runs only while its optional rule is on (07; WA1), e.g. a pack's gutter check (DG6);
   // one with onlyWhen only while the GM's town switch is on (sw-1 … sw-4): off, no due mark and no prompt.
   const checks = expedition.mode.checks
@@ -355,7 +363,7 @@ function run(expedition: Expedition, from: number, to: number, runProcedure: boo
     const referenced = new Set(icons.keys());
     const loose = checks.filter(({ check }) => !referenced.has(check.id));
     // A location's own check with onlyWhen still stands in for the mode's encounter checks; it prompts only while its switch is on.
-    const locationCheck = located && !sit.locationCheckOnMove && runsNow(sit.locationCheck!.onlyWhen, sit.switches) ? { check: sit.locationCheck!, icon: 'encounter' as Icon, source: 'location' as const } : null;
+    const locationCheck = located && sit.locationCheck && !sit.locationCheckOnMove && runsNow(sit.locationCheck!.onlyWhen, sit.switches) ? { check: sit.locationCheck!, icon: 'encounter' as Icon, source: 'location' as const } : null;
     const push = (p: Prompt | null) => p && prompts.push(p);
     // Loose checks (no step runs them) at the start of a day-long step come first; the rest after the procedure.
     for (const c of loose.filter(({ check }) => check.when === 'start')) push(promptFor(c.check, c.icon, c.source, null));
@@ -472,7 +480,8 @@ export function hourTrackNow(expedition: Expedition, viewer: 'gm' | 'player'): P
 export function encounterCheckOf(expedition: Expedition): { check: Check; eachMove: boolean; source: 'mode' | 'location' } | null {
   const sit = expedition.situation ?? {};
   const { checks, located } = checksInPlay(expedition, stepIcons(expedition.mode, expedition.rules.modes));
-  if (located) return { check: sit.locationCheck!, eachMove: sit.locationCheckOnMove === true, source: 'location' };
+  // A "none" in force (G-27): no check that comes due.
+  if (located) return sit.locationCheck ? { check: sit.locationCheck, eachMove: sit.locationCheckOnMove === true, source: 'location' } : null;
   const found = checks.find(({ check, icon }) => isEncounterCheck(check, icon));
   return found ? { check: found.check, eachMove: false, source: 'mode' } : null;
 }
@@ -489,7 +498,7 @@ export function checkNow(expedition: Expedition): Pick<Advance, 'prompts' | 'rem
   // the day's and those with none. Without `night` (not known), every check, as before.
   const atThisHour = (check: Check) => sit.night === undefined || check.onlyAt === null || check.onlyAt === (sit.night ? 'night' : 'day');
   const ctx = checkContext(expedition);
-  const { checks, located } = checksInPlay(expedition, stepIcons(expedition.mode, expedition.rules.modes));
+  const { checks, located } = checksInPlay(expedition, stepIcons(expedition.mode, expedition.rules.modes), true);
   const wandering: { check: Check; icon: Icon; source: 'mode' | 'location' }[] = located
     ? runsNow(sit.locationCheck!.onlyWhen, sit.switches) && atThisHour(sit.locationCheck!) ? [{ check: sit.locationCheck!, icon: 'encounter', source: 'location' }] : []
     : checks.filter(({ check, icon }) => isEncounterCheck(check, icon) && atThisHour(check));
