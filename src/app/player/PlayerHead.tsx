@@ -38,7 +38,7 @@ function nameSeparator(words: string): string {
  * time sit in words beside it. On a tablet in two columns (`fixed`) the head is the portrait and the rings at its
  * right, one row 96 px tall, so the first row of score boxes at the right can start level with the hit points box (the
  * aligned top); the name, "the" kindred and the title are the bar's. In one column (a phone, a portrait tablet) the
- * bar keeps the name; beside the portrait the head's first line, `line`, gives the rest ("the Hornkin,
+ * bar keeps a name that fits (a cut one leads the head's line instead); beside the portrait the head's first line, `line`, gives the rest ("the Hornkin,
  * Shieldbearer") with the notices box under it, and the rings take their own row under the portrait (frame M1c).
  */
 export function PlayerHead({
@@ -54,6 +54,8 @@ export function PlayerHead({
   onPortraitSaved,
   onOpenLog,
   notices,
+  hp,
+  downAt,
 }: {
   db: Db;
   user: CurrentUser;
@@ -74,6 +76,10 @@ export function PlayerHead({
    * M1c, M1f); the rings then take their own row under the portrait. Beside, the box is the right column's.
    */
   notices?: ReactNode;
+  /** The hit points the box shows (null: not set), for Down (pss-7). */
+  hp: number | null;
+  /** The HP at which the rules set marks a character Down (`downAtOf`); null: never Down. */
+  downAt: number | null;
 }): ReactNode {
   const rings = (
     <CharacterStatuses
@@ -86,16 +92,18 @@ export function PlayerHead({
       inView={phone ? 3 : 4}
       extra={casting ? (layout) => <CastingStatusView status={casting} ring layout={layout} /> : undefined}
       onOpenLog={onOpenLog}
+      hp={{ current: hp, downAt }}
     />
   );
   return (
     <div className={fixed ? 'player-head player-head--fixed' : 'player-head'}>
       <PortraitTap db={db} user={user} character={character} onSaved={onPortraitSaved} size="head" />
       <div className="player-head__side">
-        {notices && !phone ? (
-          // A tablet held upright (dec-14 row 3, frame 38-3; ruled 2026-11-24, 2 and 8): while the bar's title is cut
-          // the name leaves the bar and leads the head's line, whole and wrapping, before "the" kindred and the title
-          // (PlayerScreen.css), so it shows once. A short name stays the bar's, as frame P2 draws it.
+        {notices ? (
+          // In one column, a tablet held upright (dec-14 row 3, frame 38-3; ruled 2026-11-24, 2 and 8) or a phone
+          // (pss-14, frame 47-1, A1: p47-1): while the bar's title is cut the name leaves the bar and leads the head's
+          // line, whole and wrapping, before "the" kindred and the title (PlayerScreen.css), so it shows once; the
+          // bar's title keeps its box, unseen, so the bar does not move. A short name stays the bar's (frame P2).
           <div className="player-head__words">
             <h1 className="player-head__name visually-hidden">{character.name}</h1>
             {line && (

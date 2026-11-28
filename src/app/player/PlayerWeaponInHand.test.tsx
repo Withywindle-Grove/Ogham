@@ -158,8 +158,8 @@ describe('the weapon in hand (dec-13 C14)', () => {
     expect(atHand.querySelector('.pack__group')).toBeNull();
   });
 
-  // Purpose: two weapons in hand give two blocks in the "Weapon in hand" region (not drawn by P1; P5 keeps one card and
-  // draws the others as rows: ⚑ for Francis in the plan), and neither is listed in At hand too.
+  // Purpose: two weapons in hand give two blocks in the "Weapon in hand" region (pib-2: every weapon in hand, no cap),
+  // and neither is listed in At hand too.
   it('draws a block for each of two weapons in hand', async () => {
     await brannoch((lines) => {
       lineOf(lines, 'line-p1-knife').equipped = true;
@@ -169,6 +169,35 @@ describe('the weapon in hand (dec-13 C14)', () => {
     expect(within(block).getByRole('button', { name: /^Reed spear/ })).toBeTruthy();
     expect(within(block).getByRole('button', { name: /^Eel knife/ })).toBeTruthy();
     expect(within(screen.getByRole('region', { name: 'At hand' })).queryByRole('button', { name: /^Eel knife|^Reed spear/ })).toBeNull();
+  });
+
+  // Purpose: every weapon in hand gets a block, with no cap (pib-2): three in hand are three blocks, none in At hand.
+  it('draws a block for each of three weapons in hand', async () => {
+    await brannoch((lines) => {
+      lineOf(lines, 'line-p1-knife').equipped = true;
+      lines.push({ ...lineOf(lines, 'line-p1-knife'), id: 'line-p1-club', name: 'Bone club', pinned: false, equipped: true });
+    });
+    const block = await screen.findByRole('region', { name: 'Weapon in hand' });
+    await waitFor(() => expect(block.querySelectorAll('.weapon-in-hand')).toHaveLength(3));
+    for (const name of [/^Reed spear/, /^Eel knife/, /^Bone club/]) expect(within(block).getByRole('button', { name })).toBeTruthy();
+    expect(within(screen.getByRole('region', { name: 'At hand' })).queryByRole('button', { name: /^Eel knife|^Reed spear|^Bone club/ })).toBeNull();
+  });
+
+  // Purpose: a weapon worn ready (horns on the worn slot, pinned) is an At hand row with Attack and its mode button, never
+  // a block and never Wield (pib-1); the spear in hand keeps the one block.
+  it('draws a worn-ready weapon as an At hand row with Attack and its mode button', async () => {
+    await brannoch((lines) => {
+      const stance = { button: 'stance', list: [{ id: 'gore', name: 'Gore' }, { id: 'butt', name: 'Butt', damage: '1d4' }] };
+      lines.push({ ...lineOf(lines, 'line-p1-knife'), id: 'line-p1-horns', name: 'Bog-ox horns', pinned: true, equipped: true, source_entry_id: null, source_pack_id: null, item_data: { slot: 'worn', weapon: { damage: '1d6', modes: stance } } });
+    });
+    const block = await screen.findByRole('region', { name: 'Weapon in hand' });
+    const atHand = await screen.findByRole('region', { name: 'At hand' });
+    await waitFor(() => expect(within(atHand).getByRole('button', { name: 'Attack with Bog-ox horns' })).toBeTruthy());
+    expect(within(atHand).getByRole('button', { name: /^Stance/ })).toBeTruthy();
+    expect(within(atHand).queryByRole('button', { name: 'Wield Bog-ox horns' })).toBeNull();
+    expect(block.querySelectorAll('.weapon-in-hand')).toHaveLength(1);
+    expect(within(block).queryByRole('button', { name: /^Bog-ox horns/ })).toBeNull();
+    expect(within(block).getByRole('button', { name: /^Reed spear/ })).toBeTruthy();
   });
 
   // Purpose: Wield on the pinned knife puts it in hand (the row's own command), and it becomes a block of its own.

@@ -480,7 +480,7 @@ export function PinnedBox({ block = false, children }: { block?: boolean; childr
 
 /**
  * **Pin star** (plan C; dec-13 C8): the pin in the head of a thing's sheet beside ✕, a toggle: empty "Pin to top",
- * filled and washed "Unpin" (`aria-pressed`). An item's, a trait's (and a spell's once its frame is approved) sheet.
+ * filled and washed "Unpin" (`aria-pressed`). An item's, a trait's and a spell's (the Magic tab, pss-6) sheet.
  */
 export function PinStar({ pinned, onToggle }: { pinned: boolean; onToggle: () => void }) {
   return (
