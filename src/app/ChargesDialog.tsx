@@ -1,4 +1,5 @@
 // The charges prompt for the GM when a charged item is first handed out (part of the Pack; ruled 2026-10-24).
+import { capitalised, chargeUnitOf } from '../core/chargeUnit.ts';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { recordRoll } from '../core/rolls.ts';
@@ -34,10 +35,12 @@ export function ChargesDialog({
   const charged = chargesOf(line, rules);
   if (!charged) return null;
   const hidden = line.chargesHidden || rules.hidden;
+  // The roll named for what it fills ("Portions (3)"; G-233).
+  const label = capitalised(chargeUnitOf(line.details).many);
   return (
-    <Dialog label={`Charges of ${line.name}`} onClose={onDone}>
+    <Dialog label={`${label} of ${line.name}`} onClose={onDone}>
       <RollPrompt
-        label="Charges"
+        label={label}
         expression={charged.dice}
         busy={busy}
         onCancel={onDone}

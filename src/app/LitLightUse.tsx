@@ -1,6 +1,7 @@
 // The lit light's row when its own item is At hand itself with charges (Player sitting piece 9, frame 47-3; pss-17, C2,
 // D1): one row, the light's, with the charges' words at the end of its line and Use a charge beside its ring. At hand
 // draws the light in this one place (`PackScreen`), with this Use or without; the item's own row is left out.
+import { spendOneWords } from '../core/chargeUnit.ts';
 import type { ReactNode } from 'react';
 import { isGm, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
@@ -11,7 +12,7 @@ import type { OpenCampaign } from './Campaigns.tsx';
 import { lineInPlay, offReasonOf, type CampaignSetting } from './campaignSetting.ts';
 import { ItemAction } from './ItemAction.tsx';
 import type { LightUse } from './LightSection.tsx';
-import { chargeWords, type Run } from './packHelpers.ts';
+import { chargeUnitOfLine, chargeWords, type Run } from './packHelpers.ts';
 import { usePlayerView } from './playerView.ts';
 import { useSpendCharge } from './spendCharge.ts';
 
@@ -56,6 +57,6 @@ export function LitLightUse({
   const words = chargesOf(line, charges, rechargeDefault) ? chargeWords(line, gmHere ? (hidden.get(line.id) ?? null) : null) : '';
   // Use once the count is known, and only for someone who may change the carrier (as the item's own row).
   const mayUse = mayChangeCarrier(user, carrier) && atHandAction(line, charges, rechargeDefault) === 'charge' && (line.chargesHidden || line.chargesLeft !== null);
-  const button = mayUse ? <ItemAction key="use" word="Use" wordAsButton="Use a charge" hidden={`of ${line.name}`} stacked onClick={spend} /> : null;
+  const button = mayUse ? <ItemAction key="use" word="Use" wordAsButton={spendOneWords(chargeUnitOfLine(line))} hidden={`of ${line.name}`} stacked onClick={spend} /> : null;
   return rows({ words, button });
 }

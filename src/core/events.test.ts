@@ -974,3 +974,42 @@ describe('a deleted player’s Got it line', () => {
     expect(say(seen({ actorUserId: 'user-not-loaded' }))).toBe('Someone marked a call as seen.');
   });
 });
+
+// G-233 (piece C of docs/specs/dec5-gaps.md; dg-6): the log says a count in the unit the reader's copy of the line names
+// ("used a portion of Rum bottle"), and "charge" where it names none.
+describe('a count’s unit in the log', () => {
+  const rum = { targetTable: 'inventory_lines', targetId: 'line-rum' };
+  const withRum = (details: Record<string, unknown>): LogNames => ({
+    ...names,
+    items: new Map([...names.items, ['line-rum', 'Rum bottle']]),
+    itemKinds: new Map([['line-rum', { category: 'gear', details, stack: 1 }]]),
+  });
+  const portions = withRum({ charges: { initial: 3, unit: 'portion' } });
+  const plain = withRum({ charges: { initial: 3 } });
+  const read = (who: LogNames, ...e: LogEvent[]) => describeEntry(groupEntries(e)[0]!, who);
+
+  // Purpose: Use a charge's line names the unit, with "an" before a vowel, and "a charge" with no unit.
+  it('used a portion, an ounce, a charge', () => {
+    const used = event('inventory.useCharge', { ...rum, before: { charges_left: 3 }, after: { charges_left: 2 } });
+    expect(read(portions, used)).toBe('Priya used a portion of Rum bottle (2 left).');
+    expect(read(withRum({ charges: { initial: 4, unit: 'ounce' } }), used)).toBe('Priya used an ounce of Rum bottle (2 left).');
+    expect(read(plain, used)).toBe('Priya used a charge of Rum bottle (2 left).');
+  });
+
+  // Purpose: setting the count, and showing it, name the unit's plural.
+  it('set the portions, showed how many portions', () => {
+    expect(read(portions, event('inventory.setCharges', { ...rum, before: { charges_left: null }, after: { charges_left: 3, last_roll: '' } }))).toBe('Priya set the portions of Rum bottle to 3.');
+    expect(read(portions, event('inventory.revealCharges', { ...rum, before: { charges_left: null }, after: { charges_left: 2 } }))).toBe('Priya showed how many portions Rum bottle has left (2).');
+    expect(read(plain, event('inventory.setCharges', { ...rum, before: { charges_left: null }, after: { charges_left: 3, last_roll: '' } }))).toBe('Priya set the charges of Rum bottle to 3.');
+  });
+
+  // Purpose: a tell of the count says it in the unit the line's copy names after the tell.
+  it('a tell: "has 2 portions left"', () => {
+    const told = event('inventory.tell', {
+      ...rum,
+      before: { revealed_fields: [], charges_hidden: true, charges_left: null, item_data: { charges: { initial: 3, unit: 'portion' } } },
+      after: { revealed_fields: ['charges'], charges_hidden: false, charges_left: 2, item_data: { charges: { initial: 3, unit: 'portion' } } },
+    });
+    expect(read({ ...portions, itemPlaces: new Map([['line-rum', { actor_id: 'actor-wren', location_id: null, container_line_id: null }]]) }, told)).toBe('Wren learned the Rum bottle has 2 portions left.');
+  });
+});

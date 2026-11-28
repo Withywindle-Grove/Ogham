@@ -1,5 +1,6 @@
 // Use a charge, wherever it appears (At hand's row, the light's row, the item's sheet): one way to spend it, say so and
 // take it back (finding 9 of frame 47-3, ruled "A" by Francis, 28 Nov 2026: a toast with Undo everywhere).
+import { aUnit, chargeUnitOf } from '../core/chargeUnit.ts';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
@@ -11,10 +12,16 @@ import type { OpenCampaign } from './Campaigns.tsx';
 import type { Run } from './packHelpers.ts';
 import { registry } from './services.ts';
 
-/** The words of Use a charge's toast. Never a count: hidden charges stay hidden (hard rule 5). */
-function chargeUsedWords(name: string, spent: boolean): string {
-  return spent ? `Nothing happens. ${shownName(name)} seems spent.` : `Used a charge of ${shownName(name)}.`;
+/**
+ * The words of Use a charge's toast, in the unit the line's copy names ("Used a portion of Rum bottle."; G-233). Never a
+ * count: hidden charges stay hidden (hard rule 5).
+ */
+export function chargeUsedWords(line: Pick<InventoryLine, 'name' | 'details'>, spent: boolean): string {
+  return spent ? `Nothing happens. ${shownName(line.name)} seems spent.` : `Used ${aUnit(chargeUnitOf(line.details).one)} of ${shownName(line.name)}.`;
 }
+
+/** Use with none left ("Rum bottle has no portions left."; dg-6). */
+export const noneLeftWords = (line: Pick<InventoryLine, 'name' | 'details'>): string => `${line.name} has no ${chargeUnitOf(line.details).many} left.`;
 
 /**
  * Use a charge's tap: an item that is off, or with no charges left, says why (never a disabled button); otherwise
@@ -55,13 +62,13 @@ export function useSpendCharge({
   return () => {
     if (busy) return;
     if (offReason) return onNote(offReason);
-    if (!line.chargesHidden && (line.chargesLeft ?? 0) <= 0) return onNote(`${line.name} has no charges left.`);
+    if (!line.chargesHidden && (line.chargesLeft ?? 0) <= 0) return onNote(noneLeftWords(line));
     void (async () => {
       const ref = { id: line.id, carrier, version: line.version };
       const done = await run(() => runCommand(registry, db, user, useCharge, { line: ref, hidden: line.chargesHidden }));
       if (!done) return;
       const spent = line.chargesHidden && !gmHere && (await seemsSpent(db, line.id));
-      toast({ text: chargeUsedWords(line.name, spent), onUndo: undo });
+      toast({ text: chargeUsedWords(line, spent), onUndo: undo });
     })();
   };
 }

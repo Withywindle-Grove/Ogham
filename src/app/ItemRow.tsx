@@ -6,6 +6,7 @@
 // (ah-3, ah-4) carries its mode button (Quiver, Pouch, Grip, Stance) beside the action; its sheets are AtHandSheets.tsx.
 import { useState, type ReactNode } from 'react';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
+import { spendOneWords } from '../core/chargeUnit.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { chargesOf, type ChargeRules } from '../modules/inventory/charges.ts';
@@ -17,7 +18,7 @@ import { drawnLines, hasModeButton, modeLine, modeVerb, MODE_BUTTON_WORDS, type 
 import type { AttackRoll } from '../modules/characters/play.ts';
 import { checkEquip } from './EquipWarning.tsx';
 import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
-import { AtHandFacts, AttackSheet, AttackView, chargeFact, ModeSheet, SpentSheet, type AtHandFact } from './AtHandSheets.tsx';
+import { AtHandFacts, AttackSheet, AttackView, ModeSheet, SpentSheet, type AtHandFact } from './AtHandSheets.tsx';
 import { amountText, atHandAction, isWeapon, markerOf, shownName, stackable, withThe, wornText, type UseVerb } from '../modules/inventory/packView.ts';
 import { usedWords } from '../core/useWords.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
@@ -32,7 +33,7 @@ import { ItemAction } from './ItemAction.tsx';
 import { usePlayerView } from './playerView.ts';
 import { RollFigures, RollLines } from './WeaponInHand.tsx';
 import { registry } from './services.ts';
-import { chargeWords, type Run } from './packHelpers.ts';
+import { chargeFact, chargeUnitOfLine, chargeWords, type Run } from './packHelpers.ts';
 import { NewTag } from './PackParts.tsx';
 import './PackScreen.css';
 import { possessive } from '../core/nameWords.ts';
@@ -354,7 +355,7 @@ export function ItemRow({
   // with what it does now under it when it has charges (the local review's nit 1); else what the thing does now, its
   // charges and its light (frame M2n), with its own description under it. AtHandFacts draws nothing when there are none.
   const asWeapon = weaponRolls.length > 0 || isWeapon(line);
-  const facts: AtHandFact[] = [...(charged ? [{ label: 'Charges', value: chargeFact(chargeText) }] : []), ...lightFacts];
+  const facts: AtHandFact[] = [...(charged ? [chargeFact(line, gmHere ? secret : null)] : []), ...lightFacts];
   const popupTop = !popup
     ? null
     : asWeapon
@@ -409,7 +410,7 @@ export function ItemRow({
     <ItemAction
       key="use"
       word="Use"
-      wordAsButton="Use a charge"
+      wordAsButton={spendOneWords(chargeUnitOfLine(line))}
       hidden={`of ${line.name}`}
       stacked={stack}
       // Never a disabled button: an item a choice removes (bq3-17 (6)), or with nothing left, says why instead.

@@ -10,6 +10,7 @@ import { timeWords } from './timeWords.ts';
 import { TRAVEL_PLACE_WORDS } from './travelWords.ts';
 import { isJoin } from './undo.ts';
 import { oneUpVerb, usedWords } from './useWords.ts';
+import { aUnit, chargeUnitOf, countOf } from './chargeUnit.ts';
 import { ENCUMBRANCE_WORDS, isEncumbranceMode } from './campaignSettings.ts';
 import { possessive, withThe } from './nameWords.ts';
 
@@ -495,7 +496,9 @@ function factPhrase(fact: string, details: Record<string, unknown>, beforeDetail
     const power = newPowers(beforeDetails, details)[0];
     return power ? ` has a power: ${power}` : ' has a power';
   }
-  if (fact === 'charges') return typeof charges === 'number' ? ` has ${charges} ${charges === 1 ? 'charge' : 'charges'} left` : '’s charges';
+  // In the unit the line's copy names ("has 2 portions left"; G-233).
+  const unit = chargeUnitOf(details);
+  if (fact === 'charges') return typeof charges === 'number' ? ` has ${countOf(charges, unit)} left` : `’s ${unit.many}`;
   if (fact.startsWith('fields.')) {
     const label = fact.slice(7);
     const value = isObj(details.fields) ? details.fields[label] : undefined;
@@ -505,11 +508,11 @@ function factPhrase(fact: string, details: Record<string, unknown>, beforeDetail
 }
 
 /** What a reader learns of a fact undone, for the GM's Undo line ("that the Bronze ring is cursed", "its true name"). */
-function hiddenAgainPhrase(fact: string, item: string): string {
+function hiddenAgainPhrase(fact: string, item: string, details: Record<string, unknown>): string {
   if (fact === 'magic' || fact === 'cursed') return `that ${withThe(item)} is ${fact}`;
   if (fact === 'name') return `${possessive(withThe(item))} true name`;
   if (fact === 'bonus') return `${possessive(withThe(item))} bonus`;
-  if (fact === 'charges') return `${possessive(withThe(item))} charges`;
+  if (fact === 'charges') return `${possessive(withThe(item))} ${chargeUnitOf(details).many}`;
   if (fact.startsWith('power:')) return `a power of ${withThe(item)}`;
   if (fact.startsWith('fields.')) return `${possessive(withThe(item))} ${fact.slice(7)}`;
   return `what was told about ${withThe(item)}`;
@@ -820,7 +823,7 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
         const said = real.length > 0 ? real : facts;
         // The name it goes by while the fact is hidden (its face, if its name is what comes and goes).
         const shown = String((again.length > 0 ? before.name : after.name) ?? '') || item();
-        const what = said.length === 1 ? hiddenAgainPhrase(said[0]!, shown) : `what was told about ${withThe(shown)}`;
+        const what = said.length === 1 ? hiddenAgainPhrase(said[0]!, shown, isObj(after.item_data) ? after.item_data : isObj(before.item_data) ? before.item_data : {}) : `what was told about ${withThe(shown)}`;
         return again.length > 0 ? by(`undid an Undo: ${what} is told again`) : by(`undid a reveal: ${what} is hidden again`);
       }
       if (main.targetTable === 'inventory_lines' && ('appears_as' in after || 'noticed' in after) && main.before !== null) {
@@ -958,15 +961,19 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
       // The roll behind it, when there was one: "2d10 → 13".
       const roll = (row: Record<string, unknown>) => (typeof row.last_roll === 'string' && row.last_roll ? `: ${row.last_roll}` : '');
       const secret = entry.events.find((e) => e.targetTable === 'inventory_line_secrets' && e.after);
-      if (secret?.after) return by(`set the hidden charges of ${item({}, secret.targetId)} to ${String(secret.after.charges_total)}${roll(secret.after)}`);
-      return 'charges_left' in after ? by(`set the charges of ${item()} to ${String(after.charges_left)}${roll(after)}`) : by(`set the charges of ${item()}`);
+      // The count's unit, as the reader's copy of the line names it ("set the portions of Rum bottle to 3"; G-233).
+      const units = chargeUnitOf(names.itemKinds?.get(String(secret?.targetId ?? main.targetId))?.details).many;
+      if (secret?.after) return by(`set the hidden ${units} of ${item({}, secret.targetId)} to ${String(secret.after.charges_total)}${roll(secret.after)}`);
+      return 'charges_left' in after ? by(`set the ${units} of ${item()} to ${String(after.charges_left)}${roll(after)}`) : by(`set the ${units} of ${item()}`);
     }
     case 'inventory.useCharge': {
       const left = 'charges_left' in after ? ` (${String(after.charges_left)} left)` : '';
+      // "used a portion of Rum bottle" (G-233): the unit the reader's copy of the line names, else "a charge".
+      const unit = chargeUnitOf(names.itemKinds?.get(String(main.targetId))?.details);
       // Used with none left: nothing happens, and now the holder knows (ruled 2026-10-24).
       if (after.spent_shown === true) return `${by(`used ${item()}`)} Nothing happens: it seems spent.`;
-      const spent = entry.events.some((e) => e.targetTable === 'inventory_line_secrets' && e.after?.spent === true) ? ' No charges left.' : '';
-      return `${by(`used a charge of ${item()}${left}`)}${spent}`;
+      const spent = entry.events.some((e) => e.targetTable === 'inventory_line_secrets' && e.after?.spent === true) ? ` No ${unit.many} left.` : '';
+      return `${by(`used ${aUnit(unit.one)} of ${item()}${left}`)}${spent}`;
     }
     case 'inventory.recharge': {
       const changed = entry.events.find((e) => e.after && typeof e.after.last_roll === 'string');
@@ -975,7 +982,7 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
     case 'inventory.revealSpent':
       return by(`showed that ${item()} is spent`);
     case 'inventory.revealCharges':
-      return by(`showed how many charges ${item()} has left (${String(after.charges_left ?? '?')})`);
+      return by(`showed how many ${chargeUnitOf(names.itemKinds?.get(String(main.targetId))?.details).many} ${item()} has left (${String(after.charges_left ?? '?')})`);
     case 'load.tier':
       return `${character()} is now ${String(after.tier ?? '')}.`;
     case 'inventory.giveAway': {
