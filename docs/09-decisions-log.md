@@ -1884,3 +1884,8 @@ Older entries: `09a-decisions-archive.md`
 - 2026-11-28 — [ui] On a phone the find card sits above the head, even with a long name (51-1 A) — Francis, "A" — design/rulings/loop4-scene-pack-2026-11-28.md (l4-4)
 - 2026-11-28 — [ui] On a tablet the find card comes first in the Player tab's right column, then the notices box (51-2 A) — Francis, "A" — design/rulings/loop4-scene-pack-2026-11-28.md (l4-5)
 - 2026-11-28 — [ui] Page 51 (the find card on the Player tab, frames 51-1 and 51-2) approved; no finding to act on — Francis, "Approve" — design/rulings/loop4-scene-pack-2026-11-28.md (l4-6)
+- 2026-11-28 — [ui] A GM's send to the party stash made while a player's app was closed or offline raises no toast when they come back: the stash's row and the Log say it (K18e) — Francis, "A" — design/rulings/scene-pack-b-2026-11-28.md (sb4-1)
+- 2026-11-28 — [ui] The stash toast waits until a toast still showing its Undo goes (K18e) — Francis, "A" — design/rulings/scene-pack-b-2026-11-28.md (sb4-2)
+- 2026-11-28 — [ui] The GM's Undo of a stash send goes to the Log only, with no toast to the players, as FD2 draws none (K18e) — Francis, "A" — design/rulings/scene-pack-b-2026-11-28.md (sb4-3)
+- 2026-11-28 — [words] A shown person piece's "Carries" line goes under "Only you see these details.", by l4-2's rule over page 50's "Only you see this." (sf-6b) — Francis, "A" — design/rulings/scene-pack-b-2026-11-28.md (sb4-4)
+- 2026-11-28 — [ui] With only one of "What everyone knows" and "Rules" to show, it stands alone at half the row's width, at the leading edge (sf-10) — Francis, "A" — design/rulings/scene-pack-b-2026-11-28.md (sb4-5)

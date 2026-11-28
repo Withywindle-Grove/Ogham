@@ -1,5 +1,5 @@
 ---
-status: draft for sitting B (written 2026-11-28 from `/to-spec`); no tickets yet
+status: approved at sitting B, 2026-11-28; tickets #200-#209 (parent #198); rulings sb4-1 to sb4-5 (docs/design/rulings/scene-pack-b-2026-11-28.md)
 loop: 4
 rulings: docs/design/rulings/loop4-scene-pack-2026-11-28.md (l4-1 to l4-6; 09, 2026-11-28); the rows' own rulings stand as written: sf-6b, sf-10, sf-11, sf-13, sf-14, sf-18, sf-21, sf-24, sf-27, sf-5 and its three ⚑ (docs/design/rulings/scene-feedback-2026-11-25.md); p45-1 to p45-29 (docs/design/rulings/page-45-find-flow-2026-11-26.md); #158 ⚑ 4 (09, 2026-11-28); ap-6 (2026-11-14); dg-10, dg-19 (docs/design/rulings/dec5-gaps-2026-11-28.md)
 intents: docs/intents/scene-feedback-2026-11-25.md (the Scene rows); the Pack rows come from the pack rework's rulings (pk-5, 2026-11-11) and have no intent file
@@ -171,18 +171,18 @@ Every row is visible and has an approved frame. None changes what is stored or w
 
 **Pieces, for the tickets.** One row is one ticket, except sf-6b, which is two (the rule, then the card), as its plan sized it. Rows that share a module go one after the other, never side by side.
 
-| Piece | Row | What | Shares a module with |
-|---|---|---|---|
-| A | sf-6b | The rule: a pure function that decides, for one place, where each stat line and item line stands | loop 3's dg-10 (see Further Notes) |
-| B | sf-6b | The card: the piece rows and the fold drawn from A, with l4-2's two labels | A; dg-10 |
-| C | sf-13 | Knowledge: the Area's sections, the eye per unfolded section, the share lines | the place card's folds (B) |
-| D | K19b | The count on the Pack's icon | E (the Player screen) |
-| E | K18c | The card on every other tab; the Scene's "and N more" wired | D (the Player screen) |
-| F | K18e | The stash's toast | E (where the Player screen hears of a send) |
-| G | K18d | Built on `dec6-fd-scene-slot` (5824b38); the driver merges it into the integration branch as it stands | E (its "and N more") |
-| H | sf-18 | The chevron and the band's words | I (the band's stylesheet) |
-| I | sf-10, sf-11 | The players' Scene: the pair under the place, the players' fold | H |
-| J | sf-14 | The tables' pages in the tapped table | sf-5's pop-up (built) |
+| Piece | Ticket | Row | What | Shares a module with |
+|---|---|---|---|---|
+| A | #200 | sf-6b | The rule: a pure function that decides, for one place, where each stat line and item line stands | loop 3's dg-10 (see Further Notes) |
+| B | #205 | sf-6b | The card: the piece rows and the fold drawn from A, with l4-2's two labels | A; dg-10 |
+| C | #206 | sf-13 | Knowledge: the Area's sections, the eye per unfolded section, the share lines | the place card's folds (B) |
+| D | #202 | K19b | The count on the Pack's icon | E (the Player screen) |
+| E | #207 | K18c | The card on every other tab; the Scene's "and N more" wired | D (the Player screen) |
+| F | #208 | K18e | The stash's toast | E (where the Player screen hears of a send) |
+| G | #201 | K18d | Built on `dec6-fd-scene-slot` (5824b38); the driver merges it into the integration branch as it stands | E (its "and N more") |
+| H | #203 | sf-18 | The chevron and the band's words | I (the band's stylesheet) |
+| I | #209 | sf-10, sf-11 | The players' Scene: the pair under the place, the players' fold | H |
+| J | #204 | sf-14 | The tables' pages in the tapped table | sf-5's pop-up (built) |
 
 **No migration, no command, no permission case.** No row writes a new kind of row or opens a new read. sf-13's share is the built `placeKnowledge.eye`, and a player's read of an Area's section is the built `knowledge_for_players`, which already reads the places a place sits in (sf-21). The find card, the count and the stash's toast read what a player can already read: the character's seen mark and lines, and the party's log lines.
 
@@ -199,6 +199,7 @@ Every row is visible and has an approved frame. None changes what is stored or w
 - The label is one of two words, by the piece's eye: shown, "Only you see these details."; hidden, "Only you see this." (l4-2). Where the label is drawn as the GM's line, it uses the existing part (`GmLine`) or a named variant of it in 06, not a copy.
 - The fold (`BookTextFold`) ends with only the rows A leaves for it, under "Stat line" or "Stat lines" (by count) and "Items". Where pieces carry lines, its quiet line reads "The other stat lines and the items are on their own rows.". A fold with nothing left shows its quiet line alone. The fold keeps no eye (F17) and stays whole (F18).
 - A person's piece keeps dg-10's "Carries" line (page 50) under the same label; on a phone above the stat line, on a tablet after it (dg-19's finding 5).
+- Sitting B (sb4-4): a shown person piece's "Carries" line goes under "Only you see these details." (l4-2 over page 50).
 - Nothing here is sent: the rows move only where the GM reads a line. A piece's eye still shows only the piece's own words.
 
 **Piece C: Knowledge (sf-13, sf-21)**
@@ -228,6 +229,7 @@ Every row is visible and has an approved frame. None changes what is stored or w
 - The toast is the shared toast in the ruled dress (tr-1, tr-11, tr-12): it goes by itself, with no Undo. It raises no card, no count and no tag.
 - The GM's own screen raises none (the GM's send has its own toast, with Undo, as built). Only a GM's send counts: a player's "Put in" raises none.
 - A long name and ×999 wrap and are never cut.
+- Sitting B (sb4-1 to sb4-3): no toast for a send made while the app was closed or offline; the toast waits until a toast still showing its Undo goes; the GM's Undo of a send goes to the Log only, with no toast.
 
 **Piece G: the Scene's slot (K18d, built)**
 - As its `pr-text.md` says: K18b's card in the calls' one place in the prompt slot (`CallsInPromptSlot` gains a `find`), one live region, focus to the waiting call's "Got it", no calls group around a find card alone, "Got it" writing the mark once with no toast. The card is for the player's own active character among the Scene's marchers. The GM's view and another player's Scene draw none.
@@ -242,6 +244,7 @@ Every row is visible and has an approved frame. None changes what is stored or w
 - sf-10: the players' place card (`PlayersPlaceCard`) draws "What everyone knows" and "Rules" under the place's name, in the main column, as stacked buttons. At 375 px they stand side by side at one width. Each shows when it has something, as today; with neither, the row is left out. They leave the right-hand card, which keeps "Places you know".
 - sf-11: the players' top gets the band's fold (H's chevron). Folded: the facts and the strip go, the band stays, a due fact keeps one small line with its sign (the band's `dueWords`). "None here" folds away (dg-3). The fold is remembered on the device (as `sceneTopOpen` does for the GM) and sends nothing.
 - At 375 px a third tile takes the row's whole width.
+- Sitting B (sb4-5): with only one of the pair to show, it stands alone at half the row's width, at the leading edge.
 
 **Piece J: the tables' pages (sf-14, sf-5)**
 - The page's rows (`EncounterTables`' `TableRows`) are drawn by the shared tapped table (`BookTapTable`), as sf-5's pop-up (`TableRollPopUp`) draws them: the roll row, the table's name on its bar, the die over its column, banded rows 44 px high.
@@ -291,17 +294,17 @@ The three seams Francis approved (28 Nov, "Yes"). There is no database seam: no 
 
 ## Further Notes
 
-**⚑ for sitting B** (the rulings leave these open; each has the designer's lean, not ruled).
+**Ruled at sitting B (2026-11-28, `docs/design/rulings/scene-pack-b-2026-11-28.md`, sb4-1 to sb4-5).** The spec was approved ("Yes") and the ten tickets, #200 to #209 ("Loop 4 tickets approved").
 
-| ⚑ | Row | The question | Lean |
+| ⚑ | Row | Ruling | Francis |
 |---|---|---|---|
-| B1 | K18e | A stash send made while a player's app was closed or offline: a toast when they come back, or none? | None: the stash's row and the Log say it, and a toast for something old reads as news |
-| B2 | K18e | A stash send while the player's own toast still shows its Undo: does the stash toast replace it, or wait? | Wait until that toast goes: a toast never replaces one still showing its Undo (tr-7) |
-| B3 | K18e | The GM's Undo of a stash send: a toast to the players, or the Log only? | The Log only, as FD2 draws no toast for it |
-| B4 | sf-6b | A shown person piece's "Carries" line (page 50, dg-10): under "Only you see these details." by l4-2's rule, though page 50 drew "Only you see this."? | Yes: l4-2 is the newer ruling and is one rule for every piece's GM-only row |
-| B5 | sf-10 | With only one of "What everyone knows" and "Rules" to show (not drawn): alone at half the row's width, or the whole width? | Half the width, at the leading edge, so the button keeps one size |
+| B1 (sb4-1) | K18e | A: no toast for a stash send made while the player's app was closed or offline; the stash's row and the Log say it (Piece F) | "A" |
+| B2 (sb4-2) | K18e | A: the stash toast waits until a toast still showing its Undo goes (Piece F) | "A" |
+| B3 (sb4-3) | K18e | A: the GM's Undo of a stash send goes to the Log only, no toast (Piece F) | "A" |
+| B4 (sb4-4) | sf-6b | A: a shown person piece's "Carries" line goes under "Only you see these details." (l4-2 over page 50) (Piece B) | "A" |
+| B5 (sb4-5) | sf-10 | A: only one of the pair shows at half the row's width, at the leading edge (Piece I) | "A" |
 
-**Loop 3 shares the place card (sf-6b with dg-10).** dg-10's "Carries" line on a person's piece is built in loop 3 (tickets #187 to #192, in flight on `dec5-gaps`), in the same piece row. Piece B starts from a base that has dg-10 merged, or waits for it. Piece A, the pure rule, does not wait. dg-10 draws its line under "Only you see this."; piece B owns the label's two words (l4-2) for every piece, person pieces included (⚑ B4).
+**Loop 3 shares the place card (sf-6b with dg-10).** dg-10's "Carries" line on a person's piece is built in loop 3 (tickets #187 to #192, in flight on `dec5-gaps`), in the same piece row. Piece B starts from a base that has dg-10 merged, or waits for it. Piece A, the pure rule, does not wait. dg-10 draws its line under "Only you see this."; piece B owns the label's two words (l4-2) for every piece, person pieces included (sb4-4).
 
 **The open-screen path (K18e, K18c).** The plan's caveat (how a send reaches a screen that is already open was never read) is answered above: the log's version, from Realtime, with no database change. K18e adds one read of the new log entries per reload. If a builder finds a player's device does not hear a GM's send to the stash (no event row the player may read), that is a stop and a report to the driver, not a migration.
 
