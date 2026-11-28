@@ -1,15 +1,15 @@
 ---
-status: approved at sitting B, 2026-11-27 (tickets #162 to #171)
+status: built and merged (89b0f82). Approved at sitting B, 2026-11-27; screens approved at sitting C, 2026-11-28 (tickets #162 to #171, pull request #174)
 loop: 2
-rulings: docs/design/rulings/player-sitting-sheet-2026-11-27.md (pss-1 to pss-17; "For the spec (loop 2)"); docs/design/rulings/player-sitting-b-2026-11-27.md (psb-1 to psb-8); ic-3 (docs/design/rulings/dec-night-2026-11-14.md); docs/design/rulings/player-sitting-build-2026-11-27.md (pib-1 to pib-3)
-mockups: december/14 frames P3 and P5b (approved 2026-11-27); page 28 frame M4g (approved 2026-11-20); three frames owed (38-3 at 375 px, the icon page, the light block with Use)
+rulings: docs/design/rulings/player-sitting-sheet-2026-11-27.md (pss-1 to pss-17; "For the spec (loop 2)"); docs/design/rulings/player-sitting-b-2026-11-27.md (psb-1 to psb-8); ic-3 (docs/design/rulings/dec-night-2026-11-14.md); docs/design/rulings/player-sitting-build-2026-11-27.md (pib-1 to pib-3); docs/design/rulings/player-sitting-p47-2026-11-28.md (p47-1 to p47-5); docs/design/rulings/player-sitting-c-2026-11-28.md (psc-1 to psc-13)
+mockups: december/14 frames P3 and P5b (approved 2026-11-27); page 28 frame M4g (approved 2026-11-20); page 47 frames 47-1 to 47-3 (approved 2026-11-28)
 ---
 
 # Spec: the Player sitting's work
 
 Loop 2 of the build loop. It builds the ten pieces of the Player sitting of 2026-11-27 ("For the spec (loop 2)" in the rulings file). Francis ruled that all of them go through one spec, not plan rows.
 
-Seven pieces can be built now. Three wait for a frame that is not drawn yet (pieces 7, 8 and 9). Their tickets are blocked until Francis approves the frame. Nothing in this spec changes stored data or adds a migration.
+All ten pieces are built and merged. Pieces 7, 8 and 9 waited for page 47, approved on 2026-11-28. Nothing in this spec changes stored data or adds a migration.
 
 ## Problem Statement
 
@@ -32,7 +32,7 @@ The Player tab does what the sitting ruled:
 | # | Piece | What the player sees | Frame | Ruling |
 |---|---|---|---|---|
 | 1 | Details | New lines Kindred, Class, Alignment and Background: each its name as a tap to its entry, then the entry's own short line. The backstory has the label "Backstory". With almost nothing chosen, the Kindred line alone keeps the Details part; with nothing, no part at all. One line for each thing, in the sheet's order | P3, "opened" and "almost nothing" panels; approved 2026-11-27 | pss-1, pss-9, pib-3 |
-| 2 | The pinned spell | A pinned spell (any spell in the book) is a block in At hand, like the weapon in hand's: the star and its name, its state ("Memorized, 1 of 2 left"), its roll, its range, and Cast | M4g, left panel and right panel; approved 2026-11-20 | pss-5, psb-4, psb-5, euf-6, pin-1, pg28-2 |
+| 2 | The pinned spell | A pinned spell (any spell in the book) is a block in At hand, like the weapon in hand's: the star and its name, its state ("Ready, 1 of 2 left"), its roll, its range, and Cast | M4g, left panel and right panel; approved 2026-11-20 | pss-5, psb-4, psb-5, euf-6, pin-1, pg28-2 |
 | 3 | The Pin star on a spell's sheet | A spell's sheet on the Magic tab has the Pin star beside ✕, as every other sheet has (any spell in the book) | None: approved from a picture of the built sheet | pss-6 |
 | 4 | Down | At the rules' `death.at`, a Status ring "Down" shows among the character's other statuses in the head | None: approved from a picture of the built screen | pss-7, psb-1 to psb-3 |
 | 5 | Weapon blocks | A weapon block for every weapon in hand, no cap. A weapon worn ready is an At hand row with Attack; every other ready weapon is a row with Wield | P5b; approved 2026-11-27 | pss-8, pib-1, pib-2 |
@@ -64,16 +64,16 @@ Pictures owed with this work, nothing new to build: "none left" on a trait as bu
 11. As a caster, I want the toast "<name> pinned to the top" with Undo, so that I can take back a pin I did not mean.
 12. As a caster, I want a pinned spell to show in At hand as a block, so that I can cast it from the Player tab.
 13. As a caster, I want the block to show the star and the spell's name, so that I see it is pinned.
-14. As a caster, I want the block to show "Memorized, 1 of 2 left", so that I know how many castings I have.
+14. As a caster, I want the block to show "Ready, 1 of 2 left", so that I know how many castings I have.
 15. As a caster, I want the block to show the spell's roll ("d6 +2 turns of light") and its range ("30 paces range"), so that I need not open the spell to play it.
 16. As a caster, I want Cast on the block to do what Cast on the Magic tab does, with the same toast and Undo, so that the two places agree.
-17. As a caster with no castings left, I want the block to say "Memorized, 0 of 2 left" and keep Cast as a button that says why on a tap, so that I am never left with a dead button.
+17. As a caster with no castings left, I want the block to say "Ready, 0 of 2 left" and keep Cast as a button that says why on a tap, so that I am never left with a dead button.
 18. As a caster, I want a spell with no roll to show a block without a roll line, so that the block shows nothing empty.
 19. As a caster, I want a long spell name to wrap beside Cast, so that I can read all of it.
 20. As a caster with two pinned spells, I want the two blocks one after the other, so that At hand stays in order.
 21. As a caster, I want the pinned things At hand to come first in At hand and take no drag handle, so that At hand keeps its own order (pg28-2).
 22. As a caster, I want to tap the block's name to open the spell's sheet, with the star filled, so that I can unpin it there.
-23. As a caster, I want a pinned spell that is in my book but not ready today to keep its block, saying "Not memorized" (or the setting's own word), with Cast saying in a pop-up why it cannot be cast today, so that my pin is kept (psb-5). A pin whose spell has left the book is ignored, as `livePins` does.
+23. As a caster, I want a pinned spell that is in my book but not ready today to keep its block, saying "Not ready today", with Cast saying in a pop-up why it cannot be cast today, so that my pin is kept (psb-5). A pin whose spell has left the book is ignored, as `livePins` does.
 24. As a caster on a phone, I want the block to fit at 375 px, so that I can cast from a phone too.
 25. As a GM viewing a player, I want the pinned spell block to show as the player sees it, so that I see what they see.
 
@@ -144,14 +144,14 @@ Pictures owed with this work, nothing new to build: "none left" on a trait as bu
 - Any spell in the book can be pinned, ready or not (psb-4). At hand reads pins only through `livePins`. A spell pin is live while the spell is in the character's book. A pin whose spell has left the book stays stored and is ignored, as today. A pin is kept when the spell is not ready today.
 - At hand order (pg28-2, M4g): the weapon in hand's block stays above At hand, outside it; inside At hand, the pinned spells come first, as blocks, then the items (pinned first, as today), then the light.
 - A pinned spell's block is a named variant of the weapon in hand's block (the Components inventory, "Weapon in hand"), not a copy. The block shows: the small filled star and the name (a tap that opens the spell's sheet); the state line; the roll line when the spell has one; the range line when it has one; Cast at the right.
-- The state line uses the Magic tab's own count of castings ("Memorized, 1 of 2 left"). A spell in the book but not ready today says "Not memorized", or the setting's own word (psb-5). The words come from where the Magic tab gets them, not a new string.
+- The state line uses the Magic tab's own count of castings ("Ready, 1 of 2 left"). A spell in the book but not ready today says "Not ready today" (psb-5, psc-6). The words are the Magic tab's own, not a new string. No set-duration line (psc-7).
 - Cast runs the same command, the same toast (`castToastText`) and the same Undo as the Magic tab. With no casting left, or the spell not ready today, Cast stays tappable and opens a pop-up that says why (hard rule 10, psb-5).
 - A spell ready at more than one level: one block for the spell; Cast spends as the Magic tab's Cast would (psb-6).
 - On the Player tab, the pinned spell shows once (At hand). The Magic tab keeps listing it, its sheet's star filled (psb-7).
 
 **Piece 4, Down**
 - A pure function gives the head's status list: the character's statuses, plus "Down" when `downAtOf(rulesSets)` is not null and hit points are at or below it. The head's ring part draws that list. Down is not stored: it is worked out each time.
-- The Down ring is a Status ring with no end (a dashed track, no arc), in the harm tone (psb-1). It is first among the rings and shows only while the character is Down (psb-2). Its tap opens the death panel (psb-3). Its symbol is one of the 25 approved; if none fits, the builder stops and Francis selects one (no first-letter fallback).
+- The Down ring is a Status ring with no end (a dashed track, no arc), in the harm tone (psb-1). It is first among the rings and shows only while the character is Down (psb-2). It has no tap until M6 builds the death panel: a static Status ring (#165; psb-3 is superseded until then). The word "Down" is hidden in a full head until M6 (psc-9). Its symbol is one of the 25 approved; if none fits, the builder stops and Francis selects one (no first-letter fallback).
 - The existing "Down" toast (`burstWords`) stays.
 
 **Piece 5, weapon blocks**
@@ -201,7 +201,7 @@ Three test points, all in use today (Francis, 2026-11-27: "Yes"):
 - Moving the pinned things At hand by hand (pg28-2), hover text and arranging the screen (euf-8, euf-9: after 5 December).
 - A block's short line (⚑ 28 of page 28): it waits on pack question E7.
 - Pinning from anywhere but a spell's sheet on the Magic tab.
-- Drawing the three owed frames: a designer job, outside this spec's tickets.
+- Drawing the three frames (done: page 47).
 
 ## Further Notes
 
@@ -211,15 +211,41 @@ Three test points, all in use today (Francis, 2026-11-27: "Yes"):
 |---|---|
 | psb-1 | The Down ring: harm tone, dashed track (no end); its symbol one of the 25 approved. None fits: the builder stops and Francis selects one |
 | psb-2 | First among the rings; shown only while Down |
-| psb-3 | Its tap opens the death panel |
+| psb-3 | Its tap opens the death panel. **Departed at #165 (Francis, 2026-11-28, "B"): no tap until M6** |
 | psb-4 | Any spell in the book takes the star, not only ready ones |
-| psb-5 | A pinned spell not ready today keeps its block: "Not memorized" (or the setting's word); Cast says why in a pop-up; the pin is kept |
+| psb-5 | A pinned spell not ready today keeps its block: "Not ready today" (psc-6; was "Not memorized"); Cast says why in a pop-up; the pin is kept |
 | psb-6 | A spell ready at two levels: one block; Cast spends as the Magic tab's Cast would |
 | psb-7 | The Magic tab keeps listing a pinned spell, the star filled |
 | psb-8 | The full sheet with nothing in Details keeps "Nothing written yet." |
 
 **Pictures owed** (no new code): "none left" on a trait (pss-2) goes with piece 2's pull request (At hand); P5's middle column and the spent mode (pss-3) and P5b's open parts (pss-4) go with piece 5's pull request (P5b).
 
-**Owed frames** (a designer job, each with `impeccable critique`): 38-3 at 375 px, light and dark (piece 7); the icon page, two or three candidates each for Fire, Drink, Eat and Stance at 20 px, light and dark (piece 8); the light block with a Use button (piece 9). The tickets for pieces 7, 8 and 9 stay blocked until Francis approves each frame.
+**Frames** (were owed): drawn as page 47 and approved 2026-11-28 (p47-1 to p47-5). Pieces 7, 8 and 9 were built to them.
 
 **Left from #154:** three CI review nits on #154 were not applied. A builder of a piece that touches the head (piece 4 or 7) may fold them in and list them in its pull request.
+
+**Ruled after sitting B** (Francis; the rulings files name each):
+
+| Id | Ruled |
+|---|---|
+| pib-1 to pib-3 | A weapon worn ready is an At hand row with Attack; every weapon in hand gets a block, no cap; Details as P3 draws it (2026-11-27) |
+| p47-1 to p47-5 | Page 47 approved (2026-11-28): the long name leaves the bar (A1); Fire, Drink, Eat and Stance icons; a lit light with charges is one row, Use on it only while lit (C2), charges in words (D1); Use a charge has Undo |
+| #165 (2026-11-28) | The Down ring has no tap until M6 (a static Status ring); its symbol is the skull |
+| #171 ⚑ E (2026-11-28) | Use a charge says "Used a charge of <item>." with Undo everywhere; a hidden count is never named |
+| psc-1 to psc-13 | Sitting C (2026-11-28, `player-sitting-c-2026-11-28.md`): the built screens approved; "Ready, N of M left" / "Not ready today" in place of "Memorized"; no set-duration line; "Carrying treasure" / "Not carrying treasure"; a worn weapon is pinned to show; a Class line whenever there is a class; "2 charges left", a stored total with loop 3; "Down" hidden in a full head until M6 |
+
+**Built, with the departures Francis approved** (pull request #174, merged 2026-11-28 at 89b0f82):
+
+| Ticket | Departure from the spec |
+|---|---|
+| #162 | None |
+| #163 | Standard tap look, no underline (27 Nov); P3's order, not the spec's; a Class line in the "almost nothing" panel (psc-4) |
+| #164 | None; a book spell not ready today is pinned once prepared (psc-1) |
+| #165 | No tap until M6; symbol the skull; the word "Down" hidden in a full head (psc-9) |
+| #166 | P5b's Horns row has Attack (pib-1) and the frame's one block is three (pib-2); the frame's "5 more" is not built |
+| #167 | Armour mode's top line is "Carrying treasure" / "Not carrying treasure" (psc-2) |
+| #168 | New words in the Cast pop-ups ("Can't cast <name>", its why lines); "turns", not "turns of light"; "Ready" words (psc-6); no duration line (psc-7) |
+| #169, #170 | None |
+| #171 | The rows' own charge words, not "2 of 3 charges" (psc-8); the light sits after At hand's items (pss-16); At hand's notes show as a toast; hidden charges with none left: toast with Undo |
+
+**Left for later:** `docs/testing/m5b-at-hand.md` still says "Open the quiver" (the numbered lines are the designer's).
