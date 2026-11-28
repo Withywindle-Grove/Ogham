@@ -5,14 +5,14 @@ rulings: docs/design/rulings/loop4-scene-pack-2026-11-28.md (l4-1 to l4-6; 09, 2
 intents: docs/intents/scene-feedback-2026-11-25.md (the Scene rows); the Pack rows come from the pack rework's rulings (pk-5, 2026-11-11) and have no intent file
 plans left: docs/plans/dec-scene-feedback.md (sf-6b, sf-13, sf-10, sf-11, sf-18, sf-14); docs/plans/dec-6-the-whole-pack-tab.md (K19b, K18c, K18e, K18d); both keep the rows for the record only
 mockups: december/44-scene-feedback-of-25-november.html, frames 44-5 (DT1), 44-6 (DT2), 44-7 (TR1's pieces), approved 2026-11-26 and approved as redrawn to ⚑ 9 the same day; 44-12 (PS1), 44-13 (PS2 A, C, D), 44-14 (PS3 A, B), 44-15 (KN1), 44-16 (ET1), 44-1 (EN1), approved 2026-11-26. december/45-the-pack-tab-find-flow.html, frames 45-2 (FD1b), 45-3 (FD1c B, C), 45-4 (FD2), 45-5 (FD2b), 45-15 (FD7), 45-20 (FD10), 45-21 (FD10b), approved 2026-11-26 (p45-1, p45-29). december/50-what-a-person-carries.html, approved 2026-11-28 (dg-19), the newer frame for a person's piece. december/51-the-find-card-on-the-player-tab.html, 51-1 A and 51-2 A, approved 2026-11-28 (l4-6). Page 08's PK2b (pack/08-the-pack-tab-whole.html), approved 2026-11-14 (ap-6). Pictures under each page's png/ folder
-order (l4-1): the needed rows first, sf-6b, sf-13, K18c, K19b, K18e, and K18d (built); then sf-10, sf-11, sf-18, sf-14. If time runs short, cut sf-14 first, then sf-18
+order (l4-1): the needed rows first, sf-6b, sf-13, K18c, K19b, K18e, and K18d (built); then sf-10, sf-11, sf-18, sf-14. If time runs short, cut sf-14 first, then sf-18. Pieces K onward (the build's own tools, added 28 Nov) come after the needed rows (⚑ K1)
 ---
 
 # Spec: the Scene's and the Pack's remaining rows
 
 Loop 4 of the build loop. Francis moved ten rows out of two plans into the loop (28 Nov: "No, we use the loop, include the optional scene rows"; "Loop is not optional."). Six are the Scene's, from his feedback of 25 November (page 44). Four are the Pack's find flow (page 45). He held sitting A the same day and ruled every ⚑ (l4-1 to l4-6), and approved page 51.
 
-Every row is visible and has an approved frame. None changes what is stored or who may read it: no migration, no new command, no new permission case. One row, K18d, is already built on its branch; it joins the loop as it stands.
+Every row is visible and has an approved frame. None changes what is stored or who may read it: no migration, no new command, no new permission case. One row, K18d, is already built on its branch; it joins the loop as it stands. Pieces K to P, added after sitting B, are the build's own tools and show nothing (Implementation Decisions, Pieces K onward).
 
 ## Problem Statement
 
@@ -252,6 +252,52 @@ Every row is visible and has an approved frame. None changes what is stored or w
 - "Go to number" as sf-5's ⚑ 2 built it (more than 20 numbers, or more than 20 rows). The row's other tables stay chips over it; column chips stay only where the table has columns. The page keeps its back link and "Rolled by hand". Capped at 640 px.
 - Every row shape 07 allows still shows its words (a lookup's key, cells, items). If the tapped table needs a variant for this, it is named in 06's Components, not copied.
 
+**Pieces K onward: the build's own tools (added 28 Nov)**
+
+Francis added these to loop 4 on 28 Nov ("Yes", to "add #210 and the retro items to loop 4, built after its needed rows"): the fonts helper (#210, the retro's item 4) and the five retro items of loop 2 not yet briefed (1, 2B, 3, 5, 6; 2A merged in #195). None is visible to a player or GM: tests, scripts, skills, briefs and docs only. Each says "none: data and logic only". They change no stored data, so each is Claude's to build (technical ownership), within the ⚑ below. Source: the loop 2 retro (28 Nov), and #210's own text.
+
+| Piece | Retro | What | Files' kinds | Who edits | Shares a file with |
+|---|---|---|---|---|---|
+| K | 4 (#210) | The layout harness's font wait without the new stalls | tests (`tests/fails.ts`, layout specs' imports) | a builder; Home One runs WebKit | the layout specs sf-10, sf-11, sf-18, sf-14 touch (⚑ K1) |
+| L | 1 | A spec names every existing part it relies on, with where it lives in the code | a skill or the driver's agent file (⚑ L1) | ⚑ L1 | N, P if L1 is B (`.claude/agents/driver.md`) |
+| M | 2B | Time a second check slot | `/tmp/ogham-check-times.log`, `.claude/README.md` | the driver, then a 09 line | none |
+| N | 3 | A builder waits for its commit's end line before it reports | `.claude/briefs/builder-brief.md` | a docs-only worker | none |
+| O | 5 | A script that commits gallery pictures from a run, and a CI check on the gallery line | `scripts/` (a script and its test), `.github/workflows/check.yml`, `docs/testing.md` | a builder | none |
+| P | 6 | The driver's merge step lists the build's rulings for docs-sync | `.claude/agents/driver.md` | a docs-only worker | L if L1 is B |
+
+**Piece K: the fonts helper (#210)**
+- #210 (Home One's draft, branch `tests-fonts-ready-helper`) waits, on every layout and gallery page, until React has drawn into `#root`, then loads the page's fonts. Its run showed 4 stalls of 30 s waiting for `#root > *` after the change, against 1 before; each passed when run again alone. Its point 4 names the next step: a longer wait for the first draw, or a reload when the page stays empty.
+- The piece: find the stall's cause, reproduce it before proposing one (`superpowers:systematic-debugging`), fix it, and show the numbers. Test-only (rule A, a non-`fix-` branch): nothing under `src/` changes.
+- It starts from #210's branch brought up to `main`; the driver merges it into the integration branch like any ticket, and #210 closes for the spec's pull request.
+- Done: the whole layout suite with `--workers=2`, before and after, in WebKit (Home One) and Chrome, in #210's table form; failures and stalls no more than before in each browser (WebKit 6 failed, Chrome 1, with 1 stall); the time against before (⚑ K2).
+
+**Piece L: the spec names what it relies on (retro 1)**
+- In loop 2, four builders stopped before code because the spec assumed a part that did not exist (a death panel, a toast and Undo, a stored total).
+- The piece: a completion step for the spec. Every existing part, command, field or words the spec relies on is named with its file in the code; anything not found becomes a ⚑ for sitting B, before tickets. A `scout` (Haiku) does the lookup.
+- Where it lives, and so who edits it, is ⚑ L1. `to-spec` is a copied skill, changed "here, and nothing else" as `.claude/skills/README.md` lists; an agent does not start it.
+- Done: the step written where L1 rules; if in the skill, `.claude/skills/README.md`'s "Changed here" list gains its line. `docs:check` passes.
+
+**Piece M: time a second check slot (retro 2B)**
+- `.claude/README.md` (Workers, The check slot) already allows `OGHAM_CHECK_SLOTS=2` as a trial: "time it, and keep it only if it gains time". Seats says one heavy job at a time in a cloud session (⚑ M1).
+- The piece: run the loop's later commits with two slots where M1 allows, and compare each commit's wait and run time (`/tmp/ogham-check-times.log`) with the one-slot commits of loop 4's needed rows.
+- Done: a table of both, a 09 line that keeps or drops the second slot with its numbers, and `.claude/README.md` brought in line. No code.
+
+**Piece N: a builder waits for its commit's end line (retro 3)**
+- In loop 2 a builder ended its turn with its slot commit still queued in the background; one run was left orphaned, and one docs commit died at the background limit.
+- The piece: the builder brief's commit step says to queue the commit in the background with the longest timeout, then wait with Monitor until `/tmp/ogham-check-times.log` shows that run's `end … rc=` line; the report waits for that line and quotes it.
+- Done: `.claude/briefs/builder-brief.md` changed (its commit and output lines); `docs:check` passes.
+
+**Piece O: gallery pictures from a run, and one gallery line (retro 5)**
+- In loop 2 a worker committed `main`'s old pictures in place of the run's; and the spec's assembled text carried 10 gallery lines. `scripts/ci-redraws.mjs` (`announcedPictures`) reads every line that carries the words; `docs/testing.md` (Announced redraws) asks for one.
+- The piece, a script: from a run id, fetch its gallery-baselines artifacts, commit the named pictures over `tests/layout/gallery-baselines/`, refuse a picture identical to `main`'s, and print each picture's size.
+- The piece, a check: CI fails when a pull request's text has more than one "Gallery pictures expected to change" line (⚑ O1).
+- Done: both with their tests; `docs/testing.md` (The component gallery, Announced redraws) names the script and the check; `npm run check` passes.
+
+**Piece P: the build's rulings for docs-sync at the merge (retro 6)**
+- In loop 2, 05 still described two rows as before the rulings made during the build (lc-3 leaves that to the design agent after the merge).
+- The piece: the driver's merge step for a spec's pull request lists every 09 line dated inside the loop, for the design agent's docs-sync, within the hour of the merge.
+- Done: `.claude/agents/driver.md` (Review and merge) gains the line; `docs:check` passes.
+
 **Docs in the same pull requests.**
 - 05 and 06 already carry sitting A's lines (this spec's commit): the find card's places on the Player tab (l4-4, l4-5), the notices box under the card, and the place card's two labels (l4-2).
 - 06's Code column for each part touched: Find card (E, F, D), Detail row and Room GM layer (B), Knowledge (C), the band (H), the players' page (I), the encounter tables (J).
@@ -280,6 +326,12 @@ The three seams Francis approved (28 Nov, "Yes"). There is no database seam: no 
 - Gallery pictures expected to change: the Knowledge pictures (`*-knowledge.png`), the players' place card (`*-players-place-card.png`), the phone nav if its section draws the Pack's count; the stacked button's and the tapped tables' only if the part itself changes. Each pull request says which.
 - The examples are invented ("Bog lurker", "the Ferryman", "Old Harl", "The Drowned Harbour", "Lamp oil", "Bronze ring"): no game IP (hard rule 2).
 
+**Pieces K onward (added 28 Nov).** None has a screen; the three seams above are for the rows a person sees.
+- K: the purpose stays #210's, "no layout test can measure a page before its web fonts have loaded". Its proof is the whole layout suite before and after, in both browsers (Piece K's done line); each new stall is run again alone and reported. Prior art: #184's `mapParts.spec.ts` font waits.
+- O: pure functions in Node tests, each purpose first: the script picks only the named pictures from a run's artifacts, refuses one identical to `main`'s, and names each size; the check counts the gallery lines in a pull request's text (0, 1, 2 and 10, any case, a line inside a quote). Prior art: `scripts/ci-redraws.test.mjs` (`announcedPictures`), `scripts/ci-jobs.test.mjs`.
+- L, N, P: docs only; `npm run docs:check`. Each is proved at its first use: L at the next spec's sitting B (no builder stops on a part that does not exist), N at the next builder's report (it quotes its `end … rc=` line), P at loop 4's own merge (the list is there).
+- M: no test; the log's times are the result.
+
 ## Out of Scope
 
 - sf-27's undrawn states: a row naming three or more creatures, "Take it back" refused in the why-blocked pop-up, a wrong "Nothing stirs", "+ Piece" titled "Add a piece". Drawn after 5 December.
@@ -303,6 +355,16 @@ The three seams Francis approved (28 Nov, "Yes"). There is no database seam: no 
 | B3 (sb4-3) | K18e | A: the GM's Undo of a stash send goes to the Log only, no toast (Piece F) | "A" |
 | B4 (sb4-4) | sf-6b | A: a shown person piece's "Carries" line goes under "Only you see these details." (l4-2 over page 50) (Piece B) | "A" |
 | B5 (sb4-5) | sf-10 | A: only one of the pair shows at half the row's width, at the leading edge (Piece I) | "A" |
+
+**For a short sitting B: pieces K onward (added 28 Nov).** Francis rules each; the lean is the spec's, not a ruling.
+
+| ⚑ | Piece | Question | Options | Lean |
+|---|---|---|---|---|
+| K1 | all | When K onward run against sf-10, sf-11, sf-18, sf-14 ("after its needed rows") | A: after the needed rows, beside the later rows where no file is shared (K waits for the rows whose layout specs it touches); B: after every row of loop 4 | A |
+| K2 | K | #210's wait cost about +5% (WebKit) and +11% (Chrome) on the whole layout suite: CI minutes | A: accept a cost up to that, said in the pull request; B: done only if no slower than before | A |
+| L1 | L | Where the spec's "names every part it relies on" step lives | A: in the `to-spec` copy, as a new line in `.claude/skills/README.md`'s "Changed here" list; B: in the driver's loop (`.claude/agents/driver.md`, The loop): a scout's lookup before the spec goes to sitting B, the copy untouched | B |
+| M1 | M | Seats allows one heavy job at a time in a cloud session; a second slot runs two full checks | A: the trial runs on the PC only, under its memory rule; B: the trial lifts the cloud's one-heavy-job line while it runs | A |
+| O1 | O | More than one gallery line in a pull request's text | A: CI fails, as the retro proposes; B: CI reads every line, as built, and the driver's assembly writes one | A |
 
 **Loop 3 shares the place card (sf-6b with dg-10).** dg-10's "Carries" line on a person's piece is built in loop 3 (tickets #187 to #192, in flight on `dec5-gaps`), in the same piece row. Piece B starts from a base that has dg-10 merged, or waits for it. Piece A, the pure rule, does not wait. dg-10 draws its line under "Only you see this."; piece B owns the label's two words (l4-2) for every piece, person pieces included (sb4-4).
 

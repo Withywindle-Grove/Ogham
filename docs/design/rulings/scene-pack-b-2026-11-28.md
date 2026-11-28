@@ -37,3 +37,7 @@ The spec was approved: "Yes". Ten tickets, #200 to #209, under parent #198, were
 | sb4-5 | B5: only one of "What everyone knows" and "Rules" to show (sf-10, piece I) | A: alone at half the row's width, at the leading edge | "A" |
 
 **Settled.** B2 was first put with tr-7 quoted backwards ("a toast never replaces one still showing its Undo"). The driver asked again with tr-7 as written (`toast-restyle-2026-11-25.md`: a new toast still replaces the one showing; the log keeps the Undo); Francis ruled A, replace (sb4-2 above).
+
+## Added to loop 4 after sitting B
+
+On 28 Nov, after this sitting, Francis added to loop 4 the fonts helper (#210) and the five unbriefed retro items of loop 2 (1, 2B, 3, 5, 6), built after its needed rows: "Yes". The spec writes them as pieces K to P (`docs/specs/scene-pack.md`, Pieces K onward), none visible. Their ⚑ K1, K2, L1, M1 and O1 wait for a short sitting B (Further Notes). The rulings above stand as written.
