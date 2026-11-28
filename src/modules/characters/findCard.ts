@@ -77,7 +77,14 @@ export function findCard(entries: readonly FindEntry[], w: FindCardWords): FindC
   // p45-7: said once when every entry (the hidden ones and the taken back too) has the same giver and the same words for when.
   const key = (e: FindEntry) => `${e.who.kind === 'character' ? e.who.characterId : e.who.kind}|${whenOf(e.at, w)}`;
   const shared = all.length > 1 && all.every((e) => key(e) === key(all[0]!));
-  const once = shared ? whoWords(all[0]!.who, whenOf(all[0]!.at, w), true, w) : null;
+  // FD11b's drawing fix 2 (approved 2026-11-26): a card of one thing taken back keeps its giver and time, said once
+  // under the head as FD11 does, since its quiet line names no time. "It" or "them" as that thing's own line said it.
+  const alone = all.length === 1 && all[0]!.takenBack !== null ? all[0]! : null;
+  const once = shared
+    ? whoWords(all[0]!.who, whenOf(all[0]!.at, w), true, w)
+    : alone
+      ? whoWords(alone.who, whenOf(alone.at, w), alone.kind === 'thing' && alone.arrived > 1, w)
+      : null;
   const lines = shown.map((e): FindCardLine => {
     if (e.takenBack) return { kind: 'back', words: backWords(e, w), entry: e };
     const mine = once ? null : whoWords(e.who, whenOf(e.at, w), e.kind === 'thing' && e.arrived > 1, w);

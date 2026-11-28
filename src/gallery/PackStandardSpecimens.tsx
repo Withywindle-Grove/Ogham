@@ -9,7 +9,9 @@ import type { OpenCampaign } from '../app/Campaigns.tsx';
 import { ItemRow } from '../app/ItemRow.tsx';
 import { ItemSheet, useItemSheetState } from '../app/ItemSheet.tsx';
 import { LoadSummary } from '../app/LoadSummary.tsx';
-import { PackDress, PackFoot, StashRow, WaitingCard } from '../app/PackParts.tsx';
+import { CoinLine, PackDress, PackFoot, StashRow, WaitingCard } from '../app/PackParts.tsx';
+import { FindCard } from '../app/FindCard.tsx';
+import type { FindEntry } from '../modules/characters/findsSeen.ts';
 import { thingCount } from '../app/stashWords.ts';
 import { foldSummary, itemCount } from '../app/packHelpers.ts';
 import '../app/PackScreen.css';
@@ -92,7 +94,9 @@ function Row({
   problem = null,
   lines = WORN,
   light = null,
+  isNew = false,
 }: {
+  isNew?: boolean;
   item: InventoryLine;
   atHand?: boolean;
   problem?: string | null;
@@ -126,9 +130,28 @@ function Row({
       problem={problem}
       castingNote={null}
       blockedEquip={null}
+      isNew={isNew}
     />
   );
 }
+
+// New until Got it (K20b; FD3, FD8b, approved 2026-11-26): the GM's send of coin and three things, a moment ago.
+const SENT_AT = '2026-12-06T10:00:00Z';
+const NEW_ROWS = [
+  line('Bronze ring', { weightCoin: 1 }),
+  line('Moon opals', { category: 'gem', qty: 2, stack: 50, weightCoin: 1 }),
+  line('The old lantern of the drowned and of the nine tides', { qty: 999, stack: 999, weightCoin: 1 }),
+];
+const FINDS: FindEntry[] = [
+  { kind: 'coin', purseId: 'gallery-purse', coins: { heron: 240 }, who: { kind: 'gm' }, at: SENT_AT, takenBack: null },
+  ...NEW_ROWS.map((l): FindEntry => ({ kind: 'thing', lineId: l.id, name: l.name, arrived: l.qty, now: null, who: { kind: 'gm' }, at: SENT_AT, takenBack: null })),
+];
+const FIND_WORDS = {
+  names: new Map<string, string>(),
+  coinWords: (coins: Record<string, number>) => `${coins.heron ?? 0} herons`,
+  when: () => 'today',
+  now: '2026-12-06T10:05:00Z',
+};
 
 /** An item's sheet drawn in the page (the gallery's preview): the description, the actions as rows, Drop apart. */
 function SheetPicture({ item }: { item: InventoryLine }) {
@@ -205,6 +228,31 @@ export function PackStandardSpecimens({ Specimen }: { Specimen: (props: { name: 
               </section>
               <WaitingCard names={['Silver knife', 'Strange key']} onOpen={() => undefined} />
               <PackFoot count={20} onAdd={() => undefined} />
+            </div>
+          </section>
+        </PackDress>
+      </Specimen>
+      <Specimen name="New until Got it (K20b; FD3, FD8b): the find card first, the coin line and each new row with its “New” tag, the new rows first under Carried; a long name keeps its tag with its last word">
+        <PackDress>
+          <section className="pack" aria-label="Wren’s pack with new things, in the gallery">
+            <div className="pack__summary">
+              <FindCard entries={FINDS} words={FIND_WORDS} onGotIt={() => undefined} onMore={() => undefined} live={false} />
+              <LoadSummary load={load} rules={RULES} from={['Fen rules']} />
+              <CoinLine words="12 crowns, 270 herons, 4 bits" onOpen={() => undefined} isNew />
+            </div>
+            <div className="pack__list">
+              <section className="pack__group" aria-label="Carried, with new things">
+                <div className="pack__group-head">
+                  <h2 className="pack__group-title">Carried</h2>
+                  <span className="auth__meta">{itemCount(NEW_ROWS.length + 1)}</span>
+                </div>
+                <ul className="pack__rows">
+                  {NEW_ROWS.map((item) => (
+                    <Row key={item.id} item={item} isNew lines={[...NEW_ROWS, GEAR[0]!]} />
+                  ))}
+                  <Row item={GEAR[0]!} lines={[...NEW_ROWS, GEAR[0]!]} />
+                </ul>
+              </section>
             </div>
           </section>
         </PackDress>

@@ -26,6 +26,13 @@
 //               with your proposal, `players-other` with another's, `queue` the proposals' queue worked by hand
 //   ?placePage=spots|spot|hand|none  the GM's place page (dec-7 piece 5b): see the block that builds it, below
 //   &lights=several    two reed lamps beside Wren's rushlights (the pick "Which light?")
+//   &finds=1    new until Got it (K20b): the GM has just sent a Bronze ring to Wren (his send, K16b); `two` two pearls
+//               onto her six as well (his Add item, which joins the stack); `many` six things (the card's "and N
+//               more"); `long` one long name; `none` nothing yet; with &coin=1 (K21b), `coin` 240 herons alone (FD4),
+//               `cap` 3 crowns and 999,999,969 herons in one send, her herons at their cap (FD4b B), `hoard` 240
+//               herons, two moon opals, four boat hooks and a hooded lantern in one send (FD5b). The page then offers
+//               `window.__findArrives(name)` and
+//               `window.__gmUndoesFind()`, the GM's send and its Undo while the page is open
 //   ?placeCard=1 the players' place card (P4): the Location's card and the Area's in the page's two columns; `bare` the
 //               Area never shown, `messy` long names and 999; `gm` the GM's Knowledge sheet with its eyes
 //   ?knowledge=1 a place's Knowledge sheet open (dec-7 piece 6a), wired to no screen: `one` a lone section (open at
@@ -501,6 +508,76 @@ if (coinFlag) {
   Object.assign(world.tables.inventory_lines.find((l) => l.id === 'line-arrows')!, { library_entry_id: 'entry-reed-arrows', source_pack_id: 'pack-river', source_entry_id: 'reed-arrows' });
 }
 void ash;
+// New until Got it (K20b), only with ?finds=…: what the GM sends to Wren from an invented place (K16b's send, a road
+// p45-21 names), each a log line the player's device reads; then helpers to send one or undo the last send while the
+// page is open, signed back in as whoever the page is.
+const findsFlag = new URLSearchParams(window.location.search).get('finds');
+if (findsFlag) {
+  const { runCommand } = await import('../core/commands.ts');
+  const { createAppRegistry } = await import('../app/commandRegistry.ts');
+  const { addItem } = await import('../modules/inventory/inventory.ts');
+  const { giveFind, undoFind } = await import('../modules/expedition/findSend.ts');
+  world.tables.places.push({ id: 'place-drowned-shrine', campaign_id: campaign, name: 'The drowned shrine', description: '', pack_entry_id: null, version: 1, undone: false, created_by: gm, created_at: '2026-10-23T09:00:00Z', updated_at: '2026-10-23T09:00:00Z' });
+  const sent: string[] = [];
+  const registry = createAppRegistry();
+  const asGm = { id: gm, roles: { [campaign]: 'gm' as const } };
+  const wrenCarrier = { campaignId: campaign, actorId: wren, locationId: null, ownerUserId: sam, archived: false };
+  const asPage = () => {
+    const back = new URLSearchParams(window.location.search).get('as');
+    if (back === 'player') world.signInAs(sam);
+    else if (back === 'gm') world.signInAs(gm);
+  };
+  const give = async (name: string) => {
+    world.signInAs(gm);
+    const done = await runCommand(registry, world.db, asGm, giveFind, { campaignId: campaign, to: wren, placeId: 'place-drowned-shrine', things: [{ name, qty: 1 }], coins: {}, rows: [] });
+    if (done.ok) sent.push(done.value.eventId);
+  };
+  const names =
+    findsFlag === 'many'
+      ? ['Silver key', 'Boat hooks', 'Hooded lantern', 'Moon opals', 'Bronze ring', 'Eel trap']
+      : findsFlag === 'long'
+        ? ['The Old Lantern of the Drowned and of the Nine Tides']
+        : findsFlag === 'none'
+          ? []
+          : ['Bronze ring'];
+  // Coin in a send (K21b): the GM's send of a hoard's coin, alone or with things (FD4, FD4b B, FD5b).
+  const coinSends: Record<string, { things: { name: string; qty: number }[]; coins: Record<string, number> }> = {
+    coin: { things: [], coins: { heron: 240 } },
+    cap: { things: [], coins: { crown: 3, heron: 999_999_969 } }, // her 30 herons and these: the purse's cap
+    hoard: { things: [{ name: 'Moon opals', qty: 2 }, { name: 'Boat hooks', qty: 4 }, { name: 'Hooded lantern', qty: 1 }], coins: { heron: 240 } },
+  };
+  const coinSend = coinSends[findsFlag];
+  if (coinSend) {
+    world.signInAs(gm);
+    const done = await runCommand(registry, world.db, asGm, giveFind, { campaignId: campaign, to: wren, placeId: 'place-drowned-shrine', ...coinSend, rows: [] });
+    if (done.ok) sent.push(done.value.eventId);
+  } else for (const name of names) await give(name);
+  if (findsFlag === 'two') {
+    // Her pearls from the setting's list, so more of them join the stack (Q2).
+    world.tables.library_entries.push({ id: 'entry-river-pearls', pack_id: 'pack-river', kind: 'item', pack_entry_id: 'river-pearls', name: 'River pearls', data: { id: 'river-pearls', name: 'River pearls', category: 'gem', stack: 50 } });
+    Object.assign(world.tables.inventory_lines.find((l) => l.id === 'line-pearls')!, { library_entry_id: 'entry-river-pearls', source_pack_id: 'pack-river', source_entry_id: 'river-pearls' });
+    world.signInAs(gm);
+    await runCommand(registry, world.db, asGm, addItem, {
+      carrier: wrenCarrier,
+      item: { libraryEntryId: 'entry-river-pearls', name: 'River pearls', category: 'gem', weightCoin: null, slots: null, stack: 50 },
+      qty: 2,
+      howGot: 'given',
+      containerLineId: 'line-sack',
+    });
+  }
+  const w = window as unknown as { __findArrives: (name: string) => Promise<void>; __gmUndoesFind: () => Promise<string> };
+  w.__findArrives = async (name) => {
+    await give(name);
+    asPage();
+  };
+  w.__gmUndoesFind = async () => {
+    world.signInAs(gm);
+    const eventId = sent.pop();
+    const undone = eventId ? await runCommand(registry, world.db, asGm, undoFind, { campaignId: campaign, eventId }) : null;
+    asPage();
+    return undone === null ? 'nothing to undo' : undone.ok ? 'ok' : undone.message;
+  };
+}
 // A light (M5 step 7, invented): River Rules' rushlight, used up when it burns out, and four of them in Wren's pack,
 // so Light lights one in one tap (key journey 5).
 world.tables.library_entries.push({

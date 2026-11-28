@@ -61,14 +61,30 @@ export function WaitingCard({ names, onOpen }: { names: readonly string[]; onOpe
  * own coin names, bold, then a chevron; "No coin" with none. No line under it (mc-46). The whole row opens the coin's
  * sheet. It sits under the load, between the double rules the groups use.
  */
-export function CoinLine({ words, onOpen }: { words: string; onOpen: () => void }) {
+export function CoinLine({ words, onOpen, isNew = false }: { words: string; onOpen: () => void; isNew?: boolean }) {
   return (
-    <button type="button" className="pack__coin" aria-haspopup="dialog" aria-label={`Coin: ${words}`} onClick={onOpen}>
-      <span className="pack__coin-words">{words}</span>
+    <button type="button" className="pack__coin" aria-haspopup="dialog" aria-label={`Coin: ${words}${isNew ? ', new' : ''}`} onClick={onOpen}>
+      <span className="pack__coin-words">
+        {words}
+        {isNew && <NewTag />}
+      </span>
       <span className="pack__chevron" aria-hidden="true">
         <Icon name="chevron" size={20} />
       </span>
     </button>
+  );
+}
+
+/**
+ * The "New" tag (K20b; pk-5, p45-11; FD1, FD3, FD8b, approved 2026-11-26): the word in a box after a row's name and on
+ * the coin line, until Got it. Not a target. The space before it does not break, so it stays with the name's last word.
+ */
+export function NewTag() {
+  return (
+    <>
+      {' '}
+      <span className="pack__new">New</span>
+    </>
   );
 }
 
