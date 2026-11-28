@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { formatNotes } from './pack-format.mjs';
-import { ruledFieldFindings, ruledFieldNotes } from './pack-ruled-fields.mjs';
+import { holdsRefNotes, ruledFieldFindings, ruledFieldNotes } from './pack-ruled-fields.mjs';
 
 const place = (extra) => ({ locations: [{ id: 'reed-ford', name: 'Reed ford', ...extra }] });
 const coins = (currency) => ({ rulesSets: [{ id: 'fen-rules', name: 'Fen rules', currency }] });
@@ -267,6 +267,68 @@ describe("an item's count unit (G-233, dg-5, dg-18)", () => {
       'items: "flask-2": charges: units should be words ("portions"); the app says the unit plus "s" instead.',
       'items: "flask-3": charges: units comes without a unit; the app reads units only with a unit, so it says "charges".',
     ]);
+  });
+});
+
+describe('what a person carries (G-228, dg-10, dg-15)', () => {
+  const file = (npcs, extra = {}) => ({
+    meta: { id: 'saltwick', name: 'Saltwick' },
+    items: [{ id: 'wardens-lantern', name: 'Warden’s lantern' }, { id: 'iron-key', name: 'Iron key' }],
+    locations: [{ id: 'customs-shed', name: 'The Customs Shed', playerView: { people: [{ npcId: 'mother-sedge', description: 'A tall woman.' }] } }],
+    npcs,
+    ...extra,
+  });
+  const sedge = (holds) => ({ id: 'mother-sedge', name: 'Mother Sedge', holds });
+
+  // Purpose: holds naming the pack's own items (by itemId, or by an itemRef to this pack), a whole qty and a note, on a
+  // person a place names, are silent; an itemRef to another pack is left to the stack check (it can't be seen alone).
+  it('is silent for good holds, and for an itemRef to another pack checked alone', () => {
+    const good = file([sedge([{ itemId: 'wardens-lantern', note: 'A lantern on a pole' }, { itemRef: 'saltwick:iron-key', qty: 1 }, { itemRef: 'river-rules:oil-flask', qty: 999 }])]);
+    expect(ruledFieldFindings(good)).toEqual([]);
+  });
+
+  // Purpose: an item the pack doesn't have, and a line naming no item, are warned on, naming the person and the line.
+  it('warns on an item it can’t find and on a line with no item', () => {
+    expect(ruledFieldFindings(file([sedge([{ itemId: 'moon-bell' }, { itemRef: 'saltwick:sea-chart' }, { note: 'no item' }, 'iron-key'])])).map((f) => [f.level, f.text])).toEqual([
+      ['warning', 'npcs: "mother-sedge": holds line 1 names "moon-bell", which isn’t an item in this pack; the GM sees "One thing she carries isn’t in your packs."'],
+      ['warning', 'npcs: "mother-sedge": holds line 2 names "saltwick:sea-chart", which isn’t an item in this pack; the GM sees "One thing she carries isn’t in your packs."'],
+      ['warning', 'npcs: "mother-sedge": holds line 3 names no item; give its itemId (this pack) or itemRef ("<pack>:<item id>").'],
+      ['warning', 'npcs: "mother-sedge": holds line 4 names no item; give its itemId (this pack) or itemRef ("<pack>:<item id>").'],
+    ]);
+  });
+
+  // Purpose: a qty that isn't a whole number of 1 or more is warned on (the app reads it as 1), and holds that isn't a list.
+  it('warns on a qty that is not a whole number of 1 or more, and on holds that is not a list', () => {
+    expect(ruledFieldFindings(file([sedge([{ itemId: 'iron-key', qty: 0 }, { itemId: 'wardens-lantern', qty: 1.5 }]), { id: 'old-harl', holds: 'a lamp' }])).map((f) => f.text)).toEqual([
+      'npcs: "mother-sedge": holds line 1: qty should be a whole number of 1 or more; the app reads 1.',
+      'npcs: "mother-sedge": holds line 2: qty should be a whole number of 1 or more; the app reads 1.',
+      'npcs: "old-harl": holds should be a list of lines ({ "itemId": … }); the app reads none.',
+    ]);
+  });
+
+  // Purpose: an item held by two people is warned on (dg-15: a held thing has one home), by its bare id.
+  it('warns on an item held by two people', () => {
+    const two = file([sedge([{ itemId: 'iron-key' }]), { id: 'old-harl', name: 'Old Harl', holds: [{ itemRef: 'saltwick:iron-key' }] }], {
+      locations: [{ id: 'customs-shed', name: 'The Customs Shed', playerView: { people: [{ npcId: 'mother-sedge' }, { npcId: 'old-harl' }] } }],
+    });
+    expect(ruledFieldFindings(two).map((f) => f.text)).toEqual(['npcs: "old-harl": holds "saltwick:iron-key", which "mother-sedge" holds too; a held thing has one home, so list it on one person.']);
+  });
+
+  // Purpose: a person with holds whom no place's playerView.people names is a note: the slice can't show her things.
+  it('notes a person with holds whom no place names', () => {
+    expect(ruledFieldFindings(file([{ id: 'lone-fisher', name: 'Lone fisher', holds: [{ itemId: 'iron-key' }] }]))).toEqual([
+      { level: 'note', text: 'npcs: "lone-fisher" holds things, but no place’s playerView.people names this person, so the app shows them nowhere yet; the GM can use Add item.' },
+    ]);
+  });
+
+  // Purpose: across the files given together, an itemRef to one of them is checked against its items.
+  it('checks an itemRef against another pack given with it', () => {
+    const adventure = { name: 'Saltwick', file: file([sedge([{ itemRef: 'river-rules:oil-flask' }, { itemRef: 'river-rules:sea-chart' }, { itemRef: 'far-pack:anything' }])]) };
+    const rules = { name: 'River rules', file: { meta: { id: 'river-rules' }, items: [{ id: 'oil-flask', name: 'Oil flask' }] } };
+    expect(holdsRefNotes([adventure, rules])).toEqual([
+      'Saltwick, npcs: "mother-sedge": holds line 2 names "river-rules:sea-chart", which isn’t an item in River rules; the GM sees "One thing she carries isn’t in your packs."',
+    ]);
+    expect(holdsRefNotes([adventure])).toEqual([]);
   });
 });
 

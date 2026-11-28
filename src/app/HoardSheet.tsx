@@ -461,14 +461,15 @@ export function HoardSheetView({
 }
 
 /** "Edit the piece's words", each find sheet's last row (page 44, TR1): the quill before the words. */
-function EditWordsRow({ onEdit }: { onEdit: () => void }) {
+export function EditWordsRow({ onEdit }: { onEdit: () => void }) {
   return <ListRow lead={<Icon name="quill-ink" size={24} />} title="Edit the piece's words" onOpen={onEdit} />;
 }
 
 /**
  * The find sheet of a Treasure piece that is one thing (sf-8; page 44, TR1 and TR2 B, D): the piece's words, then where
  * it goes, "To a character" (which one) and "To the party stash" (at once). Once sent (`went`: "Sent to Wren."): where
- * it went, and "Take it back", which acts at once and so has no arrow. "Edit the piece's words" last.
+ * it went, and "Take it back", which acts at once and so has no arrow. "Edit the piece's words" last; a thing a person
+ * carries (page 50, dec5-gaps F) has no edit row of its own (`onEdit` left out): her sheet has it.
  */
 export function FoundThingSheet({
   hoard,
@@ -489,7 +490,7 @@ export function FoundThingSheet({
   onCharacter: () => void;
   onStash: () => void;
   onTakeBack: () => void;
-  onEdit: () => void;
+  onEdit?: () => void;
   onClose: () => void;
   side?: boolean;
   preview?: boolean;
@@ -508,7 +509,7 @@ export function FoundThingSheet({
           ) : (
             <ListRow lead={<Icon name="anticlockwise-rotation" size={24} />} title="Take it back" chevron={false} onOpen={onTakeBack} />
           )}
-          <EditWordsRow onEdit={onEdit} />
+          {onEdit && <EditWordsRow onEdit={onEdit} />}
         </RowList>
       </div>
     </Dialog>

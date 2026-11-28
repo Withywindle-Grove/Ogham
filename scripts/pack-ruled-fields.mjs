@@ -11,7 +11,9 @@
 // - an item category's `singular` and an item's `looks` (K22, ⚑ 4 and ⚑ 5, 2026-11-22): words when given, else a warning;
 // - an item that starts unidentified or cursed whose id shares a word with its true name (2026-11-22): a warning;
 // - an item's `charges.unit` and `charges.units` (G-233, dg-5, dg-18): words when given, and a unit that doesn't end in
-//   "s" (a plural, or an uncountable word, given as the unit), else a warning.
+//   "s" (a plural, or an uncountable word, given as the unit), else a warning;
+// - a person's `holds` (G-228, dg-10, dg-15): an item it can't find, a qty that isn't whole and 1 or more, an item held by
+//   two people (warnings), and a person with holds whom no place names (a note).
 // Each finding has a level, error, warning or note; the checker prints them among its format notes, each starting "Error:",
 // "Warning:" or "Note:". An error makes the command exit 1 (check-pack.mjs; the lead's ruling, 2026-11-13); a warning alone
 // doesn't. A pack that uses none of the three gets nothing from here.
@@ -160,6 +162,75 @@ function chargeUnitFindings(file) {
   return found;
 }
 
+// G-228 (dg-10, dg-15; #192): what a person carries, `npcs[].holds`, each line one item (`itemId` in this pack, or
+// `itemRef` "<pack>:<item id>"), `qty` a whole number of 1 or more (1 if left out) and the book's `note`. Warnings: an
+// item this pack doesn't have (an itemRef to another pack is checked only with that pack given too, `holdsRefNotes`), a
+// line naming no item, a qty that isn't whole and 1 or more, holds that isn't a list, an item held by two people (a held
+// thing has one home). A note: a person with holds whom no place's `playerView.people` names (the app shows her nowhere).
+const MISSING_SEEN = 'the GM sees "One thing she carries isn’t in your packs."';
+/** A line's item as `{ pack, id, ref }` (pack null: this pack's itemId), or null when it names none. */
+function heldItemOf(line) {
+  if (!isObject(line)) return null;
+  if (isText(line.itemId)) return { pack: null, id: line.itemId.trim(), ref: line.itemId.trim() };
+  if (!isText(line.itemRef)) return null;
+  const ref = line.itemRef.trim();
+  const at = ref.indexOf(':');
+  return at < 0 ? { pack: null, id: ref, ref } : { pack: ref.slice(0, at).trim(), id: ref.slice(at + 1).trim(), ref };
+}
+const itemIdsOf = (file) => new Set(entriesOf(file, 'items').flatMap((item) => (isText(item.id) ? [item.id.trim()] : [])));
+
+function holdsFindings(file) {
+  const found = [];
+  const own = isText(file.meta?.id) ? file.meta.id.trim() : null;
+  const items = itemIdsOf(file);
+  const named = new Set(entriesOf(file, 'locations').flatMap((place) => (isObject(place.playerView) && Array.isArray(place.playerView.people) ? place.playerView.people.filter(isObject).map((p) => p.npcId) : [])).filter(isText).map((id) => id.trim()));
+  const holder = new Map();
+  for (const person of entriesOf(file, 'npcs')) {
+    if (person.holds === undefined) continue;
+    const at = `npcs: "${label(person)}"`;
+    if (!Array.isArray(person.holds)) {
+      found.push({ level: 'warning', text: `${at}: holds should be a list of lines ({ "itemId": … }); the app reads none.` });
+      continue;
+    }
+    person.holds.forEach((line, i) => {
+      const item = heldItemOf(line);
+      if (!item) return found.push({ level: 'warning', text: `${at}: holds line ${i + 1} names no item; give its itemId (this pack) or itemRef ("<pack>:<item id>").` });
+      const ours = item.pack === null || item.pack === own;
+      if (ours && !items.has(item.id)) found.push({ level: 'warning', text: `${at}: holds line ${i + 1} names "${item.ref}", which isn’t an item in this pack; ${MISSING_SEEN}` });
+      if (line.qty !== undefined && !(Number.isInteger(line.qty) && line.qty >= 1)) found.push({ level: 'warning', text: `${at}: holds line ${i + 1}: qty should be a whole number of 1 or more; the app reads 1.` });
+      const key = `${ours ? '' : item.pack}:${item.id}`;
+      const first = holder.get(key);
+      if (first !== undefined && first !== label(person)) found.push({ level: 'warning', text: `${at}: holds "${item.ref}", which "${first}" holds too; a held thing has one home, so list it on one person.` });
+      else holder.set(key, label(person));
+    });
+    if (person.holds.length > 0 && !(isText(person.id) && named.has(person.id.trim()))) {
+      found.push({ level: 'note', text: `${at} holds things, but no place’s playerView.people names this person, so the app shows them nowhere yet; the GM can use Add item.` });
+    }
+  }
+  return found;
+}
+
+/**
+ * Across the files given together (`[{ name, file }]`): each `holds` itemRef naming another of them by its meta id, checked
+ * against that pack's items. An itemRef to a pack not given is left alone (checked alone, it can't be seen).
+ */
+export function holdsRefNotes(packs) {
+  const byId = new Map(packs.flatMap((p) => (isText(p.file?.meta?.id) ? [[p.file.meta.id.trim(), p]] : [])));
+  const notes = [];
+  for (const p of packs) {
+    const own = isText(p.file?.meta?.id) ? p.file.meta.id.trim() : null;
+    for (const person of entriesOf(p.file, 'npcs')) {
+      if (!Array.isArray(person.holds)) continue;
+      person.holds.forEach((line, i) => {
+        const item = heldItemOf(line);
+        const other = item && item.pack !== null && item.pack !== own ? byId.get(item.pack) : undefined;
+        if (other && !itemIdsOf(other.file).has(item.id)) notes.push(`${p.name}, npcs: "${label(person)}": holds line ${i + 1} names "${item.ref}", which isn’t an item in ${other.name}; ${MISSING_SEEN}`);
+      });
+    }
+  }
+  return notes;
+}
+
 /** Common words that hint at nothing, whatever the item. */
 const COMMON_WORDS = new Set(['the', 'and', 'for', 'with', 'from', 'into', 'onto', 'its', 'his', 'her', 'their', 'that', 'this', 'not']);
 
@@ -178,7 +249,7 @@ function hintWords(text) {
 /** Every finding on the ruled fields, `{ level: 'error' | 'warning' | 'note', text }`, in file order. Never throws. */
 export function ruledFieldFindings(file) {
   if (!isObject(file)) return [];
-  return [...placeFindings(file), ...coinFindings(file), ...unidentifiedFindings(file), ...chargeUnitFindings(file)];
+  return [...placeFindings(file), ...coinFindings(file), ...unidentifiedFindings(file), ...chargeUnitFindings(file), ...holdsFindings(file)];
 }
 
 /** The findings as the checker's format notes, each starting with its level ("Error: …", "Warning: …"). */

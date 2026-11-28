@@ -228,6 +228,17 @@ export async function loadClockChanges(db: Db, campaignId: string): Promise<{ se
 }
 
 /**
+ * The places sends were made at, by their row id (dec5-gaps F, #192: "Sent before: …, at 4. The Customs Shed."): each
+ * place's name and the pack entry it was made from, for its map key. Places the reader can't read are left out.
+ */
+export async function loadSentPlaces(db: Db, ids: readonly string[]): Promise<Map<string, { name: string; packId: string | null; entryId: string | null }>> {
+  if (ids.length === 0) return new Map();
+  const { data, error } = await db.from('places').select('id, name, pack_id, pack_entry_id').in('id', [...ids]);
+  if (error || !data) return new Map();
+  return new Map((data as { id: string; name: string; pack_id: string | null; pack_entry_id: string | null }[]).map((p) => [p.id, { name: p.name, packId: p.pack_id, entryId: p.pack_entry_id }]));
+}
+
+/**
  * The coin a find put in a purse (K21, PK3), from the find's log lines this reader may read: the `find.give` line on
  * `purses`, each coin's amount after less before, where it grew. Only the purse's readers (the receiver's player and the
  * GM, or every member for the party stash; pu-9) get that line, so anyone else gets null: no amount ever reaches them
