@@ -162,6 +162,29 @@ describe("the GM's Rules sheet (01-04, 02-23)", () => {
     expect(await asPlayer(() => loadPlayersCheck(world.db, campaign))).toEqual([{ group: 1, placeName: '1 The jetty', eachMove: true, every: null, chance: { die: 'd6', on: [1] } }]);
   });
 
+  // Purpose (G-27, dg-3, user story 24): at a place whose pack says "none" and has no rules of its own, the place card
+  // still has Rules (the "none" counts as a stand-in), and the sheet shows the same card as "Checks here": "No
+  // encounters here." with its switch on, the pack's sentence and whose rule it is; switched off, encounters as usual.
+  it('a “none” place: Rules opens the same card as “Checks here”, and its switch works the same way', async () => {
+    const QUAY = { id: 'the-quay', name: '1. The Quay', type: 'site', encounterCheck: { none: true, note: 'The harbour watch keeps the quay quiet.' } };
+    world.tables.library_entries.push({ id: 'entry-the-quay', pack_id: 'pack-reed', kind: 'location', pack_entry_id: QUAY.id, name: QUAY.name, data: QUAY });
+    await world.db.rpc('start_expedition' as never, { campaign, mode_id: 'dungeon' } as never);
+    const moved = await runCommand(registry, world.db, gm(), setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: QUAY.id, name: QUAY.name, data: QUAY } });
+    if (!moved.ok) throw new Error(moved.message);
+    const trip = String(world.tables.expeditions.at(-1)!.id);
+    gmCard((await loadGroupPlaces(world.db, campaign, trip))!.get(1)!);
+    await userEvent.click(await screen.findByRole('button', { name: 'Rules' }));
+    const sheet = within(await screen.findByRole('dialog', { name: 'Rules' }));
+    const toggle = await sheet.findByRole('switch', { name: 'No encounters here.' });
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+    expect(sheet.getByText('The harbour watch keeps the quay quiet. 1. The Quay’s own rule.')).toBeTruthy();
+    expect(sheet.queryByText('This place has no rules of its own.')).toBeNull();
+    await userEvent.click(toggle);
+    expect(await screen.findByText("1. The Quay’s “No encounters here” is off. The setting's Wandering encounters applies here.")).toBeTruthy();
+    await waitFor(() => expect(sheet.getByRole('switch', { name: 'Encounters as usual here.' }).getAttribute('aria-checked')).toBe('false'));
+    expect(sheet.getByText("The setting's Wandering encounters applies here again, until you switch this back.")).toBeTruthy();
+  });
+
   it('a tap on an eye closes a rule to players at once, with Undo', async () => {
     const { row } = await atTheJetty(true);
     gmCard(row);

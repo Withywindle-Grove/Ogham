@@ -146,6 +146,15 @@ describe("the scene's candidates at a place with its own check (the tables-row f
     expect(gather({ mode: [cand('cellars-one', 'check')], own: ['bell-buoy'], place: null, rules: null })).toEqual(asItWas);
   });
 
+  // Purpose (G-27): a place's "none" in force adds no table of its own; the mode's tables stay in the list untagged,
+  // as under any stand-in check, and the GM's own checks' keep theirs.
+  it('a place’s "none" adds nothing, and the mode’s tables stay untagged', () => {
+    const gather = tableListModule.sceneCandidatesOf;
+    const quay = { packId: 'pack-reed', entryId: 'the-quay', name: '1. The Quay', data: { encounterCheck: { none: true } } };
+    const found = gather({ mode: [cand('cellars-one', 'check')], own: ['bell-buoy'], place: placeCheckOf([quay], []), rules: null });
+    expect(found).toEqual([cand('cellars-one', 'none'), cand('bell-buoy', 'check')]);
+  });
+
   // Purpose (d5-13): when the place's check names a table the mode also names, it is one row, the place's, and it is
   // the suggestion; the mode's other table stays in the list with no tag.
   it("a table the mode names too is one row, the place's; the mode's other table untagged", () => {
