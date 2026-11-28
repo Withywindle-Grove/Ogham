@@ -21,11 +21,13 @@ import { latestChange, undoChange } from '../core/undo.ts';
 import {
   GM_ONLY_RULE_WHY,
   loadRuleSwitches,
+  noEncountersWords,
   placeCheckOf,
   placeRulesOf,
   setCheckInForce,
   setRuleEye,
   type ChainEntry,
+  type PlaceCheck,
   type PlaceRuleRow,
   type PlayersRule,
   type RuleBlock,
@@ -239,7 +241,8 @@ export function PlaceRulesSheet({
         {!switches && !failed && <p className="auth__meta">Loading the rules…</p>}
         {switches && (
           <div className="place-rules">
-            {standIn && (
+            {standIn?.none && <NoEncountersCard home="sheet" standIn={standIn} setting={setting} onChange={(on) => (onBlocked ? onBlocked() : void toggleCheck(on))} />}
+            {standIn && !standIn.none && (
               <div className="place-rules__stand-in">
                 <Switch label={standIn.name} on={standIn.inForce} onChange={(on) => (onBlocked ? onBlocked() : void toggleCheck(on))} />
                 <StandInSentence standIn={standIn} setting={setting} />
@@ -337,8 +340,9 @@ export function useStandInCheck({
   const check = switches ? placeCheckOf(chain, switches) : null;
   const standIn = check?.replaces ? check : null;
   const setting = settingCheck ? `the setting's ${settingCheck}` : "the setting's encounter check";
-  // The pack's own name for its check as written; only the app's default is lowered inside a sentence.
-  const checkWords = (name: string) => (name === 'Encounter check' ? 'encounter check' : name);
+  // The pack's own name for its check as written; only the app's default is lowered inside a sentence; a "none" check's
+  // name in quotes (G-27, page 48: The Quay’s “No encounters here” is off.).
+  const checkWords = (name: string) => (standIn?.none ? `“${name}”` : name === 'Encounter check' ? 'encounter check' : name);
 
   async function toggleCheck(on: boolean) {
     if (!standIn) return;
@@ -355,6 +359,21 @@ export function useStandInCheck({
   }
 
   return { switches, failed, busy, setBusy, reread, undoLatest, stillSaving, check, standIn, setting, toggleCheck };
+}
+
+/**
+ * A "none" check's card (G-27, dg-3, dg-17; page 48): its words and the switch, on the place page's "Checks here" and
+ * the Rules sheet alike. The same switch as any stand-in check (rg-5), at once, with Undo.
+ */
+export function NoEncountersCard({ standIn, setting, onChange, home }: { standIn: Pick<PlaceCheck, 'owner' | 'inForce' | 'sentence'>; setting: string; onChange: (on: boolean) => void; home: 'page' | 'sheet' }) {
+  const words = noEncountersWords(standIn, setting);
+  // Each home keeps its own stand-in card's look: the place page's box (LA1) or the Rules sheet's.
+  return (
+    <div className={home === 'page' ? 'place-page__check' : 'place-rules__stand-in'}>
+      <Switch label={words.title} on={standIn.inForce} onChange={onChange} />
+      <p className={home === 'page' ? 'place-page__check-sentence' : 'place-rules__sentence'}>{words.line}</p>
+    </div>
+  );
 }
 
 /** The sentence under the stand-in check: whose rule it is and what it stands in for, or that it is not in force. */

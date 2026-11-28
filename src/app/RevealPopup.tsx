@@ -9,6 +9,7 @@
 // blocked-action pop-up saying where the count is rolled (Home Two's audit of #50, findings 4 and 5; Francis, 26 Nov);
 // "Tell them everything" tells every other fact (review of #50).
 import { useState } from 'react';
+import { capitalised, gmChargeUnitOf, type ChargeUnit } from '../core/chargeUnit.ts';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
@@ -40,9 +41,9 @@ export function factsOf(line: InventoryLine, entry: ResolvedEntry | null, secret
 /** A hidden count never set: the one fact the pop-up lists but can't tell yet (public.tell_item: "Set its charges first"). */
 export const countNotSet = (fact: HiddenFact, secret: { total: number | null } | null) => fact.id === 'charges' && (secret?.total ?? null) === null;
 
-/** A count never set, tapped: the blocked-action pop-up's title and its why, with where the count is rolled. */
-export const NOT_SET_TITLE = 'Set its charges first';
-export const NOT_SET_WHY = 'Its count isn’t rolled yet. Roll it under Charges on this item, from your own Pack. Then tell them.';
+/** A count never set, tapped: the blocked-action pop-up's title and its why, with where the count is rolled (in its unit). */
+export const notSetTitle = (unit: ChargeUnit) => `Set its ${unit.many} first`;
+export const notSetWhy = (unit: ChargeUnit) => `Its count isn’t rolled yet. Roll it under ${capitalised(unit.many)} on this item, from your own Pack. Then tell them.`;
 
 /** Who a tell tells, in the toast's words: the holder's name, or "the party" for the stash (K22f, 3). */
 const whoOf = (carrier: NamedCarrier) => (carrier.locationId !== null ? 'the party' : carrier.name);
@@ -50,12 +51,17 @@ const whoOf = (carrier: NamedCarrier) => (carrier.locationId !== null ? 'the par
 /** Where the item is, under the pop-up's title: "in Wren’s pack", or "in the Party stash". */
 export const whereOf = (carrier: NamedCarrier) => (carrier.locationId !== null ? 'in the Party stash' : `in ${possessive(carrier.name)} pack`);
 
-/** The toast after a tell (pick 10; K22e, K22f): "Told Wren: the Bronze ring is cursed.", the true name's (pg30-5), everything's. */
-export function toldWords(fact: HiddenFact | 'everything' | 'all but charges', line: Pick<InventoryLine, 'name'>, carrier: NamedCarrier, trueName: string): string {
+/**
+ * The toast after a tell (pick 10; K22e, K22f): "Told Wren: the Bronze ring is cursed.", the true name's (pg30-5),
+ * everything's. `gmCopy`: the GM's copy of the item's entry, whose unit the GM's toast says.
+ */
+export function toldWords(fact: HiddenFact | 'everything' | 'all but charges', line: Pick<InventoryLine, 'name'> & Partial<Pick<InventoryLine, 'details'>>, carrier: NamedCarrier, trueName: string, gmCopy?: Record<string, unknown> | null): string {
   const who = whoOf(carrier);
+  // The count's unit, as the GM's copy names it, else the line's ("the rum bottle has 2 portions left"; G-233).
+  const units = gmChargeUnitOf(gmCopy, line.details).many;
   const item = shownName(line.name);
   if (fact === 'everything') return `Told ${who} everything about ${withThe(trueName || item)}.`;
-  if (fact === 'all but charges') return `Told ${who} everything about ${withThe(trueName || item)} but its charges.`;
+  if (fact === 'all but charges') return `Told ${who} everything about ${withThe(trueName || item)} but its ${units}.`;
   if (fact.id === 'name') {
     const whose = carrier.locationId !== null ? `The party’s ${item}` : `${possessive(carrier.name)} ${item}`;
     return `Shown to the players: ${fact.detail}. ${whose} now carries its name.`;
@@ -74,8 +80,8 @@ export function toldWords(fact: HiddenFact | 'everything' | 'all but charges', l
               : `${the} has a bonus`
           : fact.id === 'charges'
             ? fact.detail
-              ? `${the} has ${fact.detail.replace(/ left$/, '')} charges left`
-              : `${possessive(the)} charges`
+              ? `${the} has ${fact.detail.replace(/ left$/, '')} ${units} left`
+              : `${possessive(the)} ${units}`
             : fact.id.startsWith('power:')
               ? `${the} has a power${fact.detail ? `: ${fact.detail}` : ''}`
               : `${possessive(the)} ${fact.label}${fact.detail ? `: ${fact.detail}` : ''}`;
@@ -117,12 +123,14 @@ export function RevealPopup({
   const tellable = left.filter((f) => !countNotSet(f, secret));
   const waiting = left.length > tellable.length;
   const where = whereOf(carrier);
+  // The GM's pop-up: the unit of the GM's copy, else the line's (piece C).
+  const unit = gmChargeUnitOf(entry?.data, line.details);
 
   function tell(fact: HiddenFact | 'everything') {
     if (busy) return;
     // "Everything" with a count never set tells the rest, as one act, and leaves the count hidden.
     const skip = fact === 'everything' && waiting;
-    const words = toldWords(skip ? 'all but charges' : fact, line, carrier, entry?.name ?? '');
+    const words = toldWords(skip ? 'all but charges' : fact, line, carrier, entry?.name ?? '', entry?.data);
     let toldOk = false;
     void run(async () => {
       const told = await runCommand(registry, db, user, tellItem, {
@@ -182,7 +190,7 @@ export function RevealPopup({
                     </div>
                   ) : notYet ? (
                     // Blocked, so it stays tappable and says why (CLAUDE.md), in the plain look approved (⚑ 3).
-                    <button type="button" className="reveal-popup__row" aria-label={`${fact.label}: Not set yet`} onClick={() => blocked.explain(NOT_SET_TITLE, NOT_SET_WHY)}>
+                    <button type="button" className="reveal-popup__row" aria-label={`${fact.label}: Not set yet`} onClick={() => blocked.explain(notSetTitle(unit), notSetWhy(unit))}>
                       {words}
                     </button>
                   ) : (
@@ -209,7 +217,7 @@ export function RevealPopup({
               </button>
             </div>
           ) : (
-            <p className="auth__meta">{waiting ? 'Set its charges first, then tell them.' : 'Nothing is left hidden.'}</p>
+            <p className="auth__meta">{waiting ? `${notSetTitle(unit)}, then tell them.` : 'Nothing is left hidden.'}</p>
           )}
         </Dialog>
         {blocked.sheet}

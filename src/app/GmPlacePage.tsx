@@ -67,10 +67,11 @@ import { KnowledgeSheet, useKnowledgeSharing } from './KnowledgeSheet.tsx';
 import type { TurnClock } from '../modules/expedition/placeKnowledge.ts';
 import { MoveOnWiring } from './MoveOn.tsx';
 import { useHoards } from './HoardSheet.tsx';
+import { usePersonThings } from './PersonSheet.tsx';
 import { AddPiece, NotesFold, PictureSection, PieceRow, usePieceNames, type DroppedWords } from './PlaceCard.tsx';
 import { BookTextFold, PlaceTable } from './PlaceFacts.tsx';
 import { PlacePicker } from './PlacePicker.tsx';
-import { PlaceRuleButtons, PlaceRulesSheet, useStandInCheck } from './PlaceRules.tsx';
+import { NoEncountersCard, PlaceRuleButtons, PlaceRulesSheet, useStandInCheck } from './PlaceRules.tsx';
 import { usePlaceActions } from './placeActions.ts';
 import { accentOwner, useHoldAccent, useStripIsPaused, useWaitingAccentItem } from './sceneWaiting.tsx';
 import { WaitingForYou } from './WaitingForYou.tsx';
@@ -332,8 +333,23 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
   };
   // B15 (page 30): a hoard's piece opens its hoard; a magic item's eye also names the item wherever it is held.
   const hoards = useHoards({ db, user, campaign, row, place: readEntry?.data ?? null, placeName: place ? numberedName(current?.key ?? null, place.name) : '', phone, turns, onEdit: editPiece, onChanged });
+  // dec5-gaps F (#192; page 50): a person's piece opens her sheet of things; her Carries line under the piece.
+  const person = usePersonThings({
+    db,
+    user,
+    campaign,
+    row,
+    pieces,
+    placePack: place?.pack?.packId ?? null,
+    placeName: place ? numberedName(current?.key ?? null, place.name) : '',
+    phone,
+    turns,
+    keyOf: (packId, entryId) => (packPlaces ? (placeOf(packPlaces, packId, entryId)?.key ?? null) : null),
+    onEdit: editPiece,
+    onChanged,
+  });
   useEffect(() => {
-    now.current = { busy: editing !== null || hoards.isOpen, pieces };
+    now.current = { busy: editing !== null || hoards.isOpen || person.isOpen, pieces };
   });
 
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
@@ -354,7 +370,7 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
   // gives none, so Move on holds it then (the model's rule 6).
   const waitingAccent = useWaitingAccentItem();
   // While a find sheet or Edit piece is open, its own button is the accent and Move on is plain (page 44, TR1's note).
-  const moveOnAccent = accentOwner({ running: !paused, page: true, waiting: waitingAccent !== null && waitingAccent !== undefined }) === 'move' && !editing && !hoards.isOpen;
+  const moveOnAccent = accentOwner({ running: !paused, page: true, waiting: waitingAccent !== null && waitingAccent !== undefined }) === 'move' && !editing && !hoards.isOpen && !person.isOpen;
 
   const total = pieces.length + (picture ? 1 : 0);
   const shownTotal = shownCount(pieces) + (picture?.shown ? 1 : 0);
@@ -458,7 +474,8 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
       <h3 className="place-page__heading">Checks here</h3>
       {/* The check's card (p2p-14; LA1): its line and toggle, then the pack's own sentence with its die, word for word;
           no sentence of the app's, in force or not (the toggle's cross and the setting's line below say it is off). */}
-      {standIn && (
+      {standIn?.none && <NoEncountersCard home="page" standIn={standIn} setting={own.setting} onChange={(on) => (reading ? notHere() : void own.toggleCheck(on))} />}
+      {standIn && !standIn.none && (
         <div className="place-page__check">
           <Switch label={<DiceWords>{checkLineWords(standIn.name, standIn.check, standIn.eachMove)}</DiceWords>} on={standIn.inForce} onChange={(on) => (reading ? notHere() : void own.toggleCheck(on))} />
           {standIn.sentence && (
@@ -582,8 +599,10 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
               named={named}
               onToggle={() => void (!piece.shown && hoards.isMagic(piece) ? hoards.showTruth(piece) : actions.togglePiece(piece))}
               onEdit={() => editPiece(piece)}
-              onOpen={hoards.opens(piece) ? () => hoards.open(piece) : undefined}
+              onOpen={hoards.opens(piece) ? () => hoards.open(piece) : person.opens(piece) ? () => person.open(piece) : undefined}
               note={hoards.noteOf(piece)}
+              // Her Carries line, or the plain words when her things can't be read (then her words open no sheet).
+              carries={person.carriesOf(piece) ? { line: person.carriesOf(piece), first: phone } : null}
             />
           ))}
         </ul>
@@ -741,6 +760,7 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
       )}
       {blocked.sheet}
       {hoards.sheets}
+      {person.sheets}
       {knowledgeOpen && <KnowledgeSheet placeName={reading ? reading.name : (place?.name ?? '')} facts={cardFacts ?? NO_FACTS} source={cardSource} sharing={sharing} onClose={() => setKnowledgeOpen(false)} />}
       {rulesOpen && <PlaceRulesSheet db={db} user={user} campaignId={campaign.id} chain={placeChain} settingCheck={settingCheck} onChanged={changed} onClose={() => setRulesOpen(false)} onBlocked={reading ? notHere : undefined} />}
       {openTable && <PlaceTable table={openTable} onClose={() => setOpenTable(null)} />}

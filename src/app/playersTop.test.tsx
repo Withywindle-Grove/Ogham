@@ -82,6 +82,22 @@ const GROTTO = {
   parentId: 'drowned-harbour',
   playerView: { text: 'Dripping stone.' },
 };
+// G-27 (dg-3): a quay where the pack says no encounters, and a step inside it the players are shown.
+const QUAY_NOTE = 'The harbour watch keeps the quay quiet.';
+const QUAY = {
+  id: 'the-quay',
+  name: 'The Quay',
+  type: 'region',
+  playerView: { text: 'Stone steps and a watch-house.' },
+  encounterCheck: { none: true, note: QUAY_NOTE },
+};
+const QUAY_STEPS = {
+  id: 'quay-steps',
+  name: '2 The quay steps',
+  type: 'site',
+  parentId: 'the-quay',
+  playerView: { name: 'Worn steps', text: 'Slick with weed.' },
+};
 
 /**
  * A GM, a player with a character, invented fen rules (a creeping turn mode with a wandering check every 2 turns, and
@@ -202,7 +218,7 @@ async function table(options: { hideExploration?: boolean; mode?: 'creep' | 'wad
     months: [{ name: 'Thawmonth', days: 28, season: 'spring' }],
     defaultStart: { month: 1, day: 1 },
   });
-  for (const data of [HARBOUR, JETTY, GROTTO])
+  for (const data of [HARBOUR, JETTY, GROTTO, QUAY, QUAY_STEPS])
     world.tables.library_entries.push({
       id: `entry-${data.id}`,
       pack_id: 'pack-reed',
@@ -409,11 +425,72 @@ describe('what has been shown to them (st-7, sf-1, mc-39b, mc-50; T9c)', () => {
         eachMove: true,
         every: null,
         chance: { die: 'd6', on: [1, 2] },
+        none: false,
       },
     ]);
     expect(await loadLastShownPlaces(world.db, campaign)).toEqual(new Map([[1, 'A jetty']]));
     const known = await world.db.rpc('known_places_campaign', { campaign });
     expect(JSON.stringify(known.data)).not.toMatch(/Tidewife|1 The jetty/);
+  });
+});
+
+describe('a place with no encounters, for a player (G-27 piece B, dg-3; page 48, 48-2 B)', () => {
+  // Purpose: a player at a shown place inside a "none" place reads "None here", "Its own rule." on the Encounter check
+  // tile, as the GM does; neither the pack's sentence nor the place's own (GM's) name reaches their screen.
+  it('reads “None here” while the place’s “none” is in force', async () => {
+    const { sam, campaign, moveTo } = await table();
+    await moveTo(QUAY_STEPS, true);
+    world.signInAs(sam);
+    expect(await loadPlayersCheck(world.db, campaign)).toEqual([{ group: 1, placeName: 'Worn steps', eachMove: false, every: null, chance: null, none: true }]);
+    await openScene(sam);
+    expect((await factNamed('Encounter check')).getAttribute('aria-label')).toBe('Encounter check: None here. Its own rule.');
+    const text = document.body.textContent ?? '';
+    for (const hidden of [QUAY_NOTE, '2 The quay steps']) expect(text).not.toContain(hidden);
+  });
+
+  // Purpose: a tap on that tile says whose rule it is, by the name the player knows: "None here. Worn steps' own rule."
+  it('opens a pop-up that says whose rule it is', async () => {
+    const { sam, moveTo } = await table();
+    await moveTo(QUAY_STEPS, true);
+    const user = await openScene(sam);
+    await user.click(await factNamed('Encounter check'));
+    const sheet = within(await screen.findByRole('dialog', { name: 'Encounter check' }));
+    expect(sheet.getByText('None here.')).toBeTruthy();
+    expect(sheet.getByText('Worn steps’ own rule.')).toBeTruthy();
+    expect(sheet.queryByText(/When\.|Chance\./)).toBeNull();
+  });
+
+  // Purpose: with the GM's switch off, the player reads the setting's check again (every 2 turns, 1 in 6).
+  it('reads the setting’s check while the GM has the “none” switched off', async () => {
+    const { gm, sam, campaign, moveTo } = await table();
+    await moveTo(QUAY_STEPS, true);
+    world.tables.place_rule_switches.push({
+      id: 'quay-off',
+      campaign_id: campaign,
+      pack_id: 'pack-reed',
+      entry_id: 'the-quay',
+      rule_id: 'encounterCheck',
+      which: 'inForce',
+      value: false,
+      undone: false,
+      rule_name: '',
+      place_name: '',
+      created_by: gm,
+      created_at: '2026-11-28T10:00:00Z',
+      updated_at: '2026-11-28T10:00:00Z',
+    });
+    world.signInAs(sam);
+    expect(await loadPlayersCheck(world.db, campaign)).toEqual([]);
+    await openScene(sam);
+    expect((await factNamed('Encounter check')).getAttribute('aria-label')).toBe('Encounter check: Every 2 turns. 1 in 6');
+  });
+
+  // Purpose: before the quay steps are shown, the player still reads the check of the last place shown to them.
+  it('keeps the last shown place’s check until the steps are shown', async () => {
+    const { sam, moveTo } = await table();
+    await moveTo(QUAY_STEPS, false);
+    await openScene(sam);
+    expect((await factNamed('Encounter check')).getAttribute('aria-label')).toBe('Encounter check: Every 2 turns. 1 in 6');
   });
 });
 

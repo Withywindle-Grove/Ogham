@@ -139,6 +139,11 @@ export interface MoveOnRead {
   groups: number;
   /** The chain of each place an obstacle's crossing passes (`barrier.through`), by its id, for its name and check. */
   throughs: Map<string, ChainEntry[]>;
+  /**
+   * The chain of each far end, by its pack id, for whether its "none" is in force (G-27, dg-4): a move into such a place
+   * asks for no check (`intoNoneOf`).
+   */
+  farChains: Map<string, ChainEntry[]>;
   /** The GM's switches on places' rules (a place's own check in force or not). */
   switches: RuleSwitch[];
   /** The pack marks the place the party is at a way out (`wayOutHere`): Move on's list ends with "End expedition" (B10). */
@@ -283,8 +288,11 @@ export async function loadMoveOn(db: Db, campaignId: string, expeditionId: strin
     }
   }
   const throughIds = [...new Set(ways.flatMap((w) => (w.barrier?.through ? [w.barrier.through] : [])))];
-  const [switches, ...chains] = await Promise.all([loadRuleSwitches(db, campaignId), ...throughIds.map((id) => loadPlaceChain(db, packId, id))]);
+  const chainIds = [...throughIds, ...farIds];
+  const [switches, ...chains] = await Promise.all([loadRuleSwitches(db, campaignId), ...chainIds.map((id) => loadPlaceChain(db, packId, id))]);
   if (!switches || chains.some((c) => c === null)) return null;
-  const throughs = new Map(throughIds.map((id, i) => [id, chains[i] as ChainEntry[]]));
-  return { here: { placeId: String(herePlace.data.id), packId, entryId: hereEntry, name: text(herePlace.data.name) }, ways, farEnds, groups: Math.max(1, groups.size), throughs, switches, wayOut, hereArea, players, playersUnread };
+  const chainOfId = (ids: readonly string[], from: number) => new Map(ids.map((id, i) => [id, chains[from + i] as ChainEntry[]]));
+  const throughs = chainOfId(throughIds, 0);
+  const farChains = chainOfId(farIds, throughIds.length);
+  return { here: { placeId: String(herePlace.data.id), packId, entryId: hereEntry, name: text(herePlace.data.name) }, ways, farEnds, groups: Math.max(1, groups.size), throughs, farChains, switches, wayOut, hereArea, players, playersUnread };
 }

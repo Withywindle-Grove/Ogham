@@ -3,7 +3,9 @@
 //   * the database takes the kind, and the GM reads each person back, leads and lines included, from the table and
 //     through campaign_library;
 //   * hidden means hidden: a player of the campaign and an outsider read no npc entry, from the table or through
-//     campaign_library, even one whose data says "gmOnly": false.
+//     campaign_library, even one whose data says "gmOnly": false;
+//   * what a person carries (`holds`, dec5-gaps F, #192; dg-13) is kept on their entry, the GM reads it, and a player
+//     never reads it before the GM sends a thing (seam 4).
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAppRegistry } from '../../src/app/commandRegistry.ts';
 import { runCommand, type CurrentUser } from '../../src/core/commands.ts';
@@ -25,6 +27,7 @@ async function as<I, T, O>(person: Person, command: Parameters<typeof runCommand
 const NAME = 'Hobb the Lantern Warden';
 const SECRET = 'Sold the quay bell to the Bog lurker';
 const OPEN_NAME = 'Old Tansy of the reeds';
+const HELD_NOTE = 'Wrapped in eel-skin under the bell rope';
 const read = () => {
   const result = readPackJson(
     JSON.stringify({
@@ -40,6 +43,7 @@ const read = () => {
           locationId: 'bh-quay',
           playerView: { description: 'A thin man with a pole and a smoking lamp.' },
           gm: { leads: [{ lead: 'Desires', text: SECRET }], lines: ['"Mind the third step."'] },
+          holds: [{ itemId: 'bh-quay-bell-key', qty: 2, note: HELD_NOTE }],
         },
         // A pack can't open a person to players: a table's "gmOnly": false (fs-1) means nothing on a person.
         { id: 'bh-npc-tansy', name: OPEN_NAME, gmOnly: false, gm: { leads: [{ lead: 'Speech', text: 'Hums.' }] } },
@@ -76,6 +80,8 @@ describe('people, a GM-only kind', () => {
     const table = (await fromTable(world.gm)).filter((e) => e.kind === 'npc');
     expect(table.map((e) => e.name).sort()).toEqual([NAME, OPEN_NAME].sort());
     expect(JSON.stringify(table)).toContain(SECRET);
+    // What he carries is kept on his entry as written (#192), for the GM's device.
+    expect(table.find((e) => e.name === NAME)?.data.holds).toEqual([{ itemId: 'bh-quay-bell-key', qty: 2, note: HELD_NOTE }]);
     const library = (await fromLibrary(world.gm)).filter((e) => e.kind === 'npc');
     expect(library.map((e) => e.name).sort()).toEqual([NAME, OPEN_NAME].sort());
   });
@@ -88,6 +94,9 @@ describe('people, a GM-only kind', () => {
         expect(raw).not.toContain(NAME);
         expect(raw).not.toContain(OPEN_NAME);
         expect(raw).not.toContain(SECRET);
+        // Nothing of what he carries, before the GM sends it (dg-13).
+        expect(raw).not.toContain(HELD_NOTE);
+        expect(raw).not.toContain('bh-quay-bell-key');
       }
     }
   });

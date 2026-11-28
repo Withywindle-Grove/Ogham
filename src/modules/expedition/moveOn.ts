@@ -80,10 +80,12 @@ export interface MoveCheck {
 /**
  * The check a move asks for: the place's own when it stands in for the setting's now (piece 3's `placeCheckOf`, in
  * force), else the setting's as the caller reads it from the mode; null when there is neither. `tableName` names the
- * table a place's check always rolls (the setting's tables are the caller's).
+ * table a place's check always rolls (the setting's tables are the caller's). Null at a place whose "none" is in force.
  */
 export function moveCheckOf(here: PlaceCheck | null, setting: MoveCheck | null, tableName?: (tableId: string) => string | null): MoveCheck | null {
   if (!here?.inForce) return setting;
+  // A "none" in force never comes due, so the move asks for no check (G-27, dg-4).
+  if (here.none) return null;
   const tableId = here.check.onHit.tableId;
   const roll = rollsItsTable(here.check) && tableId ? (tableName?.(tableId) ?? null) : null;
   return { name: here.name, chance: here.check.chance, ...(roll ? { roll } : {}) };
@@ -98,7 +100,7 @@ export function moveCheckOf(here: PlaceCheck | null, setting: MoveCheck | null, 
 export function throughCheckOf(entries: readonly ChainEntry[], packId: string, throughId: string | null, switches: readonly RuleSwitch[]): { placeName: string; chance: Chance | null } | null {
   if (!throughId) return null;
   const found = placeCheckOf(chainOf(entries, packId, throughId), switches);
-  return found && found.owner.entryId === throughId ? { placeName: found.owner.name, chance: found.check.chance } : null;
+  return found && !found.none && found.owner.entryId === throughId ? { placeName: found.owner.name, chance: found.check.chance } : null;
 }
 
 /**

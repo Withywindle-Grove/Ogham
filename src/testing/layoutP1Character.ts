@@ -47,12 +47,18 @@ const TURN = 600;
  * others leave out) and a long backstory, so Kindred, Class, the alignment and the Background each carry an entry tap.
  * `lituse`, the lantern pinned with 2 charges, lit: one row, its ring with Use (Player sitting piece 9, frame 47-3);
  * `lituselong`, the same named at length with 999 turns, 999 refills and 999 charges (47-3's messy data).
+ * `units`, counts that name their unit (G-233, page 49 frame 49-1): a Glow wand with no unit (3 of 5 charges), a Rum
+ * bottle (2 of 3 portions) and a Rum flask whose count is hidden (Portions: ?), all pinned; `unitsmessy`, 49-1's messy
+ * data: a long-named physic at 999 of 999 doses, a Salve tin whose full count is 1 (1 dose left) and a Lamp oil can
+ * counted in a vowel unit (2 of 4 ounces).
  * `1`, the four of P1. */
 /** The long-named pinned spell (`spells`, frame M4g's right panel). */
 export const P1_LONG_SPELL = 'The Lady of the Lanterns’ light on drowned stone';
 export const P1_LONG_NAME = 'Brannoch Fenward of the Seven Drowned Cairns, called the Unbowed';
 /** The long-named light (`longlight`, 35D's messy data). */
 export const P1_LONG_LIGHT = 'Hooded lantern of the drowned bell';
+/** The long-named counted thing (`unitsmessy`, page 49 frame 49-1's messy data). */
+export const P1_LONG_COUNTED = 'Black-water physic of the drowned abbey’s infirmary';
 export type P1Head =
   | 'four'
   | 'messy'
@@ -78,7 +84,9 @@ export type P1Head =
   | 'details'
   | 'spells'
   | 'lituse'
-  | 'lituselong';
+  | 'lituselong'
+  | 'units'
+  | 'unitsmessy';
 
 export async function addP1Character(
   world: FakeWorld,
@@ -296,6 +304,18 @@ export async function addP1Character(
     line('line-p1-arrows', 'Reed arrows', { category: 'ammunition', weight_coin: 1, qty: 18, stack: 20, source_entry_id: 'reed-arrows' });
     line('line-p1-axe', 'Hand axe of the Seven Cairns, twice reforged', { category: 'weapon', weight_coin: 30, pinned: true, item_data: { slot: 'hand', weapon: { damage: '1d6', modes: modes('grip', [{ id: 'one', name: 'One hand' }, { id: 'two', name: 'Two hands', damage: '1d8' }]) } } });
     line('line-p1-wand', 'Heron wand', { category: 'wand', weight_coin: 1, pinned: true, item_data: { charges: { initial: '2d4' } }, charges_left: 5 });
+  }
+  // Counts that name their unit (G-233, page 49 frame 49-1), each pinned to At hand. Invented.
+  const counted = (unit: Record<string, unknown>, initial: number) => ({ category: 'gear', weight_coin: 1, pinned: true, item_data: { charges: { initial, ...unit } } });
+  if (head === 'units') {
+    line('line-p1-glow', 'Glow wand', { ...counted({}, 5), category: 'wand', charges_left: 3 });
+    line('line-p1-rum', 'Rum bottle', { ...counted({ unit: 'portion' }, 3), charges_left: 2 });
+    line('line-p1-flask', 'Rum flask', { ...counted({ unit: 'portion' }, 3), charges_hidden: true });
+  }
+  if (head === 'unitsmessy') {
+    line('line-p1-physic', P1_LONG_COUNTED, { ...counted({ unit: 'dose' }, 999), charges_left: 999 });
+    line('line-p1-salve', 'Salve tin', { ...counted({ unit: 'dose' }, 1), charges_left: 1 });
+    line('line-p1-oilcan', 'Lamp oil can', { ...counted({ unit: 'ounce' }, 4), charges_left: 2 });
   }
   // Several ready weapons (frame P5b; pib-1, pib-2): a third in hand with a long name and its Grip, horns worn ready and
   // pinned (Attack and Stance, a row), a bow pinned with its quiver (Wield and Quiver, a row). Invented.

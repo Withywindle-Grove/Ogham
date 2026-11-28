@@ -251,7 +251,7 @@ describe('the light in At hand (dec-13 C9)', () => {
     const light = use.closest('.light-block')!;
     expect(light).not.toBeNull();
     expect(within(light as HTMLElement).getByRole('button', { name: 'Put out Storm lantern' })).toBeTruthy();
-    expect(within(light as HTMLElement).getByText('Lit, 4 turns left. 3 refills left. 2 charges left')).toBeTruthy();
+    expect(within(light as HTMLElement).getByText('Lit, 4 turns left. 3 refills left. 2 of 3 charges')).toBeTruthy();
     const order = (el: Element) => [...atHand.querySelectorAll('*')].indexOf(el);
     expect(order(within(atHand).getAllByRole('button', { name: /^Eel knife/ })[0]!)).toBeLessThan(order(use));
     // Its ring is the only Put out, and there's one Use.

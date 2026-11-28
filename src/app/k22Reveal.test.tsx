@@ -514,6 +514,21 @@ describe('A name that ends in s takes the mark alone (Home Two’s audit of #50,
   });
 });
 
+describe('the Reveal pop-up’s words in the count’s unit (G-233, page 49 frame 49-3)', () => {
+  const wren = { campaignId: 'c', actorId: 'a', locationId: null, ownerUserId: 'u', archived: false, name: 'Wren' };
+  const rum = { name: 'Rum bottle', details: { charges: { initial: 3, unit: 'portion' } } };
+
+  // Purpose: the toast after telling the count names the unit ("the Rum bottle has 2 portions left"), and the line's
+  // copy with no unit keeps "charges".
+  it('"Told Wren: the Rum bottle has 2 portions left."', () => {
+    const count = { id: 'charges' as const, label: 'Its portions', detail: '2 of 3 left' };
+    expect(toldWords(count, rum, wren, '')).toBe('Told Wren: the Rum bottle has 2 of 3 portions left.');
+    expect(toldWords({ ...count, detail: '' }, rum, wren, '')).toBe('Told Wren: the Rum bottle’s portions.');
+    expect(toldWords('all but charges', rum, wren, '')).toBe('Told Wren everything about the Rum bottle but its portions.');
+    expect(toldWords({ ...count, label: 'Its charges' }, { name: 'Rum bottle', details: {} }, wren, '')).toBe('Told Wren: the Rum bottle has 2 of 3 charges left.');
+  });
+});
+
 describe('A name that starts with "The" gets no second "the"', () => {
   const holder = { campaignId: 'c', actorId: 'a', locationId: null, ownerUserId: 'u', archived: false, name: 'Wren' };
 

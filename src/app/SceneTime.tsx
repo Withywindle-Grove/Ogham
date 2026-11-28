@@ -23,6 +23,7 @@
 // (useSticky) and links there when something is on it.
 import { partyMembersOf } from './partyMembers.ts';
 import { STORED_SEPARATOR } from '../core/storedWords.ts';
+import { possessive } from '../core/nameWords.ts';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { isGm, runCommand, type Command, type CurrentUser } from '../core/commands.ts';
 import { loadCampaignSettings, updateCampaign } from '../core/campaignCommands.ts';
@@ -135,7 +136,7 @@ import { advanceBy, checkNow, encounterCheckOf, hourTrackNow, needsSeason, nextS
 import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { BookFaces } from '../ui/BookFaces.tsx';
 import { DiceWords } from '../ui/dice.tsx';
-import { bandHeading, checkFact, checkSheetLines, checkRule, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, lightSheetLines, NO_LIGHT_WORDS, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, restSheetLines, seasonIconOf, settingRule, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
+import { bandHeading, checkFact, checkSheetLines, checkRule, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, lightSheetLines, NO_LIGHT_WORDS, noneCheckFact, noneSheetLines, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, restSheetLines, seasonIconOf, settingRule, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
 import { ENCOUNTER_MARK } from './encounterMark.ts';
 import { BandTool, BandTools, DepartButton, FactSheet, FactsRow, NextTurnButton, SceneBand, SessionButton, type DateLine } from './SceneBand.tsx';
 import { useSceneTopOpen } from './sceneTopOpen.ts';
@@ -681,6 +682,9 @@ export function SceneTime({
     () => (placeCheckRead ? placeCheckOf(placeCheckRead.chain, placeCheckRead.switches, (id) => tables.get(id)?.name ?? null) : null),
     [placeCheckRead, tables],
   );
+  // A place whose "none" is in force (G-27, dg-2): nothing comes due here (a move INTO such a place asks for no check,
+  // dg-4: Move on reads that from the far end, `intoNoneOf`).
+  const noneHere = placeCheck?.inForce === true && placeCheck.none;
 
   useEffect(() => {
     let current = true;
@@ -909,8 +913,10 @@ export function SceneTime({
             party: partyMembersOf(setting, marchers),
             // A place's own check standing in (pf-12b; off with the GM's toggle, rg-5); one rolled on each move is
             // never raised by the clock (Encounter check in ⋯ still rolls it by hand).
-            locationCheck: placeCheck?.inForce ? placeCheck.check : null,
-            locationCheckOnMove: placeCheck?.inForce ? placeCheck.eachMove : false,
+            // A place's "none" in force (G-27, dg-2) stands in too, and never comes due.
+            locationCheck: placeCheck?.inForce && !placeCheck.none ? placeCheck.check : null,
+            locationCheckOnMove: placeCheck?.inForce && !placeCheck.none ? placeCheck.eachMove : false,
+            locationNone: noneHere,
           },
         }
       : null;
@@ -1448,6 +1454,8 @@ export function SceneTime({
   /** The lines of a move's encounter check (dec-4 piece d), one per group, at the time the move lands. */
   function moveCheckLines(command: MoveCommand, at: number): CardLine[] {
     const through = command.moveOn.throughCheck ?? null;
+    // Into a place whose "none" is in force the move asks for no check (dg-4); a crossing's own check still rolls.
+    if (command.moveOn.intoNone && !through) return [];
     const base = running();
     // The move's own check by name, with the passing place's chance and table (frame 13: "Encounter check, with the
     // breakwater’s chance").
@@ -1462,6 +1470,7 @@ export function SceneTime({
   // this render's mover and check on the GM's full strip (not the compact one); `move` resolves true only once the
   // clock has moved.
   const moveCheckEngine = gm && !compact ? checkEngine(running()) : null;
+  // Check now's read: at a "none" place the setting's check, so a move out of it asks for that (dg-2, dg-4).
   const moveCheckFirst = moveCheckEngine ? checkNow(moveCheckEngine).prompts.find((p) => p.kind === 'check') : undefined;
   // A check with a table and no chance is a roll on that table (p2p-19, B9): the sheet's Then line names the table.
   const moveRollTable = moveCheckFirst && moveCheckFirst.kind === 'check' && moveCheckFirst.always ? moveCheckFirst.hit.tables[0] : undefined;
@@ -1491,7 +1500,7 @@ export function SceneTime({
         if (!made) return false;
         placeId = made.id;
       }
-      const moveOn = { placeId, turns: time.turns, way: request.way, throughCheck: request.throughCheck ?? null };
+      const moveOn = { placeId, turns: time.turns, way: request.way, throughCheck: request.throughCheck ?? null, intoNone: request.intoNone === true };
       return withSeason((engine) => advanceBy(engine, { value: time.turns, unit: 'turn' }), `Moved to ${request.to.name}`, { moveOn });
     },
     // Move on's "End expedition" at a Location the pack marks a way out (B10, p2p-22): it ends the expedition as the
@@ -2167,7 +2176,10 @@ export function SceneTime({
             // A player's: the last shown place's own check where it stands in (mc-39b, mc-50; the database sends when
             // it's rolled and its chance only), else the setting's from the rules set as the player's copy has it.
             const shownCheck = gm ? undefined : playersChecks.find((c) => c.group === myGroupNumber);
+            // A "none" in force at the shown place (G-27 piece B, dg-3): "None here", as the GM's tile.
+            if (shownCheck?.none) return noneCheckFact();
             if (shownCheck) return checkFact({ name: null, eachMove: shownCheck.eachMove, every: shownCheck.every, chance: shownCheck.chance, fallbackUnit: stepWord });
+            if (gm && noneHere) return noneCheckFact();
             const inForce = engine ? encounterCheckOf(engine) : null;
             if (!inForce) return null;
             return checkFact({ name: inForce.source === 'location' ? (placeCheck?.name ?? null) : null, eachMove: inForce.eachMove, every: inForce.check.every, chance: inForce.check.chance, fallbackUnit: stepWord });
@@ -2182,6 +2194,8 @@ export function SceneTime({
   const bandRest = bandFacts.find((f) => f.id === 'rest') ?? null;
   // A player's Encounter check pop-up (PL8): the setting's check's words where the player's copy opens them; none for
   // the shown place's own check, whose read sends when and chance only (⚑ on P10: its words would widen that read).
+  // A player's shown place whose "none" is in force (G-27 piece B): its pop-up says whose rule it is.
+  const playersNone = gm ? undefined : playersChecks.find((c) => c.group === myGroupNumber && c.none);
   const playersCheckRule = (() => {
     if (gm || !mode || !engine || playersChecks.some((c) => c.group === myGroupNumber)) return [];
     const inForce = encounterCheckOf(engine);
@@ -2674,7 +2688,7 @@ export function SceneTime({
       {restAbout && bandRest && (
         <FactSheet title="Rest" lines={restSheetLines(bandRest, mode?.rest ? restEveryWords(mode.rest) : null)} rule={settingRule(restWords.filter((w) => w !== REST_ANSWER_WORDS), mode?.rest?.source)} onClose={() => setRestAbout(false)} />
       )}
-      {asking === 'check' && bandCheck && <FactSheet title={bandCheck.label} lines={checkSheetLines(bandCheck)} rule={playersCheckRule} onClose={() => setAsking(null)} />}
+      {asking === 'check' && bandCheck && <FactSheet title={bandCheck.label} lines={playersNone ? noneSheetLines(playersNone.placeName) : checkSheetLines(bandCheck)} rule={playersCheckRule} onClose={() => setAsking(null)} />}
     </BookFaces>
   );
 
@@ -2944,7 +2958,7 @@ export function SceneTime({
           {asking === 'check' && bandCheck && gm && (
             <Dialog label={bandCheck.label} onClose={() => setAsking(null)}>
               <p className="time-strip__notes">
-                <DiceWords>{`${bandCheck.value}${bandCheck.sub ? `, ${bandCheck.sub}` : ''}.`}</DiceWords>
+                <DiceWords>{gm && noneHere && placeCheck ? `${bandCheck.value}. ${possessive(placeCheck.owner.name)} own rule.` : `${bandCheck.value}${bandCheck.sub ? `, ${bandCheck.sub}` : ''}.`}</DiceWords>
               </p>            </Dialog>
           )}
           {asking === 'checklist' && mode && <ProcedureList mode={mode} card={card} recorded={recorded} gm={gm} onClose={() => setAsking(null)} />}
@@ -3445,4 +3459,4 @@ function OfferMover({ mover, check }: { mover: SceneMover; check: MoveCheck | nu
 type ClockCommand = typeof advanceTime | typeof advanceTimeBy | typeof nextPartOfDay;
 
 /** Move on (5b-0): a move between linked places, run as the clock's advance by its turns (pt-f2). */
-type MoveCommand = { moveOn: { placeId: string; turns: number; way: MoveRequest['way']; throughCheck: MoveRequest['throughCheck'] } };
+type MoveCommand = { moveOn: { placeId: string; turns: number; way: MoveRequest['way']; throughCheck: MoveRequest['throughCheck']; intoNone: boolean } };
