@@ -18,7 +18,7 @@ import { BaseArmourChoice } from '../BaseArmour.tsx';
 import { loadCampaignSetting, type CampaignSetting } from '../campaignSetting.ts';
 import { figureSourceOf } from '../CharacterSheet.tsx';
 import type { characterFigures } from '../fromSetting.ts';
-import { HpInPlace } from '../HpInPlace.tsx';
+import { HpInPlace, type ShownHp } from '../HpInPlace.tsx';
 import { useSeesAsGm } from '../playerView.ts';
 import { lineNow, pickBaseArmour } from '../pickBase.ts';
 import { registry } from '../services.ts';
@@ -44,7 +44,7 @@ export function PlayerVitals({
   onSaved,
   onMaxSaved,
   onAcSaved,
-  onHpShown,
+  hpShown,
 }: {
   db: Db;
   user: CurrentUser;
@@ -64,8 +64,8 @@ export function PlayerVitals({
   onMaxSaved?: () => void;
   /** The AC was set by hand or cleared, so the play state is read again. */
   onAcSaved?: () => void;
-  /** The hit points the box shows, each time they move (the head's Down ring, pss-7). */
-  onHpShown?: (hp: number | null) => void;
+  /** The hit points the box shows, kept by the Player screen for the head's Down ring (pss-7). */
+  hpShown?: ShownHp;
 }) {
   const toast = useToast();
   const seesAsGm = useSeesAsGm(user, character.campaignId);
@@ -184,7 +184,7 @@ export function PlayerVitals({
 
   return (
     <section className="vitals" aria-label="Vitals">
-      <HpInPlace db={db} user={user} character={character} downAt={downAt} onSaved={onSaved} onMaxSaved={onMaxSaved} onShown={onHpShown} />
+      <HpInPlace db={db} user={user} character={character} downAt={downAt} onSaved={onSaved} onMaxSaved={onMaxSaved} shown={hpShown} />
       {(showAc || attackShown !== null) && (
         <StatRow>
           {showAc &&

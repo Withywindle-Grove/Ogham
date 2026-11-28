@@ -29,7 +29,6 @@ import { Icon } from '../ui/icons.tsx';
 import { PinnedMark, PinnedName, WarningLine } from '../ui/parts.tsx';
 import { ItemSheet, useItemSheetState } from './ItemSheet.tsx';
 import { ItemAction } from './ItemAction.tsx';
-import type { LightUse } from './LightSection.tsx';
 import { usePlayerView } from './playerView.ts';
 import { RollFigures, RollLines } from './WeaponInHand.tsx';
 import { registry } from './services.ts';
@@ -56,7 +55,6 @@ export function ItemRow({
   inHand = false,
   sheetOnly = false,
   sheetAlone = false,
-  lightRow = null,
   busy,
   run,
   entry,
@@ -183,13 +181,11 @@ export function ItemRow({
   inHand?: boolean;
   /** Its sheet only, with no row (dec-13 C9): the burning light's line in At hand, opened from the light's name. */
   sheetOnly?: boolean;
-  /** With `sheetOnly`: the line isn't At hand itself, only added for its sheet, so it never draws a row. */
-  sheetAlone?: boolean;
   /**
-   * With `sheetOnly`: the lit light's line, At hand itself with charges (Player sitting piece 9, frame 47-3; pss-17, C2,
-   * D1). Its row is the light's, given the charges' words and this row's Use; the item's own row is not drawn.
+   * With `sheetOnly`: the line never draws a row. It isn't At hand itself, only added for its sheet; or it is the lit
+   * light's line with Use a charge, whose row is the light's (Player sitting piece 9, `LitLightUse`).
    */
-  lightRow?: ((use: LightUse | null) => ReactNode) | null;
+  sheetAlone?: boolean;
   busy: boolean;
   run: Run;
 }) {
@@ -401,7 +397,7 @@ export function ItemRow({
           atHand={popupTop}
         />
   );
-  // Use a charge's button, on this row or on the lit light's row (piece 9).
+  // Use a charge's button on this row (the lit light's row carries its own, `LitLightUse`).
   const useButton = action && (
     <ItemAction
       key="use"
@@ -413,15 +409,6 @@ export function ItemRow({
       onClick={spendCharge}
     />
   );
-  // The lit light's line, At hand itself with charges (piece 9): one row, the light's, with the charges at the end of
-  // its line and Use beside its ring; the sheet with it.
-  if (sheetOnly && !sheetAlone && lightRow)
-    return (
-      <li className="pack__light">
-        {lightRow({ words: chargeText, button: useButton || null })}
-        {itemSheet}
-      </li>
-    );
   // The burning light's line in At hand: the sheet alone (it portals out), the light's rows standing for the row. It
   // keeps its row (without a light button) only when it is At hand itself and has Use a charge (not lit: C2).
   if (sheetOnly && (sheetAlone || !action)) return <>{itemSheet}</>;

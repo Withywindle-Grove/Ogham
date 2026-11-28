@@ -57,10 +57,10 @@ export function RollFigures({ rolls }: { rolls: readonly AttackRoll[] }) {
  * the true minus ("d6 +2", "d4 −1"), and the words beside. The pinned spell's block's roll (frame M4g, "d6 +2 turns").
  */
 export function diceFace(dice: string, label: string): RollFace {
-  const m = /^\s*(\d*d\d+)\s*(?:([+-])\s*(\d+))?\s*$/i.exec(dice);
-  if (!m) return { die: dieOf(dice), figure: dice.trim(), label };
-  const adds = m[2] ? ` ${m[2] === '-' ? '−' : '+'}${m[3]}` : '';
-  return { die: dieOf(dice), figure: `${m[1]!.replace(/^1(?=d\d)/i, '')}${adds}`, label };
+  const [, die, sign, sum] = /^\s*(\d*d\d+)\s*(?:([+-])\s*(\d+))?\s*$/i.exec(dice) ?? [];
+  if (die === undefined) return { die: dieOf(dice), figure: dice.trim(), label };
+  const adds = sign ? ` ${sign === '-' ? '−' : '+'}${sum}` : '';
+  return { die: dieOf(dice), figure: `${die.replace(/^1(?=d\d)/i, '')}${adds}`, label };
 }
 
 /**

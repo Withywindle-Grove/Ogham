@@ -12,7 +12,7 @@ import type { Run } from './packHelpers.ts';
 import { registry } from './services.ts';
 
 /** The words of Use a charge's toast. Never a count: hidden charges stay hidden (hard rule 5). */
-export function chargeUsedWords(name: string, spent: boolean): string {
+function chargeUsedWords(name: string, spent: boolean): string {
   return spent ? `Nothing happens. ${shownName(name)} seems spent.` : `Used a charge of ${shownName(name)}.`;
 }
 

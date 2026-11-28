@@ -28,10 +28,10 @@ export interface PinnedSpellsInput {
  * (psb-6), "Memorized, 0 of 2 left" with none left; "Not memorized" for a spell in the book not ready today. The pack
  * format has no word of its own for it yet (⚑ in #168's report), so these are the frame's words.
  */
-export const pinnedSpellState = (block: Pick<PinnedSpellBlock, 'ready' | 'left' | 'times'>) => (block.ready ? `Memorized, ${block.left} of ${block.times} left` : 'Not memorized');
+const pinnedSpellState = (block: PinnedSpellBlock) => (block.ready ? `Memorized, ${block.left} of ${block.times} left` : 'Not memorized');
 
 /** Why Cast can't cast (hard rule 10, psb-5): the blocked-action pop-up's line. */
-export function cantCastWords(block: Pick<PinnedSpellBlock, 'ready'>, name: string, choosesAtOnce: boolean): string {
+function cantCastWords(block: PinnedSpellBlock, name: string, choosesAtOnce: boolean): string {
   if (block.ready) return `There are no castings of it left today. ${name} is ready again after you rest.`;
   return choosesAtOnce ? `${name} isn't ready today. Choose it in Prepare: what you choose is ready at once.` : `${name} isn't ready today. Choose it in Prepare; it's ready after you rest.`;
 }
@@ -44,7 +44,7 @@ export function pinnedSpellsOf({ setting, figures, character, play }: Omit<Pinne
   if (!play.pins.some((p) => p.kind === 'spell')) return [];
   const source = prepareSource(setting, figures, character);
   const bookLevel = (spell: string) => [...source.candidates].find(([, ids]) => ids.includes(spell))?.[0] ?? null;
-  return pinnedSpellBlocks(play.pins, play, (spell) => bookLevel(spell) !== null).map((block) => ({ ...block, readAt: block.level ?? bookLevel(block.spell) ?? 1 }));
+  return pinnedSpellBlocks(play.pins, play, (spell) => bookLevel(spell) !== null).map((block) => ({ ...block, readAt: (block.ready ? block.level : bookLevel(block.spell)) ?? 1 }));
 }
 
 /**
@@ -74,9 +74,10 @@ export function PinnedSpells({
 
   function cast(b: (typeof blocks)[number]) {
     const name = choiceOf(b).name;
-    if (b.castLevel === null) return blocked.explain(`Can't cast ${name}`, cantCastWords(b, name, firstSpellsOpen(play)));
+    const level = b.ready ? b.castLevel : null;
+    if (level === null) return blocked.explain(`Can't cast ${name}`, cantCastWords(b, name, firstSpellsOpen(play)));
     setOpen(null);
-    void castNow(b.spell, b.castLevel, name);
+    void castNow(b.spell, level, name);
   }
 
   return (
@@ -117,7 +118,7 @@ export function PinnedSpells({
           facts={facts}
           choice={choiceOf(shown)}
           spell={shown.spell}
-          onCast={shown.castLevel === null ? null : () => cast(shown)}
+          onCast={shown.ready && shown.castLevel !== null ? () => cast(shown) : null}
           onClose={() => setOpen(null)}
           onChanged={onChanged}
         />

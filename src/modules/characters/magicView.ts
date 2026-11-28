@@ -72,19 +72,23 @@ export function magicTabLevels(play: Pick<CharacterPlay, 'prepared' | 'spellsCas
   return [...levels].sort(([a], [b]) => a - b).map(([level, rows]) => ({ level, slots: slots[level - 1] ?? 0, rows }));
 }
 
-/** One pinned spell's block At hand (Player sitting piece 2; frame M4g): the spell, and its castings today. */
-export interface PinnedSpellBlock {
-  spell: string;
-  /** Ready today at some level; a spell in the book but not ready keeps its block (psb-5). */
-  ready: boolean;
-  /** Castings today, every level together (psb-6: one block for the spell). */
-  times: number;
-  left: number;
-  /** The lowest level it is ready at, for its name and facts; null when not ready (the caller reads the book's). */
-  level: number | null;
-  /** The level Cast spends: the lowest with a casting left, as the Magic tab's first row for it; null with none. */
-  castLevel: number | null;
-}
+/**
+ * One pinned spell's block At hand (Player sitting piece 2; frame M4g): the spell, and its castings today. A spell in
+ * the book but not ready today keeps its block, with no castings and no level (psb-5); the caller reads the book's.
+ */
+export type PinnedSpellBlock =
+  | { spell: string; ready: false }
+  | {
+      spell: string;
+      ready: true;
+      /** Castings today, every level together (psb-6: one block for the spell). */
+      times: number;
+      left: number;
+      /** The lowest level it is ready at, for its name and facts. */
+      level: number;
+      /** The level Cast spends: the lowest with a casting left, as the Magic tab's first row for it; null with none. */
+      castLevel: number | null;
+    };
 
 /**
  * The pinned spells At hand, in the pins' order (pss-5, psb-5, psb-6). Pins are read through `livePins`: a spell pin is
@@ -94,11 +98,13 @@ export interface PinnedSpellBlock {
 export function pinnedSpellBlocks(pins: readonly Pin[], play: Pick<CharacterPlay, 'prepared' | 'spellsCast'>, inBook: (spell: string) => boolean): PinnedSpellBlock[] {
   const ready = readySpells(play);
   const live = livePins(pins, { spell: (key) => inBook(key) || ready.some((r) => r.spell === key), trait: () => false });
-  return live.map(({ key }) => {
+  return live.map(({ key }): PinnedSpellBlock => {
     const rows = ready.filter((r) => r.spell === key);
+    const first = rows[0];
+    if (!first) return { spell: key, ready: false };
     const times = rows.reduce((n, r) => n + r.times, 0);
     const left = rows.reduce((n, r) => n + r.times - r.cast, 0);
-    return { spell: key, ready: rows.length > 0, level: rows[0]?.level ?? null, times, left, castLevel: rows.find((r) => r.times > r.cast)?.level ?? null };
+    return { spell: key, ready: true, level: first.level, times, left, castLevel: rows.find((r) => r.times > r.cast)?.level ?? null };
   });
 }
 

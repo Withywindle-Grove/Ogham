@@ -309,7 +309,7 @@ describe('the pinned spells At hand (Player sitting piece 2; pss-5, psb-5, psb-6
   it('in the book, not ready: kept; gone from the book: ignored; traits: not here', () => {
     const play = { prepared: [], spellsCast: {} };
     const pins = [{ kind: 'trait' as const, key: 'Bird friend' }, pin('gone-spell'), pin('thorn-dart')];
-    expect(pinnedSpellBlocks(pins, play, book('thorn-dart'))).toEqual([{ spell: 'thorn-dart', ready: false, level: null, times: 0, left: 0, castLevel: null }]);
+    expect(pinnedSpellBlocks(pins, play, book('thorn-dart'))).toEqual([{ spell: 'thorn-dart', ready: false }]);
   });
 
   // Purpose: a spell ready at two levels is one block counting both, and Cast spends the lowest level with a casting

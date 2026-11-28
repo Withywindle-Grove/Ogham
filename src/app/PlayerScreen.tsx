@@ -4,7 +4,8 @@ import type { MyCharacter } from '../core/myCharacters.ts';
 import type { Db } from '../core/supabase.ts';
 import { attackFigures } from '../modules/characters/sheetCombat.ts';
 import { cardLine, shortLabel, type FieldDefinition } from '../modules/characters/fields.ts';
-import { downAtOf, shownHp } from '../modules/characters/hp.ts';
+import { downAtOf } from '../modules/characters/hp.ts';
+import { useShownHp } from './HpInPlace.tsx';
 import { combatFields, skillsOf } from '../modules/characters/play.ts';
 import { CentredPopUpScope, SheetScope } from '../ui/Dialog.tsx';
 import { limitedAbilities, loadCharacterPlay, pinnedNames, powersWithUses, type CharacterPlay, type LimitedAbility } from '../modules/characters/playState.ts';
@@ -282,10 +283,9 @@ export function PlayerScreen({
     }
     return <TopRow campaign={{ db, campaign }} onBack={onBack} menuLabel="Character options" drawer={campaign.name} title={title} logTab standard />;
   };
-
-  // The figure the hit points box shows, as it moves (a tap counts at once, before the burst is sent): the head's Down
-  // ring follows it (pss-7).
-  const [hpShown, setHpShown] = useState<number | null>(() => shownHp(character.hpCurrent, character.hpMax));
+  // The figure the hit points box shows, as it moves (a tap counts at once, before the burst is sent): one copy, kept
+  // here and handed to the box (PlayerVitals), so the head's Down ring follows it (pss-7).
+  const hpShown = useShownHp(character);
 
   if (companyOpen) {
     return (
@@ -453,7 +453,7 @@ export function PlayerScreen({
               onPortraitSaved={onDataChange}
               onOpenLog={() => select('log')}
               notices={wide ? undefined : <div className="player-head__notices" ref={setNoticesSlot} />}
-              hp={hpShown}
+              hp={hpShown[0]}
               downAt={downAt}
             />
             <PlayerVitals
@@ -466,7 +466,7 @@ export function PlayerScreen({
               worn={worn}
               acOverride={play?.acOverride ?? null}
               downAt={downAt}
-              onHpShown={setHpShown}
+              hpShown={hpShown}
               onSaved={onHpChange}
               onMaxSaved={onDataChange}
               onAcSaved={() => setPlayVersion((v) => v + 1)}

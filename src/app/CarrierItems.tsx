@@ -12,7 +12,7 @@ import { groupPack, packGroupsWithTiny, withThe } from '../modules/inventory/pac
 import type { CampaignPack } from '../modules/library/campaignPacks.ts';
 import type { ResolvedEntry } from '../modules/library/stack.ts';
 import type { OpenCampaign } from './Campaigns.tsx';
-import { lineInPlay, type CampaignSetting } from './campaignSetting.ts';
+import { lineInPlay, offReasonOf, type CampaignSetting } from './campaignSetting.ts';
 import { asItem, equippedProblems, loadEquipContext, type EquipContext } from './EquipWarning.tsx';
 import { allowedByRule, castingStoppedBy, classAllowsWeapon, equipBlocks } from '../modules/inventory/equipWarnings.ts';
 import { ItemRow } from './ItemRow.tsx';
@@ -24,7 +24,7 @@ import { foldSummary, itemCount, type Run } from './packHelpers.ts';
 import { tinyCountsNothing } from '../modules/inventory/packView.ts';
 import { FoldedGroup } from '../ui/creation.tsx';
 import { lightState } from '../modules/expedition/lightPlay.ts';
-import type { CharacterLightView, LightUse } from './LightSection.tsx';
+import type { CharacterLightView } from './LightSection.tsx';
 import { attackRange, attackRules, inflictedBy, modeState, weaponModesOf, withMode, type ModeState } from '../modules/inventory/weaponModes.ts';
 import { conditionsOf } from '../modules/expedition/statusPlay.ts';
 import { HIDDEN_FROM_PLAYER, magicNoteLines, weaponMagic, type AttackPart, type AttackRoll, type WeaponMagic } from '../modules/characters/play.ts';
@@ -165,7 +165,6 @@ export function CarrierItems({
   inHand = false,
   sheetOnly = null,
   sheetAlone = false,
-  lightRow = null,
   light = null,
   categoryName = (id: string) => id,
   weaponLine,
@@ -211,10 +210,11 @@ export function CarrierItems({
    * light's, whose rows stand for it and whose name opens this sheet (frame P1).
    */
   sheetOnly?: string | null;
-  /** The `sheetOnly` line was added only for its sheet (it isn't At hand itself): never a row, whatever its actions. */
+  /**
+   * The `sheetOnly` line never draws a row, whatever its actions: added only for its sheet (it isn't At hand itself),
+   * or lit with Use a charge, its row the light's (Player sitting piece 9, `LitLightUse`).
+   */
   sheetAlone?: boolean;
-  /** The `sheetOnly` line's row is the lit light's, carrying its Use (Player sitting piece 9; ItemRow's `lightRow`). */
-  lightRow?: ((use: LightUse | null) => ReactNode) | null;
   /** The character's light (the Player screen's), for a light's Light or Put out on its At hand row (Design on #552). */
   light?: CharacterLightView | null;
   /** An item category's friendly name (the "Other" section's groups). */
@@ -371,7 +371,7 @@ export function CarrierItems({
                   const now = lineInPlay(setting, raw);
                   const line = now.details === raw.details ? raw : { ...raw, details: now.details };
                   const entry = items.find((e) => e.packId === line.sourcePackId && e.packEntryId === line.sourceEntryId) ?? null;
-                  const offReason = now.off ? `${line.name} is off under ${now.off.replace(/^Off: /, '')}: it can't be worn, held or used.` : null;
+                  const offReason = offReasonOf(line.name, now.off);
                   // A weapon's modes (ah-3, G-211): the one in use feeds the figure, its parts and the rules that bear; its
                   // stack is looked for in everything the character carries.
                   const item = { ...(entry?.data ?? {}), ...line.details, category: line.category };
@@ -428,7 +428,6 @@ export function CarrierItems({
                     inHand={inHand}
                     sheetOnly={line.id === sheetOnly}
                     sheetAlone={line.id === sheetOnly && sheetAlone}
-                    lightRow={line.id === sheetOnly ? lightRow : null}
                     lightAction={atHand ? lightFor(line) : null}
                     // The Player tab's At hand pop-up shows a burning light's time and refills (tfh-3; page M2, M2n).
                     lightFacts={atHand && playerAtHand ? lightFactsOf(light, line.id) : []}

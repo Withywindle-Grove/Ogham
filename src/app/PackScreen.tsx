@@ -49,6 +49,7 @@ import { coinLine, denominationsOf, readCost } from '../modules/inventory/coinWo
 import { purchaseToast } from './purchaseToast.ts';
 import { loadPurse, loadStashCoin, type Coins } from '../modules/inventory/purse.ts';
 import type { CharacterLightView, LightUse } from './LightSection.tsx';
+import { LitLightUse } from './LitLightUse.tsx';
 import { registry } from './services.ts';
 import { usePlayerView } from './playerView.ts';
 
@@ -405,11 +406,11 @@ function PackTab({
     // so At hand never adds a second one for it (dec-13 C6).
     const litAlone = !!litLine && !pins.some((l) => l.id === litLine.id);
     // A lit light whose line is At hand itself with Use a charge (piece 9, frame 47-3; pss-17, C2): one row, the light's,
-    // carrying Use, drawn by that line's ItemRow (`lightRow`) last among the items, where the light goes (pss-16).
+    // carrying Use (`LitLightUse`), where the light goes, after the items (pss-16); the line keeps its sheet only.
     const lightUse = !!ready && !!litLight?.lit && lightCarriesUse(litLine, true, rest, ready.loaded.setting.charges, ready.loaded.rechargeDefault);
     const atHandShown = rest.length > 0 || !!litLight || !!extra || !!first;
     if (inHand.length === 0 && !atHandShown) return null;
-    const items = (lines: InventoryLine[], only: { inHand?: boolean; sheetOnly?: string | null; sheetAlone?: boolean; lightRow?: ((use: LightUse | null) => ReactNode) | null }) =>
+    const items = (lines: InventoryLine[], only: { inHand?: boolean; sheetOnly?: string | null; sheetAlone?: boolean }) =>
       ready && (
         <CarrierItems
           carrier={ready.mine}
@@ -468,12 +469,31 @@ function PackTab({
           {(rest.length > 0 || (litLine && litAlone)) &&
             items(litLine && (litAlone || lightUse) ? [...rest.filter((l) => l !== litLine), litLine] : rest, {
               // The lit light's line: its sheet only, no row (the light's rows stand for it), unless it is At hand
-              // itself and has Use a charge: lit, its row is the light's, with Use (`lightRow`); not lit, its own.
+              // itself and has Use a charge: lit, its row is the light's, with Use (`LitLightUse`); not lit, its own.
               sheetOnly: litLine?.id ?? null,
-              sheetAlone: litAlone,
-              lightRow: lightUse && litLine ? (use) => litLight?.rows(() => setOpen(litLine.id), use) : null,
+              sheetAlone: litAlone || lightUse,
             })}
-          {!lightUse && litLight?.rows(litLine ? () => setOpen(litLine.id) : null)}
+          {/* The light, drawn here once: lit with its own item's Use a charge (piece 9), or as it is. */}
+          {litLight &&
+            (lightUse && ready && litLine ? (
+              <LitLightUse
+                rows={(use) => litLight.rows(() => setOpen(litLine.id), use)}
+                line={litLine}
+                carrier={ready.mine}
+                setting={ready.loaded.setting}
+                hidden={ready.loaded.hidden}
+                charges={ready.loaded.setting.charges}
+                rechargeDefault={ready.loaded.rechargeDefault}
+                db={db}
+                user={user}
+                campaign={campaign}
+                busy={busy}
+                run={run}
+                onNote={(text) => show({ text })}
+              />
+            ) : (
+              litLight.rows(litLine ? () => setOpen(litLine.id) : null)
+            ))}
           {extra}
         </section>
       )}
