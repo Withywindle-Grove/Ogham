@@ -122,7 +122,7 @@ describe('the map card (mc-44, mc-44a)', () => {
     expect(screen.getByText('The picture is on its way.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Zoom in' })).toBeNull();
     rerender(<MapCard source={{ ...HARBOUR, src: null, failed: true }} onOpen={() => undefined} onRetry={onRetry} />);
-    expect(screen.getByText('The map’s picture didn’t load.')).toBeTruthy();
+    expect(screen.getByText('The map’s picture couldn’t load.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Zoom in' })).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(onRetry).toHaveBeenCalledTimes(1);
@@ -134,7 +134,7 @@ describe('the map card (mc-44, mc-44a)', () => {
     act(() => {
       fireEvent.error(document.querySelector('img.map-picture__img')!);
     });
-    expect(screen.getByText('The map’s picture didn’t load.')).toBeTruthy();
+    expect(screen.getByText('The map’s picture couldn’t load.')).toBeTruthy();
     expect(document.querySelector('img.map-picture__img')).toBeNull();
   });
 });
@@ -224,7 +224,7 @@ describe('the map pop-up (mc-43, mc-43a)', () => {
     expect(screen.getByText('The picture is on its way.')).toBeTruthy();
     expect(screen.queryByRole('group', { name: 'Zoom' })).toBeNull();
     rerender(<MapPopup source={{ ...HARBOUR, src: null, failed: true }} place="The Drowned Harbour" onClose={() => undefined} />);
-    expect(screen.getByText('The map’s picture didn’t load.')).toBeTruthy();
+    expect(screen.getByText('The map’s picture couldn’t load.')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
     expect(screen.getByText('Everything else about the place still works: the locations are in the list.')).toBeTruthy();
     expect(screen.queryByRole('group', { name: 'Zoom' })).toBeNull();
