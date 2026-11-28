@@ -53,24 +53,41 @@ export function RollFigures({ rolls }: { rolls: readonly AttackRoll[] }) {
 }
 
 /**
+ * Dice written in a pack ("d6+2", "1d4 - 1") as a roll line reads them: the die without a leading 1, the sum signed with
+ * the true minus ("d6 +2", "d4 −1"), and the words beside. The pinned spell's block's roll (frame M4g, "d6 +2 turns").
+ */
+export function diceFace(dice: string, label: string): RollFace {
+  const m = /^\s*(\d*d\d+)\s*(?:([+-])\s*(\d+))?\s*$/i.exec(dice);
+  if (!m) return { die: dieOf(dice), figure: dice.trim(), label };
+  const adds = m[2] ? ` ${m[2] === '-' ? '−' : '+'}${m[3]}` : '';
+  return { die: dieOf(dice), figure: `${m[1]!.replace(/^1(?=d\d)/i, '')}${adds}`, label };
+}
+
+/**
  * The roll lines, to hit first (weaponRolls' order). No note under them: the one there was, on who reads a hit made
  * against a target, went with tfw-2 (2026-11-19).
  */
 export function RollLines({ rolls }: { rolls: readonly AttackRoll[] }) {
-  if (rolls.length === 0) return null;
+  return <FaceLines faces={rolls.map((r) => ({ key: r.line, face: rollFace(r) }))} />;
+}
+
+/**
+ * The roll lines from their faces: each the die's glyph (none for a figure that is no roll, the spell's range), the
+ * figure in bold and the small word. `stacked` puts each on its own line, as the pinned spell's block draws its roll and
+ * its range (frame M4g); the weapon's sit side by side. Nothing at all with no line.
+ */
+export function FaceLines({ faces, stacked = false }: { faces: readonly { key: string; face: RollFace }[]; stacked?: boolean }) {
+  if (faces.length === 0) return null;
   return (
     <div className="weapon-in-hand__rolls">
-      <ul className="weapon-in-hand__roll-list">
-        {rolls.map((r) => {
-          const face = rollFace(r);
-          return (
-            <li key={r.line} className="weapon-in-hand__roll">
-              {face.die && <DieGlyph die={face.die} size={20} />}
-              <b className="weapon-in-hand__figure">{face.figure}</b>
-              {face.label && <span className="weapon-in-hand__label"> {face.label}</span>}
-            </li>
-          );
-        })}
+      <ul className={stacked ? 'weapon-in-hand__roll-list weapon-in-hand__roll-list--stacked' : 'weapon-in-hand__roll-list'}>
+        {faces.map(({ key, face }) => (
+          <li key={key} className="weapon-in-hand__roll">
+            {face.die && <DieGlyph die={face.die} size={20} />}
+            <b className="weapon-in-hand__figure">{face.figure}</b>
+            {face.label && <span className="weapon-in-hand__label"> {face.label}</span>}
+          </li>
+        ))}
       </ul>
     </div>
   );

@@ -208,6 +208,19 @@ export function durationWords(value: unknown, level: number): string {
   return amount ? (unit ? `${amount} ${plural(amount, unit)}` : amount) : text(value.text);
 }
 
+/**
+ * A spell's roll, for the pinned spell's block (Player sitting piece 2; frame M4g's "d6 +2 turns"): a duration the GM
+ * rolls (`{roll, unit}`, 07), as its dice and its unit's words; null for any other duration, so the block draws no
+ * roll line. Read for this class or list where the field differs by class.
+ */
+export function spellRollOf(choice: SpellChoice, keys: readonly string[]): { dice: string; words: string } | null {
+  const value = forClass(choice.entry?.data.duration, keys);
+  if (!isRecord(value)) return null;
+  const dice = text(value.roll);
+  const unit = text(value.unit);
+  return dice ? { dice, words: unit ? plural('2', unit) : '' } : null;
+}
+
 /** The page from a spell's `source` ("p. 44"), keyed by class when it differs. */
 const pageOf = (data: Record<string, unknown>, keys: readonly string[]) => text(forClass(data.source, keys));
 
