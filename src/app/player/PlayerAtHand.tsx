@@ -57,7 +57,7 @@ export function PlayerAtHand({
       carrierId={carrierId}
       view="atHand"
       light={light}
-      litLight={block ? { lineId: block.lineId, rows: (onOpenItem) => <LightInAtHand view={light} onOpenItem={onOpenItem} /> } : null}
+      litLight={block ? { lineId: block.lineId, lit: block.lit, rows: (onOpenItem, use) => <LightInAtHand view={light} onOpenItem={onOpenItem} use={use} /> } : null}
       onChanged={onChanged}
       weaponLine={weaponLine}
       weaponBreakdown={weaponBreakdown}

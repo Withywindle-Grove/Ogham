@@ -24,7 +24,7 @@ import { foldSummary, itemCount, type Run } from './packHelpers.ts';
 import { tinyCountsNothing } from '../modules/inventory/packView.ts';
 import { FoldedGroup } from '../ui/creation.tsx';
 import { lightState } from '../modules/expedition/lightPlay.ts';
-import type { CharacterLightView } from './LightSection.tsx';
+import type { CharacterLightView, LightUse } from './LightSection.tsx';
 import { attackRange, attackRules, inflictedBy, modeState, weaponModesOf, withMode, type ModeState } from '../modules/inventory/weaponModes.ts';
 import { conditionsOf } from '../modules/expedition/statusPlay.ts';
 import { HIDDEN_FROM_PLAYER, magicNoteLines, weaponMagic, type AttackPart, type AttackRoll, type WeaponMagic } from '../modules/characters/play.ts';
@@ -165,6 +165,7 @@ export function CarrierItems({
   inHand = false,
   sheetOnly = null,
   sheetAlone = false,
+  lightRow = null,
   light = null,
   categoryName = (id: string) => id,
   weaponLine,
@@ -212,6 +213,8 @@ export function CarrierItems({
   sheetOnly?: string | null;
   /** The `sheetOnly` line was added only for its sheet (it isn't At hand itself): never a row, whatever its actions. */
   sheetAlone?: boolean;
+  /** The `sheetOnly` line's row is the lit light's, carrying its Use (Player sitting piece 9; ItemRow's `lightRow`). */
+  lightRow?: ((use: LightUse | null) => ReactNode) | null;
   /** The character's light (the Player screen's), for a light's Light or Put out on its At hand row (Design on #552). */
   light?: CharacterLightView | null;
   /** An item category's friendly name (the "Other" section's groups). */
@@ -425,6 +428,7 @@ export function CarrierItems({
                     inHand={inHand}
                     sheetOnly={line.id === sheetOnly}
                     sheetAlone={line.id === sheetOnly && sheetAlone}
+                    lightRow={line.id === sheetOnly ? lightRow : null}
                     lightAction={atHand ? lightFor(line) : null}
                     // The Player tab's At hand pop-up shows a burning light's time and refills (tfh-3; page M2, M2n).
                     lightFacts={atHand && playerAtHand ? lightFactsOf(light, line.id) : []}
