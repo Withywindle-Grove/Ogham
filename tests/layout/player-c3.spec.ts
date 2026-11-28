@@ -3,7 +3,8 @@
 // (`layout.html?as=player&p1=1`, src/testing/layoutP1Character.ts, Brannoch Fenward).
 // Also: the experience sits on the title's line from a tablet's width up (P1) and under it on a phone (P2); the lead's
 // ruling, 2026-11-15.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 const SIZES = [
   { name: 'tablet', width: 1180, height: 820 },

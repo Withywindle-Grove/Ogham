@@ -18,7 +18,8 @@
 //   7. A character with no class (`p1=classless`) on a tablet: the GM's card line sits in the head, which grows to hold
 //      it; nothing spills out of the head.
 //   Each in light and dark, with the shared checks (no sideways scroll, 44 px targets, nothing under 14 px, axe).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const SIZES = [

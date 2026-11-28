@@ -10,7 +10,8 @@
 //   The Quiver's rows are plain (frame M2o; Francis on #1069's ⚑ 2, 2026-11-19): no box, wash or edge on the row, a
 //   dotted rule under it, its button at the right, 44 px tall, and only a picked row's button washed.
 // At 375 px (a phone) and 1024 px (a tablet).
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 const SIZES = [
   { name: 'phone', width: 375, height: 812 },

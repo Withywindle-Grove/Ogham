@@ -9,7 +9,8 @@
 //   beside its words.
 //   The saves' line is drawn once (not again under the tiles).
 //   The shared character's screen shows the lit storm lantern's line with its refills, and Refill, in At hand (C9).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 async function openP1(page: Page) {
   await page.goto('/layout.html?as=player&p1=1');

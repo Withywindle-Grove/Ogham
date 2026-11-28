@@ -16,7 +16,8 @@
 //      a half-typed weather roll stays typed.
 //   Each at a 375 px phone and a 1180 px tablet where it says so, in light and dark, with the shared checks (no
 //   sideways scroll, 44 px targets, nothing under 14 px, axe).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const SIZES = [

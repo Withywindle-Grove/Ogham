@@ -11,7 +11,8 @@
 //     picked opens "Pick a Location first";
 //   * nothing scrolls sideways, every tap is 44 px, and axe finds no serious problem, at 375, 680, 834 and 1024 px, in
 //     light and dark. Each test saves its picture, in a tall viewport so the band sits at the top.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 /** The visible accent buttons inside the open sheet (sa-1: one a surface you can act on). */

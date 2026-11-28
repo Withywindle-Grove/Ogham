@@ -6,7 +6,8 @@
 //   Its line reads "Lit, 4 turns left. 3 refills left"; its name (it opens the lantern's sheet), its ring (the tap,
 //   "Put out"; lt-1), Keep lit's toggle and Refill are 44 px targets
 //   at least, and the light's block stays inside At hand's width at 375 px (no sideways scroll).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 const SIZES = [
   { name: 'tablet', width: 1180, height: 820 },

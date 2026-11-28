@@ -11,7 +11,8 @@
 //   * before anything is shown the card is there too, under "Somewhere new" (d5-18, 2026-11-20);
 //   * nothing scrolls sideways, no text is under 14 px, and axe finds no serious problem, at 375, 834 and 1024 px, in
 //     light and dark. Each test saves its picture.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openScene(page: Page, state: 'spots' | 'spot', activities: '1' | 'long' | 'blocks' = '1') {

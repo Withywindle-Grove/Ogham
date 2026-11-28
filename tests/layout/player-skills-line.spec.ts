@@ -8,7 +8,8 @@
 //   keep the glyph before the figure.
 //   The full sheet's own page shows the same line and figures.
 //   No text under 14 px, no sideways scroll, every row a 44 px target and no serious accessibility problem in Skills.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 import { openFullSheetFromMenu } from './fullSheetMenu.ts';
 

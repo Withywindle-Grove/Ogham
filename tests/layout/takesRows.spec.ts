@@ -1,7 +1,8 @@
 // Rows picked more than once in creation (pf-16, as #671 has it; #747's review). Purpose: at a phone's width a short
 // name keeps "Picked ✓✓" beside it, on the name's line, while a long name lets it drop under the name, at the right,
 // so the name keeps its room.
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../fails.ts';
 
 test.use({ viewport: { width: 375, height: 812 } });
 

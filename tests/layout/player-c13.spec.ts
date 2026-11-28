@@ -8,7 +8,8 @@
 //   The skills are one shared block, so the full sheet's own page (from the menu's "Full character sheet"; the tab's row is gone, tfr-5) shows the
 //   same chevron and glyph.
 //   No text under 14 px, no sideways scroll and no serious accessibility problem in the Skills section.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 import { openFullSheetFromMenu } from './fullSheetMenu.ts';
 

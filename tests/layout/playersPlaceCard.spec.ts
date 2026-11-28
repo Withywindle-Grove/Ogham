@@ -10,7 +10,8 @@
 //     name, that opens it whole; the Area's card at the right, "Shared, turn N." where a step is known (ppf-6 a), each
 //     known Location's first shown piece on one line under its name (ppf-4), however long; at 375 px and on a tablet,
 //     light and dark, with long names (`ways=messy`). Each saves its picture.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 /** The players' Scene at the jetty, its picture shown, with the ways of `ways` (`1`, or `messy` for long names). */

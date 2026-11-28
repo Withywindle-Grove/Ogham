@@ -6,7 +6,8 @@
 //         the pull request (test-results/layout-screens/of-3-…).
 //   of-5. A trait's entry's When line reads "At level 3" (page M2), in the gallery's trait-entry specimen; its picture is
 //         saved for the pull request (test-results/layout-screens/of-5-…).
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 import { openFullSheetFromMenu } from './fullSheetMenu.ts';
 

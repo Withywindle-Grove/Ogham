@@ -14,7 +14,8 @@
 //      still open under it (Home Two's audit of #66, finding 1, picked by Francis 2026-11-26).
 //   Every scene: no sideways scrolling, every target at least 44 px, readable text, no serious accessibility problem.
 // The pictures it saves (deviceScaleFactor 2) are the as-built pictures beside PC6, PC6b and PK4 in the pull request.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 // Playwright spells an expected failure `test.fail(title, body)`; the fix-branch guard reads `.fails` (bq-6). So a test

@@ -6,7 +6,8 @@
 //   * Q7 (F20 c, F21 b; `&ids=1`): the GM's small line on a piece names the pack's item, creature and character, never
 //     their ids; an unknown id is left out; a long name wraps whole;
 //   * nothing scrolls sideways and axe finds no serious problem, on a phone and a tablet, light and dark.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openJetty(page: Page) {

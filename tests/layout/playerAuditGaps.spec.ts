@@ -25,7 +25,8 @@
 //   9d. The hit points box elsewhere (the gallery; the full sheet on its own page) keeps its own small, spaced-out label.
 //       (The full sheet beside the Magic tab draws no hit points box.)
 // 9a and 9b on a tablet and at 375 px, light and dark.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 const SIZES = [
   { name: 'tablet', width: 1180, height: 820 },

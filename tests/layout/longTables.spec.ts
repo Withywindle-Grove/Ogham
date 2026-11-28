@@ -4,7 +4,8 @@
 //   phone width they sit in one column.
 //   Tapping a range on the bar scrolls the sheet so that range's first row sits just under the bar, and What you
 //   rolled and the bar both stay at the top of the sheet while it scrolls on (#571 round 2: the box is sticky too).
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 const SIZES = [
   { name: 'tablet', width: 1024, height: 768 },

@@ -16,7 +16,8 @@
 //      "why is the box so wide? ... too much blank space at the top right"); on a phone its column (label, box, Set
 //      and Cancel) is centred in the sheet as one group, the label still starting where the box starts.
 //   5. Both pop-ups fit a 375 px phone with nothing under 14 px and no sideways scroll, in light and dark.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 
 async function openPlayer(page: Page) {

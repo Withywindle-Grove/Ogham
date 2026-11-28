@@ -8,7 +8,8 @@
 //   4. The GM on a character's Pack (K15, PC7 and PC8): the coin line, the sheet with Give coin… and Take coin…, Give
 //      coin with its one accent, and Take coin refused under the row: no sideways scrolling, every target at least
 //      44 px, readable text, no serious accessibility problem; the accent's words on one line.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const SIZES = [

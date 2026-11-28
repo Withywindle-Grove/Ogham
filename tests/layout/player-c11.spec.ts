@@ -9,7 +9,8 @@
 //   A score change waiting for the GM (bare) is a notice in the notices box (row C1, tfn-2), not in the columns; in its
 //   sheet, its Take back a 44 px target.
 //   At Larger text the phone still fits: no sideways scroll, every tap target still 44 px.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const SIZES = [

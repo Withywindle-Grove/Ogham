@@ -5,7 +5,8 @@
 //   No detail row is under 44 px.
 //   A long name wraps in the pop-up's head, beside the X, with nothing scrolling sideways.
 //   The pop-up keeps its own form wherever it opens: a sheet from the foot on a phone, a centred card on a tablet.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const open = async (page: Page, theme = 'light') => {

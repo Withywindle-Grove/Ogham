@@ -4,7 +4,8 @@
 //   * no serious accessibility problems, colour contrast included (axe, WCAG 2 AA);
 //   * nothing in the gallery animates under reduced motion (skeletons and the toast bar hold still);
 // and saves a screenshot of each in test-results/gallery for review (compared pixel by pixel once approved).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const WIDTHS = [

@@ -5,7 +5,8 @@
 //   * on a tablet the words show under each circle, on a phone they don't (each circle is still named);
 //   * a step with its pack's text is a tap of 44 px at least that opens the text; the others are not buttons;
 //   * nothing scrolls sideways, at 375, 680, 834 and 1024 px, and axe finds no serious problem, in light and dark.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openScene(page: Page, strip: '' | 'long') {

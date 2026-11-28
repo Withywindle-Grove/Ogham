@@ -4,7 +4,8 @@
 // plain words: at a phone, an upright tablet and a landscape tablet, in light and dark, and once at Larger text, the
 // screen opens with the character's name on it, and its whole page is kept as a picture. It checks nothing else: the
 // rows' own specs check the parts.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { P1_CHARACTER } from '../../src/testing/layoutP1Character.ts';
 
 async function openPlayer(page: Page) {

@@ -8,7 +8,8 @@
 //     keeps its giver and time under the head once its thing is taken back (FD11b's drawing fix 2).
 // The whole gallery's layout and accessibility checks are gallery.spec.ts's. K20b adds tests/layout/findCard.spec.ts
 // for the card on the Pack tab.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 const card = (page: Page, caption: string) =>
   page.locator('#find-card .gallery__specimen').filter({ has: page.getByText(caption, { exact: true }) }).locator('.find-card').first();

@@ -11,7 +11,8 @@
 //     for the GM or a player; in a campaign locked before the lock went (`&lock=old`) a player still moves a rank;
 //     with "Players can reorder marching order" off (`&reorder=off`) a player's try opens a pop-up that says why.
 // It also keeps a picture of the card at each size (test-results/layout-screens), for the as-built pictures.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openScene(page: Page) {

@@ -7,7 +7,8 @@
 //   C. A long text grows the box: nothing scrolls inside the field.
 //   D. On a phone the form is a sheet from the foot; on a tablet a centred card (sf-28).
 // Each: nothing scrolls sideways, no tap target under 44 px, no text under 14 px (layoutProblems).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 
 const SIZES = [

@@ -13,7 +13,8 @@
 //   4. With &slow=1, the database's answers wait long enough that creation's loading state shows its line (the
 //      review's "Opening the review…", whose loads are never kept from earlier), and the walk still reaches the review.
 // Every name is invented (hard rule 2).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 /** Couldn't send / offline: the review's foot after a send that didn't go (CreationReview.tsx). */
 const SEND_FAILED = "Couldn't send it to your GM. Nothing is lost.";

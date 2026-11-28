@@ -6,7 +6,8 @@
 //   * the halves lie over the track, so a half's focus ring is never painted over;
 //   * a tap on the right half sets in and on the left half sets out;
 //   * nothing scrolls sideways and axe finds no serious problem; a picture of the section for Design.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function open(page: Page, query: string) {

@@ -9,7 +9,8 @@
 //      top row's "‹ Players" stays whole, never cut: the title alone takes the cut (M3d).
 //   3. The GM's own character (Ash, ?give=1): the band is one line, "Your view of Ash".
 //   4. The Scene tab: the same band and way back (what the Scene shows is row C15f's).
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const LONG_C = 'Ashwin Thistlewood of the Long Stair, called the Lantern-Bearer';

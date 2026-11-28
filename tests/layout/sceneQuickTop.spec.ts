@@ -14,7 +14,8 @@
 // phone they stay two by two from the left (unchanged, ⚑ 1 of the plan). It departs from page 16, T1 and T8a, and
 // page 18, PL1 (approved 2026-11-14), where the facts start at the row's left. The harbour draws two facts; Larger
 // text is checked too. One fact (&check=none) and three (outdoors, the weather due) are checked on the GM's Scene.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 /** The band's one height for its controls (p2p-16; page 23, frame LA1). */

@@ -13,7 +13,8 @@
 //         ("Nimbleness +1"), never "AC", "from" or the short name; on a tablet, a phone, and a phone at Larger text.
 //   7a-2. The line is never cut: it wraps if it must (no ellipsis, nothing hidden), and nothing in it is under 14 px.
 //   (A score that adds nothing leaves no line: no test character has one, so explain.test.ts covers it.)
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const PHONE = { width: 375, height: 812 };

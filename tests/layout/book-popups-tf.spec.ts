@@ -10,7 +10,8 @@
 //      row's left and the button ends at its right (M2o), not both centred in the middle of the row.
 //   5. On the tablet, the foot's Abilities or Traits row opens its list as a pop-up to read: "Got it" at its foot.
 // Each: nothing runs past the screen, no target under 44 px, no text under 14 px (layoutProblems).
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 
 async function openPlayer(page: Page, width: number, height: number, scheme: 'light' | 'dark', p1 = '1') {

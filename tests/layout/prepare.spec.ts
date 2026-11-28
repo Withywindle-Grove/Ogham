@@ -6,7 +6,8 @@
 //     right, never pushed under it or off the screen; the stepper's − and + are each 44 px, 8 px apart at least;
 //   * − on a spell not chosen opens its pop-up (never a disabled button), and the pop-up fits too.
 // The world is layout.html's ?magic=1: Wren keeps a spell book with "The long lantern of the drowned abbey…" at level 2.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 import { wrapProblems } from './wrapChecks.ts';
 

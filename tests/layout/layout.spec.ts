@@ -6,7 +6,8 @@
 //   * no serious or critical accessibility problems (axe: WCAG 2.1 A and AA rules);
 // plus the two-pane layouts appearing only on a landscape tablet. A screenshot of each is saved in
 // test-results/layout-screens for a person to look at (not compared pixel by pixel).
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 import { departStart } from './depart.ts';
 

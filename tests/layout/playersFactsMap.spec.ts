@@ -7,7 +7,8 @@
 //   * the shared map: first in the right column (under the left one on a phone), its picture and its title, no tools
 //     cut, the pop-up opening on a tap;
 //   * at 375, 834 and 1024 px, in light and dark. Each test saves its picture.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 async function openHarbour(page: Page, map: boolean, several = false) {

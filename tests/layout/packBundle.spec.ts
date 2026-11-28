@@ -6,7 +6,8 @@
 //     words line up under the ticked rows', nothing scrolls sideways and axe finds no serious problem;
 //   * long names (a long pack name, a long path) wrap inside the sheet at 375 px;
 //   * in light and dark, on a phone and a tablet. Saves `test-results/layout-screens/pack-bundle-*.png`.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { makeZip } from '../../src/testing/makeZip.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 

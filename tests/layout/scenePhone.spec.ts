@@ -11,7 +11,8 @@
 //     axe finds no serious problem, in light and dark. Each test saves its picture.
 // The players' paused line under the date (T9e) is checked in playersTop.spec.ts; the facts two by two, the icon
 // buttons' row and the band's session states in sceneBand.spec.ts; the strip as icons in sceneStrip.spec.ts.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 type Box = { x: number; y: number; width: number; height: number };

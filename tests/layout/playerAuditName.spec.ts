@@ -14,7 +14,8 @@
 //   3g. Upright, with the long name, while the screen opens (the head not shown yet), the bar keeps its cut name, so the
 //       name always shows somewhere (the review on #154, finding 1).
 //   Each in light and dark, with the shared checks (no sideways scroll, 44 px targets, nothing under 14 px).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 import { P1_LONG_NAME } from '../../src/testing/layoutP1Character.ts';
 

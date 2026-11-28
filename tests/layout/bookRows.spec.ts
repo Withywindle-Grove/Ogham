@@ -2,7 +2,8 @@
 // whose rows are its own children (the name table, a kindred's knacks) and one whose rows sit in cells beside their ⓘ
 // (rolled spells) both band every second row in the book's band colour, and the rows between stay unbanded; a later
 // rule once cleared the band on the first kind.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 
 test.use({ viewport: { width: 375, height: 812 } });
 

@@ -8,7 +8,8 @@
 //      pop-up runs past the screen and nothing is under 14 px (tfs-1).
 //   2. The Level pop-up shows no number in bold under its title and none in its head: its first line is its sentence,
 //      "Level 3 Lantern Warden." (tfb-3).
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 
 async function openPlayer(page: Page, width: number, height: number, scheme: 'light' | 'dark') {

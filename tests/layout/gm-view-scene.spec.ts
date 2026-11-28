@@ -14,7 +14,8 @@
 //      from inside a sheet keeps its own form: CLAUDE.md), whole on screen.
 //   4. A town's Where you stay in the view (layout.html?as=gm&viewPopUps=stay): Stay here opens "Only Sam can choose
 //      where … stays" in its own form over the stay sheet, whole on screen.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const WREN = 'Wren of the Lantern Wardens';

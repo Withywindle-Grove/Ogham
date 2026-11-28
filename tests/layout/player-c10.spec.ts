@@ -8,7 +8,8 @@
 //   375 px, and no serious accessibility problem, in light and dark.
 //   Messy data (`?p1=heavy`, 999 bundles of reeds): over the most, the load card names it with the warning sign and its
 //   figures ("1,259 of 1,200 coins"), and the section still fits a 375 px phone.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
 
 const SIZES = [

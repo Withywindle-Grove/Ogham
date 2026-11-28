@@ -11,7 +11,8 @@
 //   HM5. The hoard after everything is sent (to Wren, Ash and the party stash): each row says where it went, and Send
 //        all is gone.
 // Each: nothing scrolls sideways, no tap target under 44 px, no text under 14 px (layoutProblems).
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from '../fails.ts';
 import { layoutProblems } from './checks.ts';
 
 const SIZES = [
