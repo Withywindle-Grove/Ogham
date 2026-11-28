@@ -4367,7 +4367,7 @@ export function createFakeDb(): FakeWorld {
       if (!Number.isInteger(n) || Number(n) < 0 || Number(n) > 999_999_999) return plain('Say how many: a whole number, 0 or more.');
       if (Number(n) > 0) wanted[key] = Number(n);
     }
-    if (!Array.isArray(rows) || rows.length > 25 || rows.some((r) => typeof r !== 'string' || !/^\d{1,4}:(thing|coin)$/.test(r))) return plain('Send at most 25 rows of a hoard at once.');
+    if (!Array.isArray(rows) || rows.length > 25 || rows.some((r) => typeof r !== 'string' || !/^(\d{1,4}:(thing|coin)|held:[a-z0-9][a-z0-9_.-]{0,79}:[a-z0-9][a-z0-9_.-]{0,79})$/.test(r))) return plain('Send at most 25 rows of a hoard at once.');
     for (const t of things) {
       const qty = t?.qty;
       if (!Number.isInteger(qty) || Number(qty) < 1 || Number(qty) > 100000) return plain('How many must be a whole number, 1 or more.');

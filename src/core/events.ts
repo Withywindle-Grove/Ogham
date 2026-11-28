@@ -105,6 +105,11 @@ export interface LogNames {
   /** The campaign's GMs by user id (December step 6b): the GM's coin moves read as the GM's, never a character's. */
   gms?: Set<string>;
   /**
+   * A pack's people by their pack id (dec5-gaps E, #189; dg-16), from the GM's own library read (a person is the GM's
+   * alone, 07 §5): a held send's GM line names whose it was. A player's device has none, and never reads that line.
+   */
+  heldPeople?: Map<string, string>;
+  /**
    * Moves between linked places (Move on, December step 4), by the id of the move's clock change: its turns and the
    * names of the place arrived at and the place left, as the reader may have them (public.party_moves: a player gets
    * a name only once that place has been shown to their group; null until then).
@@ -353,21 +358,31 @@ const MAIN_TABLES = ['activity_runs', 'messages', 'gm_messages', 'message_recipi
  * Ids only, never names nor an amount: the reason reaches every reader of the line, and each reader's own names say
  * the place and hoard only where they were shown them. Empty when no event carries it.
  */
-function findOf(entry: LogEntry): { to: string | null; placeId: string | null; hoardId: string | null; coin: boolean } {
+type FindReason = { to: string | null; placeId: string | null; hoardId: string | null; coin: boolean; heldFrom: string[] };
+
+function findOf(entry: LogEntry): FindReason {
   // K16b (rp-4, the lead on #828): the party's lines carry no place; the GM's own line of the send does. The reader
   // takes the line that names the place when it can read one (the GM), else the first find it reads.
   const found = entry.events.map((e) => findIn(e)).filter((f) => f !== null);
-  return found.find((f) => f.placeId !== null) ?? found[0] ?? { to: null, placeId: null, hoardId: null, coin: false };
+  return found.find((f) => f.placeId !== null) ?? found[0] ?? { to: null, placeId: null, hoardId: null, coin: false, heldFrom: [] };
 }
 
-function findIn(e: LogEvent): { to: string | null; placeId: string | null; hoardId: string | null; coin: boolean } | null {
+// A held thing's key (dec5-gaps E, #189), as src/modules/expedition/findSend.ts writes it (core imports no module):
+// "held:<the person's pack id>:<the item's id>". Only the send's GM-only line carries one.
+const HELD_KEY = /^held:([a-z0-9][a-z0-9_.-]{0,79}):[a-z0-9][a-z0-9_.-]{0,79}$/;
+
+function findIn(e: LogEvent): FindReason | null {
   if (!e.reason?.startsWith('{')) return null;
   try {
     const parsed = JSON.parse(e.reason) as { find?: Record<string, unknown> };
     const find = parsed.find;
     if (!find || typeof find !== 'object') return null;
     const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
-    return { to: typeof find.to === 'string' ? find.to : null, placeId: text(find.placeId), hoardId: text(find.hoardId), coin: find.coin === true };
+    const rows = Array.isArray(find.rows) ? find.rows.filter((r): r is string => typeof r === 'string') : [];
+    // Whose held things went: every row a held key, the people it names (a send of a hoard's rows names none).
+    const held = rows.map((r) => HELD_KEY.exec(r)?.[1] ?? null);
+    const heldFrom = rows.length > 0 && held.every((p) => p !== null) ? [...new Set(held as string[])] : [];
+    return { to: typeof find.to === 'string' ? find.to : null, placeId: text(find.placeId), hoardId: text(find.hoardId), coin: find.coin === true, heldFrom };
   } catch {
     return null; // Not a find's reason.
   }
@@ -749,9 +764,20 @@ export function describeEntry(entry: LogEntry, names: LogNames): string {
     // reader who reads the purse's change (its line is the receiver's player's and the GM's); everyone else reads "coin".
     case 'find.give': {
       const find = findOf(entry);
-      const things = entry.events
-        .filter((e) => e.targetTable === 'inventory_lines' && e.before === null && e.after)
-        .map((e) => pieces(item(e.after!, e.targetId), e.after!.item_data, e.after!.qty));
+      const made = entry.events.filter((e) => e.targetTable === 'inventory_lines' && e.before === null && e.after);
+      const things = made.map((e) => pieces(item(e.after!, e.targetId), e.after!.item_data, e.after!.qty));
+      // A held thing sent (dec5-gaps E, #189; dg-16), on the GM's log only (its key is on the GM-only line): "You gave
+      // Wren the iron key (Mother Sedge's)." One thing, from one person whose name the GM's library has; anything else
+      // reads as every send does.
+      const person = find.heldFrom.length === 1 ? names.heldPeople?.get(find.heldFrom[0]!) : undefined;
+      if (person && made.length === 1 && !find.coin) {
+        const qty = made[0]!.after!.qty;
+        const what = typeof qty === 'number' && qty > 1 ? things[0]! : `the ${things[0]!}`;
+        const giver = who === 'You' ? 'You' : 'Your GM';
+        return find.to === null
+          ? `${giver} put ${what} (${possessive(person)}) in the party stash.`
+          : `${giver} gave ${named(names.characters, find.to, 'a character')} ${what} (${possessive(person)}).`;
+      }
       const money = purseLines.some((e) => coinChange(e).length > 0) ? coinAmount() : find.coin ? 'coin' : null;
       const list = [...things, ...(money ? [money] : [])].join(', ') || 'something';
       // Where (the lead, 2026-11-14): named only for a reader whose group has been shown the place (names.placeNames
