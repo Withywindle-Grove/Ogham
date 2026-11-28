@@ -24,6 +24,7 @@ You are Tome's driver. Francis talks only to you; you relay to the other session
 
 ## Order the work
 - **One screen at a time, to live.** No new screen is opened while one is held. The order: `main` green; the unsaved work saved; the waiting pull requests merged or closed; the Scene stack; the Player screen; the Pack's first-night seven; the town's buying path.
+- **Loop order (2026-11-28):** loop 2, loop 3, loop 4 (the Scene's remaining rows and the Pack's find flow), loop 5 (the town, `docs/plans/dec-16-town-carry.md`'s unbuilt rows); the loop is not optional.
 - **Unsaved work first:** commit and push it, as drafts, before any local session is archived.
 - **Whole, once** (po-4, `docs/design/rulings/dec-scene-whole-2026-11-14.md`): a piece of a screen that has an approved redesign is not put to Francis, and does not merge, until that screen matches its approved drawing, unless he says otherwise. Before any piece of such a screen goes to a builder, its spec or plan covers the whole drawing; a part of the drawing with no ticket or plan row stops the hand-out.
 - **Before a screen is drawn**, gather everything already ruled for it in one sheet for the drawer, with the app-wide standards ruled on other screens (nt-1, `docs/design/rulings/dec-player-screen-2026-11-14.md`).
@@ -55,7 +56,7 @@ Five steps of the build loop are Francis's to start: `/to-spec`, `/to-tickets`, 
 
 ## Start workers
 - Start builders and a reviewer with `Agent`, within the limits in `.claude/README.md`, Seats. Before you start one, check what is in flight.
-- One integration branch per spec, a fresh worker per ticket and per fix round: `CLAUDE.md`, One integration branch per spec. At `implement-spec`'s start, make the branch `<spec-name>` from `main`. Tickets that share no file may be in flight, within the seats. Plan work keeps its batches (`CLAUDE.md`, Plan batches).
+- One integration branch per spec, a fresh worker per ticket and per fix round: `CLAUDE.md`, One integration branch per spec. At `implement-spec`'s start, make the branch `<spec-name>` from `main`. Tickets that share no file may be in flight, within the seats. No new plan batch (`CLAUDE.md`, Plan batches).
 - Give each worker only the tasks of its agent file.
 
 ## Brief every worker

@@ -1,5 +1,5 @@
-// Tests for the check slot (scripts/check-slot.sh): it refuses a commit that would run no check, and removes a
-// node_modules/node_modules link before it runs. Bash and symlinks: skipped on Windows (CI runs them on Linux).
+// Tests for the check slot (scripts/check-slot.sh): it refuses a commit that would run no check, lets a docs-only
+// commit through without its lock, and removes a node_modules/node_modules link before it runs. Bash and symlinks: skipped on Windows (CI runs them on Linux).
 import { execFileSync, spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { withoutGitVariables } from './git-test-env.mjs';
 
 const slot = fileURLToPath(new URL('./check-slot.sh', import.meta.url));
+const hasFlock = spawnSync('flock', ['--version']).status === 0;
 let root;
 afterEach(() => root && rmSync(root, { recursive: true, force: true }));
 
@@ -63,6 +64,60 @@ describe.skipIf(process.platform === 'win32')('the check slot', () => {
     const result = run('git', 'commit', '--allow-empty', '-qm', 'a');
     expect(result.status).toBe(0);
     expect(existsSync(join(repo, 'hook-ran'))).toBe(true);
+  });
+
+  /** Hooks on, with a pre-commit that writes "free" or "held": whether the slot's lock was held while it ran. */
+  function withLockProbe() {
+    const ctx = setUp();
+    const lock = join(root, 'locks', 'ogham-check.lock');
+    mkdirSync(join(ctx.repo, 'hooks'));
+    writeFileSync(
+      join(ctx.repo, 'hooks', 'pre-commit'),
+      `#!/bin/sh\nif flock -n "${lock}" true; then echo free >"${join(root, 'probe')}"; else echo held >"${join(root, 'probe')}"; fi\n`,
+    );
+    chmodSync(join(ctx.repo, 'hooks', 'pre-commit'), 0o755);
+    execFileSync('git', ['config', 'core.hooksPath', join(ctx.repo, 'hooks')], { cwd: ctx.repo, env: ctx.env });
+    const stage = (path, text) => {
+      mkdirSync(join(ctx.repo, path, '..'), { recursive: true });
+      writeFileSync(join(ctx.repo, path), text);
+      execFileSync('git', ['add', path], { cwd: ctx.repo, env: ctx.env });
+    };
+    const probe = () => readFileSync(join(root, 'probe'), 'utf8').trim();
+    return { ...ctx, stage, probe };
+  }
+
+  // A commit that stages only docs and mockups goes through without taking the slot's lock, logged as docs-only.
+  it.skipIf(!hasFlock)('lets a docs-only commit through without the lock', () => {
+    const { run, stage, probe, log } = withLockProbe();
+    stage('docs/notes.md', 'a');
+    stage('docs/design/mockups/december/screen.png', 'png');
+    expect(run('git', 'commit', '-qm', 'docs').status).toBe(0);
+    expect(probe()).toBe('free');
+    expect(log()).toContain('start docs-only');
+    expect(log()).not.toContain('start ogham-check.lock');
+  });
+
+  // A commit that stages docs and code together takes the lock, so its hook's full check waits its turn.
+  it.skipIf(!hasFlock)('takes the lock for a commit that stages docs and code', () => {
+    const { run, stage, probe, log } = withLockProbe();
+    stage('docs/notes.md', 'a');
+    stage('src/thing.ts', 'export {};');
+    expect(run('git', 'commit', '-qm', 'mixed').status).toBe(0);
+    expect(probe()).toBe('held');
+    expect(log()).toContain('start ogham-check.lock');
+    expect(log()).not.toContain('start docs-only');
+  });
+
+  // Docs staged but a tracked code file changed in the folder: `git commit -a` would commit it, so the lock is taken.
+  it.skipIf(!hasFlock)('takes the lock when a tracked code file has changes not staged', () => {
+    const { repo, env, run, stage, probe } = withLockProbe();
+    stage('src/thing.ts', 'export {};');
+    expect(run('git', 'commit', '-qm', 'code').status).toBe(0);
+    writeFileSync(join(repo, 'src', 'thing.ts'), 'export const a = 1;');
+    stage('docs/notes.md', 'a');
+    expect(run('git', 'commit', '-aqm', 'all').status).toBe(0);
+    expect(probe()).toBe('held');
+    expect(execFileSync('git', ['show', '--name-only', '--format=', 'HEAD'], { cwd: repo, env, encoding: 'utf8' })).toContain('src/thing.ts');
   });
 
   // Any command other than a commit (a full check, say) runs whether the hooks are on or not.

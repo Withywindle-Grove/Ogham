@@ -8,7 +8,8 @@ import { useState, type ReactNode } from 'react';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
-import { chargesOf, seemsSpent, useCharge, type ChargeRules } from '../modules/inventory/charges.ts';
+import { chargesOf, type ChargeRules } from '../modules/inventory/charges.ts';
+import { useSpendCharge } from './spendCharge.ts';
 import type { EncumbranceRules } from '../modules/inventory/encumbrance.ts';
 import type { InventoryLine, NamedCarrier } from '../modules/inventory/inventory.ts';
 import { equipItem, noteRuleSkipped, setWeaponMode, useItem } from '../modules/inventory/inventory.ts';
@@ -32,6 +33,7 @@ import { usePlayerView } from './playerView.ts';
 import { RollFigures, RollLines } from './WeaponInHand.tsx';
 import { registry } from './services.ts';
 import { chargeWords, type Run } from './packHelpers.ts';
+import { NewTag } from './PackParts.tsx';
 import './PackScreen.css';
 import { possessive } from '../core/nameWords.ts';
 
@@ -78,6 +80,7 @@ export function ItemRow({
   weaponNotes = [],
   attackRange = null,
   tiny = false,
+  isNew = false,
   note = null,
   end = null,
   lightAction = null,
@@ -107,6 +110,11 @@ export function ItemRow({
   lightAction?: { label: 'Light' | 'Put out'; run: () => void } | null;
   /** In the Pack's Tiny things section (SC-5-2): weightless, it shows no weight, like other weightless rows. */
   tiny?: boolean;
+  /**
+   * New until Got it (K20b; FD1, FD3, FD8b, approved 2026-11-26): the "New" tag after the name, before a stack's count;
+   * part of the row, not a target, glued to the name's last word when the name wraps.
+   */
+  isNew?: boolean;
   /** A line of its own under the row's line: on the stash's screen, who put it in and when (K11, pk-4). */
   note?: string | null;
   /** What ends the row in place of its chevron (the stash's Take, K12); the row's body still opens the item's sheet. */
@@ -180,7 +188,10 @@ export function ItemRow({
   inHand?: boolean;
   /** Its sheet only, with no row (dec-13 C9): the burning light's line in At hand, opened from the light's name. */
   sheetOnly?: boolean;
-  /** With `sheetOnly`: the line isn't At hand itself, only added for its sheet, so it never draws a row. */
+  /**
+   * With `sheetOnly`: the line never draws a row. It isn't At hand itself, only added for its sheet; or it is the lit
+   * light's line with Use a charge, whose row is the light's (Player sitting piece 9, `LitLightUse`).
+   */
   sheetAlone?: boolean;
   busy: boolean;
   run: Run;
@@ -223,7 +234,6 @@ export function ItemRow({
   )
     .filter(Boolean)
     .join(', ');
-  const canUse = charged && may && (line.chargesHidden || (line.chargesLeft ?? 0) > 0);
   const ref = { id: line.id, carrier, version: line.version };
   // An At hand row carries its action (Francis, 2026-11-07, on #552): Use a charge (once the count is known), a light's
   // Light or Put out, use one up (Fire, Drink, Eat, Use), or Attack. A row off At hand ends in a chevron instead: its body
@@ -240,6 +250,8 @@ export function ItemRow({
   const stack = stackedButtons;
   const toast = useToast();
   const blocked = useBlockedSheet();
+  // Use a charge (finding 9 of frame 47-3, ruled "A"): its toast with Undo, as the item's sheet has it.
+  const spendCharge = useSpendCharge({ db, user, campaign, line, carrier, busy, run, offReason: offReason ?? null, onNote, gmHere });
   // The weapon's sheets (ah-1, ah-3): Attack's, the mode sheet, and a blocked Attack's when the mode's stack is spent.
   const [sheet, setSheet] = useState<'attack' | 'modes' | 'spent' | null>(null);
   const modes = modeView && hasModeButton(modeView.modes) ? modeView : null;
@@ -392,8 +404,20 @@ export function ItemRow({
           atHand={popupTop}
         />
   );
+  // Use a charge's button on this row (the lit light's row carries its own, `LitLightUse`).
+  const useButton = action && (
+    <ItemAction
+      key="use"
+      word="Use"
+      wordAsButton="Use a charge"
+      hidden={`of ${line.name}`}
+      stacked={stack}
+      // Never a disabled button: an item a choice removes (bq3-17 (6)), or with nothing left, says why instead.
+      onClick={spendCharge}
+    />
+  );
   // The burning light's line in At hand: the sheet alone (it portals out), the light's rows standing for the row. It
-  // keeps its row (without a light button) only when it is At hand itself and has Use a charge.
+  // keeps its row (without a light button) only when it is At hand itself and has Use a charge (not lit: C2).
   if (sheetOnly && (sheetAlone || !action)) return <>{itemSheet}</>;
 
   // The row's body (its name and line; a tap opens the item's sheet) and its buttons, laid out as a row or, for the
@@ -402,6 +426,7 @@ export function ItemRow({
     <>
       {/* The row reads the face (K22e); the GM's own Pack outside the view, the true name (⚑ 10, the driver's call). */}
       {shownName(gmHere && line.identified === false && entry ? entry.name : line.name)}
+      {isNew && <NewTag />}
       {stackable(line) && <span className="pack__qty"> ×{line.qty}</span>}
     </>
   );
@@ -453,30 +478,7 @@ export function ItemRow({
   );
   // The row's buttons, built once; how many there are sets the row's layout below.
   const buttons = [
-    action && (
-      <ItemAction
-        key="use"
-        word="Use"
-        wordAsButton="Use a charge"
-        hidden={`of ${line.name}`}
-        stacked={stack}
-        onClick={() =>
-          // Never a disabled button: an item a choice removes (bq3-17 (6)), or with nothing left, says why instead.
-          busy
-            ? undefined
-            : offReason
-              ? onNote(offReason)
-              : !canUse
-                ? onNote(`${line.name} has no charges left.`)
-                : void run(async () => {
-                    const used = await runCommand(registry, db, user, useCharge, { line: ref, hidden: line.chargesHidden });
-                    // With none left, nothing happens, and now the holder knows (ruled 2026-10-24).
-                    if (used.ok && line.chargesHidden && !gmHere && (await seemsSpent(db, line.id))) onNote(`Nothing happens. ${line.name} seems spent.`);
-                    return used;
-                  })
-        }
-      />
-    ),
+    useButton,
     light && <ItemAction key="light" word={light.label} hidden={line.name} stacked={stack} onClick={() => (busy ? undefined : light.run())} />,
     verb && <ItemAction key="verb" word={verb} hidden={line.name} stacked={stack} onClick={() => void spendOne(verb)} />,
     modes && (attack || wield) && (

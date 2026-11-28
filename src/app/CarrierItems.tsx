@@ -12,7 +12,7 @@ import { groupPack, packGroupsWithTiny, withThe } from '../modules/inventory/pac
 import type { CampaignPack } from '../modules/library/campaignPacks.ts';
 import type { ResolvedEntry } from '../modules/library/stack.ts';
 import type { OpenCampaign } from './Campaigns.tsx';
-import { lineInPlay, type CampaignSetting } from './campaignSetting.ts';
+import { lineInPlay, offReasonOf, type CampaignSetting } from './campaignSetting.ts';
 import { asItem, equippedProblems, loadEquipContext, type EquipContext } from './EquipWarning.tsx';
 import { allowedByRule, castingStoppedBy, classAllowsWeapon, equipBlocks } from '../modules/inventory/equipWarnings.ts';
 import { ItemRow } from './ItemRow.tsx';
@@ -136,6 +136,14 @@ function GroupNote({ title, note }: { title: string; note: string }) {
   );
 }
 
+/** A group's lines with the new ones first, newest first (K20b; FD3: "new rows first under Carried"), then the rest as they were. */
+export function newFirst<T extends { id: string }>(lines: readonly T[], newLines: readonly string[]): T[] {
+  if (newLines.length === 0) return [...lines];
+  const rank = new Map(newLines.map((id, i) => [id, i] as const));
+  const fresh = lines.filter((l) => rank.has(l.id)).sort((a, b) => rank.get(a.id)! - rank.get(b.id)!);
+  return [...fresh, ...lines.filter((l) => !rank.has(l.id))];
+}
+
 export function CarrierItems({
   db,
   user,
@@ -174,7 +182,13 @@ export function CarrierItems({
   tinyCategories,
   rowNote,
   rowEnd,
+  newLines = [],
 }: {
+  /**
+   * New until Got it (K20b; FD3, FD8b, p45-6, p45-11): the new lines' ids, newest first. Each carries the "New" tag
+   * wherever it lies, and stands first in its group in this order; the rest keep the list's own order.
+   */
+  newLines?: readonly string[];
   /**
    * The tiny item categories (`CampaignSetting.tinyCategories`): given, the tiny things leave their groups for a folded
    * "Tiny things" section before Other (SC-5-2), as on the sheet's Pack load. Left out (At hand, the stash, waiting): no split.
@@ -210,7 +224,10 @@ export function CarrierItems({
    * light's, whose rows stand for it and whose name opens this sheet (frame P1).
    */
   sheetOnly?: string | null;
-  /** The `sheetOnly` line was added only for its sheet (it isn't At hand itself): never a row, whatever its actions. */
+  /**
+   * The `sheetOnly` line never draws a row, whatever its actions: added only for its sheet (it isn't At hand itself),
+   * or lit with Use a charge, its row the light's (Player sitting piece 9, `LitLightUse`).
+   */
   sheetAlone?: boolean;
   /** The character's light (the Player screen's), for a light's Light or Put out on its At hand row (Design on #552). */
   light?: CharacterLightView | null;
@@ -249,8 +266,9 @@ export function CarrierItems({
         ? packGroupsWithTiny(allLines, mode, rules, tinyCategories, categoryName)
         : groupPack(allLines, mode, rules, categoryName, { stash: carrier.locationId !== null })
       )
-        .map((g) => ({ ...g, lines: g.lines.filter((l) => shown.has(l.id)) }))
+        .map((g) => ({ ...g, lines: newFirst(g.lines.filter((l) => shown.has(l.id)), newLines) }))
         .filter((g) => g.lines.length > 0);
+  const isNew = new Set(newLines);
   // The Tiny things section starts collapsed, then stays as it was left on this device (like the other folds).
   const [tinySaved, setTinyOpen] = useFoldOpen('tiny');
   const tinyOpen = tinySaved ?? false;
@@ -368,7 +386,7 @@ export function CarrierItems({
                   const now = lineInPlay(setting, raw);
                   const line = now.details === raw.details ? raw : { ...raw, details: now.details };
                   const entry = items.find((e) => e.packId === line.sourcePackId && e.packEntryId === line.sourceEntryId) ?? null;
-                  const offReason = now.off ? `${line.name} is off under ${now.off.replace(/^Off: /, '')}: it can't be worn, held or used.` : null;
+                  const offReason = offReasonOf(line.name, now.off);
                   // A weapon's modes (ah-3, G-211): the one in use feeds the figure, its parts and the rules that bear; its
                   // stack is looked for in everything the character carries.
                   const item = { ...(entry?.data ?? {}), ...line.details, category: line.category };
@@ -455,6 +473,7 @@ export function CarrierItems({
                     inflicts={inflicts}
                     modeView={state}
                     tiny={tiny}
+                    isNew={isNew.has(line.id)}
                     note={rowNote?.(line) ?? null}
                     end={rowEnd?.(line) ?? null}
                   />

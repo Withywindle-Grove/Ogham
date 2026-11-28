@@ -2,6 +2,7 @@
 # Runs a command (a full check, or a commit whose hook runs it) in a check slot, so a cloud container runs at most
 # OGHAM_CHECK_SLOTS of them at once (default 1). Logs each run's slot, start, end and seconds to /tmp/ogham-check-times.log.
 # Usage: scripts/check-slot.sh git commit -m "..."   or   scripts/check-slot.sh npm run check
+# A docs-only commit skips the slot (the docs fast lane, below).
 # Why one: four at once on four cores made tests time out; two at once (Francis's trial, 24 Nov) still timed out the
 # Scene UI tests, so back to one (docs/09-decisions-log.md, [process], 24 Nov). OGHAM_CHECK_SLOTS=2 allows a second.
 # Where `flock` is missing (Windows Git Bash), a slot is a lock directory (`<lock>.d`, made with an atomic mkdir and
@@ -39,6 +40,19 @@ run() { # $1 = the slot; runs the rest, logs it, exits with its code
   echo "$(date -u +%T) end ${s##*/} rc=$rc secs=$(($(date +%s) - start)) $PWD" >>"$LOG"
   exit $rc
 }
+
+# The docs fast lane (retro of loop 2, 28 Nov): a commit whose staged files are docs only (scripts/docs-only.mjs, the
+# hook's own rule) runs only the docs check in its hook, a second or two, so it doesn't wait for the slot. The tracked
+# files changed but not staged must be docs only too, so `git commit -a` or a commit naming a code file still waits.
+# Anything unsure (the script fails, nothing staged) takes the slot. Logged as slot "docs-only".
+if [ "$1" = "git" ] && [ "$2" = "commit" ]; then
+  docs_only=$(dirname "$0")/docs-only.mjs
+  staged=$(node "$docs_only" --staged 2>/dev/null)
+  unstaged=$(git diff --name-only --no-renames 2>/dev/null)
+  if [ "$staged" = "docs" ] && { [ -z "$unstaged" ] || [ "$(printf '%s\n' "$unstaged" | node "$docs_only" 2>/dev/null)" = "docs" ]; }; then
+    run docs-only "$@"
+  fi
+fi
 
 if command -v flock >/dev/null 2>&1; then
   while :; do

@@ -5,6 +5,7 @@ import type { Db } from '../core/supabase.ts';
 import { attackFigures } from '../modules/characters/sheetCombat.ts';
 import { cardLine, shortLabel, type FieldDefinition } from '../modules/characters/fields.ts';
 import { downAtOf } from '../modules/characters/hp.ts';
+import { useShownHp } from './HpInPlace.tsx';
 import { combatFields, skillsOf } from '../modules/characters/play.ts';
 import { CentredPopUpScope, SheetScope } from '../ui/Dialog.tsx';
 import { limitedAbilities, loadCharacterPlay, pinnedNames, powersWithUses, type CharacterPlay, type LimitedAbility } from '../modules/characters/playState.ts';
@@ -16,6 +17,7 @@ import { CompanyPage } from './CompanyPage.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { LogSheet, useLogVersion } from './campaignLog.tsx';
 import { usePhone } from './useWide.ts';
+import { useCutEdges } from './useCutEdges.ts';
 import { phoneTabs, playerTabs, type PlayerTab } from './navTabs.ts';
 import { noteTab, tabRestored, tabToRestore } from './placeOnReload.ts';
 import { hasSpells, MagicTab } from './MagicTab.tsx';
@@ -182,6 +184,10 @@ export function PlayerScreen({
   const [opened, setOpened] = useState(false);
   const [readAgain, setReadAgain] = useState(0);
   const onPackRead = useCallback(() => setPackRead(true), []);
+  // The left column, where it scrolls by itself (a landscape tablet, the Player tab): a fade on an edge only while
+  // something is cut there (plan dec-14 row 5, frame 38-5).
+  const [playColumn, setPlayColumn] = useState<HTMLElement | null>(null);
+  const cut = useCutEdges(playColumn);
 
   useEffect(() => {
     let current = true;
@@ -277,6 +283,9 @@ export function PlayerScreen({
     }
     return <TopRow campaign={{ db, campaign }} onBack={onBack} menuLabel="Character options" drawer={campaign.name} title={title} logTab standard />;
   };
+  // The figure the hit points box shows, as it moves (a tap counts at once, before the burst is sent): one copy, kept
+  // here and handed to the box (PlayerVitals), so the head's Down ring follows it (pss-7).
+  const hpShown = useShownHp(character);
 
   if (companyOpen) {
     return (
@@ -334,6 +343,8 @@ export function PlayerScreen({
   const kindred = kindredAndTitle(figures.shownRace, title);
   const cardWords = figures.className ? '' : cardLine(fieldDefs, character.fields, character.level, traitLookup(traitListsOf(setting?.all ?? [])));
   const headLine = wide ? cardWords : kindred || cardWords;
+  // The HP at which the rules set marks a character Down (07 `death.at`): the vitals' toast and the head's ring (pss-7).
+  const downAt = downAtOf(setting?.rulesSets ?? []);
   // In the GM's view the Scene is its player's (C15f, pg32-5): whose group, requests and Rest it shows.
   const scenePlayer = view ? (character.ownerUserId ?? user.id) : undefined;
   const top = topRow(wide && current === 'player' ? nameKindredTitle(character.name, figures.shownRace, title) : character.name);
@@ -407,7 +418,14 @@ export function PlayerScreen({
       {/* Every pop-up on Player and Pack is a Sheet (plan m5b-players-screens-standard A4); Scene keeps its own until
           the sweep. */}
       <SheetScope.Provider value={tab !== 'scene'}>
-      <div className={current === 'player' ? 'player__pane player__pane--play' : 'player__pane'}>
+      <div
+        ref={wide && current === 'player' ? setPlayColumn : undefined}
+        className={
+          current === 'player'
+            ? `player__pane player__pane--play${cut.above ? ' player__pane--cut-above' : ''}${cut.below ? ' player__pane--cut-below' : ''}`
+            : 'player__pane'
+        }
+      >
         <RetiredBanner db={db} user={user} campaign={campaign} />
         {current === 'player' ? (
           // The left column (dec-13 C1, ps-2): the head, hit points, armour class and attack, At hand (the weapon in
@@ -435,6 +453,8 @@ export function PlayerScreen({
               onPortraitSaved={onDataChange}
               onOpenLog={() => select('log')}
               notices={wide ? undefined : <div className="player-head__notices" ref={setNoticesSlot} />}
+              hp={hpShown[0]}
+              downAt={downAt}
             />
             <PlayerVitals
               db={db}
@@ -445,7 +465,8 @@ export function PlayerScreen({
               attack={attack}
               worn={worn}
               acOverride={play?.acOverride ?? null}
-              downAt={downAtOf(setting?.rulesSets ?? [])}
+              downAt={downAt}
+              hpShown={hpShown}
               onSaved={onHpChange}
               onMaxSaved={onDataChange}
               onAcSaved={() => setPlayVersion((v) => v + 1)}
@@ -462,6 +483,7 @@ export function PlayerScreen({
               weaponLine={weaponLine}
               weaponBreakdown={weaponParts}
               weaponRolls={weaponRollsOf}
+              spells={play && setting ? { setting, figures, character, play, onChanged: () => setPlayVersion((v) => v + 1) } : null}
               onRead={onPackRead}
             />
             <div className="player__slot" ref={setLevelSlot} />

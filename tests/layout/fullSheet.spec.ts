@@ -173,11 +173,14 @@ test('F8: at 375 px tile labels never break inside a word, rows re-flow instead 
     }
     for (const t of grids.flat(2).filter((t) => t.text.length >= 20)) expect(t.labelLines, `${t.text} wraps`).toBeGreaterThan(1);
   }
-  // The long save ("Breath of the drowned") makes its row three and two; the long score name makes two columns.
-  const saveRows = await tileRows(page, '#players-standard .save-tiles');
-  expect(saveRows.at(-1)!.map((row) => row.length)).toEqual([3, 2]);
+  // The long score name makes two columns.
   const scoreRows = await tileRows(page, '#full-sheet-standard .score-row');
   expect(scoreRows.at(-1)!.map((row) => row.length)).toEqual([2, 1]);
+  // The long save ("Breath of the drowned") makes its row three and two once "drowned" is too wide for a fifth of the
+  // row. At 375 px that turns on the tiles' 1.5 px edges, which Chrome draws 1 px (the word then fits five across, as
+  // the checks above prove); at 360 px it is too wide in every browser.
+  await page.setViewportSize({ width: 360, height: 812 });
+  await expect.poll(async () => (await tileRows(page, '#players-standard .save-tiles')).at(-1)!.map((row) => row.length)).toEqual([3, 2]);
 });
 
 test('F8: on the sheet at 375 px the Score and Save tiles keep whole words and one height per row', async ({ page }) => {

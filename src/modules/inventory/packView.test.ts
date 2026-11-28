@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { combineEncumbrance } from './encumbrance.ts';
 import type { InventoryLine } from './inventory.ts';
-import { amountText, atHandAction, atHandLines, oneUpVerb, countWords, groupPack, markerOf, possessive, roomLeft, shownName, stackable, wornText } from './packView.ts';
+import { amountText, atHandAction, atHandLines, inWeaponBlock, lightCarriesUse, oneUpVerb, countWords, groupPack, markerOf, possessive, roomLeft, shownName, stackable, wornText } from './packView.ts';
 
 // Invented items only (hard rule 2).
 let next = 0;
@@ -257,6 +257,34 @@ describe('At hand (ruled 2026-10-23)', () => {
   });
 });
 
+describe('the weapon block takes what is in hand (pib-1, pib-2; frame P5b)', () => {
+  const charges = { dice: {}, rechargeable: false, hidden: false };
+  const blade = (name: string, extra: Partial<InventoryLine> = {}) => line(name, { category: 'weapon', details: { slot: 'hand', weapon: { damage: '1d6' } }, ...extra });
+
+  // Purpose: every weapon in hand gets a block, with no cap; three in hand are three blocks (pib-2).
+  it('takes every weapon in hand, three of three', () => {
+    const lines = [blade('Reed spear', { equipped: true }), blade('Eel knife', { equipped: true }), blade('Bone club', { equipped: true })];
+    expect(lines.filter((l) => inWeaponBlock(l, charges)).map((l) => l.name)).toEqual(['Reed spear', 'Eel knife', 'Bone club']);
+  });
+
+  // Purpose: a weapon worn ready (horns on the worn slot) is never a block, though its action is Attack (pib-1); a
+  // pinned weapon not equipped is never a block (its action is Wield).
+  it('leaves out a weapon worn ready and a pinned weapon not in hand', () => {
+    const horns = blade('Bog-ox horns', { equipped: true, pinned: true, details: { slot: 'worn', weapon: { damage: '1d6' } } });
+    const knife = blade('Eel knife', { pinned: true });
+    expect(atHandAction(horns, charges)).toBe('Attack');
+    expect(inWeaponBlock(horns, charges)).toBe(false);
+    expect(inWeaponBlock(knife, charges)).toBe(false);
+    expect(inWeaponBlock(blade('Reed spear', { equipped: true }), charges)).toBe(true);
+  });
+
+  // Purpose: only a weapon whose action is Attack: a wand in hand with charges, or a lantern in hand, is no block.
+  it('leaves out what is in hand but is no weapon to attack with', () => {
+    expect(inWeaponBlock(line('Heron wand', { equipped: true, details: { slot: 'hand', charges: { initial: 3 } }, chargesLeft: 3 }), charges)).toBe(false);
+    expect(inWeaponBlock(line('Rushlight', { equipped: true, details: { slot: 'hand', lightTypeId: 'rush' } }), charges)).toBe(false);
+  });
+});
+
 describe('a name’s possessive (Home Two’s audit of #50, finding 7; Francis, 26 Nov)', () => {
   // Purpose: a name takes ’s, and a name that ends in s takes the mark alone, so it never reads "Wardens’s".
   it('adds ’s, and after a final s only ’', () => {
@@ -264,5 +292,37 @@ describe('a name’s possessive (Home Two’s audit of #50, finding 7; Francis, 
     expect(possessive('Wren of the Lantern Wardens')).toBe('Wren of the Lantern Wardens’');
     expect(possessive('the Reed Boots')).toBe('the Reed Boots’');
     expect(possessive('MOSS')).toBe('MOSS’');
+  });
+});
+
+describe('a lit light with charges in At hand (Player sitting piece 9; frame 47-3, C2)', () => {
+  const charges = { dice: {}, rechargeable: false, hidden: false };
+  const lantern = (extra: Partial<InventoryLine> = {}) => line('Wisp lantern', { details: { lightTypeId: 'wisp-lantern', charges: { initial: 3 } }, chargesLeft: 2, ...extra });
+
+  // Purpose: the light's row carries Use only when its light is lit and its line is At hand itself with Use a charge;
+  // then the item's own row is not drawn (one row, pss-17).
+  it('carries Use when the lit light is At hand itself and has charges', () => {
+    const pinned = lantern({ pinned: true });
+    expect(lightCarriesUse(pinned, true, atHandLines([pinned], charges), charges)).toBe(true);
+    const held = lantern({ equipped: true });
+    expect(lightCarriesUse(held, true, atHandLines([held], charges), charges)).toBe(true);
+  });
+
+  // Purpose (C2): not lit or burnt out, the item keeps its own row with Use, as built: the light's row carries nothing.
+  it('carries nothing while the light is not lit', () => {
+    const pinned = lantern({ pinned: true });
+    expect(lightCarriesUse(pinned, false, atHandLines([pinned], charges), charges)).toBe(false);
+  });
+
+  // Purpose: a lit light that is not At hand itself (not pinned, not in hand, or hidden), or has no charges, carries
+  // nothing: no Use appears that wasn't At hand before.
+  it('carries nothing for a light not At hand itself, or with no charges', () => {
+    const loose = lantern();
+    expect(lightCarriesUse(loose, true, atHandLines([loose], charges), charges)).toBe(false);
+    const hidden = lantern({ equipped: true, atHandHidden: true });
+    expect(lightCarriesUse(hidden, true, atHandLines([hidden], charges), charges)).toBe(false);
+    const plain = line('Reed lamp', { pinned: true, details: { lightTypeId: 'reed-lamp' } });
+    expect(lightCarriesUse(plain, true, atHandLines([plain], charges), charges)).toBe(false);
+    expect(lightCarriesUse(null, true, [], charges)).toBe(false);
   });
 });

@@ -58,7 +58,7 @@ import { useToast } from '../ui/ToastHost.tsx';
 import { forgetCampaignSetting, loadCampaignSetting } from './campaignSetting.ts';
 import { useSeesAsGm } from './playerView.ts';
 import { registry } from './services.ts';
-import { ringView } from './statusRings.ts';
+import { DOWN_RING, headStatusList, ringView } from './statusRings.ts';
 import './Statuses.css';
 
 /** The Player screen's head shows every status up to this many; with more, some and "+N" (ps-5: "four in view"). */
@@ -166,6 +166,7 @@ export function CharacterStatuses({
   inView,
   extra,
   onOpenLog,
+  hp,
 }: {
   db: Db;
   user: CurrentUser;
@@ -188,6 +189,11 @@ export function CharacterStatuses({
   extra?: ReactNode | ((layout: RingLayout) => ReactNode);
   /** The sheet's log line opens the log (the Player screen's Log); without it the line has no chevron. */
   onOpenLog?: () => void;
+  /**
+   * In the head, the hit points shown and the rules' `death.at` (`downAtOf`): at or below it, "Down" leads the rings
+   * (pss-7, psb-2), worked out each time by `headStatusList`. No tap until M6 builds the death panel (2026-11-28, B).
+   */
+  hp?: { current: number | null; downAt: number | null };
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -202,6 +208,17 @@ export function CharacterStatuses({
   // + Status is the GM's only (C1): a player asks aloud. Not in the GM's view as the player, as the player's (M3c).
   const mayAdd = viewer === 'gm' && mayAddStatus(user, character);
 
+  const head = rings && inView !== undefined;
+  // Down needs nothing from the statuses: while they load, or if they can't be read, the head still says it.
+  const downNow = head && headStatusList([], hp?.current ?? null, hp?.downAt ?? null).length > 0;
+  const downRing = (layout: RingLayout) => <StatusRing key="down" layout={layout} {...DOWN_RING} words="" label={DOWN_RING.name} />;
+  if ((book === null || book === 'error') && downNow) {
+    return (
+      <div className="char-statuses char-statuses--head">
+        <StatusRingRow>{downRing('beside')}</StatusRingRow>
+      </div>
+    );
+  }
   if (book === null) return list ? <p className="auth__meta">Loading…</p> : null;
   if (book === 'error') return list ? <p className="auth__meta">Couldn't load the statuses. Check your connection and try again.</p> : null;
   const mine = book.statuses.filter((s) => s.actorId === character.id);
@@ -317,12 +334,17 @@ export function CharacterStatuses({
   };
   const extraOf = (layout: RingLayout) => (typeof extra === 'function' ? extra(layout) : extra);
 
-  if (rings && inView !== undefined) {
+  if (head) {
     // The Player screen's head (dec-13 C2, ps-5; frames P1 and P2): the rings beside the portrait, no heading. Up to
     // four in view; with more, `inView` of them and "+N", which opens every status. The derived casting status leads,
     // so it is always in view (and stays out of the "+N" sheet, which would otherwise open a sheet over a sheet).
-    const extraCount = extra ? 1 : 0;
-    const count = mine.length + extraCount;
+    // Down (pss-7, psb-2) leads before it, as one of the rings in view and in the count, and stays out of the sheet
+    // the same way (it has no tap of its own until M6).
+    const listed = headStatusList(mine, hp?.current ?? null, hp?.downAt ?? null);
+    const down = listed[0]?.kind === 'down';
+    const others = listed.flatMap((r) => (r.kind === 'status' ? [r.status] : []));
+    const leading = (down ? 1 : 0) + (extra ? 1 : 0);
+    const count = others.length + leading;
     if (count === 0 && !addButton) return null;
     const shown = count <= HEAD_RINGS ? count : Math.min(inView, count);
     // One or two: the name and time in words beside the ring (P2); three or more: the ring alone (P1).
@@ -331,8 +353,9 @@ export function CharacterStatuses({
       <div className="char-statuses char-statuses--head">
         {count > 0 && (
           <StatusRingRow>
+            {down && downRing(layout)}
             {extraOf(layout)}
-            {mine.slice(0, Math.max(0, shown - extraCount)).map((s) => ringOf(s, layout))}
+            {others.slice(0, Math.max(0, shown - leading)).map((s) => ringOf(s, layout))}
             {count > shown && <StatusRingMore count={count - shown} onOpen={() => setAll(true)} />}
           </StatusRingRow>
         )}

@@ -34,7 +34,8 @@ export function treasureSuggestion(suggested: boolean, gmSwitch: TreasureSwitch)
 
 // The load at the top: a bar with tier marks (coin), a cell per slot (slot), or the move and treasure (armour).
 // Variant "speed said once" (`speedOnce`; dec-13 C10, frames P1 and P2 of december/14, ps-9): for a host that shows the
-// speed on its own card (the Player screen), the top line is the tier alone. Bands and armour mode are as plain.
+// speed on its own card (the Player screen), the top line is the tier alone; in armour mode, whether treasure is
+// carried, with no "Move N" (pss-12). Bands are as plain.
 export function LoadSummary({
   load,
   rules,
@@ -60,7 +61,11 @@ export function LoadSummary({
     return <BandedSummary load={load} bands={load.bands} setsSpeed={load.setsSpeed ?? null} from={from} levelsPopUp={levelsPopUp} />;
   // The tier, then the speed it gives (Design, #479: the section answers "how fast am I" in every mode).
   const tierSpeed = load.mode !== 'armour' && !load.over && !speedOnce ? speedOf(load) : null;
-  const words = tierWords(load) && tierSpeed !== null ? `${tierWords(load)}, speed ${tierSpeed}` : tierWords(load);
+  const tier = tierWords(load, { speedOnce });
+  const words = tier && tierSpeed !== null ? `${tier}, speed ${tierSpeed}` : tier;
+  // Armour mode beside the speed tile (pss-12): the top line says whether treasure is carried, so the line under the
+  // bar doesn't say it again (unless a host passes the GM's switch, which keeps its line).
+  const treasureOnTop = speedOnce && load.mode === 'armour' && !load.over && !treasure;
   // Past the first tier is a warning (the words say which); over the max too.
   const warn = load.over || (load.mode !== 'armour' && load.tier !== null && load.tier.label !== (load.mode === 'coin' ? rules.coin : rules.slot)?.tiers[0]?.label);
   const source = from.length > 0 ? `From your setting: ${from.join(', ')}` : '';
@@ -103,17 +108,19 @@ export function LoadSummary({
       {load.mode === 'armour' ? (
         // Two lines, left-aligned (Design, #479): whether treasure counts and why, with the GM's switch; then the treasure.
         <div className="pack__treasure-lines">
-          <p className="pack__treasure-switch">
-            <span>
-              <strong className="pack__treasure">{load.carriesTreasure ? 'Carrying treasure' : 'Not carrying treasure'}</strong>
-              {treasure && <span className="auth__meta">{`, ${treasureWhy(load.treasureSuggested ?? load.carriesTreasure, treasure.gmSwitch)}`}</span>}
-            </span>
-            {treasure?.onSwitch && (
-              <button type="button" className="button-secondary button-secondary--small" onClick={treasure.onSwitch}>
-                {load.carriesTreasure ? 'Switch off' : 'Switch on'}
-              </button>
-            )}
-          </p>
+          {!treasureOnTop && (
+            <p className="pack__treasure-switch">
+              <span>
+                <strong className="pack__treasure">{load.carriesTreasure ? 'Carrying treasure' : 'Not carrying treasure'}</strong>
+                {treasure && <span className="auth__meta">{`, ${treasureWhy(load.treasureSuggested ?? load.carriesTreasure, treasure.gmSwitch)}`}</span>}
+              </span>
+              {treasure?.onSwitch && (
+                <button type="button" className="button-secondary button-secondary--small" onClick={treasure.onSwitch}>
+                  {load.carriesTreasure ? 'Switch off' : 'Switch on'}
+                </button>
+              )}
+            </p>
+          )}
           <p className="auth__meta">
             {`Treasure ${num(load.load)}${load.capacity !== null ? ` of ${num(load.capacity)}` : ''} coins’ weight`}
             {treasure && treasureSuggestion(load.treasureSuggested ?? load.carriesTreasure, treasure.gmSwitch)}

@@ -295,6 +295,11 @@ export function lineInPlay(
   return { details: withToldBonus(current.details, line), lines: [...lineLines, ...entryLines], off, damageDelta: deltaAt(asEntry, setting.patches, 'weapon.damage') };
 }
 
+/** Why a line that is off now (`lineInPlay`'s `off`, "Off: <choice>") can't be used: the words a blocked tap says. */
+export function offReasonOf(name: string, off: string | null): string | null {
+  return off ? `${name} is off under ${off.replace(/^Off: /, '')}: it can't be worn, held or used.` : null;
+}
+
 /**
  * K22a: a bonus the GM told on this line stays the line's own. A player's copy of an unidentified entry is its face,
  * with no magic bonus in its blocks, so fp-1's "read from the current entry" would drop the told one; it comes back

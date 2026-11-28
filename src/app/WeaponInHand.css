@@ -105,3 +105,22 @@
   align-items: center;
   gap: var(--space-1);
 }
+
+/* The block's spell variant (Player sitting piece 2; frame M4g): the pinned spells first in At hand, 8 px apart and
+   8 px above the items, each its roll and its range on lines of their own. */
+.pinned-spells {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.weapon-in-hand__roll-list--stacked {
+  flex-direction: column;
+}
+
+/* The items under the pinned spells take no rule of their own (M4g draws none between the block and the row). */
+.pinned-spells ~ .pack__group {
+  border-top: none;
+  padding-top: 0;
+}

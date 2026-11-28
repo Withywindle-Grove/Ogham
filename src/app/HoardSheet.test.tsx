@@ -104,6 +104,53 @@ describe("the hoard's sheet (HM2, HM5)", () => {
     expect(screen.getByText('In the party stash')).toBeTruthy();
   });
 
+  // Purpose (K21b; page 45's FD5 B, pk-11): a coin the book prints oddly keeps the book's words as its row's name, with
+  // the pack's note as the quiet line under it, word for word; once sent, the row says where it went instead.
+  it('keeps an oddly printed coin as the book prints it, with the pack’s note', () => {
+    const note = 'Printed “hn.” in the book: read as 200 herons.';
+    const chest: Hoard = {
+      name: 'Sea chest',
+      words: '200 hn. and a brass spyglass, under the bunk.',
+      rows: [
+        { kind: 'coin', entry: 0, text: '200 hn.', amounts: [{ key: 'heron', amount: 200, words: '200 herons' }], coins: { heron: 200 }, readAs: { printed: '200 hn.', note }, notCoins: [] },
+        thing(1, 'Brass spyglass'),
+      ],
+    };
+    const view = (sent: Map<string, { to: string | null }>) => (
+      <HoardSheetView hoard={chest} over="5. The Purser's Cabin" sent={sent} nameOf={nameOf} onRow={() => undefined} onSendAll={null} onEdit={() => undefined} onClose={() => undefined} />
+    );
+    const { rerender } = render(view(new Map()));
+    const sheet = screen.getByRole('dialog');
+    expect(within(sheet).getByText('200 hn.')).toBeTruthy();
+    expect(within(sheet).getByText(note)).toBeTruthy();
+    expect(within(sheet).queryByText('200 herons')).toBeNull();
+    rerender(view(new Map([['0:coin', { to: 'wren' }]])));
+    expect(within(screen.getByRole('dialog')).getByText('200 hn.')).toBeTruthy();
+    expect(screen.getByText('Sent to Wren')).toBeTruthy();
+    expect(screen.queryByText(note)).toBeNull();
+  });
+
+  // Purpose (⚑ 5 of #158, B, 28 Nov; FD5, TR2): each thing's and coin's name on the hoard's sheet is in the bold name
+  // part and the edit row's words are not; what a screen reader hears for a row is unchanged (the name, then the
+  // pack's note); and a sent row says "Sent to Wren" with no full stop.
+  it('draws each thing’s name in bold, the edit row plain, and the sent line with no full stop', () => {
+    const note = 'Printed “hn.” in the book: read as 200 herons.';
+    const odd: HoardRow = { kind: 'coin', entry: 0, text: '200 hn.', amounts: [{ key: 'heron', amount: 200, words: '200 herons' }], coins: { heron: 200 }, readAs: { printed: '200 hn.', note }, notCoins: [] };
+    const chest: Hoard = { name: 'Sea chest', words: null, rows: [odd, thing(1, 'Moon opals', 2), thing(2, 'Brass spyglass')] };
+    const view = (sent: Map<string, { to: string | null }>) => (
+      <HoardSheetView hoard={chest} sent={sent} nameOf={nameOf} onRow={() => undefined} onSendAll={() => undefined} onEdit={() => undefined} onClose={() => undefined} />
+    );
+    const { rerender } = render(view(new Map()));
+    const sheet = screen.getByRole('dialog');
+    for (const words of ['200 hn.', 'Moon opals ×2', 'Brass spyglass']) expect(within(sheet).getByText(words).classList.contains('hoard-sheet__name')).toBe(true);
+    expect(within(sheet).getByText("Edit the piece's words").closest('.hoard-sheet__name')).toBeNull();
+    expect(within(sheet).getByRole('button', { name: `200 hn., ${note}` })).toBeTruthy();
+    expect(within(sheet).getByRole('button', { name: 'Moon opals ×2' })).toBeTruthy();
+    rerender(view(new Map([['1:thing', { to: 'wren' }]])));
+    expect(screen.getByText('Sent to Wren')).toBeTruthy();
+    expect(screen.queryByText('Sent to Wren.')).toBeNull();
+  });
+
   // Purpose: the Send sheet says what is sent once and offers the two equal answers (PK5).
   it('offers the two answers', async () => {
     const onStash = vi.fn();

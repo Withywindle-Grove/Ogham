@@ -290,11 +290,21 @@ function blockOf(view: CharacterLightView): LightBlock | null {
  * Whether At hand has a light block, and the pack line it stands for (the lit light's, the one light's, the burnt-out
  * light's; null for several): At hand draws the block instead of that item's row, so the light shows once.
  */
-export function litLineOf(view: CharacterLightView): { lineId: string | null } | null {
+export function litLineOf(view: CharacterLightView): { lineId: string | null; lit: boolean } | null {
   // The light that couldn't be read keeps the light's place in At hand (⚑ 6, B; page 37, 37C).
-  if (view.light === 'error') return { lineId: null };
+  if (view.light === 'error') return { lineId: null, lit: false };
   const block = blockOf(view);
-  return block ? { lineId: block.lineId } : null;
+  return block ? { lineId: block.lineId, lit: block.kind === 'lit' } : null;
+}
+
+/**
+ * What a lit light's row carries for its own item when that item is At hand itself and has charges (Player sitting
+ * piece 9, frame 47-3; pss-17, C2, D1): the charges in words, at the end of the light's line, and Use beside the ring
+ * (null when the holder can't use it).
+ */
+export interface LightUse {
+  words: string;
+  button: ReactNode;
 }
 
 /**
@@ -303,7 +313,7 @@ export function litLineOf(view: CharacterLightView): { lineId: string | null } |
  * "Light…" opening the pick; burnt out, struck through and still, with Refill and Light another under it when each can
  * act. Its name opens the item's sheet (`onOpenItem`). Lit, Keep lit's row is under it, with a holder's Refill.
  */
-export function LightInAtHand({ view, onOpenItem = null }: { view: CharacterLightView; onOpenItem?: (() => void) | null }) {
+export function LightInAtHand({ view, onOpenItem = null, use = null }: { view: CharacterLightView; onOpenItem?: (() => void) | null; use?: LightUse | null }) {
   const [picking, setPicking] = useState(false);
   const block = blockOf(view);
   const { light, now, fuel } = view;
@@ -331,13 +341,14 @@ export function LightInAtHand({ view, onOpenItem = null }: { view: CharacterLigh
     ) : (
       <p className="light-block__name">{text}</p>
     );
-  const row = (ring: ReactNode, title: string, words: ReactNode, low = false) => (
+  const row = (ring: ReactNode, title: string, words: ReactNode, low = false, end: ReactNode = null) => (
     <div className="light-block__row">
       {ring}
       <div className="light-block__body">
         {name(title)}
         <p className={low ? 'light-block__words light-block__words--low' : 'light-block__words'}>{words}</p>
       </div>
+      {end}
     </div>
   );
   const flame = { icon: 'flame', tone: 'light' } as const;
@@ -357,9 +368,11 @@ export function LightInAtHand({ view, onOpenItem = null }: { view: CharacterLigh
             {/* Running low: the warning shape with the words, so it's never colour alone. */}
             {low && <WarningSign size={16} />}
             {low && <span className="visually-hidden">Running low. </span>}
-            {`Lit, ${words}${refills ? `. ${refillsWords(fuel.left)}` : ''}`}
+            {`Lit, ${words}${refills ? `. ${refillsWords(fuel.left)}` : ''}${use ? `. ${use.words}` : ''}`}
           </>,
           low,
+          // Use, beside the ring at the row's right (frame 47-3): the item's own Use a charge.
+          use?.button ?? null,
         )}
         {/* Keep lit's own row (lt-6): its name and ⓘ, a holder's Refill, the switch at the right edge. */}
         <div className="light-block__keep">
