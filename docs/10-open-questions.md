@@ -19,6 +19,9 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 - **Owed, the words sweep:** a find's log line drops its article ("Your GM gave Wren Bronze ring."); p45-18, `plans/app-sweep.md` Q-11. Not built with K18 to K21.
 - **To draw, the step's own roll** (sf-5 ⚑ 1, ruled 2026-11-26 "change it later"): a procedure step that rolls a table, and the weather table's pick, keep their typed "Enter roll…" (`TableRoll`) for now; a new row, drawn first by the designer, may make them "Roll…" with the tapped pop-up.
 
+**Architecture pass 1** (`design/rulings/arch-pass-1-2026-11-28.md`)
+- ⚑ **The toast's words when Undo could not check** (arch1-2, Francis, 2026-11-28: "A"). Today a failed read shows "Nothing to undo.", which is false. After the undo module is built, the screens can tell the two apart. Which words? `06`'s pattern for a failed read is "Couldn't load the pack. Check your connection and try again."; one screen already says "Couldn't undo that. Check your connection and try again." For the next design sitting; then one small ticket.
+
 **Later**
 - ⚑ **Laptops, widescreen** (2026-11-24, `01` Devices): laptops are the second device, for downtime; how windows scale past the tablet's landscape layout (1024 px and up, `06`) needs a short design session before anything in `06` changes.
 - ◈ **Virtual-tabletop map files (.uvtt, .dd2vtt, .df2vtt)** (Francis, 2026-11-28, `intents/2026-11-28-vtt-maps.md`, G-235): Release: parked, deliberately left open (Francis, 28 Nov: ".vtt is in parking lot until we need it"). Also open: picture only or walls and doors too; import, export or both.
