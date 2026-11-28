@@ -169,7 +169,8 @@ export function sentRows(events: readonly LogEvent[], placeId: string): Map<stri
   const out = new Map<string, { to: string | null; eventId: string; seq: number }>();
   for (const send of liveSends(events)) {
     if (send.placeId !== placeId) continue;
-    for (const row of send.rows) out.set(row, { to: send.to, eventId: send.eventId, seq: send.seq });
+    // A held thing's key is the person's, not this place's hoard (sentHeld reads those).
+    for (const row of send.rows) if (!heldOfKey(row)) out.set(row, { to: send.to, eventId: send.eventId, seq: send.seq });
   }
   return out;
 }

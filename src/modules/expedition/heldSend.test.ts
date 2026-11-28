@@ -60,8 +60,8 @@ describe('2. what the GM’s log says she gave away (dg-12)', () => {
       'held:mother-sedge:iron-key': { to: null, placeId: 'mill', eventId: 'e3', seq: 3 },
       'held:mother-sedge:wardens-lantern': { to: 'wren', placeId: 'quay', eventId: 'e2', seq: 2 },
     });
-    // A place's hoard marks are unchanged by the held keys beside them.
-    expect([...sentRows(events, 'quay').keys()]).toContain('2:thing');
+    // A place's hoard marks are unchanged by the held keys beside them: no held key among them.
+    expect([...sentRows(events, 'quay').keys()]).toEqual(['2:thing']);
     expect(sentHeld([]).size).toBe(0);
   });
 });

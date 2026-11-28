@@ -78,15 +78,18 @@ describe('a send can come from a person (dec5-gaps E)', () => {
   it('2. no player reads the key, the person or the rows; the GM does', async () => {
     const sent = await send(world.gm, [KEY]);
     expect(sent.error).toBeNull();
-    const readBy = async (person: Person) => JSON.stringify(must(await person.db.from('events').select('*').eq('request_id', sent.requestId)));
+    const readBy = async (person: Person) => must(await person.db.from('events').select('*').eq('request_id', sent.requestId)) as unknown[];
     for (const player of [world.playerA, world.playerB]) {
-      const read = await readBy(player);
+      const lines = await readBy(player);
+      // Each player reads the party's line of the send, so the checks below read something.
+      expect(lines.length).toBeGreaterThan(0);
+      const read = JSON.stringify(lines);
       expect(read).not.toContain('held:');
       expect(read).not.toContain('mother-sedge');
       expect(read).not.toContain('"rows"');
       expect(read).not.toContain(placeId);
     }
-    expect(await readBy(world.gm)).toContain(KEY);
+    expect(JSON.stringify(await readBy(world.gm))).toContain(KEY);
   });
 
   it('3. the send’s Undo takes it back (Take it back), and the key’s send is undone', async () => {
