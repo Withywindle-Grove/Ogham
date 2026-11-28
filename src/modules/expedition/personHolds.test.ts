@@ -3,7 +3,8 @@
 //   Purpose:
 //   1. A `holds` line is read as written: its item (`itemId`, or `itemRef` with its pack dropped), `qty` 1 when left
 //      out or not a whole number of 1 or more, and its note; an item no attached pack has is counted, never named.
-//   2. The person is found by her id, her own pack first; an item is found in her pack first, then in the packs' order.
+//   2. The person is found by her id, her own pack first; an `itemId` in her pack only, an `itemRef` in her pack first,
+//      then in the packs' order.
 //   3. Held or sent, from the GM's log at every place: the latest send of a key wins, a send taken back marks nothing.
 //   4. The words: the Carries line in its three states, a sent row, "Sent before", the toast and the missing line.
 import { describe, expect, it } from 'vitest';
@@ -94,6 +95,14 @@ describe('2. finding her and her things', () => {
     expect(personOf(ENTRIES, 'mother-sedge', ORDER, ADV)).toBeNull();
     // Her pack's iron key, not the rules pack's, though both are attached.
     expect(personHolds(found!, ENTRIES, ORDER)?.things[0]?.name).toBe('Iron key');
+  });
+
+  // Purpose (#197's review P5): an `itemId` names an item of her own pack only (piece F); one in another attached pack is
+  // counted as not in her packs, while an `itemRef` still finds it there.
+  it('finds an itemId in her own pack only, and an itemRef in the packs’ order', () => {
+    const holds = personHolds(sedge([{ itemId: 'oil-flask' }, { itemRef: 'river-rules:oil-flask' }]), ENTRIES, ORDER);
+    expect(holds?.things.map((t) => t.libraryEntryId)).toEqual([`lib-${RULES}-oil-flask`]);
+    expect(holds?.missing).toBe(1);
   });
 });
 

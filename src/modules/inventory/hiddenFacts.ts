@@ -4,7 +4,7 @@
 // private.hidden_facts (supabase/migrations/20261122100000_k22_unidentified_face.sql), decides what a tell may tell;
 // the two must give the same ids in the same order.
 
-import { chargeUnitOf } from '../../core/chargeUnit.ts';
+import { gmChargeUnitOf } from '../../core/chargeUnit.ts';
 
 /** A fact's id, as the line's `revealedFields` and inventory.tell name it. */
 export type FactId = 'magic' | 'name' | 'bonus' | 'cursed' | 'charges' | `power:${number}` | `fields.${string}`;
@@ -139,8 +139,8 @@ export function hiddenFacts(line: LineFacts, whole: Record<string, unknown> | nu
     });
   }
   if (whole && ((whole.cursed === true && data.cursed !== true) || fieldUntold('cursed'))) facts.push({ id: 'cursed', label: 'That it’s cursed', detail: '' });
-  // The count in the unit the line's copy names ("Its portions"; G-233, page 49 frame 49-3).
-  if (line.chargesHidden) facts.push({ id: 'charges', label: `Its ${chargeUnitOf(data).many}`, detail: '' });
+  // The count in its unit (G-233, page 49 frame 49-3): the GM's list, so the GM's copy's unit, else the line's ("Its portions").
+  if (line.chargesHidden) facts.push({ id: 'charges', label: `Its ${gmChargeUnitOf(whole, data).many}`, detail: '' });
   if (whole && isRecord(whole.fields)) {
     const fields = whole.fields;
     const own = isRecord(data.fields) ? data.fields : {};

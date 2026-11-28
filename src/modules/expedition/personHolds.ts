@@ -2,6 +2,7 @@
 // and 6): what a person carries. Her pack lists it (`npcs[].holds`, 07 §5); the importer keeps it on her library entry,
 // which is GM-only (kind `npc`), so it never reaches a player. What she still holds is read from the GM's log at every
 // place (`sentHeld`, piece E; dg-12's technical pick), never stored. Pure: no database, no screen.
+import { capitalised } from '../../core/chargeUnit.ts';
 import { heldKey } from './findSend.ts';
 
 /** A library entry as the campaign's setting rules hold it (`CampaignEntry`): the fields read here. */
@@ -45,10 +46,7 @@ export interface HeldSend {
 
 export type HeldState = HeldThing & { sent: HeldSend | null };
 
-/**
- * The label over a piece's GM-only lines on the place page, as page 50 draws it. One string, so loop 4's #205 changes
- * it in one place ("Only you see these details." under a shown piece, sb4-4, l4-2).
- */
+/** The label over a piece's GM-only lines on the place page, as page 50 draws it: one string, said in one place. */
 export const GM_ONLY_LABEL = 'Only you see this.';
 
 const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -59,7 +57,6 @@ const bare = (ref: string): string => {
   return (at < 0 ? ref : ref.slice(at + 1)).trim();
 };
 const lowerFirst = (words: string): string => (words ? words[0]!.toLowerCase() + words.slice(1) : words);
-const upperFirst = (words: string): string => (words ? words[0]!.toUpperCase() + words.slice(1) : words);
 
 /** The packs in the order they are searched: `first` (the place's or her own pack), then the campaign's order. */
 function ranked<T extends { packId: string }>(entries: readonly T[], order: readonly string[], first: string | null): T[] {
@@ -74,24 +71,27 @@ export function personOf<T extends HoldsEntry>(entries: readonly T[], personId: 
 }
 
 /**
- * What she carries (dg-10, dg-15): each `holds` line's item (`itemId`, or `itemRef` with its pack dropped, as a shop's
- * stock line), found in her own pack first and then in the packs' order; `qty` a whole number of 1 or more, else 1 (the
+ * What she carries (dg-10, dg-15): each `holds` line's item (`itemId` in her own pack only; `itemRef` with its pack
+ * dropped, as a shop's stock line, found in her own pack first and then in the packs' order); `qty` a whole number of 1 or more, else 1 (the
  * checker warns); the book's `note`. A line whose item no attached pack has, or that names none, is counted. The same
  * item twice on her is one thing, the first line kept. Null when she holds nothing.
  */
 export function personHolds(person: HoldsEntry, entries: readonly HoldsEntry[], order: readonly string[]): PersonHolds | null {
   const lines = isObject(person.data) && Array.isArray(person.data.holds) ? person.data.holds : [];
   if (lines.length === 0) return null;
+  // An `itemId` is in her own pack only (piece F); an `itemRef`'s item is searched in her pack, then the packs' order.
   const items = ranked(
     entries.filter((e) => e.kind === 'item'),
     order,
     person.packId,
   );
+  const own = items.filter((e) => e.packId === person.packId);
   const things: HeldThing[] = [];
   let missing = 0;
   for (const line of lines) {
-    const id = isObject(line) ? (text(line.itemId) || bare(text(line.itemRef))) : '';
-    const found = id ? items.find((e) => e.packEntryId === id) : undefined;
+    const itemId = isObject(line) ? text(line.itemId) : '';
+    const id = itemId || (isObject(line) ? bare(text(line.itemRef)) : '');
+    const found = id ? (itemId ? own : items).find((e) => e.packEntryId === id) : undefined;
     const key = found ? heldKey(person.packEntryId, id) : null;
     if (!found || !key) {
       missing += 1;
@@ -123,7 +123,7 @@ const whom = (to: string | null, nameOf: (id: string) => string): string => (to 
 export function carriesWords(states: readonly HeldState[], nameOf: (id: string) => string): { lead: string; rest: string } {
   const held = states.filter((s) => s.sent === null);
   if (held.length === 0) return { lead: 'Carries', rest: 'nothing now.' };
-  const sent = states.flatMap((s) => (s.sent ? [`${upperFirst(heldThingWords(s))} sent to ${whom(s.sent.to, nameOf)}.`] : []));
+  const sent = states.flatMap((s) => (s.sent ? [`${capitalised(heldThingWords(s))} sent to ${whom(s.sent.to, nameOf)}.`] : []));
   return { lead: 'Carries:', rest: [`${held.map((s) => lowerFirst(heldThingWords(s))).join(', ')}.`, ...sent].join(' ') };
 }
 
@@ -136,11 +136,14 @@ export const sentBeforeWords = (thing: Pick<HeldThing, 'name' | 'qty'>, to: stri
 
 /** The send's toast (page 50): "Warden’s lantern sent to Wren.". */
 export const heldSentWords = (thing: Pick<HeldThing, 'name' | 'qty'>, to: string | null, nameOf: (id: string) => string): string =>
-  `${upperFirst(heldThingWords(thing))} sent to ${whom(to, nameOf)}.`;
+  `${capitalised(heldThingWords(thing))} sent to ${whom(to, nameOf)}.`;
 
 /** Take it back's toast, as TR1's: "Taken back from Wren: warden’s lantern.". */
 export const heldTakenBackWords = (thing: Pick<HeldThing, 'name' | 'qty'>, to: string | null, nameOf: (id: string) => string): string =>
   `Taken back from ${whom(to, nameOf)}: ${lowerFirst(heldThingWords(thing))}.`;
+
+/** Her piece's line when the GM's log can't be read and nothing was read before (#197's review S1): no send is offered. */
+export const CARRIES_UNREAD = "Couldn't read what she carries. Check your connection and try again.";
 
 /** The quiet line for things no attached pack has (finding 6, no id): null when there are none. */
 export const missingWords = (count: number): string | null =>

@@ -1912,7 +1912,8 @@ export function createFakeDb(): FakeWorld {
         const owner = chain.find((e) => (e.data as Row).encounterCheck && typeof (e.data as Row).encounterCheck === 'object');
         if (!owner || !tables.campaign_packs.some((cp) => cp.campaign_id === campaign && cp.pack_id === place.pack_id)) return [];
         const check = (owner.data as Row).encounterCheck as Row;
-        // G-27 piece B (dg-3): a "none" that is `true` stands in, marked `none`; a `none` that isn't is no check at all.
+        // G-27 piece B (dg-3; mirrors 20261128141000_dec5_b_none_for_players.sql): a "none" that is `true` stands in,
+        // marked `none`; a `none` that isn't is no check at all.
         const none = check.none === true;
         if ('none' in check && !none) return [];
         if (!none && check.replacesScheduled !== true) return [];
@@ -4378,6 +4379,7 @@ export function createFakeDb(): FakeWorld {
       if (!Number.isInteger(n) || Number(n) < 0 || Number(n) > 999_999_999) return plain('Say how many: a whole number, 0 or more.');
       if (Number(n) > 0) wanted[key] = Number(n);
     }
+    // A hoard's row keys, or a person's held keys (dec5-gaps E; mirrors 20261128160000_dec5_e_held_send.sql).
     if (!Array.isArray(rows) || rows.length > 25 || rows.some((r) => typeof r !== 'string' || !/^(\d{1,4}:(thing|coin)|held:[a-z0-9][a-z0-9_.-]{0,79}:[a-z0-9][a-z0-9_.-]{0,79})$/.test(r))) return plain('Send at most 25 rows of a hoard at once.');
     for (const t of things) {
       const qty = t?.qty;

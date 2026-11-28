@@ -34,6 +34,15 @@ export function chargeUnitOf(details: Record<string, unknown> | null | undefined
   return { one, many: wordsOf(charges?.units) ?? `${one}s`, named: true };
 }
 
+/**
+ * The unit on the GM's own screens (piece C: "The GM's own screens read the GM's copy, so the GM always sees the unit"):
+ * the GM's library copy's, else the line's copy's. Never for a holder's words, which read the line's copy only.
+ */
+export function gmChargeUnitOf(gmCopy: Record<string, unknown> | null | undefined, lineCopy: Record<string, unknown> | null | undefined): ChargeUnit {
+  const own = chargeUnitOf(gmCopy);
+  return own.named ? own : chargeUnitOf(lineCopy);
+}
+
 /** Starts that sound as a consonant though spelt with a vowel, and words whose "h" is silent (dgb-2). */
 const A_BEFORE = /^(uni|use|eu|one)/;
 const AN_BEFORE = /^(hour|honour)/;

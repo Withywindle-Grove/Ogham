@@ -601,7 +601,8 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
               onEdit={() => editPiece(piece)}
               onOpen={hoards.opens(piece) ? () => hoards.open(piece) : person.opens(piece) ? () => person.open(piece) : undefined}
               note={hoards.noteOf(piece)}
-              carries={person.opens(piece) ? { line: person.carriesOf(piece), first: phone } : null}
+              // Her Carries line, or the plain words when her things can't be read (then her words open no sheet).
+              carries={person.carriesOf(piece) ? { line: person.carriesOf(piece), first: phone } : null}
             />
           ))}
         </ul>

@@ -15,6 +15,7 @@
 //   - At a Location the pack marks a way out, End expedition ends the expedition through the strip, with Undo; with no
 //     mark there is no such row (B10).
 //   - A check that is a roll on its table: the step's Then line names the table, never the check's id (B9).
+//   - Into a place whose "none" is in force: no Then check line and no check; out of one: the setting's check (dg-4).
 //   - Without the strip listening, Move on says where it works and moves nothing.
 //   - When the players' own read fails, the sheet stays open and a toast says their lines go by map number (cs-22).
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
@@ -274,12 +275,13 @@ describe('Move on, wired to the time strip', () => {
     expect(list.queryByRole('button', { name: 'End expedition' })).toBeNull();
   }, 30000);
 
-  // Purpose (G-27, dg-2, dg-4): at a place whose pack says "none" nothing comes due: Move on's step has no Then check
-  // line, and the move puts no encounter check on the card (the setting's Lurkers would be on it, as the first test shows).
-  it('at a place with no encounters: no Then check line, and no check after the move', async () => {
+  // Purpose (G-27, dg-4, #197's review P1): the "none" test is on the place the party moves INTO. A way into a place
+  // whose pack says "none" has no Then check line, and the move puts no encounter check on the card (the setting's
+  // Lurkers would be on it, as the first test shows).
+  it('into a place with no encounters: no Then check line, and no check after the move', async () => {
     const t = await table();
-    const jetty = world.tables.library_entries.find((e) => e.pack_entry_id === 'jetty')!;
-    jetty.data = { ...(jetty.data as Record<string, unknown>), encounterCheck: { none: true, note: 'The harbour watch keeps the jetty quiet.' } };
+    const islet = world.tables.library_entries.find((e) => e.pack_entry_id === 'islet')!;
+    islet.data = { ...(islet.data as Record<string, unknown>), encounterCheck: { none: true, note: 'The gulls keep the islet quiet.' } };
     render(<Page t={t} />);
     const user = userEvent.setup();
     await user.click(await within(await sheet()).findByRole('button', { name: 'Rowing, 1 turn, to 2. The Islet' }));
@@ -288,6 +290,23 @@ describe('Move on, wired to the time strip', () => {
     await user.click(within(shown).getByRole('button', { name: 'Move' }));
     await waitFor(() => expect(moves(t)).toHaveLength(1));
     expect(screen.queryByRole('button', { name: /Lurkers, now/ })).toBeNull();
+  }, 30000);
+
+  // Purpose (G-27, dg-4, #197's review P1): leaving a place whose pack says "none" for an ordinary one, the way's Then
+  // line names the setting's check and the move puts it on the card, as from any place.
+  it('out of a place with no encounters into an ordinary one: the setting’s check on the Then line and after the move', async () => {
+    const t = await table();
+    const jetty = world.tables.library_entries.find((e) => e.pack_entry_id === 'jetty')!;
+    jetty.data = { ...(jetty.data as Record<string, unknown>), encounterCheck: { none: true, note: 'The harbour watch keeps the jetty quiet.' } };
+    render(<Page t={t} />);
+    const user = userEvent.setup();
+    await user.click(await within(await sheet()).findByRole('button', { name: 'Rowing, 1 turn, to 2. The Islet' }));
+    const shown = await screen.findByRole('dialog', { name: 'Move on: Rowing to 2. The Islet' });
+    expect(shown.textContent).toContain('ThenLurkers, 1 in 6.');
+    await user.click(within(shown).getByRole('button', { name: 'Move' }));
+    await waitFor(() => expect(moves(t)).toHaveLength(1));
+    const due = within(await screen.findByRole('region', { name: /^Due/ }));
+    expect(await due.findByRole('button', { name: 'Miss, Lurkers, now' })).toBeTruthy();
   }, 30000);
 
   // Purpose (B9; p2p-18, p2p-19, page 24 WY1a): a place's check with a table and no chance, standing in for the mode's,

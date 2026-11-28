@@ -57,16 +57,13 @@ export function homebrewItem(line: Pick<InventoryLine, 'name' | 'category' | 'we
 
 type Secret = { total: number | null; spent: boolean } | null;
 
-/** The count's unit, as the line's own copy of the item names it (G-233; "charge" when it names none, dg-8). */
-export const chargeUnitOfLine = (line: Pick<InventoryLine, 'details'>): ChargeUnit => chargeUnitOf(line.details);
-
 /**
  * What a row says about charges (G-233, page 49): the count in the item's unit ("2 of 3 portions", a full count of 1
  * "1 dose left"), "?", "spent", or that they aren't set yet ("Portions not set"). "of 3" only where the pack's full
- * count is a whole number the count hasn't passed.
+ * count is a whole number the count hasn't passed. `unit`: the line's copy's for a holder; the GM's own screens pass
+ * the GM's copy's (`gmChargeUnitOf`).
  */
-export function chargeWords(line: InventoryLine, secret: Secret): string {
-  const unit = chargeUnitOfLine(line);
+export function chargeWords(line: InventoryLine, secret: Secret, unit: ChargeUnit = chargeUnitOf(line.details)): string {
   if (!line.chargesHidden) {
     const left = line.chargesLeft;
     if (left === null) return `${capitalised(unit.many)} not set`;
@@ -87,15 +84,16 @@ export function chargeWords(line: InventoryLine, secret: Secret): string {
  * The count as a labelled fact (the At hand pop-up, the item's sheet; page 49 frame 49-2): the label is the unit's
  * plural with a capital ("Portions"), the value the row's words without the unit ("2 of 3 left", "?", "Not set").
  */
-export function chargeFact(line: InventoryLine, secret: Secret): { label: string; value: string } {
-  const unit = chargeUnitOfLine(line);
+export function chargeFact(line: InventoryLine, secret: Secret, unit: ChargeUnit = chargeUnitOf(line.details)): { label: string; value: string } {
   const label = capitalised(unit.many);
   if (!line.chargesHidden && line.chargesLeft !== null && line.chargesLeft > 0) {
     const left = line.chargesLeft;
     const full = fullCountOf(line.details);
     return { label, value: full !== null && full > 1 && left <= full ? `${left} of ${full} left` : `${left} left` };
   }
-  const words = chargeWords(line, secret);
-  const value = words.startsWith(`${label} not set`) ? `Not set${words.slice(label.length + 8)}` : words === `${label}: ?` ? '?' : words;
+  const words = chargeWords(line, secret, unit);
+  // "Portions not set (hidden)" reads "Not set (hidden)" beside its label; "Portions: ?" reads "?".
+  const notSet = `${label} not set`;
+  const value = words.startsWith(notSet) ? `Not set${words.slice(notSet.length)}` : words === `${label}: ?` ? '?' : words;
   return { label, value };
 }

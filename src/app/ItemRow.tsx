@@ -6,7 +6,7 @@
 // (ah-3, ah-4) carries its mode button (Quiver, Pouch, Grip, Stance) beside the action; its sheets are AtHandSheets.tsx.
 import { useState, type ReactNode } from 'react';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
-import { spendOneWords } from '../core/chargeUnit.ts';
+import { chargeUnitOf, spendOneWords } from '../core/chargeUnit.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { chargesOf, type ChargeRules } from '../modules/inventory/charges.ts';
@@ -33,7 +33,7 @@ import { ItemAction } from './ItemAction.tsx';
 import { usePlayerView } from './playerView.ts';
 import { RollFigures, RollLines } from './WeaponInHand.tsx';
 import { registry } from './services.ts';
-import { chargeFact, chargeUnitOfLine, chargeWords, type Run } from './packHelpers.ts';
+import { chargeFact, chargeWords, type Run } from './packHelpers.ts';
 import { NewTag } from './PackParts.tsx';
 import './PackScreen.css';
 import { possessive } from '../core/nameWords.ts';
@@ -410,7 +410,7 @@ export function ItemRow({
     <ItemAction
       key="use"
       word="Use"
-      wordAsButton={spendOneWords(chargeUnitOfLine(line))}
+      wordAsButton={spendOneWords(chargeUnitOf(line.details))}
       hidden={`of ${line.name}`}
       stacked={stack}
       // Never a disabled button: an item a choice removes (bq3-17 (6)), or with nothing left, says why instead.

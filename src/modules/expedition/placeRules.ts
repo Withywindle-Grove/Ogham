@@ -15,6 +15,7 @@
 //   decided by the database (public.place_rules_for_players, public.encounter_check_for_players); the functions here
 //   are the GM's view of the same rules and the words both screens show. Pure, apart from the loaders and commands.
 import { defineCommand, fromError, isGm, ok, type CommandResult, type CurrentUser } from '../../core/commands.ts';
+import { capitalised } from '../../core/chargeUnit.ts';
 import { possessive } from '../../core/nameWords.ts';
 import type { Db } from '../../core/supabase.ts';
 import { plainLinks } from '../library/linkMarks.ts';
@@ -268,6 +269,7 @@ export function placeCheckOf(chain: readonly ChainEntry[], switches: readonly Ru
   // A `none` that isn't `true` is no check at all (dg-1; pack:check warns on it).
   if ('none' in raw && raw.none !== true) return null;
   if (raw.none === true) {
+    // A stand-in check with no chance, no table and no `when`: `readCheck` reads any object with an id, so it is never null.
     const check: Check = { ...readCheck({ id: `${owner.entryId}-check` })!, name: NO_ENCOUNTERS_NAME };
     return { owner, check, eachMove: false, replaces: true, inForce: !off, none: true, name: NO_ENCOUNTERS_NAME, sentence: checkSentenceOf(raw) };
   }
@@ -286,7 +288,7 @@ export function placeCheckOf(chain: readonly ChainEntry[], switches: readonly Ru
  * here." over the setting's check applying again. `setting` is "the setting's <check>", as the built toasts say it.
  */
 export function noEncountersWords(check: Pick<PlaceCheck, 'owner' | 'inForce' | 'sentence'>, setting: string): { title: string; line: string } {
-  if (!check.inForce) return { title: 'Encounters as usual here.', line: `${setting.charAt(0).toUpperCase()}${setting.slice(1)} applies here again, until you switch this back.` };
+  if (!check.inForce) return { title: 'Encounters as usual here.', line: `${capitalised(setting)} applies here again, until you switch this back.` };
   const own = `${possessive(check.owner.name)} own rule.`;
   return { title: 'No encounters here.', line: check.sentence ? `${check.sentence} ${own}` : own };
 }

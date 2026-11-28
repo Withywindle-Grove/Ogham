@@ -9,7 +9,7 @@
 // blocked-action pop-up saying where the count is rolled (Home Two's audit of #50, findings 4 and 5; Francis, 26 Nov);
 // "Tell them everything" tells every other fact (review of #50).
 import { useState } from 'react';
-import { capitalised, chargeUnitOf, type ChargeUnit } from '../core/chargeUnit.ts';
+import { capitalised, gmChargeUnitOf, type ChargeUnit } from '../core/chargeUnit.ts';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
@@ -51,11 +51,14 @@ const whoOf = (carrier: NamedCarrier) => (carrier.locationId !== null ? 'the par
 /** Where the item is, under the pop-up's title: "in Wren’s pack", or "in the Party stash". */
 export const whereOf = (carrier: NamedCarrier) => (carrier.locationId !== null ? 'in the Party stash' : `in ${possessive(carrier.name)} pack`);
 
-/** The toast after a tell (pick 10; K22e, K22f): "Told Wren: the Bronze ring is cursed.", the true name's (pg30-5), everything's. */
-export function toldWords(fact: HiddenFact | 'everything' | 'all but charges', line: Pick<InventoryLine, 'name'> & Partial<Pick<InventoryLine, 'details'>>, carrier: NamedCarrier, trueName: string): string {
+/**
+ * The toast after a tell (pick 10; K22e, K22f): "Told Wren: the Bronze ring is cursed.", the true name's (pg30-5),
+ * everything's. `gmCopy`: the GM's copy of the item's entry, whose unit the GM's toast says.
+ */
+export function toldWords(fact: HiddenFact | 'everything' | 'all but charges', line: Pick<InventoryLine, 'name'> & Partial<Pick<InventoryLine, 'details'>>, carrier: NamedCarrier, trueName: string, gmCopy?: Record<string, unknown> | null): string {
   const who = whoOf(carrier);
-  // The count's unit, as the line's copy names it ("the rum bottle has 2 portions left"; G-233).
-  const units = chargeUnitOf(line.details).many;
+  // The count's unit, as the GM's copy names it, else the line's ("the rum bottle has 2 portions left"; G-233).
+  const units = gmChargeUnitOf(gmCopy, line.details).many;
   const item = shownName(line.name);
   if (fact === 'everything') return `Told ${who} everything about ${withThe(trueName || item)}.`;
   if (fact === 'all but charges') return `Told ${who} everything about ${withThe(trueName || item)} but its ${units}.`;
@@ -120,13 +123,14 @@ export function RevealPopup({
   const tellable = left.filter((f) => !countNotSet(f, secret));
   const waiting = left.length > tellable.length;
   const where = whereOf(carrier);
-  const unit = chargeUnitOf(line.details);
+  // The GM's pop-up: the unit of the GM's copy, else the line's (piece C).
+  const unit = gmChargeUnitOf(entry?.data, line.details);
 
   function tell(fact: HiddenFact | 'everything') {
     if (busy) return;
     // "Everything" with a count never set tells the rest, as one act, and leaves the count hidden.
     const skip = fact === 'everything' && waiting;
-    const words = toldWords(skip ? 'all but charges' : fact, line, carrier, entry?.name ?? '');
+    const words = toldWords(skip ? 'all but charges' : fact, line, carrier, entry?.name ?? '', entry?.data);
     let toldOk = false;
     void run(async () => {
       const told = await runCommand(registry, db, user, tellItem, {

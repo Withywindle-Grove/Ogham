@@ -229,12 +229,14 @@ export async function loadClockChanges(db: Db, campaignId: string): Promise<{ se
 
 /**
  * The places sends were made at, by their row id (dec5-gaps F, #192: "Sent before: …, at 4. The Customs Shed."): each
- * place's name and the pack entry it was made from, for its map key. Places the reader can't read are left out.
+ * place's name and the pack entry it was made from, for its map key. Places the reader can't read are left out; null
+ * when the read failed (the caller keeps what it read before).
  */
-export async function loadSentPlaces(db: Db, ids: readonly string[]): Promise<Map<string, { name: string; packId: string | null; entryId: string | null }>> {
+export async function loadSentPlaces(db: Db, ids: readonly string[]): Promise<Map<string, { name: string; packId: string | null; entryId: string | null }> | null> {
   if (ids.length === 0) return new Map();
   const { data, error } = await db.from('places').select('id, name, pack_id, pack_entry_id').in('id', [...ids]);
-  if (error || !data) return new Map();
+  if (error || !data) return null;
+  // The columns selected above, as the places table types them (the stand-in database's rows are untyped).
   return new Map((data as { id: string; name: string; pack_id: string | null; pack_entry_id: string | null }[]).map((p) => [p.id, { name: p.name, packId: p.pack_id, entryId: p.pack_entry_id }]));
 }
 

@@ -6,7 +6,7 @@
 import { useContext, useId, useState, type ReactNode } from 'react';
 import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
-import { capitalised, chargeUnitOf, countOf, spendOneWords, type ChargeUnit } from '../core/chargeUnit.ts';
+import { capitalised, chargeUnitOf, countOf, gmChargeUnitOf, spendOneWords, type ChargeUnit } from '../core/chargeUnit.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { diceRange, recordRoll } from '../core/rolls.ts';
@@ -48,7 +48,7 @@ import { Icon } from '../ui/icons.tsx';
 import type { AttackRoll } from '../modules/characters/play.ts';
 import { Lines } from './RulesBrowser.tsx';
 import { registry } from './services.ts';
-import { chargeFact, chargeUnitOfLine, homebrewItem, type Run } from './packHelpers.ts';
+import { chargeFact, homebrewItem, type Run } from './packHelpers.ts';
 import './PackScreen.css';
 import './RulesBrowser.css';
 import { useToast } from '../ui/ToastHost.tsx';
@@ -228,8 +228,11 @@ export function ItemSheet(props: ItemSheetProps) {
   // The GM's own sheet outside the view reads the true name, "Players see: …" under it (K22g, 4; ⚑ 10, the driver's call).
   const title = shownName(gmHere && unidentified && entry ? entry.name : line.name);
   const charged = chargesOf(line, chargeRules, rechargeDefault);
-  const chargeCount = !charged ? null : chargeFact(line, gmHere ? secret : null);
-  const unit = chargeUnitOfLine(line);
+  // The count's unit (G-233): the line's copy's on the holder's sheet and in the GM's view as the player; the GM's copy's,
+  // else the line's, on the GM's own sheet and the GM's line (piece C: the GM always sees the unit).
+  const unit = gmHere ? gmChargeUnitOf(entry?.data, line.details) : chargeUnitOf(line.details);
+  const gmUnit = gmTruth ? gmChargeUnitOf(entry?.data, line.details) : unit;
+  const chargeCount = !charged ? null : chargeFact(line, gmHere ? secret : null, unit);
   const waiting = line.approval === 'pending';
   // Give to: the Party stash first (the default), then the other characters.
   const recipients = [...others.filter((o) => o.locationId !== null), ...others.filter((o) => o.locationId === null)];
@@ -264,7 +267,7 @@ export function ItemSheet(props: ItemSheetProps) {
   const hiddenLines = gm ? hiddenOf(unrevealed) : [];
   const facts = gmTruth ? factsOf(line, entry, secret) : [];
   // The GM's line shrinks to what is still hidden (K22g 1 to 3): the facts, then any other hidden field (his notes).
-  const gmLine = view && gmTruth ? gmLineWords([...factLines(facts), ...hiddenOf(unrevealed.filter((key) => !FACT_KEYS.has(key)))], line.chargesHidden && secret ? { ...secret, used: line.chargesUsed } : null, gmFacts, unit) : null;
+  const gmLine = view && gmTruth ? gmLineWords([...factLines(facts), ...hiddenOf(unrevealed.filter((key) => !FACT_KEYS.has(key)))], line.chargesHidden && secret ? { ...secret, used: line.chargesUsed } : null, gmFacts, gmUnit) : null;
   // "Reveal…" above the player's own rows (M3g), on every item with a fact still hidden (k22-8; pg32-4: none, no row);
   // "Edit what players see…" under it while the item is unidentified (pick 1). Both the GM's alone.
   const revealRow = gmTruth && (facts.length > 0 || unidentified) && (

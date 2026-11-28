@@ -27,6 +27,8 @@ export interface MoveRequest {
    * encounter check uses it instead of the one in force here (frame 13, "with the breakwater’s chance").
    */
   throughCheck?: Check | null;
+  /** The place the move goes into has its "none" in force (G-27, dg-4): the move asks for no check of its own. */
+  intoNone?: boolean;
 }
 
 /** What the strip offers Move on. */

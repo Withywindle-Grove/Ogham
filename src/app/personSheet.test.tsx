@@ -9,12 +9,15 @@
 //      last; no "Send all" and no accent (finding 1). A thing's own sheet has no edit row.
 //   3. On the place page: her words open her sheet; a thing's row opens its sheet; To a character sends it to Wren with
 //      the toast "Warden’s lantern sent to Wren." and Undo; her sheet and her line say so; Take it back returns it.
+//   4. A failed read of the GM's log (#197's review S1): a read that worked before keeps its sends, so nothing is offered
+//      twice; with none read before, her piece says plain words and opens no sheet.
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CurrentUser } from '../core/commands.ts';
 import { runCommand } from '../core/commands.ts';
-import type { HeldState } from '../modules/expedition/personHolds.ts';
+import { giveFind } from '../modules/expedition/findSend.ts';
+import { CARRIES_UNREAD, type HeldState } from '../modules/expedition/personHolds.ts';
 import { forgetPackPlaces, loadGroupPlaces, setPlace, type GroupPlace, type Piece } from '../modules/expedition/placePlay.ts';
 import { createFakeDb, type FakeWorld } from '../testing/fakeDb.ts';
 import { ToastHost } from '../ui/ToastHost.tsx';
@@ -208,5 +211,46 @@ describe('3. on the GM’s place page, through the stand-in database', () => {
     await user.click(within(await screen.findByRole('dialog', { name: 'Mother Sedge: Warden’s lantern' })).getByText('Take it back'));
     expect(await screen.findByText('Taken back from Wren: warden’s lantern.')).toBeTruthy();
     await waitFor(() => expect(view.container.querySelector('.person-carries')?.textContent).toBe('Carries: warden’s lantern, iron key.'));
+  });
+
+  /** The GM's log reads fail from now on while `down` is true (offline, a blip); every other read is as before. */
+  function eventsDown() {
+    const state = { down: false };
+    const failed: unknown = new Proxy({}, { get: (_, key) => (key === 'then' ? (done: (v: unknown) => void) => done({ data: null, error: { message: 'offline' } }) : () => failed) });
+    const real = world.db.from.bind(world.db);
+    vi.spyOn(world.db, 'from').mockImplementation(((table: string) => (state.down && table === 'events' ? failed : real(table as never))) as never);
+    return state;
+  }
+
+  // Purpose (S1): after a good read showed the lantern sent to Wren, a failed read of the log keeps it sent, so her line
+  // never reads "warden’s lantern" again and her sheet never offers it a second time.
+  it('keeps what was sent when a later read of the log fails', async () => {
+    const { trip, row } = await atShed();
+    const sent = await runCommand(registry, world.db, gm(), giveFind, { campaignId: campaign, to: world.tables.actors[0]!.id as string, placeId: row.place!.id, things: [{ libraryEntryId: 'entry-wardens-lantern', qty: 1 }], coins: {}, rows: ['held:mother-sedge:wardens-lantern'] });
+    expect(sent.ok).toBe(true);
+    const down = eventsDown();
+    const view = page(trip, row);
+    await waitFor(() => expect(view.container.querySelector('.person-carries')?.textContent).toBe('Carries: iron key. Warden’s lantern sent to Wren.'));
+    down.down = true;
+    view.rerender(
+      <ToastHost>
+        <SceneWaitingProvider>
+          <GmPlacePage db={world.db} user={gm()} campaign={{ id: campaign, name: 'The Ash Barrows', role: 'gm', line: null }} expeditionId={trip} group={1} groupLabel={null} row={{ ...row }} checks={[]} recent={[]} onChanged={() => {}} />
+        </SceneWaitingProvider>
+      </ToastHost>,
+    );
+    await waitFor(() => expect(vi.mocked(world.db.from).mock.calls.filter(([t]) => t === 'events').length).toBeGreaterThan(1));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(view.container.querySelector('.person-carries')?.textContent).toBe('Carries: iron key. Warden’s lantern sent to Wren.');
+  });
+
+  // Purpose (S1): when the log has never been read, her piece says so in plain words and her words open no sheet, so no
+  // send is offered on a guess.
+  it('says her things can’t be read when the first read of the log fails', async () => {
+    const { trip, row } = await atShed();
+    eventsDown().down = true;
+    const view = page(trip, row);
+    await waitFor(() => expect(view.container.querySelector('.person-carries')?.textContent).toBe(CARRIES_UNREAD));
+    expect(screen.getByRole('button', { name: `Edit piece: ${SEDGE_WORDS}` })).toBeTruthy();
   });
 });

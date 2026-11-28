@@ -147,6 +147,16 @@ export function throughOf(read: MoveOnRead, through: string | null): { words: { 
 }
 
 /**
+ * Whether the place a move goes into has its "none" in force (G-27, dg-4: "Move on's 'Then' line into such a place has no
+ * check line"): read from the far end's own chain, so a place inside a "none" place is quiet too, and the GM's switch
+ * puts the check back. The place the party leaves doesn't decide it.
+ */
+export function intoNoneOf(read: Pick<MoveOnRead, 'farChains' | 'switches'>, destinationId: string): boolean {
+  const found = placeCheckOf(read.farChains.get(destinationId) ?? [], read.switches);
+  return found?.inForce === true && found.none;
+}
+
+/**
  * What one way's step says (MoveOnParts' `WayMove`), as frames 12 and 13 have it, redrawn by page 24's WY1a (B9): the
  * title is the way's word and where to, "Row to 1. The Jetty" (the title says where, so there is no Where line).
  */
@@ -157,10 +167,13 @@ export function wayMoveOf(read: MoveOnRead, destinationId: string, key: string, 
   const { link, way } = found;
   const barrier = link.barrier;
   const throughName = throughNameOf(read, barrier?.through ?? null);
+  const through = throughOf(read, barrier?.through ?? null)?.words ?? null;
+  // Into a "none" place the move asks for no check (dg-4), unless the way passes a place with its own (the move rolls that).
+  const quiet = intoNoneOf(read, destinationId) && !through;
   return {
     title: `${wayWordOf(way)} to ${to}`,
     takes: takesWords(way, barrier),
-    then: thenWords(check, throughOf(read, barrier?.through ?? null)?.words ?? null),
+    then: thenWords(quiet ? null : check, through),
     obstacle: barrier ? { name: obstacleNameOf(barrier, throughName), extra: obstacleExtraWords(barrier), note: barrier.note, needsApproval: barrier.needsApproval } : null,
   };
 }

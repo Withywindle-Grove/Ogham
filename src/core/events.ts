@@ -382,7 +382,8 @@ function findIn(e: LogEvent): FindReason | null {
     const rows = Array.isArray(find.rows) ? find.rows.filter((r): r is string => typeof r === 'string') : [];
     // Whose held things went: every row a held key, the people it names (a send of a hoard's rows names none).
     const held = rows.map((r) => HELD_KEY.exec(r)?.[1] ?? null);
-    const heldFrom = rows.length > 0 && held.every((p) => p !== null) ? [...new Set(held as string[])] : [];
+    const people = held.filter((p): p is string => p !== null);
+    const heldFrom = rows.length > 0 && people.length === rows.length ? [...new Set(people)] : [];
     return { to: typeof find.to === 'string' ? find.to : null, placeId: text(find.placeId), hoardId: text(find.hoardId), coin: find.coin === true, heldFrom };
   } catch {
     return null; // Not a find's reason.
