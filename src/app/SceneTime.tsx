@@ -126,6 +126,7 @@ import { PromptSlot } from './PromptSlot.tsx';
 import { CallsInPromptSlot, RevealedCard } from './CallCard.tsx';
 import { useRevealedWords } from './useRevealedWords.ts';
 import { usePlayerCalls } from './usePlayerCalls.ts';
+import { useSceneFinds } from './SceneFinds.tsx';
 import { darkMode, inDarkness } from '../modules/expedition/darkness.ts';
 import { loadTownSwitches, resetTownSwitches, setActiveNight, setOutDay } from '../modules/expedition/townPlay.ts';
 import { ACTIVE_NIGHT, afterFlip, anyOn, endedWords, flipToastWords, OUT_DAY, reachesMorning, runsNow, switchesLine, SWITCHES_OFF, type TownSwitches } from '../modules/expedition/townSwitches.ts';
@@ -200,6 +201,7 @@ export function SceneTime({
   onOpenScene,
   tableView,
   player,
+  onOpenPack,
 }: {
   db: Db;
   user: CurrentUser;
@@ -210,6 +212,8 @@ export function SceneTime({
   compact?: boolean;
   /** The compact strip's way to Scene, when something waits on the reminder card. */
   onOpenScene?: () => void;
+  /** The find card's "and N more" on the players' Scene (K18d): the host opens the Pack at the new rows. */
+  onOpenPack?: () => void;
   /**
    * The players' live table view (B18, M5 gate): `prompts` join the prompt slot under the time band (the rest prompt
    * and the weather card are the strip's own); `body` is the marching order and the place, given the Rest button
@@ -410,6 +414,10 @@ export function SceneTime({
   // The calls to adventure and rumours sent to this player (P7; page 40): read again with the log, last in the slot;
   // read only while the players' slot is drawn (its table view, once the time has loaded).
   const playerCalls = usePlayerCalls(db, user, campaign.id, !gm && !compact && !!tableView && scene !== null && scene !== 'error', logVersion + version);
+  // K18d: the find card for the player's own active character, in the calls' place (p45-3, p45-23). None in the GM's
+  // view of a player's Scene (⚑ F5's lean, as on the Pack).
+  const findsFor = gm || compact || !tableView || player !== undefined ? null : (marchers.find((m) => m.kind === 'pc' && m.ownerUserId === user.id)?.id ?? null);
+  const findCard = useSceneFinds({ db, user, campaignId: campaign.id, characterId: findsFor, onOpenPack });
   // The encounter results the GM revealed (sf-7b; EN5): the words alone, a card each in the slot until "Got it" puts it
   // away on this device (sf-23); read, like the calls, only while the players' slot is drawn.
   const revealed = useRevealedWords(db, campaign.id, !gm && !compact && !!tableView && scene !== null && scene !== 'error', logVersion + version);
@@ -2697,8 +2705,9 @@ export function SceneTime({
             <>
               {/* B18: the prompt slot, between the time band and the marching order (space reserved), newest on top
                   (SC-g6-4): the rest prompt, the screen's other prompts (a request, a message, No light), the weather;
-                  what is there when the screen opens keeps that order. The calls to adventure come last, always (p7-9). */}
-              <PromptSlot after={<CallsInPromptSlot calls={playerCalls.calls} onGotIt={playerCalls.gotIt} />}>
+                  what is there when the screen opens keeps that order. The calls to adventure come last, always (p7-9); a
+                  find card takes their one place, one of the two at a time (K18d, p45-23). */}
+              <PromptSlot after={<CallsInPromptSlot calls={playerCalls.calls} onGotIt={playerCalls.gotIt} find={findCard} />}>
                 {restViews.map((flow) => (
                   <RestPrompt
                     key={`rest-${flow.group}`}
