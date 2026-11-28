@@ -1,5 +1,7 @@
 # Plan: the town, brought into Ogham
 
+> 28 Nov 2026: the unbuilt rows move to loop 5 (the town); the loop is not optional (`docs/09-decisions-log.md`, `[process]`).
+
 Written by a designer worker on 2026-11-25 (row plan-town-carry), from the driver's brief. The plan itself changes no code; Francis's ruling of 2026-11-25 on it is recorded in the same pull request (09, 07, 10).
 
 The town was built on the old repository's held branch `dec-3-town-stack` (read at 629241c) and never went live. This plan carries that work into this repository, adds what the stack never built, and applies the nine findings of the `impeccable audit` of the stack (Home Two, 2026-11-25), which Francis ruled the same day: "Approve with those fixes".

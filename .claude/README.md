@@ -76,7 +76,7 @@ The branch rule (one integration branch per spec, a fresh worker per ticket and 
 - **Builders do not wait for CI.** A builder pushes, reports and stops. A Sonnet or Haiku worker watches CI and fetches the pictures. If something fails, the driver starts a fresh worker with the findings.
 - **The check slot.** In a cloud container a worker runs the full check through `scripts/check-slot.sh <command>`, and only the tests it touches while it works; before it queues for the full check it runs `npm run check:quick` (types, lint and related tests on its changes, a few minutes, outside the slot; `docs/testing.md`, The quick check). One slot, unless `OGHAM_CHECK_SLOTS` says more; each run's time is logged to `/tmp/ogham-check-times.log`. A second slot is a trial: time it, and keep it only if it gains time.
 - **The commit hook is the check.** A worker commits through `scripts/check-slot.sh git commit …` and does not run the full check by hand first. The slot refuses a commit when the hooks are off in its worktree, and says to run `npm run hooks:install`.
-- **Docs only.** A change of docs or mockups only runs `npm run docs:check`, not the full check.
+- **Docs only.** A change of docs or mockups only runs `npm run docs:check`, not the full check. Committed through the slot as any other commit, it doesn't wait for the slot's lock: the slot lets it straight through (`docs/testing.md`, The docs fast lane).
 - **Worktrees.** In a new worktree, cloud ones included, a worker runs `npm run hooks:install` once: it turns the hooks on in that worktree only (`docs/testing.md`, Git hooks). The check slot removes a `node_modules/node_modules` link left by `cp -al` before it runs.
 
 ## Skills
@@ -205,6 +205,8 @@ When each check runs (by day, on a merge, at night) is in `CLAUDE.md`, Checks, a
 
 On a branch named `fix-…`, the first commit adds the failing test marked `it.fails` / `test.fails` (the check passes because it fails); the fix commit removes `.fails` and changes nothing else in that test, which must now pass. The history proves the test failed first; nothing is bypassed. The test guard hook (`scripts/guard-tests.mjs`, `docs/testing.md`) allows only those two edits to test files on a fix branch and says how when it blocks one.
 
+A test-only correction, where the test is wrong and the app is right, goes on a branch NOT named `fix-` (e.g. `tests-chrome-borders`): its pull request states the cause in one sentence, and the local review confirms no file under `src/` changed (Francis, "A", 2026-11-28; `docs/09-decisions-log.md`).
+
 ## Measuring
 
 - **Every worker's brief starts with `Row: <id>`** (a plan batch: `Row: <id> + <id>`; for a ticket, its issue number). The same line is in the worker's prompt itself: the usage report reads the prompt, not the brief file. A spec's pull request title names every ticket (`Spec: <name> (Rows: #a, #b, …)`); a plan batch's title names every row.
@@ -214,11 +216,4 @@ On a branch named `fix-…`, the first commit adds the failing test marked `it.f
 
 ## Work begun from a plan
 
-Work begun from a `docs/plans/` file before 27 November 2026 finishes from that plan. New work has a spec and tickets.
-
-| For that work | Rule |
-|---|---|
-| What a builder reads first | the plan file, as it is on `main`; its row is one row of the plan |
-| What a review compares the diff with | the plan, and the departures in the pull request's own text. A plan's own Departures section is history |
-| Mockups first | each plan piece names its mockup's file and approval date, or says "none: data and logic only" (`CLAUDE.md`) |
-| A new plan | none is written. New work goes through the loop |
+None from 28 November 2026: a plan's unbuilt rows enter a loop (`CLAUDE.md`, The build loop); their approved mockups and rulings carry into sitting A. Work already merged from a plan is unaffected.
