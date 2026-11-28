@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>December: page 51, the find card on the Player tab, beside what was ruled after page 45 (K18c; drawn 2026-11-28 for loop 4's sitting A; to approve)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* This page's own rules. Every value is a token from docs/06: spacing 4/8/12/16/24/32, type 14/16/20/36, the tap 44,
+     corners 4, 8 and 20. The find card is shared/book.css's .cardb as page 45 draws it; the phone's head is page 47's
+     (frame 47-1, approved 2026-11-28); the tablet's grid is page 45's (FD1b). Nothing here is a new part. */
+  .fr51 { margin:0 0 var(--space-5); }
+  .fr51 > .cap { max-width:1100px; font-size:16px; color:var(--ink); }
+  .note { max-width:1100px; }
+  .flag { display:inline-block; border:1.5px dashed var(--warn); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; font-size:14px; }
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); max-width:375px; }
+  .lbl b { color:var(--ink); }
+  table.sc { border-collapse:collapse; font-size:14px; margin:var(--space-2) 0 var(--space-4); color:var(--ink); max-width:1100px; }
+  table.sc td, table.sc th { border:1px solid var(--rule); padding:var(--space-1) var(--space-2); text-align:left; vertical-align:top; }
+  ol.crit { font-size:16px; max-width:1100px; padding-left:var(--space-5); color:var(--ink); }
+  ol.crit li { margin-bottom:var(--space-2); }
+
+  /* the phone at 375 px (page 47's) */
+  .ph { position:relative; width:375px; background:var(--page); outline:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; overflow:hidden; }
+  .ph .inner { padding:var(--space-2) var(--space-4) var(--space-3); }
+  .ph .bar .title { font-size:20px; }
+  .ph .bar .title.gone { visibility:hidden; }
+  .tabs { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--rule); background:var(--sheet); }
+  .tabs > span { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60px; font-size:14px; color:var(--muted); }
+  .tabs > .on { color:var(--ink); font-weight:700; box-shadow:inset 0 3px 0 var(--accent); }
+  .cut { font-size:14px; color:var(--muted); font-style:italic; text-align:center; padding:var(--space-2); border-top:1px dashed var(--rule); }
+  /* the count on the Pack's icon (page 45's .b8, FD7) */
+  .b8 { display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--ink); color:var(--page); font-size:14px; font-weight:700; box-sizing:border-box; }
+  .tabs .b8 { position:absolute; top:var(--space-1); left:calc(50% + 8px); }
+  /* the phone's head (47-1, as approved: the name leads the line, the bar's middle empty) */
+  .hd { display:grid; grid-template-columns:96px minmax(0,1fr); gap:var(--space-3); align-items:center; }
+  .por { width:96px; height:96px; border-radius:50%; border:1.5px solid var(--control); background:var(--surface); display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:700; color:var(--accent); box-sizing:border-box; }
+  .side { display:flex; flex-direction:column; gap:var(--space-1); min-width:0; }
+  .words { margin:0; font-size:20px; font-weight:700; line-height:1.2; overflow-wrap:anywhere; }
+  .ntc { display:inline-flex; align-self:flex-start; align-items:center; gap:var(--space-2); min-height:44px; padding:0 var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); font-size:16px; color:var(--ink); box-sizing:border-box; }
+  .ntc.wide { display:flex; align-self:stretch; }
+  .hpbox { margin-top:var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-3); }
+  .hpbox .sclab { margin:0; }
+  .hpbox .n { font-size:36px; font-weight:700; line-height:1.2; }
+  .hpbox .n small { font-size:16px; color:var(--muted); font-weight:400; }
+  /* the find card (page 45: a one-thing card, "Got it" beside its line, p45-14) */
+  .cardb .one9 { display:flex; align-items:center; gap:var(--space-2); }
+  .cardb .one9 > p { flex:1; min-width:0; margin-bottom:0; }
+  .cardb p b { overflow-wrap:anywhere; }
+  .ph .inner > .cardb:first-child { margin-top:0; }
+
+  /* the tablet held sideways, 1180 px (page 45's FD1b grid) */
+  .tab51 { width:1180px; background:var(--page); outline:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; overflow:hidden; }
+  .grid9 { display:grid; grid-template-columns:56px minmax(0,1fr) 400px; align-items:start; min-height:520px; }
+  .rail9 { align-self:stretch; display:flex; flex-direction:column; align-items:center; gap:var(--space-2); padding:var(--space-3) 0; border-right:1px solid var(--rule); background:var(--surface); }
+  .ri9 { position:relative; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:4px; color:var(--muted); }
+  .ri9.on { color:var(--ink); background:var(--wash); box-shadow:inset 0 0 0 2px var(--accent); }
+  .ri9 .b8 { position:absolute; top:calc(-1 * var(--space-1)); left:calc(50% + 6px); }
+  .main9 { padding:var(--space-3) var(--space-5); min-width:0; }
+  .side9 { align-self:stretch; padding:var(--space-3) var(--space-4); border-left:1px solid var(--rule); min-width:0; }
+  .side9 > .cardb:first-child { margin-top:0; }
+  .ph9 { border:1.5px dashed var(--control); border-radius:4px; color:var(--muted); font-size:16px; display:flex; align-items:center; justify-content:center; text-align:center; padding:var(--space-4); box-sizing:border-box; }
+  .tiles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-2); }
+  .tile { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-1); text-align:center; min-height:64px; box-sizing:border-box; }
+  .tile .k { font-size:14px; color:var(--muted); display:block; line-height:1.2; }
+  .tile .v { font-size:20px; font-weight:700; line-height:1.2; display:block; }
+  .tbar { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; min-height:52px; padding:0 var(--space-3); border-bottom:1px solid var(--rule); }
+  .tbar .back { min-height:44px; display:inline-flex; align-items:center; text-decoration:underline; text-underline-offset:4px; color:var(--accent); }
+  .tbar .title { font-size:20px; font-weight:700; text-align:center; }
+  .tbar .icons { display:flex; justify-content:flex-end; gap:var(--space-2); }
+</style>
+</head>
+<body>
+<p style="margin:1rem;padding:.75rem 1rem;border:1px solid currentColor"><strong>Drawn 2026-11-28 for loop 4's sitting A. Not approved.</strong> Two places where page 45's find card (approved 2026-11-26) meets what was ruled or built after it: the long name on a phone (47-1, approved 2026-11-28) and the notices box at the top of the right column on a tablet (built). Ruling file: <code>docs/design/rulings/loop4-scene-pack-2026-11-28.md</code> (⚑ L4 and ⚑ L5).</p>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+(() => {
+// Invented names and numbers only. Brannoch is the layout page's sample character (src/testing/layoutP1Character.ts).
+const LONG = 'Brannoch Fenward of the Seven Drowned Cairns, called the Unbowed';
+const LINE = 'the Bog folk, Warden';
+const flag = (t) => `<span class="flag">${t}</span>`;
+const frame = (id, cap, inner) => `<div class="fr51" data-f="${id}"><p class="cap">${cap}</p><div class="wall">${inner}</div></div>`;
+const col = (label, html) => `<div><p class="lbl">${label}</p>${html}</div>`;
+const stk = (words, k) => `<span class="btn stk" role="button">${gi(k, 24)}<span>${words}</span></span>`;
+
+// the find card: one thing, "Got it" beside its line (FD1, p45-4, p45-14)
+const card = `<div class="cardb" role="status" aria-label="New in your pack"><h3 class="bsub">New in your pack</h3><div class="one9"><p><b>Bronze ring</b><small>From your GM, just now.</small></p>${stk('Got it', 'check-mark')}</div></div>`;
+const notices = (wide) => `<span class="ntc${wide ? ' wide' : ''}" role="button">${gi('ringing-bell', 24)}Too dark to read</span>`;
+
+// the phone
+const phBar = `<div class="bar"><span class="ico" role="button" aria-label="Menu">${sym('menu', 24)}</span><span class="title gone">${LONG}</span><span class="ico" role="button" aria-label="Messages">${sym('mail', 24)}</span></div>`;
+const tabs = `<div class="tabs" role="tablist"><span class="on">${gi('crown', 24)}Player</span><span>${sym('fire', 24)}Scene</span><span aria-label="Pack, 1 new">${sym('sack', 24)}Pack<span class="b8">1</span></span><span>${sym('book', 24)}Log</span></div>`;
+const head = `<div class="hd"><span class="por" role="img" aria-label="Brannoch’s portrait">B</span><div class="side"><p class="words">${LONG} ${LINE}</p>${notices(false)}</div></div>`;
+const hp = `<div class="hpbox"><p class="sclab">Hit points</p><div class="n">11 <small>of 16</small></div></div>`;
+const cutNote = '<div class="cut">The screen goes on below: armour class and attack, the saves, the weapon in hand, At hand.</div>';
+const ph = (inner) => `<div class="ph bit">${phBar}<div class="inner">${inner}</div>${cutNote}${tabs}</div>`;
+
+const k1 = frame('51-1', `<b>51-1. The find card on the Player tab, at 375 px, with a long name (K18c; ${flag('⚑ L4')}).</b> Page 45's FD1c B puts the card “above that tab’s own content” (PK2b); it was drawn with a short name in the bar. Frame 47-1 (approved 2026-11-28, A1) has since moved a long name out of the bar: it leads the head’s line and the bar’s middle stays empty. So the card and the only place the name is written now compete for the top. Bronze ring, one thing, from the GM. The notices box beside the portrait is as built.`,
+  `${col('<b>A. The card first</b> (FD1c B read as drawn): the card, then the head.', ph(`${card}${head}${hp}`))}${col('<b>B. The head first:</b> the head and its name, then the card, then hit points.', ph(`${head}${card}${hp}`))}`);
+
+// the tablet
+const rail = `<div class="rail9" role="tablist"><span class="ri9 on" role="tab" aria-label="Player">${gi('crown', 24)}</span><span class="ri9" role="tab" aria-label="Scene">${sym('fire', 24)}</span><span class="ri9" role="tab" aria-label="Pack, 1 new">${sym('sack', 24)}<span class="b8">1</span></span></div>`;
+const tbar = `<div class="tbar"><span class="back" role="button">‹ The Reed Marches</span><span class="title">Brannoch</span><span class="icons"><span class="ico" role="button" aria-label="Messages">${sym('mail', 24)}</span><span class="ico" role="button" aria-label="Rules">${sym('book', 24)}</span><span class="ico" role="button" aria-label="More">${I.more}</span></span></div>`;
+const tile = (k, v) => `<div class="tile" role="button"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+const scores = `<p class="sclab">Scores</p><div class="tiles">${[['Might', 14], ['Grace', 10], ['Grit', 13], ['Wit', 9], ['Sense', 11], ['Voice', 12]].map(([k, v]) => tile(k, v)).join('')}</div>`;
+const left = `<div class="ph9" style="min-height:480px">The Player tab’s left column, as built (its 16 px edge fade, #172, is untouched by either option)</div>`;
+const tablet = (right) => `<div class="tab51 bit">${tbar}<div class="grid9">${rail}<div class="main9">${left}</div><div class="side9">${right}</div></div></div>`;
+
+const k2 = frame('51-2', `<b>51-2. The find card on the Player tab, a tablet held sideways, 1180 px (K18c; ${flag('⚑ L5')}).</b> Page 45’s FD1b puts the card at the head of the right column on every tab (p45-2) and draws the Player tab’s right column as a blank. The notices box (page M1, approved 2026-11-19, built) also stands at the top of that column, over Scores. Both claim the top.`,
+  `${col('<b>A. The card first</b> (p45-2 as worded): the card, the notices box, Scores.', tablet(`${card}${notices(true)}${scores}`))}${col('<b>B. The notices box first:</b> the box keeps its place; the card under it, over Scores.', tablet(`${notices(true)}${card}${scores}`))}`);
+
+mount(`
+  <h1>Page 51: the find card on the Player tab</h1>
+  <p class="note"><b>Drawn 2026-11-28 for loop 4’s sitting A</b> (driver’s brief, row loop4-sitting-a-prep). Page 45 is approved and is not redrawn: this page draws only the two places where K18c (the card on every other tab) meets what came after page 45. Nothing new: the card, the head, the notices box and the count are each drawn as approved or as built.</p>
+  <h1>51-1. On a phone, with a long name</h1>
+  ${k1}
+  <h1>51-2. On a tablet, beside the notices box</h1>
+  ${k2}
+
+  <h1>The ⚑ for Francis</h1>
+  <table class="sc">
+    <tr><th>⚑</th><th>Frame</th><th>The question</th><th>Options and the designer’s lean</th></tr>
+    <tr><td>L4</td><td>51-1</td><td>On a phone with a long name, does the card stand above the head or under it?</td><td>A: above (FD1c B as drawn). B: under the head, over hit points. <b>Lean A</b>: the card is news and goes after “Got it”; the name is back in place once it does; one rule on every tab.</td></tr>
+    <tr><td>L5</td><td>51-2</td><td>On a tablet, the card or the notices box at the top of the right column?</td><td>A: the card first (p45-2’s words, “heads the right column on every tab”). B: the notices box first. <b>Lean A</b>: the same place on every tab, as p45-2 wanted; the box only moves down while a card waits.</td></tr>
+  </table>
+
+  <h1>Critique</h1>
+  <p class="note"><b>The <code>impeccable</code> skill is not installed in this session</b> (it is not in <code>.claude/skills/</code> here), so this is the designer’s own review against the same ten heuristics, not the skill’s output. Francis picks findings by number.</p>
+  <table class="sc">
+    <tr><th>Heuristic</th><th>0 to 4</th><th>Why</th></tr>
+    <tr><td>Visibility of system status</td><td>3</td><td>The card and the count both say something arrived; in 51-1 A the whose-screen name is pushed down (finding 1).</td></tr>
+    <tr><td>Match to the user’s language</td><td>4</td><td>Page 45’s words, unchanged.</td></tr>
+    <tr><td>User control and freedom</td><td>3</td><td>“Got it” clears; nothing else blocks.</td></tr>
+    <tr><td>Consistency</td><td>3</td><td>A keeps one place on every tab; B makes the Player tab the exception on both widths.</td></tr>
+    <tr><td>Error prevention</td><td>3</td><td>The card arrives without moving the left column (p45-19), in both options.</td></tr>
+    <tr><td>Recognition over recall</td><td>3</td><td>51-1 A: until “Got it”, the long name sits a card’s height lower.</td></tr>
+    <tr><td>Flexibility and efficiency</td><td>3</td><td>One tap clears either way.</td></tr>
+    <tr><td>Minimalist design</td><td>3</td><td>Two boxed things stacked at the top of one column on the tablet (finding 3).</td></tr>
+    <tr><td>Error recovery</td><td>3</td><td>As page 45 (offline and failed “Got it” unchanged).</td></tr>
+    <tr><td>Help and documentation</td><td>3</td><td>Nothing new to learn.</td></tr>
+    <tr><th>Total</th><th>31 of 40</th><th></th></tr>
+  </table>
+  <ol class="crit">
+    <li><b>51-1 A. Nothing names whose screen it is in the first screenful</b> while the card waits: the bar’s middle is empty (47-1 A1) and the name is under the card. One player one character, so low risk; F4’s lean (the card never names the character) holds. (<code>clarify</code>)</li>
+    <li><b>51-1 B. The card lands mid-screen</b>, between the head and hit points: it reads as part of the character, not as news, and it pushes hit points down a card’s height. (<code>layout</code>)</li>
+    <li><b>51-2 A. Two bordered things at the column’s top</b>, the card (2 px ink) over the notices box (1.5 px control): the card’s heavier border keeps the order clear in both modes. (<code>polish</code>)</li>
+    <li><b>51-2 B. The card moves between tabs</b>: at the top on Pack, Log and the others, under the box on Player. p45-2 asked for one place. (<code>layout</code>)</li>
+    <li><b>Both. The count on the Pack’s icon is drawn as FD7</b>; nothing new; K19b builds it. Noted only.</li>
+  </ol>
+
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked.</b> Targets: “Got it” 88 by 56, the notices box 44 high, the bar’s icons and the rail’s 44; 8 px or more between controls. The phones are 375 wide, the tablet 1180. Messy data: the long name of 64 characters (the layout page’s sample) at 375 px. Light and dark side by side; no colour carries a distinction alone (the count is a number, the card a border and a heading), so no greyscale strip. No new token, no raw value outside page 45’s and 47’s own (the count’s 20 px pill and 5 px pad are page 45’s .b8, approved).</p>
+  <p class="note"><b>Not checked, honestly.</b> No built screen photographed: drawn from page 45, page 47 and <code>PlayerScreen.tsx</code>’s notices slot. States other than one find (several, coin, offline, a refusal) are page 45’s and unchanged by either option. Larger text is not drawn (06’s rule). A short name is not drawn: it stays in the bar, so the head’s order question does not arise. The head’s status rings (their own row under the portrait, as built) are left out: Brannoch has no status here.</p>
+`);
+applyBook();
+})();
+</script>
+</body>
+</html>
