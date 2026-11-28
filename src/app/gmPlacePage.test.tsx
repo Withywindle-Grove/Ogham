@@ -244,7 +244,7 @@ describe('the GM’s place page', () => {
     expect(sentence?.querySelector('.die-glyph--d6')).toBeTruthy();
     expect(screen.queryByText(/own rule\. It stands in for/)).toBeNull();
     // The setting's check doesn't show while the place's stands in.
-    expect(screen.queryByText(/Wandering encounters, /)).toBeNull();
+    expect([...document.querySelectorAll('.place-page__check-line')].map((l) => l.textContent)).toEqual([]);
     // B2 (p2p-8): the trail never moves the party. The harbour is a Region in this pack, so it is plain words until the
     // Region's own panel (LA2b) is approved: nothing to tap, nothing written.
     const trail = screen.getByRole('navigation', { name: 'Where it sits' });
@@ -1267,5 +1267,47 @@ describe('the trail and reading ahead (B2)', () => {
     );
     expect(await screen.findByRole('heading', { name: '1. The Jetty', level: 2 })).toBeTruthy();
     expect(screen.queryByRole('status')).toBeNull();
+  });
+});
+
+// A place with no encounters (G-27, dg-3, dg-17; page 48, approved 2026-11-28 with findings 1, 2, 4 and 6).
+describe('the GM’s place page at a place with no encounters (G-27)', () => {
+  const QUAY = { id: 'the-quay', name: 'The Quay', key: '1', type: 'site', parentId: 'drowned-harbour', encounterCheck: { none: true, note: 'The harbour watch keeps the quay quiet.' } };
+
+  async function atQuay() {
+    world.tables.library_entries.push({ id: 'entry-the-quay', pack_id: 'pack-reed', kind: 'location', pack_entry_id: QUAY.id, name: QUAY.name, data: QUAY });
+    const started = (await world.db.rpc('start_expedition' as never, { campaign, mode_id: 'dungeon' } as never)) as unknown as { data: { id: string } };
+    const moved = await runCommand(registry, world.db, gm(), setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: QUAY.id, name: QUAY.name, data: QUAY } });
+    if (!moved.ok) throw new Error(moved.message);
+    return { trip: started.data.id, row: (await loadGroupPlaces(world.db, campaign, started.data.id))!.get(1)! };
+  }
+
+  // Purpose (dg-3, dg-17 finding 2): "Checks here" reads "No encounters here." with its switch on, then the pack's
+  // sentence and whose rule it is only; the setting's line is not listed while it is in force (as under any stand-in).
+  it('“Checks here” says no encounters here, with the pack’s sentence and whose rule it is, the switch on', async () => {
+    const { trip, row } = await atQuay();
+    page(trip, row);
+    const toggle = await screen.findByRole('switch', { name: 'No encounters here.' });
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByText('The harbour watch keeps the quay quiet. The Quay’s own rule.')).toBeTruthy();
+    expect([...document.querySelectorAll('.place-page__check-line')].map((l) => l.textContent)).toEqual([]);
+  });
+
+  // Purpose (dg-2, dg-17 finding 4; user story 14): the switch puts the setting's check back at once, logged, with the
+  // built toast naming the check "No encounters here"; the card then reads "Encounters as usual here." and the setting's
+  // line returns; Undo puts it back.
+  it('switched off: encounters as usual, the setting’s line back, the toast, and Undo', async () => {
+    const user = userEvent.setup();
+    const { trip, row } = await atQuay();
+    page(trip, row);
+    await user.click(await screen.findByRole('switch', { name: 'No encounters here.' }));
+    expect(await screen.findByText("The Quay’s “No encounters here” is off. The setting's Wandering encounters applies here.")).toBeTruthy();
+    const off = await screen.findByRole('switch', { name: 'Encounters as usual here.' });
+    expect(off.getAttribute('aria-checked')).toBe('false');
+    expect(screen.getByText("The setting's Wandering encounters applies here again, until you switch this back.")).toBeTruthy();
+    expect([...document.querySelectorAll('.place-page__check-line')].map((l) => l.textContent)).toEqual([expect.stringContaining('Wandering encounters, ')]);
+    expect(world.tables.events.filter((e) => e.type === 'placeRule.inForce')).toHaveLength(1);
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(screen.getByRole('switch', { name: 'No encounters here.' }).getAttribute('aria-checked')).toBe('true'));
   });
 });

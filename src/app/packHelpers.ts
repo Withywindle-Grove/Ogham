@@ -1,4 +1,5 @@
 // Small helpers shared by the Pack's parts (PackScreen, LoadSummary, CarrierItems, ItemRow, ItemSheet, ChargesDialog).
+import { capitalised, chargeUnitOf, countOf, fullCountOf, type ChargeUnit } from '../core/chargeUnit.ts';
 import type { CarriedLoad } from '../modules/inventory/encumbrance.ts';
 import type { InventoryLine } from '../modules/inventory/inventory.ts';
 import { countWords, shownName, stackable } from '../modules/inventory/packView.ts';
@@ -54,17 +55,47 @@ export function homebrewItem(line: Pick<InventoryLine, 'name' | 'category' | 'we
   };
 }
 
-/** What a row says about charges: the count, "?", "spent", or that they aren't set yet. */
-export function chargeWords(line: InventoryLine, secret: { total: number | null; spent: boolean } | null): string {
+type Secret = { total: number | null; spent: boolean } | null;
+
+/** The count's unit, as the line's own copy of the item names it (G-233; "charge" when it names none, dg-8). */
+export const chargeUnitOfLine = (line: Pick<InventoryLine, 'details'>): ChargeUnit => chargeUnitOf(line.details);
+
+/**
+ * What a row says about charges (G-233, page 49): the count in the item's unit ("2 of 3 portions", a full count of 1
+ * "1 dose left"), "?", "spent", or that they aren't set yet ("Portions not set"). "of 3" only where the pack's full
+ * count is a whole number the count hasn't passed.
+ */
+export function chargeWords(line: InventoryLine, secret: Secret): string {
+  const unit = chargeUnitOfLine(line);
   if (!line.chargesHidden) {
-    if (line.chargesLeft === null) return 'Charges not set';
-    return line.chargesLeft === 0 ? '0 left, spent' : `${line.chargesLeft} ${line.chargesLeft === 1 ? 'charge' : 'charges'} left`;
+    const left = line.chargesLeft;
+    if (left === null) return `${capitalised(unit.many)} not set`;
+    if (left === 0) return '0 left, spent';
+    const full = fullCountOf(line.details);
+    return full !== null && full > 1 && left <= full ? `${left} of ${full} ${unit.many}` : `${countOf(left, unit)} left`;
   }
   // The GM sees what's left of a hidden count; the holder sees "?" until play shows it's spent, or the GM reveals it.
   if (secret) {
-    if (secret.total === null) return 'Charges not set (hidden)';
+    if (secret.total === null) return `${capitalised(unit.many)} not set (hidden)`;
     const left = Math.max(0, secret.total - line.chargesUsed);
     return secret.spent || left === 0 ? 'Spent (hidden)' : `${left} left (hidden)`;
   }
-  return line.spentShown ? 'Spent' : 'Charges: ?';
+  return line.spentShown ? 'Spent' : `${capitalised(unit.many)}: ?`;
+}
+
+/**
+ * The count as a labelled fact (the At hand pop-up, the item's sheet; page 49 frame 49-2): the label is the unit's
+ * plural with a capital ("Portions"), the value the row's words without the unit ("2 of 3 left", "?", "Not set").
+ */
+export function chargeFact(line: InventoryLine, secret: Secret): { label: string; value: string } {
+  const unit = chargeUnitOfLine(line);
+  const label = capitalised(unit.many);
+  if (!line.chargesHidden && line.chargesLeft !== null && line.chargesLeft > 0) {
+    const left = line.chargesLeft;
+    const full = fullCountOf(line.details);
+    return { label, value: full !== null && full > 1 && left <= full ? `${left} of ${full} left` : `${left} left` };
+  }
+  const words = chargeWords(line, secret);
+  const value = words.startsWith(`${label} not set`) ? `Not set${words.slice(label.length + 8)}` : words === `${label}: ?` ? '?' : words;
+  return { label, value };
 }

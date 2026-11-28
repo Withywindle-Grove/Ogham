@@ -70,7 +70,7 @@ import { useHoards } from './HoardSheet.tsx';
 import { AddPiece, NotesFold, PictureSection, PieceRow, usePieceNames, type DroppedWords } from './PlaceCard.tsx';
 import { BookTextFold, PlaceTable } from './PlaceFacts.tsx';
 import { PlacePicker } from './PlacePicker.tsx';
-import { PlaceRuleButtons, PlaceRulesSheet, useStandInCheck } from './PlaceRules.tsx';
+import { NoEncountersCard, PlaceRuleButtons, PlaceRulesSheet, useStandInCheck } from './PlaceRules.tsx';
 import { usePlaceActions } from './placeActions.ts';
 import { accentOwner, useHoldAccent, useStripIsPaused, useWaitingAccentItem } from './sceneWaiting.tsx';
 import { WaitingForYou } from './WaitingForYou.tsx';
@@ -458,7 +458,8 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
       <h3 className="place-page__heading">Checks here</h3>
       {/* The check's card (p2p-14; LA1): its line and toggle, then the pack's own sentence with its die, word for word;
           no sentence of the app's, in force or not (the toggle's cross and the setting's line below say it is off). */}
-      {standIn && (
+      {standIn?.none && <NoEncountersCard home="page" standIn={standIn} setting={own.setting} onChange={(on) => (reading ? notHere() : void own.toggleCheck(on))} />}
+      {standIn && !standIn.none && (
         <div className="place-page__check">
           <Switch label={<DiceWords>{checkLineWords(standIn.name, standIn.check, standIn.eachMove)}</DiceWords>} on={standIn.inForce} onChange={(on) => (reading ? notHere() : void own.toggleCheck(on))} />
           {standIn.sentence && (

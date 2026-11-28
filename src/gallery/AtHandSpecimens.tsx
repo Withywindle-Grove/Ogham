@@ -6,7 +6,7 @@ import type { CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import type { OpenCampaign } from '../app/Campaigns.tsx';
 import { ItemRow } from '../app/ItemRow.tsx';
-import { AtHandFacts, AttackSheet, AttackView, chargeFact, ModeSheet, SpentSheet } from '../app/AtHandSheets.tsx';
+import { AtHandFacts, AttackSheet, AttackView, ModeSheet, SpentSheet } from '../app/AtHandSheets.tsx';
 import { ItemSheet, useItemSheetState } from '../app/ItemSheet.tsx';
 import '../app/PackScreen.css';
 import { BookPopUpScope } from '../ui/Dialog.tsx';
@@ -317,7 +317,7 @@ export function AtHandSpecimens({ Specimen }: { Specimen: (props: { name: string
       </Specimen>
       <Specimen name="The At hand pop-up, a wand worn (tfh-3; frame M2n): its charges, its own description and source, the star; a long name">
         <BookPopUpScope.Provider value>
-          <Popup item={WAND_WORN} top={<AtHandFacts facts={[{ label: 'Charges', value: chargeFact('5 charges left') }]} />} describe />
+          <Popup item={WAND_WORN} top={<AtHandFacts facts={[{ label: 'Charges', value: '5 left' }]} />} describe />
         </BookPopUpScope.Provider>
       </Specimen>
       <Specimen name="The At hand pop-up, a lit lantern (frame M2n): its light and refills, its own description and source">

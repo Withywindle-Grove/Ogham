@@ -1340,11 +1340,13 @@ if (callsFlag === '1' || callsFlag === 'many' || callsFlag === 'long') {
 // ?p1=spells: a caster with pinned spells At hand (Player sitting piece 2; frame M4g).
 // ?p1=icons: Fire, Eat, Drink and Stance at hand (p47-2's icons; tests/layout/player-icons.spec.ts).
 // ?p1=lituse|lituselong: a lit lantern with charges pinned At hand, one row with Use (piece 9; frame 47-3).
+// ?p1=units|unitsmessy: counts that name their unit, pinned At hand (G-233, page 49 frame 49-1).
 const p1Flag = new URLSearchParams(window.location.search).get('p1');
 if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noline' || p1Flag === 'classless' || p1Flag === 'heavy' || p1Flag === 'modes' || p1Flag === 'weapon' || p1Flag === 'arms' || p1Flag === 'bare' || p1Flag === 'packless' || p1Flag === 'skills' || p1Flag === 'finish' || p1Flag === 'pins' || p1Flag === 'unlit' || p1Flag === 'several' || p1Flag === 'burnt' || p1Flag === 'burntnone' || p1Flag === 'longlight' || p1Flag === 'armour' || p1Flag === 'details' ||
   p1Flag === 'spells' ||
   p1Flag === 'icons' ||
-  p1Flag === 'lituse' || p1Flag === 'lituselong'
+  p1Flag === 'lituse' || p1Flag === 'lituselong' ||
+  p1Flag === 'units' || p1Flag === 'unitsmessy'
 ) {
   const { addP1Character } = await import('./layoutP1Character.ts');
   const p1Id = await addP1Character(world, { gm, sam, fenPack, head: p1Flag === '1' ? 'four' : p1Flag });
@@ -1458,11 +1460,14 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     // The pack's own sentence for its check (p2p-14; B3), shown on the place page's check card. &check=none: the harbour
     // has no check of its own, so the Scene's facts row draws Light alone (Q4's one fact; the review of #110). &check=roll:
     // its check is a roll on its table, "On the water" (p2p-19), so a due check is EN1 A's card (sf-4; #126's review, 3).
+    // &check=quiet (G-27; page 48): the harbour says "none", so the spot inside it has no encounters ("None here").
     ...(new URLSearchParams(window.location.search).get('check') === 'none'
       ? {}
-      : new URLSearchParams(window.location.search).get('check') === 'roll'
-        ? { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, onHit: { tableId: 'on-the-water' }, note: 'Roll d8 for an encounter each time the party rows to a new Location.' } }
-        : { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' } }),
+      : new URLSearchParams(window.location.search).get('check') === 'quiet'
+        ? { encounterCheck: { none: true, note: 'The harbour watch keeps the quay quiet.' } }
+        : new URLSearchParams(window.location.search).get('check') === 'roll'
+          ? { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, onHit: { tableId: 'on-the-water' }, note: 'Roll d8 for an encounter each time the party rows to a new Location.' } }
+          : { encounterCheck: { name: 'Encounter check', when: 'eachMove', replacesScheduled: true, chance: { die: 'd6', on: [1] }, note: 'Roll d6 for an encounter each time the party rows to a new Location.' } }),
     rules: [{ id: 'falling-in', name: 'Falling into the harbour', button: { icon: 'water-splash', words: 'Someone fell in' }, text: 'A character in the harbour’s water is cold at once.' }],
     tableIds: ['tide-left', 'on-the-water'],
     // &strip=long (plan dec-9-the-whole-scene S7; page 02, S5): the harbour's own procedure, seven steps with long

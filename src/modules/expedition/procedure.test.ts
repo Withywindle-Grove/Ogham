@@ -193,6 +193,20 @@ describe('a turn mode from a pack', () => {
     expect(said(mine)).toEqual(['check creep-wander']);
     expect(mine.satisfied).toEqual(['gm-enc']);
   });
+
+  // Purpose (G-27, dg-2): at a place whose "none" is in force no wandering check comes due: the clock raises neither
+  // the mode's encounter check nor a reminder of the GM's own encounter checks (set aside, as under any stand-in), and
+  // the facts row has no check that comes due; Check now still rolls the mode's check (the GM asked).
+  it('a location’s "none" stands in and never comes due; Check now still rolls the mode’s', () => {
+    const quiet = { ...creep, reminders: [gmEncounter], situation: { locationNone: true } };
+    const turns = pressNext(quiet, 4);
+    expect(turns.map((t) => said(t))).toEqual([[], [], [], []]);
+    expect(turns[1]!.suspended).toEqual(['gm-enc']);
+    expect(encounterCheckOf(quiet)).toBeNull();
+    expect(checkNow(quiet).prompts).toMatchObject([{ kind: 'check', source: 'mode', checkId: 'creep-wander' }]);
+    // Switched off (no `locationNone`), the mode's check comes due again.
+    expect(pressNext({ ...creep, reminders: [gmEncounter] }, 2).flatMap((t) => said(t))).toContain('check creep-wander');
+  });
 });
 
 // Point to point (plan scene-point-to-point, piece B8; p2p-6 and the plan's flag 10, both ruled 2026-11-18): the app's

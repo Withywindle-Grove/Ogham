@@ -6,6 +6,7 @@
 import { useContext, useId, useState, type ReactNode } from 'react';
 import { useBlockedSheet } from '../ui/BlockedSheet.tsx';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
+import { capitalised, chargeUnitOf, countOf, spendOneWords, type ChargeUnit } from '../core/chargeUnit.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { diceRange, recordRoll } from '../core/rolls.ts';
@@ -47,7 +48,7 @@ import { Icon } from '../ui/icons.tsx';
 import type { AttackRoll } from '../modules/characters/play.ts';
 import { Lines } from './RulesBrowser.tsx';
 import { registry } from './services.ts';
-import { chargeWords, homebrewItem, type Run } from './packHelpers.ts';
+import { chargeFact, chargeUnitOfLine, homebrewItem, type Run } from './packHelpers.ts';
 import './PackScreen.css';
 import './RulesBrowser.css';
 import { useToast } from '../ui/ToastHost.tsx';
@@ -87,11 +88,11 @@ export type ItemSheetState = ReturnType<typeof useItemSheetState>;
  * figure and hidden notes first, then each hidden field not yet revealed by its value (a yes-or-no field by its name,
  * "cursed"; a "no" left out), then the hidden charge count ("3 charges left"), joined by commas.
  */
-export function gmLineWords(hidden: readonly Line[], charges: { total: number | null; spent: boolean; used: number } | null, figures: readonly string[]): string | null {
+export function gmLineWords(hidden: readonly Line[], charges: { total: number | null; spent: boolean; used: number } | null, figures: readonly string[], unit: ChargeUnit = chargeUnitOf({})): string | null {
   const leaves = (all: readonly Line[]): string[] =>
     all.flatMap((l) => (l.lines ? leaves(l.lines) : l.value === 'No' ? [] : l.value === 'Yes' ? [l.label.toLowerCase()] : [l.value ?? l.label]));
   const left = charges && charges.total !== null ? Math.max(0, charges.total - charges.used) : null;
-  const count = !charges ? [] : [left === null ? 'charges not set' : charges.spent || left === 0 ? 'spent' : left === 1 ? '1 charge left' : `${left} charges left`];
+  const count = !charges ? [] : [left === null ? `${unit.many} not set` : charges.spent || left === 0 ? 'spent' : `${countOf(left, unit)} left`];
   const facts = [...new Set([...figures, ...leaves(hidden), ...count].map((f) => f.trim().replace(/\.$/, '')).filter((f) => f !== ''))];
   return facts.length === 0 ? null : `Only you see this: ${facts.join(', ')}.`;
 }
@@ -227,7 +228,8 @@ export function ItemSheet(props: ItemSheetProps) {
   // The GM's own sheet outside the view reads the true name, "Players see: …" under it (K22g, 4; ⚑ 10, the driver's call).
   const title = shownName(gmHere && unidentified && entry ? entry.name : line.name);
   const charged = chargesOf(line, chargeRules, rechargeDefault);
-  const chargeText = !charged ? '' : chargeWords(line, gmHere ? secret : null);
+  const chargeCount = !charged ? null : chargeFact(line, gmHere ? secret : null);
+  const unit = chargeUnitOfLine(line);
   const waiting = line.approval === 'pending';
   // Give to: the Party stash first (the default), then the other characters.
   const recipients = [...others.filter((o) => o.locationId !== null), ...others.filter((o) => o.locationId === null)];
@@ -262,7 +264,7 @@ export function ItemSheet(props: ItemSheetProps) {
   const hiddenLines = gm ? hiddenOf(unrevealed) : [];
   const facts = gmTruth ? factsOf(line, entry, secret) : [];
   // The GM's line shrinks to what is still hidden (K22g 1 to 3): the facts, then any other hidden field (his notes).
-  const gmLine = view && gmTruth ? gmLineWords([...factLines(facts), ...hiddenOf(unrevealed.filter((key) => !FACT_KEYS.has(key)))], line.chargesHidden && secret ? { ...secret, used: line.chargesUsed } : null, gmFacts) : null;
+  const gmLine = view && gmTruth ? gmLineWords([...factLines(facts), ...hiddenOf(unrevealed.filter((key) => !FACT_KEYS.has(key)))], line.chargesHidden && secret ? { ...secret, used: line.chargesUsed } : null, gmFacts, unit) : null;
   // "Reveal…" above the player's own rows (M3g), on every item with a fact still hidden (k22-8; pg32-4: none, no row);
   // "Edit what players see…" under it while the item is unidentified (pick 1). Both the GM's alone.
   const revealRow = gmTruth && (facts.length > 0 || unidentified) && (
@@ -453,16 +455,16 @@ export function ItemSheet(props: ItemSheetProps) {
           </Dialog>
         )}
         {charged && (
-          <div className="pack__charges" role="group" aria-label="Charges">
+          <div className="pack__charges" role="group" aria-label={chargeCount?.label}>
             <p>
-              <strong>Charges:</strong> {chargeText}
+              <strong>{chargeCount?.label}:</strong> {chargeCount?.value}
               {charged.rechargeable ? ', rechargeable' : ''}
             </p>
             {/* Starting charges, from the roll: the holder for visible ones, the GM for hidden ones. */}
             {((!line.chargesHidden && line.chargesLeft === null && may && !(chargeRules.hidden && !gmHere)) ||
               (gmHere && (line.chargesHidden || chargeRules.hidden) && (secret?.total ?? null) === null && line.chargesLeft === null)) && (
               <RollPrompt
-                label="Charges"
+                label={capitalised(unit.many)}
                 expression={charged.dice}
                 busy={busy}
                 onRolled={(value) => {
@@ -590,7 +592,7 @@ export function ItemSheet(props: ItemSheetProps) {
                 (for a stack) and where (B19, B24). */}
             <RowList label="Item actions">
               {revealRow}
-              {counted && <ListRow title="Use a charge" onOpen={spendCharge} chevron={false} />}
+              {counted && <ListRow title={spendOneWords(unit)} onOpen={spendCharge} chevron={false} />}
               {stackable(line) && (
                 // How many (today's − and +, moved from the row to the sheet): one fewer stops at one, never greyed.
                 <div className="pack__count-row" role="group" aria-label="How many">

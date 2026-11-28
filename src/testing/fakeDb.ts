@@ -3132,6 +3132,14 @@ export function createFakeDb(): FakeWorld {
         if (total === null || total === undefined) return raised('Set its charges first, then tell them.');
         Object.assign(patch, { charges_hidden: false, charges_left: Math.max(0, Number(total) - Number(l.charges_used ?? 0)), spent_shown: false });
       }
+      // dec5-gaps D (…_dec5_d_face_unit.sql, dg-7): a tell of the charges, or of the true name while the line's copy
+      // keeps its charges, brings the count's unit back from the entry.
+      const wholeCharges = whole?.charges;
+      const ownCharges = data.charges && typeof data.charges === 'object' ? (data.charges as Row) : undefined;
+      if (wholeCharges && typeof wholeCharges === 'object' && (told.includes('charges') || (told.includes('name') && ownCharges))) {
+        const unit = Object.fromEntries(['unit', 'units'].filter((k) => (wholeCharges as Row)[k] != null).map((k) => [k, (wholeCharges as Row)[k]]));
+        if (Object.keys(unit).length > 0) data.charges = { ...(ownCharges ?? {}), ...unit };
+      }
       const revealed = [...((l.revealed_fields as string[] | undefined) ?? []), ...told.filter((t) => !((l.revealed_fields as string[] | undefined) ?? []).includes(t))];
       const after = { ...l, ...patch, item_data: data, revealed_fields: revealed };
       if (facts(after).length === 0 && whole) for (const key of ['description', 'source']) if (key in whole) data[key] = whole[key];

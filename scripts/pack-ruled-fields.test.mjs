@@ -104,6 +104,30 @@ describe("an encounter check's name (rp-6)", () => {
   });
 });
 
+describe('a place with no encounters (G-27, dg-1)', () => {
+  // Purpose: `"none": true`, with or without the pack's sentence, is silent.
+  it('is silent for none: true, with a note or without', () => {
+    expect(ruledFieldFindings(place({ encounterCheck: { none: true, note: 'The harbour watch keeps the quay quiet.' } }))).toEqual([]);
+    expect(ruledFieldFindings(place({ encounterCheck: { none: true } }))).toEqual([]);
+  });
+
+  // Purpose: a `none` beside a chance, a table, a table named by id, a schedule or a modifier by track contradicts
+  // itself, and a `none` that isn't true doesn't pass quietly (the app reads it as no check at all).
+  it('warns on none beside a check’s own parts, and on a none that isn’t true', () => {
+    const file = {
+      locations: [
+        { id: 'the-quay', encounterCheck: { none: true, chance: { die: 'd6', on: [1] }, tableId: 'quay-things' } },
+        { id: 'the-steps', encounterCheck: { none: true, tableRef: 'reed:steps', every: { value: 1, unit: 'turn' }, byTrack: [] } },
+        { id: 'the-shed', encounterCheck: { none: 'yes' } },
+        { id: 'the-slip', encounterCheck: { none: false } },
+      ],
+    };
+    const beside = (id, keys) => ({ level: 'warning', text: `locations: "${id}": encounterCheck says "none" but also gives ${keys}; a "none" check never comes due, so leave them out (or drop "none").` });
+    const notTrue = (id) => ({ level: 'warning', text: `locations: "${id}": encounterCheck.none should be true (leave it out for a check that comes due); the app reads this check as no check at all.` });
+    expect(ruledFieldFindings(file)).toEqual([beside('the-quay', 'chance, tableId'), beside('the-steps', 'tableRef, every, byTrack'), notTrue('the-shed'), notTrue('the-slip')]);
+  });
+});
+
 describe("a coin's unitName and pluralName (pf-17)", () => {
   // Purpose: a coin with both names, or neither, is silent (with neither the app prints the label as given).
   it('is silent for both names or neither', () => {
@@ -217,6 +241,32 @@ describe('an unidentified or cursed item’s id (Francis, 2026-11-22, "A", findi
     const ids = ruledFieldFindings(file).map((f) => f.text.match(/^items: "([^"]+)" starts unidentified/)?.[1]).filter(Boolean);
     expect(ids).toEqual(['wardens-lamp', 'Wardens-Lantern', 'bogwardens-lamp']);
     expect(ruledFieldFindings(file).find((f) => f.text.includes('"wardens-lamp"'))?.text).toContain('shares "wardens" with');
+  });
+});
+
+describe("an item's count unit (G-233, dg-5, dg-18)", () => {
+  const items = (...charges) => ({ items: charges.map((c, i) => ({ id: `flask-${i}`, name: `Flask ${i}`, charges: { initial: 3, ...c } })) });
+
+  // Purpose: a countable unit, with or without its plural, and an item with no unit, are silent.
+  it('is silent for "portion", "mouse" with "mice", and no unit', () => {
+    expect(ruledFieldFindings(items({ unit: 'portion' }, { unit: 'mouse', units: 'mice' }, { unit: 'lamp-wick' }, {}))).toEqual([]);
+  });
+
+  // Purpose: a unit ending in "s" (a plural, or an uncountable word given as the unit) is warned on (dgb-3).
+  it('warns on a unit that ends in "s"', () => {
+    expect(ruledFieldFindings(items({ unit: 'portions' }))).toEqual([
+      { level: 'warning', text: 'items: "flask-0": charges: unit "portions" ends in "s"; give the word for one ("portion", not "portions"), and a countable word ("flask", not "oil").' },
+    ]);
+  });
+
+  // Purpose: a unit or units that isn't words is warned on, and so is units without a unit.
+  it('warns on a unit or units that is not words, and on units alone', () => {
+    expect(ruledFieldFindings(items({ unit: '' }, { unit: 3 }, { unit: 'dose', units: '2 doses' }, { units: 'drops' })).map((f) => f.text)).toEqual([
+      'items: "flask-0": charges: unit should be one countable word ("portion"); the app says "charges" instead.',
+      'items: "flask-1": charges: unit should be one countable word ("portion"); the app says "charges" instead.',
+      'items: "flask-2": charges: units should be words ("portions"); the app says the unit plus "s" instead.',
+      'items: "flask-3": charges: units comes without a unit; the app reads units only with a unit, so it says "charges".',
+    ]);
   });
 });
 
