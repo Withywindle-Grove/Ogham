@@ -32,6 +32,7 @@ import { usePlayerView } from './playerView.ts';
 import { RollFigures, RollLines } from './WeaponInHand.tsx';
 import { registry } from './services.ts';
 import { chargeWords, type Run } from './packHelpers.ts';
+import { NewTag } from './PackParts.tsx';
 import './PackScreen.css';
 import { possessive } from '../core/nameWords.ts';
 
@@ -78,6 +79,7 @@ export function ItemRow({
   weaponNotes = [],
   attackRange = null,
   tiny = false,
+  isNew = false,
   note = null,
   end = null,
   lightAction = null,
@@ -107,6 +109,11 @@ export function ItemRow({
   lightAction?: { label: 'Light' | 'Put out'; run: () => void } | null;
   /** In the Pack's Tiny things section (SC-5-2): weightless, it shows no weight, like other weightless rows. */
   tiny?: boolean;
+  /**
+   * New until Got it (K20b; FD1, FD3, FD8b, approved 2026-11-26): the "New" tag after the name, before a stack's count;
+   * part of the row, not a target, glued to the name's last word when the name wraps.
+   */
+  isNew?: boolean;
   /** A line of its own under the row's line: on the stash's screen, who put it in and when (K11, pk-4). */
   note?: string | null;
   /** What ends the row in place of its chevron (the stash's Take, K12); the row's body still opens the item's sheet. */
@@ -402,6 +409,7 @@ export function ItemRow({
     <>
       {/* The row reads the face (K22e); the GM's own Pack outside the view, the true name (⚑ 10, the driver's call). */}
       {shownName(gmHere && line.identified === false && entry ? entry.name : line.name)}
+      {isNew && <NewTag />}
       {stackable(line) && <span className="pack__qty"> ×{line.qty}</span>}
     </>
   );

@@ -23,6 +23,7 @@ import { MoveOnSpecimens } from './MoveOnSpecimens.tsx';
 import { KnowledgeSpecimens } from './KnowledgeSpecimens.tsx';
 import { PlayersPlaceCardSpecimens } from './PlayersPlaceCardSpecimens.tsx';
 import { CallCardSpecimens } from './CallCardSpecimens.tsx';
+import { FindCardSpecimens } from './FindCardSpecimens.tsx';
 import { TraitListSpecimens } from './TraitListSpecimens.tsx';
 import { GmAttentionSpecimens } from './GmAttentionSpecimens.tsx';
 import {
@@ -959,6 +960,12 @@ export function Gallery() {
           ap-13): new pictures for Design. */}
       <Section id="stock-toggle" title="The stock toggle: in, not in, not decided">
         <StockToggleSpecimens Specimen={Specimen} />
+      </Section>
+
+      {/* Last, so the sections above keep their pictures (plan dec-6-the-whole-pack-tab K18b; page 45, approved
+          2026-11-26): new pictures, committed by hand from CI's gallery-baselines. */}
+      <Section id="find-card" title="The find card: what arrived, until Got it">
+        <FindCardSpecimens Specimen={Specimen} />
       </Section>
 
       {reason && (

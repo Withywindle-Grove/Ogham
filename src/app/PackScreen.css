@@ -1054,3 +1054,16 @@
 .pack__sheet--thing .list-row:not(.list-row--figure, .list-row--label) .list-row__title {
   font-size: var(--text-16);
 }
+
+/* "New" until Got it (K20b; FD1, FD3, FD8b, approved 2026-11-26): the word in a 1.5 px box after a row's name (before a
+   stack's count) and on the coin line, 14 px bold, the ink on the page. Part of the row, not a target. Inline and never
+   broken, and glued to the name by a no-break space, so a long name wraps and the tag stays with its last word. */
+.pack__new {
+  border: var(--line-control) solid var(--ink);
+  border-radius: var(--radius);
+  padding: 0 var(--space-1);
+  color: var(--ink);
+  font-size: var(--text-14);
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
+}

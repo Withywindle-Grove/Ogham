@@ -65,6 +65,10 @@ for (const size of SIZES) {
         await expect(page.getByText('Moon opals ×2')).toBeVisible();
         await expect(page.getByText('Swords ×4')).toBeVisible();
         await expect(page.getByText('Daggers ×5')).toBeVisible();
+        // Each thing's name in the book's bold, the edit row's words in the plain weight (⚑ 5 of #158, B, 28 Nov; FD5).
+        const weight = (words: string) => page.getByText(words, { exact: true }).evaluate((el) => Number(getComputedStyle(el).fontWeight));
+        for (const words of ['240 herons', 'Moon opals ×2', 'Swords ×4']) expect(await weight(words)).toBe(700);
+        expect(await weight("Edit the piece's words")).toBe(400);
         expect(await layoutProblems(page)).toEqual([]);
         await shot(page, 'hm2', size.width, scheme);
       });
@@ -89,7 +93,8 @@ for (const size of SIZES) {
         await page.evaluate(() => document.fonts.ready);
         expect(await layoutProblems(page)).toEqual([]);
         await shot(page, 'hm4-pack', size.width, scheme);
-        await page.getByText(NAME).first().click();
+        // The row in the list (the find card, first on a phone since K20b, names it too, and its lines are not taps).
+        await page.locator('.pack__list').getByText(NAME).first().click();
         await expect(page.getByText(/burns no oil/).first()).toBeVisible();
         expect(await layoutProblems(page)).toEqual([]);
         await shot(page, 'hm4-sheet', size.width, scheme);

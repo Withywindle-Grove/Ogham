@@ -4,7 +4,7 @@
 // fold rows, the Party stash as a row that opens its own screen (K11, StashScreen), the items waiting for the GM as a card with the warning sign, and the foot: the count and
 // Add item, the screen's one accent button. Tap an item for its sheet: its details and what you can do with it. After
 // any action on an item, or adding one, the item closes and the screen goes back to the top (ruled 2026-10-24).
-import { useCallback, useEffect, useRef, useState, type ComponentProps, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { EncumbranceMode } from '../core/campaignSettings.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
@@ -51,6 +51,9 @@ import { loadPurse, loadStashCoin, type Coins } from '../modules/inventory/purse
 import type { CharacterLightView } from './LightSection.tsx';
 import { registry } from './services.ts';
 import { usePlayerView } from './playerView.ts';
+import { markFindsSeen, type FindEntry } from '../modules/characters/findsSeen.ts';
+import { anchorIn, FINDS_NOT_MARKED, packFindsOf, readPackFinds, type PackFinds } from './packFinds.ts';
+import { FindCard } from './FindCard.tsx';
 
 // Kept here too, for the screens that already import it from the Pack (AddItem, WaitingForYou).
 export { homebrewItem } from './packHelpers.ts';
@@ -66,7 +69,12 @@ interface Loaded {
   rechargeDefault: boolean;
   /** Each character's Carrying treasure switch (eq-3): null follows the pack. */
   treasure: Map<string, TreasureSwitch>;
+  /** What is new on this Pack for the character's own player (K20b), read with the lines so the two never disagree; null for anyone else, or when it can't be read. */
+  finds: PackFinds | null;
 }
+
+/** An entry as the scroll hold tells one card from the next: what it is, and whether it was taken back. */
+const findKey = (e: FindEntry) => `${e.kind === 'thing' ? e.lineId : e.purseId}:${e.kind === 'thing' ? e.arrived : JSON.stringify(e.coins)}:${e.takenBack ? 1 : 0}`;
 
 /** No tiny categories (a setting that marks none): only items marked `unencumbering` themselves are tiny. */
 const NO_TINY: ReadonlySet<string> = new Set();
@@ -190,19 +198,31 @@ function PackTab({
   const wide = useWide();
   // An undo from the log reloads the pack in place.
   const logVersion = useLogVersion();
+  // The GM's view as the player (pg32-3): set inside the view, null outside it.
+  const playerView = usePlayerView();
+  // What is new is read on the whole Pack tab only, never At hand's, the GM's console or the GM's view (⚑ F5's lean).
+  const findsOf = view === 'pack' && carrierId !== null && playerView === null ? carrierId : null;
 
   const load = useCallback(async () => {
-    const [inventory, carriers, setting, settings, hidden, treasure] = await Promise.all([
+    const [inventory, carriers, setting, settings, hidden, treasure, findsRead] = await Promise.all([
       loadInventory(db, campaign.id),
       loadCarriers(db, campaign.id),
       loadCampaignSetting(db, user.id, campaign.id),
       loadInventorySettings(db, campaign.id),
       loadHiddenCharges(db, campaign.id),
       loadTreasureSwitches(db, campaign.id),
+      // A failed read of what is new is no card, never a failed Pack.
+      findsOf ? readPackFinds(db, user, campaign.id, findsOf).catch(() => null) : null,
     ]);
     if (!inventory || !carriers || !setting || !settings) return null;
-    return { lines: inventory.lines, carriers, setting, mode: settings.mode, rechargeDefault: settings.rechargeDefault, hidden, treasure: treasure ?? new Map() };
-  }, [db, user.id, campaign.id]);
+    let finds: PackFinds | null;
+    try {
+      finds = findsRead && packFindsOf(findsRead, inventory.lines, setting.rulesSets);
+    } catch {
+      finds = null;
+    }
+    return { lines: inventory.lines, carriers, setting, mode: settings.mode, rechargeDefault: settings.rechargeDefault, hidden, treasure: treasure ?? new Map(), finds };
+  }, [db, user, campaign.id, findsOf]);
 
   useEffect(() => {
     let current = true;
@@ -264,7 +284,6 @@ function PackTab({
   const coinAsGm = isGm(user, campaign.id) && mine?.ownerUserId !== user.id;
   // The GM's own tools on the Pack, not in the GM's view as the player (pg32-3, pg32-4): the charges prompt after
   // handing something out, and the treasure switch.
-  const playerView = usePlayerView();
   const gmTools = isGm(user, campaign.id) && playerView === null;
   const purseOf = view === 'pack' && mine && mine.actorId && (mine.ownerUserId === user.id || coinAsGm) ? mine.actorId : null;
   useEffect(() => {
@@ -306,6 +325,55 @@ function PackTab({
     const timer = setTimeout(() => setToast(null), 6000);
     return () => clearTimeout(timer);
   }, [tierKey, tier, rank, own, loaded, main]);
+
+  // New until Got it (K20b). After a tap on "Got it" offline, FD9's box explains under the card until she is back
+  // online (FD9b C), and nothing is written.
+  const [boxAsked, setBoxAsked] = useState(false);
+  const [wasOnline, setWasOnline] = useState(online);
+  if (online !== wasOnline) {
+    setWasOnline(online);
+    if (online) setBoxAsked(false);
+  }
+  // One mark a tap: a second tap while the first is on its way writes nothing more.
+  const marking = useRef(false);
+  /** "Got it" (pk-13): the mark, once; no toast and no Undo. Offline, the box; a failure, the error toast and the card as it was. */
+  async function gotIt(finds: PackFinds) {
+    if (!online) return setBoxAsked(true);
+    if (marking.current) return;
+    marking.current = true;
+    const done = await runCommand(registry, db, user, markFindsSeen, { character: finds.character });
+    marking.current = false;
+    if (!done.ok) return show({ text: FINDS_NOT_MARKED, error: true });
+    setLoaded((was) => (was && was !== 'error' && was.finds ? { ...was, finds: { ...was.finds, entries: [] } } : was));
+    onChanged?.();
+  }
+  // A thing whose sheet is open and that leaves the pack (the GM's Undo of its find, p45-26) closes its sheet by
+  // itself; a sheet about another thing stays.
+  const openGone = open !== null && !!loaded && loaded !== 'error' && !loaded.lines.some((l) => l.id === open);
+  if (openGone) setOpen(null);
+  // The scroll position holds when the card arrives, grows or shrinks, and when a new row comes in or goes (p45-19):
+  // the row under the reader's eye stays where it was, unless she is at the very top of the page. The browser's own anchoring (where it has it) may have done it
+  // already; this moves only what is left.
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const anchor = useRef<{ el: Element; top: number; atTop: boolean } | null>(null);
+  const findsKey = loaded && loaded !== 'error' && loaded.finds ? loaded.finds.entries.map(findKey).join('|') : '';
+  useLayoutEffect(() => {
+    const was = anchor.current;
+    // At the very top of the page the card comes in where she sees it, pushing the page down (FD10b B to C).
+    if (!was || was.atTop || !was.el.isConnected) return;
+    const moved = was.el.getBoundingClientRect().top - was.top;
+    if (moved !== 0) window.scrollBy?.(0, moved);
+  }, [findsKey]);
+  useLayoutEffect(() => {
+    anchor.current = anchorIn(listRef.current);
+  });
+  useEffect(() => {
+    const note = () => {
+      anchor.current = anchorIn(listRef.current);
+    };
+    window.addEventListener('scroll', note, { passive: true });
+    return () => window.removeEventListener('scroll', note);
+  }, []);
 
   /** The GM flips Carrying treasure for this character (eq-3): one tap, a toast with Undo. */
   async function flipTreasure() {
@@ -541,6 +609,28 @@ function PackTab({
   // The setting's coins (its own names, pu-10); with none named and nothing held there is no coin to show.
   const denominations = denominationsOf(loaded.setting.rulesSets);
   const coinShown = purseOf !== null && purse !== null && (denominations.length > 0 || Object.keys(purse).length > 0);
+  // New until Got it (K20b): the card, the tags and the order, for this character's own player only.
+  const finds = loaded.finds && mine?.actorId === loaded.finds.character.id ? loaded.finds : null;
+  const arrived = finds ? finds.entries.filter((e) => e.takenBack === null) : [];
+  const newLines = arrived.flatMap((e) => (e.kind === 'thing' && e.lineId ? [e.lineId] : []));
+  const coinNew = arrived.some((e) => e.kind === 'coin');
+  // Drawn whenever this Pack can show finds, even with none: its live region is then in the page, empty and without
+  // room, before the first find, so the card's arrival is read out (local review of #158, finding 1).
+  const findCard = finds && (
+    <FindCard
+      entries={finds.entries}
+      words={{
+        names: new Map(carriers.flatMap((c) => (c.actorId ? [[c.actorId, c.name] as const] : []))),
+        coinWords: (coins) => coinLine(denominations, coins),
+        when: finds.when,
+        now: new Date().toISOString(),
+      }}
+      onGotIt={() => void gotIt(finds)}
+      // "and N more" (p45-16): brings the new rows into view; it clears nothing (p45-9).
+      onMore={() => listRef.current?.querySelector('.pack__new')?.closest('li')?.scrollIntoView?.({ block: 'center' })}
+      offlineBox={boxAsked && !online}
+    />
+  );
   // The "Party stash" row (K11, PK1, PK6): a player's way to the stash's own screen, under the coin line. The GM has
   // the stash on the console (K15 brings its own frame).
   const stashRow = mine && stash && own && view === 'pack' && (
@@ -557,6 +647,8 @@ function PackTab({
   // The load and its notes: at the top on narrow screens; on the right on a landscape tablet.
   const summary = (
     <div className="pack__summary">
+      {/* The find card first: at the top on a phone, the head of the right column on a tablet (FD1, FD1c). */}
+      {findCard}
       {toast && (
         <p className={toast.warn ? 'pack__banner pack__banner--warn' : 'pack__banner'} role="status">
           {toast.text}
@@ -580,7 +672,7 @@ function PackTab({
       {coinShown && (
         // The coin line and the sheets it opens, in the tab's dress (K29) like the rest.
         <>
-          <CoinLine words={coinLine(denominations, purse)} onOpen={() => setCoinOpen(true)} />
+          <CoinLine words={coinLine(denominations, purse)} onOpen={() => setCoinOpen(true)} isNew={coinNew} />
           {coinOpen && mine && purse && (
             <PurseSheet
               db={db}
@@ -756,7 +848,7 @@ function PackTab({
       )}
       <h1 className={inBar ? 'visually-hidden' : 'pack__title'}>{mine ? `${possessive(mine.name)} pack` : 'Party stash'}</h1>
       {!side && summary}
-      <div className="pack__list">
+      <div className="pack__list" ref={listRef}>
       <ErrorToast message={problem} />
 
       {pinnedLines.length > 0 && (
@@ -794,6 +886,7 @@ function PackTab({
             weaponLine={weaponLine}
             weaponBreakdown={weaponBreakdown}
             weaponRolls={weaponRolls}
+            newLines={newLines}
           />
         </section>
       )}
@@ -823,6 +916,7 @@ function PackTab({
           setting={loaded.setting}
         categoryName={categoryName}
         tinyCategories={loaded.setting.tinyCategories ?? NO_TINY}
+        newLines={newLines}
         // Only for the GM's line in the GM's view (a weapon's true figure, pg32-4): a row here draws no rolls.
         weaponRolls={playerView ? weaponRolls : undefined}
       />
