@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>December: page 52, a picture that fails to load (TC8 and W7c; drawn 2026-11-28 for loop 5's sitting A; to approve)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* This page's own rules. Every value is a token from docs/06: spacing 4/8/12/16/24/32, type 14/16/20, the tap 44,
+     corners 4, 8 and 20. The picture row is page 23's (LA1) and page 19's TW13; the pop-up is TW13's; the players' card
+     is page 24's PL1b; the warning line and "Try again" are the map's failed picture as built (MapWait, page 01 frame 6).
+     The still block is the picture's loading block as built (.place-picture--loading). Nothing here is a new part. */
+  .fr52 { margin:0 0 var(--space-5); }
+  .fr52 > .cap { max-width:1100px; font-size:16px; color:var(--ink); }
+  .note { max-width:1100px; }
+  .flag { display:inline-block; border:1.5px dashed var(--warn); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; font-size:14px; }
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); max-width:480px; }
+  .lbl b { color:var(--ink); }
+  table.sc { border-collapse:collapse; font-size:14px; margin:var(--space-2) 0 var(--space-4); color:var(--ink); max-width:1100px; }
+  table.sc td, table.sc th { border:1px solid var(--rule); padding:var(--space-1) var(--space-2); text-align:left; vertical-align:top; }
+  ol.crit { font-size:16px; max-width:1100px; padding-left:var(--space-5); color:var(--ink); }
+  ol.crit li { margin-bottom:var(--space-2); }
+
+  /* the still block: the picture's loading block, as built */
+  .still { display:block; flex:none; background:var(--surface); border:1px solid var(--rule); border-radius:4px; box-sizing:border-box; }
+  /* the picture row (page 23's LA1, TW13): thumbnail, "Picture.", the eye */
+  .pce { display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:var(--space-3); align-items:center; min-height:52px; border-bottom:1px dotted var(--rule); padding:var(--space-1) 0; }
+  .pce > [role="button"], .pce > .r52 { min-height:44px; align-content:center; }
+  .r52 { display:flex; gap:var(--space-3); align-items:flex-start; min-width:0; }
+  .t52 { display:flex; flex-direction:column; align-items:flex-start; gap:var(--space-2); min-width:0; }
+  .t52 .warnline { font-size:14px; line-height:1.3; align-items:flex-start; }
+  .t52 .warnline svg { flex:none; margin-top:2px; }
+  .adders { display:flex; gap:var(--space-2); flex-wrap:wrap; margin-top:var(--space-2); }
+  .ask52 { font-size:14px; color:var(--muted); }
+  /* the failed line in the pop-up and on the players' card: the line, then Try again at the right; wraps on a phone */
+  .fail52 { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-2) var(--space-3); margin-top:var(--space-3); }
+  .fail52 .warnline { flex:1 1 180px; font-size:14px; line-height:1.3; align-items:flex-start; }
+  .fail52 .warnline svg { flex:none; margin-top:2px; }
+  .foot52 { display:flex; justify-content:flex-end; gap:var(--space-2); margin-top:var(--space-3); }
+  /* the players' card head (page 24's PL1b): the name, then the rule's button and the small picture square */
+  .head52 { display:flex; align-items:center; gap:var(--space-3); }
+  .head52 h3 { flex:1; min-width:0; margin:0; font-size:20px; overflow-wrap:anywhere; }
+  .tools52 { display:flex; gap:var(--space-2); align-items:center; }
+  .sq52 { width:48px; height:48px; }
+  .shown52 p { margin:var(--space-2) 0 0; }
+  .cols52 { display:grid; gap:var(--space-4) var(--space-5); align-items:start; }
+</style>
+</head>
+<body>
+<p style="margin:1rem;padding:.75rem 1rem;border:1px solid currentColor"><strong>Drawn 2026-11-28 for loop 5's sitting A. Not approved yet.</strong> Row TC8 of <code>docs/plans/dec-16-town-carry.md</code> (with W7c of <code>dec-3-the-whole-town.md</code>): a place's picture whose file does not arrive. The words are ruled (2026-11-25, ⚑ 5): one line, "The picture couldn't load. Try again.", for the failed file and for today's "couldn't be opened". This page is the frame that ruling asked for. Ruling file: <code>docs/design/rulings/loop5-town-2026-11-28.md</code> (⚑ T4, ⚑ T5).</p>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+(() => {
+// Invented names only. "The Lantern Chapel" is the stack's layout page's invented place in the invented town of Reedmouth.
+const PLACE = '4. The Lantern Chapel';
+const LONG = '12. The Chapel of the Seven Drowned Lanterns, below the Old Water Gate';
+const flag = (t) => `<span class="flag">${t}</span>`;
+const frame = (id, cap, inner) => `<div class="fr52" data-f="${id}"><p class="cap">${cap}</p><div class="wall">${inner}</div></div>`;
+const col = (label, html, w) => `<div style="width:${w}px"><p class="lbl">${label}</p>${html}</div>`;
+const stk = (words, k) => `<span class="btn stk" role="button">${gi(k, 24)}<span>${words}</span></span>`;
+const plain = (words) => `<span class="btn" role="button">${words}</span>`;
+const still = (w, h, label) => `<span class="still" role="img" aria-label="${label}" style="width:${w}px;height:${h}px"></span>`;
+const failed = `<span class="warnline">${I.warn}<span>The picture couldn’t load.</span></span>`;
+
+// ---- 52-1: the GM's picture row on the place card ----
+const piece = (kind, text, shown) => `<div class="pce"><div role="button" aria-label="Edit piece: ${text}"><span class="lbk">${kind}.</span>${text}</div>${eyeBtn(shown)}</div>`;
+const rowFailed = (w) => `<div class="pce"><div class="r52" role="group" aria-label="Picture">${still(w, Math.round(w * 2 / 3), 'The picture of the Lantern Chapel, not loaded')}<span class="t52"><span class="lbk">Picture.</span>${failed}${plain('Try again')}</span></div>${eyeBtn(true)}</div>`;
+const rowAsking = (w) => `<div class="pce"><div class="r52" role="group" aria-label="Picture" aria-busy="true">${still(w, Math.round(w * 2 / 3), 'The picture of the Lantern Chapel, loading')}<span class="t52"><span class="lbk">Picture.</span></span></div>${eyeBtn(true)}</div>`;
+const card1 = (row, w, thumb) => `<div class="pcard" style="width:${w}px;box-sizing:border-box">${row(thumb)}${piece('Description', 'Wax to the knee; a bell rope cut short.', true)}${piece('Clue', 'Fresh soot on the third lantern only.', false)}<div class="adders" data-stkgroup>${stk('+ Piece', 'jigsaw-piece')}</div></div>`;
+const k1 = frame('52-1', `<b>52-1. The GM's picture row on a place's card</b> (page 23's LA1; TW13's row). The thumbnail's place keeps the still block, the size the picture would take; under “Picture.” the warning line and <b>Try again</b>, a plain button (never the accent, 44 px). The row's eye stays: the GM may still show or hide the picture, which may load on the players' devices. While it fails, the row does not open the pop-up: Try again is the one tap. <b>Asking again</b>: the still block alone, as when the card first loads; if it fails again, the line comes back. <b>At 375 px</b> the line wraps beside the thumbnail.`,
+  `${col('<b>Failed</b>, a tablet’s card column.', card1(rowFailed, 480, 120), 480)}${col('<b>Asking again</b>, after Try again.', card1(rowAsking, 480, 120), 480)}${col('<b>Failed at 375 px.</b>', card1(rowFailed, 343, 96), 343)}`);
+
+// ---- 52-2: the picture's pop-up (TW13) ----
+const pop = (title, body, w) => `<div class="popb" role="dialog" aria-label="${title}" style="width:${w}px"><div class="hd"><span class="sheet-title">${title}</span><span class="btn sq" role="button" aria-label="Close" style="border:0;background:transparent">${I.close}</span></div>${body}</div>`;
+const popFailed = (w) => pop('Picture', `${still(w - 34, Math.round((w - 34) * 2 / 3), 'The picture of the Lantern Chapel, not loaded')}<div class="fail52">${failed}${plain('Try again')}</div><div class="foot52" data-stkgroup>${stk('Change', 'easel')}${stk('Take it off', 'cancel')}</div>`, w);
+const k2 = frame('52-2', `<b>52-2. The picture's pop-up</b> (TW13), for a picture that loaded on the card and then failed large, or was opened just as the connection dropped. The still block at the picture's two-to-three shape; under it the same line with <b>Try again</b> at the right; the foot as TW13 has it, so the GM can still change the picture or take it off. At 375 px the line and the button wrap.`,
+  `${col('<b>Failed</b>, a tablet.', popFailed(440), 440)}${col('<b>Failed at 375 px.</b>', popFailed(343), 343)}`);
+
+// ---- 52-3: the players' card (PL1b), the small picture at the card's head ----
+const pRule = `<span class="btn big sqb" role="button" aria-label="The flooded crypt: read the rule">${gi('water-splash', 34)}</span>`;
+const shown = `<div class="shown52"><p>Wax to the knee and a smell of tallow; a bell rope hangs cut short above the font.</p></div>`;
+const crumb = `<div class="crumb"><span>Reedmouth</span>${sym('right', 16)}<b>The Water Gate</b></div>`;
+const pCard = (name, w, form) => {
+  const tools = form === 'ok' ? `${pRule}${still(48, 48, 'The picture of the place: open it').replace('class="still"', 'class="still sq52" role="button"')}` : pRule;
+  const line = form === 'A' ? `<div class="fail52" style="margin-top:var(--space-2)">${failed}${plain('Try again')}</div>` : form === 'B' ? `<div class="fail52" style="margin-top:var(--space-2)">${failed}</div>` : '';
+  return `<div class="pcard" style="width:${w}px;box-sizing:border-box">${crumb}<div class="head52"><h3 class="display">${name}</h3><div class="tools52">${tools}</div></div>${line}${shown}</div>`;
+};
+const k3 = frame('52-3', `<b>52-3. The players' card</b> (page 24's PL1b): the picture is the small square beside the rule's button at the card's head (ppf-6 c). A 48 px square cannot carry words, so a failed picture <b>leaves the square out</b> and the line goes under the head. ${flag('⚑ T5')} whether a player gets Try again (W7c's ⚑ 14). <b>A:</b> the same line and button as the GM's. <b>B:</b> the line alone; the picture comes back when the screen next reads it. The shown description is as PL1b. The long name is the messy-data case.`,
+  `${col('<b>As built, for reference:</b> the square (here a stand-in block).', pCard(PLACE, 560, 'ok'), 560)}${col('<b>A. Line and Try again</b>, a tablet.', pCard(PLACE, 560, 'A'), 560)}${col('<b>B. The line alone</b>, a tablet.', pCard(PLACE, 560, 'B'), 560)}${col('<b>A at 375 px</b>, a long name.', pCard(LONG, 343, 'A'), 343)}${col('<b>B at 375 px</b>, a long name.', pCard(LONG, 343, 'B'), 343)}`);
+
+mount(`
+  <h1>Page 52: a picture that fails to load</h1>
+  <p class="note"><b>Drawn 2026-11-28 for loop 5's sitting A</b> (driver's brief, row loop5-sitting-a). The frame TC8 waits for (2026-11-25, ⚑ 5: “one small frame: the row, the pop-up, the players' card; light and dark”). <b>What it replaces:</b> today a failed link reads “The picture couldn't be opened. Check your connection.” with no way to ask again, and a file that fails after its link shows the browser's broken mark. Both become the one line and Try again. The pattern is the map's failed picture as built (the warning sign, the line, a plain Try again), so a failed picture looks one way in the app.</p>
+  <h1>52-1. The picture row on the GM's card</h1>
+  ${k1}
+  <h1>52-2. The picture's pop-up</h1>
+  ${k2}
+  <h1>52-3. The players' card</h1>
+  ${k3}
+
+  <h1>The ⚑ for Francis</h1>
+  <table class="sc">
+    <tr><th>⚑</th><th>Frame</th><th>The question</th><th>Options and the designer's lean</th></tr>
+    <tr><td>T4</td><td>all</td><td>Approve page 52 as TC8's frame?</td><td>Approve; approve with findings (by number, below); or redraw. <b>Lean: approve with finding 1.</b></td></tr>
+    <tr><td>T5</td><td>52-3</td><td>Does a player get Try again on a failed picture?</td><td>A: yes, the same line and button as the GM's. B: the line alone. <b>Lean A</b>: a failed picture on a player's device is a dropped connection; asking again does no harm, and one line looks one way. (A picture the GM hides goes from the card at once; it never shows this line.)</td></tr>
+  </table>
+
+  <h1>Critique</h1>
+  <p class="note"><code>impeccable critique</code> on this page (the condensed port in this session: its ten heuristics scored 0 to 4; no detector or script ran). Francis picks findings by number.</p>
+  <table class="sc">
+    <tr><th>Heuristic</th><th>0 to 4</th><th>Why</th></tr>
+    <tr><td>Visibility of system status</td><td>3</td><td>The line says what failed; “asking again” shows only the still block, with no words (finding 3).</td></tr>
+    <tr><td>Match to the user's language</td><td>3</td><td>Ruled words; the map says “didn't load” where this says “couldn't load” (finding 1).</td></tr>
+    <tr><td>User control and freedom</td><td>4</td><td>Try again, Change and Take it off all stay; nothing traps.</td></tr>
+    <tr><td>Consistency</td><td>3</td><td>The map's pattern reused; the GM's row stops opening its pop-up while failed (finding 2).</td></tr>
+    <tr><td>Error prevention</td><td>3</td><td>The eye stays live on a failed row; a GM could show a picture they cannot see (finding 4).</td></tr>
+    <tr><td>Recognition over recall</td><td>4</td><td>The still block keeps the picture's place and size.</td></tr>
+    <tr><td>Flexibility and efficiency</td><td>3</td><td>One tap to ask again; no automatic retry (finding 5).</td></tr>
+    <tr><td>Minimalist design</td><td>4</td><td>One line, one plain button, no accent.</td></tr>
+    <tr><td>Error recovery</td><td>3</td><td>“Try again” is the recovery; the line does not say “check your connection” any more (finding 1).</td></tr>
+    <tr><td>Help and documentation</td><td>3</td><td>Nothing new to learn.</td></tr>
+    <tr><th>Total</th><th>33 of 40</th><th></th></tr>
+  </table>
+  <ol class="crit">
+    <li><b>Two failed pictures, two sets of words.</b> The map (built) says “The map's picture didn't load.”; this says “The picture couldn't load.” (ruled). Fix: the map's line becomes “The map's picture couldn't load.” in the same row, so the app says it one way. (<code>clarify</code>)</li>
+    <li><b>52-1: the row stops being a tap while it fails.</b> Today the row opens the picture's pop-up. A failed row opening a pop-up of the same failure is a wasted tap, so Try again is the only tap; but the GM who wants Change or Take it off must Try again first or wait. Kept as drawn; noted. (<code>layout</code>)</li>
+    <li><b>“Asking again” has no words for sight.</b> The still block is how the card loads everywhere today, so it is consistent; a screen reader hears “loading”. No change proposed. (<code>harden</code>)</li>
+    <li><b>The eye on a failed row stays live.</b> The GM can show a picture they cannot see at that moment. It is the GM's own picture, already chosen; the players' devices read it on their own. No change proposed. (<code>harden</code>)</li>
+    <li><b>No automatic retry.</b> When the connection comes back, the line stays until Try again or the next read of the card. An automatic retry is the builder's choice of code, not a screen; noted for the spec only. (<code>harden</code>)</li>
+  </ol>
+
+  <h1>Self-review</h1>
+  <p class="note"><b>Checked.</b> Targets: Try again 44 px high, the eye 44, the pop-up's foot buttons 44; 8 px or more between separate controls (t44-1). Widths: the tablet's card column 480, the pop-up 440, the players' card 560; each at 375 px (343 inside the margins). Messy data: a 72-character place name on the players' card at 375 px. One accent per screen: none here (the line is a warning, the buttons plain). Colour never alone: the warning carries its sign and its words. The warning line's ink on the card measures about 7.5 to 1 in light (#7A4A00 on #FFFFFF) and about 13 to 1 in dark (#F2D46B on #1E1A16), so no greyscale strip is needed. Light and dark side by side. No new token, no new part.</p>
+  <p class="note"><b>Not checked, honestly.</b> No built screen photographed for the failed state (it cannot be made on purpose in the harness today; the builder adds a layout check). The GM's older place card (<code>PlaceLine</code>, the picture across the card) is not drawn: it uses the same part and takes the same line under where the picture would be. Larger text is not drawn (06's rule). Offline as such is not a separate state: a picture that fails offline shows this line, and Try again fails again until the connection is back.</p>
+`);
+applyBook();
+})();
+</script>
+</body>
+</html>
