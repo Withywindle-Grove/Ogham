@@ -2,15 +2,20 @@
 // the layout page's wreck with Mother Sedge on it (`layout.html?as=gm&placePage=wreck&carries=…`; src/testing/
 // layoutHarness.tsx), in a real browser at 1024 px and 375 px, light and dark. Test pictures under
 // test-results/layout-screens/carries-*.png, to be set beside page 50's frames. Purposes, in plain words:
-//   50-1, 50-2 A. Her piece says "Only you see this." and "Carries: warden’s lantern, iron key."; after her row on a
+//   50-1, 50-2 A. Her piece says "Only you see this." and "Carries: Warden’s lantern, Iron key."; after her row on a
 //        tablet, in her row under her name on a phone (finding 5; her row is sf-6b's detail row, #205).
 //   50-1, 50-2 B. Her words open her sheet: the place over her name, "Carries", a row a thing with its note, the edit
 //        row; no "Send all" and no accent (finding 1).
 //   50-2 C. A thing's row opens its sheet: To a character, To the party stash, no edit row.
-//   50-2 D. After a send to Wren, her row says "Sent to Wren." and her line "Carries: iron key. Warden’s lantern sent to
+//   50-2 D. After a send to Wren, her row says "Sent to Wren." and her line "Carries: Iron key. Warden’s lantern sent to
 //        Wren of the Lantern Wardens.".
 //   50-3 A. Sent at another place: her line says so, and her sheet lists it under "Sent before".
-//   50-4 A to D. A long name, ×999 and a thing not in the packs (no id, finding 6); everything sent, "Carries nothing now."
+//   50-3, 50-1 (piece Q, #228; dgc-5, sb4-12, sb4-13): the "Sent before" line is a row of 44 px or more that opens the
+//        thing's sheet, "Sent to Wren at 1. The jetty", with Take it back, whose toast keeps the capitals and has Undo;
+//        her line and her sheet follow. A long name and ×999 sent before wrap in their rows (`carries=before-messy`),
+//        at both widths, light and dark, and with Larger text at 375 px.
+//   50-4 A to D. A long name, ×999 and a thing not in the packs (no id, finding 6; her name in the line, dgc-14);
+//        everything sent, "Carries nothing now."
 // Each: nothing scrolls sideways, no tap target under 44 px, no text under 14 px, and axe finds no serious problem.
 import { expect, test, type Page } from '@playwright/test';
 import { accessibilityProblems, layoutProblems } from './checks.ts';
@@ -21,6 +26,17 @@ const SIZES = [
 ] as const;
 const SEDGE = /^A tall woman in a salt-stiff coat/;
 const WREN = 'Wren of the Lantern Wardens';
+const LONG = 'The Hooded Lantern of the Nine Drowned Wardens of Saltwick Quay';
+
+/** Each "Sent before" row on her sheet is a whole target of 44 px or more, and no two overlap (rows of one list, t44-1). */
+async function beforeRows(page: Page, count: number) {
+  const rows = page.getByRole('dialog', { name: /Mother Sedge$/ }).getByRole('button', { name: /^Sent before: / });
+  await expect(rows).toHaveCount(count);
+  const boxes = await Promise.all((await rows.all()).map(async (r) => (await r.boundingBox())!));
+  for (const box of boxes) expect(box.height).toBeGreaterThanOrEqual(44);
+  for (let i = 1; i < boxes.length; i++) expect(boxes[i]!.y).toBeGreaterThanOrEqual(boxes[i - 1]!.y + boxes[i - 1]!.height - 1);
+  return rows;
+}
 
 async function open(page: Page, scheme: 'light' | 'dark', carries: string) {
   await page.emulateMedia({ colorScheme: scheme });
@@ -81,7 +97,7 @@ for (const size of SIZES) {
       // Purpose: 50-1 and 50-2 A, her piece with the label and the Carries line, placed by the device (finding 5).
       test('her piece says what she carries, placed for the device', async ({ page }) => {
         await open(page, scheme, '1');
-        const carries = 'Carries: warden’s lantern, iron key.';
+        const carries = 'Carries: Warden’s lantern, Iron key.';
         // Since sf-6b (#205) her stat line is her own detail row under her piece: the label stays in her piece's words,
         // and her Carries line sits in her row under her name on a phone, as its own line after her row on a tablet.
         await expect(page.locator('.place-page__piece', { hasText: SEDGE }).getByText('Only you see this.')).toBeVisible();
@@ -120,23 +136,55 @@ for (const size of SIZES) {
       // Purpose: 50-2 D, after a send to Wren: her row and her line say where it went.
       test('after a send, her row and her line say where it went', async ({ page }) => {
         await open(page, scheme, 'sent');
-        await expect(page.locator('.person-carries')).toHaveText(`Carries: iron key. Warden’s lantern sent to ${WREN}.`);
+        await expect(page.locator('.person-carries')).toHaveText(`Carries: Iron key. Warden’s lantern sent to ${WREN}.`);
         await page.getByRole('button', { name: SEDGE }).click();
         await expect(page.getByRole('dialog', { name: /Mother Sedge$/ }).getByText(`Sent to ${WREN}.`)).toBeVisible();
         expect(await layoutProblems(page)).toEqual([]);
         await shot(page, 'sent', size.width, scheme);
       });
 
-      // Purpose: 50-3 A, sent at another place: her line says so and her sheet lists it under "Sent before".
-      test('a thing sent at another place reads under Sent before', async ({ page }) => {
+      // Purpose: 50-3 A, sent at another place: her line says so and her sheet lists it under "Sent before"; the line is a
+      // row of 44 px or more that opens the thing's sheet, which says where it went (sb4-13), with Take it back (dgc-5);
+      // Take it back's toast keeps the capitals and has Undo (sb4-12), and her line follows.
+      test('a thing sent at another place reads under Sent before, and is taken back from there', async ({ page }) => {
         await open(page, scheme, 'before');
-        await expect(page.locator('.person-carries')).toHaveText(`Carries: iron key. Warden’s lantern sent to ${WREN}.`);
+        await expect(page.locator('.person-carries')).toHaveText(`Carries: Iron key. Warden’s lantern sent to ${WREN}.`);
         await page.getByRole('button', { name: SEDGE }).click();
         const sheet = page.getByRole('dialog', { name: /Mother Sedge$/ });
         await expect(sheet.getByText(`Sent before: Warden’s lantern, to ${WREN}, at 1. The jetty.`)).toBeVisible();
         await expect(sheet.getByText('Warden’s lantern', { exact: true })).toHaveCount(0);
+        const line = (await beforeRows(page, 1)).first();
         expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
         await shot(page, 'before', size.width, scheme);
+        await line.click();
+        const one = page.getByRole('dialog', { name: /Warden’s lantern$/ });
+        await expect(one.getByText(new RegExp(`^Sent to ${WREN} at 1\\. The jetty(, [a-z]+ \\d+)?\\.$`))).toBeVisible();
+        await expect(one.getByRole('button', { name: 'Take it back' })).toBeVisible();
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+        await shot(page, 'before-thing', size.width, scheme);
+        await one.getByRole('button', { name: 'Take it back' }).click();
+        const toast = page.locator('.toast').filter({ hasText: `Taken back from ${WREN}: Warden’s lantern.` });
+        await expect(toast).toBeVisible();
+        await expect(toast.getByRole('button', { name: /Undo/ })).toBeVisible();
+        await expect(page.locator('.person-carries')).toHaveText('Carries: Warden’s lantern, Iron key.');
+        expect(await layoutProblems(page)).toEqual([]);
+        await shot(page, 'before-taken', size.width, scheme);
+      });
+
+      // Purpose (#228): a long name and ×999 sent before wrap in their rows, each 44 px or more, nothing sideways.
+      test('a long name and ×999 under Sent before', async ({ page }) => {
+        await open(page, scheme, 'before-messy');
+        await page.getByRole('button', { name: SEDGE }).click();
+        const sheet = page.getByRole('dialog', { name: /Mother Sedge$/ });
+        await expect(sheet.getByText(`Sent before: ${LONG}, to ${WREN}, at 1. The jetty.`)).toBeVisible();
+        await expect(sheet.getByText(`Sent before: Oil flask ×999, to ${WREN}, at 1. The jetty.`)).toBeVisible();
+        await expect(sheet.getByText('One thing Mother Sedge carries isn’t in your packs.')).toBeVisible();
+        await beforeRows(page, 2);
+        expect(await layoutProblems(page)).toEqual([]);
+        expect(await accessibilityProblems(page)).toEqual([]);
+        await shot(page, 'before-messy', size.width, scheme);
       });
 
       // Purpose: 50-4 A and C, a long name, ×999 and a thing not in the packs, with no id on screen (finding 6).
@@ -146,7 +194,7 @@ for (const size of SIZES) {
         const sheet = page.getByRole('dialog', { name: /Mother Sedge$/ });
         await expect(sheet.getByText('The Hooded Lantern of the Nine Drowned Wardens of Saltwick Quay')).toBeVisible();
         await expect(sheet.getByText('Oil flask ×999')).toBeVisible();
-        await expect(sheet.getByText('One thing she carries isn’t in your packs.')).toBeVisible();
+        await expect(sheet.getByText('One thing Mother Sedge carries isn’t in your packs.')).toBeVisible();
         await expect(page.getByText(/reed-moon-bell/)).toHaveCount(0);
         expect(await layoutProblems(page)).toEqual([]);
         expect(await accessibilityProblems(page)).toEqual([]);
@@ -167,4 +215,24 @@ for (const size of SIZES) {
       });
     });
   }
+}
+
+// Purpose (#228): with Larger text at 375 px, the long name and ×999 under "Sent before" still wrap in rows of 44 px or
+// more, and the thing's sheet a row opens keeps its line and Take it back whole.
+for (const scheme of ['light', 'dark'] as const) {
+  test(`Sent before with Larger text (375 px, ${scheme})`, async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.addInitScript(() => localStorage.setItem('grimoire.textSize', 'larger'));
+    await open(page, scheme, 'before-messy');
+    await page.getByRole('button', { name: SEDGE }).click();
+    const rows = await beforeRows(page, 2);
+    expect(await layoutProblems(page)).toEqual([]);
+    await shot(page, 'before-messy-larger', 375, scheme);
+    await rows.first().click();
+    const one = page.getByRole('dialog', { name: new RegExp(`${LONG}$`) });
+    await expect(one.getByText(new RegExp(`^Sent to ${WREN} at 1\\. The jetty`))).toBeVisible();
+    await expect(one.getByRole('button', { name: 'Take it back' })).toBeVisible();
+    expect(await layoutProblems(page)).toEqual([]);
+    await shot(page, 'before-thing-larger', 375, scheme);
+  });
 }

@@ -56,7 +56,6 @@ const bare = (ref: string): string => {
   const at = ref.indexOf(':');
   return (at < 0 ? ref : ref.slice(at + 1)).trim();
 };
-const lowerFirst = (words: string): string => (words ? words[0]!.toLowerCase() + words.slice(1) : words);
 
 /** The packs in the order they are searched: `first` (the place's or her own pack), then the campaign's order. */
 function ranked<T extends { packId: string }>(entries: readonly T[], order: readonly string[], first: string | null): T[] {
@@ -116,15 +115,15 @@ export const heldThingWords = (thing: Pick<HeldThing, 'name' | 'qty'>): string =
 const whom = (to: string | null, nameOf: (id: string) => string): string => (to === null ? 'the party stash' : nameOf(to));
 
 /**
- * The Carries line on her piece (dg-10, dg-12; page 50): "Carries: warden’s lantern, iron key."; a thing sent follows as
- * its own sentence, "Carries: iron key. Warden’s lantern sent to Wren."; everything sent, "Carries nothing now.". `lead`
- * is the bold word.
+ * The Carries line on her piece (dg-10, dg-12; page 50): "Carries: Warden’s lantern, Iron key.", each name as the pack
+ * writes it (dgc-6, #228); a thing sent follows as its own sentence, "Carries: Iron key. Warden’s lantern sent to
+ * Wren."; everything sent, "Carries nothing now.". `lead` is the bold word.
  */
 export function carriesWords(states: readonly HeldState[], nameOf: (id: string) => string): { lead: string; rest: string } {
   const held = states.filter((s) => s.sent === null);
   if (held.length === 0) return { lead: 'Carries', rest: 'nothing now.' };
   const sent = states.flatMap((s) => (s.sent ? [`${capitalised(heldThingWords(s))} sent to ${whom(s.sent.to, nameOf)}.`] : []));
-  return { lead: 'Carries:', rest: [`${held.map((s) => lowerFirst(heldThingWords(s))).join(', ')}.`, ...sent].join(' ') };
+  return { lead: 'Carries:', rest: [`${held.map((s) => heldThingWords(s)).join(', ')}.`, ...sent].join(' ') };
 }
 
 /** A row sent from here (page 50): "Sent to Wren." or "Sent to the party stash.". */
@@ -134,17 +133,31 @@ export const sentHereWords = (to: string | null, nameOf: (id: string) => string)
 export const sentBeforeWords = (thing: Pick<HeldThing, 'name' | 'qty'>, to: string | null, nameOf: (id: string) => string, placeName: string | null): string =>
   `Sent before: ${heldThingWords(thing)}, to ${whom(to, nameOf)}${placeName ? `, at ${placeName}` : ''}.`;
 
+/**
+ * A thing sent at another place, on its own sheet (sb4-13, #228): "Sent to Wren at 4. The Customs Shed, turn 3."; the
+ * stash as her rows say it, "Sent to the party stash at …"; the place left out when it couldn't be read, the turn when
+ * there is none to name (`sharedStep`).
+ */
+export const sentThereWords = (to: string | null, nameOf: (id: string) => string, placeName: string | null, step: string | null): string =>
+  `Sent to ${whom(to, nameOf)}${placeName ? ` at ${placeName}` : ''}${step ? `, ${step}` : ''}.`;
+
 /** The send's toast (page 50): "Warden’s lantern sent to Wren.". */
 export const heldSentWords = (thing: Pick<HeldThing, 'name' | 'qty'>, to: string | null, nameOf: (id: string) => string): string =>
   `${capitalised(heldThingWords(thing))} sent to ${whom(to, nameOf)}.`;
 
-/** Take it back's toast, as TR1's: "Taken back from Wren: warden’s lantern.". */
+/** Take it back's toast, as TR1's, the name as the pack writes it (sb4-12, #228): "Taken back from Wren: Warden’s lantern.". */
 export const heldTakenBackWords = (thing: Pick<HeldThing, 'name' | 'qty'>, to: string | null, nameOf: (id: string) => string): string =>
-  `Taken back from ${whom(to, nameOf)}: ${lowerFirst(heldThingWords(thing))}.`;
+  `Taken back from ${whom(to, nameOf)}: ${heldThingWords(thing)}.`;
 
-/** Her piece's line when the GM's log can't be read and nothing was read before (#197's review S1): no send is offered. */
-export const CARRIES_UNREAD = "Couldn't read what she carries. Check your connection and try again.";
+/**
+ * Her piece's line when the GM's log can't be read and nothing was read before (#197's review S1): no send is offered.
+ * It names her (dgc-14, #228): "Couldn't read what Mother Sedge carries. Check your connection and try again.".
+ */
+export const carriesUnreadWords = (name: string): string => `Couldn't read what ${name} carries. Check your connection and try again.`;
 
-/** The quiet line for things no attached pack has (finding 6, no id): null when there are none. */
-export const missingWords = (count: number): string | null =>
-  count <= 0 ? null : count === 1 ? 'One thing she carries isn’t in your packs.' : `${count} things she carries aren’t in your packs.`;
+/**
+ * The quiet line for things no attached pack has (finding 6, no id), naming her (dgc-14, sb4-11; #228): "One thing
+ * Mother Sedge carries isn’t in your packs.", "3 things Mother Sedge carries aren’t in your packs."; null when none.
+ */
+export const missingWords = (count: number, name: string): string | null =>
+  count <= 0 ? null : count === 1 ? `One thing ${name} carries isn’t in your packs.` : `${count} things ${name} carries aren’t in your packs.`;

@@ -6,6 +6,9 @@
 // accent (finding 1). A thing's row opens TR1's one-thing sheet: To a character, To the party stash, through piece E's
 // held key (`find.give`); once sent, where it went and Take it back (`find.undo`). What she still holds is read from the
 // GM's log (dg-12), never stored. Everything here is the GM's: her entry is GM-only, so nothing reaches a player.
+// Piece Q (#228; dgc-5, dgc-6, dgc-14, sb4-11 to sb4-13): each "Sent before" line is a row that opens that thing's sheet,
+// "Sent to Wren at 4. The Customs Shed, turn 3.", with Take it back wherever she is now; Take it back's toast has Undo
+// (the built send again); the names keep the pack's capitals; her words name her, not "she".
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { capitalised } from '../core/chargeUnit.ts';
 import { runCommand, type CurrentUser } from '../core/commands.ts';
@@ -13,7 +16,7 @@ import { loadCommandLog, type LogEvent } from '../core/events.ts';
 import type { Db } from '../core/supabase.ts';
 import { giveFind, loadClockChanges, loadSentPlaces, sentHeld, undoFind } from '../modules/expedition/findSend.ts';
 import {
-  CARRIES_UNREAD,
+  carriesUnreadWords,
   carriesWords,
   heldSentWords,
   heldStates,
@@ -24,6 +27,8 @@ import {
   personOf,
   sentBeforeWords,
   sentHereWords,
+  sentThereWords,
+  type HeldSend,
   type HeldState,
   type PersonHolds,
 } from '../modules/expedition/personHolds.ts';
@@ -197,15 +202,7 @@ export function usePersonThings({
   async function send(to: string | null, thing: HeldState) {
     if (!placeId || busy || !open) return;
     setBusy(true);
-    // One thing a send, no coin; its row is her held key alone (piece E), never a hoard row.
-    const result = await runCommand(registry, db, user, giveFind, {
-      campaignId: campaign.id,
-      to,
-      placeId,
-      things: [thing.libraryEntryId ? { libraryEntryId: thing.libraryEntryId, qty: thing.qty } : { name: thing.name, qty: thing.qty }],
-      coins: {},
-      rows: [thing.key],
-    });
+    const result = await sendOne(to, placeId, thing);
     setBusy(false);
     if (!result.ok) return show({ text: result.message, error: true });
     // Back to her sheet, which says where it went (page 50).
@@ -222,15 +219,38 @@ export function usePersonThings({
     });
   }
 
-  /** Take it back (TR1): the send's Undo, at once, with a toast; refused, the error toast with the reason. */
+  /** One thing a send, no coin; its row is her held key alone (piece E), never a hoard row. */
+  const sendOne = (to: string | null, at: string, thing: HeldState) =>
+    runCommand(registry, db, user, giveFind, {
+      campaignId: campaign.id,
+      to,
+      placeId: at,
+      things: [thing.libraryEntryId ? { libraryEntryId: thing.libraryEntryId, qty: thing.qty } : { name: thing.name, qty: thing.qty }],
+      coins: {},
+      rows: [thing.key],
+    });
+
+  /**
+   * Take it back (TR1), here or from a "Sent before" line wherever she is now (dgc-5): the send's Undo, at once, with a
+   * toast whose Undo sends it to the same hands again, from the place it was first sent (#228); refused, the error toast
+   * with the reason.
+   */
   async function takeBack(thing: HeldState) {
     if (busy || !thing.sent) return;
+    const went = thing.sent;
     setBusy(true);
-    const undone = await runCommand(registry, db, user, undoFind, { campaignId: campaign.id, eventId: thing.sent.eventId });
+    const undone = await runCommand(registry, db, user, undoFind, { campaignId: campaign.id, eventId: went.eventId });
     setBusy(false);
     if (!undone.ok) return show({ text: undone.message, error: true });
     refresh();
-    show({ text: heldTakenBackWords(thing, thing.sent.to, nameOf) });
+    show({
+      text: heldTakenBackWords(thing, went.to, nameOf),
+      onUndo: () =>
+        void sendOne(went.to, went.placeId, thing).then((again) => {
+          refresh();
+          if (!again.ok) show({ text: again.message, error: true });
+        }),
+    });
   }
 
   const states = open ? statesOf(open.piece) : null;
@@ -239,6 +259,9 @@ export function usePersonThings({
   const thing = open && states && open.key ? (states.find((s) => s.key === open.key) ?? null) : null;
   const here = states ? states.filter((s) => s.sent === null || s.sent.placeId === placeId) : [];
   const before = states ? states.flatMap((s) => (s.sent !== null && s.sent.placeId !== placeId ? [{ thing: s, went: s.sent }] : [])) : [];
+  /** Where a sent thing went, on its own sheet: "Sent to Wren, turn 3." from here; from another place, that place too (sb4-13). */
+  const wentWords = (went: HeldSend): string =>
+    went.placeId === placeId ? sentPieceWords(went.to, nameOf, sentStep(went.seq)) : sentThereWords(went.to, nameOf, placeNameOf(went.placeId), sentStep(went.seq));
   const close = () => setOpen(null);
   const sheets =
     open && states ? (
@@ -248,8 +271,8 @@ export function usePersonThings({
           over={placeName || undefined}
           words={open.piece.text}
           rows={here}
-          before={before.map(({ thing: s, went }) => sentBeforeWords(s, went.to, nameOf, placeNameOf(went.placeId)))}
-          missing={missingWords(held?.holds.missing ?? 0)}
+          before={before.map(({ thing: s, went }) => ({ thing: s, line: sentBeforeWords(s, went.to, nameOf, placeNameOf(went.placeId)) }))}
+          missing={missingWords(held?.holds.missing ?? 0, personName)}
           nameOf={nameOf}
           side={!phone}
           onThing={(s) => setOpen({ ...open, step: 'thing', key: s.key })}
@@ -264,7 +287,7 @@ export function usePersonThings({
           hoard={{ name: heldThingWords(thing), words: sentence(thing.note), rows: [] }}
           over={personName}
           side={!phone}
-          went={thing.sent ? sentPieceWords(thing.sent.to, nameOf, sentStep(thing.sent.seq)) : null}
+          went={thing.sent ? wentWords(thing.sent) : null}
           onCharacter={() => setOpen({ ...open, step: 'who' })}
           onStash={() => void send(null, thing)}
           onTakeBack={() => void takeBack(thing)}
@@ -281,7 +304,7 @@ export function usePersonThings({
     open: (piece: Piece) => setOpen({ piece, step: 'person', key: null }),
     /** Her Carries line, or null: a piece that names no one who carries anything, or still loading, is as today. */
     carriesOf: (piece: Piece): ReactNode => {
-      if (unreadOf(piece)) return <span className="person-carries">{CARRIES_UNREAD}</span>;
+      if (unreadOf(piece)) return <span className="person-carries">{carriesUnreadWords(setting?.holds.get(personIdOf(piece) ?? '')?.name ?? 'Someone')}</span>;
       const found = statesOf(piece);
       return found ? <CarriesLine {...carriesWords(found, nameOf)} /> : null;
     },
@@ -294,7 +317,9 @@ export function usePersonThings({
 /**
  * Her sheet (page 50, "the person's dress" of the find sheet, TR1): over the title the place, the title her name, the
  * piece's words, "Carries" and a row a thing (its note under it, or where it went), the quiet line for things not in the
- * packs, "Sent before" for things sent at another place, and "Edit the piece's words" last. No "Send all", no accent.
+ * packs, "Sent before" for things sent at another place, each a row that opens that thing (dgc-5, #228: a 44 px target,
+ * its quiet words and tick as page 50 draws them, the row's arrow), and "Edit the piece's words" last. No "Send all", no
+ * accent.
  */
 export function PersonSheetView({
   name,
@@ -314,8 +339,8 @@ export function PersonSheetView({
   over?: string;
   words: string;
   rows: readonly HeldState[];
-  /** "Sent before: Warden’s lantern, to Wren, at 4. The Customs Shed.", one a thing sent at another place. */
-  before: readonly string[];
+  /** "Sent before: Warden’s lantern, to Wren, at 4. The Customs Shed.", one a thing sent at another place, and that thing. */
+  before: readonly { thing: HeldState; line: string }[];
   missing: string | null;
   nameOf: (id: string) => string;
   onThing: (thing: HeldState) => void;
@@ -339,11 +364,18 @@ export function PersonSheetView({
             />
           ))}
           {missing && <p className="person-sheet__quiet">{missing}</p>}
-          {before.map((line) => (
-            <p key={line} className="person-sheet__quiet person-sheet__before">
-              <Icon name="tick" size={16} />
-              <span>{line}</span>
-            </p>
+          {before.map(({ thing, line }) => (
+            <ListRow
+              key={thing.key}
+              title={
+                <span className="person-sheet__before">
+                  <Icon name="tick" size={16} />
+                  <span>{line}</span>
+                </span>
+              }
+              openLabel={line}
+              onOpen={() => onThing(thing)}
+            />
           ))}
           <EditWordsRow onEdit={onEdit} />
         </RowList>

@@ -20,7 +20,7 @@
   margin-block-end: calc(-1 * var(--space-2));
 }
 
-/* The quiet lines among her rows: things not in the packs, and "Sent before" (page 50, 50-3 and 50-4 C). */
+/* The quiet line among her rows for things not in the packs (page 50, 50-4 C). */
 .person-sheet__quiet {
   margin: 0;
   padding-block: var(--space-2);
@@ -30,10 +30,17 @@
   overflow-wrap: break-word;
 }
 
+/* "Sent before" (page 50, 50-3): its quiet words and tick as drawn, now a row's words that open that thing (dgc-5, #228);
+   the row is the list's own (44 px or more), and a long name wraps beside the arrow. */
 .person-sheet__before {
   display: flex;
   align-items: flex-start;
   gap: var(--space-1);
+  min-inline-size: 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+  overflow-wrap: anywhere;
 }
 
 .person-sheet__before svg {

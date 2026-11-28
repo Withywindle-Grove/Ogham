@@ -7,10 +7,14 @@
 //      then in the packs' order.
 //   3. Held or sent, from the GM's log at every place: the latest send of a key wins, a send taken back marks nothing.
 //   4. The words: the Carries line in its three states, a sent row, "Sent before", the toast and the missing line.
+//   5. Piece Q (#228; dgc-6, dgc-14, sb4-11 to sb4-13): the pack's capitals kept in the Carries line and Take it back's
+//      toast (a name the pack writes in lower case stays so); her name, not "she", in the missing line (one and many)
+//      and the failed-read line, a long name kept whole; a thing sent at another place says where on its own sheet.
 import { describe, expect, it } from 'vitest';
 import type { LogEvent } from '../../core/events.ts';
 import { sentHeld } from './findSend.ts';
 import {
+  carriesUnreadWords,
   carriesWords,
   heldSentWords,
   heldStates,
@@ -21,6 +25,7 @@ import {
   personOf,
   sentBeforeWords,
   sentHereWords,
+  sentThereWords,
   type HoldsEntry,
 } from './personHolds.ts';
 
@@ -142,10 +147,10 @@ describe('4. the words (page 50)', () => {
 
   // Purpose: the Carries line lists what she holds; a thing sent follows as its own sentence; all sent, "nothing now".
   it('says the Carries line in its three states', () => {
-    expect(carriesWords(heldStates(holds, new Map()), nameOf)).toEqual({ lead: 'Carries:', rest: 'warden’s lantern, iron key.' });
+    expect(carriesWords(heldStates(holds, new Map()), nameOf)).toEqual({ lead: 'Carries:', rest: 'Warden’s lantern, Iron key.' });
     expect(carriesWords(heldStates(holds, new Map([['held:mother-sedge:wardens-lantern', sentTo('actor-wren')]])), nameOf)).toEqual({
       lead: 'Carries:',
-      rest: 'iron key. Warden’s lantern sent to Wren.',
+      rest: 'Iron key. Warden’s lantern sent to Wren.',
     });
     const all = new Map([
       ['held:mother-sedge:wardens-lantern', sentTo('actor-wren')],
@@ -158,7 +163,7 @@ describe('4. the words (page 50)', () => {
   it('names a count with ×, in the row and in the line', () => {
     const many = personHolds(sedge([{ itemRef: 'river-rules:oil-flask', qty: 999 }]), ENTRIES, ORDER)!;
     expect(heldThingWords(many.things[0]!)).toBe('Oil flask ×999');
-    expect(carriesWords(heldStates(many, new Map()), nameOf).rest).toBe('oil flask ×999.');
+    expect(carriesWords(heldStates(many, new Map()), nameOf).rest).toBe('Oil flask ×999.');
   });
 
   // Purpose: a sent row says where it went; a send at another place says where and to whom under "Sent before".
@@ -173,13 +178,50 @@ describe('4. the words (page 50)', () => {
   it('says the send’s toast and Take it back’s toast', () => {
     expect(heldSentWords(holds.things[0]!, 'actor-wren', nameOf)).toBe('Warden’s lantern sent to Wren.');
     expect(heldSentWords(holds.things[1]!, null, nameOf)).toBe('Iron key sent to the party stash.');
-    expect(heldTakenBackWords(holds.things[0]!, 'actor-wren', nameOf)).toBe('Taken back from Wren: warden’s lantern.');
+    expect(heldTakenBackWords(holds.things[0]!, 'actor-wren', nameOf)).toBe('Taken back from Wren: Warden’s lantern.');
   });
 
   // Purpose: a thing not in the packs is a quiet line with no id (finding 6); two or more are counted.
   it('says how many things are not in the packs, with no id', () => {
-    expect(missingWords(1)).toBe('One thing she carries isn’t in your packs.');
-    expect(missingWords(3)).toBe('3 things she carries aren’t in your packs.');
-    expect(missingWords(0)).toBeNull();
+    expect(missingWords(1, 'Mother Sedge')).toBe('One thing Mother Sedge carries isn’t in your packs.');
+    expect(missingWords(3, 'Mother Sedge')).toBe('3 things Mother Sedge carries aren’t in your packs.');
+    expect(missingWords(0, 'Mother Sedge')).toBeNull();
+  });
+});
+
+describe('5. piece Q: capitals, her name, where it went (#228)', () => {
+  const LONG = 'Mother Sedge, Keeper of the Nine Drowned Lanterns of Saltwick Quay';
+  const lower: HoldsEntry[] = [...ENTRIES, item(ADV, 'reed-pipe', 'reed pipe')];
+  const holds = personHolds(sedge([{ itemId: 'wardens-lantern' }, { itemId: 'reed-pipe' }, { itemId: 'iron-key', qty: 999 }]), lower, ORDER)!;
+
+  // Purpose (dgc-6): the Carries line keeps each name as the pack writes it: a capital stays a capital, and a name the
+  // pack writes in lower case stays in lower case, a count ×999 with it.
+  it('keeps the pack’s capitals in the Carries line, and a lower-case name as written', () => {
+    expect(carriesWords(heldStates(holds, new Map()), nameOf)).toEqual({ lead: 'Carries:', rest: 'Warden’s lantern, reed pipe, Iron key ×999.' });
+  });
+
+  // Purpose (sb4-12): Take it back's toast keeps the pack's capitals, and a lower-case name stays so.
+  it('keeps the pack’s capitals in Take it back’s toast', () => {
+    expect(heldTakenBackWords(holds.things[0]!, 'actor-wren', nameOf)).toBe('Taken back from Wren: Warden’s lantern.');
+    expect(heldTakenBackWords(holds.things[1]!, null, nameOf)).toBe('Taken back from the party stash: reed pipe.');
+    expect(heldTakenBackWords(holds.things[2]!, 'actor-wren', nameOf)).toBe('Taken back from Wren: Iron key ×999.');
+  });
+
+  // Purpose (dgc-14, sb4-11): the missing line and the failed-read line name her, a long name whole, never "she".
+  it('names her in the missing line and the failed-read line', () => {
+    expect(carriesUnreadWords('Mother Sedge')).toBe("Couldn't read what Mother Sedge carries. Check your connection and try again.");
+    expect(carriesUnreadWords(LONG)).toBe(`Couldn't read what ${LONG} carries. Check your connection and try again.`);
+    expect(missingWords(1, LONG)).toBe(`One thing ${LONG} carries isn’t in your packs.`);
+    expect(missingWords(999, LONG)).toBe(`999 things ${LONG} carries aren’t in your packs.`);
+    for (const line of [carriesUnreadWords(LONG), missingWords(1, LONG), missingWords(2, LONG)]) expect(line).not.toMatch(/\bshe\b/);
+  });
+
+  // Purpose (sb4-13): a thing sent at another place says on its own sheet where it went, the place and the turn; with no
+  // turn to name, or a place that couldn't be read, the line keeps what it has.
+  it('says where a thing sent at another place went, on its own sheet', () => {
+    expect(sentThereWords('actor-wren', nameOf, '4. The Customs Shed', 'turn 3')).toBe('Sent to Wren at 4. The Customs Shed, turn 3.');
+    expect(sentThereWords('actor-wren', nameOf, '4. The Customs Shed', null)).toBe('Sent to Wren at 4. The Customs Shed.');
+    expect(sentThereWords('actor-wren', nameOf, null, 'turn 3')).toBe('Sent to Wren, turn 3.');
+    expect(sentThereWords(null, nameOf, '4. The Customs Shed', 'turn 3')).toBe('Sent to the party stash at 4. The Customs Shed, turn 3.');
   });
 });

@@ -1415,11 +1415,12 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
 //                ?as=player, HM4: Wren's Pack and the item's sheet read "Lantern of the Drowned").
 //   &sf8=1|sent  with wreck (sf-8, page 44, TR1 and TR2): also a Bronze ring, one thing with its own words, and a
 //                Crate of lamp oil ×8, a count; `sent`: the ring sent to Wren (TR1's sent piece).
-//   &carries=1|sent|all|before|messy  with wreck (dec5-gaps F, #192; page 50): Mother Sedge on the wreck, carrying a
+//   &carries=1|sent|all|before|messy|before-messy  with wreck (dec5-gaps F, #192; page 50): Mother Sedge on the wreck, carrying a
 //                Warden's lantern and an iron key (`1`, 50-1); `sent`: the lantern sent to Wren (50-1's sheet after a
 //                send, 50-2 D); `all`: the lantern to Wren and the key to the party stash (50-4 B, D); `before`: the
 //                lantern sent to Wren at the jetty, before the party came here (50-3 A); `messy`: a long-named lantern,
-//                oil flask ×999, the iron key and one thing no attached pack has (50-4 A, C).
+//                oil flask ×999, the iron key and one thing no attached pack has (50-4 A, C); `before-messy` (#228):
+//                `messy`'s things, the long-named lantern and the oil flask ×999 sent to Wren at the jetty.
 //   &details=1|own|messy  with wreck (spec scene-pack, piece B, #205; page 44, DT1, DT2): the Ferryman ×3 and the Mud
 //                crab ×4 on their pieces, the lamp oil's crate, an Eel no piece shows and Old Harl, who lives here on the
 //                Ferryman's block (the fold's short row); `own`: Old Harl with a block of his own; `messy`: a long name,
@@ -1596,7 +1597,7 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     if (carries) {
       const wreckView = (spots[1] as unknown as { playerView: Record<string, unknown> }).playerView;
       wreckView.people = [{ npcId: 'reed-mother-sedge', description: 'A tall woman in a salt-stiff coat, a lantern on a pole at her side.' }];
-      const messy = carries === 'messy';
+      const messy = carries === 'messy' || carries === 'before-messy';
       const holds = [
         { itemId: 'reed-wardens-lantern', note: messy ? 'Carried on a pole; it never goes out' : 'A lantern on a pole' },
         ...(messy ? [{ itemId: 'reed-oil-flask', qty: 999, note: 'In a crate under the desk' }] : []),
@@ -1787,13 +1788,14 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     // &carries (page 50): her things sent before the party reached the wreck, at the jetty (`before`), or here (below).
     const carries = new URLSearchParams(window.location.search).get('carries');
     const { giveFind: giveHeld, heldKey } = await import('../modules/expedition/findSend.ts');
-    const sendHeld = async (placeId: string, to: string | null, item: string) =>
-      runCommand(registry, world.db, asGm, giveHeld, { campaignId: campaign, to, placeId, things: [{ libraryEntryId: `entry-${item}`, qty: 1 }], coins: {}, rows: [heldKey('reed-mother-sedge', item)!] });
-    if (carries === 'before') {
+    const sendHeld = async (placeId: string, to: string | null, item: string, qty = 1) =>
+      runCommand(registry, world.db, asGm, giveHeld, { campaignId: campaign, to, placeId, things: [{ libraryEntryId: `entry-${item}`, qty }], coins: {}, rows: [heldKey('reed-mother-sedge', item)!] });
+    if (carries === 'before' || carries === 'before-messy') {
       const jetty = spots[0]!;
       await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: jetty.id, name: jetty.name, data: jetty } });
       const atJetty = (await loadGroupPlaces(world.db, campaign, started.data.id))?.get(1);
       if (atJetty?.place) await sendHeld(atJetty.place.id, wren, 'reed-wardens-lantern');
+      if (atJetty?.place && carries === 'before-messy') await sendHeld(atJetty.place.id, wren, 'reed-oil-flask', 999);
     }
     await runCommand(registry, world.db, asGm, setPlace, { campaignId: campaign, group: 1, name: '', packEntry: { packId: 'pack-reed', packEntryId: wreck.id, name: wreck.name, data: wreck } });
     const b15 = new URLSearchParams(window.location.search).get('b15');
