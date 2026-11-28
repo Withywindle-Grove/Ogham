@@ -1000,6 +1000,7 @@ function PackTab({
       {askCharges && (
         <ChargesDialog
           line={askCharges}
+          entry={loaded.setting.items.find((e) => e.packId === askCharges.sourcePackId && e.packEntryId === askCharges.sourceEntryId) ?? null}
           rules={loaded.setting.charges}
           campaignId={campaign.id}
           busy={busy}

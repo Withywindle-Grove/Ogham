@@ -7,6 +7,7 @@
 // p2p-5 (B7: its Locations grouped under their Area, `departLocationGroups`; the method a place fills in,
 // `placeMethodOf`, `departMethodOf`). Nothing here is the GM's
 // alone: what goes in is what the screen already holds, so the players' top (S15) can use the same words.
+import { possessive } from '../../core/nameWords.ts';
 import type { SetIconName } from '../../ui/iconSet.ts';
 import { isPartOfDay, type Amount } from './clock.ts';
 import { POINT_TO_POINT_ID, type Chance, type Mode } from './modes.ts';
@@ -232,6 +233,19 @@ export function checkFact(input: { name: string | null; eachMove: boolean; every
     sub: checkChanceWords(input.chance),
     die: input.chance?.die?.trim().toLowerCase() || null,
   });
+}
+
+/**
+ * Encounter check at a place whose "none" is in force (G-27, dg-3; dg-17 finding 1): "None here", "Its own rule.". No
+ * die (nothing is rolled) and no place name (a long one would be cut at 375 px).
+ */
+export function noneCheckFact(): Fact {
+  return fact({ id: 'check', label: 'Encounter check', value: 'None here', sub: 'Its own rule.' });
+}
+
+/** A player's pop-up on that tile (G-27 piece B): the GM's words, "None here. <place>'s own rule.", by the name they know. */
+export function noneSheetLines(placeName: string): FactLine[] {
+  return [{ label: 'None here.', words: `${possessive(placeName)} own rule.` }];
 }
 
 // A player's tap on a fact (plan dec-9-the-players-scene P10; page 18, PL8, approved 2026-11-14, ap-10) ----------------

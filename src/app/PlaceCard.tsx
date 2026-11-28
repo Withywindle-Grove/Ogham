@@ -26,6 +26,7 @@
 import { Fragment, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { loadPackPlaceEntry, loadPackPlaces, loadPackTables, loadStatBlockName } from '../modules/expedition/placePlay.ts';
 import type { PackPlaceEntry } from '../modules/expedition/placeFromPack.ts';
+import { GM_ONLY_LABEL } from '../modules/expedition/personHolds.ts';
 import { idsInFacts, namedFacts, pieceNamesFrom, type PieceNames } from '../modules/expedition/pieceNames.ts';
 import { useLogUserId, useLogVersion } from './campaignLog.tsx';
 import { loadCampaignPacksAndEntries } from './campaignSetting.ts';
@@ -700,6 +701,7 @@ export function PieceRow({
   named = [],
   onOpen,
   note,
+  carries,
   names = NO_NAMES,
 }: {
   piece: Piece;
@@ -713,6 +715,11 @@ export function PieceRow({
   onOpen?: () => void;
   /** B15 (HM1, PK5b): the line under a hoard's piece, saying where it went. */
   note?: ReactNode;
+  /**
+   * dec5-gaps F (#192; page 50): a person's Carries line, under "Only you see this." (`GM_ONLY_LABEL`); `first` puts it
+   * above her stat line (a phone, finding 5), else it follows it (a tablet).
+   */
+  carries?: { line: ReactNode; first: boolean } | null;
 }) {
   if (page) {
     // The Location's card (p2p-10; page 23, LA1, approved 2026-11-18): in the book's format, no kind word. A piece the
@@ -733,7 +740,10 @@ export function PieceRow({
             <Fragment key={i}>{part.named ? <strong className="place-page__named">{part.text}</strong> : part.text}</Fragment>
           ))}
         </span>
+        {carries && <span className="place-page__fact">{GM_ONLY_LABEL}</span>}
+        {carries?.first && carries.line}
         {fact && <span className="place-page__fact">{fact}</span>}
+        {carries && !carries.first && carries.line}
         {note}
       </>
     );
