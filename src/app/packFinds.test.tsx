@@ -134,7 +134,8 @@ async function openPack(): Promise<User> {
   const user = userEvent.setup();
   render(<Root db={world.db} />);
   await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
-  await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
+  // The tab's name carries the count once it is read ("Pack, 1 new", K19b).
+  await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: /^Pack\b/ }));
   expect(await screen.findByRole('heading', { name: 'Wren’s pack' })).toBeTruthy();
   return user;
 }
@@ -480,7 +481,11 @@ describe('The local review of #158', () => {
     const user = userEvent.setup();
     render(<Root db={world.db} />);
     await user.click(await screen.findByRole('button', { name: /The Ash Barrows/ }));
-    await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
+    const packTab = within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: /^Pack\b/ });
+    // Only what the Pack asks for: the Player screen's own read of the count (K19b) asked before it opened.
+    await waitFor(() => expect(asked).toContain('finds_seen'));
+    asked.length = 0;
+    await user.click(packTab);
     await waitFor(() => expect(asked).toContain('finds_seen'));
     release();
     expect(await screen.findByRole('heading', { name: 'New in your pack' })).toBeTruthy();

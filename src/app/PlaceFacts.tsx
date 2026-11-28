@@ -19,6 +19,9 @@ import { Icon } from '../ui/icons.tsx';
 import { SkeletonRows } from '../ui/parts.tsx';
 import { TableListItem, TableRows } from './EncounterTables.tsx';
 import { RuleText } from '../ui/RuleText.tsx';
+import type { HandRow } from '../modules/expedition/pieceNames.ts';
+import { BookHandRow, type BookDetail } from './BookDetail.tsx';
+import { ON_THEIR_ROWS } from './placeLinesAtHand.ts';
 import './PlaceFacts.css';
 
 /** One line with its bold lead-in ("Ruler. Warden Halewyn"); a plain line when it has none. */
@@ -179,15 +182,17 @@ const BOOK_TEXT_HEADING = 'From the book, for the GM';
  * whole text in place, drawn by the shared rule-text part (its lists and boxed asides, nothing trimmed, mc-34; F18:
  * the section stays whole), and folds it again. Starts folded on every place.
  */
-export function BookTextFold({ text }: { text: PlaceBookText }) {
+export function BookTextFold({ text, atHand = null }: { text: PlaceBookText | null; atHand?: FoldRows | null }) {
   const [open, setOpen] = useState(false);
   const id = useId();
+  const statLines = atHand?.statLines ?? [];
+  const items = atHand?.items ?? [];
   return (
     <div className="book-text">
       <button type="button" className="book-text__row" aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)}>
         <span className="book-text__words">
           <span className="book-text__heading">{BOOK_TEXT_HEADING}</span>
-          {!open && text.firstLine && <span className="book-text__first">{text.firstLine}</span>}
+          {!open && text?.firstLine && <span className="book-text__first">{text.firstLine}</span>}
         </span>
         <span className={`book-text__chevron${open ? ' book-text__chevron--open' : ''}`} aria-hidden="true">
           <Icon name="chevron" size={20} />
@@ -195,10 +200,38 @@ export function BookTextFold({ text }: { text: PlaceBookText }) {
       </button>
       {open && (
         <section id={id} className="book-text__body" aria-label={BOOK_TEXT_HEADING}>
-          <RuleText blocks={text.blocks} />
+          {text && <RuleText blocks={text.blocks} />}
+          {/* sf-6b (spec scene-pack, piece B; DT1, DT2): the rows no piece carries, then the quiet line (sf-24). */}
+          <FoldGroup heading={statLines.length === 1 ? 'Stat line' : 'Stat lines'} rows={statLines} />
+          <FoldGroup heading="Items" rows={items} />
+          {atHand?.onPieces && <p className="book-text__quiet">{ON_THEIR_ROWS}</p>}
         </section>
       )}
     </div>
+  );
+}
+
+/** The rows piece A leaves for the fold (sf-6b), and whether pieces carry lines (the quiet line). */
+export interface FoldRows {
+  statLines: readonly HandRow<BookDetail>[];
+  items: readonly HandRow<BookDetail>[];
+  onPieces: boolean;
+}
+
+/** One group of the fold's rows under its heading, in the book's heading look; nothing when it has none. */
+function FoldGroup({ heading, rows }: { heading: string; rows: readonly HandRow<BookDetail>[] }) {
+  if (rows.length === 0) return null;
+  return (
+    <>
+      <h4 className="rule-text__heading">{heading}</h4>
+      <ul className="book-detail__list" aria-label={heading}>
+        {rows.map((row, i) => (
+          <li key={i}>
+            <BookHandRow row={row} />
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 

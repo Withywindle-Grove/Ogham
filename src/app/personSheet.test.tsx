@@ -178,7 +178,10 @@ describe('3. on the GM’s place page, through the stand-in database', () => {
     const { trip, row } = await atShed();
     page(trip, row);
     expect(await screen.findByText('warden’s lantern, iron key.', { exact: false })).toBeTruthy();
-    expect(screen.getAllByText('Only you see this.')).toHaveLength(1);
+    // Since sf-6b (#205) both hidden pieces carry a detail row (each names a person the pack has), so each has the
+    // label; only hers has a Carries line.
+    expect(screen.getAllByText('Only you see this.')).toHaveLength(2);
+    expect(screen.getAllByText(/^Carries/)).toHaveLength(1);
     expect(screen.getByRole('button', { name: 'Edit piece: A ferryman asleep on a coil of rope.' })).toBeTruthy();
     expect(screen.queryByText(/moon-bell/)).toBeNull();
   });

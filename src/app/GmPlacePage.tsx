@@ -70,6 +70,7 @@ import { useHoards } from './HoardSheet.tsx';
 import { usePersonThings } from './PersonSheet.tsx';
 import { AddPiece, NotesFold, PictureSection, PieceRow, usePieceNames, type DroppedWords } from './PlaceCard.tsx';
 import { BookTextFold, PlaceTable } from './PlaceFacts.tsx';
+import { useCardLines } from './placeLinesAtHand.ts';
 import { PlacePicker } from './PlacePicker.tsx';
 import { NoEncountersCard, PlaceRuleButtons, PlaceRulesSheet, useStandInCheck } from './PlaceRules.tsx';
 import { usePlaceActions } from './placeActions.ts';
@@ -383,6 +384,13 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
   const named = namedIn(pieces);
   // The pack entries' names for the GM's small line (Q7): read on this device, the stored ids kept.
   const names = usePieceNames(db, campaign.id, pieces, place?.pack?.packId ?? null);
+  // Spec scene-pack, piece B (#205; sf-6b, ⚑ 9; page 44, DT1, DT2): where each stat line and item line stands, on the
+  // piece that names it or in the book's fold. The party's place only; read ahead, the card is as before.
+  const packData = readEntry?.data ?? null;
+  const linesPlace = place?.pack ? { packId: place.pack.packId, entryId: place.pack.entryId, data: packData ?? {} } : null;
+  const cardLines = useCardLines(db, campaign.id, ordered, linesPlace);
+  const foldRows = !reading && cardLines ? { statLines: cardLines.fold.statLines, items: cardLines.fold.items, onPieces: cardLines.onPieces } : null;
+  const foldHasRows = !!foldRows && foldRows.statLines.length + foldRows.items.length > 0;
 
   // The card's own place while reading ahead (B2): its name, its entry, its facts and its source line. The party's
   // stand as they are for the top, the right column and the line that says where the party is.
@@ -590,11 +598,12 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
       {total > 0 && (
         <ul className="place-page__rows place-page__pieces">
           <PictureSection key={`picture:${place.id}`} page="row" db={db} user={user} campaign={campaign} place={place} row={row} picture={picture} who={who} onChanged={onChanged} />
-          {ordered.map((piece) => (
+          {ordered.map((piece, at) => (
             <PieceRow
               key={piece.id}
               page
               piece={piece}
+              details={cardLines?.pieces[at]}
               names={names}
               named={named}
               onToggle={() => void (!piece.shown && hoards.isMagic(piece) ? hoards.showTruth(piece) : actions.togglePiece(piece))}
@@ -706,7 +715,7 @@ export function GmPlacePage({ db, user, campaign, expeditionId, group, groupLabe
     <section className="place-page__card" aria-label={reading ? `Reading ahead: ${cardName}` : `Where ${who} is`}>
       {aheadLine}
       {head}
-      {cardFacts?.text && <BookTextFold key={chainKey} text={cardFacts.text} />}
+      {(cardFacts?.text || foldHasRows) && <BookTextFold key={chainKey} text={cardFacts?.text ?? null} atHand={foldRows} />}
       {mapInCard && !reading && mapPart}
       {book}
       {callsAt && <CallsLine db={db} user={user} campaign={campaign} placeName={callsName} at={callsAt} onBlocked={reading ? notHere : undefined} />}

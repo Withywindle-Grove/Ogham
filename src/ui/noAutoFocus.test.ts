@@ -35,8 +35,9 @@ const FOCUS_CALLS: Record<string, number> = {
   // A bundle's import over (B14 audits 1 and 3): the new pack's Browse, a button; else Import a file's file input. Never a
   // text field.
   '/src/app/LibraryScreen.tsx': 1,
-  // Go to number (M5b step g3; and in "Roll…"'s pop-up, sf-5): the row found, a button, never a field.
-  '/src/app/EncounterTables.tsx': 2,
+  // Go to number (M5b step g3; in "Roll…"'s pop-up, sf-5; and on an encounter table's page, sf-14): the row found, a
+  // button or a row's radio, never a field.
+  '/src/app/EncounterTables.tsx': 3,
   '/src/app/NewCampaign.tsx': 1,
   '/src/app/RulesBrowser.tsx': 1,
   '/src/app/RulesForCampaign.tsx': 1,
@@ -64,8 +65,9 @@ const FOCUS_CALLS: Record<string, number> = {
   // (Back to the hoard's piece as its sheet closes is the Dialog's own rule now.)
   '/src/app/HoardSheet.tsx': 1,
   // After "Got it" folds a call (P7, impeccable audit finding 1): the next card's "Got it", else the folded row; both
-  // buttons, never a field.
-  '/src/app/CallCard.tsx': 1,
+  // buttons, never a field. And after the find card's "Got it" in the calls' place (K18d), where focus fell to the page:
+  // the waiting call's "Got it", a button, never a field.
+  '/src/app/CallCard.tsx': 2,
 };
 
 describe('no keyboard on open (A4)', () => {

@@ -570,3 +570,14 @@ body:has(.place-page__bar) .toast-host:not(.toast-host--lifted) {
 .place-page__opens:active {
   background: var(--tint);
 }
+
+/* Spec scene-pack, piece B (#205; sf-6b; page 44, DT1, DT2; page 50): a piece's detail rows, each a line of the list
+   under its piece at the card's whole width; the list's own dotted rule between them, so the row draws none. Her
+   Carries line on a tablet is a quiet line of its own after her row. */
+.place-page__detail .book-detail {
+  border: 0;
+}
+
+.place-page__detail--line {
+  padding-block: var(--space-2);
+}

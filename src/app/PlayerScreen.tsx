@@ -53,6 +53,8 @@ import { PlayerSheetParts } from './player/PlayerSheetParts.tsx';
 import { playerFigures } from './player/playerFigures.ts';
 import { PlayerStateLine } from './player/PlayerStates.tsx';
 import { usePlayerView } from './playerView.ts';
+import { usePackFinds } from './packFinds.ts';
+import { findsCount } from '../modules/characters/findsSeen.ts';
 
 type Tab = Exclude<PlayerTab, 'log'>;
 
@@ -129,6 +131,9 @@ export function PlayerScreen({
     if (!view) noteTab(campaign.id, tab);
   }, [view, campaign.id, tab]);
   const phone = usePhone();
+  // What is new for the character (K19b, K18c): the screen's one read, its own player's only; none in the GM's view (#158 ⚑ 4).
+  const finds = usePackFinds(db, user, campaign.id, view ? null : character.id);
+  const packNew = finds ? findsCount(finds.entries) : 0;
   const messaging = useMessaging();
   const waiting = messaging && messaging.user.roles[campaign.id] !== 'gm' ? messaging.unread : 0;
   // Log in a phone's tab bar (slice E) opens the whole log full screen, as the top row's Log does elsewhere (06: full
@@ -401,11 +406,11 @@ export function PlayerScreen({
       {wide ? (
         // On a landscape tablet the sections are a column whose right edge is the fold's handle (lr-4).
         <div className="player__side">
-          <SectionNav label="Main" tabs={playerTabs(magic)} current={current} onSelect={select} collapsed={navCollapsed} />
+          <SectionNav label="Main" tabs={playerTabs(magic, packNew)} current={current} onSelect={select} collapsed={navCollapsed} />
           <DividerHandle collapsed={navCollapsed} onToggle={setNavFolded} />
         </div>
       ) : (
-        <SectionNav label="Main" tabs={phone ? phoneTabs(waiting, magic) : playerTabs(magic)} current={current} onSelect={select} />
+        <SectionNav label="Main" tabs={phone ? phoneTabs(waiting, magic, packNew) : playerTabs(magic, packNew)} current={current} onSelect={select} />
       )}
       {logOpen && (
         <LogSheet

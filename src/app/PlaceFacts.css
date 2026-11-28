@@ -157,3 +157,12 @@
   padding: var(--space-2) 0 var(--space-1);
   border-block-start: var(--row-rule);
 }
+
+/* sf-6b (spec scene-pack, piece B; DT1, DT2): the fold's quiet line after its rows, "The other stat lines and the items
+   are on their own rows.". */
+.book-text__quiet {
+  margin: var(--space-2) 0 0;
+  color: var(--muted);
+  font-size: var(--text-14);
+  line-height: var(--line-body);
+}

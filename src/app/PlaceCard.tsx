@@ -27,7 +27,9 @@ import { Fragment, useEffect, useId, useRef, useState, type ReactNode } from 're
 import { loadPackPlaceEntry, loadPackPlaces, loadPackTables, loadStatBlockName } from '../modules/expedition/placePlay.ts';
 import type { PackPlaceEntry } from '../modules/expedition/placeFromPack.ts';
 import { GM_ONLY_LABEL } from '../modules/expedition/personHolds.ts';
-import { idsInFacts, namedFacts, pieceNamesFrom, type PieceNames } from '../modules/expedition/pieceNames.ts';
+import { idsInFacts, namedFacts, pieceNamesFrom, type HandRow, type PieceNames } from '../modules/expedition/pieceNames.ts';
+import { BookHandRow, type BookDetail } from './BookDetail.tsx';
+import { GM_ONLY_DETAILS_LABEL } from './placeLinesAtHand.ts';
 import { useLogUserId, useLogVersion } from './campaignLog.tsx';
 import { loadCampaignPacksAndEntries } from './campaignSetting.ts';
 import { hasPlaceFacts, leadWords, readPlaceFacts } from '../modules/expedition/placeFacts.ts';
@@ -646,6 +648,19 @@ export function gmFactLine(piece: Piece, names: PieceNames = NO_NAMES): string {
   return '';
 }
 
+/**
+ * The small line beside a piece's detail rows (sf-6b): only what the rows don't say. A treasure keeps its value without
+ * the thing its row names ("Value stays yours (40 gp)."); a person's stat line is the row itself, unless it carries a
+ * creature's note, kept as before; anything else as `gmFactLine`.
+ */
+function factBesideRows(piece: Piece, names: PieceNames): string {
+  // A creature's note ("asleep") is not on its row: the line that carries it stays, so the note is never lost.
+  if (piece.kind === 'person') return /\(.+\)$/.test(piece.gm.statLine.trim()) ? gmFactLine(piece, names) : '';
+  if (piece.kind !== 'treasure') return gmFactLine(piece, names);
+  const value = piece.gm.value.replace(/(^|, )Item: \S+$/, '').trim();
+  return value ? `Value stays yours (${namedFacts({ ...piece.gm, value }, names).value}).` : '';
+}
+
 /** What a piece is, and the GM-only facts it keeps (never shown), named as `gmFactLine` names them: "Treasure, value stays yours (40 gp)". */
 export function kindLine(piece: Piece, names: PieceNames = NO_NAMES): string {
   const kind = PIECE_KIND_WORDS[piece.kind];
@@ -702,6 +717,7 @@ export function PieceRow({
   onOpen,
   note,
   carries,
+  details = null,
   names = NO_NAMES,
 }: {
   piece: Piece;
@@ -720,13 +736,25 @@ export function PieceRow({
    * above her stat line (a phone, finding 5), else it follows it (a tablet).
    */
   carries?: { line: ReactNode; first: boolean } | null;
+  /**
+   * Spec scene-pack, piece B (#205; sf-6b, l4-2; page 44, DT1, DT2, TR1): the detail rows piece A puts on this piece,
+   * each a full-width row under it; the label over them by the piece's eye. None (or null): the piece as before.
+   */
+  details?: readonly HandRow<BookDetail>[] | null;
 }) {
   if (page) {
     // The Location's card (p2p-10; page 23, LA1, approved 2026-11-18): in the book's format, no kind word. A piece the
     // pack leads with its own word starts with it in bold; the description has none, and its words that name another
     // piece (`named`: the other pieces' own words) are bold and underlined. Then the GM's alone fact in the small line,
     // and the bare eye at the right.
-    const fact = gmFactLine(piece, names);
+    const rows = details ?? [];
+    const fact = rows.length > 0 ? factBesideRows(piece, names) : gmFactLine(piece, names);
+    // l4-2, sb4-4: a shown piece's GM-only rows are "these details" (the players have its words); a hidden one's "this".
+    const label = rows.length > 0 || carries ? (piece.shown ? GM_ONLY_DETAILS_LABEL : GM_ONLY_LABEL) : null;
+    // Her Carries line (page 50, finding 5): on a phone under her name in her row; on a tablet a line after her row.
+    // With no row of hers, in the piece's words as before.
+    const herRow = carries ? rows.findIndex((r) => r.kind === 'npc' && r.form !== 'missing') : -1;
+    const carriesInWords = carries && herRow < 0 ? carries : null;
     const parts = piece.kind === 'description' ? namedParts(piece.text, named) : [{ text: piece.text, named: false }];
     const words = (
       <>
@@ -740,14 +768,14 @@ export function PieceRow({
             <Fragment key={i}>{part.named ? <strong className="place-page__named">{part.text}</strong> : part.text}</Fragment>
           ))}
         </span>
-        {carries && <span className="place-page__fact">{GM_ONLY_LABEL}</span>}
-        {carries?.first && carries.line}
+        {label && <span className="place-page__fact">{label}</span>}
+        {carriesInWords?.first && carriesInWords.line}
         {fact && <span className="place-page__fact">{fact}</span>}
-        {carries && !carries.first && carries.line}
+        {carriesInWords && !carriesInWords.first && carriesInWords.line}
         {note}
       </>
     );
-    return (
+    const pieceRow = (
       <li className="place-page__piece">
         {onOpen ? (
           <button type="button" className="place-page__piece-words" aria-haspopup="dialog" onClick={onOpen}>
@@ -771,6 +799,20 @@ export function PieceRow({
         )}
         <EyeButton shown={piece.shown} show="Show players" hide="Hide from players" onToggle={onToggle} />
       </li>
+    );
+    if (rows.length === 0) return pieceRow;
+    // Each row its own line of the list, the card's whole width under the piece (DT1, 50-1); never inside the piece's
+    // words, which are a button of their own on a Treasure or a person who carries things.
+    return (
+      <>
+        {pieceRow}
+        {rows.map((row, i) => (
+          <li key={i} className="place-page__detail">
+            <BookHandRow row={row} under={i === herRow && carries?.first ? carries.line : undefined} />
+          </li>
+        ))}
+        {herRow >= 0 && carries && !carries.first && <li className="place-page__detail place-page__detail--line">{carries.line}</li>}
+      </>
     );
   }
   return (

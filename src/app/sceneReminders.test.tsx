@@ -247,7 +247,7 @@ describe('the reminder card (M5 step 6)', () => {
     await user.click(which.getByRole('button', { name: /^Shallow things/ }));
     const shallows = within(await screen.findByRole('dialog', { name: 'Shallow things' }));
     expect(screen.queryByLabelText(/enter the roll/)).toBeNull();
-    await user.click(shallows.getByRole('button', { name: /Bog lurkers/ }));
+    await user.click(shallows.getByRole('radio', { name: /Bog lurkers/ }));
     await waitFor(() => expect(world.tables.check_results[0]).toMatchObject({ table_id: 'shallows', roll: '1–3', row_text: 'Shallow things: Bog lurkers, 1d4' }));
     expect(await screen.findByText('Rolled: 1–3, Bog lurkers, 1d4')).toBeTruthy();
     // Back to the list, then back to the console: one encounter, one card (sf-4, F5 a), the hit's own item gone.
@@ -279,16 +279,16 @@ describe('the reminder card (M5 step 6)', () => {
     const which = within(await screen.findByRole('dialog', { name: 'Encounter tables' }));
     await user.click(which.getByRole('button', { name: /^Deep things/ }));
     const deeps = within(await screen.findByRole('dialog', { name: 'Deep things' }));
-    await user.click(deeps.getByRole('button', { name: /Lantern eels/ }));
+    await user.click(deeps.getByRole('radio', { name: /Lantern eels/ }));
     await waitFor(() => expect(world.tables.table_reads).toHaveLength(1));
     expect(world.tables.table_reads[0]).toMatchObject({ table_id: 'deeps', roll: '1–6', row_text: 'Deep things: Lantern eels', undone: false });
     expect(world.tables.events.filter((e) => e.type === 'tables.readByHand').map((e) => [e.level, e.audience])).toEqual([['simple', 'gm']]);
     // Nothing is put on a check: no hit was open.
     expect(world.tables.check_results).toEqual([]);
-    expect(deeps.getByRole('button', { name: /Lantern eels/ }).getAttribute('aria-current')).toBe('true');
+    expect(deeps.getByRole('radio', { name: /Lantern eels/ }).getAttribute('aria-checked')).toBe('true');
     await user.click(await toastUndo('Rolled by hand: 1–6, Lantern eels'));
     await waitFor(() => expect(world.tables.table_reads[0]!.undone).toBe(true));
-    await waitFor(() => expect(deeps.getByRole('button', { name: /Lantern eels/ }).getAttribute('aria-current')).toBeNull());
+    await waitFor(() => expect(deeps.getByRole('radio', { name: /Lantern eels/ }).getAttribute('aria-checked')).toBe('false'));
   });
 
   // Purpose: during an expedition there is one way to the tables (the ⋯ menu's Encounter tables, sf-3), and the library
