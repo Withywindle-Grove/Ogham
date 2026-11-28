@@ -65,7 +65,7 @@ for (const size of [
     test.describe(`The ask card (${size.name}, ${size.width} px, ${scheme})`, () => {
       test.use({ viewport: { width: size.width, height: size.height }, colorScheme: scheme });
 
-      // Purpose (TW8g): the eel trap's card: the heading, "At 3 The Reed Market." with the die's glyph and "3-in-6";
+      // Purpose (TW8g): the eel trap's card: the heading, "At The Reed Market." with the die's glyph and "3-in-6";
       // Price…, "Stocked?" and the toggle on one line, right-justified, the toggle last; 44 px targets, 8 px apart; no
       // accent, no Hit or Miss, no note; the rows under it stack without overlap.
       test('the card with a chance', async ({ page }) => {
@@ -104,7 +104,7 @@ for (const size of [
         await expect(card(page).locator('.stock-chance')).toHaveText('Always');
         await expect(card(page).locator('.die-glyph')).toHaveCount(0);
         await panel(page).getByRole('button', { name: /^Open: .*asks for: A spyglass$/ }).click();
-        await expect(card(page).getByText('At 3 The Reed Market.', { exact: true })).toBeVisible();
+        await expect(card(page).getByText('At The Reed Market.', { exact: true })).toBeVisible();
         await expect(card(page).locator('.stock-chance')).toHaveCount(0);
         await panel(page).screenshot({ path: `test-results/layout-screens/ask-card-no-chance-${size.width}-${scheme}.png` });
         expect(await layoutProblems(page)).toEqual([]);

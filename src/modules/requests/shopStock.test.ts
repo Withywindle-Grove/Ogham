@@ -7,7 +7,21 @@ import { latestChange, undoChange } from '../../core/undo.ts';
 import { createAppRegistry } from '../../app/commandRegistry.ts';
 import { createFakeDb } from '../../testing/fakeDb.ts';
 import { readClock } from '../expedition/clock.ts';
-import { WITHOUT_AVAILABILITY, answerInForce, hasChance, loadStockInForPlayer, loadStockLines, readAvailability, resetStock, setStock, stockDefault } from './shopStock.ts';
+import { WITHOUT_AVAILABILITY, answerInForce, chanceSides, hasChance, isAlways, loadStockInForPlayer, loadStockLines, readAvailability, resetStock, setStock, stockDefault } from './shopStock.ts';
+
+describe("a chance's words (isAlways, chanceSides): one reading for the stock default and the ask card", () => {
+  // Purpose: "Always" in any case and with spaces round it is always; an "x-in-y" chance names its die, however the pack spaces it; anything else names none.
+  it('"Always " is always; "3-in-6" and "1 in 6" roll a 6; "rare" and "always" name no die', () => {
+    expect(isAlways(' Always ')).toBe(true);
+    expect(isAlways('3-in-6')).toBe(false);
+    expect(chanceSides('3-in-6')).toBe(6);
+    expect(chanceSides('1 in 6')).toBe(6);
+    expect(chanceSides(' 2-in-8 ')).toBe(8);
+    expect(chanceSides('always')).toBeNull();
+    expect(chanceSides('rare')).toBeNull();
+    expect(chanceSides('')).toBeNull();
+  });
+});
 
 describe('what a thing reads as before the GM answers (stockDefault)', () => {
   // Purpose: a thing with no availability at all reads as in stock (w12-2), and the case sits in one named place.

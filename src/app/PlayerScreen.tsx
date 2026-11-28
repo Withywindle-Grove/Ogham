@@ -28,6 +28,7 @@ import { campaignChoices } from './weaponSetup.ts';
 import { acStyleOf, attackStyleOption, characterFigures } from './fromSetting.ts';
 import { LogView } from './LogView.tsx';
 import { PackScreen } from './PackScreen.tsx';
+import { SpendSheetHost, useSpendSheetState } from './spendSheet.tsx';
 import { PartyGroups } from './PartyGroups.tsx';
 import { loadCarriedItemIds } from '../modules/expedition/activityPlay.ts';
 import { possessive } from '../modules/inventory/packView.ts';
@@ -129,6 +130,9 @@ export function PlayerScreen({
     if (!view) noteTab(campaign.id, tab);
   }, [view, campaign.id, tab]);
   const phone = usePhone();
+  // A purchase toast's Spend (Buy it on the Scene, Add item on the Pack): the sheet is hosted here, above the tabs, so
+  // it opens wherever the player is when they tap Spend (TC13 piece C, sb5-5; spendSheet.tsx).
+  const spendSheet = useSpendSheetState(db, user);
   const messaging = useMessaging();
   const waiting = messaging && messaging.user.roles[campaign.id] !== 'gm' ? messaging.unread : 0;
   // Log in a phone's tab bar (slice E) opens the whole log full screen, as the top row's Log does elsewhere (06: full
@@ -396,6 +400,7 @@ export function PlayerScreen({
   );
 
   return (
+    <SpendSheetHost value={spendSheet.open}>
     <section className={wide ? (tab === 'scene' ? 'player player--wide player--solo' : current === 'player' ? 'player player--wide player--play' : 'player player--wide') : 'player'}>
       {top}
       {wide ? (
@@ -418,6 +423,8 @@ export function PlayerScreen({
       {/* Every pop-up on Player and Pack is a Sheet (plan m5b-players-screens-standard A4); Scene keeps its own until
           the sweep. */}
       <SheetScope.Provider value={tab !== 'scene'}>
+      {/* In the tab's own form: a Sheet on Player and Pack, the Scene's pop-up on Scene. */}
+      {spendSheet.sheet}
       <div
         ref={wide && current === 'player' ? setPlayColumn : undefined}
         className={
@@ -572,5 +579,6 @@ export function PlayerScreen({
       )}
       {wide && tab === 'pack' && <div className="player__aside" ref={setPackSide} />}
     </section>
+    </SpendSheetHost>
   );
 }

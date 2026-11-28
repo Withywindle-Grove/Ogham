@@ -94,26 +94,6 @@ export function readTownActivityPrompt(prompt: Record<string, unknown>): TownAct
 
 // The pack's rules for town trade (07 Settlements, st-2) ------------------------------------------------------------
 
-/** The availability chance (07 `settlement.availability { bySize: [{ size, chance }] }`): each size's chance, and the note. */
-export interface Availability {
-  bySize: { size: string; chance: number }[];
-  note: string;
-}
-
-/** The top rules set's availability, or null. */
-export function availabilityOf(rulesSets: readonly Record<string, unknown>[]): Availability | null {
-  for (const rules of [...rulesSets].reverse()) {
-    const a = isRecord(rules.settlement) ? rules.settlement.availability : null;
-    if (!isRecord(a) || !Array.isArray(a.bySize)) continue;
-    const bySize = a.bySize.flatMap((s) => (isRecord(s) && text(s.size) && whole(s.chance) !== null ? [{ size: text(s.size), chance: s.chance as number }] : []));
-    if (bySize.length > 0 || text(a.note)) return { bySize, note: text(a.note) };
-  }
-  return null;
-}
-
-/** "Hamlet 0% · Small town 100%": the chance by size, in words. */
-export const availabilityWords = (a: Availability): string => a.bySize.map((s) => `${s.size} ${s.chance}%`).join(', ');
-
 /**
  * The share of the price a buyer pays, in percent (07 `settlement.salePrice { default, byService? }`; a seller
  * service's own `rate`): by the service first, then its rate, then the default; null when nothing says.

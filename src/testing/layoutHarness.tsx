@@ -1848,7 +1848,7 @@ if (placePageFlag === 'spots' || placePageFlag === 'spot' || placePageFlag === '
     for (const [i, [item, itemId, price]] of asks.entries()) {
       world.tables.requests.push({
         id: `ask-${i}`, campaign_id: campaign, expedition_id: started.data.id, group_number: 1, requester_id: sam, actor_id: wren, kind: 'buy', direction: 'playerAsks',
-        text: `${item}, 3 The Reed Market`, cost_text: '', prompt: { serviceId: 'reed-market', shop: '3 The Reed Market', itemId, item, price }, entry: null, status: 'waiting',
+        text: `${item}, The Reed Market`, cost_text: '', prompt: { serviceId: 'reed-market', shop: 'The Reed Market', itemId, item, price }, entry: null, status: 'waiting',
         answer_kind: 'hitMissChoice', answer: null, answered_at: null, reply: null, undone: false, version: 1, created_by: sam, created_at: `2026-11-14T11:0${9 - i}:00Z`,
       });
     }
@@ -1965,7 +1965,7 @@ if (boughtFlag === '1' || boughtFlag === 'long') {
   const [item, price] = boughtFlag === 'long' ? ['A bundle of tallow candles wrapped in oilcloth for the Lantern Warden', '999 herons'] : ['Reed rope', '2 herons'];
   world.tables.requests.push({
     id: 'answer-bought', campaign_id: campaign, expedition_id: null, group_number: null, requester_id: sam, actor_id: wren, kind: 'buy', direction: 'playerAsks',
-    text: `${item}, 3 The Reed Market`, cost_text: '', prompt: { serviceId: 'reed-market', shop: '3 The Reed Market', itemId: null, item, price }, entry: null, status: 'answered',
+    text: `${item}, The Reed Market`, cost_text: '', prompt: { serviceId: 'reed-market', shop: 'The Reed Market', itemId: null, item, price }, entry: null, status: 'answered',
     answer_kind: 'hitMissChoice', answer: { kind: 'buy', result: 'inStock', price, note: '' }, answered_at: '2026-11-14T11:10:00Z', reply: null, undone: false, version: 1, created_by: gm, created_at: '2026-11-14T11:00:00Z',
   });
 }

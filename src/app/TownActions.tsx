@@ -19,7 +19,7 @@ import type { Db } from '../core/supabase.ts';
 import { latestChange, undoChange } from '../core/undo.ts';
 import { readClock, type TimeUnits } from '../modules/expedition/clock.ts';
 import type { Activity } from '../modules/expedition/modes.ts';
-import { shownInPlay, townPlacesOf, type TownRules } from '../modules/expedition/town.ts';
+import { shownInPlay, townPlaceName, townPlacesOf, type TownRules } from '../modules/expedition/town.ts';
 import type { SceneTown } from '../modules/expedition/townPlaces.ts';
 import { loadInventory, type InventoryLine } from '../modules/inventory/inventory.ts';
 import { entriesInPlay } from '../modules/library/optionGate.ts';
@@ -280,7 +280,9 @@ function AskFor({ shops, setting, onAsk, onClose }: { shops: ReturnType<typeof s
             if (!name) return setProblem(other !== null ? 'Say what you’re after.' : 'Pick an item, or Something not listed….');
             setProblem(null);
             const price = other === null && picked ? priceText(picked.data.value) : '';
-            void onAsk(`${name}, ${chosen.name}`, { serviceId: chosen.service.id, shop: chosen.name, itemId: other === null ? (picked?.packEntryId ?? null) : null, item: name, price });
+            // The shop by its numbered name where it has a map number, its plain name where not (townPlaceName).
+            const shop = townPlaceName(chosen);
+            void onAsk(`${name}, ${shop}`, { serviceId: chosen.service.id, shop, itemId: other === null ? (picked?.packEntryId ?? null) : null, item: name, price });
           }}
         >
           Send to the GM

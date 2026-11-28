@@ -59,6 +59,12 @@ export function availabilityEntryLines(value: unknown): { label: string; value: 
 /** Whether a chance is "always" (any case). */
 export const isAlways = (chance: string): boolean => chance.trim().toLowerCase() === 'always';
 
+/** The die an "x-in-y" chance is rolled on ("3-in-6", "3 in 6": 6); null for "always" or a chance of another shape. */
+export function chanceSides(chance: string): number | null {
+  const sides = /^\d+\s*-?\s*in\s*-?\s*(\d+)$/i.exec(chance.trim())?.[1];
+  return sides ? Number(sides) : null;
+}
+
 /**
  * What a thing with no availability at all reads as before the GM answers (w12-2, Francis, 2026-11-15: in stock by
  * default, until the GM answers otherwise). Kept apart so the ruling sits in one place.

@@ -57,9 +57,9 @@ import { GmBuyCard, GmSellCard, GmStayCard, GmTownActivityCard, PricedAnswerCard
 import { replyRequest, undoBuy, readBuyPrompt, readSellPrompt, readStayPrompt, readTownActivityPrompt } from '../modules/requests/townRequests.ts';
 import { loadCarriers, loadInventory } from '../modules/inventory/inventory.ts';
 import { denominationsOf, readCost } from '../modules/inventory/coinWords.ts';
-import { loadPurse, type Coins } from '../modules/inventory/purse.ts';
+import { loadPurse } from '../modules/inventory/purse.ts';
 import { purchaseToast } from './purchaseToast.ts';
-import { PurseSheet } from './PurseSheet.tsx';
+import { useSpendSheet } from './spendSheet.tsx';
 import type { CampaignSetting } from './campaignSetting.ts';
 import { copyOf, oneOffCopy } from './AddItem.tsx';
 import './RequestCard.css';
@@ -77,8 +77,9 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
   const [seen, setSeen] = useSticky<string[]>(`${user.id}:${campaign.id}:requests:seen`, []);
   // In the GM's view as the player, the player's own answers and Cancel open a pop-up instead (pg32-5, pg32-6).
   const playerOnly = usePlayerOnly();
-  // "Spend N" from Buy it's toast (TC13 piece C, sb5-5): the purse's Spend sheet over the Scene, filled in (PK10b).
-  const [spending, setSpending] = useState<{ carrier: NamedCarrier; recipients: NamedCarrier[]; coins: Coins; spend: { coins: Coins; whatFor: string } } | null>(null);
+  // "Spend N" from Buy it's toast (TC13 piece C, sb5-5): the purse's Spend sheet, filled in (PK10b), hosted above the
+  // tabs so it opens wherever the player is when they tap it (spendSheet.tsx).
+  const spendSheet = useSpendSheet(db, user);
 
   useEffect(() => {
     let current = true;
@@ -104,8 +105,9 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
    */
   async function reply(request: Request, accept: boolean) {
     if (playerOnly.blocked('answerOffer')) return;
-    const carrier = request.actorId ? { campaignId: campaign.id, actorId: request.actorId, locationId: null, ownerUserId: user.id, archived: false } : null;
-    if (!carrier) return;
+    const actorId = request.actorId;
+    if (!actorId) return;
+    const carrier = { campaignId: campaign.id, actorId, locationId: null, ownerUserId: user.id, archived: false };
     let input: Parameters<typeof replyRequest.run>[2] = { request, accept };
     const price = request.answer && 'price' in request.answer ? request.answer.price : '';
     if (accept && request.kind === 'buy') {
@@ -130,8 +132,8 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
       const what = readBuyPrompt(request.prompt)?.item ?? request.text;
       const denominations = setting ? denominationsOf(setting.rulesSets) : [];
       const coins = readCost(denominations, price);
-      const [carriers, purse] = await Promise.all([loadCarriers(db, campaign.id), coins ? loadPurse(db, campaign.id, carrier.actorId!) : null]);
-      const buyer = carriers?.find((c) => c.actorId === carrier.actorId) ?? null;
+      const [carriers, purse] = await Promise.all([loadCarriers(db, campaign.id), coins ? loadPurse(db, campaign.id, actorId) : null]);
+      const buyer = carriers?.find((c) => c.actorId === actorId) ?? null;
       return show(
         purchaseToast({
           who: buyer?.name ?? 'You',
@@ -140,7 +142,10 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
           cost: price,
           denominations,
           coins: buyer && purse ? coins : null,
-          onSpend: (spend) => buyer && purse && setSpending({ carrier: buyer, recipients: (carriers ?? []).filter((c) => c !== buyer), coins: purse, spend: { coins: spend, whatFor: what } }),
+          onSpend: (spend) =>
+            buyer &&
+            purse &&
+            spendSheet.open({ carrier: buyer, recipients: (carriers ?? []).filter((c) => c !== buyer), denominations, coins: purse, spend: { coins: spend, whatFor: what }, onChanged: () => setVersion((v) => v + 1) }),
           onUndo: async () => {
             if (playerOnly.blocked('undoPurchase')) return;
             const undone = await run(undoBuy, { request });
@@ -165,27 +170,15 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
     });
   }
 
-  // Drawn whatever the cards: once bought, the answer card has gone, and the sheet stays open over the Scene.
-  const spendSheet = spending && (
-    <PurseSheet
-      db={db}
-      user={user}
-      carrier={spending.carrier}
-      recipients={spending.recipients}
-      denominations={setting ? denominationsOf(setting.rulesSets) : []}
-      coins={spending.coins}
-      spend={spending.spend}
-      onClose={() => setSpending(null)}
-      onChanged={() => setVersion((v) => v + 1)}
-    />
-  );
-  if (!requests) return spendSheet;
+  // Drawn whatever the cards (outside a host only: PlayerScreen draws it above the tabs): once bought, the answer card
+  // has gone, and the sheet stays open.
+  if (!requests) return spendSheet.sheet;
   // A listed lodging is answered at once (no GM): nothing to show for it here; Where you stay shows it.
   const shown = mine(requests, player).filter((r) => !(r.kind === 'lodging' && r.answer?.kind === 'stay')).filter((r) => r.status === 'waiting' || waitsForReply(r) || !seen.includes(r.id));
-  if (shown.length === 0) return spendSheet;
+  if (shown.length === 0) return spendSheet.sheet;
   return (
     <>
-    {spendSheet}
+    {spendSheet.sheet}
     <section className="requests" aria-label="Your requests" data-prompt-id={shown.map((r) => `${r.id}:${r.status}`).join(' ')}>
       {playerOnly.sheet}
       {shown.map((request) =>
@@ -341,14 +334,22 @@ export function GmRequestCard({
   units?: TimeUnits | null;
 }) {
   const show = useToast();
-  // A buy request's stock line written by a flip whose answer then failed: the retry's Undo takes it back too.
-  const stockLine = useRef<string | null>(null);
+  // The stock lines a buy request's flips wrote since its last good answer, oldest first: a flip whose answer then
+  // failed leaves its line here, and the good answer's Undo takes every one back, newest first (a retry the other way
+  // writes a second line; undoing only that one would leave the first one's stock).
+  const stockLines = useRef<string[]>([]);
   const noteId = useId();
   const [note, setNote] = useState('');
   const [out, setOut] = useState(true);
   const [busy, setBusy] = useState(false);
   // C7 (M5 gate): "Enter for <name>", for a player without a device; the entry is logged as the GM's.
   const [entering, setEntering] = useState(false);
+
+  /** The log's own Undo of this GM's newest event of a command; null when there is none to undo. */
+  async function undoLatest(command: string) {
+    const eventId = await latestChange(db, campaign.id, command, user.id);
+    return eventId ? runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
+  }
 
   async function enterFor(entry: EscapeEntry) {
     const result = await runCommand(registry, db, user, enterRequest, { request, entry });
@@ -385,8 +386,7 @@ export function GmRequestCard({
     show({
       text: `${outcome === 'hit' ? 'Hit' : 'Miss'} recorded for ${secret.activity.name}`,
       onUndo: async () => {
-        const eventId = await latestChange(db, campaign.id, 'check.record', user.id);
-        const undone = eventId ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
+        const undone = await undoLatest('check.record');
         if (!undone) show({ text: 'Nothing to undo.', error: true });
         else if (!undone.ok) show({ text: undone.message, error: true });
         else setRolled(null);
@@ -409,8 +409,7 @@ export function GmRequestCard({
     show({
       text: words,
       onUndo: async () => {
-        const eventId = await latestChange(db, campaign.id, 'request.answer', user.id);
-        const undone = eventId ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
+        const undone = await undoLatest(answerRequest.name);
         if (!undone) show({ text: 'Nothing to undo.', error: true });
         else if (!undone.ok) show({ text: undone.message, error: true });
         else show({ text: `Put ${possessive(who)} request back` });
@@ -426,8 +425,9 @@ export function GmRequestCard({
    * the answer (request.answer); Price…'s Send price writes the answer alone. A failed stock write sends nothing; a
    * failed answer after a good stock write leaves the card on "?" with an error toast, and a second flip writes the same
    * stock again (no new line) and the answer. A thing with no pack id (Something not listed…) or an ask with no shop
-   * has no stock record: the flip answers only. The toast's Undo takes back the answer, then the stock line this card
-   * wrote, newest first, each by the log's own Undo; refused in plain words once the player has replied.
+   * has no stock record: the flip answers only. The toast's Undo takes back the answer, then every stock line this
+   * card's flips wrote since its last good answer (a retry the other way writes a second), newest first, each by the
+   * log's own Undo; refused in plain words once the player has replied.
    */
   async function answerBuy(result: 'inStock' | 'notHere' | 'price', price: string, stock: 'in' | 'out' | null): Promise<boolean> {
     if (busy) return false;
@@ -443,7 +443,7 @@ export function GmRequestCard({
         if (!set.ok) return set.message;
         // A stock line made by this flip (none when the day's answer was already this one: nothing changed to undo).
         const after = await latestChange(db, campaign.id, setStock.name, user.id);
-        if (after && after !== before) stockLine.current = after;
+        if (after && after !== before) stockLines.current = [...stockLines.current, after];
       }
       const answered = await runCommand(registry, db, user, answerRequest, { request, answer: { kind: 'buy', result, price, note: '' } });
       return answered.ok ? null : answered.message;
@@ -453,14 +453,18 @@ export function GmRequestCard({
       show({ text: done, error: true });
       return false;
     }
-    const wrote = stockLine.current;
-    stockLine.current = null;
+    const wrote = stockLines.current;
+    stockLines.current = [];
     show({
       text: result === 'notHere' ? `Not here: told ${who}` : `${who}: ${item}, ${price}`,
       onUndo: async () => {
-        const eventId = await latestChange(db, campaign.id, answerRequest.name, user.id);
-        const undone = eventId ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id }) : null;
-        const back = undone?.ok && wrote ? await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId: wrote, authorUserId: user.id }) : null;
+        const undone = await undoLatest(answerRequest.name);
+        // Then the stock lines, newest first; the first refusal stops the rest and is said.
+        let back: Awaited<ReturnType<typeof undoLatest>> = null;
+        for (const eventId of undone?.ok ? [...wrote].reverse() : []) {
+          back = await runCommand(registry, db, user, undoChange, { campaignId: campaign.id, eventId, authorUserId: user.id });
+          if (!back.ok) break;
+        }
         if (!undone) show({ text: 'Nothing to undo.', error: true });
         else if (!undone.ok) show({ text: undone.message, error: true });
         else if (back && !back.ok) show({ text: back.message, error: true });

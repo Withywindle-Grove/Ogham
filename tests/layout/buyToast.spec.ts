@@ -71,7 +71,7 @@ for (const size of [
         const card = answer(page);
         await expect(card.getByText('For you')).toBeVisible();
         await expect(card.getByText('In stock: Reed rope')).toBeVisible();
-        await expect(card.getByText('2 herons. At 3 The Reed Market.')).toBeVisible();
+        await expect(card.getByText('2 herons. At The Reed Market.')).toBeVisible();
         await expect(card.locator('.button-primary')).toHaveCount(1);
         const buyIt = (await card.getByRole('button', { name: 'Buy it' }).boundingBox())!;
         const leave = (await card.getByRole('button', { name: 'Leave it' }).boundingBox())!;
@@ -90,7 +90,7 @@ for (const size of [
         await expect(heading).toBeVisible();
         const lines = await heading.evaluate((el) => Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)));
         if (size.width < 600) expect(lines).toBeGreaterThan(1);
-        await expect(answer(page).getByText('999 herons. At 3 The Reed Market.')).toBeVisible();
+        await expect(answer(page).getByText('999 herons. At The Reed Market.')).toBeVisible();
         await shot(page, `card-long-${size.width}-${scheme}`);
         const m = await buy(page, 'Spend 999 herons');
         await expect(page.locator('.toast__text')).toHaveText(`Wren of the Lantern Wardens bought ${LONG}. Its cost, 999 herons, is not spent yet.`);

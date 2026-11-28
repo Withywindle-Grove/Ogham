@@ -45,6 +45,7 @@ import { StashScreen } from './StashScreen.tsx';
 import { takeToast } from '../modules/inventory/stashTake.ts';
 import { thingCount } from './stashWords.ts';
 import { PurseSheet } from './PurseSheet.tsx';
+import { useSpendSheet } from './spendSheet.tsx';
 import { coinLine, denominationsOf, readCost } from '../modules/inventory/coinWords.ts';
 import { purchaseToast } from './purchaseToast.ts';
 import { loadPurse, loadStashCoin, type Coins } from '../modules/inventory/purse.ts';
@@ -194,8 +195,9 @@ function PackTab({
   const [showing, setShowing] = useState<string | null>(carrierId);
   // The coin's sheets (K10), opened from the coin line.
   const [coinOpen, setCoinOpen] = useState(false);
-  // Opened from a purchase's toast (K7): Spend with the cost filled in.
-  const [spendFor, setSpendFor] = useState<{ coins: Coins; whatFor: string } | null>(null);
+  // Opened from a purchase's toast (K7): Spend with the cost filled in, hosted above the tabs where there is a host, so
+  // it opens though the player has gone to another tab with the toast still up (spendSheet.tsx).
+  const spendSheet = useSpendSheet(db, user);
   // The character's purse (K9, K15): read for its own player and for the GM; null until read, or when nothing came back.
   const [read, setRead] = useState<{ of: string; coins: Coins } | null>(null);
   const [purseVersion, setPurseVersion] = useState(0);
@@ -610,10 +612,21 @@ function PackTab({
                 denominations: coinNames,
                 coins: purse && cost ? readCost(coinNames, cost) : null,
                 // What for is the thing's name (Francis, 26 Nov, ⚑ 3 on #108).
-                onSpend: (coins) => {
-                  setSpendFor({ coins, whatFor: what });
-                  setCoinOpen(true);
-                },
+                onSpend: (coins) =>
+                  mine &&
+                  purse &&
+                  spendSheet.open({
+                    carrier: mine,
+                    recipients: carriers.filter((c) => c !== mine),
+                    denominations: coinNames,
+                    coins: purse,
+                    gm: coinAsGm,
+                    spend: { coins, whatFor: what },
+                    onChanged: () => {
+                      setPurseVersion((v) => v + 1);
+                      onChanged?.();
+                    },
+                  }),
                 onUndo: made.stopped?.undo ?? (made.joined ? () => void undoAdd() : undefined),
                 stopped: made.stopped?.short,
               }),
@@ -717,12 +730,7 @@ function PackTab({
               denominations={denominations}
               coins={purse}
               gm={coinAsGm}
-              key={spendFor ? 'spend' : 'coin'}
-              spend={spendFor ?? undefined}
-              onClose={() => {
-                setCoinOpen(false);
-                setSpendFor(null);
-              }}
+              onClose={() => setCoinOpen(false)}
               onChanged={() => {
                 setPurseVersion((v) => v + 1);
                 onChanged?.();
@@ -731,6 +739,8 @@ function PackTab({
           )}
         </>
       )}
+      {/* A toast's Spend, where no screen above hosts it (the GM's own pack). */}
+      {spendSheet.sheet}
       {stashRow}
     </div>
   );

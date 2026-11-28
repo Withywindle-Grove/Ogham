@@ -695,6 +695,28 @@ describe("the GM's ask card with the toggle (TC13 piece B)", () => {
     spy.mockRestore();
   });
 
+  // Purpose: a retry the other way: a flip right writes the stock in and its answer fails; a flip left writes it out and answers; Undo takes back the answer and both stock lines, newest first, so the stock reads undecided again, never "in".
+  it('a failed answer, then a retry the other way: Undo takes back both stock lines', async () => {
+    const { user, list } = await ropeAsked();
+    const real = world.db.rpc.bind(world.db);
+    let fail = true;
+    const spy = vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: Record<string, unknown>) =>
+      name === 'answer_request' && fail ? Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }) : real(name as never, args as never)) as never);
+    await user.click(list.getByRole('radio', { name: 'In stock' }));
+    await waitFor(() => expect(document.querySelector('.toast')).not.toBeNull());
+    expect(ropeStock()).toMatchObject([{ answer: 'in' }]);
+    fail = false;
+    await user.click(list.getByRole('radio', { name: 'Not in stock' }));
+    const toast = (await screen.findByText('Not here: told Wren')).closest('.toast') as HTMLElement;
+    expect(events('stock.set')).toHaveLength(2);
+    expect(ropeStock()).toMatchObject([{ answer: 'out' }]);
+    await user.click(within(toast).getByRole('button', { name: 'Undo' }));
+    await screen.findByText('Put Wren’s request back');
+    expect(ropeStock()).toEqual([]);
+    expect(ropeRequests()[0]!.status).toBe('waiting');
+    spy.mockRestore();
+  });
+
   // Purpose: two asks for the same thing: the flip answers its own asker only; the other card stays on "?" (sb5-4).
   it('two asks for the rope: each card answers its own asker', async () => {
     const { gm, sam } = table();
@@ -835,6 +857,25 @@ describe("Buy it's toast (TC13 piece C)", () => {
     expect(rope()).toBeTruthy();
   });
 
+  // Purpose: the toast's Spend opens the Spend sheet wherever the player is: Buy it on the Scene, then the Pack tab with the toast still up, then Spend, and the sheet opens with the amount and What for filled in.
+  it("Spend opens the sheet filled in after the player has gone to the Pack tab", async () => {
+    const { campaign, sam, wren } = await heronTable();
+    answered(campaign, sam, wren);
+    const user = await sceneOf(sam);
+    await user.click(within(await screen.findByRole('article', { name: "The GM's answer" })).getByRole('button', { name: 'Buy it' }));
+    await waitFor(() => expect(toastWords()).toBe('Wren bought Coil of rope. Its cost, 1 heron, is not spent yet.'));
+    await user.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
+    expect(await screen.findByRole('heading', { name: 'Wren’s pack' })).toBeTruthy();
+    expect(screen.queryByRole('article', { name: "The GM's answer" })).toBeNull();
+    await user.click(within(await shownToast()).getByRole('button', { name: 'Spend 1 heron' }));
+    const sheet = await screen.findByRole('dialog');
+    expect(within(sheet).getByRole('heading', { name: 'Spend' })).toBeTruthy();
+    expect((within(sheet).getByRole('textbox', { name: 'Herons' }) as HTMLInputElement).value).toBe('1');
+    expect((within(sheet).getByLabelText('What for') as HTMLInputElement).value).toBe('Coil of rope');
+    await user.click(within(sheet).getByRole('button', { name: 'Spend 1 heron' }));
+    await waitFor(() => expect(purse()).toEqual({ heron: 999 }));
+  });
+
   // Purpose: a price the setting's coins can't read is said in the toast, with no Spend; the thing still comes in as bought.
   it('a price the coins cannot read ("a favour owed"): the toast says it, no Spend', async () => {
     const { campaign, sam, wren } = await heronTable();
@@ -857,6 +898,15 @@ describe("Buy it's toast (TC13 piece C)", () => {
     const toast = await shownToast();
     await waitFor(() => expect(toastWords()).toBe('Wren bought Coil of rope. Its cost, 0 herons, is not spent yet.'));
     expect(within(toast).queryByRole('button', { name: /^Spend/ })).toBeNull();
+  });
+
+  // Purpose: a price the GM typed with its own full stop ("12 herons.") reads with one stop on the answer card, never two.
+  it('a price typed with a full stop reads with one', async () => {
+    const { campaign, sam, wren } = await heronTable();
+    answered(campaign, sam, wren, { result: 'price', price: '12 herons.' });
+    await sceneOf(sam);
+    const card = await screen.findByRole('article', { name: "The GM's answer" });
+    expect(within(card).getByText('12 herons. At The Tinker’s Stall.')).toBeTruthy();
   });
 
   // Purpose: 999 reads whole on the toast's Spend and in the Spend sheet's box and accent.
@@ -912,8 +962,8 @@ describe("Buy it's toast (TC13 piece C)", () => {
     expect(rope()).toBeTruthy();
   });
 
-  // Purpose: a spend made from the toast is a line of its own: undoing the purchase leaves the coin spent.
-  it('a spend made from the toast stays when the purchase is undone', async () => {
+  // Purpose: the command alone, not a screen path (story 35 is ruled out for now, B): after a spend made from the toast, the purchase's own command (request.undoBuy, which the toast's Undo runs) still takes the untouched rope out, and the spend, a line of its own, stays.
+  it('the purchase\'s command still undoes it after a spend from the toast, and the spend stays', async () => {
     const { campaign, sam, wren } = await heronTable();
     answered(campaign, sam, wren);
     const user = await sceneOf(sam);

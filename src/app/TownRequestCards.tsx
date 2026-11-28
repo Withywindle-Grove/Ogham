@@ -12,6 +12,7 @@
 import { useId, useState } from 'react';
 import type { Answer, Request } from '../modules/requests/requests.ts';
 import { readBuyPrompt, readSellPrompt, readStayPrompt, readTownActivityPrompt } from '../modules/requests/townRequests.ts';
+import { chanceSides, isAlways } from '../modules/requests/shopStock.ts';
 import { DieGlyph, isDieSize } from '../ui/dice.tsx';
 import { Icon } from '../ui/icons.tsx';
 import { Dialog } from '../ui/Dialog.tsx';
@@ -52,14 +53,14 @@ export type BuyAnswering = {
  * A thing's chance as the stock table writes it (TW8g, TW8j): the die's glyph and "x-in-y", or "Always"; null with no
  * chance. A chance of another shape keeps the pack's words, with no glyph.
  */
-export function StockChance({ chance }: { chance: string }) {
+function StockChance({ chance }: { chance: string }) {
   const words = chance.trim();
   if (!words) return null;
-  if (words.toLowerCase() === 'always') return <span className="stock-chance">Always</span>;
-  const sides = Number(/^\d+\s*-?\s*in\s*-?\s*(\d+)$/i.exec(words)?.[1]);
+  if (isAlways(words)) return <span className="stock-chance">Always</span>;
+  const sides = chanceSides(words);
   return (
     <span className="stock-chance">
-      {isDieSize(sides) && <DieGlyph die={sides} size={16} />}
+      {sides !== null && isDieSize(sides) && <DieGlyph die={sides} size={16} />}
       {words}
     </span>
   );
@@ -265,7 +266,8 @@ export function PricedAnswerCard({ request, words, onReply }: { request: Request
           </span>
           <div className="request__offer-words">
             <p className="request__answer">{`In stock: ${prompt?.item ?? request.text}`}</p>
-            <p className="request__text">{`${price}.${prompt?.shop ? ` At ${prompt.shop}.` : ''}`}</p>
+            {/* One full stop after the price, though the GM typed one ("12 gp."). */}
+            <p className="request__text">{`${price.replace(/\.+$/, '')}.${prompt?.shop ? ` At ${prompt.shop}.` : ''}`}</p>
             {note && <p className="request__note">{note}</p>}
           </div>
         </div>

@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { timeUnits } from '../expedition/clock.ts';
 import { toRequest } from './requests.ts';
-import { availabilityOf, availabilityWords, morningOf, overnightLines, saleShare, stayFor, suggestedSale } from './townRequests.ts';
+import { morningOf, overnightLines, saleShare, stayFor, suggestedSale } from './townRequests.ts';
 
 const rules = [
   {
@@ -20,14 +20,6 @@ const rules = [
 ];
 
 describe('the pack rules for town trade', () => {
-  // Purpose: the availability chance reads as one line by size, with the pack's note kept.
-  it('reads the availability chance by size', () => {
-    const a = availabilityOf(rules)!;
-    expect(availabilityWords(a)).toBe('Hamlet 10%, Market town 60%');
-    expect(a.note).toBe('Rarer goods.');
-    expect(availabilityOf([{}])).toBeNull();
-  });
-
   // Purpose: the share a buyer pays comes from the sale rule by service first, then the service's rate, then the default.
   it('picks the sale share in order', () => {
     expect(saleShare(rules, 'jeweller', null)).toBe(80);
