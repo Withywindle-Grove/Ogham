@@ -64,8 +64,9 @@ const FOCUS_CALLS: Record<string, number> = {
   // (Back to the hoard's piece as its sheet closes is the Dialog's own rule now.)
   '/src/app/HoardSheet.tsx': 1,
   // After "Got it" folds a call (P7, impeccable audit finding 1): the next card's "Got it", else the folded row; both
-  // buttons, never a field.
-  '/src/app/CallCard.tsx': 1,
+  // buttons, never a field. And after the find card's "Got it" in the calls' place (K18d), where focus fell to the page:
+  // the waiting call's "Got it", a button, never a field.
+  '/src/app/CallCard.tsx': 2,
 };
 
 describe('no keyboard on open (A4)', () => {
