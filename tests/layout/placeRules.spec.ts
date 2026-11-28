@@ -90,8 +90,13 @@ for (const size of [
       expect(Math.abs(air.top - air.bottom)).toBeLessThan(0.5);
       // One line of words in that air is exactly the icon button's height.
       expect(Math.abs(air.top + air.bottom + air.line + air.edges - a.height)).toBeLessThanOrEqual(1);
-      // Wrapped (on a phone), the button grows by whole lines and keeps its air.
-      if (b.height > a.height + 1) expect(Math.abs((b.height - a.height) % air.line)).toBeLessThanOrEqual(1);
+      // Wrapped (on a phone), the button grows by whole lines and keeps its air: inside its air and edges, its words
+      // take whole lines (to within 1 px; Chrome draws the 1.5 px edges 1 px, so the count is to the nearest line).
+      if (b.height > a.height + 1) {
+        const words = b.height - air.top - air.bottom - air.edges;
+        expect(Math.round(words / air.line)).toBeGreaterThan(1);
+        expect(Math.abs(words - Math.round(words / air.line) * air.line)).toBeLessThanOrEqual(1);
+      }
     });
   });
 }
