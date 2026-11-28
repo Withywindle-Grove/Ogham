@@ -2,7 +2,7 @@
 status: pending
 milestone: December first play (loop 4: sitting B of the Scene's and the Pack's remaining rows)
 absorbed-into: none yet
-supersedes: nothing. sb4-1 to sb4-5 settle the five ⚑ left open in `docs/specs/scene-pack.md` (Further Notes); sb4-6 to sb4-10 settle the five ⚑ of pieces K to P (short sitting B, same day); sitting A's rulings (l4-1 to l4-6) stand
+supersedes: nothing. sb4-1 to sb4-5 settle the five ⚑ left open in `docs/specs/scene-pack.md` (Further Notes); sb4-6 to sb4-10 settle the five ⚑ of pieces K to P (short sitting B, same day); sb4-11 to sb4-14 settle piece Q's four ⚑, Q1 to Q4 (piece Q's sitting B, same day); sitting A's rulings (l4-1 to l4-6) stand
 ---
 
 # Loop 4, the Scene's and the Pack's remaining rows: sitting B rulings (2026-11-28)
@@ -62,3 +62,19 @@ Held with Francis on 28 Nov 2026, one question at a time. Pieces K to P were app
 | sb4-8 | L1: where the spec's "names every part it relies on" step lives (piece L) | B: in the driver's loop (`.claude/agents/driver.md`, The loop): a scout looks up each named part before sitting B; the `to-spec` copy is untouched | "B" |
 | sb4-9 | M1: the second check slot's trial (piece M) | A: it runs on Home One (the PC) only, under the PC's memory rule | "A" |
 | sb4-10 | O1: more than one gallery line in a pull request's text (piece O) | A: CI fails the pull request | "A" |
+
+### Piece Q's sitting B (28 Nov)
+
+Piece Q (loop 3's follow-up on a person's things, dgc-5, dgc-6, dgc-8, dgc-14) was added at loop 3's sitting C. Its two tickets were approved: "Two tickets". Its four wording ⚑ (`docs/specs/scene-pack.md`, Piece Q) were put one at a time; each was the spec's lean.
+
+| Piece | Ticket |
+|---|---|
+| Q: her things (dgc-5, dgc-6, dgc-14; sb4-11 to sb4-13) | #228, after #205 |
+| Q: "You" on the GM's log (dgc-8; sb4-14) | #229, after #208 |
+
+| ID | ⚑ | Ruling | Francis said |
+|---|---|---|---|
+| sb4-11 | Q1: the plural of the missing line (built "3 things she carries aren’t in your packs.", kept by dgc-10; dgc-14 names her in the singular only) | A: her name in the plural too, "3 things Mother Sedge carries aren’t in your packs." | "A" |
+| sb4-12 | Q2: the take-back toast's capital (built "Taken back from Wren: warden’s lantern.", kept by dgc-9; dgc-6 says the pack's capitals everywhere) | A: the pack's capitals, "Taken back from Wren: Warden’s lantern." | "A" |
+| sb4-13 | Q3: the sent line on the one-thing sheet a "Sent before" line opens (built for a thing sent here, "Sent to Wren, turn 3."; frame 50-3 draws only the "Sent before" line) | A: the place joins the line, "Sent to Wren at 4. The Customs Shed, turn 3." | "A" |
+| sb4-14 | Q4: the GM's coin lines that are not finds (`purse.add`'s "Your GM gave Wren 40 herons" and "Your GM put 20 herons in the stash", the stash's coin "Your GM gave Moss 10 herons from the stash.", and the GM's toast "Your GM gave Wren 40 herons"); dgc-8 names the find lines only | A: they change too. On the GM's own screen they say "You" ("You gave Moss 10 herons from the stash."); a player's keep "Your GM …". dgc-8 widens to them; only the subject changes | "A" |
