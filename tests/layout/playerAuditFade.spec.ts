@@ -1,10 +1,10 @@
 // Batch E of plan dec-14-player-audit-fixes (page 38 of december, frame 38-5, approved 2026-11-24): the left column says
-// more lies beyond. Held sideways the Player tab's left column scrolls by itself; a 32 px fade sits on an edge only while
+// more lies beyond. Held sideways the Player tab's left column scrolls by itself; a 16 px fade sits on an edge only while
 // something is cut there (ruled 2026-11-24, ⚑ 4: built as drawn).
 // Purposes, each a plain sentence:
 //   5a. When the left column fits, it has no fade; when the screen shrinks so it no longer fits, the foot fades, and
 //       when it grows again the fade goes.
-//   5b. At the top of a column that is cut below, the fade is at the foot only, 32 px tall.
+//   5b. At the top of a column that is cut below, the fade is at the foot only, 16 px tall.
 //   5c. Scrolled part way, the fade is at both edges.
 //   5d. Scrolled to the end, the fade is at the top only.
 //   5e. In dark the fades behave the same, and the faded foot shows the dark page through it.
@@ -17,7 +17,7 @@ import { layoutProblems } from './checks.ts';
 const SIDEWAYS = { width: 1180, height: 820 };
 /** Sideways, and tall enough that the whole left column fits. */
 const SIDEWAYS_TALL = { width: 1180, height: 2600 };
-const FADE = 32;
+const FADE = 16;
 
 async function open(page: Page) {
   await page.goto('/layout.html?as=player&p1=1');
@@ -60,10 +60,10 @@ test.describe('the left column, sideways', () => {
     expect(await layoutProblems(page)).toEqual([]);
   });
 
-  test('5b. at the top of a cut column the fade is at the foot only, 32 px tall', async ({ page }) => {
+  test('5b. at the top of a cut column the fade is at the foot only, 16 px tall', async ({ page }) => {
     const column = await open(page);
     await expect.poll(() => fades(page)).toEqual({ above: false, below: true, mask: 'gradient' });
-    // The mask's stops: opaque from the top, opaque until 32 px from the foot, then transparent.
+    // The mask's stops: opaque from the top, opaque until 16 px from the foot, then transparent.
     const mask = await column.evaluate((el) => getComputedStyle(el).maskImage);
     expect(mask).toContain(`${FADE}px`);
     expect(mask.match(/rgba\(0, 0, 0, 0\)|transparent/g)).toHaveLength(1);
