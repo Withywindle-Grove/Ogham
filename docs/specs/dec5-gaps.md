@@ -1,5 +1,5 @@
 ---
-status: draft for sitting B (written 2026-11-28 by /to-spec; no tickets yet)
+status: approved at sitting B, 2026-11-28; tickets #187-#192
 loop: 3
 rulings: docs/design/rulings/dec5-gaps-2026-11-28.md (dg-1 to dg-19; 09, 2026-11-28); frame 47-3, docs/design/rulings/player-sitting-p47-2026-11-28.md (p47-3 to p47-5)
 intents: docs/intents/2026-11-28-item-counts.md; docs/intents/2026-11-28-npc-held-items.md
@@ -12,7 +12,7 @@ order if cut: G-228 first to go, then G-27, then G-233 (the designer's lean, not
 
 Loop 3 of the build loop. It builds the three gaps Francis lifted to "build before 5 December" (28 Nov, "All three"): a place with no encounters (G-27), a count that names its unit (G-233), and a first slice of what a person carries (G-228). Every ⚑ of sitting A was ruled A, and the three pages are approved with the findings he picked.
 
-All three are visible, and all three have an approved mockup. Each needs a small database change that replaces a function and rewrites no stored row (see Implementation Decisions, "Migrations"): sitting A's table said "No" or "Maybe" there, so this is ⚑ B1.
+All three are visible, and all three have an approved mockup. Each needs a small database change that replaces a function and rewrites no stored row (see Implementation Decisions, "Migrations"): sitting A's table said "No" or "Maybe" there; Francis ruled B1 = A (sitting B, below).
 
 ## Problem Statement
 
@@ -130,16 +130,16 @@ All three are visible, and all three have an approved mockup. Each needs a small
 
 **Pieces, for the tickets.** One gap is one or two tickets. A gap's checker warnings go in the same ticket as the gap's pack reader.
 
-| Piece | Gap | What | Migration |
-|---|---|---|---|
-| A | G-27 | "None" in the chain: the place check, the clock, the reminders, Move on, the GM's card and tile, the Rules sheet, the checker | No |
-| B | G-27 | The players' tile: the players' check read returns "none" | Yes (a function) |
-| C | G-233 | The count's words from one function, everywhere; the checker | No |
-| D | G-233 | An unidentified item's face drops the unit | Yes (a function) |
-| E | G-228 | A send keyed to the person: the send's row key, the log read, the GM's log line | Yes (a function) |
-| F | G-228 | The person piece's Carries line, her sheet, a thing's sheet; the pack reader; the checker | No |
+| Piece | Ticket | Gap | What | Migration |
+|---|---|---|---|---|
+| A | #187 | G-27 | "None" in the chain: the place check, the clock, the reminders, Move on, the GM's card and tile, the Rules sheet, the checker | No |
+| B | #190 | G-27 | The players' tile: the players' check read returns "none" | Yes (a function) |
+| C | #188 | G-233 | The count's words from one function, everywhere; the checker | No |
+| D | #191 | G-233 | An unidentified item's face drops the unit | Yes (a function) |
+| E | #189 | G-228 | A send keyed to the person: the send's row key, the log read, the GM's log line | Yes (a function) |
+| F | #192 | G-228 | The person piece's Carries line, her sheet, a thing's sheet; the pack reader; the checker | No |
 
-**Migrations (⚑ B1).** Each one replaces a database function and adds nothing else: no new table, no new column, no stored row rewritten, nothing dropped or renamed. Each runs on the test project first. Francis pushes each to the main project before 5 December. The function-lineage check (`npm run check`) covers each replaced function.
+**Migrations (B1 = A, ruled at sitting B: three function-only migrations, B, D, E).** Each one replaces a database function and adds nothing else: no new table, no new column, no stored row rewritten, nothing dropped or renamed. Each runs on the test project first. Francis pushes each to the main project before 5 December. The function-lineage check (`npm run check`) covers each replaced function.
 - **B.** The players' check read (`encounter_check_for_players`, both forms) returns today only a check that says `replacesScheduled`. It also returns a deciding place whose check says `none: true`, while the GM's switch leaves it in force, marked `none`. The place a player wasn't shown still reads by its shown name, as today.
 - **D.** The face of an unidentified item (`item_face_data`) keeps today the item's `charges` object, so a new `unit` would reach the holder's device. It drops `unit` and `units` from `charges` (dg-7, hard rule 5). The face is what both the line's copy and a player's read of the library entry give, so one function covers both. The builder confirms that a tell of the charges, or of the true name, brings the unit back with them.
 - **E.** The send (`give_find`) accepts today only a hoard's row keys ("2:thing"). It also accepts a held thing's key, naming the person's id and the item's id. That key goes on the send's GM-only line only, beside the place, as today's rows do (rp-4). The party's lines name neither the person nor the thing's source. The send's Undo (`undo_find`) is unchanged.
@@ -162,7 +162,7 @@ All three are visible, and all three have an approved mockup. Each needs a small
 - The unit is read from the line's copy only, never from the GM's library entry, for a holder. The GM's own screens read the GM's copy, so the GM always sees the unit.
 - `unit` is a non-empty word, trimmed. `units` defaults to `unit` + "s". With no `unit`, or a `unit` that isn't words, the words are today's "charge" and "charges".
 - Where the holder may not know the unit, the words say "charges": a line with no unit on its copy (unidentified, `gmOnly: ["charges"]`, or handed out before the pack named one, dg-8). No stored line is updated.
-- "a" or "an": "an" before a unit whose first letter is a, e, i, o or u, and "a" before any other (dg-18). Test cases: "a portion", "a dose", "an ounce", "an arrow", "an ember". The rule's known misses ("an unit", "a hour") are ⚑ B2.
+- "a" or "an": "an" before a unit whose first letter is a, e, i, o or u, and "a" before any other (dg-18). Test cases: "a portion", "a dose", "an ounce", "an arrow", "an ember". B2 = B (sitting B): the first-letter rule plus a built-in list of exceptions: "uni…", "use…", "eu…", "one…" take "a"; "hour", "honour" take "an". Add test cases: "a unit", "a user", "an hour", "an honour".
 - A full count of 1 (`initial` 1) reads "1 dose left", not "1 of 1 dose" (finding 3). Other counts read "2 of 3 portions" on the row, as page 49 draws.
 - The capital in a label ("Portions: 2 of 3 left", "Portions: ?", "Portions not set") is the plural's first letter in upper case.
 - The stacked button stays "Use"; only its spoken name changes. Recharge and Recharge (fiat) stay as they are.
@@ -221,13 +221,13 @@ The four seams Francis approved (28 Nov, "Yes"):
 
 ## Further Notes
 
-**⚑ for sitting B** (collected, not decided):
+**Ruled at sitting B (2026-11-28, `docs/design/rulings/dec5-gaps-b-2026-11-28.md`, dgb-1 to dgb-3).** The six tickets were approved: "Yes".
 
-| ⚑ | Question | Options | Lean |
-|---|---|---|---|
-| B1 | Three function-only migrations (B, D, E): no stored row changes, nothing dropped. Sitting A's table said "No" for G-27 and G-233 and "Maybe" for G-228. Francis pushes each to main before 5 Dec | A: yes, as written. B: cut the piece that needs one (B: players see the setting's check at a "none" place; D: the unit waits for a fix of the face; E: G-228 goes) | A |
-| B2 | "a"/"an" by first letter writes "an unit" and "a hour" | A: first letter only, as ruled, and 07 tells pack writers. B: the first-letter rule plus a short built-in list ("uni…", "use…", "eu…", "one…" take "a"; "hour", "honour" take "an"). C: the pack may give the article (a new pack field) | B |
-| B3 | The unit's word ending in "s": the checker can't know every uncountable word ("oil", "rice") | A: the "s" warning plus 07's sentence, as ruled (dg-18). B: also a short list of common uncountable words | A |
+| ⚑ | Ruling | Francis |
+|---|---|---|
+| B1 (dgb-1) | A: three function-only migrations (B, D, E): no stored row changes, nothing dropped. Francis pushes each to main before 5 Dec | "A" |
+| B2 (dgb-2) | B: first-letter rule plus a short built-in list: "uni…", "use…", "eu…", "one…" take "a"; "hour", "honour" take "an" (Piece C) | "B" |
+| B3 (dgb-3) | A: the "ends in s" warning plus 07's sentence, as dg-18; no list of uncountable words | "A" |
 
 **Known limits.**
 - The checker's "ends in s" warning misses an uncountable unit like "oil" and flags a word like "lens". 07's sentence carries the rest (dg-18).
