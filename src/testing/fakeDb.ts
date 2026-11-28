@@ -1912,10 +1912,13 @@ export function createFakeDb(): FakeWorld {
         const owner = chain.find((e) => (e.data as Row).encounterCheck && typeof (e.data as Row).encounterCheck === 'object');
         if (!owner || !tables.campaign_packs.some((cp) => cp.campaign_id === campaign && cp.pack_id === place.pack_id)) return [];
         const check = (owner.data as Row).encounterCheck as Row;
-        if (check.replacesScheduled !== true) return [];
+        // G-27 piece B (dg-3): a "none" that is `true` stands in, marked `none`; a `none` that isn't is no check at all.
+        const none = check.none === true;
+        if ('none' in check && !none) return [];
+        if (!none && check.replacesScheduled !== true) return [];
         const off = tables.place_rule_switches.some((s) => s.campaign_id === campaign && s.pack_id === place.pack_id && s.entry_id === owner.pack_entry_id && s.rule_id === 'encounterCheck' && s.which === 'inForce' && !s.undone && s.value === false);
         if (off) return [];
-        const checked = Object.fromEntries(['when', 'every', 'chance'].filter((k) => check[k] !== undefined && check[k] !== null).map((k) => [k, check[k]]));
+        const checked = none ? { none: true } : Object.fromEntries(['when', 'every', 'chance'].filter((k) => check[k] !== undefined && check[k] !== null).map((k) => [k, check[k]]));
         const own = String(place.players_name || place.name);
         return [{ group_number: group, place_name: chain[0] === owner ? own : fakeShownPlaceName(campaign, group, place.pack_id, owner, own), checked }];
       });

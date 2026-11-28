@@ -136,7 +136,7 @@ import { advanceBy, checkNow, encounterCheckOf, hourTrackNow, needsSeason, nextS
 import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { BookFaces } from '../ui/BookFaces.tsx';
 import { DiceWords } from '../ui/dice.tsx';
-import { bandHeading, checkFact, checkSheetLines, checkRule, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, lightSheetLines, NO_LIGHT_WORDS, noneCheckFact, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, restSheetLines, seasonIconOf, settingRule, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
+import { bandHeading, checkFact, checkSheetLines, checkRule, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, lightSheetLines, NO_LIGHT_WORDS, noneCheckFact, noneSheetLines, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, restSheetLines, seasonIconOf, settingRule, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
 import { ENCOUNTER_MARK } from './encounterMark.ts';
 import { BandTool, BandTools, DepartButton, FactSheet, FactsRow, NextTurnButton, SceneBand, SessionButton, type DateLine } from './SceneBand.tsx';
 import { useSceneTopOpen } from './sceneTopOpen.ts';
@@ -2173,6 +2173,8 @@ export function SceneTime({
             // A player's: the last shown place's own check where it stands in (mc-39b, mc-50; the database sends when
             // it's rolled and its chance only), else the setting's from the rules set as the player's copy has it.
             const shownCheck = gm ? undefined : playersChecks.find((c) => c.group === myGroupNumber);
+            // A "none" in force at the shown place (G-27 piece B, dg-3): "None here", as the GM's tile.
+            if (shownCheck?.none) return noneCheckFact();
             if (shownCheck) return checkFact({ name: null, eachMove: shownCheck.eachMove, every: shownCheck.every, chance: shownCheck.chance, fallbackUnit: stepWord });
             if (gm && noneHere) return noneCheckFact();
             const inForce = engine ? encounterCheckOf(engine) : null;
@@ -2189,6 +2191,8 @@ export function SceneTime({
   const bandRest = bandFacts.find((f) => f.id === 'rest') ?? null;
   // A player's Encounter check pop-up (PL8): the setting's check's words where the player's copy opens them; none for
   // the shown place's own check, whose read sends when and chance only (⚑ on P10: its words would widen that read).
+  // A player's shown place whose "none" is in force (G-27 piece B): its pop-up says whose rule it is.
+  const playersNone = gm ? undefined : playersChecks.find((c) => c.group === myGroupNumber && c.none);
   const playersCheckRule = (() => {
     if (gm || !mode || !engine || playersChecks.some((c) => c.group === myGroupNumber)) return [];
     const inForce = encounterCheckOf(engine);
@@ -2681,7 +2685,7 @@ export function SceneTime({
       {restAbout && bandRest && (
         <FactSheet title="Rest" lines={restSheetLines(bandRest, mode?.rest ? restEveryWords(mode.rest) : null)} rule={settingRule(restWords.filter((w) => w !== REST_ANSWER_WORDS), mode?.rest?.source)} onClose={() => setRestAbout(false)} />
       )}
-      {asking === 'check' && bandCheck && <FactSheet title={bandCheck.label} lines={checkSheetLines(bandCheck)} rule={playersCheckRule} onClose={() => setAsking(null)} />}
+      {asking === 'check' && bandCheck && <FactSheet title={bandCheck.label} lines={playersNone ? noneSheetLines(playersNone.placeName) : checkSheetLines(bandCheck)} rule={playersCheckRule} onClose={() => setAsking(null)} />}
     </BookFaces>
   );
 
