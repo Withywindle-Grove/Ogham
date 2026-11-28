@@ -1956,6 +1956,19 @@ if (new URLSearchParams(window.location.search).get('viewScene') === '1') {
     created_at: '2026-11-22T10:00:00Z', version: 1, undone: false,
   });
 }
+// ?bought=1|long (TC13 piece C; TW4a step 3, PK10b): the GM's "In stock" waiting for Wren's reply on the player's
+// Scene, so Buy it and its toast can be drawn: a reed rope at 2 herons (the page's coins name no single heron), or
+// (`long`) a thing named at length at 999 herons. Use with &coin=1, so the price reads as the setting's coins. Names
+// and prices are invented.
+const boughtFlag = new URLSearchParams(window.location.search).get('bought');
+if (boughtFlag === '1' || boughtFlag === 'long') {
+  const [item, price] = boughtFlag === 'long' ? ['A bundle of tallow candles wrapped in oilcloth for the Lantern Warden', '999 herons'] : ['Reed rope', '2 herons'];
+  world.tables.requests.push({
+    id: 'answer-bought', campaign_id: campaign, expedition_id: null, group_number: null, requester_id: sam, actor_id: wren, kind: 'buy', direction: 'playerAsks',
+    text: `${item}, 3 The Reed Market`, cost_text: '', prompt: { serviceId: 'reed-market', shop: '3 The Reed Market', itemId: null, item, price }, entry: null, status: 'answered',
+    answer_kind: 'hitMissChoice', answer: { kind: 'buy', result: 'inStock', price, note: '' }, answered_at: '2026-11-14T11:10:00Z', reply: null, undone: false, version: 1, created_by: gm, created_at: '2026-11-14T11:00:00Z',
+  });
+}
 // What the folded rail keeps (mn-2), only with ?railSigil=1: the retired campaign takes a 60-character name, and it and
 // the Drowned Marches a sigil picture (the layout check serves files.example's pictures itself).
 if (new URLSearchParams(window.location.search).get('railSigil') === '1') {

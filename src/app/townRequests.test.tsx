@@ -165,9 +165,10 @@ describe('town requests (M5b step 6e)', () => {
 
     player = await playerTown(sam);
     const answer = await screen.findByRole('article', { name: "The GM's answer" });
-    expect(within(answer).getByText('In stock: 4 gp')).toBeTruthy();
+    expect(within(answer).getByText('In stock: Hooded lantern')).toBeTruthy();
+    expect(within(answer).getByText('4 gp. At The Tinker’s Stall.')).toBeTruthy();
     await player.click(within(answer).getByRole('button', { name: 'Buy it' }));
-    await screen.findByText("Bought for 4 gp: it's in your pack");
+    await screen.findByText('Wren bought Hooded lantern. Its cost, 4 gp, is not spent yet.');
     await waitFor(() => expect(world.tables.inventory_lines.find((l) => l.actor_id === wren && l.name === 'Hooded lantern')).toMatchObject({ how_got: 'bought', cost: '4 gp' }));
     // One reply, one log line: the answer and the new line share the request.
     expect(new Set(events('request.reply').map((e) => e.request_id)).size).toBe(1);
@@ -191,7 +192,7 @@ describe('town requests (M5b step 6e)', () => {
     player = await playerTown(sam);
     const answer = await screen.findByRole('article', { name: "The GM's answer" });
     await player.click(within(answer).getByRole('button', { name: 'Buy it' }));
-    await screen.findByText("Bought for 4 gp: it's in your pack");
+    await screen.findByText('Wren bought Hooded lantern. Its cost, 4 gp, is not spent yet.');
     const lantern = () => world.tables.inventory_lines.find((l) => l.actor_id === wren && l.name === 'Hooded lantern');
     await waitFor(() => expect(lantern()).toBeTruthy());
     return { player, lantern };
@@ -378,7 +379,7 @@ describe('Ask for… answered at once (TC13 piece A)', () => {
     await askForLantern(player);
     // The same screen, no reopening: the priced answer arrives where the player is.
     const answer = await screen.findByRole('article', { name: "The GM's answer" });
-    expect(within(answer).getByText('In stock: 4 gp')).toBeTruthy();
+    expect(within(answer).getByText('In stock: Hooded lantern')).toBeTruthy();
     expect(screen.queryByRole('dialog', { name: 'Ask for…' })).toBeNull();
     expect(screen.queryByText('Sent to the GM')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
@@ -411,7 +412,7 @@ describe('Ask for… answered at once (TC13 piece A)', () => {
     const player = await playerTown(sam);
     await askForLantern(player);
     const answer = await screen.findByRole('article', { name: "The GM's answer" });
-    expect(within(answer).getByText('In stock: 4 gp')).toBeTruthy();
+    expect(within(answer).getByText('In stock: Hooded lantern')).toBeTruthy();
   });
 
   // Purpose: an ask that waits keeps today's toast and Undo; the Undo withdraws that ask, and an earlier request of the player's stays.
@@ -734,6 +735,265 @@ describe("the GM's ask card with the toggle (TC13 piece B)", () => {
   });
 });
 
+// TC13 piece C (docs/specs/town-ask-buy.md, "Piece C: Buy it's toast"; tn-1, ap-7, bu-1, p45-21, sb5-5, sb5-7; frames
+// TW4a and PK10b). Purposes, in plain words:
+//   The player's In stock answer is TW4a step 3's card: "For you", "In stock: <thing>", the price and the place, Buy it
+//   and Leave it. Buy it puts the thing in the pack as bought and takes no coin; its toast is the Pack's purchase toast,
+//   in the word "bought": "Wren bought Coil of rope. Its cost, 1 heron, is not spent yet.", with "Spend 1 heron" and
+//   Undo. Spend opens the purse's Spend sheet over the Scene with the amount and What for filled in, and the coin goes
+//   only on its own Spend, as a line of its own. No Spend for a price the coins can't read, or 0; 999 reads whole. The
+//   buyer's Undo takes the untouched thing out and leaves a spend made from the toast. Nobody else may buy, leave,
+//   undo or spend for Wren. Buy it is the player's own act: no find card, no "New" tag, no count on the Pack.
+describe("Buy it's toast (TC13 piece C)", () => {
+  /** The table, its coin herons (1 heron, 2 herons), a coil of rope at a heron, and Wren's purse of 1,000 herons. */
+  async function heronTable() {
+    const made = table();
+    const rules = world.tables.library_entries.find((e) => e.id === 'entry-quay-rules')!;
+    (rules.data as Record<string, unknown>).currency = [{ key: 'heron', label: 'herons', unitName: 'heron', pluralName: 'herons', valueInBase: 1 }];
+    world.tables.library_entries.push({ id: 'entry-rope', pack_id: 'pack-quay', kind: 'item', pack_entry_id: 'coil-of-rope', name: 'Coil of rope', data: { id: 'coil-of-rope', name: 'Coil of rope', category: 'gear', value: { heron: 1 }, weightCoin: 10, availability: { chance: '4-in-6' } } });
+    world.signInAs(made.gm);
+    await world.db.from('purses' as never).select('*');
+    world.tables.purses.find((p) => p.actor_id === made.wren)!.coins = { heron: 1000 };
+    return made;
+  }
+
+  /** An answer waiting for Wren's reply: the GM's "In stock" (or own price) for a thing at the stall. */
+  function answered(campaign: string, sam: string, wren: string, { id = 'req-rope', item = 'Coil of rope', itemId = 'coil-of-rope' as string | null, price = '1 heron', result = 'inStock' } = {}) {
+    world.tables.requests.push({
+      id, campaign_id: campaign, expedition_id: null, group_number: null, requester_id: sam, actor_id: wren, kind: 'buy', direction: 'playerAsks',
+      text: `${item}, The Tinker’s Stall`, cost_text: '', prompt: { serviceId: 'buy-gear', shop: 'The Tinker’s Stall', itemId, item, price }, entry: null, status: 'answered',
+      answer_kind: 'hitMissChoice', answer: { kind: 'buy', result, price, note: '' }, answered_at: '2026-11-21T10:05:00Z', reply: null,
+      created_at: '2026-11-21T10:00:00Z', version: 1, undone: false,
+    } as never);
+  }
+
+  /** Wren's player on the Scene, with the answer card showing. */
+  async function sceneOf(person: string) {
+    cleanup();
+    const user = await openAs(person);
+    await user.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Scene' }));
+    return user;
+  }
+
+  const purse = () => world.tables.purses.find((p) => p.actor_id === world.tables.actors.find((a) => a.name === 'Wren')!.id)!.coins as Record<string, number>;
+  const rope = () => world.tables.inventory_lines.find((l) => l.name === 'Coil of rope');
+  const shownToast = () =>
+    waitFor(() => {
+      const found = document.querySelector('.toast') as HTMLElement | null;
+      if (!found) throw new Error('No toast yet.');
+      return found;
+    });
+  const toastWords = () => document.querySelector('.toast .toast__text')?.textContent;
+
+  // Purpose: the whole journey: the GM flips the rope In stock on the ask card; the player's answer is TW4a step 3's card; Buy it takes no coin and its toast says the cost is not spent yet, with Spend 1 heron and Undo; Spend opens the Spend sheet filled in; its own Spend takes the coin with its own line.
+  it('ask, the GM flips In stock, Buy it, the toast, Spend 1 heron fills the Spend sheet, Spend takes the coin', async () => {
+    const { gm, sam, wren } = await heronTable();
+    await townReady(gm);
+    let player = await playerTown(sam);
+    await player.click(actions().getByRole('button', { name: 'Ask for…' }));
+    await player.type(within(screen.getByRole('dialog', { name: 'Ask for…' })).getByRole('textbox', { name: 'Find an item' }), 'rope');
+    await pick(player, 'Ask for…', 'Coil of rope');
+    await player.click(within(screen.getByRole('dialog', { name: 'Ask for…' })).getByRole('button', { name: 'Send to the GM' }));
+    await screen.findByText('Sent to the GM');
+    cleanup();
+    const gmUser = await openAs(gm, 'Players');
+    const list = await waiting();
+    await gmUser.click(await list.findByRole('radio', { name: 'In stock' }));
+    await screen.findByText('Wren: Coil of rope, 1 heron');
+
+    player = await playerTown(sam);
+    const card = await screen.findByRole('article', { name: "The GM's answer" });
+    expect(within(card).getByText('For you')).toBeTruthy();
+    expect(within(card).getByText('In stock: Coil of rope')).toBeTruthy();
+    expect(within(card).getByText('1 heron. At The Tinker’s Stall.')).toBeTruthy();
+    expect(within(card).queryByText('The GM says')).toBeNull();
+    expect(within(card).queryByText(/“/)).toBeNull();
+    // Buy it is the card's accent; Leave it is secondary.
+    expect(within(card).getByRole('button', { name: 'Buy it' }).className).toMatch(/button-primary/);
+    expect(within(card).getByRole('button', { name: 'Leave it' }).className).not.toMatch(/button-primary/);
+    await player.click(within(card).getByRole('button', { name: 'Buy it' }));
+
+    const toast = await shownToast();
+    await waitFor(() => expect(toastWords()).toBe('Wren bought Coil of rope. Its cost, 1 heron, is not spent yet.'));
+    expect(within(toast).getByRole('button', { name: 'Spend 1 heron' })).toBeTruthy();
+    expect(within(toast).getByRole('button', { name: 'Undo' })).toBeTruthy();
+    await waitFor(() => expect(rope()).toMatchObject({ actor_id: wren, how_got: 'bought', cost: '1 heron' }));
+    expect(purse()).toEqual({ heron: 1000 });
+    expect(events('purse.spend')).toHaveLength(0);
+
+    await player.click(within(toast).getByRole('button', { name: 'Spend 1 heron' }));
+    const sheet = await screen.findByRole('dialog');
+    expect(within(sheet).getByRole('heading', { name: 'Spend' })).toBeTruthy();
+    expect((within(sheet).getByRole('textbox', { name: 'Herons' }) as HTMLInputElement).value).toBe('1');
+    expect((within(sheet).getByLabelText('What for') as HTMLInputElement).value).toBe('Coil of rope');
+    expect(purse()).toEqual({ heron: 1000 });
+    await player.click(within(sheet).getByRole('button', { name: 'Spend 1 heron' }));
+    await waitFor(() => expect(purse()).toEqual({ heron: 999 }));
+    expect(events('purse.spend')).toHaveLength(1);
+    expect(await screen.findByText('Wren spent 1 heron: Coil of rope')).toBeTruthy();
+    // The purchase is still in the pack: the payment is a line of its own.
+    expect(rope()).toBeTruthy();
+  });
+
+  // Purpose: a price the setting's coins can't read is said in the toast, with no Spend; the thing still comes in as bought.
+  it('a price the coins cannot read ("a favour owed"): the toast says it, no Spend', async () => {
+    const { campaign, sam, wren } = await heronTable();
+    answered(campaign, sam, wren, { result: 'price', price: 'a favour owed' });
+    const user = await sceneOf(sam);
+    await user.click(within(await screen.findByRole('article', { name: "The GM's answer" })).getByRole('button', { name: 'Buy it' }));
+    const toast = await shownToast();
+    await waitFor(() => expect(toastWords()).toBe('Wren bought Coil of rope. Its cost, a favour owed, is not spent yet.'));
+    expect(within(toast).queryByRole('button', { name: /^Spend/ })).toBeNull();
+    expect(within(toast).getByRole('button', { name: 'Undo' })).toBeTruthy();
+    await waitFor(() => expect(rope()).toMatchObject({ how_got: 'bought', cost: 'a favour owed' }));
+  });
+
+  // Purpose: a price of 0 coins offers no Spend: nobody is asked to spend nothing.
+  it('a price of 0 herons offers no Spend', async () => {
+    const { campaign, sam, wren } = await heronTable();
+    answered(campaign, sam, wren, { result: 'price', price: '0 herons' });
+    const user = await sceneOf(sam);
+    await user.click(within(await screen.findByRole('article', { name: "The GM's answer" })).getByRole('button', { name: 'Buy it' }));
+    const toast = await shownToast();
+    await waitFor(() => expect(toastWords()).toBe('Wren bought Coil of rope. Its cost, 0 herons, is not spent yet.'));
+    expect(within(toast).queryByRole('button', { name: /^Spend/ })).toBeNull();
+  });
+
+  // Purpose: 999 reads whole on the toast's Spend and in the Spend sheet's box and accent.
+  it('999 herons reads whole on Spend and in the Spend sheet', async () => {
+    const { campaign, sam, wren } = await heronTable();
+    answered(campaign, sam, wren, { result: 'price', price: '999 herons' });
+    const user = await sceneOf(sam);
+    const card = await screen.findByRole('article', { name: "The GM's answer" });
+    expect(within(card).getByText('999 herons. At The Tinker’s Stall.')).toBeTruthy();
+    await user.click(within(card).getByRole('button', { name: 'Buy it' }));
+    const toast = await shownToast();
+    await user.click(within(toast).getByRole('button', { name: 'Spend 999 herons' }));
+    const sheet = await screen.findByRole('dialog');
+    expect((within(sheet).getByRole('textbox', { name: 'Herons' }) as HTMLInputElement).value).toBe('999');
+    expect(within(sheet).getByRole('button', { name: 'Spend 999 herons' })).toBeTruthy();
+  });
+
+  // Purpose: Something not listed…, priced by the GM's Price… in words the coins read, offers Spend like any purchase.
+  it('Something not listed… priced "2 herons" by the GM offers Spend 2 herons', async () => {
+    const { campaign, sam, wren } = await heronTable();
+    answered(campaign, sam, wren, { item: 'A brass bell', itemId: null, result: 'inStock', price: '2 herons' });
+    const user = await sceneOf(sam);
+    await user.click(within(await screen.findByRole('article', { name: "The GM's answer" })).getByRole('button', { name: 'Buy it' }));
+    const toast = await shownToast();
+    await waitFor(() => expect(toastWords()).toBe('Wren bought A brass bell. Its cost, 2 herons, is not spent yet.'));
+    expect(within(toast).getByRole('button', { name: 'Spend 2 herons' })).toBeTruthy();
+  });
+
+  // Purpose: the toast's Undo is the buyer's own: it takes the untouched rope out, and the request comes back to answer.
+  it("the toast's Undo takes the untouched rope back out", async () => {
+    const { campaign, sam, wren } = await heronTable();
+    answered(campaign, sam, wren);
+    const user = await sceneOf(sam);
+    await user.click(within(await screen.findByRole('article', { name: "The GM's answer" })).getByRole('button', { name: 'Buy it' }));
+    const toast = await shownToast();
+    await waitFor(() => expect(rope()).toBeTruthy());
+    await user.click(within(toast).getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(rope()).toBeUndefined());
+    expect(events('request.undoBuy')).not.toHaveLength(0);
+  });
+
+  // Purpose: once the rope was touched, the toast's Undo is refused in plain words and the rope stays.
+  it("the toast's Undo is refused once the rope was touched", async () => {
+    const { campaign, sam, wren } = await heronTable();
+    answered(campaign, sam, wren);
+    const user = await sceneOf(sam);
+    await user.click(within(await screen.findByRole('article', { name: "The GM's answer" })).getByRole('button', { name: 'Buy it' }));
+    const toast = await shownToast();
+    await waitFor(() => expect(rope()).toBeTruthy());
+    rope()!.version = Number(rope()!.version) + 1;
+    await user.click(within(toast).getByRole('button', { name: 'Undo' }));
+    await screen.findByText(/That's changed since: the Coil of rope was used or moved/);
+    expect(rope()).toBeTruthy();
+  });
+
+  // Purpose: a spend made from the toast is a line of its own: undoing the purchase leaves the coin spent.
+  it('a spend made from the toast stays when the purchase is undone', async () => {
+    const { campaign, sam, wren } = await heronTable();
+    answered(campaign, sam, wren);
+    const user = await sceneOf(sam);
+    await user.click(within(await screen.findByRole('article', { name: "The GM's answer" })).getByRole('button', { name: 'Buy it' }));
+    await user.click(within(await shownToast()).getByRole('button', { name: 'Spend 1 heron' }));
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Spend 1 heron' }));
+    await waitFor(() => expect(purse()).toEqual({ heron: 999 }));
+    // The toast now is the spend's: the purchase's own Undo is the buyer's command, as its toast's Undo runs it.
+    const { runCommand } = await import('../core/commands.ts');
+    const { undoBuy } = await import('../modules/requests/townRequests.ts');
+    const { loadRequests } = await import('../modules/requests/requests.ts');
+    const { registry } = await import('./services.ts');
+    const request = (await loadRequests(world.db, campaign))!.find((r) => r.id === 'req-rope')!;
+    expect((await runCommand(registry, world.db, { id: sam, roles: { [campaign]: 'player' } }, undoBuy, { request })).ok).toBe(true);
+    expect(rope()).toBeUndefined();
+    expect(purse()).toEqual({ heron: 999 });
+  });
+
+  // Purpose: only Wren's player answers and pays: another player sees no card for Wren, and their Buy it, Leave it, Undo and Spend on Wren's purse are refused.
+  it("another player can't Buy it, Leave it, undo or spend for Wren", async () => {
+    const { campaign, sam, wren } = await heronTable();
+    const rue = world.addPerson('rue@lantern.example', 'Rue');
+    const moss = world.addCharacter(campaign, 'Moss', { ownerId: rue });
+    world.addMember(campaign, rue, 'player', moss);
+    answered(campaign, sam, wren);
+    await sceneOf(rue);
+    await screen.findByRole('navigation', { name: 'Main' });
+    expect(screen.queryByText('In stock: Coil of rope')).toBeNull();
+    cleanup();
+    const { runCommand } = await import('../core/commands.ts');
+    const { replyRequest, undoBuy } = await import('../modules/requests/townRequests.ts');
+    const { loadRequests } = await import('../modules/requests/requests.ts');
+    const { spendCoin } = await import('../modules/inventory/purse.ts');
+    const { registry } = await import('./services.ts');
+    // Rue can't read Wren's request; the commands are given it as Wren's player reads it.
+    world.signInAs(sam);
+    const request = (await loadRequests(world.db, campaign))!.find((r) => r.id === 'req-rope')!;
+    world.signInAs(rue);
+    const asRue = { id: rue, roles: { [campaign]: 'player' as const } };
+    const wrenRef = { campaignId: campaign, actorId: wren, locationId: null, ownerUserId: sam, archived: false };
+    const carrier = { campaignId: campaign, actorId: wren, locationId: null, ownerUserId: sam, archived: false };
+    expect((await runCommand(registry, world.db, asRue, replyRequest, { request, accept: true, buy: { carrier, item: { name: 'Coil of rope' } as never, cost: '1 heron' } })).ok).toBe(false);
+    expect((await runCommand(registry, world.db, asRue, replyRequest, { request, accept: false })).ok).toBe(false);
+    // Wren's player answers; Rue's Undo of Wren's purchase is refused all the same.
+    world.signInAs(sam);
+    expect((await runCommand(registry, world.db, { id: sam, roles: { [campaign]: 'player' } }, replyRequest, { request, accept: false })).ok).toBe(true);
+    world.signInAs(rue);
+    expect((await runCommand(registry, world.db, asRue, undoBuy, { request })).ok).toBe(false);
+    expect((await runCommand(registry, world.db, asRue, spendCoin, { from: wrenRef, coins: { heron: 1 }, whatFor: 'Coil of rope' })).ok).toBe(false);
+    expect(purse()).toEqual({ heron: 1000 });
+    expect(events('purse.spend')).toHaveLength(0);
+  });
+
+  // Purpose: Buy it is Wren's own act, so it is no news (p45-21): no find card, no "New" tag on the rope, no count on the Pack; a thing the GM gives in the same world still is news.
+  it('after Buy it: no find card, no "New" tag, no count on the Pack', async () => {
+    const { gm, campaign, sam, wren } = await heronTable();
+    answered(campaign, sam, wren);
+    const user = await sceneOf(sam);
+    await user.click(within(await screen.findByRole('article', { name: "The GM's answer" })).getByRole('button', { name: 'Buy it' }));
+    await waitFor(() => expect(rope()).toBeTruthy());
+    const nav = within(screen.getByRole('navigation', { name: 'Main' }));
+    await user.click(nav.getByRole('button', { name: 'Pack' }));
+    await screen.findByText('Coil of rope');
+    expect(document.querySelector('.find-card')?.textContent ?? '').toBe('');
+    expect(document.querySelectorAll('.pack__new')).toHaveLength(0);
+    expect(nav.getByRole('button', { name: 'Pack' })).toBeTruthy();
+    // The control: coin the GM gives Wren is news, on the same Pack.
+    const { runCommand } = await import('../core/commands.ts');
+    const { addCoin } = await import('../modules/inventory/purse.ts');
+    const { registry } = await import('./services.ts');
+    world.signInAs(gm);
+    expect((await runCommand(registry, world.db, { id: gm, roles: { [campaign]: 'gm' } }, addCoin, { to: { campaignId: campaign, actorId: wren, locationId: null, ownerUserId: sam, archived: false }, coins: { heron: 5 } })).ok).toBe(true);
+    world.signInAs(sam);
+    const again = await sceneOf(sam);
+    await again.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Pack' }));
+    await screen.findByRole('button', { name: /^Coin: .*, new$/ });
+    expect(screen.getByText('Coil of rope').closest('li')!.querySelector('.pack__new')).toBeNull();
+  });
+});
+
 // The GM's view as the player (page 32, M3f2, M3i; C15d of plans/test-feedback-2026-11-19.md). Purposes, in plain words:
 //   In the view, the town's player-only buttons (Ask for…, Sell…, Stay here) open their "Only Sam can …" pop-up and
 //   write nothing; so do Cancel on Sam's waiting request and Accept and Decline on the GM's offer.
@@ -801,5 +1061,24 @@ describe("the player-only buttons in the GM's view (C15d)", () => {
       await readAndClose(user, 'Only Sam can answer your offer');
     }
     expect({ events: world.tables.events.length, requests: JSON.stringify(world.tables.requests) }).toEqual(before);
+  });
+
+  // Purpose: in the view, Buy it and Leave it on Sam's In stock answer open the player-only pop-up and write nothing (TC13 piece C).
+  it("Buy it and Leave it on Sam's In stock answer open their pop-ups and write nothing", async () => {
+    const { campaign, sam, wren } = table();
+    world.tables.requests.push({
+      id: 'req-lantern', campaign_id: campaign, expedition_id: null, group_number: null, requester_id: sam, actor_id: wren, kind: 'buy', direction: 'playerAsks',
+      text: 'Hooded lantern, The Tinker’s Stall', cost_text: '', prompt: { serviceId: 'buy-gear', shop: 'The Tinker’s Stall', itemId: 'hooded-lantern', item: 'Hooded lantern', price: '4 gp' }, entry: null,
+      status: 'answered', answer_kind: 'hitMissChoice', answer: { kind: 'buy', result: 'inStock', price: '4 gp', note: '' }, answered_at: '2026-11-21T10:05:00Z', reply: null,
+      created_at: '2026-11-21T10:00:00Z', version: 1, undone: false,
+    } as never);
+    const user = await inView(sam);
+    const before = { events: world.tables.events.length, requests: JSON.stringify(world.tables.requests), lines: world.tables.inventory_lines.length };
+    for (const button of ['Buy it', 'Leave it']) {
+      await user.click(within(await screen.findByRole('article', { name: "The GM's answer" })).getByRole('button', { name: button }));
+      await readAndClose(user, 'Only Sam can answer your offer');
+    }
+    expect(document.querySelector('.toast')).toBeNull();
+    expect({ events: world.tables.events.length, requests: JSON.stringify(world.tables.requests), lines: world.tables.inventory_lines.length }).toEqual(before);
   });
 });

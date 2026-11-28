@@ -7,11 +7,13 @@
 //   Sale offer (GM): the item, how many and the buyer, the price the pack's sale rule suggests, and Offer
 //   (changeable).
 //   Somewhere else… (GM): Yes with what it costs, in words, or Not available.
-//   Priced answer (player): Buy it / Leave it, or Accept / Decline. Costs are text until purses (M7b).
+//   Priced answer (player): Buy it / Leave it, or Accept / Decline. A buy answer is TW4a step 3's card (TC13 piece
+//   C, sb5-7); Buy it's toast and its Spend are the caller's (RequestCard's PlayerRequests). Costs are text.
 import { useId, useState } from 'react';
 import type { Answer, Request } from '../modules/requests/requests.ts';
 import { readBuyPrompt, readSellPrompt, readStayPrompt, readTownActivityPrompt } from '../modules/requests/townRequests.ts';
 import { DieGlyph, isDieSize } from '../ui/dice.tsx';
+import { Icon } from '../ui/icons.tsx';
 import { Dialog } from '../ui/Dialog.tsx';
 import { StackedButton, StockToggle } from '../ui/parts.tsx';
 
@@ -243,10 +245,37 @@ export function GmTownActivityCard({ request, who, onAnswer }: { request: Reques
 export const waitsForReply = (r: Request): boolean =>
   r.status === 'answered' && r.reply === null && r.answer !== null && (r.answer.kind === 'offer' || (r.answer.kind === 'buy' && r.answer.result !== 'notHere' && r.answer.price !== ''));
 
-/** The player's side of a priced answer: Buy it / Leave it (ST5), Accept / Decline (ST6). */
+/**
+ * The player's side of a priced answer: Buy it / Leave it (ST5), Accept / Decline (ST6). A buy answer is TW4a step 3's
+ * card (TC13 piece C, sb5-7): "For you", the bag's mark and "In stock: <thing>", then "<price>. At <place>.", Buy it
+ * as the accent and Leave it; the GM's note, where an older answer has one, under them. A sale offer is as built.
+ */
 export function PricedAnswerCard({ request, words, onReply }: { request: Request; words: string; onReply: (accept: boolean) => void }) {
   const sell = request.answer?.kind === 'offer';
   const note = request.answer && 'note' in request.answer ? request.answer.note : '';
+  if (!sell) {
+    const prompt = readBuyPrompt(request.prompt);
+    const price = request.answer && 'price' in request.answer ? request.answer.price : '';
+    return (
+      <article className="request request--answered request--for-you" aria-label="The GM's answer">
+        <p className="request__title">For you</p>
+        <div className="request__offer">
+          <span className="request__mark" aria-hidden="true">
+            <Icon name="sack" size={28} />
+          </span>
+          <div className="request__offer-words">
+            <p className="request__answer">{`In stock: ${prompt?.item ?? request.text}`}</p>
+            <p className="request__text">{`${price}.${prompt?.shop ? ` At ${prompt.shop}.` : ''}`}</p>
+            {note && <p className="request__note">{note}</p>}
+          </div>
+        </div>
+        <div className="pack__actions request__reply">
+          <StackedButton icon="two-coins" label="Buy it" variant="primary" onClick={() => onReply(true)} />
+          <StackedButton icon="cancel" label="Leave it" onClick={() => onReply(false)} />
+        </div>
+      </article>
+    );
+  }
   return (
     <article className="request request--answered" aria-label="The GM's answer">
       <p className="request__title">The GM says</p>

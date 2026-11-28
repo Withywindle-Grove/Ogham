@@ -98,3 +98,33 @@
   line-height: var(--line-heading);
   overflow-wrap: anywhere;
 }
+
+/* The player's In stock answer (TC13 piece C, sb5-7; frame TW4a step 3): the bag's mark beside "In stock: <thing>" and
+   "<price>. At <place>."; Buy it (the accent) and Leave it under them, from the words' edge. */
+.request__offer {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.request__mark {
+  display: inline-flex;
+  flex: none;
+  color: var(--ink);
+}
+
+.request__offer-words {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.request--for-you .request__answer {
+  overflow-wrap: anywhere;
+}
+
+/* The buttons start at the words' edge, past the mark (28 px) and its gap, as TW4a step 3 draws them. */
+.request--for-you .request__reply {
+  padding-inline-start: calc(var(--space-5) + var(--space-1) + var(--space-3));
+}

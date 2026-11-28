@@ -55,7 +55,11 @@ import { registry } from './services.ts';
 import { useSticky } from './stickyState.ts';
 import { GmBuyCard, GmSellCard, GmStayCard, GmTownActivityCard, PricedAnswerCard, waitsForReply, type TradeView } from './TownRequestCards.tsx';
 import { replyRequest, undoBuy, readBuyPrompt, readSellPrompt, readStayPrompt, readTownActivityPrompt } from '../modules/requests/townRequests.ts';
-import { loadInventory } from '../modules/inventory/inventory.ts';
+import { loadCarriers, loadInventory } from '../modules/inventory/inventory.ts';
+import { denominationsOf, readCost } from '../modules/inventory/coinWords.ts';
+import { loadPurse, type Coins } from '../modules/inventory/purse.ts';
+import { purchaseToast } from './purchaseToast.ts';
+import { PurseSheet } from './PurseSheet.tsx';
 import type { CampaignSetting } from './campaignSetting.ts';
 import { copyOf, oneOffCopy } from './AddItem.tsx';
 import './RequestCard.css';
@@ -73,6 +77,8 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
   const [seen, setSeen] = useSticky<string[]>(`${user.id}:${campaign.id}:requests:seen`, []);
   // In the GM's view as the player, the player's own answers and Cancel open a pop-up instead (pg32-5, pg32-6).
   const playerOnly = usePlayerOnly();
+  // "Spend N" from Buy it's toast (TC13 piece C, sb5-5): the purse's Spend sheet over the Scene, filled in (PK10b).
+  const [spending, setSpending] = useState<{ carrier: NamedCarrier; recipients: NamedCarrier[]; coins: Coins; spend: { coins: Coins; whatFor: string } } | null>(null);
 
   useEffect(() => {
     let current = true;
@@ -116,20 +122,36 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
     const done = await run(replyRequest, input);
     if (!done) return;
     setSeen((s) => [...s, request.id]);
-    const words = request.kind === 'sell' ? (accept ? `Sold for ${price}` : 'Declined the offer') : accept ? `Bought for ${price}: it's in your pack` : 'Left it';
     if (accept && request.kind === 'buy') {
+      // TC13 piece C (tn-1, TW4a, PK10b): the Pack's purchase toast, "Wren bought a coil of rope. Its cost, 1 heron, is
+      // not spent yet.", nothing charged; "Spend 1 heron" where the price reads as the setting's coins, above 0, and
+      // the character has a purse: it opens the Spend sheet over the Scene, the amount and What for filled in (sb5-5).
       // bu-1: the buyer's own Undo takes the bought item out while nobody has touched it; refused in plain words after.
-      return show({
-        text: words,
-        onUndo: async () => {
-          if (playerOnly.blocked('undoPurchase')) return;
-          const undone = await run(undoBuy, { request });
-          if (!undone) return;
-          setSeen((s) => s.filter((id) => id !== request.id));
-          setVersion((v) => v + 1);
-        },
-      });
+      const what = readBuyPrompt(request.prompt)?.item ?? request.text;
+      const denominations = setting ? denominationsOf(setting.rulesSets) : [];
+      const coins = readCost(denominations, price);
+      const [carriers, purse] = await Promise.all([loadCarriers(db, campaign.id), coins ? loadPurse(db, campaign.id, carrier.actorId!) : null]);
+      const buyer = carriers?.find((c) => c.actorId === carrier.actorId) ?? null;
+      return show(
+        purchaseToast({
+          who: buyer?.name ?? 'You',
+          verb: 'bought',
+          what,
+          cost: price,
+          denominations,
+          coins: buyer && purse ? coins : null,
+          onSpend: (spend) => buyer && purse && setSpending({ carrier: buyer, recipients: (carriers ?? []).filter((c) => c !== buyer), coins: purse, spend: { coins: spend, whatFor: what } }),
+          onUndo: async () => {
+            if (playerOnly.blocked('undoPurchase')) return;
+            const undone = await run(undoBuy, { request });
+            if (!undone) return;
+            setSeen((s) => s.filter((id) => id !== request.id));
+            setVersion((v) => v + 1);
+          },
+        }),
+      );
     }
+    const words = request.kind === 'sell' ? (accept ? `Sold for ${price}` : 'Declined the offer') : accept ? `Bought for ${price}: it's in your pack` : 'Left it';
     show({
       text: words,
       onUndo: async () => {
@@ -143,11 +165,27 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
     });
   }
 
-  if (!requests) return null;
+  // Drawn whatever the cards: once bought, the answer card has gone, and the sheet stays open over the Scene.
+  const spendSheet = spending && (
+    <PurseSheet
+      db={db}
+      user={user}
+      carrier={spending.carrier}
+      recipients={spending.recipients}
+      denominations={setting ? denominationsOf(setting.rulesSets) : []}
+      coins={spending.coins}
+      spend={spending.spend}
+      onClose={() => setSpending(null)}
+      onChanged={() => setVersion((v) => v + 1)}
+    />
+  );
+  if (!requests) return spendSheet;
   // A listed lodging is answered at once (no GM): nothing to show for it here; Where you stay shows it.
   const shown = mine(requests, player).filter((r) => !(r.kind === 'lodging' && r.answer?.kind === 'stay')).filter((r) => r.status === 'waiting' || waitsForReply(r) || !seen.includes(r.id));
-  if (shown.length === 0) return null;
+  if (shown.length === 0) return spendSheet;
   return (
+    <>
+    {spendSheet}
     <section className="requests" aria-label="Your requests" data-prompt-id={shown.map((r) => `${r.id}:${r.status}`).join(' ')}>
       {playerOnly.sheet}
       {shown.map((request) =>
@@ -184,6 +222,7 @@ export function PlayerRequests({ db, user, campaign, setting = null, player = us
         ),
       )}
     </section>
+    </>
   );
 }
 
