@@ -364,6 +364,8 @@ export interface PlayersCheck {
   eachMove: boolean;
   every: { value: number; unit: string } | null;
   chance: Chance | null;
+  /** The place's "none" is in force (G-27, dg-3): no check here; the tile reads "None here". */
+  none: boolean;
 }
 
 /** A rule a player's device may read (public.place_rules_for_players). */
@@ -443,7 +445,8 @@ export async function loadPlayersCheck(db: Db, campaignId: string, asPlayer?: st
   return ((data ?? []) as Record<string, unknown>[]).map((r) => {
     const raw = isObject(r.checked) ? r.checked : {};
     const check = readCheck({ ...raw, id: 'place-check', when: null });
-    return { group: Number(r.group_number), placeName: String(r.place_name ?? ''), eachMove: raw.when === 'eachMove', every: check?.every ?? null, chance: check?.chance ?? null };
+    if (raw.none === true) return { group: Number(r.group_number), placeName: String(r.place_name ?? ''), eachMove: false, every: null, chance: null, none: true };
+    return { group: Number(r.group_number), placeName: String(r.place_name ?? ''), eachMove: raw.when === 'eachMove', every: check?.every ?? null, chance: check?.chance ?? null, none: false };
   });
 }
 

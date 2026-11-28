@@ -159,7 +159,7 @@ describe("the GM's Rules sheet (01-04, 02-23)", () => {
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
     await waitFor(() => expect(sheet.getByRole('switch', { name: /Encounters on the water/ }).getAttribute('aria-checked')).toBe('true'));
     // The harbour was never shown to the party: its check comes under the jetty's name (⚑ b, ruled 2026-11-13).
-    expect(await asPlayer(() => loadPlayersCheck(world.db, campaign))).toEqual([{ group: 1, placeName: '1 The jetty', eachMove: true, every: null, chance: { die: 'd6', on: [1] } }]);
+    expect(await asPlayer(() => loadPlayersCheck(world.db, campaign))).toEqual([{ group: 1, placeName: '1 The jetty', eachMove: true, every: null, chance: { die: 'd6', on: [1] }, none: false }]);
   });
 
   // Purpose (G-27, dg-3, user story 24): at a place whose pack says "none" and has no rules of its own, the place card
