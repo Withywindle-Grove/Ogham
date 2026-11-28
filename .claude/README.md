@@ -205,6 +205,8 @@ When each check runs (by day, on a merge, at night) is in `CLAUDE.md`, Checks, a
 
 On a branch named `fix-…`, the first commit adds the failing test marked `it.fails` / `test.fails` (the check passes because it fails); the fix commit removes `.fails` and changes nothing else in that test, which must now pass. The history proves the test failed first; nothing is bypassed. The test guard hook (`scripts/guard-tests.mjs`, `docs/testing.md`) allows only those two edits to test files on a fix branch and says how when it blocks one.
 
+A test-only correction, where the test is wrong and the app is right, goes on a branch NOT named `fix-` (e.g. `tests-chrome-borders`): its pull request states the cause in one sentence, and the local review confirms no file under `src/` changed (Francis, "A", 2026-11-28; `docs/09-decisions-log.md`).
+
 ## Measuring
 
 - **Every worker's brief starts with `Row: <id>`** (a plan batch: `Row: <id> + <id>`; for a ticket, its issue number). The same line is in the worker's prompt itself: the usage report reads the prompt, not the brief file. A spec's pull request title names every ticket (`Spec: <name> (Rows: #a, #b, …)`); a plan batch's title names every row.
