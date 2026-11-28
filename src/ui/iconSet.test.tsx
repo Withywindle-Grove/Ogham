@@ -219,12 +219,28 @@ describe('the icon set (ds-6)', () => {
   });
 
   // Purpose (P7; PL4b and page 40, p7-4): the call card's two marks, the stabbed note for a call to adventure (by
-  // Delapouite) and the beer stein for a rumour (by Lorc), come last in the table, each resolving to its own path.
-  it('holds the call card’s stabbed note and beer stein, last, each with its author, resolving', () => {
-    expect(SET_ICON_NAMES.slice(72)).toEqual(['stabbed-note', 'beer-stein']);
+  // Delapouite) and the beer stein for a rumour (by Lorc), are in the table, each resolving to its own path. Found by
+  // name, not by their place in the table (cs-32).
+  it('holds the call card’s stabbed note and beer stein, each with its author, resolving', () => {
+    expect(SET_ICON_NAMES).toEqual(expect.arrayContaining(['stabbed-note', 'beer-stein']));
     expect(ICON_SET['stabbed-note'].author.name).toBe('Delapouite');
     expect(ICON_SET['beer-stein'].author.name).toBe('Lorc');
     for (const name of ['stabbed-note', 'beer-stein'] as const) {
+      const { container, unmount } = render(<Icon name={name} />);
+      expect(container.querySelector('path')!.getAttribute('d')).toBe(ICON_SET[name].d);
+      unmount();
+    }
+  });
+
+  // Purpose (p47-2; frame 47-2, approved by Francis 2026-11-28): the Player screen's Fire, Drink, Eat and Stance icons
+  // are in the table, each with the author whose folder holds it in the set's repository, under the plain name the
+  // Credits show, each resolving to its own path. Found by name, not by their place in the table (cs-32).
+  it('holds Fire’s, Drink’s, Eat’s and Stance’s icons, each with its author, resolving', () => {
+    const picked = { 'striking-arrows': ['Lorc', 'Striking arrows'], 'round-bottom-flask': ['Lorc', 'Round flask'], bread: ['Delapouite', 'Bread'], pikeman: ['Delapouite', 'Pikeman'] } as const;
+    expect(SET_ICON_NAMES).toEqual(expect.arrayContaining(Object.keys(picked)));
+    for (const [name, [author, plain]] of Object.entries(picked) as [keyof typeof picked, (typeof picked)[keyof typeof picked]][]) {
+      expect(ICON_SET[name].author.name).toBe(author);
+      expect(ICON_SET[name].plain).toBe(plain);
       const { container, unmount } = render(<Icon name={name} />);
       expect(container.querySelector('path')!.getAttribute('d')).toBe(ICON_SET[name].d);
       unmount();

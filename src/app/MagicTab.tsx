@@ -14,6 +14,7 @@ import type { CampaignSetting } from './campaignSetting.ts';
 import type { characterFigures } from './fromSetting.ts';
 import { prepareSource, PrepareScreen, slotsToFill } from './PrepareScreen.tsx';
 import { registry } from './services.ts';
+import { EntryPinStar } from './player/PlayerTraits.tsx';
 import { spellFacts } from './spellFacts.ts';
 
 type Figures = ReturnType<typeof characterFigures>;
@@ -36,6 +37,75 @@ export const readyAtOnceLine = (empty: number) => (empty === 0 ? 'Ready at once'
 /** The sentence the toast gains on the cast that closes the first spells (fsr-8; 46C): "Mire lamp cast. From now, …". */
 export const castToastText = (name: string, closesFirstSpells: boolean) =>
   closesFirstSpells ? `${name} cast. From now, what you choose is ready after you rest.` : `${name} cast`;
+
+/**
+ * Cast, as the Magic tab casts (mp-6, fsr-8): spends one casting of `spell` at `level` at once, then the toast
+ * (`castToastText`) with Undo, which gives it back. Shared by the tab's rows and sheet and the pinned spell's block At
+ * hand (Player sitting piece 2), so the two places agree.
+ */
+export function useCast({ db, user, character, play, onChanged }: { db: Db; user: CurrentUser; character: MyCharacter; play: CharacterPlay; onChanged: () => void }) {
+  const toast = useToast();
+  async function uncast(spell: string, level: number, name: string) {
+    const result = await runCommand(registry, db, user, uncastSpell, { character, spell, level, name });
+    if (!result.ok) return toast({ text: result.message, error: true });
+    onChanged();
+  }
+  return async function cast(spell: string, level: number, name: string) {
+    // The cast that closes the first spells says so, once (fsr-8): read before it, as the screen last read the play row.
+    const closes = firstSpellsOpen(play);
+    const result = await runCommand(registry, db, user, castSpell, { character, spell, level, name });
+    if (!result.ok) return toast({ text: result.message, error: true });
+    onChanged();
+    toast({ text: castToastText(name, closes), onUndo: () => void uncast(spell, level, name) });
+  };
+}
+
+/**
+ * A spell opened (mockup magic/04, the rules frame; mm-12): in the book's format, its head as the book writes a spell's
+ * (Level, Range, Duration as labelled lines), then its whole description set out as the pack gives it (`RuleText`),
+ * then its page; Cast at its foot when `onCast` is given (a casting left), else "Got it". The Pin star beside ✕, as on
+ * every other sheet (pss-6; any spell in the book, psb-4): the trait sheet's own. Opened by the Magic tab's rows and by
+ * the pinned spell's block's name At hand (Player sitting piece 2), its star filled there.
+ */
+export function SpellSheet({
+  db,
+  user,
+  character,
+  play,
+  facts,
+  choice,
+  spell,
+  onCast,
+  onClose,
+  onChanged,
+}: {
+  db: Db;
+  user: CurrentUser;
+  character: MyCharacter;
+  play: CharacterPlay;
+  facts: ReturnType<typeof spellFacts>;
+  choice: ReturnType<ReturnType<typeof spellFacts>['choiceOf']>;
+  /** The spell's id: its pin's key. */
+  spell: string;
+  onCast: (() => void) | null;
+  onClose: () => void;
+  onChanged: () => void;
+}) {
+  // Its whole description (mm-12): its notes, else its blurb, as the book sets them out.
+  const described = facts.describe(choice);
+  return (
+    <EntryPanel
+      name={choice.name}
+      headAction={<EntryPinStar db={db} user={user} character={character} name={choice.name} kind="spell" pinKey={spell} pins={play.pins} onChanged={onChanged} />}
+      headings={facts.headingsOf(choice).filter((h) => h.label !== 'Rules')}
+      extra={described.blocks.length > 0 ? <RuleText blocks={described.blocks} /> : undefined}
+      source={described.source}
+      onClose={onClose}
+      {...(onCast ? { action: { label: 'Cast', spoken: `Cast ${choice.name}`, icon: 'magic-palm' as const, onAction: onCast } } : { backLabel: 'Got it', backIcon: 'check-mark' as const })}
+      asSheet
+    />
+  );
+}
 
 /**
  * Whether a character gets the Magic tab in the first cut (dec-8 B; mp-20): a caster with spell slots, or anything
@@ -71,7 +141,6 @@ export function MagicTab({
   play: CharacterPlay;
   onChanged: () => void;
 }) {
-  const toast = useToast();
   const [open, setOpen] = useState<string | null>(null);
   const [preparing, setPreparing] = useState(false);
   const slots = slotsOf(figures.filled);
@@ -92,25 +161,11 @@ export function MagicTab({
   const keyOf = (row: MagicTabRow) => `${row.level}:${row.spell}`;
   const rows = levels.flatMap((l) => l.rows);
   const shown = open ? rows.find((r) => keyOf(r) === open) : undefined;
-  // The opened spell's whole description (mm-12): its notes, else its blurb, as the book sets them out.
-  const described = shown ? facts.describe(choiceOf(shown)) : null;
-  const description = described?.blocks ?? [];
 
-  async function uncast(row: MagicTabRow, name: string) {
-    const result = await runCommand(registry, db, user, uncastSpell, { character, spell: row.spell, level: row.level, name });
-    if (!result.ok) return toast({ text: result.message, error: true });
-    onChanged();
-  }
-
-  async function cast(row: MagicTabRow) {
-    const name = choiceOf(row).name;
-    // The cast that closes the first spells says so, once (fsr-8): read before it, as the tab last read the play row.
-    const closes = atOnce;
+  const castSpellNow = useCast({ db, user, character, play, onChanged });
+  function cast(row: MagicTabRow) {
     setOpen(null);
-    const result = await runCommand(registry, db, user, castSpell, { character, spell: row.spell, level: row.level, name });
-    if (!result.ok) return toast({ text: result.message, error: true });
-    onChanged();
-    toast({ text: castToastText(name, closes), onUndo: () => void uncast(row, name) });
+    void castSpellNow(row.spell, row.level, choiceOf(row).name);
   }
 
   const readyRow = (row: MagicTabRow): ReadySpellRow => {
@@ -157,7 +212,7 @@ export function MagicTab({
                   onOpen={setOpen}
                   onCast={(key) => {
                     const row = byKey.get(key);
-                    if (row) void cast(row);
+                    if (row) cast(row);
                   }}
                 />
               );
@@ -168,16 +223,18 @@ export function MagicTab({
           // The spell opened (mockup magic/04, the rules frame; mm-12): in the book's format, its head as the book
           // writes a spell's (Level, Range, Duration as labelled lines), then its whole description set out as the
           // pack gives it (`RuleText`), then its page; Cast at its foot while a casting is left. The sheet's ✕ closes it.
-          <EntryPanel
-            name={choiceOf(shown).name}
-            headings={headingsOf(shown).filter((h) => h.label !== 'Rules')}
-            extra={description.length > 0 ? <RuleText blocks={description} /> : undefined}
-            source={described?.source ?? ''}
+          // The Pin star beside ✕, as on every other sheet (pss-6; any spell in the book, psb-4): the trait sheet's own.
+          <SpellSheet
+            db={db}
+            user={user}
+            character={character}
+            play={play}
+            facts={facts}
+            choice={choiceOf(shown)}
+            spell={shown.spell}
+            onCast={shown.offersCast ? () => cast(shown) : null}
             onClose={() => setOpen(null)}
-            {...(shown.offersCast
-              ? { action: { label: 'Cast', spoken: `Cast ${choiceOf(shown).name}`, icon: 'magic-palm' as const, onAction: () => void cast(shown) } }
-              : { backLabel: 'Got it', backIcon: 'check-mark' as const })}
-            asSheet
+            onChanged={onChanged}
           />
         )}
       </BookType>

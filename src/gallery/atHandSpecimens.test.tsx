@@ -71,7 +71,7 @@ describe('the gallery’s At hand weapon actions', () => {
     expect(stages[12]!.textContent).toContain('Ember arrows, +3 vs bog lurkers');
     expect(stages[12]!.textContent).toContain('Roll 1d20 + 3 to hit');
     expect(stages[12]!.textContent).not.toContain('Not added');
-    expect([...document.querySelectorAll('.button-primary')].map((b) => b.textContent)).toEqual(['Open the quiver']);
+    expect([...document.querySelectorAll('.button-primary')].map((b) => b.textContent)).toEqual(['Quiver']);
   });
 
   // Purpose (tfh-1 to tfh-4; page M2, frames M2l to M2n): the At hand pop-up shows no slot, hands, value or weight; its

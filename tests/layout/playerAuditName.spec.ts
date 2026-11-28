@@ -10,7 +10,11 @@
 //       and the head draws no name.
 //   3e. Every other screen with the standard top row (the Pack tab, the Scene tab) keeps its way back at 176 px or
 //       wider upright, at the narrowest tablet (600 px) too; the Pack tab's bar keeps its title, as no head carries it.
-//   3f. A phone (not drawn) is as built: ≡ at the left, the cut name beside it, no name in the head, nothing sideways.
+//   3f. A phone at 375 px with the long name (#169, frame 47-1, approved 2026-11-28, A1: p47-1): the name leaves the
+//       bar and leads the head's line, whole and wrapping, before "the" kindred and the title, so it shows once; the
+//       bar keeps ≡ at the left and its middle stays empty (the title's box kept, unseen, so the bar does not move);
+//       at standard text and at Larger text.
+//   3h. A phone with a short name: as built, the bar keeps the name and the head's line gives the rest.
 //   3g. Upright, with the long name, while the screen opens (the head not shown yet), the bar keeps its cut name, so the
 //       name always shows somewhere (the review on #154, finding 1).
 //   Each in light and dark, with the shared checks (no sideways scroll, 44 px targets, nothing under 14 px).
@@ -157,15 +161,42 @@ for (const scheme of ['light', 'dark'] as const) {
       });
     }
 
-    test(`phone (not drawn): as built, ≡ and the cut name in the bar, no name in the head (${scheme})`, async ({ page }) => {
-      await openPlayer(page, 'messy', PHONE);
-      // 3f.
-      await expect(page.locator('.top-row--standard .top-row__menu[aria-label="Menu"]')).toBeVisible();
-      await expect(page.locator('.top-row--standard .top-row__lead--worded')).toHaveCount(0);
-      await expect(barTitle(page)).toHaveText(P1_LONG_NAME);
+    for (const text of ['standard', 'larger'] as const) {
+      test(`phone, long name, ${text} text: the name leaves the bar and leads the head's line, once (${scheme})`, async ({ page }) => {
+        if (text === 'larger') await page.addInitScript(() => localStorage.setItem('grimoire.textSize', 'larger'));
+        await openPlayer(page, 'messy', PHONE);
+        // 3f. The bar: ≡ at the left, its title cut and unseen, its box kept (so the bar does not jump).
+        await expect(page.locator('.top-row--standard .top-row__menu[aria-label="Menu"]')).toBeVisible();
+        await expect(page.locator('.top-row--standard .top-row__lead--worded')).toHaveCount(0);
+        await expect(page.locator('.top-row__title--cut')).toHaveCount(1);
+        expect(await drawn(page, '.top-row__title')).toBe(false);
+        expect((await barTitle(page).boundingBox())!.width).toBeGreaterThan(1);
+        // The head: the whole name, drawn, wrapping, every line inside the head's words, then "the" kindred and the
+        // title with no comma after the name (pss-13).
+        await expect(headName(page)).toHaveText(P1_LONG_NAME);
+        expect(await drawn(page, '.player-head h1')).toBe(true);
+        const name = headName(page);
+        const words = (await page.locator('.player-head__words').boundingBox())!;
+        expect(await name.evaluate((el) => getComputedStyle(el).whiteSpace)).toBe('normal');
+        const nameRight = await name.evaluate((el) => Math.max(...[...el.getClientRects()].map((r) => r.right)));
+        expect(nameRight).toBeLessThanOrEqual(words.x + words.width + 0.5);
+        await expect(page.locator('.player-head__words')).toHaveText(/^Brannoch Fenward of the Seven Drowned Cairns, called the Unbowed the [^,]+(, .+)?$/);
+        // "No notices" under the words; one heading carries the name.
+        const box = (await page.locator('.player-head .notices-box').boundingBox())!;
+        expect(box.y).toBeGreaterThanOrEqual(words.y + words.height - 0.5);
+        await expect(page.getByRole('heading', { level: 1, name: P1_LONG_NAME })).toHaveCount(1);
+        expect(await layoutProblems(page)).toEqual([]);
+      });
+    }
+
+    test(`phone, short name: the bar keeps the name and the head's line gives the rest, as built (${scheme})`, async ({ page }) => {
+      await openPlayer(page, '1', PHONE);
+      // 3h.
+      await expect(barTitle(page)).toHaveText('Brannoch Fenward');
       expect(await drawn(page, '.top-row__title')).toBe(true);
-      await expect(page.locator('.player-head__words')).toHaveCount(0);
+      await expect(page.locator('.top-row__title--cut')).toHaveCount(0);
       expect(await drawn(page, '.player-head h1')).toBe(false);
+      await expect(page.locator('.player-head__line')).toHaveText(/^the [^,]+(, .+)?$/);
       expect(await layoutProblems(page)).toEqual([]);
     });
   });

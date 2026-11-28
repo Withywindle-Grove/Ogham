@@ -223,6 +223,24 @@ export function atHandAction(line: InventoryLine, charges: ChargeRules, recharge
 }
 
 /**
+ * Whether At hand's light row carries Use (Player sitting piece 9, frame 47-3; pss-17, C2): the light is lit and its
+ * line is At hand itself (`atHand`, as `atHandLines` gives it) with Use a charge as its action. Then that line's own row
+ * is not drawn, so the lantern shows once. Not lit or burnt out, the line keeps its own row with Use, as built.
+ */
+export function lightCarriesUse(line: InventoryLine | null, lit: boolean, atHand: readonly InventoryLine[], charges: ChargeRules, rechargeDefault = false): boolean {
+  return !!line && lit && atHand.some((l) => l.id === line.id) && atHandAction(line, charges, rechargeDefault) === 'charge';
+}
+
+/**
+ * Whether an At hand line is drawn as a weapon block on the Player screen (frame P5b): a weapon with Attack that is in
+ * hand, every one of them, with no cap (pib-2). A weapon worn ready (horns on the worn slot) keeps Attack but stays an
+ * At hand row, and a weapon not equipped is a row with Wield (pib-1).
+ */
+export function inWeaponBlock(line: InventoryLine, charges: ChargeRules, rechargeDefault = false): boolean {
+  return wornText(line) === 'In hand' && atHandAction(line, charges, rechargeDefault) === 'Attack';
+}
+
+/**
  * What one character carries as the load sees it (bq-5, ga-1): their approved lines, not the ones kept apart
  * (animals, vehicles), in the campaign's mode. The Pack tab, the sheet's Movement and travel all read this.
  */

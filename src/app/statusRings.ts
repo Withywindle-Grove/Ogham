@@ -7,6 +7,7 @@
 import { inUnit, type TimeUnits } from '../modules/expedition/clock.ts';
 import { shownName, timerOf, type CharacterStatus, type Condition, type StatusSecret } from '../modules/expedition/statusPlay.ts';
 import { ringFraction } from '../modules/expedition/statusLook.ts';
+import { isDown } from '../modules/characters/hp.ts';
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
@@ -58,3 +59,19 @@ export function ringView(
   const count = span ? `${left.value} of ${plural(span.value, left.unit)} left${hidden}` : `${plural(left.value, left.unit)} left${hidden}`;
   return { ...base, fraction, endless: false, words: plural(left.value, left.unit), count };
 }
+
+/** One ring in the Player screen's head: "Down", worked out from the hit points (pss-7), or one of the statuses. */
+export type HeadRing = { kind: 'down' } | { kind: 'status'; status: CharacterStatus };
+
+/**
+ * The head's status list (pss-7, psb-2; #165): "Down" first while the character is at or below the rules' `death.at`
+ * (`downAtOf`), then their statuses. Down is worked out each time from the hit points, never stored; with no `death.at`
+ * in the rules, or no hit points set, there is no Down.
+ */
+export function headStatusList(statuses: readonly CharacterStatus[], hp: number | null, downAt: number | null): HeadRing[] {
+  const mine = statuses.map((status): HeadRing => ({ kind: 'status', status }));
+  return isDown(hp, downAt) ? [{ kind: 'down' }, ...mine] : mine;
+}
+
+/** The Down ring's look (psb-1): the skull (Francis, 2026-11-28), the harm tone, no end (the dashed track, no arc). */
+export const DOWN_RING = { name: 'Down', icon: 'skull', tone: 'harm', fraction: null, endless: true } as const;
