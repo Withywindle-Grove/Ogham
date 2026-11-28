@@ -1,6 +1,6 @@
 // A spell's facts as a character's class reads them (dec-8 B and C): shared by the Magic tab and Prepare.
 import type { MyCharacter } from '../core/myCharacters.ts';
-import { spellChoice, spellDescription, spellHeadings } from '../modules/characters/firstSpells.ts';
+import { spellChoice, spellDescription, spellHeadings, spellRollOf } from '../modules/characters/firstSpells.ts';
 import { levelNameOf, levelWord } from '../modules/characters/levelNames.ts';
 import { blocksOfRead } from '../modules/expedition/placeRules.ts';
 import type { CampaignSetting } from './campaignSetting.ts';
@@ -42,5 +42,7 @@ export function spellFacts(setting: CampaignSetting, figures: Pick<Figures, 'kla
     const { text, source } = spellDescription(choice, keys);
     return { blocks: blocksOfRead(text), source };
   };
-  return { packSpells: new Set(spells.map((e) => e.packEntryId)), choiceOf, headingsOf, lineOf, describe, levelTitle };
+  /** Its roll for the pinned spell's block, a rolled duration ("d6+2", "turns"), or null (Player sitting piece 2). */
+  const rollOf = (choice: Choice) => spellRollOf(choice, keys);
+  return { packSpells: new Set(spells.map((e) => e.packEntryId)), choiceOf, headingsOf, lineOf, describe, levelTitle, rollOf };
 }

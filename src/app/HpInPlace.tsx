@@ -26,6 +26,7 @@ export function HpInPlace({
   downAt,
   onSaved,
   onMaxSaved,
+  onShown,
 }: {
   db: Db;
   user: CurrentUser;
@@ -33,6 +34,8 @@ export function HpInPlace({
   /** The HP at which the rules set marks a character Down (`downAtOf`); null: the toast never says Down. */
   downAt: number | null;
   onSaved?: () => void;
+  /** The figure the box shows, each time it moves (a tap, a burst, an Undo, a read): the head's Down ring follows it. */
+  onShown?: (hp: number | null) => void;
   /** The most hit points were set ("Set max", N24), so the character is read again. */
   onMaxSaved?: () => void;
 }) {
@@ -196,6 +199,8 @@ export function HpInPlace({
   const flushOnLeave = useEffectEvent(() => void flush());
   useEffect(() => () => flushOnLeave(), []);
   useEffect(() => takeGiven(given), [given, character]);
+  const tellShown = useEffectEvent((shown: number | null) => onShown?.(shown));
+  useEffect(() => tellShown(hp), [hp]);
 
   return (
     <>

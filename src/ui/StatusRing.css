@@ -112,6 +112,11 @@
   overflow-wrap: anywhere;
 }
 
+/* Variant static: a status with no tap ("Down" until M6 builds the death panel, ruled 2026-11-28): no pointer. */
+.status-ring--static {
+  cursor: default;
+}
+
 /* The Player screen's head (dec-13 C2; frames P1 and P2 of december/14). Bare: the 52 px ring alone, its name and
    time in its label and on the tap. */
 .status-ring--bare {

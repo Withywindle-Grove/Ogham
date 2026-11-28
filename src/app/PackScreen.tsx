@@ -99,6 +99,7 @@ function PackTab({
   onRead,
   inBar = false,
   extra = null,
+  first = null,
   stashOpen,
   onStash,
 }: {
@@ -121,6 +122,11 @@ function PackTab({
    * the light; null or nothing when there are none. The section shows whenever there are items, the light or these.
    */
   extra?: ReactNode;
+  /**
+   * At hand only (Player sitting piece 2; pg28-2, frame M4g): what comes first inside At hand, before its items: the
+   * Player screen's pinned spells' blocks. Null when there are none; with it, the section shows.
+   */
+  first?: ReactNode;
   /** Told once the pack's read has answered (read or failed): the Player screen's one loading state waits for it (C11). */
   onRead?: (() => void) | undefined;
   /**
@@ -397,7 +403,7 @@ function PackTab({
     // Against every At hand line, the weapon in hand's too: a lit line drawn as the block already has its sheet there,
     // so At hand never adds a second one for it (dec-13 C6).
     const litAlone = !!litLine && !pins.some((l) => l.id === litLine.id);
-    const atHandShown = rest.length > 0 || !!litLight || !!extra;
+    const atHandShown = rest.length > 0 || !!litLight || !!extra || !!first;
     if (inHand.length === 0 && !atHandShown) return null;
     const items = (lines: InventoryLine[], only: { inHand?: boolean; sheetOnly?: string | null; sheetAlone?: boolean }) =>
       ready && (
@@ -450,6 +456,8 @@ function PackTab({
       {atHandShown && (
         <section className="pack pack--at-hand" aria-label="At hand">
           <h2 className="pack__group-title">At hand</h2>
+          {/* The pinned spells first, then the items, then the light (pg28-2, frame M4g). */}
+          {first}
           {/* No item list when nothing is left for it: the lit line drawn as the weapon in hand has its sheet there. */}
           {(rest.length > 0 || (litLine && litAlone)) &&
             items(litLine && litAlone ? [...rest, litLine] : rest, {

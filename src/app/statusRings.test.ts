@@ -6,10 +6,13 @@
 //   0 left: an empty ring, "ran out"; 999 left: its words.
 //   A secret timer: a player gets the track with no arc and "time hidden"; the GM gets the time, marked hidden.
 //   ⚑ 1 (proposed answer): a timer in a unit the ring can't read is dashed, with the words the app has.
+//   The head's list (pss-7, psb-2; #165): at or below the rules' `death.at` "Down" leads the statuses; above it, or with
+//   no `death.at`, or no hit points set, there is no Down; Down is worked out from the hit points, never stored.
+//   The Down ring (psb-1): the skull, the harm tone, no end (the dashed track, no arc), no time in words.
 import { describe, expect, it } from 'vitest';
 import type { CharacterStatus, Condition, StatusSecret } from '../modules/expedition/statusPlay.ts';
 import { timeUnits } from '../modules/expedition/clock.ts';
-import { ringView } from './statusRings.ts';
+import { DOWN_RING, headStatusList, ringView } from './statusRings.ts';
 
 const TURN = 600;
 const units = timeUnits({ roundSeconds: 10, turnMinutes: 10, dayHours: 24, turnsPerHour: 6 }, []);
@@ -93,5 +96,38 @@ describe('⚑ 1: a clock unit the ring cannot read', () => {
     expect(view.endless).toBe(true);
     expect(view.fraction).toBeNull();
     expect(view.words).toBe('60 minutes');
+  });
+});
+
+describe("the head's status list with Down", () => {
+  const two = [status({ id: 'st-1' }), status({ id: 'st-2', name: 'Mist-dazed' })];
+  const kinds = (list: ReturnType<typeof headStatusList>) => list.map((r) => (r.kind === 'down' ? 'Down' : r.status.id));
+
+  it('at death.at: Down first, then the statuses', () => {
+    expect(kinds(headStatusList(two, 0, 0))).toEqual(['Down', 'st-1', 'st-2']);
+  });
+
+  it('below death.at: Down first', () => {
+    expect(kinds(headStatusList(two, -3, 0))).toEqual(['Down', 'st-1', 'st-2']);
+    // A setting that marks Down below 0 counts from its own number.
+    expect(kinds(headStatusList([], -3, -3))).toEqual(['Down']);
+  });
+
+  it('above death.at: no Down', () => {
+    expect(kinds(headStatusList(two, 1, 0))).toEqual(['st-1', 'st-2']);
+    expect(kinds(headStatusList([], 0, -3))).toEqual([]);
+  });
+
+  it('with no death.at in the rules: no Down, even at 0 or below', () => {
+    expect(kinds(headStatusList(two, 0, null))).toEqual(['st-1', 'st-2']);
+    expect(kinds(headStatusList([], -5, null))).toEqual([]);
+  });
+
+  it('with no hit points set: no Down', () => {
+    expect(kinds(headStatusList(two, null, 0))).toEqual(['st-1', 'st-2']);
+  });
+
+  it('the Down ring: the skull in the harm tone, no end, no time in words', () => {
+    expect(DOWN_RING).toEqual({ name: 'Down', icon: 'skull', tone: 'harm', fraction: null, endless: true });
   });
 });

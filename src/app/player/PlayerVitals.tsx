@@ -44,6 +44,7 @@ export function PlayerVitals({
   onSaved,
   onMaxSaved,
   onAcSaved,
+  onHpShown,
 }: {
   db: Db;
   user: CurrentUser;
@@ -63,6 +64,8 @@ export function PlayerVitals({
   onMaxSaved?: () => void;
   /** The AC was set by hand or cleared, so the play state is read again. */
   onAcSaved?: () => void;
+  /** The hit points the box shows, each time they move (the head's Down ring, pss-7). */
+  onHpShown?: (hp: number | null) => void;
 }) {
   const toast = useToast();
   const seesAsGm = useSeesAsGm(user, character.campaignId);
@@ -181,7 +184,7 @@ export function PlayerVitals({
 
   return (
     <section className="vitals" aria-label="Vitals">
-      <HpInPlace db={db} user={user} character={character} downAt={downAt} onSaved={onSaved} onMaxSaved={onMaxSaved} />
+      <HpInPlace db={db} user={user} character={character} downAt={downAt} onSaved={onSaved} onMaxSaved={onMaxSaved} onShown={onHpShown} />
       {(showAc || attackShown !== null) && (
         <StatRow>
           {showAc &&
