@@ -101,7 +101,19 @@ export function CallFoldedRow({ send, startOpen = false }: { send: CallSend; /**
 /** No calls yet (the first read still on its way, or none sent): the slot holds its empty live region (last audit, new 1). */
 const NO_CALLS: CallsInSlot = { card: null, count: null, folded: [] };
 
-export function CallsInPromptSlot({ calls: read, onGotIt }: { calls: CallsInSlot | null; onGotIt: (send: CallSend) => void }) {
+export function CallsInPromptSlot({
+  calls: read,
+  onGotIt,
+  find = null,
+}: {
+  calls: CallsInSlot | null;
+  onGotIt: (send: CallSend) => void;
+  /**
+   * The find card (K18d; p45-23), drawn with `live={false}`: it shares the calls' one place, one of the two at a time.
+   * While it is there the call card waits, and shows after its "Got it". The folded rows stay under it.
+   */
+  find?: ReactNode;
+}) {
   const calls = read ?? NO_CALLS;
   const slot = useRef<HTMLDivElement>(null);
   // The call whose "Got it" was pressed, until it folds (a refused one never does, and focus stays where it is).
@@ -118,16 +130,29 @@ export function CallsInPromptSlot({ calls: read, onGotIt }: { calls: CallsInSlot
     const next = root.querySelector<HTMLElement>('.call-card__got-it') ?? [...root.querySelectorAll<HTMLElement>('.call-fold')].find((row) => row.dataset.sendId === id);
     next?.focus();
   }, [calls]);
-  const card = calls.card;
-  const empty = !card && calls.folded.length === 0;
+  // After the find card's "Got it" its button goes: focus, if it fell to the page, moves to the waiting call's "Got it".
+  const hadFind = useRef(false);
+  useEffect(() => {
+    const had = hadFind.current;
+    hadFind.current = !!find;
+    if (!had || find) return;
+    const active = document.activeElement;
+    if (active && active !== document.body) return;
+    slot.current?.querySelector<HTMLElement>('.call-card__got-it')?.focus();
+  }, [find]);
+  const card = find ? null : calls.card;
+  const empty = !find && !card && calls.folded.length === 0;
+  // The group is named for the calls: with only a find card in the place, there is none to name.
+  const grouped = !!card || calls.folded.length > 0;
   // One live region for the slot (audit finding 2, re-audit finding 3): it stays while the cards change, so a new card's
   // words are a change inside a region the screen reader already watches, and the next call is announced. It is empty,
   // and takes no room, when only folded rows are left; a card reopened from its row sits outside it. With no calls at
   // all it is still drawn (Home Two's last audit, new 1), empty and without room or a group to name, so the session's
   // first call is a change inside it too, not a region arriving with its card already in it.
   return (
-    <div ref={slot} className={`calls-slot${empty ? ' calls-slot--empty' : ''}`} role={empty ? undefined : 'group'} aria-label={empty ? undefined : 'Calls to adventure'}>
+    <div ref={slot} className={`calls-slot${empty ? ' calls-slot--empty' : ''}`} role={grouped ? 'group' : undefined} aria-label={grouped ? 'Calls to adventure' : undefined}>
       <div className="calls-slot__live" role="status">
+        {find}
         {card && (
           <CallCard
             key={card.id}
