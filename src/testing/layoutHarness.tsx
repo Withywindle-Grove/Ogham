@@ -28,7 +28,8 @@
 //   &lights=several    two reed lamps beside Wren's rushlights (the pick "Which light?")
 //   &finds=1    new until Got it (K20b): the GM has just sent a Bronze ring to Wren (his send, K16b); `two` two pearls
 //               onto her six as well (his Add item, which joins the stack); `many` six things (the card's "and N
-//               more"); `long` one long name; `none` nothing yet; with &coin=1 (K21b), `coin` 240 herons alone (FD4),
+//               more"); `hundred` a hundred things (the Pack's count past 99, "99+", K19b); `long` one long name;
+//               `none` nothing yet; with &coin=1 (K21b), `coin` 240 herons alone (FD4),
 //               `cap` 3 crowns and 999,999,969 herons in one send, her herons at their cap (FD4b B), `hoard` 240
 //               herons, two moon opals, four boat hooks and a hooded lantern in one send (FD5b). The page then offers
 //               `window.__findArrives(name)` and
@@ -535,11 +536,13 @@ if (findsFlag) {
   const names =
     findsFlag === 'many'
       ? ['Silver key', 'Boat hooks', 'Hooded lantern', 'Moon opals', 'Bronze ring', 'Eel trap']
-      : findsFlag === 'long'
-        ? ['The Old Lantern of the Drowned and of the Nine Tides']
-        : findsFlag === 'none'
-          ? []
-          : ['Bronze ring'];
+      : findsFlag === 'hundred'
+        ? Array.from({ length: 100 }, (_, n) => `Reed token ${n + 1}`)
+        : findsFlag === 'long'
+          ? ['The Old Lantern of the Drowned and of the Nine Tides']
+          : findsFlag === 'none'
+            ? []
+            : ['Bronze ring'];
   // Coin in a send (K21b): the GM's send of a hoard's coin, alone or with things (FD4, FD4b B, FD5b).
   const coinSends: Record<string, { things: { name: string; qty: number }[]; coins: Record<string, number> }> = {
     coin: { things: [], coins: { heron: 240 } },
