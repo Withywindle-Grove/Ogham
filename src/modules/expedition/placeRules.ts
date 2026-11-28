@@ -8,12 +8,14 @@
 //   `replacesScheduled`, it stands in for the setting's scheduled encounter check while the party is there (pf-12b),
 //   unless the GM has switched it off (rg-5: a toggle on its line, on by default, logged with Undo). A check that says
 //   nothing sits beside the setting's (rg-4), so the setting's stays in force.
+//   A pack's `"encounterCheck": { "none": true }` (G-27, dg-1 to dg-4) is a stand-in check that never comes due.
 //   The rules: open to players once the place is shown to them (mc-51), except a rule the pack marks `gmOnly` (pf-12d),
 //   which never reaches a player and can't be opened (rp-3); the GM's eye closes or reopens any other rule (logged, with
 //   Undo). What a player's device receives is
 //   decided by the database (public.place_rules_for_players, public.encounter_check_for_players); the functions here
 //   are the GM's view of the same rules and the words both screens show. Pure, apart from the loaders and commands.
 import { defineCommand, fromError, isGm, ok, type CommandResult, type CurrentUser } from '../../core/commands.ts';
+import { possessive } from '../../core/nameWords.ts';
 import type { Db } from '../../core/supabase.ts';
 import { plainLinks } from '../library/linkMarks.ts';
 import { readsAs } from './placePlay.ts';
@@ -217,6 +219,11 @@ export interface PlaceCheck {
   replaces: boolean;
   /** It stands in now: it replaces, and the GM hasn't switched it off (rg-5). */
   inForce: boolean;
+  /**
+   * The pack's `"encounterCheck": { "none": true }` (G-27, dg-1, dg-2): a stand-in that never comes due. It has no
+   * chance, no table and no `when`; it replaces; its name is NO_ENCOUNTERS_NAME.
+   */
+  none: boolean;
   /** Its name (`checkNameOf`): the check's own, else its table's, else "Encounter check"; `check.name` is the same. */
   name: string;
   /**
@@ -245,6 +252,9 @@ export function checkNameOf(own: string, tableName?: string | null): string {
   return own.trim() || tableName?.trim() || UNNAMED_CHECK;
 }
 
+/** A "none" check's name (G-27, dg-17): the switch's toasts and the GM's log say it. */
+export const NO_ENCOUNTERS_NAME = 'No encounters here';
+
 /**
  * The check of the nearest place in the chain that has one; null when none has. Its id is the pack's, else
  * "<place>-check" (kept apart from every other check's); its name is never that id (`checkNameOf`): `tableName` reads
@@ -254,14 +264,31 @@ export function placeCheckOf(chain: readonly ChainEntry[], switches: readonly Ru
   const owner = chain.find((e) => isObject(e.data.encounterCheck));
   if (!owner) return null;
   const raw = owner.data.encounterCheck as Record<string, unknown>;
+  const off = switchOf(switches, owner.packId, owner.entryId, CHECK_RULE_ID, 'inForce') === false;
+  // A `none` that isn't `true` is no check at all (dg-1; pack:check warns on it).
+  if ('none' in raw && raw.none !== true) return null;
+  if (raw.none === true) {
+    const check: Check = { ...readCheck({ id: `${owner.entryId}-check` })!, name: NO_ENCOUNTERS_NAME };
+    return { owner, check, eachMove: false, replaces: true, inForce: !off, none: true, name: NO_ENCOUNTERS_NAME, sentence: checkSentenceOf(raw) };
+  }
   const eachMove = raw.when === 'eachMove';
   const read = readCheck({ ...raw, id: typeof raw.id === 'string' ? raw.id : `${owner.entryId}-check`, when: eachMove ? null : raw.when });
   if (!read) return null;
   const name = checkNameOf(words(raw.name), read.onHit.tableId ? tableName?.(read.onHit.tableId) : null);
   const check = { ...read, name };
   const replaces = raw.replacesScheduled === true;
-  const off = switchOf(switches, owner.packId, owner.entryId, CHECK_RULE_ID, 'inForce') === false;
-  return { owner, check, eachMove, replaces, inForce: replaces && !off, name, sentence: checkSentenceOf(raw) };
+  return { owner, check, eachMove, replaces, inForce: replaces && !off, none: false, name, sentence: checkSentenceOf(raw) };
+}
+
+/**
+ * A "none" check's card (G-27, dg-3; dg-17 findings 2 and 4), on the place page's "Checks here" and the Rules sheet:
+ * in force, "No encounters here." over the pack's sentence and whose rule it is only; switched off, "Encounters as usual
+ * here." over the setting's check applying again. `setting` is "the setting's <check>", as the built toasts say it.
+ */
+export function noEncountersWords(check: Pick<PlaceCheck, 'owner' | 'inForce' | 'sentence'>, setting: string): { title: string; line: string } {
+  if (!check.inForce) return { title: 'Encounters as usual here.', line: `${setting.charAt(0).toUpperCase()}${setting.slice(1)} applies here again, until you switch this back.` };
+  const own = `${possessive(check.owner.name)} own rule.`;
+  return { title: 'No encounters here.', line: check.sentence ? `${check.sentence} ${own}` : own };
 }
 
 /**

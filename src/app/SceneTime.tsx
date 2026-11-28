@@ -23,6 +23,7 @@
 // (useSticky) and links there when something is on it.
 import { partyMembersOf } from './partyMembers.ts';
 import { STORED_SEPARATOR } from '../core/storedWords.ts';
+import { possessive } from '../core/nameWords.ts';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { isGm, runCommand, type Command, type CurrentUser } from '../core/commands.ts';
 import { loadCampaignSettings, updateCampaign } from '../core/campaignCommands.ts';
@@ -135,7 +136,7 @@ import { advanceBy, checkNow, encounterCheckOf, hourTrackNow, needsSeason, nextS
 import { Dialog, SheetScope } from '../ui/Dialog.tsx';
 import { BookFaces } from '../ui/BookFaces.tsx';
 import { DiceWords } from '../ui/dice.tsx';
-import { bandHeading, checkFact, checkSheetLines, checkRule, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, lightSheetLines, NO_LIGHT_WORDS, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, restSheetLines, seasonIconOf, settingRule, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
+import { bandHeading, checkFact, checkSheetLines, checkRule, dateWords, DEPART_LABEL, departAreaName, departMethodOf, departModeOf, lightFact, lightLeftWords, lightSheetLines, NO_LIGHT_WORDS, noneCheckFact, partOfDayFact, partOfDayWords, partyInSettlement, placeMethodOf, regionOfChain, restEveryWords, restFact, restSheetLines, seasonIconOf, settingRule, sessionLine, sessionStateOf, showsDowntimeTop, showsTownTop, TOWN_STEP_LABEL, weatherFact, type Fact } from '../modules/expedition/sceneTop.ts';
 import { ENCOUNTER_MARK } from './encounterMark.ts';
 import { BandTool, BandTools, DepartButton, FactSheet, FactsRow, NextTurnButton, SceneBand, SessionButton, type DateLine } from './SceneBand.tsx';
 import { useSceneTopOpen } from './sceneTopOpen.ts';
@@ -681,6 +682,8 @@ export function SceneTime({
     () => (placeCheckRead ? placeCheckOf(placeCheckRead.chain, placeCheckRead.switches, (id) => tables.get(id)?.name ?? null) : null),
     [placeCheckRead, tables],
   );
+  // A place whose "none" is in force (G-27, dg-2): nothing comes due, and a move asks for no check (dg-4).
+  const noneHere = placeCheck?.inForce === true && placeCheck.none;
 
   useEffect(() => {
     let current = true;
@@ -909,8 +912,10 @@ export function SceneTime({
             party: partyMembersOf(setting, marchers),
             // A place's own check standing in (pf-12b; off with the GM's toggle, rg-5); one rolled on each move is
             // never raised by the clock (Encounter check in ⋯ still rolls it by hand).
-            locationCheck: placeCheck?.inForce ? placeCheck.check : null,
-            locationCheckOnMove: placeCheck?.inForce ? placeCheck.eachMove : false,
+            // A place's "none" in force (G-27, dg-2) stands in too, and never comes due.
+            locationCheck: placeCheck?.inForce && !placeCheck.none ? placeCheck.check : null,
+            locationCheckOnMove: placeCheck?.inForce && !placeCheck.none ? placeCheck.eachMove : false,
+            locationNone: noneHere,
           },
         }
       : null;
@@ -1448,6 +1453,7 @@ export function SceneTime({
   /** The lines of a move's encounter check (dec-4 piece d), one per group, at the time the move lands. */
   function moveCheckLines(command: MoveCommand, at: number): CardLine[] {
     const through = command.moveOn.throughCheck ?? null;
+    if (noneHere && !through) return [];
     const base = running();
     // The move's own check by name, with the passing place's chance and table (frame 13: "Encounter check, with the
     // breakwater’s chance").
@@ -1462,7 +1468,7 @@ export function SceneTime({
   // this render's mover and check on the GM's full strip (not the compact one); `move` resolves true only once the
   // clock has moved.
   const moveCheckEngine = gm && !compact ? checkEngine(running()) : null;
-  const moveCheckFirst = moveCheckEngine ? checkNow(moveCheckEngine).prompts.find((p) => p.kind === 'check') : undefined;
+  const moveCheckFirst = moveCheckEngine && !noneHere ? checkNow(moveCheckEngine).prompts.find((p) => p.kind === 'check') : undefined;
   // A check with a table and no chance is a roll on that table (p2p-19, B9): the sheet's Then line names the table.
   const moveRollTable = moveCheckFirst && moveCheckFirst.kind === 'check' && moveCheckFirst.always ? moveCheckFirst.hit.tables[0] : undefined;
   const moveRoll = moveRollTable ? (tables.get(moveRollTable)?.name ?? null) : null;
@@ -2168,6 +2174,7 @@ export function SceneTime({
             // it's rolled and its chance only), else the setting's from the rules set as the player's copy has it.
             const shownCheck = gm ? undefined : playersChecks.find((c) => c.group === myGroupNumber);
             if (shownCheck) return checkFact({ name: null, eachMove: shownCheck.eachMove, every: shownCheck.every, chance: shownCheck.chance, fallbackUnit: stepWord });
+            if (gm && noneHere) return noneCheckFact();
             const inForce = engine ? encounterCheckOf(engine) : null;
             if (!inForce) return null;
             return checkFact({ name: inForce.source === 'location' ? (placeCheck?.name ?? null) : null, eachMove: inForce.eachMove, every: inForce.check.every, chance: inForce.check.chance, fallbackUnit: stepWord });
@@ -2944,7 +2951,7 @@ export function SceneTime({
           {asking === 'check' && bandCheck && gm && (
             <Dialog label={bandCheck.label} onClose={() => setAsking(null)}>
               <p className="time-strip__notes">
-                <DiceWords>{`${bandCheck.value}${bandCheck.sub ? `, ${bandCheck.sub}` : ''}.`}</DiceWords>
+                <DiceWords>{gm && noneHere && placeCheck ? `${bandCheck.value}. ${possessive(placeCheck.owner.name)} own rule.` : `${bandCheck.value}${bandCheck.sub ? `, ${bandCheck.sub}` : ''}.`}</DiceWords>
               </p>            </Dialog>
           )}
           {asking === 'checklist' && mode && <ProcedureList mode={mode} card={card} recorded={recorded} gm={gm} onClose={() => setAsking(null)} />}

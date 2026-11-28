@@ -4,7 +4,8 @@
 //   warning when a rule kept for the GM also carries a `button`; and its `button` (pf-12e): words, or { icon, words? },
 //   with a note for an icon the app's set doesn't have;
 // - an encounter check's `name` (rp-6; `locations[].encounterCheck.name`): words when given; absent is fine (the app
-//   says "Encounter check");
+//   says "Encounter check"); its `none` (G-27, dg-1): a warning when it isn't true, or when a chance, tableId,
+//   tableRef, every or byTrack stands beside it;
 // - a coin's `unitName` and `pluralName` (pf-17; `rulesSets[].currency[]`): words when given, a warning when one comes
 //   without the other (the app uses them only together), and an error for a key listed twice in one list;
 // - an item category's `singular` and an item's `looks` (K22, ⚑ 4 and ⚑ 5, 2026-11-22): words when given, else a warning;
@@ -35,6 +36,9 @@ function buttonFindings(button, at) {
   return found;
 }
 
+/** What a check that comes due gives, so a "none" beside it contradicts itself (dg-1). */
+const NONE_CONTRADICTS = ['chance', 'tableId', 'tableRef', 'every', 'byTrack'];
+
 function placeFindings(file) {
   const found = [];
   for (const place of entriesOf(file, 'locations')) {
@@ -50,6 +54,12 @@ function placeFindings(file) {
     }
     const check = place.encounterCheck;
     if (isObject(check) && check.name !== undefined && !isText(check.name)) found.push({ level: 'error', text: `${where}: encounterCheck.name should be words; leave it out and the app says "Encounter check".` });
+    // A place with no encounters (G-27, dg-1): `"none": true`, with only a `note` and a `name` beside it.
+    if (isObject(check) && check.none !== undefined) {
+      if (check.none !== true) found.push({ level: 'warning', text: `${where}: encounterCheck.none should be true (leave it out for a check that comes due); the app reads this check as no check at all.` });
+      const beside = NONE_CONTRADICTS.filter((key) => check[key] !== undefined && check[key] !== null);
+      if (check.none === true && beside.length > 0) found.push({ level: 'warning', text: `${where}: encounterCheck says "none" but also gives ${beside.join(', ')}; a "none" check never comes due, so leave them out (or drop "none").` });
+    }
   }
   return found;
 }
