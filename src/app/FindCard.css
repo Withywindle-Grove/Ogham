@@ -177,3 +177,9 @@
 .find-card__more + .find-card__foot {
   margin-block-start: var(--space-2);
 }
+
+/* The card's host off the Pack (K18c, `useTabFindCard`): no box of its own, so the card and its empty live region sit
+   in the column as the Pack's do; the host only measures the card to keep the reader's scroll position (p45-19). */
+.find-card-host {
+  display: contents;
+}

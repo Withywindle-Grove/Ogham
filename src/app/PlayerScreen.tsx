@@ -54,6 +54,7 @@ import { playerFigures } from './player/playerFigures.ts';
 import { PlayerStateLine } from './player/PlayerStates.tsx';
 import { usePlayerView } from './playerView.ts';
 import { usePackFinds } from './packFinds.ts';
+import { useTabFindCard } from './FindCardHost.tsx';
 import { findsCount } from '../modules/characters/findsSeen.ts';
 
 type Tab = Exclude<PlayerTab, 'log'>;
@@ -132,7 +133,7 @@ export function PlayerScreen({
   }, [view, campaign.id, tab]);
   const phone = usePhone();
   // What is new for the character (K19b, K18c): the screen's one read, its own player's only; none in the GM's view (#158 ⚑ 4).
-  const finds = usePackFinds(db, user, campaign.id, view ? null : character.id);
+  const [finds, findsSeen] = usePackFinds(db, user, campaign.id, view ? null : character.id);
   const packNew = finds ? findsCount(finds.entries) : 0;
   const messaging = useMessaging();
   const waiting = messaging && messaging.user.roles[campaign.id] !== 'gm' ? messaging.unread : 0;
@@ -147,6 +148,18 @@ export function PlayerScreen({
     logOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setLogOpen(true);
   };
+  // "and N more" on any tab, the Scene's too (K18c, K18d, p45-16): the Pack, at its new rows.
+  const [packToNew, setPackToNew] = useState(false);
+  // (The stash's own screen is already shut: it closes whenever another tab shows.)
+  const openPackAtNew = () => {
+    setLogOpen(false);
+    setTab('pack');
+    setPackToNew(true);
+  };
+  // The find card on every tab but the Scene and the Pack (K18c): one node, placed below by the tab and the width.
+  const findCard = useTabFindCard({ db, user, finds, onSeen: findsSeen, onOpenPack: openPackAtNew });
+  // While the log is open over the tab, the card is in the log only: one status region at a time.
+  const tabCard = logOpen ? null : findCard;
   // B15 (M5 gate): on a landscape tablet the left column folds to icons, remembered on this device.
   const [navCollapsed, setNavFolded] = useNavCollapsed();
   const [setting, setSetting] = useState<CampaignSetting | null>(null);
@@ -392,7 +405,8 @@ export function PlayerScreen({
   // uses; the sheet's skills and languages; then the rest of the sheet's rows, on a phone too (tfr-5).
   const rightColumn = (
     <>
-      {/* Beside, the notices box at the top, over Scores (frame M1a). */}
+      {/* Beside, the find card first (l4-5, 51-2 A), then the notices box, over Scores (frame M1a). */}
+      {wide && tabCard}
       {wide && <div className="player__notices" ref={setNoticesSlot} />}
       <div className="player__slot" ref={setTopSlot} />
       <div className="player__slot" ref={setTraitsSlot} />
@@ -414,6 +428,8 @@ export function PlayerScreen({
       )}
       {logOpen && (
         <LogSheet
+          // The phone's Log is one of its tabs: the card heads it as it heads the others (K18c).
+          above={findCard}
           onClose={() => {
             setLogOpen(false);
             logOpener.current?.focus({ preventScroll: true });
@@ -442,6 +458,8 @@ export function PlayerScreen({
           {failed && <PlayerStateLine state={{ kind: 'failed', onTryAgain: tryAgain }} />}
           {/* Every part stays mounted, so its read runs, and hidden until the first open. */}
           <div className="player__opened" hidden={!opened}>
+          {/* In one column the find card stands above the head, even with a long name (l4-4, 51-1 A). */}
+          {!wide && tabCard}
           {/* Offline on the device's stored copy of the rules (ruled 2026-11-07, ⚑ 4 B). */}
           {setting?.asOf && <PlayerStateLine state={{ kind: 'offline', asOf: setting.asOf }} />}
           <TabPopUps>
@@ -513,7 +531,11 @@ export function PlayerScreen({
           </div>
           </>
         ) : current === 'magic' && setting && play ? (
-          <MagicTab db={db} user={user} character={character} setting={setting} figures={figures} play={play} onChanged={() => setPlayVersion((v) => v + 1)} />
+          <>
+            {/* In one column, the find card above the tab's own content (FD1c B). */}
+            {!wide && tabCard}
+            <MagicTab db={db} user={user} character={character} setting={setting} figures={figures} play={play} onChanged={() => setPlayVersion((v) => v + 1)} />
+          </>
         ) : tab === 'scene' ? (
           // The players' live table view (B18, M5 gate): the time band, the prompt slot (the rest prompt, a request, a
           // message from the GM: the silent card, B3; No light; the weather), the marching order as tiles with Rest
@@ -525,6 +547,7 @@ export function PlayerScreen({
               user={user}
               campaign={campaign}
               player={scenePlayer}
+              onOpenPack={openPackAtNew}
               tableView={{
                 prompts: [
                   <PlayerRequests key="requests" db={db} user={user} campaign={campaign} setting={setting} player={scenePlayer} />,
@@ -550,6 +573,8 @@ export function PlayerScreen({
             stashOpen={stashOpen}
             onStash={setStashOpen}
             onChanged={onDataChange}
+            toNew={packToNew}
+            onToNew={() => setPackToNew(false)}
             side={wide ? packSide : null}
             weaponLine={weaponLine}
             weaponBreakdown={weaponParts}
@@ -571,6 +596,8 @@ export function PlayerScreen({
       {wide && current === 'magic' && (
         <SheetScope.Provider value>
           <div className="player__aside">
+            {/* The find card heads the right column (p45-2, FD1b). */}
+            {tabCard}
             <CharacterSheet db={db} user={user} characterId={character.id} refreshKey={sheetRefresh} {...(onSheetSaved ? { onSaved: onSheetSaved } : {})} />
           </div>
         </SheetScope.Provider>

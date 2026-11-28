@@ -123,11 +123,12 @@ export function LogButton() {
 }
 
 /** The whole log, full screen: from the top row's Log, and from the Log tab in a phone's tab bar (slice E). */
-export function LogSheet({ onClose }: { onClose: () => void }) {
+export function LogSheet({ onClose, above = null }: { onClose: () => void; /** What heads the log, above its lines: the find card on the phone's Log tab (K18c). */ above?: ReactNode }) {
   const log = useContext(Context);
   if (!log) return null;
   return (
     <LogPanel onClose={onClose}>
+      {above}
       <LogView db={log.db} user={log.user} campaignId={log.campaignId} onChanged={log.changed} />
     </LogPanel>
   );

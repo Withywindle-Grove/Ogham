@@ -34,6 +34,7 @@
 //               herons, two moon opals, four boat hooks and a hooded lantern in one send (FD5b). The page then offers
 //               `window.__findArrives(name)` and
 //               `window.__gmUndoesFind()`, the GM's send and its Undo while the page is open
+//               &longName=1 (K18c, page 51's 51-1): Wren's name made long, the card above it on a phone's Player tab
 //   ?placeCard=1 the players' place card (P4): the Location's card and the Area's in the page's two columns; `bare` the
 //               Area never shown, `messy` long names and 999; `gm` the GM's Knowledge sheet with its eyes
 //   ?knowledge=1 a place's Knowledge sheet open (dec-7 piece 6a), wired to no screen: `one` a lone section (open at
@@ -519,6 +520,7 @@ if (findsFlag) {
   const { addItem } = await import('../modules/inventory/inventory.ts');
   const { giveFind, undoFind } = await import('../modules/expedition/findSend.ts');
   world.tables.places.push({ id: 'place-drowned-shrine', campaign_id: campaign, name: 'The drowned shrine', description: '', pack_entry_id: null, version: 1, undone: false, created_by: gm, created_at: '2026-10-23T09:00:00Z', updated_at: '2026-10-23T09:00:00Z' });
+  if (new URLSearchParams(window.location.search).get('longName')) world.tables.actors.find((a) => a.id === wren)!.name = 'Wren Fenward of the Seven Drowned Cairns, called the Unbowed';
   const sent: string[] = [];
   const registry = createAppRegistry();
   const asGm = { id: gm, roles: { [campaign]: 'gm' as const } };

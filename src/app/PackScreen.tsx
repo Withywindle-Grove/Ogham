@@ -111,7 +111,15 @@ function PackTab({
   first = null,
   stashOpen,
   onStash,
+  toNew = false,
+  onToNew,
 }: {
+  /**
+   * Open at the new rows (K18c, p45-16: "and N more" on another tab): once what is new is read, the first new row is
+   * brought into view, then `onToNew` says it is done.
+   */
+  toNew?: boolean;
+  onToNew?: () => void;
   /**
    * The party stash's own screen is open (K11, pk-4): held by the screen around the Pack where its bar names the stash
    * (the Player screen); left out, the Pack keeps it itself.
@@ -375,6 +383,12 @@ function PackTab({
   useLayoutEffect(() => {
     anchor.current = anchorIn(listRef.current);
   });
+  useEffect(() => {
+    if (!toNew || !answered) return;
+    const tag = listRef.current?.querySelector('.pack__new');
+    (tag?.closest('li') ?? tag)?.scrollIntoView?.({ block: 'center' });
+    onToNew?.();
+  }, [toNew, answered, onToNew]);
   useEffect(() => {
     const note = () => {
       anchor.current = anchorIn(listRef.current);

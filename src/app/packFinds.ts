@@ -1,7 +1,7 @@
 // What is new on a character's Pack (K20b of docs/plans/dec-6-the-whole-pack-tab.md; page 45, approved 2026-11-26), read
 // for the Pack tab and shared with K18c, K18d and K19b, which need the same entries; and the scroll hold's anchor row.
 // Moved out of PackScreen.tsx (local review of #158, finding 4), unchanged but for the read's two halves (finding 3).
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { loadCampaignSettings } from '../core/campaignCommands.ts';
 import type { CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
@@ -10,7 +10,8 @@ import { findsSince, loadFindsRead, markFindsSeen, type FindEntry, type FindsRea
 import { readClock } from '../modules/expedition/clock.ts';
 import { loadClockNow } from '../modules/expedition/lightPlay.ts';
 import { campaignUnits } from '../modules/expedition/play.ts';
-import { loadInventory, type InventoryLine } from '../modules/inventory/inventory.ts';
+import { coinLine, denominationsOf } from '../modules/inventory/coinWords.ts';
+import { loadCarriers, loadInventory, type InventoryLine } from '../modules/inventory/inventory.ts';
 import { secondsAt, whenWords } from '../modules/inventory/stashHistory.ts';
 import { useLogVersion } from './campaignLog.tsx';
 import { loadCampaignSetting } from './campaignSetting.ts';
@@ -84,23 +85,48 @@ export async function loadPackFinds(
   return read && packFindsOf(read, lines, rulesSets);
 }
 
+/** What the Player screen's card needs beside K20a's entries (K18c): the givers' names and the coin's words. */
+export interface PlayerFinds extends PackFinds {
+  /** A carrier's actor id to its name, for "From Moss" (the card's `words.names`). */
+  names: ReadonlyMap<string, string>;
+  /** Coin as the coin line says it (`coinLine`), never the book's printed words. */
+  coinWords: (coins: Record<string, number>) => string;
+}
+
 /**
- * The Player screen's one read of what is new for its character (K19b; K18c draws its card from the same read): K20a's
- * entries, read beside the inventory and the rules, and again at each log version, so a find sent while the screen is
+ * Everything a find card off the Pack needs, read together (the Player screen's, K18c; the Scene's, K18d): null for
+ * anyone but the character's own player, or when a read fails.
+ */
+export async function loadPlayerFinds(db: Db, user: CurrentUser, campaignId: string, characterId: string): Promise<PlayerFinds | null> {
+  const [found, inventory, carriers, setting] = await Promise.all([
+    readPackFinds(db, user, campaignId, characterId),
+    loadInventory(db, campaignId),
+    loadCarriers(db, campaignId),
+    loadCampaignSetting(db, user.id, campaignId),
+  ]);
+  if (!found || !inventory || !carriers || !setting) return null;
+  const denominations = denominationsOf(setting.rulesSets);
+  return {
+    ...packFindsOf(found, inventory.lines, setting.rulesSets),
+    names: new Map(carriers.flatMap((c) => (c.actorId ? [[c.actorId, c.name] as const] : []))),
+    coinWords: (coins) => coinLine(denominations, coins),
+  };
+}
+
+/**
+ * The Player screen's one read of what is new for its character (K19b's count and K18c's card): K20a's entries, read
+ * beside the inventory, the carriers and the rules, and again at each log version, so a find sent while the screen is
  * open and "Got it" on any tab both reach it. `characterId` null reads nothing (the GM's view as the player, #158 ⚑ 4);
  * for anyone but the character's own player `readPackFinds` reads nothing past the character. Null until read, for
- * anyone else, and on a failed read (no count, never a failed screen).
+ * anyone else, and on a failed read (no count, never a failed screen). The second value empties the entries at once,
+ * after "Got it" is written and before the log's reload brings the same.
  */
-export function usePackFinds(db: Db, user: CurrentUser, campaignId: string, characterId: string | null): PackFinds | null {
+export function usePackFinds(db: Db, user: CurrentUser, campaignId: string, characterId: string | null): [PlayerFinds | null, () => void] {
   const logVersion = useLogVersion();
-  const [finds, setFinds] = useState<PackFinds | null>(null);
+  const [finds, setFinds] = useState<PlayerFinds | null>(null);
   useEffect(() => {
     let current = true;
-    const read = async () => {
-      if (!characterId) return null;
-      const [found, inventory, setting] = await Promise.all([readPackFinds(db, user, campaignId, characterId), loadInventory(db, campaignId), loadCampaignSetting(db, user.id, campaignId)]);
-      return found && inventory && setting ? packFindsOf(found, inventory.lines, setting.rulesSets) : null;
-    };
+    const read = async () => (characterId ? loadPlayerFinds(db, user, campaignId, characterId) : null);
     read().then(
       (next) => current && setFinds(next),
       () => current && setFinds(null),
@@ -109,7 +135,8 @@ export function usePackFinds(db: Db, user: CurrentUser, campaignId: string, char
       current = false;
     };
   }, [db, user, campaignId, characterId, logVersion]);
-  return characterId ? finds : null;
+  const seen = useCallback(() => setFinds((was) => was && { ...was, entries: [] }), []);
+  return [characterId ? finds : null, seen];
 }
 
 /**
