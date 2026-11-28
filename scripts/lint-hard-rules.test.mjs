@@ -10,8 +10,20 @@ import { join } from 'node:path';
 
 const repo = fileURLToPath(new URL('..', import.meta.url));
 
+// A planted file is in no TypeScript program, so it is linted without type information: the type-aware rules are off
+// for it, and every other rule of the project's settings still runs.
+const UNTYPED = {
+  files: ['**/*.{ts,tsx}'],
+  languageOptions: { parserOptions: { projectService: false } },
+  rules: { '@typescript-eslint/no-floating-promises': 'off', '@typescript-eslint/no-misused-promises': 'off' },
+};
+// The project's settings plus UNTYPED, as a config file for a throwaway folder.
+const plantedConfig = () =>
+  `import settings from '${pathToFileURL(join(repo, 'eslint.config.js')).href}';\n` +
+  `export default [...settings, ${JSON.stringify(UNTYPED)}];\n`;
+
 async function lint(code, filePath) {
-  const eslint = new ESLint({ cwd: repo });
+  const eslint = new ESLint({ cwd: repo, overrideConfig: UNTYPED });
   const [result] = await eslint.lintText(code, { filePath });
   return result.messages.filter((m) => m.severity === 2).map((m) => m.message);
 }
@@ -86,8 +98,7 @@ describe('check 4: no disabled attribute (hard rule 10)', () => {
     const dir = mkdtempSync(join(tmpdir(), 'tome-lint-'));
     try {
       mkdirSync(join(dir, 'src', 'ui'), { recursive: true });
-      const config = pathToFileURL(join(repo, 'eslint.config.js')).href;
-      writeFileSync(join(dir, 'eslint.config.js'), `export { default } from '${config}';\n`);
+      writeFileSync(join(dir, 'eslint.config.js'), plantedConfig());
       const planted = join(dir, 'src', 'ui', 'PlantedLantern.tsx');
       writeFileSync(planted, 'export function LanternButton() {\n  return <button disabled>Light</button>;\n}\n');
       const known = { 'src/ui/PlantedLantern.tsx': { 'tome/no-disabled': { count: 1 } } };
@@ -151,8 +162,7 @@ describe('check 8: no source file over 400 lines (cs-10)', () => {
     const dir = mkdtempSync(join(tmpdir(), 'tome-lint-'));
     try {
       mkdirSync(join(dir, 'src', 'core'), { recursive: true });
-      const config = pathToFileURL(join(repo, 'eslint.config.js')).href;
-      writeFileSync(join(dir, 'eslint.config.js'), `export { default } from '${config}';\n`);
+      writeFileSync(join(dir, 'eslint.config.js'), plantedConfig());
       const planted = join(dir, 'src', 'core', 'plantedLantern.ts');
       writeFileSync(planted, `${linesOf(450)}\n`);
       const known = { 'src/core/plantedLantern.ts': { 'tome/max-lines': { count: 1 } } };

@@ -17,7 +17,7 @@ You build Tome one row at a time, as a worker the driver starts from a brief. Th
 - **Hand off** mechanical test and fixture work to `tester`, docs sync to `docs-sync`, searches to `scout`.
 - **Checks.** `npm run check` passes before every commit, through the check slot; never `--no-verify` (`CLAUDE.md`; `.claude/README.md`, Workers).
 - **Mockups first** (`CLAUDE.md`): your row names its mockup's file and approval date, or says "none: data and logic only". If it names neither and the piece has a screen, stop and ask the driver. If you find you need something visible the row did not foresee, build the data, rules and tests, stop before the screen, and say so.
-- **Scope and ⚑.** A new feature or a change to approved behaviour is a scope check (`docs/08-roadmap.md`, Scope checks): write it and stop. A ⚑ is Francis's: list it.
+- **Scope and ⚑.** A new feature or a change to approved behaviour is a scope check (`docs/08-roadmap.md`, Scope checks): write it and stop. A build that falls short of a cited ruling or an approved frame is a departure. List it under Departures with the ruling's id, and stop the row if you can't meet the ruling. A ⚑ is only for a question no ruling answers; it is Francis's: list it.
 - **Before your final push** on plan work, check that the pull request does not conflict with `main` (`CLAUDE.md`, Things Claude gets wrong).
 
 ## Database

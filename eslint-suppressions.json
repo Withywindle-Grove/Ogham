@@ -35,8 +35,16 @@
     }
   },
   "src/app/AddItem.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    },
     "tome/max-lines": {
       "count": 1
+    }
+  },
+  "src/app/AppUpdate.test.tsx": {
+    "@typescript-eslint/no-floating-promises": {
+      "count": 6
     }
   },
   "src/app/CallsToAdventure.tsx": {
@@ -60,7 +68,15 @@
     }
   },
   "src/app/Characters.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    },
     "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/ConvertWithAi.tsx": {
+    "@typescript-eslint/no-misused-promises": {
       "count": 1
     }
   },
@@ -74,12 +90,20 @@
       "count": 1
     }
   },
+  "src/app/FieldsEditor.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    }
+  },
   "src/app/FinishCreation.tsx": {
     "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/GmCampaign.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 2
+    },
     "tome/max-lines": {
       "count": 1
     }
@@ -120,6 +144,9 @@
     }
   },
   "src/app/LibraryScreen.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    },
     "tome/max-lines": {
       "count": 1
     }
@@ -140,11 +167,17 @@
     }
   },
   "src/app/MarchingOrder.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 2
+    },
     "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/Messages.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 3
+    },
     "tome/max-lines": {
       "count": 1
     }
@@ -155,6 +188,9 @@
     }
   },
   "src/app/PackScreen.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    },
     "tome/max-lines": {
       "count": 1
     }
@@ -185,6 +221,9 @@
     }
   },
   "src/app/RequestCard.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 7
+    },
     "tome/max-lines": {
       "count": 1
     }
@@ -204,12 +243,23 @@
       "count": 1
     }
   },
+  "src/app/SceneReminders.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 2
+    }
+  },
   "src/app/SceneTime.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 8
+    },
     "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/SettingRules.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 2
+    },
     "tome/max-lines": {
       "count": 1
     }
@@ -220,7 +270,20 @@
     }
   },
   "src/app/SheetEdit.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    },
     "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/SignIn.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    }
+  },
+  "src/app/SignedIn.tsx": {
+    "@typescript-eslint/no-misused-promises": {
       "count": 1
     }
   },
@@ -230,11 +293,17 @@
     }
   },
   "src/app/Statuses.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 3
+    },
     "tome/max-lines": {
       "count": 1
     }
   },
   "src/app/TownActions.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 2
+    },
     "tome/max-lines": {
       "count": 1
     }
@@ -256,6 +325,26 @@
   },
   "src/app/campaignSetting.ts": {
     "tome/max-lines": {
+      "count": 1
+    }
+  },
+  "src/app/lazyScreen.test.tsx": {
+    "@typescript-eslint/no-floating-promises": {
+      "count": 3
+    }
+  },
+  "src/app/player/PlayerNotices.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    }
+  },
+  "src/app/player/PlayerVitals.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    }
+  },
+  "src/app/sceneTime.test.tsx": {
+    "@typescript-eslint/no-floating-promises": {
       "count": 1
     }
   },
@@ -427,6 +516,16 @@
   "src/ui/MoveOnParts.tsx": {
     "tome/max-lines": {
       "count": 1
+    }
+  },
+  "src/ui/SortableList.test.tsx": {
+    "@typescript-eslint/no-floating-promises": {
+      "count": 6
+    }
+  },
+  "src/ui/ToastHost.test.tsx": {
+    "@typescript-eslint/no-floating-promises": {
+      "count": 5
     }
   },
   "src/ui/creation.tsx": {

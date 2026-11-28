@@ -163,6 +163,22 @@ export default defineConfig([
     extends: [js.configs.recommended, tseslint.configs.recommended, reactHooks.configs.flat.recommended],
     languageOptions: {
       globals: globals.browser,
+      // Type-aware lint reads each file's types through tsconfig.json. Two files fall outside its program, so they get
+      // a default project with the same settings: a config file outside its `include`, and a .tsx test that shares its
+      // name with a .ts one (TypeScript keeps only the .ts).
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: ['playwright.chromium.config.ts', 'src/app/packUpdateReachesItems.test.tsx'],
+          defaultProject: 'tsconfig.json',
+        },
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      // cs-22: a failure is never swallowed. A promise is awaited, returned or given a rejection handler, and a
+      // promise-returning function goes only where a promise is expected. The old breaks are in eslint-suppressions.json.
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
     },
   },
   {
