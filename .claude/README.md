@@ -76,7 +76,7 @@ The branch rule (one integration branch per spec, a fresh worker per ticket and 
 - **Builders do not wait for CI.** A builder pushes, reports and stops. A Sonnet or Haiku worker watches CI and fetches the pictures. If something fails, the driver starts a fresh worker with the findings.
 - **The check slot.** In a cloud container a worker runs the full check through `scripts/check-slot.sh <command>`, and only the tests it touches while it works; before it queues for the full check it runs `npm run check:quick` (types, lint and related tests on its changes, a few minutes, outside the slot; `docs/testing.md`, The quick check). One slot, unless `OGHAM_CHECK_SLOTS` says more; each run's time is logged to `/tmp/ogham-check-times.log`. A second slot is a trial: time it, and keep it only if it gains time.
 - **The commit hook is the check.** A worker commits through `scripts/check-slot.sh git commit …` and does not run the full check by hand first. The slot refuses a commit when the hooks are off in its worktree, and says to run `npm run hooks:install`.
-- **Docs only.** A change of docs or mockups only runs `npm run docs:check`, not the full check.
+- **Docs only.** A change of docs or mockups only runs `npm run docs:check`, not the full check. Committed through the slot as any other commit, it doesn't wait for the slot's lock: the slot lets it straight through (`docs/testing.md`, The docs fast lane).
 - **Worktrees.** In a new worktree, cloud ones included, a worker runs `npm run hooks:install` once: it turns the hooks on in that worktree only (`docs/testing.md`, Git hooks). The check slot removes a `node_modules/node_modules` link left by `cp -al` before it runs.
 
 ## Skills
