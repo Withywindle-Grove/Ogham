@@ -35,6 +35,8 @@ const TURN = 600;
  * it (35B); `several`, nothing lit and two lights to light, the lantern and reed torches (35E2, 1); `burnt`, the lantern
  * burnt out with its oil and the torches (Refill and Light another, 35E2, 3); `burntnone`, a reed torch burnt out and no
  * light left in the pack (35E2, 4); `longlight`, the lantern named at length with 999 turns and 999 refills (35D).
+ * `details`, Details as frame P3 draws it (pib-3): a long motto, a Background from the kindred's list (the field the
+ * others leave out) and a long backstory, so Kindred, Class, the alignment and the Background each carry an entry tap.
  * `1`, the four of P1. */
 export const P1_LONG_NAME = 'Brannoch Fenward of the Seven Drowned Cairns, called the Unbowed';
 /** The long-named light (`longlight`, 35D's messy data). */
@@ -57,7 +59,8 @@ export type P1Head =
   | 'several'
   | 'burnt'
   | 'burntnone'
-  | 'longlight';
+  | 'longlight'
+  | 'details';
 
 export async function addP1Character(
   world: FakeWorld,
@@ -150,7 +153,7 @@ export async function addP1Character(
   // The sheet's fields, from the fixture's template (as ?full=1).
   type Field = { key: string; label: string; type: string; group?: string; fill?: string; choices?: string[]; required?: boolean; from?: string };
   ((fenPack.fieldTemplates?.[0]?.fields ?? []) as Field[])
-    .filter((f) => f.key !== 'hp' && !f.from)
+    .filter((f) => f.key !== 'hp' && (!f.from || (head === 'details' && f.key === 'background')))
     .forEach((f, order) => {
       const type = f.type === 'list' && !f.choices?.length ? 'text' : f.type;
       // The speed's field is named "Speed", as frame P1 names it ("Speed, 40 paces in a fight").
@@ -166,6 +169,14 @@ export async function addP1Character(
     fields: { MUS: 15, NIM: 12, GRT: 13, WIT: 10, LORE: 9, CHARM: 11, alignment: 'Lantern', languages: 'Reedish, Common', motto: 'The beacon before the bed.' },
     classes: head === 'classless' ? [] : [{ classRef: 'lantern-warden', level: 3, xp: 3400 }],
   });
+  // Details as P3 draws it (pib-3), its messy data: long words, and a Background with an entry. Invented.
+  if (head === 'details') {
+    const actor = world.tables.actors.find((a) => a.id === brannoch)!;
+    Object.assign(actor, {
+      fields: { ...(actor.fields as Record<string, unknown>), motto: 'Keep the beacon burning on the causeway, whatever the fen sends up out of the dark water, and never ask its name.', background: 'eel-catcher' },
+      backstory: 'Brannoch kept the Seven Drowned Cairns beacon for nine winters, until the winter the oil boats did not come up the channel. He has not said what he found at the last cairn, and he has not been back. He took the Beacon Keepers’ coin because it was going the other way.',
+    });
+  }
   world.addMember(campaign, sam, 'player', brannoch);
   // A score sent to the GM and waiting (the sheet's waiting-change line, drawn on the Player screen since C1; dec-13 C11).
   // Two notices for the notices box (row C1): the languages put off for later ("To finish") and the change below.
