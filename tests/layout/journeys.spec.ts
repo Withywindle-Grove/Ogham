@@ -288,7 +288,7 @@ for (const size of [
       // Since S8b the check is a row of "Waiting for you" (its one button is Hit), the reminder's card the open item.
       await hit.tap(page.getByRole('region', { name: 'Waiting for you' }).getByRole('button', { name: 'Hit, Wandering check' }));
       await hit.tap(page.getByRole('dialog', { name: 'Wandering check, Hit' }).getByRole('button', { name: /^Mortal/ }));
-      await hit.tap(page.getByRole('dialog', { name: 'Mortal' }).getByRole('button', { name: /Pilgrims lost/ }));
+      await hit.tap(page.getByRole('dialog', { name: 'Mortal' }).getByRole('radio', { name: /Pilgrims lost/ }));
       await expect(page.getByText(/^Rolled: 1–4, Pilgrims lost/)).toBeVisible();
       hit.expectWithin({ taps: 4, screens: 0 });
       await page.getByRole('dialog', { name: 'Mortal' }).getByRole('button', { name: 'Back' }).click();

@@ -118,7 +118,7 @@ async function hitAndRoll(user: ReturnType<typeof userEvent.setup>, afterStart?:
   await waitFor(() => expect(world.tables.waiting_encounters).toHaveLength(1));
   const which = within(await screen.findByRole('dialog', { name: 'Wandering things, Hit' }));
   await user.click(which.getByRole('button', { name: /^Shallow things/ }));
-  await user.click(within(await screen.findByRole('dialog', { name: 'Shallow things' })).getByRole('button', { name: /Bog lurkers/ }));
+  await user.click(within(await screen.findByRole('dialog', { name: 'Shallow things' })).getByRole('radio', { name: /Bog lurkers/ }));
   await waitFor(() => expect(world.tables.check_results[0]).toMatchObject({ row_text: 'Shallow things: Bog lurkers, 1d4' }));
   await user.click(within(screen.getByRole('dialog', { name: 'Shallow things' })).getByRole('button', { name: 'Back' }));
   await user.click(within(await screen.findByRole('dialog', { name: 'Wandering things, Hit' })).getByRole('button', { name: 'Close' }));

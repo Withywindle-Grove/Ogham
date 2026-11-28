@@ -339,10 +339,11 @@ const SCENES: Scene[] = [
       await expect(go).toBeVisible();
       await go.fill('57');
       await page.getByRole('button', { name: 'Go', exact: true }).click();
-      await page.getByRole('button', { name: /29th sluice/ }).click();
-      await expect(page.getByRole('button', { name: /29th sluice/ })).toHaveAttribute('aria-current', 'true');
+      // The book's tapped table (sf-14): a row is a radio; the tapped row washed and ticked (checked).
+      await page.getByRole('radio', { name: /29th sluice/ }).click();
+      await expect(page.getByRole('radio', { name: /29th sluice/ })).toHaveAttribute('aria-checked', 'true');
       // Off the box, so the A4 check (no field focused when a screen opens) reads the screen, not this step.
-      await page.getByRole('button', { name: /29th sluice/ }).focus();
+      await page.getByRole('radio', { name: /29th sluice/ }).focus();
     },
   },
   {
@@ -380,7 +381,7 @@ const SCENES: Scene[] = [
         const which = page.getByRole('dialog', { name: 'Wandering check, Hit' });
         if (roll) {
           await which.getByRole('button', { name: /^Mortal/ }).click();
-          await page.getByRole('dialog', { name: 'Mortal' }).getByRole('button', { name: /Pilgrims lost/ }).click();
+          await page.getByRole('dialog', { name: 'Mortal' }).getByRole('radio', { name: /Pilgrims lost/ }).click();
           await page.getByRole('dialog', { name: 'Mortal' }).getByRole('button', { name: 'Back' }).click();
         }
         await which.getByRole('button', { name: 'Close' }).click();
@@ -410,7 +411,7 @@ const SCENES: Scene[] = [
       await page.getByRole('button', { name: 'Next turn' }).click();
       await page.getByRole('region', { name: 'Waiting for you' }).getByRole('button', { name: 'Hit, Wandering check' }).click();
       await page.getByRole('dialog', { name: 'Wandering check, Hit' }).getByRole('button', { name: /^Mortal/ }).click();
-      await page.getByRole('dialog', { name: 'Mortal' }).getByRole('button', { name: /Pilgrims lost/ }).click();
+      await page.getByRole('dialog', { name: 'Mortal' }).getByRole('radio', { name: /Pilgrims lost/ }).click();
       await page.getByRole('dialog', { name: 'Mortal' }).getByRole('button', { name: 'Back' }).click();
       await page.getByRole('dialog', { name: 'Wandering check, Hit' }).getByRole('button', { name: 'Close' }).click();
       // The panel's open card is the encounter (as in the hit's journey), reading the picked row whole.
@@ -2227,9 +2228,36 @@ test.describe('phone (375×667): the table, full screen', () => {
     await page.getByLabel('Go to number').scrollIntoViewIfNeeded();
     await page.getByLabel('Go to number').fill('99');
     await page.getByRole('button', { name: 'Go', exact: true }).click();
-    await expect(page.getByRole('button', { name: /50th sluice/ })).toBeInViewport();
+    await expect(page.getByRole('radio', { name: /50th sluice/ })).toBeInViewport();
   });
 });
+
+// An encounter table's page in the book's tapped table (sf-14; page 44, ET1): capped at 640 px on a tablet, the whole
+// width at 375 px; every row a 44 px tap; a long row wraps, never cut; light and dark.
+for (const size of [
+  { name: 'tablet', width: 1024, height: 768 },
+  { name: 'phone', width: 375, height: 667 },
+] as const) {
+  for (const theme of ['light', 'dark'] as const) {
+    test.describe(`${size.name} ${theme}: an encounter table's page (sf-14)`, () => {
+      test.use({ viewport: { width: size.width, height: size.height }, colorScheme: theme });
+      test('the tapped table is capped at 640 px, its rows 44 px taps, long rows wrapped', async ({ page }) => {
+        await SCENES.find((s) => s.name === 'gm-table-long')!.open(page, size.width >= WIDE);
+        const table = page.locator('.table-rows__book');
+        await expect(table).toBeVisible();
+        const box = (await table.boundingBox())!;
+        expect(box.width).toBeLessThanOrEqual(640);
+        if (size.name === 'phone') expect(box.width).toBeGreaterThan(300);
+        for (const row of await table.getByRole('radio').all()) {
+          const r = (await row.boundingBox())!;
+          if (r.height > 0) expect(r.height).toBeGreaterThanOrEqual(44);
+          expect(await row.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+        }
+        expect(await layoutProblems(page)).toEqual([]);
+      });
+    });
+  }
+}
 
 // The back link at 375 px (gate walk, Francis 2026-11-05): "‹ Your campaigns" was cut to "‹ Your campaig…"; on a
 // phone it reads "‹ Campaigns", whole, never ellipsised. From slice E the campaign screen's top level has ≡ and the
