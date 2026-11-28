@@ -81,6 +81,10 @@ function table() {
   );
   world.tables.campaign_packs.push({ id: 'link-quay', campaign_id: campaign, pack_id: 'pack-quay', pack_name: 'Quay Rules', option_choices: {}, overrides: {}, priority: 1 });
   world.tables.campaign_clocks.find((c) => c.campaign_id === campaign)!.seconds = 6 * 3600;
+  // TC13 piece A: Ask for… goes through the at-once answer (town.askFor). The lantern has no availability to decide by,
+  // so its default would answer it at once; the GM has put it back on "?" today (the stock table's Reset), so an ask
+  // for it waits for the GM, as these journeys need.
+  world.tables.shop_stock.push({ id: 'stock-lantern-day1', campaign_id: campaign, service_id: 'buy-gear', item_id: 'hooded-lantern', day: 1, answer: 'undecided', undone: false, created_by: gm, created_at: '2026-10-18T12:00:00Z', updated_at: '2026-10-18T12:00:00Z' });
   world.tables.inventory_lines.push({ id: 'line-pelt', campaign_id: campaign, actor_id: wren, location_id: null, name: 'Otter pelt', category: 'treasure', qty: 1, stack: 1, approval: 'approved', item_data: {}, source_entry_id: 'otter-pelt', version: 1 });
   return { gm, sam, campaign, wren };
 }
@@ -330,6 +334,149 @@ describe('town requests (M5b step 6e)', () => {
     const answer = await screen.findByRole('article', { name: "The GM's answer" });
     expect(within(answer).getByText('The miller owes the abbey money.')).toBeTruthy();
     void player;
+  });
+});
+
+// Ask for… through the at-once answer (TC13 piece A; docs/specs/town-ask-buy.md, "Piece A: Ask for…"; tn-7, tn-8,
+// sb5-6), on the stand-in database. Purposes, in plain words:
+//   * an ask for a thing the day's stock has in is answered at once: the player's answer card shows "In stock" with its
+//     price on the same screen, no toast and no Undo, the GM gets no card, and the log has the player's one line;
+//   * an ask for a thing the day's stock has out is answered at once, "Not here", likewise with no toast;
+//   * the day sent is the campaign day as the clock counts it, not day 1;
+//   * an ask that waits keeps "Sent to the GM" and its Undo, and the Undo withdraws that ask only, never an earlier
+//     request of the player's;
+//   * Something not listed… goes the same way and waits for the GM;
+//   * a failed Ask for… sends nothing: no request, no log line, an error toast, the dialog still open.
+describe('Ask for… answered at once (TC13 piece A)', () => {
+  /** The GM's answer for the lantern at the stall on a day (replacing the "?" the fixture puts on day 1). */
+  function lanternStock(campaign: string, answer: 'in' | 'out' | 'undecided', day = 1) {
+    world.tables.shop_stock = world.tables.shop_stock.filter((r) => r.id !== 'stock-lantern-day1');
+    world.tables.shop_stock.push({ id: `stock-lantern-day${day}`, campaign_id: campaign, service_id: 'buy-gear', item_id: 'hooded-lantern', day, answer, undone: false, created_by: null, created_at: '2026-10-18T12:00:00Z', updated_at: '2026-10-18T12:00:00Z' });
+  }
+
+  async function askForLantern(player: User) {
+    await player.click(actions().getByRole('button', { name: 'Ask for…' }));
+    await player.type(within(screen.getByRole('dialog', { name: 'Ask for…' })).getByRole('textbox', { name: 'Find an item' }), 'lantern');
+    await pick(player, 'Ask for…', 'Hooded lantern');
+    await player.click(within(screen.getByRole('dialog', { name: 'Ask for…' })).getByRole('button', { name: 'Send to the GM' }));
+  }
+
+  /** The GM opens Players: nothing of Wren's waits there. */
+  async function gmHasNoCard(gm: string) {
+    cleanup();
+    await openAs(gm, 'Players');
+    await screen.findByRole('navigation', { name: 'Campaign sections' });
+    await screen.findAllByText(/Wren/);
+    expect(screen.queryByText(/Wren asks for/)).toBeNull();
+    expect(world.tables.requests.filter((r) => r.status === 'waiting')).toEqual([]);
+  }
+
+  // Purpose: a thing the day's stock has in is answered at once; the answer card is the news (no toast, no Undo), the GM gets no card, and the log has the player's line.
+  it('a lantern in stock today: the answer shows at once, with no toast and no GM card', async () => {
+    const { gm, sam, campaign } = table();
+    lanternStock(campaign, 'in');
+    await townReady(gm);
+    const player = await playerTown(sam);
+    await askForLantern(player);
+    // The same screen, no reopening: the priced answer arrives where the player is.
+    const answer = await screen.findByRole('article', { name: "The GM's answer" });
+    expect(within(answer).getByText('In stock: 4 gp')).toBeTruthy();
+    expect(screen.queryByRole('dialog', { name: 'Ask for…' })).toBeNull();
+    expect(screen.queryByText('Sent to the GM')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
+    expect(events('request.send')).toHaveLength(0);
+    expect(events('town.askFor')).toHaveLength(1);
+    expect(events('town.askFor')[0]!.after).toMatchObject({ status: 'answered', answer: { kind: 'buy', result: 'inStock', price: '4 gp' } });
+    await gmHasNoCard(gm);
+  });
+
+  // Purpose: a thing the day's stock has out is answered at once, Not here, with no toast and no GM card.
+  it('a lantern out of stock today: Not here at once', async () => {
+    const { gm, sam, campaign } = table();
+    lanternStock(campaign, 'out');
+    await townReady(gm);
+    const player = await playerTown(sam);
+    await askForLantern(player);
+    const answer = await screen.findByRole('article', { name: "The GM's answer" });
+    expect(within(answer).getByText('Not here')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
+    expect(events('town.askFor')[0]!.after).toMatchObject({ status: 'answered', answer: { result: 'notHere' } });
+    await gmHasNoCard(gm);
+  });
+
+  // Purpose: the day sent is the campaign day as the clock counts it (readClock's day), so a stock set for day 3 answers an ask made on day 3.
+  it('sends the campaign day: stock set for day 3 answers an ask on day 3', async () => {
+    const { gm, sam, campaign } = table();
+    await townReady(gm);
+    lanternStock(campaign, 'in', 3);
+    world.tables.campaign_clocks.find((c) => c.campaign_id === campaign)!.seconds = 2 * 24 * 3600 + 6 * 3600;
+    const player = await playerTown(sam);
+    await askForLantern(player);
+    const answer = await screen.findByRole('article', { name: "The GM's answer" });
+    expect(within(answer).getByText('In stock: 4 gp')).toBeTruthy();
+  });
+
+  // Purpose: an ask that waits keeps today's toast and Undo; the Undo withdraws that ask, and an earlier request of the player's stays.
+  it('an ask that waits: "Sent to the GM" with Undo, which withdraws that ask only', async () => {
+    const { gm, sam } = table();
+    await townReady(gm);
+    const player = await playerTown(sam);
+    // An earlier request: a pelt offered to the buyer.
+    await player.click(actions().getByRole('button', { name: 'Sell…' }));
+    await pick(player, 'Sell…', 'Otter pelt');
+    await pick(player, 'Sell…', 'The Pelt Buyer');
+    await player.click(within(screen.getByRole('dialog', { name: 'Sell…' })).getByRole('button', { name: 'Send to the GM' }));
+    await waitFor(() => expect(world.tables.requests.filter((r) => r.kind === 'sell')).toHaveLength(1));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Sell…' })).toBeNull());
+    await askForLantern(player);
+    await waitFor(() => expect(events('town.askFor')).toHaveLength(1));
+    expect(events('town.askFor')[0]!.after).toMatchObject({ status: 'waiting', kind: 'buy' });
+    const toast = await waitFor(() => {
+      const found = screen.getAllByText('Sent to the GM').map((n) => n.closest('.toast')).filter((t): t is Element => t !== null);
+      expect(found).toHaveLength(1);
+      return found[0] as HTMLElement;
+    });
+    await player.click(within(toast).getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(world.tables.requests.find((r) => r.kind === 'buy')!.status).toBe('withdrawn'));
+    expect(world.tables.requests.find((r) => r.kind === 'sell')!.status).toBe('waiting');
+  });
+
+  // Purpose: Something not listed… goes through the same command and waits for the GM, who sees it in Waiting for you.
+  it('Something not listed… goes through town.askFor and waits for the GM', async () => {
+    const { gm, sam } = table();
+    await townReady(gm);
+    const player = await playerTown(sam);
+    await player.click(actions().getByRole('button', { name: 'Ask for…' }));
+    await pick(player, 'Ask for…', 'Something not listed…');
+    await player.type(within(screen.getByRole('dialog', { name: 'Ask for…' })).getByRole('textbox', { name: "What you're after" }), 'A brass bell');
+    await player.click(within(screen.getByRole('dialog', { name: 'Ask for…' })).getByRole('button', { name: 'Send to the GM' }));
+    await waitFor(() => expect(events('town.askFor')).toHaveLength(1));
+    expect(events('town.askFor')[0]!.after).toMatchObject({ status: 'waiting', prompt: { itemId: null, item: 'A brass bell' } });
+    expect(events('request.send')).toHaveLength(0);
+    cleanup();
+    await openAs(gm, 'Players');
+    expect((await waiting()).getByText('Wren asks for A brass bell, The Tinker’s Stall')).toBeTruthy();
+  });
+
+  // Purpose: a failed Ask for… sends nothing: no request, no log line, an error toast, and the dialog stays open to try again.
+  it('a failed Ask for… sends nothing and keeps the dialog', async () => {
+    const { gm, sam } = table();
+    await townReady(gm);
+    const player = await playerTown(sam);
+    const before = { events: world.tables.events.length, requests: world.tables.requests.length };
+    const real = world.db.rpc.bind(world.db);
+    const spy = vi.spyOn(world.db, 'rpc').mockImplementation(((name: string, args: Record<string, unknown>) =>
+      name === 'ask_for_thing' ? Promise.resolve({ data: null, error: { message: 'Failed to fetch' } }) : real(name as never, args as never)) as never);
+    await askForLantern(player);
+    const error = await waitFor(() => {
+      const found = document.querySelector('.toast');
+      expect(found).not.toBeNull();
+      return found as HTMLElement;
+    });
+    expect(within(error).queryByRole('button', { name: 'Undo' })).toBeNull();
+    expect(screen.getByRole('dialog', { name: 'Ask for…' })).toBeTruthy();
+    expect({ events: world.tables.events.length, requests: world.tables.requests.length }).toEqual(before);
+    spy.mockRestore();
   });
 });
 
