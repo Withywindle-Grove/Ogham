@@ -1261,9 +1261,11 @@ if (callsFlag === '1' || callsFlag === 'many' || callsFlag === 'long') {
 // (row P3 of plan test-feedback-2026-11-19; page 28); ?p1=unlit|several|burnt|burntnone|longlight: the light's states
 // (plan light-tap, page 35); ?p1=armour: the load in armour mode, carrying treasure (pss-12).
 // ?p1=spells: a caster with pinned spells At hand (Player sitting piece 2; frame M4g).
+// ?p1=lituse|lituselong: a lit lantern with charges pinned At hand, one row with Use (piece 9; frame 47-3).
 const p1Flag = new URLSearchParams(window.location.search).get('p1');
 if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noline' || p1Flag === 'classless' || p1Flag === 'heavy' || p1Flag === 'modes' || p1Flag === 'weapon' || p1Flag === 'arms' || p1Flag === 'bare' || p1Flag === 'packless' || p1Flag === 'skills' || p1Flag === 'finish' || p1Flag === 'pins' || p1Flag === 'unlit' || p1Flag === 'several' || p1Flag === 'burnt' || p1Flag === 'burntnone' || p1Flag === 'longlight' || p1Flag === 'armour' || p1Flag === 'details' ||
-  p1Flag === 'spells'
+  p1Flag === 'spells' ||
+  p1Flag === 'lituse' || p1Flag === 'lituselong'
 ) {
   const { addP1Character } = await import('./layoutP1Character.ts');
   const p1Id = await addP1Character(world, { gm, sam, fenPack, head: p1Flag === '1' ? 'four' : p1Flag });

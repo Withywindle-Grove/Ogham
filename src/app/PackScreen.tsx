@@ -22,7 +22,7 @@ import {
   type InventoryLine,
   type NamedCarrier,
 } from '../modules/inventory/inventory.ts';
-import { atHandAction, atHandLines, countWords, inWeaponBlock, isContainer, isSeparate, possessive } from '../modules/inventory/packView.ts';
+import { atHandAction, atHandLines, countWords, inWeaponBlock, isContainer, isSeparate, lightCarriesUse, possessive } from '../modules/inventory/packView.ts';
 import { AddItem } from './AddItem.tsx';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { forgetCampaignSetting, loadCampaignSetting, type CampaignSetting } from './campaignSetting.ts';
@@ -48,7 +48,7 @@ import { PurseSheet } from './PurseSheet.tsx';
 import { coinLine, denominationsOf, readCost } from '../modules/inventory/coinWords.ts';
 import { purchaseToast } from './purchaseToast.ts';
 import { loadPurse, loadStashCoin, type Coins } from '../modules/inventory/purse.ts';
-import type { CharacterLightView } from './LightSection.tsx';
+import type { CharacterLightView, LightUse } from './LightSection.tsx';
 import { registry } from './services.ts';
 import { usePlayerView } from './playerView.ts';
 
@@ -114,9 +114,10 @@ function PackTab({
    * after At hand's items and before `extra`, with no heading of their own, and the pack line they stand for (null for
    * several lights), whose item row is then left out (each thing shows once). `rows` is given the way to open that
    * line's item sheet (the light's name opens it, frame P1), or null when the line isn't in the pack as loaded. With
-   * nothing else at hand, the light alone makes the section.
+   * nothing else at hand, the light alone makes the section. `lit`: the light burns now. Lit, with its line At hand
+   * itself and charged, the rows are given the line's Use too (`use`, Player sitting piece 9, frame 47-3).
    */
-  litLight?: { lineId: string | null; rows: (onOpenItem: (() => void) | null) => ReactNode } | null;
+  litLight?: { lineId: string | null; lit: boolean; rows: (onOpenItem: (() => void) | null, use?: LightUse | null) => ReactNode } | null;
   /**
    * At hand only (dec-13 C8): rows that join At hand's section (the Player screen's pinned traits), after the items and
    * the light; null or nothing when there are none. The section shows whenever there are items, the light or these.
@@ -403,9 +404,12 @@ function PackTab({
     // Against every At hand line, the weapon in hand's too: a lit line drawn as the block already has its sheet there,
     // so At hand never adds a second one for it (dec-13 C6).
     const litAlone = !!litLine && !pins.some((l) => l.id === litLine.id);
+    // A lit light whose line is At hand itself with Use a charge (piece 9, frame 47-3; pss-17, C2): one row, the light's,
+    // carrying Use, drawn by that line's ItemRow (`lightRow`) last among the items, where the light goes (pss-16).
+    const lightUse = !!ready && !!litLight?.lit && lightCarriesUse(litLine, true, rest, ready.loaded.setting.charges, ready.loaded.rechargeDefault);
     const atHandShown = rest.length > 0 || !!litLight || !!extra || !!first;
     if (inHand.length === 0 && !atHandShown) return null;
-    const items = (lines: InventoryLine[], only: { inHand?: boolean; sheetOnly?: string | null; sheetAlone?: boolean }) =>
+    const items = (lines: InventoryLine[], only: { inHand?: boolean; sheetOnly?: string | null; sheetAlone?: boolean; lightRow?: ((use: LightUse | null) => ReactNode) | null }) =>
       ready && (
         <CarrierItems
           carrier={ready.mine}
@@ -428,7 +432,9 @@ function PackTab({
           items={ready.loaded.setting.items}
           charges={ready.loaded.setting.charges}
           rechargeDefault={ready.loaded.rechargeDefault}
-          onNote={setNote}
+          // At hand has no notes line of its own (the Pack tab's is in its summary): a note is a toast with no Undo, as
+          // frame 47-3 draws "Wisp lantern has no charges left." (Player sitting piece 9).
+          onNote={(text) => show({ text })}
           hidden={ready.loaded.hidden}
           packs={ready.loaded.setting.packs}
           setting={ready.loaded.setting}
@@ -460,13 +466,14 @@ function PackTab({
           {first}
           {/* No item list when nothing is left for it: the lit line drawn as the weapon in hand has its sheet there. */}
           {(rest.length > 0 || (litLine && litAlone)) &&
-            items(litLine && litAlone ? [...rest, litLine] : rest, {
+            items(litLine && (litAlone || lightUse) ? [...rest.filter((l) => l !== litLine), litLine] : rest, {
               // The lit light's line: its sheet only, no row (the light's rows stand for it), unless it is At hand
-              // itself and has Use a charge.
+              // itself and has Use a charge: lit, its row is the light's, with Use (`lightRow`); not lit, its own.
               sheetOnly: litLine?.id ?? null,
               sheetAlone: litAlone,
+              lightRow: lightUse && litLine ? (use) => litLight?.rows(() => setOpen(litLine.id), use) : null,
             })}
-          {litLight?.rows(litLine ? () => setOpen(litLine.id) : null)}
+          {!lightUse && litLight?.rows(litLine ? () => setOpen(litLine.id) : null)}
           {extra}
         </section>
       )}

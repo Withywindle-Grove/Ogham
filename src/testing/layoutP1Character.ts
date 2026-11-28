@@ -43,6 +43,8 @@ const TURN = 600;
  * ready today; and a pin whose spell has left the book (ignored). Invented spells and figures.
  * `details`, Details as frame P3 draws it (pib-3): a long motto, a Background from the kindred's list (the field the
  * others leave out) and a long backstory, so Kindred, Class, the alignment and the Background each carry an entry tap.
+ * `lituse`, the lantern pinned with 2 charges, lit: one row, its ring with Use (Player sitting piece 9, frame 47-3);
+ * `lituselong`, the same named at length with 999 turns, 999 refills and 999 charges (47-3's messy data).
  * `1`, the four of P1. */
 /** The long-named pinned spell (`spells`, frame M4g's right panel). */
 export const P1_LONG_SPELL = 'The Lady of the Lanterns’ light on drowned stone';
@@ -71,7 +73,9 @@ export type P1Head =
   | 'longlight'
   | 'armour'
   | 'details'
-  | 'spells';
+  | 'spells'
+  | 'lituse'
+  | 'lituselong';
 
 export async function addP1Character(
   world: FakeWorld,
@@ -268,10 +272,14 @@ export async function addP1Character(
     line('line-p1-spear', 'Hooked eel-spear of the Seven Drowned Cairns', { category: 'weapon', weight_coin: 40, equipped: true, item_data: hooked });
   } else line('line-p1-spear', 'Reed spear', { category: 'weapon', weight_coin: 30, equipped: head !== 'bare', item_data: item('reed-spear'), source_pack_id: 'pack-p1-fen', source_entry_id: 'reed-spear' });
   line('line-p1-knife', 'Eel knife', { category: 'weapon', weight_coin: 10, pinned: head !== 'bare', equipped: head === 'arms', item_data: item('eel-knife'), source_pack_id: 'pack-p1-fen', source_entry_id: 'eel-knife' });
-  const lanternName = head === 'longlight' ? P1_LONG_LIGHT : 'Storm lantern';
+  // The long-named light (35D), and 47-3's with its charges.
+  const longLight = head === 'longlight' || head === 'lituselong';
+  const lanternName = longLight ? P1_LONG_LIGHT : 'Storm lantern';
+  // A lit light with charges, pinned to At hand (piece 9, frame 47-3).
+  const charged = head === 'lituse' || head === 'lituselong' ? { pinned: true, item_data: { lightTypeId: 'storm-lantern', charges: { initial: 3 } }, charges_left: head === 'lituse' ? 2 : 999 } : {};
   // `bare` carries no light: a light not burning now sits in At hand too (lt-4), and bare has nothing at hand.
-  if (head !== 'burntnone' && head !== 'bare') line('line-p1-lantern', lanternName, { category: 'light', weight_coin: 40, item_data: { lightTypeId: 'storm-lantern' } });
-  line('line-p1-oil', 'Lamp oil', { weight_coin: 10, qty: head === 'longlight' ? 999 : 3, stack: head === 'longlight' ? 999 : 10, source_pack_id: 'pack-p1-lantern', source_entry_id: 'lamp-oil' });
+  if (head !== 'burntnone' && head !== 'bare') line('line-p1-lantern', lanternName, { category: 'light', weight_coin: 40, item_data: { lightTypeId: 'storm-lantern' }, ...charged });
+  line('line-p1-oil', 'Lamp oil', { weight_coin: 10, qty: longLight ? 999 : 3, stack: longLight ? 999 : 10, source_pack_id: 'pack-p1-lantern', source_entry_id: 'lamp-oil' });
   if (torches) line('line-p1-torches', 'Reed torch', { category: 'light', weight_coin: 10, qty: 4, stack: 10, item_data: { lightTypeId: 'reed-torch' } });
   // Treasure carried in armour mode (pss-12): a pouch of pearls, so the load card says "Carrying treasure". Invented.
   if (head === 'armour') line('line-p1-pearls', 'Pouch of river pearls', { category: 'gear', weight_coin: 120, item_data: { treasure: true } });
@@ -299,7 +307,7 @@ export async function addP1Character(
   // Lit through the stand-in database, then two turns burn: 4 of 6 left.
   world.signInAs(sam);
   // The long-named light burns 1001 turns, so 999 are left (35D).
-  const burn = (head === 'longlight' ? 1001 : 6) * TURN;
+  const burn = (longLight ? 1001 : 6) * TURN;
   if (head !== 'bare' && head !== 'packless' && head !== 'several' && head !== 'burntnone')
     await world.db.rpc('light_light' as never, { actor: brannoch, line: 'line-p1-lantern', light_type: 'storm-lantern', light_name: lanternName, burn_seconds: burn, warn_seconds: TURN, consumed: false, fuel_item: 'lamp-oil' } as never);
   world.tables.campaign_clocks.find((c) => c.campaign_id === campaign)!.seconds = 2 * TURN;

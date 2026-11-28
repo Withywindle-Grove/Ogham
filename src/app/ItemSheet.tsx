@@ -9,7 +9,8 @@ import type { EncumbranceMode } from '../core/campaignSettings.ts';
 import { isGm, runCommand, type CurrentUser } from '../core/commands.ts';
 import type { Db } from '../core/supabase.ts';
 import { diceRange, recordRoll } from '../core/rolls.ts';
-import { chargesOf, recharge, seemsSpent, setCharges, useCharge, type ChargeRules } from '../modules/inventory/charges.ts';
+import { chargesOf, recharge, setCharges, type ChargeRules } from '../modules/inventory/charges.ts';
+import { useSpendCharge } from './spendCharge.ts';
 import type { EncumbranceRules } from '../modules/inventory/encumbrance.ts';
 import {
   emptyContainer,
@@ -335,18 +336,8 @@ export function ItemSheet(props: ItemSheetProps) {
       });
     });
   }
-  /** Use a charge (today's action, reached from the sheet on the Pack; At hand's row carries it too). */
-  function spendCharge() {
-    if (busy) return;
-    if (offReason) return onNote(offReason);
-    if (!line.chargesHidden && (line.chargesLeft ?? 0) <= 0) return onNote(`${line.name} has no charges left.`);
-    void run(async () => {
-      const used = await runCommand(registry, db, user, useCharge, { line: ref, hidden: line.chargesHidden });
-      // With none left, nothing happens, and now the holder knows (ruled 2026-10-24).
-      if (used.ok && line.chargesHidden && !gmHere && (await seemsSpent(db, line.id))) onNote(`Nothing happens. ${line.name} seems spent.`);
-      return used;
-    });
-  }
+  /** Use a charge (today's action, reached from the sheet on the Pack; At hand's row carries it too): a toast with Undo. */
+  const spendCharge = useSpendCharge({ db, user, campaign, line, carrier, busy, run, offReason, onNote, gmHere });
   // The star in the head (plan C): where today's sheet offered Pin or Unpin. An item that shows At hand by itself keeps
   // Hide from At hand / Show in At hand as a row instead. In the At hand pop-up the star shows on everything, a weapon
   // in hand too (tfh-4; page M2's pick, "the star on everything At hand"): pinned, it stays At hand when put away.
