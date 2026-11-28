@@ -2,7 +2,7 @@
 status: pending
 milestone: December first play (loop 4: sitting B of the Scene's and the Pack's remaining rows)
 absorbed-into: none yet
-supersedes: nothing. sb4-1 to sb4-5 settle the five ⚑ left open in `docs/specs/scene-pack.md` (Further Notes); sitting A's rulings (l4-1 to l4-6) stand
+supersedes: nothing. sb4-1 to sb4-5 settle the five ⚑ left open in `docs/specs/scene-pack.md` (Further Notes); sb4-6 to sb4-10 settle the five ⚑ of pieces K to P (short sitting B, same day); sitting A's rulings (l4-1 to l4-6) stand
 ---
 
 # Loop 4, the Scene's and the Pack's remaining rows: sitting B rulings (2026-11-28)
@@ -37,3 +37,28 @@ The spec was approved: "Yes". Ten tickets, #200 to #209, under parent #198, were
 | sb4-5 | B5: only one of "What everyone knows" and "Rules" to show (sf-10, piece I) | A: alone at half the row's width, at the leading edge | "A" |
 
 **Settled.** B2 was first put with tr-7 quoted backwards ("a toast never replaces one still showing its Undo"). The driver asked again with tr-7 as written (`toast-restyle-2026-11-25.md`: a new toast still replaces the one showing; the log keeps the Undo); Francis ruled A, replace (sb4-2 above).
+
+## Added to loop 4 after sitting B
+
+On 28 Nov, after this sitting, Francis added to loop 4 the fonts helper (#210) and the five unbriefed retro items of loop 2 (1, 2B, 3, 5, 6), built after its needed rows: "Yes". The spec writes them as pieces K to P (`docs/specs/scene-pack.md`, Pieces K onward), none visible. Their ⚑ K1, K2, L1, M1 and O1 wait for a short sitting B (Further Notes). The rulings above stand as written.
+
+### Short sitting B (pieces K to P, 28 Nov)
+
+Held with Francis on 28 Nov 2026, one question at a time. Pieces K to P were approved: "Yes". Six tickets, #212 to #217, were approved: "Yes".
+
+| Piece | Ticket |
+|---|---|
+| K | #217 |
+| L | #212 |
+| M | #213 |
+| N | #214 |
+| O | #215 |
+| P | #216 |
+
+| ID | ⚑ | Ruling | Francis said |
+|---|---|---|---|
+| sb4-6 | K1: when pieces K onward run against sf-10, sf-11, sf-18, sf-14 | A: after the needed rows, beside the later rows where no file is shared; #217 (piece K) waits for every row | "A" |
+| sb4-7 | K2: the fonts wait's cost on the whole layout suite (piece K) | A: accept a cost up to about +5% (WebKit) and +11% (Chrome), said in the pull request | "A" |
+| sb4-8 | L1: where the spec's "names every part it relies on" step lives (piece L) | B: in the driver's loop (`.claude/agents/driver.md`, The loop): a scout looks up each named part before sitting B; the `to-spec` copy is untouched | "B" |
+| sb4-9 | M1: the second check slot's trial (piece M) | A: it runs on Home One (the PC) only, under the PC's memory rule | "A" |
+| sb4-10 | O1: more than one gallery line in a pull request's text (piece O) | A: CI fails the pull request | "A" |
