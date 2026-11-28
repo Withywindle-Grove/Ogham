@@ -483,6 +483,7 @@ export function PlayerScreen({
               weaponLine={weaponLine}
               weaponBreakdown={weaponParts}
               weaponRolls={weaponRollsOf}
+              spells={play && setting ? { setting, figures, character, play, onChanged: () => setPlayVersion((v) => v + 1) } : null}
               onRead={onPackRead}
             />
             <div className="player__slot" ref={setLevelSlot} />

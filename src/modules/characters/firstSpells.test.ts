@@ -24,6 +24,7 @@ import {
   spellBookEntry,
   spellDescription,
   spellHeadings,
+  spellRollOf,
   type SpellChoice,
   spellsStepTitle,
   tapProblem,
@@ -529,5 +530,19 @@ describe('a spell’s whole description (the Magic tab, mm-12)', () => {
   it('spellHeadings is unchanged: the notes are still its one "Rules" string', () => {
     const choice = spell({ notes: 'A green lantern hangs in the air.' });
     expect(spellHeadings(choice, [], 1).find((h) => h.label === 'Rules')).toEqual({ label: 'Rules', text: 'A green lantern hangs in the air.' });
+  });
+});
+
+describe("a spell's roll (the pinned spell's block, Player sitting piece 2; frame M4g)", () => {
+  const spell = (data: Record<string, unknown>): SpellChoice => ({ id: 'marsh-light', name: 'Marsh light', level: 1, blurb: '', line: '', entry: { packEntryId: 'marsh-light', name: 'Marsh light', data }, levelName: null });
+
+  // Purpose: a duration the GM rolls ({roll, unit}) is the spell's roll: its dice and its unit's words; any other
+  // duration, or none, is no roll, so the block draws no roll line. Read by class where the field differs by class.
+  it('a rolled duration is the roll; a set one or none is not', () => {
+    expect(spellRollOf(spell({ duration: { roll: 'd6+2', unit: 'turn' } }), [])).toEqual({ dice: 'd6+2', words: 'turns' });
+    expect(spellRollOf(spell({ duration: { 'reed-witch': { roll: '2d4', unit: 'round' } } }), ['reed-witch'])).toEqual({ dice: '2d4', words: 'rounds' });
+    expect(spellRollOf(spell({ duration: { value: 2, unit: 'turn' } }), [])).toBeNull();
+    expect(spellRollOf(spell({ duration: 'instant' }), [])).toBeNull();
+    expect(spellRollOf(spell({}), [])).toBeNull();
   });
 });
