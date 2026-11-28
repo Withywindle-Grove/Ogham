@@ -201,6 +201,23 @@ describe('an unidentified or cursed item’s id (Francis, 2026-11-22, "A", findi
     // A word the face shows anyway (the category's "ring") is no hint; the rest are named.
     expect(ruledFieldFindings(file).find((f) => f.text.includes('ring-of-the-drowned-bell'))?.text).toContain('shares "drowned", "bell" with');
   });
+
+  // Purpose (#176): an id that spells an unidentified item's true name is warned about with or without an apostrophe
+  // in the name, typographic (’) or straight ('), and whatever its case or hyphens; an id that hints at nothing stays silent.
+  it.fails('warns on an id that spells a true name with an apostrophe, ’ or \'', () => {
+    const file = {
+      rulesSets: [{ id: 'fen-rules', name: 'Fen rules', itemCategories: [{ id: 'lamp', name: 'Lamps', singular: 'Lamp', unidentified: true }] }],
+      items: [
+        { id: 'wardens-lamp', name: 'Warden’s lamp', category: 'lamp' },
+        { id: 'Wardens-Lantern', name: "Warden's Lamp", category: 'lamp' },
+        { id: 'bogwardens-lamp', name: 'Bog-warden’s lamp', category: 'lamp' },
+        { id: 'lamp-07', name: 'Warden’s lamp', category: 'lamp' },
+      ],
+    };
+    const ids = ruledFieldFindings(file).map((f) => f.text.match(/^items: "([^"]+)" starts unidentified/)?.[1]).filter(Boolean);
+    expect(ids).toEqual(['wardens-lamp', 'Wardens-Lantern', 'bogwardens-lamp']);
+    expect(ruledFieldFindings(file).find((f) => f.text.includes('"wardens-lamp"'))?.text).toContain('shares "wardens" with');
+  });
 });
 
 describe('the command’s exit code', () => {
