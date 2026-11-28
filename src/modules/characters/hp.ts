@@ -71,13 +71,18 @@ export function downAtOf(rulesSets: readonly Record<string, unknown>[]): number 
   return null;
 }
 
+/** Down (07 `death.at`): hit points at or below the rules' mark; never with no mark (`downAtOf` null) or no hit points. */
+export function isDown(hp: number | null, downAt: number | null): boolean {
+  return hp !== null && downAt !== null && hp <= downAt;
+}
+
 /** "5 of 8" (or "HP 5" with no most recorded). */
 const figureLine = (now: number, max: number | null) => (max === null ? `HP ${now}` : `${now} of ${max}`);
 
 /** The figure, then what a limit means: ": Down" (only when the rules say so), ", the lowest it goes", ", at the most". */
 function figureWords(now: number, max: number | null, downAt: number | null): string {
   const line = figureLine(now, max);
-  if (downAt !== null && now <= downAt) return `${line}: Down`;
+  if (isDown(now, downAt)) return `${line}: Down`;
   if (now <= 0) return `${line}, the lowest it goes`;
   if (max !== null && now >= max) return `${line}, at the most`;
   return line;

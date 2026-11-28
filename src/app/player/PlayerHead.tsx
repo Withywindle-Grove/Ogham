@@ -54,6 +54,8 @@ export function PlayerHead({
   onPortraitSaved,
   onOpenLog,
   notices,
+  hp,
+  downAt,
 }: {
   db: Db;
   user: CurrentUser;
@@ -74,6 +76,10 @@ export function PlayerHead({
    * M1c, M1f); the rings then take their own row under the portrait. Beside, the box is the right column's.
    */
   notices?: ReactNode;
+  /** The hit points the box shows (null: not set), for Down (pss-7). */
+  hp: number | null;
+  /** The HP at which the rules set marks a character Down (`downAtOf`); null: never Down. */
+  downAt: number | null;
 }): ReactNode {
   const rings = (
     <CharacterStatuses
@@ -86,6 +92,7 @@ export function PlayerHead({
       inView={phone ? 3 : 4}
       extra={casting ? (layout) => <CastingStatusView status={casting} ring layout={layout} /> : undefined}
       onOpenLog={onOpenLog}
+      hp={{ current: hp, downAt }}
     />
   );
   return (

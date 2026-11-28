@@ -1266,6 +1266,12 @@ if (p1Flag === '1' || p1Flag === 'messy' || p1Flag === 'two' || p1Flag === 'noli
   const p1Id = await addP1Character(world, { gm, sam, fenPack, head: p1Flag === '1' ? 'four' : p1Flag });
   // ?maxhp=none: no most hit points recorded, so the vitals offer "Set max" (N24) and its Max hit points pop-up (fb-7).
   if (new URLSearchParams(window.location.search).get('maxhp') === 'none') Object.assign(world.tables.actors.find((a) => a.id === p1Id)!, { hp_max: null });
+  // &down=1: the rules mark Down at 0 (07 `death.at`) and the character is at 0, so the head leads with "Down" (#165).
+  if (new URLSearchParams(window.location.search).get('down') === '1') {
+    const rules = world.tables.library_entries.find((e) => e.id === 'entry-pack-p1-lantern-rulesSet-lantern-road-rules')!;
+    rules.data = { ...(rules.data as Record<string, unknown>), death: { at: 0, belowZero: false, note: 'Down at nothing left.' } };
+    Object.assign(world.tables.actors.find((a) => a.id === p1Id)!, { hp_current: 0 });
+  }
   // &light=error: the character's own light can't be read (⚑ 6 of plan light-tap, B; page 37, 37C), as when offline.
   if (new URLSearchParams(window.location.search).get('light') === 'error') {
     const stand = world.db as unknown as { from: (table: string) => unknown };
