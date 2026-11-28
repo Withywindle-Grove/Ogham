@@ -746,6 +746,19 @@ describe("the head (dec-13 C2: ps-3, ps-5; frames P1, P2)", () => {
     expect(document.querySelector(".player-head .portrait--head")).not.toBeNull();
   });
 
+  it("on a phone the head can carry the name before \"the\" kindred and the title, as upright on a tablet (#169, frame 47-1)", async () => {
+    // Purpose: on a phone the head holds the name as the first of its words (drawn only while the bar's name is cut,
+    // PlayerScreen.css), then a space and the line, with no comma after the name (pss-13); one heading carries it.
+    fenWorld();
+    render(<Root db={world.db} />);
+    await openPlayer(userEvent.setup());
+    const words = document.querySelector(".player-head .player-head__words");
+    expect(words).not.toBeNull();
+    expect(words!.querySelector("h1.player-head__name")?.textContent).toBe("Wren");
+    expect(words!.textContent).toMatch(/^Wren the Bog folk(, .+)?$/);
+    expect(screen.getAllByRole("heading", { level: 1, name: "Wren" })).toHaveLength(1);
+  });
+
   it("on a tablet in two columns the bar reads the name, \"the\" kindred and the title, and the head has no line", async () => {
     // Purpose: frame P1's bar, "Brannoch the Hornkin, Shieldbearer"; the head is the portrait and the rings alone.
     windowOf(1366);
