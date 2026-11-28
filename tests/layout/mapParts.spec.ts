@@ -33,6 +33,7 @@ for (const size of [
         await page.goto('/layout.html?mapParts=1');
         const picture = page.getByRole('button', { name: /show the map whole/ });
         await expect(page.locator('img.map-picture__img[data-ready]')).toHaveCount(1);
+        await page.evaluate(() => document.fonts.ready);
         const tools = page.locator('.map-tools');
         const [p, t] = await Promise.all([picture.boundingBox(), tools.boundingBox()]);
         if (!p || !t) throw new Error('not drawn');
@@ -147,6 +148,7 @@ for (const size of [
           await page.goto(`/layout.html?mapParts=${state}`);
           const row = page.locator('.map-wanted');
           await expect(row).toBeVisible();
+          await page.evaluate(() => document.fonts.ready);
           await expect(row.locator('.map-wanted__file')).toHaveCount(0);
           const title = row.locator('.map-wanted__title');
           const lines = await title.evaluate((el) => Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)));
