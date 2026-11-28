@@ -130,6 +130,27 @@ describe("the hoard's sheet (HM2, HM5)", () => {
     expect(screen.queryByText(note)).toBeNull();
   });
 
+  // Purpose (⚑ 5 of #158, B, 28 Nov; FD5, TR2): each thing's and coin's name on the hoard's sheet is in the bold name
+  // part and the edit row's words are not; what a screen reader hears for a row is unchanged (the name, then the
+  // pack's note); and a sent row says "Sent to Wren" with no full stop.
+  it('draws each thing’s name in bold, the edit row plain, and the sent line with no full stop', () => {
+    const note = 'Printed “hn.” in the book: read as 200 herons.';
+    const odd: HoardRow = { kind: 'coin', entry: 0, text: '200 hn.', amounts: [{ key: 'heron', amount: 200, words: '200 herons' }], coins: { heron: 200 }, readAs: { printed: '200 hn.', note }, notCoins: [] };
+    const chest: Hoard = { name: 'Sea chest', words: null, rows: [odd, thing(1, 'Moon opals', 2), thing(2, 'Brass spyglass')] };
+    const view = (sent: Map<string, { to: string | null }>) => (
+      <HoardSheetView hoard={chest} sent={sent} nameOf={nameOf} onRow={() => undefined} onSendAll={() => undefined} onEdit={() => undefined} onClose={() => undefined} />
+    );
+    const { rerender } = render(view(new Map()));
+    const sheet = screen.getByRole('dialog');
+    for (const words of ['200 hn.', 'Moon opals ×2', 'Brass spyglass']) expect(within(sheet).getByText(words).classList.contains('hoard-sheet__name')).toBe(true);
+    expect(within(sheet).getByText("Edit the piece's words").closest('.hoard-sheet__name')).toBeNull();
+    expect(within(sheet).getByRole('button', { name: `200 hn., ${note}` })).toBeTruthy();
+    expect(within(sheet).getByRole('button', { name: 'Moon opals ×2' })).toBeTruthy();
+    rerender(view(new Map([['1:thing', { to: 'wren' }]])));
+    expect(screen.getByText('Sent to Wren')).toBeTruthy();
+    expect(screen.queryByText('Sent to Wren.')).toBeNull();
+  });
+
   // Purpose: the Send sheet says what is sent once and offers the two equal answers (PK5).
   it('offers the two answers', async () => {
     const onStash = vi.fn();

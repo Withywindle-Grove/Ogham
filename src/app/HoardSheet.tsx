@@ -433,11 +433,15 @@ export function HoardSheetView({
           {hoard.rows.map((r) => {
             const went = sent.get(rowKey(r));
             const note = r.kind === 'coin' && r.readAs ? r.readAs.note : null;
+            const name = r.kind === 'thing' ? thingWords(r) : r.text;
             return (
               <ListRow
                 key={rowKey(r)}
-                title={r.kind === 'thing' ? thingWords(r) : r.text}
+                // Each thing's name in bold, as FD5 and page 44's TR2 draw it (⚑ 5 of #158, B, 28 Nov); the edit row stays plain.
+                title={<span className="hoard-sheet__name">{name}</span>}
                 sub={went ? <SentLine text={sentWords(went.to, nameOf)} tick /> : (note ?? undefined)}
+                // What is heard stays as it was with the plain words: the name, then the pack's note.
+                openLabel={went ? undefined : [name, note].filter((p) => p).join(', ')}
                 onOpen={() => onRow(r)}
               />
             );
