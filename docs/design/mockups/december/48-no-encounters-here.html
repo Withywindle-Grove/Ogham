@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>December: page 48, a place with no encounters (G-27; drawn 2026-11-28 for sitting A; not approved)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* This page's own rules. Type, the book format, the stacked button, the sheet's title, the pop-up, the tapped table and
+     the corners come from ../shared/book.css and are not restated here. */
+  /* (1) copied as they stand from page 24 (and through it pages 04, 12, 16, 18 and 23): the layout of the parts reused here */
+  .lbl { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); }
+  .rem { justify-content:center; } .rem .gap { display:none; }
+  .phone .rem .step .nm { display:none; }
+  .ibs { display:inline-flex; gap:var(--space-2); }
+  .btn.sq.ib { padding:6px; }
+  .dcap { display:inline-flex; align-items:center; gap:var(--space-1); font-size:16px; letter-spacing:.04em; margin-right:var(--space-2); vertical-align:bottom; }
+  .dcap svg { color:var(--muted); flex:none; }
+  .phone .dcap { font-size:14px; }
+  .phband { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2); align-items:center; margin-top:var(--space-1); }
+  .phibs { display:flex; gap:var(--space-2); margin-top:var(--space-2); }
+  .four { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-4); align-items:start; }
+  .mseq { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .mx { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; flex:none; }
+  .flab { display:block; font-size:14px; color:var(--muted); margin:var(--space-3) 0 var(--space-1); }
+  .wait .wb { grid-column:1 / -1; align-items:stretch; }
+  .bk td:first-child, .bk th:first-child { width:96px; }
+  .phone .pdest { grid-template-columns:auto minmax(0,1fr); }
+  .phone .pdest .modes { grid-column:1 / -1; justify-content:flex-start; }
+  .phone .pcard { margin-top:var(--space-3); padding:var(--space-3); }
+  .pdest .modes .btn.stk { width:auto; }
+  .pdest .ot b { overflow-wrap:break-word; word-break:normal; }
+  .dev .band .acts .btn.sq { width:52px; min-height:52px; }
+  .maptools .btn.sq { height:44px; padding:0; }
+  .kw22 { font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+  .inforce .own22 { display:block; margin-top:var(--space-1); }
+  .pk23 { display:flex; align-items:center; gap:var(--space-2); min-height:44px; border-bottom:1px dotted var(--rule); }
+  .due23 { display:flex; align-items:center; gap:var(--space-1); font-size:14px; font-weight:700; margin-top:var(--space-1); }
+  .shown23 p { margin:var(--space-2) 0 0; }
+  .phs23 { display:grid; grid-auto-flow:column; grid-auto-columns:343px; gap:var(--space-4) var(--space-6); align-items:start; }
+  .behind { position:relative; height:52px; overflow:hidden; box-sizing:border-box; }
+  .sheetup.flow { position:relative; max-height:none; }
+  /* (2) new on this page */
+  .fr44 { margin:0 0 var(--space-6); }
+  .fr44 > .cap { font-size:14px; }
+  /* the pop-up's head: its title (or an entry's name) and the X on one line */
+  .pu44 { display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:var(--space-2); align-items:center; margin-bottom:var(--space-2); }
+  .pu44 .ehead, .pu44 .sheet-title { overflow-wrap:break-word; min-width:0; }
+  .popb.w44 { width:440px; }
+  .popb.w72 { width:640px; max-width:720px; }
+  .phone .popb.w44, .popb.ph44 { width:auto; max-width:none; }
+  /* a pop-up centred over a dimmed screen */
+  .pc44 { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:var(--space-4); box-sizing:border-box; }
+  /* tiles centred: each keeps a quarter of the row (two across on a phone) */
+  .facts.c44 { display:flex; flex-wrap:wrap; justify-content:center; }
+  .facts.c44 .fact { flex:0 0 calc((100% - 3 * var(--space-3)) / 4); }
+  .phone .facts.c44 { gap:var(--space-2); margin-top:var(--space-2); }
+  .phone .facts.c44 .fact { flex:0 0 calc((100% - var(--space-2)) / 2); padding-left:var(--space-2); padding-right:var(--space-2); column-gap:var(--space-2); }
+  .phone .facts.c44 .fact .v { font-size:16px !important; white-space:nowrap; }
+  .phone .facts.c44 .fact .k { white-space:nowrap; letter-spacing:0 !important; }
+  .phone .facts.c44 .fact .fi svg { width:20px; height:20px; }
+  .phone .facts.c44 .fact:last-child .v { font-size:14px !important; }
+  .phone .two.pp44 { grid-template-columns:minmax(0,1fr); }
+  /* the encounter's one card: the icon and what was rolled on the first line, the rest across the card */
+  .wait.e44 .wi { grid-row:1; }
+  .wait.e44 > .all { grid-column:1 / -1; }
+  .shown44 { display:flex; align-items:center; gap:var(--space-2); font-size:14px; margin-top:var(--space-2); }
+  /* the detail row: a name the pack links, with its stat line or its rule's first words; the whole row is the tap */
+  .dt44 { display:grid; grid-template-columns:minmax(0,1fr) 20px; gap:var(--space-2); align-items:center; min-height:44px; padding:var(--space-2) var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); margin-top:var(--space-2); box-sizing:border-box; }
+  .dt44 .nm { font-weight:700; }
+  .dt44 .st { display:block; font-size:14px; line-height:1.4; overflow-wrap:break-word; }
+  .pr44 { margin-right:var(--space-2); }
+  .gm44 { display:block; font-size:14px; color:var(--muted); margin-top:var(--space-2); }
+  .dot44 { border:0; border-top:1px dotted var(--rule); margin:var(--space-2) 0; }
+  /* the fold "From the book, for the GM": its head is one row, with no eye */
+  .fb44 { display:grid; grid-template-columns:minmax(0,1fr) 44px; align-items:center; min-height:44px; border-top:1px dotted var(--rule); border-bottom:1px dotted var(--rule); margin-top:var(--space-3); }
+  .fb44 b { display:block; }
+  .fb44 small { display:block; font-size:14px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .fbb44 { padding:var(--space-3) 0; border-bottom:1px dotted var(--rule); }
+  /* a piece with an arrow before its eye */
+  .piece.ar44 { grid-template-columns:minmax(0,1fr) 44px 44px; gap:var(--space-2); }
+  .piece > .un44 { grid-column:1 / -1; margin-top:calc(-1 * var(--space-2)); }
+  .un44 .gm44:first-child { margin-top:0; }
+  .sent44 { display:flex; align-items:center; gap:var(--space-1); font-size:14px; margin-top:var(--space-1); }
+  /* the Depart list: the group's head with its fold square; the back row; the search field's label */
+  .gh44 { display:grid; grid-template-columns:minmax(0,1fr) auto 44px; gap:var(--space-2); align-items:center; min-height:52px; border-bottom:1.5px solid var(--ink); margin-top:var(--space-3); }
+  .gh44 .sclab { margin:0; }
+  .gh44 .btn.sq { width:44px; }
+  .pk23 .ar { margin-left:auto; color:var(--muted); font-size:14px; }
+  .back44 { display:inline-flex; align-items:center; gap:var(--space-1); min-height:44px; padding:0 var(--space-3) 0 var(--space-2); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); margin-bottom:var(--space-2); }
+  .ind44 { padding-left:var(--space-5); }
+  /* "Where to?": an Area's name over its rows */
+  .ah44 { margin:var(--space-3) 0 0; }
+  .ah44:first-child { margin-top:0; }
+  /* the Move on pop-up's foot: Back at the left, Move at the right */
+  .mf44 { display:flex; justify-content:space-between; gap:var(--space-2); margin-top:var(--space-4); }
+  /* the Edit piece form */
+  .fld44 { margin:0 0 var(--space-3); }
+  .fld44 .fl { display:block; font-weight:700; margin-bottom:var(--space-1); }
+  .fld44 .field.area { min-height:96px; }
+  .kind44 { display:grid; grid-template-columns:auto minmax(0,1fr) 20px; gap:var(--space-3); align-items:center; min-height:44px; padding:0 var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); }
+  /* the encounter tables page */
+  .chips44 { display:flex; flex-wrap:wrap; gap:var(--space-2); margin:var(--space-2) 0 var(--space-3); }
+  .tp44 { max-width:640px; }
+  .tt .tr { grid-template-columns:4.6em minmax(0,1fr) 24px; }
+  ol.q44 { font-size:16px; max-width:760px; padding-left:var(--space-5); color:var(--ink); }
+  ol.q44 li { margin-bottom:var(--space-2); }
+  .note.big { font-size:16px; color:var(--ink); max-width:760px; }
+  /* the critique: its score table and its numbered findings, as pages 40 and 42 have them */
+  ol.crit { font-size:16px; max-width:760px; padding-left:var(--space-5); color:var(--ink); }
+  ol.crit li { margin-bottom:var(--space-2); }
+  table.sc { border-collapse:collapse; font-size:14px; max-width:760px; margin:var(--space-2) 0 var(--space-4); color:var(--ink); }
+  table.sc td, table.sc th { border:1px solid var(--rule); padding:var(--space-1) var(--space-2); text-align:left; vertical-align:top; }
+  /* (3) redrawn 2026-11-26, to Francis's rulings and the critique's findings he picked */
+  /* the band: a thin rule sets the fold mark apart from the actions; with the words under the marks (a wide screen) the row is the stacked button's height */
+  .vr44 { width:1px; align-self:stretch; background:var(--control); margin:var(--space-1) 0; }
+  .dev .band.w44 .acts .btn.big, .dev .band.w44 .acts .btn.sq { min-height:56px; }
+  .dev .band.w44 .acts .btn.sq { width:56px; }
+  /* the detail row loses its box: a dotted rule above and below, as a piece has (finding 13) */
+  .dt44 { border:0; border-top:1px dotted var(--rule); border-bottom:1px dotted var(--rule); border-radius:0; background:transparent; padding:var(--space-2) 0; }
+  .dt44 + .dt44 { margin-top:0; border-top:0; }
+  .dt44 .st.meta { color:var(--muted); }
+  /* a stat line breaks between pairs; a die stays with its number (finding 12) */
+  .pr44 { display:inline-block; max-width:100%; }
+  .nw44 { white-space:nowrap; }
+  /* the encounter's card: the words at body size; the line that says what was picked, with "Change…" */
+  .ew44 { font-size:16px; line-height:1.5; }
+  .rl44 { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); margin-top:var(--space-1); }
+  .rl44 .meta { font-size:14px; min-width:0; }
+  .shown44 { align-items:flex-start; }
+  .shown44 svg { flex:none; margin-top:1px; }
+  .phone .wait.e44 .wb.w3 { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); }
+  .phone .wait.e44 .wb.w3 .btn.stk { min-width:0 !important; width:100%; padding-left:var(--space-1); padding-right:var(--space-1); }
+  /* at 375 px the encounter's card has no box of its own inside "Waiting for you": two boxes deep, and room for three 88 px buttons */
+  .phone .pcard .wait.e44 { border:0; padding:0; background:transparent; }
+  /* the tapped table's picked row, in the roll's pop-up */
+  table.tap tr.on44 td { background:var(--wash); font-weight:700; }
+  table.tap tr.on44 { outline:2px solid var(--accent); outline-offset:-2px; }
+  /* N2 (picked 2026-11-26): a row found by number has a rule at its leading edge and its range in bold; the wash is the tapped row's */
+  table.tap tr.at44 td:first-child { font-weight:700; box-shadow:inset var(--space-1) 0 0 var(--ink); }
+  .tk44 { float:right; margin-left:var(--space-2); display:inline-flex; }
+  /* N1 (picked 2026-11-26): a reveal waiting to be sent keeps "Reveal…", with the "waiting" tag on the button */
+  .btn.stk .waittag { margin:2px 0 0; font-weight:700; }
+  /* a warning line under a field */
+  .wl44 { display:flex; align-items:center; gap:var(--space-1); font-weight:700; color:var(--warn); margin:calc(-1 * var(--space-1)) 0 var(--space-2); }
+  /* the "…" menu, as page 32 draws it */
+  .menu44 { border:1px solid var(--rule); border-radius:8px; background:var(--popup); box-shadow:0 4px 16px rgb(0 0 0 / 25%); padding:var(--space-1) 0; }
+  .menu44 .mi { display:flex; align-items:center; gap:var(--space-3); min-height:48px; padding:0 var(--space-4); }
+  .menu44 .mi svg { color:var(--muted); flex:none; }
+  .mdiv44 { border:0; border-top:1px solid var(--rule); margin:var(--space-1) 0; }
+  .sw44 { width:52px; height:44px; display:inline-flex; align-items:center; flex:none; }
+  .sw44 i { display:block; width:52px; height:28px; border-radius:14px; border:1.5px solid var(--control); background:var(--sheet); position:relative; box-sizing:border-box; }
+  .sw44 i::after { content:""; position:absolute; left:3px; top:3px; width:19px; height:19px; border-radius:50%; background:var(--control); }
+  /* skeleton rows; a pop-up that stops at the screen's height, its rows scrolling */
+  .sk44 { height:16px; border-radius:4px; background:var(--rule); margin:0 0 var(--space-3); }
+  .popb.tall44 { display:flex; flex-direction:column; max-height:520px; }
+  .scr44 { position:relative; overflow:hidden; min-height:0; flex:1 1 auto; padding-right:var(--space-3); }
+  .sb44 { position:absolute; right:0; top:var(--space-1); width:4px; height:38%; border-radius:2px; background:var(--control); }
+  .gn44 { display:grid; grid-template-columns:auto 96px; gap:var(--space-3); align-items:center; justify-content:start; margin:0 0 var(--space-3); }
+  .gn44 .fl { font-weight:700; }
+  /* a piece's words that are a tap of their own (a Treasure piece) keep the row's height */
+  .piece .lead[role="button"] { min-height:44px; display:flex; align-items:center; }
+  /* the Depart list: a second level of indent inside a pack */
+  .gh44.ind44 { margin-top:0; padding:var(--space-1) 0 var(--space-1) var(--space-4); border-bottom:1px dotted var(--rule); }
+  .pk23.ind2 { padding-left:calc(var(--space-4) + var(--space-5)); }
+  /* "Where to?": the closed eye and what the players read */
+  .ns44 { display:inline-flex; align-items:center; gap:var(--space-1); }
+  /* the players' pair at 375 px: two stacked buttons of one width; the third tile takes the row */
+  .two.pp44.ph { grid-template-columns:auto minmax(0,1fr); }
+  .two.pp44.ph .btn.stk { width:100%; }
+  .phone .facts.c44 .fact:nth-child(3):last-child { flex:0 0 100%; }
+  .phone .facts.c44 .fact:nth-child(3):last-child .v { font-size:16px !important; }
+  /* Knowledge: an unfolded section, its eye on its own heading */
+  .ksec.k44 { align-items:center; }
+  .ksec.k44.open { display:block; }
+  .kh44 { display:grid; grid-template-columns:minmax(0,1fr) 44px 44px; gap:var(--space-2); align-items:center; }
+  .kh44 h4 { margin:0; }
+  .ksec.k44 .when { display:flex; align-items:flex-start; gap:var(--space-1); }
+  .ksec.k44 .when svg { flex:none; margin-top:2px; }
+  .ksec.k44 .bk { margin-top:var(--space-1); }
+  /* "Edit piece": the kinds unfold in place; "Remove this piece" as a quiet row */
+  .kind44 { grid-template-columns:minmax(0,1fr) 20px; }
+  .kl44 { border:1.5px solid var(--control); border-top:0; border-radius:0 0 4px 4px; padding:0 var(--space-3); }
+  .kl44 .pk23:last-child { border-bottom:0; }
+  .rm44 { border-bottom:0; margin-top:calc(-1 * var(--space-1)); }
+  table.sc td b.ok { font-weight:700; }
+  /* Page 48's own rules (G-27): layout only, and the "Checks here" list of page 11 (.chk, copied as drawn). Every value
+     is a token from docs/06: spacing 4/8/12/16/24/32, type 14/16/20, the tap 44. Nothing here is a new part: the tile is
+     the Facts row's (page 44, PS2), the card is the stand-in check's (page 11, rg-5). Only words change. */
+  .phone { width:375px; }
+  .phs23 { grid-auto-columns:375px; }
+  .chk { min-height:44px; display:flex; align-items:center; border-bottom:1px dotted var(--rule); }
+  .chk:last-child { border-bottom:0; }
+  .note.big { font-size:16px; color:var(--ink); max-width:1100px; }
+  .flag { display:inline-block; border:1.5px dashed var(--warn); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; font-size:14px; }
+  table.sc { border-collapse:collapse; font-size:14px; margin:var(--space-2) 0 var(--space-4); color:var(--ink); max-width:1100px; }
+  table.sc td, table.sc th { border:1px solid var(--rule); padding:var(--space-1) var(--space-2); text-align:left; vertical-align:top; }
+  ol.crit { font-size:16px; max-width:1100px; padding-left:var(--space-5); color:var(--ink); }
+  ol.crit li { margin-bottom:var(--space-2); }
+  .grey { filter:grayscale(1); }
+  /* the tile's small line is one line, cut with its three dots (06, Facts row; st-5), as built */
+  .fact .s { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="strip.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+{
+// ---- page 44’s parts, copied as drawn (its frames left out) ----
+// ---- parts of pages 18, 23, 24, 30 and 33, as those pages wrote them ----
+const sep = svg(SY.right, 16);
+const go = svg(SY.right, 20);
+const NEW = '<b>Approved by Francis, 2026-11-26: “Approve with picks”.</b>';
+// a part redrawn after his approval, to one of his picks: he has not seen that part as drawn
+const RD = (what) => `<b>Redrawn after his approval, to ${what}.</b>`;
+const AG = '<b>Agreed by Home Two, approved by Francis 26 Nov:</b>';
+const stk = (words, k, o = {}) => `<span class="btn stk${o.accent ? ' accent' : ''}${o.on ? ' on' : ''}" role="button"${o.on !== undefined ? ` aria-pressed="${!!o.on}"` : ''}${o.label ? ` aria-label="${o.label}"` : ''}>${o.sym ? sym(k, 24) : gi(k, 24)}<span>${words}</span></span>`;
+const ruleBtn = (k, words) => `<span class="btn big sqb" role="button" aria-label="${words}">${gi(k, 34)}</span>`;
+const splash = ruleBtn('water-splash', 'Someone fell in');
+const moreBtn = `<span class="btn sq" role="button" aria-label="More">${I.more}</span>`;
+const stt = (label, html) => `<div><p class="lbl">${label}</p>${html}</div>`;
+const num22 = (name) => { const m = /^([0-9]+[.]) (.*)$/.exec(name); return m ? `<span class="keyno">${m[1]}</span>${m[2]}` : name; };
+const STEP5 = [['trumpet', 'Describe'], ['ball', 'Question'], ['sword-brandish', 'Act'], ['wizard', 'Test'], ['chest', 'Resolve']];
+const stripRow = remRow('Sequence of play', STEP5.map(([k, n]) => remStep(gi(k, 32), n, false)));
+const nextTurn = b('Next turn', { big: true, icon: 'clock' });
+// ⚑ 1, ruled 2026-11-26: the encounter's mark is the icon set's crossed swords, in the band, the tile and the card alike
+const SW = (w) => gi('crossed-swords', w);
+const swap = (html, w) => html.split(sym('encounter', w)).join(SW(w));
+// the band's three marks, as built: 52 px squares, read aloud by their words
+const ib = (k, words) => `<span class="btn sq ib" role="button" aria-label="${words}">${gi(k, 30)}</span>`;
+const bandMarks = `<span class="ibs" role="group">${ib('camping-tent', 'Make camp')}${ib('crossed-swords', 'Encounter check')}${ib('exit-door', 'Leave the dungeon')}</span>`;
+// finding 18: where the band has room (1180 px and wider) each mark has its word under it (the stacked button)
+const bandTools = `<span class="ibs" role="group" data-stkgroup>${stk('Camp', 'camping-tent', { label: 'Make camp' })}${stk('Encounter', 'crossed-swords', { label: 'Encounter check' })}${stk('Leave', 'exit-door', { label: 'Leave the dungeon' })}</span>`;
+const dl = (date, rest = '') => `<span class="dcap">${gi('sprout', 18)}${date}</span>${rest}`;
+const DATE = dl('14 Reedmonth, spring', 'Two hours of light left.');
+// finding 5: one fold mark on the page, the chevron (down while folded, up while open); "+" is left to mean "add"
+const foldMark = (open, w = 24) => svg(open ? '<path d="M6 15l6-6 6 6" ' + W + '/>' : '<path d="M6 9l6 6 6-6" ' + W + '/>', w);
+const foldBtn = (open) => `<span class="btn sq fold23" role="button" aria-expanded="${open}" aria-label="${open ? 'Fold the top away' : 'Show the top'}">${foldMark(open)}</span>`;
+const foldSq = (open, name) => `<span class="btn sq" role="button" aria-expanded="${open}" aria-label="${open ? 'Fold' : 'Unfold'} ${name}">${foldMark(open)}</span>`;
+const vr = '<span class="vr44" aria-hidden="true"></span>';
+const dueLine = `<span class="due23" role="status">${I.warn}No light</span>`;
+const F_W = fact('weather', 'Weather', 'Drizzle', 'Wet.');
+const F_L = fact('flame', 'Light', 'Ash’s torch', '4 turns left.');
+const F_R = fact('rest', 'Rest', 'In 5 turns', 'One turn in six.');
+const F_E = swap(fact('encounter', 'Encounter check', 'On every move', `${dieMark(20, 16)}d20`).replace('class="v"', 'class="v" style="font-size:20px;white-space:nowrap"'), 28);
+const tiles = (list) => `<div class="facts c44">${list.join('')}</div>`;
+const T3 = tiles([F_L, F_R, F_E]);
+// the GM's band: the three marks, Next turn, a rule, the fold mark, then the menu last (F3 a, ruled 2026-11-25)
+const gmBand = (title, o = {}) => `${band({ over: 'Session 1. Saltwick Island.', title, ident: DATE + (o.under || ''), acts: [o.words ? bandTools : bandMarks, nextTurn, vr, foldBtn(o.fold === undefined ? true : o.fold), moreBtn] }).replace('class="band"', o.words ? 'class="band w44"' : 'class="band"')}<hr class="dbl">`;
+const gmTop = (title, o = {}) => `${gmBand(title, o)}${T3}${stripRow}`;
+const trail = (last, area = 'The Drowned Harbour') => `<div class="crumb"><a class="x">Saltwick Island</a>${sep}<a class="x">${area}</a>${sep}<b>${last}</b></div>`;
+const headOf = (name, acts) => `<div class="band"><div><h3 class="display">${num22(name)}</h3></div><div class="acts two">${acts}</div></div>`;
+const pair = `<div class="two">${b('Knowledge', { icon: 'book' })}${b('Rules', { icon: 'scales' })}</div>`;
+const SENT = `${dieMark(20, 16)}Roll d20 for an encounter each time the party rows to a new Location.`;
+const waitHead = '<div class="hrow" style="min-height:0;margin-bottom:var(--space-2)"><h2>Waiting for you</h2></div>';
+const waitNone = `<div class="pcard"><h2 style="margin-top:0">Waiting for you</h2><p class="meta" style="margin:0">Nothing waits.</p></div>`;
+const pX = `<span class="mx" role="button" aria-label="Close">${I.close}</span>`;
+const toast = (words, undo = true) => `<div class="toastb" role="status"><span class="tmsg">${words}</span>${undo ? `<span class="tu" role="button">${gi('anticlockwise-rotation', 20)}Undo</span>` : ''}<span class="tb" aria-hidden="true"></span></div>`;
+const frame = (id, cap, body, w = 1024) => `<div data-frame="${id}" class="fr44"><p class="cap" style="width:${w}px;max-width:${w}px">${cap}</p><div class="wall bit">${body}</div></div>`;
+const dframe = (id, html) => `<div data-frame="${id}" class="fr44">${html}</div>`;
+const shortPad = (role, inner, cap) => ipad(role, inner, cap).replace('class="dev ipad"', 'class="dev ipad short"');
+const overPop = (role, back, pop, h) => `<div class="dev ipad fixed" style="height:${h}px">${railOf(role)}<div class="main">${topRow(role)}<div class="page">${back}</div></div><div class="veil"></div><div class="pc44">${pop}</div></div>`;
+const phSheet = (behind, inner, o = {}) => `<div class="phone"><div class="behind">${behind}<div class="dim"></div></div><div class="sheetup flow" role="dialog"${o.label ? ` aria-label="${o.label}"` : ''}>${inner}</div></div>`;
+const phBehind = `${phoneBar('The Reed Marches')}`;
+const phGm = (inner, foot = '') => `<div class="phone">${phoneBar('The Reed Marches')}<div class="inner">${inner}</div>${foot}${tabBar('gm')}</div>`;
+const phPl = (inner) => `<div class="phone">${phoneBar('The Reed Marches')}<div class="inner">${inner}</div>${tabBar('player')}</div>`;
+const fld = (label, value, o = {}) => `<div class="fld44"><span class="fl">${label}</span><span class="field${o.area ? ' area' : ''}${value ? '' : ' empty'}" role="textbox" aria-label="${label}">${value || '&nbsp;'}</span></div>`;
+const warnLine = (words) => `<p class="wl44" role="alert">${I.warn}<span>${words}</span></p>`;
+const waitTag = '<span class="waittag" style="margin-right:var(--space-1)">waiting</span>';
+
+// ---- the book's figures, invented (the labels are the gallery's own: Level, Armour, Hit points, Attacks, Speed, Morale) ----
+// finding 12: a stat line breaks only between a label and the next label; a die never parts from its number
+const dn = (n, words) => `<span class="nw44">${dieMark(n, 16)}${words}</span>`;
+const fig = (pairs) => pairs.map(([k, v]) => `<span class="pr44"><span class="lbk">${k}</span>${v}</span>`).join(' ');
+const LURK1 = [['Level', '2'], ['Armour', '7'], ['Hit points', dn(8, '2d8 (9)')], ['Attacks', `Bite <span class="nw44">(+1, ${dieMark(6, 16)}1d6)</span> and drag under`], ['Speed', '60 swimming'], ['Morale', '8']];
+const EEL1 = [['Level', '1'], ['Armour', '8'], ['Hit points', dn(8, '1d8 (4)')], ['Attacks', `Pinch <span class="nw44">(+0, ${dieMark(4, 16)}1d4)</span>`], ['Speed', '20'], ['Morale', '6']];
+const FERRY1 = [['Level', '1'], ['Armour', '9'], ['Hit points', dn(6, '1d6 (3)')], ['Attacks', `Boat hook <span class="nw44">(+0, ${dieMark(6, 16)}1d6)</span>`], ['Speed', '40'], ['Morale', '7']];
+// the detail row: one part, in three homes. Finding 13: no box of its own, a dotted rule above and below; the whole row is the tap.
+// A short row (no line) is the name alone, where the same line already stands once on the card (finding 9; ⚑ 9, ruled 2026-11-26).
+const dRow = (name, o = {}) => `<div class="dt44 all" role="button" aria-label="${name}: read it"><span><span class="nm">${name}${o.count ? ` ×${o.count}` : ''}</span>${o.as ? `<span class="meta">, ${o.as}</span>` : ''}${o.line ? `<span class="st bk">${o.line}</span>` : ''}${o.note ? `<span class="st meta">${o.note}</span>` : ''}</span>${go}</div>`;
+const lurkRow = (n) => dRow('Bog lurker', { count: n, line: fig(LURK1) });
+const eelRow = dRow('Mud crab', { count: 4, line: fig(EEL1) });
+const harlRow = dRow('Old Harl', { as: 'a ferryman', line: fig(FERRY1) });
+// ⚑ 9, ruled 2026-11-26 ("Home Two's fix"): a line is printed once per identical line. Old Harl uses the Ferryman's block, so his row is short;
+// with a block of his own he keeps his own line
+const harlSame = dRow('Old Harl', { as: 'a ferryman', note: 'Same stat line as the Ferryman.' });
+const HARL1 = [['Level', '2'], ['Armour', '8'], ['Hit points', dn(6, '2d6 (7)')], ['Attacks', `Boat hook <span class="nw44">(+1, ${dieMark(6, 16)}1d6)</span>`], ['Speed', '40'], ['Morale', '9']];
+const harlOwn = dRow('Old Harl', { as: 'a ferryman', line: fig(HARL1) });
+const ferryRow = dRow('Ferryman', { count: 3, line: fig(FERRY1) });
+const OIL_L = 'One flask fills a lantern once. Thrown and lit, it burns where it lands.';
+const RING_L = 'Its wearer is steadier against harm. Cursed: it does not come off within sight of the sea.';
+const oilRow = dRow('Lamp oil', { count: 8, line: OIL_L });
+const ringRow = dRow('Ring of the Drowned Bell', { line: RING_L });
+
+// ================= DT: details at hand (⚑ 9, ruled 2026-11-26: "Home Two's fix") =================
+const bookFold = (open, inner = '') => `<div class="fb44" role="button" aria-expanded="${open}"><span><b>From the book, for the GM</b>${open ? '' : '<small>A cog on her side on the bar. Three ferrymen sleep under the sailcloth…</small>'}</span><span class="mx">${foldMark(open, 20)}</span></div>${open ? `<div class="fbb44 bk">${inner}</div>` : ''}`;
+const BOOK = `<p>A cog on her side on the bar, decks awash. Three ferrymen sleep under the sailcloth by day and strip her by night. <b>Old Harl</b> comes for them at dusk.</p><p><b>Below.</b> The hold is flooded to the knee. Four mud crabs have the run of it and pinch at anything that wades.</p><p><b>Stern cabin.</b> A crate of eight flasks of lamp oil, dry, under the fallen beams.</p><div class="aside"><p style="margin-bottom:var(--space-1)"><b>RING OF THE DROWNED BELL</b></p><p>Cast from the bronze of a sunken bell. Its wearer is steadier against harm, and cannot take it off within sight of the sea.</p></div>`;
+const SRC = '<p class="source">p.&nbsp;14</p>';
+// each stat line and each item's line is printed once, on the piece that names it; the fold keeps only the rows no piece names
+const TO_PIECES = '<p class="meta" style="margin:var(--space-2) 0 0">The other stat lines and the items are on their pieces.</p>';
+const bookRows = (harl) => `<h4>Stat lines</h4>${harl}${TO_PIECES}${SRC}`;
+// ⚑ 7, ruled: every piece has the arrow. On a Treasure piece it opens the find sheet (and so do the words); on any other it opens "Edit piece".
+const pieceRow = (html, shown, o = {}) => `<div class="piece ar44"><div class="lead"${o.send ? ' role="button"' : ''}><span>${html}</span></div><span class="mx" role="button" aria-label="${o.send || o.edit}">${go}</span>${eyeBtn(shown)}${o.under ? `<div class="un44">${o.under}</div>` : ''}</div>`;
+const gmOnly = (row) => `<span class="gm44">Only you see this.</span>${row}`;
+const P_DESC = pieceRow(`A cog on her side on the bar, decks awash, her <b class="kw22">mast</b> showing at every tide. Someone has stretched a <b class="kw22">sailcloth</b> over the stern.`, true, { edit: 'The description: edit this piece' });
+const P_SAIL = (row) => pieceRow('<b>Sailcloth.</b> Three men sleep under it, a boat hook beside them.', false, { edit: 'Sailcloth: edit this piece', under: gmOnly(row) });
+const P_HOLD = (row) => pieceRow('<b>Hold.</b> Black water to the knee. Something moves in it.', false, { edit: 'Hold: edit this piece', under: gmOnly(row) });
+const P_BOX = pieceRow('<b>Strongbox.</b> 240 herons, two moon opals, four boat hooks and a hooded lantern, under a rotted sailcloth.', false, { send: 'Strongbox: send its things' });
+const P_RING = (sent, row = ringRow) => pieceRow('<b>Bronze ring.</b> A plain band of old bronze, on a hook by the cabin door.', true, { send: sent ? 'Bronze ring: sent to Wren. Open it' : 'Bronze ring: send it', under: `${sent ? `<span class="sent44">${sym('check', 16)}Sent to Wren.</span>` : ''}${gmOnly(row)}` });
+const P_OIL = (row = oilRow) => pieceRow('<b>Crate.</b> Eight flasks of lamp oil, dry.', true, { send: 'Lamp oil: send it', under: gmOnly(row) });
+const pieceFoot = (n, of) => `<div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-2)">${stk('+ Piece', 'jigsaw-piece')}<span class="meta" style="flex:1;text-align:right">${n} of ${of} shown</span>${stk('Hide all', 'cancel').replace(gi('cancel', 24), sym('eyeshut', 24))}</div>`;
+const WRECK = '2. The Wreck, turn&nbsp;3';
+const wreckHead = (accent = true) => `${trail('2. The Wreck')}${headOf('2. The Wreck', splash + b('Move on', { big: true, accent, icon: 'travel' }))}`;
+// ================= TR: found treasure =================
+const sendHead = (over, title) => `<div class="pu44" style="align-items:start"><span><span class="mseq" style="display:block">${over}</span><span class="sheet-title">${title}</span></span>${pX}</div>`;
+// a list row: with the arrow it opens something; without, it acts at once (finding 5: the arrow means only "opens")
+const lrow = (k, words, o = {}) => `<div class="pk23" role="button">${o.sym ? sym(k, 24) : gi(k, 24)}<span style="flex:1">${words}</span>${o.act ? '' : go}</div>`;
+const editRow = lrow('quill-ink', 'Edit the piece’s words');
+const RINGW = '<div class="bk"><p>A plain band of old bronze, on a hook by the cabin door.</p></div>';
+const ringSheet = `${sendHead('2. The Wreck', 'Bronze ring')}${RINGW}${lrow('open-palm', 'To a character')}${lrow('swap-bag', 'To the party stash')}${editRow}`;
+const oilSheet = `${sendHead('2. The Wreck', 'Crate')}<div class="bk"><p>Eight flasks of lamp oil, dry.</p></div><div class="pk23" role="button"><span style="flex:1"><b>Lamp oil ×8</b></span>${go}</div>${editRow}<div class="mf44" style="justify-content:flex-end">${stk('Send all', 'open-palm', { accent: true })}</div>`;
+const sentSheet = `${sendHead('2. The Wreck', 'Bronze ring')}${RINGW}<p class="sent44" role="status" style="margin:0 0 var(--space-2)">${sym('check', 16)}Sent to Wren, turn&nbsp;3.</p>${lrow('anticlockwise-rotation', 'Take it back', { act: true })}${editRow}`;
+// ---- this page ----
+// Invented names and numbers only. The party is at "1. The Quay" of Port Saltwick, a safe spot whose pack says
+// `"encounterCheck": { "none": true, "note": "The harbour watch keeps the quay quiet." }`. The setting's own check
+// (River Rules, invented) is "Wandering encounters, every 2 turns, 1 in 6".
+const QUAY = '1. The Quay';
+const QUAYT = '1. The Quay, turn&nbsp;4';
+const NOTE48 = 'The harbour watch keeps the quay quiet.';
+const tile = (v, s) => swap(fact('encounter', 'Encounter check', v, s).replace('class="v"', 'class="v" style="font-size:20px;white-space:nowrap"'), 28);
+const E_NONE = tile('None here', 'The Quay’s own rule.');
+const E_SET = swap(fact('encounter', 'Encounter check', 'Every 2 turns', `${dieMark(6, 16)}1 in 6`).replace('class="v"', 'class="v" style="font-size:20px;white-space:nowrap"'), 28);
+const E_LONG = tile('None here', 'The Lantern Warden’s Chapel of the Nine Drowned Tides’ own rule.');
+const E_CAVE = swap(fact('encounter', 'Encounter check', 'On every move', `${dieMark(6, 16)}2 in 6`).replace('class="v"', 'class="v" style="font-size:20px;white-space:nowrap"'), 28);
+const top4 = (e) => tiles([F_W, F_L, F_R, e]);
+const one = (e, w = 260) => `<div class="facts" style="grid-template-columns:minmax(0,1fr);max-width:${w}px;margin:0">${e}</div>`;
+// The stand-in check's card (page 11's inForce, rg-5): its words and its switch; the pack's own sentence under it
+const noneCard = (on) => `<div class="inforce tgl" style="margin-top:0"><span role="button"><b>${on ? 'No encounters here.' : 'No encounters here: not in force.'}</b><small>${on ? `${NOTE48} The Quay’s own rule. It stands in for River Rules’ wandering encounters while the party is here.` : 'River Rules’ wandering encounters apply here again, until you switch this back.'}</small></span>${tg(on, { label: 'No encounters here: in force' })}</div>`;
+const setLine = `<div class="chk">${dz('Wandering encounters: every 2 turns, 1 in 6.')}</div>`;
+const checksHere = (on) => `<div class="hrow" style="margin-top:var(--space-3)"><h2>Checks here</h2></div>${noneCard(on)}${on ? '' : setLine}`;
+const quayHead = (accent = true) => `${trail(QUAY, 'Port Saltwick')}${headOf(QUAY, b('Move on', { big: true, accent, icon: 'travel' }))}`;
+const quayCard = (on) => `<div class="pcard">${quayHead()}${pair}${checksHere(on)}</div>`;
+
+const f1 = ipad('gm', `${gmBand(QUAYT, { fold: false })}${top4(E_NONE)}<div class="cols2"><div>${quayCard(true)}</div><div class="stack">${stt('<b>B. Switched off</b> (one tap on the switch; logged, with Undo): the setting’s check is back, and its line returns under the card.', `<div class="pcard">${checksHere(false)}</div>`)}${stt('The toast, after the tap.', toast('The Quay’s “No encounters here” is off. River Rules’ wandering encounters apply here.'))}${stt('<b>C. The tile, switched off:</b> the setting’s check, as anywhere else.', one(E_SET))}</div></div>`,
+  '<b>48-1. A tablet, the GM’s Scene at a place with no encounters.</b> <span class="flag">⚑ 1</span> <span class="flag">⚑ 2</span> <span class="flag">⚑ 3</span> Base: page 44’s PS2 (the tiles, approved 26 Nov) and page 11’s place card with its “Checks here” (the stand-in check’s card, rg-5). <b>A, left:</b> the party is at “1. The Quay”, whose pack says “none”. The Encounter check tile reads <b>“None here”</b>, its small line <b>“The Quay’s own rule.”</b> (no die: nothing is rolled). Under “Checks here” the stand-in card reads <b>“No encounters here.”</b>, the pack’s sentence word for word, then whose rule it is and what it stands in for, and the switch on. The setting’s line is not listed while “none” is in force, as with any stand-in check. Nothing comes due here: no reminder card, no “Encounter check due”. <b>B and C, right:</b> the GM switches it off: the card says so, the setting’s line returns, the tile shows the setting’s check. One tap puts it back. No new part, no new colour: the words are new.');
+
+const f2 = frame('48-2', '<b>48-2. The same at 375 px, the GM and a player.</b> <span class="flag">⚑ 3</span> <b>A. The GM:</b> the tiles two by two, “None here” with the place’s name on the small line; the card under “Checks here”. <b>B. A player, ⚑ 3 A (recommended):</b> the players already read the check in force on this tile (page 44, PS2), so they read “None here” too. <b>C. A player, ⚑ 3 B:</b> the tile is left out, as a fact the setting has no rule for; three tiles stand. <b>D. Messy data:</b> a long place name on the small line is cut with its three dots, as the tile cuts any line (st-5); the whole name is in the tile’s spoken name and its sheet. <b>E. A place inside with its own check</b> (“3. The Sea Cave” under the Quay): its own check decides, as today.',
+  `<div class="phs23">${stt('<b>A.</b> The GM.', phGm(`${tiles([F_W, F_L, F_R, E_NONE])}${quayCard(true)}`))}${stt('<b>B.</b> A player (⚑ 3 A).', phPl(tiles([F_W, F_L, F_R, E_NONE])))}${stt('<b>C.</b> A player (⚑ 3 B).', phPl(tiles([F_W, F_L, F_R])))}${stt('<b>D.</b> A long name. <b>E.</b> A place inside with its own check.', phGm(`${one(E_LONG, 343)}<div style="height:var(--space-4)"></div>${one(E_CAVE, 343)}`))}</div>`, 1560);
+
+const grey = frame('48-3', '<b>48-3. Greyscale strip.</b> Colour carries no distinction on this page: “None here” and the switch’s state are said in words and by the switch’s tick or cross. Drawn in grey for Francis to judge.', `<div class="grey"><div class="facts" style="grid-template-columns:repeat(2,240px);margin:0">${E_NONE}${E_SET}</div><div style="height:var(--space-2)"></div><div class="pcard" style="max-width:480px">${checksHere(true)}</div><div style="height:var(--space-2)"></div><div class="pcard" style="max-width:480px">${checksHere(false)}</div></div>`, 1024);
+
+mount(`
+  <h1>Page 48: a place with no encounters (G-27)</h1>
+  <p class="note big"><b>Drawn 2026-11-28 for sitting A; not approved.</b> The ruling sheet is <code>docs/design/rulings/dec5-gaps-2026-11-28.md</code> (⚑ 1 to ⚑ 4). Today a place’s <code>encounterCheck</code> left out means “inherit the parent’s”, so a safe spot raises the setting’s check and the GM dismisses it each time. Proposed (⚑ 1 A, ⚑ 2 A): the pack says <code>"encounterCheck": { "none": true, "note": "…" }</code>, and the app treats it as a stand-in check that never comes due, with the GM’s existing switch. <b>What is new is words only</b>, on two approved parts. Invented names. Light on the left, dark on the right.</p>
+  <h1>48-1. The GM’s Scene, a tablet</h1>
+  ${dframe('48-1', f1)}
+  <h1>48-2. At 375 px</h1>
+  ${f2}
+  ${grey}
+  <h1>The words</h1>
+  <table class="sc">
+    <tr><th>Where</th><th>At a place whose pack says “none”</th></tr>
+    <tr><td>Facts row, Encounter check tile (GM; players under ⚑ 3 A)</td><td>None here · <i>The Quay’s own rule.</i></td></tr>
+    <tr><td>Checks here, the stand-in card</td><td><b>No encounters here.</b> The pack’s sentence. The Quay’s own rule. It stands in for River Rules’ wandering encounters while the party is here.</td></tr>
+    <tr><td>The same, switched off</td><td><b>No encounters here: not in force.</b> River Rules’ wandering encounters apply here again, until you switch this back.</td></tr>
+    <tr><td>The toast (built words, with the check’s name)</td><td>The Quay’s “No encounters here” is off. River Rules’ wandering encounters apply here. · back on: The Quay’s “No encounters here” is in force again.</td></tr>
+    <tr><td>Move on’s “Then” line into such a place (⚑ 4)</td><td>A: no check line. B: “No encounters here.”</td></tr>
+    <tr><td>The place’s Rules sheet (players and GM)</td><td>As the card, under the stand-in check’s place (page 24), unchanged in form</td></tr>
+  </table>
+  <h1>States</h1>
+  <table class="sc">
+    <tr><th>State</th><th>What shows</th></tr>
+    <tr><td>Empty</td><td>A pack with no sentence: the card’s words without it. Not drawn.</td></tr>
+    <tr><td>Loading</td><td>As today: the tile and the card wait for the place’s rules, as any check’s do.</td></tr>
+    <tr><td>Partial</td><td>48-2 E: a place inside with its own check decides for itself.</td></tr>
+    <tr><td>Overflow</td><td>48-2 D: a long name on the tile’s small line, cut; whole in its spoken name and sheet.</td></tr>
+    <tr><td>Error</td><td>The switch refused: the error toast with the database’s words, the switch back where it was (built).</td></tr>
+    <tr><td>Offline</td><td>As every switch today: the app’s Offline mark; the tap is kept and sent.</td></tr>
+    <tr><td>Two places, two packs</td><td>The nearest place in the chain decides, as today.</td></tr>
+  </table>
+  <h1>Critique</h1>
+  <p class="note">Run by the designer with the <code>impeccable</code> skill’s <code>critique</code> (the project’s condensed port: no detector or linter ran), on the drawn frames in light and dark, at the sizes drawn. <b>Not an independent run:</b> the page’s author scored it. Francis picks findings by number; nothing is changed until he does. Surface: an app screen at the table (the skill’s “Operate” mode).</p><table class="sc"><tr><th>Heuristic</th><th>0 to 4</th><th>Why</th></tr><tr><td>Visibility of system status</td><td>3</td><td>The tile and the card say no check is in force, and whose rule it is. On a phone the tile’s small line is cut (finding 1).</td></tr><tr><td>Match to the user’s language</td><td>3</td><td>“None here” and “No encounters here” are the table’s words; “stands in for River Rules’ wandering encounters” is long (finding 2).</td></tr><tr><td>User control and freedom</td><td>4</td><td>One switch puts the setting’s check back, with Undo, as built.</td></tr><tr><td>Consistency</td><td>4</td><td>The same tile, the same card and switch as any stand-in check.</td></tr><tr><td>Error prevention</td><td>3</td><td>“None” on a place covers the places inside it; the tile names whose rule it is, so the GM sees where the silence comes from.</td></tr><tr><td>Recognition over recall</td><td>3</td><td>The place’s name on the tile says why; the switched-off words read as a double negative (finding 4).</td></tr><tr><td>Flexibility and efficiency</td><td>3</td><td>No dismissals all night. What Check now does here is not drawn (finding 3).</td></tr><tr><td>Minimalist design</td><td>3</td><td>No new part; the card’s sentence runs to six lines on a phone (finding 2).</td></tr><tr><td>Error recovery</td><td>4</td><td>Undo on the switch; a refused switch puts it back and says why (built).</td></tr><tr><td>Help and documentation</td><td>3</td><td>The pack’s own sentence explains the place; the Rules sheet carries the same card.</td></tr><tr><th>Total</th><th>33 of 40</th><th></th></tr></table><p class="note"><b>What works.</b> Nothing new to learn: the GM meets the same tile and card he already uses for a place’s own check, with different words. The safe spot stops raising checks without any new control. Cognitive load falls (no dismissals); hierarchy unchanged.</p><p class="note"><b>Personas.</b> A GM mid-session (glances at the tile: “None here” answers “why no check?”); a first-time GM on a phone (reads the cut line, finding 1); a player who meta-games (⚑ 3).</p><p class="note"><b>Findings, for Francis to pick by number:</b></p><ol class="crit"><li><b>Medium.</b> At 375 px the tile’s small line is cut, “The Quay’s own r…”. Fix: the small line “Its own rule.”, or the place’s name alone (“The Quay”). <i>clarify</i></li><li><b>Medium.</b> The card’s words are three sentences, six lines on a phone. Fix: for “none”, the pack’s sentence and “The Quay’s own rule.” only; drop “It stands in for … while the party is here.” <i>distill</i></li><li><b>Low.</b> “Check now” in such a place is not drawn: it rolls the setting’s check (⚑ 2 A), which a GM may not expect. Fix: draw Check now’s sheet here, naming the setting’s check, if Francis wants it seen first. <i>harden</i></li><li><b>Low.</b> Off, the card reads “No encounters here: not in force.”, a double negative. Fix: off, “Encounters as usual here.” with the same second line. <i>clarify</i></li><li><b>Low.</b> Players reading “None here” (⚑ 3 A) learn a place is safe; that is ⚑ 3, not a fix.</li><li><b>Low, for the builder.</b> A “none” place inside a place whose check says <code>replacesScheduled</code>: the nearer decides; a test, not a drawing.</li></ol><h1>Self-review</h1><p class="note"><b>Checked by script on this page (light):</b> every element marked as a button or switch in the frames is 44 by 44 or more; no text under 14 px inside a frame; each phone 375 px wide with no sideways scroll. <b>By eye, in both themes:</b> one accent per screen (Move on; none in the tile or the card); no disabled button (the switch stays a switch); Undo over confirm (the switch acts at once with Undo); messy data (a long place name, cut, 48-2 D); states in the table above. <b>Contrast</b> (WCAG, from the tokens): the tile’s and the card’s quiet lines, muted on the sheet ground, light 7.1, dark 7.5 (on the page, 6.8 and 8.3); ink on the page, light 17.1, dark 15.9. <b>Colour alone:</b> carries no distinction here (48-3, grey). <b>Nielsen’s ten:</b> the critique above. <b>Not checked:</b> Larger text; a tablet held upright; the Rules sheet with “none” (described, not drawn); the switch’s built focus order; WebKit (drawn in Chromium).</p>
+`);
+
+for (const el of document.querySelectorAll('.phone')) el.classList.add('bit');
+for (const el of document.querySelectorAll('.dev h2, .phone h2, .bit h2')) el.classList.add('bsub');
+for (const el of document.querySelectorAll('.fact .k, .mseq, .flab, .tabbar span, .dcap')) el.dataset.sc = '';
+for (const el of document.querySelectorAll('.sw2 > span')) el.style.fontWeight = el.classList.contains('on') ? '700' : '';
+applyBook();
+}
+</script>
+</body>
+</html>

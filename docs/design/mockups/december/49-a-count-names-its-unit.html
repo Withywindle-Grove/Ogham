@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>December: page 49, a count names its unit (G-233; drawn 2026-11-28 for sitting A; not approved)</title>
+<link rel="stylesheet" href="../creation/final/final.css">
+<link rel="stylesheet" href="../scene/scene.css">
+<link rel="stylesheet" href="../scene/scene-seq.css">
+<link rel="stylesheet" href="december.css">
+<link rel="stylesheet" href="../shared/book.css">
+<style>
+  /* this page's own rules: layout and this page's own parts only (the fact row, the form's fields, the veil).
+     Type, the book format, the stacked button, the pop-up, the toast and the corners come from ../shared/book.css
+     and are not restated. The view's frame, the Pack's rows and the item's rows are page 32's own, copied as drawn. */
+  .lbl { font-size:14px; color:var(--muted); margin:var(--space-3) 0 var(--space-2); }
+  .lbl:first-child { margin-top:0; }
+  .vtop { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:var(--space-2); min-height:52px; padding:0 var(--space-2) 0 var(--space-4); border-bottom:1px solid var(--rule); }
+  .vtop .back { color:var(--accent); text-decoration:underline; min-height:44px; display:flex; align-items:center; }
+  .vtop .vtt { font-weight:700; font-size:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:520px; text-align:center; }
+  .vtop .rt { display:flex; justify-content:flex-end; }
+  .vband { display:grid; grid-template-columns:28px minmax(0,1fr); gap:var(--space-1) var(--space-3); align-items:center; border:1.5px solid var(--control); border-left:4px solid var(--info); border-radius:4px; background:var(--surface); padding:var(--space-2) var(--space-3); margin:0 0 var(--space-4); }
+  .vband > span:first-child { display:flex; color:var(--info); }
+  .vband > span:last-child { min-width:0; }
+  .vband small { display:block; font-size:14px; color:var(--muted); white-space:nowrap; }
+  .vband b { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ink); }
+  .phone .vband { margin:var(--space-2) var(--space-3) var(--space-3); grid-template-columns:24px minmax(0,1fr); gap:var(--space-1) var(--space-2); }
+  .gmmark { display:flex; gap:var(--space-2); align-items:center; font-size:16px; color:var(--info); margin-top:var(--space-1); }
+  .gmmark span { min-width:0; overflow-wrap:break-word; }
+  .footrow { display:grid; grid-template-columns:minmax(0,1fr) 20px; align-items:center; min-height:56px; border-bottom:1px dotted var(--rule); }
+  .footrow b { font-size:20px; }
+  .footrow small { display:block; font-size:14px; color:var(--muted); }
+  .grp { display:flex; justify-content:space-between; align-items:baseline; margin:var(--space-4) 0 var(--space-1); }
+  .grp:first-child { margin-top:0; }
+  .grp span:last-child { font-size:14px; color:var(--muted); }
+  .irow { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-2); align-items:center; min-height:56px; border-bottom:1px dotted var(--rule); padding:var(--space-1) 0; }
+  .irow small { display:block; font-size:14px; color:var(--muted); }
+  .irow.open { background:var(--wash); box-shadow:inset 3px 0 0 var(--accent); padding-left:var(--space-2); }
+  .newtag { display:inline-flex; align-items:center; border:1.5px solid var(--ink); border-radius:4px; padding:0 var(--space-1); font-size:14px; font-weight:700; margin-left:var(--space-2); }
+  .pfoot2 { display:flex; justify-content:space-between; align-items:center; gap:var(--space-2); margin-top:var(--space-3); border-top:1px solid var(--rule); padding-top:var(--space-2); }
+  .lrow { display:grid; grid-template-columns:24px minmax(0,1fr) 20px; gap:var(--space-3); align-items:center; min-height:48px; border-bottom:1px dotted var(--rule); }
+  .lrow svg { color:var(--muted); }
+  .kv2 { display:flex; justify-content:space-between; gap:var(--space-2); min-height:32px; align-items:center; border-bottom:1px dotted var(--rule); }
+  .two32 { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-4) var(--space-5); align-items:start; }
+  .pill32 { display:inline-flex; align-items:center; gap:var(--space-1); border:1.5px solid var(--warn); color:var(--warn); border-radius:4px; padding:0 var(--space-2); min-height:28px; font-size:14px; font-weight:700; }
+  .phone .tabbar.five { grid-template-columns:repeat(5,1fr); }
+  .tabbar span { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+  /* an item's sheet: a long name wraps beside the star and the ✕ */
+  .icard .hrow { align-items:flex-start; }
+  .icard .hrow h2 { min-width:0; overflow-wrap:break-word; align-self:center; }
+  .icard p { margin:0 0 var(--space-2); }
+  .icard .knownl { font-weight:700; }
+  /* the dimmed page, the centred pop-up over it and the toast at the screen's foot */
+  .veil { position:absolute; inset:0; background:rgba(0,0,0,.35); }
+  .popc { position:absolute; left:50%; top:calc(var(--space-6) * 5); transform:translateX(-50%); width:440px; }
+  .toastc { position:absolute; left:50%; bottom:var(--space-4); transform:translateX(-50%); width:440px; }
+  .ft { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:var(--space-2); margin-top:var(--space-3); }
+  .popb .hd > span:first-child, .sheetup .head > span:first-child { min-width:0; }
+  /* K22's new part: a hidden fact's row in the Reveal pop-up */
+  .frow { display:grid; grid-template-columns:24px minmax(0,1fr) auto; gap:var(--space-3); align-items:center; min-height:56px; padding:var(--space-1) 0; border-bottom:1px dotted var(--rule); box-sizing:border-box; }
+  .frow > svg { color:var(--muted); }
+  .frow b { display:block; }
+  .frow small { display:block; font-size:14px; color:var(--muted); overflow-wrap:break-word; }
+  .toldm { display:inline-flex; align-items:center; gap:var(--space-1); min-height:44px; padding:0 var(--space-2); font-weight:700; }
+  .scrollcue { font-size:14px; color:var(--muted); text-align:center; border-top:1px solid var(--rule); padding-top:var(--space-1); }
+  /* K22's form: a labelled field with one quiet line under it */
+  .fld { margin:0 0 var(--space-3); }
+  .fld .fl { display:block; font-weight:700; margin-bottom:var(--space-1); }
+  .fld small { display:block; font-size:14px; color:var(--muted); margin-top:var(--space-1); }
+  .fld .field { overflow-wrap:break-word; }
+  .fld .field.area { min-height:88px; }
+  /* a designer's pick, marked on the frame's caption */
+  .pk { display:inline-block; border:1.5px dashed var(--info); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; }
+  /* the phone: the page behind, dimmed, and the sheet from the foot (page 26's way of drawing it) */
+  .sheetup.flow { position:relative; max-height:none; }
+  .behind { position:relative; height:52px; overflow:hidden; box-sizing:border-box; }
+  .behind.tall { height:auto; }
+  .behind .toastb { position:relative; z-index:1; margin:var(--space-6) var(--space-2) var(--space-2); }
+  .two32 .toastb { max-width:440px; box-sizing:border-box; }
+  .gap3 { height:var(--space-3); }
+  .gap5 { height:var(--space-5); }
+  .pu-hd { display:flex; align-items:flex-start; gap:var(--space-2); margin-bottom:var(--space-2); }
+  .pu-hd .ehead { flex:1; min-width:0; overflow-wrap:break-word; align-self:center; }
+  .pu-b { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; flex:none; }
+  .grey { filter:grayscale(1); }
+  /* ---- page 47’s At hand rows (loop 2’s draft frame 47-3), copied as drawn ---- */
+  /* This page's own rules: layout, the phone's head (frames P2 and 38-3, as built: the portrait 96 px, the line and
+     the notices box beside it, the rings their own row), the icon page's table (page 20's IC1), and the light's rows
+     (page 35, copied as drawn). Every value is a token from docs/06: spacing 4/8/12/16/24/32, type 14/16/20/36, the
+     tap 44, the ring's tap 72 by 76, corners 4 and 20. Type, the stacked button, the toast and the small-capitals label
+     come from ../shared/book.css and are not restated. */
+
+  /* the phone at 375 px (page 35's) */
+  .ph { position:relative; width:375px; background:var(--page); outline:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; overflow:hidden; --ts:1; }
+  .ph .inner { padding:var(--space-2) var(--space-4) var(--space-3); }
+  .ph .bar .title { font-size:calc(20px * var(--ts)); }
+  .ph .bar .title.gone { visibility:hidden; }
+  .lg { --ts:1.25; }
+  .lg .sclab { font-size:calc(14px * var(--ts)); }
+  .lg .btn.stk { font-size:20px; }
+  .tabs { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--rule); background:var(--sheet); }
+  .tabs span { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60px; font-size:calc(14px * var(--ts)); color:var(--muted); }
+  .tabs .on { color:var(--ink); font-weight:700; box-shadow:inset 0 3px 0 var(--accent); }
+  .cut { font-size:14px; color:var(--muted); font-style:italic; text-align:center; padding:var(--space-2); border-top:1px dashed var(--rule); }
+
+  /* 47-1: the head on a phone (as built: .player-head, one column; the rings their own row under) */
+  .hd { display:grid; grid-template-columns:96px minmax(0,1fr); gap:var(--space-3); align-items:center; }
+  .por { width:96px; height:96px; border-radius:50%; border:1.5px solid var(--control); background:var(--surface); display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:700; color:var(--accent); box-sizing:border-box; }
+  .side { display:flex; flex-direction:column; gap:var(--space-1); min-width:0; }
+  .words { margin:0; font-size:calc(20px * var(--ts)); font-weight:700; line-height:1.2; overflow-wrap:anywhere; }
+  .ntc { display:inline-flex; align-self:flex-start; align-items:center; gap:var(--space-2); min-height:44px; padding:0 var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); font-size:calc(16px * var(--ts)); color:var(--muted); box-sizing:border-box; }
+  .rings { grid-column:1 / -1; display:flex; align-items:center; gap:var(--space-2); }
+  .hr { position:relative; display:inline-flex; width:52px; height:52px; align-items:center; justify-content:center; flex:none; }
+  .hr .arc { position:absolute; inset:0; transform:rotate(-90deg); }
+  .hr .mid { position:relative; display:inline-flex; }
+  .more { display:inline-flex; width:44px; height:44px; border-radius:50%; border:1.5px solid var(--control); align-items:center; justify-content:center; font-size:14px; font-weight:700; box-sizing:border-box; }
+  .hpbox { margin-top:var(--space-3); border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-3); }
+  .hpbox .sclab { margin:0; }
+  .hpbox .n { font-size:36px; font-weight:700; line-height:1.2; }
+  .hpbox .n small { font-size:16px; color:var(--muted); font-weight:400; }
+
+  /* 47-2: the icon page (page 20's IC1 table, a column a candidate) */
+  .ic47 { display:grid; grid-template-columns:168px repeat(3, 343px); gap:var(--space-2) var(--space-4); align-items:start; }
+  .ic47 .hdc { font-size:14px; color:var(--muted); }
+  .ic47 .what b { display:block; font-size:20px; }
+  .ic47 .what small { display:block; font-size:14px; color:var(--muted); }
+  .ic47 .cand { display:flex; flex-direction:column; gap:var(--space-2); padding-bottom:var(--space-3); border-bottom:1px dotted var(--rule); }
+  .ic47 .what { padding-bottom:var(--space-3); border-bottom:1px dotted var(--rule); align-self:stretch; }
+  .ic47 .bare { display:flex; align-items:center; gap:var(--space-2); font-size:14px; color:var(--muted); }
+  .ic47 .bare svg { color:var(--ink); }
+  .ic47 .bare code { color:var(--ink); }
+  .ic47 .pane { background:var(--page); outline:1.5px solid var(--control); border-radius:4px; padding:0 var(--space-3); }
+  .near { display:flex; gap:var(--space-4); flex-wrap:wrap; margin-top:var(--space-2); }
+  .lone { display:inline-flex; flex-direction:column; align-items:center; gap:var(--space-1); width:88px; font-size:14px; color:var(--muted); text-align:center; }
+  .lone svg { color:var(--ink); }
+
+  /* At hand's rows and the light (page 35, as drawn) */
+  .row { display:flex; align-items:center; gap:var(--space-2); min-height:56px; padding:var(--space-1) 0; border-bottom:1px dotted var(--rule); }
+  .row:last-child { border-bottom:0; }
+  .row .t, .lr .t { flex:1; min-width:0; align-self:stretch; display:flex; flex-direction:column; justify-content:center; min-height:44px; }
+  .row .t b, .lr .t b { display:block; font-size:calc(20px * var(--ts, 1)); line-height:1.2; overflow-wrap:anywhere; }
+  .row .t small, .lr .t small { display:block; font-size:calc(14px * var(--ts, 1)); color:var(--muted); line-height:1.25; }
+  .pin { display:inline-flex; vertical-align:-1px; margin-right:var(--space-1); }
+  .acts { display:flex; gap:var(--space-2); flex:none; }
+  .lb47 { display:flex; flex-direction:column; gap:var(--space-2); padding:var(--space-1) 0 var(--space-2); border-bottom:1px dotted var(--rule); }
+  .lr { display:flex; align-items:center; gap:var(--space-2); min-height:56px; }
+  .kp { display:flex; align-items:center; gap:var(--space-2); min-height:44px; }
+  .kp .nm { font-size:calc(16px * var(--ts)); }
+  .kp .sp { flex:1 1 0; min-width:0; }
+  .i44 { display:inline-flex; width:44px; height:44px; align-items:center; justify-content:center; color:var(--info); flex:none; }
+  .tg { width:52px; }
+  .rg { position:relative; display:inline-flex; width:52px; height:52px; align-items:center; justify-content:center; flex:none; }
+  .rg .arc { position:absolute; inset:0; transform:rotate(-90deg); }
+  .rg .mid { position:relative; display:inline-flex; }
+  .rt { display:inline-flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:2px; width:72px; min-height:76px; flex:none; box-sizing:border-box; padding-top:2px; }
+  .rt .vb { font-size:calc(14px * var(--ts)); font-weight:700; line-height:1.2; color:var(--ink); white-space:nowrap; }
+  /* the weapon in hand block (page 35's 35C, as drawn) */
+  .wpn { border:1.5px solid var(--ink); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-3); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-1) var(--space-3); align-items:center; margin:var(--space-2) 0; }
+  .wpn .nm { font-size:20px; font-weight:700; line-height:1.2; overflow-wrap:anywhere; }
+  .wpn .in { font-size:14px; color:var(--muted); }
+  /* the toast and the note (page 43's dress, as page 46 copies it) */
+  .tst { padding:0 var(--space-3) var(--space-2); }
+  .tz { position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-2) var(--space-3); min-height:60px; box-sizing:border-box; padding:var(--space-2) var(--space-2) var(--space-2) var(--space-4); overflow:hidden; border-radius:20px; background:var(--ink); color:var(--page); }
+  .tz .zt { flex:1 1 auto; min-width:0; overflow-wrap:anywhere; }
+  .tz .zu { margin-left:auto; min-height:44px; padding:0 var(--space-3); font-weight:700; text-decoration:underline; text-underline-offset:4px; display:inline-flex; align-items:center; }
+  .tz .zbar { position:absolute; left:var(--space-4); right:var(--space-4); bottom:var(--space-1); height:4px; border-radius:999px; background:var(--page); opacity:.65; }
+  /* the tablet held sideways, 1180 px (page 35's 35C) */
+  .tab { width:1180px; background:var(--page); border:1.5px solid var(--control); border-radius:4px; box-sizing:border-box; overflow:hidden; display:grid; grid-template-columns:56px minmax(0,1fr); --ts:1; }
+  .tab .cols9 { display:grid; grid-template-columns:minmax(0,4fr) minmax(0,5fr); gap:var(--space-6); padding:var(--space-4) var(--space-6) var(--space-5); align-items:start; }
+  .tab .cols9 > div:last-child { border-left:1px solid var(--rule); padding-left:var(--space-6); }
+  .tiles { display:grid; gap:var(--space-2); }
+  .tile { border:1.5px solid var(--control); border-radius:4px; background:var(--sheet); padding:var(--space-2) var(--space-1); text-align:center; min-height:64px; box-sizing:border-box; }
+  .tile .k { font-size:14px; color:var(--muted); display:block; line-height:1.2; }
+  .tile .v { font-size:20px; font-weight:700; line-height:1.2; display:block; }
+  .tile .c { font-size:14px; color:var(--muted); display:block; line-height:1.2; }
+  .press { background:color-mix(in srgb, var(--ink) 8%, transparent); border-radius:8px; }
+  /* Page 49's own rules (G-233): layout only. Every value is a token from docs/06: spacing 4/8/12/16/24/32, type
+     14/16/20, the tap 44. Nothing here is a new part: At hand's rows are loop 2's draft frame 47-3 (page 35's rows),
+     the item's sheet and the Reveal pop-up are page 33's (approved 2026-11-21). Only words change. */
+  .fr49 { margin:0 0 var(--space-6); }
+  .fr49 > .cap { font-size:14px; max-width:1100px; }
+  .note.big { font-size:16px; color:var(--ink); max-width:1100px; }
+  .flag { display:inline-block; border:1.5px dashed var(--warn); border-radius:4px; padding:0 var(--space-1); color:var(--ink); font-weight:700; font-size:14px; }
+  table.sc { border-collapse:collapse; font-size:14px; margin:var(--space-2) 0 var(--space-4); color:var(--ink); max-width:1100px; }
+  table.sc td, table.sc th { border:1px solid var(--rule); padding:var(--space-1) var(--space-2); text-align:left; vertical-align:top; }
+  ol.crit { font-size:16px; max-width:1100px; padding-left:var(--space-5); color:var(--ink); }
+  ol.crit li { margin-bottom:var(--space-2); }
+  .grey { filter:grayscale(1); }
+  .lbl375 { font-size:14px; color:var(--muted); margin:0 0 var(--space-2); width:375px; }
+  .lbl375 b { color:var(--ink); }
+  .ph .sheetup { position:relative; }
+  .chg { margin:0 0 var(--space-2); }
+  .phone { width:375px; }
+
+</style>
+</head>
+<body>
+<script src="../creation/final/final.js"></script>
+<script src="../scene/scene.js"></script>
+<script src="../scene/scene-seq.js"></script>
+<script src="december.js"></script>
+<script src="icons/icons.js"></script>
+<script src="strip.js"></script>
+<script src="../shared/book.js"></script>
+<script>
+{
+// ---- page 33’s parts, copied as drawn ----
+const go = svg(SY.right, 20);
+const stk = (words, k, o = {}) => `<span class="btn stk${o.accent ? ' accent' : ''}" role="button">${gi(k, 24)}<span>${words}</span></span>`;
+const Xb = `<span class="btn sq" role="button" aria-label="Close" style="border:0;background:transparent">${I.close}</span>`;
+const dpick = (words) => `<span class="pk">Designer’s pick</span> ${words}`;
+const DRAWN = '<b>Approved 2026-11-21.</b> ';
+const FIXED = '<b>Approved 2026-11-21, with one fix, drawn here.</b> ';
+const FOLLOWS = '<b>Approved 2026-11-21; picture 3 follows K22h’s fix.</b> ';
+
+// ---- the view's frame on a tablet (page 32's, as approved) ----
+const railV = (on, magic = true) => `<div class="rail">${[['crown', 'Player'], ['fire', 'Scene'], ['sack', 'Pack'], ...(magic ? [['moon', 'Magic']] : [])].map(([k, l]) => `<span class="ri${l === on ? ' on' : ''}" role="button" aria-label="${l}">${k === 'moon' ? gi('moon', 24) : sym(k, 24)}</span>`).join('')}</div>`;
+const topV = (title = '') => `<div class="vtop"><span class="back" role="link">‹ Players</span><span class="vtt">${title}</span><span class="rt">${ico('note', 'Log')}${ico('mail', 'Messages')}${ico('book', 'Reference')}<span class="ico" role="button" aria-label="More">${I.more}</span></span></div>`;
+const vband = (p = 'Sam', c = 'Wren') => `<div class="vband" role="note" aria-label="${p}’s view of ${c}. What you do here is logged as yours."><span>${sym('eye', 24)}</span><span><b>${p}’s view of ${c}</b><small>What you do here is logged as yours.</small></span></div>`;
+const vdev = (inner, cap, o = {}) => `<div><p class="cap" style="width:1024px;max-width:1024px">${cap}</p><div class="dev ipad"${o.short ? ' style="min-height:0"' : ''}>${railV('Pack')}<div class="main">${topV('Wren’s pack')}<div class="page">${vband()}${inner}</div></div>${o.extra || ''}</div></div>`;
+// the player's own tablet: the player's rail and top row, no band
+const pdev = (inner, cap) => `<div><p class="cap" style="width:1024px;max-width:1024px">${cap}</p><div class="dev ipad" style="min-height:0">${railV('Pack')}<div class="main">${topRow('player')}<div class="page">${inner}</div></div></div></div>`;
+
+// ---- the Pack and an item's sheet (page 32, frame M3g) ----
+const packList = `<div class="grp"><span class="sclab" style="margin:0">At hand</span><span>2 items</span></div><div class="irow"><span><b>★ Shortbow</b><small>Quiver: Arrows ×18</small></span>${stk('Quiver', 'quiver')}</div><div class="irow"><span><b>Storm lantern</b><small>Unlit. 3 refills left</small></span>${stk('Light', 'torch')}</div>
+  <div class="grp"><span class="sclab" style="margin:0">Worn and in hand</span><span>2 items</span></div><div class="irow"><span><b>Longsword</b><small>In hand</small></span>${go}</div><div class="irow"><span><b>Mail</b><small>Worn</small></span>${go}</div>
+  <div class="grp"><span class="sclab" style="margin:0">Carried</span><span>3 items</span></div><div class="irow open" role="button" aria-current="true"><span><b>Bronze ring<span class="newtag">New</span></b><small>Found today</small></span>${go}</div><div class="irow"><span><b>Rations</b><small>×3</small></span>${go}</div><div class="irow"><span><b>Rope, 50 feet</b><small>Coiled</small></span>${go}</div>
+  <div class="footrow" role="button"><span><b>Gear</b><small>Backpack: 6 things</small></span>${go}</div><div class="footrow" role="button"><span><b>Party stash</b><small>11 things</small></span>${go}</div>`;
+const pfoot = `<div class="pfoot2"><span class="meta">14 items</span>${b('Add item', { accent: true })}</div>`;
+const gmLine = (words) => `<div class="gmmark">${sym('eyeoff', 16)}<span>Only you see this: ${words}</span></div>`;
+const revealRow = `<div class="lrow" role="button">${sym('eye', 24)}<span>Reveal…</span>${go}</div>`;
+const editRow = `<div class="lrow" role="button">${gi('quill-ink', 24)}<span>Edit what players see…</span>${go}</div>`;
+const itemRows = `<div class="lrow" role="button">${gi('open-palm', 24)}<span>Give to…</span>${go}</div><div class="lrow" role="button">${gi('swap-bag', 24)}<span>Put in…</span>${go}</div><div class="lrow" role="button">${gi('drop-weapon', 24)}<span>Drop</span><span></span></div>`;
+const card = (name, body) => `<div class="pcard icard"><div class="hrow"><h2>${name}</h2>${ico('star', 'Pin to top')}<span class="ico" role="button" aria-label="Close">${I.close}</span></div>${body}</div>`;
+const notice = (w) => `<div class="bk"><p class="ln"><span class="lb">What you notice.</span>${w}</p></div>`;
+const kv = (k, v) => `<div class="kv2"><span class="meta">${k}</span><span>${v}</span></div>`;
+const known = (w) => `<p class="knownl">${w}</p>`;
+const srcl = '<p class="meta">From your setting: Saltwick Island, p. 14.</p>';
+const LOOK = '<p>A plain band of old bronze.</p>';
+// the fix of the approval: once everything is told, the item's own description (what it does, as written) stands where its look stood, as HM4's second picture
+const DOES = '<p>Cast from the bronze of a sunken bell. Its wearer is steadier against harm, and cannot take it off within sight of the sea.</p>';
+const NOTE = 'Cold to the touch, even by the fire.';
+const TRUE = 'Ring of the Drowned Bell';
+const LONGT = 'The Old Lantern of the Drowned and of the Nine Tides';
+const SLOT = kv('Slot', 'Ring');
+
+// ---- the toast and the log ----
+const toast = (words, undo = true) => `<div class="toastb"><span class="tmsg">${words}</span>${undo ? `<span class="tu" role="button">${gi('anticlockwise-rotation', 20)}Undo</span>` : ''}<span class="tb"></span></div>`;
+const logCard = (title, lines) => `<div class="pcard"><h2 style="margin-top:0">${title}</h2>${lines.map(([t, who]) => `<div class="logl">${t} <span>${who}</span></div>`).join('')}</div>`;
+const lab = (label, html) => `<div><p class="lbl"><b>${label}</b></p>${html}</div>`;
+const RING = { magic: ['That it’s magic', ''], name: ['Its true name', TRUE], bonus: ['Its bonus', '+1 to saves'], cursed: ['That it’s cursed', ''] };
+const LAMP = { magic: ['That it’s magic', ''], name: ['Its true name', LONGT], bonus: ['Its bonus', '+1 to saves against fear'], p1: ['A power', 'Burns without oil'], p2: ['A power', 'Shows what lies under water within ten paces'], p3: ['A power', 'The drowned can see its bearer from as far'], cursed: ['That it’s cursed', ''], charges: ['Its charges', '999 of 999 left'], mark: ['Maker’s mark', 'Three waves under a bell'] };
+const WAND = { charges: ['Its charges', '3 of 5 left'] };
+const fRow = ([k, v], told) => `<div class="frow"${told ? '' : ' role="button"'} aria-label="${k}${v ? ': ' + v : ''}${told ? '. Told' : ''}">${sym(told ? 'eye' : 'eyeoff', 24)}<span><b>${k}</b>${v ? `<small>${v}</small>` : ''}</span>${told ? `<span class="toldm">${sym('check', 16)}Told</span>` : small('Tell')}</div>`;
+const rows = (src, keys, told = []) => keys.map((k) => fRow(src[k], told.includes(k))).join('');
+const revealIn = (rowsHtml, o = {}) => `<div class="flist">${rowsHtml}</div>${o.cue ? `<p class="scrollcue">${o.cue}</p>` : ''}${o.all ? '<p class="meta" style="margin:var(--space-3) 0 0">Nothing is left hidden.</p>' : `<div class="ft">${b('Tell them everything', { accent: true })}</div>`}`;
+const revealHd = (meta, cls = 'hd', tcls = 'sheet-title') => `<div class="${cls}"><span><span class="${tcls}">Reveal</span><small class="meta" style="display:block;overflow-wrap:break-word">${meta}</small></span>${Xb}</div>`;
+const revealPop = (meta, rowsHtml, o = {}) => `<div class="popb" role="dialog" aria-label="Reveal">${revealHd(meta)}${revealIn(rowsHtml, o)}</div>`;
+const R4 = ['magic', 'name', 'bonus', 'cursed'];
+const L9 = ['magic', 'name', 'bonus', 'p1', 'p2', 'p3', 'cursed', 'charges', 'mark'];
+const RMETA = 'Bronze ring, in Wren’s pack';
+const vbarPh = (title) => `<div class="bar" style="grid-template-columns:auto 1fr 44px"><span class="ico" role="link" aria-label="Back to Players" style="width:auto;padding:0 var(--space-2);color:var(--accent);text-decoration:underline">‹ Players</span><span class="title">${title}</span><span class="ico" role="button" aria-label="More">${I.more}</span></div>`;
+const starO = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3l2.800 6 6.500.6-4.900 4.300 1.500 6.400L12 17l-5.900 3.300 1.500-6.400L2.700 9.600 9.200 9z" ${W}/></svg>`;
+const pX = `<span class="pu-b" role="button" aria-label="Close">${I.close}</span>`;
+const hdP = (name) => `<div class="pu-hd"><span class="ehead">${name}</span><span class="pu-b" role="button" aria-pressed="false" aria-label="Pin to top">${starO}</span>${pX}</div>`;
+const bl = (label, text) => `<p class="ln"><span class="lb">${label}</span>${text}</p>`;
+const rowsPh = `<div class="lrow" role="button">${gi('open-palm', 24)}<span>Give to…</span>${go}</div><div class="lrow" role="button">${gi('swap-bag', 24)}<span>Put in…</span>${go}</div><div class="lrow" role="button">${gi('drop-weapon', 24)}<span>Drop</span>${go}</div>`;
+const shGM = (behind, inner, cap, o = {}) => phone(`<div class="behind${o.toast ? ' tall' : ''}">${behind}<div class="dim"></div>${o.toast || ''}</div><div class="sheetup flow" role="dialog">${inner}</div>`, cap);
+const headPh = (title) => `<div class="head"><span class="title">${title}</span>${Xb}</div>`;
+// ---- page 47’s At hand parts (draft 47-3, PR #161), copied as drawn ----
+// GX: icons from game-icons.net’s official repository (github.com/game-icons/icons, CC BY 3.0; authors lorc and delapouite), as page 47 carries them, unchanged.
+const GX = {"archer":"M341 25.97c-25.5 42.42-21.2 82.13-10.9 117.13 10.3 35.1 25.6 66.5 25.6 95.5h.1c6.3-1.4 12.1-1.9 17.9-.9-.3-34.7-16.8-67-26.4-99.6-9.7-33-13.4-65.29 9.1-102.87zm-33.3 36.27L154.2 227.7c7.6 0 15.6.9 23.2 2.9 7.2-2.9 13.8-8 19.3-15.1 4.1-5.3 7.5-11.6 10-18.7L304 91.96c.1-9.68 1.2-19.6 3.7-29.72zM164.2 107.1c-12.3 0-23.7 6.3-32.5 17.6s-14.5 27.4-14.5 45.4 5.7 34.1 14.5 45.4c1.4 1.8 2.9 3.5 4.4 5l70.9-76.3c-2.5-7.4-6.1-14-10.3-19.5-8.8-11.3-20.2-17.6-32.5-17.6zm264.5 119.5v19h-34c5.9 4.9 9 11.3 10.2 18h23.8v19l64-28zm-225.2 19c1.4 2 2.5 4.3 3.3 6.8.8 2.4.5 5.1-.2 6.7-.7 1.9-1.8 3.1-3.2 4.5h131.5c.1-.2.1-.4.1-.6 1.9-8.2 2.5-12.6 8-17.4zm-58.3.5c-8.5 1.3-14.4 4.5-21 6.7l-74.48-1c-23.01-.1-31.67 34.4-7.93 35.4 16.14.3 27.69-2 39.55-4 11.86-2 24.16-3.8 39.56-1.3 9.3 2.2 18.1 7.4 25.3 12 8.7 2.2 17.5 2 23.8.2 5.7-1.6 8.7-4.1 9.9-6.1-5-7.6-12.3-14.2-9.6-22.3 3-6.4 9.5-9.1 15-12.1.1 0 .2-.1.3-.1-2.6-1.9-6.4-3.8-11.3-5.1-10.2-2.3-19.5-3.2-29.1-2.3zm209 13.7c.9-1-.8 1.7-1.3 5.7-.6 4-.8 9.2-.4 14.4 1.3 6.9.7 16.2 6.2 21.4 6.5 4.1 24.2 5.1 27.2-1.2 1.3-12.3 4.1-23.5.8-35.2-.8-3-1.9-4.3-2.2-4.5-8.6-4.6-22.7-8.8-30.3-.6zm-19.7 21.1c-51 .9-87.9.2-137.8.6 5.7 15.3-9.3 26.3-21.9 29.9-.1 0-.2 0-.3.1l130.8 171c-1.4-9.8-1.5-19.3-.9-28.6l-84.2-110.1c.7-14.3 0-25.5-.9-39.3 40.6 2.7 82.7 1.5 119.6-1.7-2.5-7-3.9-15-4.4-21.6zM112.9 299c-12.5 41.7-2.7 92.3-7.3 138v-.2L101 494h121.1l-16.7-63.3c3.5-12.9 6.8-26.4 8.9-37.6l-61.1-79.9c-17.7-.3-25.6-12.5-40.3-14.2zm242.8 21.2c-.6 28.6-15.5 59.4-25.6 93.9-7.2 24.5-11.5 51.4-4.6 79.9h18.4c-7.7-26.2-3.8-50.4 3.4-74.9 9.3-31.5 25-62.8 26.3-96.1-6 .3-12.2-.5-17.9-2.8z","battle-gear":"M262.406 17.188c-27.22 8.822-54.017 28.012-72.375 55.53 17.544 47.898 17.544 57.26 0 105.157 19.92 15.463 40.304 24.76 60.782 27.47-2.063-25.563-3.63-51.13 1.125-76.69-13.625-1.483-23.374-5.995-37-13.874V82.563c35.866 19.096 61.84 18.777 98.813 0v32.22c-13.364 6.497-21.886 11.16-35.25 13.218 3.614 25.568 3.48 51.15 1.375 76.72 18.644-3.265 37.236-12.113 55.5-26.845-14.353-47.897-14.355-57.26 0-105.156-16.982-28.008-47.453-46.633-72.97-55.532zm-129.594 8.218c-25.906 110.414-27.35 215.33-27.4 330.922-18.84-1.537-37.582-5.12-56.027-11.12v28.554h69.066c8.715 35.025 6.472 70.052-1.036 105.078h28.13c-7.195-35.026-8.237-70.053-.872-105.078h68.904v-28.555c-18.49 4.942-37.256 8.552-56.097 10.46.082-114.94 2.496-223.068-24.667-330.26zm89.47 202.375c0 117.27 25.517 233.342 120.155 257.97C446.62 464.716 462.72 345.374 462.72 227.78H222.28z","fencer":"M225.036 94.788c-12.338 21.997-12.979 40.174-3.58 61.588l15.41.775c-3.042-9.283-4.944-19.43-4.777-29.968.164-10.377 2.472-21.149 7.615-31.391zm34.729 2.377c-6.847 9.651-9.515 19.873-9.68 30.303-.164 10.328 2.33 20.81 6.107 30.107 19.404-5.668 24.83-19.008 25.358-33.105.276-7.372-1.29-14.74-3.528-19.848-2.066-4.717-4.858-6.438-4.351-6.504zm114.324 20.18a27.478 27.478 0 0 0-3.815.36l8.868 44.189c8.918-3.028 16.653-9.237 16.664-21.704l98.074-16.554-.762-4.977-99.031 11.559c-3.064-7.706-10.268-13.092-19.998-12.873zm-16.016 15.418c-18.216 15.033-25.17 27.556-47.912 40.754-13.412-1.61-28.06-3.171-40.648-1.786-3.579 1.697-7.502 3.1-11.805 4.127l-1.256.301-46.709-2.353-2.342-4.73c-.717-1.45-1.386-2.901-2.027-4.352-24.9 6.797-37.561 21.942-61.703 34.795-17.846 4.527-37.748 4.582-55.336 3.001-17.57.8-38.588 29.853 9.965 27.817 29.17-.372 69.443-8.09 91.82-23.217-20.038 75.026-75.165 100.356-135.348 127.479-21.304 17.147-25.288 27.748-33.503 39.968-3.706 7.228 2.329 5.84 8.851 9.998 17.188-8.115 19.152-15.808 35.762-27.068 45.944-17.999 46.474-8.262 126.17-46.602 24.279-2.54 44.736-.656 67.023-9.173 2.686 38.16 7.697 41.45 5.176 81.3l54.014.776.545-11.078-31.74-8.426c8.77-42.552 8.966-59.96 3.55-97.137-.735-5.044-40.783-6.286-61.496-2.87 21.866-21.678 34.769-39.963 38.416-61.64 18.175 1.599 30.554 2.147 49.207-2.654 24.85-10.837 30.435-16.789 48.074-39.746zM18.12 399.212v18h472v-18z","high-shot":"M492.656 20.406l-118.594 56.22L413.875 86l-86.97 86.97-305.5 259.374.69.687 104.75-47.467-46.376 105.843.905.906 272.5-319.875 73.22-73.218 9.342 39.81 56.22-118.624zm-473.25.063c-1.347 23.43 5 39.947 16.563 52.218l24.093 302.28 17.562-14.874-21.72-272.438c57.975 31.954 169.096 25.165 216.907 106.72l66.625-56.564 1.22-1.218C292.74 38.666 86.01 99.716 19.406 20.47zm359.531 151.56l-1.156 1.157-57.25 67.188c82.006 47.945 75.587 159.267 107.283 218.03l-272.157-24.5-14.812 17.408 301.562 27.125c12.48 12.283 29.4 19.084 53.688 17.687-79.95-67.2-18.36-275.754-117.156-324.094z","meal":"M445.588 56l-.026 384.352c6.881 11.323 14 15.677 19.97 15.648 5.924-.028 12.967-4.434 19.714-15.418L466.82 244.27l-.215-2.391 1.475-1.906c21.174-27.169 28.573-74.108 22.533-113.81-3.02-19.852-9.342-37.82-18.195-50.522-7.424-10.652-16.28-17.447-26.828-19.641h-.002zm-372.375.004l-.016 67.127-12.56-.016V56.008H46.332l.002 67.11H33.756v-67.11h-14.57v103.228c-.001 11.417 6.23 17.748 16.04 21.662l4.06 1.622-.09 4.37c-2 84.57-3.977 169.139-5.962 253.708C40.074 451.79 47.1 456.028 52.95 456c5.85-.028 12.87-4.377 19.623-15.432-2.315-84.547-4.63-169.096-6.941-253.644l-.12-4.4 4.073-1.606c10.324-4.106 17.039-11.074 17.039-21.676V56.004h-13.41zM256 95A161 161 0 0 0 95 256a161 161 0 0 0 161 161 161 161 0 0 0 161-161A161 161 0 0 0 256 95z","pikeman":"M406 27.594l-23.625 76.187-5.844 28.97-52.25 47.844-51.5-43.125-23.405-4.095c8.217-14.33 14.685-32.77 16.406-49.594 10.02-2.28 20.516-5.426 31.69-9.81l-36.283-16.564c-1.964-7.07-16.546-28.484-31.406-27.28h-.03c-18.2 4.6-25.82 25.298-28.72 40.718L176.5 90.53c7.87-.307 15.58-.415 23.344-.53.66 14.1 4.4 27.847 9.97 36.375l-35.158-6.125L106 195.906l77.344 55.875 1.625 16.845-34.19 215.75h38.376l38.313-169.25 47.874 169.25h37.47l-3.564-16.406 17.094 16.405 63.062-322.53c5.01-4.54 9.265-8.483 12.094-11.314.177-10.537-2.537-18.942-5.094-24.5l1.125-5.686 8.47-92.75zm-223.156 125.78l.344 64.095-31.5-23.75 31.156-40.345zm88.03 21.25l50.876 45.94s22.993-19.458 44.875-38.533l-57.438 285.564-42.812-197.53 4.5-95.44z","roast-chicken":"M202.53 22.063c-14.444-.148-26.79 7.923-37.03 21.343-56.29-1.126-97.6 65.597-97.156 161.22l63.156-59.907c-2.308 17.56-3.47 35.46-3.47 52.593 0 4.755.11 9.49.345 14.156-22.385 1.342-38.15 22.47-38.53 56.78-.523 47.068 28.09 101.12 63.905 120.72 8.09 4.427 15.85 6.71 23.03 7.06 2.023 25.098 5.245 57.273-4.06 77.25-11.23 24.11 27.313 26.95 31.436 4.158 12.777 21.508 45.44 1.61 27.5-15.657-15.42-14.84-24.725-47.46-32.78-71.967 5.65-3.972 10.35-9.736 13.843-17.125 11.793 5.728 24.353 8.843 37.405 8.843 13.042 0 25.62-3.092 37.406-8.81 3.492 7.376 8.2 13.126 13.845 17.092-8.056 24.51-17.36 57.128-32.78 71.97-17.942 17.265 14.722 37.164 27.5 15.656 4.122 22.79 42.665 19.95 31.436-4.157-9.305-19.977-6.083-52.152-4.06-77.25 7.18-.35 14.94-2.633 23.03-7.06 35.815-19.6 64.428-73.652 63.906-120.72-.38-34.326-16.13-55.456-38.53-56.78.234-4.666.343-9.402.343-14.157 0-17.132-1.158-35.036-3.47-52.594l63.156 59.905c.443-95.64-40.88-162.37-97.187-161.22-20.115-26.323-48.325-31.894-84.595 4.376-17.822-17.82-33.678-25.575-47.594-25.718z","round-bottom-flask":"M196.336 18.547l39.486 92.598c15.428 5.19 30.466 4.96 46.135.003l34.246-92.6H196.336zM163.73 35.12l4.58 12.55c8.285 22.705 21.58 45.92 28.958 67.684 7.376 21.764 9.1 40.382-3.14 57.646-13.68 19.295-38.588 39.036-60.622 62.426S91.95 286.95 91.95 323.506c0 90.996 73.863 165.607 164.91 165.607 91.046 0 165.607-74.562 165.607-165.607 0-36.353-18.633-64.975-40.346-88.727-21.712-23.752-46.847-43.572-62.23-62.305-9.18-11.176-8.083-34.136-.88-58.948 7.202-24.812 19.265-50.037 25.908-65.34l5.67-13.066H330l-32.982 89.187c-4.628 21.963-4.8 43.92 8.43 60.03 17.494 21.302 42.586 40.852 62.88 63.052 20.295 22.198 35.45 46.107 35.45 76.116 0 80.852-66.064 146.92-146.92 146.92-80.853 0-146.22-66.015-146.22-146.92 0-29.948 15.754-53.275 36.47-75.266 20.72-21.99 46.04-41.55 62.263-64.43 16.084-22.685 13.952-48.6 6.29-72.304l-24.262-56.893c-.116-.265-.242-.538-.357-.802h.017l-7.97-18.69H163.73zm93.225 202.234c-29.526 0-56.244 4.575-74.752 11.5-9.254 3.462-16.414 7.55-20.732 11.37-3.928 3.476-5.263 6.203-5.474 8.42h-.267c0 15.347 7.808 29.99 20.916 41.887-.505-.217-1.025-.427-1.523-.65-10.727-4.78-19.682-10.378-26.387-16.952-2.23-2.187-4.24-4.532-5.937-7.02-7.48 12.14-12.415 25.588-12.415 41.14 0 69.77 56.745 127.132 126.517 127.132 69.772 0 127.13-57.36 127.13-127.13 0-15.723-4.923-29.484-12.39-41.93-1.802 2.782-4 5.39-6.466 7.808-6.705 6.574-15.66 12.17-26.387 16.953-.444.198-.908.385-1.356.58 13.06-11.885 20.837-26.5 20.837-41.817h-.354c-.21-2.216-1.546-4.943-5.475-8.418-4.317-3.82-11.477-7.91-20.73-11.37-18.51-6.926-45.23-11.5-74.755-11.5z","striking-arrows":"M136.564 31.01l239.67 149.595c-12.418 21.234-20.756 28.302-45.027 46.936l156.3-26.33-85.603-125.474c4.936 24.85 8.85 38.5.75 60.49L136.568 31.01h-.004zM21.524 42.75l83.13 325.893c-21.017 5.232-30.98 3.262-58.875-3.96l124.046 113.45 13.426-166.844c-10.836 23.322-15.94 37.197-34.342 46.82L21.523 42.75zm64.353.215l252.2 353.16c-23.285 16.947-36.38 19.583-73.83 24.9l200.66 71.74L407.7 286.944c-2.477 33.743-2.313 53.14-20.37 74.09L85.877 42.965z","trumpet-flag":"M476 18.28c-11 13.93-27.6 26.14-45.2 37.31C408.3 69.93 384 82.05 368 90.1l-1.9.9H325v30h41.1l1.9.9c16 8 40.3 20.2 62.8 34.5 17.6 11.2 34.2 23.4 45.2 37.3 3.5-6.9 6.8-16.1 9.2-27.1 3.8-17.7 5.8-39.1 5.8-60.6 0-21.45-2-42.93-5.8-60.6-2.4-11-5.7-20.18-9.2-27.12zM36 79c-5 0-10.04.98-12.85 2.22-1.3.58-1.93 1.13-2.15 1.35v46.83c.22.2.85.8 2.15 1.4C25.96 132 31 133 36 133s10.04-1 12.85-2.2c1.3-.6 1.93-1.2 2.15-1.4V82.57c-.22-.22-.85-.77-2.15-1.35C46.04 79.98 41 79 36 79zm33 12v30h46V91zm64 0v30h30V91zm48 0v30h78V91zm96 0v30h30V91zm-176 48v349l55-65.2 64 72 64-72 55 65.2V139zm66.2 45.4c10 19.2 27.3 18.1 44.2 18.1l36.7 1.4 5.3 16.7 52.4 6.9 2.4 34.2c-19 5.5-56.9 4.2-57 12.5-.1 13.8 24.7 10.7 53.1 3.5l-16.4 37.2-41.8 3c2.6 31.4-.8 52.6-24.2 75.1L207 355.4c-8.6 15.4-20.4 26.4-39 28.2 7.2-17.7 13-31.8 6.6-51.8-9.2 8.9-23.9 12.6-44.1 11.2 21.5-33.7 32.9-68.8 42.3-103.3L157 226c-4.5-16-.9-29.8 10.2-41.6z","water-flask":"M256 27.28c-12.5 0-23.9 2.67-31.2 6.34-7.4 3.67-9.4 7.46-9.4 9.29 0 1.84 2 5.63 9.4 9.3 7.3 3.66 18.7 6.33 31.2 6.33s23.9-2.67 31.2-6.33c7.4-3.67 9.4-7.46 9.4-9.3 0-1.83-2-5.62-9.4-9.29-7.3-3.67-18.7-6.34-31.2-6.34zm-59.4 14.81c-17.3.78-30.9 3.75-41.4 8.42C143 56 134.1 64.79 134.1 76.26c0 11.46 8.9 20.21 21.1 25.74 12.2 5.5 29 8.6 50.8 8.6V91.89c-19.9 0-34.4-3.13-43.1-7-8.6-3.88-10.1-7.59-10.1-8.63 0-1.05 1.5-4.76 10.1-8.64 8.5-3.81 22.5-6.83 41.6-6.98-4.8-4.78-7.9-10.68-7.9-17.73zm18.8 26.34v44.17c28 17.2 53.5 16.9 81.2 0V68.43c-.3.19-.7.38-1 .55-10.8 5.38-24.5 8.32-39.6 8.32-15.1 0-28.8-2.94-39.6-8.32-.3-.17-.7-.36-1-.55zm-14.6 57.27c-44.6 13.2-84.8 44.3-93.3 102.6 1.4-1.4 2.8-2.6 4.4-3.9 9-7 20.7-12.6 35-17.4 28.6-9.5 66.8-15.1 109.1-15.1s80.5 5.6 109.1 15.1c14.3 4.8 26 10.4 35 17.4 1.6 1.3 3 2.5 4.4 3.9-8.5-58.3-48.7-89.4-93.3-102.6-35.5 23.6-74.5 24.1-110.4 0zm55.2 85c-40.6 0-77.3 5.5-103.2 14.1-12.9 4.3-23 9.4-29.2 14.4-6.3 4.9-8.3 9-8.3 12.1 0 3.1 2 7.2 8.3 12.1 6.2 5 16.3 10.1 29.2 14.4 25.9 8.6 62.6 14.1 103.2 14.1s77.3-5.5 103.2-14.1c12.9-4.3 23-9.4 29.2-14.4 6.3-4.9 8.3-9 8.3-12.1 0-3.1-2-7.2-8.3-12.1-6.2-5-16.3-10.1-29.2-14.4-25.9-8.6-62.6-14.1-103.2-14.1zm-149.9 62.2c1.6 150.9 22.5 211.8 149.9 211.8s148.3-60.9 149.9-211.8c-1.7 1.8-3.7 3.6-5.8 5.3-9 7-20.7 12.6-35 17.4-28.6 9.5-66.8 15.1-109.1 15.1-33.9 0-65-3.7-90.9-9.9-.5 51.9 3.6 80.2 9.2 96.7 5.9 17.4 12.7 21.6 21.7 30.5l-13.4 13.4c-7.7-7.7-18.8-16.8-26.1-37.9-7-20.5-11-52.1-10-108-14.1-4.8-25.8-10.4-34.6-17.3-2.1-1.7-4.1-3.5-5.8-5.3z"};
+const gx = (k, w = 24) => (GI[k] ? gi(k, w) : `<svg viewBox="0 0 512 512" width="${w}" height="${w}" aria-hidden="true"><path fill="currentColor" d="${GX[k]}"/></svg>`);
+const stk47 = (words, k, label) => `<span class="btn stk" role="button" aria-label="${label || words}">${gx(k, 24)}<span>${words}</span></span>`;
+const FLAME = `<path d="M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.5-2.5 1.2-3.3C9.5 9 10.5 10 11 10.5 11 8 11 5.5 12 3z" ${W}/>`;
+const phBar = (title, gone) => `<div class="bar"><span class="ico" role="button" aria-label="Menu">${sym('menu', 24)}</span><span class="title${gone ? ' gone' : ''}">${title}</span><span class="ico" role="button" aria-label="Messages">${sym('mail', 24)}</span></div>`;
+const tabs = `<div class="tabs" role="tablist"><span class="on">${gi('crown', 24)}Player</span><span>${sym('fire', 24)}Scene</span><span>${sym('sack', 24)}Pack</span><span>${sym('book', 24)}Log</span></div>`;
+const ph = (title, inner, o = {}) => `<div class="ph bit${o.lg ? ' lg' : ''}">${phBar(title, o.gone)}<div class="inner">${inner}</div>${o.toast || ''}${o.tabs === false ? '' : tabs}</div>`;
+const lightRing = (frac, state) => { const s = 52, k = 5, r = (s - k) / 2, c = 2 * Math.PI * r; const lit = state === 'lit'; return `<span class="rg" aria-hidden="true"><svg class="arc" viewBox="0 0 ${s} ${s}" width="${s}" height="${s}"><circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--rule)" stroke-width="${k}"/>${lit ? `<circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--glow)" stroke-width="${k}" stroke-dasharray="${(c * frac).toFixed(1)} ${c.toFixed(1)}"/>` : ''}</svg><span class="mid" style="color:var(--${lit ? 'glow' : 'muted'})">${svg(FLAME, 26)}</span></span>`; };
+const ringTap = (frac, label) => `<span class="rt" role="button" aria-label="${label}">${lightRing(frac, 'lit')}<span class="vb" aria-hidden="true">Put out</span></span>`;
+const infoB = `<span class="i44" role="button" aria-label="About Keep lit">${I.info}</span>`;
+const keepRow = (o) => `<div class="kp"><span class="nm">Keep lit</span>${infoB}<span class="sp"></span>${stk47('Refill', 'jug', `Refill ${o.name}`)}${tg(o.keep, { label: 'Keep lit' })}</div>`;
+const lightToday = (o) => `<div class="lb47"><div class="lr">${ringTap(o.frac, `Put out ${o.name}`)}<span class="t" role="button" aria-label="${o.name}: its sheet"><b>${o.name}</b><small>${o.line}</small></span></div>${keepRow(o)}</div><div class="row"><span class="t" role="button"><b>${o.name}</b><small>${o.charges}</small></span>${stk47('Use', 'pointing', `Use a charge of ${o.name}`)}</div>`;
+const lightUse = (o) => `<div class="lb47"><div class="lr">${ringTap(o.frac, `Put out ${o.name}`)}<span class="t" role="button" aria-label="${o.name}: its sheet"><b>${o.name}</b><small>${o.line}. ${o.charges}</small></span>${stk47('Use', 'pointing', `Use a charge of ${o.name}`).replace('class="btn stk"', `class="btn stk${o.press ? ' press' : ''}"`)}</div>${keepRow(o)}</div>`;
+const pinMark = `<span class="pin" role="img" aria-label="Pinned">${svg('<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z" fill="currentColor"/>', 16)}</span>`;
+const bow = `<div class="row"><span class="t" role="button"><b>${pinMark}Shortbow</b><small>Quiver: Arrows ×18</small></span><span class="acts" data-stkgroup>${stk47('Quiver', 'quiver')}${stk47('Wield', 'sword-hilt')}</span></div>`;
+const wand = `<div class="row"><span class="t" role="button"><b>Glow wand</b><small>3 of 5 charges</small></span>${stk47('Use', 'pointing')}</div>`;
+const note47 = (words) => `<div class="tst"><div class="tz" role="status"><span class="zt">${words}</span></div></div>`;
+const railP = `<div class="rail">${[['crown', 'Player', 1], ['fire', 'Scene'], ['sack', 'Pack']].map(([k, l, on]) => `<span class="ri${on ? ' on' : ''}" role="button" aria-label="${l}">${k === 'crown' ? gi('crown', 24) : sym(k, 24)}</span>`).join('')}</div>`;
+const sword = `<div class="wpn"><div><div class="nm">Longsword</div><div class="in">In hand, Grip: one hand</div></div><span class="acts" data-stkgroup>${stk47('Grip', 'fist')}${stk47('Attack', 'sword-brandish')}</span></div>`;
+const tile = (k, v, c = '') => `<div class="tile" role="button"><span class="k">${k}</span><span class="v">${v}</span>${c ? `<span class="c">${c}</span>` : ''}</div>`;
+const right = `<p class="sclab" style="margin-top:0">Scores</p><div class="tiles" style="grid-template-columns:repeat(3,minmax(0,1fr))">${[['Might', 14, '+1'], ['Grace', 10, '+0'], ['Grit', 13, '+1'], ['Wit', 9, '+0'], ['Sense', 11, '+0'], ['Voice', 12, '+0']].map(([k, v, c]) => tile(k, v, c)).join('')}</div>`;
+// ---- this page ----
+// Invented names and numbers only. Brannoch (loop 2's frame 47-3) carries a Rum bottle whose pack says
+// `"charges": { "initial": 3, "unit": "portion", "units": "portions" }`; his Glow wand names no unit, so it says "charges".
+// Sam plays Wren in page 33's frames; the GM reveals the bottle's hidden count there.
+const frame = (id, cap, inner) => `<div class="fr49" data-frame="${id}"><p class="cap">${cap}</p><div class="wall">${inner}</div></div>`;
+const col = (label, html) => `<div><p class="lbl375">${label}</p>${html}</div>`;
+const rum = (o = {}) => `<div class="row"><span class="t" role="button"><b>${o.name || 'Rum bottle'}</b><small>${o.line || '2 of 3 portions'}</small></span>${stk47('Use', 'pointing', `Use a ${o.one || 'portion'} of ${o.name || 'Rum bottle'}`).replace('class="btn stk"', `class="btn stk${o.press ? ' press' : ''}"`)}</div>`;
+const atHand49 = (rows) => `<p class="sclab">At hand</p>${wand}${rows}${bow}`;
+const note49 = (words) => `<div class="tst"><div class="tz" role="status"><span class="zt">${words}</span></div></div>`;
+const LONGP = 'Black-water physic of the drowned abbey’s infirmary';
+const p1 = (inner, o = {}) => ph('Brannoch', inner, o);
+const f1 = frame('49-1', '<b>49-1. At hand at 375 px: the count’s line names its unit (⚑ 5, ⚑ 6).</b> <span class="flag">⚑ 5</span> <span class="flag">⚑ 6</span> Drawn on <b>loop 2’s frame 47-3</b> (page 47, draft pull request #161, <b>not yet approved</b>: its proposed At hand, the rows of page 35, approved 2026-11-22); if 47-3 changes at its sitting, this page follows it. Brannoch’s At hand with an invented <b>Rum bottle</b> whose pack names its unit, “portion”. <b>1.</b> Its line reads <b>“2 of 3 portions”</b>; <b>Use</b> keeps its one word (the stacked button), read aloud “Use a portion of Rum bottle”. The <b>Glow wand</b> names no unit and still says “3 of 5 charges”. <b>2. A hidden count:</b> “Portions: ?”. <b>3. None left:</b> Use stays a button; a tap says “Rum bottle has no portions left.” (the built words with the unit). <b>4. Messy:</b> a long name, “999 of 999 doses”, and “1 of 1 dose” (one: the singular).',
+  `${col('<b>1.</b> Two portions left.', p1(atHand49(rum())))}${col('<b>2.</b> A hidden count.', p1(atHand49(rum({ line: 'Portions: ?' }))))}${col('<b>3.</b> None left, Use tapped.', p1(atHand49(rum({ line: '0 left, spent', press: true })), { toast: note49('Rum bottle has no portions left.') }))}${col('<b>4.</b> Messy data.', p1(atHand49(`${rum({ name: LONGP, line: '999 of 999 doses', one: 'dose' })}${rum({ name: 'Salve tin', line: '1 of 1 dose', one: 'dose' })}`)))}`);
+
+// the tablet held sideways (47-3T's frame): the left column at its share of 1180
+const tab49 = (rows) => `<div class="tab dev">${railP}<div class="main">${topRow('player')}<div class="cols9"><div class="bit">${sword}${atHand49(rows)}</div><div class="bit">${right}</div></div><div class="cut">The screen goes on below.</div></div></div>`;
+const f1t = frame('49-1T', '<b>49-1, a tablet held sideways (1180 px)</b>, on 47-3T’s frame: the same row in the left column; the line “2 of 3 portions”, Use at the column’s right edge.', col('<b>Tablet.</b>', tab49(rum())));
+
+// the item's own sheet (page 33's: the player's thing pop-up, K22i 5 and 6; a tablet's card, M3g)
+const DESC = '<p>A squat green bottle of dark rum, stoppered with wax.</p>';
+const useRow = (one) => `<div class="lrow" role="button">${gi('pointing', 24)}<span>Use a ${one}</span><span></span></div>`;
+const sheetBody = (count, one = 'portion') => `<div class="bk">${bl(count[0], count[1])}</div>${DESC}${useRow(one)}${rowsPh}`;
+const pcardP = (name, body) => `<div class="pcard icard"><div class="hrow"><h2>${name}</h2>${ico('star', 'Pin to top')}<span class="ico" role="button" aria-label="Close">${I.close}</span></div>${body}</div>`;
+const f2 = frame('49-2', '<b>49-2. The item’s sheet, the player’s (⚑ 6).</b> <span class="flag">⚑ 6</span> Base: page 33’s K22i 5 and 6 (the thing’s pop-up, approved 2026-11-21) on a phone, and the item card on a tablet. The labelled line says <b>“Portions”</b> where it said “Charges”: “2 of 3 left”; the row reads <b>“Use a portion”</b>. <b>Hidden:</b> “Portions: ?”. <b>No unit:</b> “Charges”, “Use a charge”, as today.',
+  `${col('<b>Tablet</b>, the item card (cut).', `<div class="bit" style="width:440px">${pcardP('Rum bottle', sheetBody(['Portions', '2 of 3 left']))}</div>`)}${col('<b>Phone</b>, the sheet from the foot.', shGM(phoneBar('Wren'), `${hdP('Rum bottle')}${sheetBody(['Portions', '2 of 3 left'])}`, ''))}${col('<b>Phone</b>, a hidden count.', shGM(phoneBar('Wren'), `${hdP('Rum bottle')}${sheetBody(['Portions', '?'])}`, ''))}${col('<b>Phone</b>, no unit named.', shGM(phoneBar('Wren'), `${hdP('Glow wand')}<div class="bk">${bl('Charges', '3 of 5 left')}</div><p>A rod of pale wood that glows when gripped.</p>${useRow('charge')}${rowsPh}`, ''))}`);
+
+// the GM's Reveal pop-up (page 33's K22d and K22i 3): the row's fact named by the unit
+const RUM = { portions: ['Its portions', '2 of 3 left'] };
+const RUMMETA = 'Rum bottle, in Wren’s pack';
+const f3 = frame('49-3', '<b>49-3. The GM reveals the hidden count (G-234, built; ⚑ 9) with the unit word (⚑ 6).</b> <span class="flag">⚑ 6</span> <span class="flag">⚑ 9</span> Base: page 33’s K22d (the Reveal pop-up, approved 2026-11-21, built as k22-8) and K22i 3. The row reads <b>“Its portions”</b>, “2 of 3 left” under it, where it says “Its charges” today; the toast after the tap <b>“Told Wren: the rum bottle has 2 portions left.”</b>; the players’ log “Wren learned the rum bottle has 2 portions left.” <b>Not set yet:</b> “Its portions / Not set yet” (the blocked pop-up’s words unchanged but for the word: “Set its portions first”). Nothing else in the pop-up changes.',
+  `${col('<b>Tablet</b>, the pop-up (cut, over the GM’s view).', `<div class="bit" style="width:440px">${revealPop(RUMMETA, rows(RUM, ['portions']))}</div>`)}${col('<b>Phone</b>, after the tap.', shGM(vbarPh('Wren’s pack'), `${revealHd(RUMMETA, 'head', 'title')}${revealIn(rows(RUM, ['portions'], ['portions']), { all: true })}`, '', { toast: toast('Told Wren: the rum bottle has 2 portions left.') }))}${col('<b>Phone</b>, never set.', shGM(vbarPh('Wren’s pack'), `${revealHd(RUMMETA, 'head', 'title')}<div class="flist">${fRow(['Its portions', 'Not set yet'], false).replace(small('Tell'), '')}</div>`, ''))}`);
+
+const grey = frame('49-4', '<b>49-4. Greyscale strip.</b> Colour carries no distinction on this page: the unit is a word. Drawn in grey for Francis to judge.', `<div class="grey">${p1(atHand49(rum()))}</div>`);
+
+mount(`
+  <h1>Page 49: a count names its unit (G-233)</h1>
+  <p class="note big"><b>Drawn 2026-11-28 for sitting A; not approved.</b> The ruling sheet is <code>docs/design/rulings/dec5-gaps-2026-11-28.md</code> (⚑ 5 to ⚑ 9). Francis, 28 Nov: “An item should name what its count counts. The number of charges (portions in this case) should be revealable by the gm”. The reveal is built (k22-8, G-234); <b>only the word is new</b>: the pack names it on the item’s <code>charges</code> (<code>"unit": "portion"</code>), and every place the count is said uses it; without one the app says “charge”, as today. No new part, no new colour. Invented names and figures. Light on the left, dark on the right.</p>
+  <h1>49-1. At hand</h1>
+  ${f1}
+  ${f1t}
+  <h1>49-2. The item’s sheet</h1>
+  ${f2}
+  <h1>49-3. The GM’s Reveal pop-up</h1>
+  ${f3}
+  ${grey}
+  <h1>The words (⚑ 6 A)</h1>
+  <table class="sc">
+    <tr><th>Where</th><th>Today</th><th>With <code>"unit": "portion"</code></th></tr>
+    <tr><td>At hand’s line</td><td>2 of 3 charges</td><td>2 of 3 portions (1 of 1 portion)</td></tr>
+    <tr><td>Use, spoken name (the button says “Use”)</td><td>Use a charge of Rum bottle</td><td>Use a portion of Rum bottle</td></tr>
+    <tr><td>The item’s sheet</td><td>Charges: 2 of 3 left · Use a charge</td><td>Portions: 2 of 3 left · Use a portion</td></tr>
+    <tr><td>Hidden count, the holder</td><td>Charges: ?</td><td>Portions: ?</td></tr>
+    <tr><td>Not set yet</td><td>Charges not set</td><td>Portions not set</td></tr>
+    <tr><td>None left, a tap on Use</td><td>Rum bottle has no charges left.</td><td>Rum bottle has no portions left.</td></tr>
+    <tr><td>Hidden and none left (the holder)</td><td>Nothing happens. Rum bottle seems spent.</td><td>Unchanged</td></tr>
+    <tr><td>Reveal pop-up row</td><td>Its charges</td><td>Its portions</td></tr>
+    <tr><td>Reveal toast</td><td>Told Wren: the rum bottle has 2 charges left.</td><td>Told Wren: the rum bottle has 2 portions left.</td></tr>
+    <tr><td>The log</td><td>Wren used a charge of the rum bottle</td><td>Wren used a portion of the rum bottle</td></tr>
+    <tr><td>The GM’s roll prompt</td><td>Charges (3)</td><td>Portions (3)</td></tr>
+    <tr><td>Recharge, Recharge (fiat)</td><td>Recharge</td><td>Unchanged (⚑ 6 A; B would say Refill)</td></tr>
+  </table>
+  <h1>States</h1>
+  <table class="sc">
+    <tr><th>State</th><th>What shows</th></tr>
+    <tr><td>No unit named</td><td>“charge”, “charges”: today’s words (49-2, the wand).</td></tr>
+    <tr><td>Only <code>unit</code> given</td><td>The plural is the unit and an “s”; a pack whose plural is not (“mouse”, “mice”) gives <code>units</code>.</td></tr>
+    <tr><td>An unidentified item (⚑ 7 A)</td><td>The holder reads “Charges: ?” until its charges or its true name is told; the word is part of what is told. Not drawn.</td></tr>
+    <tr><td>Handed out before the change (⚑ 8 A)</td><td>Says “charges” until handed out again. Not drawn.</td></tr>
+    <tr><td>Loading, error, offline</td><td>As built: the words change, nothing else.</td></tr>
+    <tr><td>Overflow</td><td>49-1, 4: a long name and 999.</td></tr>
+  </table>
+  <h1>Critique</h1>
+  <p class="note">Run by the designer with the <code>impeccable</code> skill’s <code>critique</code> (the project’s condensed port: no detector or linter ran), on the drawn frames in light and dark, at the sizes drawn. <b>Not an independent run:</b> the page’s author scored it. Francis picks findings by number; nothing is changed until he does. Surface: an app screen at the table (the skill’s “Operate” mode).</p><table class="sc"><tr><th>Heuristic</th><th>0 to 4</th><th>Why</th></tr><tr><td>Visibility of system status</td><td>4</td><td>The line says how many of what are left, at a glance.</td></tr><tr><td>Match to the user’s language</td><td>4</td><td>“Portions” is the book’s own word; “Use a portion” is what the player says.</td></tr><tr><td>User control and freedom</td><td>3</td><td>As built: Use acts at once; nothing new.</td></tr><tr><td>Consistency</td><td>3</td><td>One rule everywhere the count is said; Recharge keeps its word on a bottle (finding 1).</td></tr><tr><td>Error prevention</td><td>3</td><td>A unit that is not a countable noun breaks the sentence (finding 2).</td></tr><tr><td>Recognition over recall</td><td>4</td><td>The player no longer translates “charges” into portions.</td></tr><tr><td>Flexibility and efficiency</td><td>3</td><td>No change in taps.</td></tr><tr><td>Minimalist design</td><td>4</td><td>Words only; no new part.</td></tr><tr><td>Error recovery</td><td>3</td><td>None left says why, with the unit.</td></tr><tr><td>Help and documentation</td><td>3</td><td>The item’s own words still explain the rest.</td></tr><tr><th>Total</th><th>34 of 40</th><th></th></tr></table><p class="note"><b>What works.</b> The smallest change that answers Francis’s words: one field in the pack, the same rows and pop-ups. The reveal he asked for is already built and gains the word.</p><p class="note"><b>Personas.</b> A player mid-fight (reads “2 of 3 portions” and taps Use); a screen-reader user (hears “Use a portion of Rum bottle”); a GM revealing a count (sees “Its portions”).</p><p class="note"><b>Findings, for Francis to pick by number:</b></p><ol class="crit"><li><b>Medium.</b> “Recharge” on a rum bottle reads oddly to the GM. Fix: ⚑ 6 B, “Refill” when the unit is not “charge”; or leave it (the GM’s, rare). <i>clarify</i></li><li><b>Medium.</b> The sentence breaks with an uncountable unit (“1 of 3 oil”) and with “a” before a vowel (“Use a ounce”). Fix: the app writes “an” before a vowel; 07 says a unit is a countable word (“flask”, not “oil”) and pack:check warns on a unit that ends in “s”. <i>harden</i></li><li><b>Low.</b> “1 of 1 dose” reads stiffly. Fix: when the full count is 1, “1 dose left”. <i>clarify</i></li><li><b>Low.</b> A hidden count shows “Portions ?” on the sheet’s labelled line, terse beside its neighbours (built as “Charges: ?”). Fix: leave as built; or “Portions: not known”. <i>clarify</i></li><li><b>Info.</b> At hand is drawn on loop 2’s draft frame 47-3 (not approved). If its sitting changes the row, this page is redrawn on the approved frame before its tickets go out.</li></ol><h1>Self-review</h1><p class="note"><b>Checked by script on this page (light):</b> every element marked as a button or switch in the frames is 44 by 44 or more; no text under 14 px inside a frame; each phone 375 px wide with no sideways scroll. <b>By eye, both themes:</b> one accent per screen (“Tell them everything” in the Reveal pop-up; none on At hand, as built); no disabled button (Use with none left stays a button and says why); Undo over confirm (as built); messy data (a long name, 999, 1, 49-1 4); states in the table above. <b>Contrast</b> (from the tokens): the muted line under a row, on the page, light 6.8, dark 8.3; on the pop-up ground, light 7.1, dark 6.8; the labelled line’s label colour on the pop-up ground as page 33 measured it. <b>Colour alone:</b> none (49-4, grey). <b>Nielsen’s ten:</b> the critique above. <b>Not checked:</b> Larger text; a tablet held upright; the log’s lines (described, not drawn); the toast over a sheet on a phone (page 33’s own open point); WebKit.</p>
+`);
+
+for (const el of document.querySelectorAll('.phone')) el.classList.add('bit');
+for (const el of document.querySelectorAll('.dev h2, .phone h2')) el.classList.add('bsub');
+for (const el of document.querySelectorAll('.tabbar span, .tabs span')) el.dataset.sc = '';
+applyBook();
+}
+</script>
+</body>
+</html>
