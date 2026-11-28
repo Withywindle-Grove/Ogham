@@ -72,6 +72,14 @@ export function isGalleryComparison({ file, title }) {
   return path.posix.basename(String(file).replace(/\\/g, '/')) === 'gallery.spec.ts' && / matches the approved pictures$/.test(title);
 }
 
+/** True when the message holds Playwright's "Expected an image AxB, received CxD" line with the sizes differing. */
+function changedSize(message) {
+  for (const [, ew, eh, rw, rh] of message.matchAll(/Expected an image (\d+)px by (\d+)px, received (\d+)px by (\d+)px/g)) {
+    if (ew !== rw || eh !== rh) return true;
+  }
+  return false;
+}
+
 /**
  * Reads one failed gallery comparison's last attempt: the pictures that differed and their -actual.png attachments.
  * Returns { pictures: [{ name, attachment }], problem } where problem says why it can't be accepted.
@@ -84,7 +92,10 @@ export function readComparison(test) {
   for (const error of result.errors ?? []) {
     const message = stripColours(error.message);
     if (!message.includes('toHaveScreenshot')) return { pictures: [], problem: 'failed on something other than a picture' };
-    if (/^\s*Timeout:/m.test(message) || /stable screenshots/i.test(message)) {
+    // A picture whose size changed makes Playwright keep retaking it until its timeout (#122, 27 Nov), so a timeout
+    // beside a size line with differing sizes is not movement; two takes that differed still leave a -previous.png,
+    // refused below.
+    if ((/^\s*Timeout:/m.test(message) && !changedSize(message)) || /stable screenshots/i.test(message)) {
       return { pictures: [], problem: 'a picture never held still' };
     }
     const snapshot = message.match(/^\s*Snapshot: (\S+)\s*$/m);

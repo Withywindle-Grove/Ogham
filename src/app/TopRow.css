@@ -134,6 +134,13 @@ body:has(.creation-step__bar--app) .top-row__back {
   flex: none;
 }
 
+/* The way back in words to Your campaigns ("‹ The Storm Lantern …", a tablet) keeps at least four targets' width,
+   176 px, so a long title never squeezes it to "‹ …" (dec-14 row 3, page 38 frame 38-3; ruled 2026-11-24, 2 and 8:
+   every screen with the standard top row). ≡ and ← keep their 44 px; a phone shows ≡ here, so 375 px is untouched. */
+.top-row__lead--worded {
+  min-width: calc(4 * var(--tap));
+}
+
 .top-row--standard .top-row__end {
   justify-self: end;
 }

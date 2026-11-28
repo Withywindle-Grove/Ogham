@@ -124,9 +124,16 @@ function unidentifiedFindings(file) {
 /** Common words that hint at nothing, whatever the item. */
 const COMMON_WORDS = new Set(['the', 'and', 'for', 'with', 'from', 'into', 'onto', 'its', 'his', 'her', 'their', 'that', 'this', 'not']);
 
-/** The words of an id or a name, lower case: three letters or more, common words aside. */
+/**
+ * The words of an id or a name, lower case: three letters or more, common words aside. Each word is taken both split at
+ * its apostrophes (’ or ') and hyphens and with them folded away (#176), so "Warden’s" gives "warden" and "wardens",
+ * and "Bog-warden’s" also "bogwardens": an id spelling either way is caught.
+ */
 function hintWords(text) {
-  return new Set(text.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((word) => word.length >= 3 && !COMMON_WORDS.has(word)));
+  const lower = text.toLowerCase();
+  const split = lower.split(/[^\p{L}\p{N}]+/u);
+  const folded = lower.replace(/[’'-]+/gu, '').split(/[^\p{L}\p{N}]+/u);
+  return new Set([...split, ...folded].filter((word) => word.length >= 3 && !COMMON_WORDS.has(word)));
 }
 
 /** Every finding on the ruled fields, `{ level: 'error' | 'warning' | 'note', text }`, in file order. Never throws. */

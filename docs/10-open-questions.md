@@ -12,6 +12,11 @@ Rule on these as they come up. Move each answer to `09-decisions-log.md`.
 - ⚑ **A control's edge on a pop-up in dark is 2.97 to 1, under the 3 to 1 floor** (the critique's finding 24 on page 44, measured 2026-11-25 and again 2026-11-26). It is the tokens' own pair (Control on the pop-up's ground), used across the app: a new value is a change to `06`'s tokens. Not changed on page 44, and left for later by Francis with the page's approval (2026-11-26).
 - ⚑ **A words sweep for "piece"** (scope check; Francis, 2026-11-26, sf-24: "I don't like the term 'pieces', minimize its use"). DT1 is done in its build. Every other place the app shows the word "piece" to a person (a place's pieces, "+ Piece", "Add a piece", "Edit piece", "Remove this piece", the log's lines, the pop-ups) is listed by the builder of the sweep, with a better word each, and comes to him before any screen changes. Nothing else is changed now. `design/rulings/scene-feedback-2026-11-25.md`, sf-24 and sf-27.
 
+**The Player screen's sitting** (2026-11-27, `design/rulings/player-sitting-sheet-2026-11-27.md`): three frames to draw, then approve (`design/mockups/index.md`, "to approve").
+- **38-3 at 375 px, light and dark** (pss-14): a long name on a phone leaves the bar and leads the head's line. Holds the phone's long name in the spec (loop 2).
+- **The icon page** (pss-10): two or three candidates each for Fire, Drink, Eat and Stance at 20 px, light and dark; Francis picks at the next sitting; holds the four icons in the spec (loop 2).
+- **The light block with Use** (pss-17): a lit light with charges as one row. Holds the light's Use in the spec (loop 2).
+
 **The Pack tab's finds** (page 45, approved 2026-11-26 in two sittings: `design/rulings/page-45-find-flow-2026-11-26.md`. F1, F2 and F7 are ruled: p45-21 to p45-23. The rest are not asked yet and stay ⚑ with the designer's lean; none holds a piece back: plan `plans/dec-6-the-whole-pack-tab.md`, "The find flow")
 - ⚑ F3 **"Just now": when it becomes "today".** Lean: under an hour, read when the card is drawn, with no ticking clock; then K14's words.
 - ⚑ F4 **A player with two characters: does the card name the character?** Lean: no. The card and the count belong to the character whose tabs are open, and the screen's title names it.
