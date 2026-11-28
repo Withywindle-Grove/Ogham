@@ -22,7 +22,7 @@ import { combineEncumbrance } from '../modules/inventory/encumbrance.ts';
 import type { InventoryLine, NamedCarrier } from '../modules/inventory/inventory.ts';
 import type { OpenCampaign } from './Campaigns.tsx';
 import { ItemRow } from './ItemRow.tsx';
-import { RollLines, rollFace } from './WeaponInHand.tsx';
+import { diceFace, RollLines, rollFace } from './WeaponInHand.tsx';
 
 afterEach(cleanup);
 
@@ -141,5 +141,15 @@ describe('the block keeps what the campaign changed (C14 review)', () => {
     // The figures themselves are the roll lines', not the line's.
     expect(main.textContent).not.toContain('+2');
     expect([...document.querySelectorAll('.weapon-in-hand__roll')].map((r) => r.textContent)).toEqual(['d20 +2 to hit', 'd6 −1 damage']);
+  });
+});
+
+describe("a spell's roll in its block (Player sitting piece 2; frame M4g)", () => {
+  // Purpose: a spell's dice read as a weapon's roll does ("d6 +2", the leading 1 dropped, the true minus), with its die's
+  // glyph and its words beside ("turns"), so the spell block's roll line matches the weapon block's.
+  it('reads its dice as a weapon roll reads, with its words', () => {
+    expect(diceFace('d6+2', 'turns')).toEqual({ die: 6, figure: 'd6 +2', label: 'turns' });
+    expect(diceFace('1d4 - 1', 'rounds')).toEqual({ die: 4, figure: 'd4 −1', label: 'rounds' });
+    expect(diceFace('2d8', '')).toEqual({ die: 8, figure: '2d8', label: '' });
   });
 });

@@ -38,7 +38,12 @@ const TURN = 600;
  * `arms`, several ready weapons (frame P5b; pib-1, pib-2): three in hand (the spear, the knife and a long-named axe with
  * its Grip: three blocks), bog-ox horns worn and pinned (an At hand row with Attack and Stance) and a heron bow pinned
  * with its quiver (a row with Wield and Quiver).
+ * `spells`, a caster with pinned spells (Player sitting piece 2; frame M4g): Marsh light ready twice, one cast, with a
+ * roll and a range; a long-named spell with none left; Hush with no roll and no range; Reed whisper in the book but not
+ * ready today; and a pin whose spell has left the book (ignored). Invented spells and figures.
  * `1`, the four of P1. */
+/** The long-named pinned spell (`spells`, frame M4g's right panel). */
+export const P1_LONG_SPELL = 'The Lady of the Lanterns’ light on drowned stone';
 export const P1_LONG_NAME = 'Brannoch Fenward of the Seven Drowned Cairns, called the Unbowed';
 /** The long-named light (`longlight`, 35D's messy data). */
 export const P1_LONG_LIGHT = 'Hooded lantern of the drowned bell';
@@ -62,7 +67,8 @@ export type P1Head =
   | 'burnt'
   | 'burntnone'
   | 'longlight'
-  | 'armour';
+  | 'armour'
+  | 'spells';
 
 export async function addP1Character(
   world: FakeWorld,
@@ -92,8 +98,10 @@ export async function addP1Character(
             // at 3) is a target number, which a rules set with no AC style reads as a bonus ("d20 +20"). Francis's fix
             // 0 of 19 Nov 2026: the sample, not the rule. Invented: +0 at level 1, +1 from level 3.
             const attack = typeof row.level === 'number' && row.level >= 3 ? 1 : 0;
-            return { ...row, attack, saves: { ...saves, ...Object.fromEntries(Object.entries(MORE_SAVES).map(([k, d]) => [k, mire + d])) } };
+            return { ...row, attack, ...(head === 'spells' ? { spellSlots: [5] } : {}), saves: { ...saves, ...Object.fromEntries(Object.entries(MORE_SAVES).map(([k, d]) => [k, mire + d])) } };
           }),
+          // For `spells`, a book caster (Player sitting piece 2). Invented.
+          ...(head === 'spells' ? { spellcasting: { listId: 'p1-warden-spells', type: 'book', castingType: 'divine', maxSpellLevel: 2, fromLevel: 1, recover: 'rest', firstSpells: { given: [] } } } : {}),
           // For `pins`, a second trait with uses, left unpinned, so a plain row follows the pinned boxes under "Abilities
           // and traits" (plan dec-14, fix 4's "not drawn together" case). Invented.
           ...(head === 'pins' && Array.isArray(data.abilities)
@@ -169,6 +177,15 @@ export async function addP1Character(
     { id: 'watchful', name: 'Watchful', icon: 'eye-half', tone: 'neutral', notes: 'Hard to surprise.' },
   ];
   for (const c of conditions) entry('pack-p1-lantern', 'condition', c);
+  // For `spells` (Player sitting piece 2; frame M4g): the Warden's spells, invented, and the slots filled at level up.
+  if (head === 'spells') {
+    entry('pack-p1-lantern', 'spell', { id: 'marsh-light', name: 'Marsh light', range: '30 paces', duration: { roll: 'd6+2', unit: 'turn' }, notes: 'A pale light hangs over still water.' });
+    entry('pack-p1-lantern', 'spell', { id: 'lady-lanterns', name: P1_LONG_SPELL, range: '30 paces', duration: { roll: 'd6+2', unit: 'turn' }, notes: 'The drowned stones glow as lanterns do.' });
+    entry('pack-p1-lantern', 'spell', { id: 'hush', name: 'Hush', duration: 'instant', notes: 'One voice falls silent.' });
+    entry('pack-p1-lantern', 'spell', { id: 'reed-whisper', name: 'Reed whisper', range: '60 paces', duration: '1 turn', notes: 'The reeds carry a word.' });
+    entry('pack-p1-lantern', 'spellList', { id: 'p1-warden-spells', name: 'Warden spells', levels: [{ level: 1, spells: ['marsh-light', 'lady-lanterns', 'hush', 'reed-whisper'] }] });
+    entry('pack-p1-lantern', 'hook', { id: 'p1-fill-slots', kind: 'fill', when: 'levelUp', from: 'classProgression', target: ['spellSlots'] });
+  }
   world.tables.campaign_packs.push({ id: 'campaign-pack-p1-lantern', campaign_id: campaign, pack_id: 'pack-p1-lantern', option_choices: {}, overrides: {}, priority: 2 });
 
   // The sheet's fields, from the fixture's template (as ?full=1).
@@ -189,6 +206,7 @@ export async function addP1Character(
     race_ref: 'bog-folk',
     fields: { MUS: 15, NIM: 12, GRT: 13, WIT: 10, LORE: 9, CHARM: 11, alignment: 'Lantern', languages: 'Reedish, Common', motto: 'The beacon before the bed.' },
     classes: head === 'classless' ? [] : [{ classRef: 'lantern-warden', level: 3, xp: 3400 }],
+    ...(head === 'spells' ? { spell_book: ['marsh-light', 'lady-lanterns', 'hush', 'reed-whisper'] } : {}),
   });
   world.addMember(campaign, sam, 'player', brannoch);
   // A score sent to the GM and waiting (the sheet's waiting-change line, drawn on the Player screen since C1; dec-13 C11).
@@ -209,6 +227,15 @@ export async function addP1Character(
     form_id: null,
     version: 1,
     ...(head === 'pins' ? { pins: [{ kind: 'trait', key: 'Oath of light' }, { kind: 'trait', key: 'Steady flame' }] } : {}),
+    // `spells`: Marsh light ready twice, one cast; the long-named spell ready twice, both cast; Hush once; Reed whisper
+    // only in the book; a pin whose spell is gone (ignored).
+    ...(head === 'spells'
+      ? {
+          prepared: [{ spell: 'marsh-light', level: 1 }, { spell: 'marsh-light', level: 1 }, { spell: 'lady-lanterns', level: 1 }, { spell: 'lady-lanterns', level: 1 }, { spell: 'hush', level: 1 }],
+          spells_cast: { '1:marsh-light': 1, '1:lady-lanterns': 2 },
+          pins: [{ kind: 'spell', key: 'marsh-light' }, { kind: 'spell', key: 'gone-spell' }, { kind: 'spell', key: 'lady-lanterns' }, { kind: 'spell', key: 'hush' }, { kind: 'spell', key: 'reed-whisper' }],
+        }
+      : {}),
   });
 
   // The pack: the coat worn, the spear in hand, the knife pinned, the lantern and its oil.

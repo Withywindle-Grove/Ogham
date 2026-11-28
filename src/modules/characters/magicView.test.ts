@@ -2,7 +2,7 @@
 // powers: Marsh light, Reed whisper, Thorn dart, Mend lantern; a Lantern Warden's Bird friend.
 import { describe, expect, it } from 'vitest';
 import { castKey } from './magicState.ts';
-import { chooseOneFewer, chooseOneMore, countSpells, magicTabLevels, prepareView, refillUses, restRows, type RestCharacter } from './magicView.ts';
+import { chooseOneFewer, chooseOneMore, countSpells, magicTabLevels, pinnedSpellBlocks, prepareView, refillUses, restRows, type RestCharacter } from './magicView.ts';
 import type { PreparedSpell } from './playState.ts';
 
 const p = (spell: string, level: number, times = 1): PreparedSpell[] => Array.from({ length: times }, () => ({ spell, level }));
@@ -282,5 +282,40 @@ describe("Prepare's list in order (dec-8 answers 1 and 3; mp-1)", () => {
       ['reed-whisper', 0, true],
     ]);
     expect(at(view).steps[1]).toEqual({ spell: 'drowned-bell', inPack: false, count: 1, mayAdd: false, mayRemove: true });
+  });
+});
+
+describe('the pinned spells At hand (Player sitting piece 2; pss-5, psb-5, psb-6)', () => {
+  const pin = (key: string) => ({ kind: 'spell' as const, key });
+  const book = (...ids: string[]) => (id: string) => ids.includes(id);
+
+  // Purpose: a pinned spell ready today is one block in the pins' order, with its castings left and the level Cast spends.
+  it('ready spells: one block each, in the pins order, with what is left', () => {
+    const play = { prepared: [...p('marsh-light', 1, 2), ...p('hush', 1)], spellsCast: { [castKey(1, 'marsh-light')]: 1 } };
+    expect(pinnedSpellBlocks([pin('hush'), pin('marsh-light')], play, book())).toEqual([
+      { spell: 'hush', ready: true, level: 1, times: 1, left: 1, castLevel: 1 },
+      { spell: 'marsh-light', ready: true, level: 1, times: 2, left: 1, castLevel: 1 },
+    ]);
+  });
+
+  // Purpose: with every casting spent the block stays, with none left and no level to spend ("Memorized, 0 of 2 left").
+  it('none left: the block stays, nothing to spend', () => {
+    const play = { prepared: p('marsh-light', 1, 2), spellsCast: { [castKey(1, 'marsh-light')]: 2 } };
+    expect(pinnedSpellBlocks([pin('marsh-light')], play, book())).toEqual([{ spell: 'marsh-light', ready: true, level: 1, times: 2, left: 0, castLevel: null }]);
+  });
+
+  // Purpose: a pinned spell in the book but not ready today keeps its block, not ready (psb-5); one that has left the
+  // book is ignored, and a trait pin is not a spell block.
+  it('in the book, not ready: kept; gone from the book: ignored; traits: not here', () => {
+    const play = { prepared: [], spellsCast: {} };
+    const pins = [{ kind: 'trait' as const, key: 'Bird friend' }, pin('gone-spell'), pin('thorn-dart')];
+    expect(pinnedSpellBlocks(pins, play, book('thorn-dart'))).toEqual([{ spell: 'thorn-dart', ready: false, level: null, times: 0, left: 0, castLevel: null }]);
+  });
+
+  // Purpose: a spell ready at two levels is one block counting both, and Cast spends the lowest level with a casting
+  // left, as the Magic tab's first row for it would (psb-6).
+  it('ready at two levels: one block; Cast spends the lowest level still left', () => {
+    const play = { prepared: [...p('reed-whisper', 1), ...p('reed-whisper', 2, 2)], spellsCast: { [castKey(1, 'reed-whisper')]: 1 } };
+    expect(pinnedSpellBlocks([pin('reed-whisper')], play, book())).toEqual([{ spell: 'reed-whisper', ready: true, level: 1, times: 3, left: 2, castLevel: 2 }]);
   });
 });
