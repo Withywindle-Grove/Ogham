@@ -1,7 +1,7 @@
 ---
-status: approved at sitting B, 2026-11-28; tickets #200-#209 (parent #198); rulings sb4-1 to sb4-5 (docs/design/rulings/scene-pack-b-2026-11-28.md); pieces K to P approved at a short sitting B the same day: tickets #212-#217, rulings sb4-6 to sb4-10 (same file)
+status: approved at sitting B, 2026-11-28; tickets #200-#209 (parent #198); rulings sb4-1 to sb4-5 (docs/design/rulings/scene-pack-b-2026-11-28.md); pieces K to P approved at a short sitting B the same day: tickets #212-#217, rulings sb4-6 to sb4-10 (same file); piece Q added at loop 3's sitting C the same day (dgc-5, dgc-6, dgc-8, dgc-14), its ticket not yet filed
 loop: 4
-rulings: docs/design/rulings/loop4-scene-pack-2026-11-28.md (l4-1 to l4-6; 09, 2026-11-28); the rows' own rulings stand as written: sf-6b, sf-10, sf-11, sf-13, sf-14, sf-18, sf-21, sf-24, sf-27, sf-5 and its three ⚑ (docs/design/rulings/scene-feedback-2026-11-25.md); p45-1 to p45-29 (docs/design/rulings/page-45-find-flow-2026-11-26.md); #158 ⚑ 4 (09, 2026-11-28); ap-6 (2026-11-14); dg-10, dg-19 (docs/design/rulings/dec5-gaps-2026-11-28.md)
+rulings: docs/design/rulings/loop4-scene-pack-2026-11-28.md (l4-1 to l4-6; 09, 2026-11-28); the rows' own rulings stand as written: sf-6b, sf-10, sf-11, sf-13, sf-14, sf-18, sf-21, sf-24, sf-27, sf-5 and its three ⚑ (docs/design/rulings/scene-feedback-2026-11-25.md); p45-1 to p45-29 (docs/design/rulings/page-45-find-flow-2026-11-26.md); #158 ⚑ 4 (09, 2026-11-28); ap-6 (2026-11-14); dg-10, dg-12, dg-16, dg-19 (docs/design/rulings/dec5-gaps-2026-11-28.md); dgc-5, dgc-6, dgc-8, dgc-14 (docs/design/rulings/dec5-gaps-c-2026-11-28.md), piece Q
 intents: docs/intents/scene-feedback-2026-11-25.md (the Scene rows); the Pack rows come from the pack rework's rulings (pk-5, 2026-11-11) and have no intent file
 plans left: docs/plans/dec-scene-feedback.md (sf-6b, sf-13, sf-10, sf-11, sf-18, sf-14); docs/plans/dec-6-the-whole-pack-tab.md (K19b, K18c, K18e, K18d); both keep the rows for the record only
 mockups: december/44-scene-feedback-of-25-november.html, frames 44-5 (DT1), 44-6 (DT2), 44-7 (TR1's pieces), approved 2026-11-26 and approved as redrawn to ⚑ 9 the same day; 44-12 (PS1), 44-13 (PS2 A, C, D), 44-14 (PS3 A, B), 44-15 (KN1), 44-16 (ET1), 44-1 (EN1), approved 2026-11-26. december/45-the-pack-tab-find-flow.html, frames 45-2 (FD1b), 45-3 (FD1c B, C), 45-4 (FD2), 45-5 (FD2b), 45-15 (FD7), 45-20 (FD10), 45-21 (FD10b), approved 2026-11-26 (p45-1, p45-29). december/50-what-a-person-carries.html, approved 2026-11-28 (dg-19), the newer frame for a person's piece. december/51-the-find-card-on-the-player-tab.html, 51-1 A and 51-2 A, approved 2026-11-28 (l4-6). Page 08's PK2b (pack/08-the-pack-tab-whole.html), approved 2026-11-14 (ap-6). Pictures under each page's png/ folder
@@ -183,6 +183,7 @@ Every row is visible and has an approved frame. None changes what is stored or w
 | H | #203 | sf-18 | The chevron and the band's words | I (the band's stylesheet) |
 | I | #209 | sf-10, sf-11 | The players' Scene: the pair under the place, the players' fold | H |
 | J | #204 | sf-14 | The tables' pages in the tapped table | sf-5's pop-up (built) |
+| Q | to file | dgc-5, dgc-6, dgc-8, dgc-14 | Loop 3's follow-up on a person's things: "Sent before" opens the thing's sheet with Take it back; the pack's capitals; "You" on the GM's log; her name in the words | B (#205): `personHolds.ts`; F (#208), if it touches the find's log line |
 
 **No migration, no command, no permission case.** No row writes a new kind of row or opens a new read. sf-13's share is the built `placeKnowledge.eye`, and a player's read of an Area's section is the built `knowledge_for_players`, which already reads the places a place sits in (sf-21). The find card, the count and the stash's toast read what a player can already read: the character's seen mark and lines, and the party's log lines.
 
@@ -301,6 +302,21 @@ Francis added these to loop 4 on 28 Nov ("Yes", to "add #210 and the retro items
 - The piece: the driver's merge step for a spec's pull request lists every 09 line dated inside the loop, for the design agent's docs-sync, within the hour of the merge.
 - Done: `.claude/agents/driver.md` (Review and merge) gains the line; `docs:check` passes.
 
+**Piece Q: loop 3's follow-up on a person's things (dgc-5, dgc-6, dgc-8, dgc-14; added at loop 3's sitting C, 28 Nov)**
+- Mockup: `december/50-what-a-person-carries.html`, approved 2026-11-28 (dg-19): frame 50-3 (her sheet at another place, "Sent before") and frame 50-1 (a thing's one-thing sheet once sent, with Take it back).
+- Files: `src/app/PersonSheet.tsx`, `src/modules/expedition/personHolds.ts`, and the GM's log's find wording (the find's line in `src/core/events.ts`). It follows #205 (piece B): both touch `personHolds.ts` (#205 changes `GM_ONLY_LABEL`) and the person piece's Carries line. It runs beside the other rows, except F (#208) if F's words touch the find's log line.
+- dgc-5 (dg-12, frame 50-3, story 68 of `specs/dec5-gaps.md`): each "Sent before" line on her sheet opens that thing's one-thing sheet (TR1's, as a sent row opens it), with where it went and Take it back. Take it back is the built `find.undo` of the send that sent it, wherever she is now, with the built toast and Undo; she carries the thing again at every place. The line is a tap target of at least 44 px, with 8 px between.
+- dgc-6: the Carries line keeps each thing's name as the pack writes it: "Carries: Warden's lantern, Iron key." (today `carriesWords` lower-cases the first letter). A sent thing's sentence keeps its built form ("Warden's lantern sent to Wren.").
+- dgc-8: on the GM's own log every find line says "You", as the held send's does (dg-16): "You gave Wren …", "You put … in the party stash". A player's lines stay "Your GM gave …" and "Your GM put …". Only the subject changes; the rest of each line stays as built (the article sweep stays owed, `10`).
+- dgc-14: her sheet's words name her, not "she": "Couldn't read what Mother Sedge carries. Check your connection and try again."; "One thing Mother Sedge carries isn't in your packs.".
+- No migration, no command, no permission case: the send and its Undo are built (piece E of loop 3, `give_find`, `undo_find`).
+- ⚑ for sitting B (Francis's words leave these open; the built words are quoted):
+  - Q1. The plural of the missing line: built "3 things she carries aren’t in your packs." (kept, dgc-10); dgc-14 names her in the singular only. "3 things Mother Sedge carries aren’t in your packs."?
+  - Q2. The take-back toast: built "Taken back from Wren: warden’s lantern." (kept, dgc-9), lower-cased; dgc-6 says the pack's capitals "everywhere". Does its capital change?
+  - Q3. The one-thing sheet's sent line for a thing sent at another place: built for one sent here, "Sent to Wren, turn 3."; frame 50-3 draws only the "Sent before" line ("✓ Sent before: Warden’s lantern, to Wren, at 4. The Customs Shed."). Which words on the sheet it opens?
+  - Q4. The GM's coin lines that are not finds (`purse.add` and the stash's coin: "Your GM gave Moss 10 herons from the stash.", and the toast "Your GM gave Wren 40 herons"): dgc-8 names "the older find lines". Do these change too?
+- Done: the built screen beside frames 50-1 and 50-3 in `pr-text.md`; 05 (What a person carries) and 06 (Hoard sheet, the person's dress, its Code column) say it as built.
+
 **Docs in the same pull requests.**
 - 05 and 06 already carry sitting A's lines (this spec's commit): the find card's places on the Player tab (l4-4, l4-5), the notices box under the card, and the place card's two labels (l4-2).
 - 06's Code column for each part touched: Find card (E, F, D), Detail row and Room GM layer (B), Knowledge (C), the band (H), the players' page (I), the encounter tables (J).
@@ -334,6 +350,11 @@ The three seams Francis approved (28 Nov, "Yes"). There is no database seam: no 
 - O: pure functions in Node tests, each purpose first: the script picks only the named pictures from a run's artifacts, refuses one identical to `main`'s, and names each size; the check counts the gallery lines in a pull request's text (0, 1, 2 and 10, any case, a line inside a quote). Prior art: `scripts/ci-redraws.test.mjs` (`announcedPictures`), `scripts/ci-jobs.test.mjs`.
 - L, N, P: docs only; `npm run docs:check`. Each is proved at its first use: L at the next spec's sitting B (no builder stops on a part that does not exist), N at the next builder's report (it quotes its `end … rc=` line), P at loop 4's own merge (the list is there).
 - M: no test; the log's times are the result.
+
+**Piece Q (added at loop 3's sitting C).** Each purpose written first.
+- Seam 1: `personHolds.test.ts`: the Carries line keeps the pack's capitals ("Warden's lantern, Iron key."), and a name the pack writes in lower case stays so; her name in the missing line and the failed-read line, with a long name; `events.test.ts` and `heldSend.test.ts`: the GM reads "You gave Wren …" and "You put … in the party stash" for a find, a coin find and a stash send, a player reads "Your GM …", and the held line is unchanged.
+- Seam 2: `personSheet.test.tsx`: a "Sent before" line opens that thing's sheet; Take it back there returns it to her, her line and her sheet follow, and the toast has Undo; a refused Take it back shows the error toast with its reason.
+- Seam 3: `tests/layout/personCarries.spec.ts` with the built `carries=before` fixture: the line a 44 px target, 375 px and tablet, light and dark, Larger text, a long name with ×999; the sheet it opens.
 
 ## Out of Scope
 
@@ -388,4 +409,4 @@ The three seams Francis approved (28 Nov, "Yes"). There is no database seam: no 
 - The word "piece" sweep (sf-24, `10`) stays after 5 Dec; sf-6b's card says "piece" to no one, as ruled.
 - sf-27's undrawn states (three or more creatures in one row; "Take it back" refused; a wrong "Nothing stirs"; "Add a piece") stay unbuilt, drawn after 5 Dec.
 
-**Pictures owed.** Each visible piece shows its built screen beside its approved picture in its `pr-text.md`: page 44 (B, C, H, I, J), page 45 (D, E, F), page 51 (E), page 50 (B's person piece).
+**Pictures owed.** Each visible piece shows its built screen beside its approved picture in its `pr-text.md`: page 44 (B, C, H, I, J), page 45 (D, E, F), page 51 (E), page 50 (B's person piece; Q's frames 50-1 and 50-3).
