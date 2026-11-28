@@ -114,6 +114,10 @@ for (const scheme of ['light', 'dark'] as const) {
             probe.style.color = 'var(--ink)';
             document.body.append(probe);
             const ink = getComputedStyle(probe).color;
+            // The control line (--line-control, 1.5 px) as this browser draws it: Chrome draws it 1 px, WebKit 1.5.
+            probe.style.borderTop = 'var(--line-control) solid';
+            const line = getComputedStyle(probe).borderTopWidth;
+            const token = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--line-control'));
             probe.remove();
             // What is painted just outside the grip's edge: the first element under that point, the handle aside,
             // with a fill of its own; else the page's root.
@@ -127,9 +131,12 @@ for (const scheme of ['light', 'dark'] as const) {
             const behind = getComputedStyle(under ?? document.documentElement).backgroundColor;
             const g = getComputedStyle(grip);
             const a = getComputedStyle(arrow);
-            return { edge: g.borderTopColor, edgeWidth: g.borderTopWidth, behind, arrowColour: a.color, arrowSize: a.fontSize, ink };
+            return { edge: g.borderTopColor, edgeWidth: g.borderTopWidth, line, token, behind, arrowColour: a.color, arrowSize: a.fontSize, ink };
           });
-          expect(parseFloat(look.edgeWidth)).toBeGreaterThanOrEqual(1.5);
+          // The grip's edge is the 1.5 px control line, drawn as wide as this browser draws that line.
+          expect(look.token).toBeGreaterThanOrEqual(1.5);
+          expect(parseFloat(look.edgeWidth)).toBeGreaterThanOrEqual(1);
+          expect(look.edgeWidth).toBe(look.line);
           expect(contrast(look.edge, look.behind)).toBeGreaterThanOrEqual(3);
           expect(look.arrowColour).toBe(look.ink);
           expect(look.arrowSize).toBe('16px');
