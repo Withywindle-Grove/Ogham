@@ -1,7 +1,7 @@
 ---
 status: pending
 milestone: December first play (loop 4: the Scene's remaining rows and the Pack's remaining find-flow rows, through the build loop)
-absorbed-into: none yet (sitting A held 2026-11-28; `docs/specs/<loop 4>.md` comes from `/to-spec` after it)
+absorbed-into: docs/specs/scene-pack.md (from `/to-spec`, 2026-11-28)
 supersedes: none. The rows leave `docs/plans/dec-scene-feedback.md` and `docs/plans/dec-6-the-whole-pack-tab.md` for the loop; the rulings they cite stand as written
 ---
 
